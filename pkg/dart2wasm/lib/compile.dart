@@ -25,13 +25,15 @@ import 'package:kernel/kernel.dart' show writeComponentToText;
 import 'package:kernel/verifier.dart';
 
 import 'package:vm/kernel_front_end.dart' show writeDepfile;
-
+import 'package:vm/transformations/unreachable_code_elimination.dart'
+    as unreachable_code_elimination;
 import 'package:vm/transformations/type_flow/transformer.dart' as globalTypeFlow
     show transformComponent;
 import 'package:vm/transformations/mixin_deduplication.dart'
     as mixin_deduplication show transformComponent;
 
 import 'package:dart2wasm/compiler_options.dart' as compiler;
+import 'package:dart2wasm/constant_evaluator.dart';
 import 'package:dart2wasm/js/runtime_generator.dart' as js;
 import 'package:dart2wasm/record_class_generator.dart';
 import 'package:dart2wasm/records.dart';
@@ -109,6 +111,11 @@ Future<CompilerOutput?> compileToModule(compiler.WasmCompilerOptions options,
   Component component = compilerResult.component!;
   CoreTypes coreTypes = compilerResult.coreTypes!;
   ClassHierarchy classHierarchy = compilerResult.classHierarchy!;
+
+  ConstantEvaluator constantEvaluator =
+      ConstantEvaluator(options, target, component, coreTypes, classHierarchy);
+  unreachable_code_elimination.transformComponent(target, component,
+      constantEvaluator, options.translatorOptions.enableAsserts);
 
   if (options.dumpKernelAfterCfe != null) {
     writeComponentToText(component, path: options.dumpKernelAfterCfe!);

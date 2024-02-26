@@ -179,7 +179,7 @@ macro class FromJson implements ConstructorDefinitionMacro {
               target: type.asDiagnosticTarget),
           Severity.error));
       return RawCode.fromString(
-          '<Unable to deserialize type ${type.code.debugString}>');
+          "throw 'Unable to deserialize type ${type.code.debugString}'");
     }
     var typeDecl = await builder.typeDeclarationOf(type.identifier);
     while (typeDecl is TypeAliasDeclaration) {
@@ -192,7 +192,7 @@ macro class FromJson implements ConstructorDefinitionMacro {
                 target: type.asDiagnosticTarget),
             Severity.error));
         return RawCode.fromString(
-            '<Unable to deserialize type ${type.code.debugString}>');
+            "throw 'Unable to deserialize type ${type.code.debugString}'");
       }
       typeDecl = await builder.typeDeclarationOf(aliasedType.identifier);
     }
@@ -204,7 +204,7 @@ macro class FromJson implements ConstructorDefinitionMacro {
               target: type.asDiagnosticTarget),
           Severity.error));
       return RawCode.fromString(
-          '<Unable to deserialize type ${type.code.debugString}>');
+          "throw 'Unable to deserialize type ${type.code.debugString}'");
     }
 
     // The static type of the expected type, without any type arguments.
@@ -523,7 +523,7 @@ macro class ToJson implements MethodDefinitionMacro {
               target: type.asDiagnosticTarget),
           Severity.error));
       return RawCode.fromString(
-          '<Unable to serialize type ${type.code.debugString}>');
+          "throw 'Unable to serialize type ${type.code.debugString}'");
     }
     var typeDecl = await builder.typeDeclarationOf(type.identifier);
     while (typeDecl is TypeAliasDeclaration) {
@@ -535,7 +535,7 @@ macro class ToJson implements MethodDefinitionMacro {
                 target: type.asDiagnosticTarget),
             Severity.error));
         return RawCode.fromString(
-            '<Unable to serialize type ${type.code.debugString}>');
+            "throw 'Unable to serialize type ${type.code.debugString}'");
       }
       typeDecl = await builder.typeDeclarationOf(aliasedType.identifier);
     }
@@ -546,7 +546,7 @@ macro class ToJson implements MethodDefinitionMacro {
               target: type.asDiagnosticTarget),
           Severity.error));
       return RawCode.fromString(
-          '<Unable to serialize type ${type.code.debugString}>');
+          "throw 'Unable to serialize type ${type.code.debugString}'");
     }
 
     var typeDeclType = await builder.resolve(

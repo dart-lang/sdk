@@ -47,6 +47,7 @@ class MacroDeclarationData {
 }
 
 class MacroApplication {
+  final Uri fileUri;
   final int fileOffset;
   final ClassBuilder classBuilder;
   final String constructorName;
@@ -55,11 +56,11 @@ class MacroApplication {
   final Set<macro.Phase> appliedPhases = {};
 
   MacroApplication(this.classBuilder, this.constructorName, this.arguments,
-      {required this.fileOffset})
+      {required this.fileUri, required this.fileOffset})
       : errorReason = null;
 
   MacroApplication.error(String this.errorReason, this.classBuilder,
-      {required this.fileOffset})
+      {required this.fileUri, required this.fileOffset})
       : constructorName = '',
         arguments = new macro.Arguments(const [], const {});
 
@@ -589,7 +590,7 @@ class MacroApplications {
                 macroApplication.instanceIdentifier,
                 macroTarget,
                 _macroIntrospection.typePhaseIntrospector);
-        result.reportDiagnostics(applicationData);
+        result.reportDiagnostics(macroApplication, applicationData);
         if (result.isNotEmpty) {
           _registerMacroExecutionResult(originLibraryBuilder, result);
           results.add(result);
@@ -710,7 +711,7 @@ class MacroApplications {
                 macroApplication.instanceIdentifier,
                 macroTarget,
                 _macroIntrospection.declarationPhaseIntrospector);
-        result.reportDiagnostics(applicationData);
+        result.reportDiagnostics(macroApplication, applicationData);
         if (result.isNotEmpty) {
           Map<macro.OmittedTypeAnnotation, String> omittedTypes = {};
           List<macro.Span> spans = [];
@@ -835,7 +836,7 @@ class MacroApplications {
                 macroApplication.instanceIdentifier,
                 macroTarget,
                 _macroIntrospection.definitionPhaseIntrospector);
-        result.reportDiagnostics(applicationData);
+        result.reportDiagnostics(macroApplication, applicationData);
         if (result.isNotEmpty) {
           _registerMacroExecutionResult(originLibraryBuilder, result);
           results.add(result);
@@ -1109,14 +1110,28 @@ extension on macro.MacroExecutionResult {
       libraryAugmentations.isNotEmpty ||
       typeAugmentations.isNotEmpty;
 
-  void reportDiagnostics(ApplicationData applicationData) {
+  void reportDiagnostics(
+      MacroApplication macroApplication, ApplicationData applicationData) {
+    // TODO(johnniwinther): Should the error be reported on the original
+    //  annotation in case of nested macros?
+    Uri fileUri = macroApplication.fileUri;
+    int fileOffset = macroApplication.fileOffset;
     for (macro.Diagnostic diagnostic in diagnostics) {
-      // TODO(johnniwinther): Improve reporting.
+      // TODO(johnniwinther): Improve diagnostic reporting.
       applicationData.libraryBuilder.addProblem(
           templateUnspecified.withArguments(diagnostic.message.message),
+          fileOffset,
           -1,
+          fileUri);
+    }
+    if (exception != null) {
+      // TODO(johnniwinther): Improve exception reporting.
+      applicationData.libraryBuilder.addProblem(
+          templateUnspecified.withArguments('${exception.runtimeType}: '
+              '${exception!.message}\n${exception!.stackTrace}'),
+          fileOffset,
           -1,
-          null);
+          fileUri);
     }
   }
 }

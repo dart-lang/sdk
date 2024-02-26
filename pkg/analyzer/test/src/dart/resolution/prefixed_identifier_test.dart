@@ -850,6 +850,64 @@ PrefixedIdentifier
 ''');
   }
 
+  test_ofExtensionType_read_nullableType() async {
+    await assertErrorsInCode(r'''
+extension type A(int it) {
+  int get foo => 0;
+}
+
+void f(A? a) {
+  a.foo;
+}
+''', [
+      error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
+          69, 3),
+    ]);
+
+    final node = findNode.singlePrefixedIdentifier;
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: A?
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    staticElement: self::@extensionType::A::@getter::foo
+    staticType: int
+  staticElement: self::@extensionType::A::@getter::foo
+  staticType: int
+''');
+  }
+
+  test_ofExtensionType_read_nullableType_nullAware() async {
+    await assertNoErrorsInCode(r'''
+extension type A(int it) {
+  int get foo => 0;
+}
+
+void f(A? a) {
+  a?.foo;
+}
+''');
+
+    final node = findNode.singlePropertyAccess;
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: A?
+  operator: ?.
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: self::@extensionType::A::@getter::foo
+    staticType: int
+  staticType: int?
+''');
+  }
+
   test_ofExtensionType_write() async {
     await assertNoErrorsInCode(r'''
 extension type A(int it) {

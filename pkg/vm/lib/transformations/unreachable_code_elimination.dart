@@ -32,9 +32,6 @@ class SimpleUnreachableCodeElimination extends RemovingTransformer {
   SimpleUnreachableCodeElimination(this.constantEvaluator,
       {required this.enableAsserts, required this.soundNullSafety});
 
-  bool _shouldEvaluateMember(Member node) =>
-      constantEvaluator.hasTargetOS && constantEvaluator.isPlatformConst(node);
-
   Never _throwPlatformConstError(Member node, String message) {
     final uri = constantEvaluator.getFileUri(node);
     final offset = constantEvaluator.getFileOffset(uri, node);
@@ -65,7 +62,7 @@ class SimpleUnreachableCodeElimination extends RemovingTransformer {
   TreeNode defaultMember(Member node, TreeNode? removalSentinel) {
     _staticTypeContext =
         StaticTypeContext(node, constantEvaluator.typeEnvironment);
-    if (_shouldEvaluateMember(node)) {
+    if (constantEvaluator.shouldEvaluateMember(node)) {
       _checkPlatformConstMember(node);
       // Create a StaticGet to ensure the member is evaluated at least once,
       // and then replace the field initializer or getter body with the result.
@@ -251,7 +248,7 @@ class SimpleUnreachableCodeElimination extends RemovingTransformer {
       throw 'StaticGet from const field $target should be evaluated by front-end: $node';
     }
 
-    if (!_shouldEvaluateMember(target)) {
+    if (!constantEvaluator.shouldEvaluateMember(target)) {
       return super.visitStaticGet(node, removalSentinel);
     }
 
