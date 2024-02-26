@@ -69,6 +69,10 @@ const jsRuntimeBlobPart2JSCM = r'''
 const jsRuntimeBlobPart3 = r'''
     // Prints to the console
     function printToConsole(value) {
+      if (typeof dartPrint == "function") {
+        dartPrint(value);
+        return;
+      }
       if (typeof console == "object" && typeof console.log != "undefined") {
         console.log(value);
         return;
