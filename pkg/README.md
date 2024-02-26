@@ -13,7 +13,7 @@ dart tools/package_deps/bin/package_deps.dart
 There are several packages developed in `pkg/` which are published to pub.
 Validation of these packages is particularly important because the pub tools are
 not used for these packages during development; we get our dependency versions
-from the DEPS file. Its very easy for the dependencies specified in a package's
+from the DEPS file. It's very easy for the dependencies specified in a package's
 pubspec file to get out of date wrt the packages and versions actually used.
 
 In order to better ensure we're publishing correct packages, we validate some
@@ -38,6 +38,7 @@ are more informational as the pubspecs for these packages are not consumed by
 the pub tool or ecosystem.
 
 We validate:
+
 - that the dependencies listed in the pubspec are used in the package
 - that all the packages used by the source are listed in the pubspec
 - that a reference to a pkg/ package is done via a relative path dependency

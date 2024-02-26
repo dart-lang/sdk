@@ -154,7 +154,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     var commentEndLine = lineInfo.getLocation(commentToken.end).lineNumber;
     // The syntactic entity to which a comment is "attached" is the
-    // [Comment]'s `parent`, not it's `endToken`'s `next` [Token].
+    // [Comment]'s `parent`, not its `endToken`'s `next` [Token].
     var tokenAfterDocComment =
         (docComment.endToken as DocumentationCommentToken).parent;
     if (tokenAfterDocComment == null) {

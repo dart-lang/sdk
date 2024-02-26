@@ -129,7 +129,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     return unnamedSuperConstructor != null && unnamedSuperConstructor.isConst;
   }
 
-  /// Whether [clazz] or any of it's super-types are annotated with
+  /// Whether [clazz] or any of its super-types are annotated with
   /// `@immutable`.
   bool _hasImmutableAnnotation(InterfaceElement clazz) {
     var selfAndInheritedClasses = _getSelfAndSuperClasses(clazz);

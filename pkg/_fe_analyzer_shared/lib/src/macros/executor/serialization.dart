@@ -240,7 +240,7 @@ class JsonDeserializer implements Deserializer {
       _initialized = true;
     }
 
-    // Move the current iterable, if its at the end of its items remove it from
+    // Move the current iterable, if it's at the end of its items remove it from
     // the current path and return false.
     if (!_path.last.moveNext()) {
       _path.removeLast();
