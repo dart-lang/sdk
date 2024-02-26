@@ -7,7 +7,7 @@ description: >-
   This package is not intended to be used directly.
 
 environment:
-  sdk: ^3.2.0-edge
+  sdk: ^3.3.0
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dependencies:
