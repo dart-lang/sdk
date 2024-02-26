@@ -3044,6 +3044,11 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
   T? accept<T>(ElementVisitor<T> visitor) {
     return visitor.visitExtensionTypeElement(this);
   }
+
+  @override
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeExtensionTypeElement(this);
+  }
 }
 
 /// A concrete implementation of a [FieldElement].
