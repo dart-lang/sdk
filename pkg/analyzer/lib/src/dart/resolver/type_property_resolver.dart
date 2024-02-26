@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -87,8 +88,14 @@ class TypePropertyResolver {
       return _toResult();
     }
 
-    if (_typeSystem.isPotentiallyNullable(receiverType) &&
-        !receiverType.isExtensionType) {
+    bool isNullable;
+    if (receiverType.isExtensionType) {
+      isNullable = receiverType.nullabilitySuffix == NullabilitySuffix.question;
+    } else {
+      isNullable = _typeSystem.isPotentiallyNullable(receiverType);
+    }
+
+    if (isNullable) {
       _lookupInterfaceType(_typeProvider.objectType);
       if (_hasGetterOrSetter) {
         return _toResult();

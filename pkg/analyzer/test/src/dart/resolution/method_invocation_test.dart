@@ -4320,6 +4320,71 @@ MethodInvocation
 ''');
   }
 
+  test_hasReceiver_interfaceType_extensionType_declared_nullableType() async {
+    await assertErrorsInCode(r'''
+extension type A(int it) {
+  int foo() => 0;
+}
+
+void f(A? a) {
+  a.foo();
+}
+''', [
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          67, 3),
+    ]);
+
+    final node = findNode.singleMethodInvocation;
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: A?
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@extensionType::A::@method::foo
+    staticType: int Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: int Function()
+  staticType: int
+''');
+  }
+
+  test_hasReceiver_interfaceType_extensionType_declared_nullableType_nullAware() async {
+    await assertNoErrorsInCode(r'''
+extension type A(int it) {
+  int foo() => 0;
+}
+
+void f(A? a) {
+  a?.foo();
+}
+''');
+
+    final node = findNode.singleMethodInvocation;
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: A?
+  operator: ?.
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@extensionType::A::@method::foo
+    staticType: int Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: int Function()
+  staticType: int?
+''');
+  }
+
   test_hasReceiver_interfaceType_extensionType_exposed() async {
     await assertNoErrorsInCode(r'''
 class A {
