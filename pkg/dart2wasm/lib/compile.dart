@@ -28,6 +28,8 @@ import 'package:vm/kernel_front_end.dart' show writeDepfile;
 
 import 'package:vm/transformations/type_flow/transformer.dart' as globalTypeFlow
     show transformComponent;
+import 'package:vm/transformations/mixin_deduplication.dart'
+    as mixin_deduplication show transformComponent;
 
 import 'package:dart2wasm/compiler_options.dart' as compiler;
 import 'package:dart2wasm/js/runtime_generator.dart' as js;
@@ -122,6 +124,8 @@ Future<CompilerOutput?> compileToModule(compiler.WasmCompilerOptions options,
   if (options.dumpKernelBeforeTfa != null) {
     writeComponentToText(component, path: options.dumpKernelBeforeTfa!);
   }
+
+  mixin_deduplication.transformComponent(component);
 
   globalTypeFlow.transformComponent(target, coreTypes, component,
       treeShakeSignatures: true,

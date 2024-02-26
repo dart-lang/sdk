@@ -7,11 +7,8 @@ import 'dart:convert' show json;
 import 'package:kernel/ast.dart';
 
 import '../denylisted_classes.dart' show denylistedCoreClasses;
-
 import '../fasta_codes.dart'
     show Message, templateTypeOrigin, templateTypeOriginWithFileUri;
-
-import '../problems.dart' show unsupported;
 
 /// A pretty-printer for Kernel types and constants with the ability to label
 /// raw types with numeric markers in Dart comments (e.g. `/*1*/`) to
@@ -527,7 +524,7 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
 
   @override
   void visitUnevaluatedConstant(UnevaluatedConstant node) {
-    unsupported('printing unevaluated constants', -1, null);
+    throw new UnsupportedError('printing unevaluated constants');
   }
 
   @override
