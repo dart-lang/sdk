@@ -3820,7 +3820,9 @@ class A<$code> {}
     final findNode = _parseStringToFindNode('''
 class A$code {}
 ''');
-    _assertSource(code, findNode.typeParameterList(code));
+    // Find from the offset after the `<` because NodeLocator usually picks
+    // the name for the offset between the name and `<`.
+    _assertSource(code, findNode.typeParameterList('T, U>'));
   }
 
   void test_visitTypeParameterList_single() {
@@ -3828,7 +3830,9 @@ class A$code {}
     final findNode = _parseStringToFindNode('''
 class A$code {}
 ''');
-    _assertSource(code, findNode.typeParameterList(code));
+    // Find from the offset after the `<` because NodeLocator usually picks
+    // the name for the offset between the name and `<`.
+    _assertSource(code, findNode.typeParameterList('T>'));
   }
 
   void test_visitVariableDeclaration_initialized() {

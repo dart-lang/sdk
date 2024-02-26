@@ -1844,7 +1844,9 @@ class A<T extends int, U extends double> {}
     var findNode = _parseStringToFindNode(r'''
 class A<T, U> {}
 ''');
-    var node = findNode.typeParameterList('<T, U>');
+    // Find from the offset after the `<` because NodeLocator usually picks
+    // the name for the offset between the name and `<`.
+    var node = findNode.typeParameterList('T, U>');
     _assertReplaceInList(
       destination: node,
       child: node.typeParameters[0],
