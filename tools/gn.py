@@ -412,7 +412,8 @@ def ProcessOptions(args):
         print("Crashpad is only supported on Windows")
         return False
     if os.environ.get('RBE_cfg') == None and \
-       socket.getfqdn().endswith('.corp.google.com') and \
+       (socket.getfqdn().endswith('.corp.google.com') or
+        socket.getfqdn().endswith('.c.googlers.com')) and \
        sys.platform in ['linux']:
         print('You can speed up your build by following: go/dart-rbe')
         if not args.rbe and not args.goma:
