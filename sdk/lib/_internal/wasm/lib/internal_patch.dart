@@ -92,7 +92,12 @@ void _invokeCallback(void Function() callback) {
   } catch (e, s) {
     print(e);
     print(s);
-    rethrow;
+    // FIXME: Chrome/V8 bug makes errors from `rethrow`s not being reported to
+    // `window.onerror`. Please change this back to `rethrow` once the chrome
+    // bug is fixed.
+    //
+    // https://g-issues.chromium.org/issues/327155548
+    throw e;
   }
 }
 
@@ -103,7 +108,12 @@ void _invokeCallback1(void Function(dynamic) callback, dynamic arg) {
   } catch (e, s) {
     print(e);
     print(s);
-    rethrow;
+    // FIXME: Chrome/V8 bug makes errors from `rethrow`s not being reported to
+    // `window.onerror`. Please change this back to `rethrow` once the chrome
+    // bug is fixed.
+    //
+    // https://g-issues.chromium.org/issues/327155548
+    throw e;
   }
 }
 
