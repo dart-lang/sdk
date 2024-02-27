@@ -194,6 +194,29 @@ foo() {
     );
   }
 
+  /// Sets up packages for macro support.
+  Future<void> enableMacroSupport() async {
+    // Compute a path to the local package that we can use.
+    final dapIntegrationTestFolder = path.dirname(Platform.script.toFilePath());
+    assert(path.split(dapIntegrationTestFolder).last == 'integration');
+
+    final sdkRoot =
+        path.normalize(path.join(dapIntegrationTestFolder, '../../../../..'));
+    final feSharedPath = path.join(sdkRoot, 'pkg', '_fe_analyzer_shared');
+
+    await addPackageDependency(
+        testAppDir, '_fe_analyzer_shared', Uri.file(feSharedPath));
+
+    createTestFile(
+      filename: 'analysis_options.yaml',
+      '''
+analyzer:
+  enable-experiment:
+    - macros
+''',
+    );
+  }
+
   void createPubspec(Directory dir, String projectName) {
     final pubspecFile = File(path.join(dir.path, 'pubspec.yaml'));
     pubspecFile
@@ -203,7 +226,7 @@ name: $projectName
 version: 1.0.0
 
 environment:
-  sdk: '>=2.13.0 <3.0.0'
+  sdk: '>=3.3.0 <4.0.0'
 ''');
   }
 
@@ -235,8 +258,9 @@ environment:
   /// Creates a file in a temporary folder to be used as an application for testing.
   ///
   /// The file will be deleted at the end of the test run.
-  File createTestFile(String content, [String filename = 'test_file.dart']) {
-    final testFile = File(path.join(testAppDir.path, filename));
+  File createTestFile(String content, {String filename = 'test_file.dart'}) {
+    final testFile = File(path.join(testAppDir.path, path.normalize(filename)));
+    Directory(path.dirname(testFile.path)).createSync(recursive: true);
     testFile.writeAsStringSync(content);
     return testFile;
   }
