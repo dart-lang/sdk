@@ -5301,7 +5301,7 @@ class MixinElementImpl extends ClassOrMixinElementImpl
 /// a few additional flags that are useful.
 ///
 /// Clients may not extend, implement or mix-in this class.
-enum Modifier implements Comparable<Modifier> {
+enum Modifier {
   /// Indicates that the modifier 'abstract' was applied to the element.
   ABSTRACT,
 
@@ -5416,10 +5416,7 @@ enum Modifier implements Comparable<Modifier> {
   /// implicitly created. For example, if a class does not define any
   /// constructors, an implicit zero-argument constructor will be created and it
   /// will be marked as being synthetic.
-  SYNTHETIC;
-
-  @override
-  int compareTo(Modifier other) => index - other.index;
+  SYNTHETIC
 }
 
 /// A concrete implementation of a [MultiplyDefinedElement].
