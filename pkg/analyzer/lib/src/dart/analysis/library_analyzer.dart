@@ -85,6 +85,7 @@ class LibraryAnalyzer {
       : _testingData = testingData,
         _typeSystemOperations = typeSystemOperations {
     _libraryVerificationContext = LibraryVerificationContext(
+      libraryKind: _library,
       constructorFieldsVerifier: ConstructorFieldsVerifier(
         typeSystem: _typeSystem,
       ),

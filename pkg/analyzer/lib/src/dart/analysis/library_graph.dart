@@ -26,6 +26,9 @@ class LibraryCycle {
   /// The libraries that belong to this cycle.
   final List<LibraryFileKind> libraries;
 
+  /// The URIs of [libraries].
+  final Set<Uri> libraryUris;
+
   /// The library cycles that this cycle references directly.
   final Set<LibraryCycle> directDependencies;
 
@@ -89,6 +92,7 @@ class LibraryCycle {
 
   LibraryCycle({
     required this.libraries,
+    required this.libraryUris,
     required this.directDependencies,
     required this.apiSignature,
     required this.implSignature,
@@ -212,9 +216,11 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
 
     // Fill the cycle with libraries.
     var libraries = <LibraryFileKind>[];
+    var libraryUris = <Uri>{};
     for (var node in scc) {
       final file = node.kind.file;
       libraries.add(node.kind);
+      libraryUris.add(file.uri);
 
       apiSignature.addLanguageVersion(file.packageLanguageVersion);
       apiSignature.addString(file.uriStr);
@@ -241,6 +247,7 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
     // Create the LibraryCycle instance for the cycle.
     var cycle = LibraryCycle(
       libraries: libraries.toFixedList(),
+      libraryUris: libraryUris,
       directDependencies: directDependencies,
       apiSignature: apiSignature.toHex(),
       implSignature: implSignature.toHex(),

@@ -9550,6 +9550,12 @@ CompileTimeErrorCode:
     comment: |-
       Parameters:
       0: the name of the introspected declaration
+  MACRO_DEFINITION_APPLICATION_SAME_LIBRARY_CYCLE:
+    problemMessage: "The macro '{0}' can't be applied in the same library cycle where it is defined."
+    correctionMessage: Try moving it to a different library that does not import the one where it is applied.
+    comment: |-
+      Parameters:
+      0: the name of the macro class
   MAIN_FIRST_POSITIONAL_PARAMETER_TYPE:
     problemMessage: "The type of the first positional parameter of the 'main' function must be a supertype of 'List<String>'."
     correctionMessage: Try changing the type of the parameter.

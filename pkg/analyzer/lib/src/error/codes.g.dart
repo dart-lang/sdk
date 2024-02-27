@@ -3055,6 +3055,18 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "Try removing one or more macro applications to break the cycle.",
   );
 
+  ///  Parameters:
+  ///  0: the name of the macro class
+  static const CompileTimeErrorCode
+      MACRO_DEFINITION_APPLICATION_SAME_LIBRARY_CYCLE = CompileTimeErrorCode(
+    'MACRO_DEFINITION_APPLICATION_SAME_LIBRARY_CYCLE',
+    "The macro '{0}' can't be applied in the same library cycle where it is "
+        "defined.",
+    correctionMessage:
+        "Try moving it to a different library that does not import the one "
+        "where it is applied.",
+  );
+
   ///  Reported when the macro uses `Builder.report()` with `Severity.error`.
   ///  Parameters:
   ///  0: the message
