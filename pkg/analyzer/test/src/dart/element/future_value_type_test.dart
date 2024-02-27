@@ -82,21 +82,6 @@ class FutureValueTypeTest extends AbstractTypeSystemTest {
     _check(futureQuestion(voidNone), 'void');
   }
 
-  /// futureValueType(`S*`) = futureValueType(`S`), for all `S`.
-  test_suffix_star() {
-    _check(futureStar(intNone), 'int');
-    _check(futureStar(intQuestion), 'int?');
-
-    _check(futureOrStar(intNone), 'int');
-    _check(futureOrStar(intQuestion), 'int?');
-
-    _check(futureStar(objectNone), 'Object');
-    _check(futureStar(objectQuestion), 'Object?');
-
-    _check(futureStar(dynamicType), 'dynamic');
-    _check(futureStar(voidNone), 'void');
-  }
-
   /// futureValueType(`void`) = `void`.
   test_void() {
     _check(voidNone, 'void');

@@ -59,10 +59,6 @@ class IsNonNullableTest extends AbstractTypeSystemTest {
     isNotNonNullable(
       futureOrQuestion(intNone),
     );
-
-    isNonNullable(
-      futureOrStar(intNone),
-    );
   }
 
   test_futureOr_questionArgument() {
@@ -72,10 +68,6 @@ class IsNonNullableTest extends AbstractTypeSystemTest {
 
     isNotNonNullable(
       futureOrQuestion(intQuestion),
-    );
-
-    isNotNonNullable(
-      futureOrStar(intQuestion),
     );
   }
 
@@ -201,10 +193,6 @@ class IsNullableTest extends AbstractTypeSystemTest {
     isNullable(
       futureOrQuestion(intNone),
     );
-
-    isNotNullable(
-      futureOrStar(intNone),
-    );
   }
 
   test_futureOr_questionArgument() {
@@ -214,10 +202,6 @@ class IsNullableTest extends AbstractTypeSystemTest {
 
     isNullable(
       futureOrQuestion(intQuestion),
-    );
-
-    isNullable(
-      futureOrStar(intQuestion),
     );
   }
 
@@ -475,10 +459,6 @@ class IsStrictlyNonNullableTest extends AbstractTypeSystemTest {
     isNotStrictlyNonNullable(
       futureOrQuestion(intNone),
     );
-
-    isNotStrictlyNonNullable(
-      futureOrStar(intNone),
-    );
   }
 
   test_futureOr_questionArgument() {
@@ -488,10 +468,6 @@ class IsStrictlyNonNullableTest extends AbstractTypeSystemTest {
 
     isNotStrictlyNonNullable(
       futureOrQuestion(intQuestion),
-    );
-
-    isNotStrictlyNonNullable(
-      futureOrStar(intQuestion),
     );
   }
 

@@ -198,15 +198,6 @@ mixin ElementsTypesMixin {
     );
   }
 
-  InterfaceType comparableStar(DartType type) {
-    var coreLibrary = typeProvider.intElement.library;
-    var element = coreLibrary.getClass('Comparable')!;
-    return element.instantiate(
-      typeArguments: [type],
-      nullabilitySuffix: NullabilitySuffix.star,
-    );
-  }
-
   EnumElementImpl enum_({
     required String name,
     required List<ConstFieldElementImpl> constants,
@@ -316,13 +307,6 @@ mixin ElementsTypesMixin {
     return typeProvider.futureOrElement.instantiate(
       typeArguments: [type],
       nullabilitySuffix: NullabilitySuffix.question,
-    ) as InterfaceTypeImpl;
-  }
-
-  InterfaceTypeImpl futureOrStar(DartType type) {
-    return typeProvider.futureOrElement.instantiate(
-      typeArguments: [type],
-      nullabilitySuffix: NullabilitySuffix.star,
     ) as InterfaceTypeImpl;
   }
 
