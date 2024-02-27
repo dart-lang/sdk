@@ -285,6 +285,7 @@ class TestMacroExecutor extends MultiMacroExecutor {
 
   @override
   String buildAugmentationLibrary(
+      Uri augmentedLibraryUri,
       Iterable<MacroExecutionResult> macroResults,
       TypeDeclaration Function(Identifier) resolveDeclaration,
       ResolvedIdentifier Function(Identifier) resolveIdentifier,

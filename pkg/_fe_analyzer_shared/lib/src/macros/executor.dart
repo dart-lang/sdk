@@ -90,6 +90,7 @@ abstract class MacroExecutor {
   /// to [spans]. This is used to compute the offset relation between
   /// intermediate augmentation libraries and the merged augmentation library.
   String buildAugmentationLibrary(
+      Uri augmentedLibraryUri,
       Iterable<MacroExecutionResult> macroResults,
       TypeDeclaration Function(Identifier) resolveDeclaration,
       ResolvedIdentifier Function(Identifier) resolveIdentifier,

@@ -1764,7 +1764,7 @@ class B {
 self::@class::B::@method::foo
   97 7:16 |A| REFERENCE
 self::@augmentation::package:test/test.macro.dart::@function::f
-  41 3:12 |A| REFERENCE
+  54 3:12 |A| REFERENCE
 ''');
   }
 

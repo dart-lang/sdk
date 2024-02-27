@@ -1834,7 +1834,6 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
   /// `foo.macro.dart` is created.
   AugmentationImportWithFile addMacroAugmentation(
     String code, {
-    required bool addLibraryAugmentDirective,
     required int? partialIndex,
   }) {
     final pathContext = file._fsState.pathContext;
@@ -1845,25 +1844,14 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
       '.macro${partialIndex != null ? '$partialIndex' : ''}.dart',
     );
 
-    final String augmentationContent;
-    if (addLibraryAugmentDirective) {
-      augmentationContent = '''
-library augment '$libraryFileName';
-
-$code
-''';
-    } else {
-      augmentationContent = code;
-    }
-
     final macroRelativeUri = uriCache.parse(macroFileName);
     final macroUri = uriCache.resolveRelative(file.uri, macroRelativeUri);
 
-    final contentBytes = utf8.encoder.convert(augmentationContent);
+    final contentBytes = utf8.encoder.convert(code);
     final hashBytes = md5.convert(contentBytes).bytes;
     final hashStr = hex.encode(hashBytes);
     final fileContent = StoredFileContent(
-      content: augmentationContent,
+      content: code,
       contentHash: hashStr,
       exists: true,
     );

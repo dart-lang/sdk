@@ -450,3 +450,11 @@ class EndOfFileKey implements Key {
   @override
   Key? get parent => null;
 }
+
+/// Key for the `library augment` directive
+class LibraryAugmentKey implements Key {
+  const LibraryAugmentKey();
+
+  @override
+  Key? get parent => null;
+}

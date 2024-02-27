@@ -249,6 +249,7 @@ abstract class ExternalMacroExecutorBase extends MacroExecutor {
   /// These calls are handled by the higher level executor.
   @override
   String buildAugmentationLibrary(
+          Uri augmentedLibraryUri,
           Iterable<MacroExecutionResult> macroResults,
           TypeDeclaration Function(Identifier) resolveDeclaration,
           ResolvedIdentifier Function(Identifier) resolveIdentifier,

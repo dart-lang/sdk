@@ -108,12 +108,15 @@ void main() {
           ),
       ];
       var library = _TestExecutor().buildAugmentationLibrary(
+          Fixtures.library.uri,
           results,
           (Identifier i) => classes[i]!,
           (Identifier i) => (i as TestIdentifier).resolved,
           (OmittedTypeAnnotation i) =>
               (i as TestOmittedTypeAnnotation).inferredType);
       expect(library, equalsIgnoringWhitespace('''
+        library augment 'package:foo/bar.dart';
+
         import 'dart:core' as prefix0;
 
         prefix0.int get i0j0 => 0;
@@ -216,12 +219,15 @@ void main() {
         )
       ];
       var library = _TestExecutor().buildAugmentationLibrary(
+          Fixtures.library.uri,
           results,
           (_) => throw UnimplementedError(),
           (Identifier i) => (i as TestIdentifier).resolved,
           (OmittedTypeAnnotation i) =>
               (i as TestOmittedTypeAnnotation).inferredType);
       expect(library, equalsIgnoringWhitespace('''
+        library augment 'package:foo/bar.dart';
+
         import 'package:foo/foo.dart' as prefix0;
         import 'package:builder/builder.dart' as prefix1;
         import 'package:bar/bar.dart' as prefix2;
@@ -258,12 +264,15 @@ void main() {
             newTypeNames: []),
       ];
       var library = _TestExecutor().buildAugmentationLibrary(
+          Fixtures.library.uri,
           results,
           (_) => throw UnimplementedError(),
           (Identifier i) => (i as TestIdentifier).resolved,
           (OmittedTypeAnnotation i) =>
               (i as TestOmittedTypeAnnotation).inferredType);
       expect(library, equalsIgnoringWhitespace('''
+        library augment 'package:foo/bar.dart';
+
         import 'dart:core' as prefix0;
 
         prefix0.int x = 1;
@@ -343,6 +352,7 @@ void main() {
       ];
       var omittedTypes = <OmittedTypeAnnotation, String>{};
       var library = _TestExecutor().buildAugmentationLibrary(
+          Fixtures.library.uri,
           results,
           (_) => throw UnimplementedError(),
           (Identifier i) => (i as TestIdentifier).resolved,
@@ -350,6 +360,8 @@ void main() {
               (i as TestOmittedTypeAnnotation).inferredType,
           omittedTypes: omittedTypes);
       expect(library, equalsIgnoringWhitespace('''
+        library augment 'package:foo/bar.dart';
+
         import 'dart:core' as prefix2_0;
         import 'package:foo/foo.dart' as prefix2_1;
         import 'package:bar/bar.dart' as prefix2_2;
@@ -427,6 +439,7 @@ void main() {
         }, newTypeNames: [], libraryAugmentations: []),
       ];
       var library = _TestExecutor().buildAugmentationLibrary(
+          Fixtures.library.uri,
           results,
           (Identifier i) =>
               i == myEnum.identifier ? myEnum : throw UnimplementedError(),
@@ -434,6 +447,8 @@ void main() {
           (OmittedTypeAnnotation i) =>
               (i as TestOmittedTypeAnnotation).inferredType);
       expect(library, equalsIgnoringWhitespace('''
+        library augment 'package:foo/bar.dart';
+
         import 'a.dart' as prefix0;
         import 'dart:core' as prefix1;
 
@@ -506,6 +521,7 @@ void main() {
             libraryAugmentations: []),
       ];
       var library = _TestExecutor().buildAugmentationLibrary(
+          Fixtures.library.uri,
           results,
           (Identifier i) => i == myExtension.identifier
               ? myExtension
@@ -514,6 +530,8 @@ void main() {
           (OmittedTypeAnnotation i) =>
               (i as TestOmittedTypeAnnotation).inferredType);
       expect(library, equalsIgnoringWhitespace('''
+        library augment 'package:foo/bar.dart';
+
         import 'dart:core' as prefix0;
 
         augment extension MyExtension {
@@ -557,6 +575,7 @@ void main() {
               libraryAugmentations: []),
         ];
         var library = _TestExecutor().buildAugmentationLibrary(
+            Fixtures.library.uri,
             results,
             (Identifier i) =>
                 i == clazz.identifier ? clazz : throw UnimplementedError(),
@@ -577,6 +596,8 @@ void main() {
         // Add extra space after, if we have keywords
         if (expectedKeywords.isNotEmpty) expectedKeywords.add('');
         expect(library, equalsIgnoringWhitespace('''
+            library augment 'package:foo/bar.dart';
+
             augment ${expectedKeywords.join(' ')}class MyClass {
             }
           '''));

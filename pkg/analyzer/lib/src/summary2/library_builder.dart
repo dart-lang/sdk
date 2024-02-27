@@ -472,6 +472,7 @@ class LibraryBuilder {
     }
 
     var augmentationCode = macroApplier.buildAugmentationLibraryCode(
+      uri,
       _macroResults.flattenedToList2,
     );
     if (augmentationCode == null) {
@@ -511,7 +512,6 @@ class LibraryBuilder {
 
     final importState = kind.addMacroAugmentation(
       optimizedCode,
-      addLibraryAugmentDirective: true,
       partialIndex: null,
     );
     final importedAugmentation = importState.importedAugmentation!;
@@ -760,6 +760,7 @@ class LibraryBuilder {
     _macroResults.add(results);
 
     final augmentationCode = macroApplier.buildAugmentationLibraryCode(
+      uri,
       results,
     );
     if (augmentationCode == null) {
@@ -768,7 +769,6 @@ class LibraryBuilder {
 
     final importState = kind.addMacroAugmentation(
       augmentationCode,
-      addLibraryAugmentDirective: true,
       partialIndex: _macroResults.length,
     );
 
