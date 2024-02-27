@@ -10,7 +10,6 @@ void configureMemoryUsageTracking(
   UsageCallback callback,
 ) {
   final config = UsageTrackingConfig(
-    interval: const Duration(seconds: 1),
     usageEventsConfig: UsageEventsConfig(
       callback,
       deltaMb: 512,
@@ -36,7 +35,7 @@ AutoSnapshottingConfig? parseAutoSnapshottingConfig(List<String> args) {
   arg = arg.replaceAll('-', '=');
   arg = '--$arg';
 
-  var parser = ArgParser()..addMultiOption(argName, splitCommas: true);
+  var parser = ArgParser()..addMultiOption(argName);
   final parsedArgs = parser.parse([arg]);
   assert(parsedArgs.options.contains(argName));
   final values = parsedArgs[argName] as List<String>;

@@ -31,28 +31,22 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   SdkConstraintVerifier(this._errorReporter, this._versionConstraint);
 
   /// Return a range covering every version up to, but not including, 2.14.0.
-  VersionRange get before_2_14_0 =>
-      VersionRange(max: Version.parse('2.14.0'), includeMax: false);
+  VersionRange get before_2_14_0 => VersionRange(max: Version.parse('2.14.0'));
 
   /// Return a range covering every version up to, but not including, 2.1.0.
-  VersionRange get before_2_1_0 =>
-      VersionRange(max: Version.parse('2.1.0'), includeMax: false);
+  VersionRange get before_2_1_0 => VersionRange(max: Version.parse('2.1.0'));
 
   /// Return a range covering every version up to, but not including, 2.2.0.
-  VersionRange get before_2_2_0 =>
-      VersionRange(max: Version.parse('2.2.0'), includeMax: false);
+  VersionRange get before_2_2_0 => VersionRange(max: Version.parse('2.2.0'));
 
   /// Return a range covering every version up to, but not including, 2.2.2.
-  VersionRange get before_2_2_2 =>
-      VersionRange(max: Version.parse('2.2.2'), includeMax: false);
+  VersionRange get before_2_2_2 => VersionRange(max: Version.parse('2.2.2'));
 
   /// Return a range covering every version up to, but not including, 2.5.0.
-  VersionRange get before_2_5_0 =>
-      VersionRange(max: Version.parse('2.5.0'), includeMax: false);
+  VersionRange get before_2_5_0 => VersionRange(max: Version.parse('2.5.0'));
 
   /// Return a range covering every version up to, but not including, 2.6.0.
-  VersionRange get before_2_6_0 =>
-      VersionRange(max: Version.parse('2.6.0'), includeMax: false);
+  VersionRange get before_2_6_0 => VersionRange(max: Version.parse('2.6.0'));
 
   /// Return `true` if references to the constant-update-2018 features need to
   /// be checked.
@@ -211,8 +205,6 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
               sinceSdkVersion.toString(),
               _versionConstraint.toString(),
             ],
-            contextMessages: null,
-            data: null,
           );
         }
       }

@@ -43,8 +43,7 @@ class ValidatorTest {
 
   test_await_inSynchronousFunction() {
     _analyze((ir) => ir
-      ..function(
-          ir.encodeFunctionType(parameterCount: 1), FunctionFlags(async: false))
+      ..function(ir.encodeFunctionType(parameterCount: 1), FunctionFlags())
       ..label('bad')
       ..await_()
       ..end());
@@ -657,7 +656,7 @@ class ValidatorTest {
 
   test_is_underflow() {
     _analyze((ir) => ir
-      ..ordinaryFunction(parameterCount: 0)
+      ..ordinaryFunction()
       ..label('bad')
       ..is_(ir.encodeFunctionType(parameterCount: 0))
       ..end());
@@ -915,8 +914,7 @@ class ValidatorTest {
 
   test_yield_inNonGeneratorFunction() {
     _analyze((ir) => ir
-      ..function(ir.encodeFunctionType(parameterCount: 1),
-          FunctionFlags(generator: false))
+      ..function(ir.encodeFunctionType(parameterCount: 1), FunctionFlags())
       ..label('bad')
       ..yield_()
       ..end());

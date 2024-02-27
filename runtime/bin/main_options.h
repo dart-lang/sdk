@@ -157,9 +157,19 @@ class Options {
   static void PrintUsage();
   static void PrintVersion();
 
-  static void DestroyEnvironment();
+  static void Cleanup();
+
+#if defined(DART_PRECOMPILED_RUNTIME)
+  // Get the list of options in DART_VM_OPTIONS.
+  static char** GetEnvArguments(int* argc);
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 
  private:
+  static void DestroyEnvironment();
+#if defined(DART_PRECOMPILED_RUNTIME)
+  static void DestroyEnvArgv();
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+
 #define STRING_OPTION_DECL(flag, variable) static const char* variable##_;
   STRING_OPTIONS_LIST(STRING_OPTION_DECL)
 #undef STRING_OPTION_DECL
@@ -181,6 +191,11 @@ class Options {
 #undef ENUM_OPTION_DECL
 
   static dart::SimpleHashMap* environment_;
+
+#if defined(DART_PRECOMPILED_RUNTIME)
+  static char** env_argv_;
+  static int env_argc_;
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 
 // Frontend argument processing.
 #if !defined(DART_PRECOMPILED_RUNTIME)

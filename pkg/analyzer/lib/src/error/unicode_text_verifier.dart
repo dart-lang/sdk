@@ -35,8 +35,6 @@ class UnicodeTextVerifier {
           length: 1,
           errorCode: errorCode,
           arguments: [code],
-          contextMessages: null,
-          data: null,
         );
       }
     }

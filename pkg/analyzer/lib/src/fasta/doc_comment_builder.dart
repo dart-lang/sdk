@@ -190,8 +190,6 @@ final class DocCommentBuilder {
               length: openingTag.end - openingTag.offset,
               errorCode: WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_TAG,
               arguments: [openingTag.type.opposingName!],
-              contextMessages: null,
-              data: null,
             );
           }
           higherDirective.push(builder.build());
@@ -209,8 +207,6 @@ final class DocCommentBuilder {
       length: closingTag.end - closingTag.offset,
       errorCode: WarningCode.DOC_DIRECTIVE_MISSING_OPENING_TAG,
       arguments: [closingTag.type.name],
-      contextMessages: null,
-      data: null,
     );
     _pushDocDirective(SimpleDocDirective(closingTag));
   }
@@ -291,8 +287,6 @@ final class DocCommentBuilder {
           length: openingTag.end - openingTag.offset,
           errorCode: WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_TAG,
           arguments: [openingTag.type.opposingName!],
-          contextMessages: null,
-          data: null,
         );
       }
       _pushBlockDocDirectiveAndInnerDirectives(builder);
@@ -439,8 +433,6 @@ final class DocCommentBuilder {
       length: nameEnd - nameIndex,
       errorCode: WarningCode.DOC_DIRECTIVE_UNKNOWN,
       arguments: [name],
-      contextMessages: null,
-      data: null,
     );
     return false;
   }
@@ -1174,9 +1166,6 @@ final class _DirectiveParser {
       offset: _offset + index - 1,
       length: 1,
       errorCode: WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_BRACE,
-      arguments: null,
-      contextMessages: null,
-      data: null,
     );
     return (positionalArguments, namedArguments);
   }
@@ -1212,9 +1201,6 @@ final class _DirectiveParser {
           offset: _offset + index - 1,
           length: 1,
           errorCode: WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_BRACE,
-          arguments: null,
-          contextMessages: null,
-          data: null,
         );
         break;
       }
@@ -1225,9 +1211,6 @@ final class _DirectiveParser {
       offset: extraArgumentsOffset,
       length: errorLength,
       errorCode: WarningCode.DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS,
-      arguments: null,
-      contextMessages: null,
-      data: null,
     );
     _end = _offset + index;
   }

@@ -2359,8 +2359,7 @@ $downwards<int> g3(bool x) async {
 }
     ''';
 
-    await assertErrorsInCode(
-        build(downwards: "Future", upwards: "Future", expectedInfo: ''), [
+    await assertErrorsInCode(build(downwards: "Future", upwards: "Future"), [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 185, 4,
           contextMessages: [message(dartAsyncFile, 506, 4)]),
       error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 223, 7),
@@ -2417,7 +2416,6 @@ $downwards<List<int>> g3() async {
         declared: "MyFuture",
         downwards: "Future",
         upwards: "Future",
-        expectedError: '',
       ),
       [
         error(CompileTimeErrorCode.INVALID_OVERRIDE, 187, 4,
@@ -2453,7 +2451,6 @@ $downwards<List<int>> g3() async {
         declared: "Future",
         downwards: "Future",
         upwards: "Future",
-        expectedError: '',
       ),
       [
         error(CompileTimeErrorCode.INVALID_OVERRIDE, 187, 4,

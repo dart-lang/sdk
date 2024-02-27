@@ -687,8 +687,7 @@ class Driver implements ServerStarter {
         print(telemetry.analyticsNotice);
       }
       print('');
-      print(telemetry.createAnalyticsStatusMessage(analytics.enabled,
-          command: ANALYTICS_FLAG));
+      print(telemetry.createAnalyticsStatusMessage(analytics.enabled));
     }
   }
 
@@ -776,7 +775,6 @@ class Driver implements ServerStarter {
     // This option is hidden but still accepted; it's effectively translated to
     // the 'protocol' option above.
     parser.addFlag(USE_LSP,
-        defaultsTo: false,
         negatable: false,
         help: 'Whether to use the Language Server Protocol (LSP).',
         hide: true);
@@ -824,19 +822,17 @@ class Driver implements ServerStarter {
         // exception-nullifying runZoned() calls.
         help: 'disable analyzer exception capture for interactive debugging '
             'of the server',
-        defaultsTo: false,
         hide: true);
     parser.addFlag(DISABLE_SERVER_FEATURE_COMPLETION,
-        help: 'disable all completion features', defaultsTo: false, hide: true);
+        help: 'disable all completion features', hide: true);
     parser.addFlag(DISABLE_SERVER_FEATURE_SEARCH,
-        help: 'disable all search features', defaultsTo: false, hide: true);
+        help: 'disable all search features', hide: true);
     parser.addFlag(DISABLE_STATUS_NOTIFICATION_DEBOUNCING,
         negatable: false,
         help: 'Suppress debouncing of status notifications.',
         hide: true);
     parser.addFlag(INTERNAL_PRINT_TO_CONSOLE,
         help: 'enable sending `print` output to the console',
-        defaultsTo: false,
         negatable: false,
         hide: true);
     parser.addOption(

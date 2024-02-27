@@ -334,7 +334,8 @@ class TypedLiteralResolver {
       CollectionElement? element) {
     if (element is Expression) {
       return _InferredCollectionElementTypeInformation(
-          elementType: element.typeOrThrow, keyType: null, valueType: null);
+        elementType: element.typeOrThrow,
+      );
     } else if (element is ForElement) {
       return _inferCollectionElementType(element.body);
     } else if (element is IfElement) {
@@ -349,9 +350,9 @@ class TypedLiteralResolver {
           _typeSystem, thenType, elseType);
     } else if (element is MapLiteralEntry) {
       return _InferredCollectionElementTypeInformation(
-          elementType: null,
-          keyType: element.key.staticType,
-          valueType: element.value.staticType);
+        keyType: element.key.staticType,
+        valueType: element.value.staticType,
+      );
     } else if (element is SpreadElement) {
       var expressionType = element.expression.typeOrThrow;
 
@@ -361,8 +362,6 @@ class TypedLiteralResolver {
       if (iterableType != null) {
         return _InferredCollectionElementTypeInformation(
           elementType: iterableType.typeArguments[0],
-          keyType: null,
-          valueType: null,
         );
       }
 
@@ -371,7 +370,6 @@ class TypedLiteralResolver {
       );
       if (mapType != null) {
         return _InferredCollectionElementTypeInformation(
-          elementType: null,
           keyType: mapType.typeArguments[0],
           valueType: mapType.typeArguments[1],
         );
@@ -403,11 +401,7 @@ class TypedLiteralResolver {
         }
       }
 
-      return _InferredCollectionElementTypeInformation(
-        elementType: null,
-        keyType: null,
-        valueType: null,
-      );
+      return _InferredCollectionElementTypeInformation();
     } else {
       throw StateError('Unknown element type ${element.runtimeType}');
     }

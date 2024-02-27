@@ -757,7 +757,6 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
       errorCode: errorCode ?? lintCode,
       arguments: arguments,
       contextMessages: contextMessages,
-      data: null,
     );
   }
 

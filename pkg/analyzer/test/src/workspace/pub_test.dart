@@ -172,8 +172,7 @@ class PackageBuildPackageUriResolverTest with ResourceProviderMixin {
         'package:project/generated_file.dart',
         create: false);
     _assertResolveUri(sourceUri,
-        '/workspace/.dart_tool/build/generated/project/lib/generated_file.dart',
-        exists: true);
+        '/workspace/.dart_tool/build/generated/project/lib/generated_file.dart');
   }
 
   void test_resolveAbsolute_null_notPackage() {
@@ -198,8 +197,7 @@ class PackageBuildPackageUriResolverTest with ResourceProviderMixin {
     ]);
     final Uri sourceUri = addPackageSource(
         '/workspace/lib/source_file.dart', 'package:project/source_file.dart');
-    _assertResolveUri(sourceUri, '/workspace/lib/source_file.dart',
-        exists: true);
+    _assertResolveUri(sourceUri, '/workspace/lib/source_file.dart');
   }
 
   void test_resolveAbsolute_workspace_doesNotExist() {

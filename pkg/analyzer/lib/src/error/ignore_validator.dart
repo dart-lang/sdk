@@ -131,8 +131,6 @@ class IgnoreValidator {
           length: name.length,
           errorCode: WarningCode.DUPLICATE_IGNORE,
           arguments: [name],
-          contextMessages: null,
-          data: null,
         );
         list.remove(ignoredElement);
       } else if (ignoredElement is DiagnosticType) {
@@ -141,8 +139,6 @@ class IgnoreValidator {
           length: ignoredElement.length,
           errorCode: WarningCode.DUPLICATE_IGNORE,
           arguments: [ignoredElement.type],
-          contextMessages: null,
-          data: null,
         );
         list.remove(ignoredElement);
       }

@@ -16,6 +16,52 @@ main() {
 
 @reflectiveTest
 class ElementDisplayStringTest extends AbstractTypeSystemTest {
+  void test_class() {
+    final classA = class_(
+      name: 'A',
+      isAbstract: true,
+      superType: stringNone,
+      typeParameters: [typeParameter('T')],
+    );
+
+    final displayString = classA.getDisplayString();
+    expect(displayString, 'abstract class A<T> extends String');
+  }
+
+  void test_extension_named() {
+    final element = extension(
+      name: 'StringExtension',
+      extendedType: stringNone,
+    );
+
+    final displayString = element.getDisplayString();
+    expect(displayString, 'extension StringExtension on String');
+  }
+
+  void test_extension_unnamed() {
+    final element = extension(
+      extendedType: stringNone,
+    );
+
+    final displayString = element.getDisplayString();
+    expect(displayString, 'extension on String');
+  }
+
+  void test_extensionType() {
+    final element = extensionType(
+      'MyString',
+      representationType: stringNone,
+      interfaces: [stringNone],
+      typeParameters: [typeParameter('T')],
+    );
+
+    final displayString = element.getDisplayString();
+    expect(
+      displayString,
+      'extension type MyString<T>(String it) implements String',
+    );
+  }
+
   void test_longMethod() {
     final methodA = method(
       'longMethodName',

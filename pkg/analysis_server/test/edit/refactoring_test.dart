@@ -243,7 +243,7 @@ class ExtractLocalVariableTest extends _AbstractGetRefactoring_Test {
     var kind = RefactoringKind.EXTRACT_LOCAL_VARIABLE;
     var options =
         name != null ? ExtractLocalVariableOptions(name, extractAll) : null;
-    return sendRequest(kind, offset, length, options, false);
+    return sendRequest(kind, offset, length, options);
   }
 
   Future<Response> sendStringRequest(
@@ -826,7 +826,7 @@ int? res(int b) {
 
   Future<Response> _sendExtractRequest() {
     var kind = RefactoringKind.EXTRACT_METHOD;
-    return sendRequest(kind, offset, length, options, false);
+    return sendRequest(kind, offset, length, options);
   }
 
   void _setOffsetLengthForStartEnd() {

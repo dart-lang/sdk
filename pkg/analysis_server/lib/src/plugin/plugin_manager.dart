@@ -230,7 +230,7 @@ abstract class PluginInfo {
     if (currentSession == null) {
       if (_exception != null) {
         // Plugin crashed, nothing to do.
-        return Future<void>.value(null);
+        return Future<void>.value();
       }
       throw StateError('Cannot stop a plugin that is not running.');
     }

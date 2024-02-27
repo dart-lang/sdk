@@ -261,6 +261,13 @@ bool Options::ProcessEnvironmentOption(const char* arg,
                                                    &Options::environment_);
 }
 
+void Options::Cleanup() {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  DestroyEnvArgv();
+#endif
+  DestroyEnvironment();
+}
+
 void Options::DestroyEnvironment() {
   if (environment_ != nullptr) {
     for (SimpleHashMap::Entry* p = environment_->Start(); p != nullptr;
@@ -272,6 +279,71 @@ void Options::DestroyEnvironment() {
     environment_ = nullptr;
   }
 }
+
+#if defined(DART_PRECOMPILED_RUNTIME)
+// Retrieves the set of arguments stored in the DART_VM_OPTIONS environment
+// variable.
+//
+// DART_VM_OPTIONS should contain a list of comma-separated options and flags
+// with no spaces. Options that support providing multiple values as
+// comma-separated lists (e.g., --timeline-streams=Dart,GC,Compiler) are not
+// supported and will cause argument parsing to fail.
+char** Options::GetEnvArguments(int* argc) {
+  ASSERT(argc != nullptr);
+  const char* env_args_str = std::getenv("DART_VM_OPTIONS");
+  if (env_args_str == nullptr) {
+    *argc = 0;
+    return nullptr;
+  }
+
+  intptr_t n = strlen(env_args_str);
+  if (n == 0) {
+    return nullptr;
+  }
+
+  // Find the number of arguments based on the number of ','s.
+  //
+  // WARNING: this won't work for arguments that support CSVs. There's less
+  // than a handful of options that support multiple values. If we want to
+  // support this case, we need to determine a way to specify groupings of CSVs
+  // in environment variables.
+  int arg_count = 1;
+  for (int i = 0; i < n; ++i) {
+    // Ignore the last comma if it's the last character in the string.
+    if (env_args_str[i] == ',' && i + 1 != n) {
+      arg_count++;
+    }
+  }
+
+  env_argv_ = new char*[arg_count];
+  env_argc_ = arg_count;
+  *argc = arg_count;
+
+  int current_arg = 0;
+  char* token;
+  char* rest = const_cast<char*>(env_args_str);
+
+  // Split out the individual arguments.
+  while ((token = strtok_r(rest, ",", &rest)) != nullptr) {
+    // TODO(bkonyi): consider stripping leading/trailing whitespace from
+    // arguments.
+    env_argv_[current_arg++] = Utils::StrNDup(token, rest - token);
+  }
+
+  return env_argv_;
+}
+
+char** Options::env_argv_ = nullptr;
+int Options::env_argc_ = 0;
+
+void Options::DestroyEnvArgv() {
+  for (int i = 0; i < env_argc_; ++i) {
+    free(env_argv_[i]);
+  }
+  delete[] env_argv_;
+  env_argv_ = nullptr;
+}
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 
 bool Options::ExtractPortAndAddress(const char* option_value,
                                     int* out_port,

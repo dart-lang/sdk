@@ -287,7 +287,6 @@ foo(String s, int i) {
         ParameterInformation(label: 'String s'),
         ParameterInformation(label: 'int i'),
       ],
-      expectedFormat: MarkupKind.Markdown,
     );
   }
 
@@ -363,7 +362,6 @@ foo(String s, int i) {
         ParameterInformation(label: 'String s'),
         ParameterInformation(label: 'int i'),
       ],
-      expectedFormat: MarkupKind.Markdown,
     );
   }
 
@@ -387,7 +385,6 @@ foo(String s, int i) {
           ParameterInformation(label: 'String s'),
           ParameterInformation(label: 'int i'),
         ],
-        expectedFormat: MarkupKind.Markdown,
         context: SignatureHelpContext(
           triggerKind: SignatureHelpTriggerKind.Invoked,
           isRetrigger: false,
@@ -631,7 +628,6 @@ foo(String s, int i) {
           ParameterInformation(label: 'String s'),
           ParameterInformation(label: 'int i'),
         ],
-        expectedFormat: MarkupKind.Markdown,
         context: SignatureHelpContext(
           triggerKind: SignatureHelpTriggerKind.Invoked,
           isRetrigger: false,

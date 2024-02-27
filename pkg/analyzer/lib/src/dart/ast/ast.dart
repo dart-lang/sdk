@@ -303,7 +303,7 @@ final class AnnotationImpl extends AstNodeImpl implements Annotation {
 
   /// The element annotation representing this annotation in the element model.
   @override
-  ElementAnnotation? elementAnnotation;
+  ElementAnnotationImpl? elementAnnotation;
 
   /// Initialize a newly created annotation. Both the [period] and the
   /// [constructorName] can be `null` if the annotation is not referencing a
@@ -5323,7 +5323,7 @@ sealed class Directive implements AnnotatedNode {
 sealed class DirectiveImpl extends AnnotatedNodeImpl implements Directive {
   /// The element associated with this directive, or `null` if the AST structure
   /// has not been resolved or if this directive could not be resolved.
-  Element? _element;
+  ElementImpl? _element;
 
   /// Initialize a newly create directive. Either or both of the [comment] and
   /// [metadata] can be `null` if the directive does not have the corresponding
@@ -5334,10 +5334,10 @@ sealed class DirectiveImpl extends AnnotatedNodeImpl implements Directive {
   });
 
   @override
-  Element? get element => _element;
+  ElementImpl? get element => _element;
 
   /// Set the element associated with this directive to be the given [element].
-  set element(Element? element) {
+  set element(ElementImpl? element) {
     _element = element;
   }
 }
@@ -13805,8 +13805,8 @@ final class PartDirectiveImpl extends UriBasedDirectiveImpl
   });
 
   @override
-  PartElement? get element {
-    return super.element as PartElement?;
+  PartElementImpl? get element {
+    return super.element as PartElementImpl?;
   }
 
   @override
@@ -15458,7 +15458,7 @@ final class RepresentationDeclarationImpl extends AstNodeImpl
   final Token leftParenthesis;
 
   @override
-  final NodeListImpl<Annotation> fieldMetadata = NodeListImpl._();
+  final NodeListImpl<AnnotationImpl> fieldMetadata = NodeListImpl._();
 
   @override
   final TypeAnnotationImpl fieldType;

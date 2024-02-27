@@ -228,6 +228,22 @@ mixin ElementsTypesMixin {
     return ConstFieldElementImpl(name, 0)..isEnumConstant = true;
   }
 
+  ExtensionElementImpl extension({
+    required DartType extendedType,
+    String? name,
+    bool isAugmentation = false,
+    List<TypeParameterElement> typeParameters = const [],
+    List<MethodElementImpl> methods = const [],
+  }) {
+    var element = ExtensionElementImpl(name, 0);
+    element.extendedType = extendedType;
+    element.isAugmentation = isAugmentation;
+    element.enclosingElement = testLibrary.definingCompilationUnit;
+    element.typeParameters = typeParameters;
+    element.methods = methods;
+    return element;
+  }
+
   ExtensionTypeElementImpl extensionType(
     String name, {
     String representationName = 'it',

@@ -152,7 +152,6 @@ linter:
       ''',
       // No error
       [],
-      sdk: null,
     );
   }
 

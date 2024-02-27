@@ -446,7 +446,7 @@ suggestions
     await _configureWithWorkspaceRoot();
 
     // Empty budget, so no not yet imported libraries.
-    server.completionState.budgetDuration = const Duration(milliseconds: 0);
+    server.completionState.budgetDuration = const Duration();
 
     var response = await _getTestCodeSuggestions('''
 void f() {

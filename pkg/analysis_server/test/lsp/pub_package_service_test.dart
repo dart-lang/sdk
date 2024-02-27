@@ -460,7 +460,7 @@ class PubPackageServiceTest extends AbstractLspAnalysisServerTest {
     final maxHours = PackageDetailsCache.maxCacheAge.inHours;
 
     // Very old cache should have no time remaining.
-    expectHoursRemaining(DateTime(2020, 12, 1), 0);
+    expectHoursRemaining(DateTime(2020, 12), 0);
 
     // Cache from 1 hour ago should max-1 hours remaining.
     expectHoursRemaining(DateTime.now().add(Duration(hours: -1)), maxHours - 1);

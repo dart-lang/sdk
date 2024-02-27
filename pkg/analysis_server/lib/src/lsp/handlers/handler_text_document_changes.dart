@@ -165,7 +165,6 @@ class TextDocumentRegistrations extends FeatureRegistration
         change: TextDocumentSyncKind.Incremental,
         willSave: false,
         willSaveWaitUntil: false,
-        save: null,
       ));
 
   @override

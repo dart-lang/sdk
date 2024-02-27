@@ -129,9 +129,6 @@ class BinaryExpressionResolver {
         offset: offset,
         length: end.end - offset,
         errorCode: errorCode,
-        arguments: null,
-        contextMessages: null,
-        data: null,
       );
     }
 

@@ -377,8 +377,6 @@ class PropertyElementResolver with ScopeHelpers {
       length: length,
       errorCode: errorCode,
       arguments: arguments,
-      contextMessages: null,
-      data: null,
     );
   }
 
@@ -780,9 +778,7 @@ class PropertyElementResolver with ScopeHelpers {
 
     return PropertyElementResolverResult(
       readElementRequested: readElement,
-      readElementRecovery: null,
       writeElementRequested: writeElement,
-      writeElementRecovery: null,
       getType: getType,
     );
   }

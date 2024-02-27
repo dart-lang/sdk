@@ -136,10 +136,7 @@ class Driver {
   ArgParser _createArgParser() {
     var parser = ArgParser();
     parser.addFlag(HELP_FLAG_NAME,
-        abbr: 'h',
-        help: 'Print usage information',
-        defaultsTo: false,
-        negatable: false);
+        abbr: 'h', help: 'Print usage information', negatable: false);
     parser.addOption(OVERLAY_STYLE_OPTION_NAME,
         help:
             'The style of interaction to use for analysis.updateContent requests',
@@ -152,7 +149,6 @@ class Driver {
     parser.addFlag(VERBOSE_FLAG_NAME,
         abbr: 'v',
         help: 'Produce verbose output for debugging',
-        defaultsTo: false,
         negatable: false);
     return parser;
   }

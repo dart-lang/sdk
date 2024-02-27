@@ -218,7 +218,7 @@ extension IdentifierExtension on Identifier {
 extension IdentifierImplExtension on IdentifierImpl {
   NamedTypeImpl toNamedType({
     required TypeArgumentListImpl? typeArguments,
-    Token? question,
+    required Token? question,
   }) {
     final self = this;
     if (self is PrefixedIdentifierImpl) {

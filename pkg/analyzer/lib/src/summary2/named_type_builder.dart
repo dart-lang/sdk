@@ -299,7 +299,7 @@ class NamedTypeBuilder extends TypeBuilder {
   }
 
   static List<DartType> _listOfDynamic(int length) {
-    return List<DartType>.filled(length, _dynamicType, growable: false);
+    return List<DartType>.filled(length, _dynamicType);
   }
 
   static void _setAliasedType(AstNode node, DartType type) {

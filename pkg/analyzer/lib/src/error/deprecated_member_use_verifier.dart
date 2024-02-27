@@ -352,8 +352,6 @@ class DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
             ? HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE
             : HintCode.DEPRECATED_MEMBER_USE,
         arguments: [displayName],
-        contextMessages: null,
-        data: null,
       );
     } else {
       if (!message.endsWith('.') &&
@@ -368,8 +366,6 @@ class DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
             ? HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE
             : HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE,
         arguments: [displayName, message],
-        contextMessages: null,
-        data: null,
       );
     }
   }

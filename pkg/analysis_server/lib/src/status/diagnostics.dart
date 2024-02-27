@@ -473,8 +473,7 @@ class CollectReportPage extends DiagnosticPage {
     }
 
     if (startedServiceProtocol) {
-      await developer.Service.controlWebServer(
-          enable: false, silenceOutput: true);
+      await developer.Service.controlWebServer(silenceOutput: true);
     }
 
     const JsonEncoder encoder = JsonEncoder.withIndent('  ');

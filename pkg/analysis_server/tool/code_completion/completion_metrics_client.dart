@@ -88,7 +88,6 @@ ArgParser _createArgParser() {
     )
     ..addFlag(
       CompletionMetricsOptions.PRINT_SLOWEST_RESULTS,
-      defaultsTo: false,
       help: 'Print information about the completion requests that were the '
           'slowest to return suggestions.',
       negatable: false,

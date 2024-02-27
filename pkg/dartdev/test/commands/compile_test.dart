@@ -738,6 +738,42 @@ void main() {}
     expect(result.stdout, contains('sound'));
   }, skip: isRunningOnIA32);
 
+  test('Compile and run exe with DART_VM_OPTIONS', () async {
+    final p = project(mainSrc: '''void main() {
+      // Empty
+    }''');
+    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+    final outFile = path.canonicalize(path.join(p.dirPath, 'myexe'));
+
+    var result = await p.run(
+      [
+        'compile',
+        'exe',
+        '-o',
+        outFile,
+        inFile,
+      ],
+    );
+
+    expect(result.stdout, isNot(contains(soundNullSafetyMessage)));
+    expect(result.stderr, isEmpty);
+    expect(result.exitCode, 0);
+    expect(File(outFile).existsSync(), true,
+        reason: 'File not found: $outFile');
+
+    result = Process.runSync(
+      outFile,
+      [],
+      environment: <String, String>{
+        'DART_VM_OPTIONS': '--help,--verbose',
+      },
+    );
+
+    expect(result.stderr, isEmpty);
+    expect(result.stdout, contains('vm_name'));
+    expect(result.exitCode, 255);
+  }, skip: isRunningOnIA32);
+
   test('Compile exe without info', () async {
     final p = project(mainSrc: '''void main() {}''');
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));

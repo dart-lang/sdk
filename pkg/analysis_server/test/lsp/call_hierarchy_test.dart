@@ -112,7 +112,6 @@ final x = foo();
           // Container of the call
           from: CallHierarchyItem(
             name: 'other.dart',
-            detail: null,
             kind: SymbolKind.File,
             uri: otherFileUri,
             range: entireRange(otherCode.code),

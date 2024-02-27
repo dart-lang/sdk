@@ -46,9 +46,6 @@ class DocCommentVerifier {
         offset: configurations.first.offset,
         length: configurations.last.end - configurations.first.offset,
         errorCode: WarningCode.DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS,
-        arguments: null,
-        contextMessages: null,
-        data: null,
       );
     }
   }
@@ -66,8 +63,6 @@ class DocCommentVerifier {
           length: tag.end - tag.offset,
           errorCode: WarningCode.DOC_DIRECTIVE_MISSING_ONE_ARGUMENT,
           arguments: [tag.type.name, required.last.name],
-          contextMessages: null,
-          data: null,
         );
       } else if (gap == 2) {
         var missingArguments = [
@@ -79,8 +74,6 @@ class DocCommentVerifier {
           length: tag.end - tag.offset,
           errorCode: WarningCode.DOC_DIRECTIVE_MISSING_TWO_ARGUMENTS,
           arguments: [tag.type.name, ...missingArguments],
-          contextMessages: null,
-          data: null,
         );
       } else if (gap == 3) {
         var missingArguments = [
@@ -93,8 +86,6 @@ class DocCommentVerifier {
           length: tag.end - tag.offset,
           errorCode: WarningCode.DOC_DIRECTIVE_MISSING_THREE_ARGUMENTS,
           arguments: [tag.type.name, ...missingArguments],
-          contextMessages: null,
-          data: null,
         );
       }
     }
@@ -113,8 +104,6 @@ class DocCommentVerifier {
         length: errorLength,
         errorCode: WarningCode.DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS,
         arguments: [tag.type.name, positionalArgumentCount, requiredCount],
-        contextMessages: null,
-        data: null,
       );
     }
 
@@ -125,8 +114,6 @@ class DocCommentVerifier {
           length: namedArgument.end - namedArgument.offset,
           errorCode: WarningCode.DOC_DIRECTIVE_HAS_UNEXPECTED_NAMED_ARGUMENT,
           arguments: [tag.type.name, namedArgument.name],
-          contextMessages: null,
-          data: null,
         );
       }
     }
@@ -146,8 +133,6 @@ class DocCommentVerifier {
           length: argument.end - argument.offset,
           errorCode: WarningCode.DOC_DIRECTIVE_ARGUMENT_WRONG_FORMAT,
           arguments: [parameter.name, parameter.expectedFormat.displayString],
-          contextMessages: null,
-          data: null,
         );
       }
 

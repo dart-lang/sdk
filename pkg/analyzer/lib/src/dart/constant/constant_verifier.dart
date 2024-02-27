@@ -282,7 +282,6 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
                 errorCode: result.errorCode,
                 arguments: result.arguments,
                 contextMessages: result.contextMessages,
-                data: null,
               );
             }
           case DartObjectImpl():

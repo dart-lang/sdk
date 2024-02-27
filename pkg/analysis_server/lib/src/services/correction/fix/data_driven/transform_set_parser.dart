@@ -194,9 +194,6 @@ class TransformSetParser {
           offset: templateOffset + variableStart,
           length: 2,
           errorCode: TransformSetErrorCode.missingTemplateEnd,
-          arguments: null,
-          contextMessages: null,
-          data: null,
         );
         // Ignore the invalid component, treating it as if it extended to the
         // end of the template.
@@ -210,8 +207,6 @@ class TransformSetParser {
             length: name.length,
             errorCode: TransformSetErrorCode.undefinedVariable,
             arguments: [name],
-            contextMessages: null,
-            data: null,
           );
           // Ignore the invalid component.
         } else {
@@ -266,8 +261,6 @@ class TransformSetParser {
         length: length,
         errorCode: TransformSetErrorCode.yamlSyntaxError,
         arguments: [e.message],
-        contextMessages: null,
-        data: null,
       );
     }
     return null;
@@ -284,8 +277,6 @@ class TransformSetParser {
       length: span.length,
       errorCode: code,
       arguments: arguments,
-      contextMessages: null,
-      data: null,
     );
   }
 
@@ -596,8 +587,7 @@ class TransformSetParser {
     }
     var argumentValueNode = node.valueAt(_argumentValueKey);
     var argumentValue = _translateCodeTemplate(argumentValueNode,
-        ErrorContext(key: _argumentValueKey, parentNode: node),
-        canBeConditionallyRequired: false);
+        ErrorContext(key: _argumentValueKey, parentNode: node));
     (_parameterModifications ??= []).add(
       ChangeParameterType(
         reference: reference,

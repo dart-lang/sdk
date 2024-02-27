@@ -3,6 +3,9 @@
 The present document describes the Dart SDK philosophy for compatibility, and
 process for breaking changes.
 
+For a list of past breaking changes, see the
+[dart.dev breaking changes](https://dart.dev/resources/breaking-changes) page.
+
 ## Dart compatibility and philosophy
 
 Generally the Dart team strives to not make breaking changes, and to preserve

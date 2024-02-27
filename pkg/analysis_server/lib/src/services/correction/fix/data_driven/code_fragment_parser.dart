@@ -85,8 +85,6 @@ class CodeFragmentParser {
           length: token.length,
           errorCode: TransformSetErrorCode.wrongToken,
           arguments: ['.', token.kind.displayName],
-          contextMessages: null,
-          data: null,
         );
         return null;
       }
@@ -117,8 +115,6 @@ class CodeFragmentParser {
         length: token.length,
         errorCode: TransformSetErrorCode.unexpectedToken,
         arguments: [token.kind.displayName],
-        contextMessages: null,
-        data: null,
       );
       return null;
     }
@@ -157,8 +153,6 @@ class CodeFragmentParser {
         length: length,
         errorCode: TransformSetErrorCode.missingToken,
         arguments: [validKindsDisplayString()],
-        contextMessages: null,
-        data: null,
       );
       return null;
     }
@@ -168,8 +162,6 @@ class CodeFragmentParser {
         length: token.length,
         errorCode: TransformSetErrorCode.wrongToken,
         arguments: [validKindsDisplayString(), token.kind.displayName],
-        contextMessages: null,
-        data: null,
       );
       return null;
     }
@@ -243,8 +235,6 @@ class CodeFragmentParser {
         length: token.length,
         errorCode: TransformSetErrorCode.unknownAccessor,
         arguments: [identifier],
-        contextMessages: null,
-        data: null,
       );
       return null;
     }
@@ -325,8 +315,6 @@ class CodeFragmentParser {
             length: token.length,
             errorCode: TransformSetErrorCode.undefinedVariable,
             arguments: [variableName],
-            contextMessages: null,
-            data: null,
           );
           return null;
         }
@@ -357,9 +345,6 @@ class CodeFragmentParser {
       offset: offset,
       length: length,
       errorCode: TransformSetErrorCode.expectedPrimary,
-      arguments: null,
-      contextMessages: null,
-      data: null,
     );
     return null;
   }
@@ -495,8 +480,6 @@ class _CodeFragmentScanner {
       length: 1,
       errorCode: TransformSetErrorCode.invalidCharacter,
       arguments: [content.substring(offset, offset + 1)],
-      contextMessages: null,
-      data: null,
     );
     return null;
   }

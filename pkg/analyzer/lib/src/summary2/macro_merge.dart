@@ -324,7 +324,6 @@ class MacroUpdateConstantsForOptimizedCode {
 
     void addElement(ElementImpl element) {
       for (var annotation in element.metadata) {
-        annotation as ElementAnnotationImpl;
         result.add((element, annotation.annotationAst));
       }
 

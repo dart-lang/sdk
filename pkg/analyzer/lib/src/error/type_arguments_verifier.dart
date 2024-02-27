@@ -136,8 +136,6 @@ class TypeArgumentsVerifier {
           length: errorTarget.length,
           errorCode: CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
           arguments: [typeArgument, typeParameter.name, bound],
-          contextMessages: null,
-          data: null,
         );
       }
     }
