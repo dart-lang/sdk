@@ -8,5 +8,20 @@ inference_update_2/why_not_promoted_external_error_test: SkipByDesign # Non-JS-i
 number/web_int_literals_test: SkipByDesign # WASM has real integers.
 vm/*: SkipByDesign # Tests for the VM.
 
+[ $compiler == dart2wasm && $runtime == chrome ]
+async_star/async_star_await_for_test: SkipSlow # Issue(http://dartbug.com/55025)
+async_star/async_star_cancel_test: SkipSlow # Issue(http://dartbug.com/55025)
+async_star/async_star_invalid_test/03: SkipSlow # Issue(http://dartbug.com/55025)
+async_star/async_star_test: SkipSlow # Issue(http://dartbug.com/55025)
+async_star/cancel_and_throw_in_finally_test: SkipSlow # Issue(http://dartbug.com/55025)
+async_star/cancel_test: SkipSlow # Issue(http://dartbug.com/55025)
+async_star/error_test: SkipSlow # Issue(http://dartbug.com/55025)
+async_star/no_cancel2_test: SkipSlow # Issue(http://dartbug.com/55025)
+async_star/no_cancel_test: SkipSlow # Issue(http://dartbug.com/55025)
+async_star/regression_fisk_test: SkipSlow # Issue(http://dartbug.com/55025)
+async_star/throw_in_catch_test: SkipSlow # Issue(http://dartbug.com/55025)
+async_star/yield_test: SkipSlow # Issue(http://dartbug.com/55025)
+async_star/yieldstar_test: SkipSlow # Issue(http://dartbug.com/55025)
+
 [ $compiler == dart2wasm && $runtime == d8 ]
 import/conditional_string_test: SkipByDesign # No XHR in d8
