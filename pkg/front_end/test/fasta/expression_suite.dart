@@ -47,7 +47,7 @@ import 'package:kernel/text/ast_to_text.dart' show Printer;
 import "package:testing/src/log.dart" show splitLines;
 import "package:testing/testing.dart"
     show Chain, ChainContext, Result, Step, TestDescription;
-import 'package:vm/target/vm.dart' show VmTarget;
+import 'package:vm/modular/target/vm.dart' show VmTarget;
 import "package:yaml/yaml.dart" show YamlMap, YamlList, loadYamlNode;
 
 import '../testing_utils.dart' show checkEnvironment;

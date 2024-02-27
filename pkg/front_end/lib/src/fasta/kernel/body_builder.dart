@@ -39,6 +39,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/clone.dart';
 import 'package:kernel/core_types.dart';
+import 'package:kernel/names.dart' show emptyName, minusName, plusName;
 import 'package:kernel/src/bounds_checks.dart' hide calculateBounds;
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
@@ -82,7 +83,6 @@ import '../identifiers.dart'
         flattenName;
 import '../modifier.dart'
     show Modifier, constMask, covariantMask, finalMask, lateMask, requiredMask;
-import '../names.dart' show emptyName, minusName, plusName;
 import '../problems.dart' show internalProblem, unhandled, unsupported;
 import '../scope.dart';
 import '../source/diet_parser.dart';

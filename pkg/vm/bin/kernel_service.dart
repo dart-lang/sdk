@@ -49,7 +49,7 @@ import 'package:vm/kernel_front_end.dart'
     show createLoadedLibrariesSet, ErrorDetector;
 import 'package:vm/native_assets/diagnostic_message.dart';
 import 'package:vm/native_assets/synthesizer.dart';
-import 'package:vm/target/vm.dart' show VmTarget;
+import 'package:vm/modular/target/vm.dart' show VmTarget;
 
 final bool verbose = new bool.fromEnvironment('DFE_VERBOSE');
 final bool dumpKernel = new bool.fromEnvironment('DFE_DUMP_KERNEL');

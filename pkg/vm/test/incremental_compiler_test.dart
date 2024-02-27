@@ -25,7 +25,7 @@ import 'package:test/test.dart';
 import 'package:web_socket_channel/io.dart';
 
 import 'package:vm/incremental_compiler.dart';
-import 'package:vm/target/vm.dart';
+import 'package:vm/modular/target/vm.dart';
 
 import 'common_test_utils.dart';
 

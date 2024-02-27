@@ -19,6 +19,7 @@ import 'package:kernel/src/future_value_type.dart';
 import 'package:kernel/src/legacy_erasure.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
+import 'package:kernel/names.dart';
 
 import '../../api_prototype/experimental_flags.dart';
 import '../../base/instrumentation.dart'
@@ -38,7 +39,6 @@ import '../kernel/hierarchy/class_member.dart';
 import '../kernel/internal_ast.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/type_algorithms.dart' show hasAnyTypeVariables;
-import '../names.dart';
 import '../problems.dart' show internalProblem, unhandled;
 import '../source/source_constructor_builder.dart';
 import '../source/source_field_builder.dart';

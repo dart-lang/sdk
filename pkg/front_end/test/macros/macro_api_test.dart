@@ -13,7 +13,7 @@ import 'package:front_end/src/isolate_macro_serializer.dart';
 import 'package:front_end/src/macro_serializer.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
 import 'package:kernel/target/targets.dart';
-import 'package:vm/target/vm.dart';
+import 'package:vm/modular/target/vm.dart';
 
 Future<void> main(List<String> args) async {
   MacroSerializer macroSerializer = new IsolateMacroSerializer();

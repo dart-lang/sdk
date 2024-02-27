@@ -19,7 +19,7 @@ import 'package:kernel/kernel.dart';
 import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/target/changed_structure_notifier.dart';
 import 'package:kernel/target/targets.dart';
-import "package:vm/target/vm.dart" show VmTarget;
+import "package:vm/modular/target/vm.dart" show VmTarget;
 
 import 'testing_utils.dart' show getGitFiles;
 import "utils/io_utils.dart";

@@ -8,7 +8,7 @@ import "package:kernel/binary/ast_from_binary.dart";
 import "package:kernel/kernel.dart";
 import "package:kernel/target/targets.dart";
 import "package:kernel/verifier.dart";
-import "package:vm/target/vm.dart";
+import "package:vm/modular/target/vm.dart";
 
 void main(List<String> args) {
   if (args.length != 1) throw "Usage: dart <script> <dill>";

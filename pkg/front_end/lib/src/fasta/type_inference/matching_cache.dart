@@ -4,11 +4,11 @@
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
+import 'package:kernel/names.dart';
 import 'package:kernel/src/printer.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../../api_unstable/util.dart';
-import '../names.dart';
 import '../type_inference/external_ast_helper.dart';
 import 'delayed_expressions.dart';
 import 'type_schema.dart';

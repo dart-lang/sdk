@@ -8,7 +8,7 @@ import 'package:kernel/type_algebra.dart';
 
 import 'package:kernel/type_environment.dart';
 
-import '../names.dart' show callName;
+import 'package:kernel/names.dart' show callName;
 
 import 'type_inference_engine.dart';
 

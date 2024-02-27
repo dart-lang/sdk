@@ -3,31 +3,22 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io' show Directory, File, FileSystemEntity;
-
 import 'dart:typed_data' show Uint8List;
 
+import 'package:_fe_analyzer_shared/src/parser/listener.dart' show Listener;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show FormalParameterKind, MemberKind, Parser;
-
-import 'package:_fe_analyzer_shared/src/parser/listener.dart' show Listener;
-
 import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
     show ScannerConfiguration;
-
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
-
 import 'package:_fe_analyzer_shared/src/scanner/utf8_bytes_scanner.dart'
     show Utf8BytesScanner;
-
 import 'package:front_end/src/fasta/command_line_reporting.dart'
     as command_line_reporting;
 import 'package:front_end/src/fasta/source/diet_parser.dart'
     show useImplicitCreationExpressionInCfe;
-
 import 'package:kernel/kernel.dart';
-
 import 'package:package_config/package_config.dart';
-
 import 'package:testing/testing.dart'
     show Chain, ChainContext, Result, Step, TestDescription;
 
@@ -355,6 +346,12 @@ class ExportsLintListener extends LintListener {
       exportUri = exportUri.substring(1, exportUri.length - 1);
     }
     Uri resolved = uri.resolve(exportUri);
+
+    if (resolved.isScheme("package") && resolved.path.startsWith('kernel/')) {
+      // Exporting from `package:kernel` is allowed.
+      return;
+    }
+
     if (resolved.isScheme("package")) {
       if (description.cache.packages != null) {
         resolved = description.cache.packages!.resolve(resolved)!;

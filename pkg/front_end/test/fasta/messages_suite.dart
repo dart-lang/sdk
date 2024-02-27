@@ -31,7 +31,7 @@ import 'package:kernel/ast.dart' show Location, Source;
 import "package:kernel/target/targets.dart" show TargetFlags;
 import "package:testing/testing.dart"
     show Chain, ChainContext, Expectation, Result, Step, TestDescription;
-import "package:vm/target/vm.dart" show VmTarget;
+import "package:vm/modular/target/vm.dart" show VmTarget;
 import "package:yaml/yaml.dart" show YamlList, YamlMap, YamlNode, loadYamlNode;
 
 import "../../tool/_fasta/entry_points.dart" show BatchCompiler;

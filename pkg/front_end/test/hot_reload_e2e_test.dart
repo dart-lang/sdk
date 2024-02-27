@@ -38,7 +38,7 @@ import 'package:front_end/src/compute_platform_binaries_location.dart'
 import 'package:front_end/src/fasta/hybrid_file_system.dart'
     show HybridFileSystem;
 import 'package:kernel/target/targets.dart';
-import 'package:vm/target/vm.dart';
+import 'package:vm/modular/target/vm.dart';
 
 import 'tool/reload.dart' show RemoteVm;
 

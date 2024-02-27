@@ -8,9 +8,10 @@ import 'package:kernel/core_types.dart';
 import 'package:kernel/library_index.dart' show LibraryIndex;
 import 'package:kernel/reference_from_index.dart' show ReferenceFromIndex;
 import 'package:kernel/target/targets.dart' show DiagnosticReporter;
-import 'package:vm/transformations/ffi/abi.dart' show Abi;
-import 'package:vm/transformations/ffi/common.dart' show NativeType;
-import 'package:vm/transformations/ffi/native.dart' show FfiNativeTransformer;
+import 'package:vm/modular/transformations/ffi/abi.dart' show Abi;
+import 'package:vm/modular/transformations/ffi/common.dart' show NativeType;
+import 'package:vm/modular/transformations/ffi/native.dart'
+    show FfiNativeTransformer;
 import 'abi.dart' show kWasmAbiEnumIndex;
 
 /// Transform `@Native`-annotated functions to convert Dart arguments to

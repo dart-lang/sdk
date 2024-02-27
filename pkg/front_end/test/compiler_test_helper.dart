@@ -30,7 +30,7 @@ import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:testing/testing.dart';
-import "package:vm/target/vm.dart" show VmTarget;
+import "package:vm/modular/target/vm.dart" show VmTarget;
 
 api.CompilerOptions getOptions(
     {void Function(api.DiagnosticMessage message)? onDiagnostic,

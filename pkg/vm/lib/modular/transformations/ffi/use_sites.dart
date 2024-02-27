@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/api_unstable/vm.dart'
+import 'package:front_end/src/fasta/fasta_codes.dart'
     show
         messageFfiAddressOfMustBeNative,
         messageFfiCreateOfStructOrUnion,
@@ -16,10 +16,9 @@ import 'package:front_end/src/api_unstable/vm.dart'
         templateFfiExtendsOrImplementsSealedClass,
         templateFfiNotStatic;
 
-import 'package:front_end/src/api_prototype/lowering_predicates.dart';
-import 'package:front_end/src/fasta/names.dart' show unaryMinusName;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
+import 'package:kernel/constructor_tearoff_lowering.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/library_index.dart' show LibraryIndex;
@@ -28,6 +27,7 @@ import 'package:kernel/target/targets.dart' show DiagnosticReporter;
 import 'package:kernel/type_algebra.dart'
     show FunctionTypeInstantiator, Substitution;
 import 'package:kernel/type_environment.dart';
+import 'package:kernel/names.dart';
 
 import 'definitions.dart' as definitions;
 import 'native_type_cfe.dart';

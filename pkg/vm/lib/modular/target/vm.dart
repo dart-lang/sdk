@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
-import 'package:kernel/clone.dart';
 import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/clone.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/target/changed_structure_notifier.dart';
@@ -24,7 +24,6 @@ import '../transformations/ffi/native.dart' as transformFfiNative
 import '../transformations/ffi/use_sites.dart' as transformFfiUseSites
     show transformLibraries;
 
-/// Specializes the kernel IR to the Dart VM.
 class VmTarget extends Target {
   final TargetFlags flags;
 

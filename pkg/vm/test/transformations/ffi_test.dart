@@ -13,8 +13,9 @@ import 'package:kernel/verifier.dart';
 import 'package:test/test.dart';
 import 'package:vm/kernel_front_end.dart'
     show runGlobalTransformations, ErrorDetector;
-import 'package:vm/target/vm.dart' show VmTarget;
-import 'package:vm/transformations/ffi/native.dart' show transformLibraries;
+import 'package:vm/modular/target/vm.dart' show VmTarget;
+import 'package:vm/modular/transformations/ffi/native.dart'
+    show transformLibraries;
 
 import '../common_test_utils.dart';
 

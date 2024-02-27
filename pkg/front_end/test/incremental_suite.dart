@@ -90,7 +90,7 @@ import "package:testing/testing.dart"
         Step,
         TestDescription;
 
-import "package:vm/target/vm.dart" show VmTarget;
+import "package:vm/modular/target/vm.dart" show VmTarget;
 
 import "package:yaml/yaml.dart" show YamlMap, loadYamlNode;
 
