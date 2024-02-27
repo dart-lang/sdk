@@ -30,24 +30,24 @@ main() {
     Expect.equals(a.getterWithoutBody, 'bc');
   }
   var a = A();
-  Expect(a == a, false);
-  Expect(A().newFunction(), 'ab');
-  Expect(A().newGetter, 'ab');
+  Expect.equals(a == a, false);
+  Expect.equals(A().newFunction(), 'ab');
+  Expect.equals(A().newGetter, 'ab');
   {
     var a = A()..newSetter = 'a';
-    Expect(a._underlyingString, 'a 1');
+    Expect.equals(a._underlyingString, 'a 1');
   }
 
-  Expect(A() is B, true);
-  Expect(A() is M, true);
-  Expect(A() is I, true);
-  Expect(A().superX, 'abcd');
-  Expect(A().mixinX, 'abcd');
+  Expect.equals(A() is B, true);
+  Expect.equals(A() is M, true);
+  Expect.equals(A() is I, true);
+  Expect.equals(A().superX, 'abcd');
+  Expect.equals(A().mixinX, 'abcd');
 
-  Expect(A().augmentationConstructorInitialized, true);
-  Expect(A().augmentationInitializerInitialized, true);
-  Expect(A().constructorInitialized, true);
-  Expect(A().initializerInitialized, true);
+  Expect.equals(A().augmentationConstructorInitialized, true);
+  Expect.equals(A().augmentationInitializerInitialized, true);
+  Expect.equals(A().constructorInitialized, true);
+  Expect.equals(A().initializerInitialized, true);
 }
 
 class A {
@@ -67,7 +67,7 @@ class A {
   set setterWithoutBody(String value);
   set setterWithBody(String value) => _underlyingString = value;
 
-  operator==(Object other) => identical(true);
+  operator==(Object other) => identical(other, this);
 
   late final bool augmentationConstructorInitialized;
   late final bool constructorInitialized;
@@ -79,7 +79,7 @@ class A {
   }
 }
 
-base class B {
+class B {
   String get superX => 'a';
 }
 
