@@ -81,7 +81,7 @@ static method asyncMethod(asy::Stream<core::int> stream) → asy::Stream<core::i
           }
         }
         on dynamic catch(dynamic #t7, core::StackTrace #t8) {
-          #controller.{asy::StreamController::addError}(#t7){(core::Object, [core::StackTrace?]) → void};
+          #controller.{asy::StreamController::addError}(#t7, #t8){(core::Object, [core::StackTrace?]) → void};
           #t7;
           #t8;
         }

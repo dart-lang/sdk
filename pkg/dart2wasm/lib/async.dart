@@ -1307,7 +1307,7 @@ class AsyncCodeGenerator extends CodeGenerator {
     // try-finally. Would that be more efficient?
     b.local_get(exceptionLocal);
     b.local_get(stackTraceLocal);
-    b.throw_(translator.exceptionTag);
+    call(translator.errorThrow.reference);
 
     b.unreachable();
     return expectedType;

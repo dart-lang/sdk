@@ -120,6 +120,7 @@ class Error {
     _throw(error, stackTrace);
   }
 
+  @pragma("wasm:entry-point")
   external static Never _throw(Object error, StackTrace stackTrace);
 }
 

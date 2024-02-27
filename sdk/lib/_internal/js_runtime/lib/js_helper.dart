@@ -1081,8 +1081,10 @@ class Primitives {
     }
   }
 
-  static StackTrace extractStackTrace(Error error) {
-    return getTraceFromException(JS('', r'#.$thrownJsError', error));
+  static StackTrace? extractStackTrace(Error error) {
+    var jsError = JS('', r'#.$thrownJsError', error);
+    if (jsError == null) return null;
+    return getTraceFromException(jsError);
   }
 }
 
