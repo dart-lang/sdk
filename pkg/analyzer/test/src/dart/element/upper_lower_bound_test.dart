@@ -672,8 +672,8 @@ class LowerBoundTest extends _BoundsTestBase {
 
       check(
         build([], {'a': intNone}, {}),
-        build([], {'a': doubleStar}, {}),
-        build([], {'a': numStar}, {}),
+        build([], {'a': doubleNone}, {}),
+        build([], {'a': numNone}, {}),
       );
     }
   }
@@ -739,8 +739,8 @@ class LowerBoundTest extends _BoundsTestBase {
 
     check(
       build([intNone], []),
-      build([doubleStar], []),
-      build([numStar], []),
+      build([doubleNone], []),
+      build([numNone], []),
     );
 
     {
@@ -1022,26 +1022,6 @@ class LowerBoundTest extends _BoundsTestBase {
 
     check(doubleNone, intQuestion, neverNone);
     check(intNone, doubleQuestion, neverNone);
-  }
-
-  test_none_star() {
-    void check(DartType T1, DartType T2, DartType expected) {
-      _assertNullabilityNone(T1);
-      _assertNullabilityStar(T2);
-
-      _assertNotSpecial(T1);
-      _assertNotSpecial(T2);
-
-      _checkGreatestLowerBound(T1, T2, expected);
-    }
-
-    check(intNone, intStar, intNone);
-
-    check(numNone, intStar, intNone);
-    check(intNone, numStar, intNone);
-
-    check(doubleNone, intStar, neverNone);
-    check(intNone, doubleStar, neverNone);
   }
 
   test_null_any() {
@@ -2976,22 +2956,6 @@ class UpperBoundTest extends _BoundsTestBase {
     check(numNone, intQuestion, numQuestion);
   }
 
-  test_none_star() {
-    void check(DartType T1, DartType T2, DartType expected) {
-      _assertNullabilityNone(T1);
-      _assertNullabilityStar(T2);
-
-      _assertNotSpecial(T1);
-      _assertNotSpecial(T2);
-
-      _checkLeastUpperBound(T1, T2, expected);
-    }
-
-    check(doubleNone, intStar, numStar);
-    check(numNone, doubleStar, numStar);
-    check(numNone, intStar, numStar);
-  }
-
   test_null_any() {
     void check(DartType T1, DartType T2, DartType expected) {
       _assertNull(T1);
@@ -3107,38 +3071,6 @@ class UpperBoundTest extends _BoundsTestBase {
     check(doubleQuestion, intQuestion, numQuestion);
     check(numQuestion, doubleQuestion, numQuestion);
     check(numQuestion, intQuestion, numQuestion);
-  }
-
-  test_question_star() {
-    void check(DartType T1, DartType T2, DartType expected) {
-      _assertNullabilityQuestion(T1);
-      _assertNullabilityStar(T2);
-
-      _assertNotSpecial(T1);
-      _assertNotSpecial(T2);
-
-      _checkLeastUpperBound(T1, T2, expected);
-    }
-
-    check(doubleQuestion, intStar, numQuestion);
-    check(numQuestion, doubleStar, numQuestion);
-    check(numQuestion, intStar, numQuestion);
-  }
-
-  test_star_star() {
-    void check(DartType T1, DartType T2, DartType expected) {
-      _assertNullabilityStar(T1);
-      _assertNullabilityStar(T2);
-
-      _assertNotSpecial(T1);
-      _assertNotSpecial(T2);
-
-      _checkLeastUpperBound(T1, T2, expected);
-    }
-
-    check(doubleStar, intStar, numStar);
-    check(numStar, doubleStar, numStar);
-    check(numStar, intStar, numStar);
   }
 
   test_top_any() {

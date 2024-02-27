@@ -675,13 +675,13 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
   test_functionType_26() {
     isNotSubtype(
       functionTypeNone(
-        returnType: intStar,
+        returnType: intNone,
       ),
       functionTypeNone(
-        returnType: doubleStar,
+        returnType: doubleNone,
       ),
-      strT0: 'int* Function()',
-      strT1: 'double* Function()',
+      strT0: 'int Function()',
+      strT1: 'double Function()',
     );
   }
 
@@ -775,18 +775,18 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
     isNotSubtype(
       functionTypeNone(
         parameters: [
-          requiredParameter(type: intStar),
+          requiredParameter(type: intNone),
         ],
-        returnType: intStar,
+        returnType: intNone,
       ),
       functionTypeNone(
         parameters: [
-          requiredParameter(type: doubleStar),
+          requiredParameter(type: doubleNone),
         ],
-        returnType: intStar,
+        returnType: intNone,
       ),
-      strT0: 'int* Function(int*)',
-      strT1: 'int* Function(double*)',
+      strT0: 'int Function(int)',
+      strT1: 'int Function(double)',
     );
   }
 
@@ -1128,18 +1128,18 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
     isNotSubtype(
       functionTypeNone(
         parameters: [
-          positionalParameter(type: intStar),
+          positionalParameter(type: intNone),
         ],
         returnType: voidNone,
       ),
       functionTypeNone(
         parameters: [
-          requiredParameter(type: doubleStar),
+          requiredParameter(type: doubleNone),
         ],
         returnType: voidNone,
       ),
-      strT0: 'void Function([int*])',
-      strT1: 'void Function(double*)',
+      strT0: 'void Function([int])',
+      strT1: 'void Function(double)',
     );
   }
 
@@ -1358,18 +1358,18 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
     isNotSubtype(
       functionTypeNone(
         parameters: [
-          namedParameter(name: 'a', type: intStar),
+          namedParameter(name: 'a', type: intNone),
         ],
         returnType: voidNone,
       ),
       functionTypeNone(
         parameters: [
-          namedParameter(name: 'a', type: doubleStar),
+          namedParameter(name: 'a', type: doubleNone),
         ],
         returnType: voidNone,
       ),
-      strT0: 'void Function({int* a})',
-      strT1: 'void Function({double* a})',
+      strT0: 'void Function({int a})',
+      strT1: 'void Function({double a})',
     );
   }
 
@@ -2418,11 +2418,11 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
   }
 
   test_interfaceType_05() {
-    isSubtype(doubleStar, numStar, strT0: 'double*', strT1: 'num*');
+    isSubtype(doubleNone, numNone, strT0: 'double', strT1: 'num');
   }
 
   test_interfaceType_06() {
-    isNotSubtype(intStar, doubleStar, strT0: 'int*', strT1: 'double*');
+    isNotSubtype(intNone, doubleNone, strT0: 'int', strT1: 'double');
   }
 
   test_interfaceType_07() {
@@ -2552,19 +2552,19 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
 
   test_interfaceType_20() {
     isNotSubtype(
-      listStar(intStar),
-      listStar(doubleStar),
-      strT0: 'List<int*>*',
-      strT1: 'List<double*>*',
+      listNone(intNone),
+      listNone(doubleNone),
+      strT0: 'List<int>',
+      strT1: 'List<double>',
     );
   }
 
   test_interfaceType_21() {
     isNotSubtype(
-      listStar(intStar),
-      iterableStar(doubleStar),
-      strT0: 'List<int*>*',
-      strT1: 'Iterable<double*>*',
+      listNone(intNone),
+      iterableNone(doubleNone),
+      strT0: 'List<int>',
+      strT1: 'Iterable<double>',
     );
   }
 
@@ -3428,7 +3428,7 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
     isSubtype2('int', 'Comparable<num>');
     isSubtype2('int', 'Comparable<Object>');
     isSubtype2('int*', 'Object*');
-    isSubtype2('double*', 'num*');
+    isSubtype2('double', 'num');
     isSubtype2('num', 'Object');
     isSubtype2('num*', 'Object');
     isSubtype2('Null?', 'num*');
@@ -3437,7 +3437,7 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
     isSubtype2('Never', 'num*');
     isSubtype2('Never', 'num?');
 
-    isNotSubtype2('int*', 'double*');
+    isNotSubtype2('int', 'double');
     isNotSubtype2('int', 'Comparable<int>');
     isNotSubtype2('int*', 'Iterable<int*>*');
     isNotSubtype2('Comparable<int>', 'Iterable<int>');
@@ -3836,11 +3836,11 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
   }
 
   test_null_05() {
-    isSubtype(
+    isNotSubtype(
       nullQuestion,
-      doubleStar,
+      doubleNone,
       strT0: 'Null?',
-      strT1: 'double*',
+      strT1: 'double',
     );
   }
 
@@ -5442,11 +5442,11 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
 @reflectiveTest
 class SubtypingCompoundTest extends _SubtypingTestBase {
   test_double() {
-    var equivalents = <DartType>[doubleStar];
-    var supertypes = <DartType>[numStar];
-    var unrelated = <DartType>[intStar];
+    var equivalents = <DartType>[doubleNone];
+    var supertypes = <DartType>[numNone];
+    var unrelated = <DartType>[intNone];
     _checkGroups(
-      doubleStar,
+      doubleNone,
       equivalents: equivalents,
       supertypes: supertypes,
       unrelated: unrelated,
@@ -5524,22 +5524,9 @@ class SubtypingCompoundTest extends _SubtypingTestBase {
     );
   }
 
-  test_int() {
-    var equivalents = <DartType>[intStar];
-    var supertypes = <DartType>[numStar];
-    var unrelated = <DartType>[doubleStar];
-    _checkGroups(
-      intStar,
-      equivalents: equivalents,
-      supertypes: supertypes,
-      unrelated: unrelated,
-    );
-  }
-
   test_intNone() {
     var equivalents = <DartType>[
       intNone,
-      intStar,
     ];
 
     var subtypes = <DartType>[
@@ -5555,7 +5542,6 @@ class SubtypingCompoundTest extends _SubtypingTestBase {
     var unrelated = <DartType>[
       doubleNone,
       nullNone,
-      nullStar,
       nullQuestion,
       neverQuestion,
     ];
@@ -5606,42 +5592,6 @@ class SubtypingCompoundTest extends _SubtypingTestBase {
     );
   }
 
-  test_intStar() {
-    var equivalents = <DartType>[
-      intNone,
-      intQuestion,
-      intStar,
-    ];
-
-    var subtypes = <DartType>[
-      nullNone,
-      nullStar,
-      nullQuestion,
-      neverNone,
-      neverQuestion,
-    ];
-
-    var supertypes = <DartType>[
-      numNone,
-      numQuestion,
-      numStar,
-      objectNone,
-      objectQuestion,
-    ];
-
-    var unrelated = <DartType>[
-      doubleStar,
-    ];
-
-    _checkGroups(
-      intStar,
-      equivalents: equivalents,
-      supertypes: supertypes,
-      unrelated: unrelated,
-      subtypes: subtypes,
-    );
-  }
-
   test_null() {
     var equivalents = <DartType>[
       nullNone,
@@ -5683,9 +5633,9 @@ class SubtypingCompoundTest extends _SubtypingTestBase {
 
   test_num() {
     var equivalents = <DartType>[numStar];
-    var supertypes = <DartType>[objectStar];
-    var unrelated = <DartType>[stringStar];
-    var subtypes = <DartType>[intStar, doubleStar];
+    var supertypes = <DartType>[objectNone];
+    var unrelated = <DartType>[stringNone];
+    var subtypes = <DartType>[intStar, doubleNone];
     _checkGroups(
       numStar,
       equivalents: equivalents,

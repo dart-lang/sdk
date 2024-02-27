@@ -47,7 +47,6 @@ mixin StringTypes on AbstractTypeSystemTest {
     _defineType('int?', intQuestion);
 
     _defineType('double', doubleNone);
-    _defineType('double*', doubleStar);
     _defineType('double?', doubleQuestion);
 
     _defineType('List<Object*>*', listStar(objectStar));

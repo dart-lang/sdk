@@ -30,11 +30,6 @@ mixin ElementsTypesMixin {
     return interfaceTypeQuestion(element);
   }
 
-  InterfaceType get boolStar {
-    var element = typeProvider.boolElement;
-    return interfaceTypeStar(element);
-  }
-
   InterfaceType get doubleNone {
     var element = typeProvider.doubleType.element;
     return interfaceTypeNone(element);
@@ -43,11 +38,6 @@ mixin ElementsTypesMixin {
   InterfaceType get doubleQuestion {
     var element = typeProvider.doubleType.element;
     return interfaceTypeQuestion(element);
-  }
-
-  InterfaceType get doubleStar {
-    var element = typeProvider.doubleType.element;
-    return interfaceTypeStar(element);
   }
 
   DartType get dynamicType => DynamicTypeImpl.instance;
