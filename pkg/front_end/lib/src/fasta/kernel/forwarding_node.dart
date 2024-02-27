@@ -4,14 +4,13 @@
 
 import "package:kernel/ast.dart";
 import 'package:kernel/core_types.dart';
+import 'package:kernel/names.dart';
 import 'package:kernel/reference_from_index.dart';
-
 import 'package:kernel/transformations/flags.dart' show TransformerFlag;
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../builder/declaration_builders.dart';
-import '../names.dart';
 
 import "../problems.dart" show unhandled;
 

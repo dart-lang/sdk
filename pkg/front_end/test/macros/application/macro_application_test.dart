@@ -27,7 +27,7 @@ import 'package:kernel/ast.dart' hide Arguments;
 import 'package:kernel/kernel.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/text/ast_to_text.dart';
-import 'package:vm/target/vm.dart';
+import 'package:vm/modular/target/vm.dart';
 
 import '../../utils/kernel_chain.dart';
 

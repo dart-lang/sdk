@@ -3,35 +3,34 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
-import 'package:kernel/core_types.dart' show CoreTypes;
-
 import 'package:kernel/core_types.dart';
-import 'package:vm/transformations/specializer/factory_specializer.dart';
 
-/// Replaces invocation of Set factory constructors with
+import 'factory_specializer.dart';
+
+/// Replaces invocation of Map factory constructors with
 /// factories of VM-specific classes.
-/// new LinkedHashSet<E>() => new _Set<E>()
-class SetFactorySpecializer extends BaseSpecializer {
-  final Procedure _linkedHashSetDefaultFactory;
-  final Constructor _internalLinkedHashSetConstructor;
+/// new LinkedHashMap<K, V>() => new _Map<K, V>()
+class MapFactorySpecializer extends BaseSpecializer {
+  final Procedure _linkedHashMapDefaultFactory;
+  final Constructor _internalLinkedHashMapConstructor;
 
-  SetFactorySpecializer(CoreTypes coreTypes)
-      : _linkedHashSetDefaultFactory = assertNotNull(
+  MapFactorySpecializer(CoreTypes coreTypes)
+      : _linkedHashMapDefaultFactory = assertNotNull(
           coreTypes.index.getProcedure(
             'dart:collection',
-            'LinkedHashSet',
+            'LinkedHashMap',
             '',
           ),
         ),
-        _internalLinkedHashSetConstructor = assertNotNull(
+        _internalLinkedHashMapConstructor = assertNotNull(
           coreTypes.index.getConstructor(
             'dart:collection',
-            '_Set',
+            '_Map',
             '',
           ),
         ) {
     transformers.addAll({
-      _linkedHashSetDefaultFactory: transformLinkedHashSet,
+      _linkedHashMapDefaultFactory: transformLinkedHashMap,
     });
   }
 
@@ -40,15 +39,15 @@ class SetFactorySpecializer extends BaseSpecializer {
     return t;
   }
 
-  TreeNode transformLinkedHashSet(StaticInvocation node) {
+  TreeNode transformLinkedHashMap(StaticInvocation node) {
     final args = node.arguments;
-    assert(args.positional.isEmpty);
     if (args.named.isEmpty) {
       return ConstructorInvocation(
-        _internalLinkedHashSetConstructor,
+        _internalLinkedHashMapConstructor,
         Arguments([], types: args.types),
-      );
+      )..fileOffset = node.fileOffset;
     }
+
     return node;
   }
 }

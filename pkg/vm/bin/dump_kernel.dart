@@ -4,14 +4,15 @@
 
 import 'dart:io';
 
-import 'package:kernel/kernel.dart' show Component, writeComponentToText;
 import 'package:kernel/binary/ast_from_binary.dart'
     show BinaryBuilderWithMetadata;
-
+import 'package:kernel/kernel.dart' show Component, writeComponentToText;
 import 'package:vm/metadata/closure_id.dart' show ClosureIdMetadataRepository;
 import 'package:vm/metadata/direct_call.dart' show DirectCallMetadataRepository;
 import 'package:vm/metadata/inferred_type.dart'
     show InferredTypeMetadataRepository, InferredArgTypeMetadataRepository;
+import 'package:vm/metadata/loading_units.dart'
+    show LoadingUnitsMetadataRepository;
 import 'package:vm/metadata/procedure_attributes.dart'
     show ProcedureAttributesMetadataRepository;
 import 'package:vm/metadata/table_selector.dart'
@@ -20,10 +21,8 @@ import 'package:vm/metadata/unboxing_info.dart'
     show UnboxingInfoMetadataRepository;
 import 'package:vm/metadata/unreachable.dart'
     show UnreachableNodeMetadataRepository;
-import 'package:vm/metadata/call_site_attributes.dart'
+import 'package:vm/modular/metadata/call_site_attributes.dart'
     show CallSiteAttributesMetadataRepository;
-import 'package:vm/metadata/loading_units.dart'
-    show LoadingUnitsMetadataRepository;
 
 final String _usage = '''
 Usage: dump_kernel input.dill output.txt

@@ -46,10 +46,12 @@ import 'package:kernel/kernel.dart' show loadComponentFromBinary;
 import 'package:kernel/target/targets.dart' show Target, TargetFlags, getTarget;
 import 'package:package_config/package_config.dart' show loadPackageConfigUri;
 
+import 'modular/transformations/call_site_annotator.dart'
+    as call_site_annotator;
 import 'http_filesystem.dart' show HttpAwareFileSystem;
 import 'target_os.dart';
 import 'native_assets/synthesizer.dart';
-import 'target/install.dart' show installAdditionalTargets;
+import 'modular/target/install.dart' show installAdditionalTargets;
 import 'transformations/devirtualization.dart' as devirtualization
     show transformComponent;
 import 'transformations/mixin_deduplication.dart' as mixin_deduplication
@@ -60,7 +62,6 @@ import 'transformations/type_flow/transformer.dart' as globalTypeFlow
     show transformComponent;
 import 'transformations/obfuscation_prohibitions_annotator.dart'
     as obfuscationProhibitions;
-import 'transformations/call_site_annotator.dart' as call_site_annotator;
 import 'transformations/unreachable_code_elimination.dart'
     as unreachable_code_elimination;
 import 'transformations/vm_constant_evaluator.dart' as vm_constant_evaluator;

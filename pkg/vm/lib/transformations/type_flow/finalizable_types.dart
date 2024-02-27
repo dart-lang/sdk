@@ -7,7 +7,7 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/library_index.dart';
 import 'package:kernel/type_environment.dart';
-import 'package:vm/transformations/ffi/finalizable.dart'
+import 'package:vm/modular/transformations/ffi/finalizable.dart'
     show FinalizableDartType;
 
 /// Provides insights into `Finalizable`s.

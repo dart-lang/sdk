@@ -9,7 +9,7 @@ import 'package:kernel/kernel.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/verifier.dart';
 import 'package:test/test.dart';
-import 'package:vm/target/vm.dart';
+import 'package:vm/modular/target/vm.dart';
 import 'package:vm/transformations/to_string_transformer.dart'
     show transformComponent;
 

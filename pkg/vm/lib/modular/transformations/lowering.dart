@@ -8,8 +8,7 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/type_environment.dart'
     show StaticTypeContext, TypeEnvironment;
 
-import 'package:vm/transformations/specializer/factory_specializer.dart';
-
+import '../specializer/factory_specializer.dart';
 import 'for_in_lowering.dart' show ForInLowering;
 import 'late_var_init_transformer.dart' show LateVarInitTransformer;
 import 'list_literals_lowering.dart' show ListLiteralsLowering;

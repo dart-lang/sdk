@@ -2,11 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:kernel/kernel.dart';
 import 'package:kernel/core_types.dart';
-import 'package:vm/transformations/specializer/list_factory_specializer.dart';
-import 'package:vm/transformations/specializer/map_factory_specializer.dart';
-import 'package:vm/transformations/specializer/set_factory_specializer.dart';
+import 'package:kernel/kernel.dart';
+
+import 'list_factory_specializer.dart';
+import 'map_factory_specializer.dart';
+import 'set_factory_specializer.dart';
 
 typedef SpecializerTransformer = TreeNode Function(StaticInvocation node);
 

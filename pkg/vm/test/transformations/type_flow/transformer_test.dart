@@ -7,13 +7,13 @@ import 'dart:io';
 import 'package:dart2wasm/record_class_generator.dart'
     show generateRecordClasses;
 import 'package:dart2wasm/target.dart' show WasmTarget;
-import 'package:kernel/target/targets.dart';
+import 'package:front_end/src/api_unstable/vm.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
-import 'package:front_end/src/api_unstable/vm.dart';
+import 'package:kernel/target/targets.dart';
 import 'package:test/test.dart';
-import 'package:vm/target/install.dart' show installAdditionalTargets;
+import 'package:vm/modular/target/install.dart' show installAdditionalTargets;
 import 'package:vm/transformations/pragma.dart'
     show ConstantPragmaAnnotationParser;
 import 'package:vm/transformations/type_flow/config.dart';

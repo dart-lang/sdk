@@ -19,7 +19,7 @@ import 'package:front_end/src/fasta/kernel/utils.dart' as fe;
 import 'package:kernel/ast.dart' as fe;
 import 'package:kernel/target/targets.dart' as fe;
 import 'package:vm/kernel_front_end.dart' as vm;
-import 'package:vm/target/vm.dart' as vm;
+import 'package:vm/modular/target/vm.dart' as vm;
 
 Future<void> runBinaryProtocol(String addressStr) async {
   final _ParsedAddress parsedAddress = new _ParsedAddress.parse(addressStr);

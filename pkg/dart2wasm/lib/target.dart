@@ -16,14 +16,14 @@ import 'package:kernel/target/changed_structure_notifier.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/type_environment.dart';
 import 'package:kernel/verifier.dart';
-import 'package:vm/transformations/mixin_full_resolution.dart'
+import 'package:vm/modular/transformations/mixin_full_resolution.dart'
     as transformMixins show transformLibraries;
-import 'package:vm/transformations/ffi/common.dart' as ffiHelper
+import 'package:vm/modular/transformations/ffi/common.dart' as ffiHelper
     show calculateTransitiveImportsOfDartFfiIfUsed;
-import 'package:vm/transformations/ffi/definitions.dart'
+import 'package:vm/modular/transformations/ffi/definitions.dart'
     as transformFfiDefinitions show transformLibraries;
-import 'package:vm/transformations/ffi/use_sites.dart' as transformFfiUseSites
-    show transformLibraries;
+import 'package:vm/modular/transformations/ffi/use_sites.dart'
+    as transformFfiUseSites show transformLibraries;
 import 'package:front_end/src/api_prototype/constant_evaluator.dart'
     as constantEvaluator show ConstantEvaluator, EvaluationMode;
 import 'package:front_end/src/api_prototype/const_conditional_simplifier.dart'

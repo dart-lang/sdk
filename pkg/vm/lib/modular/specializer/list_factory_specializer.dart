@@ -4,7 +4,8 @@
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart' show CoreTypes;
-import 'package:vm/transformations/specializer/factory_specializer.dart';
+
+import 'factory_specializer.dart';
 
 /// Replaces invocation of List factory constructors with
 /// factories of VM-specific classes.

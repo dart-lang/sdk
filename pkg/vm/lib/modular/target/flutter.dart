@@ -7,7 +7,7 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/target/changed_structure_notifier.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/transformations/track_widget_constructor_locations.dart';
-import 'package:vm/target/vm.dart' show VmTarget;
+import 'package:vm/modular/target/vm.dart' show VmTarget;
 
 class FlutterTarget extends VmTarget {
   FlutterTarget(TargetFlags flags) : super(flags);

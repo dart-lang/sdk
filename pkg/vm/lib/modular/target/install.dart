@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/target/targets.dart' show targets, TargetFlags;
-import 'package:vm/target/dart_runner.dart' show DartRunnerTarget;
-import 'package:vm/target/flutter.dart' show FlutterTarget;
-import 'package:vm/target/flutter_runner.dart' show FlutterRunnerTarget;
-import 'package:vm/target/vm.dart' show VmTarget;
+import 'package:vm/modular/target/dart_runner.dart' show DartRunnerTarget;
+import 'package:vm/modular/target/flutter.dart' show FlutterTarget;
+import 'package:vm/modular/target/flutter_runner.dart' show FlutterRunnerTarget;
+import 'package:vm/modular/target/vm.dart' show VmTarget;
 
 bool _installed = false;
 

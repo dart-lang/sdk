@@ -3,13 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/target/targets.dart';
-import 'package:vm/target/vm.dart' show VmTarget;
+import 'package:vm/modular/target/vm.dart' show VmTarget;
 
-class FlutterRunnerTarget extends VmTarget {
-  FlutterRunnerTarget(TargetFlags flags) : super(flags);
+class DartRunnerTarget extends VmTarget {
+  DartRunnerTarget(TargetFlags flags) : super(flags);
 
   @override
-  String get name => 'flutter_runner';
+  String get name => 'dart_runner';
 
   // This is the order that bootstrap libraries are loaded according to
   // `runtime/vm/object_store.h`.
@@ -33,12 +33,11 @@ class FlutterRunnerTarget extends VmTarget {
         'dart:nativewrappers',
         'dart:io',
 
-        // Required for flutter_runner.
+        // Required for dart_runner.
         'dart:fuchsia.builtin',
         'dart:zircon',
         'dart:fuchsia',
         'dart:vmservice_io',
-        'dart:ui',
       ];
 
   @override

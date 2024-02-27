@@ -28,9 +28,9 @@ import 'package:kernel/ast.dart'
 import 'package:kernel/target/targets.dart';
 import 'package:vm/kernel_front_end.dart';
 import 'package:vm/native_assets/synthesizer.dart';
-import 'package:vm/target/flutter.dart';
-import 'package:vm/target/flutter_runner.dart';
-import 'package:vm/target/vm.dart';
+import 'package:vm/modular/target/flutter.dart';
+import 'package:vm/modular/target/flutter_runner.dart';
+import 'package:vm/modular/target/vm.dart';
 
 /// If the last arg starts with `@`, this reads the file it points to and treats
 /// each line as an additional arg.

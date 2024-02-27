@@ -59,7 +59,7 @@ import 'package:kernel/kernel.dart' as kernel
     show Combinator, Component, LibraryDependency, Library, Location, Source;
 import 'package:kernel/target/targets.dart';
 // ignore: import_of_legacy_library_into_null_safe
-import 'package:vm/target/vm.dart';
+import 'package:vm/modular/target/vm.dart';
 
 // ignore: import_of_legacy_library_into_null_safe
 import '../test/incremental_suite.dart' show getOptions;

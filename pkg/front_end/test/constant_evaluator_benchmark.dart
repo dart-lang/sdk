@@ -29,8 +29,8 @@ import 'package:kernel/target/changed_structure_notifier.dart';
 import 'package:kernel/target/targets.dart'
     show DiagnosticReporter, Target, TargetFlags;
 import 'package:kernel/type_environment.dart';
-import "package:vm/target/flutter.dart" show FlutterTarget;
-import "package:vm/target/vm.dart" show VmTarget;
+import "package:vm/modular/target/flutter.dart" show FlutterTarget;
+import "package:vm/modular/target/vm.dart" show VmTarget;
 
 import 'incremental_suite.dart' show getOptions;
 

@@ -11,7 +11,7 @@ import 'package:front_end/src/api_prototype/standard_file_system.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/verifier.dart';
-import 'package:vm/target/vm.dart';
+import 'package:vm/modular/target/vm.dart';
 import 'package:vm/kernel_front_end.dart';
 
 main() async {

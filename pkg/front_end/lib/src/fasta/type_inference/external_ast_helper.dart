@@ -6,9 +6,9 @@
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
+import 'package:kernel/names.dart';
 
 import '../kernel/internal_ast.dart';
-import '../names.dart';
 import 'inference_results.dart';
 import 'inference_visitor_base.dart';
 import 'object_access_target.dart';

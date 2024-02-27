@@ -9,6 +9,7 @@ import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/src/legacy_erasure.dart';
 import 'package:kernel/src/nnbd_top_merge.dart';
 import 'package:kernel/src/norm.dart';
+import 'package:kernel/names.dart' show noSuchMethodName;
 
 import '../../../base/common.dart';
 import '../../builder/declaration_builders.dart';
@@ -37,7 +38,6 @@ import '../../messages.dart'
         templateInstanceAndSynthesizedStaticConflict,
         templateMissingImplementationCause,
         templateMissingImplementationNotAbstract;
-import '../../names.dart' show noSuchMethodName;
 import '../../source/source_class_builder.dart';
 import '../../source/source_field_builder.dart';
 import '../../source/source_procedure_builder.dart';

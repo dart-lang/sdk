@@ -14,7 +14,7 @@ import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 
 import 'package:kernel/target/targets.dart' show TargetFlags;
 
-import "package:vm/target/vm.dart" show VmTarget;
+import "package:vm/modular/target/vm.dart" show VmTarget;
 
 import 'incremental_suite.dart' show getOptions, normalCompileToComponent;
 

@@ -17,6 +17,7 @@ import 'package:kernel/ast.dart' hide Combinator, MapLiteralEntry;
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClassHierarchyBase, ClassHierarchyMembers;
 import 'package:kernel/clone.dart' show CloneVisitorNotMembers;
+import 'package:kernel/names.dart' show indexSetName;
 import 'package:kernel/reference_from_index.dart'
     show IndexedClass, IndexedContainer, IndexedLibrary;
 import 'package:kernel/src/bounds_checks.dart'
@@ -99,7 +100,6 @@ import '../modifier.dart'
         mixinDeclarationMask,
         namedMixinApplicationMask,
         staticMask;
-import '../names.dart' show indexSetName;
 import '../problems.dart' show unexpected, unhandled;
 import '../scope.dart';
 import '../util/helpers.dart';

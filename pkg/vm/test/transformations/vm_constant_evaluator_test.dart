@@ -14,7 +14,7 @@ import 'package:kernel/verifier.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:vm/target_os.dart';
-import 'package:vm/target/vm.dart' show VmTarget;
+import 'package:vm/modular/target/vm.dart' show VmTarget;
 import 'package:vm/transformations/unreachable_code_elimination.dart'
     show PlatformConstError, transformComponent;
 import 'package:vm/transformations/vm_constant_evaluator.dart';
