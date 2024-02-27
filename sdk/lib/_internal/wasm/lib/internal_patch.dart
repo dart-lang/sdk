@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:_js_helper" show JS;
+import 'dart:_wasm';
 
 part "class_id.dart";
 part "deferred.dart";
@@ -135,3 +136,31 @@ void _listAdd(List<dynamic> list, dynamic item) => list.add(item);
 
 String jsonEncode(String object) => JS<String>(
     "s => stringToDartString(JSON.stringify(stringFromDartString(s)))", object);
+
+/// Whether to check bounds in [indexCheck] and [indexCheckWithName], which are
+/// used in list and typed data implementations.
+///
+/// Bounds checks are disabled with `--omit-bounds-checks`, which is implied by
+/// `-O4`.
+///
+/// Reads of this variable is evaluated before the TFA by the constant
+/// evaluator, and its value depends on `--omit-bounds-checks`.
+external bool get _checkBounds;
+
+/// Index check that can be disabled with `--omit-bounds-checks`.
+///
+/// Assumes that [length] is positive.
+@pragma("wasm:prefer-inline")
+void indexCheck(int index, int length) {
+  if (_checkBounds && WasmI64.fromInt(length).leU(WasmI64.fromInt(index))) {
+    throw IndexError.withLength(index, length);
+  }
+}
+
+/// Same as [indexCheck], but passes [name] to [IndexError].
+@pragma("wasm:prefer-inline")
+void indexCheckWithName(int index, int length, String name) {
+  if (_checkBounds && WasmI64.fromInt(length).leU(WasmI64.fromInt(index))) {
+    throw IndexError.withLength(index, length, name: name);
+  }
+}

@@ -10,18 +10,7 @@ import 'package:kernel/library_index.dart';
 mixin KernelNodes {
   Component get component;
 
-  late final LibraryIndex index = LibraryIndex(component, [
-    "dart:_internal",
-    "dart:_js_helper",
-    "dart:_js_types",
-    "dart:_string",
-    "dart:_wasm",
-    "dart:async",
-    "dart:collection",
-    "dart:core",
-    "dart:ffi",
-    "dart:typed_data",
-  ]);
+  LibraryIndex get index;
 
   // dart:_internal classes
   late final Class symbolClass = index.getClass("dart:_internal", "Symbol");

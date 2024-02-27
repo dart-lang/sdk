@@ -17,6 +17,7 @@ import 'package:dart2wasm/reference_extensions.dart';
 import 'package:dart2wasm/types.dart';
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/library_index.dart';
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClassHierarchySubtypes, ClosedWorldClassHierarchy;
 import 'package:kernel/core_types.dart';
@@ -35,6 +36,7 @@ class TranslatorOptions {
   bool jsCompatibility = false;
   bool omitImplicitTypeChecks = false;
   bool omitExplicitTypeChecks = false;
+  bool omitBoundsChecks = false;
   bool polymorphicSpecialization = false;
   bool printKernel = false;
   bool printWasm = false;
@@ -64,6 +66,7 @@ class Translator with KernelNodes {
   late final ClassHierarchySubtypes subtypes;
 
   // Other parts of the global compiler state.
+  final LibraryIndex index;
   late final ClosureLayouter closureLayouter;
   late final ClassInfoCollector classInfoCollector;
   late final DispatchTable dispatchTable;
@@ -245,7 +248,8 @@ class Translator with KernelNodes {
     topInfo.nullableType
   ]);
 
-  Translator(this.component, this.coreTypes, this.recordClasses, this.options)
+  Translator(this.component, this.coreTypes, this.index, this.recordClasses,
+      this.options)
       : libraries = component.libraries,
         hierarchy =
             ClassHierarchy(component, coreTypes) as ClosedWorldClassHierarchy {

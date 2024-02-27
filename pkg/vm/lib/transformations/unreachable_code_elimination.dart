@@ -70,13 +70,23 @@ class SimpleUnreachableCodeElimination extends RemovingTransformer {
       final result =
           staticGet.accept1(this, cannotRemoveSentinel) as ConstantExpression;
       if (node is Field) {
-        node.initializer = result
-          ..fileOffset = node.initializer!.fileOffset
-          ..parent = node;
+        final initializer = node.initializer;
+        if (initializer == null) {
+          assert(node.isExternal);
+        } else {
+          node.initializer = result
+            ..fileOffset = initializer.fileOffset
+            ..parent = node;
+        }
       } else if (node is Procedure) {
-        node.function.body = ReturnStatement(result)
-          ..fileOffset = node.function.body!.fileOffset
-          ..parent = node.function;
+        final body = node.function.body;
+        if (body == null) {
+          assert(node.isExternal);
+        } else {
+          node.function.body = ReturnStatement(result)
+            ..fileOffset = body.fileOffset
+            ..parent = node.function;
+        }
       }
     }
     final result = super.defaultMember(node, removalSentinel);
