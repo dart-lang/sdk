@@ -1266,6 +1266,7 @@ class ForwardingTestListener extends ForwardingListener {
 
   @override
   void endTopLevelFields(
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -1275,8 +1276,16 @@ class ForwardingTestListener extends ForwardingListener {
       Token beginToken,
       Token endToken) {
     end('TopLevelMember');
-    super.endTopLevelFields(externalToken, staticToken, covariantToken,
-        lateToken, varFinalOrConst, count, beginToken, endToken);
+    super.endTopLevelFields(
+        augmentToken,
+        externalToken,
+        staticToken,
+        covariantToken,
+        lateToken,
+        varFinalOrConst,
+        count,
+        beginToken,
+        endToken);
   }
 
   @override

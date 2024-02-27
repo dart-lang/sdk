@@ -8,6 +8,7 @@ import 'class_test.dart' as class_;
 import 'doc_comment_test.dart' as doc_comment;
 import 'extension_type_test.dart' as extension_type;
 import 'mixin_test.dart' as mixin_;
+import 'top_level_variable_test.dart' as top_level_variable;
 
 /// Utility for manually running all tests.
 main() {
@@ -16,5 +17,6 @@ main() {
     doc_comment.main();
     extension_type.main();
     mixin_.main();
+    top_level_variable.main();
   }, name: 'parser');
 }

@@ -17926,6 +17926,10 @@ final class ThrowExpressionImpl extends ExpressionImpl
 /// directives).
 abstract final class TopLevelVariableDeclaration
     implements CompilationUnitMember {
+  /// The 'augment' keyword.
+  @experimental
+  Token? get augmentKeyword;
+
   /// The `external` keyword, or `null` if the keyword was not used.
   Token? get externalKeyword;
 
@@ -17947,6 +17951,9 @@ final class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
   VariableDeclarationListImpl _variableList;
 
   @override
+  final Token? augmentKeyword;
+
+  @override
   final Token? externalKeyword;
 
   /// The semicolon terminating the declaration.
@@ -17959,6 +17966,7 @@ final class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
   TopLevelVariableDeclarationImpl({
     required super.comment,
     required super.metadata,
+    required this.augmentKeyword,
     required this.externalKeyword,
     required VariableDeclarationListImpl variableList,
     required this.semicolon,
@@ -17974,7 +17982,7 @@ final class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
 
   @override
   Token get firstTokenAfterCommentAndMetadata =>
-      externalKeyword ?? _variableList.beginToken;
+      augmentKeyword ?? externalKeyword ?? _variableList.beginToken;
 
   @override
   VariableDeclarationListImpl get variables => _variableList;
@@ -17985,6 +17993,8 @@ final class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
 
   @override
   ChildEntities get _childEntities => super._childEntities
+    ..addToken('augmentKeyword', augmentKeyword)
+    ..addToken('externalKeyword', externalKeyword)
     ..addNode('variables', variables)
     ..addToken('semicolon', semicolon);
 

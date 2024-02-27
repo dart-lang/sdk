@@ -745,6 +745,7 @@ class TextualOutlineListener extends Listener {
 
   @override
   void endTopLevelFields(
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,

@@ -3726,8 +3726,16 @@ class Parser {
     switch (kind) {
       case DeclarationKind.TopLevel:
         assert(abstractToken == null);
-        listener.endTopLevelFields(externalToken, staticToken, covariantToken,
-            lateToken, varFinalOrConst, fieldCount, beforeStart.next!, token);
+        listener.endTopLevelFields(
+            augmentToken,
+            externalToken,
+            staticToken,
+            covariantToken,
+            lateToken,
+            varFinalOrConst,
+            fieldCount,
+            beforeStart.next!,
+            token);
         break;
       case DeclarationKind.Class:
         listener.endClassFields(
