@@ -1,3 +1,8 @@
+## 14.1.0
+- Added `HeapSnapshotGraph.toChunks()`.
+- Added optional `calculateReferrers`, `decodeObjectData`, `decodeExternalProperties`,
+  and `decodeIdentityHashCodes` parameters to `HeapSnapshotGraph.fromChunks()`.
+
 ## 14.0.0
 - Add the following error codes to `RPCErrorKind`:
   - `kVmMustBePaused`
