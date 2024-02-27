@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:dap/dap.dart';
@@ -20,7 +21,8 @@ main() {
   tearDown(() => dap.tearDown());
 
   group('debug mode breakpoints', () {
-    test('stops at a line breakpoint', () async {
+    testWithUriConfigurations(() => dap, 'stops at a line breakpoint',
+        () async {
       final client = dap.client;
       final testFile = dap.createTestFile(simpleBreakpointProgram);
       final breakpointLine = lineWith(testFile, breakpointMarker);
@@ -28,7 +30,8 @@ main() {
       await client.hitBreakpoint(testFile, breakpointLine);
     });
 
-    test('resolves and updates breakpoints', () async {
+    testWithUriConfigurations(() => dap, 'resolves and updates breakpoints',
+        () async {
       final client = dap.client;
       final testFile = dap.createTestFile(simpleBreakpointResolutionProgram);
       final setBreakpointLine = lineWith(testFile, breakpointMarker);
@@ -64,7 +67,8 @@ main() {
       expect(updatedBreakpoint.line, expectedResolvedBreakpointLine);
     });
 
-    test('resolves modified breakpoints', () async {
+    testWithUriConfigurations(() => dap, 'resolves modified breakpoints',
+        () async {
       final client = dap.client;
       final testFile = dap.createTestFile(simpleMultiBreakpointProgram);
       final breakpointLine = lineWith(testFile, breakpointMarker);

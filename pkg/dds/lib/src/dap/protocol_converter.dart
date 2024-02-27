@@ -4,7 +4,6 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:dap/dap.dart' as dap;
@@ -596,22 +595,15 @@ class ProtocolConverter {
     final uri = scriptRefUri != null ? Uri.parse(scriptRefUri) : null;
     final uriIsDart = uri?.isScheme('dart') ?? false;
     final uriIsPackage = uri?.isScheme('package') ?? false;
-    final sourcePath = uri != null ? await thread.resolveUriToPath(uri) : null;
-    // TODO(dantup): This exists check will not work for macro-generated
-    //  content.
-    var canShowSource = sourcePath != null && File(sourcePath).existsSync();
+    final sourcePathUri =
+        uri != null ? await thread.resolveUriToPath(uri) : null;
+    var canShowSource =
+        sourcePathUri != null && _adapter.isSupportedFileScheme(sourcePathUri);
 
     // If we don't have a local source file but the source is a "dart:" uri we
     // might still be able to download the source from the VM.
     int? sourceReference;
-    if (!canShowSource &&
-        uri != null &&
-        // TODO(dantup): Review whether we need this condition. It was copied
-        //  from the original debugger impl. It's not clear it's required and
-        //  may need updating if new schemes are added that should be
-        //  downloaded from the VM.
-        (uri.isScheme('dart') || uri.isScheme('org-dartlang-app')) &&
-        scriptRef != null) {
+    if (!canShowSource && uri != null && scriptRef != null) {
       // Try to download it (to avoid showing "source not available" errors if
       // navigated to) because a sourceRef here does not guarantee we can get
       // the source. The result will be cached (by `thread.getScript()`) and
@@ -654,10 +646,13 @@ class ProtocolConverter {
         ? dap.Source(
             name: uriIsPackage || uriIsDart
                 ? uri!.toString()
-                : sourcePath != null
-                    ? convertToRelativePath(sourcePath)
+                // TODO(dantup): Should we map macro-generated files in the same
+                //  way to avoid the long paths, even though they will appear as
+                //  the source rather than the generated file?
+                : sourcePathUri != null && sourcePathUri.isScheme('file')
+                    ? convertToRelativePath(sourcePathUri.toFilePath())
                     : uri?.toString() ?? '<unknown source>',
-            path: sourcePath,
+            path: _adapter.toClientPathOrUri(sourcePathUri),
             sourceReference: sourceReference,
             origin: origin,
             adapterData: location.script,

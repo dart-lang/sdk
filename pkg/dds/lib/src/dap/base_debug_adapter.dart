@@ -171,7 +171,7 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments,
 
   Future<void> initializeRequest(
     Request request,
-    InitializeRequestArguments args,
+    DartInitializeRequestArguments args,
     void Function(Capabilities) sendResponse,
   );
 
@@ -328,7 +328,7 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments,
       handle(
         request,
         initializeRequest,
-        InitializeRequestArguments.fromJson,
+        DartInitializeRequestArguments.fromJson,
         responseWriter,
       );
     } else if (request.command == 'launch') {

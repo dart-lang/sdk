@@ -8,6 +8,7 @@ import 'dart:io';
 
 import 'package:dap/dap.dart';
 import 'package:dds/src/dap/logging.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
@@ -275,7 +276,9 @@ environment:
     }
   }
 
-  static Future<DapTestSession> setUp({List<String>? additionalArgs}) async {
+  static Future<DapTestSession> setUp({
+    List<String>? additionalArgs,
+  }) async {
     final server = await startServer(additionalArgs: additionalArgs);
     final client = await DapTestClient.connect(
       server,
@@ -302,5 +305,30 @@ environment:
             onError: onError,
             additionalArgs: additionalArgs,
           );
+  }
+}
+
+/// A helper to run [testFunc] as a test in various configurations of URI
+/// support.
+///
+/// This should be used to ensure coverage of each configuration where
+/// breakpoints and stack traces are being tested.
+@isTest
+void testWithUriConfigurations(
+  DapTestSession Function() dapFunc,
+  String name,
+  FutureOr<void> Function() testFunc,
+) {
+  for (final (supportUris, sendFileUris) in [
+    (false, false),
+    (true, false),
+    (true, true),
+  ]) {
+    test('$name (supportUris: $supportUris, sendFileUris: $sendFileUris)', () {
+      final client = dapFunc().client;
+      client.supportUris = supportUris;
+      client.sendFileUris = sendFileUris;
+      return testFunc();
+    });
   }
 }

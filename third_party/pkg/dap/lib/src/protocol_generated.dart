@@ -8999,6 +8999,7 @@ const commandTypes = {
   CompletionsArguments: 'completions',
   ConfigurationDoneArguments: 'configurationDone',
   ContinueArguments: 'continue',
+  DartInitializeRequestArguments: 'initialize',
   DataBreakpointInfoArguments: 'dataBreakpointInfo',
   DisassembleArguments: 'disassemble',
   DisconnectArguments: 'disconnect',

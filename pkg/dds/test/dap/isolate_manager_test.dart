@@ -129,7 +129,7 @@ main() {
       String? receivedUri;
       adapter.setUriConverter((uri) {
         receivedUri = uri;
-        return 'returned/file/path.dart';
+        return '/returned/file/path.dart';
       });
 
       adapter.mockService.lookupResolvedPackageUrisResponse =
@@ -142,7 +142,7 @@ main() {
       expect(adapter.mockService.receivedLookupResolvedPackageUris,
           ['package:pkg/path.dart']);
       expect(receivedUri, 'scheme://file/path.dart');
-      expect(resolved, 'returned/file/path.dart');
+      expect(resolved, Uri.file('/returned/file/path.dart'));
     });
   });
 }
