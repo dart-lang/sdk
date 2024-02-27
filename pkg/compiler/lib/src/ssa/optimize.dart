@@ -3553,7 +3553,7 @@ class SsaTypeConversionInserter extends HBaseVisitor<void>
     // 'null' and 'undefined'.
   }
 
-  collectTargets(HInstruction instruction, List<HBasicBlock>? trueTargets,
+  void collectTargets(HInstruction instruction, List<HBasicBlock>? trueTargets,
       List<HBasicBlock>? falseTargets) {
     for (HInstruction user in instruction.usedBy) {
       if (user is HIf) {
@@ -3719,7 +3719,7 @@ class SsaLoadElimination extends HBaseVisitor<void>
   }
 
   @override
-  visitTry(HTry instruction) {
+  void visitTry(HTry instruction) {
     final impreciseBlocks = _blocksWithImprecisePredecessors ??= {};
     if (instruction.catchBlock != null) {
       impreciseBlocks[instruction.catchBlock!] = instruction;

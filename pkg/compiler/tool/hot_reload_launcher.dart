@@ -28,7 +28,7 @@ import 'package:compiler/src/dart2js.dart' as p;
 
 int iteration = 0;
 
-main(List<String> args) async {
+Future<void> main(List<String> args) async {
   try {
     if (io.Platform.isLinux) {
       // Calculate how long it took for the process to reach main, this gives us

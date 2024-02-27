@@ -11,7 +11,7 @@ import 'package:modular_test/src/io_pipeline.dart';
 import 'package:modular_test/src/runner.dart';
 import 'modular_test_suite_helper.dart';
 
-main(List<String> args) async {
+Future<void> main(List<String> args) async {
   var options = Options.parse(args);
   await resolveScripts(options);
   await Future.wait([

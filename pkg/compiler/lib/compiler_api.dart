@@ -9,6 +9,7 @@ import 'dart:async';
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 
 import 'src/compiler.dart';
+import 'src/diagnostics/messages.dart';
 import 'src/options.dart';
 
 /// Kind of diagnostics that the compiler can report.
@@ -208,8 +209,8 @@ abstract class CompilerDiagnostics {
   /// Experimental: [code] gives access to an id for the messages. Currently it
   /// is the [Message] used to create the diagnostic, if available, from which
   /// the [MessageKind] is accessible.
-  void report(
-      var code, Uri? uri, int? begin, int? end, String text, Diagnostic kind);
+  void report(Message? code, Uri? uri, int? begin, int? end, String text,
+      Diagnostic kind);
 }
 
 /// Information resulting from the compilation.
@@ -222,7 +223,7 @@ class CompilationResult {
   ///
   /// Note: The type of [compiler] is implementation dependent and may vary.
   /// Use only for debugging and testing.
-  final compiler;
+  final Compiler? compiler;
 
   /// Shared state between compilations.
   ///

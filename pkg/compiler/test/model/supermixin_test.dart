@@ -43,7 +43,7 @@ main() {
     Expect.isTrue(result.isSuccess);
 
     JElementEnvironment elementEnvironment =
-        result.compiler.backendClosedWorldForTesting.elementEnvironment;
+        result.compiler!.backendClosedWorldForTesting!.elementEnvironment;
 
     ClassEntity cls = lookupClass(elementEnvironment, 'Class');
     ClassEntity mixin = lookupClass(elementEnvironment, 'Mixin');
@@ -65,7 +65,7 @@ main() {
         lookupMember(elementEnvironment, 'Class.method2') as FunctionEntity;
     Expect.equals(mixin, method2.enclosingClass);
 
-    ProgramLookup lookup = ProgramLookup(result.compiler.backendStrategy);
+    ProgramLookup lookup = ProgramLookup(result.compiler!.backendStrategy);
     ClassData data = lookup.getClassData(superClass)!;
     Expect.isNotNull(data.getMethod(method1));
     Expect.isNull(data.getMethod(method2));

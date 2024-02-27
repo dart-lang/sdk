@@ -68,7 +68,7 @@ augment class A with M {
 }
 
 
-augment base class B {
+augment class B {
   augment String get superX => '${augmented}b';
 }
 

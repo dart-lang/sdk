@@ -240,7 +240,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
   }
 
   /// Pushes a boolean checking [expression] against null.
-  pushCheckNull(HInstruction expression) {
+  void pushCheckNull(HInstruction expression) {
     push(HIdentity(expression, graph.addConstantNull(closedWorld),
         _abstractValueDomain.boolType));
   }
@@ -930,12 +930,11 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
   /// Sets context for generating code that is the result of inlining
   /// [inlinedTarget].
   void _inlinedFrom(MemberEntity inlinedTarget,
-      SourceInformation? callSourceInformation, f()) {
+      SourceInformation? callSourceInformation, void f()) {
     reporter.withCurrentElement(inlinedTarget, () {
       _enterFrame(inlinedTarget, callSourceInformation);
-      var result = f();
+      f();
       _leaveFrame();
-      return result;
     });
   }
 
@@ -5139,7 +5138,6 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       case JsBuiltin.isJsInteropTypeArgument:
         reporter.internalError(
             NO_LOCATION_SPANNABLE, "Unhandled Builtin: $builtin");
-        return null;
     }
   }
 
@@ -7560,14 +7558,14 @@ class InlineWeeder extends ir.VisitorDefault<void> with ir.VisitorVoidMixin {
   }
 
   @override
-  defaultNode(ir.Node node) {
+  void defaultNode(ir.Node node) {
     registerRegularNode();
     registerReductiveNode();
     node.visitChildren(this);
   }
 
   @override
-  visitConstantExpression(ir.ConstantExpression node) {
+  void visitConstantExpression(ir.ConstantExpression node) {
     registerRegularNode();
     registerReductiveNode();
     ir.Constant constant = node.constant;
@@ -7578,20 +7576,20 @@ class InlineWeeder extends ir.VisitorDefault<void> with ir.VisitorVoidMixin {
   }
 
   @override
-  visitReturnStatement(ir.ReturnStatement node) {
+  void visitReturnStatement(ir.ReturnStatement node) {
     registerRegularNode();
     node.visitChildren(this);
     seenReturn = true;
   }
 
   @override
-  visitThrow(ir.Throw node) {
+  void visitThrow(ir.Throw node) {
     registerRegularNode();
     data.hasThrow = true;
     node.visitChildren(this);
   }
 
-  _handleLoop(ir.Node node) {
+  void _handleLoop(ir.Node node) {
     // It's actually not difficult to inline a method with a loop, but our
     // measurements show that it's currently better to not inline a method that
     // contains a loop.
@@ -7600,49 +7598,49 @@ class InlineWeeder extends ir.VisitorDefault<void> with ir.VisitorVoidMixin {
   }
 
   @override
-  visitForStatement(ir.ForStatement node) {
+  void visitForStatement(ir.ForStatement node) {
     _handleLoop(node);
   }
 
   @override
-  visitForInStatement(ir.ForInStatement node) {
+  void visitForInStatement(ir.ForInStatement node) {
     _handleLoop(node);
   }
 
   @override
-  visitWhileStatement(ir.WhileStatement node) {
+  void visitWhileStatement(ir.WhileStatement node) {
     _handleLoop(node);
   }
 
   @override
-  visitDoStatement(ir.DoStatement node) {
+  void visitDoStatement(ir.DoStatement node) {
     _handleLoop(node);
   }
 
   @override
-  visitTryCatch(ir.TryCatch node) {
+  void visitTryCatch(ir.TryCatch node) {
     data.hasTry = true;
   }
 
   @override
-  visitTryFinally(ir.TryFinally node) {
+  void visitTryFinally(ir.TryFinally node) {
     data.hasTry = true;
   }
 
   @override
-  visitFunctionExpression(ir.FunctionExpression node) {
+  void visitFunctionExpression(ir.FunctionExpression node) {
     registerRegularNode();
     data.hasClosure = true;
   }
 
   @override
-  visitFunctionDeclaration(ir.FunctionDeclaration node) {
+  void visitFunctionDeclaration(ir.FunctionDeclaration node) {
     registerRegularNode();
     data.hasClosure = true;
   }
 
   @override
-  visitFunctionNode(ir.FunctionNode node) {
+  void visitFunctionNode(ir.FunctionNode node) {
     if (node.asyncMarker != ir.AsyncMarker.Sync) {
       data.hasAsyncAwait = true;
     }
@@ -7657,7 +7655,7 @@ class InlineWeeder extends ir.VisitorDefault<void> with ir.VisitorVoidMixin {
   }
 
   @override
-  visitConditionalExpression(ir.ConditionalExpression node) {
+  void visitConditionalExpression(ir.ConditionalExpression node) {
     // Heuristic: In "parameter ? A : B" there is a high probability that
     // parameter is a constant. Assuming the parameter is constant, we can
     // compute a count that is bounded by the largest arm rather than the sum of
@@ -7686,13 +7684,13 @@ class InlineWeeder extends ir.VisitorDefault<void> with ir.VisitorVoidMixin {
   }
 
   @override
-  visitAssertInitializer(ir.AssertInitializer node) {
+  void visitAssertInitializer(ir.AssertInitializer node) {
     if (!enableUserAssertions) return;
     node.visitChildren(this);
   }
 
   @override
-  visitAssertStatement(ir.AssertStatement node) {
+  void visitAssertStatement(ir.AssertStatement node) {
     if (!enableUserAssertions) return;
     defaultNode(node);
   }
@@ -7702,25 +7700,25 @@ class InlineWeeder extends ir.VisitorDefault<void> with ir.VisitorVoidMixin {
   }
 
   @override
-  visitEmptyStatement(ir.EmptyStatement node) {
+  void visitEmptyStatement(ir.EmptyStatement node) {
     registerRegularNode();
   }
 
   @override
-  visitExpressionStatement(ir.ExpressionStatement node) {
+  void visitExpressionStatement(ir.ExpressionStatement node) {
     registerRegularNode();
     node.visitChildren(this);
   }
 
   @override
-  visitLabeledStatement(ir.LabeledStatement node) {
+  void visitLabeledStatement(ir.LabeledStatement node) {
     registerRegularNode();
     data.hasLabel = true;
     node.visitChildren(this);
   }
 
   @override
-  visitSwitchStatement(ir.SwitchStatement node) {
+  void visitSwitchStatement(ir.SwitchStatement node) {
     registerRegularNode();
     registerReductiveNode();
     // Don't visit 'SwitchStatement.expressionType'.
@@ -7729,7 +7727,7 @@ class InlineWeeder extends ir.VisitorDefault<void> with ir.VisitorVoidMixin {
   }
 
   @override
-  visitBlock(ir.Block node) {
+  void visitBlock(ir.Block node) {
     registerRegularNode();
     node.visitChildren(this);
   }
@@ -7739,7 +7737,7 @@ class InlineWeeder extends ir.VisitorDefault<void> with ir.VisitorVoidMixin {
   bool isLongString(String value) => value.length > 14;
 
   @override
-  visitStringLiteral(ir.StringLiteral node) {
+  void visitStringLiteral(ir.StringLiteral node) {
     registerRegularNode();
     registerReductiveNode();
     // Avoid copying long strings into call site.
@@ -7749,7 +7747,7 @@ class InlineWeeder extends ir.VisitorDefault<void> with ir.VisitorVoidMixin {
   }
 
   @override
-  visitInstanceGet(ir.InstanceGet node) {
+  void visitInstanceGet(ir.InstanceGet node) {
     registerCall();
     registerRegularNode();
     registerReductiveNode();
@@ -7758,7 +7756,7 @@ class InlineWeeder extends ir.VisitorDefault<void> with ir.VisitorVoidMixin {
   }
 
   @override
-  visitInstanceTearOff(ir.InstanceTearOff node) {
+  void visitInstanceTearOff(ir.InstanceTearOff node) {
     registerCall();
     registerRegularNode();
     registerReductiveNode();
@@ -7767,7 +7765,7 @@ class InlineWeeder extends ir.VisitorDefault<void> with ir.VisitorVoidMixin {
   }
 
   @override
-  visitDynamicGet(ir.DynamicGet node) {
+  void visitDynamicGet(ir.DynamicGet node) {
     registerCall();
     registerRegularNode();
     registerReductiveNode();
@@ -7776,17 +7774,7 @@ class InlineWeeder extends ir.VisitorDefault<void> with ir.VisitorVoidMixin {
   }
 
   @override
-  visitInstanceSet(ir.InstanceSet node) {
-    registerCall();
-    registerRegularNode();
-    registerReductiveNode();
-    skipReductiveNodes(() => visit(node.name));
-    visit(node.receiver);
-    visit(node.value);
-  }
-
-  @override
-  visitDynamicSet(ir.DynamicSet node) {
+  void visitInstanceSet(ir.InstanceSet node) {
     registerCall();
     registerRegularNode();
     registerReductiveNode();
@@ -7796,7 +7784,17 @@ class InlineWeeder extends ir.VisitorDefault<void> with ir.VisitorVoidMixin {
   }
 
   @override
-  visitVariableGet(ir.VariableGet node) {
+  void visitDynamicSet(ir.DynamicSet node) {
+    registerCall();
+    registerRegularNode();
+    registerReductiveNode();
+    skipReductiveNodes(() => visit(node.name));
+    visit(node.receiver);
+    visit(node.value);
+  }
+
+  @override
+  void visitVariableGet(ir.VariableGet node) {
     if (discountParameters && node.variable.parent is ir.FunctionNode) return;
     registerRegularNode();
     registerReductiveNode();
@@ -7804,13 +7802,13 @@ class InlineWeeder extends ir.VisitorDefault<void> with ir.VisitorVoidMixin {
   }
 
   @override
-  visitThisExpression(ir.ThisExpression node) {
+  void visitThisExpression(ir.ThisExpression node) {
     registerRegularNode();
     registerReductiveNode();
   }
 
   @override
-  visitStaticGet(ir.StaticGet node) {
+  void visitStaticGet(ir.StaticGet node) {
     // Assume lazy-init static, loaded via a call: `$.$get$foo()`.
     registerCall();
     registerRegularNode();
@@ -7818,7 +7816,7 @@ class InlineWeeder extends ir.VisitorDefault<void> with ir.VisitorVoidMixin {
   }
 
   @override
-  visitConstructorInvocation(ir.ConstructorInvocation node) {
+  void visitConstructorInvocation(ir.ConstructorInvocation node) {
     registerRegularNode();
     registerReductiveNode();
     if (node.isConst) {
@@ -7831,7 +7829,7 @@ class InlineWeeder extends ir.VisitorDefault<void> with ir.VisitorVoidMixin {
   }
 
   @override
-  visitStaticInvocation(ir.StaticInvocation node) {
+  void visitStaticInvocation(ir.StaticInvocation node) {
     registerRegularNode();
     if (node.isConst) {
       data.hasExternalConstantConstructorCall = true;
@@ -7844,7 +7842,7 @@ class InlineWeeder extends ir.VisitorDefault<void> with ir.VisitorVoidMixin {
   }
 
   @override
-  visitInstanceInvocation(ir.InstanceInvocation node) {
+  void visitInstanceInvocation(ir.InstanceInvocation node) {
     registerRegularNode();
     registerReductiveNode();
     registerCall();
@@ -7854,7 +7852,7 @@ class InlineWeeder extends ir.VisitorDefault<void> with ir.VisitorVoidMixin {
   }
 
   @override
-  visitInstanceGetterInvocation(ir.InstanceGetterInvocation node) {
+  void visitInstanceGetterInvocation(ir.InstanceGetterInvocation node) {
     registerRegularNode();
     registerReductiveNode();
     registerCall();
@@ -7864,7 +7862,7 @@ class InlineWeeder extends ir.VisitorDefault<void> with ir.VisitorVoidMixin {
   }
 
   @override
-  visitDynamicInvocation(ir.DynamicInvocation node) {
+  void visitDynamicInvocation(ir.DynamicInvocation node) {
     registerRegularNode();
     registerReductiveNode();
     registerCall();
@@ -7874,7 +7872,7 @@ class InlineWeeder extends ir.VisitorDefault<void> with ir.VisitorVoidMixin {
   }
 
   @override
-  visitFunctionInvocation(ir.FunctionInvocation node) {
+  void visitFunctionInvocation(ir.FunctionInvocation node) {
     registerRegularNode();
     registerReductiveNode();
     registerCall();
@@ -7884,7 +7882,7 @@ class InlineWeeder extends ir.VisitorDefault<void> with ir.VisitorVoidMixin {
   }
 
   @override
-  visitLocalFunctionInvocation(ir.LocalFunctionInvocation node) {
+  void visitLocalFunctionInvocation(ir.LocalFunctionInvocation node) {
     registerRegularNode();
     registerReductiveNode();
     registerCall();
@@ -7895,14 +7893,14 @@ class InlineWeeder extends ir.VisitorDefault<void> with ir.VisitorVoidMixin {
   }
 
   @override
-  visitEqualsNull(ir.EqualsNull node) {
+  void visitEqualsNull(ir.EqualsNull node) {
     registerRegularNode();
     registerReductiveNode();
     visit(node.expression);
   }
 
   @override
-  visitEqualsCall(ir.EqualsCall node) {
+  void visitEqualsCall(ir.EqualsCall node) {
     registerRegularNode();
     registerReductiveNode();
     registerCall();
@@ -7910,7 +7908,7 @@ class InlineWeeder extends ir.VisitorDefault<void> with ir.VisitorVoidMixin {
     visit(node.right);
   }
 
-  _processArguments(ir.Arguments arguments, ir.FunctionNode? target) {
+  void _processArguments(ir.Arguments arguments, ir.FunctionNode? target) {
     registerRegularNode();
     if (arguments.types.isNotEmpty) {
       data.hasTypeArguments = true;
@@ -7936,7 +7934,7 @@ class InlineWeeder extends ir.VisitorDefault<void> with ir.VisitorVoidMixin {
   }
 
   @override
-  visitAsExpression(ir.AsExpression node) {
+  void visitAsExpression(ir.AsExpression node) {
     registerRegularNode();
     visit(node.operand);
     skipReductiveNodes(() => visit(node.type));
@@ -7946,7 +7944,7 @@ class InlineWeeder extends ir.VisitorDefault<void> with ir.VisitorVoidMixin {
   }
 
   @override
-  visitVariableDeclaration(ir.VariableDeclaration node) {
+  void visitVariableDeclaration(ir.VariableDeclaration node) {
     registerRegularNode();
     skipReductiveNodes(() {
       visitList(node.annotations);
@@ -7961,7 +7959,7 @@ class InlineWeeder extends ir.VisitorDefault<void> with ir.VisitorVoidMixin {
   }
 
   @override
-  visitIfStatement(ir.IfStatement node) {
+  void visitIfStatement(ir.IfStatement node) {
     registerRegularNode();
     node.visitChildren(this);
     data.hasIf = true;
@@ -8114,7 +8112,7 @@ class InlineWeederBodyClosure extends ir.VisitorDefault<void>
   InlineWeederBodyClosure();
 
   @override
-  defaultNode(ir.Node node) {
+  void defaultNode(ir.Node node) {
     if (tooDifficult) return;
     node.visitChildren(this);
   }

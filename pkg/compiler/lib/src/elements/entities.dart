@@ -331,7 +331,7 @@ class ParameterStructure {
   }
 
   /// Deserializes a [ParameterStructure] object from [source].
-  static readFromDataSource(DataSourceReader source) {
+  factory ParameterStructure.readFromDataSource(DataSourceReader source) {
     final tag = ParameterStructure.tag;
     source.begin(tag);
     int requiredPositionalParameters = source.readInt();

@@ -111,7 +111,7 @@ abstract class Value {
 class IntValue extends Value {
   final BigInt value;
 
-  const IntValue(this.value, info) : super(info);
+  const IntValue(this.value, super.info);
 
   @override
   Value operator +(Value other) {
@@ -376,7 +376,7 @@ class PositiveValue extends InstructionValue {
 abstract class BinaryOperationValue extends Value {
   final Value left;
   final Value right;
-  BinaryOperationValue(this.left, this.right, info) : super(info);
+  BinaryOperationValue(this.left, this.right, super.info);
 }
 
 class AddValue extends BinaryOperationValue {
@@ -508,7 +508,7 @@ class SubtractValue extends BinaryOperationValue {
 
 class NegateValue extends Value {
   final Value value;
-  NegateValue(this.value, info) : super(info);
+  NegateValue(this.value, super.info);
 
   @override
   bool operator ==(other) {

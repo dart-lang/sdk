@@ -103,7 +103,7 @@ class SsaBranchBuilder {
     return null;
   }
 
-  handleIf(void visitCondition(), void visitThen(), void visitElse()?,
+  void handleIf(void visitCondition(), void visitThen(), void visitElse()?,
       {SourceInformation? sourceInformation}) {
     if (visitElse == null) {
       // Make sure to have an else part to avoid a critical edge. A
@@ -118,12 +118,13 @@ class SsaBranchBuilder {
         isExpression: false, sourceInformation: sourceInformation);
   }
 
-  handleConditional(void visitCondition(), void visitThen(), void visitElse()) {
+  void handleConditional(
+      void visitCondition(), void visitThen(), void visitElse()) {
     _handleDiamondBranch(visitCondition, visitThen, visitElse,
         isExpression: true);
   }
 
-  handleIfNull(void left(), void right()) {
+  void handleIfNull(void left(), void right()) {
     // x ?? y is transformed into: x == null ? y : x
     late final HInstruction leftExpression;
     handleConditional(() {

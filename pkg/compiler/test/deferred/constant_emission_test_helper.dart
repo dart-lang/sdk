@@ -29,7 +29,7 @@ run(Map<String, String> sourceFiles, List<OutputUnitDescriptor> outputUnits,
   OutputCollector collector = OutputCollector();
   CompilationResult result = await runCompiler(
       memorySourceFiles: sourceFiles, outputProvider: collector);
-  Compiler compiler = result.compiler;
+  Compiler compiler = result.compiler!;
   DartTypes dartTypes = compiler.frontendStrategy.commonElements.dartTypes;
   ProgramLookup lookup = ProgramLookup(compiler.backendStrategy);
   var closedWorld = compiler.backendClosedWorldForTesting!;

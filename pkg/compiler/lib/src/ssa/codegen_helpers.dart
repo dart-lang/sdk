@@ -228,20 +228,20 @@ class SsaInstructionSelection extends HBaseVisitor<HInstruction?>
       .isPotentiallyTrue;
 
   @override
-  visitBinaryBitOp(HBinaryBitOp node) {
+  HBinaryBitOp visitBinaryBitOp(HBinaryBitOp node) {
     node.requiresUintConversion = _requiresUintConversion(node);
     return node;
   }
 
   @override
-  visitShiftRight(HShiftRight node) {
+  HShiftRight visitShiftRight(HShiftRight node) {
     // HShiftRight is JavaScript's `>>>` operation so result is always unsigned.
     node.requiresUintConversion = false;
     return node;
   }
 
   @override
-  visitBitNot(HBitNot node) {
+  HBitNot visitBitNot(HBitNot node) {
     node.requiresUintConversion = _requiresUintConversion(node);
     return node;
   }
@@ -450,7 +450,7 @@ class SsaInstructionSelection extends HBaseVisitor<HInstruction?>
   }
 
   @override
-  visitIf(HIf node) {
+  HIf visitIf(HIf node) {
     if (!_options.experimentToBoolean) return node;
     HInstruction condition = node.inputs.single;
     // if (x != null) --> if (x)
@@ -1407,7 +1407,7 @@ class SsaShareRegionConstants extends HBaseVisitor<void>
   }
 
   // Replace cacheable uses with a reference to a HLateValue node.
-  _cache(
+  void _cache(
       HInstruction node, bool Function(HInstruction) cacheable, String name) {
     var users = node.usedBy.toList();
     var reference = HLateValue(node);

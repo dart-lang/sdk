@@ -248,7 +248,7 @@ abstract class TypeInformation {
     return true;
   }
 
-  accept(TypeInformationVisitor visitor);
+  T accept<T>(TypeInformationVisitor<T> visitor);
 
   /// The [Element] where this [TypeInformation] was created. May be `null`
   /// for some [TypeInformation] nodes, where we do not need to store
@@ -319,7 +319,7 @@ class PlaceholderTypeInformation extends TypeInformation {
       : super(abstractValueDomain.uncomputedType, context);
 
   @override
-  void accept(TypeInformationVisitor visitor) {
+  Never accept<T>(TypeInformationVisitor<T> visitor) {
     throw UnsupportedError("Cannot visit placeholder");
   }
 
@@ -329,7 +329,7 @@ class PlaceholderTypeInformation extends TypeInformation {
   }
 
   @override
-  toString() => "Placeholder [$hashCode]";
+  String toString() => "Placeholder [$hashCode]";
 }
 
 abstract class ParameterInputs implements Iterable<TypeInformation> {
@@ -568,7 +568,7 @@ abstract class MemberTypeInformation extends ElementTypeInformation
   String toString() => 'Member $_member $type';
 
   @override
-  accept(TypeInformationVisitor visitor) {
+  T accept<T>(TypeInformationVisitor<T> visitor) {
     return visitor.visitMemberTypeInformation(this);
   }
 
@@ -984,7 +984,7 @@ class ParameterTypeInformation extends ElementTypeInformation {
   }
 
   @override
-  accept(TypeInformationVisitor visitor) {
+  T accept<T>(TypeInformationVisitor<T> visitor) {
     return visitor.visitParameterTypeInformation(this);
   }
 
@@ -1102,7 +1102,7 @@ class StaticCallSiteTypeInformation extends CallSiteTypeInformation {
   }
 
   @override
-  accept(TypeInformationVisitor visitor) {
+  T accept<T>(TypeInformationVisitor<T> visitor) {
     return visitor.visitStaticCallSiteTypeInformation(this);
   }
 
@@ -1486,7 +1486,7 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
   String toString() => 'Call site $debugName on ${receiver.type} $type';
 
   @override
-  accept(TypeInformationVisitor visitor) {
+  T accept<T>(TypeInformationVisitor<T> visitor) {
     return visitor.visitDynamicCallSiteTypeInformation(this);
   }
 
@@ -1543,7 +1543,7 @@ class ClosureCallSiteTypeInformation extends CallSiteTypeInformation {
   String toString() => 'Closure call $debugName on $closure';
 
   @override
-  accept(TypeInformationVisitor visitor) {
+  T accept<T>(TypeInformationVisitor<T> visitor) {
     return visitor.visitClosureCallSiteTypeInformation(this);
   }
 
@@ -1612,7 +1612,7 @@ class ConcreteTypeInformation extends TypeInformation {
   String toString() => 'Type $type';
 
   @override
-  accept(TypeInformationVisitor visitor) {
+  T accept<T>(TypeInformationVisitor<T> visitor) {
     return visitor.visitConcreteTypeInformation(this);
   }
 
@@ -1633,7 +1633,7 @@ class StringLiteralTypeInformation extends ConcreteTypeInformation {
   String toString() => 'Type $type value ${value}';
 
   @override
-  accept(TypeInformationVisitor visitor) {
+  T accept<T>(TypeInformationVisitor<T> visitor) {
     return visitor.visitStringLiteralTypeInformation(this);
   }
 }
@@ -1650,7 +1650,7 @@ class BoolLiteralTypeInformation extends ConcreteTypeInformation {
   String toString() => 'Type $type value ${value}';
 
   @override
-  accept(TypeInformationVisitor visitor) {
+  T accept<T>(TypeInformationVisitor<T> visitor) {
     return visitor.visitBoolLiteralTypeInformation(this);
   }
 }
@@ -1682,7 +1682,7 @@ class NarrowTypeInformation extends TypeInformation {
   }
 
   @override
-  addInput(TypeInformation info) {
+  void addInput(TypeInformation info) {
     super.addInput(info);
     assert(inputs.length == 1);
   }
@@ -1702,7 +1702,7 @@ class NarrowTypeInformation extends TypeInformation {
   }
 
   @override
-  accept(TypeInformationVisitor visitor) {
+  T accept<T>(TypeInformationVisitor<T> visitor) {
     return visitor.visitNarrowTypeInformation(this);
   }
 }
@@ -1763,7 +1763,7 @@ class ListTypeInformation extends TypeInformation with TracedTypeInformation {
   String toString() => 'List type $type';
 
   @override
-  accept(TypeInformationVisitor visitor) {
+  T accept<T>(TypeInformationVisitor<T> visitor) {
     return visitor.visitListTypeInformation(this);
   }
 
@@ -1810,7 +1810,7 @@ class ElementInContainerTypeInformation extends InferredTypeInformation {
   String toString() => 'Element in container $type';
 
   @override
-  accept(TypeInformationVisitor visitor) {
+  T accept<T>(TypeInformationVisitor<T> visitor) {
     return visitor.visitElementInContainerTypeInformation(this);
   }
 }
@@ -1831,7 +1831,7 @@ class SetTypeInformation extends TypeInformation with TracedTypeInformation {
   String toString() => 'Set type $type';
 
   @override
-  accept(TypeInformationVisitor visitor) {
+  T accept<T>(TypeInformationVisitor<T> visitor) {
     return visitor.visitSetTypeInformation(this);
   }
 
@@ -1876,7 +1876,7 @@ class ElementInSetTypeInformation extends InferredTypeInformation {
   String toString() => 'Element in set $type';
 
   @override
-  accept(TypeInformationVisitor visitor) {
+  T accept<T>(TypeInformationVisitor<T> visitor) {
     return visitor.visitElementInSetTypeInformation(this);
   }
 }
@@ -1950,18 +1950,18 @@ class MapTypeInformation extends TypeInformation with TracedTypeInformation {
     return newInfos;
   }
 
-  markAsInferred() {
+  void markAsInferred() {
     keyType.inferred = valueType.inferred = true;
     typeInfoMap.values.forEach((v) => v.inferred = true);
   }
 
   @override
-  addInput(TypeInformation other) {
+  Never addInput(TypeInformation other) {
     throw "not supported";
   }
 
   @override
-  accept(TypeInformationVisitor visitor) {
+  T accept<T>(TypeInformationVisitor<T> visitor) {
     return visitor.visitMapTypeInformation(this);
   }
 
@@ -2056,7 +2056,7 @@ class KeyInMapTypeInformation extends InferredTypeInformation {
       super.abstractValueDomain, super.context, super.keyType, this.staticType);
 
   @override
-  accept(TypeInformationVisitor visitor) {
+  T accept<T>(TypeInformationVisitor<T> visitor) {
     return visitor.visitKeyInMapTypeInformation(this);
   }
 
@@ -2086,7 +2086,7 @@ class ValueInMapTypeInformation extends InferredTypeInformation {
   }
 
   @override
-  accept(TypeInformationVisitor visitor) {
+  T accept<T>(TypeInformationVisitor<T> visitor) {
     return visitor.visitValueInMapTypeInformation(this);
   }
 
@@ -2123,7 +2123,7 @@ class RecordTypeInformation extends TypeInformation with TracedTypeInformation {
   }
 
   @override
-  void accept(TypeInformationVisitor visitor) {
+  T accept<T>(TypeInformationVisitor<T> visitor) {
     return visitor.visitRecordTypeInformation(this);
   }
 
@@ -2183,7 +2183,7 @@ class RecordFieldAccessTypeInformation extends TypeInformation {
   }
 
   @override
-  accept(TypeInformationVisitor visitor) {
+  T accept<T>(TypeInformationVisitor<T> visitor) {
     return visitor.visitRecordFieldAccessTypeInformation(this);
   }
 
@@ -2247,7 +2247,7 @@ class PhiElementTypeInformation extends TypeInformation {
   }
 
   @override
-  accept(TypeInformationVisitor visitor) {
+  T accept<T>(TypeInformationVisitor<T> visitor) {
     return visitor.visitPhiElementTypeInformation(this);
   }
 }
@@ -2276,7 +2276,7 @@ class ClosureTypeInformation extends TypeInformation
   String toString() => 'Closure $_element';
 
   @override
-  accept(TypeInformationVisitor visitor) {
+  T accept<T>(TypeInformationVisitor<T> visitor) {
     return visitor.visitClosureTypeInformation(this);
   }
 
@@ -2350,7 +2350,7 @@ class AwaitTypeInformation extends TypeInformation {
   String toString() => 'Await';
 
   @override
-  accept(TypeInformationVisitor visitor) {
+  T accept<T>(TypeInformationVisitor<T> visitor) {
     return visitor.visitAwaitTypeInformation(this);
   }
 }
@@ -2371,7 +2371,7 @@ class YieldTypeInformation extends TypeInformation {
   String toString() => 'Yield';
 
   @override
-  accept(TypeInformationVisitor visitor) {
+  T accept<T>(TypeInformationVisitor<T> visitor) {
     return visitor.visitYieldTypeInformation(this);
   }
 }

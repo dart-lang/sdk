@@ -364,7 +364,7 @@ class DoubleConstantValue extends NumConstantValue {
 }
 
 abstract class BoolConstantValue extends PrimitiveConstantValue {
-  factory BoolConstantValue(value) {
+  factory BoolConstantValue(bool value) {
     return value ? TrueConstantValue() : FalseConstantValue();
   }
 
@@ -786,7 +786,7 @@ class JsNameConstantValue extends ConstantValue {
   }
 
   @override
-  get hashCode => name.hashCode * 17;
+  int get hashCode => name.hashCode * 17;
 
   @override
   List<ConstantValue> getDependencies() => const [];
@@ -1203,7 +1203,7 @@ class DeferredGlobalConstantValue extends ConstantValue {
   }
 
   @override
-  get hashCode => (referenced.hashCode * 17 + unit.hashCode) & 0x3fffffff;
+  int get hashCode => (referenced.hashCode * 17 + unit.hashCode) & 0x3fffffff;
 
   @override
   List<ConstantValue> getDependencies() => [referenced];

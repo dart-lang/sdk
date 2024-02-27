@@ -209,7 +209,8 @@ class FormattingDiagnosticHandler implements api.CompilerDiagnostics {
     this.provider = provider;
   }
 
-  void info(var message, [api.Diagnostic kind = api.Diagnostic.verboseInfo]) {
+  void info(String message,
+      [api.Diagnostic kind = api.Diagnostic.verboseInfo]) {
     if (!verbose && kind == api.Diagnostic.verboseInfo) return;
     if (enableColors) {
       print('${colors.green("Info:")} $message');
@@ -303,10 +304,10 @@ class FormattingDiagnosticHandler implements api.CompilerDiagnostics {
 }
 
 class _CompilationErrorError {
-  final message;
+  final String message;
   _CompilationErrorError(this.message);
   @override
-  toString() => 'Aborted due to --throw-on-error: $message';
+  String toString() => 'Aborted due to --throw-on-error: $message';
 }
 
 typedef OnInfo = void Function(String message);

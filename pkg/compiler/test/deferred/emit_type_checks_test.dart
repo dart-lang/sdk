@@ -17,7 +17,7 @@ void main() {
     OutputCollector collector = OutputCollector();
     CompilationResult result = await runCompiler(
         memorySourceFiles: MEMORY_SOURCE_FILES, outputProvider: collector);
-    Compiler compiler = result.compiler;
+    Compiler compiler = result.compiler!;
     String mainOutput = collector.getOutput('', api.OutputType.js)!;
     String deferredOutput =
         collector.getOutput('out_1', api.OutputType.jsPart)!;

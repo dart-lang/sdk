@@ -375,9 +375,7 @@ class _ElementWriter {
       expect(e.nameOffset, -1);
       expect(e.nonSynthetic, same(e.enclosingElement));
     } else {
-      if (!e.isTempAugmentation) {
-        expect(e.nameOffset, isPositive);
-      }
+      expect(e.nameOffset, isPositive);
     }
   }
 
@@ -1161,9 +1159,7 @@ class _ElementWriter {
     if (e.isSynthetic) {
       expect(e.nameOffset, -1);
     } else {
-      if (!e.isTempAugmentation) {
-        expect(e.nameOffset, isPositive);
-      }
+      expect(e.nameOffset, isPositive);
       _assertNonSyntheticElementSelf(e);
     }
 
@@ -1222,9 +1218,7 @@ class _ElementWriter {
         expect(e.getter, isNotNull);
       }
 
-      if (!e.isTempAugmentation) {
-        expect(e.nameOffset, isPositive);
-      }
+      expect(e.nameOffset, isPositive);
       _assertNonSyntheticElementSelf(e);
     }
 

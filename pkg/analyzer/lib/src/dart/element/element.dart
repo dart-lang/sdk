@@ -2319,14 +2319,6 @@ abstract class ElementImpl implements Element {
     setModifier(Modifier.SYNTHETIC, isSynthetic);
   }
 
-  bool get isTempAugmentation {
-    return hasModifier(Modifier.TEMP_AUGMENTATION);
-  }
-
-  set isTempAugmentation(bool value) {
-    setModifier(Modifier.TEMP_AUGMENTATION, value);
-  }
-
   @override
   LibraryElementImpl? get library => thisOrAncestorOfType();
 
@@ -5424,11 +5416,7 @@ enum Modifier implements Comparable<Modifier> {
   /// implicitly created. For example, if a class does not define any
   /// constructors, an implicit zero-argument constructor will be created and it
   /// will be marked as being synthetic.
-  SYNTHETIC,
-
-  /// Indicates that the element was appended to this enclosing element to
-  /// simulate temporary the effect of applying augmentation.
-  TEMP_AUGMENTATION;
+  SYNTHETIC;
 
   @override
   int compareTo(Modifier other) => index - other.index;

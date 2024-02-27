@@ -193,7 +193,7 @@ main(List<String> args) {
           librariesSpecificationUri: librariesSpecificationUri,
           options: options);
       Expect.isTrue(result.isSuccess);
-      Compiler compiler = result.compiler;
+      Compiler compiler = result.compiler!;
       KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
       KernelToElementMap elementMap = frontendStrategy.elementMap;
       ir.Component component = elementMap.env.mainComponent;

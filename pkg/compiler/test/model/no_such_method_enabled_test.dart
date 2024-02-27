@@ -243,7 +243,7 @@ main() {
       CompilationResult result =
           await runCompiler(memorySourceFiles: {'main.dart': test.code});
       Expect.isTrue(result.isSuccess);
-      Compiler compiler = result.compiler;
+      Compiler compiler = result.compiler!;
       checkTest(compiler, test);
     }
   }

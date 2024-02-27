@@ -42,7 +42,7 @@ main() {
         memorySourceFiles: {'main.dart': CODE},
         options: ['--experimental-powersets']);
     Expect.isTrue(result.isSuccess);
-    Compiler compiler = result.compiler;
+    Compiler compiler = result.compiler!;
     var results = compiler.globalInference.resultsForTesting!;
     JClosedWorld closedWorld = results.closedWorld;
     final powersetDomain = closedWorld.abstractValueDomain as PowersetDomain;

@@ -25,7 +25,7 @@ abstract class CompilerTask {
   // Each task has a fixed, lazily computed, ZoneSpecification and zoneValues
   // for [_measureZoned].
   ZoneSpecification? _zoneSpecification;
-  Map? _zoneValues;
+  Map<Measurer, CompilerTask>? _zoneValues;
 
   CompilerTask(this._measurer)
       : _watch = _measurer.enableTaskMeasurements ? Stopwatch() : null;

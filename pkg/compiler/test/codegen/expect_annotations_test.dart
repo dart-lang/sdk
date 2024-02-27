@@ -41,7 +41,7 @@ main() {
 runTest() async {
   CompilationResult result = await runCompiler(
       memorySourceFiles: MEMORY_SOURCE_FILES, options: [Flags.testMode]);
-  Compiler compiler = result.compiler;
+  Compiler compiler = result.compiler!;
   JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
   AbstractValueDomain commonMasks = closedWorld.abstractValueDomain;
   Expect.isFalse(compiler.compilationFailed, 'Unsuccessful compilation');

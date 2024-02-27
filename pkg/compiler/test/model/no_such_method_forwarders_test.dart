@@ -108,7 +108,7 @@ main() {
     CompilationResult result =
         await runCompiler(memorySourceFiles: {'main.dart': source});
     Expect.isTrue(result.isSuccess);
-    Compiler compiler = result.compiler;
+    Compiler compiler = result.compiler!;
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
 
     void check(String className,

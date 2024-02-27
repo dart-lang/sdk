@@ -297,7 +297,7 @@ class ListGenerateLoopBodyInliner extends CloneVisitorNotMembers {
   }
 
   @override
-  visitReturnStatement(ReturnStatement node) {
+  TreeNode visitReturnStatement(ReturnStatement node) {
     // Do the default for return statements in nested functions.
     if (functionNestingLevel > 0) return super.visitReturnStatement(node);
 
@@ -342,7 +342,7 @@ class ListGenerateLoopBodyInliner extends CloneVisitorNotMembers {
 
   /// Nested functions.
   @override
-  visitFunctionNode(FunctionNode node) {
+  TreeNode visitFunctionNode(FunctionNode node) {
     functionNestingLevel++;
     final cloned = super.visitFunctionNode(node);
     functionNestingLevel--;

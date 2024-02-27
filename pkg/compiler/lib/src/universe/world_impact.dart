@@ -71,7 +71,7 @@ class WorldImpact {
   static void printOn(StringBuffer sb, WorldImpact worldImpact) {
     sb.write('member: ${worldImpact.member}');
 
-    void add(String title, Iterable iterable) {
+    void add(String title, Iterable<Object?> iterable) {
       if (iterable.isNotEmpty) {
         sb.write('\n $title:');
         iterable.forEach((e) => sb.write('\n  $e'));

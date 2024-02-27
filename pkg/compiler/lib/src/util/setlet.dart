@@ -22,7 +22,7 @@ class Setlet<E> extends SetBase<E> {
   // When the setlet is list-backed, the list in the contents field
   // may have empty slots filled with the marker value.
   dynamic _contents = _MARKER;
-  var _extra;
+  dynamic _extra;
 
   Setlet();
 
@@ -236,7 +236,7 @@ class Setlet<E> extends SetBase<E> {
 
   @override
   void retainAll(Iterable<Object?> elements) {
-    Set set = elements is Set ? elements : elements.toSet();
+    Set<Object?> set = elements is Set<Object?> ? elements : elements.toSet();
     removeWhere((E element) => !set.contains(element));
   }
 
@@ -265,7 +265,7 @@ class Setlet<E> extends SetBase<E> {
   }
 
   @override
-  clear() {
+  void clear() {
     _contents = _MARKER;
     _extra = null;
   }
@@ -300,11 +300,11 @@ class Setlet<E> extends SetBase<E> {
 class _SetletMarker {
   const _SetletMarker();
   @override
-  toString() => "-";
+  String toString() => "-";
 }
 
 class _SetletSingleIterator<E> implements Iterator<E> {
-  var _element;
+  dynamic _element;
   E? _current;
   _SetletSingleIterator(this._element);
 
@@ -324,7 +324,7 @@ class _SetletSingleIterator<E> implements Iterator<E> {
 }
 
 class _SetletListIterator<E> implements Iterator<E> {
-  final List _list;
+  final List<Object?> _list;
   int _remaining;
   int _index = 0;
   E? _current;
@@ -338,7 +338,7 @@ class _SetletListIterator<E> implements Iterator<E> {
     while (_remaining > 0) {
       var candidate = _list[_index++];
       if (Setlet._MARKER != candidate) {
-        _current = candidate;
+        _current = candidate as E;
         _remaining--;
         return true;
       }

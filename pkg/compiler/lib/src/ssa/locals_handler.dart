@@ -709,5 +709,5 @@ class SyntheticLocal extends Local {
   SyntheticLocal(this.name, this.executableContext, this.memberContext);
 
   @override
-  toString() => 'SyntheticLocal($name)';
+  String toString() => 'SyntheticLocal($name)';
 }

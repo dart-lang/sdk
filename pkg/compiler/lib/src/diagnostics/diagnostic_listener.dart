@@ -183,7 +183,7 @@ class DiagnosticReporter {
 
   void _reportAssertionFailure(SpannableAssertionFailure ex) {
     String message =
-        (ex.message != null) ? tryToString(ex.message) : tryToString(ex);
+        (ex.message != null) ? tryToString(ex.message!) : tryToString(ex);
     _reportDiagnosticInternal(
         createMessage(ex.node, MessageKind.GENERIC, {'text': message}),
         const <DiagnosticMessage>[],
@@ -221,7 +221,7 @@ class DiagnosticReporter {
     return _spanFromStrategy(spannable);
   }
 
-  dynamic internalError(Spannable? spannable, reason) {
+  Never internalError(Spannable? spannable, Object reason) {
     String message = tryToString(reason);
     _reportDiagnosticInternal(
         createMessage(spannable ?? SourceSpan.unknown(), MessageKind.GENERIC,
@@ -256,7 +256,7 @@ class DiagnosticReporter {
     return element ?? currentElement;
   }
 
-  void log(message) {
+  void log(Object message) {
     Message msg = MessageTemplate.TEMPLATES[MessageKind.GENERIC]!
         .message({'text': '$message'}, options);
     _reportDiagnostic(
@@ -265,7 +265,7 @@ class DiagnosticReporter {
         api.Diagnostic.verboseInfo);
   }
 
-  String tryToString(object) {
+  String tryToString(Object object) {
     try {
       return object.toString();
     } catch (_) {
@@ -273,7 +273,7 @@ class DiagnosticReporter {
     }
   }
 
-  Future onError(Uri? uri, error, StackTrace stackTrace) {
+  Future<Never> onError(Uri? uri, Object error, StackTrace stackTrace) {
     try {
       if (!_hasCrashed) {
         _hasCrashed = true;
@@ -296,7 +296,8 @@ class DiagnosticReporter {
 
   /// Called when an [exception] is thrown from user-provided code, like from
   /// the input provider or diagnostics handler.
-  void onCrashInUserCode(String message, exception, stackTrace) {
+  void onCrashInUserCode(
+      String message, Object exception, StackTrace stackTrace) {
     _hasCrashed = true;
     print('$message: ${tryToString(exception)}');
     print(tryToString(stackTrace));

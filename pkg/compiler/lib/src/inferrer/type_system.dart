@@ -670,7 +670,7 @@ class TypeSystem {
     // Optimization: we are iterating over masks twice, but because `masks` is a
     // mapped iterable, we save the intermediate results to avoid computing them
     // again.
-    var list = [];
+    var list = <AbstractValue>[];
     bool isTopIgnoringFlags = false;
     bool mayBeNull = false;
     bool mayBeLateSentinel = false;

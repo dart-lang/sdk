@@ -441,7 +441,7 @@ abstract class DartMethod extends Method {
   // only required and stored here if the method [canBeApplied]. The count is
   // always stored to help select specialized tear-off paths.
   final int requiredParameterCount;
-  final /* Map | List */ optionalParameterDefaultValues;
+  final Object? /* Map | List */ optionalParameterDefaultValues;
 
   // If this method can be torn off, contains the name of the corresponding
   // call method. For example, for the member `foo$1$name` it would be
