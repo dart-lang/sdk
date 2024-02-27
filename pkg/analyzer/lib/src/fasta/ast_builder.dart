@@ -3294,6 +3294,7 @@ class AstBuilder extends StackListener {
 
   @override
   void endTopLevelFields(
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -3331,6 +3332,7 @@ class AstBuilder extends StackListener {
       TopLevelVariableDeclarationImpl(
         comment: comment,
         metadata: metadata,
+        augmentKeyword: augmentToken,
         externalKeyword: externalToken,
         variableList: variableList,
         semicolon: semicolon,

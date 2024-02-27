@@ -4,10 +4,8 @@
 
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
     show DiagnosticMessage, getMessageUri;
-
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
-
-import 'package:front_end/src/fasta/fasta_codes.dart'
+import 'package:front_end/src/fasta/codes/fasta_codes.dart'
     show
         Code,
         DiagnosticMessageFromJson,

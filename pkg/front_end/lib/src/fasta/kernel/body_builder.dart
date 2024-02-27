@@ -59,10 +59,7 @@ import '../builder/record_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/variable_builder.dart';
 import '../builder/void_type_declaration_builder.dart';
-import '../constant_context.dart' show ConstantContext;
-import '../dill/dill_library_builder.dart' show DillLibraryBuilder;
-import '../fasta_codes.dart' as fasta;
-import '../fasta_codes.dart'
+import '../codes/fasta_codes.dart'
     show
         LocatedMessage,
         Message,
@@ -74,6 +71,9 @@ import '../fasta_codes.dart'
         templateExperimentNotEnabledOffByDefault,
         templateLocalVariableUsedBeforeDeclared,
         templateLocalVariableUsedBeforeDeclaredContext;
+import '../codes/fasta_codes.dart' as fasta;
+import '../constant_context.dart' show ConstantContext;
+import '../dill/dill_library_builder.dart' show DillLibraryBuilder;
 import '../identifiers.dart'
     show
         Identifier,
@@ -898,6 +898,7 @@ class BodyBuilder extends StackListenerImpl
 
   @override
   void endTopLevelFields(
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,

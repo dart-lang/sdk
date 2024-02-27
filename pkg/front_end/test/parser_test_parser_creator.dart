@@ -6,8 +6,8 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/parser/parser.dart';
-import 'package:_fe_analyzer_shared/src/scanner/utf8_bytes_scanner.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
+import 'package:_fe_analyzer_shared/src/scanner/utf8_bytes_scanner.dart';
 import 'package:dart_style/dart_style.dart' show DartFormatter;
 
 import 'utils/io_utils.dart' show computeRepoDirUri;
@@ -55,7 +55,7 @@ import 'package:_fe_analyzer_shared/src/parser/parser_impl.dart' show AwaitOrYie
 import 'package:_fe_analyzer_shared/src/parser/token_stream_rewriter.dart';
 import 'package:_fe_analyzer_shared/src/parser/type_info.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
-import 'package:front_end/src/fasta/fasta_codes.dart' as codes;
+import 'package:front_end/src/fasta/codes/fasta_codes.dart' as codes;
 import 'package:front_end/src/fasta/source/diet_parser.dart'
     show useImplicitCreationExpressionInCfe;
 

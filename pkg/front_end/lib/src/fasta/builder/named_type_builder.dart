@@ -10,7 +10,7 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/src/legacy_erasure.dart';
 import 'package:kernel/src/unaliasing.dart' as unaliasing;
 
-import '../fasta_codes.dart'
+import '../codes/fasta_codes.dart'
     show
         LocatedMessage,
         Message,

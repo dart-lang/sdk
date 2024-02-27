@@ -2105,6 +2105,7 @@ class ParserTestListener implements Listener {
 
   @override
   void endTopLevelFields(
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -2114,6 +2115,7 @@ class ParserTestListener implements Listener {
       Token beginToken,
       Token endToken) {
     indent--;
+    seen(augmentToken);
     seen(externalToken);
     seen(staticToken);
     seen(covariantToken);
@@ -2122,6 +2124,7 @@ class ParserTestListener implements Listener {
     seen(beginToken);
     seen(endToken);
     doPrint('endTopLevelFields('
+        '$augmentToken, '
         '$externalToken, '
         '$staticToken, '
         '$covariantToken, '

@@ -248,6 +248,53 @@ class A3 {}
     ]);
   }
 
+  test_diagnostic_definitionApplication_sameLibrary() async {
+    await assertErrorsInCode('''
+import 'package:_fe_analyzer_shared/src/macros/api.dart';
+
+macro class MyMacro implements ClassDefinitionMacro {
+  const MyMacro();
+
+  @override
+  buildDefinitionForClass(declaration, builder) async {}
+}
+
+@MyMacro()
+class A {}
+''', [
+      error(
+          CompileTimeErrorCode.MACRO_DEFINITION_APPLICATION_SAME_LIBRARY_CYCLE,
+          206,
+          7),
+    ]);
+  }
+
+  test_diagnostic_definitionApplication_sameLibraryCycle() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import 'package:_fe_analyzer_shared/src/macros/api.dart';
+import 'test.dart';
+
+macro class MyMacro implements ClassDefinitionMacro {
+  const MyMacro();
+
+  @override
+  buildDefinitionForClass(declaration, builder) async {}
+}
+''');
+
+    await assertErrorsInCode('''
+import 'a.dart';
+
+@MyMacro()
+class A {}
+''', [
+      error(
+          CompileTimeErrorCode.MACRO_DEFINITION_APPLICATION_SAME_LIBRARY_CYCLE,
+          19,
+          7),
+    ]);
+  }
+
   test_diagnostic_invalidTarget_wantsClassOrMixin_hasFunction() async {
     await assertErrorsInCode('''
 import 'diagnostic.dart';

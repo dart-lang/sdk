@@ -6,7 +6,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/type_environment.dart';
 
-import '../fasta_codes.dart';
+import '../codes/fasta_codes.dart';
 import 'constant_evaluator.dart';
 
 typedef ReportErrorFunction = void Function(

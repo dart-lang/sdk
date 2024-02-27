@@ -20,6 +20,9 @@ library fasta.constant_evaluator;
 
 import 'dart:io' as io;
 
+import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart';
+import 'package:_fe_analyzer_shared/src/exhaustiveness/space.dart';
+import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
@@ -29,25 +32,21 @@ import 'package:kernel/src/legacy_erasure.dart';
 import 'package:kernel/src/norm.dart';
 import 'package:kernel/src/printer.dart'
     show AstPrinter, AstTextStrategy, defaultAstTextStrategy;
+import 'package:kernel/target/targets.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
-import 'package:kernel/target/targets.dart';
-import 'package:_fe_analyzer_shared/src/exhaustiveness/space.dart';
-import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart';
-import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
 
 import '../../api_prototype/lowering_predicates.dart';
 import '../../base/nnbd_mode.dart';
-import '../fasta_codes.dart';
-
+import '../codes/fasta_codes.dart';
 import '../type_inference/delayed_expressions.dart';
 import '../type_inference/external_ast_helper.dart';
 import '../type_inference/matching_cache.dart';
 import '../type_inference/matching_expressions.dart';
 import 'constant_int_folder.dart';
 import 'exhaustiveness.dart';
-import 'static_weak_references.dart' show StaticWeakReferences;
 import 'resource_identifier.dart' as ResourceIdentifiers;
+import 'static_weak_references.dart' show StaticWeakReferences;
 
 part 'constant_collection_builders.dart';
 

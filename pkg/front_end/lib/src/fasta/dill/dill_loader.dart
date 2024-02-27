@@ -4,24 +4,20 @@
 
 library fasta.dill_loader;
 
-import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+import 'dart:collection' show Queue;
 
+import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 import 'package:kernel/ast.dart'
     show Class, Component, DartType, ExtensionTypeDeclaration, Library;
 
 import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
 import '../builder/type_builder.dart';
-
-import '../crash.dart' show firstSourceUri;
-
-import '../fasta_codes.dart'
+import '../codes/fasta_codes.dart'
     show SummaryTemplate, Template, templateDillOutlineSummary;
-
+import '../crash.dart' show firstSourceUri;
 import '../kernel/type_builder_computer.dart' show TypeBuilderComputer;
-
 import '../loader.dart';
-
 import '../messages.dart'
     show
         FormattedMessage,
@@ -32,20 +28,12 @@ import '../messages.dart'
         Template,
         messagePlatformPrivateLibraryAccess,
         templateInternalProblemContextSeverity;
-
 import '../problems.dart' show internalProblem;
-
 import '../source/source_loader.dart' show SourceLoader;
-
 import '../ticker.dart' show Ticker;
-
 import '../uris.dart';
-
 import 'dill_library_builder.dart' show DillLibraryBuilder;
-
 import 'dill_target.dart' show DillTarget;
-
-import 'dart:collection' show Queue;
 
 class DillLoader extends Loader {
   SourceLoader? currentSourceLoader;

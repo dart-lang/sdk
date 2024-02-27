@@ -2,72 +2,49 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:developer' show debugger;
-
 import 'dart:convert' show jsonDecode;
-
+import 'dart:developer' show debugger;
 import 'dart:io' show Directory, File;
 
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
     show DiagnosticMessage, getMessageCodeObject;
-
-import 'package:_fe_analyzer_shared/src/util/colors.dart' as colors;
-
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
-
+import 'package:_fe_analyzer_shared/src/util/colors.dart' as colors;
 import 'package:compiler/src/kernel/dart2js_target.dart' show Dart2jsTarget;
-
 import "package:dev_compiler/src/kernel/target.dart" show DevCompilerTarget;
-
 import 'package:expect/expect.dart' show Expect;
-
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions, parseExperimentalArguments, parseExperimentalFlags;
-
 import 'package:front_end/src/api_prototype/experimental_flags.dart'
     show ExperimentalFlag;
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart'
     show IncrementalCompilerResult;
 import "package:front_end/src/api_prototype/memory_file_system.dart"
     show MemoryFileSystem, MemoryFileSystemEntity;
-
 import 'package:front_end/src/base/nnbd_mode.dart' show NnbdMode;
-
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
-
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation, computePlatformDillName;
-
-import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
-
-import 'package:front_end/src/fasta/fasta_codes.dart'
+import 'package:front_end/src/fasta/codes/fasta_codes.dart'
     show DiagnosticMessageFromJson, FormattedMessage;
-
+import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 import 'package:front_end/src/fasta/incremental_compiler.dart'
     show AdvancedInvalidationResult, IncrementalCompiler, RecorderForTesting;
-
 import 'package:front_end/src/fasta/incremental_serializer.dart'
     show IncrementalSerializer;
-
 import 'package:front_end/src/fasta/kernel/utils.dart' show ByteSink;
-
 import 'package:kernel/ast.dart';
-
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
-
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
-
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClosedWorldClassHierarchy, ForTestingClassInfo;
-
 import 'package:kernel/src/equivalence.dart'
     show
         EquivalenceResult,
         EquivalenceStrategy,
         EquivalenceVisitor,
         checkEquivalence;
-
 import 'package:kernel/target/targets.dart'
     show
         LateLowering,
@@ -76,10 +53,8 @@ import 'package:kernel/target/targets.dart'
         TargetFlags,
         TestTargetFlags,
         TestTargetWrapper;
-
 import 'package:kernel/text/ast_to_text.dart'
     show NameSystem, Printer, componentToString;
-
 import "package:testing/testing.dart"
     show
         Chain,
@@ -89,20 +64,15 @@ import "package:testing/testing.dart"
         Result,
         Step,
         TestDescription;
-
 import "package:vm/modular/target/vm.dart" show VmTarget;
-
 import "package:yaml/yaml.dart" show YamlMap, loadYamlNode;
 
 import 'binary_md_dill_reader.dart' show DillComparer;
-
 import 'fasta/suite_utils.dart';
 import 'fasta/testing/suite.dart';
 import "incremental_utils.dart" as util;
-
 import 'test_utils.dart';
 import 'testing_utils.dart' show checkEnvironment;
-
 import 'utils/io_utils.dart' show computeRepoDir;
 import 'utils/values.dart';
 

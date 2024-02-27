@@ -5,9 +5,8 @@
 import 'package:kernel/ast.dart';
 import 'package:kernel/target/targets.dart';
 
+import '../codes/fasta_codes.dart';
 import 'constant_evaluator.dart';
-
-import '../fasta_codes.dart';
 
 abstract class ConstantIntFolder {
   final ConstantEvaluator evaluator;

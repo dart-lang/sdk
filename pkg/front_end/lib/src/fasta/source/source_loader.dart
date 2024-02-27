@@ -48,11 +48,11 @@ import '../builder/nullability_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder_graph.dart';
-import '../denylisted_classes.dart'
+import '../codes/denylisted_classes.dart'
     show denylistedCoreClasses, denylistedTypedDataClasses;
+import '../codes/fasta_codes.dart';
 import '../dill/dill_library_builder.dart';
 import '../export.dart' show Export;
-import '../fasta_codes.dart';
 import '../import_chains.dart';
 import '../kernel/benchmarker.dart' show BenchmarkSubdivides;
 import '../kernel/body_builder.dart' show BodyBuilder;

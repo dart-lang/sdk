@@ -702,6 +702,15 @@ CompileType CompileType::FromUnboxedRepresentation(Representation rep) {
   return CompileType::FromCid(Boxing::BoxCid(rep));
 }
 
+CompileType CompileType::FromRepresentation(Representation rep) {
+  if (rep == kUntagged) return CompileType::Object();
+  if (RepresentationUtils::IsUnboxed(rep)) {
+    return FromUnboxedRepresentation(rep);
+  }
+  ASSERT(rep != kNoRepresentation);
+  return CompileType::Dynamic();
+}
+
 CompileType CompileType::Dynamic() {
   return CompileType(kCanBeNull, kCannotBeSentinel, kDynamicCid,
                      &Object::dynamic_type());
@@ -1337,10 +1346,6 @@ CompileType ParameterInstr::ComputeType() const {
   return CompileType::Dynamic();
 }
 
-CompileType MoveArgumentInstr::ComputeType() const {
-  return CompileType::Dynamic();
-}
-
 CompileType ConstantInstr::ComputeType() const {
   if (value().IsNull()) {
     return CompileType::Null();
@@ -1391,10 +1396,6 @@ CompileType AssertBooleanInstr::ComputeType() const {
 
 CompileType BooleanNegateInstr::ComputeType() const {
   return CompileType::Bool();
-}
-
-CompileType BoolToIntInstr::ComputeType() const {
-  return CompileType::Int();
 }
 
 CompileType IntToBoolInstr::ComputeType() const {
@@ -1701,10 +1702,6 @@ CompileType AllocateSmallRecordInstr::ComputeType() const {
   return CompileType::FromCid(kRecordCid);
 }
 
-CompileType LoadUntaggedInstr::ComputeType() const {
-  return CompileType::Object();
-}
-
 CompileType LoadClassIdInstr::ComputeType() const {
   return CompileType::FromCid(kSmiCid);
 }
@@ -1752,37 +1749,12 @@ CompileType LoadCodeUnitsInstr::ComputeType() const {
   }
 }
 
-CompileType BinaryUint32OpInstr::ComputeType() const {
-  return CompileType::Int32();
-}
-
-CompileType ShiftUint32OpInstr::ComputeType() const {
-  return CompileType::Int32();
-}
-
-CompileType SpeculativeShiftUint32OpInstr::ComputeType() const {
-  return CompileType::Int32();
-}
-
-CompileType UnaryUint32OpInstr::ComputeType() const {
-  return CompileType::Int32();
-}
-
-CompileType BinaryInt32OpInstr::ComputeType() const {
-  // TODO(vegorov): range analysis information shall be used here.
-  return CompileType::Int();
-}
-
 CompileType BinarySmiOpInstr::ComputeType() const {
   return CompileType::FromCid(kSmiCid);
 }
 
 CompileType UnarySmiOpInstr::ComputeType() const {
   return CompileType::FromCid(kSmiCid);
-}
-
-CompileType UnaryDoubleOpInstr::ComputeType() const {
-  return CompileType::FromCid(kDoubleCid);
 }
 
 CompileType DoubleToSmiInstr::ComputeType() const {
@@ -1793,42 +1765,17 @@ CompileType ConstraintInstr::ComputeType() const {
   return CompileType::FromCid(kSmiCid);
 }
 
-// Note that Int64Op may produce Smi-s as result of an
-// appended BoxInt64Instr node.
-CompileType BinaryInt64OpInstr::ComputeType() const {
-  return CompileType::Int();
-}
-
-CompileType ShiftInt64OpInstr::ComputeType() const {
-  return CompileType::Int();
-}
-
-CompileType SpeculativeShiftInt64OpInstr::ComputeType() const {
-  return CompileType::Int();
-}
-
-CompileType UnaryInt64OpInstr::ComputeType() const {
-  return CompileType::Int();
-}
-
 CompileType BoxIntegerInstr::ComputeType() const {
-  return ValueFitsSmi() ? CompileType::FromCid(kSmiCid) : CompileType::Int();
+  return ValueFitsSmi() ? CompileType::FromCid(kSmiCid)
+                        : BoxInstr::ComputeType();
 }
 
 bool BoxIntegerInstr::RecomputeType() {
   return UpdateType(ComputeType());
 }
 
-CompileType UnboxIntegerInstr::ComputeType() const {
-  return CompileType::Int();
-}
-
 CompileType DoubleToIntegerInstr::ComputeType() const {
   return CompileType::Int();
-}
-
-CompileType BinaryDoubleOpInstr::ComputeType() const {
-  return CompileType::FromCid(kDoubleCid);
 }
 
 CompileType DoubleTestOpInstr::ComputeType() const {
@@ -1855,104 +1802,16 @@ CompileType CaseInsensitiveCompareInstr::ComputeType() const {
   return CompileType::FromCid(kBoolCid);
 }
 
-CompileType UnboxInstr::ComputeType() const {
-  switch (representation()) {
-    case kUnboxedFloat:
-    case kUnboxedDouble:
-      return CompileType::FromCid(kDoubleCid);
-
-    case kUnboxedFloat32x4:
-      return CompileType::FromCid(kFloat32x4Cid);
-
-    case kUnboxedFloat64x2:
-      return CompileType::FromCid(kFloat64x2Cid);
-
-    case kUnboxedInt32x4:
-      return CompileType::FromCid(kInt32x4Cid);
-
-    case kUnboxedInt64:
-      return CompileType::Int();
-
-    default:
-      UNREACHABLE();
-      return CompileType::Dynamic();
-  }
-}
-
 CompileType BoxInstr::ComputeType() const {
-  switch (from_representation()) {
-    case kUnboxedFloat:
-    case kUnboxedDouble:
-      return CompileType::FromCid(kDoubleCid);
-
-    case kUnboxedFloat32x4:
-      return CompileType::FromCid(kFloat32x4Cid);
-
-    case kUnboxedFloat64x2:
-      return CompileType::FromCid(kFloat64x2Cid);
-
-    case kUnboxedInt32x4:
-      return CompileType::FromCid(kInt32x4Cid);
-
-    default:
-      UNREACHABLE();
-      return CompileType::Dynamic();
-  }
+  return CompileType::FromUnboxedRepresentation(from_representation());
 }
 
 CompileType BoxLanesInstr::ComputeType() const {
-  switch (from_representation()) {
-    case kUnboxedFloat:
-      return CompileType::FromCid(kFloat32x4Cid);
-    case kUnboxedDouble:
-      return CompileType::FromCid(kFloat64x2Cid);
-    case kUnboxedInt32:
-      return CompileType::FromCid(kInt32x4Cid);
-    default:
-      UNREACHABLE();
-      return CompileType::Dynamic();
-  }
-}
-
-CompileType Int32ToDoubleInstr::ComputeType() const {
-  return CompileType::FromCid(kDoubleCid);
-}
-
-CompileType SmiToDoubleInstr::ComputeType() const {
-  return CompileType::FromCid(kDoubleCid);
-}
-
-CompileType Int64ToDoubleInstr::ComputeType() const {
-  return CompileType::FromCid(kDoubleCid);
-}
-
-CompileType FloatToDoubleInstr::ComputeType() const {
-  return CompileType::FromCid(kDoubleCid);
-}
-
-CompileType FloatCompareInstr::ComputeType() const {
-  return CompileType::Int();
-}
-
-CompileType DoubleToFloatInstr::ComputeType() const {
-  // Type is double when converted back.
-  return CompileType::FromCid(kDoubleCid);
-}
-
-CompileType InvokeMathCFunctionInstr::ComputeType() const {
-  return CompileType::FromCid(kDoubleCid);
-}
-
-CompileType TruncDivModInstr::ComputeType() const {
-  return CompileType::Dynamic();
+  return CompileType::FromUnboxedRepresentation(from_representation());
 }
 
 CompileType ExtractNthOutputInstr::ComputeType() const {
   return CompileType::FromCid(definition_cid_);
-}
-
-CompileType MakePairInstr::ComputeType() const {
-  return CompileType::Dynamic();
 }
 
 CompileType UnboxLaneInstr::ComputeType() const {

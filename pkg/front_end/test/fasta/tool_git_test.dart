@@ -7,8 +7,7 @@
 import "dart:io";
 
 import "package:expect/expect.dart";
-
-import "package:front_end/src/fasta/fasta_codes.dart"
+import "package:front_end/src/fasta/codes/fasta_codes.dart"
     show messageFastaUsageShort;
 
 const String toolPath = "pkg/front_end/tool/fasta";

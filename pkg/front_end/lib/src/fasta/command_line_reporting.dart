@@ -9,33 +9,23 @@
 library fasta.command_line_reporting;
 
 import 'dart:math' show min;
-
 import 'dart:typed_data' show Uint8List;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart'
     show Severity, severityPrefixes;
-
 import 'package:_fe_analyzer_shared/src/scanner/characters.dart'
     show $CARET, $SPACE, $TAB;
-
 import 'package:_fe_analyzer_shared/src/util/colors.dart'
     show green, magenta, red, yellow;
-
 import 'package:_fe_analyzer_shared/src/util/relativize.dart'
     show isWindows, relativizeUri;
-
 import 'package:kernel/ast.dart' show Location, Source, TreeNode;
 
 import '../compute_platform_binaries_location.dart' show translateSdk;
-
+import 'codes/fasta_codes.dart' show LocatedMessage, PlainAndColorizedString;
 import 'compiler_context.dart' show CompilerContext;
-
 import 'crash.dart' show Crash, safeToString;
-
-import 'fasta_codes.dart' show LocatedMessage, PlainAndColorizedString;
-
 import 'messages.dart' show getLocation, getSourceLine;
-
 import 'problems.dart' show unhandled;
 
 const bool hideWarnings = false;

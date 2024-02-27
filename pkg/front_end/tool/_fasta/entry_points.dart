@@ -17,10 +17,10 @@ import 'package:front_end/src/api_prototype/kernel_generator.dart';
 import 'package:front_end/src/base/command_line_options.dart';
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
+import 'package:front_end/src/fasta/codes/fasta_codes.dart'
+    show LocatedMessage, codeInternalProblemVerificationError;
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
-import 'package:front_end/src/fasta/fasta_codes.dart'
-    show LocatedMessage, codeInternalProblemVerificationError;
 import 'package:front_end/src/fasta/get_dependencies.dart' show getDependencies;
 import 'package:front_end/src/fasta/incremental_compiler.dart'
     show IncrementalCompiler;

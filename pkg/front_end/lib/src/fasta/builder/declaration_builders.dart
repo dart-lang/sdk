@@ -6,7 +6,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/src/unaliasing.dart';
 
-import '../fasta_codes.dart';
+import '../codes/fasta_codes.dart';
 import '../kernel/body_builder_context.dart';
 import '../loader.dart';
 import '../messages.dart';

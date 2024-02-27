@@ -54,6 +54,7 @@ import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/this_access_tracker.dart';
 import 'package:analyzer/src/summary2/macro_application_error.dart';
 import 'package:analyzer/src/summary2/macro_type_location.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:collection/collection.dart';
@@ -6113,10 +6114,12 @@ class HiddenElements {
 /// Information to pass from from the defining unit to augmentations.
 class LibraryVerificationContext {
   final duplicationDefinitionContext = DuplicationDefinitionContext();
+  final LibraryFileKind libraryKind;
   final ConstructorFieldsVerifier constructorFieldsVerifier;
   final Map<FileState, UnitAnalysis> units;
 
   LibraryVerificationContext({
+    required this.libraryKind,
     required this.constructorFieldsVerifier,
     required this.units,
   });
@@ -6148,6 +6151,10 @@ class LibraryVerificationContext {
       entity: node,
     );
   }
+
+  bool libraryCycleContains(Uri uri) {
+    return libraryKind.libraryCycle.libraryUris.contains(uri);
+  }
 }
 
 class _MacroDiagnosticsReporter {
@@ -6162,6 +6169,8 @@ class _MacroDiagnosticsReporter {
   });
 
   void report() {
+    _reportApplicationFromSameLibraryCycle();
+
     for (final diagnostic in element.macroDiagnostics) {
       switch (diagnostic) {
         case ArgumentMacroDiagnostic():
@@ -6182,7 +6191,7 @@ class _MacroDiagnosticsReporter {
     final target = object.target;
     switch (target) {
       case ApplicationMacroDiagnosticTarget():
-        final node = _annotationNode(element, target.annotationIndex);
+        final node = element.annotationAst(target.annotationIndex);
         return DiagnosticMessageImpl(
           filePath: element.source!.fullName,
           length: node.length,
@@ -6208,8 +6217,30 @@ class _MacroDiagnosticsReporter {
     }
   }
 
+  void _reportApplicationFromSameLibraryCycle() {
+    for (var annotation in element.metadata) {
+      var element = annotation.element;
+      if (element is! ConstructorElementImpl) continue;
+
+      var macroElement = element.enclosingElement;
+      if (macroElement is! ClassElementImpl) continue;
+      if (!macroElement.isMacro) continue;
+
+      var macroUri = macroElement.library.source.uri;
+      if (!libraryContext.libraryCycleContains(macroUri)) continue;
+
+      errorReporter.atNode(
+        _annotationNameIdentifier(annotation),
+        CompileTimeErrorCode.MACRO_DEFINITION_APPLICATION_SAME_LIBRARY_CYCLE,
+        arguments: [
+          macroElement.name,
+        ],
+      );
+    }
+  }
+
   void _reportArgument(ArgumentMacroDiagnostic diagnostic) {
-    var annotation = _annotationNode(element, diagnostic.annotationIndex);
+    var annotation = element.annotationAst(diagnostic.annotationIndex);
     var arguments = annotation.arguments!.arguments;
     errorReporter.atNode(
       arguments[diagnostic.argumentIndex],
@@ -6231,7 +6262,7 @@ class _MacroDiagnosticsReporter {
     final target = diagnostic.message.target;
     switch (target) {
       case ApplicationMacroDiagnosticTarget():
-        var node = _annotationNode(element, target.annotationIndex);
+        var node = element.annotationAst(target.annotationIndex);
         errorReporter.reportError(
           AnalysisError.forValues(
             source: element.source!,
@@ -6262,10 +6293,7 @@ class _MacroDiagnosticsReporter {
         if (location == null) {
           return;
         }
-        var node = _annotationNode(
-          target.element,
-          target.annotationIndex,
-        );
+        var node = target.element.annotationAst(target.annotationIndex);
         location.unitAnalysis.errorReporter.reportError(
           AnalysisError.forValues(
             source: target.element.source!,
@@ -6301,7 +6329,7 @@ class _MacroDiagnosticsReporter {
 
   void _reportException(ExceptionMacroDiagnostic diagnostic) {
     errorReporter.atNode(
-      _annotationNode(element, diagnostic.annotationIndex),
+      element.annotationAst(diagnostic.annotationIndex),
       CompileTimeErrorCode.MACRO_INTERNAL_EXCEPTION,
       arguments: [
         diagnostic.message,
@@ -6343,7 +6371,7 @@ class _MacroDiagnosticsReporter {
 
   void _reportInvalidTarget(InvalidMacroTargetDiagnostic diagnostic) {
     errorReporter.atNode(
-      _annotationNode(element, diagnostic.annotationIndex),
+      element.annotationAst(diagnostic.annotationIndex),
       CompileTimeErrorCode.INVALID_MACRO_APPLICATION_TARGET,
       arguments: [
         diagnostic.supportedKinds.commaSeparatedWithOr,
@@ -6351,16 +6379,22 @@ class _MacroDiagnosticsReporter {
     );
   }
 
-  static AnnotationImpl _annotationNode(ElementImpl element, int index) {
-    var annotation = element.metadata[index];
-    return annotation.annotationAst;
+  static SimpleIdentifier _annotationNameIdentifier(
+    ElementAnnotationImpl annotation,
+  ) {
+    var fullName = annotation.annotationAst.name;
+    if (fullName is PrefixedIdentifierImpl) {
+      return fullName.identifier;
+    } else {
+      return fullName as SimpleIdentifierImpl;
+    }
   }
 
   static SimpleIdentifier _macroAnnotationNameIdentifier({
     required ElementImpl element,
     required int annotationIndex,
   }) {
-    var annotationNode = _annotationNode(element, annotationIndex);
+    var annotationNode = element.annotationAst(annotationIndex);
     var fullName = annotationNode.name;
     if (fullName is PrefixedIdentifierImpl) {
       return fullName.identifier;

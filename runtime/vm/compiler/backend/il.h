@@ -2513,7 +2513,10 @@ class Definition : public Instruction {
   // Compute compile type for this definition. It is safe to use this
   // approximation even before type propagator was run (e.g. during graph
   // building).
-  virtual CompileType ComputeType() const { return CompileType::Dynamic(); }
+  virtual CompileType ComputeType() const {
+    // TODO(vegorov) use range information to improve type if available.
+    return CompileType::FromRepresentation(representation());
+  }
 
   // Update CompileType of the definition. Returns true if the type has changed.
   virtual bool RecomputeType() { return false; }
@@ -2971,9 +2974,6 @@ class NativeParameterInstr : public TemplateDefinition<0, NoThrow> {
 
   virtual bool HasUnknownSideEffects() const { return false; }
 
-  // TODO(sjindel): We can make this more precise.
-  virtual CompileType ComputeType() const { return CompileType::Dynamic(); }
-
   PRINT_OPERANDS_TO_SUPPORT
 
 #define FIELD_LIST(F)                                                          \
@@ -3372,8 +3372,6 @@ class MoveArgumentInstr : public TemplateDefinition<1, NoThrow> {
   DECLARE_INSTRUCTION(MoveArgument)
 
   intptr_t sp_relative_index() const { return sp_relative_index_; }
-
-  virtual CompileType ComputeType() const;
 
   Value* value() const { return InputAt(0); }
 
@@ -5651,8 +5649,6 @@ class CachableIdempotentCallInstr : public TemplateDartCall<0> {
 
   const Function& function() const { return function_; }
 
-  virtual CompileType ComputeType() const { return CompileType::Int(); }
-
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   virtual bool ComputeCanDeoptimize() const { return false; }
@@ -5821,8 +5817,6 @@ class MakeTempInstr : public TemplateDefinition<0, NoThrow, Pure> {
   }
 
   DECLARE_INSTRUCTION(MakeTemp)
-
-  virtual CompileType ComputeType() const { return CompileType::Dynamic(); }
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
@@ -6918,7 +6912,6 @@ class Utf8ScanInstr : public TemplateDefinition<5, NoThrow> {
 
   virtual Representation representation() const { return kUnboxedIntPtr; }
 
-  virtual CompileType ComputeType() const { return CompileType::Int(); }
   virtual bool HasUnknownSideEffects() const { return true; }
   virtual bool ComputeCanDeoptimize() const { return false; }
   virtual intptr_t DeoptimizationTarget() const { return DeoptId::kNone; }
@@ -7100,7 +7093,6 @@ class BoolToIntInstr : public TemplateDefinition<1, NoThrow> {
   explicit BoolToIntInstr(Value* value) { SetInputAt(0, value); }
 
   DECLARE_INSTRUCTION(BoolToInt)
-  virtual CompileType ComputeType() const;
 
   Value* value() const { return inputs_[0]; }
 
@@ -7775,7 +7767,6 @@ class LoadUntaggedInstr : public TemplateDefinition<1, NoThrow> {
 
   virtual Representation representation() const { return kUntagged; }
   DECLARE_INSTRUCTION(LoadUntagged)
-  virtual CompileType ComputeType() const;
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT(idx == 0);
@@ -8439,7 +8430,6 @@ class UnboxInstr : public TemplateDefinition<1, NoThrow, Pure> {
   virtual Representation representation() const { return representation_; }
 
   DECLARE_INSTRUCTION(Unbox)
-  virtual CompileType ComputeType() const;
 
   virtual bool AttributesEqual(const Instruction& other) const {
     auto const other_unbox = other.AsUnbox();
@@ -8509,8 +8499,6 @@ class UnboxIntegerInstr : public UnboxInstr {
   void mark_truncating() { is_truncating_ = true; }
 
   virtual bool ComputeCanDeoptimize() const;
-
-  virtual CompileType ComputeType() const;
 
   virtual bool AttributesEqual(const Instruction& other) const {
     auto const other_unbox = other.AsUnboxInteger();
@@ -8801,7 +8789,6 @@ class BinaryDoubleOpInstr : public TemplateDefinition<2, NoThrow, Pure> {
   PRINT_OPERANDS_TO_SUPPORT
 
   DECLARE_INSTRUCTION(BinaryDoubleOp)
-  virtual CompileType ComputeType() const;
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
@@ -9037,8 +9024,6 @@ class UnaryUint32OpInstr : public UnaryIntegerOpInstr {
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
-  virtual CompileType ComputeType() const;
-
   virtual Representation representation() const { return kUnboxedUint32; }
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
@@ -9070,8 +9055,6 @@ class UnaryInt64OpInstr : public UnaryIntegerOpInstr {
   }
 
   virtual bool ComputeCanDeoptimize() const { return false; }
-
-  virtual CompileType ComputeType() const;
 
   virtual Representation representation() const { return kUnboxedInt64; }
 
@@ -9274,8 +9257,6 @@ class BinaryInt32OpInstr : public BinaryIntegerOpInstr {
     return kUnboxedInt32;
   }
 
-  virtual CompileType ComputeType() const;
-
   DECLARE_INSTRUCTION(BinaryInt32Op)
 
   DECLARE_EMPTY_SERIALIZATION(BinaryInt32OpInstr, BinaryIntegerOpInstr)
@@ -9303,8 +9284,6 @@ class BinaryUint32OpInstr : public BinaryIntegerOpInstr {
     ASSERT((idx == 0) || (idx == 1));
     return kUnboxedUint32;
   }
-
-  virtual CompileType ComputeType() const;
 
   static bool IsSupported(Token::Kind op_kind) {
     switch (op_kind) {
@@ -9365,8 +9344,6 @@ class BinaryInt64OpInstr : public BinaryIntegerOpInstr {
     return BinaryIntegerOpInstr::AttributesEqual(other) &&
            (speculative_mode_ == other.AsBinaryInt64Op()->speculative_mode_);
   }
-
-  virtual CompileType ComputeType() const;
 
   DECLARE_INSTRUCTION(BinaryInt64Op)
 
@@ -9448,8 +9425,6 @@ class ShiftInt64OpInstr : public ShiftIntegerOpInstr {
     return kUnboxedInt64;
   }
 
-  virtual CompileType ComputeType() const;
-
   DECLARE_INSTRUCTION(ShiftInt64Op)
 
   DECLARE_EMPTY_SERIALIZATION(ShiftInt64OpInstr, ShiftIntegerOpInstr)
@@ -9480,8 +9455,6 @@ class SpeculativeShiftInt64OpInstr : public ShiftIntegerOpInstr {
     ASSERT((idx == 0) || (idx == 1));
     return (idx == 0) ? kUnboxedInt64 : kTagged;
   }
-
-  virtual CompileType ComputeType() const;
 
   DECLARE_INSTRUCTION(SpeculativeShiftInt64Op)
 
@@ -9515,8 +9488,6 @@ class ShiftUint32OpInstr : public ShiftIntegerOpInstr {
     return (idx == 0) ? kUnboxedUint32 : kUnboxedInt64;
   }
 
-  virtual CompileType ComputeType() const;
-
   DECLARE_INSTRUCTION(ShiftUint32Op)
 
   DECLARE_EMPTY_SERIALIZATION(ShiftUint32OpInstr, ShiftIntegerOpInstr)
@@ -9549,8 +9520,6 @@ class SpeculativeShiftUint32OpInstr : public ShiftIntegerOpInstr {
 
   DECLARE_INSTRUCTION(SpeculativeShiftUint32Op)
 
-  virtual CompileType ComputeType() const;
-
   DECLARE_EMPTY_SERIALIZATION(SpeculativeShiftUint32OpInstr,
                               ShiftIntegerOpInstr)
 
@@ -9580,7 +9549,6 @@ class UnaryDoubleOpInstr : public TemplateDefinition<1, NoThrow, Pure> {
   Token::Kind op_kind() const { return op_kind_; }
 
   DECLARE_INSTRUCTION(UnaryDoubleOp)
-  virtual CompileType ComputeType() const;
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
@@ -9705,7 +9673,6 @@ class SmiToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
   virtual TokenPosition token_pos() const { return token_pos_; }
 
   DECLARE_INSTRUCTION(SmiToDouble)
-  virtual CompileType ComputeType() const;
 
   virtual Representation representation() const { return kUnboxedDouble; }
 
@@ -9731,7 +9698,6 @@ class Int32ToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
   Value* value() const { return inputs_[0]; }
 
   DECLARE_INSTRUCTION(Int32ToDouble)
-  virtual CompileType ComputeType() const;
 
   virtual Representation RequiredInputRepresentation(intptr_t index) const {
     ASSERT(index == 0);
@@ -9762,7 +9728,6 @@ class Int64ToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
   Value* value() const { return inputs_[0]; }
 
   DECLARE_INSTRUCTION(Int64ToDouble)
-  virtual CompileType ComputeType() const;
 
   virtual Representation RequiredInputRepresentation(intptr_t index) const {
     ASSERT(index == 0);
@@ -9894,8 +9859,6 @@ class DoubleToFloatInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   DECLARE_INSTRUCTION(DoubleToFloat)
 
-  virtual CompileType ComputeType() const;
-
   virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual Representation representation() const { return kUnboxedFloat; }
@@ -9937,11 +9900,9 @@ class FloatToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   DECLARE_INSTRUCTION(FloatToDouble)
 
-  virtual CompileType ComputeType() const;
+  virtual Representation representation() const { return kUnboxedDouble; }
 
   virtual bool ComputeCanDeoptimize() const { return false; }
-
-  virtual Representation representation() const { return kUnboxedDouble; }
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT(idx == 0);
@@ -9977,8 +9938,6 @@ class FloatCompareInstr : public TemplateDefinition<2, NoThrow, Pure> {
   DECLARE_INSTRUCTION(FloatCompare)
 
   DECLARE_ATTRIBUTE(op_kind())
-
-  virtual CompileType ComputeType() const;
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
@@ -10020,7 +9979,6 @@ class InvokeMathCFunctionInstr : public VariadicDefinition {
   virtual TokenPosition token_pos() const { return token_pos_; }
 
   DECLARE_INSTRUCTION(InvokeMathCFunction)
-  virtual CompileType ComputeType() const;
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
@@ -10133,7 +10091,6 @@ class MakePairInstr : public TemplateDefinition<2, NoThrow, Pure> {
 
   DECLARE_INSTRUCTION(MakePair)
 
-  virtual CompileType ComputeType() const;
   virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual Representation representation() const { return kPairOfTagged; }
@@ -10299,8 +10256,6 @@ class TruncDivModInstr : public TemplateDefinition<2, NoThrow, Pure> {
   TruncDivModInstr(Value* lhs, Value* rhs, intptr_t deopt_id);
 
   static intptr_t OutputIndexOf(Token::Kind token);
-
-  virtual CompileType ComputeType() const;
 
   virtual bool ComputeCanDeoptimize() const { return true; }
 
@@ -10804,14 +10759,6 @@ class IntConverterInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
-  virtual CompileType ComputeType() const {
-    if (to() == kUntagged) {
-      return CompileType::Object();
-    }
-    // TODO(vegorov) use range information to improve type.
-    return CompileType::Int();
-  }
-
   DECLARE_INSTRUCTION(IntConverter);
 
   DECLARE_ATTRIBUTES_NAMED(("from", "to", "is_truncating"),
@@ -10870,8 +10817,6 @@ class BitCastInstr : public TemplateDefinition<1, NoThrow, Pure> {
     return converter->from() == from() && converter->to() == to();
   }
 
-  virtual CompileType ComputeType() const { return CompileType::Dynamic(); }
-
   DECLARE_INSTRUCTION(BitCast);
 
   PRINT_OPERANDS_TO_SUPPORT
@@ -10900,8 +10845,6 @@ class LoadThreadInstr : public TemplateDefinition<0, NoThrow, Pure> {
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     UNREACHABLE();
   }
-
-  virtual CompileType ComputeType() const { return CompileType::Object(); }
 
   // CSE is allowed. The thread should always be the same value.
   virtual bool AttributesEqual(const Instruction& other) const {

@@ -42,9 +42,7 @@ import '../api_prototype/file_system.dart'
     show FileSystem, FileSystemEntity, FileSystemException;
 import '../api_prototype/terminal_color_support.dart'
     show printDiagnosticMessage;
-import '../fasta/command_line_reporting.dart' as command_line_reporting;
-import '../fasta/compiler_context.dart' show CompilerContext;
-import '../fasta/fasta_codes.dart'
+import '../fasta/codes/fasta_codes.dart'
     show
         FormattedMessage,
         LocatedMessage,
@@ -66,6 +64,8 @@ import '../fasta/fasta_codes.dart'
         templateSdkRootNotFound,
         templateSdkSpecificationNotFound,
         templateSdkSummaryNotFound;
+import '../fasta/command_line_reporting.dart' as command_line_reporting;
+import '../fasta/compiler_context.dart' show CompilerContext;
 import '../fasta/messages.dart' show getLocation;
 import '../fasta/problems.dart' show DebugAbort, unimplemented;
 import '../fasta/ticker.dart' show Ticker;
