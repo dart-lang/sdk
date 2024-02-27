@@ -2737,7 +2737,6 @@ class UpperBoundTest extends _BoundsTestBase {
 
     check(neverNone, functionTypeNone(returnType: voidNone));
     check(neverNone, functionTypeQuestion(returnType: voidNone));
-    check(neverNone, functionTypeStar(returnType: voidNone));
 
     {
       var T = typeParameter('T');

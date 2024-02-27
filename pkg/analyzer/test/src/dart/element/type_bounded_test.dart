@@ -181,9 +181,6 @@ class FunctionBoundedTest extends AbstractTypeSystemTest {
     _assertNotFunctionBounded(
       functionTypeQuestion(returnType: voidNone),
     );
-    _assertFunctionBounded(
-      functionTypeStar(returnType: voidNone),
-    );
 
     _assertFunctionBounded(
       functionTypeNone(returnType: dynamicType),

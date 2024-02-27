@@ -109,7 +109,6 @@ mixin StringTypes on AbstractTypeSystemTest {
 
   void _defineFunctionTypes() {
     _defineType('Function', functionNone);
-    _defineType('Function*', functionStar);
     _defineType('Function?', functionQuestion);
 
     _defineType(
@@ -122,12 +121,6 @@ mixin StringTypes on AbstractTypeSystemTest {
     _defineType(
       'int* Function()',
       functionTypeNone(
-        returnType: intStar,
-      ),
-    );
-    _defineType(
-      'int* Function()*',
-      functionTypeStar(
         returnType: intStar,
       ),
     );
@@ -152,24 +145,10 @@ mixin StringTypes on AbstractTypeSystemTest {
         returnType: numNone,
       ),
     );
-    _defineType(
-      'num Function(num)*',
-      functionTypeStar(
-        parameters: [requiredParameter(type: numNone)],
-        returnType: numNone,
-      ),
-    );
 
     _defineType(
       'num* Function(num*)',
       functionTypeNone(
-        parameters: [requiredParameter(type: numStar)],
-        returnType: numStar,
-      ),
-    );
-    _defineType(
-      'num* Function(num*)*',
-      functionTypeStar(
         parameters: [requiredParameter(type: numStar)],
         returnType: numStar,
       ),
@@ -183,10 +162,39 @@ mixin StringTypes on AbstractTypeSystemTest {
     );
 
     _defineType(
-      'int* Function(num*)*',
-      functionTypeStar(
-        parameters: [requiredParameter(type: numStar)],
-        returnType: intStar,
+      'int Function()',
+      functionTypeNone(
+        returnType: intNone,
+      ),
+    );
+
+    _defineType(
+      'num Function(int)',
+      functionTypeNone(
+        parameters: [requiredParameter(type: intNone)],
+        returnType: numNone,
+      ),
+    );
+    _defineType(
+      'num Function(int)?',
+      functionTypeQuestion(
+        parameters: [requiredParameter(type: intNone)],
+        returnType: numNone,
+      ),
+    );
+
+    _defineType(
+      'int Function(num)',
+      functionTypeNone(
+        parameters: [requiredParameter(type: numNone)],
+        returnType: intNone,
+      ),
+    );
+    _defineType(
+      'int Function(int)',
+      functionTypeNone(
+        parameters: [requiredParameter(type: intNone)],
+        returnType: intNone,
       ),
     );
 
@@ -198,25 +206,10 @@ mixin StringTypes on AbstractTypeSystemTest {
       ),
     );
     _defineType(
-      'num* Function(int*)*',
-      functionTypeStar(
-        parameters: [requiredParameter(type: intStar)],
-        returnType: numStar,
-      ),
-    );
-    _defineType(
       'num* Function(int*)?',
       functionTypeQuestion(
         parameters: [requiredParameter(type: intStar)],
         returnType: numStar,
-      ),
-    );
-
-    _defineType(
-      'int* Function(int*)*',
-      functionTypeStar(
-        parameters: [requiredParameter(type: intStar)],
-        returnType: intStar,
       ),
     );
 

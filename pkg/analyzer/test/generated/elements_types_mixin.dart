@@ -62,11 +62,6 @@ mixin ElementsTypesMixin {
     return interfaceTypeQuestion(element);
   }
 
-  InterfaceType get functionStar {
-    var element = typeProvider.functionType.element;
-    return interfaceTypeStar(element);
-  }
-
   InterfaceType get intNone {
     var element = typeProvider.intType.element;
     return interfaceTypeNone(element);
@@ -300,19 +295,6 @@ mixin ElementsTypesMixin {
       parameters: parameters,
       returnType: returnType,
       nullabilitySuffix: NullabilitySuffix.question,
-    );
-  }
-
-  FunctionTypeImpl functionTypeStar({
-    List<TypeParameterElement> typeFormals = const [],
-    List<ParameterElement> parameters = const [],
-    required DartType returnType,
-  }) {
-    return functionType(
-      typeFormals: typeFormals,
-      parameters: parameters,
-      returnType: returnType,
-      nullabilitySuffix: NullabilitySuffix.star,
     );
   }
 

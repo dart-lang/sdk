@@ -44,10 +44,6 @@ class IsNonNullableTest extends AbstractTypeSystemTest {
     isNotNonNullable(
       functionTypeQuestion(returnType: voidNone),
     );
-
-    isNonNullable(
-      functionTypeStar(returnType: voidNone),
-    );
   }
 
   test_functionClass() {
@@ -189,10 +185,6 @@ class IsNullableTest extends AbstractTypeSystemTest {
 
     isNullable(
       functionTypeQuestion(returnType: voidNone),
-    );
-
-    isNotNullable(
-      functionTypeStar(returnType: voidNone),
     );
   }
 
@@ -467,10 +459,6 @@ class IsStrictlyNonNullableTest extends AbstractTypeSystemTest {
 
     isNotStrictlyNonNullable(
       functionTypeQuestion(returnType: voidNone),
-    );
-
-    isNotStrictlyNonNullable(
-      functionTypeStar(returnType: voidNone),
     );
   }
 
