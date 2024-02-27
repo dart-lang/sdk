@@ -20,6 +20,7 @@ import 'package:front_end/src/api_unstable/vm.dart'
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/library_index.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart' show writeComponentToText;
 import 'package:kernel/verifier.dart';
@@ -111,9 +112,21 @@ Future<CompilerOutput?> compileToModule(compiler.WasmCompilerOptions options,
   Component component = compilerResult.component!;
   CoreTypes coreTypes = compilerResult.coreTypes!;
   ClassHierarchy classHierarchy = compilerResult.classHierarchy!;
+  LibraryIndex libraryIndex = LibraryIndex(component, [
+    "dart:_internal",
+    "dart:_js_helper",
+    "dart:_js_types",
+    "dart:_string",
+    "dart:_wasm",
+    "dart:async",
+    "dart:collection",
+    "dart:core",
+    "dart:ffi",
+    "dart:typed_data",
+  ]);
 
-  ConstantEvaluator constantEvaluator =
-      ConstantEvaluator(options, target, component, coreTypes, classHierarchy);
+  ConstantEvaluator constantEvaluator = ConstantEvaluator(
+      options, target, component, coreTypes, classHierarchy, libraryIndex);
   unreachable_code_elimination.transformComponent(target, component,
       constantEvaluator, options.translatorOptions.enableAsserts);
 
@@ -150,8 +163,8 @@ Future<CompilerOutput?> compileToModule(compiler.WasmCompilerOptions options,
     return true;
   }());
 
-  var translator = Translator(
-      component, coreTypes, recordClasses, options.translatorOptions);
+  var translator = Translator(component, coreTypes, libraryIndex, recordClasses,
+      options.translatorOptions);
 
   String? depFile = options.depFile;
   if (depFile != null) {

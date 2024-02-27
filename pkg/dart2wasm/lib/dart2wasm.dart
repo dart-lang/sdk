@@ -54,6 +54,9 @@ final List<Option> options = [
   },
       defaultsTo: _d.translatorOptions.omitImplicitTypeChecks &&
           _d.translatorOptions.omitExplicitTypeChecks),
+  Flag("omit-bounds-checks", (o, value) {
+    o.translatorOptions.omitBoundsChecks = value;
+  }, defaultsTo: _d.translatorOptions.omitBoundsChecks),
   Flag("verbose", (o, value) => o.translatorOptions.verbose = value,
       defaultsTo: _d.translatorOptions.verbose),
   Flag("verify-type-checks",

@@ -580,6 +580,7 @@ class CompileWasmCommand extends CompileSubcommandCommand {
       --minify
       --omit-implicit-checks
       --omit-explicit-checks
+      --omit-bounds-checks
     '''); // end of optimizationLevel4Flags
 
   static List<String> _flagList(String lines) => lines
