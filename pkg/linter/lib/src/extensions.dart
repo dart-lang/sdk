@@ -61,34 +61,6 @@ extension AstNodeExtension on AstNode {
     var element = parent.declaredElement;
     return element != null && element.hasInternal;
   }
-
-  /// Builds the list resulting from traversing the node in DFS and does not
-  /// include the node itself.
-  ///
-  /// It excludes the nodes for which the [excludeCriteria] returns true. If
-  /// [excludeCriteria] is not provided, all nodes are included.
-  @Deprecated(
-      'This approach is slow and slated for removal. Traversal via a standard visitor is preferred.')
-  Iterable<AstNode> traverseNodesInDFS({AstNodePredicate? excludeCriteria}) {
-    var nodes = <AstNode>{};
-    var nodesToVisit = List.of(childNodes);
-    if (excludeCriteria == null) {
-      while (nodesToVisit.isNotEmpty) {
-        var node = nodesToVisit.removeAt(0);
-        nodes.add(node);
-        nodesToVisit.insertAll(0, node.childNodes);
-      }
-    } else {
-      while (nodesToVisit.isNotEmpty) {
-        var node = nodesToVisit.removeAt(0);
-        if (excludeCriteria(node)) continue;
-        nodes.add(node);
-        nodesToVisit.insertAll(0, node.childNodes);
-      }
-    }
-
-    return nodes;
-  }
 }
 
 extension AstNodeNullableExtension on AstNode? {
