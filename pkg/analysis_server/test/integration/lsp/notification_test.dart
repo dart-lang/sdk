@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/src/lsp/test_macros.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart'
     as analyzer_plugin;
@@ -12,6 +11,7 @@ import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../analysis_server_base.dart';
+import '../../test_macros.dart';
 import 'abstract_lsp_over_legacy.dart';
 
 void main() {
@@ -53,7 +53,8 @@ class LspOverLegacyNotificationTest extends AbstractLspOverLegacyTest
   }
 
   Future<void> test_macroModifiedContentEvent() async {
-    writeTestPackageConfig(macro: true);
+    addMacros([declareInTypeMacro()]);
+
     // TODO(dantup): There are existing methods like
     //  `ResourceProviderMixin.newAnalysisOptionsYamlFile` that would be useful
     //  here, but we'd need to split it up to not be specific to
@@ -67,21 +68,11 @@ class LspOverLegacyNotificationTest extends AbstractLspOverLegacyTest
       'name: test',
     );
 
-    var macroImplementationFilePath =
-        pathContext.join(testPackageRootPath, 'lib', 'with_foo.dart');
-    writeFile(macroImplementationFilePath, withFooMethodMacro);
-
     var content = '''
-import 'with_foo.dart';
+import 'macros.dart';
 
-f() {
-  A().foo();
-}
-
-@WithFoo()
-class A {
-  void bar() {}
-}
+@DeclareInType('void foo() {}')
+class A {}
 ''';
     writeFile(testFile, content);
 
@@ -89,9 +80,8 @@ class A {
     await standardAnalysisSetup();
     await analysisFinished;
 
-    // Modify the macro and expect a change event.
-    writeFile(macroImplementationFilePath,
-        withFooMethodMacro.replaceAll('void foo() {', 'void foo2() {'));
+    // Modify the file and expect a change event.
+    writeFile(testFile, content.replaceAll('void foo() {', 'void foo2() {'));
     await dartTextDocumentContentDidChangeNotifications
         .firstWhere((notification) => notification.uri == testFileMacroUri);
   }

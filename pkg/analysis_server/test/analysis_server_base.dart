@@ -255,24 +255,6 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest
     );
   }
 
-  /// Adds support for macros to the `package_config.json` file and creates a
-  /// `macros.dart` file that defines the given [macros]. The macros should not
-  /// include imports, the imports for macros will be added automatically.
-  void addMacros(List<String> macros) {
-    writeTestPackageConfig(
-      macro: true,
-    );
-    newFile(
-        '$testPackageLibPath/macros.dart',
-        [
-          '''
-// There is no public API exposed yet, the in-progress API lives here.
-import 'package:_fe_analyzer_shared/src/macros/api.dart';
-''',
-          ...macros
-        ].join('\n'));
-  }
-
   // TODO(scheglov): rename
   void addTestFile(String content) {
     newFile(testFilePath, content);

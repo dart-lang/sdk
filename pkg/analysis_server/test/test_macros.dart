@@ -2,13 +2,36 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/file_system/file_system.dart';
+
+import 'support/configuration_files.dart';
+
 /// Getters and methods that will return the declarations of macros that are
 /// useful for testing.
 ///
 /// The macros do not include imports. They are designed to be passed into
-/// [PubPackageAnalysisServerTest.addMacros], which will add the necessary
-/// imports automatically.
-mixin TestMacros {
+/// [addMacros], which will add the necessary imports automatically.
+mixin TestMacros on ConfigurationFilesMixin {
+  /// Adds support for macros to the `package_config.json` file and creates a
+  /// `macros.dart` file that defines the given [macros]. The macros should not
+  /// include imports, the imports for macros will be added automatically.
+  void addMacros(List<String> macros) {
+    writeTestPackageConfig(
+      macro: true,
+    );
+
+    newFile(
+      '$testPackageRootPath/lib/macros.dart',
+      [
+        '''
+// There is no public API exposed yet, the in-progress API lives here.
+import 'package:_fe_analyzer_shared/src/macros/api.dart';
+''',
+        ...macros
+      ].join('\n'),
+    );
+  }
+
   /// Return the declaration of a macro that will add a member to a library.
   ///
   /// The text of the member to be declared is provided as an argument to the
@@ -96,4 +119,6 @@ macro class DeclareInType
 }
 ''';
   }
+
+  File newFile(String path, String content);
 }
