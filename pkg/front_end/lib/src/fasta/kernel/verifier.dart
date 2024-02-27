@@ -5,23 +5,19 @@
 library fasta.verifier;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
-
 import 'package:kernel/ast.dart';
 import 'package:kernel/target/targets.dart';
-
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
-
 import 'package:kernel/verifier.dart';
 
-import '../compiler_context.dart' show CompilerContext;
-
-import '../fasta_codes.dart'
+import '../codes/fasta_codes.dart'
     show
         LocatedMessage,
         Message,
         messageVerificationErrorOriginContext,
         noLength,
         templateInternalProblemVerificationError;
+import '../compiler_context.dart' show CompilerContext;
 
 List<LocatedMessage> verifyComponent(
     Target target, VerificationStage stage, Component component,

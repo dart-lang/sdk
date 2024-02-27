@@ -7,7 +7,7 @@
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart' show CoreTypes;
 
-import '../fasta_codes.dart'
+import '../codes/fasta_codes.dart'
     show
         messageWeakReferenceNotStatic,
         messageWeakReferenceNotOneArgument,
@@ -15,7 +15,6 @@ import '../fasta_codes.dart'
         messageWeakReferenceMismatchReturnAndArgumentTypes,
         messageWeakReferenceTargetNotStaticTearoff,
         messageWeakReferenceTargetHasParameters;
-
 import 'constant_evaluator.dart' show ErrorReporter;
 
 /// Recognizes and validates static weak references.

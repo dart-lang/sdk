@@ -3,11 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
-
 import 'package:kernel/src/find_type_visitor.dart';
-
 import 'package:kernel/type_algebra.dart' show containsTypeVariable;
-
 import 'package:kernel/util/graph.dart' show Graph, computeStrongComponents;
 
 import '../builder/declaration_builders.dart';
@@ -18,12 +15,7 @@ import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/record_type_builder.dart';
 import '../builder/type_builder.dart';
-
-import '../dill/dill_class_builder.dart' show DillClassBuilder;
-
-import '../dill/dill_type_alias_builder.dart' show DillTypeAliasBuilder;
-
-import '../fasta_codes.dart'
+import '../codes/fasta_codes.dart'
     show
         LocatedMessage,
         Message,
@@ -32,9 +24,9 @@ import '../fasta_codes.dart'
         templateBoundIssueViaRawTypeWithNonSimpleBounds,
         templateNonSimpleBoundViaReference,
         templateNonSimpleBoundViaVariable;
-
+import '../dill/dill_class_builder.dart' show DillClassBuilder;
+import '../dill/dill_type_alias_builder.dart' show DillTypeAliasBuilder;
 import '../kernel/utils.dart';
-
 import '../problems.dart';
 import '../source/source_class_builder.dart';
 import '../source/source_extension_builder.dart';

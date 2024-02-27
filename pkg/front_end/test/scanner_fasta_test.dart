@@ -6,14 +6,14 @@ import 'dart:convert';
 import 'dart:typed_data' show Uint8List;
 
 import 'package:_fe_analyzer_shared/src/scanner/error_token.dart' as fasta;
+import 'package:_fe_analyzer_shared/src/scanner/errors.dart';
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
     as usedForFuzzTesting;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' as fasta;
-import 'package:_fe_analyzer_shared/src/scanner/token_constants.dart' as fasta;
-import 'package:_fe_analyzer_shared/src/scanner/errors.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
-import 'package:front_end/src/fasta/fasta_codes.dart';
+import 'package:_fe_analyzer_shared/src/scanner/token_constants.dart' as fasta;
+import 'package:front_end/src/fasta/codes/fasta_codes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 

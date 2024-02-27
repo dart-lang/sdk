@@ -25,14 +25,14 @@ import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation, computePlatformDillName;
-import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
-import 'package:front_end/src/fasta/fasta_codes.dart'
+import 'package:front_end/src/fasta/codes/fasta_codes.dart'
     show
         Message,
         PlainAndColorizedString,
         messageFastaUsageLong,
         messageFastaUsageShort,
         templateUnspecified;
+import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 import 'package:front_end/src/fasta/kernel/macro/offset_checker.dart';
 import 'package:front_end/src/fasta/problems.dart' show DebugAbort;
 import 'package:front_end/src/isolate_macro_serializer.dart';

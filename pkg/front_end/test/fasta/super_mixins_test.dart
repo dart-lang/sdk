@@ -10,20 +10,14 @@ import "package:_fe_analyzer_shared/src/messages/diagnostic_message.dart"
         DiagnosticMessageHandler,
         getMessageCodeObject,
         getMessageArguments;
-
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
-
 import 'package:async_helper/async_helper.dart' show asyncTest;
-
 import 'package:expect/expect.dart' show Expect;
-
 import "package:front_end/src/api_prototype/compiler_options.dart"
     show CompilerOptions;
-
-import 'package:front_end/src/testing/compiler_common.dart' show compileScript;
-
-import 'package:front_end/src/fasta/fasta_codes.dart'
+import 'package:front_end/src/fasta/codes/fasta_codes.dart'
     show codeSuperclassHasNoMethod;
+import 'package:front_end/src/testing/compiler_common.dart' show compileScript;
 
 const String testSource = '''
 //@dart=2.19

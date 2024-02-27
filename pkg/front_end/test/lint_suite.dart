@@ -117,9 +117,8 @@ class Context extends ChainContext {
             new ImportsTwiceLintListener(),
           );
 
-          Uri apiUnstableUri =
-              Uri.base.resolve("pkg/front_end/lib/src/api_unstable/");
-          if (!entity.uri.toString().startsWith(apiUnstableUri.toString())) {
+          String apiUnstableUri = "pkg/front_end/lib/src/api_unstable/";
+          if (!entity.uri.toString().contains(apiUnstableUri.toString())) {
             yield new LintTestDescription(
               "$baseName/Exports",
               entity.uri,

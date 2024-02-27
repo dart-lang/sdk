@@ -6,7 +6,6 @@ import 'dart:io' show File, exitCode;
 
 import "package:_fe_analyzer_shared/src/messages/severity.dart"
     show severityEnumNames;
-
 import 'package:yaml/yaml.dart' show loadYaml;
 
 Uri computeSharedGeneratedFile(Uri repoDir) {
@@ -15,8 +14,8 @@ Uri computeSharedGeneratedFile(Uri repoDir) {
 }
 
 Uri computeCfeGeneratedFile(Uri repoDir) {
-  return repoDir
-      .resolve("pkg/front_end/lib/src/fasta/fasta_codes_cfe_generated.dart");
+  return repoDir.resolve(
+      "pkg/front_end/lib/src/fasta/codes/fasta_codes_cfe_generated.dart");
 }
 
 class Messages {

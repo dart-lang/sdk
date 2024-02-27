@@ -9,7 +9,7 @@ import 'package:kernel/ast.dart'
 
 import 'compiler_context.dart' show CompilerContext;
 
-export 'fasta_codes.dart';
+export 'codes/fasta_codes.dart';
 
 bool get isVerbose => CompilerContext.current.options.verbose;
 

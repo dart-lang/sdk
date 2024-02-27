@@ -6,23 +6,16 @@ library fasta.stack_listener_impl;
 
 import 'package:_fe_analyzer_shared/src/experiments/flags.dart' as shared
     show ExperimentalFlag;
-
 import 'package:_fe_analyzer_shared/src/parser/parser.dart' show Parser;
-
 import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart';
-
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
-
 import 'package:kernel/ast.dart';
 
 import '../../api_prototype/experimental_flags.dart';
-import '../fasta_codes.dart';
-
+import '../codes/fasta_codes.dart';
 import '../problems.dart' as problems
     show internalProblem, unhandled, unsupported;
-
 import '../scope.dart';
-
 import 'source_library_builder.dart';
 
 abstract class StackListenerImpl extends StackListener {

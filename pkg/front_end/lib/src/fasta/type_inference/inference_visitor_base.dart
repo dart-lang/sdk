@@ -6,20 +6,20 @@ import 'package:_fe_analyzer_shared/src/deferred_function_literal_heuristic.dart
 import 'package:_fe_analyzer_shared/src/field_promotability.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis_operations.dart';
-import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/testing/id.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/util/link.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchyBase, ClassHierarchyMembers;
 import 'package:kernel/core_types.dart' show CoreTypes;
+import 'package:kernel/names.dart';
 import 'package:kernel/src/bounds_checks.dart'
     show calculateBounds, isGenericFunctionTypeOrAlias;
 import 'package:kernel/src/future_value_type.dart';
 import 'package:kernel/src/legacy_erasure.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
-import 'package:kernel/names.dart';
 
 import '../../api_prototype/experimental_flags.dart';
 import '../../base/instrumentation.dart'
@@ -33,7 +33,7 @@ import '../../testing/id_extractor.dart';
 import '../../testing/id_testing_utils.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/member_builder.dart';
-import '../fasta_codes.dart';
+import '../codes/fasta_codes.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/hierarchy/class_member.dart';
 import '../kernel/internal_ast.dart';

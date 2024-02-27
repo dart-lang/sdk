@@ -23,8 +23,8 @@ import 'package:kernel/type_algebra.dart'
 import 'package:kernel/type_environment.dart';
 
 import '../builder/builder.dart';
-import '../builder/declaration_builders.dart';
 import '../builder/constructor_reference_builder.dart';
+import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
@@ -34,7 +34,7 @@ import '../builder/never_type_declaration_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/void_type_declaration_builder.dart';
-import '../fasta_codes.dart';
+import '../codes/fasta_codes.dart';
 import '../kernel/body_builder_context.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart';
 import '../kernel/hierarchy/hierarchy_node.dart';
