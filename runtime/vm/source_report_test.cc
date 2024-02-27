@@ -1292,6 +1292,54 @@ main() {
       buffer);
 }
 
+ISOLATE_UNIT_TEST_CASE(SourceReport_Regress53519_Destructuring) {
+  // WARNING: This MUST be big enough for the serialized JSON string.
+  const int kBufferSize = 1024;
+  char buffer[kBufferSize];
+  const char* kScript = R"(
+main() {
+  destructure({
+    'hello': 'world',
+    'count': [1, 2, 3],
+  });
+}
+
+String destructure(Map<String, dynamic> map) {
+  final {'hello': world, 'count': count} = map;
+  return 'Hello $world, count: $count';
+}
+)";
+
+  Library& lib = Library::Handle();
+  lib ^= ExecuteScript(kScript);
+  ASSERT(!lib.IsNull());
+  const Script& script =
+      Script::Handle(lib.LookupScript(String::Handle(String::New("test-lib"))));
+
+  SourceReport report(SourceReport::kCoverage);
+  JSONStream js;
+  report.PrintJSON(&js, script);
+  const char* json_str = js.ToCString();
+  ASSERT(strlen(json_str) < kBufferSize);
+  ElideJSONSubstring("classes", json_str, buffer);
+  ElideJSONSubstring("libraries", buffer, buffer);
+  EXPECT_STREQ(
+      "{\"type\":\"SourceReport\",\"ranges\":["
+
+      // main
+      "{\"scriptIndex\":0,\"startPos\":1,\"endPos\":78,\"compiled\":true,"
+      "\"coverage\":{\"hits\":[1,12,24,61],\"misses\":[]}},"
+
+      // destructure
+      "{\"scriptIndex\":0,\"startPos\":81,\"endPos\":216,\"compiled\":true,"
+      "\"coverage\":{\"hits\":[81,144,160,214],\"misses\":[]}}],"
+
+      // Only one script in the script table.
+      "\"scripts\":[{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","
+      "\"uri\":\"file:\\/\\/\\/test-lib\",\"_kind\":\"kernel\"}]}",
+      buffer);
+}
+
 ISOLATE_UNIT_TEST_CASE(SourceReport_BranchCoverage_if) {
   // WARNING: This MUST be big enough for the serialized JSON string.
   const int kBufferSize = 1024;

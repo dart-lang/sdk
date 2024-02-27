@@ -1338,6 +1338,14 @@ void StreamingFlowGraphBuilder::block_expression_depth_dec() {
   --flow_graph_builder_->block_expression_depth_;
 }
 
+void StreamingFlowGraphBuilder::synthetic_error_handler_depth_inc() {
+  ++synthetic_error_handler_depth_;
+}
+
+void StreamingFlowGraphBuilder::synthetic_error_handler_depth_dec() {
+  --synthetic_error_handler_depth_;
+}
+
 intptr_t StreamingFlowGraphBuilder::CurrentTryIndex() {
   return flow_graph_builder_->CurrentTryIndex();
 }
@@ -1430,6 +1438,14 @@ const TypeArguments& StreamingFlowGraphBuilder::PeekArgumentsInstantiatedType(
 
 intptr_t StreamingFlowGraphBuilder::PeekArgumentsCount() {
   return PeekUInt();
+}
+
+TokenPosition StreamingFlowGraphBuilder::ReadPosition() {
+  TokenPosition position = KernelReaderHelper::ReadPosition();
+  if (synthetic_error_handler_depth_ > 0 && position.IsReal()) {
+    position = TokenPosition::Synthetic(position.Pos());
+  }
+  return position;
 }
 
 LocalVariable* StreamingFlowGraphBuilder::LookupVariable(
@@ -4026,7 +4042,11 @@ Fragment StreamingFlowGraphBuilder::BuildThrow(TokenPosition* p) {
 
   Fragment instructions;
 
-  ReadByte();  // read flags.
+  const uint8_t flags = ReadByte();
+  const bool is_synthetic_error_handler = (flags & kThrowForErrorHandling) != 0;
+  if (is_synthetic_error_handler) {
+    synthetic_error_handler_depth_inc();
+  }
 
   instructions += BuildExpression();  // read expression.
 
@@ -4035,6 +4055,10 @@ Fragment StreamingFlowGraphBuilder::BuildThrow(TokenPosition* p) {
   }
   instructions += ThrowException(position);
   ASSERT(instructions.is_closed());
+
+  if (is_synthetic_error_handler) {
+    synthetic_error_handler_depth_dec();
+  }
 
   return instructions;
 }
