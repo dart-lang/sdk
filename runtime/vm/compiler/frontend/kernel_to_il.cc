@@ -511,8 +511,9 @@ Fragment FlowGraphBuilder::ThrowLateInitializationError(
 
   // Call LateError._throwFoo.
   instructions += Constant(name);
-  instructions += StaticCall(position, throw_new,
-                             /* argument_count = */ 1, ICData::kStatic);
+  instructions +=
+      StaticCall(TokenPosition::Synthetic(position.Pos()), throw_new,
+                 /* argument_count = */ 1, ICData::kStatic);
   instructions += Drop();
 
   return instructions;
