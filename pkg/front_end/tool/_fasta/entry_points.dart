@@ -6,7 +6,7 @@ library fasta.tool.entry_points;
 
 import 'dart:convert' show JsonEncoder, LineSplitter, jsonDecode, utf8;
 import 'dart:io'
-    show File, Platform, ProcessSignal, exit, stderr, stdin, stdout;
+    show File, Platform, ProcessSignal, exit, exitCode, stderr, stdin, stdout;
 import 'dart:typed_data' show Uint8List;
 
 import 'package:_fe_analyzer_shared/src/util/relativize.dart'
@@ -158,8 +158,10 @@ Future<void> compilePlatformEntryPoint(List<String> arguments) async {
 }
 
 Future<void> batchEntryPoint(List<String> arguments) async {
-  tryListenToSignal(ProcessSignal.sigterm,
-      () => possiblyCollectCoverage("batch_compiler", exitWithCode: 1));
+  if (shouldCollectCoverage()) {
+    tryListenToSignal(ProcessSignal.sigterm,
+        () => possiblyCollectCoverage("batch_compiler", doExit: true));
+  }
   installAdditionalTargets();
   await new BatchCompiler(
           stdin.transform(utf8.decoder).transform(new LineSplitter()))
@@ -179,13 +181,20 @@ void tryListenToSignal(ProcessSignal signal, void Function() callback) {
   }
 }
 
-Future<void> possiblyCollectCoverage(
-  String displayNamePrefix, {
-  int? exitWithCode,
-}) async {
-  String? coverage = Platform.environment["CFE_COVERAGE"];
+const String cfeCoverageEnvironmentVariable = "CFE_COVERAGE";
+
+bool shouldCollectCoverage() {
+  String? coverage = Platform.environment[cfeCoverageEnvironmentVariable];
+  if (coverage != null) return true;
+  return false;
+}
+
+Future<void> possiblyCollectCoverage(String displayNamePrefix,
+    {required bool doExit}) async {
+  String? coverage = Platform.environment[cfeCoverageEnvironmentVariable];
 
   if (coverage != null) {
+    assert(shouldCollectCoverage());
     Uri coverageUri = Uri.base.resolveUri(Uri.file(coverage));
     String displayName =
         "${displayNamePrefix}_${DateTime.now().microsecondsSinceEpoch}";
@@ -196,8 +205,8 @@ Future<void> possiblyCollectCoverage(
         ?.writeToFile(f);
   }
 
-  if (exitWithCode != null) {
-    exit(exitWithCode);
+  if (doExit) {
+    exit(exitCode);
   }
 }
 
