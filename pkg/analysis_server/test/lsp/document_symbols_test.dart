@@ -7,6 +7,7 @@ import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../test_macros.dart';
 import '../tool/lsp_spec/matchers.dart';
 import 'server_abstract.dart';
 
@@ -17,13 +18,14 @@ void main() {
 }
 
 @reflectiveTest
-class DocumentSymbolsTest extends AbstractLspAnalysisServerTest {
+class DocumentSymbolsTest extends AbstractLspAnalysisServerTest
+    with TestMacros {
   Future<void> test_enumMember_notSupported() async {
     const content = '''
-    enum Theme {
-      light,
-    }
-    ''';
+enum Theme {
+  light,
+}
+''';
     newFile(mainFilePath, content);
     await initialize();
 
@@ -51,10 +53,10 @@ class DocumentSymbolsTest extends AbstractLspAnalysisServerTest {
     setDocumentSymbolKinds([SymbolKind.Enum, SymbolKind.EnumMember]);
 
     const content = '''
-    enum Theme {
-      light,
-    }
-    ''';
+enum Theme {
+  light,
+}
+''';
     newFile(mainFilePath, content);
     await initialize();
 
@@ -78,18 +80,18 @@ class DocumentSymbolsTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_flat() async {
     const content = '''
-    String topLevel = '';
-    class MyClass {
-      int myField;
-      MyClass(this.myField);
-      myMethod() {}
-    }
-    extension StringExtensions on String {}
-    extension on String {}
-    extension type A(int i) {
-      static const int foo = 0;
-    }
-    ''';
+String topLevel = '';
+class MyClass {
+  int myField;
+  MyClass(this.myField);
+  myMethod() {}
+}
+extension StringExtensions on String {}
+extension on String {}
+extension type A(int i) {
+  static const int foo = 0;
+}
+''';
     newFile(mainFilePath, content);
     await initialize();
 
@@ -147,13 +149,13 @@ class DocumentSymbolsTest extends AbstractLspAnalysisServerTest {
     setHierarchicalDocumentSymbolSupport();
 
     const content = '''
-    String topLevel = '';
-    class MyClass {
-      int myField;
-      MyClass(this.myField);
-      myMethod() {}
-    }
-    ''';
+String topLevel = '';
+class MyClass {
+  int myField;
+  MyClass(this.myField);
+  myMethod() {}
+}
+''';
     newFile(mainFilePath, content);
     await initialize();
 
@@ -185,6 +187,37 @@ class DocumentSymbolsTest extends AbstractLspAnalysisServerTest {
     final method = myClass.children![2];
     expect(method.name, equals('myMethod'));
     expect(method.kind, equals(SymbolKind.Method));
+  }
+
+  Future<void> test_macroGenerated() async {
+    setDartTextDocumentContentProviderSupport();
+    addMacros([declareInTypeMacro()]);
+
+    const content = '''
+import 'macros.dart';
+
+@DeclareInType('void f() {}')
+class A {}
+''';
+    newFile(mainFilePath, content);
+    await initialize();
+
+    final result = await getDocumentSymbols(mainFileMacroUri);
+    final symbols = result.map(
+      (docsymbols) => throw 'Expected SymbolInformations, got DocumentSymbols',
+      (symbolInfos) => symbolInfos,
+    );
+    expect(symbols, hasLength(2));
+
+    final topLevel = symbols[0];
+    expect(topLevel.name, equals('A'));
+    expect(topLevel.kind, equals(SymbolKind.Class));
+    expect(topLevel.containerName, isNull);
+
+    final myClass = symbols[1];
+    expect(myClass.name, equals('f'));
+    expect(myClass.kind, equals(SymbolKind.Method));
+    expect(myClass.containerName, equals('A'));
   }
 
   Future<void> test_noAnalysisRoot_openedFile() async {
