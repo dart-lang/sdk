@@ -301,7 +301,7 @@ class HGraph {
       }
       AbstractValue type = closedWorld.abstractValueDomain
           .computeAbstractValueForConstant(constant);
-      result = HConstant.internal(constant, type)
+      result = HConstant._internal(constant, type)
         ..sourceInformation = sourceInformation;
       entry.addAtExit(result);
       constants[constant] = result;
@@ -659,7 +659,7 @@ class SubGraph {
 }
 
 class SubExpression extends SubGraph {
-  const SubExpression(HBasicBlock start, HBasicBlock end) : super(start, end);
+  const SubExpression(super.start, super.end);
 
   /// Find the condition expression if this sub-expression is a condition.
   HInstruction? get conditionExpression {
@@ -1117,7 +1117,14 @@ abstract class HInstruction implements SpannableWithEntity {
   final int id = idCounter++;
   static int idCounter = 0;
 
+  // A HInstruction owns its [inputs] list. A fresh list is created in every
+  // base class constructor to ensure that [inputs] is always a growable
+  // List. Although many instructions have a fixed number of inputs (including
+  // zero inputs), having a uniform growable representation is more flexible for
+  // editing, and allows hundreds of method calls on [inputs] to be
+  // devirtualized.
   final List<HInstruction> inputs;
+
   final List<HInstruction> usedBy = [];
 
   HBasicBlock? block;
@@ -1130,9 +1137,18 @@ abstract class HInstruction implements SpannableWithEntity {
   SideEffects sideEffects = SideEffects.empty();
   bool _useGvn = false;
 
-  HInstruction(this.inputs, this.instructionType);
+  // Main constructor copies the list of inputs to ensure ownership.
+  HInstruction(List<HInstruction> initialInputs, this.instructionType)
+      : inputs = [...initialInputs];
 
-  HInstruction.noType(this.inputs);
+  // Convenience constructors that avoid an intermediate list.
+  HInstruction._0(this.instructionType) : inputs = [];
+  HInstruction._1(HInstruction input, this.instructionType) : inputs = [input];
+  HInstruction._2(
+      HInstruction input1, HInstruction input2, this.instructionType)
+      : inputs = [input1, input2];
+
+  HInstruction._noType() : inputs = [];
 
   @override
   Entity? get sourceEntity => sourceElement;
@@ -1573,7 +1589,7 @@ class DominatedUses {
 /// This used for attaching source information to reads of locals.
 class HRef extends HInstruction {
   HRef(HInstruction value, SourceInformation sourceInformation)
-      : super([value], value.instructionType) {
+      : super._1(value, value.instructionType) {
     this.sourceInformation = sourceInformation;
   }
 
@@ -1586,19 +1602,23 @@ class HRef extends HInstruction {
   String toString() => 'HRef(${value})';
 }
 
-/// Late instructions are used after the main optimization phases.  They capture
-/// codegen decisions just prior to generating JavaScript.
-abstract class HLateInstruction extends HInstruction {
-  HLateInstruction(List<HInstruction> inputs, AbstractValue type)
-      : super(inputs, type);
-}
+/// Marker interface for late instructions. Late instructions are used after the
+/// main optimization phases. They capture codegen decisions just prior to
+/// generating JavaScript.
+abstract interface class HLateInstruction {}
 
 /// A [HCheck] instruction is an instruction that might do a dynamic check at
 /// runtime on an input instruction. To have proper instruction dependencies in
 /// the graph, instructions that depend on the check being done reference the
 /// [HCheck] instruction instead of the input instruction.
 abstract class HCheck extends HInstruction {
-  HCheck(List<HInstruction> inputs, AbstractValue type) : super(inputs, type) {
+  HCheck(super.inputs, super.type) {
+    setUseGvn();
+  }
+  HCheck._1(super.input, super.type) : super._1() {
+    setUseGvn();
+  }
+  HCheck._2(super.input1, super.input2, super.type) : super._2() {
     setUseGvn();
   }
 
@@ -1651,14 +1671,16 @@ class HBoundsCheck extends HCheck {
 }
 
 abstract class HConditionalBranch extends HControlFlow {
-  HConditionalBranch(List<HInstruction> inputs) : super(inputs);
+  HConditionalBranch(HInstruction condition) {
+    inputs.add(condition);
+  }
   HInstruction get condition => inputs[0];
   HBasicBlock get trueBranch => block!.successors[0];
   HBasicBlock get falseBranch => block!.successors[1];
 }
 
 abstract class HControlFlow extends HInstruction {
-  HControlFlow(List<HInstruction> inputs) : super.noType(inputs);
+  HControlFlow() : super._noType();
   @override
   bool isControlFlow() => true;
   @override
@@ -1687,10 +1709,9 @@ class HCreate extends HInstruction {
   /// the closure class.
   FunctionEntity? callMethod;
 
-  HCreate(this.element, List<HInstruction> inputs, AbstractValue type,
+  HCreate(this.element, super.inputs, super.type,
       SourceInformation? sourceInformation,
-      {this.instantiatedTypes, this.hasRtiInput = false, this.callMethod})
-      : super(inputs, type) {
+      {this.instantiatedTypes, this.hasRtiInput = false, this.callMethod}) {
     this.sourceInformation = sourceInformation;
   }
 
@@ -1711,7 +1732,7 @@ class HCreate extends HInstruction {
 
 // Allocates a box to hold mutated captured variables.
 class HCreateBox extends HInstruction {
-  HCreateBox(AbstractValue type) : super([], type);
+  HCreateBox(super.type) : super._0();
 
   @override
   bool isAllocation(AbstractValueDomain domain) => true;
@@ -1731,8 +1752,7 @@ abstract class HInvoke extends HInstruction {
   /// input is the Dart receiver.
   bool isInterceptedCall = false;
 
-  HInvoke(List<HInstruction> inputs, AbstractValue resultType)
-      : super(inputs, resultType) {
+  HInvoke(super.inputs, super.type) : super() {
     sideEffects.setAllSideEffects();
     sideEffects.setDependsOnSomething();
   }
@@ -2172,7 +2192,7 @@ class HFieldSet extends HFieldAccess {
 // Raw reference to a function.
 class HFunctionReference extends HInstruction {
   FunctionEntity element;
-  HFunctionReference(this.element, AbstractValue type) : super([], type) {
+  HFunctionReference(this.element, super.type) : super._0() {
     sideEffects.clearAllSideEffects();
     sideEffects.clearAllDependencies();
     setUseGvn();
@@ -2193,9 +2213,8 @@ class HFunctionReference extends HInstruction {
 
 class HGetLength extends HInstruction {
   final bool isAssignable;
-  HGetLength(HInstruction receiver, AbstractValue type,
-      {required this.isAssignable})
-      : super([receiver], type) {
+  HGetLength(super.receiver, super.type, {required this.isAssignable})
+      : super._1() {
     sideEffects.clearAllSideEffects();
     sideEffects.clearAllDependencies();
     setUseGvn();
@@ -2236,14 +2255,13 @@ enum ReadModifyWriteKind {
 
 /// HReadModifyWrite is a late stage instruction for a field (property) update
 /// via an assignment operation or pre- or post-increment.
-class HReadModifyWrite extends HLateInstruction {
+class HReadModifyWrite extends HInstruction implements HLateInstruction {
   final FieldEntity element;
   final String jsOp;
   final ReadModifyWriteKind opKind;
 
-  HReadModifyWrite._(this.element, this.jsOp, this.opKind,
-      List<HInstruction> inputs, AbstractValue type)
-      : super(inputs, type) {
+  HReadModifyWrite._(
+      this.element, this.jsOp, this.opKind, super.inputs, super.type) {
     sideEffects.clearAllSideEffects();
     sideEffects.clearAllDependencies();
     sideEffects.setChangesInstanceProperty();
@@ -2520,8 +2538,7 @@ class HForeignCode extends HForeign {
 }
 
 abstract class HInvokeBinary extends HInstruction {
-  HInvokeBinary(HInstruction left, HInstruction right, AbstractValue type)
-      : super([left, right], type) {
+  HInvokeBinary(super.left, super.right, super.type) : super._2() {
     sideEffects.clearAllSideEffects();
     sideEffects.clearAllDependencies();
     setUseGvn();
@@ -2641,7 +2658,9 @@ class HRemainder extends HBinaryArithmetic {
 /// value, and one input per constant that it can switch on.
 /// Its block has one successor per constant, and one for the default.
 class HSwitch extends HControlFlow {
-  HSwitch(List<HInstruction> inputs) : super(inputs);
+  HSwitch(HInstruction input) {
+    inputs.add(input);
+  }
 
   HConstant constant(int index) => inputs[index + 1] as HConstant;
   HInstruction get expression => inputs[0];
@@ -2751,7 +2770,7 @@ class HBitXor extends HBinaryBitOp {
 }
 
 abstract class HInvokeUnary extends HInstruction {
-  HInvokeUnary(HInstruction input, AbstractValue type) : super([input], type) {
+  HInvokeUnary(super.input, super.type) : super._1() {
     sideEffects.clearAllSideEffects();
     sideEffects.clearAllDependencies();
     setUseGvn();
@@ -2814,7 +2833,6 @@ class HBitNot extends HInvokeUnary {
 }
 
 class HExit extends HControlFlow {
-  HExit() : super(const []);
   @override
   String toString() => 'exit';
   @override
@@ -2822,7 +2840,6 @@ class HExit extends HControlFlow {
 }
 
 class HGoto extends HControlFlow {
-  HGoto() : super(const []);
   @override
   String toString() => 'goto';
   @override
@@ -2832,15 +2849,12 @@ class HGoto extends HControlFlow {
 abstract class HJump extends HControlFlow {
   final JumpTarget target;
   final LabelDefinition? label;
-  HJump(this.target, SourceInformation? sourceInformation)
-      : label = null,
-        super(const []) {
+  HJump(this.target, SourceInformation? sourceInformation) : label = null {
     this.sourceInformation = sourceInformation;
   }
   HJump.toLabel(LabelDefinition label, SourceInformation? sourceInformation)
       : label = label,
-        target = label.target,
-        super(const []) {
+        target = label.target {
     this.sourceInformation = sourceInformation;
   }
 }
@@ -2885,7 +2899,6 @@ class HTry extends HControlFlow {
   HLocalValue? exception;
   HBasicBlock? catchBlock;
   HBasicBlock? finallyBlock;
-  HTry() : super(const []);
   @override
   String toString() => 'try';
   @override
@@ -2899,7 +2912,6 @@ class HTry extends HControlFlow {
 // leads to one of this instruction a predecessor of catch and
 // finally.
 class HExitTry extends HControlFlow {
-  HExitTry() : super(const []);
   @override
   String toString() => 'exit try';
   @override
@@ -2909,7 +2921,7 @@ class HExitTry extends HControlFlow {
 
 class HIf extends HConditionalBranch {
   HBlockFlow? blockInformation = null;
-  HIf(HInstruction condition) : super([condition]);
+  HIf(super.condition);
   @override
   String toString() => 'if';
   @override
@@ -2929,7 +2941,7 @@ class HIf extends HConditionalBranch {
 }
 
 class HLoopBranch extends HConditionalBranch {
-  HLoopBranch(HInstruction condition) : super([condition]);
+  HLoopBranch(super.condition);
   @override
   String toString() => 'loop-branch';
   @override
@@ -2938,8 +2950,7 @@ class HLoopBranch extends HConditionalBranch {
 
 class HConstant extends HInstruction {
   final ConstantValue constant;
-  HConstant.internal(this.constant, AbstractValue constantType)
-      : super([], constantType);
+  HConstant._internal(this.constant, super.constantType) : super._0();
 
   @override
   String toString() => 'literal: ${constant.toStructuredText(null)}';
@@ -2980,7 +2991,7 @@ class HConstant extends HInstruction {
 }
 
 class HNot extends HInstruction {
-  HNot(HInstruction value, AbstractValue type) : super([value], type) {
+  HNot(super.value, super.type) : super._1() {
     setUseGvn();
   }
 
@@ -2998,7 +3009,7 @@ class HNot extends HInstruction {
 /// first use must be in an HLocalSet. That is, [HParameterValue]s have a
 /// value from the start, whereas [HLocalValue]s need to be initialized first.
 class HLocalValue extends HInstruction {
-  HLocalValue(Entity? variable, AbstractValue type) : super([], type) {
+  HLocalValue(Entity? variable, super.type) : super._0() {
     sourceElement = variable;
   }
 
@@ -3191,8 +3202,8 @@ class HLessEqual extends HRelational {
 
 /// Return statement, either with or without a value.
 class HReturn extends HControlFlow {
-  HReturn(HInstruction? value, SourceInformation? sourceInformation)
-      : super([if (value != null) value]) {
+  HReturn(HInstruction? value, SourceInformation? sourceInformation) {
+    if (value != null) inputs.add(value);
     this.sourceInformation = sourceInformation;
   }
   @override
@@ -3202,9 +3213,9 @@ class HReturn extends HControlFlow {
 }
 
 class HThrowExpression extends HInstruction {
-  HThrowExpression(HInstruction value, AbstractValue type,
-      SourceInformation? sourceInformation)
-      : super([value], type) {
+  HThrowExpression(
+      super.value, super.type, SourceInformation? sourceInformation)
+      : super._1() {
     this.sourceInformation = sourceInformation;
   }
   @override
@@ -3216,7 +3227,7 @@ class HThrowExpression extends HInstruction {
 }
 
 class HAwait extends HInstruction {
-  HAwait(HInstruction value, AbstractValue type) : super([value], type);
+  HAwait(super.value, super.type) : super._1();
   @override
   String toString() => 'await';
   @override
@@ -3229,9 +3240,9 @@ class HAwait extends HInstruction {
 }
 
 class HYield extends HInstruction {
-  HYield(HInstruction value, this.hasStar, AbstractValue type,
+  HYield(super.value, this.hasStar, super.type,
       SourceInformation? sourceInformation)
-      : super([value], type) {
+      : super._1() {
     this.sourceInformation = sourceInformation;
   }
   bool hasStar;
@@ -3248,8 +3259,8 @@ class HYield extends HInstruction {
 class HThrow extends HControlFlow {
   final bool isRethrow;
   HThrow(HInstruction value, SourceInformation? sourceInformation,
-      {this.isRethrow = false})
-      : super([value]) {
+      {this.isRethrow = false}) {
+    inputs.add(value);
     this.sourceInformation = sourceInformation;
   }
   @override
@@ -3264,9 +3275,8 @@ class HThrow extends HControlFlow {
 class HStatic extends HInstruction {
   final MemberEntity element;
 
-  HStatic(
-      this.element, AbstractValue type, SourceInformation? sourceInformation)
-      : super([], type) {
+  HStatic(this.element, super.type, SourceInformation? sourceInformation)
+      : super._0() {
     sideEffects.clearAllSideEffects();
     sideEffects.clearAllDependencies();
     if (element.isAssignable) {
@@ -3306,8 +3316,7 @@ class HInterceptor extends HInstruction {
   //     (a && C.JSArray_methods).get$first(a)
   //
 
-  HInterceptor(HInstruction receiver, AbstractValue type)
-      : super([receiver], type) {
+  HInterceptor(super.receiver, super.type) : super._1() {
     this.sourceInformation = receiver.sourceInformation;
     sideEffects.clearAllSideEffects();
     sideEffects.clearAllDependencies();
@@ -3379,9 +3388,8 @@ class HOneShotInterceptor extends HInvokeDynamic {
 class HLazyStatic extends HInstruction {
   final FieldEntity element;
 
-  HLazyStatic(
-      this.element, AbstractValue type, SourceInformation? sourceInformation)
-      : super([], type) {
+  HLazyStatic(this.element, super.type, SourceInformation? sourceInformation)
+      : super._0() {
     // TODO(4931): The first access has side-effects, but we afterwards we
     // should be able to GVN.
     sideEffects.setAllSideEffects();
@@ -3405,7 +3413,7 @@ class HLazyStatic extends HInstruction {
 class HStaticStore extends HInstruction {
   FieldEntity element;
   HStaticStore(this.element, HInstruction value)
-      : super([value], value.instructionType) {
+      : super._1(value, value.instructionType) {
     sideEffects.clearAllSideEffects();
     sideEffects.clearAllDependencies();
     sideEffects.setChangesStaticProperty();
@@ -3442,8 +3450,7 @@ class HLiteralList extends HInstruction {
 /// The primitive array indexing operation. Note that this instruction
 /// does not throw because we generate the checks explicitly.
 class HIndex extends HInstruction {
-  HIndex(HInstruction receiver, HInstruction index, AbstractValue type)
-      : super([receiver, index], type) {
+  HIndex(super.receiver, super.index, super.type) : super._2() {
     sideEffects.clearAllSideEffects();
     sideEffects.clearAllDependencies();
     sideEffects.setDependsOnIndexStore();
@@ -3513,8 +3520,7 @@ class HIndexAssign extends HInstruction {
 }
 
 class HCharCodeAt extends HInstruction {
-  HCharCodeAt(HInstruction receiver, HInstruction index, AbstractValue type)
-      : super([receiver, index], type);
+  HCharCodeAt(super.receiver, super.index, super.type) : super._2();
 
   @override
   String toString() => 'HCharCodeAt';
@@ -3553,8 +3559,8 @@ class HCharCodeAt extends HInstruction {
 /// use site, for example, if 'this' is used many times, replacing uses of
 /// 'this' with HLateValue(HThis) will have the effect of copying 'this' to a
 /// temporary which will reduce the size of minified code.
-class HLateValue extends HLateInstruction {
-  HLateValue(HInstruction target) : super([target], target.instructionType);
+class HLateValue extends HInstruction implements HLateInstruction {
+  HLateValue(HInstruction target) : super._1(target, target.instructionType);
 
   HInstruction get target => inputs.single;
 
@@ -3594,7 +3600,7 @@ class HPrimitiveCheck extends HCheck {
       HInstruction input, SourceInformation? sourceInformation,
       {this.receiverTypeCheckSelector})
       : checkedType = type,
-        super([input], type) {
+        super._1(input, type) {
     assert(isReceiverTypeCheck == (receiverTypeCheckSelector != null));
     this.sourceElement = input.sourceElement;
     this.sourceInformation = sourceInformation;
@@ -3648,8 +3654,7 @@ class HPrimitiveCheck extends HCheck {
 // bool!` checks and the backend checks them correctly, this instruction will
 // become unnecessary and should be removed.
 class HBoolConversion extends HCheck {
-  HBoolConversion(HInstruction input, AbstractValue type)
-      : super([input], type);
+  HBoolConversion(super.input, super.type) : super._1();
 
   @override
   bool isJsStatement() => false;
@@ -3691,8 +3696,7 @@ class HNullCheck extends HCheck {
   Selector? selector;
   FieldEntity? field;
 
-  HNullCheck(HInstruction input, AbstractValue type, {this.sticky = false})
-      : super([input], type);
+  HNullCheck(super.input, super.type, {this.sticky = false}) : super._1();
 
   @override
   bool isControlFlow() => true;
@@ -3861,11 +3865,11 @@ class HTypeKnown extends HCheck {
 
   HTypeKnown.pinned(this.knownType, HInstruction input)
       : this._isMovable = false,
-        super([input], knownType);
+        super._1(input, knownType);
 
   HTypeKnown.witnessed(this.knownType, HInstruction input, HInstruction witness)
       : this._isMovable = true,
-        super([input, witness], knownType);
+        super._2(input, witness, knownType);
 
   @override
   String toString() => 'TypeKnown $knownType';
@@ -3909,9 +3913,8 @@ class HTypeKnown extends HCheck {
 }
 
 class HRangeConversion extends HCheck {
-  HRangeConversion(HInstruction input, AbstractValue type)
-      : super([input], type) {
-    sourceElement = input.sourceElement;
+  HRangeConversion(super.input, super.type) : super._1() {
+    sourceElement = checkedInput.sourceElement;
   }
 
   @override
@@ -3922,8 +3925,7 @@ class HRangeConversion extends HCheck {
 }
 
 class HStringConcat extends HInstruction {
-  HStringConcat(HInstruction left, HInstruction right, AbstractValue type)
-      : super([left, right], type) {
+  HStringConcat(super.left, super.right, super.type) : super._2() {
     setUseGvn();
   }
 
@@ -3947,8 +3949,7 @@ class HStringConcat extends HInstruction {
 /// into a String value.
 class HStringify extends HInstruction {
   bool _isPure = false; // Some special cases are pure, e.g. int argument.
-  HStringify(HInstruction input, AbstractValue resultType)
-      : super([input], resultType) {
+  HStringify(super.input, super.resultType) : super._1() {
     sideEffects.setAllSideEffects();
     sideEffects.setDependsOnSomething();
   }
@@ -4265,9 +4266,9 @@ class HIsTest extends HInstruction {
   final AbstractValueWithPrecision checkedAbstractValue;
   DartType dartType;
 
-  HIsTest(this.dartType, this.checkedAbstractValue, HInstruction checked,
-      HInstruction rti, AbstractValue type)
-      : super([rti, checked], type) {
+  HIsTest(this.dartType, this.checkedAbstractValue, super.rti, super.checked,
+      super.instructionType)
+      : super._2() {
     setUseGvn();
   }
 
@@ -4304,8 +4305,8 @@ class HIsTestSimple extends HInstruction {
   final IsTestSpecialization specialization;
 
   HIsTestSimple(this.dartType, this.checkedAbstractValue, this.specialization,
-      HInstruction checked, AbstractValue type)
-      : super([checked], type) {
+      super.checked, super.type)
+      : super._1() {
     setUseGvn();
   }
 
@@ -4454,14 +4455,9 @@ class HAsCheck extends HCheck {
   DartType checkedTypeExpression;
   final bool isTypeError;
 
-  HAsCheck(
-      HInstruction checked,
-      HInstruction rti,
-      this.checkedType,
-      this.checkedTypeExpression,
-      this.isTypeError,
-      AbstractValue instructionType)
-      : super([rti, checked], instructionType);
+  HAsCheck(this.checkedType, this.checkedTypeExpression, this.isTypeError,
+      super.rti, super.checked, super.instructionType)
+      : super._2();
 
   // The type input is first to facilitate the `type.as(value)` codegen pattern.
   HInstruction get typeInput => inputs[0];
@@ -4506,9 +4502,9 @@ class HAsCheckSimple extends HCheck {
   final bool isTypeError;
   final FunctionEntity method;
 
-  HAsCheckSimple(HInstruction checked, this.dartType, this.checkedType,
-      this.isTypeError, this.method, AbstractValue type)
-      : super([checked], type);
+  HAsCheckSimple(super.checked, this.dartType, this.checkedType,
+      this.isTypeError, this.method, super.type)
+      : super._1();
 
   @override
   HInstruction get checkedInput => inputs[0];
@@ -4544,9 +4540,7 @@ class HAsCheckSimple extends HCheck {
 
 /// Subtype check comparing two Rti types.
 class HSubtypeCheck extends HCheck {
-  HSubtypeCheck(
-      HInstruction subtype, HInstruction supertype, AbstractValue type)
-      : super([subtype, supertype], type) {
+  HSubtypeCheck(super.subtype, super.supertype, super.type) : super._2() {
     setUseGvn();
   }
 
@@ -4568,18 +4562,14 @@ class HSubtypeCheck extends HCheck {
   String toString() => 'HSubtypeCheck()';
 }
 
-/// Common superclass for instructions that generate Rti values.
-abstract class HRtiInstruction extends HInstruction {
-  HRtiInstruction(List<HInstruction> inputs, AbstractValue type)
-      : super(inputs, type);
-}
+/// Common supertype for instructions that generate Rti values.
+abstract interface class HRtiInstruction {}
 
 /// Evaluates an Rti type recipe in the global environment.
-class HLoadType extends HRtiInstruction {
+class HLoadType extends HInstruction implements HRtiInstruction {
   TypeRecipe typeExpression;
 
-  HLoadType(this.typeExpression, AbstractValue instructionType)
-      : super([], instructionType) {
+  HLoadType(this.typeExpression, super.instructionType) : super._0() {
     setUseGvn();
   }
 
@@ -4609,11 +4599,10 @@ class HLoadType extends HRtiInstruction {
 /// Classes with reified type arguments have the type environment stored on the
 /// instance. The reified environment is typically stored as the instance type,
 /// e.g. "UnmodifiableListView<int>".
-class HInstanceEnvironment extends HRtiInstruction {
+class HInstanceEnvironment extends HInstruction implements HRtiInstruction {
   late AbstractValue codegenInputType; // Assigned in SsaTypeKnownRemover
 
-  HInstanceEnvironment(HInstruction instance, AbstractValue type)
-      : super([instance], type) {
+  HInstanceEnvironment(super.instance, super.type) : super._1() {
     setUseGvn();
   }
 
@@ -4634,13 +4623,13 @@ class HInstanceEnvironment extends HRtiInstruction {
 }
 
 /// Evaluates an Rti type recipe in an Rti environment.
-class HTypeEval extends HRtiInstruction {
+class HTypeEval extends HInstruction implements HRtiInstruction {
   TypeEnvironmentStructure envStructure;
   TypeRecipe typeExpression;
 
-  HTypeEval(HInstruction environment, this.envStructure, this.typeExpression,
-      AbstractValue type)
-      : super([environment], type) {
+  HTypeEval(
+      super.environment, this.envStructure, this.typeExpression, super.type)
+      : super._1() {
     setUseGvn();
   }
 
@@ -4664,10 +4653,8 @@ class HTypeEval extends HRtiInstruction {
 }
 
 /// Extends an Rti type environment with generic function types.
-class HTypeBind extends HRtiInstruction {
-  HTypeBind(
-      HInstruction environment, HInstruction typeArguments, AbstractValue type)
-      : super([environment, typeArguments], type) {
+class HTypeBind extends HInstruction implements HRtiInstruction {
+  HTypeBind(super.environment, super.typeArguments, super.type) : super._2() {
     setUseGvn();
   }
 
@@ -4688,8 +4675,7 @@ class HTypeBind extends HRtiInstruction {
 }
 
 class HIsLateSentinel extends HInstruction {
-  HIsLateSentinel(HInstruction value, AbstractValue type)
-      : super([value], type) {
+  HIsLateSentinel(super.value, super.type) : super._1() {
     setUseGvn();
   }
 

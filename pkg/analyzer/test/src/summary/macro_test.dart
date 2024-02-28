@@ -86,7 +86,7 @@ class A2 {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 augment class A1 {
   A1.named12();
@@ -200,7 +200,7 @@ class A2 {
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 augment class A2 {
   A2.named22();
@@ -229,7 +229,7 @@ class A2 {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 augment class A1 {
   int f12 = 0;
@@ -338,7 +338,7 @@ class A2 {
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 augment class A2 {
   int f22 = 0;
@@ -367,7 +367,7 @@ class A2 {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 augment class A1 {
   void f12() {}
@@ -544,7 +544,7 @@ class A2 {
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 augment class A2 {
   void f22() {}
@@ -569,7 +569,7 @@ class A {
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 augment class A {
   void introspected_A_foo();
@@ -595,7 +595,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 class A1 {}
 void f1() {}
@@ -623,7 +623,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 class A2 {}
 class A1 {}
@@ -653,7 +653,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 class A1 {}
 class A2 {}
@@ -679,7 +679,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 class A2 {}
 class A1 {}
@@ -707,7 +707,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 class A1 {}
 class A2 {}
@@ -732,7 +732,7 @@ enum X {
 
     configuration.forOrder();
     _assertMacroCode(library, r'''
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 class A2 {}
 class A3 {}
@@ -761,7 +761,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 class A2 {}
 class A1 {}
@@ -789,7 +789,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 class A2 {}
 class A1 {}
@@ -817,7 +817,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 class A2 {}
 class A1 {}
@@ -845,7 +845,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 class A2 {}
 class A1 {}
@@ -875,7 +875,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 class A1 {}
 class A2 {}
@@ -901,7 +901,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 class A2 {}
 class A1 {}
@@ -929,7 +929,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 class A1 {}
 class A2 {}
@@ -1319,7 +1319,7 @@ class B extends A {
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'dart:core';
 
@@ -1340,7 +1340,7 @@ class A {
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'dart:core' as prefix0;
 
@@ -1359,7 +1359,7 @@ foo() {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'dart:core' as prefix0;
 
@@ -1376,7 +1376,7 @@ void foo(Function() a) {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'dart:core' as prefix0;
 
@@ -1399,7 +1399,7 @@ class B extends A {
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'dart:core';
 
@@ -1424,7 +1424,7 @@ class B extends A {
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'dart:core';
 
@@ -1449,7 +1449,7 @@ class B extends A {
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'dart:core';
 
@@ -1470,7 +1470,7 @@ class A {
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'dart:core' as prefix0;
 
@@ -1491,7 +1491,7 @@ class A {
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'dart:core' as prefix0;
 
@@ -1516,7 +1516,7 @@ class B extends A {
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'dart:core';
 
@@ -1537,7 +1537,7 @@ class A {
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'dart:core';
 
@@ -1558,7 +1558,7 @@ class A {
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'dart:core' as prefix0;
 
@@ -1579,7 +1579,7 @@ class A {
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'dart:core';
 
@@ -1604,7 +1604,7 @@ class A {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 class B {}
 ''');
@@ -1624,7 +1624,7 @@ class X {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/a.dart';
 
@@ -1652,7 +1652,7 @@ class X {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/a.dart';
 
@@ -1685,7 +1685,7 @@ class X {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/a.dart';
 
@@ -1719,7 +1719,7 @@ class X {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 augment class X {
   void doReference(dynamic a) {
@@ -1745,7 +1745,7 @@ class X {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/a.dart';
 
@@ -1778,7 +1778,7 @@ class X {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/a.dart';
 
@@ -1809,7 +1809,7 @@ class A {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/a.dart';
 
@@ -1843,7 +1843,7 @@ class X {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 augment class X {
   void doReference(dynamic a) {
@@ -1869,7 +1869,7 @@ class X {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/a.dart';
 
@@ -1902,7 +1902,7 @@ class X {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/a.dart';
 
@@ -1936,7 +1936,7 @@ class X {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 augment class X {
   void doReference(dynamic a) {
@@ -1962,7 +1962,7 @@ class X {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/a.dart';
 
@@ -1995,7 +1995,7 @@ class X {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/a.dart';
 
@@ -2021,7 +2021,7 @@ class X {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/a.dart';
 
@@ -2047,7 +2047,7 @@ class X {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/a.dart';
 
@@ -2068,7 +2068,7 @@ void foo(int a);
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'dart:core';
 
@@ -2092,7 +2092,7 @@ class X {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/a.dart';
 
@@ -2118,7 +2118,7 @@ class X {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/a.dart';
 
@@ -2139,7 +2139,7 @@ void foo<T>();
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 augment void foo<T>() {
   T;
@@ -2161,7 +2161,7 @@ class A {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/a.dart';
 
@@ -2192,7 +2192,7 @@ class A {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/a.dart';
 
@@ -2218,7 +2218,7 @@ class A {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/a.dart';
 
@@ -2249,7 +2249,7 @@ class A {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/a.dart';
 
@@ -2275,7 +2275,7 @@ class A {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/a.dart';
 
@@ -2301,7 +2301,7 @@ class A {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/a.dart';
 
@@ -2324,7 +2324,7 @@ class A {
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'dart:core';
 
@@ -2347,7 +2347,7 @@ class A {
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'dart:core';
 
@@ -2398,7 +2398,7 @@ library
       reference: self::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/a.dart';
 
@@ -2416,43 +2416,43 @@ augment class B {
       definingUnit
         reference: self::@augmentation::package:test/test.macro.dart
         classes
-          class B @83
+          class B @96
             reference: self::@augmentation::package:test/test.macro.dart::@class::B
             metadata
               Annotation
-                atSign: @ @61
+                atSign: @ @74
                 name: SimpleIdentifier
-                  token: AddMethodFoo @62
+                  token: AddMethodFoo @75
                   staticElement: package:test/a.dart::@class::AddMethodFoo
                   staticType: null
                 arguments: ArgumentList
-                  leftParenthesis: ( @74
-                  rightParenthesis: ) @75
+                  leftParenthesis: ( @87
+                  rightParenthesis: ) @88
                 element: package:test/a.dart::@class::AddMethodFoo::@constructor::new
             augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::B
             augmented
               methods
                 self::@augmentation::package:test/test.macro.dart::@classAugmentation::B::@method::bar
                 self::@augmentation::package:test/test.macro.dart::@classAugmentation::B::@method::foo
-          augment class B @103
+          augment class B @116
             reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::B
             augmentationTarget: self::@augmentation::package:test/test.macro.dart::@class::B
             methods
-              foo @132
+              foo @145
                 reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::B::@method::foo
                 metadata
                   Annotation
-                    atSign: @ @109
+                    atSign: @ @122
                     name: SimpleIdentifier
-                      token: AddMethodBar @110
+                      token: AddMethodBar @123
                       staticElement: package:test/a.dart::@class::AddMethodBar
                       staticType: null
                     arguments: ArgumentList
-                      leftParenthesis: ( @122
-                      rightParenthesis: ) @123
+                      leftParenthesis: ( @135
+                      rightParenthesis: ) @136
                     element: package:test/a.dart::@class::AddMethodBar::@constructor::new
                 returnType: void
-              bar @148
+              bar @161
                 reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::B::@method::bar
                 returnType: void
 ''');
@@ -2502,7 +2502,7 @@ library
       reference: self::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 augment class A {
   A.named(this.f);
@@ -2511,16 +2511,16 @@ augment class A {
       definingUnit
         reference: self::@augmentation::package:test/test.macro.dart
         classes
-          augment class A @44
+          augment class A @57
             reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
             augmentationTarget: self::@class::A
             constructors
-              named @52
+              named @65
                 reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructor::named
-                periodOffset: 51
-                nameEnd: 57
+                periodOffset: 64
+                nameEnd: 70
                 parameters
-                  requiredPositional final this.f @63
+                  requiredPositional final this.f @76
                     type: int
                     field: self::@class::A::@field::f
 ''');
@@ -2556,7 +2556,7 @@ library
       reference: self::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 augment class A {
   A.named(int a);
@@ -2565,16 +2565,16 @@ augment class A {
       definingUnit
         reference: self::@augmentation::package:test/test.macro.dart
         classes
-          augment class A @44
+          augment class A @57
             reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
             augmentationTarget: self::@class::A
             constructors
-              named @52
+              named @65
                 reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructor::named
-                periodOffset: 51
-                nameEnd: 57
+                periodOffset: 64
+                nameEnd: 70
                 parameters
-                  requiredPositional a @62
+                  requiredPositional a @75
                     type: int
 ''');
   }
@@ -2609,7 +2609,7 @@ library
       reference: self::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 augment class A {
   A(int a);
@@ -2618,14 +2618,14 @@ augment class A {
       definingUnit
         reference: self::@augmentation::package:test/test.macro.dart
         classes
-          augment class A @44
+          augment class A @57
             reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
             augmentationTarget: self::@class::A
             constructors
-              @50
+              @63
                 reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructor::new
                 parameters
-                  requiredPositional a @56
+                  requiredPositional a @69
                     type: int
 ''');
   }
@@ -2664,7 +2664,7 @@ library
       reference: self::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 augment class A {
   int foo = 0;
@@ -2673,11 +2673,11 @@ augment class A {
       definingUnit
         reference: self::@augmentation::package:test/test.macro.dart
         classes
-          augment class A @44
+          augment class A @57
             reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
             augmentationTarget: self::@class::A
             fields
-              foo @54
+              foo @67
                 reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@field::foo
                 type: int
                 shouldUseTypeForInitializerInference: true
@@ -2727,7 +2727,7 @@ library
       reference: self::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 augment class A {
   int get foo => 0;
@@ -2736,7 +2736,7 @@ augment class A {
       definingUnit
         reference: self::@augmentation::package:test/test.macro.dart
         classes
-          augment class A @44
+          augment class A @57
             reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
             augmentationTarget: self::@class::A
             fields
@@ -2744,7 +2744,7 @@ augment class A {
                 reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@field::foo
                 type: int
             accessors
-              get foo @58
+              get foo @71
                 reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
                 returnType: int
 ''');
@@ -2781,7 +2781,7 @@ library
       reference: self::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 augment class A {
   int foo(double a) => 0;
@@ -2790,14 +2790,14 @@ augment class A {
       definingUnit
         reference: self::@augmentation::package:test/test.macro.dart
         classes
-          augment class A @44
+          augment class A @57
             reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
             augmentationTarget: self::@class::A
             methods
-              foo @54
+              foo @67
                 reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@method::foo
                 parameters
-                  requiredPositional a @65
+                  requiredPositional a @78
                     type: double
                 returnType: int
 ''');
@@ -2836,7 +2836,7 @@ library
       reference: self::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 augment class A {
   set foo(int a) {}
@@ -2845,7 +2845,7 @@ augment class A {
       definingUnit
         reference: self::@augmentation::package:test/test.macro.dart
         classes
-          augment class A @44
+          augment class A @57
             reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
             augmentationTarget: self::@class::A
             fields
@@ -2853,10 +2853,10 @@ augment class A {
                 reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@field::foo
                 type: int
             accessors
-              set foo= @54
+              set foo= @67
                 reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
                 parameters
-                  requiredPositional a @62
+                  requiredPositional a @75
                     type: int
                 returnType: void
 ''');
@@ -2887,7 +2887,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/a.dart';
 
@@ -2899,16 +2899,16 @@ augment class B {
         package:test/a.dart
       definingUnit
         classes
-          augment class B @75
+          augment class B @88
             augmentationTarget: self::@class::B
             constructors
-              @81
+              @94
                 parameters
-                  optionalPositional default x @84
+                  optionalPositional default x @97
                     type: dynamic
                     constantInitializer
                       SimpleIdentifier
-                        token: a @88
+                        token: a @101
                         staticElement: package:test/a.dart::@getter::a
                         staticType: int
 ''');
@@ -2937,7 +2937,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/a.dart';
 
@@ -2949,16 +2949,16 @@ augment class B {
         package:test/a.dart
       definingUnit
         classes
-          augment class B @75
+          augment class B @88
             augmentationTarget: self::@class::B
             methods
-              foo @86
+              foo @99
                 parameters
-                  optionalPositional default x @91
+                  optionalPositional default x @104
                     type: dynamic
                     constantInitializer
                       SimpleIdentifier
-                        token: a @95
+                        token: a @108
                         staticElement: package:test/a.dart::@getter::a
                         staticType: int
                 returnType: void
@@ -2988,7 +2988,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/a.dart';
 
@@ -3000,18 +3000,18 @@ augment class B {
         package:test/a.dart
       definingUnit
         classes
-          augment class B @75
+          augment class B @88
             augmentationTarget: self::@class::B
             methods
-              foo @86
+              foo @99
                 parameters
-                  optionalPositional default x @94
+                  optionalPositional default x @107
                     type: dynamic
                     metadata
                       Annotation
-                        atSign: @ @91
+                        atSign: @ @104
                         name: SimpleIdentifier
-                          token: a @92
+                          token: a @105
                           staticElement: package:test/a.dart::@getter::a
                           staticType: null
                         element: package:test/a.dart::@getter::a
@@ -3042,7 +3042,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/a.dart';
 
@@ -3054,18 +3054,18 @@ augment class B {
         package:test/a.dart
       definingUnit
         classes
-          augment class B @75
+          augment class B @88
             augmentationTarget: self::@class::B
             methods
-              foo @86
+              foo @99
                 parameters
-                  requiredPositional x @93
+                  requiredPositional x @106
                     type: dynamic
                     metadata
                       Annotation
-                        atSign: @ @90
+                        atSign: @ @103
                         name: SimpleIdentifier
-                          token: a @91
+                          token: a @104
                           staticElement: package:test/a.dart::@getter::a
                           staticType: null
                         element: package:test/a.dart::@getter::a
@@ -3096,7 +3096,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/a.dart';
 
@@ -3108,21 +3108,21 @@ augment class B {
         package:test/a.dart
       definingUnit
         classes
-          augment class B @75
+          augment class B @88
             augmentationTarget: self::@class::B
             fields
               synthetic foo @-1
                 type: dynamic
             accessors
-              set foo= @85
+              set foo= @98
                 parameters
-                  requiredPositional x @92
+                  requiredPositional x @105
                     type: dynamic
                     metadata
                       Annotation
-                        atSign: @ @89
+                        atSign: @ @102
                         name: SimpleIdentifier
-                          token: a @90
+                          token: a @103
                           staticElement: package:test/a.dart::@getter::a
                           staticType: null
                         element: package:test/a.dart::@getter::a
@@ -3153,7 +3153,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/a.dart';
 
@@ -3165,15 +3165,15 @@ augment class B {
         package:test/a.dart
       definingUnit
         classes
-          augment class B @75
+          augment class B @88
             augmentationTarget: self::@class::B
             fields
-              static const x @94
+              static const x @107
                 type: int
                 shouldUseTypeForInitializerInference: false
                 constantInitializer
                   SimpleIdentifier
-                    token: a @98
+                    token: a @111
                     staticElement: package:test/a.dart::@getter::a
                     staticType: int
             accessors
@@ -3207,7 +3207,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/a.dart';
 
@@ -3219,15 +3219,15 @@ augment class B {
         package:test/a.dart
       definingUnit
         classes
-          augment class B @75
+          augment class B @88
             augmentationTarget: self::@class::B
             fields
-              final x @87
+              final x @100
                 type: int
                 shouldUseTypeForInitializerInference: false
                 constantInitializer
                   SimpleIdentifier
-                    token: a @91
+                    token: a @104
                     staticElement: package:test/a.dart::@getter::a
                     staticType: int
             accessors
@@ -3259,7 +3259,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/a.dart';
 
@@ -3271,10 +3271,10 @@ augment class B {
         package:test/a.dart
       definingUnit
         classes
-          augment class B @75
+          augment class B @88
             augmentationTarget: self::@class::B
             fields
-              final x @87
+              final x @100
                 type: int
                 shouldUseTypeForInitializerInference: false
             accessors
@@ -3306,7 +3306,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/a.dart';
 
@@ -3318,24 +3318,24 @@ augment class B {
         package:test/a.dart
       definingUnit
         classes
-          augment class B @75
+          augment class B @88
             augmentationTarget: self::@class::B
             fields
-              static const x @94
+              static const x @107
                 type: Type
                 shouldUseTypeForInitializerInference: false
                 constantInitializer
                   TypeLiteral
                     type: NamedType
-                      name: A @98
+                      name: A @111
                       typeArguments: TypeArgumentList
-                        leftBracket: < @99
+                        leftBracket: < @112
                         arguments
                           NamedType
-                            name: void @100
+                            name: void @113
                             element: <null>
                             type: void
-                        rightBracket: > @104
+                        rightBracket: > @117
                       element: package:test/a.dart::@class::A
                       type: A<void>
                     staticType: Type
@@ -3368,7 +3368,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/a.dart';
 
@@ -3378,12 +3378,12 @@ const x = a;
         package:test/a.dart
       definingUnit
         topLevelVariables
-          static const x @67
+          static const x @80
             type: int
             shouldUseTypeForInitializerInference: false
             constantInitializer
               SimpleIdentifier
-                token: a @71
+                token: a @84
                 staticElement: package:test/a.dart::@getter::a
                 staticType: int
         accessors
@@ -3416,7 +3416,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/a.dart';
 
@@ -3426,18 +3426,18 @@ const x = a + b;
         package:test/a.dart
       definingUnit
         topLevelVariables
-          static const x @67
+          static const x @80
             type: int
             shouldUseTypeForInitializerInference: false
             constantInitializer
               BinaryExpression
                 leftOperand: SimpleIdentifier
-                  token: a @71
+                  token: a @84
                   staticElement: package:test/a.dart::@getter::a
                   staticType: int
-                operator: + @73
+                operator: + @86
                 rightOperand: SimpleIdentifier
-                  token: b @75
+                  token: b @88
                   staticElement: package:test/a.dart::@getter::b
                   staticType: int
                 staticElement: dart:core::@class::num::@method::+
@@ -3479,53 +3479,54 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/a.dart';
 
 @A()
 const x = a, y = a;
+
 ---
       imports
         package:test/a.dart
       definingUnit
         topLevelVariables
-          static const x @72
+          static const x @85
             metadata
               Annotation
-                atSign: @ @61
+                atSign: @ @74
                 name: SimpleIdentifier
-                  token: A @62
+                  token: A @75
                   staticElement: package:test/a.dart::@class::A
                   staticType: null
                 arguments: ArgumentList
-                  leftParenthesis: ( @63
-                  rightParenthesis: ) @64
+                  leftParenthesis: ( @76
+                  rightParenthesis: ) @77
                 element: package:test/a.dart::@class::A::@constructor::new
             type: int
             shouldUseTypeForInitializerInference: false
             constantInitializer
               SimpleIdentifier
-                token: a @76
+                token: a @89
                 staticElement: package:test/a.dart::@getter::a
                 staticType: int
-          static const y @79
+          static const y @92
             metadata
               Annotation
-                atSign: @ @61
+                atSign: @ @74
                 name: SimpleIdentifier
-                  token: A @62
+                  token: A @75
                   staticElement: package:test/a.dart::@class::A
                   staticType: null
                 arguments: ArgumentList
-                  leftParenthesis: ( @63
-                  rightParenthesis: ) @64
+                  leftParenthesis: ( @76
+                  rightParenthesis: ) @77
                 element: package:test/a.dart::@class::A::@constructor::new
             type: int
             shouldUseTypeForInitializerInference: false
             constantInitializer
               SimpleIdentifier
-                token: a @83
+                token: a @96
                 staticElement: package:test/a.dart::@getter::a
                 staticType: int
         accessors
@@ -3559,7 +3560,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/a.dart';
 
@@ -3569,21 +3570,21 @@ const x = A<void>;
         package:test/a.dart
       definingUnit
         topLevelVariables
-          static const x @67
+          static const x @80
             type: Type
             shouldUseTypeForInitializerInference: false
             constantInitializer
               TypeLiteral
                 type: NamedType
-                  name: A @71
+                  name: A @84
                   typeArguments: TypeArgumentList
-                    leftBracket: < @72
+                    leftBracket: < @85
                     arguments
                       NamedType
-                        name: void @73
+                        name: void @86
                         element: <null>
                         type: void
-                    rightBracket: > @77
+                    rightBracket: > @90
                   element: package:test/a.dart::@class::A
                   type: A<void>
                 staticType: Type
@@ -3620,7 +3621,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/a.dart';
 
@@ -3631,17 +3632,17 @@ class C {}
         package:test/a.dart
       definingUnit
         classes
-          notSimplyBounded class C @72
+          notSimplyBounded class C @85
             metadata
               Annotation
-                atSign: @ @61
+                atSign: @ @74
                 name: SimpleIdentifier
-                  token: A @62
+                  token: A @75
                   staticElement: package:test/a.dart::@class::A
                   staticType: null
                 arguments: ArgumentList
-                  leftParenthesis: ( @63
-                  rightParenthesis: ) @64
+                  leftParenthesis: ( @76
+                  rightParenthesis: ) @77
                 element: package:test/a.dart::@class::A::@constructor::new
 ''');
   }
@@ -3675,7 +3676,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/a.dart';
 
@@ -3688,23 +3689,23 @@ augment class B {
         package:test/a.dart
       definingUnit
         classes
-          augment class B @75
+          augment class B @88
             augmentationTarget: self::@class::B
             constructors
-              named @90
+              named @103
                 metadata
                   Annotation
-                    atSign: @ @81
+                    atSign: @ @94
                     name: SimpleIdentifier
-                      token: A @82
+                      token: A @95
                       staticElement: package:test/a.dart::@class::A
                       staticType: null
                     arguments: ArgumentList
-                      leftParenthesis: ( @83
-                      rightParenthesis: ) @84
+                      leftParenthesis: ( @96
+                      rightParenthesis: ) @97
                     element: package:test/a.dart::@class::A::@constructor::new
-                periodOffset: 89
-                nameEnd: 95
+                periodOffset: 102
+                nameEnd: 108
 ''');
   }
 
@@ -3735,7 +3736,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/a.dart';
 
@@ -3748,20 +3749,20 @@ augment class B {
         package:test/a.dart
       definingUnit
         classes
-          augment class B @75
+          augment class B @88
             augmentationTarget: self::@class::B
             fields
-              final foo @98
+              final foo @111
                 metadata
                   Annotation
-                    atSign: @ @81
+                    atSign: @ @94
                     name: SimpleIdentifier
-                      token: A @82
+                      token: A @95
                       staticElement: package:test/a.dart::@class::A
                       staticType: null
                     arguments: ArgumentList
-                      leftParenthesis: ( @83
-                      rightParenthesis: ) @84
+                      leftParenthesis: ( @96
+                      rightParenthesis: ) @97
                     element: package:test/a.dart::@class::A::@constructor::new
                 type: int
                 shouldUseTypeForInitializerInference: true
@@ -3798,7 +3799,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/a.dart';
 
@@ -3811,34 +3812,34 @@ augment class B {
         package:test/a.dart
       definingUnit
         classes
-          augment class B @75
+          augment class B @88
             augmentationTarget: self::@class::B
             fields
-              final foo @98
+              final foo @111
                 metadata
                   Annotation
-                    atSign: @ @81
+                    atSign: @ @94
                     name: SimpleIdentifier
-                      token: A @82
+                      token: A @95
                       staticElement: package:test/a.dart::@class::A
                       staticType: null
                     arguments: ArgumentList
-                      leftParenthesis: ( @83
-                      rightParenthesis: ) @84
+                      leftParenthesis: ( @96
+                      rightParenthesis: ) @97
                     element: package:test/a.dart::@class::A::@constructor::new
                 type: int
                 shouldUseTypeForInitializerInference: true
-              final bar @107
+              final bar @120
                 metadata
                   Annotation
-                    atSign: @ @81
+                    atSign: @ @94
                     name: SimpleIdentifier
-                      token: A @82
+                      token: A @95
                       staticElement: package:test/a.dart::@class::A
                       staticType: null
                     arguments: ArgumentList
-                      leftParenthesis: ( @83
-                      rightParenthesis: ) @84
+                      leftParenthesis: ( @96
+                      rightParenthesis: ) @97
                     element: package:test/a.dart::@class::A::@constructor::new
                 type: int
                 shouldUseTypeForInitializerInference: true
@@ -3877,7 +3878,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/a.dart';
 
@@ -3890,23 +3891,23 @@ augment class B {
         package:test/a.dart
       definingUnit
         classes
-          augment class B @75
+          augment class B @88
             augmentationTarget: self::@class::B
             fields
               synthetic foo @-1
                 type: int
             accessors
-              get foo @96
+              get foo @109
                 metadata
                   Annotation
-                    atSign: @ @81
+                    atSign: @ @94
                     name: SimpleIdentifier
-                      token: A @82
+                      token: A @95
                       staticElement: package:test/a.dart::@class::A
                       staticType: null
                     arguments: ArgumentList
-                      leftParenthesis: ( @83
-                      rightParenthesis: ) @84
+                      leftParenthesis: ( @96
+                      rightParenthesis: ) @97
                     element: package:test/a.dart::@class::A::@constructor::new
                 returnType: int
 ''');
@@ -3939,7 +3940,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/a.dart';
 
@@ -3952,20 +3953,20 @@ augment class B {
         package:test/a.dart
       definingUnit
         classes
-          augment class B @75
+          augment class B @88
             augmentationTarget: self::@class::B
             methods
-              foo @93
+              foo @106
                 metadata
                   Annotation
-                    atSign: @ @81
+                    atSign: @ @94
                     name: SimpleIdentifier
-                      token: A @82
+                      token: A @95
                       staticElement: package:test/a.dart::@class::A
                       staticType: null
                     arguments: ArgumentList
-                      leftParenthesis: ( @83
-                      rightParenthesis: ) @84
+                      leftParenthesis: ( @96
+                      rightParenthesis: ) @97
                     element: package:test/a.dart::@class::A::@constructor::new
                 returnType: void
 ''');
@@ -3998,7 +3999,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/a.dart';
 
@@ -4011,26 +4012,26 @@ augment class B {
         package:test/a.dart
       definingUnit
         classes
-          augment class B @75
+          augment class B @88
             augmentationTarget: self::@class::B
             fields
               synthetic foo @-1
                 type: int
             accessors
-              set foo= @92
+              set foo= @105
                 metadata
                   Annotation
-                    atSign: @ @81
+                    atSign: @ @94
                     name: SimpleIdentifier
-                      token: A @82
+                      token: A @95
                       staticElement: package:test/a.dart::@class::A
                       staticType: null
                     arguments: ArgumentList
-                      leftParenthesis: ( @83
-                      rightParenthesis: ) @84
+                      leftParenthesis: ( @96
+                      rightParenthesis: ) @97
                     element: package:test/a.dart::@class::A::@constructor::new
                 parameters
-                  requiredPositional _ @100
+                  requiredPositional _ @113
                     type: int
                 returnType: void
 ''');
@@ -4063,7 +4064,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/a.dart';
 
@@ -4074,17 +4075,17 @@ void foo() {}
         package:test/a.dart
       definingUnit
         functions
-          foo @71
+          foo @84
             metadata
               Annotation
-                atSign: @ @61
+                atSign: @ @74
                 name: SimpleIdentifier
-                  token: A @62
+                  token: A @75
                   staticElement: package:test/a.dart::@class::A
                   staticType: null
                 arguments: ArgumentList
-                  leftParenthesis: ( @63
-                  rightParenthesis: ) @64
+                  leftParenthesis: ( @76
+                  rightParenthesis: ) @77
                 element: package:test/a.dart::@class::A::@constructor::new
             returnType: void
 ''');
@@ -4113,7 +4114,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/a.dart';
 
@@ -4123,13 +4124,13 @@ void foo([x = a]) {}
         package:test/a.dart
       definingUnit
         functions
-          foo @66
+          foo @79
             parameters
-              optionalPositional default x @71
+              optionalPositional default x @84
                 type: dynamic
                 constantInitializer
                   SimpleIdentifier
-                    token: a @75
+                    token: a @88
                     staticElement: package:test/a.dart::@getter::a
                     staticType: int
             returnType: void
@@ -4163,7 +4164,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/a.dart';
 
@@ -4177,17 +4178,17 @@ int get foo => 0;
           synthetic static foo @-1
             type: int
         accessors
-          static get foo @74
+          static get foo @87
             metadata
               Annotation
-                atSign: @ @61
+                atSign: @ @74
                 name: SimpleIdentifier
-                  token: A @62
+                  token: A @75
                   staticElement: package:test/a.dart::@class::A
                   staticType: null
                 arguments: ArgumentList
-                  leftParenthesis: ( @63
-                  rightParenthesis: ) @64
+                  leftParenthesis: ( @76
+                  rightParenthesis: ) @77
                 element: package:test/a.dart::@class::A::@constructor::new
             returnType: int
 ''');
@@ -4220,7 +4221,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/a.dart';
 
@@ -4234,20 +4235,20 @@ set foo(int _) {}
           synthetic static foo @-1
             type: int
         accessors
-          static set foo= @70
+          static set foo= @83
             metadata
               Annotation
-                atSign: @ @61
+                atSign: @ @74
                 name: SimpleIdentifier
-                  token: A @62
+                  token: A @75
                   staticElement: package:test/a.dart::@class::A
                   staticType: null
                 arguments: ArgumentList
-                  leftParenthesis: ( @63
-                  rightParenthesis: ) @64
+                  leftParenthesis: ( @76
+                  rightParenthesis: ) @77
                 element: package:test/a.dart::@class::A::@constructor::new
             parameters
-              requiredPositional _ @78
+              requiredPositional _ @91
                 type: int
             returnType: void
 ''');
@@ -4276,7 +4277,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/a.dart';
 
@@ -4289,15 +4290,15 @@ set foo(@a x) {}
           synthetic static foo @-1
             type: dynamic
         accessors
-          static set foo= @65
+          static set foo= @78
             parameters
-              requiredPositional x @72
+              requiredPositional x @85
                 type: dynamic
                 metadata
                   Annotation
-                    atSign: @ @69
+                    atSign: @ @82
                     name: SimpleIdentifier
-                      token: a @70
+                      token: a @83
                       staticElement: package:test/a.dart::@getter::a
                       staticType: null
                     element: package:test/a.dart::@getter::a
@@ -4332,7 +4333,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/a.dart';
 
@@ -4343,17 +4344,17 @@ final foo = 0;
         package:test/a.dart
       definingUnit
         topLevelVariables
-          static final foo @72
+          static final foo @85
             metadata
               Annotation
-                atSign: @ @61
+                atSign: @ @74
                 name: SimpleIdentifier
-                  token: A @62
+                  token: A @75
                   staticElement: package:test/a.dart::@class::A
                   staticType: null
                 arguments: ArgumentList
-                  leftParenthesis: ( @63
-                  rightParenthesis: ) @64
+                  leftParenthesis: ( @76
+                  rightParenthesis: ) @77
                 element: package:test/a.dart::@class::A::@constructor::new
             type: int
             shouldUseTypeForInitializerInference: false
@@ -4390,7 +4391,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/a.dart';
 
@@ -4401,31 +4402,31 @@ final foo = 0, bar = 1;
         package:test/a.dart
       definingUnit
         topLevelVariables
-          static final foo @72
+          static final foo @85
             metadata
               Annotation
-                atSign: @ @61
+                atSign: @ @74
                 name: SimpleIdentifier
-                  token: A @62
+                  token: A @75
                   staticElement: package:test/a.dart::@class::A
                   staticType: null
                 arguments: ArgumentList
-                  leftParenthesis: ( @63
-                  rightParenthesis: ) @64
+                  leftParenthesis: ( @76
+                  rightParenthesis: ) @77
                 element: package:test/a.dart::@class::A::@constructor::new
             type: int
             shouldUseTypeForInitializerInference: false
-          static final bar @81
+          static final bar @94
             metadata
               Annotation
-                atSign: @ @61
+                atSign: @ @74
                 name: SimpleIdentifier
-                  token: A @62
+                  token: A @75
                   staticElement: package:test/a.dart::@class::A
                   staticType: null
                 arguments: ArgumentList
-                  leftParenthesis: ( @63
-                  rightParenthesis: ) @64
+                  leftParenthesis: ( @76
+                  rightParenthesis: ) @77
                 element: package:test/a.dart::@class::A::@constructor::new
             type: int
             shouldUseTypeForInitializerInference: false
@@ -4466,7 +4467,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/a.dart';
 
@@ -4477,22 +4478,22 @@ class C {}
         package:test/a.dart
       definingUnit
         classes
-          notSimplyBounded class C @75
+          notSimplyBounded class C @88
             metadata
               Annotation
-                atSign: @ @61
+                atSign: @ @74
                 name: SimpleIdentifier
-                  token: A @62
+                  token: A @75
                   staticElement: package:test/a.dart::@class::A
                   staticType: null
                 arguments: ArgumentList
-                  leftParenthesis: ( @63
+                  leftParenthesis: ( @76
                   arguments
                     SimpleIdentifier
-                      token: foo @64
+                      token: foo @77
                       staticElement: package:test/a.dart::@function::foo
                       staticType: void Function()
-                  rightParenthesis: ) @67
+                  rightParenthesis: ) @80
                 element: package:test/a.dart::@class::A::@constructor::new
 ''');
   }
@@ -4526,7 +4527,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/a.dart';
 
@@ -4537,22 +4538,22 @@ class C {}
         package:test/a.dart
       definingUnit
         classes
-          notSimplyBounded class C @78
+          notSimplyBounded class C @91
             metadata
               Annotation
-                atSign: @ @61
+                atSign: @ @74
                 name: SimpleIdentifier
-                  token: A @63
+                  token: A @76
                   staticElement: package:test/a.dart::@class::A
                   staticType: null
-                period: . @62
+                period: . @75
                 constructorName: SimpleIdentifier
-                  token: named @64
+                  token: named @77
                   staticElement: package:test/a.dart::@class::A::@constructor::named
                   staticType: null
                 arguments: ArgumentList
-                  leftParenthesis: ( @69
-                  rightParenthesis: ) @70
+                  leftParenthesis: ( @82
+                  rightParenthesis: ) @83
                 element: package:test/a.dart::@class::A::@constructor::named
 ''');
   }
@@ -4586,7 +4587,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/a.dart';
 
@@ -4597,32 +4598,32 @@ class C {}
         package:test/a.dart
       definingUnit
         classes
-          notSimplyBounded class C @79
+          notSimplyBounded class C @92
             metadata
               Annotation
-                atSign: @ @61
+                atSign: @ @74
                 name: SimpleIdentifier
-                  token: A @62
+                  token: A @75
                   staticElement: package:test/a.dart::@class::A
                   staticType: null
                 arguments: ArgumentList
-                  leftParenthesis: ( @63
+                  leftParenthesis: ( @76
                   arguments
                     TypeLiteral
                       type: NamedType
-                        name: X @64
+                        name: X @77
                         typeArguments: TypeArgumentList
-                          leftBracket: < @65
+                          leftBracket: < @78
                           arguments
                             NamedType
-                              name: void @66
+                              name: void @79
                               element: <null>
                               type: void
-                          rightBracket: > @70
+                          rightBracket: > @83
                         element: package:test/a.dart::@class::X
                         type: X<void>
                       staticType: Type
-                  rightParenthesis: ) @71
+                  rightParenthesis: ) @84
                 element: package:test/a.dart::@class::A::@constructor::new
 ''');
   }
@@ -4656,7 +4657,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 import 'package:test/b.dart' as prefix1;
@@ -4664,15 +4665,15 @@ import 'package:test/b.dart' as prefix1;
 void foo(prefix0.X x1, prefix1.X x2) {}
 ---
       imports
-        package:test/a.dart as prefix0 @62
-        package:test/b.dart as prefix1 @103
+        package:test/a.dart as prefix0 @75
+        package:test/b.dart as prefix1 @116
       definingUnit
         functions
-          foo @118
+          foo @131
             parameters
-              requiredPositional x1 @132
+              requiredPositional x1 @145
                 type: X
-              requiredPositional x2 @146
+              requiredPositional x2 @159
                 type: X
             returnType: void
 ''');
@@ -4703,19 +4704,19 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
 void foo(prefix0.X x) {}
 ---
       imports
-        package:test/a.dart as prefix0 @62
+        package:test/a.dart as prefix0 @75
       definingUnit
         functions
-          foo @77
+          foo @90
             parameters
-              requiredPositional x @91
+              requiredPositional x @104
                 type: X
             returnType: void
 ''');
@@ -4750,14 +4751,14 @@ library
       reference: self::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 void foo() {}
 ---
       definingUnit
         reference: self::@augmentation::package:test/test.macro.dart
         functions
-          foo @35
+          foo @48
             reference: self::@augmentation::package:test/test.macro.dart::@function::foo
             returnType: void
   exportedReferences
@@ -4798,14 +4799,14 @@ library
       reference: self::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 final x = 42;
 ---
       definingUnit
         reference: self::@augmentation::package:test/test.macro.dart
         topLevelVariables
-          static final x @36
+          static final x @49
             reference: self::@augmentation::package:test/test.macro.dart::@topLevelVariable::x
             type: int
             shouldUseTypeForInitializerInference: false
@@ -4875,7 +4876,7 @@ library
       reference: self::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/a.dart';
 
@@ -4890,19 +4891,19 @@ augment class A {
       definingUnit
         reference: self::@augmentation::package:test/test.macro.dart
         classes
-          augment class A @75
+          augment class A @88
             reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
             augmentationTarget: self::@class::A
             constructors
-              named @107
+              named @120
                 reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructor::named
-                periodOffset: 106
-                nameEnd: 112
+                periodOffset: 119
+                nameEnd: 125
                 augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::named
-              augment named @128
+              augment named @141
                 reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::named
-                periodOffset: 127
-                nameEnd: 133
+                periodOffset: 140
+                nameEnd: 146
                 augmentationTarget: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructor::named
 ''');
   }
@@ -4947,7 +4948,7 @@ library
       reference: self::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/a.dart';
 import 'dart:core';
@@ -4964,18 +4965,18 @@ augment class A {
       definingUnit
         reference: self::@augmentation::package:test/test.macro.dart
         classes
-          augment class A @95
+          augment class A @108
             reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
             augmentationTarget: self::@class::A
             fields
-              foo @123
+              foo @136
                 reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@field::foo
                 type: int
                 id: field_0
                 getter: getter_0
                 setter: setter_0
                 augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@fieldAugmentation::foo
-              augment foo @142
+              augment foo @155
                 reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@fieldAugmentation::foo
                 type: int
                 shouldUseTypeForInitializerInference: true
@@ -5037,7 +5038,7 @@ library
       reference: self::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/a.dart';
 import 'dart:core';
@@ -5054,7 +5055,7 @@ augment class A {
       definingUnit
         reference: self::@augmentation::package:test/test.macro.dart
         classes
-          augment class A @95
+          augment class A @108
             reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
             augmentationTarget: self::@class::A
             fields
@@ -5064,13 +5065,13 @@ augment class A {
                 id: field_0
                 getter: getter_0
             accessors
-              external get foo @137
+              external get foo @150
                 reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
                 returnType: int
                 id: getter_0
                 variable: field_0
                 augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@getterAugmentation::foo
-              augment get foo @160
+              augment get foo @173
                 reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@getterAugmentation::foo
                 returnType: int
                 id: getter_1
@@ -5115,7 +5116,7 @@ library
       reference: self::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/a.dart';
 import 'dart:core';
@@ -5132,15 +5133,15 @@ augment class A {
       definingUnit
         reference: self::@augmentation::package:test/test.macro.dart
         classes
-          augment class A @95
+          augment class A @108
             reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
             augmentationTarget: self::@class::A
             methods
-              external foo @133
+              external foo @146
                 reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@method::foo
                 returnType: int
                 augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::foo
-              augment foo @154
+              augment foo @167
                 reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::foo
                 returnType: int
                 augmentationTarget: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@method::foo
@@ -5186,7 +5187,7 @@ library
       reference: self::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/a.dart';
 import 'dart:core';
@@ -5203,7 +5204,7 @@ augment class A {
       definingUnit
         reference: self::@augmentation::package:test/test.macro.dart
         classes
-          augment class A @95
+          augment class A @108
             reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
             augmentationTarget: self::@class::A
             fields
@@ -5213,19 +5214,19 @@ augment class A {
                 id: field_0
                 setter: setter_0
             accessors
-              external set foo= @138
+              external set foo= @151
                 reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
                 parameters
-                  requiredPositional value @146
+                  requiredPositional value @159
                     type: int
                 returnType: void
                 id: setter_0
                 variable: field_0
                 augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@setterAugmentation::foo
-              augment set foo= @173
+              augment set foo= @186
                 reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@setterAugmentation::foo
                 parameters
-                  requiredPositional value @181
+                  requiredPositional value @194
                     type: int
                 returnType: void
                 id: setter_1
@@ -7300,7 +7301,7 @@ library
       reference: self::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/json_serializable.dart';
 import 'dart:core';
@@ -7326,32 +7327,32 @@ json['bar'] = this.bar;
       definingUnit
         reference: self::@augmentation::package:test/test.macro.dart
         classes
-          augment class A @111
+          augment class A @124
             reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
             augmentationTarget: self::@class::A
             constructors
-              external fromJson @142
+              external fromJson @155
                 reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructor::fromJson
-                periodOffset: 141
-                nameEnd: 150
+                periodOffset: 154
+                nameEnd: 163
                 parameters
-                  requiredPositional json @172
+                  requiredPositional json @185
                     type: Map<String, Object?>
                 augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::fromJson
-              augment fromJson @245
+              augment fromJson @258
                 reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::fromJson
-                periodOffset: 244
-                nameEnd: 253
+                periodOffset: 257
+                nameEnd: 266
                 parameters
-                  requiredPositional json @275
+                  requiredPositional json @288
                     type: Map<String, Object?>
                 augmentationTarget: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructor::fromJson
             methods
-              external toJson @223
+              external toJson @236
                 reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@method::toJson
                 returnType: Map<String, Object?>
                 augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::toJson
-              augment toJson @379
+              augment toJson @392
                 reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::toJson
                 returnType: Map<String, Object?>
                 augmentationTarget: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@method::toJson
@@ -7371,7 +7372,7 @@ class A {
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'dart:core';
 
@@ -12097,14 +12098,14 @@ library
       reference: self::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 class MyClass {}
 ---
       definingUnit
         reference: self::@augmentation::package:test/test.macro.dart
         classes
-          class MyClass @36
+          class MyClass @49
             reference: self::@augmentation::package:test/test.macro.dart::@class::MyClass
 ''');
   }
@@ -12131,13 +12132,13 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 class MyClass {}
 ---
       definingUnit
         classes
-          class MyClass @36
+          class MyClass @49
             constructors
               synthetic @-1
 ''');
@@ -12165,13 +12166,13 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 class MyClass {}
 ---
       definingUnit
         classes
-          class MyClass @36
+          class MyClass @49
             constructors
               synthetic @-1
 ''');
@@ -12199,13 +12200,13 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 class MyClass {}
 ---
       definingUnit
         classes
-          class MyClass @36
+          class MyClass @49
             constructors
               synthetic @-1
 ''');
@@ -12240,14 +12241,14 @@ library
       reference: self::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 class B {}
 ---
       definingUnit
         reference: self::@augmentation::package:test/test.macro.dart
         classes
-          class B @36
+          class B @49
             reference: self::@augmentation::package:test/test.macro.dart::@class::B
   exportedReferences
     declared self::@augmentation::package:test/test.macro.dart::@class::B
@@ -12428,14 +12429,14 @@ library
       reference: self::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 class MyClass {}
 ---
       definingUnit
         reference: self::@augmentation::package:test/test.macro.dart
         classes
-          class MyClass @36
+          class MyClass @49
             reference: self::@augmentation::package:test/test.macro.dart::@class::MyClass
 ''');
     }
@@ -12494,7 +12495,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/a.dart';
 
@@ -12506,11 +12507,11 @@ class MyClass {
         package:test/a.dart
       definingUnit
         classes
-          class MyClass @67
+          class MyClass @80
             methods
-              foo @84
+              foo @97
                 parameters
-                  requiredPositional _ @90
+                  requiredPositional _ @103
                     type: A
                 returnType: void
 ''');
@@ -12574,7 +12575,7 @@ files
       id: file_3
       content
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/a.dart';
 
@@ -12668,7 +12669,7 @@ files
       id: file_3
       content
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/a.dart';
 
@@ -12757,7 +12758,7 @@ files
       id: file_3
       content
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/a.dart';
 
@@ -12858,7 +12859,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/a.dart';
 
@@ -12866,13 +12867,14 @@ import 'package:test/a.dart';
 class A {}
 
 class B {}
+
 ---
       imports
         package:test/a.dart
       definingUnit
         classes
-          class A @80
-          class B @92
+          class A @93
+          class B @105
 ''');
 
     analyzerStatePrinterConfiguration.filesToPrintContent.add(
@@ -12918,7 +12920,7 @@ files
       id: file_2
       content
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/a.dart';
 
@@ -12926,6 +12928,7 @@ import 'package:test/a.dart';
 class A {}
 
 class B {}
+
 ---
       kind: augmentation_2
         augmented: library_1
@@ -12990,7 +12993,7 @@ files
       id: file_2
       content
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/a.dart';
 
@@ -12998,6 +13001,7 @@ import 'package:test/a.dart';
 class A {}
 
 class B {}
+
 ---
       kind: augmentation_2
         augmented: library_1
@@ -13040,7 +13044,7 @@ class A {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 class B {}
 ''');
@@ -13274,7 +13278,7 @@ class A {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 class B {}
 ''');
@@ -13425,7 +13429,7 @@ elementFactory
     // Check that it has `class B2 {}`, as requested.
     result2 as LibraryElementResultImpl;
     _assertMacroCode(result2.element as LibraryElementImpl, r'''
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 class B2 {}
 ''');
@@ -13443,7 +13447,7 @@ class A {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 class B {}
 ''');

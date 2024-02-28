@@ -965,6 +965,22 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
+  void endLibraryAugmentation(
+      Token libraryKeyword, Token augmentKeyword, Token semicolon) {
+    debugEvent("endLibraryAugmentation");
+    assert(checkState(libraryKeyword, [
+      /* uri offset */ ValueKinds.Integer,
+      /* uri string */ ValueKinds.String,
+      /* metadata */ ValueKinds.MetadataListOrNull,
+    ]));
+    // TODO(johnniwinther): Pass uri to [libraryBuilder] and verify it.
+    pop() as int;
+    pop() as String;
+    List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
+    libraryBuilder.metadata = metadata;
+  }
+
+  @override
   void beginClassOrMixinOrNamedMixinApplicationPrelude(Token token) {
     debugEvent("beginClassOrNamedMixinApplicationPrelude");
     pushDeclarationContext(

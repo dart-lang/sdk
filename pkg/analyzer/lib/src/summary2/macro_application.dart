@@ -256,20 +256,20 @@ class LibraryMacroApplier {
 
   /// Builds the augmentation library code for [results].
   String? buildAugmentationLibraryCode(
+    Uri augmentedLibraryUri,
     List<macro.MacroExecutionResult> results,
   ) {
     if (results.isEmpty) {
       return null;
     }
 
-    return macroExecutor
-        .buildAugmentationLibrary(
-          results,
-          declarationBuilder.typeDeclarationOf,
-          declarationBuilder.resolveIdentifier,
-          declarationBuilder.inferOmittedType,
-        )
-        .trim();
+    return macroExecutor.buildAugmentationLibrary(
+      augmentedLibraryUri,
+      results,
+      declarationBuilder.typeDeclarationOf,
+      declarationBuilder.resolveIdentifier,
+      declarationBuilder.inferOmittedType,
+    );
   }
 
   Future<List<macro.MacroExecutionResult>?> executeDeclarationsPhase({

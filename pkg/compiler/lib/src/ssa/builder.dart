@@ -3301,7 +3301,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       return;
     }
 
-    HSwitch switchInstruction = HSwitch([expression]);
+    HSwitch switchInstruction = HSwitch(expression);
     HBasicBlock expressionEnd = close(switchInstruction);
     LocalsHandler savedLocals = localsHandler;
 
@@ -6106,7 +6106,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
         _abstractValueDomain.createFromStaticType(typeValue, nullable: false);
 
     push(HIsTest(
-        typeValue, checkedType, expression, rti, _abstractValueDomain.boolType)
+        typeValue, checkedType, rti, expression, _abstractValueDomain.boolType)
       ..sourceInformation = sourceInformation);
   }
 

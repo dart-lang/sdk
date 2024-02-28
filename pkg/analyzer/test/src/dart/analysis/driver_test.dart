@@ -279,7 +279,7 @@ class A {}
     flags: exists isAugmentation isMacroAugmentation
     content
 ---
-library augment 'a.dart';
+library augment 'package:test/a.dart';
 
 class B {}
 ---
@@ -939,7 +939,7 @@ class A {}
     flags: exists isAugmentation isMacroAugmentation
     content
 ---
-library augment 'a.dart';
+library augment 'package:test/a.dart';
 
 class B2 {}
 ---
@@ -1686,7 +1686,7 @@ class A {}
     flags: exists isAugmentation isMacroAugmentation
     content
 ---
-library augment 'a.dart';
+library augment 'package:test/a.dart';
 
 class B {}
 ---
@@ -2149,7 +2149,7 @@ class A {}
     flags: exists isAugmentation isMacroAugmentation
     content
 ---
-library augment 'a.dart';
+library augment 'package:test/a.dart';
 
 void foo() {}
 void f() { foo(); }
@@ -2216,7 +2216,7 @@ class B {}
 
   test_getLibraryByUri_notLibrary_augmentation() async {
     final a = newFile('$testPackageLibPath/a.dart', r'''
-library augment 'b.dart';
+library augment 'package:test/b.dart';
 ''');
 
     final driver = driverFor(a);
@@ -2312,7 +2312,7 @@ part of 'b.dart';
 
   test_getParsedLibraryByUri_notLibrary_augmentation() async {
     final a = newFile('$testPackageLibPath/a.dart', r'''
-library augment 'b.dart';
+library augment 'package:test/b.dart';
 ''');
 
     final driver = driverFor(a);
@@ -2452,7 +2452,7 @@ part of 'a.dart';
 
   test_getResolvedLibrary_notLibrary_augmentation() async {
     final a = newFile('$testPackageLibPath/a.dart', r'''
-library augment 'b.dart';
+library augment 'package:test/b.dart';
 ''');
 
     final driver = driverFor(a);
@@ -2565,7 +2565,7 @@ class A {}
         flags: exists isAugmentation isMacroAugmentation
         content
 ---
-library augment 'a.dart';
+library augment 'package:test/a.dart';
 
 class B {}
 ---
@@ -2666,7 +2666,7 @@ part of 'a.dart';
 
   test_getResolvedLibraryByUri_notLibrary_augmentation() async {
     final a = newFile('$testPackageLibPath/a.dart', r'''
-library augment 'b.dart';
+library augment 'package:test/b.dart';
 ''');
 
     final driver = driverFor(a);
@@ -2774,7 +2774,7 @@ class A {}
         flags: exists isAugmentation isMacroAugmentation
         content
 ---
-library augment 'a.dart';
+library augment 'package:test/a.dart';
 
 class B {}
 ---
@@ -2839,7 +2839,7 @@ import augment 'b.dart';
 ''');
 
     final b = newFile('$testPackageLibPath/b.dart', r'''
-library augment 'a.dart';
+library augment 'package:test/a.dart';
 ''');
 
     final driver = driverFor(testFile);
@@ -3011,7 +3011,7 @@ import augment 'b.dart';
 ''');
 
     final b = newFile('$testPackageLibPath/b.dart', r'''
-library augment 'a.dart';
+library augment 'package:test/a.dart';
 ''');
 
     final driver = driverFor(testFile);
@@ -3164,7 +3164,7 @@ class A {}
     flags: exists isAugmentation isMacroAugmentation
     content
 ---
-library augment 'a.dart';
+library augment 'package:test/a.dart';
 
 class B {}
 ---

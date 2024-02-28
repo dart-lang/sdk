@@ -744,7 +744,7 @@ ResolvedLibraryResult #0
       flags: exists isAugmentation isMacroAugmentation
       content
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'package:test/diagnostic.dart';
 
@@ -1022,14 +1022,14 @@ ResolvedLibraryResult #0
       flags: exists isAugmentation isMacroAugmentation
       content
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 augment class A {
   NotType foo() {}
 }
 ---
       errors
-        50 +7 UNDEFINED_CLASS
+        63 +7 UNDEFINED_CLASS
       selectedNode: NamedType
         name: NotType
         element: <null>
@@ -1093,7 +1093,7 @@ ResolvedLibraryResult #0
       flags: exists isAugmentation isMacroAugmentation
       content
 ---
-library augment 'test.dart';
+library augment 'package:test/test.dart';
 
 import 'dart:core';
 

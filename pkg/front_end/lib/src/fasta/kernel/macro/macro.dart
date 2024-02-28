@@ -644,6 +644,7 @@ class MacroApplications {
         Map<macro.OmittedTypeAnnotation, String> omittedTypes = {};
         List<macro.Span> spans = [];
         String result = _macroExecutor.buildAugmentationLibrary(
+            libraryBuilder.importUri,
             executionResults,
             _macroIntrospection.resolveDeclaration,
             _macroIntrospection.resolveIdentifier,
@@ -716,6 +717,7 @@ class MacroApplications {
           Map<macro.OmittedTypeAnnotation, String> omittedTypes = {};
           List<macro.Span> spans = [];
           String source = _macroExecutor.buildAugmentationLibrary(
+              originLibraryBuilder.importUri,
               [result],
               _macroIntrospection.resolveDeclaration,
               _macroIntrospection.resolveIdentifier,
@@ -889,6 +891,7 @@ class MacroApplications {
       if (executionResults.isNotEmpty) {
         List<macro.Span> spans = [];
         String result = _macroExecutor.buildAugmentationLibrary(
+            libraryBuilder.origin.importUri,
             executionResults,
             _macroIntrospection.resolveDeclaration,
             _macroIntrospection.resolveIdentifier,
@@ -923,6 +926,7 @@ class MacroApplications {
       SourceLibraryBuilder originLibraryBuilder = entry.key;
       List<macro.Span> spans = [];
       String source = _macroExecutor.buildAugmentationLibrary(
+          entry.key.importUri,
           entry.value,
           _macroIntrospection.resolveDeclaration,
           _macroIntrospection.resolveIdentifier,

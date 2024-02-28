@@ -11,19 +11,23 @@ import 'span.dart';
 mixin AugmentationLibraryBuilder on MacroExecutor {
   @override
   String buildAugmentationLibrary(
+      Uri augmentedLibraryUri,
       Iterable<MacroExecutionResult> macroResults,
       TypeDeclaration Function(Identifier) resolveDeclaration,
       ResolvedIdentifier Function(Identifier) resolveIdentifier,
       TypeAnnotation? Function(OmittedTypeAnnotation) typeInferrer,
       {Map<OmittedTypeAnnotation, String>? omittedTypes,
       List<Span>? spans}) {
-    return new _Builder(
-            resolveDeclaration, resolveIdentifier, typeInferrer, omittedTypes)
+    return new _Builder(augmentedLibraryUri, resolveDeclaration,
+            resolveIdentifier, typeInferrer, omittedTypes)
         .build(macroResults, spans: spans);
   }
 }
 
 class _Builder {
+  /// The import URI for the augmented library.
+  final Uri _augmentedLibraryUri;
+
   final TypeDeclaration Function(Identifier) _resolveDeclaration;
   final ResolvedIdentifier Function(Identifier) _resolveIdentifier;
   final TypeAnnotation? Function(OmittedTypeAnnotation) _typeInferrer;
@@ -39,8 +43,8 @@ class _Builder {
   // Keeps track of the last part written in `lastDirectivePart`.
   String _lastDirectivePart = '';
 
-  _Builder(this._resolveDeclaration, this._resolveIdentifier,
-      this._typeInferrer, this._omittedTypes);
+  _Builder(this._augmentedLibraryUri, this._resolveDeclaration,
+      this._resolveIdentifier, this._typeInferrer, this._omittedTypes);
 
   void _flushStringParts() {
     if (_directivesStringPartBuffer.isNotEmpty) {
@@ -300,10 +304,14 @@ class _Builder {
       sb.write(text);
     }
 
+    addText(const LibraryAugmentKey(),
+        'library augment \'$_augmentedLibraryUri\';\n\n');
     for (_AppliedPart<_Part> appliedPart in _importParts) {
       addText(appliedPart.key, appliedPart.part.text);
     }
-    addText(const ImportDeclarationSeparatorKey(), '\n');
+    if (_importParts.isNotEmpty) {
+      addText(const ImportDeclarationSeparatorKey(), '\n');
+    }
     for (_AppliedPart<_Part> appliedPart in _directivesParts) {
       addText(appliedPart.key, appliedPart.part.text);
     }
