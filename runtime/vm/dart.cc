@@ -241,7 +241,7 @@ static void CheckOffsets() {
   if (!ok) {
     FATAL(
         "CheckOffsets failed. Try updating offsets by running "
-        "./tools/run_offsets_extractor.sh");
+        "./tools/run_offsets_extractor.dart");
   }
 #undef CHECK_FIELD
 #undef CHECK_ARRAY
