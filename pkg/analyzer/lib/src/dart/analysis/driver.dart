@@ -1336,6 +1336,17 @@ class AnalysisDriver {
           performance: OperationPerformanceImpl('<root>'),
         );
 
+        for (var import in library.docImports) {
+          if (import is LibraryImportWithFile) {
+            if (import.importedLibrary case var libraryFileKind?) {
+              await libraryContext.load(
+                targetLibrary: libraryFileKind,
+                performance: OperationPerformanceImpl('<root>'),
+              );
+            }
+          }
+        }
+
         var analysisOptions = file.analysisOptions;
         var libraryElement =
             libraryContext.elementFactory.libraryOfUri2(library.file.uri);
