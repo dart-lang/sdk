@@ -36,15 +36,17 @@ extension FutureIterable<T> on Iterable<Future<T>> {
       if (errors == 0) {
         c.complete([for (var r in results) r.value]);
       } else {
+        var errorList = [for (var r in results) r.errorOrNull];
         c.completeError(ParallelWaitError<List<T?>, List<AsyncError?>>(
-          [for (var r in results) r.valueOrNull],
-          [for (var r in results) r.errorOrNull],
-        ));
+            [for (var r in results) r.valueOrNull], errorList,
+            errorCount: errors, defaultError: errorList.firstWhere(_notNull)));
       }
     });
     return c.future;
   }
 }
+
+bool _notNull(Object? object) => object != null;
 
 /// Parallel operations on a record of futures.
 ///
@@ -81,6 +83,8 @@ extension FutureRecord2<T1, T2> on (Future<T1>, Future<T2>) {
         c.completeError(ParallelWaitError(
           (v1.valueOrNull, v2.valueOrNull),
           (v1.errorOrNull, v2.errorOrNull),
+            errorCount: errors,
+            defaultError: v1.errorOrNull ?? v2.errorOrNull
         ));
       }
     });
@@ -105,6 +109,8 @@ extension FutureRecord3<T1, T2, T3> on (Future<T1>, Future<T2>, Future<T3>) {
         c.completeError(ParallelWaitError(
           (v1.valueOrNull, v2.valueOrNull, v3.valueOrNull),
           (v1.errorOrNull, v2.errorOrNull, v3.errorOrNull),
+          errorCount: errors,
+          defaultError: v1.errorOrNull ?? v2.errorOrNull ?? v3.errorOrNull,
         ));
       }
     });
@@ -135,6 +141,11 @@ extension FutureRecord4<T1, T2, T3, T4> on (
         c.completeError(ParallelWaitError(
           (v1.valueOrNull, v2.valueOrNull, v3.valueOrNull, v4.valueOrNull),
           (v1.errorOrNull, v2.errorOrNull, v3.errorOrNull, v4.errorOrNull),
+          errorCount: errors,
+          defaultError: v1.errorOrNull ??
+              v2.errorOrNull ??
+              v3.errorOrNull ??
+              v4.errorOrNull,
         ));
       }
     });
@@ -179,6 +190,12 @@ extension FutureRecord5<T1, T2, T3, T4, T5> on (
             v4.errorOrNull,
             v5.errorOrNull
           ),
+            errorCount: errors,
+            defaultError: v1.errorOrNull ??
+                v2.errorOrNull ??
+                v3.errorOrNull ??
+                v4.errorOrNull ??
+                v5.errorOrNull
         ));
       }
     });
@@ -227,7 +244,14 @@ extension FutureRecord6<T1, T2, T3, T4, T5, T6> on (
             v4.errorOrNull,
             v5.errorOrNull,
             v6.errorOrNull
-          ),
+        ),
+            errorCount: errors,
+            defaultError: v1.errorOrNull ??
+                v2.errorOrNull ??
+                v3.errorOrNull ??
+                v4.errorOrNull ??
+                v5.errorOrNull ??
+                v6.errorOrNull
         ));
       }
     });
@@ -259,16 +283,15 @@ extension FutureRecord7<T1, T2, T3, T4, T5, T6, T7> on (
 
     _FutureResult._waitAll([v1, v2, v3, v4, v5, v6, v7], (int errors) {
       if (errors == 0) {
-        c.complete(
-            (
-              v1.value,
-              v2.value,
-              v3.value,
-              v4.value,
-              v5.value,
-              v6.value,
-              v7.value
-            ));
+        c.complete((
+          v1.value,
+          v2.value,
+          v3.value,
+          v4.value,
+          v5.value,
+          v6.value,
+          v7.value
+        ));
       } else {
         c.completeError(ParallelWaitError(
           (
@@ -289,6 +312,14 @@ extension FutureRecord7<T1, T2, T3, T4, T5, T6, T7> on (
             v6.errorOrNull,
             v7.errorOrNull
           ),
+            errorCount: errors,
+            defaultError: v1.errorOrNull ??
+                v2.errorOrNull ??
+                v3.errorOrNull ??
+                v4.errorOrNull ??
+                v5.errorOrNull ??
+                v6.errorOrNull ??
+                v7.errorOrNull
         ));
       }
     });
@@ -322,17 +353,16 @@ extension FutureRecord8<T1, T2, T3, T4, T5, T6, T7, T8> on (
 
     _FutureResult._waitAll([v1, v2, v3, v4, v5, v6, v7, v8], (int errors) {
       if (errors == 0) {
-        c.complete(
-            (
-              v1.value,
-              v2.value,
-              v3.value,
-              v4.value,
-              v5.value,
-              v6.value,
-              v7.value,
-              v8.value
-            ));
+        c.complete((
+          v1.value,
+          v2.value,
+          v3.value,
+          v4.value,
+          v5.value,
+          v6.value,
+          v7.value,
+          v8.value
+        ));
       } else {
         c.completeError(ParallelWaitError(
           (
@@ -355,6 +385,15 @@ extension FutureRecord8<T1, T2, T3, T4, T5, T6, T7, T8> on (
             v7.errorOrNull,
             v8.errorOrNull
           ),
+            errorCount: errors,
+            defaultError: v1.errorOrNull ??
+                v2.errorOrNull ??
+                v3.errorOrNull ??
+                v4.errorOrNull ??
+                v5.errorOrNull ??
+                v6.errorOrNull ??
+                v7.errorOrNull ??
+                v8.errorOrNull
         ));
       }
     });
@@ -390,18 +429,17 @@ extension FutureRecord9<T1, T2, T3, T4, T5, T6, T7, T8, T9> on (
 
     _FutureResult._waitAll([v1, v2, v3, v4, v5, v6, v7, v8, v9], (int errors) {
       if (errors == 0) {
-        c.complete(
-            (
-              v1.value,
-              v2.value,
-              v3.value,
-              v4.value,
-              v5.value,
-              v6.value,
-              v7.value,
-              v8.value,
-              v9.value
-            ));
+        c.complete((
+          v1.value,
+          v2.value,
+          v3.value,
+          v4.value,
+          v5.value,
+          v6.value,
+          v7.value,
+          v8.value,
+          v9.value
+        ));
       } else {
         c.completeError(ParallelWaitError(
           (
@@ -426,6 +464,16 @@ extension FutureRecord9<T1, T2, T3, T4, T5, T6, T7, T8, T9> on (
             v8.errorOrNull,
             v9.errorOrNull
           ),
+            errorCount: errors,
+            defaultError: v1.errorOrNull ??
+                v2.errorOrNull ??
+                v3.errorOrNull ??
+                v4.errorOrNull ??
+                v5.errorOrNull ??
+                v6.errorOrNull ??
+                v7.errorOrNull ??
+                v8.errorOrNull ??
+                v9.errorOrNull
         ));
       }
     });
@@ -464,10 +512,40 @@ class ParallelWaitError<V, E> extends Error {
   /// future and `null` values for each successful future.
   final E errors;
 
-  /// Creates error with the provided [values] and [errors].
-  ParallelWaitError(this.values, this.errors);
+  /// An error which, if present, is included in the [toString] output.
+  ///
+  /// If the default error has a stack trace, it's also reported by the
+  /// [stackTrace] getter, instead of where this [ParallelWaitError] was thrown.
+  final AsyncError? _defaultError;
 
-  String toString() => "ParallelWaitError";
+  /// Number of errors, if available.
+  final int? _errorCount;
+
+  /// Creates error with the provided [values] and [errors].
+  ///
+  /// If [defaultError] is provided, its [AsyncError.error] is used in
+  /// the [toString] of this parallel error, and its [AsyncError.stackTrace]
+  /// is returned by [stackTrace].
+  ///
+  /// If [errorCount] is provided, and it's greater than one,
+  /// the number is reported in the [toString].
+  ParallelWaitError(this.values, this.errors,
+      {int? errorCount, AsyncError? defaultError})
+      : _defaultError = defaultError,
+        _errorCount = errorCount;
+
+  String toString() {
+    if (_defaultError == null) {
+      if (_errorCount == null || _errorCount <= 1) {
+        return "ParallelWaitError";
+      }
+      return "ParallelWaitError($_errorCount errors)";
+    }
+    return "ParallelWaitError${_errorCount != null && _errorCount > 1 //
+        ? "($_errorCount errors)" : ""}: ${_defaultError.error}";
+  }
+
+  StackTrace? get stackTrace => _defaultError?.stackTrace ?? super.stackTrace;
 }
 
 /// The result of a future, when it has completed.

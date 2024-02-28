@@ -42,6 +42,13 @@
 
 ### Libraries
 
+#### `dart:async`
+
+- Added option for `ParallelWaitError` to get some meta-information that
+  it can expose in its `toString`, and the `Iterable<Future>.wait` and
+  `(Future,...,Future).wait` extension methods now provide that information.
+  Should make a `ParallelWaitError` easier to log.
+
 #### `dart:ffi`
 
 - Added `Struct.create` and `Union.create` to create struct and union views
