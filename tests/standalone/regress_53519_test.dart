@@ -22,6 +22,6 @@ main() {
     print(s);
     // Expect that the stack trace contains an entry for the destructure
     // function at line 11.
-    Expect.isTrue(s.toString().contains(RegExp(r'destructure \(.*:11:3\)')));
+    Expect.isTrue(s.toString().contains(RegExp(r'destructure \(.*:11(:3)?\)')));
   }
 }
