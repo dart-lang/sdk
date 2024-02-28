@@ -530,14 +530,18 @@ void main(List<String> args) => print("$b $args");
           }
         }
 
+        final tempDir = Directory.systemTemp.createTempSync('a');
+        final serviceInfo = path.join(tempDir.path, 'service.json');
         await p.runWithVmService([
           'run',
           '--dds',
           '--enable-vm-service=0',
+          '--write-service-info=$serviceInfo',
           p.relativeFilePath,
         ], onData);
         expect(sawDevtoolsMsg, true);
         expect(sawVmServiceMsg, true);
+        expect(File(serviceInfo).existsSync(), true);
       });
 
       test('dart simple', () async {
@@ -555,13 +559,17 @@ void main(List<String> args) => print("$b $args");
           }
         }
 
+        final tempDir = Directory.systemTemp.createTempSync('a');
+        final serviceInfo = path.join(tempDir.path, 'service.json');
         await p.runWithVmService([
           '--dds',
           '--enable-vm-service=0',
+          '--write-service-info=$serviceInfo',
           p.relativeFilePath,
         ], onData);
         expect(sawDevtoolsMsg, true);
         expect(sawVmServiceMsg, true);
+        expect(File(serviceInfo).existsSync(), true);
       });
     });
   });

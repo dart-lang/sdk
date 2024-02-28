@@ -244,6 +244,15 @@ class RunCommand extends DartdevCommand {
 
     if (!isProductMode) {
       argParser
+        ..addOption(
+          'write-service-info',
+          help: 'Outputs information necessary to connect to the VM service to '
+              'specified file in JSON format. Useful for clients which are '
+              'unable to listen to stdout for the Dart VM service listening '
+              'message.',
+          valueHelp: 'file',
+          hide: !verbose,
+        )
         ..addFlag('dds',
             hide: !verbose,
             help:
