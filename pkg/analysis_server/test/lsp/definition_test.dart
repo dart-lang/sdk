@@ -12,7 +12,6 @@ import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../test_macros.dart';
 import '../utils/test_code_extensions.dart';
 import 'server_abstract.dart';
 
@@ -23,7 +22,7 @@ void main() {
 }
 
 @reflectiveTest
-class DefinitionTest extends AbstractLspAnalysisServerTest with TestMacros {
+class DefinitionTest extends AbstractLspAnalysisServerTest {
   @override
   AnalysisServerOptions get serverOptions => AnalysisServerOptions()
     ..enabledExperiments = [

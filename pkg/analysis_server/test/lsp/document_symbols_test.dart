@@ -7,7 +7,6 @@ import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../test_macros.dart';
 import '../tool/lsp_spec/matchers.dart';
 import 'server_abstract.dart';
 
@@ -18,8 +17,7 @@ void main() {
 }
 
 @reflectiveTest
-class DocumentSymbolsTest extends AbstractLspAnalysisServerTest
-    with TestMacros {
+class DocumentSymbolsTest extends AbstractLspAnalysisServerTest {
   Future<void> test_enumMember_notSupported() async {
     const content = '''
 enum Theme {

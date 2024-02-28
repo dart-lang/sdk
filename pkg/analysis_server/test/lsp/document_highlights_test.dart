@@ -58,6 +58,44 @@ void f() {
 }
 ''');
 
+  Future<void> test_macroGenerated() async {
+    setDartTextDocumentContentProviderSupport();
+    addMacros([declareInTypeMacro()]);
+
+    const content = '''
+import 'macros.dart';
+
+@DeclareInType('void f() { f(); }')
+class A {}
+''';
+    newFile(mainFilePath, content);
+    await Future.wait([
+      waitForAnalysisComplete(),
+      initialize(),
+    ]);
+
+    // Fetch the content and locate the two references to `f` we will test.
+    final generatedFile = await getDartTextDocumentContent(mainFileMacroUri);
+    final generatedContent = generatedFile!.content!;
+    final functionDefinitionOffset = generatedContent.indexOf('f() {');
+    final functionCallOffset = generatedContent.indexOf('f();');
+    final functionDefinitionPosition =
+        positionFromOffset(functionDefinitionOffset, generatedContent);
+    final functionCallOffsetPosition =
+        positionFromOffset(functionCallOffset, generatedContent);
+
+    // Request document highlights on one occurrence of `f`.
+    final highlights = await getDocumentHighlights(
+      mainFileMacroUri,
+      functionDefinitionPosition,
+    );
+
+    // Ensure we got back both.
+    expect(highlights, hasLength(2));
+    expect(highlights![0].range.start, functionDefinitionPosition);
+    expect(highlights[1].range.start, functionCallOffsetPosition);
+  }
+
   Future<void> test_nonDartFile() async {
     await initialize();
     await openFile(pubspecFileUri, simplePubspecContent);
