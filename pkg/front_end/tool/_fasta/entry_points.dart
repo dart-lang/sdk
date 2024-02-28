@@ -166,12 +166,16 @@ Future<void> batchEntryPoint(List<String> arguments) async {
       .run();
 }
 
-bool tryListenToSignal(ProcessSignal signal, void Function() callback) {
+void tryListenToSignal(ProcessSignal signal, void Function() callback) {
   try {
-    signal.watch().listen((_) => callback());
-    return true;
+    signal.watch().listen(
+      (_) => callback(),
+      onError: (_) {
+        // swallow.
+      },
+    );
   } catch (e) {
-    return false;
+    // swallow.
   }
 }
 
