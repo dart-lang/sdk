@@ -1807,7 +1807,17 @@ CompileType BoxInstr::ComputeType() const {
 }
 
 CompileType BoxLanesInstr::ComputeType() const {
-  return CompileType::FromUnboxedRepresentation(from_representation());
+  switch (from_representation()) {
+    case kUnboxedFloat:
+      return CompileType::FromCid(kFloat32x4Cid);
+    case kUnboxedDouble:
+      return CompileType::FromCid(kFloat64x2Cid);
+    case kUnboxedInt32:
+      return CompileType::FromCid(kInt32x4Cid);
+    default:
+      UNREACHABLE();
+      return CompileType::Dynamic();
+  }
 }
 
 CompileType ExtractNthOutputInstr::ComputeType() const {
