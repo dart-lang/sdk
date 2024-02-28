@@ -16,6 +16,7 @@ load(
     "jammy",
     "mac",
     "no_android",
+    "no_reclient",
     "slow_shards",
     "windows",
     "windows11",
@@ -159,14 +160,14 @@ _nightly_builder(
     category = "vm|jit|wad",
     dimensions = [windows11, arm64, flutter_pool],
     goma = False,  # no such package: infra_internal/goma/client/windows-arm64
-    properties = {"clobber": False},
+    properties = [{"clobber": False}, no_reclient],
 )
 _vm_builder(
     "vm-win-release-arm64",
     category = "vm|jit|war",
     dimensions = [windows11, arm64, flutter_pool],
     goma = False,  # no such package: infra_internal/goma/client/windows-arm64
-    properties = {"clobber": False},
+    properties = [{"clobber": False}, no_reclient],
 )
 
 # vm|appjit
@@ -245,14 +246,14 @@ _nightly_builder(
     category = "vm|aot|wad",
     dimensions = [windows11, arm64, flutter_pool],
     goma = False,  # no such package: infra_internal/goma/client/windows-arm64
-    properties = {"clobber": False},
+    properties = [{"clobber": False}, no_reclient],
 )
 _vm_builder(
     "vm-aot-win-release-arm64",
     category = "vm|aot|war",
     dimensions = [windows11, arm64, flutter_pool],
     goma = False,  # no such package: infra_internal/goma/client/windows-arm64
-    properties = {"clobber": False},
+    properties = [{"clobber": False}, no_reclient],
 )
 
 # vm|aot|android

@@ -22,6 +22,7 @@ _CACHES = {
 # the wait_for_warm_cache field default to zero.
 _NO_CACHES = [swarming.cache("builder")]
 _NO_ANDROID = {"custom_vars": {"download_android_deps": False}}
+_NO_RECLIENT = {"custom_vars": {"download_reclient": False}}
 _ANDROID_DEPS = {"custom_vars": {"download_android_deps": True}}
 _CHROME = {"custom_vars": {"download_chrome": True}}
 _EMSCRIPTEN = {"custom_vars": {"download_emscripten": True}}
@@ -70,3 +71,4 @@ js_engines = _JS_ENGINES
 no_android = _NO_ANDROID
 slow_shards = _SLOW_SHARDS
 no_caches = _NO_CACHES
+no_reclient = _NO_RECLIENT

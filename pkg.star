@@ -14,6 +14,7 @@ load(
     "jammy",
     "mac",
     "no_android",
+    "no_reclient",
     "windows",
     "windows11",
 )
@@ -56,7 +57,7 @@ dart.ci_sandbox_builder(
     category = "pkg|wa",
     dimensions = [windows11, arm64, flutter_pool],
     goma = False,  # no such package: infra_internal/goma/client/windows-arm64
-    properties = {"clobber": False},
+    properties = [{"clobber": False}, no_reclient],
 )
 dart.ci_sandbox_builder(
     "pkg-linux-debug",
