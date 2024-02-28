@@ -16,7 +16,8 @@ main() {
   tearDown(() => dap.tearDown());
 
   group('debug mode stack trace', () {
-    test('includes expected names and async boundaries', () async {
+    testWithUriConfigurations(
+        () => dap, 'includes expected names and async boundaries', () async {
       final client = dap.client;
       final testFile = dap.createTestFile(simpleAsyncProgram);
       final breakpointLine = lineWith(testFile, breakpointMarker);

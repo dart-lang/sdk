@@ -30,11 +30,6 @@ mixin ElementsTypesMixin {
     return interfaceTypeQuestion(element);
   }
 
-  InterfaceType get boolStar {
-    var element = typeProvider.boolElement;
-    return interfaceTypeStar(element);
-  }
-
   InterfaceType get doubleNone {
     var element = typeProvider.doubleType.element;
     return interfaceTypeNone(element);
@@ -43,11 +38,6 @@ mixin ElementsTypesMixin {
   InterfaceType get doubleQuestion {
     var element = typeProvider.doubleType.element;
     return interfaceTypeQuestion(element);
-  }
-
-  InterfaceType get doubleStar {
-    var element = typeProvider.doubleType.element;
-    return interfaceTypeStar(element);
   }
 
   DartType get dynamicType => DynamicTypeImpl.instance;
@@ -198,15 +188,6 @@ mixin ElementsTypesMixin {
     );
   }
 
-  InterfaceType comparableStar(DartType type) {
-    var coreLibrary = typeProvider.intElement.library;
-    var element = coreLibrary.getClass('Comparable')!;
-    return element.instantiate(
-      typeArguments: [type],
-      nullabilitySuffix: NullabilitySuffix.star,
-    );
-  }
-
   EnumElementImpl enum_({
     required String name,
     required List<ConstFieldElementImpl> constants,
@@ -316,13 +297,6 @@ mixin ElementsTypesMixin {
     return typeProvider.futureOrElement.instantiate(
       typeArguments: [type],
       nullabilitySuffix: NullabilitySuffix.question,
-    ) as InterfaceTypeImpl;
-  }
-
-  InterfaceTypeImpl futureOrStar(DartType type) {
-    return typeProvider.futureOrElement.instantiate(
-      typeArguments: [type],
-      nullabilitySuffix: NullabilitySuffix.star,
     ) as InterfaceTypeImpl;
   }
 

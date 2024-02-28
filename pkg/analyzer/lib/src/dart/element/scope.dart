@@ -102,19 +102,23 @@ class LibraryOrAugmentationScope extends EnclosedScope {
   final LibraryOrAugmentationElementImpl _container;
   List<ExtensionElement> extensions = [];
 
-  LibraryOrAugmentationScope(LibraryOrAugmentationElementImpl container)
-      : _container = container,
-        super(_LibraryOrAugmentationImportScope(container)) {
-    extensions
-        .addAll((_parent as _LibraryOrAugmentationImportScope).extensions);
+  factory LibraryOrAugmentationScope(
+    LibraryOrAugmentationElementImpl container,
+  ) {
+    var importScope = _LibraryOrAugmentationImportScope(container);
+    return LibraryOrAugmentationScope._(container, importScope);
+  }
+
+  LibraryOrAugmentationScope._(
+    this._container,
+    _LibraryOrAugmentationImportScope importScope,
+  ) : super(importScope) {
+    extensions.addAll(importScope.extensions);
 
     _container.prefixes.forEach(_addGetter);
     _container.library.units.forEach(_addUnitElements);
 
-    // TODO(scheglov): I don't understand why it used to work, but broke now.
-    // Now: when I'm adding `ImportElement2`.
-    // We used to get it from `exportedReference`, but this is wrong.
-    // These elements are declared in dart:core itself.
+    // Add implicit 'dart:core' declarations.
     if ('${_container.source.uri}' == 'dart:core') {
       _addGetter(DynamicElementImpl.instance);
       _addGetter(NeverElementImpl.instance);

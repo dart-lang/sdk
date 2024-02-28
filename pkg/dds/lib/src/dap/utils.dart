@@ -4,8 +4,8 @@
 
 import 'package:stack_trace/stack_trace.dart' as stack;
 
-/// Returns whether this URI is something that can be resolved to a file path
-/// via the VM Service.
+/// Returns whether this URI is something that can be resolved to a file
+/// URI via the VM Service.
 bool isResolvableUri(Uri uri) {
   return !uri.isScheme('file') &&
       !uri.isScheme('http') &&

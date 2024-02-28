@@ -10,6 +10,7 @@ import 'dart:io';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/services/pub/pub_command.dart';
+import 'package:analyzer/file_system/file_system.dart' as analyzer_fs;
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -154,24 +155,6 @@ abstract class AbstractAnalysisServerIntegrationTest extends IntegrationTest
   @override
   String get testPackageRootPath => sourceDirectory.path;
 
-  /// Adds support for macros to the `package_config.json` file and creates a
-  /// `macros.dart` file that defines the given [macros]. The macros should not
-  /// include imports, the imports for macros will be added automatically.
-  void addMacros(List<String> macros) {
-    writeTestPackageConfig(
-      macro: true,
-    );
-    writeFile(
-        '$testPackageRootPath/lib/macros.dart',
-        [
-          '''
-// There is no public API exposed yet, the in-progress API lives here.
-import 'package:_fe_analyzer_shared/src/macros/api.dart';
-''',
-          ...macros
-        ].join('\n'));
-  }
-
   /// Print out any messages exchanged with the server.  If some messages have
   /// already been exchanged with the server, they are printed out immediately.
   void debugStdio() {
@@ -190,6 +173,13 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
   List<AnalysisError>? getErrors(String pathname) =>
       currentAnalysisErrors[pathname];
+
+  /// A wrapper around [writeFile] with a matching signature as the in-memory
+  /// tests so that [macros.TestMacros] can be used by both.
+  @override
+  analyzer_fs.File newFile(String filePath, String content) {
+    return resourceProvider.getFile(writeFile(filePath, content));
+  }
 
   /// Read a source file with the given absolute [pathname].
   String readFile(String pathname) => File(pathname).readAsStringSync();

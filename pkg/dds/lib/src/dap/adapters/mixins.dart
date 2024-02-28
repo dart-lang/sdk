@@ -234,11 +234,14 @@ mixin FileUtils {
     return filePath.substring(0, 1).toUpperCase() + filePath.substring(1);
   }
 
-  /// Normalizes a file [Uri] via [normalizePath].
-  Uri normalizeUri(Uri fileUri) {
-    if (!fileUri.isScheme('file')) {
-      return fileUri;
+  /// Normalizes a [Uri] via [normalizePath].
+  Uri normalizeUri(Uri uri) {
+    if (uri.isScheme('file')) {
+      final filePath = uri.toFilePath();
+      final normalizedPath = normalizePath(filePath);
+      return Uri.file(normalizedPath);
+    } else {
+      return uri;
     }
-    return Uri.file(normalizePath(fileUri.toFilePath()));
   }
 }

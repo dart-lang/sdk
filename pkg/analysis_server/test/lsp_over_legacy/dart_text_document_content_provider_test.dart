@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/lsp/test_macros.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../test_macros.dart';
 import 'abstract_lsp_over_legacy.dart';
 
 void main() {
@@ -27,22 +27,13 @@ class DartTextDocumentContentProviderTest extends LspOverLegacyTest
   }
 
   Future<void> test_valid_content() async {
-    writePackageConfig(projectFolderPath, macro: true);
-
-    newFile(
-        join(projectFolderPath, 'lib', 'with_foo.dart'), withFooMethodMacro);
+    addMacros([declareInTypeMacro()]);
 
     var content = '''
-import 'with_foo.dart';
+import 'macros.dart';
 
-f() {
-  A().foo();
-}
-
-@WithFoo()
-class A {
-  void bar() {}
-}
+@DeclareInType('void foo() {}')
+class A {}
 ''';
     newFile(testFilePath, content);
     await waitForTasksFinished();
@@ -64,23 +55,13 @@ class A {
   }
 
   Future<void> test_valid_eventAndModifiedContent() async {
-    writePackageConfig(projectFolderPath, macro: true);
-
-    var macroImplementationFilePath =
-        join(projectFolderPath, 'lib', 'with_foo.dart');
-    newFile(macroImplementationFilePath, withFooMethodMacro);
+    addMacros([declareInTypeMacro()]);
 
     var content = '''
-import 'with_foo.dart';
+import 'macros.dart';
 
-f() {
-  A().foo();
-}
-
-@WithFoo()
-class A {
-  void bar() {}
-}
+@DeclareInType('void foo() {}')
+class A {}
 ''';
     newFile(testFilePath, content);
     await waitForTasksFinished();
@@ -91,9 +72,8 @@ class A {
         await getDartTextDocumentContent(testFileMacroUri);
     expect(macroGeneratedContent!.content, contains('void foo() {'));
 
-    // Modify the macro and expect a change event.
-    newFile(macroImplementationFilePath,
-        withFooMethodMacro.replaceAll('void foo() {', 'void foo2() {'));
+    // Modify the file and expect a change event.
+    newFile(testFilePath, content.replaceAll('void foo() {', 'void foo2() {'));
     await dartTextDocumentContentDidChangeNotifications
         .firstWhere((notification) => notification.uri == testFileMacroUri);
 

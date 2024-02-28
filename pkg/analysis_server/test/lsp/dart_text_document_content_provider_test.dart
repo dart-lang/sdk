@@ -3,13 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/legacy_analysis_server.dart';
-import 'package:analysis_server/src/lsp/test_macros.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
 import 'package:language_server_protocol/protocol_generated.dart';
 import 'package:test/expect.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../test_macros.dart';
 import '../tool/lsp_spec/matchers.dart';
 import 'server_abstract.dart';
 
@@ -85,22 +85,13 @@ class DartTextDocumentContentProviderTest extends AbstractLspAnalysisServerTest
   }
 
   Future<void> test_valid_content() async {
-    writeTestPackageConfig(macro: true);
-
-    newFile(
-        join(projectFolderPath, 'lib', 'with_foo.dart'), withFooMethodMacro);
+    addMacros([declareInTypeMacro()]);
 
     var content = '''
-import 'with_foo.dart';
+import 'macros.dart';
 
-f() {
-  A().foo();
-}
-
-@WithFoo()
-class A {
-  void bar() {}
-}
+@DeclareInType('void foo() {}')
+class A {}
 ''';
 
     await initialize();
@@ -124,23 +115,13 @@ class A {
   }
 
   Future<void> test_valid_eventAndModifiedContent() async {
-    writeTestPackageConfig(macro: true);
-
-    var macroImplementationFilePath =
-        join(projectFolderPath, 'lib', 'with_foo.dart');
-    newFile(macroImplementationFilePath, withFooMethodMacro);
+    addMacros([declareInTypeMacro()]);
 
     var content = '''
-import 'with_foo.dart';
+import 'macros.dart';
 
-f() {
-  A().foo();
-}
-
-@WithFoo()
-class A {
-  void bar() {}
-}
+@DeclareInType('void foo() {}')
+class A {}
 ''';
 
     await initialize();
@@ -154,15 +135,15 @@ class A {
         await getDartTextDocumentContent(mainFileMacroUri);
     expect(macroGeneratedContent!.content, contains('void foo() {'));
 
-    // Modify the macro and expect a change event.
+    // Modify the file and expect a change event.
     await Future.wait([
       dartTextDocumentContentDidChangeNotifications
           .firstWhere((notification) => notification.uri == mainFileMacroUri),
-      // Replace the macro implementation to produce a `foo2()` method instead
-      // of `foo()`.
-      openFile(
-        toUri(macroImplementationFilePath),
-        withFooMethodMacro.replaceAll('void foo() {', 'void foo2() {'),
+      // Replace the main file to produce a `foo2()` method instead of `foo()`.
+      replaceFile(
+        2,
+        mainFileUri,
+        content.replaceAll('void foo() {', 'void foo2() {'),
       )
     ]);
 

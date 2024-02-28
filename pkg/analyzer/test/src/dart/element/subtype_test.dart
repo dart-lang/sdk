@@ -675,13 +675,13 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
   test_functionType_26() {
     isNotSubtype(
       functionTypeNone(
-        returnType: intStar,
+        returnType: intNone,
       ),
       functionTypeNone(
-        returnType: doubleStar,
+        returnType: doubleNone,
       ),
-      strT0: 'int* Function()',
-      strT1: 'double* Function()',
+      strT0: 'int Function()',
+      strT1: 'double Function()',
     );
   }
 
@@ -775,18 +775,18 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
     isNotSubtype(
       functionTypeNone(
         parameters: [
-          requiredParameter(type: intStar),
+          requiredParameter(type: intNone),
         ],
-        returnType: intStar,
+        returnType: intNone,
       ),
       functionTypeNone(
         parameters: [
-          requiredParameter(type: doubleStar),
+          requiredParameter(type: doubleNone),
         ],
-        returnType: intStar,
+        returnType: intNone,
       ),
-      strT0: 'int* Function(int*)',
-      strT1: 'int* Function(double*)',
+      strT0: 'int Function(int)',
+      strT1: 'int Function(double)',
     );
   }
 
@@ -1128,18 +1128,18 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
     isNotSubtype(
       functionTypeNone(
         parameters: [
-          positionalParameter(type: intStar),
+          positionalParameter(type: intNone),
         ],
         returnType: voidNone,
       ),
       functionTypeNone(
         parameters: [
-          requiredParameter(type: doubleStar),
+          requiredParameter(type: doubleNone),
         ],
         returnType: voidNone,
       ),
-      strT0: 'void Function([int*])',
-      strT1: 'void Function(double*)',
+      strT0: 'void Function([int])',
+      strT1: 'void Function(double)',
     );
   }
 
@@ -1358,18 +1358,18 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
     isNotSubtype(
       functionTypeNone(
         parameters: [
-          namedParameter(name: 'a', type: intStar),
+          namedParameter(name: 'a', type: intNone),
         ],
         returnType: voidNone,
       ),
       functionTypeNone(
         parameters: [
-          namedParameter(name: 'a', type: doubleStar),
+          namedParameter(name: 'a', type: doubleNone),
         ],
         returnType: voidNone,
       ),
-      strT0: 'void Function({int* a})',
-      strT1: 'void Function({double* a})',
+      strT0: 'void Function({int a})',
+      strT1: 'void Function({double a})',
     );
   }
 
@@ -2096,118 +2096,118 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
 
   test_futureOr_01() {
     isSubtype(
-      intStar,
-      futureOrStar(intStar),
-      strT0: 'int*',
-      strT1: 'FutureOr<int*>*',
+      intNone,
+      futureOrNone(intNone),
+      strT0: 'int',
+      strT1: 'FutureOr<int>',
     );
   }
 
   test_futureOr_02() {
     isSubtype(
-      intStar,
-      futureOrStar(numStar),
-      strT0: 'int*',
-      strT1: 'FutureOr<num*>*',
+      intNone,
+      futureOrNone(numNone),
+      strT0: 'int',
+      strT1: 'FutureOr<num>',
     );
   }
 
   test_futureOr_03() {
     isSubtype(
-      futureStar(intStar),
-      futureOrStar(intStar),
-      strT0: 'Future<int*>*',
-      strT1: 'FutureOr<int*>*',
+      futureNone(intNone),
+      futureOrNone(intNone),
+      strT0: 'Future<int>',
+      strT1: 'FutureOr<int>',
     );
   }
 
   test_futureOr_04() {
     isSubtype(
-      futureStar(intStar),
-      futureOrStar(numStar),
-      strT0: 'Future<int*>*',
-      strT1: 'FutureOr<num*>*',
+      futureNone(intNone),
+      futureOrNone(numNone),
+      strT0: 'Future<int>',
+      strT1: 'FutureOr<num>',
     );
   }
 
   test_futureOr_05() {
     isSubtype(
-      futureStar(intStar),
-      futureOrStar(objectStar),
-      strT0: 'Future<int*>*',
-      strT1: 'FutureOr<Object*>*',
+      futureNone(intNone),
+      futureOrNone(objectNone),
+      strT0: 'Future<int>',
+      strT1: 'FutureOr<Object>',
     );
   }
 
   test_futureOr_06() {
     isSubtype(
-      futureOrStar(intStar),
-      futureOrStar(intStar),
-      strT0: 'FutureOr<int*>*',
-      strT1: 'FutureOr<int*>*',
+      futureOrNone(intNone),
+      futureOrNone(intNone),
+      strT0: 'FutureOr<int>',
+      strT1: 'FutureOr<int>',
     );
   }
 
   test_futureOr_07() {
     isSubtype(
-      futureOrStar(intStar),
-      futureOrStar(numStar),
-      strT0: 'FutureOr<int*>*',
-      strT1: 'FutureOr<num*>*',
+      futureOrNone(intNone),
+      futureOrNone(numNone),
+      strT0: 'FutureOr<int>',
+      strT1: 'FutureOr<num>',
     );
   }
 
   test_futureOr_08() {
     isSubtype(
-      futureOrStar(intStar),
-      objectStar,
-      strT0: 'FutureOr<int*>*',
-      strT1: 'Object*',
+      futureOrNone(intNone),
+      objectNone,
+      strT0: 'FutureOr<int>',
+      strT1: 'Object',
     );
   }
 
   test_futureOr_09() {
     isNotSubtype(
-      intStar,
-      futureOrStar(doubleStar),
-      strT0: 'int*',
-      strT1: 'FutureOr<double*>*',
+      intNone,
+      futureOrNone(doubleNone),
+      strT0: 'int',
+      strT1: 'FutureOr<double>',
     );
   }
 
   test_futureOr_10() {
     isNotSubtype(
-      futureOrStar(doubleStar),
-      intStar,
-      strT0: 'FutureOr<double*>*',
-      strT1: 'int*',
+      futureOrNone(doubleNone),
+      intNone,
+      strT0: 'FutureOr<double>',
+      strT1: 'int',
     );
   }
 
   test_futureOr_11() {
     isNotSubtype(
-      futureOrStar(intStar),
-      futureStar(numStar),
-      strT0: 'FutureOr<int*>*',
-      strT1: 'Future<num*>*',
+      futureOrNone(intNone),
+      futureNone(numNone),
+      strT0: 'FutureOr<int>',
+      strT1: 'Future<num>',
     );
   }
 
   test_futureOr_12() {
     isNotSubtype(
-      futureOrStar(intStar),
-      numStar,
-      strT0: 'FutureOr<int*>*',
-      strT1: 'num*',
+      futureOrNone(intNone),
+      numNone,
+      strT0: 'FutureOr<int>',
+      strT1: 'num',
     );
   }
 
   test_futureOr_13() {
-    isSubtype(
+    isNotSubtype(
       nullQuestion,
-      futureOrStar(intStar),
+      futureOrNone(intNone),
       strT0: 'Null?',
-      strT1: 'FutureOr<int*>*',
+      strT1: 'FutureOr<int>',
     );
   }
 
@@ -2223,36 +2223,36 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
   test_futureOr_15() {
     isSubtype(
       dynamicType,
-      futureOrStar(dynamicType),
+      futureOrNone(dynamicType),
       strT0: 'dynamic',
-      strT1: 'FutureOr<dynamic>*',
+      strT1: 'FutureOr<dynamic>',
     );
   }
 
   test_futureOr_16() {
     isNotSubtype(
       dynamicType,
-      futureOrStar(stringStar),
+      futureOrNone(stringNone),
       strT0: 'dynamic',
-      strT1: 'FutureOr<String*>*',
+      strT1: 'FutureOr<String>',
     );
   }
 
   test_futureOr_17() {
     isSubtype(
       voidNone,
-      futureOrStar(voidNone),
+      futureOrNone(voidNone),
       strT0: 'void',
-      strT1: 'FutureOr<void>*',
+      strT1: 'FutureOr<void>',
     );
   }
 
   test_futureOr_18() {
     isNotSubtype(
       voidNone,
-      futureOrStar(stringStar),
+      futureOrNone(stringNone),
       strT0: 'void',
-      strT1: 'FutureOr<String*>*',
+      strT1: 'FutureOr<String>',
     );
   }
 
@@ -2261,11 +2261,11 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
 
     isSubtype(
       typeParameterTypeNone(E),
-      futureOrStar(
+      futureOrNone(
         typeParameterTypeNone(E),
       ),
       strT0: 'E',
-      strT1: 'FutureOr<E>*',
+      strT1: 'FutureOr<E>',
     );
   }
 
@@ -2274,9 +2274,9 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
 
     isNotSubtype(
       typeParameterTypeNone(E),
-      futureOrStar(stringStar),
+      futureOrNone(stringNone),
       strT0: 'E',
-      strT1: 'FutureOr<String*>*',
+      strT1: 'FutureOr<String>',
     );
   }
 
@@ -2312,10 +2312,10 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
 
   test_futureOr_23() {
     isNotSubtype(
-      futureOrStar(numStar),
-      futureOrStar(intStar),
-      strT0: 'FutureOr<num*>*',
-      strT1: 'FutureOr<int*>*',
+      futureOrNone(numNone),
+      futureOrNone(intNone),
+      strT0: 'FutureOr<num>',
+      strT1: 'FutureOr<int>',
     );
   }
 
@@ -2323,10 +2323,10 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
     var T = typeParameter('T');
 
     isSubtype(
-      promotedTypeParameterTypeNone(T, intStar),
-      futureOrStar(numStar),
-      strT0: 'T & int*',
-      strT1: 'FutureOr<num*>*',
+      promotedTypeParameterTypeNone(T, intNone),
+      futureOrNone(numNone),
+      strT0: 'T & int',
+      strT1: 'FutureOr<num>',
     );
   }
 
@@ -2334,10 +2334,10 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
     var T = typeParameter('T');
 
     isSubtype(
-      promotedTypeParameterTypeNone(T, futureStar(numStar)),
-      futureOrStar(numStar),
-      strT0: 'T & Future<num*>*',
-      strT1: 'FutureOr<num*>*',
+      promotedTypeParameterTypeNone(T, futureNone(numNone)),
+      futureOrNone(numNone),
+      strT0: 'T & Future<num>',
+      strT1: 'FutureOr<num>',
     );
   }
 
@@ -2345,10 +2345,10 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
     var T = typeParameter('T');
 
     isSubtype(
-      promotedTypeParameterTypeNone(T, futureStar(intStar)),
-      futureOrStar(numStar),
-      strT0: 'T & Future<int*>*',
-      strT1: 'FutureOr<num*>*',
+      promotedTypeParameterTypeNone(T, futureNone(intNone)),
+      futureOrNone(numNone),
+      strT0: 'T & Future<int>',
+      strT1: 'FutureOr<num>',
     );
   }
 
@@ -2356,10 +2356,10 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
     var T = typeParameter('T');
 
     isNotSubtype(
-      promotedTypeParameterTypeNone(T, numStar),
-      futureOrStar(intStar),
-      strT0: 'T & num*',
-      strT1: 'FutureOr<int*>*',
+      promotedTypeParameterTypeNone(T, numNone),
+      futureOrNone(intNone),
+      strT0: 'T & num',
+      strT1: 'FutureOr<int>',
     );
   }
 
@@ -2367,10 +2367,10 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
     var T = typeParameter('T');
 
     isNotSubtype(
-      promotedTypeParameterTypeNone(T, futureStar(numStar)),
-      futureOrStar(intStar),
-      strT0: 'T & Future<num*>*',
-      strT1: 'FutureOr<int*>*',
+      promotedTypeParameterTypeNone(T, futureNone(numNone)),
+      futureOrNone(intNone),
+      strT0: 'T & Future<num>',
+      strT1: 'FutureOr<int>',
     );
   }
 
@@ -2378,21 +2378,21 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
     var T = typeParameter('T');
 
     isNotSubtype(
-      promotedTypeParameterTypeNone(T, futureOrStar(numStar)),
-      futureOrStar(intStar),
-      strT0: 'T & FutureOr<num*>*',
-      strT1: 'FutureOr<int*>*',
+      promotedTypeParameterTypeNone(T, futureOrNone(numNone)),
+      futureOrNone(intNone),
+      strT0: 'T & FutureOr<num>',
+      strT1: 'FutureOr<int>',
     );
   }
 
   test_futureOr_30() {
     isSubtype(
-      futureOrStar(objectStar),
-      futureOrStar(
-        futureOrStar(objectStar),
+      futureOrNone(objectNone),
+      futureOrNone(
+        futureOrNone(objectNone),
       ),
-      strT0: 'FutureOr<Object*>*',
-      strT1: 'FutureOr<FutureOr<Object*>*>*',
+      strT0: 'FutureOr<Object>',
+      strT1: 'FutureOr<FutureOr<Object>>',
     );
   }
 
@@ -2406,10 +2406,10 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
 
   test_interfaceType_03() {
     isSubtype(
-      intStar,
-      comparableStar(numStar),
-      strT0: 'int*',
-      strT1: 'Comparable<num*>*',
+      intNone,
+      comparableNone(numNone),
+      strT0: 'int',
+      strT1: 'Comparable<num>',
     );
   }
 
@@ -2418,19 +2418,19 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
   }
 
   test_interfaceType_05() {
-    isSubtype(doubleStar, numStar, strT0: 'double*', strT1: 'num*');
+    isSubtype(doubleNone, numNone, strT0: 'double', strT1: 'num');
   }
 
   test_interfaceType_06() {
-    isNotSubtype(intStar, doubleStar, strT0: 'int*', strT1: 'double*');
+    isNotSubtype(intNone, doubleNone, strT0: 'int', strT1: 'double');
   }
 
   test_interfaceType_07() {
     isNotSubtype(
-      intStar,
-      comparableStar(intStar),
-      strT0: 'int*',
-      strT1: 'Comparable<int*>*',
+      intNone,
+      comparableNone(intNone),
+      strT0: 'int',
+      strT1: 'Comparable<int>',
     );
   }
 
@@ -2445,10 +2445,10 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
 
   test_interfaceType_09() {
     isNotSubtype(
-      comparableStar(intStar),
-      iterableStar(intStar),
-      strT0: 'Comparable<int*>*',
-      strT1: 'Iterable<int*>*',
+      comparableNone(intNone),
+      iterableNone(intNone),
+      strT0: 'Comparable<int>',
+      strT1: 'Iterable<int>',
     );
   }
 
@@ -2517,87 +2517,87 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
 
   test_interfaceType_17() {
     isSubtype(
-      listStar(intStar),
-      listStar(
-        comparableStar(objectStar),
+      listNone(intNone),
+      listNone(
+        comparableNone(objectNone),
       ),
-      strT0: 'List<int*>*',
-      strT1: 'List<Comparable<Object*>*>*',
+      strT0: 'List<int>',
+      strT1: 'List<Comparable<Object>>',
     );
   }
 
   test_interfaceType_18() {
     isSubtype(
-      listStar(intStar),
-      listStar(
-        comparableStar(numStar),
+      listNone(intNone),
+      listNone(
+        comparableNone(numNone),
       ),
-      strT0: 'List<int*>*',
-      strT1: 'List<Comparable<num*>*>*',
+      strT0: 'List<int>',
+      strT1: 'List<Comparable<num>>',
     );
   }
 
   test_interfaceType_19() {
     isSubtype(
-      listStar(intStar),
-      listStar(
-        comparableStar(
-          comparableStar(numStar),
+      listNone(intNone),
+      listNone(
+        comparableNone(
+          comparableNone(numNone),
         ),
       ),
-      strT0: 'List<int*>*',
-      strT1: 'List<Comparable<Comparable<num*>*>*>*',
+      strT0: 'List<int>',
+      strT1: 'List<Comparable<Comparable<num>>>',
     );
   }
 
   test_interfaceType_20() {
     isNotSubtype(
-      listStar(intStar),
-      listStar(doubleStar),
-      strT0: 'List<int*>*',
-      strT1: 'List<double*>*',
+      listNone(intNone),
+      listNone(doubleNone),
+      strT0: 'List<int>',
+      strT1: 'List<double>',
     );
   }
 
   test_interfaceType_21() {
     isNotSubtype(
-      listStar(intStar),
-      iterableStar(doubleStar),
-      strT0: 'List<int*>*',
-      strT1: 'Iterable<double*>*',
+      listNone(intNone),
+      iterableNone(doubleNone),
+      strT0: 'List<int>',
+      strT1: 'Iterable<double>',
     );
   }
 
   test_interfaceType_22() {
     isNotSubtype(
-      listStar(intStar),
-      comparableStar(intStar),
-      strT0: 'List<int*>*',
-      strT1: 'Comparable<int*>*',
+      listNone(intNone),
+      comparableNone(intNone),
+      strT0: 'List<int>',
+      strT1: 'Comparable<int>',
     );
   }
 
   test_interfaceType_23() {
     isNotSubtype(
-      listStar(intStar),
-      listStar(
-        comparableStar(intStar),
+      listNone(intNone),
+      listNone(
+        comparableNone(intNone),
       ),
-      strT0: 'List<int*>*',
-      strT1: 'List<Comparable<int*>*>*',
+      strT0: 'List<int>',
+      strT1: 'List<Comparable<int>>',
     );
   }
 
   test_interfaceType_24() {
     isNotSubtype(
-      listStar(intStar),
-      listStar(
-        comparableStar(
-          comparableStar(intStar),
+      listNone(intNone),
+      listNone(
+        comparableNone(
+          comparableNone(intNone),
         ),
       ),
-      strT0: 'List<int*>*',
-      strT1: 'List<Comparable<Comparable<int*>*>*>*',
+      strT0: 'List<int>',
+      strT1: 'List<Comparable<Comparable<int>>>',
     );
   }
 
@@ -2894,14 +2894,14 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
   }
 
   test_multi_futureOr() {
-    isSubtype2('int*', 'FutureOr<int*>*');
-    isSubtype2('int*', 'FutureOr<num*>*');
-    isSubtype2('Future<int*>*', 'FutureOr<int*>*');
-    isSubtype2('Future<int*>*', 'FutureOr<num*>*');
-    isSubtype2('Future<int*>*', 'FutureOr<Object*>*');
-    isSubtype2('FutureOr<int*>*', 'FutureOr<int*>*');
-    isSubtype2('FutureOr<int*>*', 'FutureOr<num*>*');
-    isSubtype2('FutureOr<int*>*', 'Object*');
+    isSubtype2('int', 'FutureOr<int>');
+    isSubtype2('int', 'FutureOr<num>');
+    isSubtype2('Future<int>', 'FutureOr<int>');
+    isSubtype2('Future<int>', 'FutureOr<num>');
+    isSubtype2('Future<int>', 'FutureOr<Object>');
+    isSubtype2('FutureOr<int>', 'FutureOr<int>');
+    isSubtype2('FutureOr<int>', 'FutureOr<num>');
+    isSubtype2('FutureOr<int>', 'Object*');
     isSubtype2('Null?', 'FutureOr<num?>');
     isSubtype2('Null?', 'FutureOr<num>?');
     isSubtype2('num?', 'FutureOr<num?>');
@@ -2955,17 +2955,15 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
     isSubtype2('FutureOr<int>', 'Object*');
     isSubtype2('FutureOr<int>', 'Object?');
 
-    isSubtype2('FutureOr<int>*', 'Object');
-    isSubtype2('FutureOr<int>*', 'Object*');
-    isSubtype2('FutureOr<int>*', 'Object?');
+    isSubtype2('FutureOr<int>', 'Object');
+    isSubtype2('FutureOr<int>', 'Object?');
 
     isNotSubtype2('FutureOr<int>?', 'Object');
     isSubtype2('FutureOr<int>?', 'Object*');
     isSubtype2('FutureOr<int>?', 'Object?');
 
-    isSubtype2('FutureOr<int*>', 'Object');
-    isSubtype2('FutureOr<int*>', 'Object*');
-    isSubtype2('FutureOr<int*>', 'Object?');
+    isSubtype2('FutureOr<int>', 'Object');
+    isSubtype2('FutureOr<int>', 'Object?');
 
     isNotSubtype2('FutureOr<int?>', 'Object');
     isSubtype2('FutureOr<int?>', 'Object*');
@@ -2977,7 +2975,6 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
     isNotSubtype2('FutureOr<Future<Object>?>?', 'Future<Object>');
 
     isSubtype2('FutureOr<num>', 'Object');
-    isSubtype2('FutureOr<num>*', 'Object');
     isNotSubtype2('FutureOr<num>?', 'Object');
   }
 
@@ -3077,27 +3074,27 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
       functionTypeNone(
         returnType: voidNone,
       ),
-      futureOrStar(
+      futureOrNone(
         functionTypeNone(
           returnType: stringNone,
         ),
       ),
       strT0: 'void Function()',
-      strT1: 'FutureOr<String Function()>*',
+      strT1: 'FutureOr<String Function()>',
     );
   }
 
   test_multi_futureOr_typeParameter() {
     TypeParameterElement E;
 
-    E = typeParameter('E', bound: objectStar);
+    E = typeParameter('E', bound: objectNone);
     isSubtype(
       typeParameterTypeNone(E),
-      futureOrStar(
+      futureOrNone(
         typeParameterTypeNone(E),
       ),
-      strT0: 'E, E extends Object*',
-      strT1: 'FutureOr<E>*, E extends Object*',
+      strT0: 'E, E extends Object',
+      strT1: 'FutureOr<E>, E extends Object',
     );
 
     E = typeParameter('E', bound: objectNone);
@@ -3152,12 +3149,12 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
       strT1: 'FutureOr<E>, E extends Object?',
     );
 
-    E = typeParameter('E', bound: objectStar);
+    E = typeParameter('E', bound: objectNone);
     isNotSubtype(
       typeParameterTypeNone(E),
-      futureOrStar(stringStar),
-      strT0: 'E, E extends Object*',
-      strT1: 'FutureOr<String*>*',
+      futureOrNone(stringNone),
+      strT0: 'E, E extends Object',
+      strT1: 'FutureOr<String>',
     );
 
     E = typeParameter('E', bound: stringNone);
@@ -3286,18 +3283,18 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
       strT1: 'FutureOr<Object>?',
     );
 
-    T = typeParameter('T', bound: objectStar);
+    T = typeParameter('T', bound: objectNone);
     isSubtype(
-      promotedTypeParameterTypeNone(T, futureStar(numStar)),
-      futureOrStar(numStar),
-      strT0: 'T & Future<num*>*, T extends Object*',
-      strT1: 'FutureOr<num*>*',
+      promotedTypeParameterTypeNone(T, futureNone(numNone)),
+      futureOrNone(numNone),
+      strT0: 'T & Future<num>, T extends Object',
+      strT1: 'FutureOr<num>',
     );
     isSubtype(
-      promotedTypeParameterTypeNone(T, futureStar(intStar)),
-      futureOrStar(numStar),
-      strT0: 'T & Future<int*>*, T extends Object*',
-      strT1: 'FutureOr<num*>*',
+      promotedTypeParameterTypeNone(T, futureNone(intNone)),
+      futureOrNone(numNone),
+      strT0: 'T & Future<int>, T extends Object',
+      strT1: 'FutureOr<num>',
     );
 
     T = typeParameter('T', bound: objectNone);
@@ -3388,9 +3385,9 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
     isSubtype2('List<int*>*', 'List<Object*>*');
     isSubtype2('List<int*>*', 'Iterable<Object*>*');
     isSubtype2('List<int*>*', 'Object*');
-    isSubtype2('List<int*>*', 'List<Comparable<Object*>*>*');
-    isSubtype2('List<int*>*', 'List<Comparable<num*>*>*');
-    isSubtype2('List<int*>*', 'List<Comparable<Comparable<num*>*>*>*');
+    isSubtype2('List<int>', 'List<Comparable<Object>>');
+    isSubtype2('List<int>', 'List<Comparable<num>>');
+    isSubtype2('List<int>', 'List<Comparable<Comparable<num>>>');
     isSubtype2('List<int*>', 'Object');
     isSubtype2('List<int*>*', 'Object');
     isSubtype2('Null?', 'List<int*>*');
@@ -3421,8 +3418,6 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
 
   test_multi_never() {
     isSubtype2('Never', 'FutureOr<num>');
-    isSubtype2('Never', 'FutureOr<num*>');
-    isSubtype2('Never', 'FutureOr<num>*');
     isSubtype2('Never', 'FutureOr<num?>');
     isSubtype2('Never', 'FutureOr<num>?');
     isNotSubtype2('FutureOr<num>', 'Never');
@@ -3430,10 +3425,10 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
 
   test_multi_num_subTypes_superTypes() {
     isSubtype2('int*', 'num*');
-    isSubtype2('int*', 'Comparable<num*>*');
-    isSubtype2('int*', 'Comparable<Object*>*');
+    isSubtype2('int', 'Comparable<num>');
+    isSubtype2('int', 'Comparable<Object>');
     isSubtype2('int*', 'Object*');
-    isSubtype2('double*', 'num*');
+    isSubtype2('double', 'num');
     isSubtype2('num', 'Object');
     isSubtype2('num*', 'Object');
     isSubtype2('Null?', 'num*');
@@ -3442,10 +3437,10 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
     isSubtype2('Never', 'num*');
     isSubtype2('Never', 'num?');
 
-    isNotSubtype2('int*', 'double*');
-    isNotSubtype2('int*', 'Comparable<int*>*');
+    isNotSubtype2('int', 'double');
+    isNotSubtype2('int', 'Comparable<int>');
     isNotSubtype2('int*', 'Iterable<int*>*');
-    isNotSubtype2('Comparable<int*>*', 'Iterable<int*>*');
+    isNotSubtype2('Comparable<int>', 'Iterable<int>');
     isNotSubtype2('num?', 'Object');
     isNotSubtype2('Null?', 'num');
     isNotSubtype2('num', 'Never');
@@ -3841,11 +3836,11 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
   }
 
   test_null_05() {
-    isSubtype(
+    isNotSubtype(
       nullQuestion,
-      doubleStar,
+      doubleNone,
       strT0: 'Null?',
-      strT1: 'double*',
+      strT1: 'double',
     );
   }
 
@@ -3859,11 +3854,11 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
   }
 
   test_null_07() {
-    isSubtype(
+    isNotSubtype(
       nullQuestion,
-      comparableStar(objectStar),
+      comparableNone(objectNone),
       strT0: 'Null?',
-      strT1: 'Comparable<Object*>*',
+      strT1: 'Comparable<Object>',
     );
   }
 
@@ -4875,11 +4870,11 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
     var T = typeParameter('T');
 
     isNotSubtype(
-      futureOrStar(
+      futureOrNone(
         typeParameterTypeNone(T),
       ),
       typeParameterTypeNone(T),
-      strT0: 'FutureOr<T>*',
+      strT0: 'FutureOr<T>',
       strT1: 'T',
     );
   }
@@ -5306,12 +5301,12 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
     var T = typeParameter('T');
 
     isNotSubtype(
-      futureOrStar(
-        promotedTypeParameterTypeNone(T, stringStar),
+      futureOrNone(
+        promotedTypeParameterTypeNone(T, stringNone),
       ),
-      promotedTypeParameterTypeNone(T, stringStar),
-      strT0: 'FutureOr<T & String*>*',
-      strT1: 'T & String*',
+      promotedTypeParameterTypeNone(T, stringNone),
+      strT0: 'FutureOr<T & String>',
+      strT1: 'T & String',
     );
   }
 
@@ -5447,11 +5442,11 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
 @reflectiveTest
 class SubtypingCompoundTest extends _SubtypingTestBase {
   test_double() {
-    var equivalents = <DartType>[doubleStar];
-    var supertypes = <DartType>[numStar];
-    var unrelated = <DartType>[intStar];
+    var equivalents = <DartType>[doubleNone];
+    var supertypes = <DartType>[numNone];
+    var unrelated = <DartType>[intNone];
     _checkGroups(
-      doubleStar,
+      doubleNone,
       equivalents: equivalents,
       supertypes: supertypes,
       unrelated: unrelated,
@@ -5505,10 +5500,6 @@ class SubtypingCompoundTest extends _SubtypingTestBase {
     var futureOrObjectStar = futureOrNone(objectStar);
     var futureOrObjectQuestion = futureOrNone(objectQuestion);
 
-    var futureOrStarObject = futureOrStar(objectNone);
-    var futureOrStarObjectStar = futureOrStar(objectStar);
-    var futureOrStarObjectQuestion = futureOrStar(objectQuestion);
-
     var futureOrQuestionObject = futureOrQuestion(objectNone);
     var futureOrQuestionObjectStar = futureOrQuestion(objectStar);
     var futureOrQuestionObjectQuestion = futureOrQuestion(objectQuestion);
@@ -5519,8 +5510,6 @@ class SubtypingCompoundTest extends _SubtypingTestBase {
       equivalents: [
         objectStar,
         futureOrObjectStar,
-        futureOrStarObject,
-        futureOrStarObjectStar,
         objectNone,
       ],
       subtypes: [],
@@ -5530,28 +5519,14 @@ class SubtypingCompoundTest extends _SubtypingTestBase {
         futureOrObjectQuestion,
         futureOrQuestionObject,
         futureOrQuestionObjectStar,
-        futureOrStarObjectQuestion,
         futureOrQuestionObjectQuestion,
       ],
-    );
-  }
-
-  test_int() {
-    var equivalents = <DartType>[intStar];
-    var supertypes = <DartType>[numStar];
-    var unrelated = <DartType>[doubleStar];
-    _checkGroups(
-      intStar,
-      equivalents: equivalents,
-      supertypes: supertypes,
-      unrelated: unrelated,
     );
   }
 
   test_intNone() {
     var equivalents = <DartType>[
       intNone,
-      intStar,
     ];
 
     var subtypes = <DartType>[
@@ -5567,7 +5542,6 @@ class SubtypingCompoundTest extends _SubtypingTestBase {
     var unrelated = <DartType>[
       doubleNone,
       nullNone,
-      nullStar,
       nullQuestion,
       neverQuestion,
     ];
@@ -5618,42 +5592,6 @@ class SubtypingCompoundTest extends _SubtypingTestBase {
     );
   }
 
-  test_intStar() {
-    var equivalents = <DartType>[
-      intNone,
-      intQuestion,
-      intStar,
-    ];
-
-    var subtypes = <DartType>[
-      nullNone,
-      nullStar,
-      nullQuestion,
-      neverNone,
-      neverQuestion,
-    ];
-
-    var supertypes = <DartType>[
-      numNone,
-      numQuestion,
-      numStar,
-      objectNone,
-      objectQuestion,
-    ];
-
-    var unrelated = <DartType>[
-      doubleStar,
-    ];
-
-    _checkGroups(
-      intStar,
-      equivalents: equivalents,
-      supertypes: supertypes,
-      unrelated: unrelated,
-      subtypes: subtypes,
-    );
-  }
-
   test_null() {
     var equivalents = <DartType>[
       nullNone,
@@ -5695,9 +5633,9 @@ class SubtypingCompoundTest extends _SubtypingTestBase {
 
   test_num() {
     var equivalents = <DartType>[numStar];
-    var supertypes = <DartType>[objectStar];
-    var unrelated = <DartType>[stringStar];
-    var subtypes = <DartType>[intStar, doubleStar];
+    var supertypes = <DartType>[objectNone];
+    var unrelated = <DartType>[stringNone];
+    var subtypes = <DartType>[intStar, doubleNone];
     _checkGroups(
       numStar,
       equivalents: equivalents,

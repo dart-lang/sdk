@@ -68,15 +68,6 @@ final _evalErrorMessagePattern = RegExp('Error: (.*)');
 /// Pattern for extracting useful error messages from an unhandled exception.
 final _exceptionMessagePattern = RegExp('Unhandled exception:\n(.*)');
 
-/// Whether to subscribe to stdout/stderr through the VM Service.
-///
-/// This is set by [attachRequest] so that any output will still be captured and
-/// sent to the client without needing to access the process.
-///
-/// [launchRequest] reads the stdout/stderr streams directly and does not need
-/// to have them sent via the VM Service.
-var _subscribeToOutputStreams = false;
-
 /// Pattern for a trailing semicolon.
 final _trailingSemicolonPattern = RegExp(r';$');
 
@@ -367,11 +358,11 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// yet been made or has been shut down.
   DartDevelopmentService? _dds;
 
-  /// The [InitializeRequestArguments] provided by the client in the
+  /// The [DartInitializeRequestArguments] provided by the client in the
   /// `initialize` request.
   ///
   /// `null` if the `initialize` request has not yet been made.
-  InitializeRequestArguments? _initializeArgs;
+  DartInitializeRequestArguments? _initializeArgs;
 
   /// Whether to use IPv6 for DAP/Debugger services.
   final bool ipv6;
@@ -516,7 +507,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// `initialize` request.
   ///
   /// `null` if the `initialize` request has not yet been made.
-  InitializeRequestArguments? get initializeArgs => _initializeArgs;
+  DartInitializeRequestArguments? get initializeArgs => _initializeArgs;
 
   /// Whether or not this adapter can handle the restartRequest.
   ///
@@ -538,6 +529,15 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// whether it will call [handleSessionTerminate] itself upon process
   /// termination.
   bool get terminateOnVmServiceClose;
+
+  /// Whether to subscribe to stdout/stderr through the VM Service.
+  ///
+  /// This is set by [attachRequest] so that any output will still be captured and
+  /// sent to the client without needing to access the process.
+  ///
+  /// [launchRequest] reads the stdout/stderr streams directly and does not need
+  /// to have them sent via the VM Service.
+  var _subscribeToOutputStreams = false;
 
   /// Overridden by sub-classes to handle when the client sends an
   /// `attachRequest` (a request to attach to a running app).
@@ -1154,7 +1154,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   @override
   Future<void> initializeRequest(
     Request request,
-    InitializeRequestArguments args,
+    DartInitializeRequestArguments args,
     void Function(Capabilities) sendResponse,
   ) async {
     // Capture args so we can read capabilities later.
@@ -1204,23 +1204,30 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       return false;
     }
 
-    final packagePath = await thread.resolveUriToPackageLibPath(uri);
-    if (packagePath == null) {
+    final packageFileUri = await thread.resolveUriToPackageLibPath(uri);
+    if (packageFileUri == null) {
       return false;
     }
 
-    return !isInUserProject(packagePath);
+    return !isInUserProject(packageFileUri);
   }
 
-  /// Checks whether [path] is inside the users project. This is used to support
+  /// Checks whether [uri] is inside the users project. This is used to support
   /// debugging "Just My Code" (via [isExternalPackageLibrary]) and also for
   /// stack trace highlighting, where non-user code will be faded.
-  bool isInUserProject(String targetPath) {
+  bool isInUserProject(Uri targetUri) {
+    if (!isSupportedFileScheme(targetUri)) {
+      return false;
+    }
+
+    var targetPath = targetUri.toFilePath();
+
     // Always compare paths case-insensitively to avoid any issues where APIs
     // may have returned different casing (e.g. Windows drive letters). It's
     // almost certain a user wouldn't have a "local" package and an "external"
     // package with paths differing only be case.
     targetPath = targetPath.toLowerCase();
+
     return projectPaths
         .map((projectPath) => projectPath.toLowerCase())
         .any((projectPath) => path.isWithin(projectPath, targetPath));
@@ -1474,7 +1481,9 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
 
     final path = args.source.path;
     final name = args.source.name;
-    final uri = path != null ? Uri.file(normalizePath(path)).toString() : name!;
+    final uri = path != null
+        ? normalizeUri(fromClientPathOrUri(path)).toString()
+        : name!;
 
     // Use a completer to track when the response is sent, so any events related
     // to these breakpoints are not sent before the client has the IDs.
@@ -1561,8 +1570,8 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   }
 
   /// Converts a URI in the form org-dartlang-sdk:///sdk/lib/collection/hash_set.dart
-  /// to a local file path based on the current SDK.
-  String? convertOrgDartlangSdkToPath(Uri uri) {
+  /// to a local file URI based on the current SDK.
+  Uri? convertOrgDartlangSdkToPath(Uri uri) {
     // org-dartlang-sdk URIs can be in multiple forms:
     //
     //   - org-dartlang-sdk:///sdk/lib/collection/hash_set.dart
@@ -1575,24 +1584,39 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       final mapPath = mapping.key;
       final mapUri = mapping.value;
       if (uri.isScheme(mapUri.scheme) && uri.path.startsWith(mapUri.path)) {
-        return path.joinAll([
-          mapPath,
-          ...uri.pathSegments.skip(mapUri.pathSegments.length),
-        ]);
+        return Uri.file(
+          path.joinAll([
+            mapPath,
+            ...uri.pathSegments.skip(mapUri.pathSegments.length),
+          ]),
+        );
       }
     }
 
     return null;
   }
 
-  /// Converts a file path inside the current SDK root into a URI in the form
-  /// org-dartlang-sdk:///sdk/lib/collection/hash_set.dart.
-  Uri? convertPathToOrgDartlangSdk(String input) {
+  /// Converts a file path inside the current SDK root into a URI in the
+  /// form org-dartlang-sdk:///sdk/lib/collection/hash_set.dart.
+  String? convertPathToOrgDartlangSdk(String input) {
+    // TODO(dantup): Remove this once Flutter code has been updated to
+    //  use convertUriToOrgDartlangSdk.
+    return convertUriToOrgDartlangSdk(Uri.file(input))?.toFilePath();
+  }
+
+  /// Converts a file URI inside the current SDK root into a URI in the
+  /// form org-dartlang-sdk:///sdk/lib/collection/hash_set.dart.
+  Uri? convertUriToOrgDartlangSdk(Uri input) {
+    if (!input.isScheme('file')) {
+      return null;
+    }
+    final inputPath = input.toFilePath();
+
     for (final mapping in orgDartlangSdkMappings.entries) {
       final mapPath = mapping.key;
       final mapUri = mapping.value;
-      if (path.isWithin(mapPath, input)) {
-        final relative = path.relative(input, from: mapPath);
+      if (path.isWithin(mapPath, inputPath)) {
+        final relative = path.relative(inputPath, from: mapPath);
         return Uri(
           scheme: mapUri.scheme,
           host: '',
@@ -2190,15 +2214,14 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     final paths = await Future.wait(frames.map((frame) async {
       final uri = frame?.uri;
       if (uri == null) return null;
-      if (uri.isScheme('file')) {
-        final path = uri.toFilePath();
-        return _PathInfo(path, isUserCode: isInUserProject(path));
+      if (isSupportedFileScheme(uri)) {
+        return (uri: uri, isUserCode: isInUserProject(uri));
       }
       if (thread == null || !isResolvableUri(uri)) return null;
       try {
-        final path = await thread.resolveUriToPath(uri);
-        return path != null
-            ? _PathInfo(path, isUserCode: isInUserProject(path))
+        final fileUri = await thread.resolveUriToPath(uri);
+        return fileUri != null
+            ? (uri: fileUri, isUserCode: isInUserProject(fileUri))
             : null;
       } catch (e, s) {
         // Swallow errors for the same reason noted above.
@@ -2213,7 +2236,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       final frame = frames[i];
       final uri = frame?.uri;
       final pathInfo = paths[i];
-      final path = pathInfo?.path;
+      final fileUri = pathInfo?.uri;
 
       // Default to true so that if we don't know whether this is user-project
       // then we leave the formatting as-is and don't fade anything out.
@@ -2221,9 +2244,9 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
 
       // For the name, we usually use the package URI, but if we only ended up
       // with a file URI, try to make it relative to cwd so it's not so long.
-      final name = uri != null && path != null
-          ? (uri.isScheme('file')
-              ? _converter.convertToRelativePath(path)
+      final name = uri != null && fileUri != null
+          ? (fileUri.isScheme('file')
+              ? _converter.convertToRelativePath(fileUri.toFilePath())
               : uri.toString())
           : null;
 
@@ -2239,11 +2262,13 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       final lineEnd = i != lines.length - 1 ? '\n' : '';
       final output = '$linePrefix$line$lineSuffix$lineEnd';
 
+      final clientPath = fileUri != null ? toClientPathOrUri(fileUri) : null;
       events.add(
         OutputEventBody(
           category: category,
           output: output,
-          source: path != null ? Source(name: name, path: path) : null,
+          source:
+              clientPath != null ? Source(name: name, path: clientPath) : null,
           line: frame?.line,
           column: frame?.column,
         ),
@@ -2443,18 +2468,19 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       return;
     }
 
-    if (uri.isScheme('file')) {
+    // Doesn't need resolving if already file.
+    if (isSupportedFileScheme(uri)) {
       return;
     }
 
-    final path = await thread.resolveUriToPath(uri);
-    if (path != null) {
+    final fileUri = await thread.resolveUriToPath(uri);
+    if (fileUri != null) {
       // Convert:
       //   uri -> resolvedUri
       //   fileUri -> resolvedFileUri
       final resolvedFieldName =
           'resolved${field.substring(0, 1).toUpperCase()}${field.substring(1)}';
-      data[resolvedFieldName] = Uri.file(path).toString();
+      data[resolvedFieldName] = fileUri.toString();
     }
   }
 
@@ -2678,6 +2704,45 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       rethrow;
     }
   }
+
+  /// Whether the current client supports URIs in place of file paths.
+  bool get clientSupportsUri => _initializeArgs?.supportsDartUris ?? false;
+
+  /// Returns whether [uri] is a file-like URI scheme that is supported by the
+  /// client.
+  ///
+  /// Returning `true` here does not guarantee that the client supports URIs,
+  /// the caller should also check [clientSupportsUri].
+  bool isSupportedFileScheme(Uri uri) {
+    // TODO(dantup): Support macro URIs.
+    return uri.isScheme('file');
+  }
+
+  /// Converts a URI into a form that can be used by the client.
+  ///
+  /// If the client supports URIs (like VS Code), it will be returned unchanged
+  /// but otherwise it will be the `toFilePath()` equivalent if a 'file://' URI
+  /// and otherwise `null`.
+  String? toClientPathOrUri(Uri? uri) {
+    if (uri == null) {
+      return null;
+    } else if (clientSupportsUri) {
+      return uri.toString();
+    } else if (uri.isScheme('file')) {
+      return uri.toFilePath();
+    } else {
+      return null;
+    }
+  }
+
+  /// Converts a String used by the client as a path/URI into a [Uri].
+  Uri fromClientPathOrUri(String filePathOrUriString) {
+    var uri = Uri.tryParse(filePathOrUriString);
+    if (uri == null || !isSupportedFileScheme(uri)) {
+      uri = Uri.file(filePathOrUriString);
+    }
+    return uri;
+  }
 }
 
 /// An implementation of [LaunchRequestArguments] that includes all fields used
@@ -2831,14 +2896,4 @@ class _DdsCapabilities {
       return false;
     }
   }
-}
-
-/// Information about the path to a Dart script.
-class _PathInfo {
-  // TODO(dantup): Remove this and just use a record
-  // `({String? path, bool isUserCode})` when DDS is >= Dart 3.0.0.
-  final String? path;
-  final bool isUserCode;
-
-  _PathInfo(this.path, {required this.isUserCode});
 }
