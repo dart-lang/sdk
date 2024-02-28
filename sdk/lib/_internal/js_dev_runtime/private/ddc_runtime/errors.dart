@@ -219,8 +219,10 @@ StackTrace stackTrace(Object? error) {
   return JS('', '#[#] = #', error, _stackTrace, _StackTrace(error));
 }
 
-StackTrace stackTraceForError(Error error) {
-  return stackTrace(JS('', '#[#]', error, _jsError));
+StackTrace? stackTraceForError(Error error) {
+  var jsError = JS('', '#[#]', error, _jsError);
+  if (jsError == null) return null;
+  return stackTrace(jsError);
 }
 
 /// Implements `rethrow` of [error], allowing rethrow in an expression context.

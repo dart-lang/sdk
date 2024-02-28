@@ -71,6 +71,7 @@ abstract class _B&Object&Error extends core::Object implements core::Error /*isA
   }
   @#C4
   @#C10
+  @#C12
   external static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/errors_patch.dart */ _throw(core::Object error, core::StackTrace stackTrace) → Never;
 }
 class B extends self::_B&Object&Error {
@@ -90,4 +91,6 @@ constants  {
   #C8 = "vm:external-name"
   #C9 = "Error_throwWithStackTrace"
   #C10 = core::pragma {name:#C8, options:#C9}
+  #C11 = "wasm:entry-point"
+  #C12 = core::pragma {name:#C11, options:#C2}
 }

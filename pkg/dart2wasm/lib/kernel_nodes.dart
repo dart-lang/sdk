@@ -244,6 +244,8 @@ mixin KernelNodes {
   late final Class errorClass = index.getClass("dart:core", "Error");
   late final Field errorClassStackTraceField =
       index.getField("dart:core", "Error", "_stackTrace");
+  late final Procedure errorThrow =
+      index.getProcedure("dart:core", "Error", "_throw");
   late final Procedure errorThrowWithCurrentStackTrace =
       index.getProcedure("dart:core", "Error", "_throwWithCurrentStackTrace");
 
