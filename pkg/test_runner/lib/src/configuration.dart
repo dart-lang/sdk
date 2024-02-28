@@ -342,7 +342,10 @@ class TestConfiguration {
       Abi.linuxArm64: 'linux-arm64',
       Abi.linuxX64: 'linux-x64',
     };
-    final hostFolderName = clangHostFolderName[Abi.current()]!;
+    final hostFolderName = clangHostFolderName[Abi.current()];
+    if (hostFolderName == null) {
+      return <String, String>{};
+    }
     final clangBin =
         Directory.current.uri.resolve('buildtools/$hostFolderName/clang/bin/');
     return {
