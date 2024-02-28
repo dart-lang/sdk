@@ -443,6 +443,16 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
+  void endLibraryAugmentation(
+      Token libraryKeyword, Token augmentKeyword, Token semicolon) {
+    debugEvent("endLibraryAugmentation");
+    assert(checkState(libraryKeyword, [
+      /* metadata */ ValueKinds.TokenOrNull,
+    ]));
+    pop(); // Annotations.
+  }
+
+  @override
   void beginLiteralString(Token token) {
     debugEvent("beginLiteralString");
   }
