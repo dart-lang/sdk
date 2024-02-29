@@ -17,17 +17,15 @@ import 'package:front_end/src/fasta/kernel/macro/macro.dart';
 import 'package:front_end/src/fasta/kernel/macro/offset_checker.dart';
 import 'package:front_end/src/fasta/source/source_class_builder.dart';
 import 'package:front_end/src/fasta/source/source_library_builder.dart';
-import 'package:front_end/src/macro_serializer.dart';
-import 'package:front_end/src/temp_dir_macro_serializer.dart';
+import 'package:front_end/src/macros/macro_serializer.dart';
+import 'package:front_end/src/macros/temp_dir_macro_serializer.dart';
 import 'package:front_end/src/testing/compiler_common.dart';
 import 'package:front_end/src/testing/id_extractor.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
 import 'package:front_end/src/testing/id_testing_utils.dart';
 import 'package:kernel/ast.dart' hide Arguments;
 import 'package:kernel/kernel.dart';
-import 'package:kernel/target/targets.dart';
 import 'package:kernel/text/ast_to_text.dart';
-import 'package:vm/modular/target/vm.dart';
 
 import '../../utils/kernel_chain.dart';
 
@@ -68,7 +66,6 @@ class MacroTestConfig extends CfeTestConfig {
 
   @override
   void customizeCompilerOptions(CompilerOptions options, TestData testData) {
-    options.macroTarget = new VmTarget(new TargetFlags());
     options.macroSerializer = macroSerializer;
     options.hooksForTesting = new MacroOffsetCheckerHook(offsetErrors);
   }

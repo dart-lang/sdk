@@ -948,6 +948,7 @@ lattice
 launch
 launched
 launcher
+launches
 launching
 layer
 layered
@@ -1269,6 +1270,7 @@ precompilation
 precompilations
 precompile
 precompiled
+precompiles
 precompiling
 precomputed
 preexisted

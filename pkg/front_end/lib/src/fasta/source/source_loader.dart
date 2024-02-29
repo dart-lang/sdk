@@ -1544,8 +1544,10 @@ severity: $severity
         ClassBuilder builder = iterator.current;
         if (builder.isMacro) {
           Uri libraryUri = builder.libraryBuilder.importUri;
-          if (!target.context.options.macroExecutor
-              .libraryIsRegistered(libraryUri)) {
+          if (!target.context.options.runningPrecompilations
+                  .contains(libraryUri) &&
+              !target.context.options.macroExecutor
+                  .libraryIsRegistered(libraryUri)) {
             (macroLibraries[libraryUri] ??= []).add(builder);
             if (retainDataForTesting) {
               (dataForTesting!.macroDeclarationData

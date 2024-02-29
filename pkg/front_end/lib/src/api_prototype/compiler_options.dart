@@ -17,7 +17,7 @@ import 'package:kernel/target/targets.dart' show Target;
 
 import '../api_unstable/util.dart';
 import '../base/nnbd_mode.dart';
-import '../macro_serializer.dart';
+import '../macros/macro_serializer.dart';
 import 'experimental_flags.dart'
     show
         AllowedExperimentalFlags,
@@ -105,12 +105,11 @@ class CompilerOptions {
   /// This is part of the experimental macro feature.
   MultiMacroExecutor? macroExecutor;
 
-  /// The [Target] used for compiling macros.
+  /// If true, macro declarations will not be precompiled, even when the
+  /// feature is enabled and other libraries depend on them.
   ///
-  /// If `null`, macro declarations will not be precompiled, even when other
-  /// libraries depend on them.
   /// This is part of the experimental macro feature.
-  Target? macroTarget;
+  bool skipMacros = false;
 
   /// Function that can create a [Uri] for the serialized result of a
   /// [Component].
@@ -119,6 +118,8 @@ class CompilerOptions {
   /// by the [macroExecutor].
   ///
   /// This is part of the experimental macro feature.
+  ///
+  /// If `null` then an `IsolateMacroSerializer` will be instantiated and used.
   MacroSerializer? macroSerializer;
 
   /// Raw precompiled macro options, each of the format
@@ -287,6 +288,16 @@ class CompilerOptions {
       experimentEnabledVersionForTesting: experimentEnabledVersionForTesting,
       experimentReleasedVersionForTesting: experimentReleasedVersionForTesting,
       allowedExperimentalFlags: allowedExperimentalFlagsForTesting);
+
+  /// The precompilations already in progress in an outer compile or that will
+  /// be built in the current compile.
+  ///
+  /// When a compile discovers macros that are not prebuilt it launches a new
+  /// nested compile to build them, a precompilation. That precompilation must
+  /// itself launch more compilations if it encounters more macros. This set
+  /// tracks what is running so that already-running precompilations are not
+  /// launched again.
+  Set<Uri> runningPrecompilations = {};
 
   /// Returns the minimum language version needed for a library with the given
   /// [importUri] to opt into the experiment with the given [flag].
