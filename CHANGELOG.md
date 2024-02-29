@@ -19,6 +19,10 @@
 
 ### Libraries
 
+#### `dart:cli`
+
+- **Breaking change** [#52121][]: `waitFor` is removed in 3.4.
+
 #### `dart:io`
 
 - **Breaking change** [#53863][]: `Stdout` has a new field `lineTerminator`,

@@ -350,7 +350,6 @@ main() {
     "Dart_TypeToNullableType",
     "Dart_TypeVoid",
     "Dart_VersionString",
-    "Dart_WaitForEvent",
     "Dart_WriteHeapSnapshot",
     "Dart_WriteProfileToTimeline",
   ];

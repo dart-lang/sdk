@@ -553,11 +553,7 @@ Dart_Handle DartUtils::PrepareIsolateLibrary(Dart_Handle isolate_lib) {
 }
 
 Dart_Handle DartUtils::PrepareCLILibrary(Dart_Handle cli_lib) {
-  Dart_Handle wait_for_event_handle =
-      Dart_Invoke(cli_lib, NewString("_getWaitForEvent"), 0, nullptr);
-  RETURN_IF_ERROR(wait_for_event_handle);
-  return Dart_SetField(cli_lib, NewString("_waitForEventClosure"),
-                       wait_for_event_handle);
+  return Dart_Null();
 }
 
 Dart_Handle DartUtils::SetupPackageConfig(const char* packages_config) {

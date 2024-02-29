@@ -2109,68 +2109,6 @@ DART_EXPORT Dart_Handle Dart_HandleMessage() {
   return Api::Success();
 }
 
-DART_EXPORT Dart_Handle Dart_WaitForEvent(int64_t timeout_millis) {
-  if (!FLAG_enable_deprecated_wait_for) {
-    return Dart_NewUnhandledExceptionError(Dart_NewStringFromCString(
-        "Synchronous waiting using dart:cli waitFor "
-        "and C API Dart_WaitForEvent is deprecated and disabled by default. "
-        "This feature will be fully removed in Dart 3.4 release. "
-        "You can currently still enable it by passing "
-        "--enable_deprecated_wait_for "
-        "to the Dart VM. "
-        "See https://dartbug.com/52121."));
-  }
-
-  Thread* T = Thread::Current();
-  Isolate* I = T->isolate();
-  CHECK_API_SCOPE(T);
-  CHECK_CALLBACK_STATE(T);
-  API_TIMELINE_BEGIN_END(T);
-  TransitionNativeToVM transition(T);
-  if (I->message_notify_callback() != nullptr) {
-    return Api::NewError("waitForEventSync is not supported by this embedder");
-  }
-  Object& result =
-      Object::Handle(Z, DartLibraryCalls::EnsureScheduleImmediate());
-  if (result.IsError()) {
-    return Api::NewHandle(T, result.ptr());
-  }
-
-  // Drain the microtask queue. Propagate any errors to the entry frame.
-  result = DartLibraryCalls::DrainMicrotaskQueue();
-  if (result.IsError()) {
-    // Persist the error across unwiding scopes before propagating.
-    const Error* error;
-    {
-      NoSafepointScope no_safepoint;
-      ErrorPtr raw_error = Error::Cast(result).ptr();
-      T->UnwindScopes(T->top_exit_frame_info());
-      error = &Error::Handle(T->zone(), raw_error);
-    }
-    Exceptions::PropagateToEntry(*error);
-    UNREACHABLE();
-    return Api::NewError("Unreachable");
-  }
-
-  // Block to wait for messages and then handle them. Propagate any errors to
-  // the entry frame.
-  if (I->message_handler()->PauseAndHandleAllMessages(timeout_millis) !=
-      MessageHandler::kOK) {
-    // Persist the error across unwiding scopes before propagating.
-    const Error* error;
-    {
-      NoSafepointScope no_safepoint;
-      ErrorPtr raw_error = T->StealStickyError();
-      T->UnwindScopes(T->top_exit_frame_info());
-      error = &Error::Handle(T->zone(), raw_error);
-    }
-    Exceptions::PropagateToEntry(*error);
-    UNREACHABLE();
-    return Api::NewError("Unreachable");
-  }
-  return Api::Success();
-}
-
 DART_EXPORT bool Dart_HandleServiceMessages() {
 #if defined(PRODUCT)
   return true;

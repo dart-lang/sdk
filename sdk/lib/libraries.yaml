@@ -116,8 +116,6 @@ vm:
   libraries:
     cli:
       uri: "cli/cli.dart"
-      patches:
-        - "_internal/vm/bin/cli_patch.dart"
 
 wasm:
   include:

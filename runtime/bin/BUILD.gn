@@ -12,7 +12,6 @@ import("../vm/heap/heap_sources.gni")
 import("../vm/vm_sources.gni")
 import("builtin_impl_sources.gni")
 import("builtin_sources.gni")
-import("cli_impl_sources.gni")
 import("cli_sources.gni")
 import("io_impl_sources.gni")
 import("io_sources.gni")
@@ -357,7 +356,7 @@ template("build_gen_snapshot_dart_io") {
 
     defines = [ "DART_IO_SECURE_SOCKET_DISABLED" ]
 
-    sources = io_impl_sources + cli_impl_sources
+    sources = io_impl_sources
     sources += [
       "io_natives.cc",
       "io_natives.h",
@@ -476,7 +475,7 @@ template("dart_io") {
       }
     }
 
-    sources = io_impl_sources + cli_impl_sources
+    sources = io_impl_sources
     sources += [
                  "builtin_natives.cc",
                  "io_natives.cc",

@@ -7,7 +7,7 @@
 /// ## Deprecation notice
 ///
 /// The functionality of this library is incomplete and may be removed in a
-/// later version. See [waitFor] for details.
+/// later version.
 ///
 /// {@category VM}
 @Deprecated(
@@ -16,5 +16,3 @@ library dart.cli;
 
 import 'dart:async';
 import 'dart:math';
-
-part 'wait_for.dart';
