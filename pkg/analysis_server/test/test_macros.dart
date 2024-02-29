@@ -15,8 +15,9 @@ mixin TestMacros on ConfigurationFilesMixin {
   /// Adds support for macros to the `package_config.json` file and creates a
   /// `macros.dart` file that defines the given [macros]. The macros should not
   /// include imports, the imports for macros will be added automatically.
-  void addMacros(List<String> macros) {
+  void addMacros(List<String> macros, {bool isFlutter = false}) {
     writeTestPackageConfig(
+      flutter: isFlutter,
       macro: true,
     );
 
