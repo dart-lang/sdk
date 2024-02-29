@@ -2030,6 +2030,37 @@ A0 T0;
 ''');
     assertResponse(r'''
 suggestions
+  @override
+  // TODO: implement hashCode
+  int get hashCode => super.hashCode;
+    kind: override
+    selection: 62 14
+  @override
+  // TODO: implement runtimeType
+  Type get runtimeType => super.runtimeType;
+    kind: override
+    selection: 69 17
+  @override
+  String toString() {
+    // TODO: implement toString
+    return super.toString();
+  }
+    kind: override
+    selection: 68 24
+  @override
+  bool operator ==(Object other) {
+    // TODO: implement ==
+    return super == other;
+  }
+    kind: override
+    selection: 75 22
+  @override
+  noSuchMethod(Invocation invocation) {
+    // TODO: implement noSuchMethod
+    return super.noSuchMethod(invocation);
+  }
+    kind: override
+    selection: 90 38
   A0
     kind: class
     deprecated: true
@@ -5676,6 +5707,37 @@ class C1 {
 ''');
     assertResponse(r'''
 suggestions
+  @override
+  // TODO: implement hashCode
+  int get hashCode => super.hashCode;
+    kind: override
+    selection: 62 14
+  @override
+  // TODO: implement runtimeType
+  Type get runtimeType => super.runtimeType;
+    kind: override
+    selection: 69 17
+  @override
+  String toString() {
+    // TODO: implement toString
+    return super.toString();
+  }
+    kind: override
+    selection: 68 24
+  @override
+  bool operator ==(Object other) {
+    // TODO: implement ==
+    return super == other;
+  }
+    kind: override
+    selection: 75 22
+  @override
+  noSuchMethod(Invocation invocation) {
+    // TODO: implement noSuchMethod
+    return super.noSuchMethod(invocation);
+  }
+    kind: override
+    selection: 90 38
   C0
     kind: class
   C1
@@ -5687,7 +5749,7 @@ suggestions
 ''');
   }
 
-  Future<void> test_methodDeclaration_returnType_afterComment() async {
+  Future<void> test_methodDeclaration_returnType_afterBlockComment() async {
     newFile('$testPackageLibPath/a.dart', '''
 int T0 = 0;
 F0() {}
@@ -5710,6 +5772,37 @@ class C1 {
 ''');
     assertResponse(r'''
 suggestions
+  @override
+  // TODO: implement hashCode
+  int get hashCode => super.hashCode;
+    kind: override
+    selection: 62 14
+  @override
+  // TODO: implement runtimeType
+  Type get runtimeType => super.runtimeType;
+    kind: override
+    selection: 69 17
+  @override
+  String toString() {
+    // TODO: implement toString
+    return super.toString();
+  }
+    kind: override
+    selection: 68 24
+  @override
+  bool operator ==(Object other) {
+    // TODO: implement ==
+    return super == other;
+  }
+    kind: override
+    selection: 75 22
+  @override
+  noSuchMethod(Invocation invocation) {
+    // TODO: implement noSuchMethod
+    return super.noSuchMethod(invocation);
+  }
+    kind: override
+    selection: 90 38
   C0
     kind: class
   C1
@@ -5721,7 +5814,7 @@ suggestions
 ''');
   }
 
-  Future<void> test_methodDeclaration_returnType_afterComment2() async {
+  Future<void> test_methodDeclaration_returnType_afterDocComment() async {
     newFile('$testPackageLibPath/a.dart', '''
 int T0 = 0;
 F0() {}
@@ -5755,7 +5848,7 @@ suggestions
 ''');
   }
 
-  Future<void> test_methodDeclaration_returnType_afterComment3() async {
+  Future<void> test_methodDeclaration_returnType_afterEolDocComment() async {
     newFile('$testPackageLibPath/a.dart', '''
 int T0 = 0;
 F0() {}
@@ -5970,6 +6063,37 @@ A T0;
 ''');
     assertResponse(r'''
 suggestions
+  @override
+  // TODO: implement hashCode
+  int get hashCode => super.hashCode;
+    kind: override
+    selection: 62 14
+  @override
+  // TODO: implement runtimeType
+  Type get runtimeType => super.runtimeType;
+    kind: override
+    selection: 69 17
+  @override
+  String toString() {
+    // TODO: implement toString
+    return super.toString();
+  }
+    kind: override
+    selection: 68 24
+  @override
+  bool operator ==(Object other) {
+    // TODO: implement ==
+    return super == other;
+  }
+    kind: override
+    selection: 75 22
+  @override
+  noSuchMethod(Invocation invocation) {
+    // TODO: implement noSuchMethod
+    return super.noSuchMethod(invocation);
+  }
+    kind: override
+    selection: 90 38
   M0
     kind: mixin
   _B0
@@ -7385,6 +7509,37 @@ class A<T0> {
 ''');
     assertResponse(r'''
 suggestions
+  @override
+  // TODO: implement hashCode
+  int get hashCode => super.hashCode;
+    kind: override
+    selection: 62 14
+  @override
+  // TODO: implement runtimeType
+  Type get runtimeType => super.runtimeType;
+    kind: override
+    selection: 69 17
+  @override
+  String toString() {
+    // TODO: implement toString
+    return super.toString();
+  }
+    kind: override
+    selection: 68 24
+  @override
+  bool operator ==(Object other) {
+    // TODO: implement ==
+    return super == other;
+  }
+    kind: override
+    selection: 75 22
+  @override
+  noSuchMethod(Invocation invocation) {
+    // TODO: implement noSuchMethod
+    return super.noSuchMethod(invocation);
+  }
+    kind: override
+    selection: 90 38
   T0
     kind: typeParameter
 ''');

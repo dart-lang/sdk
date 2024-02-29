@@ -9,6 +9,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/source/source_range.dart';
 
 /// Information about a code completion suggestion that might or might not be
 /// sent to the client (that is, one that is a candidate for being sent).
@@ -375,6 +376,31 @@ final class NameSuggestion extends CandidateSuggestion {
   String get completion => name;
 }
 
+/// The information about a candidate suggestion to create an override of an
+/// inherited method.
+final class OverrideSuggestion extends CandidateSuggestion {
+  /// The method to be overridden.
+  final ExecutableElement element;
+
+  /// Whether `super` should be invoked in the body of the override.
+  final bool shouldInvokeSuper;
+
+  /// The soruce range that should be replaced by the override.
+  final SourceRange replacementRange;
+
+  /// Initialize a newly created candidate suggestion to suggest the [element] by
+  /// inserting the [shouldInvokeSuper].
+  OverrideSuggestion(
+      {required this.element,
+      required this.shouldInvokeSuper,
+      required this.replacementRange});
+
+  @override
+  // TODO(brianwilkerson): This needs to be replaced with code to compute the
+  //  actual completion when we remove SuggestionBuilder.
+  String get completion => '@override ${element.displayName}';
+}
+
 /// The information about a candidate suggestion based on a getter or setter.
 final class PropertyAccessSuggestion extends CandidateSuggestion {
   /// The element on which the suggestion is based.
@@ -592,6 +618,9 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
             replacementLength: suggestion.replacementLength);
       case NameSuggestion():
         suggestName(suggestion.name);
+      case OverrideSuggestion():
+        suggestOverride2(suggestion.element, suggestion.shouldInvokeSuper,
+            suggestion.replacementRange);
       case PropertyAccessSuggestion():
         var inheritanceDistance = 0.0;
         var referencingClass = suggestion.referencingClass;

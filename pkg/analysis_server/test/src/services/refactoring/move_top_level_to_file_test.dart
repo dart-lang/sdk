@@ -1073,6 +1073,7 @@ class A {}
 ''';
     var declarationName = 'ClassToMove';
 
+    // Verify that `main.macro.dart` is unmodified.
     var expected = '''
 >>>>>>>>>> lib/class_to_move.dart created
 class ClassToMove {}
@@ -1085,7 +1086,6 @@ import 'macros.dart';
 class A {}
 ''';
 
-    // Perform and verify the move.
     await _singleDeclaration(
       originalSource: originalSource,
       expected: expected,

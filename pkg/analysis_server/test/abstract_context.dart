@@ -240,8 +240,10 @@ class AbstractContextTest
 
   void setupResourceProvider() {}
 
-  void tearDown() {
+  @mustCallSuper
+  Future<void> tearDown() async {
     AnalysisEngine.instance.clearCaches();
+    await _analysisContextCollection?.dispose();
   }
 
   /// Update `pubspec.yaml` and create the driver.

@@ -66,9 +66,9 @@ abstract class DataDrivenFixProcessorTest extends FixProcessorTest {
   }
 
   @override
-  void tearDown() {
+  Future<void> tearDown() async {
     DataDriven.transformSetsForTests = null;
     TransformSetManager.instance.clearCache();
-    super.tearDown();
+    await super.tearDown();
   }
 }
