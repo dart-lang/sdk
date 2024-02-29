@@ -9,7 +9,6 @@ import 'package:language_server_protocol/protocol_generated.dart';
 import 'package:test/expect.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../test_macros.dart';
 import '../tool/lsp_spec/matchers.dart';
 import 'server_abstract.dart';
 
@@ -20,8 +19,8 @@ void main() {
 }
 
 @reflectiveTest
-class DartTextDocumentContentProviderTest extends AbstractLspAnalysisServerTest
-    with TestMacros {
+class DartTextDocumentContentProviderTest
+    extends AbstractLspAnalysisServerTest {
   @override
   AnalysisServerOptions get serverOptions => AnalysisServerOptions()
     ..enabledExperiments = [

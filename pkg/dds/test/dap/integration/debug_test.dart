@@ -394,7 +394,10 @@ main() {
 
       // Step in to the hello() method provided by the macro.
       final expectedMacroSourceUri =
-          Uri.file(testFile.path).replace(scheme: 'dart-macro+file');
+          // Drive letters are always normalized to uppercase so expect
+          // uppercase in the path part of the macro URI.
+          Uri.file(client.uppercaseDriveLetter(testFile.path))
+              .replace(scheme: 'dart-macro+file');
       final responses = await Future.wait([
         client.expectStop('step',
             sourceName: expectedMacroSourceUri.toString()),

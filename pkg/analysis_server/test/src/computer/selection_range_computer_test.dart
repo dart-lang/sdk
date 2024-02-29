@@ -49,6 +49,40 @@ final foo = Foo(arg1: "^test");
     );
   }
 
+  Future<void> test_class_augmentation() async {
+    newFile('$testPackageLibPath/a.dart', '''
+import augment 'test.dart';
+class Foo {}
+''');
+
+    final content = TestCode.parse('''
+library augment a.dart;
+
+augment class Foo {
+  void a(String b) {
+    print((1 ^+ 2) * 3);
+  }
+}
+''');
+
+    final regions = await _computeSelectionRanges(content);
+    _expectRegions(
+      regions,
+      content,
+      [
+        '1 + 2',
+        '(1 + 2)',
+        '(1 + 2) * 3',
+        '((1 + 2) * 3)',
+        'print((1 + 2) * 3)',
+        'print((1 + 2) * 3);',
+        '{\n    print((1 + 2) * 3);\n  }',
+        'void a(String b) {\n    print((1 + 2) * 3);\n  }',
+        'augment class Foo {\n  void a(String b) {\n    print((1 + 2) * 3);\n  }\n}',
+      ],
+    );
+  }
+
   Future<void> test_class_definition() async {
     final content = TestCode.parse('^class Foo<T> {}');
 

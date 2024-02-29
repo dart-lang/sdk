@@ -11,7 +11,6 @@ import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../analysis_server_base.dart';
-import '../../test_macros.dart';
 import 'abstract_lsp_over_legacy.dart';
 
 void main() {
@@ -30,8 +29,7 @@ void main() {
 /// Legacy) are in `test/lsp_over_legacy/` and tests for all handler
 /// functionality are in `test/lsp`.
 @reflectiveTest
-class LspOverLegacyNotificationTest extends AbstractLspOverLegacyTest
-    with TestMacros {
+class LspOverLegacyNotificationTest extends AbstractLspOverLegacyTest {
   /// Tells the server we support custom URIs, otherwise we won't be allowed to
   /// fetch any content from a URI.
   Future<void> enableCustomUriSupport() async {

@@ -6,7 +6,6 @@ import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../test_macros.dart';
 import 'abstract_lsp_over_legacy.dart';
 
 void main() {
@@ -16,8 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class DartTextDocumentContentProviderTest extends LspOverLegacyTest
-    with TestMacros {
+class DartTextDocumentContentProviderTest extends LspOverLegacyTest {
   /// Tells the server we support custom URIs, otherwise we won't be allowed to
   /// fetch any content from a URI.
   Future<void> enableCustomUriSupport() async {

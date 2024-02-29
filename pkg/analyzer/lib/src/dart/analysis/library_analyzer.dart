@@ -841,9 +841,20 @@ class LibraryAnalyzer {
       ),
     );
 
+    var docImportLibraries = [
+      for (var import in _library.docImports)
+        if (import is LibraryImportWithFile)
+          _libraryElement.session.elementFactory
+              .libraryOfUri2(import.importedFile.uri)
+    ];
     unit.accept(ScopeResolverVisitor(
-        _libraryElement, source, _typeProvider, errorListener,
-        nameScope: unitElement.enclosingElement.scope));
+      _libraryElement,
+      source,
+      _typeProvider,
+      errorListener,
+      nameScope: unitElement.enclosingElement.scope,
+      docImportLibraries: docImportLibraries,
+    ));
 
     // Nothing for RESOLVED_UNIT8?
     // Nothing for RESOLVED_UNIT9?
