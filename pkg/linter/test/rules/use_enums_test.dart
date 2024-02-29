@@ -17,6 +17,25 @@ class UseEnumsTest extends LintRuleTest {
   @override
   String get lintRule => 'use_enums';
 
+  test_augmentation() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+
+class C {}
+''');
+
+    await assertNoDiagnostics(r'''
+library augment 'a.dart';
+
+augment class C {
+  static const a = C._(1);
+  static const b = C._(2);
+  final int i;
+  const C._(this.i);
+}
+''');
+  }
+
   test_constructor_private() async {
     await assertDiagnostics(r'''
 class A {
