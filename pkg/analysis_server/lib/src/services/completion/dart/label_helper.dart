@@ -38,7 +38,7 @@ class LabelHelper {
 
   void _visitLabels(NodeList<Label> labels) {
     for (var label in labels) {
-      var suggestion = LabelSuggestion(label);
+      var suggestion = LabelSuggestion(label: label);
       collector.addSuggestion(suggestion);
     }
   }
