@@ -39,6 +39,9 @@ CMakeLists.txt
 .clang_complete
 cmake-build-debug
 
+# Windows toolchain.
+win_toolchain
+
 # VS project files
 .vs
 

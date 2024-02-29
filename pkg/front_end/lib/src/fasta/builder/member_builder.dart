@@ -212,19 +212,10 @@ abstract class BuilderClassMember implements ClassMember {
   String get fullNameForErrors => memberBuilder.fullNameForErrors;
 
   @override
-  bool get isAssignable => memberBuilder.isAssignable;
-
-  @override
-  bool get isConst => memberBuilder.isConst;
-
-  @override
   bool get isDuplicate => memberBuilder.isDuplicate;
 
   @override
   bool get isField => memberBuilder.isField;
-
-  @override
-  bool get isFinal => memberBuilder.isFinal;
 
   @override
   bool get isGetter => memberBuilder.isGetter;

@@ -108,65 +108,6 @@ class Disambiguator<T, U> {
 
 NameSystem globalDebuggingNames = new NameSystem();
 
-String debugLibraryName(Library? node) {
-  return node == null
-      ? 'null'
-      : node.name ?? globalDebuggingNames.nameLibrary(node);
-}
-
-String debugClassName(Class? node) {
-  return node == null ? 'null' : node.name;
-}
-
-String debugQualifiedClassName(Class node) {
-  return debugLibraryName(node.enclosingLibrary) + '::' + debugClassName(node);
-}
-
-String debugMemberName(Member node) {
-  return node.name.text;
-}
-
-String debugQualifiedMemberName(Member node) {
-  if (node.enclosingClass != null) {
-    return debugQualifiedClassName(node.enclosingClass!) +
-        '::' +
-        debugMemberName(node);
-  } else {
-    return debugLibraryName(node.enclosingLibrary) +
-        '::' +
-        debugMemberName(node);
-  }
-}
-
-String debugTypeParameterName(TypeParameter node) {
-  return node.name ?? globalDebuggingNames.nameTypeParameter(node);
-}
-
-String debugQualifiedTypeParameterName(TypeParameter node) {
-  GenericDeclaration? declaration = node.declaration;
-  switch (declaration) {
-    case Class():
-      return debugQualifiedClassName(declaration) +
-          '::' +
-          debugTypeParameterName(node);
-    case Procedure():
-      return debugQualifiedMemberName(declaration) +
-          '::' +
-          debugTypeParameterName(node);
-    case Typedef():
-    case Extension():
-    case ExtensionTypeDeclaration():
-    // TODO(johnniwinther): Support these cases directly?
-    case LocalFunction():
-    case null:
-      return debugTypeParameterName(node);
-  }
-}
-
-String debugVariableDeclarationName(VariableDeclaration node) {
-  return node.name ?? globalDebuggingNames.nameVariable(node);
-}
-
 String debugNodeToString(Node node) {
   StringBuffer buffer = new StringBuffer();
   new Printer(buffer, showOffsets: true, syntheticNames: globalDebuggingNames)
@@ -198,8 +139,6 @@ String componentToString(Component node) {
 class NameSystem {
   final Namer<VariableDeclaration> variables =
       new NormalNamer<VariableDeclaration>('#t');
-  final Namer<Class> classes = new NormalNamer<Class>('#class');
-  final Namer<Extension> extensions = new NormalNamer<Extension>('#extension');
   final Namer<Library> libraries = new NormalNamer<Library>('#lib');
   final Namer<TypeParameter> typeParameters =
       new NormalNamer<TypeParameter>('#T');
@@ -211,8 +150,6 @@ class NameSystem {
       new Disambiguator<Reference, CanonicalName>();
 
   String nameVariable(VariableDeclaration node) => variables.getName(node);
-  String nameClass(Class node) => classes.getName(node);
-  String nameExtension(Extension node) => extensions.getName(node);
   String nameLibrary(Library node) => libraries.getName(node);
   String nameTypeParameter(TypeParameter node) => typeParameters.getName(node);
   String nameStructuralParameter(StructuralParameter node) =>
@@ -295,9 +232,9 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
   bool showOffsets;
   bool showMetadata;
 
-  static int SPACE = 0;
-  static int WORD = 1;
-  static int SYMBOL = 2;
+  static final int SPACE = 0;
+  static final int WORD = 1;
+  static final int SYMBOL = 2;
   int state = SPACE;
 
   Printer(this.sink,
@@ -352,12 +289,6 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
 
   String getClassReference(Class node) {
     String name = getClassName(node);
-    String library = getLibraryReference(node.enclosingLibrary);
-    return '$library::$name';
-  }
-
-  String getExtensionReference(Extension node) {
-    String name = getExtensionName(node);
     String library = getLibraryReference(node.enclosingLibrary);
     return '$library::$name';
   }
@@ -982,20 +913,6 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
 
   String getClassReferenceFromReference(Reference reference) {
     if (reference.node != null) return getClassReference(reference.asClass);
-    if (reference.canonicalName != null) {
-      return getCanonicalNameString(reference.canonicalName!);
-    }
-    throw "Neither node nor canonical name found";
-  }
-
-  void writeExtensionReferenceFromReference(Reference reference) {
-    writeWord(getExtensionReferenceFromReference(reference));
-  }
-
-  String getExtensionReferenceFromReference(Reference reference) {
-    if (reference.node != null) {
-      return getExtensionReference(reference.asExtension);
-    }
     if (reference.canonicalName != null) {
       return getCanonicalNameString(reference.canonicalName!);
     }
@@ -3142,10 +3059,6 @@ class Precedence implements ExpressionVisitor<int> {
     '~/': MULTIPLICATIVE,
     null: EXPRESSION,
   };
-
-  static bool isAssociativeBinaryOperator(int precedence) {
-    return precedence != EQUALITY && precedence != RELATIONAL;
-  }
 
   @override
   int visitAuxiliaryExpression(AuxiliaryExpression node) => EXPRESSION;

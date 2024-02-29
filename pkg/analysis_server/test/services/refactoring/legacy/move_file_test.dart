@@ -249,6 +249,31 @@ import 'new_name.dart';
     assertNoFileChange(testFile.path);
   }
 
+  Future<void> test_file_importedByMacro() async {
+    addMacros([declareInLibraryMacro()]);
+
+    var oldFile = newFile('$testPackageLibPath/old_name.dart', '''
+int x = 0;
+''');
+
+    await indexTestUnit(r'''
+import 'package:test/old_name.dart';
+import 'macros.dart';
+
+@DeclareInLibrary('final y = x;')
+class A { }
+''');
+
+    _createRefactoring('$testPackageLibPath/new_name.dart',
+        oldFile: oldFile.path);
+    await assertRefactoringConditionsOK();
+    var refactoringChange = await refactoring.createChange();
+
+    // Verify that `test.macro.dart` is unmodified.
+    expect(refactoringChange.edits.map((e) => e.file),
+        unorderedEquals([testFile.path]));
+  }
+
   Future<void> test_file_moveOutOfLib() async {
     var binMainPath = convertPath('/home/test/bin/main.dart');
     newFile(binMainPath, '''

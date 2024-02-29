@@ -7,6 +7,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show RefactoringProblemSeverity;
+import 'package:matcher/expect.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'abstract_refactoring.dart';
@@ -86,6 +87,28 @@ void f(A a, B b, C c, D d) {
   var vd = d.test;
 }
 ''');
+  }
+
+  Future<void> test_change_method_referencedInMacro() async {
+    addMacros([declareInTypeMacro()]);
+
+    await indexTestUnit('''
+import 'macros.dart';
+
+@DeclareInType('  int m() => x();')
+class A {
+  int x() => 0;
+}
+''');
+
+    var element = findElement.method('x', of: 'A');
+    _createRefactoringForElement(element);
+    await assertRefactoringConditionsOK();
+    var refactoringChange = await refactoring.createChange();
+
+    // Verify that `test.macro.dart` is unmodified.
+    expect(refactoringChange.edits.map((e) => e.file),
+        unorderedEquals([testFile.path]));
   }
 
   Future<void> test_change_multipleFiles() async {

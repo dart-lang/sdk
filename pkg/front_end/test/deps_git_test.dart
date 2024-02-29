@@ -17,7 +17,7 @@ import 'package:front_end/src/fasta/ticker.dart';
 import 'package:front_end/src/fasta/uri_translator.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/target/targets.dart';
-import "package:vm/modular/target/vm.dart" show VmTarget;
+import 'package:vm/modular/target/vm.dart' show VmTarget;
 
 import 'utils/io_utils.dart' show computeRepoDirUri;
 
@@ -95,7 +95,7 @@ Future<bool> main() async {
   Set<Uri> feAnalyzerSharedUris = new Set<Uri>();
   Set<Uri> dartPlatformUris = new Set<Uri>();
   Uri kernelUri = repoDir.resolve("pkg/kernel/");
-  Uri vmModularUri = repoDir.resolve("pkg/vm/modular/");
+  Uri vmModularUri = repoDir.resolve("pkg/vm/lib/modular/");
   Uri feAnalyzerSharedUri = repoDir.resolve("pkg/_fe_analyzer_shared/");
   Uri platformUri1 = repoDir.resolve("sdk/lib/");
   Uri platformUri2 = repoDir.resolve("runtime/lib/");
@@ -106,6 +106,7 @@ Future<bool> main() async {
     } else if (uri.toString().startsWith(kernelUri.toString())) {
       kernelUris.add(uri);
     } else if (uri.toString().startsWith(vmModularUri.toString())) {
+      // For VmTarget for macros.
       vmModularUris.add(uri);
     } else if (uri.toString().startsWith(feAnalyzerSharedUri.toString())) {
       feAnalyzerSharedUris.add(uri);

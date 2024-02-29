@@ -44,7 +44,7 @@ def BuildOptions():
     other_group.add_argument("-j",
                              type=int,
                              help='Ninja -j option for Goma/RBE builds.',
-                             default=1000)
+                             default=200 if sys.platform == 'win32' else 1000)
     other_group.add_argument("-l",
                              type=int,
                              help='Ninja -l option for Goma/RBE builds.',

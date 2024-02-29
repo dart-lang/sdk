@@ -212,17 +212,6 @@ class TopMergeTest extends AbstractTypeSystemTest {
       listNone(objectQuestion),
     );
 
-    _check(
-      listQuestion(intNone),
-      listStar(intNone),
-      listQuestion(intNone),
-    );
-    _check(
-      listNone(intQuestion),
-      listNone(intStar),
-      listNone(intQuestion),
-    );
-
     _checkThrows(
       iterableNone(intNone),
       listNone(intNone),

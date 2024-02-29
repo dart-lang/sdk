@@ -773,8 +773,6 @@ severity: $severity
     return formattedMessage;
   }
 
-  MemberBuilder getCompileTimeError() => target.getCompileTimeError(this);
-
   MemberBuilder getDuplicatedFieldInitializerError() {
     return target.getDuplicatedFieldInitializerError(this);
   }
@@ -793,9 +791,6 @@ severity: $severity
   }
 
   NnbdMode get nnbdMode => target.context.options.nnbdMode;
-
-  bool get enableUnscheduledExperiments =>
-      target.context.options.enableUnscheduledExperiments;
 
   CoreTypes get coreTypes {
     assert(_coreTypes != null, "CoreTypes has not been computed.");
@@ -1549,8 +1544,10 @@ severity: $severity
         ClassBuilder builder = iterator.current;
         if (builder.isMacro) {
           Uri libraryUri = builder.libraryBuilder.importUri;
-          if (!target.context.options.macroExecutor
-              .libraryIsRegistered(libraryUri)) {
+          if (!target.context.options.runningPrecompilations
+                  .contains(libraryUri) &&
+              !target.context.options.macroExecutor
+                  .libraryIsRegistered(libraryUri)) {
             (macroLibraries[libraryUri] ??= []).add(builder);
             if (retainDataForTesting) {
               (dataForTesting!.macroDeclarationData
@@ -2848,32 +2845,6 @@ severity: $severity
     typeInferenceEngine.isTypeInferencePrepared = true;
 
     ticker.logMs("Performed top level inference");
-  }
-
-  Expression instantiateNoSuchMethodError(
-      Expression receiver, String name, Arguments arguments, int offset,
-      {bool isMethod = false,
-      bool isGetter = false,
-      bool isSetter = false,
-      bool isField = false,
-      bool isLocalVariable = false,
-      bool isDynamic = false,
-      bool isSuper = false,
-      bool isStatic = false,
-      bool isConstructor = false,
-      bool isTopLevel = false}) {
-    return target.backendTarget.instantiateNoSuchMethodError(
-        coreTypes, receiver, name, arguments, offset,
-        isMethod: isMethod,
-        isGetter: isGetter,
-        isSetter: isSetter,
-        isField: isField,
-        isLocalVariable: isLocalVariable,
-        isDynamic: isDynamic,
-        isSuper: isSuper,
-        isStatic: isStatic,
-        isConstructor: isConstructor,
-        isTopLevel: isTopLevel);
   }
 
   void _checkMainMethods(

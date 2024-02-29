@@ -35,7 +35,6 @@ import 'package:front_end/src/fasta/codes/fasta_codes.dart'
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 import 'package:front_end/src/fasta/kernel/macro/offset_checker.dart';
 import 'package:front_end/src/fasta/problems.dart' show DebugAbort;
-import 'package:front_end/src/isolate_macro_serializer.dart';
 import 'package:front_end/src/scheme_based_file_system.dart'
     show SchemeBasedFileSystem;
 import 'package:kernel/target/targets.dart'
@@ -249,8 +248,6 @@ ProcessedOptions analyzeCommandLine(String programName,
     ..fileSystem = fileSystem
     ..packagesFileUri = packages
     ..target = target
-    ..macroTarget = target
-    ..macroSerializer = IsolateMacroSerializer()
     ..throwOnErrorsForDebugging = errorsAreFatal
     ..throwOnWarningsForDebugging = warningsAreFatal
     ..skipForDebugging = fatalSkip

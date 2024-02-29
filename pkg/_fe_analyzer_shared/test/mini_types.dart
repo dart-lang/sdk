@@ -60,6 +60,14 @@ class ParseError extends Error {
 /// reference to a type parameter, or one of the special types whose name is a
 /// single word (e.g. `dynamic`).
 class PrimaryType extends Type {
+  /// Names of primary types not originating from a class, a mixin, or an enum.
+  static const List<String> namedNonInterfaceTypes = [
+    'FutureOr',
+    'Never',
+    'Null',
+    'dynamic',
+  ];
+
   /// The name of the type.
   final String name;
 
@@ -67,6 +75,8 @@ class PrimaryType extends Type {
   final List<Type> args;
 
   PrimaryType(this.name, {this.args = const []}) : super._();
+
+  bool get isInterfaceType => !namedNonInterfaceTypes.contains(name);
 
   @override
   Type? recursivelyDemote({required bool covariant}) {

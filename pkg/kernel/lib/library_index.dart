@@ -38,10 +38,6 @@ class LibraryIndex {
     }
   }
 
-  /// Indexes the libraries with the URIs given in [libraryUris].
-  LibraryIndex.byUri(Component component, Iterable<Uri> libraryUris)
-      : this(component, libraryUris.map((uri) => '$uri'));
-
   /// Indexes `dart:` libraries.
   LibraryIndex.coreLibraries(Component component) {
     for (Library library in component.libraries) {
@@ -100,12 +96,6 @@ class LibraryIndex {
     return _getLibraryIndex(library).getExtensionType(extensionTypeName);
   }
 
-  /// Like [getExtensionType] but returns `null` if not found.
-  ExtensionTypeDeclaration? tryGetExtensionType(
-      String library, String extensionTypeName) {
-    return _libraries[library]?.tryGetExtensionType(extensionTypeName);
-  }
-
   /// Returns the member with the given name, in the given container
   /// declaration, in the given library.
   ///
@@ -121,12 +111,6 @@ class LibraryIndex {
   /// An error is thrown if the member is not found.
   Member getMember(String library, String containerName, String memberName) {
     return _getLibraryIndex(library).getMember(containerName, memberName);
-  }
-
-  /// Like [getMember] but returns `null` if not found.
-  Member? tryGetMember(
-      String library, String containerName, String memberName) {
-    return _libraries[library]?.tryGetMember(containerName, memberName);
   }
 
   Constructor getConstructor(
@@ -155,11 +139,6 @@ class LibraryIndex {
   /// An error is thrown if the member is not found.
   Member getTopLevelMember(String library, String memberName) {
     return getMember(library, topLevel, memberName);
-  }
-
-  /// Like [getTopLevelMember] but returns `null` if not found.
-  Member? tryGetTopLevelMember(String library, String memberName) {
-    return tryGetMember(library, topLevel, memberName);
   }
 
   Procedure getTopLevelProcedure(String library, String memberName) {
@@ -234,16 +213,8 @@ class _ContainerTable {
     return _getContainerIndex(name).extensionTypeDeclaration!;
   }
 
-  ExtensionTypeDeclaration? tryGetExtensionType(String name) {
-    return containers[name]?.extensionTypeDeclaration;
-  }
-
   Member getMember(String className, String memberName) {
     return _getContainerIndex(className).getMember(memberName);
-  }
-
-  Member? tryGetMember(String className, String memberName) {
-    return containers[className]?.tryGetMember(memberName);
   }
 
   Constructor getConstructor(String className, String memberName) {
@@ -421,8 +392,6 @@ class _MemberTable {
     }
     return member;
   }
-
-  Member? tryGetMember(String name) => members[name];
 
   Constructor getConstructor(String name) {
     Member member = getMember(name);

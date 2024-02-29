@@ -27,6 +27,18 @@ class FactorTypeTest with FactorTypeTestMixin<DartType>, ElementsTypesMixin {
   late final TypeSystemImpl typeSystem;
 
   @override
+  InterfaceType get numStar {
+    var element = typeProvider.numType.element;
+    return interfaceTypeStar(element);
+  }
+
+  @override
+  InterfaceType get stringStar {
+    var element = typeProvider.stringType.element;
+    return interfaceTypeStar(element);
+  }
+
+  @override
   DartType get voidType => typeProvider.voidType;
 
   @override

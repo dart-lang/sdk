@@ -122,8 +122,6 @@ abstract class ClassBuilder implements DeclarationBuilder, ClassMemberAccess {
 
   bool get declaresConstConstructor;
 
-  bool get isMixin;
-
   bool get isMixinClass;
 
   bool get isMixinDeclaration;
@@ -201,9 +199,6 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
 
   @override
   bool get isAbstract => (modifiers & abstractMask) != 0;
-
-  @override
-  bool get isMixin => (modifiers & mixinDeclarationMask) != 0;
 
   @override
   bool get isMixinApplication => mixedInTypeBuilder != null;

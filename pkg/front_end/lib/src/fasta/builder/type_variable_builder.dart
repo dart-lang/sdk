@@ -400,19 +400,6 @@ class NominalVariableBuilder extends TypeVariableBuilderBase {
     }
   }
 
-  NominalVariableBuilder clone(
-      List<NamedTypeBuilder> newTypes,
-      SourceLibraryBuilder contextLibrary,
-      TypeParameterScopeBuilder contextDeclaration) {
-    // TODO(cstefantsova): Figure out if using [charOffset] here is a good
-    // idea.  An alternative is to use the offset of the node the cloned type
-    // variable is declared on.
-    return new NominalVariableBuilder(name, parent!, charOffset, fileUri,
-        bound: bound?.clone(newTypes, contextLibrary, contextDeclaration),
-        variableVariance: variance,
-        kind: kind);
-  }
-
   static List<TypeParameter>? typeParametersFromBuilders(
       List<NominalVariableBuilder>? builders) {
     if (builders == null) return null;
@@ -769,34 +756,6 @@ class StructuralVariableBuilder extends TypeVariableBuilderBase {
   void applyAugmentation(covariant StructuralVariableBuilder augmentation) {
     augmentation.actualOrigin = this;
   }
-
-  StructuralVariableBuilder clone(
-      List<NamedTypeBuilder> newTypes,
-      SourceLibraryBuilder contextLibrary,
-      TypeParameterScopeBuilder contextDeclaration) {
-    // TODO(cstefantsova): Figure out if using [charOffset] here is a good
-    // idea.  An alternative is to use the offset of the node the cloned type
-    // variable is declared on.
-    return new StructuralVariableBuilder(name, parent!, charOffset, fileUri,
-        bound: bound?.clone(newTypes, contextLibrary, contextDeclaration),
-        variableVariance: variance);
-  }
-
-  static List<TypeParameter>? typeParametersFromBuilders(
-      List<NominalVariableBuilder>? builders) {
-    if (builders == null) return null;
-    return new List<TypeParameter>.generate(
-        builders.length, (int i) => builders[i].parameter,
-        growable: true);
-  }
-}
-
-class FreshStructuralVariableBuildersFromNominalVariableBuilders {
-  final List<StructuralVariableBuilder> freshStructuralVariableBuilders;
-  final Map<NominalVariableBuilder, TypeBuilder> substitutionMap;
-
-  FreshStructuralVariableBuildersFromNominalVariableBuilders(
-      this.freshStructuralVariableBuilders, this.substitutionMap);
 }
 
 /// This enum is used internally for dependency analysis of type variables.

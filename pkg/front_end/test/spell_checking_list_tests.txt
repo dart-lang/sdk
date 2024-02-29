@@ -727,6 +727,7 @@ somehow
 sorter
 soundly
 spans
+specializer
 spell
 spellcheck
 spelled

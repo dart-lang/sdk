@@ -8,7 +8,6 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchyMembers;
 
 import '../../builder/declaration_builders.dart';
-import '../../builder/type_builder.dart';
 import '../../source/source_class_builder.dart';
 import '../../source/source_field_builder.dart';
 import '../../source/source_procedure_builder.dart';
@@ -16,7 +15,6 @@ import 'class_member.dart';
 import 'delayed.dart';
 import 'extension_type_members.dart';
 import 'hierarchy_builder.dart';
-import 'hierarchy_node.dart';
 import 'members_node.dart';
 
 class ClassMembersBuilder implements ClassHierarchyMembers {
@@ -135,11 +133,6 @@ class ClassMembersBuilder implements ClassHierarchyMembers {
         .build();
   }
 
-  ClassMembersNode? getNodeFromTypeBuilder(TypeBuilder type) {
-    ClassBuilder? cls = getClass(type);
-    return cls == null ? null : getNodeFromClassBuilder(cls);
-  }
-
   ClassMembersNode getNodeFromClass(Class cls) {
     return classNodes[cls] ??
         getNodeFromClassBuilder(
@@ -158,19 +151,6 @@ class ClassMembersBuilder implements ClassHierarchyMembers {
   Member? getInterfaceMember(Class cls, Name name, {bool setter = false}) {
     return getNodeFromClass(cls)
         .getInterfaceMember(name, setter)
-        ?.getMember(this);
-  }
-
-  ClassMember? getInterfaceClassMember(Class cls, Name name,
-      {bool setter = false}) {
-    return getNodeFromClass(cls).getInterfaceMember(name, setter);
-  }
-
-  Member? getExtensionTypeMember(
-      ExtensionTypeDeclaration extensionTypeDeclaration, Name name,
-      {bool setter = false}) {
-    return getExtensionTypeClassMember(extensionTypeDeclaration, name,
-            setter: setter)
         ?.getMember(this);
   }
 

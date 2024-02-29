@@ -89,7 +89,4 @@ class DillTypeAliasBuilder extends TypeAliasBuilderImpl {
     }, growable: true);
     return result;
   }
-
-  @override
-  bool get isNullAlias => typedef.type is NullType;
 }

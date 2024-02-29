@@ -111,10 +111,6 @@ class CanonicalName implements Comparable<CanonicalName?> {
 
   Iterable<CanonicalName>? get childrenOrNull => _children?.values;
 
-  bool hasChild(String name) {
-    return _children != null && _children!.containsKey(name);
-  }
-
   CanonicalName getChild(String name) {
     Map<String, CanonicalName> map = _children ??= <String, CanonicalName>{};
     return map[name] ??= new CanonicalName._(this, name);
@@ -161,10 +157,6 @@ class CanonicalName implements Comparable<CanonicalName?> {
 
   CanonicalName getChildFromFieldGetterWithName(Name name) {
     return getChild(gettersName).getChildFromQualifiedName(name);
-  }
-
-  CanonicalName getChildFromFieldSetterWithName(Name name) {
-    return getChild(settersName).getChildFromQualifiedName(name);
   }
 
   CanonicalName getChildFromTypedef(Typedef typedef_) {
@@ -393,19 +385,6 @@ class CanonicalName implements Comparable<CanonicalName?> {
     return methodsName;
   }
 
-  /// Returns `true` if [node] is orphaned through its [reference].
-  ///
-  /// A [NamedNode] is orphaned if the canonical name of its reference doesn't
-  /// point back to the node itself. This can occur if the [reference] is
-  /// repurposed for a new [NamedNode]. In this case, the reference will be
-  /// updated to point the new node.
-  ///
-  /// This method assumes that `reference.canonicalName` is this canonical name.
-  bool isOrphaned(NamedNode node, Reference reference) {
-    assert(reference.canonicalName == this);
-    return _reference?._node != node;
-  }
-
   /// Returns a description of the orphancy, if [node] is orphaned through its
   /// [reference]. Otherwise `null`.
   ///
@@ -574,14 +553,6 @@ class Reference implements Comparable<Reference> {
     return node as Typedef;
   }
 
-  Extension get asExtension {
-    NamedNode? node = this.node;
-    if (node == null) {
-      throw '$this is not bound to an AST node. An extension was expected';
-    }
-    return node as Extension;
-  }
-
   ExtensionTypeDeclaration get asExtensionTypeDeclaration {
     NamedNode? node = this.node;
     if (node == null) {
@@ -643,19 +614,6 @@ class Reference implements Comparable<Reference> {
           '(${canonicalName!._reference.hashCode})');
     }
     return sb.toString();
-  }
-
-  /// Returns `true` if [node] is orphaned through this reference.
-  ///
-  /// A [NamedNode] is orphaned if its reference doesn't point back to the node
-  /// itself. This can occur if the [reference] is repurposed for a new
-  /// [NamedNode]. In this case, the reference will be updated to point the new
-  /// node.
-  ///
-  /// This method assumes that this reference is the reference, possibly
-  /// getter or setter reference for a field, of [node].
-  bool isOrphaned(NamedNode node) {
-    return _node != node;
   }
 
   /// Returns a description of the orphancy, if [node] is orphaned through this

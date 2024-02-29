@@ -1425,6 +1425,44 @@ class B extends A {
 ''');
   }
 
+  Future<void> test_classMethod_optionalNamed_in_macro_remove() async {
+    addMacros([declareInLibraryMacro()]);
+    await _analyzeValidSelection(r'''
+import 'macros.dart';
+
+@DeclareInType('void foo() {  test(a: 0, b: 1, c: 2);}')
+class A {
+  void ^test({int a, int b, int c}) {}
+}
+''');
+
+    final signatureUpdate = MethodSignatureUpdate(
+      formalParameters: [
+        FormalParameterUpdate(
+          id: 0,
+          kind: FormalParameterKind.optionalNamed,
+        ),
+        FormalParameterUpdate(
+          id: 2,
+          kind: FormalParameterKind.optionalNamed,
+        ),
+      ],
+      removedNamedFormalParameters: {'b'},
+      formalParametersTrailingComma: TrailingComma.ifPresent,
+      argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
+    );
+
+    await _assertUpdate(signatureUpdate, r'''
+>>>>>>> /home/test/lib/test.dart
+import 'macros.dart';
+
+@DeclareInType('void foo() {  test(a: 0, b: 1, c: 2);}')
+class A {
+  void test({int a, int c}) {}
+}
+''');
+  }
+
   Future<void> test_classMethod_optionalNamed_reorder_less() async {
     await _analyzeValidSelection(r'''
 class A {

@@ -868,7 +868,7 @@ typedef struct Dart_CodeObserver {
  * implement registration of kernel blobs for the subsequent Isolate.spawnUri
  * If no callback is provided, the registration of kernel blobs will throw
  * an error.
- * 
+ *
  * \param kernel_buffer A buffer which contains a kernel program. Callback
  *                      should copy the contents of `kernel_buffer` as
  *                      it may be freed immediately after registration.
@@ -888,7 +888,7 @@ typedef const char* (*Dart_RegisterKernelBlobCallback)(
  * unregister kernel blobs.
  * If no callback is provided, the unregistration of kernel blobs will throw
  * an error.
- * 
+ *
  * \param kernel_blob_uri URI of the kernel blob to unregister.
  */
 typedef void (*Dart_UnregisterKernelBlobCallback)(const char* kernel_blob_uri);
@@ -1678,17 +1678,6 @@ DART_EXPORT Dart_Handle Dart_GetStickyError(void);
  * \return A valid handle if no error occurs during the operation.
  */
 DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle Dart_HandleMessage(void);
-
-/**
- * Drains the microtask queue, then blocks the calling thread until the current
- * isolate receives a message, then handles all messages.
- *
- * \param timeout_millis When non-zero, the call returns after the indicated
-          number of milliseconds even if no message was received.
- * \return A valid handle if no error occurs, otherwise an error handle.
- */
-DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
-Dart_WaitForEvent(int64_t timeout_millis);
 
 /**
  * Handles any pending messages for the vm service for the current

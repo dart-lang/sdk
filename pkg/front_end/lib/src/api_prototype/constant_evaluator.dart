@@ -12,5 +12,4 @@ export '../fasta/kernel/constant_evaluator.dart'
         EvaluationMode,
         EvaluationEnvironment,
         SimpleErrorReporter,
-        transformComponent,
         transformLibraries;

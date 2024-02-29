@@ -933,7 +933,8 @@ class MacroApplications {
           _macroIntrospection.types.inferOmittedType,
           spans: spans);
       Uri importUri = originLibraryBuilder.importUri;
-      Uri augmentationUri = toMacroLibraryUri(importUri);
+      Uri augmentationImportUri = toMacroLibraryUri(importUri);
+      Uri augmentationFileUri = toMacroLibraryUri(originLibraryBuilder.fileUri);
 
       Map<macro.Key, OffsetRange> output = {};
       for (macro.Span span in spans) {
@@ -959,7 +960,9 @@ class MacroApplications {
           }
           if (spans.isNotEmpty) {
             reOffsetMaps[intermediateAugmentationUri] = new ReOffset(
-                intermediateAugmentationUri, augmentationUri, reOffsetMap);
+                intermediateAugmentationUri,
+                augmentationImportUri,
+                reOffsetMap);
           }
         }
       }
@@ -968,7 +971,7 @@ class MacroApplications {
           .target.context.options.showGeneratedMacroSourcesForTesting) {
         print('==============================================================');
         print('Origin library: ${importUri}');
-        print('Merged macro augmentation library: ${augmentationUri}');
+        print('Merged macro augmentation library: ${augmentationImportUri}');
         print('---------------------------source-----------------------------');
         print(source);
         print('==============================================================');
@@ -982,11 +985,11 @@ class MacroApplications {
               enableNonNullable: true,
               enableTripleShift: true,
               forAugmentationLibrary: true));
-      component.uriToSource[augmentationUri] = new Source(
+      component.uriToSource[augmentationFileUri] = new Source(
           scannerResult.lineStarts,
           source.codeUnits,
-          augmentationUri,
-          augmentationUri);
+          augmentationImportUri,
+          augmentationFileUri);
       for (Uri intermediateAugmentationUri in intermediateAugmentationUris) {
         component.uriToSource.remove(intermediateAugmentationUri);
       }

@@ -1764,10 +1764,6 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   }
 }
 
-void verifyGetStaticType(TypeEnvironment env, Component component) {
-  component.accept(new VerifyGetStaticType(env));
-}
-
 class VerifyGetStaticType extends RecursiveVisitor {
   final TypeEnvironment env;
   Member? currentMember;
@@ -1831,32 +1827,6 @@ class VerifyGetStaticType extends RecursiveVisitor {
       rethrow;
     }
     super.defaultExpression(node);
-  }
-}
-
-class CheckParentPointers extends VisitorDefault<void> with VisitorVoidMixin {
-  static void check(TreeNode node) {
-    node.accept(new CheckParentPointers(node.parent));
-  }
-
-  TreeNode? parent;
-
-  CheckParentPointers([this.parent]);
-
-  @override
-  void defaultTreeNode(TreeNode node) {
-    if (node.parent != parent) {
-      throw new VerificationError(
-          parent,
-          node,
-          "Parent pointer on '${node.runtimeType}' "
-          "is '${node.parent.runtimeType}' "
-          "but should be '${parent.runtimeType}'.");
-    }
-    TreeNode? oldParent = parent;
-    parent = node;
-    node.visitChildren(this);
-    parent = oldParent;
   }
 }
 

@@ -86,18 +86,6 @@ class Modifier {
 
   const Modifier(this.kind, this.mask);
 
-  factory Modifier.fromString(String string) {
-    if (identical('abstract', string)) return Abstract;
-    if (identical('augment', string)) return Augment;
-    if (identical('const', string)) return Const;
-    if (identical('covariant', string)) return Covariant;
-    if (identical('external', string)) return External;
-    if (identical('final', string)) return Final;
-    if (identical('static', string)) return Static;
-    if (identical('var', string)) return Var;
-    return unhandled(string, "Modifier.fromString", -1, null);
-  }
-
   @override
   String toString() => "modifier(${'$kind'.substring('ModifierEnum.'.length)})";
 

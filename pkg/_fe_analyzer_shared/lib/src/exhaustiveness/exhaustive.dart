@@ -294,7 +294,7 @@ class _Checker {
   }
 }
 
-/// Recursively expands [type] with its subtypes if its sealed.
+/// Recursively expands [type] with its subtypes if it's sealed.
 ///
 /// Otherwise, just returns [type].
 List<StaticType> expandSealedSubtypes(

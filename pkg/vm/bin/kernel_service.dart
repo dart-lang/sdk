@@ -34,7 +34,6 @@ import 'package:front_end/src/api_prototype/front_end.dart' as fe
     show CompilerResult;
 import 'package:front_end/src/api_prototype/memory_file_system.dart';
 import 'package:front_end/src/api_unstable/vm.dart';
-import 'package:front_end/src/isolate_macro_serializer.dart';
 import 'package:kernel/binary/ast_from_binary.dart'
     show BinaryBuilderWithMetadata;
 import 'package:kernel/binary/ast_to_binary.dart';
@@ -106,8 +105,6 @@ CompilerOptions setupCompilerOptions(
   return new CompilerOptions()
     ..fileSystem = fileSystem
     ..target = target
-    ..macroTarget = target
-    ..macroSerializer = new IsolateMacroSerializer()
     ..packagesFileUri = packagesUri
     ..sdkSummary = platformKernelPath
     ..embedSourceText = embedSources

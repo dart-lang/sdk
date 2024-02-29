@@ -1,4 +1,4 @@
-@dart.js_interop::JS::•()
+@#lib1::JS::•()
 library static_interop;
 import self as self;
 import "dart:js_interop" as js_;

@@ -78,6 +78,12 @@ def Main(argv):
     - unknown-file
     - unknown-macro
     - unresolved-doc-reference
+  header:
+    - ../../../tools/bots/dartdoc_header.html
+  footer:
+    - ../../../tools/bots/dartdoc_footer.html
+  footerText:
+    - ../../../tools/bots/dartdoc_footer_text.html
 ''' % revision
     with open(args.output, 'w') as f:
         f.write(output)

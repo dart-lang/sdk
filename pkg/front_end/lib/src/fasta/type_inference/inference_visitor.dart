@@ -1870,27 +1870,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new ExpressionInferenceResult(inferredType, node);
   }
 
-  InitializerInferenceResult visitInvalidSuperInitializerJudgment(
-      InvalidSuperInitializerJudgment node) {
-    Substitution substitution = Substitution.fromSupertype(
-        hierarchyBuilder.getClassAsInstanceOf(
-            thisType!.classNode, node.target.enclosingClass)!);
-    FunctionType functionType = replaceReturnType(
-        substitution.substituteType(node.target.function
-            .computeThisFunctionType(libraryBuilder.nonNullable)
-            .withoutTypeParameters) as FunctionType,
-        thisType!);
-    InvocationInferenceResult invocationInferenceResult = inferInvocation(
-        this,
-        const UnknownType(),
-        node.fileOffset,
-        functionType,
-        node.argumentsJudgment,
-        skipTypeArgumentInference: true);
-    return new InitializerInferenceResult.fromInvocationInferenceResult(
-        invocationInferenceResult);
-  }
-
   ExpressionInferenceResult visitIfNullExpression(
       IfNullExpression node, DartType typeContext) {
     // To infer `e0 ?? e1` in context `K`:
@@ -5015,18 +4994,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   ExpressionInferenceResult visitStaticPostIncDec(
       StaticPostIncDec node, DartType typeContext) {
-    inferSyntheticVariable(node.read);
-    inferSyntheticVariable(node.write);
-    DartType inferredType = node.read.type;
-
-    Expression replacement =
-        new Let(node.read, createLet(node.write, createVariableGet(node.read)))
-          ..fileOffset = node.fileOffset;
-    return new ExpressionInferenceResult(inferredType, replacement);
-  }
-
-  ExpressionInferenceResult visitSuperPostIncDec(
-      SuperPostIncDec node, DartType typeContext) {
     inferSyntheticVariable(node.read);
     inferSyntheticVariable(node.write);
     DartType inferredType = node.read.type;

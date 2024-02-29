@@ -1680,6 +1680,29 @@ class A {
 ''');
   }
 
+  Future<void> test_singleExpression_occurrences_referencedInMacro() async {
+    addMacros([declareInTypeMacro()]);
+
+    await indexTestUnit('''
+import 'macros.dart';
+    
+void f() {
+  print('!');
+}
+
+@DeclareInType("  void m() { print('!'); }")
+class A { }
+''');
+
+    _createRefactoringForString("print('!');");
+    await assertRefactoringConditionsOK();
+    var refactoringChange = await refactoring.createChange();
+
+    // Verify that `test.macro.dart` is unmodified.
+    expect(refactoringChange.edits.map((e) => e.file),
+        unorderedEquals([testFile.path]));
+  }
+
   Future<void> test_singleExpression_parameter_functionTypeAlias() async {
     await indexTestUnit('''
 typedef R Foo<S, R>(S s);

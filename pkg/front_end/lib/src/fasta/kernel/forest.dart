@@ -458,12 +458,6 @@ class Forest {
       ..fileOffset = fileOffset;
   }
 
-  /// Return a representation of a `switch` statement.
-  Statement createSwitchStatement(
-      int fileOffset, Expression expression, List<SwitchCase> cases) {
-    return new SwitchStatement(expression, cases)..fileOffset = fileOffset;
-  }
-
   /// Return a representation of an `is` expression at the given [fileOffset].
   /// The [operand] is the representation of the left operand. The [type] is a
   /// representation of the type that is the right operand. If [notFileOffset]
@@ -640,48 +634,10 @@ class Forest {
       ..fileOffset = initializer.fileOffset;
   }
 
-  VariableDeclarationImpl createVariableDeclarationForHoisting(
-      Expression expression) {
-    return new VariableDeclarationImpl.forValue(expression)
-      ..fileOffset = expression.fileOffset;
-  }
-
-  FunctionNode createFunctionNode(int fileOffset, Statement body,
-      {List<TypeParameter>? typeParameters,
-      List<VariableDeclaration>? positionalParameters,
-      List<VariableDeclaration>? namedParameters,
-      int? requiredParameterCount,
-      DartType returnType = const DynamicType(),
-      AsyncMarker asyncMarker = AsyncMarker.Sync,
-      AsyncMarker? dartAsyncMarker}) {
-    return new FunctionNode(body,
-        typeParameters: typeParameters,
-        positionalParameters: positionalParameters,
-        namedParameters: namedParameters,
-        requiredParameterCount: requiredParameterCount,
-        returnType: returnType,
-        asyncMarker: asyncMarker,
-        dartAsyncMarker: dartAsyncMarker);
-  }
-
-  TypeParameter createTypeParameter(String name) {
-    return new TypeParameter(name);
-  }
-
-  TypeParameterType createTypeParameterType(
-      TypeParameter typeParameter, Nullability nullability) {
-    return new TypeParameterType(typeParameter, nullability);
-  }
-
   TypeParameterType createTypeParameterTypeWithDefaultNullabilityForLibrary(
       TypeParameter typeParameter, Library library) {
     return new TypeParameterType.withDefaultNullabilityForLibrary(
         typeParameter, library);
-  }
-
-  FunctionExpression createFunctionExpression(
-      int fileOffset, FunctionNode function) {
-    return new FunctionExpression(function)..fileOffset = fileOffset;
   }
 
   Expression createExpressionInvocation(
@@ -694,16 +650,6 @@ class Forest {
       int fileOffset, Expression expression, Name name, Arguments arguments) {
     return new MethodInvocation(expression, name, arguments)
       ..fileOffset = fileOffset;
-  }
-
-  NamedExpression createNamedExpression(
-      int fileOffset, String name, Expression expression) {
-    return new NamedExpression(name, expression)..fileOffset = fileOffset;
-  }
-
-  StaticInvocation createStaticInvocation(
-      int fileOffset, Procedure procedure, Arguments arguments) {
-    return new StaticInvocation(procedure, arguments)..fileOffset = fileOffset;
   }
 
   SuperMethodInvocation createSuperMethodInvocation(

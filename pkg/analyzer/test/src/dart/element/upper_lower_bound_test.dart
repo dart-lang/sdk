@@ -144,10 +144,6 @@ class BoundsHelperPredicatesTest extends _BoundsTestBase {
     isNotBottom(typeParameterTypeNone(T));
     isNotBottom(typeParameterTypeQuestion(T));
 
-    T = typeParameter('T', bound: numStar);
-    isNotBottom(typeParameterTypeNone(T));
-    isNotBottom(typeParameterTypeQuestion(T));
-
     isNotBottom(promotedTypeParameterTypeNone(T, intNone));
     isNotBottom(promotedTypeParameterTypeQuestion(T, intNone));
   }
@@ -159,53 +155,27 @@ class BoundsHelperPredicatesTest extends _BoundsTestBase {
 
     isMoreBottom(neverNone, nullNone);
     isMoreBottom(neverNone, nullQuestion);
-    isMoreBottom(neverNone, nullStar);
 
     // MOREBOTTOM(T, Never) = false
     isNotMoreBottom(neverQuestion, neverNone);
 
     isNotMoreBottom(nullNone, neverNone);
     isNotMoreBottom(nullQuestion, neverNone);
-    isNotMoreBottom(nullStar, neverNone);
 
     // MOREBOTTOM(Null, T) = true
     isMoreBottom(nullNone, neverQuestion);
 
     isMoreBottom(nullNone, nullNone);
     isMoreBottom(nullNone, nullQuestion);
-    isMoreBottom(nullNone, nullStar);
 
     // MOREBOTTOM(T, Null) = false
     isNotMoreBottom(neverQuestion, nullNone);
 
     isNotMoreBottom(nullQuestion, nullNone);
-    isNotMoreBottom(nullStar, nullNone);
 
     // MOREBOTTOM(T?, S?) = MOREBOTTOM(T, S)
     isMoreBottom(neverQuestion, nullQuestion);
     isNotMoreBottom(nullQuestion, neverQuestion);
-
-    // MOREBOTTOM(T, S?) = true
-    isMoreBottom(nullStar, neverQuestion);
-
-    // MOREBOTTOM(T?, S) = false
-    isNotMoreBottom(neverQuestion, nullStar);
-
-    // MOREBOTTOM(T, S*) = true
-    isMoreBottom(
-      typeParameterTypeNone(
-        typeParameter('S', bound: neverNone),
-      ),
-      nullStar,
-    );
-
-    // MOREBOTTOM(T*, S) = false
-    isNotMoreBottom(
-      nullStar,
-      typeParameterTypeNone(
-        typeParameter('S', bound: neverNone),
-      ),
-    );
 
     // MOREBOTTOM(X&T, Y&S) = MOREBOTTOM(T, S)
     isMoreBottom(
@@ -378,11 +348,9 @@ class BoundsHelperPredicatesTest extends _BoundsTestBase {
 
     isNotNull(futureOrNone(nullNone));
     isNotNull(futureOrNone(nullQuestion));
-    isNotNull(futureOrNone(nullStar));
 
     isNotNull(futureOrQuestion(nullNone));
     isNotNull(futureOrQuestion(nullQuestion));
-    isNotNull(futureOrQuestion(nullStar));
   }
 
   test_isObject() {
@@ -493,7 +461,6 @@ class LowerBoundTest extends _BoundsTestBase {
 
     check(neverNone, listNone(intNone));
     check(neverNone, listQuestion(intNone));
-    check(neverNone, listStar(intNone));
 
     check(neverNone, futureOrNone(intNone));
     check(neverNone, futureOrQuestion(intNone));
@@ -1043,11 +1010,9 @@ class LowerBoundTest extends _BoundsTestBase {
 
     checkNull(futureOrNone(nullNone));
     checkNull(futureOrNone(nullQuestion));
-    checkNull(futureOrNone(nullStar));
 
     checkNull(futureOrQuestion(nullNone));
     checkNull(futureOrQuestion(nullQuestion));
-    checkNull(futureOrQuestion(nullStar));
 
     checkNever(objectNone);
 
@@ -1057,11 +1022,9 @@ class LowerBoundTest extends _BoundsTestBase {
 
     checkNever(listNone(intNone));
     checkNull(listQuestion(intNone));
-    checkNull(listStar(intNone));
 
     checkNever(listNone(intQuestion));
     checkNull(listQuestion(intQuestion));
-    checkNull(listStar(intQuestion));
   }
 
   test_null_null() {
@@ -1076,7 +1039,7 @@ class LowerBoundTest extends _BoundsTestBase {
     }
 
     check(nullNone, nullQuestion);
-    check(nullNone, nullStar);
+    check(nullQuestion, nullQuestion);
   }
 
   test_object_any() {
@@ -1251,37 +1214,6 @@ class LowerBoundTest extends _BoundsTestBase {
     for (var type in types) {
       _checkGreatestLowerBound(type, type, type);
     }
-  }
-
-  test_star_question() {
-    void check(DartType T1, DartType T2, DartType expected) {
-      _assertNullabilityQuestion(T1);
-      _assertNullabilityStar(T2);
-
-      _assertNotSpecial(T1);
-      _assertNotSpecial(T2);
-
-      _checkGreatestLowerBound(T1, T2, expected);
-    }
-
-    check(intQuestion, intStar, intStar);
-
-    check(numQuestion, intStar, intStar);
-    check(intQuestion, numStar, intStar);
-  }
-
-  test_star_star() {
-    void check(DartType T1, DartType T2, DartType expected) {
-      _assertNullabilityStar(T1);
-      _assertNullabilityStar(T2);
-
-      _assertNotSpecial(T1);
-      _assertNotSpecial(T2);
-
-      _checkGreatestLowerBound(T1, T2, expected);
-    }
-
-    check(intStar, numStar, intStar);
   }
 
   test_top_any() {
@@ -1871,7 +1803,6 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
 
     check(intNone, numNone, numNone);
     check(intQuestion, numNone, numQuestion);
-    check(intStar, numNone, numStar);
 
     check(intNone, dynamicType, dynamicType);
     check(intNone, invalidType, invalidType);
@@ -2629,7 +2560,6 @@ class UpperBoundTest extends _BoundsTestBase {
 
     check(neverNone, listNone(intNone));
     check(neverNone, listQuestion(intNone));
-    check(neverNone, listStar(intNone));
 
     check(neverNone, futureOrNone(intNone));
     check(neverNone, futureOrQuestion(intNone));
@@ -2980,13 +2910,8 @@ class UpperBoundTest extends _BoundsTestBase {
     check(nullQuestion, intQuestion, intQuestion);
     check(nullQuestion, intStar, intStar);
 
-    check(nullStar, intNone, intStar);
-    check(nullStar, intQuestion, intQuestion);
-    check(nullStar, intStar, intStar);
-
     check(nullNone, listNone(intNone), listQuestion(intNone));
     check(nullNone, listQuestion(intNone), listQuestion(intNone));
-    check(nullNone, listStar(intNone), listStar(intNone));
 
     check(nullNone, futureOrNone(intNone), futureOrQuestion(intNone));
     check(nullNone, futureOrQuestion(intNone), futureOrQuestion(intNone));
@@ -3017,7 +2942,7 @@ class UpperBoundTest extends _BoundsTestBase {
     }
 
     check(nullNone, nullQuestion);
-    check(nullNone, nullStar);
+    check(nullQuestion, nullQuestion);
   }
 
   test_object_any() {
@@ -3642,10 +3567,6 @@ class _BoundsTestBase extends AbstractTypeSystemTest with StringTypes {
 
   void _assertNullabilityQuestion(DartType type) {
     _assertNullability(type, NullabilitySuffix.question);
-  }
-
-  void _assertNullabilityStar(DartType type) {
-    _assertNullability(type, NullabilitySuffix.star);
   }
 
   void _assertObject(DartType type) {

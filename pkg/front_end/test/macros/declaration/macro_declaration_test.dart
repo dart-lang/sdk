@@ -44,6 +44,7 @@ class MacroTestConfig extends CfeTestConfig {
       CompilerOptions options, TestData testData) {
     TestMacroExecutor testExecutor =
         options.macroExecutor = new TestMacroExecutor();
+    options.skipMacros = true;
     testExecutor.registerExecutorFactory(() => testExecutor,
         {Uri.parse('package:precompiled_macro/precompiled_macro.dart')});
     return testExecutor;

@@ -69,10 +69,6 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     return coreTypes.functionRawType(nullability);
   }
 
-  InterfaceType objectRawType(Nullability nullability) {
-    return coreTypes.objectRawType(nullability);
-  }
-
   /// Performs partial (either downwards or horizontal) inference, producing a
   /// set of inferred types that may contain references to the "unknown type".
   List<DartType> choosePreliminaryTypes(

@@ -33,9 +33,6 @@ abstract class TypeAliasBuilder implements TypeDeclarationBuilder {
   List<DartType> buildAliasedTypeArguments(LibraryBuilder library,
       List<TypeBuilder>? arguments, ClassHierarchyBase? hierarchy);
 
-  /// Returns `true` if this typedef is an alias of the `Null` type.
-  bool get isNullAlias;
-
   /// Returns the unaliased type for this type alias with the given
   /// [typeArguments], or `null` if this type alias is cyclic.
   ///

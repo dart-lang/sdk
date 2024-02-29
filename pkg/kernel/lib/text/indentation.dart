@@ -65,11 +65,6 @@ abstract mixin class Tagging<N> implements Indentation {
     return tagStack.removeLast();
   }
 
-  /// Adds given string to result string.
-  void add(String string) {
-    sb.write(string);
-  }
-
   /// Adds default parameters for [node] into [params].
   void addDefaultParameters(N node, Map params) {}
 

@@ -23,6 +23,9 @@ import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart' show TypeSystemImpl;
 import 'package:analyzer/src/generated/variable_type_provider.dart';
 
+export 'package:_fe_analyzer_shared/src/type_inference/nullability_suffix.dart'
+    show NullabilitySuffix;
+
 /// Data gathered by flow analysis, retained for testing purposes.
 class FlowAnalysisDataForTesting {
   /// The list of nodes, [Expression]s or [Statement]s, that cannot be reached,
@@ -401,7 +404,13 @@ class TypeSystemOperations
   DartType get neverType => typeSystem.typeProvider.neverType;
 
   @override
+  DartType get nullType => typeSystem.typeProvider.nullType;
+
+  @override
   DartType get objectQuestionType => typeSystem.objectQuestion;
+
+  @override
+  DartType get objectType => typeSystem.objectNone;
 
   @override
   DartType get unknownType => UnknownInferredType.instance;
@@ -448,6 +457,27 @@ class TypeSystemOperations
   String getDisplayString(DartType type) => type.getDisplayString();
 
   @override
+  NullabilitySuffix getNullabilitySuffix(DartType type) {
+    return type.nullabilitySuffix;
+  }
+
+  @override
+  TypeDeclarationKind? getTypeDeclarationKind(DartType type) {
+    if (isInterfaceType(type)) {
+      return TypeDeclarationKind.interfaceDeclaration;
+    } else if (isExtensionType(type)) {
+      return TypeDeclarationKind.extensionTypeDeclaration;
+    } else {
+      return null;
+    }
+  }
+
+  @override
+  TypeDeclarationKind? getTypeSchemaDeclarationKind(DartType typeSchema) {
+    return getTypeDeclarationKind(typeSchema);
+  }
+
+  @override
   DartType glb(DartType type1, DartType type2) {
     return typeSystem.greatestLowerBound(type1, type2);
   }
@@ -470,8 +500,42 @@ class TypeSystemOperations
   bool isError(DartType type) => type is InvalidType;
 
   @override
+  bool isExtensionType(DartType type) {
+    return type is InterfaceType && type.element is ExtensionTypeElement;
+  }
+
+  @override
+  bool isFunctionType(DartType type) {
+    return type is FunctionType;
+  }
+
+  @override
+  bool isInterfaceType(DartType type) {
+    return type is InterfaceType &&
+        !type.isDartCoreNull &&
+        !type.isDartAsyncFutureOr &&
+        type.element is! ExtensionTypeElement;
+  }
+
+  @override
   bool isNever(DartType type) {
     return typeSystem.isBottom(type);
+  }
+
+  @override
+  bool isNonNullable(DartType typeSchema) {
+    return typeSystem.isNonNullable(typeSchema);
+  }
+
+  @override
+  bool isNull(DartType type) {
+    return type.isDartCoreNull;
+  }
+
+  @override
+  bool isObject(DartType type) {
+    return type.isDartCoreObject &&
+        type.nullabilitySuffix == NullabilitySuffix.none;
   }
 
   @override
@@ -481,6 +545,9 @@ class TypeSystemOperations
     if (field is! FieldElement) return false;
     return field.isPromotable;
   }
+
+  @override
+  bool isRecordType(DartType type) => type is RecordType;
 
   @override
   bool isSameType(covariant TypeImpl type1, covariant TypeImpl type2) {
@@ -501,13 +568,18 @@ class TypeSystemOperations
       isSubtypeOf(type, typeSchema);
 
   @override
-  bool isUnknownType(DartType type) {
-    return identical(type, UnknownInferredType.instance);
+  bool isUnknownType(DartType typeSchema) {
+    return identical(typeSchema, UnknownInferredType.instance);
   }
 
   @override
   bool isVariableFinal(PromotableElement element) {
     return element.isFinal;
+  }
+
+  @override
+  bool isVoid(DartType type) {
+    return identical(type, VoidTypeImpl.instance);
   }
 
   @override
@@ -554,6 +626,15 @@ class TypeSystemOperations
     required DartType valueTypeSchema,
   }) {
     return typeSystem.typeProvider.mapType(keyTypeSchema, valueTypeSchema);
+  }
+
+  @override
+  DartType? matchFutureOr(DartType type) {
+    if (type is InterfaceType && type.isDartAsyncFutureOr) {
+      return type.typeArguments[0];
+    } else {
+      return null;
+    }
   }
 
   @override
@@ -698,6 +779,11 @@ class TypeSystemOperations
     // Non-promotion reason must be due to a conflict with some other
     // declaration, or because field promotion is disabled.
     return null;
+  }
+
+  @override
+  DartType withNullabilitySuffix(DartType type, NullabilitySuffix suffix) {
+    return (type as TypeImpl).withNullability(suffix);
   }
 }
 
