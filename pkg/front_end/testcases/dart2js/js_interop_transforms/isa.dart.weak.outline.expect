@@ -1,4 +1,4 @@
-@dart.js_interop::JS::•("library1")
+@#lib1::JS::•("library1")
 library;
 import self as self;
 import "dart:js_interop" as js_;
