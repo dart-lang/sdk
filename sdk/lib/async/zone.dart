@@ -1725,6 +1725,22 @@ const _Zone _rootZone = _RootZone();
 /// symbol `#_secret`. The secret is available from the new [Zone] object,
 /// which is the [Zone.current] for the body,
 /// and is also the first, `self`, parameter to the `print` handler function.
+///
+/// If the [ZoneSpecification.handleUncaughtError] is set, or the deprecated
+/// [onError] callback is passed, the created zone will be an _error zone_.
+/// Asynchronous errors in futures never cross zone boundaries between zones
+/// with a different [Zone.errorZone].
+/// A consequence of that behavior can be that a [Future] which completes as an
+/// error in the created zone will seem to never complete when used from a zone
+/// that belongs to a different error zone.
+/// Multiple attempts to use the future in a zone where the error is
+/// inaccessible will cause the error to be reported *again* in it's original
+/// error zone.
+///
+/// See [runZonedGuarded] in place of using the deprected [onError] argument.
+/// If [onError] is provided this function also tries to catch and handle
+/// synchronous errors from [body], but may throw an error anyway returning
+/// `null` if the generic argument [R] is not nullable.
 R runZoned<R>(R body(),
     {Map<Object?, Object?>? zoneValues,
     ZoneSpecification? zoneSpecification,
@@ -1761,9 +1777,15 @@ R runZoned<R>(R body(),
 /// makes the call to `runZonedGuarded` throw that error,
 /// and otherwise the call to `runZonedGuarded` returns `null`.
 ///
-/// The zone will always be an error-zone ([Zone.errorZone]), so returning
-/// a future created inside the zone, and waiting for it outside of the zone,
-/// will risk the future not being seen to complete.
+/// The created zone will always be an _error zone_.
+/// Asynchronous errors in futures never cross zone boundaries between zones
+/// with a different [Zone.errorZone].
+/// A consequence of that behavior can be that a [Future] which completes as an
+/// error in the created zone will seem to never complete when used from a zone
+/// that belongs to a different error zone.
+/// Multiple attempts to use the future in a zone where the error is
+/// inaccessible will cause the error to be reported *again* in it's original
+/// error zone.
 @Since("2.8")
 R? runZonedGuarded<R>(R body(), void onError(Object error, StackTrace stack),
     {Map<Object?, Object?>? zoneValues, ZoneSpecification? zoneSpecification}) {
