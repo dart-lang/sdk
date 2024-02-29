@@ -655,13 +655,6 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
       true,
       ['int <: T <: _'],
     );
-    _checkMatch(
-      [T],
-      listNone(intNone),
-      iterableStar(T_none),
-      true,
-      ['int <: T <: _'],
-    );
 
     _checkNotMatch([T], listNone(intNone), iterableNone(stringNone), true);
   }
@@ -844,7 +837,6 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
 
     checkMatch(numNone, '_ <: T <: num');
     checkMatch(numQuestion, '_ <: T <: num?');
-    checkMatch(numStar, '_ <: T <: num*');
   }
 
   /// If `P` is a type variable `X` with bound `B` (or a promoted type
@@ -1272,7 +1264,6 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
 
     checkMatch(numNone, 'num <: T <: _');
     checkMatch(numQuestion, 'num? <: T <: _');
-    checkMatch(numStar, 'num* <: T <: _');
   }
 
   /// If `Q` is `_` then the match holds with no constraints.

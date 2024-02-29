@@ -39,7 +39,6 @@ mixin StringTypes on AbstractTypeSystemTest {
     _defineType('Comparable<int>', comparableNone(intNone));
 
     _defineType('num', numNone);
-    _defineType('num*', numStar);
     _defineType('num?', numQuestion);
 
     _defineType('int', intNone);
@@ -49,13 +48,10 @@ mixin StringTypes on AbstractTypeSystemTest {
     _defineType('double', doubleNone);
     _defineType('double?', doubleQuestion);
 
-    _defineType('List<Object*>*', listStar(objectStar));
-    _defineType('List<num*>*', listStar(numStar));
+    _defineType('List<Object>', listNone(objectNone));
+    _defineType('List<num>', listNone(numNone));
     _defineType('List<int>', listNone(intNone));
-    _defineType('List<int>*', listStar(intNone));
     _defineType('List<int>?', listQuestion(intNone));
-    _defineType('List<int*>', listNone(intStar));
-    _defineType('List<int*>*', listStar(intStar));
     _defineType('List<int*>?', listQuestion(intStar));
     _defineType('List<int?>', listNone(intQuestion));
 
@@ -83,9 +79,6 @@ mixin StringTypes on AbstractTypeSystemTest {
     _defineType('Iterable<Object>', iterableNone(objectNone));
     _defineType('Iterable<num>', iterableNone(numNone));
     _defineType('Iterable<int>', iterableNone(intNone));
-    _defineType('Iterable<Object*>*', iterableStar(objectStar));
-    _defineType('Iterable<num*>*', iterableStar(numStar));
-    _defineType('Iterable<int*>*', iterableStar(intStar));
 
     _defineFunctionTypes();
     _defineFutureTypes();
@@ -149,21 +142,6 @@ mixin StringTypes on AbstractTypeSystemTest {
     );
 
     _defineType(
-      'num* Function(num*)',
-      functionTypeNone(
-        parameters: [requiredParameter(type: numStar)],
-        returnType: numStar,
-      ),
-    );
-    _defineType(
-      'num* Function(num*)?',
-      functionTypeQuestion(
-        parameters: [requiredParameter(type: numStar)],
-        returnType: numStar,
-      ),
-    );
-
-    _defineType(
       'int Function()',
       functionTypeNone(
         returnType: intNone,
@@ -197,21 +175,6 @@ mixin StringTypes on AbstractTypeSystemTest {
       functionTypeNone(
         parameters: [requiredParameter(type: intNone)],
         returnType: intNone,
-      ),
-    );
-
-    _defineType(
-      'num* Function(int*)',
-      functionTypeNone(
-        parameters: [requiredParameter(type: intStar)],
-        returnType: numStar,
-      ),
-    );
-    _defineType(
-      'num* Function(int*)?',
-      functionTypeQuestion(
-        parameters: [requiredParameter(type: intStar)],
-        returnType: numStar,
       ),
     );
 
@@ -422,13 +385,6 @@ mixin StringTypes on AbstractTypeSystemTest {
       _defineType(str, type);
     }
 
-    void allPositionalStar(String str, List<DartType> types) {
-      final type = recordTypeStar(
-        positionalTypes: types,
-      );
-      _defineType(str, type);
-    }
-
     allPositional('(double,)', [doubleNone]);
     allPositional('(int,)', [intNone]);
     allPositional('(int?,)', [intQuestion]);
@@ -439,10 +395,6 @@ mixin StringTypes on AbstractTypeSystemTest {
     allPositionalQuestion('(int,)?', [intNone]);
     allPositionalQuestion('(int?,)?', [intQuestion]);
     allPositionalQuestion('(int*,)?', [intStar]);
-
-    allPositionalStar('(int,)*', [intNone]);
-    allPositionalStar('(int?,)*', [intQuestion]);
-    allPositionalStar('(int*,)*', [intStar]);
 
     allPositional('(double, int)', [doubleNone, intNone]);
     allPositional('(int, double)', [intNone, doubleNone]);
@@ -465,13 +417,6 @@ mixin StringTypes on AbstractTypeSystemTest {
       _defineType(str, type);
     }
 
-    void allNamedStar(String str, Map<String, DartType> types) {
-      final type = recordTypeStar(
-        namedTypes: types,
-      );
-      _defineType(str, type);
-    }
-
     allNamed('({double f1})', {'f1': doubleNone});
     allNamed('({int f1})', {'f1': intNone});
     allNamed('({int? f1})', {'f1': intQuestion});
@@ -484,10 +429,6 @@ mixin StringTypes on AbstractTypeSystemTest {
     allNamedQuestion('({int f1})?', {'f1': intNone});
     allNamedQuestion('({int? f1})?', {'f1': intQuestion});
     allNamedQuestion('({int* f1})?', {'f1': intStar});
-
-    allNamedStar('({int f1})*', {'f1': intNone});
-    allNamedStar('({int? f1})*', {'f1': intQuestion});
-    allNamedStar('({int* f1})*', {'f1': intStar});
 
     allNamed('({double f1, int f2})', {'f1': doubleNone, 'f2': intNone});
     allNamed('({int f1, double f2})', {'f1': intNone, 'f2': doubleNone});
