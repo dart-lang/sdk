@@ -24,8 +24,8 @@ class TransformSetManagerTest extends AbstractContextTest {
   TransformSetManager manager = TransformSetManager.instance;
 
   @override
-  void tearDown() {
-    super.tearDown();
+  Future<void> tearDown() async {
+    await super.tearDown();
     manager.clearCache();
   }
 

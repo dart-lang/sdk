@@ -1384,8 +1384,8 @@ class _DataDrivenTest extends BulkFixProcessorTest {
   }
 
   @override
-  void tearDown() {
+  Future<void> tearDown() async {
     TransformSetManager.instance.clearCache();
-    super.tearDown();
+    await super.tearDown();
   }
 }
