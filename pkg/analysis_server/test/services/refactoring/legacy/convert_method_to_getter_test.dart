@@ -108,7 +108,7 @@ class A {
 
     // Verify that `test.macro.dart` is unmodified.
     expect(refactoringChange.edits.map((e) => e.file),
-        unorderedEquals(['/home/test/lib/test.dart']));
+        unorderedEquals([testFile.path]));
   }
 
   Future<void> test_change_multipleFiles() async {
