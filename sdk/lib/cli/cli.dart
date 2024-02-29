@@ -10,6 +10,7 @@
 /// later version.
 ///
 /// {@category VM}
+/// {@nodoc}
 @Deprecated(
     "The functionality of this library is incomplete and may be removed in a later version")
 library dart.cli;
