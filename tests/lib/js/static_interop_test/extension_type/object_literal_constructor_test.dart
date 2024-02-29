@@ -15,21 +15,27 @@ extension type Literal._(JSObject _) implements JSObject {
 }
 
 // Test that the properties we assumed to exist in `literal` actually exist and
-// that their values are as expected. Note that we don't check the order of the
-// keys in the literal. This is not guaranteed to be the same across different
-// backends.
+// that their values are as expected. If we assumed they don't exist, check that
+// they do not. Note that we don't check the order of the keys in the literal.
+// This is not guaranteed to be the same across different backends.
 void testProperties(JSObject literal, {double? a, String? b, bool? c}) {
   if (a != null) {
     expect(literal.has('a'), true);
     expect((literal['a'] as JSNumber).toDartDouble, a);
+  } else {
+    expect(literal.has('a'), false);
   }
   if (b != null) {
     expect(literal.has('b'), true);
     expect((literal['b'] as JSString).toDart, b);
+  } else {
+    expect(literal.has('b'), false);
   }
   if (c != null) {
     expect(literal.has('c'), true);
     expect((literal['c'] as JSBoolean).toDart, c);
+  } else {
+    expect(literal.has('c'), false);
   }
 }
 
