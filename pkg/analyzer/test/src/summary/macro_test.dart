@@ -12347,7 +12347,7 @@ macro class MyMacro implements ClassTypesMacro {
       );
 
       final exitCode = await process.exitCode;
-      if (exitCode == 255) {
+      if (exitCode == 255 || exitCode == 64) {
         markTestSkipped('Skip because cannot compile.');
         return;
       }
