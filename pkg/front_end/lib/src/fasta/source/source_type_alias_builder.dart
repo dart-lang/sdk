@@ -79,13 +79,6 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
   @override
   int get typeVariablesCount => typeVariables?.length ?? 0;
 
-  @override
-  bool get isNullAlias {
-    TypeDeclarationBuilder? typeDeclarationBuilder = type.declaration;
-    return typeDeclarationBuilder is ClassBuilder &&
-        typeDeclarationBuilder.isNullClass;
-  }
-
   Typedef build() {
     buildThisType();
     if (_checkCyclicTypedefDependency(type, this, {this})) {
@@ -283,40 +276,6 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
       builtType = const InvalidType();
     }
     return thisType = typedef.type ??= builtType;
-  }
-
-  TypedefType thisTypedefType(Typedef typedef, LibraryBuilder clientLibrary) {
-    // At this point the bounds of `typedef.typeParameters` may not be assigned
-    // yet, so [getAsTypeArguments] may crash trying to compute the nullability
-    // of the created types from the bounds.  To avoid that, we use "dynamic"
-    // for the bound of all boundless variables and add them to the list for
-    // being recomputed later, when the bounds are assigned.
-    List<DartType> bounds =
-        new List<DartType>.generate(typedef.typeParameters.length, (int i) {
-      DartType bound = typedef.typeParameters[i].bound;
-      if (identical(bound, TypeParameter.unsetBoundSentinel)) {
-        typedef.typeParameters[i].bound = const DynamicType();
-      }
-      return bound;
-    }, growable: false);
-    List<DartType> asTypeArguments =
-        getAsTypeArguments(typedef.typeParameters, clientLibrary.library);
-    TypedefType result =
-        new TypedefType(typedef, clientLibrary.nonNullable, asTypeArguments);
-    for (int i = 0; i < bounds.length; ++i) {
-      if (identical(bounds[i], TypeParameter.unsetBoundSentinel)) {
-        // If the bound is not assigned yet, put the corresponding
-        // type-parameter type into the list for the nullability re-computation.
-        // At this point, [parent] should be a [SourceLibraryBuilder] because
-        // otherwise it's a compiled library loaded from a dill file, and the
-        // bounds should have been assigned.
-        libraryBuilder.registerPendingNullability(
-            _typeVariables![i].fileUri!,
-            _typeVariables[i].charOffset,
-            asTypeArguments[i] as TypeParameterType);
-      }
-    }
-    return result;
   }
 
   @override

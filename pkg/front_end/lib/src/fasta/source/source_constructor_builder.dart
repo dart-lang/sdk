@@ -50,7 +50,6 @@ import '../source/source_member_builder.dart';
 import '../type_inference/inference_results.dart';
 import '../type_inference/type_schema.dart';
 import '../util/helpers.dart' show DelayedActionPerformer;
-import 'class_declaration.dart';
 import 'constructor_declaration.dart';
 import 'name_scheme.dart';
 import 'source_extension_type_declaration_builder.dart';
@@ -377,8 +376,6 @@ class DeclaredSourceConstructorBuilder
 
   DeclaredSourceConstructorBuilder? actualOrigin;
 
-  Constructor get actualConstructor => _constructor;
-
   List<DeclaredSourceConstructorBuilder>? _augmentations;
 
   bool _hasDefaultValueCloner = false;
@@ -449,9 +446,6 @@ class DeclaredSourceConstructorBuilder
 
   @override
   Name get memberName => _memberName.name;
-
-  @override
-  ClassDeclaration get classDeclaration => classBuilder;
 
   @override
   SourceClassBuilder get classBuilder =>
@@ -1029,19 +1023,6 @@ class SyntheticSourceConstructorBuilder extends DillConstructorBuilder
     }
   }
 
-  MemberBuilder? get _effectivelyDefiningConstructor {
-    MemberBuilder? origin = _immediatelyDefiningConstructor;
-    while (origin is SyntheticSourceConstructorBuilder) {
-      origin = origin._immediatelyDefiningConstructor;
-    }
-    return origin;
-  }
-
-  List<FormalParameterBuilder>? get formals {
-    MemberBuilder? origin = _effectivelyDefiningConstructor;
-    return origin is DeclaredSourceConstructorBuilder ? origin.formals : null;
-  }
-
   @override
   void buildOutlineExpressions(
       ClassHierarchy classHierarchy,
@@ -1155,9 +1136,6 @@ class SourceExtensionTypeConstructorBuilder
 
   @override
   Name get memberName => _memberName.name;
-
-  @override
-  ClassDeclaration get classDeclaration => extensionTypeDeclarationBuilder;
 
   SourceExtensionTypeDeclarationBuilder get extensionTypeDeclarationBuilder =>
       parent as SourceExtensionTypeDeclarationBuilder;

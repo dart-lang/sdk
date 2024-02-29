@@ -23,9 +23,6 @@ abstract class StackListenerImpl extends StackListener {
 
   LibraryFeatures get libraryFeatures => libraryBuilder.libraryFeatures;
 
-  GlobalFeatures get globalFeatures =>
-      libraryBuilder.loader.target.globalFeatures;
-
   @override
   Uri get importUri => libraryBuilder.origin.importUri;
 

@@ -60,13 +60,6 @@ class TypeConstraintGatherer {
     return _environment.getTypeArgumentsAsInstanceOf(type, typeDeclaration);
   }
 
-  List<DartType>? getExtensionTypeArgumentsAsInstanceOf(
-      ExtensionType type, ExtensionTypeDeclaration superclass) {
-    return _environment.hierarchy
-        .getExtensionTypeArgumentsAsInstanceOfExtensionTypeDeclaration(
-            type, superclass);
-  }
-
   /// Returns the set of type constraints that was gathered.
   Map<StructuralParameter, MergedTypeConstraint> computeConstraints(
       {required bool isNonNullableByDefault}) {

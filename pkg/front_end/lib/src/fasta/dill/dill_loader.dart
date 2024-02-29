@@ -87,11 +87,6 @@ class DillLoader extends Loader {
         new DillLibraryBuilder(library, this);
   }
 
-  // TODO(johnniwinther): This is never called!?!
-  void releaseAncillaryResources() {
-    _knownLibraryBuilders.clear();
-  }
-
   /// Look up a library builder by the [uri], or if such doesn't exist, create
   /// one. The canonical URI of the library is [uri], and its actual location is
   /// [fileUri].

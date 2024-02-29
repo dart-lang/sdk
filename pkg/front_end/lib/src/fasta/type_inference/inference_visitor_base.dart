@@ -65,32 +65,6 @@ import 'type_schema_environment.dart'
         TypeVariableEliminator,
         TypeSchemaEnvironment;
 
-/// Given a [FunctionNode], gets the named parameter identified by [name], or
-/// `null` if there is no parameter with the given name.
-VariableDeclaration? getNamedFormal(FunctionNode function, String name) {
-  for (VariableDeclaration formal in function.namedParameters) {
-    if (formal.name == name) return formal;
-  }
-  return null;
-}
-
-/// Given a [FunctionNode], gets the [i]th positional formal parameter, or
-/// `null` if there is no parameter with that index.
-VariableDeclaration? getPositionalFormal(FunctionNode function, int i) {
-  if (i < function.positionalParameters.length) {
-    return function.positionalParameters[i];
-  } else {
-    return null;
-  }
-}
-
-bool isOverloadableArithmeticOperator(String name) {
-  return identical(name, '+') ||
-      identical(name, '-') ||
-      identical(name, '*') ||
-      identical(name, '%');
-}
-
 /// Given a [FunctionExpression], computes a set whose elements consist of (a)
 /// an integer corresponding to the zero-based index of each positional
 /// parameter of the function expression that has an explicit type annotation,
@@ -977,10 +951,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         implicitInstantiation: implicitInstantiation);
   }
 
-  bool isNull(DartType type) {
-    return type is NullType;
-  }
-
   /// Computes the type arguments for an access to an extension instance member
   /// on [extension] with the static [receiverType]. If [explicitTypeArguments]
   /// are provided, these are returned, otherwise type arguments are inferred
@@ -1480,15 +1450,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       }
     }
     return null;
-  }
-
-  /// If the [member] is a forwarding stub, return the target it forwards to.
-  /// Otherwise return the given [member].
-  Member getRealTarget(Member member) {
-    if (member is Procedure && member.isForwardingStub) {
-      return member.abstractForwardingStubTarget!;
-    }
-    return member;
   }
 
   DartType getTypeArgumentOf(DartType type, Class class_) {

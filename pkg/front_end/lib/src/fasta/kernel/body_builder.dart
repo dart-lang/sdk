@@ -1436,25 +1436,6 @@ class BodyBuilder extends StackListenerImpl
     }
   }
 
-  /// Check if the containing library of the [member] has been loaded.
-  ///
-  /// This is designed for use with asserts.
-  /// See [ensureLoaded] for a description of what 'loaded' means and the ideas
-  /// behind that.
-  @override
-  bool isLoaded(Member? member) {
-    if (member == null) return true;
-    Library ensureLibraryLoaded = member.enclosingLibrary;
-    LibraryBuilder? builder = libraryBuilder.loader
-            .lookupLibraryBuilder(ensureLibraryLoaded.importUri) ??
-        libraryBuilder.loader.target.dillTarget.loader
-            .lookupLibraryBuilder(ensureLibraryLoaded.importUri);
-    if (builder is DillLibraryBuilder) {
-      return builder.isBuiltAndMarked;
-    }
-    return true;
-  }
-
   RedirectionTarget _getRedirectionTarget(Procedure factory) {
     List<DartType> typeArguments = new List<DartType>.generate(
         factory.function.typeParameters.length, (int i) {
@@ -3169,14 +3150,6 @@ class BodyBuilder extends StackListenerImpl
         ? fasta.templateSuperclassHasNoConstructor.withArguments(name.text)
         : fasta.templateConstructorNotFound.withArguments(name.text);
     return message;
-  }
-
-  @override
-  void warnTypeArgumentsMismatch(String name, int expected, int charOffset) {
-    addProblemErrorIfConst(
-        fasta.templateTypeArgumentMismatch.withArguments(expected),
-        charOffset,
-        name.length);
   }
 
   @override
@@ -8824,14 +8797,6 @@ class BodyBuilder extends StackListenerImpl
     }
   }
 
-  List<TypeParameter>? typeVariableBuildersToKernel(
-      List<NominalVariableBuilder>? typeVariableBuilders) {
-    if (typeVariableBuilders == null) return null;
-    return new List<TypeParameter>.generate(typeVariableBuilders.length,
-        (int i) => typeVariableBuilders[i].parameter,
-        growable: true);
-  }
-
   @override
   void handleInvalidStatement(Token token, Message message) {
     Statement statement = pop() as Statement;
@@ -9419,13 +9384,6 @@ class BodyBuilder extends StackListenerImpl
         .build(libraryBuilder, typeUse);
   }
 
-  DartType buildAliasedDartType(TypeBuilder typeBuilder, TypeUse typeUse,
-      {required bool allowPotentiallyConstantType}) {
-    return validateTypeVariableUse(typeBuilder,
-            allowPotentiallyConstantType: allowPotentiallyConstantType)
-        .buildAliased(libraryBuilder, typeUse, /* hierarchy = */ null);
-  }
-
   @override
   List<DartType> buildDartTypeArguments(
       List<TypeBuilder>? unresolvedTypes, TypeUse typeUse,
@@ -9904,8 +9862,6 @@ class JumpTarget {
     }
     users.clear();
   }
-
-  String get fullNameForErrors => "<jump-target>";
 }
 
 class LabelTarget implements JumpTarget {
@@ -9977,9 +9933,6 @@ class LabelTarget implements JumpTarget {
   void resolveGotos(Forest forest, SwitchCase target) {
     unsupported("resolveGotos", charOffset, fileUri);
   }
-
-  @override
-  String get fullNameForErrors => "<label-target>";
 }
 
 class FormalParameters {

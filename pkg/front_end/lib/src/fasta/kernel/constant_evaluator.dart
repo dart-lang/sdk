@@ -24,7 +24,6 @@ import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/space.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
 import 'package:kernel/ast.dart';
-import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/src/const_canonical_type.dart';
 import 'package:kernel/src/find_type_visitor.dart';
@@ -49,37 +48,6 @@ import 'resource_identifier.dart' as ResourceIdentifiers;
 import 'static_weak_references.dart' show StaticWeakReferences;
 
 part 'constant_collection_builders.dart';
-
-Component transformComponent(
-    Target target,
-    Component component,
-    Map<String, String> environmentDefines,
-    ErrorReporter errorReporter,
-    EvaluationMode evaluationMode,
-    {required bool evaluateAnnotations,
-    required bool desugarSets,
-    required bool enableTripleShift,
-    required bool enableConstFunctions,
-    required bool enableConstructorTearOff,
-    required bool errorOnUnevaluatedConstant,
-    CoreTypes? coreTypes,
-    ClassHierarchy? hierarchy,
-    ExhaustivenessDataForTesting? exhaustivenessDataForTesting}) {
-  coreTypes ??= new CoreTypes(component);
-  hierarchy ??= new ClassHierarchy(component, coreTypes);
-
-  final TypeEnvironment typeEnvironment =
-      new TypeEnvironment(coreTypes, hierarchy);
-
-  transformLibraries(component, component.libraries, target, environmentDefines,
-      typeEnvironment, errorReporter, evaluationMode,
-      enableTripleShift: enableTripleShift,
-      enableConstFunctions: enableConstFunctions,
-      errorOnUnevaluatedConstant: errorOnUnevaluatedConstant,
-      evaluateAnnotations: evaluateAnnotations,
-      enableConstructorTearOff: enableConstructorTearOff);
-  return component;
-}
 
 ConstantEvaluationData transformLibraries(
     Component component,

@@ -743,8 +743,6 @@ class NullAwarePropertyAccessGenerator extends Generator {
   @override
   String get _debugName => "NullAwarePropertyAccessGenerator";
 
-  Expression receiverAccess() => new VariableGet(receiver);
-
   @override
   String get _plainNameForRead => name.text;
 

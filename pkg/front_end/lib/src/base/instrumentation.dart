@@ -69,14 +69,3 @@ class InstrumentationValueForTypeArgs extends InstrumentationValue {
       .map((type) => new InstrumentationValueForType(type).toString())
       .join(', ');
 }
-
-/// Instance of [InstrumentationValue] which only matches the given literal
-/// string.
-class InstrumentationValueLiteral extends InstrumentationValue {
-  final String value;
-
-  const InstrumentationValueLiteral(this.value);
-
-  @override
-  String toString() => value;
-}

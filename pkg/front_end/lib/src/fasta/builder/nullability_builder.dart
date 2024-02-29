@@ -38,8 +38,6 @@ class NullabilityBuilder {
 
   bool get isOmitted => _syntacticNullability == SyntacticNullability.omitted;
 
-  bool get isInherent => _syntacticNullability == SyntacticNullability.inherent;
-
   bool get isNullable => _syntacticNullability == SyntacticNullability.nullable;
 
   factory NullabilityBuilder.fromNullability(Nullability nullability) {

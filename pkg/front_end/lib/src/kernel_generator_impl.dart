@@ -289,7 +289,7 @@ class InternalCompilerResult implements CompilerResult {
 
 /// A fake absolute directory used as the root of a memory-file system in the
 /// compilation below.
-Uri _defaultDir = Uri.parse('org-dartlang-macro:///a/b/c/');
+final Uri _defaultDir = Uri.parse('org-dartlang-macro:///a/b/c/');
 
 /// Compiles the libraries for the macro classes in [neededPrecompilations].
 ///

@@ -200,11 +200,8 @@ abstract class ClassMember {
   Name get name;
   bool get isStatic;
   bool get isField;
-  bool get isAssignable;
   bool get isSetter;
   bool get isGetter;
-  bool get isFinal;
-  bool get isConst;
   bool get forSetter;
 
   ClassMemberKind get memberKind;
@@ -358,19 +355,10 @@ abstract class SynthesizedMember extends ClassMember {
   void inferType(ClassMembersBuilder membersBuilder) {}
 
   @override
-  bool get isAssignable => throw new UnimplementedError();
-
-  @override
-  bool get isConst => throw new UnimplementedError();
-
-  @override
   bool get isDuplicate => false;
 
   @override
   bool get isField => throw new UnimplementedError();
-
-  @override
-  bool get isFinal => throw new UnimplementedError();
 
   @override
   bool get isGetter => throw new UnimplementedError();
