@@ -16,7 +16,6 @@ import 'package:analysis_server/src/services/completion/dart/library_member_cont
 import 'package:analysis_server/src/services/completion/dart/library_prefix_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/named_constructor_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/not_imported_contributor.dart';
-import 'package:analysis_server/src/services/completion/dart/override_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/record_literal_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_collector.dart';
@@ -133,7 +132,6 @@ class DartCompletionManager {
       LibraryMemberContributor(request, builder),
       LibraryPrefixContributor(request, builder),
       NamedConstructorContributor(request, builder),
-      if (enableOverrideContributor) OverrideContributor(request, builder),
       RecordLiteralContributor(request, builder),
       if (enableUriContributor) UriContributor(request, builder),
       VariableNameContributor(request, builder),
@@ -155,7 +153,11 @@ class DartCompletionManager {
       await performance.runAsync(
         'InScopeCompletionPass',
         (performance) async {
-          _runFirstPass(request, builder, includedElementKinds != null);
+          _runFirstPass(
+              request: request,
+              builder: builder,
+              skipImports: includedElementKinds != null,
+              suggestOverrides: enableOverrideContributor);
         },
       );
       for (var contributor in contributors) {
@@ -216,8 +218,11 @@ class DartCompletionManager {
   }
 
   // Run the first pass of the code completion algorithm.
-  void _runFirstPass(DartCompletionRequest request, SuggestionBuilder builder,
-      bool skipImports) {
+  void _runFirstPass(
+      {required DartCompletionRequest request,
+      required SuggestionBuilder builder,
+      required bool skipImports,
+      required bool suggestOverrides}) {
     var collector = SuggestionCollector();
     var selection = request.unit.select(offset: request.offset, length: 0);
     if (selection == null) {
@@ -225,7 +230,10 @@ class DartCompletionManager {
     }
     var state = CompletionState(request, selection);
     var pass = InScopeCompletionPass(
-        state: state, collector: collector, skipImports: skipImports);
+        state: state,
+        collector: collector,
+        skipImports: skipImports,
+        suggestOverrides: suggestOverrides);
     pass.computeSuggestions();
     builder.suggestFromCandidates(collector.suggestions);
   }

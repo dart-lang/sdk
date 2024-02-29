@@ -27,6 +27,37 @@ class A {var foo; ^}
 ''');
     assertResponse(r'''
 suggestions
+  @override
+  // TODO: implement hashCode
+  int get hashCode => super.hashCode;
+    kind: override
+    selection: 62 14
+  @override
+  // TODO: implement runtimeType
+  Type get runtimeType => super.runtimeType;
+    kind: override
+    selection: 69 17
+  @override
+  String toString() {
+    // TODO: implement toString
+    return super.toString();
+  }
+    kind: override
+    selection: 68 24
+  @override
+  bool operator ==(Object other) {
+    // TODO: implement ==
+    return super == other;
+  }
+    kind: override
+    selection: 75 22
+  @override
+  noSuchMethod(Invocation invocation) {
+    // TODO: implement noSuchMethod
+    return super.noSuchMethod(invocation);
+  }
+    kind: override
+    selection: 90 38
   const
     kind: keyword
   covariant
@@ -60,6 +91,37 @@ class A {var bar; ^ var foo;}
 ''');
     assertResponse(r'''
 suggestions
+  @override
+  // TODO: implement hashCode
+  int get hashCode => super.hashCode;
+    kind: override
+    selection: 62 14
+  @override
+  // TODO: implement runtimeType
+  Type get runtimeType => super.runtimeType;
+    kind: override
+    selection: 69 17
+  @override
+  String toString() {
+    // TODO: implement toString
+    return super.toString();
+  }
+    kind: override
+    selection: 68 24
+  @override
+  bool operator ==(Object other) {
+    // TODO: implement ==
+    return super == other;
+  }
+    kind: override
+    selection: 75 22
+  @override
+  noSuchMethod(Invocation invocation) {
+    // TODO: implement noSuchMethod
+    return super.noSuchMethod(invocation);
+  }
+    kind: override
+    selection: 90 38
   const
     kind: keyword
   covariant
@@ -93,6 +155,37 @@ class A {^ var foo;}
 ''');
     assertResponse(r'''
 suggestions
+  @override
+  // TODO: implement hashCode
+  int get hashCode => super.hashCode;
+    kind: override
+    selection: 62 14
+  @override
+  // TODO: implement runtimeType
+  Type get runtimeType => super.runtimeType;
+    kind: override
+    selection: 69 17
+  @override
+  String toString() {
+    // TODO: implement toString
+    return super.toString();
+  }
+    kind: override
+    selection: 68 24
+  @override
+  bool operator ==(Object other) {
+    // TODO: implement ==
+    return super == other;
+  }
+    kind: override
+    selection: 75 22
+  @override
+  noSuchMethod(Invocation invocation) {
+    // TODO: implement noSuchMethod
+    return super.noSuchMethod(invocation);
+  }
+    kind: override
+    selection: 90 38
   const
     kind: keyword
   covariant
@@ -126,6 +219,37 @@ class A { ^ foo() {}}
 ''');
     assertResponse(r'''
 suggestions
+  @override
+  // TODO: implement hashCode
+  int get hashCode => super.hashCode;
+    kind: override
+    selection: 62 14
+  @override
+  // TODO: implement runtimeType
+  Type get runtimeType => super.runtimeType;
+    kind: override
+    selection: 69 17
+  @override
+  String toString() {
+    // TODO: implement toString
+    return super.toString();
+  }
+    kind: override
+    selection: 68 24
+  @override
+  bool operator ==(Object other) {
+    // TODO: implement ==
+    return super == other;
+  }
+    kind: override
+    selection: 75 22
+  @override
+  noSuchMethod(Invocation invocation) {
+    // TODO: implement noSuchMethod
+    return super.noSuchMethod(invocation);
+  }
+    kind: override
+    selection: 90 38
   const
     kind: keyword
   covariant
@@ -172,6 +296,37 @@ class A {^}
 ''');
     assertResponse(r'''
 suggestions
+  @override
+  // TODO: implement hashCode
+  int get hashCode => super.hashCode;
+    kind: override
+    selection: 62 14
+  @override
+  // TODO: implement runtimeType
+  Type get runtimeType => super.runtimeType;
+    kind: override
+    selection: 69 17
+  @override
+  String toString() {
+    // TODO: implement toString
+    return super.toString();
+  }
+    kind: override
+    selection: 68 24
+  @override
+  bool operator ==(Object other) {
+    // TODO: implement ==
+    return super == other;
+  }
+    kind: override
+    selection: 75 22
+  @override
+  noSuchMethod(Invocation invocation) {
+    // TODO: implement noSuchMethod
+    return super.noSuchMethod(invocation);
+  }
+    kind: override
+    selection: 90 38
   const
     kind: keyword
   covariant
@@ -581,6 +736,7 @@ suggestions
 ''');
   }
 
+  @FailingTest(reason: 'The parser recovers as `foo int;` and `bar = 0`.')
   Future<void> test_class_method_beforeField() async {
     await computeSuggestions('''
 class A {

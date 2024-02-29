@@ -22,6 +22,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -913,12 +914,20 @@ class SuggestionBuilder {
   /// invocation of an overridden member.
   Future<void> suggestOverride(
       Token targetId, ExecutableElement element, bool invokeSuper) async {
+    await suggestOverride2(element, invokeSuper, range.token(targetId));
+  }
+
+  /// Add a suggestion to replace the [targetId] with an override of the given
+  /// [element]. If [invokeSuper] is `true`, then the override will contain an
+  /// invocation of an overridden member.
+  Future<void> suggestOverride2(ExecutableElement element, bool invokeSuper,
+      SourceRange replacementRange) async {
     var displayTextBuffer = StringBuffer();
     var overrideImports = <Uri>{};
     var builder = ChangeBuilder(session: request.analysisSession);
     await builder.addDartFileEdit(request.path, createEditsForImports: false,
         (builder) {
-      builder.addReplacement(range.token(targetId), (builder) {
+      builder.addReplacement(replacementRange, (builder) {
         builder.writeOverride(
           element,
           displayTextBuffer: displayTextBuffer,
@@ -953,7 +962,7 @@ class SuggestionBuilder {
     if (selectionRange == null) {
       return;
     }
-    var offsetDelta = targetId.offset + replacement.indexOf(completion);
+    var offsetDelta = replacementRange.offset + replacement.indexOf(completion);
     var displayText =
         displayTextBuffer.isNotEmpty ? displayTextBuffer.toString() : null;
     var suggestion = DartCompletionSuggestion(
