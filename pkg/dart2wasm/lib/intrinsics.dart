@@ -533,7 +533,7 @@ class Intrinsifier {
             b.array_fill(arrayType);
             return codeGen.voidMarker;
           default:
-            throw 'unknown';
+            throw 'Unhandled WasmArrayExt external method: $memberName';
         }
       }
 
