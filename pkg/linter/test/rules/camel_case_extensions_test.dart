@@ -17,6 +17,24 @@ class CamelCaseExtensionsTest extends LintRuleTest {
   @override
   String get lintRule => 'camel_case_extensions';
 
+  @FailingTest(
+      issue: 'https://github.com/dart-lang/linter/issues/4898',
+      reason:
+          "ParserErrorCode.EXTRANEOUS_MODIFIER [27, 7, Can't have modifier 'augment' here.]")
+  test_augmentationExtension_lowerCase() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+
+extension e on Object { }
+''');
+
+    await assertNoDiagnostics(r'''
+library augment 'a.dart';
+
+augment extension e { }
+''');
+  }
+
   test_lowerCase() async {
     await assertDiagnostics(r'''
 extension fooBar on Object {}
