@@ -12,12 +12,12 @@ endif
 ifeq (amd64,$(DEB_HOST_ARCH_CPU))
 BUILD_TYPE += ReleaseX64
 BUILD_FLAGS += --arch=x64
-LIBS_DIR := $(CURDIR)/dart/build/linux/debian_stretch_amd64-sysroot/lib/x86_64-linux-gnu
+LIBS_DIR := $(CURDIR)/dart/buildtools/sysroot/linux/lib/x86_64-linux-gnu
 else
 ifeq (i386,$(DEB_HOST_ARCH_CPU))
 BUILD_TYPE += ReleaseIA32
 BUILD_FLAGS += --arch=ia32
-LIBS_DIR := $(CURDIR)/dart/build/linux/debian_stretch_i386-sysroot/lib/i386-linux-gnu
+LIBS_DIR := $(CURDIR)/dart/buildtools/sysroot/linux/lib/i386-linux-gnu
 else
 ifeq (arm,$(DEB_HOST_ARCH_CPU))
 ifeq ($(DEB_BUILD_ARCH_CPU),$(DEB_HOST_ARCH_CPU))
@@ -26,7 +26,7 @@ else
 BUILD_TYPE += ReleaseXARM
 endif
 BUILD_FLAGS += --arch=arm
-LIBS_DIR := $(CURDIR)/dart/build/linux/debian_stretch_arm-sysroot/lib/arm-linux-gnueabihf
+LIBS_DIR := $(CURDIR)/dart/buildtools/sysroot/linux/lib/arm-linux-gnueabihf
 else
 ifeq (arm64,$(DEB_HOST_ARCH_CPU))
 ifeq ($(DEB_BUILD_ARCH_CPU),$(DEB_HOST_ARCH_CPU))
@@ -35,7 +35,7 @@ else
 BUILD_TYPE += ReleaseXARM64
 endif
 BUILD_FLAGS += --arch=arm64
-LIBS_DIR := $(CURDIR)/dart/build/linux/debian_stretch_arm64-sysroot/lib/aarch64-linux-gnu
+LIBS_DIR := $(CURDIR)/dart/buildtools/sysroot/linux/lib/aarch64-linux-gnu
 else
 ifeq (riscv64,$(DEB_HOST_ARCH_CPU))
 ifeq ($(DEB_BUILD_ARCH_CPU),$(DEB_HOST_ARCH_CPU))
@@ -43,8 +43,8 @@ BUILD_TYPE += ReleaseRISCV64
 else
 BUILD_TYPE += ReleaseXRISCV64
 endif
-BUILD_FLAGS += --arch=riscv64 --no-clang --use-mallinfo2
-LIBS_DIR := /usr/riscv64-linux-gnu/lib
+BUILD_FLAGS += --arch=riscv64
+LIBS_DIR := $(CURDIR)/dart/buildtools/sysroot/focal/lib/riscv64-linux-gnu
 else
 $(error unsupported target arch '$(DEB_HOST_ARCH_CPU)')
 endif
