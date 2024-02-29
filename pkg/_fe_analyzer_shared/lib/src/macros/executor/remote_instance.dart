@@ -51,7 +51,7 @@ abstract class RemoteInstance implements Serializable {
   @nonVirtual
   void serialize(Serializer serializer) {
     serializer.addInt(id);
-    // We only send the ID if it's in the cache, its only in our cache if it is
+    // We only send the ID if it's in the cache, it's only in our cache if it is
     // also in the remote cache.
     if (_remoteInstanceCache.containsKey(id)) return;
 
