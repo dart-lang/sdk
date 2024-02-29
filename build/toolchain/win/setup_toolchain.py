@@ -39,6 +39,7 @@ def _ExtractImportantEnvironment(output_of_set):
       'luci_context', # needed by vpython
       'path',
       'pathext',
+      'rbe_cfg', # Dart specific patch: RBE_cfg is needed by reclient.
       'systemroot',
       'temp',
       'tmp',
@@ -59,15 +60,25 @@ def _ExtractImportantEnvironment(output_of_set):
           # path. Add the path to this python here so that if it's not in the
           # path when ninja is run later, python will still be found.
           setting = os.path.dirname(sys.executable) + os.pathsep + setting
-        if envvar in ['include', 'lib']:
+        # Dart specific patch: Ensure the environment variables use relative
+        # paths to the toolchain such that RBE commands can be cached
+        # remotely due to no absolute paths. Rewrite libpath as well although
+        # don't use it remotely at the moment.
+        if envvar in ['include', 'lib', 'libpath']:
+          exec_root_abs = os.path.dirname(os.path.dirname(os.getcwd()))
+          exec_root_rel = os.path.join('..', '..')
           # Make sure that the include and lib paths point to directories that
           # exist. This ensures a (relatively) clear error message if the
           # required SDK is not installed.
+          parts = []
           for part in setting.split(';'):
+            part = part.replace(exec_root_abs, exec_root_rel)
             if not os.path.exists(part) and len(part) != 0:
               raise Exception(
                   'Path "%s" from environment variable "%s" does not exist. '
                   'Make sure the necessary SDK is installed.' % (part, envvar))
+            parts.append(part)
+          setting = ';'.join(parts)
         env[var.upper()] = setting
         break
   if sys.platform in ('win32', 'cygwin'):
