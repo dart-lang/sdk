@@ -106,6 +106,17 @@
   DART_VM_OPTIONS=--random_seed=42,--verbose_gc
   ```
 
+### Tools
+
+#### DevTools
+
+- Updated DevTools to version 2.33.0 from 2.31.1.
+  To learn more, check out the release notes for versions
+  [2.32.0][devtools-2-32-0] and [2.33.0][devtools-2-33-0].
+
+[devtools-2-32-0]: https://docs.flutter.dev/tools/devtools/release-notes/release-notes-2.32.0
+[devtools-2-33-0]: https://docs.flutter.dev/tools/devtools/release-notes/release-notes-2.33.0
+
 ## 3.3.0
 
 ### Language
@@ -339,6 +350,16 @@ for each element.
 
 [lints-3-0]: https://pub.dev/packages/lints/changelog#300
 
+#### DevTools
+
+- Updated DevTools to version 2.31.1 from 2.28.1.
+  To learn more, check out the release notes for versions
+  [2.29.0][devtools-2-29-0], [2.30.0][devtools-2-30-0],
+  and [2.31.0][devtools-2-31-0].
+
+[devtools-2-29-0]: https://docs.flutter.dev/tools/devtools/release-notes/release-notes-2.29.0
+[devtools-2-30-0]: https://docs.flutter.dev/tools/devtools/release-notes/release-notes-2.30.0
+[devtools-2-31-0]: https://docs.flutter.dev/tools/devtools/release-notes/release-notes-2.31.0
 
 #### Wasm compiler (dart2wasm)
 
