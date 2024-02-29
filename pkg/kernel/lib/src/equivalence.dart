@@ -1124,22 +1124,6 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
     return result;
   }
 
-  /// Returns `true` if [a] and [b] are identical or equal. Inequivalence is
-  /// _not_ registered.
-  bool shallowMatchNodes<T extends Node>(T? a, T? b) {
-    return _checkValues(a, b);
-  }
-
-  /// Returns `true` if [a] and [b] are equivalent, as defined by the current
-  /// strategy. Inequivalence is _not_ registered.
-  bool deepMatchNodes<T extends Node>(T? a, T? b) {
-    CheckingState oldState = _checkingState;
-    _checkingState = _checkingState.toMatchingState();
-    bool result = checkNodes(a, b);
-    _checkingState = oldState;
-    return result;
-  }
-
   /// Returns `true` if [a] and [b] are equivalent, either by existing
   /// assumption or as defined by their corresponding canonical names.
   /// Inequivalence is _not_ registered.
@@ -1189,17 +1173,6 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
     } else {
       return false;
     }
-  }
-
-  /// Returns `true` if [a] and [b] are equivalent, either by their
-  /// corresponding canonical names or by assumption. Inequivalence is _not_
-  /// registered.
-  bool deeplyMatchReferences(Reference? a, Reference? b) {
-    CheckingState oldState = _checkingState;
-    _checkingState = _checkingState.toMatchingState();
-    bool result = checkReferences(a, b);
-    _checkingState = oldState;
-    return result;
   }
 
   /// Returns `true` if [a] and [b] are equivalent, either by their
@@ -1262,14 +1235,6 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
     }
   }
 
-  bool deepMatchDeclarations(dynamic a, dynamic b) {
-    CheckingState oldState = _checkingState;
-    _checkingState = _checkingState.toMatchingState();
-    bool result = checkDeclarations(a, b);
-    _checkingState = oldState;
-    return result;
-  }
-
   bool checkDeclarations(dynamic a, dynamic b, [String propertyName = '']) {
     bool result = _checkDeclarations(a, b);
     if (!result) {
@@ -1303,19 +1268,6 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
       }
     }
     return true;
-  }
-
-  /// Returns `true` if lists [a] and [b] are equivalent, using
-  /// [equivalentValues] to determine element-wise equivalence.
-  ///
-  /// Inequivalence is _not_ registered.
-  bool matchLists<E>(
-      List<E>? a, List<E>? b, bool Function(E?, E?, String) equivalentValues) {
-    CheckingState oldState = _checkingState;
-    _checkingState = _checkingState.toMatchingState();
-    bool result = checkLists(a, b, equivalentValues);
-    _checkingState = oldState;
-    return result;
   }
 
   /// Returns `true` if sets [a] and [b] are equivalent, using
@@ -1361,20 +1313,6 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
       }
     }
     return true;
-  }
-
-  /// Returns `true` if sets [a] and [b] are equivalent, using
-  /// [matchingValues] to determine which elements that should be checked for
-  /// element-wise equivalence using [equivalentValues].
-  ///
-  /// Inequivalence is _not_registered.
-  bool matchSets<E>(Set<E>? a, Set<E>? b, bool Function(E?, E?) matchingValues,
-      bool Function(E?, E?, String) equivalentValues) {
-    CheckingState oldState = _checkingState;
-    _checkingState = _checkingState.toMatchingState();
-    bool result = checkSets(a, b, matchingValues, equivalentValues);
-    _checkingState = oldState;
-    return result;
   }
 
   /// Returns `true` if maps [a] and [b] are equivalent, using
@@ -1431,53 +1369,11 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
     return true;
   }
 
-  /// Returns `true` if maps [a] and [b] are equivalent, using
-  /// [matchingKeys] to determine which entries that should be checked for
-  /// entry-wise equivalence using [equivalentKeys] and [equivalentValues] to
-  /// determine key and value equivalences, respectively.
-  ///
-  /// Inequivalence is _not_ registered.
-  bool matchMaps<K, V>(
-      Map<K, V>? a,
-      Map<K, V>? b,
-      bool Function(K?, K?) matchingKeys,
-      bool Function(K?, K?, String) equivalentKeys,
-      bool Function(V?, V?, String) equivalentValues) {
-    CheckingState oldState = _checkingState;
-    _checkingState = _checkingState.toMatchingState();
-    bool result =
-        checkMaps(a, b, matchingKeys, equivalentKeys, equivalentValues);
-    _checkingState = oldState;
-    return result;
-  }
-
   /// The current state of the visitor.
   ///
   /// This holds the current assumptions, found inequivalences, and whether
   /// inequivalences are currently registered.
   CheckingState _checkingState = new CheckingState();
-
-  /// Runs [f] in a new state that holds all current assumptions. If
-  /// [isAsserting] is `true`, inequivalences are registered. Returns the
-  /// collected inequivalences.
-  ///
-  /// If [f] returns `false`, the returned result is marked as having
-  /// inequivalences even when non have being registered.
-  EquivalenceResult inSubState(bool Function() f, {bool isAsserting = false}) {
-    CheckingState _oldState = _checkingState;
-    _checkingState = _checkingState.createSubState(isAsserting: isAsserting);
-    bool hasInequivalences = f();
-    EquivalenceResult result =
-        _checkingState.toResult(hasInequivalences: hasInequivalences);
-    _checkingState = _oldState;
-    return result;
-  }
-
-  /// Registers that the visitor enters the property named [propertyName] and
-  /// the currently visited node.
-  void pushPropertyState(String propertyName) {
-    _checkingState.pushPropertyState(propertyName);
-  }
 
   /// Registers that the visitor enters nodes [a] and [b].
   void pushNodeState(Node a, Node b) {

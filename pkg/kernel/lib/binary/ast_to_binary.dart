@@ -95,7 +95,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     _sink.addByte(byte);
   }
 
-  @override
   void writeBytes(List<int> bytes) {
     _sink.addBytes(bytes);
   }
@@ -126,7 +125,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeBytes(bytes);
   }
 
-  @override
   int getBufferOffset() {
     return _sink.offset;
   }
@@ -436,7 +434,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     }
   }
 
-  @override
   void writeNode(Node node) {
     if (_metadataSubsections != null) {
       _writeNodeMetadata(node);
@@ -688,7 +685,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     }
   }
 
-  @override
   void enterScope(
       {List<TypeParameter>? typeParameters,
       bool memberScope = false,
@@ -705,7 +701,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     }
   }
 
-  @override
   void leaveScope(
       {List<TypeParameter>? typeParameters,
       bool memberScope = false,
@@ -721,7 +716,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     }
   }
 
-  @override
   void enterFunctionTypeScope(
       {List<StructuralParameter>? typeParameters,
       bool memberScope = false,
@@ -738,7 +732,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     }
   }
 
-  @override
   void leaveFunctionTypeScope(
       {List<StructuralParameter>? typeParameters,
       bool memberScope = false,
@@ -953,12 +946,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeUInt30(index);
   }
 
-  void writeNullAllowedInstanceMemberReference(Reference? reference) {
-    writeNullAllowedReference(reference);
-    writeNullAllowedReference(
-        getMemberReferenceGetter(reference?.asMember.memberSignatureOrigin));
-  }
-
   void writeNullAllowedReference(Reference? reference) {
     if (reference == null) {
       writeUInt30(0);
@@ -1082,7 +1069,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeNonNullCanonicalNameReference(class_.reference);
   }
 
-  @override
   void writeName(Name node) {
     if (_metadataSubsections != null) {
       _writeNodeMetadata(node);
@@ -1094,8 +1080,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       writeNonNullCanonicalNameReference(node.library!.reference);
     }
   }
-
-  bool insideExternalLibrary = false;
 
   @override
   void visitLibrary(Library node) {
@@ -3454,8 +3438,6 @@ class StringIndexer {
     }
     return result;
   }
-
-  int? operator [](String string) => index[string];
 }
 
 class UriIndexer {

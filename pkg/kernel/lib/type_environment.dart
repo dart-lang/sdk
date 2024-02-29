@@ -29,8 +29,6 @@ abstract class TypeEnvironment extends Types {
   @override
   ClassHierarchy get hierarchy;
 
-  Class get intClass => coreTypes.intClass;
-  Class get numClass => coreTypes.numClass;
   Class get functionClass => coreTypes.functionClass;
   Class get objectClass => coreTypes.objectClass;
 
@@ -38,7 +36,6 @@ abstract class TypeEnvironment extends Types {
   InterfaceType get objectNonNullableRawType =>
       coreTypes.objectNonNullableRawType;
   InterfaceType get objectNullableRawType => coreTypes.objectNullableRawType;
-  InterfaceType get functionLegacyRawType => coreTypes.functionLegacyRawType;
 
   /// Returns the type `List<E>` with the given [nullability] and [elementType]
   /// as `E`.
@@ -66,13 +63,6 @@ abstract class TypeEnvironment extends Types {
   InterfaceType iterableType(DartType type, Nullability nullability) {
     return new InterfaceType(
         coreTypes.iterableClass, nullability, <DartType>[type]);
-  }
-
-  /// Returns the type `Stream<E>` with the given [nullability] and [type]
-  /// as `E`.
-  InterfaceType streamType(DartType type, Nullability nullability) {
-    return new InterfaceType(
-        coreTypes.streamClass, nullability, <DartType>[type]);
   }
 
   /// Returns the type `Future<E>` with the given [nullability] and [type]
@@ -328,17 +318,6 @@ abstract class TypeEnvironment extends Types {
     }
     return coreTypes.numRawType(type1.nullability);
   }
-
-  /// Returns the possibly abstract interface member of [class_] with the given
-  /// [name].
-  ///
-  /// If [setter] is `false`, only fields, methods, and getters with that name
-  /// will be found.  If [setter] is `true`, only non-final fields and setters
-  /// will be found.
-  ///
-  /// If multiple members with that name are inherited and not overridden, the
-  /// member from the first declared supertype is returned.
-  Member? getInterfaceMember(Class cls, Name name, {bool setter = false});
 }
 
 /// Tri-state logical result of a nullability-aware subtype check.

@@ -60,15 +60,11 @@ class EquivalenceVisitorStrategy extends Visitor1Strategy {
 
   String get shallowMatchNodes => 'shallowMatchNodes';
 
-  String get deepMatchNodes => 'deepMatchNodes';
-
   String get internalCheckReferences => '_checkReferences';
 
   String get checkReferences => 'checkReferences';
 
   String get matchReferences => 'matchReferences';
-
-  String get deepMatchReferences => 'deeplyMatchReferences';
 
   String get matchNamedNodes => 'matchNamedNodes';
 
@@ -82,8 +78,6 @@ class EquivalenceVisitorStrategy extends Visitor1Strategy {
 
   String get shallowMatchDeclarations => 'matchDeclarations';
 
-  String get deepMatchDeclarations => 'deepMatchDeclarations';
-
   String get assumeDeclarations => 'assumeDeclarations';
 
   String get checkAssumedDeclarations => 'checkAssumedDeclarations';
@@ -94,11 +88,7 @@ class EquivalenceVisitorStrategy extends Visitor1Strategy {
 
   String get checkSets => 'checkSets';
 
-  String get matchSets => 'matchSets';
-
   String get checkMaps => 'checkMaps';
-
-  String get matchMaps => 'matchMaps';
 
   String get checkingState => '_checkingState';
 
@@ -493,22 +483,6 @@ class $visitorName$visitorTypeParameters
     return result;
   }
 
-  /// Returns `true` if [a] and [b] are identical or equal. Inequivalence is
-  /// _not_ registered.
-  bool $shallowMatchNodes<T extends Node>(T? a, T? b) {
-    return $internalCheckValues(a, b);
-  }
-
-  /// Returns `true` if [a] and [b] are equivalent, as defined by the current
-  /// strategy. Inequivalence is _not_ registered.
-  bool $deepMatchNodes<T extends Node>(T? a, T? b) {
-    CheckingState oldState = $checkingState;
-    $checkingState = $checkingState.toMatchingState();
-    bool result = $checkNodes(a, b);
-    $checkingState = oldState;
-    return result;
-  }
-
   /// Returns `true` if [a] and [b] are equivalent, either by existing
   /// assumption or as defined by their corresponding canonical names.
   /// Inequivalence is _not_ registered.
@@ -559,17 +533,6 @@ class $visitorName$visitorTypeParameters
     } else {
       return false;
     }
-  }
-
-  /// Returns `true` if [a] and [b] are equivalent, either by their
-  /// corresponding canonical names or by assumption. Inequivalence is _not_
-  /// registered.
-  bool $deepMatchReferences(Reference? a, Reference? b) {
-    CheckingState oldState = $checkingState;
-    $checkingState = $checkingState.toMatchingState();
-    bool result = $checkReferences(a, b);
-    $checkingState = oldState;
-    return result;
   }
 
   /// Returns `true` if [a] and [b] are equivalent, either by their
@@ -641,14 +604,6 @@ class $visitorName$visitorTypeParameters
           }
   }
 
-  bool $deepMatchDeclarations(dynamic a, dynamic b) {
-          CheckingState oldState = $checkingState;
-          $checkingState = $checkingState.toMatchingState();
-          bool result = $checkDeclarations(a, b);
-          $checkingState = oldState;
-          return result;
-  }
-
   bool $checkDeclarations(dynamic a, dynamic b,
             [String propertyName = '']) {
           bool result = $internalCheckDeclarations(a, b);
@@ -685,21 +640,6 @@ class $visitorName$visitorTypeParameters
             }
           }
           return true;
-  }
-
-  /// Returns `true` if lists [a] and [b] are equivalent, using
-  /// [equivalentValues] to determine element-wise equivalence.
-  ///
-  /// Inequivalence is _not_ registered.
-  bool $matchLists<E>(
-            List<E>? a,
-            List<E>? b,
-            bool Function(E?, E?, String) equivalentValues) {
-          CheckingState oldState = $checkingState;
-          $checkingState = $checkingState.toMatchingState();
-          bool result = $checkLists(a, b, equivalentValues);
-          $checkingState = oldState;
-          return result;
   }
 
   /// Returns `true` if sets [a] and [b] are equivalent, using
@@ -750,23 +690,6 @@ class $visitorName$visitorTypeParameters
             }
           }
           return true;
-  }
-
-  /// Returns `true` if sets [a] and [b] are equivalent, using
-  /// [matchingValues] to determine which elements that should be checked for
-  /// element-wise equivalence using [equivalentValues].
-  ///
-  /// Inequivalence is _not_registered.
-  bool $matchSets<E>(
-            Set<E>? a,
-            Set<E>? b,
-            bool Function(E?, E?) matchingValues,
-            bool Function(E?, E?, String) equivalentValues) {
-          CheckingState oldState = $checkingState;
-          $checkingState = $checkingState.toMatchingState();
-          bool result = $checkSets(a, b, matchingValues, equivalentValues);
-          $checkingState = oldState;
-          return result;
   }
 
   /// Returns `true` if maps [a] and [b] are equivalent, using
@@ -825,53 +748,11 @@ class $visitorName$visitorTypeParameters
           return true;
   }
 
-  /// Returns `true` if maps [a] and [b] are equivalent, using
-  /// [matchingKeys] to determine which entries that should be checked for
-  /// entry-wise equivalence using [equivalentKeys] and [equivalentValues] to
-  /// determine key and value equivalences, respectively.
-  ///
-  /// Inequivalence is _not_ registered.
-  bool $matchMaps<K, V>(
-            Map<K, V>? a,
-            Map<K, V>? b,
-            bool Function(K?, K?) matchingKeys,
-            bool Function(K?, K?, String) equivalentKeys,
-            bool Function(V?, V?, String) equivalentValues) {
-          CheckingState oldState = $checkingState;
-          $checkingState = $checkingState.toMatchingState();
-          bool result = $checkMaps(a, b, matchingKeys, equivalentKeys,
-              equivalentValues);
-          $checkingState = oldState;
-          return result;
-  }
-
   /// The current state of the visitor.
   ///
   /// This holds the current assumptions, found inequivalences, and whether
   /// inequivalences are currently registered.
   CheckingState $checkingState = new CheckingState();
-
-  /// Runs [f] in a new state that holds all current assumptions. If
-  /// [isAsserting] is `true`, inequivalences are registered. Returns the
-  /// collected inequivalences.
-  ///
-  /// If [f] returns `false`, the returned result is marked as having
-  /// inequivalences even when non have being registered.
-  EquivalenceResult inSubState(bool Function() f, {bool isAsserting = false}) {
-    CheckingState _oldState = $checkingState;
-    $checkingState = $checkingState.createSubState(isAsserting: isAsserting);
-    bool hasInequivalences = f();
-    EquivalenceResult result =
-        $checkingState.toResult(hasInequivalences: hasInequivalences);
-    $checkingState = _oldState;
-    return result;
-  }
-
-  /// Registers that the visitor enters the property named [propertyName] and
-  /// the currently visited node.
-  void pushPropertyState(String propertyName) {
-    $checkingState.pushPropertyState(propertyName);
-  }
 
   /// Registers that the visitor enters nodes [a] and [b].
   void pushNodeState(Node a, Node b) {

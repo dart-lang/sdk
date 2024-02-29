@@ -582,17 +582,6 @@ class BinaryBuilder {
         growable: useGrowableLists);
   }
 
-  List<Reference> readNonNullReferenceList(List<Reference> result) {
-    int length = readUInt30();
-    if (!useGrowableLists && length == 0) {
-      return emptyListOfReference;
-    }
-    for (int i = 0; i < length; ++i) {
-      result.add(readNonNullMemberReference());
-    }
-    return result;
-  }
-
   String? readStringOrNullIfEmpty() {
     String string = readStringReference();
     return string.isEmpty ? null : string;
@@ -1106,11 +1095,6 @@ class BinaryBuilder {
     return _currentLibrary!.dependencies[index];
   }
 
-  Reference? readNullableClassReference() {
-    CanonicalName? name = readNullableCanonicalNameReference();
-    return name?.reference;
-  }
-
   Reference readNonNullClassReference() {
     CanonicalName? name = readNullableCanonicalNameReference();
     if (name == null) {
@@ -1145,12 +1129,6 @@ class BinaryBuilder {
     return name.reference;
   }
 
-  Reference? readNullableInstanceMemberReference() {
-    Reference? reference = readNullableMemberReference();
-    readNullableMemberReference(); // Skip origin
-    return reference;
-  }
-
   Reference readNonNullInstanceMemberReference() {
     Reference reference = readNonNullMemberReference();
     readNullableMemberReference(); // Skip origin
@@ -1159,10 +1137,6 @@ class BinaryBuilder {
 
   Reference? getNullableMemberReferenceFromInt(int index) {
     return getNullableCanonicalNameReferenceFromInt(index)?.reference;
-  }
-
-  Reference? readNullableTypedefReference() {
-    return readNullableCanonicalNameReference()?.reference;
   }
 
   Reference readNonNullTypedefReference() {
@@ -3463,17 +3437,6 @@ class BinaryBuilder {
     caseNode.body = readStatement()..parent = caseNode;
   }
 
-  List<Statement> readStatementList() {
-    int length = readUInt30();
-    if (!useGrowableLists && length == 0) {
-      // When lists don't have to be growable anyway, we might as well use an
-      // almost constant one for the empty list.
-      return emptyListOfStatement;
-    }
-    return new List<Statement>.generate(length, (_) => readStatement(),
-        growable: useGrowableLists);
-  }
-
   List<Statement> readStatementListAlwaysGrowable() {
     int length = readUInt30();
     return new List<Statement>.generate(length, (_) => readStatement(),
@@ -4264,20 +4227,6 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
   }
 
   @override
-  void enterScope({List<TypeParameter>? typeParameters}) {
-    if (typeParameters != null) {
-      typeParameterStack.addAll(typeParameters);
-    }
-  }
-
-  @override
-  void leaveScope({List<TypeParameter>? typeParameters}) {
-    if (typeParameters != null) {
-      typeParameterStack.length -= typeParameters.length;
-    }
-  }
-
-  @override
   T _associateMetadata<T extends Node>(T node, int nodeOffset) {
     if (_subsections == null) {
       return node;
@@ -4459,12 +4408,6 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
     final Name result = super.readName();
     return _associateMetadata(result, nodeOffset);
   }
-
-  @override
-  int get currentOffset => _byteOffset;
-
-  @override
-  List<int> get bytes => _bytes;
 }
 
 /// Deserialized MetadataMapping corresponding to the given metadata repository.

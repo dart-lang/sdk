@@ -44,18 +44,6 @@ Map<TypeParameter, DartType> getSubstitutionMap(Supertype type) {
           type.classNode.typeParameters, type.typeArguments);
 }
 
-Map<TypeParameter, DartType> getUpperBoundSubstitutionMap(Class host) {
-  if (host.typeParameters.isEmpty) return const <TypeParameter, DartType>{};
-  Map<TypeParameter, DartType> result = <TypeParameter, DartType>{};
-  for (TypeParameter parameter in host.typeParameters) {
-    result[parameter] = const DynamicType();
-  }
-  for (TypeParameter parameter in host.typeParameters) {
-    result[parameter] = substitute(parameter.bound, result);
-  }
-  return result;
-}
-
 /// Returns true if [type] contains a reference to any of the given [variables].
 ///
 /// [unhandledTypeHandler] is a helper function invoked on unknown implementers
@@ -158,14 +146,6 @@ class FreshTypeParameters {
       this.freshTypeParameters, this.freshTypeArguments, this.substitution);
 
   DartType substitute(DartType type) => substitution.substituteType(type);
-
-  NamedType substituteNamed(NamedType type) =>
-      new NamedType(type.name, substitute(type.type),
-          isRequired: type.isRequired);
-
-  Supertype substituteSuper(Supertype type) {
-    return substitution.substituteSupertype(type);
-  }
 }
 
 /// Creates a fresh representation of the given [TypeParameter]s as
@@ -237,23 +217,7 @@ class FreshStructuralParametersFromTypeParameters {
       this.freshTypeParameters, this.freshTypeArguments, this.substitutionMap)
       : substitution = Substitution.fromMap(substitutionMap);
 
-  FunctionType applyToFunctionType(FunctionType type) {
-    return new FunctionType(type.positionalParameters.map(substitute).toList(),
-        substitute(type.returnType), type.nullability,
-        namedParameters: type.namedParameters.map(substituteNamed).toList(),
-        typeParameters: freshTypeParameters,
-        requiredParameterCount: type.requiredParameterCount);
-  }
-
   DartType substitute(DartType type) => substitution.substituteType(type);
-
-  NamedType substituteNamed(NamedType type) =>
-      new NamedType(type.name, substitute(type.type),
-          isRequired: type.isRequired);
-
-  Supertype substituteSuper(Supertype type) {
-    return substitution.substituteSupertype(type);
-  }
 }
 
 FreshTypeParametersFromStructuralParameters
@@ -303,10 +267,6 @@ class FreshTypeParametersFromStructuralParameters {
       this.freshTypeParameters, this.freshTypeArguments, this.instantiator);
 
   DartType substitute(DartType type) => instantiator.substitute(type);
-
-  NamedType substituteNamed(NamedType type) =>
-      new NamedType(type.name, substitute(type.type),
-          isRequired: type.isRequired);
 }
 
 FreshStructuralParameters? getFreshStructuralParametersSubstitutingBounds(
@@ -419,8 +379,6 @@ class FreshStructuralParameters {
 
   DartType substitute(DartType type) => instantiator.substitute(type);
 
-  DartType? visit(DartType type) => instantiator.visit(type);
-
   NamedType substituteNamed(NamedType type) =>
       new NamedType(type.name, substitute(type.type),
           isRequired: type.isRequired);
@@ -449,10 +407,6 @@ abstract class Substitution {
   static Substitution fromMap(Map<TypeParameter, DartType> map) {
     if (map.isEmpty) return _NullSubstitution.instance;
     return new _MapSubstitution(map, map);
-  }
-
-  static Substitution filtered(Substitution sub, TypeParameterFilter filter) {
-    return new _FilteredSubstitution(sub, filter);
   }
 
   /// Substitutes all occurrences of the given type parameters with the
@@ -528,21 +482,6 @@ abstract class Substitution {
   static Substitution bottomForTypeDeclaration(TypeDeclaration declaration) {
     if (declaration.typeParameters.isEmpty) return _NullSubstitution.instance;
     return new _TypeDeclarationBottomSubstitution(declaration);
-  }
-
-  /// Substitutes covariant uses of [class_]'s type parameters with the upper
-  /// bound of that type parameter.  Recursive references in the bound have
-  /// been replaced by dynamic.
-  static Substitution upperBoundForClass(Class class_) {
-    if (class_.typeParameters.isEmpty) return _NullSubstitution.instance;
-    Map<TypeParameter, DartType> upper = <TypeParameter, DartType>{};
-    for (TypeParameter parameter in class_.typeParameters) {
-      upper[parameter] = const DynamicType();
-    }
-    for (TypeParameter parameter in class_.typeParameters) {
-      upper[parameter] = substitute(parameter.bound, upper);
-    }
-    return fromUpperAndLowerBounds(upper, {});
   }
 
   /// Substitutes both variables from [first] and [second], favoring those from
@@ -751,20 +690,6 @@ class _CombinedSubstitution extends Substitution {
 }
 
 typedef bool TypeParameterFilter(TypeParameter P);
-
-class _FilteredSubstitution extends Substitution {
-  final Substitution base;
-  final TypeParameterFilter filterFn;
-
-  _FilteredSubstitution(this.base, this.filterFn);
-
-  @override
-  DartType? getSubstitute(TypeParameter parameter, bool upperBound) {
-    return filterFn(parameter)
-        ? base.getSubstitute(parameter, upperBound)
-        : _NullSubstitution.instance.getSubstitute(parameter, upperBound);
-  }
-}
 
 class _InnerTypeSubstitutor extends _SubstitutorBase {
   final Map<StructuralParameter, DartType> substitution =
@@ -1399,10 +1324,6 @@ class FunctionTypeInstantiator implements DartTypeVisitor<DartType?> {
 
   void invertVariance() {
     covariantContext = !covariantContext;
-  }
-
-  NamedType substituteNamedType(NamedType node) {
-    return visitNamedType(node) ?? node;
   }
 
   NamedType? visitNamedType(NamedType node) {

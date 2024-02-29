@@ -34,11 +34,6 @@ class LibraryImportTable implements ImportTable {
 
   LibraryImportTable.empty();
 
-  /// The list of imports.
-  ///
-  /// Should not be modified directly, as the index map would go out of sync.
-  List<String> get importPaths => _importPaths;
-
   List<Library> get importedLibraries => _importedLibraries;
 
   int addImport(Library target, String importPath) {

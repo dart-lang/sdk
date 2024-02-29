@@ -611,47 +611,6 @@ class TypeCheckingVisitor
         node.keyType, node.valueType, currentLibrary!.nonNullable);
   }
 
-  DartType handleDynamicCall(DartType receiver, Arguments arguments) {
-    arguments.positional.forEach(visitExpression);
-    arguments.named.forEach((NamedExpression n) => visitExpression(n.value));
-    return const DynamicType();
-  }
-
-  DartType handleFunctionCall(
-      TreeNode access, FunctionType function, Arguments arguments) {
-    if (function.requiredParameterCount > arguments.positional.length) {
-      fail(access, 'Too few positional arguments');
-      return NeverType.fromNullability(currentLibrary!.nonNullable);
-    }
-    if (function.positionalParameters.length < arguments.positional.length) {
-      fail(access, 'Too many positional arguments');
-      return NeverType.fromNullability(currentLibrary!.nonNullable);
-    }
-    if (function.typeParameters.length != arguments.types.length) {
-      fail(access, 'Wrong number of type arguments');
-      return NeverType.fromNullability(currentLibrary!.nonNullable);
-    }
-    function = FunctionTypeInstantiator.instantiate(function, arguments.types);
-    for (int i = 0; i < arguments.positional.length; ++i) {
-      DartType expectedType = function.positionalParameters[i];
-      arguments.positional[i] =
-          checkAndDowncastExpression(arguments.positional[i], expectedType);
-    }
-    for (int i = 0; i < arguments.named.length; ++i) {
-      NamedExpression argument = arguments.named[i];
-      DartType? parameterType = function.getNamedParameter(argument.name);
-      if (parameterType != null) {
-        DartType expectedType = parameterType;
-        argument.value =
-            checkAndDowncastExpression(argument.value, expectedType);
-      } else {
-        fail(argument.value, 'Unexpected named parameter: ${argument.name}');
-        return NeverType.fromNullability(currentLibrary!.nonNullable);
-      }
-    }
-    return function.returnType;
-  }
-
   @override
   DartType visitNot(Not node) {
     visitExpression(node.operand);

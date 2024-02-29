@@ -61,10 +61,6 @@ class OccurrenceCollectorVisitor implements DartTypeVisitor<void> {
 
   void visit(DartType node) => node.accept(this);
 
-  void visitNamedType(NamedType node) {
-    node.type.accept(this);
-  }
-
   @override
   void visitInvalidType(InvalidType node) {}
 

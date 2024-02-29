@@ -11,8 +11,6 @@ import '../reference_from_index.dart';
 import '../verifier.dart';
 import 'changed_structure_notifier.dart';
 
-final List<String> targetNames = targets.keys.toList();
-
 class TargetFlags {
   final bool trackWidgetCreation;
   final bool soundNullSafety;

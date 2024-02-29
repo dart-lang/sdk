@@ -69,16 +69,6 @@ Uint8List writeComponentToBytes(Component component) {
   return sink.builder.toBytes();
 }
 
-void writeLibraryToText(Library library, {String? path}) {
-  StringBuffer buffer = new StringBuffer();
-  new Printer(buffer).writeLibraryFile(library);
-  if (path == null) {
-    print(buffer);
-  } else {
-    new File(path).writeAsStringSync('$buffer');
-  }
-}
-
 void writeComponentToText(Component component,
     {String? path, bool showOffsets = false, bool showMetadata = false}) {
   StringBuffer buffer = new StringBuffer();
