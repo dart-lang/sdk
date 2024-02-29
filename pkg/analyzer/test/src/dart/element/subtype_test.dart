@@ -5295,9 +5295,9 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
     var T = typeParameter('T');
 
     isNotSubtype(
-      nullStar,
+      nullQuestion,
       typeParameterTypeNone(T),
-      strT0: 'Null*',
+      strT0: 'Null?',
       strT1: 'T',
     );
   }
@@ -5540,7 +5540,6 @@ class SubtypingCompoundTest extends _SubtypingTestBase {
       intNone,
       nullNone,
       nullQuestion,
-      nullStar,
       neverNone,
       neverQuestion,
     ];
@@ -5570,7 +5569,6 @@ class SubtypingCompoundTest extends _SubtypingTestBase {
     var equivalents = <DartType>[
       nullNone,
       nullQuestion,
-      nullStar,
       neverQuestion,
     ];
 

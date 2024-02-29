@@ -83,11 +83,6 @@ mixin ElementsTypesMixin {
     return interfaceTypeQuestion(element) as InterfaceTypeImpl;
   }
 
-  InterfaceTypeImpl get nullStar {
-    var element = typeProvider.nullType.element;
-    return interfaceTypeStar(element) as InterfaceTypeImpl;
-  }
-
   InterfaceType get numNone {
     var element = typeProvider.numType.element;
     return interfaceTypeNone(element);

@@ -155,53 +155,27 @@ class BoundsHelperPredicatesTest extends _BoundsTestBase {
 
     isMoreBottom(neverNone, nullNone);
     isMoreBottom(neverNone, nullQuestion);
-    isMoreBottom(neverNone, nullStar);
 
     // MOREBOTTOM(T, Never) = false
     isNotMoreBottom(neverQuestion, neverNone);
 
     isNotMoreBottom(nullNone, neverNone);
     isNotMoreBottom(nullQuestion, neverNone);
-    isNotMoreBottom(nullStar, neverNone);
 
     // MOREBOTTOM(Null, T) = true
     isMoreBottom(nullNone, neverQuestion);
 
     isMoreBottom(nullNone, nullNone);
     isMoreBottom(nullNone, nullQuestion);
-    isMoreBottom(nullNone, nullStar);
 
     // MOREBOTTOM(T, Null) = false
     isNotMoreBottom(neverQuestion, nullNone);
 
     isNotMoreBottom(nullQuestion, nullNone);
-    isNotMoreBottom(nullStar, nullNone);
 
     // MOREBOTTOM(T?, S?) = MOREBOTTOM(T, S)
     isMoreBottom(neverQuestion, nullQuestion);
     isNotMoreBottom(nullQuestion, neverQuestion);
-
-    // MOREBOTTOM(T, S?) = true
-    isMoreBottom(nullStar, neverQuestion);
-
-    // MOREBOTTOM(T?, S) = false
-    isNotMoreBottom(neverQuestion, nullStar);
-
-    // MOREBOTTOM(T, S*) = true
-    isMoreBottom(
-      typeParameterTypeNone(
-        typeParameter('S', bound: neverNone),
-      ),
-      nullStar,
-    );
-
-    // MOREBOTTOM(T*, S) = false
-    isNotMoreBottom(
-      nullStar,
-      typeParameterTypeNone(
-        typeParameter('S', bound: neverNone),
-      ),
-    );
 
     // MOREBOTTOM(X&T, Y&S) = MOREBOTTOM(T, S)
     isMoreBottom(
@@ -374,11 +348,9 @@ class BoundsHelperPredicatesTest extends _BoundsTestBase {
 
     isNotNull(futureOrNone(nullNone));
     isNotNull(futureOrNone(nullQuestion));
-    isNotNull(futureOrNone(nullStar));
 
     isNotNull(futureOrQuestion(nullNone));
     isNotNull(futureOrQuestion(nullQuestion));
-    isNotNull(futureOrQuestion(nullStar));
   }
 
   test_isObject() {
@@ -1038,11 +1010,9 @@ class LowerBoundTest extends _BoundsTestBase {
 
     checkNull(futureOrNone(nullNone));
     checkNull(futureOrNone(nullQuestion));
-    checkNull(futureOrNone(nullStar));
 
     checkNull(futureOrQuestion(nullNone));
     checkNull(futureOrQuestion(nullQuestion));
-    checkNull(futureOrQuestion(nullStar));
 
     checkNever(objectNone);
 
@@ -1069,7 +1039,7 @@ class LowerBoundTest extends _BoundsTestBase {
     }
 
     check(nullNone, nullQuestion);
-    check(nullNone, nullStar);
+    check(nullQuestion, nullQuestion);
   }
 
   test_object_any() {
@@ -2940,10 +2910,6 @@ class UpperBoundTest extends _BoundsTestBase {
     check(nullQuestion, intQuestion, intQuestion);
     check(nullQuestion, intStar, intStar);
 
-    check(nullStar, intNone, intStar);
-    check(nullStar, intQuestion, intQuestion);
-    check(nullStar, intStar, intStar);
-
     check(nullNone, listNone(intNone), listQuestion(intNone));
     check(nullNone, listQuestion(intNone), listQuestion(intNone));
 
@@ -2976,7 +2942,7 @@ class UpperBoundTest extends _BoundsTestBase {
     }
 
     check(nullNone, nullQuestion);
-    check(nullNone, nullStar);
+    check(nullQuestion, nullQuestion);
   }
 
   test_object_any() {
