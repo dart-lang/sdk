@@ -4,6 +4,7 @@
 
 import 'package:_fe_analyzer_shared/src/macros/api.dart' as macro;
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/summary2/macro_type_location.dart';
 
 /// Base for all macro related diagnostics.
 sealed class AnalyzerMacroDiagnostic {}
@@ -55,6 +56,17 @@ final class DeclarationsIntrospectionCycleDiagnostic
   });
 }
 
+final class ElementAnnotationMacroDiagnosticTarget
+    extends MacroDiagnosticTarget {
+  final ElementImpl element;
+  final int annotationIndex;
+
+  ElementAnnotationMacroDiagnosticTarget({
+    required this.element,
+    required this.annotationIndex,
+  });
+}
+
 final class ElementMacroDiagnosticTarget extends MacroDiagnosticTarget {
   final ElementImpl element;
 
@@ -76,16 +88,28 @@ final class ExceptionMacroDiagnostic extends AnalyzerMacroDiagnostic {
   });
 }
 
+final class InvalidMacroTargetDiagnostic extends AnalyzerMacroDiagnostic {
+  final int annotationIndex;
+  final List<String> supportedKinds;
+
+  InvalidMacroTargetDiagnostic({
+    required this.annotationIndex,
+    required this.supportedKinds,
+  });
+}
+
 /// Diagnostic from the macro framework.
 final class MacroDiagnostic extends AnalyzerMacroDiagnostic {
   final macro.Severity severity;
   final MacroDiagnosticMessage message;
   final List<MacroDiagnosticMessage> contextMessages;
+  final String? correctionMessage;
 
   MacroDiagnostic({
     required this.severity,
     required this.message,
     required this.contextMessages,
+    required this.correctionMessage,
   });
 }
 
@@ -100,3 +124,11 @@ final class MacroDiagnosticMessage {
 }
 
 sealed class MacroDiagnosticTarget {}
+
+final class TypeAnnotationMacroDiagnosticTarget extends MacroDiagnosticTarget {
+  final TypeAnnotationLocation location;
+
+  TypeAnnotationMacroDiagnosticTarget({
+    required this.location,
+  });
+}

@@ -253,9 +253,9 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "Try marking the function body with either 'async' or 'async*'.",
   );
 
-  static const CompileTimeErrorCode AWAIT_OF_EXTENSION_TYPE_NOT_FUTURE =
+  static const CompileTimeErrorCode AWAIT_OF_INCOMPATIBLE_TYPE =
       CompileTimeErrorCode(
-    'AWAIT_OF_EXTENSION_TYPE_NOT_FUTURE',
+    'AWAIT_OF_INCOMPATIBLE_TYPE',
     "The 'await' expression can't be used for an expression with an extension "
         "type that is not a subtype of 'Future'.",
     correctionMessage:
@@ -380,16 +380,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     correctionMessage: "Try choosing a different name for the type parameter.",
     hasPublishedDocs: true,
     uniqueName: 'BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME',
-  );
-
-  ///  No parameters.
-  static const CompileTimeErrorCode CASE_BLOCK_NOT_TERMINATED =
-      CompileTimeErrorCode(
-    'CASE_BLOCK_NOT_TERMINATED',
-    "The last statement of the 'case' should be 'break', 'continue', "
-        "'rethrow', 'return', or 'throw'.",
-    correctionMessage: "Try adding one of the required statements.",
-    hasPublishedDocs: true,
   );
 
   ///  Parameters:
@@ -1540,17 +1530,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       CompileTimeErrorCode(
     'EXPORT_INTERNAL_LIBRARY',
     "The library '{0}' is internal and can't be exported.",
-    hasPublishedDocs: true,
-  );
-
-  ///  Parameters:
-  ///  0: the name of a symbol defined in a legacy library
-  static const CompileTimeErrorCode EXPORT_LEGACY_SYMBOL = CompileTimeErrorCode(
-    'EXPORT_LEGACY_SYMBOL',
-    "The symbol '{0}' is defined in a legacy library, and can't be re-exported "
-        "from a library with null safety enabled.",
-    correctionMessage:
-        "Try removing the export or migrating the legacy library.",
     hasPublishedDocs: true,
   );
 
@@ -2829,6 +2808,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
+  ///  0: the list of target kind names
+  static const CompileTimeErrorCode INVALID_MACRO_APPLICATION_TARGET =
+      CompileTimeErrorCode(
+    'INVALID_MACRO_APPLICATION_TARGET',
+    "The macro can be applied only to a {0}.",
+  );
+
+  ///  Parameters:
   ///  0: the invalid modifier
   static const CompileTimeErrorCode INVALID_MODIFIER_ON_CONSTRUCTOR =
       CompileTimeErrorCode(
@@ -3047,6 +3034,16 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  Reported when there is an issue converting a macro application argument
+  ///  into a value. So, we cannot instantiate the macro, and run it.
+  ///  Parameters:
+  ///  0: the message
+  static const CompileTimeErrorCode MACRO_APPLICATION_ARGUMENT_ERROR =
+      CompileTimeErrorCode(
+    'MACRO_APPLICATION_ARGUMENT_ERROR',
+    "{0}",
+  );
+
   ///  Parameters:
   ///  0: the name of the introspected declaration
   static const CompileTimeErrorCode
@@ -3059,10 +3056,34 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
+  ///  0: the name of the macro class
+  static const CompileTimeErrorCode
+      MACRO_DEFINITION_APPLICATION_SAME_LIBRARY_CYCLE = CompileTimeErrorCode(
+    'MACRO_DEFINITION_APPLICATION_SAME_LIBRARY_CYCLE',
+    "The macro '{0}' can't be applied in the same library cycle where it is "
+        "defined.",
+    correctionMessage:
+        "Try moving it to a different library that does not import the one "
+        "where it is applied.",
+  );
+
+  ///  Reported when the macro uses `Builder.report()` with `Severity.error`.
+  ///  Parameters:
   ///  0: the message
   static const CompileTimeErrorCode MACRO_ERROR = CompileTimeErrorCode(
     'MACRO_ERROR',
     "{0}",
+  );
+
+  ///  Reported when there is an exception inside the analyzer when running
+  ///  macros. Should not happen, but just in case.
+  ///  Parameters:
+  ///  0: the message
+  ///  1: the stack trace
+  static const CompileTimeErrorCode MACRO_INTERNAL_EXCEPTION =
+      CompileTimeErrorCode(
+    'MACRO_INTERNAL_EXCEPTION',
+    "{0} {1}",
   );
 
   ///  No parameters.
@@ -4134,7 +4155,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE =
       CompileTimeErrorCode(
     'NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE',
-    "A class or mixin can't implement a nullable type.",
+    "A class, mixin, or extension type can't implement a nullable type.",
     correctionMessage: "Try removing the question mark.",
     hasPublishedDocs: true,
   );
@@ -6791,6 +6812,7 @@ class WarningCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  Reported when the macro uses `Builder.report()` with `Severity.warning`.
   ///  Parameters:
   ///  0: the message
   static const WarningCode MACRO_WARNING = WarningCode(

@@ -582,6 +582,7 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
       return;
     case kThrow:
       ReadPosition();                    // read position.
+      BuildHash(ReadFlags());            // read flags.
       CalculateExpressionFingerprint();  // read expression.
       return;
     case kListLiteral:

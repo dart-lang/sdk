@@ -26,15 +26,19 @@ class TestCode {
   static final _positionShorthand = '^';
   static final _rangeStartShorthand = '[!';
   static final _rangeEndShorthand = '!]';
-  static final _positionPattern = RegExp(r'\/\*(\d+)\*\/');
-  static final _rangeStartPattern = RegExp(r'\/\*\[(\d+)\*\/');
-  static final _rangeEndPattern = RegExp(r'\/\*(\d+)\]\*\/');
+  static final _positionPattern = RegExp(r'/\*(\d+)\*/');
+  static final _rangeStartPattern = RegExp(r'/\*\[(\d+)\*/');
+  static final _rangeEndPattern = RegExp(r'/\*(\d+)\]\*/');
 
   /// An empty code block with a single position at offset 0.
   static final empty = TestCode.parse('^');
 
+  /// The code with markers removed.
   final String code;
-  final String rawCode;
+
+  /// The code with markers like `^`.
+  /// These markers are used to fill [positions] and [ranges].
+  final String markedCode;
 
   /// A map of positions marked in code, indexed by their number.
   final List<TestCodePosition> positions;
@@ -43,7 +47,7 @@ class TestCode {
   final List<TestCodeRange> ranges;
 
   TestCode._({
-    required this.rawCode,
+    required this.markedCode,
     required this.code,
     required this.positions,
     required this.ranges,
@@ -53,11 +57,11 @@ class TestCode {
   TestCodeRange get range => ranges.single;
 
   static TestCode parse(
-    String rawCode, {
+    String markedCode, {
     bool positionShorthand = true,
     bool rangeShorthand = true,
   }) {
-    final scanner = _StringScanner(rawCode);
+    final scanner = _StringScanner(markedCode);
     final codeBuffer = StringBuffer();
     final positionOffsets = <int, int>{};
     final rangeStartOffsets = <int, int>{};
@@ -149,7 +153,7 @@ class TestCode {
 
     return TestCode._(
       code: code,
-      rawCode: rawCode,
+      markedCode: markedCode,
       positions: positions.values.toList(),
       ranges: ranges.values.toList(),
     );

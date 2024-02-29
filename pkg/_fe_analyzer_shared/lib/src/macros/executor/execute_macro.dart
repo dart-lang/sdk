@@ -5,6 +5,7 @@
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor/builder_impls.dart';
+import 'package:_fe_analyzer_shared/src/macros/executor/exception_impls.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor/introspection_impls.dart';
 
 /// Runs [macro] in the types phase and returns a  [MacroExecutionResult].
@@ -53,14 +54,22 @@ Future<MacroExecutionResult> executeTypesMacro(
                 target.identifier as IdentifierImpl, introspector));
       case (EnumValueDeclaration target, EnumValueTypesMacro macro):
         await macro.buildTypesForEnumValue(target, typeBuilder);
+      case (TypeAliasDeclaration target, TypeAliasTypesMacro macro):
+        await macro.buildTypesForTypeAlias(target, typeBuilder);
       default:
         throw new UnsupportedError('Unsupported macro type or invalid target:\n'
             'macro: $macro\ntarget: $target');
     }
   } catch (e, s) {
-    builder.report(new Diagnostic(
-        new DiagnosticMessage('Unhandled error: $e\n' 'Stack trace:\n$s'),
-        Severity.error));
+    if (e is DiagnosticException) {
+      builder.report(e.diagnostic);
+    } else if (e is MacroExceptionImpl) {
+      // Preserve `MacroException`s thrown by SDK tools.
+      builder.failWithException(e);
+    } else {
+      // Convert exceptions thrown by macro implementations into diagnostics.
+      builder.report(_unexpectedExceptionDiagnostic(e, s));
+    }
   }
   return builder.result;
 }
@@ -125,14 +134,22 @@ Future<MacroExecutionResult> executeDeclarationsMacro(Macro macro,
         await macro.buildDeclarationsForFunction(target, topLevelBuilder);
       case (VariableDeclaration target, VariableDeclarationsMacro macro):
         await macro.buildDeclarationsForVariable(target, topLevelBuilder);
+      case (TypeAliasDeclaration target, TypeAliasDeclarationsMacro macro):
+        await macro.buildDeclarationsForTypeAlias(target, topLevelBuilder);
       default:
         throw new UnsupportedError('Unsupported macro type or invalid target:\n'
             'macro: $macro\ntarget: $target');
     }
   } catch (e, s) {
-    builder.report(new Diagnostic(
-        new DiagnosticMessage('Unhandled error: $e\n' 'Stack trace:\n$s'),
-        Severity.error));
+    if (e is DiagnosticException) {
+      builder.report(e.diagnostic);
+    } else if (e is MacroExceptionImpl) {
+      // Preserve `MacroException`s thrown by SDK tools.
+      builder.failWithException(e);
+    } else {
+      // Convert exceptions thrown by macro implementations into diagnostics.
+      builder.report(_unexpectedExceptionDiagnostic(e, s));
+    }
   }
   return builder.result;
 }
@@ -199,9 +216,28 @@ Future<MacroExecutionResult> executeDefinitionMacro(Macro macro, Object target,
             'macro: $macro\ntarget: $target');
     }
   } catch (e, s) {
-    builder.report(new Diagnostic(
-        new DiagnosticMessage('Unhandled error: $e\n' 'Stack trace:\n$s'),
-        Severity.error));
+    if (e is DiagnosticException) {
+      builder.report(e.diagnostic);
+    } else if (e is MacroExceptionImpl) {
+      // Preserve `MacroException`s thrown by SDK tools.
+      builder.failWithException(e);
+    } else {
+      // Convert exceptions thrown by macro implementations into diagnostics.
+      builder.report(_unexpectedExceptionDiagnostic(e, s));
+    }
   }
   return builder.result;
 }
+
+// It's a bug in the macro but we need to show something to the user; put the
+// debug detail in a context message and suggest reporting to the author.
+Diagnostic _unexpectedExceptionDiagnostic(
+        Object thrown, StackTrace stackTrace) =>
+    new Diagnostic(
+        new DiagnosticMessage(
+            'Macro application failed due to a bug in the macro.'),
+        Severity.error,
+        contextMessages: [
+          new DiagnosticMessage('$thrown\n$stackTrace'),
+        ],
+        correctionMessage: 'Try reporting the failure to the macro author.');

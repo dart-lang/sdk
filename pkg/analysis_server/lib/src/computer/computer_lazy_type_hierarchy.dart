@@ -130,7 +130,10 @@ class DartLazyTypeHierarchyComputer {
 
     var matches =
         await searchEngine.searchSubtypes(target, SearchEngineCache());
-    return matches.map(toHierarchyItem).toList();
+    return matches
+        .where((match) => !(match.element as InterfaceElement).isAugmentation)
+        .map(toHierarchyItem)
+        .toList();
   }
 
   /// Gets immediate super types for the class/mixin [element].
@@ -263,7 +266,7 @@ class TypeHierarchyItem {
 
   /// Returns a name to display in the hierarchy for [type].
   static String _displayNameForType(InterfaceType type) {
-    return type.getDisplayString(withNullability: false);
+    return type.getDisplayString();
   }
 
   /// Returns the [SourceRange] of the name for [element].

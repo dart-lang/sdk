@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -75,6 +76,31 @@ RecordLiteral
       staticType: int
   rightParenthesis: )
   staticType: (int,)
+''');
+  }
+
+  test_hasContext_greatestClosure() async {
+    await assertNoErrorsInCode(r'''
+void f<T>((List<T>, List<T>) x) {}
+
+test(dynamic d) => f((d, d));
+''');
+
+    final node = findNode.recordLiteral('(d,');
+    assertResolvedNodeText(node, r'''
+RecordLiteral
+  leftParenthesis: (
+  fields
+    SimpleIdentifier
+      token: d
+      staticElement: self::@function::test::@parameter::d
+      staticType: dynamic
+    SimpleIdentifier
+      token: d
+      staticElement: self::@function::test::@parameter::d
+      staticType: dynamic
+  rightParenthesis: )
+  staticType: (List<Object?>, List<Object?>)
 ''');
   }
 
@@ -160,7 +186,7 @@ RecordLiteral
       expression: SimpleIdentifier
         token: a
         staticElement: self::@getter::a
-        staticType: int
+        staticType: dynamic
   rightParenthesis: )
   staticType: ({int f1})
 ''');
@@ -180,9 +206,30 @@ RecordLiteral
     SimpleIdentifier
       token: a
       staticElement: self::@getter::a
-      staticType: int
+      staticType: dynamic
   rightParenthesis: )
   staticType: (int,)
+''');
+  }
+
+  test_hasContext_mismatchedTypes() async {
+    await assertNoErrorsInCode(r'''
+f(Object o) {
+  if (o is (int,)) {
+    o = ('',);
+  }
+}
+''');
+
+    final node = findNode.recordLiteral("('',");
+    assertResolvedNodeText(node, r'''
+RecordLiteral
+  leftParenthesis: (
+  fields
+    SimpleStringLiteral
+      literal: ''
+  rightParenthesis: )
+  staticType: (String,)
 ''');
   }
 
@@ -280,6 +327,131 @@ RecordLiteral
         A3
   rightParenthesis: )
   staticType: (A1, A2, A3, {A4 f1, A5 f2})
+''');
+  }
+
+  test_hasContext_mixed_namedWherePositionalExpected() async {
+    await assertNoErrorsInCode(r'''
+f(Object o) {
+  if (o is (int,)) {
+    o = (f1: g());
+  }
+}
+
+T g<T>() => throw 0;
+''');
+
+    final node = findNode.recordLiteral('(f1:');
+    assertResolvedNodeText(node, r'''
+RecordLiteral
+  leftParenthesis: (
+  fields
+    NamedExpression
+      name: Label
+        label: SimpleIdentifier
+          token: f1
+          staticElement: <null>
+          staticType: null
+        colon: :
+      expression: MethodInvocation
+        methodName: SimpleIdentifier
+          token: g
+          staticElement: self::@function::g
+          staticType: T Function<T>()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        staticInvokeType: dynamic Function()
+        staticType: dynamic
+        typeArgumentTypes
+          dynamic
+  rightParenthesis: )
+  staticType: ({dynamic f1})
+''');
+  }
+
+  test_hasContext_mixed_nameMismatch() async {
+    await assertNoErrorsInCode(r'''
+f(Object o) {
+  if (o is (int, {String f1})) {
+    o = (g(), f2: g());
+  }
+}
+
+T g<T>() => throw 0;
+''');
+
+    final node = findNode.recordLiteral('(g(),');
+    assertResolvedNodeText(node, r'''
+RecordLiteral
+  leftParenthesis: (
+  fields
+    MethodInvocation
+      methodName: SimpleIdentifier
+        token: g
+        staticElement: self::@function::g
+        staticType: T Function<T>()
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticInvokeType: dynamic Function()
+      staticType: dynamic
+      typeArgumentTypes
+        dynamic
+    NamedExpression
+      name: Label
+        label: SimpleIdentifier
+          token: f2
+          staticElement: <null>
+          staticType: null
+        colon: :
+      expression: MethodInvocation
+        methodName: SimpleIdentifier
+          token: g
+          staticElement: self::@function::g
+          staticType: T Function<T>()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        staticInvokeType: dynamic Function()
+        staticType: dynamic
+        typeArgumentTypes
+          dynamic
+  rightParenthesis: )
+  staticType: (dynamic, {dynamic f2})
+''');
+  }
+
+  test_hasContext_mixed_positionalWhereNamedExpected() async {
+    await assertNoErrorsInCode(r'''
+f(Object o) {
+  if (o is ({int f1})) {
+    o = (g(),);
+  }
+}
+
+T g<T>() => throw 0;
+''');
+
+    final node = findNode.recordLiteral('(g(),');
+    assertResolvedNodeText(node, r'''
+RecordLiteral
+  leftParenthesis: (
+  fields
+    MethodInvocation
+      methodName: SimpleIdentifier
+        token: g
+        staticElement: self::@function::g
+        staticType: T Function<T>()
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticInvokeType: dynamic Function()
+      staticType: dynamic
+      typeArgumentTypes
+        dynamic
+  rightParenthesis: )
+  staticType: (dynamic,)
 ''');
   }
 
@@ -393,6 +565,152 @@ RecordLiteral
 ''');
   }
 
+  test_hasContext_named_extraInContext() async {
+    await assertNoErrorsInCode('''
+f(Object o) {
+  if (o is ({int f1, String f2})) {
+    o = (f1: g());
+  }
+}
+
+T g<T>() => throw 0;
+''');
+
+    final node = findNode.recordLiteral('(f1:');
+    assertResolvedNodeText(node, r'''
+RecordLiteral
+  leftParenthesis: (
+  fields
+    NamedExpression
+      name: Label
+        label: SimpleIdentifier
+          token: f1
+          staticElement: <null>
+          staticType: null
+        colon: :
+      expression: MethodInvocation
+        methodName: SimpleIdentifier
+          token: g
+          staticElement: self::@function::g
+          staticType: T Function<T>()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        staticInvokeType: dynamic Function()
+        staticType: dynamic
+        typeArgumentTypes
+          dynamic
+  rightParenthesis: )
+  staticType: ({dynamic f1})
+''');
+  }
+
+  test_hasContext_named_extraInLiteral() async {
+    await assertNoErrorsInCode('''
+f(Object o) {
+  if (o is ({int f1})) {
+    o = (f1: g(), f2: g());
+  }
+}
+
+T g<T>() => throw 0;
+''');
+
+    final node = findNode.recordLiteral('(f1:');
+    assertResolvedNodeText(node, r'''
+RecordLiteral
+  leftParenthesis: (
+  fields
+    NamedExpression
+      name: Label
+        label: SimpleIdentifier
+          token: f1
+          staticElement: <null>
+          staticType: null
+        colon: :
+      expression: MethodInvocation
+        methodName: SimpleIdentifier
+          token: g
+          staticElement: self::@function::g
+          staticType: T Function<T>()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        staticInvokeType: dynamic Function()
+        staticType: dynamic
+        typeArgumentTypes
+          dynamic
+    NamedExpression
+      name: Label
+        label: SimpleIdentifier
+          token: f2
+          staticElement: <null>
+          staticType: null
+        colon: :
+      expression: MethodInvocation
+        methodName: SimpleIdentifier
+          token: g
+          staticElement: self::@function::g
+          staticType: T Function<T>()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        staticInvokeType: dynamic Function()
+        staticType: dynamic
+        typeArgumentTypes
+          dynamic
+  rightParenthesis: )
+  staticType: ({dynamic f1, dynamic f2})
+''');
+  }
+
+  test_hasContext_noImplicitCast_fromDynamicToTop_named() async {
+    await assertNoErrorsInCode(r'''
+final dynamic a = 0;
+final ({Object? f1}) x = (f1: a);
+''');
+
+    final node = findNode.recordLiteral('(f1');
+    assertResolvedNodeText(node, r'''
+RecordLiteral
+  leftParenthesis: (
+  fields
+    NamedExpression
+      name: Label
+        label: SimpleIdentifier
+          token: f1
+          staticElement: <null>
+          staticType: null
+        colon: :
+      expression: SimpleIdentifier
+        token: a
+        staticElement: self::@getter::a
+        staticType: dynamic
+  rightParenthesis: )
+  staticType: ({dynamic f1})
+''');
+  }
+
+  test_hasContext_noImplicitCast_fromDynamicToTop_positional() async {
+    await assertNoErrorsInCode(r'''
+final dynamic a = 0;
+final (Object?, ) x = (a, );
+''');
+
+    final node = findNode.recordLiteral('(a');
+    assertResolvedNodeText(node, r'''
+RecordLiteral
+  leftParenthesis: (
+  fields
+    SimpleIdentifier
+      token: a
+      staticElement: self::@getter::a
+      staticType: dynamic
+  rightParenthesis: )
+  staticType: (dynamic,)
+''');
+  }
+
   test_hasContext_notRecordType() async {
     await assertNoErrorsInCode(r'''
 final Object x = (g(), g());
@@ -472,6 +790,109 @@ RecordLiteral
         String
   rightParenthesis: )
   staticType: (int, String)
+''');
+  }
+
+  test_hasContext_positional_extraInContext() async {
+    await assertNoErrorsInCode('''
+f(Object o) {
+  if (o is (int, String)) {
+    o = (g(),);
+  }
+}
+
+T g<T>() => throw 0;
+''');
+
+    final node = findNode.recordLiteral('(g(),');
+    assertResolvedNodeText(node, r'''
+RecordLiteral
+  leftParenthesis: (
+  fields
+    MethodInvocation
+      methodName: SimpleIdentifier
+        token: g
+        staticElement: self::@function::g
+        staticType: T Function<T>()
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticInvokeType: dynamic Function()
+      staticType: dynamic
+      typeArgumentTypes
+        dynamic
+  rightParenthesis: )
+  staticType: (dynamic,)
+''');
+  }
+
+  test_hasContext_positional_extraInLiteral() async {
+    await assertNoErrorsInCode('''
+f(Object o) {
+  if (o is (int,)) {
+    o = (g(), g());
+  }
+}
+
+T g<T>() => throw 0;
+''');
+
+    final node = findNode.recordLiteral('(g(),');
+    assertResolvedNodeText(node, r'''
+RecordLiteral
+  leftParenthesis: (
+  fields
+    MethodInvocation
+      methodName: SimpleIdentifier
+        token: g
+        staticElement: self::@function::g
+        staticType: T Function<T>()
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticInvokeType: dynamic Function()
+      staticType: dynamic
+      typeArgumentTypes
+        dynamic
+    MethodInvocation
+      methodName: SimpleIdentifier
+        token: g
+        staticElement: self::@function::g
+        staticType: T Function<T>()
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticInvokeType: dynamic Function()
+      staticType: dynamic
+      typeArgumentTypes
+        dynamic
+  rightParenthesis: )
+  staticType: (dynamic, dynamic)
+''');
+  }
+
+  test_hasContext_unknownFieldType_noDowncast() async {
+    await assertNoErrorsInCode(r'''
+void f<T>((T, T) x) {}
+
+test(dynamic d) => f((d, d));
+''');
+
+    final node = findNode.recordLiteral('(d,');
+    assertResolvedNodeText(node, r'''
+RecordLiteral
+  leftParenthesis: (
+  fields
+    SimpleIdentifier
+      token: d
+      staticElement: self::@function::test::@parameter::d
+      staticType: dynamic
+    SimpleIdentifier
+      token: d
+      staticElement: self::@function::test::@parameter::d
+      staticType: dynamic
+  rightParenthesis: )
+  staticType: (dynamic, dynamic)
 ''');
   }
 
@@ -707,6 +1128,35 @@ RecordLiteral
       staticType: bool
   rightParenthesis: )
   staticType: (int, bool)
+''');
+  }
+
+  test_void_field() async {
+    await assertErrorsInCode(r'''
+void f() {}
+
+g() => (f(),);
+''', [
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 21, 3),
+    ]);
+
+    final node = findNode.recordLiteral('(f(),');
+    assertResolvedNodeText(node, r'''
+RecordLiteral
+  leftParenthesis: (
+  fields
+    MethodInvocation
+      methodName: SimpleIdentifier
+        token: f
+        staticElement: self::@function::f
+        staticType: void Function()
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticInvokeType: void Function()
+      staticType: void
+  rightParenthesis: )
+  staticType: (void,)
 ''');
   }
 }

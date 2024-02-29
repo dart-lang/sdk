@@ -31,15 +31,18 @@ import 'package:kernel/target/targets.dart'
 import 'package:package_config/package_config.dart';
 
 import '../api_prototype/compiler_options.dart'
-    show CompilerOptions, InvocationMode, Verbosity, DiagnosticMessage;
+    show
+        CompilerOptions,
+        InvocationMode,
+        HooksForTesting,
+        Verbosity,
+        DiagnosticMessage;
 import '../api_prototype/experimental_flags.dart' as flags;
 import '../api_prototype/file_system.dart'
     show FileSystem, FileSystemEntity, FileSystemException;
 import '../api_prototype/terminal_color_support.dart'
     show printDiagnosticMessage;
-import '../fasta/command_line_reporting.dart' as command_line_reporting;
-import '../fasta/compiler_context.dart' show CompilerContext;
-import '../fasta/fasta_codes.dart'
+import '../fasta/codes/fasta_codes.dart'
     show
         FormattedMessage,
         LocatedMessage,
@@ -61,6 +64,8 @@ import '../fasta/fasta_codes.dart'
         templateSdkRootNotFound,
         templateSdkSpecificationNotFound,
         templateSdkSummaryNotFound;
+import '../fasta/command_line_reporting.dart' as command_line_reporting;
+import '../fasta/compiler_context.dart' show CompilerContext;
 import '../fasta/messages.dart' show getLocation;
 import '../fasta/problems.dart' show DebugAbort, unimplemented;
 import '../fasta/ticker.dart' show Ticker;
@@ -187,6 +192,8 @@ class ProcessedOptions {
   bool get warnOnReachabilityCheck => _raw.warnOnReachabilityCheck;
 
   bool get enableUnscheduledExperiments => _raw.enableUnscheduledExperiments;
+
+  bool get hasAdditionalDills => _raw.additionalDills.isNotEmpty;
 
   /// The entry-points provided to the compiler.
   final List<Uri> inputs;
@@ -849,6 +856,11 @@ class ProcessedOptions {
       _raw.macroSerializationMode ??= SerializationMode.byteData;
 
   CompilerOptions get rawOptionsForTesting => _raw;
+
+  HooksForTesting? get hooksForTesting => _raw.hooksForTesting;
+
+  bool get showGeneratedMacroSourcesForTesting =>
+      _raw.showGeneratedMacroSourcesForTesting;
 
   /// Disposes macro executor if one is configured.
   Future<void> dispose() async {

@@ -21,8 +21,10 @@
       "pkg/",
       "runtime/tests/",
       "sdk/",
+      "tests/co19/co19-analyzer.status",
       "tests/co19/co19-co19.status",
       "tests/co19/co19-dart2js.status",
+      "tests/co19/co19-dart2wasm.status",
       "tests/co19/co19-dartdevc.status",
       "tests/co19/co19-kernel.status",
       "tests/co19/co19-runtime.status",
@@ -48,8 +50,10 @@
       "pkg/",
       "runtime/tests/",
       "sdk/",
+      "tests/co19/co19-analyzer.status",
       "tests/co19/co19-co19.status",
       "tests/co19/co19-dart2js.status",
+      "tests/co19/co19-dart2wasm.status",
       "tests/co19/co19-dartdevc.status",
       "tests/co19/co19-kernel.status",
       "tests/co19/co19-runtime.status",
@@ -85,6 +89,7 @@
       "tests/co19/co19-analyzer.status",
       "tests/co19/co19-co19.status",
       "tests/co19/co19-dart2js.status",
+      "tests/co19/co19-dart2wasm.status",
       "tests/co19/co19-dartdevc.status",
       "tests/co19/co19-kernel.status",
       "tests/co19/co19-runtime.status",
@@ -116,6 +121,7 @@
       "tests/co19/co19-analyzer.status",
       "tests/co19/co19-co19.status",
       "tests/co19/co19-dart2js.status",
+      "tests/co19/co19-dart2wasm.status",
       "tests/co19/co19-dartdevc.status",
       "tests/co19/co19-kernel.status",
       "tests/co19/co19-runtime.status",
@@ -189,6 +195,7 @@
       "tests/co19/co19-analyzer.status",
       "tests/co19/co19-co19.status",
       "tests/co19/co19-dart2js.status",
+      "tests/co19/co19-dart2wasm.status",
       "tests/co19/co19-dartdevc.status",
       "tests/co19/co19-kernel.status",
       "tests/co19/co19-runtime.status",
@@ -426,20 +433,20 @@
         "dart2js-options": [
           "--canary"
         ],
-        "host-checked": true,
+        "host-asserts": true,
         "timeout": 240
       }
     },
     "dart2js-hostasserts-linux-d8": {
       "options": {
-        "host-checked": true,
+        "host-asserts": true,
         "timeout": 240
       }
     },
     "dart2js-hostasserts-linux-(d8|chrome)-unsound": {
       "options": {
         "builder-tag": "dart2js-weak",
-        "host-checked": true,
+        "host-asserts": true,
         "nnbd": "weak",
         "timeout": 240
       }
@@ -450,17 +457,17 @@
           "--merge-fragments-threshold=3",
           "--simple-load-ids"
         ],
-        "host-checked": true,
+        "host-asserts": true,
         "timeout": 240
       }
     },
     "dart2wasm-(linux|mac|win)-(d8|jsshell|jsc|chrome|firefox)": {
       "options": {
-        "host-checked": true,
+        "host-asserts": true,
         "dart2wasm-options": [
           "-O0"
         ],
-        "timeout": 240
+        "timeout": 60
       }
     },
     "dart2wasm-(linux|mac|win)-optimized-(d8|jsshell|jsc|chrome|firefox)": {
@@ -468,8 +475,8 @@
         "dart2wasm-options": [
           "-O1"
         ],
-        "host-checked": false,
-        "timeout": 240
+        "host-asserts": false,
+        "timeout": 60
       }
     },
     "dart2wasm-(linux|mac|win)-jscm-(d8|jsshell|jsc|chrome|firefox)": {
@@ -478,8 +485,8 @@
           "-O0",
           "--js-compatibility"
         ],
-        "host-checked": true,
-        "timeout": 240
+        "host-asserts": true,
+        "timeout": 60
       }
     },
     "vm-aot-android-(debug|product|release)-arm_x64": {
@@ -1056,7 +1063,6 @@
       "meta": {
         "description": "This configuration is used by the VM AOT builders. Includes VM service testing in addition to legacy Observatory service tests.",
         "__comment__": "This configuration should be merged with the other VM AOT builders config below once Observatory is removed."
-
       },
       "steps": [
         {
@@ -1089,7 +1095,6 @@
       "meta": {
         "description": "This configuration is used by the VM AOT builders. Includes VM service testing.",
         "__comment__": "vm-aot-linux-debug-x64 should be added back into this configuration once Observatory is removed."
-
       },
       "steps": [
         {
@@ -2947,6 +2952,7 @@
             "tools/verify_docs/bin/verify_docs.dart",
             "dart:_http",
             "dart:_internal",
+            "dart:_macros",
             "dart:_wasm",
             "dart:cli",
             "dart:convert",
@@ -3025,7 +3031,7 @@
         "pkg-win-release-arm64"
       ],
       "meta": {
-          "description": "This configuration is used by the pkg builders, no shards."
+        "description": "This configuration is used by the pkg builders, no shards."
       },
       "steps": [
         {
@@ -3436,6 +3442,7 @@
             "pkg/vm/bin/gen_kernel.dart",
             "--platform=out/ReleaseX64/vm_platform_strong.dill",
             "--no-aot",
+            "-Dtest_runner.configuration=vm-linux-release-x64",
             "-o",
             "runtime/tests/concurrency/generated_stress_test.dart.jit.dill",
             "runtime/tests/concurrency/generated_stress_test.dart"
@@ -3448,6 +3455,7 @@
             "pkg/vm/bin/gen_kernel.dart",
             "--platform=out/ReleaseX64/vm_platform_strong.dill",
             "--aot",
+            "-Dtest_runner.configuration=vm-aot-linux-release-x64",
             "-o",
             "runtime/tests/concurrency/generated_stress_test.dart.aot.dill",
             "runtime/tests/concurrency/generated_stress_test.dart"

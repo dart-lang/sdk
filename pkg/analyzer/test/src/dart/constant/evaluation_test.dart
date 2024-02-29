@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/error/error.dart';
@@ -2528,7 +2527,7 @@ class RequiresNonEmptyList {
         16,
         31,
         contextMessages: [
-          ExpectedContextMessage(testFile.path, 138, 14,
+          ExpectedContextMessage(testFile, 138, 14,
               text:
                   "The error is in the assert initializer of 'RequiresNonEmptyList', and occurs here."),
         ],
@@ -4296,7 +4295,7 @@ const b = B('');
         128,
         5,
         contextMessages: [
-          ExpectedContextMessage(testFile.path, 105, 8,
+          ExpectedContextMessage(testFile, 105, 8,
               text:
                   "The error is in the field initializer of 'B', and occurs here."),
         ],
@@ -4347,7 +4346,7 @@ const y = B(x);
         70,
         4,
         contextMessages: [
-          ExpectedContextMessage(testFile.path, 47, 8,
+          ExpectedContextMessage(testFile, 47, 8,
               text:
                   "The error is in the field initializer of 'B', and occurs here."),
         ],
@@ -4478,15 +4477,10 @@ class ConstantVisitorTestSupport extends PubPackageResolutionTest {
     var unit = this.result.unit;
     var source = unit.declaredElement!.source;
     var errorListener = GatheringErrorListener();
-    var errorReporter = ErrorReporter(
-      errorListener,
-      source,
-      isNonNullableByDefault: false,
-    );
+    var errorReporter = ErrorReporter(errorListener, source);
     var constantVisitor = ConstantVisitor(
       ConstantEvaluationEngine(
         declaredVariables: DeclaredVariables.fromMap(declaredVariables),
-        isNonNullableByDefault: unit.featureSet.isEnabled(Feature.non_nullable),
         configuration: ConstantEvaluationConfiguration(),
       ),
       this.result.libraryElement as LibraryElementImpl,
@@ -4550,7 +4544,7 @@ const a = const A(null);
         56,
         13,
         contextMessages: [
-          ExpectedContextMessage(testFile.path, 24, 17,
+          ExpectedContextMessage(testFile, 24, 17,
               text:
                   "The exception is 'The assertion in this constant expression failed.' and occurs here."),
         ],
@@ -4572,7 +4566,7 @@ const a = const A<int?>();
         60,
         15,
         contextMessages: [
-          ExpectedContextMessage(testFile.path, 27, 18,
+          ExpectedContextMessage(testFile, 27, 18,
               text:
                   "The exception is 'The assertion in this constant expression failed.' and occurs here."),
         ],
@@ -4610,7 +4604,7 @@ const c = const A(E.a);
         73,
         12,
         contextMessages: [
-          ExpectedContextMessage(testFile.path, 43, 16,
+          ExpectedContextMessage(testFile, 43, 16,
               text:
                   "The exception is 'The assertion in this constant expression failed.' and occurs here."),
         ],
@@ -4651,10 +4645,10 @@ main() {
         124,
         10,
         contextMessages: [
-          ExpectedContextMessage(testFile.path, 84, 1,
+          ExpectedContextMessage(testFile, 84, 1,
               text:
                   "The evaluated constructor 'A' is called by 'B' and 'B' is defined here."),
-          ExpectedContextMessage(testFile.path, 31, 14,
+          ExpectedContextMessage(testFile, 31, 14,
               text:
                   "The exception is 'The assertion in this constant expression failed.' and occurs here."),
         ],
@@ -4690,7 +4684,7 @@ const a = const A(1);
         71,
         10,
         contextMessages: [
-          ExpectedContextMessage(testFile.path, 31, 26,
+          ExpectedContextMessage(testFile, 31, 26,
               text:
                   "The exception is 'The assertion in this constant expression failed.' and occurs here."),
         ],
@@ -4724,7 +4718,7 @@ const a = const A();
         56,
         9,
         contextMessages: [
-          ExpectedContextMessage(testFile.path, 23, 19,
+          ExpectedContextMessage(testFile, 23, 19,
               text:
                   "The exception is 'The assertion in this constant expression failed.' and occurs here."),
         ],
@@ -4763,10 +4757,10 @@ const b = const B();
         101,
         9,
         contextMessages: [
-          ExpectedContextMessage(testFile.path, 74, 1,
+          ExpectedContextMessage(testFile, 74, 1,
               text:
                   "The evaluated constructor 'A' is called by 'B' and 'B' is defined here."),
-          ExpectedContextMessage(testFile.path, 23, 19,
+          ExpectedContextMessage(testFile, 23, 19,
               text:
                   "The exception is 'The assertion in this constant expression failed.' and occurs here."),
         ],
@@ -4806,7 +4800,7 @@ const a = const A(0);
         55,
         10,
         contextMessages: [
-          ExpectedContextMessage(testFile.path, 28, 13,
+          ExpectedContextMessage(testFile, 28, 13,
               text:
                   "The exception is 'The assertion in this constant expression failed.' and occurs here."),
         ],
@@ -5161,7 +5155,7 @@ const a = const A<int>();
         77,
         14,
         contextMessages: [
-          ExpectedContextMessage(testFile.path, 62, 1,
+          ExpectedContextMessage(testFile, 62, 1,
               text:
                   "The error is in the field initializer of 'A', and occurs here."),
         ],
@@ -5569,13 +5563,13 @@ const f = const E('0.0');
         153,
         14,
         contextMessages: [
-          ExpectedContextMessage(testFile.path, 77, 1,
+          ExpectedContextMessage(testFile, 77, 1,
               text:
                   "The evaluated constructor 'C' is called by 'D' and 'D' is defined here."),
-          ExpectedContextMessage(testFile.path, 124, 1,
+          ExpectedContextMessage(testFile, 124, 1,
               text:
                   "The evaluated constructor 'D' is called by 'E' and 'E' is defined here."),
-          ExpectedContextMessage(testFile.path, 90, 1,
+          ExpectedContextMessage(testFile, 90, 1,
               text:
                   "The exception is 'A value of type 'String' can't be assigned to a parameter of type 'double' in a const constructor.' and occurs here."),
         ],

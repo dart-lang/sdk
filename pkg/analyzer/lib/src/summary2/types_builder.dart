@@ -331,11 +331,6 @@ class TypesBuilder {
     }
   }
 
-  bool _isNonNullableByDefault(AstNode node) {
-    var unit = node.thisOrAncestorOfType<CompilationUnit>();
-    return unit!.featureSet.isEnabled(Feature.non_nullable);
-  }
-
   void _mixinDeclaration(MixinDeclaration node) {
     var element = node.declaredElement as MixinElementImpl;
 
@@ -364,14 +359,10 @@ class TypesBuilder {
   }
 
   NullabilitySuffix _nullability(AstNode node, bool hasQuestion) {
-    if (_isNonNullableByDefault(node)) {
-      if (hasQuestion) {
-        return NullabilitySuffix.question;
-      } else {
-        return NullabilitySuffix.none;
-      }
+    if (hasQuestion) {
+      return NullabilitySuffix.question;
     } else {
-      return NullabilitySuffix.star;
+      return NullabilitySuffix.none;
     }
   }
 
@@ -439,8 +430,6 @@ class TypesBuilder {
       }
     }
 
-    final typeProvider = element.library.typeProvider;
-
     if (element is InterfaceElementImpl &&
         augmented is AugmentedInterfaceElementImpl &&
         declaration is InterfaceElementImpl) {
@@ -463,11 +452,9 @@ class TypesBuilder {
             return element;
           }
           return ConstructorMember(
-            typeProvider: typeProvider,
             declaration: element,
             augmentationSubstitution: toDeclaration,
             substitution: Substitution.empty,
-            isLegacy: false,
           );
         }),
       ];
@@ -485,8 +472,7 @@ class TypesBuilder {
         if (toDeclaration.map.isEmpty) {
           return element;
         }
-        return FieldMember(
-            typeProvider, element, toDeclaration, Substitution.empty, false);
+        return FieldMember(element, toDeclaration, Substitution.empty);
       }),
     ];
 
@@ -497,7 +483,7 @@ class TypesBuilder {
           return element;
         }
         return PropertyAccessorMember(
-            typeProvider, element, toDeclaration, Substitution.empty, false);
+            element, toDeclaration, Substitution.empty);
       }),
     ];
 
@@ -507,8 +493,7 @@ class TypesBuilder {
         if (toDeclaration.map.isEmpty) {
           return element;
         }
-        return MethodMember(
-            typeProvider, element, toDeclaration, Substitution.empty, false);
+        return MethodMember(element, toDeclaration, Substitution.empty);
       }),
     ];
   }

@@ -37,7 +37,7 @@ enum Dart2JSStage {
       emitsKernel: false,
       emitsJs: false),
   closedWorld('closed-world',
-      dataOutputName: 'world.data', emitsKernel: false, emitsJs: false),
+      dataOutputName: 'world.data', emitsKernel: true, emitsJs: false),
   globalInference('global-inference',
       dataOutputName: 'global.data', emitsKernel: false, emitsJs: false),
   codegenAndJsEmitter('codegen-emit-js', emitsKernel: false, emitsJs: true),
@@ -56,8 +56,6 @@ enum Dart2JSStage {
   final String? dataOutputName;
   final bool emitsKernel;
   final bool emitsJs;
-  String? get outputExtension =>
-      emitsJs ? '.js' : (emitsKernel ? '.dill' : null);
 
   bool get shouldOnlyComputeDill =>
       this == Dart2JSStage.cfe || this == Dart2JSStage.cfeFromDill;
@@ -719,6 +717,11 @@ class CompilerOptions implements DiagnosticOptions {
   // Whether or not to disable byte cache for sources loaded from Kernel dill.
   bool disableDiagnosticByteCache = false;
 
+  bool enableProtoShaking = false;
+
+  bool get producesModifiedDill =>
+      stage == Dart2JSStage.closedWorld && enableProtoShaking;
+
   late final Dart2JSStage stage = _calculateStage();
 
   Dart2JSStage _calculateStage() => _stageFlag != null
@@ -730,6 +733,25 @@ class CompilerOptions implements DiagnosticOptions {
 
   String get _outputFilename => _outputUri?.pathSegments.last ?? '';
 
+  String? get _outputExtension {
+    switch (stage) {
+      case Dart2JSStage.all:
+      case Dart2JSStage.allFromDill:
+      case Dart2JSStage.jsEmitter:
+      case Dart2JSStage.codegenAndJsEmitter:
+        return '.js';
+      case Dart2JSStage.cfe:
+      case Dart2JSStage.cfeFromDill:
+        return '.dill';
+      case Dart2JSStage.closedWorld:
+        if (producesModifiedDill) return '.dill';
+      case Dart2JSStage.deferredLoadIds:
+      case Dart2JSStage.globalInference:
+      case Dart2JSStage.codegenSharded:
+    }
+    return null;
+  }
+
   /// Output prefix specified by the user via the `--out` flag. The prefix is
   /// calculated from the final segment of the user provided URI. If the
   /// extension does not match the expected extension for the current [stage]
@@ -737,7 +759,7 @@ class CompilerOptions implements DiagnosticOptions {
   /// specified.
   late final String _outputPrefix = (() {
     if (_stageFlag == null) return '';
-    final extension = stage.outputExtension;
+    final extension = _outputExtension;
 
     return (extension != null && _outputFilename.endsWith(extension))
         ? ''
@@ -755,7 +777,7 @@ class CompilerOptions implements DiagnosticOptions {
   /// Computes a resolved output URI based on value provided via the `--out`
   /// flag. Updates [outputUri] based on the result and returns the value.
   Uri? setResolvedOutputUri() {
-    final extension = stage.outputExtension;
+    final extension = _outputExtension;
     if (extension == null) return null;
 
     if (_stageFlag == null) {
@@ -935,6 +957,7 @@ class CompilerOptions implements DiagnosticOptions {
       ..omitAsCasts = _hasOption(options, Flags.omitAsCasts)
       ..laxRuntimeTypeToString =
           _hasOption(options, Flags.laxRuntimeTypeToString)
+      ..enableProtoShaking = _hasOption(options, Flags.enableProtoShaking)
       ..testMode = _hasOption(options, Flags.testMode)
       ..trustPrimitives = _hasOption(options, Flags.trustPrimitives)
       ..useFrequencyNamer =
@@ -1262,9 +1285,13 @@ class CompilerOptions implements DiagnosticOptions {
 
 /// Policy for what to do with a type assertion check.
 ///
-/// This enum-like class is used to configure how the compiler treats type
-/// assertions during global type inference and codegen.
-class CheckPolicy {
+/// This enum is used to configure how the compiler treats type assertions
+/// during global type inference and codegen.
+enum CheckPolicy {
+  trusted(isTrusted: true),
+  checked(isEmitted: true),
+  ;
+
   /// Whether the type assertion should be trusted.
   final bool isTrusted;
 
@@ -1272,9 +1299,6 @@ class CheckPolicy {
   final bool isEmitted;
 
   const CheckPolicy({this.isTrusted = false, this.isEmitted = false});
-
-  static const trusted = CheckPolicy(isTrusted: true);
-  static const checked = CheckPolicy(isEmitted: true);
 
   @override
   String toString() => 'CheckPolicy(isTrusted=$isTrusted,'

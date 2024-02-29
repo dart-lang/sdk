@@ -365,7 +365,8 @@ void VirtualMemory::Decommit(void* address, intptr_t size) {
 
 VirtualMemory::~VirtualMemory() {
 #if defined(DART_COMPRESSED_POINTERS)
-  if (VirtualMemoryCompressedHeap::Contains(reserved_.pointer())) {
+  if (VirtualMemoryCompressedHeap::Contains(reserved_.pointer()) &&
+      (this != compressed_heap_)) {
     Decommit(reserved_.pointer(), reserved_.size());
     VirtualMemoryCompressedHeap::Free(reserved_.pointer(), reserved_.size());
     return;

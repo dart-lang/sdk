@@ -29,7 +29,7 @@ class DocumentColorPresentationTest extends AbstractLspAnalysisServerTest {
   @override
   void setUp() {
     super.setUp();
-    writePackageConfig(projectFolderPath, flutter: true);
+    writeTestPackageConfig(flutter: true);
 
     content = '';
     testFilePath = mainFilePath;
@@ -305,7 +305,7 @@ class DocumentColorTest extends AbstractLspAnalysisServerTest {
   @override
   void setUp() {
     super.setUp();
-    writePackageConfig(projectFolderPath, flutter: true);
+    writeTestPackageConfig(flutter: true);
   }
 
   Future<void> test_nonDartFile() async {

@@ -45,15 +45,13 @@ class FunctionTypeBuilder extends TypeBuilder {
     this.node,
   });
 
-  /// [isNNBD] indicates whether the containing library is opted into NNBD.
   factory FunctionTypeBuilder.of(
-    bool isNNBD,
     GenericFunctionTypeImpl node,
     NullabilitySuffix nullabilitySuffix,
   ) {
     return FunctionTypeBuilder(
       _getTypeParameters(node.typeParameters),
-      getParameters(isNNBD, node.parameters),
+      getParameters(node.parameters),
       _getNodeType(node.returnType),
       nullabilitySuffix,
       node: node,
@@ -143,15 +141,13 @@ class FunctionTypeBuilder extends TypeBuilder {
     );
   }
 
-  /// [isNNBD] indicates whether the containing library is opted into NNBD.
   static List<ParameterElementImpl> getParameters(
-    bool isNNBD,
     FormalParameterList node,
   ) {
     return node.parameters.asImpl.map((parameter) {
       return ParameterElementImpl.synthetic(
         parameter.name?.lexeme ?? '',
-        _getParameterType(isNNBD, parameter),
+        _getParameterType(parameter),
         parameter.kind,
       );
     }).toFixedList();
@@ -176,26 +172,22 @@ class FunctionTypeBuilder extends TypeBuilder {
   }
 
   /// Return the type of the [node] as is, possibly a [TypeBuilder].
-  ///
-  /// [isNNBD] indicates whether the containing library is opted into NNBD.
-  static DartType _getParameterType(bool isNNBD, FormalParameter node) {
+  static DartType _getParameterType(FormalParameter node) {
     if (node is DefaultFormalParameter) {
-      return _getParameterType(isNNBD, node.parameter);
+      return _getParameterType(node.parameter);
     } else if (node is SimpleFormalParameter) {
       return _getNodeType(node.type);
     } else if (node is FunctionTypedFormalParameter) {
       NullabilitySuffix nullabilitySuffix;
       if (node.question != null) {
         nullabilitySuffix = NullabilitySuffix.question;
-      } else if (isNNBD) {
-        nullabilitySuffix = NullabilitySuffix.none;
       } else {
-        nullabilitySuffix = NullabilitySuffix.star;
+        nullabilitySuffix = NullabilitySuffix.none;
       }
 
       return FunctionTypeBuilder(
         _getTypeParameters(node.typeParameters),
-        getParameters(isNNBD, node.parameters),
+        getParameters(node.parameters),
         _getNodeType(node.returnType),
         nullabilitySuffix,
       );

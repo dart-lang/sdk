@@ -38,6 +38,7 @@ class DevToolsServer {
   static const argDdsHost = 'dds-host';
   static const argDdsPort = 'dds-port';
   static const argDebugMode = 'debug';
+  static const argDtdUri = 'dtd-uri';
   static const argLaunchBrowser = 'launch-browser';
   static const argMachine = 'machine';
   static const argHost = 'host';
@@ -115,6 +116,12 @@ class DevToolsServer {
         help:
             'Start devtools headlessly and write memory profiling samples to the '
             'indicated file.',
+      )
+      ..addOption(
+        argDtdUri,
+        valueHelp: 'uri',
+        help: 'A uri pointing to a dart tooling daemon that devtools should '
+            'interface with.',
       );
 
     argParser.addSeparator('App size options:');
@@ -239,6 +246,7 @@ class DevToolsServer {
     String? profileFilename,
     String? appSizeBase,
     String? appSizeTest,
+    String? dtdUri,
   }) async {
     hostname ??= 'localhost';
 
@@ -268,6 +276,8 @@ class DevToolsServer {
     handler ??= await defaultHandler(
       buildDir: customDevToolsPath!,
       clientManager: clientManager,
+      dtdUri: dtdUri,
+      analytics: DevToolsUtils.initializeAnalytics(),
     );
 
     HttpServer? server;
@@ -455,6 +465,11 @@ class DevToolsServer {
     final bool verboseMode = args[argVerbose];
     final String? hostname = args[argHost];
 
+    String? dtdUri;
+    if (args.wasParsed(argDtdUri)) {
+      dtdUri = args[argDtdUri];
+    }
+
     if (help) {
       print(
           'Dart DevTools version ${await DevToolsUtils.getVersion(customDevToolsPath ?? "")}');
@@ -521,6 +536,7 @@ class DevToolsServer {
       hostname: hostname,
       appSizeBase: appSizeBase,
       appSizeTest: appSizeTest,
+      dtdUri: dtdUri,
     );
   }
 

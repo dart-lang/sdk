@@ -46,9 +46,9 @@ main() {
       error(CompileTimeErrorCode.COULD_NOT_INFER, 154, 3),
       error(CompileTimeErrorCode.COULD_NOT_INFER, 154, 3),
       error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 154, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 154, 1)]),
+          contextMessages: [message(testFile, 154, 1)]),
       error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 154, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 154, 1)]),
+          contextMessages: [message(testFile, 154, 1)]),
     ]);
   }
 
@@ -73,7 +73,7 @@ main() {
       error(WarningCode.UNUSED_LOCAL_VARIABLE, 120, 1),
       error(CompileTimeErrorCode.COULD_NOT_INFER, 124, 1),
       error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 124, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 124, 1)]),
+          contextMessages: [message(testFile, 124, 1)]),
     ]);
   }
 
@@ -360,7 +360,7 @@ var c = C([]);
 ''', [
       error(CompileTimeErrorCode.COULD_NOT_INFER, 82, 1),
       error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 82, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 82, 1)]),
+          contextMessages: [message(testFile, 82, 1)]),
     ]);
   }
 }

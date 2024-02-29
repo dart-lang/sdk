@@ -16,6 +16,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart';
+import 'package:analyzer/src/summary2/macro.dart';
 import 'package:analyzer/src/summary2/package_bundle_format.dart';
 
 export 'package:analyzer/src/context/packages.dart' show Packages, Package;
@@ -65,6 +66,7 @@ AnalysisDriverForPackageBuild createAnalysisDriver({
     analysisOptionsMap: optionsMap,
     externalSummaries: dataStore,
     packages: packages,
+    macroSupport: KernelMacroSupport(),
   );
 
   scheduler.start();

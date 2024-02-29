@@ -190,10 +190,11 @@ class TransformSetParser {
       }
       var endIndex = template.indexOf(_closeComponent, variableStart + 2);
       if (endIndex < 0) {
-        errorReporter.reportErrorForOffset(
-            TransformSetErrorCode.missingTemplateEnd,
-            templateOffset + variableStart,
-            2);
+        errorReporter.atOffset(
+          offset: templateOffset + variableStart,
+          length: 2,
+          errorCode: TransformSetErrorCode.missingTemplateEnd,
+        );
         // Ignore the invalid component, treating it as if it extended to the
         // end of the template.
         return components;
@@ -201,11 +202,12 @@ class TransformSetParser {
         var name = template.substring(variableStart + 2, endIndex).trim();
         var generator = variableScope.lookup(name);
         if (generator == null) {
-          errorReporter.reportErrorForOffset(
-              TransformSetErrorCode.undefinedVariable,
-              templateOffset + template.indexOf(name, variableStart),
-              name.length,
-              [name]);
+          errorReporter.atOffset(
+            offset: templateOffset + template.indexOf(name, variableStart),
+            length: name.length,
+            errorCode: TransformSetErrorCode.undefinedVariable,
+            arguments: [name],
+          );
           // Ignore the invalid component.
         } else {
           components.add(TemplateVariable(generator));
@@ -254,8 +256,12 @@ class TransformSetParser {
       var span = e.span;
       var offset = span?.start.offset ?? 0;
       var length = span?.length ?? 0;
-      errorReporter.reportErrorForOffset(
-          TransformSetErrorCode.yamlSyntaxError, offset, length, [e.message]);
+      errorReporter.atOffset(
+        offset: offset,
+        length: length,
+        errorCode: TransformSetErrorCode.yamlSyntaxError,
+        arguments: [e.message],
+      );
     }
     return null;
   }
@@ -266,8 +272,12 @@ class TransformSetParser {
   void _reportError(TransformSetErrorCode code, YamlNode node,
       [List<String> arguments = const []]) {
     var span = node.span;
-    errorReporter.reportErrorForOffset(
-        code, span.start.offset, span.length, arguments);
+    errorReporter.atOffset(
+      offset: span.start.offset,
+      length: span.length,
+      errorCode: code,
+      arguments: arguments,
+    );
   }
 
   /// Report that the value represented by the [node] does not have the
@@ -577,8 +587,7 @@ class TransformSetParser {
     }
     var argumentValueNode = node.valueAt(_argumentValueKey);
     var argumentValue = _translateCodeTemplate(argumentValueNode,
-        ErrorContext(key: _argumentValueKey, parentNode: node),
-        canBeConditionallyRequired: false);
+        ErrorContext(key: _argumentValueKey, parentNode: node));
     (_parameterModifications ??= []).add(
       ChangeParameterType(
         reference: reference,

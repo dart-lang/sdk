@@ -65,10 +65,8 @@ class PrefixedIdentifierResolver {
     }
 
     if (identical(node.prefix.staticType, NeverTypeImpl.instance)) {
-      _inferenceHelper.recordStaticType(identifier, NeverTypeImpl.instance,
-          contextType: contextType);
-      _inferenceHelper.recordStaticType(node, NeverTypeImpl.instance,
-          contextType: contextType);
+      _inferenceHelper.recordStaticType(identifier, NeverTypeImpl.instance);
+      _inferenceHelper.recordStaticType(node, NeverTypeImpl.instance);
       return null;
     }
 
@@ -122,8 +120,8 @@ class PrefixedIdentifierResolver {
       type = _inferenceHelper.inferTearOff(node, identifier, type,
           contextType: contextType);
     }
-    _inferenceHelper.recordStaticType(identifier, type, contextType: null);
-    _inferenceHelper.recordStaticType(node, type, contextType: contextType);
+    _inferenceHelper.recordStaticType(identifier, type);
+    _inferenceHelper.recordStaticType(node, type);
     return null;
   }
 
@@ -170,10 +168,10 @@ class PrefixedIdentifierResolver {
       return;
     }
 
-    _resolver.errorReporter.reportErrorForNode(
-      CompileTimeErrorCode.EXTENSION_AS_EXPRESSION,
+    _resolver.errorReporter.atNode(
       node,
-      [node.name],
+      CompileTimeErrorCode.EXTENSION_AS_EXPRESSION,
+      arguments: [node.name],
     );
 
     if (node is PrefixedIdentifierImpl) {

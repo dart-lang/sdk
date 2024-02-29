@@ -275,6 +275,378 @@ CommentReference
 ''');
   }
 
+  test_docImport_class_constructor_named() async {
+    newFile('$testPackageLibPath/foo.dart', r'''
+class A {
+  A.named();
+}
+''');
+    await assertNoErrorsInCode(r'''
+/// @docImport 'foo.dart';
+library;
+
+/// [A.named]
+void f() {}
+''');
+
+    assertResolvedNodeText(findNode.commentReference('A.named]'), r'''
+CommentReference
+  expression: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      staticElement: package:test/foo.dart::@class::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: named
+      staticElement: package:test/foo.dart::@class::A::@constructor::named
+      staticType: null
+    staticElement: package:test/foo.dart::@class::A::@constructor::named
+    staticType: null
+''');
+  }
+
+  test_docImport_class_constructor_unnamedViaNew() async {
+    newFile('$testPackageLibPath/foo.dart', r'''
+class A {
+  A();
+}
+''');
+    await assertNoErrorsInCode(r'''
+/// @docImport 'foo.dart';
+library;
+
+/// [A.new]
+void f() {}
+''');
+
+    assertResolvedNodeText(findNode.commentReference('A.new]'), r'''
+CommentReference
+  expression: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      staticElement: package:test/foo.dart::@class::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: new
+      staticElement: package:test/foo.dart::@class::A::@constructor::new
+      staticType: null
+    staticElement: package:test/foo.dart::@class::A::@constructor::new
+    staticType: null
+''');
+  }
+
+  test_docImport_class_instanceGetter() async {
+    newFile('$testPackageLibPath/foo.dart', r'''
+class A {
+  int get foo => 0;
+}
+''');
+    await assertNoErrorsInCode(r'''
+/// @docImport 'foo.dart';
+library;
+
+/// [A.foo]
+void f() {}
+''');
+
+    assertResolvedNodeText(findNode.commentReference('A.foo]'), r'''
+CommentReference
+  expression: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      staticElement: package:test/foo.dart::@class::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      staticElement: package:test/foo.dart::@class::A::@getter::foo
+      staticType: null
+    staticElement: package:test/foo.dart::@class::A::@getter::foo
+    staticType: null
+''');
+  }
+
+  test_docImport_class_staticGetter() async {
+    newFile('$testPackageLibPath/foo.dart', r'''
+class A {
+  static int get foo => 0;
+}
+''');
+    await assertNoErrorsInCode(r'''
+/// @docImport 'foo.dart';
+library;
+
+/// [A.foo]
+void f() {}
+''');
+
+    assertResolvedNodeText(findNode.commentReference('A.foo]'), r'''
+CommentReference
+  expression: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      staticElement: package:test/foo.dart::@class::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      staticElement: package:test/foo.dart::@class::A::@getter::foo
+      staticType: null
+    staticElement: package:test/foo.dart::@class::A::@getter::foo
+    staticType: null
+''');
+  }
+
+  test_docImport_class_staticMethod() async {
+    newFile('$testPackageLibPath/foo.dart', r'''
+class A {
+  static void foo() {}
+}
+''');
+    await assertNoErrorsInCode(r'''
+/// @docImport 'foo.dart';
+library;
+
+/// [A.foo]
+void f() {}
+''');
+
+    assertResolvedNodeText(findNode.commentReference('A.foo]'), r'''
+CommentReference
+  expression: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      staticElement: package:test/foo.dart::@class::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      staticElement: package:test/foo.dart::@class::A::@method::foo
+      staticType: null
+    staticElement: package:test/foo.dart::@class::A::@method::foo
+    staticType: null
+''');
+  }
+
+  test_docImport_class_staticSetter() async {
+    newFile('$testPackageLibPath/foo.dart', r'''
+class A {
+  static set foo(int _) {}
+}
+''');
+    await assertNoErrorsInCode(r'''
+/// @docImport 'foo.dart';
+library;
+
+/// [A.foo]
+void f() {}
+''');
+
+    assertResolvedNodeText(findNode.commentReference('A.foo]'), r'''
+CommentReference
+  expression: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      staticElement: package:test/foo.dart::@class::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      staticElement: package:test/foo.dart::@class::A::@setter::foo
+      staticType: null
+    staticElement: package:test/foo.dart::@class::A::@setter::foo
+    staticType: null
+''');
+  }
+
+  test_docImport_extension_instanceGetter() async {
+    newFile('$testPackageLibPath/foo.dart', r'''
+extension E on int {
+  int get foo => 0;
+}
+''');
+    await assertNoErrorsInCode(r'''
+/// @docImport 'foo.dart';
+library;
+
+/// [E.foo]
+void f() {}
+''');
+
+    assertResolvedNodeText(findNode.commentReference('E.foo]'), r'''
+CommentReference
+  expression: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: E
+      staticElement: package:test/foo.dart::@extension::E
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      staticElement: package:test/foo.dart::@extension::E::@getter::foo
+      staticType: null
+    staticElement: package:test/foo.dart::@extension::E::@getter::foo
+    staticType: null
+''');
+  }
+
+  test_docImport_extension_instanceMethod() async {
+    newFile('$testPackageLibPath/foo.dart', r'''
+extension E on int {
+  void foo() {}
+}
+''');
+    await assertNoErrorsInCode(r'''
+/// @docImport 'foo.dart';
+library;
+
+/// [E.foo]
+void f() {}
+''');
+
+    assertResolvedNodeText(findNode.commentReference('E.foo]'), r'''
+CommentReference
+  expression: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: E
+      staticElement: package:test/foo.dart::@extension::E
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      staticElement: package:test/foo.dart::@extension::E::@method::foo
+      staticType: null
+    staticElement: package:test/foo.dart::@extension::E::@method::foo
+    staticType: null
+''');
+  }
+
+  test_docImport_extension_instanceSetter() async {
+    newFile('$testPackageLibPath/foo.dart', r'''
+extension E on int {
+  set foo(int _) {}
+}
+''');
+    await assertNoErrorsInCode(r'''
+/// @docImport 'foo.dart';
+library;
+
+/// [E.foo]
+void f() {}
+''');
+
+    assertResolvedNodeText(findNode.commentReference('E.foo]'), r'''
+CommentReference
+  expression: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: E
+      staticElement: package:test/foo.dart::@extension::E
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      staticElement: package:test/foo.dart::@extension::E::@setter::foo
+      staticType: null
+    staticElement: package:test/foo.dart::@extension::E::@setter::foo
+    staticType: null
+''');
+  }
+
+  test_docImport_extension_staticGetter() async {
+    newFile('$testPackageLibPath/foo.dart', r'''
+extension E on int {
+  static int get foo => 0;
+}
+''');
+    await assertNoErrorsInCode(r'''
+/// @docImport 'foo.dart';
+library;
+
+/// [E.foo]
+void f() {}
+''');
+
+    assertResolvedNodeText(findNode.commentReference('E.foo]'), r'''
+CommentReference
+  expression: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: E
+      staticElement: package:test/foo.dart::@extension::E
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      staticElement: package:test/foo.dart::@extension::E::@getter::foo
+      staticType: null
+    staticElement: package:test/foo.dart::@extension::E::@getter::foo
+    staticType: null
+''');
+  }
+
+  test_docImport_extension_staticMethod() async {
+    newFile('$testPackageLibPath/foo.dart', r'''
+extension E on int {
+  static void foo() {}
+}
+''');
+    await assertNoErrorsInCode(r'''
+/// @docImport 'foo.dart';
+library;
+
+/// [E.foo]
+void f() {}
+''');
+
+    assertResolvedNodeText(findNode.commentReference('E.foo]'), r'''
+CommentReference
+  expression: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: E
+      staticElement: package:test/foo.dart::@extension::E
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      staticElement: package:test/foo.dart::@extension::E::@method::foo
+      staticType: null
+    staticElement: package:test/foo.dart::@extension::E::@method::foo
+    staticType: null
+''');
+  }
+
+  test_docImport_extension_staticSetter() async {
+    newFile('$testPackageLibPath/foo.dart', r'''
+extension E on int {
+  static set foo(int _) {}
+}
+''');
+    await assertNoErrorsInCode(r'''
+/// @docImport 'foo.dart';
+library;
+
+/// [E.foo]
+void f() {}
+''');
+
+    assertResolvedNodeText(findNode.commentReference('E.foo]'), r'''
+CommentReference
+  expression: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: E
+      staticElement: package:test/foo.dart::@extension::E
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      staticElement: package:test/foo.dart::@extension::E::@setter::foo
+      staticType: null
+    staticElement: package:test/foo.dart::@extension::E::@setter::foo
+    staticType: null
+''');
+  }
+
   test_extension_instanceGetter() async {
     await assertNoErrorsInCode('''
 extension E on int {
@@ -1218,6 +1590,99 @@ CommentReference
   expression: SimpleIdentifier
     token: p5
     staticElement: self::@class::A::@method::md::@parameter::p5
+    staticType: null
+''');
+  }
+
+  test_docImport_associatedSetterAndGetter() async {
+    newFile('$testPackageLibPath/foo.dart', r'''
+int get foo => 0;
+
+set foo(int value) {}
+''');
+    await assertNoErrorsInCode(r'''
+/// @docImport 'foo.dart';
+library;
+
+/// [foo]
+void f() {}
+''');
+
+    assertResolvedNodeText(findNode.commentReference('foo]'), r'''
+CommentReference
+  expression: SimpleIdentifier
+    token: foo
+    staticElement: package:test/foo.dart::@getter::foo
+    staticType: null
+''');
+  }
+
+  test_docImport_associatedSetterAndGetter_setterInScope() async {
+    newFile('$testPackageLibPath/foo.dart', r'''
+extension E1 on int {
+  int get foo => 0;
+}
+''');
+    await assertNoErrorsInCode(r'''
+/// @docImport 'foo.dart';
+library;
+
+/// [foo]
+extension E2 on int {
+  set foo(int value) {}
+}
+''');
+
+    assertResolvedNodeText(findNode.commentReference('foo]'), r'''
+CommentReference
+  expression: SimpleIdentifier
+    token: foo
+    staticElement: self::@extension::E2::@setter::foo
+    staticType: null
+''');
+  }
+
+  test_docImport_newKeyword() async {
+    newFile('$testPackageLibPath/foo.dart', r'''
+class A {
+  A();
+  A.named();
+}
+''');
+    await assertErrorsInCode(r'''
+/// @docImport 'foo.dart';
+library;
+
+/// [new A] or [new A.named]
+main() {}
+''', [
+      error(WarningCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE, 42, 3),
+      error(WarningCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE, 53, 3),
+    ]);
+
+    assertResolvedNodeText(findNode.commentReference('A]'), r'''
+CommentReference
+  newKeyword: new
+  expression: SimpleIdentifier
+    token: A
+    staticElement: package:test/foo.dart::@class::A::@constructor::new
+    staticType: null
+''');
+
+    assertResolvedNodeText(findNode.commentReference('A.named]'), r'''
+CommentReference
+  newKeyword: new
+  expression: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      staticElement: package:test/foo.dart::@class::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: named
+      staticElement: package:test/foo.dart::@class::A::@constructor::named
+      staticType: null
+    staticElement: package:test/foo.dart::@class::A::@constructor::named
     staticType: null
 ''');
   }

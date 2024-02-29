@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -52,7 +53,7 @@ class AnnotationResolver {
       (typeArguments) {
         return classElement.instantiate(
           typeArguments: typeArguments,
-          nullabilitySuffix: _resolver.noneOrStarSuffix,
+          nullabilitySuffix: NullabilitySuffix.none,
         );
       },
       whyNotPromotedList,
@@ -68,7 +69,6 @@ class AnnotationResolver {
     ExecutableElement? getter;
     if (getterName != null) {
       getter = classElement.getGetter(getterName.name);
-      getter = _resolver.toLegacyElement(getter);
       // Recovery, try to find a constructor.
       getter ??= classElement.getNamedConstructor(getterName.name);
     } else {
@@ -82,9 +82,9 @@ class AnnotationResolver {
       _propertyAccessorElement(node, getterName, getter, whyNotPromotedList);
       _resolveAnnotationElementGetter(node, getter);
     } else if (getter is! ConstructorElement) {
-      _errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.INVALID_ANNOTATION,
+      _errorReporter.atNode(
         node,
+        CompileTimeErrorCode.INVALID_ANNOTATION,
       );
     }
 
@@ -101,14 +101,13 @@ class AnnotationResolver {
     InterfaceType Function(List<DartType> typeArguments) instantiateElement,
     List<WhyNotPromotedGetter> whyNotPromotedList,
   ) {
-    constructorElement = _resolver.toLegacyElement(constructorElement);
     constructorName?.staticElement = constructorElement;
     node.element = constructorElement;
 
     if (constructorElement == null) {
-      _errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.INVALID_ANNOTATION,
+      _errorReporter.atNode(
         node,
+        CompileTimeErrorCode.INVALID_ANNOTATION,
       );
       AnnotationInferrer(
               resolver: _resolver,
@@ -146,7 +145,6 @@ class AnnotationResolver {
     ExecutableElement? getter;
     if (getterName != null) {
       getter = extensionElement.getGetter(getterName.name);
-      getter = _resolver.toLegacyElement(getter);
     }
 
     getterName?.staticElement = getter;
@@ -156,9 +154,9 @@ class AnnotationResolver {
       _propertyAccessorElement(node, getterName, getter, whyNotPromotedList);
       _resolveAnnotationElementGetter(node, getter);
     } else {
-      _errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.INVALID_ANNOTATION,
+      _errorReporter.atNode(
         node,
+        CompileTimeErrorCode.INVALID_ANNOTATION,
       );
     }
 
@@ -171,8 +169,10 @@ class AnnotationResolver {
     List<WhyNotPromotedGetter> whyNotPromotedList,
   ) {
     if (!element.isConst || node.arguments != null) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.INVALID_ANNOTATION, node);
+      _errorReporter.atNode(
+        node,
+        CompileTimeErrorCode.INVALID_ANNOTATION,
+      );
     }
 
     _visitArguments(node, whyNotPromotedList);
@@ -184,7 +184,6 @@ class AnnotationResolver {
     PropertyAccessorElement element,
     List<WhyNotPromotedGetter> whyNotPromotedList,
   ) {
-    element = _resolver.toLegacyElement(element);
     name.staticElement = element;
     node.element = element;
 
@@ -212,10 +211,10 @@ class AnnotationResolver {
     name1.staticElement = element1;
 
     if (element1 == null) {
-      _errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.UNDEFINED_ANNOTATION,
+      _errorReporter.atNode(
         node,
-        [name1.name],
+        CompileTimeErrorCode.UNDEFINED_ANNOTATION,
+        arguments: [name1.name],
       );
       _visitArguments(node, whyNotPromotedList);
       return;
@@ -278,10 +277,10 @@ class AnnotationResolver {
         }
         // undefined
         if (element == null) {
-          _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.UNDEFINED_ANNOTATION,
+          _errorReporter.atNode(
             node,
-            [name2.name],
+            CompileTimeErrorCode.UNDEFINED_ANNOTATION,
+            arguments: [name2.name],
           );
           _visitArguments(node, whyNotPromotedList);
           return;
@@ -313,9 +312,9 @@ class AnnotationResolver {
       return;
     }
 
-    _errorReporter.reportErrorForNode(
-      CompileTimeErrorCode.INVALID_ANNOTATION,
+    _errorReporter.atNode(
       node,
+      CompileTimeErrorCode.INVALID_ANNOTATION,
     );
 
     _visitArguments(node, whyNotPromotedList);
@@ -329,8 +328,10 @@ class AnnotationResolver {
     if (!accessorElement.isSynthetic ||
         !variableElement.isConst ||
         annotation.arguments != null) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
+      _errorReporter.atNode(
+        annotation,
+        CompileTimeErrorCode.INVALID_ANNOTATION,
+      );
     }
   }
 
@@ -357,7 +358,7 @@ class AnnotationResolver {
       (typeArguments) {
         return typeAliasElement.instantiate(
           typeArguments: typeArguments,
-          nullabilitySuffix: _resolver.noneOrStarSuffix,
+          nullabilitySuffix: NullabilitySuffix.none,
         ) as InterfaceType;
       },
       whyNotPromotedList,
@@ -376,7 +377,6 @@ class AnnotationResolver {
       var classElement = aliasedType.element;
       if (getterName != null) {
         getter = classElement.getGetter(getterName.name);
-        getter = _resolver.toLegacyElement(getter);
       }
     }
 
@@ -387,9 +387,9 @@ class AnnotationResolver {
       _propertyAccessorElement(node, getterName, getter, whyNotPromotedList);
       _resolveAnnotationElementGetter(node, getter);
     } else if (getter is! ConstructorElement) {
-      _errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.INVALID_ANNOTATION,
+      _errorReporter.atNode(
         node,
+        CompileTimeErrorCode.INVALID_ANNOTATION,
       );
     }
 

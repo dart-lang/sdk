@@ -36,7 +36,7 @@ static method main() → void {
     final synthesized self::FooBar /* = self::Foo */ #0#0 = a;
     {
       final hoisted self::Foo a;
-      if(let final self::Foo #t1 = a = #0#0 in true) {
+      if(let final self::Foo #t1 = a = #0#0 as{Unchecked} self::Foo in true) {
         {
           core::print("FooBar ${a}");
         }

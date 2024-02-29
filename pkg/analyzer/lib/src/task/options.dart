@@ -225,11 +225,7 @@ List<AnalysisError> _validatePluginsOption(
   String? firstEnabledPluginName,
 }) {
   RecordingErrorListener recorder = RecordingErrorListener();
-  ErrorReporter reporter = ErrorReporter(
-    recorder,
-    source,
-    isNonNullableByDefault: true,
-  );
+  ErrorReporter reporter = ErrorReporter(recorder, source);
   PluginsOptionValidator(firstEnabledPluginName).validate(reporter, options);
   return recorder.errors;
 }
@@ -753,11 +749,7 @@ class OptionsFileValidator {
 
   List<AnalysisError> validate(YamlMap options) {
     RecordingErrorListener recorder = RecordingErrorListener();
-    ErrorReporter reporter = ErrorReporter(
-      recorder,
-      source,
-      isNonNullableByDefault: false,
-    );
+    ErrorReporter reporter = ErrorReporter(recorder, source);
     for (var validator in _validators) {
       validator.validate(reporter, options);
     }
@@ -787,7 +779,7 @@ class PluginsOptionValidator extends OptionsValidator {
         reporter.reportErrorForSpan(
           AnalysisOptionsWarningCode.MULTIPLE_PLUGINS,
           plugins.span,
-          [_firstIncludedPluginName!],
+          [_firstIncludedPluginName],
         );
       }
     } else if (plugins is YamlList) {
@@ -799,7 +791,7 @@ class PluginsOptionValidator extends OptionsValidator {
             reporter.reportErrorForSpan(
               AnalysisOptionsWarningCode.MULTIPLE_PLUGINS,
               plugin.span,
-              [_firstIncludedPluginName!],
+              [_firstIncludedPluginName],
             );
           }
         }
@@ -833,7 +825,7 @@ class PluginsOptionValidator extends OptionsValidator {
             reporter.reportErrorForSpan(
               AnalysisOptionsWarningCode.MULTIPLE_PLUGINS,
               plugin.span,
-              [_firstIncludedPluginName!],
+              [_firstIncludedPluginName],
             );
           }
         }

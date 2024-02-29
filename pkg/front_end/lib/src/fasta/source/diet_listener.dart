@@ -25,15 +25,15 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/modifier_builder.dart';
-import '../constant_context.dart' show ConstantContext;
-import '../crash.dart' show Crash;
-import '../fasta_codes.dart'
+import '../codes/fasta_codes.dart'
     show
         Code,
         LocatedMessage,
         Message,
         messageExpectedBlockToSkip,
         templateInternalProblemNotFound;
+import '../constant_context.dart' show ConstantContext;
+import '../crash.dart' show Crash;
 import '../identifiers.dart'
     show Identifier, OperatorIdentifier, QualifiedName, SimpleIdentifier;
 import '../ignored_parser_errors.dart' show isIgnoredParserError;
@@ -67,8 +67,6 @@ class DietListener extends StackListenerImpl {
 
   final bool enableNative;
 
-  final bool stringExpectedAfterNative;
-
   final TypeInferenceEngine typeInferenceEngine;
 
   int importExportDirectiveIndex = 0;
@@ -96,8 +94,6 @@ class DietListener extends StackListenerImpl {
         memberScope = library.scope,
         enableNative =
             library.loader.target.backendTarget.enableNative(library.importUri),
-        stringExpectedAfterNative =
-            library.loader.target.backendTarget.nativeExtensionExpectsString,
         _benchmarker = library.loader.target.benchmarker;
 
   DeclarationBuilder? get currentDeclaration => _currentDeclaration;
@@ -371,6 +367,7 @@ class DietListener extends StackListenerImpl {
 
   @override
   void endTopLevelFields(
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -442,6 +439,16 @@ class DietListener extends StackListenerImpl {
     if (hasName) {
       pop(); // Name.
     }
+    pop(); // Annotations.
+  }
+
+  @override
+  void endLibraryAugmentation(
+      Token libraryKeyword, Token augmentKeyword, Token semicolon) {
+    debugEvent("endLibraryAugmentation");
+    assert(checkState(libraryKeyword, [
+      /* metadata */ ValueKinds.TokenOrNull,
+    ]));
     pop(); // Annotations.
   }
 

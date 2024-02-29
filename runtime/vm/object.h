@@ -3324,8 +3324,9 @@ class Function : public Object {
   FunctionPtr ForwardingTarget() const;
   void SetForwardingTarget(const Function& target) const;
 
-  UntaggedFunction::Kind kind() const {
-    return untag()->kind_tag_.Read<KindBits>();
+  UntaggedFunction::Kind kind() const { return KindOf(ptr()); }
+  static UntaggedFunction::Kind KindOf(FunctionPtr func) {
+    return func->untag()->kind_tag_.Read<KindBits>();
   }
 
   UntaggedFunction::AsyncModifier modifier() const {
@@ -3877,6 +3878,9 @@ class Function : public Object {
   bool IsImplicitClosureFunction() const {
     return kind() == UntaggedFunction::kImplicitClosureFunction;
   }
+  static bool IsImplicitClosureFunction(FunctionPtr func) {
+    return KindOf(func) == UntaggedFunction::kImplicitClosureFunction;
+  }
 
   // Returns true if this function represents a non implicit closure function.
   bool IsNonImplicitClosureFunction() const {
@@ -3895,6 +3899,7 @@ class Function : public Object {
   bool IsImplicitInstanceClosureFunction() const {
     return IsImplicitClosureFunction() && !is_static();
   }
+  static bool IsImplicitInstanceClosureFunction(FunctionPtr func);
 
   // Returns true if this function has a parent function.
   bool HasParent() const { return parent_function() != Function::null(); }
@@ -11668,21 +11673,24 @@ class TypedDataBase : public PointerBase {
       return kUint8ArrayElement;
     } else if (IsTypedDataClassId(cid)) {
       const intptr_t index =
-          (cid - kTypedDataInt8ArrayCid - kTypedDataCidRemainderInternal) / 4;
+          (cid - kFirstTypedDataCid - kTypedDataCidRemainderInternal) /
+          kNumTypedDataCidRemainders;
       return static_cast<TypedDataElementType>(index);
     } else if (IsTypedDataViewClassId(cid)) {
       const intptr_t index =
-          (cid - kTypedDataInt8ArrayCid - kTypedDataCidRemainderView) / 4;
+          (cid - kFirstTypedDataCid - kTypedDataCidRemainderView) /
+          kNumTypedDataCidRemainders;
       return static_cast<TypedDataElementType>(index);
     } else if (IsExternalTypedDataClassId(cid)) {
       const intptr_t index =
-          (cid - kTypedDataInt8ArrayCid - kTypedDataCidRemainderExternal) / 4;
+          (cid - kFirstTypedDataCid - kTypedDataCidRemainderExternal) /
+          kNumTypedDataCidRemainders;
       return static_cast<TypedDataElementType>(index);
     } else {
       ASSERT(IsUnmodifiableTypedDataViewClassId(cid));
       const intptr_t index =
-          (cid - kTypedDataInt8ArrayCid - kTypedDataCidRemainderUnmodifiable) /
-          4;
+          (cid - kFirstTypedDataCid - kTypedDataCidRemainderUnmodifiable) /
+          kNumTypedDataCidRemainders;
       return static_cast<TypedDataElementType>(index);
     }
   }
@@ -11748,7 +11756,8 @@ class TypedDataBase : public PointerBase {
     return size;
   }
   static constexpr intptr_t kNumElementSizes =
-      (kTypedDataFloat64x2ArrayCid - kTypedDataInt8ArrayCid) / 4 + 1;
+      ((kLastTypedDataCid + 1) - kFirstTypedDataCid) /
+      kNumTypedDataCidRemainders;
   static const intptr_t element_size_table[kNumElementSizes];
 
   HEAP_OBJECT_IMPLEMENTATION(TypedDataBase, PointerBase);
@@ -12477,12 +12486,20 @@ class Closure : public Instance {
     return closure.untag()->function();
   }
 
-  ContextPtr context() const { return untag()->context(); }
+  ObjectPtr RawContext() const { return untag()->context(); }
+
+  ContextPtr GetContext() const {
+    ASSERT(!Function::IsImplicitClosureFunction(function()));
+    return Context::RawCast(RawContext());
+  }
+
+  InstancePtr GetImplicitClosureReceiver() const {
+    ASSERT(Function::IsImplicitInstanceClosureFunction(function()));
+    return Instance::RawCast(RawContext());
+  }
+
   static intptr_t context_offset() {
     return OFFSET_OF(UntaggedClosure, context_);
-  }
-  static ContextPtr ContextOf(ClosurePtr closure) {
-    return closure.untag()->context();
   }
 
   // Returns whether the closure is generic, that is, it has a generic closure
@@ -12508,14 +12525,14 @@ class Closure : public Instance {
   static ClosurePtr New(const TypeArguments& instantiator_type_arguments,
                         const TypeArguments& function_type_arguments,
                         const Function& function,
-                        const Context& context,
+                        const Object& context,
                         Heap::Space space = Heap::kNew);
 
   static ClosurePtr New(const TypeArguments& instantiator_type_arguments,
                         const TypeArguments& function_type_arguments,
                         const TypeArguments& delayed_type_arguments,
                         const Function& function,
-                        const Context& context,
+                        const Object& context,
                         Heap::Space space = Heap::kNew);
 
   FunctionTypePtr GetInstantiatedSignature(Zone* zone) const;

@@ -33,6 +33,7 @@ class DTDStreamManager extends StreamManager {
         'streamId': stream,
         'eventKind': eventKind,
         'eventData': eventData,
+        'timestamp': DateTime.now().millisecondsSinceEpoch,
       },
     );
   }

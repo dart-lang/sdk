@@ -565,9 +565,14 @@ class Search {
       } else {
         files = await _driver.getFilesReferencingName(name);
       }
-      if (searchedFiles.add(elementFile.path, this)) {
-        if (!files.contains(elementFile)) {
-          files.add(elementFile);
+      // Add all files of the library.
+      if (elementFile.kind.library case var library?) {
+        for (var file in library.files) {
+          if (searchedFiles.add(file.path, this)) {
+            if (!files.contains(file)) {
+              files.add(file);
+            }
+          }
         }
       }
     }
@@ -1121,7 +1126,7 @@ class _FindCompilationUnitDeclarations {
 
     String? parameters;
     if (element is ExecutableElement) {
-      var displayString = element.getDisplayString(withNullability: true);
+      var displayString = element.getDisplayString();
       var parameterIndex = displayString.indexOf('(');
       if (parameterIndex > 0) {
         parameters = displayString.substring(parameterIndex);

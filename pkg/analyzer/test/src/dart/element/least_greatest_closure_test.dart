@@ -20,7 +20,6 @@ class GreatestClosureTest extends AbstractTypeSystemTest {
   late final TypeParameterElement T;
   late final TypeParameterType T_none;
   late final TypeParameterType T_question;
-  late final TypeParameterType T_star;
 
   @override
   void setUp() {
@@ -29,7 +28,6 @@ class GreatestClosureTest extends AbstractTypeSystemTest {
     T = typeParameter('T');
     T_none = typeParameterTypeNone(T);
     T_question = typeParameterTypeQuestion(T);
-    T_star = typeParameterTypeStar(T);
   }
 
   test_contravariant() {
@@ -58,7 +56,6 @@ class GreatestClosureTest extends AbstractTypeSystemTest {
   test_covariant() {
     _check(T_none, greatest: 'Object?', least: 'Never');
     _check(T_question, greatest: 'Object?', least: 'Never?');
-    _check(T_star, greatest: 'Object?', least: 'Never*');
 
     _check(
       listNone(T_none),
@@ -95,18 +92,15 @@ class GreatestClosureTest extends AbstractTypeSystemTest {
   test_unrelated() {
     _check1(intNone, 'int');
     _check1(intQuestion, 'int?');
-    _check1(intStar, 'int*');
 
     _check1(listNone(intNone), 'List<int>');
     _check1(listQuestion(intNone), 'List<int>?');
 
     _check1(objectNone, 'Object');
     _check1(objectQuestion, 'Object?');
-    _check1(objectStar, 'Object*');
 
     _check1(neverNone, 'Never');
     _check1(neverQuestion, 'Never?');
-    _check1(neverStar, 'Never*');
 
     _check1(dynamicType, 'dynamic');
 
@@ -132,13 +126,13 @@ class GreatestClosureTest extends AbstractTypeSystemTest {
   }) {
     var greatestResult = typeSystem.greatestClosure(type, [T]);
     expect(
-      greatestResult.getDisplayString(withNullability: true),
+      greatestResult.getDisplayString(),
       greatest,
     );
 
     var leastResult = typeSystem.leastClosure(type, [T]);
     expect(
-      leastResult.getDisplayString(withNullability: true),
+      leastResult.getDisplayString(),
       least,
     );
   }

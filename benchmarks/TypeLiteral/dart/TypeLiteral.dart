@@ -125,35 +125,43 @@ void main() {
 }
 
 @pragma('vm:never-inline')
+@pragma('wasm:never-inline')
 @pragma('dart2js:noInline')
 Type getT<T>() => T;
 
 @pragma('vm:never-inline')
+@pragma('wasm:never-inline')
 @pragma('dart2js:noInline')
 Type getNullableT<T>() => MakeNullable<T?>;
 
 @pragma('vm:never-inline')
+@pragma('wasm:never-inline')
 @pragma('dart2js:noInline')
 Type getListOfT<T>() => List<T>;
 
 @pragma('vm:never-inline')
+@pragma('wasm:never-inline')
 @pragma('dart2js:noInline')
 Type getListOfNullableT<T>() => List<T?>;
 
 class Foo<T> {
   @pragma('vm:never-inline')
+  @pragma('wasm:never-inline')
   @pragma('dart2js:noInline')
   Type getT() => T;
 
   @pragma('vm:never-inline')
+  @pragma('wasm:never-inline')
   @pragma('dart2js:noInline')
   Type getNullableT() => MakeNullable<T?>;
 
   @pragma('vm:never-inline')
+  @pragma('wasm:never-inline')
   @pragma('dart2js:noInline')
   Type getListOfT() => List<T>;
 
   @pragma('vm:never-inline')
+  @pragma('wasm:never-inline')
   @pragma('dart2js:noInline')
   Type getListOfNullableT() => List<T?>;
 }

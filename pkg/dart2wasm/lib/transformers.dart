@@ -427,6 +427,9 @@ class _WasmTransformer extends Transformer {
     // Try-catch-finally around the body to call `controller.addError` and
     // `controller.close`.
     final exceptionVar = VariableDeclaration(null, isSynthesized: true);
+    final stackTraceVar = VariableDeclaration(null,
+        isSynthesized: true,
+        type: coreTypes.stackTraceRawType(Nullability.nonNullable));
     final Procedure controllerAddErrorProc = coreTypes.index
         .getProcedure('dart:async', 'StreamController', 'addError');
     final FunctionType controllerAddErrorType =
@@ -442,11 +445,12 @@ class _WasmTransformer extends Transformer {
       [
         Catch(
           exceptionVar,
+          stackTrace: stackTraceVar,
           ExpressionStatement(InstanceInvocation(
             InstanceAccessKind.Instance,
             VariableGet(controller),
             Name('addError'),
-            Arguments([VariableGet(exceptionVar)]),
+            Arguments([VariableGet(exceptionVar), VariableGet(stackTraceVar)]),
             interfaceTarget: controllerAddErrorProc,
             functionType: controllerAddErrorType,
           )),

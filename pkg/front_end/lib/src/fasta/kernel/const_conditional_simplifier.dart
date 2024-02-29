@@ -24,7 +24,7 @@ class ConstConditionalSimplifier extends RemovingTransformer {
     this._component,
     ReportErrorFunction _reportError, {
     Map<String, String>? environmentDefines,
-    EvaluationMode evaluationMode = EvaluationMode.weak,
+    required EvaluationMode evaluationMode,
     bool Function(TreeNode)? shouldNotInline,
     CoreTypes? coreTypes,
     ClassHierarchy? classHierarchy,
@@ -122,7 +122,7 @@ class _ConstantEvaluator extends TryConstantEvaluator {
   _ConstantEvaluator(super.librarySupport, super.constantsBackend,
       super.component, super.typeEnvironment, super.reportError,
       {super.environmentDefines,
-      super.evaluationMode,
+      required super.evaluationMode,
       bool Function(TreeNode)? shouldNotInline})
       : _shouldNotInline = shouldNotInline ?? ((_) => false);
 
@@ -138,7 +138,9 @@ class _ConstantEvaluator extends TryConstantEvaluator {
     if (node.typeParameters.isNotEmpty ||
         node.requiredParameterCount != 0 ||
         node.positionalParameters.isNotEmpty ||
-        node.namedParameters.isNotEmpty) return null;
+        node.namedParameters.isNotEmpty) {
+      return null;
+    }
     Statement? body = node.body;
     if (body is! ReturnStatement) return null;
     Expression? expression = body.expression;

@@ -257,7 +257,6 @@ class SendReceiveTest extends SendReceiveTestBase {
     await testFinalizer();
     await testNativeFinalizer();
     await testFinalizable();
-    await testPointer();
 
     await testForbiddenClosures();
   }
@@ -789,13 +788,6 @@ class SendReceiveTest extends SendReceiveTestBase {
 
     final finalizable = MyFinalizable();
     Expect.throwsArgumentError(() => sendPort.send(finalizable));
-  }
-
-  Future testPointer() async {
-    print('testPointer');
-
-    final pointer = Pointer<Int8>.fromAddress(0xdeadbeef);
-    Expect.throwsArgumentError(() => sendPort.send(pointer));
   }
 
   Future testForbiddenClosures() async {

@@ -158,7 +158,9 @@ abstract class Pipeline<S extends ModularStep> {
 
     if ((step.onlyOnMain && !module.isMain) ||
         (step.onlyOnSdk && !module.isSdk) ||
-        (step.notOnSdk && module.isSdk)) return;
+        (step.notOnSdk && module.isSdk)) {
+      return;
+    }
     // Include only requested data from transitive dependencies.
     Map<Module, Set<DataId>> visibleData = {};
 

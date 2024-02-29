@@ -18,7 +18,7 @@ static method test2() → FutureOr<FutureOr<void>> {
   return asy::Future::value<void>(0);
 }
 static method test3() → FutureOr<FutureOr<void>> {
-  return null;
+  return null as{Unchecked} FutureOr<void>;
 }
 static method test4() → FutureOr<FutureOr<void>> {
   return asy::Future::value<asy::Future<void>>(asy::Future::value<void>(null));
@@ -27,8 +27,13 @@ static method test5() → FutureOr<FutureOr<void>> {
   return 42;
 }
 static method test6() → FutureOr<FutureOr<void>> {
-  return asy::Future::value<FutureOr<void>?>(42);
+  return asy::Future::value<FutureOr<void>>(42);
 }
 static method test() → FutureOr<FutureOr<void>> {
   return asy::Future::value<asy::Future<asy::Future<void>>>(asy::Future::value<asy::Future<void>>(asy::Future::value<void>(null)));
 }
+
+
+Extra constant evaluation status:
+Evaluated: AsExpression @ org-dartlang-testcase:///implicit_new2.dart:28:15 -> NullConstant(null)
+Extra constant evaluation: evaluated: 14, effectively constant: 1

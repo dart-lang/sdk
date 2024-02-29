@@ -4,6 +4,7 @@
 
 import 'package:expect/expect.dart';
 import 'package:js_ast/js_ast.dart';
+import 'package:js_ast/src/precedence.dart';
 
 void main() {
   Map<Expression, DeferredExpression> map = {};
@@ -118,7 +119,7 @@ class _DeferredExpression extends DeferredExpression {
   _DeferredExpression(this.value);
 
   @override
-  int get precedenceLevel => value.precedenceLevel;
+  Precedence get precedenceLevel => value.precedenceLevel;
 }
 
 class _Context implements JavaScriptPrintingContext {

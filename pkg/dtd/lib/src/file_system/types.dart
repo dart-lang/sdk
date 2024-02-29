@@ -6,21 +6,18 @@ import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
 
 import '../../dtd.dart';
 
-// TODO(https://github.com/flutter/devtools/issues/6996): find an elegant way
-// to extend DTDResponse.
-
 /// A list or [uris] on the system where the Dart Tooling Daemon is running.
 class UriList {
   /// The key for the type parameter.
-  static const String kType = 'type';
+  static const String _kType = 'type';
 
   /// The key for the uris parameter.
-  static const String kUris = 'uris';
+  static const String _kUris = 'uris';
 
   factory UriList.fromDTDResponse(DTDResponse response) {
-    if (response.result[kType] != type) {
+    if (response.result[_kType] != type) {
       throw json_rpc.RpcException.invalidParams(
-        'Expected $kType param to be $type, got: ${response.result[kType]}',
+        'Expected $_kType param to be $type, got: ${response.result[_kType]}',
       );
     }
     return UriList._fromDTDResponse(response);
@@ -34,18 +31,16 @@ class UriList {
   });
 
   UriList._fromDTDResponse(DTDResponse response)
-      : uris = List<String>.from(response.result[kUris] as List)
+      : uris = List<String>.from(response.result[_kUris] as List)
             .map(Uri.parse)
             .toList();
 
   static String get type => 'UriList';
 
-  Map<String, Object?> toJson() {
-    final json = <String, dynamic>{};
-    json[kType] = type;
-    json[kUris] = uris?.map((f) => f.toString()).toList();
-    return json;
-  }
+  Map<String, Object?> toJson() => <String, Object?>{
+        _kType: type,
+        _kUris: uris?.map((f) => f.toString()).toList(),
+      };
 
   @override
   String toString() => '[UriList uris: $uris]';
@@ -55,15 +50,15 @@ class UriList {
 /// running.
 class FileContent {
   /// The key for the type parameter.
-  static const String kType = 'type';
+  static const String _kType = 'type';
 
   /// The key for the content parameter.
-  static const String kContent = 'content';
+  static const String _kContent = 'content';
 
   factory FileContent.fromDTDResponse(DTDResponse response) {
-    if (response.result[kType] != type) {
+    if (response.result[_kType] != type) {
       throw json_rpc.RpcException.invalidParams(
-        'Expected $kType param to be $type, got: ${response.result[kType]}',
+        'Expected $_kType param to be $type, got: ${response.result[_kType]}',
       );
     }
     return FileContent._fromDTDResponse(response);
@@ -75,18 +70,55 @@ class FileContent {
   FileContent({this.content});
 
   FileContent._fromDTDResponse(DTDResponse response) {
-    content = response.result[kContent] as String?;
+    content = response.result[_kContent] as String?;
   }
 
   static String get type => 'FileContent';
 
-  Map<String, Object?> toJson() {
-    final json = <String, dynamic>{};
-    json[kType] = type;
-    json.addAll({FileContent.kContent: content});
-    return json;
-  }
+  Map<String, Object?> toJson() => <String, Object?>{
+        _kType: type,
+        FileContent._kContent: content,
+      };
 
   @override
   String toString() => '[FileContent content: $content]';
+}
+
+/// The list of roots in the IDE workspace.
+class IDEWorkspaceRoots {
+  /// The key for the type parameter.
+  static const String _kType = 'type';
+  static String get type => 'IDEWorkspaceRoots';
+
+  /// The key for the content parameter.
+  static const String kIDEWorkspaceRoots = 'ideWorkspaceRoots';
+
+  factory IDEWorkspaceRoots.fromDTDResponse(DTDResponse response) {
+    if (response.result[_kType] != type) {
+      throw json_rpc.RpcException.invalidParams(
+        'Expected $_kType param to be $type, got: ${response.result[_kType]}',
+      );
+    }
+    return IDEWorkspaceRoots._fromDTDResponse(response);
+  }
+
+  /// The lists of IDE workspace roots.
+  final List<Uri> ideWorkspaceRoots;
+
+  IDEWorkspaceRoots({required this.ideWorkspaceRoots});
+
+  IDEWorkspaceRoots._fromDTDResponse(DTDResponse response)
+      : ideWorkspaceRoots =
+            List<String>.from(response.result[kIDEWorkspaceRoots] as List)
+                .map(Uri.parse)
+                .toList();
+
+  Map<String, Object?> toJson() => <String, Object?>{
+        _kType: type,
+        kIDEWorkspaceRoots: ideWorkspaceRoots.map((e) => e.toString()).toList(),
+      };
+
+  @override
+  String toString() =>
+      '[IDEWorkspaceRoots ideWorkspaceRoots: $ideWorkspaceRoots]';
 }

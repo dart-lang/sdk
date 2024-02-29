@@ -35,15 +35,15 @@ class E extends core::Object implements for::D {
     : super core::Object::•()
     ;
   no-such-method-forwarder get _privateField() → core::int
-    return throw core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#C10, 1, #C3, #C4, core::Map::unmodifiable<core::Symbol*, dynamic>(#C5)));
+    return throw{for-error-handling} core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#C10, 1, #C3, #C4, core::Map::unmodifiable<core::Symbol*, dynamic>(#C5)));
   no-such-method-forwarder set _privateField(core::int value) → void
-    return throw core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#C11, 2, #C3, core::List::unmodifiable<dynamic>(core::_GrowableList::_literal1<dynamic>(value)), core::Map::unmodifiable<core::Symbol*, dynamic>(#C5)));
+    return throw{for-error-handling} core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#C11, 2, #C3, core::List::unmodifiable<dynamic>(core::_GrowableList::_literal1<dynamic>(value)), core::Map::unmodifiable<core::Symbol*, dynamic>(#C5)));
   no-such-method-forwarder get _privateGetter() → core::int
-    return throw core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#C12, 1, #C3, #C4, core::Map::unmodifiable<core::Symbol*, dynamic>(#C5)));
+    return throw{for-error-handling} core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#C12, 1, #C3, #C4, core::Map::unmodifiable<core::Symbol*, dynamic>(#C5)));
   no-such-method-forwarder method _privateMethod() → void
-    return throw core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#C13, 0, #C3, #C4, core::Map::unmodifiable<core::Symbol*, dynamic>(#C5)));
+    return throw{for-error-handling} core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#C13, 0, #C3, #C4, core::Map::unmodifiable<core::Symbol*, dynamic>(#C5)));
   no-such-method-forwarder set _privateSetter(core::int value) → void
-    return throw core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#C14, 2, #C3, core::List::unmodifiable<dynamic>(core::_GrowableList::_literal1<dynamic>(value)), core::Map::unmodifiable<core::Symbol*, dynamic>(#C5)));
+    return throw{for-error-handling} core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#C14, 2, #C3, core::List::unmodifiable<dynamic>(core::_GrowableList::_literal1<dynamic>(value)), core::Map::unmodifiable<core::Symbol*, dynamic>(#C5)));
 }
 class F extends self::E {
   synthetic constructor •() → self::F

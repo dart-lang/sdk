@@ -185,16 +185,14 @@ void matchIL$testUnboxedRecordInTryCatch(FlowGraph graph) {
         match.block('Join', [
           'v1' << match.StaticCall(),
           'v1_a' << match.ExtractNthOutput('v1', index: 0),
-          'v1_b' << match.ExtractNthOutput('v1', index: 1),
-          'v1_boxed' << match.AllocateSmallRecord('v1_a', 'v1_b'),
           match.MoveArgument('v1_a'),
           match.StaticCall(),
           match.Goto('B3'),
         ]),
     'B2' <<
         match.block('CatchBlock', [
-          'e' << match.SpecialParameter(),
-          'st' << match.SpecialParameter(),
+          'e' << match.Parameter(index: 2),
+          'st' << match.Parameter(index: 3),
           match.MoveArgument('e'),
           match.StaticCall(),
           match.Goto('B3'),

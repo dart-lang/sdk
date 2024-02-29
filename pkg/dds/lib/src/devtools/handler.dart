@@ -15,6 +15,7 @@ import 'package:path/path.dart' as path;
 import 'package:shelf/shelf.dart';
 import 'package:shelf_static/shelf_static.dart';
 import 'package:sse/server/sse_handler.dart';
+import 'package:unified_analytics/unified_analytics.dart';
 
 import '../constants.dart';
 import '../dds_impl.dart';
@@ -35,7 +36,9 @@ FutureOr<Handler> defaultHandler({
   DartDevelopmentServiceImpl? dds,
   required String buildDir,
   ClientManager? clientManager,
+  Analytics? analytics,
   Handler? notFoundHandler,
+  String? dtdUri,
 }) {
   // When served through DDS, the app root is /devtools.
   // This variable is used in base href and must start and end with `/`
@@ -138,6 +141,8 @@ FutureOr<Handler> defaultHandler({
       request,
       extensionsManager: ExtensionsManager(buildDir: buildDir),
       deeplinkManager: DeeplinkManager(),
+      dtdUri: dtdUri,
+      analytics: analytics ?? NoOpAnalytics(),
     );
   }
 

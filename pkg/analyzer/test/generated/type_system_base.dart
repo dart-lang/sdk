@@ -25,8 +25,8 @@ abstract class AbstractTypeSystemTest with ElementsTypesMixin {
 
   void setUp() {
     analysisContext = TestAnalysisContext();
-    typeProvider = analysisContext.typeProviderNonNullableByDefault;
-    typeSystem = analysisContext.typeSystemNonNullableByDefault;
+    typeProvider = analysisContext.typeProvider;
+    typeSystem = analysisContext.typeSystem;
     typeSystemOperations = TypeSystemOperations(typeSystem,
         strictCasts: analysisContext.analysisOptions.strictCasts);
 

@@ -12,7 +12,6 @@ import '../elements/names.dart';
 import '../elements/types.dart';
 import '../ir/closure.dart';
 import '../ir/element_map.dart';
-import '../ir/static_type_cache.dart';
 import '../js_backend/annotations.dart';
 import '../js_model/element_map.dart';
 import '../ordered_typeset.dart';
@@ -523,7 +522,7 @@ class JsScopeInfo extends ScopeInfo {
 
   @override
   void forEachBoxedVariable(
-      KernelToLocalsMap localsMap, f(Local local, FieldEntity field)) {
+      KernelToLocalsMap localsMap, void f(Local local, FieldEntity field)) {
     _ensureBoxedVariableCache(localsMap);
     _boxedVariablesCache!.forEach(f);
   }
@@ -867,7 +866,7 @@ class JsClosureClassInfo extends JsScopeInfo
 
   @override
   void forEachFreeVariable(
-      KernelToLocalsMap localsMap, f(Local variable, JField field)) {
+      KernelToLocalsMap localsMap, void f(Local variable, JField field)) {
     _ensureFieldToLocalsMap(localsMap);
     _ensureBoxedVariableCache(localsMap);
     _fieldToLocalsMap!.forEach((JField field, Local local) {
@@ -882,7 +881,7 @@ class JsClosureClassInfo extends JsScopeInfo
   @override
   Local? getClosureEntity(KernelToLocalsMap localsMap) {
     return _closureEntityVariable != null
-        ? localsMap.getLocalVariable(_closureEntityVariable!)
+        ? localsMap.getLocalVariable(_closureEntityVariable)
         : _closureEntity;
   }
 }
@@ -1203,12 +1202,6 @@ abstract class ClosureMemberData implements JMemberData {
   final InterfaceType? memberThisType;
 
   ClosureMemberData(this.definition, this.memberThisType);
-
-  @override
-  StaticTypeCache get staticTypes {
-    // The cached types are stored in the data for enclosing member.
-    throw UnsupportedError("ClosureMemberData.staticTypes");
-  }
 
   @override
   InterfaceType? getMemberThisType(covariant JsToElementMap elementMap) {

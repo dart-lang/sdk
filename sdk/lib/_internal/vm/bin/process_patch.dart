@@ -282,6 +282,11 @@ base class _ProcessImpl extends _ProcessImplNativeWrapper implements _Process {
     if (_modeHasStdio(_mode)) {
       // stdin going to process.
       _stdin = new _StdSink(new _Socket._writePipe().._owner = this);
+      // Ignore errors if the `Process.stdin.done` future is not consumed.
+      // Developers catch errors writing to `Process.stdin` by consuming
+      // `Process.stdin.done` or calling `Process.stdin.flush()`.
+      _stdin!.done.ignore();
+
       // stdout coming from process.
       _stdout = new _StdStream(new _Socket._readPipe().._owner = this);
       // stderr coming from process.

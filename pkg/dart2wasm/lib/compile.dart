@@ -20,16 +20,21 @@ import 'package:front_end/src/api_unstable/vm.dart'
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/library_index.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart' show writeComponentToText;
 import 'package:kernel/verifier.dart';
 
 import 'package:vm/kernel_front_end.dart' show writeDepfile;
-
+import 'package:vm/transformations/unreachable_code_elimination.dart'
+    as unreachable_code_elimination;
 import 'package:vm/transformations/type_flow/transformer.dart' as globalTypeFlow
     show transformComponent;
+import 'package:vm/transformations/mixin_deduplication.dart'
+    as mixin_deduplication show transformComponent;
 
 import 'package:dart2wasm/compiler_options.dart' as compiler;
+import 'package:dart2wasm/constant_evaluator.dart';
 import 'package:dart2wasm/js/runtime_generator.dart' as js;
 import 'package:dart2wasm/record_class_generator.dart';
 import 'package:dart2wasm/records.dart';
@@ -107,6 +112,23 @@ Future<CompilerOutput?> compileToModule(compiler.WasmCompilerOptions options,
   Component component = compilerResult.component!;
   CoreTypes coreTypes = compilerResult.coreTypes!;
   ClassHierarchy classHierarchy = compilerResult.classHierarchy!;
+  LibraryIndex libraryIndex = LibraryIndex(component, [
+    "dart:_internal",
+    "dart:_js_helper",
+    "dart:_js_types",
+    "dart:_string",
+    "dart:_wasm",
+    "dart:async",
+    "dart:collection",
+    "dart:core",
+    "dart:ffi",
+    "dart:typed_data",
+  ]);
+
+  ConstantEvaluator constantEvaluator = ConstantEvaluator(
+      options, target, component, coreTypes, classHierarchy, libraryIndex);
+  unreachable_code_elimination.transformComponent(target, component,
+      constantEvaluator, options.translatorOptions.enableAsserts);
 
   if (options.dumpKernelAfterCfe != null) {
     writeComponentToText(component, path: options.dumpKernelAfterCfe!);
@@ -122,6 +144,8 @@ Future<CompilerOutput?> compileToModule(compiler.WasmCompilerOptions options,
   if (options.dumpKernelBeforeTfa != null) {
     writeComponentToText(component, path: options.dumpKernelBeforeTfa!);
   }
+
+  mixin_deduplication.transformComponent(component);
 
   globalTypeFlow.transformComponent(target, coreTypes, component,
       treeShakeSignatures: true,
@@ -139,8 +163,8 @@ Future<CompilerOutput?> compileToModule(compiler.WasmCompilerOptions options,
     return true;
   }());
 
-  var translator = Translator(
-      component, coreTypes, recordClasses, options.translatorOptions);
+  var translator = Translator(component, coreTypes, libraryIndex, recordClasses,
+      options.translatorOptions);
 
   String? depFile = options.depFile;
   if (depFile != null) {

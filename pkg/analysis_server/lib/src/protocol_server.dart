@@ -46,32 +46,29 @@ void doSourceChange_addSourceEdit(
   change.addEdit(file, isNewFile ? -1 : 0, edit);
 }
 
-String? getAliasedTypeString(engine.Element element,
-    {required bool withNullability}) {
+String? getAliasedTypeString(engine.Element element) {
   if (element is engine.TypeAliasElement) {
     var aliasedType = element.aliasedType;
-    return aliasedType.getDisplayString(withNullability: withNullability);
+    return aliasedType.getDisplayString();
   }
   return null;
 }
 
-String? getReturnTypeString(engine.Element element,
-    {required bool withNullability}) {
+String? getReturnTypeString(engine.Element element) {
   if (element is engine.ExecutableElement) {
     if (element.kind == engine.ElementKind.SETTER) {
       return null;
     } else {
-      return element.returnType
-          .getDisplayString(withNullability: withNullability);
+      return element.returnType.getDisplayString();
     }
   } else if (element is engine.VariableElement) {
     var type = element.type;
-    return type.getDisplayString(withNullability: withNullability);
+    return type.getDisplayString();
   } else if (element is engine.TypeAliasElement) {
     var aliasedType = element.aliasedType;
     if (aliasedType is FunctionType) {
       var returnType = aliasedType.returnType;
-      return returnType.getDisplayString(withNullability: withNullability);
+      return returnType.getDisplayString();
     }
   }
   return null;
@@ -226,9 +223,8 @@ Location newLocation_fromUnit(
 }
 
 /// Construct based on an element from the analyzer engine.
-OverriddenMember newOverriddenMember_fromEngine(engine.Element member,
-    {required bool withNullability}) {
-  var element = convertElement(member, withNullability: withNullability);
+OverriddenMember newOverriddenMember_fromEngine(engine.Element member) {
+  var element = convertElement(member);
   var className = member.enclosingElement!.displayName;
   return OverriddenMember(element, className);
 }
@@ -278,9 +274,8 @@ List<Element> _computePath(engine.Element element) {
     element = element.enclosingElement.definingCompilationUnit;
   }
 
-  var withNullability = element.library?.isNonNullableByDefault ?? false;
   for (var e in element.withAncestors) {
-    path.add(convertElement(e, withNullability: withNullability));
+    path.add(convertElement(e));
   }
   return path;
 }

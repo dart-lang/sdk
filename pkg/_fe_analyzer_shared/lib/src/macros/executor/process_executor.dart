@@ -7,12 +7,11 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:_fe_analyzer_shared/src/macros/executor/exception_impls.dart';
-
 import '../executor.dart';
-import '../executor/executor_base.dart';
-import '../executor/message_grouper.dart';
-import '../executor/serialization.dart';
+import 'exception_impls.dart';
+import 'executor_base.dart';
+import 'message_grouper.dart';
+import 'serialization.dart';
 
 /// Spawns a [MacroExecutor] as a separate process, by running [program] with
 /// [arguments], and communicating using [serializationMode].
@@ -102,7 +101,12 @@ class _SingleProcessMacroExecutor extends ExternalMacroExecutorBase {
 
     return new _SingleProcessMacroExecutor(
         onClose: () {
-          client.close();
+          try {
+            client.close();
+          } catch (_) {
+            // The `process.kill` two lines down can trigger an exception here
+            // because the remote side closes the socket first. Ignore it.
+          }
           serverSocket.close();
           process.kill();
         },
@@ -145,7 +149,11 @@ class _SingleProcessMacroExecutor extends ExternalMacroExecutorBase {
   }
 
   @override
-  Future<void> close() => new Future.sync(onClose);
+  Future<void> close() {
+    if (isClosed) return new Future.value();
+    isClosed = true;
+    return new Future.sync(onClose);
+  }
 
   /// Sends the [Serializer.result] to [stdin].
   ///

@@ -62,11 +62,11 @@ static extension-type-member method Foo|constructor#_#erroneous#tearOff() → se
   return self::Foo|constructor#erroneous();
 static extension-type-member method Bar|constructor#_<T extends core::Object? = dynamic>(invalid-type i) → self::Bar<self::Bar|constructor#_::T%> /* = invalid-type */
   ;
-static extension-type-member method Bar|constructor#_#_#tearOff<T extends core::Object? = dynamic>(invalid-type i) → self::Bar<self::Bar|constructor#_#_#tearOff::T%>% /* = invalid-type */
+static extension-type-member method Bar|constructor#_#_#tearOff<T extends core::Object? = dynamic>(invalid-type i) → self::Bar<self::Bar|constructor#_#_#tearOff::T%> /* = invalid-type */
   return self::Bar|constructor#_<self::Bar|constructor#_#_#tearOff::T%>(i);
 static extension-type-member method Bar|constructor#<T extends core::Object? = dynamic>(self::Bar|constructor#::T% i) → self::Bar<self::Bar|constructor#::T%> /* = invalid-type */
   ;
-static extension-type-member method Bar|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::Bar|constructor#_#new#tearOff::T% i) → self::Bar<self::Bar|constructor#_#new#tearOff::T%>% /* = invalid-type */
+static extension-type-member method Bar|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::Bar|constructor#_#new#tearOff::T% i) → self::Bar<self::Bar|constructor#_#new#tearOff::T%> /* = invalid-type */
   return self::Bar|constructor#<self::Bar|constructor#_#new#tearOff::T%>(i);
 static method main() → dynamic
   ;

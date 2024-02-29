@@ -121,6 +121,15 @@ abstract class _SharedNodeLocatorTests extends ParserTestCase {
     int? end,
   ]);
 
+  void test_searchWithin_class_afterName_beforeTypeParameters() {
+    var source = r'''
+class A<T> {}
+''';
+    var unit = parseCompilationUnit(source);
+    var node = _assertLocate(unit, source.indexOf('<T> {}'));
+    expect(node, isClassDeclaration);
+  }
+
   void test_searchWithin_constructor_afterName_beforeParameters() {
     var source = r'''
 class A {

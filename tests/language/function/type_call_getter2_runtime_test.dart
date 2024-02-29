@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
+import "package:expect/variations.dart" as v;
 
 class A {
   final call = null;
@@ -23,29 +24,27 @@ main() {
   B b = new B();
   C c = new C();
 
-  if (!dart2jsProductionMode) {
-    Expect.throwsTypeError(() {
-      Function a1 = a as dynamic;
-    });
+  Expect.throwsTypeErrorWhen(v.checkedImplicitDowncasts, () {
+    Function a1 = a as dynamic;
+  });
 
-    Expect.throwsTypeError(() {
-      F a2 = a as dynamic;
-    });
+  Expect.throwsTypeErrorWhen(v.checkedImplicitDowncasts, () {
+    F a2 = a as dynamic;
+  });
 
-    Expect.throwsTypeError(() {
-      Function b1 = b as dynamic;
-    });
+  Expect.throwsTypeErrorWhen(v.checkedImplicitDowncasts, () {
+    Function b1 = b as dynamic;
+  });
 
-    Expect.throwsTypeError(() {
-      F b2 = b as dynamic;
-    });
+  Expect.throwsTypeErrorWhen(v.checkedImplicitDowncasts, () {
+    F b2 = b as dynamic;
+  });
 
-    Expect.throwsTypeError(() {
-      Function c1 = c as dynamic;
-    });
+  Expect.throwsTypeErrorWhen(v.checkedImplicitDowncasts, () {
+    Function c1 = c as dynamic;
+  });
 
-    Expect.throwsTypeError(() {
-      F c2 = c as dynamic;
-    });
-  }
+  Expect.throwsTypeErrorWhen(v.checkedImplicitDowncasts, () {
+    F c2 = c as dynamic;
+  });
 }

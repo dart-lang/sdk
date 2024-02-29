@@ -805,6 +805,11 @@ class DartFixKind {
     DartFixKindPriority.IGNORE - 1,
     "Ignore '{0}' for the whole file",
   );
+  static const IGNORE_ERROR_ANALYSIS_FILE = FixKind(
+    'dart.fix.ignore.analysis',
+    DartFixKindPriority.IGNORE - 2,
+    "Ignore '{0}' in `analysis_options.yaml`",
+  );
   static const IMPORT_ASYNC = FixKind(
     'dart.fix.import.async',
     49,

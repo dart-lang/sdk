@@ -25,13 +25,6 @@ abstract class Uint8ListCopyBenchmark extends BenchmarkBase {
   }
 
   @override
-  void warmup() {
-    for (var i = 0; i < 100; ++i) {
-      run();
-    }
-  }
-
-  @override
   void teardown() {
     for (var i = 0; i < size; ++i) {
       if (result[i] != ((i + 3) & 0xff)) {

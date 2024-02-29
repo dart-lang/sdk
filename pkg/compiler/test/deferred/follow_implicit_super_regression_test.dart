@@ -12,7 +12,7 @@ void main() {
   runTest() async {
     CompilationResult result =
         await runCompiler(memorySourceFiles: MEMORY_SOURCE_FILES);
-    dart2js.Compiler compiler = result.compiler;
+    dart2js.Compiler compiler = result.compiler!;
     var closedWorld = compiler.backendClosedWorldForTesting!;
     var elementEnvironment = closedWorld.elementEnvironment;
 

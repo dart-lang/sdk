@@ -10,7 +10,7 @@ class C<E extends core::Object? = dynamic> extends core::Object {
     self::foo<self::C::E%>(this, let final (self::C::E%, self::C::E%) →? core::int #t1 = cmp in #t1 == null ?{(self::C::E%, self::C::E%) → core::int} #C2 : #t1{(self::C::E%, self::C::E%) → core::int});
   }
   method barB([(self::C::E%, self::C::E%) →? core::int cmp = #C1]) → void {
-    self::foo<self::C::E%>(this, let final (self::C::E%, self::C::E%) →? core::int #t2 = cmp in #t2 == null ?{(self::C::E%, self::C::E%) → core::int} #C2 : #t2{(self::C::E%, self::C::E%) → core::int});
+    self::foo<self::C::E%>(this, let final (self::C::E%, self::C::E%) →? core::int #t2 = cmp in #t2 == null ?{(self::C::E%, self::C::E%) → core::int} #C2 as{Unchecked} (self::C::E%, self::C::E%) → core::int : #t2{(self::C::E%, self::C::E%) → core::int});
   }
   method barC([(self::C::E%, self::C::E%) →? core::int cmp = #C1]) → void {
     (self::C::E%, self::C::E%) → core::int v = #C2;
@@ -39,4 +39,4 @@ constants  {
 
 Extra constant evaluation status:
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///bug30624_2.dart:39:35 -> IntConstant(-1)
-Extra constant evaluation: evaluated: 47, effectively constant: 1
+Extra constant evaluation: evaluated: 48, effectively constant: 1

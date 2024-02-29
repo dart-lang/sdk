@@ -186,11 +186,6 @@ class NormalizeHelper {
       return typeSystem.nullNone;
     }
 
-    // * if S is Never* then Null
-    if (identical(S, NeverTypeImpl.instanceLegacy)) {
-      return typeSystem.nullNone;
-    }
-
     // * if S is Null then Null
     if (S_nullability == NullabilitySuffix.none && S.isDartCoreNull) {
       return typeSystem.nullNone;

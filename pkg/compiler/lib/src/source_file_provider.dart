@@ -199,9 +199,9 @@ class FormattingDiagnosticHandler implements api.CompilerDiagnostics {
   api.Diagnostic? lastKind = null;
   int fatalCount = 0;
 
-  final int FATAL = api.Diagnostic.CRASH.ordinal | api.Diagnostic.ERROR.ordinal;
+  final int FATAL = api.Diagnostic.crash.ordinal | api.Diagnostic.error.ordinal;
   final int INFO =
-      api.Diagnostic.INFO.ordinal | api.Diagnostic.VERBOSE_INFO.ordinal;
+      api.Diagnostic.info.ordinal | api.Diagnostic.verboseInfo.ordinal;
 
   FormattingDiagnosticHandler();
 
@@ -209,8 +209,9 @@ class FormattingDiagnosticHandler implements api.CompilerDiagnostics {
     this.provider = provider;
   }
 
-  void info(var message, [api.Diagnostic kind = api.Diagnostic.VERBOSE_INFO]) {
-    if (!verbose && kind == api.Diagnostic.VERBOSE_INFO) return;
+  void info(String message,
+      [api.Diagnostic kind = api.Diagnostic.verboseInfo]) {
+    if (!verbose && kind == api.Diagnostic.verboseInfo) return;
     if (enableColors) {
       print('${colors.green("Info:")} $message');
     } else {
@@ -221,31 +222,30 @@ class FormattingDiagnosticHandler implements api.CompilerDiagnostics {
   /// Adds [kind] specific prefix to [message].
   String prefixMessage(String message, api.Diagnostic kind) {
     switch (kind) {
-      case api.Diagnostic.ERROR:
+      case api.Diagnostic.error:
         return 'Error: $message';
-      case api.Diagnostic.WARNING:
+      case api.Diagnostic.warning:
         return 'Warning: $message';
-      case api.Diagnostic.HINT:
+      case api.Diagnostic.hint:
         return 'Hint: $message';
-      case api.Diagnostic.CRASH:
+      case api.Diagnostic.crash:
         return 'Internal Error: $message';
-      case api.Diagnostic.CONTEXT:
-      case api.Diagnostic.INFO:
-      case api.Diagnostic.VERBOSE_INFO:
+      case api.Diagnostic.context:
+      case api.Diagnostic.info:
+      case api.Diagnostic.verboseInfo:
         return 'Info: $message';
     }
-    throw 'Unexpected diagnostic kind: $kind (${kind.ordinal})';
   }
 
   @override
   void report(var code, Uri? uri, int? begin, int? end, String message,
       api.Diagnostic kind) {
     if (isAborting) return;
-    isAborting = (kind == api.Diagnostic.CRASH);
+    isAborting = (kind == api.Diagnostic.crash);
 
     bool fatal = (kind.ordinal & FATAL) != 0;
     bool isInfo = (kind.ordinal & INFO) != 0;
-    if (isInfo && uri == null && kind != api.Diagnostic.INFO) {
+    if (isInfo && uri == null && kind != api.Diagnostic.info) {
       info(message, kind);
       return;
     }
@@ -255,25 +255,25 @@ class FormattingDiagnosticHandler implements api.CompilerDiagnostics {
     // [lastKind] records the previous non-INFO kind we saw.
     // This is used to suppress info about a warning when warnings are
     // suppressed, and similar for hints.
-    if (kind != api.Diagnostic.INFO) {
+    if (kind != api.Diagnostic.info) {
       lastKind = kind;
     }
     String Function(String) color;
-    if (kind == api.Diagnostic.ERROR) {
+    if (kind == api.Diagnostic.error) {
       color = colors.red;
-    } else if (kind == api.Diagnostic.WARNING) {
+    } else if (kind == api.Diagnostic.warning) {
       if (!showWarnings) return;
       color = colors.magenta;
-    } else if (kind == api.Diagnostic.HINT) {
+    } else if (kind == api.Diagnostic.hint) {
       if (!showHints) return;
       color = colors.cyan;
-    } else if (kind == api.Diagnostic.CRASH) {
+    } else if (kind == api.Diagnostic.crash) {
       color = colors.red;
-    } else if (kind == api.Diagnostic.INFO) {
+    } else if (kind == api.Diagnostic.info) {
       color = colors.green;
-    } else if (kind == api.Diagnostic.CONTEXT) {
-      if (lastKind == api.Diagnostic.WARNING && !showWarnings) return;
-      if (lastKind == api.Diagnostic.HINT && !showHints) return;
+    } else if (kind == api.Diagnostic.context) {
+      if (lastKind == api.Diagnostic.warning && !showWarnings) return;
+      if (lastKind == api.Diagnostic.hint && !showHints) return;
       color = colors.green;
     } else {
       throw 'Unknown kind: $kind (${kind.ordinal})';
@@ -304,13 +304,14 @@ class FormattingDiagnosticHandler implements api.CompilerDiagnostics {
 }
 
 class _CompilationErrorError {
-  final message;
+  final String message;
   _CompilationErrorError(this.message);
   @override
-  toString() => 'Aborted due to --throw-on-error: $message';
+  String toString() => 'Aborted due to --throw-on-error: $message';
 }
 
-typedef MessageCallback = void Function(String message);
+typedef OnInfo = void Function(String message);
+typedef OnFailure = Never Function(String message);
 
 class RandomAccessFileOutputProvider implements api.CompilerOutput {
   // The file name to use for the main output. Also used as the filename prefix
@@ -318,11 +319,8 @@ class RandomAccessFileOutputProvider implements api.CompilerOutput {
   // primary output but can still write other files.
   final Uri? out;
   final Uri? sourceMapOut;
-  final MessageCallback onInfo;
-
-  // TODO(48820): Make [onFailure] return `Never`. The value passed in for the
-  // real compiler exits. [onFailure] is not specified or faked in some tests.
-  final MessageCallback onFailure;
+  final OnInfo onInfo;
+  final OnFailure onFailure;
 
   int totalCharactersWritten = 0;
   int totalCharactersWrittenPrimary = 0;
@@ -332,9 +330,7 @@ class RandomAccessFileOutputProvider implements api.CompilerOutput {
   List<String> allOutputFiles = <String>[];
 
   RandomAccessFileOutputProvider(this.out, this.sourceMapOut,
-      {this.onInfo = _ignore, this.onFailure = _ignore});
-
-  static void _ignore(String message) {}
+      {required this.onInfo, required this.onFailure});
 
   Uri createUri(String name, String extension, api.OutputType type) {
     Uri uri;
@@ -400,8 +396,6 @@ class RandomAccessFileOutputProvider implements api.CompilerOutput {
           .openSync(mode: FileMode.write);
     } on FileSystemException catch (e) {
       onFailure('$e');
-      // TODO(48820): Make onFailure return `Never`
-      throw StateError('unreachable');
     }
 
     allOutputFiles.add(fe.relativizeUri(Uri.base, uri, Platform.isWindows));
@@ -436,8 +430,6 @@ class RandomAccessFileOutputProvider implements api.CompilerOutput {
           .openSync(mode: FileMode.write);
     } on FileSystemException catch (e) {
       onFailure('$e');
-      // TODO(48820): Make `onFailure` return `Never`.
-      throw StateError('unreachable');
     }
 
     void onClose(int bytesWritten) {

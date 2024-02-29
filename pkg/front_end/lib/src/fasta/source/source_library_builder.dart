@@ -17,6 +17,7 @@ import 'package:kernel/ast.dart' hide Combinator, MapLiteralEntry;
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClassHierarchyBase, ClassHierarchyMembers;
 import 'package:kernel/clone.dart' show CloneVisitorNotMembers;
+import 'package:kernel/names.dart' show indexSetName;
 import 'package:kernel/reference_from_index.dart'
     show IndexedClass, IndexedContainer, IndexedLibrary;
 import 'package:kernel/src/bounds_checks.dart'
@@ -55,11 +56,11 @@ import '../builder/procedure_builder.dart';
 import '../builder/record_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/void_type_declaration_builder.dart';
+import '../codes/fasta_codes.dart';
 import '../combinator.dart' show CombinatorBuilder;
 import '../configuration.dart' show Configuration;
 import '../dill/dill_library_builder.dart' show DillLibraryBuilder;
 import '../export.dart' show Export;
-import '../fasta_codes.dart';
 import '../identifiers.dart' show Identifier, QualifiedName;
 import '../import.dart' show Import;
 import '../kernel/body_builder_context.dart';
@@ -99,7 +100,6 @@ import '../modifier.dart'
         mixinDeclarationMask,
         namedMixinApplicationMask,
         staticMask;
-import '../names.dart' show indexSetName;
 import '../problems.dart' show unexpected, unhandled;
 import '../scope.dart';
 import '../util/helpers.dart';
@@ -512,18 +512,18 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     assert(!isAugmenting,
         "createAugmentationLibrary is only supported on the origin library.");
     int index = _augmentationLibraries?.length ?? 0;
-    Uri uri =
-        new Uri(scheme: augmentationScheme, path: '${fileUri.path}-$index');
-    // TODO(johnniwinther): Add support for printing the generated macro
-    // libraries when running `fasta compile`.
-    /*
-    print('==================================================================');
-    print('Origin library: ${importUri}');
-    print('Augmentation library: $uri');
-    print('-----------------------------source-------------------------------');
-    print(source);
-    print('==================================================================');
-    */
+    Uri uri = new Uri(
+        scheme: intermediateAugmentationScheme, path: '${fileUri.path}-$index');
+
+    if (loader.target.context.options.showGeneratedMacroSourcesForTesting) {
+      print('==============================================================');
+      print('Origin library: ${importUri}');
+      print('Intermediate augmentation library: $uri');
+      print('---------------------------source-----------------------------');
+      print(source);
+      print('==============================================================');
+    }
+
     Map<String, Builder>? omittedTypeDeclarationBuilders;
     if (omittedTypes != null && omittedTypes.isNotEmpty) {
       omittedTypeDeclarationBuilders = {};

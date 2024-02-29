@@ -10,16 +10,12 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/error/codes.g.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
-import 'package:analyzer/src/test_utilities/platform.dart';
 import 'package:test/test.dart';
 
 import 'abstract_context.dart';
 
 class AbstractSingleUnitTest extends AbstractContextTest {
   bool verifyNoTestUnitErrors = true;
-
-  /// Whether to rewrite line endings in test code based on platform.
-  bool useLineEndingsForPlatform = false;
 
   late String testCode;
   late ParsedUnitResult testParsedResult;
@@ -31,7 +27,6 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   late FindElement findElement;
 
   void addTestSource(String code) {
-    code = normalizeSource(code);
     testCode = code;
     newFile(testFile.path, code);
   }
@@ -80,17 +75,6 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     findElement = FindElement(testUnit);
     return result;
   }
-
-  @override
-  File newFile(String path, String content) {
-    content = normalizeSource(content);
-    return super.newFile(path, content);
-  }
-
-  /// Convenient function to normalize newlines in [code] for the current
-  /// platform if [useLineEndingsForPlatform] is `true`.
-  String normalizeSource(String code) =>
-      useLineEndingsForPlatform ? normalizeNewlinesForPlatform(code) : code;
 
   Future<void> parseTestCode(String code) async {
     addTestSource(code);

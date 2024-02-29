@@ -195,17 +195,37 @@ class ErrorNotingLogger implements Logger {
 
   @override
   void logUncaughtError(error, StackTrace stackTrace) {
+    print("Uncaught Error: $error\n$stackTrace");
     gotFailure = true;
   }
+
+  // package:testing logs the result twice: As it happens and at the end.
+  // I don't want that so for now I'll maintain a set of already reported
+  // test results.
+  Set<testing.Result> alreadyReportedResults = {};
 
   @override
   void logUnexpectedResult(Suite suite, testing.TestDescription description,
       testing.Result result, Set<testing.Expectation> expectedOutcomes) {
+    if (!alreadyReportedResults.add(result)) return;
+
+    String log = result.log;
+    if (log.isNotEmpty) {
+      print(log);
+    }
+    if (result.error != null) {
+      print(result.error);
+      if (result.trace != null) {
+        print(result.trace);
+      }
+    }
+
     gotFailure = true;
   }
 
   @override
   void noticeFrameworkCatchError(error, StackTrace stackTrace) {
+    print("Framework Catch Error: $error\n$StackTrace");
     gotFailure = true;
   }
 }

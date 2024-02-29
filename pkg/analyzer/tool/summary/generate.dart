@@ -152,7 +152,7 @@ class _BaseGenerator {
   /// appropriate.
   void out([String s = '']) {
     if (s == '') {
-      _outBuffer.writeln('');
+      _outBuffer.writeln();
     } else {
       _outBuffer.writeln('$_indentation$s');
     }

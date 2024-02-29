@@ -96,7 +96,7 @@ static method testFor() → dynamic {
     {
       final synthesized core::int #0#0 = 0;
       if(!(#0#0 is core::int && (let final dynamic #t1 = i = #0#0 in true)))
-        throw new core::StateError::•("Pattern matching error");
+        throw{for-error-handling} new core::StateError::•("Pattern matching error");
     }
     final core::int #t2 = i;
     for (final core::int i = #t2; i.{core::num::<}(3){(core::num) → core::bool}; invalid-expression "pkg/front_end/testcases/patterns/for_final_variable.dart:11:34: Error: Can't assign to the final variable 'i'.
@@ -115,7 +115,7 @@ static method testFor() → dynamic {
       synthesized core::String #1#2;
       synthesized core::bool #1#2#isSet = false;
       if(!((#1#1#isSet ?{core::int} #1#1{core::int} : let final dynamic #t3 = #1#1#isSet = true in #1#1 = #1#0.$1{core::int}) is core::int && (let final dynamic #t4 = i = #1#1#isSet ?{core::int} #1#1{core::int} : let final dynamic #t5 = #1#1#isSet = true in #1#1 = #1#0.$1{core::int} in true) && ((#1#2#isSet ?{core::String} #1#2{core::String} : let final dynamic #t6 = #1#2#isSet = true in #1#2 = #1#0.$2{core::String}) is core::String && (let final dynamic #t7 = s = #1#2#isSet ?{core::String} #1#2{core::String} : let final dynamic #t8 = #1#2#isSet = true in #1#2 = #1#0.$2{core::String} in true))))
-        throw new core::StateError::•("Pattern matching error");
+        throw{for-error-handling} new core::StateError::•("Pattern matching error");
     }
     final core::int #t9 = i;
     final core::String #t10 = s;
@@ -133,7 +133,7 @@ static method testFor() → dynamic {
       synthesized core::String #2#2;
       synthesized core::bool #2#2#isSet = false;
       if(!((#2#1#isSet ?{core::int} #2#1{core::int} : let final dynamic #t11 = #2#1#isSet = true in #2#1 = #2#0.$1{core::int}) is core::int && (let final dynamic #t12 = i = #2#1#isSet ?{core::int} #2#1{core::int} : let final dynamic #t13 = #2#1#isSet = true in #2#1 = #2#0.$1{core::int} in true) && ((#2#2#isSet ?{core::String} #2#2{core::String} : let final dynamic #t14 = #2#2#isSet = true in #2#2 = #2#0.$2{core::String}) is core::String && (let final dynamic #t15 = s = #2#2#isSet ?{core::String} #2#2{core::String} : let final dynamic #t16 = #2#2#isSet = true in #2#2 = #2#0.$2{core::String} in true))))
-        throw new core::StateError::•("Pattern matching error");
+        throw{for-error-handling} new core::StateError::•("Pattern matching error");
     }
     final core::int #t17 = i;
     final core::String #t18 = s;
@@ -154,7 +154,7 @@ static method testFor() → dynamic {
     {
       final synthesized core::int #3#0 = 0;
       if(!(#3#0 is core::int && (let final dynamic #t21 = i = #3#0 in true)))
-        throw new core::StateError::•("Pattern matching error");
+        throw{for-error-handling} new core::StateError::•("Pattern matching error");
     }
     final core::int #t22 = i;
     for (final core::int i = #t22; i.{core::num::<}(3){(core::num) → core::bool}; invalid-expression "pkg/front_end/testcases/patterns/for_final_variable.dart:24:36: Error: Can't assign to the final variable 'i'.
@@ -173,7 +173,7 @@ static method testFor() → dynamic {
       synthesized core::String #4#2;
       synthesized core::bool #4#2#isSet = false;
       if(!((#4#1#isSet ?{core::int} #4#1{core::int} : let final dynamic #t24 = #4#1#isSet = true in #4#1 = #4#0.$1{core::int}) is core::int && (let final dynamic #t25 = i = #4#1#isSet ?{core::int} #4#1{core::int} : let final dynamic #t26 = #4#1#isSet = true in #4#1 = #4#0.$1{core::int} in true) && ((#4#2#isSet ?{core::String} #4#2{core::String} : let final dynamic #t27 = #4#2#isSet = true in #4#2 = #4#0.$2{core::String}) is core::String && (let final dynamic #t28 = s = #4#2#isSet ?{core::String} #4#2{core::String} : let final dynamic #t29 = #4#2#isSet = true in #4#2 = #4#0.$2{core::String} in true))))
-        throw new core::StateError::•("Pattern matching error");
+        throw{for-error-handling} new core::StateError::•("Pattern matching error");
     }
     final core::int #t30 = i;
     final core::String #t31 = s;
@@ -191,7 +191,7 @@ static method testFor() → dynamic {
       synthesized core::String #5#2;
       synthesized core::bool #5#2#isSet = false;
       if(!((#5#1#isSet ?{core::int} #5#1{core::int} : let final dynamic #t33 = #5#1#isSet = true in #5#1 = #5#0.$1{core::int}) is core::int && (let final dynamic #t34 = i = #5#1#isSet ?{core::int} #5#1{core::int} : let final dynamic #t35 = #5#1#isSet = true in #5#1 = #5#0.$1{core::int} in true) && ((#5#2#isSet ?{core::String} #5#2{core::String} : let final dynamic #t36 = #5#2#isSet = true in #5#2 = #5#0.$2{core::String}) is core::String && (let final dynamic #t37 = s = #5#2#isSet ?{core::String} #5#2{core::String} : let final dynamic #t38 = #5#2#isSet = true in #5#2 = #5#0.$2{core::String} in true))))
-        throw new core::StateError::•("Pattern matching error");
+        throw{for-error-handling} new core::StateError::•("Pattern matching error");
     }
     final core::int #t39 = i;
     final core::String #t40 = s;
@@ -210,7 +210,7 @@ static method testForIn() → dynamic {
     {
       final synthesized core::int #0#0 = #t41;
       if(!(#0#0 is core::int && (let final dynamic #t42 = i = #0#0 in true)))
-        throw new core::StateError::•("Pattern matching error");
+        throw{for-error-handling} new core::StateError::•("Pattern matching error");
     }
     invalid-expression "pkg/front_end/testcases/patterns/for_final_variable.dart:39:5: Error: Can't assign to the final variable 'i'.
     i = i + 1; // Error
@@ -226,7 +226,7 @@ static method testForIn() → dynamic {
       synthesized core::String #1#2;
       synthesized core::bool #1#2#isSet = false;
       if(!((#1#1#isSet ?{core::int} #1#1{core::int} : let final dynamic #t44 = #1#1#isSet = true in #1#1 = #1#0.$1{core::int}) is core::int && (let final dynamic #t45 = i = #1#1#isSet ?{core::int} #1#1{core::int} : let final dynamic #t46 = #1#1#isSet = true in #1#1 = #1#0.$1{core::int} in true) && ((#1#2#isSet ?{core::String} #1#2{core::String} : let final dynamic #t47 = #1#2#isSet = true in #1#2 = #1#0.$2{core::String}) is core::String && (let final dynamic #t48 = s = #1#2#isSet ?{core::String} #1#2{core::String} : let final dynamic #t49 = #1#2#isSet = true in #1#2 = #1#0.$2{core::String} in true))))
-        throw new core::StateError::•("Pattern matching error");
+        throw{for-error-handling} new core::StateError::•("Pattern matching error");
     }
     invalid-expression "pkg/front_end/testcases/patterns/for_final_variable.dart:42:5: Error: Can't assign to the final variable 'i'.
     i = i + 1; // Error
@@ -242,7 +242,7 @@ static method testForIn() → dynamic {
       synthesized core::String #2#2;
       synthesized core::bool #2#2#isSet = false;
       if(!((#2#1#isSet ?{core::int} #2#1{core::int} : let final dynamic #t51 = #2#1#isSet = true in #2#1 = #2#0.$1{core::int}) is core::int && (let final dynamic #t52 = i = #2#1#isSet ?{core::int} #2#1{core::int} : let final dynamic #t53 = #2#1#isSet = true in #2#1 = #2#0.$1{core::int} in true) && ((#2#2#isSet ?{core::String} #2#2{core::String} : let final dynamic #t54 = #2#2#isSet = true in #2#2 = #2#0.$2{core::String}) is core::String && (let final dynamic #t55 = s = #2#2#isSet ?{core::String} #2#2{core::String} : let final dynamic #t56 = #2#2#isSet = true in #2#2 = #2#0.$2{core::String} in true))))
-        throw new core::StateError::•("Pattern matching error");
+        throw{for-error-handling} new core::StateError::•("Pattern matching error");
     }
     i = i.{core::num::+}(1){(core::num) → core::int};
   }
@@ -260,7 +260,7 @@ static method testForIn() → dynamic {
       {
         final synthesized core::int #3#0 = #t59;
         if(!(#3#0 is core::int && (let final dynamic #t60 = i = #3#0 in true)))
-          throw new core::StateError::•("Pattern matching error");
+          throw{for-error-handling} new core::StateError::•("Pattern matching error");
       }
       #t58.{core::List::add}{Invariant}(invalid-expression "pkg/front_end/testcases/patterns/for_final_variable.dart:51:38: Error: Can't assign to the final variable 'i'.
     for (final (int i) in [1, 2, 3]) i = i + 1 // Error
@@ -279,7 +279,7 @@ static method testForIn() → dynamic {
         synthesized core::String #4#2;
         synthesized core::bool #4#2#isSet = false;
         if(!((#4#1#isSet ?{core::int} #4#1{core::int} : let final dynamic #t63 = #4#1#isSet = true in #4#1 = #4#0.$1{core::int}) is core::int && (let final dynamic #t64 = i = #4#1#isSet ?{core::int} #4#1{core::int} : let final dynamic #t65 = #4#1#isSet = true in #4#1 = #4#0.$1{core::int} in true) && ((#4#2#isSet ?{core::String} #4#2{core::String} : let final dynamic #t66 = #4#2#isSet = true in #4#2 = #4#0.$2{core::String}) is core::String && (let final dynamic #t67 = s = #4#2#isSet ?{core::String} #4#2{core::String} : let final dynamic #t68 = #4#2#isSet = true in #4#2 = #4#0.$2{core::String} in true))))
-          throw new core::StateError::•("Pattern matching error");
+          throw{for-error-handling} new core::StateError::•("Pattern matching error");
       }
       #t61.{core::List::add}{Invariant}(invalid-expression "pkg/front_end/testcases/patterns/for_final_variable.dart:55:7: Error: Can't assign to the final variable 'i'.
       i = i + 1 // Error
@@ -298,7 +298,7 @@ static method testForIn() → dynamic {
         synthesized core::String #5#2;
         synthesized core::bool #5#2#isSet = false;
         if(!((#5#1#isSet ?{core::int} #5#1{core::int} : let final dynamic #t71 = #5#1#isSet = true in #5#1 = #5#0.$1{core::int}) is core::int && (let final dynamic #t72 = i = #5#1#isSet ?{core::int} #5#1{core::int} : let final dynamic #t73 = #5#1#isSet = true in #5#1 = #5#0.$1{core::int} in true) && ((#5#2#isSet ?{core::String} #5#2{core::String} : let final dynamic #t74 = #5#2#isSet = true in #5#2 = #5#0.$2{core::String}) is core::String && (let final dynamic #t75 = s = #5#2#isSet ?{core::String} #5#2{core::String} : let final dynamic #t76 = #5#2#isSet = true in #5#2 = #5#0.$2{core::String} in true))))
-          throw new core::StateError::•("Pattern matching error");
+          throw{for-error-handling} new core::StateError::•("Pattern matching error");
       }
       #t69.{core::List::add}{Invariant}(i = i.{core::num::+}(1){(core::num) → core::int}){(core::int) → void};
     }

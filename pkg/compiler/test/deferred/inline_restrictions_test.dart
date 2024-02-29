@@ -16,7 +16,7 @@ void main() {
     OutputCollector collector = OutputCollector();
     CompilationResult result = await runCompiler(
         memorySourceFiles: MEMORY_SOURCE_FILES, outputProvider: collector);
-    Compiler compiler = result.compiler;
+    Compiler compiler = result.compiler!;
     var closedWorld = compiler.backendClosedWorldForTesting!;
     var env = closedWorld.elementEnvironment;
     var outputUnitForMember = closedWorld.outputUnitData.outputUnitForMember;

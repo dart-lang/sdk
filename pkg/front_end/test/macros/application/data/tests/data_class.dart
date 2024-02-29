@@ -21,7 +21,8 @@ augment class Foo {
   augment prefix0.String toString() {
     return "Foo(bar=${this.bar},baz=${this.baz})";
   }
-}*/
+}
+*/
 
 import 'package:macro/data_class.dart';
 

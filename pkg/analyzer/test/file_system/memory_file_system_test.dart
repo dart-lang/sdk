@@ -23,6 +23,7 @@ main() {
     defineReflectiveTests(MemoryFileSourceNotExistingTest);
     defineReflectiveTests(MemoryFileTest);
     defineReflectiveTests(MemoryFolderTest);
+    defineReflectiveTests(MemoryLinkTest);
     defineReflectiveTests(MemoryResourceProviderTest);
   });
 }
@@ -57,11 +58,6 @@ abstract class BaseTest extends FileSystemTestSupport {
   @override
   MemoryResourceProvider get provider => _provider ??= createProvider();
 
-  @override
-  void createLink({required String path, required String target}) {
-    provider.newLink(path, target);
-  }
-
   /// Create the resource provider to be used by the tests. Subclasses can
   /// override this method to change the class of resource provider that is
   /// used.
@@ -91,6 +87,17 @@ abstract class BaseTest extends FileSystemTestSupport {
       provider.newFolder(folderPath);
     }
     return provider.getFolder(folderPath);
+  }
+
+  @override
+  Link getLink({required String linkPath, String? target}) {
+    linkPath = provider.convertPath(linkPath);
+    if (target != null) {
+      target = provider.convertPath(target);
+
+      provider.newLink(linkPath, target);
+    }
+    return provider.getLink(linkPath);
   }
 
   setUp() {
@@ -291,6 +298,9 @@ class MemoryFolderTest extends BaseTest with FolderTestMixin {
     expect(provider.getFolder(path).isRoot, isTrue);
   }
 }
+
+@reflectiveTest
+class MemoryLinkTest extends BaseTest with LinkTestMixin {}
 
 @reflectiveTest
 class MemoryResourceProviderTest extends BaseTest

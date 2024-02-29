@@ -322,7 +322,7 @@ abstract class _MyList&Object&ListMixin<E extends core::Object? = dynamic> exten
     }
   }
   method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ fillRange(core::int start, core::int end, [covariant-by-class self::_MyList&Object&ListMixin::E? fill = #C2]) → void {
-    self::_MyList&Object&ListMixin::E% value = let self::_MyList&Object&ListMixin::E? #t6 = fill in #t6 == null ?{self::_MyList&Object&ListMixin::E%} #t6 : #t6{self::_MyList&Object&ListMixin::E%};
+    self::_MyList&Object&ListMixin::E% value = let self::_MyList&Object&ListMixin::E? #t6 = fill in #t6 == null ?{self::_MyList&Object&ListMixin::E%} #t6 as{Unchecked} self::_MyList&Object&ListMixin::E% : #t6{self::_MyList&Object&ListMixin::E%};
     core::RangeError::checkValidRange(start, end, this.{core::List::length}{core::int});
     for (core::int i = start; i.{core::num::<}(end){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
       this.{core::List::[]=}(i, value){(core::int, self::_MyList&Object&ListMixin::E%) → void};
@@ -557,7 +557,7 @@ static method test1(core::Object o) → core::String
           break #L1;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t9;
 static method test2(core::Object o) → core::String
@@ -582,7 +582,7 @@ static method test2(core::Object o) → core::String
           break #L2;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t11;
 static method test3(core::Object o) → core::String
@@ -619,7 +619,7 @@ static method test3(core::Object o) → core::String
           break #L3;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t12;
 static method main() → dynamic {
@@ -656,4 +656,4 @@ Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart
 Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:462:12 -> IntConstant(-1)
 Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:471:12 -> IntConstant(-1)
 Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:480:12 -> IntConstant(-1)
-Extra constant evaluation: evaluated: 1238, effectively constant: 4
+Extra constant evaluation: evaluated: 1239, effectively constant: 4

@@ -191,7 +191,7 @@ class CustomElementsAnalysisJoin {
         }
         if (_backendUsageBuilder != null) {
           escapingConstructors
-              .forEach(_backendUsageBuilder!.registerGlobalFunctionDependency);
+              .forEach(_backendUsageBuilder.registerGlobalFunctionDependency);
         }
         // Force the generation of the type constant that is the key to an entry
         // in the generated table.

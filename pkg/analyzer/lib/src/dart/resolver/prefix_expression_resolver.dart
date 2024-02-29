@@ -44,7 +44,7 @@ class PrefixExpressionResolver {
     var operator = node.operator.type;
 
     if (operator == TokenType.BANG) {
-      _resolveNegation(node, contextType: contextType);
+      _resolveNegation(node);
       return;
     }
 
@@ -83,7 +83,7 @@ class PrefixExpressionResolver {
     }
 
     _resolve1(node);
-    _resolve2(node, contextType: contextType);
+    _resolve2(node);
   }
 
   /// Check that the result [type] of a prefix or postfix `++` or `--`
@@ -95,10 +95,10 @@ class PrefixExpressionResolver {
     var operandWriteType = node.writeType!;
     if (!_typeSystem.isAssignableTo(type, operandWriteType,
         strictCasts: _resolver.analysisOptions.strictCasts)) {
-      _resolver.errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.INVALID_ASSIGNMENT,
+      _resolver.errorReporter.atNode(
         node,
-        [type, operandWriteType],
+        CompileTimeErrorCode.INVALID_ASSIGNMENT,
+        arguments: [type, operandWriteType],
       );
     }
   }
@@ -153,10 +153,11 @@ class PrefixExpressionResolver {
         if (member == null) {
           // Extension overrides always refer to named extensions, so we can
           // safely assume `element.name` is non-`null`.
-          _errorReporter.reportErrorForToken(
-              CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR,
-              node.operator,
-              [methodName, element.name!]);
+          _errorReporter.atToken(
+            node.operator,
+            CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR,
+            arguments: [methodName, element.name!],
+          );
         }
         node.staticElement = member;
         return;
@@ -167,9 +168,9 @@ class PrefixExpressionResolver {
         return;
       }
       if (identical(readType, NeverTypeImpl.instance)) {
-        _resolver.errorReporter.reportErrorForNode(
-          WarningCode.RECEIVER_OF_TYPE_NEVER,
+        _resolver.errorReporter.atNode(
           operand,
+          WarningCode.RECEIVER_OF_TYPE_NEVER,
         );
         return;
       }
@@ -184,28 +185,27 @@ class PrefixExpressionResolver {
       node.staticElement = result.getter as MethodElement?;
       if (result.needsGetterError) {
         if (operand is SuperExpression) {
-          _errorReporter.reportErrorForToken(
-            CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR,
+          _errorReporter.atToken(
             operator,
-            [methodName, readType],
+            CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR,
+            arguments: [methodName, readType],
           );
         } else {
-          _errorReporter.reportErrorForToken(
-            CompileTimeErrorCode.UNDEFINED_OPERATOR,
+          _errorReporter.atToken(
             operator,
-            [methodName, readType],
+            CompileTimeErrorCode.UNDEFINED_OPERATOR,
+            arguments: [methodName, readType],
           );
         }
       }
     }
   }
 
-  void _resolve2(PrefixExpressionImpl node, {required DartType? contextType}) {
+  void _resolve2(PrefixExpressionImpl node) {
     TokenType operator = node.operator.type;
     final readType = node.readType ?? node.operand.staticType;
     if (identical(readType, NeverTypeImpl.instance)) {
-      _inferenceHelper.recordStaticType(node, NeverTypeImpl.instance,
-          contextType: contextType);
+      _inferenceHelper.recordStaticType(node, NeverTypeImpl.instance);
     } else {
       // The other cases are equivalent to invoking a method.
       DartType staticType;
@@ -233,14 +233,12 @@ class PrefixExpressionResolver {
           }
         }
       }
-      _inferenceHelper.recordStaticType(node, staticType,
-          contextType: contextType);
+      _inferenceHelper.recordStaticType(node, staticType);
     }
     _resolver.nullShortingTermination(node);
   }
 
-  void _resolveNegation(PrefixExpressionImpl node,
-      {required DartType? contextType}) {
+  void _resolveNegation(PrefixExpressionImpl node) {
     var operand = node.operand;
 
     _resolver.analyzeExpression(operand, _typeProvider.boolType);
@@ -250,8 +248,7 @@ class PrefixExpressionResolver {
     _resolver.boolExpressionVerifier.checkForNonBoolNegationExpression(operand,
         whyNotPromoted: whyNotPromoted);
 
-    _inferenceHelper.recordStaticType(node, _typeProvider.boolType,
-        contextType: contextType);
+    _inferenceHelper.recordStaticType(node, _typeProvider.boolType);
 
     _resolver.flowAnalysis.flow?.logicalNot_end(node, operand);
   }

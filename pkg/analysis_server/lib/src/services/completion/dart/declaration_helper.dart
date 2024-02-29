@@ -16,6 +16,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// A helper class that produces candidate suggestions for all of the
 /// declarations that are in scope at the completion location.
@@ -361,26 +362,29 @@ class DeclarationHelper {
     }
     switch (element) {
       case EnumElement():
+        var augmented = element.augmented;
         _addStaticMembers(
-            accessors: element.accessors,
+            accessors: augmented?.accessors ?? element.accessors,
             constructors: const [],
             containingElement: element,
-            fields: element.fields,
-            methods: element.methods);
+            fields: augmented?.fields ?? element.fields,
+            methods: augmented?.methods ?? element.methods);
       case ExtensionElement():
+        var augmented = element.augmented;
         _addStaticMembers(
-            accessors: element.accessors,
+            accessors: augmented?.accessors ?? element.accessors,
             constructors: const [],
             containingElement: element,
-            fields: element.fields,
-            methods: element.methods);
+            fields: augmented?.fields ?? element.fields,
+            methods: augmented?.methods ?? element.methods);
       case InterfaceElement():
+        var augmented = element.augmented;
         _addStaticMembers(
-            accessors: element.accessors,
-            constructors: element.constructors,
+            accessors: augmented?.accessors ?? element.accessors,
+            constructors: augmented?.constructors ?? element.constructors,
             containingElement: element,
-            fields: element.fields,
-            methods: element.methods);
+            fields: augmented?.fields ?? element.fields,
+            methods: augmented?.methods ?? element.methods);
     }
   }
 
@@ -768,6 +772,8 @@ class DeclarationHelper {
 
   /// Adds suggestions for the [members] of the [containingElement].
   void _addMembers(Element containingElement, NodeList<ClassMember> members) {
+    // TODO(brianwilkerson): Replace this method with methods similar to
+    //  `_addMembersOfClass`.
     for (var member in members) {
       switch (member) {
         case ConstructorDeclaration():
@@ -795,6 +801,24 @@ class DeclarationHelper {
           }
       }
     }
+    // Add any immediate members from augmentations.
+    var augmentation = containingElement.augmentation;
+    while (augmentation is ClassElement) {
+      for (var accessor in augmentation.accessors) {
+        if (!accessor.isSynthetic) {
+          _suggestProperty(accessor, containingElement);
+        }
+      }
+      for (var field in augmentation.fields) {
+        if (!field.isSynthetic) {
+          _suggestField(field, containingElement);
+        }
+      }
+      for (var method in augmentation.methods) {
+        _suggestMethod(method, containingElement);
+      }
+      augmentation = augmentation.augmentation;
+    }
   }
 
   /// Adds suggestions for any members of the [parent].
@@ -807,7 +831,7 @@ class DeclarationHelper {
         var classElement = parent.declaredElement;
         if (classElement != null) {
           if (!mustBeType) {
-            _addMembers(classElement, parent.members);
+            _addMembersOfClass(classElement);
           }
           _suggestTypeParameters(classElement.typeParameters);
         }
@@ -862,6 +886,27 @@ class DeclarationHelper {
         if (aliasElement is TypeAliasElement) {
           _suggestTypeParameters(aliasElement.typeParameters);
         }
+    }
+  }
+
+  /// Adds suggestions for the [members] of the [containingElement].
+  void _addMembersOfClass(ClassElement classElement) {
+    // Add any immediate members from augmentations.
+    var augmented = classElement.augmented;
+    for (var accessor in augmented?.accessors ?? classElement.accessors) {
+      if (!accessor.isSynthetic && (!mustBeStatic || accessor.isStatic)) {
+        _suggestProperty(accessor, classElement);
+      }
+    }
+    for (var field in augmented?.fields ?? classElement.fields) {
+      if (!field.isSynthetic && (!mustBeStatic || field.isStatic)) {
+        _suggestField(field, classElement);
+      }
+    }
+    for (var method in augmented?.methods ?? classElement.methods) {
+      if (!mustBeStatic || method.isStatic) {
+        _suggestMethod(method, classElement);
+      }
     }
   }
 
@@ -988,9 +1033,11 @@ class DeclarationHelper {
         collector.addSuggestion(suggestion);
       }
       if (!mustBeType) {
-        _suggestStaticFields(element.fields, importData);
-        _suggestConstructors(element.constructors, importData,
-            allowNonFactory: !element.isAbstract);
+        if (element.augmented case var augmented?) {
+          _suggestStaticFields(augmented.fields, importData);
+          _suggestConstructors(augmented.constructors, importData,
+              allowNonFactory: !element.isAbstract);
+        }
       }
     }
   }
@@ -1032,9 +1079,11 @@ class DeclarationHelper {
       var suggestion = EnumSuggestion(importData, element);
       collector.addSuggestion(suggestion);
       if (!mustBeType) {
-        _suggestStaticFields(element.fields, importData);
-        _suggestConstructors(element.constructors, importData,
-            allowNonFactory: false);
+        if (element.augmented case var augmented?) {
+          _suggestStaticFields(augmented.fields, importData);
+          _suggestConstructors(augmented.constructors, importData,
+              allowNonFactory: false);
+        }
       }
     }
   }
@@ -1049,7 +1098,9 @@ class DeclarationHelper {
       var suggestion = ExtensionSuggestion(importData, element);
       collector.addSuggestion(suggestion);
       if (!mustBeType) {
-        _suggestStaticFields(element.fields, importData);
+        if (element.augmented case var augmented?) {
+          _suggestStaticFields(augmented.fields, importData);
+        }
       }
     }
   }
@@ -1065,8 +1116,10 @@ class DeclarationHelper {
       var suggestion = ExtensionTypeSuggestion(importData, element);
       collector.addSuggestion(suggestion);
       if (!mustBeType) {
-        _suggestStaticFields(element.fields, importData);
-        _suggestConstructors(element.constructors, importData);
+        if (element.augmented case var augmented?) {
+          _suggestStaticFields(augmented.fields, importData);
+          _suggestConstructors(augmented.constructors, importData);
+        }
       }
     }
   }
@@ -1136,7 +1189,9 @@ class DeclarationHelper {
       var suggestion = MixinSuggestion(importData, element);
       collector.addSuggestion(suggestion);
       if (!mustBeType) {
-        _suggestStaticFields(element.fields, importData);
+        if (element.augmented case var augmented?) {
+          _suggestStaticFields(augmented.fields, importData);
+        }
       }
     }
   }
@@ -1345,6 +1400,8 @@ class DeclarationHelper {
       if (declaredElement != null) {
         _suggestVariable(declaredElement);
       }
+    } else if (node is ForEachPartsWithPattern) {
+      _visitPattern(node.pattern);
     } else if (node is ForPartsWithDeclarations) {
       var variables = node.variables;
       for (var variable in variables.variables) {
@@ -1353,6 +1410,8 @@ class DeclarationHelper {
           _suggestVariable(declaredElement);
         }
       }
+    } else if (node is ForPartsWithPattern) {
+      _visitPattern(node.variables.pattern);
     }
   }
 

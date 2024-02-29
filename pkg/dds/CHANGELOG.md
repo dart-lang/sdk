@@ -1,5 +1,15 @@
-# 3.1.3-unreleased
+# 3.3.0-unreleased
+- **Breaking change:** [DAP] Several signatures in DAP debug adapter classes have been updated to use `Uri`s where they previously used `String path`s. This is to support communicating with the DAP client using URIs instead of file paths. URIs may be used only when the client sets the custom `supportsDartUris` client capability during initialization.
+
+# 3.2.1
+- Adding `unified_analytics` as a dependency and added static method `DevToolsUtils.initializeAnalytics` to create analytics instance for DevTools.
+- Updated `devtools_shared` constraint to ^7.0.0.
+
+# 3.2.0
 - [DAP] Fixed "Unable to find library" errors when using global evaluation when the context file resolves to a `package:` URI.
+- Updated `devtools_shared` to ^6.0.4.
+- Added `--dtd-uri=<uri>` flag to DevTools server.
+- Updated `vm_service` constraint to ^14.0.0.
 
 # 3.1.2
 - Improved error handling for serving static DevTools assets.
@@ -8,6 +18,7 @@
 - [DAP] Error messages shown on the client no longer contain verbose stack traces (although they are still included in the JSON payloads).
 - [DAP] `stackTraceRequest` now returns an empty stack instead of throwing if called for a thread that has exited.
 - [DAP] Fixed an issue that could cause a crash during shutdown if an isolate was being resumed.
+- Updated `vm_service` constraint to ^13.0.0.
 
 # 3.1.1
 - Updated `vm_service` constraint to ^14.0.0.

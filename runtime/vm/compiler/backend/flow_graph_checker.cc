@@ -181,9 +181,7 @@ void FlowGraphChecker::VisitInstructions(BlockEntryInstr* block) {
   if (auto entry = block->AsBlockEntryWithInitialDefs()) {
     for (auto def : *entry->initial_definitions()) {
       ASSERT(def != nullptr);
-      ASSERT1(
-          def->IsConstant() || def->IsParameter() || def->IsSpecialParameter(),
-          def);
+      ASSERT1(def->IsConstant() || def->IsParameter(), def);
       // Make sure block lookup agrees.
       ASSERT1(def->GetBlock() == entry, def);
       // Initial definitions are partially linked into graph.
@@ -360,8 +358,7 @@ void FlowGraphChecker::VisitUseDef(Instruction* instruction,
     // Phis are never linked into graph.
     ASSERT1(def->next() == nullptr, def);
     ASSERT1(def->previous() == nullptr, def);
-  } else if (def->IsConstant() || def->IsParameter() ||
-             def->IsSpecialParameter()) {
+  } else if (def->IsConstant() || def->IsParameter()) {
     // Initial definitions are partially linked into graph, but some
     // constants are fully linked into graph (so no next() assert).
     ASSERT1(def->previous() != nullptr, def);

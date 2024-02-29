@@ -139,7 +139,7 @@ class C<T extends num> {}
 var t = C<String>;
 ''', [
       error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 36, 6,
-          contextMessages: [message('/home/test/lib/test.dart', 34, 9)]),
+          contextMessages: [message(testFile, 34, 9)]),
     ]);
 
     final node = findNode.typeLiteral('C<String>;');
@@ -301,7 +301,7 @@ typedef CA<T extends num> = C<T>;
 var t = CA<String>;
 ''', [
       error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 59, 6,
-          contextMessages: [message('/home/test/lib/test.dart', 56, 10)]),
+          contextMessages: [message(testFile, 56, 10)]),
     ]);
 
     final node = findNode.typeLiteral('CA<String>;');
@@ -778,7 +778,7 @@ typedef Fn<T extends num> = void Function(T);
 var t = Fn<String>;
 ''', [
       error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 57, 6,
-          contextMessages: [message('/home/test/lib/test.dart', 54, 10)]),
+          contextMessages: [message(testFile, 54, 10)]),
     ]);
 
     final node = findNode.typeLiteral('Fn<String>;');

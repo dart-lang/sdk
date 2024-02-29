@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:args/args.dart';
 import 'package:shelf/shelf.dart';
@@ -11,29 +13,40 @@ import 'package:sse/server/sse_handler.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:shelf_web_socket/shelf_web_socket.dart';
 import 'package:shelf/shelf_io.dart' as io;
-import 'package:dtd/dtd.dart' as dtd;
-import 'package:dtd/dtd_file_system_service.dart';
 
 import 'src/constants.dart';
 import 'src/dtd_client.dart';
 import 'src/dtd_client_manager.dart';
 import 'src/dtd_stream_manager.dart';
+import 'src/file_system_service.dart';
 
 /// Contains all the flags and options used by the DTD argument parser.
 enum DartToolingDaemonOptions {
   // Used when executing a training run while generating an AppJIT snapshot as
   // part of an SDK build.
-  train(isFlag: true, negatable: false, hide: true);
+  train(isFlag: true, negatable: false, hide: true),
+  machine(
+    isFlag: true,
+    negatable: false,
+    help: 'Sets output format to JSON for consumption in tools.',
+  ),
+  unrestricted(
+    isFlag: true,
+    negatable: false,
+    help: 'Disables restrictions on services registered by DTD.',
+  );
 
   const DartToolingDaemonOptions({
     required this.isFlag,
     this.negatable = true,
     this.hide = false,
+    this.help,
   });
 
   final bool isFlag;
   final bool negatable;
   final bool hide;
+  final String? help;
 
   /// Returns an argument parser that can be used to configure the daemon.
   static ArgParser createArgParser({
@@ -46,6 +59,7 @@ enum DartToolingDaemonOptions {
           entry.name,
           negatable: entry.negatable,
           hide: entry.hide,
+          help: entry.help,
         );
       } else {
         throw UnimplementedError('Add support for options');
@@ -60,12 +74,18 @@ enum DartToolingDaemonOptions {
 /// A service that facilitates communication between dart tools.
 class DartToolingDaemon {
   DartToolingDaemon._({
+    required this.secret,
+    required bool unrestrictedMode,
     bool ipv6 = false,
     bool shouldLogRequests = false,
   })  : _ipv6 = ipv6,
         _shouldLogRequests = shouldLogRequests {
     streamManager = DTDStreamManager(this);
     clientManager = DTDClientManager();
+    fileSystemService = FileSystemService(
+      secret: secret,
+      unrestrictedMode: unrestrictedMode,
+    );
   }
   static const _kSseHandlerPath = '\$debugHandler';
 
@@ -74,11 +94,12 @@ class DartToolingDaemon {
 
   /// Manages the connected clients of the current [DartToolingDaemon] service.
   late final DTDClientManager clientManager;
-
   final bool _ipv6;
   late HttpServer _server;
-  final List<dtd.DTDConnection> _auxilliaryServices = [];
   final bool _shouldLogRequests;
+  late final FileSystemService fileSystemService;
+
+  final String secret;
 
   /// The uri of the current [DartToolingDaemon] service.
   Uri? get uri => _uri;
@@ -141,20 +162,41 @@ class DartToolingDaemon {
     int port = 0,
   }) async {
     final argParser = DartToolingDaemonOptions.createArgParser();
-    final results = argParser.parse(args);
-    if (results.wasParsed(DartToolingDaemonOptions.train.name)) {
+    final parsedArgs = argParser.parse(args);
+    if (parsedArgs.wasParsed(DartToolingDaemonOptions.train.name)) {
       return null;
     }
+    final machineMode = parsedArgs[DartToolingDaemonOptions.machine.name];
+    final unrestrictedMode =
+        parsedArgs[DartToolingDaemonOptions.unrestricted.name];
+
+    final secret = _generateSecret();
     final dtd = DartToolingDaemon._(
+      secret: secret,
+      unrestrictedMode: unrestrictedMode,
       ipv6: ipv6,
       shouldLogRequests: shouldLogRequests,
     );
     await dtd._startService(port: port);
-    await dtd._startAuxilliaryServices();
+    if (machineMode) {
+      print(
+        jsonEncode({
+          'tooling_daemon_details': {
+            'uri': dtd.uri.toString(),
+            ...(!unrestrictedMode ? {'trusted_client_secret': secret} : {}),
+          },
+        }),
+      );
+    } else {
+      print(
+        'The Dart Tooling Daemon is listening on '
+        '${dtd.uri.toString()}',
+      );
 
-    print(
-      'The Dart Tooling Daemon is listening on ${dtd.uri?.host}:${dtd.uri?.port}',
-    );
+      if (!unrestrictedMode) {
+        print('Trusted Client Secret: $secret');
+      }
+    }
     return dtd;
   }
 
@@ -170,6 +212,7 @@ class DartToolingDaemon {
           this,
           ws,
         );
+        _registerInternalServiceMethods(client);
         clientManager.addClient(client);
       });
 
@@ -184,23 +227,35 @@ class DartToolingDaemon {
         this,
         sseConnection,
       );
+      _registerInternalServiceMethods(client);
       clientManager.addClient(client);
     });
 
     return handler.handler;
   }
 
-  /// Starts any services that DTD is responsible for starting.
-  Future<void> _startAuxilliaryServices() async {
-    final fileService = await dtd.DartToolingDaemon.connect(_uri!);
-    await DTDFileService.register(fileService);
-    _auxilliaryServices.add(fileService);
+  void _registerInternalServiceMethods(DTDClient client) {
+    fileSystemService.register(client);
+  }
+
+  static String _generateSecret() {
+    String upper = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    String lower = 'abcdefghijklmnopqrstuvwxyz';
+    String numbers = '1234567890';
+    int secretLength = 16;
+    String seed = upper + lower + numbers;
+    String password = '';
+    List<String> list = seed.split('').toList();
+    Random rand = Random();
+
+    for (int i = 0; i < secretLength; i++) {
+      int index = rand.nextInt(list.length);
+      password += list[index];
+    }
+    return password;
   }
 
   Future<void> close() async {
-    for (var e in _auxilliaryServices) {
-      await e.close();
-    }
     await clientManager.shutdown();
     await _server.close(force: true);
   }

@@ -6,9 +6,8 @@ library fasta.export;
 
 import 'builder/builder.dart';
 import 'builder/library_builder.dart';
-
+import 'codes/fasta_codes.dart';
 import 'combinator.dart' show CombinatorBuilder;
-import 'fasta_codes.dart';
 
 class Export {
   /// The library that is exporting [exported];

@@ -62,7 +62,6 @@ class CommentReferenceResolver {
       var prefixScope = prefixElement.scope;
       var lookupResult = prefixScope.lookup(name.name);
       var element = lookupResult.getter ?? lookupResult.setter;
-      element = _resolver.toLegacyElement(element);
       name.staticElement = element;
       return;
     }
@@ -121,7 +120,6 @@ class CommentReferenceResolver {
     var prefixScope = prefixElement.scope;
     var lookupResult = prefixScope.lookup(name.name);
     var element = lookupResult.getter ?? lookupResult.setter;
-    element = _resolver.toLegacyElement(element);
     name.staticElement = element;
 
     var propertyName = expression.propertyName;
@@ -143,9 +141,7 @@ class CommentReferenceResolver {
   /// resolved. This does not record the results of the resolution.
   Element? _resolveSimpleIdentifier(SimpleIdentifierImpl identifier) {
     var lookupResult = identifier.scopeLookupResult!;
-
-    var element = _resolver.toLegacyElement(lookupResult.getter) ??
-        _resolver.toLegacyElement(lookupResult.setter);
+    var element = lookupResult.getter ?? lookupResult.setter;
 
     if (element == null) {
       InterfaceType enclosingType;

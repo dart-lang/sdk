@@ -283,18 +283,6 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     exitTreeNode(node);
   }
 
-  void declareMember(Member member) {
-    if (member.transformerFlags & TransformerFlag.seenByVerifier != 0) {
-      problem(member.function,
-          "Member '$member' has been declared more than once.");
-    }
-    member.transformerFlags |= TransformerFlag.seenByVerifier;
-  }
-
-  void undeclareMember(Member member) {
-    member.transformerFlags &= ~TransformerFlag.seenByVerifier;
-  }
-
   void declareVariable(VariableDeclaration variable) {
     if (variableDeclarationsInScope.contains(variable)) {
       problem(variable, "Variable '$variable' declared more than once.");
@@ -359,6 +347,18 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
 
   @override
   void visitComponent(Component component) {
+    void declareMember(Member member) {
+      if (member.transformerFlags & TransformerFlag.seenByVerifier != 0) {
+        problem(member.function,
+            "Member '$member' has been declared more than once.");
+      }
+      member.transformerFlags |= TransformerFlag.seenByVerifier;
+    }
+
+    void undeclareMember(Member member) {
+      member.transformerFlags &= ~TransformerFlag.seenByVerifier;
+    }
+
     try {
       for (Library library in component.libraries) {
         for (Class class_ in library.classes) {
@@ -372,61 +372,29 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
           }
         }
 
-        for (Field field in library.fields) {
-          declareMember(field);
-        }
-        for (Procedure procedure in library.procedures) {
-          declareMember(procedure);
-        }
+        library.forEachMember(declareMember);
         for (Class class_ in library.classes) {
-          for (Field field in class_.fields) {
-            declareMember(field);
-          }
-          for (Procedure procedure in class_.procedures) {
-            declareMember(procedure);
-          }
-          for (Constructor constructor in class_.constructors) {
-            declareMember(constructor);
-          }
+          class_.forEachMember(declareMember);
         }
         for (ExtensionTypeDeclaration extensionTypeDeclaration
             in library.extensionTypeDeclarations) {
-          for (Procedure procedure in extensionTypeDeclaration.procedures) {
-            declareMember(procedure);
-          }
+          extensionTypeDeclaration.procedures.forEach(declareMember);
         }
       }
       visitChildren(component);
     } finally {
       for (Library library in component.libraries) {
-        for (Field field in library.fields) {
-          undeclareMember(field);
-        }
-        for (Procedure procedure in library.procedures) {
-          undeclareMember(procedure);
-        }
+        library.forEachMember(undeclareMember);
         for (Class class_ in library.classes) {
-          for (Field field in class_.fields) {
-            undeclareMember(field);
-          }
-          for (Procedure procedure in class_.procedures) {
-            undeclareMember(procedure);
-          }
-          for (Constructor constructor in class_.constructors) {
-            undeclareMember(constructor);
-          }
+          class_.forEachMember(undeclareMember);
         }
 
         for (ExtensionTypeDeclaration extensionTypeDeclaration
             in library.extensionTypeDeclarations) {
-          for (Procedure procedure in extensionTypeDeclaration.procedures) {
-            undeclareMember(procedure);
-          }
+          extensionTypeDeclaration.procedures.forEach(undeclareMember);
         }
       }
-      for (VariableDeclaration variable in variableStack) {
-        undeclareVariable(variable);
-      }
+      variableStack.forEach(undeclareVariable);
     }
   }
 

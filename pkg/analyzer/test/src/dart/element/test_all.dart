@@ -16,6 +16,7 @@ import 'function_type_test.dart' as function_type;
 import 'future_or_base_test.dart' as future_or_base;
 import 'future_value_type_test.dart' as future_value_type;
 import 'generic_inferrer_test.dart' as generic_inferrer;
+import 'incompatible_with_await_test.dart' as incompatible_with_await;
 import 'inheritance_manager3_test.dart' as inheritance_manager3;
 import 'is_known_test.dart' as is_known_test;
 import 'least_greatest_closure_test.dart' as least_greatest_closure_test;
@@ -24,7 +25,6 @@ import 'name_union_test.dart' as name_union;
 import 'non_covariant_type_parameter_position_test.dart'
     as non_covariant_type_parameter_position;
 import 'normalize_type_test.dart' as normalize_type;
-import 'nullability_eliminator_test.dart' as nullability_eliminator;
 import 'nullable_test.dart' as nullable;
 import 'replace_top_bottom_test.dart' as replace_top_bottom;
 import 'resolve_to_bound_test.dart' as resolve_to_bound;
@@ -55,6 +55,7 @@ main() {
     future_or_base.main();
     future_value_type.main();
     generic_inferrer.main();
+    incompatible_with_await.main();
     inheritance_manager3.main();
     is_known_test.main();
     least_greatest_closure_test.main();
@@ -62,7 +63,6 @@ main() {
     name_union.main();
     non_covariant_type_parameter_position.main();
     normalize_type.main();
-    nullability_eliminator.main();
     nullable.main();
     replace_top_bottom.main();
     resolve_to_bound.main();

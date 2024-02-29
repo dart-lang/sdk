@@ -49,11 +49,6 @@ declare_args() {
   # Windows for now.
   dart_use_crashpad = false
 
-  # Controls the kind of core snapshot linked into the standalone VM. Using a
-  # core-jit snapshot breaks the ability to change various flags that affect
-  # code generation.
-  dart_core_snapshot_kind = "core"
-
   # Whether the Dart binary version string should include the git hash and
   # git commit time.
   dart_version_git_info = true

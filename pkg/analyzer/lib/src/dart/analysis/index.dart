@@ -1160,7 +1160,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
         assembler.addPrefixForElement(element, prefix: prefixElement);
       }
     } else {
-      assembler.addPrefixForElement(element, prefix: null);
+      assembler.addPrefixForElement(element);
     }
 
     recordRelationToken(

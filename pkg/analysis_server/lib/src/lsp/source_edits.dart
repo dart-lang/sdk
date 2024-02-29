@@ -81,8 +81,7 @@ ErrorOr<List<TextEdit>?> generateEditsForFormatting(
 }) {
   final unformattedSource = result.content;
 
-  final code =
-      SourceCode(unformattedSource, uri: null, isCompilationUnit: true);
+  final code = SourceCode(unformattedSource);
   SourceCode formattedResult;
   try {
     // Create a new formatter on every request because it may contain state that

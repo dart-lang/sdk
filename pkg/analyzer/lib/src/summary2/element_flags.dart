@@ -60,7 +60,6 @@ class ConstructorElementFlags {
   static const int _isExternal = 1 << 2;
   static const int _isFactory = 1 << 3;
   static const int _isSynthetic = 1 << 4;
-  static const int _isTempAugmentation = 1 << 5;
 
   static void read(SummaryDataReader reader, ConstructorElementImpl element) {
     var byte = reader.readByte();
@@ -69,7 +68,6 @@ class ConstructorElementFlags {
     element.isExternal = (byte & _isExternal) != 0;
     element.isFactory = (byte & _isFactory) != 0;
     element.isSynthetic = (byte & _isSynthetic) != 0;
-    element.isTempAugmentation = (byte & _isTempAugmentation) != 0;
   }
 
   static void write(BufferedSink sink, ConstructorElementImpl element) {
@@ -79,7 +77,6 @@ class ConstructorElementFlags {
     result |= element.isExternal ? _isExternal : 0;
     result |= element.isFactory ? _isFactory : 0;
     result |= element.isSynthetic ? _isSynthetic : 0;
-    result |= element.isTempAugmentation ? _isTempAugmentation : 0;
     sink.writeByte(result);
   }
 }
@@ -141,7 +138,6 @@ class FieldElementFlags {
   static const int _shouldUseTypeForInitializerInference = 1 << 12;
   static const int _isStatic = 1 << 13;
   static const int _isSynthetic = 1 << 14;
-  static const int _isTempAugmentation = 1 << 15;
 
   static void read(SummaryDataReader reader, FieldElementImpl element) {
     var byte = reader.readUInt30();
@@ -161,7 +157,6 @@ class FieldElementFlags {
         (byte & _shouldUseTypeForInitializerInference) != 0;
     element.isStatic = (byte & _isStatic) != 0;
     element.isSynthetic = (byte & _isSynthetic) != 0;
-    element.isTempAugmentation = (byte & _isTempAugmentation) != 0;
   }
 
   static void write(BufferedSink sink, FieldElementImpl element) {
@@ -183,7 +178,6 @@ class FieldElementFlags {
         : 0;
     result |= element.isStatic ? _isStatic : 0;
     result |= element.isSynthetic ? _isSynthetic : 0;
-    result |= element.isTempAugmentation ? _isTempAugmentation : 0;
     sink.writeUInt30(result);
   }
 }
@@ -353,7 +347,6 @@ class PropertyAccessorElementFlags {
   static const int _isExternal = 1 << 8;
   static const int _isGenerator = 1 << 9;
   static const int _isStatic = 1 << 10;
-  static const int _isTempAugmentation = 1 << 11;
 
   static void read(
     SummaryDataReader reader,
@@ -371,7 +364,6 @@ class PropertyAccessorElementFlags {
     element.isExternal = (byte & _isExternal) != 0;
     element.isGenerator = (byte & _isGenerator) != 0;
     element.isStatic = (byte & _isStatic) != 0;
-    element.isTempAugmentation = (byte & _isTempAugmentation) != 0;
   }
 
   static void write(BufferedSink sink, PropertyAccessorElementImpl element) {
@@ -387,7 +379,6 @@ class PropertyAccessorElementFlags {
     result |= element.isExternal ? _isExternal : 0;
     result |= element.isGenerator ? _isGenerator : 0;
     result |= element.isStatic ? _isStatic : 0;
-    result |= element.isTempAugmentation ? _isTempAugmentation : 0;
     sink.writeUInt30(result);
   }
 }
@@ -400,7 +391,6 @@ class TopLevelVariableElementFlags {
   static const int _isFinal = 1 << 4;
   static const int _isLate = 1 << 5;
   static const int _shouldUseTypeForInitializerInference = 1 << 6;
-  static const int _isTempAugmentation = 1 << 7;
 
   static void read(
     SummaryDataReader reader,
@@ -415,7 +405,6 @@ class TopLevelVariableElementFlags {
     element.isLate = (byte & _isLate) != 0;
     element.shouldUseTypeForInitializerInference =
         (byte & _shouldUseTypeForInitializerInference) != 0;
-    element.isTempAugmentation = (byte & _isTempAugmentation) != 0;
   }
 
   static void write(BufferedSink sink, TopLevelVariableElementImpl element) {
@@ -429,7 +418,6 @@ class TopLevelVariableElementFlags {
     result |= element.shouldUseTypeForInitializerInference
         ? _shouldUseTypeForInitializerInference
         : 0;
-    result |= element.isTempAugmentation ? _isTempAugmentation : 0;
     sink.writeByte(result);
   }
 }

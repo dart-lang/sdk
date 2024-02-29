@@ -314,10 +314,7 @@ final class _NativeCallableListener<T extends Function>
 
 @patch
 @pragma("vm:entry-point")
-final class Array<T extends NativeType> {
-  @pragma("vm:entry-point")
-  final Object _typedDataBase;
-
+final class Array<T extends NativeType> extends _Compound {
   @pragma("vm:entry-point")
   final int _size;
 
@@ -329,7 +326,8 @@ final class Array<T extends NativeType> {
   List<int>? _nestedDimensionsRestCache;
 
   @pragma("vm:entry-point")
-  Array._(this._typedDataBase, this._size, this._nestedDimensions);
+  Array._(super._typedDataBase, this._size, this._nestedDimensions)
+      : super._fromTypedDataBase();
 
   int get _nestedDimensionsFlattened =>
       _nestedDimensionsFlattenedCache ??= _nestedDimensions.fold<int>(
@@ -572,15 +570,19 @@ extension NativeFunctionPointer<NF extends Function>
 @patch
 extension Int8Pointer on Pointer<Int8> {
   @patch
+  @pragma("vm:prefer-inline")
   int get value => _loadInt8(this, 0);
 
   @patch
+  @pragma("vm:prefer-inline")
   set value(int value) => _storeInt8(this, 0, value);
 
   @patch
+  @pragma("vm:prefer-inline")
   int operator [](int index) => _loadInt8(this, index);
 
   @patch
+  @pragma("vm:prefer-inline")
   operator []=(int index, int value) => _storeInt8(this, index, value);
 
   @patch
@@ -605,15 +607,19 @@ extension Int8Pointer on Pointer<Int8> {
 @patch
 extension Int16Pointer on Pointer<Int16> {
   @patch
+  @pragma("vm:prefer-inline")
   int get value => _loadInt16(this, 0);
 
   @patch
+  @pragma("vm:prefer-inline")
   set value(int value) => _storeInt16(this, 0, value);
 
   @patch
+  @pragma("vm:prefer-inline")
   int operator [](int index) => _loadInt16(this, 2 * index);
 
   @patch
+  @pragma("vm:prefer-inline")
   operator []=(int index, int value) => _storeInt16(this, 2 * index, value);
 
   @patch
@@ -638,15 +644,19 @@ extension Int16Pointer on Pointer<Int16> {
 @patch
 extension Int32Pointer on Pointer<Int32> {
   @patch
+  @pragma("vm:prefer-inline")
   int get value => _loadInt32(this, 0);
 
   @patch
+  @pragma("vm:prefer-inline")
   set value(int value) => _storeInt32(this, 0, value);
 
   @patch
+  @pragma("vm:prefer-inline")
   int operator [](int index) => _loadInt32(this, 4 * index);
 
   @patch
+  @pragma("vm:prefer-inline")
   operator []=(int index, int value) => _storeInt32(this, 4 * index, value);
 
   @patch
@@ -671,15 +681,19 @@ extension Int32Pointer on Pointer<Int32> {
 @patch
 extension Int64Pointer on Pointer<Int64> {
   @patch
+  @pragma("vm:prefer-inline")
   int get value => _loadInt64(this, 0);
 
   @patch
+  @pragma("vm:prefer-inline")
   set value(int value) => _storeInt64(this, 0, value);
 
   @patch
+  @pragma("vm:prefer-inline")
   int operator [](int index) => _loadInt64(this, 8 * index);
 
   @patch
+  @pragma("vm:prefer-inline")
   operator []=(int index, int value) => _storeInt64(this, 8 * index, value);
 
   @patch
@@ -704,15 +718,19 @@ extension Int64Pointer on Pointer<Int64> {
 @patch
 extension Uint8Pointer on Pointer<Uint8> {
   @patch
+  @pragma("vm:prefer-inline")
   int get value => _loadUint8(this, 0);
 
   @patch
+  @pragma("vm:prefer-inline")
   set value(int value) => _storeUint8(this, 0, value);
 
   @patch
+  @pragma("vm:prefer-inline")
   int operator [](int index) => _loadUint8(this, index);
 
   @patch
+  @pragma("vm:prefer-inline")
   operator []=(int index, int value) => _storeUint8(this, index, value);
 
   @patch
@@ -737,15 +755,19 @@ extension Uint8Pointer on Pointer<Uint8> {
 @patch
 extension Uint16Pointer on Pointer<Uint16> {
   @patch
+  @pragma("vm:prefer-inline")
   int get value => _loadUint16(this, 0);
 
   @patch
+  @pragma("vm:prefer-inline")
   set value(int value) => _storeUint16(this, 0, value);
 
   @patch
+  @pragma("vm:prefer-inline")
   int operator [](int index) => _loadUint16(this, 2 * index);
 
   @patch
+  @pragma("vm:prefer-inline")
   operator []=(int index, int value) => _storeUint16(this, 2 * index, value);
 
   @patch
@@ -770,15 +792,19 @@ extension Uint16Pointer on Pointer<Uint16> {
 @patch
 extension Uint32Pointer on Pointer<Uint32> {
   @patch
+  @pragma("vm:prefer-inline")
   int get value => _loadUint32(this, 0);
 
   @patch
+  @pragma("vm:prefer-inline")
   set value(int value) => _storeUint32(this, 0, value);
 
   @patch
+  @pragma("vm:prefer-inline")
   int operator [](int index) => _loadUint32(this, 4 * index);
 
   @patch
+  @pragma("vm:prefer-inline")
   operator []=(int index, int value) => _storeUint32(this, 4 * index, value);
 
   @patch
@@ -803,15 +829,19 @@ extension Uint32Pointer on Pointer<Uint32> {
 @patch
 extension Uint64Pointer on Pointer<Uint64> {
   @patch
+  @pragma("vm:prefer-inline")
   int get value => _loadUint64(this, 0);
 
   @patch
+  @pragma("vm:prefer-inline")
   set value(int value) => _storeUint64(this, 0, value);
 
   @patch
+  @pragma("vm:prefer-inline")
   int operator [](int index) => _loadUint64(this, 8 * index);
 
   @patch
+  @pragma("vm:prefer-inline")
   operator []=(int index, int value) => _storeUint64(this, 8 * index, value);
 
   @patch
@@ -836,15 +866,19 @@ extension Uint64Pointer on Pointer<Uint64> {
 @patch
 extension FloatPointer on Pointer<Float> {
   @patch
+  @pragma("vm:prefer-inline")
   double get value => _loadFloat(this, 0);
 
   @patch
+  @pragma("vm:prefer-inline")
   set value(double value) => _storeFloat(this, 0, value);
 
   @patch
+  @pragma("vm:prefer-inline")
   double operator [](int index) => _loadFloat(this, 4 * index);
 
   @patch
+  @pragma("vm:prefer-inline")
   operator []=(int index, double value) => _storeFloat(this, 4 * index, value);
 
   @patch
@@ -869,15 +903,19 @@ extension FloatPointer on Pointer<Float> {
 @patch
 extension DoublePointer on Pointer<Double> {
   @patch
+  @pragma("vm:prefer-inline")
   double get value => _loadDouble(this, 0);
 
   @patch
+  @pragma("vm:prefer-inline")
   set value(double value) => _storeDouble(this, 0, value);
 
   @patch
+  @pragma("vm:prefer-inline")
   double operator [](int index) => _loadDouble(this, 8 * index);
 
   @patch
+  @pragma("vm:prefer-inline")
   operator []=(int index, double value) => _storeDouble(this, 8 * index, value);
 
   @patch
@@ -902,15 +940,19 @@ extension DoublePointer on Pointer<Double> {
 @patch
 extension BoolPointer on Pointer<Bool> {
   @patch
+  @pragma("vm:prefer-inline")
   bool get value => _loadBool(this, 0);
 
   @patch
+  @pragma("vm:prefer-inline")
   set value(bool value) => _storeBool(this, 0, value);
 
   @patch
+  @pragma("vm:prefer-inline")
   bool operator [](int index) => _loadBool(this, index);
 
   @patch
+  @pragma("vm:prefer-inline")
   operator []=(int index, bool value) => _storeBool(this, index, value);
 }
 

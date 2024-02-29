@@ -23,6 +23,7 @@ class BuildCommand extends DartdevCommand {
   static const String cmdName = 'build';
   static const String outputOptionName = 'output';
   static const String formatOptionName = 'format';
+  static const int genericErrorExitCode = 255;
 
   BuildCommand({bool verbose = false})
       : super(cmdName, 'Build a Dart application including native assets.',
@@ -83,7 +84,7 @@ class BuildCommand extends DartdevCommand {
     // Similar to Dart run. Possibly also in `dart compile`.
     final sourceUri = Uri(path: args.rest[0].normalizeCanonicalizePath());
     if (!checkFile(sourceUri.toFilePath())) {
-      return -1;
+      return genericErrorExitCode;
     }
 
     final outputUri = Uri.directory(
@@ -93,12 +94,15 @@ class BuildCommand extends DartdevCommand {
           sourceUri.toFilePath().removeDotDart().makeFolder(),
     );
 
-    final format = args[formatOptionName] as String;
-    final outputExeUri = outputUri
-        .resolve('${sourceUri.pathSegments.last.split('.').first}.$format');
+    final format = Kind.values.byName(args[formatOptionName] as String);
+    final outputExeUri = outputUri.resolve(
+      format.appendFileExtension(
+        sourceUri.pathSegments.last.split('.').first,
+      ),
+    );
     String? targetOS = args['target-os'];
-    if (format != 'exe') {
-      assert(format == 'aot');
+    if (format != Kind.exe) {
+      assert(format == Kind.aot);
       // If we're generating an AOT snapshot and not an executable, then
       // targetOS is allowed to be null for a platform-independent snapshot
       // or a different platform than the host.
@@ -106,7 +110,7 @@ class BuildCommand extends DartdevCommand {
       targetOS = Platform.operatingSystem;
     } else if (targetOS != Platform.operatingSystem) {
       stderr.writeln(
-          "'dart build -f $format' does not support cross-OS compilation.");
+          "'dart build -f ${format.name}' does not support cross-OS compilation.");
       stderr.writeln('Host OS: ${Platform.operatingSystem}');
       stderr.writeln('Target OS: $targetOS');
       return 128;
@@ -137,7 +141,8 @@ class BuildCommand extends DartdevCommand {
       stderr.write('Native assets build failed.');
       return 255;
     }
-    final staticAssets = nativeAssets.whereLinkMode(LinkMode.static);
+    final staticAssets =
+        nativeAssets.where((e) => e.linkMode == LinkMode.static);
     if (staticAssets.isNotEmpty) {
       stderr.write(
           """'dart build' does not yet support native artifacts packaged as ${LinkMode.static.name}.
@@ -150,42 +155,51 @@ Use linkMode as dynamic library instead.""");
     final tempDir = Directory.systemTemp.createTempSync();
     if (nativeAssets.isNotEmpty) {
       stdout.writeln('Copying native assets.');
-      Asset targetLocation(Asset asset) {
+      KernelAsset targetLocation(Asset asset) {
         final path = asset.path;
+        final KernelAssetPath kernelAssetPath;
         switch (path) {
           case AssetSystemPath _:
+            kernelAssetPath = KernelAssetSystemPath(path.uri);
           case AssetInExecutable _:
+            kernelAssetPath = KernelAssetInExecutable();
           case AssetInProcess _:
-            return asset;
+            kernelAssetPath = KernelAssetInProcess();
           case AssetAbsolutePath _:
-            return asset.copyWith(
-              path: AssetRelativePath(
-                Uri(
-                  path: path.uri.pathSegments.last,
-                ),
-              ),
+            kernelAssetPath = KernelAssetRelativePath(
+              Uri(path: path.uri.pathSegments.last),
+            );
+          default:
+            throw Exception(
+              'Unsupported asset path type ${path.runtimeType} in asset $asset',
             );
         }
-        throw 'Unsupported asset path type ${path.runtimeType} in asset $asset';
+        return KernelAsset(
+          id: asset.id,
+          target: target,
+          path: kernelAssetPath,
+        );
       }
 
       final assetTargetLocations = {
         for (final asset in nativeAssets) asset: targetLocation(asset),
       };
-      await Future.wait([
+      final copiedFiles = await Future.wait([
         for (final assetMapping in assetTargetLocations.entries)
-          if (assetMapping.key != assetMapping.value)
+          if (assetMapping.value.path is KernelAssetRelativePath)
             File.fromUri((assetMapping.key.path as AssetAbsolutePath).uri).copy(
                 outputUri
                     .resolveUri(
-                        (assetMapping.value.path as AssetRelativePath).uri)
+                        (assetMapping.value.path as KernelAssetRelativePath)
+                            .uri)
                     .toFilePath())
       ]);
+      stdout.writeln('Copied ${copiedFiles.length} native assets.');
 
       tempUri = tempDir.uri;
       nativeAssetsDartUri = tempUri.resolve('native_assets.yaml');
-      final assetsContent =
-          assetTargetLocations.values.toList().toNativeAssetsFile();
+      final assetsContent = KernelAssets(assetTargetLocations.values.toList())
+          .toNativeAssetsFile();
       await Directory.fromUri(nativeAssetsDartUri.resolve('.')).create();
       await File(nativeAssetsDartUri.toFilePath()).writeAsString(assetsContent);
     }

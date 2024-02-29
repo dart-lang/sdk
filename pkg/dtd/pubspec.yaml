@@ -1,5 +1,5 @@
 name: dtd
-version: 0.0.3
+version: 1.0.0
 description: A package for communicating with the Dart Tooling Daemon.
 repository: https://github.com/dart-lang/sdk/tree/main/pkg/dtd
 
@@ -18,3 +18,4 @@ dependencies:
 dev_dependencies:
   dart_flutter_team_lints: any
   path: any
+  test: any

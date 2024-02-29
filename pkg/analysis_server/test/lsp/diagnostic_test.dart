@@ -120,7 +120,7 @@ include: package:pedantic/analysis_options.yaml
 
     // // Write a package file that allows resolving the include.
     // final secondDiagnosticsUpdate = waitForDiagnostics(analysisOptionsUri);
-    // writePackageConfig(projectFolderPath, pedantic: true);
+    // writeTestPackageConfig(pedantic: true);
     //
     // // Ensure the error disappeared.
     // final updatedDiagnostics = await secondDiagnosticsUpdate;
@@ -178,8 +178,7 @@ void f() {
     setDiagnosticTagSupport([DiagnosticTag.Deprecated]);
 
     var onePackagePath = convertPath('/home/one');
-    writePackageConfig(
-      projectFolderPath,
+    writeTestPackageConfig(
       config: PackageConfigFileBuilder()
         ..add(name: 'one', rootPath: onePackagePath),
     );
@@ -203,8 +202,7 @@ void f() {
 
   Future<void> test_diagnosticTag_notSupported() async {
     var onePackagePath = convertPath('/home/one');
-    writePackageConfig(
-      projectFolderPath,
+    writeTestPackageConfig(
       config: PackageConfigFileBuilder()
         ..add(name: 'one', rootPath: onePackagePath),
     );

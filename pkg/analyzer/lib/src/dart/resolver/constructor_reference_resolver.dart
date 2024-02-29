@@ -23,19 +23,20 @@ class ConstructorReferenceResolver {
         node.constructorName.type.typeArguments == null) {
       // Only report this if [node] has no explicit type arguments; otherwise
       // the parser has already reported an error.
-      _resolver.errorReporter.reportErrorForNode(
-          WarningCode.SDK_VERSION_CONSTRUCTOR_TEAROFFS, node, []);
+      _resolver.errorReporter.atNode(
+        node,
+        WarningCode.SDK_VERSION_CONSTRUCTOR_TEAROFFS,
+      );
     }
     node.constructorName.accept(_resolver);
     var element = node.constructorName.staticElement;
     if (element != null && !element.isFactory) {
       final enclosingElement = element.enclosingElement;
       if (enclosingElement is ClassElement && enclosingElement.isAbstract) {
-        _resolver.errorReporter.reportErrorForNode(
+        _resolver.errorReporter.atNode(
+          node,
           CompileTimeErrorCode
               .TEAROFF_OF_GENERATIVE_CONSTRUCTOR_OF_ABSTRACT_CLASS,
-          node,
-          [],
         );
       }
     }
@@ -68,16 +69,16 @@ class ConstructorReferenceResolver {
               ? CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_STATIC_MEMBER
               : CompileTimeErrorCode
                   .CLASS_INSTANTIATION_ACCESS_TO_INSTANCE_MEMBER;
-          _resolver.errorReporter.reportErrorForNode(
-            error,
+          _resolver.errorReporter.atNode(
             node,
-            [name.name],
+            error,
+            arguments: [name.name],
           );
         } else if (!name.isSynthetic) {
-          _resolver.errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_UNKNOWN_MEMBER,
+          _resolver.errorReporter.atNode(
             node,
-            [enclosingElement.name, name.name],
+            CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_UNKNOWN_MEMBER,
+            arguments: [enclosingElement.name, name.name],
           );
         }
       }

@@ -6,7 +6,7 @@
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/spec/generate_files".
 
-const String PROTOCOL_VERSION = '1.35.0';
+const String PROTOCOL_VERSION = '1.36.0';
 
 const String ANALYSIS_NOTIFICATION_ANALYZED_FILES = 'analysis.analyzedFiles';
 const String ANALYSIS_NOTIFICATION_ANALYZED_FILES_DIRECTORIES = 'directories';
@@ -273,6 +273,8 @@ const String FLUTTER_REQUEST_SET_WIDGET_PROPERTY_VALUE_ID = 'id';
 const String FLUTTER_REQUEST_SET_WIDGET_PROPERTY_VALUE_VALUE = 'value';
 const String FLUTTER_RESPONSE_GET_WIDGET_DESCRIPTION_PROPERTIES = 'properties';
 const String FLUTTER_RESPONSE_SET_WIDGET_PROPERTY_VALUE_CHANGE = 'change';
+const String LSP_NOTIFICATION_NOTIFICATION = 'lsp.notification';
+const String LSP_NOTIFICATION_NOTIFICATION_LSP_NOTIFICATION = 'lspNotification';
 const String LSP_REQUEST_HANDLE = 'lsp.handle';
 const String LSP_REQUEST_HANDLE_LSP_MESSAGE = 'lspMessage';
 const String LSP_RESPONSE_HANDLE_LSP_RESPONSE = 'lspResponse';
@@ -334,6 +336,8 @@ const String SERVER_REQUEST_OPEN_URL_REQUEST_URL = 'url';
 const String SERVER_REQUEST_SET_CLIENT_CAPABILITIES =
     'server.setClientCapabilities';
 const String SERVER_REQUEST_SET_CLIENT_CAPABILITIES_REQUESTS = 'requests';
+const String SERVER_REQUEST_SET_CLIENT_CAPABILITIES_SUPPORTS_URIS =
+    'supportsUris';
 const String SERVER_REQUEST_SET_SUBSCRIPTIONS = 'server.setSubscriptions';
 const String SERVER_REQUEST_SET_SUBSCRIPTIONS_SUBSCRIPTIONS = 'subscriptions';
 const String SERVER_REQUEST_SHOW_MESSAGE_REQUEST = 'server.showMessageRequest';

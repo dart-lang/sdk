@@ -224,6 +224,13 @@ const Map<String, LibraryInfo> libraries = const {
     documented: false,
     platforms: DART2JS_PLATFORM,
   ),
+  '_dart2js_only': const LibraryInfo(
+    '_internal/js_runtime/lib/dart2js_only.dart',
+    categories: '',
+    implementation: true,
+    documented: false,
+    platforms: DART2JS_PLATFORM,
+  ),
   '_dart2js_runtime_metrics': const LibraryInfo(
     '_internal/js_runtime/lib/dart2js_runtime_metrics.dart',
     categories: '',
@@ -278,6 +285,12 @@ const Map<String, LibraryInfo> libraries = const {
     documented: false,
     platforms: DART2JS_PLATFORM,
   ),
+  '_invocation_mirror_constants': const LibraryInfo(
+    '_internal/js_runtime/lib/synced/invocation_mirror_constants.dart',
+    categories: '',
+    documented: false,
+    platforms: DART2JS_PLATFORM,
+  ),
   '_recipe_syntax': const LibraryInfo(
     '_internal/js_shared/lib/synced/recipe_syntax.dart',
     categories: '',
@@ -302,8 +315,17 @@ const Map<String, LibraryInfo> libraries = const {
     documented: false,
     platforms: DART2JS_PLATFORM,
   ),
-  "_wasm": const LibraryInfo('_wasm/wasm_types.dart',
-      categories: '', documented: false),
+  "_wasm": const LibraryInfo(
+    '_wasm/wasm_types.dart',
+    categories: '',
+    documented: false,
+  ),
+  "_macros": const LibraryInfo(
+    '_macros/macros.dart',
+    documented: false,
+    platforms: VM_PLATFORM,
+    maturity: Maturity.EXPERIMENTAL,
+  ),
 };
 
 /// Information about a "dart:" library.

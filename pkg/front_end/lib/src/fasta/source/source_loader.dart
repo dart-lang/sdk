@@ -48,11 +48,11 @@ import '../builder/nullability_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder_graph.dart';
-import '../denylisted_classes.dart'
+import '../codes/denylisted_classes.dart'
     show denylistedCoreClasses, denylistedTypedDataClasses;
+import '../codes/fasta_codes.dart';
 import '../dill/dill_library_builder.dart';
 import '../export.dart' show Export;
-import '../fasta_codes.dart';
 import '../import_chains.dart';
 import '../kernel/benchmarker.dart' show BenchmarkSubdivides;
 import '../kernel/body_builder.dart' show BodyBuilder;
@@ -937,13 +937,16 @@ severity: $severity
         // and the VM does not support that. Also, what would, for instance,
         // setting a breakpoint on line 42 of some import uri mean, if the uri
         // represented several files?
-        // TODO(johnniwinther): Replace this with something that supports
-        // augmentation libraries.
-        List<String> newPathSegments =
-            new List<String>.of(importUri.pathSegments);
-        newPathSegments.add(libraryBuilder.fileUri.pathSegments.last);
-        newPathSegments[0] = "${newPathSegments[0]}-patch";
-        importUri = importUri.replace(pathSegments: newPathSegments);
+        if (libraryBuilder.isPatchLibrary) {
+          // TODO(johnniwinther): Use augmentation-like solution for patching.
+          List<String> newPathSegments =
+              new List<String>.of(importUri.pathSegments);
+          newPathSegments.add(libraryBuilder.fileUri.pathSegments.last);
+          newPathSegments[0] = "${newPathSegments[0]}-patch";
+          importUri = importUri.replace(pathSegments: newPathSegments);
+        } else {
+          importUri = libraryBuilder.importUri;
+        }
       }
       target.addSourceInformation(
           importUri, libraryBuilder.fileUri, result.lineStarts, source);
@@ -1512,7 +1515,15 @@ severity: $severity
   /// If no macros need precompilation, `null` is returned.
   NeededPrecompilations? computeMacroDeclarations() {
     LibraryBuilder? macroLibraryBuilder = lookupLibraryBuilder(macroLibraryUri);
-    if (macroLibraryBuilder == null) return null;
+    if (macroLibraryBuilder == null) {
+      // The macro library might not be directly imported by the source
+      // libraries, so we look up in the dill loader as well.
+      macroLibraryBuilder =
+          target.dillTarget.loader.lookupLibraryBuilder(macroLibraryUri);
+      if (macroLibraryBuilder == null) {
+        return null;
+      }
+    }
 
     Builder? macroClassBuilder =
         macroLibraryBuilder.lookupLocalMember(macroClassName);

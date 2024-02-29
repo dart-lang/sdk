@@ -143,10 +143,10 @@ class JSSyntaxRegExp implements RegExp {
     return _AllMatchesIterable(this, string, start);
   }
 
-  RegExpMatch? _execGlobal(String string, int start) {
+  RegExpMatch? _execGlobal(JSString string, int start) {
     JSNativeRegExp regexp = _nativeGlobalVersion;
     regexp.lastIndex = start.toJS;
-    JSNativeMatch? match = regexp.exec(string.toJS);
+    JSNativeMatch? match = regexp.exec(string);
     return match == null ? null : new _MatchImplementation(this, match);
   }
 
@@ -240,6 +240,7 @@ class _AllMatchesIterable extends Iterable<RegExpMatch> {
 class _AllMatchesIterator implements Iterator<RegExpMatch> {
   final JSSyntaxRegExp _regExp;
   String? _string;
+  JSString? _jsString;
   int _nextIndex;
   RegExpMatch? _current;
 
@@ -258,8 +259,13 @@ class _AllMatchesIterator implements Iterator<RegExpMatch> {
   bool moveNext() {
     var string = _string;
     if (string == null) return false;
+
+    JSString? jsString = _jsString;
+    if (jsString == null) {
+      jsString = _jsString = _string!.toJS;
+    }
     if (_nextIndex <= string.length) {
-      RegExpMatch? match = _regExp._execGlobal(string, _nextIndex);
+      RegExpMatch? match = _regExp._execGlobal(jsString, _nextIndex);
       if (match != null) {
         _current = match;
         int nextIndex = match.end;
@@ -299,7 +305,7 @@ JSNativeRegExp regExpGetGlobalNative(JSSyntaxRegExp regexp) {
 }
 
 RegExpMatch? regExpExecGlobal(
-        JSSyntaxRegExp regexp, String str, int startIndex) =>
+        JSSyntaxRegExp regexp, JSString str, int startIndex) =>
     regexp._execGlobal(str, startIndex);
 
 JSNativeRegExp regExpGetNative(JSSyntaxRegExp regexp) => regexp._nativeRegExp;
@@ -321,6 +327,7 @@ int regExpCaptureCount(JSSyntaxRegExp regexp) {
 }
 
 /// Find the first match of [regExp] in [string] at or after [start].
-RegExpMatch? firstMatchAfter(JSSyntaxRegExp regExp, String string, int start) {
+RegExpMatch? firstMatchAfter(
+    JSSyntaxRegExp regExp, JSString string, int start) {
   return regExp._execGlobal(string, start);
 }

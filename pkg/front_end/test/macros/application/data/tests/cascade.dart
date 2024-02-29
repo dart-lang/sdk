@@ -12,7 +12,8 @@ import 'org-dartlang-test:///a/b/c/main.dart' as prefix0;
 
 augment class Class {
   augment prefix0.Class create()  => prefix0.Class();
-}*/
+}
+*/
 
 import 'package:macro/cascade.dart';
 

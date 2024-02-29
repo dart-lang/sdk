@@ -30,11 +30,6 @@ mixin ElementsTypesMixin {
     return interfaceTypeQuestion(element);
   }
 
-  InterfaceType get boolStar {
-    var element = typeProvider.boolElement;
-    return interfaceTypeStar(element);
-  }
-
   InterfaceType get doubleNone {
     var element = typeProvider.doubleType.element;
     return interfaceTypeNone(element);
@@ -43,11 +38,6 @@ mixin ElementsTypesMixin {
   InterfaceType get doubleQuestion {
     var element = typeProvider.doubleType.element;
     return interfaceTypeQuestion(element);
-  }
-
-  InterfaceType get doubleStar {
-    var element = typeProvider.doubleType.element;
-    return interfaceTypeStar(element);
   }
 
   DartType get dynamicType => DynamicTypeImpl.instance;
@@ -60,11 +50,6 @@ mixin ElementsTypesMixin {
   InterfaceType get functionQuestion {
     var element = typeProvider.functionType.element;
     return interfaceTypeQuestion(element);
-  }
-
-  InterfaceType get functionStar {
-    var element = typeProvider.functionType.element;
-    return interfaceTypeStar(element);
   }
 
   InterfaceType get intNone {
@@ -87,8 +72,6 @@ mixin ElementsTypesMixin {
   NeverTypeImpl get neverNone => NeverTypeImpl.instance;
 
   NeverTypeImpl get neverQuestion => NeverTypeImpl.instanceNullable;
-
-  NeverTypeImpl get neverStar => NeverTypeImpl.instanceLegacy;
 
   InterfaceTypeImpl get nullNone {
     var element = typeProvider.nullType.element;
@@ -205,15 +188,6 @@ mixin ElementsTypesMixin {
     );
   }
 
-  InterfaceType comparableStar(DartType type) {
-    var coreLibrary = typeProvider.intElement.library;
-    var element = coreLibrary.getClass('Comparable')!;
-    return element.instantiate(
-      typeArguments: [type],
-      nullabilitySuffix: NullabilitySuffix.star,
-    );
-  }
-
   EnumElementImpl enum_({
     required String name,
     required List<ConstFieldElementImpl> constants,
@@ -228,6 +202,22 @@ mixin ElementsTypesMixin {
     String name,
   ) {
     return ConstFieldElementImpl(name, 0)..isEnumConstant = true;
+  }
+
+  ExtensionElementImpl extension({
+    required DartType extendedType,
+    String? name,
+    bool isAugmentation = false,
+    List<TypeParameterElement> typeParameters = const [],
+    List<MethodElementImpl> methods = const [],
+  }) {
+    var element = ExtensionElementImpl(name, 0);
+    element.extendedType = extendedType;
+    element.isAugmentation = isAugmentation;
+    element.enclosingElement = testLibrary.definingCompilationUnit;
+    element.typeParameters = typeParameters;
+    element.methods = methods;
+    return element;
   }
 
   ExtensionTypeElementImpl extensionType(
@@ -289,19 +279,6 @@ mixin ElementsTypesMixin {
     );
   }
 
-  FunctionTypeImpl functionTypeStar({
-    List<TypeParameterElement> typeFormals = const [],
-    List<ParameterElement> parameters = const [],
-    required DartType returnType,
-  }) {
-    return functionType(
-      typeFormals: typeFormals,
-      parameters: parameters,
-      returnType: returnType,
-      nullabilitySuffix: NullabilitySuffix.star,
-    );
-  }
-
   InterfaceTypeImpl futureNone(DartType type) {
     return typeProvider.futureElement.instantiate(
       typeArguments: [type],
@@ -320,13 +297,6 @@ mixin ElementsTypesMixin {
     return typeProvider.futureOrElement.instantiate(
       typeArguments: [type],
       nullabilitySuffix: NullabilitySuffix.question,
-    ) as InterfaceTypeImpl;
-  }
-
-  InterfaceTypeImpl futureOrStar(DartType type) {
-    return typeProvider.futureOrElement.instantiate(
-      typeArguments: [type],
-      nullabilitySuffix: NullabilitySuffix.star,
     ) as InterfaceTypeImpl;
   }
 
@@ -595,17 +565,6 @@ mixin ElementsTypesMixin {
     );
   }
 
-  TypeParameterTypeImpl promotedTypeParameterTypeStar(
-    TypeParameterElement element,
-    DartType promotedBound,
-  ) {
-    return promotedTypeParameterType(
-      element: element,
-      nullabilitySuffix: NullabilitySuffix.star,
-      promotedBound: promotedBound,
-    );
-  }
-
   RecordTypeImpl recordType({
     List<DartType> positionalTypes = const [],
     Map<String, DartType> namedTypes = const {},
@@ -735,17 +694,6 @@ mixin ElementsTypesMixin {
     return typeParameterType(
       element,
       nullabilitySuffix: NullabilitySuffix.question,
-      promotedBound: promotedBound,
-    );
-  }
-
-  TypeParameterTypeImpl typeParameterTypeStar(
-    TypeParameterElement element, {
-    DartType? promotedBound,
-  }) {
-    return typeParameterType(
-      element,
-      nullabilitySuffix: NullabilitySuffix.star,
       promotedBound: promotedBound,
     );
   }

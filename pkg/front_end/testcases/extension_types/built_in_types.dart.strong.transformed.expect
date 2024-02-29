@@ -93,7 +93,7 @@ static method test() → void {
   core::bool b1 = e1 =={core::Object::==}{(core::Object) → core::bool} e1;
   self::BoolET /* = core::bool */ b2 = invalid-expression "pkg/front_end/testcases/extension_types/built_in_types.dart:43:18: Error: A value of type 'bool' can't be assigned to a variable of type 'BoolET'.
   BoolET b2 = e2 == e2; /* Error */
-                 ^" in e2 =={self::B::==}{(core::Object?) → self::BoolET /* = core::bool */} e2;
+                 ^" in (e2 =={self::B::==}{(core::Object?) → self::BoolET /* = core::bool */} e2) as{TypeError,Unchecked} self::BoolET /* = core::bool */;
 }
 
 constants  {

@@ -2091,7 +2091,7 @@ _prefix0.A1 a1; _prefix0.A2 a2; _prefix1.B b;''');
     var classElement = await _getClassElement(path, name);
     return classElement.instantiate(
       typeArguments: typeArguments,
-      nullabilitySuffix: NullabilitySuffix.star,
+      nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 }
@@ -2613,78 +2613,6 @@ class B {}
 
 @reflectiveTest
 class DartLinkedEditBuilderImplTest extends AbstractContextTest {
-  Future<void>
-      test_addSuperTypesAsSuggestions_legacyTargetFile_noneSuffix() async {
-    var path = convertPath('/home/test/lib/test.dart');
-    addSource(path, '''
-class A {}
-class B extends A {}
-class C extends B {}
-''');
-    var unit = (await resolveFile(path)).unit;
-    var classC = unit.declarations[2] as ClassDeclaration;
-    var builder = DartLinkedEditBuilderImpl(
-        MockDartEditBuilderImpl(isNonNullableByDefault: false));
-    builder.addSuperTypesAsSuggestions(
-      classC.declaredElement?.instantiate(
-        typeArguments: [],
-        nullabilitySuffix: NullabilitySuffix.none,
-      ),
-    );
-    var suggestions = builder.suggestions;
-    expect(suggestions, hasLength(4));
-    expect(suggestions.map((s) => s.value),
-        unorderedEquals(['Object', 'A', 'B', 'C']));
-  }
-
-  Future<void>
-      test_addSuperTypesAsSuggestions_legacyTargetFile_questionSuffix() async {
-    var path = convertPath('/home/test/lib/test.dart');
-    addSource(path, '''
-class A {}
-class B extends A {}
-class C extends B {}
-''');
-    var unit = (await resolveFile(path)).unit;
-    var classC = unit.declarations[2] as ClassDeclaration;
-    var builder = DartLinkedEditBuilderImpl(
-        MockDartEditBuilderImpl(isNonNullableByDefault: false));
-    builder.addSuperTypesAsSuggestions(
-      classC.declaredElement?.instantiate(
-        typeArguments: [],
-        nullabilitySuffix: NullabilitySuffix.question,
-      ),
-    );
-    var suggestions = builder.suggestions;
-    expect(suggestions, hasLength(4));
-    expect(suggestions.map((s) => s.value),
-        unorderedEquals(['Object', 'A', 'B', 'C']));
-  }
-
-  Future<void>
-      test_addSuperTypesAsSuggestions_legacyTargetFile_starSuffix() async {
-    var path = convertPath('/home/test/lib/test.dart');
-    addSource(path, '''
-class A {}
-class B extends A {}
-class C extends B {}
-''');
-    var unit = (await resolveFile(path)).unit;
-    var classC = unit.declarations[2] as ClassDeclaration;
-    var builder = DartLinkedEditBuilderImpl(
-        MockDartEditBuilderImpl(isNonNullableByDefault: false));
-    builder.addSuperTypesAsSuggestions(
-      classC.declaredElement?.instantiate(
-        typeArguments: [],
-        nullabilitySuffix: NullabilitySuffix.star,
-      ),
-    );
-    var suggestions = builder.suggestions;
-    expect(suggestions, hasLength(4));
-    expect(suggestions.map((s) => s.value),
-        unorderedEquals(['Object', 'A', 'B', 'C']));
-  }
-
   Future<void> test_addSuperTypesAsSuggestions_noneSuffix() async {
     var path = convertPath('/home/test/lib/test.dart');
     addSource(path, '''
@@ -2727,28 +2655,6 @@ class C extends B {}
     expect(suggestions, hasLength(4));
     expect(suggestions.map((s) => s.value),
         unorderedEquals(['Object?', 'A?', 'B?', 'C?']));
-  }
-
-  Future<void> test_addSuperTypesAsSuggestions_starSuffix() async {
-    var path = convertPath('/home/test/lib/test.dart');
-    addSource(path, '''
-class A {}
-class B extends A {}
-class C extends B {}
-''');
-    var unit = (await resolveFile(path)).unit;
-    var classC = unit.declarations[2] as ClassDeclaration;
-    var builder = DartLinkedEditBuilderImpl(MockDartEditBuilderImpl());
-    builder.addSuperTypesAsSuggestions(
-      classC.declaredElement?.instantiate(
-        typeArguments: [],
-        nullabilitySuffix: NullabilitySuffix.star,
-      ),
-    );
-    var suggestions = builder.suggestions;
-    expect(suggestions, hasLength(4));
-    expect(suggestions.map((s) => s.value),
-        unorderedEquals(['Object', 'A', 'B', 'C']));
   }
 }
 

@@ -18,7 +18,7 @@ library from "org-dartlang-test:///main.dart" as main {
           break #L1;
         }
       }
-      throw new dart._internal::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new dart._internal::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t1;
   static method main() → dynamic {}
@@ -27,10 +27,11 @@ constants  {
   #C1 = 0
 }
 
-And 18 platform libraries:
+And 19 platform libraries:
  - dart:_http
  - dart:_builtin
  - dart:vmservice_io
+ - dart:_macros
  - dart:async
  - dart:cli
  - dart:collection

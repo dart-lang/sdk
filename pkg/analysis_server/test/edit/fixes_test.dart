@@ -152,23 +152,18 @@ print(1)
   }
 
   Future<void> test_suggestImportFromDifferentAnalysisRoot() async {
-    newPackageConfigJsonFile(
-      '$workspaceRootPath/aaa',
-      (PackageConfigFileBuilder()
-            ..add(name: 'aaa', rootPath: '$workspaceRootPath/aaa')
-            ..add(name: 'bbb', rootPath: '$workspaceRootPath/bbb'))
-          .toContent(toUriStr: toUriStr),
+    writePackageConfig(
+      convertPath('$workspaceRootPath/aaa'),
+      config: (PackageConfigFileBuilder()
+        ..add(name: 'bbb', rootPath: '$workspaceRootPath/bbb')),
     );
     newPubspecYamlFile('$workspaceRootPath/aaa', r'''
 dependencies:
   bbb: any
 ''');
 
-    newPackageConfigJsonFile(
-      '$workspaceRootPath/bbb',
-      (PackageConfigFileBuilder()
-            ..add(name: 'bbb', rootPath: '$workspaceRootPath/bbb'))
-          .toContent(toUriStr: toUriStr),
+    writePackageConfig(
+      convertPath('$workspaceRootPath/bbb'),
     );
     newFile('$workspaceRootPath/bbb/lib/target.dart', 'class Foo() {}');
     newFile(

@@ -150,7 +150,7 @@ static method patternTypeMismatchInIrrefutableContext(core::List<core::String> l
 Try changing the required type of the pattern, or the matched value type.
   var <int>[a] = list; // Error
            ^")
-      throw new core::StateError::•("Pattern matching error");
+      throw{for-error-handling} new core::StateError::•("Pattern matching error");
   }
 }
 static method duplicateAssignmentPatternVariable(core::List<core::String> list) → dynamic {
@@ -161,7 +161,7 @@ static method duplicateAssignmentPatternVariable(core::List<core::String> list) 
 Try renaming the variable.
   [a, a] = list; // Error
       ^"))
-      throw new core::StateError::•("Pattern matching error");
+      throw{for-error-handling} new core::StateError::•("Pattern matching error");
   }
 }
 static method duplicateRecordPatternField(dynamic o) → dynamic {
@@ -260,7 +260,7 @@ static method refutablePatternInIrrefutableContext(core::int? x) → dynamic {
   {
     final synthesized core::int? #0#0 = x;
     if(!(!(#0#0 == null) && (let final core::int #t11 = a = #0#0{core::int} in true)))
-      throw new core::StateError::•("Pattern matching error");
+      throw{for-error-handling} new core::StateError::•("Pattern matching error");
   }
 }
 static method restPatternNotLastInMap(dynamic o) → dynamic {

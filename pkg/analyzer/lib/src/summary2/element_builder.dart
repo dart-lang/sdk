@@ -58,7 +58,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   }
 
   /// Build exports and imports, metadata into [_container].
-  void buildLibraryElementChildren(CompilationUnit unit) {
+  void buildLibraryElementChildren(CompilationUnitImpl unit) {
     unit.directives.accept(this);
 
     if (_isFirstLibraryDirective) {
@@ -252,7 +252,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var holder = _EnclosingContext(
       reference,
       element,
-      hasConstConstructor: true,
+      constFieldsForFinalInstance: true,
     );
 
     // Build fields for all enum constants.
@@ -537,12 +537,19 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       var name = nameToken.lexeme;
       var nameOffset = nameToken.offset;
 
-      FieldElementImpl element;
-      if (_shouldBeConstField(node)) {
-        element = ConstFieldElementImpl(name, nameOffset)
-          ..constantInitializer = variable.initializer;
-      } else {
-        element = FieldElementImpl(name, nameOffset);
+      var element = FieldElementImpl(name, nameOffset);
+      if (variable.initializer case var initializer?) {
+        if (node.fields.isConst) {
+          element = ConstFieldElementImpl(name, nameOffset)
+            ..constantInitializer = initializer;
+        } else if (_enclosingContext.constFieldsForFinalInstance) {
+          if (node.fields.isFinal && !node.isStatic) {
+            var constElement = ConstFieldElementImpl(name, nameOffset)
+              ..constantInitializer = initializer;
+            element = constElement;
+            _libraryBuilder.finalInstanceFields.add(constElement);
+          }
+        }
       }
 
       element.hasInitializer = variable.initializer != null;
@@ -580,7 +587,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     ParameterElementImpl element;
     var parent = node.parent;
-    if (parent is DefaultFormalParameter) {
+    if (parent is DefaultFormalParameterImpl) {
       element = DefaultFieldFormalParameterElementImpl(
         name: name,
         nameOffset: nameOffset,
@@ -743,7 +750,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     ParameterElementImpl element;
     var parent = node.parent;
-    if (parent is DefaultFormalParameter) {
+    if (parent is DefaultFormalParameterImpl) {
       element = DefaultParameterElementImpl(
         name: name,
         nameOffset: nameOffset,
@@ -1068,7 +1075,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     ParameterElementImpl element;
     var parent = node.parent;
-    if (parent is DefaultFormalParameter &&
+    if (parent is DefaultFormalParameterImpl &&
         _enclosingContext.hasDefaultFormalParameters) {
       element = DefaultParameterElementImpl(
         name: name,
@@ -1109,7 +1116,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     SuperFormalParameterElementImpl element;
     var parent = node.parent;
-    if (parent is DefaultFormalParameter) {
+    if (parent is DefaultFormalParameterImpl) {
       element = DefaultSuperFormalParameterElementImpl(
         name: name,
         nameOffset: nameOffset,
@@ -1167,7 +1174,8 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
       TopLevelVariableElementImpl element;
       if (node.variables.isConst) {
-        element = ConstTopLevelVariableElementImpl(name, nameOffset);
+        element = ConstTopLevelVariableElementImpl(name, nameOffset)
+          ..constantInitializer = variable.initializer;
       } else {
         element = TopLevelVariableElementImpl(name, nameOffset);
       }
@@ -1238,18 +1246,15 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     node.mixinTypes.accept(this);
   }
 
-  List<ElementAnnotation> _buildAnnotations(List<Annotation> nodeList) {
+  List<ElementAnnotationImpl> _buildAnnotations(List<Annotation> nodeList) {
     return _buildAnnotationsWithUnit(_unitElement, nodeList);
   }
 
   void _buildClass(ClassDeclaration node) {
     var element = node.declaredElement as ClassElementImpl;
-    var hasConstConstructor = node.members.any((e) {
-      return e is ConstructorDeclaration && e.constKeyword != null;
-    });
     // TODO(scheglov): don't create a duplicate
     var holder = _EnclosingContext(element.reference!, element,
-        hasConstConstructor: hasConstConstructor);
+        constFieldsForFinalInstance: true);
     _withEnclosing(holder, () {
       _visitPropertyFirst<FieldDeclaration>(node.members);
     });
@@ -1285,12 +1290,8 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
   void _buildMixin(MixinDeclaration node) {
     var element = node.declaredElement as MixinElementImpl;
-    var hasConstConstructor = node.members.any((e) {
-      return e is ConstructorDeclaration && e.constKeyword != null;
-    });
     // TODO(scheglov): don't create a duplicate
-    var holder = _EnclosingContext(element.reference!, element,
-        hasConstConstructor: hasConstConstructor);
+    var holder = _EnclosingContext(element.reference!, element);
     _withEnclosing(holder, () {
       _visitPropertyFirst<FieldDeclaration>(node.members);
     });
@@ -1434,14 +1435,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     }
   }
 
-  bool _shouldBeConstField(FieldDeclaration node) {
-    var fields = node.fields;
-    return fields.isConst ||
-        !node.isStatic &&
-            fields.isFinal &&
-            _enclosingContext.hasConstConstructor;
-  }
-
   void _visitPropertyFirst<T extends AstNode>(List<AstNode> nodes) {
     // When loading from bytes, we read fields first.
     // There is no particular reason for this - we just have to store
@@ -1472,16 +1465,16 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     }
   }
 
-  static List<ElementAnnotation> _buildAnnotationsWithUnit(
+  static List<ElementAnnotationImpl> _buildAnnotationsWithUnit(
     CompilationUnitElementImpl unitElement,
     List<Annotation> nodeList,
   ) {
     var length = nodeList.length;
     if (length == 0) {
-      return const <ElementAnnotation>[];
+      return const <ElementAnnotationImpl>[];
     }
 
-    return List<ElementAnnotation>.generate(length, (index) {
+    return List<ElementAnnotationImpl>.generate(length, (index) {
       var ast = nodeList[index] as AnnotationImpl;
       var element = ElementAnnotationImpl(unitElement);
       element.annotationAst = ast;
@@ -1531,7 +1524,10 @@ class _EnclosingContext {
   final List<TopLevelVariableElementImpl> _topLevelVariables = [];
   final List<TypeAliasElementImpl> _typeAliases = [];
   final List<TypeParameterElementImpl> _typeParameters = [];
-  final bool hasConstConstructor;
+
+  /// A class can have `const` constructors, and if it has we need values
+  /// of final instance fields.
+  final bool constFieldsForFinalInstance;
 
   /// Not all optional formal parameters can have default values.
   /// For example, formal parameters of methods can, but formal parameters
@@ -1542,7 +1538,7 @@ class _EnclosingContext {
   _EnclosingContext(
     this.reference,
     this.element, {
-    this.hasConstConstructor = false,
+    this.constFieldsForFinalInstance = false,
     this.hasDefaultFormalParameters = false,
   });
 
@@ -1573,8 +1569,6 @@ class _EnclosingContext {
   List<FunctionElementImpl> get functions {
     return _functions.toFixedList();
   }
-
-  bool get hasConstructors => _constructors.isNotEmpty;
 
   bool get isDartCoreEnum {
     final element = this.element;

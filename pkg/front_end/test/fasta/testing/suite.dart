@@ -121,7 +121,7 @@ import 'package:testing/testing.dart'
         Step,
         TestDescription,
         StdioProcess;
-import 'package:vm/target/vm.dart' show VmTarget;
+import 'package:vm/modular/target/vm.dart' show VmTarget;
 
 import '../../incremental_suite.dart' show TestRecorderForTesting;
 import '../../testing_utils.dart' show checkEnvironment;

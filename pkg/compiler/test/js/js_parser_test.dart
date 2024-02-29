@@ -99,7 +99,7 @@ void main() {
   testExpression('var false = 42');
   testExpression('var new = 42');
   // Bad keyword.
-  testError('var typeof = 42', "Expected ALPHA");
+  testError('var typeof = 42', "Expected _Category.alpha");
   // Malformed decimal/hex.
   testError('var x = 1.1.1', "Unparseable number");
   testError('var x = 0xabcdefga', "Unparseable number");

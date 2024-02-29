@@ -153,6 +153,12 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
+    if (parent != null) {
+      AstNode? member = parent.thisOrAncestorOfType<ClassMember>();
+      member ??= parent.thisOrAncestorOfType<NamedCompilationUnitMember>();
+      if (member?.isAugmentation ?? false) return;
+    }
+
     rule.reportLintForToken(node.name2);
   }
 }

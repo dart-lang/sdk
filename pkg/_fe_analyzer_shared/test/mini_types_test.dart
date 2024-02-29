@@ -42,7 +42,7 @@ main() {
     });
 
     test('unknown type', () {
-      var t = Type('?');
+      var t = Type('_');
       expect(t, TypeMatcher<UnknownType>());
     });
 
@@ -308,50 +308,45 @@ main() {
 
     group('RecordType:', () {
       test('unchanged', () {
-        var type = RecordType(positional: [
-          Type('int'),
-        ], named: {
-          'a': Type('double')
-        });
-        expect(type.recursivelyDemote(covariant: true), isNull);
-        expect(type.recursivelyDemote(covariant: false), isNull);
+        expect(Type('(int, {double a})').recursivelyDemote(covariant: true),
+            isNull);
+        expect(Type('(int, {double a})').recursivelyDemote(covariant: false),
+            isNull);
       });
 
       group('changed:', () {
         group('positional:', () {
-          var type = RecordType(positional: [
-            Type('T&int'),
-          ], named: {
-            'a': Type('double')
-          });
           test('covariant', () {
             expect(
-              type.recursivelyDemote(covariant: true)!.type,
+              Type('(T&int, {double a})')
+                  .recursivelyDemote(covariant: true)!
+                  .type,
               '(T, {double a})',
             );
           });
           test('contravariant', () {
             expect(
-              type.recursivelyDemote(covariant: false)!.type,
+              Type('(T&int, {double a})')
+                  .recursivelyDemote(covariant: false)!
+                  .type,
               '(Never, {double a})',
             );
           });
         });
         group('named:', () {
-          var type = RecordType(positional: [
-            Type('double'),
-          ], named: {
-            'a': Type('T&int')
-          });
           test('covariant', () {
             expect(
-              type.recursivelyDemote(covariant: true)!.type,
+              Type('(double, {T&int a})')
+                  .recursivelyDemote(covariant: true)!
+                  .type,
               '(double, {T a})',
             );
           });
           test('contravariant', () {
             expect(
-              type.recursivelyDemote(covariant: false)!.type,
+              Type('(double, {T&int a})')
+                  .recursivelyDemote(covariant: false)!
+                  .type,
               '(double, {Never a})',
             );
           });
@@ -376,8 +371,8 @@ main() {
     });
 
     test('UnknownType:', () {
-      expect(Type('?').recursivelyDemote(covariant: true), isNull);
-      expect(Type('?').recursivelyDemote(covariant: false), isNull);
+      expect(Type('_').recursivelyDemote(covariant: true), isNull);
+      expect(Type('_').recursivelyDemote(covariant: false), isNull);
     });
   });
 }

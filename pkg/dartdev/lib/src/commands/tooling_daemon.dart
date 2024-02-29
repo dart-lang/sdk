@@ -23,9 +23,7 @@ class ToolingDaemonCommand extends DartdevCommand {
           commandName,
           commandDescription,
           verbose,
-          // TODO: this should be set to !verbose once DTD is ready for
-          // production.
-          hidden: true,
+          hidden: !verbose,
         );
 
   @override

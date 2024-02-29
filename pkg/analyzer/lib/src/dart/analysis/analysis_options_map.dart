@@ -10,16 +10,32 @@ import 'package:analyzer/src/clients/build_resolvers/build_resolvers.dart';
 class AnalysisOptionsMap {
   /// Default options, shared by files with no associated analysis options file
   /// folder entry.
-  static final AnalysisOptionsImpl _defaultOptions = AnalysisOptionsImpl();
+  final AnalysisOptionsImpl _defaultOptions = AnalysisOptionsImpl();
 
   final List<OptionsMapEntry> entries = [];
 
   /// Create an empty [AnalysisOptionsMap] instance.
   AnalysisOptionsMap();
 
+  /// Create an [AnalysisOptionsMap] that holds one set of [sharedOptions] for
+  /// all associated files.
+  factory AnalysisOptionsMap.forSharedOptions(
+          AnalysisOptionsImpl sharedOptions) =>
+      _SharedOptionsOptionsMap(sharedOptions);
+
   /// Get the first options entry or the default options object if there is none.
   AnalysisOptionsImpl get firstOrDefault =>
       entries.firstOrNull?.options ?? _defaultOptions;
+
+  /// Get all the mapped options, falling back to the [_defaultOptions] object
+  /// if the [entries] list is empty.
+  Iterable<AnalysisOptionsImpl> get _allOptions {
+    var allOptions = entries.map((e) => e.options).toList();
+    if (allOptions.isEmpty) {
+      allOptions.add(_defaultOptions);
+    }
+    return allOptions;
+  }
 
   /// Map this [folder] to the given [options].
   void add(Folder folder, AnalysisOptionsImpl options) {
@@ -28,8 +44,16 @@ class AnalysisOptionsMap {
     entries.sort((e1, e2) => e1.folder.contains(e2.folder.path) ? 1 : -1);
   }
 
+  /// Perform the given [action] on all the mapped options.
+  /// If the options [entries] map is empty, perform the action on this map's
+  /// default options object.
+  void forEachOptionsObject(void Function(AnalysisOptionsImpl element) action) {
+    _allOptions.forEach(action);
+  }
+
   /// Get the [AnalysisOptions] instance for the given [file] (or a shared empty
-  /// default options object if there is no entry in [entries] for a containing folder).
+  /// default options object if there is no entry in [entries] for a containing
+  /// folder).
   AnalysisOptionsImpl getOptions(File file) {
     for (var entry in entries) {
       if (entry.folder.contains(file.path)) return entry.options;
@@ -37,13 +61,6 @@ class AnalysisOptionsMap {
 
     return _defaultOptions;
   }
-
-  /// Create an [AnalysisOptionsMap] that holds one set of [sharedOptions] for all
-  /// associated files.
-  // TODO(pq): replace w/ a factory constructor when SharedOptionsOptionsMap is made private
-  static SharedOptionsOptionsMap forSharedOptions(
-          AnalysisOptionsImpl sharedOptions) =>
-      SharedOptionsOptionsMap(sharedOptions);
 }
 
 /// Instances of [OptionsMapEntry] associate [Folder]s with their
@@ -59,10 +76,10 @@ class OptionsMapEntry {
   OptionsMapEntry(this.folder, this.options);
 }
 
-// TODO(pq): make private when no longer referenced.
-class SharedOptionsOptionsMap extends AnalysisOptionsMap {
+/// An option map that contains only one shared set of options.
+class _SharedOptionsOptionsMap extends AnalysisOptionsMap {
   final AnalysisOptionsImpl sharedOptions;
-  SharedOptionsOptionsMap(this.sharedOptions) {
+  _SharedOptionsOptionsMap(this.sharedOptions) {
     var optionsFile = sharedOptions.file;
     // If there's an associated file, create an entry so that we can display it
     // in the diagnostics page.
@@ -70,6 +87,10 @@ class SharedOptionsOptionsMap extends AnalysisOptionsMap {
       add(optionsFile.parent, sharedOptions);
     }
   }
+
+  @override
+  Iterable<AnalysisOptionsImpl> get _allOptions => [sharedOptions];
+
   @override
   AnalysisOptionsImpl getOptions(File file) =>
       // No need to lookup. There's only one shared set of options.

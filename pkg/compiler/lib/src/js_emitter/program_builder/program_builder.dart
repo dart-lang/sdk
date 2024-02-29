@@ -805,30 +805,30 @@ class ProgramBuilder {
         _inferredData.getMightBePassedToApply(method);
   }
 
-  /* Map | List */ _computeParameterDefaultValues(FunctionEntity method) {
-    var /* Map | List */ optionalParameterDefaultValues;
+  Object? /* Map | List */ _computeParameterDefaultValues(
+      FunctionEntity method) {
+    Object? /* Map | List */ optionalParameterDefaultValues;
     ParameterStructure parameterStructure = method.parameterStructure;
     if (parameterStructure.namedParameters.isNotEmpty) {
-      optionalParameterDefaultValues = Map<String, ConstantValue>();
+      final defaults = Map<String, ConstantValue>();
       _elementEnvironment.forEachParameter(method,
           (DartType type, String? name, ConstantValue? defaultValue) {
         if (parameterStructure.namedParameters.contains(name)) {
-          assert(defaultValue != null);
-          // ignore: avoid_dynamic_calls
-          optionalParameterDefaultValues[name] = defaultValue;
+          defaults[name!] = defaultValue!;
         }
       });
+      optionalParameterDefaultValues = defaults;
     } else {
-      optionalParameterDefaultValues = <ConstantValue>[];
+      final defaults = <ConstantValue>[];
       int index = 0;
       _elementEnvironment.forEachParameter(method,
           (DartType type, String? name, ConstantValue? defaultValue) {
         if (index >= parameterStructure.requiredPositionalParameters) {
-          // ignore: avoid_dynamic_calls
-          optionalParameterDefaultValues.add(defaultValue);
+          defaults.add(defaultValue!);
         }
         index++;
       });
+      optionalParameterDefaultValues = defaults;
     }
     return optionalParameterDefaultValues;
   }
@@ -907,7 +907,7 @@ class ProgramBuilder {
     ParameterStructure parameterStructure = method.parameterStructure;
     int requiredParameterCount =
         parameterStructure.requiredPositionalParameters;
-    var /* List | Map */ optionalParameterDefaultValues;
+    Object? /* List | Map */ optionalParameterDefaultValues;
     int applyIndex = 0;
     if (canBeApplied) {
       optionalParameterDefaultValues = _computeParameterDefaultValues(method);
@@ -1151,7 +1151,7 @@ class ProgramBuilder {
     ParameterStructure parameterStructure = method.parameterStructure;
     int requiredParameterCount =
         parameterStructure.requiredPositionalParameters;
-    var /* List | Map */ optionalParameterDefaultValues;
+    Object? /* List | Map */ optionalParameterDefaultValues;
     int applyIndex = 0;
     if (canBeApplied) {
       optionalParameterDefaultValues = _computeParameterDefaultValues(method);

@@ -10,33 +10,19 @@
 
 namespace dart {
 
-#if defined(HOST_ARCH_ARM) || defined(HOST_ARCH_ARM64)
 template <typename T>
 static inline T LoadUnaligned(const T* ptr) {
   T value;
-  memcpy(reinterpret_cast<void*>(&value), reinterpret_cast<const void*>(ptr),
-         sizeof(value));
+  memcpy(reinterpret_cast<void*>(&value),  // NOLINT
+         reinterpret_cast<const void*>(ptr), sizeof(value));
   return value;
 }
 
 template <typename T>
 static inline void StoreUnaligned(T* ptr, T value) {
-  memcpy(reinterpret_cast<void*>(ptr), reinterpret_cast<const void*>(&value),
-         sizeof(value));
+  memcpy(reinterpret_cast<void*>(ptr),  // NOLINT
+         reinterpret_cast<const void*>(&value), sizeof(value));
 }
-#else   // !(HOST_ARCH_ARM || HOST_ARCH_ARM64)
-template <typename T>
-NO_SANITIZE_UNDEFINED("alignment")
-static inline T LoadUnaligned(const T* ptr) {
-  return *ptr;
-}
-
-template <typename T>
-NO_SANITIZE_UNDEFINED("alignment")
-static inline void StoreUnaligned(T* ptr, T value) {
-  *ptr = value;
-}
-#endif  // !(HOST_ARCH_ARM || HOST_ARCH_ARM64)
 
 }  // namespace dart
 

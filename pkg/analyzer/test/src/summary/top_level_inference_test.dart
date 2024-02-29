@@ -315,9 +315,9 @@ class C implements A, B {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 109, 3,
-          contextMessages: [message('/home/test/lib/test.dart', 64, 3)]),
+          contextMessages: [message(testFile, 64, 3)]),
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 109, 3,
-          contextMessages: [message('/home/test/lib/test.dart', 25, 3)]),
+          contextMessages: [message(testFile, 25, 3)]),
     ]);
   }
 
@@ -5191,59 +5191,6 @@ library
               requiredPositional x @130
                 type: dynamic
             returnType: Never
-''');
-  }
-
-  test_method_error_noCombinedSuperSignature2_legacy() async {
-    var library = await _encodeDecodeLibrary(r'''
-// @dart = 2.9
-abstract class A {
-  int foo(int x);
-}
-
-abstract class B {
-  double foo(int x);
-}
-
-abstract class C implements A, B {
-  Never foo(x);
-}
-''');
-    checkElementText(library, r'''
-library
-  definingUnit
-    classes
-      abstract class A @30
-        constructors
-          synthetic @-1
-        methods
-          abstract foo @40
-            parameters
-              requiredPositional x @48
-                type: int*
-            returnType: int*
-      abstract class B @70
-        constructors
-          synthetic @-1
-        methods
-          abstract foo @83
-            parameters
-              requiredPositional x @91
-                type: int*
-            returnType: double*
-      abstract class C @113
-        interfaces
-          A*
-          B*
-        constructors
-          synthetic @-1
-        methods
-          abstract foo @141
-            typeInferenceError: overrideNoCombinedSuperSignature
-            parameters
-              requiredPositional x @145
-                type: dynamic
-            returnType: Null*
 ''');
   }
 

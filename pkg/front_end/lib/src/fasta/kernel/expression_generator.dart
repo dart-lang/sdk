@@ -9,22 +9,7 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show lengthForToken, lengthOfSpan;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 import 'package:kernel/ast.dart';
-import 'package:kernel/src/unaliasing.dart';
-import 'package:kernel/text/ast_to_text.dart';
-import 'package:kernel/type_algebra.dart';
-
-import '../builder/builder.dart';
-import '../builder/declaration_builders.dart';
-import '../builder/library_builder.dart';
-import '../builder/member_builder.dart';
-import '../builder/named_type_builder.dart';
-import '../builder/nullability_builder.dart';
-import '../builder/omitted_type_builder.dart';
-import '../builder/prefix_builder.dart';
-import '../builder/type_builder.dart';
-import '../constant_context.dart' show ConstantContext;
-import '../fasta_codes.dart';
-import '../names.dart'
+import 'package:kernel/names.dart'
     show
         ampersandName,
         barName,
@@ -43,6 +28,21 @@ import '../names.dart'
         plusName,
         rightShiftName,
         tripleShiftName;
+import 'package:kernel/src/unaliasing.dart';
+import 'package:kernel/text/ast_to_text.dart';
+import 'package:kernel/type_algebra.dart';
+
+import '../builder/builder.dart';
+import '../builder/declaration_builders.dart';
+import '../builder/library_builder.dart';
+import '../builder/member_builder.dart';
+import '../builder/named_type_builder.dart';
+import '../builder/nullability_builder.dart';
+import '../builder/omitted_type_builder.dart';
+import '../builder/prefix_builder.dart';
+import '../builder/type_builder.dart';
+import '../codes/fasta_codes.dart';
+import '../constant_context.dart' show ConstantContext;
 import '../problems.dart';
 import '../scope.dart';
 import '../source/source_member_builder.dart';

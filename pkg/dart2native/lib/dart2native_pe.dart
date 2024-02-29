@@ -8,7 +8,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 int align(int size, int base) {
-  final int over = size % base;
+  final over = size % base;
   if (over != 0) {
     return size + (base - over);
   }
@@ -16,9 +16,11 @@ int align(int size, int base) {
 }
 
 class BytesBacked {
-  ByteData data;
+  ByteData _data;
 
-  BytesBacked(this.data);
+  ByteData get data => _data;
+
+  BytesBacked(this._data);
 
   int get size => data.lengthInBytes;
 
@@ -36,7 +38,9 @@ class CoffFileHeader extends BytesBacked {
 
   static CoffFileHeader fromTypedData(TypedData source, int offset) {
     if (source.lengthInBytes < offset + _fileHeaderSize) {
-      throw 'File is truncated within the COFF file header';
+      throw const FormatException(
+        'File is truncated within the COFF file header',
+      );
     }
     final buffer = Uint8List(_fileHeaderSize);
     buffer.setAll(
@@ -67,23 +71,24 @@ class CoffOptionalHeader extends BytesBacked {
   static CoffOptionalHeader fromTypedData(
       TypedData source, int offset, int size) {
     if (source.lengthInBytes < offset + size) {
-      throw 'File is truncated within the COFF optional header';
+      throw const FormatException(
+          'File is truncated within the COFF optional header');
     }
     final buffer = Uint8List(size);
     buffer.setAll(0, Uint8List.sublistView(source, offset, offset + size));
     final data = ByteData.sublistView(buffer);
     final magic = data.getUint16(_magicOffset, Endian.little);
     if (magic != _pe32Magic && magic != _pe32PlusMagic) {
-      throw 'Not a PE32 or PE32+ image file';
+      throw const FormatException('Not a PE32 or PE32+ image file');
     }
     return CoffOptionalHeader._(data);
   }
 
-  // The alignment used for virtual addresses of sections, _not_ file offsets.
+  /// The alignment used for virtual addresses of sections, _not_ file offsets.
   int get sectionAlignment =>
       data.getUint32(_sectionAlignmentOffset, Endian.little);
 
-  // The alignment used for file offsets of section data and other contents.
+  /// The alignment used for file offsets of section data and other contents.
   int get fileAlignment => data.getUint32(_fileAlignmentOffset, Endian.little);
 
   int get headersSize => data.getUint32(_headersSizeOffset, Endian.little);
@@ -156,7 +161,8 @@ class CoffSectionTable extends BytesBacked {
       TypedData source, int offset, int sections) {
     final size = sections * _entrySize;
     if (source.lengthInBytes < offset + size) {
-      throw 'File is truncated within the COFF section table';
+      throw const FormatException(
+          'File is truncated within the COFF section table');
     }
     final buffer = Uint8List(size);
     buffer.setAll(0, Uint8List.sublistView(source, offset, offset + size));
@@ -164,8 +170,10 @@ class CoffSectionTable extends BytesBacked {
   }
 
   Iterable<CoffSectionHeader> get entries sync* {
-    for (int i = 0; i < size; i += _entrySize) {
-      yield CoffSectionHeader._(ByteData.sublistView(data, i, i + _entrySize));
+    for (var entryIndex = 0; entryIndex < size; entryIndex += _entrySize) {
+      yield CoffSectionHeader._(
+        ByteData.sublistView(data, entryIndex, entryIndex + _entrySize),
+      );
     }
   }
 
@@ -177,7 +185,7 @@ class CoffSectionTable extends BytesBacked {
   CoffSectionHeader allocateNewSectionHeader() {
     final newBuffer = Uint8List(size + _entrySize);
     newBuffer.setAll(0, Uint8List.sublistView(data));
-    data = ByteData.sublistView(newBuffer);
+    _data = ByteData.sublistView(newBuffer);
     return CoffSectionHeader._(
         ByteData.sublistView(data, size - _entrySize, size));
   }
@@ -204,7 +212,7 @@ class CoffHeaders {
   }
 
   // Keep in sync with kSnapshotSectionName in snapshot_utils.cc.
-  static const _snapshotSectionName = "snapshot";
+  static const _snapshotSectionName = 'snapshot';
 
   int get size => optionalHeader.headersSize;
 
@@ -243,7 +251,8 @@ class CoffHeaders {
       // alignment and so this is not expected to happen.)
       if (size ~/ optionalHeader.sectionAlignment !=
           oldHeadersSize ~/ optionalHeader.sectionAlignment) {
-        throw 'Adding the snapshot would require adjusting virtual addresses';
+        throw StateError(
+            'Adding the snapshot would require adjusting virtual addresses');
       }
       assert(headersSizeDiff % optionalHeader.fileAlignment == 0);
       for (final entry in sectionTable.entries) {
@@ -284,9 +293,9 @@ class PortableExecutable {
     final source = await file.readAsBytes();
     final byteData = ByteData.sublistView(source);
     final peOffset = byteData.getUint32(_offsetForPEOffset, Endian.little);
-    for (int i = 0; i < _expectedPESignature.length; i++) {
+    for (var i = 0; i < _expectedPESignature.length; i++) {
       if (byteData.getUint8(peOffset + i) != _expectedPESignature[i]) {
-        throw 'Not a Portable Executable file';
+        throw ArgumentError('Not a Portable Executable file', 'file');
       }
     }
     final fileHeaderOffset = peOffset + _expectedPESignature.length;
@@ -323,11 +332,14 @@ class PortableExecutable {
 
 // Writes an "appended" dart runtime + script snapshot file in a format
 // compatible with Portable Executable files.
-Future writeAppendedPortableExecutable(
+//
+// WARNING: this method is used within google3, so don't try to refactor so
+// [dartaotruntimePath] is a constant inside this file.
+Future<void> writeAppendedPortableExecutable(
     String dartaotruntimePath, String payloadPath, String outputPath) async {
-  File originalExecutableFile = File(dartaotruntimePath);
-  File newSegmentFile = File(payloadPath);
-  File outputFile = File(outputPath);
+  final originalExecutableFile = File(dartaotruntimePath);
+  final newSegmentFile = File(payloadPath);
+  final outputFile = File(outputPath);
 
   final pe = await PortableExecutable.fromFile(originalExecutableFile);
   await pe.appendSnapshotAndWrite(outputFile, newSegmentFile);

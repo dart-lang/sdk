@@ -56,11 +56,6 @@ abstract class DartSnippetProducer extends SnippetProducer {
         .any(path.contains);
   }
 
-  /// The nullable suffix to use in this library.
-  NullabilitySuffix get nullableSuffix => libraryElement.isNonNullableByDefault
-      ? NullabilitySuffix.question
-      : NullabilitySuffix.none;
-
   /// Adds public imports for any elements fetched by [getClass] and [getMixin]
   /// to [builder].
   Future<void> addImports(DartFileEditBuilder builder) async {
@@ -175,7 +170,7 @@ mixin FlutterWidgetSnippetProducerMixin on FlutterSnippetProducer {
       keyName = 'super.key';
     } else {
       keyName = 'key';
-      keyType = getType(classKey, nullableSuffix);
+      keyType = getType(classKey, NullabilitySuffix.question);
       keyInitializer = () => builder.write('super(key: key)');
     }
 

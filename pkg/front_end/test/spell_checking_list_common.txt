@@ -834,8 +834,10 @@ derivation
 derive
 derived
 derives
+descend
 descendant
 descendants
+descends
 describe
 described
 describes
@@ -985,6 +987,7 @@ edges
 edit
 edition
 editor
+edits
 effect
 effective
 effectively
@@ -994,6 +997,7 @@ either
 elapsed
 element
 elements
+elided
 eligible
 eliminate
 eliminated
@@ -1426,6 +1430,7 @@ hermetic
 heuristic
 hex
 hexadecimal
+hi
 hidden
 hide
 hides
@@ -1473,6 +1478,7 @@ ignore
 ignored
 ignores
 ignoring
+ill
 illegal
 imaginary
 imitation
@@ -2090,6 +2096,7 @@ odd
 odds
 of
 off
+offer
 offs
 offset
 offsets
@@ -2124,6 +2131,7 @@ optimistically
 optimization
 optimize
 optimized
+optimizer
 option
 optional
 optionally
@@ -2333,6 +2341,7 @@ prepending
 prepends
 presence
 present
+presentation
 preserve
 preserved
 preserves
@@ -2938,6 +2947,8 @@ string
 strings
 stripped
 strong
+stronger
+strongest
 strongly
 struct
 structural
@@ -3335,6 +3346,7 @@ utf
 utilities
 utility
 utilized
+ux
 valid
 validate
 validated

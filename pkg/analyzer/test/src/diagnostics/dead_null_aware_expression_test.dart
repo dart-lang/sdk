@@ -15,23 +15,6 @@ main() {
 
 @reflectiveTest
 class DeadNullAwareExpressionTest extends PubPackageResolutionTest {
-  test_assignCompound_legacy() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-// @dart = 2.5
-var x = 0;
-''');
-
-    await assertErrorsInCode('''
-import 'a.dart';
-
-f() {
-  x ??= 0;
-}
-''', [
-      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
-    ]);
-  }
-
   test_assignCompound_map() async {
     await assertNoErrorsInCode(r'''
 class MyMap<K, V> {
@@ -61,23 +44,6 @@ f(int? x) {
   x ??= 0;
 }
 ''');
-  }
-
-  test_binary_legacy() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-// @dart = 2.5
-var x = 0;
-''');
-
-    await assertErrorsInCode('''
-import 'a.dart';
-
-f() {
-  x ?? 0;
-}
-''', [
-      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
-    ]);
   }
 
   test_binary_nonNullable() async {

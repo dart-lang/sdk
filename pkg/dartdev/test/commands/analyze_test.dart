@@ -593,6 +593,52 @@ void f() {
     });
 
     group('json', () {
+      group('--format=json', () {
+        test('no errors', () async {
+          p = project(mainSrc: 'int get foo => 1;\n');
+          var result = await p.runAnalyze([
+            '--format=json',
+            p.mainPath,
+          ]);
+
+          expect(result.exitCode, 0);
+          expect(result.stderr, isEmpty);
+
+          final stdout = result.stdout.trim();
+          expect(stdout, '{"version":1,"diagnostics":[]}');
+        });
+        test('one error', () async {
+          p = project(mainSrc: "int get foo => 'str';\n");
+          var result = await p.runAnalyze([
+            '--format=json',
+            p.mainPath,
+          ]);
+
+          expect(result.exitCode, 3);
+          expect(result.stderr, isEmpty);
+
+          final escapedSeparator = path.separator.replaceAll('\\', '\\\\');
+          final stdout = result.stdout.trim();
+          expect(
+              stdout,
+              startsWith(
+                  '{"version":1,"diagnostics":[{"code":"return_of_invalid_type",'));
+          expect(stdout, endsWith('}'));
+          expect(stdout, contains('lib${escapedSeparator}main.dart'));
+          expect(stdout, contains('"line":1,"column":16'));
+          expect(stdout, contains('"problemMessage":"A value of type '));
+        });
+      });
+      test('empty', () {
+        final logger = TestLogger(false);
+        const List<AnalysisError> errors = [];
+
+        AnalyzeCommand.emitJsonFormat(logger, errors, null);
+
+        expect(logger.stderrBuffer, isEmpty);
+        final stdout = logger.stdoutBuffer.toString().trim();
+        expect(stdout, '{"version":1,"diagnostics":[]}');
+      });
       test('short', () {
         final logger = TestLogger(false);
         final errors = [AnalysisError(sampleInfoJson)];
@@ -634,18 +680,49 @@ void f() {
             '"https:://dart.dev/diagnostics/referenced_before_declaration"}]}');
       });
     });
+    group('machine', () {
+      group('--format=machine', () {
+        test('no errors', () async {
+          p = project(mainSrc: 'int get foo => 1;\n');
+          var result = await p.runAnalyze([
+            '--format=machine',
+            p.mainPath,
+          ]);
 
-    test('machine', () {
-      final logger = TestLogger(false);
-      final errors = [AnalysisError(sampleInfoJson)];
+          expect(result.exitCode, 0);
+          expect(result.stderr, isEmpty);
 
-      AnalyzeCommand.emitMachineFormat(logger, errors);
+          final stdout = result.stdout.trim();
+          expect(stdout, isEmpty);
+        });
+        test('one error', () async {
+          p = project(mainSrc: "int get foo => 'str';\n");
+          var result = await p.runAnalyze([
+            '--format=machine',
+            p.mainPath,
+          ]);
 
-      expect(logger.stderrBuffer, isEmpty);
-      expect(
-        logger.stdoutBuffer.toString().trim(),
-        'INFO|TODO|DEAD_CODE|lib/test.dart|15|4|72|Foo bar baz.',
-      );
+          expect(result.exitCode, 3);
+          expect(result.stderr, isEmpty);
+
+          final escapedSeparator = path.separator.replaceAll('\\', '\\\\');
+          final stdout = result.stdout.trim();
+          expect(stdout, contains('|A value of type '));
+          expect(stdout, contains('lib${escapedSeparator}main.dart|1|16|'));
+        });
+      });
+      test('short', () {
+        final logger = TestLogger(false);
+        final errors = [AnalysisError(sampleInfoJson)];
+
+        AnalyzeCommand.emitMachineFormat(logger, errors);
+
+        expect(logger.stderrBuffer, isEmpty);
+        expect(
+          logger.stdoutBuffer.toString().trim(),
+          'INFO|TODO|DEAD_CODE|lib/test.dart|15|4|72|Foo bar baz.',
+        );
+      });
     });
   });
 }

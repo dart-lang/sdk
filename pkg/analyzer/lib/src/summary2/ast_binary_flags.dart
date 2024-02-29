@@ -223,12 +223,6 @@ class AstBinaryFlags {
     TypedLiteral,
   );
 
-  static final _isStar = _checkBit(
-    0,
-    BlockFunctionBody,
-    YieldStatement,
-  );
-
   static final _isStatic = _checkBit(
     6,
     FieldDeclaration,
@@ -288,7 +282,6 @@ class AstBinaryFlags {
     bool isPositional = false,
     bool isRequired = false,
     bool isSet = false,
-    bool isStar = false,
     bool isStatic = false,
     bool isStringInterpolationIdentifier = false,
     bool isSync = false,
@@ -396,9 +389,6 @@ class AstBinaryFlags {
     }
     if (isSet) {
       result |= _isSet;
-    }
-    if (isStar) {
-      result |= _isStar;
     }
     if (isStatic) {
       result |= _isStatic;
@@ -549,10 +539,6 @@ class AstBinaryFlags {
 
   static bool isSet(int flags) {
     return (flags & _isSet) != 0;
-  }
-
-  static bool isStar(int flags) {
-    return (flags & _isStar) != 0;
   }
 
   static bool isStatic(int flags) {

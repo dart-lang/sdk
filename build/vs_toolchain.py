@@ -1,14 +1,8 @@
 #!/usr/bin/env python3
-# Copyright 2014 The Chromium Authors. All rights reserved.
+# Copyright 2014 The Chromium Authors
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-#
-# For Dart/Flutter developers:
-# This file is copied from Chromium:
-#   https://cs.chromium.org/chromium/src/build/vs_toolchain.py
-# When updating replace reference to python on the first line with python3.
-#
-from __future__ import print_function
+
 
 import collections
 import glob
@@ -23,8 +17,7 @@ import sys
 
 from gn_helpers import ToGNString
 
-# VS 2019 16.61 with 10.0.20348.0 SDK, 10.0.19041 version of Debuggers
-# with ARM64 libraries and UWP support.
+# VS 2022 17.4 with 10.0.22621.0 SDK with ARM64 libraries and UWP support.
 # See go/chromium-msvc-toolchain for instructions about how to update the
 # toolchain.
 #
@@ -33,11 +26,21 @@ from gn_helpers import ToGNString
 #
 # * //base/win/windows_version.cc NTDDI preprocessor check
 #   Triggers a compiler error if the available SDK is older than the minimum.
+# * SDK_VERSION in this file
+#   Must match the packaged/required SDK version.
+# * SDK_VERSION in build/toolchain/win/setup_toolchain.py.
 # * //build/config/win/BUILD.gn NTDDI_VERSION value
 #   Affects the availability of APIs in the toolchain headers.
 # * //docs/windows_build_instructions.md mentions of VS or Windows SDK.
 #   Keeps the document consistent with the toolchain version.
-TOOLCHAIN_HASH = '1023ce2e82'
+# * //tools/win/setenv.py
+#   Add/remove VS versions when upgrading to a new VS version.
+# * MSVC_TOOLSET_VERSION in this file
+#   Maps between Visual Studio version and MSVC toolset
+# * MSVS_VERSIONS in this file
+#   Records the packaged and default version of Visual Studio
+TOOLCHAIN_HASH = '27370823e7'
+SDK_VERSION = '10.0.22621.0'
 
 script_dir = os.path.dirname(os.path.realpath(__file__))
 json_data_file = os.path.join(script_dir, 'win_toolchain.json')
@@ -46,8 +49,8 @@ json_data_file = os.path.join(script_dir, 'win_toolchain.json')
 # The first version is assumed by this script to be the one that is packaged,
 # which makes a difference for the arm64 runtime.
 MSVS_VERSIONS = collections.OrderedDict([
-    ('2019', '16.0'),  # Default and packaged version of Visual Studio.
-    ('2022', '17.0'),
+    ('2022', '17.0'),  # Default and packaged version of Visual Studio.
+    ('2019', '16.0'),
     ('2017', '15.0'),
 ])
 
@@ -305,47 +308,28 @@ def _CopyUCRTRuntime(target_dir, source_dir, target_cpu, suffix):
     target = os.path.join(target_dir, dll)
     source = os.path.join(source_dir, dll)
     _CopyRuntimeImpl(target, source)
-  # Copy the UCRT files from the Windows SDK. This location includes the
-  # api-ms-win-crt-*.dll files that are not found in the Windows directory.
-  # These files are needed for component builds. If WINDOWSSDKDIR is not set
-  # use the default SDK path. This will be the case when
-  # DEPOT_TOOLS_WIN_TOOLCHAIN=0 and vcvarsall.bat has not been run.
-  win_sdk_dir = os.path.normpath(
-      os.environ.get('WINDOWSSDKDIR',
-                     os.path.expandvars('%ProgramFiles(x86)%'
-                                        '\\Windows Kits\\10')))
-  # ARM64 doesn't have a redist for the ucrt DLLs because they are always
-  # present in the OS.
-  if target_cpu != 'arm64':
-    # Starting with the 10.0.17763 SDK the ucrt files are in a version-named
-    # directory - this handles both cases.
-    redist_dir = os.path.join(win_sdk_dir, 'Redist')
-    version_dirs = glob.glob(os.path.join(redist_dir, '10.*'))
-    if len(version_dirs) > 0:
-      _SortByHighestVersionNumberFirst(version_dirs)
-      redist_dir = version_dirs[0]
-    ucrt_dll_dirs = os.path.join(redist_dir, 'ucrt', 'DLLs', target_cpu)
-    ucrt_files = glob.glob(os.path.join(ucrt_dll_dirs, 'api-ms-win-*.dll'))
-    assert len(ucrt_files) > 0
-    for ucrt_src_file in ucrt_files:
-      file_part = os.path.basename(ucrt_src_file)
-      ucrt_dst_file = os.path.join(target_dir, file_part)
-      _CopyRuntimeImpl(ucrt_dst_file, ucrt_src_file, False)
-  # We must copy ucrtbase.dll for x64/x86, and ucrtbased.dll for all CPU types.
-  if target_cpu != 'arm64' or not suffix.startswith('.'):
-    if not suffix.startswith('.'):
-      # ucrtbased.dll is located at {win_sdk_dir}/bin/{a.b.c.d}/{target_cpu}/
-      # ucrt/.
-      sdk_bin_root = os.path.join(win_sdk_dir, 'bin')
-      sdk_bin_sub_dirs = glob.glob(os.path.join(sdk_bin_root, '10.*'))
-      # Select the most recent SDK if there are multiple versions installed.
-      _SortByHighestVersionNumberFirst(sdk_bin_sub_dirs)
-      for directory in sdk_bin_sub_dirs:
-        sdk_redist_root_version = os.path.join(sdk_bin_root, directory)
-        if not os.path.isdir(sdk_redist_root_version):
-          continue
-        source_dir = os.path.join(sdk_redist_root_version, target_cpu, 'ucrt')
-        break
+  # We must copy ucrtbased.dll for all CPU types. The rest of the Universal CRT
+  # is installed as part of the OS in Windows 10 and beyond.
+  if not suffix.startswith('.'):
+    win_sdk_dir = os.path.normpath(
+        os.environ.get(
+            'WINDOWSSDKDIR',
+            os.path.expandvars('%ProgramFiles(x86)%'
+                               '\\Windows Kits\\10')))
+    # ucrtbased.dll is located at {win_sdk_dir}/bin/{a.b.c.d}/{target_cpu}/
+    # ucrt/.
+    sdk_bin_root = os.path.join(win_sdk_dir, 'bin')
+    sdk_bin_sub_dirs = glob.glob(os.path.join(sdk_bin_root, '10.*'))
+    # Select the most recent SDK if there are multiple versions installed.
+    _SortByHighestVersionNumberFirst(sdk_bin_sub_dirs)
+    for directory in sdk_bin_sub_dirs:
+      sdk_redist_root_version = os.path.join(sdk_bin_root, directory)
+      if not os.path.isdir(sdk_redist_root_version):
+        continue
+      source_dir = os.path.join(sdk_redist_root_version, target_cpu, 'ucrt')
+      if not os.path.isdir(source_dir):
+        continue
+      break
     _CopyRuntimeImpl(os.path.join(target_dir, 'ucrtbase' + suffix),
                      os.path.join(source_dir, 'ucrtbase' + suffix))
 
@@ -414,20 +398,33 @@ def CopyDlls(target_dir, configuration, target_cpu):
   if configuration == 'Debug':
     _CopyRuntime(target_dir, runtime_dir, target_cpu, debug=True)
   _CopyDebugger(target_dir, target_cpu)
+  if target_cpu == 'arm64':
+    target_dir = os.path.join(target_dir, 'win_clang_x64')
+    target_cpu = 'x64'
+    runtime_dir = x64_runtime
+    os.makedirs(target_dir, exist_ok=True)
+    _CopyRuntime(target_dir, runtime_dir, target_cpu, debug=False)
+    if configuration == 'Debug':
+      _CopyRuntime(target_dir, runtime_dir, target_cpu, debug=True)
+    _CopyDebugger(target_dir, target_cpu)
 
 
 def _CopyDebugger(target_dir, target_cpu):
-  """Copy dbghelp.dll and dbgcore.dll into the requested directory as needed.
+  """Copy dbghelp.dll, dbgcore.dll, and msdia140.dll into the requested
+  directory.
 
   target_cpu is one of 'x86', 'x64' or 'arm64'.
 
   dbghelp.dll is used when Chrome needs to symbolize stacks. Copying this file
   from the SDK directory avoids using the system copy of dbghelp.dll which then
-  ensures compatibility with recent debug information formats, such as VS
-  2017 /debug:fastlink PDBs.
+  ensures compatibility with recent debug information formats, such as
+  large-page PDBs. Note that for these DLLs to be deployed to swarming bots they
+  also need to be listed in group("runtime_libs").
 
   dbgcore.dll is needed when using some functions from dbghelp.dll (like
   MinidumpWriteDump).
+
+  msdia140.dll is needed for tools like symupload.exe and dump_syms.exe.
   """
   win_sdk_dir = SetEnvironmentAndGetSDKDir()
   if not win_sdk_dir:
@@ -436,10 +433,6 @@ def _CopyDebugger(target_dir, target_cpu):
   # List of debug files that should be copied, the first element of the tuple is
   # the name of the file and the second indicates if it's optional.
   debug_files = [('dbghelp.dll', False), ('dbgcore.dll', True)]
-  # The UCRT is not a redistributable component on arm64.
-  if target_cpu != 'arm64':
-    debug_files.extend([('api-ms-win-downlevel-kernel32-l2-1-0.dll', False),
-                        ('api-ms-win-eventing-provider-l1-1-0.dll', False)])
   for debug_file, is_optional in debug_files:
     full_path = os.path.join(win_sdk_dir, 'Debuggers', target_cpu, debug_file)
     if not os.path.exists(full_path):
@@ -447,11 +440,17 @@ def _CopyDebugger(target_dir, target_cpu):
         continue
       else:
         raise Exception('%s not found in "%s"\r\nYou must install '
-                        'Windows 10 SDK version 10.0.20348.0 including the '
+                        'Windows 10 SDK version %s including the '
                         '"Debugging Tools for Windows" feature.' %
-                        (debug_file, full_path))
+                        (debug_file, full_path, SDK_VERSION))
     target_path = os.path.join(target_dir, debug_file)
     _CopyRuntimeImpl(target_path, full_path)
+
+  # The x64 version of msdia140.dll is always used because symupload and
+  # dump_syms are always built as x64 binaries.
+  dia_path = os.path.join(NormalizePath(os.environ['GYP_MSVS_OVERRIDE_PATH']),
+                          'DIA SDK', 'bin', 'amd64', 'msdia140.dll')
+  _CopyRuntimeImpl(os.path.join(target_dir, 'msdia140.dll'), dia_path)
 
 
 def _GetDesiredVsToolchainHashes():
@@ -503,8 +502,7 @@ def Update(force=False, no_download=False):
     # For testing this block, unmount existing mounts with
     # fusermount -u third_party/depot_tools/win_toolchain/vs_files
     if sys.platform.startswith('linux') and not os.path.ismount(toolchain_dir):
-      import distutils.spawn
-      ciopfs = distutils.spawn.find_executable('ciopfs')
+      ciopfs = shutil.which('ciopfs')
       if not ciopfs:
         # ciopfs not found in PATH; try the one downloaded from the DEPS hook.
         ciopfs = os.path.join(script_dir, 'ciopfs')
@@ -563,11 +561,13 @@ def GetToolchainDir():
   win_sdk_dir = SetEnvironmentAndGetSDKDir()
 
   print('''vs_path = %s
+sdk_version = %s
 sdk_path = %s
 vs_version = %s
 wdk_dir = %s
 runtime_dirs = %s
-''' % (ToGNString(NormalizePath(os.environ['GYP_MSVS_OVERRIDE_PATH'])),
+''' % (ToGNString(NormalizePath(
+      os.environ['GYP_MSVS_OVERRIDE_PATH'])), ToGNString(SDK_VERSION),
        ToGNString(win_sdk_dir), ToGNString(GetVisualStudioVersion()),
        ToGNString(NormalizePath(os.environ.get('WDK_DIR', ''))),
        ToGNString(os.path.pathsep.join(runtime_dll_dirs or ['None']))))

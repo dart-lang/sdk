@@ -22,7 +22,6 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
   late final TypeParameterElement T;
   late final TypeParameterType T_none;
   late final TypeParameterType T_question;
-  late final TypeParameterType T_star;
 
   @override
   void setUp() {
@@ -30,7 +29,6 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
     T = typeParameter('T');
     T_none = typeParameterTypeNone(T);
     T_question = typeParameterTypeQuestion(T);
-    T_star = typeParameterTypeStar(T);
   }
 
   /// If `P` and `Q` are identical types, then the subtype match holds
@@ -826,31 +824,6 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
     _checkNotMatch([T], T_question, intNone, true);
   }
 
-  /// If `P` is a legacy type `P0*` then the match holds under constraint
-  /// set `C`:
-  ///   Only if `P0` is a subtype match for `Q` under constraint set `C`.
-  test_left_suffixStar() {
-    _checkMatch([T], T_star, numNone, false, ['_ <: T <: num']);
-    _checkMatch([T], T_star, numQuestion, false, ['_ <: T <: num?']);
-    _checkMatch([T], T_star, numStar, false, ['_ <: T <: num*']);
-
-    _checkMatch([T], numStar, T_none, true, ['num* <: T <: _']);
-    _checkMatch([T], numStar, T_question, true, ['num <: T <: _']);
-    _checkMatch([T], numStar, T_star, true, ['num <: T <: _']);
-  }
-
-  /// If `Q` is a legacy type `Q0*` then the match holds under constraint
-  /// set `C`:
-  ///   If `P` is `dynamic` or `void` and `P` is a subtype match for `Q0`
-  ///   under constraint set `C`.
-  test_left_top_right_legacy() {
-    var U = typeParameter('U', bound: objectNone);
-    var U_star = typeParameterTypeStar(U);
-
-    _checkMatch([U], dynamicType, U_star, false, ['dynamic <: U <: _']);
-    _checkMatch([U], voidNone, U_star, false, ['void <: U <: _']);
-  }
-
   /// If `Q` is `Q0?` the match holds under constraint set `C`:
   ///   Or if `P` is `dynamic` or `void` and `Object` is a subtype match
   ///   for `Q0` under constraint set `C`.
@@ -1282,19 +1255,6 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
     _checkNotMatch([T], intStar, stringQuestion, true);
   }
 
-  /// If `Q` is a legacy type `Q0*` then the match holds under constraint
-  /// set `C`:
-  ///   Only if `P` is a subtype match for `Q?` under constraint set `C`.
-  test_right_suffixStar() {
-    _checkMatch([T], T_none, numStar, false, ['_ <: T <: num*']);
-    _checkMatch([T], T_star, numStar, false, ['_ <: T <: num*']);
-    _checkMatch([T], T_question, numStar, false, ['_ <: T <: num']);
-
-    _checkMatch([T], numNone, T_star, true, ['num <: T <: _']);
-    _checkMatch([T], numQuestion, T_star, true, ['num <: T <: _']);
-    _checkMatch([T], numStar, T_star, true, ['num <: T <: _']);
-  }
-
   /// If `Q` is `dynamic`, `Object?`, or `void` then the match holds under
   /// no constraints.
   test_right_top() {
@@ -1340,8 +1300,8 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
 
     var constraints = gatherer.computeConstraints();
     var constraintsStr = constraints.entries.map((e) {
-      var lowerStr = e.value.lower.getDisplayString(withNullability: true);
-      var upperStr = e.value.upper.getDisplayString(withNullability: true);
+      var lowerStr = e.value.lower.getDisplayString();
+      var upperStr = e.value.upper.getDisplayString();
       return '$lowerStr <: ${e.key.name} <: $upperStr';
     }).toList();
 

@@ -34,7 +34,7 @@ class InstanceMemberInferrer {
   /// compilation [unit].
   void inferCompilationUnit(CompilationUnitElementImpl unit) {
     typeSystem = unit.library.typeSystem;
-    isNonNullableByDefault = typeSystem.isNonNullableByDefault;
+    isNonNullableByDefault = true;
     _inferClasses(unit.classes);
     _inferClasses(unit.enums);
     _inferExtensionTypes(unit.extensionTypes);
@@ -141,8 +141,7 @@ class InstanceMemberInferrer {
         name: getterName,
       );
       if (combinedGetter != null) {
-        var returnType = combinedGetter.returnType;
-        return typeSystem.nonNullifyLegacy(returnType);
+        return combinedGetter.returnType;
       }
       return DynamicTypeImpl.instance;
     }
@@ -157,8 +156,7 @@ class InstanceMemberInferrer {
       if (combinedSetter != null) {
         var parameters = combinedSetter.parameters;
         if (parameters.isNotEmpty) {
-          var type = parameters[0].type;
-          return typeSystem.nonNullifyLegacy(type);
+          return parameters[0].type;
         }
       }
       return DynamicTypeImpl.instance;
@@ -287,9 +285,7 @@ class InstanceMemberInferrer {
           var setterType = combinedSetterType();
 
           if (getterType == setterType) {
-            var type = getterType;
-            type = typeSystem.nonNullifyLegacy(type);
-            _setFieldType(field, type);
+            _setFieldType(field, getterType);
           }
           return;
         }
@@ -445,9 +441,7 @@ class InstanceMemberInferrer {
           if (conflict is CandidatesConflict) {
             conflictExplanation = conflict.candidates.map((candidate) {
               var className = candidate.enclosingElement.name;
-              var typeStr = candidate.type.getDisplayString(
-                withNullability: typeSystem.isNonNullableByDefault,
-              );
+              var typeStr = candidate.type.getDisplayString();
               return '$className.${name.name} ($typeStr)';
             }).join(', ');
           }
@@ -465,9 +459,7 @@ class InstanceMemberInferrer {
     //
     if (element.hasImplicitReturnType && element.displayName != '[]=') {
       if (combinedSignatureType != null) {
-        var returnType = combinedSignatureType.returnType;
-        returnType = typeSystem.nonNullifyLegacy(returnType);
-        element.returnType = returnType;
+        element.returnType = combinedSignatureType.returnType;
       } else {
         element.returnType = DynamicTypeImpl.instance;
       }
@@ -557,9 +549,7 @@ class InstanceMemberInferrer {
         combinedSignatureType.parameters,
       );
       if (matchingParameter != null) {
-        var type = matchingParameter.type;
-        type = typeSystem.nonNullifyLegacy(type);
-        parameter.type = type;
+        parameter.type = matchingParameter.type;
       } else {
         parameter.type = DynamicTypeImpl.instance;
       }

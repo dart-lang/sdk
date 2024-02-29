@@ -7,18 +7,18 @@ import 'dart:io';
 import "package:yaml/yaml.dart" show YamlMap, loadYamlNode;
 
 import 'package:testing/testing.dart'
-    show Chain, ChainContext, Result, Step, TestDescription, runMe;
+    show Chain, ChainContext, Result, Step, TestDescription;
 
+import 'fasta/suite_utils.dart';
 import 'testing_utils.dart' show checkEnvironment;
 
 import 'parser_suite.dart'
     show ListenerStep, ParserTestListenerWithMessageFormatting;
 
-void main([List<String> arguments = const []]) => runMe(
-      arguments,
-      createContext,
-      configurationPath: "../testing.json",
-    );
+void main([List<String> arguments = const []]) => internalMain(createContext,
+    arguments: arguments,
+    displayName: "parser equivalence suite",
+    configurationPath: "../testing.json");
 
 Future<Context> createContext(
     Chain suite, Map<String, String> environment) async {

@@ -38,7 +38,7 @@ base class Bar implements Foo {}
   }
 
   test_class_outside_viaExtends() async {
-    newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 base mixin A {}
 ''');
 
@@ -50,7 +50,7 @@ class C implements B {}
 ''', [
       error(
           CompileTimeErrorCode.BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 77, 1,
-          contextMessages: [message('/home/test/lib/a.dart', 11, 1)]),
+          contextMessages: [message(a, 11, 1)]),
     ]);
   }
 

@@ -8,6 +8,7 @@ import 'package:js_runtime/synced/embedded_names.dart';
 import 'package:js_shared/synced/embedded_names.dart'
     show JsBuiltin, JsGetName, TYPES;
 import 'package:kernel/ast.dart' as ir;
+import 'package:kernel/type_environment.dart' as ir;
 
 import '../closure.dart';
 import '../common.dart';
@@ -25,8 +26,6 @@ import '../elements/types.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../inferrer/types.dart';
 import '../io/source_information.dart';
-import '../ir/static_type.dart';
-import '../ir/static_type_provider.dart';
 import '../ir/util.dart';
 import '../js/js.dart' as js;
 import '../js_backend/backend.dart' show FunctionInlineCache;
@@ -46,7 +45,7 @@ import '../js_model/js_world.dart' show JClosedWorld;
 import '../js_model/locals.dart' show GlobalLocalsMap, JumpVisitor;
 import '../js_model/type_recipe.dart';
 import '../js_model/records.dart' show RecordData, JRecordGetter;
-import '../kernel/invocation_mirror_constants.dart';
+import '../kernel/invocation_mirror.dart';
 import '../native/behavior.dart';
 import '../native/js.dart';
 import '../options.dart';
@@ -77,7 +76,7 @@ class StackFrame {
   final Map<ir.VariableDeclaration, HInstruction> letBindings;
   final KernelToTypeInferenceMap typeInferenceMap;
   final SourceInformationBuilder sourceInformationBuilder;
-  final StaticTypeProvider? staticTypeProvider;
+  final ir.StaticTypeContext? staticTypeContext;
 
   StackFrame(
       this.parent,
@@ -87,7 +86,7 @@ class StackFrame {
       this.letBindings,
       this.typeInferenceMap,
       this.sourceInformationBuilder,
-      this.staticTypeProvider);
+      this.staticTypeContext);
 }
 
 class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
@@ -241,7 +240,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
   }
 
   /// Pushes a boolean checking [expression] against null.
-  pushCheckNull(HInstruction expression) {
+  void pushCheckNull(HInstruction expression) {
     push(HIdentity(expression, graph.addConstantNull(closedWorld),
         _abstractValueDomain.boolType));
   }
@@ -376,21 +375,18 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     open(newBlock);
   }
 
-  StaticType _getStaticType(ir.Expression node) {
+  DartType _getStaticType(ir.Expression node) {
     // TODO(johnniwinther): Substitute the type by the this type and type
     // arguments of the current frame.
-    ir.DartType type = _currentFrame!.staticTypeProvider!.getStaticType(node);
-    return StaticType(
-        _elementMap.getDartType(type), computeClassRelationFromType(type));
+    ir.DartType type = node.getStaticType(_currentFrame!.staticTypeContext!);
+    return _elementMap.getDartType(type);
   }
 
-  StaticType _getStaticForInIteratorType(ir.ForInStatement node) {
+  DartType _getStaticForInIteratorType(ir.ForInStatement node) {
     // TODO(johnniwinther): Substitute the type by the this type and type
     // arguments of the current frame.
-    ir.DartType type =
-        _currentFrame!.staticTypeProvider!.getForInIteratorType(node);
-    return StaticType(
-        _elementMap.getDartType(type), computeClassRelationFromType(type));
+    ir.DartType type = node.getIteratorType(_currentFrame!.staticTypeContext!);
+    return _elementMap.getDartType(type);
   }
 
   static MemberEntity _effectiveTargetElementFor(MemberEntity member) {
@@ -405,6 +401,8 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     if (function != null) {
       asyncMarker = getAsyncMarker(function);
     }
+    final elementMap = closedWorld.elementMap;
+    final memberNode = elementMap.getMemberContextNode(member);
     _currentFrame = StackFrame(
         _currentFrame,
         member,
@@ -416,7 +414,10 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
             ? _currentFrame!.sourceInformationBuilder
                 .forContext(member, callSourceInformation)
             : _sourceInformationStrategy.createBuilderForContext(member),
-        _elementMap.getStaticTypeProvider(member));
+        memberNode != null
+            ? ir.StaticTypeContext(memberNode, elementMap.typeEnvironment,
+                cache: ir.StaticTypeCacheImpl())
+            : null);
   }
 
   void _leaveFrame() {
@@ -929,12 +930,11 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
   /// Sets context for generating code that is the result of inlining
   /// [inlinedTarget].
   void _inlinedFrom(MemberEntity inlinedTarget,
-      SourceInformation? callSourceInformation, f()) {
+      SourceInformation? callSourceInformation, void f()) {
     reporter.withCurrentElement(inlinedTarget, () {
       _enterFrame(inlinedTarget, callSourceInformation);
-      var result = f();
+      f();
       _leaveFrame();
-      return result;
     });
   }
 
@@ -2099,7 +2099,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
         return;
       }
     }
-    assert(!current!.isClosed());
+    assert(!current!.isClosed);
     if (stack.isNotEmpty) {
       reporter.internalError(
           NO_LOCATION_SPANNABLE, 'Non-empty instruction stack');
@@ -2403,7 +2403,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
 
     // The iterator is shared between initializer, condition and body.
     late final HInstruction iterator;
-    StaticType iteratorType = _getStaticForInIteratorType(node);
+    final iteratorType = _getStaticForInIteratorType(node);
 
     void buildInitializer() {
       final receiverType = _typeInferenceMap.typeOfIterator(node);
@@ -2477,9 +2477,6 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     final instanceType =
         localsHandler.substInContext(dartTypes.interfaceType(cls, [typeArg]))
             as InterfaceType;
-    // TODO(johnniwinther): This should be the exact type.
-    StaticType staticInstanceType =
-        StaticType(instanceType, ClassRelation.subtype);
     _addImplicitInstantiation(instanceType);
     final sourceInformation =
         _sourceInformationBuilder.buildForInIterator(node);
@@ -2501,7 +2498,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       final receiverType = _typeInferenceMap.typeOfIteratorMoveNext(node);
       _pushDynamicInvocation(
           node,
-          staticInstanceType,
+          instanceType,
           receiverType,
           Selectors.moveNext,
           [streamIterator],
@@ -2516,7 +2513,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       final receiverType = _typeInferenceMap.typeOfIteratorCurrent(node);
       _pushDynamicInvocation(
           node,
-          staticInstanceType,
+          instanceType,
           receiverType,
           Selectors.current,
           [streamIterator],
@@ -2546,7 +2543,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     void finalizerFunction() {
       _pushDynamicInvocation(
           node,
-          staticInstanceType,
+          instanceType,
           null,
           Selectors.cancel,
           [streamIterator],
@@ -2683,8 +2680,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       node.condition.accept(this);
       assert(!isAborted());
       HInstruction conditionInstruction = popBoolified();
-      HBasicBlock conditionEndBlock =
-          close(HLoopBranch(conditionInstruction, HLoopBranch.DO_WHILE_LOOP));
+      HBasicBlock conditionEndBlock = close(HLoopBranch(conditionInstruction));
 
       HBasicBlock avoidCriticalEdge = addNewBlock();
       conditionEndBlock.addSuccessor(avoidCriticalEdge);
@@ -2707,7 +2703,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       SubGraph bodyGraph = SubGraph(loopEntryBlock, bodyExitBlock);
       final newLoopInfo = loopEntryBlock.loopInformation!;
       HLoopBlockInformation loopBlockInfo = HLoopBlockInformation(
-          HLoopBlockInformation.DO_WHILE_LOOP,
+          LoopBlockInformationKind.doWhileLoop,
           null,
           wrapExpressionGraph(conditionExpression),
           wrapStatementGraph(bodyGraph),
@@ -2785,15 +2781,15 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
 
     bool isNullRemovalPattern = false;
 
-    StaticType operandType = _getStaticType(operand);
+    final operandType = _getStaticType(operand);
     DartType type = _elementMap.getDartType(node.type);
     if (!options.experimentNullSafetyChecks && !node.isCovarianceCheck) {
-      if (_elementMap.types.isSubtype(operandType.type, type)) {
+      if (_elementMap.types.isSubtype(operandType, type)) {
         // Skip unneeded casts.
         return;
       }
       if (_elementMap.types
-          .isSubtype(operandType.type, _elementMap.types.nullableType(type))) {
+          .isSubtype(operandType, _elementMap.types.nullableType(type))) {
         isNullRemovalPattern = true;
       }
     }
@@ -3305,7 +3301,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       return;
     }
 
-    HSwitch switchInstruction = HSwitch([expression]);
+    HSwitch switchInstruction = HSwitch(expression);
     HBasicBlock expressionEnd = close(switchInstruction);
     LocalsHandler savedLocals = localsHandler;
 
@@ -3774,7 +3770,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     if (_recordData.representationForShape(shape) != null) {
       final recordType = _typeInferenceMap.receiverTypeOfGet(node) ??
           _abstractValueDomain
-              .createFromStaticType(_getStaticType(node).type, nullable: true)
+              .createFromStaticType(_getStaticType(node), nullable: true)
               .abstractValue;
       final fieldType = _abstractValueDomain.getGetterTypeInRecord(
           recordType, shape.getterNameOfIndex(indexInShape));
@@ -4005,21 +4001,14 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     HInstruction value = pop();
 
     final target = getEffectiveSuperTarget(node.interfaceTarget);
-    if (target == null) {
-      // TODO(johnniwinther): Remove this when the CFE checks for missing
-      //  concrete super targets.
-      _generateSuperNoSuchMethod(node, _elementMap.getSelector(node).name + "=",
-          [value], const <DartType>[], sourceInformation);
-    } else {
-      MemberEntity member = _elementMap.getMember(target);
-      _buildInvokeSuper(
-          _elementMap.getSelector(node),
-          _elementMap.getClass(_containingClass(node)),
-          member,
-          [value],
-          const <DartType>[],
-          sourceInformation);
-    }
+    MemberEntity member = _elementMap.getMember(target);
+    _buildInvokeSuper(
+        _elementMap.getSelector(node),
+        _elementMap.getClass(_containingClass(node)),
+        member,
+        [value],
+        const <DartType>[],
+        sourceInformation);
     pop();
     stack.add(value);
   }
@@ -4160,7 +4149,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
         List.from(_visitPositionalArguments(arguments));
 
     if (target.namedParameters.isNotEmpty) {
-      // Only anonymous factory or inline class literal constructors involving
+      // Only anonymous factory or extension type literal constructors involving
       // JS interop are allowed to have named parameters. Otherwise, throw an
       // error.
       final member = target.parent as ir.Member;
@@ -4168,10 +4157,12 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       bool isAnonymousFactory = function is ConstructorEntity &&
           function.isFactoryConstructor &&
           _nativeData.isAnonymousJsInteropClass(function.enclosingClass);
-      // JS interop checks assert that the only inline class interop member that
-      // has named parameters is an object literal constructor. We could do a
-      // more robust check by visiting all inline classes and recording
-      // descriptors, but that's expensive.
+      // JS interop checks assert that the only extension type interop member
+      // that has named parameters is an object literal constructor.
+      // TODO(54968): We should handle the lowering for object literal
+      // constructors in the interop transformer somehow instead and avoid
+      // assuming all such members are object literal constructors or
+      // otherwise paying the cost to verify by indexing extension types.
       bool isObjectLiteralConstructor = member.isExtensionTypeMember;
       if (isAnonymousFactory || isObjectLiteralConstructor) {
         // TODO(sra): Have a "CompiledArguments" structure to just update with
@@ -4584,11 +4575,10 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
 
     Selector selector =
         Selector.callClosure(0, const <String>[], typeArguments.length);
-    StaticType receiverStaticType =
+    final receiverStaticType =
         _getStaticType(invocation.arguments.positional[1]);
     AbstractValue receiverType = _abstractValueDomain
-        .createFromStaticType(receiverStaticType.type,
-            classRelation: receiverStaticType.relation, nullable: true)
+        .createFromStaticType(receiverStaticType, nullable: true)
         .abstractValue;
     push(HInvokeClosure(selector, receiverType, inputs,
         _abstractValueDomain.dynamicType, typeArguments));
@@ -4613,8 +4603,10 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       _handleForeignJsEmbeddedGlobal(invocation, sourceInformation);
     } else if (name == 'JS_BUILTIN') {
       _handleForeignJsBuiltin(invocation, sourceInformation);
+    } else if (name == 'JS_TRUE') {
+      _handleForeignJsBool(true, invocation, sourceInformation);
     } else if (name == 'JS_FALSE') {
-      _handleForeignJsFalse(invocation, sourceInformation);
+      _handleForeignJsBool(false, invocation, sourceInformation);
     } else if (name == 'JS_EFFECT') {
       stack.add(graph.addConstantNull(closedWorld)
         ..sourceInformation = sourceInformation);
@@ -4707,15 +4699,15 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     int kind = _readIntLiteral(invocation.arguments.positional[4]);
 
     Name memberName = Name(name, _currentFrame!.member.library.canonicalUri);
-    Selector? selector;
-    switch (kind) {
-      case invocationMirrorGetterKind:
+    Selector selector;
+    switch (InvocationMirrorKind.values[kind]) {
+      case InvocationMirrorKind.getter:
         selector = Selector.getter(memberName);
         break;
-      case invocationMirrorSetterKind:
+      case InvocationMirrorKind.setter:
         selector = Selector.setter(memberName);
         break;
-      case invocationMirrorMethodKind:
+      case InvocationMirrorKind.method:
         if (memberName == Names.INDEX_NAME) {
           selector = Selector.index();
         } else if (memberName == Names.INDEX_SET_NAME) {
@@ -4769,7 +4761,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
         value.accept(this);
         namedValues[name] = pop();
       });
-      for (String name in selector!.callStructure.getOrderedNamedArguments()) {
+      for (String name in selector.callStructure.getOrderedNamedArguments()) {
         arguments.add(namedValues[name]!);
       }
     }
@@ -4782,7 +4774,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
 
     List<HInstruction> argumentNames = <HInstruction>[];
     for (String argumentName
-        in selector!.callStructure.getOrderedNamedArguments()) {
+        in selector.callStructure.getOrderedNamedArguments()) {
       ConstantValue argumentNameConstant =
           constant_system.createString(argumentName);
       argumentNames.add(graph.addConstant(argumentNameConstant, closedWorld)
@@ -4799,7 +4791,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     js.Name internalName = _namer.invocationName(selector);
 
     ConstantValue kindConstant =
-        constant_system.createIntFromInt(selector.invocationMirrorKind);
+        constant_system.createIntFromInt(selector.invocationMirrorKind.index);
 
     _pushStaticInvocation(
         _commonElements.createUnmangledInvocationMirror,
@@ -5146,14 +5138,13 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       case JsBuiltin.isJsInteropTypeArgument:
         reporter.internalError(
             NO_LOCATION_SPANNABLE, "Unhandled Builtin: $builtin");
-        return null;
     }
   }
 
-  void _handleForeignJsFalse(
-      ir.StaticInvocation invocation, SourceInformation? sourceInformation) {
+  void _handleForeignJsBool(bool value, ir.StaticInvocation invocation,
+      SourceInformation? sourceInformation) {
     _unexpectedForeignArguments(invocation, minPositional: 0, maxPositional: 0);
-    stack.add(graph.addConstantBool(false, closedWorld)
+    stack.add(graph.addConstantBool(value, closedWorld)
       ..sourceInformation = sourceInformation);
   }
 
@@ -5314,7 +5305,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     if (options.nativeNullAssertions &&
         nodeIsInWebLibrary(invocation) &&
         closedWorld.dartTypes
-            .isNonNullableIfSound(_getStaticType(invocation).type)) {
+            .isNonNullableIfSound(_getStaticType(invocation))) {
       HInstruction code = pop();
       push(HNullCheck(
           code, _abstractValueDomain.excludeNull(code.instructionType),
@@ -5530,15 +5521,14 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
 
   void _pushDynamicInvocation(
       ir.Node node,
-      StaticType staticReceiverType,
+      DartType staticReceiverType,
       AbstractValue? receiverType,
       Selector selector,
       List<HInstruction> arguments,
       List<DartType> typeArguments,
       SourceInformation? sourceInformation) {
     AbstractValue typeBound = _abstractValueDomain
-        .createFromStaticType(staticReceiverType.type,
-            classRelation: staticReceiverType.relation, nullable: true)
+        .createFromStaticType(staticReceiverType, nullable: true)
         .abstractValue;
     receiverType = receiverType == null
         ? typeBound
@@ -5772,8 +5762,8 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     FunctionEntity target =
         _commonElements.getInstantiateFunction(typeArgumentCount);
 
-    StaticType expressionType = _getStaticType(node.expression);
-    final functionType = expressionType.type.withoutNullability as FunctionType;
+    final expressionType = _getStaticType(node.expression);
+    final functionType = expressionType.withoutNullability as FunctionType;
     bool typeArgumentsNeeded = _rtiNeed.methodNeedsTypeArguments(target);
 
     List<DartType> typeArguments = node.typeArguments
@@ -5863,8 +5853,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
         _fillDynamicTypeArguments(selector, node.arguments, typeArguments);
     _pushDynamicInvocation(
         node,
-        StaticType(_elementMap.getDartType(node.variable.type),
-            computeClassRelationFromType(node.variable.type)),
+        _elementMap.getDartType(node.variable.type),
         _typeInferenceMap.receiverTypeOfInvocation(node, _abstractValueDomain),
         selector,
         [
@@ -5922,55 +5911,6 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     throw ArgumentError.value(node, 'node', 'No containing class found.');
   }
 
-  void _generateSuperNoSuchMethod(
-      ir.Expression invocation,
-      String publicName,
-      List<HInstruction> arguments,
-      List<DartType> typeArguments,
-      SourceInformation? sourceInformation) {
-    Selector selector = _elementMap.getSelector(invocation);
-    ClassEntity containingClass =
-        _elementMap.getClass(_containingClass(invocation));
-    FunctionEntity noSuchMethod =
-        _elementMap.getSuperNoSuchMethod(containingClass);
-
-    ConstantValue nameConstant = constant_system.createString(publicName);
-
-    js.Name internalName = _namer.invocationName(selector);
-
-    var argumentsInstruction = _buildLiteralList(arguments);
-    add(argumentsInstruction);
-
-    List<HInstruction> argumentNames = [];
-    for (String argumentName in selector.namedArguments) {
-      ConstantValue argumentNameConstant =
-          constant_system.createString(argumentName);
-      argumentNames.add(graph.addConstant(argumentNameConstant, closedWorld));
-    }
-    var argumentNamesInstruction = _buildLiteralList(argumentNames);
-    add(argumentNamesInstruction);
-
-    ConstantValue kindConstant =
-        constant_system.createIntFromInt(selector.invocationMirrorKind);
-
-    _pushStaticInvocation(
-        _commonElements.createInvocationMirror,
-        [
-          graph.addConstant(nameConstant, closedWorld),
-          graph.addConstantStringFromName(internalName, closedWorld),
-          graph.addConstant(kindConstant, closedWorld),
-          argumentsInstruction,
-          argumentNamesInstruction,
-          graph.addConstantInt(typeArguments.length, closedWorld),
-        ],
-        _abstractValueDomain.dynamicType,
-        typeArguments,
-        sourceInformation: sourceInformation);
-
-    _buildInvokeSuper(Selectors.noSuchMethod_, containingClass, noSuchMethod,
-        [pop()], typeArguments, sourceInformation);
-  }
-
   HInstruction _buildInvokeSuper(
       Selector selector,
       ClassEntity containingClass,
@@ -6011,13 +5951,6 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
   void visitSuperPropertyGet(ir.SuperPropertyGet node) {
     final sourceInformation = _sourceInformationBuilder.buildGet(node);
     final target = getEffectiveSuperTarget(node.interfaceTarget);
-    if (target == null) {
-      // TODO(johnniwinther): Remove this when the CFE checks for missing
-      //  concrete super targets.
-      _generateSuperNoSuchMethod(node, _elementMap.getSelector(node).name,
-          const <HInstruction>[], const <DartType>[], sourceInformation);
-      return;
-    }
     MemberEntity member = _elementMap.getMember(target);
     if (member is FieldEntity) {
       FieldAnalysisData fieldData = _fieldAnalysis.getFieldData(member);
@@ -6041,19 +5974,6 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
   void visitSuperMethodInvocation(ir.SuperMethodInvocation node) {
     final sourceInformation = _sourceInformationBuilder.buildCall(node, node);
     final superTarget = getEffectiveSuperTarget(node.interfaceTarget);
-    if (superTarget == null) {
-      // TODO(johnniwinther): Remove this when the CFE checks for missing
-      //  concrete super targets.
-      Selector selector = _elementMap.getSelector(node);
-      List<DartType> typeArguments = <DartType>[];
-      selector =
-          _fillDynamicTypeArguments(selector, node.arguments, typeArguments);
-      List<HInstruction> arguments = _visitArgumentsForDynamicTarget(
-          selector, node.arguments, typeArguments);
-      _generateSuperNoSuchMethod(
-          node, selector.name, arguments, typeArguments, sourceInformation);
-      return;
-    }
     MemberEntity member = _elementMap.getMember(superTarget);
     List<DartType> typeArguments =
         _getStaticTypeArguments(member as FunctionEntity, node.arguments);
@@ -6186,7 +6106,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
         _abstractValueDomain.createFromStaticType(typeValue, nullable: false);
 
     push(HIsTest(
-        typeValue, checkedType, expression, rti, _abstractValueDomain.boolType)
+        typeValue, checkedType, rti, expression, _abstractValueDomain.boolType)
       ..sourceInformation = sourceInformation);
   }
 
@@ -7324,27 +7244,6 @@ class KernelSwitchCaseJumpHandler extends SwitchCaseJumpHandler {
   }
 }
 
-class StaticType {
-  final DartType type;
-  final ClassRelation relation;
-
-  StaticType(this.type, this.relation);
-
-  @override
-  int get hashCode => type.hashCode * 13 + relation.hashCode * 19;
-
-  @override
-  bool operator ==(other) {
-    if (identical(this, other)) return true;
-    return other is StaticType &&
-        type == other.type &&
-        relation == other.relation;
-  }
-
-  @override
-  String toString() => 'StaticType($type,$relation)';
-}
-
 class InlineData {
   bool isConstructor = false;
   bool codeAfterReturn = false;
@@ -7659,14 +7558,14 @@ class InlineWeeder extends ir.VisitorDefault<void> with ir.VisitorVoidMixin {
   }
 
   @override
-  defaultNode(ir.Node node) {
+  void defaultNode(ir.Node node) {
     registerRegularNode();
     registerReductiveNode();
     node.visitChildren(this);
   }
 
   @override
-  visitConstantExpression(ir.ConstantExpression node) {
+  void visitConstantExpression(ir.ConstantExpression node) {
     registerRegularNode();
     registerReductiveNode();
     ir.Constant constant = node.constant;
@@ -7677,20 +7576,20 @@ class InlineWeeder extends ir.VisitorDefault<void> with ir.VisitorVoidMixin {
   }
 
   @override
-  visitReturnStatement(ir.ReturnStatement node) {
+  void visitReturnStatement(ir.ReturnStatement node) {
     registerRegularNode();
     node.visitChildren(this);
     seenReturn = true;
   }
 
   @override
-  visitThrow(ir.Throw node) {
+  void visitThrow(ir.Throw node) {
     registerRegularNode();
     data.hasThrow = true;
     node.visitChildren(this);
   }
 
-  _handleLoop(ir.Node node) {
+  void _handleLoop(ir.Node node) {
     // It's actually not difficult to inline a method with a loop, but our
     // measurements show that it's currently better to not inline a method that
     // contains a loop.
@@ -7699,49 +7598,49 @@ class InlineWeeder extends ir.VisitorDefault<void> with ir.VisitorVoidMixin {
   }
 
   @override
-  visitForStatement(ir.ForStatement node) {
+  void visitForStatement(ir.ForStatement node) {
     _handleLoop(node);
   }
 
   @override
-  visitForInStatement(ir.ForInStatement node) {
+  void visitForInStatement(ir.ForInStatement node) {
     _handleLoop(node);
   }
 
   @override
-  visitWhileStatement(ir.WhileStatement node) {
+  void visitWhileStatement(ir.WhileStatement node) {
     _handleLoop(node);
   }
 
   @override
-  visitDoStatement(ir.DoStatement node) {
+  void visitDoStatement(ir.DoStatement node) {
     _handleLoop(node);
   }
 
   @override
-  visitTryCatch(ir.TryCatch node) {
+  void visitTryCatch(ir.TryCatch node) {
     data.hasTry = true;
   }
 
   @override
-  visitTryFinally(ir.TryFinally node) {
+  void visitTryFinally(ir.TryFinally node) {
     data.hasTry = true;
   }
 
   @override
-  visitFunctionExpression(ir.FunctionExpression node) {
+  void visitFunctionExpression(ir.FunctionExpression node) {
     registerRegularNode();
     data.hasClosure = true;
   }
 
   @override
-  visitFunctionDeclaration(ir.FunctionDeclaration node) {
+  void visitFunctionDeclaration(ir.FunctionDeclaration node) {
     registerRegularNode();
     data.hasClosure = true;
   }
 
   @override
-  visitFunctionNode(ir.FunctionNode node) {
+  void visitFunctionNode(ir.FunctionNode node) {
     if (node.asyncMarker != ir.AsyncMarker.Sync) {
       data.hasAsyncAwait = true;
     }
@@ -7756,7 +7655,7 @@ class InlineWeeder extends ir.VisitorDefault<void> with ir.VisitorVoidMixin {
   }
 
   @override
-  visitConditionalExpression(ir.ConditionalExpression node) {
+  void visitConditionalExpression(ir.ConditionalExpression node) {
     // Heuristic: In "parameter ? A : B" there is a high probability that
     // parameter is a constant. Assuming the parameter is constant, we can
     // compute a count that is bounded by the largest arm rather than the sum of
@@ -7785,13 +7684,13 @@ class InlineWeeder extends ir.VisitorDefault<void> with ir.VisitorVoidMixin {
   }
 
   @override
-  visitAssertInitializer(ir.AssertInitializer node) {
+  void visitAssertInitializer(ir.AssertInitializer node) {
     if (!enableUserAssertions) return;
     node.visitChildren(this);
   }
 
   @override
-  visitAssertStatement(ir.AssertStatement node) {
+  void visitAssertStatement(ir.AssertStatement node) {
     if (!enableUserAssertions) return;
     defaultNode(node);
   }
@@ -7801,25 +7700,25 @@ class InlineWeeder extends ir.VisitorDefault<void> with ir.VisitorVoidMixin {
   }
 
   @override
-  visitEmptyStatement(ir.EmptyStatement node) {
+  void visitEmptyStatement(ir.EmptyStatement node) {
     registerRegularNode();
   }
 
   @override
-  visitExpressionStatement(ir.ExpressionStatement node) {
+  void visitExpressionStatement(ir.ExpressionStatement node) {
     registerRegularNode();
     node.visitChildren(this);
   }
 
   @override
-  visitLabeledStatement(ir.LabeledStatement node) {
+  void visitLabeledStatement(ir.LabeledStatement node) {
     registerRegularNode();
     data.hasLabel = true;
     node.visitChildren(this);
   }
 
   @override
-  visitSwitchStatement(ir.SwitchStatement node) {
+  void visitSwitchStatement(ir.SwitchStatement node) {
     registerRegularNode();
     registerReductiveNode();
     // Don't visit 'SwitchStatement.expressionType'.
@@ -7828,7 +7727,7 @@ class InlineWeeder extends ir.VisitorDefault<void> with ir.VisitorVoidMixin {
   }
 
   @override
-  visitBlock(ir.Block node) {
+  void visitBlock(ir.Block node) {
     registerRegularNode();
     node.visitChildren(this);
   }
@@ -7838,7 +7737,7 @@ class InlineWeeder extends ir.VisitorDefault<void> with ir.VisitorVoidMixin {
   bool isLongString(String value) => value.length > 14;
 
   @override
-  visitStringLiteral(ir.StringLiteral node) {
+  void visitStringLiteral(ir.StringLiteral node) {
     registerRegularNode();
     registerReductiveNode();
     // Avoid copying long strings into call site.
@@ -7848,7 +7747,7 @@ class InlineWeeder extends ir.VisitorDefault<void> with ir.VisitorVoidMixin {
   }
 
   @override
-  visitInstanceGet(ir.InstanceGet node) {
+  void visitInstanceGet(ir.InstanceGet node) {
     registerCall();
     registerRegularNode();
     registerReductiveNode();
@@ -7857,7 +7756,7 @@ class InlineWeeder extends ir.VisitorDefault<void> with ir.VisitorVoidMixin {
   }
 
   @override
-  visitInstanceTearOff(ir.InstanceTearOff node) {
+  void visitInstanceTearOff(ir.InstanceTearOff node) {
     registerCall();
     registerRegularNode();
     registerReductiveNode();
@@ -7866,7 +7765,7 @@ class InlineWeeder extends ir.VisitorDefault<void> with ir.VisitorVoidMixin {
   }
 
   @override
-  visitDynamicGet(ir.DynamicGet node) {
+  void visitDynamicGet(ir.DynamicGet node) {
     registerCall();
     registerRegularNode();
     registerReductiveNode();
@@ -7875,17 +7774,7 @@ class InlineWeeder extends ir.VisitorDefault<void> with ir.VisitorVoidMixin {
   }
 
   @override
-  visitInstanceSet(ir.InstanceSet node) {
-    registerCall();
-    registerRegularNode();
-    registerReductiveNode();
-    skipReductiveNodes(() => visit(node.name));
-    visit(node.receiver);
-    visit(node.value);
-  }
-
-  @override
-  visitDynamicSet(ir.DynamicSet node) {
+  void visitInstanceSet(ir.InstanceSet node) {
     registerCall();
     registerRegularNode();
     registerReductiveNode();
@@ -7895,7 +7784,17 @@ class InlineWeeder extends ir.VisitorDefault<void> with ir.VisitorVoidMixin {
   }
 
   @override
-  visitVariableGet(ir.VariableGet node) {
+  void visitDynamicSet(ir.DynamicSet node) {
+    registerCall();
+    registerRegularNode();
+    registerReductiveNode();
+    skipReductiveNodes(() => visit(node.name));
+    visit(node.receiver);
+    visit(node.value);
+  }
+
+  @override
+  void visitVariableGet(ir.VariableGet node) {
     if (discountParameters && node.variable.parent is ir.FunctionNode) return;
     registerRegularNode();
     registerReductiveNode();
@@ -7903,13 +7802,13 @@ class InlineWeeder extends ir.VisitorDefault<void> with ir.VisitorVoidMixin {
   }
 
   @override
-  visitThisExpression(ir.ThisExpression node) {
+  void visitThisExpression(ir.ThisExpression node) {
     registerRegularNode();
     registerReductiveNode();
   }
 
   @override
-  visitStaticGet(ir.StaticGet node) {
+  void visitStaticGet(ir.StaticGet node) {
     // Assume lazy-init static, loaded via a call: `$.$get$foo()`.
     registerCall();
     registerRegularNode();
@@ -7917,7 +7816,7 @@ class InlineWeeder extends ir.VisitorDefault<void> with ir.VisitorVoidMixin {
   }
 
   @override
-  visitConstructorInvocation(ir.ConstructorInvocation node) {
+  void visitConstructorInvocation(ir.ConstructorInvocation node) {
     registerRegularNode();
     registerReductiveNode();
     if (node.isConst) {
@@ -7930,7 +7829,7 @@ class InlineWeeder extends ir.VisitorDefault<void> with ir.VisitorVoidMixin {
   }
 
   @override
-  visitStaticInvocation(ir.StaticInvocation node) {
+  void visitStaticInvocation(ir.StaticInvocation node) {
     registerRegularNode();
     if (node.isConst) {
       data.hasExternalConstantConstructorCall = true;
@@ -7943,7 +7842,7 @@ class InlineWeeder extends ir.VisitorDefault<void> with ir.VisitorVoidMixin {
   }
 
   @override
-  visitInstanceInvocation(ir.InstanceInvocation node) {
+  void visitInstanceInvocation(ir.InstanceInvocation node) {
     registerRegularNode();
     registerReductiveNode();
     registerCall();
@@ -7953,7 +7852,7 @@ class InlineWeeder extends ir.VisitorDefault<void> with ir.VisitorVoidMixin {
   }
 
   @override
-  visitInstanceGetterInvocation(ir.InstanceGetterInvocation node) {
+  void visitInstanceGetterInvocation(ir.InstanceGetterInvocation node) {
     registerRegularNode();
     registerReductiveNode();
     registerCall();
@@ -7963,7 +7862,7 @@ class InlineWeeder extends ir.VisitorDefault<void> with ir.VisitorVoidMixin {
   }
 
   @override
-  visitDynamicInvocation(ir.DynamicInvocation node) {
+  void visitDynamicInvocation(ir.DynamicInvocation node) {
     registerRegularNode();
     registerReductiveNode();
     registerCall();
@@ -7973,7 +7872,7 @@ class InlineWeeder extends ir.VisitorDefault<void> with ir.VisitorVoidMixin {
   }
 
   @override
-  visitFunctionInvocation(ir.FunctionInvocation node) {
+  void visitFunctionInvocation(ir.FunctionInvocation node) {
     registerRegularNode();
     registerReductiveNode();
     registerCall();
@@ -7983,7 +7882,7 @@ class InlineWeeder extends ir.VisitorDefault<void> with ir.VisitorVoidMixin {
   }
 
   @override
-  visitLocalFunctionInvocation(ir.LocalFunctionInvocation node) {
+  void visitLocalFunctionInvocation(ir.LocalFunctionInvocation node) {
     registerRegularNode();
     registerReductiveNode();
     registerCall();
@@ -7994,14 +7893,14 @@ class InlineWeeder extends ir.VisitorDefault<void> with ir.VisitorVoidMixin {
   }
 
   @override
-  visitEqualsNull(ir.EqualsNull node) {
+  void visitEqualsNull(ir.EqualsNull node) {
     registerRegularNode();
     registerReductiveNode();
     visit(node.expression);
   }
 
   @override
-  visitEqualsCall(ir.EqualsCall node) {
+  void visitEqualsCall(ir.EqualsCall node) {
     registerRegularNode();
     registerReductiveNode();
     registerCall();
@@ -8009,7 +7908,7 @@ class InlineWeeder extends ir.VisitorDefault<void> with ir.VisitorVoidMixin {
     visit(node.right);
   }
 
-  _processArguments(ir.Arguments arguments, ir.FunctionNode? target) {
+  void _processArguments(ir.Arguments arguments, ir.FunctionNode? target) {
     registerRegularNode();
     if (arguments.types.isNotEmpty) {
       data.hasTypeArguments = true;
@@ -8035,7 +7934,7 @@ class InlineWeeder extends ir.VisitorDefault<void> with ir.VisitorVoidMixin {
   }
 
   @override
-  visitAsExpression(ir.AsExpression node) {
+  void visitAsExpression(ir.AsExpression node) {
     registerRegularNode();
     visit(node.operand);
     skipReductiveNodes(() => visit(node.type));
@@ -8045,7 +7944,7 @@ class InlineWeeder extends ir.VisitorDefault<void> with ir.VisitorVoidMixin {
   }
 
   @override
-  visitVariableDeclaration(ir.VariableDeclaration node) {
+  void visitVariableDeclaration(ir.VariableDeclaration node) {
     registerRegularNode();
     skipReductiveNodes(() {
       visitList(node.annotations);
@@ -8060,7 +7959,7 @@ class InlineWeeder extends ir.VisitorDefault<void> with ir.VisitorVoidMixin {
   }
 
   @override
-  visitIfStatement(ir.IfStatement node) {
+  void visitIfStatement(ir.IfStatement node) {
     registerRegularNode();
     node.visitChildren(this);
     data.hasIf = true;
@@ -8213,7 +8112,7 @@ class InlineWeederBodyClosure extends ir.VisitorDefault<void>
   InlineWeederBodyClosure();
 
   @override
-  defaultNode(ir.Node node) {
+  void defaultNode(ir.Node node) {
     if (tooDifficult) return;
     node.visitChildren(this);
   }

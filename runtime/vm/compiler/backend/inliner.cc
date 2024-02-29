@@ -982,46 +982,18 @@ static void ReplaceParameterStubs(Zone* zone,
 
   defns = callee_graph->graph_entry()->normal_entry()->initial_definitions();
   for (intptr_t i = 0; i < defns->length(); ++i) {
-    ConstantInstr* constant = (*defns)[i]->AsConstant();
-    if (constant != nullptr && constant->HasUses()) {
+    auto defn = (*defns)[i];
+    if (!defn->HasUses()) continue;
+
+    if (auto constant = defn->AsConstant()) {
       constant->ReplaceUsesWith(caller_graph->GetConstant(
           constant->value(), constant->representation()));
     }
 
-    SpecialParameterInstr* param = (*defns)[i]->AsSpecialParameter();
-    if (param != nullptr && param->HasUses()) {
-      switch (param->kind()) {
-        case SpecialParameterInstr::kContext: {
-          ASSERT(!is_polymorphic);
-          // We do not support polymorphic inlining of closure calls.
-          ASSERT(call_data->call->IsClosureCall());
-          LoadFieldInstr* context_load = new (zone) LoadFieldInstr(
-              new Value((*arguments)[first_arg_index]->definition()),
-              Slot::Closure_context(), call_data->call->source());
-          caller_graph->AllocateSSAIndex(context_load);
-          context_load->InsertBefore(callee_entry->next());
-          param->ReplaceUsesWith(context_load);
-          break;
-        }
-        case SpecialParameterInstr::kTypeArgs: {
-          Definition* type_args;
-          if (first_arg_index > 0) {
-            type_args = (*arguments)[0]->definition();
-          } else {
-            type_args = caller_graph->constant_null();
-          }
-          param->ReplaceUsesWith(type_args);
-          break;
-        }
-        case SpecialParameterInstr::kArgDescriptor: {
-          param->ReplaceUsesWith(
-              caller_graph->GetConstant(call_data->arguments_descriptor));
-          break;
-        }
-        default: {
-          UNREACHABLE();
-          break;
-        }
+    if (auto param = defn->AsParameter()) {
+      if (param->location().Equals(Location::RegisterLocation(ARGS_DESC_REG))) {
+        param->ReplaceUsesWith(
+            caller_graph->GetConstant(call_data->arguments_descriptor));
       }
     }
   }
@@ -1169,8 +1141,8 @@ class CallSiteInliner : public ValueObject {
       return graph->GetConstant(constant->value());
     }
     ParameterInstr* param = new (Z) ParameterInstr(
-        /*env_index=*/i, /*param_index=*/i,
-        /*param_offset=*/-1, graph->graph_entry(), kNoRepresentation);
+        graph->graph_entry(),
+        /*env_index=*/i, /*param_index=*/i, Location(), kNoRepresentation);
     if (i >= 0) {
       // Compute initial parameter type using static and inferred types
       // and combine it with an argument type from the caller.

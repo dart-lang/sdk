@@ -19,7 +19,7 @@ import 'package:_fe_analyzer_shared/src/parser/parser_impl.dart'
 import 'package:_fe_analyzer_shared/src/parser/token_stream_rewriter.dart';
 import 'package:_fe_analyzer_shared/src/parser/type_info.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
-import 'package:front_end/src/fasta/fasta_codes.dart' as codes;
+import 'package:front_end/src/fasta/codes/fasta_codes.dart' as codes;
 import 'package:front_end/src/fasta/source/diet_parser.dart'
     show useImplicitCreationExpressionInCfe;
 
@@ -46,7 +46,9 @@ class TestParser extends Parser {
       if (line.contains("parser_test_listener.dart:") ||
           line.contains("parser_suite.dart:") ||
           line.contains("parser_test_parser.dart:") ||
-          line == "<asynchronous suspension>") continue;
+          line == "<asynchronous suspension>") {
+        continue;
+      }
       return line.substring(line.indexOf("(") + 1, line.lastIndexOf(")"));
     }
     return "N/A";

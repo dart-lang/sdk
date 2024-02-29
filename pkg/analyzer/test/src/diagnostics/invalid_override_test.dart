@@ -56,7 +56,7 @@ abstract class B implements A {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 91, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 44, 1)]),
+          contextMessages: [message(testFile, 44, 1)]),
     ]);
   }
 
@@ -82,7 +82,7 @@ abstract class B implements A {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 87, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 40, 1)]),
+          contextMessages: [message(testFile, 40, 1)]),
     ]);
   }
 
@@ -108,7 +108,7 @@ abstract class B implements A {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 81, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 34, 1)]),
+          contextMessages: [message(testFile, 34, 1)]),
     ]);
   }
 
@@ -134,7 +134,7 @@ abstract class B implements A {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 82, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 35, 1)]),
+          contextMessages: [message(testFile, 35, 1)]),
     ]);
   }
 
@@ -160,7 +160,7 @@ abstract class B implements A {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 78, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 31, 1)]),
+          contextMessages: [message(testFile, 31, 1)]),
     ]);
   }
 
@@ -186,7 +186,7 @@ abstract class B implements A {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 72, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 25, 1)]),
+          contextMessages: [message(testFile, 25, 1)]),
     ]);
   }
 
@@ -211,7 +211,7 @@ class B extends A {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 71, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 20, 1)]),
+          contextMessages: [message(testFile, 20, 1)]),
     ]);
   }
 
@@ -225,9 +225,9 @@ class B extends A {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 52, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 20, 1)]),
+          contextMessages: [message(testFile, 20, 1)]),
       error(CompileTimeErrorCode.INVALID_OVERRIDE_SETTER, 52, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 20, 1)]),
+          contextMessages: [message(testFile, 20, 1)]),
     ]);
   }
 
@@ -246,7 +246,7 @@ class B extends A {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 157, 6,
-          contextMessages: [message('/home/test/lib/test.dart', 29, 6)]),
+          contextMessages: [message(testFile, 29, 6)]),
     ]);
   }
 
@@ -263,9 +263,9 @@ class B implements I<int>, J<String> {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 144, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 30, 1)]),
+          contextMessages: [message(testFile, 30, 1)]),
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 144, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 76, 1)]),
+          contextMessages: [message(testFile, 76, 1)]),
     ]);
   }
 
@@ -292,7 +292,7 @@ class B	extends A {
 ''', [
       error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 52, 1),
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 72, 3,
-          contextMessages: [message('/home/test/lib/test.dart', 16, 3)]),
+          contextMessages: [message(testFile, 16, 3)]),
     ]);
   }
 
@@ -307,7 +307,7 @@ class A with M {
 ''', [
       error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 52, 1),
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 69, 3,
-          contextMessages: [message('/home/test/lib/test.dart', 16, 3)]),
+          contextMessages: [message(testFile, 16, 3)]),
     ]);
   }
 
@@ -323,7 +323,7 @@ class B	extends A with M {}
 ''', [
       error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 77, 1),
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 94, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 16, 3)]),
+          contextMessages: [message(testFile, 16, 3)]),
     ]);
   }
 
@@ -383,7 +383,7 @@ class B extends A {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 49, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 12, 1)]),
+          contextMessages: [message(testFile, 12, 1)]),
     ]);
   }
 
@@ -397,7 +397,7 @@ class B extends A {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 49, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 12, 1)]),
+          contextMessages: [message(testFile, 12, 1)]),
     ]);
   }
 
@@ -411,7 +411,7 @@ class B implements A {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 54, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 12, 1)]),
+          contextMessages: [message(testFile, 12, 1)]),
     ]);
   }
 
@@ -425,7 +425,7 @@ class B implements A {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 51, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 12, 1)]),
+          contextMessages: [message(testFile, 12, 1)]),
     ]);
   }
 
@@ -439,7 +439,7 @@ class B extends A {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 48, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 12, 1)]),
+          contextMessages: [message(testFile, 12, 1)]),
     ]);
   }
 
@@ -456,9 +456,9 @@ class B extends I<int> implements J<String> {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 147, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 76, 1)]),
+          contextMessages: [message(testFile, 76, 1)]),
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 147, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 29, 1)]),
+          contextMessages: [message(testFile, 29, 1)]),
     ]);
   }
 
@@ -476,7 +476,7 @@ class B extends A {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 124, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 54, 1)]),
+          contextMessages: [message(testFile, 54, 1)]),
     ]);
   }
 
@@ -494,9 +494,9 @@ class B implements I<int>, J<String> {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 140, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 29, 1)]),
+          contextMessages: [message(testFile, 29, 1)]),
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 140, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 76, 1)]),
+          contextMessages: [message(testFile, 76, 1)]),
     ]);
   }
 
@@ -510,7 +510,7 @@ class B implements A {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 54, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 12, 1)]),
+          contextMessages: [message(testFile, 12, 1)]),
     ]);
   }
 
@@ -528,7 +528,7 @@ class B extends A {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 130, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 57, 1)]),
+          contextMessages: [message(testFile, 57, 1)]),
     ]);
   }
 
@@ -542,7 +542,7 @@ class B extends A {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 49, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 12, 1)]),
+          contextMessages: [message(testFile, 12, 1)]),
     ]);
   }
 
@@ -556,7 +556,7 @@ class B extends A {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 55, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 12, 1)]),
+          contextMessages: [message(testFile, 12, 1)]),
     ]);
   }
 
@@ -570,7 +570,7 @@ class B extends A {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 55, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 12, 1)]),
+          contextMessages: [message(testFile, 12, 1)]),
     ]);
   }
 
@@ -584,7 +584,7 @@ class B extends A {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 44, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 12, 1)]),
+          contextMessages: [message(testFile, 12, 1)]),
     ]);
   }
 
@@ -598,7 +598,7 @@ class B implements A {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 68, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 16, 1)]),
+          contextMessages: [message(testFile, 16, 1)]),
     ]);
   }
 
@@ -614,7 +614,7 @@ class C implements B {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 98, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 25, 1)]),
+          contextMessages: [message(testFile, 25, 1)]),
     ]);
   }
 
@@ -628,7 +628,7 @@ class B extends Object with A {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 83, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 22, 1)]),
+          contextMessages: [message(testFile, 22, 1)]),
     ]);
   }
 
@@ -642,7 +642,7 @@ class B extends A {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 65, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 16, 1)]),
+          contextMessages: [message(testFile, 16, 1)]),
     ]);
   }
 
@@ -658,7 +658,7 @@ class C extends B {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 87, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 16, 1)]),
+          contextMessages: [message(testFile, 16, 1)]),
     ]);
   }
 
@@ -676,7 +676,7 @@ class B extends A {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 129, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 25, 1)]),
+          contextMessages: [message(testFile, 25, 1)]),
     ]);
   }
 
@@ -690,74 +690,7 @@ class B extends A {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 63, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 16, 1)]),
-    ]);
-  }
-
-  test_mixedInheritance_1() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-class B {
-  List<int Function(int)> get a => [];
-  set a(List<int Function(int)> _) {}
-  int Function(int) m(int Function(int) x) => x;
-}
-
-class Bq {
-  List<int? Function(int?)> get a => [];
-  set a(List<int? Function(int?)> _) {}
-  int? Function(int?) m(int? Function(int?) x) => x;
-}
-''');
-
-    newFile('$testPackageLibPath/b.dart', r'''
-// @dart = 2.7
-import 'a.dart';
-
-class C with B {}
-''');
-
-    await assertErrorsInCode(r'''
-import 'a.dart';
-import 'b.dart';
-
-class D extends C implements Bq {}
-''', [
-      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 24, 8),
-    ]);
-  }
-
-  test_mixedInheritance_2() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-class B {
-  List<int Function(int)> get a => [];
-  set a(List<int Function(int)> _) {}
-  int Function(int) m(int Function(int) x) => x;
-}
-
-class Bq {
-  List<int? Function(int?)> get a => [];
-  set a(List<int? Function(int?)> _) {}
-  int? Function(int?) m(int? Function(int?) x) => x;
-}
-''');
-
-    newFile('$testPackageLibPath/b.dart', r'''
-// @dart = 2.7
-import 'a.dart';
-
-class C extends B with Bq {}
-''');
-
-    await assertErrorsInCode(r'''
-import 'b.dart';
-
-class D extends C {
-  List<int Function(int)> get a => [];
-  set a(List<int Function(int)> _) {}
-  int Function(int) m(int Function(int) x) => x;
-}
-''', [
-      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
+          contextMessages: [message(testFile, 16, 1)]),
     ]);
   }
 
@@ -772,9 +705,9 @@ mixin M on A {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 53, 3,
-          contextMessages: [message('/home/test/lib/test.dart', 19, 3)]),
+          contextMessages: [message(testFile, 19, 3)]),
       error(CompileTimeErrorCode.INVALID_OVERRIDE_SETTER, 53, 3,
-          contextMessages: [message('/home/test/lib/test.dart', 19, 3)]),
+          contextMessages: [message(testFile, 19, 3)]),
     ]);
   }
 
@@ -789,7 +722,7 @@ mixin M on A {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 62, 3,
-          contextMessages: [message('/home/test/lib/test.dart', 23, 3)]),
+          contextMessages: [message(testFile, 23, 3)]),
     ]);
   }
 
@@ -804,7 +737,7 @@ mixin M on A {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 56, 3,
-          contextMessages: [message('/home/test/lib/test.dart', 19, 3)]),
+          contextMessages: [message(testFile, 19, 3)]),
     ]);
   }
 
@@ -819,7 +752,7 @@ mixin M on A {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_OVERRIDE_SETTER, 57, 3,
-          contextMessages: [message('/home/test/lib/test.dart', 16, 3)]),
+          contextMessages: [message(testFile, 16, 3)]),
     ]);
   }
 
@@ -833,7 +766,7 @@ class B extends A {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_OVERRIDE_SETTER, 66, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 21, 1)]),
+          contextMessages: [message(testFile, 21, 1)]),
     ]);
   }
 
@@ -851,7 +784,7 @@ class B extends A {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_OVERRIDE_SETTER, 173, 8,
-          contextMessages: [message('/home/test/lib/test.dart', 77, 8)]),
+          contextMessages: [message(testFile, 77, 8)]),
     ]);
   }
 
@@ -870,7 +803,7 @@ class B extends A {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_OVERRIDE_SETTER, 166, 8,
-          contextMessages: [message('/home/test/lib/test.dart', 77, 8)]),
+          contextMessages: [message(testFile, 77, 8)]),
     ]);
   }
 
@@ -887,9 +820,9 @@ class B implements I<int>, J<String> {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_OVERRIDE_SETTER, 125, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 28, 1)]),
+          contextMessages: [message(testFile, 28, 1)]),
       error(CompileTimeErrorCode.INVALID_OVERRIDE_SETTER, 125, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 68, 1)]),
+          contextMessages: [message(testFile, 68, 1)]),
     ]);
   }
 
@@ -928,7 +861,7 @@ abstract class B implements A {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_OVERRIDE_SETTER, 95, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 34, 1)],
+          contextMessages: [message(testFile, 34, 1)],
           messageContains: ["'B.x'"]),
     ]);
   }
@@ -979,7 +912,7 @@ abstract class B implements A {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_OVERRIDE_SETTER, 86, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 25, 1)]),
+          contextMessages: [message(testFile, 25, 1)]),
     ]);
   }
 
@@ -992,83 +925,5 @@ abstract class B implements A {
   void set x(num value);
 }
 ''');
-  }
-
-  test_viaLegacy_class() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-class A1 {
-  int m() => 0;
-  int get g => 0;
-  set s(int? _) {}
-}
-
-class A2 {
-  int? m() => 0;
-  int? get g => 0;
-  set s(int _) {}
-}
-''');
-
-    newFile('$testPackageLibPath/b.dart', r'''
-// @dart=2.6
-import 'a.dart';
-
-class L extends A2 implements A1 {}
-''');
-
-    await assertErrorsInCode('''
-import 'a.dart';
-import 'b.dart';
-
-class X1 extends L implements A1 {}
-class X2 extends L implements A2 {}
-
-class Y extends L {
-  int? get g => 0;
-  int? m() => 0;
-  set s(int _) {}
-}
-''', [
-      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 24, 8),
-    ]);
-  }
-
-  test_viaLegacy_mixin() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-class A1 {
-  int m() => 0;
-  int get g => 0;
-  set s(int? _) {}
-}
-
-mixin A2 {
-  int? m() => 0;
-  int? get g => 0;
-  set s(int _) {}
-}
-''');
-
-    newFile('$testPackageLibPath/b.dart', r'''
-// @dart=2.6
-import 'a.dart';
-
-class L extends Object with A2 implements A1 {}
-''');
-
-    await assertErrorsInCode('''
-import 'a.dart';
-import 'b.dart';
-
-class X1 extends L implements A1 {}
-class X2 extends L implements A2 {}
-
-class Y extends L {
-  int? get g => 0;
-  int? m() => 0;
-  set s(int _) {}
-}
-''', [
-      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 24, 8),
-    ]);
   }
 }

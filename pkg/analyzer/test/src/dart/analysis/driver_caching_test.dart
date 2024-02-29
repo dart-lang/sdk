@@ -50,9 +50,7 @@ class AnalysisDriverCachingTest extends PubPackageResolutionTest {
 
     // Configure `strict-casts: false`.
     writeTestPackageAnalysisOptionsFile(
-      AnalysisOptionsFileConfig(
-        strictCasts: false,
-      ),
+      AnalysisOptionsFileConfig(),
     );
 
     addTestFile(r'''

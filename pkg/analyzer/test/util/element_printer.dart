@@ -172,7 +172,7 @@ class ElementPrinter {
         '[',
         element.variables.map(_elementToReferenceString).join(', '),
         ']',
-      ].join('');
+      ].join();
     } else {
       return '${element.name}@${element.nameOffset}';
     }
@@ -218,7 +218,7 @@ class ElementPrinter {
   }
 
   String _typeStr(DartType type) {
-    return type.getDisplayString(withNullability: true);
+    return type.getDisplayString();
   }
 
   void _writeAugmentationImportElement(AugmentationImportElement element) {
@@ -249,10 +249,6 @@ class ElementPrinter {
     _sink.writeln(_nameOfMemberClass(element));
     _sink.withIndent(() {
       writeNamedElement('base', element.declaration);
-
-      if (element.isLegacy) {
-        _sink.writelnWithIndent('isLegacy: true');
-      }
 
       void writeSubstitution(String name, MapSubstitution substitution) {
         var map = substitution.map;

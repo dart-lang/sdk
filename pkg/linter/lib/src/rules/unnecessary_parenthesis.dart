@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -90,15 +91,35 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitParenthesizedExpression(ParenthesizedExpression node) {
     var parent = node.parent;
-    // case const (a + b):
+    // `case const (a + b):` is OK.
     if (parent is ConstantPattern) return;
+
+    // Don't over-report on records missing trailing commas.
+    // `(int,) r = (3);` is OK.
+    if (parent is VariableDeclaration &&
+        parent.declaredElement?.type is RecordType) {
+      if (node.expression is! RecordLiteral) return;
+    }
+    // `g((3)); => g((int,) i) { }` is OK.
+    if (parent is ArgumentList) {
+      var element = node.staticParameterElement;
+      if (element?.type is RecordType && node.expression is! RecordLiteral) {
+        return;
+      }
+    }
+    // `g(i: (3)); => g({required (int,) i}) { }` is OK.
+    if (parent is NamedExpression &&
+        parent.staticParameterElement?.type is RecordType) {
+      if (node.expression is! RecordLiteral) return;
+    }
+
     var expression = node.expression;
     if (expression is SimpleIdentifier ||
         expression.containsNullAwareInvocationInChain()) {
       if (parent is PropertyAccess) {
         var name = parent.propertyName.name;
         if (name == 'hashCode' || name == 'runtimeType') {
-          // Code like `(String).hashCode` is allowed.
+          // `(String).hashCode` is OK.
           return;
         }
 
@@ -113,7 +134,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       } else if (parent is MethodInvocation) {
         var name = parent.methodName.name;
         if (name == 'noSuchMethod' || name == 'toString') {
-          // Code like `(String).noSuchMethod()` is allowed.
+          // `(String).noSuchMethod()` is OK.
           return;
         }
 
@@ -196,8 +217,22 @@ class _Visitor extends SimpleAstVisitor<void> {
     // Constructor field initializers are rather unguarded by delimiting
     // tokens, which can get confused with a function expression. See test
     // cases for issues #1395 and #1473.
-    if (parent is ConstructorFieldInitializer &&
-        _containsFunctionExpression(node)) {
+    //
+    // We cannot just look at the immediate `parent`. Take this example of a
+    // constructor:
+    //
+    // ```dart
+    // C(bool Function()? e) : e = e ??= (() => true);
+    // ```
+    //
+    // The parentheses in question are not an immediate child of a constructor
+    // field initializer; they are the right side of `e ??= ...`, which is an
+    // immediate child of a constructor field initializer. There can be any
+    // number of expressions like this in between. The important principle is
+    // that `=>` must not be "bare", such that it can be interpreted as the
+    // delimiter for the constructor body.
+    if (node.isBareInConstructorFieldInitializer &&
+        node.containsFunctionExpression) {
       return;
     }
 
@@ -275,16 +310,30 @@ class _Visitor extends SimpleAstVisitor<void> {
       rule.reportLint(node);
     }
   }
-
-  bool _containsFunctionExpression(ParenthesizedExpression node) {
-    var containsFunctionExpressionVisitor =
-        _ContainsFunctionExpressionVisitor();
-    node.accept(containsFunctionExpressionVisitor);
-    return containsFunctionExpressionVisitor.hasFunctionExpression;
-  }
 }
 
 extension on ParenthesizedExpression {
+  bool get containsFunctionExpression {
+    var visitor = _ContainsFunctionExpressionVisitor();
+    accept(visitor);
+    return visitor.hasFunctionExpression;
+  }
+
+  bool get isBareInConstructorFieldInitializer {
+    var ancestor = parent;
+    while (ancestor != null) {
+      if (ancestor is ConstructorFieldInitializer) return true;
+      if (ancestor is FunctionBody || ancestor is MethodInvocation) {
+        // The delimiters (e.g. parentheses) in such an ancestor mean that
+        // `this` is not a "bare" expression within the constructor field
+        // initializer.
+        return false;
+      }
+      ancestor = ancestor.parent;
+    }
+    return false;
+  }
+
   /// Returns whether a parser would attempt to parse `this` as a statement
   /// block if the parentheses were removed.
   ///

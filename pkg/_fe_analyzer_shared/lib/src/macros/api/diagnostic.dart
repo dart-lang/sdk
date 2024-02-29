@@ -77,6 +77,18 @@ extension TypeAnnotationAsTarget on TypeAnnotation {
       new TypeAnnotationDiagnosticTarget(this);
 }
 
+/// A [DiagnosticMessage] target which is a [MetadataAnnotation].
+final class MetadataAnnotationDiagnosticTarget extends DiagnosticTarget {
+  final MetadataAnnotation metadataAnnotation;
+
+  MetadataAnnotationDiagnosticTarget(this.metadataAnnotation);
+}
+
+extension MetadataAnnotationAsTarget on MetadataAnnotation {
+  MetadataAnnotationDiagnosticTarget get asDiagnosticTarget =>
+      new MetadataAnnotationDiagnosticTarget(this);
+}
+
 /// The severities supported for [Diagnostic]s.
 enum Severity {
   /// Informational message only, for example a style guideline is not being

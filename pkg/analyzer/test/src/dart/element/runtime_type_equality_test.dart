@@ -32,7 +32,6 @@ class RuntimeTypeEqualityTypeTest extends AbstractTypeSystemTest
 
     _notEqual(dynamicType, neverNone);
     _notEqual(dynamicType, neverQuestion);
-    _notEqual(dynamicType, neverStar);
   }
 
   test_functionType_parameters() {
@@ -67,15 +66,9 @@ class RuntimeTypeEqualityTypeTest extends AbstractTypeSystemTest
 
       checkRequiredParameter(intNone, intNone, true);
       checkRequiredParameter(intNone, intQuestion, false);
-      checkRequiredParameter(intNone, intStar, true);
 
       checkRequiredParameter(intQuestion, intNone, false);
       checkRequiredParameter(intQuestion, intQuestion, true);
-      checkRequiredParameter(intQuestion, intStar, false);
-
-      checkRequiredParameter(intStar, intNone, true);
-      checkRequiredParameter(intStar, intQuestion, false);
-      checkRequiredParameter(intStar, intStar, true);
 
       check(
         requiredParameter(type: intNone, name: 'a'),
@@ -172,7 +165,6 @@ class RuntimeTypeEqualityTypeTest extends AbstractTypeSystemTest
 
     check(intNone, intNone, true);
     check(intNone, intQuestion, false);
-    check(intNone, intStar, true);
   }
 
   test_functionType_typeParameters() {
@@ -238,15 +230,9 @@ class RuntimeTypeEqualityTypeTest extends AbstractTypeSystemTest
 
     _equal(intNone, intNone);
     _notEqual(intNone, intQuestion);
-    _equal(intNone, intStar);
 
     _notEqual(intQuestion, intNone);
     _equal(intQuestion, intQuestion);
-    _notEqual(intQuestion, intStar);
-
-    _equal(intStar, intNone);
-    _notEqual(intStar, intQuestion);
-    _equal(intStar, intStar);
   }
 
   test_interfaceType_typeArguments() {
@@ -262,33 +248,20 @@ class RuntimeTypeEqualityTypeTest extends AbstractTypeSystemTest
 
     equal(intNone, intNone);
     notEqual(intNone, intQuestion);
-    equal(intNone, intStar);
 
     notEqual(intQuestion, intNone);
     equal(intQuestion, intQuestion);
-    notEqual(intQuestion, intStar);
-
-    equal(intStar, intNone);
-    notEqual(intStar, intQuestion);
-    equal(intStar, intStar);
   }
 
   test_never() {
     _equal(neverNone, neverNone);
     _notEqual(neverNone, neverQuestion);
-    _equal(neverNone, neverStar);
     _notEqual(neverNone, intNone);
 
     _notEqual(neverQuestion, neverNone);
     _equal(neverQuestion, neverQuestion);
-    _notEqual(neverQuestion, neverStar);
     _notEqual(neverQuestion, intNone);
     _equal(neverQuestion, nullNone);
-
-    _equal(neverStar, neverNone);
-    _notEqual(neverStar, neverQuestion);
-    _equal(neverStar, neverStar);
-    _notEqual(neverStar, intNone);
   }
 
   test_norm() {
@@ -333,7 +306,6 @@ class RuntimeTypeEqualityTypeTest extends AbstractTypeSystemTest
 
     _notEqual(voidNone, neverNone);
     _notEqual(voidNone, neverQuestion);
-    _notEqual(voidNone, neverStar);
   }
 
   void _check(DartType T1, DartType T2, bool expected) {

@@ -165,7 +165,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
     );
 
     // class B extends A<B> {}
-    var B = class_(name: 'B', superType: null);
+    var B = class_(name: 'B');
     B.supertype = interfaceTypeNone(A, typeArguments: [interfaceTypeNone(B)]);
     var typeB = interfaceTypeNone(B);
 
@@ -211,27 +211,6 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
     var inferredType = inferredTypes[0] as TypeParameterTypeImpl;
     expect(inferredType.element, S);
     expect(inferredType.promotedBound, isNull);
-  }
-
-  void test_fromLegacy_nonNullableBound() {
-    typeSystem = analysisContext.typeSystemLegacy;
-
-    // void Function<T extends Object>(T)
-    var T = typeParameter('T', bound: objectNone);
-    var rawType = functionTypeNone(
-      typeFormals: [T],
-      parameters: [
-        requiredParameter(
-          type: typeParameterTypeNone(T),
-        ),
-      ],
-      returnType: voidNone,
-    );
-
-    _assertTypes(
-      _inferCall(rawType, [dynamicType]),
-      [dynamicType],
-    );
   }
 
   void test_genericCastFunction() {
@@ -521,16 +500,6 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
     _assertTypes(_inferCall(f, [], returnType: stringNone), [stringNone]);
   }
 
-  void test_returnTypeFromContext_nonNullify() {
-    // <T>() -> T
-    var T = typeParameter('T');
-    var f = functionTypeNone(
-      typeFormals: [T],
-      returnType: typeParameterTypeNone(T),
-    );
-    _assertTypes(_inferCall(f, [], returnType: intStar), [intNone]);
-  }
-
   void test_returnTypeWithBoundFromContext() {
     // <T extends num>() -> T
     var T = typeParameter('T', bound: numNone);
@@ -620,17 +589,17 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
   }
 
   void _assertType(DartType type, String expected) {
-    var typeStr = type.getDisplayString(withNullability: false);
+    var typeStr = type.getDisplayString();
     expect(typeStr, expected);
   }
 
   void _assertTypes(List<DartType> actual, List<DartType> expected) {
     var actualStr = actual.map((e) {
-      return e.getDisplayString(withNullability: true);
+      return e.getDisplayString();
     }).toList();
 
     var expectedStr = expected.map((e) {
-      return e.getDisplayString(withNullability: true);
+      return e.getDisplayString();
     }).toList();
 
     expect(actualStr, expectedStr);
@@ -643,7 +612,6 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
     var reporter = ErrorReporter(
       listener,
       NonExistingSource('/test.dart', toUri('/test.dart')),
-      isNonNullableByDefault: false,
     );
 
     var inferrer = typeSystem.setupGenericTypeInference(

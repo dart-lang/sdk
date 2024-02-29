@@ -115,7 +115,6 @@ class InvocationInferenceHelper {
     if (rawElement == null) {
       return null;
     }
-    rawElement = _resolver.toLegacyElement(rawElement);
     return ConstructorElementToInfer(typeParameters, rawElement);
   }
 
@@ -148,8 +147,7 @@ class InvocationInferenceHelper {
   ///
   /// @param expression the node whose type is to be recorded
   /// @param type the static type of the node
-  void recordStaticType(ExpressionImpl expression, DartType type,
-      {required DartType? contextType}) {
+  void recordStaticType(ExpressionImpl expression, DartType type) {
     expression.staticType = type;
     if (_typeSystem.isBottom(type)) {
       _resolver.flowAnalysis.flow?.handleExit();
@@ -175,6 +173,6 @@ class InvocationInferenceHelper {
       whyNotPromotedList: whyNotPromotedList,
     ).resolveInvocation(rawType: rawType);
 
-    recordStaticType(node, returnType, contextType: contextType);
+    recordStaticType(node, returnType);
   }
 }

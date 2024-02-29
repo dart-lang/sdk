@@ -895,17 +895,3 @@ mixin _ContextRoot on ResourceProviderMixin {
     );
   }
 }
-
-extension on PhysicalResourceProvider {
-  /// Converts the given posix [filePath] to conform to this provider's path
-  /// context.
-  String convertPath(String filePath) {
-    if (pathContext.style == path.windows.style) {
-      if (filePath.startsWith(path.posix.separator)) {
-        filePath = r'C:' + filePath;
-      }
-      return filePath.replaceAll(path.posix.separator, path.windows.separator);
-    }
-    return filePath;
-  }
-}

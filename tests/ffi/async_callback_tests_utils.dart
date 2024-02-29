@@ -6,8 +6,6 @@ import 'dart:ffi';
 
 import 'dylib_utils.dart';
 
-import "package:expect/expect.dart";
-
 final ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");
 
 typedef NativeAsyncCallbackTest = Void Function(Pointer);

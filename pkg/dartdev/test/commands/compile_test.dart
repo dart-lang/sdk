@@ -738,6 +738,42 @@ void main() {}
     expect(result.stdout, contains('sound'));
   }, skip: isRunningOnIA32);
 
+  test('Compile and run exe with DART_VM_OPTIONS', () async {
+    final p = project(mainSrc: '''void main() {
+      // Empty
+    }''');
+    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+    final outFile = path.canonicalize(path.join(p.dirPath, 'myexe'));
+
+    var result = await p.run(
+      [
+        'compile',
+        'exe',
+        '-o',
+        outFile,
+        inFile,
+      ],
+    );
+
+    expect(result.stdout, isNot(contains(soundNullSafetyMessage)));
+    expect(result.stderr, isEmpty);
+    expect(result.exitCode, 0);
+    expect(File(outFile).existsSync(), true,
+        reason: 'File not found: $outFile');
+
+    result = Process.runSync(
+      outFile,
+      [],
+      environment: <String, String>{
+        'DART_VM_OPTIONS': '--help,--verbose',
+      },
+    );
+
+    expect(result.stderr, isEmpty);
+    expect(result.stdout, contains('vm_name'));
+    expect(result.exitCode, 255);
+  }, skip: isRunningOnIA32);
+
   test('Compile exe without info', () async {
     final p = project(mainSrc: '''void main() {}''');
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
@@ -789,6 +825,48 @@ void main() {
     expect(result.stdout, isNot(contains(soundNullSafetyMessage)));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
+  }, skip: isRunningOnIA32);
+
+  test('Compile exe from kernel', () async {
+    final p = project(mainSrc: '''
+void main() {}
+''');
+    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+    final dillOutFile = path.canonicalize(path.join(p.dirPath, 'mydill'));
+    final exeOutFile = path.canonicalize(path.join(p.dirPath, 'myexe'));
+
+    var result = await p.run(
+      [
+        'compile',
+        'kernel',
+        '-o',
+        dillOutFile,
+        inFile,
+      ],
+    );
+    expect(result.exitCode, 0);
+    expect(
+      File(dillOutFile).existsSync(),
+      true,
+      reason: 'File not found: $dillOutFile',
+    );
+
+    result = await p.run(
+      [
+        'compile',
+        'exe',
+        '-o',
+        exeOutFile,
+        dillOutFile,
+      ],
+    );
+
+    expect(result.exitCode, 0);
+    expect(
+      File(exeOutFile).existsSync(),
+      true,
+      reason: 'File not found: $exeOutFile',
+    );
   }, skip: isRunningOnIA32);
 
   test('Compile wasm with wrong output filename', () async {
@@ -1092,6 +1170,48 @@ void main() {
     expect(result.exitCode, 0);
   }, skip: isRunningOnIA32);
 
+  test('Compile AOT snapshot from kernel', () async {
+    final p = project(mainSrc: '''
+void main() {}
+''');
+    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+    final dillOutFile = path.canonicalize(path.join(p.dirPath, 'mydill'));
+    final aotOutFile = path.canonicalize(path.join(p.dirPath, 'myaot'));
+
+    var result = await p.run(
+      [
+        'compile',
+        'kernel',
+        '-o',
+        dillOutFile,
+        inFile,
+      ],
+    );
+    expect(result.exitCode, 0);
+    expect(
+      File(dillOutFile).existsSync(),
+      true,
+      reason: 'File not found: $dillOutFile',
+    );
+
+    result = await p.run(
+      [
+        'compile',
+        'aot-snapshot',
+        '-o',
+        aotOutFile,
+        dillOutFile,
+      ],
+    );
+
+    expect(result.exitCode, 0);
+    expect(
+      File(aotOutFile).existsSync(),
+      true,
+      reason: 'File not found: $aotOutFile',
+    );
+  }, skip: isRunningOnIA32);
+
   test('Compile kernel with invalid output directory', () async {
     final p = project(mainSrc: '''void main() {}''');
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
@@ -1185,7 +1305,7 @@ void main() {}
       ],
     );
 
-    expect(result.stderr, contains(unsoundNullSafetyMessage));
+    expect(result.stdout, contains(unsoundNullSafetyMessage));
     expect(result.stdout, contains(unsoundNullSafetyWarning));
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,
@@ -1286,7 +1406,7 @@ void main() {
 
     expect(result.stderr, isNot(contains(soundNullSafetyMessage)));
     expect(result.stderr, contains('must be assigned before it can be used'));
-    expect(result.exitCode, 254);
+    expect(result.exitCode, 64);
   });
 
   test('Compile kernel with warnings', () async {
@@ -1310,7 +1430,7 @@ void main() {
     );
 
     expect(result.stderr, isNot(contains(soundNullSafetyMessage)));
-    expect(result.stderr, contains('Warning:'));
+    expect(result.stdout, contains('Warning:'));
     expect(result.exitCode, 0);
   });
 

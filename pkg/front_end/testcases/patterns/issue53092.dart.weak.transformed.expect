@@ -17,7 +17,7 @@ static method test(dynamic y) → core::Iterable<dynamic> {
           {
             final synthesized dynamic #0#0 = #t3;
             if(!(#0#0 is core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t4 = x = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true)))
-              throw new core::StateError::•("Pattern matching error");
+              throw{for-error-handling} new core::StateError::•("Pattern matching error");
           }
           #t1.{core::Set::add}{Invariant}(x){(dynamic) → core::bool};
         }

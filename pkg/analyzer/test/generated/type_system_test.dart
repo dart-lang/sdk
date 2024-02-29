@@ -46,25 +46,18 @@ class TryPromoteToTest extends AbstractTypeSystemTest {
     }
 
     void check(TypeParameterTypeImpl type, String expected) {
-      expect(type.getDisplayString(withNullability: true), expected);
+      expect(type.getDisplayString(), expected);
     }
 
     var T = typeParameter('T');
     var T_none = typeParameterTypeNone(T);
     var T_question = typeParameterTypeQuestion(T);
-    var T_star = typeParameterTypeStar(T);
 
     check(tryPromote(numNone, T_none), 'T & num');
     check(tryPromote(numQuestion, T_none), 'T & num?');
-    check(tryPromote(numStar, T_none), 'T & num*');
 
     check(tryPromote(numNone, T_question), 'T & num');
     check(tryPromote(numQuestion, T_question), '(T & num?)?');
-    check(tryPromote(numStar, T_question), '(T & num*)*');
-
-    check(tryPromote(numNone, T_star), '(T & num)*');
-    check(tryPromote(numQuestion, T_star), '(T & num?)*');
-    check(tryPromote(numStar, T_star), '(T & num*)*');
   }
 
   test_typeParameter_twice() {

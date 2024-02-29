@@ -19,7 +19,6 @@ import 'package:analyzer/src/dart/element/greatest_lower_bound.dart';
 import 'package:analyzer/src/dart/element/least_greatest_closure.dart';
 import 'package:analyzer/src/dart/element/least_upper_bound.dart';
 import 'package:analyzer/src/dart/element/normalize.dart';
-import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
 import 'package:analyzer/src/dart/element/replace_top_bottom_visitor.dart';
 import 'package:analyzer/src/dart/element/replacement_visitor.dart';
 import 'package:analyzer/src/dart/element/runtime_type_equality.dart';
@@ -75,18 +74,11 @@ class RelatedTypeParameters {
 
 /// The [TypeSystem] implementation.
 class TypeSystemImpl implements TypeSystem {
-  /// If `true`, then NNBD type rules should be used.
-  /// If `false`, then legacy type rules should be used.
-  final bool isNonNullableByDefault;
-
   /// The provider of types for the system.
   final TypeProviderImpl typeProvider;
 
   /// The cached instance of `Object?`.
   InterfaceTypeImpl? _objectQuestion;
-
-  /// The cached instance of `Object*`.
-  InterfaceTypeImpl? _objectStar;
 
   /// The cached instance of `Object!`.
   InterfaceTypeImpl? _objectNone;
@@ -101,7 +93,6 @@ class TypeSystemImpl implements TypeSystem {
   late final SubtypeHelper _subtypeHelper;
 
   TypeSystemImpl({
-    required this.isNonNullableByDefault,
     required TypeProvider typeProvider,
   }) : typeProvider = typeProvider as TypeProviderImpl {
     _greatestLowerBoundHelper = GreatestLowerBoundHelper(this);
@@ -120,10 +111,6 @@ class TypeSystemImpl implements TypeSystem {
   InterfaceTypeImpl get objectQuestion =>
       _objectQuestion ??= (typeProvider.objectType as InterfaceTypeImpl)
           .withNullability(NullabilitySuffix.question);
-
-  InterfaceTypeImpl get objectStar =>
-      _objectStar ??= (typeProvider.objectType as InterfaceTypeImpl)
-          .withNullability(NullabilitySuffix.star);
 
   /// Returns true iff the type [t] accepts function types, and requires an
   /// implicit coercion if interface types with a `call` method are passed in.
@@ -321,19 +308,8 @@ class TypeSystemImpl implements TypeSystem {
   /// with their unpromoted equivalents, and, if non-nullable by default,
   /// replaces all legacy types with their non-nullable equivalents.
   DartType demoteType(DartType type) {
-    if (isNonNullableByDefault) {
-      var visitor = const DemotionNonNullificationVisitor(
-        demoteTypeVariables: true,
-        nonNullifyTypes: true,
-      );
-      return type.accept(visitor) ?? type;
-    } else {
-      var visitor = const DemotionNonNullificationVisitor(
-        demoteTypeVariables: true,
-        nonNullifyTypes: false,
-      );
-      return type.accept(visitor) ?? type;
-    }
+    var visitor = const DemotionVisitor();
+    return type.accept(visitor) ?? type;
   }
 
   /// Eliminates type variables from the context [type], replacing them with
@@ -351,17 +327,10 @@ class TypeSystemImpl implements TypeSystem {
   /// The equivalent CFE code can be found in the `TypeVariableEliminator`
   /// class.
   DartType eliminateTypeVariables(DartType type) {
-    if (isNonNullableByDefault) {
-      return _TypeVariableEliminator(
-        objectQuestion,
-        NeverTypeImpl.instance,
-      ).substituteType(type);
-    } else {
-      return _TypeVariableEliminator(
-        objectNone,
-        typeProvider.nullType,
-      ).substituteType(type);
-    }
+    return _TypeVariableEliminator(
+      objectQuestion,
+      NeverTypeImpl.instance,
+    ).substituteType(type);
   }
 
   /// Defines the "remainder" of `T` when `S` has been removed from
@@ -623,23 +592,13 @@ class TypeSystemImpl implements TypeSystem {
     var typeParameterSet = Set<TypeParameterElement>.identity();
     typeParameterSet.addAll(typeParameters);
 
-    if (isNonNullableByDefault) {
-      return LeastGreatestClosureHelper(
-        typeSystem: this,
-        topType: objectQuestion,
-        topFunctionType: typeProvider.functionType,
-        bottomType: NeverTypeImpl.instance,
-        eliminationTargets: typeParameterSet,
-      ).eliminateToGreatest(type);
-    } else {
-      return LeastGreatestClosureHelper(
-        typeSystem: this,
-        topType: DynamicTypeImpl.instance,
-        topFunctionType: typeProvider.functionType,
-        bottomType: typeProvider.nullType,
-        eliminationTargets: typeParameterSet,
-      ).eliminateToGreatest(type);
-    }
+    return LeastGreatestClosureHelper(
+      typeSystem: this,
+      topType: objectQuestion,
+      topFunctionType: typeProvider.functionType,
+      bottomType: NeverTypeImpl.instance,
+      eliminationTargets: typeParameterSet,
+    ).eliminateToGreatest(type);
   }
 
   /// Returns the greatest closure of the given type [schema] with respect to
@@ -657,21 +616,12 @@ class TypeSystemImpl implements TypeSystem {
   /// Note that the greatest closure of a type schema is always a supertype of
   /// any type which matches the schema.
   DartType greatestClosureOfSchema(DartType schema) {
-    if (isNonNullableByDefault) {
-      return TypeSchemaEliminationVisitor.run(
-        topType: objectQuestion,
-        bottomType: NeverTypeImpl.instance,
-        isLeastClosure: false,
-        schema: schema,
-      );
-    } else {
-      return TypeSchemaEliminationVisitor.run(
-        topType: DynamicTypeImpl.instance,
-        bottomType: typeProvider.nullType,
-        isLeastClosure: false,
-        schema: schema,
-      );
-    }
+    return TypeSchemaEliminationVisitor.run(
+      topType: objectQuestion,
+      bottomType: NeverTypeImpl.instance,
+      isLeastClosure: false,
+      schema: schema,
+    );
   }
 
   @override
@@ -721,11 +671,10 @@ class TypeSystemImpl implements TypeSystem {
   }) {
     final typeParameters = element.typeParameters;
     final typeArguments = _defaultTypeArguments(typeParameters);
-    final type = element.instantiate(
+    return element.instantiate(
       typeArguments: typeArguments,
       nullabilitySuffix: nullabilitySuffix,
     );
-    return toLegacyTypeIfOptOut(type) as InterfaceType;
   }
 
   /// Given a [DartType] [type], if [type] is an uninstantiated
@@ -790,11 +739,10 @@ class TypeSystemImpl implements TypeSystem {
   }) {
     final typeParameters = element.typeParameters;
     final typeArguments = _defaultTypeArguments(typeParameters);
-    final type = element.instantiate(
+    return element.instantiate(
       typeArguments: typeArguments,
       nullabilitySuffix: nullabilitySuffix,
     );
-    return toLegacyTypeIfOptOut(type);
   }
 
   /// Given uninstantiated [typeFormals], instantiate them to their bounds.
@@ -951,38 +899,7 @@ class TypeSystemImpl implements TypeSystem {
     }
 
     // Now handle NNBD default behavior, where we disable non-dynamic downcasts.
-    if (isNonNullableByDefault) {
-      return fromType is DynamicType;
-    }
-
-    // Don't allow implicit downcasts between function types
-    // and call method objects, as these will almost always fail.
-    if (fromType is FunctionType && getCallMethodType(toType) != null) {
-      return false;
-    }
-
-    // Don't allow a non-generic function where a generic one is expected. The
-    // former wouldn't know how to handle type arguments being passed to it.
-    // TODO(rnystrom): This same check also exists in FunctionTypeImpl.relate()
-    // but we don't always reliably go through that code path. This should be
-    // cleaned up to avoid the redundancy.
-    if (fromType is FunctionType &&
-        toType is FunctionType &&
-        fromType.typeFormals.isEmpty &&
-        toType.typeFormals.isNotEmpty) {
-      return false;
-    }
-
-    // If the subtype relation goes the other way, allow the implicit downcast.
-    if (isSubtypeOf(toType, fromType)) {
-      // TODO(leafp): we emit warnings for these in
-      // `src/task/strong/checker.dart`, which is a bit inconsistent. That code
-      // should be handled into places that use `isAssignableTo`, such as
-      // [ErrorVerifier].
-      return true;
-    }
-
-    return false;
+    return fromType is DynamicType;
   }
 
   /// Return `true`  for things in the equivalence class of `Never`.
@@ -1074,6 +991,44 @@ class TypeSystemImpl implements TypeSystem {
       var promotedBound = type.promotedBound;
       if (promotedBound != null && isFunctionBounded(promotedBound)) {
         return true;
+      }
+    }
+
+    return false;
+  }
+
+  /// We say that a type `T` is _incompatible with await_ if at least
+  /// one of the following criteria holds:
+  bool isIncompatibleWithAwait(DartType T) {
+    T as TypeImpl;
+
+    // `T` is `S?`, and `S` is incompatible with await.
+    if (T.nullabilitySuffix == NullabilitySuffix.question) {
+      var T_none = T.withNullability(NullabilitySuffix.none);
+      return isIncompatibleWithAwait(T_none);
+    }
+
+    // `T` is an extension type that does not implement `Future`.
+    if (T.element is ExtensionTypeElement) {
+      var anyFuture = typeProvider.futureType(objectQuestion);
+      if (!isSubtypeOf(T, anyFuture)) {
+        return true;
+      }
+    }
+
+    if (T is TypeParameterTypeImpl) {
+      // `T` is `X & B`, and `B` is incompatible with await.
+      if (T.promotedBound case var B?) {
+        if (isIncompatibleWithAwait(B)) {
+          return true;
+        }
+      }
+      // `T` is a type variable with bound `S`, and `S` is incompatible
+      // with await.
+      if (T.element.bound case var S?) {
+        if (isIncompatibleWithAwait(S)) {
+          return true;
+        }
       }
     }
 
@@ -1519,23 +1474,13 @@ class TypeSystemImpl implements TypeSystem {
     var typeParameterSet = Set<TypeParameterElement>.identity();
     typeParameterSet.addAll(typeParameters);
 
-    if (isNonNullableByDefault) {
-      return LeastGreatestClosureHelper(
-        typeSystem: this,
-        topType: objectQuestion,
-        topFunctionType: typeProvider.functionType,
-        bottomType: NeverTypeImpl.instance,
-        eliminationTargets: typeParameterSet,
-      ).eliminateToLeast(type);
-    } else {
-      return LeastGreatestClosureHelper(
-        typeSystem: this,
-        topType: DynamicTypeImpl.instance,
-        topFunctionType: typeProvider.functionType,
-        bottomType: typeProvider.nullType,
-        eliminationTargets: typeParameterSet,
-      ).eliminateToLeast(type);
-    }
+    return LeastGreatestClosureHelper(
+      typeSystem: this,
+      topType: objectQuestion,
+      topFunctionType: typeProvider.functionType,
+      bottomType: NeverTypeImpl.instance,
+      eliminationTargets: typeParameterSet,
+    ).eliminateToLeast(type);
   }
 
   /// Returns the least closure of the given type [schema] with respect to `_`.
@@ -1552,21 +1497,12 @@ class TypeSystemImpl implements TypeSystem {
   /// Note that the least closure of a type schema is always a subtype of any
   /// type which matches the schema.
   DartType leastClosureOfSchema(DartType schema) {
-    if (isNonNullableByDefault) {
-      return TypeSchemaEliminationVisitor.run(
-        topType: objectQuestion,
-        bottomType: NeverTypeImpl.instance,
-        isLeastClosure: true,
-        schema: schema,
-      );
-    } else {
-      return TypeSchemaEliminationVisitor.run(
-        topType: DynamicTypeImpl.instance,
-        bottomType: typeProvider.nullType,
-        isLeastClosure: true,
-        schema: schema,
-      );
-    }
+    return TypeSchemaEliminationVisitor.run(
+      topType: objectQuestion,
+      bottomType: NeverTypeImpl.instance,
+      isLeastClosure: true,
+      schema: schema,
+    );
   }
 
   @override
@@ -1611,13 +1547,6 @@ class TypeSystemImpl implements TypeSystem {
     for (int i = 0; i < srcTypes.length; i++) {
       var srcType = substitution.substituteType(srcTypes[i]);
       var destType = destTypes[i];
-      if (isNonNullableByDefault) {
-        // TODO(scheglov): waiting for the spec
-        // https://github.com/dart-lang/sdk/issues/42605
-      } else {
-        srcType = toLegacyTypeIfOptOut(srcType);
-        destType = toLegacyTypeIfOptOut(destType);
-      }
       if (srcType != destType) {
         // Failed to find an appropriate substitution
         return null;
@@ -1625,18 +1554,6 @@ class TypeSystemImpl implements TypeSystem {
     }
 
     return inferredTypes;
-  }
-
-  /// Replace legacy types in [type] with non-nullable types.
-  DartType nonNullifyLegacy(DartType type) {
-    if (isNonNullableByDefault) {
-      var visitor = const DemotionNonNullificationVisitor(
-        demoteTypeVariables: false,
-        nonNullifyTypes: true,
-      );
-      return type.accept(visitor) ?? type;
-    }
-    return type;
   }
 
   /// Compute the canonical representation of [T].
@@ -1692,14 +1609,9 @@ class TypeSystemImpl implements TypeSystem {
       DartType rightType,
       DartType currentType,
       MethodElement? operatorElement) {
-    if (isNonNullableByDefault) {
-      if (operatorElement == null) return currentType;
-      return _refineNumericInvocationTypeNullSafe(
-          leftType, operatorElement, [rightType], currentType);
-    } else {
-      return _refineBinaryExpressionTypeLegacy(
-          leftType, operator, rightType, currentType);
-    }
+    if (operatorElement == null) return currentType;
+    return _refineNumericInvocationTypeNullSafe(
+        leftType, operatorElement, [rightType], currentType);
   }
 
   /// Determines the context type for the parameters of a method invocation
@@ -1712,9 +1624,7 @@ class TypeSystemImpl implements TypeSystem {
       Element? methodElement,
       DartType? invocationContext,
       DartType currentType) {
-    if (targetType != null &&
-        methodElement is MethodElement &&
-        isNonNullableByDefault) {
+    if (targetType != null && methodElement is MethodElement) {
       return _refineNumericInvocationContextNullSafe(
           targetType, methodElement, invocationContext, currentType);
     } else {
@@ -1734,7 +1644,7 @@ class TypeSystemImpl implements TypeSystem {
       Element? methodElement,
       List<DartType> argumentTypes,
       DartType currentType) {
-    if (methodElement is MethodElement && isNonNullableByDefault) {
+    if (methodElement is MethodElement) {
       return _refineNumericInvocationTypeNullSafe(
           targetType, methodElement, argumentTypes, currentType);
     } else {
@@ -1812,21 +1722,12 @@ class TypeSystemImpl implements TypeSystem {
   /// `Object?` with `Null` or `Never` and all contravariant occurrences of
   /// `Null` or `Never` with `Object` or `Object?`.
   DartType replaceTopAndBottom(DartType dartType) {
-    if (isNonNullableByDefault) {
-      return ReplaceTopBottomVisitor.run(
-        topType: objectQuestion,
-        bottomType: NeverTypeImpl.instance,
-        typeSystem: this,
-        type: dartType,
-      );
-    } else {
-      return ReplaceTopBottomVisitor.run(
-        topType: DynamicTypeImpl.instance,
-        bottomType: typeProvider.nullType,
-        typeSystem: this,
-        type: dartType,
-      );
-    }
+    return ReplaceTopBottomVisitor.run(
+      topType: objectQuestion,
+      bottomType: NeverTypeImpl.instance,
+      typeSystem: this,
+      type: dartType,
+    );
   }
 
   @override
@@ -1839,7 +1740,7 @@ class TypeSystemImpl implements TypeSystem {
 
       final bound = type.element.bound;
       if (bound == null) {
-        return isNonNullableByDefault ? objectQuestion : objectStar;
+        return objectQuestion;
       }
 
       final resolved = resolveToBound(bound) as TypeImpl;
@@ -1899,13 +1800,6 @@ class TypeSystemImpl implements TypeSystem {
     }
 
     return inferrer;
-  }
-
-  /// If a legacy library, return the legacy version of the [type].
-  /// Otherwise, return the original type.
-  DartType toLegacyTypeIfOptOut(DartType type) {
-    if (isNonNullableByDefault) return type;
-    return NullabilityEliminator.perform(typeProvider, type);
   }
 
   /// Merges two types into a single type.
@@ -2047,74 +1941,6 @@ class TypeSystemImpl implements TypeSystem {
     }
 
     return null;
-  }
-
-  DartType _refineBinaryExpressionTypeLegacy(DartType leftType,
-      TokenType operator, DartType rightType, DartType currentType) {
-    if (leftType is TypeParameterType && leftType.bound.isDartCoreNum) {
-      if (rightType == leftType || rightType.isDartCoreInt) {
-        if (operator == TokenType.PLUS ||
-            operator == TokenType.MINUS ||
-            operator == TokenType.STAR ||
-            operator == TokenType.PLUS_EQ ||
-            operator == TokenType.MINUS_EQ ||
-            operator == TokenType.STAR_EQ ||
-            operator == TokenType.PLUS_PLUS ||
-            operator == TokenType.MINUS_MINUS) {
-          return leftType;
-        }
-      }
-      if (rightType.isDartCoreDouble) {
-        if (operator == TokenType.PLUS ||
-            operator == TokenType.MINUS ||
-            operator == TokenType.STAR ||
-            operator == TokenType.SLASH) {
-          return typeProvider.doubleType;
-        }
-      }
-      return currentType;
-    }
-    // bool
-    if (operator == TokenType.AMPERSAND_AMPERSAND ||
-        operator == TokenType.BAR_BAR ||
-        operator == TokenType.EQ_EQ ||
-        operator == TokenType.BANG_EQ) {
-      return typeProvider.boolType;
-    }
-    if (leftType.isDartCoreInt) {
-      // int op double
-      if (operator == TokenType.MINUS ||
-          operator == TokenType.PERCENT ||
-          operator == TokenType.PLUS ||
-          operator == TokenType.STAR ||
-          operator == TokenType.MINUS_EQ ||
-          operator == TokenType.PERCENT_EQ ||
-          operator == TokenType.PLUS_EQ ||
-          operator == TokenType.STAR_EQ) {
-        if (rightType.isDartCoreDouble) {
-          return typeProvider.doubleType;
-        }
-      }
-      // int op int
-      if (operator == TokenType.MINUS ||
-          operator == TokenType.PERCENT ||
-          operator == TokenType.PLUS ||
-          operator == TokenType.STAR ||
-          operator == TokenType.TILDE_SLASH ||
-          operator == TokenType.MINUS_EQ ||
-          operator == TokenType.PERCENT_EQ ||
-          operator == TokenType.PLUS_EQ ||
-          operator == TokenType.STAR_EQ ||
-          operator == TokenType.TILDE_SLASH_EQ ||
-          operator == TokenType.PLUS_PLUS ||
-          operator == TokenType.MINUS_MINUS) {
-        if (rightType.isDartCoreInt) {
-          return typeProvider.intType;
-        }
-      }
-    }
-    // default
-    return currentType;
   }
 
   DartType _refineNumericInvocationContextNullSafe(
@@ -2339,9 +2165,7 @@ class TypeSystemImpl implements TypeSystem {
 
   DartType _removeBoundsOfGenericFunctionTypes(DartType type) {
     return _RemoveBoundsOfGenericFunctionTypeVisitor.run(
-      bottomType: isNonNullableByDefault
-          ? NeverTypeImpl.instance
-          : typeProvider.nullType,
+      bottomType: NeverTypeImpl.instance,
       type: type,
     );
   }

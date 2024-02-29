@@ -13,7 +13,6 @@ import '../elements/names.dart';
 import '../elements/types.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../ir/closure.dart';
-import '../ir/static_type_provider.dart';
 import '../ir/util.dart';
 import '../js_model/class_type_variable_access.dart';
 import '../js_model/elements.dart' show JGeneratorBody;
@@ -78,10 +77,6 @@ abstract class JsToElementMap {
 
   /// Returns the [ClassEntity] corresponding to the class [node].
   ClassEntity getClass(ir.Class node);
-
-  /// Returns the `noSuchMethod` [FunctionEntity] call from a
-  /// `super.noSuchMethod` invocation within [cls].
-  FunctionEntity getSuperNoSuchMethod(ClassEntity cls);
 
   /// Returns the [Name] corresponding to [name].
   Name getName(ir.Name name);
@@ -157,9 +152,6 @@ abstract class JsToElementMap {
   /// are stored.
   Map<ir.VariableDeclaration, JContextField> makeContextContainer(
       KernelScopeInfo info, MemberEntity member);
-
-  /// Returns a provider for static types for [member].
-  StaticTypeProvider getStaticTypeProvider(MemberEntity member);
 }
 
 /// Interface for type inference results for kernel IR nodes.

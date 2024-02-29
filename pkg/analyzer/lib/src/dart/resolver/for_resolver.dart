@@ -114,8 +114,7 @@ class ForResolver {
       return InvalidTypeImpl.instance;
     }
 
-    var elementType = iteratedType.typeArguments.single;
-    return _resolver.toLegacyTypeIfOptOut(elementType);
+    return iteratedType.typeArguments.single;
   }
 
   void _forEachParts(AstNode node, bool isAsync, ForEachParts forEachParts,

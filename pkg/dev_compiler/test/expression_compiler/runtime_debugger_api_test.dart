@@ -10,27 +10,19 @@ import '../shared_test_options.dart';
 import 'expression_compiler_e2e_suite.dart';
 
 void main(List<String> args) async {
-  var driver = await ExpressionEvaluationTestDriver.init();
+  await runAllTests(true, args);
+}
 
+Future<void> runAllTests(bool soundNullSafety, List<String> args) async {
+  var driver = await ExpressionEvaluationTestDriver.init();
   tearDownAll(() async {
     await driver.finish();
   });
-  group('(Sound null safety)', () {
+  final mode = soundNullSafety ? 'Sound' : 'Weak';
+  group('($mode null safety)', () {
     group('(AMD module system)', () {
       var setup = SetupCompilerOptions(
-        soundNullSafety: true,
-        moduleFormat: ModuleFormat.amd,
-        args: args,
-        enableExperiments: ['inline-class'],
-      );
-      runSharedTests(setup, driver);
-    });
-  });
-
-  group('(Weak null safety)', () {
-    group('(AMD module system)', () {
-      var setup = SetupCompilerOptions(
-        soundNullSafety: false,
+        soundNullSafety: soundNullSafety,
         moduleFormat: ModuleFormat.amd,
         args: args,
         enableExperiments: ['inline-class'],
@@ -169,8 +161,6 @@ void runSharedTests(
               'noSuchMethod': {},
               'hashCode': {'isGetter': true},
               'runtimeType': {'isGetter': true},
-              'is': {'isStatic': true},
-              'as': {'isStatic': true},
               'hash': {'isStatic': true},
               'hashAll': {'isStatic': true},
               'hashAllUnordered': {'isStatic': true},
@@ -290,8 +280,6 @@ void runSharedTests(
               'noSuchMethod': {},
               'hashCode': {'isGetter': true},
               'runtimeType': {'isGetter': true},
-              'is': {'isStatic': true},
-              'as': {'isStatic': true},
               'hash': {'isStatic': true},
               'hashAll': {'isStatic': true},
               'hashAllUnordered': {'isStatic': true},
@@ -340,7 +328,7 @@ void runSharedTests(
           });
     });
 
-    test('getObjectMetadata (List) (new types)', () async {
+    test('getObjectMetadata (List)', () async {
       await driver.checkRuntimeInFrame(
           breakpointId: 'BP',
           expression: 'dart.getObjectMetadata(list)',

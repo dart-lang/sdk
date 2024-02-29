@@ -2093,6 +2093,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void visitThrow(Throw node) {
     writeByte(Tag.Throw);
     writeOffset(node.fileOffset);
+    writeByte(node.flags);
     writeNode(node.expression);
   }
 

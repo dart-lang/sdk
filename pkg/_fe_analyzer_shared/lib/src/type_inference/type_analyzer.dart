@@ -1007,7 +1007,7 @@ mixin TypeAnalyzer<
   MapPatternResult<Type, Error> analyzeMapPattern(
     MatchContext<Node, Expression, Pattern, Type, Variable> context,
     Pattern node, {
-    required MapPatternTypeArguments<Type>? typeArguments,
+    required ({Type keyType, Type valueType})? typeArguments,
     required List<Node> elements,
   }) {
     Type keyType;
@@ -1114,7 +1114,7 @@ mixin TypeAnalyzer<
   ///
   /// Stack effect: none.
   TypeSchema analyzeMapPatternSchema({
-    required MapPatternTypeArguments<Type>? typeArguments,
+    required ({Type keyType, Type valueType})? typeArguments,
     required List<Node> elements,
   }) {
     if (typeArguments != null) {
@@ -1473,7 +1473,7 @@ mixin TypeAnalyzer<
     required List<RecordPatternField<Node, Pattern>> fields,
   }) {
     List<Type> demonstratedPositionalTypes = [];
-    List<NamedType<Type>> demonstratedNamedTypes = [];
+    List<(String, Type)> demonstratedNamedTypes = [];
     void dispatchField(
       RecordPatternField<Node, Pattern> field,
       Type matchedType,
@@ -1488,7 +1488,7 @@ mixin TypeAnalyzer<
       if (name == null) {
         demonstratedPositionalTypes.add(demonstratedType);
       } else {
-        demonstratedNamedTypes.add(new NamedType(name, demonstratedType));
+        demonstratedNamedTypes.add((name, demonstratedType));
       }
       flow.popSubpattern();
     }
@@ -1504,14 +1504,14 @@ mixin TypeAnalyzer<
 
     // Build the required type.
     int requiredTypePositionalCount = 0;
-    List<NamedType<Type>> requiredTypeNamedTypes = [];
+    List<(String, Type)> requiredTypeNamedTypes = [];
     for (RecordPatternField<Node, Pattern> field in fields) {
       String? name = field.name;
       if (name == null) {
         requiredTypePositionalCount++;
       } else {
         requiredTypeNamedTypes.add(
-          new NamedType(name, operations.objectQuestionType),
+          (name, operations.objectQuestionType),
         );
       }
     }
@@ -1579,12 +1579,12 @@ mixin TypeAnalyzer<
     required List<RecordPatternField<Node, Pattern>> fields,
   }) {
     List<TypeSchema> positional = [];
-    List<NamedType<TypeSchema>> named = [];
+    List<(String, TypeSchema)> named = [];
     for (RecordPatternField<Node, Pattern> field in fields) {
       TypeSchema fieldType = dispatchPatternSchema(field.pattern);
       String? name = field.name;
       if (name != null) {
-        named.add(new NamedType(name, fieldType));
+        named.add((name, fieldType));
       } else {
         positional.add(fieldType);
       }
@@ -2386,8 +2386,8 @@ mixin TypeAnalyzer<
     RecordType<Type> matchedType,
   ) {
     Map<String, Type> matchedTypeNamed = {};
-    for (NamedType<Type> namedField in matchedType.named) {
-      matchedTypeNamed[namedField.name] = namedField.type;
+    for (var (:name, :type) in matchedType.named) {
+      matchedTypeNamed[name] = type;
     }
 
     List<Type> result = [];

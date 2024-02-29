@@ -179,7 +179,7 @@ final Future<Null> nullFuture = Zone.root.run(() => Future<Null>.value(null));
 ///
 /// TODO(lrn): Consider specializing this code per platform,
 /// so the VM can use its 64-bit integers directly.
-class SystemHash {
+abstract final class SystemHash {
   static int combine(int hash, int value) {
     hash = 0x1fffffff & (hash + value);
     hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
@@ -625,14 +625,14 @@ class SystemHash {
   /// too easily having colliding hash results.
   ///
   /// Assumes the input hash code is an unsigned 32-bit integer.
-  /// Found by Christopher Wellons [https://github.com/skeeto/hash-prospector].
+  /// Found by Christopher Wellons and parameters adjusted by TheIronBorn,
+  /// <https://github.com/skeeto/hash-prospector>.
   static int smear(int x) {
-    // TODO: Use >>> instead of >> when available.
-    x ^= x >> 16;
-    x = (x * 0x7feb352d) & 0xFFFFFFFF;
-    x ^= x >> 15;
-    x = (x * 0x846ca68b) & 0xFFFFFFFF;
-    x ^= x >> 16;
+    x ^= x >>> 16;
+    x = (x * 0x21f0aaad) & 0xFFFFFFFF;
+    x ^= x >>> 15;
+    x = (x * 0xd35a2d97) & 0xFFFFFFFF;
+    x ^= x >>> 15;
     return x;
   }
 }

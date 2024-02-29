@@ -377,14 +377,15 @@ class JsBackendStrategy {
   }
 
   /// Creates the [SsaBuilder] used for the element model.
-  SsaBuilder createSsaBuilder(
-      CompilerTask task, SourceInformationStrategy sourceInformationStrategy) {
+  SsaBuilder createSsaBuilder(CompilerTask task, JClosedWorld closedWorld,
+      SourceInformationStrategy sourceInformationStrategy) {
     return KernelSsaBuilder(
         task,
         _compiler.options,
         _compiler.reporter,
         _compiler.dumpInfoTask,
         _ssaMetrics,
+        closedWorld,
         _elementMap,
         sourceInformationStrategy);
   }
@@ -475,11 +476,11 @@ class KernelSsaBuilder implements SsaBuilder {
   final DiagnosticReporter _reporter;
   final DumpInfoTask _dumpInfoTask;
   final SsaMetrics _metrics;
+  final JClosedWorld _closedWorld;
   final JsToElementMap _elementMap;
   final SourceInformationStrategy _sourceInformationStrategy;
 
-  // TODO(48820): Make this final by passing in closed world to constructor.
-  FunctionInlineCache? _inlineCache;
+  final FunctionInlineCache _inlineCache;
   final InlineDataCache _inlineDataCache;
 
   KernelSsaBuilder(
@@ -488,22 +489,22 @@ class KernelSsaBuilder implements SsaBuilder {
       this._reporter,
       this._dumpInfoTask,
       this._metrics,
+      this._closedWorld,
       this._elementMap,
       this._sourceInformationStrategy)
-      : _inlineDataCache = InlineDataCache(
+      : _inlineCache = FunctionInlineCache(_closedWorld.annotationsData),
+        _inlineDataCache = InlineDataCache(
             enableUserAssertions: _options.enableUserAssertions,
             omitImplicitCasts: _options.omitImplicitChecks);
 
   @override
   HGraph? build(
       MemberEntity member,
-      JClosedWorld closedWorld,
       GlobalTypeInferenceResults results,
       CodegenInputs codegen,
       CodegenRegistry registry,
       ModularNamer namer,
       ModularEmitter emitter) {
-    _inlineCache ??= FunctionInlineCache(closedWorld.annotationsData);
     return _task.measure(() {
       KernelSsaGraphBuilder builder = KernelSsaGraphBuilder(
           _options,
@@ -514,13 +515,13 @@ class KernelSsaBuilder implements SsaBuilder {
           _metrics,
           _elementMap,
           results,
-          closedWorld,
+          _closedWorld,
           registry,
           namer,
           emitter,
           codegen.tracer,
           _sourceInformationStrategy,
-          _inlineCache!,
+          _inlineCache,
           _inlineDataCache);
       return builder.build();
     });

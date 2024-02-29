@@ -112,8 +112,11 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
       Element? element = namespace.get(nameStr);
       element ??= namespace.get("$nameStr=");
       if (element == null) {
-        _errorReporter.reportErrorForNode(
-            warningCode, name, [library.identifier, nameStr]);
+        _errorReporter.atNode(
+          name,
+          warningCode,
+          arguments: [library.identifier, nameStr],
+        );
       }
     }
   }
@@ -125,8 +128,11 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
       f();
     } finally {
       for (Label label in labelTracker.unusedLabels()) {
-        _errorReporter.reportErrorForNode(
-            WarningCode.UNUSED_LABEL, label, [label.label.name]);
+        _errorReporter.atNode(
+          label,
+          WarningCode.UNUSED_LABEL,
+          arguments: [label.label.name],
+        );
       }
       _labelTracker = labelTracker.outerTracker;
     }
@@ -178,7 +184,10 @@ class NullSafetyDeadCodeVerifier {
       }
 
       if (node is SwitchMember && node == firstDeadNode) {
-        _errorReporter.reportErrorForToken(WarningCode.DEAD_CODE, node.keyword);
+        _errorReporter.atToken(
+          node.keyword,
+          WarningCode.DEAD_CODE,
+        );
         _firstDeadNode = null;
         return;
       }
@@ -225,10 +234,16 @@ class NullSafetyDeadCodeVerifier {
             doEnd = body.leftBracket.end;
             whileOffset = body.rightBracket.offset;
           }
-          _errorReporter.reportErrorForOffset(
-              WarningCode.DEAD_CODE, doOffset, doEnd - doOffset);
-          _errorReporter.reportErrorForOffset(
-              WarningCode.DEAD_CODE, whileOffset, whileEnd - whileOffset);
+          _errorReporter.atOffset(
+            offset: doOffset,
+            length: doEnd - doOffset,
+            errorCode: WarningCode.DEAD_CODE,
+          );
+          _errorReporter.atOffset(
+            offset: whileOffset,
+            length: whileEnd - whileOffset,
+            errorCode: WarningCode.DEAD_CODE,
+          );
           offset = parent.semicolon.next!.offset;
           if (parent.hasBreakStatement) {
             offset = node.end;
@@ -248,8 +263,11 @@ class NullSafetyDeadCodeVerifier {
 
         var length = node.end - offset;
         if (length > 0) {
-          _errorReporter.reportErrorForOffset(
-              WarningCode.DEAD_CODE, offset, length);
+          _errorReporter.atOffset(
+            offset: offset,
+            length: length,
+            errorCode: WarningCode.DEAD_CODE,
+          );
         }
       }
 
@@ -263,11 +281,11 @@ class NullSafetyDeadCodeVerifier {
       (first, last, errorCode, arguments) {
         var offset = first.offset;
         var length = last.end - offset;
-        _errorReporter.reportErrorForOffset(
-          errorCode,
-          offset,
-          length,
-          arguments,
+        _errorReporter.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: errorCode,
+          arguments: arguments,
         );
         _deadCatchClauseRanges.add(SourceRange(offset, length));
       },
@@ -353,8 +371,11 @@ class NullSafetyDeadCodeVerifier {
       var beginToken = updaters.beginToken;
       var endToken = updaters.endToken;
       if (beginToken != null && endToken != null) {
-        _errorReporter.reportErrorForOffset(WarningCode.DEAD_CODE,
-            beginToken.offset, endToken.end - beginToken.offset);
+        _errorReporter.atOffset(
+          offset: beginToken.offset,
+          length: endToken.end - beginToken.offset,
+          errorCode: WarningCode.DEAD_CODE,
+        );
       }
     }
   }
@@ -386,7 +407,10 @@ class NullSafetyDeadCodeVerifier {
           node = parent!;
           parent = node.parent;
         }
-        _errorReporter.reportErrorForNode(WarningCode.DEAD_CODE, node);
+        _errorReporter.atNode(
+          node,
+          WarningCode.DEAD_CODE,
+        );
       }
     }
   }

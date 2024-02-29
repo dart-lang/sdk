@@ -107,6 +107,19 @@ mixin LspRequestHelpersMixin {
   /// Whether to include 'clientRequestTime' fields in outgoing messages.
   bool includeClientRequestTime = false;
 
+  /// A stream of [DartTextDocumentContentDidChangeParams] for any
+  /// `dart/textDocumentContentDidChange` notifications.
+  Stream<DartTextDocumentContentDidChangeParams>
+      get dartTextDocumentContentDidChangeNotifications =>
+          notificationsFromServer
+              .where((notification) =>
+                  notification.method ==
+                  CustomMethods.dartTextDocumentContentDidChange)
+              .map((message) => DartTextDocumentContentDidChangeParams.fromJson(
+                  message.params as Map<String, Object?>));
+
+  Stream<NotificationMessage> get notificationsFromServer;
+
   Future<List<CallHierarchyIncomingCall>?> callHierarchyIncoming(
       CallHierarchyItem item) {
     final request = makeRequest(

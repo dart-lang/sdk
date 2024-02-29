@@ -2,7 +2,8 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/issue54553.dart:8:7: Error: Can't implement 'A?' because it's marked with '?'.
+// pkg/front_end/testcases/general/issue54553.dart:8:7: Error: Can't implement 'A?' because it's nullable.
+// Try removing the question mark.
 // class B implements A? {} // Error.
 //       ^
 //
@@ -13,7 +14,8 @@ library;
 // typedef F<T> = T;
 //           ^
 //
-// pkg/front_end/testcases/general/issue54553.dart:5:46: Error: Can't implement 'int?' because it's marked with '?'.
+// pkg/front_end/testcases/general/issue54553.dart:5:46: Error: Can't implement 'int?' because it's nullable.
+// Try removing the question mark.
 // extension type EINullable(int? _) implements int? {} // Error.
 //                                              ^
 //

@@ -264,3 +264,22 @@ abstract interface class ExtensionTypeDefinitionMacro implements Macro {
   FutureOr<void> buildDefinitionForExtensionType(
       ExtensionTypeDeclaration extension, TypeDefinitionBuilder builder);
 }
+
+/// The interface for [Macro]s that can be applied to any type alias
+/// declaration, and want to contribute new type declarations to the program.
+abstract interface class TypeAliasTypesMacro implements Macro {
+  FutureOr<void> buildTypesForTypeAlias(
+    TypeAliasDeclaration declaration,
+    TypeBuilder builder,
+  );
+}
+
+/// The interface for [Macro]s that can be applied to any type alias
+/// declaration, and want to contribute new non-type declarations to the
+/// program.
+abstract interface class TypeAliasDeclarationsMacro implements Macro {
+  FutureOr<void> buildDeclarationsForTypeAlias(
+    TypeAliasDeclaration declaration,
+    DeclarationBuilder builder,
+  );
+}

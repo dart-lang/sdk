@@ -107,6 +107,7 @@ import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
+import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
 import 'package:analyzer_plugin/utilities/navigation/navigation_dart.dart';
 import 'package:http/http.dart' as http;
@@ -171,7 +172,7 @@ class LegacyAnalysisServer extends AnalysisServer {
   /// handler.
   ///
   /// Requests that don't match anything in this map will be passed to
-  /// [_LspOverLegacyHandler] for possible handling before returning an error.
+  /// [LspOverLegacyHandler] for possible handling before returning an error.
   static final Map<String, HandlerGenerator> requestHandlerGenerators = {
     ANALYSIS_REQUEST_GET_ERRORS: AnalysisGetErrorsHandler.new,
     ANALYSIS_REQUEST_GET_HOVER: AnalysisGetHoverHandler.new,
@@ -282,8 +283,10 @@ class LegacyAnalysisServer extends AnalysisServer {
   Map<AnalysisService, Set<String>> analysisServices = {};
 
   /// The most recently registered set of client capabilities. The default is to
-  /// have no registered requests.
-  ServerSetClientCapabilitiesParams clientCapabilities =
+  /// have no registered requests and no additional capabilities.
+  ///
+  /// Must be modified through the [clientCapabilities] setter.
+  ServerSetClientCapabilitiesParams _clientCapabilities =
       ServerSetClientCapabilitiesParams([]);
 
   @override
@@ -362,6 +365,12 @@ class LegacyAnalysisServer extends AnalysisServer {
   /// response when it has been received.
   Map<String, Completer<Response>> pendingServerRequests = {};
 
+  /// Whether the server should send LSP notifications.
+  ///
+  /// This is set once the client sends any LSP request or client capability
+  /// that depends on LSP functionality.
+  bool sendLspNotifications = false;
+
   /// Initialize a newly created server to receive requests from and send
   /// responses to the given [channel].
   ///
@@ -424,6 +433,26 @@ class LegacyAnalysisServer extends AnalysisServer {
     debounceRequests(channel, discardedRequests)
         .listen(handleRequestOrResponse, onDone: done, onError: error);
     _newRefactoringManager();
+  }
+
+  /// The most recently registered set of client capabilities. The default is to
+  /// have no registered requests and no additional capabilities.
+  ServerSetClientCapabilitiesParams get clientCapabilities =>
+      _clientCapabilities;
+
+  /// Updates the current set of client capabilities.
+  set clientCapabilities(ServerSetClientCapabilitiesParams capabilities) {
+    _clientCapabilities = capabilities;
+
+    if (capabilities.supportsUris ?? false) {
+      // URI support implies LSP, as that's the only way to access (and get
+      // change notifications for) custom-scheme files.
+      sendLspNotifications = true;
+      uriConverter = ClientUriConverter.withVirtualFileSupport(
+          resourceProvider.pathContext);
+    } else {
+      uriConverter = ClientUriConverter.noop(resourceProvider.pathContext);
+    }
   }
 
   /// The [Future] that completes when analysis is complete.
@@ -625,6 +654,18 @@ class LegacyAnalysisServer extends AnalysisServer {
   @override
   void notifyFlutterWidgetDescriptions(String path) {
     flutterWidgetDescriptions.flush();
+  }
+
+  /// Send the given LSP [notification] to the client.
+  @override
+  void sendLspNotification(lsp.NotificationMessage notification) {
+    if (!sendLspNotifications) {
+      return;
+    }
+
+    channel.sendNotification(
+      LspNotificationParams(notification).toNotification(),
+    );
   }
 
   /// Send the given [notification] to the client.

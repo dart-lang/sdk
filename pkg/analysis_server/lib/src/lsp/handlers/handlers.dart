@@ -64,7 +64,7 @@ mixin Handler<T> {
   // TODO(dantup): Merge this into HandlerHelperMixin by converting to methods
   //  so T can be inferred.
   final fileModifiedError = error<T>(ErrorCodes.ContentModified,
-      'Document was modified before operation completed', null);
+      'Document was modified before operation completed');
 
   final serverNotInitializedError = error<T>(ErrorCodes.ServerNotInitialized,
       'Request not valid before server is initialized');
@@ -124,8 +124,9 @@ mixin HandlerHelperMixin<S extends AnalysisServer> {
     var supportedSchemes = server.uriConverter.supportedSchemes;
     var isValidScheme = supportedSchemes.contains(uri.scheme);
     if (!isValidScheme) {
-      var supportedSchemesString =
-          supportedSchemes.map((scheme) => "'$scheme'").join(', ');
+      var supportedSchemesString = supportedSchemes.isEmpty
+          ? '(none)'
+          : supportedSchemes.map((scheme) => "'$scheme'").join(', ');
       return ErrorOr<String>.error(ResponseError(
         code: ServerErrorCodes.InvalidFilePath,
         message: "URI scheme '${uri.scheme}' is not supported. "

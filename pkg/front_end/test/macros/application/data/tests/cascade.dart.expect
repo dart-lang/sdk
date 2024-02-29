@@ -14,7 +14,7 @@ class Class extends core::Object {
     : super core::Object::•()
     ;
   @#C2
-  method /* from org-dartlang-augmentation:/a/b/c/main.dart-1 */ create() → self::Class
+  method /* from dart-macro+org-dartlang-test:///a/b/c/main.dart */ create() → self::Class
     return new self::Class::•();
 }
 

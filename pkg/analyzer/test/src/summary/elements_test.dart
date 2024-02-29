@@ -102,6 +102,198 @@ library
 ''');
   }
 
+  test_augmentation_constField_hasConstConstructor() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment class A {
+  static const int foo = 0;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+class A {
+  const A();
+}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @31
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        constructors
+          const @43
+        augmented
+          fields
+            self::@augmentation::package:test/a.dart::@classAugmentation::A::@field::foo
+          constructors
+            self::@class::A::@constructor::new
+          accessors
+            self::@augmentation::package:test/a.dart::@classAugmentation::A::@getter::foo
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          augment class A @43
+            augmentationTarget: self::@class::A
+            fields
+              static const foo @66
+                type: int
+                shouldUseTypeForInitializerInference: true
+                constantInitializer
+                  IntegerLiteral
+                    literal: 0 @72
+                    staticType: int
+            accessors
+              synthetic static get foo @-1
+                returnType: int
+''');
+  }
+
+  test_augmentation_constField_noConstConstructor() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment class A {
+  static const int foo = 0;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+class A {}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @31
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        constructors
+          synthetic @-1
+        augmented
+          fields
+            self::@augmentation::package:test/a.dart::@classAugmentation::A::@field::foo
+          constructors
+            self::@class::A::@constructor::new
+          accessors
+            self::@augmentation::package:test/a.dart::@classAugmentation::A::@getter::foo
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          augment class A @43
+            augmentationTarget: self::@class::A
+            fields
+              static const foo @66
+                type: int
+                shouldUseTypeForInitializerInference: true
+                constantInitializer
+                  IntegerLiteral
+                    literal: 0 @72
+                    staticType: int
+            accessors
+              synthetic static get foo @-1
+                returnType: int
+''');
+  }
+
+  test_augmentation_finalField_hasConstConstructor() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment class A {
+  final int foo = 0;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+class A {
+  const A();
+}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @31
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        constructors
+          const @43
+        augmented
+          fields
+            self::@augmentation::package:test/a.dart::@classAugmentation::A::@field::foo
+          constructors
+            self::@class::A::@constructor::new
+          accessors
+            self::@augmentation::package:test/a.dart::@classAugmentation::A::@getter::foo
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          augment class A @43
+            augmentationTarget: self::@class::A
+            fields
+              final foo @59
+                type: int
+                shouldUseTypeForInitializerInference: true
+                constantInitializer
+                  IntegerLiteral
+                    literal: 0 @65
+                    staticType: int
+            accessors
+              synthetic get foo @-1
+                returnType: int
+''');
+  }
+
+  test_augmentation_finalField_noConstConstructor() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment class A {
+  final int foo = 0;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+class A {}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @31
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        constructors
+          synthetic @-1
+        augmented
+          fields
+            self::@augmentation::package:test/a.dart::@classAugmentation::A::@field::foo
+          constructors
+            self::@class::A::@constructor::new
+          accessors
+            self::@augmentation::package:test/a.dart::@classAugmentation::A::@getter::foo
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          augment class A @43
+            augmentationTarget: self::@class::A
+            fields
+              final foo @59
+                type: int
+                shouldUseTypeForInitializerInference: true
+            accessors
+              synthetic get foo @-1
+                returnType: int
+''');
+  }
+
   test_augmentationTarget() async {
     newFile('$testPackageLibPath/a1.dart', r'''
 library augment 'test.dart';
@@ -2050,6 +2242,51 @@ library
             augmentationTarget: self::@class::A
             methods
               bar @54
+                returnType: void
+''');
+  }
+
+  test_augmented_methods_add_withDefaultValue() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment class A {
+  void foo([int x = 42]) {}
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+class A {}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @31
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        constructors
+          synthetic @-1
+        augmented
+          constructors
+            self::@class::A::@constructor::new
+          methods
+            self::@augmentation::package:test/a.dart::@classAugmentation::A::@method::foo
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          augment class A @43
+            augmentationTarget: self::@class::A
+            methods
+              foo @54
+                parameters
+                  optionalPositional default x @63
+                    type: int
+                    constantInitializer
+                      IntegerLiteral
+                        literal: 42 @67
+                        staticType: int
                 returnType: void
 ''');
   }
@@ -9638,43 +9875,6 @@ library
 ''');
   }
 
-  test_class_field_type_inferred_nonNullify() async {
-    addSource('$testPackageLibPath/a.dart', '''
-// @dart = 2.7
-var a = 0;
-''');
-
-    var library = await buildLibrary(r'''
-import 'a.dart';
-class C {
-  var b = a;
-}
-''');
-
-    checkElementText(library, r'''
-library
-  imports
-    package:test/a.dart
-  definingUnit
-    classes
-      class C @23
-        fields
-          b @33
-            type: int
-            shouldUseTypeForInitializerInference: false
-        constructors
-          synthetic @-1
-        accessors
-          synthetic get b @-1
-            returnType: int
-          synthetic set b= @-1
-            parameters
-              requiredPositional _b @-1
-                type: int
-            returnType: void
-''');
-  }
-
   test_class_field_typed() async {
     var library = await buildLibrary('class C { int x = 0; }');
     checkElementText(library, r'''
@@ -11136,25 +11336,6 @@ library
 ''');
   }
 
-  test_class_notSimplyBounded_function_typed_bound_complex_via_parameter_type_legacy() async {
-    var library = await buildLibrary('''
-// @dart = 2.9
-class C<T extends void Function(T)> {}
-''');
-    checkElementText(library, r'''
-library
-  definingUnit
-    classes
-      notSimplyBounded class C @21
-        typeParameters
-          covariant T @23
-            bound: void Function(T*)*
-            defaultType: void Function(Null*)*
-        constructors
-          synthetic @-1
-''');
-  }
-
   test_class_notSimplyBounded_function_typed_bound_complex_via_return_type() async {
     var library = await buildLibrary('''
 class C<T extends T Function()> {}
@@ -11502,33 +11683,6 @@ library
         parameters
           requiredPositional _c @-1
             type: C?
-        returnType: void
-''');
-  }
-
-  test_class_ref_nullability_star() async {
-    var library = await buildLibrary('''
-// @dart = 2.9
-class C {}
-C c;
-''');
-    checkElementText(library, r'''
-library
-  definingUnit
-    classes
-      class C @21
-        constructors
-          synthetic @-1
-    topLevelVariables
-      static c @28
-        type: C*
-    accessors
-      synthetic static get c @-1
-        returnType: C*
-      synthetic static set c= @-1
-        parameters
-          requiredPositional _c @-1
-            type: C*
         returnType: void
 ''');
   }
@@ -12416,45 +12570,7 @@ library
 ''');
   }
 
-  test_class_typeParameters_defaultType_functionTypeAlias_contravariant_legacy() async {
-    var library = await buildLibrary(r'''
-// @dart = 2.9
-typedef F<X> = void Function(X);
-
-class A<X extends F<X>> {}
-''');
-    checkElementText(library, r'''
-library
-  definingUnit
-    classes
-      notSimplyBounded class A @55
-        typeParameters
-          covariant X @57
-            bound: void Function(X*)*
-              alias: self::@typeAlias::F
-                typeArguments
-                  X*
-            defaultType: void Function(Null*)*
-              alias: self::@typeAlias::F
-                typeArguments
-                  Null*
-        constructors
-          synthetic @-1
-    typeAliases
-      F @23
-        typeParameters
-          contravariant X @25
-            defaultType: dynamic
-        aliasedType: void Function(X*)*
-        aliasedElement: GenericFunctionTypeElement
-          parameters
-            requiredPositional @-1
-              type: X*
-          returnType: void
-''');
-  }
-
-  test_class_typeParameters_defaultType_functionTypeAlias_contravariant_nullSafe() async {
+  test_class_typeParameters_defaultType_functionTypeAlias_contravariant() async {
     var library = await buildLibrary(r'''
 typedef F<X> = void Function(X);
 
@@ -12491,7 +12607,7 @@ library
 ''');
   }
 
-  test_class_typeParameters_defaultType_functionTypeAlias_covariant_nullSafe() async {
+  test_class_typeParameters_defaultType_functionTypeAlias_covariant() async {
     var library = await buildLibrary(r'''
 typedef F<X> = X Function();
 
@@ -12521,6 +12637,43 @@ library
             defaultType: dynamic
         aliasedType: X Function()
         aliasedElement: GenericFunctionTypeElement
+          returnType: X
+''');
+  }
+
+  test_class_typeParameters_defaultType_functionTypeAlias_invariant() async {
+    var library = await buildLibrary(r'''
+typedef F<X> = X Function(X);
+
+class A<X extends F<X>> {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      notSimplyBounded class A @37
+        typeParameters
+          covariant X @39
+            bound: X Function(X)
+              alias: self::@typeAlias::F
+                typeArguments
+                  X
+            defaultType: dynamic Function(dynamic)
+              alias: self::@typeAlias::F
+                typeArguments
+                  dynamic
+        constructors
+          synthetic @-1
+    typeAliases
+      F @8
+        typeParameters
+          invariant X @10
+            defaultType: dynamic
+        aliasedType: X Function(X)
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            requiredPositional @-1
+              type: X
           returnType: X
 ''');
   }
@@ -12562,63 +12715,7 @@ library
 ''');
   }
 
-  test_class_typeParameters_defaultType_functionTypeAlias_invariant_nullSafe() async {
-    var library = await buildLibrary(r'''
-typedef F<X> = X Function(X);
-
-class A<X extends F<X>> {}
-''');
-    checkElementText(library, r'''
-library
-  definingUnit
-    classes
-      notSimplyBounded class A @37
-        typeParameters
-          covariant X @39
-            bound: X Function(X)
-              alias: self::@typeAlias::F
-                typeArguments
-                  X
-            defaultType: dynamic Function(dynamic)
-              alias: self::@typeAlias::F
-                typeArguments
-                  dynamic
-        constructors
-          synthetic @-1
-    typeAliases
-      F @8
-        typeParameters
-          invariant X @10
-            defaultType: dynamic
-        aliasedType: X Function(X)
-        aliasedElement: GenericFunctionTypeElement
-          parameters
-            requiredPositional @-1
-              type: X
-          returnType: X
-''');
-  }
-
-  test_class_typeParameters_defaultType_genericFunctionType_both_legacy() async {
-    var library = await buildLibrary(r'''
-// @dart = 2.9
-class A<X extends X Function(X)> {}
-''');
-    checkElementText(library, r'''
-library
-  definingUnit
-    classes
-      notSimplyBounded class A @21
-        typeParameters
-          covariant X @23
-            bound: X* Function(X*)*
-            defaultType: dynamic Function(Null*)*
-        constructors
-          synthetic @-1
-''');
-  }
-
-  test_class_typeParameters_defaultType_genericFunctionType_both_nullSafe() async {
+  test_class_typeParameters_defaultType_genericFunctionType_both() async {
     var library = await buildLibrary(r'''
 class A<X extends X Function(X)> {}
 ''');
@@ -12636,26 +12733,7 @@ library
 ''');
   }
 
-  test_class_typeParameters_defaultType_genericFunctionType_contravariant_legacy() async {
-    var library = await buildLibrary(r'''
-// @dart = 2.9
-class A<X extends void Function(X)> {}
-''');
-    checkElementText(library, r'''
-library
-  definingUnit
-    classes
-      notSimplyBounded class A @21
-        typeParameters
-          covariant X @23
-            bound: void Function(X*)*
-            defaultType: void Function(Null*)*
-        constructors
-          synthetic @-1
-''');
-  }
-
-  test_class_typeParameters_defaultType_genericFunctionType_contravariant_nullSafe() async {
+  test_class_typeParameters_defaultType_genericFunctionType_contravariant() async {
     var library = await buildLibrary(r'''
 class A<X extends void Function(X)> {}
 ''');
@@ -12673,7 +12751,7 @@ library
 ''');
   }
 
-  test_class_typeParameters_defaultType_genericFunctionType_covariant_legacy() async {
+  test_class_typeParameters_defaultType_genericFunctionType_covariant() async {
     var library = await buildLibrary(r'''
 class A<X extends X Function()> {}
 ''');
@@ -12691,7 +12769,7 @@ library
 ''');
   }
 
-  test_class_typeParameters_defaultType_genericFunctionType_covariant_nullSafe() async {
+  test_class_typeParameters_defaultType_genericFunctionType_covariant_legacy() async {
     var library = await buildLibrary(r'''
 class A<X extends X Function()> {}
 ''');
@@ -16273,18 +16351,6 @@ library
             defaultType: num
         returnType: void
 ''');
-  }
-
-  test_compilationUnit_nnbd_disabled_via_dart_directive() async {
-    var library = await buildLibrary('''
-// @dart = 2.9
-''');
-    expect(library.isNonNullableByDefault, isFalse);
-  }
-
-  test_compilationUnit_nnbd_enabled() async {
-    var library = await buildLibrary('');
-    expect(library.isNonNullableByDefault, isTrue);
   }
 
   test_const_asExpression() async {
@@ -21741,7 +21807,7 @@ library
 ''');
   }
 
-  test_const_topLevel_nullSafe_nullAware_propertyAccess() async {
+  test_const_topLevel_nullAware_propertyAccess() async {
     var library = await buildLibrary(r'''
 const String? a = '';
 
@@ -22015,31 +22081,6 @@ library
     accessors
       synthetic static get c @-1
         returnType: Never
-''');
-  }
-
-  test_const_topLevel_throw_legacy() async {
-    var library = await buildLibrary(r'''
-// @dart = 2.9
-const c = throw 42;
-''');
-    checkElementText(library, r'''
-library
-  definingUnit
-    topLevelVariables
-      static const c @21
-        type: dynamic
-        shouldUseTypeForInitializerInference: false
-        constantInitializer
-          ThrowExpression
-            throwKeyword: throw @25
-            expression: IntegerLiteral
-              literal: 42 @31
-              staticType: int*
-            staticType: Never*
-    accessors
-      synthetic static get c @-1
-        returnType: dynamic
 ''');
   }
 
@@ -22950,38 +22991,6 @@ library
 ''');
   }
 
-  test_defaultValue_eliminateTypeParameters_legacy() async {
-    var library = await buildLibrary('''
-// @dart = 2.9
-class A<T> {
-  const X({List<T> a = const []});
-}
-''');
-    checkElementText(library, r'''
-library
-  definingUnit
-    classes
-      class A @21
-        typeParameters
-          covariant T @23
-            defaultType: dynamic
-        constructors
-          synthetic @-1
-        methods
-          abstract X @36
-            parameters
-              optionalNamed default a @47
-                type: List<T*>*
-                constantInitializer
-                  ListLiteral
-                    constKeyword: const @51
-                    leftBracket: [ @57
-                    rightBracket: ] @58
-                    staticType: List<Null*>*
-            returnType: dynamic
-''');
-  }
-
   test_defaultValue_genericFunction() async {
     var library = await buildLibrary('''
 typedef void F<T>(T v);
@@ -23130,39 +23139,34 @@ library
 ''');
   }
 
-  test_defaultValue_methodMember_legacy() async {
+  test_defaultValue_methodMember() async {
     var library = await buildLibrary('''
-// @dart = 2.9
 void f([Comparator<T> compare = Comparable.compare]) {}
 ''');
     checkElementText(library, r'''
 library
   definingUnit
     functions
-      f @20
+      f @5
         parameters
-          optionalPositional default compare @37
-            type: int* Function(InvalidType, InvalidType)*
+          optionalPositional default compare @22
+            type: int Function(InvalidType, InvalidType)
               alias: dart:core::@typeAlias::Comparator
                 typeArguments
                   InvalidType
             constantInitializer
               PrefixedIdentifier
                 prefix: SimpleIdentifier
-                  token: Comparable @47
+                  token: Comparable @32
                   staticElement: dart:core::@class::Comparable
                   staticType: null
-                period: . @57
+                period: . @42
                 identifier: SimpleIdentifier
-                  token: compare @58
-                  staticElement: MethodMember
-                    base: dart:core::@class::Comparable::@method::compare
-                    isLegacy: true
-                  staticType: int* Function(Comparable<dynamic>*, Comparable<dynamic>*)*
-                staticElement: MethodMember
-                  base: dart:core::@class::Comparable::@method::compare
-                  isLegacy: true
-                staticType: int* Function(Comparable<dynamic>*, Comparable<dynamic>*)*
+                  token: compare @43
+                  staticElement: dart:core::@class::Comparable::@method::compare
+                  staticType: int Function(Comparable<dynamic>, Comparable<dynamic>)
+                staticElement: dart:core::@class::Comparable::@method::compare
+                staticType: int Function(Comparable<dynamic>, Comparable<dynamic>)
         returnType: void
 ''');
   }
@@ -23491,111 +23495,6 @@ library
                       leftParenthesis: ( @133
                       rightParenthesis: ) @134
                     staticType: B<Never>
-''');
-  }
-
-  test_defaultValue_refersToGenericClass_constructor2_legacy() async {
-    var library = await buildLibrary('''
-// @dart = 2.9
-abstract class A<T> {}
-class B<T> implements A<T> {
-  const B();
-}
-class C<T> implements A<Iterable<T>> {
-  const C([A<T> a = const B()]);
-}
-''');
-    checkElementText(library, r'''
-library
-  definingUnit
-    classes
-      abstract class A @30
-        typeParameters
-          covariant T @32
-            defaultType: dynamic
-        constructors
-          synthetic @-1
-      class B @44
-        typeParameters
-          covariant T @46
-            defaultType: dynamic
-        interfaces
-          A<T*>*
-        constructors
-          const @75
-      class C @88
-        typeParameters
-          covariant T @90
-            defaultType: dynamic
-        interfaces
-          A<Iterable<T*>*>*
-        constructors
-          const @129
-            parameters
-              optionalPositional default a @137
-                type: A<T*>*
-                constantInitializer
-                  InstanceCreationExpression
-                    keyword: const @141
-                    constructorName: ConstructorName
-                      type: NamedType
-                        name: B @147
-                        element: self::@class::B
-                        type: B<Null*>*
-                      staticElement: ConstructorMember
-                        base: self::@class::B::@constructor::new
-                        substitution: {T: Null*}
-                    argumentList: ArgumentList
-                      leftParenthesis: ( @148
-                      rightParenthesis: ) @149
-                    staticType: B<Null*>*
-''');
-  }
-
-  test_defaultValue_refersToGenericClass_constructor_legacy() async {
-    var library = await buildLibrary('''
-// @dart = 2.9
-class B<T> {
-  const B();
-}
-class C<T> {
-  const C([B<T> b = const B()]);
-}
-''');
-    checkElementText(library, r'''
-library
-  definingUnit
-    classes
-      class B @21
-        typeParameters
-          covariant T @23
-            defaultType: dynamic
-        constructors
-          const @36
-      class C @49
-        typeParameters
-          covariant T @51
-            defaultType: dynamic
-        constructors
-          const @64
-            parameters
-              optionalPositional default b @72
-                type: B<T*>*
-                constantInitializer
-                  InstanceCreationExpression
-                    keyword: const @76
-                    constructorName: ConstructorName
-                      type: NamedType
-                        name: B @82
-                        element: self::@class::B
-                        type: B<Null*>*
-                      staticElement: ConstructorMember
-                        base: self::@class::B::@constructor::new
-                        substitution: {T: Null*}
-                    argumentList: ArgumentList
-                      leftParenthesis: ( @83
-                      rightParenthesis: ) @84
-                    staticType: B<Null*>*
 ''');
   }
 
@@ -29279,28 +29178,6 @@ library
 ''');
   }
 
-  test_generic_function_type_nullability_star() async {
-    var library = await buildLibrary('''
-// @dart = 2.9
-void Function() f;
-''');
-    checkElementText(library, r'''
-library
-  definingUnit
-    topLevelVariables
-      static f @31
-        type: void Function()*
-    accessors
-      synthetic static get f @-1
-        returnType: void Function()*
-      synthetic static set f= @-1
-        parameters
-          requiredPositional _f @-1
-            type: void Function()*
-        returnType: void
-''');
-  }
-
   test_generic_gClass_gMethodStatic() async {
     var library = await buildLibrary('''
 class C<T, U> {
@@ -32453,162 +32330,7 @@ library
 ''');
   }
 
-  test_instanceInference_operator_equal_legacy_from_legacy() async {
-    addSource('$testPackageLibPath/legacy.dart', r'''
-// @dart = 2.9
-class LegacyDefault {
-  bool operator==(other) => false;
-}
-class LegacyObject {
-  bool operator==(Object other) => false;
-}
-class LegacyInt {
-  bool operator==(int other) => false;
-}
-''');
-    var library = await buildLibrary(r'''
-// @dart = 2.9
-import 'legacy.dart';
-class X1 extends LegacyDefault  {
-  bool operator==(other) => false;
-}
-class X2 extends LegacyObject {
-  bool operator==(other) => false;
-}
-class X3 extends LegacyInt {
-  bool operator==(other) => false;
-}
-''');
-    checkElementText(library, r'''
-library
-  imports
-    package:test/legacy.dart
-  definingUnit
-    classes
-      class X1 @43
-        supertype: LegacyDefault*
-        constructors
-          synthetic @-1
-            superConstructor: package:test/legacy.dart::@class::LegacyDefault::@constructor::new
-        methods
-          == @86
-            parameters
-              requiredPositional other @89
-                type: dynamic
-            returnType: bool*
-      class X2 @114
-        supertype: LegacyObject*
-        constructors
-          synthetic @-1
-            superConstructor: package:test/legacy.dart::@class::LegacyObject::@constructor::new
-        methods
-          == @155
-            parameters
-              requiredPositional other @158
-                type: Object*
-            returnType: bool*
-      class X3 @183
-        supertype: LegacyInt*
-        constructors
-          synthetic @-1
-            superConstructor: package:test/legacy.dart::@class::LegacyInt::@constructor::new
-        methods
-          == @221
-            parameters
-              requiredPositional other @224
-                type: int*
-            returnType: bool*
-''');
-  }
-
-  test_instanceInference_operator_equal_legacy_from_legacy_nullSafe() async {
-    addSource('$testPackageLibPath/legacy.dart', r'''
-// @dart = 2.7
-class LegacyDefault {
-  bool operator==(other) => false;
-}
-class LegacyObject {
-  bool operator==(Object other) => false;
-}
-class LegacyInt {
-  bool operator==(int other) => false;
-}
-''');
-    addSource('$testPackageLibPath/nullSafe.dart', r'''
-class NullSafeDefault {
-  bool operator==(other) => false;
-}
-class NullSafeObject {
-  bool operator==(Object other) => false;
-}
-class NullSafeInt {
-  bool operator==(int other) => false;
-}
-''');
-    var library = await buildLibrary(r'''
-// @dart = 2.7
-import 'legacy.dart';
-import 'nullSafe.dart';
-class X1 extends LegacyDefault implements NullSafeDefault {
-  bool operator==(other) => false;
-}
-class X2 extends LegacyObject implements NullSafeObject {
-  bool operator==(other) => false;
-}
-class X3 extends LegacyInt implements NullSafeInt {
-  bool operator==(other) => false;
-}
-''');
-    checkElementText(library, r'''
-library
-  imports
-    package:test/legacy.dart
-    package:test/nullSafe.dart
-  definingUnit
-    classes
-      class X1 @67
-        supertype: LegacyDefault*
-        interfaces
-          NullSafeDefault*
-        constructors
-          synthetic @-1
-            superConstructor: package:test/legacy.dart::@class::LegacyDefault::@constructor::new
-        methods
-          == @136
-            parameters
-              requiredPositional other @139
-                type: dynamic
-            returnType: bool*
-      class X2 @164
-        supertype: LegacyObject*
-        interfaces
-          NullSafeObject*
-        constructors
-          synthetic @-1
-            superConstructor: package:test/legacy.dart::@class::LegacyObject::@constructor::new
-        methods
-          == @231
-            parameters
-              requiredPositional other @234
-                type: Object*
-            returnType: bool*
-      class X3 @259
-        supertype: LegacyInt*
-        interfaces
-          NullSafeInt*
-        constructors
-          synthetic @-1
-            superConstructor: package:test/legacy.dart::@class::LegacyInt::@constructor::new
-        methods
-          == @320
-            parameters
-              requiredPositional other @323
-                type: int*
-            returnType: bool*
-''');
-  }
-
-  test_instanceInference_operator_equal_nullSafe_from_nullSafe() async {
+  test_instanceInference_operator_equal_from() async {
     addSource('$testPackageLibPath/nullSafe.dart', r'''
 class NullSafeDefault {
   bool operator==(other) => false;
@@ -32762,66 +32484,6 @@ library
         parameters
           requiredPositional _c2 @-1
             type: C<C<Object?>>
-        returnType: void
-''');
-  }
-
-  test_instantiateToBounds_boundRefersToItself_legacy() async {
-    var library = await buildLibrary('''
-// @dart = 2.9
-class C<T extends C<T>> {}
-C c;
-var c2 = new C();
-class B {
-  var c3 = new C();
-}
-''');
-    checkElementText(library, r'''
-library
-  definingUnit
-    classes
-      notSimplyBounded class C @21
-        typeParameters
-          covariant T @23
-            bound: C<T*>*
-            defaultType: C<dynamic>*
-        constructors
-          synthetic @-1
-      class B @71
-        fields
-          c3 @81
-            type: C<C<dynamic>*>*
-            shouldUseTypeForInitializerInference: false
-        constructors
-          synthetic @-1
-        accessors
-          synthetic get c3 @-1
-            returnType: C<C<dynamic>*>*
-          synthetic set c3= @-1
-            parameters
-              requiredPositional _c3 @-1
-                type: C<C<dynamic>*>*
-            returnType: void
-    topLevelVariables
-      static c @44
-        type: C<C<dynamic>*>*
-      static c2 @51
-        type: C<C<dynamic>*>*
-        shouldUseTypeForInitializerInference: false
-    accessors
-      synthetic static get c @-1
-        returnType: C<C<dynamic>*>*
-      synthetic static set c= @-1
-        parameters
-          requiredPositional _c @-1
-            type: C<C<dynamic>*>*
-        returnType: void
-      synthetic static get c2 @-1
-        returnType: C<C<dynamic>*>*
-      synthetic static set c2= @-1
-        parameters
-          requiredPositional _c2 @-1
-            type: C<C<dynamic>*>*
         returnType: void
 ''');
   }
@@ -39465,6 +39127,41 @@ library
 ''');
   }
 
+  test_mixin_inference() async {
+    var library = await buildLibrary(r'''
+class A<T> {}
+mixin M<U> on A<U> {}
+class B extends A<int> with M {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+      class B @42
+        supertype: A<int>
+        mixins
+          M<int>
+        constructors
+          synthetic @-1
+            superConstructor: ConstructorMember
+              base: self::@class::A::@constructor::new
+              substitution: {T: int}
+    mixins
+      mixin M @20
+        typeParameters
+          covariant U @22
+            defaultType: dynamic
+        superclassConstraints
+          A<U>
+''');
+  }
+
   test_mixin_inference_classAlias_oneMixin() async {
     // In the code below, B's superclass constraints don't include A, because
     // superclass constraints are determined from the mixin's superclass, and
@@ -39588,42 +39285,6 @@ library
 ''');
   }
 
-  test_mixin_inference_legacy() async {
-    var library = await buildLibrary(r'''
-// @dart = 2.9
-class A<T> {}
-mixin M<U> on A<U> {}
-class B extends A<int> with M {}
-''');
-    checkElementText(library, r'''
-library
-  definingUnit
-    classes
-      class A @21
-        typeParameters
-          covariant T @23
-            defaultType: dynamic
-        constructors
-          synthetic @-1
-      class B @57
-        supertype: A<int*>*
-        mixins
-          M<int*>*
-        constructors
-          synthetic @-1
-            superConstructor: ConstructorMember
-              base: self::@class::A::@constructor::new
-              substitution: {T: int*}
-    mixins
-      mixin M @35
-        typeParameters
-          covariant U @37
-            defaultType: dynamic
-        superclassConstraints
-          A<U*>*
-''');
-  }
-
   test_mixin_inference_nested_functionType() async {
     var library = await buildLibrary(r'''
 class A<T> {}
@@ -39693,121 +39354,6 @@ library
             defaultType: dynamic
         superclassConstraints
           A<List<T>>
-''');
-  }
-
-  test_mixin_inference_nullSafety() async {
-    var library = await buildLibrary(r'''
-class A<T> {}
-mixin M<U> on A<U> {}
-class B extends A<int> with M {}
-''');
-    checkElementText(library, r'''
-library
-  definingUnit
-    classes
-      class A @6
-        typeParameters
-          covariant T @8
-            defaultType: dynamic
-        constructors
-          synthetic @-1
-      class B @42
-        supertype: A<int>
-        mixins
-          M<int>
-        constructors
-          synthetic @-1
-            superConstructor: ConstructorMember
-              base: self::@class::A::@constructor::new
-              substitution: {T: int}
-    mixins
-      mixin M @20
-        typeParameters
-          covariant U @22
-            defaultType: dynamic
-        superclassConstraints
-          A<U>
-''');
-  }
-
-  test_mixin_inference_nullSafety2() async {
-    addSource('$testPackageLibPath/a.dart', r'''
-class A<T> {}
-
-mixin B<T> on A<T> {}
-mixin C<T> on A<T> {}
-''');
-    var library = await buildLibrary(r'''
-// @dart=2.8
-import 'a.dart';
-
-class D extends A<int> with B<int>, C {}
-''');
-    checkElementText(library, r'''
-library
-  imports
-    package:test/a.dart
-  definingUnit
-    classes
-      class D @37
-        supertype: A<int*>*
-        mixins
-          B<int*>*
-          C<int*>*
-        constructors
-          synthetic @-1
-            superConstructor: ConstructorMember
-              base: package:test/a.dart::@class::A::@constructor::new
-              substitution: {T: int*}
-''');
-  }
-
-  test_mixin_inference_nullSafety_mixed_inOrder() async {
-    addSource('$testPackageLibPath/a.dart', r'''
-class A<T> {}
-mixin M<U> on A<U> {}
-''');
-    var library = await buildLibrary(r'''
-// @dart = 2.8
-import 'a.dart';
-class B extends A<int> with M {}
-''');
-    checkElementText(library, r'''
-library
-  imports
-    package:test/a.dart
-  definingUnit
-    classes
-      class B @38
-        supertype: A<int*>*
-        mixins
-          M<int*>*
-        constructors
-          synthetic @-1
-            superConstructor: ConstructorMember
-              base: package:test/a.dart::@class::A::@constructor::new
-              substitution: {T: int*}
-''');
-  }
-
-  @SkippedTest(reason: 'Out-of-order inference is not specified yet')
-  test_mixin_inference_nullSafety_mixed_outOfOrder() async {
-    addSource('$testPackageLibPath/a.dart', r'''
-// @dart = 2.8
-class A<T> {}
-mixin M<U> on A<U> {}
-''');
-    var library = await buildLibrary(r'''
-import 'a.dart';
-
-class B extends A<int> with M {}
-''');
-    checkElementText(library, r'''
-import 'a.dart';
-class B extends A<int> with M<int> {
-  synthetic B();
-}
 ''');
   }
 
@@ -43047,32 +42593,6 @@ library
 ''');
   }
 
-  test_type_inference_classField_fromNullSafe_toLegacy() async {
-    addSource('$testPackageLibPath/a.dart', '''
-class E {
-  static final a = 0;
-}
-''');
-    var library = await buildLibrary('''
-// @dart = 2.9
-import 'a.dart';
-final v = E.a;
-''');
-    checkElementText(library, r'''
-library
-  imports
-    package:test/a.dart
-  definingUnit
-    topLevelVariables
-      static final v @38
-        type: int*
-        shouldUseTypeForInitializerInference: false
-    accessors
-      synthetic static get v @-1
-        returnType: int*
-''');
-  }
-
   test_type_inference_closure_with_function_typed_parameter() async {
     var library = await buildLibrary('''
 var x = (int f(String x)) => 0;
@@ -43911,29 +43431,7 @@ library
 ''');
   }
 
-  test_type_never_disableNnbd() async {
-    var library = await buildLibrary('''
-// @dart = 2.9
-Never d;
-''');
-    checkElementText(library, r'''
-library
-  definingUnit
-    topLevelVariables
-      static d @21
-        type: Null*
-    accessors
-      synthetic static get d @-1
-        returnType: Null*
-      synthetic static set d= @-1
-        parameters
-          requiredPositional _d @-1
-            type: Null*
-        returnType: void
-''');
-  }
-
-  test_type_never_enableNnbd() async {
+  test_type_never() async {
     var library = await buildLibrary('Never d;');
     checkElementText(library, r'''
 library
@@ -44008,37 +43506,6 @@ library
             parameters
               requiredPositional _t @-1
                 type: T?
-            returnType: void
-''');
-  }
-
-  test_type_param_ref_nullability_star() async {
-    var library = await buildLibrary('''
-// @dart = 2.9
-class C<T> {
-  T t;
-}
-''');
-    checkElementText(library, r'''
-library
-  definingUnit
-    classes
-      class C @21
-        typeParameters
-          covariant T @23
-            defaultType: dynamic
-        fields
-          t @32
-            type: T*
-        constructors
-          synthetic @-1
-        accessors
-          synthetic get t @-1
-            returnType: T*
-          synthetic set t= @-1
-            parameters
-              requiredPositional _t @-1
-                type: T*
             returnType: void
 ''');
   }
@@ -45886,31 +45353,6 @@ library
 ''');
   }
 
-  test_typedef_function_typeParameters_f_bound_simple_legacy() async {
-    var library = await buildLibrary('''
-// @dart = 2.9
-typedef F<T extends U, U> = U Function(T t);
-''');
-    checkElementText(library, r'''
-library
-  definingUnit
-    typeAliases
-      notSimplyBounded F @23
-        typeParameters
-          contravariant T @25
-            bound: U*
-            defaultType: Null*
-          covariant U @38
-            defaultType: dynamic
-        aliasedType: U* Function(T*)*
-        aliasedElement: GenericFunctionTypeElement
-          parameters
-            requiredPositional t @56
-              type: T*
-          returnType: U*
-''');
-  }
-
   test_typedef_legacy_documented() async {
     var library = await buildLibrary('''
 // Extra comment so doc comment offset != 0
@@ -46344,31 +45786,6 @@ library
 ''');
   }
 
-  test_typedef_legacy_typeParameters_f_bound_complex_legacy() async {
-    var library = await buildLibrary('''
-// @dart = 2.9
-typedef U F<T extends List<U>, U>(T t);
-''');
-    checkElementText(library, r'''
-library
-  definingUnit
-    typeAliases
-      functionTypeAliasBased notSimplyBounded F @25
-        typeParameters
-          contravariant T @27
-            bound: List<U*>*
-            defaultType: List<Null*>*
-          covariant U @46
-            defaultType: dynamic
-        aliasedType: U* Function(T*)*
-        aliasedElement: GenericFunctionTypeElement
-          parameters
-            requiredPositional t @51
-              type: T*
-          returnType: U*
-''');
-  }
-
   test_typedef_legacy_typeParameters_f_bound_simple() async {
     var library = await buildLibrary('typedef U F<T extends U, U>(T t);');
     checkElementText(library, r'''
@@ -46388,31 +45805,6 @@ library
             requiredPositional t @30
               type: T
           returnType: U
-''');
-  }
-
-  test_typedef_legacy_typeParameters_f_bound_simple_legacy() async {
-    var library = await buildLibrary('''
-// @dart = 2.9
-typedef U F<T extends U, U>(T t);
-''');
-    checkElementText(library, r'''
-library
-  definingUnit
-    typeAliases
-      functionTypeAliasBased notSimplyBounded F @25
-        typeParameters
-          contravariant T @27
-            bound: U*
-            defaultType: Null*
-          covariant U @40
-            defaultType: dynamic
-        aliasedType: U* Function(T*)*
-        aliasedElement: GenericFunctionTypeElement
-          parameters
-            requiredPositional t @45
-              type: T*
-          returnType: U*
 ''');
   }
 
@@ -47188,29 +46580,6 @@ library
           requiredPositional a @26
             type: int
               alias: self::@typeAlias::A
-        returnType: void
-''');
-  }
-
-  test_typedef_nonFunction_using_interface_noTypeParameters_legacy() async {
-    newFile('/a.dart', r'''
-typedef A = List<int>;
-''');
-    var library = await buildLibrary(r'''
-// @dart = 2.9
-import 'a.dart';
-void f(A a) {}
-''');
-    checkElementText(library, r'''
-library
-  imports
-    package:test/a.dart
-  definingUnit
-    functions
-      f @37
-        parameters
-          requiredPositional a @41
-            type: InvalidType
         returnType: void
 ''');
   }
@@ -48713,37 +48082,6 @@ library
 ''');
   }
 
-  test_variable_type_inferred_nonNullify() async {
-    addSource('$testPackageLibPath/a.dart', '''
-// @dart = 2.7
-var a = 0;
-''');
-
-    var library = await buildLibrary(r'''
-import 'a.dart';
-var b = a;
-''');
-
-    checkElementText(library, r'''
-library
-  imports
-    package:test/a.dart
-  definingUnit
-    topLevelVariables
-      static b @21
-        type: int
-        shouldUseTypeForInitializerInference: false
-    accessors
-      synthetic static get b @-1
-        returnType: int
-      synthetic static set b= @-1
-        parameters
-          requiredPositional _b @-1
-            type: int
-        returnType: void
-''');
-  }
-
   test_variableInitializer_contextType_after_astRewrite() async {
     var library = await buildLibrary(r'''
 class A<T> {
@@ -48814,13 +48152,13 @@ library
   }
 
   void _assertTypeStr(DartType type, String expected) {
-    var typeStr = type.getDisplayString(withNullability: true);
+    var typeStr = type.getDisplayString();
     expect(typeStr, expected);
   }
 
   void _assertTypeStrings(List<DartType> types, List<String> expected) {
     var typeStringList = types.map((e) {
-      return e.getDisplayString(withNullability: true);
+      return e.getDisplayString();
     }).toList();
     expect(typeStringList, expected);
   }

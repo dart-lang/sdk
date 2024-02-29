@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -116,6 +117,11 @@ class TestProject {
     await deleteDirectory(root);
   }
 
+  Future<void> kill() async {
+    _process?.kill();
+    _process = null;
+  }
+
   Future<ProcessResult> runAnalyze(
     List<String> arguments, {
     String? workingDir,
@@ -160,6 +166,51 @@ class TestProject {
           'PUB_CACHE': pubCachePath,
         })
       ..then((p) => _process = p);
+  }
+
+  Future<void> runWithVmService(
+    List<String> arguments,
+    void Function(String) onStdout, {
+    String? workingDir,
+  }) async {
+    final process = await start(arguments, workingDir: workingDir);
+    final completer = Completer<void>();
+    late StreamSubscription<String> sub;
+    late StreamSubscription<String> subError;
+
+    void onData(event) {
+      print('stdout: $event');
+      onStdout(event);
+    }
+
+    void onStderr(event) async {
+      print('stderr: $event');
+      await subError.cancel();
+      await sub.cancel();
+      completer.complete();
+      fail('stderr is expected to be empty');
+    }
+
+    void onError(error) async {
+      kill();
+      await subError.cancel();
+      await sub.cancel();
+      completer.complete();
+    }
+
+    void onDone() async {
+      await subError.cancel();
+      await sub.cancel();
+      completer.complete();
+    }
+
+    sub = process.stdout
+        .transform(utf8.decoder)
+        .listen(onData, onError: onError, onDone: onDone);
+    subError = process.stderr.transform(utf8.decoder).listen(onStderr);
+
+    // Wait for process to start and run.
+    await completer.future;
   }
 
   Future<FakeAnalytics> runLocalWithFakeAnalytics(

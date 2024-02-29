@@ -6,9 +6,9 @@
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
+import 'package:kernel/names.dart';
 
 import '../kernel/internal_ast.dart';
-import '../names.dart';
 import 'inference_results.dart';
 import 'inference_visitor_base.dart';
 import 'object_access_target.dart';
@@ -303,8 +303,10 @@ BlockExpression createBlockExpression(Block body, Expression value,
 
 /// Creates a throw of [expression] using the file offset of [expression] for
 /// the throw expression.
-Throw createThrow(Expression expression) {
-  return new Throw(expression)..fileOffset = expression.fileOffset;
+Throw createThrow(Expression expression, {bool forErrorHandling = false}) {
+  return new Throw(expression)
+    ..fileOffset = expression.fileOffset
+    ..forErrorHandling = forErrorHandling;
 }
 
 /// Creates an [ExpressionStatement] of [expression] using the file offset of

@@ -27,7 +27,8 @@ class topLevelFunction4GeneratedClass {
 }
 class topLevelFunction5GeneratedClass {
   external OmittedType0 method();
-}*/
+}
+*/
 
 import 'package:macro/macro.dart';
 

@@ -21,7 +21,8 @@ class ElementDisplayStringBuilder {
   final bool _multiline;
 
   ElementDisplayStringBuilder({
-    required bool withNullability,
+    @Deprecated('Only non-nullable by default mode is supported')
+    bool withNullability = true,
     bool multiline = false,
   })  : _withNullability = withNullability,
         _multiline = multiline;
@@ -122,11 +123,32 @@ class ElementDisplayStringBuilder {
   }
 
   void writeExtensionElement(ExtensionElement element) {
-    _write('extension ');
-    _write(element.displayName);
-    _writeTypeParameters(element.typeParameters);
+    _write('extension');
+    if (element.displayName.isNotEmpty) {
+      _write(' ');
+      _write(element.displayName);
+      _writeTypeParameters(element.typeParameters);
+    }
     _write(' on ');
     _writeType(element.extendedType);
+  }
+
+  void writeExtensionTypeElement(ExtensionTypeElementImpl element) {
+    if (element.isAugmentation) {
+      _write('augment ');
+    }
+
+    _write('extension type ');
+    _write(element.displayName);
+
+    _writeTypeParameters(element.typeParameters);
+    _write('(');
+    _writeType(element.representation.type);
+    _write(' ');
+    _write(element.representation.name);
+    _write(')');
+
+    _writeTypesIfNotEmpty(' implements ', element.interfaces);
   }
 
   void writeFormalParameter(ParameterElement element) {

@@ -7,7 +7,7 @@
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  <version>1.35.0</version>
+  <version>1.36.0</version>
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -142,6 +142,18 @@
   ignoring the item or treating it with some default/fallback handling.
 </p>
 <h3>Changelog</h3>
+<h4>1.36.0</h4>
+<ul>
+  <li>
+    Added a new <tt>supportsUris</tt> client capability to indicate that <tt>FilePath</tt>s should be URIs instead of file paths.
+  </li>
+  <li>
+    Added an experimental "lsp.handle" request to allow sending LSP requests through the protocol.
+  </li>
+  <li>
+    Added an experimental "lsp.notification" notification to allow receiving LSP notifications.
+  </li>
+</ul>
 <h4>1.35.0</h4>
 <ul>
   <li>
@@ -392,6 +404,18 @@
             <tt>showMessageRequest</tt>
           </li>
         </ul>
+      </field>
+      <field name="supportsUris" optional="true">
+        <ref>bool</ref>
+        <p>
+          True if the client supports the server sending URIs in place of file paths.
+        </p>
+        <p>
+          In this mode, the server will use URIs in all protocol fields with the type <tt>FilePath</tt>. Returned URIs may be `file://` URIs or custom schemes. The client can fetch the file contents for URIs with custom schemes (and receive modification events) through the LSP protocol (see the "lsp" domain).
+        </p>
+        <p>
+          LSP notifications are automatically enabled when the client sets this capability.
+        </p>
       </field>
     </params>
   </request>
@@ -3415,6 +3439,19 @@
       </field>
     </result>
   </request>
+  <notification event="notification">
+    <p>
+      Reports an LSP notification from the server.
+    </p>
+    <params>
+      <field name="lspNotification">
+        <p>
+          The LSP NotificationMessage sent by the server.
+        </p>
+        <ref>object</ref>
+      </field>
+    </params>
+  </notification>
 </domain>
 <types>
   <h2 class="domain"><a name="types">Types</a></h2>

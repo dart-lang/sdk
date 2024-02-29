@@ -166,7 +166,7 @@ Future<CompiledData<T>?> computeData<T>(String name, Uri entryPoint,
     print(outputCollector.getOutput('', api.OutputType.js));
     print('------------------------------------------------------------------');
   }
-  Compiler compiler = result.compiler;
+  Compiler compiler = result.compiler!;
   if (verifyCompiler != null) {
     await verifyCompiler(name, compiler);
   }

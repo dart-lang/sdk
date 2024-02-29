@@ -34,7 +34,9 @@ main() {
       ]);
     });
 
-    test('pauses on uncaught exceptions when mode=Unhandled', () async {
+    testWithUriConfigurations(
+        () => dap, 'pauses on uncaught exceptions when mode=Unhandled',
+        () async {
       final client = dap.client;
       final testFile = dap.createTestFile(simpleThrowingProgram);
 

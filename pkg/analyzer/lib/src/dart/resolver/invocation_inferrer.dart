@@ -163,14 +163,13 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
             var typeParameter = typeParameters[i];
             var bound = typeParameter.bound;
             if (bound != null) {
-              bound = resolver.definingLibrary.toLegacyTypeIfOptOut(bound);
               bound = substitution.substituteType(bound);
               var typeArgument = typeArgumentTypes[i];
               if (!resolver.typeSystem.isSubtypeOf(typeArgument, bound)) {
-                resolver.errorReporter.reportErrorForNode(
-                  CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
+                resolver.errorReporter.atNode(
                   typeArgumentList.arguments[i],
-                  [typeArgument, typeParameter.name, bound],
+                  CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
+                  arguments: [typeArgument, typeParameter.name, bound],
                 );
               }
             }
@@ -278,10 +277,10 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
 
   void _reportWrongNumberOfTypeArguments(TypeArgumentList typeArgumentList,
       FunctionType rawType, List<TypeParameterElement> typeParameters) {
-    resolver.errorReporter.reportErrorForNode(
-      _wrongNumberOfTypeArgumentsErrorCode,
+    resolver.errorReporter.atNode(
       typeArgumentList,
-      [
+      _wrongNumberOfTypeArgumentsErrorCode,
+      arguments: [
         rawType,
         typeParameters.length,
         typeArgumentList.arguments.length,

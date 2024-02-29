@@ -1279,12 +1279,7 @@ test() {
     await assertErrorsInCode(code, [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 56, 5),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 68, 1),
-      error(
-          isNullSafetyEnabled
-              ? CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
-              : CompileTimeErrorCode.INVALID_CAST_LITERAL,
-          71,
-          1),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 71, 1),
     ]);
 
     final node = findNode.singleMethodInvocation;
@@ -3007,7 +3002,7 @@ class B<T2, U2> {
 
     var constructorMember = redirected.staticElement!;
     expect(
-      constructorMember.getDisplayString(withNullability: false),
+      constructorMember.getDisplayString(),
       'A<T2, U2> A.named()',
     );
     expect(redirected.name!.staticElement, constructorMember);
@@ -3043,7 +3038,7 @@ class B<T2, U2> {
 
     expect(redirected.name, isNull);
     expect(
-      redirected.staticElement!.getDisplayString(withNullability: false),
+      redirected.staticElement!.getDisplayString(),
       'A<T2, U2> A()',
     );
   }
@@ -4318,7 +4313,7 @@ class D extends C {
 }''', [
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 69, 4),
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 101, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 46, 1)]),
+          contextMessages: [message(testFile, 46, 1)]),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 124, 4),
     ]);
   }
@@ -4335,7 +4330,7 @@ class D extends C {
 }''', [
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 69, 4),
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 101, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 46, 1)]),
+          contextMessages: [message(testFile, 46, 1)]),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 124, 4),
     ]);
   }
@@ -4350,7 +4345,7 @@ class D extends C {
 }''', [
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 37, 4),
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 74, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 24, 1)]),
+          contextMessages: [message(testFile, 24, 1)]),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 87, 4),
     ]);
   }
@@ -4365,7 +4360,7 @@ class D extends C {
 }''', [
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 27, 4),
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 59, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 14, 1)]),
+          contextMessages: [message(testFile, 14, 1)]),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 75, 4),
     ]);
   }
@@ -4583,9 +4578,9 @@ class C<T0 extends List<T1>, T1 extends List<T0>> {}
 class D extends C {}
 ''', [
       error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 69, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 69, 1)]),
+          contextMessages: [message(testFile, 69, 1)]),
       error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 69, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 69, 1)]),
+          contextMessages: [message(testFile, 69, 1)]),
     ]);
   }
 
@@ -4601,7 +4596,7 @@ void test() {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 73, 1),
       error(CompileTimeErrorCode.COULD_NOT_INFER, 81, 1),
       error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 81, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 81, 1)]),
+          contextMessages: [message(testFile, 81, 1)]),
     ]);
     _assertLocalVarType('c', 'C<List<Object?>, List<List<Object?>>>');
   }
@@ -4645,8 +4640,8 @@ C c;
 ''', [
       error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 48, 1,
           contextMessages: [
-            message('/home/test/lib/test.dart', 48, 1),
-            message('/home/test/lib/test.dart', 48, 1)
+            message(testFile, 48, 1),
+            message(testFile, 48, 1)
           ]),
       error(CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE, 50, 1),
     ]);

@@ -40,7 +40,7 @@ class MissingDependencyValidator {
 
   MissingDependencyValidator(this.contents, this.source, this.provider)
       : recorder = RecordingErrorListener() {
-    reporter = ErrorReporter(recorder, source, isNonNullableByDefault: false);
+    reporter = ErrorReporter(recorder, source);
   }
 
   /// Given the set of dependencies and dev dependencies used in the sources,
@@ -133,13 +133,13 @@ class MissingDependencyValidator {
     Object? data,
   ]) {
     final span = node.span;
-    reporter.reportErrorForOffset(
-      errorCode,
-      span.start.offset,
-      span.length,
-      arguments,
-      messages,
-      data,
+    reporter.atOffset(
+      offset: span.start.offset,
+      length: span.length,
+      errorCode: errorCode,
+      arguments: arguments,
+      contextMessages: messages,
+      data: data,
     );
   }
 }

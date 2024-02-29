@@ -18,6 +18,7 @@ import 'package:kernel/type_environment.dart';
 import 'package:vm/transformations/pragma.dart';
 
 import 'calls.dart';
+import 'config.dart';
 import 'native_code.dart';
 import 'protobuf_handler.dart' show ProtobufHandler;
 import 'summary.dart';
@@ -98,10 +99,6 @@ abstract base class _Invocation extends _DependencyTracker
   /// unchecked entry-point.
   bool typeChecksNeeded = false;
 
-  /// If an invocation is invalidated more than [invalidationLimit] times,
-  /// its result is saturated in order to guarantee convergence.
-  static const int invalidationLimit = 1000;
-
   _Invocation(this.selector, this.args);
 
   /// Initialize invocation before it is cached and processed.
@@ -133,8 +130,8 @@ abstract base class _Invocation extends _DependencyTracker
         // recursive invocations may cause infinite bouncing of result
         // types. To prevent infinite looping and guarantee convergence of
         // the analysis, result is saturated after invocation is invalidated
-        // at least [_Invocation.invalidationLimit] times.
-        if (invalidationCounter > _Invocation.invalidationLimit) {
+        // certain number of times.
+        if (invalidationCounter > typeFlowAnalysis.config.invalidationLimit) {
           result = result!
               .union(invalidatedResult!, typeFlowAnalysis.hierarchyCache);
         }
@@ -887,21 +884,6 @@ class _ReceiverTypeBuilder {
 /// Keeps track of number of cached [_Invocation] objects with
 /// a particular selector and provides approximation if needed.
 class _SelectorApproximation {
-  /// Approximation [_Invocation] with raw arguments is created and used
-  /// after number of [_Invocation] objects with same selector but
-  /// different arguments reaches this limit.
-  static const int maxInvocationsPerSelector = 1000;
-
-  /// [_DirectInvocation] can be approximated with raw arguments
-  /// if number of operations in its summary exceeds this threshold.
-  static const int largeSummarySize = 300;
-
-  /// If summary exceeds [largeSummarySize] and number of
-  /// [_DirectInvocation] objects with same selector but
-  /// different arguments exceeds this limit, then approximate
-  /// [_DirectInvocation] with raw arguments is created and used.
-  static const int maxDirectInvocationsPerSelector = 10;
-
   int count = 0;
   _Invocation? approximation;
 }
@@ -939,20 +921,29 @@ class _InvocationsCache {
       final sa = _directSelectorApproximations[selector];
       if (sa != null) {
         if (sa.count >=
-            _SelectorApproximation.maxDirectInvocationsPerSelector) {
+            _typeFlowAnalysis.config.maxDirectInvocationsPerSelector) {
           _Invocation? approximation = sa.approximation;
-          if (approximation == null) {
-            final rawArgs =
-                _typeFlowAnalysis.summaryCollector.rawArguments(selector);
-            sa.approximation =
-                approximation = _DirectInvocation(selector, rawArgs);
-            approximation.init();
-            Statistics.approximateDirectInvocationsCreated++;
+          if (approximation != null) {
+            Statistics.approximateDirectInvocationsUsed++;
+            return approximation;
           }
-          Statistics.approximateDirectInvocationsUsed++;
-          return approximation;
+          final rawArgs =
+              _typeFlowAnalysis.summaryCollector.rawArguments(selector);
+          invocation = _DirectInvocation(selector, rawArgs);
+          // Check if there is an existing invocation that matches
+          // approximation (in order to avoid creating duplicate
+          // equal invocations which would break dependency sets).
+          approximation = _invocations.lookup(invocation);
+          if (approximation != null) {
+            sa.approximation = approximation;
+            Statistics.approximateDirectInvocationsUsed++;
+            return approximation;
+          }
+          sa.approximation = invocation;
+          Statistics.approximateDirectInvocationsCreated++;
+        } else {
+          ++sa.count;
         }
-        ++sa.count;
       }
     } else if (selector is InterfaceSelector) {
       // Detect if there are too many invocations per selector. In such case,
@@ -962,23 +953,32 @@ class _InvocationsCache {
       final sa = (_interfaceSelectorApproximations[selector] ??=
           new _SelectorApproximation());
 
-      if (sa.count >= _SelectorApproximation.maxInvocationsPerSelector) {
+      if (sa.count >=
+          _typeFlowAnalysis.config.maxInterfaceInvocationsPerSelector) {
         _Invocation? approximation = sa.approximation;
-        if (approximation == null) {
-          final rawArgs =
-              _typeFlowAnalysis.summaryCollector.rawArguments(selector);
-          sa.approximation =
-              approximation = _DispatchableInvocation(selector, rawArgs);
-          approximation.init();
-          Statistics.approximateInterfaceInvocationsCreated++;
+        if (approximation != null) {
+          Statistics.approximateInterfaceInvocationsUsed++;
+          return approximation;
         }
-        Statistics.approximateInterfaceInvocationsUsed++;
-        return approximation;
+        final rawArgs =
+            _typeFlowAnalysis.summaryCollector.rawArguments(selector);
+        invocation = _DispatchableInvocation(selector, rawArgs);
+        // Check if there is an existing invocation that matches
+        // approximation (in order to avoid creating duplicate
+        // equal invocations which would break dependency sets).
+        approximation = _invocations.lookup(invocation);
+        if (approximation != null) {
+          sa.approximation = approximation;
+          Statistics.approximateInterfaceInvocationsUsed++;
+          return approximation;
+        }
+        sa.approximation = invocation;
+        Statistics.approximateInterfaceInvocationsCreated++;
+      } else {
+        ++sa.count;
+        Statistics.maxInvocationsCachedPerSelector =
+            max(Statistics.maxInvocationsCachedPerSelector, sa.count);
       }
-
-      ++sa.count;
-      Statistics.maxInvocationsCachedPerSelector =
-          max(Statistics.maxInvocationsCachedPerSelector, sa.count);
     }
 
     invocation.init();
@@ -1159,11 +1159,6 @@ class _DynamicTargetSet extends _DependencyTracker {
 }
 
 class _TFClassImpl extends TFClass {
-  /// Maximum number of concrete types to use when calculating
-  /// subtype cone specialization. If number of allocated types
-  /// exceeds this constant, then WideConeType approximation is used.
-  static const int maxAllocatedTypesInSetSpecializations = 128;
-
   final _TFClassImpl? superclass;
   final Set<_TFClassImpl> _allocatedSubtypes = new Set<_TFClassImpl>();
   late final Map<Name, Member> _dispatchTargetsSetters =
@@ -1185,14 +1180,7 @@ class _TFClassImpl extends TFClass {
   Type get specializedConeType =>
       _specializedConeType ??= _calculateConeTypeSpecialization();
 
-  bool get hasWideCone =>
-      _allocatedSubtypes.length > maxAllocatedTypesInSetSpecializations;
-
   late final WideConeType _wideConeType = WideConeType(this);
-  WideConeType get wideConeType {
-    assert(hasWideCone);
-    return _wideConeType;
-  }
 
   Type _calculateConeTypeSpecialization() {
     final int numSubTypes = _allocatedSubtypes.length;
@@ -1457,9 +1445,9 @@ class _ClassHierarchyCache extends TypeHierarchy {
 
     final _TFClassImpl cls = baseClass as _TFClassImpl;
 
-    if (allowWideCone && cls.hasWideCone) {
+    if (allowWideCone && _hasWideCone(cls)) {
       Statistics.typeSpecializationsUsedWideCone++;
-      return cls.wideConeType;
+      return cls._wideConeType;
     }
 
     if (!_sealed) {
@@ -1469,6 +1457,10 @@ class _ClassHierarchyCache extends TypeHierarchy {
 
     return cls.specializedConeType;
   }
+
+  bool _hasWideCone(_TFClassImpl cls) =>
+      cls._allocatedSubtypes.length >
+      _typeFlowAnalysis.config.maxAllocatedTypesInSetSpecialization;
 
   bool hasNonTrivialNoSuchMethod(TFClass c) {
     final classImpl = c as _TFClassImpl;
@@ -1618,8 +1610,7 @@ class _WorkList {
     if (processing.add(invocation)) {
       // Do not process too many calls in the call stack as
       // it may cause stack overflow in the analysis.
-      const int kMaxCallsInCallStack = 500;
-      if (callStack.length > kMaxCallsInCallStack) {
+      if (callStack.length > _typeFlowAnalysis.config.maxCallStackDepth) {
         Statistics.deepInvocationsDeferred++;
         // If there is invalidatedResult, then use it.
         // When actual result is inferred it will be compared against
@@ -1705,6 +1696,7 @@ class _WorkList {
 
 class TypeFlowAnalysis
     implements EntryPointsListener, CallHandler, SharedVariableBuilder {
+  final TFAConfiguration config;
   final Target target;
   final TypeEnvironment environment;
   final CoreTypes coreTypes;
@@ -1732,6 +1724,7 @@ class TypeFlowAnalysis
   final Set<Member> _calledViaThis = new Set<Member>();
 
   TypeFlowAnalysis(
+      this.config,
       this.target,
       Component component,
       this.coreTypes,
@@ -1776,8 +1769,7 @@ class TypeFlowAnalysis
         summary = summaryCollector.createSummary(member, null);
       }
       _summaries[member] = summary;
-      if (summary.statements.length >=
-          _SelectorApproximation.largeSummarySize) {
+      if (summary.statements.length >= config.largeSummarySize) {
         final DirectSelector selector =
             currentInvocation.selector as DirectSelector;
         _invocationsCache.addDirectSelectorApproximation(selector);

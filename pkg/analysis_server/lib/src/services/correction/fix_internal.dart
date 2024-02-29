@@ -237,7 +237,7 @@ import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
-import 'package:analyzer_plugin/utilities/fixes/fixes.dart' hide FixContributor;
+import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 final _builtInLintMultiProducers = {
   LintNames.deprecated_member_use_from_same_package: [
@@ -1575,6 +1575,13 @@ final _builtInParseLintProducers = {
   ],
 };
 
+Future<List<Fix>> computeFixes(DartFixContext context) async {
+  return [
+    ...await FixProcessor(context).compute(),
+    ...await FixInFileProcessor(context).compute(),
+  ];
+}
+
 /// Registers each mapping of diagnostic -> list-of-producers with
 /// [FixProcessor].
 void registerBuiltInProducers() {
@@ -1583,17 +1590,6 @@ void registerBuiltInProducers() {
   FixProcessor.nonLintMultiProducerMap.addAll(_builtInNonLintMultiProducers);
   FixProcessor.nonLintProducerMap.addAll(_builtInNonLintProducers);
   FixProcessor.parseLintProducerMap.addAll(_builtInParseLintProducers);
-}
-
-/// A fix contributor that provides the default set of fixes for Dart files.
-class DartFixContributor implements FixContributor {
-  @override
-  Future<List<Fix>> computeFixes(DartFixContext context) async {
-    return [
-      ...await FixProcessor(context).compute(),
-      ...await FixInFileProcessor(context).compute(),
-    ];
-  }
 }
 
 /// Computer for Dart "fix all in file" fixes.

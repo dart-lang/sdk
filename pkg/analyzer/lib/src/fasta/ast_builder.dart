@@ -1658,9 +1658,9 @@ class AstBuilder extends StackListener {
       // Check for extension type name conflict.
       var representationName = representation.fieldName;
       if (representationName.lexeme == builder.name.lexeme) {
-        errorReporter.errorReporter?.reportErrorForToken(
-          ParserErrorCode.MEMBER_WITH_CLASS_NAME,
+        errorReporter.errorReporter?.atToken(
           representationName,
+          ParserErrorCode.MEMBER_WITH_CLASS_NAME,
         );
       }
       declarations.add(
@@ -2625,8 +2625,10 @@ class AstBuilder extends StackListener {
     var withClause = pop(NullValues.WithClause) as WithClauseImpl;
     var superclass = pop() as TypeAnnotationImpl;
     if (superclass is! NamedTypeImpl) {
-      errorReporter.errorReporter?.reportErrorForNode(
-          ParserErrorCode.EXPECTED_NAMED_TYPE_EXTENDS, superclass);
+      errorReporter.errorReporter?.atNode(
+        superclass,
+        ParserErrorCode.EXPECTED_NAMED_TYPE_EXTENDS,
+      );
       var beginToken = superclass.beginToken;
       var endToken = superclass.endToken;
       var currentToken = beginToken;
@@ -2821,9 +2823,9 @@ class AstBuilder extends StackListener {
         case final formalParameterType?:
           fieldType = formalParameterType;
         case null:
-          errorReporter.errorReporter?.reportErrorForToken(
-            ParserErrorCode.EXPECTED_REPRESENTATION_TYPE,
+          errorReporter.errorReporter?.atToken(
             leftParenthesis.next!,
+            ParserErrorCode.EXPECTED_REPRESENTATION_TYPE,
           );
           final typeNameToken = parser.rewriter.insertSyntheticIdentifier(
             leftParenthesis,
@@ -2837,9 +2839,9 @@ class AstBuilder extends StackListener {
       }
       if (firstFormalParameter.keyword case final keyword?) {
         if (keyword.keyword != Keyword.CONST) {
-          errorReporter.errorReporter?.reportErrorForToken(
-            ParserErrorCode.REPRESENTATION_FIELD_MODIFIER,
+          errorReporter.errorReporter?.atToken(
             keyword,
+            ParserErrorCode.REPRESENTATION_FIELD_MODIFIER,
           );
         }
       }
@@ -2848,21 +2850,21 @@ class AstBuilder extends StackListener {
       final maybeComma = firstFormalParameter.endToken.next;
       if (maybeComma != null && maybeComma.type == TokenType.COMMA) {
         if (formalParameterList.parameters.length == 1) {
-          errorReporter.errorReporter?.reportErrorForToken(
-            ParserErrorCode.REPRESENTATION_FIELD_TRAILING_COMMA,
+          errorReporter.errorReporter?.atToken(
             maybeComma,
+            ParserErrorCode.REPRESENTATION_FIELD_TRAILING_COMMA,
           );
         } else {
-          errorReporter.errorReporter?.reportErrorForToken(
-            ParserErrorCode.MULTIPLE_REPRESENTATION_FIELDS,
+          errorReporter.errorReporter?.atToken(
             maybeComma,
+            ParserErrorCode.MULTIPLE_REPRESENTATION_FIELDS,
           );
         }
       }
     } else {
-      errorReporter.errorReporter?.reportErrorForToken(
-        ParserErrorCode.EXPECTED_REPRESENTATION_FIELD,
+      errorReporter.errorReporter?.atToken(
         leftParenthesis.next!,
+        ParserErrorCode.EXPECTED_REPRESENTATION_FIELD,
       );
       fieldMetadata = [];
       final typeNameToken = parser.rewriter.insertSyntheticIdentifier(
@@ -3183,7 +3185,6 @@ class AstBuilder extends StackListener {
         members[index] = updateSwitchMember(
           member: member,
           labels: labels,
-          statements: null,
         );
       }
       assert(labelCount == 0);
@@ -3193,7 +3194,6 @@ class AstBuilder extends StackListener {
     if (members2.isNotEmpty) {
       members2.last = updateSwitchMember(
         member: members2.last,
-        labels: null,
         statements: statements,
       );
     }
@@ -3294,6 +3294,7 @@ class AstBuilder extends StackListener {
 
   @override
   void endTopLevelFields(
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -3331,6 +3332,7 @@ class AstBuilder extends StackListener {
       TopLevelVariableDeclarationImpl(
         comment: comment,
         metadata: metadata,
+        augmentKeyword: augmentToken,
         externalKeyword: externalToken,
         variableList: variableList,
         semicolon: semicolon,
@@ -3778,9 +3780,9 @@ class AstBuilder extends StackListener {
       //  any type annotation for recovery purposes, and (b) extending the
       //  parser to parse a generic function type at this location.
       if (supertype != null) {
-        errorReporter.errorReporter?.reportErrorForNode(
-          ParserErrorCode.EXPECTED_NAMED_TYPE_EXTENDS,
+        errorReporter.errorReporter?.atNode(
           supertype,
+          ParserErrorCode.EXPECTED_NAMED_TYPE_EXTENDS,
         );
       }
     }
@@ -5673,9 +5675,9 @@ class AstBuilder extends StackListener {
       for (final formalParameter in parameters.parameters) {
         final notDefault = formalParameter.notDefault;
         if (notDefault is FieldFormalParameterImpl) {
-          errorReporter.errorReporter?.reportErrorForToken(
-            ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_FIELD_INITIALIZERS,
+          errorReporter.errorReporter?.atToken(
             notDefault.thisKeyword,
+            ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_FIELD_INITIALIZERS,
           );
         }
       }
@@ -5827,7 +5829,10 @@ class AstBuilder extends StackListener {
       if (type is NamedTypeImpl) {
         namedTypes.add(type);
       } else {
-        errorReporter.errorReporter?.reportErrorForNode(errorCode, type);
+        errorReporter.errorReporter?.atNode(
+          type,
+          errorCode,
+        );
       }
     }
     return namedTypes;

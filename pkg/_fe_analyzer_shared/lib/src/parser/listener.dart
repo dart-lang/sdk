@@ -1482,6 +1482,7 @@ class Listener implements UnescapeErrorListener {
   ///
   /// Started by [beginFields].
   void endTopLevelFields(
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,

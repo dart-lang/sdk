@@ -24,11 +24,11 @@ void main() {
   }
 }
 
-PhysicalResourceProvider resourceProvider = PhysicalResourceProvider.INSTANCE;
+PhysicalResourceProvider _resourceProvider = PhysicalResourceProvider.INSTANCE;
 
 /// Returns the path to the file containing the status information.
 String statusFilePath() {
-  var pathContext = resourceProvider.pathContext;
+  var pathContext = _resourceProvider.pathContext;
   var packageRoot = pathContext.normalize(package_root.packageRoot);
   return pathContext.join(packageRoot, 'analysis_server', 'lib', 'src',
       'services', 'correction', 'error_fix_status.yaml');
@@ -117,7 +117,7 @@ String? verifyErrorFixStatus() {
 /// Returns the content of the file containing the status information, parsed
 /// as a YAML map.
 (String? error, YamlMap? info) _statusInfo() {
-  var statusFile = resourceProvider.getFile(statusFilePath());
+  var statusFile = _resourceProvider.getFile(statusFilePath());
   var document = loadYamlDocument(statusFile.readAsStringSync());
   var statusInfo = document.contents;
   if (statusInfo is! YamlMap) {

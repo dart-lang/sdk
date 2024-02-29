@@ -27,6 +27,7 @@ import 'package:analyzer/src/generated/source.dart' show SourceFactory;
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer/src/util/file_paths.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:yaml/yaml.dart';
@@ -51,6 +52,10 @@ class EditGetFixesHandler extends LegacyHandler
 
     if (!server.isAnalyzed(file)) {
       server.sendResponse(Response.getFixesInvalidFile(request));
+      return;
+    }
+    if (isMacroGenerated(file)) {
+      sendResult(EditGetFixesResult([]));
       return;
     }
 
@@ -111,7 +116,7 @@ class EditGetFixesHandler extends LegacyHandler
     var package =
         analysisContext.contextRoot.workspace.findPackageFor(optionsFile.path);
     var sdkVersionConstraint =
-        (package is PubWorkspacePackage) ? package.sdkVersionConstraint : null;
+        (package is PubPackage) ? package.sdkVersionConstraint : null;
     var errors = analyzeAnalysisOptions(
       optionsFile.createSource(),
       content,
@@ -178,7 +183,7 @@ class EditGetFixesHandler extends LegacyHandler
 
           List<Fix> fixes;
           try {
-            fixes = await DartFixContributor().computeFixes(context);
+            fixes = await computeFixes(context);
           } on InconsistentAnalysisException {
             fixes = [];
           } catch (exception, stackTrace) {

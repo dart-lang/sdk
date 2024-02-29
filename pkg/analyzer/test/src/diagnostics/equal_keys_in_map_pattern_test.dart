@@ -22,7 +22,7 @@ void f(x) {
 }
 ''', [
       error(CompileTimeErrorCode.EQUAL_KEYS_IN_MAP_PATTERN, 35, 4,
-          contextMessages: [message('/home/test/lib/test.dart', 26, 4)]),
+          contextMessages: [message(testFile, 26, 4)]),
     ]);
   }
 
@@ -33,7 +33,7 @@ void f(x) {
 }
 ''', [
       error(CompileTimeErrorCode.EQUAL_KEYS_IN_MAP_PATTERN, 32, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 26, 1)]),
+          contextMessages: [message(testFile, 26, 1)]),
     ]);
   }
 
@@ -47,7 +47,7 @@ void f(x) {
 }
 ''', [
       error(CompileTimeErrorCode.EQUAL_KEYS_IN_MAP_PATTERN, 59, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 53, 1)]),
+          contextMessages: [message(testFile, 53, 1)]),
     ]);
   }
 
@@ -58,7 +58,7 @@ void f(x) {
 }
 ''', [
       error(CompileTimeErrorCode.EQUAL_KEYS_IN_MAP_PATTERN, 34, 3,
-          contextMessages: [message('/home/test/lib/test.dart', 26, 3)]),
+          contextMessages: [message(testFile, 26, 3)]),
     ]);
   }
 
@@ -70,7 +70,7 @@ void f(x) {
 extension type E(int it) {}
 ''', [
       error(CompileTimeErrorCode.EQUAL_KEYS_IN_MAP_PATTERN, 34, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 26, 3)]),
+          contextMessages: [message(testFile, 26, 3)]),
     ]);
   }
 
@@ -145,7 +145,7 @@ void f(x) {
 }
 ''', [
       error(CompileTimeErrorCode.EQUAL_KEYS_IN_MAP_PATTERN, 33, 2,
-          contextMessages: [message('/home/test/lib/test.dart', 26, 2)]),
+          contextMessages: [message(testFile, 26, 2)]),
     ]);
   }
 
@@ -156,7 +156,7 @@ void f(x) {
 }
 ''', [
       error(CompileTimeErrorCode.EQUAL_KEYS_IN_MAP_PATTERN, 37, 6,
-          contextMessages: [message('/home/test/lib/test.dart', 26, 6)]),
+          contextMessages: [message(testFile, 26, 6)]),
     ]);
   }
 
@@ -175,7 +175,7 @@ void f(x) {
 }
 ''', [
       error(CompileTimeErrorCode.EQUAL_KEYS_IN_MAP_PATTERN, 35, 4,
-          contextMessages: [message('/home/test/lib/test.dart', 26, 4)]),
+          contextMessages: [message(testFile, 26, 4)]),
     ]);
   }
 

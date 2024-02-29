@@ -9,5 +9,5 @@ main() {
   callLoadLibrary();
 }
 
-/*member: callLoadLibrary:[null|subclass=Object]*/
+/*member: callLoadLibrary:[exact=_Future]*/
 callLoadLibrary() => expect.loadLibrary();

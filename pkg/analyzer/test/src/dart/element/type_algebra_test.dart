@@ -581,7 +581,7 @@ class _Base extends AbstractTypeSystemTest {
   }
 
   static String _typeStr(DartType type) {
-    var result = type.getDisplayString(withNullability: true);
+    var result = type.getDisplayString();
 
     var alias = type.alias;
     if (alias != null) {

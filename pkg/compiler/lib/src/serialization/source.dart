@@ -22,7 +22,7 @@ abstract class DataSource {
   int readInt();
 
   /// Deserialization of an enum value in [values].
-  E readEnum<E>(List<E> values);
+  E readEnum<E extends Enum>(List<E> values);
 
   /// Returns the offset for a deferred entity and skips it in the read queue.
   /// The offset can later be passed to [readAtOffset] to get the value.
@@ -390,7 +390,7 @@ class DataSourceReader {
   ///    ...
   ///    Foo foo = source.readEnum(Foo.values);
   ///
-  E readEnum<E>(List<E> values) {
+  E readEnum<E extends Enum>(List<E> values) {
     _checkDataKind(DataKind.enumValue);
     return _sourceReader.readEnum(values);
   }
@@ -528,32 +528,12 @@ class DataSourceReader {
     return map;
   }
 
-  /// Reads a kernel name node from this data source.
-  ir.Name readName() {
-    String text = readString();
-    ir.Library? library = readValueOrNull(readLibraryNode);
-    return ir.Name(text, library);
-  }
-
   /// Reads a [Name] from this data source.
   Name readMemberName() {
     String text = readString();
     Uri? uri = readValueOrNull(readUri);
     bool setter = readBool();
     return Name(text, uri, isSetter: setter);
-  }
-
-  /// Reads a kernel library dependency node from this data source.
-  ir.LibraryDependency readLibraryDependencyNode() {
-    ir.Library library = readLibraryNode();
-    int index = readInt();
-    return library.dependencies[index];
-  }
-
-  /// Reads a potentially `null` kernel library dependency node from this data
-  /// source.
-  ir.LibraryDependency? readLibraryDependencyNodeOrNull() {
-    return readValueOrNull(readLibraryDependencyNode);
   }
 
   /// Reads a reference to a kernel tree node from this data source.
@@ -843,18 +823,6 @@ class DataSourceReader {
         List<ir.DartType> typeArguments =
             _readDartTypeNodes(functionTypeVariables);
         return ir.InterfaceType(cls, nullability, typeArguments);
-      case DartTypeNodeKind.thisInterfaceType:
-        ir.Class cls = readClassNode();
-        ir.Nullability nullability = readEnum(ir.Nullability.values);
-        List<ir.DartType> typeArguments =
-            _readDartTypeNodes(functionTypeVariables);
-        return ThisInterfaceType(cls, nullability, typeArguments);
-      case DartTypeNodeKind.exactInterfaceType:
-        ir.Class cls = readClassNode();
-        ir.Nullability nullability = readEnum(ir.Nullability.values);
-        List<ir.DartType> typeArguments =
-            _readDartTypeNodes(functionTypeVariables);
-        return ExactInterfaceType(cls, nullability, typeArguments);
       case DartTypeNodeKind.recordType:
         ir.Nullability nullability = readEnum(ir.Nullability.values);
         List<ir.DartType> positional =

@@ -8,11 +8,15 @@ import 'package:_fe_analyzer_shared/src/macros/executor/introspection_impls.dart
 
 import '../api.dart';
 import '../executor.dart';
+import 'exception_impls.dart';
 import 'response_impls.dart';
 
 abstract class TypeBuilderBase implements TypePhaseIntrospector, Builder {
   /// All the collected diagnostics for this builder.
   final List<Diagnostic> _diagnostics = [];
+
+  /// If execution was stopped by an exception, the exception.
+  MacroExceptionImpl? _exception;
 
   /// All the enum values to be added, indexed by the identifier for the
   /// augmented enum declaration.
@@ -42,6 +46,7 @@ abstract class TypeBuilderBase implements TypePhaseIntrospector, Builder {
   /// created by this builder.
   MacroExecutionResult get result => new MacroExecutionResultImpl(
         diagnostics: _diagnostics,
+        exception: _exception,
         enumValueAugmentations: _enumValueAugmentations,
         interfaceAugmentations: _interfaceAugmentations,
         libraryAugmentations: _libraryAugmentations,
@@ -64,6 +69,11 @@ abstract class TypeBuilderBase implements TypePhaseIntrospector, Builder {
 
   @override
   void report(Diagnostic diagnostic) => _diagnostics.add(diagnostic);
+
+  void failWithException(MacroExceptionImpl exception) {
+    if (_exception != null) throw new StateError('Already set exception');
+    _exception = exception;
+  }
 
   @override
   Future<Identifier> resolveIdentifier(Uri library, String identifier) =>
@@ -412,7 +422,7 @@ class ConstructorDefinitionBuilderImpl extends DefinitionBuilderBase
       throw new UnsupportedError(
           'Augmenting existing constructor bodies is not allowed.');
     }
-    body ??= new FunctionBodyCode.fromString('{}');
+    body ??= new FunctionBodyCode.fromString(';');
     DeclarationCode augmentation = _buildFunctionAugmentation(body, declaration,
         initializers: initializers, docComments: docComments);
     _typeAugmentations.update(
@@ -522,7 +532,7 @@ List<DeclarationCode> _buildVariableAugmentations(
     augmentations.add(new DeclarationCode.fromParts([
       if (declaration is FieldDeclaration) '  ',
       'augment ',
-      if (declaration is FieldDeclaration && declaration.isStatic) 'static ',
+      if (declaration is FieldDeclaration && declaration.hasStatic) 'static ',
       getter,
     ]));
   }
@@ -530,7 +540,7 @@ List<DeclarationCode> _buildVariableAugmentations(
     augmentations.add(new DeclarationCode.fromParts([
       if (declaration is FieldDeclaration) '  ',
       'augment ',
-      if (declaration is FieldDeclaration && declaration.isStatic) 'static ',
+      if (declaration is FieldDeclaration && declaration.hasStatic) 'static ',
       setter,
     ]));
   }
@@ -539,7 +549,7 @@ List<DeclarationCode> _buildVariableAugmentations(
       if (initializerDocComments != null) initializerDocComments,
       if (declaration is FieldDeclaration) '  ',
       'augment ',
-      if (declaration is FieldDeclaration && declaration.isStatic) 'static ',
+      if (declaration is FieldDeclaration && declaration.hasStatic) 'static ',
       if (declaration.hasFinal) 'final ',
       declaration.type.code,
       ' ',
@@ -571,7 +581,7 @@ DeclarationCode _buildFunctionAugmentation(
       declaration.definingType.name,
       if (declaration.identifier.name.isNotEmpty) '.',
     ] else ...[
-      if (declaration is MethodDeclaration && declaration.isStatic) 'static ',
+      if (declaration is MethodDeclaration && declaration.hasStatic) 'static ',
       declaration.returnType.code,
       ' ',
       if (declaration.isOperator) 'operator ',
@@ -591,7 +601,7 @@ DeclarationCode _buildFunctionAugmentation(
         '>',
       ],
       '(',
-      for (ParameterDeclaration positionalRequired in declaration
+      for (FormalParameterDeclaration positionalRequired in declaration
           .positionalParameters
           .takeWhile((p) => p.isRequired)) ...[
         positionalRequired.code,
@@ -599,7 +609,7 @@ DeclarationCode _buildFunctionAugmentation(
       ],
       if (declaration.positionalParameters.any((p) => !p.isRequired)) ...[
         '[',
-        for (ParameterDeclaration positionalOptional in declaration
+        for (FormalParameterDeclaration positionalOptional in declaration
             .positionalParameters
             .where((p) => !p.isRequired)) ...[
           positionalOptional.code,
@@ -609,7 +619,8 @@ DeclarationCode _buildFunctionAugmentation(
       ],
       if (declaration.namedParameters.isNotEmpty) ...[
         '{',
-        for (ParameterDeclaration named in declaration.namedParameters) ...[
+        for (FormalParameterDeclaration named
+            in declaration.namedParameters) ...[
           named.code,
           ', ',
         ],

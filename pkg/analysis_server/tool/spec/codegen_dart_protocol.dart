@@ -909,8 +909,11 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
       indent(() {
         var methodString =
             literalString((impliedType.apiNode as Request).longMethod);
-        var jsonPart = impliedType.type != null ? 'toJson()' : 'null';
-        writeln('return Request(id, $methodString, $jsonPart);');
+        if (impliedType.type != null) {
+          writeln('return Request(id, $methodString, toJson());');
+        } else {
+          writeln('return Request(id, $methodString);');
+        }
       });
       writeln('}');
       return true;
@@ -929,11 +932,18 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
         writeln('Response toResponse(String id) {');
       }
       indent(() {
-        var jsonPart = impliedType.type != null ? 'toJson()' : 'null';
-        if (responseRequiresRequestTime) {
-          writeln('return Response(id, requestTime, result: $jsonPart);');
+        if (impliedType.type != null) {
+          if (responseRequiresRequestTime) {
+            writeln('return Response(id, requestTime, result: toJson());');
+          } else {
+            writeln('return Response(id, result: toJson());');
+          }
         } else {
-          writeln('return Response(id, result: $jsonPart);');
+          if (responseRequiresRequestTime) {
+            writeln('return Response(id, requestTime);');
+          } else {
+            writeln('return Response(id);');
+          }
         }
       });
       writeln('}');

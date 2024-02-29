@@ -164,18 +164,7 @@ static const char* VersionNumber() {
   if (!GetCurrentVersionDWord(L"CurrentMinorVersionNumber", &minor)) {
     return nullptr;
   }
-  const char* kFormat = "%d.%d";
-  int len = snprintf(nullptr, 0, kFormat, major, minor);
-  if (len < 0) {
-    return nullptr;
-  }
-  char* result = DartUtils::ScopedCString(len + 1);
-  ASSERT(result != nullptr);
-  len = snprintf(result, len + 1, kFormat, major, minor);
-  if (len < 0) {
-    return nullptr;
-  }
-  return result;
+  return DartUtils::ScopedCStringFormatted("%d.%d", major, minor);
 }
 
 const char* Platform::OperatingSystemVersion() {
@@ -229,7 +218,14 @@ bool Platform::LocalHostname(char* buffer, intptr_t buffer_length) {
   if (!SocketBase::Initialize()) {
     return false;
   }
-  return gethostname(buffer, buffer_length) == 0;
+  // 256 is max length per https://learn.microsoft.com/en-us/windows/win32/api/winsock2/nf-winsock2-gethostnamew#remarks
+  const int HOSTNAME_MAXLENGTH = 256;
+  wchar_t hostname_w[HOSTNAME_MAXLENGTH];
+  if (GetHostNameW(hostname_w, HOSTNAME_MAXLENGTH) != 0) {
+    return false;
+  }
+  return WideCharToMultiByte(CP_UTF8, 0, hostname_w, -1, buffer, buffer_length,
+                             nullptr, nullptr) != 0;
 #endif
 }
 

@@ -270,7 +270,6 @@ class LoadedElf {
   }
 
 bool LoadedElf::Load() {
-  UnwindingRecordsPlatform::Init();
   VirtualMemory::Init();
 
   if (error_ != nullptr) {
@@ -300,7 +299,6 @@ LoadedElf::~LoadedElf() {
     UnwindingRecordsPlatform::UnregisterDynamicTable(
         dynamic_runtime_function_tables_[i]);
   }
-  UnwindingRecordsPlatform::Cleanup();
 #endif
 
   // Unmap the image.

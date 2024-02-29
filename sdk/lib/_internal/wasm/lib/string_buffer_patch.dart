@@ -4,6 +4,7 @@
 
 import "dart:_internal" show patch;
 import "dart:_string" show StringBase, TwoByteString;
+import "dart:_wasm";
 
 import "dart:typed_data" show Uint16List;
 
@@ -17,7 +18,8 @@ class StringBuffer {
    * When strings are written to the string buffer, we add them to a
    * list of string parts.
    */
-  List<String>? _parts;
+  WasmArray<String>? _parts = null;
+  int _partsWriteIndex = -1;
 
   /**
     * Total number of code units in the string parts. Does not include
@@ -120,6 +122,7 @@ class StringBuffer {
   @patch
   void clear() {
     _parts = null;
+    _partsWriteIndex = -1;
     _partsCodeUnits = _bufferPosition = _bufferCodeUnitMagnitude = 0;
   }
 
@@ -130,7 +133,7 @@ class StringBuffer {
     final localParts = _parts;
     return (_partsCodeUnits == 0 || localParts == null)
         ? ""
-        : StringBase.concatRange(localParts, 0, localParts.length);
+        : StringBase.concatRange(localParts, 0, _partsWriteIndex);
   }
 
   /** Ensures that the buffer has enough capacity to add n code units. */
@@ -161,23 +164,29 @@ class StringBuffer {
    * many code units are contained in the parts.
    */
   void _addPart(String str) {
-    final localParts = _parts;
+    WasmArray<String>? localParts = _parts;
     int length = str.length;
     _partsCodeUnits += length;
     _partsCodeUnitsSinceCompaction += length;
 
     if (localParts == null) {
-      // Empirically this is a good capacity to minimize total bytes allocated.
-      // _parts = _GrowableList.withCapacity(10)..add(str);
-      // TODO(omersa): Uncomment the line above after moving list
-      // implementations to a library.
-      _parts = [str];
-    } else {
-      localParts.add(str);
-      int partsSinceCompaction = localParts.length - _partsCompactionIndex;
-      if (partsSinceCompaction == _PARTS_TO_COMPACT) {
-        _compact();
-      }
+      _parts = WasmArray<String>.filled(10, str);
+      _partsWriteIndex = 1;
+      return;
+    }
+
+    // Possibly grow the backing array.
+    if (localParts.length <= _partsWriteIndex) {
+      localParts =
+          WasmArray<String>.filled(2 * localParts.length, localParts[0])
+            ..copy(0, localParts, 0, _partsWriteIndex);
+      _parts = localParts;
+    }
+
+    localParts[_partsWriteIndex++] = str;
+    int partsSinceCompaction = _partsWriteIndex - _partsCompactionIndex;
+    if (partsSinceCompaction == _PARTS_TO_COMPACT) {
+      _compact();
     }
   }
 
@@ -193,11 +202,11 @@ class StringBuffer {
           _partsCompactionIndex, // Start
           _partsCompactionIndex + _PARTS_TO_COMPACT // End
           );
-      localParts.length = localParts.length - _PARTS_TO_COMPACT;
-      localParts.add(compacted);
+      _partsWriteIndex = _partsWriteIndex - _PARTS_TO_COMPACT;
+      localParts[_partsWriteIndex++] = compacted;
     }
     _partsCodeUnitsSinceCompaction = 0;
-    _partsCompactionIndex = localParts.length;
+    _partsCompactionIndex = _partsWriteIndex;
   }
 
   /**

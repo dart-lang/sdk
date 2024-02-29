@@ -11,7 +11,7 @@
 /// > [!Note]
 /// > New projects should prefer to use
 /// > [package:web](https://pub.dev/packages/web). For existing projects, see
-/// > our [migration guide](http://dart.dev/go/package-web).
+/// > our [migration guide](https://dart.dev/go/package-web).
 ///
 /// IndexedDB is a web standard API for client-side storage of
 /// structured data. By storing data on the client in an IndexedDB,

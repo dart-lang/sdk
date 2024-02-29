@@ -19,8 +19,9 @@ import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/type_builder.dart';
+import '../codes/fasta_codes.dart'
+    show messageInternalProblemAlreadyInitialized;
 import '../constant_context.dart' show ConstantContext;
-import '../fasta_codes.dart' show messageInternalProblemAlreadyInitialized;
 import '../kernel/body_builder.dart' show BodyBuilder;
 import '../kernel/body_builder_context.dart';
 import '../kernel/hierarchy/class_member.dart';

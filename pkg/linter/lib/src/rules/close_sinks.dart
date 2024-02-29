@@ -62,10 +62,6 @@ for more information.
 
 ''';
 
-bool _isSink(DartType type) => type.implementsInterface('Sink', 'dart.core');
-
-bool _isSocket(DartType type) => type.implementsInterface('Socket', 'dart.io');
-
 class CloseSinks extends LintRule {
   static const LintCode code = LintCode(
       'close_sinks', "Unclosed instance of 'Sink'.",
@@ -93,14 +89,19 @@ class CloseSinks extends LintRule {
 }
 
 class _Visitor extends LeakDetectorProcessors {
-  static const _closeMethodName = 'close';
-  static const _destroyMethodName = 'destroy';
-
-  @override
-  Map<DartTypePredicate, String> predicates = {
-    _isSink: _closeMethodName,
-    _isSocket: _destroyMethodName
+  static final Map<DartTypePredicate, String> _predicates = {
+    _isSink: 'close',
+    _isSocket: 'destroy',
   };
 
   _Visitor(super.rule);
+
+  @override
+  Map<DartTypePredicate, String> get predicates => _predicates;
+
+  static bool _isSink(DartType type) =>
+      type.implementsInterface('Sink', 'dart.core');
+
+  static bool _isSocket(DartType type) =>
+      type.implementsInterface('Socket', 'dart.io');
 }

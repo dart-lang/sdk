@@ -11,6 +11,7 @@ import 'bootstrap.dart'; // For doc comments only.
 import 'executor/cast.dart';
 import 'executor/introspection_impls.dart';
 import 'executor/serialization.dart';
+import 'executor/span.dart';
 
 part 'executor/arguments.dart';
 
@@ -84,12 +85,18 @@ abstract class MacroExecutor {
   ///
   /// The generated library files content must be deterministic, including the
   /// generation of fresh names for import prefixes and omitted types.
+  ///
+  /// If [spans] is provided, the [Span]s for the generated source are added
+  /// to [spans]. This is used to compute the offset relation between
+  /// intermediate augmentation libraries and the merged augmentation library.
   String buildAugmentationLibrary(
+      Uri augmentedLibraryUri,
       Iterable<MacroExecutionResult> macroResults,
       TypeDeclaration Function(Identifier) resolveDeclaration,
       ResolvedIdentifier Function(Identifier) resolveIdentifier,
       TypeAnnotation? Function(OmittedTypeAnnotation) inferOmittedType,
-      {Map<OmittedTypeAnnotation, String>? omittedTypes});
+      {Map<OmittedTypeAnnotation, String>? omittedTypes,
+      List<Span>? spans});
 
   /// Tell the executor to shut down and clean up any resources it may have
   /// allocated.
@@ -158,6 +165,9 @@ abstract class MacroExecutionResult implements Serializable {
   /// All [Diagnostic]s reported as a result of executing a macro.
   List<Diagnostic> get diagnostics;
 
+  /// If execution was stopped by an exception, the exception.
+  MacroException? get exception;
+
   /// Any augmentations to enum values that should be applied to an enum as a
   /// result of executing a macro, indexed by the identifier of the enum.
   Map<Identifier, Iterable<DeclarationCode>> get enumValueAugmentations;
@@ -195,6 +205,7 @@ enum DeclarationKind {
   library,
   method,
   mixinType,
+  typeAlias,
   variable,
 }
 

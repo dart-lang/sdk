@@ -30,6 +30,7 @@ import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/macro_application_error.dart';
+import 'package:analyzer/src/summary2/macro_type_location.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/task/inference_error.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
@@ -471,6 +472,7 @@ class FunctionElementLinkedData extends ElementLinkedData<FunctionElementImpl> {
     element.metadata = reader._readAnnotationList(
       unitElement: unitElement,
     );
+    element.macroDiagnostics = reader.readMacroDiagnostics();
     _readTypeParameters(reader, element.typeParameters);
     element.returnType = reader.readRequiredType();
     _readFormalParameters(reader, element.parameters);
@@ -538,6 +540,7 @@ class LibraryElementLinkedData extends ElementLinkedData<LibraryElementImpl> {
       );
     }
 
+    element.macroDiagnostics = reader.readMacroDiagnostics();
     element.entryPoint = reader.readElement() as FunctionElement?;
 
     element.fieldNameNonPromotabilityInfo =
@@ -1961,8 +1964,7 @@ class ResolutionReader {
       return element;
     }
 
-    if (memberFlags == Tag.MemberLegacyWithTypeArguments ||
-        memberFlags == Tag.MemberWithTypeArguments) {
+    if (memberFlags == Tag.MemberWithTypeArguments) {
       var enclosing = element.enclosingElement as InstanceElement;
 
       var declaration = enclosing.augmented!.declaration;
@@ -2000,11 +2002,6 @@ class ResolutionReader {
       }
     }
 
-    if (memberFlags == Tag.MemberLegacyWithoutTypeArguments ||
-        memberFlags == Tag.MemberLegacyWithTypeArguments) {
-      return Member.legacy(element);
-    }
-
     if (memberFlags == Tag.MemberWithTypeArguments) {
       return element;
     }
@@ -2014,6 +2011,11 @@ class ResolutionReader {
 
   List<T> readElementList<T extends Element>() {
     return _reader.readTypedListCast<T>(readElement);
+  }
+
+  T readEnum<T extends Enum>(List<T> values) {
+    var index = readByte();
+    return values[index];
   }
 
   List<AnalyzerMacroDiagnostic> readMacroDiagnostics() {
@@ -2329,14 +2331,21 @@ class ResolutionReader {
   }
 
   AnalyzerMacroDiagnostic _readMacroDiagnostic() {
-    switch (readByte()) {
-      case 0x00:
+    var kind = readEnum(MacroDiagnosticKind.values);
+    switch (kind) {
+      case MacroDiagnosticKind.argument:
         return ArgumentMacroDiagnostic(
           annotationIndex: readUInt30(),
           argumentIndex: readUInt30(),
           message: _reader.readStringUtf8(),
         );
-      case 0x01:
+      case MacroDiagnosticKind.exception:
+        return ExceptionMacroDiagnostic(
+          annotationIndex: readUInt30(),
+          message: _reader.readStringUtf8(),
+          stackTrace: _reader.readStringUtf8(),
+        );
+      case MacroDiagnosticKind.introspectionCycle:
         return DeclarationsIntrospectionCycleDiagnostic(
           annotationIndex: readUInt30(),
           introspectedElement: readElement() as ElementImpl,
@@ -2348,38 +2357,88 @@ class ResolutionReader {
             );
           }),
         );
-      case 0x02:
-        return ExceptionMacroDiagnostic(
+      case MacroDiagnosticKind.invalidTarget:
+        return InvalidMacroTargetDiagnostic(
           annotationIndex: readUInt30(),
-          message: _reader.readStringUtf8(),
-          stackTrace: _reader.readStringUtf8(),
+          supportedKinds: _reader.readStringUtf8List(),
         );
-      case 0x03:
+      case MacroDiagnosticKind.macro:
         return MacroDiagnostic(
-          severity: macro.Severity.values[readByte()],
+          severity: readEnum(macro.Severity.values),
           message: _readMacroDiagnosticMessage(),
           contextMessages: readTypedList(_readMacroDiagnosticMessage),
+          correctionMessage: _reader.readOptionalStringUtf8(),
         );
-      case final int tag:
-        throw UnimplementedError('tag: $tag');
     }
   }
 
   MacroDiagnosticMessage _readMacroDiagnosticMessage() {
     final message = _reader.readStringUtf8();
+
+    TypeAnnotationLocation readTypeAnnotationLocation() {
+      var kind = readEnum(TypeAnnotationLocationKind.values);
+      switch (kind) {
+        case TypeAnnotationLocationKind.aliasedType:
+          var parent = readTypeAnnotationLocation();
+          return AliasedTypeLocation(parent);
+        case TypeAnnotationLocationKind.element:
+          var element = readElement()!;
+          return ElementTypeLocation(element);
+        case TypeAnnotationLocationKind.extendsClause:
+          var parent = readTypeAnnotationLocation();
+          return ExtendsClauseTypeLocation(parent);
+        case TypeAnnotationLocationKind.formalParameter:
+          return FormalParameterTypeLocation(
+            readTypeAnnotationLocation(),
+            readUInt30(),
+          );
+        case TypeAnnotationLocationKind.listIndex:
+          return ListIndexTypeLocation(
+            readTypeAnnotationLocation(),
+            readUInt30(),
+          );
+        case TypeAnnotationLocationKind.recordNamedField:
+          return RecordNamedFieldTypeLocation(
+            readTypeAnnotationLocation(),
+            readUInt30(),
+          );
+        case TypeAnnotationLocationKind.recordPositionalField:
+          return RecordPositionalFieldTypeLocation(
+            readTypeAnnotationLocation(),
+            readUInt30(),
+          );
+        case TypeAnnotationLocationKind.returnType:
+          var parent = readTypeAnnotationLocation();
+          return ReturnTypeLocation(parent);
+        case TypeAnnotationLocationKind.variableType:
+          var parent = readTypeAnnotationLocation();
+          return VariableTypeLocation(parent);
+        default:
+          throw UnimplementedError('kind: $kind');
+      }
+    }
+
     MacroDiagnosticTarget target;
-    switch (readByte()) {
-      case 0x00:
+    var targetKind = readEnum(MacroDiagnosticTargetKind.values);
+    switch (targetKind) {
+      case MacroDiagnosticTargetKind.application:
         target = ApplicationMacroDiagnosticTarget(
           annotationIndex: readUInt30(),
         );
-      case 0x01:
+      case MacroDiagnosticTargetKind.element:
         final element = readElement();
         target = ElementMacroDiagnosticTarget(
           element: element as ElementImpl,
         );
-      case final int tag:
-        throw UnimplementedError('tag: $tag');
+      case MacroDiagnosticTargetKind.elementAnnotation:
+        final element = readElement();
+        target = ElementAnnotationMacroDiagnosticTarget(
+          element: element as ElementImpl,
+          annotationIndex: readUInt30(),
+        );
+      case MacroDiagnosticTargetKind.type:
+        var location = readTypeAnnotationLocation();
+        target = TypeAnnotationMacroDiagnosticTarget(location: location);
     }
 
     return MacroDiagnosticMessage(
@@ -2513,6 +2572,7 @@ class TopLevelVariableElementLinkedData
     element.metadata = reader._readAnnotationList(
       unitElement: unitElement,
     );
+    element.macroDiagnostics = reader.readMacroDiagnostics();
     element.type = reader.readRequiredType();
     if (element is ConstTopLevelVariableElementImpl) {
       var initializer = reader._readOptionalExpression();
@@ -2546,6 +2606,7 @@ class TypeAliasElementLinkedData
     element.metadata = reader._readAnnotationList(
       unitElement: unitElement,
     );
+    element.macroDiagnostics = reader.readMacroDiagnostics();
     _readTypeParameters(reader, element.typeParameters);
     element.aliasedElement = reader._readAliasedElement(unitElement);
     element.aliasedType = reader.readRequiredType();

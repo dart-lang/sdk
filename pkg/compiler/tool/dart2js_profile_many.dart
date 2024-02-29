@@ -15,7 +15,7 @@ Invokes dart2js separately for each file using the given options.
 This is for profiling multiple compilations in the Dart Observatory.
 """;
 
-printUsage() {
+void printUsage() {
   print(USAGE);
 }
 

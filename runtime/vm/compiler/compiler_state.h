@@ -72,19 +72,6 @@ class CompilerState : public ThreadStackResource {
   SlotCache* slot_cache() const { return slot_cache_; }
   void set_slot_cache(SlotCache* cache) { slot_cache_ = cache; }
 
-  // Create a dummy list of local variables representing a context object
-  // with the given number of captured variables and given ID.
-  const ZoneGrowableArray<const Slot*>& GetDummyContextSlots(
-      intptr_t context_id,
-      intptr_t num_context_slots);
-
-  // Create a dummy LocalVariable that represents a captured local variable
-  // at the given index in the context with given ID.
-  //
-  // This function returns the same variable when it is called with the
-  // same index.
-  LocalVariable* GetDummyCapturedVariable(intptr_t context_id, intptr_t index);
-
   bool is_aot() const { return is_aot_; }
 
   bool is_optimizing() const { return is_optimizing_; }

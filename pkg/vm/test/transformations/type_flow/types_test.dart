@@ -9,7 +9,7 @@ import 'package:kernel/core_types.dart';
 import 'package:kernel/target/targets.dart' show Target, TargetFlags;
 import 'package:kernel/testing/mock_sdk_component.dart';
 import 'package:test/test.dart';
-import 'package:vm/target/vm.dart';
+import 'package:vm/modular/target/vm.dart';
 import 'package:vm/transformations/type_flow/types.dart';
 
 class TestTypeHierarchy extends TypeHierarchy {

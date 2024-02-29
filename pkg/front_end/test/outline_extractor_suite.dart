@@ -13,15 +13,9 @@ import 'package:front_end/src/fasta/util/outline_extractor.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/src/equivalence.dart';
 import 'package:testing/testing.dart'
-    show
-        Chain,
-        ChainContext,
-        ExpectationSet,
-        Result,
-        Step,
-        TestDescription,
-        runMe;
+    show Chain, ChainContext, ExpectationSet, Result, Step, TestDescription;
 
+import 'fasta/suite_utils.dart';
 import 'fasta/testing/suite.dart' show UPDATE_EXPECTATIONS;
 import 'incremental_suite.dart' as helper;
 import 'testing_utils.dart' show checkEnvironment;
@@ -40,8 +34,10 @@ const String EXPECTATIONS = '''
 ]
 ''';
 
-void main([List<String> arguments = const []]) =>
-    runMe(arguments, createContext, configurationPath: "../testing.json");
+void main([List<String> arguments = const []]) => internalMain(createContext,
+    arguments: arguments,
+    displayName: "outline extractor suite",
+    configurationPath: "../testing.json");
 
 Future<Context> createContext(
     Chain suite, Map<String, String> environment) async {

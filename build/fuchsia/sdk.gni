@@ -90,7 +90,10 @@ template("fuchsia_fidl_library") {
   library_name_json = "${meta_json.name}.json"
 
   foreach(dep, meta_json.deps) {
-    _deps += [ ":$dep" ]
+    # TODO(https://fxbug.dev/42172334): Make zx less special.
+    if (dep != "zx") {
+      _deps += [ ":$dep" ]
+    }
   }
 
   config_name = "config_$target_name"
@@ -106,8 +109,6 @@ template("fuchsia_fidl_library") {
 
     inputs = [ invoker.meta ]
 
-    outputs = [ "$target_gen_dir/$library_name_slashes/cpp/tables.c" ]
-
     args = [
       "--fidlc-bin",
       rebase_path("${_fuchsia_tools_path}/fidlc"),
@@ -117,8 +118,6 @@ template("fuchsia_fidl_library") {
       rebase_path(invoker.meta),
       "--json",
       rebase_path("$target_gen_dir/$library_name_json"),
-      "--output-c-tables",
-      rebase_path("$target_gen_dir/$library_name_slashes/cpp/tables.c"),
     ]
 
     if (fuchsia_target_api_level != -1) {
@@ -128,43 +127,41 @@ template("fuchsia_fidl_library") {
       ]
     }
 
-    if (!defined(invoker.only_generate_tables) ||
-        !invoker.only_generate_tables) {
-      outputs += [
-        "$target_gen_dir/$library_name_slashes/cpp/fidl.cc",
-        "$target_gen_dir/$library_name_slashes/cpp/fidl.h",
-        "$target_gen_dir/$library_name_slashes/cpp/fidl_test_base.h",
+    outputs = [
+      "$target_gen_dir/$library_name_slashes/cpp/fidl.cc",
+      "$target_gen_dir/$library_name_slashes/cpp/fidl.h",
+      "$target_gen_dir/$library_name_slashes/cpp/fidl_test_base.h",
+      "$target_gen_dir/$library_name_slashes/cpp/tables.c",
 
-        "$target_gen_dir/fidl/$library_name/cpp/common_types.cc",
-        "$target_gen_dir/fidl/$library_name/cpp/common_types.h",
-        "$target_gen_dir/fidl/$library_name/cpp/fidl.h",
-        "$target_gen_dir/fidl/$library_name/cpp/hlcpp_conversion.h",
-        "$target_gen_dir/fidl/$library_name/cpp/markers.h",
-        "$target_gen_dir/fidl/$library_name/cpp/natural_messaging.cc",
-        "$target_gen_dir/fidl/$library_name/cpp/natural_messaging.h",
-        "$target_gen_dir/fidl/$library_name/cpp/natural_ostream.cc",
-        "$target_gen_dir/fidl/$library_name/cpp/natural_ostream.h",
-        "$target_gen_dir/fidl/$library_name/cpp/natural_types.cc",
-        "$target_gen_dir/fidl/$library_name/cpp/natural_types.h",
-        "$target_gen_dir/fidl/$library_name/cpp/type_conversions.cc",
-        "$target_gen_dir/fidl/$library_name/cpp/type_conversions.h",
-        "$target_gen_dir/fidl/$library_name/cpp/wire.h",
-        "$target_gen_dir/fidl/$library_name/cpp/wire_messaging.cc",
-        "$target_gen_dir/fidl/$library_name/cpp/wire_messaging.h",
-        "$target_gen_dir/fidl/$library_name/cpp/wire_test_base.h",
-        "$target_gen_dir/fidl/$library_name/cpp/wire_types.cc",
-        "$target_gen_dir/fidl/$library_name/cpp/wire_types.h",
-      ]
+      "$target_gen_dir/fidl/$library_name/cpp/common_types.cc",
+      "$target_gen_dir/fidl/$library_name/cpp/common_types.h",
+      "$target_gen_dir/fidl/$library_name/cpp/fidl.h",
+      "$target_gen_dir/fidl/$library_name/cpp/hlcpp_conversion.h",
+      "$target_gen_dir/fidl/$library_name/cpp/markers.h",
+      "$target_gen_dir/fidl/$library_name/cpp/natural_messaging.cc",
+      "$target_gen_dir/fidl/$library_name/cpp/natural_messaging.h",
+      "$target_gen_dir/fidl/$library_name/cpp/natural_ostream.cc",
+      "$target_gen_dir/fidl/$library_name/cpp/natural_ostream.h",
+      "$target_gen_dir/fidl/$library_name/cpp/natural_types.cc",
+      "$target_gen_dir/fidl/$library_name/cpp/natural_types.h",
+      "$target_gen_dir/fidl/$library_name/cpp/type_conversions.cc",
+      "$target_gen_dir/fidl/$library_name/cpp/type_conversions.h",
+      "$target_gen_dir/fidl/$library_name/cpp/wire.h",
+      "$target_gen_dir/fidl/$library_name/cpp/wire_messaging.cc",
+      "$target_gen_dir/fidl/$library_name/cpp/wire_messaging.h",
+      "$target_gen_dir/fidl/$library_name/cpp/wire_test_base.h",
+      "$target_gen_dir/fidl/$library_name/cpp/wire_types.cc",
+      "$target_gen_dir/fidl/$library_name/cpp/wire_types.h",
+    ]
 
-      args += [
-        "--fidlgen-bin",
-        rebase_path("${_fuchsia_tools_path}/fidlgen_cpp"),
-        "--fidlgen-bin",
-        rebase_path("${_fuchsia_tools_path}/fidlgen_hlcpp"),
-        "--fidlgen-output-root",
-        rebase_path("$target_gen_dir"),
-      ]
-    }
+    args += [
+      "--fidlgen-bin",
+      rebase_path("${_fuchsia_tools_path}/fidlgen_cpp"),
+      "--fidlgen-bin",
+      rebase_path("${_fuchsia_tools_path}/fidlgen_hlcpp"),
+      "--fidlgen-output-root",
+      rebase_path("$target_gen_dir"),
+    ]
   }
 
   source_set(target_name) {
@@ -216,6 +213,14 @@ template("_fuchsia_cc_source_library") {
 
   foreach(dep, meta_json.fidl_deps) {
     _deps += [ "../fidl:$dep" ]
+  }
+
+  foreach(binding_dep, meta_json.fidl_binding_deps) {
+    # No need to check "binding_deps.binding_type" because we always
+    # generate both hlcpp and natural bindings.
+    foreach(dep, binding_dep.deps) {
+      _deps += [ "../fidl:$dep" ]
+    }
   }
 
   source_set(target_name) {
@@ -309,12 +314,11 @@ template("fuchsia_sdk") {
           meta = part_meta_rebased
         }
       } else if (part_type == "fidl_library") {
-        fuchsia_fidl_library(subtarget_name) {
-          meta = part_meta_rebased
-
-          # TODO(fxbug.dev/90838): Remove the zx special-case when generic
-          # option is available.
-          only_generate_tables = subtarget_name == "zx"
+        # TODO(https://fxbug.dev/42172334): Make zx less special.
+        if (subtarget_name != "zx") {
+          fuchsia_fidl_library(subtarget_name) {
+            meta = part_meta_rebased
+          }
         }
       } else if (part_type == "cc_prebuilt_library") {
         _fuchsia_cc_prebuilt_library(subtarget_name) {
@@ -334,7 +338,7 @@ template("fuchsia_repo") {
   assert(defined(invoker.repo), "The location of the repo should be specified.")
 
   action(target_name) {
-    script = "//tools/fuchsia/gen_repo.py"
+    script = "//flutter/tools/fuchsia/gen_repo.py"
 
     pm_binary = rebase_path("${_fuchsia_tools_path}/pm")
     repo_directory = invoker.repo

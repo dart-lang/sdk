@@ -114,6 +114,6 @@ class ConstantsDataExtractor extends AstDataExtractor<String> {
   }
 
   String _stringifyType(DartType type) {
-    return type.getDisplayString(withNullability: true);
+    return type.getDisplayString();
   }
 }

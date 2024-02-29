@@ -181,10 +181,10 @@ class TypeDeclarationBuilderIdentifier extends IdentifierImpl {
     return typeDeclarationBuilder.buildAliasedTypeWithBuiltArguments(
         libraryBuilder,
         nullabilityBuilder.build(libraryBuilder),
-        typeArguments,
-        TypeUse.macroTypeArgument,
         // TODO(johnniwinther): How should handle malbounded types here? Should
         // we report an error on the annotation?
+        typeArguments,
+        TypeUse.macroTypeArgument,
         missingUri,
         TreeNode.noOffset,
         hasExplicitTypeArguments: true);

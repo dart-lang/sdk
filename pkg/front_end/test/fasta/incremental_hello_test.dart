@@ -15,7 +15,7 @@ import 'package:kernel/ast.dart' show Component;
 
 import 'package:kernel/target/targets.dart' show TargetFlags;
 
-import 'package:vm/target/vm.dart' show VmTarget;
+import 'package:vm/modular/target/vm.dart' show VmTarget;
 
 import "package:front_end/src/api_prototype/compiler_options.dart"
     show CompilerOptions, DiagnosticMessage;

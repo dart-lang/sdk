@@ -2549,10 +2549,7 @@ main() {
   null.foo();
 }
 ''', [
-      if (isNullSafetyEnabled)
-        error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 16, 3)
-      else
-        error(CompileTimeErrorCode.UNDEFINED_METHOD, 16, 3),
+      error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 16, 3),
     ]);
 
     var node = findNode.methodInvocation('foo();');
@@ -4320,6 +4317,71 @@ MethodInvocation
     rightParenthesis: )
   staticInvokeType: void Function()
   staticType: void
+''');
+  }
+
+  test_hasReceiver_interfaceType_extensionType_declared_nullableType() async {
+    await assertErrorsInCode(r'''
+extension type A(int it) {
+  int foo() => 0;
+}
+
+void f(A? a) {
+  a.foo();
+}
+''', [
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          67, 3),
+    ]);
+
+    final node = findNode.singleMethodInvocation;
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: A?
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@extensionType::A::@method::foo
+    staticType: int Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: int Function()
+  staticType: int
+''');
+  }
+
+  test_hasReceiver_interfaceType_extensionType_declared_nullableType_nullAware() async {
+    await assertNoErrorsInCode(r'''
+extension type A(int it) {
+  int foo() => 0;
+}
+
+void f(A? a) {
+  a?.foo();
+}
+''');
+
+    final node = findNode.singleMethodInvocation;
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: A?
+  operator: ?.
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@extensionType::A::@method::foo
+    staticType: int Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: int Function()
+  staticType: int?
 ''');
   }
 
@@ -6134,9 +6196,8 @@ MethodInvocation
   }
 
   test_namedArgument() async {
-    var question = isNullSafetyEnabled ? '?' : '';
     await assertNoErrorsInCode('''
-void foo({int$question a, bool$question b}) {}
+void foo({int? a, bool? b}) {}
 
 main() {
   foo(b: false, a: 0);
@@ -6607,9 +6668,8 @@ FunctionExpressionInvocation
   }
 
   test_noReceiver_parameter_call_nullAware() async {
-    var question = isNullSafetyEnabled ? '?' : '';
     await assertNoErrorsInCode('''
-double Function(int)$question foo;
+double Function(int)? foo;
 
 main() {
   foo?.call(1);

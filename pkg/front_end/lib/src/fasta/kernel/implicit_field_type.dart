@@ -11,11 +11,11 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/src/assumptions.dart';
 import 'package:kernel/src/printer.dart';
 
-import '../builder/inferable_type_builder.dart';
-import '../constant_context.dart';
-import '../fasta_codes.dart';
-import '../problems.dart' show unsupported;
 import '../builder/builder.dart';
+import '../builder/inferable_type_builder.dart';
+import '../codes/fasta_codes.dart';
+import '../constant_context.dart';
+import '../problems.dart' show unsupported;
 import '../source/source_field_builder.dart';
 import '../type_inference/type_inferrer.dart';
 import 'body_builder.dart';

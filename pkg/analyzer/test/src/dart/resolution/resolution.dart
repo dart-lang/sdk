@@ -67,12 +67,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   InterfaceType get intType => typeProvider.intType;
 
-  bool get isLegacyLibrary {
-    return !result.libraryElement.isNonNullableByDefault;
-  }
-
-  bool get isNullSafetyEnabled => true;
-
   ClassElement get listElement => typeProvider.listElement;
 
   ClassElement get mapElement => typeProvider.mapElement;
@@ -148,7 +142,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
   void assertElement2(
     Object? nodeOrElement, {
     required Element declaration,
-    bool isLegacy = false,
     Map<String, String> substitution = const {},
   }) {
     Element? element;
@@ -162,12 +155,9 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(actualDeclaration, same(declaration));
 
     if (element is Member) {
-      expect(element.isLegacy, isLegacy);
       assertSubstitution(element.substitution, substitution);
-    } else {
-      if (isLegacy || substitution.isNotEmpty) {
-        fail('Expected to be a Member: (${element.runtimeType}) $element');
-      }
+    } else if (substitution.isNotEmpty) {
+      fail('Expected to be a Member: (${element.runtimeType}) $element');
     }
   }
 
@@ -183,9 +173,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
   }
 
   void assertElementString(Element element, String expected) {
-    var str = element.getDisplayString(
-      withNullability: isNullSafetyEnabled,
-    );
+    var str = element.getDisplayString();
     expect(str, expected);
   }
 
@@ -220,22 +208,18 @@ mixin ResolutionTest implements ResourceProviderMixin {
     String content,
     List<ExpectedError> expectedErrors,
   ) async {
-    path = convertPath(path);
-    newFile(path, content);
-
-    var result = await resolveFile(path);
+    var file = newFile(path, content);
+    var result = await resolveFile(file);
     assertErrorsInResolvedUnit(result, expectedErrors);
 
     return result;
   }
 
   Future<void> assertErrorsInFile2(
-    String path,
+    File file,
     List<ExpectedError> expectedErrors,
   ) async {
-    path = convertPath(path);
-
-    var result = await resolveFile(path);
+    var result = await resolveFile(file);
     assertErrorsInResolvedUnit(result, expectedErrors);
   }
 
@@ -478,18 +462,18 @@ mixin ResolutionTest implements ResourceProviderMixin {
     }
   }
 
-  ExpectedContextMessage message(String filePath, int offset, int length) =>
-      ExpectedContextMessage(convertPath(filePath), offset, length);
+  ExpectedContextMessage message(File file, int offset, int length) =>
+      ExpectedContextMessage(file, offset, length);
 
   Matcher multiplyDefinedElementMatcher(List<Element> elements) {
     return _MultiplyDefinedElementMatcher(elements);
   }
 
-  Future<ResolvedUnitResult> resolveFile(String path);
+  Future<ResolvedUnitResult> resolveFile(File file);
 
   /// Resolve [file] into [result].
   Future<void> resolveFile2(File file) async {
-    result = await resolveFile(file.path);
+    result = await resolveFile(file);
 
     findNode = FindNode(result.content, result.unit);
     findElement = FindElement(result.unit);
@@ -511,20 +495,9 @@ mixin ResolutionTest implements ResourceProviderMixin {
     return resolveFile2(testFile);
   }
 
-  /// Choose the type display string, depending on whether the [result] is
-  /// non-nullable or legacy.
-  String typeStr(String nonNullable, String legacy) {
-    if (result.libraryElement.isNonNullableByDefault) {
-      return nonNullable;
-    } else {
-      return legacy;
-    }
-  }
-
   /// Return a textual representation of the [type] that is appropriate for
   /// tests.
-  String typeString(DartType type) =>
-      type.getDisplayString(withNullability: isNullSafetyEnabled);
+  String typeString(DartType type) => type.getDisplayString();
 
   Matcher _elementMatcher(Object? elementOrMatcher) {
     if (elementOrMatcher is Element) {
@@ -582,10 +555,6 @@ class _ElementMatcher extends Matcher {
       }
 
       if (element is Member) {
-        if (element.isLegacy != false) {
-          return false;
-        }
-
         test.assertSubstitution(element.substitution, const {});
         return true;
       } else {

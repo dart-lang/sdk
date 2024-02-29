@@ -57,7 +57,7 @@ class CiderFixesComputer {
             error,
           );
 
-          var fixes = await DartFixContributor().computeFixes(context);
+          var fixes = await computeFixes(context);
           fixes.sort(Fix.compareFixes);
 
           result.add(

@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:math' show max;
-import 'dart:typed_data' show Uint8List;
 
 import 'package:dart2wasm/class_info.dart';
 import 'package:dart2wasm/code_generator.dart';
@@ -11,6 +10,8 @@ import 'package:dart2wasm/translator.dart';
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
+import 'package:kernel/type_algebra.dart';
+import 'package:kernel/type_environment.dart' as type_env;
 
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
@@ -101,9 +102,6 @@ class Types {
   /// parameter index range of their corresponding function type.
   Map<StructuralParameter, int> functionTypeParameterIndex = Map.identity();
 
-  /// An `i8` array of type category values, indexed by class ID.
-  late final w.Global typeCategoryTable = _buildTypeCategoryTable();
-
   Types(this.translator);
 
   w.ValueType classAndFieldToType(Class cls, int fieldIndex) =>
@@ -135,7 +133,9 @@ class Types {
       // classes whose supertype is [Object]. The latter case will be handled
       // directly in the subtype checking algorithm.
       if (superclassInfo.cls == null ||
-          superclassInfo.cls == coreTypes.objectClass) continue;
+          superclassInfo.cls == coreTypes.objectClass) {
+        continue;
+      }
       Class superclass = superclassInfo.cls!;
 
       // TODO(joshualitt): This includes abstract types that can't be
@@ -286,77 +286,6 @@ class Types {
           .instantiateConstant(null, b, arrayOfStrings, typeNamesType);
     }
     return typeNamesType;
-  }
-
-  // None of these integers belong to masqueraded types like Uint8List.
-  late final int typeCategoryAbstractClass;
-  late final int typeCategoryObject;
-  late final int typeCategoryFunction;
-  late final int typeCategoryRecord;
-  late final int typeCategoryNotMasqueraded;
-
-  /// Build a global array of byte values used to categorize runtime types.
-  w.Global _buildTypeCategoryTable() {
-    // Find 5 class ids whose classes are not masqueraded.
-    final typeCategories = <int>[];
-    for (int i = 0; i < translator.classes.length; i++) {
-      final info = translator.classes[i];
-      if (!translator.classInfoCollector.masqueradeValues.contains(info.cls)) {
-        typeCategories.add(i);
-        if (typeCategories.length == 5) break;
-      }
-    }
-    assert(typeCategories.length == 5 && typeCategories.last <= 255);
-    typeCategoryAbstractClass = typeCategories[0];
-    typeCategoryObject = typeCategories[1];
-    typeCategoryFunction = typeCategories[2];
-    typeCategoryRecord = typeCategories[3];
-    typeCategoryNotMasqueraded = typeCategories[4];
-
-    Set<Class> recordClasses = Set.from(translator.recordClasses.values);
-    Uint8List table = Uint8List(translator.classes.length);
-    for (int i = 0; i < translator.classes.length; i++) {
-      ClassInfo info = translator.classes[i];
-      ClassInfo? masquerade = info.masquerade;
-      Class? cls = info.cls;
-      int category;
-      if (cls == null || cls.isAbstract) {
-        category = typeCategoryAbstractClass;
-      } else if (cls == coreTypes.objectClass) {
-        category = typeCategoryObject;
-      } else if (cls == translator.closureClass) {
-        category = typeCategoryFunction;
-      } else if (recordClasses.contains(cls)) {
-        category = typeCategoryRecord;
-      } else if (masquerade == null || masquerade.classId == i) {
-        category = typeCategoryNotMasqueraded;
-      } else {
-        // Masqueraded class
-        assert(cls.enclosingLibrary.importUri.scheme == "dart");
-        assert(!typeCategories.contains(masquerade.classId));
-        assert(masquerade.classId <= 255);
-        category = masquerade.classId;
-      }
-      table[i] = category;
-    }
-
-    final segment = translator.m.dataSegments.define(table);
-    w.ArrayType arrayType = translator.arrayTypeForDartType(
-        InterfaceType(translator.wasmI8Class, Nullability.nonNullable));
-    final global = translator.m.globals
-        .define(w.GlobalType(w.RefType.def(arrayType, nullable: false)));
-    // Initialize the global to a dummy array, since `array.new_data` is not
-    // a constant instruction and thus can't be used in the initializer.
-    global.initializer.array_new_fixed(arrayType, 0);
-    global.initializer.end();
-    // Create the actual table in the init function.
-    final b = translator.initFunction.body;
-    b.i32_const(0);
-    b.i32_const(table.length);
-    b.array_new_data(arrayType, segment);
-    b.global_set(global);
-
-    return global;
   }
 
   bool _isTypeConstant(DartType type) {
@@ -642,29 +571,33 @@ class Types {
   /// Emit code for testing a value against a Dart type. Expects the value on
   /// the stack as a (ref null #Top) and leaves the result on the stack as an
   /// i32.
-  void emitTypeCheck(CodeGenerator codeGen, DartType type, DartType operandType,
-      [TreeNode? node]) {
+  void emitIsTest(
+      CodeGenerator codeGen, DartType testedAgainstType, DartType operandType,
+      [Location? location]) {
     final b = codeGen.b;
-    b.comment("Type check against $type");
+    b.comment("type check against $testedAgainstType");
     w.Local? operandTemp;
     if (translator.options.verifyTypeChecks) {
-      operandTemp = codeGen.addLocal(translator.topInfo.nullableType);
+      operandTemp =
+          b.addLocal(translator.topInfo.nullableType, isParameter: false);
       b.local_tee(operandTemp);
     }
-    if (!_emitOptimizedTypeCheck(codeGen, type, operandType)) {
-      // General fallback path
-      makeType(codeGen, type);
+    final typeToCheck = _canUseTypeCheckHelper(testedAgainstType, operandType);
+    if (typeToCheck != null) {
+      b.call(
+          _generateIsChecker(typeToCheck, operandType.isPotentiallyNullable));
+    } else {
+      makeType(codeGen, testedAgainstType);
       codeGen.call(translator.isSubtype.reference);
     }
     if (translator.options.verifyTypeChecks) {
       b.local_get(operandTemp!);
-      makeType(codeGen, type);
-      if (node != null && node.location != null) {
+      makeType(codeGen, testedAgainstType);
+      if (location != null) {
         w.FunctionType verifyFunctionType = translator.functions
             .getFunctionType(translator.verifyOptimizedTypeCheck.reference);
-        String location = node.location.toString();
         translator.constants.instantiateConstant(codeGen.function, b,
-            StringConstant(location), verifyFunctionType.inputs.last);
+            StringConstant('$location'), verifyFunctionType.inputs.last);
       } else {
         b.ref_null(w.HeapType.none);
       }
@@ -672,109 +605,300 @@ class Types {
     }
   }
 
-  /// Emit optimized code for testing a value against a Dart type. If the type
-  /// to be tested against is of a shape where we can generate more efficient
-  /// code than the general fallback path, generate such code and return `true`.
-  /// Otherwise, return `false` to indicate that the general path should be
-  /// taken.
-  bool _emitOptimizedTypeCheck(
-      CodeGenerator codeGen, DartType type, DartType operandType) {
-    if (type is! InterfaceType) return false;
+  w.ValueType emitAsCheck(CodeGenerator codeGen, DartType testedAgainstType,
+      DartType operandType, w.RefType boxedOperandType,
+      [Location? location]) {
+    final b = codeGen.b;
 
-    if (type.typeArguments.any((t) => t is! DynamicType)) {
-      // Type has at least one type argument that is not `dynamic`.
-      //
-      // In cases like `x is List<T>` where `x : Iterable<T>` (tested-against
-      // type is a subtype of the operand's static type and the types have same
-      // number of type arguments), it is not necessary to test the type
-      // arguments.
-      Class cls = translator.classForType(operandType);
-      InterfaceType? base = translator.hierarchy
-          .getInterfaceTypeAsInstanceOfClass(type, cls,
-              isNonNullableByDefault:
-                  codeGen.member.enclosingLibrary.isNonNullableByDefault)
-          ?.withDeclaredNullability(operandType.declaredNullability);
+    final typeToCheck = _canUseTypeCheckHelper(testedAgainstType, operandType);
+    if (typeToCheck != null) {
+      b.call(
+          _generateAsChecker(typeToCheck, operandType.isPotentiallyNullable));
+      return translator.translateType(testedAgainstType);
+    }
 
-      final sameNumTypeParams = operandType is InterfaceType &&
-          operandType.typeArguments.length == type.typeArguments.length;
+    w.Local operand = b.addLocal(boxedOperandType, isParameter: false);
+    b.local_tee(operand);
+    w.Label asCheckBlock = b.block();
+    b.local_get(operand);
+    emitIsTest(codeGen, testedAgainstType, operandType, location);
+    b.br_if(asCheckBlock);
+    b.local_get(operand);
+    makeType(codeGen, testedAgainstType);
+    codeGen.call(translator.stackTraceCurrent.reference);
+    codeGen.call(translator.throwAsCheckError.reference);
+    b.unreachable();
+    b.end();
+    return operand.type;
+  }
 
-      if (!(sameNumTypeParams && base == operandType)) {
+  // Returns the type to check against if a helper can be used, otherwise `null`
+  InterfaceType? _canUseTypeCheckHelper(
+      DartType testedAgainstType, DartType operandType) {
+    // The is/as check helpers are for cid-range checks of interface types.
+    if (testedAgainstType is! InterfaceType || operandType is! InterfaceType) {
+      return null;
+    }
+
+    if (_hasOnlyDefaultTypeArguments(testedAgainstType)) {
+      return testedAgainstType;
+    }
+
+    if (_staticTypesEnsureTypeArgumentsMatch(testedAgainstType, operandType)) {
+      // We only need to check whether the nullability and the class itself fits
+      // (the [testedAgainstType] arguments are guaranteed to fit statically)
+      final parameters = testedAgainstType.classNode.typeParameters;
+      final args = [
+        for (int i = 0; i < parameters.length; ++i) parameters[i].defaultType,
+      ];
+      return InterfaceType(
+          testedAgainstType.classNode, testedAgainstType.nullability, args);
+    }
+    return null;
+  }
+
+  bool _staticTypesEnsureTypeArgumentsMatch(
+      InterfaceType testedAgainstType, InterfaceType operandType) {
+    assert(testedAgainstType.typeArguments.isNotEmpty);
+
+    // If the operand type doesn't have any type arguments it will not be able
+    // to tell us anything about the type arguments of testedAgainstType.
+    if (operandType.typeArguments.isEmpty) return false;
+
+    // TODO(http://dartbug.com/54998): If the CFE team provides this
+    // functionality on the [IsExpression]/[AsExpression] and/or as algorithm
+    // in `package:kernel` we can avoid doing that here.
+
+    // We can avoid checking [testedAgainstType]'s arguments if
+    //   a) the operand type is a super type of the [testedAgainstType]
+    //   b) the type arguments of the operand type imply the values of
+    //      [testedAgainstType] parameters of the subtype
+    //   c) the operand type expressed as the subtype with type arguments filled
+    //   in (from condition b) is a subtype of the subtype we check against.
+    //
+    // For this to hold, the [testedAgainstType]'s uninstantiated `this`
+    // (e.g. `Foo<Foo::T1, Foo::T2>`) expressed as it's supertype
+    // (e.g. Baz<Map<Foo::T1, Foo::T2>, int>`) must contain all of
+    // [testedAgainstType]'s type parameters in order for us to be able to find
+    // assignments to them. e.g.
+    //
+    //     class Baz<T, H> {}
+    //     class Foo<T1, T2> extends Baz<Map<T1, T2>, int> { }
+    //
+    //     Baz<Map<int, double>, int> obj;
+    //     if (obj is Foo<num, double>) { }
+    //
+    // We know that
+    //
+    //     * `obj` has static type `Baz<Map<int, double>, int>`
+    //     * if `obj is Foo`, then we must have `obj is Foo<int, double>`
+    //                      , therefore `obj is Foo<num, double>`
+    //
+    // Notice this can only be done if all [testedAgainstType] parameters appear
+    // in the expression as supertype
+
+    final subtypeThisType = testedAgainstType.classNode
+        .getThisType(coreTypes, Nullability.nonNullable);
+    final sameClass = (testedAgainstType.classNode == operandType.classNode);
+    final typeArgumentExpressions = sameClass
+        ? subtypeThisType.typeArguments
+        : translator.hierarchy.getInterfaceTypeArgumentsAsInstanceOfClass(
+            subtypeThisType, operandType.classNode);
+    if (typeArgumentExpressions == null) return false; // Classes unrelated
+
+    // Try to express operand type as the [testedAgainstType]'s class, thereby
+    // finding assignments to [testedAgainstType]'s type parameters.
+    //
+    // The matching is somewhat conservative but handles most cases we want to
+    // handle.
+    final typeParameterValues = <TypeParameter, DartType>{};
+    {
+      final subtypeParameters = testedAgainstType.classNode.typeParameters;
+      bool recurse(DartType typeExpr, DartType typeValue) {
+        if (typeExpr is TypeParameterType) {
+          if (typeExpr.nullability == Nullability.nullable) return false;
+          final parameter = typeExpr.parameter;
+          assert(subtypeParameters.contains(parameter));
+          final existing = typeParameterValues[parameter];
+          if (existing != null && existing != typeValue) return false;
+          typeParameterValues[parameter] = typeValue;
+          return true;
+        }
+        if (typeExpr is InterfaceType) {
+          if (typeValue is! InterfaceType) return false;
+          if (typeExpr.nullability != typeValue.nullability) return false;
+          if (typeExpr.classNode != typeValue.classNode) return false;
+          final length = typeExpr.typeArguments.length;
+          if (length != typeValue.typeArguments.length) return false;
+          for (int i = 0; i < length; ++i) {
+            if (!recurse(
+                typeExpr.typeArguments[i], typeValue.typeArguments[i])) {
+              return false;
+            }
+          }
+          return true;
+        }
         return false;
       }
-    }
 
-    final b = codeGen.b;
-    bool isPotentiallyNullable = operandType.isPotentiallyNullable;
-    w.Label? resultLabel;
-    if (isPotentiallyNullable) {
-      // Store operand in a temporary variable, since Binaryen does not support
-      // block inputs.
-      w.Local operand = codeGen.addLocal(translator.topInfo.nullableType);
-      b.local_set(operand);
-      resultLabel = b.block(const [], const [w.NumType.i32]);
-      w.Label nullLabel = b.block(const [], const []);
-      b.local_get(operand);
-      b.br_on_null(nullLabel);
-    }
-
-    final interfaceClass = type.classNode;
-
-    if (interfaceClass == coreTypes.objectClass) {
-      b.drop();
-      b.i32_const(1);
-    } else if (interfaceClass == coreTypes.functionClass) {
-      b.ref_test(translator.closureInfo.nonNullableType);
-    } else {
-      final ranges =
-          translator.classIdNumbering.getConcreteClassIdRanges(interfaceClass);
-      if (ranges.isEmpty) {
-        b.drop();
-        b.i32_const(0);
-      } else if (ranges.length == 1) {
-        final range = ranges[0];
-
-        b.struct_get(translator.topInfo.struct, FieldIndex.classId);
-        b.i32_const(range.start);
-        if (range.length == 1) {
-          b.i32_eq();
-        } else {
-          b.i32_sub();
-          b.i32_const(range.length);
-          b.i32_lt_u();
+      final length = typeArgumentExpressions.length;
+      for (int i = 0; i < length; ++i) {
+        if (!recurse(
+            typeArgumentExpressions[i], operandType.typeArguments[i])) {
+          return false;
         }
-      } else {
-        w.Local idLocal = codeGen.addLocal(w.NumType.i32);
-        b.struct_get(translator.topInfo.struct, FieldIndex.classId);
-        b.local_set(idLocal);
-        w.Label done = b.block(const [], const [w.NumType.i32]);
-        b.i32_const(1);
-
-        for (Range range in ranges) {
-          b.local_get(idLocal);
-          b.i32_const(range.start);
-          if (range.length == 1) {
-            b.i32_eq();
-          } else {
-            b.i32_sub();
-            b.i32_const(range.length);
-            b.i32_lt_u();
-          }
-          b.br_if(done);
-        }
-        b.drop();
-        b.i32_const(0);
-        b.end(); // done
       }
     }
 
-    if (isPotentiallyNullable) {
-      b.br(resultLabel!);
-      b.end(); // nullLabel
-      b.i32_const(encodedNullability(type));
-      b.end(); // resultLabel
+    // If we didn't find values for all [testedAgainstType] parameters, we
+    // have to actually check the [testedAgainstType] arguments at runtime.
+    //
+    // Simple example when this is the case: `Object x; x is List<int>`
+    if (typeParameterValues.length !=
+        testedAgainstType.classNode.typeParameters.length) {
+      return false;
     }
 
+    // We can express the [operandType] as [testedAgainstType]'s class as we
+    // found suitable type parameter values.
+    //
+    // If a cid-range check would succeed then this [impliedOperandType] is the
+    // type the operand is guaranteed to have (based on static type information)
+    final impliedOperandType = substitute(subtypeThisType, typeParameterValues);
+
+    // If `true` the caller only needs to check nullabillity and the actual
+    // concrete class, no need to check [testedAgainstType] arguments.
+    return translator.typeEnvironment.isSubtypeOf(
+        impliedOperandType,
+        testedAgainstType.withDeclaredNullability(Nullability.nullable),
+        type_env.SubtypeCheckMode.withNullabilities);
+  }
+
+  bool _hasOnlyDefaultTypeArguments(InterfaceType testedAgainstType) {
+    if (testedAgainstType.typeArguments.isEmpty) return true;
+
+    final parameters = testedAgainstType.classNode.typeParameters;
+    final arguments = testedAgainstType.typeArguments;
+    assert(parameters.length == arguments.length);
+    for (int i = 0; i < arguments.length; ++i) {
+      if (arguments[i] != parameters[i].defaultType) return false;
+    }
     return true;
+  }
+
+  final Map<DartType, w.BaseFunction> _nullableIsCheckers = {};
+  final Map<DartType, w.BaseFunction> _isCheckers = {};
+
+  // Currently the is-checker helper functions only check nullability and the
+  // concrete class (the arguments do not have to be checked).
+  w.BaseFunction _generateIsChecker(
+      InterfaceType testedAgainstType, bool operandIsNullable) {
+    assert(_hasOnlyDefaultTypeArguments(testedAgainstType));
+
+    final interfaceClass = testedAgainstType.classNode;
+
+    final cachedIsCheckers =
+        operandIsNullable ? _nullableIsCheckers : _isCheckers;
+
+    return cachedIsCheckers.putIfAbsent(testedAgainstType, () {
+      final argumentType = operandIsNullable
+          ? translator.topInfo.nullableType
+          : translator.topInfo.nonNullableType;
+      final function = translator.m.functions.define(
+          translator.m.types.defineFunction(
+            [argumentType],
+            [w.NumType.i32],
+          ),
+          '<obj> is ${testedAgainstType.classNode}');
+
+      final b = function.body;
+      b.local_get(b.locals[0]);
+
+      w.Label? resultLabel;
+      if (operandIsNullable) {
+        // Store operand in a temporary variable, since Binaryen does not support
+        // block inputs.
+        w.Local operand = function.addLocal(translator.topInfo.nullableType);
+        b.local_set(operand);
+        resultLabel = b.block(const [], const [w.NumType.i32]);
+        w.Label nullLabel = b.block(const [], const []);
+        b.local_get(operand);
+        b.br_on_null(nullLabel);
+      }
+
+      if (interfaceClass == coreTypes.objectClass) {
+        b.drop();
+        b.i32_const(1);
+      } else if (interfaceClass == coreTypes.functionClass) {
+        b.ref_test(translator.closureInfo.nonNullableType);
+      } else {
+        final ranges = translator.classIdNumbering
+            .getConcreteClassIdRanges(interfaceClass);
+        b.struct_get(translator.topInfo.struct, FieldIndex.classId);
+        b.emitClassIdRangeCheck(ranges);
+      }
+
+      if (operandIsNullable) {
+        b.br(resultLabel!);
+        b.end(); // nullLabel
+        b.i32_const(encodedNullability(testedAgainstType));
+        b.end(); // resultLabel
+      }
+
+      b.return_();
+      b.end();
+
+      return function;
+    });
+  }
+
+  final Map<DartType, w.BaseFunction> _nullableAsCheckers = {};
+  final Map<DartType, w.BaseFunction> _asCheckers = {};
+
+  // Currently the as-checker helper functions only check nullability and the
+  // concrete class (the arguments do not have to be checked).
+  w.BaseFunction _generateAsChecker(
+      InterfaceType testedAgainstType, bool operandIsNullable) {
+    assert(_hasOnlyDefaultTypeArguments(testedAgainstType));
+
+    final cachedAsCheckers =
+        operandIsNullable ? _nullableAsCheckers : _asCheckers;
+    final returnType = translator.translateType(testedAgainstType);
+    return cachedAsCheckers.putIfAbsent(testedAgainstType, () {
+      final argumentType = operandIsNullable
+          ? translator.topInfo.nullableType
+          : translator.topInfo.nonNullableType;
+      final function = translator.m.functions.define(
+          translator.m.types.defineFunction(
+            [argumentType],
+            [returnType],
+          ),
+          '<obj> as ${testedAgainstType.classNode}');
+
+      final b = function.body;
+      w.Label asCheckBlock = b.block();
+      b.local_get(b.locals[0]);
+      b.call(_generateIsChecker(testedAgainstType, operandIsNullable));
+      b.br_if(asCheckBlock);
+
+      b.local_get(b.locals[0]);
+      translator.constants.instantiateConstant(function, b,
+          TypeLiteralConstant(testedAgainstType), nonNullableTypeType);
+      b.call(translator.functions
+          .getFunction(translator.stackTraceCurrent.reference));
+      b.call(translator.functions
+          .getFunction(translator.throwAsCheckError.reference));
+      b.unreachable();
+
+      b.end();
+
+      b.local_get(b.locals[0]);
+      translator.convertType(function, argumentType, returnType);
+      b.return_();
+      b.end();
+
+      return function;
+    });
   }
 
   int encodedNullability(DartType type) =>

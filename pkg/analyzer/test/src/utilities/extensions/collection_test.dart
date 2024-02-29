@@ -26,6 +26,18 @@ class IterableExtensionTest {
 
 @reflectiveTest
 class IterableIterableExtensionTest {
+  test_asElementToIndexMap() {
+    expect(
+      <String>[].asElementToIndexMap,
+      <String, int>{},
+    );
+
+    expect(
+      ['a', 'b', 'c'].asElementToIndexMap,
+      {'a': 0, 'b': 1, 'c': 2},
+    );
+  }
+
   test_flattenedToList() {
     expect(
       [

@@ -16,5 +16,9 @@ Future<FastaContext> createContext(
 }
 
 Future<void> main([List<String> arguments = const []]) async {
-  await internalMain(createContext, arguments: arguments);
+  await internalMain(
+    createContext,
+    arguments: arguments,
+    displayName: "strong suite",
+  );
 }

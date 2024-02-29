@@ -118,11 +118,11 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
 
   @override
   Future<ResolvedUnitResult> resolveFile(
-    String path, {
+    File file, {
     OperationPerformanceImpl? performance,
   }) async {
     result = await fileResolver.resolve(
-      path: path,
+      path: file.path,
       performance: performance,
     );
     return result;
@@ -130,7 +130,7 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
 
   @override
   Future<void> resolveTestFile() async {
-    result = await resolveFile(testFile.path);
+    result = await resolveFile(testFile);
     findNode = FindNode(result.content, result.unit);
     findElement = FindElement(result.unit);
   }

@@ -213,11 +213,10 @@ class Wrapper {
 /*member: main:
  dynamic=[
   B.call<A>(0),
-  exact:C.call<A>(0),
-  exact:Wrapper.b,
-  exact:Wrapper.b<A>(0),
-  exact:Wrapper.call,
-  exact:Wrapper.call<A>(0)],
+  Wrapper.b,
+  Wrapper.b<A>(0),
+  Wrapper.call,
+  Wrapper.call<A>(0)],
  static=[
   C.(0),
   Wrapper.(2)]

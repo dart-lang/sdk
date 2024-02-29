@@ -142,7 +142,7 @@ class BufferedStringSinkWrapper implements api.OutputSink, StringSink {
   }
 
   @override
-  void writeAll(Iterable objects, [String separator = ""]) {
+  void writeAll(Iterable<Object?> objects, [String separator = ""]) {
     _buffer.writeAll(objects, separator);
     _flushIfNecessary();
   }

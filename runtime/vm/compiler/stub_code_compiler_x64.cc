@@ -205,8 +205,6 @@ void StubCodeCompiler::GenerateCallToRuntimeStub() {
 
     // Pass target::NativeArguments structure by value and call runtime.
     __ movq(Address(RSP, thread_offset), THR);  // Set thread in NativeArgs.
-    // There are no runtime calls to closures, so we do not need to set the tag
-    // bits kClosureFunctionBit and kInstanceFunctionBit in argc_tag_.
     __ movq(Address(RSP, argc_tag_offset),
             R10);  // Set argc in target::NativeArguments.
     // Compute argv.
@@ -638,49 +636,11 @@ void StubCodeCompiler::GenerateBuildMethodExtractorStub(
   __ Bind(&no_type_args);
   __ pushq(RCX);
 
-  // Push extracted method.
-  __ pushq(RBX);
-
-  // Allocate context.
-  {
-    Label done, slow_path;
-    if (!FLAG_use_slow_path && FLAG_inline_alloc) {
-      __ TryAllocateArray(kContextCid, target::Context::InstanceSize(1),
-                          &slow_path, Assembler::kFarJump,
-                          RAX,  // instance
-                          RSI,  // end address
-                          RDI);
-      __ movq(RSI, Address(THR, target::Thread::object_null_offset()));
-      __ StoreCompressedIntoObjectNoBarrier(
-          RAX, FieldAddress(RAX, target::Context::parent_offset()), RSI);
-      __ movl(FieldAddress(RAX, target::Context::num_variables_offset()),
-              Immediate(1));
-      __ jmp(&done);
-    }
-
-    __ Bind(&slow_path);
-
-    __ LoadImmediate(/*num_vars=*/R10, Immediate(1));
-    __ LoadObject(CODE_REG, context_allocation_stub);
-    __ call(FieldAddress(CODE_REG, target::Code::entry_point_offset()));
-
-    __ Bind(&done);
-  }
-
-  // Put context in right register for AllocateClosure call.
-  __ MoveRegister(AllocateClosureABI::kContextReg, RAX);
-
-  // Store receiver in context
-  __ movq(AllocateClosureABI::kScratchReg,
+  // Put function and context (receiver) in right registers for
+  // AllocateClosure stub.
+  __ MoveRegister(AllocateClosureABI::kFunctionReg, RBX);
+  __ movq(AllocateClosureABI::kContextReg,
           Address(RBP, target::kWordSize * kReceiverOffsetInWords));
-  __ StoreCompressedIntoObject(
-      AllocateClosureABI::kContextReg,
-      FieldAddress(AllocateClosureABI::kContextReg,
-                   target::Context::variable_offset(0)),
-      AllocateClosureABI::kScratchReg);
-
-  // Pop function.
-  __ popq(AllocateClosureABI::kFunctionReg);
 
   // Allocate closure. After this point, we only use the registers in
   // AllocateClosureABI.

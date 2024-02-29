@@ -175,16 +175,14 @@ class SimpleIdentifierResolver with ScopeHelpers {
     if (callFunctionType != null) {
       final staticType = _resolver.inferenceHelper
           .inferTearOff(node, node, callFunctionType, contextType: contextType);
-      _inferenceHelper.recordStaticType(node, staticType,
-          contextType: contextType);
+      _inferenceHelper.recordStaticType(node, staticType);
       _currentAlreadyResolved = true;
       return null;
     }
 
     final recordField = result.recordField;
     if (recordField != null) {
-      _inferenceHelper.recordStaticType(node, recordField.type,
-          contextType: contextType);
+      _inferenceHelper.recordStaticType(node, recordField.type);
       _currentAlreadyResolved = true;
       return null;
     }
@@ -194,31 +192,33 @@ class SimpleIdentifierResolver with ScopeHelpers {
     var enclosingClass = _resolver.enclosingClass;
     if (_isFactoryConstructorReturnType(node) &&
         !identical(element, enclosingClass)) {
-      errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS, node);
+      errorReporter.atNode(
+        node,
+        CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS,
+      );
     } else if (_isConstructorReturnType(node) &&
         !identical(element, enclosingClass)) {
       // This error is now reported by the parser.
       element = null;
     } else if (element is PrefixElement && !_isValidAsPrefix(node)) {
-      errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
+      errorReporter.atNode(
         node,
-        [element.name],
+        CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
+        arguments: [element.name],
       );
     } else if (element == null) {
       // TODO(brianwilkerson): Recover from this error.
       if (node.name == "await" && _resolver.enclosingFunction != null) {
-        errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT,
+        errorReporter.atNode(
           node,
+          CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT,
         );
       } else if (!_resolver.definingLibrary
           .shouldIgnoreUndefinedIdentifier(node)) {
-        errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.UNDEFINED_IDENTIFIER,
+        errorReporter.atNode(
           node,
-          [node.name],
+          CompileTimeErrorCode.UNDEFINED_IDENTIFIER,
+          arguments: [node.name],
         );
       }
     }
@@ -288,8 +288,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
       staticType = _resolver.inferenceHelper
           .inferTearOff(node, node, staticType, contextType: contextType);
     }
-    _inferenceHelper.recordStaticType(node, staticType,
-        contextType: contextType);
+    _inferenceHelper.recordStaticType(node, staticType);
   }
 
   // TODO(scheglov): this is duplicate
@@ -312,10 +311,10 @@ class SimpleIdentifierResolver with ScopeHelpers {
       return;
     }
 
-    _resolver.errorReporter.reportErrorForNode(
-      CompileTimeErrorCode.EXTENSION_AS_EXPRESSION,
+    _resolver.errorReporter.atNode(
       node,
-      [node.name],
+      CompileTimeErrorCode.EXTENSION_AS_EXPRESSION,
+      arguments: [node.name],
     );
 
     if (node is PrefixedIdentifierImpl) {

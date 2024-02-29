@@ -32,11 +32,7 @@ class Parser {
       bool allowNativeClause = true,
       required LineInfo lineInfo})
       : astBuilder = AstBuilder(
-          ErrorReporter(
-            errorListener,
-            source,
-            isNonNullableByDefault: featureSet.isEnabled(Feature.non_nullable),
-          ),
+          ErrorReporter(errorListener, source),
           source.uri,
           true,
           featureSet,

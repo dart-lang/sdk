@@ -32,6 +32,8 @@ abstract class TypeSchemaEnvironmentTestBase {
   Component get component => typeParserEnvironment.component;
   CoreTypes get coreTypes => typeParserEnvironment.coreTypes;
 
+  late final OperationsCfe _operations;
+
   void parseTestLibrary(String testLibraryText) {
     typeParserEnvironment = new Env(testLibraryText,
         isNonNullableByDefault: isNonNullableByDefault);
@@ -41,6 +43,15 @@ abstract class TypeSchemaEnvironmentTestBase {
         typeParserEnvironment.component.libraries.length == 2,
         "The tests are supposed to have exactly two libraries: "
         "the core library and the test library.");
+    _operations = new OperationsCfe(typeSchemaEnvironment,
+        nullability: isNonNullableByDefault
+            ? Nullability.nonNullable
+            : Nullability.legacy,
+        fieldNonPromotabilityInfo: FieldNonPromotabilityInfo(
+            fieldNameInfo: {}, individualPropertyReasons: {}),
+        typeCacheNonNullable: {},
+        typeCacheNullable: {},
+        typeCacheLegacy: {});
     Library firstLibrary = typeParserEnvironment.component.libraries.first;
     Library secondLibrary = typeParserEnvironment.component.libraries.last;
     if (firstLibrary.importUri.isScheme("dart") &&
@@ -173,7 +184,7 @@ abstract class TypeSchemaEnvironmentTestBase {
               returnContextTypeNode,
               isNonNullableByDefault: isNonNullableByDefault,
               typeOperations: new OperationsCfe(typeSchemaEnvironment,
-                  nullability: Nullability.nullable,
+                  nullability: Nullability.nonNullable,
                   fieldNonPromotabilityInfo: new FieldNonPromotabilityInfo(
                       fieldNameInfo: {}, individualPropertyReasons: {}),
                   typeCacheNonNullable: {},
@@ -212,7 +223,7 @@ abstract class TypeSchemaEnvironmentTestBase {
         (List<StructuralParameter> typeParameterNodes) {
       assert(typeParameterNodes.length == 1);
 
-      TypeConstraint typeConstraint = parseConstraint(constraints);
+      MergedTypeConstraint typeConstraint = parseConstraint(constraints);
       DartType expectedTypeNode = parseType(expected);
       StructuralParameter typeParameterNode = typeParameterNodes.single;
       List<DartType>? inferredTypeNodes = inferredTypeFromDownwardPhase == null
@@ -224,7 +235,8 @@ abstract class TypeSchemaEnvironmentTestBase {
           [typeParameterNode],
           inferredTypeNodes,
           isNonNullableByDefault: isNonNullableByDefault,
-          preliminary: downwardsInferPhase);
+          preliminary: downwardsInferPhase,
+          operations: _operations);
 
       expect(inferredTypeNodes.single, expectedTypeNode);
     });
@@ -237,8 +249,11 @@ abstract class TypeSchemaEnvironmentTestBase {
   /// where the former adds an upper bound and the latter adds a lower bound.
   /// The bounds are added to the constraint in the order they are mentioned in
   /// the [constraint] string, from left to right.
-  TypeConstraint parseConstraint(String constraint) {
-    TypeConstraint result = new TypeConstraint();
+  MergedTypeConstraint parseConstraint(String constraint) {
+    MergedTypeConstraint result = new MergedTypeConstraint(
+        lower: const UnknownType(),
+        upper: const UnknownType(),
+        origin: const UnknownTypeConstraintOrigin());
     List<String> upperBoundSegments = constraint.split("<:");
     bool firstUpperBoundSegment = true;
     for (String upperBoundSegment in upperBoundSegments) {
@@ -254,12 +269,10 @@ abstract class TypeSchemaEnvironmentTestBase {
         if (firstLowerBoundSegment) {
           firstLowerBoundSegment = false;
           if (segment.isNotEmpty) {
-            typeSchemaEnvironment.addUpperBound(result, parseType(segment),
-                isNonNullableByDefault: isNonNullableByDefault);
+            result.mergeInTypeSchemaUpper(parseType(segment), _operations);
           }
         } else {
-          typeSchemaEnvironment.addLowerBound(result, parseType(segment),
-              isNonNullableByDefault: isNonNullableByDefault);
+          result.mergeInTypeSchemaLower(parseType(segment), _operations);
         }
       }
     }

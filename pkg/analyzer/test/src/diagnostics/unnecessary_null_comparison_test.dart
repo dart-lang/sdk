@@ -27,24 +27,6 @@ f(int a, int? b) {
 ''');
   }
 
-  test_equal_legacy() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-// @dart = 2.5
-var a = 0;
-''');
-
-    await assertErrorsInCode('''
-import 'a.dart';
-
-f() {
-  a == null;
-  null == a;
-}
-''', [
-      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
-    ]);
-  }
-
   test_equal_notNullable() async {
     await assertErrorsInCode('''
 f(int a) {
@@ -104,24 +86,6 @@ f(int a, int? b) {
   0 != b;
 }
 ''');
-  }
-
-  test_notEqual_legacy() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-// @dart = 2.5
-var a = 0;
-''');
-
-    await assertErrorsInCode('''
-import 'a.dart';
-
-f() {
-  a != null;
-  null != a;
-}
-''', [
-      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
-    ]);
   }
 
   test_notEqual_notNullable() async {

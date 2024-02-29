@@ -57,6 +57,13 @@ const isD8 = (typeof readbuffer === "function");
 const isJSC = (typeof readFile === "function");
 const isJSShell = (typeof readRelativeToScript === "function");
 
+if (isD8) {
+  // D8's performance.measure is API incompatible with the browser version.
+  //
+  // (see also dart2js's `sdk/**/js_runtime/lib/preambles/d8.js`)
+  delete performance.measure;
+}
+
 // d8's `setTimeout` doesn't work as expected (it doesn't wait before calling
 // the callback), and d8 also doesn't have `setInterval` and `queueMicrotask`.
 // So we define our own event loop with these functions.

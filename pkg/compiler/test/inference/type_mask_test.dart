@@ -28,7 +28,7 @@ main() {
     CompilationResult result =
         await runCompiler(memorySourceFiles: {'main.dart': CODE});
     Expect.isTrue(result.isSuccess);
-    Compiler compiler = result.compiler;
+    Compiler compiler = result.compiler!;
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
     final commonMasks = closedWorld.abstractValueDomain as CommonMasks;
     ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;

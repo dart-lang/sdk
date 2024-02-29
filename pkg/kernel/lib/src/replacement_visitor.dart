@@ -360,7 +360,7 @@ class ReplacementVisitor implements DartTypeVisitor1<DartType?, int> {
     } else {
       return new ExtensionType(
           node.extensionTypeDeclaration,
-          newNullability ?? node.nullability,
+          newNullability ?? node.declaredNullability,
           newTypeArguments ?? node.typeArguments);
     }
   }

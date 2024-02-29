@@ -35,17 +35,17 @@ class DocCommentVerifier {
   void docImport(DocImport docImport) {
     var deferredKeyword = docImport.import.deferredKeyword;
     if (deferredKeyword != null) {
-      _errorReporter.reportErrorForToken(
-        WarningCode.DOC_IMPORT_CANNOT_BE_DEFERRED,
+      _errorReporter.atToken(
         deferredKeyword,
+        WarningCode.DOC_IMPORT_CANNOT_BE_DEFERRED,
       );
     }
     var configurations = docImport.import.configurations;
     if (configurations.isNotEmpty) {
-      _errorReporter.reportErrorForOffset(
-        WarningCode.DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS,
-        configurations.first.offset,
-        configurations.last.end - configurations.first.offset,
+      _errorReporter.atOffset(
+        offset: configurations.first.offset,
+        length: configurations.last.end - configurations.first.offset,
+        errorCode: WarningCode.DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS,
       );
     }
   }
@@ -58,22 +58,22 @@ class DocCommentVerifier {
     if (positionalArgumentCount < requiredCount) {
       var gap = requiredCount - positionalArgumentCount;
       if (gap == 1) {
-        _errorReporter.reportErrorForOffset(
-          WarningCode.DOC_DIRECTIVE_MISSING_ONE_ARGUMENT,
-          tag.offset,
-          tag.end - tag.offset,
-          [tag.type.name, required.last.name],
+        _errorReporter.atOffset(
+          offset: tag.offset,
+          length: tag.end - tag.offset,
+          errorCode: WarningCode.DOC_DIRECTIVE_MISSING_ONE_ARGUMENT,
+          arguments: [tag.type.name, required.last.name],
         );
       } else if (gap == 2) {
         var missingArguments = [
           required[required.length - 2].name,
           required.last.name,
         ];
-        _errorReporter.reportErrorForOffset(
-          WarningCode.DOC_DIRECTIVE_MISSING_TWO_ARGUMENTS,
-          tag.offset,
-          tag.end - tag.offset,
-          [tag.type.name, ...missingArguments],
+        _errorReporter.atOffset(
+          offset: tag.offset,
+          length: tag.end - tag.offset,
+          errorCode: WarningCode.DOC_DIRECTIVE_MISSING_TWO_ARGUMENTS,
+          arguments: [tag.type.name, ...missingArguments],
         );
       } else if (gap == 3) {
         var missingArguments = [
@@ -81,11 +81,11 @@ class DocCommentVerifier {
           required[required.length - 2].name,
           required.last.name,
         ];
-        _errorReporter.reportErrorForOffset(
-          WarningCode.DOC_DIRECTIVE_MISSING_THREE_ARGUMENTS,
-          tag.offset,
-          tag.end - tag.offset,
-          [tag.type.name, ...missingArguments],
+        _errorReporter.atOffset(
+          offset: tag.offset,
+          length: tag.end - tag.offset,
+          errorCode: WarningCode.DOC_DIRECTIVE_MISSING_THREE_ARGUMENTS,
+          arguments: [tag.type.name, ...missingArguments],
         );
       }
     }
@@ -99,21 +99,21 @@ class DocCommentVerifier {
     if (positionalArgumentCount > requiredCount) {
       var errorOffset = tag.positionalArguments[requiredCount].offset;
       var errorLength = tag.positionalArguments.last.end - errorOffset;
-      _errorReporter.reportErrorForOffset(
-        WarningCode.DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS,
-        errorOffset,
-        errorLength,
-        [tag.type.name, positionalArgumentCount, requiredCount],
+      _errorReporter.atOffset(
+        offset: errorOffset,
+        length: errorLength,
+        errorCode: WarningCode.DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS,
+        arguments: [tag.type.name, positionalArgumentCount, requiredCount],
       );
     }
 
     for (var namedArgument in tag.namedArguments) {
       if (!tag.type.namedParameters.containsNamed(namedArgument.name)) {
-        _errorReporter.reportErrorForOffset(
-          WarningCode.DOC_DIRECTIVE_HAS_UNEXPECTED_NAMED_ARGUMENT,
-          namedArgument.offset,
-          namedArgument.end - namedArgument.offset,
-          [tag.type.name, namedArgument.name],
+        _errorReporter.atOffset(
+          offset: namedArgument.offset,
+          length: namedArgument.end - namedArgument.offset,
+          errorCode: WarningCode.DOC_DIRECTIVE_HAS_UNEXPECTED_NAMED_ARGUMENT,
+          arguments: [tag.type.name, namedArgument.name],
         );
       }
     }
@@ -128,11 +128,11 @@ class DocCommentVerifier {
       var argument = tag.positionalArguments[i];
 
       void reportWrongFormat() {
-        _errorReporter.reportErrorForOffset(
-          WarningCode.DOC_DIRECTIVE_ARGUMENT_WRONG_FORMAT,
-          argument.offset,
-          argument.end - argument.offset,
-          [parameter.name, parameter.expectedFormat.displayString],
+        _errorReporter.atOffset(
+          offset: argument.offset,
+          length: argument.end - argument.offset,
+          errorCode: WarningCode.DOC_DIRECTIVE_ARGUMENT_WRONG_FORMAT,
+          arguments: [parameter.name, parameter.expectedFormat.displayString],
         );
       }
 

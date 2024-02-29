@@ -284,8 +284,7 @@ class JClosedWorldBuilder {
         requiresStartupMetrics: backendUsage.requiresStartupMetrics,
         runtimeTypeUses: runtimeTypeUses,
         isFunctionApplyUsed: backendUsage.isFunctionApplyUsed,
-        isNoSuchMethodUsed: backendUsage.isNoSuchMethodUsed,
-        isHtmlLoaded: backendUsage.isHtmlLoaded);
+        isNoSuchMethodUsed: backendUsage.isNoSuchMethodUsed);
   }
 
   InterceptorDataImpl _convertInterceptorData(JsToFrontendMap map,

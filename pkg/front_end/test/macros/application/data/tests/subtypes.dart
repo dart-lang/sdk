@@ -35,7 +35,8 @@ augment prefix0.D2 topLevelFunction4(prefix0.D1 a, ) {
   print('isExactly=false');
   print('isSubtype=false');
   throw 42;
-}*/
+}
+*/
 
 import 'package:macro/macro.dart';
 

@@ -8,6 +8,8 @@ import 'package:_fe_analyzer_shared/src/messages/severity.dart';
 import 'package:expect/expect.dart' show Expect;
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/base/processed_options.dart';
+import 'package:front_end/src/compute_platform_binaries_location.dart'
+    show computePlatformBinariesLocation;
 import 'package:front_end/src/fasta/compiler_context.dart';
 import 'package:front_end/src/fasta/dill/dill_target.dart';
 import 'package:front_end/src/fasta/kernel/kernel_target.dart';
@@ -15,9 +17,8 @@ import 'package:front_end/src/fasta/ticker.dart';
 import 'package:front_end/src/fasta/uri_translator.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/target/targets.dart';
-import 'package:front_end/src/compute_platform_binaries_location.dart'
-    show computePlatformBinariesLocation;
-import "package:vm/target/vm.dart" show VmTarget;
+import "package:vm/modular/target/vm.dart" show VmTarget;
+
 import 'utils/io_utils.dart' show computeRepoDirUri;
 
 final Uri repoDir = computeRepoDirUri();
@@ -90,9 +91,11 @@ Future<bool> main() async {
   Set<Uri> otherNonDartUris = new Set<Uri>();
   Set<Uri> frontEndUris = new Set<Uri>();
   Set<Uri> kernelUris = new Set<Uri>();
+  Set<Uri> vmModularUris = new Set<Uri>();
   Set<Uri> feAnalyzerSharedUris = new Set<Uri>();
   Set<Uri> dartPlatformUris = new Set<Uri>();
   Uri kernelUri = repoDir.resolve("pkg/kernel/");
+  Uri vmModularUri = repoDir.resolve("pkg/vm/modular/");
   Uri feAnalyzerSharedUri = repoDir.resolve("pkg/_fe_analyzer_shared/");
   Uri platformUri1 = repoDir.resolve("sdk/lib/");
   Uri platformUri2 = repoDir.resolve("runtime/lib/");
@@ -102,6 +105,8 @@ Future<bool> main() async {
       frontEndUris.add(uri);
     } else if (uri.toString().startsWith(kernelUri.toString())) {
       kernelUris.add(uri);
+    } else if (uri.toString().startsWith(vmModularUri.toString())) {
+      vmModularUris.add(uri);
     } else if (uri.toString().startsWith(feAnalyzerSharedUri.toString())) {
       feAnalyzerSharedUris.add(uri);
     } else if (uri.toString().startsWith(platformUri1.toString()) ||
@@ -118,6 +123,7 @@ Future<bool> main() async {
   // * Everything in frontEndUris is okay --- the frontend can import itself.
   // * Everything in kernel is okay --- the frontend is allowed to
   //   import package:kernel.
+  // * Everything in vm/modular is okay, it's specifically for the CFE.
   // * For other entries, remove allowlisted entries.
   // * Everything else is an error.
 

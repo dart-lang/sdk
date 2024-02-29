@@ -23,6 +23,21 @@ enum ImportElementPrefixKind {
   isNull,
 }
 
+enum MacroDiagnosticKind {
+  argument,
+  exception,
+  introspectionCycle,
+  invalidTarget,
+  macro,
+}
+
+enum MacroDiagnosticTargetKind {
+  application,
+  element,
+  elementAnnotation,
+  type,
+}
+
 class Tag {
   static const int Nothing = 0;
   static const int Something = 1;
@@ -111,8 +126,6 @@ class Tag {
   static const int VariableDeclarationList = 43;
 
   static const int RawElement = 0;
-  static const int MemberLegacyWithoutTypeArguments = 1;
-  static const int MemberLegacyWithTypeArguments = 2;
   static const int MemberWithTypeArguments = 3;
   static const int ImportPrefixElement = 4;
 
@@ -133,6 +146,18 @@ class Tag {
   static const int RecordType = 11;
   static const int TypeParameterType = 12;
   static const int VoidType = 13;
+}
+
+enum TypeAnnotationLocationKind {
+  aliasedType,
+  element,
+  extendsClause,
+  formalParameter,
+  listIndex,
+  recordNamedField,
+  recordPositionalField,
+  returnType,
+  variableType,
 }
 
 enum TypeParameterVarianceTag {

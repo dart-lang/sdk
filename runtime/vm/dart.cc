@@ -241,7 +241,7 @@ static void CheckOffsets() {
   if (!ok) {
     FATAL(
         "CheckOffsets failed. Try updating offsets by running "
-        "./tools/run_offsets_extractor.sh");
+        "./tools/run_offsets_extractor.dart");
   }
 #undef CHECK_FIELD
 #undef CHECK_ARRAY
@@ -342,7 +342,6 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
   ForwardingCorpse::Init();
   Api::Init();
   NativeSymbolResolver::Init();
-  UnwindingRecordsPlatform::Init();
   Page::Init();
   StoreBuffer::Init();
   MarkingStack::Init();
@@ -376,7 +375,8 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
         params->vm_snapshot_instructions, nullptr, -1, api_flags));
     // ObjectStore should be created later, after null objects are initialized.
     auto group = new IsolateGroup(std::move(source), /*embedder_data=*/nullptr,
-                                  /*object_store=*/nullptr, api_flags);
+                                  /*object_store=*/nullptr, api_flags,
+                                  /*is_vm_isolate*/ true);
     group->CreateHeap(/*is_vm_isolate=*/true,
                       /*is_service_or_kernel_isolate=*/false);
     IsolateGroup::RegisterIsolateGroup(group);
@@ -676,6 +676,8 @@ char* Dart::Cleanup() {
     }
   }
 
+  Isolate::KillAllSystemIsolates(Isolate::kInternalKillMsg);
+
   // Shutdown the kernel isolate.
   if (FLAG_trace_shutdown) {
     OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Shutting down kernel isolate\n",
@@ -755,7 +757,6 @@ char* Dart::Cleanup() {
   StoreBuffer::Cleanup();
   Object::Cleanup();
   Page::Cleanup();
-  UnwindingRecordsPlatform::Cleanup();
   StubCode::Cleanup();
 #if defined(SUPPORT_TIMELINE)
   if (FLAG_trace_shutdown) {
@@ -894,30 +895,12 @@ ErrorPtr Dart::InitIsolateGroupFromSnapshot(
 static void FinalizeBuiltinClasses(Thread* thread) {
   auto class_table = thread->isolate_group()->class_table();
   Class& cls = Class::Handle(thread->zone());
-
-#define ENSURE_FINALIZED(clazz)                                                \
-  if (class_table->HasValidClassAt(k##clazz##Cid)) {                           \
-    cls = class_table->At(k##clazz##Cid);                                      \
-    RELEASE_ASSERT(cls.EnsureIsFinalized(thread) == Object::null());           \
+  for (intptr_t cid = kInstanceCid; cid < kNumPredefinedCids; cid++) {
+    if (class_table->HasValidClassAt(cid)) {
+      cls = class_table->At(cid);
+      RELEASE_ASSERT(cls.EnsureIsFinalized(thread) == Object::null());
+    }
   }
-
-  CLASS_LIST_INSTANCE_SINGLETONS(ENSURE_FINALIZED)
-  CLASS_LIST_ARRAYS(ENSURE_FINALIZED)
-  CLASS_LIST_STRINGS(ENSURE_FINALIZED)
-  // No maps/sets.
-
-#define ENSURE_TD_FINALIZED(clazz)                                             \
-  ENSURE_FINALIZED(TypedData##clazz)                                           \
-  ENSURE_FINALIZED(TypedData##clazz##View)                                     \
-  ENSURE_FINALIZED(ExternalTypedData##clazz)                                   \
-  ENSURE_FINALIZED(UnmodifiableTypedData##clazz##View)
-
-  CLASS_LIST_TYPED_DATA(ENSURE_TD_FINALIZED)
-#undef ENSURE_TD_FINALIZED
-
-  ENSURE_FINALIZED(ByteDataView)
-  ENSURE_FINALIZED(UnmodifiableByteDataView)
-  ENSURE_FINALIZED(ByteBuffer)
 }
 
 ErrorPtr Dart::InitializeIsolateGroup(Thread* T,
@@ -1168,11 +1151,6 @@ void Dart::RunShutdownCallback() {
 
 void Dart::ShutdownIsolate(Thread* T) {
   T->isolate()->Shutdown();
-}
-
-bool Dart::VmIsolateNameEquals(const char* name) {
-  ASSERT(name != nullptr);
-  return (strcmp(name, kVmIsolateName) == 0);
 }
 
 int64_t Dart::UptimeMicros() {

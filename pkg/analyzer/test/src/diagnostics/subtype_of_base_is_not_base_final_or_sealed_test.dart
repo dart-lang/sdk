@@ -144,7 +144,7 @@ class C extends B {}
         text:
             "The type 'C' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'base'.",
         contextMessages: [
-          ExpectedContextMessage(testFile.path, 11, 1,
+          ExpectedContextMessage(testFile, 11, 1,
               text:
                   "The type 'B' is a subtype of 'A', and 'A' is defined here.")
         ],
@@ -166,7 +166,7 @@ class D extends C {}
         text:
             "The type 'D' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'base'.",
         contextMessages: [
-          ExpectedContextMessage(testFile.path, 11, 1,
+          ExpectedContextMessage(testFile, 11, 1,
               text:
                   "The type 'C' is a subtype of 'A', and 'A' is defined here.")
         ],
@@ -188,7 +188,7 @@ class D extends C {}
         text:
             "The type 'D' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'base'.",
         contextMessages: [
-          ExpectedContextMessage(testFile.path, 11, 1,
+          ExpectedContextMessage(testFile, 11, 1,
               text:
                   "The type 'C' is a subtype of 'A', and 'A' is defined here.")
         ],
@@ -210,7 +210,7 @@ class D extends C {}
         text:
             "The type 'D' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'base'.",
         contextMessages: [
-          ExpectedContextMessage(testFile.path, 11, 1,
+          ExpectedContextMessage(testFile, 11, 1,
               text:
                   "The type 'C' is a subtype of 'A', and 'A' is defined here.")
         ],
@@ -219,8 +219,7 @@ class D extends C {}
   }
 
   test_class_sealed_extends_outside() async {
-    final aPath = '$testPackageLibPath/a.dart';
-    newFile(aPath, r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 base class A {}
 ''');
 
@@ -236,7 +235,7 @@ class C extends B {}
         text:
             "The type 'C' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'base'.",
         contextMessages: [
-          ExpectedContextMessage(convertPath(aPath), 11, 1,
+          ExpectedContextMessage(a, 11, 1,
               text:
                   "The type 'B' is a subtype of 'A', and 'A' is defined here.")
         ],
@@ -257,7 +256,7 @@ base class A {}
         text:
             "The type 'C' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'base'.",
         contextMessages: [
-          ExpectedContextMessage(testFile.path, 60, 1,
+          ExpectedContextMessage(testFile, 60, 1,
               text:
                   "The type 'B' is a subtype of 'A', and 'A' is defined here.")
         ],
@@ -278,7 +277,7 @@ class C implements B {}
         text:
             "The type 'C' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'base'.",
         contextMessages: [
-          ExpectedContextMessage(testFile.path, 11, 1,
+          ExpectedContextMessage(testFile, 11, 1,
               text:
                   "The type 'B' is a subtype of 'A', and 'A' is defined here.")
         ],
@@ -326,7 +325,7 @@ class C = Object with B implements AA;
         text:
             "The type 'C' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'base'.",
         contextMessages: [
-          ExpectedContextMessage(testFile.path, 11, 1,
+          ExpectedContextMessage(testFile, 11, 1,
               text:
                   "The type 'AA' is a subtype of 'A', and 'A' is defined here.")
         ],
@@ -348,7 +347,7 @@ interface class C = Object with B implements AA;
         text:
             "The type 'C' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'base'.",
         contextMessages: [
-          ExpectedContextMessage(testFile.path, 11, 1,
+          ExpectedContextMessage(testFile, 11, 1,
               text:
                   "The type 'AA' is a subtype of 'A', and 'A' is defined here.")
         ],
@@ -369,7 +368,7 @@ class C extends B {}
         text:
             "The type 'C' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'base'.",
         contextMessages: [
-          ExpectedContextMessage(testFile.path, 17, 1,
+          ExpectedContextMessage(testFile, 17, 1,
               text:
                   "The type 'B' is a subtype of 'A', and 'A' is defined here.")
         ],
@@ -378,8 +377,7 @@ class C extends B {}
   }
 
   test_mixinClass_sealed_outside() async {
-    final aPath = '$testPackageLibPath/a.dart';
-    newFile(aPath, r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 base mixin class A {}
 ''');
 
@@ -395,7 +393,7 @@ class C extends B {}
         text:
             "The type 'C' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'base'.",
         contextMessages: [
-          ExpectedContextMessage(convertPath(aPath), 17, 1,
+          ExpectedContextMessage(a, 17, 1,
               text:
                   "The type 'B' is a subtype of 'A', and 'A' is defined here.")
         ],

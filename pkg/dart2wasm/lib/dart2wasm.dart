@@ -25,8 +25,6 @@ final List<Option> options = [
       defaultsTo: _d.translatorOptions.importSharedMemory),
   Flag("inlining", (o, value) => o.translatorOptions.inlining = value,
       defaultsTo: _d.translatorOptions.inlining),
-  Flag("name-section", (o, value) => o.translatorOptions.nameSection = value,
-      defaultsTo: _d.translatorOptions.nameSection),
   Flag("minify", (o, value) => o.translatorOptions.minify = value,
       defaultsTo: _d.translatorOptions.minify),
   Flag("polymorphic-specialization",
@@ -36,9 +34,10 @@ final List<Option> options = [
       defaultsTo: _d.translatorOptions.printKernel),
   Flag("print-wasm", (o, value) => o.translatorOptions.printWasm = value,
       defaultsTo: _d.translatorOptions.printWasm),
-  Flag("js-compatibility",
-      (o, value) => o.translatorOptions.jsCompatibility = value,
-      defaultsTo: _d.translatorOptions.jsCompatibility),
+  Flag("js-compatibility", (o, value) {
+    o.translatorOptions.jsCompatibility = value;
+    o.environment['dart.wasm.js_compatibility'] = 'true';
+  }, defaultsTo: _d.translatorOptions.jsCompatibility),
   Flag(
       "enable-asserts", (o, value) => o.translatorOptions.enableAsserts = value,
       defaultsTo: _d.translatorOptions.enableAsserts),
@@ -55,6 +54,9 @@ final List<Option> options = [
   },
       defaultsTo: _d.translatorOptions.omitImplicitTypeChecks &&
           _d.translatorOptions.omitExplicitTypeChecks),
+  Flag("omit-bounds-checks", (o, value) {
+    o.translatorOptions.omitBoundsChecks = value;
+  }, defaultsTo: _d.translatorOptions.omitBoundsChecks),
   Flag("verbose", (o, value) => o.translatorOptions.verbose = value,
       defaultsTo: _d.translatorOptions.verbose),
   Flag("verify-type-checks",
@@ -73,7 +75,7 @@ final List<Option> options = [
   IntMultiOption(
       "watch", (o, values) => o.translatorOptions.watchPoints = values),
   StringMultiOption(
-      "define", (o, values) => o.environment = processEnvironment(values),
+      "define", (o, values) => o.environment.addAll(processEnvironment(values)),
       abbr: "D"),
   StringMultiOption(
       "enable-experiment",

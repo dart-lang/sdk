@@ -32,7 +32,9 @@ class ParserTestListener implements Listener {
       // Find first one that's not any of the denylisted ones.
       String line = traceLines[i];
       if (line.contains("parser_test_listener.dart:") ||
-          line.contains("parser_suite.dart:")) continue;
+          line.contains("parser_suite.dart:")) {
+        continue;
+      }
       return line.substring(line.indexOf("(") + 1, line.lastIndexOf(")"));
     }
     return "N/A";
@@ -2103,6 +2105,7 @@ class ParserTestListener implements Listener {
 
   @override
   void endTopLevelFields(
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -2112,6 +2115,7 @@ class ParserTestListener implements Listener {
       Token beginToken,
       Token endToken) {
     indent--;
+    seen(augmentToken);
     seen(externalToken);
     seen(staticToken);
     seen(covariantToken);
@@ -2120,6 +2124,7 @@ class ParserTestListener implements Listener {
     seen(beginToken);
     seen(endToken);
     doPrint('endTopLevelFields('
+        '$augmentToken, '
         '$externalToken, '
         '$staticToken, '
         '$covariantToken, '

@@ -18,7 +18,7 @@ namespace kernel {
 // package:kernel/binary.md.
 
 static const uint32_t kMagicProgramFile = 0x90ABCDEFu;
-static const uint32_t kSupportedKernelFormatVersion = 115;
+static const uint32_t kSupportedKernelFormatVersion = 116;
 
 // Keep in sync with package:kernel/lib/binary/tag.dart
 #define KERNEL_TAG_LIST(V)                                                     \
@@ -251,6 +251,11 @@ enum InstanceInvocationFlags {
 // Keep in sync with package:kernel/lib/ast.dart
 enum DynamicInvocationFlags {
   kDynamicInvocationFlagImplicitCall = 1 << 0,
+};
+
+// Keep in sync with package:kernel/lib/ast.dart
+enum ThrowFlags {
+  kThrowForErrorHandling = 1 << 0,
 };
 
 // Keep in sync with package:kernel/lib/ast.dart

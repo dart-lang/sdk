@@ -28,15 +28,9 @@ import 'package:front_end/src/fasta/util/parser_ast_helper.dart'
     show ParserAstNode;
 import 'package:kernel/ast.dart';
 import 'package:testing/testing.dart'
-    show
-        Chain,
-        ChainContext,
-        ExpectationSet,
-        Result,
-        Step,
-        TestDescription,
-        runMe;
+    show Chain, ChainContext, ExpectationSet, Result, Step, TestDescription;
 
+import 'fasta/suite_utils.dart';
 import 'fasta/testing/suite.dart' show UPDATE_EXPECTATIONS;
 import 'parser_test_listener.dart' show ParserTestListener;
 import 'parser_test_parser.dart' show TestParser;
@@ -56,8 +50,10 @@ const String EXPECTATIONS = '''
 ]
 ''';
 
-void main([List<String> arguments = const []]) =>
-    runMe(arguments, createContext, configurationPath: "../testing.json");
+void main([List<String> arguments = const []]) => internalMain(createContext,
+    arguments: arguments,
+    displayName: "parser suite",
+    configurationPath: "../testing.json");
 
 Future<Context> createContext(
     Chain suite, Map<String, String> environment) async {

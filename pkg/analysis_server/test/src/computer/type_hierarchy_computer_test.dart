@@ -743,7 +743,7 @@ MyCl^ass1<String, String>? a;
     addTestSource(content);
     await expectTarget(
       _isItem(
-        'MyClass1<String, String>',
+        'MyClass1<String, String>?',
         testFile.path,
         codeRange: code.ranges[0].sourceRange,
         nameRange: code.ranges[1].sourceRange,

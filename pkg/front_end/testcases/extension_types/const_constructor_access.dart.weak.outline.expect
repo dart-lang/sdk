@@ -77,16 +77,16 @@ Try using a constructor or factory that is 'const'.
 const implicitConstAliased1 = Typedef1(0); /* Error */
                               ^^^^^^^^";
 static field invalid-type explicitConstAliased1;
-static const field self::ExtensionType1% /* = core::int */ newConstAliased1 = invalid-expression "pkg/front_end/testcases/extension_types/const_constructor_access.dart:15:30: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+static const field self::ExtensionType1 /* = core::int */ newConstAliased1 = invalid-expression "pkg/front_end/testcases/extension_types/const_constructor_access.dart:15:30: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
 Try using a constructor or factory that is 'const'.
 const newConstAliased1 = new Typedef1(0); /* Error */
                              ^";
 static const field self::ExtensionType2 /* = core::int */ implicitConst2 = const self::ExtensionType2|constructor#(0);
 static field self::ExtensionType2 /* = core::int */ explicitConst2;
 static const field self::ExtensionType2 /* = core::int */ newConst2 = const self::ExtensionType2|constructor#(0);
-static const field self::ExtensionType2% /* = core::int */ implicitConstAliased2 = const self::ExtensionType2|constructor#(0);
-static field self::ExtensionType2% /* = core::int */ explicitConstAliased2;
-static const field self::ExtensionType2% /* = core::int */ newConstAliased2 = const self::ExtensionType2|constructor#(0);
+static const field self::ExtensionType2 /* = core::int */ implicitConstAliased2 = const self::ExtensionType2|constructor#(0);
+static field self::ExtensionType2 /* = core::int */ explicitConstAliased2;
+static const field self::ExtensionType2 /* = core::int */ newConstAliased2 = const self::ExtensionType2|constructor#(0);
 static extension-type-member method ExtensionType1|constructor#(core::int i) → self::ExtensionType1 /* = core::int */
   ;
 static extension-type-member method ExtensionType1|constructor#_#new#tearOff(core::int i) → self::ExtensionType1 /* = core::int */

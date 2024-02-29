@@ -24,7 +24,7 @@ static extension-type-member method Class|constructor#_#named#tearOff(core::int 
   return self::Class|constructor#named(it);
 static extension-type-member method GenericClass|constructor#<T extends core::Object? = dynamic>(self::GenericClass|constructor#::T% it) → self::GenericClass<self::GenericClass|constructor#::T%> /* = self::GenericClass|constructor#::T% */
   ;
-static extension-type-member method GenericClass|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::GenericClass|constructor#_#new#tearOff::T% it) → self::GenericClass<self::GenericClass|constructor#_#new#tearOff::T%>% /* = self::GenericClass|constructor#_#new#tearOff::T% */
+static extension-type-member method GenericClass|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::GenericClass|constructor#_#new#tearOff::T% it) → self::GenericClass<self::GenericClass|constructor#_#new#tearOff::T%> /* = self::GenericClass|constructor#_#new#tearOff::T% */
   return self::GenericClass|constructor#<self::GenericClass|constructor#_#new#tearOff::T%>(it);
 static method main() → dynamic
   ;

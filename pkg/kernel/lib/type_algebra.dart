@@ -1196,7 +1196,7 @@ abstract class _TypeSubstitutor extends _SubstitutorBase {
     List<DartType> typeArguments = node.typeArguments.map(visit).toList();
     if (useCounter == before) return node;
     return new ExtensionType(
-        node.extensionTypeDeclaration, node.nullability, typeArguments);
+        node.extensionTypeDeclaration, node.declaredNullability, typeArguments);
   }
 
   @override
@@ -1282,7 +1282,7 @@ abstract class _TypeSubstitutor extends _SubstitutorBase {
     if (replacement != null) {
       return replacement.withDeclaredNullability(
           combineNullabilitiesForSubstitution(
-              replacement.nullability, node.nullability));
+              replacement.declaredNullability, node.nullability));
     }
     return node;
   }
@@ -1304,7 +1304,7 @@ abstract class _TypeSubstitutor extends _SubstitutorBase {
     if (replacement == null) return node;
     return replacement.withDeclaredNullability(
         combineNullabilitiesForSubstitution(
-            node.nullability, replacement.nullability));
+            node.declaredNullability, replacement.nullability));
   }
 
   @override
@@ -1455,8 +1455,8 @@ class FunctionTypeInstantiator implements DartTypeVisitor<DartType?> {
     if (typeArguments == null) {
       return null;
     } else {
-      return new ExtensionType(
-          node.extensionTypeDeclaration, node.nullability, typeArguments);
+      return new ExtensionType(node.extensionTypeDeclaration,
+          node.declaredNullability, typeArguments);
     }
   }
 
@@ -1564,7 +1564,7 @@ class FunctionTypeInstantiator implements DartTypeVisitor<DartType?> {
     if (replacement != null) {
       return replacement.withDeclaredNullability(
           combineNullabilitiesForSubstitution(
-              replacement.nullability, node.nullability));
+              replacement.declaredNullability, node.nullability));
     }
     return null;
   }

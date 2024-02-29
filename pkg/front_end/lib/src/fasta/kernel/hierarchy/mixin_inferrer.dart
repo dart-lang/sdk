@@ -7,23 +7,14 @@ library fasta.class_hierarchy_builder;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchyBase;
 import 'package:kernel/core_types.dart' show CoreTypes;
-import 'package:kernel/src/standard_bounds.dart';
 import 'package:kernel/type_algebra.dart';
-import 'package:kernel/type_environment.dart';
 import 'package:kernel/src/bounds_checks.dart';
 
 import '../../builder/declaration_builders.dart';
 import '../../messages.dart'
     show Message, templateMixinInferenceNoMatchingClass;
 import '../../problems.dart' show unexpected, unsupported;
-import '../../type_inference/standard_bounds.dart'
-    show TypeSchemaStandardBounds;
-import '../../type_inference/type_constraint_gatherer.dart'
-    show TypeConstraintGatherer;
-import '../../type_inference/type_inference_engine.dart';
 import '../../type_inference/type_schema.dart';
-import '../../type_inference/type_schema_environment.dart' show TypeConstraint;
-import 'hierarchy_builder.dart';
 
 class BuilderMixinInferrer {
   final CoreTypes coreTypes;
@@ -489,72 +480,5 @@ class _MixinInferenceSolution {
       }
       return result2;
     }
-  }
-}
-
-class TypeBuilderConstraintGatherer extends TypeConstraintGatherer
-    with StandardBounds, TypeSchemaStandardBounds {
-  @override
-  final ClassHierarchyBuilder hierarchy;
-
-  TypeBuilderConstraintGatherer(
-      this.hierarchy, Iterable<StructuralParameter> typeParameters,
-      {required bool isNonNullableByDefault,
-      required OperationsCfe typeOperations})
-      : super.subclassing(typeParameters,
-            isNonNullableByDefault: isNonNullableByDefault,
-            typeOperations: typeOperations);
-
-  @override
-  CoreTypes get coreTypes => hierarchy.coreTypes;
-
-  @override
-  void addLowerBound(TypeConstraint constraint, DartType lower,
-      {required bool isNonNullableByDefault}) {
-    constraint.lower = getStandardUpperBound(constraint.lower, lower,
-        isNonNullableByDefault: isNonNullableByDefault);
-  }
-
-  @override
-  void addUpperBound(TypeConstraint constraint, DartType upper,
-      {required bool isNonNullableByDefault}) {
-    constraint.upper = getStandardLowerBound(constraint.upper, upper,
-        isNonNullableByDefault: isNonNullableByDefault);
-  }
-
-  @override
-  Member? getInterfaceMember(Class class_, Name name, {bool setter = false}) {
-    return null;
-  }
-
-  @override
-  List<DartType>? getTypeArgumentsAsInstanceOf(
-      TypeDeclarationType type, TypeDeclaration typeDeclaration) {
-    return hierarchy.getTypeArgumentsAsInstanceOf(type, typeDeclaration);
-  }
-
-  @override
-  List<DartType>? getExtensionTypeArgumentsAsInstanceOf(
-      ExtensionType type, ExtensionTypeDeclaration superclass) {
-    return hierarchy
-        .getExtensionTypeArgumentsAsInstanceOfExtensionTypeDeclaration(
-            type, superclass);
-  }
-
-  @override
-  InterfaceType futureType(DartType type, Nullability nullability) {
-    return new InterfaceType(
-        hierarchy.futureClass, nullability, <DartType>[type]);
-  }
-
-  @override
-  bool isSubtypeOf(
-      DartType subtype, DartType supertype, SubtypeCheckMode mode) {
-    return hierarchy.types.isSubtypeOf(subtype, supertype, mode);
-  }
-
-  @override
-  bool areMutualSubtypes(DartType s, DartType t, SubtypeCheckMode mode) {
-    return isSubtypeOf(s, t, mode) && isSubtypeOf(t, s, mode);
   }
 }

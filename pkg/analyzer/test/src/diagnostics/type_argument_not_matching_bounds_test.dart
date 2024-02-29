@@ -136,7 +136,7 @@ extension type A<T extends A<T>>(int it) {}
 void f(A a) {}
 ''', [
       error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 52, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 52, 1)]),
+          contextMessages: [message(testFile, 52, 1)]),
     ]);
   }
 
@@ -161,7 +161,7 @@ class C {
 }
 ''', [
       error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 71, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 69, 4)]),
+          contextMessages: [message(testFile, 69, 4)]),
     ]);
   }
 
@@ -202,7 +202,7 @@ class G<E extends A> {}
 G<B> f() => throw 0;
 ''', [
       error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 48, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 46, 4)]),
+          contextMessages: [message(testFile, 46, 4)]),
     ]);
   }
 
@@ -214,7 +214,7 @@ class G<E extends A> {}
 typedef G<B> f();
 ''', [
       error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 56, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 54, 4)]),
+          contextMessages: [message(testFile, 54, 4)]),
     ]);
   }
 
@@ -226,7 +226,7 @@ class G<E extends A> {}
 f(G<B> h()) {}
 ''', [
       error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 50, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 48, 4)]),
+          contextMessages: [message(testFile, 48, 4)]),
     ]);
   }
 
@@ -238,7 +238,7 @@ class CB<T extends F> {}
 void f(CB<FB<F>> a) {}
 ''', [
       error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 119, 5,
-          contextMessages: [message('/home/test/lib/test.dart', 116, 9)]),
+          contextMessages: [message(testFile, 116, 9)]),
     ]);
   }
 
@@ -270,7 +270,7 @@ class G<E extends A> {}
 var b = 1 is G<B>;
 ''', [
       error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 61, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 59, 4)]),
+          contextMessages: [message(testFile, 59, 4)]),
     ]);
   }
 
@@ -402,7 +402,7 @@ class C {
 }
 ''', [
       error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 60, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 58, 4)]),
+          contextMessages: [message(testFile, 58, 4)]),
     ]);
   }
 
@@ -489,7 +489,7 @@ class A<T extends A<T>> {}
 typedef X<T> = A;
 ''', [
       error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 42, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 42, 1)]),
+          contextMessages: [message(testFile, 42, 1)]),
     ]);
   }
 
@@ -500,7 +500,7 @@ typedef X<T extends A> = Map<int, T>;
 void f(X<String> a) {}
 ''', [
       error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 58, 6,
-          contextMessages: [message('/home/test/lib/test.dart', 56, 9)]),
+          contextMessages: [message(testFile, 56, 9)]),
     ]);
   }
 
@@ -538,7 +538,7 @@ class Baz extends Bar {}
 void main() {}
 ''', [
       error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 65, 3,
-          contextMessages: [message('/home/test/lib/test.dart', 65, 3)]),
+          contextMessages: [message(testFile, 65, 3)]),
     ]);
     // Instantiate-to-bounds should have instantiated "Bar" to "Bar<Foo>".
     assertType(result.unit.declaredElement!.getClass('Baz')!.supertype,
@@ -553,8 +553,8 @@ foo(G g) {}
 ''', [
       error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 92, 1,
           contextMessages: [
-            message('/home/test/lib/test.dart', 92, 1),
-            message('/home/test/lib/test.dart', 92, 1)
+            message(testFile, 92, 1),
+            message(testFile, 92, 1)
           ]),
     ]);
   }
@@ -567,7 +567,7 @@ typedef F<T extends A>();
 F<B> fff = (throw 42);
 ''', [
       error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 50, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 48, 4)]),
+          contextMessages: [message(testFile, 48, 4)]),
     ]);
   }
 
@@ -607,7 +607,7 @@ class G<E extends A> {}
 f(G<B> g) {}
 ''', [
       error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 50, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 48, 4)]),
+          contextMessages: [message(testFile, 48, 4)]),
     ]);
   }
 
@@ -681,7 +681,7 @@ class D<E extends A> {}
 C<D<B>> c = (throw 0);
 ''', [
       error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 64, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 62, 4)]),
+          contextMessages: [message(testFile, 62, 4)]),
     ]);
   }
 
@@ -691,7 +691,7 @@ class C<T extends int> {}
 var t = C<String>;
 ''', [
       error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 36, 6,
-          contextMessages: [message('/home/test/lib/test.dart', 34, 9)]),
+          contextMessages: [message(testFile, 34, 9)]),
     ]);
   }
 
@@ -701,7 +701,7 @@ typedef Cb<T extends int> = void Function();
 var t = Cb<String>;
 ''', [
       error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 56, 6,
-          contextMessages: [message('/home/test/lib/test.dart', 53, 10)]),
+          contextMessages: [message(testFile, 53, 10)]),
     ]);
   }
 
@@ -712,7 +712,7 @@ typedef D<T extends int> = C;
 var t = D<String>;
 ''', [
       error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 51, 6,
-          contextMessages: [message('/home/test/lib/test.dart', 49, 9)]),
+          contextMessages: [message(testFile, 49, 9)]),
     ]);
   }
 
@@ -725,7 +725,7 @@ class G<E extends A> {}
 class D<F extends G<B>> {}
 ''', [
       error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 77, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 75, 4)]),
+          contextMessages: [message(testFile, 75, 4)]),
     ]);
   }
 
@@ -737,7 +737,7 @@ class G<E extends A> {}
 G<B> g = (throw 0);
 ''', [
       error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 48, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 46, 4)]),
+          contextMessages: [message(testFile, 46, 4)]),
     ]);
   }
 

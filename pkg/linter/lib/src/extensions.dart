@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/src/dart/ast/ast.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/dart/element/member.dart'; // ignore: implementation_imports
 import 'package:collection/collection.dart';
 
@@ -24,6 +24,19 @@ class EnumLikeClassDescription {
 
 extension AstNodeExtension on AstNode {
   Iterable<AstNode> get childNodes => childEntities.whereType<AstNode>();
+
+  bool get isAugmentation {
+    var self = this;
+    return switch (self) {
+      ConstructorDeclaration() => self.augmentKeyword != null,
+      FunctionDeclarationImpl() => self.augmentKeyword != null,
+      FunctionExpression() => self.parent?.isAugmentation ?? false,
+      MethodDeclaration() => self.augmentKeyword != null,
+      // TODO(pq): unimplemented
+      // VariableDeclaration() => self.augmentKeyword != null,
+      _ => false
+    };
+  }
 
   bool get isEffectivelyPrivate {
     var node = this;
@@ -47,34 +60,6 @@ extension AstNodeExtension on AstNode {
 
     var element = parent.declaredElement;
     return element != null && element.hasInternal;
-  }
-
-  /// Builds the list resulting from traversing the node in DFS and does not
-  /// include the node itself.
-  ///
-  /// It excludes the nodes for which the [excludeCriteria] returns true. If
-  /// [excludeCriteria] is not provided, all nodes are included.
-  @Deprecated(
-      'This approach is slow and slated for removal. Traversal via a standard visitor is preferred.')
-  Iterable<AstNode> traverseNodesInDFS({AstNodePredicate? excludeCriteria}) {
-    var nodes = <AstNode>{};
-    var nodesToVisit = List.of(childNodes);
-    if (excludeCriteria == null) {
-      while (nodesToVisit.isNotEmpty) {
-        var node = nodesToVisit.removeAt(0);
-        nodes.add(node);
-        nodesToVisit.insertAll(0, node.childNodes);
-      }
-    } else {
-      while (nodesToVisit.isNotEmpty) {
-        var node = nodesToVisit.removeAt(0);
-        if (excludeCriteria(node)) continue;
-        nodes.add(node);
-        nodesToVisit.insertAll(0, node.childNodes);
-      }
-    }
-
-    return nodes;
   }
 }
 
@@ -420,7 +405,8 @@ extension MethodDeclarationExtension on MethodDeclaration {
     }
     var parent = declaredElement.enclosingElement;
     if (parent is InterfaceElement) {
-      return parent.lookUpGetter(name.lexeme, declaredElement.library);
+      return parent.augmented
+          ?.lookUpGetter(name: name.lexeme, library: declaredElement.library);
     }
     if (parent is ExtensionElement) {
       return parent.getGetter(name.lexeme);

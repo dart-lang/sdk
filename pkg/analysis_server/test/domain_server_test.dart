@@ -92,7 +92,7 @@ class ServerDomainTest extends PubPackageAnalysisServerTest {
     await responseFuture;
   }
 
-  Future<void> test_setClientCapabilities() async {
+  Future<void> test_setClientCapabilities_requests() async {
     var requestId = -1;
 
     Future<void> setCapabilities(
@@ -122,6 +122,151 @@ class ServerDomainTest extends PubPackageAnalysisServerTest {
     await setCapabilities(openUrlRequest: true, showMessageRequest: true);
     await setCapabilities(openUrlRequest: false, showMessageRequest: true);
     await setCapabilities(openUrlRequest: false, showMessageRequest: false);
+  }
+
+  /// Verify that the server handles URIs once we've enabled the supportsUris
+  /// client capability.
+  Future<void>
+      test_setClientCapabilities_supportsUris_clientToServer_request() async {
+    // Tell the server we support URIs.
+    await handleSuccessfulRequest(
+        ServerSetClientCapabilitiesParams([], supportsUris: true)
+            .toRequest('-1'));
+
+    // Set the roots using a URI. Since the helper methods will to through
+    // toJson() (which will convert paths to URIs) we need to pass the JSON
+    // manually here.
+    await handleSuccessfulRequest(Request('1', 'analysis.setAnalysisRoots', {
+      'included': [toUri(workspaceRootPath).toString()],
+      'excluded': [],
+    }));
+    await pumpEventQueue(times: 5000);
+
+    // Ensure the roots were recorded correctly.
+    expect(
+      server.contextManager.includedPaths,
+      [convertPath(workspaceRootPath)],
+    );
+  }
+
+  Future<void> test_setClientCapabilities_supportsUris_defaults() async {
+    // Before request.
+    expect(server.clientCapabilities.supportsUris, isNull);
+    expect(server.uriConverter.supportedNonFileSchemes, isEmpty);
+
+    // If not supplied.
+    await handleSuccessfulRequest(
+        ServerSetClientCapabilitiesParams([]).toRequest('-1'));
+    expect(server.clientCapabilities.supportsUris, isNull);
+    expect(server.uriConverter.supportedNonFileSchemes, isEmpty);
+
+    // If set explicitly to false.
+    await handleSuccessfulRequest(
+        ServerSetClientCapabilitiesParams([], supportsUris: false)
+            .toRequest('-1'));
+    expect(server.clientCapabilities.supportsUris, isFalse);
+    expect(server.uriConverter.supportedNonFileSchemes, isEmpty);
+  }
+
+  Future<void>
+      test_setClientCapabilities_supportsUris_false_rejectsUris() async {
+    // Explicitly tell the server we do not support URIs.
+    await handleSuccessfulRequest(
+        ServerSetClientCapabilitiesParams([], supportsUris: false)
+            .toRequest('-1'));
+
+    // Try to send a URI anyway.
+    var request = Request('1', 'analysis.setAnalysisRoots', {
+      'included': [toUri(workspaceRootPath).toString()],
+      'excluded': [],
+    });
+    var response = await handleRequest(request);
+    expect(
+        response,
+        isResponseFailure(
+            request.id, RequestErrorCode.INVALID_FILE_PATH_FORMAT));
+  }
+
+  /// Verify that the server uses URIs in notifications once we've enabled the
+  /// supportsUris client capability.
+  Future<void>
+      test_setClientCapabilities_supportsUris_serverToClient_notification() async {
+    // Add a file with an error for testing.
+    var testFilePath = convertPath('$testPackageLibPath/test.dart');
+    var testFileUriString = toUri(testFilePath).toString();
+    newFile(testFilePath, 'broken');
+
+    // Tell the server we support URIs before analysis starts since we will
+    // verify the analysis.errors notification.
+    await handleSuccessfulRequest(
+        ServerSetClientCapabilitiesParams([], supportsUris: true)
+            .toRequest('10'));
+    await pumpEventQueue(times: 5000);
+
+    // Trigger analysis.
+    await setRoots(
+      // We can use paths here because toJson() will handle the conversion.
+      included: [workspaceRootPath],
+      excluded: [],
+    );
+    await pumpEventQueue(times: 5000);
+
+    // Verify the last error for this file was using a URI.
+    var lastErrorFile = serverChannel.notificationsReceived
+        .where((notification) => notification.event == 'analysis.errors')
+        .map((notification) => notification.params!['file'] as String)
+        .lastWhere((filePath) => filePath.endsWith('test.dart'));
+    expect(
+      lastErrorFile,
+      testFileUriString,
+    );
+  }
+
+  /// Verify that the server returns URIs once we've enabled the supportsUris
+  /// client capability.
+  Future<void>
+      test_setClientCapabilities_supportsUris_serverToClient_response() async {
+    // Add a file with an error for testing.
+    var testFilePath = convertPath('$testPackageLibPath/test.dart');
+    var testFileUriString = toUri(testFilePath).toString();
+    newFile(testFilePath, 'broken');
+
+    await setRoots(included: [workspaceRootPath], excluded: []);
+    await pumpEventQueue(times: 5000);
+
+    // Tell the server we support URIs.
+    await handleSuccessfulRequest(
+        ServerSetClientCapabilitiesParams([], supportsUris: true)
+            .toRequest('10'));
+    await pumpEventQueue(times: 5000);
+
+    // Send a GetErrors request. The response has nested FilePaths inside the
+    // AnalysisErrors so will confirm the server mapped correctly.
+    var response =
+        await handleSuccessfulRequest(Request('1', 'analysis.getErrors', {
+      'file': testFileUriString,
+    }));
+    // Verify the error location was the expected URI.
+    expect(
+      (response.result as dynamic)['errors'][0]!['location']['file'],
+      testFileUriString,
+    );
+  }
+
+  Future<void>
+      test_setClientCapabilities_supportsUris_unspecified_rejectsUris() async {
+    // Do not tell the server we support URIs.
+
+    // Try to send a URI anyway.
+    var request = Request('1', 'analysis.setAnalysisRoots', {
+      'included': [toUri(workspaceRootPath).toString()],
+      'excluded': [],
+    });
+    var response = await handleRequest(request);
+    expect(
+        response,
+        isResponseFailure(
+            request.id, RequestErrorCode.INVALID_FILE_PATH_FORMAT));
   }
 
   Future<void> test_setSubscriptions_invalidServiceName() async {

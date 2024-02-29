@@ -47,16 +47,9 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   /// If not `null`, [write] will copy everything into this buffer.
   StringBuffer? _carbonCopyBuffer;
 
-  /// Whether the target file is non-null by default.
-  ///
-  /// When `true`, question `?` suffixes will be included on nullable types.
-  final bool isNonNullableByDefault;
-
   /// Initialize a newly created builder to build a source edit.
   DartEditBuilderImpl(DartFileEditBuilderImpl super.sourceFileEditBuilder,
-      super.offset, super.length)
-      : isNonNullableByDefault = sourceFileEditBuilder
-            .resolvedUnit.libraryElement.isNonNullableByDefault;
+      super.offset, super.length);
 
   DartFileEditBuilderImpl get dartFileEditBuilder =>
       fileEditBuilder as DartFileEditBuilderImpl;
@@ -592,7 +585,6 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       type = DynamicTypeImpl.instance;
     }
     if (argument is NamedExpression &&
-        isNonNullableByDefault &&
         type.nullabilitySuffix == NullabilitySuffix.none) {
       write('required ');
     }
@@ -858,7 +850,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     if (type is InterfaceType && alreadyAdded.add(type)) {
       builder.addSuggestion(
         LinkedEditSuggestionKind.TYPE,
-        type.getDisplayString(withNullability: false),
+        type.getDisplayString(),
       );
       _addSuperTypeProposals(builder, type.superclass, alreadyAdded);
       for (var interfaceType in type.interfaces) {
@@ -886,10 +878,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       return false;
     }
     if (type.isBottom) {
-      if (isNonNullableByDefault) {
-        return true;
-      }
-      return false;
+      return true;
     }
 
     var alias = type.alias;
@@ -1228,11 +1217,8 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       return false;
     }
     if (type.isBottom) {
-      if (isNonNullableByDefault) {
-        write('Never');
-        return true;
-      }
-      return false;
+      write('Never');
+      return true;
     }
 
     var alias = type.alias;
@@ -2203,13 +2189,7 @@ class DartLinkedEditBuilderImpl extends LinkedEditBuilderImpl
   }
 
   String _getTypeSuggestionText(InterfaceType type) {
-    // Add the suffix manually, because it should only be included for '?' and
-    // not '*'.
-    var typeDisplay = type.getDisplayString(withNullability: false);
-    return dartEditBuilder.isNonNullableByDefault &&
-            type.nullabilitySuffix == NullabilitySuffix.question
-        ? '$typeDisplay?'
-        : typeDisplay;
+    return type.getDisplayString();
   }
 }
 

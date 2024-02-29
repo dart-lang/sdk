@@ -2722,6 +2722,14 @@ final Matcher isLspHandleParams = LazyMatcher(
 final Matcher isLspHandleResult = LazyMatcher(
     () => MatchesJsonObject('lsp.handle result', {'lspResponse': isObject}));
 
+/// lsp.notification params
+///
+/// {
+///   "lspNotification": object
+/// }
+final Matcher isLspNotificationParams = LazyMatcher(() => MatchesJsonObject(
+    'lsp.notification params', {'lspNotification': isObject}));
+
 /// moveFile feedback
 final Matcher isMoveFileFeedback = isNull;
 
@@ -2956,10 +2964,12 @@ final Matcher isServerOpenUrlRequestResult = isNull;
 ///
 /// {
 ///   "requests": List<String>
+///   "supportsUris": optional bool
 /// }
 final Matcher isServerSetClientCapabilitiesParams = LazyMatcher(() =>
-    MatchesJsonObject('server.setClientCapabilities params',
-        {'requests': isListOf(isString)}));
+    MatchesJsonObject(
+        'server.setClientCapabilities params', {'requests': isListOf(isString)},
+        optionalFields: {'supportsUris': isBool}));
 
 /// server.setClientCapabilities result
 final Matcher isServerSetClientCapabilitiesResult = isNull;

@@ -402,7 +402,7 @@ class FileState {
   ///
   /// This feature set is then restricted, with the [packageLanguageVersion],
   /// or with a `@dart` language override token in the file header.
-  final FeatureSet _featureSet;
+  final FeatureSet featureSet;
 
   /// The language version for the package that contains this file.
   final Version packageLanguageVersion;
@@ -438,7 +438,7 @@ class FileState {
     this.uri,
     this.source,
     this.workspacePackage,
-    this._featureSet,
+    this.featureSet,
     this.packageLanguageVersion,
     this.analysisOptions,
   ) : uriProperties = FileUriProperties(uri);
@@ -515,6 +515,41 @@ class FileState {
     }
   }
 
+  /// Parses given [code] with the same features as this file.
+  CompilationUnitImpl parseCode({
+    required String code,
+    required AnalysisErrorListener errorListener,
+  }) {
+    CharSequenceReader reader = CharSequenceReader(code);
+    Scanner scanner = Scanner(source, reader, errorListener)
+      ..configureFeatures(
+        featureSetForOverriding: featureSet,
+        featureSet: featureSet.restrictToVersion(
+          packageLanguageVersion,
+        ),
+      );
+    Token token = scanner.tokenize(reportScannerErrors: false);
+    LineInfo lineInfo = LineInfo(scanner.lineStarts);
+
+    Parser parser = Parser(
+      source,
+      errorListener,
+      featureSet: scanner.featureSet,
+      lineInfo: lineInfo,
+    );
+
+    var unit = parser.parseCompilationUnit(token);
+    unit.languageVersion = LibraryLanguageVersion(
+      package: packageLanguageVersion,
+      override: scanner.overrideVersion,
+    );
+
+    // Ensure the string canonicalization cache size is reasonable.
+    pruneStringCanonicalizationCache();
+
+    return unit;
+  }
+
   /// Read the file content and ensure that all of the file properties are
   /// consistent with the read content, including API signature.
   ///
@@ -540,7 +575,7 @@ class FileState {
     {
       var signature = ApiSignature();
       signature.addUint32List(_fsState._saltForUnlinked);
-      signature.addFeatureSet(_featureSet);
+      signature.addFeatureSet(featureSet);
       signature.addLanguageVersion(packageLanguageVersion);
       signature.addString(contentHash);
       signature.addBool(exists);
@@ -733,34 +768,10 @@ class FileState {
   }
 
   CompilationUnitImpl _parse(AnalysisErrorListener errorListener) {
-    CharSequenceReader reader = CharSequenceReader(content);
-    Scanner scanner = Scanner(source, reader, errorListener)
-      ..configureFeatures(
-        featureSetForOverriding: _featureSet,
-        featureSet: _featureSet.restrictToVersion(
-          packageLanguageVersion,
-        ),
-      );
-    Token token = scanner.tokenize(reportScannerErrors: false);
-    LineInfo lineInfo = LineInfo(scanner.lineStarts);
-
-    Parser parser = Parser(
-      source,
-      errorListener,
-      featureSet: scanner.featureSet,
-      lineInfo: lineInfo,
+    return parseCode(
+      code: content,
+      errorListener: errorListener,
     );
-
-    var unit = parser.parseCompilationUnit(token);
-    unit.languageVersion = LibraryLanguageVersion(
-      package: packageLanguageVersion,
-      override: scanner.overrideVersion,
-    );
-
-    // Ensure the string canonicalization cache size is reasonable.
-    pruneStringCanonicalizationCache();
-
-    return unit;
   }
 
   // TODO(scheglov): write tests
@@ -869,6 +880,7 @@ class FileState {
     UnlinkedPartOfNameDirective? partOfNameDirective;
     UnlinkedPartOfUriDirective? partOfUriDirective;
     var augmentations = <UnlinkedAugmentationImportDirective>[];
+    var docImports = <UnlinkedLibraryImportDirective>[];
     var exports = <UnlinkedLibraryExportDirective>[];
     var imports = <UnlinkedLibraryImportDirective>[];
     var parts = <UnlinkedPartDirective>[];
@@ -904,8 +916,17 @@ class FileState {
             length: uri.length,
           ),
         );
+        // TODO(srawlins): Add doc imports.
       } else if (directive is LibraryDirective) {
+        var libraryDocComment = directive.documentationComment;
+        if (libraryDocComment != null) {
+          for (var docImport in libraryDocComment.docImports) {
+            var builder = _serializeImport(docImport.import);
+            docImports.add(builder);
+          }
+        }
         libraryDirective = UnlinkedLibraryDirective(
+          docImports: docImports.toFixedList(),
           name: directive.name2?.name,
         );
       } else if (directive is PartDirective) {
@@ -1813,7 +1834,6 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
   /// `foo.macro.dart` is created.
   AugmentationImportWithFile addMacroAugmentation(
     String code, {
-    required bool addLibraryAugmentDirective,
     required int? partialIndex,
   }) {
     final pathContext = file._fsState.pathContext;
@@ -1824,25 +1844,14 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
       '.macro${partialIndex != null ? '$partialIndex' : ''}.dart',
     );
 
-    final String augmentationContent;
-    if (addLibraryAugmentDirective) {
-      augmentationContent = '''
-library augment '$libraryFileName';
-
-$code
-''';
-    } else {
-      augmentationContent = code;
-    }
-
     final macroRelativeUri = uriCache.parse(macroFileName);
     final macroUri = uriCache.resolveRelative(file.uri, macroRelativeUri);
 
-    final contentBytes = utf8.encoder.convert(augmentationContent);
+    final contentBytes = utf8.encoder.convert(code);
     final hashBytes = md5.convert(contentBytes).bytes;
     final hashStr = hex.encode(hashBytes);
     final fileContent = StoredFileContent(
-      content: augmentationContent,
+      content: code,
       contentHash: hashStr,
       exists: true,
     );
@@ -2075,6 +2084,7 @@ abstract class LibraryOrAugmentationFileKind extends FileKind {
   List<AugmentationImportState>? _augmentationImports;
   List<LibraryExportState>? _libraryExports;
   List<LibraryImportState>? _libraryImports;
+  List<LibraryImportState>? _docImports;
 
   LibraryOrAugmentationFileKind({
     required super.file,
@@ -2108,6 +2118,18 @@ abstract class LibraryOrAugmentationFileKind extends FileKind {
           );
       }
     }).toFixedList();
+  }
+
+  /// The import states of each `@docImport` on the library directive.
+  List<LibraryImportState> get docImports {
+    if (_docImports case var existing?) {
+      return existing;
+    }
+
+    var docImports = file.unlinked2.libraryDirective?.docImports
+        .map(_buildLibraryImportState)
+        .toFixedList();
+    return _docImports = docImports ?? [];
   }
 
   List<LibraryExportState> get libraryExports {
@@ -2153,43 +2175,7 @@ abstract class LibraryOrAugmentationFileKind extends FileKind {
 
   List<LibraryImportState> get libraryImports {
     return _libraryImports ??=
-        file.unlinked2.imports.map<LibraryImportState>((unlinked) {
-      final uris = file._buildNamespaceDirectiveUris(unlinked);
-      final selectedUri = uris.selected;
-      switch (selectedUri) {
-        case DirectiveUriWithFile():
-          return LibraryImportWithFile(
-            container: this,
-            unlinked: unlinked,
-            selectedUri: selectedUri,
-            uris: uris,
-          );
-        case DirectiveUriWithInSummarySource():
-          return LibraryImportWithInSummarySource(
-            unlinked: unlinked,
-            selectedUri: selectedUri,
-            uris: uris,
-          );
-        case DirectiveUriWithUri():
-          return LibraryImportWithUri(
-            unlinked: unlinked,
-            selectedUri: selectedUri,
-            uris: uris,
-          );
-        case DirectiveUriWithString():
-          return LibraryImportWithUriStr(
-            unlinked: unlinked,
-            selectedUri: selectedUri,
-            uris: uris,
-          );
-        case DirectiveUriWithoutString():
-          return LibraryImportState(
-            unlinked: unlinked,
-            selectedUri: selectedUri,
-            uris: uris,
-          );
-      }
-    }).toFixedList();
+        file.unlinked2.imports.map(_buildLibraryImportState).toFixedList();
   }
 
   /// Collect files that are transitively referenced by this library.
@@ -2235,6 +2221,7 @@ abstract class LibraryOrAugmentationFileKind extends FileKind {
     _augmentationImports?.disposeAll();
     _libraryExports?.disposeAll();
     _libraryImports?.disposeAll();
+    _docImports?.disposeAll();
     super.dispose();
   }
 
@@ -2261,6 +2248,46 @@ abstract class LibraryOrAugmentationFileKind extends FileKind {
 
   /// Invalidates the containing [LibraryFileKind] cycle.
   void invalidateLibraryCycle() {}
+
+  /// Creates a [LibraryImportState] with the given unlinked [directive].
+  LibraryImportState _buildLibraryImportState(
+      UnlinkedLibraryImportDirective directive) {
+    final uris = file._buildNamespaceDirectiveUris(directive);
+    final selectedUri = uris.selected;
+    switch (selectedUri) {
+      case DirectiveUriWithFile():
+        return LibraryImportWithFile(
+          container: this,
+          unlinked: directive,
+          selectedUri: selectedUri,
+          uris: uris,
+        );
+      case DirectiveUriWithInSummarySource():
+        return LibraryImportWithInSummarySource(
+          unlinked: directive,
+          selectedUri: selectedUri,
+          uris: uris,
+        );
+      case DirectiveUriWithUri():
+        return LibraryImportWithUri(
+          unlinked: directive,
+          selectedUri: selectedUri,
+          uris: uris,
+        );
+      case DirectiveUriWithString():
+        return LibraryImportWithUriStr(
+          unlinked: directive,
+          selectedUri: selectedUri,
+          uris: uris,
+        );
+      case DirectiveUriWithoutString():
+        return LibraryImportState(
+          unlinked: directive,
+          selectedUri: selectedUri,
+          uris: uris,
+        );
+    }
+  }
 }
 
 class NamespaceDirectiveUris {

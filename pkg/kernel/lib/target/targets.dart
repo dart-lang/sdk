@@ -166,9 +166,9 @@ abstract class DartLibrarySupport {
   /// libraries specification.
   ///
   /// This is used to allow AOT to consider `dart:mirrors` as unsupported
-  /// despite it being supported in the platform dill, and dart2js to consider
-  /// `dart:_dart2js_runtime_metrics` to be supported despite it being an
-  /// internal library.
+  /// despite it being supported in the platform dill, and for dart2js and DDC
+  /// to consider `dart:_dart2js_only` and `dart:_ddc_only`, respectively, to be
+  /// supported despite them being internal libraries.
   bool computeDartLibrarySupport(String libraryName,
       {required bool isSupportedBySpec});
 
@@ -354,24 +354,21 @@ abstract class Target {
   /// testing purposes.
   bool allowPlatformPrivateLibraryAccess(Uri importer, Uri imported) =>
       importer.isScheme("dart") ||
-      (importer.isScheme("package") &&
-          importer.path.startsWith("dart_internal/"));
+      (imported.isScheme('dart') &&
+          imported.path == '_internal' &&
+          importer.isScheme("package") &&
+          importer.path.startsWith("dart_internal/")) ||
+      (imported.isScheme('dart') &&
+          imported.path == '_macros' &&
+          importer.isScheme("package") &&
+          importer.path.startsWith("macros/"));
 
   /// Whether the `native` language extension is supported within the library
   /// with the given import [uri].
   ///
   /// The `native` language extension is not part of the language specification,
-  /// it means something else to each target, and it is enabled under different
-  /// circumstances for each target implementation. For example, the VM target
-  /// enables it everywhere because of existing support for "dart-ext:" native
-  /// extensions, but targets like dart2js only enable it on the core libraries.
+  /// it is an extension that is used by dart2js/ddc.
   bool enableNative(Uri uri) => false;
-
-  /// There are two variants of the `native` language extension. The VM expects
-  /// the native token to be followed by string, whereas dart2js and DDC do not.
-  // TODO(sigmund, ahe): ideally we should remove the `native` syntax, if not,
-  // we should at least unify the VM and non-VM variants.
-  bool get nativeExtensionExpectsString => false;
 
   /// Whether integer literals that cannot be represented exactly on the web
   /// (i.e. in JavaScript) should cause an error to be issued.
@@ -944,9 +941,6 @@ class TargetWrapper extends Target {
 
   @override
   String get name => _target.name;
-
-  @override
-  bool get nativeExtensionExpectsString => _target.nativeExtensionExpectsString;
 
   @override
   void performModularTransformationsOnLibraries(

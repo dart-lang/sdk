@@ -57,7 +57,7 @@ class SourceFactoryImpl implements SourceFactory {
       if (resolver is PackageMapUriResolver) {
         return resolver.packageMap;
       }
-      if (resolver is PackageBuildPackageUriResolver) {
+      if (resolver is PackageConfigPackageUriResolver) {
         return resolver.packageMap;
       }
     }

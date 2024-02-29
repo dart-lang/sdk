@@ -26,8 +26,7 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
   @override
   void setUp() {
     super.setUp();
-    writePackageConfig(
-      projectFolderPath,
+    writeTestPackageConfig(
       flutter: true,
     );
     setSupportedCodeActionKinds([CodeActionKind.Refactor]);
@@ -166,6 +165,23 @@ Future f;
 
     await executeCommand(action.command!);
     expectCommandLogged('dart.assist.add.showCombinator');
+  }
+
+  Future<void> test_macroGenerated() async {
+    setDartTextDocumentContentProviderSupport();
+    var macroFilePath = join(projectFolderPath, 'lib', 'test.macro.dart');
+    final code = TestCode.parse('''
+int f() {
+  ret^urn 0;
+}
+''');
+    newFile(macroFilePath, code.code);
+    await initialize();
+
+    final codeActions = await getCodeActions(
+        uriConverter.toClientUri(macroFilePath),
+        position: code.position.position);
+    expect(codeActions, isEmpty);
   }
 
   Future<void> test_nonDartFile() async {

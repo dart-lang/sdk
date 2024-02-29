@@ -29,7 +29,7 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
     as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
-    hide NamedType, RecordType;
+    hide RecordType;
 import 'package:_fe_analyzer_shared/src/type_inference/variable_bindings.dart';
 import 'package:test/test.dart';
 
@@ -325,8 +325,7 @@ Pattern mapPattern(List<MapPatternElement> elements,
   return MapPattern._(
       keyType == null && valueType == null
           ? null
-          : MapPatternTypeArguments(
-              keyType: Type(keyType!), valueType: Type(valueType!)),
+          : (keyType: Type(keyType!), valueType: Type(valueType!)),
       elements,
       location: location);
 }
@@ -344,7 +343,7 @@ Pattern mapPatternWithTypeArguments({
 }) {
   var location = computeLocation();
   return MapPattern._(
-    shared.MapPatternTypeArguments<Type>(
+    (
       keyType: Type(keyType),
       valueType: Type(valueType),
     ),
@@ -2524,7 +2523,7 @@ class MapLiteral extends Expression {
 }
 
 class MapPattern extends Pattern {
-  final shared.MapPatternTypeArguments<Type>? typeArguments;
+  final ({Type keyType, Type valueType})? typeArguments;
 
   final List<MapPatternElement> elements;
 
@@ -2633,7 +2632,7 @@ class MiniAstOperations
     'Null, int': Type('int?'),
     'Null, Object': Type('Object?'),
     '?, int': Type('int'),
-    '?, List<?>': Type('List<?>'),
+    '?, List<_>': Type('List<_>'),
     '?, Null': Type('Null'),
   };
 
@@ -2679,7 +2678,7 @@ class MiniAstOperations
   late final Type objectQuestionType = Type('Object?');
 
   @override
-  late final TypeSchema unknownType = TypeSchema('?');
+  late final TypeSchema unknownType = TypeSchema('_');
 
   @override
   late final Type intType = Type('int');
@@ -2777,10 +2776,7 @@ class MiniAstOperations
       return shared.RecordType<Type>(
         positional: type.positional,
         named: type.named.entries.map((entry) {
-          return shared.NamedType(
-            entry.key,
-            entry.value,
-          );
+          return (name: entry.key, type: entry.value);
         }).toList(),
       );
     }
@@ -2816,6 +2812,9 @@ class MiniAstOperations
   Type factor(Type from, Type what) {
     return _typeSystem.factor(from, what);
   }
+
+  @override
+  String getDisplayString(Type type) => type.type;
 
   @override
   Type glb(Type type1, Type type2) {
@@ -2877,7 +2876,7 @@ class MiniAstOperations
       isSubtypeOf(type, typeSchema.toType());
 
   @override
-  bool isUnknownType(Type type) => type is UnknownType;
+  bool isUnknownType(TypeSchema type) => type.toType() is UnknownType;
 
   @override
   bool isVariableFinal(Var node) {
@@ -2975,9 +2974,9 @@ class MiniAstOperations
   }
 
   @override
-  shared.MapPatternTypeArguments<Type>? matchMapType(Type type) {
+  ({Type keyType, Type valueType})? matchMapType(Type type) {
     if (type is PrimaryType && type.name == 'Map' && type.args.length == 2) {
-      return shared.MapPatternTypeArguments<Type>(
+      return (
         keyType: type.args[0],
         valueType: type.args[1],
       );
@@ -3014,22 +3013,21 @@ class MiniAstOperations
 
   @override
   RecordType recordType(
-      {required List<Type> positional,
-      required List<shared.NamedType<Type>> named}) {
+      {required List<Type> positional, required List<(String, Type)> named}) {
     return RecordType(
       positional: positional,
-      named: {for (var e in named) e.name: e.type},
+      named: {for (var (name, type) in named) name: type},
     );
   }
 
   @override
   TypeSchema recordTypeSchema(
           {required List<TypeSchema> positional,
-          required List<shared.NamedType<TypeSchema>> named}) =>
+          required List<(String, TypeSchema)> named}) =>
       TypeSchema.fromType(recordType(positional: [
         for (var t in positional) t.toType()
       ], named: [
-        for (var n in named) shared.NamedType(n.name, n.type.toType())
+        for (var (name, typeSchema) in named) (name, typeSchema.toType())
       ]));
 
   @override
@@ -3052,6 +3050,11 @@ class MiniAstOperations
   }
 
   @override
+  bool typeIsSubtypeOfTypeSchema(Type leftType, TypeSchema rightSchema) {
+    return isSubtypeOf(leftType, rightSchema.toType());
+  }
+
+  @override
   TypeSchema typeSchemaGlb(TypeSchema typeSchema1, TypeSchema typeSchema2) =>
       TypeSchema.fromType(glb(typeSchema1.toType(), typeSchema2.toType()));
 
@@ -3060,6 +3063,10 @@ class MiniAstOperations
     var type = typeSchema.toType();
     return type is PrimaryType && type.name == 'dynamic' && type.args.isEmpty;
   }
+
+  @override
+  TypeSchema typeSchemaLub(TypeSchema typeSchema1, TypeSchema typeSchema2) =>
+      TypeSchema.fromType(lub(typeSchema1.toType(), typeSchema2.toType()));
 
   @override
   TypeSchema typeToSchema(Type type) => TypeSchema.fromType(type);
@@ -3073,6 +3080,17 @@ class MiniAstOperations
   PropertyNonPromotabilityReason? whyPropertyIsNotPromotable(
           covariant _PropertyElement property) =>
       property.whyNotPromotable;
+
+  @override
+  bool typeSchemaIsSubtypeOfTypeSchema(
+      TypeSchema leftSchema, TypeSchema rightSchema) {
+    return isSubtypeOf(leftSchema.toType(), rightSchema.toType());
+  }
+
+  @override
+  bool typeSchemaIsSubtypeOfType(TypeSchema leftSchema, Type rightType) {
+    return isSubtypeOf(leftSchema.toType(), rightType);
+  }
 }
 
 /// Representation of an expression or statement in the pseudo-Dart language

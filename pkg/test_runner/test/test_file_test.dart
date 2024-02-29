@@ -7,7 +7,6 @@
 import 'dart:io';
 
 import 'package:expect/expect.dart';
-
 import 'package:test_runner/src/feature.dart';
 import 'package:test_runner/src/path.dart';
 import 'package:test_runner/src/static_error.dart';
@@ -39,7 +38,7 @@ void main() {
 
 void testParseDill() {
   // Handles ".dill" files.
-  var file = parseTestFile("", path: "test.dill");
+  var file = createTestFile(source: "", path: "test.dill");
   Expect.isNotNull(file.vmOptions);
   Expect.equals(1, file.vmOptions.length);
   Expect.listEquals(<String>[], file.vmOptions.first);
@@ -66,7 +65,7 @@ void testParseDill() {
 
 void testParseVMOptions() {
   expectVMOptions(String source, List<List<String>> expected) {
-    var file = parseTestFile(source);
+    var file = createTestFile(source: source);
     Expect.isNotNull(file.vmOptions);
     Expect.equals(expected.length, file.vmOptions.length);
     for (var i = 0; i < expected.length; i++) {
@@ -94,7 +93,7 @@ void testParseVMOptions() {
 
 void testParseOtherOptions() {
   // No options.
-  var file = parseTestFile("");
+  var file = createTestFile(source: "");
   Expect.listEquals(<String>[], file.dartOptions);
   Expect.listEquals(<String>[], file.sharedOptions);
   Expect.listEquals(<String>[], file.dart2jsOptions);
@@ -105,7 +104,7 @@ void testParseOtherOptions() {
   Expect.listEquals(<String>[], file.requirements);
 
   // Single options split into words.
-  file = parseTestFile("""
+  file = createTestFile(source: """
   /\/ DartOptions=dart options
   /\/ SharedOptions=shared options
   /\/ dart2jsOptions=dart2js options
@@ -150,7 +149,7 @@ void testParseOtherOptions() {
   """);
 
   // Merges multiple lines for others.
-  file = parseTestFile("""
+  file = createTestFile(source: """
   /\/ OtherResources=other resources
   /\/ OtherResources=even more
   /\/ SharedObjects=shared objects
@@ -168,18 +167,18 @@ void testParseOtherOptions() {
 
 void testParseEnvironment() {
   // No environment.
-  var file = parseTestFile("");
+  var file = createTestFile(source: "");
   Expect.isTrue(file.environment.isEmpty);
 
   // Without values.
-  file = parseTestFile("""
+  file = createTestFile(source: """
   /\/ Environment=some value
   /\/ Environment=another one
   """);
   Expect.mapEquals({"some value": "", "another one": ""}, file.environment);
 
   // With values.
-  file = parseTestFile("""
+  file = createTestFile(source: """
   /\/ Environment=some value=its value
   /\/ Environment=another one   =   also value
   """);
@@ -190,18 +189,18 @@ void testParseEnvironment() {
 
 void testParsePackages() {
   // No option.
-  var file = parseTestFile("");
+  var file = createTestFile(source: "");
   Expect.isNull(file.packages);
 
   // Single option is converted to a path.
-  file = parseTestFile("""
+  file = createTestFile(source: """
   /\/ Packages=packages thing
   """);
   Expect.isTrue(
       file.packages!.endsWith("${Platform.pathSeparator}packages thing"));
 
   // "none" is left alone.
-  file = parseTestFile("""
+  file = createTestFile(source: """
   /\/ Packages=none
   """);
   Expect.equals("none", file.packages);
@@ -215,25 +214,25 @@ void testParsePackages() {
 
 void testParseExperiments() {
   // No option.
-  var file = parseTestFile("");
+  var file = createTestFile(source: "");
   Expect.isTrue(file.experiments.isEmpty);
 
   // Single non-experiment option.
-  file = parseTestFile("""
+  file = createTestFile(source: """
   /\/ SharedOptions=not-experiment
   """);
   Expect.isTrue(file.experiments.isEmpty);
   Expect.listEquals(["not-experiment"], file.sharedOptions);
 
   // Experiments.
-  file = parseTestFile("""
+  file = createTestFile(source: """
   /\/ SharedOptions=--enable-experiment=flubber,gloop
   """);
   Expect.listEquals(["flubber", "gloop"], file.experiments);
   Expect.isTrue(file.sharedOptions.isEmpty);
 
   // Experiment option mixed with other options.
-  file = parseTestFile("""
+  file = createTestFile(source: """
   /\/ SharedOptions=-a --enable-experiment=flubber --other
   """);
   Expect.listEquals(["flubber"], file.experiments);
@@ -247,11 +246,11 @@ void testParseExperiments() {
 
 void testParseMultitest() {
   // Not present.
-  var file = parseTestFile("");
+  var file = createTestFile(source: "");
   Expect.isFalse(file.isMultitest);
 
   // Present.
-  file = parseTestFile("""
+  file = createTestFile(source: """
   main() {} /\/# 01: compile-time error
   """);
   Expect.isTrue(file.isMultitest);
@@ -670,11 +669,11 @@ int i = "s";
 
 void testIsRuntimeTest() {
   // No static errors at all.
-  var file = parseTestFile("");
+  var file = createTestFile(source: "");
   Expect.isTrue(file.isRuntimeTest);
 
   // Only warnings.
-  file = parseTestFile("""
+  file = createTestFile(source: """
   int i = "s";
   /\/ ^^^
   /\/ [analyzer] STATIC_WARNING.INVALID_OPTION
@@ -684,21 +683,21 @@ void testIsRuntimeTest() {
   Expect.isTrue(file.isRuntimeTest);
 
   // Errors.
-  file = parseTestFile("""
+  file = createTestFile(source: """
   int i = "s";
   /\/ ^^^
   /\/ [analyzer] COMPILE_TIME_ERROR.NOT_ENOUGH_POSITIONAL_ARGUMENTS
   """);
   Expect.isFalse(file.isRuntimeTest);
 
-  file = parseTestFile("""
+  file = createTestFile(source: """
   int i = "s";
   /\/ ^^^
   /\/ [cfe] Error message.
   """);
   Expect.isFalse(file.isRuntimeTest);
 
-  file = parseTestFile("""
+  file = createTestFile(source: """
   int i = "s";
   /\/ ^^^
   /\/ [web] Error message.
@@ -706,7 +705,7 @@ void testIsRuntimeTest() {
   Expect.isFalse(file.isRuntimeTest);
 
   // Mixed errors and warnings.
-  file = parseTestFile("""
+  file = createTestFile(source: """
   int i = "s";
   /\/ ^^^
   /\/ [analyzer] STATIC_WARNING.INVALID_OPTION
@@ -717,13 +716,11 @@ void testIsRuntimeTest() {
 
 void testName() {
   // Immediately inside suite.
-  var file = TestFile.parse(Path("suite").absolute,
-      Path("suite/a_test.dart").absolute.toNativePath(), "");
+  var file = createTestFile(source: "", path: "a_test.dart", suite: "suite");
   Expect.equals("a_test", file.name);
 
   // Inside subdirectory.
-  file = TestFile.parse(Path("suite").absolute,
-      Path("suite/a/b/c_test.dart").absolute.toNativePath(), "");
+  file = createTestFile(source: "", path: "a/b/c_test.dart", suite: "suite");
   Expect.equals("a/b/c_test", file.name);
 
   // Multitest.
@@ -732,7 +729,7 @@ void testName() {
 }
 
 void testMultitest() {
-  var file = parseTestFile("", path: "origin.dart");
+  var file = createTestFile(source: "", path: "origin.dart");
   Expect.isFalse(file.hasSyntaxError);
   Expect.isFalse(file.hasCompileError);
   Expect.isFalse(file.hasRuntimeError);
@@ -780,7 +777,7 @@ void testShardHash() {
   // Test files with paths should successfully return some kind of integer. We
   // don't want to depend on the hash algorithm, so we can't really be more
   // specific than that.
-  var testFile = parseTestFile("", path: "a_test.dart");
+  var testFile = createTestFile(source: "", path: "a_test.dart");
   Expect.type<int>(testFile.shardHash);
 
   // VM test files are based on a fake path.
@@ -790,15 +787,15 @@ void testShardHash() {
 }
 
 void expectParseErrorExpectations(String source, List<StaticError> errors) {
-  var file = parseTestFile(source);
+  var file = createTestFile(source: source);
   Expect.listEquals(errors.map((error) => error.toString()).toList(),
       file.expectedErrors.map((error) => error.toString()).toList());
 }
 
 void expectFormatError(String source) {
-  Expect.throwsFormatException(() => parseTestFile(source));
+  Expect.throwsFormatException(() => createTestFile(source: source));
 }
 
 void expectParseThrows(String source) {
-  Expect.throws(() => parseTestFile(source));
+  Expect.throws(() => createTestFile(source: source));
 }

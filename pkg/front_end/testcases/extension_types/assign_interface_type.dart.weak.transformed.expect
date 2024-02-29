@@ -373,7 +373,7 @@ static extension-type-member method G|constructor#<T extends core::Object? = dyn
   lowered final self::G<self::G|constructor#::T%> /* = self::G|constructor#::T% */ #this = o;
   return #this;
 }
-static extension-type-member method G|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::G|constructor#_#new#tearOff::T% o) → self::G<self::G|constructor#_#new#tearOff::T%>% /* = self::G|constructor#_#new#tearOff::T% */
+static extension-type-member method G|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::G|constructor#_#new#tearOff::T% o) → self::G<self::G|constructor#_#new#tearOff::T%> /* = self::G|constructor#_#new#tearOff::T% */
   return self::G|constructor#<self::G|constructor#_#new#tearOff::T%>(o);
 static extension-type-member method G2|constructor#<T extends core::Object>(self::G2|constructor#::T o) → self::G2<self::G2|constructor#::T> /* = self::G2|constructor#::T */ {
   lowered final self::G2<self::G2|constructor#::T> /* = self::G2|constructor#::T */ #this = o;
@@ -388,22 +388,22 @@ static method test<T1 extends core::Object? = dynamic, T2 extends self::A, T3 ex
   o = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:39:7: Error: A value of type 'C' can't be assigned to a variable of type 'Object' because 'C' is nullable and 'Object' isn't.
  - 'Object' is from 'dart:core'.
   o = c; // Error
-      ^" in c;
+      ^" in c as{TypeError,Unchecked} core::Object;
   o = d;
   o = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:41:7: Error: A value of type 'D2' can't be assigned to a variable of type 'Object' because 'D2' is nullable and 'Object' isn't.
  - 'Object' is from 'dart:core'.
   o = d2; // Error
-      ^" in d2;
+      ^" in d2 as{TypeError,Unchecked} core::Object;
   o = e;
   o = f;
   o = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:44:7: Error: A value of type 'G<T1>' can't be assigned to a variable of type 'Object' because 'G<T1>' is nullable and 'Object' isn't.
  - 'Object' is from 'dart:core'.
   o = g1; // Error
-      ^" in g1;
+      ^" in g1 as{TypeError,Unchecked} core::Object;
   o = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:45:7: Error: A value of type 'G<T2>' can't be assigned to a variable of type 'Object' because 'G<T2>' is nullable and 'Object' isn't.
  - 'Object' is from 'dart:core'.
   o = g2; // Error
-      ^" in g2;
+      ^" in g2 as{TypeError,Unchecked} core::Object;
   o = g3;
   a = invalid-expression "pkg/front_end/testcases/extension_types/assign_interface_type.dart:48:7: Error: A value of type 'Object' can't be assigned to a variable of type 'A'.
  - 'Object' is from 'dart:core'.

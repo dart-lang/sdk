@@ -24,7 +24,7 @@ main() {
     CompilationResult result = await runCompiler(
         memorySourceFiles: {'main.dart': SOURCE}, options: options);
     Expect.isTrue(result.isSuccess);
-    Compiler compiler = result.compiler;
+    Compiler compiler = result.compiler!;
     Program program =
         compiler.backendStrategy.emitterTask.emitter.programForTesting!;
     JsBackendStrategy backendStrategy = compiler.backendStrategy;

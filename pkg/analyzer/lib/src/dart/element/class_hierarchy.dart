@@ -64,8 +64,6 @@ class ClassHierarchy {
       for (var rawInterface in rawInterfaces) {
         var newInterface =
             substitution.substituteType(rawInterface) as InterfaceType;
-        newInterface =
-            library.toLegacyTypeIfOptOut(newInterface) as InterfaceType;
         interfacesMerger.add(newInterface);
       }
     }
@@ -170,39 +168,25 @@ class _ClassInterfaceType {
       return;
     }
 
-    if (_typeSystem.isNonNullableByDefault) {
-      if (_currentResult == null) {
-        if (_singleType == null) {
-          _singleType = type;
-          return;
-        } else if (type == _singleType) {
-          return;
-        } else {
-          _currentResult = _typeSystem.normalize(_singleType!) as InterfaceType;
-        }
-      }
-
-      var normType = _typeSystem.normalize(type) as InterfaceType;
-      try {
-        _currentResult = _merge(_currentResult!, normType);
-      } catch (e) {
-        _error = IncompatibleInterfacesClassHierarchyError(
-          _currentResult!,
-          type,
-        );
-      }
-    } else {
-      var legacyType = _typeSystem.toLegacyTypeIfOptOut(type) as InterfaceType;
-      if (_currentResult == null) {
-        _currentResult = legacyType;
+    if (_currentResult == null) {
+      if (_singleType == null) {
+        _singleType = type;
+        return;
+      } else if (type == _singleType) {
+        return;
       } else {
-        if (legacyType != _currentResult) {
-          _error = IncompatibleInterfacesClassHierarchyError(
-            _currentResult!,
-            legacyType,
-          );
-        }
+        _currentResult = _typeSystem.normalize(_singleType!) as InterfaceType;
       }
+    }
+
+    var normType = _typeSystem.normalize(type) as InterfaceType;
+    try {
+      _currentResult = _merge(_currentResult!, normType);
+    } catch (e) {
+      _error = IncompatibleInterfacesClassHierarchyError(
+        _currentResult!,
+        type,
+      );
     }
   }
 

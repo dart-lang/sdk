@@ -49,7 +49,7 @@ class FlutterOutlineTest extends AbstractLspAnalysisServerTest {
   @override
   void setUp() {
     super.setUp();
-    writePackageConfig(projectFolderPath, flutter: true);
+    writeTestPackageConfig(flutter: true);
   }
 
   Future<void> test_afterChange() async {

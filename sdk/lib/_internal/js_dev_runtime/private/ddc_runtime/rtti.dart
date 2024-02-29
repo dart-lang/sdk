@@ -48,11 +48,7 @@ part of dart._runtime;
 ///
 /// `dart.fn(closure, type)` marks [closure] with the provided runtime [type].
 fn(closure, type) {
-  if (JS_GET_FLAG('NEW_RUNTIME_TYPES')) {
-    JS('', '#[#] = #', closure, JS_GET_NAME(JsGetName.SIGNATURE_NAME), type);
-  } else {
-    JS('', '#[#] = #', closure, _runtimeType, type);
-  }
+  JS('', '#[#] = #', closure, JS_GET_NAME(JsGetName.SIGNATURE_NAME), type);
   return closure;
 }
 
@@ -81,43 +77,9 @@ lazyFn(closure, Object Function() computeType) {
   return closure;
 }
 
-// TODO(vsm): How should we encode the runtime type?
 final Object _runtimeType = JS('!', 'Symbol("_runtimeType")');
 
 final Object _moduleName = JS('!', 'Symbol("_moduleName")');
-
-getFunctionType(obj) {
-  // TODO(vsm): Encode this properly on the function for Dart-generated code.
-  var args = JS<List>('!', 'Array(#.length).fill(#)', obj, dynamic);
-  return fnType(bottom, args, JS('', 'void 0'));
-}
-
-// Compute and cache reified record type.
-RecordType getRecordType(RecordImpl obj) {
-  var type = JS<RecordType?>('', '#[#]', obj, _runtimeType);
-  if (type == null) {
-    var shape = JS<Shape>('!', '#[#]', obj, shapeProperty);
-    var named = shape.named;
-    var positionals = shape.positionals;
-    var types = [];
-    var count = 1;
-    while (count <= positionals) {
-      var name = '\$$count';
-      var field = JS('', '#[#]', obj, name);
-      types.add(getReifiedType(field));
-      count++;
-    }
-    if (named != null) {
-      for (final name in named) {
-        var field = JS('', '#[#]', obj, name);
-        types.add(getReifiedType(field));
-      }
-    }
-    type = recordType(shape, types);
-    JS('', '#[#] = #', obj, _runtimeType, type);
-  }
-  return type;
-}
 
 /// Returns the interceptor for [obj] as needed by the dart:rti library.
 ///
@@ -161,73 +123,38 @@ Object getInterceptorForRti(obj) {
 /// different from the user-visible Type object returned by calling
 /// `runtimeType` on some Dart object.
 getReifiedType(obj) {
-  if (JS_GET_FLAG('NEW_RUNTIME_TYPES')) {
-    switch (JS<String>('!', 'typeof #', obj)) {
-      case "object":
-        if (obj == null) return TYPE_REF<Null>();
-        if (_jsInstanceOf(obj, RecordImpl)) return getRtiForRecord(obj);
-        if (_jsInstanceOf(obj, Object) ||
-            JS('', '#[#]', obj, _extensionType) != null) {
-          // The rti library can correctly extract the representation.
-          return rti.instanceType(obj);
-        }
-        // Otherwise assume this is a JS interop object.
-        return TYPE_REF<LegacyJavaScriptObject>();
-      case "function":
-        // Dart functions are tagged with a signature.
-        var signature =
-            JS('', '#[#]', obj, JS_GET_NAME(JsGetName.SIGNATURE_NAME));
-        if (signature != null) return signature;
-        return TYPE_REF<JavaScriptFunction>();
-      case "undefined":
-        return TYPE_REF<Null>();
-      case "number":
-        return JS('', 'Math.floor(#) == # ? # : #', obj, obj, TYPE_REF<int>(),
-            TYPE_REF<double>());
-      case "boolean":
-        return TYPE_REF<bool>();
-      case "string":
-        return TYPE_REF<String>();
-      case "symbol":
-        return TYPE_REF<JavaScriptSymbol>();
-      case "bigint":
-        return TYPE_REF<JavaScriptBigInt>();
-      default:
-        return TYPE_REF<LegacyJavaScriptObject>();
-    }
-  } else {
-    switch (JS<String>('!', 'typeof #', obj)) {
-      case "object":
-        if (obj == null) return JS('', '#', Null);
-        if (_jsInstanceOf(obj, RecordImpl)) {
-          return getRecordType(obj);
-        }
-        if (_jsInstanceOf(obj, Object)) {
-          return JS('', '#.constructor', obj);
-        }
-        var result = JS('', '#[#]', obj, _extensionType);
-        if (result == null) return TYPE_REF<LegacyJavaScriptObject>();
-        return result;
-      case "function":
-        // All Dart functions and callable classes must set _runtimeType
-        var result = JS('', '#[#]', obj, _runtimeType);
-        if (result != null) return result;
-        return TYPE_REF<LegacyJavaScriptObject>();
-      case "undefined":
-        return JS('', '#', Null);
-      case "number":
-        return JS('', 'Math.floor(#) == # ? # : #', obj, obj, int, double);
-      case "boolean":
-        return JS('', '#', bool);
-      case "string":
-        return JS('', '#', String);
-      case "symbol":
-        return TYPE_REF<JavaScriptSymbol>();
-      case "bigint":
-        return TYPE_REF<JavaScriptBigInt>();
-      default:
-        return TYPE_REF<LegacyJavaScriptObject>();
-    }
+  switch (JS<String>('!', 'typeof #', obj)) {
+    case "object":
+      if (obj == null) return TYPE_REF<Null>();
+      if (_jsInstanceOf(obj, RecordImpl)) return getRtiForRecord(obj);
+      if (_jsInstanceOf(obj, Object) ||
+          JS('', '#[#]', obj, _extensionType) != null) {
+        // The rti library can correctly extract the representation.
+        return rti.instanceType(obj);
+      }
+      // Otherwise assume this is a JS interop object.
+      return TYPE_REF<LegacyJavaScriptObject>();
+    case "function":
+      // Dart functions are tagged with a signature.
+      var signature =
+          JS('', '#[#]', obj, JS_GET_NAME(JsGetName.SIGNATURE_NAME));
+      if (signature != null) return signature;
+      return TYPE_REF<JavaScriptFunction>();
+    case "undefined":
+      return TYPE_REF<Null>();
+    case "number":
+      return JS('', 'Math.floor(#) == # ? # : #', obj, obj, TYPE_REF<int>(),
+          TYPE_REF<double>());
+    case "boolean":
+      return TYPE_REF<bool>();
+    case "string":
+      return TYPE_REF<String>();
+    case "symbol":
+      return TYPE_REF<JavaScriptSymbol>();
+    case "bigint":
+      return TYPE_REF<JavaScriptBigInt>();
+    default:
+      return TYPE_REF<LegacyJavaScriptObject>();
   }
 }
 

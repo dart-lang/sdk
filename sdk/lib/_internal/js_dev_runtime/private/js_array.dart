@@ -44,9 +44,7 @@ class JSArray<E> extends JavaScriptObject
   ///
   /// NOTE: The name of this getter is directly tied to the result of compiling
   /// `JS_EMBEDDED_GLOBAL('', ARRAY_RTI_PROPERTY)`.
-  Object get arrayRti => JS_GET_FLAG('NEW_RUNTIME_TYPES')
-      ? TYPE_REF<JSArray<E>>()
-      : throw dart.throwUnimplementedInCurrentRti();
+  Object get arrayRti => TYPE_REF<JSArray<E>>();
 
   /// Unsupported action, only provided here to help diagnosis of an accidental
   /// attempt to set the value manually.

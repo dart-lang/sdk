@@ -511,8 +511,9 @@ Fragment FlowGraphBuilder::ThrowLateInitializationError(
 
   // Call LateError._throwFoo.
   instructions += Constant(name);
-  instructions += StaticCall(position, throw_new,
-                             /* argument_count = */ 1, ICData::kStatic);
+  instructions +=
+      StaticCall(TokenPosition::Synthetic(position.Pos()), throw_new,
+                 /* argument_count = */ 1, ICData::kStatic);
   instructions += Drop();
 
   return instructions;
@@ -863,6 +864,7 @@ Fragment FlowGraphBuilder::NativeFunctionBody(const Function& function,
                                               LocalVariable* first_parameter) {
   ASSERT(function.is_old_native());
   ASSERT(!IsRecognizedMethodForFlowGraph(function));
+  RELEASE_ASSERT(!function.IsClosureFunction());  // Not supported.
 
   Fragment body;
   String& name = String::ZoneHandle(Z, function.native_name());
@@ -1453,18 +1455,20 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
           compiler::ffi::ElementTypedDataCid(ffi_type_arg_cid);
 
       ASSERT_EQUAL(function.NumParameters(), 2);
-      LocalVariable* arg_pointer = parsed_function_->RawParameterVariable(0);
+      // Argument can be a TypedData for loads on struct fields.
+      LocalVariable* arg_typed_data_base =
+          parsed_function_->RawParameterVariable(0);
       LocalVariable* arg_offset = parsed_function_->RawParameterVariable(1);
 
       body += LoadLocal(arg_offset);
       body += CheckNullOptimized(String::ZoneHandle(Z, function.name()));
       LocalVariable* arg_offset_not_null = MakeTemporary();
 
-      body += LoadLocal(arg_pointer);
+      body += LoadLocal(arg_typed_data_base);
       body += CheckNullOptimized(String::ZoneHandle(Z, function.name()));
       // No GC from here til LoadIndexed.
       body += LoadNativeField(Slot::PointerBase_data(),
-                              InnerPointerAccess::kCannotBeInnerPointer);
+                              InnerPointerAccess::kMayBeInnerPointer);
       body += LoadLocal(arg_offset_not_null);
       body += UnboxTruncate(kUnboxedFfiIntPtr);
       body += LoadIndexed(typed_data_cid, /*index_scale=*/1,
@@ -1520,7 +1524,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       const classid_t typed_data_cid =
           compiler::ffi::ElementTypedDataCid(ffi_type_arg_cid);
 
-      LocalVariable* arg_pointer = parsed_function_->RawParameterVariable(0);
+      // Argument can be a TypedData for stores on struct fields.
+      LocalVariable* arg_typed_data_base =
+          parsed_function_->RawParameterVariable(0);
       LocalVariable* arg_offset = parsed_function_->RawParameterVariable(1);
       LocalVariable* arg_value = parsed_function_->RawParameterVariable(2);
 
@@ -1532,11 +1538,11 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += CheckNullOptimized(String::ZoneHandle(Z, function.name()));
       LocalVariable* arg_value_not_null = MakeTemporary();
 
-      body += LoadLocal(arg_pointer);  // Pointer.
+      body += LoadLocal(arg_typed_data_base);  // Pointer.
       body += CheckNullOptimized(String::ZoneHandle(Z, function.name()));
       // No GC from here til StoreIndexed.
       body += LoadNativeField(Slot::PointerBase_data(),
-                              InnerPointerAccess::kCannotBeInnerPointer);
+                              InnerPointerAccess::kMayBeInnerPointer);
       body += LoadLocal(arg_offset_not_null);
       body += UnboxTruncate(kUnboxedFfiIntPtr);
       body += LoadLocal(arg_value_not_null);
@@ -2148,49 +2154,15 @@ Fragment FlowGraphBuilder::BuildTypedDataFactoryConstructor(
   return instructions;
 }
 
-static const LocalScope* MakeImplicitClosureScope(Zone* Z, const Class& klass) {
-  ASSERT(!klass.IsNull());
-  // Note that if klass is _Closure, DeclarationType will be _Closure,
-  // and not the signature type.
-  Type& klass_type = Type::ZoneHandle(Z, klass.DeclarationType());
-
-  LocalVariable* receiver_variable =
-      new (Z) LocalVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
-                            Symbols::This(), klass_type);
-
-  receiver_variable->set_is_captured();
-  //  receiver_variable->set_is_final();
-  LocalScope* scope = new (Z) LocalScope(nullptr, 0, 0);
-  scope->set_context_level(0);
-  scope->AddVariable(receiver_variable);
-  scope->AddContextVariable(receiver_variable);
-  return scope;
-}
-
 Fragment FlowGraphBuilder::BuildImplicitClosureCreation(
     const Function& target) {
   // The function cannot be local and have parent generic functions.
   ASSERT(!target.HasGenericParent());
+  ASSERT(target.IsImplicitInstanceClosureFunction());
 
   Fragment fragment;
   fragment += Constant(target);
-
-  // Allocate a context that closes over `this`.
-  // Note: this must be kept in sync with ScopeBuilder::BuildScopes.
-  const LocalScope* implicit_closure_scope =
-      MakeImplicitClosureScope(Z, Class::Handle(Z, target.Owner()));
-  fragment += AllocateContext(implicit_closure_scope->context_slots());
-  LocalVariable* context = MakeTemporary();
-
-  // Store `this`.  The context doesn't need a parent pointer because it doesn't
-  // close over anything else.
-  fragment += LoadLocal(context);
   fragment += LoadLocal(parsed_function_->receiver_var());
-  fragment += StoreNativeField(
-      Slot::GetContextVariableSlotFor(
-          thread_, *implicit_closure_scope->context_variables()[0]),
-      StoreFieldInstr::Kind::kInitializing);
-
   fragment += AllocateClosure();
   LocalVariable* closure = MakeTemporary();
 
@@ -3752,8 +3724,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
       body += IntConstant(function.NumParameters());
     }
     body += LoadLocal(parsed_function_->current_context_var());
-    body += LoadNativeField(Slot::GetContextVariableSlotFor(
-        thread_, *parsed_function_->receiver_var()));
     body += StoreFpRelativeSlot(
         kWordSize * compiler::target::frame_layout.param_end_from_fp);
   }
@@ -3891,8 +3861,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
       body += Constant(type);
     } else {
       body += LoadLocal(parsed_function_->current_context_var());
-      body += LoadNativeField(Slot::GetContextVariableSlotFor(
-          thread_, *parsed_function_->receiver_var()));
     }
   } else {
     body += LoadLocal(parsed_function_->ParameterVariable(0));
@@ -4217,12 +4185,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
     LocalVariable* receiver = MakeTemporary();
     closure += LoadLocal(receiver);
   } else if (!target.is_static()) {
-    // The context has a fixed shape: a single variable which is the
-    // closed-over receiver.
+    // The closure context is the receiver.
     closure += LoadLocal(parsed_function_->ParameterVariable(0));
     closure += LoadNativeField(Slot::Closure_context());
-    closure += LoadNativeField(Slot::GetContextVariableSlotFor(
-        thread_, *parsed_function_->receiver_var()));
   }
 
   closure += PushExplicitParameters(function);

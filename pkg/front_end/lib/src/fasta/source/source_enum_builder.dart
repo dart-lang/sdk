@@ -6,7 +6,6 @@ library fasta.enum_builder;
 
 import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
-
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
@@ -25,7 +24,7 @@ import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/procedure_builder.dart';
 import '../builder/type_builder.dart';
-import '../fasta_codes.dart'
+import '../codes/fasta_codes.dart'
     show
         LocatedMessage,
         Severity,
@@ -42,18 +41,15 @@ import '../fasta_codes.dart'
         templateDuplicatedDeclarationSyntheticCause,
         templateEnumContainsRestrictedInstanceDeclaration,
         templateEnumConstantSameNameAsEnclosing;
-
+import '../constant_context.dart';
 import '../kernel/body_builder.dart';
 import '../kernel/body_builder_context.dart';
 import '../kernel/constness.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/expression_generator_helper.dart';
-import '../kernel/kernel_helper.dart';
 import '../kernel/internal_ast.dart';
-
+import '../kernel/kernel_helper.dart';
 import '../modifier.dart' show constMask, hasInitializerMask, staticMask;
-
-import '../constant_context.dart';
 import '../scope.dart';
 import '../type_inference/inference_results.dart';
 import '../type_inference/type_schema.dart';

@@ -22,6 +22,9 @@ void main() async {
     if (Platform.isAndroid || Platform.isIOS) {
       return; // SDK tree not available on the test device.
     }
+    if (Platform.version.contains('ia32')) {
+      return; // AOT is not available for ia32
+    }
 
     // These are the tools we need to be available to run on a given platform:
     if (!File(platformDill).existsSync()) {

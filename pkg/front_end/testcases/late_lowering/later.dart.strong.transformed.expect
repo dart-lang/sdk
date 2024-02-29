@@ -85,7 +85,7 @@ class B extends core::Object /*hasConstConstructor*/  {
     : super core::Object::•()
     ;
   get x() → core::int
-    return let final core::int? #t2 = this.{self::B::_#B#x}{core::int?} in #t2 == null ?{core::int} let final core::int #t3 = 42 in this.{self::B::_#B#x}{core::int?} == null ?{core::int} this.{self::B::_#B#x} = #t3 : throw new _in::LateError::fieldADI("x") : #t2{core::int};
+    return let final core::int? #t2 = this.{self::B::_#B#x}{core::int?} in #t2 == null ?{core::int} let final core::int #t3 = 42 in this.{self::B::_#B#x}{core::int?} == null ?{core::int} this.{self::B::_#B#x} = #t3 : throw{for-error-handling} new _in::LateError::fieldADI("x") : #t2{core::int};
 }
 class C extends core::Object {
   field core::int? _#C#x = null;
@@ -93,12 +93,12 @@ class C extends core::Object {
     : super core::Object::•()
     ;
   get x() → core::int
-    return let final core::int? #t4 = this.{self::C::_#C#x}{core::int?} in #t4 == null ?{core::int} throw new _in::LateError::fieldNI("x") : #t4{core::int};
+    return let final core::int? #t4 = this.{self::C::_#C#x}{core::int?} in #t4 == null ?{core::int} throw{for-error-handling} new _in::LateError::fieldNI("x") : #t4{core::int};
   set x(core::int x#param) → void
     if(this.{self::C::_#C#x}{core::int?} == null)
       this.{self::C::_#C#x} = x#param;
     else
-      throw new _in::LateError::fieldAI("x");
+      throw{for-error-handling} new _in::LateError::fieldAI("x");
   method initVars() → dynamic {
     this.{self::C::x} = 42;
   }

@@ -19,12 +19,18 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ContextLocatorImplTest);
+    defineReflectiveTests(ContextLocatorImplTest_SingleOptionsPerContext);
   });
 }
 
 @reflectiveTest
 class ContextLocatorImplTest with ResourceProviderMixin {
   late final ContextLocatorImpl contextLocator;
+
+  /// Cached state to restore on test tearDown.
+  final _singleOptionsContextsDefault = ContextLocatorImpl.singleOptionContexts;
+
+  bool get enableSingleOptionContexts => false;
 
   ContextRoot findRoot(List<ContextRoot> roots, Resource rootFolder) {
     for (ContextRoot root in roots) {
@@ -45,7 +51,12 @@ class ContextLocatorImplTest with ResourceProviderMixin {
   }
 
   void setUp() {
+    ContextLocatorImpl.singleOptionContexts = enableSingleOptionContexts;
     contextLocator = ContextLocatorImpl(resourceProvider: resourceProvider);
+  }
+
+  void tearDown() {
+    ContextLocatorImpl.singleOptionContexts = _singleOptionsContextsDefault;
   }
 
   void test_locateRoots_excludedByOptions_directoryWithParenthesis() {
@@ -81,7 +92,7 @@ analyzer:
     Folder rootFolder = newFolder('/home/test');
     newFile('/home/test/lib/a.dart', '');
     newFile('/home/b.dart', '');
-    resourceProvider.newLink(
+    newLink(
       convertPath('/home/test/lib/c.dart'),
       convertPath('/home/b.dart'),
     );
@@ -105,7 +116,7 @@ analyzer:
   void test_locateRoots_link_file_toSiblingInRoot() {
     Folder rootFolder = newFolder('/test');
     newFile('/test/lib/a.dart', '');
-    resourceProvider.newLink(
+    newLink(
       convertPath('/test/lib/b.dart'),
       convertPath('/test/lib/a.dart'),
     );
@@ -130,7 +141,7 @@ analyzer:
     var rootFolder = newFolder('/test');
     newFile('/test/lib/a.dart', '');
     newFolder('/test/lib/foo');
-    resourceProvider.newLink(
+    newLink(
       convertPath('/test/lib/foo'),
       convertPath('/test/lib/bar'),
     );
@@ -159,7 +170,7 @@ analyzer:
   void test_locateRoots_link_folder_toParentInRoot() {
     Folder rootFolder = newFolder('/test');
     newFile('/test/lib/a.dart', '');
-    resourceProvider.newLink(
+    newLink(
       convertPath('/test/lib/foo'),
       convertPath('/test/lib'),
     );
@@ -187,7 +198,7 @@ analyzer:
     newFile('/home/test/lib/a.dart', '');
     newFile('/home/b.dart', '');
     newFile('/home/other/c.dart', '');
-    resourceProvider.newLink(
+    newLink(
       convertPath('/home/test/lib/foo'),
       convertPath('/home'),
     );
@@ -215,7 +226,7 @@ analyzer:
     Folder rootFolder = newFolder('/test');
     newFile('/test/lib/a.dart', '');
     newFile('/test/lib/foo/b.dart', '');
-    resourceProvider.newLink(
+    newLink(
       convertPath('/test/lib/bar'),
       convertPath('/test/lib/foo'),
     );
@@ -653,7 +664,7 @@ analyzer:
 
   /// When there is a packages file in a containing directory, that would
   /// control analysis of the files, but we provide an override, we ignore
-  /// the don't look into containing directories, so the context root can be
+  /// and don't look into containing directories, so the context root can be
   /// just the file system root.
   void
       test_locateRoots_multiple_fileAndSiblingFile_hasPackages_overridePackages() {
@@ -668,7 +679,7 @@ analyzer:
     );
     expect(roots, hasLength(1));
 
-    ContextRoot root = findRoot(roots, getFolder('/'));
+    ContextRoot root = findRoot(roots, getFolder('/home'));
     expect(
         root.includedPaths, unorderedEquals([testFile1.path, testFile2.path]));
     expect(root.excludedPaths, isEmpty);
@@ -761,13 +772,13 @@ analyzer:
     _assertAnalyzedFiles2(root, [fooFile, barFile]);
   }
 
-  void test_locateRoots_multiple_files_differentWorkspaces_pub() {
+  void test_locateRoots_multiple_files_differentWorkspaces_packageConfig() {
     var rootPath = '/home';
     var fooPath = '$rootPath/foo';
     var barPath = '$rootPath/bar';
 
-    newPubspecYamlFile(fooPath, '');
-    newPubspecYamlFile(barPath, '');
+    newPackageConfigJsonFile(fooPath, '');
+    newPackageConfigJsonFile(barPath, '');
 
     var fooFile = newFile('$fooPath/lib/foo.dart', '');
     var barFile = newFile('$barPath/lib/bar.dart', '');
@@ -781,7 +792,7 @@ analyzer:
     expect(fooRoot.includedPaths, unorderedEquals([fooFile.path]));
     expect(fooRoot.excludedPaths, isEmpty);
     expect(fooRoot.optionsFile, isNull);
-    expect(fooRoot.packagesFile, isNull);
+    expect(fooRoot.packagesFile, isNotNull);
     _assertPubWorkspace(fooRoot.workspace, fooPath);
     _assertAnalyzedFiles2(fooRoot, [fooFile]);
 
@@ -789,7 +800,7 @@ analyzer:
     expect(barRoot.includedPaths, unorderedEquals([barFile.path]));
     expect(barRoot.excludedPaths, isEmpty);
     expect(barRoot.optionsFile, isNull);
-    expect(barRoot.packagesFile, isNull);
+    expect(barRoot.packagesFile, isNotNull);
     _assertPubWorkspace(barRoot.workspace, barPath);
     _assertAnalyzedFiles2(barRoot, [barFile]);
   }
@@ -920,29 +931,21 @@ ${getFolder(outPath).path}
     Folder outerRootFolder = newFolder('/test/outer');
     File outerOptionsFile = newAnalysisOptionsYamlFile('/test/outer', '');
     File outerPackagesFile = newPackageConfigJsonFile('/test/outer', '');
-    Folder inner1RootFolder = newFolder('/test/outer/examples/inner1');
-    File inner1OptionsFile =
-        newAnalysisOptionsYamlFile('/test/outer/examples/inner1', '');
+    newFolder('/test/outer/examples/inner1');
+    newAnalysisOptionsYamlFile('/test/outer/examples/inner1', '');
     Folder inner2RootFolder = newFolder('/test/outer/examples/inner2');
     File inner2PackagesFile =
         newPackageConfigJsonFile('/test/outer/examples/inner2', '');
 
     List<ContextRoot> roots =
         contextLocator.locateRoots(includedPaths: [outerRootFolder.path]);
-    expect(roots, hasLength(3));
+    expect(roots, hasLength(2));
 
     ContextRoot outerRoot = findRoot(roots, outerRootFolder);
     expect(outerRoot.includedPaths, unorderedEquals([outerRootFolder.path]));
-    expect(outerRoot.excludedPaths,
-        unorderedEquals([inner1RootFolder.path, inner2RootFolder.path]));
+    expect(outerRoot.excludedPaths, unorderedEquals([inner2RootFolder.path]));
     expect(outerRoot.optionsFile, outerOptionsFile);
     expect(outerRoot.packagesFile, outerPackagesFile);
-
-    ContextRoot inner1Root = findRoot(roots, inner1RootFolder);
-    expect(inner1Root.includedPaths, unorderedEquals([inner1RootFolder.path]));
-    expect(inner1Root.excludedPaths, isEmpty);
-    expect(inner1Root.optionsFile, inner1OptionsFile);
-    expect(inner1Root.packagesFile, outerPackagesFile);
 
     ContextRoot inner2Root = findRoot(roots, inner2RootFolder);
     expect(inner2Root.includedPaths, unorderedEquals([inner2RootFolder.path]));
@@ -955,25 +958,17 @@ ${getFolder(outPath).path}
     Folder outerRootFolder = newFolder('/test/outer');
     File outerOptionsFile = newAnalysisOptionsYamlFile('/test/outer', '');
     File outerPackagesFile = newPackageConfigJsonFile('/test/outer', '');
-    Folder innerRootFolder = newFolder('/test/outer/examples/inner');
-    File innerOptionsFile =
-        newAnalysisOptionsYamlFile('/test/outer/examples/inner', '');
+    newAnalysisOptionsYamlFile('/test/outer/examples/inner', '');
 
     List<ContextRoot> roots =
         contextLocator.locateRoots(includedPaths: [outerRootFolder.path]);
-    expect(roots, hasLength(2));
+    expect(roots, hasLength(1));
 
     ContextRoot outerRoot = findRoot(roots, outerRootFolder);
     expect(outerRoot.includedPaths, unorderedEquals([outerRootFolder.path]));
-    expect(outerRoot.excludedPaths, unorderedEquals([innerRootFolder.path]));
+    expect(outerRoot.excludedPaths, isEmpty);
     expect(outerRoot.optionsFile, outerOptionsFile);
     expect(outerRoot.packagesFile, outerPackagesFile);
-
-    ContextRoot innerRoot = findRoot(roots, innerRootFolder);
-    expect(innerRoot.includedPaths, unorderedEquals([innerRootFolder.path]));
-    expect(innerRoot.excludedPaths, isEmpty);
-    expect(innerRoot.optionsFile, innerOptionsFile);
-    expect(innerRoot.packagesFile, outerPackagesFile);
   }
 
   void test_locateRoots_nested_options_overriddenOptions() {
@@ -1000,27 +995,19 @@ ${getFolder(outPath).path}
     Folder outerRootFolder = newFolder('/test/outer');
     File outerOptionsFile = newAnalysisOptionsYamlFile('/test/outer', '');
     newPackageConfigJsonFile('/test/outer', '');
-    Folder innerRootFolder = newFolder('/test/outer/examples/inner');
-    File innerOptionsFile =
-        newAnalysisOptionsYamlFile('/test/outer/examples/inner', '');
+    newAnalysisOptionsYamlFile('/test/outer/examples/inner', '');
     File overridePackagesFile = newPackageConfigJsonFile('/test/override', '');
 
     List<ContextRoot> roots = contextLocator.locateRoots(
         includedPaths: [outerRootFolder.path],
         packagesFile: overridePackagesFile.path);
-    expect(roots, hasLength(2));
+    expect(roots, hasLength(1));
 
     ContextRoot outerRoot = findRoot(roots, outerRootFolder);
     expect(outerRoot.includedPaths, unorderedEquals([outerRootFolder.path]));
-    expect(outerRoot.excludedPaths, unorderedEquals([innerRootFolder.path]));
+    expect(outerRoot.excludedPaths, isEmpty);
     expect(outerRoot.optionsFile, outerOptionsFile);
     expect(outerRoot.packagesFile, overridePackagesFile);
-
-    ContextRoot innerRoot = findRoot(roots, innerRootFolder);
-    expect(innerRoot.includedPaths, unorderedEquals([innerRootFolder.path]));
-    expect(innerRoot.excludedPaths, isEmpty);
-    expect(innerRoot.optionsFile, innerOptionsFile);
-    expect(innerRoot.packagesFile, overridePackagesFile);
   }
 
   void test_locateRoots_nested_optionsAndPackages() {
@@ -1175,17 +1162,15 @@ ${getFolder(outPath).path}
     Folder outerRootFolder = newFolder('/test/outer');
     File outerOptionsFile = newAnalysisOptionsYamlFile('/test/outer', '');
     File outerPackagesFile = newPackageConfigJsonFile('/test/outer', '');
-    File innerOptionsFile =
-        newAnalysisOptionsYamlFile('/test/outer/packages/inner', '');
+    newAnalysisOptionsYamlFile('/test/outer/packages/inner', '');
 
     List<ContextRoot> roots =
         contextLocator.locateRoots(includedPaths: [outerRootFolder.path]);
-    expect(roots, hasLength(2));
+    expect(roots, hasLength(1));
 
     ContextRoot outerRoot = findRoot(roots, outerRootFolder);
     expect(outerRoot.includedPaths, unorderedEquals([outerRootFolder.path]));
-    expect(outerRoot.excludedPaths,
-        unorderedEquals([innerOptionsFile.parent.path]));
+    expect(outerRoot.excludedPaths, isEmpty);
     expect(outerRoot.optionsFile, outerOptionsFile);
     expect(outerRoot.packagesFile, outerPackagesFile);
   }
@@ -1746,7 +1731,6 @@ ${getFolder(outPath).path}
     expect(package1Root.packagesFile, packagesFile);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/53874')
   void test_multiple_packages_monorepo() {
     var rootPath = convertPath('/test/outer');
     Folder rootFolder = newFolder(rootPath);
@@ -1826,8 +1810,126 @@ ${getFolder(outPath).path}
   }
 
   void _assertPubWorkspace(Workspace workspace, String posixRoot) {
-    workspace as PubWorkspace;
+    workspace as PackageConfigWorkspace;
     var root = convertPath(posixRoot);
     expect(workspace.root, root);
+  }
+}
+
+/// To be removed when `singleOptionContexts` defaults to false.
+@reflectiveTest
+class ContextLocatorImplTest_SingleOptionsPerContext
+    extends ContextLocatorImplTest {
+  @override
+  bool get enableSingleOptionContexts => true;
+
+  @override
+  void test_locateRoots_nested_multiple() {
+    Folder outerRootFolder = newFolder('/test/outer');
+    File outerOptionsFile = newAnalysisOptionsYamlFile('/test/outer', '');
+    File outerPackagesFile = newPackageConfigJsonFile('/test/outer', '');
+    Folder inner1RootFolder = newFolder('/test/outer/examples/inner1');
+    File inner1OptionsFile =
+        newAnalysisOptionsYamlFile('/test/outer/examples/inner1', '');
+    Folder inner2RootFolder = newFolder('/test/outer/examples/inner2');
+    File inner2PackagesFile =
+        newPackageConfigJsonFile('/test/outer/examples/inner2', '');
+
+    List<ContextRoot> roots =
+        contextLocator.locateRoots(includedPaths: [outerRootFolder.path]);
+    expect(roots, hasLength(3));
+
+    ContextRoot outerRoot = findRoot(roots, outerRootFolder);
+    expect(outerRoot.includedPaths, unorderedEquals([outerRootFolder.path]));
+    expect(outerRoot.excludedPaths,
+        unorderedEquals([inner1RootFolder.path, inner2RootFolder.path]));
+    expect(outerRoot.optionsFile, outerOptionsFile);
+    expect(outerRoot.packagesFile, outerPackagesFile);
+
+    ContextRoot inner1Root = findRoot(roots, inner1RootFolder);
+    expect(inner1Root.includedPaths, unorderedEquals([inner1RootFolder.path]));
+    expect(inner1Root.excludedPaths, isEmpty);
+    expect(inner1Root.optionsFile, inner1OptionsFile);
+    expect(inner1Root.packagesFile, outerPackagesFile);
+
+    ContextRoot inner2Root = findRoot(roots, inner2RootFolder);
+    expect(inner2Root.includedPaths, unorderedEquals([inner2RootFolder.path]));
+    expect(inner2Root.excludedPaths, isEmpty);
+    expect(inner2Root.optionsFile, outerOptionsFile);
+    expect(inner2Root.packagesFile, inner2PackagesFile);
+  }
+
+  @override
+  void test_locateRoots_nested_options() {
+    Folder outerRootFolder = newFolder('/test/outer');
+    File outerOptionsFile = newAnalysisOptionsYamlFile('/test/outer', '');
+    File outerPackagesFile = newPackageConfigJsonFile('/test/outer', '');
+    Folder innerRootFolder = newFolder('/test/outer/examples/inner');
+    File innerOptionsFile =
+        newAnalysisOptionsYamlFile('/test/outer/examples/inner', '');
+
+    List<ContextRoot> roots =
+        contextLocator.locateRoots(includedPaths: [outerRootFolder.path]);
+    expect(roots, hasLength(2));
+
+    ContextRoot outerRoot = findRoot(roots, outerRootFolder);
+    expect(outerRoot.includedPaths, unorderedEquals([outerRootFolder.path]));
+    expect(outerRoot.excludedPaths, unorderedEquals([innerRootFolder.path]));
+    expect(outerRoot.optionsFile, outerOptionsFile);
+    expect(outerRoot.packagesFile, outerPackagesFile);
+
+    ContextRoot innerRoot = findRoot(roots, innerRootFolder);
+    expect(innerRoot.includedPaths, unorderedEquals([innerRootFolder.path]));
+    expect(innerRoot.excludedPaths, isEmpty);
+    expect(innerRoot.optionsFile, innerOptionsFile);
+    expect(innerRoot.packagesFile, outerPackagesFile);
+  }
+
+  @override
+  void test_locateRoots_nested_options_overriddenPackages() {
+    Folder outerRootFolder = newFolder('/test/outer');
+    File outerOptionsFile = newAnalysisOptionsYamlFile('/test/outer', '');
+    newPackageConfigJsonFile('/test/outer', '');
+    Folder innerRootFolder = newFolder('/test/outer/examples/inner');
+    File innerOptionsFile =
+        newAnalysisOptionsYamlFile('/test/outer/examples/inner', '');
+    File overridePackagesFile = newPackageConfigJsonFile('/test/override', '');
+
+    List<ContextRoot> roots = contextLocator.locateRoots(
+        includedPaths: [outerRootFolder.path],
+        packagesFile: overridePackagesFile.path);
+    expect(roots, hasLength(2));
+
+    ContextRoot outerRoot = findRoot(roots, outerRootFolder);
+    expect(outerRoot.includedPaths, unorderedEquals([outerRootFolder.path]));
+    expect(outerRoot.excludedPaths, unorderedEquals([innerRootFolder.path]));
+    expect(outerRoot.optionsFile, outerOptionsFile);
+    expect(outerRoot.packagesFile, overridePackagesFile);
+
+    ContextRoot innerRoot = findRoot(roots, innerRootFolder);
+    expect(innerRoot.includedPaths, unorderedEquals([innerRootFolder.path]));
+    expect(innerRoot.excludedPaths, isEmpty);
+    expect(innerRoot.optionsFile, innerOptionsFile);
+    expect(innerRoot.packagesFile, overridePackagesFile);
+  }
+
+  @override
+  void test_locateRoots_nested_packagesDirectory_included() {
+    Folder outerRootFolder = newFolder('/test/outer');
+    File outerOptionsFile = newAnalysisOptionsYamlFile('/test/outer', '');
+    File outerPackagesFile = newPackageConfigJsonFile('/test/outer', '');
+    File innerOptionsFile =
+        newAnalysisOptionsYamlFile('/test/outer/packages/inner', '');
+
+    List<ContextRoot> roots =
+        contextLocator.locateRoots(includedPaths: [outerRootFolder.path]);
+    expect(roots, hasLength(2));
+
+    ContextRoot outerRoot = findRoot(roots, outerRootFolder);
+    expect(outerRoot.includedPaths, unorderedEquals([outerRootFolder.path]));
+    expect(outerRoot.excludedPaths,
+        unorderedEquals([innerOptionsFile.parent.path]));
+    expect(outerRoot.optionsFile, outerOptionsFile);
+    expect(outerRoot.packagesFile, outerPackagesFile);
   }
 }

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
+import "package:expect/variations.dart" as v;
 
 class A<T> {
   A(f) {
@@ -15,9 +16,5 @@ class B<T> extends A<T> {
 }
 
 main() {
-  if (!dart2jsProductionMode) {
-    Expect.throwsTypeError(() => new B<String>());
-  } else {
-    new B<String>(); // Checks are omitted in dart2js production mode.
-  }
+  Expect.throwsTypeErrorWhen(v.checkedParameters, () => new B<String>());
 }

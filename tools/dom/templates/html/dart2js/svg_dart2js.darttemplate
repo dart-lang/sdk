@@ -8,7 +8,7 @@
 /// > [!Note]
 /// > New projects should prefer to use
 /// > [package:web](https://pub.dev/packages/web). For existing projects, see
-/// > our [migration guide](http://dart.dev/go/package-web).
+/// > our [migration guide](https://dart.dev/go/package-web).
 ///
 /// For details about the features and syntax of SVG, a W3C standard,
 /// refer to the

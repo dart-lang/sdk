@@ -50,7 +50,7 @@ static extension-type-member method ET1|set#setter(lowered final self::ET1 /* = 
   ;
 static extension-type-member method ET2|constructor#<T extends core::Object? = dynamic>(self::ET2|constructor#::T% t) → self::ET2<self::ET2|constructor#::T%> /* = self::ET2|constructor#::T% */
   ;
-static extension-type-member method ET2|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::ET2|constructor#_#new#tearOff::T% t) → self::ET2<self::ET2|constructor#_#new#tearOff::T%>% /* = self::ET2|constructor#_#new#tearOff::T% */
+static extension-type-member method ET2|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::ET2|constructor#_#new#tearOff::T% t) → self::ET2<self::ET2|constructor#_#new#tearOff::T%> /* = self::ET2|constructor#_#new#tearOff::T% */
   return self::ET2|constructor#<self::ET2|constructor#_#new#tearOff::T%>(t);
 static extension-type-member method ET2|+<T extends core::Object? = dynamic>(lowered final self::ET2<self::ET2|+::T%> /* = self::ET2|+::T% */ #this, self::ET2<self::ET2|+::T%>? /* = self::ET2|+::T? */ t) → self::ET2<self::ET2|+::T%>? /* = self::ET2|+::T? */
   ;
@@ -62,7 +62,7 @@ static extension-type-member method ET2|[]=<T extends core::Object? = dynamic>(l
   ;
 static extension-type-member method ET2|foo<T extends core::Object? = dynamic>(lowered final self::ET2<self::ET2|foo::T%> /* = self::ET2|foo::T% */ #this, self::ET2|foo::T% t) → void
   ;
-static extension-type-member method ET2|get#foo<T extends core::Object? = dynamic>(lowered final self::ET2<self::ET2|get#foo::T%>% /* = self::ET2|get#foo::T% */ #this) → (self::ET2|get#foo::T%) → void
+static extension-type-member method ET2|get#foo<T extends core::Object? = dynamic>(lowered final self::ET2<self::ET2|get#foo::T%> /* = self::ET2|get#foo::T% */ #this) → (self::ET2|get#foo::T%) → void
   return (self::ET2|get#foo::T% t) → void => self::ET2|foo<self::ET2|get#foo::T%>(#this, t);
 static extension-type-member method ET2|get#getter<T extends core::Object? = dynamic>(lowered final self::ET2<self::ET2|get#getter::T%> /* = self::ET2|get#getter::T% */ #this) → self::ET2|get#getter::T%
   ;

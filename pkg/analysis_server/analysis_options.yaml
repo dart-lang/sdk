@@ -29,6 +29,7 @@ analyzer:
 
 linter:
   rules:
+    - avoid_redundant_argument_values
     - flutter_style_todos
     - library_annotations
     - prefer_single_quotes

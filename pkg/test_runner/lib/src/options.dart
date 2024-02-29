@@ -136,12 +136,10 @@ test options, specifying how tests should be run.''')
             'flag with without specifying a named configuration.')
     ..addFlag('build',
         help: 'Build the necessary targets to test this configuration')
-    // TODO(sigmund): rename flag once we migrate all dart2js bots to the test
-    // matrix.
-    ..addFlag('host-checked',
-        aliases: ['host_checked'],
+    ..addFlag('host-asserts',
+        aliases: ['host_asserts'],
         hide: true,
-        help: 'Run compiler with assertions enabled.')
+        help: 'Run the compiler with assertions enabled.')
     ..addFlag('minified',
         hide: true, help: 'Enable minification in the compiler.')
     ..addFlag('csp',
@@ -153,7 +151,7 @@ test options, specifying how tests should be run.''')
         help: 'Only run tests that are not marked `Slow` or `Timeout`.')
     ..addFlag('enable-asserts',
         aliases: ['enable_asserts'],
-        help: 'Pass the --enable-asserts flag to dart2js or to the vm.')
+        help: 'Pass the --enable-asserts flag to the compilers or to the vm.')
     ..addFlag('use-cfe',
         aliases: ['use_cfe'],
         hide: true,
@@ -434,7 +432,7 @@ has been specified on the command line.''')
     'use-sdk',
     'hot-reload',
     'hot-reload-rollback',
-    'host-checked',
+    'host-asserts',
     'csp',
     'minified',
     'vm-options',
@@ -811,7 +809,7 @@ has been specified on the command line.''')
                   useSdk: data["use-sdk"] as bool,
                   useHotReload: data["hot-reload"] as bool,
                   useHotReloadRollback: data["hot-reload-rollback"] as bool,
-                  isHostChecked: data["host-checked"] as bool,
+                  enableHostAsserts: data["host-asserts"] as bool,
                   isCsp: data["csp"] as bool,
                   isMinified: data["minified"] as bool,
                   vmOptions: vmOptions,

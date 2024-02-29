@@ -33,6 +33,8 @@ import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer/src/workspace/pub.dart';
+import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:collection/collection.dart';
 import 'package:path/path.dart' as path;
 import 'package:vm_service/vm_service_io.dart' as vm_service;
@@ -473,8 +475,7 @@ class CollectReportPage extends DiagnosticPage {
     }
 
     if (startedServiceProtocol) {
-      await developer.Service.controlWebServer(
-          enable: false, silenceOutput: true);
+      await developer.Service.controlWebServer(silenceOutput: true);
     }
 
     const JsonEncoder encoder = JsonEncoder.withIndent('  ');
@@ -734,7 +735,11 @@ class ContextsPage extends DiagnosticPageWithNav {
         writeOption('SDK root', escape(driver.analysisContext?.sdkRoot?.path)));
 
     h3('Analysis options');
-    ul(driver.analysisOptionsMap.entries, (OptionsMapEntry entry) {
+
+    // Display analysis options entries inside this context root.
+    var optionsInContextRoot = driver.analysisOptionsMap.entries.where(
+        (OptionsMapEntry entry) => contextPath!.startsWith(entry.folder.path));
+    ul(optionsInContextRoot, (OptionsMapEntry entry) {
       var folder = entry.folder;
       buf.write(escape(folder.path));
       var optionsPath = path.join(folder.path, 'analysis_options.yaml');
@@ -743,18 +748,37 @@ class ContextsPage extends DiagnosticPageWithNav {
       buf.writeln(' <a href="$contentsPath">analysis_options.yaml</a>');
     }, classes: 'scroll-table');
 
-    h3('Pub files');
+    String lenCounter(int length) {
+      return '<span class="counter" style="float: right;">$length</span>';
+    }
+
+    h3('Workspace');
+    var workspace = driver.analysisContext?.contextRoot.workspace;
     buf.writeln('<p>');
+    buf.writeln(writeOption('Workspace root', escape(workspace?.root)));
+    var workspaceFolder = folder.provider.getFolder(workspace!.root);
 
-    buf.writeln('<div class="column one-half">');
+    void writePackage(WorkspacePackage package) {
+      buf.writeln(writeOption('Package root', escape(package.root)));
+      if (package is PubPackage) {
+        buf.writeln(writeOption(
+            'pubspec file',
+            escape(workspaceFolder
+                .getChildAssumingFile(file_paths.pubspecYaml)
+                .path)));
+      }
+    }
 
-    var packageConfig = folder
+    var packageConfig = workspaceFolder
         .getChildAssumingFolder(file_paths.dotDartTool)
         .getChildAssumingFile(file_paths.packageConfigJson);
     buf.writeln(
         writeOption('Has package_config.json file', packageConfig.exists));
-    buf.writeln(writeOption('Has pubspec.yaml file',
-        folder.getChild(file_paths.pubspecYaml).exists));
+    if (workspace is PackageConfigWorkspace) {
+      var packages = workspace.allPackages;
+      h4('Packages ${lenCounter(packages.length)}', raw: true);
+      ul(packages, writePackage, classes: 'scroll-table');
+    }
     buf.writeln('</p>');
 
     buf.writeln('</div>');
@@ -769,10 +793,6 @@ class ContextsPage extends DiagnosticPageWithNav {
     var implicitFiles = knownFiles.difference(driver.addedFiles).toList();
     addedFiles.sort();
     implicitFiles.sort();
-
-    String lenCounter(List<String> list) {
-      return '<span class="counter" style="float: right;">${list.length}</span>';
-    }
 
     h3('Context files');
 
@@ -789,13 +809,13 @@ class ContextsPage extends DiagnosticPageWithNav {
           ' <a href="$contentsPath">contents${hasOverlay ? '*' : ''}</a>');
     }
 
-    h4('Priority files ${lenCounter(priorityFiles)}', raw: true);
+    h4('Priority files ${lenCounter(priorityFiles.length)}', raw: true);
     ul(priorityFiles, writeFile, classes: 'scroll-table');
 
-    h4('Added files ${lenCounter(addedFiles)}', raw: true);
+    h4('Added files ${lenCounter(addedFiles.length)}', raw: true);
     ul(addedFiles, writeFile, classes: 'scroll-table');
 
-    h4('Implicit files ${lenCounter(implicitFiles)}', raw: true);
+    h4('Implicit files ${lenCounter(implicitFiles.length)}', raw: true);
     ul(implicitFiles, writeFile, classes: 'scroll-table');
 
     var sourceFactory = driver.sourceFactory;

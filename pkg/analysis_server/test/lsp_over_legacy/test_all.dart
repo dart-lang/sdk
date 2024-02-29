@@ -5,6 +5,8 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'call_hierarchy_test.dart' as call_hierarchy;
+import 'dart_text_document_content_provider_test.dart'
+    as dart_text_document_content_provider;
 import 'document_color_test.dart' as document_color;
 import 'document_highlights_test.dart' as document_highlights;
 import 'document_symbols_test.dart' as document_symbols;
@@ -20,6 +22,7 @@ import 'workspace_symbols_test.dart' as workspace_symbols;
 void main() {
   defineReflectiveSuite(() {
     call_hierarchy.main();
+    dart_text_document_content_provider.main();
     document_color.main;
     document_highlights.main();
     document_symbols.main();

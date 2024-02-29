@@ -205,7 +205,7 @@ int? f() => 1;
 
   test_parseString_languageVersion() {
     var content = '''
-// @dart = 2.7
+// @dart = 3.2
 class A {}
 ''';
     var result = parseString(
@@ -215,8 +215,8 @@ class A {}
     );
 
     var languageVersion = result.unit.languageVersionToken!;
-    expect(languageVersion.major, 2);
-    expect(languageVersion.minor, 7);
+    expect(languageVersion.major, 3);
+    expect(languageVersion.minor, 2);
   }
 
   test_parseString_languageVersion_null() {

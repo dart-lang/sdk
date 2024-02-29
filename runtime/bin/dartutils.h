@@ -228,6 +228,10 @@ class DartUtils {
     return result;
   }
 
+  static char* ScopedCStringFormatted(const char* format, ...)
+      PRINTF_ATTRIBUTE(1, 2);
+  static char* ScopedCStringVFormatted(const char* format, va_list args);
+
   // Create a new Dart InternalError object with the provided message.
   static Dart_Handle NewError(const char* format, ...);
   static Dart_Handle NewInternalError(const char* message);
@@ -248,6 +252,7 @@ class DartUtils {
     kAotELFMagicNumber,
     kAotMachO32MagicNumber,
     kAotMachO64MagicNumber,
+    kAotMachO64Arm64MagicNumber,
     kAotCoffARM32MagicNumber,
     kAotCoffARM64MagicNumber,
     kAotCoffRISCV32MagicNumber,

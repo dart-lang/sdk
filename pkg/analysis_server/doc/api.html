@@ -110,7 +110,7 @@ a:focus, a:hover {
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  1.35.0
+  1.36.0
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -245,6 +245,18 @@ a:focus, a:hover {
   ignoring the item or treating it with some default/fallback handling.
 </p>
 <h3>Changelog</h3>
+<h4>1.36.0</h4>
+<ul>
+  <li>
+    Added a new <tt>supportsUris</tt> client capability to indicate that <tt>FilePath</tt>s should be URIs instead of file paths.
+  </li>
+  <li>
+    Added an experimental "lsp.handle" request to allow sending LSP requests through the protocol.
+  </li>
+  <li>
+    Added an experimental "lsp.notification" notification to allow receiving LSP notifications.
+  </li>
+</ul>
 <h4>1.35.0</h4>
 <ul>
   <li>
@@ -558,6 +570,7 @@ a:focus, a:hover {
   "method": "server.setClientCapabilities"
   "params": {
     "<b>requests</b>": List&lt;String&gt;
+    "<b>supportsUris</b>": <span style="color:#999999">optional</span> bool
   }
 }</pre><br><pre>response: {
   "id": String
@@ -593,6 +606,17 @@ a:focus, a:hover {
             <tt>showMessageRequest</tt>
           </li>
         </ul>
+      </dd><dt class="field"><b>supportsUris: bool<span style="color:#999999"> (optional)</span></b></dt><dd>
+        
+        <p>
+          True if the client supports the server sending URIs in place of file paths.
+        </p>
+        <p>
+          In this mode, the server will use URIs in all protocol fields with the type <tt>FilePath</tt>. Returned URIs may be `file://` URIs or custom schemes. The client can fetch the file contents for URIs with custom schemes (and receive modification events) through the LSP protocol (see the "lsp" domain).
+        </p>
+        <p>
+          LSP notifications are automatically enabled when the client sets this capability.
+        </p>
       </dd></dl></dd><dt class="request"><a name="request_server.openUrlRequest">server.openUrlRequest</a></dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "server.openUrlRequest"

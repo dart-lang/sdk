@@ -5,7 +5,7 @@ import "dart:core" as core;
 static final field core::bool inSoundMode = !(core::_GrowableList::•<core::int?>(0) is core::List<core::int>);
 static method main() → dynamic {
   try {
-    throw null as dynamic;
+    throw (null as dynamic) as{TypeError,Unchecked} core::Object;
   }
   on core::TypeError catch(final core::TypeError e) {
     core::print("${e.{core::Object::runtimeType}{core::Type}}:${e}");

@@ -8,6 +8,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClassHierarchyBase, ClassHierarchyMembers;
 import 'package:kernel/core_types.dart';
+import 'package:kernel/names.dart' show equalsName;
 import 'package:kernel/reference_from_index.dart' show IndexedContainer;
 import 'package:kernel/src/bounds_checks.dart';
 import 'package:kernel/src/legacy_erasure.dart';
@@ -22,8 +23,8 @@ import 'package:kernel/type_algebra.dart'
 import 'package:kernel/type_environment.dart';
 
 import '../builder/builder.dart';
-import '../builder/declaration_builders.dart';
 import '../builder/constructor_reference_builder.dart';
+import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
@@ -33,14 +34,13 @@ import '../builder/never_type_declaration_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/void_type_declaration_builder.dart';
-import '../fasta_codes.dart';
+import '../codes/fasta_codes.dart';
 import '../kernel/body_builder_context.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart';
 import '../kernel/hierarchy/hierarchy_node.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/type_algorithms.dart' show computeTypeVariableBuilderVariance;
 import '../kernel/utils.dart' show compareProcedures;
-import '../names.dart' show equalsName;
 import '../problems.dart' show unexpected, unhandled, unimplemented;
 import '../scope.dart';
 import '../util/helpers.dart';

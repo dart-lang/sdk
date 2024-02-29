@@ -128,8 +128,12 @@ class TodoFinder {
         }
       }
 
-      _errorReporter.reportErrorForOffset(
-          Todo.forKind(todoKind), offset, end - offset, [todoText]);
+      _errorReporter.atOffset(
+        offset: offset,
+        length: end - offset,
+        errorCode: Todo.forKind(todoKind),
+        arguments: [todoText],
+      );
     }
 
     return nextComment;

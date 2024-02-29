@@ -7,6 +7,7 @@ import 'package:analysis_server/src/services/completion/dart/completion_state.da
 import 'package:analysis_server/src/services/completion/dart/declaration_helper.dart';
 import 'package:analysis_server/src/services/completion/dart/keyword_helper.dart';
 import 'package:analysis_server/src/services/completion/dart/label_helper.dart';
+import 'package:analysis_server/src/services/completion/dart/override_helper.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_collector.dart';
 import 'package:analysis_server/src/services/completion/dart/visibility_tracker.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
@@ -18,6 +19,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
@@ -42,6 +44,9 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   /// suggestions are being produced by the various passes.
   final bool skipImports;
 
+  /// Whether suggestions for overrides should be produced.
+  final bool suggestOverrides;
+
   /// The helper used to suggest keywords.
   late final KeywordHelper keywordHelper = KeywordHelper(
       collector: collector, featureSet: featureSet, offset: offset);
@@ -52,6 +57,10 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   /// The helper used to suggest declarations that are in scope.
   DeclarationHelper? _declarationHelper;
 
+  /// The helper used to suggest overrides of inherited members.
+  late final OverrideHelper overrideHelper =
+      OverrideHelper(collector: collector, state: state);
+
   /// Initialize a newly created completion visitor that can use the [state] to
   /// add candidate suggestions to the [collector].
   ///
@@ -60,7 +69,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   InScopeCompletionPass(
       {required this.state,
       required this.collector,
-      required this.skipImports});
+      required this.skipImports,
+      required this.suggestOverrides});
 
   /// Return the feature set that applies to the library for which completions
   /// are being computed.
@@ -318,7 +328,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   @override
   void visitAssertStatement(AssertStatement node) {
     if (offset <= node.assertKeyword.end) {
-      keywordHelper.addKeyword(Keyword.ASSERT);
+      _forStatement(node);
     }
   }
 
@@ -343,6 +353,9 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitBlock(Block node) {
+    if (node.leftBracket.isSynthetic && node.rightBracket.isSynthetic) {
+      node.parent?.accept(this);
+    }
     if (offset <= node.leftBracket.offset) {
       var parent = node.parent;
       if (parent is BlockFunctionBody) {
@@ -451,13 +464,18 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       var members = node.members;
       // TODO(brianwilkerson): Generalize this to check for unattatched
       //  annotations in other places.
-      var token =
-          members.elementBefore(offset)?.beginToken ?? node.leftBracket.next!;
+      var preceedingMember = members.elementBefore(offset);
+      var token = preceedingMember?.beginToken ?? node.leftBracket.next!;
       if (token.type == TokenType.AT) {
-        // We are completing at the beginning of an annotation.
+        // The user is completing at the beginning of an annotation.
         // TODO(brianwilkerson): We need to check the next token to see whether
         //  part of the annotation is already there.
         _forAnnotation(node);
+        return;
+      } else if (token.keyword == Keyword.FINAL) {
+        // The user is completing after the keyword `final`, so they're likely
+        // trying to declare a field.
+        _forTypeAnnotation(node);
         return;
       }
       collector.completionLocation = 'ClassDeclaration_member';
@@ -469,6 +487,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
           keywordHelper.addFunctionBodyModifiers(body);
         }
       }
+      // TODO(brianwilkerson): Consider enabling the generation of overrides in
+      //  this location.
     } else {
       // The cursor is immediately to the right of the right bracket, so the
       // user is starting a new top-level declaration.
@@ -880,10 +900,22 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
           _forClassLikeMember(parent);
         }
       } else if (offset <= type.end) {
-        keywordHelper.addFieldDeclarationKeywords(node);
-        // TODO(brianwilkerson): `var` should only be suggested if neither
-        //  `static` nor `final` are present.
-        keywordHelper.addKeyword(Keyword.VAR);
+        // TODO(brianwilkerson): Add support for the failing test
+        //  `OverrideTestCases.test_class_method_beforeField`.
+        if (node.isSingleIdentifier) {
+          // The user has typed only part of an identifier / keyword. Recovery
+          // sees this as a field, but it could be the start of any kind of
+          // member.
+          var parent = node.parent;
+          if (parent != null) {
+            _forClassLikeMember(parent);
+          }
+        } else {
+          keywordHelper.addFieldDeclarationKeywords(node);
+          // TODO(brianwilkerson): `var` should only be suggested if neither
+          //  `static` nor `final` are present.
+          keywordHelper.addKeyword(Keyword.VAR);
+        }
       }
     }
   }
@@ -967,6 +999,13 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       _forExpression(node);
     } else if (offset >= node.rightSeparator.end) {
       _forExpression(node);
+    }
+  }
+
+  @override
+  void visitForPartsWithExpression(ForPartsWithExpression node) {
+    if (node.isFullySynthetic) {
+      node.parent?.accept(this);
     }
   }
 
@@ -1150,7 +1189,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitIfStatement(IfStatement node) {
-    if (node.rightParenthesis.isSynthetic) {
+    if (node.rightParenthesis.isSynthetic &&
+        !node.leftParenthesis.isSynthetic) {
       // analyzer parser
       // Actual: if (x i^)
       // Parsed: if (x) i^
@@ -1421,6 +1461,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
           keywordHelper.addFunctionBodyModifiers(body);
         }
       }
+      // TODO(brianwilkerson): Consider enabling the generation of overrides in
+      //  this location.
     }
   }
 
@@ -2092,7 +2134,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
             keywordHelper.addKeyword(Keyword.LATE);
           }
         }
-        if (node.name == grandparent.beginToken) {
+        if (node.name == grandparent.firstTokenAfterCommentAndMetadata) {
           // The parser often recovers from incomplete code by assuming that
           // the user is typing a field declaration, but it's quite possible
           // that the user is trying to type a different kind of declaration.
@@ -2103,6 +2145,13 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
           keywordHelper.addKeyword(Keyword.GET);
           keywordHelper.addKeyword(Keyword.OPERATOR);
           keywordHelper.addKeyword(Keyword.SET);
+        }
+        if (grandparent.isSingleIdentifier) {
+          _suggestOverridesFor(switch (container) {
+            ClassDeclaration() => container.declaredElement,
+            MixinDeclaration() => container.declaredElement,
+            _ => null,
+          });
         }
       } else if (grandparent is TopLevelVariableDeclaration) {
         if (grandparent.externalKeyword == null) {
@@ -2228,6 +2277,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   void _forClassMember(ClassDeclaration node) {
     keywordHelper.addClassMemberKeywords();
     declarationHelper(mustBeType: true).addLexicalDeclarations(node);
+    _suggestOverridesFor(node.declaredElement);
   }
 
   /// Add the suggestions that are appropriate when the selection is at the
@@ -2453,6 +2503,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   void _forMixinMember(MixinDeclaration node) {
     keywordHelper.addMixinMemberKeywords();
     declarationHelper(mustBeType: true).addLexicalDeclarations(node);
+    _suggestOverridesFor(node.declaredElement);
   }
 
   /// Adds the suggestions that are appropriate when the selection is in the
@@ -2508,7 +2559,6 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   /// beginning of a redirecting constructor invocation.
   void _forRedirectingConstructorInvocation(
       ConstructorDeclaration constructor) {
-    var constructorName = constructor.name?.lexeme;
     var container = constructor.parent;
     var thisType = switch (container) {
       ClassDeclaration() => container.declaredElement?.thisType,
@@ -2517,6 +2567,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       _ => null,
     };
     if (thisType != null) {
+      var constructorName = constructor.name?.lexeme;
       declarationHelper(mustBeConstant: constructor.constKeyword != null)
           .addConstructorNamesForType(type: thisType, exclude: constructorName);
     }
@@ -2672,6 +2723,15 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       }
     }
     return false;
+  }
+
+  /// If allowed, suggest overrides in the context of the given [element].
+  void _suggestOverridesFor(InterfaceElement? element) {
+    // TODO(brianwilkerson): Check whether there's sufficient remaining time
+    //  before computing suggestions for overrides.
+    if (suggestOverrides && element != null) {
+      overrideHelper.computeOverridesFor(element, SourceRange(offset, 0));
+    }
   }
 
   void _visitForEachParts(ForEachParts node) {
@@ -3004,7 +3064,7 @@ extension on ExtensionTypeDeclaration {
 extension on FieldDeclaration {
   /// Whether this field declaration consists of a single identifier.
   bool get isSingleIdentifier {
-    var first = beginToken;
+    var first = firstTokenAfterCommentAndMetadata;
     var last = endToken;
     return first.isKeywordOrIdentifier &&
         last.isSynthetic &&

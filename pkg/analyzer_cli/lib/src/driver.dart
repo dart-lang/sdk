@@ -252,9 +252,8 @@ class Driver implements CommandLineStarter {
           var contextRoot =
               analysisDriver.currentSession.analysisContext.contextRoot;
           var package = contextRoot.workspace.findPackageFor(file.path);
-          var sdkVersionConstraint = (package is PubWorkspacePackage)
-              ? package.sdkVersionConstraint
-              : null;
+          var sdkVersionConstraint =
+              (package is PubPackage) ? package.sdkVersionConstraint : null;
           var errors = analyzeAnalysisOptions(
             file.createSource(),
             content,

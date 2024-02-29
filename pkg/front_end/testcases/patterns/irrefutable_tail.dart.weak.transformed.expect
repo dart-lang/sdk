@@ -207,7 +207,7 @@ static method switchExpression(dynamic o) → dynamic
           break #L1;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t7;
 static method switchStatement(dynamic o) → dynamic {

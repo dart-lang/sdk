@@ -1077,7 +1077,7 @@ class OnlineJavaScriptTracer extends js.BaseVisitor1Void<int>
   }
 
   @override
-  visitNode(js.Node node, _) {}
+  void visitNode(js.Node node, _) {}
 
   void _handleFunction(_PositionInfoNode node, js.Node body, int start) {
     _currentNode.active = _currentNode.active ||
@@ -1090,7 +1090,7 @@ class OnlineJavaScriptTracer extends js.BaseVisitor1Void<int>
     node.addNotifyStep(StepKind.FUN_EXIT);
   }
 
-  _handleFunctionExpression(js.FunctionExpression node, int start) {
+  void _handleFunctionExpression(js.FunctionExpression node, int start) {
     final parentNode = _currentNode.parent;
     final parentAstNode = _currentNode.parent?.astNode;
     _PositionInfoNode functionNode = _currentNode;
@@ -1111,26 +1111,26 @@ class OnlineJavaScriptTracer extends js.BaseVisitor1Void<int>
   }
 
   @override
-  visitFunctionDeclaration(js.FunctionDeclaration node, int start) {
+  void visitFunctionDeclaration(js.FunctionDeclaration node, int start) {
     visit(node.function);
   }
 
   @override
-  visitNamedFunction(js.NamedFunction node, int start) {
+  void visitNamedFunction(js.NamedFunction node, int start) {
     visit(node.function);
   }
 
   @override
-  visitFun(js.Fun node, int start) {
+  void visitFun(js.Fun node, int start) {
     _handleFunctionExpression(node, start);
   }
 
   @override
-  visitArrowFunction(js.ArrowFunction node, int start) {
+  void visitArrowFunction(js.ArrowFunction node, int start) {
     _handleFunctionExpression(node, start);
   }
 
-  visitSubexpression(js.Node parent, js.Expression child, StepKind kind,
+  void visitSubexpression(js.Node parent, js.Expression child, StepKind kind,
       {required int statementOffset,
       required OffsetPositionMode offsetPositionMode,
       BranchKind? branchKind,
@@ -1147,14 +1147,14 @@ class OnlineJavaScriptTracer extends js.BaseVisitor1Void<int>
   }
 
   @override
-  visitExpressionStatement(js.ExpressionStatement node, int start) {
+  void visitExpressionStatement(js.ExpressionStatement node, int start) {
     visitSubexpression(node, node.expression, StepKind.EXPRESSION_STATEMENT,
         statementOffset: start,
         offsetPositionMode: OffsetPositionMode.subexpressionParentOffset);
   }
 
   @override
-  visitCall(js.Call node, _) {
+  void visitCall(js.Call node, _) {
     visit(node.target, offsetPositionMode: OffsetPositionMode.invocationTarget);
     for (js.Node argument in node.arguments) {
       visit(argument, offsetPositionMode: OffsetPositionMode.resetBefore);
@@ -1179,7 +1179,7 @@ class OnlineJavaScriptTracer extends js.BaseVisitor1Void<int>
   }
 
   @override
-  visitNew(js.New node, _) {
+  void visitNew(js.New node, _) {
     visit(node.target, offsetPositionMode: OffsetPositionMode.invocationTarget);
     for (js.Node node in node.arguments) {
       visit(node, offsetPositionMode: OffsetPositionMode.resetBefore);
@@ -1189,7 +1189,7 @@ class OnlineJavaScriptTracer extends js.BaseVisitor1Void<int>
   }
 
   @override
-  visitAccess(js.PropertyAccess node, _) {
+  void visitAccess(js.PropertyAccess node, _) {
     final receiverNode = visit(node.receiver);
     // Technically we'd like to use the offset of the `.` in the property
     // access, but the js_ast doesn't expose it. Since this is only used to
@@ -1202,7 +1202,7 @@ class OnlineJavaScriptTracer extends js.BaseVisitor1Void<int>
   }
 
   @override
-  visitIf(js.If node, int start) {
+  void visitIf(js.If node, int start) {
     visitSubexpression(node, node.condition, StepKind.IF_CONDITION,
         statementOffset: start,
         offsetPositionMode: OffsetPositionMode.subexpressionParentOffset);
@@ -1219,7 +1219,7 @@ class OnlineJavaScriptTracer extends js.BaseVisitor1Void<int>
   }
 
   @override
-  visitFor(js.For node, int start) {
+  void visitFor(js.For node, int start) {
     final init = node.init;
     if (init != null) {
       visitSubexpression(node, init, StepKind.FOR_INITIALIZER,
@@ -1251,7 +1251,7 @@ class OnlineJavaScriptTracer extends js.BaseVisitor1Void<int>
   }
 
   @override
-  visitWhile(js.While node, int start) {
+  void visitWhile(js.While node, int start) {
     visitSubexpression(node, node.condition, StepKind.WHILE_CONDITION,
         statementOffset: start,
         offsetPositionMode: OffsetPositionMode.subexpressionParentOffset);
@@ -1260,7 +1260,7 @@ class OnlineJavaScriptTracer extends js.BaseVisitor1Void<int>
   }
 
   @override
-  visitDo(js.Do node, int start) {
+  void visitDo(js.Do node, int start) {
     visit(node.body, statementOffset: start);
     final condition = node.condition;
     visitSubexpression(node, condition, StepKind.DO_CONDITION,
@@ -1269,13 +1269,13 @@ class OnlineJavaScriptTracer extends js.BaseVisitor1Void<int>
   }
 
   @override
-  visitReturn(js.Return node, int start) {
+  void visitReturn(js.Return node, int start) {
     visit(node.value, statementOffset: start);
     _currentNode.addNotifyStep(StepKind.RETURN);
   }
 
   @override
-  visitThrow(js.Throw node, int start) {
+  void visitThrow(js.Throw node, int start) {
     // Do not use [offsetPosition] for the subexpression.
     visit(node.expression,
         statementOffset: start,
@@ -1284,31 +1284,31 @@ class OnlineJavaScriptTracer extends js.BaseVisitor1Void<int>
   }
 
   @override
-  visitContinue(js.Continue node, _) {
+  void visitContinue(js.Continue node, _) {
     _currentNode.addNotifyStep(StepKind.CONTINUE);
   }
 
   @override
-  visitBreak(js.Break node, _) {
+  void visitBreak(js.Break node, _) {
     _currentNode.addNotifyStep(StepKind.BREAK);
   }
 
   @override
-  visitTry(js.Try node, _) {
+  void visitTry(js.Try node, _) {
     visit(node.body);
     visit(node.catchPart, branchKind: BranchKind.CATCH);
     visit(node.finallyPart, branchKind: BranchKind.FINALLY);
   }
 
   @override
-  visitConditional(js.Conditional node, _) {
+  void visitConditional(js.Conditional node, _) {
     visit(node.condition);
     visit(node.then, branchKind: BranchKind.CONDITION, branchToken: 1);
     visit(node.otherwise, branchKind: BranchKind.CONDITION, branchToken: 0);
   }
 
   @override
-  visitSwitch(js.Switch node, int start) {
+  void visitSwitch(js.Switch node, int start) {
     visitSubexpression(node, node.key, StepKind.SWITCH_EXPRESSION,
         statementOffset: start,
         offsetPositionMode: OffsetPositionMode.subexpressionParentOffset);
@@ -1318,12 +1318,12 @@ class OnlineJavaScriptTracer extends js.BaseVisitor1Void<int>
   }
 
   @override
-  visitLabeledStatement(js.LabeledStatement node, int start) {
+  void visitLabeledStatement(js.LabeledStatement node, int start) {
     visit(node.body, statementOffset: start);
   }
 
   @override
-  visitDeferredExpression(js.DeferredExpression node, _) {
+  void visitDeferredExpression(js.DeferredExpression node, _) {
     visit(node.value);
   }
 

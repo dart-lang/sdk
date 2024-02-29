@@ -243,7 +243,7 @@ doTest(String allocation,
   String source = generateTest(allocation);
   var result = await runCompiler(memorySourceFiles: {'main.dart': source});
   Expect.isTrue(result.isSuccess);
-  Compiler compiler = result.compiler;
+  Compiler compiler = result.compiler!;
   TypeMask? keyType, valueType;
   GlobalTypeInferenceResults results =
       compiler.globalInference.resultsForTesting!;

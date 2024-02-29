@@ -254,7 +254,9 @@ class BulkFixProcessor {
       {required bool autoTriggered}) async {
     var pathContext = context.contextRoot.resourceProvider.pathContext;
 
-    if (file_paths.isDart(pathContext, path) && !file_paths.isGenerated(path)) {
+    if (file_paths.isDart(pathContext, path) &&
+        !file_paths.isGenerated(path) &&
+        !file_paths.isMacroGenerated(path)) {
       var library = await performance.runAsync(
         'getResolvedLibrary',
         (_) => context.currentSession.getResolvedContainingLibrary(path),
@@ -363,7 +365,8 @@ class BulkFixProcessor {
 
       for (var path in context.contextRoot.analyzedFiles()) {
         if (!file_paths.isDart(pathContext, path) ||
-            file_paths.isGenerated(path)) {
+            file_paths.isGenerated(path) ||
+            file_paths.isMacroGenerated(path)) {
           continue;
         }
         // Get the list of imports used in the files.
@@ -442,7 +445,8 @@ class BulkFixProcessor {
       var pathContext = context.contextRoot.resourceProvider.pathContext;
       for (var path in context.contextRoot.analyzedFiles()) {
         if (!file_paths.isDart(pathContext, path) ||
-            file_paths.isGenerated(path)) {
+            file_paths.isGenerated(path) ||
+            file_paths.isMacroGenerated(path)) {
           continue;
         }
 
@@ -473,7 +477,8 @@ class BulkFixProcessor {
       var pathContext = context.contextRoot.resourceProvider.pathContext;
       for (var path in context.contextRoot.analyzedFiles()) {
         if (!file_paths.isDart(pathContext, path) ||
-            file_paths.isGenerated(path)) {
+            file_paths.isGenerated(path) ||
+            file_paths.isMacroGenerated(path)) {
           continue;
         }
 
@@ -496,7 +501,6 @@ class BulkFixProcessor {
             var errorReporter = ErrorReporter(
               errorListener,
               StringSource(linterUnit.content, null),
-              isNonNullableByDefault: false,
             );
             _computeLints(
               linterUnit,
@@ -784,7 +788,8 @@ class BulkFixProcessor {
       for (var path in context.contextRoot.analyzedFiles()) {
         var pathContext = context.contextRoot.resourceProvider.pathContext;
         if (!file_paths.isDart(pathContext, path) ||
-            file_paths.isGenerated(path)) {
+            file_paths.isGenerated(path) ||
+            file_paths.isMacroGenerated(path)) {
           continue;
         }
         var result =
@@ -866,7 +871,8 @@ class BulkFixProcessor {
       for (var path in context.contextRoot.analyzedFiles()) {
         var pathContext = context.contextRoot.resourceProvider.pathContext;
         if (!file_paths.isDart(pathContext, path) ||
-            file_paths.isGenerated(path)) {
+            file_paths.isGenerated(path) ||
+            file_paths.isMacroGenerated(path)) {
           continue;
         }
         var result =

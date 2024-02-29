@@ -218,7 +218,7 @@ class _StringTable {
     }
     _offsets[length] = offset;
 
-    _strings = List.filled(length, null, growable: false);
+    _strings = List.filled(length, null);
   }
 
   String operator [](int index) {

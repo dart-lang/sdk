@@ -180,7 +180,7 @@ negativeDynamic(dynamic cls) {
   cls.method();
 }
 
-/*member: dynamicToString:dynamic=[Object.toString(0)]*/
+/*member: dynamicToString:dynamic=[toString(0)]*/
 dynamicToString(dynamic cls) {
   cls.toString();
 }
@@ -190,7 +190,7 @@ dynamicToStringWrong(dynamic cls) {
   cls.toString(null);
 }
 
-/*member: dynamicToStringTearOff:dynamic=[Object.toString]*/
+/*member: dynamicToStringTearOff:dynamic=[toString]*/
 dynamicToStringTearOff(dynamic cls) {
   cls.toString;
 }
@@ -200,13 +200,13 @@ dynamicToEquals(dynamic cls) {
   cls == null;
 }
 
-/*member: dynamicToHashCode:dynamic=[Object.hashCode]*/
+/*member: dynamicToHashCode:dynamic=[hashCode]*/
 dynamicToHashCode(dynamic cls) {
   cls.hashCode;
 }
 
 /*member: dynamicToNoSuchMethod:
- dynamic=[Object.noSuchMethod(1)],
+ dynamic=[noSuchMethod(1)],
  static=[
   Rti._bind(1),
   Rti._eval(1),
@@ -258,7 +258,7 @@ dynamicToNoSuchMethodWrong(dynamic cls) {
   cls.noSuchMethod();
 }
 
-/*member: dynamicToNoSuchMethodTearOff:dynamic=[Object.noSuchMethod]*/
+/*member: dynamicToNoSuchMethodTearOff:dynamic=[noSuchMethod]*/
 dynamicToNoSuchMethodTearOff(dynamic cls) {
   cls.noSuchMethod;
 }

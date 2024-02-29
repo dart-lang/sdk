@@ -6,46 +6,32 @@ import 'dart:io' show File;
 
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
     show DiagnosticMessage, getMessageCodeObject;
-
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
-
 import 'package:expect/expect.dart' show Expect;
-
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions;
-
 import 'package:front_end/src/api_prototype/experimental_flags.dart'
     show ExperimentalFlag;
-
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart'
     show IncrementalCompilerResult;
-
 import "package:front_end/src/api_prototype/memory_file_system.dart"
     show MemoryFileSystem;
-
 import 'package:front_end/src/base/nnbd_mode.dart' show NnbdMode;
-
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
-
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
-
-import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
-
-import 'package:front_end/src/fasta/fasta_codes.dart'
+import 'package:front_end/src/fasta/codes/fasta_codes.dart'
     show
         Code,
         codeInitializeFromDillNotSelfContained,
         codeInitializeFromDillNotSelfContainedNoDump,
         codeInitializeFromDillUnknownProblem,
         codeInitializeFromDillUnknownProblemNoDump;
-
+import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 import 'package:front_end/src/fasta/incremental_compiler.dart'
     show IncrementalCompiler, RecorderForTesting;
-
 import 'package:front_end/src/fasta/kernel/utils.dart' show serializeComponent;
-
 import 'package:kernel/kernel.dart'
     show Component, Library, NonNullableByDefaultCompiledMode;
 

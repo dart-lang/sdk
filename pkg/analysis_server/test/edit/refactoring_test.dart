@@ -7,14 +7,13 @@ import 'dart:async';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring_manager.dart';
-import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../analysis_server_base.dart';
 import '../mocks.dart';
-import '../src/utilities/mock_packages.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -244,7 +243,7 @@ class ExtractLocalVariableTest extends _AbstractGetRefactoring_Test {
     var kind = RefactoringKind.EXTRACT_LOCAL_VARIABLE;
     var options =
         name != null ? ExtractLocalVariableOptions(name, extractAll) : null;
-    return sendRequest(kind, offset, length, options, false);
+    return sendRequest(kind, offset, length, options);
   }
 
   Future<Response> sendStringRequest(
@@ -827,7 +826,7 @@ int? res(int b) {
 
   Future<Response> _sendExtractRequest() {
     var kind = RefactoringKind.EXTRACT_METHOD;
-    return sendRequest(kind, offset, length, options, false);
+    return sendRequest(kind, offset, length, options);
   }
 
   void _setOffsetLengthForStartEnd() {
@@ -846,11 +845,7 @@ class GetAvailableRefactoringsTest extends PubPackageAnalysisServerTest {
   late List<RefactoringKind> kinds;
 
   void addFlutterPackage() {
-    var flutterLib = MockPackages.instance.addFlutter(resourceProvider);
-    writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'flutter', rootPath: flutterLib.parent.path),
-    );
+    writeTestPackageConfig(flutter: true);
   }
 
   /// Tests that there is refactoring of the given [kind] is available at the
@@ -895,6 +890,21 @@ class GetAvailableRefactoringsTest extends PubPackageAnalysisServerTest {
     return getRefactorings(offset, search.length);
   }
 
+  /// Returns the list of available refactorings for the given [offset] and
+  /// [length].
+  Future<void> getRefactoringsInFile(File file, int offset, int length) async {
+    var request = EditGetAvailableRefactoringsParams(file.path, offset, length)
+        .toRequest('0');
+    var response = await serverChannel.simulateRequestFromClient(request);
+    var result = EditGetAvailableRefactoringsResult.fromResponse(response);
+    kinds = result.kinds;
+  }
+
+  Future<void> getRefactoringsInFileForString(File file, String search) {
+    var offset = offsetInFile(file, search);
+    return getRefactoringsInFile(file, offset, search.length);
+  }
+
   @override
   Future<void> setUp() async {
     super.setUp();
@@ -917,6 +927,18 @@ void f() {
     await getRefactoringsForString('1 + 2');
     expect(kinds, contains(RefactoringKind.EXTRACT_LOCAL_VARIABLE));
     expect(kinds, contains(RefactoringKind.EXTRACT_METHOD));
+  }
+
+  Future<void> test_extractLocal_macroGenerated() async {
+    var macroFilePath = join(testPackageLibPath, 'test.macro.dart');
+    var generatedFile = newFile(macroFilePath, '''
+void f() {
+  var a = 1 + 2;
+}
+''');
+    await waitForTasksFinished();
+    await getRefactoringsInFileForString(generatedFile, '1 + 2');
+    expect(kinds, isEmpty);
   }
 
   Future<void> test_extractLocal_withoutSelection() async {
@@ -1644,6 +1666,23 @@ class A {
   int get newName => 0;
 }
 ''');
+  }
+
+  Future<void> test_class_macros() {
+    addTestFile('''
+import 'macros.dart';
+
+@DeclareInType('  C.named();')
+class C {}
+''');
+    return assertSuccessfulRefactoring(() {
+      return sendRenameRequest('C {', 'NewName');
+    }, '''
+import 'macros.dart';
+
+@DeclareInType('  C.named();')
+class NewName {}
+''', changeEdits: 1);
   }
 
   Future<void> test_class_method_in_objectPattern() {
@@ -2767,20 +2806,25 @@ class _AbstractGetRefactoring_Test extends PubPackageAnalysisServerTest {
 
   Future<void> assertSuccessfulRefactoring(
       Future<Response> Function() requestSender, String expectedCode,
-      {void Function(RefactoringFeedback?)? feedbackValidator}) async {
+      {void Function(RefactoringFeedback?)? feedbackValidator,
+      int changeEdits = 0}) async {
     var result = await getRefactoringResult(requestSender);
     assertResultProblemsOK(result);
     if (feedbackValidator != null) {
       feedbackValidator(result.feedback);
     }
-    assertTestRefactoringResult(result, expectedCode);
+    assertTestRefactoringResult(result, expectedCode, changeEdits: changeEdits);
   }
 
   /// Asserts that the given [EditGetRefactoringResult] has a [testFile] change
   /// which results in the [expectedCode].
   void assertTestRefactoringResult(
-      EditGetRefactoringResult result, String expectedCode) {
+      EditGetRefactoringResult result, String expectedCode,
+      {int changeEdits = 0}) {
     var change = result.change!;
+    if (changeEdits != 0) {
+      expect(change.edits.length, changeEdits);
+    }
     for (var fileEdit in change.edits) {
       if (fileEdit.file == testFile.path) {
         var actualCode =

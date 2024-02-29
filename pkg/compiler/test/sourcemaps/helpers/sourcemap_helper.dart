@@ -72,7 +72,12 @@ class CloningOutputProvider extends OutputProvider {
   RandomAccessFileOutputProvider outputProvider;
 
   CloningOutputProvider(Uri jsUri, Uri jsMapUri)
-      : outputProvider = RandomAccessFileOutputProvider(jsUri, jsMapUri);
+      : outputProvider = RandomAccessFileOutputProvider(jsUri, jsMapUri,
+            onInfo: _ignore, onFailure: _fail);
+
+  static void _ignore(String message) {}
+
+  static Never _fail(String message) => throw StateError('unreachable');
 
   @override
   api.OutputSink createOutputSink(
@@ -391,7 +396,7 @@ class SourceMapProcessor {
       throw "Compilation failed.";
     }
 
-    var compiler = result.compiler;
+    var compiler = result.compiler!;
     JsBackendStrategy backendStrategy = compiler.backendStrategy;
     final strategy = backendStrategy.sourceInformationStrategy
         as RecordingSourceInformationStrategy;

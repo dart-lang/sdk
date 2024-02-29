@@ -3,12 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:testing/testing.dart'
-    show Chain, ChainContext, Result, Step, TestDescription, runMe;
+    show Chain, ChainContext, Result, Step, TestDescription;
 
 import '../tool/dart_doctest_impl.dart';
+import 'fasta/suite_utils.dart';
 
-void main([List<String> arguments = const []]) =>
-    runMe(arguments, createContext, configurationPath: "../testing.json");
+void main([List<String> arguments = const []]) => internalMain(createContext,
+    arguments: arguments,
+    displayName: "dartdoctest suite",
+    configurationPath: "../testing.json");
 
 Future<Context> createContext(
     Chain suite, Map<String, String> environment) async {

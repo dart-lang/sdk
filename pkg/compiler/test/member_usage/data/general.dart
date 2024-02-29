@@ -42,6 +42,7 @@ class C extends A {
   method2() {}
 
   @override
+  /*spec.member: C.method4:invoke*/
   method4() {}
 
   /*member: C.getter:read*/
@@ -62,6 +63,7 @@ class D implements B {
   method2() {}
 
   @override
+  /*spec.member: D.method5:invoke*/
   method5() {}
 
   @override
@@ -110,6 +112,7 @@ mixin G {
   /*member: G.method1:invoke*/
   method1() {}
   method2() {}
+  /*spec.member: G.method4:invoke*/
   method4() {}
 
   /*member: G.getter:read*/
@@ -125,6 +128,7 @@ class I {
   /*member: I.method1:invoke*/
   method1() {}
   method2() {}
+  /*spec.member: I.method4:invoke*/
   method4() {}
 
   /*member: I.getter:read*/
@@ -215,7 +219,6 @@ main() {
 }
 
 /*member: method1:invoke*/
-@pragma('dart2js:disableFinal')
 method1() {
   A a = A();
   B b = B();

@@ -28,19 +28,19 @@ static method test2(dynamic x) → dynamic {
 static method test3(core::Map<core::bool, core::double> x) → dynamic {
   {
     final synthesized core::Map<core::bool, core::double> #0#0 = x;
-    if(#0#0.{core::Map::containsKey}(#C7){(core::Object?) → core::bool} && #C8 =={core::num::==}{(core::Object) → core::bool} #0#0.{core::Map::[]}(#C7){(core::Object?) → core::double?}) {
+    if(#0#0.{core::Map::containsKey}(#C7){(core::Object?) → core::bool} && #C8 =={core::num::==}{(core::Object) → core::bool} #0#0.{core::Map::[]}(#C7){(core::Object?) → core::double?} as{Unchecked} core::double) {
     }
   }
   {
     final synthesized core::Map<core::bool, core::double> #1#0 = x;
-    if(#1#0.{core::Map::containsKey}(#C9){(core::Object?) → core::bool} && #C10 =={core::num::==}{(core::Object) → core::bool} #1#0.{core::Map::[]}(#C9){(core::Object?) → core::double?}) {
+    if(#1#0.{core::Map::containsKey}(#C9){(core::Object?) → core::bool} && #C10 =={core::num::==}{(core::Object) → core::bool} #1#0.{core::Map::[]}(#C9){(core::Object?) → core::double?} as{Unchecked} core::double) {
     }
   }
 }
 static method test4(self::MyMap x) → dynamic {
   {
     final synthesized self::MyMap #0#0 = x;
-    if(#0#0.{core::Map::containsKey}(#C11){(core::Object?) → core::bool} && #C2 =={core::num::==}{(core::Object) → core::bool} #0#0.{core::Map::[]}(#C11){(core::Object?) → core::int?} && #0#0.{core::Map::containsKey}(#C12){(core::Object?) → core::bool} && #C4 =={core::num::==}{(core::Object) → core::bool} #0#0.{core::Map::[]}(#C12){(core::Object?) → core::int?}) {
+    if(#0#0.{core::Map::containsKey}(#C11){(core::Object?) → core::bool} && #C2 =={core::num::==}{(core::Object) → core::bool} #0#0.{core::Map::[]}(#C11){(core::Object?) → core::int?} as{Unchecked} core::int && #0#0.{core::Map::containsKey}(#C12){(core::Object?) → core::bool} && #C4 =={core::num::==}{(core::Object) → core::bool} #0#0.{core::Map::[]}(#C12){(core::Object?) → core::int?} as{Unchecked} core::int) {
     }
   }
 }

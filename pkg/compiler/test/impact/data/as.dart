@@ -59,7 +59,9 @@ explicitAs(String? i) {
 }
 
 /*member: implicitAs:
- dynamic=[String.length],
+ dynamic=[
+  String.length,
+  length],
  static=[
   Rti._bind(1),
   Rti._eval(1),

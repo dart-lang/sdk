@@ -977,12 +977,12 @@ class _Base extends AbstractContextTest {
 
   static String _executableStr(ExecutableElement element) {
     var executableStr = _executableNameStr(element);
-    var typeStr = element.type.getDisplayString(withNullability: false);
+    var typeStr = element.type.getDisplayString();
     return '$executableStr: $typeStr';
   }
 
   static String _parameterStr(ParameterElement element) {
-    var typeStr = element.type.getDisplayString(withNullability: false);
+    var typeStr = element.type.getDisplayString();
     return '${element.name}: $typeStr';
   }
 }

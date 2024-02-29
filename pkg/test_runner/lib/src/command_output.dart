@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
-
 // We need to use the 'io' prefix here, otherwise io.exitCode will shadow
 // CommandOutput.exitCode in subclasses of CommandOutput.
 import 'dart:io' as io;
@@ -595,7 +594,10 @@ class AnalysisCommandOutput extends CommandOutput with _StaticErrorOutput {
   ]) {
     StaticError convert(AnalyzerError error) {
       var staticError = StaticError(ErrorSource.analyzer, error.errorCode,
-          line: error.line, column: error.column, length: error.length);
+          path: error.file,
+          line: error.line,
+          column: error.column,
+          length: error.length);
 
       for (var context in error.contextMessages) {
         // TODO(rnystrom): Include these when static error tests get support
@@ -608,6 +610,7 @@ class AnalysisCommandOutput extends CommandOutput with _StaticErrorOutput {
 
         staticError.contextMessages.add(StaticError(
             ErrorSource.context, context.message,
+            path: context.file,
             line: context.line,
             column: context.column,
             length: context.length));
@@ -1497,15 +1500,19 @@ mixin _StaticErrorOutput on CommandOutput {
       [List<StaticError>? warnings]) {
     StaticError? previousError;
     for (var match in regExp.allMatches(stdout)) {
-      var line = _parseNullableInt(match.group(2));
-      var column = _parseNullableInt(match.group(3));
-      var severity = match.group(4);
-      var message = match.group(5);
+      // These three are either all present or all null.
+      var path = match[1];
+      var line = _parseNullableInt(match[2]);
+      var column = _parseNullableInt(match[3]);
 
-      if (line == null) {
+      var severity = match[4];
+      var message = match[5];
+
+      if (path == null) {
         // No location information.
         if (severity == 'Context' && previousError != null) {
           // We can use the location information from the error message
+          path = previousError.path;
           line = previousError.line;
           column = previousError.column;
         } else {
@@ -1514,13 +1521,14 @@ mixin _StaticErrorOutput on CommandOutput {
           continue;
         }
       }
-      // Column information should have been present or it should have been
-      // filled in by the code above.
+      // Line and column information should have been present or it should have
+      // been filled in by the code above.
+      assert(line != null);
       assert(column != null);
 
       var error = StaticError(
           severity == "Context" ? ErrorSource.context : errorSource, message!,
-          line: line, column: column!);
+          path: path, line: line!, column: column!);
 
       if (severity == "Context") {
         // Attach context messages to the preceding error/warning.

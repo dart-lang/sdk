@@ -10338,6 +10338,14 @@ bool Function::IsImplicitStaticClosureFunction(FunctionPtr func) {
          StaticBit::decode(kind_tag);
 }
 
+bool Function::IsImplicitInstanceClosureFunction(FunctionPtr func) {
+  NoSafepointScope no_safepoint;
+  uint32_t kind_tag = func->untag()->kind_tag_.load(std::memory_order_relaxed);
+  return (KindBits::decode(kind_tag) ==
+          UntaggedFunction::kImplicitClosureFunction) &&
+         !StaticBit::decode(kind_tag);
+}
+
 FunctionPtr Function::New(Heap::Space space) {
   ASSERT(Object::function_class() != Class::null());
   return Object::Allocate<Function>(space);
@@ -10523,6 +10531,12 @@ FunctionPtr Function::ImplicitClosureFunction() const {
       FunctionType::Handle(zone, closure_function.signature());
 
   const auto& cls = Class::Handle(zone, Owner());
+
+  if (!is_static() && !IsConstructor() &&
+      StackTraceUtils::IsPossibleAwaiterLink(cls)) {
+    closure_function.set_awaiter_link({0, 0});
+  }
+
   const intptr_t num_type_params =
       IsConstructor() ? cls.NumTypeParameters() : NumTypeParameters();
 
@@ -10816,11 +10830,10 @@ ClosurePtr Function::ImplicitStaticClosure() const {
   }
 
   Zone* zone = thread->zone();
-  const auto& null_context = Context::Handle(zone);
   const auto& closure =
       Closure::Handle(zone, Closure::New(Object::null_type_arguments(),
                                          Object::null_type_arguments(), *this,
-                                         null_context, Heap::kOld));
+                                         Object::null_object(), Heap::kOld));
   set_implicit_static_closure(closure);
   return implicit_static_closure();
 }
@@ -10828,15 +10841,13 @@ ClosurePtr Function::ImplicitStaticClosure() const {
 ClosurePtr Function::ImplicitInstanceClosure(const Instance& receiver) const {
   ASSERT(IsImplicitClosureFunction());
   Zone* zone = Thread::Current()->zone();
-  const Context& context = Context::Handle(zone, Context::New(1));
-  context.SetAt(0, receiver);
   TypeArguments& instantiator_type_arguments = TypeArguments::Handle(zone);
   if (!HasInstantiatedSignature(kCurrentClass)) {
     instantiator_type_arguments = receiver.GetTypeArguments();
   }
   ASSERT(!HasGenericParent());  // No generic parent function.
   return Closure::New(instantiator_type_arguments,
-                      Object::null_type_arguments(), *this, context);
+                      Object::null_type_arguments(), *this, receiver);
 }
 
 FunctionPtr Function::ImplicitClosureTarget(Zone* zone) const {
@@ -12092,13 +12103,17 @@ void Field::InitializeNew(const Field& result,
 // Use field guards if they are enabled and the isolate has never reloaded.
 // TODO(johnmccutchan): The reload case assumes the worst case (everything is
 // dynamic and possibly null). Attempt to relax this later.
+//
+// Do not use field guards for late fields as late field initialization
+// doesn't update guarded cid and length.
 #if defined(PRODUCT)
   const bool use_guarded_cid =
-      FLAG_precompiled_mode || isolate_group->use_field_guards();
+      FLAG_precompiled_mode || (isolate_group->use_field_guards() && !is_late);
 #else
   const bool use_guarded_cid =
-      FLAG_precompiled_mode || (isolate_group->use_field_guards() &&
-                                !isolate_group->HasAttemptedReload());
+      FLAG_precompiled_mode ||
+      (isolate_group->use_field_guards() &&
+       !isolate_group->HasAttemptedReload() && !is_late);
 #endif  // !defined(PRODUCT)
   result.set_guarded_cid_unsafe(use_guarded_cid ? kIllegalCid : kDynamicCid);
   result.set_is_nullable_unsafe(use_guarded_cid ? false : true);
@@ -26090,7 +26105,7 @@ PointerPtr Pointer::New(uword native_address, Heap::Space space) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
 
-  TypeArguments& type_args = TypeArguments::Handle(
+  const auto& type_args = TypeArguments::Handle(
       zone, IsolateGroup::Current()->object_store()->type_argument_never());
 
   const Class& cls =
@@ -26231,7 +26246,7 @@ bool Closure::CanonicalizeEquals(const Instance& other) const {
           other_closure.function_type_arguments()) &&
          (delayed_type_arguments() == other_closure.delayed_type_arguments()) &&
          (function() == other_closure.function()) &&
-         (context() == other_closure.context());
+         (RawContext() == other_closure.RawContext());
 }
 
 void Closure::CanonicalizeFieldsLocked(Thread* thread) const {
@@ -26286,9 +26301,8 @@ uword Closure::ComputeHash() const {
       result = CombineHashes(result, delayed_type_args.Hash());
     }
     if (func.IsImplicitInstanceClosureFunction()) {
-      const Context& context = Context::Handle(zone, this->context());
       const Instance& receiver =
-          Instance::Handle(zone, Instance::RawCast(context.At(0)));
+          Instance::Handle(zone, GetImplicitClosureReceiver());
       const Integer& receiverHash =
           Integer::Handle(zone, receiver.IdentityHashCode(thread));
       result = CombineHashes(result, receiverHash.AsTruncatedUint32Value());
@@ -26306,7 +26320,7 @@ uword Closure::ComputeHash() const {
 ClosurePtr Closure::New(const TypeArguments& instantiator_type_arguments,
                         const TypeArguments& function_type_arguments,
                         const Function& function,
-                        const Context& context,
+                        const Object& context,
                         Heap::Space space) {
   // We store null delayed type arguments, not empty ones, in closures with
   // non-generic functions a) to make method extraction slightly faster and
@@ -26322,12 +26336,16 @@ ClosurePtr Closure::New(const TypeArguments& instantiator_type_arguments,
                         const TypeArguments& function_type_arguments,
                         const TypeArguments& delayed_type_arguments,
                         const Function& function,
-                        const Context& context,
+                        const Object& context,
                         Heap::Space space) {
   ASSERT(instantiator_type_arguments.IsCanonical());
   ASSERT(function_type_arguments.IsCanonical());
   ASSERT(delayed_type_arguments.IsCanonical());
   ASSERT(FunctionType::Handle(function.signature()).IsCanonical());
+  ASSERT(
+      (function.IsImplicitInstanceClosureFunction() && context.IsInstance()) ||
+      (function.IsNonImplicitClosureFunction() && context.IsContext()) ||
+      context.IsNull());
   const auto& result = Closure::Handle(Object::Allocate<Closure>(space));
   result.untag()->set_instantiator_type_arguments(
       instantiator_type_arguments.ptr());

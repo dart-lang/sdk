@@ -3,10 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
+import 'package:expect/variations.dart' as v;
 import "dart:math" show pow, log;
 
 void main() {
-  final String oneByteWhiteSpace = webNumbers
+  final String oneByteWhiteSpace = v.jsNumbers
       ? "\x09\x0a\x0b\x0c\x0d\x20\xa0"
       : "\x09\x0a\x0b\x0c\x0d\x20\x85\xa0";
   final String whiteSpace = "$oneByteWhiteSpace\u1680"

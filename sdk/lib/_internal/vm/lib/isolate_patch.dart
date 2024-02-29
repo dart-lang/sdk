@@ -652,8 +652,14 @@ final class Isolate {
   @pragma("vm:external-name", "Isolate_exit_")
   external static Never _exit(SendPort? finalMessagePort, Object? message);
 
+  @pragma("vm:entry-point")
+  static bool _mayExit = true;
+
   @patch
   static Never exit([SendPort? finalMessagePort, Object? message]) {
+    if (!_mayExit) {
+      throw UnsupportedError("Isolate.exit");
+    }
     _exit(finalMessagePort, message);
   }
 

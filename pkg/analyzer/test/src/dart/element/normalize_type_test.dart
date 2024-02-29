@@ -271,9 +271,6 @@ class NormalizeTypeTest extends AbstractTypeSystemTest with StringTypes {
     // * if S is Object then S
     check(objectNone, objectNone);
 
-    // * if S is Object* then S
-    check(objectStar, objectStar);
-
     // * if S is Never then Future<Never>
     check(neverNone, futureNone(neverNone));
 
@@ -336,7 +333,6 @@ class NormalizeTypeTest extends AbstractTypeSystemTest with StringTypes {
     check(intQuestion, intQuestion);
     check(objectQuestion, objectQuestion);
     check(futureOrQuestion(objectNone), objectQuestion);
-    check(futureOrQuestion(objectStar), objectStar);
   }
 
   test_recordType() {
@@ -378,30 +374,6 @@ class NormalizeTypeTest extends AbstractTypeSystemTest with StringTypes {
         },
       ),
     );
-  }
-
-  /// NORM(T*)
-  /// * let S be NORM(T)
-  test_star() {
-    void check(DartType T, DartType expected) {
-      _assertNullabilityStar(T);
-      _check(T, expected);
-    }
-
-    // * if S is a top type then S
-    check(futureOrStar(dynamicType), dynamicType);
-    check(futureOrStar(voidNone), voidNone);
-    check(futureOrStar(objectQuestion), objectQuestion);
-
-    // * if S is Null then Null
-    check(nullStar, nullNone);
-
-    // * if S is R? then R?
-    check(futureOrStar(nullNone), futureQuestion(nullNone));
-
-    // * if S is R* then R*
-    // * else S*
-    check(intStar, intStar);
   }
 
   /// NORM(X & T)
@@ -484,10 +456,6 @@ class NormalizeTypeTest extends AbstractTypeSystemTest with StringTypes {
 
   void _assertNullabilityQuestion(DartType type) {
     _assertNullability(type, NullabilitySuffix.question);
-  }
-
-  void _assertNullabilityStar(DartType type) {
-    _assertNullability(type, NullabilitySuffix.star);
   }
 
   void _check(DartType T, DartType expected) {

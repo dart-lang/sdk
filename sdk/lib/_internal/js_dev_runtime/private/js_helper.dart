@@ -858,20 +858,16 @@ void Function(T)? wrapZoneUnaryCallback<T>(void Function(T)? callback) {
 /// [fieldRtis] contains the Rti type objects for each field in order of
 /// positionals followed by the sorted named elements.
 Object? createRecordTypePredicate(String partialShapeTag, JSArray fieldRtis) {
-  if (JS_GET_FLAG('NEW_RUNTIME_TYPES')) {
-    var shapeKey =
-        JS<String>('!', '#.length + ";" + #', fieldRtis, partialShapeTag);
-    return (obj) {
-      return JS<bool>(
-              '!', '# instanceof #', obj, JS_CLASS_REF(dart.RecordImpl)) &&
-          JS<dart.Shape>('!', '#[#]', obj, dart.shapeProperty) ==
-              JS<dart.Shape?>('', '#.get(#)', dart.shapes, shapeKey) &&
-          rti.pairwiseIsTest(
-              fieldRtis, JS<JSArray>('!', '#[#]', obj, dart.valuesProperty));
-    };
-  } else {
-    dart.throwUnimplementedInCurrentRti();
-  }
+  var shapeKey =
+      JS<String>('!', '#.length + ";" + #', fieldRtis, partialShapeTag);
+  return (obj) {
+    return JS<bool>(
+            '!', '# instanceof #', obj, JS_CLASS_REF(dart.RecordImpl)) &&
+        JS<dart.Shape>('!', '#[#]', obj, dart.shapeProperty) ==
+            JS<dart.Shape?>('', '#.get(#)', dart.shapes, shapeKey) &&
+        rti.pairwiseIsTest(
+            fieldRtis, JS<JSArray>('!', '#[#]', obj, dart.valuesProperty));
+  };
 }
 
 /// Returns the Rti for the provided [record].
@@ -882,22 +878,18 @@ Object? createRecordTypePredicate(String partialShapeTag, JSArray fieldRtis) {
 ///
 /// Calls [rti.evaluateRtiForRecord] with components of the [record].
 rti.Rti getRtiForRecord(Object? record) {
-  if (JS_GET_FLAG('NEW_RUNTIME_TYPES')) {
-    var recordObj = JS<dart.RecordImpl>('!', '#', record);
-    var recipeBuffer = StringBuffer('+');
-    var shape = JS<dart.Shape>('!', '#[#]', recordObj, dart.shapeProperty);
-    var values = JS<JSArray>('!', '#[#]', recordObj, dart.valuesProperty);
-    var named = shape.named;
-    if (named != null) recipeBuffer.writeAll(named, ',');
-    recipeBuffer.write('(');
-    var elementCount = values.length;
-    recipeBuffer.writeAll([for (var i = 1; i <= elementCount; i++) i], ',');
-    recipeBuffer.write(')');
+  var recordObj = JS<dart.RecordImpl>('!', '#', record);
+  var recipeBuffer = StringBuffer('+');
+  var shape = JS<dart.Shape>('!', '#[#]', recordObj, dart.shapeProperty);
+  var values = JS<JSArray>('!', '#[#]', recordObj, dart.valuesProperty);
+  var named = shape.named;
+  if (named != null) recipeBuffer.writeAll(named, ',');
+  recipeBuffer.write('(');
+  var elementCount = values.length;
+  recipeBuffer.writeAll([for (var i = 1; i <= elementCount; i++) i], ',');
+  recipeBuffer.write(')');
 
-    return rti.evaluateRtiForRecord(recipeBuffer.toString(), values);
-  } else {
-    dart.throwUnimplementedInCurrentRti();
-  }
+  return rti.evaluateRtiForRecord(recipeBuffer.toString(), values);
 }
 
 /// A marker interface for classes with 'trustworthy' implementations of `get

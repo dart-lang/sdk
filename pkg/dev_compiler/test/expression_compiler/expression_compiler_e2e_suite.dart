@@ -38,6 +38,7 @@ class ExpressionEvaluationTestDriver {
   String? partSource;
   late Directory testDir;
   late String dartSdkPath;
+  final TimeoutTracker tracker = TimeoutTracker();
 
   ExpressionEvaluationTestDriver._(
       this.chrome, this.chromeDir, this.connection, this.debugger, this.runtime)
@@ -102,6 +103,17 @@ class ExpressionEvaluationTestDriver {
   /// Depends on SDK artifacts (such as the sound and unsound dart_sdk.js
   /// files) generated from the 'ddc_stable_test' and 'ddc_canary_test' targets.
   Future<void> initSource(
+    SetupCompilerOptions setup,
+    String source, {
+    Map<String, bool> experiments = const {},
+    String? partSource,
+  }) =>
+      tracker._watch(
+          'init-source',
+          () => _initSource(setup, source,
+              experiments: experiments, partSource: partSource));
+
+  Future<void> _initSource(
     SetupCompilerOptions setup,
     String source, {
     Map<String, bool> experiments = const {},
@@ -280,6 +292,7 @@ class ExpressionEvaluationTestDriver {
   }
 
   Future<void> finish() async {
+    tracker._showReport();
     await chrome.close();
     // Attempt to clean up the temporary directory.
     // On windows sometimes the process has not released the directory yet so
@@ -317,7 +330,10 @@ class ExpressionEvaluationTestDriver {
     expect(actualScope, expectedScope);
   }
 
-  Future<wip.WipScript> _loadScript() async {
+  Future<wip.WipScript> _loadScript() =>
+      tracker._watch('load-script', () => _loadScriptHelper());
+
+  Future<wip.WipScript> _loadScriptHelper() async {
     final scriptController = StreamController<wip.ScriptParsedEvent>();
     final consoleSub = debugger.connection.runtime.onConsoleAPICalled
         .listen((e) => printOnFailure('$e'));
@@ -346,10 +362,12 @@ class ExpressionEvaluationTestDriver {
               'Unable to navigate to page bootstrap script: $htmlBootstrapper')));
 
       // Poll until the script is found, or timeout after a few seconds.
-      return (await scriptController.stream.first.timeout(Duration(seconds: 5),
-              onTimeout: (() => throw Exception(
-                  'Unable to find JS script corresponding to test file '
-                  '$output in ${debugger.scripts}.'))))
+      return (await tracker._watch(
+              'find-script',
+              () => scriptController.stream.first.timeout(Duration(seconds: 5),
+                  onTimeout: (() => throw Exception(
+                      'Unable to find JS script corresponding to test file '
+                      '$output in ${debugger.scripts}.')))))
           .script;
     } finally {
       await scriptSub.cancel();
@@ -385,7 +403,8 @@ class ExpressionEvaluationTestDriver {
     var location =
         await _jsLocationFromDartLine(script, dartLine.value, dartLine.key);
 
-    var bp = await debugger.setBreakpoint(location);
+    var bp = await tracker._watch(
+        'set-breakpoint', () => debugger.setBreakpoint(location));
     final pauseQueue = StreamQueue(pauseController.stream);
     try {
       // Continue to the next breakpoint, ignoring the first pause event
@@ -395,10 +414,12 @@ class ExpressionEvaluationTestDriver {
       await pauseQueue.next.timeout(Duration(seconds: 5),
           onTimeout: () => throw Exception(
               'Unable to find JS preemptive pause event in $output.'));
-      final event = await pauseQueue.next.timeout(Duration(seconds: 5),
-          onTimeout: () => throw Exception(
-              'Unable to find JS pause event corresponding to line '
-              '($dartLine -> $location) in $output.'));
+      final event = await tracker._watch(
+          'pause-event-for-line',
+          () => pauseQueue.next.timeout(Duration(seconds: 5),
+              onTimeout: () => throw Exception(
+                  'Unable to find JS pause event corresponding to line '
+                  '($dartLine -> $location) in $output.')));
 
       return await onPause(event);
     } finally {
@@ -532,6 +553,19 @@ class ExpressionEvaluationTestDriver {
   /// [expectedResult] is the JSON for the returned remote object.
   /// [expectedError] is the error string if the error is expected.
   Future<void> checkInFrame(
+          {required String breakpointId,
+          required String expression,
+          dynamic expectedError,
+          dynamic expectedResult}) =>
+      tracker._watch(
+          'check-in-frame',
+          () => _checkInFrame(
+              breakpointId: breakpointId,
+              expression: expression,
+              expectedError: expectedError,
+              expectedResult: expectedResult));
+
+  Future<void> _checkInFrame(
       {required String breakpointId,
       required String expression,
       dynamic expectedError,
@@ -978,3 +1012,58 @@ Future setBreakpointsActive(wip.WipDebugger debugger, bool active) async {
 /// Issue: https://github.com/dart-lang/sdk/issues/44262
 final _ddcTemporaryVariableRegExp = RegExp(r'^t(\$[0-9]*)+\w*$');
 final _ddcTemporaryTypeVariableRegExp = RegExp(r'^__t[\$\w*]+$');
+
+/// Records timing statistics from the test driver.
+///
+/// A few steps in the test driver need to wait for a response from the browser.
+/// These are set up with a timeout of usually 5 seconds, but the total time may
+/// vary by machine and architecture. Occationally tests fail with flaky
+/// failures due to a timeout that is too short.
+///
+/// We use this class to help log information from flaky failures that can
+/// inform us whether the timeout is accurate and how often we are approaching
+/// it.
+///
+/// The driver logic only watches a couple tasks, focusing on big parts of the
+/// framework or tasks that have historically hit timeouts in the CI bots.
+class TimeoutTracker {
+  /// Stores data for each key.
+  final _data = <String, List<int>>{};
+
+  /// Track how long an asynchronous [task] takes and record it under [key].
+  Future<T> _watch<T>(String key, Future<T> Function() task) {
+    final watch = Stopwatch()..start();
+    return task().then((v) {
+      _addOneRecord(key, watch.elapsedMilliseconds);
+      return v;
+    });
+  }
+
+  /// Record under [key] a single event that took [milliseconds].
+  ///
+  /// This makes an incremental update to the aggreagate average, max, and count
+  /// values in [_data].
+  void _addOneRecord(String key, int milliseconds) {
+    (_data[key] ??= []).add(milliseconds);
+  }
+
+  /// Prints to stdout a summary of the data tracked so far.
+  void _showReport() {
+    print('Fine-grain timeout data:');
+    _data.forEach((key, values) {
+      values.sort();
+      final total = values.length;
+      final sum = values.reduce((a, b) => a + b);
+      final max = values.last;
+      final p50 = values[(values.length * 0.5).toInt()];
+      final p90 = values[(values.length * 0.9).toInt()];
+      final average = sum ~/ total;
+      print('$key: '
+          '${average}ms (avg), '
+          '${p50}ms (p50), '
+          '${p90}ms (p90), '
+          '${max}ms (max), '
+          '$total (total)');
+    });
+  }
+}

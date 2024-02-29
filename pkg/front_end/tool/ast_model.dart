@@ -13,7 +13,7 @@ import 'package:kernel/src/printer.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
-import 'package:vm/target/vm.dart';
+import 'package:vm/modular/target/vm.dart';
 
 final Uri astLibraryUri = Uri.parse('package:kernel/ast.dart');
 final Uri canonicalNameLibraryUri =

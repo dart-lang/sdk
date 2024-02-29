@@ -236,17 +236,9 @@ abstract class ContextResolutionTest
     expect(workspace, TypeMatcher<GnWorkspace>());
   }
 
-  void assertPackageBuildWorkspaceFor(File file) {
+  void assertPackageConfigWorkspaceFor(File file) {
     var workspace = contextFor(file).contextRoot.workspace;
-    expect(
-        workspace,
-        isA<PubWorkspace>()
-            .having((e) => e.usesPackageBuild, 'usesPackageBuild', true));
-  }
-
-  void assertPubWorkspaceFor(File file) {
-    var workspace = contextFor(file).contextRoot.workspace;
-    expect(workspace, TypeMatcher<PubWorkspace>());
+    expect(workspace, TypeMatcher<PackageConfigWorkspace>());
   }
 
   AnalysisContext contextFor(File file) {
@@ -277,11 +269,10 @@ abstract class ContextResolutionTest
   }
 
   @override
-  Future<ResolvedUnitResult> resolveFile(String path) async {
-    final file = getFile(path); // TODO(scheglov): migrate to File
+  Future<ResolvedUnitResult> resolveFile(File file) async {
     var analysisContext = contextFor(fileForContextSelection ?? file);
     var session = analysisContext.currentSession;
-    return await session.getResolvedUnit(path) as ResolvedUnitResult;
+    return await session.getResolvedUnit(file.path) as ResolvedUnitResult;
   }
 
   @mustCallSuper
@@ -384,6 +375,25 @@ class PubPackageResolutionTest extends ContextResolutionTest {
     await disposeAnalysisContextCollection();
 
     return bundleFile;
+  }
+
+  bool configureWithCommonMacros() {
+    try {
+      writeTestPackageConfig(
+        PackageConfigFileBuilder(),
+        macrosEnvironment: MacrosEnvironment.instance,
+      );
+
+      newFile(
+        '$testPackageLibPath/append.dart',
+        getMacroCode('append.dart'),
+      );
+
+      return true;
+    } catch (_) {
+      markTestSkipped('Cannot initialize macro environment.');
+      return false;
+    }
   }
 
   @override

@@ -29,7 +29,7 @@ static method method(self::MyList<core::int> /* = core::List<core::int> */ list,
   {
     final synthesized self::MyList<core::int> /* = core::List<core::int> */ #0#0 = list;
     if(!(#0#0.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final core::int #t1 = a = #0#0.{core::List::[]}(0){(core::int) → core::int} in true)))
-      throw new core::StateError::•("Pattern matching error");
+      throw{for-error-handling} new core::StateError::•("Pattern matching error");
   }
   hoisted has-declared-initializer core::bool b;
   {
@@ -37,7 +37,7 @@ static method method(self::MyList<core::int> /* = core::List<core::int> */ list,
     synthesized core::bool? #1#3;
     synthesized core::bool #1#3#isSet = false;
     if(!((!((#1#3#isSet ?{core::bool?} #1#3{core::bool?} : let final core::bool* #t2 = #1#3#isSet = true in #1#3 = #1#0.{core::Map::[]}(#C2){(core::Object?) → core::bool?}) == null) || null is core::bool && #1#0.{core::Map::containsKey}(#C2){(core::Object?) → core::bool}) && (let final core::bool #t3 = b = let core::bool? #t4 = #1#3#isSet ?{core::bool?} #1#3{core::bool?} : let final core::bool* #t5 = #1#3#isSet = true in #1#3 = #1#0.{core::Map::[]}(#C2){(core::Object?) → core::bool?} in #t4 == null ?{core::bool} #t4 as{Unchecked} core::bool : #t4{core::bool} in true)))
-      throw new core::StateError::•("Pattern matching error");
+      throw{for-error-handling} new core::StateError::•("Pattern matching error");
   }
   {
     final synthesized self::MyList<core::int> /* = core::List<core::int> */ #2#0 = list;

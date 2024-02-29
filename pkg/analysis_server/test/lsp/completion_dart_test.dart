@@ -769,8 +769,7 @@ void f() {
   @override
   void setUp() {
     super.setUp();
-    writePackageConfig(
-      projectFolderPath,
+    writeTestPackageConfig(
       flutter: true,
     );
   }
@@ -4366,8 +4365,7 @@ import 'package:flutter/widgets.dart';''';
   @override
   void setUp() {
     super.setUp();
-    writePackageConfig(
-      projectFolderPath,
+    writeTestPackageConfig(
       flutter: true,
     );
   }

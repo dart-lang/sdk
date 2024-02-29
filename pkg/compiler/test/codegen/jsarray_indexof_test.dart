@@ -44,7 +44,7 @@ runTest(List<String> options) async {
   CompilationResult result = await runCompiler(
       memorySourceFiles: {'main.dart': source}, options: options);
   Expect.isTrue(result.isSuccess);
-  Compiler compiler = result.compiler;
+  Compiler compiler = result.compiler!;
   JsBackendStrategy backendStrategy = compiler.backendStrategy;
   JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
   final jsArrayIndexOf =

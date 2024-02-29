@@ -75,6 +75,6 @@ Try removing the extra positional arguments.
         }
       #L4:
       default:
-        throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+        throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t1;

@@ -50,7 +50,8 @@ class _SingleIsolatedMacroExecutor extends ExternalMacroExecutorBase {
     ReceivePort receivePort = new ReceivePort();
     Isolate isolate = await Isolate.spawnUri(
         uriToSpawn, arguments, receivePort.sendPort,
-        packageConfig: packageConfig);
+        packageConfig: packageConfig,
+        debugName: 'macro-executor ($uriToSpawn)');
     Completer<SendPort> sendPortCompleter = new Completer();
     StreamController<Object> messageStreamController =
         new StreamController(sync: true);
@@ -77,7 +78,11 @@ class _SingleIsolatedMacroExecutor extends ExternalMacroExecutorBase {
   }
 
   @override
-  Future<void> close() => new Future.sync(onClose);
+  Future<void> close() {
+    if (isClosed) return new Future.value();
+    isClosed = true;
+    return new Future.sync(onClose);
+  }
 
   /// Sends the [Serializer.result] to [sendPort], possibly wrapping it in a
   /// [TransferableTypedData] object.

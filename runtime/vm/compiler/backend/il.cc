@@ -929,6 +929,30 @@ AllocateUninitializedContextInstr::AllocateUninitializedContextInstr(
   ASSERT(!CompilerState::Current().is_aot());
 }
 
+Definition* AllocateContextInstr::Canonicalize(FlowGraph* flow_graph) {
+  if (!HasUses()) return nullptr;
+  // Remove AllocateContext if it is only used as an object in StoreField
+  // instructions.
+  if (env_use_list() != nullptr) return this;
+  for (auto use : input_uses()) {
+    auto store = use->instruction()->AsStoreField();
+    if ((store == nullptr) ||
+        (use->use_index() != StoreFieldInstr::kInstancePos)) {
+      return this;
+    }
+  }
+  // Cleanup all StoreField uses.
+  while (input_use_list() != nullptr) {
+    input_use_list()->instruction()->RemoveFromGraph();
+  }
+  return nullptr;
+}
+
+Definition* AllocateClosureInstr::Canonicalize(FlowGraph* flow_graph) {
+  if (!HasUses()) return nullptr;
+  return this;
+}
+
 LocationSummary* AllocateClosureInstr::MakeLocationSummary(Zone* zone,
                                                            bool opt) const {
   const intptr_t kNumInputs = inputs_.length();
@@ -4891,42 +4915,6 @@ void MaterializeObjectInstr::RemapRegisters(intptr_t* cpu_reg_slots,
     locations_[i] = LocationRemapForSlowPath(
         LocationAt(i), InputAt(i)->definition(), cpu_reg_slots, fpu_reg_slots);
   }
-}
-
-const char* SpecialParameterInstr::KindToCString(SpecialParameterKind k) {
-  switch (k) {
-#define KIND_CASE(Name)                                                        \
-  case SpecialParameterKind::k##Name:                                          \
-    return #Name;
-    FOR_EACH_SPECIAL_PARAMETER_KIND(KIND_CASE)
-#undef KIND_CASE
-  }
-  return nullptr;
-}
-
-bool SpecialParameterInstr::ParseKind(const char* str,
-                                      SpecialParameterKind* out) {
-  ASSERT(str != nullptr && out != nullptr);
-#define KIND_CASE(Name)                                                        \
-  if (strcmp(str, #Name) == 0) {                                               \
-    *out = SpecialParameterKind::k##Name;                                      \
-    return true;                                                               \
-  }
-  FOR_EACH_SPECIAL_PARAMETER_KIND(KIND_CASE)
-#undef KIND_CASE
-  return false;
-}
-
-LocationSummary* SpecialParameterInstr::MakeLocationSummary(Zone* zone,
-                                                            bool opt) const {
-  // Only appears in initial definitions, never in normal code.
-  UNREACHABLE();
-  return nullptr;
-}
-
-void SpecialParameterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // Only appears in initial definitions, never in normal code.
-  UNREACHABLE();
 }
 
 LocationSummary* MakeTempInstr::MakeLocationSummary(Zone* zone,

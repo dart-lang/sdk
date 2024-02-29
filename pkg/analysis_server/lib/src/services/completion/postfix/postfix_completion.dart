@@ -149,7 +149,7 @@ class DartPostfixCompletion {
 
   static Future<PostfixCompletion?> expandTry(
       PostfixCompletionProcessor processor, PostfixCompletionKind kind) async {
-    return processor.expandTry(kind, processor.findStatement, withOn: false);
+    return processor.expandTry(kind, processor.findStatement);
   }
 
   static Future<PostfixCompletion?> expandTryon(
@@ -410,7 +410,7 @@ class PostfixCompletionProcessor {
       _findOuterExpression(node, typeProvider.iterableDynamicType);
 
   Expression? findObjectExpression() =>
-      _findOuterExpression(node, typeProvider.objectType);
+      _findOuterExpression(node, typeProvider.objectQuestionType);
 
   Statement? findStatement() {
     var astNode = node;
@@ -465,17 +465,8 @@ class PostfixCompletionProcessor {
         return 'Exception';
       }
 
-      // Only print nullability for non-legacy types in non-legacy libraries.
-      var showNullability = type.nullabilitySuffix != NullabilitySuffix.star &&
-          (astNode.root as CompilationUnit)
-              .declaredElement!
-              .library
-              .isNonNullableByDefault;
-
       // Can't catch nullable types, strip `?`s now that we've checked for `*`s.
-      return type
-          .withNullability(NullabilitySuffix.none)
-          .getDisplayString(withNullability: showNullability);
+      return type.withNullability(NullabilitySuffix.none).getDisplayString();
     }
     return 'Exception';
   }

@@ -2,8 +2,8 @@ library #lib;
 import self as self;
 import "dart:core" as core;
 import "dart:ffi" as ffi;
-import "dart:_internal" as _in;
 import "dart:typed_data" as typ;
+import "dart:_internal" as _in;
 
 import "dart:ffi";
 
@@ -14,6 +14,9 @@ final class Struct1ByteInt extends ffi::Struct {
     ;
   constructor #fromTypedDataBase(synthesized core::Object #typedDataBase) → self::Struct1ByteInt
     : super ffi::Struct::_fromTypedDataBase(#typedDataBase)
+    ;
+  constructor #fromTypedData(synthesized typ::TypedData #typedData, synthesized core::int #offset, synthesized core::int #sizeInBytes) → self::Struct1ByteInt
+    : super ffi::Struct::_fromTypedData(#typedData, #offset, #sizeInBytes)
     ;
   @#C7
   get a0() → core::int

@@ -109,7 +109,7 @@ void functionArgumentVariance() {
                   NativeFunction<
                       Pointer<NativeType> Function(
                           Pointer<Int8>)>>)>>.fromAddress(0x1234);
-  final f = p.asFunction<
+  p.asFunction<
       Pointer<NativeFunction<Pointer<NativeType> Function(Pointer<Int8>)>> Function(
           Pointer<
               NativeFunction<Pointer<Int8> Function(Pointer<NativeType>)>>)>();
@@ -198,9 +198,9 @@ void callbackParamImplicitDowncast1() {
 }
 
 void callbackParamSubtype1() {
-  final callback = ffiTestFunctions.lookupFunction<CallbackNaTyPointerParamOp,
-      CallbackNaTyPointerParamOpDart>(callbackParamOpName);
-  final fp = Pointer.fromFunction<NaTyPointerParamOp>(int64PointerParamOp);
+  final callback = ffiTestFunctions.lookupFunction<CallbackInt64PointerParamOp,
+      CallbackInt64PointerParamOpDart>(callbackParamOpName);
+  final fp = Pointer.fromFunction<Int64PointerParamOp>(naTyPointerParamOp);
   callback(fp);
 }
 

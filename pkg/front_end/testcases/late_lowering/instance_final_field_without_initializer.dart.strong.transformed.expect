@@ -18,12 +18,12 @@ class Class extends core::Object {
     : self::Class::_#Class#field = field, super core::Object::•()
     ;
   get field() → core::int
-    return let final core::int? #t1 = this.{self::Class::_#Class#field}{core::int?} in #t1 == null ?{core::int} throw new _in::LateError::fieldNI("field") : #t1{core::int};
+    return let final core::int? #t1 = this.{self::Class::_#Class#field}{core::int?} in #t1 == null ?{core::int} throw{for-error-handling} new _in::LateError::fieldNI("field") : #t1{core::int};
   set field(core::int field#param) → void
     if(this.{self::Class::_#Class#field}{core::int?} == null)
       this.{self::Class::_#Class#field} = field#param;
     else
-      throw new _in::LateError::fieldAI("field");
+      throw{for-error-handling} new _in::LateError::fieldAI("field");
 }
 class Subclass extends self::Class {
   constructor constructor1() → self::Subclass

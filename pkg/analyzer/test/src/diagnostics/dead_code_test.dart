@@ -248,16 +248,15 @@ void f() {
 
   test_class_field_initializer_listLiteral() async {
     // Based on https://github.com/dart-lang/sdk/issues/49701
-    await assertErrorsInCode(
-      '''
+    await assertErrorsInCode('''
 Never f() { throw ''; }
 
 class C {
   static final x = [1, 2, f(), 4];
 }
-''',
-      isNullSafetyEnabled ? [error(WarningCode.DEAD_CODE, 66, 2)] : [],
-    );
+''', [
+      error(WarningCode.DEAD_CODE, 66, 2),
+    ]);
   }
 
   test_continueInSwitch() async {
@@ -1489,14 +1488,13 @@ int f(Foo foo) {
 
   test_topLevelVariable_initializer_listLiteral() async {
     // Based on https://github.com/dart-lang/sdk/issues/49701
-    await assertErrorsInCode(
-      '''
+    await assertErrorsInCode('''
 Never f() { throw ''; }
 
 var x = [1, 2, f(), 4];
-''',
-      isNullSafetyEnabled ? [error(WarningCode.DEAD_CODE, 45, 2)] : [],
-    );
+''', [
+      error(WarningCode.DEAD_CODE, 45, 2),
+    ]);
   }
 
   test_try_finally() async {

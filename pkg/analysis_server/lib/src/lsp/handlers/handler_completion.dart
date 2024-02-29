@@ -608,8 +608,7 @@ class CompletionHandler
     // Perform fuzzy matching based on the identifier in front of the caret to
     // reduce the size of the payload.
     final fuzzyPattern = suggestions.targetPrefix;
-    final fuzzyMatcher =
-        FuzzyMatcher(fuzzyPattern, matchStyle: MatchStyle.TEXT);
+    final fuzzyMatcher = FuzzyMatcher(fuzzyPattern);
 
     final completionItems = suggestions.suggestions
         .where((item) =>
@@ -945,8 +944,7 @@ class _FuzzyScoreHelper {
 
   final FuzzyMatcher _matcher;
 
-  _FuzzyScoreHelper(this.prefix)
-      : _matcher = FuzzyMatcher(prefix, matchStyle: MatchStyle.TEXT);
+  _FuzzyScoreHelper(this.prefix) : _matcher = FuzzyMatcher(prefix);
 
   bool completionItemMatches(CompletionItem item) =>
       stringMatches(item.filterText ?? item.label);

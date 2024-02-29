@@ -94,7 +94,7 @@ static extension-type-member method W1|constructor#<T extends core::Object? = dy
   lowered final self::W1<self::W1|constructor#::T%> /* = self::W1|constructor#::T% */ #this = id;
   return #this;
 }
-static extension-type-member method W1|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::W1|constructor#_#new#tearOff::T% id) → self::W1<self::W1|constructor#_#new#tearOff::T%>% /* = self::W1|constructor#_#new#tearOff::T% */
+static extension-type-member method W1|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::W1|constructor#_#new#tearOff::T% id) → self::W1<self::W1|constructor#_#new#tearOff::T%> /* = self::W1|constructor#_#new#tearOff::T% */
   return self::W1|constructor#<self::W1|constructor#_#new#tearOff::T%>(id);
 static extension-type-member method W2|constructor#(core::String id) → self::W2 /* = core::String */ {
   lowered final self::W2 /* = core::String */ #this = id;

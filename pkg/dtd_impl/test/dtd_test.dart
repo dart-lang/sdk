@@ -4,29 +4,27 @@
 
 import 'dart:async';
 
-import 'package:dtd_impl/src/rpc_error_codes.dart';
+import 'package:dtd/dtd.dart' show RpcErrorCodes;
 import 'package:json_rpc_2/json_rpc_2.dart';
 import 'package:test/test.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:dtd_impl/dart_tooling_daemon.dart';
 
 void main() {
-  late Peer client1;
-  late Peer client2;
+  late Peer client;
   late DartToolingDaemon? dtd;
+  late String uri;
   setUp(() async {
     dtd = await DartToolingDaemon.startService([]);
 
     // Wait for server to start and print to the port to stdout.
-    final uri = dtd!.uri!.toString();
+    uri = dtd!.uri!.toString();
 
-    client1 = _createClient(uri);
-    client2 = _createClient(uri);
+    client = _createClient(uri);
   });
 
   tearDown(() async {
-    await client2.close();
-    await client1.close();
+    await client.close();
     await dtd?.close();
   });
 
@@ -36,17 +34,17 @@ void main() {
     final eventData = {'the': 'data'};
 
     test('basics', () async {
-      final completer = Completer();
-      client1.registerMethod('streamNotify', (Parameters parameters) {
+      var completer = Completer();
+      client.registerMethod('streamNotify', (Parameters parameters) {
         completer.complete(parameters.asMap);
       });
-      final listenResult = await client1.sendRequest('streamListen', {
+      final listenResult = await client.sendRequest('streamListen', {
         "streamId": streamId,
       });
 
       expect(listenResult, {"type": "Success"});
 
-      final postResult = await client2.sendRequest(
+      final postResult = await client.sendRequest(
         'postEvent',
         {
           'streamId': streamId,
@@ -61,18 +59,45 @@ void main() {
         "streamId": streamId,
         "eventKind": eventKind,
         "eventData": eventData,
+        "timestamp": anything,
       });
+
+      // Now cancel the stream
+      completer = Completer(); // Reset the completer
+      final cancelResult = await client.sendRequest(
+        'streamCancel',
+        {
+          'streamId': streamId,
+        },
+      );
+      expect(cancelResult, {"type": "Success"});
+      final postResult2 = await client.sendRequest(
+        'postEvent',
+        {
+          'streamId': streamId,
+          'eventKind': eventKind,
+          'eventData': eventData,
+        },
+      );
+      expect(postResult2, {"type": "Success"});
+      expect(
+        completer.future.timeout(
+          const Duration(seconds: 1),
+          onTimeout: () => throw TimeoutException('Timed out'),
+        ),
+        throwsA(predicate((p0) => p0 is TimeoutException)),
+      );
     });
 
     test('streamListen the same stream', () async {
-      final listenResult = await client1.sendRequest('streamListen', {
+      final listenResult = await client.sendRequest('streamListen', {
         "streamId": streamId,
       });
 
       expect(listenResult, {"type": "Success"});
 
       expect(
-        () => client1.sendRequest('streamListen', {
+        () => client.sendRequest('streamListen', {
           "streamId": streamId,
         }),
         throwsA(
@@ -87,7 +112,7 @@ void main() {
 
     test('stop listening to a stream that is not being listened to', () {
       expect(
-        () => client1.sendRequest('streamCancel', {
+        () => client.sendRequest('streamCancel', {
           "streamId": streamId,
         }),
         throwsA(
@@ -101,7 +126,7 @@ void main() {
     });
 
     test('postEvent when there are no listeners', () async {
-      final postResult = await client2.sendRequest(
+      final postResult = await client.sendRequest(
         'postEvent',
         {
           'streamId': streamId,
@@ -121,23 +146,23 @@ void main() {
     final response1 = {"response": 1};
 
     test('basics', () async {
-      client1.registerMethod('$service1.$method1', (Parameters parameters) {
+      client.registerMethod('$service1.$method1', (Parameters parameters) {
         return response1;
       });
-      final registerResult = await client1.sendRequest('registerService', {
+      final registerResult = await client.sendRequest('registerService', {
         "service": service1,
         "method": method1,
       });
 
       expect(registerResult, {"type": "Success"});
 
-      final register2Result = await client1.sendRequest('registerService', {
+      final register2Result = await client.sendRequest('registerService', {
         "service": service1,
         "method": method2,
       });
       expect(register2Result, {"type": "Success"});
 
-      final methodResponse = await client2.sendRequest(
+      final methodResponse = await client.sendRequest(
         '$service1.$method1',
         data1,
       );
@@ -145,14 +170,14 @@ void main() {
     });
 
     test('registering a service method that already exists', () async {
-      final registerResult = await client1.sendRequest('registerService', {
+      final registerResult = await client.sendRequest('registerService', {
         "service": service1,
         "method": method1,
       });
 
       expect(registerResult, {"type": "Success"});
       expect(
-        () => client1.sendRequest('registerService', {
+        () => client.sendRequest('registerService', {
           "service": service1,
           "method": method1,
         }),
@@ -168,7 +193,7 @@ void main() {
 
     test('calling a method that does not exist', () {
       expect(
-        () => client1.sendRequest('zoo.abc', {}),
+        () => client.sendRequest('zoo.abc', {}),
         throwsA(
           predicate(
             (p0) =>
@@ -180,7 +205,8 @@ void main() {
     });
 
     test('different clients cannot register the same service', () async {
-      final registerResult = await client1.sendRequest('registerService', {
+      final client2 = _createClient(uri);
+      final registerResult = await client.sendRequest('registerService', {
         "service": service1,
         "method": method1,
       });
@@ -202,20 +228,21 @@ void main() {
     });
 
     test('releases service methods on disconnect', () async {
-      final registerResult = await client1.sendRequest('registerService', {
+      final client2 = _createClient(uri);
+      final registerResult = await client.sendRequest('registerService', {
         "service": service1,
         "method": method1,
       });
       expect(registerResult, {"type": "Success"});
 
-      await client1.close();
+      await client.close();
 
       // TODO: replace this polling when notification streams are implemented.
 
       dynamic client2RegisterResult;
       for (var i = 0; i < 10; i++) {
         try {
-          // The service method registration should succeed once client1
+          // The service method registration should succeed once the other
           // finishes closing.
           client2RegisterResult = await client2.sendRequest('registerService', {
             "service": service1,

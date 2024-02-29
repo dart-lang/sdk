@@ -711,28 +711,17 @@ class ClassNames {
   static const String marker = 'marker';
 }
 
-class AnnotationType {
-  static const WITH_SOURCE_INFO =
-      const AnnotationType(0, ClassNames.withSourceInfo, true);
-  static const WITHOUT_SOURCE_INFO =
-      const AnnotationType(1, ClassNames.withoutSourceInfo, false);
-  static const ADDITIONAL_SOURCE_INFO =
-      const AnnotationType(2, ClassNames.additionalSourceInfo, true);
-  static const UNUSED_SOURCE_INFO =
-      const AnnotationType(3, ClassNames.unusedSourceInfo, false);
+enum AnnotationType {
+  withSourceInfo(ClassNames.withSourceInfo, true),
+  withoutSourceInfo(ClassNames.withoutSourceInfo, false),
+  additionalSourceInfo(ClassNames.additionalSourceInfo, true),
+  unusedSourceInfo(ClassNames.unusedSourceInfo, false),
+  ;
 
-  final int index;
   final String className;
   final bool isSourceMapped;
 
-  const AnnotationType(this.index, this.className, this.isSourceMapped);
-
-  static const List<AnnotationType> values = const <AnnotationType>[
-    WITH_SOURCE_INFO,
-    WITHOUT_SOURCE_INFO,
-    ADDITIONAL_SOURCE_INFO,
-    UNUSED_SOURCE_INFO
-  ];
+  const AnnotationType(this.className, this.isSourceMapped);
 }
 
 class CodeLineAnnotation {

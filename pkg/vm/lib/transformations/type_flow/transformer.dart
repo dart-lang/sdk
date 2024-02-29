@@ -32,6 +32,7 @@ import 'package:vm/transformations/pragma.dart';
 
 import 'analysis.dart';
 import 'calls.dart';
+import 'config.dart';
 import 'finalizable_types.dart';
 import 'protobuf_handler.dart' show ProtobufHandler;
 import 'rta.dart' show RapidTypeAnalysis;
@@ -50,6 +51,7 @@ const bool kDumpClassHierarchy =
 Component transformComponent(
     Target target, CoreTypes coreTypes, Component component,
     {PragmaAnnotationParser? matcher,
+    TFAConfiguration config = defaultTFAConfiguration,
     bool treeShakeSignatures = true,
     bool treeShakeWriteOnlyFields = true,
     bool treeShakeProtobufs = false,
@@ -91,6 +93,7 @@ Component transformComponent(
   MoveFieldInitializers().transformComponent(component);
 
   final typeFlowAnalysis = new TypeFlowAnalysis(
+      config,
       target,
       component,
       coreTypes,

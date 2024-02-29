@@ -42,7 +42,6 @@ abstract class AbstractTransformSetParserTest {
     var errorReporter = ErrorReporter(
       errorListener,
       MockSource(fullName: 'data.yaml'),
-      isNonNullableByDefault: false,
     );
     var parser = TransformSetParser(errorReporter, 'myPackage');
     result = parser.parse(content);

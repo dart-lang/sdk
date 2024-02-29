@@ -8,25 +8,23 @@ import '../rule_test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(UnnecessaryNullInIfNullOperatorsLanguage29Test);
     defineReflectiveTests(UnnecessaryNullInIfNullOperatorsTest);
   });
 }
 
 @reflectiveTest
-class UnnecessaryNullInIfNullOperatorsLanguage29Test extends LintRuleTest {
+class UnnecessaryNullInIfNullOperatorsTest extends LintRuleTest {
   @override
   String get lintRule => 'unnecessary_null_in_if_null_operators';
 
-  @override
-  String get testPackageLanguageVersion => '2.9';
-
   test_localVariableDeclaration_noNull() async {
-    await assertNoDiagnostics(r'''
+    await assertDiagnostics(r'''
 void f() {
   var x = 1 ?? 1;
 }
-''');
+''', [
+      error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 26, 1),
+    ]);
   }
 
   test_localVariableDeclaration_nullOnLeft() async {
@@ -46,36 +44,9 @@ void f() {
 }
 ''', [
       lint(21, 9),
+      error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 26, 4),
     ]);
   }
-
-  test_topLevelVariableDeclaration_noNull() async {
-    await assertNoDiagnostics(r'''
-var x = 1 ?? 1;
-''');
-  }
-
-  test_topLevelVariableDeclaration_nullOnLeft() async {
-    await assertDiagnostics(r'''
-var x = null ?? 1;
-''', [
-      lint(8, 9),
-    ]);
-  }
-
-  test_topLevelVariableDeclaration_nullOnRight() async {
-    await assertDiagnostics(r'''
-var x = 1 ?? null;
-''', [
-      lint(8, 9),
-    ]);
-  }
-}
-
-@reflectiveTest
-class UnnecessaryNullInIfNullOperatorsTest extends LintRuleTest {
-  @override
-  String get lintRule => 'unnecessary_null_in_if_null_operators';
 
   test_methodBody() async {
     await assertDiagnostics(r'''
@@ -122,6 +93,31 @@ var x = 1 ?? 1;
 ''', [
       // No lint.
       error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 13, 1),
+    ]);
+  }
+
+  test_topLevelVariableDeclaration_noNull() async {
+    await assertDiagnostics(r'''
+var x = 1 ?? 1;
+''', [
+      error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 13, 1),
+    ]);
+  }
+
+  test_topLevelVariableDeclaration_nullOnLeft() async {
+    await assertDiagnostics(r'''
+var x = null ?? 1;
+''', [
+      lint(8, 9),
+    ]);
+  }
+
+  test_topLevelVariableDeclaration_nullOnRight() async {
+    await assertDiagnostics(r'''
+var x = 1 ?? null;
+''', [
+      lint(8, 9),
+      error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 13, 4),
     ]);
   }
 }

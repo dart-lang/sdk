@@ -7,7 +7,26 @@
   type), to align with the specification. This change is not expected
   to make any difference in practice.
 
+- **Breaking Change** [#54828][]: The type schema used by the compiler front end
+  to perform type inference on the operand of a null-aware spread operator
+  (`...?`) in map and set literals has been made nullable, to match what
+  currently happens in list literals. This makes the compiler front end behavior
+  consistent with that of the analyzer. This change is expected to be very low
+  impact.
+
 [#54640]: https://github.com/dart-lang/sdk/issues/54640
+[#54828]: https://github.com/dart-lang/sdk/issues/54828
+
+### Libraries
+
+#### `dart:io`
+
+- **Breaking change** [#53863][]: `Stdout` has a new field `lineTerminator`,
+  which allows developers to control the line ending used by `stdout` and
+  `stderr`. Classes that `implement Stdout` must define the `lineTerminator`
+  field. The default semantics of `stdout` and `stderr` are not changed.
+
+[#53863]: https://github.com/dart-lang/sdk/issues/53863
 
 ### Tools
 
@@ -23,6 +42,18 @@
 
 ### Libraries
 
+#### `dart:async`
+
+- Added option for `ParallelWaitError` to get some meta-information that
+  it can expose in its `toString`, and the `Iterable<Future>.wait` and
+  `(Future,...,Future).wait` extension methods now provide that information.
+  Should make a `ParallelWaitError` easier to log.
+
+#### `dart:ffi`
+
+- Added `Struct.create` and `Union.create` to create struct and union views
+  of the sequence of bytes stored in a subtype of `TypedData`.
+
 #### `dart:js_interop`
 
 - On dart2wasm, `JSBoxedDartObject` now is an actual JS object that wraps the
@@ -34,9 +65,137 @@
 
 [#54138]: https://github.com/dart-lang/sdk/issues/54138
 
+#### `dart:typed_data`
+
+- **BREAKING CHANGE** [#53218][] [#53785][]: The unmodifiable view classes for
+  typed data are deprecated.
+
+  To create an unmodifiable view of a typed-data object, use the
+  `asUnmodifiableView()` methods added in Dart 3.3:
+
+  ```dart
+  Uint8List data = ...;
+  final readOnlyView = data.asUnmodifiableView();
+  // readOnlyView has type Uint8List, and throws if attempted modified.
+  ```
+
+  The reason for this change is to allow more flexibility in the implementation
+  of typed data, so the native and web platforms can use different strategies
+  to ensure that typed data has good performance.
+
+  The deprecated types will be removed in Dart 3.5.
+
+[#53218]: https://github.com/dart-lang/sdk/issues/53218
+[#53785]: https://github.com/dart-lang/sdk/issues/53785
+
+### Dart Runtime
+- Dart VM flags and options can now be provided to any executable
+  generated using `dart compile exe` via the `DART_VM_OPTIONS` environment
+  variable. `DART_VM_OPTIONS` should be set to a list of comma-separated flags
+  and options with no whitespace. Options that allow for multiple values to be
+  provided as comma-separated values are not supported
+  (e.g., `--timeline-streams=Dart,GC,Compiler`).
+
+  Example of a valid `DART_VM_OPTIONS` environment variable:
+
+  ```bash
+  DART_VM_OPTIONS=--random_seed=42,--verbose_gc
+  ```
+
 ## 3.3.0
 
 ### Language
+
+Dart 3.3 adds [extension types] to the language. To use them, set your
+package's [SDK constraint][language version] lower bound to 3.3 or greater
+(`sdk: '^3.3.0'`).
+
+#### Extension types
+
+[extension types]: https://github.com/dart-lang/language/issues/2727
+
+An _extension type_ wraps an existing type with a different, static-only
+interface. It works in a way which is in many ways similar to a class that
+contains a single final instance variable holding the wrapped object, but
+without the space and time overhead of an actual wrapper object.
+
+Extension types are introduced by _extension type declarations_. Each
+such declaration declares a new named type (not just a new name for the
+same type). It declares a _representation variable_ whose type is the
+_representation type_. The effect of using an extension type is that the
+_representation_ (that is, the value of the representation variable) has
+the members declared by the extension type rather than the members declared
+by its "own" type (the representation type). Example:
+
+```dart
+extension type Meters(int value) {
+  String get label => '${value}m';
+  Meters operator +(Meters other) => Meters(value + other.value);
+}
+
+void main() {
+  var m = Meters(42); // Has type `Meters`.
+  var m2 = m + m; // OK, type `Meters`.
+  // int i = m; // Compile-time error, wrong type.
+  // m.isEven; // Compile-time error, no such member.
+  assert(identical(m, m.value)); // Succeeds.
+}
+```
+
+The declaration `Meters` is an extension type that has representation type
+`int`. It introduces an implicit constructor `Meters(int value);` and a
+getter `int get value`. `m` and `m.value` is the very same object, but `m`
+has type `Meters` and `m.value` has type `int`. The point is that `m`
+has the members of `Meters` and `m.value` has the members of `int`.
+
+Extension types are entirely static, they do not exist at run time. If `o`
+is the value of an expression whose static type is an extension type `E`
+with representation type `R`, then `o` is just a normal object whose
+run-time type is a subtype of `R`, exactly like the value of an expression
+of type `R`. Also the run-time value of `E` is `R` (for example, `E == R`
+is true). In short: At run time, an extension type is erased to the
+corresponding representation type.
+
+A method call on an expression of an extension type is resolved at
+compile-time, based on the static type of the receiver, similar to how
+extension method calls work. There is no virtual or dynamic dispatch. This,
+combined with no memory overhead, means that extension types are zero-cost
+wrappers around their representation value.
+
+While there is thus no performance cost to using extension types, there is
+a safety cost. Since extension types are erased at compile time, run-time
+type tests on values that are statically typed as an extension type will
+check the type of the representation object instead, and if the type check
+looks like it tests for an extension type, like `is Meters`, it actually
+checks for the representation type, that is, it works exactly like `is int`
+at run time. Moreover, as mentioned above, if an extension type is used as
+a type argument to a generic class or function, the type variable will be
+bound to the representation type at run time. For example:
+
+```dart
+void main() {
+  var meters = Meters(3);
+
+  // At run time, `Meters` is just `int`.
+  print(meters is int); // Prints "true".
+  print(<Meters>[] is List<int>); // Prints "true".
+
+  // An explicit cast is allowed and succeeds as well:
+  List<Meters> meterList = <int>[1, 2, 3] as List<Meters>;
+  print(meterList[1].label); // Prints "2m".
+}
+```
+
+Extension types are useful when you are willing to sacrifice some run-time
+encapsulation in order to avoid the overhead of wrapping values in
+instances of wrapper classes, but still want to provide a different
+interface than the wrapped object. An example of that is interop, where you
+may have data that are not Dart objects to begin with (for example, raw
+JavaScript objects when using JavaScript interop), and you may have large
+collections of objects where it's not efficient to allocate an extra object
+for each element.
+
+#### Other changes
 
 - **Breaking Change** [#54056][]: The rules for private field promotion have
   been changed so that an abstract getter is considered promotable if there are
@@ -97,6 +256,11 @@
 - In addition to functions, `@Native` can now be used on fields.
 - Allow taking the address of native functions and fields via
   `Native.addressOf`.
+- The `elementAt` pointer arithmetic extension methods on
+  core `Pointer` types are now deprecated.
+  Migrate to the new `-` and `+` operators instead.
+- The experimental and deprecated `@FfiNative` annotation has been removed.
+  Usages should be updated to use the `@Native` annotation.
 
 #### `dart:js_interop`
 
@@ -379,6 +543,8 @@ constraint][language version] lower bound to 3.2 or greater (`sdk: '^3.2.0'`).
 - **Breaking change** [#53311][]: `NativeCallable.nativeFunction` now throws an
   error if is called after the `NativeCallable` has already been `close`d. Calls
   to `close` after the first are now ignored.
+
+[#53311]: https://github.com/dart-lang/sdk/issues/53311
 
 #### `dart:io`
 
@@ -1122,6 +1288,11 @@ constraint][language version] lower bound to 3.0 or greater (`sdk: '^3.0.0'`).
 [`Metric`]: https://api.dart.dev/stable/2.18.2/dart-developer/Metric-class.html
 [`Counter`]: https://api.dart.dev/stable/2.18.2/dart-developer/Counter-class.html
 [`Gauge`]: https://api.dart.dev/stable/2.18.2/dart-developer/Gauge-class.html
+
+#### `dart:ffi`
+
+- The experimental `@FfiNative` annotation is now deprecated.
+  Usages should be replaced with the new `@Native` annotation.
 
 #### `dart:html`
 

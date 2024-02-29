@@ -232,7 +232,7 @@ class ScannerTest with ResourceProviderMixin {
 
   test_featureSet_minorOverflow() {
     var scanner = _createScanner(r'''
-// @dart = 2.99999999999999999999999999999999
+// @dart = 3.99999999999999999999999999999999
 ''');
     var featureSet = FeatureSet.latestLanguageVersion();
     scanner.configureFeatures(

@@ -197,7 +197,7 @@ static method exhaustiveMAsM(self::M m) → dynamic
     #L7:
     {
       {
-        if(let final self::M #t17 = #0#0 in #0#0 is self::A || #0#0 is self::B || #0#0 is self::C) {
+        if(let final self::M #t17 = #0#0 as{Unchecked} self::M in (#0#0 as{Unchecked} self::M) is self::A || (#0#0 as{Unchecked} self::M) is self::B || (#0#0 as{Unchecked} self::M) is self::C) {
           #t16 = 0;
           break #L7;
         }
@@ -304,4 +304,4 @@ constants  {
 
 Extra constant evaluation status:
 Evaluated: LogicalExpression @ org-dartlang-testcase:///casts.dart:60:19 -> BoolConstant(true)
-Extra constant evaluation: evaluated: 252, effectively constant: 1
+Extra constant evaluation: evaluated: 256, effectively constant: 1

@@ -17,7 +17,7 @@ static method test() → dynamic {
     {
       final synthesized core::List<core::int> #0#0 = #t1;
       if(!(#0#0.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final core::int #t2 = v1 = #0#0.{core::List::[]}(0){(core::int) → core::int} in true)))
-        throw new core::StateError::•("Pattern matching error");
+        throw{for-error-handling} new core::StateError::•("Pattern matching error");
     }
     core::print(v1);
   }

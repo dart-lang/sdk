@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:expect/expect.dart';
+import 'package:expect/variations.dart' as v;
 
 main() {
   Expect.equals(0, 0.0.ceil());
@@ -24,7 +25,7 @@ main() {
 
   Expect.equals(9007199254740991, 9007199254740991.0.ceil());
   Expect.equals(9007199254740992, 9007199254740992.0.ceil());
-  if (webNumbers) {
+  if (v.jsNumbers) {
     Expect.equals(1.7976931348623157e+308, double.maxFinite.ceil());
   } else {
     // Split 0x7fffffffffffffff into sum of two web numbers to avoid compilation
@@ -46,7 +47,7 @@ main() {
   Expect.equals(-4503599627370499, (-4503599627370499.0).ceil());
   Expect.equals(-9007199254740991, (-9007199254740991.0).ceil());
   Expect.equals(-9007199254740992, (-9007199254740992.0).ceil());
-  if (webNumbers) {
+  if (v.jsNumbers) {
     Expect.equals(-1.7976931348623157e+308, (-double.maxFinite).ceil());
   } else {
     Expect.equals(-9223372036854775808, (-double.maxFinite).ceil());

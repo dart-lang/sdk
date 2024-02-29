@@ -580,7 +580,7 @@ DART_EXPORT const char* Dart_VersionString(void);
  * for each part.
  */
 
-#define DART_FLAGS_CURRENT_VERSION (0x0000000c)
+#define DART_FLAGS_CURRENT_VERSION (0x0000000d)
 
 typedef struct {
   int32_t version;
@@ -589,9 +589,10 @@ typedef struct {
   bool use_osr;
   bool obfuscate;
   bool load_vmservice_library;
-  bool copy_parent_code;
   bool null_safety;
   bool is_system_isolate;
+  bool is_service_isolate;
+  bool is_kernel_isolate;
   bool snapshot_is_dontneed_safe;
   bool branch_coverage;
 } Dart_IsolateFlags;
@@ -4123,20 +4124,6 @@ Dart_CreateAppJITSnapshotAsBlobs(uint8_t** isolate_snapshot_data_buffer,
                                  intptr_t* isolate_snapshot_data_size,
                                  uint8_t** isolate_snapshot_instructions_buffer,
                                  intptr_t* isolate_snapshot_instructions_size);
-
-/**
- * Like Dart_CreateAppJITSnapshotAsBlobs, but also creates a new VM snapshot.
- */
-DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
-Dart_CreateCoreJITSnapshotAsBlobs(
-    uint8_t** vm_snapshot_data_buffer,
-    intptr_t* vm_snapshot_data_size,
-    uint8_t** vm_snapshot_instructions_buffer,
-    intptr_t* vm_snapshot_instructions_size,
-    uint8_t** isolate_snapshot_data_buffer,
-    intptr_t* isolate_snapshot_data_size,
-    uint8_t** isolate_snapshot_instructions_buffer,
-    intptr_t* isolate_snapshot_instructions_size);
 
 /**
  * Get obfuscation map for precompiled code.

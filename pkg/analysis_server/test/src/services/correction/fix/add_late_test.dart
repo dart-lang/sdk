@@ -11,27 +11,8 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(AddLatePreNnbdTest);
     defineReflectiveTests(AddLateTest);
   });
-}
-
-@reflectiveTest
-class AddLatePreNnbdTest extends FixProcessorTest {
-  @override
-  FixKind get kind => DartFixKind.ADD_LATE;
-
-  @override
-  String? get testPackageLanguageVersion => '2.9';
-
-  Future<void> test_withFinal() async {
-    await resolveTestCode('''
-class C {
-  final String s;
-}
-''');
-    await assertNoFix();
-  }
 }
 
 @reflectiveTest

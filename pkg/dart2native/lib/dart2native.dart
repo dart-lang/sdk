@@ -5,30 +5,82 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:collection/collection.dart';
+import 'package:kernel/binary/tag.dart' show Tag;
+import 'package:path/path.dart' as path;
+
 import 'dart2native_macho.dart' show writeAppendedMachOExecutable;
 import 'dart2native_pe.dart' show writeAppendedPortableExecutable;
+
+final binDir = File(Platform.resolvedExecutable).parent;
+final executableSuffix = Platform.isWindows ? '.exe' : '';
+final genKernel = path.join(
+  binDir.path,
+  'snapshots',
+  'gen_kernel_aot.dart.snapshot',
+);
+final genSnapshot = path.join(
+  binDir.path,
+  'utils',
+  'gen_snapshot$executableSuffix',
+);
+final platformDill = path.join(
+  binDir.parent.path,
+  'lib',
+  '_internal',
+  'vm_platform_strong.dill',
+);
+final productPlatformDill = path.join(
+  binDir.parent.path,
+  'lib',
+  '_internal',
+  'vm_platform_strong_product.dill',
+);
 
 // Maximum page size across all supported architectures (arm64 macOS has 16K
 // pages, some arm64 Linux distributions have 64K pages).
 const elfPageSize = 65536;
-const appjitMagicNumber = <int>[0xdc, 0xdc, 0xf6, 0xf6, 0, 0, 0, 0];
+const appJitMagicNumber = <int>[0xdc, 0xdc, 0xf6, 0xf6, 0, 0, 0, 0];
 
-enum Kind { aot, exe }
+Future<bool> isKernelFile(String path) async {
+  const kernelMagicNumber = Tag.ComponentFile;
+  // Convert the 32-bit header into a list of 4 bytes.
+  final kernelMagicNumberList = Uint8List(4)
+    ..buffer.asByteData().setInt32(
+          0,
+          kernelMagicNumber,
+          Endian.big,
+        );
 
-Future writeAppendedExecutable(
-    String dartaotruntimePath, String payloadPath, String outputPath) async {
+  final header = await File(path)
+      .openRead(
+        0,
+        kernelMagicNumberList.length,
+      )
+      .first;
+
+  return header.equals(kernelMagicNumberList);
+}
+
+// WARNING: this method is used within google3, so don't try to refactor so
+// [dartaotruntime] is a constant inside this file.
+Future<void> writeAppendedExecutable(
+  String dartaotruntime,
+  String payloadPath,
+  String outputPath,
+) async {
   if (Platform.isMacOS) {
     return await writeAppendedMachOExecutable(
-        dartaotruntimePath, payloadPath, outputPath);
+        dartaotruntime, payloadPath, outputPath);
   } else if (Platform.isWindows) {
     return await writeAppendedPortableExecutable(
-        dartaotruntimePath, payloadPath, outputPath);
+        dartaotruntime, payloadPath, outputPath);
   }
 
-  final dartaotruntime = File(dartaotruntimePath);
-  final int dartaotruntimeLength = dartaotruntime.lengthSync();
+  final dartaotruntimeFile = File(dartaotruntime);
+  final dartaotruntimeLength = dartaotruntimeFile.lengthSync();
 
-  final padding = ((elfPageSize - dartaotruntimeLength) % elfPageSize);
+  final padding = (elfPageSize - dartaotruntimeLength) % elfPageSize;
   final padBytes = Uint8List(padding);
   final offset = dartaotruntimeLength + padding;
 
@@ -37,57 +89,61 @@ Future writeAppendedExecutable(
     ..setUint64(0, offset, Endian.little);
 
   final outputFile = File(outputPath).openWrite();
-  outputFile.add(dartaotruntime.readAsBytesSync());
+  outputFile.add(dartaotruntimeFile.readAsBytesSync());
   outputFile.add(padBytes);
   outputFile.add(File(payloadPath).readAsBytesSync());
   outputFile.add(offsetBytes.buffer.asUint8List());
-  outputFile.add(appjitMagicNumber);
+  outputFile.add(appJitMagicNumber);
   await outputFile.close();
 }
 
-Future markExecutable(String outputFile) {
+Future<ProcessResult> markExecutable(String outputFile) {
   return Process.run('chmod', ['+x', outputFile]);
 }
 
-/// Generates the AOT kernel by running the provided [genKernel] path.
+/// Generates kernel by running the provided [genKernel] path.
 ///
 /// Also takes a path to the [resourcesFile] JSON file, where the method calls
-/// to static functions annotated with [Resource] will be collected.
-Future<ProcessResult> generateAotKernel(
-  String dart,
-  String genKernel,
-  String platformDill,
-  String sourceFile,
-  String kernelFile,
+/// to static functions annotated with `@ResourceIdentifier` will be collected.
+Future<ProcessResult> generateKernelHelper({
+  required String dartaotruntime,
+  required String sourceFile,
+  required String kernelFile,
   String? packages,
-  List<String> defines, {
+  List<String> defines = const [],
   String enableExperiment = '',
   String? targetOS,
   List<String> extraGenKernelOptions = const [],
   String? nativeAssets,
   String? resourcesFile,
+  bool fromDill = false,
+  bool aot = false,
+  bool embedSources = false,
+  bool linkPlatform = true,
+  bool product = true,
 }) {
-  return Process.run(dart, [
+  final args = [
     genKernel,
-    '--platform',
-    platformDill,
+    '--platform=${product ? productPlatformDill : platformDill}',
+    if (product) '-Ddart.vm.product=true',
     if (enableExperiment.isNotEmpty) '--enable-experiment=$enableExperiment',
     if (targetOS != null) '--target-os=$targetOS',
-    '--aot',
-    '-Ddart.vm.product=true',
-    ...(defines.map((d) => '-D$d')),
-    if (packages != null) ...['--packages', packages],
-    '-o',
-    kernelFile,
+    if (fromDill) '--from-dill=$sourceFile',
+    if (aot) '--aot',
+    if (!embedSources) '--no-embed-sources',
+    if (!linkPlatform) '--no-link-platform',
+    ...defines.map((d) => '-D$d'),
+    if (packages != null) '--packages=$packages',
+    if (nativeAssets != null) '--native-assets=$nativeAssets',
+    if (resourcesFile != null) '--resources-file=$resourcesFile',
+    '--output=$kernelFile',
     ...extraGenKernelOptions,
-    if (nativeAssets != null) ...['--native-assets', nativeAssets],
-    if (resourcesFile != null) ...['--resources-file', resourcesFile],
-    sourceFile
-  ]);
+    sourceFile,
+  ];
+  return Process.run(dartaotruntime, args);
 }
 
-Future generateAotSnapshot(
-    String genSnapshot,
+Future<ProcessResult> generateAotSnapshotHelper(
     String kernelFile,
     String snapshotFile,
     String? debugFile,

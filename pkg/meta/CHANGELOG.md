@@ -1,4 +1,4 @@
-## 1.12.0-wip
+## 1.12.0
 
 * Introduce the `@ResourceIdentifier` experimental annotation for static methods
   whose constant literal arguments should be collected during compilation.
@@ -15,7 +15,7 @@
 * Introduce `@redeclare` to annotate extension type members that redeclare
   members from a superinterface.
 * Migrate the `TargetKind` enum to a class to ease the addition of new
-  kinds.  
+  kinds.
 
 ## 1.9.1
 

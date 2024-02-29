@@ -176,6 +176,8 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
 
   List<String> get experiments => ['macros'];
 
+  List<String> get lintRules => _lintRules;
+
   /// The path that is not in [workspaceRootPath], contains external packages.
   String get packagesRootPath => '/packages';
 
@@ -315,6 +317,16 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
     }
   }
 
+  /// Assert that the number of diagnostics that have been gathered matches the
+  /// number of [expectedDiagnostics] and that they have the expected error
+  /// descriptions and locations. The order in which the diagnostics were
+  /// gathered is ignored.
+  Future<void> assertDiagnosticsInFile(
+      String path, List<ExpectedDiagnostic> expectedDiagnostics) async {
+    await _resolveFile(path);
+    await assertDiagnosticsIn(errors, expectedDiagnostics);
+  }
+
   /// Assert that there are no diagnostics in the given [code].
   Future<void> assertNoDiagnostics(String code) async =>
       assertDiagnostics(code, const []);
@@ -322,6 +334,10 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
   /// Assert that there are no diagnostics in [errors].
   Future<void> assertNoDiagnosticsIn(List<AnalysisError> errors) =>
       assertDiagnosticsIn(errors, const []);
+
+  /// Assert that there are no diagnostics in the given file.
+  Future<void> assertNoDiagnosticsInFile(String path) async =>
+      assertDiagnosticsInFile(path, const []);
 
   /// Assert that no diagnostics are reported when resolving [content].
   Future<void> assertNoPubspecDiagnostics(String content) async {
@@ -361,6 +377,7 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
     writeTestPackageConfig(
       PackageConfigFileBuilder(),
     );
+    writeTestPackagePubspecYamlFile(PubspecYamlFileConfig(name: 'test'));
   }
 
   void writePackageConfig(String path, PackageConfigFileBuilder config) {
@@ -458,8 +475,9 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
         sourceUrl: sourceUri, resourceProvider: resourceProvider);
     var listener = RecordingErrorListener();
     var reporter = ErrorReporter(
-        listener, resourceProvider.getFile(path).createSource(sourceUri),
-        isNonNullableByDefault: false);
+      listener,
+      resourceProvider.getFile(path).createSource(sourceUri),
+    );
     for (var entry in pubspecRules.entries) {
       entry.key.reporter = reporter;
       pubspecAst.accept(entry.value);

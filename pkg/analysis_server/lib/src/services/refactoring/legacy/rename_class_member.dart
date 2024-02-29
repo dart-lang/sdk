@@ -142,7 +142,7 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
     var parameter = node.parameter as FieldFormalParameter;
 
     var start = parameter.thisKeyword.offset;
-    var type = element.type.getDisplayString(withNullability: true);
+    var type = element.type.getDisplayString();
     var edit = SourceEdit(start, parameter.period.end - start, '$type ');
     doSourceChange_addSourceEdit(change, reference.unitSource, edit);
 

@@ -138,8 +138,7 @@ main() {
       '54',
     ]);
 
-    await runTest(
-        'tests/web/native/native_test.dart', 'tests/web/native/', {
+    await runTest('tests/web/native/native_test.dart', 'tests/web/native/', {
       'Class': Kind.regular,
       'NativeClass': Kind.native,
       'topLevelField': Kind.regular,
@@ -181,28 +180,27 @@ main() {
       'NativeClass.nativeStaticGetter': Kind.native,
       'NativeClass.nativeStaticSetter': Kind.native,
       'NativeClass.nativeStaticMethod': Kind.native,
-    },
-        skipList: [
-          // External constructors in non-native class
-          //'08',
-          //'09',
-          // External instance members in non-native class
-          //'22',
-          //'23',
-          //'24',
-          // External static members in non-native class
-          //'25',
-          //'26',
-          //'27',
-          // External instance members in native class
-          //'36',
-          //'37',
-          //'38',
-          // External static members in native class
-          //'39',
-          //'40',
-          //'41',
-        ]);
+    }, skipList: [
+      // External constructors in non-native class
+      //'08',
+      //'09',
+      // External instance members in non-native class
+      //'22',
+      //'23',
+      //'24',
+      // External static members in non-native class
+      //'25',
+      //'26',
+      //'27',
+      // External instance members in native class
+      //'36',
+      //'37',
+      //'38',
+      // External static members in native class
+      //'39',
+      //'40',
+      //'41',
+    ]);
   });
 }
 
@@ -258,7 +256,7 @@ runPositiveTest(Uri entryPoint, Map<String, String> sources,
       await runCompiler(entryPoint: entryPoint, memorySourceFiles: sources);
   Expect.isTrue(result.isSuccess);
 
-  JClosedWorld closedWorld = result.compiler.backendClosedWorldForTesting;
+  JClosedWorld closedWorld = result.compiler!.backendClosedWorldForTesting!;
   ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
 
   void checkClass(ClassEntity cls,

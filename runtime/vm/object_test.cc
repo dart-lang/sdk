@@ -2318,8 +2318,8 @@ ISOLATE_UNIT_TEST_CASE(TypedData_Grow) {
 
   Random random(42);
 
-  for (classid_t cid = kTypedDataInt8ArrayCid; cid < kByteDataViewCid;
-       cid += 4) {
+  for (classid_t cid = kFirstTypedDataCid; cid <= kLastTypedDataCid;
+       cid += kNumTypedDataCidRemainders) {
     ASSERT(IsTypedDataClassId(cid));
 
     const auto& small = TypedData::Handle(TypedData::New(cid, kSmallSize));
@@ -2700,7 +2700,7 @@ ISOLATE_UNIT_TEST_CASE(Closure) {
   EXPECT_EQ(closure_class.id(), kClosureCid);
   const Function& closure_function = Function::Handle(closure.function());
   EXPECT_EQ(closure_function.ptr(), function.ptr());
-  const Context& closure_context = Context::Handle(closure.context());
+  const Context& closure_context = Context::Handle(closure.GetContext());
   EXPECT_EQ(closure_context.ptr(), context.ptr());
 }
 

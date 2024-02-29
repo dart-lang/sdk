@@ -17,6 +17,7 @@ import 'package:dart2wasm/reference_extensions.dart';
 import 'package:dart2wasm/types.dart';
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/library_index.dart';
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClassHierarchySubtypes, ClosedWorldClassHierarchy;
 import 'package:kernel/core_types.dart';
@@ -33,9 +34,9 @@ class TranslatorOptions {
   bool importSharedMemory = false;
   bool inlining = true;
   bool jsCompatibility = false;
-  bool nameSection = true;
   bool omitImplicitTypeChecks = false;
   bool omitExplicitTypeChecks = false;
+  bool omitBoundsChecks = false;
   bool polymorphicSpecialization = false;
   bool printKernel = false;
   bool printWasm = false;
@@ -65,6 +66,7 @@ class Translator with KernelNodes {
   late final ClassHierarchySubtypes subtypes;
 
   // Other parts of the global compiler state.
+  final LibraryIndex index;
   late final ClosureLayouter closureLayouter;
   late final ClassInfoCollector classInfoCollector;
   late final DispatchTable dispatchTable;
@@ -246,7 +248,8 @@ class Translator with KernelNodes {
     topInfo.nullableType
   ]);
 
-  Translator(this.component, this.coreTypes, this.recordClasses, this.options)
+  Translator(this.component, this.coreTypes, this.index, this.recordClasses,
+      this.options)
       : libraries = component.libraries,
         hierarchy =
             ClassHierarchy(component, coreTypes) as ClosedWorldClassHierarchy {
@@ -814,6 +817,7 @@ class Translator with KernelNodes {
     ib.ref_func(dynamicCallEntry);
     if (representation.isGeneric) {
       ib.ref_func(representation.instantiationTypeComparisonFunction);
+      ib.ref_func(representation.instantiationTypeHashFunction);
       ib.ref_func(representation.instantiationFunction);
     }
     for (int posArgCount = 0; posArgCount <= positionalCount; posArgCount++) {

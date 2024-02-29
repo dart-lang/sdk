@@ -15,7 +15,7 @@ Future<void> main(List<String> args) async {
   // Expect something like /full/path/to/sdk/pkg/some_dir/whatever/else
   if (args.length != 1) throw "Need exactly one argument.";
 
-  final List<String> changedFiles = _getChangedFiles();
+  final List<String> changedFiles = getChangedFiles();
   String callerPath = args[0].replaceAll("\\", "/");
   if (!_shouldRun(changedFiles, callerPath)) {
     return;
@@ -76,7 +76,7 @@ const Set<String> _generatedFilesUpToDateFiles = {
   "pkg/_fe_analyzer_shared/lib/src/parser/listener.dart",
   "pkg/_fe_analyzer_shared/lib/src/parser/parser_impl.dart",
   "pkg/front_end/lib/src/api_prototype/experimental_flags_generated.dart",
-  "pkg/front_end/lib/src/fasta/fasta_codes_cfe_generated.dart",
+  "pkg/front_end/lib/src/fasta/codes/fasta_codes_cfe_generated.dart",
   "pkg/front_end/lib/src/fasta/util/parser_ast_helper.dart",
   "pkg/front_end/messages.yaml",
   "pkg/front_end/test/generated_files_up_to_date_git_test.dart",
@@ -290,7 +290,7 @@ Future<void> _executePendingWorkItems(List<Work> workItems) async {
 /// Queries git about changes against upstream, or origin/main if no upstream is
 /// set. This is similar (but different), I believe, to what
 /// `git cl presubmit` does.
-List<String> _getChangedFiles() {
+List<String> getChangedFiles() {
   ProcessResult result = Process.runSync(
       "git",
       [
@@ -323,6 +323,7 @@ List<String> _getChangedFiles() {
   for (String line in result.stdout.toString().split("\n")) {
     List<String> split = line.split("\t");
     if (split.length != 2) continue;
+    if (split[0] == 'D') continue; // Don't check deleted files.
     String path = split[1].trim().replaceAll("\\", "/");
     paths.add(path);
   }
@@ -340,8 +341,15 @@ int? _getPathSegmentIndexIfSubEntry(Uri outer, Uri inner) {
   int end = outerPathSegments.length;
   if (outerPathSegments.last == "") end--;
   for (int i = 0; i < end; i++) {
-    if (outerPathSegments[i] != innerPathSegments[i]) {
-      return null;
+    if (Platform.isWindows) {
+      if (outerPathSegments[i].toLowerCase() !=
+          innerPathSegments[i].toLowerCase()) {
+        return null;
+      }
+    } else {
+      if (outerPathSegments[i] != innerPathSegments[i]) {
+        return null;
+      }
     }
   }
   return end;

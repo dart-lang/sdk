@@ -403,7 +403,7 @@ static method test() → dynamic {
     synthesized core::bool #0#2;
     synthesized core::bool #0#2#isSet = false;
     if(!((!((#0#3#isSet ?{core::int?} #0#3{core::int?} : let final core::bool* #t104 = #0#3#isSet = true in #0#3 = #0#0.{core::Map::[]}(#C1){(core::Object?) → core::int?}) == null) || null is core::int && (#0#2#isSet ?{core::bool} #0#2{core::bool} : let final core::bool* #t105 = #0#2#isSet = true in #0#2 = #0#0.{core::Map::containsKey}(#C1){(core::Object?) → core::bool})) && (let final core::int #t106 = a = let core::int? #t107 = #0#3#isSet ?{core::int?} #0#3{core::int?} : let final core::bool* #t108 = #0#3#isSet = true in #0#3 = #0#0.{core::Map::[]}(#C1){(core::Object?) → core::int?} in #t107 == null ?{core::int} #t107 as{Unchecked} core::int : #t107{core::int} in true) && (!((#0#3#isSet ?{core::int?} #0#3{core::int?} : let final core::bool* #t109 = #0#3#isSet = true in #0#3 = #0#0.{core::Map::[]}(#C1){(core::Object?) → core::int?}) == null) || null is core::int && (#0#2#isSet ?{core::bool} #0#2{core::bool} : let final core::bool* #t110 = #0#2#isSet = true in #0#2 = #0#0.{core::Map::containsKey}(#C1){(core::Object?) → core::bool})) && (let final core::int #t111 = b = let core::int? #t112 = #0#3#isSet ?{core::int?} #0#3{core::int?} : let final core::bool* #t113 = #0#3#isSet = true in #0#3 = #0#0.{core::Map::[]}(#C1){(core::Object?) → core::int?} in #t112 == null ?{core::int} #t112 as{Unchecked} core::int : #t112{core::int} in true)))
-      throw new core::StateError::•("Pattern matching error");
+      throw{for-error-handling} new core::StateError::•("Pattern matching error");
   }
   hoisted has-declared-initializer core::int c;
   hoisted has-declared-initializer core::int d;
@@ -414,7 +414,7 @@ static method test() → dynamic {
     synthesized core::bool #1#2;
     synthesized core::bool #1#2#isSet = false;
     if(!((!((#1#3#isSet ?{core::int?} #1#3{core::int?} : let final core::bool* #t114 = #1#3#isSet = true in #1#3 = #1#0.{core::Map::[]}(#C2){(core::Object?) → core::int?}) == null) || null is core::int && (#1#2#isSet ?{core::bool} #1#2{core::bool} : let final core::bool* #t115 = #1#2#isSet = true in #1#2 = #1#0.{core::Map::containsKey}(#C2){(core::Object?) → core::bool})) && (let final core::int #t116 = c = let core::int? #t117 = #1#3#isSet ?{core::int?} #1#3{core::int?} : let final core::bool* #t118 = #1#3#isSet = true in #1#3 = #1#0.{core::Map::[]}(#C2){(core::Object?) → core::int?} in #t117 == null ?{core::int} #t117 as{Unchecked} core::int : #t117{core::int} in true) && (!((#1#3#isSet ?{core::int?} #1#3{core::int?} : let final core::bool* #t119 = #1#3#isSet = true in #1#3 = #1#0.{core::Map::[]}(#C2){(core::Object?) → core::int?}) == null) || null is core::int && (#1#2#isSet ?{core::bool} #1#2{core::bool} : let final core::bool* #t120 = #1#2#isSet = true in #1#2 = #1#0.{core::Map::containsKey}(#C2){(core::Object?) → core::bool})) && (let final core::int #t121 = d = let core::int? #t122 = #1#3#isSet ?{core::int?} #1#3{core::int?} : let final core::bool* #t123 = #1#3#isSet = true in #1#3 = #1#0.{core::Map::[]}(#C2){(core::Object?) → core::int?} in #t122 == null ?{core::int} #t122 as{Unchecked} core::int : #t122{core::int} in true)))
-      throw new core::StateError::•("Pattern matching error");
+      throw{for-error-handling} new core::StateError::•("Pattern matching error");
   }
   final hoisted has-declared-initializer core::int a1;
   final hoisted has-declared-initializer core::int b1;
@@ -425,7 +425,7 @@ static method test() → dynamic {
     synthesized core::bool #2#2;
     synthesized core::bool #2#2#isSet = false;
     if(!((!((#2#3#isSet ?{core::int?} #2#3{core::int?} : let final core::bool* #t124 = #2#3#isSet = true in #2#3 = #2#0.{core::Map::[]}(#C1){(core::Object?) → core::int?}) == null) || null is core::int && (#2#2#isSet ?{core::bool} #2#2{core::bool} : let final core::bool* #t125 = #2#2#isSet = true in #2#2 = #2#0.{core::Map::containsKey}(#C1){(core::Object?) → core::bool})) && (let final core::int #t126 = a1 = let core::int? #t127 = #2#3#isSet ?{core::int?} #2#3{core::int?} : let final core::bool* #t128 = #2#3#isSet = true in #2#3 = #2#0.{core::Map::[]}(#C1){(core::Object?) → core::int?} in #t127 == null ?{core::int} #t127 as{Unchecked} core::int : #t127{core::int} in true) && (!((#2#3#isSet ?{core::int?} #2#3{core::int?} : let final core::bool* #t129 = #2#3#isSet = true in #2#3 = #2#0.{core::Map::[]}(#C1){(core::Object?) → core::int?}) == null) || null is core::int && (#2#2#isSet ?{core::bool} #2#2{core::bool} : let final core::bool* #t130 = #2#2#isSet = true in #2#2 = #2#0.{core::Map::containsKey}(#C1){(core::Object?) → core::bool})) && (let final core::int #t131 = b1 = let core::int? #t132 = #2#3#isSet ?{core::int?} #2#3{core::int?} : let final core::bool* #t133 = #2#3#isSet = true in #2#3 = #2#0.{core::Map::[]}(#C1){(core::Object?) → core::int?} in #t132 == null ?{core::int} #t132 as{Unchecked} core::int : #t132{core::int} in true)))
-      throw new core::StateError::•("Pattern matching error");
+      throw{for-error-handling} new core::StateError::•("Pattern matching error");
   }
   final hoisted has-declared-initializer core::int a2;
   final hoisted has-declared-initializer core::int b2;
@@ -436,7 +436,7 @@ static method test() → dynamic {
     synthesized core::bool #3#2;
     synthesized core::bool #3#2#isSet = false;
     if(!((!((#3#3#isSet ?{core::int?} #3#3{core::int?} : let final core::bool* #t134 = #3#3#isSet = true in #3#3 = #3#0.{core::Map::[]}(#C4){(core::Object?) → core::int?}) == null) || null is core::int && (#3#2#isSet ?{core::bool} #3#2{core::bool} : let final core::bool* #t135 = #3#2#isSet = true in #3#2 = #3#0.{core::Map::containsKey}(#C4){(core::Object?) → core::bool})) && (let final core::int #t136 = a2 = let core::int? #t137 = #3#3#isSet ?{core::int?} #3#3{core::int?} : let final core::bool* #t138 = #3#3#isSet = true in #3#3 = #3#0.{core::Map::[]}(#C4){(core::Object?) → core::int?} in #t137 == null ?{core::int} #t137 as{Unchecked} core::int : #t137{core::int} in true) && (!((#3#3#isSet ?{core::int?} #3#3{core::int?} : let final core::bool* #t139 = #3#3#isSet = true in #3#3 = #3#0.{core::Map::[]}(#C4){(core::Object?) → core::int?}) == null) || null is core::int && (#3#2#isSet ?{core::bool} #3#2{core::bool} : let final core::bool* #t140 = #3#2#isSet = true in #3#2 = #3#0.{core::Map::containsKey}(#C4){(core::Object?) → core::bool})) && (let final core::int #t141 = b2 = let core::int? #t142 = #3#3#isSet ?{core::int?} #3#3{core::int?} : let final core::bool* #t143 = #3#3#isSet = true in #3#3 = #3#0.{core::Map::[]}(#C4){(core::Object?) → core::int?} in #t142 == null ?{core::int} #t142 as{Unchecked} core::int : #t142{core::int} in true)))
-      throw new core::StateError::•("Pattern matching error");
+      throw{for-error-handling} new core::StateError::•("Pattern matching error");
   }
   final hoisted has-declared-initializer core::int a3;
   final hoisted has-declared-initializer core::int b3;
@@ -447,7 +447,7 @@ static method test() → dynamic {
     synthesized core::bool #4#2;
     synthesized core::bool #4#2#isSet = false;
     if(!((!((#4#3#isSet ?{core::int?} #4#3{core::int?} : let final core::bool* #t144 = #4#3#isSet = true in #4#3 = #4#0.{core::Map::[]}(#C5){(core::Object?) → core::int?}) == null) || null is core::int && (#4#2#isSet ?{core::bool} #4#2{core::bool} : let final core::bool* #t145 = #4#2#isSet = true in #4#2 = #4#0.{core::Map::containsKey}(#C5){(core::Object?) → core::bool})) && (let final core::int #t146 = a3 = let core::int? #t147 = #4#3#isSet ?{core::int?} #4#3{core::int?} : let final core::bool* #t148 = #4#3#isSet = true in #4#3 = #4#0.{core::Map::[]}(#C5){(core::Object?) → core::int?} in #t147 == null ?{core::int} #t147 as{Unchecked} core::int : #t147{core::int} in true) && (!((#4#3#isSet ?{core::int?} #4#3{core::int?} : let final core::bool* #t149 = #4#3#isSet = true in #4#3 = #4#0.{core::Map::[]}(#C5){(core::Object?) → core::int?}) == null) || null is core::int && (#4#2#isSet ?{core::bool} #4#2{core::bool} : let final core::bool* #t150 = #4#2#isSet = true in #4#2 = #4#0.{core::Map::containsKey}(#C5){(core::Object?) → core::bool})) && (let final core::int #t151 = b3 = let core::int? #t152 = #4#3#isSet ?{core::int?} #4#3{core::int?} : let final core::bool* #t153 = #4#3#isSet = true in #4#3 = #4#0.{core::Map::[]}(#C5){(core::Object?) → core::int?} in #t152 == null ?{core::int} #t152 as{Unchecked} core::int : #t152{core::int} in true)))
-      throw new core::StateError::•("Pattern matching error");
+      throw{for-error-handling} new core::StateError::•("Pattern matching error");
   }
 }
 

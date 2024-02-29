@@ -138,7 +138,7 @@ static method ifCase(dynamic o) → core::int {
   }
   {
     final synthesized dynamic #17#0 = o;
-    if(#17#0 is core::Map<core::int, core::int> && #17#0{core::Map<core::int, core::int>}.{core::Map::containsKey}(#C3){(core::Object?) → core::bool} && #17#0{core::Map<core::int, core::int>}.{core::Map::[]}(#C3){(core::Object?) → core::int?}.{core::num::>=}(#C11){(core::num) → core::bool}) {
+    if(#17#0 is core::Map<core::int, core::int> && #17#0{core::Map<core::int, core::int>}.{core::Map::containsKey}(#C3){(core::Object?) → core::bool} && (#17#0{core::Map<core::int, core::int>}.{core::Map::[]}(#C3){(core::Object?) → core::int?} as{Unchecked} core::int).{core::num::>=}(#C11){(core::num) → core::bool}) {
       return 18;
     }
   }
@@ -336,7 +336,7 @@ static method ifCaseElse(dynamic o) → core::int {
                                     }
                                     else {
                                       final synthesized dynamic #17#0 = o;
-                                      if(#17#0 is core::Map<core::int, core::int> && #17#0{core::Map<core::int, core::int>}.{core::Map::containsKey}(#C3){(core::Object?) → core::bool} && #17#0{core::Map<core::int, core::int>}.{core::Map::[]}(#C3){(core::Object?) → core::int?}.{core::num::>=}(#C11){(core::num) → core::bool}) {
+                                      if(#17#0 is core::Map<core::int, core::int> && #17#0{core::Map<core::int, core::int>}.{core::Map::containsKey}(#C3){(core::Object?) → core::bool} && (#17#0{core::Map<core::int, core::int>}.{core::Map::[]}(#C3){(core::Object?) → core::int?} as{Unchecked} core::int).{core::num::>=}(#C11){(core::num) → core::bool}) {
                                         return 18;
                                       }
                                       else {
@@ -605,7 +605,7 @@ static method switchStatement(dynamic o) → core::int {
       }
     }
     {
-      if(#0#0 is core::Map<core::int, core::int> && #0#0{core::Map<core::int, core::int>}.{core::Map::containsKey}(#C3){(core::Object?) → core::bool} && #0#0{core::Map<core::int, core::int>}.{core::Map::[]}(#C3){(core::Object?) → core::int?}.{core::num::>=}(#C11){(core::num) → core::bool}) {
+      if(#0#0 is core::Map<core::int, core::int> && #0#0{core::Map<core::int, core::int>}.{core::Map::containsKey}(#C3){(core::Object?) → core::bool} && (#0#0{core::Map<core::int, core::int>}.{core::Map::[]}(#C3){(core::Object?) → core::int?} as{Unchecked} core::int).{core::num::>=}(#C11){(core::num) → core::bool}) {
         {
           return 18;
         }
@@ -840,7 +840,7 @@ static method switchExpression(dynamic o) → core::int {
         }
       }
       {
-        if(#0#0 is core::Map<core::int, core::int> && #0#0{core::Map<core::int, core::int>}.{core::Map::containsKey}(#C3){(core::Object?) → core::bool} && #0#0{core::Map<core::int, core::int>}.{core::Map::[]}(#C3){(core::Object?) → core::int?}.{core::num::>=}(#C11){(core::num) → core::bool}) {
+        if(#0#0 is core::Map<core::int, core::int> && #0#0{core::Map<core::int, core::int>}.{core::Map::containsKey}(#C3){(core::Object?) → core::bool} && (#0#0{core::Map<core::int, core::int>}.{core::Map::[]}(#C3){(core::Object?) → core::int?} as{Unchecked} core::int).{core::num::>=}(#C11){(core::num) → core::bool}) {
           #t162 = 18;
           break #L2;
         }
@@ -918,7 +918,7 @@ static method switchExpression(dynamic o) → core::int {
           break #L2;
         }
       }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t162;
 }
@@ -1021,4 +1021,4 @@ Evaluated: RecordLiteral @ org-dartlang-testcase:///caching.dart:331:12 -> Recor
 Evaluated: RecordLiteral @ org-dartlang-testcase:///caching.dart:332:12 -> RecordConstant(const ({c: 0, d: 1}))
 Evaluated: RecordLiteral @ org-dartlang-testcase:///caching.dart:333:12 -> RecordConstant(const ({c: 0, d: 2}))
 Evaluated: RecordLiteral @ org-dartlang-testcase:///caching.dart:334:11 -> RecordConstant(const ({c: 0, d: "foo"}))
-Extra constant evaluation: evaluated: 2725, effectively constant: 14
+Extra constant evaluation: evaluated: 2729, effectively constant: 14

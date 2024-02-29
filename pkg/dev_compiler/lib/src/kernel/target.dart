@@ -56,11 +56,11 @@ class DevCompilerTarget extends Target {
 
   @override
   List<String> get extraRequiredLibraries => const [
+        'dart:_ddc_only',
         'dart:_runtime',
         'dart:_js_shared_embedded_names',
         'dart:_recipe_syntax',
         'dart:_rti',
-        'dart:_dart2js_runtime_metrics',
         'dart:_debugger',
         'dart:_foreign_helper',
         'dart:_interceptors',
@@ -71,6 +71,7 @@ class DevCompilerTarget extends Target {
         'dart:_js_names',
         'dart:_js_primitives',
         'dart:_js_types',
+        'dart:_macros',
         'dart:_metadata',
         'dart:_native_typed_data',
         'dart:async',
@@ -157,9 +158,6 @@ class DevCompilerTarget extends Target {
       (importer.isScheme('package') &&
           (importer.path.startsWith('dart2js_runtime_metrics/') ||
               importer.path == 'js/js.dart'));
-
-  @override
-  bool get nativeExtensionExpectsString => false;
 
   @override
   bool get errorOnUnexactWebIntLiterals => true;
@@ -301,6 +299,17 @@ class DevCompilerTarget extends Target {
 
   @override
   ConstantsBackend get constantsBackend => const DevCompilerConstantsBackend();
+
+  @override
+  DartLibrarySupport get dartLibrarySupport =>
+      const DevCompilerDartLibrarySupport();
+}
+
+class DevCompilerDartLibrarySupport extends CustomizedDartLibrarySupport {
+  // This is required so that `dart.library._ddc_only` can be used as an import
+  // condition. Libraries with leading underscores are otherwise considered
+  // unsupported regardless of the library specification.
+  const DevCompilerDartLibrarySupport() : super(supported: const {'_ddc_only'});
 }
 
 /// Analyzes a component to determine if any covariance checks in private

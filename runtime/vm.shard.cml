@@ -29,6 +29,7 @@
     {
       protocol: [
         "fuchsia.deprecatedtimezone.Timezone",
+        "fuchsia.inspect.InspectSink",
         "fuchsia.intl.PropertyProvider",
         "fuchsia.logger.LogSink",
         "fuchsia.net.name.Lookup",

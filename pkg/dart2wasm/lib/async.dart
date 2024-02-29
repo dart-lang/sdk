@@ -1069,8 +1069,8 @@ class AsyncCodeGenerator extends CodeGenerator {
       if (emitGuard) {
         _getCurrentException();
         b.ref_as_non_null();
-        types.emitTypeCheck(this, catch_.guard,
-            translator.coreTypes.objectNonNullableRawType, catch_);
+        types.emitIsTest(this, catch_.guard,
+            translator.coreTypes.objectNonNullableRawType, catch_.location);
         b.i32_eqz();
         // When generating guards we can't generate the catch body inside the
         // `if` block for the guard as the catch body can have suspension
@@ -1307,7 +1307,7 @@ class AsyncCodeGenerator extends CodeGenerator {
     // try-finally. Would that be more efficient?
     b.local_get(exceptionLocal);
     b.local_get(stackTraceLocal);
-    b.throw_(translator.exceptionTag);
+    call(translator.errorThrow.reference);
 
     b.unreachable();
     return expectedType;

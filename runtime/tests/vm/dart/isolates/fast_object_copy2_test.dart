@@ -78,6 +78,7 @@ final sharableObjects = [
   Float32x4(1.0, 2.0, 3.0, 4.0),
   Float64x2(1.0, 2.0),
   StackTrace.current,
+  Pointer<Int8>.fromAddress(0xdeadbeef),
 ];
 
 final copyableClosures = <dynamic>[

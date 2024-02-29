@@ -338,16 +338,16 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
 
     // Do 'statement' simplifications first, as they might reduce the number of
     // phis to one, enabling an 'expression' simplification.
-    HInstruction? phi = block.phis.first;
+    var phi = block.phis.firstPhi;
     while (phi != null) {
-      final next = phi.next;
-      simplifyStatementPhi(block, phi as HPhi);
+      final next = phi.nextPhi;
+      simplifyStatementPhi(block, phi);
       phi = next;
     }
 
-    phi = block.phis.first;
+    phi = block.phis.firstPhi;
     if (phi != null && phi.next == null) {
-      simplifyExpressionPhi(block, phi as HPhi);
+      simplifyExpressionPhi(block, phi);
     }
   }
 
@@ -362,6 +362,11 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
     HInstruction condition = controlFlow.inputs.single;
 
     if (condition.isBoolean(_abstractValueDomain).isPotentiallyFalse) return;
+
+    // For the condition to be 'controlling', there must be no way to reach the
+    // 'else' join from the 'then' branch and vice versa.
+    if (!dominator.successors[0].dominates(block.predecessors[0])) return;
+    if (!dominator.successors[1].dominates(block.predecessors[1])) return;
 
     //  condition ? true : false  -->  condition
     //  condition ? condition : false  -->  condition
@@ -669,11 +674,11 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
       AbstractValue resultType = _abstractValueDomain.positiveIntType;
       // If we already have computed a more specific type, keep that type.
       if (_abstractValueDomain
-          .isInstanceOfOrNull(actualType, commonElements.jsUInt31Class)
+          .isInstanceOf(actualType, commonElements.jsUInt31Class)
           .isDefinitelyTrue) {
         resultType = _abstractValueDomain.uint31Type;
       } else if (_abstractValueDomain
-          .isInstanceOfOrNull(actualType, commonElements.jsUInt32Class)
+          .isInstanceOf(actualType, commonElements.jsUInt32Class)
           .isDefinitelyTrue) {
         resultType = _abstractValueDomain.uint32Type;
       }
@@ -1138,7 +1143,7 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
       assert(index.constant is! IntConstantValue);
       if (!constant_system.isInt(index.constant)) {
         // -0.0 is a double but will pass the runtime integer check.
-        node.staticChecks = HBoundsCheck.ALWAYS_FALSE;
+        node.staticChecks = StaticBoundsChecks.alwaysFalse;
       }
     }
     return node;
@@ -3548,7 +3553,7 @@ class SsaTypeConversionInserter extends HBaseVisitor<void>
     // 'null' and 'undefined'.
   }
 
-  collectTargets(HInstruction instruction, List<HBasicBlock>? trueTargets,
+  void collectTargets(HInstruction instruction, List<HBasicBlock>? trueTargets,
       List<HBasicBlock>? falseTargets) {
     for (HInstruction user in instruction.usedBy) {
       if (user is HIf) {
@@ -3714,7 +3719,7 @@ class SsaLoadElimination extends HBaseVisitor<void>
   }
 
   @override
-  visitTry(HTry instruction) {
+  void visitTry(HTry instruction) {
     final impreciseBlocks = _blocksWithImprecisePredecessors ??= {};
     if (instruction.catchBlock != null) {
       impreciseBlocks[instruction.catchBlock!] = instruction;

@@ -99,6 +99,9 @@ class AnalysisDomainPubTest extends _AnalysisDomainTest {
     // Both a.dart and b.dart are analyzed.
     assertNotificationsText(r'''
 AnalysisErrors
+  file: /home/test/pubspec.yaml
+  errors: empty
+AnalysisErrors
   file: /home/test/lib/a.dart
   errors: notEmpty
 AnalysisErrors
@@ -121,8 +124,12 @@ analyzer:
 AnalysisFlush
   /home/test/lib/a.dart
   /home/test/lib/b.dart
+  /home/test/pubspec.yaml
 AnalysisErrors
   file: /home/test/analysis_options.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/pubspec.yaml
   errors: empty
 AnalysisErrors
   file: /home/test/lib/a.dart
@@ -142,6 +149,9 @@ AnalysisErrors
     // a.dart was analyzed
     assertNotificationsText(r'''
 AnalysisErrors
+  file: /home/test/pubspec.yaml
+  errors: empty
+AnalysisErrors
   file: /home/test/lib/a.dart
   errors: notEmpty
 ''');
@@ -158,9 +168,13 @@ analyzer:
     assertNotificationsText(r'''
 AnalysisFlush
   /home/test/lib/a.dart
+  /home/test/pubspec.yaml
 AnalysisErrors
   file: /home/test/analysis_options.yaml
   errors: notEmpty
+AnalysisErrors
+  file: /home/test/pubspec.yaml
+  errors: empty
 AnalysisErrors
   file: /home/test/lib/a.dart
   errors: notEmpty
@@ -181,6 +195,9 @@ analyzer:
     assertNotificationsText(r'''
 AnalysisErrors
   file: /home/test/analysis_options.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/pubspec.yaml
   errors: empty
 AnalysisErrors
   file: /home/test/lib/a.dart
@@ -215,6 +232,9 @@ AnalysisErrors
 AnalysisErrors
   file: /home/test/analysis_options.yaml
   errors: empty
+AnalysisErrors
+  file: /home/test/pubspec.yaml
+  errors: empty
 ''');
 
     _createFilesWithErrors([
@@ -247,6 +267,9 @@ void f(A a) {}
     assertNotificationsText(r'''
 AnalysisErrors
   file: /home/test/analysis_options.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/pubspec.yaml
   errors: empty
 AnalysisErrors
   file: /home/test/lib/b.dart
@@ -292,6 +315,9 @@ AnalysisErrors
   file: /home/test/analysis_options.yaml
   errors: empty
 AnalysisErrors
+  file: /home/test/pubspec.yaml
+  errors: empty
+AnalysisErrors
   file: /home/test/lib/b.dart
   errors: notEmpty
 ''');
@@ -323,6 +349,9 @@ AnalysisErrors
     assertNotificationsText(r'''
 AnalysisErrors
   file: /home/test/analysis_options.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/pubspec.yaml
   errors: empty
 AnalysisErrors
   file: /home/test/lib/a.dart
@@ -359,6 +388,9 @@ AnalysisErrors
     assertNotificationsText(r'''
 AnalysisErrors
   file: /home/test/analysis_options.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/pubspec.yaml
   errors: empty
 AnalysisErrors
   file: /home/test/lib/a.dart
@@ -405,6 +437,9 @@ AnalysisErrors
   file: /home/test/analysis_options.yaml
   errors: empty
 AnalysisErrors
+  file: /home/test/pubspec.yaml
+  errors: empty
+AnalysisErrors
   file: /home/test/lib/test.dart
   errors: notEmpty
 ''');
@@ -425,8 +460,12 @@ AnalysisErrors
 AnalysisFlush
   /home/test/analysis_options.yaml
   /home/test/lib/test.dart
+  /home/test/pubspec.yaml
 AnalysisErrors
   file: /home/test/analysis_options.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/pubspec.yaml
   errors: empty
 AnalysisErrors
   file: /home/test/lib/test.dart
@@ -453,6 +492,9 @@ AnalysisErrors
   file: /home/test/analysis_options.yaml
   errors: empty
 AnalysisErrors
+  file: /home/test/pubspec.yaml
+  errors: empty
+AnalysisErrors
   file: /home/test/lib/a.dart
   errors: notEmpty
 ''');
@@ -471,6 +513,7 @@ dependencies: true
 AnalysisFlush
   /home/test/analysis_options.yaml
   /home/test/lib/a.dart
+  /home/test/pubspec.yaml
 AnalysisErrors
   file: /home/test/analysis_options.yaml
   errors: empty
@@ -496,6 +539,9 @@ AnalysisErrors
     assertNotificationsText(r'''
 AnalysisErrors
   file: /home/test/analysis_options.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/pubspec.yaml
   errors: empty
 AnalysisErrors
   file: /home/test/lib/a.dart
@@ -536,6 +582,9 @@ AnalysisErrors
   file: /home/test/analysis_options.yaml
   errors: empty
 AnalysisErrors
+  file: /home/test/pubspec.yaml
+  errors: empty
+AnalysisErrors
   file: /home/test/lib/a.dart
   errors: notEmpty
 AnalysisErrors
@@ -560,8 +609,12 @@ AnalysisFlush
   /home/test/analysis_options.yaml
   /home/test/lib/a.dart
   /home/test/lib/c.dart
+  /home/test/pubspec.yaml
 AnalysisErrors
   file: /home/test/analysis_options.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/pubspec.yaml
   errors: empty
 AnalysisErrors
   file: /home/test/lib/a.dart
@@ -596,6 +649,9 @@ AnalysisErrors
 AnalysisErrors
   file: /home/test/AndroidManifest.xml
   errors: notEmpty
+AnalysisErrors
+  file: /home/test/pubspec.yaml
+  errors: empty
 AnalysisErrors
   file: /home/test/lib/a.dart
   errors: empty
@@ -637,6 +693,9 @@ void f(A a) {}
     assertNotificationsText(r'''
 AnalysisErrors
   file: /home/test/analysis_options.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/pubspec.yaml
   errors: empty
 AnalysisErrors
   file: /home/test/lib/a.dart
@@ -684,6 +743,9 @@ void f(A a) {}
     assertNotificationsText(r'''
 AnalysisErrors
   file: /home/test/analysis_options.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/pubspec.yaml
   errors: empty
 AnalysisErrors
   file: /home/test/lib/b.dart
@@ -735,6 +797,9 @@ AnalysisErrors
   file: /home/test/analysis_options.yaml
   errors: empty
 AnalysisErrors
+  file: /home/test/pubspec.yaml
+  errors: empty
+AnalysisErrors
   file: /home/test/lib/b.dart
   errors: notEmpty
 ''');
@@ -772,6 +837,9 @@ AnalysisErrors
 AnalysisErrors
   file: /home/test/lib/fix_data/foo.yaml
   errors: notEmpty
+AnalysisErrors
+  file: /home/test/pubspec.yaml
+  errors: empty
 AnalysisErrors
   file: /home/test/lib/a.dart
   errors: empty
@@ -818,6 +886,9 @@ AnalysisErrors
   file: /home/test/lib/fix_data.yaml
   errors: notEmpty
 AnalysisErrors
+  file: /home/test/pubspec.yaml
+  errors: empty
+AnalysisErrors
   file: /home/test/lib/a.dart
   errors: empty
 ''');
@@ -860,6 +931,9 @@ AnalysisErrors
     assertNotificationsText(r'''
 AnalysisErrors
   file: /home/test/analysis_options.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/pubspec.yaml
   errors: empty
 AnalysisErrors
   file: /home/test/lib/test.dart
@@ -913,6 +987,9 @@ AnalysisErrors
   file: /home/test/analysis_options.yaml
   errors: empty
 AnalysisErrors
+  file: /home/test/pubspec.yaml
+  errors: empty
+AnalysisErrors
   file: /home/test/lib/test.dart
   errors: notEmpty
 ''');
@@ -932,8 +1009,12 @@ AnalysisErrors
 AnalysisFlush
   /home/test/analysis_options.yaml
   /home/test/lib/test.dart
+  /home/test/pubspec.yaml
 AnalysisErrors
   file: /home/test/analysis_options.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/pubspec.yaml
   errors: empty
 AnalysisErrors
   file: /home/test/lib/test.dart
@@ -964,6 +1045,9 @@ AnalysisErrors
   file: /home/test/analysis_options.yaml
   errors: empty
 AnalysisErrors
+  file: /home/test/pubspec.yaml
+  errors: empty
+AnalysisErrors
   file: /home/test/lib/a.dart
   errors: notEmpty
 ''');
@@ -979,6 +1063,10 @@ AnalysisErrors
 AnalysisFlush
   /home/test/analysis_options.yaml
   /home/test/lib/a.dart
+  /home/test/pubspec.yaml
+AnalysisErrors
+  file: /home/test/pubspec.yaml
+  errors: empty
 AnalysisErrors
   file: /home/test/lib/a.dart
   errors: notEmpty
@@ -1014,6 +1102,9 @@ AnalysisErrors
   file: /home/test/AndroidManifest.xml
   errors: notEmpty
 AnalysisErrors
+  file: /home/test/pubspec.yaml
+  errors: empty
+AnalysisErrors
   file: /home/test/lib/a.dart
   errors: empty
 ''');
@@ -1046,6 +1137,9 @@ AnalysisFlush
     assertNotificationsText(r'''
 AnalysisErrors
   file: /home/test/analysis_options.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/pubspec.yaml
   errors: empty
 AnalysisErrors
   file: /home/test/lib/a.dart
@@ -1119,6 +1213,9 @@ AnalysisErrors
   file: /home/test/analysis_options.yaml
   errors: empty
 AnalysisErrors
+  file: /home/test/pubspec.yaml
+  errors: empty
+AnalysisErrors
   file: /home/test/lib/a.dart
   errors: notEmpty
 ''');
@@ -1164,6 +1261,9 @@ AnalysisErrors
   file: /home/test/analysis_options.yaml
   errors: empty
 AnalysisErrors
+  file: /home/test/pubspec.yaml
+  errors: empty
+AnalysisErrors
   file: /home/test/lib/b.dart
   errors: empty
 ''');
@@ -1200,6 +1300,9 @@ AnalysisErrors
 AnalysisErrors
   file: /home/test/lib/fix_data.yaml
   errors: notEmpty
+AnalysisErrors
+  file: /home/test/pubspec.yaml
+  errors: empty
 AnalysisErrors
   file: /home/test/lib/a.dart
   errors: empty
@@ -1244,6 +1347,9 @@ AnalysisErrors
   file: /home/test/analysis_options.yaml
   errors: empty
 AnalysisErrors
+  file: /home/test/pubspec.yaml
+  errors: empty
+AnalysisErrors
   file: /home/test/lib/test.dart
   errors: empty
 ''');
@@ -1262,8 +1368,12 @@ AnalysisErrors
 AnalysisFlush
   /home/test/analysis_options.yaml
   /home/test/lib/test.dart
+  /home/test/pubspec.yaml
 AnalysisErrors
   file: /home/test/analysis_options.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/pubspec.yaml
   errors: empty
 AnalysisErrors
   file: /home/test/lib/test.dart
@@ -1287,6 +1397,9 @@ AnalysisErrors
     assertNotificationsText(r'''
 AnalysisErrors
   file: /home/test/analysis_options.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/pubspec.yaml
   errors: empty
 AnalysisErrors
   file: /home/test/lib/a.dart
@@ -1355,6 +1468,9 @@ AnalysisErrors
     assertNotificationsText(r'''
 AnalysisErrors
   file: /home/test/analysis_options.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/pubspec.yaml
   errors: empty
 AnalysisErrors
   file: /home/foo/lib/a.dart
@@ -1513,6 +1629,9 @@ AnalysisErrors
   file: /home/test/analysis_options.yaml
   errors: empty
 AnalysisErrors
+  file: /home/test/pubspec.yaml
+  errors: empty
+AnalysisErrors
   file: /home/test/lib/a.dart
   errors: notEmpty
 AnalysisErrors
@@ -1574,6 +1693,9 @@ AnalysisErrors
   file: /home/test/analysis_options.yaml
   errors: empty
 AnalysisErrors
+  file: /home/test/pubspec.yaml
+  errors: empty
+AnalysisErrors
   file: /home/test/lib/a.dart
   errors: notEmpty
 ''');
@@ -1611,6 +1733,9 @@ AnalysisErrors
     assertNotificationsText(r'''
 AnalysisErrors
   file: /home/test/analysis_options.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/pubspec.yaml
   errors: empty
 AnalysisErrors
   file: /home/test/lib/a.dart
@@ -1661,6 +1786,9 @@ analyzer:
 
     assertNotificationsText(r'''
 AnalysisErrors
+  file: /home/test/pubspec.yaml
+  errors: empty
+AnalysisErrors
   file: /home/test/lib/a.dart
   errors: notEmpty
 ''');
@@ -1689,6 +1817,9 @@ AnalysisErrors
 AnalysisErrors
   file: /home/test/AndroidManifest.xml
   errors: notEmpty
+AnalysisErrors
+  file: /home/test/pubspec.yaml
+  errors: empty
 ''');
   }
 
@@ -1707,6 +1838,9 @@ AnalysisErrors
 AnalysisErrors
   file: /home/test/lib/fix_data.yaml
   errors: notEmpty
+AnalysisErrors
+  file: /home/test/pubspec.yaml
+  errors: empty
 ''');
   }
 
@@ -1723,6 +1857,9 @@ AnalysisErrors
 AnalysisErrors
   file: /home/test/lib/fix_data.yaml
   errors: empty
+AnalysisErrors
+  file: /home/test/pubspec.yaml
+  errors: empty
 ''');
   }
 
@@ -1738,6 +1875,9 @@ AnalysisErrors
   errors: empty
 AnalysisErrors
   file: /home/test/lib/fix_data.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/pubspec.yaml
   errors: empty
 ''');
   }
@@ -1804,6 +1944,9 @@ AnalysisErrors
   file: /home/test/analysis_options.yaml
   errors: empty
 AnalysisErrors
+  file: /home/test/pubspec.yaml
+  errors: empty
+AnalysisErrors
   file: /home/test/lib/test.dart
   errors: empty
 ''');
@@ -1819,6 +1962,9 @@ AnalysisErrors
     assertNotificationsText(r'''
 AnalysisErrors
   file: /home/test/analysis_options.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/pubspec.yaml
   errors: empty
 AnalysisErrors
   file: /home/test/lib/test.dart
@@ -1858,6 +2004,9 @@ AnalysisErrors
     assertNotificationsText(r'''
 AnalysisErrors
   file: /home/test/analysis_options.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/pubspec.yaml
   errors: empty
 AnalysisErrors
   file: /home/test/lib/test.dart
@@ -1996,11 +2145,10 @@ class SetSubscriptionsTest extends PubPackageAnalysisServerTest {
 library lib_a;
 class A {}
 ''');
-    newPackageConfigJsonFile(
-      '/project',
-      (PackageConfigFileBuilder()
-            ..add(name: 'pkgA', rootPath: '/packages/pkgA'))
-          .toContent(toUriStr: toUriStr),
+    writePackageConfig(
+      convertPath('/project'),
+      config: (PackageConfigFileBuilder()
+        ..add(name: 'pkgA', rootPath: convertPath('/packages/pkgA'))),
     );
     //
     addTestFile('''
@@ -2049,11 +2197,10 @@ void f() {
 library lib_a;
 class A {}
 ''');
-    newPackageConfigJsonFile(
-      '/project',
-      (PackageConfigFileBuilder()
-            ..add(name: 'pkgA', rootPath: '/packages/pkgA'))
-          .toContent(toUriStr: toUriStr),
+    writePackageConfig(
+      convertPath('/project'),
+      config: (PackageConfigFileBuilder()
+        ..add(name: 'pkgA', rootPath: convertPath('/packages/pkgA'))),
     );
     //
     addTestFile('// no "pkgA" reference');

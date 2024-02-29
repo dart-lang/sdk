@@ -237,11 +237,6 @@ class DartTypeUtilities {
   static bool matchesArgumentsWithParameters(NodeList<Expression> arguments,
           NodeList<FormalParameter> parameters) =>
       argumentsMatchParameters(arguments, parameters);
-
-  @Deprecated('Replace with `node.traverseNodesInDFS`')
-  static Iterable<AstNode> traverseNodesInDFS(AstNode node,
-          {AstNodePredicate? excludeCriteria}) =>
-      node.traverseNodesInDFS(excludeCriteria: excludeCriteria);
 }
 
 class InterfaceTypeDefinition {

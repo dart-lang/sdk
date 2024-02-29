@@ -48,7 +48,7 @@ class TypeEnvironment {
         beforeRun: (compiler) {
           compiler.stopAfterGlobalTypeInferenceForTesting = true;
         });
-    Compiler compiler = result.compiler;
+    Compiler compiler = result.compiler!;
     if (expectNoErrors || expectNoWarningsOrErrors) {
       var errors = collector.errors;
       Expect.isTrue(errors.isEmpty, 'Unexpected errors: ${errors}');

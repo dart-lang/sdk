@@ -59,29 +59,39 @@ class _TrustTypes {
 
 const _TrustTypes trustTypes = _TrustTypes();
 
-/// Annotation to mark Dart classes as exportable and allow instance members to
-/// be wrapped with an object literal.
+/// Annotation to allow Dart classes to be wrapped with a JS object using
+/// `dart:js_interop`'s `createJSInteropWrapper`.
 ///
-/// Dart classes with this annotation can be used for exporting in `js_util`'s
-/// `createDartExport`, which returns a JS object that forwards to the Dart
-/// class. You may either annotate specific instance members to only export
-/// those members or you can annotate the entire class (which will export all
-/// instance members) to mark the class as exportable.
+/// When an instance of a class annotated with this annotation is passed to
+/// `createJSInteropWrapper`, the method returns a JS object that contains
+/// a property for each of the class' instance members. When called, these
+/// properties forward to the instance's corresponding members.
 ///
-/// Classes and mixins in the hierarchy are included only if they are annotated
-/// or specific members in them are annotated. If a superclass does not have an
-/// annotation anywhere, its members are not included. Only concrete instance
-/// members can and will be exported, and it's an error to annotate other
-/// members with this annotation. In order to do renaming for members, you can
-/// provide a name for the `@JSExport` on the members e.g.
+/// You can either annotate specific instance members to only wrap those members
+/// or you can annotate the entire class, which will include all of its instance
+/// members.
+///
+/// By default, the property will have the same name as the corresponding
+/// instance member. You can change the property name of a member in the JS
+/// object by providing a [name] in the @[JSExport] annotation on the member,
+/// like so:
 /// ```
 /// class Export {
 ///   @JSExport('printHelloWorld')
 ///   void printMessage() => print('Hello World!');
 /// }
 /// ```
-/// which will then set 'printHelloWorld' to forward to `printMessage` in the
-/// object literal.
+/// which will then set the property 'printHelloWorld' in the JS object to
+/// forward to `printMessage`.
+///
+/// Classes and mixins in the hierarchy of the annotated class are included only
+/// if they are annotated as well or specific members in them are annotated. If
+/// a superclass does not have an annotation anywhere, its members are not
+/// included. If members are overridden, only the overriding member will
+/// be wrapped as long as it or its class has this annotation.
+///
+/// Only concrete instance members can and will be wrapped, and it's an error to
+/// annotate other members with this annotation.
 class JSExport {
   final String name;
   const JSExport([this.name = '']);

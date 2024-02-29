@@ -17,7 +17,6 @@ import 'dart:_foreign_helper'
         JS_GET_FLAG,
         JS_GET_NAME,
         JSExportName,
-        LEGACY_TYPE_REF,
         rest,
         TYPE_REF,
         spread;

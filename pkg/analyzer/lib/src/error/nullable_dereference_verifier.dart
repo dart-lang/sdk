@@ -32,10 +32,6 @@ class NullableDereferenceVerifier {
 
   bool expression(ErrorCode errorCode, Expression expression,
       {DartType? type}) {
-    if (!_typeSystem.isNonNullableByDefault) {
-      return false;
-    }
-
     type ??= expression.typeOrThrow;
     return _check(errorCode, expression, type);
   }
@@ -49,11 +45,19 @@ class NullableDereferenceVerifier {
       arguments = [];
     }
     if (errorEntity is AstNode) {
-      _errorReporter.reportErrorForNode(
-          errorCode, errorEntity, arguments, messages);
+      _errorReporter.atNode(
+        errorEntity,
+        errorCode,
+        arguments: arguments,
+        contextMessages: messages,
+      );
     } else if (errorEntity is Token) {
-      _errorReporter.reportErrorForToken(
-          errorCode, errorEntity, arguments, messages);
+      _errorReporter.atToken(
+        errorEntity,
+        errorCode,
+        arguments: arguments,
+        contextMessages: messages,
+      );
     } else {
       throw StateError('Syntactic entity must be AstNode or Token to report.');
     }

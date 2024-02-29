@@ -43,12 +43,11 @@ import 'package:_js_interop_checks/src/transformations/export_checker.dart';
 import 'package:_js_interop_checks/src/transformations/js_util_optimizer.dart';
 // Used for importing CFE utility functions for constructor tear-offs.
 import 'package:front_end/src/api_prototype/lowering_predicates.dart';
-import 'package:front_end/src/fasta/fasta_codes.dart'
+import 'package:front_end/src/fasta/codes/fasta_codes.dart'
     show
         templateJsInteropExtensionTypeNotInterop,
         templateJsInteropFunctionToJSRequiresStaticType,
         templateJsInteropStaticInteropExternalTypeViolation;
-
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart' hide Pattern;
@@ -114,7 +113,6 @@ class JsInteropChecks extends RecursiveVisitor {
     'js',
     'js_util',
     // Flutter/benchmarks.
-    'flute',
     'flutter',
     'engine',
     'ui',

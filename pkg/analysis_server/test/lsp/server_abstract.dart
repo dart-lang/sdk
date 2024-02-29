@@ -31,7 +31,9 @@ import 'package:unified_analytics/unified_analytics.dart';
 
 import '../mocks.dart';
 import '../mocks_lsp.dart';
+import '../src/utilities/mock_packages.dart';
 import '../support/configuration_files.dart';
+import '../test_macros.dart';
 import 'change_verifier.dart';
 import 'request_helpers_mixin.dart';
 
@@ -49,7 +51,9 @@ abstract class AbstractLspAnalysisServerTest
         LspEditHelpersMixin,
         LspVerifyEditHelpersMixin,
         LspAnalysisServerTestMixin,
-        ConfigurationFilesMixin {
+        MockPackagesMixin,
+        ConfigurationFilesMixin,
+        TestMacros {
   late MockLspServerChannel channel;
   late TestPluginManager pluginManager;
   late LspAnalysisServer server;
@@ -62,8 +66,9 @@ abstract class AbstractLspAnalysisServerTest
 
   DartFixPromptManager? get dartFixPromptManager => null;
 
+  /// The path that is not in [projectFolderPath], contains external packages.
   @override
-  path.Context get pathContext => server.resourceProvider.pathContext;
+  String get packagesRootPath => resourceProvider.convertPath('/packages');
 
   AnalysisServerOptions get serverOptions => AnalysisServerOptions();
 
@@ -298,10 +303,11 @@ abstract class AbstractLspAnalysisServerTest
 analyzer:
   enable-experiment:
     - inline-class
+    - macros
 ''');
 
     analysisOptionsUri = pathContext.toUri(analysisOptionsPath);
-    writePackageConfig(projectFolderPath);
+    writeTestPackageConfig();
   }
 
   Future<void> tearDown() async {
@@ -800,16 +806,6 @@ mixin LspAnalysisServerTestMixin
   /// list.
   final diagnostics = <Uri, List<Diagnostic>>{};
 
-  /// A stream of [OpenUriParams] for any `dart/openUri` notifications.
-  Stream<DartTextDocumentContentDidChangeParams>
-      get dartTextDocumentContentDidChangeNotifications =>
-          notificationsFromServer
-              .where((notification) =>
-                  notification.method ==
-                  CustomMethods.dartTextDocumentContentDidChange)
-              .map((message) => DartTextDocumentContentDidChangeParams.fromJson(
-                  message.params as Map<String, Object?>));
-
   /// A stream of [NotificationMessage]s from the server that may be errors.
   Stream<NotificationMessage> get errorNotificationsFromServer {
     return notificationsFromServer.where(_isErrorNotification);
@@ -829,6 +825,7 @@ mixin LspAnalysisServerTestMixin
   Uri get mainFileMacroUri => mainFileUri.replace(scheme: macroClientUriScheme);
 
   /// A stream of [NotificationMessage]s from the server.
+  @override
   Stream<NotificationMessage> get notificationsFromServer {
     return serverToClient
         .where((m) => m is NotificationMessage)
@@ -863,6 +860,8 @@ mixin LspAnalysisServerTestMixin
   ServerCapabilities get serverCapabilities => _serverCapabilities!;
 
   Stream<Message> get serverToClient;
+
+  String get testPackageRootPath => projectFolderPath;
 
   Future<void> changeFile(
     int newVersion,

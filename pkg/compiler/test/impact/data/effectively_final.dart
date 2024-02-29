@@ -18,10 +18,11 @@ main() {
 
 /*member: effectivelyFinalList:
  dynamic=[
-  List.add(1),
-  List.length,
-  List.length=,
-  int.+],
+  +,
+  add(1),
+  call(1),
+  length,
+  length=],
  type=[
   inst:JSInt,
   inst:JSNull,
@@ -69,8 +70,8 @@ num? _method1() => null;
 
 /*member: effectivelyFinalPromoted:
  dynamic=[
-  int.+,
-  num.+],
+  +,
+  int.+],
  static=[
   Rti._bind(1),
   Rti._eval(1),
@@ -132,7 +133,7 @@ String? _method2() => null;
 
 /*member: effectivelyFinalPromotedInvalid:
  dynamic=[
-  String.+,
+  +,
   int.+],
  static=[
   Rti._bind(1),

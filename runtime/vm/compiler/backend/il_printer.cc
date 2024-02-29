@@ -1321,18 +1321,7 @@ void BitCastInstr::PrintOperandsTo(BaseTextBuffer* f) const {
 }
 
 void ParameterInstr::PrintOperandsTo(BaseTextBuffer* f) const {
-  f->Printf("%" Pd, env_index());
-}
-
-void SpecialParameterInstr::PrintOperandsTo(BaseTextBuffer* f) const {
-  f->Printf("%s", KindToCString(kind()));
-}
-
-const char* SpecialParameterInstr::ToCString() const {
-  char buffer[1024];
-  BufferFormatter bf(buffer, 1024);
-  PrintTo(&bf);
-  return Thread::Current()->zone()->MakeCopyOfString(buffer);
+  f->Printf("%" Pd " @%s", env_index(), location().ToCString());
 }
 
 void CheckStackOverflowInstr::PrintOperandsTo(BaseTextBuffer* f) const {

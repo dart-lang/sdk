@@ -72,6 +72,46 @@ void FlowGraph::EnsureSSATempIndex(Definition* defn, Definition* replacement) {
   }
 }
 
+// When updating this check also [ParameterOffsetAt] and
+// [PopulateEnvironmentFromFunctionEntry]
+Location FlowGraph::ParameterLocationAt(const Function& function,
+                                        intptr_t index) {
+  ASSERT(index <= function.NumParameters());
+  intptr_t offset_in_words_from_caller_sp = 0;
+  for (intptr_t i = function.NumParameters() - 1; i > index; i--) {
+    if (function.is_unboxed_integer_parameter_at(i)) {
+      offset_in_words_from_caller_sp += compiler::target::kIntSpillFactor;
+    } else if (function.is_unboxed_double_parameter_at(i)) {
+      offset_in_words_from_caller_sp += compiler::target::kDoubleSpillFactor;
+    } else {
+      ASSERT(!function.is_unboxed_parameter_at(i));
+      // Boxed parameters occupy one word.
+      offset_in_words_from_caller_sp++;
+    }
+  }
+
+  const auto offset_in_words_from_fp =
+      offset_in_words_from_caller_sp +
+      compiler::target::frame_layout.param_end_from_fp + 1;
+
+  if (function.is_unboxed_double_parameter_at(index)) {
+    return Location::DoubleStackSlot(offset_in_words_from_fp, FPREG);
+  } else if (function.is_unboxed_integer_parameter_at(index)) {
+    if (compiler::target::kIntSpillFactor == 1) {
+      return Location::StackSlot(offset_in_words_from_fp, FPREG);
+    } else {
+      ASSERT(compiler::target::kIntSpillFactor == 2);
+      return Location::Pair(
+          Location::StackSlot(offset_in_words_from_fp, FPREG),
+          Location::StackSlot(offset_in_words_from_fp + 1, FPREG));
+    }
+  } else {
+    return Location::StackSlot(offset_in_words_from_fp, FPREG);
+  }
+}
+
+// When updating this check also [ParameterLocationAt] and
+// [PopulateEnvironmentFromFunctionEntry]
 intptr_t FlowGraph::ParameterOffsetAt(const Function& function,
                                       intptr_t index,
                                       bool last_slot /*=true*/) {
@@ -84,7 +124,7 @@ intptr_t FlowGraph::ParameterOffsetAt(const Function& function,
       param_offset += compiler::target::kDoubleSpillFactor;
     } else {
       ASSERT(!function.is_unboxed_parameter_at(i));
-      // Unboxed parameters always occupy one word
+      // Boxed parameters occupy one word.
       param_offset++;
     }
   }
@@ -1203,6 +1243,8 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
 #endif  // defined(DEBUG)
 }
 
+// When updating this check also [ParameterLocationAt] and
+// [ParameterOffsetAt].
 void FlowGraph::PopulateEnvironmentFromFunctionEntry(
     FunctionEntryInstr* function_entry,
     GrowableArray<Definition*>* env,
@@ -1218,32 +1260,44 @@ void FlowGraph::PopulateEnvironmentFromFunctionEntry(
 
   ASSERT(variable_count() == env->length());
   ASSERT(direct_parameter_count <= env->length());
-  intptr_t param_offset = 0;
+
+  intptr_t offset_in_words_from_fp =
+      (compiler::target::frame_layout.param_end_from_fp + 1) +
+      direct_parameters_size_;
   for (intptr_t i = 0; i < direct_parameter_count; i++) {
     ASSERT(FLAG_precompiled_mode || !function().is_unboxed_parameter_at(i));
-    ParameterInstr* param;
 
     const intptr_t index = (function().IsFactory() ? (i - 1) : i);
 
+    Representation rep;
+    Location location;
+
     if (index >= 0 && function().is_unboxed_integer_parameter_at(index)) {
-      constexpr intptr_t kCorrection = compiler::target::kIntSpillFactor - 1;
-      param = new (zone()) ParameterInstr(/*env_index=*/i, /*param_index=*/i,
-                                          param_offset + kCorrection,
-                                          function_entry, kUnboxedInt64);
-      param_offset += compiler::target::kIntSpillFactor;
+      rep = kUnboxedInt64;
+      offset_in_words_from_fp -= compiler::target::kIntSpillFactor;
+      if (compiler::target::kIntSpillFactor == 1) {
+        location = Location::StackSlot(offset_in_words_from_fp, FPREG);
+      } else {
+        ASSERT(compiler::target::kIntSpillFactor == 2);
+        location = Location::Pair(
+            Location::StackSlot(offset_in_words_from_fp, FPREG),
+            Location::StackSlot(offset_in_words_from_fp + 1, FPREG));
+      }
     } else if (index >= 0 && function().is_unboxed_double_parameter_at(index)) {
-      constexpr intptr_t kCorrection = compiler::target::kDoubleSpillFactor - 1;
-      param = new (zone()) ParameterInstr(/*env_index=*/i, /*param_index=*/i,
-                                          param_offset + kCorrection,
-                                          function_entry, kUnboxedDouble);
-      param_offset += compiler::target::kDoubleSpillFactor;
+      rep = kUnboxedDouble;
+      offset_in_words_from_fp -= compiler::target::kDoubleSpillFactor;
+      location = Location::DoubleStackSlot(offset_in_words_from_fp, FPREG);
     } else {
       ASSERT(index < 0 || !function().is_unboxed_parameter_at(index));
-      param =
-          new (zone()) ParameterInstr(/*env_index=*/i, /*param_index=*/i,
-                                      param_offset, function_entry, kTagged);
-      param_offset++;
+      rep = kTagged;
+      offset_in_words_from_fp -= 1;
+      location = Location::StackSlot(offset_in_words_from_fp, FPREG);
     }
+
+    auto param = new (zone()) ParameterInstr(function_entry,
+                                             /*env_index=*/i,
+                                             /*param_index=*/i, location, rep);
+
     AllocateSSAIndex(param);
     AddToInitialDefinitions(function_entry, param);
     (*env)[i] = param;
@@ -1296,14 +1350,23 @@ void FlowGraph::PopulateEnvironmentFromFunctionEntry(
 
     // Replace the argument descriptor slot with a special parameter.
     if (parsed_function().has_arg_desc_var()) {
-      Definition* defn =
-          new (Z) SpecialParameterInstr(SpecialParameterInstr::kArgDescriptor,
-                                        DeoptId::kNone, function_entry);
+      auto defn = new (Z)
+          ParameterInstr(function_entry, ArgumentDescriptorEnvIndex(),
+                         ParameterInstr::kNotFunctionParameter,
+                         Location::RegisterLocation(ARGS_DESC_REG), kTagged);
       AllocateSSAIndex(defn);
       AddToInitialDefinitions(function_entry, defn);
       (*env)[ArgumentDescriptorEnvIndex()] = defn;
     }
   }
+}
+
+static Location EnvIndexToStackLocation(intptr_t num_direct_parameters,
+                                        intptr_t env_index) {
+  return Location::StackSlot(
+      compiler::target::frame_layout.FrameSlotForVariableIndex(
+          num_direct_parameters - env_index),
+      FPREG);
 }
 
 void FlowGraph::PopulateEnvironmentFromOsrEntry(
@@ -1319,8 +1382,9 @@ void FlowGraph::PopulateEnvironmentFromOsrEntry(
     const intptr_t param_index = (i < num_direct_parameters())
                                      ? i
                                      : ParameterInstr::kNotFunctionParameter;
-    ParameterInstr* param = new (zone())
-        ParameterInstr(/*env_index=*/i, param_index, i, osr_entry, kTagged);
+    ParameterInstr* param = new (zone()) ParameterInstr(
+        osr_entry, /*env_index=*/i, param_index,
+        EnvIndexToStackLocation(num_direct_parameters(), i), kTagged);
     AllocateSSAIndex(param);
     AddToInitialDefinitions(osr_entry, param);
     (*env)[i] = param;
@@ -1342,21 +1406,19 @@ void FlowGraph::PopulateEnvironmentFromCatchEntry(
   // Add real definitions for all locals and parameters.
   ASSERT(variable_count() == env->length());
   for (intptr_t i = 0, n = variable_count(); i < n; ++i) {
-    // Replace usages of the raw exception/stacktrace variables with
-    // [SpecialParameterInstr]s.
-    Definition* param = nullptr;
+    // Local variables will arive on the stack while exception and
+    // stack trace will be passed in fixed registers.
+    Location loc;
     if (raw_exception_var_envindex == i) {
-      param = new (Z) SpecialParameterInstr(SpecialParameterInstr::kException,
-                                            DeoptId::kNone, catch_entry);
+      loc = LocationExceptionLocation();
     } else if (raw_stacktrace_var_envindex == i) {
-      param = new (Z) SpecialParameterInstr(SpecialParameterInstr::kStackTrace,
-                                            DeoptId::kNone, catch_entry);
+      loc = LocationStackTraceLocation();
     } else {
-      param = new (Z)
-          ParameterInstr(/*env_index=*/i,
-                         /*param_index=*/ParameterInstr::kNotFunctionParameter,
-                         i, catch_entry, kTagged);
+      loc = EnvIndexToStackLocation(num_direct_parameters(), i);
     }
+    auto param = new (Z) ParameterInstr(
+        catch_entry, /*env_index=*/i,
+        /*param_index=*/ParameterInstr::kNotFunctionParameter, loc, kTagged);
 
     AllocateSSAIndex(param);  // New SSA temp.
     (*env)[i] = param;

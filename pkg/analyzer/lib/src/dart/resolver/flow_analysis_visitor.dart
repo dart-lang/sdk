@@ -416,9 +416,8 @@ class TypeSystemOperations
     if (type is RecordType) {
       return shared.RecordType(
         positional: type.positionalFields.map((e) => e.type).toList(),
-        named: type.namedFields
-            .map((e) => shared.NamedType(e.name, e.type))
-            .toList(),
+        named:
+            type.namedFields.map((e) => (name: e.name, type: e.type)).toList(),
       );
     }
     return null;
@@ -444,6 +443,9 @@ class TypeSystemOperations
   DartType factor(DartType from, DartType what) {
     return typeSystem.factor(from, what);
   }
+
+  @override
+  String getDisplayString(DartType type) => type.getDisplayString();
 
   @override
   DartType glb(DartType type1, DartType type2) {
@@ -576,11 +578,11 @@ class TypeSystemOperations
   }
 
   @override
-  MapPatternTypeArguments<DartType>? matchMapType(DartType type) {
+  ({DartType keyType, DartType valueType})? matchMapType(DartType type) {
     var mapElement = typeSystem.typeProvider.mapElement;
     var mapType = type.asInstanceOf(mapElement);
     if (mapType != null) {
-      return MapPatternTypeArguments<DartType>(
+      return (
         keyType: mapType.typeArguments[0],
         valueType: mapType.typeArguments[1],
       );
@@ -608,16 +610,14 @@ class TypeSystemOperations
   @override
   DartType recordType(
       {required List<DartType> positional,
-      required List<shared.NamedType<DartType>> named}) {
+      required List<(String, DartType)> named}) {
     return RecordTypeImpl(
       positionalFields: positional.map((type) {
         return RecordTypePositionalFieldImpl(type: type);
       }).toList(),
       namedFields: named.map((namedType) {
-        return RecordTypeNamedFieldImpl(
-          name: namedType.name,
-          type: namedType.type,
-        );
+        var (name, type) = namedType;
+        return RecordTypeNamedFieldImpl(name: name, type: type);
       }).toList(),
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -626,7 +626,7 @@ class TypeSystemOperations
   @override
   DartType recordTypeSchema(
           {required List<DartType> positional,
-          required List<shared.NamedType<DartType>> named}) =>
+          required List<(String, DartType)> named}) =>
       recordType(positional: positional, named: named);
 
   @override
@@ -640,12 +640,33 @@ class TypeSystemOperations
   }
 
   @override
+  bool typeIsSubtypeOfTypeSchema(DartType leftType, DartType rightSchema) {
+    return isSubtypeOf(leftType, rightSchema);
+  }
+
+  @override
   DartType typeSchemaGlb(DartType typeSchema1, DartType typeSchema2) {
     return typeSystem.greatestLowerBound(typeSchema1, typeSchema2);
   }
 
   @override
   bool typeSchemaIsDynamic(DartType typeSchema) => typeSchema is DynamicType;
+
+  @override
+  bool typeSchemaIsSubtypeOfType(DartType leftSchema, DartType rightType) {
+    return isSubtypeOf(leftSchema, rightType);
+  }
+
+  @override
+  bool typeSchemaIsSubtypeOfTypeSchema(
+      DartType leftSchema, DartType rightSchema) {
+    return isSubtypeOf(leftSchema, rightSchema);
+  }
+
+  @override
+  DartType typeSchemaLub(DartType typeSchema1, DartType typeSchema2) {
+    return typeSystem.leastUpperBound(typeSchema1, typeSchema2);
+  }
 
   @override
   DartType typeToSchema(DartType type) => type;

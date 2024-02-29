@@ -252,7 +252,9 @@ class LeakFinder extends vmService.LaunchingVMServiceHelper {
 
   bool strictClass(vmService.Class classDetails) {
     if (!kernelAstStrictClasses.contains(classDetails.name) &&
-        !frontEndStrictClasses.containsKey(classDetails.name)) return false;
+        !frontEndStrictClasses.containsKey(classDetails.name)) {
+      return false;
+    }
 
     if (kernelAstStrictClasses.contains(classDetails.name) &&
         classDetails.location?.script?.uri == "package:kernel/ast.dart") {

@@ -553,15 +553,6 @@ class FileResolver {
     });
   }
 
-  // TODO(pq): remove after cider extensions are updated.
-  @Deprecated("Use 'resolve' instead.")
-  Future<ResolvedUnitResult> resolve2({
-    required String path,
-    OperationPerformanceImpl? performance,
-  }) async {
-    return resolve(path: path, performance: performance);
-  }
-
   /// The [completionLine] and [completionColumn] are zero based.
   Future<ResolvedForCompletionResultImpl> resolveForCompletion({
     required int completionLine,

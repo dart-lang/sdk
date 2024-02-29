@@ -111,14 +111,7 @@ class InterfaceLeastUpperBoundHelper {
   Set<InterfaceTypeImpl> computeSuperinterfaceSet(InterfaceType type) {
     var result = <InterfaceTypeImpl>{};
     _addSuperinterfaces(result, type);
-    if (typeSystem.isNonNullableByDefault) {
-      return result;
-    } else {
-      return result
-          .map(typeSystem.toLegacyTypeIfOptOut)
-          .cast<InterfaceTypeImpl>()
-          .toSet();
-    }
+    return result;
   }
 
   /// Add all of the superinterfaces of the given [type] to the given [set].
@@ -875,8 +868,6 @@ class LeastUpperBoundHelper {
     if (bound != null) {
       return bound;
     }
-    return _typeSystem.isNonNullableByDefault
-        ? _typeSystem.objectQuestion
-        : _typeSystem.objectStar;
+    return _typeSystem.objectQuestion;
   }
 }

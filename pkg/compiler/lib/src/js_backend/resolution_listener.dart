@@ -15,7 +15,7 @@ import '../js_model/elements.dart' show JClass;
 import '../native/enqueue.dart';
 import '../options.dart' show CompilerOptions;
 import '../universe/call_structure.dart' show CallStructure;
-import '../universe/use.dart' show StaticUse, TypeUse;
+import '../universe/use.dart' show ConditionalUse, StaticUse, TypeUse;
 import '../universe/world_impact.dart'
     show WorldImpact, WorldImpactBuilder, WorldImpactBuilderImpl;
 import 'field_analysis.dart';
@@ -45,6 +45,11 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
 
   final NativeResolutionEnqueuer _nativeEnqueuer;
   final KFieldAnalysis _fieldAnalysis;
+
+  /// Contains conditional uses for members that have not been marked as live
+  /// yet. Any entries remaining in here after the queue is finished are
+  /// considered unreachable.
+  final Map<MemberEntity, Set<ConditionalUse>> _pendingConditionalUses = {};
 
   ResolutionEnqueuerListener(
       this._options,
@@ -178,6 +183,19 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
       _backendUsage.isNoSuchMethodUsed = true;
     }
 
+    // Update the Kernel for any unused conditional impacts.
+    _pendingConditionalUses.forEach((_, uses) {
+      for (final use in uses) {
+        final source = use.original;
+        if (source?.parent != null) {
+          // Make sure the source node is still in the AST.
+          source?.replaceWith(use.replacement!);
+          enqueuer.applyImpact(use.replacementImpact!);
+        }
+      }
+    });
+    _pendingConditionalUses.clear();
+
     if (!enqueuer.queueIsEmpty) return false;
 
     return true;
@@ -244,6 +262,17 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
   WorldImpact registerUsedElement(MemberEntity member) {
     WorldImpactBuilderImpl worldImpact = WorldImpactBuilderImpl();
     _customElementsAnalysis.registerStaticUse(member);
+    final conditionalUses = _pendingConditionalUses.remove(member);
+    if (conditionalUses != null) {
+      // Apply any newly satisfied conditional impacts and remove the condition
+      // from the pending list of other members.
+      for (final conditionalUse in conditionalUses) {
+        worldImpact.addImpact(conditionalUse.impact);
+        for (final condition in conditionalUse.originalConditions) {
+          _pendingConditionalUses[condition]?.remove(conditionalUse);
+        }
+      }
+    }
 
     if (member.isFunction) {
       FunctionEntity function = member as FunctionEntity;
@@ -469,5 +498,12 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
   @override
   void logSummary(void log(String message)) {
     _nativeEnqueuer.logSummary(log);
+  }
+
+  @override
+  void registerPendingConditionalUse(ConditionalUse use) {
+    for (final condition in use.originalConditions) {
+      (_pendingConditionalUses[condition] ??= {}).add(use);
+    }
   }
 }

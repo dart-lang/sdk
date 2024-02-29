@@ -84,7 +84,19 @@ class KernelAnnotationProcessor {
         }
       } else {
         FunctionEntity function = member as FunctionEntity;
-        if (function.isExternal && isExplicitlyJsLibrary) {
+        // We need this explicit check as object literal constructors in
+        // extension types do not need an `@JS()` annotation on them, their
+        // extension type, or their library. JS interop checks assert that the
+        // only extension type interop member that has named parameters is an
+        // object literal constructor.
+        // TODO(54968): We should handle the lowering for object literal
+        // constructors in the interop transformer somehow instead and avoid
+        // assuming all such members are object literal constructors or
+        // otherwise paying the cost to verify by indexing extension types.
+        bool isObjectLiteralConstructor = (memberNode.isExtensionTypeMember &&
+            memberNode.function?.namedParameters.isNotEmpty == true);
+        if (function.isExternal &&
+            (isExplicitlyJsLibrary || isObjectLiteralConstructor)) {
           // External members of explicit js-interop library are implicitly
           // js-interop members.
           memberName ??= function.name;

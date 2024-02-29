@@ -23,9 +23,6 @@ class RemoveQuestionMarkBulkTest extends BulkFixProcessorTest {
   String get lintCode =>
       LintNames.unnecessary_nullable_for_final_variable_declarations;
 
-  @override
-  String get testPackageLanguageVersion => latestLanguageVersion;
-
   Future<void> test_singleFile() async {
     await resolveTestCode('''
 class C {

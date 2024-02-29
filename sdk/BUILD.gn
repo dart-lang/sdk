@@ -161,6 +161,7 @@ _full_sdk_snapshots = _platform_sdk_snapshots + [
 # Libraries that go under lib/
 _full_sdk_libraries = [
   "_internal",
+  "_macros",
   "async",
   "cli",
   "collection",
@@ -193,6 +194,7 @@ _full_sdk_libraries = [
 #
 # _platform_sdk_libraries = [
 #   "_internal",
+#   "_macros",
 #   "async",
 #   "cli",
 #   "collection",

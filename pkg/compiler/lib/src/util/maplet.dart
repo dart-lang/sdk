@@ -25,8 +25,8 @@ class Maplet<K, V> extends MapBase<K, V> {
   // the keys there are [CAPACITY] entries for the values.
 
   dynamic _key = _MARKER;
-  var _value;
-  var _extra;
+  V? _value;
+  dynamic _extra;
 
   Maplet();
 
@@ -54,7 +54,7 @@ class Maplet<K, V> extends MapBase<K, V> {
     } else if (_MARKER == _extra) {
       return _key.length;
     } else {
-      return _extra;
+      return _extra as int;
     }
   }
 
@@ -101,7 +101,7 @@ class Maplet<K, V> extends MapBase<K, V> {
       } else if (_key == key) {
         _value = value;
       } else {
-        List list = List.filled(CAPACITY * 2, null);
+        List<Object?> list = List.filled(CAPACITY * 2, null);
         list[0] = _key;
         list[1] = key;
         list[CAPACITY] = _value;
@@ -179,7 +179,7 @@ class Maplet<K, V> extends MapBase<K, V> {
     if (_extra == null) {
       if (_key != key) return null;
       _key = _MARKER;
-      V result = _value;
+      V? result = _value;
       _value = null;
       return result;
     } else if (_MARKER == _extra) {
@@ -205,7 +205,7 @@ class Maplet<K, V> extends MapBase<K, V> {
   @override
   void forEach(void action(K key, V value)) {
     if (_extra == null) {
-      if (_MARKER != _key) action(_key, _value);
+      if (_MARKER != _key) action(_key, _value as V);
     } else if (_MARKER == _extra) {
       _key.forEach(action);
     } else {
@@ -250,7 +250,7 @@ class _MapletKeyIterable<K> extends IterableBase<K> {
 }
 
 class _MapletSingleIterator<K> implements Iterator<K> {
-  var _element;
+  dynamic _element;
   K? _current;
 
   _MapletSingleIterator(this._element);
@@ -271,7 +271,7 @@ class _MapletSingleIterator<K> implements Iterator<K> {
 }
 
 class _MapletListIterator<K> implements Iterator<K> {
-  final List _list;
+  final List<Object?> _list;
   int _remaining;
   int _index = 0;
   K? _current;
@@ -286,7 +286,7 @@ class _MapletListIterator<K> implements Iterator<K> {
     while (_remaining > 0) {
       var candidate = _list[_index++];
       if (Maplet._MARKER != candidate) {
-        _current = candidate;
+        _current = candidate as K;
         _remaining--;
         return true;
       }

@@ -111,7 +111,7 @@ class X extends A with M {}
     // Subscribe to STATUS so we'll know when analysis is done.
     server.serverServices = {ServerService.STATUS};
     final projectRoot = convertPath('/foo');
-    final projectTestFile = convertPath('/foo/test.dart');
+    final projectTestFile = convertPath('/foo/lib/test.dart');
     final projectPackageConfigFile =
         convertPath('/foo/.dart_tool/package_config.json');
 

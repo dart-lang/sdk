@@ -15,66 +15,6 @@ main() {
 
 @reflectiveTest
 class FunctionExpressionTest extends PubPackageResolutionTest {
-  test_contextFunctionType_nonNullify() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-// @dart = 2.7
-
-int Function(int a) v;
-''');
-
-    await assertErrorsInCode('''
-import 'a.dart';
-
-T foo<T>() => throw 0;
-
-void f() {
-  v = (a) {
-    return foo();
-  };
-}
-''', [
-      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
-    ]);
-    assertType(findElement.parameter('a').type, 'int');
-    _assertReturnType('(a) {', 'int');
-  }
-
-  test_contextFunctionType_nonNullify_returnType_takeActual() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-// @dart = 2.7
-
-void foo(int Function() x) {}
-''');
-    await assertErrorsInCode('''
-import 'a.dart';
-
-void test(int? a) {
-  foo(() => a);
-}
-''', [
-      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
-    ]);
-    _assertReturnType('() => a', 'int?');
-  }
-
-  test_contextFunctionType_nonNullify_returnType_takeContext() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-// @dart = 2.7
-
-void foo(int Function() x) {}
-''');
-    await assertErrorsInCode('''
-import 'a.dart';
-
-void test(dynamic a) {
-  foo(() => a);
-}
-''', [
-      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
-    ]);
-    _assertReturnType('() => a', 'int');
-  }
-
   test_contextFunctionType_returnType_async_blockBody_futureOrVoid() async {
     await assertErrorsInCode('''
 import 'dart:async';
@@ -908,21 +848,6 @@ var v = () sync* {
 };
 ''');
     _assertReturnType('() sync* {', 'Iterable<int>');
-  }
-
-  test_optOut_downward_returnType_expressionBody_Null() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-void foo(Map<String, String> Function() f) {}
-''');
-    await resolveTestCode('''
-// @dart = 2.5
-import 'a.dart';
-
-void main() {
-  foo(() => null);
-}
-''');
-    _assertReturnType('() =>', 'Null*');
   }
 
   void _assertReturnType(String search, String expected) {

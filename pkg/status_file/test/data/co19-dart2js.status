@@ -6194,5 +6194,5 @@ LayoutTests/fast/dom/serialize-attribute_t01: RuntimeError # Please triage this 
 [ $compiler == dart2js && $runtime == ie11 && $builder_tag == win7]
 LayoutTests/fast/files/file-reader-result-twice_t01: Pass, RuntimeError # Issue 31430
 
-[ $compiler == dart2js && $host_checked ]
+[ $compiler == dart2js && $host_asserts ]
 Language/Types/Function_Types/call_t01: Crash # Issue 28894

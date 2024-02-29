@@ -108,7 +108,7 @@ extension type E5(self::E2 /* = core::Object? */ foo) {
 }
 static extension-type-member method E1|constructor#<T extends core::Object? = dynamic>(self::E1|constructor#::T% foo) → self::E1<self::E1|constructor#::T%> /* = self::E1|constructor#::T% */
   ;
-static extension-type-member method E1|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::E1|constructor#_#new#tearOff::T% foo) → self::E1<self::E1|constructor#_#new#tearOff::T%>% /* = self::E1|constructor#_#new#tearOff::T% */
+static extension-type-member method E1|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::E1|constructor#_#new#tearOff::T% foo) → self::E1<self::E1|constructor#_#new#tearOff::T%> /* = self::E1|constructor#_#new#tearOff::T% */
   return self::E1|constructor#<self::E1|constructor#_#new#tearOff::T%>(foo);
 static extension-type-member method E2|constructor#(core::Object? foo) → self::E2 /* = core::Object? */
   ;

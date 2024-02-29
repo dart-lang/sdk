@@ -42,10 +42,17 @@ function_callbacks_structs_by_value_generated_test: Pass, Slow
 [ $mode == product ]
 regress_47594_test: Skip # Profiler is not available in Product.
 
+[ $nnbd == weak ]
+vmspecific_pointer_load_il_test: SkipByDesign # Unsound NNBD boxes things because of nulls.
+
 [ $system == android ]
 *: Pass, Slow # https://github.com/dart-lang/sdk/issues/38489
 regress_47594_test: Skip # DartDev is not available on Android.
 vmspecific_native_finalizer_isolate_groups_test: Skip # SpawnUri not available on Android tester.
+
+[ $system == fuchsia ]
+static_checks/*: SkipByDesign # Expecting compile time failures in multi tests doesn't work on the Fuchsia test runner.
+vmspecific_pointer_load_il_test: SkipByDesign # Not bloating the Fuchsia test package with package:vm/testing/il_matchers.dart
 
 [ $system == windows ]
 regress_47594_test: Skip # DynamicLibrary.process() is not available on Windows.
@@ -70,6 +77,9 @@ vmspecific_regress_37511_callbacks_test: SkipByDesign # Symbols are not exposed 
 vmspecific_regress_37511_test: SkipByDesign # Symbols are not exposed on purpose and are not linked in Windows Precompiled. dartbug.com/40579
 vmspecific_regress_37780_test: SkipByDesign # Symbols are not exposed on purpose and are not linked in Windows Precompiled. dartbug.com/40579
 vmspecific_regress_51794_test: SkipByDesign # Symbols are not exposed on purpose and are not linked in Windows Precompiled. dartbug.com/40579
+
+[ $arch == arm || $arch == arm_x64 || $arch == ia32 || $arch == riscv32 || $arch == simarm || $arch == simriscv32 ]
+vmspecific_pointer_load_il_test: SkipByDesign # 32 bit archs use uint32 for pointers and have more int conversions.
 
 # These tests trigger and catch an abort (intentionally) and terminate the VM.
 # They're incompatible with ASAN because not all memory is freed when aborting and

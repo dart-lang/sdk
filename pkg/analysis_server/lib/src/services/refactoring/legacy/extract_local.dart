@@ -11,7 +11,6 @@ import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/naming_conventions.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring_internal.dart';
-import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server/src/utilities/strings.dart';
 import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
@@ -85,8 +84,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     String? typeString;
     if (codeStyleOptions.specifyTypes) {
       typeString = singleExpression != null
-          ? singleExpression?.staticType
-              ?.getDisplayString(withNullability: unit.isNonNullableByDefault)
+          ? singleExpression?.staticType?.getDisplayString()
           : stringLiteralPart != null
               ? 'String'
               : null;

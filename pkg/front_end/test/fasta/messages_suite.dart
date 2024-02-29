@@ -31,7 +31,7 @@ import 'package:kernel/ast.dart' show Location, Source;
 import "package:kernel/target/targets.dart" show TargetFlags;
 import "package:testing/testing.dart"
     show Chain, ChainContext, Expectation, Result, Step, TestDescription;
-import "package:vm/target/vm.dart" show VmTarget;
+import "package:vm/modular/target/vm.dart" show VmTarget;
 import "package:yaml/yaml.dart" show YamlList, YamlMap, YamlNode, loadYamlNode;
 
 import "../../tool/_fasta/entry_points.dart" show BatchCompiler;
@@ -795,7 +795,8 @@ class Compile extends Step<Example?, Null, MessageTestSuite> {
           ..fileSystem = new HybridFileSystem(suite.fileSystem)
           ..packagesFileUri = packageConfigUri
           ..onDiagnostic = messages.add
-          ..environmentDefines = const {}),
+          ..environmentDefines = const {}
+          ..omitPlatform = true),
         main,
         output);
 
@@ -883,5 +884,9 @@ class Script {
 }
 
 Future<void> main([List<String> arguments = const []]) async {
-  await internalMain(createContext, arguments: arguments);
+  await internalMain(
+    createContext,
+    arguments: arguments,
+    displayName: "messages suite",
+  );
 }

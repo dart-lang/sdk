@@ -744,6 +744,22 @@ class A {
     );
   }
 
+  Future<void> test_macroGenerated() async {
+    setDartTextDocumentContentProviderSupport();
+    var macroFilePath = join(projectFolderPath, 'lib', 'test.macro.dart');
+    final content = '''
+int f(int a, int b) {
+  return [!a + b!];
+}
+''';
+    await expectNoAction(
+      content,
+      command: Commands.performRefactor,
+      filePath: macroFilePath,
+      title: extractVariableTitle,
+    );
+  }
+
   Future<void> test_methodToGetter_function_startOfParameterList() async {
     const content = '''
 int test^() => 42;
@@ -830,8 +846,7 @@ const NewWidget({
   @override
   void setUp() {
     super.setUp();
-    writePackageConfig(
-      projectFolderPath,
+    writeTestPackageConfig(
       flutter: true,
     );
 

@@ -4,6 +4,7 @@
 
 import '../api.dart';
 import '../executor.dart';
+import 'exception_impls.dart';
 import 'introspection_impls.dart';
 import 'serialization.dart';
 import 'serialization_extensions.dart';
@@ -192,6 +193,20 @@ class MacroInstanceIdentifierImpl implements MacroInstanceIdentifier {
                   interfaces |= interfaceMask;
                 }
             }
+          case DeclarationKind.typeAlias:
+            switch (phase) {
+              case Phase.types:
+                if (macro is TypeAliasTypesMacro) {
+                  interfaces |= interfaceMask;
+                }
+              case Phase.declarations:
+                if (macro is TypeAliasDeclarationsMacro) {
+                  interfaces |= interfaceMask;
+                }
+              case Phase.definitions:
+                // Does not have definitions.
+                break;
+            }
           case DeclarationKind.variable:
             switch (phase) {
               case Phase.types:
@@ -264,6 +279,9 @@ class MacroExecutionResultImpl implements MacroExecutionResult {
   final List<Diagnostic> diagnostics;
 
   @override
+  final MacroExceptionImpl? exception;
+
+  @override
   final Map<IdentifierImpl, List<DeclarationCode>> enumValueAugmentations;
 
   @override
@@ -283,6 +301,7 @@ class MacroExecutionResultImpl implements MacroExecutionResult {
 
   MacroExecutionResultImpl({
     required this.diagnostics,
+    this.exception,
     required this.enumValueAugmentations,
     required this.interfaceAugmentations,
     required this.libraryAugmentations,
@@ -298,6 +317,10 @@ class MacroExecutionResultImpl implements MacroExecutionResult {
     List<Diagnostic> diagnostics = [
       for (; deserializer.moveNext();) deserializer.expectDiagnostic(),
     ];
+
+    MacroExceptionImpl? exception = (deserializer..moveNext()).checkNull()
+        ? null
+        : deserializer.expectRemoteInstance();
 
     deserializer
       ..moveNext()
@@ -379,6 +402,7 @@ class MacroExecutionResultImpl implements MacroExecutionResult {
 
     return new MacroExecutionResultImpl(
       diagnostics: diagnostics,
+      exception: exception,
       enumValueAugmentations: enumValueAugmentations,
       interfaceAugmentations: interfaceAugmentations,
       libraryAugmentations: libraryAugmentations,
@@ -395,6 +419,12 @@ class MacroExecutionResultImpl implements MacroExecutionResult {
       diagnostic.serialize(serializer);
     }
     serializer.endList();
+
+    if (exception == null) {
+      serializer.addNull();
+    } else {
+      exception!.serialize(serializer);
+    }
 
     serializer.startList();
     for (IdentifierImpl enuum in enumValueAugmentations.keys) {

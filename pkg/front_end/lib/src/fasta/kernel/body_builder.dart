@@ -39,6 +39,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/clone.dart';
 import 'package:kernel/core_types.dart';
+import 'package:kernel/names.dart' show emptyName, minusName, plusName;
 import 'package:kernel/src/bounds_checks.dart' hide calculateBounds;
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
@@ -58,10 +59,7 @@ import '../builder/record_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/variable_builder.dart';
 import '../builder/void_type_declaration_builder.dart';
-import '../constant_context.dart' show ConstantContext;
-import '../dill/dill_library_builder.dart' show DillLibraryBuilder;
-import '../fasta_codes.dart' as fasta;
-import '../fasta_codes.dart'
+import '../codes/fasta_codes.dart'
     show
         LocatedMessage,
         Message,
@@ -73,6 +71,9 @@ import '../fasta_codes.dart'
         templateExperimentNotEnabledOffByDefault,
         templateLocalVariableUsedBeforeDeclared,
         templateLocalVariableUsedBeforeDeclaredContext;
+import '../codes/fasta_codes.dart' as fasta;
+import '../constant_context.dart' show ConstantContext;
+import '../dill/dill_library_builder.dart' show DillLibraryBuilder;
 import '../identifiers.dart'
     show
         Identifier,
@@ -82,7 +83,6 @@ import '../identifiers.dart'
         flattenName;
 import '../modifier.dart'
     show Modifier, constMask, covariantMask, finalMask, lateMask, requiredMask;
-import '../names.dart' show emptyName, minusName, plusName;
 import '../problems.dart' show internalProblem, unhandled, unsupported;
 import '../scope.dart';
 import '../source/diet_parser.dart';
@@ -138,8 +138,6 @@ class BodyBuilder extends StackListenerImpl
   final Scope enclosingScope;
 
   final bool enableNative;
-
-  final bool stringExpectedAfterNative;
 
   // TODO(ahe): Consider renaming [uri] to 'partUri'.
   @override
@@ -347,8 +345,6 @@ class BodyBuilder extends StackListenerImpl
         forest = const Forest(),
         enableNative = libraryBuilder.loader.target.backendTarget
             .enableNative(libraryBuilder.importUri),
-        stringExpectedAfterNative = libraryBuilder
-            .loader.target.backendTarget.nativeExtensionExpectsString,
         needsImplicitSuperInitializer =
             context.needsImplicitSuperInitializer(coreTypes),
         benchmarker = libraryBuilder.loader.target.benchmarker,
@@ -902,6 +898,7 @@ class BodyBuilder extends StackListenerImpl
 
   @override
   void endTopLevelFields(
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,

@@ -1338,6 +1338,14 @@ void StreamingFlowGraphBuilder::block_expression_depth_dec() {
   --flow_graph_builder_->block_expression_depth_;
 }
 
+void StreamingFlowGraphBuilder::synthetic_error_handler_depth_inc() {
+  ++synthetic_error_handler_depth_;
+}
+
+void StreamingFlowGraphBuilder::synthetic_error_handler_depth_dec() {
+  --synthetic_error_handler_depth_;
+}
+
 intptr_t StreamingFlowGraphBuilder::CurrentTryIndex() {
   return flow_graph_builder_->CurrentTryIndex();
 }
@@ -1430,6 +1438,14 @@ const TypeArguments& StreamingFlowGraphBuilder::PeekArgumentsInstantiatedType(
 
 intptr_t StreamingFlowGraphBuilder::PeekArgumentsCount() {
   return PeekUInt();
+}
+
+TokenPosition StreamingFlowGraphBuilder::ReadPosition() {
+  TokenPosition position = KernelReaderHelper::ReadPosition();
+  if (synthetic_error_handler_depth_ > 0 && position.IsReal()) {
+    position = TokenPosition::Synthetic(position.Pos());
+  }
+  return position;
 }
 
 LocalVariable* StreamingFlowGraphBuilder::LookupVariable(
@@ -1648,8 +1664,10 @@ Fragment StreamingFlowGraphBuilder::AllocateContext(
   return flow_graph_builder_->AllocateContext(context_slots);
 }
 
-Fragment StreamingFlowGraphBuilder::LoadNativeField(const Slot& field) {
-  return flow_graph_builder_->LoadNativeField(field);
+Fragment StreamingFlowGraphBuilder::LoadNativeField(
+    const Slot& field,
+    InnerPointerAccess loads_inner_pointer) {
+  return flow_graph_builder_->LoadNativeField(field, loads_inner_pointer);
 }
 
 Fragment StreamingFlowGraphBuilder::StoreLocal(TokenPosition position,
@@ -2562,7 +2580,7 @@ Fragment StreamingFlowGraphBuilder::BuildSuperPropertyGet(TokenPosition* p) {
         Function& target =
             Function::ZoneHandle(Z, function.ImplicitClosureFunction());
         ASSERT(!target.IsNull());
-        // Generate inline code for allocation closure object with context
+        // Generate inline code for allocation closure object
         // which captures `this`.
         return BuildImplicitClosureCreation(target);
       }
@@ -4024,6 +4042,12 @@ Fragment StreamingFlowGraphBuilder::BuildThrow(TokenPosition* p) {
 
   Fragment instructions;
 
+  const uint8_t flags = ReadByte();
+  const bool is_synthetic_error_handler = (flags & kThrowForErrorHandling) != 0;
+  if (is_synthetic_error_handler) {
+    synthetic_error_handler_depth_inc();
+  }
+
   instructions += BuildExpression();  // read expression.
 
   if (NeedsDebugStepCheck(stack(), position)) {
@@ -4031,6 +4055,10 @@ Fragment StreamingFlowGraphBuilder::BuildThrow(TokenPosition* p) {
   }
   instructions += ThrowException(position);
   ASSERT(instructions.is_closed());
+
+  if (is_synthetic_error_handler) {
+    synthetic_error_handler_depth_dec();
+  }
 
   return instructions;
 }
@@ -6241,8 +6269,9 @@ Fragment StreamingFlowGraphBuilder::BuildFfiCall() {
   Fragment code;
   // Push the target function pointer passed as Pointer object.
   code += BuildExpression();
-  // This can only be Pointer, so it is always safe to LoadUntagged.
-  code += B->LoadUntagged(compiler::target::PointerBase::data_offset());
+  // This can only be Pointer, so the data field points to unmanaged memory.
+  code += LoadNativeField(Slot::PointerBase_data(),
+                          InnerPointerAccess::kCannotBeInnerPointer);
   code += B->ConvertUntaggedToUnboxed(kUnboxedFfiIntPtr);
 
   // Skip (empty) named arguments list.

@@ -7,7 +7,6 @@ import 'dart:math';
 import 'package:dart2wasm/translator.dart';
 
 import 'package:kernel/ast.dart';
-import 'package:kernel/library_index.dart';
 
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
@@ -40,7 +39,8 @@ class FieldIndex {
   static const closureRuntimeType = 4;
   static const vtableDynamicCallEntry = 0;
   static const vtableInstantiationTypeComparisonFunction = 1;
-  static const vtableInstantiationFunction = 2;
+  static const vtableInstantiationTypeHashFunction = 2;
+  static const vtableInstantiationFunction = 3;
   static const instantiationContextInner = 0;
   static const instantiationContextTypeArgumentsBase = 1;
   static const typeIsDeclaredNullable = 2;
@@ -217,25 +217,25 @@ class ClassInfoCollector {
   /// shape class with that many fields.
   final Map<int, w.StructType> _recordStructs = {};
 
-  /// Masquerades for implementation classes. For each entry of the map, all
-  /// subtypes of the key masquerade as the value.
-  late final Map<Class, Class> _masquerades = _computeMasquerades();
+  /// Any subtype of these needs to masqueraded (modulo special js-compatibility
+  /// mode semantics) or specially treated due to being from a different type
+  /// (e.g. record, closure)
+  late final Set<Class> masqueraded = _computeMasquerades();
 
-  /// Masqueraded types are mapped to these classes.
-  late final Set<Class> masqueradeValues = _masquerades.values.toSet();
-
-  Map<Class, Class> _computeMasquerades() {
-    final map = {
-      translator.coreTypes.boolClass: translator.coreTypes.boolClass,
-      translator.coreTypes.intClass: translator.coreTypes.intClass,
-      translator.coreTypes.doubleClass: translator.coreTypes.doubleClass,
-      translator.coreTypes.stringClass: translator.coreTypes.stringClass,
-      translator.index.getClass("dart:core", "_Type"):
-          translator.coreTypes.typeClass,
-      translator.index.getClass("dart:core", "_ListBase"):
-          translator.coreTypes.listClass
+  Set<Class> _computeMasquerades() {
+    final values = {
+      translator.coreTypes.boolClass,
+      translator.coreTypes.intClass,
+      translator.coreTypes.doubleClass,
+      translator.coreTypes.stringClass,
+      translator.coreTypes.functionClass,
+      translator.coreTypes.recordClass,
+      translator.index.getClass("dart:core", "_Type"),
+      translator.index.getClass("dart:core", "_ListBase"),
     };
     for (final name in const <String>[
+      "ByteBuffer",
+      "ByteData",
       "Int8List",
       "Uint8List",
       "Uint8ClampedList",
@@ -252,49 +252,9 @@ class ClassInfoCollector {
       "Float64x2List",
     ]) {
       final Class? cls = translator.index.tryGetClass("dart:typed_data", name);
-      if (cls != null) {
-        map[cls] = cls;
-      }
+      if (cls != null) values.add(cls);
     }
-    return map;
-  }
-
-  late final Set<Class> _neverMasquerades = _computeNeverMasquerades();
-
-  /// These types switch from properly reified non-masquerading types in regular
-  /// Dart2Wasm mode to masquerading types in js compatibility mode.
-  final Set<String> jsCompatibilityTypes = {
-    "JSStringImpl",
-    "JSArrayBufferImpl",
-    "JSDataViewImpl",
-    "JSInt8ArrayImpl",
-    "JSUint8ArrayImpl",
-    "JSUint8ClampedArrayImpl",
-    "JSInt16ArrayImpl",
-    "JSUint16ArrayImpl",
-    "JSInt32ArrayImpl",
-    "JSInt32x4ArrayImpl",
-    "JSUint32ArrayImpl",
-    "JSBigUint64ArrayImpl",
-    "JSBigInt64ArrayImpl",
-    "JSFloat32ArrayImpl",
-    "JSFloat32x4ArrayImpl",
-    "JSFloat64ArrayImpl",
-    "JSFloat64x2ArrayImpl",
-  };
-
-  Set<Class> _computeNeverMasquerades() {
-    // The JS types do not masquerade in regular Dart2Wasm, but they aren't
-    // always used so we have to construct this set programmatically.
-    final jsTypesLibraryIndex =
-        LibraryIndex(translator.component, ["dart:_js_types"]);
-    final neverMasquerades = [
-      if (!translator.options.jsCompatibility) ...jsCompatibilityTypes,
-    ]
-        .map((name) => jsTypesLibraryIndex.tryGetClass("dart:_js_types", name))
-        .toSet();
-    neverMasquerades.removeWhere((c) => c == null);
-    return neverMasquerades.cast<Class>();
+    return values;
   }
 
   /// Wasm field type for fields with type [_Type]. Fields of this type are
@@ -341,14 +301,14 @@ class ClassInfoCollector {
       }
 
       // In the Wasm type hierarchy, Object, bool and num sit directly below
-      // the Top type. The implementation classes _StringBase and _Type sit
+      // the Top type. The implementation classes WasmStringBase and _Type sit
       // directly below the public classes they implement.
       // All other classes sit below their superclass.
       ClassInfo superInfo = cls == translator.coreTypes.boolClass ||
               cls == translator.coreTypes.numClass
           ? topInfo
           : (!translator.options.jsCompatibility &&
-                      cls == translator.stringBaseClass) ||
+                      cls == translator.wasmStringBaseClass) ||
                   cls == translator.typeClass
               ? translator.classInfo[cls.implementedTypes.single.classNode]!
               : translator.classInfo[superclass]!;
@@ -390,29 +350,6 @@ class ClassInfoCollector {
     translator.classes[classId] = info;
     translator.classInfo[cls] = info;
     translator.classForHeapType.putIfAbsent(info.struct, () => info!);
-
-    ClassInfo? computeMasquerade() {
-      if (_neverMasquerades.contains(cls)) {
-        return null;
-      }
-      if (info!.superInfo?.masquerade != null) {
-        return info.superInfo!.masquerade;
-      }
-      for (Supertype implemented in cls.implementedTypes) {
-        ClassInfo? implementedMasquerade =
-            translator.classInfo[implemented.classNode]!.masquerade;
-        if (implementedMasquerade != null) {
-          return implementedMasquerade;
-        }
-      }
-      Class? selfMasquerade = _masquerades[cls];
-      if (selfMasquerade != null) {
-        return translator.classInfo[selfMasquerade]!;
-      }
-      return null;
-    }
-
-    info.masquerade = computeMasquerade();
   }
 
   void _createStructForRecordClass(Map<Class, int> classIds, Class cls) {
@@ -505,7 +442,7 @@ class ClassInfoCollector {
     const int firstClassId = 1;
 
     translator.classIdNumbering =
-        ClassIdNumbering._number(translator, masqueradeValues, firstClassId);
+        ClassIdNumbering._number(translator, masqueraded, firstClassId);
     final classIds = translator.classIdNumbering.classIds;
     final dfsOrder = translator.classIdNumbering.dfsOrder;
 
@@ -560,12 +497,18 @@ class ClassIdNumbering {
   final Map<Class, List<Class>> _subclasses;
   final Map<Class, List<Class>> _implementors;
   final List<Range> _concreteSubclassIdRanges;
+  final Set<Class> _masqueraded;
 
   final List<Class> dfsOrder;
   final Map<Class, int> classIds;
 
-  ClassIdNumbering._(this._subclasses, this._implementors,
-      this._concreteSubclassIdRanges, this.dfsOrder, this.classIds);
+  ClassIdNumbering._(
+      this._subclasses,
+      this._implementors,
+      this._concreteSubclassIdRanges,
+      this._masqueraded,
+      this.dfsOrder,
+      this.classIds);
 
   final Map<Class, Set<Class>> _transitiveImplementors = {};
   Set<Class> _getTransitiveImplementors(Class klass) {
@@ -611,8 +554,19 @@ class ClassIdNumbering {
     return _concreteClassIdRanges[klass] = ranges;
   }
 
+  late final int firstNonMasqueradedInterfaceClassCid = (() {
+    int lastMasqueradedClassId = 0;
+    for (final cls in _masqueraded) {
+      final ranges = getConcreteClassIdRanges(cls);
+      if (ranges.isNotEmpty) {
+        lastMasqueradedClassId = max(lastMasqueradedClassId, ranges.last.end);
+      }
+    }
+    return lastMasqueradedClassId + 1;
+  })();
+
   static ClassIdNumbering _number(
-      Translator translator, Set<Class> masqueradeValues, int firstClassId) {
+      Translator translator, Set<Class> masqueraded, int firstClassId) {
     // Make graph from class to its subclasses.
     late final Class root;
     final subclasses = <Class, List<Class>>{};
@@ -645,7 +599,8 @@ class ClassIdNumbering {
     final fixedOrder = <Class, int>{
       translator.coreTypes.boolClass: -10,
       translator.coreTypes.numClass: -9,
-      if (!translator.options.jsCompatibility) translator.stringBaseClass: -8,
+      if (!translator.options.jsCompatibility)
+        translator.wasmStringBaseClass: -8,
       translator.jsStringClass: -7,
       translator.typeClass: -6,
       translator.listBaseClass: -5,
@@ -657,7 +612,7 @@ class ClassIdNumbering {
 
       final importUri = klass.enclosingLibrary.importUri.toString();
       if (importUri.startsWith('dart:')) {
-        if (masqueradeValues.contains(klass)) return -1;
+        if (masqueraded.contains(klass)) return -1;
         // Bundle the typed data and collection together, they may not have
         // common base class except for `Object` but most of them have similar
         // selectors.
@@ -700,26 +655,8 @@ class ClassIdNumbering {
         firstClassId + classCount, Range.empty(),
         growable: false);
 
-    // TODO: We may consider removing the type category table. But until we do
-    // we have to make sure that all masqueraded types that concrete classes may
-    // be mapped to have class ids that are <=255.
-    //
-    // We still want to maintain that all classes's concrete subclasses form a
-    // single continious class-id range.
-    //
-    // => So we move the abstract masqeraded classes before all the concrete
-    // ones.
-    int nextAbstractClassId = firstClassId;
-    for (Class cls in masqueradeValues) {
-      if (cls.isAbstract) {
-        assert(classIds[cls] == null);
-        classIds[cls] = nextAbstractClassId++;
-      }
-    }
-    int nextConcreteClassId = nextAbstractClassId;
-    nextAbstractClassId = firstClassId +
-        (nextAbstractClassId - firstClassId) +
-        concreteClassCount;
+    int nextConcreteClassId = firstClassId;
+    int nextAbstractClassId = firstClassId + concreteClassCount;
     dfs(root, (Class cls) {
       dfsOrder.add(cls);
       if (cls.isAbstract) {
@@ -740,11 +677,9 @@ class ClassIdNumbering {
         concreteSubclassRanges[classIds[cls]!] = range;
       }
     });
-    for (Class cls in masqueradeValues) {
-      assert(classIds[cls]! <= 255);
-    }
-    return ClassIdNumbering._(
-        subclasses, implementors, concreteSubclassRanges, dfsOrder, classIds);
+
+    return ClassIdNumbering._(subclasses, implementors, concreteSubclassRanges,
+        masqueraded, dfsOrder, classIds);
   }
 }
 

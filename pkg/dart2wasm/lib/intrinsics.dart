@@ -404,24 +404,35 @@ class Intrinsifier {
   /// Generate inline code for a [StaticGet] if the member is an inlined
   /// intrinsic.
   w.ValueType? generateStaticGetterIntrinsic(StaticGet node) {
-    Member target = node.target;
+    final Member target = node.target;
+    final Class? cls = target.enclosingClass;
 
     // ClassID getters
-    String? libAndClassName = translator.getPragma(target, "wasm:class-id");
-    if (libAndClassName != null) {
-      List<String> libAndClassNameParts = libAndClassName.split("#");
-      final String lib = libAndClassNameParts[0];
-      final String className = libAndClassNameParts[1];
-      Class cls = translator.libraries
-          .firstWhere((l) => l.name == lib && l.importUri.scheme == 'dart',
-              orElse: () => throw 'Library $lib not found (${target.location})')
-          .classes
-          .firstWhere((c) => c.name == className,
-              orElse: () => throw 'Class $className not found in library $lib '
-                  '(${target.location})');
-      int classId = translator.classInfo[cls]!.classId;
-      b.i64_const(classId);
-      return w.NumType.i64;
+    if (cls?.name == 'ClassID') {
+      final libAndClassName = translator.getPragma(target, "wasm:class-id");
+      if (libAndClassName != null) {
+        List<String> libAndClassNameParts = libAndClassName.split("#");
+        final String lib = libAndClassNameParts[0];
+        final String className = libAndClassNameParts[1];
+        Class cls = translator.libraries
+            .firstWhere((l) => l.name == lib && l.importUri.scheme == 'dart',
+                orElse: () =>
+                    throw 'Library $lib not found (${target.location})')
+            .classes
+            .firstWhere((c) => c.name == className,
+                orElse: () =>
+                    throw 'Class $className not found in library $lib '
+                        '(${target.location})');
+        int classId = translator.classInfo[cls]!.classId;
+        b.i64_const(classId);
+        return w.NumType.i64;
+      }
+
+      if (target.name.text == 'firstNonMasqueradedInterfaceClassCid') {
+        b.i64_const(
+            translator.classIdNumbering.firstNonMasqueradedInterfaceClassCid);
+        return w.NumType.i64;
+      }
     }
 
     // nullptr
@@ -439,35 +450,6 @@ class Intrinsifier {
         // without hardcoding this case?
         b.i32_const(0);
         return w.NumType.i32;
-      }
-      if (node.target.enclosingLibrary == translator.coreTypes.coreLibrary) {
-        switch (node.target.name.text) {
-          case "_typeCategoryAbstractClass":
-            translator.types.typeCategoryTable;
-            b.i32_const(translator.types.typeCategoryAbstractClass);
-            return w.NumType.i32;
-          case "_typeCategoryObject":
-            translator.types.typeCategoryTable;
-            b.i32_const(translator.types.typeCategoryObject);
-            return w.NumType.i32;
-          case "_typeCategoryFunction":
-            translator.types.typeCategoryTable;
-            b.i32_const(translator.types.typeCategoryFunction);
-            return w.NumType.i32;
-          case "_typeCategoryRecord":
-            translator.types.typeCategoryTable;
-            b.i32_const(translator.types.typeCategoryRecord);
-            return w.NumType.i32;
-          case "_typeCategoryNotMasqueraded":
-            translator.types.typeCategoryTable;
-            b.i32_const(translator.types.typeCategoryNotMasqueraded);
-            return w.NumType.i32;
-
-          case "_typeCategoryTable":
-            translator.types.typeCategoryTable;
-            b.global_get(translator.types.typeCategoryTable);
-            return translator.types.typeCategoryTable.type.type;
-        }
       }
     }
 
@@ -659,16 +641,37 @@ class Intrinsifier {
           return translator.types.makeTypeRulesSubstitutions(b);
         case "_getTypeNames":
           return translator.types.makeTypeNames(b);
-        case "_isRecordInstance":
-          Expression o = node.arguments.positional.single;
-          b.global_get(translator.types.typeCategoryTable);
-          codeGen.wrap(o, translator.topInfo.nonNullableType);
-          b.struct_get(translator.topInfo.struct, FieldIndex.classId);
-          b.array_get_u(
-              (translator.types.typeCategoryTable.type.type as w.RefType)
-                  .heapType as w.ArrayType);
-          b.i32_const(translator.types.typeCategoryRecord);
-          b.i32_eq();
+        case "_isObjectClassId":
+          final classId = node.arguments.positional.single;
+
+          final objectClassId = translator
+              .classIdNumbering.classIds[translator.coreTypes.objectClass]!;
+
+          codeGen.wrap(classId, w.NumType.i64);
+          b.i32_wrap_i64();
+          b.emitClassIdRangeCheck([Range(objectClassId, objectClassId)]);
+          return w.NumType.i32;
+        case "_isClosureClassId":
+          final classId = node.arguments.positional.single;
+
+          final ranges = translator.classIdNumbering
+              .getConcreteClassIdRanges(translator.coreTypes.functionClass);
+          assert(ranges.length <= 1);
+
+          codeGen.wrap(classId, w.NumType.i64);
+          b.i32_wrap_i64();
+          b.emitClassIdRangeCheck(ranges);
+          return w.NumType.i32;
+        case "_isRecordClassId":
+          final classId = node.arguments.positional.single;
+
+          final ranges = translator.classIdNumbering
+              .getConcreteClassIdRanges(translator.coreTypes.recordClass);
+          assert(ranges.length <= 1);
+
+          codeGen.wrap(classId, w.NumType.i64);
+          b.i32_wrap_i64();
+          b.emitClassIdRangeCheck(ranges);
           return w.NumType.i32;
       }
     }
@@ -1420,231 +1423,107 @@ class Intrinsifier {
       }
     }
 
-    if (member.enclosingClass == translator.closureClass && name == "_equals") {
-      // Function equality works like this:
-      //
-      // - Function literals and local functions are only equal if they're the
-      //   same reference.
-      //
-      // - Instance tear-offs are equal if they are tear-offs of the same
-      //   method on the same object.
-      //
-      // - Tear-offs of static methods and top-level functions are identical
-      //   (and thus equal) when they are tear-offs of the same function. Generic
-      //   instantiations of these are identical when the tear-offs are identical
-      //   and they are instantiated with identical types.
-      //
-      // To distinguish a function literal or local function from an instance
-      // tear-off we check type of the context:
-      //
-      // - If context's type is a subtype of the top type for Dart objects then
-      //   the function is a tear-off and we compare the context using the
-      //   `identical` function.
-      //
-      //   The reason why we use `identical` (instead of `ref.eq`) is to handle
-      //   bool, double, and int receivers in code like `1.toString ==
-      //   1.toString`, which should evaluate to `true` even if the receivers
-      //   do not point to the same Wasm object.
-      //
-      // - Otherwise the function is a function literal or local function.
-      //
-      // In pseudo code:
-      //
-      //   bool _equals(f1, f2) {
-      //     if (identical(f1, f2) return true;
-      //
-      //     if (<f1 and f2 are instantiations>
-      //           ? f1.context.inner.vtable != f2.context.inner.vtable
-      //           : f1.vtable != f2.vtable) {
-      //       return false;
-      //     }
-      //
-      //     if (<f1 and f2 are instantiations>) {
-      //       if (typesEqual(f1.context, f2.context)) {
-      //         f1 = f1.context.inner;
-      //         f2 = f2.context.inner;
-      //         if (identical(f1, f2)) return true;
-      //         goto outerClosureContext;
-      //       }
-      //       return false;
-      //     }
-      //
-      //     outerClosureContext:
-      //     if (f1.context is #Top && f2.context is #Top) {
-      //       return identical(f1.context, f2.context);
-      //     }
-      //
-      //     return false;
-      //   }
+    if (member.enclosingClass == translator.closureClass &&
+        name == "_isInstantiationClosure") {
+      assert(function.locals.length == 1);
+      b.local_get(function.locals[0]); // ref _Closure
+      b.emitInstantiationClosureCheck(translator);
+      return true;
+    }
 
-      // Check if the arguments are the same
-      b.local_get(function.locals[0]);
-      b.local_get(function.locals[1]);
-      b.ref_eq();
-      b.if_();
-      b.i32_const(1); // true
-      b.return_();
-      b.end();
+    if (member.enclosingClass == translator.closureClass &&
+        name == "_instantiatedClosure") {
+      assert(function.locals.length == 1);
+      b.local_get(function.locals[0]); // ref _Closure
+      b.emitGetInstantiatedClosure(translator);
+      return true;
+    }
 
-      // Arguments are different, compare context and vtable references
+    if (member.enclosingClass == translator.closureClass &&
+        name == "_instantiationClosureTypeHash") {
+      assert(function.locals.length == 1);
+
+      // Instantiation context, to be passed to the hash function.
+      b.local_get(function.locals[0]); // ref _Closure
+      b.ref_cast(w.RefType(translator.closureLayouter.closureBaseStruct,
+          nullable: false));
+      b.struct_get(translator.closureLayouter.closureBaseStruct,
+          FieldIndex.closureContext);
+      b.ref_cast(w.RefType(
+          translator.closureLayouter.instantiationContextBaseStruct,
+          nullable: false));
+
+      // Hash function.
+      b.local_get(function.locals[0]); // ref _Closure
+      b.emitGetInstantiatedClosure(translator);
+      b.emitGetClosureVtable(translator);
+      b.ref_cast(w.RefType.def(
+          translator.closureLayouter.genericVtableBaseStruct,
+          nullable: false));
+      b.struct_get(translator.closureLayouter.genericVtableBaseStruct,
+          FieldIndex.vtableInstantiationTypeHashFunction);
+      b.call_ref(
+          translator.closureLayouter.instantiationClosureTypeHashFunctionType);
+
+      return true;
+    }
+
+    if (member.enclosingClass == translator.closureClass &&
+        name == "_instantiationClosureTypeEquals") {
+      assert(function.locals.length == 2);
+
       final w.StructType closureBaseStruct =
           translator.closureLayouter.closureBaseStruct;
-      final w.RefType closureBaseStructRef =
-          w.RefType.def(closureBaseStruct, nullable: false);
 
-      final w.Local fun1 = codeGen.function.addLocal(closureBaseStructRef);
-      b.local_get(function.locals[0]);
-      translator.convertType(
-          function, function.locals[0].type, closureBaseStructRef);
-      b.local_set(fun1);
-
-      final w.Local fun2 = codeGen.function.addLocal(closureBaseStructRef);
-      b.local_get(function.locals[1]);
-      translator.convertType(
-          function, function.locals[1].type, closureBaseStructRef);
-      b.local_set(fun2);
-
-      // Compare vtable references. For instantiation closures compare the
-      // inner vtables
-      final instantiationContextBase = w.RefType(
+      final w.RefType instantiationContextBase = w.RefType(
           translator.closureLayouter.instantiationContextBaseStruct,
           nullable: false);
-      final vtableRefType = w.RefType.def(
-          translator.closureLayouter.vtableBaseStruct,
-          nullable: false);
-      // Returns vtables of closures that we compare for equality.
-      final vtablesBlock = b.block([], [vtableRefType, vtableRefType]);
-      // `br` target when fun1 is not an instantiation
-      final fun1NotInstantiationBlock =
-          b.block([], [w.RefType.struct(nullable: false)]);
-      // `br` target when fun1 is an instantiation, but fun2 is not
-      final fun1InstantiationFun2NotInstantiationBlock =
-          b.block([], [w.RefType.struct(nullable: false)]);
-      b.local_get(fun1);
-      b.struct_get(closureBaseStruct, FieldIndex.closureContext);
-      b.br_on_cast_fail(fun1NotInstantiationBlock,
-          const w.RefType.struct(nullable: false), instantiationContextBase);
-      b.struct_get(translator.closureLayouter.instantiationContextBaseStruct,
-          FieldIndex.instantiationContextInner);
-      b.struct_get(closureBaseStruct, FieldIndex.closureVtable);
-      b.local_get(fun2);
-      b.struct_get(closureBaseStruct, FieldIndex.closureContext);
-      b.br_on_cast_fail(fun1InstantiationFun2NotInstantiationBlock,
-          const w.RefType.struct(nullable: false), instantiationContextBase);
-      b.struct_get(translator.closureLayouter.instantiationContextBaseStruct,
-          FieldIndex.instantiationContextInner);
-      b.struct_get(closureBaseStruct, FieldIndex.closureVtable);
-      b.br(vtablesBlock);
-      b.end(); // fun1InstantiationFun2NotInstantiationBlock
-      b.i32_const(0); // false
-      b.return_();
-      b.end(); // fun1NotInstantiationBlock
-      b.drop();
-      b.local_get(fun1);
-      b.struct_get(closureBaseStruct, FieldIndex.closureVtable);
-      // To keep the generated code small and simple, instead of checking that
-      // fun2 is also not an instantiation, we can just return the outer
-      // (potentially instantiation) vtable here. In the rest of the code
-      // `ref.eq` will be `false` (as vtable of an instantiation and
-      // non-instantiation will never be equal) and the function will return
-      // `false` as expected.
-      b.local_get(fun2);
-      b.struct_get(closureBaseStruct, FieldIndex.closureVtable);
-      b.end(); // vtablesBlock
-      b.ref_eq();
 
-      b.if_(); // fun1.vtable == fun2.vtable
-
-      // Check if closures are instantiations. Since they have the same vtable
-      // it's enough to check just one of them.
-      final instantiationCheckPassedBlock = b.block();
-
-      final notInstantiationBlock =
-          b.block([], [w.RefType.struct(nullable: false)]);
-
-      b.local_get(fun1);
-      b.struct_get(closureBaseStruct, FieldIndex.closureContext);
-      b.br_on_cast_fail(notInstantiationBlock,
-          const w.RefType.struct(nullable: false), instantiationContextBase);
-
-      // Closures are instantiations. Compare inner function vtables to check
-      // that instantiations are for the same generic function.
-      void getInstantiationContextInner(w.Local fun) {
-        b.local_get(fun);
-        // instantiation.context
-        b.struct_get(closureBaseStruct, FieldIndex.closureContext);
-        b.ref_cast(instantiationContextBase);
-        // instantiation.context.inner
-        b.struct_get(translator.closureLayouter.instantiationContextBaseStruct,
-            FieldIndex.instantiationContextInner);
-      }
-
-      // Closures are instantiations of the same function, compare types.
-      b.local_get(fun1);
+      b.local_get(function.locals[0]); // ref _Closure
+      b.ref_cast(w.RefType(closureBaseStruct, nullable: false));
       b.struct_get(closureBaseStruct, FieldIndex.closureContext);
       b.ref_cast(instantiationContextBase);
-      b.local_get(fun2);
+
+      b.local_get(function.locals[1]); // ref _Closure
+      b.ref_cast(w.RefType(closureBaseStruct, nullable: false));
       b.struct_get(closureBaseStruct, FieldIndex.closureContext);
       b.ref_cast(instantiationContextBase);
-      getInstantiationContextInner(fun1);
-      b.struct_get(closureBaseStruct, FieldIndex.closureVtable);
+
+      b.local_get(function.locals[0]);
+      b.emitGetInstantiatedClosure(translator);
+      b.emitGetClosureVtable(translator);
       b.ref_cast(w.RefType.def(
           translator.closureLayouter.genericVtableBaseStruct,
           nullable: false));
       b.struct_get(translator.closureLayouter.genericVtableBaseStruct,
           FieldIndex.vtableInstantiationTypeComparisonFunction);
+
       b.call_ref(translator
           .closureLayouter.instantiationClosureTypeComparisonFunctionType);
-      b.if_();
-      getInstantiationContextInner(fun1);
-      b.local_tee(fun1);
-      getInstantiationContextInner(fun2);
-      b.local_tee(fun2);
-      b.ref_eq();
-      b.if_();
-      b.i32_const(1); // true
-      b.return_();
-      b.end();
-      b.br(instantiationCheckPassedBlock);
-      b.end();
-      b.i32_const(0); // false
-      b.return_();
-      b.i32_const(0); // false
-      b.return_();
-      b.end(); // notInstantiationBlock
-      b.drop();
-      b.end(); // instantiationCheckPassedBlock
 
-      // Compare context references. If context of a function has the top type
-      // then the function is an instance tear-off. Otherwise it's a closure.
-      final contextCheckFail = b.block([], [w.RefType.struct(nullable: false)]);
-      b.local_get(fun1);
-      b.struct_get(closureBaseStruct, FieldIndex.closureContext);
-      b.br_on_cast_fail(
-          contextCheckFail,
-          const w.RefType.struct(nullable: false),
-          translator.topInfo.nonNullableType);
+      return true;
+    }
 
-      b.local_get(fun2);
-      b.struct_get(closureBaseStruct, FieldIndex.closureContext);
-      b.br_on_cast_fail(
-          contextCheckFail,
-          const w.RefType.struct(nullable: false),
-          translator.topInfo.nonNullableType);
+    if (member.enclosingClass == translator.closureClass &&
+        name == "_isInstanceTearOff") {
+      assert(function.locals.length == 1);
+      b.local_get(function.locals[0]); // ref _Closure
+      b.emitTearOffCheck(translator);
+      return true;
+    }
 
-      // Both contexts are objects, compare for equality with `identical`. This
-      // handles identical `this` values in instance tear-offs.
-      codeGen.call(translator.coreTypes.identicalProcedure.reference);
-      b.return_();
-      b.end(); // contextCheckFail
+    if (member.enclosingClass == translator.closureClass &&
+        name == "_instanceTearOffReceiver") {
+      assert(function.locals.length == 1);
+      b.local_get(function.locals[0]); // ref _Closure
+      b.emitGetTearOffReceiver(translator);
+      return true;
+    }
 
-      b.i32_const(0); // false
-      b.return_();
-
-      b.end(); // fun1.vtable == fun2.vtable
-
-      b.i32_const(0); // false
-
+    if (member.enclosingClass == translator.closureClass && name == "_vtable") {
+      assert(function.locals.length == 1);
+      b.local_get(function.locals[0]); // ref _Closure
+      b.emitGetClosureVtable(translator);
       return true;
     }
 
@@ -1653,7 +1532,7 @@ class Intrinsifier {
       assert(function.type.inputs.length == 3);
 
       final closureLocal = function.locals[0]; // ref #ClosureBase
-      final posArgsNullableLocal = function.locals[1]; // ref null Object,
+      final posArgsNullableLocal = function.locals[1]; // ref null Object
       final namedArgsLocal = function.locals[2]; // ref null Object
 
       // Create empty type arguments array.

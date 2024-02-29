@@ -6,7 +6,7 @@ library dart2js.kernel.env;
 
 import 'package:js_shared/variance.dart';
 import 'package:kernel/ast.dart' as ir;
-import 'package:kernel/type_environment.dart' as ir;
+import 'package:kernel/library_index.dart' as ir;
 import 'package:collection/collection.dart' show mergeSort; // a stable sort.
 
 import '../common.dart';
@@ -15,7 +15,6 @@ import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
 import '../ir/element_map.dart';
-import '../ir/static_type_cache.dart';
 import '../ir/util.dart';
 import '../js_model/class_type_variable_access.dart';
 import '../js_model/element_map.dart';
@@ -33,6 +32,8 @@ class KProgramEnv {
       for (final library in component.libraries)
         library.importUri: KLibraryEnv(library),
   };
+
+  late final ir.LibraryIndex libraryIndex = ir.LibraryIndex.all(mainComponent);
 
   /// TODO(johnniwinther): Handle arbitrary load order if needed.
   ir.Member? get mainMethod => mainComponent.mainMethod;
@@ -166,10 +167,7 @@ class KLibraryData {
   KLibraryData(this.library);
 
   Iterable<ConstantValue> getMetadata(KernelToElementMap elementMap) {
-    return _metadata ??= elementMap.getMetadata(
-        ir.StaticTypeContext.forAnnotations(
-            library, elementMap.typeEnvironment),
-        library.annotations);
+    return _metadata ??= elementMap.getMetadata(library.annotations);
   }
 
   Iterable<ImportEntity> getImports(KernelToElementMap elementMap) {
@@ -437,10 +435,7 @@ class KClassData {
   bool isCallTypeComputed = false;
 
   Iterable<ConstantValue> getMetadata(covariant KernelToElementMap elementMap) {
-    return _metadata ??= elementMap.getMetadata(
-        ir.StaticTypeContext.forAnnotations(
-            node.enclosingLibrary, elementMap.typeEnvironment),
-        node.annotations);
+    return _metadata ??= elementMap.getMetadata(node.annotations);
   }
 
   List<Variance> getVariances() =>
@@ -456,16 +451,12 @@ abstract class KMemberData {
 
   Iterable<ConstantValue>? _metadata;
 
-  StaticTypeCache? staticTypes;
-
   ClassTypeVariableAccess get classTypeVariableAccess;
 
   KMemberData(this.node);
 
   Iterable<ConstantValue> getMetadata(covariant KernelToElementMap elementMap) {
-    return _metadata ??= elementMap.getMetadata(
-        ir.StaticTypeContext(node, elementMap.typeEnvironment),
-        node.annotations);
+    return _metadata ??= elementMap.getMetadata(node.annotations);
   }
 
   InterfaceType? getMemberThisType(JsToElementMap elementMap) {
@@ -546,13 +537,7 @@ class KFunctionData extends KMemberData {
 
   @override
   FunctionData convert() {
-    return FunctionDataImpl(
-        node,
-        functionNode,
-        RegularMemberDefinition(node),
-        // Abstract members without bodies will not have expressions so we use
-        // an empty cache.
-        staticTypes ?? const StaticTypeCache());
+    return FunctionDataImpl(node, functionNode, RegularMemberDefinition(node));
   }
 
   @override
@@ -575,7 +560,7 @@ class KConstructorData extends KFunctionData {
     } else {
       definition = RegularMemberDefinition(node);
     }
-    return JConstructorData(node, functionNode, definition, staticTypes!);
+    return JConstructorData(node, functionNode, definition);
   }
 
   @override
@@ -609,12 +594,7 @@ class KFieldData extends KMemberData {
 
   @override
   JFieldData convert() {
-    return JFieldDataImpl(
-        node,
-        RegularMemberDefinition(node),
-        // Late fields in abstract classes won't have initializers so we use an
-        // empty cache.
-        staticTypes ?? const StaticTypeCache());
+    return JFieldDataImpl(node, RegularMemberDefinition(node));
   }
 }
 

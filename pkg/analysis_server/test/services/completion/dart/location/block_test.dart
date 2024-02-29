@@ -351,6 +351,140 @@ suggestions
 ''');
   }
 
+  Future<void>
+      test_afterLeftBrace_beforeRightBrace_inFunction_withPatternVariables_for() async {
+    await computeSuggestions('''
+void f() {
+  int a0 = 5;
+  int b0 = 5;
+
+  for (var (int a1, :b1) = g(); a1 > 0; a1--) {
+    ^
+  }
+}
+
+(int, {int b1}) g() => (1, b1: 2);
+''');
+    assertResponse(r'''
+suggestions
+  a0
+    kind: localVariable
+  a1
+    kind: localVariable
+  assert
+    kind: keyword
+  b0
+    kind: localVariable
+  b1
+    kind: localVariable
+  break
+    kind: keyword
+  const
+    kind: keyword
+  continue
+    kind: keyword
+  do
+    kind: keyword
+  dynamic
+    kind: keyword
+  false
+    kind: keyword
+  final
+    kind: keyword
+  for
+    kind: keyword
+  if
+    kind: keyword
+  late
+    kind: keyword
+  null
+    kind: keyword
+  return
+    kind: keyword
+  switch
+    kind: keyword
+  throw
+    kind: keyword
+  true
+    kind: keyword
+  try
+    kind: keyword
+  var
+    kind: keyword
+  void
+    kind: keyword
+  while
+    kind: keyword
+''');
+  }
+
+  Future<void>
+      test_afterLeftBrace_beforeRightBrace_inFunction_withPatternVariables_forEach() async {
+    await computeSuggestions('''
+void f() {
+  int a0 = 5;
+  int b0 = 5;
+
+  for (var (int a1, :b1) in g()) {
+    ^
+  }
+}
+
+List<(int, {int b1})> g() => [(1, b1: 2)];
+''');
+    assertResponse(r'''
+suggestions
+  a0
+    kind: localVariable
+  a1
+    kind: localVariable
+  assert
+    kind: keyword
+  b0
+    kind: localVariable
+  b1
+    kind: localVariable
+  break
+    kind: keyword
+  const
+    kind: keyword
+  continue
+    kind: keyword
+  do
+    kind: keyword
+  dynamic
+    kind: keyword
+  false
+    kind: keyword
+  final
+    kind: keyword
+  for
+    kind: keyword
+  if
+    kind: keyword
+  late
+    kind: keyword
+  null
+    kind: keyword
+  return
+    kind: keyword
+  switch
+    kind: keyword
+  throw
+    kind: keyword
+  true
+    kind: keyword
+  try
+    kind: keyword
+  var
+    kind: keyword
+  void
+    kind: keyword
+  while
+    kind: keyword
+''');
+  }
+
   Future<void> test_afterLeftBrace_beforeRightBrace_inMethod() async {
     await computeSuggestions('''
 class A {foo() {for (int x in myList) {^}}}
@@ -545,6 +679,97 @@ suggestions
 ''');
   }
 
+  Future<void> test_afterKeyword_assert_beforeRightBrace_partial() async {
+    await computeSuggestions('''
+void f() {assert^}
+''');
+    assertResponse(r'''
+replacement
+  left: 6
+suggestions
+  assert
+    kind: keyword
+''');
+  }
+
+  Future<void> test_afterKeyword_do_beforeRightBrace_partial() async {
+    await computeSuggestions('''
+void f() {do^}
+''');
+    assertResponse(r'''
+replacement
+  left: 2
+suggestions
+  do
+    kind: keyword
+''');
+  }
+
+  Future<void> test_afterKeyword_for_beforeRightBrace_partial() async {
+    await computeSuggestions('''
+void f() {for^}
+''');
+    assertResponse(r'''
+replacement
+  left: 3
+suggestions
+  for
+    kind: keyword
+''');
+  }
+
+  Future<void> test_afterKeyword_if_beforeRightBrace_partial() async {
+    await computeSuggestions('''
+void f() {if^}
+''');
+    assertResponse(r'''
+replacement
+  left: 2
+suggestions
+  if
+    kind: keyword
+''');
+  }
+
+  Future<void> test_afterKeyword_switch_beforeRightBrace_partial() async {
+    await computeSuggestions('''
+void f() {switch^}
+''');
+    assertResponse(r'''
+replacement
+  left: 6
+suggestions
+  switch
+    kind: keyword
+''');
+  }
+
+  Future<void> test_afterKeyword_try_beforeRightBrace_partial() async {
+    await computeSuggestions('''
+void f() {try^}
+''');
+    assertResponse(r'''
+replacement
+  left: 3
+suggestions
+  try
+    kind: keyword
+''');
+  }
+
+  Future<void> test_afterKeyword_while_beforeRightBrace_partial() async {
+    await computeSuggestions('''
+void f() {while^}
+''');
+    assertResponse(r'''
+replacement
+  left: 5
+suggestions
+  while
+    kind: keyword
+''');
+  }
+
   Future<void>
       test_afterLeftBrace_beforeIdentifier_withAsyncStar_partial() async {
     await computeSuggestions('''
@@ -662,6 +887,29 @@ replacement
 suggestions
   null
     kind: keyword
+''');
+  }
+
+  Future<void>
+      test_afterLeftBrace_beforeRightBrace_withImportedTopLevelFunctions() async {
+    allowedIdentifiers = {'aa0', 'aa1234'};
+    newFile('$testPackageLibPath/a.dart', '''
+void aa0(){}
+void aa1234(){}
+''');
+    await computeSuggestions('''
+import 'a.dart';
+
+void f() {aa^();}
+''');
+    assertResponse(r'''
+replacement
+  left: 2
+suggestions
+  aa0
+    kind: functionInvocation
+  aa1234
+    kind: functionInvocation
 ''');
   }
 
@@ -1195,6 +1443,244 @@ suggestions
   switch
     kind: keyword
   this
+    kind: keyword
+  throw
+    kind: keyword
+  true
+    kind: keyword
+  try
+    kind: keyword
+  var
+    kind: keyword
+  void
+    kind: keyword
+  while
+    kind: keyword
+''');
+  }
+
+  Future<void>
+      test_afterLeftBrace_beforeRightBrace_macroGenerated_generatedClass() async {
+    addMacros([declareInLibraryMacro()]);
+    await computeSuggestions('''
+import 'macros.dart';
+
+@DeclareInLibrary('class C0 {}')
+class C {}
+
+void f() {
+  ^
+}
+''');
+    assertResponse(r'''
+suggestions
+  C0
+    kind: class
+  C0
+    kind: constructorInvocation
+  assert
+    kind: keyword
+  const
+    kind: keyword
+  do
+    kind: keyword
+  dynamic
+    kind: keyword
+  false
+    kind: keyword
+  final
+    kind: keyword
+  for
+    kind: keyword
+  if
+    kind: keyword
+  late
+    kind: keyword
+  null
+    kind: keyword
+  return
+    kind: keyword
+  switch
+    kind: keyword
+  throw
+    kind: keyword
+  true
+    kind: keyword
+  try
+    kind: keyword
+  var
+    kind: keyword
+  void
+    kind: keyword
+  while
+    kind: keyword
+''');
+  }
+
+  Future<void>
+      test_afterLeftBrace_beforeRightBrace_macroGenerated_sameClass() async {
+    addMacros([declareInTypeMacro()]);
+    await computeSuggestions('''
+import 'macros.dart';
+
+@DeclareInType('  void m0() {}')
+class C {
+  void m() {
+    ^
+  }
+}
+''');
+    assertResponse(r'''
+suggestions
+  assert
+    kind: keyword
+  const
+    kind: keyword
+  do
+    kind: keyword
+  dynamic
+    kind: keyword
+  false
+    kind: keyword
+  final
+    kind: keyword
+  for
+    kind: keyword
+  if
+    kind: keyword
+  late
+    kind: keyword
+  m0
+    kind: methodInvocation
+  null
+    kind: keyword
+  return
+    kind: keyword
+  super
+    kind: keyword
+  switch
+    kind: keyword
+  this
+    kind: keyword
+  throw
+    kind: keyword
+  true
+    kind: keyword
+  try
+    kind: keyword
+  var
+    kind: keyword
+  void
+    kind: keyword
+  while
+    kind: keyword
+''');
+  }
+
+  Future<void>
+      test_afterLeftBrace_beforeRightBrace_macroGenerated_supperClass() async {
+    addMacros([declareInTypeMacro()]);
+    await computeSuggestions('''
+import 'macros.dart';
+
+@DeclareInType('  void m0() {}')
+class B {}
+
+class C extends B {
+  void m() {
+    ^
+  }
+}
+''');
+    assertResponse(r'''
+suggestions
+  assert
+    kind: keyword
+  const
+    kind: keyword
+  do
+    kind: keyword
+  dynamic
+    kind: keyword
+  false
+    kind: keyword
+  final
+    kind: keyword
+  for
+    kind: keyword
+  if
+    kind: keyword
+  late
+    kind: keyword
+  m0
+    kind: methodInvocation
+  null
+    kind: keyword
+  return
+    kind: keyword
+  super
+    kind: keyword
+  switch
+    kind: keyword
+  this
+    kind: keyword
+  throw
+    kind: keyword
+  true
+    kind: keyword
+  try
+    kind: keyword
+  var
+    kind: keyword
+  void
+    kind: keyword
+  while
+    kind: keyword
+''');
+  }
+
+  Future<void>
+      test_afterLeftBrace_beforeRightBrace_macroGenerated_unrelatedClass() async {
+    addMacros([declareInTypeMacro()]);
+    await computeSuggestions('''
+import 'macros.dart';
+
+@DeclareInType('  C.c1();')
+class C0 {}
+
+void f() {
+  ^
+}
+''');
+    assertResponse(r'''
+suggestions
+  C0
+    kind: class
+  C0.c1
+    kind: constructorInvocation
+  assert
+    kind: keyword
+  const
+    kind: keyword
+  do
+    kind: keyword
+  dynamic
+    kind: keyword
+  false
+    kind: keyword
+  final
+    kind: keyword
+  for
+    kind: keyword
+  if
+    kind: keyword
+  late
+    kind: keyword
+  null
+    kind: keyword
+  return
+    kind: keyword
+  switch
     kind: keyword
   throw
     kind: keyword

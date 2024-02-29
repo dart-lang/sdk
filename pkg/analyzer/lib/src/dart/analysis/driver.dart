@@ -56,6 +56,7 @@ import 'package:analyzer/src/utilities/extensions/async.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer/src/utilities/uri_cache.dart';
+import 'package:analyzer/src/workspace/pub.dart';
 import 'package:meta/meta.dart';
 
 /// This class computes analysis results for Dart files.
@@ -94,7 +95,7 @@ import 'package:meta/meta.dart';
 // TODO(scheglov): Clean up the list of implicitly analyzed files.
 class AnalysisDriver {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 333;
+  static const int DATA_VERSION = 349;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -234,9 +235,6 @@ class AnalysisDriver {
   late final Search _search;
 
   final AnalysisDriverTestView? testView;
-
-  // TODO(pq): replace with an analysis options map.
-  late FeatureSetProvider featureSetProvider;
 
   late FileSystemState _fsState;
 
@@ -1338,6 +1336,17 @@ class AnalysisDriver {
           performance: OperationPerformanceImpl('<root>'),
         );
 
+        for (var import in library.docImports) {
+          if (import is LibraryImportWithFile) {
+            if (import.importedLibrary case var libraryFileKind?) {
+              await libraryContext.load(
+                targetLibrary: libraryFileKind,
+                performance: OperationPerformanceImpl('<root>'),
+              );
+            }
+          }
+        }
+
         var analysisOptions = file.analysisOptions;
         var libraryElement =
             libraryContext.elementFactory.libraryOfUri2(library.file.uri);
@@ -1550,7 +1559,7 @@ class AnalysisDriver {
   void _createFileTracker() {
     _fillSalt();
 
-    featureSetProvider = FeatureSetProvider.build(
+    var featureSetProvider = FeatureSetProvider.build(
       sourceFactory: sourceFactory,
       resourceProvider: _resourceProvider,
       packages: _packages,
@@ -1806,6 +1815,10 @@ class AnalysisDriver {
   String _getResolvedUnitSignature(LibraryFileKind library, FileState file) {
     ApiSignature signature = ApiSignature();
     signature.addUint32List(_saltForResolution);
+    if (file.workspacePackage is PubPackage) {
+      signature.addString(
+          (file.workspacePackage as PubPackage).pubspecContent ?? '');
+    }
     signature.addString(library.file.uriStr);
     signature.addString(library.libraryCycle.apiSignature);
     signature.addUint32List(library.file.analysisOptions.signature);

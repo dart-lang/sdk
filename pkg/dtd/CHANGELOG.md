@@ -1,3 +1,8 @@
+## 1.0.0
+
+- Solidified interface with dart tooling daemon.
+- Added FileSystem service interface.
+
 ## 0.0.3
 
 - Added types to service and extension exports.

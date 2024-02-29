@@ -1060,6 +1060,39 @@ class B {}
     );
   }
 
+  Future<void> test_kind_class_referencedInMacro() async {
+    addMacros([declareInTypeMacro()]);
+
+    var originalSource = '''
+import 'macros.dart';
+
+class ClassToMove^ {}
+
+@DeclareInType('  ClassToMove? c;')
+class A {}
+''';
+    var declarationName = 'ClassToMove';
+
+    // Verify that `main.macro.dart` is unmodified.
+    var expected = '''
+>>>>>>>>>> lib/class_to_move.dart created
+class ClassToMove {}
+>>>>>>>>>> lib/main.dart
+import 'package:test/class_to_move.dart';
+
+import 'macros.dart';
+
+@DeclareInType('  ClassToMove? c;')
+class A {}
+''';
+
+    await _singleDeclaration(
+      originalSource: originalSource,
+      expected: expected,
+      declarationName: declarationName,
+    );
+  }
+
   Future<void> test_kind_extensionType() async {
     var originalSource = '''
 class A {}
@@ -1119,6 +1152,34 @@ class B {}
       originalSource: originalSource,
       expected: expected,
       count: 2,
+    );
+  }
+
+  Future<void> test_multiple_withUnnamedExtension() async {
+    var originalSource = '''
+class A {}
+
+[!class ClassToMove1 {}
+extension on Int {}
+class ClassToMove2 {}!]
+
+class B {}
+''';
+
+    var expected = '''
+>>>>>>>>>> lib/class_to_move1.dart created
+class ClassToMove1 {}
+extension on Int {}
+class ClassToMove2 {}
+>>>>>>>>>> lib/main.dart
+class A {}
+
+class B {}
+''';
+    await _multipleDeclarations(
+      originalSource: originalSource,
+      expected: expected,
+      count: 3,
     );
   }
 
@@ -1806,7 +1867,7 @@ class B {}
     var originalSource = '''
 import 'package:test/other.dart' as other;
 
-${code.rawCode}
+${code.markedCode}
 ''';
 
     var expected = '''

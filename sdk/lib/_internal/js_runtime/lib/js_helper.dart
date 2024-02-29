@@ -79,6 +79,8 @@ import 'dart:_rti' as newRti
 
 import 'dart:_load_library_priority';
 
+import 'dart:_invocation_mirror_constants' as mirrors;
+
 part 'annotations.dart';
 part 'constant_map.dart';
 part 'instantiation.dart';
@@ -213,10 +215,6 @@ void traceHelper(dynamic /*int*/ id, dynamic /*String*/ qualifiedName) {
 }
 
 class JSInvocationMirror implements Invocation {
-  static const METHOD = 0;
-  static const GETTER = 1;
-  static const SETTER = 2;
-
   /// When [_memberName] is a String, it holds the mangled name of this
   /// invocation.  When it is a Symbol, it holds the unmangled name.
   var /* String or Symbol */ _memberName;
@@ -234,10 +232,10 @@ class JSInvocationMirror implements Invocation {
     return _memberName = _symbol_dev.Symbol.unvalidated(_memberName);
   }
 
-  bool get isMethod => _kind == METHOD;
-  bool get isGetter => _kind == GETTER;
-  bool get isSetter => _kind == SETTER;
-  bool get isAccessor => _kind != METHOD;
+  bool get isMethod => _kind == mirrors.method;
+  bool get isGetter => _kind == mirrors.getter;
+  bool get isSetter => _kind == mirrors.setter;
+  bool get isAccessor => _kind != mirrors.method;
 
   List<Type> get typeArguments {
     if (_typeArgumentCount == 0) return const <Type>[];
@@ -864,12 +862,7 @@ class Primitives {
         '${JS_GET_NAME(JsGetName.CALL_PREFIX)}\$$argumentCount$names';
 
     return function.noSuchMethod(createUnmangledInvocationMirror(
-        #call,
-        selectorName,
-        JSInvocationMirror.METHOD,
-        arguments,
-        namedArgumentList,
-        0));
+        #call, selectorName, mirrors.method, arguments, namedArgumentList, 0));
   }
 
   /// Implements [Function.apply] for the lazy and startup emitters.
@@ -1088,8 +1081,10 @@ class Primitives {
     }
   }
 
-  static StackTrace extractStackTrace(Error error) {
-    return getTraceFromException(JS('', r'#.$thrownJsError', error));
+  static StackTrace? extractStackTrace(Error error) {
+    var jsError = JS('', r'#.$thrownJsError', error);
+    if (jsError == null) return null;
+    return getTraceFromException(jsError);
   }
 }
 

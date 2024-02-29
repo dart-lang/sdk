@@ -19,9 +19,6 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   /// The error reporter to be used to report errors.
   final ErrorReporter _errorReporter;
 
-  /// The element representing the library containing the unit to be verified.
-  final LibraryElement _containingLibrary;
-
   /// The version constraint for the SDK.
   final VersionConstraint _versionConstraint;
 
@@ -31,36 +28,25 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
 
   /// Initialize a newly created verifier to use the given [_errorReporter] to
   /// report errors.
-  SdkConstraintVerifier(
-      this._errorReporter, this._containingLibrary, this._versionConstraint);
+  SdkConstraintVerifier(this._errorReporter, this._versionConstraint);
 
   /// Return a range covering every version up to, but not including, 2.14.0.
-  VersionRange get before_2_14_0 =>
-      VersionRange(max: Version.parse('2.14.0'), includeMax: false);
+  VersionRange get before_2_14_0 => VersionRange(max: Version.parse('2.14.0'));
 
   /// Return a range covering every version up to, but not including, 2.1.0.
-  VersionRange get before_2_1_0 =>
-      VersionRange(max: Version.parse('2.1.0'), includeMax: false);
+  VersionRange get before_2_1_0 => VersionRange(max: Version.parse('2.1.0'));
 
   /// Return a range covering every version up to, but not including, 2.2.0.
-  VersionRange get before_2_2_0 =>
-      VersionRange(max: Version.parse('2.2.0'), includeMax: false);
+  VersionRange get before_2_2_0 => VersionRange(max: Version.parse('2.2.0'));
 
   /// Return a range covering every version up to, but not including, 2.2.2.
-  VersionRange get before_2_2_2 =>
-      VersionRange(max: Version.parse('2.2.2'), includeMax: false);
+  VersionRange get before_2_2_2 => VersionRange(max: Version.parse('2.2.2'));
 
   /// Return a range covering every version up to, but not including, 2.5.0.
-  VersionRange get before_2_5_0 =>
-      VersionRange(max: Version.parse('2.5.0'), includeMax: false);
+  VersionRange get before_2_5_0 => VersionRange(max: Version.parse('2.5.0'));
 
   /// Return a range covering every version up to, but not including, 2.6.0.
-  VersionRange get before_2_6_0 =>
-      VersionRange(max: Version.parse('2.6.0'), includeMax: false);
-
-  /// Return `true` if references to the non-nullable features need to be
-  /// checked.
-  bool get checkNnbd => !_containingLibrary.isNonNullableByDefault;
+  VersionRange get before_2_6_0 => VersionRange(max: Version.parse('2.6.0'));
 
   /// Return `true` if references to the constant-update-2018 features need to
   /// be checked.
@@ -93,8 +79,10 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
     if (checkTripleShift) {
       TokenType operatorType = node.operator.type;
       if (operatorType == TokenType.GT_GT_GT) {
-        _errorReporter.reportErrorForToken(
-            WarningCode.SDK_VERSION_GT_GT_GT_OPERATOR, node.operator);
+        _errorReporter.atToken(
+          node.operator,
+          WarningCode.SDK_VERSION_GT_GT_GT_OPERATOR,
+        );
       }
     }
     super.visitBinaryExpression(node);
@@ -126,8 +114,10 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
     if (checkTripleShift && node.isOperator && node.name.lexeme == '>>>') {
-      _errorReporter.reportErrorForToken(
-          WarningCode.SDK_VERSION_GT_GT_GT_OPERATOR, node.name);
+      _errorReporter.atToken(
+        node.name,
+        WarningCode.SDK_VERSION_GT_GT_GT_OPERATOR,
+      );
     }
     super.visitMethodDeclaration(node);
   }
@@ -207,11 +197,11 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
               throw UnimplementedError('(${target.runtimeType}) $target');
             }
           }
-          _errorReporter.reportErrorForOffset(
-            WarningCode.SDK_VERSION_SINCE,
-            errorEntity.offset,
-            errorEntity.length,
-            [
+          _errorReporter.atOffset(
+            offset: errorEntity.offset,
+            length: errorEntity.length,
+            errorCode: WarningCode.SDK_VERSION_SINCE,
+            arguments: [
               sinceSdkVersion.toString(),
               _versionConstraint.toString(),
             ],

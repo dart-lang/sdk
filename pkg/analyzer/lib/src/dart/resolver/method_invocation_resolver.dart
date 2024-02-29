@@ -165,7 +165,7 @@ class MethodInvocationResolver with ScopeHelpers {
       return;
     }
 
-    if (node.isNullAware && _typeSystem.isNonNullableByDefault) {
+    if (node.isNullAware) {
       receiverType = _typeSystem.promoteToNonNull(receiverType);
     }
 
@@ -175,10 +175,10 @@ class MethodInvocationResolver with ScopeHelpers {
       // There is no possible resolution for a property access of a function
       // type literal (which can only be a type instantiation of a type alias
       // of a function type).
-      _resolver.errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.UNDEFINED_METHOD_ON_FUNCTION_TYPE,
+      _resolver.errorReporter.atNode(
         nameNode,
-        [name, receiver.type.qualifiedName],
+        CompileTimeErrorCode.UNDEFINED_METHOD_ON_FUNCTION_TYPE,
+        arguments: [name, receiver.type.qualifiedName],
       );
       _setInvalidTypeResolution(node,
           whyNotPromotedList: whyNotPromotedList, contextType: contextType);
@@ -210,36 +210,37 @@ class MethodInvocationResolver with ScopeHelpers {
     var enclosingElement = element.enclosingElement;
     if (nullReceiver) {
       if (_resolver.enclosingExtension != null) {
-        _resolver.errorReporter.reportErrorForNode(
+        _resolver.errorReporter.atNode(
+          nameNode,
           CompileTimeErrorCode
               .UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE,
-          nameNode,
-          [enclosingElement.displayName],
+          arguments: [enclosingElement.displayName],
         );
       } else {
-        _resolver.errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
+        _resolver.errorReporter.atNode(
           nameNode,
-          [enclosingElement.displayName],
+          CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
+          arguments: [enclosingElement.displayName],
         );
       }
     } else if (enclosingElement is ExtensionElement &&
         enclosingElement.name == null) {
-      _resolver.errorReporter.reportErrorForNode(
-          CompileTimeErrorCode
-              .INSTANCE_ACCESS_TO_STATIC_MEMBER_OF_UNNAMED_EXTENSION,
-          nameNode,
-          [
-            nameNode.name,
-            element.kind.displayName,
-          ]);
+      _resolver.errorReporter.atNode(
+        nameNode,
+        CompileTimeErrorCode
+            .INSTANCE_ACCESS_TO_STATIC_MEMBER_OF_UNNAMED_EXTENSION,
+        arguments: [
+          nameNode.name,
+          element.kind.displayName,
+        ],
+      );
     } else {
       // It is safe to assume that `enclosingElement.name` is non-`null` because
       // it can only be `null` for extensions, and we handle that case above.
-      _resolver.errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER,
+      _resolver.errorReporter.atNode(
         nameNode,
-        [
+        CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER,
+        arguments: [
           nameNode.name,
           element.kind.displayName,
           enclosingElement.name!,
@@ -258,28 +259,28 @@ class MethodInvocationResolver with ScopeHelpers {
         setNameTypeToDynamic: false,
         whyNotPromotedList: whyNotPromotedList,
         contextType: contextType);
-    _resolver.errorReporter.reportErrorForNode(
-      CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION,
+    _resolver.errorReporter.atNode(
       node.methodName,
-      [node.methodName.name],
+      CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION,
+      arguments: [node.methodName.name],
     );
   }
 
   void _reportPrefixIdentifierNotFollowedByDot(SimpleIdentifier target) {
-    _resolver.errorReporter.reportErrorForNode(
-      CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
+    _resolver.errorReporter.atNode(
       target,
-      [target.name],
+      CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
+      arguments: [target.name],
     );
   }
 
   void _reportStaticAccessToInstanceMember(
       ExecutableElement element, SimpleIdentifier nameNode) {
     if (!element.isStatic) {
-      _resolver.errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER,
+      _resolver.errorReporter.atNode(
         nameNode,
-        [nameNode.name],
+        CompileTimeErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER,
+        arguments: [nameNode.name],
       );
     }
   }
@@ -298,10 +299,10 @@ class MethodInvocationResolver with ScopeHelpers {
       return;
     }
 
-    _resolver.errorReporter.reportErrorForNode(
-      CompileTimeErrorCode.UNDEFINED_FUNCTION,
+    _resolver.errorReporter.atNode(
       node.methodName,
-      [node.methodName.name],
+      CompileTimeErrorCode.UNDEFINED_FUNCTION,
+      arguments: [node.methodName.name],
     );
   }
 
@@ -310,9 +311,9 @@ class MethodInvocationResolver with ScopeHelpers {
       {required DartType? contextType}) {
     _setInvalidTypeResolution(node,
         whyNotPromotedList: whyNotPromotedList, contextType: contextType);
-    _resolver.errorReporter.reportErrorForNode(
-      CompileTimeErrorCode.USE_OF_VOID_RESULT,
+    _resolver.errorReporter.atNode(
       errorNode,
+      CompileTimeErrorCode.USE_OF_VOID_RESULT,
     );
   }
 
@@ -327,8 +328,7 @@ class MethodInvocationResolver with ScopeHelpers {
             contextType: contextType,
             whyNotPromotedList: whyNotPromotedList)
         .resolveInvocation(rawType: rawType is FunctionType ? rawType : null);
-    _inferenceHelper.recordStaticType(node, staticStaticType,
-        contextType: contextType);
+    _inferenceHelper.recordStaticType(node, staticStaticType);
   }
 
   /// Given that we are accessing a property of the given [classElement] with the
@@ -360,17 +360,14 @@ class MethodInvocationResolver with ScopeHelpers {
       {required DartType? contextType}) {
     var getter = extension.getGetter(name);
     if (getter != null) {
-      getter = _resolver.toLegacyElement(getter);
       nameNode.staticElement = getter;
       _reportStaticAccessToInstanceMember(getter, nameNode);
-      _rewriteAsFunctionExpressionInvocation(node, getter.returnType,
-          contextType: contextType);
+      _rewriteAsFunctionExpressionInvocation(node, getter.returnType);
       return;
     }
 
     var method = extension.getMethod(name);
     if (method != null) {
-      method = _resolver.toLegacyElement(method);
       nameNode.staticElement = method;
       _reportStaticAccessToInstanceMember(method, nameNode);
       _setResolution(node, method.type, whyNotPromotedList,
@@ -382,10 +379,10 @@ class MethodInvocationResolver with ScopeHelpers {
         whyNotPromotedList: whyNotPromotedList, contextType: contextType);
     // This method is only called for named extensions, so we know that
     // `extension.name` is non-`null`.
-    _resolver.errorReporter.reportErrorForNode(
-      CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD,
+    _resolver.errorReporter.atNode(
       nameNode,
-      [name, extension.name!],
+      CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD,
+      arguments: [name, extension.name!],
     );
   }
 
@@ -397,41 +394,40 @@ class MethodInvocationResolver with ScopeHelpers {
       List<WhyNotPromotedGetter> whyNotPromotedList,
       {required DartType? contextType}) {
     var result = _extensionResolver.getOverrideMember(override, name);
-    var member = _resolver.toLegacyElement(result.getter);
+    var member = result.getter;
 
     if (member == null) {
       _setInvalidTypeResolution(node,
           whyNotPromotedList: whyNotPromotedList, contextType: contextType);
       // Extension overrides always refer to named extensions, so we can safely
       // assume `override.staticElement!.name` is non-`null`.
-      _resolver.errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD,
+      _resolver.errorReporter.atNode(
         nameNode,
-        [name, override.element.name!],
+        CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD,
+        arguments: [name, override.element.name!],
       );
       return;
     }
 
     if (member.isStatic) {
-      _resolver.errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER,
+      _resolver.errorReporter.atNode(
         nameNode,
+        CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER,
       );
     }
 
     if (node.isCascaded) {
       // Report this error and recover by treating it like a non-cascade.
-      _resolver.errorReporter.reportErrorForToken(
-        CompileTimeErrorCode.EXTENSION_OVERRIDE_WITH_CASCADE,
+      _resolver.errorReporter.atToken(
         override.name,
+        CompileTimeErrorCode.EXTENSION_OVERRIDE_WITH_CASCADE,
       );
     }
 
     nameNode.staticElement = member;
 
     if (member is PropertyAccessorElement) {
-      return _rewriteAsFunctionExpressionInvocation(node, member.returnType,
-          contextType: contextType);
+      return _rewriteAsFunctionExpressionInvocation(node, member.returnType);
     }
 
     _setResolution(node, member.type, whyNotPromotedList,
@@ -453,7 +449,6 @@ class MethodInvocationResolver with ScopeHelpers {
           arguments.length == target.parameters.length &&
               !arguments.any((e) => e is NamedExpression);
       if (hasMatchingObjectMethod) {
-        target = _resolver.toLegacyElement(target);
         nameNode.staticElement = target;
         rawType = target.type;
         node.staticType = target.returnType;
@@ -490,7 +485,6 @@ class MethodInvocationResolver with ScopeHelpers {
       var objectElement = _resolver.typeProvider.objectElement;
       var objectMember = objectElement.getMethod(methodName.name);
       if (objectMember != null) {
-        objectMember = _resolver.toLegacyElement(objectMember);
         methodName.staticElement = objectMember;
         _setResolution(
           node,
@@ -519,28 +513,14 @@ class MethodInvocationResolver with ScopeHelpers {
               whyNotPromotedList: whyNotPromotedList)
           .resolveInvocation(rawType: null);
 
-      _resolver.errorReporter.reportErrorForNode(
-        WarningCode.RECEIVER_OF_TYPE_NEVER,
+      _resolver.errorReporter.atNode(
         receiver,
+        WarningCode.RECEIVER_OF_TYPE_NEVER,
       );
 
       node.methodName.staticType = _dynamicType;
       node.staticInvokeType = _dynamicType;
       node.staticType = NeverTypeImpl.instance;
-      return;
-    }
-
-    if (receiverType == NeverTypeImpl.instanceLegacy) {
-      MethodInvocationInferrer(
-              resolver: _resolver,
-              node: node,
-              argumentList: node.argumentList,
-              contextType: contextType,
-              whyNotPromotedList: whyNotPromotedList)
-          .resolveInvocation(rawType: null);
-      node.methodName.staticType = _dynamicType;
-      node.staticInvokeType = _dynamicType;
-      node.staticType = _dynamicType;
       return;
     }
   }
@@ -559,15 +539,13 @@ class MethodInvocationResolver with ScopeHelpers {
 
     var element = scopeLookupResult.getter;
     if (element != null) {
-      element = _resolver.toLegacyElement(element);
       nameNode.staticElement = element;
       if (element is MultiplyDefinedElement) {
         MultiplyDefinedElement multiply = element;
         element = multiply.conflictingElements[0];
       }
       if (element is PropertyAccessorElement) {
-        return _rewriteAsFunctionExpressionInvocation(node, element.returnType,
-            contextType: contextType);
+        return _rewriteAsFunctionExpressionInvocation(node, element.returnType);
       }
       if (element is ExecutableElement) {
         return _setResolution(node, element.type, whyNotPromotedList,
@@ -577,8 +555,7 @@ class MethodInvocationResolver with ScopeHelpers {
         _resolver.checkReadOfNotAssignedLocalVariable(nameNode, element);
         var targetType =
             _localVariableTypeProvider.getType(nameNode, isRead: true);
-        return _rewriteAsFunctionExpressionInvocation(node, targetType,
-            contextType: contextType);
+        return _rewriteAsFunctionExpressionInvocation(node, targetType);
       }
       // TODO(scheglov): This is a questionable distinction.
       if (element is PrefixElement) {
@@ -628,7 +605,6 @@ class MethodInvocationResolver with ScopeHelpers {
           imports[0].prefix is DeferredImportElementPrefix) {
         var importedLibrary = imports[0].importedLibrary;
         var element = importedLibrary?.loadLibraryFunction;
-        element = _resolver.toLegacyElement(element);
         if (element is ExecutableElement) {
           nameNode.staticElement = element;
           return _setResolution(
@@ -645,7 +621,6 @@ class MethodInvocationResolver with ScopeHelpers {
     );
 
     var element = scopeLookupResult.getter;
-    element = _resolver.toLegacyElement(element);
     nameNode.staticElement = element;
 
     if (element is MultiplyDefinedElement) {
@@ -654,8 +629,7 @@ class MethodInvocationResolver with ScopeHelpers {
     }
 
     if (element is PropertyAccessorElement) {
-      return _rewriteAsFunctionExpressionInvocation(node, element.returnType,
-          contextType: contextType);
+      return _rewriteAsFunctionExpressionInvocation(node, element.returnType);
     }
 
     if (element is ExecutableElement) {
@@ -698,14 +672,13 @@ class MethodInvocationResolver with ScopeHelpers {
       _currentName!,
       forSuper: true,
     );
-    target = _resolver.toLegacyElement(target);
 
     // If there is that concrete dispatch target, then we are done.
     if (target != null) {
       nameNode.staticElement = target;
       if (target is PropertyAccessorElement) {
         return _rewriteAsFunctionExpressionInvocation(node, target.returnType,
-            contextType: contextType, isSuperAccess: true);
+            isSuperAccess: true);
       }
       _setResolution(node, target.type, whyNotPromotedList,
           contextType: contextType);
@@ -721,20 +694,22 @@ class MethodInvocationResolver with ScopeHelpers {
       _setResolution(node, target.type, whyNotPromotedList,
           contextType: contextType);
 
-      _resolver.errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE,
-          nameNode,
-          [target.kind.displayName, name]);
+      _resolver.errorReporter.atNode(
+        nameNode,
+        CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE,
+        arguments: [target.kind.displayName, name],
+      );
       return;
     }
 
     // Nothing help, there is no target at all.
     _setInvalidTypeResolution(node,
         whyNotPromotedList: whyNotPromotedList, contextType: contextType);
-    _resolver.errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.UNDEFINED_SUPER_METHOD,
-        nameNode,
-        [name, augmented.declaration.displayName]);
+    _resolver.errorReporter.atNode(
+      nameNode,
+      CompileTimeErrorCode.UNDEFINED_SUPER_METHOD,
+      arguments: [name, augmented.declaration.displayName],
+    );
   }
 
   void _resolveReceiverType({
@@ -780,8 +755,7 @@ class MethodInvocationResolver with ScopeHelpers {
 
     final recordField = result.recordField;
     if (recordField != null) {
-      return _rewriteAsFunctionExpressionInvocation(node, recordField.type,
-          contextType: contextType);
+      return _rewriteAsFunctionExpressionInvocation(node, recordField.type);
     }
 
     var target = result.getter;
@@ -797,8 +771,7 @@ class MethodInvocationResolver with ScopeHelpers {
       }
 
       if (target is PropertyAccessorElement) {
-        return _rewriteAsFunctionExpressionInvocation(node, target.returnType,
-            contextType: contextType);
+        return _rewriteAsFunctionExpressionInvocation(node, target.returnType);
       }
       return _setResolution(node, target.type, whyNotPromotedList,
           contextType: contextType);
@@ -819,10 +792,10 @@ class MethodInvocationResolver with ScopeHelpers {
     }
 
     if (!nameNode.isSynthetic) {
-      _resolver.errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.UNDEFINED_METHOD,
+      _resolver.errorReporter.atNode(
         nameNode,
-        [name, receiverClassName],
+        CompileTimeErrorCode.UNDEFINED_METHOD,
+        arguments: [name, receiverClassName],
       );
     }
   }
@@ -839,14 +812,12 @@ class MethodInvocationResolver with ScopeHelpers {
     }
 
     var element = _resolveElement(receiver, nameNode);
-    element = _resolver.toLegacyElement(element) as ExecutableElement?;
     if (element != null) {
       if (element is ExecutableElement) {
         nameNode.staticElement = element;
         if (element is PropertyAccessorElement) {
           return _rewriteAsFunctionExpressionInvocation(
-              node, element.returnType,
-              contextType: contextType);
+              node, element.returnType);
         }
         _setResolution(node, element.type, whyNotPromotedList,
             contextType: contextType);
@@ -862,20 +833,20 @@ class MethodInvocationResolver with ScopeHelpers {
     if (nameNode.name == 'new') {
       // Attempting to invoke the unnamed constructor via `C.new(`.
       if (_resolver.isConstructorTearoffsEnabled) {
-        _resolver.errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT,
+        _resolver.errorReporter.atNode(
           nameNode,
-          [receiver.displayName],
+          CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT,
+          arguments: [receiver.displayName],
         );
       } else {
         // [ParserErrorCode.EXPERIMENT_NOT_ENABLED] is reported by the parser.
         // Do not report extra errors.
       }
     } else {
-      _resolver.errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.UNDEFINED_METHOD,
+      _resolver.errorReporter.atNode(
         node.methodName,
-        [name, receiver.displayName],
+        CompileTimeErrorCode.UNDEFINED_METHOD,
+        arguments: [name, receiver.displayName],
       );
     }
   }
@@ -887,7 +858,7 @@ class MethodInvocationResolver with ScopeHelpers {
   /// [FunctionExpressionInvocation].
   void _rewriteAsFunctionExpressionInvocation(
       MethodInvocationImpl node, DartType getterReturnType,
-      {required DartType? contextType, bool isSuperAccess = false}) {
+      {bool isSuperAccess = false}) {
     var targetType = _typeSystem.resolveToBound(getterReturnType);
 
     ExpressionImpl functionExpression;
@@ -942,8 +913,7 @@ class MethodInvocationResolver with ScopeHelpers {
       }
       functionExpression.staticType = targetType;
     }
-    _inferenceHelper.recordStaticType(node.methodName, targetType,
-        contextType: contextType);
+    _inferenceHelper.recordStaticType(node.methodName, targetType);
 
     var invocation = FunctionExpressionInvocationImpl(
       function: functionExpression,

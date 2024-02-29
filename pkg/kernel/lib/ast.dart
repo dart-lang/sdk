@@ -237,6 +237,8 @@ abstract class NamedNode extends TreeNode {
 abstract class FileUriNode extends TreeNode {
   /// The URI of the source file this node was loaded from.
   Uri get fileUri;
+
+  void set fileUri(Uri value);
 }
 
 abstract class Annotatable extends TreeNode {
@@ -472,6 +474,11 @@ class Library extends NamedNode
   Iterable<Member> get members =>
       <Iterable<Member>>[fields, procedures].expand((x) => x);
 
+  void forEachMember(void action(Member element)) {
+    fields.forEach(action);
+    procedures.forEach(action);
+  }
+
   @override
   void addAnnotation(Expression node) {
     node.parent = this;
@@ -569,7 +576,7 @@ class Library extends NamedNode
     for (int i = 0; i < extensionTypeDeclarations.length; ++i) {
       ExtensionTypeDeclaration extensionTypeDeclaration =
           extensionTypeDeclarations[i];
-      extensionTypeDeclaration._relinkNode();
+      extensionTypeDeclaration.relink();
     }
   }
 
@@ -1417,6 +1424,12 @@ class Class extends NamedNode implements TypeDeclaration {
         procedures,
       ].expand((x) => x);
 
+  void forEachMember(void action(Member element)) {
+    fields.forEach(action);
+    constructors.forEach(action);
+    procedures.forEach(action);
+  }
+
   /// The immediately extended, mixed-in, and implemented types.
   ///
   /// This getter is for convenience, not efficiency.  Consider manually
@@ -1896,6 +1909,21 @@ class ExtensionTypeDeclaration extends NamedNode implements TypeDeclaration {
   /// Used for adding procedures when reading the dill file.
   void set proceduresInternal(List<Procedure> procedures) {
     _procedures = procedures;
+  }
+
+  /// This is an advanced feature. Use of this method should be coordinated
+  /// with the kernel team.
+  ///
+  /// See [Component.relink] for a comprehensive description.
+  ///
+  /// Makes sure all references in named nodes in this extension type
+  /// declaration points to said named node.
+  void relink() {
+    this.reference.node = this;
+    for (int i = 0; i < procedures.length; ++i) {
+      Procedure member = procedures[i];
+      member._relinkNode();
+    }
   }
 
   @override
@@ -8118,9 +8146,26 @@ class Rethrow extends Expression {
 
 class Throw extends Expression {
   Expression expression;
+  int flags = 0;
 
   Throw(this.expression) {
     expression.parent = this;
+  }
+
+  // Must match serialized bit positions.
+  static const int FlagForErrorHandling = 1 << 0;
+
+  /// If `true`, this `throw` is *not* present in the source code but added
+  /// to ensure correctness and/or soundness of the generated code.
+  ///
+  /// This is used for instance in the lowering for handling duplicate writes
+  /// to a late final field or for pattern assignments that don't match.
+  bool get forErrorHandling => flags & FlagForErrorHandling != 0;
+
+  void set forErrorHandling(bool value) {
+    flags = value
+        ? (flags | FlagForErrorHandling)
+        : (flags & ~FlagForErrorHandling);
   }
 
   @override
@@ -11840,8 +11885,8 @@ class TypedefType extends DartType {
   DartType get unaliasOnce {
     DartType result =
         Substitution.fromTypedefType(this).substituteType(typedefNode.type!);
-    return result.withDeclaredNullability(
-        combineNullabilitiesForSubstitution(result.nullability, nullability));
+    return result.withDeclaredNullability(combineNullabilitiesForSubstitution(
+        result.declaredNullability, nullability));
   }
 
   @override
@@ -12122,7 +12167,9 @@ class ExtensionType extends TypeDeclarationType {
     if (other is ExtensionType) {
       if (nullability != other.nullability) return false;
       if (extensionTypeDeclarationReference !=
-          other.extensionTypeDeclarationReference) return false;
+          other.extensionTypeDeclarationReference) {
+        return false;
+      }
       if (typeArguments.length != other.typeArguments.length) return false;
       for (int i = 0; i < typeArguments.length; ++i) {
         if (!typeArguments[i].equals(other.typeArguments[i], assumptions)) {
@@ -12320,7 +12367,8 @@ class IntersectionType extends DartType {
     DartType resolvedTypeParameterType = right.nonTypeVariableBound;
     return resolvedTypeParameterType.withDeclaredNullability(
         combineNullabilitiesForSubstitution(
-            resolvedTypeParameterType.nullability, declaredNullability));
+            resolvedTypeParameterType.declaredNullability,
+            declaredNullability));
   }
 
   @override
@@ -12612,7 +12660,8 @@ class TypeParameterType extends DartType {
     DartType resolvedTypeParameterType = bound.nonTypeVariableBound;
     return resolvedTypeParameterType.withDeclaredNullability(
         combineNullabilitiesForSubstitution(
-            resolvedTypeParameterType.nullability, declaredNullability));
+            resolvedTypeParameterType.declaredNullability,
+            declaredNullability));
   }
 
   @override
@@ -14991,8 +15040,7 @@ class Source {
     }
     RangeError.checkValueInInterval(line, 1, lineStarts.length, 'line');
 
-    String cachedText =
-        this.cachedText ??= utf8.decode(source, allowMalformed: true);
+    String cachedText = text;
     // -1 as line numbers start at 1.
     int index = line - 1;
     if (index + 1 == lineStarts.length) {
@@ -15011,6 +15059,8 @@ class Source {
     // This shouldn't happen: should have been caught by the range check above.
     throw "Internal error";
   }
+
+  String get text => cachedText ??= utf8.decode(source, allowMalformed: true);
 
   /// Translates an offset to 1-based line and column numbers in the given file.
   Location getLocation(Uri file, int offset) {

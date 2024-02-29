@@ -4734,7 +4734,7 @@ static intptr_t GetProcessMemoryUsageHelper(JSONStream* js) {
         timeline.AddProperty("name", "Timeline");
         timeline.AddProperty(
             "description",
-            "Timeline events from dart:developer and Dart_TimelineEvent");
+            "Timeline events from dart:developer and Dart_RecordTimelineEvent");
         intptr_t size = Timeline::recorder()->Size();
         vm_size += size;
         timeline.AddProperty64("size", size);
@@ -5235,8 +5235,7 @@ class SystemServiceIsolateVisitor : public IsolateVisitor {
   virtual ~SystemServiceIsolateVisitor() {}
 
   void VisitIsolate(Isolate* isolate) {
-    if (IsSystemIsolate(isolate) &&
-        !Dart::VmIsolateNameEquals(isolate->name())) {
+    if (IsSystemIsolate(isolate) && !isolate->is_vm_isolate()) {
       jsarr_->AddValue(isolate);
     }
   }
@@ -5320,7 +5319,7 @@ void Service::PrintJSONForVM(JSONStream* js, bool ref) {
     JSONArray jsarr_isolate_groups(&jsobj, "systemIsolateGroups");
     IsolateGroup::ForEach([&jsarr_isolate_groups](IsolateGroup* isolate_group) {
       // Don't surface the vm-isolate since it's not a "real" isolate.
-      if (Dart::VmIsolateNameEquals(isolate_group->source()->name)) {
+      if (isolate_group->is_vm_isolate()) {
         return;
       }
       if (isolate_group->is_system_isolate_group()) {

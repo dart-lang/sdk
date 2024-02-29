@@ -156,6 +156,7 @@ binders
 bindings
 bindir
 binds
+bitmask
 bj
 bk
 bla
@@ -680,9 +681,11 @@ framework
 freed
 freedom
 freely
+freeze
 freshly
 frontend
 frontends
+frozen
 fs
 fsource
 fuchsia
@@ -771,6 +774,7 @@ hoc
 holes
 hook
 hooked
+hooking
 hopefully
 horizontal
 href
@@ -908,6 +912,7 @@ java
 jenkins
 jensj
 jit
+jmesserly
 job
 johnniwinther
 js
@@ -1439,6 +1444,7 @@ relink
 reload
 reloading
 remapped
+remapping
 remedy
 remotely
 removal
@@ -1539,6 +1545,7 @@ selectively
 selectors
 semantically
 semver
+separation
 separators
 sequencing
 sequential
@@ -1621,6 +1628,7 @@ sortable
 sourcemap
 sourcemaps
 spaced
+spans
 sparse
 spawn
 spawned
@@ -1716,6 +1724,7 @@ successive
 suffixed
 suffixing
 sugared
+suggest
 suggests
 suite
 sum

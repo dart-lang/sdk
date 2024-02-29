@@ -9,7 +9,7 @@ library from "org-dartlang-test:///main.dart" as main {
   static method main() → dynamic {
     dynamic x;
     dart.core::print(x{dynamic}.>>>(2));
-    main::Class? c = new main::Class::•();
+    main::Class? c = new main::Class::•() as{Unchecked} main::Class?;
     dart.core::print(c!);
   }
 }

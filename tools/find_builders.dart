@@ -75,12 +75,21 @@ Iterable<String> _filterConfigurations(Set<String> configs) {
 }
 
 Iterable<String> _filterBuilders(Iterable<String> builders) {
-  return builders.where((b) => !_ciOnlyBuilders.contains(b));
+  return builders.where(
+    (b) => !_ciOnlyBuilders.contains(b) && !_denyListedBuilders.contains(b),
+  );
 }
 
 const _ciOnlyBuilders = {
   'vm-aot-linux-release-arm64',
   'vm-linux-release-arm64',
+};
+
+const _denyListedBuilders = {
+  // TODO(https://dartbug.com/51170): Reenable this.
+  'vm-aot-win-debug-x64c',
+  // TODO(https://dartbug.com/51170): Reenable this.
+  'vm-win-debug-x64c',
 };
 
 Stream<Map<String, dynamic>> _configurationDocuments() async* {

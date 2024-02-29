@@ -25,7 +25,7 @@ void main() {
 deferredTest1() async {
   CompilationResult result = await runCompiler(memorySourceFiles: TEST1);
 
-  Compiler compiler = result.compiler;
+  Compiler compiler = result.compiler!;
   var closedWorld = compiler.backendClosedWorldForTesting!;
   var env = closedWorld.elementEnvironment;
   var outputUnitForMember = closedWorld.outputUnitData.outputUnitForMember;
@@ -42,7 +42,7 @@ deferredTest1() async {
 deferredTest2() async {
   CompilationResult result = await runCompiler(memorySourceFiles: TEST2);
 
-  Compiler compiler = result.compiler;
+  Compiler compiler = result.compiler!;
   var closedWorld = compiler.backendClosedWorldForTesting!;
   var env = closedWorld.elementEnvironment;
   var outputUnitForClass = closedWorld.outputUnitData.outputUnitForClass;
@@ -61,7 +61,7 @@ deferredTest2() async {
 deferredTest3() async {
   CompilationResult result = await runCompiler(memorySourceFiles: TEST3);
 
-  Compiler compiler = result.compiler;
+  Compiler compiler = result.compiler!;
   var closedWorld = compiler.backendClosedWorldForTesting!;
   var env = closedWorld.elementEnvironment;
   var outputUnitForClass = closedWorld.outputUnitData.outputUnitForClass;
@@ -79,7 +79,7 @@ deferredTest3() async {
 deferredTest4() async {
   CompilationResult result = await runCompiler(memorySourceFiles: TEST4);
 
-  Compiler compiler = result.compiler;
+  Compiler compiler = result.compiler!;
   var closedWorld = compiler.backendClosedWorldForTesting!;
   var env = closedWorld.elementEnvironment;
   var outputUnitForClass = closedWorld.outputUnitData.outputUnitForClass;
@@ -98,7 +98,7 @@ deferredTest4() async {
 deferredTest5() async {
   CompilationResult result = await runCompiler(memorySourceFiles: TEST5);
 
-  Compiler compiler = result.compiler;
+  Compiler compiler = result.compiler!;
   var closedWorld = compiler.backendClosedWorldForTesting!;
   var env = closedWorld.elementEnvironment;
   var outputUnitForClass = closedWorld.outputUnitData.outputUnitForClass;

@@ -66,6 +66,7 @@ class Monomorphic extends Base {
   /// can specialize the method according to different sets of input
   /// implementation types.
   @pragma('vm:never-inline')
+  @pragma('wasm:never-inline')
   @pragma('dart2js:never-inline')
   static int sum(List<int> list) {
     var s = 0;
@@ -102,6 +103,7 @@ class Baseline extends Base {
         super('TypedDataPoly.baseline', n);
 
   @pragma('vm:never-inline')
+  @pragma('wasm:never-inline')
   @pragma('dart2js:never-inline')
   static int sum(List<int> list) {
     return list.length;
@@ -141,6 +143,7 @@ class Polymorphic1 extends Base {
   }
 
   @pragma('vm:never-inline')
+  @pragma('wasm:never-inline')
   @pragma('dart2js:never-inline')
   static int sum(List<int> list) {
     var s = 0;
@@ -192,6 +195,7 @@ class Polymorphic2 extends Base {
   }
 
   @pragma('vm:never-inline')
+  @pragma('wasm:never-inline')
   @pragma('dart2js:never-inline')
   static int sum(List<int> list) {
     var s = 0;
@@ -235,6 +239,7 @@ class Polymorphic3 extends Base {
   }
 
   @pragma('vm:never-inline')
+  @pragma('wasm:never-inline')
   @pragma('dart2js:never-inline')
   static int sum(List<int> list) {
     var s = 0;
@@ -281,6 +286,7 @@ class Polymorphic4 extends Base {
   }
 
   @pragma('vm:never-inline')
+  @pragma('wasm:never-inline')
   @pragma('dart2js:never-inline')
   static int sum(List<int> list) {
     var s = 0;
@@ -360,6 +366,7 @@ class Polymorphic5 extends Base {
   }
 
   @pragma('vm:never-inline')
+  @pragma('wasm:never-inline')
   @pragma('dart2js:never-inline')
   static int sum(List<int> list) {
     var s = 0;

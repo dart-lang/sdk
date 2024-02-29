@@ -25,27 +25,23 @@ class FlattenTypeTest extends AbstractTypeSystemTest {
   test_interfaceType() {
     _check(intNone, 'int');
     _check(intQuestion, 'int?');
-    _check(intStar, 'int*');
   }
 
   test_interfaceType_none_hasFutureType() {
     _check(futureNone(intNone), 'int');
     _check(futureNone(intQuestion), 'int?');
-    _check(futureNone(intStar), 'int*');
 
     _check(futureQuestion(intNone), 'int?');
     _check(futureQuestion(intQuestion), 'int?');
 
     _check(futureOrNone(intNone), 'int');
     _check(futureOrNone(intQuestion), 'int?');
-    _check(futureOrNone(intStar), 'int*');
 
     _check(futureOrQuestion(intNone), 'int?');
     _check(futureOrQuestion(intQuestion), 'int?');
 
     _check(futureOrNone(futureNone(intNone)), 'Future<int>');
     _check(futureOrNone(futureNone(intQuestion)), 'Future<int?>');
-    _check(futureOrNone(futureNone(intStar)), 'Future<int*>');
 
     _check(futureOrQuestion(futureNone(intNone)), 'Future<int>?');
     _check(futureOrQuestion(futureNone(intQuestion)), 'Future<int?>?');
@@ -135,7 +131,7 @@ class FlattenTypeTest extends AbstractTypeSystemTest {
   void _check(DartType T, String expected) {
     final result = typeSystem.flatten(T);
     expect(
-      result.getDisplayString(withNullability: true),
+      result.getDisplayString(),
       expected,
     );
   }
@@ -254,7 +250,7 @@ class FutureTypeTest extends AbstractTypeSystemTest {
       expect(expected, isNull);
     } else {
       expect(
-        result.getDisplayString(withNullability: true),
+        result.getDisplayString(),
         expected,
       );
     }

@@ -14,6 +14,7 @@ import '../inferrer/abstract_value_domain.dart';
 import '../js_backend/native_data.dart' show NativeBasicData;
 import '../js_model/locals.dart';
 import '../universe/selector.dart' show Selector;
+import '../universe/world_builder.dart';
 
 import 'names.dart' show Identifiers, Uris;
 
@@ -1066,9 +1067,8 @@ abstract class CommonElements {
 
   ClassEntity getDefaultSuperclass(
       ClassEntity cls, NativeBasicData nativeBasicData) {
-    if (nativeBasicData.isJsInteropClass(cls)) {
-      return jsLegacyJavaScriptObjectClass;
-    }
+    final defaultedClass = defaultReceiverClass(this, nativeBasicData, cls);
+    if (defaultedClass != cls) return defaultedClass;
     // Native classes inherit from Interceptor.
     return nativeBasicData.isNativeClass(cls)
         ? jsInterceptorClass

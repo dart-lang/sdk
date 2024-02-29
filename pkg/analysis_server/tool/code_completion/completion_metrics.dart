@@ -172,25 +172,21 @@ ArgParser createArgParser() {
             'completion will be requested this many characters in from the '
             'start of the token being completed.')
     ..addFlag(CompletionMetricsQualityOptions.PRINT_MISSED_COMPLETION_DETAILS,
-        defaultsTo: false,
         help:
             'Print detailed information every time a completion request fails '
             'to produce a suggestions matching the expected suggestion.',
         negatable: false)
     ..addFlag(CompletionMetricsQualityOptions.PRINT_MISSED_COMPLETION_SUMMARY,
-        defaultsTo: false,
         help: 'Print summary information about the times that a completion '
             'request failed to produce a suggestions matching the expected '
             'suggestion.',
         negatable: false)
     ..addFlag(CompletionMetricsQualityOptions.PRINT_MISSING_INFORMATION,
-        defaultsTo: false,
         help: 'Print information about places where no completion location was '
             'computed and about information that is missing in the completion '
             'tables.',
         negatable: false)
     ..addFlag(CompletionMetricsQualityOptions.PRINT_MRR_BY_LOCATION,
-        defaultsTo: false,
         help:
             'Print information about the mrr score achieved at each completion '
             'location. This can help focus efforts to improve the overall '
@@ -198,18 +194,15 @@ ArgParser createArgParser() {
             'impact.',
         negatable: false)
     ..addFlag(CompletionMetricsQualityOptions.PRINT_SHADOWED_COMPLETION_DETAILS,
-        defaultsTo: false,
         help: 'Print detailed information every time a completion request '
             'produces a suggestion whose name matches the expected suggestion '
             'but that is referencing a different element',
         negatable: false)
     ..addFlag(CompletionMetricsOptions.PRINT_SLOWEST_RESULTS,
-        defaultsTo: false,
         help: 'Print information about the completion requests that were the '
             'slowest to return suggestions.',
         negatable: false)
     ..addFlag(CompletionMetricsQualityOptions.PRINT_WORST_RESULTS,
-        defaultsTo: false,
         help: 'Print information about the completion requests that had the '
             'worst mrr scores.',
         negatable: false)
@@ -791,8 +784,7 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
   Future<void> computeMetrics() async {
     // To compare two or more changes to completions, add a `CompletionMetrics`
     // object with enable and disable functions to the list of `targetMetrics`.
-    targetMetrics.add(CompletionMetrics('shipping',
-        enableFunction: null, disableFunction: null));
+    targetMetrics.add(CompletionMetrics('shipping'));
 
     // To compare two or more relevance tables, uncomment the line below and
     // add the `RelevanceTables` to the list. The default relevance tables

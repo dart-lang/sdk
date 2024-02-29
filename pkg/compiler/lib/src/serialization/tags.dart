@@ -91,8 +91,6 @@ enum DartTypeNodeKind {
   typedef,
   dynamicType,
   invalidType,
-  thisInterfaceType,
-  exactInterfaceType,
   neverType,
   futureOrType,
   nullType,

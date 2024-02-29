@@ -311,7 +311,6 @@ class LibraryContext {
           if (libraryKind.file.uri == libraryReader.uri) {
             libraryKind.addMacroAugmentation(
               macroGeneratedCode,
-              addLibraryAugmentDirective: false,
               partialIndex: null,
             );
           }

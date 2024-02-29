@@ -947,9 +947,9 @@ void ARMDecoder::DecodeType3(Instr* instr) {
       static_assert(kDivRnShift == kRmShift,
                     "div 'rn does not correspond to 'rm");
       if (instr->IsDivUnsigned()) {
-        Format(instr, "udiv'cond 'rn, 'rs, 'rm");
+        Format(instr, "udiv'cond 'rn, 'rm, 'rs");
       } else {
-        Format(instr, "sdiv'cond 'rn, 'rs, 'rm");
+        Format(instr, "sdiv'cond 'rn, 'rm, 'rs");
       }
     } else if (instr->IsRbit()) {
       Format(instr, "rbit'cond 'rd, 'rm");

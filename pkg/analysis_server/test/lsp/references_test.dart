@@ -72,7 +72,6 @@ void f() {
     await _checkRanges(
       mainContent,
       otherContent: otherContent,
-      includeDeclarations: false,
     );
   }
 
@@ -227,7 +226,7 @@ int f(Object o) {
 }
 ''';
 
-    await _checkRanges(content, includeDeclarations: false);
+    await _checkRanges(content);
   }
 
   Future<void> test_singleFile_withoutDeclaration() async {
@@ -237,7 +236,7 @@ f^oo() {
 }
 ''';
 
-    await _checkRanges(content, includeDeclarations: false);
+    await _checkRanges(content);
   }
 
   Future<void> test_type() async {

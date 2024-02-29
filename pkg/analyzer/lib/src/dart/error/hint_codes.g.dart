@@ -106,18 +106,7 @@ class HintCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  https://github.com/dart-lang/sdk/issues/44063
-  ///
-  ///  Parameters:
-  ///  0: the name of the library
-  static const HintCode IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE = HintCode(
-    'IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE',
-    "The library '{0}' is legacy, and shouldn't be imported into a null safe "
-        "library.",
-    correctionMessage: "Try migrating the imported library.",
-    hasPublishedDocs: true,
-  );
-
+  ///  Reported when the macro uses `Builder.report()` with `Severity.info`.
   ///  Parameters:
   ///  0: the message
   static const HintCode MACRO_INFO = HintCode(

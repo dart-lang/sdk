@@ -226,7 +226,7 @@ class A {}
   }
 
   test_getLibrary_exportViaRecursiveLink() async {
-    resourceProvider.newLink(
+    newLink(
       convertPath('/home/test/lib/foo'),
       convertPath('/home/test/lib'),
     );
@@ -2643,24 +2643,14 @@ typedef C = double;
       _getDeclaration(library.declarations, 'A'),
       'A',
       DeclarationKind.TYPE_ALIAS,
-      parameters: null,
-      parameterNames: null,
-      parameterTypes: null,
       relevanceTags: ['ElementKind.TYPE_ALIAS', 'package:test/test.dart::A'],
-      requiredParameterCount: null,
-      returnType: null,
     );
     _assertDeclaration(
       _getDeclaration(library.declarations, 'B'),
       'B',
       DeclarationKind.TYPE_ALIAS,
       isDeprecated: true,
-      parameters: null,
-      parameterNames: null,
-      parameterTypes: null,
       relevanceTags: ['ElementKind.TYPE_ALIAS', 'package:test/test.dart::B'],
-      requiredParameterCount: null,
-      returnType: null,
     );
     _assertDeclaration(
       _getDeclaration(library.declarations, 'C'),
@@ -2668,12 +2658,7 @@ typedef C = double;
       DeclarationKind.TYPE_ALIAS,
       docSummary: 'aaa',
       docComplete: 'aaa\n\nbbb bbb',
-      parameters: null,
-      parameterNames: null,
-      parameterTypes: null,
       relevanceTags: ['ElementKind.TYPE_ALIAS', 'package:test/test.dart::C'],
-      requiredParameterCount: null,
-      returnType: null,
     );
   }
 

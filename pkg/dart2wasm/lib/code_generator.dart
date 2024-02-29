@@ -1031,12 +1031,6 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    if (node.type is VoidType) {
-      if (node.initializer != null) {
-        wrap(node.initializer!, voidMarker);
-      }
-      return;
-    }
     w.ValueType type = translateType(node.type);
     w.Local? local;
     Capture? capture = closures.captures[node];
@@ -1164,8 +1158,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       // Only emit the type test if the guard is not [Object].
       if (emitGuard) {
         b.local_get(thrownException);
-        types.emitTypeCheck(
-            this, guard, translator.coreTypes.objectNonNullableRawType, catch_);
+        types.emitIsTest(this, guard,
+            translator.coreTypes.objectNonNullableRawType, catch_.location);
         b.i32_eqz();
         b.br_if(catchBlock);
       }
@@ -2166,10 +2160,6 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   @override
   w.ValueType visitVariableGet(VariableGet node, w.ValueType expectedType) {
-    // Return `void` for a void [VariableGet].
-    if (node.variable.type is VoidType) {
-      return voidMarker;
-    }
     w.Local? local = locals[node.variable];
     Capture? capture = closures.captures[node.variable];
     if (capture != null) {
@@ -2192,10 +2182,6 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   @override
   w.ValueType visitVariableSet(VariableSet node, w.ValueType expectedType) {
-    // Return `void` for a void [VariableSet].
-    if (node.variable.type is VoidType) {
-      return wrap(node.value, voidMarker);
-    }
     w.Local? local = locals[node.variable];
     Capture? capture = closures.captures[node.variable];
     bool preserved = expectedType != voidMarker;
@@ -2868,10 +2854,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       return visitStringLiteral(expr, expectedType);
     }
 
-    makeListFromExpressions(
-        node.expressions,
-        InterfaceType(
-            translator.coreTypes.stringClass, Nullability.nonNullable));
+    makeArrayFromExpressions(node.expressions,
+        translator.coreTypes.objectRawType(Nullability.nullable));
     return translator.outputOrVoid(call(translator.options.jsCompatibility
         ? translator.jsStringInterpolate.reference
         : translator.stringInterpolate.reference));
@@ -3039,8 +3023,12 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   @override
   w.ValueType visitIsExpression(IsExpression node, w.ValueType expectedType) {
-    wrap(node.operand, translator.topInfo.nullableType);
-    types.emitTypeCheck(this, node.type, dartTypeOf(node.operand), node);
+    final operandType = dartTypeOf(node.operand);
+    final boxedOperandType = operandType.isPotentiallyNullable
+        ? translator.topInfo.nullableType
+        : translator.topInfo.nonNullableType;
+    wrap(node.operand, boxedOperandType);
+    types.emitIsTest(this, node.type, operandType, node.location);
     return w.NumType.i32;
   }
 
@@ -3050,23 +3038,13 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       return wrap(node.operand, expectedType);
     }
 
-    w.Label asCheckBlock = b.block();
-    wrap(node.operand, translator.topInfo.nullableType);
-    w.Local operand = addLocal(translator.topInfo.nullableType);
-    b.local_tee(operand);
-
-    // We lower an `as` expression to a type test, throwing a [TypeError] if
-    // the type test fails.
-    types.emitTypeCheck(this, node.type, dartTypeOf(node.operand), node);
-    b.br_if(asCheckBlock);
-    b.local_get(operand);
-    types.makeType(this, node.type);
-    call(translator.stackTraceCurrent.reference);
-    call(translator.throwAsCheckError.reference);
-    b.unreachable();
-    b.end();
-    b.local_get(operand);
-    return operand.type;
+    final operandType = dartTypeOf(node.operand);
+    final boxedOperandType = operandType.isPotentiallyNullable
+        ? translator.topInfo.nullableType
+        : translator.topInfo.nonNullableType;
+    wrap(node.operand, boxedOperandType);
+    return types.emitAsCheck(
+        this, node.type, operandType, boxedOperandType, node.location);
   }
 
   @override
@@ -3802,4 +3780,113 @@ enum _VirtualCallKind {
   bool get isGetter => this == _VirtualCallKind.Get;
 
   bool get isSetter => this == _VirtualCallKind.Set;
+}
+
+extension MacroAssembler on w.InstructionsBuilder {
+  /// `[i32] -> [i32]`
+  ///
+  /// Consumes an `i32` for a class ID, leaves an `i32` as `bool` for whether
+  /// the class ID is in the given list of ranges.
+  void emitClassIdRangeCheck(List<Range> ranges) {
+    if (ranges.isEmpty) {
+      drop();
+      i32_const(0);
+    } else if (ranges.length == 1) {
+      final range = ranges[0];
+
+      i32_const(range.start);
+      if (range.length == 1) {
+        i32_eq();
+      } else {
+        i32_sub();
+        i32_const(range.length);
+        i32_lt_u();
+      }
+    } else {
+      w.Local idLocal = addLocal(w.NumType.i32, isParameter: false);
+      local_set(idLocal);
+      w.Label done = block(const [], const [w.NumType.i32]);
+      i32_const(1);
+
+      for (Range range in ranges) {
+        local_get(idLocal);
+        i32_const(range.start);
+        if (range.length == 1) {
+          i32_eq();
+        } else {
+          i32_sub();
+          i32_const(range.length);
+          i32_lt_u();
+        }
+        br_if(done);
+      }
+      drop();
+      i32_const(0);
+      end(); // done
+    }
+  }
+
+  /// `[ref _Closure] -> [i32]`
+  ///
+  /// Given a closure reference returns whether the closure is an
+  /// instantiation.
+  void emitInstantiationClosureCheck(Translator translator) {
+    ref_cast(w.RefType(translator.closureLayouter.closureBaseStruct,
+        nullable: false));
+    struct_get(translator.closureLayouter.closureBaseStruct,
+        FieldIndex.closureContext);
+    ref_test(w.RefType(
+        translator.closureLayouter.instantiationContextBaseStruct,
+        nullable: false));
+  }
+
+  /// `[ref _Closure] -> [ref #ClosureBase]`
+  ///
+  /// Given an instantiation closure returns the instantiated closure.
+  void emitGetInstantiatedClosure(Translator translator) {
+    // instantiation.context
+    ref_cast(w.RefType(translator.closureLayouter.closureBaseStruct,
+        nullable: false));
+    struct_get(translator.closureLayouter.closureBaseStruct,
+        FieldIndex.closureContext);
+
+    // instantiation.context.inner
+    ref_cast(w.RefType(
+        translator.closureLayouter.instantiationContextBaseStruct,
+        nullable: false));
+    struct_get(translator.closureLayouter.instantiationContextBaseStruct,
+        FieldIndex.instantiationContextInner);
+  }
+
+  /// `[ref _Closure] -> [i32]`
+  ///
+  /// Given a closure returns whether the closure is a tear-off.
+  void emitTearOffCheck(Translator translator) {
+    ref_cast(w.RefType(translator.closureLayouter.closureBaseStruct,
+        nullable: false));
+    struct_get(translator.closureLayouter.closureBaseStruct,
+        FieldIndex.closureContext);
+    ref_test(translator.topInfo.nonNullableType);
+  }
+
+  /// `[ref _Closure] -> [ref #Top]`
+  ///
+  /// Given a closure returns the receiver of the closure.
+  void emitGetTearOffReceiver(Translator translator) {
+    ref_cast(w.RefType(translator.closureLayouter.closureBaseStruct,
+        nullable: false));
+    struct_get(translator.closureLayouter.closureBaseStruct,
+        FieldIndex.closureContext);
+    ref_cast(translator.topInfo.nonNullableType);
+  }
+
+  /// `[ref _Closure] -> [ref Any]
+  ///
+  /// Given a closure returns the vtable of the closure.
+  void emitGetClosureVtable(Translator translator) {
+    ref_cast(w.RefType(translator.closureLayouter.closureBaseStruct,
+        nullable: false));
+    struct_get(
+        translator.closureLayouter.closureBaseStruct, FieldIndex.closureVtable);
+  }
 }

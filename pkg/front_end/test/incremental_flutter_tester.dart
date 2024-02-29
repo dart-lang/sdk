@@ -4,32 +4,23 @@
 
 import 'dart:io' show Directory, File, exit;
 
+import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions, DiagnosticMessage;
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart'
     show IncrementalCompilerResult;
-
 import 'package:front_end/src/fasta/kernel/utils.dart' show serializeComponent;
-
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
-
 import 'package:kernel/import_table.dart' show ImportTable;
-
 import 'package:kernel/kernel.dart'
     show Component, Library, LibraryPart, MetadataRepository, Name, Reference;
-
 import 'package:kernel/target/targets.dart' show Target, TargetFlags;
-
 import 'package:kernel/text/ast_to_text.dart'
     show Annotator, NameSystem, Printer;
+import "package:vm/modular/target/flutter.dart" show FlutterTarget;
 
 import 'incremental_suite.dart' as helper;
-
-import "package:vm/target/flutter.dart" show FlutterTarget;
-
-import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
-
 import "incremental_utils.dart" as util;
 
 Never usage(String extraMessage) {

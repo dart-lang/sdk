@@ -21,7 +21,7 @@ main() {
 }
 
 class AbsoluteUriResolver extends UriResolver {
-  final MemoryResourceProvider resourceProvider;
+  final ResourceProvider resourceProvider;
 
   AbsoluteUriResolver(this.resourceProvider);
 

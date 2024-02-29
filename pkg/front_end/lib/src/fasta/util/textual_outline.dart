@@ -2,34 +2,24 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:typed_data' show Uint8List;
-
 import 'dart:io' show File;
+import 'dart:typed_data' show Uint8List;
 
 import 'package:_fe_analyzer_shared/src/parser/class_member_parser.dart'
     show ClassMemberParser;
-
 import 'package:_fe_analyzer_shared/src/parser/identifier_context.dart';
-
+import 'package:_fe_analyzer_shared/src/parser/listener.dart';
 import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
     show ScannerConfiguration;
-
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
     show ErrorToken, LanguageVersionToken, Scanner;
-
+import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 import 'package:_fe_analyzer_shared/src/scanner/utf8_bytes_scanner.dart'
     show Utf8BytesScanner;
-
-import 'package:_fe_analyzer_shared/src/parser/listener.dart';
-
-import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
-
 import 'package:kernel/ast.dart' show Version;
 
 import '../../api_prototype/experimental_flags.dart' show ExperimentalFlag;
-
-import '../fasta_codes.dart' show codeNativeClauseShouldBeAnnotation;
-
+import '../codes/fasta_codes.dart' show codeNativeClauseShouldBeAnnotation;
 import '../messages.dart' show Message;
 
 abstract class _Chunk implements Comparable<_Chunk> {
@@ -755,6 +745,7 @@ class TextualOutlineListener extends Listener {
 
   @override
   void endTopLevelFields(
+      Token? augmentToken,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,

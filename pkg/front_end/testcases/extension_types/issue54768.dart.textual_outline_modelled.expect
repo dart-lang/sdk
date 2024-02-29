@@ -1,0 +1,12 @@
+Function func(Function callable) => callable;
+
+class Expect {
+  static void equals(x, y) {}
+  static void isTrue(bool b) {}
+}
+
+extension type ET(Object? _) {
+  String call() => "ET";
+}
+
+void main() {}

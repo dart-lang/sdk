@@ -23,7 +23,7 @@ mixin EqualKeysInConstMapTestCases on PubPackageResolutionTest {
 var c = const {1: null, 2: null, 1: null};
 ''', [
       error(CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP, 33, 1,
-          contextMessages: [message('$testPackageLibPath/test.dart', 15, 1)]),
+          contextMessages: [message(testFile, 15, 1)]),
     ]);
   }
 
@@ -33,7 +33,7 @@ const x = {int: 0, E: 0};
 extension type E(int it) {}
 ''', [
       error(CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP, 19, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 11, 3)]),
+          contextMessages: [message(testFile, 11, 3)]),
     ]);
   }
 
@@ -42,7 +42,7 @@ extension type E(int it) {}
 var c = const {1: null, if (1 < 0) 2: null else 1: null};
 ''', [
       error(CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP, 48, 1,
-          contextMessages: [message('$testPackageLibPath/test.dart', 15, 1)]),
+          contextMessages: [message(testFile, 15, 1)]),
     ]);
   }
 
@@ -75,7 +75,7 @@ var c = const {2: null, if (1 < 0) 2: 2};
 var c = const {1: null, if (0 < 1) 1: null};
 ''', [
       error(CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP, 35, 1,
-          contextMessages: [message('$testPackageLibPath/test.dart', 15, 1)]),
+          contextMessages: [message(testFile, 15, 1)]),
     ]);
   }
 
@@ -88,7 +88,7 @@ class A<T> {
 var c = const {const A<int>(): null, const A<int>(): null};
 ''', [
       error(CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP, 66, 14,
-          contextMessages: [message('$testPackageLibPath/test.dart', 44, 14)]),
+          contextMessages: [message(testFile, 44, 14)]),
     ]);
   }
 
@@ -108,7 +108,7 @@ var c = const {const A<int>(): null, const A<num>(): null};
 const x = {[0]: null, [0]: null};
 ''', [
       error(CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP, 22, 3,
-          contextMessages: [message('/home/test/lib/test.dart', 11, 3)]),
+          contextMessages: [message(testFile, 11, 3)]),
     ]);
   }
 
@@ -123,7 +123,7 @@ const x = {[0]: null, [1]: null};
 const x = {(0, 1): null, (0, 1): null};
 ''', [
       error(CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP, 25, 6,
-          contextMessages: [message('/home/test/lib/test.dart', 11, 6)]),
+          contextMessages: [message(testFile, 11, 6)]),
     ]);
   }
 
@@ -144,7 +144,7 @@ var c = const {1: null, ...{2: null}};
 var c = const {1: null, ...{1: null}};
 ''', [
       error(CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP, 27, 9,
-          contextMessages: [message('$testPackageLibPath/test.dart', 15, 1)]),
+          contextMessages: [message(testFile, 15, 1)]),
     ]);
   }
 

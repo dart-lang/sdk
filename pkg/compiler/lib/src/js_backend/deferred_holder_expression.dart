@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:js_ast/src/precedence.dart' as js show PRIMARY;
+import 'package:js_ast/src/precedence.dart' as js show Precedence;
 import 'package:front_end/src/api_unstable/dart2js.dart' show $A;
 
 import '../common/elements.dart' show JCommonElements;
@@ -120,7 +120,8 @@ class DeferredHolderExpression extends js.DeferredExpression
   }
 
   @override
-  int get precedenceLevel => _value?.precedenceLevel ?? js.PRIMARY;
+  js.Precedence get precedenceLevel =>
+      _value?.precedenceLevel ?? js.Precedence.primary;
 
   @override
   int get hashCode {
@@ -209,7 +210,7 @@ class DeferredHolderParameter extends js.Expression implements js.Parameter {
   }
 
   @override
-  int get precedenceLevel => js.PRIMARY;
+  js.Precedence get precedenceLevel => js.Precedence.primary;
 
   @override
   T accept<T>(js.NodeVisitor<T> visitor) => visitor.visitParameter(this);

@@ -1,7 +1,10 @@
-import 'package:_fe_analyzer_shared/src/macros/executor/introspection_impls.dart';
+// Copyright (c) 2024, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
 import '../api.dart';
 import 'exception_impls.dart';
+import 'introspection_impls.dart';
 import 'remote_instance.dart';
 import 'serialization.dart';
 
@@ -47,8 +50,8 @@ extension DeserializerExtensions on Deserializer {
         (this..moveNext())._expectFunctionDeclaration(id),
       RemoteInstanceKind.functionTypeAnnotation =>
         (this..moveNext())._expectFunctionTypeAnnotation(id),
-      RemoteInstanceKind.functionTypeParameter =>
-        (this..moveNext())._expectFunctionTypeParameter(id),
+      RemoteInstanceKind.formalParameter =>
+        (this..moveNext())._expectFormalParameter(id),
       RemoteInstanceKind.identifier => (this..moveNext())._expectIdentifier(id),
       RemoteInstanceKind.identifierMetadataAnnotation =>
         (this..moveNext())._expectIdentifierMetadataAnnotation(id),
@@ -59,14 +62,16 @@ extension DeserializerExtensions on Deserializer {
         (this..moveNext())._expectNamedTypeAnnotation(id),
       RemoteInstanceKind.omittedTypeAnnotation =>
         (this..moveNext())._expectOmittedTypeAnnotation(id),
-      RemoteInstanceKind.parameterDeclaration =>
-        (this..moveNext())._expectParameterDeclaration(id),
+      RemoteInstanceKind.formalParameterDeclaration =>
+        (this..moveNext())._expectFormalParameterDeclaration(id),
       RemoteInstanceKind.recordFieldDeclaration =>
         (this..moveNext())._expectRecordFieldDeclaration(id),
       RemoteInstanceKind.recordTypeAnnotation =>
         (this..moveNext())._expectRecordTypeAnnotation(id),
       RemoteInstanceKind.typeAliasDeclaration =>
         (this..moveNext())._expectTypeAliasDeclaration(id),
+      RemoteInstanceKind.typeParameter =>
+        (this..moveNext())._expectTypeParameter(id),
       RemoteInstanceKind.typeParameterDeclaration =>
         (this..moveNext())._expectTypeParameterDeclaration(id),
       RemoteInstanceKind.variableDeclaration =>
@@ -136,11 +141,10 @@ extension DeserializerExtensions on Deserializer {
         typeParameters: (this..moveNext())._expectRemoteInstanceList(),
       );
 
-  FunctionTypeParameterImpl _expectFunctionTypeParameter(int id) =>
-      new FunctionTypeParameterImpl(
+  FormalParameterImpl _expectFormalParameter(int id) =>
+      new FormalParameterImpl.fromBitMask(
         id: id,
-        isNamed: expectBool(),
-        isRequired: (this..moveNext()).expectBool(),
+        bitMask: new BitMask(expectInt()),
         metadata: (this..moveNext())._expectRemoteInstanceList(),
         name: (this..moveNext()).expectNullableString(),
         type: RemoteInstance.deserialize(this),
@@ -151,14 +155,13 @@ extension DeserializerExtensions on Deserializer {
         name: expectString(),
       );
 
-  ParameterDeclarationImpl _expectParameterDeclaration(int id) =>
-      new ParameterDeclarationImpl(
+  FormalParameterDeclarationImpl _expectFormalParameterDeclaration(int id) =>
+      new FormalParameterDeclarationImpl.fromBitMask(
         id: id,
         identifier: expectRemoteInstance(),
         library: RemoteInstance.deserialize(this),
         metadata: (this..moveNext())._expectRemoteInstanceList(),
-        isNamed: (this..moveNext()).expectBool(),
-        isRequired: (this..moveNext()).expectBool(),
+        bitMask: new BitMask((this..moveNext()).expectInt()),
         type: RemoteInstance.deserialize(this),
       );
 
@@ -179,6 +182,13 @@ extension DeserializerExtensions on Deserializer {
         positionalFields: (this..moveNext())._expectRemoteInstanceList(),
       );
 
+  TypeParameterImpl _expectTypeParameter(int id) => new TypeParameterImpl(
+        id: id,
+        bound: checkNull() ? null : expectRemoteInstance(),
+        metadata: (this..moveNext())._expectRemoteInstanceList(),
+        name: (this..moveNext()).expectString(),
+      );
+
   TypeParameterDeclarationImpl _expectTypeParameterDeclaration(int id) =>
       new TypeParameterDeclarationImpl(
         id: id,
@@ -189,16 +199,12 @@ extension DeserializerExtensions on Deserializer {
       );
 
   FunctionDeclarationImpl _expectFunctionDeclaration(int id) =>
-      new FunctionDeclarationImpl(
+      new FunctionDeclarationImpl.fromBitMask(
         id: id,
         identifier: expectRemoteInstance(),
         library: RemoteInstance.deserialize(this),
         metadata: (this..moveNext())._expectRemoteInstanceList(),
-        hasBody: (this..moveNext()).expectBool(),
-        hasExternal: (this..moveNext()).expectBool(),
-        isGetter: (this..moveNext()).expectBool(),
-        isOperator: (this..moveNext()).expectBool(),
-        isSetter: (this..moveNext()).expectBool(),
+        bitMask: new BitMask((this..moveNext()).expectInt()),
         namedParameters: (this..moveNext())._expectRemoteInstanceList(),
         positionalParameters: (this..moveNext())._expectRemoteInstanceList(),
         returnType: RemoteInstance.deserialize(this),
@@ -206,82 +212,65 @@ extension DeserializerExtensions on Deserializer {
       );
 
   MethodDeclarationImpl _expectMethodDeclaration(int id) =>
-      new MethodDeclarationImpl(
+      new MethodDeclarationImpl.fromBitMask(
         id: id,
         identifier: expectRemoteInstance(),
         library: RemoteInstance.deserialize(this),
         metadata: (this..moveNext())._expectRemoteInstanceList(),
-        hasBody: (this..moveNext()).expectBool(),
-        hasExternal: (this..moveNext()).expectBool(),
-        isGetter: (this..moveNext()).expectBool(),
-        isOperator: (this..moveNext()).expectBool(),
-        isSetter: (this..moveNext()).expectBool(),
+        bitMask: new BitMask((this..moveNext()).expectInt()),
         namedParameters: (this..moveNext())._expectRemoteInstanceList(),
         positionalParameters: (this..moveNext())._expectRemoteInstanceList(),
         returnType: RemoteInstance.deserialize(this),
         typeParameters: (this..moveNext())._expectRemoteInstanceList(),
         definingType: RemoteInstance.deserialize(this),
-        isStatic: (this..moveNext()).expectBool(),
       );
 
   ConstructorDeclarationImpl _expectConstructorDeclaration(int id) =>
-      new ConstructorDeclarationImpl(
+      new ConstructorDeclarationImpl.fromBitMask(
         id: id,
         identifier: expectRemoteInstance(),
         library: RemoteInstance.deserialize(this),
         metadata: (this..moveNext())._expectRemoteInstanceList(),
-        hasBody: (this..moveNext()).expectBool(),
-        hasExternal: (this..moveNext()).expectBool(),
+        bitMask: new BitMask((this..moveNext()).expectInt()),
         namedParameters: (this..moveNext())._expectRemoteInstanceList(),
         positionalParameters: (this..moveNext())._expectRemoteInstanceList(),
         returnType: RemoteInstance.deserialize(this),
         typeParameters: (this..moveNext())._expectRemoteInstanceList(),
         definingType: RemoteInstance.deserialize(this),
-        isFactory: (this..moveNext()).expectBool(),
       );
 
   VariableDeclarationImpl _expectVariableDeclaration(int id) =>
-      new VariableDeclarationImpl(
+      new VariableDeclarationImpl.fromBitMask(
         id: id,
         identifier: expectRemoteInstance(),
         library: RemoteInstance.deserialize(this),
         metadata: (this..moveNext())._expectRemoteInstanceList(),
-        hasExternal: (this..moveNext()).expectBool(),
-        hasFinal: (this..moveNext()).expectBool(),
-        hasLate: (this..moveNext()).expectBool(),
+        bitMask: new BitMask((this..moveNext()).expectInt()),
         type: RemoteInstance.deserialize(this),
       );
 
   FieldDeclarationImpl _expectFieldDeclaration(int id) =>
-      new FieldDeclarationImpl(
+      new FieldDeclarationImpl.fromBitMask(
         id: id,
+        // Declaration fields.
         identifier: expectRemoteInstance(),
         library: RemoteInstance.deserialize(this),
         metadata: (this..moveNext())._expectRemoteInstanceList(),
-        hasExternal: (this..moveNext()).expectBool(),
-        hasFinal: (this..moveNext()).expectBool(),
-        hasLate: (this..moveNext()).expectBool(),
+        bitMask: new BitMask((this..moveNext()).expectInt()),
         type: RemoteInstance.deserialize(this),
+        // FieldDeclaration fields
         definingType: RemoteInstance.deserialize(this),
-        hasAbstract: (this..moveNext()).expectBool(),
-        isStatic: (this..moveNext()).expectBool(),
       );
 
   ClassDeclarationImpl _expectClassDeclaration(int id) =>
-      new ClassDeclarationImpl(
+      new ClassDeclarationImpl.fromBitMask(
         id: id,
         identifier: expectRemoteInstance(),
         library: RemoteInstance.deserialize(this),
         metadata: (this..moveNext())._expectRemoteInstanceList(),
         typeParameters: (this..moveNext())._expectRemoteInstanceList(),
+        bitMask: new BitMask((this..moveNext()).expectInt()),
         interfaces: (this..moveNext())._expectRemoteInstanceList(),
-        hasAbstract: (this..moveNext()).expectBool(),
-        hasBase: (this..moveNext()).expectBool(),
-        hasExternal: (this..moveNext()).expectBool(),
-        hasFinal: (this..moveNext()).expectBool(),
-        hasInterface: (this..moveNext()).expectBool(),
-        hasMixin: (this..moveNext()).expectBool(),
-        hasSealed: (this..moveNext()).expectBool(),
         mixins: (this..moveNext())._expectRemoteInstanceList(),
         superclass:
             (this..moveNext()).checkNull() ? null : expectRemoteInstance(),
@@ -493,9 +482,11 @@ extension DeserializerExtensions on Deserializer {
         new DiagnosticMessage(message, target: target.asDiagnosticTarget),
       TypeAnnotationImpl() =>
         new DiagnosticMessage(message, target: target.asDiagnosticTarget),
+      MetadataAnnotationImpl() =>
+        new DiagnosticMessage(message, target: target.asDiagnosticTarget),
       _ => throw new UnsupportedError(
-          'Unsupported target type ${target.runtimeType}, only Declarations '
-          'and TypeAnnotations are allowed.'),
+          'Unsupported target type ${target.runtimeType}, only Declarations, '
+          'TypeAnnotations, and Metadata are allowed.'),
     };
   }
 }
@@ -654,6 +645,9 @@ extension SerializeDiagnosticMessage on DiagnosticMessage {
         (target.declaration as DeclarationImpl).serialize(serializer);
       case TypeAnnotationDiagnosticTarget target:
         (target.typeAnnotation as TypeAnnotationImpl).serialize(serializer);
+      case MetadataAnnotationDiagnosticTarget target:
+        (target.metadataAnnotation as MetadataAnnotationImpl)
+            .serialize(serializer);
     }
   }
 }

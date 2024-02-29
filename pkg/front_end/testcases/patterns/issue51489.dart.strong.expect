@@ -10,7 +10,7 @@ static method test1() → dynamic
       {
         final synthesized core::List<core::Object?> #0#0 = #t2;
         if(!(#0#0.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t3 = i = #0#0.{core::List::[]}(0){(core::int) → core::Object?} in true)))
-          throw new core::StateError::•("Pattern matching error");
+          throw{for-error-handling} new core::StateError::•("Pattern matching error");
       }
       #t1.{core::Map::[]=}{Invariant}(i, i){(dynamic, dynamic) → void};
     }
@@ -24,14 +24,14 @@ static method test2(dynamic x, dynamic another) → dynamic
       {
         final synthesized dynamic #0#0 = #t5;
         if(!(#0#0 is core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t6 = i = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true)))
-          throw new core::StateError::•("Pattern matching error");
+          throw{for-error-handling} new core::StateError::•("Pattern matching error");
       }
       for (final dynamic #t7 in x as{TypeError,ForDynamic} core::Iterable<dynamic>) {
         hoisted dynamic j;
         {
           final synthesized dynamic #1#0 = #t7;
           if(!(#1#0 is core::List<dynamic> && #1#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t8 = j = #1#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true)))
-            throw new core::StateError::•("Pattern matching error");
+            throw{for-error-handling} new core::StateError::•("Pattern matching error");
         }
         #t4.{core::Map::addAll}{Invariant}(another as{TypeError,ForDynamic} core::Map<dynamic, dynamic>){(core::Map<dynamic, dynamic>) → void};
       }

@@ -1,4 +1,4 @@
-// Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2023, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -7,6 +7,10 @@ import 'dart:convert';
 
 import 'package:json_rpc_2/json_rpc_2.dart';
 import 'package:stream_channel/stream_channel.dart';
+
+import 'file_system/constants.dart';
+import 'file_system/types.dart';
+import 'rpc_error_codes.dart';
 
 typedef DTDServiceCallback = Future<Map<String, Object?>> Function(
   Parameters params,
@@ -23,17 +27,21 @@ class DTDConnection {
   late final Future _done;
   final _subscribedStreamControllers = <String, StreamController<DTDEvent>>{};
 
-  DTDConnection(this._connectionChannel)
-      : _clientPeer = Peer(_connectionChannel.cast<String>()) {
+  DTDConnection(StreamChannel connectionChannel)
+      : _clientPeer = Peer(connectionChannel.cast<String>()) {
     _clientPeer.registerMethod('streamNotify', (Parameters params) {
-      final streamId = params['streamId'].value as String;
-      final event = params['event'];
-      final eventKind = event['eventKind'].value as String;
-      final eventData = event['eventData'].value as Map<String, Object?>;
-      final timestamp = event['timestamp'].value as int;
+      final streamId = params['streamId'].asString;
+      final eventKind = params['eventKind'].asString;
+      final eventData = params['eventData'].asMap as Map<String, Object?>;
+      final timestamp = params['timestamp'].asInt;
 
       _subscribedStreamControllers[streamId]?.add(
-        DTDEvent(streamId, eventKind, eventData, timestamp),
+        DTDEvent(
+          streamId,
+          eventKind,
+          eventData,
+          timestamp,
+        ),
       );
     });
 
@@ -61,6 +69,17 @@ class DTDConnection {
     ) as List<String>;
   }
 
+  /// Registers this client as the handler for the [service].[method] service
+  /// method.
+  ///
+  /// If the [service] has already been registered by another client, then an
+  /// [RpcException] with [RpcErrorCodes.kServiceAlreadyRegistered] is thrown.
+  /// Only one client at a time may register to a [service]. Once a client
+  /// disconnects then another client may register services under than name.
+  ///
+  /// If the [method] has already been registered on the [service], then an
+  /// [RpcException] with [RpcErrorCodes.kServiceMethodAlreadyRegistered] is
+  /// thrown.
   Future<void> registerService(
     String service,
     String method,
@@ -80,8 +99,8 @@ class DTDConnection {
 
   /// Subscribes this client to events posted on [streamId].
   ///
-  /// If this client is already subscribed to [streamId], an exception will be
-  /// thrown.
+  /// If this client is already subscribed to [streamId], an [RpcException]
+  /// with [RpcErrorCodes.kStreamAlreadySubscribed] will be thrown.
   Future<void> streamListen(String streamId) {
     // TODO(@danchevalier)
     return _clientPeer.sendRequest(
@@ -97,9 +116,9 @@ class DTDConnection {
   /// Once called, this connection will no longer receive events posted on
   /// [streamId].
   ///
-  /// If this client was not subscribed to [streamId], an exception will be
-  /// thrown.
-  Future<void> streamCancel(Stream streamId) {
+  /// If this client was not subscribed to [streamId], an [RpcException] with
+  /// [RpcErrorCodes.kStreamNotSubscribed] will be thrown.
+  Future<void> streamCancel(String streamId) {
     // TODO(@danchevalier)
     return _clientPeer.sendRequest(
       'streamCancel',
@@ -126,12 +145,12 @@ class DTDConnection {
   /// Posts an [DTDEvent] with [eventData] to [streamId].
   ///
   /// If no clients are subscribed to [streamId], the event will be dropped.
-  void postEvent(
+  Future<void> postEvent(
     String streamId,
     String eventKind,
     Map<String, Object?> eventData,
-  ) {
-    _clientPeer.sendRequest(
+  ) async {
+    await _clientPeer.sendRequest(
       'postEvent',
       {
         'streamId': streamId,
@@ -146,11 +165,11 @@ class DTDConnection {
   /// If provided, [params] will be sent as the set of parameters used when
   /// invoking the service.
   ///
-  /// If `serviceName.methodName` is not a valid service, an exception will be
-  /// thrown.
+  /// If `serviceName.methodName` is not a valid service, an [RpcException] will
+  /// be thrown with [RpcErrorCodes.kMethodNotFound].
   ///
-  /// If the parameters included in [params] are invalid, an exception will be
-  /// thrown.
+  /// If the parameters included in [params] are invalid, an [RpcException] will
+  /// be thrown with [RpcErrorCodes.kInvalidParams].
   Future<DTDResponse> call(
     String serviceName,
     String methodName, {
@@ -170,8 +189,111 @@ class DTDConnection {
     return DTDResponse('-1', type, json);
   }
 
-  // ignore: unused_field
-  final StreamChannel _connectionChannel;
+  /// Reads the file at [uri] from disk.
+  ///
+  /// If [uri] is not contained in the IDE workspace roots, then an
+  /// [RpcException] with [RpcErrorCodes.kPermissionDenied] is thrown.
+  ///
+  /// If [uri] does not exist, then an [RpcException] exception with error
+  /// code [RpcErrorCodes.kFileDoesNotExist] is thrown.
+  ///
+  /// If [uri] does not have a file scheme, then an [RpcException] with
+  /// [RpcErrorCodes.kExpectsUriParamWithFileScheme] is thrown.
+  Future<FileContent> readFileAsString(
+    Uri uri, {
+    Encoding encoding = utf8,
+  }) async {
+    final result = await call(
+      kFileSystemServiceName,
+      'readFileAsString',
+      params: {
+        'uri': uri.toString(),
+        'encoding': encoding.name,
+      },
+    );
+    return FileContent.fromDTDResponse(result);
+  }
+
+  /// Writes [contents] to the file at [uri].
+  ///
+  /// The file will be created if it does not exist, and it will be overwritten
+  /// if it already exist.
+  ///
+  /// If [uri] is not contained in the IDE workspace roots, then an
+  /// [RpcException] with [RpcErrorCodes.kPermissionDenied] is thrown.
+  ///
+  /// If [uri] does not have a file scheme, then an [RpcException] with
+  /// [RpcErrorCodes.kExpectsUriParamWithFileScheme] is thrown.
+  Future<void> writeFileAsString(
+    Uri uri,
+    String contents, {
+    Encoding encoding = utf8,
+  }) async {
+    await call(
+      kFileSystemServiceName,
+      'writeFileAsString',
+      params: {
+        'uri': uri.toString(),
+        'contents': contents,
+        'encoding': encoding.name,
+      },
+    );
+  }
+
+  /// Lists the directories and files under the directory at [uri].
+  ///
+  /// If [uri] is not a directory, throws an [RpcException] exception with error
+  /// code [RpcErrorCodes.kDirectoryDoesNotExist].
+  ///
+  /// If [uri] is not contained in the IDE workspace roots, then an
+  /// [RpcException] with [RpcErrorCodes.kPermissionDenied] is thrown.
+  ///
+  /// If [uri] does not have a file scheme, then an [RpcException] with
+  /// [RpcErrorCodes.kExpectsUriParamWithFileScheme] is thrown.
+  Future<UriList> listDirectoryContents(Uri uri) async {
+    final result = await call(
+      kFileSystemServiceName,
+      'listDirectoryContents',
+      params: {
+        'uri': uri.toString(),
+      },
+    );
+    return UriList.fromDTDResponse(result);
+  }
+
+  /// Sets the IDE workspace roots for the FileSystem service.
+  ///
+  /// This is a privileged RPC that require's a [secret], which is provided by
+  /// the Dart Tooling Daemon to be called successfully. This secret is
+  /// generated by the daemon and provided to its spawner to ensure only trusted
+  /// clients can set workspace roots. If [secret] is invalid, an [RpcException]
+  /// with error code [RpcErrorCodes.kPermissionDenied] is thrown.
+  ///
+  /// If [secret] does not match the secret created when Dart Tooling Daemon was
+  /// created, then an [RpcException] with [RpcErrorCodes.kPermissionDenied] is
+  /// thrown.
+  ///
+  /// If one of the [roots] is missing a "file" scheme then an [RpcException]
+  /// with [RpcErrorCodes.kExpectsUriParamWithFileScheme] is thrown.
+  Future<void> setIDEWorkspaceRoots(String secret, List<Uri> roots) async {
+    await call(
+      kFileSystemServiceName,
+      'setIDEWorkspaceRoots',
+      params: {
+        'roots': roots.map<String>((e) => e.toString()).toList(),
+        'secret': secret,
+      },
+    );
+  }
+
+  /// Gets the IDE workspace roots for the FileSystem service.
+  Future<IDEWorkspaceRoots> getIDEWorkspaceRoots() async {
+    final result = await call(
+      kFileSystemServiceName,
+      'getIDEWorkspaceRoots',
+    );
+    return IDEWorkspaceRoots.fromDTDResponse(result);
+  }
 }
 
 class DTDResponse {
@@ -194,7 +316,6 @@ class DTDResponse {
   Map<String, Object?> get result => _result;
 }
 
-// TODO(@danchevalier): is this how event should be done?
 class DTDEvent {
   DTDEvent(this.stream, this.kind, this.data, this.timestamp);
   String stream;

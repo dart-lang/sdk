@@ -12,6 +12,7 @@ import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/java_core.dart';
+import 'package:analyzer/src/util/file_paths.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
 
@@ -68,11 +69,16 @@ class FixProcessor extends BaseProcessor {
         );
 
   Future<List<Fix>> compute() async {
+    if (isMacroGenerated(fixContext.resolveResult.file.path)) {
+      return fixes;
+    }
     await _addFromProducers();
     return fixes;
   }
 
   Future<Fix?> computeFix() async {
+    // TODO(brianwilkerson): This method doesn't appear to be used. Attempt to
+    //  remove it.
     await _addFromProducers();
     fixes.sort(Fix.compareFixes);
     return fixes.isNotEmpty ? fixes.first : null;
@@ -155,6 +161,7 @@ class FixProcessor extends BaseProcessor {
       var generators = [
         IgnoreDiagnosticOnLine.new,
         IgnoreDiagnosticInFile.new,
+        IgnoreDiagnosticInAnalysisOptionsFile.new,
       ];
       for (var generator in generators) {
         await compute(generator());

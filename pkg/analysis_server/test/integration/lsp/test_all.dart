@@ -4,10 +4,12 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'handle_test.dart' as handle_test;
+import 'handle_test.dart' as handle;
+import 'notification_test.dart' as notification;
 
 void main() {
   defineReflectiveSuite(() {
-    handle_test.main();
+    handle.main();
+    notification.main();
   }, name: 'lsp');
 }

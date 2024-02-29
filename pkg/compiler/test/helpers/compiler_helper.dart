@@ -79,7 +79,7 @@ Future<String> compile(String code,
       options: options,
       outputProvider: outputCollector);
   Expect.isTrue(result.isSuccess);
-  Compiler compiler = result.compiler;
+  Compiler compiler = result.compiler!;
   JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
   ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
   LibraryEntity mainLibrary = elementEnvironment.mainLibrary!;

@@ -51,21 +51,16 @@ class ConvertToWhereTypeTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.prefer_iterable_whereType;
 
-  @override
-  String? get testPackageLanguageVersion => '2.9';
-
   Future<void> test_default_declaredType() async {
     await resolveTestCode('''
-Iterable<C> f(List<Object> list) {
-  return list.where((e) => e is C);
+Iterable<Object?> f(List<Object> list) {
+  return list.where((e) => e is int);
 }
-class C {}
 ''');
     await assertHasFix('''
-Iterable<C> f(List<Object> list) {
-  return list.whereType<C>();
+Iterable<Object?> f(List<Object> list) {
+  return list.whereType<int>();
 }
-class C {}
 ''');
   }
 }

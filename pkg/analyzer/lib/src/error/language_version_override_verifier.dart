@@ -186,27 +186,30 @@ class LanguageVersionOverrideVerifier {
     // language version override comment.
 
     if (slashCount > 2) {
-      _errorReporter.reportErrorForOffset(
-          WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_TWO_SLASHES,
-          offset,
-          length);
+      _errorReporter.atOffset(
+        offset: offset,
+        length: length,
+        errorCode: WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_TWO_SLASHES,
+      );
       return false;
     }
 
     if (!atSignPresent) {
-      _errorReporter.reportErrorForOffset(
-          WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN,
-          offset,
-          length);
+      _errorReporter.atOffset(
+        offset: offset,
+        length: length,
+        errorCode: WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN,
+      );
       return false;
     }
 
     if (possibleDart != 'dart') {
       // The 4 characters after `@` are "dart", but in the wrong case.
-      _errorReporter.reportErrorForOffset(
-          WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE,
-          offset,
-          length);
+      _errorReporter.atOffset(
+        offset: offset,
+        length: length,
+        errorCode: WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE,
+      );
       return false;
     }
 
@@ -214,20 +217,29 @@ class LanguageVersionOverrideVerifier {
         comment.codeUnitAt(dartVersionSeparatorStartIndex) != 0x3D) {
       // The separator between "@dart" and the version number is either not
       // present, or is not a single "=" character.
-      _errorReporter.reportErrorForOffset(
-          WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS, offset, length);
+      _errorReporter.atOffset(
+        offset: offset,
+        length: length,
+        errorCode: WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS,
+      );
       return false;
     }
 
     if (containsInvalidVersionNumberPrefix) {
-      _errorReporter.reportErrorForOffset(
-          WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_PREFIX, offset, length);
+      _errorReporter.atOffset(
+        offset: offset,
+        length: length,
+        errorCode: WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_PREFIX,
+      );
       return false;
     }
 
     void reportInvalidNumber() {
-      _errorReporter.reportErrorForOffset(
-          WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_NUMBER, offset, length);
+      _errorReporter.atOffset(
+        offset: offset,
+        length: length,
+        errorCode: WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_NUMBER,
+      );
     }
 
     // Nothing preceding the version number makes this comment invalid. Check
@@ -259,10 +271,12 @@ class LanguageVersionOverrideVerifier {
 
     // This comment is a valid language version override, except for trailing
     // characters.
-    _errorReporter.reportErrorForOffset(
-        WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_TRAILING_CHARACTERS,
-        offset,
-        length);
+    _errorReporter.atOffset(
+      offset: offset,
+      length: length,
+      errorCode:
+          WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_TRAILING_CHARACTERS,
+    );
     return false;
   }
 
@@ -287,10 +301,10 @@ class LanguageVersionOverrideVerifier {
           var match = _overrideCommentLine.firstMatch(lexeme);
           if (match != null) {
             var atDartStart = lexeme.indexOf('@dart');
-            _errorReporter.reportErrorForOffset(
-              WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION,
-              commentToken.offset + atDartStart,
-              match.end - atDartStart,
+            _errorReporter.atOffset(
+              offset: commentToken.offset + atDartStart,
+              length: match.end - atDartStart,
+              errorCode: WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION,
             );
           }
         }

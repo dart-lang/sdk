@@ -119,7 +119,7 @@ class TestConfiguration {
   bool get hotReload => configuration.useHotReload;
   bool get hotReloadRollback => configuration.useHotReloadRollback;
   bool get isChecked => configuration.isChecked;
-  bool get isHostChecked => configuration.isHostChecked;
+  bool get enableHostAsserts => configuration.enableHostAsserts;
   bool get isCsp => configuration.isCsp;
   bool get isMinified => configuration.isMinified;
   bool get isSimulator => architecture.isSimulator;
@@ -342,7 +342,10 @@ class TestConfiguration {
       Abi.linuxArm64: 'linux-arm64',
       Abi.linuxX64: 'linux-x64',
     };
-    final hostFolderName = clangHostFolderName[Abi.current()]!;
+    final hostFolderName = clangHostFolderName[Abi.current()];
+    if (hostFolderName == null) {
+      return <String, String>{};
+    }
     final clangBin =
         Directory.current.uri.resolve('buildtools/$hostFolderName/clang/bin/');
     return {
@@ -411,19 +414,40 @@ class TestConfiguration {
       _compilerConfiguration ??= CompilerConfiguration(this);
 
   /// The set of [Feature]s supported by this configuration.
-  late final Set<Feature> supportedFeatures = compiler == Compiler.dart2analyzer
-      // The analyzer should parse all tests that don't require legacy support.
-      ? {...Feature.noLegacy}
-      : {
-          // TODO(rnystrom): Define more features for things like "dart:io", separate
-          // int/double representation, etc.
-          if (NnbdMode.legacy == configuration.nnbdMode)
-            Feature.nnbdLegacy
-          else
-            Feature.nnbd,
-          if (NnbdMode.weak == configuration.nnbdMode) Feature.nnbdWeak,
-          if (NnbdMode.strong == configuration.nnbdMode) Feature.nnbdStrong,
-        };
+  Set<Feature> get supportedFeatures {
+    // The analyzer should parse all tests that don't require legacy support.
+    if (compiler == Compiler.dart2analyzer) {
+      return {...Feature.all.where((f) => !Feature.legacy.contains(f))};
+    }
+
+    var isDart2jsProduction = dart2jsOptions.contains('-O3');
+    var isOptimizedDart2Wasm = dart2wasmOptions.contains('-O1');
+    var isJsCompiler = compiler == Compiler.dart2js || compiler == Compiler.ddc;
+    return {
+      // The supported NNBD features depending on the `nnbdMode`.
+      if (NnbdMode.legacy == configuration.nnbdMode)
+        Feature.nnbdLegacy
+      else
+        Feature.nnbd,
+      if (NnbdMode.weak == configuration.nnbdMode) Feature.nnbdWeak,
+      if (NnbdMode.strong == configuration.nnbdMode) Feature.nnbdStrong,
+
+      // The configurations with the following builder tags and configurations
+      // with the `minified` flag set to `true` will obfuscate `Type.toString`
+      // strings.
+      if (!isDart2jsProduction && builderTag != 'obfuscated' && !isMinified)
+        Feature.readableTypeStrings,
+
+      if (isJsCompiler) Feature.jsNumbers else Feature.nativeNumbers,
+
+      if (!isDart2jsProduction && !isOptimizedDart2Wasm) ...[
+        Feature.checkedImplicitDowncasts,
+        Feature.checkedParameters,
+      ],
+
+      if (!isOptimizedDart2Wasm) Feature.checkedExplicitCasts,
+    };
+  }
 
   /// Determines if this configuration has a compatible compiler and runtime
   /// and other valid fields.

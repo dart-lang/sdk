@@ -50,14 +50,14 @@ class YieldStatementResolver {
     }
 
     if (expression is MethodInvocation) {
-      _errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.USE_OF_VOID_RESULT,
+      _errorReporter.atNode(
         expression.methodName,
+        CompileTimeErrorCode.USE_OF_VOID_RESULT,
       );
     } else {
-      _errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.USE_OF_VOID_RESULT,
+      _errorReporter.atNode(
         expression,
+        CompileTimeErrorCode.USE_OF_VOID_RESULT,
       );
     }
 
@@ -90,10 +90,10 @@ class YieldStatementResolver {
       if (isYieldEach) {
         if (!_typeSystem.isAssignableTo(impliedReturnType, imposedReturnType,
             strictCasts: _resolver.analysisOptions.strictCasts)) {
-          _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE,
+          _errorReporter.atNode(
             expression,
-            [impliedReturnType, imposedReturnType],
+            CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE,
+            arguments: [impliedReturnType, imposedReturnType],
           );
           return;
         }
@@ -107,10 +107,10 @@ class YieldStatementResolver {
           var imposedValueType = imposedSequenceType.typeArguments[0];
           if (!_typeSystem.isAssignableTo(expressionType, imposedValueType,
               strictCasts: _resolver.analysisOptions.strictCasts)) {
-            _errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.YIELD_OF_INVALID_TYPE,
+            _errorReporter.atNode(
               expression,
-              [expressionType, imposedValueType],
+              CompileTimeErrorCode.YIELD_OF_INVALID_TYPE,
+              arguments: [expressionType, imposedValueType],
             );
             return;
           }
@@ -131,10 +131,10 @@ class YieldStatementResolver {
 
       if (!_typeSystem.isAssignableTo(impliedReturnType, requiredReturnType,
           strictCasts: _resolver.analysisOptions.strictCasts)) {
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE,
+        _errorReporter.atNode(
           expression,
-          [impliedReturnType, requiredReturnType],
+          CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE,
+          arguments: [impliedReturnType, requiredReturnType],
         );
       }
     }
@@ -183,11 +183,11 @@ class YieldStatementResolver {
   void _resolve_notGenerator(YieldStatement node) {
     node.expression.accept(_resolver);
 
-    _errorReporter.reportErrorForNode(
+    _errorReporter.atNode(
+      node,
       node.star != null
           ? CompileTimeErrorCode.YIELD_EACH_IN_NON_GENERATOR
           : CompileTimeErrorCode.YIELD_IN_NON_GENERATOR,
-      node,
     );
 
     _checkForUseOfVoidResult(node.expression);

@@ -79,6 +79,10 @@ mixin NotificationHandler {
         onFlutterOutline(
             FlutterOutlineParams.fromJson(decoder, 'params', params));
         break;
+      case LSP_NOTIFICATION_NOTIFICATION:
+        onLspNotification(
+            LspNotificationParams.fromJson(decoder, 'params', params));
+        break;
       case SEARCH_NOTIFICATION_RESULTS:
         onSearchResults(
             SearchResultsParams.fromJson(decoder, 'params', params));
@@ -226,6 +230,9 @@ mixin NotificationHandler {
   /// the list of services passed in an flutter.setSubscriptions
   /// request.
   void onFlutterOutline(FlutterOutlineParams params) {}
+
+  /// Reports an LSP notification from the server.
+  void onLspNotification(LspNotificationParams params) {}
 
   /// Reports some or all of the results of performing a requested
   /// search. Unlike other notifications, this notification

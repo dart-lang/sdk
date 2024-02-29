@@ -16,7 +16,7 @@ void main() {
     'tooling-daemon',
     () {
       final dartToolingDaemonRegExp = RegExp(
-        r'The Dart Tooling Daemon is listening on (127.0.0.1:.*)',
+        r'The Dart Tooling Daemon is listening on ws://(127.0.0.1:.*)',
       );
       Process? process;
 

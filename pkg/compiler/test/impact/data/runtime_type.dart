@@ -6,9 +6,9 @@
 class Class1a<T> {
   /*member: Class1a.==:
    dynamic=[
+    Class1a.runtimeType,
     Object.runtimeType,
-    Type.==,
-    this:Class1a.runtimeType],
+    Type.==],
    runtimeType=[equals:Class1a<Class1a.T>==Object],
    static=[
     Rti._bind(1),
@@ -60,9 +60,9 @@ class Class1a<T> {
 class Class1b<T> extends Class1a<T> {
   /*member: Class1b.==:
    dynamic=[
+    Class1b.runtimeType,
     Object.runtimeType,
-    Type.==,
-    this:Class1b.runtimeType],
+    Type.==],
    runtimeType=[equals:Object==Class1b<Class1b.T>],
    static=[
     Rti._bind(1),
@@ -114,9 +114,9 @@ class Class1b<T> extends Class1a<T> {
 class Class1c<T> implements Class1a<T> {
   /*member: Class1c.==:
    dynamic=[
+    Class1c.runtimeType,
     Object.runtimeType,
-    Type.==,
-    this:Class1c.runtimeType],
+    Type.==],
    runtimeType=[equals:Class1c<Class1c.T>==Object],
    static=[
     Rti._bind(1),
@@ -169,9 +169,9 @@ class Class1c<T> implements Class1a<T> {
 class Class1d<T> implements Class1a<T> {
   /*member: Class1d.==:
    dynamic=[
+    Class1d.runtimeType,
     Object.runtimeType,
-    Type.==,
-    this:Class1d.runtimeType],
+    Type.==],
    runtimeType=[equals:Object==Class1d<Class1d.T>],
    static=[
     Rti._bind(1),
@@ -1062,9 +1062,9 @@ almostEquals8(Class3 a) => a?.runtimeType == a?.field;
 
 /*member: almostEquals9:
  dynamic=[
+  ==,
   Class3.field,
-  Class3.runtimeType,
-  Object.==],
+  Class3.runtimeType],
  runtimeType=[unknown:Class3],
  static=[
   Rti._bind(1),
@@ -1111,9 +1111,9 @@ almostEquals9(Class3 a) => a.field == a.runtimeType;
 
 /*member: almostEquals10:
  dynamic=[
+  ==,
   Class3.field,
-  Class3.runtimeType,
-  Object.==],
+  Class3.runtimeType],
  runtimeType=[unknown:Class3],
  static=[
   Rti._bind(1),
@@ -1161,9 +1161,9 @@ almostEquals10(Class3 a) => a?.field == a.runtimeType;
 
 /*member: almostEquals11:
  dynamic=[
+  ==,
   Class3.field,
-  Class3.runtimeType,
-  Object.==],
+  Class3.runtimeType],
  runtimeType=[unknown:Class3],
  static=[
   Rti._bind(1),
@@ -1211,9 +1211,9 @@ almostEquals11(Class3 a) => a.field == a?.runtimeType;
 
 /*member: almostEquals12:
  dynamic=[
+  ==,
   Class3.field,
-  Class3.runtimeType,
-  Object.==],
+  Class3.runtimeType],
  runtimeType=[unknown:Class3],
  static=[
   Rti._bind(1),
@@ -1660,7 +1660,7 @@ notEquals3(Class3 a, Class4 b) => a.runtimeType != b?.runtimeType;
 notEquals4(Class3 a, Class4 b) => a?.runtimeType != b?.runtimeType;
 
 /*member: main:
- dynamic=[exact:Class1a.==],
+ dynamic=[Class1a.==],
  static=[
   Class1a.(0),
   Class1b.(0),

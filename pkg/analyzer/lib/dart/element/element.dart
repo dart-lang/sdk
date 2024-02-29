@@ -143,6 +143,39 @@ abstract class AugmentedInstanceElement {
 
   /// Returns the setter from [accessors] that has the given [name].
   PropertyAccessorElement? getSetter(String name);
+
+  /// Returns the element representing the getter that results from looking up
+  /// the given [name] in this class with respect to the given [library],
+  /// or `null` if the look up fails.
+  ///
+  /// The behavior of this method is defined by the Dart Language Specification
+  /// in section 17.18 Lookup.
+  PropertyAccessorElement? lookUpGetter({
+    required String name,
+    required LibraryElement library,
+  });
+
+  /// Returns the element representing the method that results from looking up
+  /// the given [name] in this class with respect to the given [library],
+  /// or `null` if the look up fails.
+  ///
+  /// The behavior of this method is defined by the Dart Language Specification
+  /// in section 17.18 Lookup.
+  MethodElement? lookUpMethod({
+    required String name,
+    required LibraryElement library,
+  });
+
+  /// Returns the element representing the setter that results from looking up
+  /// the given [name] in this class with respect to the given [library],
+  /// or `null` if the look up fails.
+  ///
+  /// The behavior of this method is defined by the Dart Language Specification
+  /// in section 17.18 Lookup.
+  PropertyAccessorElement? lookUpSetter({
+    required String name,
+    required LibraryElement library,
+  });
 }
 
 /// The result of applying augmentations to a [InterfaceElement].
@@ -745,7 +778,8 @@ abstract class Element implements AnalysisTarget {
   /// Clients should not depend on the content of the returned value as it will
   /// be changed if doing so would improve the UX.
   String getDisplayString({
-    required bool withNullability,
+    @Deprecated('Only non-nullable by default mode is supported')
+    bool withNullability = true,
     bool multiline = false,
   });
 
@@ -1474,7 +1508,14 @@ abstract class InstanceElement
   @experimental
   InstanceElement? get augmentationTarget;
 
-  /// The result of applying augmentations.
+  /// The result of merging augmentations.
+  ///
+  /// Returns `null` if this element is an augmentation and there is no base
+  /// element from which a merge can be performed.
+  ///
+  /// If a non-null instance is returned it will include the members of
+  /// the base element and its augmentations as specified by the merge
+  /// operations.
   @experimental
   AugmentedInstanceElement? get augmented;
 
@@ -1643,7 +1684,7 @@ abstract class InterfaceElement implements InstanceElement {
   /// <i>m</i> in <i>S</i> with respect to <i>L</i>. Otherwise, we say that the
   /// lookup has failed.
   /// </blockquote>
-  // TODO(scheglov): Deprecate and remove it.
+  @Deprecated('Use `element.augmented.lookUpGetter`.')
   PropertyAccessorElement? lookUpGetter(
       String getterName, LibraryElement library);
 
@@ -1743,7 +1784,7 @@ abstract class InterfaceElement implements InstanceElement {
   /// <i>S</i> with respect to <i>L</i>. Otherwise, we say that the lookup has
   /// failed.
   /// </blockquote>
-  // TODO(scheglov): Deprecate and remove it.
+  @Deprecated('Use `element.augmented.lookUpMethod`.')
   MethodElement? lookUpMethod(String methodName, LibraryElement library);
 
   /// Returns the element representing the setter that results from looking up
@@ -1762,7 +1803,7 @@ abstract class InterfaceElement implements InstanceElement {
   /// <i>m</i> in <i>S</i> with respect to <i>L</i>. Otherwise, we say that the
   /// lookup has failed.
   /// </blockquote>
-  // TODO(scheglov): Deprecate and remove it.
+  @Deprecated('Use `element.augmented.lookUpSetter`.')
   PropertyAccessorElement? lookUpSetter(
       String setterName, LibraryElement library);
 }
@@ -1875,10 +1916,12 @@ abstract class LibraryElement
   /// If a legacy library, returns the legacy view on the [element].
   ///
   /// Otherwise, return the original element.
+  @Deprecated('Only non-nullable by default mode is supported')
   T toLegacyElementIfOptOut<T extends Element>(T element);
 
   /// If a legacy library, return the legacy version of the [type].
   /// Otherwise, return the original type.
+  @Deprecated('Only non-nullable by default mode is supported')
   DartType toLegacyTypeIfOptOut(DartType type);
 }
 
@@ -1965,6 +2008,7 @@ abstract class LibraryOrAugmentationElement implements Element {
   /// version override comment at the top of the file.
   FeatureSet get featureSet;
 
+  @Deprecated('Only non-nullable by default mode is supported')
   bool get isNonNullableByDefault;
 
   /// The language version for this library.
@@ -2195,7 +2239,8 @@ abstract class ParameterElement
   /// to the given [buffer].
   void appendToWithoutDelimiters(
     StringBuffer buffer, {
-    bool withNullability = false,
+    @Deprecated('Only non-nullable by default mode is supported')
+    bool withNullability = true,
   });
 }
 

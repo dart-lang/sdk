@@ -15,7 +15,7 @@ import 'package:test/test.dart';
 
 import 'package:vm/kernel_front_end.dart'
     show runGlobalTransformations, ErrorDetector;
-import 'package:vm/target/vm.dart' show VmTarget;
+import 'package:vm/modular/target/vm.dart' show VmTarget;
 import 'package:vm/transformations/type_flow/transformer.dart' as globalTypeFlow
     show transformComponent;
 

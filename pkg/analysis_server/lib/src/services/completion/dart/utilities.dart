@@ -176,8 +176,7 @@ protocol.Element createLocalElement(
 
 /// Return a default argument value for the given [parameter].
 DefaultArgument? getDefaultStringParameterValue(
-    ParameterElement parameter, CodeStyleOptions codeStyleOptions,
-    {required bool withNullability}) {
+    ParameterElement parameter, CodeStyleOptions codeStyleOptions) {
   var type = parameter.type;
   if (type is InterfaceType) {
     if (type.isDartCoreList) {
@@ -190,8 +189,7 @@ DefaultArgument? getDefaultStringParameterValue(
     }
   } else if (type is FunctionType) {
     var params = type.parameters
-        .map((p) =>
-            '${getTypeString(p.type, withNullability: withNullability)}${p.name}')
+        .map((p) => '${getTypeString(p.type)}${p.name}')
         .join(', ');
     // TODO(devoncarew): Support having this method return text with newlines.
     var text = '($params) {  }';
@@ -216,11 +214,11 @@ String getRequestLineIndent(DartCompletionRequest request) {
   return content.substring(lineStartOffset, notWhitespaceOffset);
 }
 
-String getTypeString(DartType type, {required bool withNullability}) {
+String getTypeString(DartType type) {
   if (type is DynamicType) {
     return '';
   } else {
-    return '${type.getDisplayString(withNullability: withNullability)} ';
+    return '${type.getDisplayString()} ';
   }
 }
 
@@ -257,7 +255,7 @@ String? nameForType(SimpleIdentifier identifier, TypeAnnotation? declaredType) {
     }
     return DYNAMIC;
   }
-  return type.getDisplayString(withNullability: false);
+  return type.getDisplayString();
 }
 
 class CompletionDefaultArgumentList {

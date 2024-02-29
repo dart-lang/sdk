@@ -244,7 +244,7 @@ class LspAnalysisServer extends AnalysisServer {
         params: params,
         jsonrpc: jsonRpcVersion,
       );
-      sendNotification(message);
+      sendLspNotification(message);
     };
   }
 
@@ -395,7 +395,7 @@ class LspAnalysisServer extends AnalysisServer {
     performance = performanceAfterStartup!;
 
     _checkAnalytics();
-    _checkSurveys();
+    enableSurveys();
   }
 
   /// Handles a response from the client by invoking the completer that the
@@ -637,7 +637,7 @@ class LspAnalysisServer extends AnalysisServer {
       params: params,
       jsonrpc: jsonRpcVersion,
     );
-    sendNotification(message);
+    sendLspNotification(message);
   }
 
   void publishDiagnostics(String path, List<Diagnostic> errors) {
@@ -659,7 +659,7 @@ class LspAnalysisServer extends AnalysisServer {
       params: params,
       jsonrpc: jsonRpcVersion,
     );
-    sendNotification(message);
+    sendLspNotification(message);
   }
 
   void publishFlutterOutline(String path, FlutterOutline outline) {
@@ -670,7 +670,7 @@ class LspAnalysisServer extends AnalysisServer {
       params: params,
       jsonrpc: jsonRpcVersion,
     );
-    sendNotification(message);
+    sendLspNotification(message);
   }
 
   void publishOutline(String path, Outline outline) {
@@ -681,7 +681,7 @@ class LspAnalysisServer extends AnalysisServer {
       params: params,
       jsonrpc: jsonRpcVersion,
     );
-    sendNotification(message);
+    sendLspNotification(message);
   }
 
   Future<void> removePriorityFile(String path) async {
@@ -722,7 +722,8 @@ class LspAnalysisServer extends AnalysisServer {
   }
 
   /// Send the given [notification] to the client.
-  void sendNotification(NotificationMessage notification) {
+  @override
+  void sendLspNotification(NotificationMessage notification) {
     channel.sendNotification(notification);
   }
 
@@ -955,13 +956,6 @@ class LspAnalysisServer extends AnalysisServer {
     unifiedAnalytics.clientShowedMessage();
   }
 
-  /// Enables surveys, if options allow.
-  void _checkSurveys() {
-    if (initializationOptions?.previewSurveys ?? false) {
-      enableSurveys();
-    }
-  }
-
   /// Computes analysis roots for a set of open files.
   ///
   /// This is used when there are no workspace folders open directly.
@@ -1116,7 +1110,6 @@ class LspInitializationOptions {
   final bool flutterOutline;
   final int? completionBudgetMilliseconds;
   final bool allowOpenUri;
-  final bool previewSurveys;
 
   factory LspInitializationOptions(Object? options) =>
       LspInitializationOptions._(
@@ -1138,8 +1131,7 @@ class LspInitializationOptions {
         flutterOutline = options['flutterOutline'] == true,
         completionBudgetMilliseconds =
             options['completionBudgetMilliseconds'] as int?,
-        allowOpenUri = options['allowOpenUri'] == true,
-        previewSurveys = options['previewSurveys'] == true;
+        allowOpenUri = options['allowOpenUri'] == true;
 }
 
 class LspServerContextManagerCallbacks
@@ -1166,23 +1158,6 @@ class LspServerContextManagerCallbacks
   void handleFileResult(FileResult result) {
     if (analysisServer.suppressAnalysisResults) {
       return;
-    }
-
-    // If this is a virtual file, we need to notify the client that it's been
-    // updated.
-    var lspUri = analysisServer.uriConverter.toClientUri(result.path);
-    if (!lspUri.isScheme('file')) {
-      // TODO(dantup): Should we do any kind of tracking here to avoid sending
-      //  lots of notifications if there aren't actual changes?
-      // TODO(dantup): We may be able to skip sending this if the file is not
-      //  open (priority) depending on the response to
-      //  https://github.com/microsoft/vscode/issues/202017
-      var message = NotificationMessage(
-        method: CustomMethods.dartTextDocumentContentDidChange,
-        params: DartTextDocumentContentDidChangeParams(uri: lspUri),
-        jsonrpc: jsonRpcVersion,
-      );
-      analysisServer.sendNotification(message);
     }
 
     super.handleFileResult(result);

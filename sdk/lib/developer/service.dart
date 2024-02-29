@@ -103,6 +103,9 @@ final class Service {
   ///
   /// Returns null if the running Dart environment does not support the service
   /// protocol.
+  ///
+  /// To get the isolate id of the current isolate, pass [Isolate.current] as
+  /// the [isolate] parameter.
   @Since('3.2')
   static String? getIsolateId(Isolate isolate) {
     // TODO: When NNBD is complete, delete the following line.

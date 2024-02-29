@@ -8,6 +8,7 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart' hide Library;
 import 'package:_fe_analyzer_shared/src/macros/executor.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor/multi_executor.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart';
+import 'package:_fe_analyzer_shared/src/macros/executor/span.dart';
 import 'package:_fe_analyzer_shared/src/testing/features.dart';
 import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
@@ -284,11 +285,13 @@ class TestMacroExecutor extends MultiMacroExecutor {
 
   @override
   String buildAugmentationLibrary(
+      Uri augmentedLibraryUri,
       Iterable<MacroExecutionResult> macroResults,
       TypeDeclaration Function(Identifier) resolveDeclaration,
       ResolvedIdentifier Function(Identifier) resolveIdentifier,
       TypeAnnotation? Function(OmittedTypeAnnotation) inferOmittedType,
-      {Map<OmittedTypeAnnotation, String>? omittedTypes}) {
+      {Map<OmittedTypeAnnotation, String>? omittedTypes,
+      List<Span>? spans}) {
     return '';
   }
 
@@ -354,6 +357,9 @@ class _MacroInstanceIdentifier implements MacroInstanceIdentifier {
 class _MacroExecutionResult implements MacroExecutionResult {
   @override
   List<Diagnostic> diagnostics = [];
+
+  @override
+  MacroException? exception;
 
   @override
   Map<Identifier, Iterable<DeclarationCode>> enumValueAugmentations = const {};

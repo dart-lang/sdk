@@ -122,7 +122,7 @@ static method caseReturn1(self::Enum e) → self::Enum {
       }
     #L4:
     default:
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
+      throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
   }
 }
 static method caseReturn2(self::Enum e) → self::Enum {
@@ -196,7 +196,7 @@ static method localFunctions() → dynamic {
         }
       #L11:
       default:
-        throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
+        throw{for-error-handling} new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
     }
   }
   function caseReturn2(self::Enum e) → self::Enum {

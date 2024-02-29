@@ -103,7 +103,7 @@ var v = const A(null);
   }
 
   test_int_to_double_reference_from_other_library_other_file_after() async {
-    newFile('$testPackageLibPath/other.dart', '''
+    var other = newFile('$testPackageLibPath/other.dart', '''
 import 'test.dart';
 class D {
   final C c;
@@ -118,8 +118,7 @@ class C {
 }
 const C constant = const C(0);
 ''');
-    var otherFileResult =
-        await resolveFile(convertPath('$testPackageLibPath/other.dart'));
+    var otherFileResult = await resolveFile(other);
     expect(otherFileResult.errors, isEmpty);
   }
 
@@ -131,7 +130,7 @@ class C {
 }
 const C constant = const C(0);
 ''');
-    newFile('$testPackageLibPath/other.dart', '''
+    var other = newFile('$testPackageLibPath/other.dart', '''
 import 'test.dart';
 class D {
   final C c;
@@ -139,8 +138,7 @@ class D {
 }
 const D constant2 = const D(constant);
 ''');
-    var otherFileResult =
-        await resolveFile(convertPath('$testPackageLibPath/other.dart'));
+    var otherFileResult = await resolveFile(other);
     expect(otherFileResult.errors, isEmpty);
   }
 
@@ -155,7 +153,7 @@ const C constant = const C(0);
   }
 
   test_int_to_double_via_default_value_other_file_after() async {
-    newFile('$testPackageLibPath/other.dart', '''
+    var other = newFile('$testPackageLibPath/other.dart', '''
 class C {
   final double x;
   const C([this.x = 0]);
@@ -165,20 +163,18 @@ class C {
 import 'other.dart';
 const c = C();
 ''');
-    var otherFileResult =
-        await resolveFile(convertPath('$testPackageLibPath/other.dart'));
+    var otherFileResult = await resolveFile(other);
     expect(otherFileResult.errors, isEmpty);
   }
 
   test_int_to_double_via_default_value_other_file_before() async {
-    newFile('$testPackageLibPath/other.dart', '''
+    var other = newFile('$testPackageLibPath/other.dart', '''
 class C {
   final double x;
   const C([this.x = 0]);
 }
 ''');
-    var otherFileResult =
-        await resolveFile(convertPath('$testPackageLibPath/other.dart'));
+    var otherFileResult = await resolveFile(other);
     expect(otherFileResult.errors, isEmpty);
 
     await assertNoErrorsInCode('''

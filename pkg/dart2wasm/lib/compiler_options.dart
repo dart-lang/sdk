@@ -18,7 +18,7 @@ class WasmCompilerOptions {
   String outputFile;
   String? depFile;
   String? outputJSRuntimeFile;
-  Map<String, String> environment = const {};
+  Map<String, String> environment = {};
   Map<fe.ExperimentalFlag, bool> feExperimentalFlags = const {};
   String? multiRootScheme;
   List<Uri> multiRoots = const [];

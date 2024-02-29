@@ -21,11 +21,11 @@ import 'package:collection/collection.dart';
 /// Returns a [List] of fixed length with given types.
 List<DartType> fixedTypeList(DartType e1, [DartType? e2]) {
   if (e2 != null) {
-    final result = List<DartType>.filled(2, e1, growable: false);
+    final result = List<DartType>.filled(2, e1);
     result[1] = e2;
     return result;
   } else {
-    return List<DartType>.filled(1, e1, growable: false);
+    return List<DartType>.filled(1, e1);
   }
 }
 
@@ -991,24 +991,8 @@ class InvalidTypeImpl extends TypeImpl implements InvalidType {
 /// The type `Never` represents the uninhabited bottom type.
 class NeverTypeImpl extends TypeImpl implements NeverType {
   /// The unique instance of this class, nullable.
-  ///
-  /// This behaves equivalently to the `Null` type, but we distinguish it for
-  /// two reasons: (1) there are circumstances where we need access to this
-  /// type, but we don't have access to the type provider, so using `Never?` is
-  /// a convenient solution.  (2) we may decide that the distinction is
-  /// convenient in diagnostic messages (this is TBD).
   static final NeverTypeImpl instanceNullable =
       NeverTypeImpl._(NullabilitySuffix.question);
-
-  /// The unique instance of this class, starred.
-  ///
-  /// This behaves like a version of the Null* type that could be conceivably
-  /// migrated to be of type Never. Therefore, it's the bottom of all legacy
-  /// types, and also assignable to the true bottom. Note that Never? and Never*
-  /// are not the same type, as Never* is a subtype of Never, while Never? is
-  /// not.
-  static final NeverTypeImpl instanceLegacy =
-      NeverTypeImpl._(NullabilitySuffix.star);
 
   /// The unique instance of this class, non-nullable.
   static final NeverTypeImpl instance = NeverTypeImpl._(NullabilitySuffix.none);
@@ -1069,7 +1053,8 @@ class NeverTypeImpl extends TypeImpl implements NeverType {
       case NullabilitySuffix.question:
         return instanceNullable;
       case NullabilitySuffix.star:
-        return instanceLegacy;
+        // TODO(scheglov): remove together with `star`
+        return instanceNullable;
       case NullabilitySuffix.none:
         return instance;
     }
@@ -1346,9 +1331,11 @@ abstract class TypeImpl implements DartType {
 
   @override
   String getDisplayString({
-    required bool withNullability,
+    @Deprecated('Only non-nullable by default mode is supported')
+    bool withNullability = true,
   }) {
     var builder = ElementDisplayStringBuilder(
+      // ignore:deprecated_member_use_from_same_package
       withNullability: withNullability,
     );
     appendTo(builder);
@@ -1366,7 +1353,7 @@ abstract class TypeImpl implements DartType {
 
   @override
   String toString() {
-    return getDisplayString(withNullability: true);
+    return getDisplayString();
   }
 
   /// Return the same type, but with the given [nullabilitySuffix].

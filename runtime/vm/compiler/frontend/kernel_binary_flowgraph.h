@@ -113,6 +113,8 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   intptr_t block_expression_depth();
   void block_expression_depth_inc();
   void block_expression_depth_dec();
+  void synthetic_error_handler_depth_inc();
+  void synthetic_error_handler_depth_dec();
   intptr_t CurrentTryIndex();
   intptr_t AllocateTryIndex();
   LocalVariable* CurrentException();
@@ -134,6 +136,8 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Tag PeekArgumentsFirstPositionalTag();
   const TypeArguments& PeekArgumentsInstantiatedType(const Class& klass);
   intptr_t PeekArgumentsCount();
+
+  TokenPosition ReadPosition();
 
   // See BaseFlowGraphBuilder::MakeTemporary.
   LocalVariable* MakeTemporary(const char* suffix = nullptr);
@@ -215,7 +219,9 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
                           const Class& klass,
                           intptr_t argument_count);
   Fragment AllocateContext(const ZoneGrowableArray<const Slot*>& context_slots);
-  Fragment LoadNativeField(const Slot& field);
+  Fragment LoadNativeField(const Slot& field,
+                           InnerPointerAccess loads_inner_pointer =
+                               InnerPointerAccess::kNotUntagged);
   Fragment StoreLocal(TokenPosition position, LocalVariable* variable);
   Fragment StoreStaticField(TokenPosition position, const Field& field);
   Fragment StringInterpolate(TokenPosition position);
@@ -458,6 +464,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   CallSiteAttributesMetadataHelper call_site_attributes_metadata_helper_;
   Object& closure_owner_;
   intptr_t num_ast_nodes_ = 0;
+  intptr_t synthetic_error_handler_depth_ = 0;
 
   friend class KernelLoader;
 

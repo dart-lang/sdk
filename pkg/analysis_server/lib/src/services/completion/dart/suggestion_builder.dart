@@ -22,6 +22,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -241,9 +242,6 @@ class SuggestionBuilder {
     }
     return _cachedContainingMemberName;
   }
-
-  bool get _isNonNullableByDefault =>
-      request.libraryElement.isNonNullableByDefault;
 
   /// Return `true` if the context requires a constant expression.
   bool get _preferConstants =>
@@ -589,10 +587,7 @@ class SuggestionBuilder {
   void suggestFunctionCall() {
     final element = protocol.Element(protocol.ElementKind.METHOD,
         FunctionElement.CALL_METHOD_NAME, protocol.Element.makeFlags(),
-        location: null,
-        typeParameters: null,
-        parameters: '()',
-        returnType: 'void');
+        parameters: '()', returnType: 'void');
     _addSuggestion(
       CompletionSuggestion(
         CompletionSuggestionKind.INVOCATION,
@@ -812,8 +807,7 @@ class SuggestionBuilder {
       required bool appendComma,
       int? replacementLength}) {
     var name = parameter.name;
-    var type = parameter.type
-        .getDisplayString(withNullability: _isNonNullableByDefault);
+    var type = parameter.type.getDisplayString();
 
     var completion = name;
     if (appendColon) {
@@ -832,9 +826,8 @@ class SuggestionBuilder {
                 request.resourceProvider.getFile(request.path));
         var codeStyleOptions = analysisOptions.codeStyleOptions;
         // Don't bother with nullability. It won't affect default list values.
-        var defaultValue = getDefaultStringParameterValue(
-            parameter, codeStyleOptions,
-            withNullability: false);
+        var defaultValue =
+            getDefaultStringParameterValue(parameter, codeStyleOptions);
         // TODO(devoncarew): Should we remove the check here? We would then
         // suggest values for param types like closures.
         if (defaultValue != null && defaultValue.text == '[]') {
@@ -873,8 +866,7 @@ class SuggestionBuilder {
         elementLocation: parameter.location);
     if (parameter is FieldFormalParameterElement) {
       _setDocumentation(suggestion, parameter);
-      suggestion.element =
-          convertElement(parameter, withNullability: _isNonNullableByDefault);
+      suggestion.element = convertElement(parameter);
     }
 
     _addSuggestion(suggestion);
@@ -889,9 +881,7 @@ class SuggestionBuilder {
       required bool appendComma,
       int? replacementLength}) {
     final name = field.name;
-    final type = field.type.getDisplayString(
-      withNullability: _isNonNullableByDefault,
-    );
+    final type = field.type.getDisplayString();
 
     var completion = name;
     if (appendColon) {
@@ -924,12 +914,20 @@ class SuggestionBuilder {
   /// invocation of an overridden member.
   Future<void> suggestOverride(
       Token targetId, ExecutableElement element, bool invokeSuper) async {
+    await suggestOverride2(element, invokeSuper, range.token(targetId));
+  }
+
+  /// Add a suggestion to replace the [targetId] with an override of the given
+  /// [element]. If [invokeSuper] is `true`, then the override will contain an
+  /// invocation of an overridden member.
+  Future<void> suggestOverride2(ExecutableElement element, bool invokeSuper,
+      SourceRange replacementRange) async {
     var displayTextBuffer = StringBuffer();
     var overrideImports = <Uri>{};
     var builder = ChangeBuilder(session: request.analysisSession);
     await builder.addDartFileEdit(request.path, createEditsForImports: false,
         (builder) {
-      builder.addReplacement(range.token(targetId), (builder) {
+      builder.addReplacement(replacementRange, (builder) {
         builder.writeOverride(
           element,
           displayTextBuffer: displayTextBuffer,
@@ -964,7 +962,7 @@ class SuggestionBuilder {
     if (selectionRange == null) {
       return;
     }
-    var offsetDelta = targetId.offset + replacement.indexOf(completion);
+    var offsetDelta = replacementRange.offset + replacement.indexOf(completion);
     var displayText =
         displayTextBuffer.isNotEmpty ? displayTextBuffer.toString() : null;
     var suggestion = DartCompletionSuggestion(
@@ -978,8 +976,7 @@ class SuggestionBuilder {
         displayText: displayText,
         elementLocation: element.location,
         requiredImports: overrideImports.toList());
-    suggestion.element = protocol.convertElement(element,
-        withNullability: _isNonNullableByDefault);
+    suggestion.element = protocol.convertElement(element);
     _addSuggestion(
       suggestion,
       textToMatchOverride: _textToMatchOverride(element),
@@ -1044,9 +1041,7 @@ class SuggestionBuilder {
       contextType: contextType,
     );
 
-    final returnType = field.type.getDisplayString(
-      withNullability: _isNonNullableByDefault,
-    );
+    final returnType = field.type.getDisplayString();
 
     _addSuggestion(
       CompletionSuggestion(
@@ -1462,10 +1457,7 @@ class SuggestionBuilder {
   _ElementCompletionData _createElementCompletionData(Element element) {
     var documentation = _getDocumentation(element);
 
-    var suggestedElement = protocol.convertElement(
-      element,
-      withNullability: _isNonNullableByDefault,
-    );
+    var suggestedElement = protocol.convertElement(element);
 
     var enclosingElement = element.enclosingElement;
 
@@ -1474,10 +1466,7 @@ class SuggestionBuilder {
       declaringType = enclosingElement.displayName;
     }
 
-    var returnType = getReturnTypeString(
-      element,
-      withNullability: _isNonNullableByDefault,
-    );
+    var returnType = getReturnTypeString(element);
 
     List<String>? parameterNames;
     List<String>? parameterTypes;
@@ -1489,9 +1478,7 @@ class SuggestionBuilder {
         return parameter.name;
       }).toList();
       parameterTypes = element.parameters.map((ParameterElement parameter) {
-        return parameter.type.getDisplayString(
-          withNullability: _isNonNullableByDefault,
-        );
+        return parameter.type.getDisplayString();
       }).toList();
 
       var requiredParameters = element.parameters

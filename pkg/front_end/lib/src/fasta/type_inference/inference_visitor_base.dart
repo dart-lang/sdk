@@ -6,13 +6,14 @@ import 'package:_fe_analyzer_shared/src/deferred_function_literal_heuristic.dart
 import 'package:_fe_analyzer_shared/src/field_promotability.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis_operations.dart';
-import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/testing/id.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/util/link.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchyBase, ClassHierarchyMembers;
 import 'package:kernel/core_types.dart' show CoreTypes;
+import 'package:kernel/names.dart';
 import 'package:kernel/src/bounds_checks.dart'
     show calculateBounds, isGenericFunctionTypeOrAlias;
 import 'package:kernel/src/future_value_type.dart';
@@ -32,13 +33,12 @@ import '../../testing/id_extractor.dart';
 import '../../testing/id_testing_utils.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/member_builder.dart';
-import '../fasta_codes.dart';
+import '../codes/fasta_codes.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/hierarchy/class_member.dart';
 import '../kernel/internal_ast.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/type_algorithms.dart' show hasAnyTypeVariables;
-import '../names.dart';
 import '../problems.dart' show internalProblem, unhandled;
 import '../source/source_constructor_builder.dart';
 import '../source/source_field_builder.dart';
@@ -253,7 +253,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         new ConstructorInvocation(
             coreTypes.reachabilityErrorConstructor, arguments)
           ..fileOffset = fileOffset)
-      ..fileOffset = fileOffset;
+      ..fileOffset = fileOffset
+      ..forErrorHandling = true;
   }
 
   /// Computes a list of context messages explaining why [receiver] was not
@@ -796,31 +797,34 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         expressionType, callName, fileOffset,
         isSetter: false);
 
-    // Replace expression with:
-    // `let t = expression in t == null ? null : t.call`
-    VariableDeclaration t =
-        new VariableDeclaration.forValue(expression, type: expressionType)
-          ..fileOffset = fileOffset;
-
-    // TODO(johnniwinther): Avoid null-check for non-nullable expressions.
-    Expression nullCheck =
-        new EqualsNull(new VariableGet(t)..fileOffset = fileOffset)
-          ..fileOffset = fileOffset;
-
-    DartType tearoffType = target.getGetterType(this);
     Expression tearOff;
+    DartType tearoffType = target.getGetterType(this);
     switch (target.kind) {
       case ObjectAccessTargetKind.instanceMember:
-        tearOff = new InstanceTearOff(
-            InstanceAccessKind.Instance, new VariableGet(t), callName,
-            interfaceTarget: target.member as Procedure,
-            resultType: tearoffType)
+        // TODO(johnniwinther): Avoid null-check for non-nullable expressions.
+
+        // Replace expression with:
+        // `let t = expression in t == null ? null : t.call`
+        VariableDeclaration t =
+            new VariableDeclaration.forValue(expression, type: expressionType)
+              ..fileOffset = fileOffset;
+        tearOff = new Let(
+            t,
+            new ConditionalExpression(
+                new EqualsNull(new VariableGet(t)..fileOffset = fileOffset)
+                  ..fileOffset = fileOffset,
+                new NullLiteral()..fileOffset = fileOffset,
+                new InstanceTearOff(
+                    InstanceAccessKind.Instance, new VariableGet(t), callName,
+                    interfaceTarget: target.member as Procedure,
+                    resultType: tearoffType)
+                  ..fileOffset = fileOffset,
+                tearoffType))
           ..fileOffset = fileOffset;
       case ObjectAccessTargetKind.extensionTypeMember:
         tearOff = new StaticInvocation(
             target.tearoffTarget as Procedure,
-            new Arguments([new VariableGet(t)],
-                types: target.receiverTypeArguments)
+            new Arguments([expression], types: target.receiverTypeArguments)
               ..fileOffset = fileOffset)
           ..fileOffset = fileOffset;
       case ObjectAccessTargetKind.extensionTypeRepresentation:
@@ -845,10 +849,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         throw new UnsupportedError("Unexpected call tear-off $target.");
     }
 
-    ConditionalExpression conditional = new ConditionalExpression(nullCheck,
-        new NullLiteral()..fileOffset = fileOffset, tearOff, tearoffType);
-    return new TypedTearoff(
-        tearoffType, new Let(t, conditional)..fileOffset = fileOffset);
+    return new TypedTearoff(tearoffType, tearOff);
   }
 
   /// Computes the assignability kind of [expressionType] to [contextType].
@@ -2074,7 +2075,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       } else {
         // Argument counts and names match. Compare types.
         int positionalShift = isImplicitExtensionMember ? 1 : 0;
-        int numPositionalArgs = arguments.positional.length - positionalShift;
+        int positionalIndex = 0;
+        int namedIndex = 0;
         for (int i = 0; i < formalTypes.length; i++) {
           DartType formalType = formalTypes[i];
           DartType expectedType = instantiator != null
@@ -2084,11 +2086,14 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           Expression expression;
           NamedExpression? namedExpression;
           bool coerceExpression;
-          if (i < numPositionalArgs) {
-            expression = arguments.positional[positionalShift + i];
+          Object? argumentInEvaluationOrder =
+              argumentsEvaluationOrder[i + positionalShift];
+          if (argumentInEvaluationOrder is Expression) {
+            expression =
+                arguments.positional[positionalShift + positionalIndex];
             coerceExpression = !arguments.positionalAreSuperParameters;
           } else {
-            namedExpression = arguments.named[i - numPositionalArgs];
+            namedExpression = arguments.named[namedIndex];
             expression = namedExpression.value;
             coerceExpression = !(arguments.namedSuperParameterNames
                     ?.contains(namedExpression.name) ??
@@ -2109,10 +2114,12 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
               nullabilityNullTypeErrorTemplate:
                   templateArgumentTypeNotAssignableNullabilityNullType);
           if (namedExpression == null) {
-            arguments.positional[positionalShift + i] = expression
+            arguments.positional[positionalShift + positionalIndex] = expression
               ..parent = arguments;
+            positionalIndex++;
           } else {
             namedExpression.value = expression..parent = namedExpression;
+            namedIndex++;
           }
         }
       }
@@ -4361,7 +4368,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       int value, String? literal, int charOffset) {
     if (value >= 0 && value <= (1 << 53)) return null;
     if (!libraryBuilder
-        .loader.target.backendTarget.errorOnUnexactWebIntLiterals) return null;
+        .loader.target.backendTarget.errorOnUnexactWebIntLiterals) {
+      return null;
+    }
     BigInt asInt = new BigInt.from(value).toUnsigned(64);
     BigInt asDouble = new BigInt.from(asInt.toDouble());
     if (asInt == asDouble) return null;

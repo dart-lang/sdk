@@ -870,9 +870,7 @@ class IsolateManager {
         try {
           // Some file URIs (like SDK sources) need to be converted to
           // appropriate internal URIs to be able to set breakpoints.
-          final vmUri = await thread.resolvePathToUri(
-            Uri.parse(uri).toFilePath(),
-          );
+          final vmUri = await thread.resolvePathToUri(Uri.parse(uri));
 
           if (vmUri == null) {
             return;
@@ -938,12 +936,14 @@ class IsolateManager {
 
     // Pre-resolve all URIs in batch so the call below does not trigger
     // many requests to the server.
-    final allUris = libraries
-        .map((library) => library.uri)
-        .nonNulls
-        .map(Uri.parse)
-        .toList();
-    await thread.resolveUrisToPackageLibPathsBatch(allUris);
+    if (!debugExternalPackageLibraries) {
+      final allUris = libraries
+          .map((library) => library.uri)
+          .nonNulls
+          .map(Uri.parse)
+          .toList();
+      await thread.resolveUrisToPackageLibPathsBatch(allUris);
+    }
 
     await Future.wait(libraries.map((library) async {
       final libraryUri = library.uri;
@@ -1048,14 +1048,14 @@ class ThreadInfo with FileUtils {
   /// tokenPos) can share the same response.
   final _scripts = <String, Future<vm.Script>>{};
 
-  /// A cache of requests (Futures) to resolve URIs to their local file paths.
+  /// A cache of requests (Futures) to resolve URIs to their file URIs.
   ///
   /// Used so that multiple requests that require them (for example looking up
   /// locations for stack frames from tokenPos) can share the same response.
   ///
   /// Keys are URIs in string form.
-  /// Values are file paths (not file URIs!).
-  final _resolvedPaths = <String, Future<String?>>{};
+  /// Values are file URIs.
+  final _resolvedPaths = <String, Future<Uri?>>{};
 
   /// Whether this isolate has an in-flight resume request that has not yet
   /// been responded to.
@@ -1080,9 +1080,10 @@ class ThreadInfo with FileUtils {
     return _manager.getScripts(isolate);
   }
 
-  /// Resolves a source file path into a URI for the VM.
+  /// Resolves a source file path (or URI) into a URI for the VM.
   ///
   /// sdk-path/lib/core/print.dart -> dart:core/print.dart
+  /// c:\foo\bar -> package:foo/bar
   ///
   /// This is required so that when the user sets a breakpoint in an SDK source
   /// (which they may have navigated to via the Analysis Server) we generate a
@@ -1092,16 +1093,16 @@ class ThreadInfo with FileUtils {
   /// not need to convert file paths into `package:` URIs, however this will
   /// be done if [forceResolveFileUris] is `true`.
   Future<Uri?> resolvePathToUri(
-    String filePath, {
+    Uri sourcePathUri, {
     bool forceResolveFileUris = false,
   }) async {
-    final sdkUri = _manager._adapter.convertPathToOrgDartlangSdk(filePath);
+    final sdkUri = _manager._adapter.convertUriToOrgDartlangSdk(sourcePathUri);
     if (sdkUri != null) {
       return sdkUri;
     }
 
-    final google3Uri = _convertPathToGoogle3Uri(filePath);
-    final uri = google3Uri ?? Uri.file(filePath);
+    final google3Uri = _convertPathToGoogle3Uri(sourcePathUri);
+    final uri = google3Uri ?? sourcePathUri;
 
     // As an optimisation, we don't resolve file -> package URIs in many cases
     // because the VM can set breakpoints for file: URIs anyway. However for
@@ -1129,8 +1130,8 @@ class ThreadInfo with FileUtils {
     }
   }
 
-  /// Batch resolves source URIs from the VM to a file path for the package lib
-  /// folder.
+  /// Batch resolves source URIs from the VM to a file URI for the package
+  /// lib folder.
   ///
   /// This method is more performant than repeatedly calling
   /// [resolveUrisToPackageLibPath] because it resolves multiple URIs in a
@@ -1140,7 +1141,7 @@ class ThreadInfo with FileUtils {
   /// [resolveUriToPath]) so it's reasonable to call this method up-front and
   /// then use [resolveUrisToPackageLibPath] (and [resolveUriToPath]) to read
   /// the results later.
-  Future<List<String?>> resolveUrisToPackageLibPathsBatch(
+  Future<List<Uri?>> resolveUrisToPackageLibPathsBatch(
     List<Uri> uris,
   ) async {
     final results = await resolveUrisToPathsBatch(uris);
@@ -1149,7 +1150,7 @@ class ThreadInfo with FileUtils {
         .toList();
   }
 
-  /// Batch resolves source URIs from the VM to a file path.
+  /// Batch resolves source URIs from the VM to a file URI.
   ///
   /// This method is more performant than repeatedly calling [resolveUriToPath]
   /// because it resolves multiple URIs in a single request to the VM.
@@ -1157,7 +1158,7 @@ class ThreadInfo with FileUtils {
   /// Results are cached and shared with [resolveUriToPath] so it's reasonable
   /// to call this method up-front and then use [resolveUriToPath] to read
   /// the results later.
-  Future<List<String?>> resolveUrisToPathsBatch(List<Uri> uris) async {
+  Future<List<Uri?>> resolveUrisToPathsBatch(List<Uri> uris) async {
     // First find the set of URIs we don't already have results for.
     final requiredUris = uris
         .where(isResolvableUri)
@@ -1168,8 +1169,8 @@ class ThreadInfo with FileUtils {
     if (requiredUris.isNotEmpty) {
       // Populate completers for each URI before we start the request so that
       // concurrent calls to this method will not start their own requests.
-      final completers = Map<String, Completer<String?>>.fromEntries(
-        requiredUris.map((uri) => MapEntry('$uri', Completer<String?>())),
+      final completers = Map<String, Completer<Uri?>>.fromEntries(
+        requiredUris.map((uri) => MapEntry('$uri', Completer<Uri?>())),
       );
       completers.forEach(
         (uri, completer) => _resolvedPaths[uri] = completer.future,
@@ -1225,9 +1226,11 @@ class ThreadInfo with FileUtils {
     // because they were either filtered out of [requiredUris] because they were
     // already there, or we then populated completers for them above.
     final futures = uris.map((uri) async {
-      return uri.isScheme('file')
-          ? uri.toFilePath()
-          : await _resolvedPaths[uri.toString()]!;
+      if (_manager._adapter.isSupportedFileScheme(uri)) {
+        return uri;
+      } else {
+        return await _resolvedPaths[uri.toString()];
+      }
     });
     return Future.wait(futures);
   }
@@ -1272,21 +1275,22 @@ class ThreadInfo with FileUtils {
   /// would not be changed.
   final _libraryIsDebuggableById = <String, bool>{};
 
-  /// Resolves a source URI to a file path for the lib folder of its package.
+  /// Resolves a source URI to a file URI for the lib folder of its
+  /// package.
   ///
-  /// package:foo/a/b/c/d.dart -> /code/packages/foo/lib
+  /// package:foo/a/b/c/d.dart -> file:///code/packages/foo/lib
   ///
   /// This method is an optimisation over calling [resolveUriToPath] where only
   /// the package root is required (for example when determining whether a
   /// package is within the users workspace). This method allows results to be
   /// cached per-package to avoid hitting the VM Service for each individual
   /// library within a package.
-  Future<String?> resolveUriToPackageLibPath(Uri uri) async {
+  Future<Uri?> resolveUriToPackageLibPath(Uri uri) async {
     final result = await resolveUrisToPackageLibPathsBatch([uri]);
     return result.first;
   }
 
-  /// Resolves a source URI from the VM to a file path.
+  /// Resolves a source URI from the VM to a file URI.
   ///
   /// dart:core/print.dart -> sdk-path/lib/core/print.dart
   ///
@@ -1294,7 +1298,7 @@ class ThreadInfo with FileUtils {
   /// frame) we open the same file on their local disk. If we downloaded the
   /// source from the VM, they would end up seeing two copies of files (and they
   /// would each have their own breakpoints) which can be confusing.
-  Future<String?> resolveUriToPath(Uri uri) async {
+  Future<Uri?> resolveUriToPath(Uri uri) async {
     final result = await resolveUrisToPathsBatch([uri]);
     return result.first;
   }
@@ -1303,11 +1307,16 @@ class ThreadInfo with FileUtils {
   /// that are round-tripped to the client.
   int storeData(Object data) => _manager.storeData(this, data);
 
-  Uri? _convertPathToGoogle3Uri(String input) {
+  Uri? _convertPathToGoogle3Uri(Uri input) {
+    if (!input.isScheme('file')) {
+      return null;
+    }
+    final inputPath = input.toFilePath();
+
     const search = '/google3/';
-    if (input.startsWith('/google') && input.contains(search)) {
-      var idx = input.indexOf(search);
-      var remainingPath = input.substring(idx + search.length);
+    if (inputPath.startsWith('/google') && inputPath.contains(search)) {
+      var idx = inputPath.indexOf(search);
+      var remainingPath = inputPath.substring(idx + search.length);
       return Uri(
         scheme: 'google3',
         host: '',
@@ -1318,18 +1327,24 @@ class ThreadInfo with FileUtils {
     return null;
   }
 
-  /// Converts a URI to a file path.
+  /// Converts a VM-returned URI to a file URI, taking org-dartlang-sdk
+  /// schemes into account.
   ///
-  /// Supports file:// URIs and org-dartlang-sdk:// URIs.
-  String? _convertUriToFilePath(Uri? input) {
+  /// Supports file URIs and org-dartlang-sdk:// URIs.
+  Uri? _convertUriToFilePath(Uri? input) {
     if (input == null) {
       return null;
-    } else if (input.isScheme('file')) {
-      return input.toFilePath();
+    } else if (_manager._adapter.isSupportedFileScheme(input)) {
+      // Already supported file scheme.
+      return input;
     } else {
+      // TODO(dantup): UriConverter should be upgraded to use URIs
+      //  instead of paths, but that might be breaking because it's used
+      //  outside of this package?
       final uriConverter = _manager._adapter.uriConverter();
       if (uriConverter != null) {
-        return uriConverter(input.toString());
+        final filePath = uriConverter(input.toString());
+        return filePath != null ? Uri.file(filePath) : null;
       }
       return _manager._adapter.convertOrgDartlangSdkToPath(input);
     }
@@ -1340,12 +1355,10 @@ class ThreadInfo with FileUtils {
   ///
   /// [uri] should be the equivalent package: URI and is used to know how many
   /// segments to remove from the file path to get to the lib folder.
-  String? _trimPathToLibFolder(String? filePath, Uri uri) {
-    if (filePath == null) {
+  Uri? _trimPathToLibFolder(Uri? fileUri, Uri uri) {
+    if (fileUri == null) {
       return null;
     }
-
-    final fileUri = Uri.file(filePath);
 
     // Track how many segments from the path are from the lib folder to the
     // library that will need to be removed later.
@@ -1353,17 +1366,16 @@ class ThreadInfo with FileUtils {
 
     // It should never be the case that the returned value doesn't have at
     // least as many segments as the path of the URI.
-    assert(fileUri.pathSegments.length > libraryPathSegments);
-    if (fileUri.pathSegments.length <= libraryPathSegments) {
-      return filePath;
+    assert(uri.pathSegments.length > libraryPathSegments);
+    if (uri.pathSegments.length <= libraryPathSegments) {
+      return fileUri;
     }
 
     // Strip off the correct number of segments to the resulting path points
     // to the root of the package:/ URI.
     final keepSegments = fileUri.pathSegments.length - libraryPathSegments;
-    return fileUri
-        .replace(pathSegments: fileUri.pathSegments.sublist(0, keepSegments))
-        .toFilePath();
+    return fileUri.replace(
+        pathSegments: fileUri.pathSegments.sublist(0, keepSegments));
   }
 
   /// Clears all data stored for this thread.
@@ -1383,7 +1395,7 @@ class ThreadInfo with FileUtils {
     // We need to handle msimatched drive letters, and also file vs package
     // URIs.
     final scriptResolvedUri = await resolvePathToUri(
-      scriptFileUri.toFilePath(),
+      scriptFileUri,
       forceResolveFileUris: true,
     );
     final candidateUris = {

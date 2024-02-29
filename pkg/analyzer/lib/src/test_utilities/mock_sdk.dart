@@ -5,7 +5,6 @@
 import 'dart:convert';
 
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:meta/meta.dart';
@@ -822,13 +821,13 @@ extension NativeFunctionPointer<NF extends Function>
   external DF asFunction<DF extends Function>({bool isLeaf = false});
 }
 
-final class _Compound implements SizedNativeType {}
+abstract final class _Compound implements NativeType {}
 
 @Since('2.12')
-abstract base class Struct extends _Compound {}
+abstract base class Struct extends _Compound implements SizedNativeType {}
 
 @Since('2.14')
-abstract base class Union extends _Compound {}
+abstract base class Union extends _Compound implements SizedNativeType {}
 
 @Since('2.13')
 final class Packed {
@@ -855,7 +854,7 @@ final class DartRepresentationOf {
 }
 
 @Since('2.13')
-final class Array<T extends NativeType> implements NativeType {
+final class Array<T extends NativeType> extends _Compound {
   const factory Array(int dimension1,
       [int dimension2,
       int dimension3,
@@ -1368,6 +1367,18 @@ class Isolate {
   )
 ]);
 
+final MockSdkLibrary _LIB_MACROS = MockSdkLibrary(
+  '_macros',
+  [
+    MockSdkLibraryUnit(
+      '_macros/_macros.dart',
+      '''
+library dart._macros;
+''',
+    )
+  ],
+);
+
 final MockSdkLibrary _LIB_MATH = MockSdkLibrary(
   'math',
   [
@@ -1444,6 +1455,7 @@ final List<MockSdkLibrary> _LIBRARIES = [
   _LIB_INTERNAL,
   _LIB_IO,
   _LIB_ISOLATE,
+  _LIB_MACROS,
   _LIB_MATH,
   _LIB_TYPED_DATA,
   _LIB_WASM,
@@ -1454,7 +1466,7 @@ final List<MockSdkLibrary> _LIBRARIES = [
 /// It has enough libraries to run analyzer and analysis server tests,
 /// but some libraries, classes, and methods are missing.
 void createMockSdk({
-  required MemoryResourceProvider resourceProvider,
+  required ResourceProvider resourceProvider,
   required Folder root,
   @internal List<MockSdkLibrary> additionalLibraries = const [],
 }) {

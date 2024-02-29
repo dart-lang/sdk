@@ -97,7 +97,7 @@ class B extends core::Object /*hasConstConstructor*/  {
     if(!this.{self::B::_#B#x#isSet}{core::bool}) {
       final core::int #t2 = 42;
       if(this.{self::B::_#B#x#isSet}{core::bool})
-        throw new _in::LateError::fieldADI("x");
+        throw{for-error-handling} new _in::LateError::fieldADI("x");
       this.{self::B::_#B#x} = #t2;
       this.{self::B::_#B#x#isSet} = true;
     }
@@ -111,10 +111,10 @@ class C extends core::Object {
     : super core::Object::•()
     ;
   get x() → core::int
-    return this.{self::C::_#C#x#isSet}{core::bool} ?{core::int} let final core::int? #t4 = this.{self::C::_#C#x}{core::int?} in #t4{core::int} : throw new _in::LateError::fieldNI("x");
+    return this.{self::C::_#C#x#isSet}{core::bool} ?{core::int} let final core::int? #t4 = this.{self::C::_#C#x}{core::int?} in #t4{core::int} : throw{for-error-handling} new _in::LateError::fieldNI("x");
   set x(core::int x#param) → void
     if(this.{self::C::_#C#x#isSet}{core::bool})
-      throw new _in::LateError::fieldAI("x");
+      throw{for-error-handling} new _in::LateError::fieldAI("x");
     else {
       this.{self::C::_#C#x#isSet} = true;
       this.{self::C::_#C#x} = x#param;

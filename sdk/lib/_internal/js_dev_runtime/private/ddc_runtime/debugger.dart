@@ -509,52 +509,26 @@ Object getSubRange(@notNull Object object, int offset, int count) {
 }
 
 @notNull
-bool _isDartClassObject(@notNull Object object) {
-  if (JS_GET_FLAG('NEW_RUNTIME_TYPES')) {
-    return _get(object, rti.interfaceTypeRecipePropertyName) != null;
-  } else {
-    return isType(object);
-  }
-}
+bool _isDartClassObject(@notNull Object object) =>
+    _get(object, rti.interfaceTypeRecipePropertyName) != null;
 
 @notNull
 String _dartClassName(@notNull Object cls) {
-  if (JS_GET_FLAG('NEW_RUNTIME_TYPES')) {
-    var recipe = _get(cls, rti.interfaceTypeRecipePropertyName);
-    return recipe.split('|').last;
-  } else {
-    return typeName(cls);
-  }
+  var recipe = _get(cls, rti.interfaceTypeRecipePropertyName);
+  return recipe.split('|').last;
 }
 
 @notNull
-bool _isRecordType(@notNull Type type) {
-  if (JS_GET_FLAG('NEW_RUNTIME_TYPES')) {
-    return rti.isRecordType(type);
-  } else {
-    return type is _Type ? isRecordType(type) : false;
-  }
-}
+bool _isRecordType(@notNull Type type) => rti.isRecordType(type);
 
 @notNull
-List _recordTypeElementTypes(@notNull Type type) {
-  if (JS_GET_FLAG('NEW_RUNTIME_TYPES')) {
-    return rti.getRecordTypeElementTypes(type);
-  } else {
-    var impl = recordTypeImpl(type);
-    return impl.types.map(wrapType).toList();
-  }
-}
+List _recordTypeElementTypes(@notNull Type type) =>
+    rti.getRecordTypeElementTypes(type);
 
 @notNull
 Shape _recordTypeShape(@notNull Type type) {
-  if (JS_GET_FLAG('NEW_RUNTIME_TYPES')) {
-    var shapeKey = rti.getRecordTypeShapeKey(type);
-    return _getValue<Shape>(shapes, shapeKey);
-  } else {
-    var impl = recordTypeImpl(type);
-    return impl.shape;
-  }
+  var shapeKey = rti.getRecordTypeShapeKey(type);
+  return _getValue<Shape>(shapes, shapeKey);
 }
 
 @notNull

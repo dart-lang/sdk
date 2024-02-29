@@ -35,7 +35,7 @@ main() {
   runTests() async {
     CompilationResult result =
         await runCompiler(memorySourceFiles: MEMORY_SOURCE_FILES);
-    Compiler compiler = result.compiler;
+    Compiler compiler = result.compiler!;
     KClosedWorld closedWorld = compiler.frontendClosedWorldForTesting!;
     KElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
     Expect.isFalse(compiler.compilationFailed, 'Unsuccessful compilation');

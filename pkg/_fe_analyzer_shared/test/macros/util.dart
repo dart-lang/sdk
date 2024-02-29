@@ -401,8 +401,10 @@ class Fixtures {
           IdentifierImpl(id: RemoteInstance.uniqueId, name: '_myVariable'),
       library: Fixtures.library,
       metadata: [],
+      hasConst: false,
       hasExternal: false,
       hasFinal: true,
+      hasInitializer: false,
       hasLate: false,
       type: inferredStringType);
   static final myVariableGetter = FunctionDeclarationImpl(
@@ -433,7 +435,7 @@ class Fixtures {
       isSetter: true,
       namedParameters: [],
       positionalParameters: [
-        ParameterDeclarationImpl(
+        FormalParameterDeclarationImpl(
             id: RemoteInstance.uniqueId,
             identifier:
                 IdentifierImpl(id: RemoteInstance.uniqueId, name: 'value'),
@@ -451,8 +453,10 @@ class Fixtures {
       identifier: IdentifierImpl(id: RemoteInstance.uniqueId, name: 'library'),
       library: Fixtures.library,
       metadata: [],
+      hasConst: false,
       hasExternal: false,
       hasFinal: true,
+      hasInitializer: false,
       hasLate: false,
       type: NamedTypeAnnotationImpl(
           id: RemoteInstance.uniqueId,
@@ -510,7 +514,7 @@ class Fixtures {
       hasExternal: false,
       namedParameters: [],
       positionalParameters: [
-        ParameterDeclarationImpl(
+        FormalParameterDeclarationImpl(
             id: RemoteInstance.uniqueId,
             identifier:
                 IdentifierImpl(id: RemoteInstance.uniqueId, name: 'myField'),
@@ -530,12 +534,14 @@ class Fixtures {
       library: Fixtures.library,
       metadata: [],
       hasAbstract: false,
+      hasConst: false,
       hasExternal: false,
       hasFinal: false,
+      hasInitializer: false,
       hasLate: false,
       type: stringType,
       definingType: myClassType.identifier,
-      isStatic: false);
+      hasStatic: false);
   static final myInterface = ClassDeclarationImpl(
       id: RemoteInstance.uniqueId,
       identifier: myInterfaceType.identifier,
@@ -567,7 +573,7 @@ class Fixtures {
       returnType: recordType,
       typeParameters: [],
       definingType: myClassType.identifier,
-      isStatic: false);
+      hasStatic: false);
   static final mySuperclass = ClassDeclarationImpl(
       id: RemoteInstance.uniqueId,
       identifier: mySuperclassType.identifier,
@@ -620,7 +626,7 @@ class Fixtures {
       hasExternal: false,
       namedParameters: [],
       positionalParameters: [
-        ParameterDeclarationImpl(
+        FormalParameterDeclarationImpl(
             id: RemoteInstance.uniqueId,
             identifier:
                 IdentifierImpl(id: RemoteInstance.uniqueId, name: 'myField'),
@@ -661,7 +667,7 @@ class Fixtures {
       returnType: recordType,
       typeParameters: [],
       definingType: myMixinType.identifier,
-      isStatic: false);
+      hasStatic: false);
 
   static final myExtension = ExtensionDeclarationImpl(
       id: RemoteInstance.uniqueId,
@@ -680,6 +686,18 @@ class Fixtures {
       metadata: [],
       typeParameters: [],
       representationType: myClassType);
+
+  static final myTypeAlias = TypeAliasDeclarationImpl(
+    id: RemoteInstance.uniqueId,
+    identifier: IdentifierImpl(
+      id: RemoteInstance.uniqueId,
+      name: 'MyTypeAlias',
+    ),
+    library: Fixtures.library,
+    metadata: [],
+    typeParameters: [],
+    aliasedType: myClassType,
+  );
 
   static final myGeneratedExtensionMethod = MethodDeclarationImpl(
       id: RemoteInstance.uniqueId,
@@ -703,7 +721,7 @@ class Fixtures {
       definingType: myExtension.identifier,
       // TODO: This is a bit weird, the method is actually static, but doesn't
       // have the keyword because it is implicit.
-      isStatic: false);
+      hasStatic: false);
 
   static final myGeneratedExtensionTypeMethod = MethodDeclarationImpl(
       id: RemoteInstance.uniqueId,
@@ -727,7 +745,7 @@ class Fixtures {
       definingType: myExtensionType.identifier,
       // TODO: This is a bit weird, the method is actually static, but doesn't
       // have the keyword because it is implicit.
-      isStatic: false);
+      hasStatic: false);
 
   static final testDeclarationPhaseIntrospector =
       TestDeclarationPhaseIntrospector(constructors: {

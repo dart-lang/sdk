@@ -171,6 +171,6 @@ Compiler compilerFor(
   return compiler;
 }
 
-main() {
+void main() {
   runCompiler(memorySourceFiles: {'main.dart': 'main() {}'});
 }

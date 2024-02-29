@@ -27,35 +27,35 @@ class Class extends core::Object implements self::Interface {
   constructor •(core::int field) → self::Class
     : self::Class::field = field, super core::Object::•()
     ;
-  method /* from org-dartlang-augmentation:/a/b/c/main.dart-0 */ get_field(core::int f) → core::int
+  method /* from dart-macro+org-dartlang-test:///a/b/c/main.dart */ get_field(core::int f) → core::int
     return this.{self::Class::field}{core::int};
-  method /* from org-dartlang-augmentation:/a/b/c/main.dart-0 */ get_fieldFunc((core::int) → core::int f) → () → core::int
+  method /* from dart-macro+org-dartlang-test:///a/b/c/main.dart */ get_fieldFunc((core::int) → core::int f) → () → core::int
     return () → core::int => this.{self::Class::field}{core::int};
-  method /* from org-dartlang-augmentation:/a/b/c/main.dart-0 */ get_fieldList(core::List<core::int> l) → core::List<core::int>
+  method /* from dart-macro+org-dartlang-test:///a/b/c/main.dart */ get_fieldList(core::List<core::int> l) → core::List<core::int>
     return <core::int>[this.{self::Class::field}{core::int}];
-  method /* from org-dartlang-augmentation:/a/b/c/main.dart-1 */ get_method() → core::String
+  method /* from dart-macro+org-dartlang-test:///a/b/c/main.dart */ get_method() → core::String
     return this.{self::Class::method}(){() → core::String};
-  method /* from org-dartlang-augmentation:/a/b/c/main.dart-1 */ get_methodFunc() → () → core::String
+  method /* from dart-macro+org-dartlang-test:///a/b/c/main.dart */ get_methodFunc() → () → core::String
     return () → core::String => this.{self::Class::method}(){() → core::String};
-  method /* from org-dartlang-augmentation:/a/b/c/main.dart-1 */ get_methodList() → core::List<core::String>
+  method /* from dart-macro+org-dartlang-test:///a/b/c/main.dart */ get_methodList() → core::List<core::String>
     return <core::String>[this.{self::Class::method}(){() → core::String}];
-  method /* from org-dartlang-augmentation:/a/b/c/main.dart-2 */ get_staticField(core::String f) → core::String
+  method /* from dart-macro+org-dartlang-test:///a/b/c/main.dart */ get_staticField(core::String f) → core::String
     return this.{self::Class::staticField}{core::String};
-  method /* from org-dartlang-augmentation:/a/b/c/main.dart-2 */ get_staticFieldFunc((core::String) → core::String f) → () → core::String
+  method /* from dart-macro+org-dartlang-test:///a/b/c/main.dart */ get_staticFieldFunc((core::String) → core::String f) → () → core::String
     return () → core::String => this.{self::Class::staticField}{core::String};
-  method /* from org-dartlang-augmentation:/a/b/c/main.dart-2 */ get_staticFieldList(core::List<core::String> l) → core::List<core::String>
+  method /* from dart-macro+org-dartlang-test:///a/b/c/main.dart */ get_staticFieldList(core::List<core::String> l) → core::List<core::String>
     return <core::String>[this.{self::Class::staticField}{core::String}];
-  method /* from org-dartlang-augmentation:/a/b/c/main.dart-3 */ get_staticMethod() → dynamic
+  method /* from dart-macro+org-dartlang-test:///a/b/c/main.dart */ get_staticMethod() → dynamic
     return this.{self::Class::staticMethod}(){() → dynamic};
-  method /* from org-dartlang-augmentation:/a/b/c/main.dart-3 */ get_staticMethodFunc() → () → dynamic
+  method /* from dart-macro+org-dartlang-test:///a/b/c/main.dart */ get_staticMethodFunc() → () → dynamic
     return () → dynamic => this.{self::Class::staticMethod}(){() → dynamic};
-  method /* from org-dartlang-augmentation:/a/b/c/main.dart-3 */ get_staticMethodList() → core::List<dynamic>
+  method /* from dart-macro+org-dartlang-test:///a/b/c/main.dart */ get_staticMethodList() → core::List<dynamic>
     return <dynamic>[this.{self::Class::staticMethod}(){() → dynamic}];
-  method /* from org-dartlang-augmentation:/a/b/c/main.dart-4 */ get_() → core::int
+  method /* from dart-macro+org-dartlang-test:///a/b/c/main.dart */ get_() → core::int
     return throw "";
-  method /* from org-dartlang-augmentation:/a/b/c/main.dart-4 */ get_Func() → () → core::int
+  method /* from dart-macro+org-dartlang-test:///a/b/c/main.dart */ get_Func() → () → core::int
     return throw "";
-  method /* from org-dartlang-augmentation:/a/b/c/main.dart-4 */ get_List() → core::List<core::int>
+  method /* from dart-macro+org-dartlang-test:///a/b/c/main.dart */ get_List() → core::List<core::int>
     return throw "";
   @#C1
   method method() → core::String

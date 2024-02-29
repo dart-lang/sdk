@@ -7,12 +7,13 @@ import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
     as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
-    hide NamedType, RecordType;
+    hide RecordType;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClassHierarchyBase;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/src/norm.dart';
+import 'package:kernel/src/printer.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../../base/instrumentation.dart' show Instrumentation;
@@ -522,7 +523,7 @@ class OperationsCfe
       return new shared.RecordType(
           positional: type.positional,
           named: type.named
-              .map((field) => new shared.NamedType(field.name, field.type))
+              .map((field) => (name: field.name, type: field.type))
               .toList());
     } else {
       return null;
@@ -700,7 +701,7 @@ class OperationsCfe
   @override
   DartType glb(DartType type1, DartType type2) {
     return typeEnvironment.getStandardLowerBound(type1, type2,
-        isNonNullableByDefault: true);
+        isNonNullableByDefault: nullability == Nullability.nonNullable);
   }
 
   @override
@@ -758,7 +759,7 @@ class OperationsCfe
   @override
   DartType lub(DartType type1, DartType type2) {
     return typeEnvironment.getStandardUpperBound(type1, type2,
-        isNonNullableByDefault: true);
+        isNonNullableByDefault: nullability == Nullability.nonNullable);
   }
 
   @override
@@ -804,7 +805,7 @@ class OperationsCfe
   }
 
   @override
-  MapPatternTypeArguments<DartType>? matchMapType(DartType type) {
+  ({DartType keyType, DartType valueType})? matchMapType(DartType type) {
     if (type is! TypeDeclarationType) {
       return null;
     } else {
@@ -814,9 +815,10 @@ class OperationsCfe
       if (mapType == null) {
         return null;
       } else {
-        return new MapPatternTypeArguments<DartType>(
-            keyType: mapType.typeArguments[0],
-            valueType: mapType.typeArguments[1]);
+        return (
+          keyType: mapType.typeArguments[0],
+          valueType: mapType.typeArguments[1]
+        );
       }
     }
   }
@@ -869,10 +871,10 @@ class OperationsCfe
   @override
   DartType recordType(
       {required List<DartType> positional,
-      required List<shared.NamedType<DartType>> named}) {
+      required List<(String, DartType)> named}) {
     List<NamedType> namedFields = [];
-    for (shared.NamedType<DartType> namedType in named) {
-      namedFields.add(new NamedType(namedType.name, namedType.type));
+    for (var (name, type) in named) {
+      namedFields.add(new NamedType(name, type));
     }
     namedFields.sort((f1, f2) => f1.name.compareTo(f2.name));
     return new RecordType(positional, namedFields, Nullability.nonNullable);
@@ -881,7 +883,7 @@ class OperationsCfe
   @override
   DartType recordTypeSchema(
           {required List<DartType> positional,
-          required List<shared.NamedType<DartType>> named}) =>
+          required List<(String, DartType)> named}) =>
       recordType(positional: positional, named: named);
 
   @override
@@ -904,6 +906,32 @@ class OperationsCfe
 
   @override
   DartType typeToSchema(DartType type) => type;
+
+  @override
+  String getDisplayString(DartType type) {
+    return type.toText(const AstTextStrategy());
+  }
+
+  @override
+  DartType typeSchemaLub(DartType typeSchema1, DartType typeSchema2) {
+    return lub(typeSchema1, typeSchema2);
+  }
+
+  @override
+  bool typeSchemaIsSubtypeOfTypeSchema(
+      DartType leftSchema, DartType rightSchema) {
+    return isSubtypeOf(leftSchema, rightSchema);
+  }
+
+  @override
+  bool typeIsSubtypeOfTypeSchema(DartType leftType, DartType rightSchema) {
+    return isSubtypeOf(leftType, rightSchema);
+  }
+
+  @override
+  bool typeSchemaIsSubtypeOfType(DartType leftSchema, DartType rightType) {
+    return isSubtypeOf(leftSchema, rightType);
+  }
 }
 
 /// Type inference results used for testing.

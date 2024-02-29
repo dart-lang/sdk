@@ -52,7 +52,6 @@ class SinceSdkVersionComputer {
   static Version? _specifiedVersion(ElementImpl element) {
     Version? result;
     for (final annotation in element.metadata) {
-      annotation as ElementAnnotationImpl;
       if (annotation.isDartInternalSince) {
         final arguments = annotation.annotationAst.arguments?.arguments;
         final versionNode = arguments?.singleOrNull;

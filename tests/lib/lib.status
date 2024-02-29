@@ -9,7 +9,6 @@ convert/utf85_test: Skip # Pass, Slow Issue 12644.
 
 [ $compiler == dart2wasm ]
 async/stream_periodic3_test: Skip # Flaky, issue 50901
-developer/*: SkipByDesign
 fix_data_tests/*: SkipByDesign
 html/*: SkipByDesign # dart:html not supported on dart2wasm
 isolate/*: SkipByDesign

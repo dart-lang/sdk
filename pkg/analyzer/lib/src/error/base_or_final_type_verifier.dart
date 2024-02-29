@@ -185,7 +185,7 @@ class BaseOrFinalTypeVerifier {
       // The context message links to the explicitly declared 'base' or 'final'
       // super element and is only added onto the error if 'base' or 'final' is
       // an induced modifier of the direct super element.
-      final contextMessage = <DiagnosticMessage>[
+      final contextMessages = <DiagnosticMessage>[
         DiagnosticMessageImpl(
           filePath: baseOrFinalSuperElement.source.fullName,
           length: baseOrFinalSuperElement.nameLength,
@@ -206,11 +206,11 @@ class BaseOrFinalTypeVerifier {
           final errorCode = baseOrFinalSuperElement is MixinElement
               ? CompileTimeErrorCode.BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY
               : CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY;
-          _errorReporter.reportErrorForNode(
-            errorCode,
+          _errorReporter.atNode(
             implementsNamedType,
-            [baseOrFinalSuperElement.displayName],
-            contextMessage,
+            errorCode,
+            arguments: [baseOrFinalSuperElement.displayName],
+            contextMessages: contextMessages,
           );
           return true;
         }
@@ -241,22 +241,30 @@ class BaseOrFinalTypeVerifier {
               ? CompileTimeErrorCode.MIXIN_SUBTYPE_OF_FINAL_IS_NOT_BASE
               : CompileTimeErrorCode
                   .SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED;
-          _errorReporter.reportErrorForElement(
-              errorCode,
-              element,
-              [element.displayName, baseOrFinalSuperElement.displayName],
-              superElement.isSealed ? contextMessage : null);
+          _errorReporter.atElement(
+            element,
+            errorCode,
+            arguments: [
+              element.displayName,
+              baseOrFinalSuperElement.displayName,
+            ],
+            contextMessages: superElement.isSealed ? contextMessages : null,
+          );
           return true;
         } else if (baseOrFinalSuperElement.isBase) {
           final errorCode = element is MixinElement
               ? CompileTimeErrorCode.MIXIN_SUBTYPE_OF_BASE_IS_NOT_BASE
               : CompileTimeErrorCode
                   .SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED;
-          _errorReporter.reportErrorForElement(
-              errorCode,
-              element,
-              [element.displayName, baseOrFinalSuperElement.displayName],
-              superElement.isSealed ? contextMessage : null);
+          _errorReporter.atElement(
+            element,
+            errorCode,
+            arguments: [
+              element.displayName,
+              baseOrFinalSuperElement.displayName,
+            ],
+            contextMessages: superElement.isSealed ? contextMessages : null,
+          );
           return true;
         }
       }

@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -56,6 +57,14 @@ class AnalysisNotificationOverridesTest extends PubPackageAnalysisServerTest {
   /// offset of [search] in [override].
   void assertHasSuperElement(String search) {
     var offset = findOffset(search);
+    var member = overrideObject.superclassMember;
+    expect(member!.element.location!.offset, offset);
+  }
+
+  /// Asserts that there is an overridden superclass [OverriddenMember] at the
+  /// offset of [search] in [override].
+  void assertHasSuperElementInFile(File file, String search) {
+    var offset = offsetInFile(file, search);
     var member = overrideObject.superclassMember;
     expect(member!.element.location!.offset, offset);
   }
@@ -519,6 +528,50 @@ class C extends B {
     await prepareOverrides();
     assertHasOverride('m() {} // in C');
     assertHasSuperElement('m() {} // in A');
+    assertNoInterfaceMembers();
+  }
+
+  Future<void> test_class_super_method_overriddenFromAugmentation() async {
+    var augmentation = newFile('$testPackageLibPath/a.dart', '''
+library augment 'test.dart';
+
+augment class A {
+  m() {} // in A
+}
+''');
+    addTestFile('''
+import augment 'a.dart';
+
+class A {}
+class B extends A {
+  m() {} // in B
+}
+''');
+    await prepareOverrides();
+    assertHasOverride('m() {} // in B');
+    assertHasSuperElementInFile(augmentation, 'm() {} // in A');
+    assertNoInterfaceMembers();
+  }
+
+  Future<void> test_class_super_method_overrideFromAugmentation() async {
+    var augmented = newFile('$testPackageLibPath/b.dart', '''
+import augment 'test.dart';
+
+class A {
+  m() {} // in A
+}
+class B extends A {}
+''');
+    addTestFile('''
+library augment 'b.dart';
+
+augment class B {
+  m() {} // in B
+}
+''');
+    await prepareOverrides();
+    assertHasOverride('m() {} // in B');
+    assertHasSuperElementInFile(augmented, 'm() {} // in A');
     assertNoInterfaceMembers();
   }
 

@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -36,16 +35,11 @@ class AssignmentExpressionResolver {
 
   ErrorReporter get _errorReporter => _resolver.errorReporter;
 
-  bool get _isNonNullableByDefault => _typeSystem.isNonNullableByDefault;
-
   TypeProvider get _typeProvider => _resolver.typeProvider;
 
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
-  void resolve(
-    AssignmentExpressionImpl node, {
-    required DartType? contextType,
-  }) {
+  void resolve(AssignmentExpressionImpl node) {
     var operator = node.operator.type;
     var hasRead = operator != TokenType.EQ;
     var isIfNull = operator == TokenType.QUESTION_QUESTION_EQ;
@@ -87,9 +81,7 @@ class AssignmentExpressionResolver {
     DartType? rhsContext;
     {
       var leftType = node.writeType;
-      if (writeElement is VariableElement &&
-          !_resolver.definingLibrary.featureSet
-              .isEnabled(Feature.inference_update_3)) {
+      if (writeElement is VariableElement) {
         leftType = _resolver.localVariableTypeProvider
             .getType(left as SimpleIdentifier, isRead: false);
       }
@@ -105,8 +97,7 @@ class AssignmentExpressionResolver {
     right = _resolver.popRewrite()!;
     var whyNotPromoted = flow?.whyNotPromoted(right);
 
-    _resolveTypes(node,
-        whyNotPromoted: whyNotPromoted, contextType: contextType);
+    _resolveTypes(node, whyNotPromoted: whyNotPromoted);
 
     if (flow != null) {
       if (writeElement is PromotableElement) {
@@ -144,20 +135,20 @@ class AssignmentExpressionResolver {
       var field = writeType.positionalFields.first;
       if (_typeSystem.isAssignableTo(field.type, rightType,
           strictCasts: strictCasts)) {
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
+        _errorReporter.atNode(
           right,
-          [],
+          CompileTimeErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
         );
         return;
       }
     }
 
-    _errorReporter.reportErrorForNode(
-      CompileTimeErrorCode.INVALID_ASSIGNMENT,
+    _errorReporter.atNode(
       right,
-      [rightType, writeType],
-      _resolver.computeWhyNotPromotedMessages(right, whyNotPromoted?.call()),
+      CompileTimeErrorCode.INVALID_ASSIGNMENT,
+      arguments: [rightType, writeType],
+      contextMessages: _resolver.computeWhyNotPromotedMessages(
+          right, whyNotPromoted?.call()),
     );
   }
 
@@ -174,11 +165,15 @@ class AssignmentExpressionResolver {
 
     if (expression is MethodInvocation) {
       SimpleIdentifier methodName = expression.methodName;
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.USE_OF_VOID_RESULT, methodName, []);
+      _errorReporter.atNode(
+        methodName,
+        CompileTimeErrorCode.USE_OF_VOID_RESULT,
+      );
     } else {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.USE_OF_VOID_RESULT, expression, []);
+      _errorReporter.atNode(
+        expression,
+        CompileTimeErrorCode.USE_OF_VOID_RESULT,
+      );
     }
 
     return true;
@@ -220,9 +215,9 @@ class AssignmentExpressionResolver {
     // Example: `y += 0`, is not allowed.
     if (operatorType != TokenType.EQ) {
       if (leftType is VoidType) {
-        _errorReporter.reportErrorForToken(
-          CompileTimeErrorCode.USE_OF_VOID_RESULT,
+        _errorReporter.atToken(
           operator,
+          CompileTimeErrorCode.USE_OF_VOID_RESULT,
         );
         return;
       }
@@ -250,17 +245,16 @@ class AssignmentExpressionResolver {
     );
     node.staticElement = result.getter as MethodElement?;
     if (result.needsGetterError) {
-      _errorReporter.reportErrorForToken(
-        CompileTimeErrorCode.UNDEFINED_OPERATOR,
+      _errorReporter.atToken(
         operator,
-        [methodName, leftType],
+        CompileTimeErrorCode.UNDEFINED_OPERATOR,
+        arguments: [methodName, leftType],
       );
     }
   }
 
   void _resolveTypes(AssignmentExpressionImpl node,
-      {required Map<DartType, NonPromotionReason> Function()? whyNotPromoted,
-      required DartType? contextType}) {
+      {required Map<DartType, NonPromotionReason> Function()? whyNotPromoted}) {
     DartType assignedType;
 
     var rightHandSide = node.rightHandSide;
@@ -296,15 +290,13 @@ class AssignmentExpressionResolver {
       var leftType = node.readType!;
 
       // The LHS value will be used only if it is non-null.
-      if (_isNonNullableByDefault) {
-        leftType = _typeSystem.promoteToNonNull(leftType);
-      }
+      leftType = _typeSystem.promoteToNonNull(leftType);
 
       nodeType = _typeSystem.leastUpperBound(leftType, assignedType);
     } else {
       nodeType = assignedType;
     }
-    _inferenceHelper.recordStaticType(node, nodeType, contextType: contextType);
+    _inferenceHelper.recordStaticType(node, nodeType);
 
     // TODO(scheglov): Remove from ErrorVerifier?
     _checkForInvalidAssignment(
@@ -346,17 +338,17 @@ class AssignmentExpressionShared {
         if (element.isFinal) {
           if (element.isLate) {
             if (isForEachIdentifier || assigned) {
-              _errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED,
+              _errorReporter.atNode(
                 left,
+                CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED,
               );
             }
           } else {
             if (isForEachIdentifier || !unassigned) {
-              _errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL,
+              _errorReporter.atNode(
                 left,
-                [element.name],
+                CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL,
+                arguments: [element.name],
               );
             }
           }

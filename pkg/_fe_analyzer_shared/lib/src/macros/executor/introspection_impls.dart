@@ -179,35 +179,34 @@ class FunctionTypeAnnotationImpl extends TypeAnnotationImpl
     FunctionTypeAnnotationCode underlyingType = new FunctionTypeAnnotationCode(
       returnType: returnType.code,
       typeParameters: [
-        for (TypeParameterDeclaration typeParam in typeParameters)
-          typeParam.code,
+        for (TypeParameter typeParam in typeParameters) typeParam.code,
       ],
       positionalParameters: [
-        for (FunctionTypeParameter positional in positionalParameters)
+        for (FormalParameter positional in positionalParameters)
           if (positional.isRequired) positional.code,
       ],
       optionalPositionalParameters: [
-        for (FunctionTypeParameter positional in positionalParameters)
+        for (FormalParameter positional in positionalParameters)
           if (!positional.isRequired) positional.code,
       ],
       namedParameters: [
-        for (FunctionTypeParameter named in namedParameters) named.code,
+        for (FormalParameter named in namedParameters) named.code,
       ],
     );
     return isNullable ? underlyingType.asNullable : underlyingType;
   }
 
   @override
-  final List<FunctionTypeParameterImpl> namedParameters;
+  final List<FormalParameterImpl> namedParameters;
 
   @override
-  final List<FunctionTypeParameterImpl> positionalParameters;
+  final List<FormalParameterImpl> positionalParameters;
 
   @override
   final TypeAnnotationImpl returnType;
 
   @override
-  final List<TypeParameterDeclarationImpl> typeParameters;
+  final List<TypeParameterImpl> typeParameters;
 
   @override
   RemoteInstanceKind get kind => RemoteInstanceKind.functionTypeAnnotation;
@@ -228,19 +227,19 @@ class FunctionTypeAnnotationImpl extends TypeAnnotationImpl
     returnType.serialize(serializer);
 
     serializer.startList();
-    for (FunctionTypeParameterImpl param in positionalParameters) {
+    for (FormalParameterImpl param in positionalParameters) {
       param.serialize(serializer);
     }
     serializer.endList();
 
     serializer.startList();
-    for (FunctionTypeParameterImpl param in namedParameters) {
+    for (FormalParameterImpl param in namedParameters) {
       param.serialize(serializer);
     }
     serializer.endList();
 
     serializer.startList();
-    for (TypeParameterDeclarationImpl typeParam in typeParameters) {
+    for (TypeParameterImpl typeParam in typeParameters) {
       typeParam.serialize(serializer);
     }
     serializer.endList();
@@ -360,8 +359,11 @@ abstract class DeclarationImpl extends RemoteInstance implements Declaration {
   }
 }
 
-class ParameterDeclarationImpl extends DeclarationImpl
-    implements ParameterDeclaration {
+class FormalParameterDeclarationImpl extends DeclarationImpl
+    implements FormalParameterDeclaration {
+  @override
+  final TypeAnnotationImpl type;
+
   @override
   final bool isNamed;
 
@@ -369,12 +371,12 @@ class ParameterDeclarationImpl extends DeclarationImpl
   final bool isRequired;
 
   @override
-  final TypeAnnotationImpl type;
+  RemoteInstanceKind get kind => RemoteInstanceKind.formalParameterDeclaration;
 
   @override
-  RemoteInstanceKind get kind => RemoteInstanceKind.parameterDeclaration;
+  String get name => identifier.name;
 
-  ParameterDeclarationImpl({
+  FormalParameterDeclarationImpl({
     required super.id,
     required super.identifier,
     required super.library,
@@ -384,12 +386,28 @@ class ParameterDeclarationImpl extends DeclarationImpl
     required this.type,
   });
 
+  FormalParameterDeclarationImpl.fromBitMask({
+    required super.id,
+    required super.identifier,
+    required super.library,
+    required super.metadata,
+    required BitMask<_ParameterIntrospectionBit> bitMask,
+    required this.type,
+  })  : isNamed = bitMask.has(_ParameterIntrospectionBit.isNamed),
+        isRequired = bitMask.has(_ParameterIntrospectionBit.isRequired);
+
+  /// If subclasses have their own values to add to [bitMask], they must do so
+  /// before calling this function, and pass the mask here.
   @override
-  void serializeUncached(Serializer serializer) {
+  void serializeUncached(Serializer serializer,
+      {BitMask<_ParameterIntrospectionBit>? bitMask}) {
     super.serializeUncached(serializer);
 
-    serializer.addBool(isNamed);
-    serializer.addBool(isRequired);
+    bitMask ??= new BitMask();
+    if (isNamed) bitMask.add(_ParameterIntrospectionBit.isNamed);
+    if (isRequired) bitMask.add(_ParameterIntrospectionBit.isRequired);
+    bitMask.freeze();
+    serializer.addInt(bitMask._mask);
     type.serialize(serializer);
   }
 
@@ -400,8 +418,7 @@ class ParameterDeclarationImpl extends DeclarationImpl
       ]);
 }
 
-class FunctionTypeParameterImpl extends RemoteInstance
-    implements FunctionTypeParameter {
+class FormalParameterImpl extends RemoteInstance implements FormalParameter {
   @override
   final bool isNamed;
 
@@ -418,9 +435,9 @@ class FunctionTypeParameterImpl extends RemoteInstance
   final TypeAnnotationImpl type;
 
   @override
-  RemoteInstanceKind get kind => RemoteInstanceKind.functionTypeParameter;
+  RemoteInstanceKind get kind => RemoteInstanceKind.formalParameter;
 
-  FunctionTypeParameterImpl({
+  FormalParameterImpl({
     required int id,
     required this.isNamed,
     required this.isRequired,
@@ -429,14 +446,30 @@ class FunctionTypeParameterImpl extends RemoteInstance
     required this.type,
   }) : super(id);
 
+  FormalParameterImpl.fromBitMask({
+    required int id,
+    required BitMask<_ParameterIntrospectionBit> bitMask,
+    required this.metadata,
+    required this.name,
+    required this.type,
+  })  : isNamed = bitMask.has(_ParameterIntrospectionBit.isNamed),
+        isRequired = bitMask.has(_ParameterIntrospectionBit.isRequired),
+        super(id);
+
+  /// If subclasses have their own values to add to [bitMask], they must do so
+  /// before calling this function, and pass the mask here.
   @override
-  void serializeUncached(Serializer serializer) {
+  void serializeUncached(Serializer serializer,
+      {BitMask<_ParameterIntrospectionBit>? bitMask}) {
     super.serializeUncached(serializer);
 
-    serializer.addBool(isNamed);
-    serializer.addBool(isRequired);
-
-    serializer.startList();
+    bitMask ??= new BitMask();
+    if (isNamed) bitMask.add(_ParameterIntrospectionBit.isNamed);
+    if (isRequired) bitMask.add(_ParameterIntrospectionBit.isRequired);
+    bitMask.freeze();
+    serializer
+      ..addInt(bitMask._mask)
+      ..startList();
     for (MetadataAnnotationImpl annotation in metadata) {
       annotation.serialize(serializer);
     }
@@ -452,6 +485,44 @@ class FunctionTypeParameterImpl extends RemoteInstance
       ]);
 }
 
+class TypeParameterImpl extends RemoteInstance implements TypeParameter {
+  @override
+  final TypeAnnotationImpl? bound;
+
+  @override
+  final List<MetadataAnnotationImpl> metadata;
+
+  @override
+  final String name;
+
+  @override
+  TypeParameterCode get code =>
+      new TypeParameterCode(name: name, bound: bound?.code);
+
+  @override
+  RemoteInstanceKind get kind => RemoteInstanceKind.typeParameter;
+
+  TypeParameterImpl({
+    required int id,
+    required this.bound,
+    required this.metadata,
+    required this.name,
+  }) : super(id);
+
+  @override
+  void serializeUncached(Serializer serializer) {
+    super.serializeUncached(serializer);
+
+    bound.serializeNullable(serializer);
+    serializer.startList();
+    for (MetadataAnnotationImpl annotation in metadata) {
+      annotation.serialize(serializer);
+    }
+    serializer.endList();
+    serializer.addString(name);
+  }
+}
+
 class TypeParameterDeclarationImpl extends DeclarationImpl
     implements TypeParameterDeclaration {
   @override
@@ -459,6 +530,9 @@ class TypeParameterDeclarationImpl extends DeclarationImpl
 
   @override
   RemoteInstanceKind get kind => RemoteInstanceKind.typeParameterDeclaration;
+
+  @override
+  String get name => identifier.name;
 
   TypeParameterDeclarationImpl({
     required super.id,
@@ -472,12 +546,7 @@ class TypeParameterDeclarationImpl extends DeclarationImpl
   void serializeUncached(Serializer serializer) {
     super.serializeUncached(serializer);
 
-    TypeAnnotationImpl? bound = this.bound;
-    if (bound == null) {
-      serializer.addNull();
-    } else {
-      bound.serialize(serializer);
-    }
+    bound.serializeNullable(serializer);
   }
 
   @override
@@ -503,10 +572,10 @@ class FunctionDeclarationImpl extends DeclarationImpl
   final bool isSetter;
 
   @override
-  final List<ParameterDeclarationImpl> namedParameters;
+  final List<FormalParameterDeclarationImpl> namedParameters;
 
   @override
-  final List<ParameterDeclarationImpl> positionalParameters;
+  final List<FormalParameterDeclarationImpl> positionalParameters;
 
   @override
   final TypeAnnotationImpl returnType;
@@ -518,10 +587,12 @@ class FunctionDeclarationImpl extends DeclarationImpl
   RemoteInstanceKind get kind => RemoteInstanceKind.functionDeclaration;
 
   FunctionDeclarationImpl({
+    // Declaration fields
     required super.id,
     required super.identifier,
     required super.library,
     required super.metadata,
+    // FunctionDeclaration fields
     required this.hasBody,
     required this.hasExternal,
     required this.isGetter,
@@ -533,27 +604,46 @@ class FunctionDeclarationImpl extends DeclarationImpl
     required this.typeParameters,
   });
 
+  FunctionDeclarationImpl.fromBitMask({
+    required super.id,
+    required super.identifier,
+    required super.library,
+    required super.metadata,
+    required BitMask<_FunctionIntrospectionBit> bitMask,
+    required this.namedParameters,
+    required this.positionalParameters,
+    required this.returnType,
+    required this.typeParameters,
+  })  : hasBody = bitMask.has(_FunctionIntrospectionBit.hasBody),
+        hasExternal = bitMask.has(_FunctionIntrospectionBit.hasExternal),
+        isGetter = bitMask.has(_FunctionIntrospectionBit.isGetter),
+        isOperator = bitMask.has(_FunctionIntrospectionBit.isOperator),
+        isSetter = bitMask.has(_FunctionIntrospectionBit.isSetter);
+
+  /// If subclasses have their own values to add to [bitMask], they must do so
+  /// before calling this function, and pass the mask here.
   @override
-  void serializeUncached(Serializer serializer, {bool isConstructor = false}) {
+  void serializeUncached(Serializer serializer,
+      {BitMask<_FunctionIntrospectionBit>? bitMask}) {
     super.serializeUncached(serializer);
 
+    bitMask ??= new BitMask();
+    if (hasBody) bitMask.add(_FunctionIntrospectionBit.hasBody);
+    if (hasExternal) bitMask.add(_FunctionIntrospectionBit.hasExternal);
+    if (isGetter) bitMask.add(_FunctionIntrospectionBit.isGetter);
+    if (isOperator) bitMask.add(_FunctionIntrospectionBit.isOperator);
+    if (isSetter) bitMask.add(_FunctionIntrospectionBit.isSetter);
+    bitMask.freeze();
     serializer
-      ..addBool(hasBody)
-      ..addBool(hasExternal);
-    if (!isConstructor) {
-      serializer
-        ..addBool(isGetter)
-        ..addBool(isOperator)
-        ..addBool(isSetter);
-    }
-    serializer.startList();
-    for (ParameterDeclarationImpl named in namedParameters) {
+      ..addInt(bitMask._mask)
+      ..startList();
+    for (FormalParameterDeclarationImpl named in namedParameters) {
       named.serialize(serializer);
     }
     serializer
       ..endList()
       ..startList();
-    for (ParameterDeclarationImpl positional in positionalParameters) {
+    for (FormalParameterDeclarationImpl positional in positionalParameters) {
       positional.serialize(serializer);
     }
     serializer.endList();
@@ -572,10 +662,10 @@ class MethodDeclarationImpl extends FunctionDeclarationImpl
   final IdentifierImpl definingType;
 
   @override
-  RemoteInstanceKind get kind => RemoteInstanceKind.methodDeclaration;
+  final bool hasStatic;
 
   @override
-  final bool isStatic;
+  RemoteInstanceKind get kind => RemoteInstanceKind.methodDeclaration;
 
   MethodDeclarationImpl({
     // Declaration fields.
@@ -595,15 +685,36 @@ class MethodDeclarationImpl extends FunctionDeclarationImpl
     required super.typeParameters,
     // Method fields.
     required this.definingType,
-    required this.isStatic,
+    required this.hasStatic,
   });
 
+  MethodDeclarationImpl.fromBitMask({
+    // Declaration fields.
+    required super.id,
+    required super.identifier,
+    required super.library,
+    required super.metadata,
+    // Function fields.
+    required super.bitMask,
+    required super.namedParameters,
+    required super.positionalParameters,
+    required super.returnType,
+    required super.typeParameters,
+    // Method fields.
+    required this.definingType,
+  })  : hasStatic = bitMask.has(_FunctionIntrospectionBit.hasStatic),
+        super.fromBitMask();
+
+  /// If subclasses have their own values to add to [bitMask], they must do so
+  /// before calling this function, and pass the mask here.
   @override
-  void serializeUncached(Serializer serializer, {bool isConstructor = false}) {
-    super.serializeUncached(serializer, isConstructor: isConstructor);
+  void serializeUncached(Serializer serializer,
+      {BitMask<_FunctionIntrospectionBit>? bitMask}) {
+    bitMask ??= new BitMask();
+    if (hasStatic) bitMask.add(_FunctionIntrospectionBit.hasStatic);
+    super.serializeUncached(serializer, bitMask: bitMask);
 
     definingType.serialize(serializer);
-    if (!isConstructor) serializer.addBool(isStatic);
   }
 }
 
@@ -636,25 +747,50 @@ class ConstructorDeclarationImpl extends MethodDeclarationImpl
           isGetter: false,
           isOperator: false,
           isSetter: false,
-          isStatic: true,
+          hasStatic: true,
         );
 
-  @override
-  void serializeUncached(Serializer serializer, {bool isConstructor = true}) {
-    assert(isConstructor);
-    super.serializeUncached(serializer, isConstructor: isConstructor);
+  ConstructorDeclarationImpl.fromBitMask({
+    // Declaration fields.
+    required super.id,
+    required super.identifier,
+    required super.library,
+    required super.metadata,
+    // Function fields.
+    required super.bitMask,
+    required super.namedParameters,
+    required super.positionalParameters,
+    required super.returnType,
+    required super.typeParameters,
+    // Method fields.
+    required super.definingType,
+  })  : isFactory = bitMask.has(_FunctionIntrospectionBit.isFactory),
+        super.fromBitMask();
 
-    serializer.addBool(isFactory);
+  /// If subclasses have their own values to add to [bitMask], they must do so
+  /// before calling this function, and pass the mask here.
+  @override
+  void serializeUncached(Serializer serializer,
+      {BitMask<_FunctionIntrospectionBit>? bitMask}) {
+    bitMask ??= new BitMask();
+    if (isFactory) bitMask.add(_FunctionIntrospectionBit.isFactory);
+    super.serializeUncached(serializer, bitMask: bitMask);
   }
 }
 
 class VariableDeclarationImpl extends DeclarationImpl
     implements VariableDeclaration {
   @override
+  final bool hasConst;
+
+  @override
   final bool hasExternal;
 
   @override
   final bool hasFinal;
+
+  @override
+  final bool hasInitializer;
 
   @override
   final bool hasLate;
@@ -666,24 +802,48 @@ class VariableDeclarationImpl extends DeclarationImpl
   RemoteInstanceKind get kind => RemoteInstanceKind.variableDeclaration;
 
   VariableDeclarationImpl({
+    // Declaration fields
     required super.id,
     required super.identifier,
     required super.library,
     required super.metadata,
+    // Variable fields
+    required this.hasConst,
     required this.hasExternal,
     required this.hasFinal,
+    required this.hasInitializer,
     required this.hasLate,
     required this.type,
   });
 
+  VariableDeclarationImpl.fromBitMask({
+    required super.id,
+    required super.identifier,
+    required super.library,
+    required super.metadata,
+    required BitMask<_VariableIntrospectionBit> bitMask,
+    required this.type,
+  })  : hasConst = bitMask.has(_VariableIntrospectionBit.hasConst),
+        hasExternal = bitMask.has(_VariableIntrospectionBit.hasExternal),
+        hasFinal = bitMask.has(_VariableIntrospectionBit.hasFinal),
+        hasInitializer = bitMask.has(_VariableIntrospectionBit.hasInitializer),
+        hasLate = bitMask.has(_VariableIntrospectionBit.hasLate);
+
+  /// If subclasses have their own values to add to [bitMask], they must do so
+  /// before calling this function, and pass the mask here.
   @override
-  void serializeUncached(Serializer serializer) {
+  void serializeUncached(Serializer serializer,
+      {BitMask<_VariableIntrospectionBit>? bitMask}) {
     super.serializeUncached(serializer);
 
-    serializer
-      ..addBool(hasExternal)
-      ..addBool(hasFinal)
-      ..addBool(hasLate);
+    bitMask ??= new BitMask();
+    if (hasConst) bitMask.add(_VariableIntrospectionBit.hasConst);
+    if (hasExternal) bitMask.add(_VariableIntrospectionBit.hasExternal);
+    if (hasFinal) bitMask.add(_VariableIntrospectionBit.hasFinal);
+    if (hasInitializer) bitMask.add(_VariableIntrospectionBit.hasInitializer);
+    if (hasLate) bitMask.add(_VariableIntrospectionBit.hasLate);
+    bitMask.freeze();
+    serializer.addInt(bitMask._mask);
     type.serialize(serializer);
   }
 }
@@ -697,7 +857,7 @@ class FieldDeclarationImpl extends VariableDeclarationImpl
   final bool hasAbstract;
 
   @override
-  final bool isStatic;
+  final bool hasStatic;
 
   FieldDeclarationImpl({
     // Declaration fields.
@@ -706,27 +866,47 @@ class FieldDeclarationImpl extends VariableDeclarationImpl
     required super.library,
     required super.metadata,
     // Variable fields.
+    required super.hasConst,
     required super.hasExternal,
     required super.hasFinal,
+    required super.hasInitializer,
     required super.hasLate,
     required super.type,
     // Field fields.
     required this.definingType,
     required this.hasAbstract,
-    required this.isStatic,
+    required this.hasStatic,
   });
+
+  FieldDeclarationImpl.fromBitMask({
+    // Declaration fields.
+    required super.id,
+    required super.identifier,
+    required super.library,
+    required super.metadata,
+    // Variable fields.
+    required super.bitMask,
+    required super.type,
+    // Field fields.
+    required this.definingType,
+  })  : hasAbstract = bitMask.has(_VariableIntrospectionBit.hasAbstract),
+        hasStatic = bitMask.has(_VariableIntrospectionBit.hasStatic),
+        super.fromBitMask();
 
   @override
   RemoteInstanceKind get kind => RemoteInstanceKind.fieldDeclaration;
 
+  /// If subclasses have their own values to add to [bitMask], they must do so
+  /// before calling this function, and pass the mask here.
   @override
-  void serializeUncached(Serializer serializer) {
-    super.serializeUncached(serializer);
+  void serializeUncached(Serializer serializer,
+      {BitMask<_VariableIntrospectionBit>? bitMask}) {
+    bitMask ??= new BitMask();
+    if (hasAbstract) bitMask.add(_VariableIntrospectionBit.hasAbstract);
+    if (hasStatic) bitMask.add(_VariableIntrospectionBit.hasStatic);
+    super.serializeUncached(serializer, bitMask: bitMask);
 
     definingType.serialize(serializer);
-    serializer
-      ..addBool(hasAbstract)
-      ..addBool(isStatic);
   }
 }
 
@@ -761,9 +941,6 @@ abstract class ParameterizedTypeDeclarationImpl extends DeclarationImpl
 class ClassDeclarationImpl extends ParameterizedTypeDeclarationImpl
     implements ClassDeclaration {
   @override
-  final List<NamedTypeAnnotationImpl> interfaces;
-
-  @override
   final bool hasAbstract;
 
   @override
@@ -785,6 +962,9 @@ class ClassDeclarationImpl extends ParameterizedTypeDeclarationImpl
   final bool hasSealed;
 
   @override
+  final List<NamedTypeAnnotationImpl> interfaces;
+
+  @override
   final List<NamedTypeAnnotationImpl> mixins;
 
   @override
@@ -802,7 +982,6 @@ class ClassDeclarationImpl extends ParameterizedTypeDeclarationImpl
     // TypeDeclaration fields.
     required super.typeParameters,
     // ClassDeclaration fields.
-    required this.interfaces,
     required this.hasAbstract,
     required this.hasBase,
     required this.hasExternal,
@@ -810,27 +989,55 @@ class ClassDeclarationImpl extends ParameterizedTypeDeclarationImpl
     required this.hasInterface,
     required this.hasMixin,
     required this.hasSealed,
+    required this.interfaces,
     required this.mixins,
     required this.superclass,
   });
 
+  ClassDeclarationImpl.fromBitMask({
+    // Declaration fields.
+    required super.id,
+    required super.identifier,
+    required super.library,
+    required super.metadata,
+    // TypeDeclaration fields.
+    required super.typeParameters,
+    // ClassDeclaration fields.
+    required BitMask<_ClassIntrospectionBit> bitMask,
+    required this.interfaces,
+    required this.mixins,
+    required this.superclass,
+  })  : hasAbstract = bitMask.has(_ClassIntrospectionBit.hasAbstract),
+        hasBase = bitMask.has(_ClassIntrospectionBit.hasBase),
+        hasExternal = bitMask.has(_ClassIntrospectionBit.hasExternal),
+        hasFinal = bitMask.has(_ClassIntrospectionBit.hasFinal),
+        hasInterface = bitMask.has(_ClassIntrospectionBit.hasInterface),
+        hasMixin = bitMask.has(_ClassIntrospectionBit.hasMixin),
+        hasSealed = bitMask.has(_ClassIntrospectionBit.hasSealed);
+
+  /// If subclasses have their own values to add to [bitMask], they must do so
+  /// before calling this function, and pass the mask here.
   @override
-  void serializeUncached(Serializer serializer) {
+  void serializeUncached(Serializer serializer, {BitMask? bitMask}) {
     super.serializeUncached(serializer);
 
-    serializer.startList();
+    bitMask ??= new BitMask();
+    if (hasAbstract) bitMask.add(_ClassIntrospectionBit.hasAbstract);
+    if (hasBase) bitMask.add(_ClassIntrospectionBit.hasBase);
+    if (hasExternal) bitMask.add(_ClassIntrospectionBit.hasExternal);
+    if (hasFinal) bitMask.add(_ClassIntrospectionBit.hasFinal);
+    if (hasInterface) bitMask.add(_ClassIntrospectionBit.hasInterface);
+    if (hasMixin) bitMask.add(_ClassIntrospectionBit.hasMixin);
+    if (hasSealed) bitMask.add(_ClassIntrospectionBit.hasSealed);
+    bitMask.freeze();
+    serializer
+      ..addInt(bitMask._mask)
+      ..startList();
     for (NamedTypeAnnotationImpl interface in interfaces) {
       interface.serialize(serializer);
     }
     serializer
       ..endList()
-      ..addBool(hasAbstract)
-      ..addBool(hasBase)
-      ..addBool(hasExternal)
-      ..addBool(hasFinal)
-      ..addBool(hasInterface)
-      ..addBool(hasMixin)
-      ..addBool(hasSealed)
       ..startList();
     for (NamedTypeAnnotationImpl mixin in mixins) {
       mixin.serialize(serializer);
@@ -1090,4 +1297,73 @@ class LanguageVersionImpl implements LanguageVersion, Serializable {
       ..addInt(major)
       ..addInt(minor);
   }
+}
+
+/// A general bit mask class for specific enum types.
+///
+/// This should always be specialized to exactly one enum type, since the mask
+/// uses the enum indexes.
+final class BitMask<T extends Enum> {
+  int _mask;
+  bool _frozen = false;
+
+  BitMask([this._mask = 0])
+      : assert(
+          T is! Enum,
+        );
+
+  void add(T bit) {
+    if (_frozen) throw new StateError('Cannot modify a frozen BitMask');
+    _mask |= bit.mask;
+  }
+
+  bool has(T bit) {
+    return (_mask & bit.mask) != 0;
+  }
+
+  void freeze() => _frozen = true;
+}
+
+/// Defines the bits for the bit mask for all boolean class fields.
+enum _ClassIntrospectionBit {
+  hasAbstract,
+  hasBase,
+  hasExternal,
+  hasFinal,
+  hasInterface,
+  hasMixin,
+  hasSealed;
+}
+
+/// Defines the bits for the bit mask for all boolean function fields.
+enum _FunctionIntrospectionBit {
+  hasBody,
+  hasExternal,
+  hasStatic,
+  isFactory,
+  isGetter,
+  isOperator,
+  isSetter,
+}
+
+/// Defines the bits for the bit mask for all boolean parameter fields.
+enum _ParameterIntrospectionBit {
+  isNamed,
+  isRequired,
+}
+
+/// Defines the bits for the bit mask for all boolean variable fields.
+enum _VariableIntrospectionBit {
+  hasAbstract,
+  hasConst,
+  hasExternal,
+  hasFinal,
+  hasInitializer,
+  hasLate,
+  hasStatic;
+}
+
+extension on Enum {
+  /// The mask bit for this enum value based on its index.
+  int get mask => 1 << index;
 }

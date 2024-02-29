@@ -5,7 +5,6 @@
 import 'package:analysis_server/lsp_protocol/protocol.dart' as lsp;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/legacy_analysis_server.dart';
-import 'package:analysis_server/src/lsp/test_macros.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -23,7 +22,7 @@ void main() {
 }
 
 @reflectiveTest
-class DefinitionTest extends AbstractLspAnalysisServerTest with TestMacros {
+class DefinitionTest extends AbstractLspAnalysisServerTest {
   @override
   AnalysisServerOptions get serverOptions => AnalysisServerOptions()
     ..enabledExperiments = [
@@ -425,21 +424,15 @@ foo(int m) {
   }
 
   Future<void> test_macro_macroGeneratedFileToUserFile() async {
-    writePackageConfig(projectFolderPath, temporaryMacroSupport: true);
+    addMacros([declareInTypeMacro()]);
 
     setLocationLinkSupport(); // To verify the full set of ranges.
     setDartTextDocumentContentProviderSupport();
-    newFile(
-        join(projectFolderPath, 'lib', 'with_foo.dart'), withFooMethodMacro);
 
     final code = TestCode.parse('''
-import 'with_foo.dart';
+import 'macros.dart';
 
-f() {
-  A().foo();
-}
-
-@WithFoo()
+@DeclareInType('  void foo() { bar(); }')
 class A {
   /*[0*/void /*[1*/bar/*1]*/() {}/*0]*/
 }
@@ -475,24 +468,22 @@ class A {
   }
 
   Future<void> test_macro_userFileToMacroGeneratedFile() async {
-    writePackageConfig(projectFolderPath, temporaryMacroSupport: true);
+    addMacros([declareInTypeMacro()]);
 
     // TODO(dantup): Consider making LocationLink the default for tests (with
     //  some specific tests for Location) because  it's what VS Code uses and
     //  has more fields to verify.
     setLocationLinkSupport(); // To verify the full set of ranges.
     setDartTextDocumentContentProviderSupport();
-    newFile(
-        join(projectFolderPath, 'lib', 'with_foo.dart'), withFooMethodMacro);
 
     final code = TestCode.parse('''
-import 'with_foo.dart';
+import 'macros.dart';
 
 f() {
   A().[!foo^!]();
 }
 
-@WithFoo()
+@DeclareInType('void foo() {}')
 class A {}
 ''');
 
@@ -509,8 +500,8 @@ class A {}
     // those substrings are as expected.
     var macroResponse = await getDartTextDocumentContent(location.targetUri);
     var macroContent = macroResponse!.content!;
-    expect(getTextForRange(macroContent, location.targetRange),
-        'void foo() {bar();}');
+    expect(
+        getTextForRange(macroContent, location.targetRange), 'void foo() {}');
     expect(getTextForRange(macroContent, location.targetSelectionRange), 'foo');
   }
 

@@ -19,7 +19,8 @@ library;
 // extension type E6(Null it) implements dynamic {} // Error.
 //                                       ^
 //
-// pkg/front_end/testcases/extension_types/issue53840.dart:22:39: Error: Can't implement 'double?' because it's marked with '?'.
+// pkg/front_end/testcases/extension_types/issue53840.dart:22:39: Error: Can't implement 'double?' because it's nullable.
+// Try removing the question mark.
 // extension type E7(Null it) implements double? {} // Error.
 //                                       ^
 //
@@ -220,7 +221,7 @@ static extension-type-member method E8|constructor#_#new#tearOff(core::bool it) 
   return self::E8|constructor#(it);
 static extension-type-member method E9|constructor#<X extends core::Object? = dynamic>(self::E9|constructor#::X% it) → self::E9<self::E9|constructor#::X%> /* = self::E9|constructor#::X% */
   ;
-static extension-type-member method E9|constructor#_#new#tearOff<X extends core::Object? = dynamic>(self::E9|constructor#_#new#tearOff::X% it) → self::E9<self::E9|constructor#_#new#tearOff::X%>% /* = self::E9|constructor#_#new#tearOff::X% */
+static extension-type-member method E9|constructor#_#new#tearOff<X extends core::Object? = dynamic>(self::E9|constructor#_#new#tearOff::X% it) → self::E9<self::E9|constructor#_#new#tearOff::X%> /* = self::E9|constructor#_#new#tearOff::X% */
   return self::E9|constructor#<self::E9|constructor#_#new#tearOff::X%>(it);
 static extension-type-member method E10|constructor#((core::int) → void it) → self::E10 /* = (core::int) → void */
   ;
@@ -244,7 +245,7 @@ static extension-type-member method E14|constructor#_#new#tearOff(Null it) → s
   return self::E14|constructor#(it);
 static extension-type-member method E15|constructor#<X extends core::Object? = dynamic>(self::E15|constructor#::X% it) → self::E15<self::E15|constructor#::X%> /* = self::E15|constructor#::X% */
   ;
-static extension-type-member method E15|constructor#_#new#tearOff<X extends core::Object? = dynamic>(self::E15|constructor#_#new#tearOff::X% it) → self::E15<self::E15|constructor#_#new#tearOff::X%>% /* = self::E15|constructor#_#new#tearOff::X% */
+static extension-type-member method E15|constructor#_#new#tearOff<X extends core::Object? = dynamic>(self::E15|constructor#_#new#tearOff::X% it) → self::E15<self::E15|constructor#_#new#tearOff::X%> /* = self::E15|constructor#_#new#tearOff::X% */
   return self::E15|constructor#<self::E15|constructor#_#new#tearOff::X%>(it);
 static extension-type-member method E16|constructor#(Null it) → self::E16 /* = Null */
   ;

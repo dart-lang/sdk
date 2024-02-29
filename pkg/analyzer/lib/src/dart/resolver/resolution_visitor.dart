@@ -70,7 +70,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   LibraryElementImpl _libraryElement;
   final TypeProvider _typeProvider;
   final CompilationUnitElementImpl _unitElement;
-  final bool _isNonNullableByDefault;
   final ErrorReporter _errorReporter;
   final AstRewriter _astRewriter;
   final NamedTypeResolver _namedTypeResolver;
@@ -109,7 +108,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   factory ResolutionVisitor({
     required CompilationUnitElementImpl unitElement,
     required AnalysisErrorListener errorListener,
-    required FeatureSet featureSet,
     required Scope nameScope,
     required bool strictInference,
     required bool strictCasts,
@@ -118,12 +116,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var libraryElement = unitElement.library;
     var typeProvider = libraryElement.typeProvider;
     var unitSource = unitElement.source;
-    var isNonNullableByDefault = featureSet.isEnabled(Feature.non_nullable);
-    var errorReporter = ErrorReporter(
-      errorListener,
-      unitSource,
-      isNonNullableByDefault: isNonNullableByDefault,
-    );
+    var errorReporter = ErrorReporter(errorListener, unitSource);
 
     final typeSystemOperations = TypeSystemOperations(
       unitElement.library.typeSystem,
@@ -132,7 +125,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
     var namedTypeResolver = NamedTypeResolver(
       libraryElement,
-      isNonNullableByDefault,
       errorReporter,
       strictInference: strictInference,
       strictCasts: strictCasts,
@@ -148,7 +140,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       libraryElement,
       typeProvider,
       unitElement,
-      isNonNullableByDefault,
       errorReporter,
       AstRewriter(errorReporter, typeProvider),
       namedTypeResolver,
@@ -164,7 +155,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     this._libraryElement,
     this._typeProvider,
     this._unitElement,
-    this._isNonNullableByDefault,
     this._errorReporter,
     this._astRewriter,
     this._namedTypeResolver,
@@ -196,22 +186,24 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     node.element = element;
 
     if (element == null) {
-      _errorReporter.reportErrorForToken(
-        CompileTimeErrorCode.UNDEFINED_IDENTIFIER,
+      _errorReporter.atToken(
         node.name,
-        [name],
+        CompileTimeErrorCode.UNDEFINED_IDENTIFIER,
+        arguments: [name],
       );
     } else if (!(element is LocalVariableElement ||
         element is ParameterElement)) {
-      _errorReporter.reportErrorForToken(
-        CompileTimeErrorCode.PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE,
+      _errorReporter.atToken(
         node.name,
+        CompileTimeErrorCode.PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE,
       );
     }
   }
 
   @override
-  void visitAugmentationImportDirective(AugmentationImportDirective node) {
+  void visitAugmentationImportDirective(
+    covariant AugmentationImportDirectiveImpl node,
+  ) {
     final element = node.element;
     if (element is AugmentationImportElementImpl) {
       _setOrCreateMetadataElements(element, node.metadata);
@@ -256,9 +248,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         element.isFinal = true;
         if (exceptionTypeNode == null) {
           element.hasImplicitType = true;
-          var type =
-              _isNonNullableByDefault ? _typeProvider.objectType : _dynamicType;
-          element.type = type;
+          element.type = _typeProvider.objectType;
         } else {
           element.type = exceptionTypeNode.typeOrThrow;
         }
@@ -559,7 +549,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitExportDirective(ExportDirective node) {
+  void visitExportDirective(covariant ExportDirectiveImpl node) {
     var element = node.element;
     if (element is LibraryExportElementImpl) {
       _setOrCreateMetadataElements(element, node.metadata);
@@ -950,7 +940,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitImportDirective(ImportDirective node) {
+  void visitImportDirective(covariant ImportDirectiveImpl node) {
     var element = node.element;
     if (element is LibraryImportElementImpl) {
       _setOrCreateMetadataElements(element, node.metadata);
@@ -978,8 +968,10 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         //
         // This is a case where the parser does not report an error, because the
         // parser thinks this could be an InstanceCreationExpression.
-        _errorReporter.reportErrorForNode(
-            WarningCode.SDK_VERSION_CONSTRUCTOR_TEAROFFS, node, []);
+        _errorReporter.atNode(
+          node,
+          WarningCode.SDK_VERSION_CONSTRUCTOR_TEAROFFS,
+        );
       }
       return newNode.accept(this);
     }
@@ -1010,7 +1002,9 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitLibraryAugmentationDirective(LibraryAugmentationDirective node) {
+  void visitLibraryAugmentationDirective(
+    covariant LibraryAugmentationDirectiveImpl node,
+  ) {
     final element = node.element;
     if (element is LibraryOrAugmentationElementImpl) {
       _setOrCreateMetadataElements(element, node.metadata);
@@ -1022,7 +1016,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitLibraryDirective(LibraryDirective node) {
+  void visitLibraryDirective(covariant LibraryDirectiveImpl node) {
     ++_libraryDirectiveIndex;
     var element = node.element;
     if (element is LibraryElementImpl && _libraryDirectiveIndex == 1) {
@@ -1127,7 +1121,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitPartDirective(PartDirective node) {
+  void visitPartDirective(covariant PartDirectiveImpl node) {
     var element = node.element;
     if (element is PartElementImpl) {
       _setOrCreateMetadataElements(element, node.metadata);
@@ -1384,7 +1378,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitTypeParameter(TypeParameter node) {
+  void visitTypeParameter(covariant TypeParameterImpl node) {
     var element = node.declaredElement as TypeParameterElementImpl;
 
     _setOrCreateMetadataElements(element, node.metadata);
@@ -1426,7 +1420,9 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitVariableDeclarationList(VariableDeclarationList node) {
+  void visitVariableDeclarationList(
+    covariant VariableDeclarationListImpl node,
+  ) {
     var parent = node.parent;
     if (parent is ForPartsWithDeclarations ||
         parent is VariableDeclarationStatement &&
@@ -1436,10 +1432,10 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
     node.visitChildren(this);
 
-    NodeList<Annotation> annotations;
-    if (parent is FieldDeclaration) {
+    NodeList<AnnotationImpl> annotations;
+    if (parent is FieldDeclarationImpl) {
       annotations = parent.metadata;
-    } else if (parent is TopLevelVariableDeclaration) {
+    } else if (parent is TopLevelVariableDeclarationImpl) {
       annotations = parent.metadata;
     } else {
       // Local variable declaration
@@ -1581,14 +1577,11 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   NullabilitySuffix _getNullability(bool hasQuestion) {
-    if (_isNonNullableByDefault) {
-      if (hasQuestion) {
-        return NullabilitySuffix.question;
-      } else {
-        return NullabilitySuffix.none;
-      }
+    if (hasQuestion) {
+      return NullabilitySuffix.question;
+    } else {
+      return NullabilitySuffix.none;
     }
-    return NullabilitySuffix.star;
   }
 
   void _resolveGuardedPattern(
@@ -1721,7 +1714,11 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     final firstToken = namedType.importPrefix?.name ?? namedType.name2;
     final offset = firstToken.offset;
     final length = namedType.name2.end - offset;
-    _errorReporter.reportErrorForOffset(errorCode, offset, length);
+    _errorReporter.atOffset(
+      offset: offset,
+      length: length,
+      errorCode: errorCode,
+    );
   }
 
   /// Resolve the types in the given list of type names.
@@ -1770,7 +1767,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   void _setOrCreateMetadataElements(
     ElementImpl element,
-    NodeList<Annotation> annotations, {
+    NodeList<AnnotationImpl> annotations, {
     bool visitNodes = true,
   }) {
     if (visitNodes) {
@@ -1793,10 +1790,10 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     final typeSystem = _libraryElement.typeSystem;
 
     if (!typeSystem.isValidExtensionTypeSuperinterface(type)) {
-      _errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_DISALLOWED_TYPE,
+      _errorReporter.atNode(
         node,
-        [type],
+        CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_DISALLOWED_TYPE,
+        arguments: [type],
       );
       return;
     }
@@ -1814,11 +1811,11 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
           declaredRepresentation,
           implementedRepresentation,
         )) {
-          _errorReporter.reportErrorForNode(
+          _errorReporter.atNode(
+            node,
             CompileTimeErrorCode
                 .EXTENSION_TYPE_IMPLEMENTS_REPRESENTATION_NOT_SUPERTYPE,
-            node,
-            [
+            arguments: [
               implementedRepresentation,
               type.element.name,
               declaredRepresentation,
@@ -1830,10 +1827,10 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       }
     }
 
-    _errorReporter.reportErrorForNode(
-      CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_NOT_SUPERTYPE,
+    _errorReporter.atNode(
       node,
-      [type, declaredRepresentation],
+      CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_NOT_SUPERTYPE,
+      arguments: [type, declaredRepresentation],
     );
   }
 
@@ -1894,7 +1891,9 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   /// Associate each of the annotation [nodes] with the corresponding
   /// [ElementAnnotation] in [annotations].
   static void _setElementAnnotations(
-      List<Annotation> nodes, List<ElementAnnotation> annotations) {
+    List<AnnotationImpl> nodes,
+    List<ElementAnnotationImpl> annotations,
+  ) {
     int nodeCount = nodes.length;
     if (nodeCount != annotations.length) {
       throw StateError(
@@ -1903,7 +1902,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       );
     }
     for (int i = 0; i < nodeCount; i++) {
-      (nodes[i] as AnnotationImpl).elementAnnotation = annotations[i];
+      nodes[i].elementAnnotation = annotations[i];
     }
   }
 }
@@ -1993,10 +1992,10 @@ class _VariableBinderErrors
     required String name,
     required PromotableElement variable,
   }) {
-    visitor._errorReporter.reportErrorForNode(
-      CompileTimeErrorCode.MISSING_VARIABLE_PATTERN,
+    visitor._errorReporter.atNode(
       hasInLeft ? node.rightOperand : node.leftOperand,
-      [name],
+      CompileTimeErrorCode.MISSING_VARIABLE_PATTERN,
+      arguments: [name],
     );
   }
 }

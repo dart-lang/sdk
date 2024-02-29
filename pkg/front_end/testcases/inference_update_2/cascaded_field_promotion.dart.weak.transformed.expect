@@ -17,7 +17,7 @@ static method cascadedPropertyAccess(self::C c) → void {
 static method cascadedNullAwarePropertyAccess(self::C? c) → void {
   let final self::C? #t2 = c in #t2 == null ?{self::C?} null : block {
     #t2{self::C}.{self::C::_field}{core::Object?}!.{core::Object::toString}(){() → core::String};
-    #t2{self::C}.{self::C::_field}{core::Object?}.{core::Object::toString}(){() → core::String};
+    (#t2{self::C}.{self::C::_field}{core::Object?} as{Unchecked} core::Object).{core::Object::toString}(){() → core::String};
   } =>#t2;
   let final self::C? #t3 = c in #t3 == null ?{core::Object?} null : #t3{self::C}.{self::C::_field}{core::Object?};
 }

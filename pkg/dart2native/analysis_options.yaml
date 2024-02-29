@@ -1,7 +1,10 @@
-include: package:lints/recommended.yaml
+include: package:dart_flutter_team_lints/analysis_options.yaml
+
+analyzer:
+  language:
+    strict-raw-types: true
 
 linter:
   rules:
-    # Enable additional rules.
-    - directives_ordering
-    - sort_pub_dependencies
+    - prefer_final_in_for_each
+    - prefer_final_locals

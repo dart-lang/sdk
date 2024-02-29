@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/protocol_server.dart'
-    show CompletionSuggestionKind;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -49,8 +47,7 @@ class LibraryMemberContributor extends DartCompletionContributor {
                 for (var constructor in element.constructors) {
                   if (!constructor.isPrivate) {
                     if (!element.isAbstract || constructor.isFactory) {
-                      builder.suggestConstructor(constructor,
-                          kind: CompletionSuggestionKind.INVOCATION);
+                      builder.suggestConstructor(constructor);
                     }
                   }
                 }
@@ -59,13 +56,11 @@ class LibraryMemberContributor extends DartCompletionContributor {
               if (element is InterfaceElement ||
                   element is ExtensionElement ||
                   element is TypeAliasElement) {
-                builder.suggestElement(element,
-                    kind: CompletionSuggestionKind.INVOCATION);
+                builder.suggestElement(element);
               } else if (!typesOnly &&
                   (element is FunctionElement ||
                       element is PropertyAccessorElement)) {
-                builder.suggestElement(element,
-                    kind: CompletionSuggestionKind.INVOCATION);
+                builder.suggestElement(element);
               }
             }
           }

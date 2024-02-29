@@ -41,8 +41,8 @@ extension type B(int it) implements A1, A2 {}
         109,
         1,
         contextMessages: [
-          message('/home/test/lib/test.dart', 35, 3),
-          message('/home/test/lib/test.dart', 82, 3),
+          message(testFile, 35, 3),
+          message(testFile, 82, 3),
         ],
       ),
     ]);
@@ -99,8 +99,8 @@ extension type C(A it) implements A, B {}
         88,
         1,
         contextMessages: [
-          message('/home/test/lib/test.dart', 17, 3),
-          message('/home/test/lib/test.dart', 61, 3),
+          message(testFile, 17, 3),
+          message(testFile, 61, 3),
         ],
       ),
     ]);
@@ -146,10 +146,7 @@ extension type D(C it) implements A, B {}
         CompileTimeErrorCode.EXTENSION_TYPE_INHERITED_MEMBER_CONFLICT,
         139,
         1,
-        contextMessages: [
-          message('/home/test/lib/test.dart', 17, 3),
-          message('/home/test/lib/test.dart', 51, 3)
-        ],
+        contextMessages: [message(testFile, 17, 3), message(testFile, 51, 3)],
       ),
     ]);
   }

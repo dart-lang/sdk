@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 
 extension ElementExtension on Element {
@@ -27,6 +28,12 @@ extension ElementExtension on Element {
   }
 }
 
+extension ElementImplExtension on ElementImpl {
+  AnnotationImpl annotationAst(int index) {
+    return metadata[index].annotationAst;
+  }
+}
+
 extension ListOfTypeParameterElementExtension on List<TypeParameterElement> {
   List<TypeParameterType> instantiateNone() {
     return map((e) {
@@ -34,5 +41,11 @@ extension ListOfTypeParameterElementExtension on List<TypeParameterElement> {
         nullabilitySuffix: NullabilitySuffix.none,
       );
     }).toList();
+  }
+}
+
+extension ParameterElementExtension on ParameterElement {
+  ParameterElementImpl get declarationImpl {
+    return declaration as ParameterElementImpl;
   }
 }

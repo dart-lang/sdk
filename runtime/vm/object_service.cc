@@ -1881,10 +1881,19 @@ void Closure::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   PrintSharedInstanceJSON(&jsobj, ref);
   jsobj.AddProperty("kind", "Closure");
-  jsobj.AddProperty("closureFunction",
-                    Function::Handle(Closure::Cast(*this).function()));
-  jsobj.AddProperty("closureContext",
-                    Context::Handle(Closure::Cast(*this).context()));
+  const auto& func = Function::Handle(function());
+  jsobj.AddProperty("closureFunction", func);
+  if (!func.IsImplicitClosureFunction()) {
+    jsobj.AddProperty("closureContext", Context::Handle(GetContext()));
+  } else {
+    jsobj.AddProperty("closureContext", Object::null_object());
+  }
+  if (func.IsImplicitInstanceClosureFunction()) {
+    jsobj.AddProperty("closureReceiver",
+                      Object::Handle(GetImplicitClosureReceiver()));
+  } else {
+    jsobj.AddProperty("closureReceiver", Object::null_object());
+  }
   if (ref) {
     return;
   }

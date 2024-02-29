@@ -342,7 +342,6 @@ class InheritanceManager3 {
     required Map<Name, List<ExecutableElement>> namedCandidates,
     required MapSubstitution substitution,
     required Interface interface,
-    required bool isNonNullableByDefault,
   }) {
     var map = interface.map;
     for (var entry in map.entries) {
@@ -350,10 +349,6 @@ class InheritanceManager3 {
       var candidate = entry.value;
 
       candidate = ExecutableMember.from2(candidate, substitution);
-
-      if (!isNonNullableByDefault) {
-        candidate = Member.legacy(candidate) as ExecutableElement;
-      }
 
       var candidates = namedCandidates[name];
       if (candidates == null) {
@@ -387,7 +382,6 @@ class InheritanceManager3 {
     required Map<Name, ExecutableElement> implemented,
     required MapSubstitution substitution,
     required Interface mixin,
-    required bool isNonNullableByDefault,
   }) {
     for (var entry in mixin.implemented.entries) {
       var executable = entry.value;
@@ -401,10 +395,6 @@ class InheritanceManager3 {
       }
 
       executable = ExecutableMember.from2(executable, substitution);
-
-      if (!isNonNullableByDefault) {
-        executable = Member.legacy(executable) as ExecutableElement;
-      }
 
       implemented[entry.key] = executable;
     }
@@ -476,8 +466,6 @@ class InheritanceManager3 {
 
   Interface _getInterfaceClass(InterfaceElement element) {
     final augmented = element.augmentedOfDeclaration;
-    var classLibrary = element.library;
-    var isNonNullableByDefault = classLibrary.isNonNullableByDefault;
 
     var namedCandidates = <Name, List<ExecutableElement>>{};
     var superImplemented = <Map<Name, ExecutableElement>>[];
@@ -493,15 +481,11 @@ class InheritanceManager3 {
         namedCandidates: namedCandidates,
         substitution: substitution,
         interface: superTypeInterface,
-        isNonNullableByDefault: isNonNullableByDefault,
       );
 
       for (var entry in superTypeInterface.implemented.entries) {
         var executable = entry.value;
         executable = ExecutableMember.from2(executable, substitution);
-        if (!isNonNullableByDefault) {
-          executable = Member.legacy(executable) as ExecutableElement;
-        }
         implemented[entry.key] = executable;
       }
 
@@ -540,21 +524,13 @@ class InheritanceManager3 {
 
         var currentList = namedCandidates[name];
         if (currentList == null) {
-          namedCandidates[name] = [
-            isNonNullableByDefault
-                ? candidate
-                : Member.legacy(candidate) as ExecutableElement,
-          ];
+          namedCandidates[name] = [candidate];
           continue;
         }
 
         var current = currentList.single;
         if (candidate.enclosingElement == mixinElement) {
-          namedCandidates[name] = [
-            isNonNullableByDefault
-                ? candidate
-                : Member.legacy(candidate) as ExecutableElement,
-          ];
+          namedCandidates[name] = [candidate];
           if (current.kind != candidate.kind) {
             var currentIsGetter = current.kind == ElementKind.GETTER;
             mixinConflicts.add(
@@ -580,11 +556,7 @@ class InheritanceManager3 {
           doTopMerge: true,
         );
         for (var entry in map.entries) {
-          namedCandidates[entry.key] = [
-            isNonNullableByDefault
-                ? entry.value
-                : Member.legacy(entry.value) as ExecutableElement,
-          ];
+          namedCandidates[entry.key] = [entry.value];
         }
       }
 
@@ -595,7 +567,6 @@ class InheritanceManager3 {
         implemented: implemented,
         substitution: substitution,
         mixin: mixinInterface,
-        isNonNullableByDefault: isNonNullableByDefault,
       );
 
       superImplemented.add(implemented);
@@ -606,7 +577,6 @@ class InheritanceManager3 {
         namedCandidates: namedCandidates,
         substitution: Substitution.fromInterfaceType(interface),
         interface: getInterface(interface.element),
-        isNonNullableByDefault: isNonNullableByDefault,
       );
     }
 
@@ -858,8 +828,6 @@ class InheritanceManager3 {
 
   Interface _getInterfaceMixin(MixinElement element) {
     final augmented = element.augmentedOfDeclaration;
-    var classLibrary = element.library;
-    var isNonNullableByDefault = classLibrary.isNonNullableByDefault;
 
     var superCandidates = <Name, List<ExecutableElement>>{};
     for (var constraint in augmented.superclassConstraints) {
@@ -869,7 +837,6 @@ class InheritanceManager3 {
         namedCandidates: superCandidates,
         substitution: substitution,
         interface: interfaceObj,
-        isNonNullableByDefault: isNonNullableByDefault,
       );
     }
 
@@ -889,7 +856,6 @@ class InheritanceManager3 {
         namedCandidates: interfaceCandidates,
         substitution: Substitution.fromInterfaceType(interface),
         interface: getInterface(interface.element),
-        isNonNullableByDefault: isNonNullableByDefault,
       );
     }
 
@@ -1027,10 +993,6 @@ class InheritanceManager3 {
     var first = validOverrides[0];
 
     if (validOverrides.length == 1) {
-      return first;
-    }
-
-    if (!typeSystem.isNonNullableByDefault) {
       return first;
     }
 

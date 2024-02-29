@@ -162,6 +162,43 @@ const simpleBreakpointProgram = '''
   }
 ''';
 
+/// A simple script that provides a @withHello macro that adds a
+/// `hello()` method to a class that prints "Hello".
+const withHelloMacroImplementation = '''
+// There is no public API exposed yet, the in-progress API lives here.
+import 'package:_fe_analyzer_shared/src/macros/api.dart';
+
+macro class WithHello implements ClassDeclarationsMacro {
+  const WithHello();
+
+  @override
+  Future<void> buildDeclarationsForClass(
+    ClassDeclaration clazz,
+    MemberDeclarationBuilder builder,
+  ) async {
+    builder.declareInType(DeclarationCode.fromString(\'''
+  void hello() {
+    print('Hello');
+  }
+\'''));
+  }
+}
+''';
+
+/// A simple script that uses [withHelloMacroImplementation] and calls the
+/// `hello()` method.
+const withHelloMacroProgram = '''
+import 'with_hello.dart';
+
+void main() {
+  final a = A();
+  a.hello(); $breakpointMarker
+}
+
+@WithHello()
+class A {}
+''';
+
 /// A simple Dart script that prints "Hello" and then "World" with a breakpoint
 /// on the line that prints "World". By restarting from the parent frame after
 /// hitting the breakpoint, the output would be "Hello", "Hello", "World".

@@ -100,21 +100,24 @@ class VMConstantEvaluator extends ConstantEvaluator {
         evaluationMode: EvaluationMode.fromNnbdMode(nnbdMode));
   }
 
-  bool get hasTargetOS => _targetOS != null;
+  bool get _hasTargetOS => _targetOS != null;
 
-  bool isPlatformConst(Member member) => _pragmaParser
+  bool _isPlatformConst(Member member) => _pragmaParser
       .parsedPragmas<ParsedPlatformConstPragma>(member.annotations)
       .isNotEmpty;
 
+  bool shouldEvaluateMember(Member node) =>
+      _hasTargetOS && _isPlatformConst(node);
+
   @override
   Constant visitStaticGet(StaticGet node) {
-    assert(hasTargetOS);
+    assert(_hasTargetOS);
     final target = node.target;
 
     // This visitor can be called recursively while evaluating an abstraction
     // over the Platform getters and fields, so check that the visited node has
     // an appropriately annotated target.
-    if (!isPlatformConst(target)) return super.visitStaticGet(node);
+    if (!_isPlatformConst(target)) return super.visitStaticGet(node);
 
     visitedLibraries.add(target.enclosingLibrary);
 

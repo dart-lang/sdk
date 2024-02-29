@@ -83,12 +83,13 @@ class SetTracerVisitor extends TracerVisitor {
   }
 
   @override
-  visitClosureCallSiteTypeInformation(ClosureCallSiteTypeInformation info) {
+  void visitClosureCallSiteTypeInformation(
+      ClosureCallSiteTypeInformation info) {
     bailout('Passed to a closure');
   }
 
   @override
-  visitStaticCallSiteTypeInformation(StaticCallSiteTypeInformation info) {
+  void visitStaticCallSiteTypeInformation(StaticCallSiteTypeInformation info) {
     super.visitStaticCallSiteTypeInformation(info);
     MemberEntity called = info.calledElement;
     if (inferrer.closedWorld.commonElements.isForeign(called) &&
@@ -98,7 +99,8 @@ class SetTracerVisitor extends TracerVisitor {
   }
 
   @override
-  visitDynamicCallSiteTypeInformation(DynamicCallSiteTypeInformation info) {
+  void visitDynamicCallSiteTypeInformation(
+      DynamicCallSiteTypeInformation info) {
     super.visitDynamicCallSiteTypeInformation(info);
     final selector = info.selector!;
     final selectorName = selector.name;

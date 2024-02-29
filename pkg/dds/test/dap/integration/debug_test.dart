@@ -367,24 +367,40 @@ main() {
       expect(vmServiceUri.path, matches(vmServiceAuthCodePathPattern));
     });
 
-    test('can download source code from the VM', () async {
+    test('can download source code from the VM for macro-generated files',
+        () async {
       final client = dap.client;
-      final testFile = dap.createTestFile(simpleBreakpointProgram);
-      final breakpointLine = lineWith(testFile, breakpointMarker);
+
+      // Create the macro impl, the script that uses it and set up macro
+      // support.
+      dap.createTestFile(
+        filename: 'bin/with_hello.dart',
+        withHelloMacroImplementation,
+      );
+      final testFile = dap.createTestFile(
+        filename: 'bin/main.dart',
+        withHelloMacroProgram,
+      );
+      dap.createPubspec(dap.testAppDir, 'my_test_project');
+      await dap.enableMacroSupport();
 
       // Hit the initial breakpoint.
+      final breakpointLine = lineWith(testFile, breakpointMarker);
       final stop = await dap.client.hitBreakpoint(
         testFile,
         breakpointLine,
-        launch: () => client.launch(
-          testFile.path,
-          debugSdkLibraries: true,
-        ),
+        toolArgs: ['--enable-experiment=macros'],
       );
 
-      // Step in to go into print.
+      // Step in to the hello() method provided by the macro.
+      final expectedMacroSourceUri =
+          // Drive letters are always normalized to uppercase so expect
+          // uppercase in the path part of the macro URI.
+          Uri.file(client.uppercaseDriveLetter(testFile.path))
+              .replace(scheme: 'dart-macro+file');
       final responses = await Future.wait([
-        client.expectStop('step', sourceName: 'dart:core/print.dart'),
+        client.expectStop('step',
+            sourceName: expectedMacroSourceUri.toString()),
         client.stepIn(stop.threadId!),
       ], eagerError: true);
       final stopResponse = responses.first as StoppedEventBody;
@@ -397,16 +413,14 @@ main() {
       );
       final topFrame = stack.stackFrames.first;
 
-      // SDK sources should have a sourceReference and no path.
+      // Downloaded macro sources should have a sourceReference and no path.
       expect(topFrame.source!.path, isNull);
       expect(topFrame.source!.sourceReference, isPositive);
 
-      // Source code should contain the implementation/signature of print().
+      // Source code should contain the agumentation for class A.
       final source = await client.getValidSource(topFrame.source!);
-      expect(source.content, contains('void print(Object? object) {'));
-      // Skipped because this test is not currently valid as source for print
-      // is mapped to local sources.
-    }, skip: true);
+      expect(source.content, contains('augment class A'));
+    });
 
     test('can map SDK source code to a local path', () async {
       final client = dap.client;

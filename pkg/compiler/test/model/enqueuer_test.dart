@@ -16,9 +16,9 @@ import 'package:compiler/src/enqueue.dart';
 import 'package:compiler/src/inferrer/typemasks/masks.dart';
 import 'package:compiler/src/universe/call_structure.dart';
 import 'package:compiler/src/universe/selector.dart';
+import 'package:compiler/src/universe/world_builder.dart';
 import 'package:compiler/src/universe/world_impact.dart';
 import 'package:compiler/src/universe/use.dart';
-import 'package:compiler/src/universe/world_builder.dart';
 import 'package:compiler/src/js_model/js_world.dart' show JClosedWorld;
 import 'package:expect/expect.dart';
 import 'package:compiler/src/util/memory_compiler.dart';
@@ -254,7 +254,7 @@ main() {}
     checkInvariant(enqueuer, elementEnvironment);
 
     Object createConstraint(ClassEntity cls) {
-      return StrongModeConstraint(compiler.frontendStrategy.commonElements,
+      return defaultReceiverClass(compiler.frontendStrategy.commonElements,
           compiler.frontendStrategy.elementMap.nativeBasicData, cls);
     }
 

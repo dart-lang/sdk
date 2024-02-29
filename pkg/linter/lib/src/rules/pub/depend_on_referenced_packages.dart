@@ -65,7 +65,7 @@ class DependOnReferencedPackages extends LintRule {
       NodeLintRegistry registry, LinterContext context) {
     // Only lint if we have a pubspec.
     var package = context.package;
-    if (package is! PubWorkspacePackage) return;
+    if (package is! PubPackage) return;
     var pubspec = package.pubspec;
     if (pubspec == null) return;
     var name = pubspec.name?.value.text;

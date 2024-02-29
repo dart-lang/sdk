@@ -5767,13 +5767,16 @@ AwaitInLateLocalInitializer:
   problemMessage: "`await` expressions are not supported in late local initializers."
 
 NullableSuperclassError:
-  problemMessage: "Can't extend '#name' because it's marked with '?'."
+  problemMessage: "Can't extend '#name' because it's nullable."
+  correctionMessage: "Try removing the question mark."
 
 NullableInterfaceError:
-  problemMessage: "Can't implement '#name' because it's marked with '?'."
+  problemMessage: "Can't implement '#name' because it's nullable."
+  correctionMessage: "Try removing the question mark."
 
 NullableMixinError:
-  problemMessage: "Can't mix '#name' in because it's marked with '?'."
+  problemMessage: "Can't mix '#name' in because it's nullable."
+  correctionMessage: "Try removing the question mark."
 
 JsInteropDartClassExtendsJSClass:
   problemMessage: "Dart class '#name' cannot extend JS interop class '#name2'."

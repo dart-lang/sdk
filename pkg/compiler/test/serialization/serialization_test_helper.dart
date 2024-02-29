@@ -211,10 +211,10 @@ runTest(
   File(globalDataFileUri.path).writeAsBytesSync(globalDataBytes);
 
   await finishCompileAndCompare(
-      expectedOutput, collector2, result2.compiler, strategy,
+      expectedOutput, collector2, result2.compiler!, strategy,
       stoppedAfterClosedWorld: true);
   await finishCompileAndCompare(
-      expectedOutput, collector3b, result3b.compiler, strategy,
+      expectedOutput, collector3b, result3b.compiler!, strategy,
       stoppedAfterTypeInference: true);
 
   final jsOutUri = Uri.parse('out.js');

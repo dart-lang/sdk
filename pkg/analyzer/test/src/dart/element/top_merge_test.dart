@@ -238,12 +238,6 @@ class TopMergeTest extends AbstractTypeSystemTest {
     _check(neverNone, neverNone, neverNone);
   }
 
-  test_null() {
-    // NNBD_TOP_MERGE(Never*, Null) = Null
-    // NNBD_TOP_MERGE(Null, Never*) = Null
-    _check(neverStar, nullNone, nullNone);
-  }
-
   test_nullability() {
     // NNBD_TOP_MERGE(T?, S?) = NNBD_TOP_MERGE(T, S)?
     _check(intQuestion, intQuestion, intQuestion);
@@ -339,15 +333,15 @@ class TopMergeTest extends AbstractTypeSystemTest {
   void _check(DartType T, DartType S, DartType expected) {
     var result = typeSystem.topMerge(T, S);
     if (result != expected) {
-      var expectedStr = expected.getDisplayString(withNullability: true);
-      var resultStr = result.getDisplayString(withNullability: true);
+      var expectedStr = expected.getDisplayString();
+      var resultStr = result.getDisplayString();
       fail('Expected: $expectedStr, actual: $resultStr');
     }
 
     result = typeSystem.topMerge(S, T);
     if (result != expected) {
-      var expectedStr = expected.getDisplayString(withNullability: true);
-      var resultStr = result.getDisplayString(withNullability: true);
+      var expectedStr = expected.getDisplayString();
+      var resultStr = result.getDisplayString();
       fail('Expected: $expectedStr, actual: $resultStr');
     }
   }

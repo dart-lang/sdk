@@ -9,7 +9,6 @@ import 'analysis_options_map_test.dart' as analysis_options_map;
 import 'byte_store_test.dart' as byte_store_test;
 import 'cache_test.dart' as cache_test;
 import 'context_builder_test.dart' as context_builder;
-import 'context_locator2_test.dart' as context_locator2;
 import 'context_locator_test.dart' as context_locator;
 import 'context_root_test.dart' as context_root;
 import 'crc32_test.dart' as crc32_test;
@@ -40,7 +39,6 @@ main() {
     cache_test.main();
     context_builder.main();
     context_locator.main();
-    context_locator2.main();
     context_root.main();
     crc32_test.main();
     defined_names.main();

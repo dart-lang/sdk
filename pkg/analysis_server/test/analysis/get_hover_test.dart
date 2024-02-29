@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/protocol_server.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -42,22 +43,23 @@ class A {}
 
 @reflectiveTest
 class AnalysisHoverTest extends PubPackageAnalysisServerTest {
-  Future<HoverInformation> prepareHover(String search) async {
-    return (await prepareHoverOrNull(search))!;
+  Future<HoverInformation> prepareHover(String search, {File? inFile}) async {
+    return (await prepareHoverOrNull(search, inFile: inFile))!;
   }
 
-  Future<HoverInformation?> prepareHoverAt(int offset) async {
+  Future<HoverInformation?> prepareHoverAt(int offset, {File? inFile}) async {
+    inFile ??= testFile;
     await waitForTasksFinished();
-    var request = AnalysisGetHoverParams(testFile.path, offset).toRequest('0');
+    var request = AnalysisGetHoverParams(inFile.path, offset).toRequest('0');
     var response = await handleSuccessfulRequest(request);
     var result = AnalysisGetHoverResult.fromResponse(response);
-    var hovers = result.hovers;
-    return hovers.isNotEmpty ? hovers.first : null;
+    return result.hovers.firstOrNull;
   }
 
-  Future<HoverInformation?> prepareHoverOrNull(String search) {
-    var offset = findOffset(search);
-    return prepareHoverAt(offset);
+  Future<HoverInformation?> prepareHoverOrNull(String search, {File? inFile}) {
+    inFile ??= testFile;
+    var offset = offsetInFile(inFile, search);
+    return prepareHoverAt(offset, inFile: inFile);
   }
 
   @override
@@ -705,7 +707,7 @@ void f(A a) {
 ''');
     var hover = await prepareHover('foo = 1');
     expect(hover.containingClassDescription, 'A');
-    expect(hover.dartdoc, '''setting''');
+    expect(hover.dartdoc, 'setting');
     expect(hover.elementDescription, 'set foo(int x)');
     expect(hover.elementKind, 'setter');
   }
@@ -817,6 +819,84 @@ void f(A a) {
     // types
     expect(hover.staticType, 'String');
     expect(hover.propagatedType, isNull);
+  }
+
+  Future<void> test_constructorInvocation_macroGenerated_named() async {
+    addMacros([declareInTypeMacro()]);
+    newFile(testFilePath, '''
+import 'macros.dart';
+
+@DeclareInType('  /// named\\n  C.named();')
+class C {}
+
+C f() => C.named(); //
+''');
+    var hover = await prepareHover('med(); //');
+    expect(hover.containingLibraryName, 'package:test/test.dart');
+    expect(hover.containingLibraryPath, testFile.path);
+    expect(hover.containingClassDescription, 'C');
+    expect(hover.dartdoc, 'named');
+    expect(hover.elementDescription, '(new) C C.named()');
+    expect(hover.elementKind, 'constructor');
+    expect(hover.staticType, isNull);
+  }
+
+  Future<void>
+      test_constructorInvocation_referenceFromAugmentation_default() async {
+    var file = newFile('$testPackageLibPath/a.dart', '''
+library augment 'test.dart';
+
+augment class C {
+  void m() {
+    C();
+  }
+}
+''');
+    newFile(testFilePath, '''
+import augment 'a.dart';
+
+class C {
+  /// default
+  C();
+}
+''');
+    var hover = await prepareHover('C();', inFile: file);
+    expect(hover.containingLibraryName, 'package:test/test.dart');
+    expect(hover.containingLibraryPath, testFile.path);
+    expect(hover.containingClassDescription, 'C');
+    expect(hover.dartdoc, 'default');
+    expect(hover.elementDescription, '(new) C C()');
+    expect(hover.elementKind, 'constructor');
+    expect(hover.staticType, isNull);
+  }
+
+  Future<void>
+      test_constructorInvocation_referenceFromAugmentation_named() async {
+    var file = newFile('$testPackageLibPath/a.dart', '''
+library augment 'test.dart';
+
+augment class C {
+  void m() {
+    C.named();
+  }
+}
+''');
+    newFile(testFilePath, '''
+import augment 'a.dart';
+
+class C {
+  /// named
+  C.named();
+}
+''');
+    var hover = await prepareHover('C.named();', inFile: file);
+    expect(hover.containingLibraryName, 'package:test/test.dart');
+    expect(hover.containingLibraryPath, testFile.path);
+    expect(hover.containingClassDescription, 'C');
+    expect(hover.dartdoc, 'named');
+    expect(hover.elementDescription, '(new) C C.named()');
+    expect(hover.elementKind, 'constructor');
+    expect(hover.staticType, isNull);
   }
 
   Future<void> test_dartdoc_block() async {
@@ -1287,6 +1367,32 @@ void f() {
     expect(hover.propagatedType, null);
   }
 
+  Future<void>
+      test_methodInvocation_macroGenerated_referenceToGenerated() async {
+    addMacros([declareInTypeMacro()]);
+    newFile(testFilePath, '''
+import 'macros.dart';
+
+@DeclareInType(\'''
+  /// method m
+  void m() {}
+\''')
+class C {}
+
+void f(C c) {
+  c.m();
+}
+''');
+    var hover = await prepareHover('m();');
+    expect(hover.containingLibraryName, 'package:test/test.dart');
+    expect(hover.containingLibraryPath, testFile.path);
+    expect(hover.containingClassDescription, 'C');
+    expect(hover.dartdoc, 'method m');
+    expect(hover.elementDescription, 'void m()');
+    expect(hover.elementKind, 'method');
+    expect(hover.staticType, 'void Function()');
+  }
+
   Future<void> test_methodInvocation_recordType() async {
     newFile(testFilePath, '''
 class C {
@@ -1304,6 +1410,34 @@ void f(C c) {
     expect(hover.elementDescription, 'List<int> m(int i, (int, String) r)');
     expect(hover.elementKind, 'method');
     expect(hover.staticType, 'List<int> Function(int, (int, String))');
+  }
+
+  Future<void> test_methodInvocation_referenceFromAugmentation() async {
+    var file = newFile('$testPackageLibPath/a.dart', '''
+library augment 'test.dart';
+
+augment class C {
+  void m(C c) {
+    c.n();
+  }
+}
+''');
+    newFile(testFilePath, '''
+import augment 'a.dart';
+
+class C {
+  /// method n
+  void n() {}
+}
+''');
+    var hover = await prepareHover('n();', inFile: file);
+    expect(hover.containingLibraryName, 'package:test/test.dart');
+    expect(hover.containingLibraryPath, testFile.path);
+    expect(hover.containingClassDescription, 'C');
+    expect(hover.dartdoc, 'method n');
+    expect(hover.elementDescription, 'void n()');
+    expect(hover.elementKind, 'method');
+    expect(hover.staticType, 'void Function()');
   }
 
   Future<void> test_mixin_declaration() async {

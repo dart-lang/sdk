@@ -149,7 +149,7 @@ class HInstructionStringifier implements HVisitor<String> {
   AbstractValueDomain get _abstractValueDomain =>
       closedWorld.abstractValueDomain;
 
-  visit(HInstruction node) => node is HControlFlow
+  String visit(HInstruction node) => node is HControlFlow
       ? '${node.accept(this)}'
       : '${node.accept(this)} ${node.instructionType}';
 
@@ -312,13 +312,14 @@ class HInstructionStringifier implements HVisitor<String> {
     String? fieldName = node.element.name;
     String receiverId = temporaryId(node.receiver);
     String op = node.jsOp;
-    if (node.isAssignOp) {
-      String valueId = temporaryId(node.value);
-      return 'ReadModifyWrite: $receiverId.$fieldName $op= $valueId';
-    } else if (node.isPreOp) {
-      return 'ReadModifyWrite: $op$receiverId.$fieldName';
-    } else {
-      return 'ReadModifyWrite: $receiverId.$fieldName$op';
+    switch (node.opKind) {
+      case ReadModifyWriteKind.assign:
+        String valueId = temporaryId(node.value);
+        return 'ReadModifyWrite: $receiverId.$fieldName $op= $valueId';
+      case ReadModifyWriteKind.prefix:
+        return 'ReadModifyWrite: $op$receiverId.$fieldName';
+      case ReadModifyWriteKind.postfix:
+        return 'ReadModifyWrite: $receiverId.$fieldName$op';
     }
   }
 
@@ -654,11 +655,10 @@ class HInstructionStringifier implements HVisitor<String> {
     return "PrimitiveCheck: $kind $checkedInput to ${node.instructionType}";
   }
 
-  String _primitiveCheckKind(HPrimitiveCheck node) {
-    if (node.isReceiverTypeCheck) return 'RECEIVER';
-    if (node.isArgumentTypeCheck) return 'ARGUMENT';
-    return '?';
-  }
+  String _primitiveCheckKind(HPrimitiveCheck node) => switch (node.kind) {
+        PrimitiveCheckKind.receiverType => 'RECEIVER',
+        PrimitiveCheckKind.argumentType => 'ARGUMENT',
+      };
 
   @override
   String visitBoolConversion(HBoolConversion node) {

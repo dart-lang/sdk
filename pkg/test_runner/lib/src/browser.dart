@@ -159,7 +159,7 @@ String ddcHtml(
   var soundNullSafety = mode == NnbdMode.strong;
   var ddcGenDir = '/root_build/$genDir';
   var packagePaths =
-      testPackages.map((p) => '    "$p": "$ddcGenDir/pkg/$p",').join("\n");
+      testPackages.map((p) => '    "$p": "$ddcGenDir/pkg/amd/$p",').join("\n");
   // The native JavaScript Object prototype is sealed before loading the Dart
   // SDK module to guard against prototype pollution.
   return """

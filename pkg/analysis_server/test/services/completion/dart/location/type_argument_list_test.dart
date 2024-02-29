@@ -47,6 +47,42 @@ suggestions
 ''');
   }
 
+  @FailingTest(
+      issue: 'https://github.com/dart-lang/sdk/issues/54773',
+      reason: 'The parser recovers by assuming that this is a '
+          'function declaration of the form `Future<v>() {}`.')
+  Future<void> test_afterLess_beforeGreater_topLevel_partial() async {
+    // TODO(brianwilkerson): Either
+    //  - change the parser's recovery so that it produces a top-level variable
+    //    of the form `Function<v> s;` (where `s` is a synthetic identifier), or
+    //  - add logic to InScopeCompletionPass.visitTypeParameter to detect this
+    //    case and treat it like a completion in a type argument list.
+    await computeSuggestions('''
+Future<v^>
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  void
+    kind: keyword
+''');
+  }
+
+  Future<void>
+      test_afterLess_beforeGreater_topLevel_withVariableName_partial() async {
+    await computeSuggestions('''
+Future<v^> x
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  void
+    kind: keyword
+''');
+  }
+
   Future<void> test_argument_afterClassName() async {
     await computeSuggestions('''
 void f(Object o) {

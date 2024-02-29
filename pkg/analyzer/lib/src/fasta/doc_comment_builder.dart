@@ -185,11 +185,11 @@ final class DocCommentBuilder {
           // `null`.
           var openingTag = builder.openingTag;
           if (openingTag != null) {
-            _errorReporter?.reportErrorForOffset(
-              WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_TAG,
-              openingTag.offset,
-              openingTag.end - openingTag.offset,
-              [openingTag.type.opposingName!],
+            _errorReporter?.atOffset(
+              offset: openingTag.offset,
+              length: openingTag.end - openingTag.offset,
+              errorCode: WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_TAG,
+              arguments: [openingTag.type.opposingName!],
             );
           }
           higherDirective.push(builder.build());
@@ -202,11 +202,11 @@ final class DocCommentBuilder {
     }
 
     // No matching opening tag was found.
-    _errorReporter?.reportErrorForOffset(
-      WarningCode.DOC_DIRECTIVE_MISSING_OPENING_TAG,
-      closingTag.offset,
-      closingTag.end - closingTag.offset,
-      [closingTag.type.name],
+    _errorReporter?.atOffset(
+      offset: closingTag.offset,
+      length: closingTag.end - closingTag.offset,
+      errorCode: WarningCode.DOC_DIRECTIVE_MISSING_OPENING_TAG,
+      arguments: [closingTag.type.name],
     );
     _pushDocDirective(SimpleDocDirective(closingTag));
   }
@@ -282,11 +282,11 @@ final class DocCommentBuilder {
       // `null`.
       var openingTag = builder.openingTag;
       if (openingTag != null) {
-        _errorReporter?.reportErrorForOffset(
-          WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_TAG,
-          openingTag.offset,
-          openingTag.end - openingTag.offset,
-          [openingTag.type.opposingName!],
+        _errorReporter?.atOffset(
+          offset: openingTag.offset,
+          length: openingTag.end - openingTag.offset,
+          errorCode: WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_TAG,
+          arguments: [openingTag.type.opposingName!],
         );
       }
       _pushBlockDocDirectiveAndInnerDirectives(builder);
@@ -428,11 +428,11 @@ final class DocCommentBuilder {
         _pushDocDirective(parser.simpleDirective(DocDirectiveType.youtube));
         return true;
     }
-    _errorReporter?.reportErrorForOffset(
-      WarningCode.DOC_DIRECTIVE_UNKNOWN,
-      _characterSequence._offset + nameIndex,
-      nameEnd - nameIndex,
-      [name],
+    _errorReporter?.atOffset(
+      offset: _characterSequence._offset + nameIndex,
+      length: nameEnd - nameIndex,
+      errorCode: WarningCode.DOC_DIRECTIVE_UNKNOWN,
+      arguments: [name],
     );
     return false;
   }
@@ -1162,10 +1162,10 @@ final class _DirectiveParser {
 
     // We've hit EOL without closing brace.
     _end = _offset + index;
-    _errorReporter?.reportErrorForOffset(
-      WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_BRACE,
-      _offset + index - 1,
-      1,
+    _errorReporter?.atOffset(
+      offset: _offset + index - 1,
+      length: 1,
+      errorCode: WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_BRACE,
     );
     return (positionalArguments, namedArguments);
   }
@@ -1197,20 +1197,20 @@ final class _DirectiveParser {
       index++;
       if (index == _length) {
         // Found extra arguments and no closing brace.
-        _errorReporter?.reportErrorForOffset(
-          WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_BRACE,
-          _offset + index - 1,
-          1,
+        _errorReporter?.atOffset(
+          offset: _offset + index - 1,
+          length: 1,
+          errorCode: WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_BRACE,
         );
         break;
       }
     }
 
     var errorLength = _offset + index - extraArgumentsOffset;
-    _errorReporter?.reportErrorForOffset(
-      WarningCode.DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS,
-      extraArgumentsOffset,
-      errorLength,
+    _errorReporter?.atOffset(
+      offset: extraArgumentsOffset,
+      length: errorLength,
+      errorCode: WarningCode.DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS,
     );
     _end = _offset + index;
   }

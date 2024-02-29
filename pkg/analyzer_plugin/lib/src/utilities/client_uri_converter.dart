@@ -95,14 +95,16 @@ class _VirtualFileClientUriConverter extends ClientUriConverter {
     // For URIs with no scheme, assume it was a relative path and provide a
     // better message than "scheme '' is not supported".
     if (uri.scheme.isEmpty) {
-      throw ArgumentError.value(uri, 'uri', 'URI is not a valid file:// URI');
+      throw ArgumentError.value(
+          uri.toString(), 'uri', 'URI is not a valid file:// URI');
     }
 
     if (!supportedSchemes.contains(uri.scheme)) {
-      var supportedSchemesString =
-          supportedSchemes.map((scheme) => "'$scheme'").join(', ');
+      var supportedSchemesString = supportedSchemes.isEmpty
+          ? '(none)'
+          : supportedSchemes.map((scheme) => "'$scheme'").join(', ');
       throw ArgumentError.value(
-        uri,
+        uri.toString(),
         'uri',
         "URI scheme '${uri.scheme}' is not supported. "
             'Allowed schemes are $supportedSchemesString.',

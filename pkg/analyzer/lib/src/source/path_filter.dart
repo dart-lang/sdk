@@ -55,7 +55,7 @@ class PathFilter {
     for (Glob pattern in _ignorePatterns) {
       sb.write('$pattern ');
     }
-    sb.writeln('');
+    sb.writeln();
     return sb.toString();
   }
 

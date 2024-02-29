@@ -18,13 +18,6 @@ class SHA256Bench extends BenchmarkBase {
         super('SHA256');
 
   @override
-  void warmup() {
-    for (int i = 0; i < 4; i++) {
-      run();
-    }
-  }
-
-  @override
   void run() {
     final hash = sha256.convert(data);
     if (hex.encode(hash.bytes) != expected) {

@@ -899,7 +899,7 @@ class FragmentEmitter {
 
     var statements = <js.Statement>[];
     var parameters = <js.Parameter>[];
-    var thisRef;
+    js.Expression? thisRef;
 
     if (_options.experimentalTrackAllocations) {
       String qualifiedName =
@@ -1281,8 +1281,8 @@ class FragmentEmitter {
   /// can use them.
   js.Expression _encodeOptionalParameterDefaultValues(DartMethod method) {
     // TODO(herhut): Replace [js.LiteralNull] with [js.ArrayHole].
-    if (method.optionalParameterDefaultValues is List) {
-      List<ConstantValue> defaultValues = method.optionalParameterDefaultValues;
+    final defaultValues = method.optionalParameterDefaultValues;
+    if (defaultValues is List<ConstantValue>) {
       if (defaultValues.isEmpty) {
         return js.LiteralNull();
       }
@@ -1291,8 +1291,7 @@ class FragmentEmitter {
       return js.js(
           'function() { return #; }', js.ArrayInitializer(elements.toList()));
     } else {
-      Map<String, ConstantValue> defaultValues =
-          method.optionalParameterDefaultValues;
+      defaultValues as Map<String, ConstantValue>;
       List<js.Property> properties = [];
       List<String> names = defaultValues.keys.toList(growable: false);
       // Sort the names the same way we sort them for the named-argument calling
@@ -2049,7 +2048,7 @@ class FragmentEmitter {
           var o = {};
           o[s] = 1;
           return Object.keys(hunkHelpers.convertToFastObject(o))[0];
-        }""", [])));
+        }""", const <Never>[])));
     }
 
     Map<String, js.Expression> interceptorsByTag = {};
@@ -2148,5 +2147,6 @@ class DeferredPrimaryExpression extends js.DeferredExpression {
   }
 
   @override
-  int get precedenceLevel => js_precedence.PRIMARY;
+  js_precedence.Precedence get precedenceLevel =>
+      js_precedence.Precedence.primary;
 }

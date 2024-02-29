@@ -69,6 +69,10 @@ const jsRuntimeBlobPart2JSCM = r'''
 const jsRuntimeBlobPart3 = r'''
     // Prints to the console
     function printToConsole(value) {
+      if (typeof dartPrint == "function") {
+        dartPrint(value);
+        return;
+      }
       if (typeof console == "object" && typeof console.log != "undefined") {
         console.log(value);
         return;
@@ -110,7 +114,6 @@ const jsRuntimeBlobPart3 = r'''
     }
 
     if (WebAssembly.String === undefined) {
-        printToConsole("WebAssembly.String is undefined, adding polyfill");
         WebAssembly.String = {
             "charCodeAt": (s, i) => s.charCodeAt(i),
             "compare": (s1, s2) => {

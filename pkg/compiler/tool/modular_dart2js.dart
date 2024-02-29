@@ -6,7 +6,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:compiler/src/commandline_options.dart';
 
-main(List<String> args) async {
+Future<void> main(List<String> args) async {
   Stopwatch stopwatch = new Stopwatch();
   String? input;
   String? serializedInput;
@@ -106,7 +106,7 @@ main(List<String> args) async {
 
       Stopwatch subwatch = new Stopwatch();
       subwatch.start();
-      await Future.wait(new List<Future>.generate(shards, (int shard) {
+      await Future.wait(new List<Future<void>>.generate(shards, (int shard) {
         return subProcess(
             baseOptions, additionalArguments[shard], outputPrefixes[shard]);
       }));
@@ -130,8 +130,8 @@ main(List<String> args) async {
   print('Total time: ${_formatMs(stopwatch.elapsedMilliseconds)}');
 }
 
-Future subProcess(List<String> baseOptions, List<String> additionalOptions,
-    String outputPrefix) async {
+Future<void> subProcess(List<String> baseOptions,
+    List<String> additionalOptions, String outputPrefix) async {
   List<String> options = []
     ..addAll(baseOptions)
     ..addAll(additionalOptions);

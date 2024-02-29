@@ -12,7 +12,7 @@ import 'package:kernel/target/targets.dart';
 import 'package:kernel/src/text_util.dart';
 import 'package:kernel/type_environment.dart';
 import 'package:test/test.dart';
-import 'package:vm/target/vm.dart' show VmTarget;
+import 'package:vm/modular/target/vm.dart' show VmTarget;
 import 'package:vm/transformations/pragma.dart'
     show ConstantPragmaAnnotationParser;
 import 'package:vm/transformations/type_flow/analysis.dart';

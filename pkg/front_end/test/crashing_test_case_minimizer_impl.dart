@@ -3,76 +3,52 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async' show Future, StreamSubscription;
-
 import 'dart:convert' show JsonEncoder, jsonDecode, utf8;
-
 import 'dart:io' show File, stdin, stdout;
-
 import 'dart:math' show max;
-
 import 'dart:typed_data' show BytesBuilder, Uint8List;
-
-import 'package:_fe_analyzer_shared/src/util/relativize.dart'
-    show relativizeUri, isWindows;
 
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show Listener, Parser;
-
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
     show ErrorToken, ScannerConfiguration, Token;
-
+import 'package:_fe_analyzer_shared/src/util/relativize.dart'
+    show relativizeUri, isWindows;
 import 'package:compiler/src/kernel/dart2js_target.dart' show Dart2jsTarget;
-
 import 'package:dev_compiler/src/kernel/target.dart' show DevCompilerTarget;
-
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions, DiagnosticMessage;
-
 import 'package:front_end/src/api_prototype/experimental_flags.dart'
     show ExperimentalFlag;
-
 import 'package:front_end/src/api_prototype/file_system.dart'
     show FileSystem, FileSystemEntity, FileSystemException;
-
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart'
     show IncrementalCompilerResult;
-
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
 import 'package:front_end/src/fasta/builder/library_builder.dart';
-
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
-
 import 'package:front_end/src/fasta/incremental_compiler.dart'
     show IncrementalCompiler;
-
 import 'package:front_end/src/fasta/kernel/utils.dart' show ByteSink;
 import 'package:front_end/src/fasta/messages.dart' show Message;
 import 'package:front_end/src/fasta/source/diet_parser.dart'
     show useImplicitCreationExpressionInCfe;
 import 'package:front_end/src/fasta/util/parser_ast.dart';
 import 'package:front_end/src/fasta/util/parser_ast_helper.dart';
-
 import 'package:front_end/src/fasta/util/textual_outline.dart'
     show textualOutline;
-
 import 'package:kernel/ast.dart'
     show Component, LibraryPart, Version, defaultLanguageVersion;
-
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
-
 import 'package:kernel/target/targets.dart' show Target, TargetFlags;
 import 'package:package_config/package_config.dart';
-
-import "package:vm/target/flutter.dart" show FlutterTarget;
-
-import "package:vm/target/vm.dart" show VmTarget;
+import "package:vm/modular/target/flutter.dart" show FlutterTarget;
+import "package:vm/modular/target/vm.dart" show VmTarget;
 
 import 'incremental_suite.dart' show getOptions;
-
-import 'parser_test_listener.dart' show ParserTestListener;
-
 import 'parser_suite.dart' as parser_suite;
+import 'parser_test_listener.dart' show ParserTestListener;
 
 class TestMinimizerSettings {
   final _FakeFileSystem _fsInitial = new _FakeFileSystem();

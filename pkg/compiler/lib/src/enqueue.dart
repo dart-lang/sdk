@@ -10,7 +10,8 @@ import 'common/work.dart' show WorkItem;
 import 'constants/values.dart';
 import 'elements/entities.dart';
 import 'elements/types.dart';
-import 'universe/use.dart' show ConstantUse, DynamicUse, StaticUse, TypeUse;
+import 'universe/use.dart'
+    show ConditionalUse, ConstantUse, DynamicUse, StaticUse, TypeUse;
 import 'universe/world_impact.dart' show WorldImpact;
 
 abstract class EnqueuerListener {
@@ -35,9 +36,14 @@ abstract class EnqueuerListener {
   /// specific [WorldImpact] of this is returned.
   WorldImpact registerClosurizedMember(FunctionEntity function);
 
-  /// Called to register that [element] is statically known to be used. Any
+  /// Called to register that [member] is statically known to be used. Any
   /// backend specific [WorldImpact] of this is returned.
   WorldImpact registerUsedElement(MemberEntity member);
+
+  /// Called to register that [use] is a pending condition.
+  /// [ConditionalUse.originalConditions] must only contain members that are not known
+  /// to be live yet.
+  void registerPendingConditionalUse(ConditionalUse use);
 
   /// Called to register that [value] is statically known to be used. Any
   /// backend specific [WorldImpact] of this is returned.
@@ -94,6 +100,7 @@ abstract class Enqueuer {
     worldImpact.forEachDynamicUse((_, use) => processDynamicUse(use));
     worldImpact.forEachTypeUse(processTypeUse);
     worldImpact.forEachConstantUse((_, use) => processConstantUse(use));
+    worldImpact.forEachConditionalUse((_, use) => processConditionalUse(use));
   }
 
   bool checkNoEnqueuedInvokedInstanceMethods(
@@ -113,6 +120,7 @@ abstract class Enqueuer {
   void processTypeUse(MemberEntity? member, TypeUse typeUse);
   void processDynamicUse(DynamicUse dynamicUse);
   void processConstantUse(ConstantUse constantUse);
+  void processConditionalUse(ConditionalUse conditionalUse);
   EnqueuerListener get listener;
 
   void open(FunctionEntity? mainMethod, Iterable<Uri> libraries) {

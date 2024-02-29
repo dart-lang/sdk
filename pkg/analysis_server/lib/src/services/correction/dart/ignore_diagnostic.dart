@@ -6,12 +6,13 @@ import 'package:analysis_server/src/services/correction/dart/abstract_producer.d
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/dart/analysis/session.dart'
-    show AnalysisSessionImpl;
-import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/ignore_comments/ignore_info.dart';
+import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:yaml/yaml.dart';
+import 'package:yaml_edit/yaml_edit.dart' show YamlEditor;
 
 abstract class AbstractIgnoreDiagnostic extends ResolvedCorrectionProducer {
   AnalysisError get error => diagnostic as AnalysisError;
@@ -63,11 +64,107 @@ abstract class AbstractIgnoreDiagnostic extends ResolvedCorrectionProducer {
     });
   }
 
+  /// Returns `true` if any of the following is `true`:
+  /// - [error.code] is present in the `cannot-ignore` list.
+  /// - [error.code] is already ignored in the `errors` list.
   bool _isCodeUnignorable() {
-    var session = sessionHelper.session as AnalysisSessionImpl;
-    var analysisOptions = session.analysisContext
-        .getAnalysisOptionsForFile(unitResult.file) as AnalysisOptionsImpl;
-    return analysisOptions.unignorableNames.contains(error.errorCode.name);
+    var cannotIgnore =
+        analysisOptions.unignorableNames.contains(error.errorCode.name);
+
+    if (cannotIgnore) {
+      return true;
+    }
+
+    // This will prevent showing a `fix` when the `error` is already ignored in
+    // `analysis_options.yaml`.
+    //
+    // Note: both `ignore` and `false` severity are set to `null` when parsed.
+    //       See `ErrorConfig` in `pkg/analyzer/source/error_processor.dart`.
+    var explicitlyIgnored = analysisOptions.errorProcessors.any((element) =>
+        element.severity == null && element.code == error.errorCode.name);
+
+    return explicitlyIgnored;
+  }
+}
+
+class IgnoreDiagnosticInAnalysisOptionsFile extends AbstractIgnoreDiagnostic {
+  @override
+  FixKind get fixKind => DartFixKind.IGNORE_ERROR_ANALYSIS_FILE;
+
+  @override
+  Future<void> compute(ChangeBuilder builder) async {
+    if (sessionHelper.session.analysisContext.contextRoot.workspace
+        is BlazeWorkspace) {
+      // The lint is disabled for Blaze workspace as the analysis options file
+      // may be shared across all packages.
+      // See discussion at: https://dart-review.googlesource.com/c/sdk/+/352220/
+      return;
+    }
+
+    if (_isCodeUnignorable()) return;
+
+    final analysisOptionsFile = analysisOptions.file;
+
+    // TODO(osaxma): should an `analysis_options.yaml` be created when
+    //               it doesn't exists?
+    if (analysisOptionsFile == null) {
+      return;
+    }
+
+    final content = _safelyReadFile(analysisOptionsFile);
+    if (content == null) {
+      return;
+    }
+
+    await builder.addYamlFileEdit(analysisOptionsFile.path, (builder) {
+      final editor = YamlEditor(content);
+      final options = loadYamlNode(content);
+      final List<String> path;
+      final Object value;
+      if (options is! YamlMap) {
+        path = [];
+        value = {
+          'analyzer': {
+            'errors': {_code: 'ignore'}
+          }
+        };
+      } else {
+        final analyzerMap = options['analyzer'];
+        if (analyzerMap is! YamlMap || !analyzerMap.containsKey('errors')) {
+          path = ['analyzer'];
+          value = {
+            'errors': {_code: 'ignore'}
+          };
+        } else {
+          path = ['analyzer', 'errors', _code];
+          value = 'ignore';
+        }
+      }
+
+      try {
+        editor.update(path, value);
+      } on YamlException {
+        // If the `analysis_options.yaml` does not have a valid format,
+        // a `YamlException` is thrown (e.g. a label without a value).
+        // In such case, do not suggest a fix.
+        //
+        // TODO(osaxma): check if the `analysis_options.yaml` is a valid
+        //  before calling the builder to avoid unnecessary processing.
+        return;
+      }
+
+      var edit = editor.edits.single;
+      var replacement = edit.replacement;
+      builder.addSimpleInsertion(edit.offset, replacement);
+    });
+  }
+
+  String? _safelyReadFile(File file) {
+    try {
+      return file.readAsStringSync();
+    } on FileSystemException {
+      return null;
+    }
   }
 }
 

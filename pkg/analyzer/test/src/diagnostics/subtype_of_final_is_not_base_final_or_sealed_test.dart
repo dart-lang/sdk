@@ -160,7 +160,7 @@ class C extends B {}
         text:
             "The type 'C' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'final'.",
         contextMessages: [
-          ExpectedContextMessage(testFile.path, 12, 1,
+          ExpectedContextMessage(testFile, 12, 1,
               text:
                   "The type 'B' is a subtype of 'A', and 'A' is defined here.")
         ],
@@ -182,7 +182,7 @@ class D extends C {}
         text:
             "The type 'D' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'final'.",
         contextMessages: [
-          ExpectedContextMessage(testFile.path, 12, 1,
+          ExpectedContextMessage(testFile, 12, 1,
               text:
                   "The type 'C' is a subtype of 'A', and 'A' is defined here.")
         ],
@@ -220,7 +220,7 @@ final class A {}
         text:
             "The type 'C' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'final'.",
         contextMessages: [
-          ExpectedContextMessage(testFile.path, 61, 1,
+          ExpectedContextMessage(testFile, 61, 1,
               text:
                   "The type 'B' is a subtype of 'A', and 'A' is defined here.")
         ],
@@ -241,7 +241,7 @@ class C implements B {}
         text:
             "The type 'C' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'final'.",
         contextMessages: [
-          ExpectedContextMessage(testFile.path, 12, 1,
+          ExpectedContextMessage(testFile, 12, 1,
               text:
                   "The type 'B' is a subtype of 'A', and 'A' is defined here.")
         ],
@@ -263,7 +263,7 @@ class D extends C {}
         text:
             "The type 'D' must be 'base', 'final' or 'sealed' because the supertype 'B' is 'final'.",
         contextMessages: [
-          ExpectedContextMessage(testFile.path, 23, 1,
+          ExpectedContextMessage(testFile, 23, 1,
               text:
                   "The type 'C' is a subtype of 'B', and 'B' is defined here.")
         ],
@@ -311,7 +311,7 @@ class C = Object with B implements AA;
         text:
             "The type 'C' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'final'.",
         contextMessages: [
-          ExpectedContextMessage(testFile.path, 12, 1,
+          ExpectedContextMessage(testFile, 12, 1,
               text:
                   "The type 'AA' is a subtype of 'A', and 'A' is defined here.")
         ],
@@ -333,7 +333,7 @@ interface class C = Object with B implements AA;
         text:
             "The type 'C' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'final'.",
         contextMessages: [
-          ExpectedContextMessage(testFile.path, 12, 1,
+          ExpectedContextMessage(testFile, 12, 1,
               text:
                   "The type 'AA' is a subtype of 'A', and 'A' is defined here.")
         ],

@@ -70,6 +70,7 @@ class RunKernelTask : public ThreadPool::Task {
     api_flags.enable_asserts = false;
     api_flags.null_safety = true;
     api_flags.is_system_isolate = true;
+    api_flags.is_kernel_isolate = true;
 #if !defined(DART_PRECOMPILER)
     api_flags.use_field_guards = true;
 #endif
@@ -106,7 +107,7 @@ class RunKernelTask : public ThreadPool::Task {
     }
 
     // isolate_ was set as side effect of create callback.
-    ASSERT(KernelIsolate::IsKernelIsolate(isolate));
+    ASSERT(isolate->is_kernel_isolate());
 
     isolate->message_handler()->Run(isolate->group()->thread_pool(), nullptr,
                                     ShutdownIsolate,
@@ -127,7 +128,7 @@ class RunKernelTask : public ThreadPool::Task {
       HandleScope handle_scope(T);
 
       auto I = T->isolate();
-      ASSERT(KernelIsolate::IsKernelIsolate(I));
+      ASSERT(I->is_kernel_isolate());
 
       // Print the error if there is one.  This may execute dart code to
       // print the exception object, so we need to use a StartIsolateScope.
@@ -261,7 +262,7 @@ void KernelIsolate::InitCallback(Isolate* I) {
   Thread* T = Thread::Current();
   ASSERT(I == T->isolate());
   ASSERT(I != nullptr);
-  if (!NameEquals(I->name())) {
+  if (!I->is_kernel_isolate()) {
     // Not kernel isolate.
     return;
   }
@@ -273,19 +274,9 @@ void KernelIsolate::InitCallback(Isolate* I) {
   SetKernelIsolate(I);
 }
 
-bool KernelIsolate::IsKernelIsolate(const Isolate* isolate) {
-  MonitorLocker ml(monitor_);
-  return isolate == isolate_;
-}
-
 bool KernelIsolate::IsRunning() {
   MonitorLocker ml(monitor_);
   return (kernel_port_ != ILLEGAL_PORT) && (isolate_ != nullptr);
-}
-
-bool KernelIsolate::NameEquals(const char* name) {
-  ASSERT(name != nullptr);
-  return (strcmp(name, DART_KERNEL_ISOLATE_NAME) == 0);
 }
 
 bool KernelIsolate::Exists() {
@@ -295,9 +286,7 @@ bool KernelIsolate::Exists() {
 
 void KernelIsolate::SetKernelIsolate(Isolate* isolate) {
   MonitorLocker ml(monitor_);
-  if (isolate != nullptr) {
-    isolate->set_is_kernel_isolate(true);
-  }
+  ASSERT(isolate == nullptr || isolate->is_kernel_isolate());
   isolate_ = isolate;
   ml.NotifyAll();
 }

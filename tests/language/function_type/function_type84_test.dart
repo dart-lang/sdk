@@ -14,6 +14,7 @@
 import 'dart:core';
 import 'dart:core' as core;
 import 'package:expect/expect.dart';
+import 'package:expect/variations.dart' as v;
 
 @pragma('dart2js:noInline')
 @pragma('dart2js:assumeDynamic')
@@ -253,17 +254,17 @@ class U84<T> {
     Expect.isFalse(f3 is F3<bool>);
     Expect.isTrue(confuse(f3) is F3<int>);
     Expect.isFalse(confuse(f3) is F3<bool>);
-    if (tIsBool && !dart2jsProductionMode) {
-      Expect.throws(() {
+    if (tIsBool) {
+      Expect.throwsWhen(v.checkedImplicitDowncasts, () {
         x3 = (f3 as dynamic);
       });
-      Expect.throws(() {
+      Expect.throwsWhen(v.checkedImplicitDowncasts, () {
         x3 = confuse(f3);
       });
-      Expect.throws(() {
+      Expect.throwsWhen(v.checkedImplicitDowncasts, () {
         l3 = (f3 as dynamic);
       });
-      Expect.throws(() {
+      Expect.throwsWhen(v.checkedImplicitDowncasts, () {
         l3 = confuse(f3);
       });
     }
@@ -398,17 +399,17 @@ class U84<T> {
     Expect.isFalse(f8 is F8<bool>);
     Expect.isTrue(confuse(f8) is F8<int>);
     Expect.isFalse(confuse(f8) is F8<bool>);
-    if (tIsBool && !dart2jsProductionMode) {
-      Expect.throws(() {
+    if (tIsBool) {
+      Expect.throwsWhen(v.checkedImplicitDowncasts, () {
         x8 = (f8 as dynamic);
       });
-      Expect.throws(() {
+      Expect.throwsWhen(v.checkedImplicitDowncasts, () {
         x8 = confuse(f8);
       });
-      Expect.throws(() {
+      Expect.throwsWhen(v.checkedImplicitDowncasts, () {
         l8 = (f8 as dynamic);
       });
-      Expect.throws(() {
+      Expect.throwsWhen(v.checkedImplicitDowncasts, () {
         l8 = confuse(f8);
       });
     }
@@ -545,17 +546,17 @@ class U84<T> {
     Expect.isFalse(f13 is F13<bool>);
     Expect.isTrue(confuse(f13) is F13<int>);
     Expect.isFalse(confuse(f13) is F13<bool>);
-    if (tIsBool && !dart2jsProductionMode) {
-      Expect.throws(() {
+    if (tIsBool) {
+      Expect.throwsWhen(v.checkedImplicitDowncasts, () {
         x13 = (f13 as dynamic);
       });
-      Expect.throws(() {
+      Expect.throwsWhen(v.checkedImplicitDowncasts, () {
         x13 = confuse(f13);
       });
-      Expect.throws(() {
+      Expect.throwsWhen(v.checkedImplicitDowncasts, () {
         l13 = (f13 as dynamic);
       });
-      Expect.throws(() {
+      Expect.throwsWhen(v.checkedImplicitDowncasts, () {
         l13 = confuse(f13);
       });
     }
@@ -594,17 +595,17 @@ class U84<T> {
     Expect.isFalse(f14 is F14<bool>);
     Expect.isTrue(confuse(f14) is F14<int>);
     Expect.isFalse(confuse(f14) is F14<bool>);
-    if (tIsBool && !dart2jsProductionMode) {
-      Expect.throws(() {
+    if (tIsBool) {
+      Expect.throwsWhen(v.checkedImplicitDowncasts, () {
         x14 = (f14 as dynamic);
       });
-      Expect.throws(() {
+      Expect.throwsWhen(v.checkedImplicitDowncasts, () {
         x14 = confuse(f14);
       });
-      Expect.throws(() {
+      Expect.throwsWhen(v.checkedImplicitDowncasts, () {
         l14 = (f14 as dynamic);
       });
-      Expect.throws(() {
+      Expect.throwsWhen(v.checkedImplicitDowncasts, () {
         l14 = confuse(f14);
       });
     }
@@ -691,17 +692,17 @@ class U84<T> {
     Expect.isFalse(f17 is F17<bool>);
     Expect.isTrue(confuse(f17) is F17<int>);
     Expect.isFalse(confuse(f17) is F17<bool>);
-    if (tIsBool && !dart2jsProductionMode) {
-      Expect.throws(() {
+    if (tIsBool) {
+      Expect.throwsWhen(v.checkedImplicitDowncasts, () {
         x17 = (f17 as dynamic);
       });
-      Expect.throws(() {
+      Expect.throwsWhen(v.checkedImplicitDowncasts, () {
         x17 = confuse(f17);
       });
-      Expect.throws(() {
+      Expect.throwsWhen(v.checkedImplicitDowncasts, () {
         l17 = (f17 as dynamic);
       });
-      Expect.throws(() {
+      Expect.throwsWhen(v.checkedImplicitDowncasts, () {
         l17 = confuse(f17);
       });
     }
@@ -764,17 +765,17 @@ class U84<T> {
     Expect.isFalse(f19 is F19<bool>);
     Expect.isTrue(confuse(f19) is F19<int>);
     Expect.isFalse(confuse(f19) is F19<bool>);
-    if (tIsBool && !dart2jsProductionMode) {
-      Expect.throws(() {
+    if (tIsBool) {
+      Expect.throwsWhen(v.checkedImplicitDowncasts, () {
         x19 = (f19 as dynamic);
       });
-      Expect.throws(() {
+      Expect.throwsWhen(v.checkedImplicitDowncasts, () {
         x19 = confuse(f19);
       });
-      Expect.throws(() {
+      Expect.throwsWhen(v.checkedImplicitDowncasts, () {
         l19 = (f19 as dynamic);
       });
-      Expect.throws(() {
+      Expect.throwsWhen(v.checkedImplicitDowncasts, () {
         l19 = confuse(f19);
       });
     }
@@ -837,17 +838,17 @@ class U84<T> {
     Expect.isFalse(f21 is F21<bool>);
     Expect.isTrue(confuse(f21) is F21<int>);
     Expect.isFalse(confuse(f21) is F21<bool>);
-    if (tIsBool && !dart2jsProductionMode) {
-      Expect.throws(() {
+    if (tIsBool) {
+      Expect.throwsWhen(v.checkedImplicitDowncasts, () {
         x21 = (f21 as dynamic);
       });
-      Expect.throws(() {
+      Expect.throwsWhen(v.checkedImplicitDowncasts, () {
         x21 = confuse(f21);
       });
-      Expect.throws(() {
+      Expect.throwsWhen(v.checkedImplicitDowncasts, () {
         l21 = (f21 as dynamic);
       });
-      Expect.throws(() {
+      Expect.throwsWhen(v.checkedImplicitDowncasts, () {
         l21 = confuse(f21);
       });
     }

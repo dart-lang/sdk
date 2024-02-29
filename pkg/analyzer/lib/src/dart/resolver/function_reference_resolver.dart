@@ -26,19 +26,14 @@ class FunctionReferenceResolver {
   /// Helper for extension method resolution.
   final ExtensionMemberResolver _extensionResolver;
 
-  final bool _isNonNullableByDefault;
-
   /// The type representing the type 'type'.
   final InterfaceType _typeType;
 
-  FunctionReferenceResolver(this._resolver, this._isNonNullableByDefault)
+  FunctionReferenceResolver(this._resolver)
       : _extensionResolver = _resolver.extensionResolver,
         _typeType = _resolver.typeProvider.typeType;
 
   ErrorReporter get _errorReporter => _resolver.errorReporter;
-
-  NullabilitySuffix get _nullabilitySuffix =>
-      _isNonNullableByDefault ? NullabilitySuffix.none : NullabilitySuffix.star;
 
   void resolve(FunctionReferenceImpl node) {
     var function = node.function;
@@ -58,10 +53,10 @@ class FunctionReferenceResolver {
         // We can safely assume `function.constructorName.name` is non-null
         // because if no name had been given, the construct would have been
         // interpreted as a type literal (e.g. `List<int>`).
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+        _errorReporter.atNode(
           typeArguments,
-          [
+          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+          arguments: [
             function.constructorName.type.qualifiedName,
             function.constructorName.name!.name
           ],
@@ -102,10 +97,9 @@ class FunctionReferenceResolver {
     }
 
     if (prefixType is DynamicType) {
-      _errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.GENERIC_METHOD_TYPE_INSTANTIATION_ON_DYNAMIC,
+      _errorReporter.atNode(
         function,
-        [],
+        CompileTimeErrorCode.GENERIC_METHOD_TYPE_INSTANTIATION_ON_DYNAMIC,
       );
       node.staticType = InvalidTypeImpl.instance;
       return true;
@@ -125,17 +119,21 @@ class FunctionReferenceResolver {
               CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION) {
         errorCode = CompileTimeErrorCode
             .WRONG_NUMBER_OF_TYPE_ARGUMENTS_ANONYMOUS_FUNCTION;
-        _errorReporter.reportErrorForNode(
-          errorCode,
+        _errorReporter.atNode(
           typeArgumentList,
-          [typeParameters.length, typeArgumentList.arguments.length],
+          errorCode,
+          arguments: [typeParameters.length, typeArgumentList.arguments.length],
         );
       } else {
         assert(name != null);
-        _errorReporter.reportErrorForNode(
-          errorCode,
+        _errorReporter.atNode(
           typeArgumentList,
-          [name!, typeParameters.length, typeArgumentList.arguments.length],
+          errorCode,
+          arguments: [
+            name!,
+            typeParameters.length,
+            typeArgumentList.arguments.length
+          ],
         );
       }
       return List.filled(typeParameters.length, DynamicTypeImpl.instance);
@@ -175,36 +173,37 @@ class FunctionReferenceResolver {
     var enclosingElement = element.enclosingElement;
     if (implicitReceiver) {
       if (_resolver.enclosingExtension != null) {
-        _resolver.errorReporter.reportErrorForNode(
+        _resolver.errorReporter.atNode(
+          nameNode,
           CompileTimeErrorCode
               .UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE,
-          nameNode,
-          [enclosingElement.displayName],
+          arguments: [enclosingElement.displayName],
         );
       } else {
-        _resolver.errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
+        _resolver.errorReporter.atNode(
           nameNode,
-          [enclosingElement.displayName],
+          CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
+          arguments: [enclosingElement.displayName],
         );
       }
     } else if (enclosingElement is ExtensionElement &&
         enclosingElement.name == null) {
-      _resolver.errorReporter.reportErrorForNode(
-          CompileTimeErrorCode
-              .INSTANCE_ACCESS_TO_STATIC_MEMBER_OF_UNNAMED_EXTENSION,
-          nameNode,
-          [
-            nameNode.name,
-            element.kind.displayName,
-          ]);
+      _resolver.errorReporter.atNode(
+        nameNode,
+        CompileTimeErrorCode
+            .INSTANCE_ACCESS_TO_STATIC_MEMBER_OF_UNNAMED_EXTENSION,
+        arguments: [
+          nameNode.name,
+          element.kind.displayName,
+        ],
+      );
     } else {
       // It is safe to assume that `enclosingElement.name` is non-`null` because
       // it can only be `null` for extensions, and we handle that case above.
-      _resolver.errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER,
+      _resolver.errorReporter.atNode(
         nameNode,
-        [
+        CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER,
+        arguments: [
           nameNode.name,
           element.kind.displayName,
           enclosingElement.name!,
@@ -267,10 +266,9 @@ class FunctionReferenceResolver {
       if (_resolver.isConstructorTearoffsEnabled) {
         // Only report constructor tearoff-related errors if the constructor
         // tearoff feature is enabled.
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION,
+        _errorReporter.atNode(
           node.function,
-          [],
+          CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION,
         );
         node.staticType = InvalidTypeImpl.instance;
       } else if (rawType is DynamicType) {
@@ -319,7 +317,7 @@ class FunctionReferenceResolver {
     );
     var type = element.instantiate(
       typeArguments: typeArguments,
-      nullabilitySuffix: _nullabilitySuffix,
+      nullabilitySuffix: NullabilitySuffix.none,
     );
     _resolveTypeLiteral(node: node, instantiatedType: type, name: name);
   }
@@ -333,10 +331,9 @@ class FunctionReferenceResolver {
     if (_resolver.isConstructorTearoffsEnabled) {
       // Only report constructor tearoff-related errors if the constructor
       // tearoff feature is enabled.
-      _errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION,
+      _errorReporter.atNode(
         node.function,
-        [],
+        CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION,
       );
     }
     _resolve(node: node, rawType: rawType);
@@ -350,7 +347,7 @@ class FunctionReferenceResolver {
     var propertyName = function.propertyName;
     var result =
         _extensionResolver.getOverrideMember(override, propertyName.name);
-    var member = _resolver.toLegacyElement(result.getter);
+    var member = result.getter;
 
     if (member == null) {
       node.staticType = InvalidTypeImpl.instance;
@@ -358,17 +355,17 @@ class FunctionReferenceResolver {
     }
 
     if (member.isStatic) {
-      _resolver.errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER,
+      _resolver.errorReporter.atNode(
         function.propertyName,
+        CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER,
       );
       // Continue to resolve type.
     }
 
     if (function.isCascaded) {
-      _resolver.errorReporter.reportErrorForToken(
-        CompileTimeErrorCode.EXTENSION_OVERRIDE_WITH_CASCADE,
+      _resolver.errorReporter.atToken(
         override.name,
+        CompileTimeErrorCode.EXTENSION_OVERRIDE_WITH_CASCADE,
       );
       // Continue to resolve type.
     }
@@ -413,10 +410,10 @@ class FunctionReferenceResolver {
     var prefixElement = function.prefix.scopeLookupResult!.getter;
 
     if (prefixElement == null) {
-      _errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.UNDEFINED_IDENTIFIER,
+      _errorReporter.atNode(
         function.prefix,
-        [function.name],
+        CompileTimeErrorCode.UNDEFINED_IDENTIFIER,
+        arguments: [function.name],
       );
       function.staticType = InvalidTypeImpl.instance;
       node.staticType = InvalidTypeImpl.instance;
@@ -433,16 +430,15 @@ class FunctionReferenceResolver {
     if (prefixElement is PrefixElement) {
       var functionElement = prefixElement.scope.lookup(functionName).getter;
       if (functionElement == null) {
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME,
+        _errorReporter.atNode(
           function.identifier,
-          [functionName, function.prefix.name],
+          CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME,
+          arguments: [functionName, function.prefix.name],
         );
         function.staticType = InvalidTypeImpl.instance;
         node.staticType = InvalidTypeImpl.instance;
         return;
       } else {
-        functionElement = _resolver.toLegacyElement(functionElement);
         _resolveReceiverPrefix(node, prefixElement, function, functionElement);
         return;
       }
@@ -487,10 +483,9 @@ class FunctionReferenceResolver {
     if (propertyType != null) {
       // If the property is unknown, [UNDEFINED_GETTER] is reported elsewhere.
       // If it is known, we must report the bad type instantiation here.
-      _errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION,
+      _errorReporter.atNode(
         function.identifier,
-        [],
+        CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION,
       );
     }
     function.accept(_resolver);
@@ -529,10 +524,9 @@ class FunctionReferenceResolver {
     } else {
       var targetType = target.staticType;
       if (targetType is DynamicType) {
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.GENERIC_METHOD_TYPE_INSTANTIATION_ON_DYNAMIC,
+        _errorReporter.atNode(
           node,
-          [],
+          CompileTimeErrorCode.GENERIC_METHOD_TYPE_INSTANTIATION_ON_DYNAMIC,
         );
         node.staticType = InvalidTypeImpl.instance;
         return;
@@ -557,10 +551,9 @@ class FunctionReferenceResolver {
       } else if (functionType != null) {
         // If the property is unknown, [UNDEFINED_GETTER] is reported elsewhere.
         // If it is known, we must report the bad type instantiation here.
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION,
+        _errorReporter.atNode(
           function.propertyName,
-          [],
+          CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION,
         );
       }
 
@@ -665,10 +658,10 @@ class FunctionReferenceResolver {
         if (enclosingExtension != null) {
           receiverType = enclosingExtension.extendedType;
         } else {
-          _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.UNDEFINED_IDENTIFIER,
+          _errorReporter.atNode(
             function,
-            [function.name],
+            CompileTimeErrorCode.UNDEFINED_IDENTIFIER,
+            arguments: [function.name],
           );
           function.staticType = InvalidTypeImpl.instance;
           node.staticType = InvalidTypeImpl.instance;
@@ -704,10 +697,10 @@ class FunctionReferenceResolver {
         _resolve(node: node, rawType: method.type, name: function.name);
         return;
       } else {
-        _resolver.errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.UNDEFINED_METHOD,
+        _resolver.errorReporter.atNode(
           function,
-          [function.name, receiverType],
+          CompileTimeErrorCode.UNDEFINED_METHOD,
+          arguments: [function.name, receiverType],
         );
         function.staticType = InvalidTypeImpl.instance;
         node.staticType = InvalidTypeImpl.instance;
@@ -815,7 +808,7 @@ class FunctionReferenceResolver {
     );
     var type = element.instantiate(
       typeArguments: typeArguments,
-      nullabilitySuffix: _nullabilitySuffix,
+      nullabilitySuffix: NullabilitySuffix.none,
     );
     _resolveTypeLiteral(node: node, instantiatedType: type, name: typeAlias);
   }

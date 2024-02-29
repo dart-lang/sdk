@@ -6,8 +6,7 @@ import 'dart:async';
 import 'dart:io' as io;
 import 'dart:io';
 
-import 'package:analysis_server/lsp_protocol/protocol.dart' as lsp
-    show MessageType, OptionalVersionedTextDocumentIdentifier;
+import 'package:analysis_server/lsp_protocol/protocol.dart' as lsp;
 import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/context_manager.dart';
@@ -15,6 +14,7 @@ import 'package:analysis_server/src/domains/completion/available_suggestions.dar
 import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/client_configuration.dart';
+import 'package:analysis_server/src/lsp/constants.dart' as lsp;
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_watcher.dart';
@@ -74,7 +74,8 @@ import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/extensions/analysis_session.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
-import 'package:analyzer_plugin/src/protocol/protocol_internal.dart';
+import 'package:analyzer_plugin/src/protocol/protocol_internal.dart'
+    as analyzer_plugin;
 import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
 import 'package:collection/collection.dart';
 import 'package:http/http.dart' as http;
@@ -217,10 +218,6 @@ abstract class AnalysisServer {
   /// the last idle state.
   final Set<String> filesResolvedSinceLastIdle = {};
 
-  /// A converter to change incoming client URIs into analyzer file references
-  /// (and back).
-  ClientUriConverter uriConverter;
-
   /// A mapping of [ProducerGenerator]s to the set of lint names with which they
   /// are associated (can fix).
   final Map<ProducerGenerator, Set<String>> producerGeneratorsForLintRules;
@@ -240,11 +237,13 @@ abstract class AnalysisServer {
     bool enableBlazeWatcher = false,
     DartFixPromptManager? dartFixPromptManager,
   })  : resourceProvider = OverlayResourceProvider(baseResourceProvider),
-        uriConverter =
-            ClientUriConverter.noop(baseResourceProvider.pathContext),
         pubApi = PubApi(instrumentationService, httpClient,
             Platform.environment['PUB_HOSTED_URL']),
         producerGeneratorsForLintRules = AssistProcessor.computeLintRuleMap() {
+    // Set the default URI converter. This uses the resource providers path
+    // context (unlike the initialized value) which allows tests to override it.
+    uriConverter = ClientUriConverter.noop(baseResourceProvider.pathContext);
+
     // We can only spawn processes (eg. to run pub commands) when backed by
     // a real file system, otherwise we may try to run commands in folders that
     // don't really exist. If processRunner was supplied, it's likely a mock
@@ -389,6 +388,21 @@ abstract class AnalysisServer {
     return DateTime.now().difference(start);
   }
 
+  /// Gets the converter to change incoming client URIs into analyzer file
+  /// references (and back).
+  ///
+  /// Currently backed by a global for use by toJson/fromJson in the legacy
+  /// protocol classes.
+  ClientUriConverter get uriConverter => analyzer_plugin.clientUriConverter;
+
+  /// Sets the converter to change incoming client URIs into analyzer file
+  /// references (and back).
+  ///
+  /// Currently backed by a global for use by toJson/fromJson in the legacy
+  /// protocol classes.
+  set uriConverter(ClientUriConverter converter) =>
+      analyzer_plugin.clientUriConverter = converter;
+
   /// Returns the function for sending prompts to the user and collecting button
   /// presses.
   ///
@@ -418,7 +432,8 @@ abstract class AnalysisServer {
   /// the plugins have sent a response, or an empty list if no [driver] is
   /// provided.
   Map<PluginInfo, Future<Response>> broadcastRequestToPlugins(
-      RequestParams requestParams, analysis.AnalysisDriver? driver) {
+      analyzer_plugin.RequestParams requestParams,
+      analysis.AnalysisDriver? driver) {
     if (driver == null || !AnalysisServer.supportsPlugins) {
       return <PluginInfo, Future<Response>>{};
     }
@@ -828,6 +843,12 @@ abstract class AnalysisServer {
     return null;
   }
 
+  /// Sends an LSP notification to the client.
+  ///
+  /// The legacy server will wrap LSP notifications inside an
+  /// 'lsp.notification' notification.
+  void sendLspNotification(lsp.NotificationMessage notification);
+
   /// Sends an error notification to the user.
   void sendServerErrorNotification(
     String message,
@@ -956,6 +977,23 @@ abstract class CommonServerContextManagerCallbacks
     if (result is ResolvedUnitResult) {
       analysisServer.filesResolvedSinceLastIdle.add(path);
       handleResolvedUnitResult(result);
+    }
+
+    // If this is a virtual file and the client supports URIs, we need to notify
+    // that it's been updated.
+    var lspUri = analysisServer.uriConverter.toClientUri(result.path);
+    if (!lspUri.isScheme('file')) {
+      // TODO(dantup): Should we do any kind of tracking here to avoid sending
+      //  lots of notifications if there aren't actual changes?
+      // TODO(dantup): We may be able to skip sending this if the file is not
+      //  open (priority) depending on the response to
+      //  https://github.com/microsoft/vscode/issues/202017
+      var message = lsp.NotificationMessage(
+        method: lsp.CustomMethods.dartTextDocumentContentDidChange,
+        params: lsp.DartTextDocumentContentDidChangeParams(uri: lspUri),
+        jsonrpc: lsp.jsonRpcVersion,
+      );
+      analysisServer.sendLspNotification(message);
     }
   }
 

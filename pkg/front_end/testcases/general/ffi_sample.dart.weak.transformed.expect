@@ -2,6 +2,7 @@ library /*isLegacy*/;
 import self as self;
 import "dart:core" as core;
 import "dart:ffi" as ffi;
+import "dart:typed_data" as typ;
 
 import "dart:ffi";
 import "package:ffi/ffi.dart";
@@ -10,6 +11,9 @@ import "package:ffi/ffi.dart";
 class Coordinate extends ffi::Struct {
   constructor #fromTypedDataBase(synthesized core::Object #typedDataBase) → self::Coordinate
     : super ffi::Struct::_fromTypedDataBase(#typedDataBase)
+    ;
+  constructor #fromTypedData(synthesized typ::TypedData #typedData, synthesized core::int #offset, synthesized core::int #sizeInBytes) → self::Coordinate
+    : super ffi::Struct::_fromTypedData(#typedData, #offset, #sizeInBytes)
     ;
   static factory allocate(ffi::Allocator* allocator, core::double* x, core::double* y, ffi::Pointer<self::Coordinate*>* next) → self::Coordinate* {
     return let final self::Coordinate* #t1 = new self::Coordinate::#fromTypedDataBase(allocator.{ffi::Allocator::allocate}<self::Coordinate*>(self::Coordinate::#sizeOf){(core::int, {alignment: core::int?}) → ffi::Pointer<self::Coordinate*>}!) in block {

@@ -647,7 +647,7 @@ class LibraryFormatter implements Formatter {
       // interested in seeing the actual classes.
       if (dart.getGenericTypeCtor(value) != null) return;
 
-      children.add(dart.isType(value)
+      children.add(dart.isDartClass(value)
           ? classChild(name, value)
           : NameValuePair(name: name, value: value));
     });

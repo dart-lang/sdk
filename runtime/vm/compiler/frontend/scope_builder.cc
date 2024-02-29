@@ -397,9 +397,8 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
       break;
     }
     case UntaggedFunction::kMethodExtractor: {
-      // Add a receiver parameter.  Though it is captured, we emit code to
-      // explicitly copy it to a fixed offset in a freshly-allocated context
-      // instead of using the generic code for regular functions.
+      // Add a receiver parameter. Though it is captured, we emit code to
+      // explicitly copy it to a freshly-allocated closure.
       // Therefore, it isn't necessary to mark it as captured here.
       Class& klass = Class::Handle(Z, function.Owner());
       Type& klass_type = H.GetDeclarationType(klass);
@@ -874,6 +873,7 @@ void ScopeBuilder::VisitExpression() {
       return;
     case kThrow:
       helper_.ReadPosition();  // read position.
+      helper_.ReadFlags();     // read flags.
       VisitExpression();       // read expression.
       return;
     case kListLiteral: {

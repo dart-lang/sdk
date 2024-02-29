@@ -15,6 +15,9 @@ final class Coordinate extends ffi::Struct {
   constructor #fromTypedDataBase(synthesized core::Object #typedDataBase) → self::Coordinate
     : super ffi::Struct::_fromTypedDataBase(#typedDataBase)
     ;
+  constructor #fromTypedData(synthesized typ::TypedData #typedData, synthesized core::int #offset, synthesized core::int #sizeInBytes) → self::Coordinate
+    : super ffi::Struct::_fromTypedData(#typedData, #offset, #sizeInBytes)
+    ;
   @#C7
   get x() → core::int
     return ffi::_loadInt64(this.{ffi::_Compound::_typedDataBase}{core::Object}, #C9.{core::List::[]}(ffi::_abi()){(core::int) → core::int*});
@@ -41,6 +44,9 @@ final class SomeUnion extends ffi::Union {
     ;
   constructor #fromTypedDataBase(synthesized core::Object #typedDataBase) → self::SomeUnion
     : super ffi::Union::_fromTypedDataBase(#typedDataBase)
+    ;
+  constructor #fromTypedData(synthesized typ::TypedData #typedData, synthesized core::int #offset, synthesized core::int #sizeInBytes) → self::SomeUnion
+    : super ffi::Union::_fromTypedData(#typedData, #offset, #sizeInBytes)
     ;
   get coordinate() → self::Coordinate
     return new self::Coordinate::#fromTypedDataBase( block {

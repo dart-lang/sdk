@@ -51,7 +51,7 @@ void main() {
 
     test('clear', () {
       var counter = Counter('name');
-      counter.count('bucket-1', 1);
+      counter.count('bucket-1');
       expect(counter.map, isNotEmpty);
       expect(counter.totalCount, equals(1));
 
@@ -62,9 +62,9 @@ void main() {
 
     test('getCountOf', () {
       var counter = Counter('name');
-      counter.count('bucket-1', 1);
-      counter.count('bucket-2', 1);
-      counter.count('bucket-2', 1);
+      counter.count('bucket-1');
+      counter.count('bucket-2');
+      counter.count('bucket-2');
       counter.count('bucket-3', 3);
       expect(counter.name, equals('name'));
       expect(counter.map, isNotEmpty);

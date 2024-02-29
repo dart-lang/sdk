@@ -221,7 +221,7 @@ CompileTimeErrorCode.AWAIT_IN_LATE_LOCAL_VARIABLE_INITIALIZER:
     The fix is to remove the `late` modifier.
 CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT:
   status: hasFix
-CompileTimeErrorCode.AWAIT_OF_EXTENSION_TYPE_NOT_FUTURE:
+CompileTimeErrorCode.AWAIT_OF_INCOMPATIBLE_TYPE:
   status: noFix
 CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY:
   status: noFix
@@ -268,11 +268,6 @@ CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME:
   status: noFix
   notes: |-
     The correction is to change the name.
-CompileTimeErrorCode.CASE_BLOCK_NOT_TERMINATED:
-  status: needsFix
-  notes: |-
-    The typical fix, when someone thought a termination was not needed, is to
-    add a break.
 CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS:
   status: needsFix
   notes: |-
@@ -618,10 +613,6 @@ CompileTimeErrorCode.EXPORT_INTERNAL_LIBRARY:
   status: needsFix
   notes: |-
     Remove the export.
-CompileTimeErrorCode.EXPORT_LEGACY_SYMBOL:
-  status: noFix
-  notes: |-
-    Removed as of Dart 3.0.
 CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY:
   status: needsFix
   notes: |-
@@ -978,6 +969,8 @@ CompileTimeErrorCode.INVALID_INLINE_FUNCTION_TYPE:
   status: needsFix
   notes: |-
     Replace with the equivalent generic function type.
+CompileTimeErrorCode.INVALID_MACRO_APPLICATION_TARGET:
+  status: noFix
 CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR:
   status: needsFix
   notes: |-
@@ -1041,7 +1034,13 @@ CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE:
   status: noFix
 CompileTimeErrorCode.MACRO_DECLARATIONS_PHASE_INTROSPECTION_CYCLE:
   status: needsEvaluation
+CompileTimeErrorCode.MACRO_DEFINITION_APPLICATION_SAME_LIBRARY_CYCLE:
+  status: noFix
+CompileTimeErrorCode.MACRO_APPLICATION_ARGUMENT_ERROR:
+  status: noFix
 CompileTimeErrorCode.MACRO_ERROR:
+  status: noFix
+CompileTimeErrorCode.MACRO_INTERNAL_EXCEPTION:
   status: noFix
 CompileTimeErrorCode.MAIN_FIRST_POSITIONAL_PARAMETER_TYPE:
   status: needsFix
@@ -1842,9 +1841,6 @@ HintCode.DIVISION_OPTIMIZATION:
   status: hasFix
 HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION:
   status: noFix
-HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE:
-  status: noFix
-  notes: Deprecated
 HintCode.MACRO_INFO:
   status: noFix
 HintCode.UNNECESSARY_CAST:

@@ -23,7 +23,7 @@ main() {
 
       test('converts SDK paths to org-dartlang-sdk:///', () async {
         expect(
-          adapter.convertPathToOrgDartlangSdk(testPath),
+          adapter.convertUriToOrgDartlangSdk(Uri.file(testPath)),
           testUri,
         );
       });
@@ -31,7 +31,7 @@ main() {
       test('converts org-dartlang-sdk:/// to SDK paths', () async {
         expect(
           adapter.convertOrgDartlangSdkToPath(testUri),
-          testPath,
+          Uri.file(testPath),
         );
       });
     });
@@ -47,7 +47,7 @@ main() {
 
       test('converts SDK paths to custom org-dartlang-sdk:///', () async {
         expect(
-          adapter.convertPathToOrgDartlangSdk(testPath),
+          adapter.convertUriToOrgDartlangSdk(Uri.file(testPath)),
           testUri,
         );
       });
@@ -55,7 +55,7 @@ main() {
       test('converts custom org-dartlang-sdk:/// to SDK paths', () async {
         expect(
           adapter.convertOrgDartlangSdkToPath(testUri),
-          testPath,
+          Uri.file(testPath),
         );
       });
 
@@ -69,7 +69,7 @@ main() {
     });
 
     group('additional SDKs', () {
-      final customSdkRootPath = path.join('my', 'flutter', 'sdk');
+      final customSdkRootPath = path.join('/my', 'flutter', 'sdk');
       final customSdkRootUri = Uri.parse('org-dartlang-sdk:///flutter/sdk');
       final testPath = path.join(customSdkRootPath, 'lib', 'ui.dart');
       final testUri = Uri.parse('org-dartlang-sdk:///flutter/sdk/lib/ui.dart');
@@ -80,7 +80,7 @@ main() {
       test('converts additional SDK paths to custom org-dartlang-sdk:///',
           () async {
         expect(
-          adapter.convertPathToOrgDartlangSdk(testPath),
+          adapter.convertUriToOrgDartlangSdk(Uri.file(testPath)),
           testUri,
         );
       });
@@ -88,7 +88,7 @@ main() {
       test('converts additional SDK org-dartlang-sdk:/// to paths', () async {
         expect(
           adapter.convertOrgDartlangSdkToPath(testUri),
-          testPath,
+          Uri.file(testPath),
         );
       });
     });

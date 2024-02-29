@@ -30,7 +30,8 @@ augment class C {
   augment prefix0.String getSuperClass() {
     return "A";
   }
-}*/
+}
+*/
 
 import 'package:macro/macro.dart';
 

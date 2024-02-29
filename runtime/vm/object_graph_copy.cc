@@ -1031,7 +1031,7 @@ class RetainingPath {
           if (cid == kClosureCid) {
             closure ^= raw;
             // Only context has to be checked.
-            working_list->Add(closure.context());
+            working_list->Add(closure.RawContext());
             break;
           }
           // These we are not expected to drill into as they can't be on

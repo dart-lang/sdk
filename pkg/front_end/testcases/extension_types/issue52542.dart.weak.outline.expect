@@ -19,7 +19,7 @@ static extension-type-member method Option|constructor#<V extends core::Object? 
   lowered final self::Option<self::Option|constructor#::V%> /* = core::Object? */ #this = _value;
   return #this;
 }
-static extension-type-member method Option|constructor#_#new#tearOff<V extends core::Object? = dynamic>(core::Object? _value) → self::Option<self::Option|constructor#_#new#tearOff::V%>% /* = core::Object? */
+static extension-type-member method Option|constructor#_#new#tearOff<V extends core::Object? = dynamic>(core::Object? _value) → self::Option<self::Option|constructor#_#new#tearOff::V%> /* = core::Object? */
   return self::Option|constructor#<self::Option|constructor#_#new#tearOff::V%>(_value);
 static extension-type-member method Option|get#value<V extends core::Object? = dynamic>(lowered final self::Option<self::Option|get#value::V%> /* = core::Object? */ #this) → self::Option|get#value::V%
   ;

@@ -433,7 +433,6 @@ struct InstrAttrs {
   M(AssertAssignable, _)                                                       \
   M(AssertSubtype, _)                                                          \
   M(AssertBoolean, _)                                                          \
-  M(SpecialParameter, kNoGC)                                                   \
   M(ClosureCall, _)                                                            \
   M(FfiCall, _)                                                                \
   M(CCall, kNoGC)                                                              \
@@ -2514,7 +2513,10 @@ class Definition : public Instruction {
   // Compute compile type for this definition. It is safe to use this
   // approximation even before type propagator was run (e.g. during graph
   // building).
-  virtual CompileType ComputeType() const { return CompileType::Dynamic(); }
+  virtual CompileType ComputeType() const {
+    // TODO(vegorov) use range information to improve type if available.
+    return CompileType::FromRepresentation(representation());
+  }
 
   // Update CompileType of the definition. Returns true if the type has changed.
   virtual bool RecomputeType() { return false; }
@@ -2867,27 +2869,32 @@ class PhiInstr : public VariadicDefinition {
 
 // This instruction represents an incoming parameter for a function entry,
 // or incoming value for OSR entry or incoming value for a catch entry.
+//
 // [env_index] is a position of the parameter in the flow graph environment.
-// [param_index] is a position of the function parameter, or -1 if
-// this instruction doesn't correspond to a real function parameter.
+//
+// [param_index] is a position of the function parameter, or
+// kNotFunctionParameter if this instruction doesn't correspond to a real
+// function parameter.
+//
+// [loc] specifies where where the incomming value is located on entry to
+// the block. Note: for compound values (e.g. unboxed integers on 32-bit
+// values) this will be a Pair location.
 class ParameterInstr : public TemplateDefinition<0, NoThrow> {
  public:
   // [param_index] when ParameterInstr doesn't correspond to
   // a function parameter.
   static constexpr intptr_t kNotFunctionParameter = -1;
 
-  ParameterInstr(intptr_t env_index,
+  ParameterInstr(BlockEntryInstr* block,
+                 intptr_t env_index,
                  intptr_t param_index,
-                 intptr_t param_offset,
-                 BlockEntryInstr* block,
-                 Representation representation,
-                 Register base_reg = FPREG)
+                 const Location& loc,
+                 Representation representation)
       : env_index_(env_index),
         param_index_(param_index),
-        param_offset_(param_offset),
-        base_reg_(base_reg),
         representation_(representation),
-        block_(block) {}
+        block_(block),
+        location_(loc) {}
 
   DECLARE_INSTRUCTION(Parameter)
   DECLARE_ATTRIBUTE(index())
@@ -2900,8 +2907,7 @@ class ParameterInstr : public TemplateDefinition<0, NoThrow> {
   // (between 0 and function.NumParameters()), or -1.
   intptr_t param_index() const { return param_index_; }
 
-  intptr_t param_offset() const { return param_offset_; }
-  Register base_reg() const { return base_reg_; }
+  const Location& location() const { return location_; }
 
   // Get the block entry for that instruction.
   virtual BlockEntryInstr* GetBlock() { return block_; }
@@ -2930,21 +2936,17 @@ class ParameterInstr : public TemplateDefinition<0, NoThrow> {
 #define FIELD_LIST(F)                                                          \
   F(const intptr_t, env_index_)                                                \
   F(const intptr_t, param_index_)                                              \
-  /* The offset (in words) of the last slot of the parameter, relative */      \
-  /* to the first parameter. */                                                \
-  /* It is used in the FlowGraphAllocator when it sets the assigned */         \
-  /* location and spill slot for the parameter definition. */                  \
-  F(const intptr_t, param_offset_)                                             \
-  F(const Register, base_reg_)                                                 \
   F(const Representation, representation_)
 
   DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(ParameterInstr,
                                           TemplateDefinition,
                                           FIELD_LIST)
+  DECLARE_EXTRA_SERIALIZATION
 #undef FIELD_LIST
 
  private:
   BlockEntryInstr* block_ = nullptr;
+  Location location_;
 
   DISALLOW_COPY_AND_ASSIGN(ParameterInstr);
 };
@@ -2971,9 +2973,6 @@ class NativeParameterInstr : public TemplateDefinition<0, NoThrow> {
   virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual bool HasUnknownSideEffects() const { return false; }
-
-  // TODO(sjindel): We can make this more precise.
-  virtual CompileType ComputeType() const { return CompileType::Dynamic(); }
 
   PRINT_OPERANDS_TO_SUPPORT
 
@@ -3373,8 +3372,6 @@ class MoveArgumentInstr : public TemplateDefinition<1, NoThrow> {
   DECLARE_INSTRUCTION(MoveArgument)
 
   intptr_t sp_relative_index() const { return sp_relative_index_; }
-
-  virtual CompileType ComputeType() const;
 
   Value* value() const { return InputAt(0); }
 
@@ -4434,68 +4431,6 @@ class AssertBooleanInstr : public TemplateDefinition<1, Throws, Pure> {
 
  private:
   DISALLOW_COPY_AND_ASSIGN(AssertBooleanInstr);
-};
-
-// Denotes a special parameter, currently either the context of a closure,
-// the type arguments of a generic function or an arguments descriptor.
-class SpecialParameterInstr : public TemplateDefinition<0, NoThrow> {
- public:
-#define FOR_EACH_SPECIAL_PARAMETER_KIND(M)                                     \
-  M(Context)                                                                   \
-  M(TypeArgs)                                                                  \
-  M(ArgDescriptor)                                                             \
-  M(Exception)                                                                 \
-  M(StackTrace)
-
-#define KIND_DECL(name) k##name,
-  enum SpecialParameterKind { FOR_EACH_SPECIAL_PARAMETER_KIND(KIND_DECL) };
-#undef KIND_DECL
-
-  // Defined as a static intptr_t instead of inside the enum since some
-  // switch statements depend on the exhaustibility checking.
-#define KIND_INC(name) +1
-  static constexpr intptr_t kNumKinds =
-      0 FOR_EACH_SPECIAL_PARAMETER_KIND(KIND_INC);
-#undef KIND_INC
-
-  static const char* KindToCString(SpecialParameterKind k);
-  static bool ParseKind(const char* str, SpecialParameterKind* out);
-
-  SpecialParameterInstr(SpecialParameterKind kind,
-                        intptr_t deopt_id,
-                        BlockEntryInstr* block)
-      : TemplateDefinition(deopt_id), kind_(kind), block_(block) {}
-
-  DECLARE_INSTRUCTION(SpecialParameter)
-
-  virtual BlockEntryInstr* GetBlock() { return block_; }
-
-  virtual CompileType ComputeType() const;
-
-  virtual bool ComputeCanDeoptimize() const { return false; }
-
-  virtual bool HasUnknownSideEffects() const { return false; }
-
-  virtual bool AttributesEqual(const Instruction& other) const {
-    return kind() == other.AsSpecialParameter()->kind();
-  }
-  SpecialParameterKind kind() const { return kind_; }
-
-  const char* ToCString() const;
-
-  PRINT_OPERANDS_TO_SUPPORT
-
-#define FIELD_LIST(F) F(const SpecialParameterKind, kind_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(SpecialParameterInstr,
-                                          TemplateDefinition,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-  DECLARE_EXTRA_SERIALIZATION
-
- private:
-  BlockEntryInstr* block_ = nullptr;
-  DISALLOW_COPY_AND_ASSIGN(SpecialParameterInstr);
 };
 
 struct ArgumentsInfo {
@@ -5714,8 +5649,6 @@ class CachableIdempotentCallInstr : public TemplateDartCall<0> {
 
   const Function& function() const { return function_; }
 
-  virtual CompileType ComputeType() const { return CompileType::Int(); }
-
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   virtual bool ComputeCanDeoptimize() const { return false; }
@@ -5884,8 +5817,6 @@ class MakeTempInstr : public TemplateDefinition<0, NoThrow, Pure> {
   }
 
   DECLARE_INSTRUCTION(MakeTemp)
-
-  virtual CompileType ComputeType() const { return CompileType::Dynamic(); }
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
@@ -6981,7 +6912,6 @@ class Utf8ScanInstr : public TemplateDefinition<5, NoThrow> {
 
   virtual Representation representation() const { return kUnboxedIntPtr; }
 
-  virtual CompileType ComputeType() const { return CompileType::Int(); }
   virtual bool HasUnknownSideEffects() const { return true; }
   virtual bool ComputeCanDeoptimize() const { return false; }
   virtual intptr_t DeoptimizationTarget() const { return DeoptId::kNone; }
@@ -7163,7 +7093,6 @@ class BoolToIntInstr : public TemplateDefinition<1, NoThrow> {
   explicit BoolToIntInstr(Value* value) { SetInputAt(0, value); }
 
   DECLARE_INSTRUCTION(BoolToInt)
-  virtual CompileType ComputeType() const;
 
   Value* value() const { return inputs_[0]; }
 
@@ -7342,6 +7271,11 @@ class TemplateAllocation : public AllocationInstr {
   virtual intptr_t InputCount() const { return N; }
   virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
 
+  // Non-array allocation may throw, but it doesn't have any
+  // visible effects: it can be eliminated and other
+  // instructions can be hoisted over.
+  virtual bool MayHaveVisibleEffect() const { return false; }
+
   DECLARE_EMPTY_SERIALIZATION(TemplateAllocation, AllocationInstr)
 
  protected:
@@ -7390,6 +7324,11 @@ class AllocateObjectInstr : public AllocationInstr {
   }
 
   virtual bool HasUnknownSideEffects() const { return false; }
+
+  // Object allocation may throw, but it doesn't have any
+  // visible effects: it can be eliminated and other
+  // instructions can be hoisted over.
+  virtual bool MayHaveVisibleEffect() const { return false; }
 
   virtual bool WillAllocateNewOrRemembered() const {
     return WillAllocateNewOrRemembered(cls());
@@ -7465,6 +7404,8 @@ class AllocateClosureInstr : public TemplateAllocation<2> {
         return TemplateAllocation::SlotForInput(pos);
     }
   }
+
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   virtual bool HasUnknownSideEffects() const { return false; }
 
@@ -7826,7 +7767,6 @@ class LoadUntaggedInstr : public TemplateDefinition<1, NoThrow> {
 
   virtual Representation representation() const { return kUntagged; }
   DECLARE_INSTRUCTION(LoadUntagged)
-  virtual CompileType ComputeType() const;
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT(idx == 0);
@@ -8192,6 +8132,8 @@ class AllocateContextInstr : public TemplateAllocation<0> {
 
   intptr_t num_context_variables() const { return context_slots().length(); }
 
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
+
   virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual bool HasUnknownSideEffects() const { return false; }
@@ -8488,7 +8430,6 @@ class UnboxInstr : public TemplateDefinition<1, NoThrow, Pure> {
   virtual Representation representation() const { return representation_; }
 
   DECLARE_INSTRUCTION(Unbox)
-  virtual CompileType ComputeType() const;
 
   virtual bool AttributesEqual(const Instruction& other) const {
     auto const other_unbox = other.AsUnbox();
@@ -8558,8 +8499,6 @@ class UnboxIntegerInstr : public UnboxInstr {
   void mark_truncating() { is_truncating_ = true; }
 
   virtual bool ComputeCanDeoptimize() const;
-
-  virtual CompileType ComputeType() const;
 
   virtual bool AttributesEqual(const Instruction& other) const {
     auto const other_unbox = other.AsUnboxInteger();
@@ -8850,7 +8789,6 @@ class BinaryDoubleOpInstr : public TemplateDefinition<2, NoThrow, Pure> {
   PRINT_OPERANDS_TO_SUPPORT
 
   DECLARE_INSTRUCTION(BinaryDoubleOp)
-  virtual CompileType ComputeType() const;
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
@@ -9086,8 +9024,6 @@ class UnaryUint32OpInstr : public UnaryIntegerOpInstr {
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
-  virtual CompileType ComputeType() const;
-
   virtual Representation representation() const { return kUnboxedUint32; }
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
@@ -9119,8 +9055,6 @@ class UnaryInt64OpInstr : public UnaryIntegerOpInstr {
   }
 
   virtual bool ComputeCanDeoptimize() const { return false; }
-
-  virtual CompileType ComputeType() const;
 
   virtual Representation representation() const { return kUnboxedInt64; }
 
@@ -9323,8 +9257,6 @@ class BinaryInt32OpInstr : public BinaryIntegerOpInstr {
     return kUnboxedInt32;
   }
 
-  virtual CompileType ComputeType() const;
-
   DECLARE_INSTRUCTION(BinaryInt32Op)
 
   DECLARE_EMPTY_SERIALIZATION(BinaryInt32OpInstr, BinaryIntegerOpInstr)
@@ -9352,8 +9284,6 @@ class BinaryUint32OpInstr : public BinaryIntegerOpInstr {
     ASSERT((idx == 0) || (idx == 1));
     return kUnboxedUint32;
   }
-
-  virtual CompileType ComputeType() const;
 
   static bool IsSupported(Token::Kind op_kind) {
     switch (op_kind) {
@@ -9414,8 +9344,6 @@ class BinaryInt64OpInstr : public BinaryIntegerOpInstr {
     return BinaryIntegerOpInstr::AttributesEqual(other) &&
            (speculative_mode_ == other.AsBinaryInt64Op()->speculative_mode_);
   }
-
-  virtual CompileType ComputeType() const;
 
   DECLARE_INSTRUCTION(BinaryInt64Op)
 
@@ -9497,8 +9425,6 @@ class ShiftInt64OpInstr : public ShiftIntegerOpInstr {
     return kUnboxedInt64;
   }
 
-  virtual CompileType ComputeType() const;
-
   DECLARE_INSTRUCTION(ShiftInt64Op)
 
   DECLARE_EMPTY_SERIALIZATION(ShiftInt64OpInstr, ShiftIntegerOpInstr)
@@ -9529,8 +9455,6 @@ class SpeculativeShiftInt64OpInstr : public ShiftIntegerOpInstr {
     ASSERT((idx == 0) || (idx == 1));
     return (idx == 0) ? kUnboxedInt64 : kTagged;
   }
-
-  virtual CompileType ComputeType() const;
 
   DECLARE_INSTRUCTION(SpeculativeShiftInt64Op)
 
@@ -9564,8 +9488,6 @@ class ShiftUint32OpInstr : public ShiftIntegerOpInstr {
     return (idx == 0) ? kUnboxedUint32 : kUnboxedInt64;
   }
 
-  virtual CompileType ComputeType() const;
-
   DECLARE_INSTRUCTION(ShiftUint32Op)
 
   DECLARE_EMPTY_SERIALIZATION(ShiftUint32OpInstr, ShiftIntegerOpInstr)
@@ -9598,8 +9520,6 @@ class SpeculativeShiftUint32OpInstr : public ShiftIntegerOpInstr {
 
   DECLARE_INSTRUCTION(SpeculativeShiftUint32Op)
 
-  virtual CompileType ComputeType() const;
-
   DECLARE_EMPTY_SERIALIZATION(SpeculativeShiftUint32OpInstr,
                               ShiftIntegerOpInstr)
 
@@ -9629,7 +9549,6 @@ class UnaryDoubleOpInstr : public TemplateDefinition<1, NoThrow, Pure> {
   Token::Kind op_kind() const { return op_kind_; }
 
   DECLARE_INSTRUCTION(UnaryDoubleOp)
-  virtual CompileType ComputeType() const;
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
@@ -9754,7 +9673,6 @@ class SmiToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
   virtual TokenPosition token_pos() const { return token_pos_; }
 
   DECLARE_INSTRUCTION(SmiToDouble)
-  virtual CompileType ComputeType() const;
 
   virtual Representation representation() const { return kUnboxedDouble; }
 
@@ -9780,7 +9698,6 @@ class Int32ToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
   Value* value() const { return inputs_[0]; }
 
   DECLARE_INSTRUCTION(Int32ToDouble)
-  virtual CompileType ComputeType() const;
 
   virtual Representation RequiredInputRepresentation(intptr_t index) const {
     ASSERT(index == 0);
@@ -9811,7 +9728,6 @@ class Int64ToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
   Value* value() const { return inputs_[0]; }
 
   DECLARE_INSTRUCTION(Int64ToDouble)
-  virtual CompileType ComputeType() const;
 
   virtual Representation RequiredInputRepresentation(intptr_t index) const {
     ASSERT(index == 0);
@@ -9943,8 +9859,6 @@ class DoubleToFloatInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   DECLARE_INSTRUCTION(DoubleToFloat)
 
-  virtual CompileType ComputeType() const;
-
   virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual Representation representation() const { return kUnboxedFloat; }
@@ -9986,11 +9900,9 @@ class FloatToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   DECLARE_INSTRUCTION(FloatToDouble)
 
-  virtual CompileType ComputeType() const;
+  virtual Representation representation() const { return kUnboxedDouble; }
 
   virtual bool ComputeCanDeoptimize() const { return false; }
-
-  virtual Representation representation() const { return kUnboxedDouble; }
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT(idx == 0);
@@ -10026,8 +9938,6 @@ class FloatCompareInstr : public TemplateDefinition<2, NoThrow, Pure> {
   DECLARE_INSTRUCTION(FloatCompare)
 
   DECLARE_ATTRIBUTE(op_kind())
-
-  virtual CompileType ComputeType() const;
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
@@ -10069,7 +9979,6 @@ class InvokeMathCFunctionInstr : public VariadicDefinition {
   virtual TokenPosition token_pos() const { return token_pos_; }
 
   DECLARE_INSTRUCTION(InvokeMathCFunction)
-  virtual CompileType ComputeType() const;
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
@@ -10182,7 +10091,6 @@ class MakePairInstr : public TemplateDefinition<2, NoThrow, Pure> {
 
   DECLARE_INSTRUCTION(MakePair)
 
-  virtual CompileType ComputeType() const;
   virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual Representation representation() const { return kPairOfTagged; }
@@ -10348,8 +10256,6 @@ class TruncDivModInstr : public TemplateDefinition<2, NoThrow, Pure> {
   TruncDivModInstr(Value* lhs, Value* rhs, intptr_t deopt_id);
 
   static intptr_t OutputIndexOf(Token::Kind token);
-
-  virtual CompileType ComputeType() const;
 
   virtual bool ComputeCanDeoptimize() const { return true; }
 
@@ -10853,14 +10759,6 @@ class IntConverterInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
-  virtual CompileType ComputeType() const {
-    if (to() == kUntagged) {
-      return CompileType::Object();
-    }
-    // TODO(vegorov) use range information to improve type.
-    return CompileType::Int();
-  }
-
   DECLARE_INSTRUCTION(IntConverter);
 
   DECLARE_ATTRIBUTES_NAMED(("from", "to", "is_truncating"),
@@ -10919,8 +10817,6 @@ class BitCastInstr : public TemplateDefinition<1, NoThrow, Pure> {
     return converter->from() == from() && converter->to() == to();
   }
 
-  virtual CompileType ComputeType() const { return CompileType::Dynamic(); }
-
   DECLARE_INSTRUCTION(BitCast);
 
   PRINT_OPERANDS_TO_SUPPORT
@@ -10949,8 +10845,6 @@ class LoadThreadInstr : public TemplateDefinition<0, NoThrow, Pure> {
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     UNREACHABLE();
   }
-
-  virtual CompileType ComputeType() const { return CompileType::Object(); }
 
   // CSE is allowed. The thread should always be the same value.
   virtual bool AttributesEqual(const Instruction& other) const {

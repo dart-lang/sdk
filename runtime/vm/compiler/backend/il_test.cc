@@ -23,11 +23,6 @@ ISOLATE_UNIT_TEST_CASE(InstructionTests) {
       new TargetEntryInstr(1, kInvalidTryIndex, DeoptId::kNone);
   EXPECT(target_instr->IsBlockEntry());
   EXPECT(!target_instr->IsDefinition());
-  SpecialParameterInstr* context = new SpecialParameterInstr(
-      SpecialParameterInstr::kContext, DeoptId::kNone, target_instr);
-  EXPECT(context->IsDefinition());
-  EXPECT(!context->IsBlockEntry());
-  EXPECT(context->GetBlock() == target_instr);
 }
 
 ISOLATE_UNIT_TEST_CASE(OptimizationTests) {
@@ -218,7 +213,7 @@ bool TestIntConverterCanonicalizationRule(Thread* thread,
 
   {
     BlockBuilder builder(H.flow_graph(), normal_entry);
-    v0 = builder.AddParameter(0, 0, /*with_frame=*/true, initial);
+    v0 = builder.AddParameter(0, initial);
     v0->set_range(Range(RangeBoundary::FromConstant(min_value),
                         RangeBoundary::FromConstant(max_value)));
     auto conv1 = builder.AddDefinition(new IntConverterInstr(
@@ -290,7 +285,7 @@ ISOLATE_UNIT_TEST_CASE(IL_PhiCanonicalization) {
 
   {
     BlockBuilder builder(H.flow_graph(), normal_entry);
-    v0 = builder.AddParameter(0, 0, /*with_frame=*/true, kTagged);
+    v0 = builder.AddParameter(0, kTagged);
     builder.AddInstruction(new GotoInstr(b2, S.GetNextDeoptId()));
   }
 
@@ -343,10 +338,8 @@ ISOLATE_UNIT_TEST_CASE(IL_UnboxIntegerCanonicalization) {
     Definition* int_type =
         H.flow_graph()->GetConstant(Type::Handle(Type::IntType()));
 
-    Definition* float64_array =
-        builder.AddParameter(0, 0, /*with_frame=*/true, kTagged);
-    Definition* int64_array =
-        builder.AddParameter(1, 1, /*with_frame=*/true, kTagged);
+    Definition* float64_array = builder.AddParameter(0, kTagged);
+    Definition* int64_array = builder.AddParameter(1, kTagged);
 
     Definition* load_indexed = builder.AddDefinition(new LoadIndexedInstr(
         new Value(float64_array), new Value(index),
@@ -416,10 +409,8 @@ static void TestNullAwareEqualityCompareCanonicalization(
   EqualityCompareInstr* compare = nullptr;
   {
     BlockBuilder builder(H.flow_graph(), normal_entry);
-    Definition* v0 =
-        builder.AddParameter(0, 0, /*with_frame=*/true, kUnboxedInt64);
-    Definition* v1 =
-        builder.AddParameter(1, 1, /*with_frame=*/true, kUnboxedInt64);
+    Definition* v0 = builder.AddParameter(0, kUnboxedInt64);
+    Definition* v1 = builder.AddParameter(1, kUnboxedInt64);
     Definition* box0 = builder.AddDefinition(new BoxInt64Instr(new Value(v0)));
     Definition* box1 = builder.AddDefinition(new BoxInt64Instr(new Value(v1)));
 
@@ -1391,7 +1382,7 @@ static void TestRepresentationChangeDuringCanonicalization(
   Definition* add = nullptr;
   {
     BlockBuilder builder(H.flow_graph(), normal_entry);
-    param = builder.AddParameter(0, 0, /*with_frame=*/true, kUnboxedInt64);
+    param = builder.AddParameter(0, kUnboxedInt64);
 
     InputsArray args;
     args.Add(new Value(H.flow_graph()->constant_null()));
@@ -1586,8 +1577,7 @@ static void TestTestRangeCanonicalize(const AbstractType& type,
   ReturnInstr* ret;
   {
     BlockBuilder builder(H.flow_graph(), normal_entry);
-    Definition* param =
-        builder.AddParameter(0, 0, /*with_frame=*/true, kTagged);
+    Definition* param = builder.AddParameter(0, kTagged);
     Definition* load_cid =
         builder.AddDefinition(new LoadClassIdInstr(new Value(param)));
     Definition* test_range = builder.AddDefinition(new TestRangeInstr(

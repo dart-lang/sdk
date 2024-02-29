@@ -144,6 +144,12 @@ class CompileType : public ZoneAllocated {
   // Resulting CompileType cannot be null and cannot be sentinel.
   static CompileType FromUnboxedRepresentation(Representation rep);
 
+  // Create a new CompileType representing an value where the only information
+  // known is its representation.
+  // The resulting CompileType can only be null if the representation is
+  // tagged and cannot be sentinel.
+  static CompileType FromRepresentation(Representation rep);
+
   // Create None CompileType. It is the bottom of the lattice and is used to
   // represent type of the phi that was not yet inferred.
   static CompileType None() {

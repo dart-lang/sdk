@@ -9,6 +9,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/field_name_non_promotability_info.dart';
 import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/summary2/macro_application_error.dart';
+import 'package:analyzer/src/summary2/macro_type_location.dart';
 import 'package:analyzer/src/task/inference_error.dart';
 import 'package:collection/collection.dart';
 import 'package:test/test.dart';
@@ -42,7 +43,7 @@ String getLibraryText({
 
 class ElementTextConfiguration {
   bool Function(Object) filter;
-  void Function(String message)? macroDiagnosticMessageValidator;
+  List<Pattern>? macroDiagnosticMessagePatterns;
   bool withAllSupertypes = false;
   bool withAugmentedWithoutAugmentation = false;
   bool withCodeRanges = false;
@@ -374,9 +375,7 @@ class _ElementWriter {
       expect(e.nameOffset, -1);
       expect(e.nonSynthetic, same(e.enclosingElement));
     } else {
-      if (!e.isTempAugmentation) {
-        expect(e.nameOffset, isPositive);
-      }
+      expect(e.nameOffset, isPositive);
     }
   }
 
@@ -740,14 +739,69 @@ class _ElementWriter {
   }
 
   void _writeMacroDiagnostics(Element e) {
+    void writeTypeAnnotationLocation(TypeAnnotationLocation location) {
+      switch (location) {
+        case AliasedTypeLocation():
+          writeTypeAnnotationLocation(location.parent);
+          _sink.writelnWithIndent('AliasedTypeLocation');
+        case ElementTypeLocation():
+          _sink.writelnWithIndent('ElementTypeLocation');
+          _sink.withIndent(() {
+            _elementPrinter.writeNamedElement('element', location.element);
+          });
+        case ExtendsClauseTypeLocation():
+          writeTypeAnnotationLocation(location.parent);
+          _sink.writelnWithIndent('ExtendsClauseTypeLocation');
+        case FormalParameterTypeLocation():
+          writeTypeAnnotationLocation(location.parent);
+          _sink.writelnWithIndent('FormalParameterTypeLocation');
+          _sink.withIndent(() {
+            _sink.writelnWithIndent('index: ${location.index}');
+          });
+        case ListIndexTypeLocation():
+          writeTypeAnnotationLocation(location.parent);
+          _sink.writelnWithIndent('ListIndexTypeLocation');
+          _sink.withIndent(() {
+            _sink.writelnWithIndent('index: ${location.index}');
+          });
+        case RecordNamedFieldTypeLocation():
+          writeTypeAnnotationLocation(location.parent);
+          _sink.writelnWithIndent('RecordNamedFieldTypeLocation');
+          _sink.withIndent(() {
+            _sink.writelnWithIndent('index: ${location.index}');
+          });
+        case RecordPositionalFieldTypeLocation():
+          writeTypeAnnotationLocation(location.parent);
+          _sink.writelnWithIndent('RecordPositionalFieldTypeLocation');
+          _sink.withIndent(() {
+            _sink.writelnWithIndent('index: ${location.index}');
+          });
+        case ReturnTypeLocation():
+          writeTypeAnnotationLocation(location.parent);
+          _sink.writelnWithIndent('ReturnTypeLocation');
+        case VariableTypeLocation():
+          writeTypeAnnotationLocation(location.parent);
+          _sink.writelnWithIndent('VariableTypeLocation');
+        default:
+          // TODO(scheglov): Handle this case.
+          throw UnimplementedError('${location.runtimeType}');
+      }
+    }
+
     void writeMessage(MacroDiagnosticMessage object) {
       // Write the message.
-      final validator = configuration.macroDiagnosticMessageValidator;
-      if (validator != null) {
-        validator(object.message);
+      if (configuration.macroDiagnosticMessagePatterns case var patterns?) {
+        _sink.writelnWithIndent('contains');
+        _sink.withIndent(() {
+          for (var pattern in patterns) {
+            if (object.message.contains(pattern)) {
+              _sink.writelnWithIndent(pattern);
+            }
+          }
+        });
       } else {
         final message = object.message;
-        const stackTraceText = 'Stack trace:';
+        const stackTraceText = '#0';
         final stackTraceIndex = message.indexOf(stackTraceText);
         if (stackTraceIndex >= 0) {
           final end = stackTraceIndex + stackTraceText.length;
@@ -775,6 +829,23 @@ class _ElementWriter {
           _sink.writelnWithIndent('target: ElementMacroDiagnosticTarget');
           _sink.withIndent(() {
             _elementPrinter.writeNamedElement('element', target.element);
+          });
+        case ElementAnnotationMacroDiagnosticTarget():
+          _sink.writelnWithIndent(
+            'target: ElementAnnotationMacroDiagnosticTarget',
+          );
+          _sink.withIndent(() {
+            _elementPrinter.writeNamedElement('element', target.element);
+            _sink.writelnWithIndent(
+              'annotationIndex: ${target.annotationIndex}',
+            );
+          });
+        case TypeAnnotationMacroDiagnosticTarget():
+          _sink.writelnWithIndent(
+            'target: TypeAnnotationMacroDiagnosticTarget',
+          );
+          _sink.withIndent(() {
+            writeTypeAnnotationLocation(target.location);
           });
       }
     }
@@ -840,8 +911,24 @@ class _ElementWriter {
                 _sink.writelnWithIndent(
                   'message: ${diagnostic.message}',
                 );
+                if (configuration.withMacroStackTraces) {
+                  _sink.writelnWithIndent(
+                    'stackTrace:\n${diagnostic.stackTrace}',
+                  );
+                }
+              });
+            case InvalidMacroTargetDiagnostic():
+              _sink.writelnWithIndent('InvalidMacroTargetDiagnostic');
+              _sink.withIndent(() {
                 _sink.writelnWithIndent(
-                  'stackTrace:\n${diagnostic.stackTrace}',
+                  'annotationIndex: ${diagnostic.annotationIndex}',
+                );
+                _sink.writeElements(
+                  'supportedKinds',
+                  diagnostic.supportedKinds,
+                  (kindName) {
+                    _sink.writelnWithIndent(kindName);
+                  },
                 );
               });
             case MacroDiagnostic():
@@ -864,6 +951,11 @@ class _ElementWriter {
                 _sink.writelnWithIndent(
                   'severity: ${diagnostic.severity.name}',
                 );
+                if (diagnostic.correctionMessage case var correctionMessage?) {
+                  _sink.writelnWithIndent(
+                    'correctionMessage: $correctionMessage',
+                  );
+                }
               });
           }
         },
@@ -1067,9 +1159,7 @@ class _ElementWriter {
     if (e.isSynthetic) {
       expect(e.nameOffset, -1);
     } else {
-      if (!e.isTempAugmentation) {
-        expect(e.nameOffset, isPositive);
-      }
+      expect(e.nameOffset, isPositive);
       _assertNonSyntheticElementSelf(e);
     }
 
@@ -1128,9 +1218,7 @@ class _ElementWriter {
         expect(e.getter, isNotNull);
       }
 
-      if (!e.isTempAugmentation) {
-        expect(e.nameOffset, isPositive);
-      }
+      expect(e.nameOffset, isPositive);
       _assertNonSyntheticElementSelf(e);
     }
 
@@ -1279,6 +1367,8 @@ class _ElementWriter {
           _writeReturnType(aliasedElement.returnType);
         });
       }
+
+      _writeMacroDiagnostics(e);
     });
 
     _assertNonSyntheticElementSelf(e);

@@ -51,8 +51,8 @@ class FromEnvironmentEvaluatorTest {
 
   void setUp() {
     var analysisContext = TestAnalysisContext();
-    typeProvider = analysisContext.typeProviderLegacy;
-    typeSystem = analysisContext.typeSystemLegacy;
+    typeProvider = analysisContext.typeProvider;
+    typeSystem = analysisContext.typeSystem;
   }
 
   void test_getBool_default() {

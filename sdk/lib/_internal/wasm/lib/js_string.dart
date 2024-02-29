@@ -29,7 +29,7 @@ final class JSStringImpl implements String {
   bool get isNotEmpty => !isEmpty;
 
   @pragma("wasm:entry-point")
-  static String interpolate(List<Object?> values) {
+  static String _interpolate(WasmArray<Object?> values) {
     final valuesLength = values.length;
     final array = JSArrayImpl.fromLength(valuesLength);
     for (int i = 0; i < valuesLength; i++) {
@@ -217,7 +217,7 @@ final class JSStringImpl implements String {
 
   String _replaceFirstRE(
       js.JSSyntaxRegExp regexp, String replacement, int startIndex) {
-    final match = js.regExpExecGlobal(regexp, this, startIndex);
+    final match = js.regExpExecGlobal(regexp, this.toJS, startIndex);
     if (match == null) return this;
     final start = match.start;
     final end = match.end;
@@ -552,7 +552,7 @@ final class JSStringImpl implements String {
     } else if (pattern is String) {
       return _jsIndexOf(pattern.toExternRef, start);
     } else if (pattern is js.JSSyntaxRegExp) {
-      Match? match = js.firstMatchAfter(pattern, this, start);
+      Match? match = js.firstMatchAfter(pattern, this.toJS, start);
       return (match == null) ? -1 : match.start;
     } else {
       for (int i = start; i <= length; i++) {

@@ -17,7 +17,6 @@ class DartUnitSignatureComputer {
   final DartdocDirectiveInfo _dartdocInfo;
   final AstNode? _node;
   late ArgumentList _argumentList;
-  final bool _isNonNullableByDefault;
   final DocumentationPreference documentationPreference;
 
   DartUnitSignatureComputer(
@@ -25,8 +24,7 @@ class DartUnitSignatureComputer {
     CompilationUnit unit,
     int offset, {
     this.documentationPreference = DocumentationPreference.full,
-  })  : _node = NodeLocator(offset).searchWithin(unit),
-        _isNonNullableByDefault = unit.isNonNullableByDefault;
+  }) : _node = NodeLocator(offset).searchWithin(unit);
 
   /// The [ArgumentList] node located by [compute].
   ArgumentList get argumentList => _argumentList;
@@ -79,7 +77,7 @@ class DartUnitSignatureComputer {
                     ? ParameterKind.REQUIRED_NAMED
                     : ParameterKind.REQUIRED_POSITIONAL,
         param.displayName,
-        param.type.getDisplayString(withNullability: _isNonNullableByDefault),
+        param.type.getDisplayString(),
         defaultValue: param.defaultValueCode);
   }
 

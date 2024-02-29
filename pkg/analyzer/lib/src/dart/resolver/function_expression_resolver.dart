@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -19,8 +20,6 @@ class FunctionExpressionResolver {
   FunctionExpressionResolver({required ResolverVisitor resolver})
       : _resolver = resolver,
         _inferenceHelper = resolver.inferenceHelper;
-
-  bool get _isNonNullableByDefault => _typeSystem.isNonNullableByDefault;
 
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
@@ -61,7 +60,7 @@ class FunctionExpressionResolver {
       // in scope, so we can visit the documentation comment now.
       parent.documentationComment?.accept(_resolver);
     }
-    _resolve2(node, imposedType, contextType: contextType);
+    _resolve2(node, imposedType);
 
     if (_resolver.flowAnalysis.flow != null && !isFunctionDeclaration) {
       _resolver.checkForBodyMayCompleteNormally(
@@ -95,11 +94,8 @@ class FunctionExpressionResolver {
         // If the greatest closure of `K` is `S` and `S` is a subtype of
         // `Null`, then `T` is `Object?`. Otherwise, `T` is `S`.
         if (_typeSystem.isSubtypeOf(inferredType, _typeSystem.nullNone)) {
-          inferredType = _isNonNullableByDefault
-              ? _typeSystem.objectQuestion
-              : _typeSystem.objectStar;
+          inferredType = _typeSystem.objectQuestion;
         }
-        inferredType = _typeSystem.nonNullifyLegacy(inferredType);
         if (inferredType is! DynamicType) {
           p.type = inferredType;
         }
@@ -152,21 +148,19 @@ class FunctionExpressionResolver {
 
     return type.instantiate(typeParameters.map((typeParameter) {
       return typeParameter.declaredElement!.instantiate(
-        nullabilitySuffix: _resolver.noneOrStarSuffix,
+        nullabilitySuffix: NullabilitySuffix.none,
       );
     }).toList());
   }
 
-  void _resolve2(FunctionExpressionImpl node, DartType? imposedType,
-      {required DartType? contextType}) {
+  void _resolve2(FunctionExpressionImpl node, DartType? imposedType) {
     var functionElement = node.declaredElement as ExecutableElementImpl;
 
     if (_shouldUpdateReturnType(node)) {
       functionElement.returnType = imposedType ?? DynamicTypeImpl.instance;
     }
 
-    _inferenceHelper.recordStaticType(node, functionElement.type,
-        contextType: contextType);
+    _inferenceHelper.recordStaticType(node, functionElement.type);
   }
 
   static bool _shouldUpdateReturnType(FunctionExpression node) {

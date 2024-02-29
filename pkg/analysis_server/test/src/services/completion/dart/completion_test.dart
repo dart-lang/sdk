@@ -436,7 +436,7 @@ typedef F = ^
 
 @reflectiveTest
 class PropertyAccessCompletionTest extends CompletionTestCase {
-  Future<void> test_nullSafe_extension() async {
+  Future<void> test_extension() async {
     await getTestCodeSuggestions('''
 void f(C c) {
   c.a?.^;

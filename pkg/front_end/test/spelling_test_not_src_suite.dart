@@ -2,16 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:testing/testing.dart' show Chain, runMe;
+import 'package:testing/testing.dart' show Chain;
 
+import 'fasta/suite_utils.dart';
 import 'spelling_test_base.dart';
 
 import 'spell_checking_utils.dart' as spell;
 
 import 'testing_utils.dart' show checkEnvironment;
 
-void main([List<String> arguments = const []]) =>
-    runMe(arguments, createContext, configurationPath: "../testing.json");
+void main([List<String> arguments = const []]) => internalMain(createContext,
+    arguments: arguments,
+    displayName: "spelling test not src suite",
+    configurationPath: "../testing.json");
 
 Future<SpellContext> createContext(
     Chain suite, Map<String, String> environment) async {

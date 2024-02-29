@@ -774,7 +774,7 @@ runTests() async {
       beforeRun: (compiler) =>
           compiler.stopAfterGlobalTypeInferenceForTesting = true);
   Expect.isTrue(result.isSuccess);
-  Compiler compiler = result.compiler;
+  Compiler compiler = result.compiler!;
   JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
   CommonElements commonElements = closedWorld.commonElements;
   ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;

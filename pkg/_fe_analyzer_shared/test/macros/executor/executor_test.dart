@@ -343,6 +343,22 @@ void main() {
                         'class MyExtensionTypeOnMyClass {}'));
               });
 
+              test('on type aliases', () async {
+                var result = await executor.executeTypesPhase(
+                  simpleMacroInstanceId,
+                  Fixtures.myTypeAlias,
+                  TestTypePhaseIntrospector(),
+                );
+                expect(result.enumValueAugmentations, isEmpty);
+                expect(result.typeAugmentations, isEmpty);
+                expect(
+                  result.libraryAugmentations.single.debugString().toString(),
+                  equalsIgnoringWhitespace(
+                    'class MyTypeAliasAliasedTypeMyClass {}',
+                  ),
+                );
+              });
+
               test('on mixins', () async {
                 var result = await executor.executeTypesPhase(
                     simpleMacroInstanceId,
@@ -592,6 +608,23 @@ class LibraryInfo {
                 List<String> get onTypeFieldNames;
               '''));
                 expect(result.libraryAugmentations, isEmpty);
+              });
+
+              test('on type aliases', () async {
+                var result = await executor.executeDeclarationsPhase(
+                  simpleMacroInstanceId,
+                  Fixtures.myTypeAlias,
+                  Fixtures.testDeclarationPhaseIntrospector,
+                );
+                expect(result.enumValueAugmentations, isEmpty);
+                expect(result.libraryAugmentations, hasLength(1));
+                expect(
+                  result.libraryAugmentations.single.debugString().toString(),
+                  equalsIgnoringWhitespace(
+                    'List<String> get aliasedTypeFieldNames;',
+                  ),
+                );
+                expect(result.typeAugmentations, isEmpty);
               });
 
               test('on mixins', () async {
@@ -942,9 +975,10 @@ augment final LibraryInfo library = LibraryInfo(Uri.parse('package:foo/bar.dart'
                     d.correctionMessage == 'correct me!'),
                 predicate<Diagnostic>((d) =>
                     d.severity == Severity.error &&
-                    d.message.message.contains('I threw an error!') &&
+                    d.message.message.contains('bug in the macro') &&
                     // Quick test that some stack trace also appears
-                    d.message.message.contains('simple_macro.dart')),
+                    d.contextMessages.first.message
+                        .contains('simple_macro.dart')),
               ]);
             });
           });

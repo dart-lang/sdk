@@ -41,9 +41,9 @@ class JsInteropClass {
 /*member: jsInteropClass:[subclass=JSInt]*/
 jsInteropClass() {
   JsInteropClass cls = JsInteropClass();
-  return cls. /*update: [subclass=LegacyJavaScriptObject]*/ setter =
-      cls. /*[subclass=LegacyJavaScriptObject]*/ getter /*invoke: [subclass=JSInt]*/ +
-          cls. /*invoke: [subclass=LegacyJavaScriptObject]*/ method(
+  return cls. /*update: [exact=JsInteropClass]*/ setter =
+      cls. /*[exact=JsInteropClass]*/ getter /*invoke: [subclass=JSInt]*/ +
+          cls. /*invoke: [exact=JsInteropClass]*/ method(
               0) /*invoke: [subclass=JSInt]*/ +
           10;
 }

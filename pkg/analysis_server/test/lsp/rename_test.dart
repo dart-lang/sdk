@@ -30,6 +30,23 @@ final a = new [!My^Class!]();
     return _test_prepare(content, 'MyClass');
   }
 
+  Future<void> test_prepare_class_newKeyword() async {
+    const content = '''
+class MyClass {}
+final a = n^ew [!MyClass!]();
+''';
+
+    return _test_prepare(content, 'MyClass');
+  }
+
+  Future<void> test_prepare_class_startOfParameterList() {
+    const content = '''
+class [!MyClass^!]<T> {}
+''';
+
+    return _test_prepare(content, 'MyClass');
+  }
+
   Future<void> test_prepare_class_typeParameter_atDeclaration() async {
     const content = '''
 class A<[!T^!]> {
@@ -48,15 +65,6 @@ class A<T> {
 ''';
 
     return _test_prepare(content, 'T');
-  }
-
-  Future<void> test_prepare_classNewKeyword() async {
-    const content = '''
-class MyClass {}
-final a = n^ew [!MyClass!]();
-''';
-
-    return _test_prepare(content, 'MyClass');
   }
 
   Future<void> test_prepare_enum() {
