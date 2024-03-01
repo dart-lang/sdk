@@ -260,16 +260,6 @@ class TopMergeTest extends AbstractTypeSystemTest {
     _check(objectQuestion, dynamicType, objectQuestion);
   }
 
-  test_objectStar() {
-    // NNBD_TOP_MERGE(Object*, void) = Object?
-    // NNBD_TOP_MERGE(void, Object*) = Object?
-    _check(objectStar, voidNone, objectQuestion);
-
-    // NNBD_TOP_MERGE(Object*, dynamic) = Object?
-    // NNBD_TOP_MERGE(dynamic, Object*) = Object?
-    _check(objectStar, dynamicType, objectQuestion);
-  }
-
   test_record() {
     _check(
       recordTypeNone(positionalTypes: [dynamicType]),

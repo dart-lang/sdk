@@ -103,11 +103,6 @@ mixin ElementsTypesMixin {
     return interfaceTypeQuestion(element);
   }
 
-  InterfaceType get objectStar {
-    var element = typeProvider.objectType.element;
-    return interfaceTypeStar(element);
-  }
-
   InterfaceType get recordNone {
     var element = typeProvider.recordElement;
     return interfaceTypeNone(element);

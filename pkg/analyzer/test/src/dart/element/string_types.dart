@@ -31,7 +31,6 @@ mixin StringTypes on AbstractTypeSystemTest {
     _defineType('Null?', nullQuestion);
 
     _defineType('Object', objectNone);
-    _defineType('Object*', objectStar);
     _defineType('Object?', objectQuestion);
 
     _defineType('Comparable<Object>', comparableNone(objectNone));
