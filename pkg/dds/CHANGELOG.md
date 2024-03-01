@@ -1,5 +1,6 @@
 # 3.3.0-unreleased
 - **Breaking change:** [DAP] Several signatures in DAP debug adapter classes have been updated to use `Uri`s where they previously used `String path`s. This is to support communicating with the DAP client using URIs instead of file paths. URIs may be used only when the client sets the custom `supportsDartUris` client capability during initialization.
+- Updated `package:dap` version to 1.2.0.
 
 # 3.2.1
 - Adding `unified_analytics` as a dependency and added static method `DevToolsUtils.initializeAnalytics` to create analytics instance for DevTools.

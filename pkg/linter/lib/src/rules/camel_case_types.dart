@@ -78,7 +78,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    // Don't lint augmentation classes.
+    // Don't lint augmentations.
     if (node.augmentKeyword != null) return;
 
     check(node.name);
@@ -91,11 +91,13 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
+    // TODO(pq): don't lint augmentations, https://github.com/dart-lang/linter/issues/4881
     check(node.name);
   }
 
   @override
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+    // TODO(pq): don't lint augmented augmentations, https://github.com/dart-lang/linter/issues/4881
     check(node.name);
   }
 
@@ -111,6 +113,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
+    // Don't lint augmentations.
+    if (node.augmentKeyword != null) return;
+
     check(node.name);
   }
 }

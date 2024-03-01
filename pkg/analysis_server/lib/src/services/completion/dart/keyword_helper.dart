@@ -464,7 +464,7 @@ class KeywordHelper {
 
   /// Add a keyword suggestion to suggest the [keyword].
   void addKeyword(Keyword keyword) {
-    collector.addSuggestion(KeywordSuggestion.fromKeyword(keyword));
+    collector.addSuggestion(KeywordSuggestion.fromKeyword(keyword: keyword));
   }
 
   /// Add a keyword suggestion to suggest the [keyword] followed by the
@@ -477,8 +477,8 @@ class KeywordHelper {
   /// the insert text will be the annotated text and the selection offset will
   /// be at the end of the text.
   void addKeywordFromText(Keyword keyword, String annotatedText) {
-    collector.addSuggestion(
-        KeywordSuggestion.fromKeywordAndText(keyword, annotatedText));
+    collector.addSuggestion(KeywordSuggestion.fromKeywordAndText(
+        keyword: keyword, annotatedText: annotatedText));
   }
 
   /// Add the keywords that are appropriate when the selection is in a mixin
@@ -531,7 +531,8 @@ class KeywordHelper {
 
   /// Add a keyword suggestion to suggest the [keyword].
   void addPseudoKeyword(String keyword) {
-    collector.addSuggestion(KeywordSuggestion.fromPseudoKeyword(keyword));
+    collector
+        .addSuggestion(KeywordSuggestion.fromPseudoKeyword(keyword: keyword));
   }
 
   /// Add the keywords that are appropriate when the selection is at the

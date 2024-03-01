@@ -141,6 +141,43 @@ class AugmentedMixinDeclarationBuilder
   }
 }
 
+class AugmentedTopVariablesBuilder {
+  final Map<String, TopLevelVariableElementImpl> variables = {};
+  final Map<String, PropertyAccessorElementImpl> accessors = {};
+
+  void addAccessor(PropertyAccessorElementImpl element) {
+    final name = element.name;
+    if (element.isAugmentation) {
+      final existing = accessors[name];
+      if (existing != null) {
+        existing.augmentation = element;
+        element.augmentationTarget = existing;
+        element.variable = existing.variable;
+      }
+    }
+    accessors[name] = element;
+  }
+
+  void addVariable(TopLevelVariableElementImpl element) {
+    final name = element.name;
+    if (element.isAugmentation) {
+      final existing = variables[name];
+      if (existing != null) {
+        existing.augmentation = element;
+        element.augmentationTarget = existing;
+      }
+    }
+    variables[name] = element;
+
+    if (element.getter case var getter?) {
+      addAccessor(getter);
+    }
+    if (element.setter case var setter?) {
+      addAccessor(setter);
+    }
+  }
+}
+
 class DefiningLinkingUnit extends LinkingUnit {
   DefiningLinkingUnit({
     required super.reference,
@@ -175,6 +212,10 @@ class LibraryBuilder {
   /// The top-level elements that can be augmented.
   final Map<String, AugmentedInstanceDeclarationBuilder> _augmentedBuilders =
       {};
+
+  /// The top-level variables and accessors that can be augmented.
+  final AugmentedTopVariablesBuilder topVariables =
+      AugmentedTopVariablesBuilder();
 
   /// The top-level elements that can be augmented.
   final Map<String, ElementImpl> _augmentationTargets = {};

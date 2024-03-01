@@ -649,22 +649,32 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     ExecutableElementImpl executableElement;
     if (node.isGetter) {
       var element = PropertyAccessorElementImpl(name, nameOffset);
+      element.isAugmentation = node.augmentKeyword != null;
       element.isGetter = true;
       element.isStatic = true;
 
       reference = _enclosingContext.addGetter(name, element);
       executableElement = element;
 
-      _buildSyntheticVariable(name: name, accessorElement: element);
+      if (!element.isAugmentation) {
+        _buildSyntheticVariable(name: name, accessorElement: element);
+      }
+
+      _libraryBuilder.topVariables.addAccessor(element);
     } else if (node.isSetter) {
       var element = PropertyAccessorElementImpl(name, nameOffset);
+      element.isAugmentation = node.augmentKeyword != null;
       element.isSetter = true;
       element.isStatic = true;
 
       reference = _enclosingContext.addSetter(name, element);
       executableElement = element;
 
-      _buildSyntheticVariable(name: name, accessorElement: element);
+      if (!element.isAugmentation) {
+        _buildSyntheticVariable(name: name, accessorElement: element);
+      }
+
+      _libraryBuilder.topVariables.addAccessor(element);
     } else {
       var element = FunctionElementImpl(name, nameOffset);
       element.isAugmentation = node.augmentKeyword != null;
@@ -698,10 +708,10 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       typeParameters: functionExpression.typeParameters,
     );
 
-    if (node.isSetter) {
-      _libraryBuilder.declare('$name=', reference);
-    } else {
-      _libraryBuilder.declare(name, reference);
+    var getterOrSetterName = node.isSetter ? '$name=' : name;
+
+    if (!executableElement.isAugmentation) {
+      _libraryBuilder.declare(getterOrSetterName, reference);
     }
 
     _buildType(node.returnType);
@@ -1210,6 +1220,8 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       _linker.elementNodes[element] = variable;
       _enclosingContext.addTopLevelVariable(name, element);
       variable.declaredElement = element;
+
+      _libraryBuilder.topVariables.addVariable(element);
     }
 
     _buildType(node.variables.type);

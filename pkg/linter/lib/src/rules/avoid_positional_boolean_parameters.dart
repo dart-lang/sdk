@@ -79,6 +79,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
+    // Don't lint augmentations.
+    if (node.isAugmentation) return;
+
     var declaredElement = node.declaredElement;
     if (declaredElement != null && !declaredElement.isPrivate) {
       checkParams(node.parameters.parameters);
@@ -87,6 +90,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
+    // Don't lint augmentations.
+    if (node.isAugmentation) return;
+
     var declaredElement = node.declaredElement;
     if (declaredElement != null && !declaredElement.isPrivate) {
       checkParams(node.functionExpression.parameters?.parameters);
@@ -100,6 +106,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
+    // Don't lint augmentations.
+    if (node.isAugmentation) return;
+
     var declaredElement = node.declaredElement;
     if (declaredElement != null &&
         !node.isSetter &&

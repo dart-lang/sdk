@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
+import '../extensions.dart';
 
 const _desc = r'Use enums rather than classes that behave like enums.';
 
@@ -190,6 +191,9 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   visitClassDeclaration(ClassDeclaration node) {
+    // Don't lint augmentations.
+    if (node.isAugmentation) return;
+
     if (node.abstractKeyword != null) return;
     var classElement = node.declaredElement;
     if (classElement == null) return;

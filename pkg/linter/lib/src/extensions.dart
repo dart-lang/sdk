@@ -28,10 +28,12 @@ extension AstNodeExtension on AstNode {
   bool get isAugmentation {
     var self = this;
     return switch (self) {
+      ClassDeclaration() => self.augmentKeyword != null,
       ConstructorDeclaration() => self.augmentKeyword != null,
       FunctionDeclarationImpl() => self.augmentKeyword != null,
       FunctionExpression() => self.parent?.isAugmentation ?? false,
       MethodDeclaration() => self.augmentKeyword != null,
+      MixinDeclaration() => self.augmentKeyword != null,
       // TODO(pq): unimplemented
       // VariableDeclaration() => self.augmentKeyword != null,
       _ => false
