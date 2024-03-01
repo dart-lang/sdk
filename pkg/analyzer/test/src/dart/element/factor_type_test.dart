@@ -33,6 +33,12 @@ class FactorTypeTest with FactorTypeTestMixin<DartType>, ElementsTypesMixin {
   }
 
   @override
+  InterfaceType get objectStar {
+    var element = typeProvider.objectType.element;
+    return interfaceTypeStar(element);
+  }
+
+  @override
   InterfaceType get stringStar {
     var element = typeProvider.stringType.element;
     return interfaceTypeStar(element);

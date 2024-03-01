@@ -32,7 +32,14 @@ class LspChangeVerifier {
   }
 
   void verifyFiles(String expected, {Map<Uri, int>? expectedVersions}) {
-    expect(_toChangeString(), equals(expected));
+    var actual = _toChangeString();
+    if (actual != expected) {
+      print('-' * 64);
+      print(actual.trimRight());
+      print('-' * 64);
+    }
+    expect(actual, equals(expected));
+
     if (expectedVersions != null) {
       _verifyDocumentVersions(expectedVersions);
     }

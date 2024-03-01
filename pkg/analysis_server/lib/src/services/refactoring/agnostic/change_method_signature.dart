@@ -71,6 +71,8 @@ sealed class Available extends Availability {
     required this.refactoringContext,
   });
 
+  bool get hasPositionalParameters;
+
   bool get hasSelectedFormalParametersToConvertToNamed => false;
 
   bool get hasSelectedFormalParametersToMoveLeft => false;
@@ -419,6 +421,11 @@ final class _AvailableWithDeclaration extends Available {
   });
 
   @override
+  bool get hasPositionalParameters {
+    return declaration.element.parameters.any((e) => e.isPositional);
+  }
+
+  @override
   bool get hasSelectedFormalParametersToConvertToNamed {
     final selected = declaration.selected;
     if (selected.isEmpty) {
@@ -486,6 +493,11 @@ final class _AvailableWithExecutableElement extends Available {
     required super.refactoringContext,
     required this.element,
   });
+
+  @override
+  bool get hasPositionalParameters {
+    return element.parameters.any((e) => e.isPositional);
+  }
 }
 
 /// The target method declaration.
