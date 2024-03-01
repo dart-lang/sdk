@@ -50,9 +50,13 @@ class ConvertAllFormalParametersToNamed extends RefactoringProducer {
 
     final formalParameterUpdates = selection.formalParameters.map(
       (formalParameter) {
+        var newKind = formalParameter.kind;
+        if (formalParameter.kind.isPositional) {
+          newKind = FormalParameterKind.requiredNamed;
+        }
         return FormalParameterUpdate(
           id: formalParameter.id,
-          kind: FormalParameterKind.requiredNamed,
+          kind: newKind,
         );
       },
     ).toList();
@@ -75,6 +79,9 @@ class ConvertAllFormalParametersToNamed extends RefactoringProducer {
     final availability = analyzeAvailability(
       refactoringContext: refactoringContext,
     );
-    return availability is Available;
+    if (availability is! Available) {
+      return false;
+    }
+    return availability.hasPositionalParameters;
   }
 }
