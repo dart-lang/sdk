@@ -615,7 +615,7 @@ abstract interface class File implements FileSystemEntity {
   /// This method does not transform newline characters (`"\n"`) to the
   /// platform conventional line ending (e.g. `"\r\n"` on Windows). Use
   /// [Platform.lineTerminator] to separate lines in [contents] if platform
-  /// contentional line endings are needed.
+  /// conventional line endings are needed.
   Future<File> writeAsString(String contents,
       {FileMode mode = FileMode.write,
       Encoding encoding = utf8,
@@ -637,7 +637,7 @@ abstract interface class File implements FileSystemEntity {
   /// This method does not transform newline characters (`"\n"`) to the
   /// platform conventional line ending (e.g. `"\r\n"` on Windows). Use
   /// [Platform.lineTerminator] to separate lines in [contents] if platform
-  /// contentional line endings are needed.
+  /// conventional line endings are needed.
   ///
   /// Throws a [FileSystemException] if the operation fails.
   void writeAsStringSync(String contents,
