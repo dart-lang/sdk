@@ -10,6 +10,7 @@ import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_yaml.dart';
@@ -130,6 +131,7 @@ class ChangeBuilderImpl implements ChangeBuilder {
       FutureOr<void> Function(DartFileEditBuilder builder) buildFileEdit,
       {ImportPrefixGenerator? importPrefixGenerator,
       bool createEditsForImports = true}) async {
+    assert(file_paths.isDart(workspace.resourceProvider.pathContext, path));
     if (_genericFileEditBuilders.containsKey(path)) {
       throw StateError("Can't create both a generic file edit and a dart file "
           'edit for the same file');
@@ -162,6 +164,18 @@ class ChangeBuilderImpl implements ChangeBuilder {
   @override
   Future<void> addGenericFileEdit(
       String path, void Function(FileEditBuilder builder) buildFileEdit) async {
+    // Dart and YAML files should always use their specific builders because
+    // otherwise we might throw below if multiple callers (such as fixes in
+    // "dart fix") use different methods.
+    // TODO(dantup): Add these asserts in when we can advertise this as a
+    //  breaking change (for plugins that might be calling this method for
+    //  dart files). Without them, server code could also accidentally do this
+    //  and re-introduce https://github.com/dart-lang/sdk/issues/55092
+    // assert(!file_paths.isDart(workspace.resourceProvider.pathContext, path),
+    //     'Use addDartFileEdit for editing Dart files');
+    // assert(!file_paths.isYaml(workspace.resourceProvider.pathContext, path),
+    //     'Use addYamlFileEdit for editing YAML files');
+
     if (_dartFileEditBuilders.containsKey(path)) {
       throw StateError("Can't create both a dart file edit and a generic file "
           'edit for the same file');
@@ -181,6 +195,7 @@ class ChangeBuilderImpl implements ChangeBuilder {
   @override
   Future<void> addYamlFileEdit(String path,
       void Function(YamlFileEditBuilder builder) buildFileEdit) async {
+    assert(file_paths.isYaml(workspace.resourceProvider.pathContext, path));
     if (_dartFileEditBuilders.containsKey(path)) {
       throw StateError("Can't create both a dart file edit and a yaml file "
           'edit for the same file');

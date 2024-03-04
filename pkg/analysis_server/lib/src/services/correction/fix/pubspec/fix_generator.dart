@@ -165,14 +165,14 @@ class PubspecFixGenerator {
 
     if (addDeps.isNotEmpty) {
       var (text, offset) = _getTextAndOffset(node, 'dependencies', addDeps);
-      await builder.addGenericFileEdit(file, (builder) {
+      await builder.addYamlFileEdit(file, (builder) {
         builder.addSimpleInsertion(offset, text);
       });
     }
     if (addDevDeps.isNotEmpty) {
       var (text, offset) =
           _getTextAndOffset(node, 'dev_dependencies', addDevDeps);
-      await builder.addGenericFileEdit(file, (builder) {
+      await builder.addYamlFileEdit(file, (builder) {
         builder.addSimpleInsertion(offset, text);
       });
     }
@@ -191,7 +191,7 @@ class PubspecFixGenerator {
         if (currentEntry != null && prevEntry != null) {
           var startOffset = prevEntry.value.span.end.offset;
           var endOffset = currentEntry.value.span.end.offset;
-          await builder.addGenericFileEdit(file, (builder) {
+          await builder.addYamlFileEdit(file, (builder) {
             builder
                 .addDeletion(SourceRange(startOffset, endOffset - startOffset));
           });
@@ -248,7 +248,7 @@ class PubspecFixGenerator {
               edit = _Range(edit.startOffset, endOffset);
             } else {
               // Edits don't conflict, add previously computed edit to builder.
-              await builder.addGenericFileEdit(file, (builder) {
+              await builder.addYamlFileEdit(file, (builder) {
                 builder.addDeletion(SourceRange(
                     edit!.startOffset, edit.endOffset - edit.startOffset));
               });
@@ -259,7 +259,7 @@ class PubspecFixGenerator {
         // Iterated through all the entries to be removed, add the last computed
         // edit to builder.
         if (edit != null) {
-          await builder.addGenericFileEdit(file, (builder) {
+          await builder.addYamlFileEdit(file, (builder) {
             builder.addDeletion(SourceRange(
                 edit!.startOffset, edit.endOffset - edit.startOffset));
           });
@@ -280,7 +280,7 @@ class PubspecFixGenerator {
       // map.
       return;
     }
-    await builder.addGenericFileEdit(file, (builder) {
+    await builder.addYamlFileEdit(file, (builder) {
       // TODO(brianwilkerson): Generalize this to add a key to any map by
       //  inserting the indentation of the line containing `firstOffset` after
       //  the end-of-line marker.

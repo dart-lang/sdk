@@ -77,7 +77,7 @@ class YamlFileEditBuilderImplTest extends AbstractYamlChangeBuilderTest {
     createPubspec('''
 name: my test
 ''');
-    await builder.addGenericFileEdit(testFilePath, (builder) {
+    await builder.addYamlFileEdit(testFilePath, (builder) {
       builder.addDeletion(SourceRange(6, 3));
     });
     var edits = builder.sourceChange.edits[0].edits;

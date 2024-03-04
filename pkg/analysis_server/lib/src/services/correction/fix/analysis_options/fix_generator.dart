@@ -242,7 +242,7 @@ class AnalysisOptionsFixGenerator {
     );
 
     final deletionRange_final = deletionRange;
-    await builder.addGenericFileEdit(file, (builder) {
+    await builder.addYamlFileEdit(file, (builder) {
       builder.addDeletion(deletionRange_final);
     });
     return builder;
