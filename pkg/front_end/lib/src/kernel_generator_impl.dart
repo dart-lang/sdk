@@ -6,8 +6,8 @@
 library front_end.kernel_generator_impl;
 
 import 'package:_fe_analyzer_shared/src/macros/bootstrap.dart';
-import 'package:_fe_analyzer_shared/src/macros/executor/isolated_executor.dart'
-    as isolatedExecutor;
+import 'package:_fe_analyzer_shared/src/macros/executor/kernel_executor.dart'
+    as kernelExecutor;
 import 'package:_fe_analyzer_shared/src/macros/executor/multi_executor.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart';
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
@@ -368,7 +368,7 @@ Future<Map<Uri, ExecutorFactoryToken>> _compileMacros(
   Set<Uri> macroLibraries =
       neededPrecompilations.macroDeclarations.keys.toSet();
   ExecutorFactoryToken executorToken = macroExecutor.registerExecutorFactory(
-      () => isolatedExecutor.start(SerializationMode.byteData, precompiledUri),
+      () => kernelExecutor.start(SerializationMode.byteData, precompiledUri),
       macroLibraries);
   return <Uri, ExecutorFactoryToken>{
     for (Uri library in macroLibraries) library: executorToken,

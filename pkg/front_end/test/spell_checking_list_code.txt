@@ -589,6 +589,8 @@ examines
 exceeds
 exchange
 exchanging
+exe
+executables
 execute
 executor
 executors
@@ -1518,6 +1520,7 @@ rpc
 rs
 rta
 runnable
+runtimes
 rvar
 s
 safer
