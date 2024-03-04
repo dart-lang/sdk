@@ -2,27 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// Returns `true` if a and b contain equal elements in the same order.
-bool listsEqual(List a, List b) {
-  // TODO(rnystrom): package:collection also implements this, and analyzer
-  // already transitively depends on that package. Consider using it instead.
-  if (identical(a, b)) {
-    return true;
-  }
-
-  if (a.length != b.length) {
-    return false;
-  }
-
-  for (int i = 0; i < a.length; i++) {
-    if (a[i] != b[i]) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
 /// The set of [Enum] values, backed by [int].
 extension type EnumSet<T extends Enum>(int _bits) {
   EnumSet.empty() : this(0);
