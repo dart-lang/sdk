@@ -565,6 +565,8 @@ InvalidGetterSetterTypeSetterInheritedFieldLegacy/analyzerCode: Fail
 InvalidGetterSetterTypeSetterInheritedGetter/analyzerCode: Fail
 InvalidGetterSetterTypeSetterInheritedGetterLegacy/analyzerCode: Fail
 InvalidInitializer/example: Fail
+InvalidMacroApplicationTarget/analyzerCode: Fail
+InvalidMacroApplicationTarget/example: Fail
 InvalidNnbdDillLibrary/analyzerCode: Fail
 InvalidNnbdDillLibrary/example: Fail
 InvalidPackageUri/analyzerCode: Fail
@@ -779,6 +781,8 @@ NoAugmentSuperReadTarget/part_wrapped_script: Fail # Uses imports
 NoAugmentSuperWriteTarget/analyzerCode: Fail
 NoAugmentSuperWriteTarget/part_wrapped_script: Fail # Uses imports
 NoFormals/example: Fail
+NoMacroApplicationTarget/analyzerCode: Fail
+NoMacroApplicationTarget/example: Fail
 NoSuchNamedParameter/example: Fail
 NoUnnamedConstructorInObject/analyzerCode: Fail
 NoUnnamedConstructorInObject/example: Fail

@@ -6,6 +6,8 @@
 Definition Order:
  function:ImportConflictMacro.new()
 Definitions:
+library augment 'org-dartlang-test:///a/b/c/main.dart';
+
 import 'dart:core' as prefix1_0;
 import 'dart:async' as prefix1_1;
 import 'dart:math' as prefix1_2;
