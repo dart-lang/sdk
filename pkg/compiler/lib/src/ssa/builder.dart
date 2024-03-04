@@ -4168,7 +4168,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
         List.from(_visitPositionalArguments(arguments));
 
     if (target.namedParameters.isNotEmpty) {
-      // Only anonymous factory or inline class literal constructors involving
+      // Only anonymous factory or extension type literal constructors involving
       // JS interop are allowed to have named parameters. Otherwise, throw an
       // error.
       final member = target.parent as ir.Member;
@@ -4176,10 +4176,12 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       bool isAnonymousFactory = function is ConstructorEntity &&
           function.isFactoryConstructor &&
           _nativeData.isAnonymousJsInteropClass(function.enclosingClass);
-      // JS interop checks assert that the only inline class interop member that
-      // has named parameters is an object literal constructor. We could do a
-      // more robust check by visiting all inline classes and recording
-      // descriptors, but that's expensive.
+      // JS interop checks assert that the only extension type interop member
+      // that has named parameters is an object literal constructor.
+      // TODO(54968): We should handle the lowering for object literal
+      // constructors in the interop transformer somehow instead and avoid
+      // assuming all such members are object literal constructors or
+      // otherwise paying the cost to verify by indexing extension types.
       bool isObjectLiteralConstructor = member.isExtensionTypeMember;
       if (isAnonymousFactory || isObjectLiteralConstructor) {
         // TODO(sra): Have a "CompiledArguments" structure to just update with
