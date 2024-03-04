@@ -5,8 +5,6 @@
 // Tests that non-inherited abstract fields are properly accounted for when
 // deciding whether a `noSuchMethod` suppresses field promotion.
 
-// SharedOptions=--enable-experiment=inference-update-2
-
 import "../static_type_helper.dart";
 
 class A {

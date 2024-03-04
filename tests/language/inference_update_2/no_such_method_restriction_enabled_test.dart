@@ -56,8 +56,6 @@
 // This file covers cases where the language feature "inference-update-2" is
 // enabled.
 
-// SharedOptions=--enable-experiment=inference-update-2
-
 import 'package:expect/expect.dart';
 
 import 'no_such_method_restriction_enabled_lib.dart' as lib;

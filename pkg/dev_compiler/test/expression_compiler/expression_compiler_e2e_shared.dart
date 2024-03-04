@@ -117,8 +117,7 @@ void runNullSafeSharedTests(
     ''';
 
     setUpAll(() async {
-      await driver.initSource(setup, interopSource,
-          experiments: {'inline-class': true});
+      await driver.initSource(setup, interopSource, experiments: {});
     });
 
     tearDownAll(() async {
@@ -182,8 +181,7 @@ void runNullSafeSharedTests(
     ''';
 
     setUpAll(() async {
-      await driver.initSource(setup, interopSource,
-          experiments: {'inline-class': true});
+      await driver.initSource(setup, interopSource, experiments: {});
     });
 
     tearDownAll(() async {

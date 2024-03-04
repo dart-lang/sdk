@@ -134,7 +134,7 @@ class ExperimentalFlag {
   static const ExperimentalFlag inferenceUpdate2 = const ExperimentalFlag(
       name: 'inference-update-2',
       isEnabledByDefault: true,
-      isExpired: false,
+      isExpired: true,
       enabledVersion: const Version(3, 2),
       experimentEnabledVersion: const Version(3, 2),
       experimentReleasedVersion: const Version(3, 2));
@@ -150,7 +150,7 @@ class ExperimentalFlag {
   static const ExperimentalFlag inlineClass = const ExperimentalFlag(
       name: 'inline-class',
       isEnabledByDefault: true,
-      isExpired: false,
+      isExpired: true,
       enabledVersion: const Version(3, 3),
       experimentEnabledVersion: const Version(3, 3),
       experimentReleasedVersion: const Version(3, 3));
@@ -795,16 +795,8 @@ final Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
 const AllowedExperimentalFlags defaultAllowedExperimentalFlags =
     const AllowedExperimentalFlags(
         sdkDefaultExperiments: {},
-        sdkLibraryExperiments: {
-      "js_interop": {
-        ExperimentalFlag.inlineClass,
-      },
-    },
-        packageExperiments: {
-      "web": {
-        ExperimentalFlag.inlineClass,
-      },
-    });
+        sdkLibraryExperiments: {},
+        packageExperiments: {});
 const Map<shared.ExperimentalFlag, ExperimentalFlag> sharedExperimentalFlags = {
   shared.ExperimentalFlag.classModifiers: ExperimentalFlag.classModifiers,
   shared.ExperimentalFlag.constFunctions: ExperimentalFlag.constFunctions,

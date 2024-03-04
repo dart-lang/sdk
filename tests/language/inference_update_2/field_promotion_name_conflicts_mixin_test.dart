@@ -17,8 +17,6 @@
 //
 // This test exercises both ordinary final fields and late final fields.
 
-// SharedOptions=--enable-experiment=inference-update-2
-
 import '../static_type_helper.dart';
 
 // Main test mixin.

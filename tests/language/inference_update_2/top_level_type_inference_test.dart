@@ -7,8 +7,6 @@
 // verifies that the data structures necessary to support field promotion have
 // been initialized in time.
 
-// SharedOptions=--enable-experiment=inference-update-2
-
 import '../static_type_helper.dart';
 
 class C {

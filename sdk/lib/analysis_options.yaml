@@ -1,3 +1,0 @@
-analyzer:
-  enable-experiment:
-    - records # TODO(http://dartbug.com/50586): Remove this when records are no longer an experiment.

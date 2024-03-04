@@ -4,8 +4,6 @@
 
 // Tests that field promotion logic properly handles abstract fields.
 
-// SharedOptions=--enable-experiment=inference-update-2
-
 import '../static_type_helper.dart';
 
 abstract class C {

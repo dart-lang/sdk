@@ -11,8 +11,6 @@
 // `Object` would violate soundness. (See `field_of_dynamic_with_nsm_test.dart`
 // for a concrete example of this).
 
-// SharedOptions=--enable-experiment=inference-update-2
-
 class C {
   final Object? _x;
   C(this._x);

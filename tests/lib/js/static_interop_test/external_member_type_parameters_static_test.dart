@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=inline-class
-
 // Test that type parameters in external static interop members extend a static
 // interop type when using dart:js_interop.
 

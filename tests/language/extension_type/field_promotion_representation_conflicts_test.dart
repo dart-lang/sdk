@@ -8,8 +8,6 @@
 // no danger of the representation variable aliasing to some other declaration,
 // as there is for ordinary fields).
 
-// SharedOptions=--enable-experiment=inline-class
-
 import '../static_type_helper.dart';
 
 class C1 {

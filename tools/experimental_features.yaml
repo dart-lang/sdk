@@ -154,6 +154,7 @@ features:
         print(('feature' as E).f());
       }
     help: "Extension Types"
+    expired: true
 
   inference-update-2:
     enabledIn: '3.2.0'
@@ -167,6 +168,7 @@ features:
         print(f(C('feature enabled')));
       }
     help: "Type promotion for fields"
+    expired: true
 
   sealed-class:
     help: "Sealed class"

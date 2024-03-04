@@ -248,7 +248,7 @@ class ExperimentalFeatures {
     isEnabledByDefault: IsEnabledByDefault.inference_update_3,
     isExpired: IsExpired.inference_update_3,
     documentation:
-        'Better handling of coercions, conditional expressions, and switch expressions.',
+        'Better handling of conditional expressions, and switch expressions.',
     experimentalReleaseVersion: null,
     releaseVersion: null,
   );
@@ -545,13 +545,13 @@ class IsExpired {
   static const bool inference_update_1 = true;
 
   /// Expiration status of the experiment "inference-update-2"
-  static const bool inference_update_2 = false;
+  static const bool inference_update_2 = true;
 
   /// Expiration status of the experiment "inference-update-3"
   static const bool inference_update_3 = false;
 
   /// Expiration status of the experiment "inline-class"
-  static const bool inline_class = false;
+  static const bool inline_class = true;
 
   /// Expiration status of the experiment "macros"
   static const bool macros = false;
