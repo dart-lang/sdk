@@ -2443,7 +2443,7 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
       } else if ((rhs > 0) && Utils::IsPowerOfTwo(rhs)) {
         const int64_t shift_amount = Utils::ShiftForPowerOfTwo(rhs);
         ConstantInstr* constant_shift_amount = flow_graph->GetConstant(
-            Smi::Handle(Smi::New(shift_amount)), representation());
+            Smi::Handle(Smi::New(shift_amount)), kTagged);
         BinaryIntegerOpInstr* shift = BinaryIntegerOpInstr::Make(
             representation(), Token::kSHL, left()->CopyWithType(),
             new Value(constant_shift_amount), GetDeoptId(), can_overflow(),
