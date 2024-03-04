@@ -501,6 +501,87 @@ main() {
           });
         });
       });
+
+      group('Inference update 3:', () {
+        void setupTypesForLub() {
+          // Class hierarchy:
+          //    A
+          //    /\
+          //   /  \
+          // B1<T> B2<T>
+          // | \  / |
+          // |  \/  |
+          // |  /\  |
+          // | /  \ |
+          // C1<T> C2<T>
+          h.addSuperInterfaces('A', (_) => [Type('Object')]);
+          h.addSuperInterfaces('B1', (_) => [Type('A'), Type('Object')]);
+          h.addSuperInterfaces('B2', (_) => [Type('A'), Type('Object')]);
+          h.addSuperInterfaces(
+              'C1',
+              (args) => [
+                    PrimaryType('B1', args: args),
+                    PrimaryType('B2', args: args),
+                    Type('A'),
+                    Type('Object')
+                  ]);
+          h.addSuperInterfaces(
+              'C2',
+              (args) => [
+                    PrimaryType('B1', args: args),
+                    PrimaryType('B2', args: args),
+                    Type('A'),
+                    Type('Object')
+                  ]);
+          h.addLub('C1<Object?>', 'C2<Object?>', 'A');
+          h.addLub('C1<int>', 'C2<double>', 'A');
+          h.addLub('B2<Object?>', 'C1<Object?>', 'B2<Object?>');
+        }
+
+        test("Context used instead of LUB if LUB doesn't satisfy context", () {
+          setupTypesForLub();
+          h.run([
+            switchExpr(expr('int'), [
+              intLiteral(0).pattern.thenExpr(expr('C1<Object?>')),
+              wildcard().thenExpr(expr('C2<Object?>')),
+            ]).checkType('B1<Object?>').inTypeSchema('B1<Object?>'),
+          ]);
+        });
+
+        test('Context is converted to a type using greatest closure', () {
+          setupTypesForLub();
+          h.run([
+            switchExpr(expr('int'), [
+              intLiteral(0).pattern.thenExpr(expr('C1<int>')),
+              wildcard().thenExpr(expr('C2<double>')),
+            ]).checkType('B1<Object?>').inTypeSchema('B1<_>'),
+          ]);
+        });
+
+        test("Context not used if one of the branches doesn't satisfy context",
+            () {
+          setupTypesForLub();
+          h.run([
+            switchExpr(expr('int'), [
+              intLiteral(0).pattern.thenExpr(expr('C1<Object?>')),
+              wildcard().thenExpr(expr('B2<Object?>')),
+            ]).checkType('B2<Object?>').inTypeSchema('B1<Object?>'),
+          ]);
+        });
+
+        test(
+            "when disabled, LUB always used, even if it doesn't satisfy "
+            "context", () {
+          setupTypesForLub();
+          h.disableInferenceUpdate3();
+          h.run([
+            switchExpr(expr('int'), [
+              intLiteral(0).pattern.thenExpr(expr('C1<Object?>')),
+              wildcard().thenExpr(expr('C2<Object?>')),
+            ]).checkType('A').inTypeSchema('B1<Object?>'),
+          ]);
+        });
+      });
     });
 
     group('Map:', () {

@@ -8,8 +8,6 @@
 // implementation is in external code. As such, it shouldn't be promotable,
 // because it's not guaranteed to yield the same value each time it's invoked.
 
-// SharedOptions=--enable-experiment=inference-update-2
-
 import '../static_type_helper.dart';
 
 class C {

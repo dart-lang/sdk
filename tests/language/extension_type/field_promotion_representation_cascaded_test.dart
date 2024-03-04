@@ -5,8 +5,6 @@
 // Tests that field promotion of the representation variable works properly in
 // cascade expressions.
 
-// SharedOptions=--enable-experiment=inline-class
-
 import '../static_type_helper.dart';
 
 extension type E(Object Function() _f) {

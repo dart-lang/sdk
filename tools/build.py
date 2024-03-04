@@ -140,7 +140,7 @@ rbe_started = None
 bootstrap_path = None
 
 
-def StartRBE(out_dir, use_goma):
+def StartRBE(out_dir, use_goma, env):
     global rbe_started, bootstrap_path
     rbe = 'goma' if use_goma else 'rbe'
     if rbe_started:
@@ -161,12 +161,27 @@ def StartRBE(out_dir, use_goma):
     if not os.path.exists(rbe_dir) or not os.path.isdir(rbe_dir):
         print(f'Could not find {rbe} at {rbe_dir}')
         return False
+    RBE_cfg = 'RBE_CFG' if HOST_OS == 'win32' else 'RBE_cfg'
+    RBE_server_address = ('RBE_SERVER_ADDRESS'
+                          if HOST_OS == 'win32' else 'RBE_server_address')
+    if not use_goma and not RBE_cfg in env:
+        env[RBE_cfg] = os.path.join(
+            os.getcwd(), 'build', 'rbe',
+            'windows.cfg' if HOST_OS == 'win32' else 'unix.cfg')
+    if not use_goma and not RBE_server_address in env:
+        with open(env[RBE_cfg], 'r') as f:
+            if not any([l.startswith('server_address') for l in f.readlines()]):
+                schema = 'pipe' if HOST_OS == 'win32' else 'unix'
+                socket = os.path.join(os.getcwd(), out_dir, 'reproxy.sock')
+                if HOST_OS == 'win32':
+                    socket = socket.replace('\\', '_').replace(':', '_')
+                env[RBE_server_address] = f'{schema}://{socket}'
     bootstrap = 'goma_ctl.py' if use_goma else 'bootstrap'
     bootstrap_path = os.path.join(rbe_dir, bootstrap)
     bootstrap_command = [bootstrap_path]
     if use_goma:
         bootstrap_command = ['python3', bootstrap_path, 'ensure_start']
-    process = subprocess.Popen(bootstrap_command)
+    process = subprocess.Popen(bootstrap_command, env=env)
     process.wait()
     if process.returncode != 0:
         print(f"Starting {rbe} failed. Try running it manually: " + "\n\t" +
@@ -186,7 +201,7 @@ def StopRBE():
 
 
 # Returns a tuple (build_config, command to run, whether rbe is used)
-def BuildOneConfig(options, targets, target_os, mode, arch, sanitizer):
+def BuildOneConfig(options, targets, target_os, mode, arch, sanitizer, env):
     build_config = utils.GetBuildConf(mode, arch, target_os, sanitizer)
     out_dir = utils.GetBuildRoot(HOST_OS, mode, arch, target_os, sanitizer)
     using_rbe = False
@@ -196,7 +211,7 @@ def BuildOneConfig(options, targets, target_os, mode, arch, sanitizer):
     use_rbe = UseRBE(out_dir)
     use_goma = UseGoma(out_dir)
     if use_rbe or use_goma:
-        if options.no_start_rbe or StartRBE(out_dir, use_goma):
+        if options.no_start_rbe or StartRBE(out_dir, use_goma, env):
             using_rbe = True
             command += [('-j%s' % str(options.j))]
             command += [('-l%s' % str(options.l))]
@@ -337,7 +352,7 @@ def Main():
                 for sanitizer in options.sanitizer:
                     configs.append(
                         BuildOneConfig(options, targets, target_os, mode, arch,
-                                       sanitizer))
+                                       sanitizer, env))
 
     exit_code = Build(configs, env, options)
 

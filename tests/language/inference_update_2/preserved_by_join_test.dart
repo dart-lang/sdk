@@ -8,8 +8,6 @@
 //
 // See https://github.com/dart-lang/sdk/issues/53146 for further details.
 
-// SharedOptions=--enable-experiment=inference-update-2
-
 import '../static_type_helper.dart';
 
 class C {

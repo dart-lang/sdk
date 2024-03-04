@@ -302,7 +302,6 @@ abstract class AbstractLspAnalysisServerTest
     newFile(analysisOptionsPath, '''
 analyzer:
   enable-experiment:
-    - inline-class
     - macros
 ''');
 

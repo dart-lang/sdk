@@ -4,8 +4,6 @@
 
 // Tests that field promotion logic properly handles cascades.
 
-// SharedOptions=--enable-experiment=inference-update-2
-
 class C {
   final Object? _field;
   C(this._field);

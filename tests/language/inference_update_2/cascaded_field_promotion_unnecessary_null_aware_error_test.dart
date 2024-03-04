@@ -8,8 +8,6 @@
 // Since the cascades are unnecessarily null-aware, the analyzer produces
 // warnings for it, so this test has to have "error" expectations.
 
-// SharedOptions=--enable-experiment=inference-update-2
-
 import '../static_type_helper.dart';
 
 class C {

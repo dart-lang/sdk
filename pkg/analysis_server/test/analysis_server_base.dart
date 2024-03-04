@@ -211,7 +211,6 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest
   // add `import 'package:analyzer/dart/analysis/features.dart';`
   // and list the necessary experiments here.
   List<String> get experiments => [
-        Feature.inline_class.enableString,
         Feature.macros.enableString,
       ];
 

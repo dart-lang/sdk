@@ -40,6 +40,7 @@ def _ExtractImportantEnvironment(output_of_set):
       'path',
       'pathext',
       'rbe_cfg', # Dart specific patch: RBE_cfg is needed by reclient.
+      'rbe_server_address', # Dart specific patch: RBE_server_address ditto.
       'systemroot',
       'temp',
       'tmp',

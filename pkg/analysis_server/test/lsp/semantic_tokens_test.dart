@@ -459,6 +459,105 @@ void f() {
     await _verifyTokens(content, expected);
   }
 
+  Future<void> test_class_super() async {
+    final content = '''
+class A {
+  A(int i) {}
+  void f() {}
+}
+
+class B extends A {
+[!
+  B.b() : super(1);
+  B(super.i);
+  void f() {
+    super.f();
+  }
+!]
+}
+''';
+
+    final expected = [
+      _Token('B', SemanticTokenTypes.class_, [
+        CustomSemanticTokenModifiers.constructor,
+        SemanticTokenModifiers.declaration,
+      ]),
+      _Token('b', SemanticTokenTypes.method, [
+        CustomSemanticTokenModifiers.constructor,
+        SemanticTokenModifiers.declaration,
+      ]),
+      _Token('super', SemanticTokenTypes.keyword),
+      _Token('1', SemanticTokenTypes.number),
+      _Token('B', SemanticTokenTypes.class_, [
+        CustomSemanticTokenModifiers.constructor,
+        SemanticTokenModifiers.declaration,
+      ]),
+      _Token('super', SemanticTokenTypes.keyword),
+      _Token('i', SemanticTokenTypes.parameter,
+          [SemanticTokenModifiers.declaration]),
+      _Token('void', SemanticTokenTypes.keyword,
+          [CustomSemanticTokenModifiers.void_]),
+      _Token('f', SemanticTokenTypes.method, [
+        SemanticTokenModifiers.declaration,
+        CustomSemanticTokenModifiers.instance,
+      ]),
+      _Token('super', SemanticTokenTypes.keyword),
+      _Token('f', SemanticTokenTypes.method, [
+        CustomSemanticTokenModifiers.instance,
+      ])
+    ];
+
+    await _verifyTokensInRange(content, expected);
+  }
+
+  Future<void> test_class_this() async {
+    final content = '''
+class A {
+  int a;
+  [!
+  A(this.a);
+  A.b() : this(1);
+  void f() {
+    this.f();
+  }
+  !]
+}
+''';
+
+    final expected = [
+      _Token('A', SemanticTokenTypes.class_, [
+        CustomSemanticTokenModifiers.constructor,
+        SemanticTokenModifiers.declaration,
+      ]),
+      _Token('this', SemanticTokenTypes.keyword),
+      _Token('a', SemanticTokenTypes.property, [
+        CustomSemanticTokenModifiers.instance,
+      ]),
+      _Token('A', SemanticTokenTypes.class_, [
+        CustomSemanticTokenModifiers.constructor,
+        SemanticTokenModifiers.declaration,
+      ]),
+      _Token('b', SemanticTokenTypes.method, [
+        CustomSemanticTokenModifiers.constructor,
+        SemanticTokenModifiers.declaration,
+      ]),
+      _Token('1', SemanticTokenTypes.number),
+      _Token('void', SemanticTokenTypes.keyword, [
+        CustomSemanticTokenModifiers.void_,
+      ]),
+      _Token('f', SemanticTokenTypes.method, [
+        SemanticTokenModifiers.declaration,
+        CustomSemanticTokenModifiers.instance,
+      ]),
+      _Token('this', SemanticTokenTypes.keyword),
+      _Token('f', SemanticTokenTypes.method, [
+        CustomSemanticTokenModifiers.instance,
+      ])
+    ];
+
+    await _verifyTokensInRange(content, expected);
+  }
+
   Future<void> test_dartdoc() async {
     final content = '''
 /// before [aaa] after

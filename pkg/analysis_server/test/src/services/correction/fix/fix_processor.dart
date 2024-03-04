@@ -87,7 +87,7 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
   late BulkFixProcessor processor;
 
   @override
-  List<String> get experiments => const ['inline-class'];
+  List<String> get experiments => const [];
 
   /// Return the lint code being tested.
   String? get lintCode => null;

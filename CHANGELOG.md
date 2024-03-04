@@ -36,11 +36,15 @@
 
 #### Pub
 
-- Dependency resolution will now surface if a dependency is affected by a
-  security advisory, unless the advisory is listed under a
-  `ignored_advisories` section in the `pubspec.yaml` file.
-  To learn more about pub's support for security advisories,
-  visit [dart.dev/go/pub-security-advisories][pub-security-advisories].
+- Dependency resolution and `dart pub outdated` will now surface if a dependency
+  is affected by a security advisory, unless the advisory is listed under a
+  `ignored_advisories` section in the `pubspec.yaml` file. To learn more about
+  pub's support for security advisories, visit
+  [dart.dev/go/pub-security-advisories][pub-security-advisories].
+- New command `dart pub unpack` that downloads a package from pub.dev and
+  extracts it to a subfolder of the current directory.
+
+  This can be useful for inspecting the code, or playing with examples.
 
 [pub-security-advisories]: https://dart.dev/go/pub-security-advisories
 

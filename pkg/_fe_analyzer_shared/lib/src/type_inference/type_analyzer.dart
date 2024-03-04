@@ -1692,79 +1692,117 @@ mixin TypeAnalyzer<
   SwitchExpressionResult<Type, Error> analyzeSwitchExpression(
       Expression node, Expression scrutinee, int numCases, TypeSchema schema) {
     // Stack: ()
+
+    // The static type of a switch expression `E` of the form `switch (e0) { p1
+    // => e1, p2 => e2, ... pn => en }` with context type `K` is computed as
+    // follows:
+    //
+    // - The scrutinee (`e0`) is first analyzed with context type `_`.
     Type expressionType = analyzeExpression(scrutinee, operations.unknownType);
     // Stack: (Expression)
     handleSwitchScrutinee(expressionType);
     flow.switchStatement_expressionEnd(null, scrutinee, expressionType);
-    Type? lubType;
+
+    // - If the switch expression has no cases, its static type is `Never`.
     Map<int, Error>? nonBooleanGuardErrors;
     Map<int, Type>? guardTypes;
-    for (int i = 0; i < numCases; i++) {
-      // Stack: (Expression, i * ExpressionCase)
-      SwitchExpressionMemberInfo<Node, Expression, Variable> memberInfo =
-          getSwitchExpressionMemberInfo(node, i);
-      flow.switchStatement_beginAlternatives();
-      flow.switchStatement_beginAlternative();
-      handleSwitchBeforeAlternative(node, caseIndex: i, subIndex: 0);
-      Node? pattern = memberInfo.head.pattern;
-      Expression? guard;
-      if (pattern != null) {
-        Map<String, List<Variable>> componentVariables = {};
-        Map<String, int> patternVariablePromotionKeys = {};
-        dispatchPattern(
-          new MatchContext<Node, Expression, Pattern, Type, Variable>(
-            isFinal: false,
-            switchScrutinee: scrutinee,
-            componentVariables: componentVariables,
-            patternVariablePromotionKeys: patternVariablePromotionKeys,
-          ),
-          pattern,
-        );
-        _finishJoinedPatternVariables(
-          memberInfo.head.variables,
-          componentVariables,
-          patternVariablePromotionKeys,
-          location: JoinedPatternVariableLocation.singlePattern,
-        );
-        // Stack: (Expression, i * ExpressionCase, Pattern)
-        guard = memberInfo.head.guard;
-        bool hasGuard = guard != null;
-        if (hasGuard) {
-          Type guardType = analyzeExpression(
-              guard, operations.typeToSchema(operations.boolType));
-          Error? nonBooleanGuardError = _checkGuardType(guard, guardType);
-          (guardTypes ??= {})[i] = guardType;
-          if (nonBooleanGuardError != null) {
-            (nonBooleanGuardErrors ??= {})[i] = nonBooleanGuardError;
+    Type staticType;
+    if (numCases == 0) {
+      staticType = operations.neverType;
+    } else {
+      // - Otherwise, for each case `pi => ei`, let `Ti` be the type of `ei`
+      //   inferred with context type `K`.
+      // - Let `T` be the least upper bound of the static types of all the case
+      //   expressions.
+      // - Let `S` be the greatest closure of `K`.
+      Type? t;
+      Type s = operations.greatestClosure(schema);
+      bool allCasesSatisfyContext = true;
+      for (int i = 0; i < numCases; i++) {
+        // Stack: (Expression, i * ExpressionCase)
+        SwitchExpressionMemberInfo<Node, Expression, Variable> memberInfo =
+            getSwitchExpressionMemberInfo(node, i);
+        flow.switchStatement_beginAlternatives();
+        flow.switchStatement_beginAlternative();
+        handleSwitchBeforeAlternative(node, caseIndex: i, subIndex: 0);
+        Node? pattern = memberInfo.head.pattern;
+        Expression? guard;
+        if (pattern != null) {
+          Map<String, List<Variable>> componentVariables = {};
+          Map<String, int> patternVariablePromotionKeys = {};
+          dispatchPattern(
+            new MatchContext<Node, Expression, Pattern, Type, Variable>(
+              isFinal: false,
+              switchScrutinee: scrutinee,
+              componentVariables: componentVariables,
+              patternVariablePromotionKeys: patternVariablePromotionKeys,
+            ),
+            pattern,
+          );
+          _finishJoinedPatternVariables(
+            memberInfo.head.variables,
+            componentVariables,
+            patternVariablePromotionKeys,
+            location: JoinedPatternVariableLocation.singlePattern,
+          );
+          // Stack: (Expression, i * ExpressionCase, Pattern)
+          guard = memberInfo.head.guard;
+          bool hasGuard = guard != null;
+          if (hasGuard) {
+            Type guardType = analyzeExpression(
+                guard, operations.typeToSchema(operations.boolType));
+            Error? nonBooleanGuardError = _checkGuardType(guard, guardType);
+            (guardTypes ??= {})[i] = guardType;
+            if (nonBooleanGuardError != null) {
+              (nonBooleanGuardErrors ??= {})[i] = nonBooleanGuardError;
+            }
+            // Stack: (Expression, i * ExpressionCase, Pattern, Expression)
+          } else {
+            handleNoGuard(node, i);
+            // Stack: (Expression, i * ExpressionCase, Pattern, Expression)
           }
-          // Stack: (Expression, i * ExpressionCase, Pattern, Expression)
+          handleCaseHead(node, caseIndex: i, subIndex: 0);
         } else {
-          handleNoGuard(node, i);
-          // Stack: (Expression, i * ExpressionCase, Pattern, Expression)
+          handleDefault(node, caseIndex: i, subIndex: 0);
         }
-        handleCaseHead(node, caseIndex: i, subIndex: 0);
-      } else {
-        handleDefault(node, caseIndex: i, subIndex: 0);
+        flow.switchStatement_endAlternative(guard, {});
+        flow.switchStatement_endAlternatives(null, hasLabels: false);
+        // Stack: (Expression, i * ExpressionCase, CaseHead)
+        Type ti = analyzeExpression(memberInfo.expression, schema);
+        if (allCasesSatisfyContext && !operations.isSubtypeOf(ti, s)) {
+          allCasesSatisfyContext = false;
+        }
+        flow.switchStatement_afterCase();
+        // Stack: (Expression, i * ExpressionCase, CaseHead, Expression)
+        if (t == null) {
+          t = ti;
+        } else {
+          t = operations.lub(t, ti);
+        }
+        finishExpressionCase(node, i);
+        // Stack: (Expression, (i + 1) * ExpressionCase)
       }
-      flow.switchStatement_endAlternative(guard, {});
-      flow.switchStatement_endAlternatives(null, hasLabels: false);
-      // Stack: (Expression, i * ExpressionCase, CaseHead)
-      Type type = analyzeExpression(memberInfo.expression, schema);
-      flow.switchStatement_afterCase();
-      // Stack: (Expression, i * ExpressionCase, CaseHead, Expression)
-      if (lubType == null) {
-        lubType = type;
-      } else {
-        lubType = operations.lub(lubType, type);
+      // If `inferenceUpdate3` is not enabled, then the type of `E` is `T`.
+      if (!this.options.inferenceUpdate3Enabled) {
+        staticType = t!;
+      } else
+      // - If `T <: S`, then the type of `E` is `T`.
+      if (operations.isSubtypeOf(t!, s)) {
+        staticType = t;
+      } else
+      // - Otherwise, if `Ti <: S` for all `i`, then the type of `E` is `S`.
+      if (allCasesSatisfyContext) {
+        staticType = s;
+      } else
+      // - Otherwise, the type of `E` is `T`.
+      {
+        staticType = t;
       }
-      finishExpressionCase(node, i);
-      // Stack: (Expression, (i + 1) * ExpressionCase)
     }
-    lubType ??= operations.neverType;
     // Stack: (Expression, numCases * ExpressionCase)
     flow.switchStatement_end(true);
     return new SwitchExpressionResult(
-        type: lubType,
+        type: staticType,
         nonBooleanGuardErrors: nonBooleanGuardErrors,
         guardTypes: guardTypes);
   }
@@ -2620,6 +2658,10 @@ class TypeAnalyzerOptions {
 
   final bool patternsEnabled;
 
+  final bool inferenceUpdate3Enabled;
+
   TypeAnalyzerOptions(
-      {required this.nullSafetyEnabled, required this.patternsEnabled});
+      {required this.nullSafetyEnabled,
+      required this.patternsEnabled,
+      required this.inferenceUpdate3Enabled});
 }

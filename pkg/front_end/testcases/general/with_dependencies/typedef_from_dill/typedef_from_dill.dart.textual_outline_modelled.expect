@@ -1,0 +1,5 @@
+import "typedef_from_dill_lib.dart";
+
+typedef Bar = Foo;
+
+void main() {}

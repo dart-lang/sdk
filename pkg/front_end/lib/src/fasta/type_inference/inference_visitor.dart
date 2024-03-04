@@ -169,7 +169,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       : options = new TypeAnalyzerOptions(
             nullSafetyEnabled: inferrer.libraryBuilder.isNonNullableByDefault,
             patternsEnabled:
-                inferrer.libraryBuilder.libraryFeatures.patterns.isEnabled),
+                inferrer.libraryBuilder.libraryFeatures.patterns.isEnabled,
+            inferenceUpdate3Enabled: inferrer
+                .libraryBuilder.libraryFeatures.inferenceUpdate3.isEnabled),
         super(inferrer, helper);
 
   @override
@@ -1015,10 +1017,18 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     node.condition = condition..parent = node;
     flowAnalysis.conditional_thenBegin(node.condition, node);
     bool isThenReachable = flowAnalysis.isReachable;
+
+    // A conditional expression `E` of the form `b ? e1 : e2` with context
+    // type `K` is analyzed as follows:
+    //
+    // - Let `T1` be the type of `e1` inferred with context type `K`
     ExpressionInferenceResult thenResult =
         inferExpression(node.then, typeContext, isVoidAllowed: true);
     node.then = thenResult.expression..parent = node;
     registerIfUnreachableForTesting(node.then, isReachable: isThenReachable);
+    DartType t1 = thenResult.inferredType;
+
+    // - Let `T2` be the type of `e2` inferred with context type `K`
     flowAnalysis.conditional_elseBegin(node.then, thenResult.inferredType);
     bool isOtherwiseReachable = flowAnalysis.isReachable;
     ExpressionInferenceResult otherwiseResult =
@@ -1026,9 +1036,37 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     node.otherwise = otherwiseResult.expression..parent = node;
     registerIfUnreachableForTesting(node.otherwise,
         isReachable: isOtherwiseReachable);
-    DartType inferredType = typeSchemaEnvironment.getStandardUpperBound(
-        thenResult.inferredType, otherwiseResult.inferredType,
+    DartType t2 = otherwiseResult.inferredType;
+
+    // - Let `T` be  `UP(T1, T2)`
+    DartType t = typeSchemaEnvironment.getStandardUpperBound(t1, t2,
         isNonNullableByDefault: isNonNullableByDefault);
+
+    // - Let `S` be the greatest closure of `K`
+    DartType s = computeGreatestClosure(typeContext);
+
+    DartType inferredType;
+    // If `inferenceUpdate3` is not enabled, then the type of `E` is `T`.
+    if (!libraryBuilder.libraryFeatures.inferenceUpdate3.isEnabled) {
+      inferredType = t;
+    } else
+    // - If `T <: S` then the type of `E` is `T`
+    if (typeSchemaEnvironment.isSubtypeOf(
+        t, s, SubtypeCheckMode.withNullabilities)) {
+      inferredType = t;
+    } else
+    // - Otherwise, if `T1 <: S` and `T2 <: S`, then the type of `E` is `S`
+    if (typeSchemaEnvironment.isSubtypeOf(
+            t1, s, SubtypeCheckMode.withNullabilities) &&
+        typeSchemaEnvironment.isSubtypeOf(
+            t2, s, SubtypeCheckMode.withNullabilities)) {
+      inferredType = s;
+    } else
+    // - Otherwise, the type of `E` is `T`
+    {
+      inferredType = t;
+    }
+
     flowAnalysis.conditional_end(
         node, inferredType, node.otherwise, otherwiseResult.inferredType);
     node.staticType = inferredType;
@@ -1872,48 +1910,78 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   ExpressionInferenceResult visitIfNullExpression(
       IfNullExpression node, DartType typeContext) {
-    // To infer `e0 ?? e1` in context `K`:
-    // - Infer `e0` in context `K?` to get `T0`
+    // An if-null expression `E` of the form `e1 ?? e2` with context type `K` is
+    // analyzed as follows:
+    //
+    // - Let `T1` be the type of `e1` inferred with context type `K?`.
     ExpressionInferenceResult lhsResult = inferExpression(
         node.left, computeNullable(typeContext),
         isVoidAllowed: false);
+    DartType t1 = lhsResult.inferredType;
     reportNonNullableInNullAwareWarningIfNeeded(
-        lhsResult.inferredType, "??", lhsResult.expression.fileOffset);
+        t1, "??", lhsResult.expression.fileOffset);
 
     // This ends any shorting in `node.left`.
     Expression left = lhsResult.expression;
 
-    flowAnalysis.ifNullExpression_rightBegin(node.left, lhsResult.inferredType);
+    flowAnalysis.ifNullExpression_rightBegin(node.left, t1);
 
-    // - Let `J = T0` if `K` is `_`, otherwise `K`.
-    // - Infer `e1` in context `J` to get `T1`
-    ExpressionInferenceResult rhsResult;
+    // - Let `T2` be the type of `e2` inferred with context type `J`, where:
+    //   - If `K` is `_`, `J = T1`.
+    DartType j;
     if (typeContext is UnknownType) {
-      rhsResult = inferExpression(node.right, lhsResult.inferredType,
-          isVoidAllowed: true);
-    } else {
-      rhsResult = inferExpression(node.right, typeContext, isVoidAllowed: true);
+      j = t1;
+    } else
+    //   - Otherwise, `J = K`.
+    {
+      j = typeContext;
     }
+    ExpressionInferenceResult rhsResult =
+        inferExpression(node.right, j, isVoidAllowed: true);
+    DartType t2 = rhsResult.inferredType;
     flowAnalysis.ifNullExpression_end();
 
-    // - Then the inferred type is UP(NonNull(T0), T1).
-    DartType originalLhsType = lhsResult.inferredType;
-    DartType nonNullableLhsType = originalLhsType.toNonNull();
-    DartType inferredType = typeSchemaEnvironment.getStandardUpperBound(
-        nonNullableLhsType, rhsResult.inferredType,
+    // - Let `T` be `UP(NonNull(T1), T2)`.
+    DartType nonNullT1 = t1.toNonNull();
+    DartType t = typeSchemaEnvironment.getStandardUpperBound(nonNullT1, t2,
         isNonNullableByDefault: isNonNullableByDefault);
+
+    // - Let `S` be the greatest closure of `K`.
+    DartType s = computeGreatestClosure(typeContext);
+
+    DartType inferredType;
+    // If `inferenceUpdate3` is not enabled, then the type of `E` is `T`.
+    if (!libraryBuilder.libraryFeatures.inferenceUpdate3.isEnabled) {
+      inferredType = t;
+    } else
+    // - If `T <: S`, then the type of `E` is `T`.
+    if (typeSchemaEnvironment.isSubtypeOf(
+        t, s, SubtypeCheckMode.withNullabilities)) {
+      inferredType = t;
+    } else
+    // - Otherwise, if `NonNull(T1) <: S` and `T2 <: S`, then the type of `E` is
+    //   `S`.
+    if (typeSchemaEnvironment.isSubtypeOf(
+            nonNullT1, s, SubtypeCheckMode.withNullabilities) &&
+        typeSchemaEnvironment.isSubtypeOf(
+            t2, s, SubtypeCheckMode.withNullabilities)) {
+      inferredType = s;
+    } else
+    // - Otherwise, the type of `E` is `T`.
+    {
+      inferredType = t;
+    }
+
     Expression replacement;
     if (left is ThisExpression) {
       replacement = left;
     } else {
-      VariableDeclaration variable =
-          createVariable(left, lhsResult.inferredType);
+      VariableDeclaration variable = createVariable(left, t1);
       Expression equalsNull = createEqualsNull(createVariableGet(variable),
           fileOffset: lhsResult.expression.fileOffset);
       VariableGet variableGet = createVariableGet(variable);
-      if (isNonNullableByDefault &&
-          !identical(nonNullableLhsType, originalLhsType)) {
-        variableGet.promotedType = nonNullableLhsType;
+      if (isNonNullableByDefault && !identical(nonNullT1, t1)) {
+        variableGet.promotedType = nonNullT1;
       }
       ConditionalExpression conditional = new ConditionalExpression(
           equalsNull, rhsResult.expression, variableGet, inferredType)
@@ -5165,9 +5233,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression write = writeResult.expression;
 
     DartType nonNullableReadType = readType.toNonNull();
-    DartType inferredType = typeSchemaEnvironment.getStandardUpperBound(
-        nonNullableReadType, writeType,
-        isNonNullableByDefault: isNonNullableByDefault);
+    DartType inferredType = _analyzeIfNullTypes(
+        nonNullableReadType: nonNullableReadType,
+        rhsType: writeType,
+        typeContext: typeContext);
 
     Expression replacement;
     if (node.forEffect) {
@@ -5207,6 +5276,43 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         inferredType, replacement, nullAwareGuards);
   }
 
+  DartType _analyzeIfNullTypes(
+      {required DartType nonNullableReadType,
+      required DartType rhsType,
+      required DartType typeContext}) {
+    // - An if-null assignment `E` of the form `lvalue ??= e` with context type
+    //   `K` is analyzed as follows:
+    //
+    //   - Let `T1` be the read type the lvalue.
+    //   - Let `T2` be the type of `e` inferred with context type `T1`.
+    DartType t2 = rhsType;
+    //   - Let `T` be `UP(NonNull(T1), T2)`.
+    DartType nonNullT1 = nonNullableReadType;
+    DartType t = typeSchemaEnvironment.getStandardUpperBound(nonNullT1, t2,
+        isNonNullableByDefault: isNonNullableByDefault);
+    //   - Let `S` be the greatest closure of `K`.
+    DartType s = computeGreatestClosure(typeContext);
+    // If `inferenceUpdate3` is not enabled, then the type of `E` is `T`.
+    if (!libraryBuilder.libraryFeatures.inferenceUpdate3.isEnabled) {
+      return t;
+    } else
+    //   - If `T <: S`, then the type of `E` is `T`.
+    if (typeSchemaEnvironment.isSubtypeOf(
+        t, s, SubtypeCheckMode.withNullabilities)) {
+      return t;
+    }
+    //   - Otherwise, if `NonNull(T1) <: S` and `T2 <: S`, then the type of
+    //     `E` is `S`.
+    if (typeSchemaEnvironment.isSubtypeOf(
+            nonNullT1, s, SubtypeCheckMode.withNullabilities) &&
+        typeSchemaEnvironment.isSubtypeOf(
+            t2, s, SubtypeCheckMode.withNullabilities)) {
+      return s;
+    }
+    //   - Otherwise, the type of `E` is `T`.
+    return t;
+  }
+
   ExpressionInferenceResult visitIfNullSet(
       IfNullSet node, DartType typeContext) {
     ExpressionInferenceResult readResult =
@@ -5225,9 +5331,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     DartType originalReadType = readType;
     DartType nonNullableReadType = originalReadType.toNonNull();
-    DartType inferredType = typeSchemaEnvironment.getStandardUpperBound(
-        nonNullableReadType, writeResult.inferredType,
-        isNonNullableByDefault: isNonNullableByDefault);
+    DartType inferredType = _analyzeIfNullTypes(
+        nonNullableReadType: nonNullableReadType,
+        rhsType: writeResult.inferredType,
+        typeContext: typeContext);
 
     Expression replacement;
     if (node.forEffect) {
@@ -5599,9 +5706,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     flowAnalysis.ifNullExpression_end();
 
     DartType nonNullableReadType = readType.toNonNull();
-    DartType inferredType = typeSchemaEnvironment.getStandardUpperBound(
-        nonNullableReadType, valueResult.inferredType,
-        isNonNullableByDefault: isNonNullableByDefault);
+    DartType inferredType = _analyzeIfNullTypes(
+        nonNullableReadType: nonNullableReadType,
+        rhsType: valueResult.inferredType,
+        typeContext: typeContext);
 
     VariableDeclaration? valueVariable;
     Expression? returnedValue;
@@ -5768,9 +5876,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     flowAnalysis.ifNullExpression_end();
 
     DartType nonNullableReadType = readType.toNonNull();
-    DartType inferredType = typeSchemaEnvironment.getStandardUpperBound(
-        nonNullableReadType, valueResult.inferredType,
-        isNonNullableByDefault: isNonNullableByDefault);
+    DartType inferredType = _analyzeIfNullTypes(
+        nonNullableReadType: nonNullableReadType,
+        rhsType: valueResult.inferredType,
+        typeContext: typeContext);
 
     VariableDeclaration? valueVariable;
     Expression? returnedValue;
@@ -5928,9 +6037,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     flowAnalysis.ifNullExpression_end();
 
     DartType nonNullableReadType = readType.toNonNull();
-    DartType inferredType = typeSchemaEnvironment.getStandardUpperBound(
-        nonNullableReadType, valueResult.inferredType,
-        isNonNullableByDefault: isNonNullableByDefault);
+    DartType inferredType = _analyzeIfNullTypes(
+        nonNullableReadType: nonNullableReadType,
+        rhsType: valueResult.inferredType,
+        typeContext: typeContext);
 
     VariableDeclaration? valueVariable;
     Expression? returnedValue;
@@ -7625,9 +7735,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     flowAnalysis.ifNullExpression_end();
 
     DartType nonNullableReadType = readType.toNonNull();
-    DartType inferredType = typeSchemaEnvironment.getStandardUpperBound(
-        nonNullableReadType, valueResult.inferredType,
-        isNonNullableByDefault: isNonNullableByDefault);
+    DartType inferredType = _analyzeIfNullTypes(
+        nonNullableReadType: nonNullableReadType,
+        rhsType: valueResult.inferredType,
+        typeContext: typeContext);
 
     Expression replacement;
     if (node.forEffect) {

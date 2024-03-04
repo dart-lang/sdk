@@ -103,6 +103,10 @@ abstract interface class TypeAnalyzerOperations<Variable extends Object,
   /// Computes the greatest lower bound of [type1] and [type2].
   Type glb(Type type1, Type type2);
 
+  /// Returns the greatest closure of [schema] with respect to the unknown type
+  /// (`_`).
+  Type greatestClosure(TypeSchema schema);
+
   /// Queries whether [type] is an "always-exhaustive" type (as defined in the
   /// patterns spec).  Exhaustive types are types for which the switch statement
   /// is required to be exhaustive when patterns support is enabled.

@@ -109,5 +109,5 @@ static method main() → dynamic
 
 
 Extra constant evaluation status:
-Evaluated: StaticGet @ org-dartlang-testcase:///issue52452.dart:49:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///issue52452.dart:47:4 -> InstanceConstant(const _Override{})
 Extra constant evaluation: evaluated: 36, effectively constant: 1

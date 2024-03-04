@@ -32,6 +32,7 @@ import '../source/source_library_builder.dart'
 import 'factor_type.dart';
 import 'type_inferrer.dart';
 import 'type_schema.dart';
+import 'type_schema_elimination.dart' as type_schema_elimination;
 import 'type_schema_environment.dart' show TypeSchemaEnvironment;
 
 /// Visitor to check whether a given type mentions any of a class's type
@@ -571,6 +572,11 @@ class OperationsCfe
   DartType factor(DartType from, DartType what) {
     return factorType(typeEnvironment, from, what);
   }
+
+  @override
+  DartType greatestClosure(DartType schema) =>
+      type_schema_elimination.greatestClosure(
+          schema, const DynamicType(), const NeverType.nonNullable());
 
   @override
   bool isAlwaysExhaustiveType(DartType type) {

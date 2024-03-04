@@ -1,0 +1,31 @@
+# Copyright (c) 2024, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Test extension on String from import from dill.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    sources:
+      main.dart: |
+        import "lib.dart";
+        typedef Bar = Foo;
+        main() {
+          print("hello");
+        }
+      lib.dart: |
+        typedef Foo = R Function<R>(R Function() f);
+    expectedLibraryCount: 2
+  - entry: main.dart
+    invalidate:
+      - main.dart
+    sources:
+      main.dart: |
+        import "lib.dart";
+        typedef Bar = Foo;
+        main() {
+          print("hello $Bar");
+        }
+    expectedLibraryCount: 2
+    advancedInvalidation: bodiesOnly

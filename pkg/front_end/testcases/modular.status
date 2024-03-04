@@ -4,6 +4,8 @@
 
 # Status file for the modular_suite.dart test suite.
 
+general/with_dependencies/typedef_from_dill/typedef_from_dill: Crash
+
 constructor_tearoffs/call_instantiation: TypeCheckError
 enhanced_enums/declared_hashcode: TypeCheckError
 enhanced_enums/declared_index: TypeCheckError

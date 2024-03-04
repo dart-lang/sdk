@@ -76,7 +76,7 @@ enum ExperimentalFlag {
   inferenceUpdate2(
       name: 'inference-update-2',
       isEnabledByDefault: true,
-      isExpired: false,
+      isExpired: true,
       experimentEnabledVersion: const Version(3, 2),
       experimentReleasedVersion: const Version(3, 2)),
 
@@ -90,7 +90,7 @@ enum ExperimentalFlag {
   inlineClass(
       name: 'inline-class',
       isEnabledByDefault: true,
-      isExpired: false,
+      isExpired: true,
       experimentEnabledVersion: const Version(3, 3),
       experimentReleasedVersion: const Version(3, 3)),
 

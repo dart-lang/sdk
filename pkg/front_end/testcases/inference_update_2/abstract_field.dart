@@ -4,8 +4,6 @@
 
 // Tests that field promotion logic properly handles abstract fields.
 
-// SharedOptions=--enable-experiment=inference-update-2
-
 abstract class C {
   abstract final int? _f1;
   abstract int? _f2;

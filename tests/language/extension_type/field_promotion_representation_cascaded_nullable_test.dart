@@ -9,8 +9,6 @@
 // is nullable, since those are handled differently by the front end than
 // extension types whose representation type is non-nullable.
 
-// SharedOptions=--enable-experiment=inline-class
-
 import '../static_type_helper.dart';
 
 extension type E(Object Function()? _f) {

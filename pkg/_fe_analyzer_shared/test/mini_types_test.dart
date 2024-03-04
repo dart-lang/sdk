@@ -375,4 +375,202 @@ main() {
       expect(Type('_').recursivelyDemote(covariant: false), isNull);
     });
   });
+
+  group('closureWithRespectToUnknown:', () {
+    test('UnknownType:', () {
+      expect(Type('_').closureWithRespectToUnknown(covariant: true)!.type,
+          'Object?');
+      expect(Type('_').closureWithRespectToUnknown(covariant: false)!.type,
+          'Never');
+    });
+
+    group('FunctionType:', () {
+      group('return type:', () {
+        test('unchanged', () {
+          expect(
+              Type('int Function()')
+                  .closureWithRespectToUnknown(covariant: true),
+              isNull);
+          expect(
+              Type('int Function()')
+                  .closureWithRespectToUnknown(covariant: false),
+              isNull);
+        });
+
+        test('covariant', () {
+          expect(
+              Type('_ Function()')
+                  .closureWithRespectToUnknown(covariant: true)!
+                  .type,
+              'Object? Function()');
+        });
+
+        test('contravariant', () {
+          expect(
+              Type('_ Function()')
+                  .closureWithRespectToUnknown(covariant: false)!
+                  .type,
+              'Never Function()');
+        });
+      });
+
+      group('positional parameters:', () {
+        test('unchanged', () {
+          expect(
+              Type('void Function(int, String)')
+                  .closureWithRespectToUnknown(covariant: true),
+              isNull);
+          expect(
+              Type('void Function(int, String)')
+                  .closureWithRespectToUnknown(covariant: false),
+              isNull);
+        });
+
+        test('covariant', () {
+          expect(
+              Type('void Function(_, String)')
+                  .closureWithRespectToUnknown(covariant: true)!
+                  .type,
+              'void Function(Never, String)');
+        });
+
+        test('contravariant', () {
+          expect(
+              Type('void Function(_, String)')
+                  .closureWithRespectToUnknown(covariant: false)!
+                  .type,
+              'void Function(Object?, String)');
+        });
+      });
+    });
+
+    group('NonFunctionType', () {
+      test('unchanged', () {
+        expect(
+            Type('int').closureWithRespectToUnknown(covariant: true), isNull);
+        expect(
+            Type('int').closureWithRespectToUnknown(covariant: false), isNull);
+      });
+
+      group('type parameters:', () {
+        test('unchanged', () {
+          expect(
+              Type('Map<int, String>')
+                  .closureWithRespectToUnknown(covariant: true),
+              isNull);
+          expect(
+              Type('Map<int, String>')
+                  .closureWithRespectToUnknown(covariant: false),
+              isNull);
+        });
+
+        test('covariant', () {
+          expect(
+              Type('Map<_, String>')
+                  .closureWithRespectToUnknown(covariant: true)!
+                  .type,
+              'Map<Object?, String>');
+        });
+
+        test('contravariant', () {
+          expect(
+              Type('Map<_, String>')
+                  .closureWithRespectToUnknown(covariant: false)!
+                  .type,
+              'Map<Never, String>');
+        });
+      });
+    });
+
+    group('QuestionType:', () {
+      test('unchanged', () {
+        expect(
+            Type('int?').closureWithRespectToUnknown(covariant: true), isNull);
+        expect(
+            Type('int?').closureWithRespectToUnknown(covariant: false), isNull);
+      });
+
+      test('covariant', () {
+        expect(Type('_?').closureWithRespectToUnknown(covariant: true)!.type,
+            'Object?');
+      });
+
+      test('contravariant', () {
+        // Note: we don't normalize `Never?` to `Null`.
+        expect(Type('_?').closureWithRespectToUnknown(covariant: false)!.type,
+            'Never?');
+      });
+    });
+
+    group('RecordType:', () {
+      test('unchanged', () {
+        expect(
+            Type('(int, {double a})')
+                .closureWithRespectToUnknown(covariant: true),
+            isNull);
+        expect(
+            Type('(int, {double a})')
+                .closureWithRespectToUnknown(covariant: false),
+            isNull);
+      });
+
+      group('changed:', () {
+        group('positional:', () {
+          test('covariant', () {
+            expect(
+              Type('(_, {double a})')
+                  .closureWithRespectToUnknown(covariant: true)!
+                  .type,
+              '(Object?, {double a})',
+            );
+          });
+          test('contravariant', () {
+            expect(
+              Type('(_, {double a})')
+                  .closureWithRespectToUnknown(covariant: false)!
+                  .type,
+              '(Never, {double a})',
+            );
+          });
+        });
+        group('named:', () {
+          test('covariant', () {
+            expect(
+              Type('(double, {_ a})')
+                  .closureWithRespectToUnknown(covariant: true)!
+                  .type,
+              '(double, {Object? a})',
+            );
+          });
+          test('contravariant', () {
+            expect(
+              Type('(double, {_ a})')
+                  .closureWithRespectToUnknown(covariant: false)!
+                  .type,
+              '(double, {Never a})',
+            );
+          });
+        });
+      });
+    });
+
+    group('StarType:', () {
+      test('unchanged', () {
+        expect(
+            Type('int*').closureWithRespectToUnknown(covariant: true), isNull);
+        expect(
+            Type('int*').closureWithRespectToUnknown(covariant: false), isNull);
+      });
+
+      test('covariant', () {
+        expect(Type('_*').closureWithRespectToUnknown(covariant: true)!.type,
+            'Object?');
+      });
+
+      test('contravariant', () {
+        expect(Type('_*').closureWithRespectToUnknown(covariant: false)!.type,
+            'Never*');
+      });
+    });
+  });
 }

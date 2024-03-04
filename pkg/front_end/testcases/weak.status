@@ -4,6 +4,8 @@
 
 # Status file for the weak_suite.dart test suite.
 
+general/with_dependencies/typedef_from_dill/typedef_from_dill: Crash
+
 # BAD ONES:
 class_modifiers/issue52115/main: SemiFuzzFailure # https://github.com/dart-lang/sdk/issues/53109
 class_modifiers/issue52316/main: SemiFuzzFailure # https://github.com/dart-lang/sdk/issues/53109
@@ -40,6 +42,10 @@ general/redirection/main: semiFuzzFailureOnForceRebuildBodies # privacy.
 inference_update_2/abstract_field: semiFuzzFailureOnForceRebuildBodies # privacy.
 inference_update_2/external_field: semiFuzzFailureOnForceRebuildBodies # privacy.
 inference_update_2/issue52452: semiFuzzFailureOnForceRebuildBodies # privacy.
+inference_update_3/if_null_assignment_explicit_extension_index_expression_test: semiFuzzFailureOnForceRebuildBodies # privacy.
+inference_update_3/if_null_assignment_explicit_extension_null_aware_index_expression_test: semiFuzzFailureOnForceRebuildBodies # privacy.
+inference_update_3/if_null_assignment_implicit_extension_index_expression_test: semiFuzzFailureOnForceRebuildBodies # privacy.
+inference_update_3/if_null_assignment_implicit_extension_null_aware_index_expression_test: semiFuzzFailureOnForceRebuildBodies # privacy.
 macros/macro_class: SemiFuzzFailure # Declares macros.
 patterns/exhaustiveness/extension_types: semiFuzzFailureOnForceRebuildBodies # uses sealed
 patterns/exhaustiveness/issue51957: semiFuzzFailureOnForceRebuildBodies # can't split because of sealed class.

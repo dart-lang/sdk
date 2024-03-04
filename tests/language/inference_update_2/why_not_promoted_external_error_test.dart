@@ -8,8 +8,6 @@
 // This test is in its own file since it fails under some implementations due to
 // lack of a binding for the external field.
 
-// SharedOptions=--enable-experiment=inference-update-2
-
 class C {
   external final int? _i;
   //                  ^^

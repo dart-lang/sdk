@@ -183,9 +183,6 @@ class TextualOutline extends Step<TestDescription, TestDescription, Context> {
         for (MapEntry<ExperimentalFlag, bool> entry
             in experimentalFlagsExplicit.entries) {
           if (entry.value) {
-            // Don't treat "inline-class" as disabled by default as it's about
-            // to have the flag flipped.
-            if (entry.key.name == "inline-class") continue;
             if (!entry.key.isEnabledByDefault) {
               hasUnreleasedExperiment = true;
               break;
