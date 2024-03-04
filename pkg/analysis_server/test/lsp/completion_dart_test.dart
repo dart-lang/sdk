@@ -234,6 +234,7 @@ class CompletionLabelDetailsTest extends AbstractCompletionTest {
 
   Future<void> expectLabels(
     String content, {
+    Uri? completionFileUri,
     // Main label of the completion (eg 'myFunc')
     required String? label,
     // The detail part of the label (shown after label, usually truncated signature)
@@ -247,12 +248,14 @@ class CompletionLabelDetailsTest extends AbstractCompletionTest {
     // Sometimes resolved detail has a prefix added (eg. "Auto-import from").
     String? resolvedDetailPrefix,
   }) async {
+    completionFileUri ??= mainFileUri;
+
     final code = TestCode.parse(content);
     await initialize();
-    await openFile(mainFileUri, code.code);
+    await openFile(completionFileUri, code.code);
 
     final completions =
-        await getCompletion(mainFileUri, code.position.position);
+        await getCompletion(completionFileUri, code.position.position);
     final completion = completions.singleWhereOrNull((c) => c.label == label);
     if (completion == null) {
       fail('Did not find completion "$label" in completion results:'
@@ -577,6 +580,29 @@ void f() {
         filterText: null,
         detail: '() → void',
         resolvedDetailPrefix: "Auto import from 'package:test/a.dart'\n\n");
+  }
+
+  Future<void> test_notImported_outsideLib_relativePath() async {
+    final testMainFilePath = join(projectFolderPath, 'test', 'main.dart');
+    final testFileAPath = join(projectFolderPath, 'test', 'a.dart');
+
+    newFile(testFileAPath, '''
+void a(String a, {String b}) {}
+''');
+    final content = '''
+void f() {
+  a^
+}
+''';
+
+    await expectLabels(content,
+        completionFileUri: toUri(testMainFilePath),
+        label: 'a',
+        labelDetail: '(…) → void',
+        labelDescription: 'a.dart',
+        filterText: null,
+        detail: '(String a, {String b}) → void',
+        resolvedDetailPrefix: "Auto import from 'a.dart'\n\n");
   }
 
   Future<void> test_nullNotEmpty() async {
