@@ -115,8 +115,15 @@ class IsIncompatibleWithAwaitTest extends AbstractTypeSystemTest {
   test_typeParameter_promotedBound_extensionType_implementsFuture() {
     var futureOfIntNone = futureNone(intNone);
 
-    var A = extensionType(
-      'A',
+    // Incompatible with `await`, used as a bound.
+    // Does not matter, `T` is promoted to not incompatible.
+    var N = extensionType(
+      'N',
+      representationType: futureOfIntNone,
+    );
+
+    var F = extensionType(
+      'F',
       representationType: futureOfIntNone,
       interfaces: [
         futureOfIntNone,
@@ -125,8 +132,11 @@ class IsIncompatibleWithAwaitTest extends AbstractTypeSystemTest {
 
     isNotIncompatible(
       typeParameterTypeNone(
-        typeParameter('T'),
-        promotedBound: interfaceTypeNone(A),
+        typeParameter(
+          'T',
+          bound: interfaceTypeNone(N),
+        ),
+        promotedBound: interfaceTypeNone(F),
       ),
     );
   }
