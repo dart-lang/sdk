@@ -355,7 +355,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         options = TypeAnalyzerOptions(
             nullSafetyEnabled: true,
             patternsEnabled:
-                definingLibrary.featureSet.isEnabled(Feature.patterns)) {
+                definingLibrary.featureSet.isEnabled(Feature.patterns),
+            inferenceUpdate3Enabled: definingLibrary.featureSet
+                .isEnabled(Feature.inference_update_3)) {
     nullableDereferenceVerifier = NullableDereferenceVerifier(
       typeSystem: typeSystem,
       errorReporter: errorReporter,
@@ -1829,7 +1831,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   void visitAssignmentExpression(AssignmentExpression node,
       {DartType? contextType}) {
     checkUnreachableNode(node);
-    _assignmentExpressionResolver.resolve(node as AssignmentExpressionImpl);
+    _assignmentExpressionResolver.resolve(node as AssignmentExpressionImpl,
+        contextType: contextType);
     _insertImplicitCallReference(
         insertGenericFunctionInstantiation(node, contextType: contextType),
         contextType: contextType);
@@ -2036,7 +2039,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     }
     elseExpression = popRewrite()!;
 
-    typeAnalyzer.visitConditionalExpression(node as ConditionalExpressionImpl);
+    typeAnalyzer.visitConditionalExpression(node as ConditionalExpressionImpl,
+        contextType: contextType);
     if (flow != null) {
       flow.conditional_end(
           node, node.typeOrThrow, elseExpression, elseExpression.typeOrThrow);

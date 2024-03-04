@@ -1638,6 +1638,8 @@ class Harness {
 
   late final FlowAnalysis<Node, Statement, Expression, Var, Type> flow;
 
+  bool? _inferenceUpdate3Enabled;
+
   bool? _patternsEnabled;
 
   Type? _thisType;
@@ -1652,7 +1654,8 @@ class Harness {
       this,
       TypeAnalyzerOptions(
           nullSafetyEnabled: !operations.legacy,
-          patternsEnabled: patternsEnabled));
+          patternsEnabled: patternsEnabled,
+          inferenceUpdate3Enabled: inferenceUpdate3Enabled));
 
   /// Indicates whether initializers of implicitly typed variables should be
   /// accounted for by SSA analysis.  (In an ideal world, they always would be,
@@ -1662,6 +1665,9 @@ class Harness {
   bool _respectImplicitlyTypedVarInitializers = true;
 
   bool _fieldPromotionEnabled = true;
+
+  bool get inferenceUpdate3Enabled =>
+      _inferenceUpdate3Enabled ?? !operations.legacy;
 
   MiniIRBuilder get irBuilder => typeAnalyzer._irBuilder;
 
@@ -1695,6 +1701,10 @@ class Harness {
   /// invoked on type [type], [representation] will be returned.
   void addExtensionTypeErasure(String type, String representation) {
     operations.addExtensionTypeErasure(type, representation);
+  }
+
+  void addLub(String type1, String type2, String resultType) {
+    operations.addLub(type1, type2, resultType);
   }
 
   /// Updates the harness so that when member [memberName] is looked up on type
@@ -1738,6 +1748,11 @@ class Harness {
   void disableFieldPromotion() {
     assert(!_started);
     _fieldPromotionEnabled = false;
+  }
+
+  void disableInferenceUpdate3() {
+    assert(!_started);
+    _inferenceUpdate3Enabled = false;
   }
 
   void disablePatterns() {
@@ -2755,6 +2770,10 @@ class MiniAstOperations
     _extensionTypeErasure[type] = Type(representation);
   }
 
+  void addLub(String type1, String type2, String resultType) {
+    _lubs['$type1, $type2'] = Type(resultType);
+  }
+
   void addPromotionException(String from, String to, String result) {
     (_promotionExceptions[from] ??= {})[to] = result;
   }
@@ -2857,6 +2876,12 @@ class MiniAstOperations
     typeNames.sort();
     var query = typeNames.join(', ');
     return _glbs[query] ?? fail('Unknown glb query: $query');
+  }
+
+  @override
+  Type greatestClosure(TypeSchema schema) {
+    var type = schema.toType();
+    return type.closureWithRespectToUnknown(covariant: true) ?? type;
   }
 
   @override

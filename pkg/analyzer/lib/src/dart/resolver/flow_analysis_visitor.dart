@@ -483,6 +483,10 @@ class TypeSystemOperations
   }
 
   @override
+  DartType greatestClosure(DartType schema) =>
+      typeSystem.greatestClosureOfSchema(schema);
+
+  @override
   bool isAlwaysExhaustiveType(DartType type) {
     return typeSystem.isAlwaysExhaustive(type);
   }

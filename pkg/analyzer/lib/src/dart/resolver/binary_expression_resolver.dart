@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -153,31 +154,65 @@ class BinaryExpressionResolver {
     var right = node.rightOperand;
     var flow = _resolver.flowAnalysis.flow;
 
+    // An if-null expression `E` of the form `e1 ?? e2` with context type `K` is
+    // analyzed as follows:
+    //
+    // - Let `T1` be the type of `e1` inferred with context type `K?`.
     var leftContextType = contextType;
     if (leftContextType != null) {
       leftContextType = _typeSystem.makeNullable(leftContextType);
     }
-
     _resolver.analyzeExpression(left, leftContextType);
     left = _resolver.popRewrite()!;
-    var leftType = left.typeOrThrow;
+    var t1 = left.typeOrThrow;
 
-    var rightContextType = contextType;
-    if (rightContextType == null ||
-        rightContextType is DynamicType ||
-        rightContextType is InvalidType ||
-        rightContextType is UnknownInferredType) {
-      rightContextType = leftType;
+    // - Let `T2` be the type of `e2` inferred with context type `J`, where:
+    //   - If `K` is `_`, `J = T1`.
+    DartType j;
+    if (contextType == null ||
+        contextType is DynamicType ||
+        contextType is InvalidType ||
+        contextType is UnknownInferredType) {
+      j = t1;
+    } else
+    //   - Otherwise, `J = K`.
+    {
+      j = contextType;
     }
-
-    flow?.ifNullExpression_rightBegin(left, leftType);
-    _resolver.analyzeExpression(right, rightContextType);
+    flow?.ifNullExpression_rightBegin(left, t1);
+    _resolver.analyzeExpression(right, j);
     right = _resolver.popRewrite()!;
     flow?.ifNullExpression_end();
+    var t2 = right.typeOrThrow;
 
-    var rightType = right.typeOrThrow;
-    var promotedLeftType = _typeSystem.promoteToNonNull(leftType);
-    var staticType = _typeSystem.leastUpperBound(promotedLeftType, rightType);
+    // - Let `T` be `UP(NonNull(T1), T2)`.
+    var nonNullT1 = _typeSystem.promoteToNonNull(t1);
+    var t = _typeSystem.leastUpperBound(nonNullT1, t2);
+
+    // - Let `S` be the greatest closure of `K`.
+    var s = _typeSystem
+        .greatestClosureOfSchema(contextType ?? UnknownInferredType.instance);
+
+    DartType staticType;
+    // If `inferenceUpdate3` is not enabled, then the type of `E` is `T`.
+    if (!_resolver.definingLibrary.featureSet
+        .isEnabled(Feature.inference_update_3)) {
+      staticType = t;
+    } else
+    // - If `T <: S`, then the type of `E` is `T`.
+    if (_typeSystem.isSubtypeOf(t, s)) {
+      staticType = t;
+    } else
+    // - Otherwise, if `NonNull(T1) <: S` and `T2 <: S`, then the type of `E` is
+    //   `S`.
+    if (_typeSystem.isSubtypeOf(nonNullT1, s) &&
+        _typeSystem.isSubtypeOf(t2, s)) {
+      staticType = s;
+    } else
+    // - Otherwise, the type of `E` is `T`.
+    {
+      staticType = t;
+    }
 
     _inferenceHelper.recordStaticType(node, staticType);
 

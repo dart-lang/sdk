@@ -2,11 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
+import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -83,16 +85,38 @@ class StaticTypeAnalyzer {
     _inferenceHelper.recordStaticType(node, node.target.typeOrThrow);
   }
 
-  /// The Dart Language Specification, 12.19: <blockquote> ... a conditional expression <i>c</i> of
-  /// the form <i>e<sub>1</sub> ? e<sub>2</sub> : e<sub>3</sub></i> ...
-  ///
-  /// It is a static type warning if the type of e<sub>1</sub> may not be assigned to `bool`.
-  ///
-  /// The static type of <i>c</i> is the least upper bound of the static type of <i>e<sub>2</sub></i>
-  /// and the static type of <i>e<sub>3</sub></i>.</blockquote>
-  void visitConditionalExpression(covariant ConditionalExpressionImpl node) {
-    DartType staticType = _typeSystem.leastUpperBound(
-        node.thenExpression.typeOrThrow, node.elseExpression.typeOrThrow);
+  void visitConditionalExpression(covariant ConditionalExpressionImpl node,
+      {required DartType? contextType}) {
+    // A conditional expression `E` of the form `b ? e1 : e2` with context type
+    // `K` is analyzed as follows:
+    //
+    // - Let `T1` be the type of `e1` inferred with context type `K`
+    var t1 = node.thenExpression.typeOrThrow;
+    // - Let `T2` be the type of `e2` inferred with context type `K`
+    var t2 = node.elseExpression.typeOrThrow;
+    // - Let `T` be  `UP(T1, T2)`
+    var t = _typeSystem.leastUpperBound(t1, t2);
+    // - Let `S` be the greatest closure of `K`
+    var s = _typeSystem
+        .greatestClosureOfSchema(contextType ?? UnknownInferredType.instance);
+    DartType staticType;
+    // If `inferenceUpdate3` is not enabled, then the type of `E` is `T`.
+    if (!_resolver.definingLibrary.featureSet
+        .isEnabled(Feature.inference_update_3)) {
+      staticType = t;
+    } else
+    // - If `T <: S` then the type of `E` is `T`
+    if (_typeSystem.isSubtypeOf(t, s)) {
+      staticType = t;
+    } else
+    // - Otherwise, if `T1 <: S` and `T2 <: S`, then the type of `E` is `S`
+    if (_typeSystem.isSubtypeOf(t1, s) && _typeSystem.isSubtypeOf(t2, s)) {
+      staticType = s;
+    } else
+    // - Otherwise, the type of `E` is `T`
+    {
+      staticType = t;
+    }
 
     _inferenceHelper.recordStaticType(node, staticType);
   }
