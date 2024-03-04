@@ -128,7 +128,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
   DillTarget? _dillLoadedData;
   List<LibraryBuilder>? _platformBuilders;
+  List<LibraryBuilder>? get platformBuildersForTesting => _platformBuilders;
   Map<Uri, LibraryBuilder>? _userBuilders;
+  Map<Uri, LibraryBuilder>? get userBuildersForTesting => _userBuilders;
 
   final _InitializationStrategy _initializationStrategy;
 
