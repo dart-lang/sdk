@@ -32,6 +32,15 @@
 
 [#53863]: https://github.com/dart-lang/sdk/issues/53863
 
+#### `dart:js_interop`
+
+- Fixes an issue with several comparison operators in `JSAnyOperatorExtension`
+  that were declared to return `JSBoolean` but really returned `bool`. This led
+  to runtime errors when trying to use the return values. Their return types are
+  now `bool` for convenience. See issues [#55024] for more details.
+
+[#55024]: https://github.com/dart-lang/sdk/issues/55024
+
 ### Tools
 
 #### Pub

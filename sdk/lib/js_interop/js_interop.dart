@@ -1004,6 +1004,9 @@ extension StringToJSString on String {
 /// ```
 /// external operator int [](int key);
 /// ```
+///
+/// Operators that always return number or boolean values use the Dart type
+/// instead of a JS type for convenience as the conversions are inexpensive.
 // TODO(srujzs): Add more as needed. For now, we just expose the ones needed to
 // migrate from `dart:js_util`.
 extension JSAnyOperatorExtension on JSAny? {
@@ -1030,32 +1033,33 @@ extension JSAnyOperatorExtension on JSAny? {
   // Comparison operators.
 
   /// The result of <code>[this] > [any]</code> in JavaScript.
-  external JSBoolean greaterThan(JSAny? any);
+  external bool greaterThan(JSAny? any);
 
   /// The result of <code>[this] >= [any]</code> in JavaScript.
-  external JSBoolean greaterThanOrEqualTo(JSAny? any);
+  external bool greaterThanOrEqualTo(JSAny? any);
 
   /// The result of <code>[this] < [any]</code> in JavaScript.
-  external JSBoolean lessThan(JSAny? any);
+  external bool lessThan(JSAny? any);
 
   /// The result of <code>[this] <= [any]</code> in JavaScript.
-  external JSBoolean lessThanOrEqualTo(JSAny? any);
+  external bool lessThanOrEqualTo(JSAny? any);
 
   /// The result of <code>[this] == [any]</code> in JavaScript.
-  external JSBoolean equals(JSAny? any);
+  external bool equals(JSAny? any);
 
   /// The result of <code>[this] != [any]</code> in JavaScript.
-  external JSBoolean notEquals(JSAny? any);
+  external bool notEquals(JSAny? any);
 
   /// The result of <code>[this] === [any]</code> in JavaScript.
-  external JSBoolean strictEquals(JSAny? any);
+  external bool strictEquals(JSAny? any);
 
   /// The result of <code>[this] !== [any]</code> in JavaScript.
-  external JSBoolean strictNotEquals(JSAny? any);
+  external bool strictNotEquals(JSAny? any);
 
   // Bitwise operators.
 
   /// The result of <code>[this] >>> [any]</code> in JavaScript.
+  // TODO(srujzs): This should return `num` or `double` instead.
   external JSNumber unsignedRightShift(JSAny? any);
 
   // Logical operators.
