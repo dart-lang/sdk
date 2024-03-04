@@ -8743,6 +8743,11 @@ class FileUriConstantExpression extends ConstantExpression
   FileUriConstantExpression(Constant constant,
       {DartType type = const DynamicType(), required this.fileUri})
       : super(constant, type);
+
+  @override
+  Location? _getLocationInEnclosingFile(int offset) {
+    return _getLocationInComponent(enclosingComponent, fileUri, offset);
+  }
 }
 
 /// Synthetic expression of form `let v = x in y`
