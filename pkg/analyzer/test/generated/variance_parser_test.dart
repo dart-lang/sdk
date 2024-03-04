@@ -25,7 +25,9 @@ class VarianceParserTest extends FastaParserTestCase {
 
   final FeatureSet _enabledFeatureSet = FeatureSet.fromEnableFlags2(
     sdkLanguageVersion: ExperimentStatus.currentVersion,
-    flags: [EnableString.variance],
+    flags: [
+      Feature.variance.enableString,
+    ],
   );
 
   @override
