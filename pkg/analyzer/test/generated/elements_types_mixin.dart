@@ -62,11 +62,6 @@ mixin ElementsTypesMixin {
     return interfaceTypeQuestion(element);
   }
 
-  InterfaceType get intStar {
-    var element = typeProvider.intType.element;
-    return interfaceTypeStar(element);
-  }
-
   DartType get invalidType => InvalidTypeImpl.instance;
 
   NeverTypeImpl get neverNone => NeverTypeImpl.instance;

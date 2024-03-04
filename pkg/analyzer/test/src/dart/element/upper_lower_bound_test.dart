@@ -137,7 +137,6 @@ class BoundsHelperPredicatesTest extends _BoundsTestBase {
 
     isNotBottom(intNone);
     isNotBottom(intQuestion);
-    isNotBottom(intStar);
 
     T = typeParameter('T', bound: numNone);
     isNotBottom(typeParameterTypeNone(T));
@@ -328,7 +327,6 @@ class BoundsHelperPredicatesTest extends _BoundsTestBase {
 
     isNotNull(intNone);
     isNotNull(intQuestion);
-    isNotNull(intStar);
 
     isNotNull(futureOrNone(nullNone));
     isNotNull(futureOrNone(nullQuestion));
@@ -368,7 +366,6 @@ class BoundsHelperPredicatesTest extends _BoundsTestBase {
 
     isNotTop(futureOrQuestion(intNone));
     isNotTop(futureOrQuestion(intQuestion));
-    isNotTop(futureOrQuestion(intStar));
 
     // TOP(dynamic) is true
     isTop(dynamicType);
@@ -391,7 +388,6 @@ class BoundsHelperPredicatesTest extends _BoundsTestBase {
 
     isNotTop(intNone);
     isNotTop(intQuestion);
-    isNotTop(intStar);
 
     isNotTop(neverNone);
     isNotTop(neverQuestion);
@@ -435,7 +431,6 @@ class LowerBoundTest extends _BoundsTestBase {
 
     check(neverNone, intNone);
     check(neverNone, intQuestion);
-    check(neverNone, intStar);
 
     check(neverNone, listNone(intNone));
     check(neverNone, listQuestion(intNone));
@@ -449,7 +444,6 @@ class LowerBoundTest extends _BoundsTestBase {
       );
       check(T, intNone);
       check(T, intQuestion);
-      check(T, intStar);
     }
 
     {
@@ -459,7 +453,6 @@ class LowerBoundTest extends _BoundsTestBase {
       );
       check(T, intNone);
       check(T, intQuestion);
-      check(T, intStar);
     }
   }
 
@@ -874,7 +867,6 @@ class LowerBoundTest extends _BoundsTestBase {
 
     check(intNone);
     check(intQuestion);
-    check(intStar);
     check(listNone(intNone));
   }
 
@@ -996,7 +988,6 @@ class LowerBoundTest extends _BoundsTestBase {
 
     checkNever(intNone);
     checkNull(intQuestion);
-    checkNull(intStar);
 
     checkNever(listNone(intNone));
     checkNull(listQuestion(intNone));
@@ -1033,7 +1024,6 @@ class LowerBoundTest extends _BoundsTestBase {
 
     check(intNone, intNone);
     check(intQuestion, intNone);
-    check(intStar, intStar);
 
     check(futureOrNone(intNone), futureOrNone(intNone));
     check(futureOrQuestion(intNone), futureOrNone(intNone));
@@ -1204,7 +1194,6 @@ class LowerBoundTest extends _BoundsTestBase {
     check(voidNone, objectNone);
     check(voidNone, intNone);
     check(voidNone, intQuestion);
-    check(voidNone, intStar);
     check(voidNone, listNone(intNone));
     check(voidNone, futureOrNone(intNone));
     check(voidNone, neverNone);
@@ -1214,7 +1203,6 @@ class LowerBoundTest extends _BoundsTestBase {
     check(dynamicType, objectNone);
     check(dynamicType, intNone);
     check(dynamicType, intQuestion);
-    check(dynamicType, intStar);
     check(dynamicType, listNone(intNone));
     check(dynamicType, futureOrNone(intNone));
     check(dynamicType, neverNone);
@@ -1224,7 +1212,6 @@ class LowerBoundTest extends _BoundsTestBase {
     check(invalidType, objectNone);
     check(invalidType, intNone);
     check(invalidType, intQuestion);
-    check(invalidType, intStar);
     check(invalidType, listNone(intNone));
     check(invalidType, futureOrNone(intNone));
     check(invalidType, neverNone);
@@ -1234,7 +1221,6 @@ class LowerBoundTest extends _BoundsTestBase {
     check(objectQuestion, objectNone);
     check(objectQuestion, intNone);
     check(objectQuestion, intQuestion);
-    check(objectQuestion, intStar);
     check(objectQuestion, listNone(intNone));
     check(objectQuestion, futureOrNone(intNone));
     check(objectQuestion, neverNone);
@@ -1564,7 +1550,6 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
     check([intNone], [intNone], build([intNone]));
     check([intNone], [intQuestion], build([intNone]));
 
-    check([intNone], [intStar], build([intNone]));
     check([intNone], [doubleNone], build([neverNone]));
 
     check([intNone], [numNone], build([intNone]));
@@ -1712,7 +1697,6 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
     check([intNone], [intNone], build([intNone]));
     check([intNone], [intQuestion], build([intNone]));
 
-    check([intNone], [intStar], build([intNone]));
     check([intNone], [doubleNone], build([neverNone]));
 
     check([intNone], [numNone], build([intNone]));
@@ -1756,7 +1740,6 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
 
     check(intNone, intNone, intNone);
     check(intNone, intQuestion, intQuestion);
-    check(intNone, intStar, intStar);
 
     check(intNone, numNone, numNone);
     check(intQuestion, numNone, numQuestion);
@@ -2511,7 +2494,6 @@ class UpperBoundTest extends _BoundsTestBase {
 
     check(neverNone, intNone);
     check(neverNone, intQuestion);
-    check(neverNone, intStar);
 
     check(neverNone, listNone(intNone));
     check(neverNone, listQuestion(intNone));
@@ -2534,7 +2516,6 @@ class UpperBoundTest extends _BoundsTestBase {
       );
       check(T, intNone);
       check(T, intQuestion);
-      check(T, intStar);
     }
 
     {
@@ -2544,7 +2525,6 @@ class UpperBoundTest extends _BoundsTestBase {
       );
       check(T, intNone);
       check(T, intQuestion);
-      check(T, intStar);
     }
   }
 
@@ -2811,7 +2791,6 @@ class UpperBoundTest extends _BoundsTestBase {
 
     check(intNone);
     check(intQuestion);
-    check(intStar);
     check(listNone(intNone));
   }
 
@@ -2859,11 +2838,9 @@ class UpperBoundTest extends _BoundsTestBase {
 
     check(nullNone, intNone, intQuestion);
     check(nullNone, intQuestion, intQuestion);
-    check(nullNone, intStar, intStar);
 
     check(nullQuestion, intNone, intQuestion);
     check(nullQuestion, intQuestion, intQuestion);
-    check(nullQuestion, intStar, intStar);
 
     check(nullNone, listNone(intNone), listQuestion(intNone));
     check(nullNone, listQuestion(intNone), listQuestion(intNone));
@@ -2910,13 +2887,11 @@ class UpperBoundTest extends _BoundsTestBase {
 
     check(objectNone, intNone, objectNone);
     check(objectNone, intQuestion, objectQuestion);
-    check(objectNone, intStar, objectNone);
 
     check(objectNone, futureOrNone(intQuestion), objectQuestion);
 
     check(futureOrNone(objectNone), intNone, futureOrNone(objectNone));
     check(futureOrNone(objectNone), intQuestion, futureOrQuestion(objectNone));
-    check(futureOrNone(objectNone), intStar, futureOrNone(objectNone));
   }
 
   test_object_object() {
@@ -2964,7 +2939,6 @@ class UpperBoundTest extends _BoundsTestBase {
       check(T1, objectNone);
       check(T1, intNone);
       check(T1, intQuestion);
-      check(T1, intStar);
       check(T1, listNone(intNone));
       check(T1, futureOrNone(intNone));
       check(T1, functionTypeNone(returnType: voidNone));

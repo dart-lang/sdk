@@ -481,15 +481,9 @@ class SubstituteTest extends _Base {
     }
 
     check(NullabilitySuffix.none, intNone, intNone);
-    check(NullabilitySuffix.none, intStar, intStar);
     check(NullabilitySuffix.none, intQuestion, intQuestion);
 
-    check(NullabilitySuffix.star, intNone, intStar);
-    check(NullabilitySuffix.star, intStar, intStar);
-    check(NullabilitySuffix.star, intQuestion, intQuestion);
-
     check(NullabilitySuffix.question, intNone, intQuestion);
-    check(NullabilitySuffix.question, intStar, intQuestion);
     check(NullabilitySuffix.question, intQuestion, intQuestion);
   }
 
