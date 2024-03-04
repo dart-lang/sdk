@@ -1188,6 +1188,8 @@ class _ElementWriter {
         _sink.writelnWithIndent('id: ${_idMap[e]}');
         if (e.variable2 case final variable?) {
           _sink.writelnWithIndent('variable: ${_idMap[variable]}');
+        } else {
+          _sink.writelnWithIndent('variable: <null>');
         }
       }
     }

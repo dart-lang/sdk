@@ -1979,6 +1979,46 @@ library
 ''');
   }
 
+  test_augmented_getters_augment_nothing() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment class A {
+  augment int get foo => 0;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+class A {}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withPropertyLinking = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @31
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmented
+          accessors
+            self::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          augment class A @43
+            augmentationTarget: self::@class::A
+            accessors
+              augment get foo @65
+                returnType: int
+                id: getter_0
+                variable: <null>
+                augmentationTarget: <null>
+''');
+  }
+
   test_augmented_interfaces() async {
     newFile('$testPackageLibPath/a.dart', r'''
 library augment 'test.dart';
@@ -2920,6 +2960,49 @@ library
                 id: setter_1
                 variable: field_0
                 augmentationTarget: self::@class::A::@setter::foo
+''');
+  }
+
+  test_augmented_setters_augment_nothing() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment class A {
+  augment set foo(int _) {}
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+class A {}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withPropertyLinking = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @31
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmented
+          accessors
+            self::@augmentation::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          augment class A @43
+            augmentationTarget: self::@class::A
+            accessors
+              augment set foo= @61
+                parameters
+                  requiredPositional _ @69
+                    type: int
+                returnType: void
+                id: setter_0
+                variable: <null>
+                augmentationTarget: <null>
 ''');
   }
 
@@ -49555,6 +49638,42 @@ library
 ''');
   }
 
+  test_getter_augments_class() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment int get foo => 0;
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+class foo {}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withExportScope = true
+      ..withPropertyLinking = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class foo @31
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        accessors
+          augment static get foo @45
+            returnType: int
+            id: getter_0
+            variable: <null>
+            augmentationTarget: <null>
+  exportedReferences
+    declared self::@class::foo
+  exportNamespace
+    foo: self::@class::foo
+''');
+  }
+
   test_getter_augments_getter() async {
     newFile('$testPackageLibPath/a.dart', r'''
 library augment 'test.dart';
@@ -49596,6 +49715,82 @@ library
     declared self::@getter::foo
   exportNamespace
     foo: self::@getter::foo
+''');
+  }
+
+  test_getter_augments_nothing() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment int get foo => 0;
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+''');
+
+    configuration
+      ..withExportScope = true
+      ..withPropertyLinking = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        accessors
+          augment static get foo @45
+            returnType: int
+            id: getter_0
+            variable: <null>
+            augmentationTarget: <null>
+  exportedReferences
+  exportNamespace
+''');
+  }
+
+  test_getter_augments_setter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment int get foo => 0;
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+set foo(int _) {}
+''');
+
+    configuration
+      ..withExportScope = true
+      ..withPropertyLinking = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      synthetic static foo @-1
+        type: int
+        id: variable_0
+        setter: setter_0
+    accessors
+      static set foo= @29
+        parameters
+          requiredPositional _ @37
+            type: int
+        returnType: void
+        id: setter_0
+        variable: variable_0
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        accessors
+          augment static get foo @45
+            returnType: int
+            id: getter_0
+            variable: <null>
+            augmentationTarget: <null>
+  exportedReferences
+    declared self::@setter::foo
+  exportNamespace
+    foo=: self::@setter::foo
 ''');
   }
 
@@ -49651,6 +49846,85 @@ library
   exportNamespace
     foo: self::@getter::foo
     foo=: self::@setter::foo
+''');
+  }
+
+  test_setter_augments_getter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment set foo(int _) {}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+int get foo => 0;
+''');
+
+    configuration
+      ..withExportScope = true
+      ..withPropertyLinking = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      synthetic static foo @-1
+        type: int
+        id: variable_0
+        getter: getter_0
+    accessors
+      static get foo @33
+        returnType: int
+        id: getter_0
+        variable: variable_0
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        accessors
+          augment static set foo= @41
+            parameters
+              requiredPositional _ @49
+                type: int
+            returnType: void
+            id: setter_0
+            variable: <null>
+            augmentationTarget: <null>
+  exportedReferences
+    declared self::@getter::foo
+  exportNamespace
+    foo: self::@getter::foo
+''');
+  }
+
+  test_setter_augments_nothing() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment set foo(int _) {}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+''');
+
+    configuration
+      ..withExportScope = true
+      ..withPropertyLinking = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        accessors
+          augment static set foo= @41
+            parameters
+              requiredPositional _ @49
+                type: int
+            returnType: void
+            id: setter_0
+            variable: <null>
+            augmentationTarget: <null>
+  exportedReferences
+  exportNamespace
 ''');
   }
 
