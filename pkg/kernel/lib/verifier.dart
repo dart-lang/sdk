@@ -1531,6 +1531,11 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
           !target.verification.allowNoFileOffset(stage, node)) {
         problem(node, "'$name' has no fileOffset", context: node);
       }
+      try {
+        node.location;
+      } catch (e) {
+        problem(node, "'$name' crashes when asked for location", context: node);
+      }
       return fileUri;
     }
   }

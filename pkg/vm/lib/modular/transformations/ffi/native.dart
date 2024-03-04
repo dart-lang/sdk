@@ -541,16 +541,15 @@ class FfiNativeTransformer extends FfiTransformer {
     ));
 
     final parent = node.parent;
-    var fileUri = currentLibrary.fileUri;
-    if (parent is Class) {
-      fileUri = parent.fileUri;
-    } else if (parent is Library) {
-      fileUri = parent.fileUri;
-    }
+    final fileUri = node.fileUri;
+
+    final name = Name(
+        '_${node.name.text}\$${node.kind.name}\$FfiNative', currentLibrary);
+    final reference = currentLibraryIndex?.lookupGetterReference(name);
 
     int varCounter = 0;
     final nonWrappedFfiNative = Procedure(
-      Name('_${node.name.text}\$${node.kind.name}\$FfiNative', currentLibrary),
+      name,
       ProcedureKind.Method,
       FunctionNode(
         /*body=*/ null,
@@ -568,6 +567,7 @@ class FfiNativeTransformer extends FfiTransformer {
       fileUri: fileUri,
       isStatic: true,
       isExternal: true,
+      reference: reference,
     )
       ..isNonNullableByDefault = node.isNonNullableByDefault
       ..fileOffset = node.fileOffset;
