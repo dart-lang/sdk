@@ -281,12 +281,6 @@ abstract class ClassElement implements InterfaceElement {
   /// or mixed in.
   bool get isFinal;
 
-  /// Whether the class is an inline class.
-  ///
-  /// A class is an inline class if it has an explicit `inline` modifier.
-  @experimental
-  bool get isInline;
-
   /// Whether the class is an interface class.
   ///
   /// A class is an interface class if it has an explicit `interface` modifier,

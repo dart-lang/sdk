@@ -427,15 +427,6 @@ class ClassElementImpl extends ClassOrMixinElementImpl
   }
 
   @override
-  bool get isInline {
-    return hasModifier(Modifier.INLINE);
-  }
-
-  set isInline(bool isInline) {
-    setModifier(Modifier.INLINE, isInline);
-  }
-
-  @override
   bool get isInterface {
     return hasModifier(Modifier.INTERFACE);
   }
@@ -5371,9 +5362,6 @@ enum Modifier {
   /// associated with it. If the element is an [ExecutableElement], then the
   /// type being referred to is the return type.
   IMPLICIT_TYPE,
-
-  /// Indicates that the modifier 'inline' was applied to the element.
-  INLINE,
 
   /// Indicates that the modifier 'interface' was applied to the element.
   INTERFACE,

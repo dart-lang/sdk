@@ -2725,11 +2725,6 @@ abstract final class ClassDeclaration implements NamedCompilationUnitMember {
   /// does not implement any interfaces.
   ImplementsClause? get implementsClause;
 
-  /// Return the 'inline' keyword, or `null` if the keyword was absent.
-  @Deprecated('Replaced with extension types')
-  @experimental
-  Token? get inlineKeyword;
-
   /// Return the 'interface' keyword, or `null` if the keyword was absent.
   Token? get interfaceKeyword;
 
@@ -2865,12 +2860,6 @@ final class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
         augmentKeyword ??
         mixinKeyword ??
         classKeyword;
-  }
-
-  @Deprecated('Replaced with extension types')
-  @override
-  Token? get inlineKeyword {
-    return null;
   }
 
   @override
