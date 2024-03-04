@@ -489,7 +489,11 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     } else if (declarationElement is TopLevelVariableElement) {
       type = declarationElement.type;
     } else if (declarationElement is PropertyAccessorElement) {
-      type = declarationElement.variable.type;
+      var variable = declarationElement.variable2;
+      if (variable == null) {
+        return;
+      }
+      type = variable.type;
     } else {
       _errorReporter.atNode(
         errorNode,
@@ -665,7 +669,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         return true;
       }
       if (staticElm is PropertyAccessorElementImpl) {
-        if (staticElm.variable is ConstVariableElement) {
+        if (staticElm.variable2 is ConstVariableElement) {
           return true;
         }
       }
@@ -841,9 +845,12 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         return staticElm.computeConstantValue()?.toBoolValue();
       }
       if (staticElm is PropertyAccessorElementImpl) {
-        final v = staticElm.variable;
-        if (v is ConstVariableElement) {
-          return v.computeConstantValue()?.toBoolValue();
+        final variable = staticElm.variable2;
+        if (variable == null) {
+          return null;
+        }
+        if (variable is ConstVariableElement) {
+          return variable.computeConstantValue()?.toBoolValue();
         }
       }
     }

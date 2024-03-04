@@ -1593,7 +1593,7 @@ class LibraryReader {
         }
       }
 
-      accessor.variable = property;
+      accessor.variable2 = property;
       if (isGetter) {
         property.getter = accessor;
       } else {
@@ -1910,7 +1910,7 @@ class PropertyAccessorElementLinkedData
     if (augmentationTarget is PropertyAccessorElementImpl) {
       augmentationTarget.augmentation = element;
       element.augmentationTarget = augmentationTarget;
-      element.variable = augmentationTarget.variable;
+      element.variable2 = augmentationTarget.variable2;
     }
 
     applyConstantOffsets?.perform();

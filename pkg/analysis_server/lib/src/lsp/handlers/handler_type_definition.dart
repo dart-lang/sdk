@@ -184,7 +184,7 @@ class TypeDefinitionHandler extends SharedMessageHandler<TypeDefinitionParams,
       } else if (node.inSetterContext()) {
         final writeElement = node.writeElement;
         if (writeElement is PropertyAccessorElement) {
-          return writeElement.variable.type;
+          return writeElement.variable2?.type;
         }
       }
     }

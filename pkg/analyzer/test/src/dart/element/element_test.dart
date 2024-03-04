@@ -2007,7 +2007,7 @@ main() {
 ''');
     SimpleIdentifier argument = findNode.simple('C);');
     var getter = argument.staticElement as PropertyAccessorElementImpl;
-    var constant = getter.variable as TopLevelVariableElement;
+    var constant = getter.variable2 as TopLevelVariableElement;
 
     DartObject value = constant.computeConstantValue()!;
     expect(value, isNotNull);

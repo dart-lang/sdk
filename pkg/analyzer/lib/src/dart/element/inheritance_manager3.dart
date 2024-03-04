@@ -969,13 +969,13 @@ class InheritanceManager3 {
       result.prototype = executable;
       result.returnType = executable.returnType;
 
-      var field = executable.variable;
+      var field = executable.variable2!;
       var resultField = FieldElementImpl(field.name, -1);
       resultField.enclosingElement = class_;
       resultField.getter = field.getter;
       resultField.setter = executable;
       resultField.type = executable.parameters[0].type;
-      result.variable = resultField;
+      result.variable2 = resultField;
 
       return result;
     }
@@ -1049,7 +1049,7 @@ class InheritanceManager3 {
         field.setter = result;
         field.type = result.parameters[0].type;
       }
-      result.variable = field;
+      result.variable2 = field;
 
       return result;
     }

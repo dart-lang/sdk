@@ -174,11 +174,11 @@ class DefinitionHandler extends LspMessageHandler<TextDocumentPositionParams,
 
   /// Get the location of the code (excluding leading doc comments) for this element.
   Future<protocol.Location?> _getCodeLocation(Element element) async {
-    var codeElement = element;
+    Element? codeElement = element;
     // For synthetic getters created for fields, we need to access the associated
     // variable to get the codeOffset/codeLength.
-    if (codeElement.isSynthetic && codeElement is PropertyAccessorElementImpl) {
-      codeElement = codeElement.variable;
+    if (codeElement is PropertyAccessorElementImpl && codeElement.isSynthetic) {
+      codeElement = codeElement.variable2!;
     }
 
     // Read the main codeOffset from the element. This may include doc comments

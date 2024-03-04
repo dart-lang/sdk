@@ -545,7 +545,7 @@ class TypeSystemOperations
   @override
   bool isPropertyPromotable(Object property) {
     if (property is! PropertyAccessorElement) return false;
-    var field = property.variable;
+    var field = property.variable2;
     if (field is! FieldElement) return false;
     return field.isPromotable;
   }
@@ -768,7 +768,7 @@ class TypeSystemOperations
     if (property is! PropertyAccessorElement) {
       return PropertyNonPromotabilityReason.isNotField;
     }
-    var field = property.variable;
+    var field = property.variable2;
     if (field is! FieldElement) {
       return PropertyNonPromotabilityReason.isNotField;
     }

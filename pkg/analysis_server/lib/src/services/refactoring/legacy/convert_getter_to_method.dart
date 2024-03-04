@@ -54,7 +54,7 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl
       await _updateElementReferences(element);
     }
     // method
-    var field = element.variable;
+    var field = element.variable2;
     if (field is FieldElement &&
         (field.enclosingElement is InterfaceElement ||
             field.enclosingElement is ExtensionElement)) {

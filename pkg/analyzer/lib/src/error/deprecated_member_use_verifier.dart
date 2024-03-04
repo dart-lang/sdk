@@ -239,7 +239,11 @@ abstract class BaseDeprecatedMemberUseVerifier {
       {required bool strictCasts}) {
     // Implicit getters/setters.
     if (element.isSynthetic && element is PropertyAccessorElement) {
-      element = element.variable;
+      var variable = element.variable2;
+      if (variable == null) {
+        return null;
+      }
+      element = variable;
     }
     var annotation = element.metadata.firstWhereOrNull((e) => e.isDeprecated);
     if (annotation == null || annotation.element is PropertyAccessorElement) {
@@ -266,8 +270,8 @@ abstract class BaseDeprecatedMemberUseVerifier {
 
     if (element is PropertyAccessorElement && element.isSynthetic) {
       // TODO(brianwilkerson): Why isn't this the implementation for PropertyAccessorElement?
-      Element variable = element.variable;
-      return variable.hasDeprecated;
+      var variable = element.variable2;
+      return variable != null && variable.hasDeprecated;
     }
     return element.hasDeprecated;
   }

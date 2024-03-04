@@ -1798,7 +1798,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         );
       }
     } else if (element is PropertyAccessorElement && element.isGetter) {
-      var variable = element.variable;
+      var variable = element.variable2;
+      if (variable == null) {
+        return;
+      }
       if (variable.isConst) {
         errorReporter.atNode(
           expression,

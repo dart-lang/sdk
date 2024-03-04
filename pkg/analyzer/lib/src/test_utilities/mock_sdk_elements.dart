@@ -1041,7 +1041,7 @@ class _MockSdkElementsBuilder {
     getter.isStatic = isStatic;
     getter.isSynthetic = false;
     getter.returnType = type;
-    getter.variable = field;
+    getter.variable2 = field;
 
     field.getter = getter;
     return getter;
@@ -1109,7 +1109,7 @@ class _MockSdkElementsBuilder {
   ) {
     classElement.accessors = accessors;
     classElement.fields = accessors
-        .map((accessor) => accessor.variable)
+        .map((accessor) => accessor.variable2)
         .cast<FieldElementImpl>()
         .toList();
   }

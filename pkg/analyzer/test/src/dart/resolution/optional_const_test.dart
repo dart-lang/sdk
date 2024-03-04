@@ -275,7 +275,7 @@ var v = a;
 ''');
 
     var vg = findNode.simple('a;').staticElement as PropertyAccessorElement;
-    var v = vg.variable as ConstVariableElement;
+    var v = vg.variable2 as ConstVariableElement;
 
     var creation = v.constantInitializer as InstanceCreationExpression;
     return creation;

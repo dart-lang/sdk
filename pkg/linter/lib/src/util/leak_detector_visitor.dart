@@ -59,7 +59,7 @@ bool _isElementEqualToVariable(
         Element? propertyElement, VariableElement? variableElement) =>
     propertyElement == variableElement ||
     propertyElement is PropertyAccessorElement &&
-        propertyElement.variable == variableElement;
+        propertyElement.variable2 == variableElement;
 
 bool _isInvocationThroughCascadeExpression(
     MethodInvocation invocation, VariableElement variableElement) {
@@ -71,7 +71,7 @@ bool _isInvocationThroughCascadeExpression(
   if (identifier is SimpleIdentifier) {
     var element = identifier.staticElement;
     if (element is PropertyAccessorElement) {
-      return element.variable == variableElement;
+      return element.variable2 == variableElement;
     }
   }
   return false;

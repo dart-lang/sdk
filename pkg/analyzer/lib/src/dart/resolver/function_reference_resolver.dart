@@ -93,7 +93,11 @@ class FunctionReferenceResolver {
     if (prefixElement is VariableElement) {
       prefixType = prefixElement.type;
     } else if (prefixElement is PropertyAccessorElement) {
-      prefixType = prefixElement.variable.type;
+      var variable = prefixElement.variable2;
+      if (variable == null) {
+        return false;
+      }
+      prefixType = variable.type;
     }
 
     if (prefixType is DynamicType) {
@@ -512,7 +516,12 @@ class FunctionReferenceResolver {
       if (targetElement is VariableElement) {
         targetType = targetElement.type;
       } else if (targetElement is PropertyAccessorElement) {
-        targetType = targetElement.variable.type;
+        var variable = targetElement.variable2;
+        if (variable == null) {
+          node.staticType = InvalidTypeImpl.instance;
+          return;
+        }
+        targetType = variable.type;
       } else {
         // TODO(srawlins): Can we get here?
         node.staticType = DynamicTypeImpl.instance;
@@ -688,7 +697,13 @@ class FunctionReferenceResolver {
         if (method is PropertyAccessorElement) {
           function.staticElement = method;
           function.staticType = method.returnType;
-          _resolve(node: node, rawType: method.variable.type);
+          var variable = method.variable2;
+          if (variable != null) {
+            _resolve(node: node, rawType: variable.type);
+          } else {
+            function.staticType = InvalidTypeImpl.instance;
+            node.staticType = InvalidTypeImpl.instance;
+          }
           return;
         }
 
@@ -745,8 +760,13 @@ class FunctionReferenceResolver {
       return;
     } else if (element is PropertyAccessorElement) {
       function.staticElement = element;
-      function.staticType = element.variable.type;
-      var callMethod = _getCallMethod(node, element.variable.type);
+      var variable = element.variable2;
+      if (variable == null) {
+        function.staticType = InvalidTypeImpl.instance;
+        return;
+      }
+      function.staticType = variable.type;
+      var callMethod = _getCallMethod(node, variable.type);
       if (callMethod is MethodElement) {
         _resolveAsImplicitCallReference(node, callMethod);
         return;

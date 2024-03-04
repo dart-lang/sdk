@@ -72,7 +72,7 @@ abstract class AugmentedInstanceDeclarationBuilder {
         if (existing != null) {
           existing.augmentation = element;
           element.augmentationTarget = existing;
-          element.variable = existing.variable;
+          element.variable2 = existing.variable2;
         }
       }
       accessors[name] = element;
@@ -152,7 +152,7 @@ class AugmentedTopVariablesBuilder {
       if (existing != null) {
         existing.augmentation = element;
         element.augmentationTarget = existing;
-        element.variable = existing.variable;
+        element.variable2 = existing.variable2;
       }
     }
     accessors[name] = element;
@@ -1451,7 +1451,8 @@ class _FieldPromotability extends FieldPromotability<InterfaceElement,
       var nonPromotabilityReason = addGetter(classInfo, accessor, accessor.name,
           isAbstract: accessor.isAbstract);
       if (enabled && nonPromotabilityReason == null) {
-        _potentiallyPromotableFields.add(accessor.variable as FieldElementImpl);
+        _potentiallyPromotableFields
+            .add(accessor.variable2 as FieldElementImpl);
       }
     }
   }

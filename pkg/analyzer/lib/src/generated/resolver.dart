@@ -1657,7 +1657,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         node is SimpleIdentifier) {
       if (element is PropertyAccessorElement && element.isSetter) {
         if (element.isSynthetic) {
-          writeType = element.variable.type;
+          var variable = element.variable2;
+          if (variable != null) {
+            writeType = variable.type;
+          }
         } else {
           var parameters = element.parameters;
           if (parameters.length == 1) {
@@ -5115,7 +5118,7 @@ class SwitchExhaustiveness {
     if (caseConstant != null) {
       var element = _referencedElement(caseConstant);
       if (element is PropertyAccessorElement) {
-        _enumConstants!.remove(element.variable);
+        _enumConstants!.remove(element.variable2);
       }
       if (caseConstant is NullLiteral) {
         _isNullEnumValueCovered = true;

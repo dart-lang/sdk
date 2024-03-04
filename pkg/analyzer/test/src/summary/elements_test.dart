@@ -47669,7 +47669,7 @@ library
     // requesting individual elements, not all accessors/variables at once.
     var getter = _elementOfDefiningUnit(library, ['@getter', 'x'])
         as PropertyAccessorElementImpl;
-    var variable = getter.variable as TopLevelVariableElementImpl;
+    var variable = getter.variable2 as TopLevelVariableElementImpl;
     expect(variable, isNotNull);
     expect(variable.isFinal, isFalse);
     expect(variable.getter, same(getter));

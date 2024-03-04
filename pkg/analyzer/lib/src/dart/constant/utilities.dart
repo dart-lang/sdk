@@ -246,7 +246,7 @@ class ReferenceFinder extends RecursiveAstVisitor<void> {
   void visitSimpleIdentifier(SimpleIdentifier node) {
     var staticElement = node.staticElement;
     var element = staticElement is PropertyAccessorElement
-        ? staticElement.variable
+        ? staticElement.variable2
         : staticElement;
     if (element is VariableElement && element.isConst) {
       _callback(element);

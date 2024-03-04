@@ -286,7 +286,7 @@ extension ElementExtension on Element {
   Element get canonicalElement {
     var self = this;
     if (self is PropertyAccessorElement) {
-      var variable = self.variable;
+      var variable = self.variable2;
       if (variable is FieldMember) {
         // A field element defined in a parameterized type where the values of
         // the type parameters are known.
@@ -296,12 +296,11 @@ extension ElementExtension on Element {
         // equivalent to equivalent FieldMembers. See
         // https://github.com/dart-lang/sdk/issues/35343.
         return variable.declaration;
-      } else {
+      } else if (variable != null) {
         return variable;
       }
-    } else {
-      return self;
     }
+    return self;
   }
 }
 

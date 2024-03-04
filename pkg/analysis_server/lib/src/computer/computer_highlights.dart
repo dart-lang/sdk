@@ -283,7 +283,7 @@ class DartUnitHighlightsComputer {
     }
     if (element is PropertyAccessorElement) {
       var accessor = element;
-      var variable = accessor.variable;
+      var variable = accessor.variable2;
       if (variable is TopLevelVariableElement) {
         type = accessor.isGetter
             ? HighlightRegionType.TOP_LEVEL_GETTER_REFERENCE

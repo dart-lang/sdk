@@ -286,7 +286,7 @@ class _FieldFinder extends RecursiveAstVisitor<void> {
     if (node.inSetterContext()) {
       var element = node.writeOrReadElement;
       if (element is PropertyAccessorElement) {
-        var field = element.variable;
+        var field = element.variable2;
         if (field is FieldElement) {
           fieldsAssignedInConstructors.add(field);
         }
