@@ -383,6 +383,23 @@ suggestions
 ''');
   }
 
+  Future<void> test_propertyAccess_matches_ignoreNullability() async {
+    await computeSuggestions('''
+extension E on int {
+  int get a0 => 0;
+}
+void f(int? x) {
+  x.^
+}
+''');
+
+    assertResponse(r'''
+suggestions
+  a0
+    kind: getter
+''');
+  }
+
   Future<void> test_propertyAccess_matches_partial() async {
     await computeSuggestions('''
 extension E on int {
