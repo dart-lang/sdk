@@ -28,7 +28,7 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
   @override
   AnalysisServerOptions get serverOptions => AnalysisServerOptions()
     ..enabledExperiments = [
-      EnableString.inline_class,
+      EnableString.macros,
     ];
 
   Future<void> test_annotation() async {

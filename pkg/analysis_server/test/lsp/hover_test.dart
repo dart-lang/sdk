@@ -25,7 +25,6 @@ class HoverTest extends AbstractLspAnalysisServerTest {
   @override
   AnalysisServerOptions get serverOptions => AnalysisServerOptions()
     ..enabledExperiments = [
-      EnableString.inline_class,
       EnableString.macros,
     ];
 
