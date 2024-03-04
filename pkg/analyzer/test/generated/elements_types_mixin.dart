@@ -282,11 +282,6 @@ mixin ElementsTypesMixin {
     ) as InterfaceTypeImpl;
   }
 
-  InterfaceType futureType(DartType T) {
-    var futureElement = typeProvider.futureElement;
-    return interfaceTypeStar(futureElement, typeArguments: [T]);
-  }
-
   InterfaceType interfaceType(
     InterfaceElement element, {
     List<DartType> typeArguments = const [],
@@ -315,16 +310,6 @@ mixin ElementsTypesMixin {
     return element.instantiate(
       typeArguments: typeArguments,
       nullabilitySuffix: NullabilitySuffix.question,
-    );
-  }
-
-  InterfaceType interfaceTypeStar(
-    InterfaceElement element, {
-    List<DartType> typeArguments = const [],
-  }) {
-    return element.instantiate(
-      typeArguments: typeArguments,
-      nullabilitySuffix: NullabilitySuffix.star,
     );
   }
 

@@ -1929,61 +1929,29 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
   void test_directSuperclass_nullability() {
     var aElement = class_(name: 'A');
     var aQuestion = interfaceTypeQuestion(aElement);
-    var aStar = interfaceTypeStar(aElement);
     var aNone = interfaceTypeNone(aElement);
 
-    var bElementStar = class_(name: 'B', superType: aStar);
     var bElementNone = class_(name: 'B', superType: aNone);
 
-    InterfaceType bTypeStarElement(NullabilitySuffix nullability) {
-      return interfaceType(
-        bElementStar,
-        nullabilitySuffix: nullability,
-      );
-    }
+    var bNoneQuestion = interfaceType(
+      bElementNone,
+      nullabilitySuffix: NullabilitySuffix.question,
+    );
 
-    InterfaceType bTypeNoneElement(NullabilitySuffix nullability) {
-      return interfaceType(
-        bElementNone,
-        nullabilitySuffix: nullability,
-      );
-    }
-
-    var bStarQuestion = bTypeStarElement(NullabilitySuffix.question);
-    var bStarStar = bTypeStarElement(NullabilitySuffix.star);
-    var bStarNone = bTypeStarElement(NullabilitySuffix.none);
-
-    var bNoneQuestion = bTypeNoneElement(NullabilitySuffix.question);
-    var bNoneStar = bTypeNoneElement(NullabilitySuffix.star);
-    var bNoneNone = bTypeNoneElement(NullabilitySuffix.none);
+    var bNoneNone = interfaceType(
+      bElementNone,
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
 
     void assertLUB(DartType type1, DartType type2, DartType expected) {
       expect(typeSystem.leastUpperBound(type1, type2), expected);
       expect(typeSystem.leastUpperBound(type2, type1), expected);
     }
 
-    assertLUB(bStarQuestion, aQuestion, aQuestion);
-    assertLUB(bStarQuestion, aStar, aQuestion);
-    assertLUB(bStarQuestion, aNone, aQuestion);
-
-    assertLUB(bStarStar, aQuestion, aQuestion);
-    assertLUB(bStarStar, aStar, aStar);
-    assertLUB(bStarStar, aNone, aStar);
-
-    assertLUB(bStarNone, aQuestion, aQuestion);
-    assertLUB(bStarNone, aStar, aStar);
-    assertLUB(bStarNone, aNone, aNone);
-
     assertLUB(bNoneQuestion, aQuestion, aQuestion);
-    assertLUB(bNoneQuestion, aStar, aQuestion);
     assertLUB(bNoneQuestion, aNone, aQuestion);
 
-    assertLUB(bNoneStar, aQuestion, aQuestion);
-    assertLUB(bNoneStar, aStar, aStar);
-    assertLUB(bNoneStar, aNone, aStar);
-
     assertLUB(bNoneNone, aQuestion, aQuestion);
-    assertLUB(bNoneNone, aStar, aStar);
     assertLUB(bNoneNone, aNone, aNone);
   }
 
@@ -2034,7 +2002,6 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
     var aElement = class_(name: 'A');
 
     var aQuestion = interfaceTypeQuestion(aElement);
-    var aStar = interfaceTypeStar(aElement);
     var aNone = interfaceTypeNone(aElement);
 
     void assertLUB(DartType type1, DartType type2, DartType expected) {
@@ -2043,15 +2010,9 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
     }
 
     assertLUB(aQuestion, aQuestion, aQuestion);
-    assertLUB(aQuestion, aStar, aQuestion);
     assertLUB(aQuestion, aNone, aQuestion);
 
-    assertLUB(aStar, aQuestion, aQuestion);
-    assertLUB(aStar, aStar, aStar);
-    assertLUB(aStar, aNone, aStar);
-
     assertLUB(aNone, aQuestion, aQuestion);
-    assertLUB(aNone, aStar, aStar);
     assertLUB(aNone, aNone, aNone);
   }
 
@@ -2142,58 +2103,28 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
   void test_sharedSuperclass1_nullability() {
     var aElement = class_(name: 'A');
     var aQuestion = interfaceTypeQuestion(aElement);
-    var aStar = interfaceTypeStar(aElement);
     var aNone = interfaceTypeNone(aElement);
 
     var bElementNone = class_(name: 'B', superType: aNone);
-    var bElementStar = class_(name: 'B', superType: aStar);
-
     var cElementNone = class_(name: 'C', superType: aNone);
-    var cElementStar = class_(name: 'C', superType: aStar);
 
-    InterfaceType bTypeElementNone(NullabilitySuffix nullability) {
-      return interfaceType(
-        bElementNone,
-        nullabilitySuffix: nullability,
-      );
-    }
+    var bNoneQuestion = interfaceType(
+      bElementNone,
+      nullabilitySuffix: NullabilitySuffix.question,
+    );
+    var bNoneNone = interfaceType(
+      bElementNone,
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
 
-    InterfaceType bTypeElementStar(NullabilitySuffix nullability) {
-      return interfaceType(
-        bElementStar,
-        nullabilitySuffix: nullability,
-      );
-    }
-
-    var bNoneQuestion = bTypeElementNone(NullabilitySuffix.question);
-    var bNoneStar = bTypeElementNone(NullabilitySuffix.star);
-    var bNoneNone = bTypeElementNone(NullabilitySuffix.none);
-
-    var bStarQuestion = bTypeElementStar(NullabilitySuffix.question);
-    var bStarStar = bTypeElementStar(NullabilitySuffix.star);
-    var bStarNone = bTypeElementStar(NullabilitySuffix.none);
-
-    InterfaceType cTypeElementNone(NullabilitySuffix nullability) {
-      return interfaceType(
-        cElementNone,
-        nullabilitySuffix: nullability,
-      );
-    }
-
-    InterfaceType cTypeElementStar(NullabilitySuffix nullability) {
-      return interfaceType(
-        cElementStar,
-        nullabilitySuffix: nullability,
-      );
-    }
-
-    var cNoneQuestion = cTypeElementNone(NullabilitySuffix.question);
-    var cNoneStar = cTypeElementNone(NullabilitySuffix.star);
-    var cNoneNone = cTypeElementNone(NullabilitySuffix.none);
-
-    var cStarQuestion = cTypeElementStar(NullabilitySuffix.question);
-    var cStarStar = cTypeElementStar(NullabilitySuffix.star);
-    var cStarNone = cTypeElementStar(NullabilitySuffix.none);
+    var cNoneQuestion = interfaceType(
+      cElementNone,
+      nullabilitySuffix: NullabilitySuffix.question,
+    );
+    var cNoneNone = interfaceType(
+      cElementNone,
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
 
     void assertLUB(DartType type1, DartType type2, DartType expected) {
       expect(typeSystem.leastUpperBound(type1, type2), expected);
@@ -2201,46 +2132,10 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
     }
 
     assertLUB(bNoneQuestion, cNoneQuestion, aQuestion);
-    assertLUB(bNoneQuestion, cNoneStar, aQuestion);
     assertLUB(bNoneQuestion, cNoneNone, aQuestion);
-    assertLUB(bNoneQuestion, cStarQuestion, aQuestion);
-    assertLUB(bNoneQuestion, cStarStar, aQuestion);
-    assertLUB(bNoneQuestion, cStarNone, aQuestion);
-
-    assertLUB(bNoneStar, cNoneQuestion, aQuestion);
-    assertLUB(bNoneStar, cNoneStar, aStar);
-    assertLUB(bNoneStar, cNoneNone, aStar);
-    assertLUB(bNoneStar, cStarQuestion, aQuestion);
-    assertLUB(bNoneStar, cStarStar, aStar);
-    assertLUB(bNoneStar, cStarNone, aStar);
 
     assertLUB(bNoneNone, cNoneQuestion, aQuestion);
-    assertLUB(bNoneNone, cNoneStar, aStar);
     assertLUB(bNoneNone, cNoneNone, aNone);
-    assertLUB(bNoneNone, cStarQuestion, aQuestion);
-    assertLUB(bNoneNone, cStarStar, aStar);
-    assertLUB(bNoneNone, cStarNone, aNone);
-
-    assertLUB(bStarQuestion, cNoneQuestion, aQuestion);
-    assertLUB(bStarQuestion, cNoneStar, aQuestion);
-    assertLUB(bStarQuestion, cNoneNone, aQuestion);
-    assertLUB(bStarQuestion, cStarQuestion, aQuestion);
-    assertLUB(bStarQuestion, cStarStar, aQuestion);
-    assertLUB(bStarQuestion, cStarNone, aQuestion);
-
-    assertLUB(bStarStar, cNoneQuestion, aQuestion);
-    assertLUB(bStarStar, cNoneStar, aStar);
-    assertLUB(bStarStar, cNoneNone, aStar);
-    assertLUB(bStarStar, cStarQuestion, aQuestion);
-    assertLUB(bStarStar, cStarStar, aStar);
-    assertLUB(bStarStar, cStarNone, aStar);
-
-    assertLUB(bStarNone, cNoneQuestion, aQuestion);
-    assertLUB(bStarNone, cNoneStar, aStar);
-    assertLUB(bStarNone, cNoneNone, aNone);
-    assertLUB(bStarNone, cStarQuestion, aQuestion);
-    assertLUB(bStarNone, cStarStar, aStar);
-    assertLUB(bStarNone, cStarNone, aNone);
   }
 
   void test_sharedSuperclass2() {
@@ -3302,7 +3197,7 @@ class UpperBoundTest extends _BoundsTestBase {
     var A = class_(name: 'A', typeParameters: [T]);
 
     // A<num>
-    var A_num = interfaceTypeStar(A, typeArguments: [numNone]);
+    var A_num = interfaceTypeNone(A, typeArguments: [numNone]);
 
     _checkLeastUpperBound(A_num, A_num, A_num);
   }
