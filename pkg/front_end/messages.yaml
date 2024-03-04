@@ -7606,3 +7606,9 @@ RecordUsedAsCallable:
   problemMessage: "The 'call' property on the record type isn't directly callable but could be invoked by `.call(...)`"
   script: |
     test(({dynamic call} r) => r(0);
+
+InvalidMacroApplicationTarget:
+  problemMessage: "The macro can only be applied to #string."
+
+NoMacroApplicationTarget:
+  problemMessage: "The macro can not be applied to this declaration."

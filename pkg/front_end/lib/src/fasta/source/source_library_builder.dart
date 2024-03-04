@@ -2799,11 +2799,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         application.cls.isAnonymousMixin = !isNamedMixinApplication;
         addBuilder(fullname, application, charOffset,
             getterReference: referencesFromIndexedClass?.cls.reference);
-        supertype = addNamedType(
-            new SyntheticTypeName(fullname, charOffset),
-            const NullabilityBuilder.omitted(),
-            applicationTypeArguments,
-            charOffset,
+        supertype = new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
+            application, const NullabilityBuilder.omitted(),
+            arguments: applicationTypeArguments,
+            fileUri: fileUri,
+            charOffset: charOffset,
             instanceTypeVariableAccess:
                 InstanceTypeVariableAccessState.Allowed);
         registerMixinApplication(application, mixin);

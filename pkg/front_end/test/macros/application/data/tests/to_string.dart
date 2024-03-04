@@ -13,6 +13,7 @@ import 'package:macro/macro.dart';
 @ToStringMacro()
 /*class: A:
 declarations:
+library augment 'org-dartlang-test:///a/b/c/main.dart';
 
 augment class A {
   toString() {
@@ -28,6 +29,7 @@ class A {
 @ToStringMacro()
 /*class: B:
 declarations:
+library augment 'org-dartlang-test:///a/b/c/main.dart';
 
 augment class B {
   toString() {
