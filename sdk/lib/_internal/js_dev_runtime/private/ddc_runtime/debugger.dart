@@ -514,7 +514,7 @@ bool _isDartClassObject(@notNull Object object) =>
 
 @notNull
 String _dartClassName(@notNull Object cls) {
-  var recipe = _get(cls, rti.interfaceTypeRecipePropertyName);
+  String recipe = _get(cls, rti.interfaceTypeRecipePropertyName);
   return recipe.split('|').last;
 }
 
