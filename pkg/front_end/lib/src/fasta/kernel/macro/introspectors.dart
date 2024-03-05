@@ -23,6 +23,7 @@ import '../../source/source_factory_builder.dart';
 import '../../source/source_field_builder.dart';
 import '../../source/source_loader.dart';
 import '../../source/source_procedure_builder.dart';
+import '../../uri_offset.dart';
 import '../hierarchy/hierarchy_builder.dart';
 import 'identifiers.dart';
 import 'types.dart';
@@ -41,8 +42,9 @@ class MacroIntrospection {
   Map<NominalVariableBuilder, macro.TypeParameterDeclarationImpl>
       _typeParameters = {};
   Map<TypeAliasBuilder, macro.TypeAliasDeclaration> _typeAliasDeclarations = {};
-  Map<MemberBuilder, macro.Declaration?> _memberDeclarations = {};
+  Map<MemberBuilder, macro.Declaration> _memberDeclarations = {};
   Map<LibraryBuilder, macro.LibraryImpl> _libraries = {};
+  Map<macro.Declaration, UriOffset> _declarationOffsets = {};
 
   MacroIntrospection(this._sourceLoader)
       : types = new MacroTypes(_sourceLoader);
@@ -64,30 +66,46 @@ class MacroIntrospection {
   }
 
   void clear() {
+    _libraries.clear();
+    _classDeclarations.clear();
+    _classBuilders.clear();
+    _memberDeclarations.clear();
+    _typeAliasDeclarations.clear();
+    _declarationOffsets.clear();
     types.clear();
   }
 
+  /// Returns the [UriOffset] associated with [declaration].
+  UriOffset getLocationFromDeclaration(macro.Declaration declaration) =>
+      _declarationOffsets[declaration]!;
+
+  /// Returns the [macro.Declaration] corresponding to [memberBuilder].
   macro.Declaration getMemberDeclaration(MemberBuilder memberBuilder) {
     memberBuilder = memberBuilder.origin as MemberBuilder;
     return _memberDeclarations[memberBuilder] ??=
         _createMemberDeclaration(memberBuilder);
   }
 
+  /// Returns the [macro.ParameterizedTypeDeclaration] corresponding to
+  /// [builder].
   macro.ParameterizedTypeDeclaration getClassDeclaration(ClassBuilder builder) {
     builder = builder.origin;
     return _classDeclarations[builder] ??= _createClassDeclaration(builder);
   }
 
+  /// Returns the [macro.TypeAliasDeclaration] corresponding to [builder].
   macro.TypeAliasDeclaration getTypeAliasDeclaration(TypeAliasBuilder builder) {
     return _typeAliasDeclarations[builder] ??=
         _createTypeAliasDeclaration(builder);
   }
 
+  /// Returns the [ClassBuilder] corresponding to [declaration].
   ClassBuilder _getClassBuilder(
       macro.ParameterizedTypeDeclaration declaration) {
     return _classBuilders[declaration]!;
   }
 
+  /// Creates the [macro.Declaration] corresponding to [memberBuilder].
   macro.Declaration _createMemberDeclaration(MemberBuilder memberBuilder) {
     if (memberBuilder is SourceProcedureBuilder) {
       return _createFunctionDeclaration(memberBuilder);
@@ -104,6 +122,8 @@ class MacroIntrospection {
     }
   }
 
+  /// Resolves [identifier] to the [macro.TypeDeclaration] that it corresponds
+  /// to.
   macro.TypeDeclaration resolveDeclaration(macro.Identifier identifier) {
     if (identifier is MemberBuilderIdentifier) {
       return getClassDeclaration(identifier.memberBuilder.classBuilder!);
@@ -131,6 +151,8 @@ class MacroIntrospection {
     }
   }
 
+  /// Resolves [identifier] to the [macro.ResolvedIdentifier] that it
+  /// corresponds to.
   macro.ResolvedIdentifier resolveIdentifier(macro.Identifier identifier) {
     if (identifier is IdentifierImpl) {
       return identifier.resolveIdentifier();
@@ -140,19 +162,25 @@ class MacroIntrospection {
     }
   }
 
+  /// Returns the [macro.LibraryImpl] corresponding to [builder].
   macro.LibraryImpl getLibrary(LibraryBuilder builder) {
-    return _libraries[builder] ??= () {
-      final Version version = builder.library.languageVersion;
-      return new macro.LibraryImpl(
-          id: macro.RemoteInstance.uniqueId,
-          uri: builder.importUri,
-          languageVersion:
-              new macro.LanguageVersionImpl(version.major, version.minor),
-          // TODO: Provide metadata annotations.
-          metadata: const []);
-    }();
+    return _libraries[builder] ??= _createLibraryImpl(builder);
   }
 
+  /// Creates the [macro.LibraryImpl] corresponding to [builder].
+  macro.LibraryImpl _createLibraryImpl(LibraryBuilder builder) {
+    final Version version = builder.library.languageVersion;
+    return new macro.LibraryImpl(
+        id: macro.RemoteInstance.uniqueId,
+        uri: builder.importUri,
+        languageVersion:
+            new macro.LanguageVersionImpl(version.major, version.minor),
+        // TODO(johnniwinther): Provide metadata annotations.
+        metadata: const []);
+  }
+
+  /// Creates the [macro.ParameterizedTypeDeclaration] corresponding to
+  /// [builder].
   macro.ParameterizedTypeDeclaration _createClassDeclaration(
       ClassBuilder builder) {
     assert(
@@ -184,7 +212,7 @@ class MacroIntrospection {
         _nominalVariableBuildersToDeclarations(
             builder.libraryBuilder, builder.typeVariables);
     final List<macro.NamedTypeAnnotationImpl> interfaces =
-        types.typeBuildersToAnnotations(
+        types.getNamedTypeAnnotations(
             builder.libraryBuilder, builder.interfaceBuilders);
     final macro.LibraryImpl library = getLibrary(builder.libraryBuilder);
 
@@ -198,7 +226,7 @@ class MacroIntrospection {
                 typeParameters: typeParameters,
                 hasBase: builder.isBase,
                 interfaces: interfaces,
-                superclassConstraints: types.typeBuildersToAnnotations(
+                superclassConstraints: types.getNamedTypeAnnotations(
                     builder.libraryBuilder, builder.onTypes))
             // This cast is not necessary but LUB doesn't give the desired type
             // without it.
@@ -219,16 +247,19 @@ class MacroIntrospection {
             hasMixin: builder.isMixinClass,
             hasSealed: builder.isSealed,
             mixins:
-                types.typeBuildersToAnnotations(builder.libraryBuilder, mixins),
+                types.getNamedTypeAnnotations(builder.libraryBuilder, mixins),
             superclass: supertypeBuilder != null
-                ? types.computeTypeAnnotation(
+                ? types.getTypeAnnotation(
                         builder.libraryBuilder, supertypeBuilder)
                     as macro.NamedTypeAnnotationImpl
                 : null);
     _classBuilders[declaration] = builder;
+    _declarationOffsets[declaration] =
+        new UriOffset(builder.fileUri, builder.charOffset);
     return declaration;
   }
 
+  /// Creates the [macro.TypeAliasDeclaration] corresponding to [builder].
   macro.TypeAliasDeclaration _createTypeAliasDeclaration(
       TypeAliasBuilder builder) {
     final macro.LibraryImpl library = getLibrary(builder.libraryBuilder);
@@ -247,30 +278,36 @@ class MacroIntrospection {
         metadata: const [],
         typeParameters: typeParameters,
         aliasedType:
-            types.computeTypeAnnotation(builder.libraryBuilder, builder.type));
+            types.getTypeAnnotation(builder.libraryBuilder, builder.type));
+    _declarationOffsets[declaration] =
+        new UriOffset(builder.fileUri, builder.charOffset);
     return declaration;
   }
 
-  List<List<macro.FormalParameterDeclarationImpl>> _createParameters(
-      MemberBuilder builder, List<FormalParameterBuilder>? formals) {
-    List<macro.FormalParameterDeclarationImpl>? positionalParameters;
-    List<macro.FormalParameterDeclarationImpl>? namedParameters;
+  /// Creates the positional and named [macro.FormalParameterDeclarationImpl]s
+  /// for [formals].
+  (
+    List<macro.FormalParameterDeclarationImpl>,
+    List<macro.FormalParameterDeclarationImpl>
+  ) _createParameters(
+      LibraryBuilder libraryBuilder, List<FormalParameterBuilder>? formals) {
     if (formals == null) {
-      positionalParameters = namedParameters = const [];
+      return const ([], []);
     } else {
-      positionalParameters = [];
-      namedParameters = [];
-      final macro.LibraryImpl library = getLibrary(builder.libraryBuilder);
+      List<macro.FormalParameterDeclarationImpl> positionalParameters = [];
+      List<macro.FormalParameterDeclarationImpl> namedParameters = [];
+      final macro.LibraryImpl library = getLibrary(libraryBuilder);
       for (FormalParameterBuilder formal in formals) {
         macro.TypeAnnotationImpl type =
-            types.computeTypeAnnotation(builder.libraryBuilder, formal.type);
+            types.getTypeAnnotation(libraryBuilder, formal.type);
         macro.IdentifierImpl identifier = new FormalParameterBuilderIdentifier(
             id: macro.RemoteInstance.uniqueId,
             name: formal.name,
             parameterBuilder: formal,
-            libraryBuilder: builder.libraryBuilder);
+            libraryBuilder: libraryBuilder);
         if (formal.isNamed) {
-          namedParameters.add(new macro.FormalParameterDeclarationImpl(
+          macro.FormalParameterDeclarationImpl declaration =
+              new macro.FormalParameterDeclarationImpl(
             id: macro.RemoteInstance.uniqueId,
             identifier: identifier,
             library: library,
@@ -279,9 +316,13 @@ class MacroIntrospection {
             isRequired: formal.isRequiredNamed,
             isNamed: true,
             type: type,
-          ));
+          );
+          namedParameters.add(declaration);
+          _declarationOffsets[declaration] =
+              new UriOffset(formal.fileUri, formal.charOffset);
         } else {
-          positionalParameters.add(new macro.FormalParameterDeclarationImpl(
+          macro.FormalParameterDeclarationImpl declaration =
+              new macro.FormalParameterDeclarationImpl(
             id: macro.RemoteInstance.uniqueId,
             identifier: identifier,
             library: library,
@@ -290,13 +331,17 @@ class MacroIntrospection {
             isRequired: formal.isRequiredPositional,
             isNamed: false,
             type: type,
-          ));
+          );
+          positionalParameters.add(declaration);
+          _declarationOffsets[declaration] =
+              new UriOffset(formal.fileUri, formal.charOffset);
         }
       }
+      return (positionalParameters, namedParameters);
     }
-    return [positionalParameters, namedParameters];
   }
 
+  /// Creates the [macro.ConstructorDeclaration] corresponding to [builder].
   macro.ConstructorDeclaration _createConstructorDeclaration(
       SourceConstructorBuilder builder) {
     List<FormalParameterBuilder>? formals = null;
@@ -304,11 +349,14 @@ class MacroIntrospection {
     if (builder is DeclaredSourceConstructorBuilder) {
       formals = builder.formals;
     }
-    List<List<macro.FormalParameterDeclarationImpl>> parameters =
-        _createParameters(builder, formals);
+    var (
+      List<macro.FormalParameterDeclarationImpl> positionalParameters,
+      List<macro.FormalParameterDeclarationImpl> namedParameters
+    ) = _createParameters(builder.libraryBuilder, formals);
     macro.ParameterizedTypeDeclaration definingClass =
         getClassDeclaration(builder.classBuilder!);
-    return new macro.ConstructorDeclarationImpl(
+    macro.ConstructorDeclaration declaration =
+        new macro.ConstructorDeclarationImpl(
       id: macro.RemoteInstance.uniqueId,
       identifier: new MemberBuilderIdentifier(
           memberBuilder: builder,
@@ -322,24 +370,33 @@ class MacroIntrospection {
       // TODO(johnniwinther): Real implementation of hasBody.
       hasBody: true,
       hasExternal: builder.isExternal,
-      positionalParameters: parameters[0],
-      namedParameters: parameters[1],
+      positionalParameters: positionalParameters,
+      namedParameters: namedParameters,
       // TODO(johnniwinther): Support constructor return type.
-      returnType: types.computeTypeAnnotation(builder.libraryBuilder, null),
+      returnType: types.getTypeAnnotation(builder.libraryBuilder, null),
       // TODO(johnniwinther): Support typeParameters
       typeParameters: const [],
     );
+    if (builder.fileUri != null) {
+      _declarationOffsets[declaration] =
+          new UriOffset(builder.fileUri!, builder.charOffset);
+    }
+    return declaration;
   }
 
+  /// Creates the [macro.ConstructorDeclaration] corresponding to [builder].
   macro.ConstructorDeclaration _createFactoryDeclaration(
       SourceFactoryBuilder builder) {
-    List<List<macro.FormalParameterDeclarationImpl>> parameters =
-        _createParameters(builder, builder.formals);
+    var (
+      List<macro.FormalParameterDeclarationImpl> positionalParameters,
+      List<macro.FormalParameterDeclarationImpl> namedParameters
+    ) = _createParameters(builder.libraryBuilder, builder.formals);
     macro.ParameterizedTypeDeclaration definingClass =
         // TODO(johnniwinther): Support extension type factories.
         getClassDeclaration(builder.classBuilder!);
 
-    return new macro.ConstructorDeclarationImpl(
+    macro.ConstructorDeclaration declaration =
+        new macro.ConstructorDeclarationImpl(
       id: macro.RemoteInstance.uniqueId,
       identifier: new MemberBuilderIdentifier(
           memberBuilder: builder,
@@ -353,36 +410,43 @@ class MacroIntrospection {
       // TODO(johnniwinther): Real implementation of hasBody.
       hasBody: true,
       hasExternal: builder.isExternal,
-      positionalParameters: parameters[0],
-      namedParameters: parameters[1],
+      positionalParameters: positionalParameters,
+      namedParameters: namedParameters,
       // TODO(johnniwinther): Support constructor return type.
-      returnType: types.computeTypeAnnotation(builder.libraryBuilder, null),
+      returnType: types.getTypeAnnotation(builder.libraryBuilder, null),
       // TODO(johnniwinther): Support typeParameters
       typeParameters: const [],
     );
+    _declarationOffsets[declaration] =
+        new UriOffset(builder.fileUri, builder.charOffset);
+    return declaration;
   }
 
+  /// Creates the [macro.FunctionDeclaration] corresponding to [builder].
   macro.FunctionDeclaration _createFunctionDeclaration(
       SourceProcedureBuilder builder) {
-    List<List<macro.FormalParameterDeclarationImpl>> parameters =
-        _createParameters(builder, builder.formals);
+    var (
+      List<macro.FormalParameterDeclarationImpl> positionalParameters,
+      List<macro.FormalParameterDeclarationImpl> namedParameters
+    ) = _createParameters(builder.libraryBuilder, builder.formals);
 
     macro.ParameterizedTypeDeclaration? definingClass = null;
     if (builder.classBuilder != null) {
       definingClass = getClassDeclaration(builder.classBuilder!);
     }
     final macro.LibraryImpl library = getLibrary(builder.libraryBuilder);
+    macro.FunctionDeclaration declaration;
     if (definingClass != null) {
       // TODO(johnniwinther): Should static fields be field or variable
       //  declarations?
-      return new macro.MethodDeclarationImpl(
+      declaration = new macro.MethodDeclarationImpl(
           id: macro.RemoteInstance.uniqueId,
           identifier: new MemberBuilderIdentifier(
               memberBuilder: builder,
               id: macro.RemoteInstance.uniqueId,
               name: builder.name),
           library: library,
-          // TODO: Provide metadata annotations.
+          // TODO(johnniwinther): Provide metadata annotations.
           metadata: const [],
           definingType: definingClass.identifier as macro.IdentifierImpl,
           // TODO(johnniwinther): Real implementation of hasBody.
@@ -392,14 +456,14 @@ class MacroIntrospection {
           isOperator: builder.isOperator,
           isSetter: builder.isSetter,
           hasStatic: builder.isStatic,
-          positionalParameters: parameters[0],
-          namedParameters: parameters[1],
-          returnType: types.computeTypeAnnotation(
+          positionalParameters: positionalParameters,
+          namedParameters: namedParameters,
+          returnType: types.getTypeAnnotation(
               builder.libraryBuilder, builder.returnType),
           // TODO(johnniwinther): Support typeParameters
           typeParameters: const []);
     } else {
-      return new macro.FunctionDeclarationImpl(
+      declaration = new macro.FunctionDeclarationImpl(
           id: macro.RemoteInstance.uniqueId,
           identifier: new MemberBuilderIdentifier(
               memberBuilder: builder,
@@ -414,15 +478,19 @@ class MacroIntrospection {
           isGetter: builder.isGetter,
           isOperator: builder.isOperator,
           isSetter: builder.isSetter,
-          positionalParameters: parameters[0],
-          namedParameters: parameters[1],
-          returnType: types.computeTypeAnnotation(
+          positionalParameters: positionalParameters,
+          namedParameters: namedParameters,
+          returnType: types.getTypeAnnotation(
               builder.libraryBuilder, builder.returnType),
           // TODO(johnniwinther): Support typeParameters
           typeParameters: const []);
     }
+    _declarationOffsets[declaration] =
+        new UriOffset(builder.fileUri, builder.charOffset);
+    return declaration;
   }
 
+  /// Creates the [macro.VariableDeclaration] corresponding to [builder].
   macro.VariableDeclaration _createVariableDeclaration(
       SourceFieldBuilder builder) {
     macro.ParameterizedTypeDeclaration? definingClass = null;
@@ -430,10 +498,11 @@ class MacroIntrospection {
       definingClass = getClassDeclaration(builder.classBuilder!);
     }
     final macro.LibraryImpl library = getLibrary(builder.libraryBuilder);
+    macro.VariableDeclaration declaration;
     if (definingClass != null) {
       // TODO(johnniwinther): Should static fields be field or variable
       //  declarations?
-      return new macro.FieldDeclarationImpl(
+      declaration = new macro.FieldDeclarationImpl(
           id: macro.RemoteInstance.uniqueId,
           identifier: new MemberBuilderIdentifier(
               memberBuilder: builder,
@@ -450,10 +519,9 @@ class MacroIntrospection {
           hasInitializer: builder.hasInitializer,
           hasLate: builder.isLate,
           hasStatic: builder.isStatic,
-          type: types.computeTypeAnnotation(
-              builder.libraryBuilder, builder.type));
+          type: types.getTypeAnnotation(builder.libraryBuilder, builder.type));
     } else {
-      return new macro.VariableDeclarationImpl(
+      declaration = new macro.VariableDeclarationImpl(
           id: macro.RemoteInstance.uniqueId,
           identifier: new MemberBuilderIdentifier(
               memberBuilder: builder,
@@ -467,29 +535,43 @@ class MacroIntrospection {
           hasFinal: builder.isFinal,
           hasInitializer: builder.hasInitializer,
           hasLate: builder.isLate,
-          type: types.computeTypeAnnotation(
-              builder.libraryBuilder, builder.type));
+          type: types.getTypeAnnotation(builder.libraryBuilder, builder.type));
     }
+    _declarationOffsets[declaration] =
+        new UriOffset(builder.fileUri, builder.charOffset);
+    return declaration;
   }
 
+  /// Creates the [macro.TypeParameterDeclarationImpl] corresponding to the
+  /// nominal type variable [builder] occurring in [libraryBuilder].
   macro.TypeParameterDeclarationImpl _createTypeParameterDeclaration(
       LibraryBuilder libraryBuilder,
       NominalVariableBuilder nominalVariableBuilder) {
     final macro.LibraryImpl library = getLibrary(libraryBuilder);
-    return new macro.TypeParameterDeclarationImpl(
-        id: macro.RemoteInstance.uniqueId,
-        identifier: new TypeDeclarationBuilderIdentifier(
-            typeDeclarationBuilder: nominalVariableBuilder,
-            libraryBuilder: libraryBuilder,
+    macro.TypeParameterDeclarationImpl declaration =
+        new macro.TypeParameterDeclarationImpl(
             id: macro.RemoteInstance.uniqueId,
-            name: nominalVariableBuilder.name),
-        library: library,
-        // TODO: Provide metadata annotations.
-        metadata: const [],
-        bound: types.computeTypeAnnotation(
-            libraryBuilder, nominalVariableBuilder.bound));
+            identifier: new TypeDeclarationBuilderIdentifier(
+                typeDeclarationBuilder: nominalVariableBuilder,
+                libraryBuilder: libraryBuilder,
+                id: macro.RemoteInstance.uniqueId,
+                name: nominalVariableBuilder.name),
+            library: library,
+            // TODO: Provide metadata annotations.
+            metadata: const [],
+            bound: nominalVariableBuilder.bound != null
+                ? types.getTypeAnnotation(
+                    libraryBuilder, nominalVariableBuilder.bound!)
+                : null);
+    if (nominalVariableBuilder.fileUri != null) {
+      _declarationOffsets[declaration] = new UriOffset(
+          nominalVariableBuilder.fileUri!, nominalVariableBuilder.charOffset);
+    }
+    return declaration;
   }
 
+  /// Returns the [macro.TypeParameterDeclarationImpl] corresponding to the
+  /// nominal type variable [builder] occurring in [libraryBuilder].
   macro.TypeParameterDeclarationImpl _getTypeParameterDeclaration(
       LibraryBuilder libraryBuilder,
       NominalVariableBuilder nominalVariableBuilder) {
@@ -497,11 +579,13 @@ class MacroIntrospection {
         _createTypeParameterDeclaration(libraryBuilder, nominalVariableBuilder);
   }
 
+  /// Returns the [macro.TypeParameterDeclarationImpl]s corresponding to the
+  /// nominal [typeParameterBuilders] occurring in [libraryBuilder].
   List<macro.TypeParameterDeclarationImpl>
       _nominalVariableBuildersToDeclarations(LibraryBuilder libraryBuilder,
           List<NominalVariableBuilder>? typeParameterBuilders) {
     return typeParameterBuilders == null
-        ? []
+        ? const []
         : typeParameterBuilders
             .map((NominalVariableBuilder typeBuilder) =>
                 _getTypeParameterDeclaration(libraryBuilder, typeBuilder))
@@ -663,7 +747,7 @@ class _DefinitionPhaseIntrospector extends _DeclarationPhaseIntrospector
   @override
   Future<macro.TypeAnnotation> inferType(
           macro.OmittedTypeAnnotation omittedType) =>
-      new Future.value(_introspection.types.inferOmittedType(omittedType)!);
+      new Future.value(_introspection.types.inferOmittedType(omittedType));
 
   @override
   Future<List<macro.Declaration>> topLevelDeclarationsOf(

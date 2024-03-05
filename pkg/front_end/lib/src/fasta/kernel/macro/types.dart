@@ -11,10 +11,14 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/src/types.dart';
 import 'package:kernel/type_environment.dart' show SubtypeCheckMode;
 
+import '../../builder/declaration_builders.dart';
+import '../../builder/formal_parameter_builder.dart';
 import '../../builder/library_builder.dart';
 import '../../builder/nullability_builder.dart';
+import '../../builder/record_type_builder.dart';
 import '../../builder/type_builder.dart';
 import '../../source/source_loader.dart';
+import '../../uri_offset.dart';
 import '../hierarchy/hierarchy_builder.dart';
 import 'identifiers.dart';
 
@@ -26,6 +30,7 @@ class MacroTypes {
   late Types _types;
 
   Map<TypeBuilder?, macro.TypeAnnotationImpl> _typeAnnotationCache = {};
+  Map<macro.TypeAnnotation, UriOffset> _typeAnnotationOffsets = {};
 
   Map<DartType, _StaticTypeImpl> _staticTypeCache = {};
 
@@ -38,23 +43,98 @@ class MacroTypes {
   void clear() {
     _staticTypeCache.clear();
     _typeAnnotationCache.clear();
+    _typeAnnotationOffsets.clear();
   }
 
-  List<macro.TypeAnnotationImpl> computeTypeAnnotations(
+  /// Returns the [UriOffset] for [typeAnnotation], if any.
+  UriOffset? getLocationFromTypeAnnotation(
+          macro.TypeAnnotation typeAnnotation) =>
+      _typeAnnotationOffsets[typeAnnotation];
+
+  /// Returns the list of [macro.TypeAnnotationImpl]s corresponding to
+  /// [typeBuilders] occurring in [libraryBuilder].
+  List<macro.TypeAnnotationImpl> getTypeAnnotations(
       LibraryBuilder library, List<TypeBuilder>? typeBuilders) {
     if (typeBuilders == null) return const [];
     return new List.generate(typeBuilders.length,
-        (int index) => computeTypeAnnotation(library, typeBuilders[index]));
+        (int index) => getTypeAnnotation(library, typeBuilders[index]));
   }
 
-  macro.TypeAnnotationImpl _computeTypeAnnotation(
+  /// Returns the list of [macro.NamedTypeAnnotationImpl]s corresponding to
+  /// [typeBuilders] occurring in [libraryBuilder].
+  List<macro.NamedTypeAnnotationImpl> getNamedTypeAnnotations(
+      LibraryBuilder library, List<TypeBuilder>? typeBuilders) {
+    if (typeBuilders == null) return const [];
+    return new List.generate(
+        typeBuilders.length,
+        (int index) => getTypeAnnotation(library, typeBuilders[index])
+            as macro.NamedTypeAnnotationImpl);
+  }
+
+  /// Creates the [macro.FormalParameterImpl]s corresponding to [formals]
+  /// occurring in [libraryBuilder].
+  (List<macro.FormalParameterImpl>, List<macro.FormalParameterImpl>)
+      _createParameters(
+          LibraryBuilder libraryBuilder, List<ParameterBuilder>? formals) {
+    if (formals == null) {
+      return const ([], []);
+    } else {
+      List<macro.FormalParameterImpl> positionalParameters = [];
+      List<macro.FormalParameterImpl> namedParameters = [];
+      for (ParameterBuilder formal in formals) {
+        macro.TypeAnnotationImpl type =
+            getTypeAnnotation(libraryBuilder, formal.type);
+        if (formal.isNamed) {
+          macro.FormalParameterImpl declaration = new macro.FormalParameterImpl(
+            id: macro.RemoteInstance.uniqueId,
+            name: formal.name,
+            // TODO(johnniwinther): Provide metadata annotations.
+            metadata: const [],
+            isRequired: formal.isRequiredNamed,
+            isNamed: true,
+            type: type,
+          );
+          namedParameters.add(declaration);
+        } else {
+          macro.FormalParameterImpl declaration = new macro.FormalParameterImpl(
+            id: macro.RemoteInstance.uniqueId,
+            name: formal.name,
+            // TODO(johnniwinther): Provide metadata annotations.
+            metadata: const [],
+            isRequired: formal.isRequiredPositional,
+            isNamed: false,
+            type: type,
+          );
+          positionalParameters.add(declaration);
+        }
+      }
+      return (positionalParameters, namedParameters);
+    }
+  }
+
+  /// Creates the [macro.RecordFieldDeclarationImpl]s corresponding to [fields]
+  /// occurring in [libraryBuilder].
+  List<macro.RecordFieldDeclarationImpl> _createRecordFields(
+      LibraryBuilder libraryBuilder, List<RecordTypeFieldBuilder>? fields) {
+    // TODO(johnniwinther): Support record fields once they are not required to
+    //  be declarations.
+    return const [];
+  }
+
+  /// Creates the [macro.TypeAnnotationImpl] corresponding to [typeBuilder]
+  /// occurring in [libraryBuilder].
+  macro.TypeAnnotationImpl _createTypeAnnotation(
       LibraryBuilder libraryBuilder, TypeBuilder? typeBuilder) {
+    macro.TypeAnnotationImpl typeAnnotation;
+    UriOffset? uriOffset = typeBuilder?.fileUri != null
+        ? new UriOffset(typeBuilder!.fileUri!, typeBuilder.charOffset!)
+        : null;
     switch (typeBuilder) {
       case NamedTypeBuilder():
         List<macro.TypeAnnotationImpl> typeArguments =
-            computeTypeAnnotations(libraryBuilder, typeBuilder.typeArguments);
+            getTypeAnnotations(libraryBuilder, typeBuilder.typeArguments);
         bool isNullable = typeBuilder.nullabilityBuilder.isNullable;
-        return new macro.NamedTypeAnnotationImpl(
+        typeAnnotation = new macro.NamedTypeAnnotationImpl(
             id: macro.RemoteInstance.uniqueId,
             identifier: new TypeBuilderIdentifier(
                 typeBuilder: typeBuilder,
@@ -64,29 +144,74 @@ class MacroTypes {
             typeArguments: typeArguments,
             isNullable: isNullable);
       case OmittedTypeBuilder():
-        return new _OmittedTypeAnnotationImpl(typeBuilder,
+        typeAnnotation = new _OmittedTypeAnnotationImpl(typeBuilder,
             id: macro.RemoteInstance.uniqueId);
-      case FunctionTypeBuilder():
-      case InvalidTypeBuilder():
-      case RecordTypeBuilder():
-      case FixedTypeBuilder():
+      case FunctionTypeBuilder(
+          :TypeBuilder returnType,
+          :List<ParameterBuilder>? formals,
+          :List<StructuralVariableBuilder>? typeVariables
+        ):
+        bool isNullable = typeBuilder.nullabilityBuilder.isNullable;
+        var (
+          List<macro.FormalParameterImpl> positionalParameters,
+          List<macro.FormalParameterImpl> namedParameters
+        ) = _createParameters(libraryBuilder, formals);
+        List<macro.TypeParameterImpl> typeParameters = [];
+        if (typeVariables != null) {
+          for (StructuralVariableBuilder typeVariable in typeVariables) {
+            typeParameters.add(new macro.TypeParameterImpl(
+                id: macro.RemoteInstance.uniqueId,
+                bound: typeVariable.bound != null
+                    ? _createTypeAnnotation(libraryBuilder, typeVariable.bound)
+                    : null,
+                metadata: const [],
+                name: typeVariable.name));
+          }
+        }
+        typeAnnotation = new macro.FunctionTypeAnnotationImpl(
+            id: macro.RemoteInstance.uniqueId,
+            isNullable: isNullable,
+            namedParameters: namedParameters,
+            positionalParameters: positionalParameters,
+            returnType: getTypeAnnotation(libraryBuilder, returnType),
+            typeParameters: typeParameters);
+      case RecordTypeBuilder(
+          :List<RecordTypeFieldBuilder>? positionalFields,
+          :List<RecordTypeFieldBuilder>? namedFields
+        ):
+        bool isNullable = typeBuilder.nullabilityBuilder.isNullable;
+        typeAnnotation = new macro.RecordTypeAnnotationImpl(
+            id: macro.RemoteInstance.uniqueId,
+            isNullable: isNullable,
+            positionalFields:
+                _createRecordFields(libraryBuilder, positionalFields),
+            namedFields: _createRecordFields(libraryBuilder, namedFields));
       case null:
-        // TODO(johnniwinther): Should this only be for `null`? Can the other
-        // type builders be observed here?
+        // TODO(johnniwinther): Is this an error case?
         return new macro.NamedTypeAnnotationImpl(
             id: macro.RemoteInstance.uniqueId,
             identifier: omittedTypeIdentifier,
             isNullable: false,
             typeArguments: const []);
+      case InvalidTypeBuilder():
+      case FixedTypeBuilder():
+        throw new UnsupportedError("Unexpected type builder $typeBuilder");
     }
+    if (uriOffset != null) {
+      _typeAnnotationOffsets[typeAnnotation] = uriOffset;
+    }
+    return typeAnnotation;
   }
 
-  macro.TypeAnnotationImpl computeTypeAnnotation(
+  /// Returns the [macro.TypeAnnotationImpl] corresponding to [typeBuilder]
+  /// occurring in [libraryBuilder].
+  macro.TypeAnnotationImpl getTypeAnnotation(
       LibraryBuilder libraryBuilder, TypeBuilder? typeBuilder) {
     return _typeAnnotationCache[typeBuilder] ??=
-        _computeTypeAnnotation(libraryBuilder, typeBuilder);
+        _createTypeAnnotation(libraryBuilder, typeBuilder);
   }
 
+  /// Returns the [DartType] corresponding to [typeAnnotation].
   DartType _typeForAnnotation(macro.TypeAnnotationCode typeAnnotation) {
     NullabilityBuilder nullabilityBuilder;
     if (typeAnnotation is macro.NullableTypeAnnotationCode) {
@@ -110,40 +235,41 @@ class MacroTypes {
         'Unimplemented type annotation kind ${typeAnnotation.kind}');
   }
 
+  /// Returns the resolved [macro.StaticType] for [typeAnnotation].
   macro.StaticType resolveTypeAnnotation(
       macro.TypeAnnotationCode typeAnnotation) {
-    return createStaticType(_typeForAnnotation(typeAnnotation));
+    return _createStaticType(_typeForAnnotation(typeAnnotation));
   }
 
-  macro.StaticType createStaticType(DartType dartType) {
+  /// Creates the [macro.StaticType] corresponding to [dartType].
+  macro.StaticType _createStaticType(DartType dartType) {
     return _staticTypeCache[dartType] ??= new _StaticTypeImpl(_types, dartType);
   }
 
-  List<macro.NamedTypeAnnotationImpl> typeBuildersToAnnotations(
-      LibraryBuilder libraryBuilder, List<TypeBuilder>? typeBuilders) {
-    return typeBuilders == null
-        ? []
-        : typeBuilders
-            .map((TypeBuilder typeBuilder) =>
-                computeTypeAnnotation(libraryBuilder, typeBuilder)
-                    as macro.NamedTypeAnnotationImpl)
-            .toList();
-  }
-
+  /// Returns the [macro.TypeAnnotation] for the inferred type of [omittedType],
+  /// or `null` if the type has not yet been inferred.
   macro.TypeAnnotation? inferOmittedType(
       macro.OmittedTypeAnnotation omittedType) {
     if (omittedType is _OmittedTypeAnnotationImpl) {
       OmittedTypeBuilder typeBuilder = omittedType.typeBuilder;
       if (typeBuilder.hasType) {
-        return computeTypeAnnotation(
+        return getTypeAnnotation(
             _sourceLoader.coreLibrary,
             _sourceLoader.target.dillTarget.loader
                 .computeTypeBuilder(typeBuilder.type));
       }
+      return null;
     }
-    return null;
+    throw new UnsupportedError(
+        "Unexpected OmittedTypeAnnotation implementation "
+        "${omittedType.runtimeType}.");
   }
 
+  /// Computes a map of the [OmittedTypeBuilder]s corresponding to the
+  /// [macro.OmittedTypeAnnotation]s in [omittedTypes]. The synthesized names
+  /// in [omittedTypes] are used as the keys in the returned map.
+  ///
+  /// If [omittedTypes] is empty, `null` is returned.
   Map<String, OmittedTypeBuilder>? computeOmittedTypeBuilders(
       Map<macro.OmittedTypeAnnotation, String> omittedTypes) {
     if (omittedTypes.isEmpty) {
