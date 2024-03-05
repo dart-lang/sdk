@@ -41,18 +41,18 @@ class ContextTypeTest extends AbstractSingleUnitTest {
   Future<void>
       test_topLevelFunction_functionTypedArgument_noParameterName() async {
     await resolveTestCode('''
-void f(void Function(int) g) {}
+void f(void Function(int) closure) {}
 ''');
     var suggestion = await forTopLevelFunction('f');
-    assertSuggestion(suggestion, expectedDefaultArgumentList: '(p0) { }');
+    assertSuggestion(suggestion, expectedDefaultArgumentList: 'closure');
   }
 
   Future<void>
       test_topLevelFunction_functionTypedArgument_potentialDuplication() async {
     await resolveTestCode('''
-void f(void Function(int, int p0) g) {}
+void f(void Function(int, int p0) closure) {}
 ''');
     var suggestion = await forTopLevelFunction('f');
-    assertSuggestion(suggestion, expectedDefaultArgumentList: '(p0_1, p0) { }');
+    assertSuggestion(suggestion, expectedDefaultArgumentList: 'closure');
   }
 }
