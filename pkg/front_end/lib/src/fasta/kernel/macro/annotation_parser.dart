@@ -18,6 +18,7 @@ import '../../builder/prefix_builder.dart';
 import '../../scope.dart';
 import '../../source/diet_parser.dart';
 import '../../source/source_library_builder.dart';
+import '../../uri_offset.dart';
 import 'macro.dart';
 
 List<MacroApplication>? prebuildAnnotations(
@@ -211,15 +212,14 @@ class _MacroListener implements Listener {
             constructorName,
             new macro.Arguments(argumentsNode.positionalArguments,
                 argumentsNode.namedArguments),
-            fileUri: uri,
-            fileOffset: beginToken.next!.charOffset)));
+            uriOffset: new UriOffset(uri, beginToken.next!.charOffset))));
         return;
       }
     } else {
       if (_macroClassBuilder != null && _unhandledReason != null) {
         _erroneousMacroApplication = new MacroApplication.error(
             _unhandledReason!, _macroClassBuilder!,
-            fileUri: uri, fileOffset: beginToken.next!.charOffset);
+            uriOffset: new UriOffset(uri, beginToken.next!.charOffset));
       }
     }
     pushUnsupported();

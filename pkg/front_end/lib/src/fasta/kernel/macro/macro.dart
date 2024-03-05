@@ -7,6 +7,7 @@ import 'package:_fe_analyzer_shared/src/macros/executor.dart' as macro;
 import 'package:_fe_analyzer_shared/src/macros/executor/span.dart' as macro;
 import 'package:_fe_analyzer_shared/src/macros/uri.dart';
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
+import 'package:front_end/src/fasta/uri_offset.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 
@@ -48,19 +49,18 @@ class MacroDeclarationData {
 }
 
 class MacroApplication {
-  final Uri fileUri;
-  final int fileOffset;
+  final UriOffset uriOffset;
   final ClassBuilder classBuilder;
   final String constructorName;
   final macro.Arguments arguments;
   final String? errorReason;
 
   MacroApplication(this.classBuilder, this.constructorName, this.arguments,
-      {required this.fileUri, required this.fileOffset})
+      {required this.uriOffset})
       : errorReason = null;
 
   MacroApplication.error(String this.errorReason, this.classBuilder,
-      {required this.fileUri, required this.fileOffset})
+      {required this.uriOffset})
       : constructorName = '',
         arguments = new macro.Arguments(const [], const {});
 
@@ -226,7 +226,7 @@ void checkMacroApplications(
               in applicationData.macroApplications) {
             Map<int, MacroApplication> applications =
                 macroApplications[application.classBuilder.cls] ??= {};
-            int fileOffset = application.fileOffset;
+            int fileOffset = application.uriOffset.fileOffset;
             assert(
                 !applications.containsKey(fileOffset),
                 "Multiple annotations at offset $fileOffset: "
@@ -548,16 +548,16 @@ class MacroApplications {
                 //  macro interfaces?
                 applicationData.libraryBuilder.addProblem(
                     messageNoMacroApplicationTarget,
-                    application.fileOffset,
+                    application.uriOffset.fileOffset,
                     noLength,
-                    application.fileUri);
+                    application.uriOffset.uri);
               } else {
                 applicationData.libraryBuilder.addProblem(
                     templateInvalidMacroApplicationTarget.withArguments(
                         DeclarationKindHelper.joinWithOr(supportedKinds)),
-                    application.fileOffset,
+                    application.uriOffset.fileOffset,
                     noLength,
-                    application.fileUri);
+                    application.uriOffset.uri);
               }
             }
             benchmarker?.endSubdivide();
@@ -611,7 +611,8 @@ class MacroApplications {
               macroApplication.instanceIdentifier,
               macroTarget,
               _macroIntrospection.typePhaseIntrospector);
-      result.reportDiagnostics(macroApplication, applicationData);
+      result.reportDiagnostics(
+          _macroIntrospection, macroApplication, applicationData);
       if (result.isNotEmpty) {
         _registerMacroExecutionResult(originLibraryBuilder, result);
         results.add(result);
@@ -727,7 +728,8 @@ class MacroApplications {
               macroApplication.instanceIdentifier,
               macroTarget,
               _macroIntrospection.declarationPhaseIntrospector);
-      result.reportDiagnostics(macroApplication, applicationData);
+      result.reportDiagnostics(
+          _macroIntrospection, macroApplication, applicationData);
       if (result.isNotEmpty) {
         Map<macro.OmittedTypeAnnotation, String> omittedTypes = {};
         List<macro.Span> spans = [];
@@ -846,7 +848,8 @@ class MacroApplications {
               macroApplication.instanceIdentifier,
               macroTarget,
               _macroIntrospection.definitionPhaseIntrospector);
-      result.reportDiagnostics(macroApplication, applicationData);
+      result.reportDiagnostics(
+          _macroIntrospection, macroApplication, applicationData);
       if (result.isNotEmpty) {
         _registerMacroExecutionResult(originLibraryBuilder, result);
         results.add(result);
@@ -1010,6 +1013,8 @@ class MacroApplications {
     _macroIntrospection.clear();
     if (!retainDataForTesting) {
       _libraryData.clear();
+      _libraryResults.clear();
+      _libraryResultSpans.clear();
     }
   }
 }
@@ -1143,28 +1148,41 @@ extension on macro.MacroExecutionResult {
       libraryAugmentations.isNotEmpty ||
       typeAugmentations.isNotEmpty;
 
-  void reportDiagnostics(
+  void reportDiagnostics(MacroIntrospection introspection,
       MacroApplication macroApplication, ApplicationData applicationData) {
     // TODO(johnniwinther): Should the error be reported on the original
     //  annotation in case of nested macros?
-    Uri fileUri = macroApplication.fileUri;
-    int fileOffset = macroApplication.fileOffset;
+    UriOffset uriOffset = macroApplication.uriOffset;
     for (macro.Diagnostic diagnostic in diagnostics) {
       // TODO(johnniwinther): Improve diagnostic reporting.
+      switch (diagnostic.message.target) {
+        case null:
+          break;
+        case macro.DeclarationDiagnosticTarget(:macro.Declaration declaration):
+          uriOffset = introspection.getLocationFromDeclaration(declaration);
+        case macro.TypeAnnotationDiagnosticTarget(
+            :macro.TypeAnnotation typeAnnotation
+          ):
+          uriOffset = introspection.types
+                  .getLocationFromTypeAnnotation(typeAnnotation) ??
+              uriOffset;
+        case macro.MetadataAnnotationDiagnosticTarget():
+        // TODO(johnniwinther): Support metadata annotations.
+      }
       applicationData.libraryBuilder.addProblem(
           templateUnspecified.withArguments(diagnostic.message.message),
-          fileOffset,
+          uriOffset.fileOffset,
           -1,
-          fileUri);
+          uriOffset.uri);
     }
     if (exception != null) {
       // TODO(johnniwinther): Improve exception reporting.
       applicationData.libraryBuilder.addProblem(
           templateUnspecified.withArguments('${exception.runtimeType}: '
               '${exception!.message}\n${exception!.stackTrace}'),
-          fileOffset,
+          uriOffset.fileOffset,
           -1,
-          fileUri);
+          uriOffset.uri);
     }
   }
 }
