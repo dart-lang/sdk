@@ -34,43 +34,43 @@ extension type ExtensionTypeSealed(self::S s) {
   constructor • = self::ExtensionTypeSealed|constructor#;
   constructor tearoff • = self::ExtensionTypeSealed|constructor#_#new#tearOff;
 }
-static extension-type-member method ExtensionTypeNullable|constructor#(core::String? s) → self::ExtensionTypeNullable /* = core::String? */
+static extension-type-member method ExtensionTypeNullable|constructor#(core::String? s) → self::ExtensionTypeNullable% /* erasure=core::String?, declared=! */
   ;
-static extension-type-member method ExtensionTypeNullable|constructor#_#new#tearOff(core::String? s) → self::ExtensionTypeNullable /* = core::String? */
+static extension-type-member method ExtensionTypeNullable|constructor#_#new#tearOff(core::String? s) → self::ExtensionTypeNullable% /* erasure=core::String?, declared=! */
   return self::ExtensionTypeNullable|constructor#(s);
-static extension-type-member method ExtensionTypeNum|constructor#(core::num n) → self::ExtensionTypeNum /* = core::num */
+static extension-type-member method ExtensionTypeNum|constructor#(core::num n) → self::ExtensionTypeNum% /* erasure=core::num, declared=! */
   ;
-static extension-type-member method ExtensionTypeNum|constructor#_#new#tearOff(core::num n) → self::ExtensionTypeNum /* = core::num */
+static extension-type-member method ExtensionTypeNum|constructor#_#new#tearOff(core::num n) → self::ExtensionTypeNum% /* erasure=core::num, declared=! */
   return self::ExtensionTypeNum|constructor#(n);
-static extension-type-member method ExtensionTypeBool|constructor#(core::bool b) → self::ExtensionTypeBool /* = core::bool */
+static extension-type-member method ExtensionTypeBool|constructor#(core::bool b) → self::ExtensionTypeBool% /* erasure=core::bool, declared=! */
   ;
-static extension-type-member method ExtensionTypeBool|constructor#_#new#tearOff(core::bool b) → self::ExtensionTypeBool /* = core::bool */
+static extension-type-member method ExtensionTypeBool|constructor#_#new#tearOff(core::bool b) → self::ExtensionTypeBool% /* erasure=core::bool, declared=! */
   return self::ExtensionTypeBool|constructor#(b);
-static extension-type-member method ExtensionTypeSealed|constructor#(self::S s) → self::ExtensionTypeSealed /* = self::S */
+static extension-type-member method ExtensionTypeSealed|constructor#(self::S s) → self::ExtensionTypeSealed% /* erasure=self::S, declared=! */
   ;
-static extension-type-member method ExtensionTypeSealed|constructor#_#new#tearOff(self::S s) → self::ExtensionTypeSealed /* = self::S */
+static extension-type-member method ExtensionTypeSealed|constructor#_#new#tearOff(self::S s) → self::ExtensionTypeSealed% /* erasure=self::S, declared=! */
   return self::ExtensionTypeSealed|constructor#(s);
-static method methodNull1(self::ExtensionTypeNullable /* = core::String? */ o) → dynamic
+static method methodNull1(self::ExtensionTypeNullable% /* erasure=core::String?, declared=! */ o) → dynamic
   ;
-static method methodNull2(self::ExtensionTypeNullable /* = core::String? */ o) → dynamic
+static method methodNull2(self::ExtensionTypeNullable% /* erasure=core::String?, declared=! */ o) → dynamic
   ;
 static method methodNull3(core::String? o) → dynamic
   ;
-static method methodNum1(self::ExtensionTypeNum /* = core::num */ o) → dynamic
+static method methodNum1(self::ExtensionTypeNum% /* erasure=core::num, declared=! */ o) → dynamic
   ;
-static method methodNum2(self::ExtensionTypeNum /* = core::num */ o) → dynamic
+static method methodNum2(self::ExtensionTypeNum% /* erasure=core::num, declared=! */ o) → dynamic
   ;
 static method methodNum3(core::num o) → dynamic
   ;
-static method methodBool1(self::ExtensionTypeBool /* = core::bool */ o) → dynamic
+static method methodBool1(self::ExtensionTypeBool% /* erasure=core::bool, declared=! */ o) → dynamic
   ;
-static method methodBool2(self::ExtensionTypeBool /* = core::bool */ o) → dynamic
+static method methodBool2(self::ExtensionTypeBool% /* erasure=core::bool, declared=! */ o) → dynamic
   ;
 static method methodBool3(core::bool o) → dynamic
   ;
-static method methodSealed1(self::ExtensionTypeSealed /* = self::S */ o) → dynamic
+static method methodSealed1(self::ExtensionTypeSealed% /* erasure=self::S, declared=! */ o) → dynamic
   ;
-static method methodSealed2(self::ExtensionTypeSealed /* = self::S */ o) → dynamic
+static method methodSealed2(self::ExtensionTypeSealed% /* erasure=self::S, declared=! */ o) → dynamic
   ;
 static method methodSealed3(self::S o) → dynamic
   ;

@@ -8,21 +8,21 @@ library;
 //
 import self as self;
 
-extension type ET1(self::ET2 /* = invalid-type */ it) {
-  abstract extension-type-member representation-field get it() → self::ET2 /* = invalid-type */;
+extension type ET1(self::ET2% /* erasure=invalid-type, declared=! */ it) {
+  abstract extension-type-member representation-field get it() → self::ET2% /* erasure=invalid-type, declared=! */;
   constructor • = self::ET1|constructor#;
   constructor tearoff • = self::ET1|constructor#_#new#tearOff;
 }
 extension type ET2(invalid-type it) {
-  abstract extension-type-member representation-field get it() → self::ET2 /* = invalid-type */;
+  abstract extension-type-member representation-field get it() → self::ET2% /* erasure=invalid-type, declared=! */;
   constructor • = self::ET2|constructor#;
   constructor tearoff • = self::ET2|constructor#_#new#tearOff;
 }
-static extension-type-member method ET1|constructor#(self::ET2 /* = invalid-type */ it) → self::ET1 /* = invalid-type */
+static extension-type-member method ET1|constructor#(self::ET2% /* erasure=invalid-type, declared=! */ it) → self::ET1% /* erasure=invalid-type, declared=! */
   ;
-static extension-type-member method ET1|constructor#_#new#tearOff(self::ET2 /* = invalid-type */ it) → self::ET1 /* = invalid-type */
+static extension-type-member method ET1|constructor#_#new#tearOff(self::ET2% /* erasure=invalid-type, declared=! */ it) → self::ET1% /* erasure=invalid-type, declared=! */
   return self::ET1|constructor#(it);
-static extension-type-member method ET2|constructor#(self::ET2 /* = invalid-type */ it) → self::ET2 /* = invalid-type */
+static extension-type-member method ET2|constructor#(self::ET2% /* erasure=invalid-type, declared=! */ it) → self::ET2% /* erasure=invalid-type, declared=! */
   ;
-static extension-type-member method ET2|constructor#_#new#tearOff(self::ET2 /* = invalid-type */ it) → self::ET2 /* = invalid-type */
+static extension-type-member method ET2|constructor#_#new#tearOff(self::ET2% /* erasure=invalid-type, declared=! */ it) → self::ET2% /* erasure=invalid-type, declared=! */
   return self::ET2|constructor#(it);

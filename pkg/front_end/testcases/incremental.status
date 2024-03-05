@@ -4,8 +4,6 @@
 
 # Status file for the test suite ../test/incremental_suite.dart.
 
-reproduce_DillTypeAliasBuilder_type_crash: Crash
-
 # http://dartbug.com/41812#issuecomment-684825703
 #strongmode_mixins_2: Crash
 

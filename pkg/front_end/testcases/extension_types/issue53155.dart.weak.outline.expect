@@ -2,10 +2,10 @@ library;
 import self as self;
 import "dart:core" as core;
 
-typedef Foo<unrelated T extends self::V<core::num, core::Object> /* = core::num */> = (self::V<core::int, core::int> /* = core::int */) → self::V<core::int, core::int> /* = core::int */;
-typedef IntNumV = self::V<core::int, core::num> /* = core::int */;
-class C<T extends self::V<core::num, core::Object> /* = core::num */> extends core::Object {
-  field (self::V<core::int, core::int> /* = core::int */) → self::V<core::int, core::int> /* = core::int */ f;
+typedef Foo<unrelated T extends self::V<core::num, core::Object>% /* erasure=core::num, declared=! */> = (self::V<core::int, core::int>% /* erasure=core::int, declared=! */) → self::V<core::int, core::int>% /* erasure=core::int, declared=! */;
+typedef IntNumV = self::V<core::int, core::num>% /* erasure=core::int, declared=! */;
+class C<T extends self::V<core::num, core::Object>% /* erasure=core::num, declared=! */> extends core::Object {
+  field (self::V<core::int, core::int>% /* erasure=core::int, declared=! */) → self::V<core::int, core::int>% /* erasure=core::int, declared=! */ f;
   synthetic constructor •() → self::C<self::C::T%>
     ;
 }
@@ -14,11 +14,11 @@ extension type V<X1 extends core::num, X2 extends core::Object>(X1 id) {
   constructor • = self::V|constructor#;
   constructor tearoff • = self::V|constructor#_#new#tearOff;
 }
-static extension-type-member method V|constructor#<X1 extends core::num, X2 extends core::Object>(self::V|constructor#::X1 id) → self::V<self::V|constructor#::X1, self::V|constructor#::X2> /* = self::V|constructor#::X1 */
+static extension-type-member method V|constructor#<X1 extends core::num, X2 extends core::Object>(self::V|constructor#::X1 id) → self::V<self::V|constructor#::X1, self::V|constructor#::X2>% /* erasure=self::V|constructor#::X1, declared=! */
   ;
-static extension-type-member method V|constructor#_#new#tearOff<X1 extends core::num, X2 extends core::Object>(self::V|constructor#_#new#tearOff::X1 id) → self::V<self::V|constructor#_#new#tearOff::X1, self::V|constructor#_#new#tearOff::X2> /* = self::V|constructor#_#new#tearOff::X1 */
+static extension-type-member method V|constructor#_#new#tearOff<X1 extends core::num, X2 extends core::Object>(self::V|constructor#_#new#tearOff::X1 id) → self::V<self::V|constructor#_#new#tearOff::X1, self::V|constructor#_#new#tearOff::X2>% /* erasure=self::V|constructor#_#new#tearOff::X1, declared=! */
   return self::V|constructor#<self::V|constructor#_#new#tearOff::X1, self::V|constructor#_#new#tearOff::X2>(id);
-static method foo<T extends self::V<core::num, core::Object> /* = core::num */>(self::foo::T% t) → self::V<core::int, core::int> /* = core::int */
+static method foo<T extends self::V<core::num, core::Object>% /* erasure=core::num, declared=! */>(self::foo::T% t) → self::V<core::int, core::int>% /* erasure=core::int, declared=! */
   ;
 static method main() → dynamic
   ;

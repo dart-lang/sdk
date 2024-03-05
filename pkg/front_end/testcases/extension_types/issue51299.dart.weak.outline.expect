@@ -9,11 +9,11 @@ extension type I(core::int _i) {
   constructor • = self::I|constructor#;
   constructor tearoff • = self::I|constructor#_#new#tearOff;
 }
-static extension-type-member method I|constructor#(core::int _i) → self::I /* = core::int */
+static extension-type-member method I|constructor#(core::int _i) → self::I% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method I|constructor#_#new#tearOff(core::int _i) → self::I /* = core::int */
+static extension-type-member method I|constructor#_#new#tearOff(core::int _i) → self::I% /* erasure=core::int, declared=! */
   return self::I|constructor#(_i);
-static extension-type-member method I|get#i(lowered final self::I /* = core::int */ #this) → core::int
+static extension-type-member method I|get#i(lowered final self::I% /* erasure=core::int, declared=! */ #this) → core::int
   ;
-static extension-type-member method I|set#i(lowered final self::I /* = core::int */ #this, core::int val) → void
+static extension-type-member method I|set#i(lowered final self::I% /* erasure=core::int, declared=! */ #this, core::int val) → void
   ;

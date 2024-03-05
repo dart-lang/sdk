@@ -1968,11 +1968,11 @@ static field core::int variable = 0;
 @#C39
 @#C40
 static method function() → void {}
-static extension-type-member method ExtensionType|constructor#(core::int it) → self::ExtensionType /* = core::int */ {
-  lowered final self::ExtensionType /* = core::int */ #this = it;
+static extension-type-member method ExtensionType|constructor#(core::int it) → self::ExtensionType% /* erasure=core::int, declared=! */ {
+  lowered final self::ExtensionType% /* erasure=core::int, declared=! */ #this = it;
   return #this;
 }
-static extension-type-member method ExtensionType|constructor#_#new#tearOff(core::int it) → self::ExtensionType /* = core::int */
+static extension-type-member method ExtensionType|constructor#_#new#tearOff(core::int it) → self::ExtensionType% /* erasure=core::int, declared=! */
   return self::ExtensionType|constructor#(it);
 
 constants  {

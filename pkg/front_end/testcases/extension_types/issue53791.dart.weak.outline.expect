@@ -26,7 +26,7 @@ import self as self;
 import "dart:core" as core;
 
 typedef TA = self::A;
-typedef TE = self::E /* = core::Object? */;
+typedef TE = self::E% /* erasure=core::Object?, declared=! */;
 class A extends core::Object {
   synthetic constructor •() → self::A
     ;
@@ -41,8 +41,8 @@ extension type E1(self::A it) implements self::A, self::A {
   constructor • = self::E1|constructor#;
   constructor tearoff • = self::E1|constructor#_#new#tearOff;
 }
-extension type E2(self::E /* = core::Object? */ it) implements self::E /* = core::Object? */, self::E /* = core::Object? */ {
-  abstract extension-type-member representation-field get it() → self::E /* = core::Object? */;
+extension type E2(self::E% /* erasure=core::Object?, declared=! */ it) implements self::E% /* erasure=core::Object?, declared=! */, self::E% /* erasure=core::Object?, declared=! */ {
+  abstract extension-type-member representation-field get it() → self::E% /* erasure=core::Object?, declared=! */;
   constructor • = self::E2|constructor#;
   constructor tearoff • = self::E2|constructor#_#new#tearOff;
 }
@@ -51,28 +51,28 @@ extension type E3(self::A it) implements self::A, self::A, self::A, self::A {
   constructor • = self::E3|constructor#;
   constructor tearoff • = self::E3|constructor#_#new#tearOff;
 }
-extension type E4(self::E /* = core::Object? */ it) implements self::E /* = core::Object? */, self::E /* = core::Object? */, self::E /* = core::Object? */, self::E /* = core::Object? */ {
-  abstract extension-type-member representation-field get it() → self::E /* = core::Object? */;
+extension type E4(self::E% /* erasure=core::Object?, declared=! */ it) implements self::E% /* erasure=core::Object?, declared=! */, self::E% /* erasure=core::Object?, declared=! */, self::E% /* erasure=core::Object?, declared=! */, self::E% /* erasure=core::Object?, declared=! */ {
+  abstract extension-type-member representation-field get it() → self::E% /* erasure=core::Object?, declared=! */;
   constructor • = self::E4|constructor#;
   constructor tearoff • = self::E4|constructor#_#new#tearOff;
 }
-static extension-type-member method E|constructor#(core::Object? it) → self::E /* = core::Object? */
+static extension-type-member method E|constructor#(core::Object? it) → self::E% /* erasure=core::Object?, declared=! */
   ;
-static extension-type-member method E|constructor#_#new#tearOff(core::Object? it) → self::E /* = core::Object? */
+static extension-type-member method E|constructor#_#new#tearOff(core::Object? it) → self::E% /* erasure=core::Object?, declared=! */
   return self::E|constructor#(it);
-static extension-type-member method E1|constructor#(self::A it) → self::E1 /* = self::A */
+static extension-type-member method E1|constructor#(self::A it) → self::E1 /* erasure=self::A */
   ;
-static extension-type-member method E1|constructor#_#new#tearOff(self::A it) → self::E1 /* = self::A */
+static extension-type-member method E1|constructor#_#new#tearOff(self::A it) → self::E1 /* erasure=self::A */
   return self::E1|constructor#(it);
-static extension-type-member method E2|constructor#(self::E /* = core::Object? */ it) → self::E2 /* = core::Object? */
+static extension-type-member method E2|constructor#(self::E% /* erasure=core::Object?, declared=! */ it) → self::E2% /* erasure=core::Object?, declared=! */
   ;
-static extension-type-member method E2|constructor#_#new#tearOff(self::E /* = core::Object? */ it) → self::E2 /* = core::Object? */
+static extension-type-member method E2|constructor#_#new#tearOff(self::E% /* erasure=core::Object?, declared=! */ it) → self::E2% /* erasure=core::Object?, declared=! */
   return self::E2|constructor#(it);
-static extension-type-member method E3|constructor#(self::A it) → self::E3 /* = self::A */
+static extension-type-member method E3|constructor#(self::A it) → self::E3 /* erasure=self::A */
   ;
-static extension-type-member method E3|constructor#_#new#tearOff(self::A it) → self::E3 /* = self::A */
+static extension-type-member method E3|constructor#_#new#tearOff(self::A it) → self::E3 /* erasure=self::A */
   return self::E3|constructor#(it);
-static extension-type-member method E4|constructor#(self::E /* = core::Object? */ it) → self::E4 /* = core::Object? */
+static extension-type-member method E4|constructor#(self::E% /* erasure=core::Object?, declared=! */ it) → self::E4% /* erasure=core::Object?, declared=! */
   ;
-static extension-type-member method E4|constructor#_#new#tearOff(self::E /* = core::Object? */ it) → self::E4 /* = core::Object? */
+static extension-type-member method E4|constructor#_#new#tearOff(self::E% /* erasure=core::Object?, declared=! */ it) → self::E4% /* erasure=core::Object?, declared=! */
   return self::E4|constructor#(it);

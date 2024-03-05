@@ -26,16 +26,16 @@ extension type ExtensionType1(core::int it) {
   constructor • = self::ExtensionType1|constructor#;
   constructor tearoff • = self::ExtensionType1|constructor#_#new#tearOff;
 }
-extension type ExtensionType2<T extends core::Object? = dynamic>(core::int it) implements core::int, self::ExtensionType1 /* = core::int */ {
+extension type ExtensionType2<T extends core::Object? = dynamic>(core::int it) implements core::int, self::ExtensionType1% /* erasure=core::int, declared=! */ {
   abstract extension-type-member representation-field get it() → core::int;
   constructor _ = self::ExtensionType2|constructor#_;
   constructor tearoff _ = self::ExtensionType2|constructor#_#_#tearOff;
 }
-static extension-type-member method ExtensionType1|constructor#(core::int it) → self::ExtensionType1 /* = core::int */
+static extension-type-member method ExtensionType1|constructor#(core::int it) → self::ExtensionType1% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method ExtensionType1|constructor#_#new#tearOff(core::int it) → self::ExtensionType1 /* = core::int */
+static extension-type-member method ExtensionType1|constructor#_#new#tearOff(core::int it) → self::ExtensionType1% /* erasure=core::int, declared=! */
   return self::ExtensionType1|constructor#(it);
-static extension-type-member method ExtensionType2|constructor#_<T extends core::Object? = dynamic>(core::int it) → self::ExtensionType2<self::ExtensionType2|constructor#_::T%> /* = core::int */
+static extension-type-member method ExtensionType2|constructor#_<T extends core::Object? = dynamic>(core::int it) → self::ExtensionType2<self::ExtensionType2|constructor#_::T%> /* erasure=core::int */
   ;
-static extension-type-member method ExtensionType2|constructor#_#_#tearOff<T extends core::Object? = dynamic>(core::int it) → self::ExtensionType2<self::ExtensionType2|constructor#_#_#tearOff::T%> /* = core::int */
+static extension-type-member method ExtensionType2|constructor#_#_#tearOff<T extends core::Object? = dynamic>(core::int it) → self::ExtensionType2<self::ExtensionType2|constructor#_#_#tearOff::T%> /* erasure=core::int */
   return self::ExtensionType2|constructor#_<self::ExtensionType2|constructor#_#_#tearOff::T%>(it);

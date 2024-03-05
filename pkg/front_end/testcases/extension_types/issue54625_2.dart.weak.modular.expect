@@ -27,22 +27,22 @@ extension type E(core::num it) implements core::num {
   constructor • = self::E|constructor#;
   constructor tearoff • = self::E|constructor#_#new#tearOff;
 }
-static method foo() → <X extends self::E /* = core::num */ = dynamic>() → X
+static method foo() → <X extends self::E /* erasure=core::num */ = dynamic>() → X
   return throw 0;
-static method test1() → <X extends self::E /* = core::num */ = dynamic>() → self::A<X, Null>
+static method test1() → <X extends self::E /* erasure=core::num */ = dynamic>() → self::A<X, Null>
   return throw 0;
-static method test2() → <X extends self::E /* = core::num */ = dynamic>() → self::A<core::Object, X>
+static method test2() → <X extends self::E /* erasure=core::num */ = dynamic>() → self::A<core::Object, X>
   return throw 0;
-static extension-type-member method E|constructor#(core::num it) → self::E /* = core::num */ {
-  lowered final self::E /* = core::num */ #this = it;
+static extension-type-member method E|constructor#(core::num it) → self::E /* erasure=core::num */ {
+  lowered final self::E /* erasure=core::num */ #this = it;
   return #this;
 }
-static extension-type-member method E|constructor#_#new#tearOff(core::num it) → self::E /* = core::num */
+static extension-type-member method E|constructor#_#new#tearOff(core::num it) → self::E /* erasure=core::num */
   return self::E|constructor#(it);
-static method returnsNull<Y extends self::E /* = core::num */>() → Null
+static method returnsNull<Y extends self::E /* erasure=core::num */>() → Null
   return null;
 static method test3() → dynamic {
-  <X extends self::E /* = core::num */ = dynamic>() → X f = self::foo();
+  <X extends self::E /* erasure=core::num */ = dynamic>() → X f = self::foo();
   f = invalid-expression "pkg/front_end/testcases/extension_types/issue54625_2.dart:21:7: Error: A value of type 'Null Function<Y extends E>()' can't be assigned to a variable of type 'X Function<X extends E>()' because 'Null' is nullable and 'X' isn't.
   f = returnsNull; // Error.
       ^" in #C1 as{TypeError} Never;

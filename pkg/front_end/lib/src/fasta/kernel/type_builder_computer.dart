@@ -165,8 +165,6 @@ class _TypeBuilderComputerHelper
   @override
   TypeBuilder visitFunctionType(FunctionType node,
       Map<TypeParameter, NominalVariableBuilder> pendingNominalVariables) {
-    TypeBuilder returnType =
-        node.returnType.accept1(this, pendingNominalVariables);
     List<StructuralVariableBuilder>? typeVariables = null;
     if (node.typeParameters.isNotEmpty) {
       typeVariables = <StructuralVariableBuilder>[
@@ -175,6 +173,9 @@ class _TypeBuilderComputerHelper
               new StructuralVariableBuilder.fromKernel(structuralParameter)
       ];
     }
+
+    TypeBuilder returnType =
+        node.returnType.accept1(this, pendingNominalVariables);
 
     List<DartType> positionalParameters = node.positionalParameters;
     List<NamedType> namedParameters = node.namedParameters;

@@ -161,12 +161,12 @@ import self as self;
 import "dart:core" as core;
 
 typedef F1<X extends core::Object? = dynamic> = X%;
-typedef F2<X extends core::Object? = dynamic> = self::E1<X%> /* = X% */;
-typedef F3<X extends core::Object? = dynamic> = self::E1<X%> /* = X% */;
-typedef F4<X extends core::Object? = dynamic> = self::E1<X%> /* = X% */;
-typedef F5<X extends core::Object? = dynamic> = self::E1<X%> /* = X% */;
+typedef F2<X extends core::Object? = dynamic> = self::E1<X%>% /* erasure=X%, declared=! */;
+typedef F3<X extends core::Object? = dynamic> = self::E1<X%>% /* erasure=X%, declared=! */;
+typedef F4<X extends core::Object? = dynamic> = self::E1<X%>% /* erasure=X%, declared=! */;
+typedef F5<X extends core::Object? = dynamic> = self::E1<X%>% /* erasure=X%, declared=! */;
 typedef F6<X extends core::Object? = dynamic> = X%;
-typedef F7<X extends core::Object? = dynamic> = self::E1<self::E1<X%> /* = X% */> /* = X% */;
+typedef F7<X extends core::Object? = dynamic> = self::E1<self::E1<X%>% /* erasure=X%, declared=! */>% /* erasure=X%, declared=! */;
 class A1<X extends self::A1::Y% = dynamic, Y extends invalid-type = dynamic> extends core::Object {
   synthetic constructor •() → self::A1<self::A1::X%, self::A1::Y%>
     : super core::Object::•()
@@ -187,22 +187,22 @@ class AF11<X extends invalid-type = dynamic> extends core::Object {
     : super core::Object::•()
     ;
 }
-class AF12<X extends invalid-type = self::E1<dynamic> /* = dynamic */> extends core::Object {
+class AF12<X extends invalid-type = self::E1<dynamic>% /* erasure=dynamic, declared=! */> extends core::Object {
   synthetic constructor •() → self::AF12<self::AF12::X%>
     : super core::Object::•()
     ;
 }
-class AF13<X extends invalid-type = self::E1<dynamic> /* = dynamic */> extends core::Object {
+class AF13<X extends invalid-type = self::E1<dynamic>% /* erasure=dynamic, declared=! */> extends core::Object {
   synthetic constructor •() → self::AF13<self::AF13::X%>
     : super core::Object::•()
     ;
 }
-class AF14<X extends invalid-type = self::E1<dynamic> /* = dynamic */> extends core::Object {
+class AF14<X extends invalid-type = self::E1<dynamic>% /* erasure=dynamic, declared=! */> extends core::Object {
   synthetic constructor •() → self::AF14<self::AF14::X%>
     : super core::Object::•()
     ;
 }
-class AF15<X extends invalid-type = self::E1<dynamic> /* = dynamic */> extends core::Object {
+class AF15<X extends invalid-type = self::E1<dynamic>% /* erasure=dynamic, declared=! */> extends core::Object {
   synthetic constructor •() → self::AF15<self::AF15::X%>
     : super core::Object::•()
     ;
@@ -212,42 +212,42 @@ class AF16<X extends invalid-type = dynamic> extends core::Object {
     : super core::Object::•()
     ;
 }
-class AF17<X extends invalid-type = self::E1<self::E1<dynamic> /* = dynamic */> /* = dynamic */> extends core::Object {
+class AF17<X extends invalid-type = self::E1<self::E1<dynamic>% /* erasure=dynamic, declared=! */>% /* erasure=dynamic, declared=! */> extends core::Object {
   synthetic constructor •() → self::AF17<self::AF17::X%>
     : super core::Object::•()
     ;
 }
-class AE11<X extends invalid-type = self::E1<dynamic> /* = dynamic */> extends core::Object {
+class AE11<X extends invalid-type = self::E1<dynamic>% /* erasure=dynamic, declared=! */> extends core::Object {
   synthetic constructor •() → self::AE11<self::AE11::X%>
     : super core::Object::•()
     ;
 }
-class AE12<X extends invalid-type = self::E2<dynamic> /* = dynamic */> extends core::Object {
+class AE12<X extends invalid-type = self::E2<dynamic>% /* erasure=dynamic, declared=! */> extends core::Object {
   synthetic constructor •() → self::AE12<self::AE12::X%>
     : super core::Object::•()
     ;
 }
-class AE13<X extends invalid-type = self::E3<dynamic> /* = dynamic */> extends core::Object {
+class AE13<X extends invalid-type = self::E3<dynamic>% /* erasure=dynamic, declared=! */> extends core::Object {
   synthetic constructor •() → self::AE13<self::AE13::X%>
     : super core::Object::•()
     ;
 }
-class AE14<X extends invalid-type = self::E4<dynamic> /* = dynamic */> extends core::Object {
+class AE14<X extends invalid-type = self::E4<dynamic>% /* erasure=dynamic, declared=! */> extends core::Object {
   synthetic constructor •() → self::AE14<self::AE14::X%>
     : super core::Object::•()
     ;
 }
-class AE15<X extends invalid-type = self::E5<dynamic> /* = dynamic */> extends core::Object {
+class AE15<X extends invalid-type = self::E5<dynamic>% /* erasure=dynamic, declared=! */> extends core::Object {
   synthetic constructor •() → self::AE15<self::AE15::X%>
     : super core::Object::•()
     ;
 }
-class AE16<X extends invalid-type = self::E6<dynamic> /* = dynamic */> extends core::Object {
+class AE16<X extends invalid-type = self::E6<dynamic>% /* erasure=dynamic, declared=! */> extends core::Object {
   synthetic constructor •() → self::AE16<self::AE16::X%>
     : super core::Object::•()
     ;
 }
-class AE17<X extends invalid-type = self::E7<dynamic> /* = dynamic */> extends core::Object {
+class AE17<X extends invalid-type = self::E7<dynamic>% /* erasure=dynamic, declared=! */> extends core::Object {
   synthetic constructor •() → self::AE17<self::AE17::X%>
     : super core::Object::•()
     ;
@@ -262,23 +262,23 @@ extension type E2<X extends core::Object? = dynamic>(X% it) {
   constructor • = self::E2|constructor#;
   constructor tearoff • = self::E2|constructor#_#new#tearOff;
 }
-extension type E3<X extends core::Object? = dynamic>(self::E1<X%> /* = X% */ it) {
-  abstract extension-type-member representation-field get it() → self::E1<X%> /* = X% */;
+extension type E3<X extends core::Object? = dynamic>(self::E1<X%>% /* erasure=X%, declared=! */ it) {
+  abstract extension-type-member representation-field get it() → self::E1<X%>% /* erasure=X%, declared=! */;
   constructor • = self::E3|constructor#;
   constructor tearoff • = self::E3|constructor#_#new#tearOff;
 }
-extension type E4<X extends core::Object? = dynamic>(self::E1<X%> /* = X% */ it) {
-  abstract extension-type-member representation-field get it() → self::E1<X%> /* = X% */;
+extension type E4<X extends core::Object? = dynamic>(self::E1<X%>% /* erasure=X%, declared=! */ it) {
+  abstract extension-type-member representation-field get it() → self::E1<X%>% /* erasure=X%, declared=! */;
   constructor • = self::E4|constructor#;
   constructor tearoff • = self::E4|constructor#_#new#tearOff;
 }
-extension type E5<X extends core::Object? = dynamic>(self::E1<self::E1<X%> /* = X% */> /* = X% */ it) {
-  abstract extension-type-member representation-field get it() → self::E1<self::E1<X%> /* = X% */> /* = X% */;
+extension type E5<X extends core::Object? = dynamic>(self::E1<self::E1<X%>% /* erasure=X%, declared=! */>% /* erasure=X%, declared=! */ it) {
+  abstract extension-type-member representation-field get it() → self::E1<self::E1<X%>% /* erasure=X%, declared=! */>% /* erasure=X%, declared=! */;
   constructor • = self::E5|constructor#;
   constructor tearoff • = self::E5|constructor#_#new#tearOff;
 }
-extension type E6<X extends core::Object? = dynamic>(self::E1<self::E1<X%> /* = X% */> /* = X% */ it) {
-  abstract extension-type-member representation-field get it() → self::E1<self::E1<X%> /* = X% */> /* = X% */;
+extension type E6<X extends core::Object? = dynamic>(self::E1<self::E1<X%>% /* erasure=X%, declared=! */>% /* erasure=X%, declared=! */ it) {
+  abstract extension-type-member representation-field get it() → self::E1<self::E1<X%>% /* erasure=X%, declared=! */>% /* erasure=X%, declared=! */;
   constructor • = self::E6|constructor#;
   constructor tearoff • = self::E6|constructor#_#new#tearOff;
 }
@@ -287,47 +287,47 @@ extension type E7<X extends core::Object? = dynamic>(X% it) {
   constructor • = self::E7|constructor#;
   constructor tearoff • = self::E7|constructor#_#new#tearOff;
 }
-static extension-type-member method E1|constructor#<X extends core::Object? = dynamic>(self::E1|constructor#::X% it) → self::E1<self::E1|constructor#::X%> /* = self::E1|constructor#::X% */ {
-  lowered final self::E1<self::E1|constructor#::X%> /* = self::E1|constructor#::X% */ #this = it;
+static extension-type-member method E1|constructor#<X extends core::Object? = dynamic>(self::E1|constructor#::X% it) → self::E1<self::E1|constructor#::X%>% /* erasure=self::E1|constructor#::X%, declared=! */ {
+  lowered final self::E1<self::E1|constructor#::X%>% /* erasure=self::E1|constructor#::X%, declared=! */ #this = it;
   return #this;
 }
-static extension-type-member method E1|constructor#_#new#tearOff<X extends core::Object? = dynamic>(self::E1|constructor#_#new#tearOff::X% it) → self::E1<self::E1|constructor#_#new#tearOff::X%> /* = self::E1|constructor#_#new#tearOff::X% */
+static extension-type-member method E1|constructor#_#new#tearOff<X extends core::Object? = dynamic>(self::E1|constructor#_#new#tearOff::X% it) → self::E1<self::E1|constructor#_#new#tearOff::X%>% /* erasure=self::E1|constructor#_#new#tearOff::X%, declared=! */
   return self::E1|constructor#<self::E1|constructor#_#new#tearOff::X%>(it);
-static extension-type-member method E2|constructor#<X extends core::Object? = dynamic>(self::E2|constructor#::X% it) → self::E2<self::E2|constructor#::X%> /* = self::E2|constructor#::X% */ {
-  lowered final self::E2<self::E2|constructor#::X%> /* = self::E2|constructor#::X% */ #this = it;
+static extension-type-member method E2|constructor#<X extends core::Object? = dynamic>(self::E2|constructor#::X% it) → self::E2<self::E2|constructor#::X%>% /* erasure=self::E2|constructor#::X%, declared=! */ {
+  lowered final self::E2<self::E2|constructor#::X%>% /* erasure=self::E2|constructor#::X%, declared=! */ #this = it;
   return #this;
 }
-static extension-type-member method E2|constructor#_#new#tearOff<X extends core::Object? = dynamic>(self::E2|constructor#_#new#tearOff::X% it) → self::E2<self::E2|constructor#_#new#tearOff::X%> /* = self::E2|constructor#_#new#tearOff::X% */
+static extension-type-member method E2|constructor#_#new#tearOff<X extends core::Object? = dynamic>(self::E2|constructor#_#new#tearOff::X% it) → self::E2<self::E2|constructor#_#new#tearOff::X%>% /* erasure=self::E2|constructor#_#new#tearOff::X%, declared=! */
   return self::E2|constructor#<self::E2|constructor#_#new#tearOff::X%>(it);
-static extension-type-member method E3|constructor#<X extends core::Object? = dynamic>(self::E1<self::E3|constructor#::X%> /* = self::E3|constructor#::X% */ it) → self::E3<self::E3|constructor#::X%> /* = self::E3|constructor#::X% */ {
-  lowered final self::E3<self::E3|constructor#::X%> /* = self::E3|constructor#::X% */ #this = it;
+static extension-type-member method E3|constructor#<X extends core::Object? = dynamic>(self::E1<self::E3|constructor#::X%>% /* erasure=self::E3|constructor#::X%, declared=! */ it) → self::E3<self::E3|constructor#::X%>% /* erasure=self::E3|constructor#::X%, declared=! */ {
+  lowered final self::E3<self::E3|constructor#::X%>% /* erasure=self::E3|constructor#::X%, declared=! */ #this = it;
   return #this;
 }
-static extension-type-member method E3|constructor#_#new#tearOff<X extends core::Object? = dynamic>(self::E1<self::E3|constructor#_#new#tearOff::X%> /* = self::E3|constructor#_#new#tearOff::X% */ it) → self::E3<self::E3|constructor#_#new#tearOff::X%> /* = self::E3|constructor#_#new#tearOff::X% */
+static extension-type-member method E3|constructor#_#new#tearOff<X extends core::Object? = dynamic>(self::E1<self::E3|constructor#_#new#tearOff::X%>% /* erasure=self::E3|constructor#_#new#tearOff::X%, declared=! */ it) → self::E3<self::E3|constructor#_#new#tearOff::X%>% /* erasure=self::E3|constructor#_#new#tearOff::X%, declared=! */
   return self::E3|constructor#<self::E3|constructor#_#new#tearOff::X%>(it);
-static extension-type-member method E4|constructor#<X extends core::Object? = dynamic>(self::E1<self::E4|constructor#::X%> /* = self::E4|constructor#::X% */ it) → self::E4<self::E4|constructor#::X%> /* = self::E4|constructor#::X% */ {
-  lowered final self::E4<self::E4|constructor#::X%> /* = self::E4|constructor#::X% */ #this = it;
+static extension-type-member method E4|constructor#<X extends core::Object? = dynamic>(self::E1<self::E4|constructor#::X%>% /* erasure=self::E4|constructor#::X%, declared=! */ it) → self::E4<self::E4|constructor#::X%>% /* erasure=self::E4|constructor#::X%, declared=! */ {
+  lowered final self::E4<self::E4|constructor#::X%>% /* erasure=self::E4|constructor#::X%, declared=! */ #this = it;
   return #this;
 }
-static extension-type-member method E4|constructor#_#new#tearOff<X extends core::Object? = dynamic>(self::E1<self::E4|constructor#_#new#tearOff::X%> /* = self::E4|constructor#_#new#tearOff::X% */ it) → self::E4<self::E4|constructor#_#new#tearOff::X%> /* = self::E4|constructor#_#new#tearOff::X% */
+static extension-type-member method E4|constructor#_#new#tearOff<X extends core::Object? = dynamic>(self::E1<self::E4|constructor#_#new#tearOff::X%>% /* erasure=self::E4|constructor#_#new#tearOff::X%, declared=! */ it) → self::E4<self::E4|constructor#_#new#tearOff::X%>% /* erasure=self::E4|constructor#_#new#tearOff::X%, declared=! */
   return self::E4|constructor#<self::E4|constructor#_#new#tearOff::X%>(it);
-static extension-type-member method E5|constructor#<X extends core::Object? = dynamic>(self::E1<self::E1<self::E5|constructor#::X%> /* = self::E5|constructor#::X% */> /* = self::E5|constructor#::X% */ it) → self::E5<self::E5|constructor#::X%> /* = self::E5|constructor#::X% */ {
-  lowered final self::E5<self::E5|constructor#::X%> /* = self::E5|constructor#::X% */ #this = it;
+static extension-type-member method E5|constructor#<X extends core::Object? = dynamic>(self::E1<self::E1<self::E5|constructor#::X%>% /* erasure=self::E5|constructor#::X%, declared=! */>% /* erasure=self::E5|constructor#::X%, declared=! */ it) → self::E5<self::E5|constructor#::X%>% /* erasure=self::E5|constructor#::X%, declared=! */ {
+  lowered final self::E5<self::E5|constructor#::X%>% /* erasure=self::E5|constructor#::X%, declared=! */ #this = it;
   return #this;
 }
-static extension-type-member method E5|constructor#_#new#tearOff<X extends core::Object? = dynamic>(self::E1<self::E1<self::E5|constructor#_#new#tearOff::X%> /* = self::E5|constructor#_#new#tearOff::X% */> /* = self::E5|constructor#_#new#tearOff::X% */ it) → self::E5<self::E5|constructor#_#new#tearOff::X%> /* = self::E5|constructor#_#new#tearOff::X% */
+static extension-type-member method E5|constructor#_#new#tearOff<X extends core::Object? = dynamic>(self::E1<self::E1<self::E5|constructor#_#new#tearOff::X%>% /* erasure=self::E5|constructor#_#new#tearOff::X%, declared=! */>% /* erasure=self::E5|constructor#_#new#tearOff::X%, declared=! */ it) → self::E5<self::E5|constructor#_#new#tearOff::X%>% /* erasure=self::E5|constructor#_#new#tearOff::X%, declared=! */
   return self::E5|constructor#<self::E5|constructor#_#new#tearOff::X%>(it);
-static extension-type-member method E6|constructor#<X extends core::Object? = dynamic>(self::E1<self::E1<self::E6|constructor#::X%> /* = self::E6|constructor#::X% */> /* = self::E6|constructor#::X% */ it) → self::E6<self::E6|constructor#::X%> /* = self::E6|constructor#::X% */ {
-  lowered final self::E6<self::E6|constructor#::X%> /* = self::E6|constructor#::X% */ #this = it;
+static extension-type-member method E6|constructor#<X extends core::Object? = dynamic>(self::E1<self::E1<self::E6|constructor#::X%>% /* erasure=self::E6|constructor#::X%, declared=! */>% /* erasure=self::E6|constructor#::X%, declared=! */ it) → self::E6<self::E6|constructor#::X%>% /* erasure=self::E6|constructor#::X%, declared=! */ {
+  lowered final self::E6<self::E6|constructor#::X%>% /* erasure=self::E6|constructor#::X%, declared=! */ #this = it;
   return #this;
 }
-static extension-type-member method E6|constructor#_#new#tearOff<X extends core::Object? = dynamic>(self::E1<self::E1<self::E6|constructor#_#new#tearOff::X%> /* = self::E6|constructor#_#new#tearOff::X% */> /* = self::E6|constructor#_#new#tearOff::X% */ it) → self::E6<self::E6|constructor#_#new#tearOff::X%> /* = self::E6|constructor#_#new#tearOff::X% */
+static extension-type-member method E6|constructor#_#new#tearOff<X extends core::Object? = dynamic>(self::E1<self::E1<self::E6|constructor#_#new#tearOff::X%>% /* erasure=self::E6|constructor#_#new#tearOff::X%, declared=! */>% /* erasure=self::E6|constructor#_#new#tearOff::X%, declared=! */ it) → self::E6<self::E6|constructor#_#new#tearOff::X%>% /* erasure=self::E6|constructor#_#new#tearOff::X%, declared=! */
   return self::E6|constructor#<self::E6|constructor#_#new#tearOff::X%>(it);
-static extension-type-member method E7|constructor#<X extends core::Object? = dynamic>(self::E7|constructor#::X% it) → self::E7<self::E7|constructor#::X%> /* = self::E7|constructor#::X% */ {
-  lowered final self::E7<self::E7|constructor#::X%> /* = self::E7|constructor#::X% */ #this = it;
+static extension-type-member method E7|constructor#<X extends core::Object? = dynamic>(self::E7|constructor#::X% it) → self::E7<self::E7|constructor#::X%>% /* erasure=self::E7|constructor#::X%, declared=! */ {
+  lowered final self::E7<self::E7|constructor#::X%>% /* erasure=self::E7|constructor#::X%, declared=! */ #this = it;
   return #this;
 }
-static extension-type-member method E7|constructor#_#new#tearOff<X extends core::Object? = dynamic>(self::E7|constructor#_#new#tearOff::X% it) → self::E7<self::E7|constructor#_#new#tearOff::X%> /* = self::E7|constructor#_#new#tearOff::X% */
+static extension-type-member method E7|constructor#_#new#tearOff<X extends core::Object? = dynamic>(self::E7|constructor#_#new#tearOff::X% it) → self::E7<self::E7|constructor#_#new#tearOff::X%>% /* erasure=self::E7|constructor#_#new#tearOff::X%, declared=! */
   return self::E7|constructor#<self::E7|constructor#_#new#tearOff::X%>(it);
 static method test() → dynamic {
   <X extends invalid-type>() → Null {};
@@ -345,5 +345,5 @@ static method test() → dynamic {
   <X extends invalid-type>() → Null {};
   <X extends invalid-type>() → Null {};
 }
-static method _#F7#new#tearOff<X extends core::Object? = dynamic>(self::E1<self::_#F7#new#tearOff::X%> /* = self::_#F7#new#tearOff::X% */ it) → self::E1<self::E1<self::_#F7#new#tearOff::X%> /* = self::_#F7#new#tearOff::X% */> /* = self::_#F7#new#tearOff::X% */
-  return self::E1|constructor#<self::E1<self::_#F7#new#tearOff::X%> /* = self::_#F7#new#tearOff::X% */>(it);
+static method _#F7#new#tearOff<X extends core::Object? = dynamic>(self::E1<self::_#F7#new#tearOff::X%>% /* erasure=self::_#F7#new#tearOff::X%, declared=! */ it) → self::E1<self::E1<self::_#F7#new#tearOff::X%>% /* erasure=self::_#F7#new#tearOff::X%, declared=! */>% /* erasure=self::_#F7#new#tearOff::X%, declared=! */
+  return self::E1|constructor#<self::E1<self::_#F7#new#tearOff::X%>% /* erasure=self::_#F7#new#tearOff::X%, declared=! */>(it);

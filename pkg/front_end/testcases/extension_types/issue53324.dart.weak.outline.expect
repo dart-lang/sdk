@@ -74,33 +74,33 @@ static method method(covariant-by-declaration core::int i) → void
   ;
 static method setter(covariant-by-declaration core::int x) → void
   ;
-static extension-type-member method ET1|constructor#(core::num id) → self::ET1 /* = core::num */
+static extension-type-member method ET1|constructor#(core::num id) → self::ET1% /* erasure=core::num, declared=! */
   ;
-static extension-type-member method ET1|constructor#_#new#tearOff(core::num id) → self::ET1 /* = core::num */
+static extension-type-member method ET1|constructor#_#new#tearOff(core::num id) → self::ET1% /* erasure=core::num, declared=! */
   return self::ET1|constructor#(id);
-static extension-type-member method ET1|method(lowered final self::ET1 /* = core::num */ #this, covariant-by-declaration core::int i) → void
+static extension-type-member method ET1|method(lowered final self::ET1% /* erasure=core::num, declared=! */ #this, covariant-by-declaration core::int i) → void
   ;
-static extension-type-member method ET1|get#method(lowered final self::ET1 /* = core::num */ #this) → (core::int) → void
+static extension-type-member method ET1|get#method(lowered final self::ET1% /* erasure=core::num, declared=! */ #this) → (core::int) → void
   return (core::int i) → void => self::ET1|method(#this, i);
-static extension-type-member method ET2|constructor#<T extends core::num>(self::ET2|constructor#::T id) → self::ET2<self::ET2|constructor#::T> /* = self::ET2|constructor#::T */
+static extension-type-member method ET2|constructor#<T extends core::num>(self::ET2|constructor#::T id) → self::ET2<self::ET2|constructor#::T>% /* erasure=self::ET2|constructor#::T, declared=! */
   ;
-static extension-type-member method ET2|constructor#_#new#tearOff<T extends core::num>(self::ET2|constructor#_#new#tearOff::T id) → self::ET2<self::ET2|constructor#_#new#tearOff::T> /* = self::ET2|constructor#_#new#tearOff::T */
+static extension-type-member method ET2|constructor#_#new#tearOff<T extends core::num>(self::ET2|constructor#_#new#tearOff::T id) → self::ET2<self::ET2|constructor#_#new#tearOff::T>% /* erasure=self::ET2|constructor#_#new#tearOff::T, declared=! */
   return self::ET2|constructor#<self::ET2|constructor#_#new#tearOff::T>(id);
-static extension-type-member method ET2|setter<T extends core::num>(lowered final self::ET2<self::ET2|setter::T> /* = self::ET2|setter::T */ #this, covariant-by-declaration core::int x) → void
+static extension-type-member method ET2|setter<T extends core::num>(lowered final self::ET2<self::ET2|setter::T>% /* erasure=self::ET2|setter::T, declared=! */ #this, covariant-by-declaration core::int x) → void
   ;
-static extension-type-member method ET2|get#setter<T extends core::num>(lowered final self::ET2<self::ET2|get#setter::T> /* = self::ET2|get#setter::T */ #this) → (core::int) → void
+static extension-type-member method ET2|get#setter<T extends core::num>(lowered final self::ET2<self::ET2|get#setter::T>% /* erasure=self::ET2|get#setter::T, declared=! */ #this) → (core::int) → void
   return (core::int x) → void => self::ET2|setter<self::ET2|get#setter::T>(#this, x);
-static extension-type-member method ET3|constructor#(core::num id) → self::ET3 /* = core::num */
+static extension-type-member method ET3|constructor#(core::num id) → self::ET3% /* erasure=core::num, declared=! */
   ;
-static extension-type-member method ET3|constructor#_#new#tearOff(core::num id) → self::ET3 /* = core::num */
+static extension-type-member method ET3|constructor#_#new#tearOff(core::num id) → self::ET3% /* erasure=core::num, declared=! */
   return self::ET3|constructor#(id);
-static extension-type-member method ET3|+(lowered final self::ET3 /* = core::num */ #this, covariant-by-declaration core::int other) → core::int
+static extension-type-member method ET3|+(lowered final self::ET3% /* erasure=core::num, declared=! */ #this, covariant-by-declaration core::int other) → core::int
   ;
-static extension-type-member method ET4|constructor#(covariant-by-declaration core::num id) → self::ET4 /* = core::num */
+static extension-type-member method ET4|constructor#(covariant-by-declaration core::num id) → self::ET4% /* erasure=core::num, declared=! */
   ;
-static extension-type-member method ET4|constructor#_#new#tearOff(core::num id) → self::ET4 /* = core::num */
+static extension-type-member method ET4|constructor#_#new#tearOff(core::num id) → self::ET4% /* erasure=core::num, declared=! */
   return self::ET4|constructor#(id);
-static extension-type-member method ET5|constructor#(core::num id) → self::ET5 /* = core::num */
+static extension-type-member method ET5|constructor#(core::num id) → self::ET5% /* erasure=core::num, declared=! */
   ;
-static extension-type-member method ET5|constructor#_#new#tearOff(core::num id) → self::ET5 /* = core::num */
+static extension-type-member method ET5|constructor#_#new#tearOff(core::num id) → self::ET5% /* erasure=core::num, declared=! */
   return self::ET5|constructor#(id);

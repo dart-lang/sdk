@@ -124,19 +124,19 @@ extension type NonNullableExtensionType(self::Object it) implements self::Object
 }
 extension type PotentiallyNullableGenericExtensionType<T extends self::Object? = dynamic>(T% it) {
 }
-extension type PotentiallyNullableGenericExtensionSubType<T extends self::Object? = dynamic>(T% it) implements self::PotentiallyNullableGenericExtensionType<T%> /* = T% */ {
+extension type PotentiallyNullableGenericExtensionSubType<T extends self::Object? = dynamic>(T% it) implements self::PotentiallyNullableGenericExtensionType<T%>% /* erasure=T%, declared=! */ {
 }
 extension type NonNullableGenericExtensionType<T extends self::Object>(T it) implements self::Object {
 }
-extension type NonNullableGenericExtensionSubType<T extends self::Object>(T it) implements self::NonNullableGenericExtensionType<T> /* = T */ {
+extension type NonNullableGenericExtensionSubType<T extends self::Object>(T it) implements self::NonNullableGenericExtensionType<T> /* erasure=T */ {
 }
 extension type GenericExtensionTypeImplements<T extends self::Object? = dynamic>(self::GenericClass<T%> it) implements self::GenericClass<T%> {
 }
-extension type GenericSubExtensionTypeImplements<T extends self::Object? = dynamic>(self::SubGenericClass<T%> it) implements self::GenericExtensionTypeImplements<T%> /* = self::GenericClass<T%> */, self::SubGenericClass<T%> {
+extension type GenericSubExtensionTypeImplements<T extends self::Object? = dynamic>(self::SubGenericClass<T%> it) implements self::GenericExtensionTypeImplements<T%> /* erasure=self::GenericClass<T%> */, self::SubGenericClass<T%> {
 }
-extension type PotentiallyNullableNestedGenericExtensionType<T extends self::Object? = dynamic>(self::PotentiallyNullableGenericExtensionType<T%> /* = T% */ it) {
+extension type PotentiallyNullableNestedGenericExtensionType<T extends self::Object? = dynamic>(self::PotentiallyNullableGenericExtensionType<T%>% /* erasure=T%, declared=! */ it) {
 }
-extension type NonNullableNestedGenericExtensionType<T extends self::Object>(self::NonNullableGenericExtensionType<T> /* = T */ it) implements self::Object {
+extension type NonNullableNestedGenericExtensionType<T extends self::Object>(self::NonNullableGenericExtensionType<T> /* erasure=T */ it) implements self::Object {
 }
 """;
 

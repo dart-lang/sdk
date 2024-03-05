@@ -18,9 +18,12 @@ import 'package:ffi/ffi.dart';
 import 'fast_object_copy_test.dart'
     show UserObject, SendReceiveTestBase, notAllocatableInTLAB;
 
+typedef TypeLiteral<T> = T;
+
 topLevelClosure(a, b) {}
 topLevelClosureG<T>(T a, T b) {}
 Type getType<T>() => T;
+Type invokeWithType<T>(Type Function<T>() fun) => fun<T>();
 
 class A<T> {
   dynamic m<H>(T a, H b) => this;
@@ -67,8 +70,27 @@ final sharableObjects = [
     final Function(int, int) partialInstantiatedInnerClosure = topLevelClosureG;
     return partialInstantiatedInnerClosure;
   }(),
+
+  // Types: Type literal constants
+  getType<int>(),
+  getType<(int, double, Object)>(),
   getType<void Function(int, double, Object)>(),
   getType<T Function<T>(int, double, T)>(),
+
+  // Types: Instantiated & canonicalized types.
+  invokeWithType<int>(<T>() => getType<T>()),
+  invokeWithType<int>(<T>() => getType<(T, T)>()),
+  invokeWithType<int>(<T>() => getType<List<T>>()),
+  invokeWithType<int>(<T>() => getType<T Function(T, T)>()),
+  invokeWithType<int>(<T>() => getType<H Function<H>(T, T)>()),
+
+  // Types: Instantiated but non-canonicalized types.
+  invokeWithType<int>(<T>() => TypeLiteral<T>),
+  invokeWithType<int>(<T>() => TypeLiteral<(T, T)>),
+  invokeWithType<int>(<T>() => TypeLiteral<List<T>>),
+  invokeWithType<int>(<T>() => TypeLiteral<T Function(T, T)>),
+  invokeWithType<int>(<T>() => TypeLiteral<H Function<H>(T, T)>),
+
   const [1, 2, 3],
   const {1: 1, 2: 2, 3: 2},
   const {1, 2, 3},

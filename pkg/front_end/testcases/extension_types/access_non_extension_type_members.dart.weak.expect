@@ -25,27 +25,27 @@ extension type E(self::B it) implements self::B {
   constructor • = self::E|constructor#;
   constructor tearoff • = self::E|constructor#_#new#tearOff;
 }
-extension type F(self::B it) implements self::E /* = self::B */ {
+extension type F(self::B it) implements self::E /* erasure=self::B */ {
   abstract extension-type-member representation-field get it() → self::B;
   constructor • = self::F|constructor#;
   constructor tearoff • = self::F|constructor#_#new#tearOff;
 }
-static extension-type-member method E|constructor#(self::B it) → self::E /* = self::B */ {
-  lowered final self::E /* = self::B */ #this = it;
+static extension-type-member method E|constructor#(self::B it) → self::E /* erasure=self::B */ {
+  lowered final self::E /* erasure=self::B */ #this = it;
   return #this;
 }
-static extension-type-member method E|constructor#_#new#tearOff(self::B it) → self::E /* = self::B */
+static extension-type-member method E|constructor#_#new#tearOff(self::B it) → self::E /* erasure=self::B */
   return self::E|constructor#(it);
-static extension-type-member method F|constructor#(self::B it) → self::F /* = self::B */ {
-  lowered final self::F /* = self::B */ #this = it;
+static extension-type-member method F|constructor#(self::B it) → self::F /* erasure=self::B */ {
+  lowered final self::F /* erasure=self::B */ #this = it;
   return #this;
 }
-static extension-type-member method F|constructor#_#new#tearOff(self::B it) → self::F /* = self::B */
+static extension-type-member method F|constructor#_#new#tearOff(self::B it) → self::F /* erasure=self::B */
   return self::F|constructor#(it);
 static method main() → dynamic {
   self::B b = new self::B::•();
-  self::E /* = self::B */ e = self::E|constructor#(b);
-  self::F /* = self::B */ f = self::F|constructor#(b);
+  self::E /* erasure=self::B */ e = self::E|constructor#(b);
+  self::F /* erasure=self::B */ f = self::F|constructor#(b);
   self::expect(42, b.{self::A::field}{core::int});
   self::expect(42, e.{self::A::field}{core::int});
   self::expect(42, f.{self::A::field}{core::int});

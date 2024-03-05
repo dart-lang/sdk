@@ -7,34 +7,34 @@ extension type ExInt(core::int _) implements core::int {
   constructor • = self::ExInt|constructor#;
   constructor tearoff • = self::ExInt|constructor#_#new#tearOff;
 }
-static const field self::ExInt /* = core::int */ ex3 = const self::ExInt|constructor#(3);
-static const field self::ExInt /* = core::int */ ex4 = const self::ExInt|constructor#(4);
-static const field core::List<self::ExInt /* = core::int */> l3 = const <self::ExInt /* = core::int */>[self::ex3];
-static const field core::List<self::ExInt /* = core::int */> l4 = const <self::ExInt /* = core::int */>[self::ex4];
+static const field self::ExInt /* erasure=core::int */ ex3 = const self::ExInt|constructor#(3);
+static const field self::ExInt /* erasure=core::int */ ex4 = const self::ExInt|constructor#(4);
+static const field core::List<self::ExInt /* erasure=core::int */> l3 = const <self::ExInt /* erasure=core::int */>[self::ex3];
+static const field core::List<self::ExInt /* erasure=core::int */> l4 = const <self::ExInt /* erasure=core::int */>[self::ex4];
 static const field core::List<core::int> l34i = const <core::int>[self::ex3 as core::int] + self::l4 as core::List<core::int>;
-static const field core::List<self::ExInt /* = core::int */> l43 = const <self::ExInt /* = core::int */>[self::ex4, self::ex3];
-static const field core::List<self::ExInt /* = core::int */> l3s4 = const <self::ExInt /* = core::int */>[self::ex3] + self::l4;
-static const field core::List<self::ExInt /* = core::int */> ls43 = self::l4 + const <self::ExInt /* = core::int */>[self::ex3];
-static const field core::List<self::ExInt /* = core::int */> ls3s4 = self::l3 + self::l4;
-static const field core::Set<self::ExInt /* = core::int */> s3 = const <self::ExInt /* = core::int */>{self::ex3};
-static const field core::Set<self::ExInt /* = core::int */> s4 = const <self::ExInt /* = core::int */>{self::ex4};
+static const field core::List<self::ExInt /* erasure=core::int */> l43 = const <self::ExInt /* erasure=core::int */>[self::ex4, self::ex3];
+static const field core::List<self::ExInt /* erasure=core::int */> l3s4 = const <self::ExInt /* erasure=core::int */>[self::ex3] + self::l4;
+static const field core::List<self::ExInt /* erasure=core::int */> ls43 = self::l4 + const <self::ExInt /* erasure=core::int */>[self::ex3];
+static const field core::List<self::ExInt /* erasure=core::int */> ls3s4 = self::l3 + self::l4;
+static const field core::Set<self::ExInt /* erasure=core::int */> s3 = const <self::ExInt /* erasure=core::int */>{self::ex3};
+static const field core::Set<self::ExInt /* erasure=core::int */> s4 = const <self::ExInt /* erasure=core::int */>{self::ex4};
 static const field core::Set<core::int> s34i = const <core::int>{self::ex3 as core::int} + self::s4 as core::Set<core::int>;
-static const field core::Set<self::ExInt /* = core::int */> s43 = const <self::ExInt /* = core::int */>{self::ex4, self::ex3};
-static const field core::Set<self::ExInt /* = core::int */> s3s4 = const <self::ExInt /* = core::int */>{self::ex3} + self::s4;
-static const field core::Set<self::ExInt /* = core::int */> ss43 = self::s4 + const <self::ExInt /* = core::int */>{self::ex3};
-static const field core::Set<self::ExInt /* = core::int */> ss3s4 = self::s3 + self::s4;
-static const field core::Map<self::ExInt /* = core::int */, self::ExInt /* = core::int */> m3 = const <self::ExInt /* = core::int */, self::ExInt /* = core::int */>{self::ex3: self::ex3};
-static const field core::Map<self::ExInt /* = core::int */, self::ExInt /* = core::int */> m4 = const <self::ExInt /* = core::int */, self::ExInt /* = core::int */>{self::ex4: self::ex4};
+static const field core::Set<self::ExInt /* erasure=core::int */> s43 = const <self::ExInt /* erasure=core::int */>{self::ex4, self::ex3};
+static const field core::Set<self::ExInt /* erasure=core::int */> s3s4 = const <self::ExInt /* erasure=core::int */>{self::ex3} + self::s4;
+static const field core::Set<self::ExInt /* erasure=core::int */> ss43 = self::s4 + const <self::ExInt /* erasure=core::int */>{self::ex3};
+static const field core::Set<self::ExInt /* erasure=core::int */> ss3s4 = self::s3 + self::s4;
+static const field core::Map<self::ExInt /* erasure=core::int */, self::ExInt /* erasure=core::int */> m3 = const <self::ExInt /* erasure=core::int */, self::ExInt /* erasure=core::int */>{self::ex3: self::ex3};
+static const field core::Map<self::ExInt /* erasure=core::int */, self::ExInt /* erasure=core::int */> m4 = const <self::ExInt /* erasure=core::int */, self::ExInt /* erasure=core::int */>{self::ex4: self::ex4};
 static const field core::Map<core::int, core::int> m34i = const <core::int, core::int>{self::ex3 as core::int: self::ex3 as core::int} + self::m4 as core::Map<core::int, core::int>;
-static const field core::Map<self::ExInt /* = core::int */, self::ExInt /* = core::int */> m43 = const <self::ExInt /* = core::int */, self::ExInt /* = core::int */>{self::ex4: self::ex4, self::ex3: self::ex3};
-static const field core::Map<self::ExInt /* = core::int */, self::ExInt /* = core::int */> m3s4 = const <self::ExInt /* = core::int */, self::ExInt /* = core::int */>{self::ex3: self::ex3} + self::m4;
-static const field core::Map<self::ExInt /* = core::int */, self::ExInt /* = core::int */> ms43 = self::m4 + const <self::ExInt /* = core::int */, self::ExInt /* = core::int */>{self::ex3: self::ex3};
-static const field core::Map<self::ExInt /* = core::int */, self::ExInt /* = core::int */> ms3s4 = self::m3 + self::m4;
-static extension-type-member method ExInt|constructor#(core::int _) → self::ExInt /* = core::int */ {
-  lowered final self::ExInt /* = core::int */ #this = _;
+static const field core::Map<self::ExInt /* erasure=core::int */, self::ExInt /* erasure=core::int */> m43 = const <self::ExInt /* erasure=core::int */, self::ExInt /* erasure=core::int */>{self::ex4: self::ex4, self::ex3: self::ex3};
+static const field core::Map<self::ExInt /* erasure=core::int */, self::ExInt /* erasure=core::int */> m3s4 = const <self::ExInt /* erasure=core::int */, self::ExInt /* erasure=core::int */>{self::ex3: self::ex3} + self::m4;
+static const field core::Map<self::ExInt /* erasure=core::int */, self::ExInt /* erasure=core::int */> ms43 = self::m4 + const <self::ExInt /* erasure=core::int */, self::ExInt /* erasure=core::int */>{self::ex3: self::ex3};
+static const field core::Map<self::ExInt /* erasure=core::int */, self::ExInt /* erasure=core::int */> ms3s4 = self::m3 + self::m4;
+static extension-type-member method ExInt|constructor#(core::int _) → self::ExInt /* erasure=core::int */ {
+  lowered final self::ExInt /* erasure=core::int */ #this = _;
   return #this;
 }
-static extension-type-member method ExInt|constructor#_#new#tearOff(core::int _) → self::ExInt /* = core::int */
+static extension-type-member method ExInt|constructor#_#new#tearOff(core::int _) → self::ExInt /* erasure=core::int */
   return self::ExInt|constructor#(_);
 
 

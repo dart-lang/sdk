@@ -51,8 +51,8 @@ library;
 import self as self;
 import "dart:core" as core;
 
-typedef Typedef1<unrelated X extends core::Object? = dynamic> = self::ExtensionType1 /* = core::int */;
-typedef Typedef2<unrelated X extends core::Object? = dynamic> = self::ExtensionType2 /* = core::int */;
+typedef Typedef1<unrelated X extends core::Object? = dynamic> = self::ExtensionType1% /* erasure=core::int, declared=! */;
+typedef Typedef2<unrelated X extends core::Object? = dynamic> = self::ExtensionType2% /* erasure=core::int, declared=! */;
 extension type ExtensionType1(core::int i) {
   abstract extension-type-member representation-field get i() → core::int;
   constructor • = self::ExtensionType1|constructor#;
@@ -71,7 +71,7 @@ static field invalid-type explicitConst1 = invalid-expression "pkg/front_end/tes
 Try using a constructor or factory that is 'const'.
 var explicitConst1 = const ExtensionType1(0); /* Error */
                            ^^^^^^^^^^^^^^";
-static const field self::ExtensionType1 /* = core::int */ newConst1 = invalid-expression "pkg/front_end/testcases/extension_types/const_constructor_access.dart:9:23: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+static const field self::ExtensionType1% /* erasure=core::int, declared=! */ newConst1 = invalid-expression "pkg/front_end/testcases/extension_types/const_constructor_access.dart:9:23: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
 Try using a constructor or factory that is 'const'.
 const newConst1 = new ExtensionType1(0); /* Error */
                       ^";
@@ -83,31 +83,31 @@ static field invalid-type explicitConstAliased1 = invalid-expression "pkg/front_
 Try using a constructor or factory that is 'const'.
 var explicitConstAliased1 = const Typedef1(0); /* Error */
                                   ^^^^^^^^";
-static const field self::ExtensionType1 /* = core::int */ newConstAliased1 = invalid-expression "pkg/front_end/testcases/extension_types/const_constructor_access.dart:15:30: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+static const field self::ExtensionType1% /* erasure=core::int, declared=! */ newConstAliased1 = invalid-expression "pkg/front_end/testcases/extension_types/const_constructor_access.dart:15:30: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
 Try using a constructor or factory that is 'const'.
 const newConstAliased1 = new Typedef1(0); /* Error */
                              ^";
-static const field self::ExtensionType2 /* = core::int */ implicitConst2 = #C1;
-static field self::ExtensionType2 /* = core::int */ explicitConst2 = #C1;
-static const field self::ExtensionType2 /* = core::int */ newConst2 = #C1;
-static const field self::ExtensionType2 /* = core::int */ implicitConstAliased2 = #C1;
-static field self::ExtensionType2 /* = core::int */ explicitConstAliased2 = #C1;
-static const field self::ExtensionType2 /* = core::int */ newConstAliased2 = #C1;
-static extension-type-member method ExtensionType1|constructor#(core::int i) → self::ExtensionType1 /* = core::int */ {
-  lowered final self::ExtensionType1 /* = core::int */ #this = i;
+static const field self::ExtensionType2% /* erasure=core::int, declared=! */ implicitConst2 = #C1;
+static field self::ExtensionType2% /* erasure=core::int, declared=! */ explicitConst2 = #C1;
+static const field self::ExtensionType2% /* erasure=core::int, declared=! */ newConst2 = #C1;
+static const field self::ExtensionType2% /* erasure=core::int, declared=! */ implicitConstAliased2 = #C1;
+static field self::ExtensionType2% /* erasure=core::int, declared=! */ explicitConstAliased2 = #C1;
+static const field self::ExtensionType2% /* erasure=core::int, declared=! */ newConstAliased2 = #C1;
+static extension-type-member method ExtensionType1|constructor#(core::int i) → self::ExtensionType1% /* erasure=core::int, declared=! */ {
+  lowered final self::ExtensionType1% /* erasure=core::int, declared=! */ #this = i;
   return #this;
 }
-static extension-type-member method ExtensionType1|constructor#_#new#tearOff(core::int i) → self::ExtensionType1 /* = core::int */
+static extension-type-member method ExtensionType1|constructor#_#new#tearOff(core::int i) → self::ExtensionType1% /* erasure=core::int, declared=! */
   return self::ExtensionType1|constructor#(i);
-static extension-type-member method ExtensionType2|constructor#(core::int i) → self::ExtensionType2 /* = core::int */ {
-  lowered final self::ExtensionType2 /* = core::int */ #this = i;
+static extension-type-member method ExtensionType2|constructor#(core::int i) → self::ExtensionType2% /* erasure=core::int, declared=! */ {
+  lowered final self::ExtensionType2% /* erasure=core::int, declared=! */ #this = i;
   return #this;
 }
-static extension-type-member method ExtensionType2|constructor#_#new#tearOff(core::int i) → self::ExtensionType2 /* = core::int */
+static extension-type-member method ExtensionType2|constructor#_#new#tearOff(core::int i) → self::ExtensionType2% /* erasure=core::int, declared=! */
   return self::ExtensionType2|constructor#(i);
-static method _#Typedef1#new#tearOff<unrelated X extends core::Object? = dynamic>(core::int i) → self::ExtensionType1 /* = core::int */
+static method _#Typedef1#new#tearOff<unrelated X extends core::Object? = dynamic>(core::int i) → self::ExtensionType1% /* erasure=core::int, declared=! */
   return self::ExtensionType1|constructor#(i);
-static method _#Typedef2#new#tearOff<unrelated X extends core::Object? = dynamic>(core::int i) → self::ExtensionType2 /* = core::int */
+static method _#Typedef2#new#tearOff<unrelated X extends core::Object? = dynamic>(core::int i) → self::ExtensionType2% /* erasure=core::int, declared=! */
   return self::ExtensionType2|constructor#(i);
 
 constants  {

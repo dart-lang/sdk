@@ -13,11 +13,11 @@ extension type F(asy::Future<core::int> _) implements asy::Future<core::int> {
   constructor • = self::F|constructor#;
   constructor tearoff • = self::F|constructor#_#new#tearOff;
 }
-static method cfeAwait<XF extends self::F /* = asy::Future<core::int> */>(self::cfeAwait::XF xf) → void async 
+static method cfeAwait<XF extends self::F /* erasure=asy::Future<core::int> */>(self::cfeAwait::XF xf) → void async 
   ;
-static extension-type-member method F|constructor#(asy::Future<core::int> _) → self::F /* = asy::Future<core::int> */
+static extension-type-member method F|constructor#(asy::Future<core::int> _) → self::F /* erasure=asy::Future<core::int> */
   ;
-static extension-type-member method F|constructor#_#new#tearOff(asy::Future<core::int> _) → self::F /* = asy::Future<core::int> */
+static extension-type-member method F|constructor#_#new#tearOff(asy::Future<core::int> _) → self::F /* erasure=asy::Future<core::int> */
   return self::F|constructor#(_);
 static method main() → void
   ;

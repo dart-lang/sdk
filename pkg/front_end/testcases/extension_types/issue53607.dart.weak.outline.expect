@@ -11,17 +11,17 @@ extension type E(core::int i) {
   constructor foo = self::E|constructor#foo;
   constructor tearoff foo = self::E|constructor#_#foo#tearOff;
 }
-static extension-type-member method E|constructor#_(core::int i) → self::E /* = core::int */
+static extension-type-member method E|constructor#_(core::int i) → self::E% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method E|constructor#_#_#tearOff(core::int i) → self::E /* = core::int */
+static extension-type-member method E|constructor#_#_#tearOff(core::int i) → self::E% /* erasure=core::int, declared=! */
   return self::E|constructor#_(i);
-static extension-type-member method E|constructor#foo(core::int i) → self::E /* = core::int */
+static extension-type-member method E|constructor#foo(core::int i) → self::E% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method E|constructor#_#foo#tearOff(core::int i) → self::E /* = core::int */
+static extension-type-member method E|constructor#_#foo#tearOff(core::int i) → self::E% /* erasure=core::int, declared=! */
   return self::E|constructor#foo(i);
-static extension-type-member method E|get#value(lowered final self::E /* = core::int */ #this) → core::int
+static extension-type-member method E|get#value(lowered final self::E% /* erasure=core::int, declared=! */ #this) → core::int
   ;
-static extension-type-member method E|get#foo(lowered final self::E /* = core::int */ #this) → core::int
+static extension-type-member method E|get#foo(lowered final self::E% /* erasure=core::int, declared=! */ #this) → core::int
   ;
 static method main() → void
   ;

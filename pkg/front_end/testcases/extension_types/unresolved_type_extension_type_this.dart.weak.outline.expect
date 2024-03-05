@@ -13,7 +13,7 @@ extension type Extension(invalid-type it) {
   constructor • = self::Extension|constructor#;
   constructor tearoff • = self::Extension|constructor#_#new#tearOff;
 }
-static extension-type-member method Extension|constructor#(invalid-type it) → self::Extension /* = invalid-type */
+static extension-type-member method Extension|constructor#(invalid-type it) → self::Extension% /* erasure=invalid-type, declared=! */
   ;
-static extension-type-member method Extension|constructor#_#new#tearOff(invalid-type it) → self::Extension /* = invalid-type */
+static extension-type-member method Extension|constructor#_#new#tearOff(invalid-type it) → self::Extension% /* erasure=invalid-type, declared=! */
   return self::Extension|constructor#(it);

@@ -23,7 +23,7 @@ extension type ExtensionType(core::int i) {
   constructor • = mai::ExtensionType|constructor#;
   constructor tearoff • = mai::ExtensionType|constructor#_#new#tearOff;
 }
-static extension-type-member method ExtensionType|constructor#(core::int i) → mai::ExtensionType /* = core::int */
+static extension-type-member method ExtensionType|constructor#(core::int i) → mai::ExtensionType% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method ExtensionType|constructor#_#new#tearOff(core::int i) → mai::ExtensionType /* = core::int */
+static extension-type-member method ExtensionType|constructor#_#new#tearOff(core::int i) → mai::ExtensionType% /* erasure=core::int, declared=! */
   return mai::ExtensionType|constructor#(i);

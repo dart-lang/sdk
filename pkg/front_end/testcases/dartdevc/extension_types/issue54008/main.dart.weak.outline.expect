@@ -22,61 +22,61 @@ extension type SameGeneric<T extends core::Object? = dynamic>(T% s) {
   constructor • = self::SameGeneric|constructor#;
   constructor tearoff • = self::SameGeneric|constructor#_#new#tearOff;
 }
-static const field self::SameString /* = core::String */ sameString0 = const self::SameString|constructor#("hello");
-static const field self::SameString /* = core::String */ sameString1 = const self::SameString|constructor#named("hello");
-static const field self::SameNullable /* = core::String? */ sameNullable0 = const self::SameNullable|constructor#(null);
-static const field self::SameNullable /* = core::String? */ sameNullable1 = const self::SameNullable|constructor#("hello");
-static const field self::SameGeneric<core::String> /* = core::String */ sameGeneric0 = const self::SameGeneric|constructor#<core::String>("hello");
-static const field self::SameGeneric<core::String?> /* = core::String? */ sameGeneric1 = const self::SameGeneric|constructor#<core::String?>(null);
-static const field self::SameGeneric<core::String?> /* = core::String? */ sameGeneric2 = const self::SameGeneric|constructor#<core::String?>("hello");
-static const field mai::ExtString /* = core::String */ valString0 = const mai::ExtString|constructor#("hello");
-static const field mai::ExtString /* = core::String */ valString1 = const mai::ExtString|constructor#named("hello");
-static const field mai::ExtNullable /* = core::String? */ valNullable0 = const mai::ExtNullable|constructor#(null);
-static const field mai::ExtNullable /* = core::String? */ valNullable1 = const mai::ExtNullable|constructor#("hello");
-static const field mai::ExtGeneric<core::String> /* = core::String */ valGeneric0 = const mai::ExtGeneric|constructor#<core::String>("hello");
-static const field mai::ExtGeneric<core::String?> /* = core::String? */ valGeneric1 = const mai::ExtGeneric|constructor#<core::String?>(null);
-static const field mai::ExtGeneric<core::String?> /* = core::String? */ valGeneric2 = const mai::ExtGeneric|constructor#<core::String?>("hello");
-static extension-type-member method SameString|constructor#(core::String s) → self::SameString /* = core::String */ {
-  lowered final self::SameString /* = core::String */ #this = s;
+static const field self::SameString% /* erasure=core::String, declared=! */ sameString0 = const self::SameString|constructor#("hello");
+static const field self::SameString% /* erasure=core::String, declared=! */ sameString1 = const self::SameString|constructor#named("hello");
+static const field self::SameNullable% /* erasure=core::String?, declared=! */ sameNullable0 = const self::SameNullable|constructor#(null);
+static const field self::SameNullable% /* erasure=core::String?, declared=! */ sameNullable1 = const self::SameNullable|constructor#("hello");
+static const field self::SameGeneric<core::String>% /* erasure=core::String, declared=! */ sameGeneric0 = const self::SameGeneric|constructor#<core::String>("hello");
+static const field self::SameGeneric<core::String?>% /* erasure=core::String?, declared=! */ sameGeneric1 = const self::SameGeneric|constructor#<core::String?>(null);
+static const field self::SameGeneric<core::String?>% /* erasure=core::String?, declared=! */ sameGeneric2 = const self::SameGeneric|constructor#<core::String?>("hello");
+static const field mai::ExtString% /* erasure=core::String, declared=! */ valString0 = const mai::ExtString|constructor#("hello");
+static const field mai::ExtString% /* erasure=core::String, declared=! */ valString1 = const mai::ExtString|constructor#named("hello");
+static const field mai::ExtNullable% /* erasure=core::String?, declared=! */ valNullable0 = const mai::ExtNullable|constructor#(null);
+static const field mai::ExtNullable% /* erasure=core::String?, declared=! */ valNullable1 = const mai::ExtNullable|constructor#("hello");
+static const field mai::ExtGeneric<core::String>% /* erasure=core::String, declared=! */ valGeneric0 = const mai::ExtGeneric|constructor#<core::String>("hello");
+static const field mai::ExtGeneric<core::String?>% /* erasure=core::String?, declared=! */ valGeneric1 = const mai::ExtGeneric|constructor#<core::String?>(null);
+static const field mai::ExtGeneric<core::String?>% /* erasure=core::String?, declared=! */ valGeneric2 = const mai::ExtGeneric|constructor#<core::String?>("hello");
+static extension-type-member method SameString|constructor#(core::String s) → self::SameString% /* erasure=core::String, declared=! */ {
+  lowered final self::SameString% /* erasure=core::String, declared=! */ #this = s;
   return #this;
 }
-static extension-type-member method SameString|constructor#_#new#tearOff(core::String s) → self::SameString /* = core::String */
+static extension-type-member method SameString|constructor#_#new#tearOff(core::String s) → self::SameString% /* erasure=core::String, declared=! */
   return self::SameString|constructor#(s);
-static extension-type-member method SameString|constructor#named(core::String s) → self::SameString /* = core::String */ {
-  lowered final self::SameString /* = core::String */ #this = "${s} world";
+static extension-type-member method SameString|constructor#named(core::String s) → self::SameString% /* erasure=core::String, declared=! */ {
+  lowered final self::SameString% /* erasure=core::String, declared=! */ #this = "${s} world";
   return #this;
 }
-static extension-type-member method SameString|constructor#_#named#tearOff(core::String s) → self::SameString /* = core::String */
+static extension-type-member method SameString|constructor#_#named#tearOff(core::String s) → self::SameString% /* erasure=core::String, declared=! */
   return self::SameString|constructor#named(s);
-static extension-type-member method SameNullable|constructor#(core::String? s) → self::SameNullable /* = core::String? */ {
-  lowered final self::SameNullable /* = core::String? */ #this = s;
+static extension-type-member method SameNullable|constructor#(core::String? s) → self::SameNullable% /* erasure=core::String?, declared=! */ {
+  lowered final self::SameNullable% /* erasure=core::String?, declared=! */ #this = s;
   return #this;
 }
-static extension-type-member method SameNullable|constructor#_#new#tearOff(core::String? s) → self::SameNullable /* = core::String? */
+static extension-type-member method SameNullable|constructor#_#new#tearOff(core::String? s) → self::SameNullable% /* erasure=core::String?, declared=! */
   return self::SameNullable|constructor#(s);
-static extension-type-member method SameGeneric|constructor#<T extends core::Object? = dynamic>(self::SameGeneric|constructor#::T% s) → self::SameGeneric<self::SameGeneric|constructor#::T%> /* = self::SameGeneric|constructor#::T% */ {
-  lowered final self::SameGeneric<self::SameGeneric|constructor#::T%> /* = self::SameGeneric|constructor#::T% */ #this = s;
+static extension-type-member method SameGeneric|constructor#<T extends core::Object? = dynamic>(self::SameGeneric|constructor#::T% s) → self::SameGeneric<self::SameGeneric|constructor#::T%>% /* erasure=self::SameGeneric|constructor#::T%, declared=! */ {
+  lowered final self::SameGeneric<self::SameGeneric|constructor#::T%>% /* erasure=self::SameGeneric|constructor#::T%, declared=! */ #this = s;
   return #this;
 }
-static extension-type-member method SameGeneric|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::SameGeneric|constructor#_#new#tearOff::T% s) → self::SameGeneric<self::SameGeneric|constructor#_#new#tearOff::T%> /* = self::SameGeneric|constructor#_#new#tearOff::T% */
+static extension-type-member method SameGeneric|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::SameGeneric|constructor#_#new#tearOff::T% s) → self::SameGeneric<self::SameGeneric|constructor#_#new#tearOff::T%>% /* erasure=self::SameGeneric|constructor#_#new#tearOff::T%, declared=! */
   return self::SameGeneric|constructor#<self::SameGeneric|constructor#_#new#tearOff::T%>(s);
 static method sameLibrary() → dynamic
   ;
-static method sameString(dynamic expected, self::SameString /* = core::String */ es) → void
+static method sameString(dynamic expected, self::SameString% /* erasure=core::String, declared=! */ es) → void
   ;
-static method sameNullable(dynamic expected, self::SameNullable /* = core::String? */ es) → void
+static method sameNullable(dynamic expected, self::SameNullable% /* erasure=core::String?, declared=! */ es) → void
   ;
-static method sameGeneric<T extends core::Object? = dynamic>(dynamic expected, self::SameGeneric<self::sameGeneric::T%> /* = self::sameGeneric::T% */ es) → void
+static method sameGeneric<T extends core::Object? = dynamic>(dynamic expected, self::SameGeneric<self::sameGeneric::T%>% /* erasure=self::sameGeneric::T%, declared=! */ es) → void
   ;
 static method otherLibrary() → dynamic
   ;
 static method imported() → dynamic
   ;
-static method extString(dynamic expected, mai::ExtString /* = core::String */ es) → void
+static method extString(dynamic expected, mai::ExtString% /* erasure=core::String, declared=! */ es) → void
   ;
-static method extNullable(dynamic expected, mai::ExtNullable /* = core::String? */ es) → void
+static method extNullable(dynamic expected, mai::ExtNullable% /* erasure=core::String?, declared=! */ es) → void
   ;
-static method extGeneric<T extends core::Object? = dynamic>(dynamic expected, mai::ExtGeneric<self::extGeneric::T%> /* = self::extGeneric::T% */ es) → void
+static method extGeneric<T extends core::Object? = dynamic>(dynamic expected, mai::ExtGeneric<self::extGeneric::T%>% /* erasure=self::extGeneric::T%, declared=! */ es) → void
   ;
 static method main() → dynamic
   ;
@@ -104,36 +104,36 @@ extension type ExtGeneric<T extends core::Object? = dynamic>(T% s) {
   constructor • = mai::ExtGeneric|constructor#;
   constructor tearoff • = mai::ExtGeneric|constructor#_#new#tearOff;
 }
-static const field mai::ExtString /* = core::String */ libString0 = #C1;
-static const field mai::ExtString /* = core::String */ libString1 = #C2;
-static const field mai::ExtNullable /* = core::String? */ libNullable0 = #C3;
-static const field mai::ExtNullable /* = core::String? */ libNullable1 = #C1;
-static const field mai::ExtGeneric<core::String> /* = core::String */ libGeneric0 = #C1;
-static const field mai::ExtGeneric<core::String?> /* = core::String? */ libGeneric1 = #C3;
-static const field mai::ExtGeneric<core::String?> /* = core::String? */ libGeneric2 = #C1;
-static extension-type-member method ExtString|constructor#(core::String s) → mai::ExtString /* = core::String */ {
-  lowered final mai::ExtString /* = core::String */ #this = s;
+static const field mai::ExtString% /* erasure=core::String, declared=! */ libString0 = #C1;
+static const field mai::ExtString% /* erasure=core::String, declared=! */ libString1 = #C2;
+static const field mai::ExtNullable% /* erasure=core::String?, declared=! */ libNullable0 = #C3;
+static const field mai::ExtNullable% /* erasure=core::String?, declared=! */ libNullable1 = #C1;
+static const field mai::ExtGeneric<core::String>% /* erasure=core::String, declared=! */ libGeneric0 = #C1;
+static const field mai::ExtGeneric<core::String?>% /* erasure=core::String?, declared=! */ libGeneric1 = #C3;
+static const field mai::ExtGeneric<core::String?>% /* erasure=core::String?, declared=! */ libGeneric2 = #C1;
+static extension-type-member method ExtString|constructor#(core::String s) → mai::ExtString% /* erasure=core::String, declared=! */ {
+  lowered final mai::ExtString% /* erasure=core::String, declared=! */ #this = s;
   return #this;
 }
-static extension-type-member method ExtString|constructor#_#new#tearOff(core::String s) → mai::ExtString /* = core::String */
+static extension-type-member method ExtString|constructor#_#new#tearOff(core::String s) → mai::ExtString% /* erasure=core::String, declared=! */
   return mai::ExtString|constructor#(s);
-static extension-type-member method ExtString|constructor#named(core::String s) → mai::ExtString /* = core::String */ {
-  lowered final mai::ExtString /* = core::String */ #this = "${s} world";
+static extension-type-member method ExtString|constructor#named(core::String s) → mai::ExtString% /* erasure=core::String, declared=! */ {
+  lowered final mai::ExtString% /* erasure=core::String, declared=! */ #this = "${s} world";
   return #this;
 }
-static extension-type-member method ExtString|constructor#_#named#tearOff(core::String s) → mai::ExtString /* = core::String */
+static extension-type-member method ExtString|constructor#_#named#tearOff(core::String s) → mai::ExtString% /* erasure=core::String, declared=! */
   return mai::ExtString|constructor#named(s);
-static extension-type-member method ExtNullable|constructor#(core::String? s) → mai::ExtNullable /* = core::String? */ {
-  lowered final mai::ExtNullable /* = core::String? */ #this = s;
+static extension-type-member method ExtNullable|constructor#(core::String? s) → mai::ExtNullable% /* erasure=core::String?, declared=! */ {
+  lowered final mai::ExtNullable% /* erasure=core::String?, declared=! */ #this = s;
   return #this;
 }
-static extension-type-member method ExtNullable|constructor#_#new#tearOff(core::String? s) → mai::ExtNullable /* = core::String? */
+static extension-type-member method ExtNullable|constructor#_#new#tearOff(core::String? s) → mai::ExtNullable% /* erasure=core::String?, declared=! */
   return mai::ExtNullable|constructor#(s);
-static extension-type-member method ExtGeneric|constructor#<T extends core::Object? = dynamic>(mai::ExtGeneric|constructor#::T% s) → mai::ExtGeneric<mai::ExtGeneric|constructor#::T%> /* = mai::ExtGeneric|constructor#::T% */ {
-  lowered final mai::ExtGeneric<mai::ExtGeneric|constructor#::T%> /* = mai::ExtGeneric|constructor#::T% */ #this = s;
+static extension-type-member method ExtGeneric|constructor#<T extends core::Object? = dynamic>(mai::ExtGeneric|constructor#::T% s) → mai::ExtGeneric<mai::ExtGeneric|constructor#::T%>% /* erasure=mai::ExtGeneric|constructor#::T%, declared=! */ {
+  lowered final mai::ExtGeneric<mai::ExtGeneric|constructor#::T%>% /* erasure=mai::ExtGeneric|constructor#::T%, declared=! */ #this = s;
   return #this;
 }
-static extension-type-member method ExtGeneric|constructor#_#new#tearOff<T extends core::Object? = dynamic>(mai::ExtGeneric|constructor#_#new#tearOff::T% s) → mai::ExtGeneric<mai::ExtGeneric|constructor#_#new#tearOff::T%> /* = mai::ExtGeneric|constructor#_#new#tearOff::T% */
+static extension-type-member method ExtGeneric|constructor#_#new#tearOff<T extends core::Object? = dynamic>(mai::ExtGeneric|constructor#_#new#tearOff::T% s) → mai::ExtGeneric<mai::ExtGeneric|constructor#_#new#tearOff::T%>% /* erasure=mai::ExtGeneric|constructor#_#new#tearOff::T%, declared=! */
   return mai::ExtGeneric|constructor#<mai::ExtGeneric|constructor#_#new#tearOff::T%>(s);
 
 constants  {
