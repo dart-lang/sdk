@@ -144,18 +144,18 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  field self::E1<core::num?> /* = core::num? */ e1numNullableA = null;
-  field self::E1<core::double> /* = core::double */ e1doubleA = null;
-  field self::E2 /* = core::Object? */ e2A = null;
-  field self::E3 /* = core::String? */ e3A = null;
-  field self::E4 /* = core::int */ e4A = null;
-  field self::E5 /* = core::Object? */ e5A = null;
-  field self::E1<core::num?>? /* = core::num? */ e1numNullableANullable = null;
-  field self::E1<core::double>? /* = core::double? */ e1doubleANullable = null;
-  field self::E2? /* = core::Object? */ e2ANullable = null;
-  field self::E3? /* = core::String? */ e3ANullable = null;
-  field self::E4? /* = core::int? */ e4ANullable = null;
-  field self::E5? /* = core::Object? */ e5ANullable = null;
+  field self::E1<core::num?>% /* erasure=core::num?, declared=! */ e1numNullableA = null;
+  field self::E1<core::double>% /* erasure=core::double, declared=! */ e1doubleA = null;
+  field self::E2% /* erasure=core::Object?, declared=! */ e2A = null;
+  field self::E3% /* erasure=core::String?, declared=! */ e3A = null;
+  field self::E4% /* erasure=core::int, declared=! */ e4A = null;
+  field self::E5% /* erasure=core::Object?, declared=! */ e5A = null;
+  field self::E1<core::num?>? /* erasure=core::num? */ e1numNullableANullable = null;
+  field self::E1<core::double>? /* erasure=core::double? */ e1doubleANullable = null;
+  field self::E2? /* erasure=core::Object? */ e2ANullable = null;
+  field self::E3? /* erasure=core::String? */ e3ANullable = null;
+  field self::E4? /* erasure=core::int? */ e4ANullable = null;
+  field self::E5? /* erasure=core::Object? */ e5ANullable = null;
   synthetic constructor •() → self::A
     : super core::Object::•()
     ;
@@ -170,52 +170,52 @@ extension type E2(core::Object? foo) {
   constructor • = self::E2|constructor#;
   constructor tearoff • = self::E2|constructor#_#new#tearOff;
 }
-extension type E3(self::E1<core::String?> /* = core::String? */ foo) {
-  abstract extension-type-member representation-field get foo() → self::E1<core::String?> /* = core::String? */;
+extension type E3(self::E1<core::String?>% /* erasure=core::String?, declared=! */ foo) {
+  abstract extension-type-member representation-field get foo() → self::E1<core::String?>% /* erasure=core::String?, declared=! */;
   constructor • = self::E3|constructor#;
   constructor tearoff • = self::E3|constructor#_#new#tearOff;
 }
-extension type E4(self::E1<core::int> /* = core::int */ foo) {
-  abstract extension-type-member representation-field get foo() → self::E1<core::int> /* = core::int */;
+extension type E4(self::E1<core::int>% /* erasure=core::int, declared=! */ foo) {
+  abstract extension-type-member representation-field get foo() → self::E1<core::int>% /* erasure=core::int, declared=! */;
   constructor • = self::E4|constructor#;
   constructor tearoff • = self::E4|constructor#_#new#tearOff;
 }
-extension type E5(self::E2 /* = core::Object? */ foo) {
-  abstract extension-type-member representation-field get foo() → self::E2 /* = core::Object? */;
+extension type E5(self::E2% /* erasure=core::Object?, declared=! */ foo) {
+  abstract extension-type-member representation-field get foo() → self::E2% /* erasure=core::Object?, declared=! */;
   constructor • = self::E5|constructor#;
   constructor tearoff • = self::E5|constructor#_#new#tearOff;
 }
-static extension-type-member method E1|constructor#<T extends core::Object? = dynamic>(self::E1|constructor#::T% foo) → self::E1<self::E1|constructor#::T%> /* = self::E1|constructor#::T% */ {
-  lowered final self::E1<self::E1|constructor#::T%> /* = self::E1|constructor#::T% */ #this = foo;
+static extension-type-member method E1|constructor#<T extends core::Object? = dynamic>(self::E1|constructor#::T% foo) → self::E1<self::E1|constructor#::T%>% /* erasure=self::E1|constructor#::T%, declared=! */ {
+  lowered final self::E1<self::E1|constructor#::T%>% /* erasure=self::E1|constructor#::T%, declared=! */ #this = foo;
   return #this;
 }
-static extension-type-member method E1|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::E1|constructor#_#new#tearOff::T% foo) → self::E1<self::E1|constructor#_#new#tearOff::T%> /* = self::E1|constructor#_#new#tearOff::T% */
+static extension-type-member method E1|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::E1|constructor#_#new#tearOff::T% foo) → self::E1<self::E1|constructor#_#new#tearOff::T%>% /* erasure=self::E1|constructor#_#new#tearOff::T%, declared=! */
   return self::E1|constructor#<self::E1|constructor#_#new#tearOff::T%>(foo);
-static extension-type-member method E2|constructor#(core::Object? foo) → self::E2 /* = core::Object? */ {
-  lowered final self::E2 /* = core::Object? */ #this = foo;
+static extension-type-member method E2|constructor#(core::Object? foo) → self::E2% /* erasure=core::Object?, declared=! */ {
+  lowered final self::E2% /* erasure=core::Object?, declared=! */ #this = foo;
   return #this;
 }
-static extension-type-member method E2|constructor#_#new#tearOff(core::Object? foo) → self::E2 /* = core::Object? */
+static extension-type-member method E2|constructor#_#new#tearOff(core::Object? foo) → self::E2% /* erasure=core::Object?, declared=! */
   return self::E2|constructor#(foo);
-static extension-type-member method E3|constructor#(self::E1<core::String?> /* = core::String? */ foo) → self::E3 /* = core::String? */ {
-  lowered final self::E3 /* = core::String? */ #this = foo;
+static extension-type-member method E3|constructor#(self::E1<core::String?>% /* erasure=core::String?, declared=! */ foo) → self::E3% /* erasure=core::String?, declared=! */ {
+  lowered final self::E3% /* erasure=core::String?, declared=! */ #this = foo;
   return #this;
 }
-static extension-type-member method E3|constructor#_#new#tearOff(self::E1<core::String?> /* = core::String? */ foo) → self::E3 /* = core::String? */
+static extension-type-member method E3|constructor#_#new#tearOff(self::E1<core::String?>% /* erasure=core::String?, declared=! */ foo) → self::E3% /* erasure=core::String?, declared=! */
   return self::E3|constructor#(foo);
-static extension-type-member method E4|constructor#(self::E1<core::int> /* = core::int */ foo) → self::E4 /* = core::int */ {
-  lowered final self::E4 /* = core::int */ #this = foo;
+static extension-type-member method E4|constructor#(self::E1<core::int>% /* erasure=core::int, declared=! */ foo) → self::E4% /* erasure=core::int, declared=! */ {
+  lowered final self::E4% /* erasure=core::int, declared=! */ #this = foo;
   return #this;
 }
-static extension-type-member method E4|constructor#_#new#tearOff(self::E1<core::int> /* = core::int */ foo) → self::E4 /* = core::int */
+static extension-type-member method E4|constructor#_#new#tearOff(self::E1<core::int>% /* erasure=core::int, declared=! */ foo) → self::E4% /* erasure=core::int, declared=! */
   return self::E4|constructor#(foo);
-static extension-type-member method E5|constructor#(self::E2 /* = core::Object? */ foo) → self::E5 /* = core::Object? */ {
-  lowered final self::E5 /* = core::Object? */ #this = foo;
+static extension-type-member method E5|constructor#(self::E2% /* erasure=core::Object?, declared=! */ foo) → self::E5% /* erasure=core::Object?, declared=! */ {
+  lowered final self::E5% /* erasure=core::Object?, declared=! */ #this = foo;
   return #this;
 }
-static extension-type-member method E5|constructor#_#new#tearOff(self::E2 /* = core::Object? */ foo) → self::E5 /* = core::Object? */
+static extension-type-member method E5|constructor#_#new#tearOff(self::E2% /* erasure=core::Object?, declared=! */ foo) → self::E5% /* erasure=core::Object?, declared=! */
   return self::E5|constructor#(foo);
-static method testNotNonNullable(self::E1<core::num?> /* = core::num? */ e1numNullableNNN, self::E1<core::double> /* = core::double */ e1doubleNNN, self::E2 /* = core::Object? */ e2NNN, self::E3 /* = core::String? */ e3NNN, self::E4 /* = core::int */ e4NNN, self::E5 /* = core::Object? */ e5NNN) → dynamic {
+static method testNotNonNullable(self::E1<core::num?>% /* erasure=core::num?, declared=! */ e1numNullableNNN, self::E1<core::double>% /* erasure=core::double, declared=! */ e1doubleNNN, self::E2% /* erasure=core::Object?, declared=! */ e2NNN, self::E3% /* erasure=core::String?, declared=! */ e3NNN, self::E4% /* erasure=core::int, declared=! */ e4NNN, self::E5% /* erasure=core::Object?, declared=! */ e5NNN) → dynamic {
   core::Object x1numNullable = invalid-expression "pkg/front_end/testcases/extension_types/nullability.dart:13:26: Error: A value of type 'E1<num?>' can't be assigned to a variable of type 'Object' because 'E1<num?>' is nullable and 'Object' isn't.
  - 'Object' is from 'dart:core'.
   Object x1numNullable = e1numNullableNNN; // Error.
@@ -241,25 +241,25 @@ static method testNotNonNullable(self::E1<core::num?> /* = core::num? */ e1numNu
   Object x5 = e5NNN; // Error.
               ^" in e5NNN as{TypeError,Unchecked} core::Object;
 }
-static method testNotNullable(self::E1<core::num?> /* = core::num? */ e1numNullableNN, self::E1<core::double> /* = core::double */ e1doubleNN, self::E2 /* = core::Object? */ e2NN, self::E3 /* = core::String? */ e3NN, self::E4 /* = core::int */ e4NN, self::E5 /* = core::Object? */ e5NN, self::E1<core::num?>? /* = core::num? */ e1numNullableNNNullable, self::E1<core::double>? /* = core::double? */ e1doubleNNNullable, self::E2? /* = core::Object? */ e2NNNullable, self::E3? /* = core::String? */ e3NNNullable, self::E4? /* = core::int? */ e4NNNullable, self::E5? /* = core::Object? */ e5NNNullable) → dynamic {
+static method testNotNullable(self::E1<core::num?>% /* erasure=core::num?, declared=! */ e1numNullableNN, self::E1<core::double>% /* erasure=core::double, declared=! */ e1doubleNN, self::E2% /* erasure=core::Object?, declared=! */ e2NN, self::E3% /* erasure=core::String?, declared=! */ e3NN, self::E4% /* erasure=core::int, declared=! */ e4NN, self::E5% /* erasure=core::Object?, declared=! */ e5NN, self::E1<core::num?>? /* erasure=core::num? */ e1numNullableNNNullable, self::E1<core::double>? /* erasure=core::double? */ e1doubleNNNullable, self::E2? /* erasure=core::Object? */ e2NNNullable, self::E3? /* erasure=core::String? */ e3NNNullable, self::E4? /* erasure=core::int? */ e4NNNullable, self::E5? /* erasure=core::Object? */ e5NNNullable) → dynamic {
   e1numNullableNN = invalid-expression "pkg/front_end/testcases/extension_types/nullability.dart:26:21: Error: The value 'null' can't be assigned to a variable of type 'E1<num?>' because 'E1<num?>' is not nullable.
   e1numNullableNN = null; // Error.
-                    ^" in null as{TypeError,Unchecked} self::E1<core::num?> /* = core::num? */;
+                    ^" in null as{TypeError,Unchecked} self::E1<core::num?>% /* erasure=core::num?, declared=! */;
   e1doubleNN = invalid-expression "pkg/front_end/testcases/extension_types/nullability.dart:27:16: Error: The value 'null' can't be assigned to a variable of type 'E1<double>' because 'E1<double>' is not nullable.
   e1doubleNN = null; // Error.
-               ^" in null as{TypeError,Unchecked} self::E1<core::double> /* = core::double */;
+               ^" in null as{TypeError,Unchecked} self::E1<core::double>% /* erasure=core::double, declared=! */;
   e2NN = invalid-expression "pkg/front_end/testcases/extension_types/nullability.dart:28:10: Error: The value 'null' can't be assigned to a variable of type 'E2' because 'E2' is not nullable.
   e2NN = null; // Error.
-         ^" in null as{TypeError,Unchecked} self::E2 /* = core::Object? */;
+         ^" in null as{TypeError,Unchecked} self::E2% /* erasure=core::Object?, declared=! */;
   e3NN = invalid-expression "pkg/front_end/testcases/extension_types/nullability.dart:29:10: Error: The value 'null' can't be assigned to a variable of type 'E3' because 'E3' is not nullable.
   e3NN = null; // Error.
-         ^" in null as{TypeError,Unchecked} self::E3 /* = core::String? */;
+         ^" in null as{TypeError,Unchecked} self::E3% /* erasure=core::String?, declared=! */;
   e4NN = invalid-expression "pkg/front_end/testcases/extension_types/nullability.dart:30:10: Error: The value 'null' can't be assigned to a variable of type 'E4' because 'E4' is not nullable.
   e4NN = null; // Error.
-         ^" in null as{TypeError,Unchecked} self::E4 /* = core::int */;
+         ^" in null as{TypeError,Unchecked} self::E4% /* erasure=core::int, declared=! */;
   e5NN = invalid-expression "pkg/front_end/testcases/extension_types/nullability.dart:31:10: Error: The value 'null' can't be assigned to a variable of type 'E5' because 'E5' is not nullable.
   e5NN = null; // Error.
-         ^" in null as{TypeError,Unchecked} self::E5 /* = core::Object? */;
+         ^" in null as{TypeError,Unchecked} self::E5% /* erasure=core::Object?, declared=! */;
   e1numNullableNNNullable = null;
   e1doubleNNNullable = null;
   e2NNNullable = null;
@@ -267,8 +267,8 @@ static method testNotNullable(self::E1<core::num?> /* = core::num? */ e1numNulla
   e4NNNullable = null;
   e5NNNullable = null;
 }
-static method testOptionalPositional([self::E1<core::num?> /* = core::num? */ e1numNullableOP = #C1, self::E1<core::double> /* = core::double */ e1doubleOP = #C1, self::E2 /* = core::Object? */ e2OP = #C1, self::E3 /* = core::String? */ e3OP = #C1, self::E4 /* = core::int */ e4OP = #C1, self::E5 /* = core::Object? */ e5OP = #C1, self::E1<core::num?>? /* = core::num? */ e1numNullableOPNullable = #C1, self::E1<core::double>? /* = core::double? */ e1doubleOPNullable = #C1, self::E2? /* = core::Object? */ e2OPNullable = #C1, self::E3? /* = core::String? */ e3OPNullable = #C1, self::E4? /* = core::int? */ e4OPNullable = #C1, self::E5? /* = core::Object? */ e5OPNullable = #C1]) → dynamic {}
-static method testNamedNotRequired({self::E1<core::num?> /* = core::num? */ e1numNullableNNR = #C1, self::E1<core::double> /* = core::double */ e1doubleNNR = #C1, self::E2 /* = core::Object? */ e2NNR = #C1, self::E3 /* = core::String? */ e3NNR = #C1, self::E4 /* = core::int */ e4NNR = #C1, self::E5 /* = core::Object? */ e5NNR = #C1, self::E1<core::num?>? /* = core::num? */ e1numNullableNNRNullable = #C1, self::E1<core::double>? /* = core::double? */ e1doubleNNRNullable = #C1, self::E2? /* = core::Object? */ e2NNRNullable = #C1, self::E3? /* = core::String? */ e3NNRNullable = #C1, self::E4? /* = core::int? */ e4NNRNullable = #C1, self::E5? /* = core::Object? */ e5NNRNullable = #C1}) → dynamic {}
+static method testOptionalPositional([self::E1<core::num?>% /* erasure=core::num?, declared=! */ e1numNullableOP = #C1, self::E1<core::double>% /* erasure=core::double, declared=! */ e1doubleOP = #C1, self::E2% /* erasure=core::Object?, declared=! */ e2OP = #C1, self::E3% /* erasure=core::String?, declared=! */ e3OP = #C1, self::E4% /* erasure=core::int, declared=! */ e4OP = #C1, self::E5% /* erasure=core::Object?, declared=! */ e5OP = #C1, self::E1<core::num?>? /* erasure=core::num? */ e1numNullableOPNullable = #C1, self::E1<core::double>? /* erasure=core::double? */ e1doubleOPNullable = #C1, self::E2? /* erasure=core::Object? */ e2OPNullable = #C1, self::E3? /* erasure=core::String? */ e3OPNullable = #C1, self::E4? /* erasure=core::int? */ e4OPNullable = #C1, self::E5? /* erasure=core::Object? */ e5OPNullable = #C1]) → dynamic {}
+static method testNamedNotRequired({self::E1<core::num?>% /* erasure=core::num?, declared=! */ e1numNullableNNR = #C1, self::E1<core::double>% /* erasure=core::double, declared=! */ e1doubleNNR = #C1, self::E2% /* erasure=core::Object?, declared=! */ e2NNR = #C1, self::E3% /* erasure=core::String?, declared=! */ e3NNR = #C1, self::E4% /* erasure=core::int, declared=! */ e4NNR = #C1, self::E5% /* erasure=core::Object?, declared=! */ e5NNR = #C1, self::E1<core::num?>? /* erasure=core::num? */ e1numNullableNNRNullable = #C1, self::E1<core::double>? /* erasure=core::double? */ e1doubleNNRNullable = #C1, self::E2? /* erasure=core::Object? */ e2NNRNullable = #C1, self::E3? /* erasure=core::String? */ e3NNRNullable = #C1, self::E4? /* erasure=core::int? */ e4NNRNullable = #C1, self::E5? /* erasure=core::Object? */ e5NNRNullable = #C1}) → dynamic {}
 
 constants  {
   #C1 = null

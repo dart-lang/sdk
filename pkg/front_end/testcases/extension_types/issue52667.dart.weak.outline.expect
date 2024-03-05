@@ -16,13 +16,13 @@ extension type FooBaz(self::Foo i) implements self::Foo {
   constructor • = self::FooBaz|constructor#;
   constructor tearoff • = self::FooBaz|constructor#_#new#tearOff;
 }
-static extension-type-member method FooBar|constructor#(self::Foo i) → self::FooBar /* = self::Foo */
+static extension-type-member method FooBar|constructor#(self::Foo i) → self::FooBar /* erasure=self::Foo */
   ;
-static extension-type-member method FooBar|constructor#_#new#tearOff(self::Foo i) → self::FooBar /* = self::Foo */
+static extension-type-member method FooBar|constructor#_#new#tearOff(self::Foo i) → self::FooBar /* erasure=self::Foo */
   return self::FooBar|constructor#(i);
-static extension-type-member method FooBaz|constructor#(self::Foo i) → self::FooBaz /* = self::Foo */
+static extension-type-member method FooBaz|constructor#(self::Foo i) → self::FooBaz /* erasure=self::Foo */
   ;
-static extension-type-member method FooBaz|constructor#_#new#tearOff(self::Foo i) → self::FooBaz /* = self::Foo */
+static extension-type-member method FooBaz|constructor#_#new#tearOff(self::Foo i) → self::FooBaz /* erasure=self::Foo */
   return self::FooBaz|constructor#(i);
 static method main() → void
   ;

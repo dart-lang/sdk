@@ -13,13 +13,13 @@ extension type V2<T extends asy::Future<core::Object>>(T id) implements asy::Fut
   constructor • = self::V2|constructor#;
   constructor tearoff • = self::V2|constructor#_#new#tearOff;
 }
-static extension-type-member method V1|constructor#(asy::Future<core::int> id) → self::V1 /* = asy::Future<core::int> */
+static extension-type-member method V1|constructor#(asy::Future<core::int> id) → self::V1 /* erasure=asy::Future<core::int> */
   ;
-static extension-type-member method V1|constructor#_#new#tearOff(asy::Future<core::int> id) → self::V1 /* = asy::Future<core::int> */
+static extension-type-member method V1|constructor#_#new#tearOff(asy::Future<core::int> id) → self::V1 /* erasure=asy::Future<core::int> */
   return self::V1|constructor#(id);
-static extension-type-member method V2|constructor#<T extends asy::Future<core::Object>>(self::V2|constructor#::T id) → self::V2<self::V2|constructor#::T> /* = self::V2|constructor#::T */
+static extension-type-member method V2|constructor#<T extends asy::Future<core::Object>>(self::V2|constructor#::T id) → self::V2<self::V2|constructor#::T> /* erasure=self::V2|constructor#::T */
   ;
-static extension-type-member method V2|constructor#_#new#tearOff<T extends asy::Future<core::Object>>(self::V2|constructor#_#new#tearOff::T id) → self::V2<self::V2|constructor#_#new#tearOff::T> /* = self::V2|constructor#_#new#tearOff::T */
+static extension-type-member method V2|constructor#_#new#tearOff<T extends asy::Future<core::Object>>(self::V2|constructor#_#new#tearOff::T id) → self::V2<self::V2|constructor#_#new#tearOff::T> /* erasure=self::V2|constructor#_#new#tearOff::T */
   return self::V2|constructor#<self::V2|constructor#_#new#tearOff::T>(id);
 static method main() → dynamic async 
   ;

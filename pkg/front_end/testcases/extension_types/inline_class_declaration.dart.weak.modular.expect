@@ -14,16 +14,16 @@ extension type Class3<T extends core::Object? = dynamic>(core::List<T%> it) {
   constructor • = self::Class3|constructor#;
   constructor tearoff • = self::Class3|constructor#_#new#tearOff;
 }
-static extension-type-member method Class1|constructor#(core::int it) → self::Class1 /* = core::int */ {
-  lowered final self::Class1 /* = core::int */ #this = it;
+static extension-type-member method Class1|constructor#(core::int it) → self::Class1% /* erasure=core::int, declared=! */ {
+  lowered final self::Class1% /* erasure=core::int, declared=! */ #this = it;
   return #this;
 }
-static extension-type-member method Class1|constructor#_#new#tearOff(core::int it) → self::Class1 /* = core::int */
+static extension-type-member method Class1|constructor#_#new#tearOff(core::int it) → self::Class1% /* erasure=core::int, declared=! */
   return self::Class1|constructor#(it);
-static extension-type-member method Class3|constructor#<T extends core::Object? = dynamic>(core::List<self::Class3|constructor#::T%> it) → self::Class3<self::Class3|constructor#::T%> /* = core::List<self::Class3|constructor#::T%> */ {
-  lowered final self::Class3<self::Class3|constructor#::T%> /* = core::List<self::Class3|constructor#::T%> */ #this = it;
+static extension-type-member method Class3|constructor#<T extends core::Object? = dynamic>(core::List<self::Class3|constructor#::T%> it) → self::Class3<self::Class3|constructor#::T%>% /* erasure=core::List<self::Class3|constructor#::T%>, declared=! */ {
+  lowered final self::Class3<self::Class3|constructor#::T%>% /* erasure=core::List<self::Class3|constructor#::T%>, declared=! */ #this = it;
   return #this;
 }
-static extension-type-member method Class3|constructor#_#new#tearOff<T extends core::Object? = dynamic>(core::List<self::Class3|constructor#_#new#tearOff::T%> it) → self::Class3<self::Class3|constructor#_#new#tearOff::T%> /* = core::List<self::Class3|constructor#_#new#tearOff::T%> */
+static extension-type-member method Class3|constructor#_#new#tearOff<T extends core::Object? = dynamic>(core::List<self::Class3|constructor#_#new#tearOff::T%> it) → self::Class3<self::Class3|constructor#_#new#tearOff::T%>% /* erasure=core::List<self::Class3|constructor#_#new#tearOff::T%>, declared=! */
   return self::Class3|constructor#<self::Class3|constructor#_#new#tearOff::T%>(it);
-static method method(self::Class1 /* = core::int */ c1, self::Class3<core::int> /* = core::List<core::int> */ c3) → dynamic {}
+static method method(self::Class1% /* erasure=core::int, declared=! */ c1, self::Class3<core::int>% /* erasure=core::List<core::int>, declared=! */ c3) → dynamic {}

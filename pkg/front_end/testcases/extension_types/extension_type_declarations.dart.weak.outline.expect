@@ -15,7 +15,7 @@ extension type ExtensionType1(core::int it) {
   constructor • = self::ExtensionType1|constructor#;
   constructor tearoff • = self::ExtensionType1|constructor#_#new#tearOff;
 }
-extension type ExtensionType2(core::int it) implements self::ExtensionType1 /* = core::int */, core::int {
+extension type ExtensionType2(core::int it) implements self::ExtensionType1% /* erasure=core::int, declared=! */, core::int {
   abstract extension-type-member representation-field get it() → core::int;
   constructor • = self::ExtensionType2|constructor#;
   constructor tearoff • = self::ExtensionType2|constructor#_#new#tearOff;
@@ -65,54 +65,54 @@ extension type ExtensionType7<T extends core::num>(core::int it) {
   constructor tearoff id = self::ExtensionType7|constructor#_#id#tearOff;
 }
 static field core::int ExtensionType4|staticField;
-static extension-type-member method ExtensionType1|constructor#(core::int it) → self::ExtensionType1 /* = core::int */
+static extension-type-member method ExtensionType1|constructor#(core::int it) → self::ExtensionType1% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method ExtensionType1|constructor#_#new#tearOff(core::int it) → self::ExtensionType1 /* = core::int */
+static extension-type-member method ExtensionType1|constructor#_#new#tearOff(core::int it) → self::ExtensionType1% /* erasure=core::int, declared=! */
   return self::ExtensionType1|constructor#(it);
-static extension-type-member method ExtensionType2|constructor#(core::int it) → self::ExtensionType2 /* = core::int */
+static extension-type-member method ExtensionType2|constructor#(core::int it) → self::ExtensionType2 /* erasure=core::int */
   ;
-static extension-type-member method ExtensionType2|constructor#_#new#tearOff(core::int it) → self::ExtensionType2 /* = core::int */
+static extension-type-member method ExtensionType2|constructor#_#new#tearOff(core::int it) → self::ExtensionType2 /* erasure=core::int */
   return self::ExtensionType2|constructor#(it);
-static extension-type-member method ExtensionType3|constructor#<T extends core::num>(self::ExtensionType3|constructor#::T it) → self::ExtensionType3<self::ExtensionType3|constructor#::T> /* = self::ExtensionType3|constructor#::T */
+static extension-type-member method ExtensionType3|constructor#<T extends core::num>(self::ExtensionType3|constructor#::T it) → self::ExtensionType3<self::ExtensionType3|constructor#::T>% /* erasure=self::ExtensionType3|constructor#::T, declared=! */
   ;
-static extension-type-member method ExtensionType3|constructor#_#new#tearOff<T extends core::num>(self::ExtensionType3|constructor#_#new#tearOff::T it) → self::ExtensionType3<self::ExtensionType3|constructor#_#new#tearOff::T> /* = self::ExtensionType3|constructor#_#new#tearOff::T */
+static extension-type-member method ExtensionType3|constructor#_#new#tearOff<T extends core::num>(self::ExtensionType3|constructor#_#new#tearOff::T it) → self::ExtensionType3<self::ExtensionType3|constructor#_#new#tearOff::T>% /* erasure=self::ExtensionType3|constructor#_#new#tearOff::T, declared=! */
   return self::ExtensionType3|constructor#<self::ExtensionType3|constructor#_#new#tearOff::T>(it);
-static extension-type-member method ExtensionType4|constructor#(core::int it) → self::ExtensionType4 /* = core::int */
+static extension-type-member method ExtensionType4|constructor#(core::int it) → self::ExtensionType4% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method ExtensionType4|constructor#_#new#tearOff(core::int it) → self::ExtensionType4 /* = core::int */
+static extension-type-member method ExtensionType4|constructor#_#new#tearOff(core::int it) → self::ExtensionType4% /* erasure=core::int, declared=! */
   return self::ExtensionType4|constructor#(it);
-static extension-type-member method ExtensionType4|constructor#constructor(core::int it) → self::ExtensionType4 /* = core::int */ {
-  lowered final self::ExtensionType4 /* = core::int */ #this = it;
+static extension-type-member method ExtensionType4|constructor#constructor(core::int it) → self::ExtensionType4% /* erasure=core::int, declared=! */ {
+  lowered final self::ExtensionType4% /* erasure=core::int, declared=! */ #this = it;
   return #this;
 }
-static extension-type-member method ExtensionType4|constructor#_#constructor#tearOff(core::int it) → self::ExtensionType4 /* = core::int */
+static extension-type-member method ExtensionType4|constructor#_#constructor#tearOff(core::int it) → self::ExtensionType4% /* erasure=core::int, declared=! */
   return self::ExtensionType4|constructor#constructor(it);
-static extension-type-member method ExtensionType4|constructor#redirect(core::int it) → self::ExtensionType4 /* = core::int */ {
-  lowered final self::ExtensionType4 /* = core::int */ #this;
+static extension-type-member method ExtensionType4|constructor#redirect(core::int it) → self::ExtensionType4% /* erasure=core::int, declared=! */ {
+  lowered final self::ExtensionType4% /* erasure=core::int, declared=! */ #this;
   #this = self::ExtensionType4|constructor#(it);
   return #this;
 }
-static extension-type-member method ExtensionType4|constructor#_#redirect#tearOff(core::int it) → self::ExtensionType4 /* = core::int */
+static extension-type-member method ExtensionType4|constructor#_#redirect#tearOff(core::int it) → self::ExtensionType4% /* erasure=core::int, declared=! */
   return self::ExtensionType4|constructor#redirect(it);
-static extension-type-member method ExtensionType4|constructor#fact(core::int it) → self::ExtensionType4 /* = core::int */
+static extension-type-member method ExtensionType4|constructor#fact(core::int it) → self::ExtensionType4% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method ExtensionType4|constructor#_#fact#tearOff(core::int it) → self::ExtensionType4 /* = core::int */
+static extension-type-member method ExtensionType4|constructor#_#fact#tearOff(core::int it) → self::ExtensionType4% /* erasure=core::int, declared=! */
   return self::ExtensionType4|constructor#fact(it);
-static extension-type-member method ExtensionType4|constructor#redirectingFactory(core::int it) → self::ExtensionType4 /* = core::int */ /* redirection-target: self::ExtensionType4|constructor# */
+static extension-type-member method ExtensionType4|constructor#redirectingFactory(core::int it) → self::ExtensionType4% /* erasure=core::int, declared=! */ /* redirection-target: self::ExtensionType4|constructor# */
   return self::ExtensionType4|constructor#(it);
-static extension-type-member method ExtensionType4|constructor#_#redirectingFactory#tearOff(core::int it) → self::ExtensionType4 /* = core::int */
+static extension-type-member method ExtensionType4|constructor#_#redirectingFactory#tearOff(core::int it) → self::ExtensionType4% /* erasure=core::int, declared=! */
   return self::ExtensionType4|constructor#(it);
-static extension-type-member method ExtensionType4|get#getter(lowered final self::ExtensionType4 /* = core::int */ #this) → core::int
+static extension-type-member method ExtensionType4|get#getter(lowered final self::ExtensionType4% /* erasure=core::int, declared=! */ #this) → core::int
   ;
-static extension-type-member method ExtensionType4|set#setter(lowered final self::ExtensionType4 /* = core::int */ #this, core::int value) → void
+static extension-type-member method ExtensionType4|set#setter(lowered final self::ExtensionType4% /* erasure=core::int, declared=! */ #this, core::int value) → void
   ;
-static extension-type-member method ExtensionType4|method(lowered final self::ExtensionType4 /* = core::int */ #this) → core::int
+static extension-type-member method ExtensionType4|method(lowered final self::ExtensionType4% /* erasure=core::int, declared=! */ #this) → core::int
   ;
-static extension-type-member method ExtensionType4|get#method(lowered final self::ExtensionType4 /* = core::int */ #this) → () → core::int
+static extension-type-member method ExtensionType4|get#method(lowered final self::ExtensionType4% /* erasure=core::int, declared=! */ #this) → () → core::int
   return () → core::int => self::ExtensionType4|method(#this);
-static extension-type-member method ExtensionType4|[](lowered final self::ExtensionType4 /* = core::int */ #this, core::int index) → core::int
+static extension-type-member method ExtensionType4|[](lowered final self::ExtensionType4% /* erasure=core::int, declared=! */ #this, core::int index) → core::int
   ;
-static extension-type-member method ExtensionType4|[]=(lowered final self::ExtensionType4 /* = core::int */ #this, core::int index, core::int value) → void
+static extension-type-member method ExtensionType4|[]=(lowered final self::ExtensionType4% /* erasure=core::int, declared=! */ #this, core::int index, core::int value) → void
   ;
 static extension-type-member get ExtensionType4|staticGetter() → core::int
   ;
@@ -120,15 +120,15 @@ static extension-type-member set ExtensionType4|staticSetter(core::int value) �
   ;
 static extension-type-member method ExtensionType4|staticMethod() → core::int
   ;
-static extension-type-member method ExtensionType5|constructor#(core::int it) → self::ExtensionType5 /* = core::int */
+static extension-type-member method ExtensionType5|constructor#(core::int it) → self::ExtensionType5% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method ExtensionType5|constructor#_#new#tearOff(core::int it) → self::ExtensionType5 /* = core::int */
+static extension-type-member method ExtensionType5|constructor#_#new#tearOff(core::int it) → self::ExtensionType5% /* erasure=core::int, declared=! */
   return self::ExtensionType5|constructor#(it);
-static extension-type-member method ExtensionType6|constructor#id(core::int it) → self::ExtensionType6 /* = core::int */
+static extension-type-member method ExtensionType6|constructor#id(core::int it) → self::ExtensionType6% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method ExtensionType6|constructor#_#id#tearOff(core::int it) → self::ExtensionType6 /* = core::int */
+static extension-type-member method ExtensionType6|constructor#_#id#tearOff(core::int it) → self::ExtensionType6% /* erasure=core::int, declared=! */
   return self::ExtensionType6|constructor#id(it);
-static extension-type-member method ExtensionType7|constructor#id<T extends core::num>(core::int it) → self::ExtensionType7<self::ExtensionType7|constructor#id::T> /* = core::int */
+static extension-type-member method ExtensionType7|constructor#id<T extends core::num>(core::int it) → self::ExtensionType7<self::ExtensionType7|constructor#id::T>% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method ExtensionType7|constructor#_#id#tearOff<T extends core::num>(core::int it) → self::ExtensionType7<self::ExtensionType7|constructor#_#id#tearOff::T> /* = core::int */
+static extension-type-member method ExtensionType7|constructor#_#id#tearOff<T extends core::num>(core::int it) → self::ExtensionType7<self::ExtensionType7|constructor#_#id#tearOff::T>% /* erasure=core::int, declared=! */
   return self::ExtensionType7|constructor#id<self::ExtensionType7|constructor#_#id#tearOff::T>(it);

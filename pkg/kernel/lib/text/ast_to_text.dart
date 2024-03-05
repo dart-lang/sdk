@@ -2641,10 +2641,31 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
       writeSymbol('>');
       state = Printer.WORD;
     }
-    writeNullability(node.declaredNullability);
+    writeNullability(node.nullability);
 
-    writeWord("/* =");
+    writeSpace();
+    write("/* erasure=");
     writeType(node.extensionTypeErasure);
+
+    if (node.nullability != node.declaredNullability) {
+      // The following line prints the nullability of the extension type derived
+      // from its supertypes. If the extension type declaration implements
+      // `Object` directly or indirectly, such nullability is
+      // `Nullability.nonNullable`, otherwise it's `Nullability.undetermined`.
+      //
+      // The nullability derived from the supertypes will be combined with the
+      // nullability of the type declared by the programmer (by appending or
+      // omitting `?`) to compute the overall nullability of the type, which is
+      // returned by the `nullability` getter.
+      //
+      // Since the getter for computing the nullability derived from the
+      // supertypes isn't exposed publicly, we compute it as the overall
+      // nullability of the current type taken as if the programmer omitted the
+      // nullability marker `?` on the type.
+      write(", declared=");
+      writeNullability(node.declaredNullability, inComment: true);
+      writeSpace();
+    }
     writeWord("*/");
   }
 

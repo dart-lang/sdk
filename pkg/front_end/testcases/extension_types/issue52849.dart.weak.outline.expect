@@ -15,16 +15,16 @@ extension type V1(core::String id) {
   constructor • = self::V1|constructor#;
   constructor tearoff • = self::V1|constructor#_#new#tearOff;
 }
-extension type V(core::num id) implements self::V1 /* = core::String */ {
+extension type V(core::num id) implements self::V1% /* erasure=core::String, declared=! */ {
   abstract extension-type-member representation-field get id() → core::num;
   constructor • = self::V|constructor#;
   constructor tearoff • = self::V|constructor#_#new#tearOff;
 }
-static extension-type-member method V1|constructor#(core::String id) → self::V1 /* = core::String */
+static extension-type-member method V1|constructor#(core::String id) → self::V1% /* erasure=core::String, declared=! */
   ;
-static extension-type-member method V1|constructor#_#new#tearOff(core::String id) → self::V1 /* = core::String */
+static extension-type-member method V1|constructor#_#new#tearOff(core::String id) → self::V1% /* erasure=core::String, declared=! */
   return self::V1|constructor#(id);
-static extension-type-member method V|constructor#(core::num id) → self::V /* = core::num */
+static extension-type-member method V|constructor#(core::num id) → self::V% /* erasure=core::num, declared=! */
   ;
-static extension-type-member method V|constructor#_#new#tearOff(core::num id) → self::V /* = core::num */
+static extension-type-member method V|constructor#_#new#tearOff(core::num id) → self::V% /* erasure=core::num, declared=! */
   return self::V|constructor#(id);

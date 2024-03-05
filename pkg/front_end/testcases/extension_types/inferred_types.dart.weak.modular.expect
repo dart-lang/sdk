@@ -32,17 +32,17 @@ extension type D(self::C c) implements self::B {
 }
 static field core::int g = self::e.{self::C::field}{core::int};
 static field core::int f = self::d.{self::B::field}{core::int};
-static field self::E /* = self::C */ e = self::E|constructor#(new self::C::•(42));
-static field self::D /* = self::C */ d = self::D|constructor#(new self::C::•(42));
-static extension-type-member method E|constructor#(self::C c) → self::E /* = self::C */ {
-  lowered final self::E /* = self::C */ #this = c;
+static field self::E /* erasure=self::C */ e = self::E|constructor#(new self::C::•(42));
+static field self::D /* erasure=self::C */ d = self::D|constructor#(new self::C::•(42));
+static extension-type-member method E|constructor#(self::C c) → self::E /* erasure=self::C */ {
+  lowered final self::E /* erasure=self::C */ #this = c;
   return #this;
 }
-static extension-type-member method E|constructor#_#new#tearOff(self::C c) → self::E /* = self::C */
+static extension-type-member method E|constructor#_#new#tearOff(self::C c) → self::E /* erasure=self::C */
   return self::E|constructor#(c);
-static extension-type-member method D|constructor#(self::C c) → self::D /* = self::C */ {
-  lowered final self::D /* = self::C */ #this = c;
+static extension-type-member method D|constructor#(self::C c) → self::D /* erasure=self::C */ {
+  lowered final self::D /* erasure=self::C */ #this = c;
   return #this;
 }
-static extension-type-member method D|constructor#_#new#tearOff(self::C c) → self::D /* = self::C */
+static extension-type-member method D|constructor#_#new#tearOff(self::C c) → self::D /* erasure=self::C */
   return self::D|constructor#(c);

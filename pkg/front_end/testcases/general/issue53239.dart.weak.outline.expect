@@ -15,13 +15,13 @@ extension type ET1(core::int id) {
   constructor tearoff n1 = self::ET1|constructor#_#n1#tearOff;
 }
 static field dynamic log;
-static extension-type-member method ET1|constructor#(core::int id) → self::ET1 /* = core::int */
+static extension-type-member method ET1|constructor#(core::int id) → self::ET1% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method ET1|constructor#_#new#tearOff(core::int id) → self::ET1 /* = core::int */
+static extension-type-member method ET1|constructor#_#new#tearOff(core::int id) → self::ET1% /* erasure=core::int, declared=! */
   return self::ET1|constructor#(id);
-static extension-type-member method ET1|constructor#n1(core::int id, [core::String s = "b"]) → self::ET1 /* = core::int */
+static extension-type-member method ET1|constructor#n1(core::int id, [core::String s = "b"]) → self::ET1% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method ET1|constructor#_#n1#tearOff(core::int id, [has-declared-initializer core::String s]) → self::ET1 /* = core::int */
+static extension-type-member method ET1|constructor#_#n1#tearOff(core::int id, [has-declared-initializer core::String s]) → self::ET1% /* erasure=core::int, declared=! */
   return self::ET1|constructor#n1(id, s);
 static method main() → dynamic
   ;

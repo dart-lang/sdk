@@ -214,78 +214,78 @@ extension type B<T extends core::Object? = dynamic>(T% it) {
   constructor • = self::B|constructor#;
   constructor tearoff • = self::B|constructor#_#new#tearOff;
 }
-extension type C1(core::int it) implements self::A /* = core::int */ {
+extension type C1(core::int it) implements self::A% /* erasure=core::int, declared=! */ {
   abstract extension-type-member representation-field get it() → core::int;
   method methodC1 = self::C1|methodC1;
   method tearoff methodC1 = self::C1|get#methodC1;
   constructor • = self::C1|constructor#;
   constructor tearoff • = self::C1|constructor#_#new#tearOff;
 }
-extension type C2(core::int it) implements self::A /* = core::int */, self::B<core::int> /* = core::int */ {
+extension type C2(core::int it) implements self::A% /* erasure=core::int, declared=! */, self::B<core::int>% /* erasure=core::int, declared=! */ {
   abstract extension-type-member representation-field get it() → core::int;
   method methodC2 = self::C2|methodC2;
   method tearoff methodC2 = self::C2|get#methodC2;
   constructor • = self::C2|constructor#;
   constructor tearoff • = self::C2|constructor#_#new#tearOff;
 }
-extension type D1(core::int it) implements self::C1 /* = core::int */ {
+extension type D1(core::int it) implements self::C1% /* erasure=core::int, declared=! */ {
   abstract extension-type-member representation-field get it() → core::int;
   method methodD1 = self::D1|methodD1;
   method tearoff methodD1 = self::D1|get#methodD1;
   constructor • = self::D1|constructor#;
   constructor tearoff • = self::D1|constructor#_#new#tearOff;
 }
-static extension-type-member method A|constructor#(core::int it) → self::A /* = core::int */ {
-  lowered final self::A /* = core::int */ #this = it;
+static extension-type-member method A|constructor#(core::int it) → self::A% /* erasure=core::int, declared=! */ {
+  lowered final self::A% /* erasure=core::int, declared=! */ #this = it;
   return #this;
 }
-static extension-type-member method A|constructor#_#new#tearOff(core::int it) → self::A /* = core::int */
+static extension-type-member method A|constructor#_#new#tearOff(core::int it) → self::A% /* erasure=core::int, declared=! */
   return self::A|constructor#(it);
-static extension-type-member method A|methodA(lowered final self::A /* = core::int */ #this) → core::int
+static extension-type-member method A|methodA(lowered final self::A% /* erasure=core::int, declared=! */ #this) → core::int
   return (#this as{Unchecked} core::int).{core::num::+}(5){(core::num) → core::int};
-static extension-type-member method A|get#methodA(lowered final self::A /* = core::int */ #this) → () → core::int
+static extension-type-member method A|get#methodA(lowered final self::A% /* erasure=core::int, declared=! */ #this) → () → core::int
   return () → core::int => self::A|methodA(#this);
-static extension-type-member method B|constructor#<T extends core::Object? = dynamic>(self::B|constructor#::T% it) → self::B<self::B|constructor#::T%> /* = self::B|constructor#::T% */ {
-  lowered final self::B<self::B|constructor#::T%> /* = self::B|constructor#::T% */ #this = it;
+static extension-type-member method B|constructor#<T extends core::Object? = dynamic>(self::B|constructor#::T% it) → self::B<self::B|constructor#::T%>% /* erasure=self::B|constructor#::T%, declared=! */ {
+  lowered final self::B<self::B|constructor#::T%>% /* erasure=self::B|constructor#::T%, declared=! */ #this = it;
   return #this;
 }
-static extension-type-member method B|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::B|constructor#_#new#tearOff::T% it) → self::B<self::B|constructor#_#new#tearOff::T%> /* = self::B|constructor#_#new#tearOff::T% */
+static extension-type-member method B|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::B|constructor#_#new#tearOff::T% it) → self::B<self::B|constructor#_#new#tearOff::T%>% /* erasure=self::B|constructor#_#new#tearOff::T%, declared=! */
   return self::B|constructor#<self::B|constructor#_#new#tearOff::T%>(it);
-static extension-type-member method B|methodB<T extends core::Object? = dynamic>(lowered final self::B<self::B|methodB::T%> /* = self::B|methodB::T% */ #this) → self::B|methodB::T%
+static extension-type-member method B|methodB<T extends core::Object? = dynamic>(lowered final self::B<self::B|methodB::T%>% /* erasure=self::B|methodB::T%, declared=! */ #this) → self::B|methodB::T%
   return #this as{Unchecked} self::B|methodB::T%;
-static extension-type-member method B|get#methodB<T extends core::Object? = dynamic>(lowered final self::B<self::B|get#methodB::T%> /* = self::B|get#methodB::T% */ #this) → () → self::B|get#methodB::T%
+static extension-type-member method B|get#methodB<T extends core::Object? = dynamic>(lowered final self::B<self::B|get#methodB::T%>% /* erasure=self::B|get#methodB::T%, declared=! */ #this) → () → self::B|get#methodB::T%
   return () → self::B|get#methodB::T% => self::B|methodB<self::B|get#methodB::T%>(#this);
-static extension-type-member method C1|constructor#(core::int it) → self::C1 /* = core::int */ {
-  lowered final self::C1 /* = core::int */ #this = it;
+static extension-type-member method C1|constructor#(core::int it) → self::C1% /* erasure=core::int, declared=! */ {
+  lowered final self::C1% /* erasure=core::int, declared=! */ #this = it;
   return #this;
 }
-static extension-type-member method C1|constructor#_#new#tearOff(core::int it) → self::C1 /* = core::int */
+static extension-type-member method C1|constructor#_#new#tearOff(core::int it) → self::C1% /* erasure=core::int, declared=! */
   return self::C1|constructor#(it);
-static extension-type-member method C1|methodC1(lowered final self::C1 /* = core::int */ #this) → core::int
+static extension-type-member method C1|methodC1(lowered final self::C1% /* erasure=core::int, declared=! */ #this) → core::int
   return (#this as{Unchecked} core::int).{core::num::+}(42){(core::num) → core::int};
-static extension-type-member method C1|get#methodC1(lowered final self::C1 /* = core::int */ #this) → () → core::int
+static extension-type-member method C1|get#methodC1(lowered final self::C1% /* erasure=core::int, declared=! */ #this) → () → core::int
   return () → core::int => self::C1|methodC1(#this);
-static extension-type-member method C2|constructor#(core::int it) → self::C2 /* = core::int */ {
-  lowered final self::C2 /* = core::int */ #this = it;
+static extension-type-member method C2|constructor#(core::int it) → self::C2% /* erasure=core::int, declared=! */ {
+  lowered final self::C2% /* erasure=core::int, declared=! */ #this = it;
   return #this;
 }
-static extension-type-member method C2|constructor#_#new#tearOff(core::int it) → self::C2 /* = core::int */
+static extension-type-member method C2|constructor#_#new#tearOff(core::int it) → self::C2% /* erasure=core::int, declared=! */
   return self::C2|constructor#(it);
-static extension-type-member method C2|methodC2(lowered final self::C2 /* = core::int */ #this) → core::int
+static extension-type-member method C2|methodC2(lowered final self::C2% /* erasure=core::int, declared=! */ #this) → core::int
   return (#this as{Unchecked} core::int).{core::num::+}(87){(core::num) → core::int};
-static extension-type-member method C2|get#methodC2(lowered final self::C2 /* = core::int */ #this) → () → core::int
+static extension-type-member method C2|get#methodC2(lowered final self::C2% /* erasure=core::int, declared=! */ #this) → () → core::int
   return () → core::int => self::C2|methodC2(#this);
-static extension-type-member method D1|constructor#(core::int it) → self::D1 /* = core::int */ {
-  lowered final self::D1 /* = core::int */ #this = it;
+static extension-type-member method D1|constructor#(core::int it) → self::D1% /* erasure=core::int, declared=! */ {
+  lowered final self::D1% /* erasure=core::int, declared=! */ #this = it;
   return #this;
 }
-static extension-type-member method D1|constructor#_#new#tearOff(core::int it) → self::D1 /* = core::int */
+static extension-type-member method D1|constructor#_#new#tearOff(core::int it) → self::D1% /* erasure=core::int, declared=! */
   return self::D1|constructor#(it);
-static extension-type-member method D1|methodD1(lowered final self::D1 /* = core::int */ #this) → core::int
+static extension-type-member method D1|methodD1(lowered final self::D1% /* erasure=core::int, declared=! */ #this) → core::int
   return (#this as{Unchecked} core::int).{core::num::+}(123){(core::num) → core::int};
-static extension-type-member method D1|get#methodD1(lowered final self::D1 /* = core::int */ #this) → () → core::int
+static extension-type-member method D1|get#methodD1(lowered final self::D1% /* erasure=core::int, declared=! */ #this) → () → core::int
   return () → core::int => self::D1|methodD1(#this);
-static method errors(self::A /* = core::int */ a, self::B<core::String> /* = core::String */ b1, self::B<core::num> /* = core::num */ b2, self::C1 /* = core::int */ c1, self::C2 /* = core::int */ c2, self::D1 /* = core::int */ d1) → dynamic {
+static method errors(self::A% /* erasure=core::int, declared=! */ a, self::B<core::String>% /* erasure=core::String, declared=! */ b1, self::B<core::num>% /* erasure=core::num, declared=! */ b2, self::C1% /* erasure=core::int, declared=! */ c1, self::C2% /* erasure=core::int, declared=! */ c2, self::D1% /* erasure=core::int, declared=! */ d1) → dynamic {
   invalid-expression "pkg/front_end/testcases/extension_types/implements.dart:26:5: Error: The method 'methodB' isn't defined for the class 'A'.
 Try correcting the name to the name of an existing method, or defining a method named 'methodB'.
   a.methodB(); // Error
@@ -364,81 +364,81 @@ Try correcting the name to the name of an existing method, or defining a method 
      ^^^^^^^^" in d1{<unresolved>}.methodC2();
   a = invalid-expression "pkg/front_end/testcases/extension_types/implements.dart:51:7: Error: A value of type 'B<String>' can't be assigned to a variable of type 'A'.
   a = b1; // Error
-      ^" in b1 as{TypeError} self::A /* = core::int */;
+      ^" in b1 as{TypeError} self::A% /* erasure=core::int, declared=! */;
   a = invalid-expression "pkg/front_end/testcases/extension_types/implements.dart:52:7: Error: A value of type 'B<num>' can't be assigned to a variable of type 'A'.
   a = b2; // Error
-      ^" in b2 as{TypeError} self::A /* = core::int */;
+      ^" in b2 as{TypeError} self::A% /* erasure=core::int, declared=! */;
   b1 = invalid-expression "pkg/front_end/testcases/extension_types/implements.dart:54:8: Error: A value of type 'A' can't be assigned to a variable of type 'B<String>'.
   b1 = a; // Error
-       ^" in a as{TypeError} self::B<core::String> /* = core::String */;
+       ^" in a as{TypeError} self::B<core::String>% /* erasure=core::String, declared=! */;
   b1 = invalid-expression "pkg/front_end/testcases/extension_types/implements.dart:55:8: Error: A value of type 'B<num>' can't be assigned to a variable of type 'B<String>'.
   b1 = b2; // Error
-       ^" in b2 as{TypeError} self::B<core::String> /* = core::String */;
+       ^" in b2 as{TypeError} self::B<core::String>% /* erasure=core::String, declared=! */;
   b1 = invalid-expression "pkg/front_end/testcases/extension_types/implements.dart:56:8: Error: A value of type 'C1' can't be assigned to a variable of type 'B<String>'.
   b1 = c1; // Error
-       ^" in c1 as{TypeError} self::B<core::String> /* = core::String */;
+       ^" in c1 as{TypeError} self::B<core::String>% /* erasure=core::String, declared=! */;
   b1 = invalid-expression "pkg/front_end/testcases/extension_types/implements.dart:57:8: Error: A value of type 'C2' can't be assigned to a variable of type 'B<String>'.
   b1 = c2; // Error
-       ^" in c2 as{TypeError} self::B<core::String> /* = core::String */;
+       ^" in c2 as{TypeError} self::B<core::String>% /* erasure=core::String, declared=! */;
   b1 = invalid-expression "pkg/front_end/testcases/extension_types/implements.dart:58:8: Error: A value of type 'D1' can't be assigned to a variable of type 'B<String>'.
   b1 = d1; // Error
-       ^" in d1 as{TypeError} self::B<core::String> /* = core::String */;
+       ^" in d1 as{TypeError} self::B<core::String>% /* erasure=core::String, declared=! */;
   b2 = invalid-expression "pkg/front_end/testcases/extension_types/implements.dart:60:8: Error: A value of type 'A' can't be assigned to a variable of type 'B<num>'.
   b2 = a; // Error
-       ^" in a as{TypeError} self::B<core::num> /* = core::num */;
+       ^" in a as{TypeError} self::B<core::num>% /* erasure=core::num, declared=! */;
   b2 = invalid-expression "pkg/front_end/testcases/extension_types/implements.dart:61:8: Error: A value of type 'B<String>' can't be assigned to a variable of type 'B<num>'.
   b2 = b1; // Error
-       ^" in b1 as{TypeError} self::B<core::num> /* = core::num */;
+       ^" in b1 as{TypeError} self::B<core::num>% /* erasure=core::num, declared=! */;
   b2 = invalid-expression "pkg/front_end/testcases/extension_types/implements.dart:62:8: Error: A value of type 'C1' can't be assigned to a variable of type 'B<num>'.
   b2 = c1; // Error
-       ^" in c1 as{TypeError} self::B<core::num> /* = core::num */;
+       ^" in c1 as{TypeError} self::B<core::num>% /* erasure=core::num, declared=! */;
   b2 = invalid-expression "pkg/front_end/testcases/extension_types/implements.dart:63:8: Error: A value of type 'D1' can't be assigned to a variable of type 'B<num>'.
   b2 = d1; // Error
-       ^" in d1 as{TypeError} self::B<core::num> /* = core::num */;
+       ^" in d1 as{TypeError} self::B<core::num>% /* erasure=core::num, declared=! */;
   c1 = invalid-expression "pkg/front_end/testcases/extension_types/implements.dart:65:8: Error: A value of type 'A' can't be assigned to a variable of type 'C1'.
   c1 = a; // Error
-       ^" in a as{TypeError} self::C1 /* = core::int */;
+       ^" in a as{TypeError} self::C1% /* erasure=core::int, declared=! */;
   c1 = invalid-expression "pkg/front_end/testcases/extension_types/implements.dart:66:8: Error: A value of type 'B<String>' can't be assigned to a variable of type 'C1'.
   c1 = b1; // Error
-       ^" in b1 as{TypeError} self::C1 /* = core::int */;
+       ^" in b1 as{TypeError} self::C1% /* erasure=core::int, declared=! */;
   c1 = invalid-expression "pkg/front_end/testcases/extension_types/implements.dart:67:8: Error: A value of type 'B<num>' can't be assigned to a variable of type 'C1'.
   c1 = b2; // Error
-       ^" in b2 as{TypeError} self::C1 /* = core::int */;
+       ^" in b2 as{TypeError} self::C1% /* erasure=core::int, declared=! */;
   c1 = invalid-expression "pkg/front_end/testcases/extension_types/implements.dart:68:8: Error: A value of type 'C2' can't be assigned to a variable of type 'C1'.
   c1 = c2; // Error
-       ^" in c2 as{TypeError} self::C1 /* = core::int */;
+       ^" in c2 as{TypeError} self::C1% /* erasure=core::int, declared=! */;
   c2 = invalid-expression "pkg/front_end/testcases/extension_types/implements.dart:70:8: Error: A value of type 'A' can't be assigned to a variable of type 'C2'.
   c2 = a; // Error
-       ^" in a as{TypeError} self::C2 /* = core::int */;
+       ^" in a as{TypeError} self::C2% /* erasure=core::int, declared=! */;
   c2 = invalid-expression "pkg/front_end/testcases/extension_types/implements.dart:71:8: Error: A value of type 'B<String>' can't be assigned to a variable of type 'C2'.
   c2 = b1; // Error
-       ^" in b1 as{TypeError} self::C2 /* = core::int */;
+       ^" in b1 as{TypeError} self::C2% /* erasure=core::int, declared=! */;
   c2 = invalid-expression "pkg/front_end/testcases/extension_types/implements.dart:72:8: Error: A value of type 'B<num>' can't be assigned to a variable of type 'C2'.
   c2 = b2; // Error
-       ^" in b2 as{TypeError} self::C2 /* = core::int */;
+       ^" in b2 as{TypeError} self::C2% /* erasure=core::int, declared=! */;
   c2 = invalid-expression "pkg/front_end/testcases/extension_types/implements.dart:73:8: Error: A value of type 'C1' can't be assigned to a variable of type 'C2'.
   c2 = c1; // Error
-       ^" in c1 as{TypeError} self::C2 /* = core::int */;
+       ^" in c1 as{TypeError} self::C2% /* erasure=core::int, declared=! */;
   c2 = invalid-expression "pkg/front_end/testcases/extension_types/implements.dart:74:8: Error: A value of type 'D1' can't be assigned to a variable of type 'C2'.
   c2 = d1; // Error
-       ^" in d1 as{TypeError} self::C2 /* = core::int */;
+       ^" in d1 as{TypeError} self::C2% /* erasure=core::int, declared=! */;
   d1 = invalid-expression "pkg/front_end/testcases/extension_types/implements.dart:76:8: Error: A value of type 'A' can't be assigned to a variable of type 'D1'.
   d1 = a; // Error
-       ^" in a as{TypeError} self::D1 /* = core::int */;
+       ^" in a as{TypeError} self::D1% /* erasure=core::int, declared=! */;
   d1 = invalid-expression "pkg/front_end/testcases/extension_types/implements.dart:77:8: Error: A value of type 'B<String>' can't be assigned to a variable of type 'D1'.
   d1 = b1; // Error
-       ^" in b1 as{TypeError} self::D1 /* = core::int */;
+       ^" in b1 as{TypeError} self::D1% /* erasure=core::int, declared=! */;
   d1 = invalid-expression "pkg/front_end/testcases/extension_types/implements.dart:78:8: Error: A value of type 'B<num>' can't be assigned to a variable of type 'D1'.
   d1 = b2; // Error
-       ^" in b2 as{TypeError} self::D1 /* = core::int */;
+       ^" in b2 as{TypeError} self::D1% /* erasure=core::int, declared=! */;
   d1 = invalid-expression "pkg/front_end/testcases/extension_types/implements.dart:79:8: Error: A value of type 'C1' can't be assigned to a variable of type 'D1'.
   d1 = c1; // Error
-       ^" in c1 as{TypeError} self::D1 /* = core::int */;
+       ^" in c1 as{TypeError} self::D1% /* erasure=core::int, declared=! */;
   d1 = invalid-expression "pkg/front_end/testcases/extension_types/implements.dart:80:8: Error: A value of type 'C2' can't be assigned to a variable of type 'D1'.
   d1 = c2; // Error
-       ^" in c2 as{TypeError} self::D1 /* = core::int */;
+       ^" in c2 as{TypeError} self::D1% /* erasure=core::int, declared=! */;
 }
-static method method(self::A /* = core::int */ a, self::B<core::String> /* = core::String */ b1, self::B<core::num> /* = core::num */ b2, self::C1 /* = core::int */ c1, self::C2 /* = core::int */ c2, self::D1 /* = core::int */ d1) → dynamic {
+static method method(self::A% /* erasure=core::int, declared=! */ a, self::B<core::String>% /* erasure=core::String, declared=! */ b1, self::B<core::num>% /* erasure=core::num, declared=! */ b2, self::C1% /* erasure=core::int, declared=! */ c1, self::C2% /* erasure=core::int, declared=! */ c2, self::D1% /* erasure=core::int, declared=! */ d1) → dynamic {
   self::expect(0.{core::num::+}(5){(core::num) → core::int}, self::A|methodA(a));
   self::expect("0", self::B|methodB<core::String>(b1));
   self::expect(1.{core::num::+}(0){(core::num) → core::int}, self::B|methodB<core::num>(b2));

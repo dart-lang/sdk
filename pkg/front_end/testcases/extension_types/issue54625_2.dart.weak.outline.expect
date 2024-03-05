@@ -22,17 +22,17 @@ extension type E(core::num it) implements core::num {
   constructor • = self::E|constructor#;
   constructor tearoff • = self::E|constructor#_#new#tearOff;
 }
-static method foo() → <X extends self::E /* = core::num */ = dynamic>() → X
+static method foo() → <X extends self::E /* erasure=core::num */ = dynamic>() → X
   ;
-static method test1() → <X extends self::E /* = core::num */ = dynamic>() → self::A<X, Null>
+static method test1() → <X extends self::E /* erasure=core::num */ = dynamic>() → self::A<X, Null>
   ;
-static method test2() → <X extends self::E /* = core::num */ = dynamic>() → self::A<core::Object, X>
+static method test2() → <X extends self::E /* erasure=core::num */ = dynamic>() → self::A<core::Object, X>
   ;
-static extension-type-member method E|constructor#(core::num it) → self::E /* = core::num */
+static extension-type-member method E|constructor#(core::num it) → self::E /* erasure=core::num */
   ;
-static extension-type-member method E|constructor#_#new#tearOff(core::num it) → self::E /* = core::num */
+static extension-type-member method E|constructor#_#new#tearOff(core::num it) → self::E /* erasure=core::num */
   return self::E|constructor#(it);
-static method returnsNull<Y extends self::E /* = core::num */>() → Null
+static method returnsNull<Y extends self::E /* erasure=core::num */>() → Null
   ;
 static method test3() → dynamic
   ;

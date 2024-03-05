@@ -51,31 +51,31 @@ extension type E4(invalid-type foo) {
   constructor • = self::E4|constructor#;
   constructor tearoff • = self::E4|constructor#_#new#tearOff;
 }
-static extension-type-member method E1|constructor#(core::int foo) → self::E1 /* = core::int */
+static extension-type-member method E1|constructor#(core::int foo) → self::E1% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method E1|constructor#_#new#tearOff(core::int foo) → self::E1 /* = core::int */
+static extension-type-member method E1|constructor#_#new#tearOff(core::int foo) → self::E1% /* erasure=core::int, declared=! */
   return self::E1|constructor#(foo);
-static extension-type-member method E1|constructor#named(core::int foo, invalid-type bar) → self::E1 /* = core::int */
+static extension-type-member method E1|constructor#named(core::int foo, invalid-type bar) → self::E1% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method E1|constructor#_#named#tearOff(core::int foo, invalid-type bar) → self::E1 /* = core::int */
+static extension-type-member method E1|constructor#_#named#tearOff(core::int foo, invalid-type bar) → self::E1% /* erasure=core::int, declared=! */
   return self::E1|constructor#named(foo, bar);
-static extension-type-member method E2|constructor#(core::int foo) → self::E2 /* = core::int */
+static extension-type-member method E2|constructor#(core::int foo) → self::E2% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method E2|constructor#_#new#tearOff(core::int foo) → self::E2 /* = core::int */
+static extension-type-member method E2|constructor#_#new#tearOff(core::int foo) → self::E2% /* erasure=core::int, declared=! */
   return self::E2|constructor#(foo);
-static extension-type-member method E2|constructor#named(core::int foo, {required invalid-type bar}) → self::E2 /* = core::int */
+static extension-type-member method E2|constructor#named(core::int foo, {required invalid-type bar}) → self::E2% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method E2|constructor#_#named#tearOff(core::int foo, {required invalid-type bar}) → self::E2 /* = core::int */
+static extension-type-member method E2|constructor#_#named#tearOff(core::int foo, {required invalid-type bar}) → self::E2% /* erasure=core::int, declared=! */
   return self::E2|constructor#named(foo, bar: bar);
-static extension-type-member method E3|constructor#(core::int foo) → self::E3 /* = core::int */
+static extension-type-member method E3|constructor#(core::int foo) → self::E3% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method E3|constructor#_#new#tearOff(core::int foo) → self::E3 /* = core::int */
+static extension-type-member method E3|constructor#_#new#tearOff(core::int foo) → self::E3% /* erasure=core::int, declared=! */
   return self::E3|constructor#(foo);
-static extension-type-member method E3|constructor#named(core::int foo, [has-declared-initializer invalid-type bar = null]) → self::E3 /* = core::int */
+static extension-type-member method E3|constructor#named(core::int foo, [has-declared-initializer invalid-type bar = null]) → self::E3% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method E3|constructor#_#named#tearOff(core::int foo, [has-declared-initializer invalid-type bar]) → self::E3 /* = core::int */
+static extension-type-member method E3|constructor#_#named#tearOff(core::int foo, [has-declared-initializer invalid-type bar]) → self::E3% /* erasure=core::int, declared=! */
   return self::E3|constructor#named(foo, bar);
-static extension-type-member method E4|constructor#(invalid-type foo) → self::E4 /* = invalid-type */
+static extension-type-member method E4|constructor#(invalid-type foo) → self::E4% /* erasure=invalid-type, declared=! */
   ;
-static extension-type-member method E4|constructor#_#new#tearOff(invalid-type foo) → self::E4 /* = invalid-type */
+static extension-type-member method E4|constructor#_#new#tearOff(invalid-type foo) → self::E4% /* erasure=invalid-type, declared=! */
   return self::E4|constructor#(foo);

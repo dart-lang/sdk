@@ -32,21 +32,21 @@ extension type E3<X extends core::Object? = dynamic, Y extends core::Object? = d
   constructor • = self::E3|constructor#;
   constructor tearoff • = self::E3|constructor#_#new#tearOff;
 }
-static extension-type-member method E1|constructor#<E1 extends core::Object? = dynamic>(core::Object? _) → self::E1<self::E1|constructor#::E1%> /* = core::Object? */ {
-  lowered final self::E1<self::E1|constructor#::E1%> /* = core::Object? */ #this = _;
+static extension-type-member method E1|constructor#<E1 extends core::Object? = dynamic>(core::Object? _) → self::E1<self::E1|constructor#::E1%>% /* erasure=core::Object?, declared=! */ {
+  lowered final self::E1<self::E1|constructor#::E1%>% /* erasure=core::Object?, declared=! */ #this = _;
   return #this;
 }
-static extension-type-member method E1|constructor#_#new#tearOff<E1 extends core::Object? = dynamic>(core::Object? _) → self::E1<self::E1|constructor#_#new#tearOff::E1%> /* = core::Object? */
+static extension-type-member method E1|constructor#_#new#tearOff<E1 extends core::Object? = dynamic>(core::Object? _) → self::E1<self::E1|constructor#_#new#tearOff::E1%>% /* erasure=core::Object?, declared=! */
   return self::E1|constructor#<self::E1|constructor#_#new#tearOff::E1%>(_);
-static extension-type-member method E2|constructor#<X extends core::Object? = dynamic, E2 extends core::Object? = dynamic>(core::Object? _) → self::E2<self::E2|constructor#::X%, self::E2|constructor#::E2%> /* = core::Object? */ {
-  lowered final self::E2<self::E2|constructor#::X%, self::E2|constructor#::E2%> /* = core::Object? */ #this = _;
+static extension-type-member method E2|constructor#<X extends core::Object? = dynamic, E2 extends core::Object? = dynamic>(core::Object? _) → self::E2<self::E2|constructor#::X%, self::E2|constructor#::E2%>% /* erasure=core::Object?, declared=! */ {
+  lowered final self::E2<self::E2|constructor#::X%, self::E2|constructor#::E2%>% /* erasure=core::Object?, declared=! */ #this = _;
   return #this;
 }
-static extension-type-member method E2|constructor#_#new#tearOff<X extends core::Object? = dynamic, E2 extends core::Object? = dynamic>(core::Object? _) → self::E2<self::E2|constructor#_#new#tearOff::X%, self::E2|constructor#_#new#tearOff::E2%> /* = core::Object? */
+static extension-type-member method E2|constructor#_#new#tearOff<X extends core::Object? = dynamic, E2 extends core::Object? = dynamic>(core::Object? _) → self::E2<self::E2|constructor#_#new#tearOff::X%, self::E2|constructor#_#new#tearOff::E2%>% /* erasure=core::Object?, declared=! */
   return self::E2|constructor#<self::E2|constructor#_#new#tearOff::X%, self::E2|constructor#_#new#tearOff::E2%>(_);
-static extension-type-member method E3|constructor#<X extends core::Object? = dynamic, Y extends core::Object? = dynamic, E3 extends core::Object? = dynamic>(core::Object? _) → self::E3<self::E3|constructor#::X%, self::E3|constructor#::Y%, self::E3|constructor#::E3%> /* = core::Object? */ {
-  lowered final self::E3<self::E3|constructor#::X%, self::E3|constructor#::Y%, self::E3|constructor#::E3%> /* = core::Object? */ #this = _;
+static extension-type-member method E3|constructor#<X extends core::Object? = dynamic, Y extends core::Object? = dynamic, E3 extends core::Object? = dynamic>(core::Object? _) → self::E3<self::E3|constructor#::X%, self::E3|constructor#::Y%, self::E3|constructor#::E3%>% /* erasure=core::Object?, declared=! */ {
+  lowered final self::E3<self::E3|constructor#::X%, self::E3|constructor#::Y%, self::E3|constructor#::E3%>% /* erasure=core::Object?, declared=! */ #this = _;
   return #this;
 }
-static extension-type-member method E3|constructor#_#new#tearOff<X extends core::Object? = dynamic, Y extends core::Object? = dynamic, E3 extends core::Object? = dynamic>(core::Object? _) → self::E3<self::E3|constructor#_#new#tearOff::X%, self::E3|constructor#_#new#tearOff::Y%, self::E3|constructor#_#new#tearOff::E3%> /* = core::Object? */
+static extension-type-member method E3|constructor#_#new#tearOff<X extends core::Object? = dynamic, Y extends core::Object? = dynamic, E3 extends core::Object? = dynamic>(core::Object? _) → self::E3<self::E3|constructor#_#new#tearOff::X%, self::E3|constructor#_#new#tearOff::Y%, self::E3|constructor#_#new#tearOff::E3%>% /* erasure=core::Object?, declared=! */
   return self::E3|constructor#<self::E3|constructor#_#new#tearOff::X%, self::E3|constructor#_#new#tearOff::Y%, self::E3|constructor#_#new#tearOff::E3%>(_);

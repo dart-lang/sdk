@@ -17,27 +17,27 @@ library from "org-dartlang-test:///main.dart" as main {
     static redirecting-factory tearoff r = main::ExtensionType|constructor#_#r#tearOff;
   }
   static field dart.core::int ExtensionType|staticField = 42;
-  static extension-type-member method ExtensionType|constructor#(dart.core::int i) → main::ExtensionType /* = dart.core::int */ {
-    lowered final main::ExtensionType /* = dart.core::int */ #this = i;
+  static extension-type-member method ExtensionType|constructor#(dart.core::int i) → main::ExtensionType% /* erasure=dart.core::int, declared=! */ {
+    lowered final main::ExtensionType% /* erasure=dart.core::int, declared=! */ #this = i;
     return #this;
   }
-  static extension-type-member method ExtensionType|constructor#_#new#tearOff(dart.core::int i) → main::ExtensionType /* = dart.core::int */
+  static extension-type-member method ExtensionType|constructor#_#new#tearOff(dart.core::int i) → main::ExtensionType% /* erasure=dart.core::int, declared=! */
     return main::ExtensionType|constructor#(i);
-  static extension-type-member method ExtensionType|constructor#f(dart.core::int i) → main::ExtensionType /* = dart.core::int */
+  static extension-type-member method ExtensionType|constructor#f(dart.core::int i) → main::ExtensionType% /* erasure=dart.core::int, declared=! */
     return main::ExtensionType|constructor#(i);
-  static extension-type-member method ExtensionType|constructor#_#f#tearOff(dart.core::int i) → main::ExtensionType /* = dart.core::int */
+  static extension-type-member method ExtensionType|constructor#_#f#tearOff(dart.core::int i) → main::ExtensionType% /* erasure=dart.core::int, declared=! */
     return main::ExtensionType|constructor#f(i);
-  static extension-type-member method ExtensionType|constructor#r(dart.core::int i) → main::ExtensionType /* = dart.core::int */ /* redirection-target: main::ExtensionType|constructor# */
+  static extension-type-member method ExtensionType|constructor#r(dart.core::int i) → main::ExtensionType% /* erasure=dart.core::int, declared=! */ /* redirection-target: main::ExtensionType|constructor# */
     return main::ExtensionType|constructor#(i);
-  static extension-type-member method ExtensionType|constructor#_#r#tearOff(dart.core::int i) → main::ExtensionType /* = dart.core::int */
+  static extension-type-member method ExtensionType|constructor#_#r#tearOff(dart.core::int i) → main::ExtensionType% /* erasure=dart.core::int, declared=! */
     return main::ExtensionType|constructor#(i);
-  static extension-type-member method ExtensionType|method(lowered final main::ExtensionType /* = dart.core::int */ #this) → dart.core::int
+  static extension-type-member method ExtensionType|method(lowered final main::ExtensionType% /* erasure=dart.core::int, declared=! */ #this) → dart.core::int
     return #this as{Unchecked} dart.core::int;
-  static extension-type-member method ExtensionType|get#method(lowered final main::ExtensionType /* = dart.core::int */ #this) → () → dart.core::int
+  static extension-type-member method ExtensionType|get#method(lowered final main::ExtensionType% /* erasure=dart.core::int, declared=! */ #this) → () → dart.core::int
     return () → dart.core::int => main::ExtensionType|method(#this);
-  static extension-type-member method ExtensionType|get#getter(lowered final main::ExtensionType /* = dart.core::int */ #this) → dart.core::int
+  static extension-type-member method ExtensionType|get#getter(lowered final main::ExtensionType% /* erasure=dart.core::int, declared=! */ #this) → dart.core::int
     return #this as{Unchecked} dart.core::int;
-  static extension-type-member method ExtensionType|set#setter(lowered final main::ExtensionType /* = dart.core::int */ #this, dart.core::int value) → void {}
+  static extension-type-member method ExtensionType|set#setter(lowered final main::ExtensionType% /* erasure=dart.core::int, declared=! */ #this, dart.core::int value) → void {}
   static extension-type-member method ExtensionType|staticMethod() → void {}
   static method main() → dynamic {
     main::ExtensionType|method(main::ExtensionType|constructor#(0));

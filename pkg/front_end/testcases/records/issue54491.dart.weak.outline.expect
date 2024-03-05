@@ -14,9 +14,9 @@ extension type Ex(core::Object? value) {
 }
 static method main() → void
   ;
-static extension-type-member method Ex|constructor#(core::Object? value) → self::Ex /* = core::Object? */ {
-  lowered final self::Ex /* = core::Object? */ #this = value;
+static extension-type-member method Ex|constructor#(core::Object? value) → self::Ex% /* erasure=core::Object?, declared=! */ {
+  lowered final self::Ex% /* erasure=core::Object?, declared=! */ #this = value;
   return #this;
 }
-static extension-type-member method Ex|constructor#_#new#tearOff(core::Object? value) → self::Ex /* = core::Object? */
+static extension-type-member method Ex|constructor#_#new#tearOff(core::Object? value) → self::Ex% /* erasure=core::Object?, declared=! */
   return self::Ex|constructor#(value);

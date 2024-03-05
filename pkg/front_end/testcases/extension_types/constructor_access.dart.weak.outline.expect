@@ -14,17 +14,17 @@ extension type GenericClass<T extends core::Object? = dynamic>(T% it) {
   constructor • = self::GenericClass|constructor#;
   constructor tearoff • = self::GenericClass|constructor#_#new#tearOff;
 }
-static extension-type-member method Class|constructor#(core::int it) → self::Class /* = core::int */
+static extension-type-member method Class|constructor#(core::int it) → self::Class% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method Class|constructor#_#new#tearOff(core::int it) → self::Class /* = core::int */
+static extension-type-member method Class|constructor#_#new#tearOff(core::int it) → self::Class% /* erasure=core::int, declared=! */
   return self::Class|constructor#(it);
-static extension-type-member method Class|constructor#named(core::int it) → self::Class /* = core::int */
+static extension-type-member method Class|constructor#named(core::int it) → self::Class% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method Class|constructor#_#named#tearOff(core::int it) → self::Class /* = core::int */
+static extension-type-member method Class|constructor#_#named#tearOff(core::int it) → self::Class% /* erasure=core::int, declared=! */
   return self::Class|constructor#named(it);
-static extension-type-member method GenericClass|constructor#<T extends core::Object? = dynamic>(self::GenericClass|constructor#::T% it) → self::GenericClass<self::GenericClass|constructor#::T%> /* = self::GenericClass|constructor#::T% */
+static extension-type-member method GenericClass|constructor#<T extends core::Object? = dynamic>(self::GenericClass|constructor#::T% it) → self::GenericClass<self::GenericClass|constructor#::T%>% /* erasure=self::GenericClass|constructor#::T%, declared=! */
   ;
-static extension-type-member method GenericClass|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::GenericClass|constructor#_#new#tearOff::T% it) → self::GenericClass<self::GenericClass|constructor#_#new#tearOff::T%> /* = self::GenericClass|constructor#_#new#tearOff::T% */
+static extension-type-member method GenericClass|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::GenericClass|constructor#_#new#tearOff::T% it) → self::GenericClass<self::GenericClass|constructor#_#new#tearOff::T%>% /* erasure=self::GenericClass|constructor#_#new#tearOff::T%, declared=! */
   return self::GenericClass|constructor#<self::GenericClass|constructor#_#new#tearOff::T%>(it);
 static method main() → dynamic
   ;

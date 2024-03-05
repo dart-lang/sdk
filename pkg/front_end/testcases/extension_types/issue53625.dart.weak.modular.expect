@@ -34,21 +34,21 @@ extension type E11(() → core::int x) {
   constructor • = self::E11|constructor#;
   constructor tearoff • = self::E11|constructor#_#new#tearOff;
 }
-static extension-type-member method E07|constructor#(core::int x) → self::E07 /* = core::int */ {
-  lowered final self::E07 /* = core::int */ #this = x;
+static extension-type-member method E07|constructor#(core::int x) → self::E07% /* erasure=core::int, declared=! */ {
+  lowered final self::E07% /* erasure=core::int, declared=! */ #this = x;
   return #this;
 }
-static extension-type-member method E07|constructor#_#new#tearOff(core::int x) → self::E07 /* = core::int */
+static extension-type-member method E07|constructor#_#new#tearOff(core::int x) → self::E07% /* erasure=core::int, declared=! */
   return self::E07|constructor#(x);
-static extension-type-member method E08|constructor#(core::int x) → self::E08 /* = core::int */ {
-  lowered final self::E08 /* = core::int */ #this = x;
+static extension-type-member method E08|constructor#(core::int x) → self::E08% /* erasure=core::int, declared=! */ {
+  lowered final self::E08% /* erasure=core::int, declared=! */ #this = x;
   return #this;
 }
-static extension-type-member method E08|constructor#_#new#tearOff(core::int x) → self::E08 /* = core::int */
+static extension-type-member method E08|constructor#_#new#tearOff(core::int x) → self::E08% /* erasure=core::int, declared=! */
   return self::E08|constructor#(x);
-static extension-type-member method E11|constructor#(() → core::int x) → self::E11 /* = () → core::int */ {
-  lowered final self::E11 /* = () → core::int */ #this = x;
+static extension-type-member method E11|constructor#(() → core::int x) → self::E11% /* erasure=() → core::int, declared=! */ {
+  lowered final self::E11% /* erasure=() → core::int, declared=! */ #this = x;
   return #this;
 }
-static extension-type-member method E11|constructor#_#new#tearOff(() → core::int x) → self::E11 /* = () → core::int */
+static extension-type-member method E11|constructor#_#new#tearOff(() → core::int x) → self::E11% /* erasure=() → core::int, declared=! */
   return self::E11|constructor#(x);

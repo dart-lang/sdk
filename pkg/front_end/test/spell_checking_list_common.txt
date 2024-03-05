@@ -166,6 +166,7 @@ appearing
 appears
 append
 appended
+appending
 appends
 application
 application's
@@ -2427,6 +2428,7 @@ pseudo
 pub
 public
 publications
+publicly
 published
 pull
 punctuation

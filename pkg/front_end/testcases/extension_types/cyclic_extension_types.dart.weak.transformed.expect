@@ -59,39 +59,39 @@ extension type F(core::int it) {
   constructor • = self::F|constructor#;
   constructor tearoff • = self::F|constructor#_#new#tearOff;
 }
-static extension-type-member method A|constructor#(core::int it) → self::A /* = core::int */ {
-  lowered final self::A /* = core::int */ #this = it;
+static extension-type-member method A|constructor#(core::int it) → self::A% /* erasure=core::int, declared=! */ {
+  lowered final self::A% /* erasure=core::int, declared=! */ #this = it;
   return #this;
 }
-static extension-type-member method A|constructor#_#new#tearOff(core::int it) → self::A /* = core::int */
+static extension-type-member method A|constructor#_#new#tearOff(core::int it) → self::A% /* erasure=core::int, declared=! */
   return self::A|constructor#(it);
-static extension-type-member method B|constructor#(core::int it) → self::B /* = core::int */ {
-  lowered final self::B /* = core::int */ #this = it;
+static extension-type-member method B|constructor#(core::int it) → self::B% /* erasure=core::int, declared=! */ {
+  lowered final self::B% /* erasure=core::int, declared=! */ #this = it;
   return #this;
 }
-static extension-type-member method B|constructor#_#new#tearOff(core::int it) → self::B /* = core::int */
+static extension-type-member method B|constructor#_#new#tearOff(core::int it) → self::B% /* erasure=core::int, declared=! */
   return self::B|constructor#(it);
-static extension-type-member method C|constructor#(core::int it) → self::C /* = core::int */ {
-  lowered final self::C /* = core::int */ #this = it;
+static extension-type-member method C|constructor#(core::int it) → self::C% /* erasure=core::int, declared=! */ {
+  lowered final self::C% /* erasure=core::int, declared=! */ #this = it;
   return #this;
 }
-static extension-type-member method C|constructor#_#new#tearOff(core::int it) → self::C /* = core::int */
+static extension-type-member method C|constructor#_#new#tearOff(core::int it) → self::C% /* erasure=core::int, declared=! */
   return self::C|constructor#(it);
-static extension-type-member method D|constructor#(core::int it) → self::D /* = core::int */ {
-  lowered final self::D /* = core::int */ #this = it;
+static extension-type-member method D|constructor#(core::int it) → self::D% /* erasure=core::int, declared=! */ {
+  lowered final self::D% /* erasure=core::int, declared=! */ #this = it;
   return #this;
 }
-static extension-type-member method D|constructor#_#new#tearOff(core::int it) → self::D /* = core::int */
+static extension-type-member method D|constructor#_#new#tearOff(core::int it) → self::D% /* erasure=core::int, declared=! */
   return self::D|constructor#(it);
-static extension-type-member method E|constructor#(core::int it) → self::E /* = core::int */ {
-  lowered final self::E /* = core::int */ #this = it;
+static extension-type-member method E|constructor#(core::int it) → self::E% /* erasure=core::int, declared=! */ {
+  lowered final self::E% /* erasure=core::int, declared=! */ #this = it;
   return #this;
 }
-static extension-type-member method E|constructor#_#new#tearOff(core::int it) → self::E /* = core::int */
+static extension-type-member method E|constructor#_#new#tearOff(core::int it) → self::E% /* erasure=core::int, declared=! */
   return self::E|constructor#(it);
-static extension-type-member method F|constructor#(core::int it) → self::F /* = core::int */ {
-  lowered final self::F /* = core::int */ #this = it;
+static extension-type-member method F|constructor#(core::int it) → self::F% /* erasure=core::int, declared=! */ {
+  lowered final self::F% /* erasure=core::int, declared=! */ #this = it;
   return #this;
 }
-static extension-type-member method F|constructor#_#new#tearOff(core::int it) → self::F /* = core::int */
+static extension-type-member method F|constructor#_#new#tearOff(core::int it) → self::F% /* erasure=core::int, declared=! */
   return self::F|constructor#(it);
