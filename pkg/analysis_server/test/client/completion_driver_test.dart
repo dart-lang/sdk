@@ -122,8 +122,9 @@ abstract class AbstractCompletionDriverTest
 The actual suggestions do not match the expected suggestions$where.
 
 To accept the current state change the expectation to
-
-$actual
+\r${'-' * 64}
+\r${actual.trimRight().split('\n').join('\n\r')}
+\r${'-' * 64}
 ''');
     }
   }
