@@ -2,23 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// The set of [Enum] values, up to `60` constants.
-extension type EnumSet<T extends Enum>((int, int) _bits) {
-  EnumSet.empty() : this((0, 0));
+/// The set of [Enum] values, backed by [int].
+extension type EnumSet<T extends Enum>(int _bits) {
+  EnumSet.empty() : this(0);
 
   /// Whether [constant] is present.
   bool operator [](T constant) {
     var index = constant.index;
     _checkIndex(index);
 
-    // In JavaScript bitwise operations are performed on 32-bit integers.
-    if (index <= 30) {
-      var mask = 1 << index;
-      return (_bits.$1 & mask) != 0;
-    } else {
-      var mask = 1 << (index - 30);
-      return (_bits.$2 & mask) != 0;
-    }
+    var mask = 1 << index;
+    return (_bits & mask) != 0;
   }
 
   /// Returns a new set, with presence of [constant] updated.
@@ -26,20 +20,15 @@ extension type EnumSet<T extends Enum>((int, int) _bits) {
     var index = constant.index;
     _checkIndex(index);
 
-    if (index <= 30) {
-      var mask = 1 << index;
-      var field = _bits.$1;
-      var newField = value ? field | mask : field & ~mask;
-      return EnumSet<T>((newField, _bits.$2));
+    var mask = 1 << index;
+    if (value) {
+      return EnumSet<T>(_bits | mask);
     } else {
-      var mask = 1 << (index - 30);
-      var field = _bits.$2;
-      var newField = value ? field | mask : field & ~mask;
-      return EnumSet<T>((_bits.$1, newField));
+      return EnumSet<T>(_bits & ~mask);
     }
   }
 
-  /// Throws an exception if the [index] does not fit the storage.
+  /// Throws an exception if the [index] does not fit [int].
   static void _checkIndex(int index) {
     if (index < 0 || index > 60) {
       throw RangeError("Index not between 0 and 60: $index");
