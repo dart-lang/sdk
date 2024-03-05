@@ -76,7 +76,6 @@ class SourceReport {
   bool IsReportRequested(ReportKind report_kind);
   bool ShouldSkipFunction(const Function& func);
   bool ShouldSkipField(const Field& field);
-  bool ShouldCoverageSkipCallSite(const ICData* ic_data);
   intptr_t GetScriptIndex(const Script& script);
   bool ScriptIsLoadedByLibrary(const Script& script, const Library& lib);
   intptr_t GetTokenPosOrLine(const Script& script,
