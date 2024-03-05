@@ -54,12 +54,12 @@ abstract class AbstractCompletionDriverTest
   /// of the suggestions. Individual tests can replace the default set.
   Set<CompletionSuggestionKind> allowedKinds = {};
 
+  /// Whether keywords should be included in the text to be compared.
+  bool includeKeywords = true;
+
   /// Return `true` if closures (suggestions starting with a left paren) should
   /// be included in the text to be compared.
   bool get includeClosures => false;
-
-  /// Return `true` if keywords should be included in the text to be compared.
-  bool get includeKeywords => true;
 
   /// Return `true` if overrides should be included in the text to be compared.
   bool get includeOverrides => true;

@@ -96,6 +96,8 @@ class CompletionResponsePrinter {
         return 'enumConstant';
       } else if (elementKind == ElementKind.EXTENSION) {
         return 'extension';
+      } else if (elementKind == ElementKind.EXTENSION_TYPE) {
+        return 'extensionType';
       } else if (elementKind == ElementKind.FIELD) {
         return 'field';
       } else if (elementKind == ElementKind.FUNCTION) {

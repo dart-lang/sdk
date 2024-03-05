@@ -85,6 +85,11 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor<void> {
   }
 
   @override
+  void visitExtensionTypeElement(ExtensionTypeElement element) {
+    _visitInterfaceElement(element);
+  }
+
+  @override
   void visitFunctionElement(FunctionElement element) {
     // Do not suggest operators or local functions
     if (element.isOperator) {
