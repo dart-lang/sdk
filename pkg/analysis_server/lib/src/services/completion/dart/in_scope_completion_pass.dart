@@ -1525,6 +1525,22 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitNamedType(NamedType node) {
+    var importPrefix = node.importPrefix;
+    var prefixElement = importPrefix?.element;
+
+    // `prefix.x^ print(0);` is recovered as `prefix.x print; (0);`.
+    if (prefixElement is PrefixElement) {
+      if (node.parent case VariableDeclarationList variableList) {
+        if (variableList.parent case VariableDeclarationStatement statement) {
+          if (statement.semicolon.isSynthetic) {
+            declarationHelper()
+                .addDeclarationsThroughImportPrefix(prefixElement);
+            return;
+          }
+        }
+      }
+    }
+
     _forTypeAnnotation(node);
   }
 
