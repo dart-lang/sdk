@@ -38,6 +38,27 @@ final class ClassSuggestion extends ImportableSuggestion {
 }
 
 /// The information about a candidate suggestion based on a constructor.
+final class ClosureSuggestion extends CandidateSuggestion {
+  /// The type that the closure must conform to.
+  final FunctionType functionType;
+
+  /// Whether a trailing comma should be included in the suggestion.
+  final bool includeTrailingComma;
+
+  /// Initialize a newly created candidate suggestion to suggest a closure that
+  /// conforms to the given [functionType].
+  ///
+  /// If [includeTrailingComma] is `true`, then the replacement will include a
+  /// trailing comma.
+  ClosureSuggestion(
+      {required this.functionType, required this.includeTrailingComma});
+
+  @override
+  // TODO(brianwilkerson): Fix this.
+  String get completion => '() {}${includeTrailingComma ? ', ' : ''}';
+}
+
+/// The information about a candidate suggestion based on a constructor.
 final class ConstructorSuggestion extends ImportableSuggestion {
   /// The element on which the suggestion is based.
   final ConstructorElement element;
@@ -560,6 +581,9 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
         libraryUriStr = suggestion.libraryUriStr;
         suggestInterface(suggestion.element, prefix: suggestion.prefix);
         libraryUriStr = null;
+      case ClosureSuggestion():
+        suggestClosure(suggestion.functionType,
+            includeTrailingComma: suggestion.includeTrailingComma);
       case ConstructorSuggestion():
         libraryUriStr = suggestion.libraryUriStr;
         suggestConstructor(suggestion.element,

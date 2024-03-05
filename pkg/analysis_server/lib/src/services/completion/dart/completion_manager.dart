@@ -6,7 +6,6 @@ import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/candidate_suggestion.dart';
-import 'package:analysis_server/src/services/completion/dart/closure_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_state.dart';
 import 'package:analysis_server/src/services/completion/dart/enum_constant_constructor_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/extension_member_contributor.dart';
@@ -126,7 +125,6 @@ class DartCompletionManager {
     var builder =
         SuggestionBuilder(request, useFilter: useFilter, listener: listener);
     var contributors = <DartCompletionContributor>[
-      ClosureContributor(request, builder),
       EnumConstantConstructorContributor(request, builder),
       ExtensionMemberContributor(request, builder),
       LibraryMemberContributor(request, builder),
