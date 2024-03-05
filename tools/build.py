@@ -176,12 +176,12 @@ def StartRBE(out_dir, use_goma, env):
     return True
 
 
-def StopRBE():
+def StopRBE(env):
     global rbe_started, bootstrap_path
     if rbe_started != 'rbe':
         return
     bootstrap_command = [bootstrap_path, '--shutdown']
-    process = subprocess.Popen(bootstrap_command)
+    process = subprocess.Popen(bootstrap_command, env=env)
     process.wait()
 
 
@@ -341,7 +341,7 @@ def Main():
 
     exit_code = Build(configs, env, options)
 
-    StopRBE()
+    StopRBE(env)
 
     if exit_code == 0:
         endtime = time.time()
