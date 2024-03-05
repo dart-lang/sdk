@@ -4,17 +4,15 @@
 
 import 'dart:math' show min;
 
-import 'package:dart2wasm/class_info.dart';
-import 'package:dart2wasm/param_info.dart';
-import 'package:dart2wasm/reference_extensions.dart';
-import 'package:dart2wasm/translator.dart';
-
 import 'package:kernel/ast.dart';
-
 import 'package:vm/metadata/procedure_attributes.dart';
 import 'package:vm/metadata/table_selector.dart';
-
 import 'package:wasm_builder/wasm_builder.dart' as w;
+
+import 'class_info.dart';
+import 'param_info.dart';
+import 'reference_extensions.dart';
+import 'translator.dart';
 
 /// Information for a dispatch table selector.
 ///

@@ -240,7 +240,7 @@ wasm_common:
       uri: collection/collection.dart
       patches:
       - _internal/vm_shared/lib/collection_patch.dart
-      - _internal/vm_shared/lib/compact_hash.dart
+      - _internal/wasm/lib/compact_hash.dart
       - _internal/wasm/lib/hash_factories.dart
     developer:
       uri: developer/developer.dart

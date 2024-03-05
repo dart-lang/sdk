@@ -265,6 +265,9 @@ abstract class ServerErrorCodes {
   /// A file that is expected to be analyzed, but failed.
   static const FileAnalysisFailed = ErrorCodes(-32013);
 
+  /// Computation of a refactoring change failed.
+  static const RefactoringComputeStatusFailure = ErrorCodes(-32014);
+
   /// An error raised when the server detects that the server and client are out
   /// of sync and cannot recover. For example if a textDocument/didChange notification
   /// has invalid offsets, suggesting the client and server have become out of sync

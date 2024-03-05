@@ -7,6 +7,10 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
 import 'package:_js_interop_checks/js_interop_checks.dart';
 import 'package:_js_interop_checks/src/js_interop.dart' as jsInteropHelper;
 import 'package:_js_interop_checks/src/transformations/shared_interop_transformer.dart';
+import 'package:front_end/src/api_prototype/const_conditional_simplifier.dart'
+    show ConstConditionalSimplifier;
+import 'package:front_end/src/api_prototype/constant_evaluator.dart'
+    as constantEvaluator show ConstantEvaluator, EvaluationMode;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/clone.dart';
@@ -16,23 +20,19 @@ import 'package:kernel/target/changed_structure_notifier.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/type_environment.dart';
 import 'package:kernel/verifier.dart';
-import 'package:vm/modular/transformations/mixin_full_resolution.dart'
-    as transformMixins show transformLibraries;
 import 'package:vm/modular/transformations/ffi/common.dart' as ffiHelper
     show calculateTransitiveImportsOfDartFfiIfUsed;
 import 'package:vm/modular/transformations/ffi/definitions.dart'
     as transformFfiDefinitions show transformLibraries;
 import 'package:vm/modular/transformations/ffi/use_sites.dart'
     as transformFfiUseSites show transformLibraries;
-import 'package:front_end/src/api_prototype/constant_evaluator.dart'
-    as constantEvaluator show ConstantEvaluator, EvaluationMode;
-import 'package:front_end/src/api_prototype/const_conditional_simplifier.dart'
-    show ConstConditionalSimplifier;
+import 'package:vm/modular/transformations/mixin_full_resolution.dart'
+    as transformMixins show transformLibraries;
 
-import 'package:dart2wasm/await_transformer.dart' as awaitTrans;
-import 'package:dart2wasm/ffi_native_transformer.dart' as wasmFfiNativeTrans;
-import 'package:dart2wasm/records.dart' show RecordShape;
-import 'package:dart2wasm/transformers.dart' as wasmTrans;
+import 'await_transformer.dart' as awaitTrans;
+import 'ffi_native_transformer.dart' as wasmFfiNativeTrans;
+import 'records.dart' show RecordShape;
+import 'transformers.dart' as wasmTrans;
 
 enum Mode {
   regular,
@@ -79,7 +79,7 @@ class ConstantResolver extends Transformer {
       final expression = constant.expression;
       final newConstant = evaluator.evaluate(_context!, expression);
       ConstantExpression result =
-          new ConstantExpression(newConstant, node.getStaticType(_context!))
+          ConstantExpression(newConstant, node.getStaticType(_context!))
             ..fileOffset = node.fileOffset;
 
       return result;
@@ -118,21 +118,17 @@ class WasmTarget extends Target {
 
   @override
   String get name {
-    switch (mode) {
-      case Mode.regular:
-        return 'wasm';
-      case Mode.jsCompatibility:
-        return 'wasm_js_compatibility';
-    }
+    return switch (mode) {
+      Mode.regular => 'wasm',
+      Mode.jsCompatibility => 'wasm_js_compatibility'
+    };
   }
 
   String get platformFile {
-    switch (mode) {
-      case Mode.regular:
-        return 'dart2wasm_platform.dill';
-      case Mode.jsCompatibility:
-        return 'dart2wasm_js_compatibility_platform.dill';
-    }
+    return switch (mode) {
+      Mode.regular => 'dart2wasm_platform.dill',
+      Mode.jsCompatibility => 'dart2wasm_js_compatibility_platform.dill'
+    };
   }
 
   @override
@@ -195,7 +191,7 @@ class WasmTarget extends Target {
     final Field little =
         coreTypes.index.getField('dart:typed_data', 'Endian', 'little');
     host.isConst = true;
-    host.initializer = new CloneVisitorNotMembers().clone(little.initializer!)
+    host.initializer = CloneVisitorNotMembers().clone(little.initializer!)
       ..parent = host;
   }
 
@@ -246,7 +242,7 @@ class WasmTarget extends Target {
       Map<String, String>? environmentDefines,
       DiagnosticReporter diagnosticReporter,
       ReferenceFromIndex? referenceFromIndex,
-      {void logger(String msg)?,
+      {void Function(String msg)? logger,
       ChangedStructureNotifier? changedStructureNotifier}) {
     Set<Library> transitiveImportingJSInterop = {
       ...?jsInteropHelper.calculateTransitiveImportsOfJsInteropIfUsed(
@@ -269,8 +265,8 @@ class WasmTarget extends Target {
     // If we are compiling with a null environment, skip constant resolution
     // and simplification.
     if (environmentDefines != null) {
-      final reportError =
-          (LocatedMessage message, [List<LocatedMessage>? context]) {
+      void reportError(LocatedMessage message,
+          [List<LocatedMessage>? context]) {
         diagnosticReporter.report(message.messageObject, message.charOffset,
             message.length, message.uri);
         if (context != null) {
@@ -279,7 +275,7 @@ class WasmTarget extends Target {
                 m.messageObject, m.charOffset, m.length, m.uri);
           }
         }
-      };
+      }
 
       final simplifier = ConstConditionalSimplifier(
         dartLibrarySupport,
@@ -333,7 +329,7 @@ class WasmTarget extends Target {
       ClassHierarchy hierarchy,
       Procedure procedure,
       Map<String, String>? environmentDefines,
-      {void logger(String msg)?}) {
+      {void Function(String msg)? logger}) {
     wasmTrans.transformProcedure(procedure, coreTypes, hierarchy);
   }
 
@@ -376,7 +372,7 @@ class WasmTarget extends Target {
             ListLiteral(arguments.positional),
             MapLiteral(List<MapLiteralEntry>.from(
                 arguments.named.map((NamedExpression arg) {
-              return new MapLiteralEntry(SymbolLiteral(arg.name), arg.value);
+              return MapLiteralEntry(SymbolLiteral(arg.name), arg.value);
             })), keyType: coreTypes.symbolNonNullableRawType)
               ..isConst = (arguments.named.isEmpty)
           ]));
@@ -389,6 +385,7 @@ class WasmTarget extends Target {
     return _instantiateInvocation(coreTypes, name, arguments);
   }
 
+  @override
   Expression instantiateNoSuchMethodError(CoreTypes coreTypes,
       Expression receiver, String name, Arguments arguments, int offset,
       {bool isMethod = false,

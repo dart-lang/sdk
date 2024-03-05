@@ -3,10 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 import 'package:_js_interop_checks/src/transformations/js_util_optimizer.dart'
     show ExtensionIndex;
-import 'package:dart2wasm/js/method_collector.dart';
-import 'package:dart2wasm/js/util.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/type_environment.dart';
+
+import 'method_collector.dart';
+import 'util.dart';
 
 /// Specializes Dart callbacks so they can be called from JS.
 class CallbackSpecializer {
@@ -16,7 +17,7 @@ class CallbackSpecializer {
   final ExtensionIndex _extensionIndex;
 
   CallbackSpecializer(this._staticTypeContext, this._util,
-      this._methodCollector, this._extensionIndex) {}
+      this._methodCollector, this._extensionIndex);
 
   bool _needsArgumentsLength(FunctionType type) =>
       type.requiredParameterCount < type.positionalParameters.length;

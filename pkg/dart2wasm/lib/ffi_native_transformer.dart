@@ -12,6 +12,7 @@ import 'package:vm/modular/transformations/ffi/abi.dart' show Abi;
 import 'package:vm/modular/transformations/ffi/common.dart' show NativeType;
 import 'package:vm/modular/transformations/ffi/native.dart'
     show FfiNativeTransformer;
+
 import 'abi.dart' show kWasmAbiEnumIndex;
 
 /// Transform `@Native`-annotated functions to convert Dart arguments to
@@ -75,12 +76,8 @@ class WasmFfiNativeTransformer extends FfiNativeTransformer {
   final Procedure wasmF64FromDouble;
   final Procedure wasmF64ToDouble;
 
-  WasmFfiNativeTransformer(
-      LibraryIndex index,
-      CoreTypes coreTypes,
-      ClassHierarchy hierarchy,
-      DiagnosticReporter diagnosticReporter,
-      ReferenceFromIndex? referenceFromIndex)
+  WasmFfiNativeTransformer(super.index, super.coreTypes, super.hierarchy,
+      super.diagnosticReporter, super.referenceFromIndex)
       : wasmI32Class = index.getClass('dart:_wasm', 'WasmI32'),
         wasmI64Class = index.getClass('dart:_wasm', 'WasmI64'),
         wasmF32Class = index.getClass('dart:_wasm', 'WasmF32'),
@@ -111,9 +108,7 @@ class WasmFfiNativeTransformer extends FfiNativeTransformer {
         wasmF64FromDouble =
             index.getProcedure('dart:_wasm', 'WasmF64', 'fromDouble'),
         wasmF64ToDouble =
-            index.getProcedure('dart:_wasm', 'WasmF64', 'toDouble'),
-        super(index, coreTypes, hierarchy, diagnosticReporter,
-            referenceFromIndex);
+            index.getProcedure('dart:_wasm', 'WasmF64', 'toDouble');
 
   @override
   visitProcedure(Procedure node) {
@@ -243,51 +238,30 @@ class WasmFfiNativeTransformer extends FfiNativeTransformer {
         _getFixedWidthIntegerFromAbiSpecificInteger(ffiType as InterfaceType);
     final NativeType abiTypeNativeType = getType(abiType_.classNode)!;
 
-    switch (abiTypeNativeType) {
-      case NativeType.kInt8:
-        return StaticInvocation(wasmI32Int8FromInt, Arguments([expr]));
-
-      case NativeType.kUint8:
-        return StaticInvocation(wasmI32Uint8FromInt, Arguments([expr]));
-
-      case NativeType.kInt16:
-        return StaticInvocation(wasmI32Int16FromInt, Arguments([expr]));
-
-      case NativeType.kUint16:
-        return StaticInvocation(wasmI32Uint16FromInt, Arguments([expr]));
-
-      case NativeType.kInt32:
-      case NativeType.kUint32:
-        return StaticInvocation(wasmI32FromInt, Arguments([expr]));
-
-      case NativeType.kInt64:
-      case NativeType.kUint64:
-        return StaticInvocation(wasmI64FromInt, Arguments([expr]));
-
-      case NativeType.kFloat:
-        return StaticInvocation(wasmF32FromDouble, Arguments([expr]));
-
-      case NativeType.kDouble:
-        return StaticInvocation(wasmF64FromDouble, Arguments([expr]));
-
-      case NativeType.kPointer:
-      case NativeType.kStruct:
-        return expr;
-
-      case NativeType.kBool:
-        return StaticInvocation(wasmI32FromBool, Arguments([expr]));
-
-      case NativeType.kVoid:
-        return null;
-
-      case NativeType.kHandle:
-      case NativeType.kNativeDouble:
-      case NativeType.kNativeFunction:
-      case NativeType.kNativeInteger:
-      case NativeType.kNativeType:
-      case NativeType.kOpaque:
-        throw '_dartValueToFfiValue: $abiTypeNativeType cannot be converted';
-    }
+    return switch (abiTypeNativeType) {
+      NativeType.kInt8 =>
+        StaticInvocation(wasmI32Int8FromInt, Arguments([expr])),
+      NativeType.kUint8 =>
+        StaticInvocation(wasmI32Uint8FromInt, Arguments([expr])),
+      NativeType.kInt16 =>
+        StaticInvocation(wasmI32Int16FromInt, Arguments([expr])),
+      NativeType.kUint16 =>
+        StaticInvocation(wasmI32Uint16FromInt, Arguments([expr])),
+      NativeType.kInt32 ||
+      NativeType.kUint32 =>
+        StaticInvocation(wasmI32FromInt, Arguments([expr])),
+      NativeType.kInt64 ||
+      NativeType.kUint64 =>
+        StaticInvocation(wasmI64FromInt, Arguments([expr])),
+      NativeType.kFloat =>
+        StaticInvocation(wasmF32FromDouble, Arguments([expr])),
+      NativeType.kDouble =>
+        StaticInvocation(wasmF64FromDouble, Arguments([expr])),
+      NativeType.kPointer || NativeType.kStruct => expr,
+      NativeType.kBool => StaticInvocation(wasmI32FromBool, Arguments([expr])),
+      NativeType.kVoid => null,
+      _ => throw '_dartValueToFfiValue: $abiTypeNativeType cannot be converted'
+    };
   }
 
   /// Converts a Wasm FFI value to the corresponding Dart value according to

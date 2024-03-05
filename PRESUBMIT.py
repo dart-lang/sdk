@@ -129,7 +129,7 @@ def _CheckDartFormat(input_api, output_api):
         # them.
         def skip_file(path):
             if path.endswith('_test.dart'):
-                with open(path) as f:
+                with open(path, encoding='utf-8') as f:
                     contents = f.read()
                     if '//#' in contents:
                         return True
@@ -427,7 +427,7 @@ def _CheckCopyrightYear(input_api, output_api):
         path = f.LocalPath()
         if (is_dart_file(path) or is_cpp_file(path)
            ) and f.Action() == 'A' and os.path.isfile(path):
-            with open(path) as f:
+            with open(path, encoding='utf-8') as f:
                 first_line = f.readline()
                 if 'Copyright' in first_line and year not in first_line:
                     files.append(path)

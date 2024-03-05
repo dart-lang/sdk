@@ -2,13 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:dart2wasm/class_info.dart';
-import 'package:dart2wasm/closures.dart';
-import 'package:dart2wasm/code_generator.dart';
-
 import 'package:kernel/ast.dart';
-
 import 'package:wasm_builder/wasm_builder.dart' as w;
+
+import 'class_info.dart';
+import 'closures.dart';
+import 'code_generator.dart';
 
 /// Placement of a control flow graph target within a statement. This
 /// distinction is necessary since some statements need to have two targets
@@ -31,6 +30,7 @@ class StateTarget {
 
   StateTarget(this.index, this.node, this.placement);
 
+  @override
   String toString() {
     String place = placement == StateTargetPlacement.Inner ? "in" : "after";
     return "$index: $place $node";

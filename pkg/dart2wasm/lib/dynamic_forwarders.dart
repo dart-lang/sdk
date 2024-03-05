@@ -2,14 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:dart2wasm/class_info.dart';
-import 'package:dart2wasm/dispatch_table.dart';
-import 'package:dart2wasm/reference_extensions.dart';
-import 'package:dart2wasm/translator.dart';
-
 import 'package:kernel/ast.dart';
-
 import 'package:wasm_builder/wasm_builder.dart' as w;
+
+import 'class_info.dart';
+import 'dispatch_table.dart';
+import 'reference_extensions.dart';
+import 'translator.dart';
 
 /// Stores forwarders for dynamic gets, sets, and invocations. See [Forwarder]
 /// for details.
@@ -24,12 +23,12 @@ class DynamicForwarders {
 
   Forwarder getDynamicGetForwarder(String memberName) =>
       _getterForwarderOfName[memberName] ??=
-          Forwarder(translator, _ForwarderKind.Getter, memberName)
+          Forwarder._(translator, _ForwarderKind.Getter, memberName)
             .._generateCode(translator);
 
   Forwarder getDynamicSetForwarder(String memberName) =>
       _setterForwarderOfName[memberName] ??=
-          Forwarder(translator, _ForwarderKind.Setter, memberName)
+          Forwarder._(translator, _ForwarderKind.Setter, memberName)
             .._generateCode(translator);
 
   Forwarder getDynamicInvocationForwarder(String memberName) {
@@ -37,7 +36,7 @@ class DynamicForwarders {
     // allow recursive calls in the "call" forwarder.
     var forwarder = _methodForwarderOfName[memberName];
     if (forwarder == null) {
-      forwarder = Forwarder(translator, _ForwarderKind.Method, memberName);
+      forwarder = Forwarder._(translator, _ForwarderKind.Method, memberName);
       _methodForwarderOfName[memberName] = forwarder;
       forwarder._generateCode(translator);
     }
@@ -65,18 +64,18 @@ class DynamicForwarders {
 /// not found, or the passed arguments do not match the expected parameters of
 /// the member.
 class Forwarder {
-  final _ForwarderKind kind;
+  final _ForwarderKind _kind;
 
   final String memberName;
 
   final w.FunctionBuilder function;
 
-  Forwarder(Translator translator, this.kind, this.memberName)
-      : function = translator.m.functions.define(
-            kind.functionType(translator), "$kind forwarder for '$memberName'");
+  Forwarder._(Translator translator, this._kind, this.memberName)
+      : function = translator.m.functions.define(_kind.functionType(translator),
+            "$_kind forwarder for '$memberName'");
 
   void _generateCode(Translator translator) {
-    switch (kind) {
+    switch (_kind) {
       case _ForwarderKind.Getter:
         _generateGetterCode(translator);
         break;
@@ -133,7 +132,7 @@ class Forwarder {
         b.call(targetFunction);
         // Box return value if needed
         translator.convertType(function, targetFunction.type.outputs.single,
-            kind.functionType(translator).outputs.single);
+            _kind.functionType(translator).outputs.single);
         b.return_();
 
         b.end();
@@ -625,26 +624,21 @@ enum _ForwarderKind {
   Setter,
   Method;
 
+  @override
   String toString() {
-    switch (this) {
-      case _ForwarderKind.Getter:
-        return "get";
-      case _ForwarderKind.Setter:
-        return "set";
-      case _ForwarderKind.Method:
-        return "method";
-    }
+    return switch (this) {
+      _ForwarderKind.Getter => "get",
+      _ForwarderKind.Setter => "set",
+      _ForwarderKind.Method => "method"
+    };
   }
 
   w.FunctionType functionType(Translator translator) {
-    switch (this) {
-      case _ForwarderKind.Getter:
-        return translator.dynamicGetForwarderFunctionType;
-      case _ForwarderKind.Setter:
-        return translator.dynamicSetForwarderFunctionType;
-      case _ForwarderKind.Method:
-        return translator.dynamicInvocationForwarderFunctionType;
-    }
+    return switch (this) {
+      _ForwarderKind.Getter => translator.dynamicGetForwarderFunctionType,
+      _ForwarderKind.Setter => translator.dynamicSetForwarderFunctionType,
+      _ForwarderKind.Method => translator.dynamicInvocationForwarderFunctionType
+    };
   }
 }
 

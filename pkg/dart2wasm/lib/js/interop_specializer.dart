@@ -6,10 +6,11 @@ import 'package:_js_interop_checks/src/js_interop.dart'
     show getJSName, hasAnonymousAnnotation, hasJSInteropAnnotation;
 import 'package:_js_interop_checks/src/transformations/js_util_optimizer.dart'
     show ExtensionIndex;
-import 'package:dart2wasm/js/method_collector.dart';
-import 'package:dart2wasm/js/util.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/type_environment.dart';
+
+import 'method_collector.dart';
+import 'util.dart';
 
 /// A general config class for an interop method.
 ///
@@ -147,9 +148,7 @@ abstract class _ProcedureSpecializer extends _Specializer {
 }
 
 class _ConstructorSpecializer extends _ProcedureSpecializer {
-  _ConstructorSpecializer(InteropSpecializerFactory factory,
-      Procedure interopMethod, String jsString)
-      : super(factory, interopMethod, jsString);
+  _ConstructorSpecializer(super.factory, super.interopMethod, super.jsString);
 
   @override
   bool get isConstructor => true;
@@ -200,17 +199,13 @@ class _OperatorSpecializer extends _ProcedureSpecializer {
 
   @override
   String bodyString(String object, List<String> callArguments) {
-    // TODO(srujzs): Switch to switch-case expression once we update pubspec.
-    switch (jsString) {
-      case '[]':
-        return '$object[${callArguments[0]}]';
-      case '[]=':
-        return '$object[${callArguments[0]}] = ${callArguments[1]}';
-      default:
-        throw UnimplementedError(
-            'External operator $jsString is unsupported for static interop. '
-            'Please file a request in the SDK if you want it to be supported.');
-    }
+    return switch (jsString) {
+      '[]' => '$object[${callArguments[0]}]',
+      '[]=' => '$object[${callArguments[0]}] = ${callArguments[1]}',
+      _ => throw UnimplementedError(
+          'External operator $jsString is unsupported for static interop. '
+          'Please file a request in the SDK if you want it to be supported.')
+    };
   }
 }
 

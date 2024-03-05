@@ -2,30 +2,29 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:dart2wasm/class_info.dart';
-import 'package:dart2wasm/closures.dart';
-import 'package:dart2wasm/code_generator.dart';
-import 'package:dart2wasm/constants.dart';
-import 'package:dart2wasm/dispatch_table.dart';
-import 'package:dart2wasm/dynamic_forwarders.dart';
-import 'package:dart2wasm/functions.dart';
-import 'package:dart2wasm/globals.dart';
-import 'package:dart2wasm/kernel_nodes.dart';
-import 'package:dart2wasm/param_info.dart';
-import 'package:dart2wasm/records.dart';
-import 'package:dart2wasm/reference_extensions.dart';
-import 'package:dart2wasm/types.dart';
-
 import 'package:kernel/ast.dart';
-import 'package:kernel/library_index.dart';
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClassHierarchySubtypes, ClosedWorldClassHierarchy;
 import 'package:kernel/core_types.dart';
+import 'package:kernel/library_index.dart';
 import 'package:kernel/src/printer.dart';
 import 'package:kernel/type_environment.dart';
 import 'package:vm/metadata/direct_call.dart';
-
 import 'package:wasm_builder/wasm_builder.dart' as w;
+
+import 'class_info.dart';
+import 'closures.dart';
+import 'code_generator.dart';
+import 'constants.dart';
+import 'dispatch_table.dart';
+import 'dynamic_forwarders.dart';
+import 'functions.dart';
+import 'globals.dart';
+import 'kernel_nodes.dart';
+import 'param_info.dart';
+import 'records.dart';
+import 'reference_extensions.dart';
+import 'types.dart';
 
 /// Options controlling the translation.
 class TranslatorOptions {
@@ -58,6 +57,7 @@ class Translator with KernelNodes {
   final TranslatorOptions options;
 
   // Kernel input and context.
+  @override
   final Component component;
   final List<Library> libraries;
   final CoreTypes coreTypes;
@@ -66,6 +66,7 @@ class Translator with KernelNodes {
   late final ClassHierarchySubtypes subtypes;
 
   // Other parts of the global compiler state.
+  @override
   final LibraryIndex index;
   late final ClosureLayouter closureLayouter;
   late final ClassInfoCollector classInfoCollector;
@@ -319,9 +320,8 @@ class Translator with KernelNodes {
         canonicalName = "$canonicalName=";
       } else if (reference.isGetter || reference.isTearOffReference) {
         int dot = canonicalName.indexOf('.');
-        canonicalName = canonicalName.substring(0, dot + 1) +
-            '=' +
-            canonicalName.substring(dot + 1);
+        canonicalName =
+            '${canonicalName.substring(0, dot + 1)}=${canonicalName.substring(dot + 1)}';
       }
       canonicalName = member.enclosingLibrary == libraries.first
           ? canonicalName
@@ -996,7 +996,7 @@ class Translator with KernelNodes {
 
   w.ValueType makeList(
       w.FunctionBuilder function,
-      void generateType(w.InstructionsBuilder b),
+      void Function(w.InstructionsBuilder b) generateType,
       int length,
       void Function(w.ValueType, int) generateItem,
       {bool isGrowable = false}) {
@@ -1049,8 +1049,8 @@ class Translator with KernelNodes {
   }
 
   /// Indexes a Dart `_ListBase` on the stack.
-  void indexList(
-      w.InstructionsBuilder b, void pushIndex(w.InstructionsBuilder b)) {
+  void indexList(w.InstructionsBuilder b,
+      void Function(w.InstructionsBuilder b) pushIndex) {
     getListBaseArray(b);
     pushIndex(b);
     b.array_get(nullableObjectArrayType);
@@ -1108,6 +1108,7 @@ class _ClosureTrampolineGenerator implements _FunctionGenerator {
       this.paramInfo,
       this.takesContextOrReceiver);
 
+  @override
   void generate(Translator translator) {
     final b = trampoline.body;
     int targetIndex = 0;
@@ -1173,6 +1174,7 @@ class _ClosureDynamicEntryGenerator implements _FunctionGenerator {
   _ClosureDynamicEntryGenerator(
       this.functionNode, this.target, this.paramInfo, this.name, this.function);
 
+  @override
   void generate(Translator translator) {
     final b = function.body;
 

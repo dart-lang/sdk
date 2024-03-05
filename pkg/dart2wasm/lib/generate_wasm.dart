@@ -1,7 +1,10 @@
 import 'dart:io';
-import 'package:dart2wasm/compiler_options.dart';
-import 'package:dart2wasm/compile.dart';
+
 import 'package:front_end/src/api_unstable/vm.dart' show printDiagnosticMessage;
+
+import 'compile.dart';
+import 'compiler_options.dart';
+
 export 'package:dart2wasm/compiler_options.dart';
 
 typedef PrintError = void Function(String error);

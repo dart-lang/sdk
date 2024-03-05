@@ -4,8 +4,9 @@
 
 import 'dart:io';
 
-import 'package:dart2wasm/translator.dart';
 import 'package:front_end/src/api_unstable/vm.dart' as fe;
+
+import 'translator.dart';
 
 class WasmCompilerOptions {
   final TranslatorOptions translatorOptions = TranslatorOptions();

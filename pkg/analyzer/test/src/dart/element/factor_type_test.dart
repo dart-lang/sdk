@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/factory_type_test_helper.dart';
-import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -29,30 +27,6 @@ class FactorTypeTest with FactorTypeTestMixin<DartType>, ElementsTypesMixin {
   late final TypeSystemImpl typeSystem;
 
   @override
-  InterfaceType get intStar {
-    var element = typeProvider.intType.element;
-    return interfaceTypeStar(element);
-  }
-
-  @override
-  InterfaceType get numStar {
-    var element = typeProvider.numType.element;
-    return interfaceTypeStar(element);
-  }
-
-  @override
-  InterfaceType get objectStar {
-    var element = typeProvider.objectType.element;
-    return interfaceTypeStar(element);
-  }
-
-  @override
-  InterfaceType get stringStar {
-    var element = typeProvider.stringType.element;
-    return interfaceTypeStar(element);
-  }
-
-  @override
   DartType get voidType => typeProvider.voidType;
 
   @override
@@ -64,16 +38,6 @@ class FactorTypeTest with FactorTypeTestMixin<DartType>, ElementsTypesMixin {
   @override
   DartType factor(DartType T, DartType S) {
     return typeSystem.factor(T, S);
-  }
-
-  InterfaceType interfaceTypeStar(
-    InterfaceElement element, {
-    List<DartType> typeArguments = const [],
-  }) {
-    return element.instantiate(
-      typeArguments: typeArguments,
-      nullabilitySuffix: NullabilitySuffix.star,
-    );
   }
 
   void setUp() {

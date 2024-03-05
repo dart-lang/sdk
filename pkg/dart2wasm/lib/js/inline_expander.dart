@@ -2,10 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:dart2wasm/js/method_collector.dart';
-import 'package:dart2wasm/js/util.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/type_environment.dart';
+
+import 'method_collector.dart';
+import 'util.dart';
 
 /// Expands inline JS calls to trampolines that call functions in the JS
 /// runtime.

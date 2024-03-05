@@ -56,7 +56,7 @@ class CoreTypesUtil {
         wasmExternRefClass =
             coreTypes.index.getClass('dart:_wasm', 'WasmExternRef'),
         wrapDartFunctionTarget = coreTypes.index
-            .getTopLevelProcedure('dart:_js_helper', '_wrapDartFunction') {}
+            .getTopLevelProcedure('dart:_js_helper', '_wrapDartFunction');
 
   DartType get nonNullableObjectType =>
       coreTypes.objectRawType(Nullability.nonNullable);
@@ -74,21 +74,15 @@ class CoreTypesUtil {
 
   void annotateProcedure(
       Procedure procedure, String pragmaOptionString, AnnotationType type) {
-    String pragmaNameType;
-    switch (type) {
-      case AnnotationType.import:
-        pragmaNameType = 'import';
-        break;
-      case AnnotationType.export:
-        pragmaNameType = 'export';
-        break;
-    }
+    String pragmaNameType = switch (type) {
+      AnnotationType.import => 'import',
+      AnnotationType.export => 'export'
+    };
     procedure.addAnnotation(ConstantExpression(
         InstanceConstant(coreTypes.pragmaClass.reference, [], {
       coreTypes.pragmaName.fieldReference:
           StringConstant('wasm:$pragmaNameType'),
-      coreTypes.pragmaOptions.fieldReference:
-          StringConstant('$pragmaOptionString')
+      coreTypes.pragmaOptions.fieldReference: StringConstant(pragmaOptionString)
     })));
   }
 

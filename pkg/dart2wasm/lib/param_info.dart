@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:dart2wasm/reference_extensions.dart';
-
 import 'package:kernel/ast.dart';
+
+import 'reference_extensions.dart';
 
 /// Information about optional parameters and their default values for a member
 /// or a set of members belonging to the same override group.

@@ -4,23 +4,22 @@
 
 import 'dart:collection' show LinkedHashMap;
 
-import 'package:dart2wasm/async.dart';
-import 'package:dart2wasm/class_info.dart';
-import 'package:dart2wasm/closures.dart';
-import 'package:dart2wasm/dispatch_table.dart';
-import 'package:dart2wasm/dynamic_forwarders.dart';
-import 'package:dart2wasm/intrinsics.dart';
-import 'package:dart2wasm/param_info.dart';
-import 'package:dart2wasm/records.dart';
-import 'package:dart2wasm/reference_extensions.dart';
-import 'package:dart2wasm/sync_star.dart';
-import 'package:dart2wasm/translator.dart';
-import 'package:dart2wasm/types.dart';
-
 import 'package:kernel/ast.dart';
 import 'package:kernel/type_environment.dart';
-
 import 'package:wasm_builder/wasm_builder.dart' as w;
+
+import 'async.dart';
+import 'class_info.dart';
+import 'closures.dart';
+import 'dispatch_table.dart';
+import 'dynamic_forwarders.dart';
+import 'intrinsics.dart';
+import 'param_info.dart';
+import 'records.dart';
+import 'reference_extensions.dart';
+import 'sync_star.dart';
+import 'translator.dart';
+import 'types.dart';
 
 /// Main code generator for member bodies.
 ///
@@ -169,7 +168,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       closures = translator.constructorClosures[member.reference]!;
     } else {
       // Build closure information.
-      closures = Closures(this.translator, this.member);
+      closures = Closures(translator, this.member);
     }
 
     if (reference.isTearOffReference) {
@@ -606,7 +605,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       b.local_get(local);
     }
 
-    b.comment("Direct call of '${member} Initializer'");
+    b.comment("Direct call of '$member Initializer'");
     call(member.initializerReference);
 
     ClassInfo info = translator.classInfo[member.enclosingClass]!;
@@ -626,7 +625,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     }
 
     Context? context = closures.contexts[member];
-    w.Local? contextLocal = null;
+    w.Local? contextLocal;
 
     bool hasContext = context != null;
 
@@ -677,7 +676,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       b.local_get(constructorArg);
     }
 
-    b.comment("Direct call of ${member} Constructor Body");
+    b.comment("Direct call of $member Constructor Body");
     call(member.constructorBodyReference);
 
     b.local_get(temp);
@@ -756,7 +755,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   /// closure, plus the locals containing `this` if `this` is captured by the
   /// closure.
   void _initializeContextLocals(TreeNode node, {int contextParamIndex = 0}) {
-    Context? context = null;
+    Context? context;
 
     if (node is Constructor) {
       // The context parameter is for the constructor context.
@@ -959,9 +958,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
     w.Local? local = fieldLocals[field];
 
-    if (local == null) {
-      local = addLocal(struct.fields[fieldIndex].type.unpacked);
-    }
+    local ??= addLocal(struct.fields[fieldIndex].type.unpacked);
 
     wrap(node.value, struct.fields[fieldIndex].type.unpacked);
     b.local_set(local);
@@ -982,7 +979,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     _visitArguments(node.arguments, targetMember.initializerReference,
         cls.typeParameters.length);
 
-    b.comment("Direct call of '${targetMember} Redirected Initializer'");
+    b.comment("Direct call of '$targetMember Redirected Initializer'");
     call(targetMember.initializerReference);
   }
 
@@ -1003,7 +1000,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       _visitArguments(node.arguments, targetMember.initializerReference,
           supertype.typeArguments.length);
 
-      b.comment("Direct call of '${targetMember} Initializer'");
+      b.comment("Direct call of '$targetMember Initializer'");
       call(targetMember.initializerReference);
     }
   }
@@ -1069,7 +1066,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   ///
   /// This is similar to [visitVariableDeclaration] but it gives more control
   /// over how the variable is initialized.
-  void initializeVariable(VariableDeclaration node, void pushInitialValue()) {
+  void initializeVariable(
+      VariableDeclaration node, void Function() pushInitialValue) {
     final w.ValueType type = translateType(node.type);
     w.Local? local;
     final Capture? capture = closures.captures[node];
@@ -1395,8 +1393,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     }
   }
 
-  void _conditional(Expression condition, void then(), void otherwise()?,
-      List<w.ValueType> result) {
+  void _conditional(Expression condition, void Function() then,
+      void Function()? otherwise, List<w.ValueType> result) {
     if (!_hasLogicalOperator(condition)) {
       // Simple condition
       wrap(condition, w.NumType.i32);
@@ -2051,8 +2049,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       TreeNode node,
       Member interfaceTarget,
       _VirtualCallKind kind,
-      void pushReceiver(w.FunctionType signature),
-      void pushArguments(w.FunctionType signature)) {
+      void Function(w.FunctionType signature) pushReceiver,
+      void Function(w.FunctionType signature) pushArguments) {
     SelectorInfo selector = translator.dispatchTable.selectorForTarget(
         interfaceTarget.referenceAs(
             getter: kind.isGetter, setter: kind.isSetter));
@@ -2582,7 +2580,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   }
 
   w.StructType _pushClosure(ClosureImplementation closure,
-      DartType functionType, void pushContext()) {
+      DartType functionType, void Function() pushContext) {
     w.StructType struct = closure.representation.closureStruct;
 
     ClassInfo info = translator.closureInfo;
@@ -3596,21 +3594,21 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   void visitPatternSwitchStatement(PatternSwitchStatement node) {
     // This node is internal to the front end and removed by the constant
     // evaluator.
-    throw new UnsupportedError("CodeGenerator.visitPatternSwitchStatement");
+    throw UnsupportedError("CodeGenerator.visitPatternSwitchStatement");
   }
 
   @override
   void visitPatternVariableDeclaration(PatternVariableDeclaration node) {
     // This node is internal to the front end and removed by the constant
     // evaluator.
-    throw new UnsupportedError("CodeGenerator.visitPatternVariableDeclaration");
+    throw UnsupportedError("CodeGenerator.visitPatternVariableDeclaration");
   }
 
   @override
   void visitIfCaseStatement(IfCaseStatement node) {
     // This node is internal to the front end and removed by the constant
     // evaluator.
-    throw new UnsupportedError("CodeGenerator.visitIfCaseStatement");
+    throw UnsupportedError("CodeGenerator.visitIfCaseStatement");
   }
 
   void debugRuntimePrint(String s) {
@@ -3624,13 +3622,13 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   @override
   void visitAuxiliaryStatement(AuxiliaryStatement node) {
     throw UnsupportedError(
-        "Unsupported auxiliary statement ${node} (${node.runtimeType}).");
+        "Unsupported auxiliary statement $node (${node.runtimeType}).");
   }
 
   @override
   void visitAuxiliaryInitializer(AuxiliaryInitializer node) {
-    throw new UnsupportedError(
-        "Unsupported auxiliary initializer ${node} (${node.runtimeType}).");
+    throw UnsupportedError(
+        "Unsupported auxiliary initializer $node (${node.runtimeType}).");
   }
 }
 
@@ -3766,15 +3764,13 @@ enum _VirtualCallKind {
   Set,
   Call;
 
+  @override
   String toString() {
-    switch (this) {
-      case _VirtualCallKind.Get:
-        return "get";
-      case _VirtualCallKind.Set:
-        return "set";
-      case _VirtualCallKind.Call:
-        return "call";
-    }
+    return switch (this) {
+      _VirtualCallKind.Get => "get",
+      _VirtualCallKind.Set => "set",
+      _VirtualCallKind.Call => "call"
+    };
   }
 
   bool get isGetter => this == _VirtualCallKind.Get;

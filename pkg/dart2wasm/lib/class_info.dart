@@ -4,11 +4,10 @@
 
 import 'dart:math';
 
-import 'package:dart2wasm/translator.dart';
-
 import 'package:kernel/ast.dart';
-
 import 'package:wasm_builder/wasm_builder.dart' as w;
+
+import 'translator.dart';
 
 /// Wasm struct field indices for fields that are accessed explicitly from Wasm
 /// code, e.g. in intrinsics.
@@ -89,8 +88,7 @@ class FieldIndex {
     }
     check(translator.listBaseClass, "_length", FieldIndex.listLength);
     check(translator.listBaseClass, "_data", FieldIndex.listArray);
-    check(translator.hashFieldBaseClass, "_indexNullable",
-        FieldIndex.hashBaseIndex);
+    check(translator.hashFieldBaseClass, "_index", FieldIndex.hashBaseIndex);
     check(translator.hashFieldBaseClass, "_data", FieldIndex.hashBaseData);
     check(translator.closureClass, "context", FieldIndex.closureContext);
     check(translator.typeClass, "isDeclaredNullable",
@@ -141,7 +139,7 @@ class ClassInfo {
   final ClassInfo? superInfo;
 
   /// The class that this class masquerades as via `runtimeType`, if any.
-  ClassInfo? masquerade = null;
+  ClassInfo? masquerade;
 
   /// For every type parameter which is directly mapped to a type parameter in
   /// the superclass, this contains the corresponding superclass type
@@ -708,6 +706,7 @@ class Range {
     return Range(start + offset, end + offset);
   }
 
+  @override
   String toString() => isEmpty ? '[]' : '[$start, $end]';
 }
 
@@ -737,6 +736,6 @@ extension RangeListExtention on List<Range> {
       currentRange = nextRange;
     }
     this[current++] = currentRange;
-    this.length = current;
+    length = current;
   }
 }

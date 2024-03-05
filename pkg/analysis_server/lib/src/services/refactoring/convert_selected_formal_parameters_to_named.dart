@@ -32,23 +32,26 @@ class ConvertSelectedFormalParametersToNamed extends RefactoringProducer {
   String get title => constTitle;
 
   @override
-  Future<void> compute(
+  Future<ComputeStatus> compute(
     List<Object?> commandArguments,
     ChangeBuilder builder,
   ) async {
     final availability = analyzeAvailability(
       refactoringContext: refactoringContext,
     );
+
+    // This should not happen, `isAvailable()` returns `false`.
     if (availability is! Available) {
-      return;
+      return ComputeStatusFailure();
     }
 
     final selection = await analyzeSelection(
       available: availability,
     );
 
+    // This should not happen, `isAvailable()` returns `false`.
     if (selection is! ValidSelectionState) {
-      return;
+      return ComputeStatusFailure();
     }
 
     final List<FormalParameterState> reordered;
@@ -84,11 +87,20 @@ class ConvertSelectedFormalParametersToNamed extends RefactoringProducer {
       argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
     );
 
-    await computeSourceChange(
+    final status = await computeSourceChange(
       selectionState: selection,
       signatureUpdate: signatureUpdate,
       builder: builder,
     );
+
+    switch (status) {
+      case ChangeStatusFailure():
+        return ComputeStatusFailure(
+          reason: 'Failed to compute the change.',
+        );
+      case ChangeStatusSuccess():
+        return ComputeStatusSuccess();
+    }
   }
 
   @override

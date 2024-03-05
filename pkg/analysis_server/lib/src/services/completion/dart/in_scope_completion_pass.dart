@@ -247,6 +247,21 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         // completing a positional argument.
         if (positionalArgumentCount < positionalParameterCount) {
           _forExpression(parent, mustBeNonVoid: true);
+          // This assumes that the positional parameters will always be first in
+          // the list of parameters.
+          var parameter = parameters[positionalArgumentCount];
+          var parameterType = parameter.type;
+          if (parameterType is FunctionType) {
+            Expression? argument;
+            if (argumentIndex < arguments.length) {
+              argument = arguments[argumentIndex];
+            }
+            var includeTrailingComma =
+                argument == null || !argument.isFollowedByComma;
+            collector.addSuggestion(ClosureSuggestion(
+                functionType: parameterType,
+                includeTrailingComma: includeTrailingComma));
+          }
         }
         // Suggest the names of all named parameters that are not already in the
         // argument list.
@@ -336,6 +351,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   void visitAssignmentExpression(AssignmentExpression node) {
     collector.completionLocation = 'AssignmentExpression_rightHandSide';
     _forExpression(node, mustBeNonVoid: true);
+    // TODO(brianwilkerson): Consider proposing a closure when the left-hand
+    //  side is a function-typed variable.
   }
 
   @override
@@ -1495,6 +1512,14 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       }
     } else if (offset >= node.name.colon.end) {
       _forExpression(node, mustBeNonVoid: node.parent is ArgumentList);
+      var parameterType = node.staticParameterElement?.type;
+      if (parameterType is FunctionType) {
+        var includeTrailingComma = !node.isFollowedByComma;
+        collector.addSuggestion(ClosureSuggestion(
+          functionType: parameterType,
+          includeTrailingComma: includeTrailingComma,
+        ));
+      }
     }
   }
 
@@ -2167,6 +2192,13 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     if (equals != null && offset >= equals.end) {
       collector.completionLocation = 'VariableDeclaration_initializer';
       _forExpression(node, mustBeNonVoid: true);
+      var variableType = node.declaredElement?.type;
+      if (variableType is FunctionType) {
+        collector.addSuggestion(ClosureSuggestion(
+          functionType: variableType,
+          includeTrailingComma: false,
+        ));
+      }
     }
   }
 
@@ -3040,6 +3072,15 @@ extension on Element? {
       }
     }
     return null;
+  }
+}
+
+extension on Expression {
+  bool get isFollowedByComma {
+    var nextToken = endToken.next;
+    return nextToken != null &&
+        nextToken.type == TokenType.COMMA &&
+        !nextToken.isSynthetic;
   }
 }
 

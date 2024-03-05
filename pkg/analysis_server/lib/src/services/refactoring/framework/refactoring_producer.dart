@@ -14,6 +14,21 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:language_server_protocol/protocol_custom_generated.dart';
 import 'package:language_server_protocol/protocol_generated.dart';
 
+/// The status of running [RefactoringProducer.compute].
+sealed class ComputeStatus {}
+
+/// The supertype for any failure inside [RefactoringProducer.compute].
+class ComputeStatusFailure extends ComputeStatus {
+  final String? reason;
+
+  ComputeStatusFailure({
+    this.reason,
+  });
+}
+
+/// The result that signals the success.
+class ComputeStatusSuccess extends ComputeStatus {}
+
 /// An object that can compute a refactoring in a Dart file.
 abstract class RefactoringProducer {
   /// The context in which the refactoring was requested.
@@ -85,7 +100,10 @@ abstract class RefactoringProducer {
 
   /// Given the [commandArguments] associated with the command, use the
   /// [builder] to generate the edits necessary to apply this refactoring.
-  Future<void> compute(List<Object?> commandArguments, ChangeBuilder builder);
+  Future<ComputeStatus> compute(
+    List<Object?> commandArguments,
+    ChangeBuilder builder,
+  );
 
   /// Return `true` if this refactoring is available in the given context.
   bool isAvailable();

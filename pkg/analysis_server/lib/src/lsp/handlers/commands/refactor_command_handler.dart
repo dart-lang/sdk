@@ -11,6 +11,7 @@ import 'package:analysis_server/src/lsp/progress.dart';
 import 'package:analysis_server/src/lsp/source_edits.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_context.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_processor.dart';
+import 'package:analysis_server/src/services/refactoring/framework/refactoring_producer.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
@@ -73,7 +74,17 @@ class RefactorCommandHandler extends SimpleEditCommandHandler {
       var producer = generator(context);
       var builder = ChangeBuilder(
           workspace: context.workspace, eol: context.utils.endOfLine);
-      await producer.compute(arguments, builder);
+      var status = await producer.compute(arguments, builder);
+
+      if (status is ComputeStatusFailure) {
+        var reason = status.reason ?? 'Cannot compute the change. No details.';
+        return ErrorOr.error(
+          ResponseError(
+            code: ServerErrorCodes.RefactoringComputeStatusFailure,
+            message: reason,
+          ),
+        );
+      }
 
       var edits = builder.sourceChange.edits;
       if (edits.isEmpty) {

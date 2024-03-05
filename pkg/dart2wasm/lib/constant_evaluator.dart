@@ -2,17 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:kernel/ast.dart';
-import 'package:kernel/type_environment.dart';
 import 'package:front_end/src/fasta/kernel/constant_evaluator.dart' as kernel;
-import 'package:kernel/library_index.dart';
-import 'package:kernel/core_types.dart';
+import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
-
+import 'package:kernel/core_types.dart';
+import 'package:kernel/library_index.dart';
+import 'package:kernel/type_environment.dart';
 import 'package:vm/transformations/vm_constant_evaluator.dart';
 
-import 'package:dart2wasm/compiler_options.dart';
-import 'package:dart2wasm/target.dart';
+import 'compiler_options.dart';
+import 'target.dart';
 
 class ConstantEvaluator extends kernel.ConstantEvaluator
     implements VMConstantEvaluator {

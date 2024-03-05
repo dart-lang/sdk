@@ -2,15 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:dart2wasm/class_info.dart';
-import 'package:dart2wasm/closures.dart';
-import 'package:dart2wasm/dispatch_table.dart';
-import 'package:dart2wasm/reference_extensions.dart';
-import 'package:dart2wasm/translator.dart';
-
 import 'package:kernel/ast.dart';
-
 import 'package:wasm_builder/wasm_builder.dart' as w;
+
+import 'class_info.dart';
+import 'closures.dart';
+import 'dispatch_table.dart';
+import 'reference_extensions.dart';
+import 'translator.dart';
 
 /// This class is responsible for collecting import and export annotations.
 /// It also creates Wasm functions for Dart members and manages the worklist
@@ -332,7 +331,7 @@ class _FunctionTypeGenerator extends MemberVisitor1<w.FunctionType, Reference> {
     // Add nullable context reference for when the constructor has a non-empty
     // context
     Context? context = closures.contexts[node];
-    w.ValueType? contextRef = null;
+    w.ValueType? contextRef;
 
     if (context != null) {
       assert(!context.isEmpty);
