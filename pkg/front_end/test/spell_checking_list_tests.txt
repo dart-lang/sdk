@@ -333,6 +333,7 @@ forty
 fortytwo
 foundation
 fox
+fq
 frequency
 frozen
 fruits
@@ -521,6 +522,7 @@ nonexisting
 noo
 noted
 nottest
+nq
 null'ed
 numerator
 nums
@@ -580,6 +582,7 @@ pooled
 population
 portions
 pp
+pr
 preliminary
 prematurely
 prerequisite
@@ -829,7 +832,10 @@ worlds
 wrongly
 ws
 x's
+xf
+xfq
 xlate
+xnq
 xrequired
 xxx
 xxxxxxxx

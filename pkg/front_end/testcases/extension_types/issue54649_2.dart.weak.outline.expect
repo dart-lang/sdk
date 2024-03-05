@@ -1,0 +1,42 @@
+library;
+import self as self;
+import "dart:async" as asy;
+import "dart:core" as core;
+
+import "dart:async";
+
+extension type E1(asy::Future<core::int> it) {
+  abstract extension-type-member representation-field get it() → asy::Future<core::int>;
+  constructor • = self::E1|constructor#;
+  constructor tearoff • = self::E1|constructor#_#new#tearOff;
+}
+extension type E2(asy::Future<core::int> it) implements self::E1 /* = asy::Future<core::int> */, asy::Future<core::int> {
+  abstract extension-type-member representation-field get it() → asy::Future<core::int>;
+  constructor • = self::E2|constructor#;
+  constructor tearoff • = self::E2|constructor#_#new#tearOff;
+}
+extension type E3(asy::Future<core::int> it) implements asy::Future<core::int> {
+  abstract extension-type-member representation-field get it() → asy::Future<core::int>;
+  constructor • = self::E3|constructor#;
+  constructor tearoff • = self::E3|constructor#_#new#tearOff;
+}
+static extension-type-member method E1|constructor#(asy::Future<core::int> it) → self::E1 /* = asy::Future<core::int> */
+  ;
+static extension-type-member method E1|constructor#_#new#tearOff(asy::Future<core::int> it) → self::E1 /* = asy::Future<core::int> */
+  return self::E1|constructor#(it);
+static extension-type-member method E2|constructor#(asy::Future<core::int> it) → self::E2 /* = asy::Future<core::int> */
+  ;
+static extension-type-member method E2|constructor#_#new#tearOff(asy::Future<core::int> it) → self::E2 /* = asy::Future<core::int> */
+  return self::E2|constructor#(it);
+static extension-type-member method E3|constructor#(asy::Future<core::int> it) → self::E3 /* = asy::Future<core::int> */
+  ;
+static extension-type-member method E3|constructor#_#new#tearOff(asy::Future<core::int> it) → self::E3 /* = asy::Future<core::int> */
+  return self::E3|constructor#(it);
+static method test1<X extends self::E1 /* = asy::Future<core::int> */, Y extends self::E2 /* = asy::Future<core::int> */>(self::test1::X% x) → dynamic async 
+  ;
+static method test2<X extends FutureOr<self::E1 /* = asy::Future<core::int> */>, Y extends self::E1 /* = asy::Future<core::int> */>(self::test2::X% x) → dynamic async 
+  ;
+static method test3<X extends self::E3? /* = asy::Future<core::int>? */, Y extends self::E3 /* = asy::Future<core::int> */>(self::test3::X% x) → dynamic async 
+  ;
+static method test4<X extends self::E1 /* = asy::Future<core::int> */, Y extends self::test4::X% = self::E1 /* = asy::Future<core::int> */>(self::test4::X% x) → dynamic async 
+  ;

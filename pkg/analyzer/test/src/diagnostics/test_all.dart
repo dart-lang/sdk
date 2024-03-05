@@ -41,8 +41,7 @@ import 'async_keyword_used_as_identifier_test.dart'
 import 'await_in_late_local_variable_initializer_test.dart'
     as await_in_late_local_variable_initializer;
 import 'await_in_wrong_context_test.dart' as await_in_wrong_context;
-import 'await_of_extension_type_not_future_test.dart'
-    as await_of_extension_type_not_future;
+import 'await_of_incompatible_type_test.dart' as await_of_incompatible_type;
 import 'base_class_implemented_outside_of_library_test.dart'
     as base_class_implemented_outside_of_library;
 import 'base_mixin_implemented_outside_of_library_test.dart'
@@ -948,7 +947,7 @@ main() {
     async_keyword_used_as_identifier.main();
     await_in_late_local_variable_initializer.main();
     await_in_wrong_context.main();
-    await_of_extension_type_not_future.main();
+    await_of_incompatible_type.main();
     base_class_implemented_outside_of_library.main();
     base_mixin_implemented_outside_of_library.main();
     binary_operator_written_out.main();

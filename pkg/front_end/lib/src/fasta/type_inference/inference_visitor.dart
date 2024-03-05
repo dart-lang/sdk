@@ -807,6 +807,42 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return const StatementInferenceResult();
   }
 
+  bool _isIncompatibleWithAwait(DartType type) {
+    if (isNullableTypeConstructorApplication(type)) {
+      return _isIncompatibleWithAwait(computeTypeWithoutNullabilityMarker(
+          (type),
+          isNonNullableByDefault: isNonNullableByDefault));
+    } else {
+      switch (type) {
+        case ExtensionType():
+          return typeSchemaEnvironment.hierarchy
+                  .getExtensionTypeAsInstanceOfClass(
+                      type, coreTypes.futureClass,
+                      isNonNullableByDefault:
+                          libraryBuilder.isNonNullableByDefault) ==
+              null;
+        case TypeParameterType():
+          return _isIncompatibleWithAwait(type.parameter.bound);
+        case StructuralParameterType():
+          return _isIncompatibleWithAwait(type.parameter.bound);
+        case IntersectionType():
+          return _isIncompatibleWithAwait(type.right);
+        case DynamicType():
+        case VoidType():
+        case FutureOrType():
+        case InterfaceType():
+        case TypedefType():
+        case FunctionType():
+        case RecordType():
+        case NullType():
+        case NeverType():
+        case AuxiliaryType():
+        case InvalidType():
+          return false;
+      }
+    }
+  }
+
   @override
   ExpressionInferenceResult visitAwaitExpression(
       AwaitExpression node, DartType typeContext) {
@@ -818,12 +854,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         isVoidAllowed: !isNonNullableByDefault);
     DartType operandType = operandResult.inferredType;
     DartType flattenType = typeSchemaEnvironment.flatten(operandType);
-    if (operandType is ExtensionType &&
-        typeSchemaEnvironment.hierarchy.getExtensionTypeAsInstanceOfClass(
-                operandType, coreTypes.futureClass,
-                isNonNullableByDefault:
-                    libraryBuilder.isNonNullableByDefault) ==
-            null) {
+    if (_isIncompatibleWithAwait(operandType)) {
       Expression wrapped = operandResult.expression;
       node.operand = helper.wrapInProblem(
           wrapped, messageAwaitOfExtensionTypeNotFuture, wrapped.fileOffset, 1);

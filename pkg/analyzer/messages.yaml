@@ -1168,7 +1168,7 @@ CompileTimeErrorCode:
       16.30 Await Expressions: It is a compile-time error if the function
       immediately enclosing _a_ is not declared asynchronous. (Where _a_ is the
       await expression.)
-  AWAIT_OF_EXTENSION_TYPE_NOT_FUTURE:
+  AWAIT_OF_INCOMPATIBLE_TYPE:
     problemMessage: "The 'await' expression can't be used for an expression with an extension type that is not a subtype of 'Future'."
     correctionMessage: Try removing the `await`, or updating the extension type to implement 'Future'.
     hasPublishedDocs: true

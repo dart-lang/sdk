@@ -833,6 +833,7 @@ dereferenced
 derivation
 derive
 derived
+derives
 descendant
 descendants
 describe

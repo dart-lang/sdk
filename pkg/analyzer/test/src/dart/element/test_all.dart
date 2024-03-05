@@ -16,6 +16,7 @@ import 'function_type_test.dart' as function_type;
 import 'future_or_base_test.dart' as future_or_base;
 import 'future_value_type_test.dart' as future_value_type;
 import 'generic_inferrer_test.dart' as generic_inferrer;
+import 'incompatible_with_await_test.dart' as incompatible_with_await;
 import 'inheritance_manager3_test.dart' as inheritance_manager3;
 import 'is_known_test.dart' as is_known_test;
 import 'least_greatest_closure_test.dart' as least_greatest_closure_test;
@@ -55,6 +56,7 @@ main() {
     future_or_base.main();
     future_value_type.main();
     generic_inferrer.main();
+    incompatible_with_await.main();
     inheritance_manager3.main();
     is_known_test.main();
     least_greatest_closure_test.main();

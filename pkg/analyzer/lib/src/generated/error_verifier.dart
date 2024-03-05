@@ -364,7 +364,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
 
     _checkForAwaitInLateLocalVariableInitializer(node);
-    _checkForAwaitOfExtensionTypeNotFuture(node);
+    _checkForAwaitOfIncompatibleType(node);
     super.visitAwaitExpression(node);
   }
 
@@ -1802,19 +1802,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
   }
 
-  void _checkForAwaitOfExtensionTypeNotFuture(AwaitExpression node) {
+  void _checkForAwaitOfIncompatibleType(AwaitExpression node) {
     final expression = node.expression;
     final expressionType = expression.typeOrThrow;
-    if (expressionType.element is ExtensionTypeElement) {
-      final anyFuture = typeSystem.typeProvider.futureType(
-        typeSystem.objectQuestion,
+    if (typeSystem.isIncompatibleWithAwait(expressionType)) {
+      errorReporter.reportErrorForToken(
+        CompileTimeErrorCode.AWAIT_OF_INCOMPATIBLE_TYPE,
+        node.awaitKeyword,
       );
-      if (!typeSystem.isSubtypeOf(expressionType, anyFuture)) {
-        errorReporter.reportErrorForToken(
-          CompileTimeErrorCode.AWAIT_OF_EXTENSION_TYPE_NOT_FUTURE,
-          node.awaitKeyword,
-        );
-      }
     }
   }
 

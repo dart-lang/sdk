@@ -5,8 +5,12 @@ This is a patch release that:
 - Fixes an issue in dart2js where object literal constructors in interop
   extension types would fail to compile without an `@JS` annotation on the
   library (issue [#55057][]).
+- Disallows certain types involving extension types from being used as the
+  operand of an `await` expression, unless the extension type itself implements
+  `Future` (issue [#54647][]).
 
 [#55057]: https://github.com/dart-lang/sdk/issues/55057
+[#54647]: https://github.com/dart-lang/sdk/issues/54647
 
 ## 3.3.0 - 2024-02-15
 

@@ -1592,7 +1592,7 @@ Future<int> f() async {
 }
 {% endprettify %}
 
-### await_of_extension_type_not_future
+### await_of_incompatible_type
 
 _The 'await' expression can't be used for an expression with an extension type
 that is not a subtype of 'Future'._
