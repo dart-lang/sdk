@@ -70,12 +70,12 @@ class TypeParameterTypeTest extends AbstractTypeSystemTest {
     var A = class_(name: 'A', typeParameters: [typeParameter('E')]);
 
     var T1 = typeParameter('T');
-    T1.bound = interfaceTypeStar(A, typeArguments: [
+    T1.bound = interfaceTypeNone(A, typeArguments: [
       typeParameterTypeNone(T1),
     ]);
 
     var T2 = typeParameter('T');
-    T2.bound = interfaceTypeStar(A, typeArguments: [
+    T2.bound = interfaceTypeNone(A, typeArguments: [
       typeParameterTypeNone(T2),
     ]);
 

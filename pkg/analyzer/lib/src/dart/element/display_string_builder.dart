@@ -95,6 +95,18 @@ class ElementDisplayStringBuilder {
     _writeTypesIfNotEmpty(' implements ', element.interfaces);
   }
 
+  // void writePropertyAccessor(PropertyAccessorElement element) {
+  //   var variable = element.variable2;
+  //   if (variable == null) {
+  //     // builder.;
+  //   }
+  //
+  //   writeExecutableElement(
+  //     element,
+  //     (element.isGetter ? 'get ' : 'set ') + variable2.displayName,
+  //   );
+  // }
+
   void writeExecutableElement(ExecutableElement element, String name) {
     if (element.isAugmentation) {
       _write('augment ');

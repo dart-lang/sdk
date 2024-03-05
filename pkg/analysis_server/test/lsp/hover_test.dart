@@ -5,7 +5,7 @@
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -25,8 +25,7 @@ class HoverTest extends AbstractLspAnalysisServerTest {
   @override
   AnalysisServerOptions get serverOptions => AnalysisServerOptions()
     ..enabledExperiments = [
-      EnableString.inline_class,
-      EnableString.macros,
+      Feature.macros.enableString,
     ];
 
   /// Checks whether the correct types of documentation are returned in a Hover

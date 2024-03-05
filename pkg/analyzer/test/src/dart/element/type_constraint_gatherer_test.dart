@@ -1242,7 +1242,6 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
 
     _checkNotMatch([T], intNone, stringQuestion, true);
     _checkNotMatch([T], intQuestion, stringQuestion, true);
-    _checkNotMatch([T], intStar, stringQuestion, true);
   }
 
   /// If `Q` is `dynamic`, `Object?`, or `void` then the match holds under

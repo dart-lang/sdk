@@ -2,7 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/util/runtimes.dart' as runtimes;
 import 'package:kernel/ast.dart';
+
+import 'isolate_macro_serializer.dart';
+import 'temp_dir_macro_serializer.dart';
 
 /// Interface for supporting serialization of [Component]s for macro
 /// precompilation.
@@ -15,4 +19,8 @@ abstract class MacroSerializer {
   /// This must be called when the [Uri]s created by [createUriForComponent]
   /// are no longer needed.
   Future<void> close();
+
+  factory MacroSerializer() => runtimes.isKernelRuntime
+      ? new IsolateMacroSerializer()
+      : new TempDirMacroSerializer();
 }

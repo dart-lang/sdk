@@ -220,7 +220,7 @@ class ReferencesCollector extends GeneralizingAstVisitor<void> {
         node.writeElement is PropertyAccessorElement) {
       var kind = MatchKind.WRITE;
       var property = node.writeElement as PropertyAccessorElement;
-      if (property.variable == element || property == element) {
+      if (property.variable2 == element || property == element) {
         if (node.leftHandSide is SimpleIdentifier) {
           references.add(MatchInfo(
               node.leftHandSide.offset, node.leftHandSide.length, kind));
@@ -238,7 +238,7 @@ class ReferencesCollector extends GeneralizingAstVisitor<void> {
     if (node.readElement != null &&
         node.readElement is PropertyAccessorElement) {
       var property = node.readElement as PropertyAccessorElement;
-      if (property.variable == element) {
+      if (property.variable2 == element) {
         references.add(MatchInfo(node.rightHandSide.offset,
             node.rightHandSide.length, MatchKind.READ));
       }
@@ -378,7 +378,7 @@ class ReferencesCollector extends GeneralizingAstVisitor<void> {
     var e = node.staticElement;
     if (e == element) {
       references.add(MatchInfo(node.offset, node.length, MatchKind.REFERENCE));
-    } else if (e is PropertyAccessorElement && e.variable == element) {
+    } else if (e is PropertyAccessorElement && e.variable2 == element) {
       bool inGetterContext = node.inGetterContext();
       bool inSetterContext = node.inSetterContext();
       MatchKind kind;

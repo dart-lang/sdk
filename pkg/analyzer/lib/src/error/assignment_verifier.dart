@@ -70,7 +70,10 @@ class AssignmentVerifier {
         arguments: [recovery.name],
       );
     } else if (recovery is PropertyAccessorElement && recovery.isGetter) {
-      var variable = recovery.variable;
+      var variable = recovery.variable2;
+      if (variable == null) {
+        return;
+      }
       if (variable.isConst) {
         _errorReporter.atNode(
           node,

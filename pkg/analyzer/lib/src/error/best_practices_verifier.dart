@@ -1525,7 +1525,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       }
     }
     if (element is PropertyAccessorElement && element.isSynthetic) {
-      element = element.variable;
+      element = element.variable2;
     }
 
     if (element != null && element.hasOrInheritsDoNotStore) {
@@ -1587,7 +1587,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   static bool _hasNonVirtualAnnotation(ExecutableElement element) {
     if (element is PropertyAccessorElement && element.isSynthetic) {
-      return element.variable.hasNonVirtual;
+      var variable = element.variable2;
+      if (variable != null && variable.hasNonVirtual) {
+        return true;
+      }
     }
     return element.hasNonVirtual;
   }
@@ -1918,17 +1921,28 @@ class _InvalidAccessVerifier {
     if (element.hasInternal) {
       return true;
     }
-    if (element is PropertyAccessorElement && element.variable.hasInternal) {
-      return true;
+    if (element is PropertyAccessorElement) {
+      var variable = element.variable2;
+      if (variable == null) {
+        return false;
+      }
+      if (variable.hasInternal) {
+        return true;
+      }
     }
     return false;
   }
 
   bool _hasProtected(Element element) {
     if (element is PropertyAccessorElement &&
-        element.enclosingElement is InterfaceElement &&
-        (element.hasProtected || element.variable.hasProtected)) {
-      return true;
+        element.enclosingElement is InterfaceElement) {
+      if (element.hasProtected) {
+        return true;
+      }
+      var variable = element.variable2;
+      if (variable != null && variable.hasProtected) {
+        return true;
+      }
     }
     if (element is MethodElement &&
         element.enclosingElement is InterfaceElement &&
@@ -1953,9 +1967,9 @@ class _InvalidAccessVerifier {
       return true;
     }
 
-    if (element is PropertyAccessorElement &&
-        element.variable.hasVisibleForOverriding) {
-      return true;
+    if (element is PropertyAccessorElement) {
+      var variable = element.variable2;
+      return variable != null && variable.hasVisibleForOverriding;
     }
 
     return false;
@@ -1968,9 +1982,11 @@ class _InvalidAccessVerifier {
     if (element.hasVisibleForTemplate) {
       return true;
     }
-    if (element is PropertyAccessorElement &&
-        element.variable.hasVisibleForTemplate) {
-      return true;
+    if (element is PropertyAccessorElement) {
+      var variable = element.variable2;
+      if (variable != null && variable.hasVisibleForTemplate) {
+        return true;
+      }
     }
     final enclosingElement = element.enclosingElement;
     if (_hasVisibleForTemplate(enclosingElement)) {
@@ -1983,9 +1999,9 @@ class _InvalidAccessVerifier {
     if (element.hasVisibleForTesting) {
       return true;
     }
-    if (element is PropertyAccessorElement &&
-        element.variable.hasVisibleForTesting) {
-      return true;
+    if (element is PropertyAccessorElement) {
+      var variable = element.variable2;
+      return variable != null && variable.hasVisibleForTesting;
     }
     return false;
   }
@@ -1994,9 +2010,11 @@ class _InvalidAccessVerifier {
     if (element.hasVisibleOutsideTemplate) {
       return true;
     }
-    if (element is PropertyAccessorElement &&
-        element.variable.hasVisibleOutsideTemplate) {
-      return true;
+    if (element is PropertyAccessorElement) {
+      var variable = element.variable2;
+      if (variable != null && variable.hasVisibleOutsideTemplate) {
+        return true;
+      }
     }
     final enclosingElement = element.enclosingElement;
     if (enclosingElement != null &&

@@ -1240,7 +1240,7 @@ class _TypePhaseIntrospector implements macro.TypePhaseIntrospector {
     final lookup = libraryElement.scope.lookup(name);
     var element = lookup.getter ?? lookup.setter;
     if (element is PropertyAccessorElement && element.isSynthetic) {
-      element = element.variable;
+      element = element.variable2;
     }
     if (element == null) {
       throw macro.MacroImplementationExceptionImpl(

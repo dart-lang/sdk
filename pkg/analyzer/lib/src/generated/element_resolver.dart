@@ -487,7 +487,7 @@ class ElementResolver {
           // Ensure that the name always resolves to a top-level variable
           // rather than a getter or setter
           if (element is PropertyAccessorElement) {
-            name.staticElement = element.variable;
+            name.staticElement = element.variable2;
           } else {
             name.staticElement = element;
           }

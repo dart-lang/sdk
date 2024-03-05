@@ -286,7 +286,6 @@ class RuntimeTypeEqualityTypeTest extends AbstractTypeSystemTest
   test_recordType_sameShape_named() {
     _equal2('({int f1})', '({int f1})');
     _notEqual2('({int f1})', '({int? f1})');
-    _equal2('({int f1})', '({int* f1})');
 
     _notEqual2('({int f1})', '({double f1})');
   }
@@ -294,7 +293,6 @@ class RuntimeTypeEqualityTypeTest extends AbstractTypeSystemTest
   test_recordType_sameShape_positional() {
     _equal2('(int,)', '(int,)');
     _notEqual2('(int,)', '(int?,)');
-    _equal2('(int,)', '(int*,)');
 
     _notEqual2('(int,)', '(double,)');
   }

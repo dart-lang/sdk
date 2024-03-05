@@ -804,7 +804,7 @@ class BulkFixProcessor {
         }
         var edits = formatResult.result ?? [];
         if (edits.isNotEmpty) {
-          await builder.addGenericFileEdit(path, (builder) {
+          await builder.addDartFileEdit(path, (builder) {
             for (var edit in edits) {
               var lineInfo = result.lineInfo;
               var startOffset =
@@ -890,7 +890,7 @@ class BulkFixProcessor {
         // do organize
         var sorter = ImportOrganizer(code, result.unit, errors);
         var edits = sorter.organize();
-        await builder.addGenericFileEdit(path, (builder) {
+        await builder.addDartFileEdit(path, (builder) {
           for (var edit in edits) {
             builder.addSimpleReplacement(
                 SourceRange(edit.offset, edit.length), edit.replacement);

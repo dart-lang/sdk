@@ -141,21 +141,16 @@ class CompletionResolveHandler
         String? detail = item.detail;
         if (changes.edits.isNotEmpty && importUris.isNotEmpty) {
           if (importUris.length == 1) {
-            // If the only URI we have is a file:// URI, display it as relative to
-            // the file we're importing into, rather than the full URI.
-            final pathContext = server.pathContext;
             final libraryUri = importUris.first;
-            final autoImportDisplayUri = libraryUri.isScheme('file')
-                // Compute the relative path and then put into a URI so the display
-                // always uses forward slashes (as a URI) regardless of platform.
-                ? uriConverter.toClientUri(pathContext.relative(
-                    uriConverter.fromClientUri(libraryUri),
-                    from: pathContext.dirname(file),
-                  ))
-                : libraryUri;
+            final autoImportDisplayUriString = getCompletionDisplayUriString(
+              uriConverter: server.uriConverter,
+              pathContext: server.pathContext,
+              elementLibraryUri: libraryUri,
+              completionFilePath: file,
+            );
 
             detail =
-                "Auto import from '$autoImportDisplayUri'\n\n${item.detail ?? ''}"
+                "Auto import from '$autoImportDisplayUriString'\n\n${item.detail ?? ''}"
                     .trim();
           } else {
             detail = "Auto import required URIs\n\n${item.detail ?? ''}".trim();

@@ -324,7 +324,11 @@ class AnnotationResolver {
       Annotation annotation, PropertyAccessorElement accessorElement) {
     // The accessor should be synthetic, the variable should be constant, and
     // there should be no arguments.
-    VariableElement variableElement = accessorElement.variable;
+    var variableElement = accessorElement.variable2;
+    if (variableElement == null) {
+      return;
+    }
+
     if (!accessorElement.isSynthetic ||
         !variableElement.isConst ||
         annotation.arguments != null) {

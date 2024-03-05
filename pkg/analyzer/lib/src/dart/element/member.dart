@@ -1036,8 +1036,13 @@ class PropertyAccessorMember extends ExecutableMember
 
   @override
   PropertyInducingElement get variable {
+    return variable2!;
+  }
+
+  @override
+  PropertyInducingElement? get variable2 {
     // TODO(scheglov): revisit
-    PropertyInducingElement variable = declaration.variable;
+    var variable = declaration.variable2;
     if (variable is FieldElement) {
       return FieldMember(variable, augmentationSubstitution, _substitution);
     } else if (variable is TopLevelVariableElement) {

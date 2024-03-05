@@ -920,7 +920,7 @@ class _ClassVerifier {
           continue;
         }
         if (accessor.hasMustBeOverridden ||
-            accessor.variable.hasMustBeOverridden) {
+            (accessor.variable2?.hasMustBeOverridden ?? false)) {
           final PropertyAccessorElement? accessorDeclaration;
           if (accessor.isGetter) {
             accessorDeclaration = classElement.getGetter(accessor.name);

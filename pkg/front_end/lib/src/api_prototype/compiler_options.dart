@@ -117,9 +117,12 @@ class CompilerOptions {
   /// This is used to turn a precompiled macro into a [Uri] that can be loaded
   /// by the [macroExecutor].
   ///
-  /// This is part of the experimental macro feature.
+  /// If `null` then an appropriate macro serializer will be created.
   ///
-  /// If `null` then an `IsolateMacroSerializer` will be instantiated and used.
+  /// [MacroSerializer.close] will be called when `Uri`s created are no longer
+  /// needed.
+  ///
+  /// This is part of the experimental macro feature.
   MacroSerializer? macroSerializer;
 
   /// Raw precompiled macro options, each of the format

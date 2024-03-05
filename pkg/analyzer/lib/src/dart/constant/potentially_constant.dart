@@ -260,7 +260,10 @@ class _Collector {
       return;
     }
     if (element is PropertyAccessorElement && element.isGetter) {
-      var variable = element.variable;
+      var variable = element.variable2;
+      if (variable == null) {
+        return;
+      }
       if (!variable.isConst) {
         nodes.add(node);
       }
@@ -313,7 +316,10 @@ class _Collector {
 
       var element = node.propertyName.staticElement;
       if (element is PropertyAccessorElement && element.isGetter) {
-        var variable = element.variable;
+        var variable = element.variable2;
+        if (variable == null) {
+          return;
+        }
         if (!variable.isConst) {
           nodes.add(node.propertyName);
         }

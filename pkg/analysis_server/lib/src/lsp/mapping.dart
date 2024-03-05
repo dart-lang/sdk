@@ -31,6 +31,7 @@ import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
 import 'package:collection/collection.dart';
+import 'package:path/path.dart' as path;
 
 const languageSourceName = 'dart';
 
@@ -441,8 +442,11 @@ CompletionDetail getCompletionDetail(
     detail = '$detail\n\n(Deprecated)'.trim();
   }
 
+  final libraryUri = suggestion.libraryUri;
   final autoImportUri =
-      (suggestion.isNotImported ?? false) ? suggestion.libraryUri : null;
+      (suggestion.isNotImported ?? false) && libraryUri != null
+          ? Uri.parse(libraryUri)
+          : null;
 
   return (
     detail: detail,
@@ -450,6 +454,33 @@ CompletionDetail getCompletionDetail(
     truncatedSignature: truncatedSignature,
     autoImportUri: autoImportUri,
   );
+}
+
+/// Gets a library URI formatted for display in code completion as the target
+/// library that a symbol comes from.
+///
+/// File URIs will be made relative to [completionFilePath]. Other URIs will be
+/// returned as-is.
+String? getCompletionDisplayUriString({
+  required ClientUriConverter uriConverter,
+  required path.Context pathContext,
+  required Uri? elementLibraryUri,
+  required String completionFilePath,
+}) {
+  if (elementLibraryUri == null) {
+    return null;
+  }
+
+  return elementLibraryUri.isScheme('file')
+      // Compute the relative path and then put into a URI so the display
+      // always uses forward slashes (as a URI) regardless of platform.
+      ? uriConverter
+          .toClientUri(pathContext.relative(
+            uriConverter.fromClientUri(elementLibraryUri),
+            from: pathContext.dirname(completionFilePath),
+          ))
+          .toString()
+      : elementLibraryUri.toString();
 }
 
 List<lsp.DiagnosticTag>? getDiagnosticTags(
@@ -895,6 +926,9 @@ lsp.CompletionItem toCompletionItem(
   LspClientCapabilities capabilities,
   server.LineInfo lineInfo,
   server.CompletionSuggestion suggestion, {
+  required ClientUriConverter uriConverter,
+  required path.Context pathContext,
+  required String completionFilePath,
   bool hasDefaultEditRange = false,
   bool hasDefaultTextMode = false,
   required Range replacementRange,
@@ -1033,7 +1067,12 @@ lsp.CompletionItem toCompletionItem(
     labelDetails: useLabelDetails
         ? CompletionItemLabelDetails(
             detail: labelDetails.truncatedSignature.nullIfEmpty,
-            description: labelDetails.autoImportUri,
+            description: getCompletionDisplayUriString(
+              uriConverter: uriConverter,
+              pathContext: pathContext,
+              elementLibraryUri: labelDetails.autoImportUri,
+              completionFilePath: completionFilePath,
+            ),
           ).nullIfEmpty
         : null,
     documentation: cleanedDoc != null
@@ -1541,8 +1580,10 @@ typedef CompletionDetail = ({
   /// () → String
   String truncatedSignature,
 
-  /// The URI that will be auto-imported if this item is selected.
-  String? autoImportUri,
+  /// The URI that will be auto-imported if this item is selected in a
+  /// user-friendly string format (for example a relative path if for a `file:/`
+  /// URI).
+  Uri? autoImportUri,
 });
 
 extension on CompletionItemLabelDetails {

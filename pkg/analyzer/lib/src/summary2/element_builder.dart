@@ -1353,7 +1353,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       }
     }
 
-    accessorElement.variable = property;
+    accessorElement.variable2 = property;
     if (accessorElement.isGetter) {
       property.getter = accessorElement;
     } else {

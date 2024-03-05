@@ -43,11 +43,11 @@ class ChangeBuilderImplTest extends AbstractChangeBuilderTest {
   }
 
   Future<void> test_copy_newEdit() async {
-    await builder.addGenericFileEdit('/test.dart', (builder) {
+    await builder.addGenericFileEdit('/test.txt', (builder) {
       builder.addSimpleInsertion(0, 'x');
     });
     var copy = builder.copy() as ChangeBuilderImpl;
-    await copy.addGenericFileEdit('/test.dart', (builder) {
+    await copy.addGenericFileEdit('/test.txt', (builder) {
       builder.addSimpleInsertion(10, 'x');
     });
     var change = builder.sourceChange;
@@ -55,11 +55,11 @@ class ChangeBuilderImplTest extends AbstractChangeBuilderTest {
   }
 
   Future<void> test_copy_newFile() async {
-    await builder.addGenericFileEdit('/test1.dart', (builder) {
+    await builder.addGenericFileEdit('/test1.txt', (builder) {
       builder.addSimpleInsertion(0, 'x');
     });
     var copy = builder.copy() as ChangeBuilderImpl;
-    await copy.addGenericFileEdit('/test2.dart', (builder) {
+    await copy.addGenericFileEdit('/test2.txt', (builder) {
       builder.addSimpleInsertion(0, 'x');
     });
     var change = builder.sourceChange;
@@ -67,11 +67,11 @@ class ChangeBuilderImplTest extends AbstractChangeBuilderTest {
   }
 
   Future<void> test_copy_newLinkedEditGroup() async {
-    await builder.addGenericFileEdit('/test.dart', (builder) {
+    await builder.addGenericFileEdit('/test.txt', (builder) {
       builder.addLinkedPosition(SourceRange(1, 2), 'a');
     });
     var copy = builder.copy() as ChangeBuilderImpl;
-    await copy.addGenericFileEdit('/test.dart', (builder) {
+    await copy.addGenericFileEdit('/test.txt', (builder) {
       builder.addLinkedPosition(SourceRange(3, 4), 'b');
     });
     var change = builder.sourceChange;
@@ -79,11 +79,11 @@ class ChangeBuilderImplTest extends AbstractChangeBuilderTest {
   }
 
   Future<void> test_copy_newLinkedPosition() async {
-    await builder.addGenericFileEdit('/test.dart', (builder) {
+    await builder.addGenericFileEdit('/test.txt', (builder) {
       builder.addLinkedPosition(SourceRange(1, 2), 'a');
     });
     var copy = builder.copy() as ChangeBuilderImpl;
-    await copy.addGenericFileEdit('/test.dart', (builder) {
+    await copy.addGenericFileEdit('/test.txt', (builder) {
       builder.addLinkedPosition(SourceRange(3, 4), 'a');
     });
     var change = builder.sourceChange;
@@ -111,7 +111,7 @@ class ChangeBuilderImplTest extends AbstractChangeBuilderTest {
   }
 
   void test_sourceChange_emptyEdit() async {
-    var path = '/test.dart';
+    var path = '/test.txt';
     await builder.addGenericFileEdit(path, (builder) {});
     var sourceChange = builder.sourceChange;
     expect(sourceChange, isNotNull);
@@ -131,7 +131,7 @@ class ChangeBuilderImplTest extends AbstractChangeBuilderTest {
   }
 
   Future<void> test_sourceChange_oneChange() async {
-    var path = '/test.dart';
+    var path = '/test.txt';
     await builder.addGenericFileEdit(path, (builder) {
       builder.addSimpleInsertion(0, '_');
     });
@@ -147,7 +147,7 @@ class ChangeBuilderImplTest extends AbstractChangeBuilderTest {
 
 @reflectiveTest
 class EditBuilderImplTest extends AbstractChangeBuilderTest {
-  String path = '/test.dart';
+  String path = '/test.txt';
 
   Future<void> test_addLinkedEdit() async {
     var offset = 10;
@@ -300,7 +300,7 @@ class EditBuilderImplTest extends AbstractChangeBuilderTest {
 
 @reflectiveTest
 class FileEditBuilderImplTest extends AbstractChangeBuilderTest {
-  String path = '/test.dart';
+  String path = '/test.txt';
 
   Future<void> test_addDeletion() async {
     var offset = 23;
@@ -611,7 +611,7 @@ class FileEditBuilderImplTest extends AbstractChangeBuilderTest {
 
 @reflectiveTest
 class LinkedEditBuilderImplTest extends AbstractChangeBuilderTest {
-  String path = '/test.dart';
+  String path = '/test.txt';
 
   Future<void> test_addSuggestion() async {
     var groupName = 'a';

@@ -41,7 +41,6 @@ mixin StringTypes on AbstractTypeSystemTest {
     _defineType('num?', numQuestion);
 
     _defineType('int', intNone);
-    _defineType('int*', intStar);
     _defineType('int?', intQuestion);
 
     _defineType('double', doubleNone);
@@ -51,7 +50,6 @@ mixin StringTypes on AbstractTypeSystemTest {
     _defineType('List<num>', listNone(numNone));
     _defineType('List<int>', listNone(intNone));
     _defineType('List<int>?', listQuestion(intNone));
-    _defineType('List<int*>?', listQuestion(intStar));
     _defineType('List<int?>', listNone(intQuestion));
 
     _defineType(
@@ -113,15 +111,15 @@ mixin StringTypes on AbstractTypeSystemTest {
     );
 
     _defineType(
-      'int* Function()',
+      'int Function()',
       functionTypeNone(
-        returnType: intStar,
+        returnType: intNone,
       ),
     );
     _defineType(
-      'int* Function()?',
+      'int Function()?',
       functionTypeQuestion(
-        returnType: intStar,
+        returnType: intNone,
       ),
     );
 
@@ -137,13 +135,6 @@ mixin StringTypes on AbstractTypeSystemTest {
       functionTypeQuestion(
         parameters: [requiredParameter(type: numNone)],
         returnType: numNone,
-      ),
-    );
-
-    _defineType(
-      'int Function()',
-      functionTypeNone(
-        returnType: intNone,
       ),
     );
 
@@ -387,13 +378,11 @@ mixin StringTypes on AbstractTypeSystemTest {
     allPositional('(double,)', [doubleNone]);
     allPositional('(int,)', [intNone]);
     allPositional('(int?,)', [intQuestion]);
-    allPositional('(int*,)', [intStar]);
     allPositional('(num,)', [numNone]);
     allPositional('(Never,)', [neverNone]);
 
     allPositionalQuestion('(int,)?', [intNone]);
     allPositionalQuestion('(int?,)?', [intQuestion]);
-    allPositionalQuestion('(int*,)?', [intStar]);
 
     allPositional('(double, int)', [doubleNone, intNone]);
     allPositional('(int, double)', [intNone, doubleNone]);
@@ -419,7 +408,6 @@ mixin StringTypes on AbstractTypeSystemTest {
     allNamed('({double f1})', {'f1': doubleNone});
     allNamed('({int f1})', {'f1': intNone});
     allNamed('({int? f1})', {'f1': intQuestion});
-    allNamed('({int* f1})', {'f1': intStar});
     allNamed('({num f1})', {'f1': numNone});
     allNamed('({int f2})', {'f2': intNone});
     allNamed('({Never f1})', {'f1': neverNone});
@@ -427,7 +415,6 @@ mixin StringTypes on AbstractTypeSystemTest {
 
     allNamedQuestion('({int f1})?', {'f1': intNone});
     allNamedQuestion('({int? f1})?', {'f1': intQuestion});
-    allNamedQuestion('({int* f1})?', {'f1': intStar});
 
     allNamed('({double f1, int f2})', {'f1': doubleNone, 'f2': intNone});
     allNamed('({int f1, double f2})', {'f1': intNone, 'f2': doubleNone});

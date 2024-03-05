@@ -124,8 +124,11 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor<void> {
 
   @override
   void visitPropertyAccessorElement(PropertyAccessorElement element) {
+    var variable = element.variable2;
     if (opType.includeReturnValueSuggestions ||
-        (opType.includeAnnotationSuggestions && element.variable.isConst)) {
+        (opType.includeAnnotationSuggestions &&
+            variable != null &&
+            variable.isConst)) {
       var parent = element.enclosingElement;
       if (parent is InterfaceElement || parent is ExtensionElement) {
         builder.suggestAccessor(element, inheritanceDistance: 0.0);

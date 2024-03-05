@@ -193,7 +193,7 @@ class ElementFactory {
     PropertyAccessorElementImpl getter = PropertyAccessorElementImpl(name, 0);
     getter.isSynthetic = false;
     getter.isGetter = true;
-    getter.variable = field;
+    getter.variable2 = field;
     getter.returnType = type;
     getter.isStatic = isStatic;
     field.getter = getter;
@@ -331,14 +331,14 @@ class ElementFactory {
     field.type = type;
     PropertyAccessorElementImpl getter = PropertyAccessorElementImpl(name, -1);
     getter.isGetter = true;
-    getter.variable = field;
+    getter.variable2 = field;
     getter.returnType = type;
     field.getter = getter;
     ParameterElementImpl parameter = requiredParameter2("a", type);
     PropertyAccessorElementImpl setter = PropertyAccessorElementImpl(name, -1);
     setter.isSetter = true;
     setter.isSynthetic = true;
-    setter.variable = field;
+    setter.variable2 = field;
     setter.parameters = <ParameterElement>[parameter];
     setter.returnType = VoidTypeImpl.instance;
     setter.isStatic = isStatic;

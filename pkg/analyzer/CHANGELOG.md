@@ -5,6 +5,10 @@
 * Deprecated `InterfaceElement.lookUpGetter`, `InterfaceElement.lookUpMethod`,
   and `InterfaceElement.lookUpSetter`.
 * Fixed `GeneralizingAstVisitor.visitNamedType` to invoke `visitTypeAnnotation`.
+* Deprecated `PropertyInducingElement get variable` in `PropertyAccessorElement`,
+  use `PropertyInducingElement? get variable2` instead.
+  The reason for this is that when the property accessor is an augmentation
+  without the corresponding declaration, there is no corresponding variable.
 
 ## 6.4.1
 * Patch for crash in ffi_verifier.

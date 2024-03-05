@@ -16,6 +16,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart' show ExecutableMember;
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:collection/collection.dart';
 
 /// An [AstVisitor] that fills [UsedLocalElements].
@@ -246,12 +247,13 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
     if (element is ExecutableMember) {
       element = element.declaration;
     }
+    var variable = element.ifTypeOrNull<PropertyAccessorElement>()?.variable2;
     bool isIdentifierRead = _isReadIdentifier(node);
     if (element is PropertyAccessorElement &&
         isIdentifierRead &&
-        element.variable is TopLevelVariableElement) {
+        variable is TopLevelVariableElement) {
       if (element.isSynthetic) {
-        usedElements.addElement(element.variable);
+        usedElements.addElement(variable);
       } else {
         usedElements.members.add(element);
         _addMemberAndCorrespondingGetter(element);

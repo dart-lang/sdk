@@ -259,7 +259,10 @@ class ImportLibrary extends MultiCorrectionProducer {
         continue;
       }
       if (element is PropertyAccessorElement) {
-        element = element.variable;
+        element = element.variable2;
+        if (element == null) {
+          continue;
+        }
       }
       if (!kinds.contains(element.kind)) {
         continue;

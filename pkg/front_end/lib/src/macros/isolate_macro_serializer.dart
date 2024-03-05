@@ -5,6 +5,7 @@
 import 'dart:isolate';
 
 import 'package:kernel/kernel.dart';
+
 import 'macro_serializer.dart';
 
 /// [MacroSerializer] that uses blobs registered with the current [Isolate] to

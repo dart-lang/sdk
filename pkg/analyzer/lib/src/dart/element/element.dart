@@ -427,15 +427,6 @@ class ClassElementImpl extends ClassOrMixinElementImpl
   }
 
   @override
-  bool get isInline {
-    return hasModifier(Modifier.INLINE);
-  }
-
-  set isInline(bool isInline) {
-    setModifier(Modifier.INLINE, isInline);
-  }
-
-  @override
   bool get isInterface {
     return hasModifier(Modifier.INTERFACE);
   }
@@ -5372,9 +5363,6 @@ enum Modifier {
   /// type being referred to is the return type.
   IMPLICIT_TYPE,
 
-  /// Indicates that the modifier 'inline' was applied to the element.
-  INLINE,
-
   /// Indicates that the modifier 'interface' was applied to the element.
   INTERFACE,
 
@@ -5965,7 +5953,7 @@ class ParameterElementImpl_ofImplicitSetter extends ParameterElementImpl {
 
   ParameterElementImpl_ofImplicitSetter(this.setter)
       : super(
-          name: considerCanonicalizeString('_${setter.variable.name}'),
+          name: considerCanonicalizeString('_${setter.variable2.name}'),
           nameOffset: -1,
           parameterKind: ParameterKind.REQUIRED,
         ) {
@@ -5975,7 +5963,7 @@ class ParameterElementImpl_ofImplicitSetter extends ParameterElementImpl {
 
   @override
   bool get inheritsCovariant {
-    var variable = setter.variable;
+    var variable = setter.variable2;
     if (variable is FieldElementImpl) {
       return variable.inheritsCovariant;
     }
@@ -5984,7 +5972,7 @@ class ParameterElementImpl_ofImplicitSetter extends ParameterElementImpl {
 
   @override
   set inheritsCovariant(bool value) {
-    var variable = setter.variable;
+    var variable = setter.variable2;
     if (variable is FieldElementImpl) {
       variable.inheritsCovariant = value;
     }
@@ -6000,7 +5988,7 @@ class ParameterElementImpl_ofImplicitSetter extends ParameterElementImpl {
 
   @override
   bool get isExplicitlyCovariant {
-    var variable = setter.variable;
+    var variable = setter.variable2;
     if (variable is FieldElementImpl) {
       return variable.isCovariant;
     }
@@ -6009,11 +5997,11 @@ class ParameterElementImpl_ofImplicitSetter extends ParameterElementImpl {
 
   @override
   Element get nonSynthetic {
-    return setter.variable;
+    return setter.variable2;
   }
 
   @override
-  DartType get type => setter.variable.type;
+  DartType get type => setter.variable2.type;
 
   @override
   set type(DartType type) {
@@ -6166,7 +6154,7 @@ class PrefixElementImpl extends _ExistingElementImpl implements PrefixElement {
 class PropertyAccessorElementImpl extends ExecutableElementImpl
     with AugmentableElement<PropertyAccessorElementImpl>
     implements PropertyAccessorElement {
-  late PropertyInducingElementImpl _variable;
+  PropertyInducingElementImpl? _variable;
 
   /// If this method is a synthetic element which is based on another method
   /// with some modifications (such as making some parameters covariant),
@@ -6179,11 +6167,11 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
 
   /// Initialize a newly created synthetic property accessor element to be
   /// associated with the given [variable].
-  PropertyAccessorElementImpl.forVariable(this._variable,
+  PropertyAccessorElementImpl.forVariable(PropertyInducingElementImpl variable,
       {Reference? reference})
-      : super(_variable.name, -1, reference: reference) {
-    isAbstract = variable is FieldElementImpl &&
-        (variable as FieldElementImpl).isAbstract;
+      : _variable = variable,
+        super(variable.name, -1, reference: reference) {
+    isAbstract = variable is FieldElementImpl && variable.isAbstract;
     isStatic = variable.isStatic;
     isSynthetic = true;
   }
@@ -6193,7 +6181,7 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
     if (isGetter) {
       return null;
     }
-    return variable.getter;
+    return variable2?.getter;
   }
 
   @override
@@ -6201,7 +6189,7 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
     if (isSetter) {
       return null;
     }
-    return variable.setter;
+    return variable2?.setter;
   }
 
   @override
@@ -6261,13 +6249,19 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
     return super.name;
   }
 
+  @Deprecated('Use variable2')
   @override
   PropertyInducingElementImpl get variable {
+    return variable2!;
+  }
+
+  @override
+  PropertyInducingElementImpl? get variable2 {
     linkedData?.read(this);
     return _variable;
   }
 
-  set variable(PropertyInducingElementImpl value) {
+  set variable2(PropertyInducingElementImpl? value) {
     _variable = value;
   }
 
@@ -6279,7 +6273,7 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeExecutableElement(
       this,
-      (isGetter ? 'get ' : 'set ') + variable.displayName,
+      (isGetter ? 'get ' : 'set ') + displayName,
     );
   }
 }
@@ -6297,26 +6291,25 @@ class PropertyAccessorElementImpl_ImplicitGetter
   }
 
   @override
-  Element get enclosingElement => variable.enclosingElement;
+  Element get enclosingElement => variable2.enclosingElement;
 
   @override
-  bool get hasImplicitReturnType => variable.hasImplicitType;
+  bool get hasImplicitReturnType => variable2.hasImplicitType;
 
   @override
   bool get isGetter => true;
 
   @override
   Element get nonSynthetic {
-    final variable = this.variable;
-    if (!variable.isSynthetic) {
-      return variable;
+    if (!variable2.isSynthetic) {
+      return variable2;
     }
     assert(enclosingElement is EnumElementImpl);
     return enclosingElement;
   }
 
   @override
-  DartType get returnType => variable.type;
+  DartType get returnType => variable2.type;
 
   @override
   set returnType(DartType returnType) {
@@ -6324,7 +6317,7 @@ class PropertyAccessorElementImpl_ImplicitGetter
   }
 
   @override
-  Version? get sinceSdkVersion => variable.sinceSdkVersion;
+  Version? get sinceSdkVersion => variable2.sinceSdkVersion;
 
   @override
   FunctionType get type {
@@ -6340,6 +6333,9 @@ class PropertyAccessorElementImpl_ImplicitGetter
   set type(FunctionType type) {
     assert(false); // Should never be called.
   }
+
+  @override
+  PropertyInducingElementImpl get variable2 => super.variable2!;
 }
 
 /// Implicit setter for a [PropertyInducingElementImpl].
@@ -6354,13 +6350,13 @@ class PropertyAccessorElementImpl_ImplicitSetter
   }
 
   @override
-  Element get enclosingElement => variable.enclosingElement;
+  Element get enclosingElement => variable2.enclosingElement;
 
   @override
   bool get isSetter => true;
 
   @override
-  Element get nonSynthetic => variable;
+  Element get nonSynthetic => variable2;
 
   @override
   List<ParameterElement> get parameters {
@@ -6382,7 +6378,7 @@ class PropertyAccessorElementImpl_ImplicitSetter
   }
 
   @override
-  Version? get sinceSdkVersion => variable.sinceSdkVersion;
+  Version? get sinceSdkVersion => variable2.sinceSdkVersion;
 
   @override
   FunctionType get type {
@@ -6398,6 +6394,9 @@ class PropertyAccessorElementImpl_ImplicitSetter
   set type(FunctionType type) {
     assert(false); // Should never be called.
   }
+
+  @override
+  PropertyInducingElementImpl get variable2 => super.variable2!;
 }
 
 /// A concrete implementation of a [PropertyInducingElement].

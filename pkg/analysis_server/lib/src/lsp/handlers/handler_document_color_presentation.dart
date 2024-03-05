@@ -201,7 +201,7 @@ class DocumentColorPresentationHandler extends SharedMessageHandler<
         ? parent.staticElement
         : node.staticElement;
     final target = staticElement is PropertyAccessorElement
-        ? staticElement.variable
+        ? staticElement.variable2
         : staticElement;
 
     final existingIsConst = target is ConstVariableElement;

@@ -142,15 +142,15 @@ vars = {
   #   and land the review.
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
-  "dart_style_rev": "a6ad7693555a9add6f98ad6fd94de80d35c89415", # disable rev_sdk_deps.dart
-  "dartdoc_rev": "eed92d3fb9f77e82c36e2287643c5ddb2a99be19",
-  "ecosystem_rev": "3e4f2866d49c2448e44f51112956a689a2e50cd6",
+  "dart_style_rev": "a6ad7693555a9add6f98ad6fd94de80d35c89415", # disable tools/rev_sdk_deps.dart
+  "dartdoc_rev": "eed92d3fb9f77e82c36e2287643c5ddb2a99be19", # https://github.com/dart-lang/dartdoc/issues/3701
+  "ecosystem_rev": "49a3cbb9a2d8acf974b4d616e20c38b59c360a5a",
   "file_rev": "3aa06490bf34bddf04c7ea964a50c177a4ca0de7",
   "fixnum_rev": "570b28adcfbfdd5b8a7230ea1d6ec0f9587493f1",
   "flute_rev": "a531c96a8b43d015c6bfbbfe3ab54867b0763b8b",
-  "glob_rev": "ef5f0650f66dc64587b11757fe3303538cfeb1d8",
+  "glob_rev": "379d60c7cc5c0e9fe7d0d45549ad0b1ca51396c8",
   "html_rev": "327e37a6a4dd46599737ee982f280d73a8f646f7",
-  "http_rev": "6e0a46fca693b4aebaf282da68712b1550f1b4ca",
+  "http_rev": "470d2c3595c00252f92be21d2bc3d79816d0d8f2",
   "http_multi_server_rev": "ba9d07f3596b24718ddf45c9e071d40879cca565",
   "http_parser_rev": "84db8b029d9b51859a0bb4966859af009f9442e3",
   "intl_rev": "5d65e3808ce40e6282e40881492607df4e35669f",
@@ -158,7 +158,7 @@ vars = {
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c",
   "lints_rev": "ead770872e272e25a64315c120950ea8ad5b2509",
   "logging_rev": "cbaf4ee2e59c318d7519edb5381f5fe2a7f69587",
-  "markdown_rev": "62e3349dc8aa1815c9d2e8a0fa4ebe937b4fa935",
+  "markdown_rev": "dd47c5dea1015aff2037b613fb4964450beaf81c",
   "matcher_rev": "d954c8d979579b4b46427b0ea1d9c721117c191e",
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
   "mime_rev": "9a168712d6db610c3822617c132daea72d4fd2b5",
@@ -166,22 +166,22 @@ vars = {
   "native_rev": "0901a3323022fdb59657cc2cb00ea5c80a8468a6", # mosum@ and dacoharkes@ are rolling breaking changes manually while the assets features are in experimental.
   "package_config_rev": "4a7042bb286cf0b41b26e87972bc28bda535f8b9",
   "path_rev": "a7b696071bd83d3ee0a0f1b57ac94d6b1f05cac4",
-  "pool_rev": "782da82fedca4e5776e43ba321543ed2b20373b2",
-  "protobuf_rev": "ef0ab7df985a4b00f3a6850fb160a214ebc0683e",
-  "pub_rev": "5b5fdd320a3b60a6a00bdd3122f03c6f67a39eeb", # disable rev_sdk_deps.dart
+  "pool_rev": "c118f69d8a6441a8453bf7d455fd7c79d3ee1497",
+  "protobuf_rev": "b7613581d847e1e36e76f0e36db3a412d8fea5b1",
+  "pub_rev": "5b5fdd320a3b60a6a00bdd3122f03c6f67a39eeb", # disable tools/rev_sdk_deps.dart
   "pub_semver_rev": "3175ba0a58a96fb23f8d68b5f5c44d1a5b30cc16",
-  "shelf_rev": "b432620f109b92c0399261722aa28c4d8d9a385c",
+  "shelf_rev": "da6a69ba749aded85a215fba4882fc3964d2c49b",
   "source_map_stack_trace_rev": "c75649651d01826236e3ab7093d277a70756905a",
   "source_maps_rev": "55e92a4b0a8560d5b2b3bb7255249afdb8186ea6",
   "source_span_rev": "21a403a75b6887fbd811fb53b74b08c2cef67ab6",
-  "sse_rev": "13ec752b5f253f11a3d9e2f8aca5003b94c170d2",
+  "sse_rev": "b53ba14de4fe9823432ebfbb4ec04f23a620ec50",
   "stack_trace_rev": "155f12c51226d6372f6722f5e55c38ef39625006",
   "stream_channel_rev": "e02a5ddef804f0d546a405ab3917fb27788acaef",
   "string_scanner_rev": "a2bcdb575f6bb30b944b4f632ea95d8dc4f914bd",
   "sync_http_rev": "b849559fedc7c5d19a68950f255b6edde6eec6ef",
   "tar_rev": "6150a0c88d9bd17e3e961593a9a7a9564866e8b4",
   "term_glyph_rev": "85a4aa6bf25cd6ecaa5c56a1b259b2d95264a439",
-  "test_rev": "26953ba46d9e56dd4195c5678ada16a2005ec2a7",
+  "test_rev": "525f77b2e0459f76b088ae65b71b2e948dd04224",
   "test_descriptor_rev": "35f97afacb2b7fe627f6ed0bede722fd48980848",
   "test_process_rev": "7fe39afbb6c444f256c1ec0eef008edebcd44644",
   "test_reflective_loader_rev": "9862703a3d14848376c8efde271c88022fba91eb",
@@ -190,7 +190,7 @@ vars = {
   "usage_rev": "67ecd7d1328347ec15cbf8d8a46918df75a66af8",
   "vector_math_rev": "3706feb60f1fb0541dae9cf6b9ef91cd5ea766c6",
   "watcher_rev": "21858a41da1482922e03ee65cdf2169d01d59a67",
-  "web_rev": "fa4280c061f0043f1d3c5346ab1495512de4bef2",
+  "web_rev": "8870d04354cd1af4b77aeec6f4abd77a53bcc709",
   "web_socket_channel_rev": "3db86bc0a09e1038a0fa418262c8a92211c5de69",
   "webdev_rev": "51b5484348b4a8ede351e8dff0428b083495ba78", # https://github.com/flutter/devtools/issues/7231
   "webdriver_rev": "2c1b6f8b9d684caf62d72bb327c24f738a4e7455",

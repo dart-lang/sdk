@@ -366,7 +366,7 @@ export 'dart:math' hide pi;
         .exportedLibrary!
         .exportNamespace
         .get('pi') as PropertyAccessorElement;
-    expect(findNode.simple('pi').staticElement, pi.variable);
+    expect(findNode.simple('pi').staticElement, pi.variable2);
   }
 
   test_visitExportDirective_noCombinators() async {
@@ -399,7 +399,7 @@ import 'dart:math' show pi;
         .importedLibrary!
         .exportNamespace
         .get('pi') as PropertyAccessorElement;
-    expect(findNode.simple('pi').staticElement, pi.variable);
+    expect(findNode.simple('pi').staticElement, pi.variable2);
   }
 
   test_visitImportDirective_combinators_prefix() async {
@@ -411,9 +411,9 @@ import 'dart:math' as p show pi hide ln10;
     var mathNamespace =
         findElement.import('dart:math').importedLibrary!.exportNamespace;
     var pi = mathNamespace.get('pi') as PropertyAccessorElement;
-    expect(findNode.simple('pi').staticElement, pi.variable);
+    expect(findNode.simple('pi').staticElement, pi.variable2);
     var ln10 = mathNamespace.get('ln10') as PropertyAccessorElement;
-    expect(findNode.simple('ln10').staticElement, ln10.variable);
+    expect(findNode.simple('ln10').staticElement, ln10.variable2);
   }
 
   test_visitImportDirective_noCombinators_noPrefix() async {

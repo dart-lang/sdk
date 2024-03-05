@@ -281,12 +281,6 @@ abstract class ClassElement implements InterfaceElement {
   /// or mixed in.
   bool get isFinal;
 
-  /// Whether the class is an inline class.
-  ///
-  /// A class is an inline class if it has an explicit `inline` modifier.
-  @experimental
-  bool get isInline;
-
   /// Whether the class is an interface class.
   ///
   /// A class is an interface class if it has an explicit `interface` modifier,
@@ -2341,7 +2335,17 @@ abstract class PropertyAccessorElement implements ExecutableElement {
   ///
   /// If this accessor was explicitly defined (is not synthetic) then the
   /// variable associated with it will be synthetic.
+  @Deprecated('Use variable2')
   PropertyInducingElement get variable;
+
+  /// The field or top-level variable associated with this accessor.
+  ///
+  /// If this accessor was explicitly defined (is not synthetic) then the
+  /// variable associated with it will be synthetic.
+  ///
+  /// If this accessor is an augmentation, and [augmentationTarget] is `null`,
+  /// the variable is `null`.
+  PropertyInducingElement? get variable2;
 }
 
 /// A variable that has an associated getter and possibly a setter. Note that

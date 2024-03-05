@@ -1656,5 +1656,12 @@ extension on List<ExecutableElement> {
 
 extension on PropertyAccessorElement {
   /// Whether this accessor is an accessor for a constant variable.
-  bool get isConst => isSynthetic && variable.isConst;
+  bool get isConst {
+    if (isSynthetic) {
+      if (variable2 case var variable?) {
+        return variable.isConst;
+      }
+    }
+    return false;
+  }
 }

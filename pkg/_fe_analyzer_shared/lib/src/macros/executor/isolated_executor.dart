@@ -6,9 +6,9 @@ import 'dart:async';
 import 'dart:isolate';
 import 'dart:typed_data';
 
+import '../executor.dart';
 import '../executor/executor_base.dart';
 import '../executor/serialization.dart';
-import '../executor.dart';
 
 /// Spawns a [MacroExecutor] as an isolate by passing [uriToSpawn] to
 /// [Isolate.spawnUri], and communicating using [serializationMode].
@@ -20,8 +20,6 @@ import '../executor.dart';
 ///
 /// The [serializationMode] must be a `server` variant, and [uriToSpawn] must
 /// use the corresponding `client` variant.
-///
-/// This is the only public api exposed by this library.
 Future<MacroExecutor> start(SerializationMode serializationMode, Uri uriToSpawn,
         {List<String> arguments = const [], Uri? packageConfigUri}) async =>
     _SingleIsolatedMacroExecutor.start(

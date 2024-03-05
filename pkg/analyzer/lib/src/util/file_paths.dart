@@ -122,3 +122,8 @@ bool isPackageConfigJson(p.Context pathContext, String path) {
 bool isPubspecYaml(p.Context pathContext, String path) {
   return pathContext.basename(path) == pubspecYaml;
 }
+
+/// Return `true` if [path] is a YAML file.
+bool isYaml(p.Context pathContext, String path) {
+  return pathContext.extension(path) == '.yaml';
+}

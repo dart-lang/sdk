@@ -59,7 +59,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
       if (parameterTypes.isNotEmpty) {
         return parameterTypes[0];
       }
-      var getter = accessor.variable.getter;
+      var getter = accessor.variable2?.getter;
       if (getter != null) {
         functionType = getter.type;
         return functionType.returnType;

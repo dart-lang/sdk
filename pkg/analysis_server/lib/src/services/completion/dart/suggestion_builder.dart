@@ -89,7 +89,8 @@ class MemberSuggestionBuilder {
       {required PropertyAccessorElement accessor,
       required double inheritanceDistance}) {
     if (accessor.isAccessibleIn(request.libraryElement)) {
-      var member = accessor.isSynthetic ? accessor.variable : accessor;
+      var member =
+          accessor.isSynthetic ? accessor.variable2 ?? accessor : accessor;
       if (_shouldAddSuggestion(member)) {
         builder.suggestAccessor(accessor,
             inheritanceDistance: inheritanceDistance);
@@ -269,7 +270,7 @@ class SuggestionBuilder {
       // non-final fields induce a setter, so we don't add a suggestion for a
       // synthetic setter.
       if (accessor.isGetter) {
-        var variable = accessor.variable;
+        var variable = accessor.variable2;
         if (variable is FieldElement) {
           suggestField(variable, inheritanceDistance: inheritanceDistance);
         }
@@ -1145,7 +1146,7 @@ class SuggestionBuilder {
       // non-final fields induce a setter, so we don't add a suggestion for a
       // synthetic setter.
       if (accessor.isGetter) {
-        var variable = accessor.variable;
+        var variable = accessor.variable2;
         if (variable is TopLevelVariableElement) {
           suggestTopLevelVariable(variable);
         }

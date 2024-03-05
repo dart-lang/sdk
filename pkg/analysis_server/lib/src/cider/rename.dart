@@ -366,7 +366,10 @@ class CiderRenameComputer {
       return null;
     }
     if (element is PropertyAccessorElement) {
-      element = element.variable;
+      element = element.variable2;
+      if (element == null) {
+        return null;
+      }
     }
     if (!_canRenameElement(element)) {
       return null;

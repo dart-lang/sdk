@@ -1018,16 +1018,12 @@ class TypeSystemImpl implements TypeSystem {
     if (T is TypeParameterTypeImpl) {
       // `T` is `X & B`, and `B` is incompatible with await.
       if (T.promotedBound case var B?) {
-        if (isIncompatibleWithAwait(B)) {
-          return true;
-        }
+        return isIncompatibleWithAwait(B);
       }
       // `T` is a type variable with bound `S`, and `S` is incompatible
       // with await.
       if (T.element.bound case var S?) {
-        if (isIncompatibleWithAwait(S)) {
-          return true;
-        }
+        return isIncompatibleWithAwait(S);
       }
     }
 
