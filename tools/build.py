@@ -161,21 +161,6 @@ def StartRBE(out_dir, use_goma, env):
     if not os.path.exists(rbe_dir) or not os.path.isdir(rbe_dir):
         print(f'Could not find {rbe} at {rbe_dir}')
         return False
-    RBE_cfg = 'RBE_CFG' if HOST_OS == 'win32' else 'RBE_cfg'
-    RBE_server_address = ('RBE_SERVER_ADDRESS'
-                          if HOST_OS == 'win32' else 'RBE_server_address')
-    if not use_goma and not RBE_cfg in env:
-        env[RBE_cfg] = os.path.join(
-            os.getcwd(), 'build', 'rbe',
-            'windows.cfg' if HOST_OS == 'win32' else 'unix.cfg')
-    if not use_goma and not RBE_server_address in env:
-        with open(env[RBE_cfg], 'r') as f:
-            if not any([l.startswith('server_address') for l in f.readlines()]):
-                schema = 'pipe' if HOST_OS == 'win32' else 'unix'
-                socket = os.path.join(os.getcwd(), out_dir, 'reproxy.sock')
-                if HOST_OS == 'win32':
-                    socket = socket.replace('\\', '_').replace(':', '_')
-                env[RBE_server_address] = f'{schema}://{socket}'
     bootstrap = 'goma_ctl.py' if use_goma else 'bootstrap'
     bootstrap_path = os.path.join(rbe_dir, bootstrap)
     bootstrap_command = [bootstrap_path]
@@ -342,7 +327,7 @@ def Main():
         env.pop('SDKROOT', None)
 
     # Always run GN before building.
-    gn_py.RunGnOnConfiguredConfigurations(options)
+    gn_py.RunGnOnConfiguredConfigurations(options, env)
 
     # Build all targets for each requested configuration.
     configs = []

@@ -621,6 +621,26 @@ def parse_args(args):
     return options
 
 
+def InitializeRBE(out_dir, env):
+    RBE_cfg = 'RBE_CFG' if HOST_OS == 'win32' else 'RBE_cfg'
+    RBE_server_address = ('RBE_SERVER_ADDRESS'
+                          if HOST_OS == 'win32' else 'RBE_server_address')
+    # Default RBE_cfg to the appropriate configuration file.
+    if not RBE_cfg in env:
+        env[RBE_cfg] = os.path.join(
+            os.getcwd(), 'build', 'rbe',
+            'windows.cfg' if HOST_OS == 'win32' else 'unix.cfg')
+    # Default RBE_server_address to inside the build directory.
+    if not RBE_server_address in env:
+        with open(env[RBE_cfg], 'r') as f:
+            if not any([l.startswith('server_address') for l in f.readlines()]):
+                schema = 'pipe' if HOST_OS == 'win32' else 'unix'
+                socket = os.path.join(os.getcwd(), out_dir, 'reproxy.sock')
+                if HOST_OS == 'win32':
+                    socket = socket.replace('\\', '_').replace(':', '_')
+                env[RBE_server_address] = f'{schema}://{socket}'
+
+
 def ExecutableName(basename):
     if utils.IsWindows():
         return f'{basename}.exe'
@@ -652,13 +672,17 @@ def BuildGnCommand(args, mode, arch, target_os, sanitizer, out_dir):
     return command
 
 
-def RunGnOnConfiguredConfigurations(args):
+def RunGnOnConfiguredConfigurations(args, env={}):
+    initialized_rbe = False
     commands = []
     for target_os in args.os:
         for mode in args.mode:
             for arch in args.arch:
                 for sanitizer in args.sanitizer:
                     out_dir = GetOutDir(mode, arch, target_os, sanitizer)
+                    if args.rbe and not initialized_rbe:
+                        InitializeRBE(out_dir, env)
+                        initialized_rbe = True
                     commands.append(
                         BuildGnCommand(args, mode, arch, target_os, sanitizer,
                                        out_dir))
@@ -674,7 +698,7 @@ def RunGnOnConfiguredConfigurations(args):
 
     for command in commands:
         try:
-            process = subprocess.Popen(command, cwd=DART_ROOT)
+            process = subprocess.Popen(command, cwd=DART_ROOT, env=env)
             active_commands.append([command, process])
         except Exception as e:
             print('Error: %s' % e)
