@@ -8,7 +8,7 @@ import 'bool_assignment_test.dart' as bool_assignments;
 import 'deprecated_member_test.dart' as deprecated_members;
 import 'instance_member_test.dart' as instance_member;
 import 'is_no_such_method_test.dart' as is_no_such_method;
-import 'local_variable_test.dart' as local_variable;
+import 'locality_test.dart' as locality;
 import 'named_argument_test.dart' as named_argument;
 import 'non_type_member_test.dart' as non_type_member;
 import 'static_member_test.dart' as static_member;
@@ -20,7 +20,7 @@ void main() {
     deprecated_members.main();
     instance_member.main();
     is_no_such_method.main();
-    local_variable.main();
+    locality.main();
     named_argument.main();
     non_type_member.main();
     static_member.main();
