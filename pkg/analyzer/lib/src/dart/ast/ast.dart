@@ -8235,6 +8235,10 @@ sealed class FunctionBodyImpl extends AstNodeImpl implements FunctionBody {
 ///    functionSignature ::=
 ///        [Type]? ('get' | 'set')? name [FormalParameterList]
 abstract final class FunctionDeclaration implements NamedCompilationUnitMember {
+  /// The 'augment' keyword.
+  @experimental
+  Token? get augmentKeyword;
+
   @override
   ExecutableElement? get declaredElement;
 
@@ -8273,8 +8277,7 @@ abstract final class FunctionDeclaration implements NamedCompilationUnitMember {
 ///        [Type]? ('get' | 'set')? [SimpleIdentifier] [FormalParameterList]
 final class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
     implements FunctionDeclaration {
-  /// The token representing the 'augment' keyword, or `null` if this is not an
-  /// function augmentation.
+  @override
   final Token? augmentKeyword;
 
   /// The token representing the 'external' keyword, or `null` if this is not an

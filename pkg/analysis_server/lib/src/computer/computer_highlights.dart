@@ -1008,9 +1008,8 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
-    // TODO(brianwilkerson): Update the interface to expose the token.
-    // computer._addRegion_token(
-    //     node.augmentKeyword, HighlightRegionType.BUILT_IN);
+    computer._addRegion_token(
+        node.augmentKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(
         node.externalKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(
@@ -1542,10 +1541,8 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-    // TODO(brianwilkerson): Uncomment the following lines when the token is
-    //  supported.
-    // computer._addRegion_token(
-    //     node.augmentKeyword, HighlightRegionType.BUILT_IN);
+    computer._addRegion_token(
+        node.augmentKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(
         node.externalKeyword, HighlightRegionType.BUILT_IN);
 
