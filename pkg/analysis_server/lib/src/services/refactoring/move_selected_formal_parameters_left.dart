@@ -30,36 +30,42 @@ class MoveSelectedFormalParametersLeft extends RefactoringProducer {
   String get title => constTitle;
 
   @override
-  Future<void> compute(
+  Future<ComputeStatus> compute(
     List<Object?> commandArguments,
     ChangeBuilder builder,
   ) async {
     final availability = analyzeAvailability(
       refactoringContext: refactoringContext,
     );
+
+    // This should not happen, `isAvailable()` returns `false`.
     if (availability is! Available) {
-      return;
+      return ComputeStatusFailure();
     }
 
     final selection = await analyzeSelection(
       available: availability,
     );
 
+    // This should not happen, `isAvailable()` returns `false`.
     if (selection is! ValidSelectionState) {
-      return;
+      return ComputeStatusFailure();
     }
 
     final all = selection.formalParameters.toList();
     final selected = all.where((e) => e.isSelected).toList();
-
     final firstSelected = selected.firstOrNull;
+
+    // This should not happen, `isAvailable()` returns `false`.
     if (firstSelected == null) {
-      return;
+      return ComputeStatusFailure();
     }
 
     final firstSelectedIndex = all.indexOf(firstSelected);
+
+    // This should not happen, `isAvailable()` returns `false`.
     if (firstSelectedIndex < 1) {
-      return;
+      return ComputeStatusFailure();
     }
 
     final beforePrevious = all.take(firstSelectedIndex - 1);
@@ -85,11 +91,20 @@ class MoveSelectedFormalParametersLeft extends RefactoringProducer {
       argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
     );
 
-    await computeSourceChange(
+    final status = await computeSourceChange(
       selectionState: selection,
       signatureUpdate: signatureUpdate,
       builder: builder,
     );
+
+    switch (status) {
+      case ChangeStatusFailure():
+        return ComputeStatusFailure(
+          reason: 'Failed to compute the change.',
+        );
+      case ChangeStatusSuccess():
+        return ComputeStatusSuccess();
+    }
   }
 
   @override
