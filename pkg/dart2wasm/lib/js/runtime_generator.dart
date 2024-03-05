@@ -5,6 +5,7 @@
 import 'package:_js_interop_checks/src/js_interop.dart'
     show calculateTransitiveImportsOfJsInteropIfUsed;
 import 'package:_js_interop_checks/src/transformations/static_interop_class_eraser.dart';
+import 'package:collection/collection.dart' show compareNatural;
 import 'package:dart2wasm/js/interop_transformer.dart';
 import 'package:dart2wasm/js/method_collector.dart';
 import 'package:dart2wasm/js/runtime_blob.dart';
@@ -62,6 +63,8 @@ class RuntimeFinalizer {
         usedJSMethods.add(allJSMethods[p]!);
       }
     }
+    // Sort so _9 comes before _11 (for example)
+    usedJSMethods.sort(compareNatural);
 
     String internalizedStrings = '';
     if (constantStrings.isNotEmpty) {
@@ -71,13 +74,13 @@ s: [
 ],''';
     }
     return '''
-  $jsRuntimeBlobPart1
-  ${mode == wasm_target.Mode.jsCompatibility ? jsRuntimeBlobPart2JSCM : jsRuntimeBlobPart2Regular}
-  $jsRuntimeBlobPart3
-  ${usedJSMethods.join(',\n')}
-  $jsRuntimeBlobPart4
-  $internalizedStrings
-  $jsRuntimeBlobPart5
+$jsRuntimeBlobPart1
+${mode == wasm_target.Mode.jsCompatibility ? jsRuntimeBlobPart2JSCM : jsRuntimeBlobPart2Regular}
+$jsRuntimeBlobPart3
+${usedJSMethods.join(',\n')}
+$jsRuntimeBlobPart4
+$internalizedStrings
+$jsRuntimeBlobPart5
 ''';
   }
 }

@@ -10,6 +10,7 @@ dependencies:
   _js_interop_checks: any
   args: any
   build_integration: any
+  collection: any
   front_end: any
   kernel: any
   vm: any
