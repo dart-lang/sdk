@@ -61,6 +61,9 @@ abstract class AbstractCompletionDriverTest
   /// Return `true` if keywords should be included in the text to be compared.
   bool get includeKeywords => true;
 
+  /// Return `true` if overrides should be included in the text to be compared.
+  bool get includeOverrides => true;
+
   @override
   Future<List<CompletionSuggestion>> addTestFile(String content,
       {int? offset}) async {
@@ -197,6 +200,8 @@ name: test
               allowedIdentifiers.contains(completion);
         } else if (kind == CompletionSuggestionKind.KEYWORD) {
           return includeKeywords;
+        } else if (kind == CompletionSuggestionKind.OVERRIDE) {
+          return includeOverrides;
         } else if (allowedKinds.contains(kind)) {
           return true;
         }
