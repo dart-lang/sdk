@@ -44,6 +44,8 @@ class ClassID {
   external static int get cidImmutableList;
   @pragma("wasm:class-id", "dart.core#Record")
   external static int get cidRecord;
+  @pragma("wasm:class-id", "dart.core#Symbol")
+  external static int get cidSymbol;
 
   // Class IDs for RTI Types.
   @pragma("wasm:class-id", "dart.core#_BottomType")

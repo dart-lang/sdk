@@ -89,8 +89,7 @@ class FieldIndex {
     }
     check(translator.listBaseClass, "_length", FieldIndex.listLength);
     check(translator.listBaseClass, "_data", FieldIndex.listArray);
-    check(translator.hashFieldBaseClass, "_indexNullable",
-        FieldIndex.hashBaseIndex);
+    check(translator.hashFieldBaseClass, "_index", FieldIndex.hashBaseIndex);
     check(translator.hashFieldBaseClass, "_data", FieldIndex.hashBaseData);
     check(translator.closureClass, "context", FieldIndex.closureContext);
     check(translator.typeClass, "isDeclaredNullable",

@@ -532,6 +532,49 @@ class Intrinsifier {
             b.i32_wrap_i64();
             b.array_fill(arrayType);
             return codeGen.voidMarker;
+          case 'clone':
+            // Until `array.new_copy` we need a special case for empty arrays.
+            // https://github.com/WebAssembly/gc/issues/367
+            final sourceArray = node.arguments.positional[0];
+
+            final sourceArrayRefType =
+                w.RefType.def(arrayType, nullable: false);
+            final sourceArrayLocal = codeGen.addLocal(sourceArrayRefType);
+            final newArrayLocal = codeGen.addLocal(sourceArrayRefType);
+
+            codeGen.wrap(sourceArray, sourceArrayRefType);
+            b.local_tee(sourceArrayLocal);
+
+            b.array_len();
+            b.if_([], [sourceArrayRefType]);
+            // Non-empty array. Create new one with the first element of the
+            // source, then copy the rest.
+            b.local_get(sourceArrayLocal);
+            b.i32_const(0);
+            b.array_get(arrayType);
+            b.local_get(sourceArrayLocal);
+            b.array_len();
+            b.array_new(arrayType);
+            b.local_tee(newArrayLocal); // copy dest
+            b.i32_const(1); // copy dest offset
+            b.local_get(sourceArrayLocal); // copy source
+            b.i32_const(1); // copy source offset
+
+            // copy size
+            b.local_get(sourceArrayLocal);
+            b.array_len();
+            b.i32_const(1);
+            b.i32_sub();
+
+            b.array_copy(arrayType, arrayType);
+
+            b.local_get(newArrayLocal);
+            b.else_();
+            // Empty array.
+            b.array_new_fixed(arrayType, 0);
+            b.end();
+
+            return sourceArrayRefType;
           default:
             throw 'Unhandled WasmArrayExt external method: $memberName';
         }

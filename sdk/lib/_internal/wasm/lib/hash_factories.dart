@@ -101,14 +101,7 @@ base class _WasmImmutableMap<K, V> extends _HashFieldBase
         _LinkedHashMapMixin<K, V>,
         _UnmodifiableMapMixin<K, V>,
         _ImmutableLinkedHashMapMixin<K, V>
-    implements LinkedHashMap<K, V> {
-  // Dummy constructor to prevent the TFA from concluding that `_indexNullable`
-  // is never `null`.
-  @pragma("wasm:entry-point")
-  _WasmImmutableMap._() {
-    _indexNullable = null;
-  }
-}
+    implements LinkedHashMap<K, V> {}
 
 @pragma("wasm:entry-point")
 base class _WasmImmutableSet<E> extends _HashFieldBase
@@ -120,13 +113,6 @@ base class _WasmImmutableSet<E> extends _HashFieldBase
         _UnmodifiableSetMixin<E>,
         _ImmutableLinkedHashSetMixin<E>
     implements LinkedHashSet<E> {
-  // Dummy constructor to prevent the TFA from concluding that `_indexNullable`
-  // is never `null`.
-  @pragma("wasm:entry-point")
-  _WasmImmutableSet._() {
-    _indexNullable = null;
-  }
-
   Set<R> cast<R>() => Set.castFrom<E, R>(this, newSet: _newEmpty);
 
   static Set<R> _newEmpty<R>() => LinkedHashSet<R>._default();

@@ -148,6 +148,10 @@ mixin KernelNodes {
   late final Class wasmArrayClass = index.getClass("dart:_wasm", "WasmArray");
   late final Field wasmArrayValueField =
       index.getField("dart:_wasm", "WasmArray", "_value");
+  late final Field uninitializedHashBaseIndex =
+      index.getTopLevelField("dart:collection", "_uninitializedHashBaseIndex");
+  late final Field wasmI64ValueField =
+      index.getField("dart:_wasm", "WasmI64", "_value");
 
   // dart:_internal procedures
   late final Procedure loadLibrary =
@@ -167,7 +171,7 @@ mixin KernelNodes {
   late final Procedure jsStringInterpolate =
       index.getProcedure("dart:_js_types", "JSStringImpl", "_interpolate");
 
-  // dart:collection procedures
+  // dart:collection procedures and fields
   late final Procedure mapFactory =
       index.getProcedure("dart:collection", "LinkedHashMap", "_default");
   late final Procedure mapPut = index
@@ -186,6 +190,16 @@ mixin KernelNodes {
       index.getProcedure("dart:core", "_GrowableList", "add");
   late final Procedure hashImmutableIndexNullable = index.getProcedure(
       "dart:collection", "_HashAbstractImmutableBase", "get:_indexNullable");
+  late final Field hashFieldBaseIndexField =
+      index.getField("dart:collection", "_HashFieldBase", "_index");
+  late final Field hashFieldBaseHashMaskField =
+      index.getField("dart:collection", "_HashFieldBase", "_hashMask");
+  late final Field hashFieldBaseDataField =
+      index.getField("dart:collection", "_HashFieldBase", "_data");
+  late final Field hashFieldBaseUsedDataField =
+      index.getField("dart:collection", "_HashFieldBase", "_usedData");
+  late final Field hashFieldBaseDeletedKeysField =
+      index.getField("dart:collection", "_HashFieldBase", "_deletedKeys");
 
   // dart:core various procedures
   late final Procedure objectHashCode =
