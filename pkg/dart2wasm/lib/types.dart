@@ -4,16 +4,15 @@
 
 import 'dart:math' show max;
 
-import 'package:dart2wasm/class_info.dart';
-import 'package:dart2wasm/code_generator.dart';
-import 'package:dart2wasm/translator.dart';
-
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart' as type_env;
-
 import 'package:wasm_builder/wasm_builder.dart' as w;
+
+import 'class_info.dart';
+import 'code_generator.dart';
+import 'translator.dart';
 
 /// Values for the `_kind` field in `_TopType`. Must match the definitions in
 /// `_TopType`.
@@ -411,10 +410,10 @@ class Types {
           : s;
     } else if (s is NeverType) {
       return InterfaceType(coreTypes.futureClass, Nullability.nonNullable,
-          const [const NeverType.nonNullable()]);
+          const [NeverType.nonNullable()]);
     } else if (s is NullType) {
-      return InterfaceType(coreTypes.futureClass, Nullability.nullable,
-          const [const NullType()]);
+      return InterfaceType(
+          coreTypes.futureClass, Nullability.nullable, const [NullType()]);
     }
 
     // The type is normalized, and remains a `FutureOr` so now we normalize its

@@ -5,7 +5,7 @@
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 
-import 'package:dart2wasm/records.dart';
+import 'records.dart';
 
 /// Generates a class extending `Record` for each record shape in the
 /// [Component].
@@ -194,7 +194,7 @@ class _RecordClassGenerator {
 
     String className = 'Record_${shape.positionals}';
     if (shape.names.isNotEmpty) {
-      className = className + '_${shape.names.join('_')}';
+      className = '${className}_${shape.names.join('_')}';
     }
 
     final cls = _addWasmEntryPointPragma(Class(

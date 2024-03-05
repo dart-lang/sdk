@@ -6,10 +6,10 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/target/targets.dart';
-import 'package:kernel/type_environment.dart';
 import 'package:kernel/type_algebra.dart';
+import 'package:kernel/type_environment.dart';
 
-import 'package:dart2wasm/list_factory_specializer.dart';
+import 'list_factory_specializer.dart';
 
 void transformLibraries(List<Library> libraries, CoreTypes coreTypes,
     ClassHierarchy hierarchy, DiagnosticReporter diagnosticReporter) {

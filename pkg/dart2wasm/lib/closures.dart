@@ -5,15 +5,13 @@
 import 'dart:collection';
 import 'dart:math' show min;
 
-import 'package:dart2wasm/class_info.dart';
-import 'package:dart2wasm/translator.dart';
-
 import 'package:kernel/ast.dart';
-
 import 'package:vm/metadata/procedure_attributes.dart';
 import 'package:vm/transformations/type_flow/utils.dart' show UnionFind;
-
 import 'package:wasm_builder/wasm_builder.dart' as w;
+
+import 'class_info.dart';
+import 'translator.dart';
 
 /// Describes the implementation of a concrete closure, including its vtable
 /// contents.
@@ -889,7 +887,7 @@ class ClosureRepresentationsForParameterCount {
   final Map<String, ClosureRepresentationCluster> clusterForName = {};
 
   void registerFunction(FunctionNode functionNode) {
-    int? prevIndex = null;
+    int? prevIndex;
     for (VariableDeclaration named in functionNode.namedParameters) {
       String name = named.name!;
       int nameIndex = nameIds.putIfAbsent(name, () => nameUnions.add());
@@ -1050,7 +1048,7 @@ class Closures {
   final Set<FunctionDeclaration> closurizedFunctions = {};
 
   Closures(this.translator, Member member)
-      : this.enclosingClass = member.enclosingClass;
+      : enclosingClass = member.enclosingClass;
 
   w.ModuleBuilder get m => translator.m;
 
@@ -1083,11 +1081,11 @@ class Closures {
         if (context.owner is Constructor) {
           Constructor constructor = context.owner as Constructor;
           context.struct =
-              m.types.defineStruct("<${constructor}-constructor-context>");
+              m.types.defineStruct("<$constructor-constructor-context>");
         } else if (context.owner.parent is Constructor) {
           Constructor constructor = context.owner.parent as Constructor;
           context.struct =
-              m.types.defineStruct("<${constructor}-constructor-body-context>");
+              m.types.defineStruct("<$constructor-constructor-body-context>");
         } else {
           context.struct =
               m.types.defineStruct("<context ${context.owner.location}>");

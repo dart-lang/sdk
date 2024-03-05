@@ -5,17 +5,16 @@
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:dart2wasm/class_info.dart';
-import 'package:dart2wasm/closures.dart';
-import 'package:dart2wasm/param_info.dart';
-import 'package:dart2wasm/translator.dart';
-import 'package:dart2wasm/types.dart';
-
 import 'package:kernel/ast.dart';
 import 'package:kernel/type_algebra.dart'
     show FunctionTypeInstantiator, substitute;
-
 import 'package:wasm_builder/wasm_builder.dart' as w;
+
+import 'class_info.dart';
+import 'closures.dart';
+import 'param_info.dart';
+import 'translator.dart';
+import 'types.dart';
 
 const int maxArrayNewFixedLength = 10000;
 
@@ -54,7 +53,7 @@ class Constants {
 
   bool currentlyCreating = false;
 
-  Constants(this.translator) {}
+  Constants(this.translator);
 
   w.ModuleBuilder get m => translator.m;
 
@@ -606,7 +605,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
       b.global_get(translator.globals.dummyStructGlobal); // Dummy context
       b.global_get(closure.vtable);
       constants.instantiateConstant(
-          function, b, functionTypeConstant, this.types.nonNullableTypeType);
+          function, b, functionTypeConstant, types.nonNullableTypeType);
       b.struct_new(struct);
     });
   }

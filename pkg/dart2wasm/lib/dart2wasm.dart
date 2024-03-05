@@ -8,8 +8,8 @@ import 'package:args/args.dart' as args;
 import 'package:front_end/src/api_unstable/vm.dart' show resolveInputUri;
 import 'package:front_end/src/api_unstable/vm.dart' as fe;
 
-import 'package:dart2wasm/generate_wasm.dart';
-import 'package:dart2wasm/option.dart';
+import 'generate_wasm.dart';
+import 'option.dart';
 
 // Used to allow us to keep defaults on their respective option structs.
 // Note: When adding new options, consider if CLI options should be add
@@ -150,7 +150,7 @@ WasmCompilerOptions parseArguments(List<String> arguments) {
     return compilerOptions;
   } catch (e, s) {
     print(s);
-    print('Argument Error: ' + e.toString());
+    print('Argument Error: $e');
     usage();
   }
 }
