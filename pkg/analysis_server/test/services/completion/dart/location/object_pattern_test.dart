@@ -649,4 +649,28 @@ suggestions
     kind: getter
 ''');
   }
+
+  Future<void> test_property_second_implicitFirst() async {
+    await computeSuggestions('''
+void f1(Object x0) {
+  switch (x0) {
+    case A1(:var f01, ^)
+  }
+}
+class A0 {
+  int f01 = 0;
+  int f02 = 0;
+}
+class A1 extends A0 {
+  int f11 = 0;
+}
+''');
+    assertResponse(r'''
+suggestions
+  f02
+    kind: field
+  f11
+    kind: field
+''');
+  }
 }

@@ -3162,7 +3162,7 @@ extension on GuardedPattern {
 extension on NodeList<PatternField> {
   /// Returns the names of the named fields in this list.
   Set<String> get fieldNames {
-    return map((field) => field.name?.name?.lexeme).nonNulls.toSet();
+    return map((field) => field.effectiveName).nonNulls.toSet();
   }
 }
 
