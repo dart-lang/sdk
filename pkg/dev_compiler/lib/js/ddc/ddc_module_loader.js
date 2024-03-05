@@ -23,6 +23,13 @@ if (!self.dart_library) {
       throw Error(message);
     }
 
+    /**
+     * Returns true if we're running in d8.
+     *
+     * TOOD(markzipan): Determine if this d8 check is too inexact.
+     */
+    self.dart_library.isD8 = self.document.head == void 0;
+
     const libraryImports = Symbol('libraryImports');
     self.dart_library.libraryImports = libraryImports;
 
@@ -544,7 +551,7 @@ if (!self.dart_library) {
     // invalid platforms.
     self.dart_library.createScript = (function () {
       // Exit early if we aren't modifying an HtmlElement (such as in D8).
-      if (self.document.createElement == void 0) return;
+      if (self.dart_library.isD8) return;
       // Find the nonce value. (Note, this is only computed once.)
       const scripts = Array.from(document.getElementsByTagName('script'));
       let nonce;
@@ -673,27 +680,7 @@ if (!self.dart_library) {
 //   {"src": "path/to/script.js", "id": "lookup_id_for_script"}
 (function () {
   let _currentDirectory = (function () {
-    let _url;
-    let lines = new Error().stack.split('\n');
-    function lookupUrl() {
-      if (lines.length > 2) {
-        let match = lines[1].match(/^\s+at (.+):\d+:\d+.*$/);
-        // Chrome.
-        if (match) return match[1];
-        // Chrome nested eval case.
-        match = lines[1].match(/^\s+at eval [(](.+):\d+:\d+[)]$/);
-        if (match) return match[1];
-        // Edge.
-        match = lines[1].match(/^\s+at.+\((.+):\d+:\d+\)$/);
-        if (match) return match[1];
-        // Firefox.
-        match = lines[0].match(/[<][@](.+):\d+:\d+$/);
-        if (match) return match[1];
-      }
-      // Safari.
-      return lines[0].match(/[@](.+):\d+:\d+$/)[1];
-    }
-    _url = lookupUrl();
+    let _url = document.currentScript.src;
     let lastSlash = _url.lastIndexOf('/');
     if (lastSlash == -1) return _url;
     let currentDirectory = _url.substring(0, lastSlash + 1);
@@ -763,10 +750,13 @@ if (!self.dart_library) {
     };
   }
 
-  // Add a `forceLoadModule` function to the dartLoader since it's required by
-  // the google3 load strategy.
+  // Loads a single script onto the page.
   // TODO(markzipan): Is there a cleaner way to integrate this?
-  self.$dartLoader.forceLoadModule = function (moduleName) {
+  self.$dartLoader.forceLoadScript = function (jsFile) {
+    if (self.dart_library.isD8) {
+      self.load(jsFile);
+      return;
+    }
     let script = self.dart_library.createScript();
     let policy = {
       createScriptURL: function (src) { return src; }
@@ -774,8 +764,13 @@ if (!self.dart_library) {
     if (self.trustedTypes && self.trustedTypes.createPolicy) {
       policy = self.trustedTypes.createPolicy('dartDdcModuleUrl', policy);
     }
-    script.setAttribute('src', policy.createScriptURL(_currentDirectory + moduleName + '.js'));
+    script.setAttribute('src', policy.createScriptURL(jsFile));
     document.head.appendChild(script);
+  };
+
+  self.$dartLoader.forceLoadModule = function (moduleName) {
+    let modulePathScript = _currentDirectory + moduleName + '.js';
+    self.$dartLoader.forceLoadScript(modulePathScript);
   };
 
   // Handles JS script downloads and evaluation for a DDC app.
@@ -808,10 +803,33 @@ if (!self.dart_library) {
 
         this.loadConfig.loadScriptFn(this);
       };
+
+      // The current hot restart generation.
+      //
+      // 0-indexed and increases by 1 on every successful hot restart.
+      // This value is read to determine the 'current' hot restart generation
+      // in our hot restart tests. This closely tracks but is not the same as
+      // `hotRestartIteration` in DDC's runtime.
+      this.hotRestartGeneration = 0;
+
+      // The current 'intended' hot restart generation.
+      //
+      // 0-indexed and increases by 1 on every successful hot restart.
+      // Unlike `hotRestartGeneration`, this is incremented when the intent to
+      // perform a hot restart is established.
+      // This is used to synchronize D8 timers and lookup files to load in
+      // each generation for hot restart testing.
+      this.intendedHotRestartGeneration = 0;
+
+      // The current hot reload generation.
+      //
+      // 0-indexed and increases by 1 on every successful hot reload.
+      this.hotReloadGeneration = 0;
     }
 
-    // If all scripts from all the current visited scripts queue are being processed
-    // (loaded or failed).
+    // True if we are still processing scripts from the script queue.
+    // 'Processing' means the script is 1) currently being downloaded/parsed
+    // or 2) the script failed to download and is being retried.
     scriptsActivelyBeingLoaded() {
       return this.numToLoad > this.numLoaded + this.numFailed;
     };
@@ -909,7 +927,13 @@ if (!self.dart_library) {
       while (this.queue.length > 0 && inflightRequests++ < maxRequests) {
         const script = this.queue.shift();
         this.numToLoad++;
-        this.createAndLoadScript(script.src.toString(), script.id, fragment, this.onError.bind(this), this.onLoad.bind(this));
+        this.createAndLoadScript(
+          script.src.toString(),
+          script.id,
+          fragment,
+          this.onError.bind(this),
+          this.onLoad.bind(this)
+        );
       }
       if (inflightRequests > 0) {
         document.head.appendChild(fragment);
@@ -924,8 +948,30 @@ if (!self.dart_library) {
       }
     };
 
+    // Loads modules when running with Chrome.
     loadEnqueuedModules() {
       this.loadMore(this.loadConfig.maxRequestPoolSize);
+    };
+
+    // Loads modules when running with d8.
+    loadEnqueuedModulesForD8() {
+      if (!self.dart_library.isD8) {
+        throw Error("'loadEnqueuedModulesForD8' is only supported in D8.");
+      }
+      // Load all enqueued scripts sequentially.
+      for (let i = 0; i < this.queue.length; i++) {
+        const script = this.queue[i];
+        self.load(script.src.toString());
+      }
+      this.queue.length = 0;
+      // Load the bootstrapper script if it wasn't already loaded.
+      if (this.loadConfig.tryLoadBootstrapScript) {
+        const script = this.loadConfig.bootstrapScript;
+        const src = this.registerScript(script);
+        self.load(src);
+        this.loadConfig.tryLoadBootstrapScript = false;
+      }
+      return;
     };
 
     // Loads just the bootstrap script.
@@ -996,6 +1042,18 @@ if (!self.dart_library) {
       }
       this.processAfterLoadOrErrorEvent();
     };
+
+    // Initiates a hot reload.
+    // TODO(markzipan): This function is currently stubbed out for testing.
+    hotReload() {
+      this.hotReloadGeneration += 1;
+    }
+
+    // Initiates a hot restart.
+    hotRestart() {
+      this.intendedHotRestartGeneration += 1;
+      self.dart_library.reload();
+    }
   };
 
   let policy = {
@@ -1080,9 +1138,10 @@ if (!self.deferred_loader) {
    */
   let loadScript = function (moduleUrl, onLoad) {
     // A head element won't be created for D8, so just load synchronously.
-    if (self.document.head == void 0) {
+    if (self.dart_library.isD8) {
       self.load(moduleUrl);
       onLoad();
+      return;
     }
     let script = dart_library.createScript();
     let policy = {

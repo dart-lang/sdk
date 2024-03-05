@@ -643,8 +643,6 @@ class LibraryBuilder {
       if (classElement.isMixinApplication) continue;
       if (classElement.isAugmentation) continue;
       if (classElement.augmented case var augmented?) {
-        // TODO(scheglov): https://github.com/dart-lang/sdk/issues/54967
-        augmented.constructors; // remove when fixed
         var hasConst = augmented.constructors.any((e) => e.isConst);
         if (hasConst) {
           withConstConstructors.add(classElement);

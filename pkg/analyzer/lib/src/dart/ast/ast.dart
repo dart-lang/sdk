@@ -4339,7 +4339,7 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
   @override
   Token get firstTokenAfterCommentAndMetadata {
     return Token.lexicallyFirst(
-            externalKeyword, constKeyword, factoryKeyword) ??
+            externalKeyword, constKeyword, factoryKeyword, augmentKeyword) ??
         _returnType.beginToken;
   }
 

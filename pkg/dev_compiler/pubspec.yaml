@@ -31,6 +31,7 @@ dev_dependencies:
   js: any
   lints: any
   modular_test: any
+  reload_test: any
   shelf: any
   sourcemap_testing: any
   stack_trace: any

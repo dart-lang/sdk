@@ -1,0 +1,17 @@
+name: reload_test
+# This package is not intended for consumption on pub.dev. DO NOT publish.
+publish_to: none
+description: >
+  Small framework for testing hot reload and hot restart across Dart backends.
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+
+# Use 'any' constraints here; we get our versions from the DEPS file.
+dependencies:
+  dev_compiler: any
+  frontend_server: any
+
+# Use 'any' constraints here; we get our versions from the DEPS file.
+dev_dependencies:
+  lints: any

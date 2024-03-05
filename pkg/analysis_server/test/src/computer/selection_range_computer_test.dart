@@ -110,6 +110,60 @@ class Foo<T> {
     );
   }
 
+  Future<void> test_class_fields_augmentation() async {
+    newFile('$testPackageLibPath/a.dart', '''
+import augment 'test.dart';
+class Foo {
+  String a = 'test';
+}
+''');
+
+    final content = TestCode.parse('''
+library augment 'a.dart';
+augment class Foo {
+  augment ^String get a => 'test2';
+}
+''');
+
+    final regions = await _computeSelectionRanges(content);
+    _expectRegions(
+      regions,
+      content,
+      [
+        'String',
+        "augment String get a => 'test2';",
+        "augment class Foo {\n  augment String get a => 'test2';\n}",
+      ],
+    );
+  }
+
+  Future<void> test_constructor_augmentation() async {
+    newFile('$testPackageLibPath/a.dart', '''
+import augment 'test.dart';
+class Foo {
+  Foo();
+}
+''');
+
+    final content = TestCode.parse('''
+library augment 'a.dart';
+augment class Foo {
+  augment Foo(^);
+}
+''');
+
+    final regions = await _computeSelectionRanges(content);
+    _expectRegions(
+      regions,
+      content,
+      [
+        '()',
+        'augment Foo();',
+        'augment class Foo {\n  augment Foo();\n}',
+      ],
+    );
+  }
+
   Future<void> test_constructorCall() async {
     final content = TestCode.parse('''
 class Foo {
@@ -214,6 +268,42 @@ class Foo<T> {
     );
   }
 
+  Future<void> test_method_augmentation() async {
+    newFile('$testPackageLibPath/a.dart', '''
+import augment 'test.dart';
+class Foo {
+  void f() {}
+}
+''');
+
+    final content = TestCode.parse('''
+library augment a.dart;
+
+augment class Foo {
+  augment void f() {
+    print((1 ^+ 2) * 3);
+  }
+}
+''');
+
+    final regions = await _computeSelectionRanges(content);
+    _expectRegions(
+      regions,
+      content,
+      [
+        '1 + 2',
+        '(1 + 2)',
+        '(1 + 2) * 3',
+        '((1 + 2) * 3)',
+        'print((1 + 2) * 3)',
+        'print((1 + 2) * 3);',
+        '{\n    print((1 + 2) * 3);\n  }',
+        'augment void f() {\n    print((1 + 2) * 3);\n  }',
+        'augment class Foo {\n  augment void f() {\n    print((1 + 2) * 3);\n  }\n}',
+      ],
+    );
+  }
+
   Future<void> test_methodLambda() async {
     final content = TestCode.parse('''
 class Foo<T> {
@@ -234,6 +324,42 @@ class Foo<T> {
         '=> print((1 + 2) * 3);',
         'void a(String b) => print((1 + 2) * 3);',
         'class Foo<T> {\n  void a(String b) => print((1 + 2) * 3);\n}',
+      ],
+    );
+  }
+
+  Future<void> test_mixin_augmentation() async {
+    newFile('$testPackageLibPath/a.dart', '''
+import augment 'test.dart';
+mixin Foo {
+  void a(String b){}
+}
+''');
+
+    final content = TestCode.parse('''
+library augment a.dart;
+
+augment mixin Foo {
+  augment void a(String b) {
+    print((1 ^+ 2) * 3);
+  }
+}
+''');
+
+    final regions = await _computeSelectionRanges(content);
+    _expectRegions(
+      regions,
+      content,
+      [
+        '1 + 2',
+        '(1 + 2)',
+        '(1 + 2) * 3',
+        '((1 + 2) * 3)',
+        'print((1 + 2) * 3)',
+        'print((1 + 2) * 3);',
+        '{\n    print((1 + 2) * 3);\n  }',
+        'augment void a(String b) {\n    print((1 + 2) * 3);\n  }',
+        'augment mixin Foo {\n  augment void a(String b) {\n    print((1 + 2) * 3);\n  }\n}',
       ],
     );
   }
@@ -334,6 +460,37 @@ void a(String b) {
         '{\n  print((1 + 2) * 3);\n}',
         '(String b) {\n  print((1 + 2) * 3);\n}',
         'void a(String b) {\n  print((1 + 2) * 3);\n}',
+      ],
+    );
+  }
+
+  Future<void> test_topLevelFunction_augmentation() async {
+    newFile('$testPackageLibPath/a.dart', '''
+import augment 'test.dart';
+void a(String b) {}
+''');
+
+    final content = TestCode.parse('''
+library augment 'a.dart';
+augment void a(String b) {
+  print((1 ^+ 2) * 3);
+}
+''');
+
+    final regions = await _computeSelectionRanges(content);
+    _expectRegions(
+      regions,
+      content,
+      [
+        '1 + 2',
+        '(1 + 2)',
+        '(1 + 2) * 3',
+        '((1 + 2) * 3)',
+        'print((1 + 2) * 3)',
+        'print((1 + 2) * 3);',
+        '{\n  print((1 + 2) * 3);\n}',
+        '(String b) {\n  print((1 + 2) * 3);\n}',
+        'augment void a(String b) {\n  print((1 + 2) * 3);\n}',
       ],
     );
   }
