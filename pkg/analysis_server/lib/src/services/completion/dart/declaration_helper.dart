@@ -1234,7 +1234,10 @@ class DeclarationHelper {
       if (mustBeConstant || _isUnused(element.name)) {
         return;
       }
-      var suggestion = FormalParameterSuggestion(element: element);
+      var suggestion = FormalParameterSuggestion(
+        element: element,
+        distance: _variableDistance++,
+      );
       collector.addSuggestion(suggestion);
     }
   }

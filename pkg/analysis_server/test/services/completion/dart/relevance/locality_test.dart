@@ -24,6 +24,35 @@ class LocalityTest extends CompletionRelevanceTest {
       ..withRelevance = true;
   }
 
+  Future<void> test_catchClause() async {
+    await computeSuggestions('''
+int f(int v01) {
+  var v02 = 0;
+  try {} catch (v03, v04) {
+    v0^
+  }
+}
+''');
+
+    assertResponse(r'''
+replacement
+  left: 2
+suggestions
+  v03
+    kind: localVariable
+    relevance: 575
+  v04
+    kind: localVariable
+    relevance: 569
+  v02
+    kind: localVariable
+    relevance: 564
+  v01
+    kind: parameter
+    relevance: 546
+''');
+  }
+
   Future<void> test_formalParameter_higherThan_importedClass() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class v01 {}
@@ -104,6 +133,29 @@ suggestions
 ''');
   }
 
+  Future<void> test_formalParameters_constructor() async {
+    await computeSuggestions('''
+class A {
+  A(int v01, int v02) {
+    v0^
+  }
+}
+''');
+
+    // The formal parameters are suggested in forward order.
+    assertResponse(r'''
+replacement
+  left: 2
+suggestions
+  v01
+    kind: parameter
+    relevance: 561
+  v02
+    kind: parameter
+    relevance: 555
+''');
+  }
+
   Future<void> test_formalParameters_function() async {
     await computeSuggestions('''
 int f(int v01, int v02) {
@@ -122,6 +174,36 @@ suggestions
   v02
     kind: parameter
     relevance: 555
+''');
+  }
+
+  Future<void> test_formalParameters_function_local() async {
+    await computeSuggestions('''
+int f(int v01) {
+  var v02 = 0;
+  void f2(int v03, int v04) {
+    v0^
+  }
+}
+''');
+
+    // TODO(scheglov): why `v02` is higher?
+    assertResponse(r'''
+replacement
+  left: 2
+suggestions
+  v02
+    kind: localVariable
+    relevance: 564
+  v03
+    kind: parameter
+    relevance: 561
+  v04
+    kind: parameter
+    relevance: 555
+  v01
+    kind: parameter
+    relevance: 546
 ''');
   }
 

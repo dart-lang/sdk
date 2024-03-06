@@ -584,6 +584,35 @@ class SuggestionBuilder {
     );
   }
 
+  void suggestFormalParameter({
+    required ParameterElement element,
+    required int distance,
+  }) {
+    var variableType = element.type;
+    var contextType = request.featureComputer
+        .contextTypeFeature(request.contextType, variableType);
+    var localVariableDistance =
+        request.featureComputer.distanceToPercent(distance);
+    var elementKind = _computeElementKind(element);
+    var isConstant = _preferConstants
+        ? request.featureComputer.isConstantFeature(element)
+        : 0.0;
+    var relevance = _computeRelevance(
+      contextType: contextType,
+      elementKind: elementKind,
+      isConstant: isConstant,
+      localVariableDistance: localVariableDistance,
+    );
+    _addBuilder(
+      _createCompletionSuggestionBuilder(
+        element,
+        kind: CompletionSuggestionKind.IDENTIFIER,
+        relevance: relevance,
+        isNotImported: isNotImportedLibrary,
+      ),
+    );
+  }
+
   /// Add a suggestion for the `call` method defined on functions.
   void suggestFunctionCall() {
     final element = protocol.Element(protocol.ElementKind.METHOD,
@@ -680,20 +709,19 @@ class SuggestionBuilder {
     );
   }
 
-  /// Add a suggestion for a local [variable].
-  void suggestLocalVariable(LocalVariableElement variable) {
-    var variableType = variable.type;
-    var target = request.target;
-    var entity = target.entity;
-    var node = entity is AstNode ? entity : target.containingNode;
+  void suggestLocalVariable({
+    required LocalVariableElement element,
+    required int distance,
+  }) {
+    var variableType = element.type;
     var contextType = request.featureComputer
         .contextTypeFeature(request.contextType, variableType);
     var localVariableDistance =
-        request.featureComputer.localVariableDistanceFeature(node, variable);
+        request.featureComputer.distanceToPercent(distance);
     var elementKind =
-        _computeElementKind(variable, distance: localVariableDistance);
+        _computeElementKind(element, distance: localVariableDistance);
     var isConstant = _preferConstants
-        ? request.featureComputer.isConstantFeature(variable)
+        ? request.featureComputer.isConstantFeature(element)
         : 0.0;
     var relevance = _computeRelevance(
       contextType: contextType,
@@ -703,7 +731,7 @@ class SuggestionBuilder {
     );
     _addBuilder(
       _createCompletionSuggestionBuilder(
-        variable,
+        element,
         kind: CompletionSuggestionKind.IDENTIFIER,
         relevance: relevance,
         isNotImported: isNotImportedLibrary,
@@ -981,36 +1009,6 @@ class SuggestionBuilder {
     _addSuggestion(
       suggestion,
       textToMatchOverride: _textToMatchOverride(element),
-    );
-  }
-
-  /// Add a suggestion for a [parameter].
-  void suggestParameter(ParameterElement parameter) {
-    var variableType = parameter.type;
-    var target = request.target;
-    var entity = target.entity;
-    var node = entity is AstNode ? entity : target.containingNode;
-    var contextType = request.featureComputer
-        .contextTypeFeature(request.contextType, variableType);
-    var localVariableDistance =
-        request.featureComputer.localVariableDistanceFeature(node, parameter);
-    var elementKind = _computeElementKind(parameter);
-    var isConstant = _preferConstants
-        ? request.featureComputer.isConstantFeature(parameter)
-        : 0.0;
-    var relevance = _computeRelevance(
-      contextType: contextType,
-      elementKind: elementKind,
-      isConstant: isConstant,
-      localVariableDistance: localVariableDistance,
-    );
-    _addBuilder(
-      _createCompletionSuggestionBuilder(
-        parameter,
-        kind: CompletionSuggestionKind.IDENTIFIER,
-        relevance: relevance,
-        isNotImported: isNotImportedLibrary,
-      ),
     );
   }
 
