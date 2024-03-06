@@ -1,4 +1,4 @@
-## 3.3.1
+## 3.3.1 - 2024-03-06
 
 This is a patch release that:
 
@@ -7,10 +7,10 @@ This is a patch release that:
   library (issue [#55057][]).
 - Disallows certain types involving extension types from being used as the
   operand of an `await` expression, unless the extension type itself implements
-  `Future` (issue [#54647][]).
+  `Future` (issue [#55095][]).
 
 [#55057]: https://github.com/dart-lang/sdk/issues/55057
-[#54647]: https://github.com/dart-lang/sdk/issues/54647
+[#55095]: https://github.com/dart-lang/sdk/issues/55095
 
 ## 3.3.0 - 2024-02-15
 

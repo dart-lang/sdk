@@ -26,8 +26,6 @@
 CHANNEL stable
 MAJOR 3
 MINOR 3
-PATCH 0
+PATCH 1
 PRERELEASE 0
 PRERELEASE_PATCH 0
-# Reauthoring version 3.3.0 due to a cherry-pick after the beta was promoted to
-# stable.
