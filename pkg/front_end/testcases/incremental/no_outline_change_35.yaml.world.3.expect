@@ -13,25 +13,34 @@ library from "org-dartlang-test:///lib.dart" as lib {
       ;
     @#C8
     get x() → dart.core::double
-      return dart.ffi::_loadDouble(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, #C10.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*});
+      return dart.ffi::_loadDouble(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, lib::Coordinate::x#offsetOf);
     @#C8
     set x(synthesized dart.core::double #externalFieldValue) → void
-      return dart.ffi::_storeDouble(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, #C10.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*}, #externalFieldValue);
+      return dart.ffi::_storeDouble(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, lib::Coordinate::x#offsetOf, #externalFieldValue);
     @#C8
     get y() → dart.core::double
-      return dart.ffi::_loadDouble(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, #C12.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*});
+      return dart.ffi::_loadDouble(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, lib::Coordinate::y#offsetOf);
     @#C8
     set y(synthesized dart.core::double #externalFieldValue) → void
-      return dart.ffi::_storeDouble(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, #C12.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*}, #externalFieldValue);
+      return dart.ffi::_storeDouble(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, lib::Coordinate::y#offsetOf, #externalFieldValue);
     get next() → dart.ffi::Pointer<lib::Coordinate>
-      return dart.ffi::_loadPointer<lib::Coordinate>(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, #C14.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*});
+      return dart.ffi::_loadPointer<lib::Coordinate>(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, lib::Coordinate::next#offsetOf);
     set next(synthesized dart.ffi::Pointer<lib::Coordinate> #externalFieldValue) → void
-      return dart.ffi::_storePointer<lib::Coordinate>(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, #C14.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*}, #externalFieldValue);
+      return dart.ffi::_storePointer<lib::Coordinate>(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, lib::Coordinate::next#offsetOf, #externalFieldValue);
     static factory allocate(dart.core::double x, dart.core::double y, dart.ffi::Pointer<lib::Coordinate>? next) → lib::Coordinate {
       dart.core::print("hello");
       throw "";
     }
-    @#C16
+    @#C10
+    static get x#offsetOf() → dart.core::int
+      return #C12.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*};
+    @#C10
+    static get y#offsetOf() → dart.core::int
+      return #C14.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*};
+    @#C10
+    static get next#offsetOf() → dart.core::int
+      return #C16.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*};
+    @#C10
     static get #sizeOf() → dart.core::int*
       return #C19.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*};
   }
@@ -57,14 +66,14 @@ constants  {
   #C6 = dart.ffi::_FfiStructLayout {fieldTypes:#C4, packing:#C5}
   #C7 = dart.core::pragma {name:#C1, options:#C6}
   #C8 = dart.ffi::Double {}
-  #C9 = 0
-  #C10 = <dart.core::int*>[#C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9]
-  #C11 = 8
+  #C9 = "vm:prefer-inline"
+  #C10 = dart.core::pragma {name:#C9, options:#C5}
+  #C11 = 0
   #C12 = <dart.core::int*>[#C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11]
-  #C13 = 16
+  #C13 = 8
   #C14 = <dart.core::int*>[#C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13]
-  #C15 = "vm:prefer-inline"
-  #C16 = dart.core::pragma {name:#C15, options:#C5}
+  #C15 = 16
+  #C16 = <dart.core::int*>[#C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15]
   #C17 = 24
   #C18 = 20
   #C19 = <dart.core::int*>[#C17, #C17, #C18, #C17, #C17, #C17, #C17, #C17, #C18, #C17, #C17, #C17, #C17, #C18, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17]

@@ -533,12 +533,7 @@ class FfiNativeTransformer extends FfiTransformer {
     // current function a body that does the wrapping/unwrapping.
     node.isExternal = false;
 
-    node.addAnnotation(ConstantExpression(
-      InstanceConstant(pragmaClass.reference, [], {
-        pragmaName.fieldReference: StringConstant("vm:prefer-inline"),
-        pragmaOptions.fieldReference: NullConstant(),
-      }),
-    ));
+    addPragmaPreferInline(node);
 
     final parent = node.parent;
     final fileUri = node.fileUri;

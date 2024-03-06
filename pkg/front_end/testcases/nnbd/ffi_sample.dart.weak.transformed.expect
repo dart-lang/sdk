@@ -17,20 +17,20 @@ final class Coordinate extends ffi::Struct {
     ;
   @#C8
   get x() → core::double
-    return ffi::_loadDouble(this.{ffi::_Compound::_typedDataBase}{core::Object}, #C10.{core::List::[]}(ffi::_abi()){(core::int) → core::int*});
+    return ffi::_loadDouble(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::Coordinate::x#offsetOf);
   @#C8
   set x(synthesized core::double #externalFieldValue) → void
-    return ffi::_storeDouble(this.{ffi::_Compound::_typedDataBase}{core::Object}, #C10.{core::List::[]}(ffi::_abi()){(core::int) → core::int*}, #externalFieldValue);
+    return ffi::_storeDouble(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::Coordinate::x#offsetOf, #externalFieldValue);
   @#C8
   get y() → core::double
-    return ffi::_loadDouble(this.{ffi::_Compound::_typedDataBase}{core::Object}, #C12.{core::List::[]}(ffi::_abi()){(core::int) → core::int*});
+    return ffi::_loadDouble(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::Coordinate::y#offsetOf);
   @#C8
   set y(synthesized core::double #externalFieldValue) → void
-    return ffi::_storeDouble(this.{ffi::_Compound::_typedDataBase}{core::Object}, #C12.{core::List::[]}(ffi::_abi()){(core::int) → core::int*}, #externalFieldValue);
+    return ffi::_storeDouble(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::Coordinate::y#offsetOf, #externalFieldValue);
   get next() → ffi::Pointer<self::Coordinate>
-    return ffi::_loadPointer<self::Coordinate>(this.{ffi::_Compound::_typedDataBase}{core::Object}, #C14.{core::List::[]}(ffi::_abi()){(core::int) → core::int*});
+    return ffi::_loadPointer<self::Coordinate>(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::Coordinate::next#offsetOf);
   set next(synthesized ffi::Pointer<self::Coordinate> #externalFieldValue) → void
-    return ffi::_storePointer<self::Coordinate>(this.{ffi::_Compound::_typedDataBase}{core::Object}, #C14.{core::List::[]}(ffi::_abi()){(core::int) → core::int*}, #externalFieldValue);
+    return ffi::_storePointer<self::Coordinate>(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::Coordinate::next#offsetOf, #externalFieldValue);
   static factory allocate(ffi::Allocator allocator, core::double x, core::double y, ffi::Pointer<self::Coordinate> next) → self::Coordinate {
     return let final self::Coordinate #t1 = new self::Coordinate::#fromTypedDataBase(allocator.{ffi::Allocator::allocate}<self::Coordinate>(self::Coordinate::#sizeOf){(core::int, {alignment: core::int?}) → ffi::Pointer<self::Coordinate>}!) in block {
       #t1.{self::Coordinate::x} = x;
@@ -38,7 +38,16 @@ final class Coordinate extends ffi::Struct {
       #t1.{self::Coordinate::next} = next;
     } =>#t1;
   }
-  @#C16
+  @#C10
+  static get x#offsetOf() → core::int
+    return #C12.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
+  @#C10
+  static get y#offsetOf() → core::int
+    return #C14.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
+  @#C10
+  static get next#offsetOf() → core::int
+    return #C16.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
+  @#C10
   static get #sizeOf() → core::int*
     return #C19.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
 }
@@ -53,14 +62,14 @@ constants  {
   #C6 = ffi::_FfiStructLayout {fieldTypes:#C4, packing:#C5}
   #C7 = core::pragma {name:#C1, options:#C6}
   #C8 = ffi::Double {}
-  #C9 = 0
-  #C10 = <core::int*>[#C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9]
-  #C11 = 8
+  #C9 = "vm:prefer-inline"
+  #C10 = core::pragma {name:#C9, options:#C5}
+  #C11 = 0
   #C12 = <core::int*>[#C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11]
-  #C13 = 16
+  #C13 = 8
   #C14 = <core::int*>[#C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13]
-  #C15 = "vm:prefer-inline"
-  #C16 = core::pragma {name:#C15, options:#C5}
+  #C15 = 16
+  #C16 = <core::int*>[#C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15]
   #C17 = 24
   #C18 = 20
   #C19 = <core::int*>[#C17, #C17, #C18, #C17, #C17, #C17, #C17, #C17, #C18, #C17, #C17, #C17, #C17, #C18, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17]
