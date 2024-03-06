@@ -324,7 +324,7 @@ File* File::OpenFD(int fd) {
 
 class StringRAII {
  public:
-  explicit StringRAII(StringRAII& origin) {  // NOLINT
+  StringRAII(StringRAII& origin) {
     own_ = origin.own_;
     s_ = origin.release();
   }
