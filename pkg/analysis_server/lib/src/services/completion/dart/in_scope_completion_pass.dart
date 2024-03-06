@@ -1426,6 +1426,12 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   void visitMethodInvocation(MethodInvocation node) {
     var operator = node.operator;
     if (operator == null) {
+      if (node.coversOffset(offset)) {
+        // TODO(keertip): Also check for more cases, RHS of assignment operator,
+        // a field in record literal, an operand to an operator.
+        var mustBeNonVoid = node.parent is ArgumentList;
+        _forExpression(node, mustBeNonVoid: mustBeNonVoid);
+      }
       return;
     }
     if ((node.isCascaded && offset == operator.offset + 1) ||

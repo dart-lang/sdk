@@ -891,6 +891,33 @@ suggestions
   }
 
   Future<void>
+      test_afterLeftBrace_beforeRightBrace_withImportedTopLevelFunctionInvocation() async {
+    allowedIdentifiers = {'wrapper'};
+    newFile('$testPackageLibPath/a.dart', '''
+String? wrapper(String? value) => value;
+''');
+    await computeSuggestions('''
+import 'a.dart';
+
+class A {
+  final String? first;
+  const A(this.first);
+}
+
+void f() {
+  A(w^())
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  wrapper
+    kind: functionInvocation
+''');
+  }
+
+  Future<void>
       test_afterLeftBrace_beforeRightBrace_withImportedTopLevelFunctions() async {
     allowedIdentifiers = {'aa0', 'aa1234'};
     newFile('$testPackageLibPath/a.dart', '''
