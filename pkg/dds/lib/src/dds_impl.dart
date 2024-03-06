@@ -107,28 +107,45 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
         },
       ),
     );
+    // Run in an error Zone to ensure that asynchronous exceptions encountered
+    // during request handling are handled, as exceptions thrown during request
+    // handling shouldn't take down the entire service.
+    await runZonedGuarded(
+      () async {
+        try {
+          // Setup stream event handling.
+          await streamManager.listen();
 
-    try {
-      // Setup stream event handling.
-      await streamManager.listen();
+          // Populate initial isolate state.
+          await _isolateManager.initialize();
 
-      // Populate initial isolate state.
-      await _isolateManager.initialize();
-
-      // Once we have a connection to the VM service, we're ready to spawn the intermediary.
-      await _startDDSServer();
-      _initializationComplete = true;
-    } on StateError {
-      // Handle json-rpc state errors.
-      //
-      // It's possible that ordering of events on the event queue can result in
-      // the cleanup code above being called after this function has returned,
-      // resulting in an invalid DDS instance being released into the wild.
-      //
-      // If initialization hasn't completed and the error hasn't already been
-      // set, set it now.
-      error ??= DartDevelopmentServiceException.failedToStart();
-    }
+          // Once we have a connection to the VM service, we're ready to spawn
+          // the intermediary.
+          await _startDDSServer();
+          _initializationComplete = true;
+        } on StateError {
+          // Handle json-rpc state errors.
+          //
+          // It's possible that ordering of events on the event queue can
+          // result in the cleanup code above being called after this function
+          // has returned,
+          // resulting in an invalid DDS instance being released into the wild.
+          //
+          // If initialization hasn't completed and the error hasn't already
+          // been set, set it now.
+          error ??= DartDevelopmentServiceException.failedToStart();
+        } on DartDevelopmentServiceException catch (e) {
+          // Forward any DartDevelopmentServiceExceptions thrown when starting
+          // the server.
+          error = e;
+        }
+      },
+      (error, stack) {
+        if (shouldLogRequests) {
+          print('Asynchronous error: $error\n$stack');
+        }
+      },
+    );
 
     // Check if we encountered any errors during startup, cleanup, and throw.
     if (error != null) {
@@ -155,38 +172,28 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
     }
     pipeline = pipeline.addMiddleware(_authCodeMiddleware);
     final handler = pipeline.addHandler(_handlers().handler);
-    // Start the DDS server. Run in an error Zone to ensure that asynchronous
-    // exceptions encountered during request handling are handled, as exceptions
-    // thrown during request handling shouldn't take down the entire service.
+    // Start the DDS server.
     late String errorMessage;
-    final tmpServer = await runZonedGuarded(
-      () async {
-        Future<HttpServer?> startServer() async {
-          try {
-            return await io.serve(handler, host, port);
-          } on SocketException catch (e) {
-            if (_enableServicePortFallback && port != 0) {
-              // Try again, this time with a random port.
-              port = 0;
-              return await startServer();
-            }
-            errorMessage = e.message;
-            if (e.osError != null) {
-              errorMessage += ' (${e.osError!.message})';
-            }
-            errorMessage += ': ${e.address?.host}:${e.port}';
-            return null;
-          }
+    Future<HttpServer?> startServer() async {
+      try {
+        return await io.serve(handler, host, port);
+      } on SocketException catch (e) {
+        if (_enableServicePortFallback && port != 0) {
+          // Try again, this time with a random port.
+          port = 0;
+          return await startServer();
         }
+        errorMessage = e.message;
+        if (e.osError != null) {
+          errorMessage += ' (${e.osError!.message})';
+        }
+        errorMessage += ': ${e.address?.host}:${e.port}';
+        return null;
+      }
+    }
 
-        return await startServer();
-      },
-      (error, stack) {
-        if (shouldLogRequests) {
-          print('Asynchronous error: $error\n$stack');
-        }
-      },
-    );
+    final tmpServer = await startServer();
+
     if (tmpServer == null) {
       throw DartDevelopmentServiceException.connectionIssue(errorMessage);
     }

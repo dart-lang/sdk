@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:convert' show base64Decode, base64Encode;
 
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
@@ -37,6 +38,7 @@ enum _IsolateState {
   pauseStart,
   pauseExit,
   pausePostRequest,
+  unknown,
 }
 
 class RunningIsolate {
@@ -44,7 +46,8 @@ class RunningIsolate {
       : cpuSamplesManager = CpuSamplesManager(
           isolateManager.dds,
           id,
-        );
+        ),
+        _state = _IsolateState.unknown;
 
   // State setters.
   void pausedOnExit() => _state = _IsolateState.pauseExit;
@@ -146,7 +149,7 @@ class RunningIsolate {
   final String name;
   final String id;
   final Set<String?> _resumeApprovalsByName = {};
-  _IsolateState? _state;
+  _IsolateState _state;
 }
 
 class IsolateManager {
@@ -217,49 +220,70 @@ class IsolateManager {
     if (_initialized) {
       return;
     }
-    await _mutex.runGuarded(
-      () async {
-        final vm = await dds.vmServiceClient.sendRequest('getVM');
-        final List<Map> isolateRefs =
-            vm['isolates'].cast<Map<String, dynamic>>();
-        // Check the pause event for each isolate to determine whether or not the
-        // isolate is already paused.
-        for (final isolateRef in isolateRefs) {
-          final id = isolateRef['id'];
-          final isolate = await dds.vmServiceClient.sendRequest('getIsolate', {
-            'isolateId': id,
-          });
-          // If the isolate has shutdown after the getVM request, ignore it and
-          // continue to the next isolate.
-          if (isolate['type'] == 'Sentinel') {
-            continue;
-          }
-          final name = isolate['name'];
-          if (isolate.containsKey('pauseEvent')) {
-            isolates[id] = RunningIsolate(this, id, name);
-            final eventKind = isolate['pauseEvent']['kind'];
-            _updateIsolateState(id, name, eventKind);
-          } else {
-            // If the isolate doesn't have a pauseEvent, assume it's running.
-            isolateStarted(id, name);
-          }
-        }
-        if (dds.cachedUserTags.isNotEmpty) {
-          await dds.vmServiceClient.sendRequestAndIgnoreMethodNotFound(
-            'streamCpuSamplesWithUserTag',
-            {
-              'userTags': dds.cachedUserTags,
+    final vm = await dds.vmServiceClient.sendRequest('getVM');
+    final isolateRefs = vm['isolates'].cast<Map<String, dynamic>>();
+    // Check the pause event for each isolate to determine whether or not the
+    // isolate is already paused.
+    for (final isolateRef in isolateRefs) {
+      final id = isolateRef['id'];
+      final name = isolateRef['name'];
+
+      // Create an entry for the running isolate.
+      initializeRunningIsolate(id, name);
+
+      // The calls to `getIsolate` are intentionally unawaited as it's
+      // possible for the isolate to be in a state where it is unable to
+      // process service messages, potentially indefinitely. For example,
+      // an isolate that invoked FFI code will be blocked until control is
+      // returned from native code.
+      //
+      // See b/323386606 for details.
+      unawaited(
+        dds.vmServiceClient.sendRequest('getIsolate', {
+          'isolateId': id,
+        }).then(
+          (isolate) async => await _mutex.runGuarded(
+            () {
+              // If the isolate has shutdown after the getVM request, ignore it and
+              // continue to the next isolate.
+              if (isolate['type'] == 'Sentinel') {
+                return;
+              }
+              if (isolate.containsKey('pauseEvent')) {
+                isolates[id] = RunningIsolate(this, id, name);
+                final eventKind = isolate['pauseEvent']['kind'];
+                _updateIsolateState(id, name, eventKind);
+              } else {
+                // If the isolate doesn't have a pauseEvent, assume it's running.
+                isolateStarted(id, name);
+              }
             },
-          );
-        }
-      },
-    );
+          ),
+        ),
+      );
+      if (dds.cachedUserTags.isNotEmpty) {
+        await dds.vmServiceClient.sendRequestAndIgnoreMethodNotFound(
+          'streamCpuSamplesWithUserTag',
+          {
+            'userTags': dds.cachedUserTags,
+          },
+        );
+      }
+    }
     _initialized = true;
   }
 
+  /// This method creates an entry for a running isolate, leaves its run state
+  /// as [_IsolateState.unknown].
+  RunningIsolate initializeRunningIsolate(String id, String name) =>
+      isolates.putIfAbsent(
+        id,
+        () => RunningIsolate(this, id, name),
+      );
+
   /// Initializes state for a newly started isolate.
   void isolateStarted(String id, String name) {
-    final isolate = RunningIsolate(this, id, name);
+    final isolate = initializeRunningIsolate(id, name);
     isolate.running();
     isolates[id] = isolate;
   }

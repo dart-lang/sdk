@@ -28,17 +28,24 @@ void main() {
     process.kill();
   });
 
-  Future<IsolateRef> getIsolate(VmService service) async {
-    IsolateRef isolate;
+  Future<Isolate> getIsolate(VmService service) async {
     while (true) {
       final vm = await service.getVM();
       if (vm.isolates!.isNotEmpty) {
-        isolate = vm.isolates!.first;
-        break;
+        final isolateId = vm.isolates!.first.id!;
+        Isolate isolate;
+        bool retry;
+        do {
+          isolate = await service.getIsolate(isolateId);
+          retry = isolate.pauseEvent?.kind != EventKind.kPauseStart;
+          if (retry) {
+            await Future.delayed(const Duration(milliseconds: 50));
+          }
+        } while (retry);
+        return isolate;
       }
       await Future.delayed(const Duration(milliseconds: 50));
     }
-    return isolate;
   }
 
   test('sends a postEvent over a custom stream to multiple listeners',
