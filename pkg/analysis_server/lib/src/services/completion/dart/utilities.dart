@@ -95,42 +95,9 @@ CompletionDefaultArgumentList computeCompletionDefaultArgumentList(
     }
     offset = sb.length;
 
-    var parameterType = param.type;
-    if (parameterType is FunctionType) {
-      var rangeStart = offset;
-      int rangeLength;
-
-      // TODO(pq): consider adding ranges for params
-      // pending: https://github.com/dart-lang/sdk/issues/40207
-      // (types in closure param completions make this UX awkward)
-      final parametersString = buildClosureParameters(parameterType);
-      final blockBuffer = StringBuffer(parametersString);
-
-      blockBuffer.write(' ');
-
-      // TODO(pq): consider refactoring to share common logic w/
-      //  ArgListContributor.buildClosureSuggestions
-      final returnType = parameterType.returnType;
-      if (returnType is VoidType) {
-        blockBuffer.write('{');
-        rangeStart = sb.length + blockBuffer.length;
-        blockBuffer.write(' }');
-        rangeLength = 1;
-      } else {
-        final returnValue = returnType.isDartCoreBool ? 'false' : 'null';
-        blockBuffer.write('=> ');
-        rangeStart = sb.length + blockBuffer.length;
-        blockBuffer.write(returnValue);
-        rangeLength = returnValue.length;
-      }
-
-      sb.write(blockBuffer);
-      ranges.addAll([rangeStart, rangeLength]);
-    } else {
-      var name = param.name;
-      sb.write(name);
-      ranges.addAll([offset, name.length]);
-    }
+    var name = param.name;
+    sb.write(name);
+    ranges.addAll([offset, name.length]);
   }
 
   for (var param in namedParams) {

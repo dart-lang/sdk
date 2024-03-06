@@ -987,10 +987,13 @@ class SuggestionBuilder {
   /// Add a suggestion for a [parameter].
   void suggestParameter(ParameterElement parameter) {
     var variableType = parameter.type;
-    // TODO(brianwilkerson): Use the distance to the declaring function as
-    //  another feature.
+    var target = request.target;
+    var entity = target.entity;
+    var node = entity is AstNode ? entity : target.containingNode;
     var contextType = request.featureComputer
         .contextTypeFeature(request.contextType, variableType);
+    var localVariableDistance =
+        request.featureComputer.localVariableDistanceFeature(node, parameter);
     var elementKind = _computeElementKind(parameter);
     var isConstant = _preferConstants
         ? request.featureComputer.isConstantFeature(parameter)
@@ -999,6 +1002,7 @@ class SuggestionBuilder {
       contextType: contextType,
       elementKind: elementKind,
       isConstant: isConstant,
+      localVariableDistance: localVariableDistance,
     );
     _addBuilder(
       _createCompletionSuggestionBuilder(

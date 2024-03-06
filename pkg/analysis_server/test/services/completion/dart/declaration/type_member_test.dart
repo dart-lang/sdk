@@ -3400,8 +3400,8 @@ void f() {
 suggestions
   f0
     kind: methodInvocation
-    defaultArgumentList: x, (a, b) { }, y
-    defaultArgumentListRanges: [0, 1, 11, 1, 15, 1]
+    defaultArgumentList: x, closure, y
+    defaultArgumentListRanges: [0, 1, 3, 7, 12, 1]
 ''');
   }
 
@@ -3420,8 +3420,8 @@ void f() {
 suggestions
   f0
     kind: methodInvocation
-    defaultArgumentList: (a, b) => false
-    defaultArgumentListRanges: [10, 5]
+    defaultArgumentList: closure
+    defaultArgumentListRanges: [0, 7]
 ''');
   }
 
@@ -3440,8 +3440,8 @@ void f() {
 suggestions
   f0
     kind: methodInvocation
-    defaultArgumentList: (a, b) => null
-    defaultArgumentListRanges: [10, 4]
+    defaultArgumentList: closure
+    defaultArgumentListRanges: [0, 7]
 ''');
   }
 
@@ -3460,8 +3460,8 @@ void f() {
 suggestions
   f0
     kind: methodInvocation
-    defaultArgumentList: (a, b) { }
-    defaultArgumentListRanges: [8, 1]
+    defaultArgumentList: closure
+    defaultArgumentListRanges: [0, 7]
 ''');
   }
 

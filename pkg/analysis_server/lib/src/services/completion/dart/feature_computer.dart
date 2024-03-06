@@ -372,14 +372,36 @@ class FeatureComputer {
     return range.upper;
   }
 
-  /// Return the distance between the [reference] and the referenced local
-  /// [variable], where the distance is defined to be the number of variable
-  /// declarations between the local variable and the reference.
-  int localVariableDistance(AstNode reference, LocalVariableElement variable) {
+  /// Return the distance between the [reference] and [variable].
+  ///
+  /// For [LocalVariableElement] the distance is the number of variable
+  /// declarations between [variable] and the reference.
+  ///
+  /// For [ParameterElement] the first one is considered to be "closer".
+  /// Plus we add any local variables declared on the path to [reference].
+  int localVariableDistance(AstNode reference, VariableElement variable) {
     var distance = 0;
     AstNode? node = reference;
     while (node != null) {
-      if (node is ForStatement || node is ForElement) {
+      if (node is FunctionExpression) {
+        if (node.parameters case var parameterList?) {
+          for (var parameter in parameterList.parameters) {
+            if (parameter.declaredElement == variable) {
+              return distance;
+            }
+            distance++;
+          }
+        }
+      } else if (node is MethodDeclaration) {
+        if (node.parameters case var parameterList?) {
+          for (var parameter in parameterList.parameters) {
+            if (parameter.declaredElement == variable) {
+              return distance;
+            }
+            distance++;
+          }
+        }
+      } else if (node is ForStatement || node is ForElement) {
         var loopParts = node is ForStatement
             ? node.forLoopParts
             : (node as ForElement).forLoopParts;
@@ -448,7 +470,7 @@ class FeatureComputer {
   /// variable whose declaration is separated from the completion location by
   /// [distance] other variable declarations.
   double localVariableDistanceFeature(
-      AstNode reference, LocalVariableElement variable) {
+      AstNode reference, VariableElement variable) {
     var distance = localVariableDistance(reference, variable);
     return _distanceToPercent(distance);
   }
