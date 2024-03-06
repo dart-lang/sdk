@@ -972,10 +972,10 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     int fileOffset,
     IndexedClass? indexedClass,
   ) {
-    final nameNode = Name('$name#offsetOf');
+    final nameNode = Name('$name#offsetOf', node.enclosingLibrary);
     final getterReference = indexedClass?.lookupGetterReference(nameNode);
     final Procedure result = Procedure(
-      Name('$name#offsetOf'),
+      nameNode,
       ProcedureKind.Getter,
       FunctionNode(
         ReturnStatement(
