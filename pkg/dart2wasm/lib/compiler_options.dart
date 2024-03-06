@@ -23,6 +23,7 @@ class WasmCompilerOptions {
   Map<fe.ExperimentalFlag, bool> feExperimentalFlags = const {};
   String? multiRootScheme;
   List<Uri> multiRoots = const [];
+  List<String> deleteToStringPackageUri = const [];
   String? dumpKernelAfterCfe;
   String? dumpKernelBeforeTfa;
   String? dumpKernelAfterTfa;

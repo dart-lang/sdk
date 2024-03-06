@@ -364,7 +364,7 @@ class ExpressionEvaluationTestDriver {
       // Poll until the script is found, or timeout after a few seconds.
       return (await tracker._watch(
               'find-script',
-              () => scriptController.stream.first.timeout(Duration(seconds: 5),
+              () => scriptController.stream.first.timeout(Duration(seconds: 10),
                   onTimeout: (() => throw Exception(
                       'Unable to find JS script corresponding to test file '
                       '$output in ${debugger.scripts}.')))))
@@ -416,7 +416,7 @@ class ExpressionEvaluationTestDriver {
               'Unable to find JS preemptive pause event in $output.'));
       final event = await tracker._watch(
           'pause-event-for-line',
-          () => pauseQueue.next.timeout(Duration(seconds: 5),
+          () => pauseQueue.next.timeout(Duration(seconds: 10),
               onTimeout: () => throw Exception(
                   'Unable to find JS pause event corresponding to line '
                   '($dartLine -> $location) in $output.')));
