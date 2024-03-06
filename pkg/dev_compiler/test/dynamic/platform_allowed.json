@@ -25,9 +25,6 @@
     "Dynamic access of 'isNotEmpty'.": 1,
     "Dynamic invocation of 'allMatches'.": 1
   },
-  "sdk/lib/_internal/js_dev_runtime/private/native_typed_data.dart": {
-    "Dynamic invocation of '|'.": 3
-  },
   "sdk/lib/_internal/js_dev_runtime/patch/convert_patch.dart": {
     "Dynamic invocation of 'clear'.": 1
   },

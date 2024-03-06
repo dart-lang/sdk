@@ -20,13 +20,16 @@ final class Struct1ByteInt extends ffi::Struct {
     ;
   @#C7
   get a0() → core::int
-    return ffi::_loadInt8(this.{ffi::_Compound::_typedDataBase}{core::Object}, #C9.{core::List::[]}(ffi::_abi()){(core::int) → core::int*});
+    return ffi::_loadInt8(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::Struct1ByteInt::a0#offsetOf);
   @#C7
   set a0(synthesized core::int #externalFieldValue) → void
-    return ffi::_storeInt8(this.{ffi::_Compound::_typedDataBase}{core::Object}, #C9.{core::List::[]}(ffi::_abi()){(core::int) → core::int*}, #externalFieldValue);
+    return ffi::_storeInt8(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::Struct1ByteInt::a0#offsetOf, #externalFieldValue);
   method toString() → core::String
     return "(${this.{self::Struct1ByteInt::a0}{core::int}})";
-  @#C11
+  @#C9
+  static get a0#offsetOf() → core::int
+    return #C11.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
+  @#C9
   static get #sizeOf() → core::int*
     return #C13.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
 }
@@ -36,7 +39,7 @@ static method main() → void {
   ffi::Native::_addressOf<ffi::NativeFunction<(ffi::Int8) → self::Struct1ByteInt>>(#C17);
 }
 @#C19
-@#C11
+@#C9
 static method returnStruct1ByteIntNative(core::int a0) → self::Struct1ByteInt
   return block {
     _in::_nativeEffect(new self::Struct1ByteInt::#fromTypedDataBase(typ::Uint8List::•(#C12)));
@@ -51,10 +54,10 @@ constants  {
   #C5 = ffi::_FfiStructLayout {fieldTypes:#C3, packing:#C4}
   #C6 = core::pragma {name:#C1, options:#C5}
   #C7 = ffi::Int8 {}
-  #C8 = 0
-  #C9 = <core::int*>[#C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8]
-  #C10 = "vm:prefer-inline"
-  #C11 = core::pragma {name:#C10, options:#C4}
+  #C8 = "vm:prefer-inline"
+  #C9 = core::pragma {name:#C8, options:#C4}
+  #C10 = 0
+  #C11 = <core::int*>[#C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10]
   #C12 = 1
   #C13 = <core::int*>[#C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12]
   #C14 = "ReturnStruct1ByteInt"

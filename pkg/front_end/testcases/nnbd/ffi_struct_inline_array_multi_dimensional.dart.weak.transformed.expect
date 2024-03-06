@@ -24,14 +24,17 @@ final class StructInlineArrayMultiDimensional extends ffi::Struct {
   get a0() → ffi::Array<ffi::Array<ffi::Array<ffi::Uint8>>>
     return new ffi::Array::_<ffi::Array<ffi::Array<ffi::Uint8>>>( block {
       synthesized core::Object #typedDataBase = this.{ffi::_Compound::_typedDataBase}{core::Object};
-      synthesized core::int #offset = #C12.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
-    } =>#typedDataBase is{ForLegacy} ffi::Pointer<ffi::NativeType> ?{core::Object} ffi::_fromAddress<ffi::Array<ffi::Array<ffi::Uint8>>>(#typedDataBase.{ffi::Pointer::address}{core::int}.{core::num::+}(#offset){(core::num) → core::num}) : let synthesized typ::TypedData #typedData = _in::unsafeCast<typ::TypedData>(#typedDataBase) in #typedData.{typ::TypedData::buffer}{typ::ByteBuffer}.{typ::ByteBuffer::asUint8List}(#typedData.{typ::TypedData::offsetInBytes}{core::int}.{core::num::+}(#offset){(core::num) → core::num}, #C13.{core::List::[]}(ffi::_abi()){(core::int) → core::int*}){([core::int, core::int?]) → typ::Uint8List}, #C9, #C14);
+      synthesized core::int #offset = self::StructInlineArrayMultiDimensional::a0#offsetOf;
+    } =>#typedDataBase is{ForLegacy} ffi::Pointer<ffi::NativeType> ?{core::Object} ffi::_fromAddress<ffi::Array<ffi::Array<ffi::Uint8>>>(#typedDataBase.{ffi::Pointer::address}{core::int}.{core::num::+}(#offset){(core::num) → core::num}) : let synthesized typ::TypedData #typedData = _in::unsafeCast<typ::TypedData>(#typedDataBase) in #typedData.{typ::TypedData::buffer}{typ::ByteBuffer}.{typ::ByteBuffer::asUint8List}(#typedData.{typ::TypedData::offsetInBytes}{core::int}.{core::num::+}(#offset){(core::num) → core::num}, #C11.{core::List::[]}(ffi::_abi()){(core::int) → core::int*}){([core::int, core::int?]) → typ::Uint8List}, #C9, #C12);
   @#C10
   set a0(synthesized ffi::Array<ffi::Array<ffi::Array<ffi::Uint8>>> #externalFieldValue) → void
-    return ffi::_memCopy(this.{ffi::_Compound::_typedDataBase}{core::Object}, #C12.{core::List::[]}(ffi::_abi()){(core::int) → core::int*}, #externalFieldValue.{ffi::_Compound::_typedDataBase}{core::Object}, #C11, #C13.{core::List::[]}(ffi::_abi()){(core::int) → core::int*});
-  @#C16
+    return ffi::_memCopy(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::StructInlineArrayMultiDimensional::a0#offsetOf, #externalFieldValue.{ffi::_Compound::_typedDataBase}{core::Object}, #C13, #C11.{core::List::[]}(ffi::_abi()){(core::int) → core::int*});
+  @#C15
+  static get a0#offsetOf() → core::int
+    return #C16.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
+  @#C15
   static get #sizeOf() → core::int*
-    return #C13.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
+    return #C11.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
 }
 static method main() → dynamic {
   final ffi::Pointer<self::StructInlineArrayMultiDimensional> pointer = #C17.{ffi::Allocator::allocate}<self::StructInlineArrayMultiDimensional>(self::StructInlineArrayMultiDimensional::#sizeOf){(core::int, {alignment: core::int?}) → ffi::Pointer<self::StructInlineArrayMultiDimensional>};
@@ -55,7 +58,7 @@ static method main() → dynamic {
     synthesized core::int #singleElementSize = #C18;
     synthesized core::int #elementSize = #singleElementSize.{core::num::*}(#array.{ffi::Array::_nestedDimensionsFlattened}{core::int}){(core::num) → core::num};
     synthesized core::int #offset = #elementSize.{core::num::*}(#index){(core::num) → core::num};
-  } =>ffi::_memCopy(#array.{ffi::_Compound::_typedDataBase}{core::Object}, #offset, subArray.{ffi::_Compound::_typedDataBase}{core::Object}, #C11, #elementSize);
+  } =>ffi::_memCopy(#array.{ffi::_Compound::_typedDataBase}{core::Object}, #offset, subArray.{ffi::_Compound::_typedDataBase}{core::Object}, #C13, #elementSize);
   #C17.{all::CallocAllocator::free}(pointer){(ffi::Pointer<ffi::NativeType>) → void};
 }
 
@@ -70,12 +73,12 @@ constants  {
   #C8 = core::pragma {name:#C1, options:#C7}
   #C9 = 2
   #C10 = ffi::_ArraySize<ffi::NativeType*> {dimension1:#C9, dimension2:#C9, dimension3:#C9, dimension4:#C6, dimension5:#C6, dimensions:#C6}
-  #C11 = 0
-  #C12 = <core::int*>[#C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11]
-  #C13 = <core::int*>[#C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3]
-  #C14 = <core::int*>[#C9, #C9]
-  #C15 = "vm:prefer-inline"
-  #C16 = core::pragma {name:#C15, options:#C6}
+  #C11 = <core::int*>[#C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3]
+  #C12 = <core::int*>[#C9, #C9]
+  #C13 = 0
+  #C14 = "vm:prefer-inline"
+  #C15 = core::pragma {name:#C14, options:#C6}
+  #C16 = <core::int*>[#C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13]
   #C17 = all::CallocAllocator {}
   #C18 = 1
 }

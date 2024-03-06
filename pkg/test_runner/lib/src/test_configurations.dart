@@ -37,6 +37,7 @@ final testSuiteDirectories = [
   Path('tests/dartdevc'),
   Path('tests/ffi'),
   Path('tests/language'),
+  Path('tests/macro_build'),
   Path('tests/lib'),
   Path('tests/standalone'),
   Path('tests/web'),

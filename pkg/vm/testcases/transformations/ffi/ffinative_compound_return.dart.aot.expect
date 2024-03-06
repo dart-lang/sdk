@@ -13,17 +13,20 @@ final class Struct1ByteInt extends ffi::Struct {
     : super ffi::Struct::_fromTypedDataBase(#typedDataBase)
     ;
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1] [@vm.unboxing-info.metadata=()->i]  get a0() → core::int
-    return [@vm.inferred-type.metadata=int] ffi::_loadInt8([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] this.{ffi::_Compound::_typedDataBase}{core::Object}, #C8.{core::List::[]}(ffi::_abi()){(core::int) → core::int*});
+    return [@vm.inferred-type.metadata=int] ffi::_loadInt8([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] this.{ffi::_Compound::_typedDataBase}{core::Object}, [@vm.inferred-type.metadata=dart.core::_Smi (value: 0)] self::Struct1ByteInt::a0#offsetOf);
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:2,getterSelectorId:3]  method toString() → core::String
     return "(${[@vm.direct-call.metadata=#lib::Struct1ByteInt.a0] this.{self::Struct1ByteInt::a0}{core::int}})";
+[@vm.unboxing-info.metadata=()->i]  @#C8
+  static get a0#offsetOf() → core::int
+    return #C10.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
 }
 static method main() → void {
   final self::Struct1ByteInt result = self::returnStruct1ByteIntNative([@vm.direct-call.metadata=dart.core::_IntegerImplementation.unary-] [@vm.inferred-type.metadata=int (skip check)] 1.{core::int::unary-}(){() → core::int});
   core::print("result = ${result}");
-  ffi::Native::_addressOf<ffi::NativeFunction<(ffi::Int8) → self::Struct1ByteInt>>(#C12);
+  ffi::Native::_addressOf<ffi::NativeFunction<(ffi::Int8) → self::Struct1ByteInt>>(#C14);
 }
-[@vm.unboxing-info.metadata=(i)->b]@#C14
-@#C16
+[@vm.unboxing-info.metadata=(i)->b]@#C16
+@#C8
 static method returnStruct1ByteIntNative([@vm.inferred-arg-type.metadata=int] core::int a0) → self::Struct1ByteInt
   return block {
     _in::_nativeEffect(new self::Struct1ByteInt::#fromTypedDataBase([@vm.inferred-type.metadata=dart.typed_data::_Uint8List] typ::Uint8List::•(#C17)));
@@ -37,17 +40,17 @@ constants  {
   #C4 = null
   #C5 = ffi::_FfiStructLayout {fieldTypes:#C3, packing:#C4}
   #C6 = core::pragma {name:#C1, options:#C5}
-  #C7 = 0
-  #C8 = <core::int*>[#C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7]
-  #C9 = "ReturnStruct1ByteInt"
-  #C10 = "#lib"
-  #C11 = false
-  #C12 = ffi::Native<(ffi::Int8) → self::Struct1ByteInt> {symbol:#C9, assetId:#C10, isLeaf:#C11}
-  #C13 = "cfe:ffi:native-marker"
-  #C14 = core::pragma {name:#C13, options:#C12}
-  #C15 = "vm:prefer-inline"
-  #C16 = core::pragma {name:#C15, options:#C4}
+  #C7 = "vm:prefer-inline"
+  #C8 = core::pragma {name:#C7, options:#C4}
+  #C9 = 0
+  #C10 = <core::int*>[#C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9]
+  #C11 = "ReturnStruct1ByteInt"
+  #C12 = "#lib"
+  #C13 = false
+  #C14 = ffi::Native<(ffi::Int8) → self::Struct1ByteInt> {symbol:#C11, assetId:#C12, isLeaf:#C13}
+  #C15 = "cfe:ffi:native-marker"
+  #C16 = core::pragma {name:#C15, options:#C14}
   #C17 = 1
   #C18 = "vm:ffi:native"
-  #C19 = core::pragma {name:#C18, options:#C12}
+  #C19 = core::pragma {name:#C18, options:#C14}
 }

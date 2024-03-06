@@ -1485,6 +1485,21 @@ class FfiTransformer extends Transformer {
             allowVoid: allowVoid) !=
         null;
   }
+
+  void addPragmaPreferInline(Procedure node) {
+    node.addAnnotation(
+      ConstantExpression(
+        InstanceConstant(
+          pragmaClass.reference,
+          [],
+          {
+            pragmaName.fieldReference: StringConstant("vm:prefer-inline"),
+            pragmaOptions.fieldReference: NullConstant(),
+          },
+        ),
+      ),
+    );
+  }
 }
 
 /// Returns all libraries including the ones from component except for platform

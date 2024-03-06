@@ -205,6 +205,7 @@
       "tests/language/",
       "tests/lib/",
       "tests/light_unittest.dart",
+      "tests/macro_build/",
       "tests/search/",
       "tests/standalone/",
       "tests/ffi/",
@@ -2932,6 +2933,7 @@
           "script": "tools/build.py",
           "arguments": [
             "create_sdk",
+            "dartanalyzer",
             "ddc_stable_test"
           ]
         },
@@ -3016,10 +3018,11 @@
           ]
         },
         {
-          "name": "package unit tests",
+          "name": "package unit tests and macro build tests",
           "arguments": [
             "-nunittest-asserts-${mode}-${system}-${arch}",
-            "pkg/pkg/(?!(analyzer*|analysis_server|compiler|dev_compiler|js_runtime|front_end|kernel|frontend_server|nnbd_migration|dartdev/test/native_assets|vm_service)/)"
+            "pkg/pkg/(?!(analyzer*|analysis_server|compiler|dev_compiler|js_runtime|front_end|kernel|frontend_server|nnbd_migration|dartdev/test/native_assets|vm_service)/)",
+            "macro_build"
           ],
           "shards": 3,
           "fileset": "vm"

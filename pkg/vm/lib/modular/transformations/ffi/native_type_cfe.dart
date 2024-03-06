@@ -185,9 +185,9 @@ sealed class NativeTypeCfe {
   ReturnStatement generateGetterStatement(
     DartType dartType,
     int fileOffset,
-    Map<Abi, int?> offsets,
     bool unalignedAccess,
     FfiTransformer transformer,
+    Procedure offsetGetter,
   ) {
     return ReturnStatement(
       generateLoad(
@@ -199,7 +199,7 @@ sealed class NativeTypeCfe {
         ),
         transformer: transformer,
         unaligned: unalignedAccess,
-        offsetInBytes: transformer.runtimeBranchOnLayout(offsets),
+        offsetInBytes: StaticGet(offsetGetter),
       ),
     );
   }
@@ -210,10 +210,10 @@ sealed class NativeTypeCfe {
   ReturnStatement generateSetterStatement(
     DartType dartType,
     int fileOffset,
-    Map<Abi, int?> offsets,
     bool unalignedAccess,
     VariableDeclaration argument,
     FfiTransformer transformer,
+    Procedure offsetGetter,
   ) {
     return ReturnStatement(generateStore(
       VariableGet(argument)..fileOffset = fileOffset,
@@ -224,7 +224,7 @@ sealed class NativeTypeCfe {
         fileOffset,
       ),
       transformer: transformer,
-      offsetInBytes: transformer.runtimeBranchOnLayout(offsets),
+      offsetInBytes: StaticGet(offsetGetter),
       unaligned: unalignedAccess,
     ));
   }

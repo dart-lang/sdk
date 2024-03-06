@@ -19,9 +19,12 @@ final class WCharStruct extends ffi::Struct {
     : super ffi::Struct::_fromTypedDataBase(#typedDataBase)
     ;
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2] [@vm.unboxing-info.metadata=()->i]  get a0() → core::int
-    return [@vm.inferred-type.metadata=int] ffi::_loadAbiSpecificInt<self::WChar>([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] this.{ffi::_Compound::_typedDataBase}{core::Object}, #C20.{core::List::[]}(ffi::_abi()){(core::int) → core::int*});
+    return [@vm.inferred-type.metadata=int] ffi::_loadAbiSpecificInt<self::WChar>([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] this.{ffi::_Compound::_typedDataBase}{core::Object}, [@vm.inferred-type.metadata=dart.core::_Smi (value: 0)] self::WCharStruct::a0#offsetOf);
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2] [@vm.unboxing-info.metadata=(i)->i]  set a0([@vm.inferred-arg-type.metadata=dart.core::_Smi] synthesized core::int #externalFieldValue) → void
-    return [@vm.inferred-type.metadata=int] ffi::_storeAbiSpecificInt<self::WChar>([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] this.{ffi::_Compound::_typedDataBase}{core::Object}, #C20.{core::List::[]}(ffi::_abi()){(core::int) → core::int*}, #externalFieldValue);
+    return [@vm.inferred-type.metadata=int] ffi::_storeAbiSpecificInt<self::WChar>([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] this.{ffi::_Compound::_typedDataBase}{core::Object}, [@vm.inferred-type.metadata=dart.core::_Smi (value: 0)] self::WCharStruct::a0#offsetOf, #externalFieldValue);
+[@vm.unboxing-info.metadata=()->i]  @#C10
+  static get a0#offsetOf() → core::int
+    return #C20.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
 [@vm.unboxing-info.metadata=()->i]  @#C10
   static get #sizeOf() → core::int*
     return #C22.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
@@ -34,8 +37,11 @@ final class WCharArrayStruct extends ffi::Struct {
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:3]  get a0() → ffi::Array<self::WChar>
     return new ffi::Array::_<self::WChar>( block {
       synthesized core::Object #typedDataBase = [@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] this.{ffi::_Compound::_typedDataBase}{core::Object};
-      synthesized core::int #offset = #C20.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
+      synthesized core::int #offset = [@vm.inferred-type.metadata=dart.core::_Smi (value: 0)] self::WCharArrayStruct::a0#offsetOf;
     } =>#typedDataBase is{ForLegacy} ffi::Pointer<ffi::NativeType> ?{core::Object} [@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_fromAddress<self::WChar>([@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] [@vm.direct-call.metadata=dart.ffi::Pointer.address] [@vm.inferred-type.metadata=int] #typedDataBase.{ffi::Pointer::address}{core::int}.{core::num::+}(#offset){(core::num) → core::num}) : let synthesized typ::TypedData #typedData = _in::unsafeCast<typ::TypedData>(#typedDataBase) in [@vm.inferred-type.metadata=!] [@vm.inferred-type.metadata=!] #typedData.{typ::TypedData::buffer}{typ::ByteBuffer}.{typ::ByteBuffer::asUint8List}([@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] [@vm.inferred-type.metadata=dart.core::_Smi] #typedData.{typ::TypedData::offsetInBytes}{core::int}.{core::num::+}(#offset){(core::num) → core::num}, #C30.{core::List::[]}(ffi::_abi()){(core::int) → core::int*}){([core::int, core::int?]) → typ::Uint8List}, #C23, #C31);
+[@vm.unboxing-info.metadata=()->i]  @#C10
+  static get a0#offsetOf() → core::int
+    return #C20.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
 [@vm.unboxing-info.metadata=()->i]  @#C10
   static get #sizeOf() → core::int*
     return #C30.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
