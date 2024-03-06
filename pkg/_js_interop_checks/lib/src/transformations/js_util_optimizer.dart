@@ -958,10 +958,8 @@ class ExtensionIndex {
       final kind = getExtensionTypeDescriptor(node)?.kind;
       final namedParams = node.function.namedParameters;
       return (kind == ExtensionTypeMemberKind.Constructor ||
-                  kind == ExtensionTypeMemberKind.Factory) &&
-              literal
-          ? namedParams.isNotEmpty
-          : namedParams.isEmpty;
+              kind == ExtensionTypeMemberKind.Factory) &&
+          (literal ? namedParams.isNotEmpty : namedParams.isEmpty);
     } else if (node.kind == ProcedureKind.Factory &&
         node.enclosingClass != null &&
         hasJSInteropAnnotation(node.enclosingClass!)) {
