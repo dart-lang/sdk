@@ -19,6 +19,12 @@ that can't reasonably be enforced automatically.
 
 This section documents the styles we have agreed to follow.
 
+### Effective Dart
+
+We follow the styles laid out by [Effective Dart][effective dart], the Dart style
+guide, unless otherwise noted below. Most of the rules in Effective Dart have
+lint rules that keep us honest, but not all.
+
 ### Lint rules
 
 - `flutter_style_todos` - Keeps our todo format canonical.
@@ -42,22 +48,25 @@ run on save, at least within our packages.
 
 ### Naming conventions
 
-We generally follow the naming conventions from the Dart style guide. We do have
-some legacy code that uses screaming caps for constant names, but newer code
-doesn't use that style for constants.
+We generally follow the naming conventions from the Dart style guide. We do
+have some legacy code that uses screaming caps for constant names, but newer
+code doesn't use that style.
 
 #### Import prefixes
 
 The Dart style guide doesn't explicitly specify a naming convention for import
-prefixes beyond the guidance to use snake case. (See
-https://dart.dev/effective-dart/style#do-name-import-prefixes-using-lowercase_with_underscores).
+prefixes beyond the guidance to use snake case. (See [DO name import prefixes
+using lowercase_with_underscores][do name import prefixes].)
 
-However, the examples in the style guide all use the name of the file with the
-`.dart` suffix removed. That's the standard we follow, with the exception that
-we also drop `_test.dart` for test files. That includes using the prefix `path`
-for the path package, even though it's a commonly used variable name. In code
-where there's a conflict, we prefix the variable name with an adjective to form
-a unique name, such as `filePath`.
+[effective dart]: https://dart.dev/effective-dart
+[do name import prefixes]: https://dart.dev/effective-dart/style#do-name-import-prefixes-using-lowercase_with_underscores
+
+However, the examples in the Dart style guide all use the name of the file with
+the `.dart` suffix removed. That's the standard we follow, with the exception
+that we also drop `_test.dart` for test files. That includes using the prefix
+`path` for the path package, even though it's a commonly used variable name. In
+code where there would be a conflict, we prefix the variable name with a
+qualifying noun to form a unique name, such as `filePath`.
 
 #### Extensions
 
