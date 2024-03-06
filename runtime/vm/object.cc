@@ -3626,7 +3626,7 @@ intptr_t Class::NumTypeParameters(Thread* thread) const {
   if (type_parameters() == TypeParameters::null()) {
     return 0;
   }
-  REUSABLE_TYPE_ARGUMENTS_HANDLESCOPE(thread);
+  REUSABLE_TYPE_PARAMETERS_HANDLESCOPE(thread);
   TypeParameters& type_params = thread->TypeParametersHandle();
   type_params = type_parameters();
   return type_params.Length();
