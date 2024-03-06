@@ -133,6 +133,22 @@ class DeclarationHelper {
     }
   }
 
+  /// Add suggestions for declarations through [prefixElement].
+  void addDeclarationsThroughImportPrefix(PrefixElement prefixElement) {
+    for (var importElement in prefixElement.imports) {
+      var importedLibrary = importElement.importedLibrary;
+      if (importedLibrary == null) {
+        continue;
+      }
+
+      _addDeclarationsImportedFrom(
+        library: importedLibrary,
+        namespace: importElement.namespace,
+        prefix: null,
+      );
+    }
+  }
+
   /// Add any fields that can be initialized in the initializer list of the
   /// given [constructor]. If a [fieldToInclude] is provided, then it should not
   /// be skipped because the cursor is inside that field's name.

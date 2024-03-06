@@ -1525,6 +1525,22 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitNamedType(NamedType node) {
+    var importPrefix = node.importPrefix;
+    var prefixElement = importPrefix?.element;
+
+    // `prefix.x^ print(0);` is recovered as `prefix.x print; (0);`.
+    if (prefixElement is PrefixElement) {
+      if (node.parent case VariableDeclarationList variableList) {
+        if (variableList.parent case VariableDeclarationStatement statement) {
+          if (statement.semicolon.isSynthetic) {
+            declarationHelper()
+                .addDeclarationsThroughImportPrefix(prefixElement);
+            return;
+          }
+        }
+      }
+    }
+
     _forTypeAnnotation(node);
   }
 
@@ -3162,7 +3178,7 @@ extension on GuardedPattern {
 extension on NodeList<PatternField> {
   /// Returns the names of the named fields in this list.
   Set<String> get fieldNames {
-    return map((field) => field.name?.name?.lexeme).nonNulls.toSet();
+    return map((field) => field.effectiveName).nonNulls.toSet();
   }
 }
 

@@ -7105,6 +7105,44 @@ My definitions phase
 ''');
   }
 
+  test_macroDiagnostics_throwException_duringInstantiating() async {
+    newFile(
+      '$testPackageLibPath/diagnostic.dart',
+      _getMacroCode('diagnostic.dart'),
+    );
+
+    final library = await buildLibrary(r'''
+import 'diagnostic.dart';
+
+@MacroWithArguments()
+class A {}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false
+      ..macroDiagnosticMessagePatterns = [
+        'NoSuchMethodError',
+        'Closure call with mismatched arguments',
+        'Tried calling: MacroWithArguments.MacroWithArguments()',
+      ];
+    checkElementText(library, r'''
+library
+  imports
+    package:test/diagnostic.dart
+  definingUnit
+    classes
+      class A @55
+        macroDiagnostics
+          ExceptionMacroDiagnostic
+            annotationIndex: 0
+            contains
+              NoSuchMethodError
+              Closure call with mismatched arguments
+              Tried calling: MacroWithArguments.MacroWithArguments()
+''');
+  }
+
   test_macroDiagnostics_throwException_duringIntrospection() async {
     newFile(
       '$testPackageLibPath/diagnostic.dart',

@@ -21,6 +21,9 @@ mixin ExtensionMemberTestCases on AbstractCompletionDriverTest {
   @override
   bool get includeKeywords => false;
 
+  @override
+  bool get includeOverrides => false;
+
   Future<void> test_extensionOverride_doesNotMatch_partial() async {
     await computeSuggestions('''
 extension E on int {
@@ -58,6 +61,52 @@ replacement
 suggestions
   a0
     kind: methodInvocation
+''');
+  }
+
+  Future<void> test_inClassBody() async {
+    await computeSuggestions('''
+class A {
+  ^
+}
+
+extension on Object {
+  void a0() {}
+}
+''');
+
+    assertResponse(r'''
+suggestions
+''');
+  }
+
+  Future<void> test_inClassBody_partial() async {
+    await computeSuggestions('''
+class A {
+  a^
+}
+
+extension on Object {
+  void a0() {}
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+''');
+  }
+
+  Future<void> test_inEnumBody() async {
+    await computeSuggestions('''
+enum A {
+  v;
+  ^
+}
+
+extension on Object {
+  void a0() {}
+}
 ''');
   }
 
@@ -221,6 +270,53 @@ suggestions
   a0
     kind: methodInvocation
     returnType: int
+''');
+  }
+
+  Future<void> test_inExtensionBody() async {
+    await computeSuggestions('''
+extension A on int {
+  ^
+}
+
+extension on Object {
+  void a0() {}
+}
+''');
+
+    assertResponse(r'''
+suggestions
+''');
+  }
+
+  Future<void> test_inExtensionTypeBody() async {
+    await computeSuggestions('''
+extension type A(int it) {
+  ^
+}
+
+extension on Object {
+  void a0() {}
+}
+''');
+
+    assertResponse(r'''
+suggestions
+''');
+  }
+
+  Future<void> test_inMixinBody() async {
+    await computeSuggestions('''
+mixin A {
+  ^
+}
+
+extension on Object {
+  void a0() {}
+}
+''');
+    assertResponse(r'''
+suggestions
 ''');
   }
 

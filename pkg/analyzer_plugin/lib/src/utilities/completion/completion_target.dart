@@ -429,6 +429,18 @@ class CompletionTarget {
     return isExistingRightParenthesis(token.next);
   }
 
+  bool get isInClassLikeBody {
+    switch (containingNode) {
+      case ClassDeclaration():
+      case EnumDeclaration():
+      case ExtensionDeclaration():
+      case ExtensionTypeDeclaration():
+      case MixinDeclaration():
+        return true;
+    }
+    return false;
+  }
+
   Token? get lastTokenOfEntity {
     final entity = this.entity;
     if (entity is AstNode) {

@@ -55,6 +55,31 @@ suggestions
 ''');
   }
 
+  Future<void> test_afterIdentifier_beforeIdentifier_partial() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+void v01() {}
+void g01() {}
+''');
+
+    // There should be no `void`, we use `v` to verify this.
+    await computeSuggestions('''
+import 'a.dart' as prefix;
+
+void f() {
+  prefix.v^
+  print(0);
+}
+''');
+
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  v01
+    kind: functionInvocation
+''');
+  }
+
   Future<void> test_afterIdentifier_partial() async {
     await computeSuggestions('''
 class A { foo() {bar.as^}}

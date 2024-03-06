@@ -34,6 +34,10 @@ class ExtensionMemberContributor extends DartCompletionContributor {
         return;
       }
 
+      if (request.target.isInClassLikeBody) {
+        return;
+      }
+
       var thisClassType = request.target.enclosingInterfaceElement?.thisType;
       if (thisClassType != null) {
         _addExtensionMembers(extensions, defaultKind, thisClassType);

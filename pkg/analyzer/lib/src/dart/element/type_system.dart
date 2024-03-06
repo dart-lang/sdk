@@ -355,18 +355,6 @@ class TypeSystemImpl implements TypeSystem {
       }
     }
 
-    // * Else if T is R* and Null <: S then factor(R, S)
-    // * Else if T is R* then factor(R, S)*
-    if (T_nullability == NullabilitySuffix.star) {
-      var R = (T as TypeImpl).withNullability(NullabilitySuffix.none);
-      var factor_RS = factor(R, S) as TypeImpl;
-      if (isSubtypeOf(nullNone, S)) {
-        return factor_RS;
-      } else {
-        return factor_RS.withNullability(NullabilitySuffix.star);
-      }
-    }
-
     // * Else if T is FutureOr<R> and Future<R> <: S then factor(R, S)
     // * Else if T is FutureOr<R> and R <: S then factor(Future<R>, S)
     if (T is InterfaceType && T.isDartAsyncFutureOr) {
@@ -390,7 +378,6 @@ class TypeSystemImpl implements TypeSystem {
     }
 
     // if T is S? then flatten(T) = flatten(S)?
-    // if T is S* then flatten(T) = flatten(S)*
     final nullabilitySuffix = T.nullabilitySuffix;
     if (nullabilitySuffix != NullabilitySuffix.none) {
       final S = (T as TypeImpl).withNullability(NullabilitySuffix.none);
@@ -470,7 +457,6 @@ class TypeSystemImpl implements TypeSystem {
   /// See `#the-future-value-type-of-an-asynchronous-non-generator-function`
   DartType futureValueType(DartType T) {
     // futureValueType(`S?`) = futureValueType(`S`), for all `S`.
-    // futureValueType(`S*`) = futureValueType(`S`), for all `S`.
     if (T.nullabilitySuffix != NullabilitySuffix.none) {
       var S = (T as TypeImpl).withNullability(NullabilitySuffix.none);
       return futureValueType(S);
@@ -1099,24 +1085,6 @@ class TypeSystemImpl implements TypeSystem {
       return false;
     }
 
-    // MOREBOTTOM(T*, S*) = MOREBOTTOM(T, S)
-    if (T_nullability == NullabilitySuffix.star &&
-        S_nullability == NullabilitySuffix.star) {
-      var T2 = T_impl.withNullability(NullabilitySuffix.none);
-      var S2 = S_impl.withNullability(NullabilitySuffix.none);
-      return isMoreBottom(T2, S2);
-    }
-
-    // MOREBOTTOM(T, S*) = true
-    if (S_nullability == NullabilitySuffix.star) {
-      return true;
-    }
-
-    // MOREBOTTOM(T*, S) = false
-    if (T_nullability == NullabilitySuffix.star) {
-      return false;
-    }
-
     // Type parameters.
     if (T is TypeParameterTypeImpl && S is TypeParameterTypeImpl) {
       // We have eliminated the possibility that T_nullability or S_nullability
@@ -1205,24 +1173,6 @@ class TypeSystemImpl implements TypeSystem {
       return false;
     }
 
-    // MORETOP(T*, S*) = MORETOP(T, S)
-    if (T_nullability == NullabilitySuffix.star &&
-        S_nullability == NullabilitySuffix.star) {
-      var T2 = T_impl.withNullability(NullabilitySuffix.none);
-      var S2 = S_impl.withNullability(NullabilitySuffix.none);
-      return isMoreTop(T2, S2);
-    }
-
-    // MORETOP(T, S*) = true
-    if (S_nullability == NullabilitySuffix.star) {
-      return true;
-    }
-
-    // MORETOP(T*, S) = false
-    if (T_nullability == NullabilitySuffix.star) {
-      return false;
-    }
-
     // MORETOP(T?, S?) = MORETOP(T, S)
     if (T_nullability == NullabilitySuffix.question &&
         S_nullability == NullabilitySuffix.question) {
@@ -1288,16 +1238,14 @@ class TypeSystemImpl implements TypeSystem {
     var nullabilitySuffix = typeImpl.nullabilitySuffix;
 
     // NULL(Null) is true
-    // Also includes `Null?` and `Null*` from the rules below.
+    // Also includes `Null?` from the rules below.
     if (type.isDartCoreNull) {
       return true;
     }
 
     // NULL(T?) is true iff NULL(T) or BOTTOM(T)
-    // NULL(T*) is true iff NULL(T) or BOTTOM(T)
-    // Cases for `Null?` and `Null*` are already checked above.
-    if (nullabilitySuffix == NullabilitySuffix.question ||
-        nullabilitySuffix == NullabilitySuffix.star) {
+    // The case for `Null?` is already checked above.
+    if (nullabilitySuffix == NullabilitySuffix.question) {
       var T = typeImpl.withNullability(NullabilitySuffix.none);
       return isBottom(T);
     }
@@ -1409,9 +1357,7 @@ class TypeSystemImpl implements TypeSystem {
     var nullabilitySuffix = typeImpl.nullabilitySuffix;
 
     // TOP(T?) is true iff TOP(T) or OBJECT(T)
-    // TOP(T*) is true iff TOP(T) or OBJECT(T)
-    if (nullabilitySuffix == NullabilitySuffix.question ||
-        nullabilitySuffix == NullabilitySuffix.star) {
+    if (nullabilitySuffix == NullabilitySuffix.question) {
       var T = typeImpl.withNullability(NullabilitySuffix.none);
       return isTop(T) || isObject(T);
     }
@@ -2179,19 +2125,9 @@ class TypeSystemImpl implements TypeSystem {
       return NullabilitySuffix.question;
     }
 
-    if (nullabilityOfType == NullabilitySuffix.star &&
-        nullabilityOfBound == NullabilitySuffix.none) {
-      return NullabilitySuffix.star;
-    }
-
     // Intersection with a non-nullable type always yields a non-nullable type,
     // as it's the most restrictive kind of types.
-    if (nullabilityOfType == NullabilitySuffix.none ||
-        nullabilityOfBound == NullabilitySuffix.none) {
-      return NullabilitySuffix.none;
-    }
-
-    return NullabilitySuffix.star;
+    return NullabilitySuffix.none;
   }
 }
 

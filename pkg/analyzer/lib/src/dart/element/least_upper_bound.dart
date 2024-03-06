@@ -191,9 +191,6 @@ class InterfaceLeastUpperBoundHelper {
     if (nullability1 == NullabilitySuffix.question ||
         nullability2 == NullabilitySuffix.question) {
       return NullabilitySuffix.question;
-    } else if (nullability1 == NullabilitySuffix.star ||
-        nullability2 == NullabilitySuffix.star) {
-      return NullabilitySuffix.star;
     }
     return NullabilitySuffix.none;
   }
@@ -452,13 +449,9 @@ class LeastUpperBoundHelper {
     // UP(T1, T2) where NULL(T1)
     if (T1_isNull) {
       // * T2 if T2 is nullable
-      // * T2* if Null <: T2 or T1 <: Object (that is, T1 or T2 is legacy)
       // * T2? otherwise
       if (_typeSystem.isNullable(T2)) {
         return T2;
-      } else if (T1_nullability == NullabilitySuffix.star ||
-          T2_nullability == NullabilitySuffix.star) {
-        return T2_impl.withNullability(NullabilitySuffix.star);
       } else {
         return _typeSystem.makeNullable(T2);
       }
@@ -467,13 +460,9 @@ class LeastUpperBoundHelper {
     // UP(T1, T2) where NULL(T2)
     if (T2_isNull) {
       // * T1 if T1 is nullable
-      // * T1* if Null <: T1 or T2 <: Object (that is, T1 or T2 is legacy)
       // * T1? otherwise
       if (_typeSystem.isNullable(T1)) {
         return T1;
-      } else if (T1_nullability == NullabilitySuffix.star ||
-          T2_nullability == NullabilitySuffix.star) {
-        return T1_impl.withNullability(NullabilitySuffix.star);
       } else {
         return _typeSystem.makeNullable(T1);
       }
@@ -515,28 +504,15 @@ class LeastUpperBoundHelper {
       }
     }
 
-    // UP(T1*, T2*) = S* where S is UP(T1, T2)
-    // UP(T1*, T2?) = S? where S is UP(T1, T2)
-    // UP(T1?, T2*) = S? where S is UP(T1, T2)
-    // UP(T1*, T2) = S* where S is UP(T1, T2)
-    // UP(T1, T2*) = S* where S is UP(T1, T2)
     // UP(T1?, T2?) = S? where S is UP(T1, T2)
     // UP(T1?, T2) = S? where S is UP(T1, T2)
     // UP(T1, T2?) = S? where S is UP(T1, T2)
     if (T1_nullability != NullabilitySuffix.none ||
         T2_nullability != NullabilitySuffix.none) {
-      var resultNullability = NullabilitySuffix.none;
-      if (T1_nullability == NullabilitySuffix.question ||
-          T2_nullability == NullabilitySuffix.question) {
-        resultNullability = NullabilitySuffix.question;
-      } else if (T1_nullability == NullabilitySuffix.star ||
-          T2_nullability == NullabilitySuffix.star) {
-        resultNullability = NullabilitySuffix.star;
-      }
       var T1_none = T1_impl.withNullability(NullabilitySuffix.none);
       var T2_none = T2_impl.withNullability(NullabilitySuffix.none);
       var S = getLeastUpperBound(T1_none, T2_none);
-      return (S as TypeImpl).withNullability(resultNullability);
+      return (S as TypeImpl).withNullability(NullabilitySuffix.question);
     }
 
     assert(T1_nullability == NullabilitySuffix.none);
