@@ -5,6 +5,7 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'argument_list_test.dart' as argument_list;
+import 'as_expression_test.dart' as as_expression;
 import 'assignment_expression_test.dart' as assignment_expression;
 import 'block_test.dart' as block;
 import 'case_clause_test.dart' as case_clause;
@@ -77,6 +78,7 @@ import 'with_clause_test.dart' as with_clause;
 void main() {
   defineReflectiveSuite(() {
     argument_list.main();
+    as_expression.main();
     assignment_expression.main();
     block.main();
     case_clause.main();
