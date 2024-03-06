@@ -83,6 +83,8 @@ final List<Option> options = [
           o.feExperimentalFlags = processFeExperimentalFlags(values)),
   StringOption("multi-root-scheme", (o, value) => o.multiRootScheme = value),
   UriMultiOption("multi-root", (o, values) => o.multiRoots = values),
+  StringMultiOption("delete-tostring-package-uri",
+      (o, values) => o.deleteToStringPackageUri = values),
   StringOption("depfile", (o, value) => o.depFile = value),
   StringOption(
       "js-runtime-output", (o, value) => o.outputJSRuntimeFile = value),

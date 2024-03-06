@@ -25,6 +25,8 @@ import 'package:kernel/verifier.dart';
 import 'package:vm/kernel_front_end.dart' show writeDepfile;
 import 'package:vm/transformations/mixin_deduplication.dart'
     as mixin_deduplication show transformComponent;
+import 'package:vm/transformations/to_string_transformer.dart'
+    as to_string_transformer;
 import 'package:vm/transformations/type_flow/transformer.dart' as globalTypeFlow
     show transformComponent;
 import 'package:vm/transformations/unreachable_code_elimination.dart'
@@ -122,14 +124,19 @@ Future<CompilerOutput?> compileToModule(compiler.WasmCompilerOptions options,
     "dart:typed_data",
   ]);
 
+  if (options.dumpKernelAfterCfe != null) {
+    writeComponentToText(component, path: options.dumpKernelAfterCfe!);
+  }
+
+  if (options.deleteToStringPackageUri.isNotEmpty) {
+    to_string_transformer.transformComponent(
+        component, options.deleteToStringPackageUri);
+  }
+
   ConstantEvaluator constantEvaluator = ConstantEvaluator(
       options, target, component, coreTypes, classHierarchy, libraryIndex);
   unreachable_code_elimination.transformComponent(target, component,
       constantEvaluator, options.translatorOptions.enableAsserts);
-
-  if (options.dumpKernelAfterCfe != null) {
-    writeComponentToText(component, path: options.dumpKernelAfterCfe!);
-  }
 
   js.RuntimeFinalizer jsRuntimeFinalizer =
       js.createRuntimeFinalizer(component, coreTypes, classHierarchy);
