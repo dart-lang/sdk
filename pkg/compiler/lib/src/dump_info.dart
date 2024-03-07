@@ -6,9 +6,7 @@ library dump_info;
 
 import 'dart:convert' show JsonEncoder, JsonDecoder;
 
-import 'package:compiler/src/js_model/elements.dart';
-import 'package:compiler/src/serialization/serialization.dart';
-import 'package:compiler/src/universe/use.dart';
+import 'package:compiler/src/js_model/js_strategy.dart';
 import 'package:dart2js_info/info.dart';
 import 'package:dart2js_info/json_info_codec.dart';
 import 'package:dart2js_info/binary_serialization.dart' as dump_info;
@@ -17,14 +15,13 @@ import 'package:kernel/core_types.dart' as ir;
 
 import '../compiler_api.dart' as api;
 import 'common.dart';
+import 'common/codegen.dart';
 import 'common/elements.dart' show JElementEnvironment;
 import 'common/names.dart';
 import 'common/tasks.dart' show CompilerTask, Measurer;
 import 'common/ram_usage.dart';
-import 'constants/values.dart'
-    show ConstantValue, ConstantValueKind, DeferredGlobalConstantValue;
-import 'deferred_load/output_unit.dart'
-    show OutputUnit, OutputUnitData, deferredPartFileName;
+import 'constants/values.dart' show ConstantValue;
+import 'deferred_load/output_unit.dart' show OutputUnit, deferredPartFileName;
 import 'elements/entities.dart';
 import 'elements/entity_utils.dart' as entity_utils;
 import 'elements/names.dart';
@@ -32,11 +29,13 @@ import 'inferrer/abstract_value_domain.dart';
 import 'inferrer/types.dart'
     show GlobalTypeInferenceMemberResult, GlobalTypeInferenceResults;
 import 'js/js.dart' as jsAst;
-import 'js_model/js_strategy.dart';
+import 'js_emitter/code_emitter_task.dart';
+import 'js_model/elements.dart';
 import 'js_model/js_world.dart' show JClosedWorld;
 import 'js_backend/field_analysis.dart';
 import 'options.dart';
-import 'universe/world_impact.dart' show WorldImpact, WorldImpactBuilderImpl;
+import 'serialization/serialization.dart';
+import 'universe/world_impact.dart' show WorldImpact;
 
 /// Collects data used for the dump info task.
 ///
@@ -52,7 +51,16 @@ class DumpInfoJsAstRegistry {
 
   final Map<Entity, List<CodeSpan>> _entityCode = {};
   final Map<ConstantValue, CodeSpan> _constantCode = {};
-  final Map<MemberEntity, WorldImpact> _impactRegistry = {};
+
+  // Contains impacts that will be used immediately (if codegen is being run
+  // with this compiler execution) or serialized with partial dump info data.
+  // Impacts are not yet transformed by CodegenImpactTransformer.
+  final Map<MemberEntity, CodegenImpact> _impactRegistry = {};
+
+  // Contains members whose impacts should be deserialized from codegen results
+  // on subsequent dump info execution. Empty when dump info is being executed
+  // immediately without serialization.
+  final Set<MemberEntity> _serializedImpactMembers = {};
 
   // Temporary structures used to collect data during the visit process with a
   // low memory footprint.
@@ -79,9 +87,14 @@ class DumpInfoJsAstRegistry {
     _constantRegistry[code] = constant;
   }
 
-  void registerImpact(MemberEntity member, WorldImpact impact) {
+  void registerImpact(MemberEntity member, CodegenImpact impact,
+      {required bool isGenerated}) {
     if (_disabled) return;
-    _impactRegistry[member] = impact;
+    if (isGenerated || options.dumpInfoWriteUri == null) {
+      _impactRegistry[member] = impact;
+    } else {
+      _serializedImpactMembers.add(member);
+    }
   }
 
   bool get shouldEmitText => !useBinaryFormat;
@@ -125,9 +138,10 @@ class DumpInfoJsAstRegistry {
     assert(_stack.isEmpty);
     assert(_entityRegistry.isEmpty);
     assert(_constantRegistry.isEmpty);
-    _impactRegistry.clear();
     _entityCode.clear();
     _constantCode.clear();
+    _serializedImpactMembers.clear();
+    _impactRegistry.clear();
   }
 }
 
@@ -144,7 +158,17 @@ class DumpInfoProgramData {
   final Map<Entity, List<CodeSpan>> entityCode;
   final Map<Entity, int> entityCodeSize;
   final Map<ConstantValue, CodeSpan> constantCode;
-  final Map<MemberEntity, WorldImpact> impacts;
+
+  /// Contains members that are live and whose impacts are serialized in the
+  /// codegen results. This will be empty if dump info is being run without
+  /// serialization.
+  final Set<MemberEntity> serializedImpactMembers;
+
+  /// If dump info is being without serialziation, this will contain impacts for
+  /// all live members. Otherwise only contains impacts for members that were
+  /// created during the emitter phase and whose impacts are therefore not
+  /// included in codegen results.
+  final Map<MemberEntity, CodegenImpact> registeredImpacts;
 
   DumpInfoProgramData._(
       this.programSize,
@@ -153,15 +177,16 @@ class DumpInfoProgramData {
       this.entityCode,
       this.entityCodeSize,
       this.constantCode,
-      this.impacts,
+      this.serializedImpactMembers,
+      this.registeredImpacts,
       {required this.neededClasses,
       required this.neededClassTypes});
 
   factory DumpInfoProgramData.fromEmitterResults(
-      JsBackendStrategy backendStrategy,
+      CodeEmitterTask emitterTask,
       DumpInfoJsAstRegistry dumpInfoRegistry,
+      CodegenResults codegenResults,
       int programSize) {
-    final emitterTask = backendStrategy.emitterTask;
     final outputUnitSizes = emitterTask.emitter.generatedSizes;
 
     var fragmentsToLoad = emitterTask.emitter.finalizedFragmentsToLoad;
@@ -184,6 +209,7 @@ class DumpInfoProgramData {
         entityCode,
         entityCodeSize,
         constantCode,
+        Set.from(dumpInfoRegistry._serializedImpactMembers),
         Map.from(dumpInfoRegistry._impactRegistry),
         neededClasses: neededClasses,
         neededClassTypes: neededClassTypes);
@@ -230,8 +256,7 @@ class DumpInfoProgramData {
     sink.writeStringOrNull(codeSpan.text);
   }
 
-  factory DumpInfoProgramData.readFromDataSource(
-      DataSourceReader source, OutputUnitData outputUnitData,
+  factory DumpInfoProgramData.readFromDataSource(DataSourceReader source,
       {required bool includeCodeText}) {
     final programSize = source.readInt();
     final outputUnitSizesLength = source.readInt();
@@ -263,26 +288,20 @@ class DumpInfoProgramData {
       final codeSpan = _readCodeSpan(source, includeCodeText);
       constantCode[constant] = codeSpan;
     }
-    final impacts = source.readMemberMap((_) {
-      final impactBuilder = WorldImpactBuilderImpl();
-      source
-          .readList(() => StaticUse.readFromDataSource(source))
-          .forEach(impactBuilder.registerStaticUse);
-      source
-          .readList(() => DynamicUse.readFromDataSource(source))
-          .forEach(impactBuilder.registerDynamicUse);
-      source
-          .readList(() => ConstantUse.readFromDataSource(source))
-          .forEach((use) {
-        assert(use.value.kind == ConstantValueKind.DEFERRED_GLOBAL);
-        outputUnitData.registerConstantDeferredUse(
-            use.value as DeferredGlobalConstantValue);
-      });
-      return impactBuilder;
-    });
-    return DumpInfoProgramData._(programSize, outputUnitSizes,
-        fragmentDeferredMap, entityCode, entityCodeSize, constantCode, impacts,
-        neededClasses: neededClasses, neededClassTypes: neededClassTypes);
+    final serializedImpactMembers = source.readMembers().toSet();
+    final registeredImpacts = source.readMemberMap<MemberEntity, CodegenImpact>(
+        (_) => CodegenImpact.readFromDataSource(source));
+    return DumpInfoProgramData._(
+        programSize,
+        outputUnitSizes,
+        fragmentDeferredMap,
+        entityCode,
+        entityCodeSize,
+        constantCode,
+        serializedImpactMembers,
+        registeredImpacts,
+        neededClasses: neededClasses,
+        neededClassTypes: neededClassTypes);
   }
 
   void writeToDataSink(DataSinkWriter sink) {
@@ -312,19 +331,9 @@ class DumpInfoProgramData {
       sink.writeConstant(constant);
       _writeCodeSpan(sink, codeSpan);
     });
-    sink.writeMemberMap(impacts, (_, WorldImpact impact) {
-      // Only store relevant uses from the impact. Static and dynamic uses are
-      // queried explicitly and DEFERRED_GLOBAL constants must be registered
-      // into the closed world.
-      sink.writeList(
-          impact.staticUses, (StaticUse use) => use.writeToDataSink(sink));
-      sink.writeList(
-          impact.dynamicUses, (DynamicUse use) => use.writeToDataSink(sink));
-      sink.writeList(
-          impact.constantUses.where(
-              (use) => use.value.kind == ConstantValueKind.DEFERRED_GLOBAL),
-          (ConstantUse use) => use.writeToDataSink(sink));
-    });
+    sink.writeMembers(serializedImpactMembers);
+    sink.writeMemberMap(registeredImpacts,
+        (_, CodegenImpact impact) => impact.writeToDataSink(sink));
   }
 }
 
@@ -360,7 +369,7 @@ class ElementInfoCollector {
   /// output size. Either because it is a function being emitted or inlined,
   /// or because it is an entity that holds dependencies to other entities.
   bool shouldKeep(Entity entity) {
-    return dumpInfoTask._dumpInfoData.impacts.containsKey(entity) ||
+    return dumpInfoTask.impacts.containsKey(entity) ||
         dumpInfoTask.inlineCount.containsKey(entity);
   }
 
@@ -1063,7 +1072,7 @@ class DumpInfoAnnotator {
   /// output size. Either because it is a function being emitted or inlined,
   /// or because it is an entity that holds dependencies to other entities.
   bool shouldKeep(Entity entity) {
-    return dumpInfoTask._dumpInfoData.impacts.containsKey(entity) ||
+    return dumpInfoTask.impacts.containsKey(entity) ||
         dumpInfoTask.inlineCount.containsKey(entity);
   }
 
@@ -1439,6 +1448,10 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
   @override
   String get name => "Dump Info";
 
+  /// Whether or not this dump info task is running using serialized dump info
+  /// data from an earlier dart2js invocation.
+  bool get useSerializedData => options.dumpInfoReadUri != null;
+
   /// The size of the generated output.
   late DumpInfoProgramData _dumpInfoData;
 
@@ -1447,6 +1460,8 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
   // A mapping from an entity to a list of entities that are
   // inlined inside of it.
   final Map<Entity, List<Entity>> inlineMap = <Entity, List<Entity>>{};
+
+  final Map<MemberEntity, WorldImpact> impacts = {};
 
   /// Register the size of the generated output.
   void registerDumpInfoProgramData(DumpInfoProgramData dumpInfoData) {
@@ -1461,7 +1476,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
   }
 
   void unregisterImpact(MemberEntity impactSource) {
-    _dumpInfoData.impacts.remove(impactSource);
+    impacts.remove(impactSource);
   }
 
   /// Returns an iterable of [Selection]s that are used by [entity]. Each
@@ -1469,7 +1484,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
   /// selected the entity.
   Iterable<Selection> getRetaining(
       MemberEntity entity, JClosedWorld closedWorld) {
-    final impact = _dumpInfoData.impacts[entity];
+    final impact = impacts[entity];
     if (impact == null) return const <Selection>[];
 
     var selections = <Selection>[];
@@ -1498,10 +1513,29 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     return _dumpInfoData.entityCode[entity] ?? const [];
   }
 
-  Future<DumpInfoStateData> dumpInfo(JClosedWorld closedWorld,
-      GlobalTypeInferenceResults globalInferenceResults) async {
+  void _populateImpacts(JClosedWorld closedWorld, CodegenResults codegenResults,
+      JsBackendStrategy backendStrategy) {
+    backendStrategy.initialize(closedWorld, codegenResults.codegenInputs);
+
+    _dumpInfoData.registeredImpacts.forEach((member, impact) {
+      impacts[member] = backendStrategy.transformCodegenImpact(impact);
+    });
+    for (final member in _dumpInfoData.serializedImpactMembers) {
+      final (:result, :isGenerated) = codegenResults.getCodegenResults(member);
+      assert(!isGenerated, 'Should not be generating impact: $member');
+      impacts[member] = backendStrategy.transformCodegenImpact(result.impact);
+    }
+  }
+
+  Future<DumpInfoStateData> dumpInfo(
+      JClosedWorld closedWorld,
+      GlobalTypeInferenceResults globalInferenceResults,
+      CodegenResults codegenResults,
+      JsBackendStrategy backendStrategy) async {
     late DumpInfoStateData dumpInfoState;
     await measure(() async {
+      _populateImpacts(closedWorld, codegenResults, backendStrategy);
+
       ElementInfoCollector elementInfoCollector = ElementInfoCollector(
           options, this, closedWorld, globalInferenceResults)
         ..run();
@@ -1521,9 +1555,13 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
   Future<DumpInfoStateData> dumpInfoNew(
       ir.Component component,
       JClosedWorld closedWorld,
-      GlobalTypeInferenceResults globalInferenceResults) async {
+      GlobalTypeInferenceResults globalInferenceResults,
+      CodegenResults codegenResults,
+      JsBackendStrategy backendStrategy) async {
     late DumpInfoStateData dumpInfoState;
     await measure(() async {
+      _populateImpacts(closedWorld, codegenResults, backendStrategy);
+
       KernelInfoCollector kernelInfoCollector =
           KernelInfoCollector(component, options, this, closedWorld)..run();
 

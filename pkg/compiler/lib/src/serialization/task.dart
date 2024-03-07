@@ -198,7 +198,8 @@ class SerializationTask extends CompilerTask {
     final lazyMemberBodies =
         backendStrategy.forEachCodegenMember((MemberEntity member) {
       if (index % shards == shard) {
-        CodegenResult codegenResult = codegenResults.getCodegenResults(member);
+        final (result: codegenResult, isGenerated: _) =
+            codegenResults.getCodegenResults(member);
         results[member] = codegenResult;
       }
       index++;
@@ -304,7 +305,7 @@ class SerializationTask extends CompilerTask {
         indices);
     backendStrategy.prepareCodegenReader(source);
     source.registerAbstractValueDomain(abstractValueDomain);
-    return DumpInfoProgramData.readFromDataSource(source, outputUnitData,
+    return DumpInfoProgramData.readFromDataSource(source,
         includeCodeText: !_options.useDumpInfoBinaryFormat);
   }
 }

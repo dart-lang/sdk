@@ -42,7 +42,10 @@ Future<void> generateJavaScriptCode(Compiler compiler,
         codegenResults,
         globalTypeInferenceResults,
         DumpInfoProgramData.fromEmitterResults(
-            compiler.backendStrategy, compiler.dumpInfoRegistry, programSize));
+            compiler.backendStrategy.emitterTask,
+            compiler.dumpInfoRegistry,
+            codegenResults,
+            programSize));
   }
 }
 
