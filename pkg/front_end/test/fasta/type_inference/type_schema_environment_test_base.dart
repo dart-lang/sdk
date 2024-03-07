@@ -11,6 +11,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/testing/type_parser_environment.dart';
+import 'package:kernel/type_environment.dart';
 import 'package:test/test.dart';
 
 abstract class TypeSchemaEnvironmentTestBase {
@@ -241,6 +242,12 @@ abstract class TypeSchemaEnvironmentTestBase {
       expect(inferredTypeNodes.single, expectedTypeNode);
     });
   }
+
+  void checkTypeShapeCheckSufficiency(
+      {required String expressionStaticType,
+      required String checkTargetType,
+      required String typeParameters,
+      required TypeShapeCheckSufficiency sufficiency});
 
   /// Parses a string like "<: T <: S >: R" into a [TypeConstraint].
   ///

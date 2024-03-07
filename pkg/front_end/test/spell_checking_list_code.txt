@@ -1340,6 +1340,7 @@ pv
 q
 q'i
 qi
+qk
 qm
 quad
 qualify
@@ -1502,6 +1503,7 @@ right's
 rightmost
 ring
 risk
+rk
 rn
 rnystrom
 robust

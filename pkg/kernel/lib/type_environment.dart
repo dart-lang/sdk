@@ -9,6 +9,7 @@ import 'class_hierarchy.dart';
 import 'core_types.dart';
 import 'type_algebra.dart';
 
+import 'src/bounds_checks.dart';
 import 'src/hierarchy_based_type_environment.dart'
     show HierarchyBasedTypeEnvironment;
 import 'src/types.dart';
@@ -317,6 +318,215 @@ abstract class TypeEnvironment extends Types {
       return coreTypes.numNonNullableRawType;
     }
     return coreTypes.numRawType(type1.nullability);
+  }
+
+  bool _isRawTypeArgumentEquivalent(
+      TypeDeclarationType type, int typeArgumentIndex,
+      {required SubtypeCheckMode subtypeCheckMode}) {
+    assert(0 <= typeArgumentIndex &&
+        typeArgumentIndex < type.typeArguments.length);
+    DartType typeArgument = type.typeArguments[typeArgumentIndex];
+    DartType defaultType =
+        type.typeDeclaration.typeParameters[typeArgumentIndex].defaultType;
+    return areMutualSubtypes(typeArgument, defaultType, subtypeCheckMode);
+  }
+
+  /// Computes sufficiency of a shape check for the given types.
+  ///
+  /// In expressions of the form `e is T` and `e as T` the static type of the
+  /// expression `e` is [expressionStaticType], and the type `T` is
+  /// [checkTargetType].
+  TypeShapeCheckSufficiency computeTypeShapeCheckSufficiency(
+      {required DartType expressionStaticType,
+      required DartType checkTargetType,
+      required SubtypeCheckMode subtypeCheckMode}) {
+    if (checkTargetType is! InterfaceType ||
+        expressionStaticType is! InterfaceType) {
+      // TODO(cstefantsova): Support record, function, and futureOr types.
+      return TypeShapeCheckSufficiency.insufficient;
+    } else {
+      // Analyze if an interface shape check is sufficient.
+
+      // If `T` in `e is/as T` doesn't have type arguments, there's nothing more to
+      // check besides the shape.
+      if (checkTargetType.typeArguments.isEmpty) {
+        return TypeShapeCheckSufficiency.interfaceShape;
+      }
+
+      // If all of the type arguments of `A<T1, ..., Tn>` in `e is/as A<T1,
+      // ..., Tn>` are mutual subtypes with the default values for the
+      // corresponding type parameters, they don't need to be checked because
+      // in a well-bounded type the type arguments must be subtypes of the
+      // default types.
+      bool targetTypeArgumentsAreDefaultTypes = true;
+      List<TypeParameter> checkTargetTypeOwnTypeParameters =
+          checkTargetType.classNode.typeParameters;
+      assert(checkTargetType.typeArguments.length ==
+          checkTargetTypeOwnTypeParameters.length);
+      for (int typeParameterIndex = 0;
+          typeParameterIndex < checkTargetTypeOwnTypeParameters.length;
+          typeParameterIndex++) {
+        if (!_isRawTypeArgumentEquivalent(checkTargetType, typeParameterIndex,
+            subtypeCheckMode: subtypeCheckMode)) {
+          targetTypeArgumentsAreDefaultTypes = false;
+          break;
+        }
+      }
+      if (targetTypeArgumentsAreDefaultTypes) {
+        return TypeShapeCheckSufficiency.interfaceShape;
+      }
+
+      // If `A<T1, ..., Tn>` in `e is/as A<T1, ... Tn>` has non-trivial type
+      // arguments, but `e` is of static type `B` without type arguments, where
+      // `B` is a name of an interface, and `A` is a subclass of `B`, we have
+      // the following relation holding for any valid `S1`, ..., `Sn`: `A<S1,
+      // ..., Sn> <: B`, and we can't skip the type argument checks.
+      if (expressionStaticType.typeArguments.isEmpty) {
+        return TypeShapeCheckSufficiency.insufficient;
+      }
+
+      // The computation of the sufficiency of the shape check is based on the
+      // following observations. Let `T` be `A<T1, ..., Tn>` and `B<S1, ...,
+      // Sk>` be the static type of `e` in `e as/is T`. Let `A` be a subclass
+      // of `B` and let `B<Q1, ..., Qk>` be `A<T1, ..., Tn>` taken as an
+      // instance of `B`.
+      //
+      // Then the shape check is sufficient if (1) `B<S1, ..., Sk>` is a
+      // subtype of `B<Q1, ..., Qk>`, and (2) `A<T1, ..., Tn>` is the only
+      // instance of `A` that yields `B<Q1, ..., Qk>` being taken as an
+      // instance of `B`.
+      //
+      // For example, consider the following:
+      //
+      //   class C1<X> {}
+      //   class C2<Y> extends C1<Y> {}
+      //
+      // If we need to determine the sufficiency of a shape check in the
+      // expression `e is C2<num>` where `e` is of static type `C1<int>`, we
+      // compute (condition (2)) `C2<num>` as an instance of `C1`, which yields
+      // `C1<num>`.  Obviously, `C2<TYPE>` taken as an instance of `C1` won't
+      // yield `C1<num>` for any `TYPE` that isn't `num`.  Additionally
+      // (condition (1)), `C1<int>` is a subtype of `C1<num>`. Therefore, we
+      // conclude the shape check is sufficient in `e is C2<num>`.
+      //
+      // As an example of a case where the shape check isn't sufficient,
+      // consider the following:
+      //
+      //   class D1<X> {}
+      //   class D2 extends D1<int> {}
+      //   class D3<Y> extends D2 {}
+      //
+      // In the expression `e is D3<num>` let `e` be of static type `D1<int>`.
+      // Taken as an instance of `D1`, `D3<num>` yields `D1<int>`, and
+      // `D1<int>` is a subtype of `D1<int>` (condition (1)). However,
+      // `D3<num>` isn't the only instance of `D3` that yields `D1<int>` when
+      // taken as an instance of `D1` (failed condition (2)). Examples of other
+      // such instances are `D3<String>` or `D3<bool>`.  Therefore, we conclude
+      // that the shape check is insufficient in the expression `e is D3<num>`,
+      // which proves true when we consider the possibility of the runtime type
+      // of the value of `e` being `D3<String>` or `D3<bool>`.
+      //
+      // Finally, we can relax condition (2) by allowing multiple instances of
+      // `A<T1, ..., Tn>` yielding the same `B<Q1, ..., Qk>` being taken as an
+      // instance of `B` in case `A<T1, ..., Tn>` is a supertype of all such
+      // types. Let's call `AA` the set of all instances of `A` that yield
+      // `B<Q1, ..., Qk>` when taken as an instance of `B`.  We replace
+      // condition (2) with the relaxed condition (2*) requiring that `A<T1,
+      // ..., Tn>` is such that for every `Ti` either `Ti` is the type argument
+      // in the i-th position for all instances in `AA` or `Ti` is the default
+      // type for the i-th type parameter of `A`.
+      //
+      // Consider the following example.
+      //
+      //   class E1<X> {}
+      //   class E2<Y1, Y2> extends E1<Y1> {}
+      //
+      // In the expression `e is E2<num, dynamic>` let `e` be of static type
+      // `E1<int>`. Taken as an instance of `E1`, `E2<num, dynamic>` yields
+      // `E1<num>`. Condition (1) is satisfied because `E1<int>` is a subtype
+      // `E1<num>`. Then, to check the condition (2*), we notice that `E2<num,
+      // TYPE>` yields `E1<num>` for any type `TYPE` taken as an instance of
+      // `E1`. The first type argument of `E2<num, dynamic>` is the same in all
+      // such types, and the second type argument is the default type for the
+      // second parameter of `E2`, so condition (2*) is satisfied. We conclude
+      // that the shape check is sufficient in `e is E2<enum, dynamic>`.
+
+      // First, we compute `B<Q1, ..., Qk>`, which is `A<T1, ..., Tn>` taken as
+      // an instance of `B` in `e is/as A<T1, ..., Tn>`, where `B<S1, ..., Sk>`
+      // is the static type of `e`.
+      InterfaceType? testedAgainstTypeAsOperandClass = hierarchy
+          .getInterfaceTypeAsInstanceOfClass(
+              checkTargetType, expressionStaticType.classNode,
+              isNonNullableByDefault: true)
+          ?.withDeclaredNullability(checkTargetType.declaredNullability);
+
+      // If `A<T1, ..., Tn>` isn't an instance of `B`, the full type check
+      // should be done.
+      if (testedAgainstTypeAsOperandClass == null) {
+        return TypeShapeCheckSufficiency.insufficient;
+      } else {
+        // If `A<T1, ..., Tn>` is an instance of `B`, we proceed to checking
+        // condition (2*).  For that we compute `A<X1, ..., Xn>` as an instance
+        // of `B`, where `X1`, ..., `Xn` are the type variables declared by
+        // `A`.  The resulting type is `B<R1, ..., Rk>`, where `R1`, ..., `Rk`
+        // may contain occurrences of `X1`, ..., `Xn`.
+        InterfaceType unsubstitutedTestedAgainstTypeAsOperandClass =
+            hierarchy.getInterfaceTypeAsInstanceOfClass(
+                new InterfaceType(checkTargetType.classNode,
+                    checkTargetType.declaredNullability, [
+                  for (TypeParameter typeParameter
+                      in checkTargetTypeOwnTypeParameters)
+                    new TypeParameterType(
+                        typeParameter,
+                        TypeParameterType.computeNullabilityFromBound(
+                            typeParameter))
+                ]),
+                expressionStaticType.classNode,
+                isNonNullableByDefault: true)!;
+        // Now we search for the occurrences of `X1`, ..., `Xn` in `B<R1,
+        // ..., Rk>`. Those that are found indicate the positions in `A<T1,
+        // ..., Tn>` that are fixed and supposed to be the same for every
+        // instance of `A` that yields `B<Q1, ..., Qk>` when taken as an
+        // instance of `B`.  The other positions, that is, the indices of
+        // `Xi` that don't occur in `B<R1, ..., Rk>`, are supposed to hold
+        // the default types for the corresponding parameter of `A` in order
+        // to satisfy condition (2*).
+        OccurrenceCollectorVisitor occurrenceCollectorVisitor =
+            new OccurrenceCollectorVisitor(
+                checkTargetTypeOwnTypeParameters.toSet());
+        occurrenceCollectorVisitor
+            .visit(unsubstitutedTestedAgainstTypeAsOperandClass);
+
+        // Check that those of `Xi` that don't occur in `B<R1, ..., Rk>`
+        // indicate the positions of type arguments in `A<T1, ..., Tn>`
+        // that are equivalent to default types.
+        bool allNonOccurringAreDefaultTypes = true;
+        for (int typeParameterIndex = 0;
+            typeParameterIndex < checkTargetTypeOwnTypeParameters.length;
+            typeParameterIndex++) {
+          if (!occurrenceCollectorVisitor.occurred.contains(
+                  checkTargetTypeOwnTypeParameters[typeParameterIndex]) &&
+              !_isRawTypeArgumentEquivalent(checkTargetType, typeParameterIndex,
+                  subtypeCheckMode: subtypeCheckMode)) {
+            allNonOccurringAreDefaultTypes = false;
+            break;
+          }
+        }
+
+        if (allNonOccurringAreDefaultTypes) {
+          // Condition (2*) is satisfied. We need to check condition (1).
+          return isSubtypeOf(
+                  expressionStaticType,
+                  testedAgainstTypeAsOperandClass,
+                  SubtypeCheckMode.withNullabilities)
+              ? TypeShapeCheckSufficiency.interfaceShape
+              : TypeShapeCheckSufficiency.insufficient;
+        } else {
+          // Condition (2*) is not satisfied.
+          return TypeShapeCheckSufficiency.insufficient;
+        }
+      }
+    }
   }
 }
 
@@ -1002,4 +1212,37 @@ class _StaticTypeContextState {
   final InterfaceType? _thisType;
 
   _StaticTypeContextState(this._node, this._library, this._thisType);
+}
+
+/// Describes whether only performing a shape check is sufficient for a
+/// successful type check.
+///
+/// In the following code, in expression `a is B<num>` it is sufficient just to
+/// check that the value stored in `a` has the shape `B<_>`, and the checks of
+/// the type arguments can be omitted. In contrast, in expression `a is B<int>`
+/// the check of the type arguments can't be skipped.
+///
+///   class A<X> {}
+///   class B<Y> extends A<Y> {}
+///
+///   test(A<num> a) {
+///     a is B<num>;
+///     a is B<int>;
+///   }
+enum TypeShapeCheckSufficiency {
+  /// Indicates that only the shape of the interface type needs to be checked.
+  interfaceShape,
+
+  /// Indicates that only the shape of the record type needs to be checked.
+  recordShape,
+
+  /// Indicates that only the shape of the function type needs to be checked.
+  functionShape,
+
+  /// Indicates that only the shape of the FutureOr type needs to be checked.
+  futureOrShape,
+
+  /// Indicates that a shape check is insufficient, and the full check is
+  /// required.
+  insufficient;
 }

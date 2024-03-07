@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/type_environment.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -1637,6 +1638,93 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
     checkUpperBound(type1: "E5<String>?", type2: "B", upperBound: "A<String>?");
   }
 
+  void test_typeShapeCheckSufficiency() {
+    parseTestLibrary("""
+      class A<X>;
+      class B extends A<int>;
+      class C<Y> extends B;
+
+      class D<X>;
+      class E<Y> extends D<Y>;
+
+      class F<X>;
+      class G<Y, Z> extends F<Y>;
+    """);
+
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "A<int>",
+        checkTargetType: "C<int>",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.insufficient);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "A<int>",
+        checkTargetType: "C<String>",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.insufficient);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "A<int>",
+        checkTargetType: "C<dynamic>",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.interfaceShape);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "B",
+        checkTargetType: "C<int>",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.insufficient);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "B",
+        checkTargetType: "C<Object?>",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.interfaceShape);
+
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "D<int>",
+        checkTargetType: "E<int>",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.interfaceShape);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "D<int>",
+        checkTargetType: "E<num>",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.interfaceShape);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "D<int>",
+        checkTargetType: "E<dynamic>",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.interfaceShape);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "D<num>",
+        checkTargetType: "E<int>",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.insufficient);
+
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "F<int>",
+        checkTargetType: "G<int, String>",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.insufficient);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "F<int>",
+        checkTargetType: "G<num, String>",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.insufficient);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "F<int>",
+        checkTargetType: "G<dynamic, Object?>",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.interfaceShape);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "F<int>",
+        checkTargetType: "G<int, Object?>",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.interfaceShape);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "F<int>",
+        checkTargetType: "G<num, Object?>",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.interfaceShape);
+  }
+
   void checkUpperBound(
       {required String type1,
       required String type2,
@@ -1658,6 +1746,24 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
           typeSchemaEnvironment.getStandardUpperBound(dartType1, dartType2,
               isNonNullableByDefault: testLibrary.isNonNullableByDefault),
           parseType(upperBound));
+    });
+  }
+
+  @override
+  void checkTypeShapeCheckSufficiency(
+      {required String expressionStaticType,
+      required String checkTargetType,
+      required String typeParameters,
+      required TypeShapeCheckSufficiency sufficiency}) {
+    typeParserEnvironment.withStructuralParameters(typeParameters,
+        (List<StructuralParameter> structuralParameters) {
+      expect(
+          typeSchemaEnvironment.computeTypeShapeCheckSufficiency(
+                  expressionStaticType: parseType(expressionStaticType),
+                  checkTargetType: parseType(checkTargetType),
+                  subtypeCheckMode: SubtypeCheckMode.withNullabilities) ==
+              sufficiency,
+          isTrue);
     });
   }
 }
