@@ -8,7 +8,8 @@ void main() {
   testMacroBuild([
     r'$DART pub get',
     r'$DART '
-        r'$DART_SDK/out/ReleaseX64/gen/dartanalyzer.dart.snapshot '
+        // TODO(davidmorgan): find this programmatically.
+        r'$DART_SDK/out/DebugX64/gen/dartanalyzer.dart.snapshot '
         '-Dtest_runner.configuration=analyzer-asserts-linux '
         '--enable-experiment=macros '
         '--ignore-unrecognized-flags '
