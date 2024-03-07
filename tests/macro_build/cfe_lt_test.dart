@@ -12,8 +12,7 @@ void main() {
         '--verify '
         '--skip-platform-verification -o out.dill '
         '--platform '
-        // TODO(davidmorgan): find this programmatically.
-        r'$DART_SDK/out/DebugX64/vm_platform_strong.dill '
+        r'$DART_SDK_OUT/vm_platform_strong.dill '
         '-Dtest_runner.configuration=cfe-strong-linux '
         '--enable-experiment=macros '
         '--nnbd-strong '

@@ -10,6 +10,21 @@ import 'package:expect/expect.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
+final dartSdkOutDirectory = _findSdkOutDirectory();
+
+String _findSdkOutDirectory() {
+  var dartSdkOutDirectory = File(Platform.resolvedExecutable).parent;
+  if (!Directory.fromUri(dartSdkOutDirectory.uri.resolve('gen')).existsSync()) {
+    // Not next to `dart`, try two levels up for `dart-sdk/bin` suffix.
+    dartSdkOutDirectory = dartSdkOutDirectory.parent.parent;
+  }
+  if (!Directory.fromUri(dartSdkOutDirectory.uri.resolve('gen')).existsSync()) {
+    fail("Can't find SDK 'gen' directory from ${Platform.resolvedExecutable}, "
+        'please run from an SDK build out.');
+  }
+  return dartSdkOutDirectory.path;
+}
+
 /// Tests a macro build specified by [commands].
 ///
 /// The commands are launched with current directory set to a temp folder with
@@ -30,7 +45,7 @@ Future<void> testMacroBuild(List<String> commands) async {
   var workingDirectory = '${temp.path}/package_under_test';
   await _copyPath(sourceDirectory, workingDirectory);
 
-  var dartSdkPath = Directory.current.path;
+  final dartSdkPath = Directory.current.path;
   final dartPath = Platform.resolvedExecutable;
 
   // TODO(davidmorgan): run on more platforms.
@@ -51,6 +66,10 @@ runner to ensure they are built and not stale:
   var failed = false;
   var timedOut = false;
   for (var command in commands) {
+    if (command.contains(r'$DART_SDK_OUT')) {
+      // Only search for SDK out directory if it's needed for this test case.
+      command = command.replaceAll(r'$DART_SDK_OUT', dartSdkOutDirectory);
+    }
     final commandParts = command
         .replaceAll(r'$DART_SDK', dartSdkPath)
         .replaceAll(r'$DART', dartPath)
