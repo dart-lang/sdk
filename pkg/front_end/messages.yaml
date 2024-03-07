@@ -7581,3 +7581,7 @@ InvalidMacroApplicationTarget:
 
 NoMacroApplicationTarget:
   problemMessage: "The macro can not be applied to this declaration."
+
+MacroDefinitionApplicationSameLibraryCycle:
+  problemMessage: "The macro '#name' can't be applied in the same library cycle where it is defined."
+  correctionMessage: Try moving it to a different library that does not import the one where it is applied.

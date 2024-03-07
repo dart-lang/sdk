@@ -217,6 +217,9 @@ class SourceLoader extends Loader {
 
   ClassBuilder? _macroClassBuilder;
 
+  /// The macro declarations that are currently being compiled.
+  Set<ClassBuilder> _macroDeclarations = {};
+
   SourceLoader(this.fileSystem, this.includeComments, this.target)
       : dataForTesting =
             retainDataForTesting ? new SourceLoaderDataForTesting() : null;
@@ -1544,10 +1547,12 @@ severity: $severity
         ClassBuilder builder = iterator.current;
         if (builder.isMacro) {
           Uri libraryUri = builder.libraryBuilder.importUri;
-          if (!target.context.options.runningPrecompilations
-                  .contains(libraryUri) &&
-              !target.context.options.macroExecutor
-                  .libraryIsRegistered(libraryUri)) {
+          if (target.context.options.runningPrecompilations
+              .contains(libraryUri)) {
+            // We are explicitly compiling this macro.
+            _macroDeclarations.add(builder);
+          } else if (!target.context.options.macroExecutor
+              .libraryIsRegistered(libraryUri)) {
             (macroLibraries[libraryUri] ??= []).add(builder);
             if (retainDataForTesting) {
               (dataForTesting!.macroDeclarationData
@@ -1681,8 +1686,19 @@ severity: $severity
           // We have found the first needed layer of precompilation. There might
           // be more layers but we'll compute these at the next attempt at
           // compilation, when this layer has been precompiled.
-          // TODO(johnniwinther): Use this to trigger a precompile step.
           return new NeededPrecompilations(neededPrecompilations);
+        }
+      }
+    }
+    if (compilationSteps.isNotEmpty) {
+      for (List<Uri> compilationStep in compilationSteps) {
+        for (Uri uri in compilationStep) {
+          List<ClassBuilder>? macroClasses = macroLibraries[uri];
+          if (macroClasses != null) {
+            // These macros are to be compiled during this (last) compilation
+            // step.
+            _macroDeclarations.addAll(macroClasses);
+          }
         }
       }
     }
@@ -1700,8 +1716,8 @@ severity: $severity
         this,
         target.context.options.macroExecutor,
         dataForTesting?.macroApplicationData);
-    macroApplications
-        .computeLibrariesMacroApplicationData(sourceLibraryBuilders);
+    macroApplications.computeLibrariesMacroApplicationData(
+        sourceLibraryBuilders, _macroDeclarations);
     if (macroApplications.hasLoadableMacroIds) {
       target.benchmarker?.beginSubdivide(
           BenchmarkSubdivides.computeMacroApplications_macroExecutorProvider);
@@ -1715,8 +1731,8 @@ severity: $severity
   Future<void> computeAdditionalMacroApplications(
       MacroApplications macroApplications,
       Iterable<SourceLibraryBuilder> sourceLibraryBuilders) async {
-    macroApplications
-        .computeLibrariesMacroApplicationData(sourceLibraryBuilders);
+    macroApplications.computeLibrariesMacroApplicationData(
+        sourceLibraryBuilders, _macroDeclarations);
     if (macroApplications.hasLoadableMacroIds) {
       target.benchmarker?.beginSubdivide(
           BenchmarkSubdivides.computeMacroApplications_macroExecutorProvider);
