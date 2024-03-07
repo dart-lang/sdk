@@ -5165,6 +5165,36 @@ FfiDartTypeMismatch:
   problemMessage: "Expected '#type' to be a subtype of '#type2'."
   external: test/ffi_test.dart
 
+FfiDeeplyImmutableClassesMustBeFinalOrSealed:
+  # Used by dart:ffi
+  problemMessage: 'Deeply immutable classes must be final or sealed.'
+  correctionMessage: 'Try marking this class as final or sealed.'
+  external: test/ffi_test.dart
+
+FfiDeeplyImmutableFieldsMustBeDeeplyImmutable:
+  # Used by dart:ffi
+  problemMessage: "Deeply immutable classes must only have deeply immutable instance fields. Deeply immutable types include 'int', 'double', 'bool', 'String', 'Pointer', 'Float32x4', 'Float64x2', 'Int32x4', and classes annotated with `@pragma('vm:deeply-immutable')`."
+  correctionMessage: 'Try changing the type of this field to a deeply immutable type or mark the type of this field as deeply immutable.'
+  external: test/ffi_test.dart
+
+FfiDeeplyImmutableFieldsModifiers:
+  # Used by dart:ffi
+  problemMessage: 'Deeply immutable classes must only have final non-late instance fields.'
+  correctionMessage: "Add the 'final' modifier to this field, and remove 'late' modifier from this field."
+  external: test/ffi_test.dart
+
+FfiDeeplyImmutableSubtypesMustBeDeeplyImmutable:
+  # Used by dart:ffi
+  problemMessage: 'Subtypes of deeply immutable classes must be deeply immutable.'
+  correctionMessage: "Try marking this class deeply immutable by adding `@pragma('vm:deeply-immutable')`."
+  external: test/ffi_test.dart
+
+FfiDeeplyImmutableSupertypeMustBeDeeplyImmutable:
+  # Used by dart:ffi
+  problemMessage: 'The super type of deeply immutable classes must be deeply immutable.'
+  correctionMessage: "Try marking the super class deeply immutable by adding `@pragma('vm:deeply-immutable')`."
+  external: test/ffi_test.dart
+
 FfiDefaultAssetDuplicate:
   # Used by dart:ffi
   problemMessage: "There may be at most one @DefaultAsset annotation on a library."

@@ -3776,6 +3776,7 @@ final class _ExternalFloat64x2Array extends _TypedList
 }
 
 @patch
+@pragma('vm:deeply-immutable')
 class Float32x4 {
   @patch
   @pragma("vm:prefer-inline")
@@ -3824,6 +3825,7 @@ class Float32x4 {
   external factory Float32x4.fromFloat64x2(Float64x2 v);
 }
 
+@pragma('vm:deeply-immutable')
 @pragma("vm:entry-point")
 final class _Float32x4 implements Float32x4 {
   @pragma("vm:recognized", "graph-intrinsic")
@@ -3977,6 +3979,7 @@ final class _Float32x4 implements Float32x4 {
 }
 
 @patch
+@pragma('vm:deeply-immutable')
 class Int32x4 {
   @patch
   @pragma("vm:prefer-inline")
@@ -4015,6 +4018,7 @@ class Int32x4 {
   external factory Int32x4.fromFloat32x4Bits(Float32x4 x);
 }
 
+@pragma('vm:deeply-immutable')
 @pragma("vm:entry-point")
 final class _Int32x4 implements Int32x4 {
   @pragma("vm:external-name", "Int32x4_or")
@@ -4155,6 +4159,7 @@ final class _Int32x4 implements Int32x4 {
 }
 
 @patch
+@pragma('vm:deeply-immutable')
 class Float64x2 {
   @patch
   @pragma("vm:prefer-inline")
@@ -4194,6 +4199,7 @@ class Float64x2 {
   external factory Float64x2.fromFloat32x4(Float32x4 v);
 }
 
+@pragma('vm:deeply-immutable')
 @pragma("vm:entry-point")
 final class _Float64x2 implements Float64x2 {
   @pragma("vm:recognized", "graph-intrinsic")

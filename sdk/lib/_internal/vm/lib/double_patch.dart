@@ -7,6 +7,7 @@ part of "core_patch.dart";
 // VM implementation of double.
 
 @patch
+@pragma('vm:deeply-immutable')
 @pragma("vm:entry-point")
 class double {
   @pragma("vm:external-name", "Double_parse")

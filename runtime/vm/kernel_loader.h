@@ -220,8 +220,10 @@ class KernelLoader : public ValueObject {
       BitField<uint32_t, bool, ExternalNamePragma::kNextBit, 1>;
   using IsolateUnsendablePragma =
       BitField<uint32_t, bool, InvisibleFunctionPragma::kNextBit, 1>;
-  using FfiNativePragma =
+  using DeeplyImmutablePragma =
       BitField<uint32_t, bool, IsolateUnsendablePragma::kNextBit, 1>;
+  using FfiNativePragma =
+      BitField<uint32_t, bool, DeeplyImmutablePragma::kNextBit, 1>;
 
   void FinishTopLevelClassLoading(const Class& toplevel_class,
                                   const Library& library,

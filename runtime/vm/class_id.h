@@ -309,7 +309,7 @@ inline bool IsInternalOnlyClassId(intptr_t index) {
   return index <= kLastInternalOnlyCid;
 }
 
-  // Make sure this function is updated when new Error types are added.
+// Make sure this function is updated when new Error types are added.
 static const ClassId kFirstErrorCid = kErrorCid;
 static const ClassId kLastErrorCid = kUnwindErrorCid;
 COMPILE_ASSERT(kFirstErrorCid == kErrorCid &&
@@ -468,15 +468,41 @@ inline bool IsUnmodifiableTypedDataViewClassId(intptr_t index) {
               kTypedDataCidRemainderUnmodifiable);
 }
 
-inline bool ShouldHaveImmutabilityBitSet(intptr_t index) {
-  return IsUnmodifiableTypedDataViewClassId(index) || IsStringClassId(index) ||
-         index == kMintCid || index == kNeverCid || index == kSentinelCid ||
-         index == kStackTraceCid || index == kDoubleCid ||
-         index == kFloat32x4Cid || index == kFloat64x2Cid ||
-         index == kInt32x4Cid || index == kSendPortCid ||
-         index == kCapabilityCid || index == kRegExpCid || index == kBoolCid ||
-         index == kNullCid || index == kPointerCid || index == kTypeCid ||
-         index == kRecordTypeCid || index == kFunctionTypeCid;
+// For predefined cids only. Refer to Class::is_deeply_immutable for
+// instances of non-predefined classes.
+//
+// Having the `@pragma('vm:deeply-immutable')`, which means statically proven
+// deeply immutable, implies true for this function. The other way around is not
+// guaranteed, predefined classes can be marked deeply immutable in the VM while
+// not having their subtypes or super type being deeply immutable.
+//
+// Keep consistent with runtime/docs/deeply_immutable.md.
+inline bool IsDeeplyImmutableCid(intptr_t predefined_cid) {
+  ASSERT(predefined_cid < kNumPredefinedCids);
+  return IsStringClassId(predefined_cid) || predefined_cid == kNumberCid ||
+         predefined_cid == kIntegerCid || predefined_cid == kSmiCid ||
+         predefined_cid == kMintCid || predefined_cid == kNeverCid ||
+         predefined_cid == kSentinelCid || predefined_cid == kStackTraceCid ||
+         predefined_cid == kDoubleCid || predefined_cid == kFloat32x4Cid ||
+         predefined_cid == kFloat64x2Cid || predefined_cid == kInt32x4Cid ||
+         predefined_cid == kSendPortCid || predefined_cid == kCapabilityCid ||
+         predefined_cid == kRegExpCid || predefined_cid == kBoolCid ||
+         predefined_cid == kNullCid || predefined_cid == kPointerCid ||
+         predefined_cid == kTypeCid || predefined_cid == kRecordTypeCid ||
+         predefined_cid == kFunctionTypeCid;
+}
+
+inline bool IsShallowlyImmutableCid(intptr_t predefined_cid) {
+  ASSERT(predefined_cid < kNumPredefinedCids);
+  // TODO(https://dartbug.com/55136): Mark kClosureCid as shallowly imutable.
+  return IsUnmodifiableTypedDataViewClassId(predefined_cid);
+}
+
+// See documentation on ImmutableBit in raw_object.h
+inline bool ShouldHaveImmutabilityBitSetCid(intptr_t predefined_cid) {
+  ASSERT(predefined_cid < kNumPredefinedCids);
+  return IsDeeplyImmutableCid(predefined_cid) ||
+         IsShallowlyImmutableCid(predefined_cid);
 }
 
 inline bool IsFfiTypeClassId(intptr_t index) {

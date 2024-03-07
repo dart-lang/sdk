@@ -657,6 +657,8 @@ class Object {
     kNo,
   };
 
+  static bool ShouldHaveImmutabilityBitSet(classid_t class_id);
+
  protected:
   friend ObjectPtr AllocateObject(intptr_t, intptr_t, intptr_t);
 
@@ -2062,9 +2064,19 @@ class Class : public Object {
     //    - super class / super interface classes are marked as unsendable.
     //    - class has native fields.
     kIsIsolateUnsendableBit,
-    // True if this class has `@pragma('vm:isolate-unsendable') annotation or
+    // True if this class has `@pragma('vm:isolate-unsendable')` annotation or
     // base class or implemented interfaces has this bit.
     kIsIsolateUnsendableDueToPragmaBit,
+    // Will be set to 1 for the following classes:
+    //
+    // 1. Deeply immutable class.
+    //    a. Statically guaranteed deeply immutable classes.
+    //       `@pragma('vm:deeply-immutable')`.
+    //    b. VM recognized deeply immutable classes.
+    //       `IsDeeplyImmutableCid(intptr_t predefined_cid)`.
+    //
+    // See also ImmutableBit in raw_object.h.
+    kIsDeeplyImmutableBit,
     // This class is a subtype of Future.
     kIsFutureSubtypeBit,
     // This class has a non-abstract subtype which is a subtype of Future.
@@ -2104,6 +2116,8 @@ class Class : public Object {
   class IsIsolateUnsendableDueToPragmaBit
       : public BitField<uint32_t, bool, kIsIsolateUnsendableDueToPragmaBit, 1> {
   };
+  class IsDeeplyImmutableBit
+      : public BitField<uint32_t, bool, kIsDeeplyImmutableBit, 1> {};
   class IsFutureSubtypeBit
       : public BitField<uint32_t, bool, kIsFutureSubtypeBit, 1> {};
   class CanBeFutureBit : public BitField<uint32_t, bool, kCanBeFutureBit, 1> {};
@@ -2157,6 +2171,14 @@ class Class : public Object {
   void set_is_isolate_unsendable_due_to_pragma(bool value) const;
   bool is_isolate_unsendable_due_to_pragma() const {
     return IsIsolateUnsendableDueToPragmaBit::decode(state_bits());
+  }
+
+  void set_is_deeply_immutable(bool value) const;
+  bool is_deeply_immutable() const {
+    return IsDeeplyImmutableBit::decode(state_bits());
+  }
+  static bool IsDeeplyImmutable(ClassPtr clazz) {
+    return IsDeeplyImmutableBit::decode(clazz->untag()->state_bits_);
   }
 
   void set_is_future_subtype(bool value) const;

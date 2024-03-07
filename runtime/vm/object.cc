@@ -18,6 +18,7 @@
 #include "vm/bootstrap.h"
 #include "vm/canonical_tables.h"
 #include "vm/class_finalizer.h"
+#include "vm/class_id.h"
 #include "vm/closure_functions_cache.h"
 #include "vm/code_comments.h"
 #include "vm/code_descriptors.h"
@@ -2711,6 +2712,15 @@ StringPtr Object::DictionaryName() const {
   return String::null();
 }
 
+bool Object::ShouldHaveImmutabilityBitSet(classid_t class_id) {
+  if (class_id < kNumPredefinedCids) {
+    return ShouldHaveImmutabilityBitSetCid(class_id);
+  } else {
+    return Class::IsDeeplyImmutable(
+        IsolateGroup::Current()->class_table()->At(class_id));
+  }
+}
+
 void Object::InitializeObject(uword address,
                               intptr_t class_id,
                               intptr_t size,
@@ -2814,7 +2824,7 @@ void Object::InitializeObject(uword address,
   tags = UntaggedObject::OldAndNotRememberedBit::update(is_old, tags);
   tags = UntaggedObject::NewBit::update(!is_old, tags);
   tags = UntaggedObject::ImmutableBit::update(
-      ShouldHaveImmutabilityBitSet(class_id), tags);
+      Object::ShouldHaveImmutabilityBitSet(class_id), tags);
 #if defined(HASH_IN_OBJECT_HEADER)
   tags = UntaggedObject::HashTag::update(0, tags);
 #endif
@@ -3164,6 +3174,10 @@ ClassPtr Class::New(IsolateGroup* isolate_group, bool register_class) {
     // references, but do not recompute size.
     result.set_is_prefinalized();
   }
+  if (FakeObject::kClassId < kNumPredefinedCids &&
+      IsDeeplyImmutableCid(FakeObject::kClassId)) {
+    result.set_is_deeply_immutable(true);
+  }
   NOT_IN_PRECOMPILED(result.set_kernel_offset(0));
   result.InitEmptyFields();
   if (register_class) {
@@ -3216,6 +3230,11 @@ void Class::set_is_isolate_unsendable_due_to_pragma(bool value) const {
   ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
   set_state_bits(
       IsIsolateUnsendableDueToPragmaBit::update(value, state_bits()));
+}
+
+void Class::set_is_deeply_immutable(bool value) const {
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
+  set_state_bits(IsDeeplyImmutableBit::update(value, state_bits()));
 }
 
 void Class::set_is_future_subtype(bool value) const {
@@ -5322,6 +5341,8 @@ ClassPtr Class::NewStringClass(intptr_t class_id, IsolateGroup* isolate_group) {
   result.set_next_field_offset(host_next_field_offset,
                                target_next_field_offset);
   result.set_is_prefinalized();
+  ASSERT(IsDeeplyImmutableCid(class_id));
+  result.set_is_deeply_immutable(true);
   isolate_group->class_table()->Register(result);
   return result.ptr();
 }

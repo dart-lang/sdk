@@ -879,6 +879,7 @@ void Deserializer::InitializeHeader(ObjectPtr raw,
   tags = UntaggedObject::NotMarkedBit::update(true, tags);
   tags = UntaggedObject::OldAndNotRememberedBit::update(true, tags);
   tags = UntaggedObject::NewBit::update(false, tags);
+  // TODO(https://dartbug.com/55136): Initialize the ImmutableBit.
   raw->untag()->tags_ = tags;
 }
 

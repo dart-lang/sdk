@@ -160,10 +160,13 @@ static bool CanShareObject(ObjectPtr obj, uword tags) {
           ->untag()
           ->IsImmutable();
     }
+
     // All other objects that have immutability bit set are deeply immutable.
     return true;
   }
 
+  // TODO(https://dartbug.com/55136): Mark Closures as shallowly imutable.
+  // And move this into the if above.
   if (cid == kClosureCid) {
     // We can share a closure iff it doesn't close over any state.
     return Closure::RawCast(obj)->untag()->context() == Object::null();
