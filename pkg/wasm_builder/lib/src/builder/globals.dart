@@ -13,12 +13,18 @@ class GlobalsBuilder with Builder<ir.Globals> {
   final _importedGlobals = <ir.Import>[];
   final _globalBuilders = <GlobalBuilder>[];
 
+  /// Number of named globals.
+  int _namedCount = 0;
+
   GlobalsBuilder(this._module);
 
   /// Defines a new global variable in this module.
-  GlobalBuilder define(ir.GlobalType type) {
-    final global = GlobalBuilder(_module, ir.FinalizableIndex(), type);
+  GlobalBuilder define(ir.GlobalType type, [String? name]) {
+    final global = GlobalBuilder(_module, ir.FinalizableIndex(), type, name);
     _globalBuilders.add(global);
+    if (name != null) {
+      _namedCount += 1;
+    }
     return global;
   }
 
@@ -36,6 +42,6 @@ class GlobalsBuilder with Builder<ir.Globals> {
   ir.Globals forceBuild() {
     final built = finalizeImportsAndBuilders<ir.DefinedGlobal>(
         _importedGlobals, _globalBuilders);
-    return ir.Globals(_importedGlobals, built);
+    return ir.Globals(_importedGlobals, built, _namedCount);
   }
 }

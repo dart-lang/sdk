@@ -330,11 +330,15 @@ abstract class CustomSection extends Section {
 class NameSection extends CustomSection {
   final List<ir.BaseFunction> functions;
   final List<ir.DefType> types;
+  final List<ir.Global> globals;
   final int functionNameCount;
   final int typeNameCount;
+  final int globalNameCount;
 
-  NameSection(this.functions, this.types, super.watchPoints,
-      {required this.functionNameCount, required this.typeNameCount});
+  NameSection(this.functions, this.types, this.globals, super.watchPoints,
+      {required this.functionNameCount,
+      required this.typeNameCount,
+      required this.globalNameCount});
 
   @override
   bool get isNotEmpty => functionNameCount > 0 || typeNameCount > 0;
@@ -363,11 +367,26 @@ class NameSection extends CustomSection {
       }
     }
 
+    final globalNameSubsection = Serializer();
+    globalNameSubsection.writeUnsigned(globalNameCount);
+    for (int i = 0; i < globals.length; i++) {
+      final globalName = globals[i].globalName;
+      if (globalName != null) {
+        globalNameSubsection.writeUnsigned(i);
+        globalNameSubsection.writeName(globalName);
+      }
+    }
+
     s.writeByte(1); // Function names subsection
     s.writeUnsigned(functionNameSubsection.data.length);
     s.writeData(functionNameSubsection);
+
     s.writeByte(4); // Type names subsection
     s.writeUnsigned(typeNameSubsection.data.length);
     s.writeData(typeNameSubsection);
+
+    s.writeByte(7); // Global names subsection
+    s.writeUnsigned(globalNameSubsection.data.length);
+    s.writeData(globalNameSubsection);
   }
 }
