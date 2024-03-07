@@ -312,6 +312,14 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitAsExpression(AsExpression node) {
+    if (offset <= node.expression.end) {
+      declarationHelper(
+        mustBeNonVoid: true,
+        mustBeStatic: node.inStaticContext,
+      ).addLexicalDeclarations(node);
+      return;
+    }
+
     if (node.asOperator.coversOffset(offset)) {
       if (node.expression is ParenthesizedExpression) {
         // If the user has typed `as` after something that could be either a
@@ -326,6 +334,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       }
       return;
     }
+
     var type = node.type;
     if (type.isFullySynthetic || type.beginToken.coversOffset(offset)) {
       collector.completionLocation = 'AsExpression_type';
@@ -784,7 +793,9 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     //  returning the expression as the completion node and moving the following
     //  conditions into the visit methods for the respective classes.
     var expression = node.expression;
-    if (expression is AssignmentExpression) {
+    if (expression is AsExpression) {
+      expression.accept(this);
+    } else if (expression is AssignmentExpression) {
       var leftHandSide = expression.leftHandSide;
       if (leftHandSide is SimpleIdentifier && offset <= leftHandSide.end) {
         _forStatement(node);
@@ -1426,6 +1437,12 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   void visitMethodInvocation(MethodInvocation node) {
     var operator = node.operator;
     if (operator == null) {
+      if (node.coversOffset(offset)) {
+        // TODO(keertip): Also check for more cases, RHS of assignment operator,
+        // a field in record literal, an operand to an operator.
+        var mustBeNonVoid = node.parent is ArgumentList;
+        _forExpression(node, mustBeNonVoid: mustBeNonVoid);
+      }
       return;
     }
     if ((node.isCascaded && offset == operator.offset + 1) ||
