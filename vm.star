@@ -454,22 +454,6 @@ _vm_builder(
     properties = {"clobber": False},
 )
 
-# vm|legacy|jit
-_nightly_builder(
-    "vm-kernel-linux-debug-x64",
-    category = "vm|legacy|jit|d",
-)
-_nightly_builder(
-    "vm-kernel-linux-release-x64",
-    category = "vm|legacy|jit|r",
-)
-
-# vm|legacy|aot
-_nightly_builder(
-    "vm-kernel-precomp-linux-release-x64",
-    category = "vm|legacy|aot|r",
-)
-
 # Isolate stress test builder
 _vm_builder(
     "iso-stress-linux",
