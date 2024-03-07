@@ -1514,9 +1514,6 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
     if (nullabilitySuffix == NullabilitySuffix.question ||
         bound.nullabilitySuffix == NullabilitySuffix.question) {
       newNullabilitySuffix = NullabilitySuffix.question;
-    } else if (nullabilitySuffix == NullabilitySuffix.star ||
-        bound.nullabilitySuffix == NullabilitySuffix.star) {
-      newNullabilitySuffix = NullabilitySuffix.star;
     } else {
       newNullabilitySuffix = NullabilitySuffix.none;
     }

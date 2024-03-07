@@ -37,7 +37,7 @@ class ElementFactory {
   static InterfaceType get objectType {
     return _objectType ??= object.instantiate(
       typeArguments: const [],
-      nullabilitySuffix: NullabilitySuffix.star,
+      nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 

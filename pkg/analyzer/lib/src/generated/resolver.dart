@@ -545,7 +545,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         // be done.
         var lowerBound = typeProvider.futureElement.instantiate(
           typeArguments: fixedTypeList(NeverTypeImpl.instance),
-          nullabilitySuffix: NullabilitySuffix.star,
+          nullabilitySuffix: NullabilitySuffix.none,
         );
         var imposedType = bodyContext.imposedType;
         if (imposedType != null &&

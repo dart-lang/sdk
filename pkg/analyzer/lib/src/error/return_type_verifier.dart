@@ -316,7 +316,7 @@ class ReturnTypeVerifier {
     //
     var lowerBound = expectedElement.instantiate(
       typeArguments: [NeverTypeImpl.instance],
-      nullabilitySuffix: NullabilitySuffix.star,
+      nullabilitySuffix: NullabilitySuffix.none,
     );
     return _typeSystem.isSubtypeOf(lowerBound, returnType);
   }

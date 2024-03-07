@@ -806,8 +806,6 @@ class ResolutionSink extends _SummaryDataWriter {
           writeByte(Tag.InterfaceType_noTypeArguments_none);
         } else if (nullabilitySuffix == NullabilitySuffix.question) {
           writeByte(Tag.InterfaceType_noTypeArguments_question);
-        } else if (nullabilitySuffix == NullabilitySuffix.star) {
-          writeByte(Tag.InterfaceType_noTypeArguments_star);
         }
         // TODO(scheglov): Write raw
         writeElement(type.element);
