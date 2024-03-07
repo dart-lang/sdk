@@ -184,6 +184,29 @@ suggestions
 ''');
   }
 
+  Future<void> test_afterPeriod_namedConstructor() async {
+    allowedIdentifiers = {'named'};
+    await computeSuggestions('''
+enum E0 {
+  o0, t0;
+
+   factory E0.named() =>  E0.o0;
+}
+void f() {
+  E0.^
+}
+''');
+    assertResponse(r'''
+suggestions
+  named
+    kind: constructorInvocation
+  o0
+    kind: enumConstant
+  t0
+    kind: enumConstant
+''');
+  }
+
   Future<void> test_afterPeriod_partial() async {
     await computeSuggestions('''
 enum E0 {

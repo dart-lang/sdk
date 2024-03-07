@@ -383,7 +383,7 @@ class DeclarationHelper {
         var augmented = element.augmented;
         _addStaticMembers(
             accessors: augmented?.accessors ?? element.accessors,
-            constructors: const [],
+            constructors: augmented?.constructors ?? element.constructors,
             containingElement: element,
             fields: augmented?.fields ?? element.fields,
             methods: augmented?.methods ?? element.methods);
