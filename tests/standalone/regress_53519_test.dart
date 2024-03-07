@@ -6,7 +6,6 @@
 // Regression test for https://github.com/dart-lang/sdk/issues/53519
 
 import 'package:expect/expect.dart';
-import 'package:expect/config.dart';
 
 String destructure(Map<String, dynamic> map) {
   final {'hello': world, 'count': count} = map;
@@ -14,10 +13,6 @@ String destructure(Map<String, dynamic> map) {
 }
 
 main() {
-  // Stringification of stack traces is only valid in non-obfuscated & non-dwarf
-  // mode.
-  if (isVmObfuscateConfiguration || isVmDwarfConfiguration) return;
-
   try {
     destructure({
       'hello': 'world',
@@ -26,7 +21,7 @@ main() {
   } catch (e, s) {
     print(s);
     // Expect that the stack trace contains an entry for the destructure
-    // function at line 12.
-    Expect.isTrue(s.toString().contains(RegExp(r'destructure \(.*:12(:3)?\)')));
+    // function at line 11.
+    Expect.isTrue(s.toString().contains(RegExp(r'destructure \(.*:11(:3)?\)')));
   }
 }

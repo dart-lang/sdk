@@ -31,12 +31,6 @@ bool get isVmJitConfiguration => _configuration.compiler == Compiler.dartk;
 
 bool get isVmAotConfiguration => _configuration.compiler == Compiler.dartkp;
 
-bool get isVmDwarfConfiguration =>
-    _configuration.vmOptions.contains('--dwarf_stack_traces');
-
-bool get isVmObfuscateConfiguration =>
-    _configuration.vmOptions.contains('--obfuscate');
-
 bool get isVmConfiguration => isVmJitConfiguration || isVmAotConfiguration;
 
 bool get isWebConfiguration =>

@@ -16,6 +16,7 @@ package/scenarios/invalid/non_existent_packages_file_test: CompileTimeError
 
 [ $builder_tag == dwarf ]
 io/socket_connect_stacktrace_test: SkipByDesign # Assumes stacktrace can be inspected directly, without decoding
+regress_53519_test.dart: SkipByDesign # Relies on symbolic stack traces.
 stack_trace/full1_test: SkipByDesign # Relies on symbolic stack traces.
 stack_trace/full2_test: SkipByDesign # Relies on symbolic stack traces.
 stack_trace/full3_test: SkipByDesign # Relies on symbolic stack traces.
@@ -38,6 +39,7 @@ io/socket_source_address_test: SkipByDesign
 
 [ $builder_tag == obfuscated ]
 no_such_method_error_with_invocation_test: SkipByDesign # Checks the member names in the NSM error message.
+regress_53519_test.dart: SkipByDesign # Relies on symbolic stack traces.
 
 [ $compiler == app_jitk ]
 io/socket_sigpipe_test: SkipByDesign # Spawns server process using Platform.executable
