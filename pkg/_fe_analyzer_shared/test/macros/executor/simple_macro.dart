@@ -323,7 +323,8 @@ class SimpleMacro
   @override
   Future<void> buildDefinitionForFunction(
       FunctionDeclaration function, FunctionDefinitionBuilder builder) async {
-    builder.augment(await _buildFunctionAugmentation(function, builder));
+    builder.augment(await _buildFunctionAugmentation(function, builder),
+        docComments: CommentCode.fromString('// A comment!'));
   }
 
   @override

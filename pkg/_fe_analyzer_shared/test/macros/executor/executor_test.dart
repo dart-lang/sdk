@@ -676,6 +676,7 @@ class LibraryInfo {
                 expect(
                     result.libraryAugmentations.single.debugString().toString(),
                     equalsIgnoringWhitespace('''
+                // A comment!
                 augment String myFunction() {
                   print('isExternal: false');
                   print('isGetter: false');
@@ -733,6 +734,7 @@ class LibraryInfo {
                 expect(
                     result.libraryAugmentations.single.debugString().toString(),
                     equalsIgnoringWhitespace('''
+                // A comment!
                 augment String get myVariable {
                   print('isExternal: false');
                   print('isGetter: true');
@@ -754,6 +756,7 @@ class LibraryInfo {
                 expect(
                     result.libraryAugmentations.single.debugString().toString(),
                     equalsIgnoringWhitespace('''
+                // A comment!
                 augment void set myVariable(String value, ) {
                   print('isExternal: false');
                   print('isGetter: false');
@@ -1020,6 +1023,7 @@ final fieldDefinitionMatchers = [
 
 final methodDefinitionMatchers = [
   equalsIgnoringWhitespace('''
+    // A comment!
     augment (String, bool? hello, {String world}) myMethod() {
       print('definingClass: MyClass');
       print('isExternal: false');
@@ -1050,6 +1054,7 @@ final methodDefinitionMatchers = [
 
 final mixinMethodDefinitionMatchers = [
   equalsIgnoringWhitespace('''
+    // A comment!
     augment (String, bool? hello, {String world}) myMixinMethod() {
       print('definingClass: MyMixin');
       print('isExternal: false');
