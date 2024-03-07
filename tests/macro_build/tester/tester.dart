@@ -43,11 +43,6 @@ runner to ensure they are built and not stale:
 ./tools/test.py -v -nunittest-asserts-release-linux-x64 \
     --build 'tests/macro_build/*'
 ''');
-  } else if (configuration != 'unittest-asserts-release-linux-x64') {
-    print('Skipping test, not yet supported on '
-        '-Dtest_runner.configuration=$configuration, '
-        'use unittest-asserts-release-linux-x64.');
-    return;
   }
 
   _fixPubspec(
