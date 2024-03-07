@@ -272,7 +272,7 @@ class ContextLocatorImpl implements ContextLocator {
       root.optionsFileMap[rootFolder] = optionsFile;
     }
 
-    root.excludedGlobs = _getExcludedGlobs(root);
+    root.excludedGlobs = _getExcludedGlobs(optionsFile, workspace);
     roots.add(root);
     return root;
   }
@@ -315,6 +315,10 @@ class ContextLocatorImpl implements ContextLocator {
     if (localOptionsFile != null) {
       (containingRoot as ContextRootImpl).optionsFileMap[folder] =
           localOptionsFile;
+      // Add excluded globs.
+      var excludes =
+          _getExcludedGlobs(localOptionsFile, containingRoot.workspace);
+      containingRoot.excludedGlobs.addAll(excludes);
     }
 
     //
@@ -343,7 +347,7 @@ class ContextLocatorImpl implements ContextLocator {
       containingRoot.excluded.add(folder);
       roots.add(root);
       containingRoot = root;
-      excludedGlobs = _getExcludedGlobs(root);
+      excludedGlobs = _getExcludedGlobs(root.optionsFile, workspace);
       root.excludedGlobs = excludedGlobs;
     }
     _createContextRootsIn(roots, visited, folder, excludedFolders,
@@ -481,19 +485,16 @@ class ContextLocatorImpl implements ContextLocator {
     return null;
   }
 
-  /// Return a list containing the glob patterns used to exclude files from the
-  /// given context [root]. The patterns are extracted from the analysis options
-  /// file associated with the context root. The list will be empty if there are
-  /// no exclusion patterns in the options file, or if there is no options file
-  /// associated with the context root.
-  List<LocatedGlob> _getExcludedGlobs(ContextRootImpl root) {
+  /// Return a list containing the glob patterns used to exclude files from
+  /// analysis by the given [optionsFile]. The list will be empty if there is no
+  /// options file or if there are no exclusion patterns in the options file.
+  List<LocatedGlob> _getExcludedGlobs(File? optionsFile, Workspace workspace) {
     List<LocatedGlob> patterns = [];
-    File? optionsFile = root.optionsFile;
     if (optionsFile != null) {
       try {
-        var doc = AnalysisOptionsProvider(
-                root.workspace.createSourceFactory(null, null))
-            .getOptionsFromFile(optionsFile);
+        var doc =
+            AnalysisOptionsProvider(workspace.createSourceFactory(null, null))
+                .getOptionsFromFile(optionsFile);
 
         var analyzerOptions = doc.valueAt(AnalyzerOptions.analyzer);
         if (analyzerOptions is YamlMap) {
