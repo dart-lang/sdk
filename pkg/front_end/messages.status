@@ -711,6 +711,8 @@ ListLiteralTooManyTypeArguments/example: Fail
 LoadLibraryTakesNoArguments/example: Fail
 MacroClassNotDeclaredMacro/analyzerCode: Fail
 MacroClassNotDeclaredMacro/example: Fail
+MacroDefinitionApplicationSameLibraryCycle/analyzerCode: Fail
+MacroDefinitionApplicationSameLibraryCycle/example: Fail
 MainNotFunctionDeclaration/analyzerCode: Fail
 MainNotFunctionDeclarationExported/analyzerCode: Fail
 MainNotFunctionDeclarationExported/part_wrapped_script: Fail

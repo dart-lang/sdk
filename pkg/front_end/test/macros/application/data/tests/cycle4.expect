@@ -1,0 +1,28 @@
+library;
+import self as self;
+
+import "dart:async";
+import "org-dartlang-test:///a/b/c/main_lib.dart";
+
+static method method() → dynamic {}
+
+library;
+import self as self2;
+import "dart:core" as core;
+import "package:_fe_analyzer_shared/src/macros/api.dart" as api;
+
+import "dart:async";
+import "package:_fe_analyzer_shared/src/macros/api.dart";
+
+macro class Macro extends core::Object implements api::FunctionDeclarationsMacro /*hasConstConstructor*/  {
+  const constructor •() → self2::Macro
+    : super core::Object::•()
+    ;
+  method buildDeclarationsForFunction(api::FunctionDeclaration function, api::DeclarationBuilder builder) → FutureOr<void> {}
+}
+@#C1
+static method method() → dynamic {}
+
+constants  {
+  #C1 = self2::Macro {}
+}

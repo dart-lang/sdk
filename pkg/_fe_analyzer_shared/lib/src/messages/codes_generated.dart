@@ -11452,6 +11452,41 @@ Message _withArgumentsMacroClassNotDeclaredMacro(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateMacroDefinitionApplicationSameLibraryCycle =
+    const Template<Message Function(String name)>(
+  "MacroDefinitionApplicationSameLibraryCycle",
+  problemMessageTemplate:
+      r"""The macro '#name' can't be applied in the same library cycle where it is defined.""",
+  correctionMessageTemplate:
+      r"""Try moving it to a different library that does not import the one where it is applied.""",
+  withArguments: _withArgumentsMacroDefinitionApplicationSameLibraryCycle,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeMacroDefinitionApplicationSameLibraryCycle =
+    const Code<Message Function(String name)>(
+  "MacroDefinitionApplicationSameLibraryCycle",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsMacroDefinitionApplicationSameLibraryCycle(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(
+    codeMacroDefinitionApplicationSameLibraryCycle,
+    problemMessage:
+        """The macro '${name}' can't be applied in the same library cycle where it is defined.""",
+    correctionMessage:
+        """Try moving it to a different library that does not import the one where it is applied.""",
+    arguments: {
+      'name': name,
+    },
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeMainNotFunctionDeclaration =
     messageMainNotFunctionDeclaration;
 

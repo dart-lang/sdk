@@ -53,18 +53,36 @@ class MacroApplication {
   final ClassBuilder classBuilder;
   final String constructorName;
   final macro.Arguments arguments;
-  final String? errorReason;
+  final bool isErroneous;
+  final String? unhandledReason;
 
+  /// Creates a [MacroApplication] for a macro annotation that should be
+  /// applied.
   MacroApplication(this.classBuilder, this.constructorName, this.arguments,
       {required this.uriOffset})
-      : errorReason = null;
+      : isErroneous = false,
+        unhandledReason = null;
 
-  MacroApplication.error(String this.errorReason, this.classBuilder,
+  /// Creates an erroneous [MacroApplication] for a macro annotation using
+  /// syntax that is not unhandled.
+  // TODO(johnniwinther): Separate this into unhandled (but valid) and
+  //  unsupported (thus invalid) annotations.
+  MacroApplication.unhandled(String this.unhandledReason, this.classBuilder,
       {required this.uriOffset})
-      : constructorName = '',
+      : isErroneous = true,
+        constructorName = '',
         arguments = new macro.Arguments(const [], const {});
 
-  bool get isErroneous => errorReason != null;
+  /// Creates an erroneous [MacroApplication] for an invalid macro application
+  /// for which an error has been reported, which should _not_ be applied. For
+  /// instance a macro annotation of a macro declared in the same library cycle.
+  MacroApplication.invalid(this.classBuilder, {required this.uriOffset})
+      : constructorName = '',
+        isErroneous = true,
+        unhandledReason = null,
+        arguments = new macro.Arguments(const [], const {});
+
+  bool get isUnhandled => unhandledReason != null;
 
   late macro.MacroInstanceIdentifier instanceIdentifier;
   late Set<macro.Phase> phasesToExecute;
@@ -245,10 +263,10 @@ void checkMacroApplications(
             MacroApplication? macroApplication =
                 applications?.remove(annotation.fileOffset);
             if (macroApplication != null) {
-              if (macroApplication.isErroneous) {
+              if (macroApplication.isUnhandled) {
                 libraryBuilder.addProblem(
                     templateUnhandledMacroApplication
-                        .withArguments(macroApplication.errorReason!),
+                        .withArguments(macroApplication.unhandledReason!),
                     annotation.fileOffset,
                     noLength,
                     fileUri);
@@ -350,14 +368,17 @@ class MacroApplications {
   bool get hasLoadableMacroIds => _pendingLibraryData.isNotEmpty;
 
   void computeLibrariesMacroApplicationData(
-      Iterable<SourceLibraryBuilder> libraryBuilders) {
+      Iterable<SourceLibraryBuilder> libraryBuilders,
+      Set<ClassBuilder> currentMacroDeclarations) {
     for (SourceLibraryBuilder libraryBuilder in libraryBuilders) {
-      _computeSourceLibraryMacroApplicationData(libraryBuilder);
+      _computeSourceLibraryMacroApplicationData(
+          libraryBuilder, currentMacroDeclarations);
     }
   }
 
   void _computeSourceLibraryMacroApplicationData(
-      SourceLibraryBuilder libraryBuilder) {
+      SourceLibraryBuilder libraryBuilder,
+      Set<ClassBuilder> currentMacroDeclarations) {
     // TODO(johnniwinther): Handle augmentation libraries.
     LibraryMacroApplicationData libraryMacroApplicationData =
         new LibraryMacroApplicationData();
@@ -366,7 +387,8 @@ class MacroApplications {
         enclosingLibrary: libraryBuilder,
         scope: libraryBuilder.scope,
         fileUri: libraryBuilder.fileUri,
-        metadataBuilders: libraryBuilder.metadata);
+        metadataBuilders: libraryBuilder.metadata,
+        currentMacroDeclarations: currentMacroDeclarations);
     if (libraryMacroApplications != null) {
       libraryMacroApplicationData.libraryApplications =
           new LibraryApplicationData(
@@ -384,7 +406,8 @@ class MacroApplications {
             enclosingLibrary: libraryBuilder,
             scope: classBuilder.scope,
             fileUri: classBuilder.fileUri,
-            metadataBuilders: classBuilder.metadata);
+            metadataBuilders: classBuilder.metadata,
+            currentMacroDeclarations: currentMacroDeclarations);
         if (classMacroApplications != null) {
           classMacroApplicationData.classApplications =
               new ClassApplicationData(_macroIntrospection, libraryBuilder,
@@ -398,7 +421,8 @@ class MacroApplications {
                 enclosingLibrary: libraryBuilder,
                 scope: classBuilder.scope,
                 fileUri: memberBuilder.fileUri,
-                metadataBuilders: memberBuilder.metadata);
+                metadataBuilders: memberBuilder.metadata,
+                currentMacroDeclarations: currentMacroDeclarations);
             if (macroApplications != null) {
               classMacroApplicationData.memberApplications[memberBuilder] =
                   new MemberApplicationData(_macroIntrospection, libraryBuilder,
@@ -409,7 +433,8 @@ class MacroApplications {
                 enclosingLibrary: libraryBuilder,
                 scope: classBuilder.scope,
                 fileUri: memberBuilder.fileUri,
-                metadataBuilders: memberBuilder.metadata);
+                metadataBuilders: memberBuilder.metadata,
+                currentMacroDeclarations: currentMacroDeclarations);
             if (macroApplications != null) {
               classMacroApplicationData.memberApplications[memberBuilder] =
                   new MemberApplicationData(_macroIntrospection, libraryBuilder,
@@ -429,7 +454,8 @@ class MacroApplications {
                 enclosingLibrary: libraryBuilder,
                 scope: classBuilder.scope,
                 fileUri: memberBuilder.fileUri,
-                metadataBuilders: memberBuilder.metadata);
+                metadataBuilders: memberBuilder.metadata,
+                currentMacroDeclarations: currentMacroDeclarations);
             if (macroApplications != null) {
               classMacroApplicationData.memberApplications[memberBuilder] =
                   new MemberApplicationData(_macroIntrospection, libraryBuilder,
@@ -440,7 +466,8 @@ class MacroApplications {
                 enclosingLibrary: libraryBuilder,
                 scope: classBuilder.scope,
                 fileUri: memberBuilder.fileUri,
-                metadataBuilders: memberBuilder.metadata);
+                metadataBuilders: memberBuilder.metadata,
+                currentMacroDeclarations: currentMacroDeclarations);
             if (macroApplications != null) {
               classMacroApplicationData.memberApplications[memberBuilder] =
                   new MemberApplicationData(_macroIntrospection, libraryBuilder,
@@ -462,7 +489,8 @@ class MacroApplications {
             enclosingLibrary: libraryBuilder,
             scope: libraryBuilder.scope,
             fileUri: builder.fileUri,
-            metadataBuilders: builder.metadata);
+            metadataBuilders: builder.metadata,
+            currentMacroDeclarations: currentMacroDeclarations);
         if (macroApplications != null) {
           libraryMacroApplicationData.memberApplications[builder] =
               new MemberApplicationData(_macroIntrospection, libraryBuilder,
@@ -473,7 +501,8 @@ class MacroApplications {
             enclosingLibrary: libraryBuilder,
             scope: libraryBuilder.scope,
             fileUri: builder.fileUri,
-            metadataBuilders: builder.metadata);
+            metadataBuilders: builder.metadata,
+            currentMacroDeclarations: currentMacroDeclarations);
         if (macroApplications != null) {
           libraryMacroApplicationData.memberApplications[builder] =
               new MemberApplicationData(_macroIntrospection, libraryBuilder,
