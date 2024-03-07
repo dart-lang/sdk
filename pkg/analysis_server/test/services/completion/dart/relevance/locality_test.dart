@@ -26,7 +26,7 @@ class LocalityTest extends CompletionRelevanceTest {
 
   Future<void> test_catchClause() async {
     await computeSuggestions('''
-int f(int v01) {
+void f(int v01) {
   var v02 = 0;
   try {} catch (v03, v04) {
     v0^
@@ -53,6 +53,49 @@ suggestions
 ''');
   }
 
+  Future<void> test_forElement_forEachWithDeclaration() async {
+    await computeSuggestions('''
+void f(int v01) {
+  [for (var v02 in [0]) v0^];
+}
+''');
+
+    assertResponse(r'''
+replacement
+  left: 2
+suggestions
+  v02
+    kind: localVariable
+    relevance: 572
+  v01
+    kind: parameter
+    relevance: 556
+''');
+  }
+
+  Future<void> test_forElement_forEachWithPattern() async {
+    await computeSuggestions('''
+void f(int v01) {
+  [for (var (v02, v03) in [(0, 1)]) v0^];
+}
+''');
+
+    assertResponse(r'''
+replacement
+  left: 2
+suggestions
+  v02
+    kind: localVariable
+    relevance: 572
+  v03
+    kind: localVariable
+    relevance: 566
+  v01
+    kind: parameter
+    relevance: 551
+''');
+  }
+
   Future<void> test_formalParameter_higherThan_importedClass() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class v01 {}
@@ -61,7 +104,7 @@ class v01 {}
     await computeSuggestions('''
 import 'a.dart';
 
-int f(int v02) {
+void f(int v02) {
   v0^
 }
 ''');
@@ -91,7 +134,7 @@ void v01() {}
     await computeSuggestions('''
 import 'a.dart';
 
-int f(int v02) {
+void f(int v02) {
   v0^
 }
 ''');
@@ -114,7 +157,7 @@ suggestions
     await computeSuggestions('''
 void v01() {}
 
-int f(int v02) {
+void f(int v02) {
   v0^
 }
 ''');
@@ -158,7 +201,7 @@ suggestions
 
   Future<void> test_formalParameters_function() async {
     await computeSuggestions('''
-int f(int v01, int v02) {
+void f(int v01, int v02) {
   v0^
 }
 ''');
@@ -179,7 +222,7 @@ suggestions
 
   Future<void> test_formalParameters_function_local() async {
     await computeSuggestions('''
-int f(int v01) {
+void f(int v01) {
   var v02 = 0;
   void f2(int v03, int v04) {
     v0^
@@ -210,7 +253,7 @@ suggestions
   Future<void> test_formalParameters_method() async {
     await computeSuggestions('''
 class A {
-  int f(int v01, int v02) {
+  void f(int v01, int v02) {
     v0^
   }
 }
@@ -230,9 +273,103 @@ suggestions
 ''');
   }
 
+  Future<void> test_forStatement_forEachWithDeclaration() async {
+    await computeSuggestions('''
+void f(int v01) {
+  for (var v02 in [0]) {
+    v0^
+  }
+}
+''');
+
+    assertResponse(r'''
+replacement
+  left: 2
+suggestions
+  v02
+    kind: localVariable
+    relevance: 575
+  v01
+    kind: parameter
+    relevance: 555
+''');
+  }
+
+  Future<void> test_forStatement_forEachWithPattern() async {
+    await computeSuggestions('''
+void f(int v01) {
+  for (var (v02, v03) in [(0, 1)]) {
+    v0^
+  }
+}
+''');
+
+    assertResponse(r'''
+replacement
+  left: 2
+suggestions
+  v02
+    kind: localVariable
+    relevance: 575
+  v03
+    kind: localVariable
+    relevance: 569
+  v01
+    kind: parameter
+    relevance: 550
+''');
+  }
+
+  Future<void> test_forStatement_forLoopWithDeclarations() async {
+    await computeSuggestions('''
+void f(int v01) {
+  for (var v02 = 0, v03 = 0;;) {
+    v0^
+  }
+}
+''');
+
+    assertResponse(r'''
+replacement
+  left: 2
+suggestions
+  v02
+    kind: localVariable
+    relevance: 575
+  v03
+    kind: localVariable
+    relevance: 569
+  v01
+    kind: parameter
+    relevance: 550
+''');
+  }
+
+  Future<void> test_ifCase() async {
+    await computeSuggestions('''
+void f(int v01) {
+  if (0 case int v02) {
+    v0^
+  }
+}
+''');
+
+    assertResponse(r'''
+replacement
+  left: 2
+suggestions
+  v02
+    kind: localVariable
+    relevance: 575
+  v01
+    kind: parameter
+    relevance: 555
+''');
+  }
+
   Future<void> test_localVariable_higherThan_formalParameter() async {
     await computeSuggestions('''
-int f(int v01) {
+void f(int v01) {
   final v02 = 0;
   v0^
 }
@@ -261,7 +398,7 @@ class v01 {}
     await computeSuggestions('''
 import 'a.dart';
 
-int f() {
+void f() {
   final v02 = 0;
   v0^
 }
@@ -293,7 +430,7 @@ void v01() {}
     await computeSuggestions('''
 import 'a.dart';
 
-int f() {
+void f() {
   final v02 = 0;
   v0^
 }
@@ -316,7 +453,7 @@ suggestions
 
   Future<void> test_localVariables() async {
     await computeSuggestions('''
-int f() {
+void f() {
   var v00 = 0;
   var v01 = 1;
   var v02 = 2;
@@ -340,6 +477,29 @@ suggestions
   v00
     kind: localVariable
     relevance: 582
+''');
+  }
+
+  Future<void> test_switchPatternCase() async {
+    await computeSuggestions('''
+void f(Object v01) {
+  switch (v01) {
+    case int v02:
+      v0^
+  }
+}
+''');
+
+    assertResponse(r'''
+replacement
+  left: 2
+suggestions
+  v02
+    kind: localVariable
+    relevance: 576
+  v01
+    kind: parameter
+    relevance: 551
 ''');
   }
 }
