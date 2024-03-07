@@ -176,8 +176,15 @@ final class FormalParameterSuggestion extends CandidateSuggestion {
   /// The element on which the suggestion is based.
   final ParameterElement element;
 
+  /// The number of local variable declarations between the completion location
+  /// and [element].
+  final int distance;
+
   /// Initialize a newly created candidate suggestion to suggest the [element].
-  FormalParameterSuggestion({required this.element});
+  FormalParameterSuggestion({
+    required this.element,
+    required this.distance,
+  });
 
   @override
   String get completion => element.name;
@@ -620,7 +627,10 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
                   suggestion.element.enclosingElement));
         }
       case FormalParameterSuggestion():
-        suggestParameter(suggestion.element);
+        suggestFormalParameter(
+          element: suggestion.element,
+          distance: suggestion.distance,
+        );
       case FunctionCall():
         suggestFunctionCall();
       case IdentifierSuggestion():
@@ -633,9 +643,10 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
       case LocalFunctionSuggestion():
         suggestTopLevelFunction(suggestion.element);
       case LocalVariableSuggestion():
-        // TODO(brianwilkerson): Enhance `suggestLocalVariable` to allow the
-        //  distance to be passed in.
-        suggestLocalVariable(suggestion.element);
+        suggestLocalVariable(
+          element: suggestion.element,
+          distance: suggestion.distance,
+        );
       case MethodSuggestion():
         // TODO(brianwilkerson): Correctly set the kind of suggestion in cases
         //  where `isFunctionalArgument` would return `true` so we can stop

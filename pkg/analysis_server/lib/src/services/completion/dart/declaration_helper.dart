@@ -383,7 +383,7 @@ class DeclarationHelper {
         var augmented = element.augmented;
         _addStaticMembers(
             accessors: augmented?.accessors ?? element.accessors,
-            constructors: const [],
+            constructors: augmented?.constructors ?? element.constructors,
             containingElement: element,
             fields: augmented?.fields ?? element.fields,
             methods: augmented?.methods ?? element.methods);
@@ -1234,7 +1234,10 @@ class DeclarationHelper {
       if (mustBeConstant || _isUnused(element.name)) {
         return;
       }
-      var suggestion = FormalParameterSuggestion(element: element);
+      var suggestion = FormalParameterSuggestion(
+        element: element,
+        distance: _variableDistance++,
+      );
       collector.addSuggestion(suggestion);
     }
   }

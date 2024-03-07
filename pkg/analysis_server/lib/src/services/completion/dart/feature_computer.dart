@@ -261,6 +261,15 @@ class FeatureComputer {
     }
   }
 
+  /// Convert a [distance] to a percentage value and return the percentage. If
+  /// the [distance] is negative, return `0.0`.
+  double distanceToPercent(int distance) {
+    if (distance < 0) {
+      return 0.0;
+    }
+    return math.pow(0.9, distance) as double;
+  }
+
   /// Return the value of the _element kind_ feature for the [element] when
   /// completing at the given [completionLocation]. If a [distance] is given it
   /// will be used to provide finer-grained relevance scores.
@@ -307,7 +316,7 @@ class FeatureComputer {
   double inheritanceDistanceFeature(
       InterfaceElement subclass, InterfaceElement superclass) {
     var distance = _inheritanceDistance(subclass, superclass, {});
-    return _distanceToPercent(distance);
+    return distanceToPercent(distance);
   }
 
   /// Return the value of the _is constant_ feature for the given [element].
@@ -466,15 +475,6 @@ class FeatureComputer {
     return -1;
   }
 
-  /// Return the value of the _local variable distance_ feature for a local
-  /// variable whose declaration is separated from the completion location by
-  /// [distance] other variable declarations.
-  double localVariableDistanceFeature(
-      AstNode reference, VariableElement variable) {
-    var distance = localVariableDistance(reference, variable);
-    return _distanceToPercent(distance);
-  }
-
   /// Return the value of the _starts with dollar_ feature.
   double startsWithDollarFeature(String name) {
     return name.startsWith('\$') ? -1.0 : 0.0;
@@ -486,15 +486,6 @@ class FeatureComputer {
       containingMethodName == null
           ? 0.0
           : (proposedMemberName == containingMethodName ? 1.0 : 0.0);
-
-  /// Convert a [distance] to a percentage value and return the percentage. If
-  /// the [distance] is negative, return `0.0`.
-  double _distanceToPercent(int distance) {
-    if (distance < 0) {
-      return 0.0;
-    }
-    return math.pow(0.9, distance) as double;
-  }
 
   /// Return the inheritance distance between the [subclass] and the
   /// [superclass]. The set of [visited] elements is used to guard against
