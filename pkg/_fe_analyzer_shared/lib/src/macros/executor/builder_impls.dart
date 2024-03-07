@@ -574,7 +574,7 @@ DeclarationCode _buildFunctionAugmentation(
   assert(initializers == null || declaration is ConstructorDeclaration);
 
   return new DeclarationCode.fromParts([
-    if (docComments != null) docComments,
+    if (docComments != null) ...[docComments, '\n'],
     if (declaration is MethodDeclaration) '  ',
     'augment ',
     if (declaration is ConstructorDeclaration) ...[
