@@ -25,6 +25,11 @@ declare_args() {
   # into a VM which was built with a different SDK.
   verify_sdk_hash = true
 
+  # When verify_sdk_hash is true, this string is used as the verification hash
+  # instead of calculating one from the contents of the tree using the
+  # make_version.py script.
+  dart_sdk_verification_hash = ""
+
   # The location in the build output directory of the built Dart SDK.
   dart_sdk_output = "dart-sdk"
 }
@@ -41,14 +46,17 @@ if (default_git_folder == "") {
 # The SDK hash to build into VM and kernels.
 # The value 0000000000 signifies no hash is set, which will disable the check.
 if (verify_sdk_hash) {
-  sdk_hash = exec_script("$_dart_root/tools/make_version.py",
-                         [ "--format={{GIT_HASH}}" ],
-                         "trim string",
-                         [
-                           "$_dart_root/tools/VERSION",
-                           "$_dart_root/tools/utils.py",
-                           "$default_git_folder/logs/HEAD",
-                         ])
+  sdk_hash = dart_sdk_verification_hash
+  if (sdk_hash == "") {
+    sdk_hash = exec_script("$_dart_root/tools/make_version.py",
+                           [ "--format={{GIT_HASH}}" ],
+                           "trim string",
+                           [
+                             "$_dart_root/tools/VERSION",
+                             "$_dart_root/tools/utils.py",
+                             "$default_git_folder/logs/HEAD",
+                           ])
+  }
 } else {
   sdk_hash = "0000000000"
 }
