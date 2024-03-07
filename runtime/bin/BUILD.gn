@@ -16,10 +16,6 @@ import("cli_sources.gni")
 import("io_impl_sources.gni")
 import("io_sources.gni")
 
-if (is_fuchsia) {
-  import("//build/fuchsia/sdk.gni")
-}
-
 config("libdart_builtin_config") {
   if (is_win) {
     libs = [ "bcrypt.lib" ]
@@ -63,13 +59,7 @@ template("build_libdart_builtin") {
     public_configs = [ ":libdart_builtin_config" ]
     deps = []
     if (is_fuchsia) {
-      if (using_fuchsia_gn_sdk) {
-        public_deps = [ "$fuchsia_sdk_root/pkg/fdio" ]
-      } else if (using_fuchsia_sdk) {
-        public_deps = [ "$fuchsia_sdk_root/pkg:fdio" ]
-      } else {
-        public_deps = [ "//sdk/lib/fdio" ]
-      }
+      public_deps = [ "$fuchsia_sdk/pkg/fdio" ]
     }
     if (is_win) {
       libs = [ "Pathcch.lib" ]
@@ -333,25 +323,11 @@ template("build_gen_snapshot_dart_io") {
     deps = [ "//third_party/zlib" ]
 
     if (is_fuchsia) {
-      if (using_fuchsia_gn_sdk) {
-        deps += [
-          "$fuchsia_sdk_root/fidl/fuchsia.io",
-          "$fuchsia_sdk_root/fidl/fuchsia.kernel",
-        ]
-        public_deps = [ "$fuchsia_sdk_root/pkg/fdio" ]
-      } else if (using_fuchsia_sdk) {
-        deps += [
-          "$fuchsia_sdk_root/fidl:fuchsia.io",
-          "$fuchsia_sdk_root/fidl:fuchsia.kernel",
-        ]
-        public_deps = [ "$fuchsia_sdk_root/pkg:fdio" ]
-      } else {
-        deps += [
-          "//sdk/fidl/fuchsia.io:fuchsia.io_hlcpp",
-          "//sdk/fidl/fuchsia.kernel:fuchsia.kernel_hlcpp",
-        ]
-        public_deps = [ "//sdk/lib/fdio" ]
-      }
+      deps += [
+        "$fuchsia_sdk/fidl/fuchsia.io",
+        "$fuchsia_sdk/fidl/fuchsia.kernel",
+      ]
+      public_deps = [ "$fuchsia_sdk/pkg/fdio" ]
     }
 
     defines = [ "DART_IO_SECURE_SOCKET_DISABLED" ]
@@ -454,25 +430,11 @@ template("dart_io") {
     deps += [ "//third_party/boringssl" ]
 
     if (is_fuchsia) {
-      if (using_fuchsia_gn_sdk) {
-        deps += [
-          "$fuchsia_sdk_root/fidl/fuchsia.io",
-          "$fuchsia_sdk_root/fidl/fuchsia.kernel",
-        ]
-        public_deps = [ "$fuchsia_sdk_root/pkg/fdio" ]
-      } else if (using_fuchsia_sdk) {
-        deps += [
-          "$fuchsia_sdk_root/fidl:fuchsia.io",
-          "$fuchsia_sdk_root/fidl:fuchsia.kernel",
-        ]
-        public_deps = [ "$fuchsia_sdk_root/pkg:fdio" ]
-      } else {
-        deps += [
-          "//sdk/fidl/fuchsia.io:fuchsia.io_hlcpp",
-          "//sdk/fidl/fuchsia.kernel:fuchsia.kernel_hlcpp",
-        ]
-        public_deps = [ "//sdk/lib/fdio" ]
-      }
+      deps += [
+        "$fuchsia_sdk/fidl/fuchsia.io",
+        "$fuchsia_sdk/fidl/fuchsia.kernel",
+      ]
+      public_deps = [ "$fuchsia_sdk/pkg/fdio" ]
     }
 
     sources = io_impl_sources
@@ -993,13 +955,7 @@ executable("run_vm_tests") {
   defines = [ "TESTING" ]
 
   if (is_fuchsia) {
-    if (using_fuchsia_gn_sdk) {
-      deps += [ "$fuchsia_sdk_root/pkg/trace-engine" ]
-    } else if (using_fuchsia_sdk) {
-      deps += [ "$fuchsia_sdk_root/pkg:trace-engine" ]
-    } else {
-      deps += [ "//zircon/system/ulib/trace-engine" ]
-    }
+    deps += [ "$fuchsia_sdk/pkg/trace-engine" ]
   }
 
   # The VM sources are already included in libdart, so we just want to add in
