@@ -8062,7 +8062,7 @@ suggestions
   int
     kind: class
   int.fromEnvironment
-    kind: constructorInvocation
+    kind: constructor
 ''');
   }
 
@@ -8128,7 +8128,7 @@ suggestions
   int
     kind: class
   int.fromEnvironment
-    kind: constructorInvocation
+    kind: constructor
 ''');
   }
 
@@ -8192,7 +8192,7 @@ suggestions
   int
     kind: class
   int.fromEnvironment
-    kind: constructorInvocation
+    kind: constructor
 ''');
   }
 
@@ -8261,7 +8261,7 @@ suggestions
   int
     kind: class
   int.fromEnvironment
-    kind: constructorInvocation
+    kind: constructor
 ''');
   }
 
@@ -8330,7 +8330,7 @@ suggestions
   int
     kind: class
   int.fromEnvironment
-    kind: constructorInvocation
+    kind: constructor
 ''');
   }
 
@@ -8408,15 +8408,15 @@ suggestions
   String
     kind: class
   String.fromCharCode
-    kind: constructorInvocation
+    kind: constructor
   String.fromCharCodes
-    kind: constructorInvocation
+    kind: constructor
   String.fromEnvironment
-    kind: constructorInvocation
+    kind: constructor
   int
     kind: class
   int.fromEnvironment
-    kind: constructorInvocation
+    kind: constructor
 ''');
   }
 
@@ -8443,15 +8443,15 @@ suggestions
   String
     kind: class
   String.fromCharCode
-    kind: constructorInvocation
+    kind: constructor
   String.fromCharCodes
-    kind: constructorInvocation
+    kind: constructor
   String.fromEnvironment
-    kind: constructorInvocation
+    kind: constructor
   int
     kind: class
   int.fromEnvironment
-    kind: constructorInvocation
+    kind: constructor
 ''');
   }
 
@@ -9540,9 +9540,9 @@ void f(p) {
     assertResponse(r'''
 suggestions
   myFuncDouble
-    kind: methodInvocation
+    kind: method
   myFuncInt
-    kind: methodInvocation
+    kind: method
 ''');
   }
 
@@ -9561,7 +9561,7 @@ void f(p) {
     assertResponse(r'''
 suggestions
   myFunc
-    kind: methodInvocation
+    kind: method
 ''');
   }
 
@@ -9579,7 +9579,7 @@ void f(p) {
     assertResponse(r'''
 suggestions
   myFunc
-    kind: methodInvocation
+    kind: method
 ''');
   }
 

@@ -11,6 +11,7 @@ import 'package:analysis_server/src/services/completion/dart/override_helper.dar
 import 'package:analysis_server/src/services/completion/dart/suggestion_collector.dart';
 import 'package:analysis_server/src/services/completion/dart/visibility_tracker.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
+import 'package:analysis_server/src/utilities/extensions/completion_request.dart';
 import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -613,6 +614,40 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       }
       _forExpression(node, mustBeNonVoid: true);
     }
+  }
+
+  @override
+  void visitConstructorName(ConstructorName node) {
+    if (node.parent is ConstructorReference) {
+      var element = node.type.element;
+      if (element is InterfaceElement) {
+        declarationHelper(
+          preferNonInvocation: true,
+        ).addConstructorNamesForElement(element: element);
+      }
+    } else {
+      var type = node.type.type;
+      if (type is InterfaceType) {
+        // Suggest factory redirects.
+        if (node.parent case ConstructorDeclaration factoryConstructor) {
+          if (factoryConstructor.factoryKeyword != null &&
+              factoryConstructor.redirectedConstructor == node) {
+            declarationHelper(
+              mustBeConstant: factoryConstructor.constKeyword != null,
+              preferNonInvocation: true,
+            ).addConstructorNamesForType(
+              type: type,
+              exclude: factoryConstructor.name?.lexeme,
+            );
+            return;
+          }
+        }
+        // Suggest invocations.
+        declarationHelper().addConstructorNamesForType(type: type);
+      }
+    }
+
+    super.visitConstructorName(node);
   }
 
   @override
@@ -1679,8 +1714,11 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
           var parent = node.parent;
           var mustBeAssignable =
               parent is AssignmentExpression && node == parent.leftHandSide;
-          declarationHelper(mustBeAssignable: mustBeAssignable)
-              .addStaticMembersOfElement(element);
+          declarationHelper(
+            mustBeAssignable: mustBeAssignable,
+            preferNonInvocation: element is InterfaceElement &&
+                state.request.shouldSuggestTearOff(element),
+          ).addStaticMembersOfElement(element);
         }
       }
     }
