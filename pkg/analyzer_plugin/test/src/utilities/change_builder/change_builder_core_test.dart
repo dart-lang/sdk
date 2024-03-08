@@ -110,7 +110,7 @@ class ChangeBuilderImplTest extends AbstractChangeBuilderTest {
     expect(builder.sourceChange.selection, position);
   }
 
-  void test_sourceChange_emptyEdit() async {
+  Future<void> test_sourceChange_emptyEdit() async {
     var path = '/test.txt';
     await builder.addGenericFileEdit(path, (builder) {});
     var sourceChange = builder.sourceChange;
@@ -142,6 +142,62 @@ class ChangeBuilderImplTest extends AbstractChangeBuilderTest {
     expect(sourceChange.linkedEditGroups, hasLength(1));
     expect(sourceChange.message, isEmpty);
     expect(sourceChange.selection, isNull);
+  }
+
+  Future<void> test_sourceEditDescriptions_delete() async {
+    var path = '/test.txt';
+    builder.currentChangeDescription = 'Change Desc';
+    await builder.addGenericFileEdit(path, (builder) {
+      builder.addDeletion(SourceRange(0, 1));
+    });
+
+    expect(builder.sourceChange.edits[0].edits[0].description, 'Change Desc');
+  }
+
+  Future<void> test_sourceEditDescriptions_insert() async {
+    var path = '/test.txt';
+
+    builder.currentChangeDescription = 'Change Desc';
+    await builder.addGenericFileEdit(path, (builder) {
+      builder.addSimpleInsertion(0, '_');
+      builder.addInsertion(0, (builder) => builder.write('_'));
+    });
+
+    expect(builder.sourceChange.edits[0].edits[0].description, 'Change Desc');
+    expect(builder.sourceChange.edits[0].edits[1].description, 'Change Desc');
+  }
+
+  Future<void> test_sourceEditDescriptions_multiple() async {
+    var path = '/test.txt';
+
+    builder.currentChangeDescription = 'Change Desc 1';
+    await builder.addGenericFileEdit(path, (builder) {
+      builder.addSimpleInsertion(10, '_');
+    });
+
+    builder.currentChangeDescription = 'Change Desc 2';
+    await builder.addGenericFileEdit(path, (builder) {
+      builder.addSimpleInsertion(5, '_');
+    });
+
+    expect(builder.sourceChange.edits[0].edits[0].description, 'Change Desc 1');
+    expect(builder.sourceChange.edits[0].edits[1].description, 'Change Desc 2');
+  }
+
+  Future<void> test_sourceEditDescriptions_replace() async {
+    var path = '/test.txt';
+
+    builder.currentChangeDescription = 'Change Desc';
+    await builder.addGenericFileEdit(path, (builder) {
+      builder.addSimpleReplacement(SourceRange(0, 1), '_');
+      builder.addReplacement(
+        SourceRange(10, 1),
+        (builder) => builder.write('_'),
+      );
+    });
+
+    expect(builder.sourceChange.edits[0].edits[0].description, 'Change Desc');
+    expect(builder.sourceChange.edits[0].edits[1].description, 'Change Desc');
   }
 }
 

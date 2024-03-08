@@ -36,6 +36,49 @@ void main() {
 
 @reflectiveTest
 class DartEditBuilderImpl extends DartEditBuilderImplTest {
+  Future<void> test_sourceEditDescriptions_delete() async {
+    var path = convertPath('$testPackageRootPath/lib/test.dart');
+
+    var builder = await newBuilder();
+    builder.currentChangeDescription = 'Change Desc';
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addDeletion(SourceRange(0, 1));
+    });
+
+    expect(builder.sourceChange.edits[0].edits[0].description, 'Change Desc');
+  }
+
+  Future<void> test_sourceEditDescriptions_insert() async {
+    var path = convertPath('$testPackageRootPath/lib/test.dart');
+
+    var builder = await newBuilder();
+    builder.currentChangeDescription = 'Change Desc';
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addSimpleInsertion(0, '_');
+      builder.addInsertion(0, (builder) => builder.write('_'));
+    });
+
+    expect(builder.sourceChange.edits[0].edits[0].description, 'Change Desc');
+    expect(builder.sourceChange.edits[0].edits[1].description, 'Change Desc');
+  }
+
+  Future<void> test_sourceEditDescriptions_replace() async {
+    var path = convertPath('$testPackageRootPath/lib/test.dart');
+
+    var builder = await newBuilder();
+    builder.currentChangeDescription = 'Change Desc';
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addSimpleReplacement(SourceRange(0, 1), '_');
+      builder.addReplacement(
+        SourceRange(10, 1),
+        (builder) => builder.write('_'),
+      );
+    });
+
+    expect(builder.sourceChange.edits[0].edits[0].description, 'Change Desc');
+    expect(builder.sourceChange.edits[0].edits[1].description, 'Change Desc');
+  }
+
   Future<void> test_writeParameter_covariantAndRequired() async {
     var path = convertPath('$testPackageRootPath/lib/test.dart');
     var content = 'class A {}';

@@ -13,7 +13,8 @@ import 'package:yaml/yaml.dart';
 class YamlEditBuilderImpl extends EditBuilderImpl implements YamlEditBuilder {
   /// Initialize a newly created builder to build a source edit.
   YamlEditBuilderImpl(YamlFileEditBuilderImpl super.sourceFileEditBuilder,
-      super.offset, super.length);
+      super.offset, super.length,
+      {super.description});
 
   YamlFileEditBuilderImpl get dartFileEditBuilder =>
       fileEditBuilder as YamlFileEditBuilderImpl;
@@ -72,7 +73,8 @@ class YamlFileEditBuilderImpl extends FileEditBuilderImpl
 
   @override
   EditBuilderImpl createEditBuilder(int offset, int length) {
-    return YamlEditBuilderImpl(this, offset, length);
+    return YamlEditBuilderImpl(this, offset, length,
+        description: currentChangeDescription);
   }
 }
 

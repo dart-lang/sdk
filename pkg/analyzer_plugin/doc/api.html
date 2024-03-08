@@ -1915,6 +1915,11 @@ a:focus, a:hover {
         <p>
           A human-readable description of the change to be applied.
         </p>
+        <p>
+          If this change includes multiple edits made for different reasons (such as
+          during a bulk fix operation), the individual items in <tt>edits</tt> may
+          contain more specific descriptions.
+        </p>
       </dd><dt class="field"><b>edits: List&lt;<a href="#type_SourceFileEdit">SourceFileEdit</a>&gt;</b></dt><dd>
         
         <p>
@@ -1976,6 +1981,23 @@ a:focus, a:hover {
           not be appropriate (referred to as potential edits). Such edits will
           have an id so that they can be referenced. Edits in the same response
           that do not need to be referenced will not have an id.
+        </p>
+      </dd><dt class="field"><b>description: String<span style="color:#999999"> (optional)</span></b></dt><dd>
+        
+        <p>
+          A human readable description of the change made by this edit.
+        </p>
+        <p>
+          This description should be short and suitable to use as a heading
+          with changes grouped by it. For example, a change made as part of
+          a quick-fix may use the message "Replace final with var", allowing
+          multiple changes and multiple applications of the fix to be grouped
+          together.
+        </p>
+        <p>
+          This value may be more specific than any value in an enclosing
+          <tt>SourceChange.message</tt> which could contain edits made for
+          different reasons (such as during a bulk fix operation).
         </p>
       </dd></dl></dd><dt class="typeDefinition"><a name="type_SourceFileEdit">SourceFileEdit: object</a></dt><dd>
     <p>

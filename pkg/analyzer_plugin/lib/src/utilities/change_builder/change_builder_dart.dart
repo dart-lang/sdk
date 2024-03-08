@@ -49,7 +49,8 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   /// Initialize a newly created builder to build a source edit.
   DartEditBuilderImpl(DartFileEditBuilderImpl super.sourceFileEditBuilder,
-      super.offset, super.length);
+      super.offset, super.length,
+      {super.description});
 
   DartFileEditBuilderImpl get dartFileEditBuilder =>
       fileEditBuilder as DartFileEditBuilderImpl;
@@ -1476,7 +1477,8 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
 
   @override
   DartEditBuilderImpl createEditBuilder(int offset, int length) {
-    return DartEditBuilderImpl(this, offset, length);
+    return DartEditBuilderImpl(this, offset, length,
+        description: currentChangeDescription);
   }
 
   @override

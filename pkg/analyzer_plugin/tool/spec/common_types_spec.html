@@ -6,7 +6,7 @@
 </head>
 <body>
 <h1>Common Types</h1>
-<version>1.4.5</version>
+<version>1.4.6</version>
 <p>
   This document contains a specification of the types that are common between
   the analysis server wire protocol and the analysis server plugin wire
@@ -1458,6 +1458,11 @@
         <p>
           A human-readable description of the change to be applied.
         </p>
+        <p>
+          If this change includes multiple edits made for different reasons (such as
+          during a bulk fix operation), the individual items in <tt>edits</tt> may
+          contain more specific descriptions.
+        </p>
       </field>
       <field name="edits">
         <list>
@@ -1534,6 +1539,24 @@
           not be appropriate (referred to as potential edits). Such edits will
           have an id so that they can be referenced. Edits in the same response
           that do not need to be referenced will not have an id.
+        </p>
+      </field>
+      <field name="description" optional="true">
+        <ref>String</ref>
+        <p>
+          A human readable description of the change made by this edit.
+        </p>
+        <p>
+          This description should be short and suitable to use as a heading
+          with changes grouped by it. For example, a change made as part of
+          a quick-fix may use the message "Replace final with var", allowing
+          multiple changes and multiple applications of the fix to be grouped
+          together.
+        </p>
+        <p>
+          This value may be more specific than any value in an enclosing
+          <tt>SourceChange.message</tt> which could contain edits made for
+          different reasons (such as during a bulk fix operation).
         </p>
       </field>
     </object>
