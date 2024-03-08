@@ -29,6 +29,7 @@ class ExpressionEvaluationTestDriver {
   late TestExpressionCompiler compiler;
   late Uri htmlBootstrapper;
   late Uri input;
+  wip.WipScript? _script;
   Uri? inputPart;
   late Uri output;
   late Uri packagesFile;
@@ -130,6 +131,7 @@ class ExpressionEvaluationTestDriver {
     var scriptPath = Platform.script.normalizePath().toFilePath();
     var ddcPath = p.dirname(p.dirname(p.dirname(scriptPath)));
     output = testDir.uri.resolve('test.js');
+    _script = null;
     input = testDir.uri.resolve('test.dart');
     File(input.toFilePath())
       ..createSync()
@@ -214,7 +216,7 @@ class ExpressionEvaluationTestDriver {
   }
 
   sdk._debugger.registerDevtoolsFormatter();
-  // Unlike the typical app boostraper, we delay calling main until all
+  // Unlike the typical app bootstraper, we delay calling main until all
   // breakpoints are setup.
   let scheduleMain = () => {
     dart_library.start('$appName', '$uuid', '$moduleName', '$mainLibraryName', false);
@@ -256,7 +258,7 @@ class ExpressionEvaluationTestDriver {
   });
   let dartApplication = true;
   let scheduleMainCalled = false;
-  // Unlike the typical app boostraper, we delay calling main until all
+  // Unlike the typical app bootstraper, we delay calling main until all
   // breakpoints are setup.
   // Because AMD runs the initialization asynchronously, this may be called
   // before require.js calls the initialization below.
@@ -331,10 +333,21 @@ class ExpressionEvaluationTestDriver {
     expect(actualScope, expectedScope);
   }
 
+  /// Ensures the current [input] script is loaded.
+  ///
+  /// The first time an input is found, this will navigate to the bootstrap page
+  /// set up by [initSource] and return the script corresponding to [input].
+  /// Any subsequent test that uses the same input will not trigger a new
+  /// navigation, but reuse the existing script on the page.
+  ///
+  /// Reusing the script is possible because the bootstrap does not run `main`,
+  /// but instead lets the test harness start main when it has prepared all
+  /// breakpoints needed for the test.
   Future<wip.WipScript> _loadScript() =>
       tracker._watch('load-script', () => _loadScriptHelper());
 
   Future<wip.WipScript> _loadScriptHelper() async {
+    if (_script != null) return Future.value(_script);
     final scriptController = StreamController<wip.ScriptParsedEvent>();
     final consoleSub = debugger.connection.runtime.onConsoleAPICalled
         .listen((e) => printOnFailure('$e'));
@@ -356,15 +369,15 @@ class ExpressionEvaluationTestDriver {
 
     try {
       // Navigate to the page that will load the application code.
-      // Note: the boostrapper does not invoke the application main, but exposes
-      // a function that can be called to do so.
+      // Note: the bootstrapper does not invoke the application main, but
+      // exposes a function that can be called to do so.
       await connection.page.navigate('$htmlBootstrapper').timeout(
           Duration(seconds: 5),
           onTimeout: (() => throw Exception(
               'Unable to navigate to page bootstrap script: $htmlBootstrapper')));
 
       // Poll until the script is found, or timeout after a few seconds.
-      return (await tracker._watch(
+      return _script = (await tracker._watch(
               'find-script',
               () => scriptController.stream.first.timeout(Duration(seconds: 10),
                   onTimeout: (() => throw Exception(
@@ -379,13 +392,27 @@ class ExpressionEvaluationTestDriver {
     }
   }
 
+  /// Uses the debugger API to trigger the execution of the app.
+  Future<wip.RemoteObject> _scheduleMain() async {
+    final context = await executionContext.id;
+    return runtime
+        .evaluate('scheduleMain()', contextId: context)
+        .catchError((Object e) {
+      printOnFailure(e is wip.ExceptionDetails
+          ? 'Exception when calling scheduleMain: ${e.json}!'
+          : 'Uncaught exception during scheduleMain: $e');
+      throw e;
+    });
+  }
+
   /// Load the script, invoke it's main method, and run [onPause] when the app
   /// pauses on [breakpointId].
   ///
-  /// Internally, this navigates to the bootstrapper page. The page only loads
-  /// code without running the DDC app main method. Once the resouces are loaded
-  /// we wait until after the breakpoint is registered before scheduling a call
-  /// to the app's main method.
+  /// Internally, this navigates to the bootstrapper page or ensures that the
+  /// bootstrapper page has already been loaded. The page only loads code
+  /// without running the DDC app main method. Once the resouces are loaded we
+  /// wait until after the breakpoint is registered before scheduling a call to
+  /// the app's main method.
   Future<T> _onBreakpoint<T>(String breakpointId,
       {required Future<T> Function(wip.DebuggerPausedEvent) onPause}) async {
     final consoleSub = debugger.connection.runtime.onConsoleAPICalled
@@ -414,15 +441,7 @@ class ExpressionEvaluationTestDriver {
     final atBreakpoint = breakpointCompleter.future;
     try {
       // Now that the breakpoint is set, the application can start running.
-      final context = await executionContext.id;
-      unawaited(runtime
-          .evaluate('scheduleMain()', contextId: context)
-          .catchError((Object e) {
-        printOnFailure(e is wip.ExecutionContextDescription
-            ? 'Exception when calling scheduleMain: ${e.json}!'
-            : 'Uncaught exception during scheduleMain: $e');
-        throw e;
-      }));
+      unawaited(_scheduleMain());
 
       final event = await tracker._watch(
           'pause-event-for-line',
@@ -452,9 +471,7 @@ class ExpressionEvaluationTestDriver {
 
     await _loadScript();
     try {
-      // Continue running, ignoring the first pause event since it corresponds
-      // to the preemptive URI breakpoint made prior to page navigation.
-      await debugger.resume();
+      await _scheduleMain();
       return await body();
     } finally {
       await consoleSub.cancel();
