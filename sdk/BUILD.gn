@@ -212,66 +212,44 @@ _full_sdk_libraries = [
 # ]
 _platform_sdk_libraries = _full_sdk_libraries
 
-# From here down to the copy_trees() invocation, we collect all the information
-# about trees that need to be copied in the list of scopes, copy_tree_specs.
-copy_tree_specs = []
-
 # This rule copies dartdoc templates to
 # bin/resources/dartdoc/templates
-copy_tree_specs += [
-  {
-    target = "copy_dartdoc_templates"
-    visibility = [ ":copy_dartdoc_files" ]
-    source = "../third_party/pkg/dartdoc/lib/templates"
-    dest = "$root_out_dir/$dart_sdk_output/bin/resources/dartdoc/templates"
-    ignore_patterns = "{}"
-  },
-]
+copy_tree("copy_dartdoc_templates") {
+  visibility = [ ":copy_dartdoc_files" ]
+  source = "../third_party/pkg/dartdoc/lib/templates"
+  dest = "$root_out_dir/$dart_sdk_output/bin/resources/dartdoc/templates"
+  exclude = "{}"
+}
 
 # This rule copies dartdoc resources to
 # bin/resources/dartdoc/resources
-copy_tree_specs += [
-  {
-    target = "copy_dartdoc_resources"
-    visibility = [ ":copy_dartdoc_files" ]
-    source = "../third_party/pkg/dartdoc/lib/resources"
-    dest = "$root_out_dir/$dart_sdk_output/bin/resources/dartdoc/resources"
-    ignore_patterns = "{}"
-  },
-]
+copy_tree("copy_dartdoc_resources") {
+  visibility = [ ":copy_dartdoc_files" ]
+  source = "../third_party/pkg/dartdoc/lib/resources"
+  dest = "$root_out_dir/$dart_sdk_output/bin/resources/dartdoc/resources"
+  exclude = "{}"
+}
 
 # This rule copies the pre-built DevTools application to
 # bin/resources/devtools/
-copy_tree_specs += [
-  {
-    target = "copy_prebuilt_devtools"
-    visibility = [ ":create_common_sdk" ]
-    source = "../third_party/devtools/web"
-    dest = "$root_out_dir/$dart_sdk_output/bin/resources/devtools"
-    ignore_patterns = "{}"
-  },
-]
+copy_tree("copy_prebuilt_devtools") {
+  visibility = [ ":create_common_sdk" ]
+  source = "../third_party/devtools/web"
+  dest = "$root_out_dir/$dart_sdk_output/bin/resources/devtools"
+  exclude = "{}"
+}
 
 # This loop generates rules to copy libraries to lib/
 foreach(library, _full_sdk_libraries) {
-  copy_tree_specs += [
-    {
-      target = "copy_${library}_library"
-      visibility = [
-        ":copy_full_sdk_libraries",
-        ":copy_platform_sdk_libraries",
-      ]
-      source = "lib/$library"
-      dest = "$root_out_dir/$dart_sdk_output/lib/$library"
-      ignore_patterns = "*.svn,doc,*.py,*.gypi,*.sh,.gitignore"
-    },
-  ]
-}
-
-# This generates targets for everything in copy_tree_specs. The targets have the
-# same name as the "target" fields in the scopes of copy_tree_specs.
-copy_trees("copy_trees") {
-  sources = copy_tree_specs
+  copy_tree("copy_${library}_library") {
+    visibility = [
+      ":copy_full_sdk_libraries",
+      ":copy_platform_sdk_libraries",
+    ]
+    source = "lib/$library"
+    dest = "$root_out_dir/$dart_sdk_output/lib/$library"
+    exclude = "*.svn,doc,*.py,*.gypi,*.sh,.gitignore"
+  }
 }
 
 _has_dot_sym = !is_win && rebase_path(".") == rebase_path("//sdk")
