@@ -6,14 +6,12 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
 
 /// Helper for checking the subtype relation.
 ///
@@ -104,13 +102,6 @@ class SubtypeHelper {
           T0.isDartAsyncFutureOr) {
         return isSubtypeOf(T0.typeArguments[0], T1);
       }
-      // * if `T0` is `S*` for any `S`, then `T0 <: T1` iff `S <: T1`
-      if (T0_nullability == NullabilitySuffix.star) {
-        return isSubtypeOf(
-          T0.withNullability(NullabilitySuffix.none),
-          T1,
-        );
-      }
       // * if `T0` is `Null`, `dynamic`, `void`, or `S?` for any `S`,
       //   then the subtyping does not hold, the result is false.
       if (T0_nullability == NullabilitySuffix.none && T0.isDartCoreNull ||
@@ -143,10 +134,9 @@ class SubtypeHelper {
         var S = T1.typeArguments[0];
         return isSubtypeOf(_nullNone, S);
       }
-      // If `T1` is `Null`, `S?` or `S*` for some `S`, then the query is true.
+      // If `T1` is `Null` or `S?` for some `S`, then the query is true.
       if (T1_nullability == NullabilitySuffix.none && T1.isDartCoreNull ||
-          T1_nullability == NullabilitySuffix.question ||
-          T1_nullability == NullabilitySuffix.star) {
+          T1_nullability == NullabilitySuffix.question) {
         return true;
       }
       // * if `T1` is a type variable (promoted or not) the query is false
@@ -155,23 +145,6 @@ class SubtypeHelper {
       }
       // Otherwise, the query is false.
       return false;
-    }
-
-    // Left Legacy if `T0` is `S0*` then:
-    if (T0_nullability == NullabilitySuffix.star) {
-      // * `T0 <: T1` iff `S0 <: T1`.
-      var S0 = T0.withNullability(NullabilitySuffix.none);
-      return isSubtypeOf(S0, T1);
-    }
-
-    // Right Legacy `T1` is `S1*` then:
-    //   * `T0 <: T1` iff `T0 <: S1?`.
-    if (T1_nullability == NullabilitySuffix.star) {
-      if (T1 is FunctionType && _isFunctionTypeWithNamedRequired(T0)) {
-        T1 = _functionTypeWithNamedRequired(T1 as FunctionType);
-      }
-      var S1 = T1.withNullability(NullabilitySuffix.question);
-      return isSubtypeOf(T0, S1);
     }
 
     // Left FutureOr: if `T0` is `FutureOr<S0>` then:
@@ -417,9 +390,7 @@ class SubtypeHelper {
         if (gParameter.isNamed) {
           var compareNames = fParameter.name.compareTo(gParameter.name);
           if (compareNames == 0) {
-            var gIsRequiredOrLegacy = gParameter.isRequiredNamed ||
-                g.nullabilitySuffix == NullabilitySuffix.star;
-            if (fParameter.isRequiredNamed && !gIsRequiredOrLegacy) {
+            if (fParameter.isRequiredNamed && !gParameter.isRequiredNamed) {
               return false;
             } else if (isSubtypeOf(gParameter.type, fParameter.type)) {
               fIndex++;
@@ -535,29 +506,5 @@ class SubtypeHelper {
     }
 
     return true;
-  }
-
-  static FunctionTypeImpl _functionTypeWithNamedRequired(FunctionType type) {
-    return FunctionTypeImpl(
-      typeFormals: type.typeFormals,
-      parameters: type.parameters.map((e) {
-        if (e.isNamed) {
-          return e.copyWith(
-            kind: ParameterKind.NAMED_REQUIRED,
-          );
-        } else {
-          return e;
-        }
-      }).toList(growable: false),
-      returnType: type.returnType,
-      nullabilitySuffix: type.nullabilitySuffix,
-    );
-  }
-
-  static bool _isFunctionTypeWithNamedRequired(DartType type) {
-    if (type is FunctionType) {
-      return type.parameters.any((e) => e.isRequiredNamed);
-    }
-    return false;
   }
 }
