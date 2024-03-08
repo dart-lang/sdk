@@ -89,7 +89,7 @@ class CompletionResponsePrinter {
       } else if (elementKind == ElementKind.CLASS) {
         return 'class';
       } else if (elementKind == ElementKind.CONSTRUCTOR) {
-        return 'constructorInvocation';
+        return 'constructor';
       } else if (elementKind == ElementKind.ENUM) {
         return 'enum';
       } else if (elementKind == ElementKind.ENUM_CONSTANT) {

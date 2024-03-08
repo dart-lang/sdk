@@ -17,6 +17,40 @@ class ConstructorDeclarationTest extends AbstractCompletionDriverTest
     with ConstructorDeclarationTestCases {}
 
 mixin ConstructorDeclarationTestCases on AbstractCompletionDriverTest {
+  Future<void> test_factory_redirectedConstructor_afterName() async {
+    await computeSuggestions('''
+class A {
+  A.n01();
+  const A.n02();
+
+  factory A.n03() = A.^
+}
+''');
+    assertResponse(r'''
+suggestions
+  n01
+    kind: constructor
+  n02
+    kind: constructor
+''');
+  }
+
+  Future<void> test_factory_redirectedConstructor_afterName_const() async {
+    await computeSuggestions('''
+class A {
+  A.n01();
+  const A.n02();
+
+  const factory A.n03() = A.^
+}
+''');
+    assertResponse(r'''
+suggestions
+  n02
+    kind: constructor
+''');
+  }
+
   Future<void> test_initializers_beforeInitializer() async {
     await computeSuggestions('''
 class A {

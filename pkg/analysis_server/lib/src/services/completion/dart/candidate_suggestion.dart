@@ -67,11 +67,16 @@ final class ConstructorSuggestion extends ImportableSuggestion {
   /// site. That is, whether we are completing after a period.
   final bool hasClassName;
 
+  /// Whether a tear-off should be suggested, not an invocation.
+  final bool isTearOff;
+
   /// Initialize a newly created candidate suggestion to suggest the [element].
-  ConstructorSuggestion(
-      {required super.importData,
-      required this.element,
-      required this.hasClassName});
+  ConstructorSuggestion({
+    required super.importData,
+    required this.element,
+    required this.hasClassName,
+    required this.isTearOff,
+  });
 
   @override
   String get completion => '$completionPrefix${element.displayName}';
@@ -593,8 +598,15 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
             includeTrailingComma: suggestion.includeTrailingComma);
       case ConstructorSuggestion():
         libraryUriStr = suggestion.libraryUriStr;
-        suggestConstructor(suggestion.element,
-            hasClassName: suggestion.hasClassName, prefix: suggestion.prefix);
+        suggestConstructor(
+          suggestion.element,
+          hasClassName: suggestion.hasClassName,
+          kind: suggestion.isTearOff
+              ? CompletionSuggestionKind.IDENTIFIER
+              : CompletionSuggestionKind.INVOCATION,
+          tearOff: suggestion.isTearOff,
+          prefix: suggestion.prefix,
+        );
         libraryUriStr = null;
       case EnumSuggestion():
         libraryUriStr = suggestion.libraryUriStr;

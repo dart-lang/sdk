@@ -107,20 +107,12 @@ DartType substitute(
 }
 
 ///  1. Substituting T=X! into T! yields X!
-///  2. Substituting T=X* into T! yields X*
 ///  3. Substituting T=X? into T! yields X?
-///  4. Substituting T=X! into T* yields X*
-///  5. Substituting T=X* into T* yields X*
-///  6. Substituting T=X? into T* yields X?
 ///  7. Substituting T=X! into T? yields X?
-///  8. Substituting T=X* into T? yields X?
 ///  9. Substituting T=X? into T? yields X?
 NullabilitySuffix uniteNullabilities(NullabilitySuffix a, NullabilitySuffix b) {
   if (a == NullabilitySuffix.question || b == NullabilitySuffix.question) {
     return NullabilitySuffix.question;
-  }
-  if (a == NullabilitySuffix.star || b == NullabilitySuffix.star) {
-    return NullabilitySuffix.star;
   }
   return NullabilitySuffix.none;
 }
@@ -328,7 +320,7 @@ class _NullSubstitution extends MapSubstitution {
   DartType getSubstitute(TypeParameterElement parameter, bool upperBound) {
     return TypeParameterTypeImpl(
       element: parameter,
-      nullabilitySuffix: NullabilitySuffix.star,
+      nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 

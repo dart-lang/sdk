@@ -58,9 +58,9 @@ void f() {
     assertResponse(r'''
 suggestions
   b0
-    kind: constructorInvocation
+    kind: constructor
   f0
-    kind: constructorInvocation
+    kind: constructor
 ''');
   }
 
@@ -141,9 +141,9 @@ void f() {
     assertResponse(r'''
 suggestions
   named
-    kind: constructorInvocation
+    kind: constructor
   new
-    kind: constructorInvocation
+    kind: constructor
 ''');
   }
 
@@ -163,7 +163,7 @@ replacement
   left: 2
 suggestions
   named
-    kind: constructorInvocation
+    kind: constructor
 ''');
   }
 
@@ -182,9 +182,9 @@ void f() {
     assertResponse(r'''
 suggestions
   named
-    kind: constructorInvocation
+    kind: constructor
   new
-    kind: constructorInvocation
+    kind: constructor
 ''');
   }
 
@@ -205,9 +205,9 @@ void f() {
     assertResponse(r'''
 suggestions
   named
-    kind: constructorInvocation
+    kind: constructor
   new
-    kind: constructorInvocation
+    kind: constructor
 ''');
   }
 
@@ -228,7 +228,7 @@ replacement
   left: 2
 suggestions
   named
-    kind: constructorInvocation
+    kind: constructor
 ''');
   }
 
@@ -250,9 +250,9 @@ void f() {
     assertResponse(r'''
 suggestions
   named
-    kind: constructorInvocation
+    kind: constructor
   new
-    kind: constructorInvocation
+    kind: constructor
 ''');
   }
 
@@ -270,7 +270,7 @@ void f() {
     assertResponse(r'''
 suggestions
   named
-    kind: constructorInvocation
+    kind: constructor
 ''');
   }
 
@@ -386,7 +386,7 @@ void f() {
     assertResponse(r'''
 suggestions
   named
-    kind: constructorInvocation
+    kind: constructor
 ''');
   }
 

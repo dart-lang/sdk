@@ -119,6 +119,16 @@ class DeclarationHelper {
     }
   }
 
+  /// Add suggestions for all constructors of [element].
+  void addConstructorNamesForElement({
+    required InterfaceElement element,
+  }) {
+    var constructors = element.augmented?.constructors ?? element.constructors;
+    for (var constructor in constructors) {
+      _suggestConstructor(constructor, hasClassName: true, importData: null);
+    }
+  }
+
   /// Add suggestions for all of the named constructors in the [type]. If
   /// [exclude] is not `null` it is the name of a constructor that should be
   /// omitted from the list, typically because suggesting it would result in an
@@ -974,8 +984,7 @@ class DeclarationHelper {
       var allowNonFactory =
           containingElement is ClassElement && !containingElement.isAbstract;
       for (var constructor in constructors) {
-        if (constructor.name.isNotEmpty &&
-            constructor.isVisibleIn(request.libraryElement) &&
+        if (constructor.isVisibleIn(request.libraryElement) &&
             (allowNonFactory || constructor.isFactory)) {
           _suggestConstructor(constructor,
               hasClassName: true, importData: null);
@@ -1072,8 +1081,17 @@ class DeclarationHelper {
     if (mustBeAssignable || (mustBeConstant && !element.isConst)) {
       return;
     }
+
+    if (!element.isVisibleIn(request.libraryElement)) {
+      return;
+    }
+
     var suggestion = ConstructorSuggestion(
-        importData: importData, element: element, hasClassName: hasClassName);
+      importData: importData,
+      element: element,
+      hasClassName: hasClassName,
+      isTearOff: preferNonInvocation,
+    );
     collector.addSuggestion(suggestion);
   }
 

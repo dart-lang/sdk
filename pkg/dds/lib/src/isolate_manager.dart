@@ -346,13 +346,17 @@ class IsolateManager {
     final combinedBytes = base64Decode(timelineResult['trace']).toList();
 
     for (final isolateId in isolates.keys) {
-      final samplesResult =
-          await dds.vmServiceClient.sendRequest('getPerfettoCpuSamples', {
-        'isolateId': isolateId,
-        'timeOriginMicros': timeOriginMicros,
-        'timeExtentMicros': timeExtentMicros
-      });
-      combinedBytes.addAll(base64Decode(samplesResult['samples']));
+      try {
+        final samplesResult =
+            await dds.vmServiceClient.sendRequest('getPerfettoCpuSamples', {
+          'isolateId': isolateId,
+          'timeOriginMicros': timeOriginMicros,
+          'timeExtentMicros': timeExtentMicros
+        });
+        combinedBytes.addAll(base64Decode(samplesResult['samples']));
+      } on json_rpc.RpcException {
+        // The isolate may not yet be runnable.
+      }
     }
     timelineResult['trace'] = base64Encode(combinedBytes);
     return timelineResult;

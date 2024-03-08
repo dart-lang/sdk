@@ -541,21 +541,6 @@ class SubstituteWithNullabilityTest extends _Base {
     );
     _assertSubstitution(type, {U: intNone}, 'A<int>?');
   }
-
-  test_interface_star() async {
-    // class A<T> {}
-    var T = typeParameter('T');
-    var A = class_(name: 'A', typeParameters: [T]);
-
-    var U = typeParameter('U');
-    var type = A.instantiate(
-      typeArguments: [
-        U.instantiate(nullabilitySuffix: NullabilitySuffix.none),
-      ],
-      nullabilitySuffix: NullabilitySuffix.star,
-    );
-    _assertSubstitution(type, {U: intNone}, 'A<int>*');
-  }
 }
 
 class _Base extends AbstractTypeSystemTest {

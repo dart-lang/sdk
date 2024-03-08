@@ -41,7 +41,7 @@ class UnknownInferredType extends TypeImpl {
   String get name => Keyword.DYNAMIC.lexeme;
 
   @override
-  NullabilitySuffix get nullabilitySuffix => NullabilitySuffix.star;
+  NullabilitySuffix get nullabilitySuffix => NullabilitySuffix.question;
 
   @override
   bool operator ==(Object other) => identical(other, this);

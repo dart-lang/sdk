@@ -687,7 +687,10 @@ class Compiler {
           codegenResults, inferredData, sourceLookup, closedWorld);
       if (options.dumpInfo || options.dumpInfoWriteUri != null) {
         final dumpInfoData = DumpInfoProgramData.fromEmitterResults(
-            backendStrategy, dumpInfoRegistry, programSize);
+            backendStrategy.emitterTask,
+            dumpInfoRegistry,
+            codegenResults,
+            programSize);
         dumpInfoRegistry.clear();
         if (options.dumpInfoWriteUri != null) {
           serializationTask.serializeDumpInfoProgramData(
@@ -716,10 +719,12 @@ class Compiler {
       dumpInfoState = await dumpInfoTask.dumpInfoNew(
           untrimmedComponentForDumpInfo!,
           closedWorld,
-          globalTypeInferenceResults);
+          globalTypeInferenceResults,
+          codegenResults,
+          backendStrategy);
     } else {
-      dumpInfoState =
-          await dumpInfoTask.dumpInfo(closedWorld, globalTypeInferenceResults);
+      dumpInfoState = await dumpInfoTask.dumpInfo(closedWorld,
+          globalTypeInferenceResults, codegenResults, backendStrategy);
     }
     if (retainDataForTesting) {
       dumpInfoStateForTesting = dumpInfoState;

@@ -67,16 +67,6 @@ class TopMergeHelper {
       return typeSystem.objectQuestion;
     }
 
-    // NNBD_TOP_MERGE(Object*, void) = void
-    // NNBD_TOP_MERGE(void, Object*) = void
-    var T_isObjectStar =
-        T_nullability == NullabilitySuffix.star && T.isDartCoreObject;
-    var S_isObjectStar =
-        S_nullability == NullabilitySuffix.star && S.isDartCoreObject;
-    if (T_isObjectStar && S_isVoid || T_isVoid && S_isObjectStar) {
-      return typeSystem.objectQuestion;
-    }
-
     // NNBD_TOP_MERGE(dynamic, void) = void
     // NNBD_TOP_MERGE(void, dynamic) = void
     if (T_isDynamic && S_isVoid || T_isVoid && S_isDynamic) {
@@ -92,45 +82,16 @@ class TopMergeHelper {
       return S;
     }
 
-    // NNBD_TOP_MERGE(Object*, dynamic) = Object?
-    // NNBD_TOP_MERGE(dynamic, Object*) = Object?
-    if (T_isObjectStar && S_isDynamic || T_isDynamic && S_isObjectStar) {
-      return typeSystem.objectQuestion;
-    }
-
     // Merge nullabilities.
-    var T_isNone = T_nullability == NullabilitySuffix.none;
-    var S_isNone = S_nullability == NullabilitySuffix.none;
-    if (!T_isNone || !S_isNone) {
-      var T_isQuestion = T_nullability == NullabilitySuffix.question;
-      var T_isStar = T_nullability == NullabilitySuffix.star;
-
-      var S_isQuestion = S_nullability == NullabilitySuffix.question;
-      var S_isStar = S_nullability == NullabilitySuffix.star;
-
-      NullabilitySuffix resultNullability;
-      if (T_isQuestion && S_isQuestion ||
-          T_isQuestion && S_isStar ||
-          T_isStar && S_isQuestion) {
-        // NNBD_TOP_MERGE(T?, S?) = NNBD_TOP_MERGE(T, S)?
-        // NNBD_TOP_MERGE(T?, S*) = NNBD_TOP_MERGE(T, S)?
-        // NNBD_TOP_MERGE(T*, S?) = NNBD_TOP_MERGE(T, S)?
-        resultNullability = NullabilitySuffix.question;
-      } else if (T_isStar && S_isStar) {
-        // NNBD_TOP_MERGE(T*, S*) = NNBD_TOP_MERGE(T, S)*
-        resultNullability = NullabilitySuffix.star;
-      } else if (T_isStar && S_isNone || T_isNone && S_isStar) {
-        // NNBD_TOP_MERGE(T*, S) = NNBD_TOP_MERGE(T, S)
-        // NNBD_TOP_MERGE(T, S*) = NNBD_TOP_MERGE(T, S)
-        resultNullability = NullabilitySuffix.none;
-      } else {
-        throw StateError('$T_nullability vs $S_nullability');
-      }
-
+    var T_isQuestion = T_nullability == NullabilitySuffix.question;
+    var S_isQuestion = S_nullability == NullabilitySuffix.question;
+    if (T_isQuestion && S_isQuestion) {
       var T_none = (T as TypeImpl).withNullability(NullabilitySuffix.none);
       var S_none = (S as TypeImpl).withNullability(NullabilitySuffix.none);
       var R_none = topMerge(T_none, S_none) as TypeImpl;
-      return R_none.withNullability(resultNullability);
+      return R_none.withNullability(NullabilitySuffix.question);
+    } else if (T_isQuestion || S_isQuestion) {
+      throw StateError('$T_nullability vs $S_nullability');
     }
 
     assert(T_nullability == NullabilitySuffix.none);

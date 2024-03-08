@@ -2098,14 +2098,6 @@ class ResolutionReader {
         nullabilitySuffix: NullabilitySuffix.question,
       );
       return _readAliasElementArguments(type);
-    } else if (tag == Tag.InterfaceType_noTypeArguments_star) {
-      var element = readElement() as InterfaceElement;
-      var type = InterfaceTypeImpl(
-        element: element,
-        typeArguments: const <DartType>[],
-        nullabilitySuffix: NullabilitySuffix.star,
-      );
-      return _readAliasElementArguments(type);
     } else if (tag == Tag.InvalidType) {
       var type = InvalidTypeImpl.instance;
       return _readAliasElementArguments(type);
