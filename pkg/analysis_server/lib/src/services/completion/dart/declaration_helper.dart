@@ -16,7 +16,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// A helper class that produces candidate suggestions for all of the
 /// declarations that are in scope at the completion location.
@@ -284,7 +283,7 @@ class DeclarationHelper {
     CompilationUnitMember? topLevelMember;
     if (parent is CompilationUnitMember) {
       topLevelMember = parent;
-      _addMembersOf(parent, containingMember);
+      _addMembersOfEnclosingNode(parent);
       parent = parent.parent;
     }
     if (parent is CompilationUnit) {
@@ -802,146 +801,6 @@ class DeclarationHelper {
     return currentNode;
   }
 
-  /// Adds suggestions for the [members] of the [containingElement].
-  void _addMembers(Element containingElement, NodeList<ClassMember> members) {
-    // TODO(brianwilkerson): Replace this method with methods similar to
-    //  `_addMembersOfClass`.
-    for (var member in members) {
-      switch (member) {
-        case ConstructorDeclaration():
-          // Constructors are suggested when the enclosing class is suggested.
-          break;
-        case FieldDeclaration():
-          if (mustBeStatic && !member.isStatic) {
-            continue;
-          }
-          for (var field in member.fields.variables) {
-            var declaredElement = field.declaredElement;
-            if (declaredElement is FieldElement) {
-              _suggestField(declaredElement, containingElement);
-            }
-          }
-        case MethodDeclaration():
-          if (mustBeStatic && !member.isStatic) {
-            continue;
-          }
-          var declaredElement = member.declaredElement;
-          if (declaredElement is MethodElement) {
-            _suggestMethod(declaredElement, containingElement);
-          } else if (declaredElement is PropertyAccessorElement) {
-            _suggestProperty(declaredElement, containingElement);
-          }
-      }
-    }
-    // Add any immediate members from augmentations.
-    var augmentation = containingElement.augmentation;
-    while (augmentation is ClassElement) {
-      for (var accessor in augmentation.accessors) {
-        if (!accessor.isSynthetic) {
-          _suggestProperty(accessor, containingElement);
-        }
-      }
-      for (var field in augmentation.fields) {
-        if (!field.isSynthetic) {
-          _suggestField(field, containingElement);
-        }
-      }
-      for (var method in augmentation.methods) {
-        _suggestMethod(method, containingElement);
-      }
-      augmentation = augmentation.augmentation;
-    }
-  }
-
-  /// Adds suggestions for any members of the [parent].
-  ///
-  /// The [containingMember] is the member within the [parent] in which
-  /// completion was requested.
-  void _addMembersOf(CompilationUnitMember parent, AstNode containingMember) {
-    switch (parent) {
-      case ClassDeclaration():
-        var classElement = parent.declaredElement;
-        if (classElement != null) {
-          if (!mustBeType) {
-            _addMembersOfClass(classElement);
-          }
-          _suggestTypeParameters(classElement.typeParameters);
-        }
-      case EnumDeclaration():
-        var enumElement = parent.declaredElement;
-        if (enumElement != null) {
-          if (!mustBeType) {
-            _addMembers(enumElement, parent.members);
-          }
-          _suggestTypeParameters(enumElement.typeParameters);
-        }
-      case ExtensionDeclaration():
-        var extensionElement = parent.declaredElement;
-        if (extensionElement != null) {
-          if (!mustBeType) {
-            _addMembers(extensionElement, parent.members);
-          }
-          _suggestTypeParameters(extensionElement.typeParameters);
-        }
-      case ExtensionTypeDeclaration():
-        var extensionTypeElement = parent.declaredElement;
-        if (extensionTypeElement != null) {
-          if (!mustBeType) {
-            _addMembers(extensionTypeElement, parent.members);
-            var fieldElement = parent.representation.fieldElement;
-            if (fieldElement != null) {
-              _suggestField(fieldElement, extensionTypeElement);
-            }
-          }
-          _suggestTypeParameters(extensionTypeElement.typeParameters);
-        }
-      case MixinDeclaration():
-        var mixinElement = parent.declaredElement;
-        if (mixinElement != null) {
-          if (!mustBeType) {
-            _addMembers(mixinElement, parent.members);
-          }
-          _suggestTypeParameters(mixinElement.typeParameters);
-        }
-      case ClassTypeAlias():
-        var aliasElement = parent.declaredElement;
-        if (aliasElement != null) {
-          _suggestTypeParameters(aliasElement.typeParameters);
-        }
-      case FunctionTypeAlias():
-        var aliasElement = parent.declaredElement;
-        if (aliasElement != null) {
-          _suggestTypeParameters(aliasElement.typeParameters);
-        }
-      case GenericTypeAlias():
-        var aliasElement = parent.declaredElement;
-        if (aliasElement is TypeAliasElement) {
-          _suggestTypeParameters(aliasElement.typeParameters);
-        }
-    }
-  }
-
-  /// Adds suggestions for the [members] of the [containingElement].
-  void _addMembersOfClass(ClassElement classElement) {
-    // Add any immediate members from augmentations.
-    var augmented = classElement.augmented;
-    for (var accessor in augmented?.accessors ?? classElement.accessors) {
-      if (!accessor.isSynthetic && (!mustBeStatic || accessor.isStatic)) {
-        _suggestProperty(accessor, classElement);
-      }
-    }
-    for (var field in augmented?.fields ?? classElement.fields) {
-      if (!field.isSynthetic && (!mustBeStatic || field.isStatic)) {
-        _suggestField(field, classElement);
-      }
-    }
-    for (var method in augmented?.methods ?? classElement.methods) {
-      if (!mustBeStatic || method.isStatic) {
-        _suggestMethod(method, classElement);
-      }
-    }
-  }
-
   /// Adds suggestions for the instance members declared on `Object`.
   void _addMembersOfDartCoreObject() {
     _addInstanceMembers(
@@ -949,6 +808,97 @@ class DeclarationHelper {
         excludedGetters: const {},
         includeMethods: true,
         includeSetters: true);
+  }
+
+  /// Completion is inside the declaration with [element].
+  void _addMembersOfEnclosingInstance(InstanceElement element) {
+    var augmented = element.augmented;
+
+    var accessors = augmented?.accessors ?? element.accessors;
+    for (var accessor in accessors) {
+      if (!accessor.isSynthetic && (!mustBeStatic || accessor.isStatic)) {
+        _suggestProperty(accessor, element);
+      }
+    }
+
+    var fields = augmented?.fields ?? element.fields;
+    for (var field in fields) {
+      if (!field.isSynthetic && (!mustBeStatic || field.isStatic)) {
+        _suggestField(field, element);
+      }
+    }
+
+    var methods = augmented?.methods ?? element.methods;
+    for (var method in methods) {
+      if (!mustBeStatic || method.isStatic) {
+        _suggestMethod(method, element);
+      }
+    }
+  }
+
+  /// Completion is inside [declaration].
+  void _addMembersOfEnclosingNode(CompilationUnitMember declaration) {
+    switch (declaration) {
+      case ClassDeclaration():
+        var element = declaration.declaredElement;
+        if (element != null) {
+          if (!mustBeType) {
+            _addMembersOfEnclosingInstance(element);
+          }
+          _suggestTypeParameters(element.typeParameters);
+        }
+      case ClassTypeAlias():
+        var element = declaration.declaredElement;
+        if (element != null) {
+          _suggestTypeParameters(element.typeParameters);
+        }
+      case EnumDeclaration():
+        var element = declaration.declaredElement;
+        if (element != null) {
+          if (!mustBeType) {
+            _addMembersOfEnclosingInstance(element);
+          }
+          _suggestTypeParameters(element.typeParameters);
+        }
+      case ExtensionDeclaration():
+        var element = declaration.declaredElement;
+        if (element != null) {
+          if (!mustBeType) {
+            _addMembersOfEnclosingInstance(element);
+          }
+          _suggestTypeParameters(element.typeParameters);
+        }
+      case ExtensionTypeDeclaration():
+        var element = declaration.declaredElement;
+        if (element != null) {
+          if (!mustBeType) {
+            _addMembersOfEnclosingInstance(element);
+            var fieldElement = declaration.representation.fieldElement;
+            if (fieldElement != null) {
+              _suggestField(fieldElement, element);
+            }
+          }
+          _suggestTypeParameters(element.typeParameters);
+        }
+      case FunctionTypeAlias():
+        var element = declaration.declaredElement;
+        if (element != null) {
+          _suggestTypeParameters(element.typeParameters);
+        }
+      case GenericTypeAlias():
+        var element = declaration.declaredElement;
+        if (element is TypeAliasElement) {
+          _suggestTypeParameters(element.typeParameters);
+        }
+      case MixinDeclaration():
+        var element = declaration.declaredElement;
+        if (element != null) {
+          if (!mustBeType) {
+            _addMembersOfEnclosingInstance(element);
+          }
+          _suggestTypeParameters(element.typeParameters);
+        }
+    }
   }
 
   /// Add the static [accessors], [constructors], [fields], and [methods]
