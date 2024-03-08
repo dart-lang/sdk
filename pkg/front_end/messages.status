@@ -382,6 +382,11 @@ FfiAbiSpecificIntegerMappingInvalid/analyzerCode: Fail
 FfiCompoundImplementsFinalizable/analyzerCode: Fail
 FfiCreateOfStructOrUnion/analyzerCode: Fail
 FfiDartTypeMismatch/analyzerCode: Fail
+FfiDeeplyImmutableClassesMustBeFinalOrSealed/analyzerCode: Fail
+FfiDeeplyImmutableFieldsModifiers/analyzerCode: Fail
+FfiDeeplyImmutableFieldsMustBeDeeplyImmutable/analyzerCode: Fail
+FfiDeeplyImmutableSubtypesMustBeDeeplyImmutable/analyzerCode: Fail
+FfiDeeplyImmutableSupertypeMustBeDeeplyImmutable/analyzerCode: Fail
 FfiEmptyStruct/analyzerCode: Fail
 FfiExceptionalReturnNull/analyzerCode: Fail
 FfiExpectedConstant/analyzerCode: Fail

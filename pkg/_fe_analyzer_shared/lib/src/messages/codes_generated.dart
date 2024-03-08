@@ -5995,6 +5995,73 @@ const MessageCode messageFfiCreateOfStructOrUnion = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFfiDeeplyImmutableClassesMustBeFinalOrSealed =
+    messageFfiDeeplyImmutableClassesMustBeFinalOrSealed;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFfiDeeplyImmutableClassesMustBeFinalOrSealed =
+    const MessageCode(
+  "FfiDeeplyImmutableClassesMustBeFinalOrSealed",
+  problemMessage: r"""Deeply immutable classes must be final or sealed.""",
+  correctionMessage: r"""Try marking this class as final or sealed.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFfiDeeplyImmutableFieldsModifiers =
+    messageFfiDeeplyImmutableFieldsModifiers;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFfiDeeplyImmutableFieldsModifiers = const MessageCode(
+  "FfiDeeplyImmutableFieldsModifiers",
+  problemMessage:
+      r"""Deeply immutable classes must only have final non-late instance fields.""",
+  correctionMessage:
+      r"""Add the 'final' modifier to this field, and remove 'late' modifier from this field.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFfiDeeplyImmutableFieldsMustBeDeeplyImmutable =
+    messageFfiDeeplyImmutableFieldsMustBeDeeplyImmutable;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFfiDeeplyImmutableFieldsMustBeDeeplyImmutable =
+    const MessageCode(
+  "FfiDeeplyImmutableFieldsMustBeDeeplyImmutable",
+  problemMessage:
+      r"""Deeply immutable classes must only have deeply immutable instance fields. Deeply immutable types include 'int', 'double', 'bool', 'String', 'Pointer', 'Float32x4', 'Float64x2', 'Int32x4', and classes annotated with `@pragma('vm:deeply-immutable')`.""",
+  correctionMessage:
+      r"""Try changing the type of this field to a deeply immutable type or mark the type of this field as deeply immutable.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFfiDeeplyImmutableSubtypesMustBeDeeplyImmutable =
+    messageFfiDeeplyImmutableSubtypesMustBeDeeplyImmutable;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFfiDeeplyImmutableSubtypesMustBeDeeplyImmutable =
+    const MessageCode(
+  "FfiDeeplyImmutableSubtypesMustBeDeeplyImmutable",
+  problemMessage:
+      r"""Subtypes of deeply immutable classes must be deeply immutable.""",
+  correctionMessage:
+      r"""Try marking this class deeply immutable by adding `@pragma('vm:deeply-immutable')`.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFfiDeeplyImmutableSupertypeMustBeDeeplyImmutable =
+    messageFfiDeeplyImmutableSupertypeMustBeDeeplyImmutable;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFfiDeeplyImmutableSupertypeMustBeDeeplyImmutable =
+    const MessageCode(
+  "FfiDeeplyImmutableSupertypeMustBeDeeplyImmutable",
+  problemMessage:
+      r"""The super type of deeply immutable classes must be deeply immutable.""",
+  correctionMessage:
+      r"""Try marking the super class deeply immutable by adding `@pragma('vm:deeply-immutable')`.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeFfiDefaultAssetDuplicate = messageFfiDefaultAssetDuplicate;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

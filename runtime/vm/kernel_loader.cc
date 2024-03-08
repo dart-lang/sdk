@@ -1355,6 +1355,13 @@ void KernelLoader::LoadClass(const Library& library,
   if (IsolateUnsendablePragma::decode(pragma_bits)) {
     out_class->set_is_isolate_unsendable_due_to_pragma(true);
   }
+  if (DeeplyImmutablePragma::decode(pragma_bits)) {
+    out_class->set_is_deeply_immutable(true);
+    // Ensure that the pragma implies deeply immutability for VM recognized
+    // classes.
+    ASSERT(out_class->id() >= kNumPredefinedCids ||
+           IsDeeplyImmutableCid(out_class->id()));
+  }
   if (HasPragma::decode(pragma_bits)) {
     out_class->set_has_pragma(true);
   }
@@ -1753,6 +1760,10 @@ void KernelLoader::ReadVMAnnotations(const Library& library,
         if (constant_reader.IsStringConstant(name_index,
                                              "vm:isolate-unsendable")) {
           *pragma_bits = IsolateUnsendablePragma::update(true, *pragma_bits);
+        }
+        if (constant_reader.IsStringConstant(name_index,
+                                             "vm:deeply-immutable")) {
+          *pragma_bits = DeeplyImmutablePragma::update(true, *pragma_bits);
         }
         if (constant_reader.IsStringConstant(name_index, "vm:ffi:native")) {
           *pragma_bits = FfiNativePragma::update(true, *pragma_bits);

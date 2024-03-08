@@ -807,6 +807,7 @@ class EPointer extends Pointer {}
 // [analyzer] COMPILE_TIME_ERROR.NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS
 //    ^
 // [cfe] The superclass, 'Pointer', has no unnamed constructor that takes no arguments.
+// [cfe] Subtypes of deeply immutable classes must be deeply immutable.
 
 // Cannot implement native natives or Struct.
 
@@ -889,6 +890,7 @@ class INativeFunction implements NativeFunction {}
 class IPointer implements Pointer {}
 //    ^^^^^^^^
 // [cfe] The non-abstract class 'IPointer' is missing implementations for these members:
+// [cfe] Subtypes of deeply immutable classes must be deeply immutable.
 // [analyzer] COMPILE_TIME_ERROR.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER
 //                        ^^^^^^^
 // [cfe] The class 'Pointer' can't be implemented outside of its library because it's a final class.

@@ -45,6 +45,7 @@ dart:js_interop
 dart:js_interop_unsafe
 dart_runner
 dartbug.com
+deeply
 defaultasset
 dname
 e.g
@@ -55,6 +56,8 @@ extensiontype
 f
 ffi
 finality
+float32x
+float64x
 flutter_runner
 function.tojs
 futureor
@@ -63,6 +66,7 @@ guarded
 guides
 h
 https
+int32x
 interact
 interop
 intervening
@@ -79,6 +83,7 @@ loadlibrary
 macro
 member(s)
 migrate
+modifier
 mocking
 n
 name.#name
@@ -106,6 +111,7 @@ patterns
 placing
 pointer`s
 pragma
+pragma('vm:deeply
 preexisting
 pubspec.yaml
 r

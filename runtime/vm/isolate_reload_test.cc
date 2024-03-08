@@ -4190,6 +4190,210 @@ TEST_CASE(IsolateReload_ShapeChange_Const_RemoveSlot) {
                "Library:'file:///test-lib' Class: A");
 }
 
+TEST_CASE(IsolateReload_DeeplyImmutableChange) {
+  const char* kScript = R"(
+    @pragma('vm:deeply-immutable')
+    final class A {
+      final int x;
+      A(this.x);
+    }
+    String main () {
+      A(123);
+      return 'okay';
+    }
+  )";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("okay", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript = R"(
+    final class A {
+      final int x;
+      A(this.x);
+    }
+    String main () {
+      A(123);
+      return 'okay';
+    }
+  )";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_ERROR(lib,
+               "Classes cannot change their @pragma('vm:deeply-immutable'): "
+               "Library:'file:///test-lib' Class: A");
+}
+
+TEST_CASE(IsolateReload_DeeplyImmutableChange_2) {
+  const char* kScript = R"(
+    final class A {
+      final int x;
+      A(this.x);
+    }
+    String main () {
+      A(123);
+      return 'okay';
+    }
+  )";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("okay", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript = R"(
+    @pragma('vm:deeply-immutable')
+    final class A {
+      final int x;
+      A(this.x);
+    }
+    String main () {
+      A(123);
+      return 'okay';
+    }
+  )";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_ERROR(lib,
+               "Classes cannot change their @pragma('vm:deeply-immutable'): "
+               "Library:'file:///test-lib' Class: A");
+}
+
+TEST_CASE(IsolateReload_DeeplyImmutableChange_MultiLib) {
+  // clang-format off
+  Dart_SourceFile sourcefiles[] = {
+    {
+      "file:///test-app.dart",
+      R"(
+        import 'test-lib.dart';
+
+        @pragma('vm:deeply-immutable')
+        final class A {
+          final B b;
+          A(this.b);
+        }
+        int main () {
+          A(B(123));
+          return 42;
+        }
+      )",
+    },
+    {
+      "file:///test-lib.dart",
+      R"(
+        @pragma('vm:deeply-immutable')
+        final class B {
+          final int x;
+          B(this.x);
+        }
+      )"
+    }};
+  // clang-format on
+
+  Dart_Handle lib = TestCase::LoadTestScriptWithDFE(
+      sizeof(sourcefiles) / sizeof(Dart_SourceFile), sourcefiles,
+      nullptr /* resolver */, true /* finalize */, true /* incrementally */);
+  EXPECT_VALID(lib);
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
+  int64_t value = 0;
+  result = Dart_IntegerToInt64(result, &value);
+  EXPECT_VALID(result);
+  EXPECT_EQ(42, value);
+
+  // clang-format off
+  Dart_SourceFile updated_sourcefiles[] = {
+    {
+      "file:///test-lib.dart",
+      R"(
+        final class B {
+          final int x;
+          B(this.x);
+        }
+      )"
+    }};
+  // clang-format on
+
+  {
+    const uint8_t* kernel_buffer = nullptr;
+    intptr_t kernel_buffer_size = 0;
+    char* error = TestCase::CompileTestScriptWithDFE(
+        "file:///test-app.dart",
+        sizeof(updated_sourcefiles) / sizeof(Dart_SourceFile),
+        updated_sourcefiles, &kernel_buffer, &kernel_buffer_size,
+        true /* incrementally */);
+    // This is rejected by class A being recompiled and the validator failing.
+    EXPECT(error != nullptr);
+    EXPECT_NULLPTR(kernel_buffer);
+  }
+}
+
+TEST_CASE(IsolateReload_DeeplyImmutableChange_TypeBound) {
+  // clang-format off
+  Dart_SourceFile sourcefiles[] = {
+    {
+      "file:///test-app.dart",
+      R"(
+        import 'test-lib.dart';
+
+        @pragma('vm:deeply-immutable')
+        final class A<T extends B> {
+          final T b;
+          A(this.b);
+        }
+        int main () {
+          A(B(123));
+          return 42;
+        }
+      )",
+    },
+    {
+      "file:///test-lib.dart",
+      R"(
+        @pragma('vm:deeply-immutable')
+        final class B {
+          final int x;
+          B(this.x);
+        }
+      )"
+    }};
+  // clang-format on
+
+  Dart_Handle lib = TestCase::LoadTestScriptWithDFE(
+      sizeof(sourcefiles) / sizeof(Dart_SourceFile), sourcefiles,
+      nullptr /* resolver */, true /* finalize */, true /* incrementally */);
+  EXPECT_VALID(lib);
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
+  int64_t value = 0;
+  result = Dart_IntegerToInt64(result, &value);
+  EXPECT_VALID(result);
+  EXPECT_EQ(42, value);
+
+  // clang-format off
+  Dart_SourceFile updated_sourcefiles[] = {
+    {
+      "file:///test-lib.dart",
+      R"(
+        final class B {
+          final int x;
+          B(this.x);
+        }
+      )"
+    }};
+  // clang-format on
+
+  {
+    const uint8_t* kernel_buffer = nullptr;
+    intptr_t kernel_buffer_size = 0;
+    char* error = TestCase::CompileTestScriptWithDFE(
+        "file:///test-app.dart",
+        sizeof(updated_sourcefiles) / sizeof(Dart_SourceFile),
+        updated_sourcefiles, &kernel_buffer, &kernel_buffer_size,
+        true /* incrementally */);
+    // This is rejected by class A being recompiled and the validator failing.
+    EXPECT(error != nullptr);
+    EXPECT_NULLPTR(kernel_buffer);
+  }
+}
+
 TEST_CASE(IsolateReload_ConstToNonConstClass) {
   const char* kScript = R"(
     class A {

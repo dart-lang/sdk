@@ -255,9 +255,27 @@ class UntaggedObject {
   class OldAndNotRememberedBit
       : public BitField<uword, bool, kOldAndNotRememberedBit, 1> {};
 
-  // Will be set to 1 iff
-  //   - is unmodifiable typed data view (backing store may be mutable)
-  //   - is transitively immutable
+  // Will be set to 1 for the following instances:
+  //
+  // 1. Deeply immutable instances.
+  //    `Class::is_deeply_immutable`.
+  //    a. Statically guaranteed deeply immutable instances.
+  //       `@pragma('vm:deeply-immutable')`.
+  //    b. VM recognized deeply immutable instances.
+  //       `IsDeeplyImmutableCid(intptr_t predefined_cid)`.
+  // 2. Shallowly unmodifiable instances.
+  //    `IsShallowlyImmutableCid(intptr_t predefined_cid)`
+  //    a. Unmodifiable typed data view (backing store may be mutable).
+  //    b. Closures (the context may be modifiable).
+  //
+  // The bit is used in `CanShareObject` in object_graph_copy, where special
+  // care is taken to look at the shallow immutable instances. Shallow immutable
+  // instances always need special care in the VM because the VM needs to know
+  // what their fields are.
+  //
+  // The bit is also used to make typed data stores efficient. 2.a.
+  //
+  // See also Class::kIsDeeplyImmutableBit.
   class ImmutableBit : public BitField<uword, bool, kImmutableBit, 1> {};
 
   class ReservedBit : public BitField<uword, intptr_t, kReservedBit, 1> {};

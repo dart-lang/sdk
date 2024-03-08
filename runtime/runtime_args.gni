@@ -85,3 +85,14 @@ declare_args() {
       (dart_target_arch == "x64" || dart_target_arch == "arm64" ||
        dart_target_arch == "riscv64")
 }
+
+if (is_fuchsia) {
+  declare_args() {
+    # In case some repo uses build rules in dart/sdk, but put fuchsia-gn-sdk in
+    # a different folder, this gn arg can specify the location of fuchsia-gn-sdk.
+    if (!defined(fuchsia_gn_sdk)) {
+      fuchsia_gn_sdk = "//third_party/fuchsia/gn-sdk"
+    }
+  }
+  import(fuchsia_gn_sdk + "/src/gn_configs.gni")
+}

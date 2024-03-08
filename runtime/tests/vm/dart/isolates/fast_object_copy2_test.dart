@@ -101,6 +101,30 @@ final sharableObjects = [
   Float64x2(1.0, 2.0),
   StackTrace.current,
   Pointer<Int8>.fromAddress(0xdeadbeef),
+  DeeplyImmutable(
+    someString: 'someString',
+    someNullableString: 'someString',
+    someInt: 3,
+    someDouble: 3.3,
+    someBool: false,
+    someNull: null,
+    someInt32x4: Int32x4(0, 1, 2, 3),
+    someFloat32x4: Float32x4(0.0, 1.1, 2.2, 3.3),
+    someFloat64x2: Float64x2(4.4, 5.5),
+    someDeeplyImmutable: DeeplyImmutable(
+      someString: 'someString',
+      someInt: 3,
+      someDouble: 3.3,
+      someBool: false,
+      someNull: null,
+      someInt32x4: Int32x4(0, 1, 2, 3),
+      someFloat32x4: Float32x4(0.0, 1.1, 2.2, 3.3),
+      someFloat64x2: Float64x2(4.4, 5.5),
+      someDeeplyImmutable: null,
+      somePointer: Pointer.fromAddress(0x8badf00d),
+    ),
+    somePointer: Pointer.fromAddress(0xdeadbeef),
+  ),
 ];
 
 final copyableClosures = <dynamic>[
@@ -224,4 +248,33 @@ void msanUnpoison(Pointer<Uint8> pointer, int size) {
     msanUnpoisonPointer.asFunction<void Function(Pointer<Void>, int)>()(
         pointer.cast(), size);
   }
+}
+
+@pragma('vm:deeply-immutable')
+final class DeeplyImmutable {
+  final String someString;
+  final String? someNullableString;
+  final int someInt;
+  final double someDouble;
+  final bool someBool;
+  final Null someNull;
+  final Int32x4 someInt32x4;
+  final Float32x4 someFloat32x4;
+  final Float64x2 someFloat64x2;
+  final DeeplyImmutable? someDeeplyImmutable;
+  final Pointer somePointer;
+
+  DeeplyImmutable({
+    required this.someString,
+    this.someNullableString,
+    required this.someInt,
+    required this.someDouble,
+    required this.someBool,
+    required this.someNull,
+    required this.someInt32x4,
+    required this.someFloat32x4,
+    required this.someFloat64x2,
+    this.someDeeplyImmutable,
+    required this.somePointer,
+  });
 }

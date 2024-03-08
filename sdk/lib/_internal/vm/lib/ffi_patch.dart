@@ -198,6 +198,7 @@ external dynamic _nativeIsolateLocalCallbackFunction<NS extends Function>(
     dynamic exceptionalReturn);
 
 @patch
+@pragma('vm:deeply-immutable')
 @pragma("vm:entry-point")
 final class Pointer<T extends NativeType> implements SizedNativeType {
   @patch

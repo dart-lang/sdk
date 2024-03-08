@@ -10,6 +10,7 @@ const int _maxUtf16 = 0xffff;
 const int _maxUnicode = 0x10ffff;
 
 @patch
+@pragma('vm:deeply-immutable')
 @pragma("vm:entry-point")
 class String {
   @patch
@@ -59,6 +60,7 @@ class String {
  * [_StringBase] contains common methods used by concrete String
  * implementations, e.g., _OneByteString.
  */
+@pragma('vm:deeply-immutable')
 abstract final class _StringBase implements String {
   bool _isWhitespace(int codeUnit);
 
@@ -997,6 +999,7 @@ int _clampedPositiveProduct(int a, int b) {
   return product;
 }
 
+@pragma('vm:deeply-immutable')
 @pragma("vm:entry-point")
 final class _OneByteString extends _StringBase {
   factory _OneByteString._uninstantiable() {
@@ -1335,6 +1338,7 @@ final class _OneByteString extends _StringBase {
   }
 }
 
+@pragma('vm:deeply-immutable')
 @pragma("vm:entry-point")
 final class _TwoByteString extends _StringBase {
   factory _TwoByteString._uninstantiable() {
@@ -1397,6 +1401,7 @@ final class _TwoByteString extends _StringBase {
   }
 }
 
+@pragma('vm:deeply-immutable')
 @pragma("vm:entry-point")
 final class _ExternalOneByteString extends _StringBase {
   factory _ExternalOneByteString._uninstantiable() {
@@ -1417,6 +1422,7 @@ final class _ExternalOneByteString extends _StringBase {
   }
 }
 
+@pragma('vm:deeply-immutable')
 @pragma("vm:entry-point")
 final class _ExternalTwoByteString extends _StringBase {
   factory _ExternalTwoByteString._uninstantiable() {

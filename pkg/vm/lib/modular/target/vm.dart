@@ -11,6 +11,7 @@ import 'package:kernel/target/changed_structure_notifier.dart';
 import 'package:kernel/target/targets.dart';
 
 import '../transformations/call_site_annotator.dart' as callSiteAnnotator;
+import '../transformations/deeply_immutable.dart' as deeply_immutable;
 import '../transformations/lowering.dart' as lowering
     show transformLibraries, transformProcedure;
 import '../transformations/mixin_full_resolution.dart' as transformMixins
@@ -151,6 +152,13 @@ class VmTarget extends Target {
       ReferenceFromIndex? referenceFromIndex,
       {void Function(String msg)? logger,
       ChangedStructureNotifier? changedStructureNotifier}) {
+    deeply_immutable.validateLibraries(
+      libraries,
+      coreTypes,
+      diagnosticReporter,
+    );
+    logger?.call("Validated deeply immutable");
+
     transformMixins.transformLibraries(
         this, coreTypes, hierarchy, libraries, referenceFromIndex);
     logger?.call("Transformed mixin applications");

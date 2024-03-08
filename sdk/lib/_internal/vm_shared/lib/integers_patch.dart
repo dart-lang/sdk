@@ -8,6 +8,7 @@ import "dart:typed_data" show Int64List;
 
 /// VM implementation of int.
 @patch
+@pragma('vm:deeply-immutable')
 @pragma("vm:entry-point")
 class int {
   @patch
