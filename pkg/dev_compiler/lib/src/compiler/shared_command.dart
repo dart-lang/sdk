@@ -433,7 +433,7 @@ Map placeSourceMap(Map sourceMap, String sourceMapPath, String? multiRootScheme,
       return sourcePath;
     }
 
-    if (scheme == 'org-dartlang-augmentation') {
+    if (scheme.startsWith('dart-macro+')) {
       // TODO: https://github.com/dart-lang/sdk/issues/53913
       return sourcePath;
     }

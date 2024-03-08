@@ -73,7 +73,10 @@ runner to ensure they are built and not stale:
     final commandParts = command
         .replaceAll(r'$DART_SDK', dartSdkPath)
         .replaceAll(r'$DART', dartPath)
-        .split(' ');
+        .split(' ')
+        .map((c) => c.replaceAll(r'$SPACE', ' '))
+        .toList();
+
     print('Running: ${commandParts.join(' ')}');
     final process = await Process.start(
         commandParts.first, commandParts.skip(1).toList(),
