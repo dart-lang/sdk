@@ -66,6 +66,11 @@ void main(List<String> args) async {
         negatable: true)
     ..addFlag('weak-null-safety-errors',
         help: 'Treat weak null safety warnings as errors.', defaultsTo: false)
+    ..addFlag('ddc-modules',
+        help: 'Emit modules in the ddc format. Currently supported in Chrome '
+            '(amd modules by default) and D8 (already uses ddc modules by '
+            'default).',
+        defaultsTo: false)
     ..addFlag('canary',
         help: 'Enable all compiler features under active development.',
         defaultsTo: false)
@@ -130,6 +135,7 @@ void main(List<String> args) async {
       ? options['native-null-assertions'] as bool
       : soundNullSafety;
   var weakNullSafetyErrors = options['weak-null-safety-errors'] as bool;
+  var ddcModules = options['ddc-modules'] as bool;
   var canaryFeatures = options['canary'] as bool;
   var entry = p.canonicalize(options.rest.first);
   var out = (options['out'] as String?) ?? p.setExtension(entry, '.js');
@@ -214,6 +220,11 @@ void main(List<String> args) async {
   var runtime = options['runtime'] as String?;
   switch (runtime) {
     case 'node':
+      // TODO(nshahan): Cleanup after the ddc module format is used everywhere.
+      if (ddcModules) {
+        throw ('The combination of `--runtime=$runtime` and `--ddc-modules` '
+            'is not supported at this time.');
+      }
       node = true;
       mod = 'common';
       break;
@@ -223,7 +234,8 @@ void main(List<String> args) async {
       break;
     case 'chrome':
       chrome = true;
-      mod = 'amd';
+      // TODO(nshahan): Cleanup after the ddc module format is used everywhere.
+      mod = ddcModules ? 'ddc' : 'amd';
       break;
     default:
       throw Exception('Unexpected runtime: $runtime');
@@ -240,6 +252,8 @@ void main(List<String> args) async {
   ].join();
   var sdkJsPath =
       p.join(buildDir, 'gen', 'utils', 'ddc', compileModeDir, 'sdk', mod);
+  var preamblesDir = p.join(
+      sdkRoot, 'sdk', 'lib', '_internal', 'js_runtime', 'lib', 'preambles');
 
   // Print an initial empty line to separate the invocation from the output.
   if (verbose) {
@@ -282,11 +296,8 @@ void main(List<String> args) async {
 
       // Seal the native JavaScript Object prototype to avoid pollution before
       // loading the Dart SDK module.
-      var html = '''
-<script>
-delete Object.prototype.__proto__;
-Object.seal(Object.prototype);
-</script>
+      var amdModulesHtml = '''
+<script src="$preamblesDir/seal_native_object.js"></script>
 <script src='$requirePath/require.js'></script>
 <script>
   require.config({
@@ -309,8 +320,25 @@ Object.seal(Object.prototype);
   });
 </script>
 ''';
+      var ddcModulesHtml = '''
+<script src="$preamblesDir/seal_native_object.js"></script>
+<script src="$ddcPath/lib/js/ddc/ddc_module_loader.js"></script>
+<script src="$sdkJsPath/dart_sdk.js"></script>
+<script src="$out"></script>
+<script>
+let sdk = dart_library.import("dart_sdk");
+sdk.dart.weakNullSafetyWarnings(
+    !($weakNullSafetyErrors || $soundNullSafety));
+sdk.dart.weakNullSafetyErrors($weakNullSafetyErrors);
+sdk.dart.nonNullAsserts($nonNullAsserts);
+sdk.dart.nativeNonNullAsserts($nativeNonNullAsserts);
+
+dart_library.start("$appname", "$uuid", "$basename", "$libname", false);
+</script>
+''';
       var htmlFile = p.setExtension(out, '.html');
-      File(htmlFile).writeAsStringSync(html);
+      File(htmlFile)
+          .writeAsStringSync(ddcModules ? ddcModulesHtml : amdModulesHtml);
       var tmp = p.join(Directory.systemTemp.path, 'ddc');
 
       var process = await startProcess('Chrome', chromeBinary, [
@@ -381,8 +409,6 @@ self.dartMainRunner(function () {
   dart_library.start("$appname", "$uuid", "$basename", "$libname", false);
 });
 ''';
-      var preamblesDir = p.join(
-          sdkRoot, 'sdk', 'lib', '_internal', 'js_runtime', 'lib', 'preambles');
       var d8File = p.setExtension(out, '.d8.js');
       File(d8File).writeAsStringSync(runjs);
       var d8Binary = binary ?? p.join(dartCheckoutPath, _d8executable);
