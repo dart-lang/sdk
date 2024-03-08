@@ -892,7 +892,7 @@ class MyClass {}''';
           },
           type: A.declaredElement?.instantiate(
             typeArguments: [],
-            nullabilitySuffix: NullabilitySuffix.star,
+            nullabilitySuffix: NullabilitySuffix.none,
           ),
         );
       });
@@ -920,7 +920,7 @@ class MyClass {}''';
           'foo',
           type: A.declaredElement?.instantiate(
             typeArguments: [],
-            nullabilitySuffix: NullabilitySuffix.star,
+            nullabilitySuffix: NullabilitySuffix.none,
           ),
           typeGroupName: 'type',
         );
@@ -957,7 +957,7 @@ class MyClass {}''';
           isFinal: true,
           type: A.declaredElement?.instantiate(
             typeArguments: [],
-            nullabilitySuffix: NullabilitySuffix.star,
+            nullabilitySuffix: NullabilitySuffix.none,
           ),
           typeGroupName: 'type',
         );
@@ -1574,7 +1574,7 @@ a''');
 
     var classA = await _getClassElement(path, 'A');
     DartType typeT = classA.typeParameters.single.instantiate(
-      nullabilitySuffix: NullabilitySuffix.star,
+      nullabilitySuffix: NullabilitySuffix.none,
     );
 
     var builder = await newBuilder();
@@ -1641,19 +1641,19 @@ class B {}
       builder.addInsertion(0, (builder) {
         builder.writeType(a1.instantiate(
           typeArguments: [],
-          nullabilitySuffix: NullabilitySuffix.star,
+          nullabilitySuffix: NullabilitySuffix.none,
         ));
         builder.write(' a1; ');
 
         builder.writeType(a2.instantiate(
           typeArguments: [],
-          nullabilitySuffix: NullabilitySuffix.star,
+          nullabilitySuffix: NullabilitySuffix.none,
         ));
         builder.write(' a2; ');
 
         builder.writeType(b.instantiate(
           typeArguments: [],
-          nullabilitySuffix: NullabilitySuffix.star,
+          nullabilitySuffix: NullabilitySuffix.none,
         ));
         builder.write(' b;');
       });

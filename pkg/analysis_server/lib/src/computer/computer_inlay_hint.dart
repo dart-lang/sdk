@@ -186,8 +186,6 @@ class DartInlayHintComputer {
     switch (type.nullabilitySuffix) {
       case NullabilitySuffix.question:
         parts.add(InlayHintLabelPart(value: '?'));
-      case NullabilitySuffix.star:
-        parts.add(InlayHintLabelPart(value: '*'));
       default:
     }
   }
