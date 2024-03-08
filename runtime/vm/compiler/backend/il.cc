@@ -2434,6 +2434,13 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
     }
   }
 
+  if (IsBinaryUint32Op() && HasUnmatchedInputRepresentations()) {
+    // Canonicalization may eliminate instruction and loose truncation,
+    // so it is illegal to canonicalize truncating uint32 instruction
+    // until all conversions for its inputs are inserted.
+    return this;
+  }
+
   switch (op_kind()) {
     case Token::kMUL:
       if (rhs == 1) {
@@ -2442,8 +2449,11 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
         return right()->definition();
       } else if ((rhs > 0) && Utils::IsPowerOfTwo(rhs)) {
         const int64_t shift_amount = Utils::ShiftForPowerOfTwo(rhs);
+        const Representation shift_amount_rep =
+            (SpeculativeModeOfInputs() == kNotSpeculative) ? kUnboxedInt64
+                                                           : kTagged;
         ConstantInstr* constant_shift_amount = flow_graph->GetConstant(
-            Smi::Handle(Smi::New(shift_amount)), kTagged);
+            Smi::Handle(Smi::New(shift_amount)), shift_amount_rep);
         BinaryIntegerOpInstr* shift = BinaryIntegerOpInstr::Make(
             representation(), Token::kSHL, left()->CopyWithType(),
             new Value(constant_shift_amount), GetDeoptId(), can_overflow(),

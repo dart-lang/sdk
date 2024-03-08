@@ -9285,6 +9285,10 @@ class BinaryUint32OpInstr : public BinaryIntegerOpInstr {
     return kUnboxedUint32;
   }
 
+  virtual SpeculativeMode SpeculativeModeOfInput(intptr_t index) const {
+    return kNotSpeculative;
+  }
+
   static bool IsSupported(Token::Kind op_kind) {
     switch (op_kind) {
       case Token::kADD:
@@ -9479,7 +9483,9 @@ class ShiftUint32OpInstr : public ShiftIntegerOpInstr {
     return kNotSpeculative;
   }
   virtual bool ComputeCanDeoptimize() const { return false; }
-  virtual bool MayThrow() const { return true; }
+  virtual bool MayThrow() const {
+    return !IsShiftCountInRange(kUint32ShiftCountLimit);
+  }
 
   virtual Representation representation() const { return kUnboxedUint32; }
 
