@@ -700,7 +700,7 @@ Var("dart_root") + "/third_party/pkg/tar":
     "packages": [
       {
       "package": "chromium/fuchsia/test-scripts",
-      "version": "EAdD2YcYwVrhF2q_zR6xUvPkcKlPb1tJyM_6_oOc84kC",
+      "version": "version:2@49064713a73ae92d8c28164938b97869afd336aa",
       }
     ],
     "condition": 'download_fuchsia_deps',
@@ -711,7 +711,7 @@ Var("dart_root") + "/third_party/pkg/tar":
     "packages": [
       {
       "package": "chromium/fuchsia/gn-sdk",
-      "version": "RgErspyYHapUO2SpcW-vo2p8yaRUMUrq0eWjRVPfQjoC",
+      "version": "version:2@7f1f23fce153ca079a77492d9d47d803d60b774e",
       }
     ],
     "condition": 'download_fuchsia_deps',
@@ -837,16 +837,6 @@ hooks = [
     'condition': 'download_emscripten'
   },
   {
-    'name': 'Erase arch/ from fuchsia sdk',
-    'pattern': '.',
-    'action': [
-      'rm',
-      '-rf',
-      'sdk/third_party/fuchsia/sdk/linux/arch',
-    ],
-    'condition': 'download_fuchsia_deps'
-  },
-  {
     'name': 'Download Fuchsia system images',
     'pattern': '.',
     'action': [
@@ -854,16 +844,6 @@ hooks = [
       'sdk/build/fuchsia/with_envs.py',
       'sdk/third_party/fuchsia/test_scripts/update_product_bundles.py',
       'terminal.x64',
-    ],
-    'condition': 'download_fuchsia_deps'
-  },
-  {
-    'name': 'Generate Fuchsia GN build rules',
-    'pattern': '.',
-    'action': [
-      'python3',
-      'sdk/build/fuchsia/with_envs.py',
-      'sdk/third_party/fuchsia/test_scripts/gen_build_defs.py',
     ],
     'condition': 'download_fuchsia_deps'
   },
