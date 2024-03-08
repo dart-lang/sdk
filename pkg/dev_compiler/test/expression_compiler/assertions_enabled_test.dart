@@ -58,8 +58,8 @@ void main(List<String> args) async {
               expression: '() { assert(false); return 0; } ()',
               expectedError: allOf(
                 contains('Error: Assertion failed:'),
-                contains('<unknown source>:-1:-1'),
-                contains('BoolLiteral(false)'),
+                contains('org-dartlang-debug:synthetic_debug_expression:1:13'),
+                contains('false'),
                 contains('is not true'),
               ));
         });
