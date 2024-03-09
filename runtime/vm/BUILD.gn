@@ -2,6 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+import("//build_overrides/build.gni")
 import("//third_party/protobuf/proto_library.gni")
 import("../../build/executable_suffix.gni")
 import("../../sdk/lib/async/async_sources.gni")
@@ -76,7 +77,9 @@ config("libdart_vm_config") {
 # .pb.{cc,h} of the official proto library.
 template("protozero_library") {
   proto_library(target_name) {
-    perfetto_root_path = "//third_party/perfetto/"
+    if (!defined(perfetto_root_path)) {
+      perfetto_root_path = "//third_party/perfetto/"
+    }
 
     generate_cc = false
     generate_python = false
@@ -146,8 +149,12 @@ proto_library("perfetto_protos_dart") {
 # This config needs to be propagated to all targets that depend on
 # ":libprotozero".
 config("libprotozero_config") {
+  if (!defined(perfetto_root_path)) {
+    perfetto_root_path = "//third_party/perfetto/"
+  }
+
   include_dirs = [
-    "//third_party/perfetto/include",
+    "$perfetto_root_path/include",
     "$root_gen_dir/third_party/perfetto/build_config",
   ]
 }
@@ -155,8 +162,12 @@ config("libprotozero_config") {
 # This target includes Perfetto's protozero target, which we need to serialize
 # proto messages. This target also propagates ":libprotozero_config".
 source_set("libprotozero") {
+  if (!defined(perfetto_root_path)) {
+    perfetto_root_path = "//third_party/perfetto/"
+  }
+
   public_configs = [ ":libprotozero_config" ]
-  deps = [ "//third_party/perfetto/src/protozero:protozero" ]
+  deps = [ "$perfetto_root_path/src/protozero:protozero" ]
 }
 
 library_for_all_configs("libdart_vm") {

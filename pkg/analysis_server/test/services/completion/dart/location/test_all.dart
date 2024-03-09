@@ -35,6 +35,7 @@ import 'if_statement_test.dart' as if_statement;
 import 'implements_clause_test.dart' as implements_clause;
 import 'import_directive_test.dart' as import_directive;
 import 'instance_creation_expression_test.dart' as instance_creation_expression;
+import 'is_expression_test.dart' as is_expression;
 import 'library_directive_test.dart' as library_directive;
 import 'list_literal_test.dart' as list_literal;
 import 'list_pattern_test.dart' as list_pattern;
@@ -108,6 +109,7 @@ void main() {
     implements_clause.main();
     import_directive.main();
     instance_creation_expression.main();
+    is_expression.main();
     library_directive.main();
     list_literal.main();
     list_pattern.main();
