@@ -16,6 +16,10 @@ def ParseArgs(args):
     parser = argparse.ArgumentParser(
         description='A script to copy a file tree somewhere')
 
+    parser.add_argument('--depfile',
+                        '-d',
+                        type=str,
+                        help='Path to a depfile to write when copying.')
     parser.add_argument(
         '--exclude_patterns',
         '-e',
@@ -24,33 +28,16 @@ def ParseArgs(args):
     parser.add_argument(
         '--from', '-f', dest="copy_from", type=str, help='Source directory')
     parser.add_argument(
-        '--gn',
-        '-g',
-        dest='gn',
-        default=False,
-        action='store_true',
-        help='Output for GN for multiple sources, but do not copy anything.')
-    parser.add_argument(
-        'gn_paths',
-        metavar='name path ignore_pattern',
+        '--stamp',
+        '-s',
         type=str,
-        nargs='*',
-        default=None,
-        help='When --gn is given, the specification of source paths to list.')
+        help='The path to a stamp file to output when finished.')
     parser.add_argument('--to', '-t', type=str, help='Destination directory')
 
     return parser.parse_args(args)
 
 
 def ValidateArgs(args):
-    if args.gn:
-        if args.exclude_patterns or args.copy_from or args.to:
-            print("--gn mode does not accept other switches")
-            return False
-        if not args.gn_paths:
-            print("--gn mode requires a list of source specifications")
-            return False
-        return True
     if not args.copy_from or not os.path.isdir(args.copy_from):
         print("--from argument must refer to a directory")
         return False
@@ -60,7 +47,10 @@ def ValidateArgs(args):
     return True
 
 
+# Returns a list of the files under 'src' that were copied.
 def CopyTree(src, dst, ignore=None):
+    copied_files = []
+
     # Recursive helper method to collect errors but keep processing.
     def copy_tree(src, dst, ignore, errors):
         names = os.listdir(src)
@@ -80,6 +70,7 @@ def CopyTree(src, dst, ignore=None):
                 if os.path.isdir(srcname):
                     copy_tree(srcname, dstname, ignore, errors)
                 else:
+                    copied_files.append(srcname)
                     shutil.copy(srcname, dstname)
             except (IOError, os.error) as why:
                 errors.append((srcname, dstname, str(why)))
@@ -106,45 +97,18 @@ def CopyTree(src, dst, ignore=None):
         msg = '\n'.join(parts)
         raise RuntimeError(msg)
 
-
-def ListTree(src, ignore=None):
-    names = os.listdir(src)
-    if ignore is not None:
-        ignored_names = ignore(src, names)
-    else:
-        ignored_names = set()
-
-    srcnames = []
-    for name in names:
-        if name in ignored_names:
-            continue
-        srcname = os.path.join(src, name)
-        if os.path.isdir(srcname):
-            srcnames.extend(ListTree(srcname, ignore))
-        else:
-            srcnames.append(srcname)
-    return srcnames
+    return copied_files
 
 
-# source_dirs is organized such that sources_dirs[n] is the path for the source
-# directory, and source_dirs[n+1] is a list of ignore patterns.
-def SourcesToGN(source_dirs):
-    if len(source_dirs) % 2 != 0:
-        print("--gn list length should be a multiple of 2.")
-        return False
-    data = []
-    for i in range(0, len(source_dirs), 2):
-        path = source_dirs[i]
-        ignores = source_dirs[i + 1]
-        if ignores in ["{}"]:
-            sources = ListTree(path)
-        else:
-            patterns = ignores.split(',')
-            sources = ListTree(path, ignore=shutil.ignore_patterns(*patterns))
-        data.append(sources)
-    scope_data = {"sources": data}
-    print(gn_helpers.ToGNString(scope_data))
-    return True
+def WriteDepfile(depfile, stamp, dep_list):
+    os.makedirs(os.path.dirname(depfile), exist_ok=True)
+    # Paths in the depfile must be relative to the root build output directory,
+    # which is the cwd that ninja invokes the script from.
+    cwd = os.getcwd()
+    relstamp = os.path.relpath(stamp, cwd)
+    reldep_list = [os.path.relpath(d, cwd) for d in dep_list]
+    with open(depfile, 'w') as f:
+        print("{0}: {1}".format(relstamp, " ".join(reldep_list)), file=f)
 
 
 def Main(argv):
@@ -152,16 +116,20 @@ def Main(argv):
     if not ValidateArgs(args):
         return -1
 
-    if args.gn:
-        SourcesToGN(args.gn_paths)
-        return 0
-
     if args.exclude_patterns == None:
-        CopyTree(args.copy_from, args.to)
+        copied_files = CopyTree(args.copy_from, args.to)
     else:
         patterns = args.exclude_patterns.split(',')
-        CopyTree(
-            args.copy_from, args.to, ignore=shutil.ignore_patterns(*patterns))
+        copied_files = CopyTree(args.copy_from,
+                                args.to,
+                                ignore=shutil.ignore_patterns(*patterns))
+
+    if args.depfile and args.stamp:
+        WriteDepfile(args.depfile, args.stamp, copied_files)
+
+    if args.stamp:
+        open(args.stamp, 'w').close()
+
     return 0
 
 
