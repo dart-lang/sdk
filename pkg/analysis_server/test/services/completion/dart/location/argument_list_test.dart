@@ -930,20 +930,25 @@ var v = f$arguments;
 
     await computeAndCheck('''
 $languageVersionLine
-class A {
-  A$parameters;
+void foo(void Function$parameters f) {
+  f$arguments;
 }
-class B extends A {
-  B() : super$arguments;
-}
-''', ' (super constructor invocation)');
+''', ' (invocation, function typed formal parameter)');
 
     await computeAndCheck('''
 $languageVersionLine
-class A {
-  A$parameters;
-  A.named() : this$arguments;
+void foo() {
+  void Function$parameters f; // not initialized
+  f$arguments;
 }
-''', ' (this constructor invocation)');
+''', ' (invocation, function typed local variable)');
+
+    await computeAndCheck('''
+$languageVersionLine
+void Function$parameters foo() => throw 0;
+void f() {
+  foo()$arguments;
+}
+''', ' (invocation, function typed expression)');
   }
 }

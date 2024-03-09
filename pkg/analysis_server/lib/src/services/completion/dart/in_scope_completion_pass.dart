@@ -229,8 +229,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       var (:positionalArgumentCount, :usedNames) =
           node.argumentContext(argumentIndex);
 
-      var element = node.invokedElement;
-      var parameters = element.getParameters();
+      var parameters = node.invokedFormalParameters;
       if (parameters != null) {
         var positionalParameterCount = 0;
         var availableNamedParameters = <ParameterElement>[];
@@ -1542,14 +1541,14 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       if (argumentList is! ArgumentList) {
         return;
       }
-      var element = argumentList.invokedElement;
-      if (element is ExecutableElement) {
+
+      var parameters = argumentList.invokedFormalParameters;
+      if (parameters != null) {
         var (positionalArgumentCount: _, :usedNames) =
             argumentList.argumentContext(-1);
         usedNames.remove(node.name.label.name);
 
         var appendColon = node.name.colon.isSynthetic;
-        var parameters = element.parameters;
         for (int i = 0; i < parameters.length; i++) {
           var parameter = parameters[i];
           if (parameter.isNamed) {
@@ -3049,6 +3048,23 @@ extension on ArgumentList {
       case RedirectingConstructorInvocation invocation:
         return invocation.staticElement;
     }
+    return null;
+  }
+
+  List<ParameterElement>? get invokedFormalParameters {
+    var result = invokedElement?.getParameters();
+    if (result != null) {
+      return result;
+    }
+
+    switch (parent) {
+      case FunctionExpressionInvocation invocation:
+        var functionType = invocation.function.staticType;
+        if (functionType is FunctionType) {
+          return functionType.parameters;
+        }
+    }
+
     return null;
   }
 
