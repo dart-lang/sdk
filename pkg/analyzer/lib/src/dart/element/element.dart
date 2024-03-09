@@ -3638,6 +3638,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
             return instance;
           }
         case NullabilitySuffix.star:
+          // TODO(scheglov): remove together with `star`
           break;
       }
     }
@@ -3655,6 +3656,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
         case NullabilitySuffix.question:
           _nullableInstance = result;
         case NullabilitySuffix.star:
+          // TODO(scheglov): remove together with `star`
           break;
       }
     }

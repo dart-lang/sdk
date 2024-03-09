@@ -40,6 +40,12 @@ class ChangeBuilderImpl implements ChangeBuilder {
   /// is no selection.
   SourceRange? _selectionRange;
 
+  /// A description to be applied to the [SourceEdit]s being built.
+  ///
+  /// This is usually set temporarily to mark a whole set of fixes with a
+  /// single description.
+  String? currentChangeDescription;
+
   /// The set of [Position]s that belong to the current [EditBuilderImpl] and
   /// should not be updated in result of inserting this builder.
   final Set<Position> _lockedPositions = HashSet<Position>.identity();
@@ -127,10 +133,12 @@ class ChangeBuilderImpl implements ChangeBuilder {
   }
 
   @override
-  Future<void> addDartFileEdit(String path,
-      FutureOr<void> Function(DartFileEditBuilder builder) buildFileEdit,
-      {ImportPrefixGenerator? importPrefixGenerator,
-      bool createEditsForImports = true}) async {
+  Future<void> addDartFileEdit(
+    String path,
+    FutureOr<void> Function(DartFileEditBuilder builder) buildFileEdit, {
+    ImportPrefixGenerator? importPrefixGenerator,
+    bool createEditsForImports = true,
+  }) async {
     assert(file_paths.isDart(workspace.resourceProvider.pathContext, path));
     if (_genericFileEditBuilders.containsKey(path)) {
       throw StateError("Can't create both a generic file edit and a dart file "
@@ -157,6 +165,7 @@ class ChangeBuilderImpl implements ChangeBuilder {
     }
     if (builder != null) {
       builder.importPrefixGenerator = importPrefixGenerator;
+      builder.currentChangeDescription = currentChangeDescription;
       await buildFileEdit(builder);
     }
   }
@@ -189,6 +198,7 @@ class ChangeBuilderImpl implements ChangeBuilder {
       builder = FileEditBuilderImpl(this, path, 0);
       _genericFileEditBuilders[path] = builder;
     }
+    builder.currentChangeDescription = currentChangeDescription;
     buildFileEdit(builder);
   }
 
@@ -215,6 +225,7 @@ class ChangeBuilderImpl implements ChangeBuilder {
           0);
       _yamlFileEditBuilders[path] = builder;
     }
+    builder.currentChangeDescription = currentChangeDescription;
     buildFileEdit(builder);
   }
 
@@ -378,6 +389,9 @@ class EditBuilderImpl implements EditBuilder {
   /// The length of the region being replaced.
   final int length;
 
+  /// A user-friendly description of this change.
+  final String? description;
+
   /// The range of the selection for the change being built, or `null` if the
   /// selection is not inside the change being built.
   SourceRange? _selectionRange;
@@ -396,13 +410,15 @@ class EditBuilderImpl implements EditBuilder {
   bool _isWritingEditGroup = false;
 
   /// Initialize a newly created builder to build a source edit.
-  EditBuilderImpl(this.fileEditBuilder, this.offset, this.length) {
+  EditBuilderImpl(this.fileEditBuilder, this.offset, this.length,
+      {this.description}) {
     _eol = fileEditBuilder.changeBuilder.eol;
   }
 
   /// Create and return an edit representing the replacement of a region of the
   /// file with the accumulated text.
-  SourceEdit get sourceEdit => SourceEdit(offset, length, _buffer.toString());
+  SourceEdit get sourceEdit =>
+      SourceEdit(offset, length, _buffer.toString(), description: description);
 
   @override
   void addLinkedEdit(String groupName,
@@ -493,6 +509,12 @@ class FileEditBuilderImpl implements FileEditBuilder {
   /// The source file edit that is being built.
   final SourceFileEdit fileEdit;
 
+  /// A description to be applied to the changes being built.
+  ///
+  /// This is usually set temporarily to mark a whole set of fixes with a
+  /// single description.
+  String? currentChangeDescription;
+
   /// Initialize a newly created builder to build a source file edit within the
   /// change being built by the given [changeBuilder]. The file being edited has
   /// the given absolute [path] and [timeStamp].
@@ -564,11 +586,13 @@ class FileEditBuilderImpl implements FileEditBuilder {
     var copy =
         FileEditBuilderImpl(changeBuilder, fileEdit.file, fileEdit.fileStamp);
     copy.fileEdit.edits.addAll(fileEdit.edits);
+    copy.currentChangeDescription = currentChangeDescription;
     return copy;
   }
 
   EditBuilderImpl createEditBuilder(int offset, int length) {
-    return EditBuilderImpl(this, offset, length);
+    return EditBuilderImpl(this, offset, length,
+        description: currentChangeDescription);
   }
 
   /// Finalize the source file edit that is being built.

@@ -37,6 +37,9 @@ public class SourceChange {
 
   /**
    * A human-readable description of the change to be applied.
+   *
+   * If this change includes multiple edits made for different reasons (such as during a bulk fix
+   * operation), the individual items in edits may contain more specific descriptions.
    */
   private final String message;
 
@@ -140,6 +143,9 @@ public class SourceChange {
 
   /**
    * A human-readable description of the change to be applied.
+   *
+   * If this change includes multiple edits made for different reasons (such as during a bulk fix
+   * operation), the individual items in edits may contain more specific descriptions.
    */
   public String getMessage() {
     return message;

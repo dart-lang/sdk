@@ -157,7 +157,7 @@ vars = {
   "json_rpc_2_rev": "639857be892050159f5164c749d7947694976a4a",
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", #
   "lints_rev": "ead770872e272e25a64315c120950ea8ad5b2509",
-  "logging_rev": "cbaf4ee2e59c318d7519edb5381f5fe2a7f69587",
+  "logging_rev": "7a7bd5e31ddfe23e34d37ded82d6d0cd5706862c",
   "markdown_rev": "1ca51664e7b1b7fe789f6be2668c909ce3aea342",
   "matcher_rev": "d954c8d979579b4b46427b0ea1d9c721117c191e",
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
@@ -700,7 +700,7 @@ Var("dart_root") + "/third_party/pkg/tar":
     "packages": [
       {
       "package": "chromium/fuchsia/test-scripts",
-      "version": "EAdD2YcYwVrhF2q_zR6xUvPkcKlPb1tJyM_6_oOc84kC",
+      "version": "version:2@49064713a73ae92d8c28164938b97869afd336aa",
       }
     ],
     "condition": 'download_fuchsia_deps',
@@ -711,7 +711,7 @@ Var("dart_root") + "/third_party/pkg/tar":
     "packages": [
       {
       "package": "chromium/fuchsia/gn-sdk",
-      "version": "RgErspyYHapUO2SpcW-vo2p8yaRUMUrq0eWjRVPfQjoC",
+      "version": "version:2@7f1f23fce153ca079a77492d9d47d803d60b774e",
       }
     ],
     "condition": 'download_fuchsia_deps',
@@ -837,16 +837,6 @@ hooks = [
     'condition': 'download_emscripten'
   },
   {
-    'name': 'Erase arch/ from fuchsia sdk',
-    'pattern': '.',
-    'action': [
-      'rm',
-      '-rf',
-      'sdk/third_party/fuchsia/sdk/linux/arch',
-    ],
-    'condition': 'download_fuchsia_deps'
-  },
-  {
     'name': 'Download Fuchsia system images',
     'pattern': '.',
     'action': [
@@ -854,16 +844,6 @@ hooks = [
       'sdk/build/fuchsia/with_envs.py',
       'sdk/third_party/fuchsia/test_scripts/update_product_bundles.py',
       'terminal.x64',
-    ],
-    'condition': 'download_fuchsia_deps'
-  },
-  {
-    'name': 'Generate Fuchsia GN build rules',
-    'pattern': '.',
-    'action': [
-      'python3',
-      'sdk/build/fuchsia/with_envs.py',
-      'sdk/third_party/fuchsia/test_scripts/gen_build_defs.py',
     ],
     'condition': 'download_fuchsia_deps'
   },

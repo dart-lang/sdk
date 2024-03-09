@@ -1,0 +1,11 @@
+# Copyright 2013 The Flutter Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+assert(is_fuchsia)
+import("//build/fuchsia/sdk.gni")
+
+fuchsia_sdk("sdk_sysroot") {
+  meta = "$fuchsia_sdk_path/meta/manifest.json"
+  enabled_parts = [ "sysroot" ]
+}

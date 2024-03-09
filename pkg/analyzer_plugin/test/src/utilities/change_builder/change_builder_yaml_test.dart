@@ -26,7 +26,7 @@ class AbstractYamlChangeBuilderTest extends AbstractChangeBuilderTest {
     return resourceProvider.convertPath('/home/my/pubspec.yaml');
   }
 
-  void createPubspec(String content) {
+  void createPubspec([String content = '']) {
     resourceProvider.newFile(testFilePath, content);
   }
 }
@@ -40,6 +40,43 @@ name: my
     await builder.addYamlFileEdit(testFilePath, (builder) {
       expect(builder, isA<YamlFileEditBuilderImpl>());
     });
+  }
+
+  Future<void> test_sourceEditDescriptions_delete() async {
+    createPubspec();
+    builder.currentChangeDescription = 'Change Desc';
+    await builder.addYamlFileEdit(testFilePath, (builder) {
+      builder.addDeletion(SourceRange(0, 1));
+    });
+
+    expect(builder.sourceChange.edits[0].edits[0].description, 'Change Desc');
+  }
+
+  Future<void> test_sourceEditDescriptions_insert() async {
+    createPubspec();
+    builder.currentChangeDescription = 'Change Desc';
+    await builder.addYamlFileEdit(testFilePath, (builder) {
+      builder.addSimpleInsertion(0, '_');
+      builder.addInsertion(0, (builder) => builder.write('_'));
+    });
+
+    expect(builder.sourceChange.edits[0].edits[0].description, 'Change Desc');
+    expect(builder.sourceChange.edits[0].edits[1].description, 'Change Desc');
+  }
+
+  Future<void> test_sourceEditDescriptions_replace() async {
+    createPubspec();
+    builder.currentChangeDescription = 'Change Desc';
+    await builder.addYamlFileEdit(testFilePath, (builder) {
+      builder.addSimpleReplacement(SourceRange(0, 1), '_');
+      builder.addReplacement(
+        SourceRange(10, 1),
+        (builder) => builder.write('_'),
+      );
+    });
+
+    expect(builder.sourceChange.edits[0].edits[0].description, 'Change Desc');
+    expect(builder.sourceChange.edits[0].edits[1].description, 'Change Desc');
   }
 }
 
