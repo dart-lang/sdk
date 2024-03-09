@@ -845,6 +845,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       if (offset <= expression.beginToken.end) {
         _forStatement(node);
       }
+    } else if (expression is IsExpression) {
+      expression.accept(this);
     } else if (expression is MethodInvocation) {
       if (offset <= expression.beginToken.end) {
         _forStatement(node);
@@ -1368,6 +1370,16 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   @override
   void visitIsExpression(IsExpression node) {
     var isOperator = node.isOperator;
+
+    if (node.expression.isSynthetic &&
+        node.type.isSynthetic &&
+        isOperator.end == offset) {
+      declarationHelper(
+        mustBeStatic: node.inStaticContext,
+      ).addLexicalDeclarations(node);
+      return;
+    }
+
     if (isOperator.coversOffset(offset)) {
       keywordHelper.addKeyword(Keyword.IS);
     } else if (offset < isOperator.offset) {
