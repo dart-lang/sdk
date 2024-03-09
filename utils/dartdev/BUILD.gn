@@ -37,14 +37,9 @@ application_snapshot("generate_dartdev_snapshot") {
   output = "$root_gen_dir/dartdev.dart.snapshot"
 }
 
-copy_trees("copy_prebuilt_devtools") {
-  sources = [
-    {
-      target = "copy_prebuilt_devtools"
-      visibility = [ ":dartdev" ]
-      source = "../../third_party/devtools/web"
-      dest = "$root_out_dir/devtools"
-      ignore_patterns = "{}"
-    },
-  ]
+copy_tree("copy_prebuilt_devtools") {
+  visibility = [ ":dartdev" ]
+  source = "../../third_party/devtools/web"
+  dest = "$root_out_dir/devtools"
+  exclude = "{}"
 }
