@@ -21,6 +21,8 @@ testLocal() {
     //
     // Hardcode some common timezones, in both their abbreviated and expanded
     // forms to account for differences between host platforms.
+    print(name);
+    print(offset);
     switch (name) {
       case "CET" || "Central European Time" || "Central European Standard Time":
         Expect.equals(1, offset.inHours);
@@ -34,6 +36,8 @@ testLocal() {
         Expect.equals(-4, offset.inHours);
       case "PDT" || "Pacific Daylight Time":
         Expect.equals(-7, offset.inHours);
+      case "PST" || "Pacific Standard Time":
+        Expect.equals(-8, offset.inHours);
       case "CST" || "Central Standard Time":
         Expect.equals(-6, offset.inHours);
       case "CDT" || "Central Daylight Time":
