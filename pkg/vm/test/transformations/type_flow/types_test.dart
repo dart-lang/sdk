@@ -27,6 +27,10 @@ class TestTypeHierarchy extends TypeHierarchy {
   }
 
   @override
+  bool hasAllocatedSubtypes(TFClass cls) =>
+      specializeTypeCone(cls) is! EmptyType;
+
+  @override
   TFClass getTFClass(Class c) =>
       classes[c] ??= TFClass(++classIdCounter, c, {}, null);
 
