@@ -147,6 +147,9 @@ class Translator with KernelNodes {
   late final w.RefType nullableObjectArrayTypeRef =
       w.RefType.def(nullableObjectArrayType, nullable: false);
 
+  late final PartialInstantiator partialInstantiator =
+      PartialInstantiator(this);
+
   /// Dart types that have specialized Wasm representations.
   late final Map<Class, w.StorageType> builtinTypes = {
     coreTypes.boolClass: w.NumType.i32,
@@ -994,29 +997,6 @@ class Translator with KernelNodes {
     return null;
   }
 
-  w.ValueType makeList(
-      w.FunctionBuilder function,
-      void Function(w.InstructionsBuilder b) generateType,
-      int length,
-      void Function(w.ValueType, int) generateItem,
-      {bool isGrowable = false}) {
-    final b = function.body;
-
-    final Class cls = isGrowable ? growableListClass : fixedLengthListClass;
-    final ClassInfo info = classInfo[cls]!;
-    functions.recordClassAllocation(info.classId);
-    final w.ArrayType arrayType = listArrayType;
-
-    b.i32_const(info.classId);
-    b.i32_const(initialIdentityHash);
-    generateType(b);
-    b.i64_const(length);
-    makeArray(function, arrayType, length, generateItem);
-    b.struct_new(info.struct);
-
-    return info.nonNullableType;
-  }
-
   w.ValueType makeArray(w.FunctionBuilder function, w.ArrayType arrayType,
       int length, void Function(w.ValueType, int) generateItem) {
     final b = function.body;
@@ -1354,5 +1334,95 @@ class NodeCounter extends VisitorDefault<void> with VisitorVoidMixin {
   void defaultNode(Node node) {
     count++;
     node.visitChildren(this);
+  }
+}
+
+/// Creates forwarders for generic functions where the caller passes a constant
+/// type argument.
+///
+/// Let's say we have
+///
+///     foo<T>(args) => ...;
+///
+/// and 3 call sites
+///
+///    foo<int>(args)
+///    foo<int>(args)
+///    foo<double>(args)
+///
+/// the callsites can instead call a forwarder
+///
+///    fooInt(args)
+///    fooInt(args)
+///    fooDouble(args)
+///
+///    fooInt(args) => foo<int>(args)
+///    fooDouble(args) => foo<double>(args)
+///
+/// This saves code size on the call site.
+class PartialInstantiator {
+  final Translator translator;
+
+  final Map<(Reference, DartType), w.BaseFunction> _oneTypeArgument = {};
+  final Map<(Reference, DartType, DartType), w.BaseFunction> _twoTypeArguments =
+      {};
+
+  PartialInstantiator(this.translator);
+
+  w.BaseFunction getOneTypeArgumentForwarder(
+      Reference target, DartType type, String name) {
+    assert(translator.types.isTypeConstant(type));
+
+    return _oneTypeArgument.putIfAbsent((target, type), () {
+      final wasmTarget = translator.functions.getFunction(target);
+
+      final function = translator.m.functions.define(
+          translator.m.types.defineFunction(
+            [...wasmTarget.type.inputs.skip(1)],
+            wasmTarget.type.outputs,
+          ),
+          name);
+      final b = function.body;
+      translator.constants.instantiateConstant(function, b,
+          TypeLiteralConstant(type), translator.types.nonNullableTypeType);
+      for (int i = 1; i < wasmTarget.type.inputs.length; ++i) {
+        b.local_get(b.locals[i - 1]);
+      }
+      b.call(wasmTarget);
+      b.return_();
+      b.end();
+
+      return function;
+    });
+  }
+
+  w.BaseFunction getTwoTypeArgumentForwarder(
+      Reference target, DartType type1, DartType type2, String name) {
+    assert(translator.types.isTypeConstant(type1));
+    assert(translator.types.isTypeConstant(type2));
+
+    return _twoTypeArguments.putIfAbsent((target, type1, type2), () {
+      final wasmTarget = translator.functions.getFunction(target);
+
+      final function = translator.m.functions.define(
+          translator.m.types.defineFunction(
+            [...wasmTarget.type.inputs.skip(2)],
+            wasmTarget.type.outputs,
+          ),
+          name);
+      final b = function.body;
+      translator.constants.instantiateConstant(function, b,
+          TypeLiteralConstant(type1), translator.types.nonNullableTypeType);
+      translator.constants.instantiateConstant(function, b,
+          TypeLiteralConstant(type2), translator.types.nonNullableTypeType);
+      for (int i = 2; i < wasmTarget.type.inputs.length; ++i) {
+        b.local_get(b.locals[i - 2]);
+      }
+      b.call(wasmTarget);
+      b.return_();
+      b.end();
+
+      return function;
+    });
   }
 }

@@ -2921,31 +2921,33 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   @override
   w.ValueType visitListLiteral(ListLiteral node, w.ValueType expectedType) {
-    return makeListFromExpressions(node.expressions, node.typeArgument,
-        isGrowable: true);
-  }
+    final useSharedCreator = types.isTypeConstant(node.typeArgument);
 
-  /// Allocate a Dart `List` with element type [typeArg], length [length] and
-  /// push the list to the stack.
-  ///
-  /// [generateItem] will be called [length] times to initialize list elements.
-  ///
-  /// Concrete type of the list will be `_GrowableList` if [isGrowable] is
-  /// true, `_List` otherwise.
-  w.ValueType makeList(DartType typeArg, int length,
-      void Function(w.ValueType, int) generateItem,
-      {bool isGrowable = false}) {
-    return translator.makeList(
-        function, (b) => types.makeType(this, typeArg), length, generateItem,
-        isGrowable: isGrowable);
-  }
+    final passType = !useSharedCreator;
+    final passArray = node.expressions.isNotEmpty;
 
-  w.ValueType makeListFromExpressions(
-          List<Expression> expressions, DartType typeArg,
-          {bool isGrowable = false}) =>
-      makeList(typeArg, expressions.length,
-          (w.ValueType elementType, int i) => wrap(expressions[i], elementType),
-          isGrowable: isGrowable);
+    final targetReference = passArray
+        ? translator.growableListFromWasmArray.reference
+        : translator.growableListEmpty.reference;
+
+    final w.BaseFunction target = useSharedCreator
+        ? translator.partialInstantiator.getOneTypeArgumentForwarder(
+            targetReference,
+            node.typeArgument,
+            'create${passArray ? '' : 'Empty'}List<${node.typeArgument}>')
+        : translator.functions.getFunction(targetReference);
+
+    if (passType) {
+      types.makeType(this, node.typeArgument);
+    }
+    if (passArray) {
+      makeArrayFromExpressions(node.expressions,
+          translator.coreTypes.objectRawType(Nullability.nullable));
+    }
+
+    b.call(target);
+    return target.type.outputs.single;
+  }
 
   w.ValueType makeArrayFromExpressions(
       List<Expression> expressions, InterfaceType elementType) {
@@ -2963,55 +2965,71 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   @override
   w.ValueType visitMapLiteral(MapLiteral node, w.ValueType expectedType) {
-    types.makeType(this, node.keyType);
-    types.makeType(this, node.valueType);
-    w.ValueType factoryReturnType =
-        call(translator.mapFactory.reference).single;
-    if (node.entries.isEmpty) {
-      return factoryReturnType;
+    final useSharedCreator = types.isTypeConstant(node.keyType) &&
+        types.isTypeConstant(node.valueType);
+
+    final passTypes = !useSharedCreator;
+    final passArray = node.entries.isNotEmpty;
+
+    final targetReference = passArray
+        ? translator.mapFromWasmArray.reference
+        : translator.mapFactory.reference;
+
+    final w.BaseFunction target = useSharedCreator
+        ? translator.partialInstantiator.getTwoTypeArgumentForwarder(
+            targetReference,
+            node.keyType,
+            node.valueType,
+            'create${passArray ? '' : 'Empty'}Map<${node.keyType}, ${node.valueType}>')
+        : translator.functions.getFunction(targetReference);
+
+    if (passTypes) {
+      types.makeType(this, node.keyType);
+      types.makeType(this, node.valueType);
     }
-    w.FunctionType mapPutType =
-        translator.functions.getFunctionType(translator.mapPut.reference);
-    w.ValueType putReceiverType = mapPutType.inputs[0];
-    w.ValueType putKeyType = mapPutType.inputs[1];
-    w.ValueType putValueType = mapPutType.inputs[2];
-    w.Local mapLocal = addLocal(putReceiverType);
-    translator.convertType(function, factoryReturnType, mapLocal.type);
-    b.local_set(mapLocal);
-    for (MapLiteralEntry entry in node.entries) {
-      b.local_get(mapLocal);
-      wrap(entry.key, putKeyType);
-      wrap(entry.value, putValueType);
-      call(translator.mapPut.reference);
-      b.drop();
+    if (passArray) {
+      makeArray(translator.nullableObjectArrayType, 2 * node.entries.length,
+          (elementType, elementIndex) {
+        final index = elementIndex ~/ 2;
+        final entry = node.entries[index];
+        if (elementIndex % 2 == 0) {
+          wrap(entry.key, elementType);
+        } else {
+          wrap(entry.value, elementType);
+        }
+      });
     }
-    b.local_get(mapLocal);
-    return mapLocal.type;
+    b.call(target);
+    return target.type.outputs.single;
   }
 
   @override
   w.ValueType visitSetLiteral(SetLiteral node, w.ValueType expectedType) {
-    types.makeType(this, node.typeArgument);
-    w.ValueType factoryReturnType =
-        call(translator.setFactory.reference).single;
-    if (node.expressions.isEmpty) {
-      return factoryReturnType;
+    final useSharedCreator = types.isTypeConstant(node.typeArgument);
+
+    final passType = !useSharedCreator;
+    final passArray = node.expressions.isNotEmpty;
+
+    final targetReference = passArray
+        ? translator.setFromWasmArray.reference
+        : translator.setFactory.reference;
+
+    final w.BaseFunction target = useSharedCreator
+        ? translator.partialInstantiator.getOneTypeArgumentForwarder(
+            targetReference,
+            node.typeArgument,
+            'create${passArray ? '' : 'Empty'}Set<${node.typeArgument}>')
+        : translator.functions.getFunction(targetReference);
+
+    if (passType) {
+      types.makeType(this, node.typeArgument);
     }
-    w.FunctionType setAddType =
-        translator.functions.getFunctionType(translator.setAdd.reference);
-    w.ValueType addReceiverType = setAddType.inputs[0];
-    w.ValueType addKeyType = setAddType.inputs[1];
-    w.Local setLocal = addLocal(addReceiverType);
-    translator.convertType(function, factoryReturnType, setLocal.type);
-    b.local_set(setLocal);
-    for (Expression element in node.expressions) {
-      b.local_get(setLocal);
-      wrap(element, addKeyType);
-      call(translator.setAdd.reference);
-      b.drop();
+    if (passArray) {
+      makeArrayFromExpressions(node.expressions,
+          translator.coreTypes.objectRawType(Nullability.nullable));
     }
-    b.local_get(setLocal);
-    return setLocal.type;
+    b.call(target);
+    return target.type.outputs.single;
   }
 
   @override

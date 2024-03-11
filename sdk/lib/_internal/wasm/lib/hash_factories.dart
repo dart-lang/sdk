@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:_internal" show patch;
+import "dart:_wasm";
 
 import "dart:typed_data" show Uint32List;
 
@@ -28,7 +29,7 @@ class LinkedHashMap<K, V> {
   }
 
   @pragma("wasm:entry-point")
-  factory LinkedHashMap._default() => _WasmDefaultMap<K, V>();
+  static _WasmDefaultMap<K, V> _default<K, V>() => _WasmDefaultMap<K, V>();
 
   @patch
   factory LinkedHashMap.identity() => _CompactLinkedIdentityHashMap<K, V>();
@@ -56,7 +57,7 @@ class LinkedHashSet<E> {
   }
 
   @pragma("wasm:entry-point")
-  factory LinkedHashSet._default() => _WasmDefaultSet<E>();
+  static _WasmDefaultSet<E> _default<E>() => _WasmDefaultSet<E>();
 
   @patch
   factory LinkedHashSet.identity() => _CompactLinkedIdentityHashSet<E>();
@@ -68,9 +69,25 @@ base class _WasmDefaultMap<K, V> extends _HashFieldBase
         MapMixin<K, V>,
         _HashBase,
         _OperatorEqualsAndHashCode,
-        _LinkedHashMapMixin<K, V>
+        _LinkedHashMapMixin<K, V>,
+        _MapCreateIndexMixin<K, V>
     implements LinkedHashMap<K, V> {
   @pragma("wasm:entry-point")
+  static _WasmDefaultMap<K, V> fromWasmArray<K, V>(WasmArray<Object?> data) {
+    final map = _WasmDefaultMap<K, V>();
+    assert(map._index == _uninitializedHashBaseIndex);
+    assert(map._hashMask == _HashBase._UNINITIALIZED_HASH_MASK);
+    assert(map._data == _uninitializedHashBaseData);
+    assert(map._usedData == 0);
+    assert(map._deletedKeys == 0);
+
+    map._data = data;
+    map._usedData = data.length;
+    map._createIndex(true);
+
+    return map;
+  }
+
   void operator []=(K key, V value);
 }
 
@@ -80,9 +97,25 @@ base class _WasmDefaultSet<E> extends _HashFieldBase
         SetMixin<E>,
         _HashBase,
         _OperatorEqualsAndHashCode,
-        _LinkedHashSetMixin<E>
+        _LinkedHashSetMixin<E>,
+        _SetCreateIndexMixin<E>
     implements LinkedHashSet<E> {
   @pragma("wasm:entry-point")
+  static _WasmDefaultSet<E> fromWasmArray<E>(WasmArray<Object?> data) {
+    final map = _WasmDefaultSet<E>();
+    assert(map._index == _uninitializedHashBaseIndex);
+    assert(map._hashMask == _HashBase._UNINITIALIZED_HASH_MASK);
+    assert(map._data == _uninitializedHashBaseData);
+    assert(map._usedData == 0);
+    assert(map._deletedKeys == 0);
+
+    map._data = data;
+    map._usedData = data.length;
+    map._createIndex(true);
+
+    return map;
+  }
+
   bool add(E key);
 
   Set<R> cast<R>() => Set.castFrom<E, R>(this, newSet: _newEmpty);
@@ -99,6 +132,7 @@ base class _WasmImmutableMap<K, V> extends _HashFieldBase
         _HashBase,
         _OperatorEqualsAndHashCode,
         _LinkedHashMapMixin<K, V>,
+        _MapCreateIndexMixin<K, V>,
         _UnmodifiableMapMixin<K, V>,
         _ImmutableLinkedHashMapMixin<K, V>
     implements LinkedHashMap<K, V> {}
@@ -110,13 +144,14 @@ base class _WasmImmutableSet<E> extends _HashFieldBase
         _HashBase,
         _OperatorEqualsAndHashCode,
         _LinkedHashSetMixin<E>,
+        _SetCreateIndexMixin<E>,
         _UnmodifiableSetMixin<E>,
         _ImmutableLinkedHashSetMixin<E>
     implements LinkedHashSet<E> {
   Set<R> cast<R>() => Set.castFrom<E, R>(this, newSet: _newEmpty);
 
-  static Set<R> _newEmpty<R>() => LinkedHashSet<R>._default();
+  static Set<R> _newEmpty<R>() => LinkedHashSet._default<R>();
 
   // Returns a mutable set.
-  Set<E> toSet() => LinkedHashSet<E>._default()..addAll(this);
+  Set<E> toSet() => LinkedHashSet._default<E>()..addAll(this);
 }

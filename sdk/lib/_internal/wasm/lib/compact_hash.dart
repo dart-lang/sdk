@@ -211,6 +211,7 @@ base class _ConstMap<K, V> extends _HashFieldBase
         _OperatorEqualsAndCanonicalHashCode,
         _LinkedHashMapMixin<K, V>,
         _UnmodifiableMapMixin<K, V>,
+        _MapCreateIndexMixin<K, V>,
         _ImmutableLinkedHashMapMixin<K, V>
     implements LinkedHashMap<K, V> {
   factory _ConstMap._uninstantiable() {
@@ -219,28 +220,16 @@ base class _ConstMap<K, V> extends _HashFieldBase
   }
 }
 
-mixin _ImmutableLinkedHashMapMixin<K, V>
-    on _LinkedHashMapMixin<K, V>, _HashFieldBase {
-  bool containsKey(Object? key) {
-    if (identical(_index, _uninitializedHashBaseIndex)) {
-      _createIndex();
-    }
-    return super.containsKey(key);
-  }
+mixin _MapCreateIndexMixin<K, V> on _LinkedHashMapMixin<K, V>, _HashFieldBase {
+  void _createIndex(bool canContainDuplicates) {
+    assert(_index == _uninitializedHashBaseIndex);
+    assert(_hashMask == _HashBase._UNINITIALIZED_HASH_MASK);
+    assert(_deletedKeys == 0);
 
-  V? operator [](Object? key) {
-    if (identical(_index, _uninitializedHashBaseIndex)) {
-      _createIndex();
-    }
-    return super[key];
-  }
-
-  void _createIndex() {
     final size =
         _roundUpToPowerOfTwo(max(_data.length, _HashBase._INITIAL_INDEX_SIZE));
     final newIndex = WasmArray<WasmI32>.filled(size, const WasmI32(0));
-    final hashMask = _HashBase._indexSizeToHashMask(size);
-    assert(_hashMask == hashMask);
+    final hashMask = _hashMask = _HashBase._indexSizeToHashMask(size);
 
     for (int j = 0; j < _usedData; j += 2) {
       final key = _data[j] as K;
@@ -249,6 +238,18 @@ mixin _ImmutableLinkedHashMapMixin<K, V>
       final hashPattern = _HashBase._hashPattern(fullHash, hashMask, size);
       final d =
           _findValueOrInsertPoint(key, fullHash, hashPattern, size, newIndex);
+
+      if (d > 0 && canContainDuplicates) {
+        // Replace the existing entry.
+        _data[d] = _data[j + 1];
+
+        // Mark this as a free slot.
+        _HashBase._setDeletedAt(_data, j);
+        _HashBase._setDeletedAt(_data, j + 1);
+        _deletedKeys++;
+        continue;
+      }
+
       // We just allocated the index, so we should not find this key in it yet.
       assert(d <= 0);
 
@@ -262,6 +263,22 @@ mixin _ImmutableLinkedHashMapMixin<K, V>
 
     // Publish new index, uses store release semantics.
     _index = newIndex;
+  }
+}
+
+mixin _ImmutableLinkedHashMapMixin<K, V> on _MapCreateIndexMixin<K, V> {
+  bool containsKey(Object? key) {
+    if (identical(_index, _uninitializedHashBaseIndex)) {
+      _createIndex(false);
+    }
+    return super.containsKey(key);
+  }
+
+  V? operator [](Object? key) {
+    if (identical(_index, _uninitializedHashBaseIndex)) {
+      _createIndex(false);
+    }
+    return super[key];
   }
 
   Iterable<K> get keys =>
@@ -842,6 +859,7 @@ base class _ConstSet<E> extends _HashFieldBase
         _OperatorEqualsAndCanonicalHashCode,
         _LinkedHashSetMixin<E>,
         _UnmodifiableSetMixin<E>,
+        _SetCreateIndexMixin<E>,
         _ImmutableLinkedHashSetMixin<E>
     implements LinkedHashSet<E> {
   factory _ConstSet._uninstantiable() {
@@ -857,61 +875,76 @@ base class _ConstSet<E> extends _HashFieldBase
   Set<E> toSet() => _Set<E>()..addAll(this);
 }
 
-mixin _ImmutableLinkedHashSetMixin<E>
+mixin _SetCreateIndexMixin<E>
     on Set<E>, _LinkedHashSetMixin<E>, _HashFieldBase {
+  void _createIndex(bool canContainDuplicates) {
+    assert(_index == _uninitializedHashBaseIndex);
+    assert(_hashMask == _HashBase._UNINITIALIZED_HASH_MASK);
+    assert(_deletedKeys == 0);
+
+    final size = _roundUpToPowerOfTwo(
+        max(_data.length * 2, _HashBase._INITIAL_INDEX_SIZE));
+    final index = WasmArray<WasmI32>.filled(size, const WasmI32(0));
+    final hashMask = _hashMask = _HashBase._indexSizeToHashMask(size);
+
+    final sizeMask = size - 1;
+    final maxEntries = size >> 1;
+
+    for (int j = 0; j < _usedData; j++) {
+      next:
+      {
+        final key = _data[j];
+
+        final fullHash = _hashCode(key);
+        final hashPattern = _HashBase._hashPattern(fullHash, hashMask, size);
+
+        int i = _HashBase._firstProbe(fullHash, sizeMask);
+        int pair = index.readUnsigned(i);
+        while (pair != _HashBase._UNUSED_PAIR) {
+          assert(pair != _HashBase._DELETED_PAIR);
+
+          final int d = hashPattern ^ pair;
+          if (d < maxEntries) {
+            // We should not already find an entry in the index.
+            if (canContainDuplicates && _equals(key, _data[d])) {
+              // Exists already, skip this entry.
+              _HashBase._setDeletedAt(_data, j);
+              _deletedKeys++;
+              break next;
+            } else {
+              assert(!_equals(key, _data[d]));
+            }
+          }
+
+          i = _HashBase._nextProbe(i, sizeMask);
+          pair = index.readUnsigned(i);
+        }
+
+        final int insertionPoint = i;
+        assert(1 <= hashPattern && hashPattern < (1 << 32));
+        assert((hashPattern & j) == 0);
+        index[insertionPoint] = WasmI32.fromInt(hashPattern | j);
+      }
+    }
+
+    // Publish new index, uses store release semantics.
+    _index = index;
+  }
+}
+
+mixin _ImmutableLinkedHashSetMixin<E> on _SetCreateIndexMixin<E> {
   E? lookup(Object? key) {
     if (identical(_index, _uninitializedHashBaseIndex)) {
-      _createIndex();
+      _createIndex(false);
     }
     return super.lookup(key);
   }
 
   bool contains(Object? key) {
     if (identical(_index, _uninitializedHashBaseIndex)) {
-      _createIndex();
+      _createIndex(false);
     }
     return super.contains(key);
-  }
-
-  void _createIndex() {
-    final size = _roundUpToPowerOfTwo(
-        max(_data.length * 2, _HashBase._INITIAL_INDEX_SIZE));
-    final index = WasmArray<WasmI32>.filled(size, const WasmI32(0));
-    final hashMask = _HashBase._indexSizeToHashMask(size);
-    assert(_hashMask == hashMask);
-
-    final sizeMask = size - 1;
-    final maxEntries = size >> 1;
-
-    for (int j = 0; j < _usedData; j++) {
-      final key = _data[j];
-
-      final fullHash = _hashCode(key);
-      final hashPattern = _HashBase._hashPattern(fullHash, hashMask, size);
-
-      int i = _HashBase._firstProbe(fullHash, sizeMask);
-      int pair = index.readUnsigned(i);
-      while (pair != _HashBase._UNUSED_PAIR) {
-        assert(pair != _HashBase._DELETED_PAIR);
-
-        final int d = hashPattern ^ pair;
-        if (d < maxEntries) {
-          // We should not already find an entry in the index.
-          assert(!_equals(key, _data[d]));
-        }
-
-        i = _HashBase._nextProbe(i, sizeMask);
-        pair = index.readUnsigned(i);
-      }
-
-      final int insertionPoint = i;
-      assert(1 <= hashPattern && hashPattern < (1 << 32));
-      assert((hashPattern & j) == 0);
-      index[insertionPoint] = WasmI32.fromInt(hashPattern | j);
-    }
-
-    // Publish new index, uses store release semantics.
-    _index = index;
   }
 
   Iterator<E> get iterator =>

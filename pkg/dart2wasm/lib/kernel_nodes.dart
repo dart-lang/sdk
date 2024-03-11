@@ -174,20 +174,16 @@ mixin KernelNodes {
   // dart:collection procedures and fields
   late final Procedure mapFactory =
       index.getProcedure("dart:collection", "LinkedHashMap", "_default");
-  late final Procedure mapPut = index
-      .getClass("dart:collection", "_WasmDefaultMap")
-      .superclass! // _LinkedHashMapMixin<K, V>
-      .procedures
-      .firstWhere((p) => p.name.text == "[]=");
+  late final Procedure mapFromWasmArray =
+      index.getProcedure("dart:collection", "_WasmDefaultMap", "fromWasmArray");
   late final Procedure setFactory =
       index.getProcedure("dart:collection", "LinkedHashSet", "_default");
-  late final Procedure setAdd = index
-      .getClass("dart:collection", "_WasmDefaultSet")
-      .superclass! // _LinkedHashSetMixin<K, V>
-      .procedures
-      .firstWhere((p) => p.name.text == "add");
-  late final Procedure growableListAdd =
-      index.getProcedure("dart:core", "_GrowableList", "add");
+  late final Procedure setFromWasmArray =
+      index.getProcedure("dart:collection", "_WasmDefaultSet", "fromWasmArray");
+  late final Procedure growableListEmpty =
+      index.getProcedure("dart:core", "_GrowableList", "empty");
+  late final Constructor growableListFromWasmArray =
+      index.getConstructor("dart:core", "_GrowableList", "_withData");
   late final Procedure hashImmutableIndexNullable = index.getProcedure(
       "dart:collection", "_HashAbstractImmutableBase", "get:_indexNullable");
   late final Field hashFieldBaseIndexField =

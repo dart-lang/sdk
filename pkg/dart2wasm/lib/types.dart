@@ -287,23 +287,23 @@ class Types {
     return typeNamesType;
   }
 
-  bool _isTypeConstant(DartType type) {
+  bool isTypeConstant(DartType type) {
     return type is DynamicType ||
         type is VoidType ||
         type is NeverType ||
         type is NullType ||
-        type is FutureOrType && _isTypeConstant(type.typeArgument) ||
+        type is FutureOrType && isTypeConstant(type.typeArgument) ||
         (type is FunctionType &&
-            type.typeParameters.every((p) => _isTypeConstant(p.bound)) &&
-            _isTypeConstant(type.returnType) &&
-            type.positionalParameters.every(_isTypeConstant) &&
-            type.namedParameters.every((n) => _isTypeConstant(n.type))) ||
-        type is InterfaceType && type.typeArguments.every(_isTypeConstant) ||
+            type.typeParameters.every((p) => isTypeConstant(p.bound)) &&
+            isTypeConstant(type.returnType) &&
+            type.positionalParameters.every(isTypeConstant) &&
+            type.namedParameters.every((n) => isTypeConstant(n.type))) ||
+        type is InterfaceType && type.typeArguments.every(isTypeConstant) ||
         (type is RecordType &&
-            type.positional.every(_isTypeConstant) &&
-            type.named.every((n) => _isTypeConstant(n.type))) ||
+            type.positional.every(isTypeConstant) &&
+            type.named.every((n) => isTypeConstant(n.type))) ||
         type is StructuralParameterType ||
-        type is ExtensionType && _isTypeConstant(type.extensionTypeErasure);
+        type is ExtensionType && isTypeConstant(type.extensionTypeErasure);
   }
 
   Class classForType(DartType type) {
@@ -359,7 +359,7 @@ class Types {
   /// Allocates a `WasmArray<_Type>` from [types] and pushes it to the
   /// stack.
   void _makeTypeArray(CodeGenerator codeGen, Iterable<DartType> types) {
-    if (types.every(_isTypeConstant)) {
+    if (types.every(isTypeConstant)) {
       translator.constants.instantiateConstant(codeGen.function, codeGen.b,
           translator.constants.makeTypeArray(types), typeArrayExpectedType);
     } else {
@@ -457,7 +457,7 @@ class Types {
     b.i64_const(type.requiredParameterCount);
 
     // WasmArray<_NamedParameter> namedParameters
-    if (type.namedParameters.every((n) => _isTypeConstant(n.type))) {
+    if (type.namedParameters.every((n) => isTypeConstant(n.type))) {
       translator.constants.instantiateConstant(
           codeGen.function,
           b,
@@ -469,7 +469,7 @@ class Types {
           namedParameterClass.constructors.single;
       List<Expression> expressions = [];
       for (NamedType n in type.namedParameters) {
-        expressions.add(_isTypeConstant(n.type)
+        expressions.add(isTypeConstant(n.type)
             ? ConstantExpression(
                 translator.constants.makeNamedParameterConstant(n),
                 namedParameterType)
@@ -495,7 +495,7 @@ class Types {
     // Always ensure type is normalized before making a type.
     type = normalize(type);
     final b = codeGen.b;
-    if (_isTypeConstant(type)) {
+    if (isTypeConstant(type)) {
       translator.constants.instantiateConstant(
           codeGen.function, b, TypeLiteralConstant(type), nonNullableTypeType);
       return nonNullableTypeType;
