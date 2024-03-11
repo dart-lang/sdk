@@ -72,6 +72,79 @@ testNormalizePath() {
   test("./", "a/..");
 }
 
+void testNormalizeResolve() {
+  var uri = Uri.parse("scheme://user:pass@example.com:1/path/?query#fragment");
+
+  var nonCanon = NonCanonicalizingUri();
+
+  nonCanon
+    ..fragment = "fr%61gment"
+    ..hasFragment = true;
+  Expect.equals(uri, uri.resolveUri(nonCanon));
+
+  nonCanon
+    ..query = "qu%65ry"
+    ..hasQuery = true;
+  Expect.equals(uri, uri.resolveUri(nonCanon));
+
+  nonCanon..path = "/p%61th/";
+  Expect.equals(uri, uri.resolveUri(nonCanon));
+  nonCanon..path = "../p%61th/";
+  Expect.equals(uri, uri.resolveUri(nonCanon));
+
+  nonCanon
+    ..hasAuthority = true
+    ..hasUserInfo = true
+    ..userInfo = "us%65r:pass"
+    ..host = "ex%41mple.com"
+    ..hasPort = true
+    ..port = 1;
+  Expect.equals(uri, uri.resolveUri(nonCanon));
+
+  nonCanon
+    ..hasScheme = true
+    ..scheme = "schEme";
+  Expect.equals(uri, uri.resolveUri(nonCanon));
+}
+
 main() {
   testNormalizePath();
+  testNormalizeResolve();
+}
+
+class NonCanonicalizingUri implements Uri {
+  String scheme = "";
+  String userInfo = "";
+  String host = "";
+  int port = 0;
+  String path = "";
+  String query = "";
+  String fragment = "";
+  bool hasScheme = false;
+  bool hasAuthority = false;
+  bool hasUserInfo = false;
+  bool hasPort = false;
+  bool hasQuery = false;
+  bool hasFragment = false;
+
+  bool get hasEmptyPath => path.isEmpty;
+  bool get hasAbsolutePath => path.startsWith("/") || isScheme("file");
+  bool isScheme(String scheme) =>
+      scheme.toLowerCase() == Uri.decodeComponent(this.scheme).toLowerCase();
+
+  Uri normalize() => this; // Na-ah!
+
+  List<String> get pathSegments => path.split("/");
+
+  String toString() => "${hasScheme ? "$scheme:" : ""}"
+      "${hasAuthority ? "//${hasUserInfo ? "$userInfo@" : ""}"
+          "$host"
+          "${hasPort ? ":$port" : ""}" : ""}"
+      "$path${hasQuery ? "?$query" : ""}${hasFragment ? "#$fragment" : ""}";
+
+  int get hashCode => toString().hashCode;
+  bool operator ==(Object other) =>
+      other is Uri && toString() == other.toString();
+
+  Object? noSuchMethod(i) => super.noSuchMethod(i);
 }
