@@ -269,6 +269,123 @@ suggestions
 ''');
   }
 
+  Future<void> test_ifCase_logicalAnd_objectPattern_type_partial() async {
+    await computeSuggestions('''
+class A01 {}
+
+void f(Object? x) {
+  if (x case true && A0^()) {}
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 2
+suggestions
+  A01
+    kind: class
+''');
+  }
+
+  Future<void> test_ifCase_logicalAnd_recordPattern() async {
+    await computeSuggestions('''
+class A01 {}
+
+void f(Object? x) {
+  if (x case true && ^()) {}
+}
+''');
+    assertResponse(r'''
+suggestions
+  A01
+    kind: class
+''');
+  }
+
+  Future<void> test_ifCase_logicalAnd_recordPattern_notImported() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A01 {}
+''');
+
+    await computeSuggestions('''
+void f(Object? x) {
+  if (x case true && ^()) {}
+}
+''');
+    assertResponse(r'''
+suggestions
+  A01
+    kind: class
+''');
+  }
+
+  Future<void> test_ifCase_objectPattern_type_partial() async {
+    await computeSuggestions('''
+class A01 {}
+
+void f(Object? x) {
+  if (x case A0^()) {}
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 2
+suggestions
+  A01
+    kind: class
+''');
+  }
+
+  Future<void> test_ifCase_objectPattern_type_partial_notImported() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A01 {}
+''');
+
+    await computeSuggestions('''
+void f(Object? x) {
+  if (x case A0^()) {}
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 2
+suggestions
+  A01
+    kind: class
+''');
+  }
+
+  Future<void> test_ifCase_recordPattern() async {
+    await computeSuggestions('''
+class A01 {}
+
+void f(Object? x) {
+  if (x case ^()) {}
+}
+''');
+    assertResponse(r'''
+suggestions
+  A01
+    kind: class
+''');
+  }
+
+  Future<void> test_ifCase_recordPattern_notImported() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A01 {}
+''');
+
+    await computeSuggestions('''
+void f(Object? x) {
+  if (x case ^()) {}
+}
+''');
+    assertResponse(r'''
+suggestions
+  A01
+    kind: class
+''');
+  }
+
   Future<void>
       test_matchingContext_pattern_first_withoutGetter_afterColon() async {
     await computeSuggestions('''
@@ -671,6 +788,25 @@ suggestions
     kind: field
   f11
     kind: field
+''');
+  }
+
+  Future<void> test_switchPatternCase_objectPattern_type_partial() async {
+    await computeSuggestions('''
+class A01 {}
+
+void f(Object? x) {
+  switch (x) {
+    case A0^():
+  }
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 2
+suggestions
+  A01
+    kind: class
 ''');
   }
 }

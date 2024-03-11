@@ -133,7 +133,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     // TODO(brianwilkerson): The cursor could be inside a non-documentation
     //  comment inside the completion node. We need to check for this case and
     //  not propose suggestions.
-    _completionNode.accept(this);
+    var completionNode = _completionNode;
+    completionNode.accept(this);
   }
 
   /// Return the helper used to suggest declarations that are in scope.
@@ -1785,6 +1786,15 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitRecordPattern(RecordPattern node) {
+    // `^()` to become object pattern.
+    if (offset == node.leftParenthesis.offset) {
+      declarationHelper(
+        mustBeType: true,
+        mustBeNonVoid: true,
+      ).addLexicalDeclarations(node);
+      return;
+    }
+
     if (node.leftParenthesis.end <= offset &&
         offset <= node.rightParenthesis.offset) {
       // TODO(brianwilkerson): Is there a reason we aren't suggesting 'void'?
@@ -2027,6 +2037,14 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     if (offset <= node.keyword.end) {
       keywordHelper.addKeyword(Keyword.CASE);
     } else if (offset <= node.colon.offset) {
+      // Object pattern `Name^()`
+      if (state.selection.coveringNode case NamedType type) {
+        if (type.parent case ObjectPattern()) {
+          type.accept(this);
+          return;
+        }
+      }
+
       var previous = node.colon.previous!;
       var previousKeyword = previous.keyword;
       if (previousKeyword == null) {
@@ -2639,6 +2657,14 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   /// Adds the suggestions that are appropriate when the selection is at the
   /// beginning of a pattern.
   void _forPattern(AstNode node, {bool mustBeConst = true}) {
+    // Object pattern `Name^()`
+    if (state.selection.coveringNode case NamedType type) {
+      if (type.parent case ObjectPattern()) {
+        type.accept(this);
+        return;
+      }
+    }
+
     // TODO(brianwilkerson): Figure out when `mustBeConst` should ever be false.
     keywordHelper.addPatternKeywords();
     declarationHelper(

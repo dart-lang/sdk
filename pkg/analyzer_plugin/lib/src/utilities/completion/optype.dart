@@ -392,6 +392,26 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitCaseClause(CaseClause node) {
+    var pattern = node.guardedPattern.pattern;
+    switch (pattern) {
+      case ObjectPattern():
+        // case Na^():
+        if (pattern.type.end == offset) {
+          optype.completionLocation = 'ObjectPattern_type';
+          optype.includeTypeNameSuggestions = true;
+          return;
+        }
+      case RecordPattern():
+        // case ^():
+        if (pattern.leftParenthesis.offset == offset) {
+          optype.completionLocation = 'ObjectPattern_type';
+          optype.includeTypeNameSuggestions = true;
+          return;
+        }
+      default:
+        break;
+    }
+
     optype.completionLocation = 'CaseClause_pattern';
     optype.includeTypeNameSuggestions = true;
     optype.includeReturnValueSuggestions = true;
@@ -1046,6 +1066,21 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitListPattern(ListPattern node) {
     optype._forPattern('ListPattern_element');
+  }
+
+  @override
+  void visitLogicalAndPattern(LogicalAndPattern node) {
+    switch (node.rightOperand) {
+      case RecordPattern pattern:
+        // case ^():
+        if (pattern.leftParenthesis.offset == offset) {
+          optype.includeTypeNameSuggestions = true;
+          optype.completionLocation = 'ObjectPattern_type';
+          return;
+        }
+      default:
+        break;
+    }
   }
 
   @override
