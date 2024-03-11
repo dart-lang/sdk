@@ -15,6 +15,148 @@ main() {
 
 @reflectiveTest
 class SimpleIdentifierResolutionTest extends PubPackageResolutionTest {
+  test_augment_topLevel_function_with_function() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+
+augment void foo() {}
+''');
+
+    await assertNoErrorsInCode('''
+import augment 'a.dart';
+
+void foo() {}
+
+void f() {
+  foo;
+}
+''');
+
+    final node = findNode.simple('foo;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: foo
+  staticElement: self::@augmentation::package:test/a.dart::@functionAugmentation::foo
+  staticType: void Function()
+''');
+  }
+
+  test_augment_topLevel_getter_with_getter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+
+augment int get foo => 1;
+''');
+
+    await assertNoErrorsInCode('''
+import augment 'a.dart';
+
+int get foo => 0;
+
+void f() {
+  foo;
+}
+''');
+
+    final node = findNode.simple('foo;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: foo
+  staticElement: self::@augmentation::package:test/a.dart::@getterAugmentation::foo
+  staticType: int
+''');
+  }
+
+  test_augment_topLevel_setter_with_setter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+
+augment set foo(int _) {}
+''');
+
+    await assertNoErrorsInCode('''
+import augment 'a.dart';
+
+set foo(int _) {}
+
+void f() {
+  foo = 0;
+}
+''');
+
+    final node = findNode.singleAssignmentExpression;
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    parameter: self::@augmentation::package:test/a.dart::@setterAugmentation::foo::@parameter::_
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@augmentation::package:test/a.dart::@setterAugmentation::foo
+  writeType: int
+  staticElement: <null>
+  staticType: int
+''');
+  }
+
+  test_augment_topLevel_variable_with_getter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+
+augment int get foo() => 1;
+''');
+
+    await assertNoErrorsInCode('''
+import augment 'a.dart';
+
+int foo = 0;
+
+void f() {
+  foo;
+}
+''');
+
+    final node = findNode.simple('foo;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: foo
+  staticElement: self::@augmentation::package:test/a.dart::@getterAugmentation::foo
+  staticType: int
+''');
+  }
+
+  test_augment_topLevel_variable_with_variable() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+
+augment int foo = 1;
+''');
+
+    await assertNoErrorsInCode('''
+import augment 'a.dart';
+
+int foo = 0;
+
+void f() {
+  foo;
+}
+''');
+
+    final node = findNode.simple('foo;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: foo
+  staticElement: self::@getter::foo
+  staticType: int
+''');
+  }
+
   test_dynamic_explicitCore() async {
     await assertNoErrorsInCode(r'''
 import 'dart:core';
