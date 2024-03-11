@@ -1183,11 +1183,14 @@ VM_TYPE_TESTING_STUB_CODE_LIST(GENERATE_BREAKPOINT_STUB)
 // Input (preserved):
 //   AllocateClosureABI::kFunctionReg: closure function.
 //   AllocateClosureABI::kContextReg: closure context.
+//   AllocateClosureABI::kInstantiatorTypeArgs: instantiator type arguments.
 // Output:
 //   AllocateClosureABI::kResultReg: new allocated Closure object.
 // Clobbered:
 //   AllocateClosureABI::kScratchReg
-void StubCodeCompiler::GenerateAllocateClosureStub() {
+void StubCodeCompiler::GenerateAllocateClosureStub(
+    bool has_instantiator_type_args,
+    bool is_generic) {
   const intptr_t instance_size =
       target::RoundedAllocationSize(target::Closure::InstanceSize());
   __ EnsureHasClassIdInDEBUG(kFunctionCid, AllocateClosureABI::kFunctionReg,
@@ -1211,15 +1214,23 @@ void StubCodeCompiler::GenerateAllocateClosureStub() {
     // Since the TryAllocateObject above did not go to the slow path, we're
     // guaranteed an object in new space here, and thus no barriers are needed.
     __ LoadObject(AllocateClosureABI::kScratchReg, NullObject());
-    __ StoreToSlotNoBarrier(AllocateClosureABI::kScratchReg,
-                            AllocateClosureABI::kResultReg,
-                            Slot::Closure_instantiator_type_arguments());
+    if (has_instantiator_type_args) {
+      __ StoreToSlotNoBarrier(AllocateClosureABI::kInstantiatorTypeArgsReg,
+                              AllocateClosureABI::kResultReg,
+                              Slot::Closure_instantiator_type_arguments());
+    } else {
+      __ StoreToSlotNoBarrier(AllocateClosureABI::kScratchReg,
+                              AllocateClosureABI::kResultReg,
+                              Slot::Closure_instantiator_type_arguments());
+    }
     __ StoreToSlotNoBarrier(AllocateClosureABI::kScratchReg,
                             AllocateClosureABI::kResultReg,
                             Slot::Closure_function_type_arguments());
-    __ StoreToSlotNoBarrier(AllocateClosureABI::kScratchReg,
-                            AllocateClosureABI::kResultReg,
-                            Slot::Closure_delayed_type_arguments());
+    if (!is_generic) {
+      __ StoreToSlotNoBarrier(AllocateClosureABI::kScratchReg,
+                              AllocateClosureABI::kResultReg,
+                              Slot::Closure_delayed_type_arguments());
+    }
     __ StoreToSlotNoBarrier(AllocateClosureABI::kFunctionReg,
                             AllocateClosureABI::kResultReg,
                             Slot::Closure_function());
@@ -1229,6 +1240,12 @@ void StubCodeCompiler::GenerateAllocateClosureStub() {
     __ StoreToSlotNoBarrier(AllocateClosureABI::kScratchReg,
                             AllocateClosureABI::kResultReg,
                             Slot::Closure_hash());
+    if (is_generic) {
+      __ LoadObject(AllocateClosureABI::kScratchReg, EmptyTypeArguments());
+      __ StoreToSlotNoBarrier(AllocateClosureABI::kScratchReg,
+                              AllocateClosureABI::kResultReg,
+                              Slot::Closure_delayed_type_arguments());
+    }
 #if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)
     if (FLAG_precompiled_mode) {
       // Set the closure entry point in precompiled mode, either to the function
@@ -1255,7 +1272,23 @@ void StubCodeCompiler::GenerateAllocateClosureStub() {
   __ PushObject(NullObject());  // Space on the stack for the return value.
   __ PushRegistersInOrder(
       {AllocateClosureABI::kFunctionReg, AllocateClosureABI::kContextReg});
-  __ CallRuntime(kAllocateClosureRuntimeEntry, 2);
+  if (has_instantiator_type_args) {
+    __ PushRegister(AllocateClosureABI::kInstantiatorTypeArgsReg);
+  } else {
+    __ PushObject(NullObject());
+  }
+  if (is_generic) {
+    __ PushObject(EmptyTypeArguments());
+  } else {
+    __ PushObject(NullObject());
+  }
+  __ CallRuntime(kAllocateClosureRuntimeEntry, 4);
+  if (has_instantiator_type_args) {
+    __ Drop(1);
+    __ PopRegister(AllocateClosureABI::kInstantiatorTypeArgsReg);
+  } else {
+    __ Drop(2);
+  }
   __ PopRegister(AllocateClosureABI::kContextReg);
   __ PopRegister(AllocateClosureABI::kFunctionReg);
   __ PopRegister(AllocateClosureABI::kResultReg);
@@ -1265,6 +1298,26 @@ void StubCodeCompiler::GenerateAllocateClosureStub() {
 
   // AllocateClosureABI::kResultReg: new object
   __ Ret();
+}
+
+void StubCodeCompiler::GenerateAllocateClosureStub() {
+  GenerateAllocateClosureStub(/*has_instantiator_type_args=*/false,
+                              /*is_generic=*/false);
+}
+
+void StubCodeCompiler::GenerateAllocateClosureGenericStub() {
+  GenerateAllocateClosureStub(/*has_instantiator_type_args=*/false,
+                              /*is_generic=*/true);
+}
+
+void StubCodeCompiler::GenerateAllocateClosureTAStub() {
+  GenerateAllocateClosureStub(/*has_instantiator_type_args=*/true,
+                              /*is_generic=*/false);
+}
+
+void StubCodeCompiler::GenerateAllocateClosureTAGenericStub() {
+  GenerateAllocateClosureStub(/*has_instantiator_type_args=*/true,
+                              /*is_generic=*/true);
 }
 
 // Generates allocation stub for _GrowableList class.

@@ -86,17 +86,6 @@ class StubCode : public AllStatic {
   static CodePtr GetAllocationStubForTypedData(classid_t class_id);
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-#if !defined(TARGET_ARCH_IA32)
-  static CodePtr GetBuildGenericMethodExtractorStub(
-      compiler::ObjectPoolBuilder* pool) {
-    return GetBuildMethodExtractorStub(pool, /*generic=*/true);
-  }
-  static CodePtr GetBuildNonGenericMethodExtractorStub(
-      compiler::ObjectPoolBuilder* pool) {
-    return GetBuildMethodExtractorStub(pool, /*generic=*/false);
-  }
-#endif
-
 #if !defined(DART_PRECOMPILED_RUNTIME)
   // Generate the stub and finalize the generated code into the stub
   // code executable area.
@@ -131,9 +120,6 @@ class StubCode : public AllStatic {
 
  private:
   friend class MegamorphicCacheTable;
-
-  static CodePtr GetBuildMethodExtractorStub(compiler::ObjectPoolBuilder* pool,
-                                             bool generic);
 
   enum {
 #define STUB_CODE_ENTRY(name) k##name##Index,

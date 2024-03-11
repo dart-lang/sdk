@@ -955,7 +955,7 @@ Definition* AllocateClosureInstr::Canonicalize(FlowGraph* flow_graph) {
 
 LocationSummary* AllocateClosureInstr::MakeLocationSummary(Zone* zone,
                                                            bool opt) const {
-  const intptr_t kNumInputs = inputs_.length();
+  const intptr_t kNumInputs = InputCount();
   const intptr_t kNumTemps = 0;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
@@ -963,14 +963,31 @@ LocationSummary* AllocateClosureInstr::MakeLocationSummary(Zone* zone,
                Location::RegisterLocation(AllocateClosureABI::kFunctionReg));
   locs->set_in(kContextPos,
                Location::RegisterLocation(AllocateClosureABI::kContextReg));
+  if (has_instantiator_type_args()) {
+    locs->set_in(kInstantiatorTypeArgsPos,
+                 Location::RegisterLocation(
+                     AllocateClosureABI::kInstantiatorTypeArgsReg));
+  }
   locs->set_out(0, Location::RegisterLocation(AllocateClosureABI::kResultReg));
   return locs;
 }
 
 void AllocateClosureInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Code& stub = Code::ZoneHandle(
-      compiler->zone(),
-      compiler->isolate_group()->object_store()->allocate_closure_stub());
+  auto object_store = compiler->isolate_group()->object_store();
+  Code& stub = Code::ZoneHandle(compiler->zone());
+  if (has_instantiator_type_args()) {
+    if (is_generic()) {
+      stub = object_store->allocate_closure_ta_generic_stub();
+    } else {
+      stub = object_store->allocate_closure_ta_stub();
+    }
+  } else {
+    if (is_generic()) {
+      stub = object_store->allocate_closure_generic_stub();
+    } else {
+      stub = object_store->allocate_closure_stub();
+    }
+  }
   compiler->GenerateStubCall(source(), stub, UntaggedPcDescriptors::kOther,
                              locs(), deopt_id(), env());
 }

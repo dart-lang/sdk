@@ -1290,15 +1290,6 @@ void ClassFinalizer::ClearAllCode(bool including_nonchanging_cids) {
 
   ClearCodeVisitor visitor(zone, including_nonchanging_cids);
   ProgramVisitor::WalkProgram(zone, isolate_group, &visitor);
-
-  // Apart from normal function code and allocation stubs we have two global
-  // code objects to clear.
-  if (including_nonchanging_cids) {
-    auto object_store = isolate_group->object_store();
-    auto& null_code = Code::Handle(zone);
-    object_store->set_build_generic_method_extractor_code(null_code);
-    object_store->set_build_nongeneric_method_extractor_code(null_code);
-  }
 }
 
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)

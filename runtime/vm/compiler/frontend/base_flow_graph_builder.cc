@@ -912,11 +912,16 @@ Fragment BaseFlowGraphBuilder::AllocateContext(
   return Fragment(allocate);
 }
 
-Fragment BaseFlowGraphBuilder::AllocateClosure(TokenPosition position) {
+Fragment BaseFlowGraphBuilder::AllocateClosure(TokenPosition position,
+                                               bool has_instantiator_type_args,
+                                               bool is_generic) {
+  Value* instantiator_type_args =
+      (has_instantiator_type_args ? Pop() : nullptr);
   auto const context = Pop();
   auto const function = Pop();
   auto* allocate = new (Z) AllocateClosureInstr(
-      InstructionSource(position), function, context, GetNextDeoptId());
+      InstructionSource(position), function, context, instantiator_type_args,
+      is_generic, GetNextDeoptId());
   Push(allocate);
   return Fragment(allocate);
 }

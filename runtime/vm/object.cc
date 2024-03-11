@@ -26346,7 +26346,7 @@ ClosurePtr Closure::New(const TypeArguments& instantiator_type_arguments,
   // We store null delayed type arguments, not empty ones, in closures with
   // non-generic functions a) to make method extraction slightly faster and
   // b) to make the Closure::IsGeneric check fast.
-  // Keep in sync with StubCodeCompiler::GenerateBuildMethodExtractorStub.
+  // Keep in sync with StubCodeCompiler::GenerateAllocateClosureStub.
   return Closure::New(instantiator_type_arguments, function_type_arguments,
                       function.IsGeneric() ? Object::empty_type_arguments()
                                            : Object::null_type_arguments(),

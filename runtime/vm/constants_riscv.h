@@ -349,8 +349,9 @@ struct AllocateObjectABI {
 // ABI for AllocateClosureStub.
 struct AllocateClosureABI {
   static constexpr Register kResultReg = AllocateObjectABI::kResultReg;
-  static constexpr Register kFunctionReg = T2;
-  static constexpr Register kContextReg = T3;
+  static constexpr Register kFunctionReg = T1;
+  static constexpr Register kContextReg = T2;
+  static constexpr Register kInstantiatorTypeArgsReg = T3;
   static constexpr Register kScratchReg = T4;
 };
 

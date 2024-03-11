@@ -657,64 +657,6 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 #endif  // !defined(HOST_ARCH_ARM64)
 }
 
-// R1: The extracted method.
-// R4: The type_arguments_field_offset (or 0)
-void StubCodeCompiler::GenerateBuildMethodExtractorStub(
-    const Code& closure_allocation_stub,
-    const Code& context_allocation_stub,
-    bool generic) {
-  const intptr_t kReceiverOffset = target::frame_layout.param_end_from_fp + 1;
-
-  __ EnterStubFrame();
-
-  // Build type_arguments vector (or null)
-  Label no_type_args;
-  __ ldr(R3, Address(THR, target::Thread::object_null_offset()), kEightBytes);
-  __ cmp(R4, Operand(0));
-  __ b(&no_type_args, EQ);
-  __ ldr(R0, Address(FP, kReceiverOffset * target::kWordSize));
-  __ LoadCompressed(R3, Address(R0, R4));
-  __ Bind(&no_type_args);
-
-  // Push type arguments.
-  __ Push(R3);
-
-  // Put function and context (receiver) in right registers for
-  // AllocateClosure stub.
-  __ MoveRegister(AllocateClosureABI::kFunctionReg, R1);
-  __ ldr(AllocateClosureABI::kContextReg,
-         Address(FP, target::kWordSize * kReceiverOffset));
-
-  // Allocate closure. After this point, we only use the registers in
-  // AllocateClosureABI.
-  __ LoadObject(CODE_REG, closure_allocation_stub);
-  __ ldr(AllocateClosureABI::kScratchReg,
-         FieldAddress(CODE_REG, target::Code::entry_point_offset()));
-  __ blr(AllocateClosureABI::kScratchReg);
-
-  // Populate closure object.
-  __ Pop(AllocateClosureABI::kScratchReg);  // Pop type arguments.
-  __ StoreCompressedIntoObjectNoBarrier(
-      AllocateClosureABI::kResultReg,
-      FieldAddress(AllocateClosureABI::kResultReg,
-                   target::Closure::instantiator_type_arguments_offset()),
-      AllocateClosureABI::kScratchReg);
-  // Keep delayed_type_arguments as null if non-generic (see Closure::New).
-  if (generic) {
-    __ LoadObject(AllocateClosureABI::kScratchReg, EmptyTypeArguments());
-    __ StoreCompressedIntoObjectNoBarrier(
-        AllocateClosureABI::kResultReg,
-        FieldAddress(AllocateClosureABI::kResultReg,
-                     target::Closure::delayed_type_arguments_offset()),
-        AllocateClosureABI::kScratchReg);
-  }
-
-  __ LeaveStubFrame();
-  // No-op if the two are the same.
-  __ MoveRegister(R0, AllocateClosureABI::kResultReg);
-  __ Ret();
-}
-
 void StubCodeCompiler::GenerateDispatchTableNullErrorStub() {
   __ EnterStubFrame();
   __ SmiTag(DispatchTableNullErrorABI::kClassIdReg);

@@ -884,6 +884,7 @@ ErrorPtr Dart::InitIsolateGroupFromSnapshot(
   return Error::null();
 }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 // The runtime assumes it can create certain kinds of objects at-will without
 // a check whether their class need to be finalized first.
 //
@@ -902,6 +903,7 @@ static void FinalizeBuiltinClasses(Thread* thread) {
     }
   }
 }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 ErrorPtr Dart::InitializeIsolateGroup(Thread* T,
                                       const uint8_t* snapshot_data,
@@ -920,40 +922,12 @@ ErrorPtr Dart::InitializeIsolateGroup(Thread* T,
   auto IG = T->isolate_group();
   DEBUG_ONLY(IG->heap()->Verify("InitializeIsolate", kForbidMarked));
 
-#if defined(DART_PRECOMPILED_RUNTIME)
-  const bool kIsAotRuntime = true;
-#else
-  const bool kIsAotRuntime = false;
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  FinalizeBuiltinClasses(T);
 #endif
-
-  auto object_store = IG->object_store();
-  if (kIsAotRuntime) {
-#if !defined(TARGET_ARCH_IA32)
-    ASSERT(object_store->build_generic_method_extractor_code() != Code::null());
-    ASSERT(object_store->build_nongeneric_method_extractor_code() !=
-           Code::null());
-#endif
-  } else {
-    FinalizeBuiltinClasses(T);
-#if !defined(TARGET_ARCH_IA32)
-    if (IG != Dart::vm_isolate_group()) {
-      if (object_store->build_generic_method_extractor_code() != nullptr ||
-          object_store->build_nongeneric_method_extractor_code() != nullptr) {
-        SafepointWriteRwLocker ml(T, IG->program_lock());
-        if (object_store->build_generic_method_extractor_code() != nullptr) {
-          object_store->set_build_generic_method_extractor_code(Code::Handle(
-              StubCode::GetBuildGenericMethodExtractorStub(nullptr)));
-        }
-        if (object_store->build_nongeneric_method_extractor_code() != nullptr) {
-          object_store->set_build_nongeneric_method_extractor_code(Code::Handle(
-              StubCode::GetBuildNonGenericMethodExtractorStub(nullptr)));
-        }
-      }
-    }
-#endif  // !defined(TARGET_ARCH_IA32)
-  }
 
   if (snapshot_data == nullptr || kernel_buffer != nullptr) {
+    auto object_store = IG->object_store();
     error ^= object_store->PreallocateObjects();
     if (!error.IsNull()) {
       return error.ptr();

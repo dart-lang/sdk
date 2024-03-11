@@ -387,7 +387,9 @@ class BaseFlowGraphBuilder {
   Fragment BooleanNegate();
   Fragment AllocateContext(const ZoneGrowableArray<const Slot*>& scope);
   // Top of the stack should be the closure function.
-  Fragment AllocateClosure(TokenPosition position = TokenPosition::kNoSource);
+  Fragment AllocateClosure(TokenPosition position,
+                           bool has_instantiator_type_args,
+                           bool is_generic);
   Fragment CreateArray();
   Fragment AllocateRecord(TokenPosition position, RecordShape shape);
   Fragment AllocateSmallRecord(TokenPosition position, RecordShape shape);
