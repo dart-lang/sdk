@@ -117,7 +117,7 @@ class DartFixPromptTest with ResourceProviderMixin {
     expect(promptManager.checksPerformed, 0);
   }
 
-  Future<void> test_check_notIOptedOut() async {
+  Future<void> test_check_notIfOptedOut() async {
     preferences.showDartFixPrompts = false;
     promptManager.triggerCheck();
     await pumpEventQueue(times: 5000);

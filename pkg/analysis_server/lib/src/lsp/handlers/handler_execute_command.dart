@@ -5,6 +5,7 @@
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/fix_all.dart';
+import 'package:analysis_server/src/lsp/handlers/commands/fix_all_in_workspace.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/log_action.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/organize_imports.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/perform_refactor.dart';
@@ -29,6 +30,9 @@ class ExecuteCommandHandler
           Commands.sortMembers: SortMembersCommandHandler(server),
           Commands.organizeImports: OrganizeImportsCommandHandler(server),
           Commands.fixAll: FixAllCommandHandler(server),
+          Commands.fixAllInWorkspace: FixAllInWorkspaceCommandHandler(server),
+          Commands.previewFixAllInWorkspace:
+              PreviewFixAllInWorkspaceCommandHandler(server),
           Commands.performRefactor: PerformRefactorCommandHandler(server),
           Commands.validateRefactor: ValidateRefactorCommandHandler(server),
           Commands.sendWorkspaceEdit: SendWorkspaceEditCommandHandler(server),
@@ -71,10 +75,12 @@ class ExecuteCommandHandler
     // must allow them to convert a `List` to a `Map`.
     final arguments = params.arguments ?? const [];
     Map<String, Object?> commandParams;
-    if (arguments case [Map<String, Object?> singleArgument]) {
-      commandParams = singleArgument;
-    } else if (handler case PositionalArgCommandHandler argHandler) {
+    if (handler case PositionalArgCommandHandler argHandler) {
       commandParams = argHandler.parseArgList(arguments);
+    } else if (arguments.isEmpty) {
+      commandParams = {};
+    } else if (arguments.length == 1 && arguments[0] is Map<String, Object?>) {
+      commandParams = arguments.single as Map<String, Object?>;
     } else {
       return ErrorOr.error(ResponseError(
         code: ServerErrorCodes.InvalidCommandArguments,

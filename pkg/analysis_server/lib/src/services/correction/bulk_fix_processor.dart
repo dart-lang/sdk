@@ -309,8 +309,21 @@ class BulkFixProcessor {
       CorrectionProducerContext context, CorrectionProducer producer) async {
     producer.configure(context);
     try {
-      var localBuilder = builder.copy();
+      var localBuilder = builder.copy() as ChangeBuilderImpl;
+
+      // Set a description of the change for this fix for the duration of
+      // computer which will be passed down to the individual changes.
+      localBuilder.currentChangeDescription = producer.fixKind?.message;
+      var fixKind = producer.fixKind;
       await producer.compute(localBuilder);
+      assert(
+        !(producer.canBeAppliedToFile || producer.canBeAppliedInBulk) ||
+            producer.fixKind == fixKind,
+        'Producers use in bulk fixes must not modify FixKind during computation. '
+        '$producer changed from $fixKind to ${producer.fixKind}.',
+      );
+      localBuilder.currentChangeDescription = null;
+
       builder = localBuilder;
     } on ConflictingEditException {
       // If a conflicting edit was added in [compute], then the [localBuilder]

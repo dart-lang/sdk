@@ -384,6 +384,17 @@ Token? _parse(String s, FeatureSet featureSet) {
   }
 }
 
+enum ChangeAnnotations {
+  /// Do not include change annotations.
+  none,
+
+  /// Include change annotations but do not require a user to confirm changes.
+  include,
+
+  /// Include change annotations and require the user to confirm changes.
+  requireConfirmation,
+}
+
 /// Helper class that bundles up all information required when converting server
 /// SourceEdits into LSP-compatible WorkspaceEdits.
 class FileEditInformation {

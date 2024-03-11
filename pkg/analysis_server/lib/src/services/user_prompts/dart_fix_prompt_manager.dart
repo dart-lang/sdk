@@ -136,6 +136,9 @@ class DartFixPromptManager {
   }) async {
     _hasPromptedThisSession = true;
 
+    // TODO(dantup): Move this prompt over to having "Preview" and "Apply"
+    //  buttons that trigger the new fixAll commands.
+
     // Note: It's possible the user never responds to this until we shut down
     //  so handle the request throwing due to server shutting down.
     final response = await userPromptSender(

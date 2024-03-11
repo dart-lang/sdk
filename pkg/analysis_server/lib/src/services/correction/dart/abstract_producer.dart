@@ -32,6 +32,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dar
 import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 
 /// An object that can compute a correction (fix or assist) in a Dart file.
@@ -106,6 +107,10 @@ abstract class CorrectionProducer<T extends ParsedUnitResult>
 
   /// Return the fix kind that should be used to build a fix, or `null` if this
   /// producer doesn't support fixes.
+  ///
+  /// If the kind of fix is dynamic, it should be computed during [configure]
+  /// and not [compute] because some callers may need to know the kind of fix
+  /// in advance of computing.
   FixKind? get fixKind => null;
 
   /// Return the arguments that should be used when composing the message for a
@@ -117,7 +122,19 @@ abstract class CorrectionProducer<T extends ParsedUnitResult>
   /// this producer doesn't support multi-fixes.
   FixKind? get multiFixKind => null;
 
+  /// Computes the changes for this producer using [builder].
+  ///
+  /// This method should not modify [fixKind]. If this producer supports
+  /// multiple kinds of fixes, the kind should be computed during [configure].
   Future<void> compute(ChangeBuilder builder);
+
+  /// Configure this producer based on the [context].
+  ///
+  /// If the fix needs to dynamically set [fixKind], it should be done here.
+  @override
+  void configure(CorrectionProducerContext<T> context) {
+    super.configure(context);
+  }
 }
 
 class CorrectionProducerContext<UnitResult extends ParsedUnitResult> {
@@ -582,6 +599,7 @@ abstract class _AbstractCorrectionProducer<T extends ParsedUnitResult> {
   CorrectionUtils get utils => _context.utils;
 
   /// Configure this producer based on the [context].
+  @mustCallSuper
   void configure(CorrectionProducerContext<T> context) {
     _context = context;
   }

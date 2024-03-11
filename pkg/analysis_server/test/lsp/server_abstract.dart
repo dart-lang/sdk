@@ -474,6 +474,19 @@ mixin ClientCapabilitiesHelperMixin {
         workspaceCapabilities, {'applyEdit': supported});
   }
 
+  void setChangeAnnotationSupport([bool supported = true]) {
+    workspaceCapabilities = extendWorkspaceCapabilities(workspaceCapabilities, {
+      'workspaceEdit': {
+        'changeAnnotationSupport': supported
+            ? <String, Object?>{
+                // This is set to an empty object to indicate support. We don't
+                // currently use any of the child properties.
+              }
+            : null
+      }
+    });
+  }
+
   void setCompletionItemDeprecatedFlagSupport() {
     textDocumentCapabilities =
         extendTextDocumentCapabilities(textDocumentCapabilities, {
