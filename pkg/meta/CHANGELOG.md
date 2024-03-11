@@ -1,3 +1,7 @@
+## 1.13.0
+
+* Add type checks for the `@ResourceIdentifier` experimental annotation.
+
 ## 1.12.0
 
 * Introduce the `@ResourceIdentifier` experimental annotation for static methods

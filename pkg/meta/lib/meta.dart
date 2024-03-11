@@ -428,12 +428,20 @@ class ResourceIdentifier {
   /// An identifier which can be used when retrieving the stored calls.
   ///
   /// This could, for example, be the name of the package which places and
-  /// retrieves the annotation.
+  /// retrieves the annotation. Allowed types are bool, int, double, and String.
   final Object? metadata;
 
   /// Initialize a newly created [ResourceIdentifier] instance
   /// to be used as an annotation with the given [metadata] identifier.
-  const ResourceIdentifier([this.metadata]);
+  const ResourceIdentifier([this.metadata])
+      : assert(
+          metadata == null ||
+              metadata is bool ||
+              metadata is int ||
+              metadata is double ||
+              metadata is String,
+          'Valid metadata types are bool, int, double, and String.',
+        );
 }
 
 /// Used to annotate a named parameter `p` in a method or function `f`.

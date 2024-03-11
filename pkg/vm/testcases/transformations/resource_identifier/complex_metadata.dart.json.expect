@@ -1,0 +1,93 @@
+{
+  "_comment": "Resources referenced by annotated resource identifiers",
+  "AppTag": "TBD",
+  "environment": {
+    "dart.tool.dart2js": false
+  },
+  "identifiers": [
+    {
+      "name": "stringMetadata",
+      "id": "leroyjenkins",
+      "uri": "pkg/vm/testcases/transformations/resource_identifier/complex_metadata.dart",
+      "nonConstant": true,
+      "files": [
+        {
+          "part": 1,
+          "references": [
+            {
+              "@": {
+                "uri": "pkg/vm/testcases/transformations/resource_identifier/complex_metadata.dart",
+                "line": 8,
+                "column": 19
+              },
+              "1": 42
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "doubleMetadata",
+      "id": "3.14",
+      "uri": "pkg/vm/testcases/transformations/resource_identifier/complex_metadata.dart",
+      "nonConstant": true,
+      "files": [
+        {
+          "part": 1,
+          "references": [
+            {
+              "@": {
+                "uri": "pkg/vm/testcases/transformations/resource_identifier/complex_metadata.dart",
+                "line": 9,
+                "column": 19
+              },
+              "1": 42
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "intMetadata",
+      "id": "42",
+      "uri": "pkg/vm/testcases/transformations/resource_identifier/complex_metadata.dart",
+      "nonConstant": true,
+      "files": [
+        {
+          "part": 1,
+          "references": [
+            {
+              "@": {
+                "uri": "pkg/vm/testcases/transformations/resource_identifier/complex_metadata.dart",
+                "line": 10,
+                "column": 19
+              },
+              "1": 42
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "boolMetadata",
+      "id": "true",
+      "uri": "pkg/vm/testcases/transformations/resource_identifier/complex_metadata.dart",
+      "nonConstant": true,
+      "files": [
+        {
+          "part": 1,
+          "references": [
+            {
+              "@": {
+                "uri": "pkg/vm/testcases/transformations/resource_identifier/complex_metadata.dart",
+                "line": 11,
+                "column": 19
+              },
+              "1": 42
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
