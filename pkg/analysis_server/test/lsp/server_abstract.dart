@@ -1054,6 +1054,7 @@ mixin LspAnalysisServerTestMixin
     bool allowEmptyRootUri = false,
     bool failTestOnAnyErrorNotification = true,
     bool includeClientRequestTime = false,
+    void Function()? immediatelyAfterInitialized,
   }) async {
     this.includeClientRequestTime = includeClientRequestTime;
 
@@ -1118,7 +1119,10 @@ mixin LspAnalysisServerTestMixin
 
       final notification =
           makeNotification(Method.initialized, InitializedParams());
-      await sendNotificationToServer(notification);
+
+      final initializedNotification = sendNotificationToServer(notification);
+      immediatelyAfterInitialized?.call();
+      await initializedNotification;
       await pumpEventQueue();
     } else if (throwOnFailure) {
       throw 'Error during initialize request: '

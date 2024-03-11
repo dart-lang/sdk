@@ -820,6 +820,28 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     expect(server.contextManager.excludedPaths, equals([excludedFolderPath]));
   }
 
+  /// Tests that requests that requires a unit result are handled correctly even
+  /// if sent immediately after the `initialized` notification and do not result
+  /// in "File not Analyzed"-style errors because roots are set asynchronously.
+  Future<void> test_immediateRequests() async {
+    newFile(mainFilePath, 'void f() {}');
+    late Future<Either2<List<DocumentSymbol>, List<SymbolInformation>>> result;
+    await provideConfig(
+      () => initialize(
+        immediatelyAfterInitialized: () {
+          result = getDocumentSymbols(mainFileUri);
+        },
+      ),
+      {},
+    );
+
+    final symbols = (await result).map(
+      (docSymbols) => docSymbols,
+      (symbolInfos) => symbolInfos,
+    );
+    expect(symbols, hasLength(1));
+  }
+
   Future<void> test_initialize() async {
     final response = await initialize();
     expect(response, isNotNull);
