@@ -617,7 +617,7 @@ DART_EXPORT void ExecuteCallback(Work* work_ptr) {
 
 Dart_Port send_port_;
 
-static void FreeFinalizer(void*, void* value) {
+DART_EXPORT void FreeFinalizer(void*, void* value) {
   free(value);
 }
 

@@ -7367,23 +7367,43 @@ class AllocateObjectInstr : public AllocationInstr {
 
 // Allocates and null initializes a closure object, given the closure function
 // and the context as values.
-class AllocateClosureInstr : public TemplateAllocation<2> {
+class AllocateClosureInstr : public TemplateAllocation<3> {
  public:
-  enum Inputs { kFunctionPos = 0, kContextPos = 1 };
+  enum Inputs {
+    kFunctionPos = 0,
+    kContextPos = 1,
+    kInstantiatorTypeArgsPos = 2,
+  };
   AllocateClosureInstr(const InstructionSource& source,
                        Value* closure_function,
                        Value* context,
+                       Value* instantiator_type_args,  // Optional.
+                       bool is_generic,
                        intptr_t deopt_id)
-      : TemplateAllocation(source, deopt_id) {
+      : TemplateAllocation(source, deopt_id),
+        has_instantiator_type_args_(instantiator_type_args != nullptr),
+        is_generic_(is_generic) {
     SetInputAt(kFunctionPos, closure_function);
     SetInputAt(kContextPos, context);
+    if (has_instantiator_type_args_) {
+      SetInputAt(kInstantiatorTypeArgsPos, instantiator_type_args);
+    }
   }
 
   DECLARE_INSTRUCTION(AllocateClosure)
   virtual CompileType ComputeType() const;
 
+  virtual intptr_t InputCount() const {
+    return has_instantiator_type_args() ? 3 : 2;
+  }
+
   Value* closure_function() const { return inputs_[kFunctionPos]; }
   Value* context() const { return inputs_[kContextPos]; }
+
+  bool has_instantiator_type_args() const {
+    return has_instantiator_type_args_;
+  }
+  bool is_generic() const { return is_generic_; }
 
   const Function& known_function() const {
     Value* const value = closure_function();
@@ -7400,6 +7420,10 @@ class AllocateClosureInstr : public TemplateAllocation<2> {
         return &Slot::Closure_function();
       case kContextPos:
         return &Slot::Closure_context();
+      case kInstantiatorTypeArgsPos:
+        return has_instantiator_type_args()
+                   ? &Slot::Closure_instantiator_type_arguments()
+                   : nullptr;
       default:
         return TemplateAllocation::SlotForInput(pos);
     }
@@ -7413,7 +7437,14 @@ class AllocateClosureInstr : public TemplateAllocation<2> {
     return IsAllocatableInNewSpace(compiler::target::Closure::InstanceSize());
   }
 
-  DECLARE_EMPTY_SERIALIZATION(AllocateClosureInstr, TemplateAllocation)
+#define FIELD_LIST(F)                                                          \
+  F(const bool, has_instantiator_type_args_)                                   \
+  F(const bool, is_generic_)
+
+  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(AllocateClosureInstr,
+                                          TemplateAllocation,
+                                          FIELD_LIST)
+#undef FIELD_LIST
 
  private:
   DISALLOW_COPY_AND_ASSIGN(AllocateClosureInstr);

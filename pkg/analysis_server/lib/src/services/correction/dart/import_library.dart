@@ -150,18 +150,17 @@ class ImportLibrary extends MultiCorrectionProducer {
   @override
   String? nameOfType(AstNode node) {
     final parent = node.parent;
-    if (node is NamedType) {
-      final importPrefix = node.importPrefix;
-      if (parent is ConstructorName && importPrefix != null) {
-        return importPrefix.name.lexeme;
-      }
-      return node.name2.lexeme;
-    } else if (node is PrefixedIdentifier) {
-      if (parent is NamedType) {
-        return node.prefix.name;
-      }
+    switch (node) {
+      case NamedType():
+        final importPrefix = node.importPrefix;
+        if (parent is ConstructorName && importPrefix != null) {
+          return importPrefix.name.lexeme;
+        }
+        return node.name2.lexeme;
+      case SimpleIdentifier():
+        return node.name;
     }
-    return super.nameOfType(node);
+    return null;
   }
 
   void _importExtensionInLibrary(

@@ -1867,11 +1867,6 @@ Fragment StreamingFlowGraphBuilder::Goto(JoinEntryInstr* destination) {
   return flow_graph_builder_->Goto(destination);
 }
 
-Fragment StreamingFlowGraphBuilder::BuildImplicitClosureCreation(
-    const Function& target) {
-  return flow_graph_builder_->BuildImplicitClosureCreation(target);
-}
-
 Fragment StreamingFlowGraphBuilder::CheckBoolean(TokenPosition position) {
   return flow_graph_builder_->CheckBoolean(position);
 }
@@ -2582,7 +2577,7 @@ Fragment StreamingFlowGraphBuilder::BuildSuperPropertyGet(TokenPosition* p) {
         ASSERT(!target.IsNull());
         // Generate inline code for allocation closure object
         // which captures `this`.
-        return BuildImplicitClosureCreation(target);
+        return B->BuildImplicitClosureCreation(position, target);
       }
       function = Resolver::ResolveDynamicFunction(Z, klass, getter_name);
       if (!function.IsNull()) break;
@@ -4431,7 +4426,11 @@ Fragment StreamingFlowGraphBuilder::BuildPartialTearoffInstantiation(
       flow_graph_builder_->LoadNativeField(Slot::Closure_function());
   instructions += LoadLocal(original_closure);
   instructions += flow_graph_builder_->LoadNativeField(Slot::Closure_context());
-  instructions += flow_graph_builder_->AllocateClosure();
+  instructions += LoadLocal(original_closure);
+  instructions += flow_graph_builder_->LoadNativeField(
+      Slot::Closure_instantiator_type_arguments());
+  instructions += flow_graph_builder_->AllocateClosure(
+      position, /*has_instantiator_type_args=*/true, /*is_generic=*/false);
   LocalVariable* new_closure = MakeTemporary();
 
   intptr_t num_type_args = ReadListLength();
@@ -4461,15 +4460,6 @@ Fragment StreamingFlowGraphBuilder::BuildPartialTearoffInstantiation(
       Slot::Closure_delayed_type_arguments(),
       StoreFieldInstr::Kind::kInitializing);
   instructions += DropTemporary(&type_args_vec);
-
-  // Copy over the instantiator type arguments.
-  instructions += LoadLocal(new_closure);
-  instructions += LoadLocal(original_closure);
-  instructions += flow_graph_builder_->LoadNativeField(
-      Slot::Closure_instantiator_type_arguments());
-  instructions += flow_graph_builder_->StoreNativeField(
-      Slot::Closure_instantiator_type_arguments(),
-      StoreFieldInstr::Kind::kInitializing);
 
   // Copy over the function type arguments.
   instructions += LoadLocal(new_closure);
@@ -6075,17 +6065,15 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
   } else {
     instructions += LoadLocal(parsed_function()->current_context_var());
   }
-  instructions += flow_graph_builder_->AllocateClosure();
-  LocalVariable* closure = MakeTemporary();
-
   // The function signature can have uninstantiated class type parameters.
-  if (!function.HasInstantiatedSignature(kCurrentClass)) {
-    instructions += LoadLocal(closure);
+  const bool has_instantiator_type_args =
+      !function.HasInstantiatedSignature(kCurrentClass);
+  if (has_instantiator_type_args) {
     instructions += LoadInstantiatorTypeArguments();
-    instructions += flow_graph_builder_->StoreNativeField(
-        Slot::Closure_instantiator_type_arguments(),
-        StoreFieldInstr::Kind::kInitializing);
   }
+  instructions += flow_graph_builder_->AllocateClosure(
+      position, has_instantiator_type_args, function.IsGeneric());
+  LocalVariable* closure = MakeTemporary();
 
   // TODO(30455): We only need to save these if the closure uses any captured
   // type parameters.
@@ -6094,16 +6082,6 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
   instructions += flow_graph_builder_->StoreNativeField(
       Slot::Closure_function_type_arguments(),
       StoreFieldInstr::Kind::kInitializing);
-
-  if (function.IsGeneric()) {
-    // Only generic functions need to have properly initialized
-    // delayed and default type arguments.
-    instructions += LoadLocal(closure);
-    instructions += Constant(Object::empty_type_arguments());
-    instructions += flow_graph_builder_->StoreNativeField(
-        Slot::Closure_delayed_type_arguments(),
-        StoreFieldInstr::Kind::kInitializing);
-  }
 
   return instructions;
 }

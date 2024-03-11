@@ -535,21 +535,6 @@ void Precompiler::DoCompileAll() {
   IG->object_store()->set_##member(stub_code);
         OBJECT_STORE_STUB_CODE_LIST(DO)
 #undef DO
-
-        {
-          SafepointWriteRwLocker ml(T, T->isolate_group()->program_lock());
-          stub_code = StubCode::GetBuildGenericMethodExtractorStub(
-              global_object_pool_builder());
-        }
-        IG->object_store()->set_build_generic_method_extractor_code(stub_code);
-
-        {
-          SafepointWriteRwLocker ml(T, T->isolate_group()->program_lock());
-          stub_code = StubCode::GetBuildNonGenericMethodExtractorStub(
-              global_object_pool_builder());
-        }
-        IG->object_store()->set_build_nongeneric_method_extractor_code(
-            stub_code);
       }
 
       CollectDynamicFunctionNames();

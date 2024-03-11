@@ -963,6 +963,24 @@ void f(Test t) {}
 ''', target: b.path);
   }
 
+  Future<void> test_withClass_simpleIdentifier_lowerCase() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+class eX {}
+''');
+    await resolveTestCode('''
+void f() {
+  eX;
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart';
+
+void f() {
+  eX;
+}
+''');
+  }
+
   Future<void> test_withExtension_pub_this() async {
     updateTestPubspecFile(r'''
 name: test

@@ -1410,28 +1410,6 @@ bool FlowGraphCompiler::TryIntrinsifyHelper() {
   compiler::Label exit;
   set_intrinsic_slow_path_label(&exit);
 
-  if (FLAG_intrinsify) {
-    const auto& function = parsed_function().function();
-    if (function.IsMethodExtractor()) {
-#if !defined(TARGET_ARCH_IA32)
-      auto& extracted_method =
-          Function::ZoneHandle(function.extracted_method_closure());
-      auto& klass = Class::Handle(extracted_method.Owner());
-      const intptr_t type_arguments_field_offset =
-          compiler::target::Class::HasTypeArgumentsField(klass)
-              ? (compiler::target::Class::TypeArgumentsFieldOffset(klass) -
-                 kHeapObjectTag)
-              : 0;
-
-      SpecialStatsBegin(CombinedCodeStatistics::kTagIntrinsics);
-      GenerateMethodExtractorIntrinsic(extracted_method,
-                                       type_arguments_field_offset);
-      SpecialStatsEnd(CombinedCodeStatistics::kTagIntrinsics);
-      return true;
-#endif  // !defined(TARGET_ARCH_IA32)
-    }
-  }
-
   EnterIntrinsicMode();
 
   SpecialStatsBegin(CombinedCodeStatistics::kTagIntrinsics);

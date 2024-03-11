@@ -642,6 +642,7 @@ class CallSites : public ValueObject {
     const Function& function = static_call->function();
     if (!inline_only_profitable_methods || function.IsRecognized() ||
         function.IsDispatcherOrImplicitAccessor() ||
+        function.IsMethodExtractor() ||
         (function.is_const() && function.IsGenerativeConstructor())) {
       // Consider static call for further inlining. Note that it will
       // still be subject to all the inlining heuristics.
@@ -2622,6 +2623,11 @@ bool FlowGraphInliner::AlwaysInline(const Function& function) {
 
   if (function.is_const()) {
     // Inlined const fields are smaller than a call.
+    return true;
+  }
+
+  if (function.IsMethodExtractor()) {
+    // Tear-off closure allocation has about the same size as the call.
     return true;
   }
 

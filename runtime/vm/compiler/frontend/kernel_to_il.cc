@@ -2155,6 +2155,7 @@ Fragment FlowGraphBuilder::BuildTypedDataFactoryConstructor(
 }
 
 Fragment FlowGraphBuilder::BuildImplicitClosureCreation(
+    TokenPosition position,
     const Function& target) {
   // The function cannot be local and have parent generic functions.
   ASSERT(!target.HasGenericParent());
@@ -2163,25 +2164,14 @@ Fragment FlowGraphBuilder::BuildImplicitClosureCreation(
   Fragment fragment;
   fragment += Constant(target);
   fragment += LoadLocal(parsed_function_->receiver_var());
-  fragment += AllocateClosure();
-  LocalVariable* closure = MakeTemporary();
-
   // The function signature can have uninstantiated class type parameters.
-  if (!target.HasInstantiatedSignature(kCurrentClass)) {
-    fragment += LoadLocal(closure);
+  const bool has_instantiator_type_args =
+      !target.HasInstantiatedSignature(kCurrentClass);
+  if (has_instantiator_type_args) {
     fragment += LoadInstantiatorTypeArguments();
-    fragment += StoreNativeField(Slot::Closure_instantiator_type_arguments(),
-                                 StoreFieldInstr::Kind::kInitializing);
   }
-
-  if (target.IsGeneric()) {
-    // Only generic functions need to have properly initialized
-    // delayed and default type arguments.
-    fragment += LoadLocal(closure);
-    fragment += Constant(Object::empty_type_arguments());
-    fragment += StoreNativeField(Slot::Closure_delayed_type_arguments(),
-                                 StoreFieldInstr::Kind::kInitializing);
-  }
+  fragment +=
+      AllocateClosure(position, has_instantiator_type_args, target.IsGeneric());
 
   return fragment;
 }
@@ -2512,7 +2502,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfMethodExtractor(
 
   Fragment body(normal_entry);
   body += CheckStackOverflowInPrologue(method.token_pos());
-  body += BuildImplicitClosureCreation(function);
+  body += BuildImplicitClosureCreation(TokenPosition::kNoSource, function);
   body += Return(TokenPosition::kNoSource);
 
   // There is no prologue code for a method extractor.
