@@ -29,7 +29,7 @@ copy("copy_dds_aot_snapshot") {
 
 application_snapshot("generate_dds_snapshot") {
   main_dart = "../../pkg/dds/bin/dds.dart"
-  training_args = []
+  training_args = [ "--help" ]
   output = "$root_gen_dir/dds.dart.snapshot"
 }
 

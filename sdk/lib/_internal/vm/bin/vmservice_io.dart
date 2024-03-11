@@ -125,25 +125,16 @@ class _DebuggingSession {
       execName = dartPath.toString();
     }
 
-    final devToolsBinaries = [
-      dartDir,
-      if (fullSdk) 'resources',
-      'devtools',
-    ].join('/');
-
-    const enableLogging = false;
     _process = await Process.start(
       execName,
       [
         snapshotName,
-        server!.serverAddress!.toString(),
-        host,
-        port,
-        disableServiceAuthCodes.toString(),
-        enableDevTools.toString(),
-        devToolsBinaries,
-        enableLogging.toString(),
-        _enableServicePortFallback.toString(),
+        '--vm-service-uri=${server!.serverAddress!}',
+        '--bind-address=$host',
+        '--bind-port=$port',
+        if (disableServiceAuthCodes) '--disable-service-auth-codes',
+        if (enableDevTools) '--serve-devtools',
+        if (_enableServicePortFallback) '--enable-service-port-fallback',
       ],
       mode: ProcessStartMode.detachedWithStdio,
     );
