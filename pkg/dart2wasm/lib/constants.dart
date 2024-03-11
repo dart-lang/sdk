@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:kernel/ast.dart';
@@ -519,8 +518,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
           _uninitializedHashBaseIndexConstant,
 
       // _hashMask
-      translator.hashFieldBaseHashMaskField.fieldReference:
-          IntConstant(_computeHashMask(constant.entries.length)),
+      translator.hashFieldBaseHashMaskField.fieldReference: IntConstant(0),
 
       // _data
       translator.hashFieldBaseDataField.fieldReference:
@@ -553,8 +551,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
           _uninitializedHashBaseIndexConstant,
 
       // _hashMask
-      translator.hashFieldBaseHashMaskField.fieldReference:
-          IntConstant(_computeHashMask(constant.entries.length)),
+      translator.hashFieldBaseHashMaskField.fieldReference: IntConstant(0),
 
       // _data
       translator.hashFieldBaseDataField.fieldReference:
@@ -574,17 +571,6 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
     });
 
     return ensureConstant(instanceConstant);
-  }
-
-  int _computeHashMask(int entries) {
-    // This computation of the hash mask follows the computations in
-    // [_ImmutableLinkedHashMapMixin._createIndex],
-    // [_ImmutableLinkedHashSetMixin._createIndex] and
-    // [_HashBase._indexSizeToHashMask].
-    const int initialIndexSize = 8;
-    final int indexSize = max(entries * 2, initialIndexSize);
-    final int hashMask = (1 << (31 - (indexSize - 1).bitLength)) - 1;
-    return hashMask;
   }
 
   @override
