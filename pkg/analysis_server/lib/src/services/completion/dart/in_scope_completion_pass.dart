@@ -138,16 +138,17 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   }
 
   /// Return the helper used to suggest declarations that are in scope.
-  DeclarationHelper declarationHelper(
-      {bool mustBeAssignable = false,
-      bool mustBeConstant = false,
-      bool mustBeExtensible = false,
-      bool mustBeImplementable = false,
-      bool mustBeMixable = false,
-      bool mustBeNonVoid = false,
-      bool mustBeStatic = false,
-      bool mustBeType = false,
-      bool preferNonInvocation = false}) {
+  DeclarationHelper declarationHelper({
+    bool mustBeAssignable = false,
+    bool mustBeConstant = false,
+    bool mustBeExtensible = false,
+    bool mustBeImplementable = false,
+    bool mustBeMixable = false,
+    bool mustBeNonVoid = false,
+    bool mustBeStatic = false,
+    bool mustBeType = false,
+    bool preferNonInvocation = false,
+  }) {
     var contextType = state.contextType;
     if (contextType is FunctionType) {
       // TODO(brianwilkerson): Consider passing the context type to the
@@ -578,8 +579,9 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         return;
       }
       var libraryElement = state.libraryElement;
-      declarationHelper(mustBeConstant: constructorElement.isConst)
-          .addPosibleRedirectionsInLibrary(constructorElement, libraryElement);
+      declarationHelper(
+        mustBeConstant: constructorElement.isConst,
+      ).addPossibleRedirectionsInLibrary(constructorElement, libraryElement);
     }
   }
 

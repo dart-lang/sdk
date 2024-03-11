@@ -51,6 +51,36 @@ suggestions
 ''');
   }
 
+  Future<void> test_factory_redirectedConstructor_noClassName_named() async {
+    await computeSuggestions('''
+class A {
+  A.n01();
+  factory A.n02() = ^
+}
+''');
+    printerConfiguration.filter = (_) => true;
+    assertResponse(r'''
+suggestions
+  A.n01
+    kind: constructor
+''');
+  }
+
+  Future<void> test_factory_redirectedConstructor_noClassName_unnamed() async {
+    await computeSuggestions('''
+class A {
+  A();
+  factory A.n01() = ^
+}
+''');
+    printerConfiguration.filter = (_) => true;
+    assertResponse(r'''
+suggestions
+  A
+    kind: constructor
+''');
+  }
+
   Future<void> test_initializers_beforeInitializer() async {
     await computeSuggestions('''
 class A {
