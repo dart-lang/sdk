@@ -441,15 +441,21 @@ final class OverrideSuggestion extends CandidateSuggestion {
   /// Whether `super` should be invoked in the body of the override.
   final bool shouldInvokeSuper;
 
-  /// The soruce range that should be replaced by the override.
+  /// If `true`, `@override` is already present, at least partially.
+  /// So, `@` is already present, and the override text does not need it.
+  final bool skipAt;
+
+  /// The source range that should be replaced by the override.
   final SourceRange replacementRange;
 
   /// Initialize a newly created candidate suggestion to suggest the [element] by
   /// inserting the [shouldInvokeSuper].
-  OverrideSuggestion(
-      {required this.element,
-      required this.shouldInvokeSuper,
-      required this.replacementRange});
+  OverrideSuggestion({
+    required this.element,
+    required this.shouldInvokeSuper,
+    required this.skipAt,
+    required this.replacementRange,
+  });
 
   @override
   // TODO(brianwilkerson): This needs to be replaced with code to compute the
@@ -693,8 +699,12 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
       case NameSuggestion():
         suggestName(suggestion.name);
       case OverrideSuggestion():
-        suggestOverride2(suggestion.element, suggestion.shouldInvokeSuper,
-            suggestion.replacementRange);
+        suggestOverride(
+          element: suggestion.element,
+          invokeSuper: suggestion.shouldInvokeSuper,
+          replacementRange: suggestion.replacementRange,
+          skipAt: suggestion.skipAt,
+        );
       case PropertyAccessSuggestion():
         var inheritanceDistance = 0.0;
         var referencingClass = suggestion.referencingClass;
