@@ -1551,17 +1551,30 @@ import 'package:^';
     await initialize();
     await openFile(mainFileUri, code.code);
     final position = code.position.position;
-    final responseFutures = [
-      getCompletion(mainFileUri, position),
-      getCompletion(mainFileUri, position),
-      getCompletion(mainFileUri, position),
-    ];
-    expect(responseFutures[0],
-        throwsA(isResponseError(ErrorCodes.RequestCancelled)));
-    expect(responseFutures[1],
-        throwsA(isResponseError(ErrorCodes.RequestCancelled)));
-    final results = await responseFutures[2];
-    expect(results, isNotEmpty);
+
+    // Use a completer to force the requests to overlap without races.
+    final completer = Completer<void>();
+    CompletionHandler.delayAfterResolveForTests = completer.future;
+    try {
+      final responseFutures = [
+        getCompletion(mainFileUri, position),
+        getCompletion(mainFileUri, position),
+        getCompletion(mainFileUri, position),
+      ];
+
+      // Ensure all requests started, then let them continue.
+      await pumpEventQueue(times: 5000);
+      completer.complete();
+
+      expect(responseFutures[0],
+          throwsA(isResponseError(ErrorCodes.RequestCancelled)));
+      expect(responseFutures[1],
+          throwsA(isResponseError(ErrorCodes.RequestCancelled)));
+      final results = await responseFutures[2];
+      expect(results, isNotEmpty);
+    } finally {
+      CompletionHandler.delayAfterResolveForTests = null;
+    }
   }
 
   Future<void> test_dartDocPreference_full() =>
