@@ -1111,6 +1111,14 @@ class LspInitializationOptions {
   final int? completionBudgetMilliseconds;
   final bool allowOpenUri;
 
+  /// A temporary flag passed by Dart-Code to enable using in-editor fixes for
+  /// the "dart fix" prompt.
+  ///
+  /// This allows enabling it once there's been wider testing of the "Fix All in
+  /// Workspace" command without requiring a new SDK release. Once enabled in
+  /// Dart-Code, this flag can also be removed here for future SDKs.
+  final bool useInEditorDartFixPrompt;
+
   factory LspInitializationOptions(Object? options) =>
       LspInitializationOptions._(
         options is Map<String, Object?> ? options : const {},
@@ -1131,7 +1139,8 @@ class LspInitializationOptions {
         flutterOutline = options['flutterOutline'] == true,
         completionBudgetMilliseconds =
             options['completionBudgetMilliseconds'] as int?,
-        allowOpenUri = options['allowOpenUri'] == true;
+        allowOpenUri = options['allowOpenUri'] == true,
+        useInEditorDartFixPrompt = options['useInEditorDartFixPrompt'] == true;
 }
 
 class LspServerContextManagerCallbacks

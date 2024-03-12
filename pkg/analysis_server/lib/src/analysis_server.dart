@@ -15,6 +15,7 @@ import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/client_configuration.dart';
 import 'package:analysis_server/src/lsp/constants.dart' as lsp;
+import 'package:analysis_server/src/lsp/handlers/handler_execute_command.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_watcher.dart';
@@ -119,6 +120,12 @@ abstract class AnalysisServer {
   /// The subset of notifications are those to which plugins may contribute.
   /// This field is `null` when the new plugin support is disabled.
   AbstractNotificationManager notificationManager;
+
+  /// A reference to the handler for executing commands.
+  ///
+  /// This allows the server to call commands itself, such as "Fix All in
+  /// Workspace" triggered from the [DartFixPromptManager].
+  ExecuteCommandHandler? executeCommandHandler;
 
   /// The object used to manage the execution of plugins.
   late PluginManager pluginManager;

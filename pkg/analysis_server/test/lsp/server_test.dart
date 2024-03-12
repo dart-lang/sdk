@@ -145,6 +145,11 @@ class ServerTest extends AbstractLspAnalysisServerTest {
     expect(hoverItems, hasLength(1));
   }
 
+  Future<void> test_executeCommandHandler() async {
+    await initialize();
+    expect(server.executeCommandHandler, isNotNull);
+  }
+
   Future<void> test_inconsistentStateError() async {
     await initialize(
       // Error is expected and checked below.

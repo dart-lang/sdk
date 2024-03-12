@@ -40,7 +40,9 @@ class ExecuteCommandHandler
           // Add commands for each of the refactorings.
           for (var entry in RefactoringProcessor.generators.entries)
             entry.key: RefactorCommandHandler(server, entry.key, entry.value),
-        };
+        } {
+    server.executeCommandHandler = this;
+  }
 
   @override
   Method get handlesMessage => Method.workspace_executeCommand;

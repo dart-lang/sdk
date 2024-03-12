@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:analysis_server/src/lsp/handlers/handler_execute_command.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_states.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:path/path.dart' as path;
@@ -92,6 +93,9 @@ String _getAnalysisServerPkgPath() {
 class _MockServer implements LspAnalysisServer {
   @override
   final initializationOptions = LspInitializationOptions(null);
+
+  @override
+  ExecuteCommandHandler? executeCommandHandler;
 
   @override
   bool get onlyAnalyzeProjectsWithOpenFiles => false;
