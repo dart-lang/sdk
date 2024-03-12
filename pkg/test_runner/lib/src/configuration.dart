@@ -60,7 +60,6 @@ class TestConfiguration {
       this.taskCount = 1,
       this.shardCount = 1,
       this.shard = 1,
-      this.stepName,
       this.testServerPort = 0,
       this.testServerCrossOriginPort = 0,
       this.testDriverErrorPort = 0,
@@ -145,7 +144,6 @@ class TestConfiguration {
   final int shardCount;
   final int shard;
   final int repeat;
-  final String? stepName;
 
   final int testServerPort;
   final int testServerCrossOriginPort;
@@ -565,12 +563,11 @@ class Progress {
   static const verbose = Progress._('verbose');
   static const silent = Progress._('silent');
   static const status = Progress._('status');
-  static const buildbot = Progress._('buildbot');
 
   static final List<String> names = _all.keys.toList();
 
   static final _all = Map<String, Progress>.fromIterable(
-      [compact, color, line, verbose, silent, status, buildbot],
+      [compact, color, line, verbose, silent, status],
       key: (progress) => (progress as Progress).name);
 
   static Progress find(String name) {

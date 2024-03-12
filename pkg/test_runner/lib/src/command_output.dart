@@ -429,9 +429,7 @@ class BrowserCommandOutput extends CommandOutput
 
     // Show the events unless the above error was sufficient.
     // TODO(rnystrom): Let users enable or disable this explicitly?
-    if (errorShown &&
-        progress != Progress.buildbot &&
-        progress != Progress.verbose) {
+    if (errorShown && progress != Progress.verbose) {
       return;
     }
 
