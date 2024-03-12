@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:_internal" show mix64, patch;
-
-import "dart:typed_data" show Uint32List;
+import "dart:_internal" show mix64, patch, unsafeCast;
+import "dart:_js_types" show JSUint8ArrayImpl;
+import "dart:js_interop";
 
 /// There are no parts of this patch library.
 
@@ -236,19 +236,53 @@ class _Random implements Random {
   }
 }
 
+@JS('crypto')
+external _JSCrypto get _jsCryptoGetter;
+
+final _JSCrypto _jsCrypto = _jsCryptoGetter;
+
+extension type _JSCrypto._(JSObject _jsCrypto) implements JSObject {}
+
+extension _JSCryptoGetRandomValues on _JSCrypto {
+  @JS('getRandomValues')
+  external void getRandomValues(JSUint8Array array);
+}
+
+@JS('Uint8Array')
+extension type _JSUint8Array(JSObject _) {
+  external factory _JSUint8Array.create(int length);
+}
+
 class _SecureRandom implements Random {
+  final JSUint8ArrayImpl _buffer = unsafeCast<JSUint8ArrayImpl>(
+      (_JSUint8Array.create(8) as JSUint8Array).toDart);
+
   _SecureRandom() {
     // Throw early in constructor if entropy source is not hooked up.
     _getBytes(1);
   }
 
-  // Return count bytes of entropy as a positive integer; count <= 8.
-  external static int _getBytes(int count);
+  // Return count bytes of entropy as an integer; count <= 8.
+  int _getBytes(int count) {
+    final JSUint8ArrayImpl bufferView =
+        JSUint8ArrayImpl.view(_buffer.buffer, 0, count);
+
+    final JSUint8Array bufferViewJS = bufferView.toJS;
+    _jsCrypto.getRandomValues(bufferViewJS);
+
+    int value = 0;
+    for (int i = 0; i < count; i += 1) {
+      value = (value << 8) | bufferView[i];
+    }
+
+    return value;
+  }
 
   int nextInt(int max) {
     RangeError.checkValueInInterval(
         max, 1, _POW2_32, "max", "Must be positive and <= 2^32");
-    final byteCount = ((max - 1).bitLength + 7) >> 3;
+    final byteCount =
+        ((max - 1).bitLength + 7) >> 3; // Divide number of bits by 8, round up.
     if (byteCount == 0) {
       return 0; // Not random if max == 1.
     }
