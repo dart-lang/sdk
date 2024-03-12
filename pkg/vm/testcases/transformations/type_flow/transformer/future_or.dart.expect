@@ -17,7 +17,9 @@ class B extends self::A {
     ;
 }
 static field dynamic usedObject;
-[@vm.inferred-type.metadata=!]late static field core::Function unknown;
+
+[@vm.inferred-type.metadata=!]
+late static field core::Function unknown;
 static method use([@vm.inferred-arg-type.metadata=!] dynamic object) → void {
   self::usedObject == null ?{dynamic} self::usedObject = object : null;
 }

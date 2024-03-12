@@ -11,7 +11,9 @@ class MyFinalizable extends core::Object implements ffi::Finalizable {
     : super core::Object::•()
     ;
 }
-[@vm.closure-id=1]static method main() → void {
+
+[@vm.closure-id=1]
+static method main() → void {
   final self::MyFinalizable finalizable = new self::MyFinalizable::•();
   {
     final self::MyFinalizable finalizable2 = new self::MyFinalizable::•();

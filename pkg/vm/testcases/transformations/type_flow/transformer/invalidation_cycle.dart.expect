@@ -18,16 +18,22 @@ abstract class Stream extends core::Object {
   synthetic constructor •() → self::Stream
     : super core::Object::•()
     ;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  abstract method foobar() → self::StreamSubscription;
+
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
+  abstract method foobar() → self::StreamSubscription;
 }
 abstract class _StreamImpl extends self::Stream {
   synthetic constructor •() → self::_StreamImpl
     : super self::Stream::•()
     ;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  method foobar() → self::StreamSubscription {
+
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
+  method foobar() → self::StreamSubscription {
     return [@vm.inferred-type.metadata=!] this.{self::_StreamImpl::_createSubscription}(){() → self::StreamSubscription};
   }
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  method _createSubscription() → self::StreamSubscription {
+
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]
+  method _createSubscription() → self::StreamSubscription {
     return new self::_BufferingStreamSubscription::•();
   }
 }
@@ -35,7 +41,9 @@ class _ControllerStream extends self::_StreamImpl {
   synthetic constructor •() → self::_ControllerStream
     : super self::_StreamImpl::•()
     ;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  method _createSubscription() → self::StreamSubscription {
+
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]
+  method _createSubscription() → self::StreamSubscription {
     return new self::_BroadcastSubscription::•();
   }
 }
@@ -45,11 +53,16 @@ class _GeneratedStreamImpl extends self::_StreamImpl {
     ;
 }
 abstract class StreamView extends self::Stream {
-[@vm.inferred-type.metadata=!] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:5]  final field self::Stream _stream;
+
+  [@vm.inferred-type.metadata=!]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:5]
+  final field self::Stream _stream;
   constructor •([@vm.inferred-arg-type.metadata=!] self::Stream stream) → self::StreamView
     : self::StreamView::_stream = stream, super self::Stream::•()
     ;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  method foobar() → self::StreamSubscription {
+
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
+  method foobar() → self::StreamSubscription {
     return [@vm.inferred-type.metadata=!] [@vm.direct-call.metadata=#lib::StreamView._stream] [@vm.inferred-type.metadata=!] this.{self::StreamView::_stream}{self::Stream}.{self::Stream::foobar}(){((dynamic) →? void, {onError: core::Function?}) → self::StreamSubscription};
   }
 }
@@ -57,16 +70,24 @@ class ByteStream extends self::StreamView {
   constructor •([@vm.inferred-arg-type.metadata=!] self::Stream stream) → self::ByteStream
     : super self::StreamView::•(stream)
     ;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:6,getterSelectorId:7]  method super_foobar1() → dynamic {
+
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:6,getterSelectorId:7]
+  method super_foobar1() → dynamic {
     super.{self::StreamView::foobar}();
   }
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:8,getterSelectorId:9]  method super_foobar2() → dynamic {
+
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:8,getterSelectorId:9]
+  method super_foobar2() → dynamic {
     super.{self::StreamView::foobar}();
   }
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:10,getterSelectorId:11]  method super_foobar3() → dynamic {
+
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:10,getterSelectorId:11]
+  method super_foobar3() → dynamic {
     super.{self::StreamView::foobar}();
   }
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:12]  get super_stream() → self::Stream
+
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:12]
+  get super_stream() → self::Stream
     return [@vm.inferred-type.metadata=!] super.{self::StreamView::_stream};
 }
 class _HandleErrorStream extends self::Stream {

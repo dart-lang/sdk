@@ -10,7 +10,9 @@ static method testStaticTypeOfConditional<T extends core::Object? = dynamic>([@v
     core::print("ok");
   }
 }
-[@vm.closure-id=1]static method main() → void {
+
+[@vm.closure-id=1]
+static method main() → void {
   self::testStaticTypeOfConditional<core::String>([@vm.closure-id=1](core::String _) → core::bool => true);
 }
 constants  {

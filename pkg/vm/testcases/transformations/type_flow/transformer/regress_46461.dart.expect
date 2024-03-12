@@ -5,15 +5,21 @@ import "dart:core" as core;
 abstract class A extends core::_Enum {
 }
 abstract class B extends core::Object {
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  abstract method foo() → void;
+
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
+  abstract method foo() → void;
 }
 class C extends core::Object implements self::B {
   synthetic constructor •() → self::C
     : super core::Object::•()
     ;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  method foo() → void {}
+
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
+  method foo() → void {}
 }
-[@vm.inferred-type.metadata=#lib::C]static field self::B obj = new self::C::•();
+
+[@vm.inferred-type.metadata=#lib::C]
+static field self::B obj = new self::C::•();
 static method main() → void {
   [@vm.direct-call.metadata=#lib::C.foo] [@vm.inferred-type.metadata=!? (skip check)] [@vm.inferred-type.metadata=#lib::C] self::obj.{self::B::foo}(){({x: self::A?}) → void};
 }

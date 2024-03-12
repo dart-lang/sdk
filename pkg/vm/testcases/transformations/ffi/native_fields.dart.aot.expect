@@ -12,14 +12,24 @@ final class Vec2d extends ffi::Struct {
   constructor #fromTypedDataBase([@vm.inferred-arg-type.metadata=dart.ffi::Pointer] synthesized core::Object #typedDataBase) → self::Vec2d
     : super ffi::Struct::_fromTypedDataBase(#typedDataBase)
     ;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1] [@vm.unboxing-info.metadata=()->d]  get x() → core::double
+
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]
+  [@vm.unboxing-info.metadata=()->d]
+  get x() → core::double
     return [@vm.inferred-type.metadata=dart.core::_Double] ffi::_loadDouble([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] this.{ffi::_Compound::_typedDataBase}{core::Object}, [@vm.inferred-type.metadata=dart.core::_Smi (value: 0)] self::Vec2d::x#offsetOf);
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:2] [@vm.unboxing-info.metadata=()->d]  get y() → core::double
+
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:2]
+  [@vm.unboxing-info.metadata=()->d]
+  get y() → core::double
     return [@vm.inferred-type.metadata=dart.core::_Double] ffi::_loadDouble([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] this.{ffi::_Compound::_typedDataBase}{core::Object}, [@vm.inferred-type.metadata=dart.core::_Smi (value: 8)] self::Vec2d::y#offsetOf);
-[@vm.unboxing-info.metadata=()->i]  @#C8
+
+  [@vm.unboxing-info.metadata=()->i]
+  @#C8
   static get x#offsetOf() → core::int
     return #C10.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
-[@vm.unboxing-info.metadata=()->i]  @#C8
+
+  [@vm.unboxing-info.metadata=()->i]
+  @#C8
   static get y#offsetOf() → core::int
     return #C12.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
 }
@@ -28,9 +38,13 @@ final class MyUnion extends ffi::Union {
   constructor #fromTypedDataBase([@vm.inferred-arg-type.metadata=dart.ffi::Pointer] synthesized core::Object #typedDataBase) → self::MyUnion
     : super ffi::Union::_fromTypedDataBase(#typedDataBase)
     ;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3]  set indirectVector([@vm.inferred-arg-type.metadata=dart.ffi::Pointer] synthesized ffi::Pointer<self::Vec2d> #externalFieldValue) → void
+
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3]
+  set indirectVector([@vm.inferred-arg-type.metadata=dart.ffi::Pointer] synthesized ffi::Pointer<self::Vec2d> #externalFieldValue) → void
     return ffi::_storePointer<self::Vec2d>([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] this.{ffi::_Compound::_typedDataBase}{core::Object}, [@vm.inferred-type.metadata=dart.core::_Smi (value: 0)] self::MyUnion::indirectVector#offsetOf, #externalFieldValue);
-[@vm.unboxing-info.metadata=()->i]  @#C8
+
+  [@vm.unboxing-info.metadata=()->i]
+  @#C8
   static get indirectVector#offsetOf() → core::int
     return #C10.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
 }
@@ -39,10 +53,14 @@ static get aString() → ffi::Pointer<ffi::Char>
   return [@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_loadPointer<ffi::Char>([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Native::_addressOf<ffi::Pointer<ffi::Char>>(#C22), #C9);
 static set aString([@vm.inferred-arg-type.metadata=dart.ffi::Pointer] synthesized ffi::Pointer<ffi::Char> #externalFieldValue) → void
   ffi::_storePointer<ffi::Char>([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Native::_addressOf<ffi::Pointer<ffi::Char>>(#C22), #C9, #externalFieldValue);
-[@vm.unboxing-info.metadata=()->i]@#C26
+
+[@vm.unboxing-info.metadata=()->i]
+@#C26
 static get anInt() → core::int
   return [@vm.inferred-type.metadata=int] ffi::_loadInt32([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Native::_addressOf<ffi::Int32>(#C25), #C9);
-[@vm.unboxing-info.metadata=(i)->b]static set anInt([@vm.inferred-arg-type.metadata=int] synthesized core::int #externalFieldValue) → void
+
+[@vm.unboxing-info.metadata=(i)->b]
+static set anInt([@vm.inferred-arg-type.metadata=int] synthesized core::int #externalFieldValue) → void
   ffi::_storeInt32([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Native::_addressOf<ffi::Int32>(#C25), #C9, #externalFieldValue);
 @#C29
 static get vector() → self::Vec2d

@@ -17,7 +17,10 @@ class A extends core::Object implements ffi::Finalizable {
   }
 }
 class B extends core::Object implements ffi::Finalizable {
-[@vm.inferred-type.metadata=#lib::A] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]  final field self::A a;
+
+  [@vm.inferred-type.metadata=#lib::A]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]
+  final field self::A a;
   constructor •([@vm.inferred-arg-type.metadata=#lib::A] self::A a) → self::B
     : self::B::a = a, super core::Object::•() {
     ;
@@ -25,9 +28,15 @@ class B extends core::Object implements ffi::Finalizable {
     _in::reachabilityFence(a);
   }
 }
-[@vm.inferred-type.metadata=dart.ffi::Pointer]static final field ffi::Pointer<ffi::NativeFunction<(ffi::Pointer<ffi::NativeType>) → ffi::Void>> free = [@vm.direct-call.metadata=dart.ffi::DynamicLibrary.lookup] [@vm.inferred-type.metadata=dart.ffi::Pointer (skip check)] [@vm.inferred-type.metadata=dart.ffi::DynamicLibrary] ffi::DynamicLibrary::process().{ffi::DynamicLibrary::lookup}<ffi::NativeFunction<(ffi::Pointer<ffi::NativeType>) → ffi::Void>>("free"){(core::String) → ffi::Pointer<ffi::NativeFunction<(ffi::Pointer<ffi::NativeType>) → ffi::Void>>};
-[@vm.inferred-type.metadata=dart.ffi::_NativeFinalizer]static final field ffi::NativeFinalizer _nativeFinalizer = new ffi::_NativeFinalizer::•([@vm.inferred-type.metadata=dart.ffi::Pointer] self::free);
-[@vm.closure-id=1]static method main() → asy::Future<void> async /* emittedValueType= void */ {
+
+[@vm.inferred-type.metadata=dart.ffi::Pointer]
+static final field ffi::Pointer<ffi::NativeFunction<(ffi::Pointer<ffi::NativeType>) → ffi::Void>> free = [@vm.direct-call.metadata=dart.ffi::DynamicLibrary.lookup] [@vm.inferred-type.metadata=dart.ffi::Pointer (skip check)] [@vm.inferred-type.metadata=dart.ffi::DynamicLibrary] ffi::DynamicLibrary::process().{ffi::DynamicLibrary::lookup}<ffi::NativeFunction<(ffi::Pointer<ffi::NativeType>) → ffi::Void>>("free"){(core::String) → ffi::Pointer<ffi::NativeFunction<(ffi::Pointer<ffi::NativeType>) → ffi::Void>>};
+
+[@vm.inferred-type.metadata=dart.ffi::_NativeFinalizer]
+static final field ffi::NativeFinalizer _nativeFinalizer = new ffi::_NativeFinalizer::•([@vm.inferred-type.metadata=dart.ffi::Pointer] self::free);
+
+[@vm.closure-id=1]
+static method main() → asy::Future<void> async /* emittedValueType= void */ {
   final self::B b = new self::B::•(new self::A::•());
   [@vm.inferred-type.metadata=dart.core::_GrowableList<dart.core::int>] final core::List<core::int> l = [@vm.inferred-type.metadata=dart.core::_GrowableList<dart.core::int>] core::_GrowableList::•<core::int>(0);
   asy::Future::doWhile([@vm.closure-id=1]() → core::bool {

@@ -15,7 +15,9 @@ import self as self;
 import "dart:core" as core;
 
 class BazClass extends core::Object /*hasConstConstructor*/  {
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  @#C3
+
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
+  @#C3
   method run() → void {
     core::print("BazClass.run");
   }

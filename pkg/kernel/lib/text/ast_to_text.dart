@@ -515,7 +515,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     writeComponentProblems(component);
     for (Library library in component.libraries) {
       if (showMetadata) {
-        inner.writeMetadata(library);
+        inner.writeMetadata(library, separateLines: true);
       }
       writeAnnotationList(library.annotations);
       writeWord('library');
@@ -617,7 +617,8 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
         writeWord("[${node.fileOffset}]");
       }
       if (showMetadata && node is TreeNode && node is! VariableDeclaration) {
-        writeMetadata(node);
+        writeMetadata(node,
+            separateLines: node is Member || node is FunctionDeclaration);
       }
 
       node.accept(this);
@@ -628,12 +629,23 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     }
   }
 
-  void writeMetadata(TreeNode node) {
+  void writeMetadata(TreeNode node, {bool separateLines = false}) {
     if (metadata != null) {
+      bool needsLeadingNewLine = separateLines;
       for (MetadataRepository<dynamic> md in metadata!.values) {
         final dynamic nodeMetadata = md.mapping[node];
         if (nodeMetadata != null) {
+          if (needsLeadingNewLine) {
+            endLine();
+            needsLeadingNewLine = false;
+          }
+          if (separateLines) {
+            writeIndentation();
+          }
           writeWord("[@${md.tag}=${nodeMetadata}]");
+          if (separateLines) {
+            endLine();
+          }
         }
       }
     }

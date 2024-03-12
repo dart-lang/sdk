@@ -7,19 +7,25 @@ abstract class T0 extends core::Object {
   synthetic constructor •() → self::T0
     : super core::Object::•()
     ;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  abstract method foo() → void;
+
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
+  abstract method foo() → void;
 }
 class T2 extends self::T0 {
   synthetic constructor •() → self::T2
     : super self::T0::•()
     ;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  method foo() → void {}
+
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
+  method foo() → void {}
 }
 class A extends core::Object {
   synthetic constructor •() → self::A
     : super core::Object::•()
     ;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  method method1(self::T0 t0) → void {
+
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]
+  method method1(self::T0 t0) → void {
     [@vm.direct-call.metadata=#lib::T2.foo] [@vm.inferred-type.metadata=!? (skip check)] t0.{self::T0::foo}(){() → void};
   }
 }
@@ -35,7 +41,9 @@ class D extends core::Object {
     : super core::Object::•()
     ;
 }
-[@vm.inferred-type.metadata=!]late static field core::Function unknown;
+
+[@vm.inferred-type.metadata=!]
+late static field core::Function unknown;
 static method func2(self::T0 t0) → void {
   [@vm.direct-call.metadata=#lib::T2.foo] [@vm.inferred-type.metadata=!? (skip check)] t0.{self::T0::foo}(){() → void};
 }
