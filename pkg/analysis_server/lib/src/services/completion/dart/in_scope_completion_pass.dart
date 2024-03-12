@@ -2444,11 +2444,12 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   void _forCollectionElement(
       TypedLiteral literal, NodeList<CollectionElement> elements) {
     var mustBeStatic = literal.inStaticContext;
+    var mustBeConst = literal.inConstantContext;
     keywordHelper.addCollectionElementKeywords(literal, elements,
-        mustBeStatic: mustBeStatic);
-    var preceedingElement = elements.elementBefore(offset);
-    declarationHelper(mustBeStatic: mustBeStatic)
-        .addLexicalDeclarations(preceedingElement ?? literal);
+        mustBeConst: mustBeConst, mustBeStatic: mustBeStatic);
+    var precedingElement = elements.elementBefore(offset);
+    declarationHelper(mustBeStatic: mustBeStatic, mustBeConstant: mustBeConst)
+        .addLexicalDeclarations(precedingElement ?? literal);
   }
 
   /// Add the suggestions that are appropriate when completing in the given

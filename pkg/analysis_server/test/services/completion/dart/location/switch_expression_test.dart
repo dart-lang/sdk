@@ -59,6 +59,8 @@ suggestions
     kind: class
   A1
     kind: constructorInvocation
+  A1.new
+    kind: constructor
   const
     kind: keyword
   false
@@ -97,7 +99,7 @@ suggestions
   A1
     kind: class
   A1.named
-    kind: constructorInvocation
+    kind: constructor
   c01
     kind: topLevelVariable
   const

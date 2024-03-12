@@ -18,6 +18,34 @@ class ConstructorTest extends AbstractCompletionDriverTest
     with ConstructorTestCases {}
 
 mixin ConstructorTestCases on AbstractCompletionDriverTest {
+  Future<void> test_constContext_constructorTearOff() async {
+    allowedIdentifiers = const {'NotAConst'};
+    newFile('$testPackageLibPath/a.dart', '''
+class A {
+  const A(List<Object> any);
+}
+
+class NotAConst {}
+''');
+    await computeSuggestions('''
+import 'a.dart';
+
+ @A([
+   N^
+ ])
+ class E {}
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  NotAConst.new
+    kind: constructor
+  null
+    kind: keyword
+''');
+  }
+
   Future<void> test_noKeyword() async {
     newFile('$testPackageLibPath/a.dart', '''
 class A0 {

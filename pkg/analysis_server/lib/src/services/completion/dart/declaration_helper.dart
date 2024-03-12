@@ -141,7 +141,9 @@ class DeclarationHelper {
       {required InterfaceType type, String? exclude}) {
     for (var constructor in type.constructors) {
       var name = constructor.name;
-      if (name.isNotEmpty && name != exclude) {
+      if (name.isNotEmpty &&
+          name != exclude &&
+          !(mustBeConstant && !constructor.isConst)) {
         _suggestConstructor(
           constructor,
           hasClassName: true,
@@ -1050,7 +1052,7 @@ class DeclarationHelper {
     required bool hasClassName,
     required bool isConstructorRedirect,
   }) {
-    if (mustBeAssignable || (mustBeConstant && !element.isConst)) {
+    if (mustBeAssignable) {
       return;
     }
 
@@ -1058,11 +1060,13 @@ class DeclarationHelper {
       return;
     }
 
+    var isTearOff = preferNonInvocation || (mustBeConstant && !element.isConst);
+
     var suggestion = ConstructorSuggestion(
       importData: importData,
       element: element,
       hasClassName: hasClassName,
-      isTearOff: preferNonInvocation,
+      isTearOff: isTearOff,
       isRedirect: isConstructorRedirect,
     );
     collector.addSuggestion(suggestion);
