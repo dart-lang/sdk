@@ -68,7 +68,7 @@ class C {
 }
 const c = const C();
 ''', [
-      lint(35, 9),
+      lint(35, 5),
     ]);
   }
 
@@ -76,7 +76,7 @@ const c = const C();
     await assertDiagnostics(r'''
 const l = const [];
 ''', [
-      lint(10, 8),
+      lint(10, 5),
     ]);
   }
 
@@ -84,7 +84,7 @@ const l = const [];
     await assertDiagnostics(r'''
 const m = const {1: 1};
 ''', [
-      lint(10, 12),
+      lint(10, 5),
     ]);
   }
 
@@ -92,7 +92,7 @@ const m = const {1: 1};
     await assertDiagnostics(r'''
 const s = const {1};
 ''', [
-      lint(10, 9),
+      lint(10, 5),
     ]);
   }
 }
@@ -118,7 +118,7 @@ class A {
   const A();
 }
 ''', [
-      lint(10, 9),
+      lint(10, 5),
     ]);
   }
 
@@ -129,7 +129,7 @@ class A {
   const A();
 }
 ''', [
-      lint(10, 13),
+      lint(10, 5),
     ]);
   }
 
@@ -140,7 +140,7 @@ class A {
   const A(Object o);
 }
 ''', [
-      lint(10, 11),
+      lint(10, 5),
     ]);
   }
 
@@ -276,7 +276,7 @@ class A {
     await assertDiagnostics(r'''
 const r = const (a: 1);
 ''', [
-      lint(10, 12),
+      lint(10, 5),
     ]);
   }
 
@@ -293,7 +293,7 @@ class A {
   const A(Object o);
 }
 ''', [
-      lint(16, 8),
+      lint(16, 5),
     ]);
   }
 
@@ -304,7 +304,7 @@ class A {
   const A(Object o);
 }
 ''', [
-      lint(16, 8),
+      lint(16, 5),
     ]);
   }
 
@@ -315,7 +315,7 @@ class A {
   const A(Object o);
 }
 ''', [
-      lint(20, 8),
+      lint(20, 5),
     ]);
   }
 

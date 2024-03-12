@@ -29,21 +29,22 @@ class RemoveThisExpression extends ResolvedCorrectionProducer {
       var thisKeyword = node.thisKeyword;
       if (thisKeyword != null) {
         await builder.addDartFileEdit(file, (builder) {
-          var fieldName = node.fieldName;
-          builder.addDeletion(range.startStart(thisKeyword, fieldName));
+          builder.addDeletion(range.startStart(thisKeyword, node.fieldName));
         });
       }
-      return;
-    } else if (node is PropertyAccess && node.target is ThisExpression) {
-      await builder.addDartFileEdit(file, (builder) {
-        builder.addDeletion(range.startEnd(node, node.operator));
-      });
-    } else if (node is MethodInvocation) {
-      var operator = node.operator;
-      if (node.target is ThisExpression && operator != null) {
+    } else {
+      var parent = node.parent;
+      if (parent is PropertyAccess && parent.target is ThisExpression) {
         await builder.addDartFileEdit(file, (builder) {
-          builder.addDeletion(range.startEnd(node, operator));
+          builder.addDeletion(range.startEnd(parent, parent.operator));
         });
+      } else if (parent is MethodInvocation) {
+        var operator = parent.operator;
+        if (parent.target is ThisExpression && operator != null) {
+          await builder.addDartFileEdit(file, (builder) {
+            builder.addDeletion(range.startEnd(parent, operator));
+          });
+        }
       }
     }
   }

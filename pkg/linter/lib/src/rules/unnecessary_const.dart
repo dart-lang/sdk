@@ -71,7 +71,7 @@ class _Visitor extends SimpleAstVisitor {
     if (node.keyword?.type != Keyword.CONST) return;
 
     if (node.inConstantContext) {
-      rule.reportLint(node);
+      rule.reportLintForToken(node.keyword);
     }
   }
 
@@ -86,7 +86,7 @@ class _Visitor extends SimpleAstVisitor {
     if (node.constKeyword == null) return;
 
     if (node.inConstantContext) {
-      rule.reportLint(node);
+      rule.reportLintForToken(node.constKeyword);
     }
   }
 
@@ -100,7 +100,7 @@ class _Visitor extends SimpleAstVisitor {
     if (node.constKeyword?.type != Keyword.CONST) return;
 
     if (node.inConstantContext) {
-      rule.reportLint(node);
+      rule.reportLintForToken(node.constKeyword);
     }
   }
 }
