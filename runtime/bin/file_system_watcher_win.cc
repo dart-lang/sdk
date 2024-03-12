@@ -36,9 +36,9 @@ intptr_t FileSystemWatcher::WatchPath(intptr_t id,
                                       int events,
                                       bool recursive) {
   USE(id);
-  Utf8ToWideScope name(path);
+  const auto name = Utf8ToWideChar(path);
   HANDLE dir =
-      CreateFileW(name.wide(), FILE_LIST_DIRECTORY,
+      CreateFileW(name.get(), FILE_LIST_DIRECTORY,
                   FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
                   nullptr, OPEN_EXISTING,
                   FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED, nullptr);

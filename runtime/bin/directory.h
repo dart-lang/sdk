@@ -242,6 +242,11 @@ class Directory {
   enum ExistsResult { UNKNOWN, EXISTS, DOES_NOT_EXIST };
 
   static void List(DirectoryListing* listing);
+
+#if defined(DART_HOST_OS_WINDOWS)
+  static ExistsResult Exists(const wchar_t* path);
+#endif
+
   static ExistsResult Exists(Namespace* namespc, const char* path);
 
   // Returns the current working directory. The caller must call
