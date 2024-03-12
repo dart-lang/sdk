@@ -231,6 +231,7 @@ class DartCompletionManager {
         skipImports: skipImports,
         suggestOverrides: suggestOverrides);
     pass.computeSuggestions();
+    request.collectorLocationName = collector.completionLocation;
     builder.suggestFromCandidates(collector.suggestions);
   }
 }
@@ -285,6 +286,9 @@ class DartCompletionRequest {
 
   /// The compilation unit in which completion is being requested.
   final CompilationUnit unit;
+
+  /// The location name from [SuggestionCollector].
+  String? collectorLocationName;
 
   bool _aborted = false;
 

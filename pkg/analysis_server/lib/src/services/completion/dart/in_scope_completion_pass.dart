@@ -199,6 +199,25 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   @override
   void visitAnnotation(Annotation node) {
     _forAnnotation(node);
+
+    // Look for `@override` with an empty line before the next token.
+    // So, it is not an annotation for a method, but override request.
+    if (node.constructorName == null) {
+      if (node.name case SimpleIdentifier name) {
+        var classNode = node.parent.parent;
+        if (classNode is Declaration) {
+          var lineInfo = state.request.unit.lineInfo;
+          var nameLocation = lineInfo.getLocation(name.offset);
+          var nextToken = name.token.next;
+          if (nextToken != null) {
+            var nextLocation = lineInfo.getLocation(nextToken.offset);
+            if (nextLocation.lineNumber > nameLocation.lineNumber + 1) {
+              _tryOverrideAnnotation(name.token, classNode);
+            }
+          }
+        }
+      }
+    }
   }
 
   @override
@@ -489,18 +508,14 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       keywordHelper.addClassDeclarationKeywords(node);
     } else if (offset >= node.leftBracket.end &&
         offset <= node.rightBracket.offset) {
-      var members = node.members;
-      // TODO(brianwilkerson): Generalize this to check for unattatched
-      //  annotations in other places.
-      var preceedingMember = members.elementBefore(offset);
-      var token = preceedingMember?.beginToken ?? node.leftBracket.next!;
-      if (token.type == TokenType.AT) {
-        // The user is completing at the beginning of an annotation.
-        // TODO(brianwilkerson): We need to check the next token to see whether
-        //  part of the annotation is already there.
-        _forAnnotation(node);
+      if (_tryAnnotationAtEndOfClassBody(node)) {
         return;
-      } else if (token.keyword == Keyword.FINAL) {
+      }
+
+      var members = node.members;
+      var precedingMember = members.elementBefore(offset);
+      var token = precedingMember?.beginToken ?? node.leftBracket.next!;
+      if (token.keyword == Keyword.FINAL) {
         // The user is completing after the keyword `final`, so they're likely
         // trying to declare a field.
         _forTypeAnnotation(node);
@@ -515,8 +530,6 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
           keywordHelper.addFunctionBodyModifiers(body);
         }
       }
-      // TODO(brianwilkerson): Consider enabling the generation of overrides in
-      //  this location.
     } else {
       // The cursor is immediately to the right of the right bracket, so the
       // user is starting a new top-level declaration.
@@ -1535,6 +1548,10 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       return;
     }
     if (offset >= node.leftBracket.end && offset <= node.rightBracket.offset) {
+      if (_tryAnnotationAtEndOfClassBody(node)) {
+        return;
+      }
+
       collector.completionLocation = 'MixinDeclaration_member';
       _forMixinMember(node);
       var element = node.members.elementBefore(offset);
@@ -1790,6 +1807,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   void visitRecordPattern(RecordPattern node) {
     // `^()` to become object pattern.
     if (offset == node.leftParenthesis.offset) {
+      collector.completionLocation = 'ObjectPattern_type';
       declarationHelper(
         mustBeType: true,
         mustBeNonVoid: true,
@@ -2042,6 +2060,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       // Object pattern `Name^()`
       if (state.selection.coveringNode case NamedType type) {
         if (type.parent case ObjectPattern()) {
+          collector.completionLocation = 'ObjectPattern_type';
           type.accept(this);
           return;
         }
@@ -2274,11 +2293,13 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
           keywordHelper.addKeyword(Keyword.SET);
         }
         if (grandparent.isSingleIdentifier) {
-          _suggestOverridesFor(switch (container) {
-            ClassDeclaration() => container.declaredElement,
-            MixinDeclaration() => container.declaredElement,
-            _ => null,
-          });
+          _suggestOverridesFor(
+            element: switch (container) {
+              ClassDeclaration() => container.declaredElement,
+              MixinDeclaration() => container.declaredElement,
+              _ => null,
+            },
+          );
         }
       } else if (grandparent is TopLevelVariableDeclaration) {
         if (grandparent.externalKeyword == null) {
@@ -2411,7 +2432,9 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   void _forClassMember(ClassDeclaration node) {
     keywordHelper.addClassMemberKeywords();
     declarationHelper(mustBeType: true).addLexicalDeclarations(node);
-    _suggestOverridesFor(node.declaredElement);
+    _suggestOverridesFor(
+      element: node.declaredElement,
+    );
   }
 
   /// Add the suggestions that are appropriate when the selection is at the
@@ -2637,7 +2660,9 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   void _forMixinMember(MixinDeclaration node) {
     keywordHelper.addMixinMemberKeywords();
     declarationHelper(mustBeType: true).addLexicalDeclarations(node);
-    _suggestOverridesFor(node.declaredElement);
+    _suggestOverridesFor(
+      element: node.declaredElement,
+    );
   }
 
   /// Adds the suggestions that are appropriate when the selection is in the
@@ -2662,6 +2687,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     // Object pattern `Name^()`
     if (state.selection.coveringNode case NamedType type) {
       if (type.parent case ObjectPattern()) {
+        collector.completionLocation = 'ObjectPattern_type';
         type.accept(this);
         return;
       }
@@ -2868,11 +2894,49 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   }
 
   /// If allowed, suggest overrides in the context of the given [element].
-  void _suggestOverridesFor(InterfaceElement? element) {
+  void _suggestOverridesFor({
+    required InterfaceElement? element,
+    bool skipAt = false,
+  }) {
     // TODO(brianwilkerson): Check whether there's sufficient remaining time
     //  before computing suggestions for overrides.
     if (suggestOverrides && element != null) {
-      overrideHelper.computeOverridesFor(element, SourceRange(offset, 0));
+      overrideHelper.computeOverridesFor(
+        interfaceElement: element,
+        replacementRange: SourceRange(offset, 0),
+        skipAt: skipAt,
+      );
+    }
+  }
+
+  /// Check for typing `@override` inside a class body, before `}`.
+  /// There is no node, recover using tokens.
+  bool _tryAnnotationAtEndOfClassBody(Declaration node) {
+    var displaced = state.request.target.entity;
+    if (displaced is Token && displaced.type == TokenType.CLOSE_CURLY_BRACKET) {
+      var identifier = displaced.previous;
+      if (identifier != null && identifier.type == TokenType.IDENTIFIER) {
+        if (identifier.previous?.type == TokenType.AT) {
+          _forAnnotation(node);
+          _tryOverrideAnnotation(identifier, node);
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /// If [identifier] at `@` is a start of `@override`, suggest overrides.
+  void _tryOverrideAnnotation(Token identifier, Declaration node) {
+    var lexeme = identifier.lexeme;
+    if (lexeme.isNotEmpty && 'override'.startsWith(lexeme)) {
+      var declaredElement = node.declaredElement;
+      if (declaredElement is InterfaceElement) {
+        _suggestOverridesFor(
+          element: declaredElement,
+          skipAt: true,
+        );
+      }
     }
   }
 

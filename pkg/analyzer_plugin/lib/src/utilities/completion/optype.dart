@@ -1071,6 +1071,13 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitLogicalAndPattern(LogicalAndPattern node) {
     switch (node.rightOperand) {
+      case ObjectPattern pattern:
+        // case Na^():
+        if (pattern.type.end == offset) {
+          optype.completionLocation = 'ObjectPattern_type';
+          optype.includeTypeNameSuggestions = true;
+          return;
+        }
       case RecordPattern pattern:
         // case ^():
         if (pattern.leftParenthesis.offset == offset) {
@@ -1646,6 +1653,11 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
         }
       } else if (pattern is ConstantPattern) {
         optype.includeTypeNameSuggestions = true;
+      } else if (pattern is ObjectPattern) {
+        if (pattern.type.end == offset) {
+          optype.completionLocation = 'ObjectPattern_type';
+          optype.includeTypeNameSuggestions = true;
+        }
       }
     } else if (node.statements.contains(entity)) {
       optype.completionLocation = 'SwitchMember_statement';

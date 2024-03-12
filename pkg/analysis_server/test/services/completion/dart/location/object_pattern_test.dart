@@ -15,6 +15,12 @@ void main() {
 @reflectiveTest
 class ObjectPatternTest extends AbstractCompletionDriverTest
     with ObjectPatternTestCases {
+  @override
+  Future<void> setUp() async {
+    await super.setUp();
+    printerConfiguration.withLocationName = true;
+  }
+
   @FailingTest(reason: 'Suggest invalid static field / getter')
   @override
   Future<void> test_pattern_first() {
@@ -57,6 +63,8 @@ class A1 extends A0 {
 }
 ''');
     assertResponse(r'''
+location: PatternField_pattern
+locationOpType: PatternField_pattern
 suggestions
   f01
     kind: field
@@ -101,6 +109,8 @@ class A1 extends A0 {
 }
 ''');
     assertResponse(r'''
+location: PatternField_pattern
+locationOpType: PatternField_pattern
 replacement
   left: 1
 suggestions
@@ -139,6 +149,8 @@ class A1 extends A0 {
 }
 ''');
     assertResponse(r'''
+location: PatternField_pattern
+locationOpType: PatternField_pattern
 suggestions
   f01
     kind: field
@@ -183,6 +195,8 @@ class A1 extends A0 {
 }
 ''');
     assertResponse(r'''
+location: PatternField_pattern
+locationOpType: PatternField_pattern
 replacement
   left: 1
 suggestions
@@ -220,6 +234,7 @@ class A1 extends A0 {
 }
 ''');
     assertResponse(r'''
+locationOpType: ObjectPattern_fieldName
 suggestions
   f01
     kind: field
@@ -259,6 +274,7 @@ class A1 extends A0 {
 }
 ''');
     assertResponse(r'''
+locationOpType: ObjectPattern_fieldName
 replacement
   left: 1
 suggestions
@@ -278,6 +294,30 @@ void f(Object? x) {
 }
 ''');
     assertResponse(r'''
+location: ObjectPattern_type
+locationOpType: ObjectPattern_type
+replacement
+  left: 2
+suggestions
+  A01
+    kind: class
+''');
+  }
+
+  Future<void>
+      test_ifCase_logicalAnd_objectPattern_type_partial_notImported() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A01 {}
+''');
+
+    await computeSuggestions('''
+void f(Object? x) {
+  if (x case true && A0^()) {}
+}
+''');
+    assertResponse(r'''
+location: ObjectPattern_type
+locationOpType: ObjectPattern_type
 replacement
   left: 2
 suggestions
@@ -295,6 +335,8 @@ void f(Object? x) {
 }
 ''');
     assertResponse(r'''
+location: ObjectPattern_type
+locationOpType: ObjectPattern_type
 suggestions
   A01
     kind: class
@@ -312,6 +354,8 @@ void f(Object? x) {
 }
 ''');
     assertResponse(r'''
+location: ObjectPattern_type
+locationOpType: ObjectPattern_type
 suggestions
   A01
     kind: class
@@ -327,6 +371,8 @@ void f(Object? x) {
 }
 ''');
     assertResponse(r'''
+location: ObjectPattern_type
+locationOpType: ObjectPattern_type
 replacement
   left: 2
 suggestions
@@ -346,6 +392,8 @@ void f(Object? x) {
 }
 ''');
     assertResponse(r'''
+location: ObjectPattern_type
+locationOpType: ObjectPattern_type
 replacement
   left: 2
 suggestions
@@ -363,6 +411,8 @@ void f(Object? x) {
 }
 ''');
     assertResponse(r'''
+location: ObjectPattern_type
+locationOpType: ObjectPattern_type
 suggestions
   A01
     kind: class
@@ -380,6 +430,8 @@ void f(Object? x) {
 }
 ''');
     assertResponse(r'''
+location: ObjectPattern_type
+locationOpType: ObjectPattern_type
 suggestions
   A01
     kind: class
@@ -400,6 +452,8 @@ class A1 {
 }
 ''');
     assertResponse(r'''
+location: PatternField_pattern
+locationOpType: PatternField_pattern
 suggestions
   f01
     kind: field
@@ -442,6 +496,7 @@ class A1 extends A0 {
 }
 ''');
     assertResponse(r'''
+locationOpType: PatternField_pattern
 suggestions
   f01
     kind: field
@@ -593,6 +648,7 @@ class A1 extends A0 {
 }
 ''');
     assertResponse(r'''
+locationOpType: ObjectPattern_fieldName
 suggestions
   f01
     kind: field
@@ -634,6 +690,7 @@ class A1 extends A0 {
 }
 ''');
     assertResponse(r'''
+locationOpType: ObjectPattern_fieldName
 replacement
   left: 1
 suggestions
@@ -674,6 +731,7 @@ class A1 extends A0 {
 }
 ''');
     assertResponse(r'''
+locationOpType: ObjectPattern_fieldName
 replacement
   left: 1
 suggestions
@@ -714,6 +772,7 @@ class A1 extends A0 {
 }
 ''');
     assertResponse(r'''
+locationOpType: ObjectPattern_fieldName
 replacement
   right: 1
 suggestions
@@ -757,6 +816,7 @@ class A1 extends A0 {
 }
 ''');
     assertResponse(r'''
+locationOpType: ObjectPattern_fieldName
 suggestions
   f11
     kind: field
@@ -783,6 +843,7 @@ class A1 extends A0 {
 }
 ''');
     assertResponse(r'''
+locationOpType: ObjectPattern_fieldName
 suggestions
   f02
     kind: field
@@ -802,6 +863,32 @@ void f(Object? x) {
 }
 ''');
     assertResponse(r'''
+location: ObjectPattern_type
+locationOpType: ObjectPattern_type
+replacement
+  left: 2
+suggestions
+  A01
+    kind: class
+''');
+  }
+
+  Future<void>
+      test_switchPatternCase_objectPattern_type_partial_notImported() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A01 {}
+''');
+
+    await computeSuggestions('''
+void f(Object? x) {
+  switch (x) {
+    case A0^():
+  }
+}
+''');
+    assertResponse(r'''
+location: ObjectPattern_type
+locationOpType: ObjectPattern_type
 replacement
   left: 2
 suggestions

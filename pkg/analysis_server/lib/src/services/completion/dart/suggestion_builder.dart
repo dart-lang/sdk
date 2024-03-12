@@ -18,14 +18,12 @@ import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server/src/utilities/extensions/element.dart';
 import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
-import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 /// A container with enough information to do filtering, and if necessary
 /// build the [CompletionSuggestion] instance.
@@ -941,16 +939,12 @@ class SuggestionBuilder {
   /// Add a suggestion to replace the [targetId] with an override of the given
   /// [element]. If [invokeSuper] is `true`, then the override will contain an
   /// invocation of an overridden member.
-  Future<void> suggestOverride(
-      Token targetId, ExecutableElement element, bool invokeSuper) async {
-    await suggestOverride2(element, invokeSuper, range.token(targetId));
-  }
-
-  /// Add a suggestion to replace the [targetId] with an override of the given
-  /// [element]. If [invokeSuper] is `true`, then the override will contain an
-  /// invocation of an overridden member.
-  Future<void> suggestOverride2(ExecutableElement element, bool invokeSuper,
-      SourceRange replacementRange) async {
+  Future<void> suggestOverride({
+    required ExecutableElement element,
+    required bool invokeSuper,
+    required SourceRange replacementRange,
+    required bool skipAt,
+  }) async {
     var displayTextBuffer = StringBuffer();
     var overrideImports = <Uri>{};
     var builder = ChangeBuilder(session: request.analysisSession);
@@ -982,6 +976,9 @@ class SuggestionBuilder {
     if (request.target.containingNode.hasOverride &&
         completion.startsWith(overrideAnnotation)) {
       completion = completion.substring(overrideAnnotation.length).trim();
+    }
+    if (skipAt && completion.startsWith(overrideAnnotation)) {
+      completion = completion.substring('@'.length);
     }
     if (completion.isEmpty) {
       return;
@@ -1612,9 +1609,10 @@ class SuggestionBuilder {
 
   static String _textToMatchOverride(ExecutableElement element) {
     if (element.isOperator) {
-      return 'operator';
+      return 'override_operator';
     }
-    return element.displayName;
+    // Add "override" to match filter when `@override`.
+    return 'override_${element.displayName}';
   }
 }
 

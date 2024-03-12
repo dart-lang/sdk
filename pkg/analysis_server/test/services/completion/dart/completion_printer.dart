@@ -21,6 +21,7 @@ class CompletionResponsePrinter {
   });
 
   void writeResponse() {
+    _writeLocation();
     _writeResponseReplacement();
     _writeSuggestions();
   }
@@ -250,6 +251,18 @@ class CompletionResponsePrinter {
     buffer.writeln(line);
   }
 
+  void _writeLocation() {
+    if (configuration.withLocationName) {
+      if (response.requestLocationName case var location?) {
+        _writelnWithIndent('location: $location');
+      }
+      // TODO(scheglov): will be removed
+      if (response.opTypeLocationName case var location?) {
+        _writelnWithIndent('locationOpType: $location');
+      }
+    }
+  }
+
   void _writeParameterNames(CompletionSuggestion suggestion) {
     if (configuration.withParameterNames) {
       var parameterNames = suggestion.parameterNames?.join(',') ?? '';
@@ -368,6 +381,7 @@ class Configuration {
   bool withIsNotImported;
   bool withKind;
   bool withLibraryUri;
+  bool withLocationName;
   bool withParameterNames;
   bool withRelevance;
   bool withReplacement;
@@ -386,6 +400,7 @@ class Configuration {
     this.withIsNotImported = false,
     this.withKind = true,
     this.withLibraryUri = false,
+    this.withLocationName = false,
     this.withParameterNames = false,
     this.withReplacement = true,
     this.withRelevance = false,

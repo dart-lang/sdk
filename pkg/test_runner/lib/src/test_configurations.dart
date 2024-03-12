@@ -58,7 +58,6 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
   var firstConf = configurations[0];
   var maxProcesses = firstConf.taskCount;
   var progress = firstConf.progress;
-  BuildbotProgressIndicator.stepName = firstConf.stepName;
   var verbose = firstConf.isVerbose;
   var printTiming = firstConf.printTiming;
   var listTests = firstConf.listTests;

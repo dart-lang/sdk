@@ -26,8 +26,11 @@ class OverrideHelper {
   OverrideHelper({required this.state, required this.collector})
       : inheritanceManager = state.request.inheritanceManager;
 
-  void computeOverridesFor(
-      InterfaceElement interfaceElement, SourceRange replacementRange) {
+  void computeOverridesFor({
+    required InterfaceElement interfaceElement,
+    required SourceRange replacementRange,
+    required bool skipAt,
+  }) {
     var interface = inheritanceManager.getInterface(interfaceElement);
     var interfaceMap = interface.map;
     var namesToOverride =
@@ -39,10 +42,14 @@ class OverrideHelper {
       // Gracefully degrade if the overridden element has not been resolved.
       if (element != null) {
         var invokeSuper = interface.isSuperImplemented(name);
-        collector.addSuggestion(OverrideSuggestion(
+        collector.addSuggestion(
+          OverrideSuggestion(
             element: element,
             shouldInvokeSuper: invokeSuper,
-            replacementRange: replacementRange));
+            skipAt: skipAt,
+            replacementRange: replacementRange,
+          ),
+        );
       }
     }
   }
