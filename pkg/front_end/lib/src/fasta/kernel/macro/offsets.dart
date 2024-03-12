@@ -10,17 +10,17 @@ import 'package:kernel/ast.dart';
 /// merged augmentation library.
 class ReOffset {
   final Uri intermediateAugmentationUri;
-  final Uri augmentationUri;
+  final Uri augmentationFileUri;
   final List<MapEntry<int, int?>> _offsets;
 
   /// Creates a [ReOffset] from the intermediate augmentation library
   /// [intermediateAugmentationUri] to the merged augmentation library
-  /// [augmentationUri] using [reOffsetMap] which maps the start of an
+  /// [augmentationFileUri] using [reOffsetMap] which maps the start of an
   /// offset range in [intermediateAugmentationUri] to the start of the
-  /// corresponding offset range in [augmentationUri].
+  /// corresponding offset range in [augmentationFileUri].
   ///
   /// The keys of [reOffsetMap] are assumed to be sorted.
-  ReOffset(this.intermediateAugmentationUri, this.augmentationUri,
+  ReOffset(this.intermediateAugmentationUri, this.augmentationFileUri,
       Map<int, int?> reOffsetMap)
       : _offsets = reOffsetMap.entries.toList(),
         assert(() {
@@ -213,7 +213,7 @@ class ReOffsetVisitor extends FileUriVisitor {
   void exitFileUri(FileUriNode node) {
     ReOffset? reOffset = _reOffsetMaps[node.fileUri];
     if (reOffset != null) {
-      node.fileUri = reOffset.augmentationUri;
+      node.fileUri = reOffset.augmentationFileUri;
       _currentReOffsets.removeLast();
     }
   }
