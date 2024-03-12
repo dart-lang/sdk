@@ -95,18 +95,14 @@ Future<void> assembleSnapshot(String assemblyPath, String snapshotPath,
     cc = 'clang';
   }
 
-  // TODO(49519): What do we need to change for SIMRISCV64?
   if (buildDir.endsWith('SIMARM')) {
     ccFlags.add('--target=armv7-linux-gnueabihf');
   } else if (buildDir.endsWith('SIMARM64')) {
     ccFlags.add('--target=aarch64-linux-gnu');
+  } else if (buildDir.endsWith('SIMRISCV64')) {
+    ccFlags.add('--target=riscv64-linux-gnu');
   } else if (Platform.isMacOS) {
     shared = '-dynamiclib';
-    if (buildDir.endsWith('ARM64')) {
-      // ld: dynamic main executables must link with libSystem.dylib for
-      // architecture arm64
-      ldFlags.add('-lSystem');
-    }
     // Tell Mac linker to give up generating eh_frame from dwarf.
     ldFlags.add('-Wl,-no_compact_unwind');
   }
@@ -122,7 +118,7 @@ Future<void> assembleSnapshot(String assemblyPath, String snapshotPath,
     ...ccFlags,
     ...ldFlags,
     shared,
-    '-nostdlib',
+    if (!Platform.isMacOS) '-nostdlib',
     '-o',
     snapshotPath,
     assemblyPath,
