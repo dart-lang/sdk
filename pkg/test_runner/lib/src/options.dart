@@ -637,11 +637,6 @@ has been specified on the command line.''')
     var progress = Progress.find(data["progress"] as String);
     var nnbdMode = NnbdMode.find(data["nnbd"] as String);
 
-    // TODO: deflaking should report logs.
-    if (data['repeat'] == 5) {
-      progress = Progress.verbose;
-    }
-
     void addConfiguration(Configuration innerConfiguration,
         [String? namedConfiguration]) {
       var configuration = TestConfiguration(
