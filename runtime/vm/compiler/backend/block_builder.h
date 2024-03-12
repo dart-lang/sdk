@@ -73,12 +73,10 @@ class BlockBuilder : public ValueObject {
   }
 
   Definition* AddParameter(intptr_t index) {
-    const auto& function = flow_graph_->function();
-    const auto loc = FlowGraph::ParameterLocationAt(function, index);
-    const auto representation =
-        FlowGraph::ParameterRepresentationAt(function, index);
+    const auto [location, representation] =
+        flow_graph_->GetDirectParameterInfoAt(index);
     return AddParameter(index, representation,
-                        with_frame_ ? loc : loc.ToEntrySpRelative());
+                        with_frame_ ? location : location.ToEntrySpRelative());
   }
 
   Definition* AddParameter(intptr_t index,

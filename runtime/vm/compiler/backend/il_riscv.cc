@@ -463,7 +463,8 @@ void MoveArgumentInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(compiler->is_optimizing());
 
   const Location value = compiler->RebaseIfImprovesAddressing(locs()->in(0));
-  const intptr_t offset = sp_relative_index() * compiler::target::kWordSize;
+  const intptr_t offset =
+      location().stack_index() * compiler::target::kWordSize;
   if (value.IsRegister()) {
     __ StoreToOffset(value.reg(), SP, offset);
 #if XLEN == 32

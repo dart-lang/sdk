@@ -39,9 +39,7 @@ class UnboxingInfoManager {
   UnboxingInfoMetadata? getUnboxingInfoOfMember(Member member) {
     final UnboxingInfoMetadata? info = _memberInfo[member];
     if (member is Procedure && member.isGetter) {
-      // Remove placeholder parameter info slot for setters that the getter is
-      // grouped with.
-      return UnboxingInfoMetadata(0)..returnInfo = info!.returnInfo;
+      return info!.toGetterInfo();
     }
     return info;
   }
@@ -139,6 +137,7 @@ class UnboxingInfoManager {
       if (_cannotUnbox(member)) {
         unboxingInfo.argsInfo.length = 0;
         unboxingInfo.returnInfo = UnboxingType.kBoxed;
+        unboxingInfo.mustUseStackCallingConvention = true;
         return;
       }
       if (member is Procedure || member is Constructor) {
