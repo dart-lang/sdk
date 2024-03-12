@@ -28,7 +28,7 @@ final class MyFinalizable implements Finalizable {
   MyFinalizable._(this.pointer);
 
   factory MyFinalizable() {
-    final pointer = calloc<Int>(10);
+    final pointer = calloc(sizeOf<Int>(), 10).cast<Int>();
     pointer.value = 123;
     final result = MyFinalizable._(pointer);
     newFinalizableHandle(
@@ -40,6 +40,10 @@ final class MyFinalizable implements Finalizable {
     return result;
   }
 }
+
+final calloc = dlopenPlatformSpecific("ffi_test_functions")
+    .lookup<NativeFunction<Pointer<Void> Function(Size, Size)>>('Calloc')
+    .asFunction<Pointer<Void> Function(int, int)>();
 
 final freeFinalizer = dlopenPlatformSpecific("ffi_test_functions")
     .lookup<NativeFunction<Dart_HandleFinalizerFunction>>('FreeFinalizer');
