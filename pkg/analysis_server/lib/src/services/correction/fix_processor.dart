@@ -119,7 +119,15 @@ class FixProcessor extends BaseProcessor {
       var builder = ChangeBuilder(
           workspace: context.workspace, eol: context.utils.endOfLine);
       try {
+        var fixKind = producer.fixKind;
         await producer.compute(builder);
+        assert(
+          !(producer.canBeAppliedToFile || producer.canBeAppliedInBulk) ||
+              producer.fixKind == fixKind,
+          'Producers use in bulk fixes must not modify FixKind during computation. '
+          '$producer changed from $fixKind to ${producer.fixKind}.',
+        );
+
         _addFixFromBuilder(builder, producer);
       } on ConflictingEditException catch (exception, stackTrace) {
         // Handle the exception by (a) not adding a fix based on the producer

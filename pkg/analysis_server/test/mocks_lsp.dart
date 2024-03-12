@@ -97,8 +97,7 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
 
     notification = _convertJson(notification, lsp.NotificationMessage.fromJson);
 
-    // Wrap send request in future to simulate WebSocket.
-    Future(() => _clientToServer.add(notification));
+    _clientToServer.add(notification);
   }
 
   @override
@@ -124,8 +123,7 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
 
     request = _convertJson(request, lsp.RequestMessage.fromJson);
 
-    // Wrap send request in future to simulate WebSocket.
-    Future(() => _clientToServer.add(request));
+    _clientToServer.add(request);
     return waitForResponse(request);
   }
 
@@ -138,8 +136,7 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
 
     response = _convertJson(response, lsp.ResponseMessage.fromJson);
 
-    // Wrap send response in future to simulate WebSocket.
-    Future(() => _serverToClient.add(response));
+    _serverToClient.add(response);
   }
 
   void sendResponseToServer(lsp.ResponseMessage response) {

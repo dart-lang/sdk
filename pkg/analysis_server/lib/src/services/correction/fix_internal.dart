@@ -1690,7 +1690,14 @@ class FixInFileProcessor {
 
     try {
       var localBuilder = fixState.builder.copy();
+      var fixKind = producer.fixKind;
       await producer.compute(localBuilder);
+      assert(
+        !(producer.canBeAppliedToFile || producer.canBeAppliedInBulk) ||
+            producer.fixKind == fixKind,
+        'Producers use in bulk fixes must not modify FixKind during computation. '
+        '$producer changed from $fixKind to ${producer.fixKind}.',
+      );
 
       var multiFixKind = producer.multiFixKind;
       if (multiFixKind == null) {

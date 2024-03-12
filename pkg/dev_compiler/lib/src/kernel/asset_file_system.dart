@@ -19,13 +19,31 @@ class AssetFileSystem implements FileSystem {
   final String port;
   final RetryTimeoutClient client;
 
-  AssetFileSystem(this.original, this.server, this.port)
+  /// Wraps [original] to intercept request for asset entities and forward those
+  /// to an http client at [server] and [port].
+  ///
+  /// Requests for `file:` entities continue to be resolved by [original].
+  AssetFileSystem(FileSystem original, String server, String port)
+      : this._(original, server, port);
+
+  /// Constructor used for unit tests.
+  ///
+  /// Changes the default the http client behavior to have no delay on retries,
+  /// and allow specifying fewer total retries.
+  AssetFileSystem.forTesting(FileSystem original, String server, String port,
+      {required int retries})
+      : this._(original, server, port,
+            retries: retries, delay: (_) => const Duration(seconds: 0));
+
+  AssetFileSystem._(this.original, this.server, this.port,
+      {int? retries, Duration Function(int retryCount)? delay})
       : client = RetryTimeoutClient(
             HttpClient()
               ..maxConnectionsPerHost = 200
               ..connectionTimeout = const Duration(seconds: 30)
               ..idleTimeout = const Duration(seconds: 30),
-            retries: 4);
+            retries: retries ?? 4,
+            delay: delay);
 
   /// Convert the uri to a server uri.
   Uri _resourceUri(Uri uri) => Uri.parse('http://$server:$port/${uri.path}');

@@ -474,6 +474,19 @@ mixin ClientCapabilitiesHelperMixin {
         workspaceCapabilities, {'applyEdit': supported});
   }
 
+  void setChangeAnnotationSupport([bool supported = true]) {
+    workspaceCapabilities = extendWorkspaceCapabilities(workspaceCapabilities, {
+      'workspaceEdit': {
+        'changeAnnotationSupport': supported
+            ? <String, Object?>{
+                // This is set to an empty object to indicate support. We don't
+                // currently use any of the child properties.
+              }
+            : null
+      }
+    });
+  }
+
   void setCompletionItemDeprecatedFlagSupport() {
     textDocumentCapabilities =
         extendTextDocumentCapabilities(textDocumentCapabilities, {
@@ -1054,6 +1067,7 @@ mixin LspAnalysisServerTestMixin
     bool allowEmptyRootUri = false,
     bool failTestOnAnyErrorNotification = true,
     bool includeClientRequestTime = false,
+    void Function()? immediatelyAfterInitialized,
   }) async {
     this.includeClientRequestTime = includeClientRequestTime;
 
@@ -1118,7 +1132,10 @@ mixin LspAnalysisServerTestMixin
 
       final notification =
           makeNotification(Method.initialized, InitializedParams());
-      await sendNotificationToServer(notification);
+
+      final initializedNotification = sendNotificationToServer(notification);
+      immediatelyAfterInitialized?.call();
+      await initializedNotification;
       await pumpEventQueue();
     } else if (throwOnFailure) {
       throw 'Error during initialize request: '

@@ -447,9 +447,9 @@ class LegacyAnalysisServer extends AnalysisServer {
     if (capabilities.supportsUris ?? false) {
       // URI support implies LSP, as that's the only way to access (and get
       // change notifications for) custom-scheme files.
-      sendLspNotifications = true;
       uriConverter = ClientUriConverter.withVirtualFileSupport(
           resourceProvider.pathContext);
+      initializeLsp();
     } else {
       uriConverter = ClientUriConverter.noop(resourceProvider.pathContext);
     }
@@ -630,6 +630,15 @@ class LegacyAnalysisServer extends AnalysisServer {
     if (completer != null) {
       completer.complete(response);
     }
+  }
+
+  /// Initializes LSP support for the legacy server.
+  ///
+  /// This method is called when the client sends an LSP request, or indicates
+  /// that it will use LSP-overy-Legacy via client capabilities.
+  void initializeLsp() {
+    sendLspNotifications = true;
+    completeLspInitialization();
   }
 
   /// Return `true` if the [path] is both absolute and normalized.

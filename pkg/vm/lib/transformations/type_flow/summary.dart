@@ -340,7 +340,7 @@ class Call extends Statement {
         new List<Type>.filled(args.values.length, emptyType);
     for (int i = 0; i < args.values.length; i++) {
       final Type type = args.values[i].getComputedType(computedTypes);
-      if (type == emptyType) {
+      if (type.hasEmptySpecialization(typeHierarchy)) {
         debugPrint("Optimized call with empty arg");
         return emptyType;
       }
@@ -767,7 +767,7 @@ class UnaryOperation extends Statement {
           return emptyType;
         }
         if (arg is NullableType) {
-          if (arg.baseType.specialize(typeHierarchy) is EmptyType) {
+          if (arg.baseType.hasEmptySpecialization(typeHierarchy)) {
             return typeHierarchy.constantTrue;
           }
           return typeHierarchy.boolType;
@@ -775,7 +775,7 @@ class UnaryOperation extends Statement {
           return typeHierarchy.constantFalse;
         }
       case UnaryOp.IsEmpty:
-        return (arg.specialize(typeHierarchy) is EmptyType)
+        return (arg.hasEmptySpecialization(typeHierarchy))
             ? typeHierarchy.constantTrue
             : typeHierarchy.boolType;
       case UnaryOp.Not:

@@ -109,7 +109,7 @@ static method testLookupFunctionArgument() → void {
     [@vm.inferred-type.metadata=dart.ffi::Pointer] synthesized ffi::Pointer<ffi::NativeFunction<(self::Struct5) → ffi::Void>> #ffiTarget2 = [@vm.direct-call.metadata=dart.ffi::DynamicLibrary.lookup] [@vm.inferred-type.metadata=dart.ffi::Pointer (skip check)] dylib.{ffi::DynamicLibrary::lookup}<ffi::NativeFunction<(self::Struct5) → ffi::Void>>("function5"){(core::String) → ffi::Pointer<ffi::NativeFunction<(self::Struct5) → ffi::Void>>};
     @#C28
     function #ffiClosure2(self::Struct5 arg1) → void {
-      _in::_nativeEffect(arg1);
+      throw "Attempt to execute code removed by Dart AOT compiler (TFA)";
       return ffi::_ffiCall<void>(#ffiTarget2);
     }
   } =>#ffiClosure2;
@@ -121,7 +121,7 @@ static method testAsFunctionArgument() → void {
     [@vm.inferred-type.metadata=dart.ffi::Pointer] synthesized ffi::Pointer<ffi::NativeFunction<(self::Struct6) → ffi::Void>> #ffiTarget3 = pointer;
     @#C30
     function #ffiClosure3(self::Struct6 arg1) → void {
-      _in::_nativeEffect(arg1);
+      throw "Attempt to execute code removed by Dart AOT compiler (TFA)";
       return ffi::_ffiCall<void>(#ffiTarget3);
     }
   } =>#ffiClosure3;

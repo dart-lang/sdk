@@ -210,6 +210,10 @@ abstract class AnalysisServer {
   /// Starts completed and will be replaced each time a context rebuild starts.
   Completer<void> analysisContextRebuildCompleter = Completer()..complete();
 
+  /// A completer for tracking LSP client initialization
+  /// (see [lspClientInitialized]).
+  final Completer<void> _lspClientInitializedCompleter = Completer();
+
   /// The workspace for rename refactorings.
   late final refactoringWorkspace =
       RefactoringWorkspace(driverMap.values, searchEngine);
@@ -367,6 +371,19 @@ abstract class AnalysisServer {
   /// by the client.
   LspClientConfiguration get lspClientConfiguration;
 
+  /// A [Future] that completes once the client has initialized.
+  ///
+  /// For the LSP server, this happens when the client sends the `initialized`
+  /// notification. For LSP-over-Legacy this happens when the first LSP request
+  /// triggers initializetion.
+  ///
+  /// This future can be used by handlers requiring unit results to wait for
+  /// complete initialization even if the client sends the requests before
+  /// analysis roots have been initialized (for example because of async
+  /// requests to get configuration back from the client).
+  Future<void> get lspClientInitialized =>
+      _lspClientInitializedCompleter.future;
+
   /// Returns the function that can send `openUri` request to the client.
   /// Returns `null` is the client does not support it.
   OpenUriNotificationSender? get openUriNotificationSender;
@@ -448,6 +465,14 @@ abstract class AnalysisServer {
   void checkConsistency(List<AnalysisSessionImpl> sessions) {
     for (final session in sessions) {
       session.checkConsistency();
+    }
+  }
+
+  /// Completes [lspClientInitialized], signalling that LSP has finished
+  /// initializing.
+  void completeLspInitialization() {
+    if (!_lspClientInitializedCompleter.isCompleted) {
+      _lspClientInitializedCompleter.complete();
     }
   }
 

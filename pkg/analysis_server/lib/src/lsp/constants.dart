@@ -92,6 +92,8 @@ abstract class Commands {
     sortMembers,
     organizeImports,
     fixAll,
+    previewFixAllInWorkspace,
+    fixAllInWorkspace,
     sendWorkspaceEdit,
     performRefactor,
     validateRefactor,
@@ -99,13 +101,21 @@ abstract class Commands {
     // Add commands for each of the new refactorings.
     ...RefactoringProcessor.generators.keys,
   ];
-  static const sortMembers = 'edit.sortMembers';
-  static const organizeImports = 'edit.organizeImports';
-  static const fixAll = 'edit.fixAll';
-  static const sendWorkspaceEdit = 'edit.sendWorkspaceEdit';
+  static const sortMembers = 'dart.edit.sortMembers';
+  static const organizeImports = 'dart.edit.organizeImports';
+  static const fixAll = 'dart.edit.fixAll';
+  static const fixAllInWorkspace = 'dart.edit.fixAllInWorkspace';
+  static const previewFixAllInWorkspace = 'dart.edit.fixAllInWorkspace.preview';
+  static const sendWorkspaceEdit = 'dart.edit.sendWorkspaceEdit';
+  static const logAction = 'dart.logAction';
+  // TODO(dantup): These command IDs are globally registered in the editor so
+  //  should be prefixed (eg. with "dart.") to avoid potential collisions with
+  //  other extensions. However, the refactor.* are hard-coded into Dart-Code
+  //  for some improved integration, so cannot be updated until some time has
+  //  passed where Dart-Code supports prefixed versions.
+  //  Support for "dart." prefixed versions shipped in Dart-Code March 2023.
   static const performRefactor = 'refactor.perform';
   static const validateRefactor = 'refactor.validate';
-  static const logAction = 'dart.logAction';
 }
 
 abstract class CustomMethods {

@@ -124,7 +124,12 @@ class DeclarationHelper {
   }) {
     var constructors = element.augmented?.constructors ?? element.constructors;
     for (var constructor in constructors) {
-      _suggestConstructor(constructor, hasClassName: true, importData: null);
+      _suggestConstructor(
+        constructor,
+        hasClassName: true,
+        importData: null,
+        isConstructorRedirect: false,
+      );
     }
   }
 
@@ -137,7 +142,12 @@ class DeclarationHelper {
     for (var constructor in type.constructors) {
       var name = constructor.name;
       if (name.isNotEmpty && name != exclude) {
-        _suggestConstructor(constructor, hasClassName: true, importData: null);
+        _suggestConstructor(
+          constructor,
+          hasClassName: true,
+          importData: null,
+          isConstructorRedirect: false,
+        );
       }
     }
   }
@@ -355,7 +365,7 @@ class DeclarationHelper {
 
   /// Add suggestions for all of the constructor in the [library] that could be
   /// a redirection target for the [redirectingConstructor].
-  void addPosibleRedirectionsInLibrary(
+  void addPossibleRedirectionsInLibrary(
       ConstructorElement redirectingConstructor, LibraryElement library) {
     var classElement =
         redirectingConstructor.enclosingElement.augmented?.declaration;
@@ -370,8 +380,12 @@ class DeclarationHelper {
           for (var constructor in classElement.constructors) {
             if (constructor != redirectingConstructor &&
                 constructor.isAccessibleIn(library)) {
-              _suggestConstructor(constructor,
-                  hasClassName: false, importData: null);
+              _suggestConstructor(
+                constructor,
+                hasClassName: false,
+                importData: null,
+                isConstructorRedirect: true,
+              );
             }
           }
         }
@@ -936,8 +950,12 @@ class DeclarationHelper {
       for (var constructor in constructors) {
         if (constructor.isVisibleIn(request.libraryElement) &&
             (allowNonFactory || constructor.isFactory)) {
-          _suggestConstructor(constructor,
-              hasClassName: true, importData: null);
+          _suggestConstructor(
+            constructor,
+            hasClassName: true,
+            importData: null,
+            isConstructorRedirect: false,
+          );
         }
       }
       for (var method in methods) {
@@ -1026,8 +1044,12 @@ class DeclarationHelper {
 
   /// Adds a suggestion for the constructor represented by the [element]. The
   /// [prefix] is the prefix by which the class is imported.
-  void _suggestConstructor(ConstructorElement element,
-      {required ImportData? importData, required bool hasClassName}) {
+  void _suggestConstructor(
+    ConstructorElement element, {
+    required ImportData? importData,
+    required bool hasClassName,
+    required bool isConstructorRedirect,
+  }) {
     if (mustBeAssignable || (mustBeConstant && !element.isConst)) {
       return;
     }
@@ -1041,6 +1063,7 @@ class DeclarationHelper {
       element: element,
       hasClassName: hasClassName,
       isTearOff: preferNonInvocation,
+      isRedirect: isConstructorRedirect,
     );
     collector.addSuggestion(suggestion);
   }
@@ -1055,8 +1078,12 @@ class DeclarationHelper {
     for (var constructor in constructors) {
       if (constructor.isVisibleIn(request.libraryElement) &&
           (allowNonFactory || constructor.isFactory)) {
-        _suggestConstructor(constructor,
-            hasClassName: false, importData: importData);
+        _suggestConstructor(
+          constructor,
+          hasClassName: false,
+          importData: importData,
+          isConstructorRedirect: false,
+        );
       }
     }
   }

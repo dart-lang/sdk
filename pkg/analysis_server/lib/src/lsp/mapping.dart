@@ -85,12 +85,19 @@ lsp.Either2<lsp.MarkupContent, String> asMarkupContentOrString(
 
 /// Creates a [lsp.WorkspaceEdit] from simple [server.SourceFileEdit]s.
 ///
+/// If [annotateChanges] is set, change annotations will be produced and
+/// marked as needing confirmation from the user (depending on the value).
+///
 /// Note: This code will fetch the version of each document being modified so
 /// it's important to call this immediately after computing edits to ensure
 /// the document is not modified before the version number is read.
 lsp.WorkspaceEdit createPlainWorkspaceEdit(
-    AnalysisServer server, List<server.SourceFileEdit> edits) {
+  AnalysisServer server,
+  List<server.SourceFileEdit> edits, {
+  ChangeAnnotations annotateChanges = ChangeAnnotations.none,
+}) {
   return toWorkspaceEdit(
+      annotateChanges: annotateChanges,
       // Client capabilities are always available after initialization.
       server.lspClientCapabilities!,
       edits
@@ -143,12 +150,17 @@ WorkspaceEdit createRenameEdit(
 lsp.WorkspaceEdit createWorkspaceEdit(
   AnalysisServer server,
   server.SourceChange change, {
+  ChangeAnnotations annotateChanges = ChangeAnnotations.none,
   // The caller must specify whether snippets are valid here for where they're
   // sending this edit. Right now, support is limited to CodeActions.
   bool allowSnippets = false,
   String? filePath,
   LineInfo? lineInfo,
 }) {
+  assert(
+    annotateChanges == ChangeAnnotations.none || !allowSnippets,
+    'annotateChanges is not supported with snippets',
+  );
   // In order to return snippets, we must ensure we are only modifying a single
   // existing file with a single edit and that there is either a selection or a
   // linked edit group (otherwise there's no value in snippets).
@@ -162,7 +174,8 @@ lsp.WorkspaceEdit createWorkspaceEdit(
       change.edits.single.file != filePath ||
       change.edits.single.edits.length != 1 ||
       (change.selection == null && change.linkedEditGroups.isEmpty)) {
-    return createPlainWorkspaceEdit(server, change.edits);
+    return createPlainWorkspaceEdit(server, change.edits,
+        annotateChanges: annotateChanges);
   }
 
   final fileEdit = change.edits.single;
@@ -667,6 +680,34 @@ lsp.DiagnosticSeverity pluginToDiagnosticSeverity(
     // unreachable code without producing an item in the error list).
     _ => throw 'Unknown AnalysisErrorSeverity: $severity'
   };
+}
+
+/// Records a change annotation for [edit] in [uri] into the [changeAnnotations]
+/// map based on the value of [annotateChanges].
+ChangeAnnotation? recordEditAnnotation(
+  Uri uri,
+  server.SourceEdit edit, {
+  required ChangeAnnotations annotateChanges,
+  required Map<ChangeAnnotationIdentifier, ChangeAnnotation>? changeAnnotations,
+}) {
+  assert(
+    (annotateChanges == ChangeAnnotations.none) == (changeAnnotations == null),
+  );
+  if (changeAnnotations == null) {
+    return null;
+  }
+
+  // Always try to provide good descriptions when producing annotated
+  // changes but use a fallback rather than failing if they're not
+  // available.
+  // When running with asserts, assert there is a description to
+  // highlight where we're not passing them.
+  assert(edit.description != null);
+  final label = edit.description ?? edit.id ?? uri.pathSegments.last;
+  return changeAnnotations[label] ??= ChangeAnnotation(
+    label: label,
+    needsConfirmation: annotateChanges == ChangeAnnotations.requireConfirmation,
+  );
 }
 
 /// Converts a numeric relevance to a sortable string.
@@ -1403,15 +1444,37 @@ ErrorOr<server.SourceRange?> toSourceRangeNullable(
         server.LineInfo lineInfo, Range? range) =>
     range != null ? toSourceRange(lineInfo, range) : success(null);
 
+/// Creates an [lsp.TextDocumentEdit] for [fileEdit].
+///
+/// If [changeAnnotations] is not `null`, change annotations will be appended
+/// for each edit produced and marked as requiring user confirmation.
 lsp.TextDocumentEdit toTextDocumentEdit(
-    LspClientCapabilities capabilities, FileEditInformation edit) {
+  LspClientCapabilities capabilities,
+  FileEditInformation fileEdit, {
+  ChangeAnnotations annotateChanges = ChangeAnnotations.none,
+  Map<ChangeAnnotationIdentifier, ChangeAnnotation>? changeAnnotations,
+}) {
+  assert(
+    (annotateChanges == ChangeAnnotations.none) == (changeAnnotations == null),
+  );
   return lsp.TextDocumentEdit(
-      textDocument: edit.doc,
-      edits: sortSourceEditsForLsp(edit.edits)
-          .map((e) => toTextDocumentEditEdit(capabilities, edit.lineInfo, e,
-              selectionOffsetRelative: edit.selectionOffsetRelative,
-              selectionLength: edit.selectionLength))
-          .toList());
+      textDocument: fileEdit.doc,
+      edits: sortSourceEditsForLsp(fileEdit.edits).map((edit) {
+        final annotation = recordEditAnnotation(
+          fileEdit.doc.uri,
+          edit,
+          annotateChanges: annotateChanges,
+          changeAnnotations: changeAnnotations,
+        );
+        return toTextDocumentEditEdit(
+          capabilities,
+          fileEdit.lineInfo,
+          edit,
+          selectionOffsetRelative: fileEdit.selectionOffsetRelative,
+          selectionLength: fileEdit.selectionLength,
+          annotationIdentifier: annotation?.label,
+        );
+      }).toList());
 }
 
 Either3<lsp.AnnotatedTextEdit, lsp.SnippetTextEdit, lsp.TextEdit>
@@ -1421,7 +1484,16 @@ Either3<lsp.AnnotatedTextEdit, lsp.SnippetTextEdit, lsp.TextEdit>
   server.SourceEdit edit, {
   int? selectionOffsetRelative,
   int? selectionLength,
+  lsp.ChangeAnnotationIdentifier? annotationIdentifier,
 }) {
+  if (annotationIdentifier != null) {
+    return Either3<lsp.AnnotatedTextEdit, lsp.SnippetTextEdit, lsp.TextEdit>.t1(
+        lsp.AnnotatedTextEdit(
+      annotationId: annotationIdentifier,
+      range: toRange(lineInfo, edit.offset, edit.length),
+      newText: edit.replacement,
+    ));
+  }
   if (!capabilities.experimentalSnippetTextEdit ||
       selectionOffsetRelative == null) {
     return Either3<lsp.AnnotatedTextEdit, lsp.SnippetTextEdit, lsp.TextEdit>.t3(
@@ -1433,18 +1505,37 @@ Either3<lsp.AnnotatedTextEdit, lsp.SnippetTextEdit, lsp.TextEdit>
           selectionLength: selectionLength));
 }
 
-lsp.TextEdit toTextEdit(server.LineInfo lineInfo, server.SourceEdit edit) {
-  return lsp.TextEdit(
-    range: toRange(lineInfo, edit.offset, edit.length),
-    newText: edit.replacement,
-  );
+lsp.TextEdit toTextEdit(
+  server.LineInfo lineInfo,
+  server.SourceEdit edit, {
+  ChangeAnnotation? annotation,
+}) {
+  return annotation != null
+      ? lsp.AnnotatedTextEdit(
+          range: toRange(lineInfo, edit.offset, edit.length),
+          newText: edit.replacement,
+          annotationId: annotation.label,
+        )
+      : lsp.TextEdit(
+          range: toRange(lineInfo, edit.offset, edit.length),
+          newText: edit.replacement,
+        );
 }
 
+/// Creates an [lsp.WorkspaceEdit] for [edits].
+///
+/// If [annotateChanges] is set, change annotations will be produced and
+/// marked as needing confirmation from the user (depending on the value).
 lsp.WorkspaceEdit toWorkspaceEdit(
   LspClientCapabilities capabilities,
-  List<FileEditInformation> edits,
-) {
+  List<FileEditInformation> edits, {
+  ChangeAnnotations annotateChanges = ChangeAnnotations.none,
+}) {
   final supportsDocumentChanges = capabilities.documentChanges;
+  final changeAnnotations = annotateChanges != ChangeAnnotations.none
+      ? <lsp.ChangeAnnotationIdentifier, ChangeAnnotation>{}
+      : null;
+
   if (supportsDocumentChanges) {
     final supportsCreate = capabilities.createResourceOperations;
     final changes = <Either4<lsp.CreateFile, lsp.DeleteFile, lsp.RenameFile,
@@ -1453,32 +1544,51 @@ lsp.WorkspaceEdit toWorkspaceEdit(
     // Convert each SourceEdit to either a TextDocumentEdit or a
     // CreateFile + a TextDocumentEdit depending on whether it's a new
     // file.
-    for (final edit in edits) {
-      if (supportsCreate && edit.newFile) {
-        final create = lsp.CreateFile(uri: edit.doc.uri);
+    for (final fileEdit in edits) {
+      if (supportsCreate && fileEdit.newFile) {
+        final create = lsp.CreateFile(uri: fileEdit.doc.uri);
         final createUnion = Either4<lsp.CreateFile, lsp.DeleteFile,
             lsp.RenameFile, lsp.TextDocumentEdit>.t1(create);
         changes.add(createUnion);
       }
 
-      final textDocEdit = toTextDocumentEdit(capabilities, edit);
+      final textDocEdit = toTextDocumentEdit(capabilities, fileEdit,
+          annotateChanges: annotateChanges,
+          changeAnnotations: changeAnnotations);
       final textDocEditUnion = Either4<lsp.CreateFile, lsp.DeleteFile,
           lsp.RenameFile, lsp.TextDocumentEdit>.t4(textDocEdit);
       changes.add(textDocEditUnion);
     }
 
-    return lsp.WorkspaceEdit(documentChanges: changes);
+    return lsp.WorkspaceEdit(
+      documentChanges: changes,
+      changeAnnotations: changeAnnotations,
+    );
   } else {
-    return lsp.WorkspaceEdit(changes: toWorkspaceEditChanges(edits));
+    return lsp.WorkspaceEdit(
+      changes: toWorkspaceEditChanges(edits,
+          annotateChanges: annotateChanges,
+          changeAnnotations: changeAnnotations),
+      changeAnnotations: changeAnnotations,
+    );
   }
 }
 
 Map<Uri, List<lsp.TextEdit>> toWorkspaceEditChanges(
-    List<FileEditInformation> edits) {
+  List<FileEditInformation> edits, {
+  ChangeAnnotations annotateChanges = ChangeAnnotations.none,
+  Map<ChangeAnnotationIdentifier, ChangeAnnotation>? changeAnnotations,
+}) {
   MapEntry<Uri, List<lsp.TextEdit>> createEdit(FileEditInformation file) {
-    final edits = sortSourceEditsForLsp(file.edits)
-        .map((edit) => toTextEdit(file.lineInfo, edit))
-        .toList();
+    final edits = sortSourceEditsForLsp(file.edits).map((edit) {
+      final annotation = recordEditAnnotation(
+        file.doc.uri,
+        edit,
+        annotateChanges: annotateChanges,
+        changeAnnotations: changeAnnotations,
+      );
+      return toTextEdit(file.lineInfo, edit, annotation: annotation);
+    }).toList();
     return MapEntry(file.doc.uri, edits);
   }
 

@@ -37,18 +37,18 @@ class RetryTimeoutClient {
   RetryTimeoutClient(
     this._inner, {
     int retries = 3,
-    bool Function(HttpClientResponse) when = _defaultWhen,
-    bool Function(Object, StackTrace) whenError = _defaultWhenError,
-    Duration Function(int retryCount) delay = _defaultDelay,
-    Duration Function(int retryCount) connectionTimeout = _defaultTimeout,
-    Duration Function(int retryCount) responseTimeout = _defaultTimeout,
+    bool Function(HttpClientResponse)? when,
+    bool Function(Object, StackTrace)? whenError,
+    Duration Function(int retryCount)? delay,
+    Duration Function(int retryCount)? connectionTimeout,
+    Duration Function(int retryCount)? responseTimeout,
     void Function(Uri, HttpClientResponse?, int retryCount)? onRetry,
   })  : _retries = retries,
-        _when = when,
-        _whenError = whenError,
-        _delay = delay,
-        _connectionTimeout = connectionTimeout,
-        _responseTimeout = responseTimeout,
+        _when = when ?? _defaultWhen,
+        _whenError = whenError ?? _defaultWhenError,
+        _delay = delay ?? _defaultDelay,
+        _connectionTimeout = connectionTimeout ?? _defaultTimeout,
+        _responseTimeout = responseTimeout ?? _defaultTimeout,
         _onRetry = onRetry {
     RangeError.checkNotNegative(_retries, 'retries');
   }

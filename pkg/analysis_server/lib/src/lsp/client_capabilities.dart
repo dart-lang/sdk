@@ -73,6 +73,7 @@ class LspClientCapabilities {
 
   final ClientCapabilities raw;
   final bool documentChanges;
+  final bool changeAnnotations;
   final bool configuration;
   final bool createResourceOperations;
   final bool renameResourceOperations;
@@ -154,6 +155,7 @@ class LspClientCapabilities {
     final completionItemTags = _listToSet(completionItem?.tagSupport?.valueSet);
     final diagnosticTags = _listToSet(publishDiagnostics?.tagSupport?.valueSet);
     final documentChanges = workspaceEdit?.documentChanges ?? false;
+    final changeAnnotations = workspaceEdit?.changeAnnotationSupport != null;
     final documentSymbolKinds = _listToSet(documentSymbol?.symbolKind?.valueSet,
         defaults: defaultSupportedSymbolKinds);
     final hierarchicalSymbols =
@@ -196,6 +198,7 @@ class LspClientCapabilities {
     return LspClientCapabilities._(
       raw,
       documentChanges: documentChanges,
+      changeAnnotations: changeAnnotations,
       configuration: configuration,
       createResourceOperations: createResourceOperations,
       renameResourceOperations: renameResourceOperations,
@@ -235,6 +238,7 @@ class LspClientCapabilities {
   LspClientCapabilities._(
     this.raw, {
     required this.documentChanges,
+    required this.changeAnnotations,
     required this.configuration,
     required this.createResourceOperations,
     required this.renameResourceOperations,

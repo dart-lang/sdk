@@ -68,7 +68,15 @@ final class ConstructorSuggestion extends ImportableSuggestion {
   final bool hasClassName;
 
   /// Whether a tear-off should be suggested, not an invocation.
+  /// Mutually exclusive with [isRedirect].
   final bool isTearOff;
+
+  /// Whether a redirect should be suggested, not an invocation.
+  /// Mutually exclusive with [isTearOff].
+  ///
+  /// When `true`, the unnamed constructor reference is `ClassName`.
+  /// OTOH, if [isTearOff] is `true`, we get `ClassName.new`.
+  final bool isRedirect;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
   ConstructorSuggestion({
@@ -76,7 +84,8 @@ final class ConstructorSuggestion extends ImportableSuggestion {
     required this.element,
     required this.hasClassName,
     required this.isTearOff,
-  });
+    required this.isRedirect,
+  }) : assert((isTearOff ? 1 : 0) | (isRedirect ? 1 : 0) < 2);
 
   @override
   String get completion => '$completionPrefix${element.displayName}';
@@ -601,7 +610,7 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
         suggestConstructor(
           suggestion.element,
           hasClassName: suggestion.hasClassName,
-          kind: suggestion.isTearOff
+          kind: suggestion.isRedirect || suggestion.isTearOff
               ? CompletionSuggestionKind.IDENTIFIER
               : CompletionSuggestionKind.INVOCATION,
           tearOff: suggestion.isTearOff,

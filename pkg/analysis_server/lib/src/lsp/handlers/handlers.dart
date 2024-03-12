@@ -79,6 +79,11 @@ mixin HandlerHelperMixin<S extends AnalysisServer> {
 
   ClientUriConverter get uriConverter => server.uriConverter;
 
+  /// A [Future] that completes when both the client has finished initializing
+  /// and any in-progress context rebuilds are complete.
+  Future<void> get _initializedWithContexts =>
+      server.lspClientInitialized.then((_) => server.analysisContextsRebuilt);
+
   ErrorOr<T> analysisFailedError<T>(String path) => error<T>(
       ServerErrorCodes.FileAnalysisFailed, 'Analysis failed for file', path);
 
@@ -183,7 +188,7 @@ mixin HandlerHelperMixin<S extends AnalysisServer> {
     if (result == null) {
       // Handle retry if allowed.
       if (waitForInProgressContextRebuilds) {
-        await server.analysisContextsRebuilt;
+        await _initializedWithContexts;
         return requireResolvedLibrary(path,
             waitForInProgressContextRebuilds: false);
       }
@@ -211,7 +216,7 @@ mixin HandlerHelperMixin<S extends AnalysisServer> {
     if (result == null) {
       // Handle retry if allowed.
       if (waitForInProgressContextRebuilds) {
-        await server.analysisContextsRebuilt;
+        await _initializedWithContexts;
         return requireResolvedUnit(path,
             waitForInProgressContextRebuilds: false);
       }
@@ -237,7 +242,7 @@ mixin HandlerHelperMixin<S extends AnalysisServer> {
     if (result == null) {
       // Handle retry if allowed.
       if (waitForInProgressContextRebuilds) {
-        await server.analysisContextsRebuilt;
+        await _initializedWithContexts;
         return requireUnresolvedUnit(path,
             waitForInProgressContextRebuilds: false);
       }

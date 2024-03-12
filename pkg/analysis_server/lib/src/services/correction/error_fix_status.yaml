@@ -2142,6 +2142,8 @@ LintCode.matching_super_parameters:
        parameter name.
     2. Transpose two super parameters if doing so would match up their
        super-constructor parameters.
+LintCode.missing_code_block_language_in_doc_comment:
+  status: needsEvaluation
 LintCode.missing_whitespace_between_adjacent_strings:
   status: needsFix
   notes: |-

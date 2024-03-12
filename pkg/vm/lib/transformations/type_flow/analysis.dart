@@ -186,7 +186,7 @@ abstract base class _Invocation extends _DependencyTracker
   // Process [receiver].call(args) for calls via field or getter.
   Type _processCallWithSubstitutedReceiver(
       Type receiver, TypeFlowAnalysis typeFlowAnalysis) {
-    if (receiver == emptyType) {
+    if (receiver.hasEmptySpecialization(typeFlowAnalysis.hierarchyCache)) {
       return emptyType;
     }
     final closure = receiver.closure;
@@ -371,7 +371,8 @@ final class _DirectInvocation extends _Invocation {
           final receiver = typeFlowAnalysis
               .getSharedCapturedThis(member)
               .getValue(typeFlowAnalysis.hierarchyCache, typeFlowAnalysis);
-          if (receiver == emptyType) {
+          if (receiver
+              .hasEmptySpecialization(typeFlowAnalysis.hierarchyCache)) {
             return emptyType;
           }
           // Instance members do not take type parameters as arguments.
@@ -1456,6 +1457,19 @@ class _ClassHierarchyCache extends TypeHierarchy {
     }
 
     return cls.specializedConeType;
+  }
+
+  @override
+  bool hasAllocatedSubtypes(TFClass cls) {
+    final clsImpl = cls as _TFClassImpl;
+    if (clsImpl._allocatedSubtypes.isNotEmpty) {
+      return true;
+    }
+    if (!_sealed) {
+      clsImpl.dependencyTracker
+          .addDependentInvocation(_typeFlowAnalysis.currentInvocation);
+    }
+    return false;
   }
 
   bool _hasWideCone(_TFClassImpl cls) =>

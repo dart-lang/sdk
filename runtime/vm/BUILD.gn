@@ -155,7 +155,7 @@ config("libprotozero_config") {
 
   include_dirs = [
     "$perfetto_root_path/include",
-    "$root_gen_dir/third_party/perfetto/build_config",
+    "$root_gen_dir/$perfetto_root_path/build_config",
   ]
 }
 

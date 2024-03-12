@@ -5,45 +5,112 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:args/args.dart';
 import 'package:dds/dds.dart';
 
-/// A simple program which starts a [DartDevelopmentService] instance with a
-/// basic configuration.
-///
-/// Takes the following positional arguments:
-///   - VM service URI
-///   - DDS bind address
-///   - DDS port
-///   - Disable service authentication codes
-///   - Start DevTools
-///   - DevTools build directory
-///   - Enable logging
-///   - Enable service port fallback
+abstract class DartDevelopmentServiceOptions {
+  static const vmServiceUriOption = 'vm-service-uri';
+  static const bindAddressOption = 'bind-address';
+  static const bindPortOption = 'bind-port';
+  static const disableServiceAuthCodesFlag = 'disable-service-auth-codes';
+  static const serveDevToolsFlag = 'serve-devtools';
+  static const enableServicePortFallbackFlag = 'enable-service-port-fallback';
+
+  static ArgParser createArgParser() {
+    return ArgParser()
+      ..addOption(
+        vmServiceUriOption,
+        help: 'The VM service URI DDS will connect to.',
+        valueHelp: 'uri',
+        mandatory: true,
+      )
+      ..addOption(bindAddressOption,
+          help: 'The address DDS should bind to.',
+          valueHelp: 'address',
+          defaultsTo: 'localhost')
+      ..addOption(
+        bindPortOption,
+        help: 'The port DDS should be served on.',
+        valueHelp: 'port',
+        defaultsTo: '0',
+      )
+      ..addFlag(
+        disableServiceAuthCodesFlag,
+        help: 'Disables authentication codes.',
+      )
+      ..addFlag(
+        serveDevToolsFlag,
+        help: 'If provided, DDS will serve DevTools.',
+      )
+      ..addFlag(
+        enableServicePortFallbackFlag,
+        help: 'Bind to a random port if DDS fails to bind to the provided '
+            'port.',
+      )
+      ..addFlag('help', negatable: false);
+  }
+}
+
+Uri _getDevToolsAssetPath() {
+  final dartPath = Uri.parse(Platform.resolvedExecutable);
+  final dartDir = [
+    '', // Include leading '/'
+    ...dartPath.pathSegments.sublist(
+      0,
+      dartPath.pathSegments.length - 1,
+    ),
+  ].join('/');
+  final fullSdk = dartDir.endsWith('bin');
+  return Uri.parse(
+    [
+      dartDir,
+      if (fullSdk) 'resources',
+      'devtools',
+    ].join('/'),
+  );
+}
+
 Future<void> main(List<String> args) async {
-  if (args.isEmpty) return;
+  final argParser = DartDevelopmentServiceOptions.createArgParser();
+  final argResults = argParser.parse(args);
+  if (args.isEmpty || argResults.wasParsed('help')) {
+    print('''
+Starts a Dart Development Service (DDS) instance.
+
+Usage:
+${argParser.usage}
+    ''');
+    return;
+  }
+
   // This URI is provided by the VM service directly so don't bother doing a
   // lookup.
-  final remoteVmServiceUri = Uri.parse(args.first);
+  final remoteVmServiceUri = Uri.parse(
+    argResults[DartDevelopmentServiceOptions.vmServiceUriOption],
+  );
 
   // Resolve the address which is potentially provided by the user.
   late InternetAddress address;
+  final bindAddress =
+      argResults[DartDevelopmentServiceOptions.bindAddressOption];
   try {
-    final addresses = await InternetAddress.lookup(args[1]);
+    final addresses = await InternetAddress.lookup(bindAddress);
     // Prefer IPv4 addresses.
     for (int i = 0; i < addresses.length; i++) {
       address = addresses[i];
       if (address.type == InternetAddressType.IPv4) break;
     }
   } on SocketException catch (e, st) {
-    writeErrorResponse('Invalid bind address: ${args[1]}', st);
+    writeErrorResponse('Invalid bind address: $bindAddress', st);
     return;
   }
 
+  final portString = argResults[DartDevelopmentServiceOptions.bindPortOption];
   int port;
   try {
-    port = int.parse(args[2]);
+    port = int.parse(portString);
   } on FormatException catch (e, st) {
-    writeErrorResponse('Invalid port: ${args[2]}', st);
+    writeErrorResponse('Invalid port: $portString', st);
     return;
   }
   final serviceUri = Uri(
@@ -51,31 +118,30 @@ Future<void> main(List<String> args) async {
     host: address.address,
     port: port,
   );
-  final disableServiceAuthCodes = args[3] == 'true';
+  final disableServiceAuthCodes =
+      argResults[DartDevelopmentServiceOptions.disableServiceAuthCodesFlag];
 
-  final startDevTools = args[4] == 'true';
+  final serveDevTools =
+      argResults[DartDevelopmentServiceOptions.serveDevToolsFlag];
   Uri? devToolsBuildDirectory;
-  if (args[5].isNotEmpty) {
-    devToolsBuildDirectory = Uri.file(args[5]);
+  if (serveDevTools) {
+    devToolsBuildDirectory = _getDevToolsAssetPath();
   }
-  final logRequests = args[6] == 'true';
-  final enableServicePortFallback = args[7] == 'true';
+  final enableServicePortFallback =
+      argResults[DartDevelopmentServiceOptions.enableServicePortFallbackFlag];
 
   try {
-    // TODO(bkonyi): add retry logic similar to that in vmservice_server.dart
-    // See https://github.com/dart-lang/sdk/issues/43192.
     final dds = await DartDevelopmentService.startDartDevelopmentService(
       remoteVmServiceUri,
       serviceUri: serviceUri,
       enableAuthCodes: !disableServiceAuthCodes,
       ipv6: address.type == InternetAddressType.IPv6,
-      devToolsConfiguration: startDevTools && devToolsBuildDirectory != null
+      devToolsConfiguration: serveDevTools && devToolsBuildDirectory != null
           ? DevToolsConfiguration(
-              enable: startDevTools,
+              enable: serveDevTools,
               customBuildDirectoryPath: devToolsBuildDirectory,
             )
           : null,
-      logRequests: logRequests,
       enableServicePortFallback: enableServicePortFallback,
     );
     stderr.write(json.encode({

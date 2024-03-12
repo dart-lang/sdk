@@ -15,6 +15,7 @@ import 'code_actions_assists_test.dart' as code_actions_assists;
 import 'code_actions_fixes_test.dart' as code_actions_fixes;
 import 'code_actions_refactor_test.dart' as code_actions_refactor;
 import 'code_actions_source_test.dart' as code_actions_source;
+import 'commands/test_all.dart' as commands;
 import 'completion_dart_test.dart' as completion_dart;
 import 'completion_yaml_test.dart' as completion_yaml;
 import 'configuration_test.dart' as configuration;
@@ -61,6 +62,7 @@ void main() {
     analyzer_status.main();
     call_hierarchy.main();
     cancel_request.main();
+    commands.main();
     change_workspace_folders.main();
     client_configuration.main();
     closing_labels.main();

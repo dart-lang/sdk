@@ -433,7 +433,15 @@ class Server {
     final serviceInfo = <String, dynamic>{
       'uri': serverAddress.toString(),
     };
-    final file = File.fromUri(Uri.parse(serviceInfoFilenameLocal));
+    const kFileScheme = 'file://';
+    // There's lots of URI parsing weirdness as Uri.parse doesn't do the right
+    // thing with Windows drive letters. Only use Uri.parse with known file
+    // URIs, and use Uri.file otherwise to properly handle drive letters in
+    // paths.
+    final uri = serviceInfoFilenameLocal.startsWith(kFileScheme)
+        ? Uri.parse(serviceInfoFilenameLocal)
+        : Uri.file(serviceInfoFilenameLocal);
+    final file = File.fromUri(uri);
     return file.writeAsString(json.encode(serviceInfo));
   }
 
