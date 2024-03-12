@@ -617,6 +617,10 @@ DART_EXPORT void ExecuteCallback(Work* work_ptr) {
 
 Dart_Port send_port_;
 
+DART_EXPORT void* Calloc(size_t count, size_t size) {
+  return calloc(count, size);
+}
+
 DART_EXPORT void FreeFinalizer(void*, void* value) {
   free(value);
 }

@@ -145,14 +145,6 @@ abstract class ClassBuilder implements DeclarationBuilder, ClassMemberAccess {
   @override
   InterfaceType get thisType;
 
-  InterfaceType get legacyRawType;
-
-  InterfaceType get nullableRawType;
-
-  InterfaceType get nonNullableRawType;
-
-  InterfaceType rawType(Nullability nullability);
-
   Supertype buildMixedInType(
       LibraryBuilder library, List<TypeBuilder>? arguments);
 
@@ -277,19 +269,16 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
         getAsTypeArguments(cls.typeParameters, libraryBuilder.library));
   }
 
-  @override
   InterfaceType get legacyRawType {
     return _legacyRawType ??= new InterfaceType(cls, Nullability.legacy,
         new List<DartType>.filled(typeVariablesCount, const DynamicType()));
   }
 
-  @override
   InterfaceType get nullableRawType {
     return _nullableRawType ??= new InterfaceType(cls, Nullability.nullable,
         new List<DartType>.filled(typeVariablesCount, const DynamicType()));
   }
 
-  @override
   InterfaceType get nonNullableRawType {
     return _nonNullableRawType ??= new InterfaceType(
         cls,
@@ -297,7 +286,6 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
         new List<DartType>.filled(typeVariablesCount, const DynamicType()));
   }
 
-  @override
   InterfaceType rawType(Nullability nullability) {
     switch (nullability) {
       case Nullability.legacy:
@@ -319,12 +307,12 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   DartType buildAliasedTypeWithBuiltArguments(
       LibraryBuilder library,
       Nullability nullability,
-      List<DartType>? arguments,
+      List<DartType> arguments,
       TypeUse typeUse,
       Uri fileUri,
       int charOffset,
       {required bool hasExplicitTypeArguments}) {
-    assert(arguments == null || cls.typeParameters.length == arguments.length);
+    assert(cls.typeParameters.length == arguments.length);
     if (isNullClass) {
       return const NullType();
     }
@@ -332,36 +320,33 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       LibraryBuilder parentLibrary = parent as LibraryBuilder;
       if (parentLibrary.importUri.isScheme("dart") &&
           parentLibrary.importUri.path == "async") {
-        assert(arguments != null && arguments.length == 1);
-        return new FutureOrType(arguments!.single, nullability);
+        assert(arguments.length == 1);
+        return new FutureOrType(arguments.single, nullability);
       }
     }
-    DartType type;
-    if (arguments == null) {
-      type = rawType(nullability);
-    } else {
-      if (aliasedTypeWithBuiltArgumentsCacheNonNullable != null &&
-          nullability == Nullability.nonNullable) {
-        assert(aliasedTypeWithBuiltArgumentsCacheNonNullable!.classReference ==
-            cls.reference);
-        assert(arguments.isEmpty);
-        return aliasedTypeWithBuiltArgumentsCacheNonNullable!;
-      } else if (aliasedTypeWithBuiltArgumentsCacheNullable != null &&
-          nullability == Nullability.nullable) {
-        assert(aliasedTypeWithBuiltArgumentsCacheNullable!.classReference ==
-            cls.reference);
-        assert(arguments.isEmpty);
-        return aliasedTypeWithBuiltArgumentsCacheNullable!;
-      }
-      InterfaceType cacheable =
-          type = new InterfaceType(cls, nullability, arguments);
-      if (arguments.isEmpty) {
-        assert(typeVariablesCount == 0);
-        if (nullability == Nullability.nonNullable) {
-          aliasedTypeWithBuiltArgumentsCacheNonNullable = cacheable;
-        } else if (nullability == Nullability.nullable) {
-          aliasedTypeWithBuiltArgumentsCacheNullable = cacheable;
-        }
+    if (arguments.isEmpty) {
+      return rawType(nullability);
+    }
+    if (aliasedTypeWithBuiltArgumentsCacheNonNullable != null &&
+        nullability == Nullability.nonNullable) {
+      assert(aliasedTypeWithBuiltArgumentsCacheNonNullable!.classReference ==
+          cls.reference);
+      assert(arguments.isEmpty);
+      return aliasedTypeWithBuiltArgumentsCacheNonNullable!;
+    } else if (aliasedTypeWithBuiltArgumentsCacheNullable != null &&
+        nullability == Nullability.nullable) {
+      assert(aliasedTypeWithBuiltArgumentsCacheNullable!.classReference ==
+          cls.reference);
+      assert(arguments.isEmpty);
+      return aliasedTypeWithBuiltArgumentsCacheNullable!;
+    }
+    InterfaceType type = new InterfaceType(cls, nullability, arguments);
+    if (arguments.isEmpty) {
+      assert(typeVariablesCount == 0);
+      if (nullability == Nullability.nonNullable) {
+        aliasedTypeWithBuiltArgumentsCacheNonNullable = type;
+      } else if (nullability == Nullability.nullable) {
+        aliasedTypeWithBuiltArgumentsCacheNullable = type;
       }
     }
 

@@ -251,6 +251,38 @@ class DirectoryTest {
     });
   }
 
+  static void testExistsCreateDeleteWithTrailingBackslashSync() {
+    // Check that adding trailing backslash does not break anything on
+    // Windows.
+    if (!Platform.isWindows) {
+      return;
+    }
+    Directory d = Directory.systemTemp.createTempSync('dart_directory_test');
+    try {
+      Directory d2 = new Directory('${d.path}\\');
+      Expect.isTrue(d.existsSync());
+      Expect.isTrue(d2.existsSync());
+      Directory created1 = new Directory("${d.path}\\subdir\\");
+      Directory created2 = new Directory("${d.path}\\subdir\\subdir\\");
+      created1.createSync();
+      created2.createSync();
+      Expect.isTrue(created1.existsSync());
+      Expect.isTrue(created2.existsSync());
+      created2.deleteSync();
+      created1.deleteSync();
+      Expect.isFalse(created1.existsSync());
+      Expect.isFalse(created2.existsSync());
+      created1.createSync();
+      created2.createSync();
+      created1.deleteSync(recursive: true);
+      Expect.isFalse(created1.existsSync());
+      Expect.isFalse(created2.existsSync());
+    } finally {
+      d.deleteSync(recursive: true);
+      Expect.isFalse(d.existsSync());
+    }
+  }
+
   static void testExistsCreateDeleteSync() {
     Directory d = Directory.systemTemp.createTempSync('dart_directory_test');
     Directory d2 = new Directory('${d.path}/');
@@ -437,6 +469,7 @@ class DirectoryTest {
     testDeleteTooLongNameSync();
     testExistsCreateDelete();
     testExistsCreateDeleteSync();
+    testExistsCreateDeleteWithTrailingBackslashSync();
     testDeleteLinkSync();
     testDeleteLinkAsFileSync();
     testDeleteBrokenLinkAsFileSync();
