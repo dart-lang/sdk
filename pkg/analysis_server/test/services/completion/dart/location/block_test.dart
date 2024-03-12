@@ -829,6 +829,29 @@ suggestions
 ''');
   }
 
+  Future<void> test_afterLeftBrace_beforeRightBrace_withAssignment() async {
+    allowedIdentifiers = {'foo'};
+    newFile('$testPackageLibPath/a.dart', '''
+int? foo(int? value) => value;
+''');
+    await computeSuggestions('''
+import 'a.dart';
+
+void f() {
+  var total = f^();
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  false
+    kind: keyword
+  foo
+    kind: functionInvocation
+''');
+  }
+
   Future<void> test_afterLeftBrace_beforeRightBrace_withAsync() async {
     await computeSuggestions('''
 void f() async {^}
@@ -936,6 +959,29 @@ suggestions
   aa0
     kind: functionInvocation
   aa1234
+    kind: functionInvocation
+''');
+  }
+
+  Future<void> test_afterLeftBrace_beforeRightBrace_withRecordLiteral() async {
+    allowedIdentifiers = {'foo'};
+    newFile('$testPackageLibPath/a.dart', '''
+int? foo(int? value) => value;
+''');
+    await computeSuggestions('''
+import 'a.dart';
+
+void f() {
+  var record = ('test', f^());
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  false
+    kind: keyword
+  foo
     kind: functionInvocation
 ''');
   }
