@@ -22,6 +22,6 @@ class RejectMessageHandler extends SharedMessageHandler<Object?, void> {
   @override
   ErrorOr<void> handle(
       Object? params, MessageInfo message, CancellationToken token) {
-    return error(errorCode, errorMessage, null);
+    return error(errorCode, errorMessage);
   }
 }

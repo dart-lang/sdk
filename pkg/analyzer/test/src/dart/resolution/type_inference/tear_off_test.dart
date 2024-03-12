@@ -162,7 +162,7 @@ MethodInvocation
       IntegerLiteral
         literal: 0
         parameter: ParameterMember
-          base: root::@parameter::x
+          base: self::@function::f::@parameter::x
           substitution: {T: int}
         staticType: int
     rightParenthesis: )

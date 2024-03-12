@@ -363,7 +363,7 @@ f(bool b, C1<int> c1, C2<double> c2) {
     staticElement: self::@function::f::@parameter::c2
     staticType: C2<double>
   parameter: ParameterMember
-    base: root::@parameter::b1
+    base: self::@function::contextB1::@parameter::b1
     substitution: {T: Object?}
   staticType: B1<Object?>
 ''');

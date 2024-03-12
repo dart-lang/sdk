@@ -189,7 +189,6 @@ class CompletionResolveHandler
     return error(
       ErrorCodes.RequestCancelled,
       'Request was cancelled for taking too long or another request being received',
-      null,
     );
   }
 

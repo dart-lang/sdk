@@ -326,7 +326,6 @@ abstract class MessageHandler<P, R, S extends AnalysisServer>
         'Invalid params for ${message.method}:\n'
                 '${reporter.errors.isNotEmpty ? reporter.errors.first : ''}'
             .trim(),
-        null,
       );
     }
 
