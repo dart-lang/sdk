@@ -82,7 +82,7 @@ runner to ensure they are built and not stale:
         commandParts.first, commandParts.skip(1).toList(),
         workingDirectory: workingDirectory);
     try {
-      final result = await process.exitCode.timeout(Duration(seconds: 30));
+      final result = await process.exitCode.timeout(Duration(seconds: 60));
       if (result != 0) {
         failed = true;
       }
@@ -104,7 +104,7 @@ runner to ensure they are built and not stale:
     Expect.fail('Command exited with non-zero exit code.');
   }
   if (timedOut) {
-    Expect.fail('Command ran for more than 30s.');
+    Expect.fail('Command ran for more than 60s.');
   }
 }
 

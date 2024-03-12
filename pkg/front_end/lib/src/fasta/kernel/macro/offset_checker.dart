@@ -59,25 +59,19 @@ class MacroOffsetChecker extends MacroOffsetCheckerHook {
 }
 
 abstract class OffsetVisitor extends FileUriVisitor {
-  final List<Source> _currentSources = [];
+  final List<(Uri, Source?)> _currentSources = [];
   final Map<Uri, Source> _sources;
 
   OffsetVisitor(this._sources);
 
   @override
   void enterFileUri(FileUriNode node) {
-    Source? source = _sources[node.fileUri];
-    if (source != null) {
-      _currentSources.add(source);
-    }
+    _currentSources.add((node.fileUri, _sources[node.fileUri]));
   }
 
   @override
   void exitFileUri(FileUriNode node) {
-    Source? source = _sources[node.fileUri];
-    if (source != null) {
-      _currentSources.removeLast();
-    }
+    _currentSources.removeLast();
   }
 
   @override
@@ -94,7 +88,13 @@ abstract class OffsetVisitor extends FileUriVisitor {
 
   void _collect(TreeNode node) {
     if (_currentSources.isNotEmpty) {
-      Source currentSource = _currentSources.last;
+      var (Uri currentUri, Source? currentSource) = _currentSources.last;
+      if (currentSource == null) {
+        if (isMacroLibraryUri(currentUri)) {
+          throw "Missing source for macro library uri ${currentUri}.";
+        }
+        return;
+      }
       String sourceText = currentSource.text;
       List<OffsetInfo?> offsetInfoList = [];
       for (int offset in node.fileOffsetsIfMultiple ?? [node.fileOffset]) {

@@ -4,7 +4,7 @@
 
 import "dart:_internal" as internal;
 
-import "dart:_internal" show patch, IterableElementError;
+import "dart:_internal" show unsafeCast, patch, IterableElementError;
 
 class _TypeTest<T> {
   bool test(v) => v is T;
@@ -50,7 +50,7 @@ base class _HashMap<K, V> extends MapBase<K, V> implements HashMap<K, V> {
   static const int _INITIAL_CAPACITY = 8;
 
   int _elementCount = 0;
-  var _buckets = List<_HashMapEntry<K, V>?>.filled(_INITIAL_CAPACITY, null);
+  var _buckets = List<_HashMapEntry?>.filled(_INITIAL_CAPACITY, null);
   int _modificationCount = 0;
 
   int get length => _elementCount;
@@ -92,7 +92,7 @@ base class _HashMap<K, V> extends MapBase<K, V> implements HashMap<K, V> {
     var entry = buckets[index];
     while (entry != null) {
       if (hashCode == entry.hashCode && entry.key == key) {
-        return entry.value;
+        return unsafeCast<V>(entry.value);
       }
       entry = entry.next;
     }
@@ -123,7 +123,7 @@ base class _HashMap<K, V> extends MapBase<K, V> implements HashMap<K, V> {
     var entry = buckets[index];
     while (entry != null) {
       if (hashCode == entry.hashCode && entry.key == key) {
-        return entry.value;
+        return unsafeCast<V>(entry.value);
       }
       entry = entry.next;
     }
@@ -150,7 +150,7 @@ base class _HashMap<K, V> extends MapBase<K, V> implements HashMap<K, V> {
     for (int i = 0; i < length; i++) {
       var entry = buckets[i];
       while (entry != null) {
-        action(entry.key, entry.value);
+        action(unsafeCast<K>(entry.key), unsafeCast<V>(entry.value));
         if (stamp != _modificationCount) {
           throw new ConcurrentModificationError(this);
         }
@@ -164,7 +164,7 @@ base class _HashMap<K, V> extends MapBase<K, V> implements HashMap<K, V> {
     final buckets = _buckets;
     final index = hashCode & (buckets.length - 1);
     var entry = buckets[index];
-    _HashMapEntry<K, V>? previous = null;
+    _HashMapEntry? previous = null;
     while (entry != null) {
       final next = entry.next;
       if (hashCode == entry.hashCode && entry.key == key) {
@@ -172,7 +172,7 @@ base class _HashMap<K, V> extends MapBase<K, V> implements HashMap<K, V> {
         _elementCount--;
         _modificationCount =
             (_modificationCount + 1) & _MODIFICATION_COUNT_MASK;
-        return entry.value;
+        return unsafeCast<V>(entry.value);
       }
       previous = entry;
       entry = next;
@@ -188,8 +188,8 @@ base class _HashMap<K, V> extends MapBase<K, V> implements HashMap<K, V> {
     }
   }
 
-  void _removeEntry(_HashMapEntry<K, V> entry,
-      _HashMapEntry<K, V>? previousInBucket, int bucketIndex) {
+  void _removeEntry(
+      _HashMapEntry entry, _HashMapEntry? previousInBucket, int bucketIndex) {
     if (previousInBucket == null) {
       _buckets[bucketIndex] = entry.next;
     } else {
@@ -197,9 +197,9 @@ base class _HashMap<K, V> extends MapBase<K, V> implements HashMap<K, V> {
     }
   }
 
-  void _addEntry(List<_HashMapEntry<K, V>?> buckets, int index, int length,
-      K key, V value, int hashCode) {
-    final entry = new _HashMapEntry<K, V>(key, value, hashCode, buckets[index]);
+  void _addEntry(List<_HashMapEntry?> buckets, int index, int length, K key,
+      V value, int hashCode) {
+    final entry = new _HashMapEntry(key, value, hashCode, buckets[index]);
     buckets[index] = entry;
     final newElements = _elementCount + 1;
     _elementCount = newElements;
@@ -213,7 +213,7 @@ base class _HashMap<K, V> extends MapBase<K, V> implements HashMap<K, V> {
     final oldBuckets = _buckets;
     final oldLength = oldBuckets.length;
     final newLength = oldLength << 1;
-    final newBuckets = new List<_HashMapEntry<K, V>?>.filled(newLength, null);
+    final newBuckets = new List<_HashMapEntry?>.filled(newLength, null);
     for (int i = 0; i < oldLength; i++) {
       var entry = oldBuckets[i];
       while (entry != null) {
@@ -237,7 +237,7 @@ base class _HashMap<K, V> extends MapBase<K, V> implements HashMap<K, V> {
     var entry = buckets[index];
     while (entry != null) {
       if (hashCode == entry.hashCode && entry.key == key) {
-        return entry.value = update(entry.value);
+        return entry.value = update(unsafeCast<V>(entry.value));
       }
       entry = entry.next;
     }
@@ -268,7 +268,10 @@ base class _CustomHashMap<K, V> extends _HashMap<K, V> {
     final index = hashCode & (buckets.length - 1);
     var entry = buckets[index];
     while (entry != null) {
-      if (hashCode == entry.hashCode && _equals(entry.key, lkey)) return true;
+      if (hashCode == entry.hashCode &&
+          _equals(unsafeCast<K>(entry.key), unsafeCast<K>(lkey))) {
+        return true;
+      }
       entry = entry.next;
     }
     return false;
@@ -282,8 +285,9 @@ base class _CustomHashMap<K, V> extends _HashMap<K, V> {
     final index = hashCode & (buckets.length - 1);
     var entry = buckets[index];
     while (entry != null) {
-      if (hashCode == entry.hashCode && _equals(entry.key, lkey)) {
-        return entry.value;
+      if (hashCode == entry.hashCode &&
+          _equals(unsafeCast<K>(entry.key), unsafeCast<K>(lkey))) {
+        return unsafeCast<V>(entry.value);
       }
       entry = entry.next;
     }
@@ -297,7 +301,8 @@ base class _CustomHashMap<K, V> extends _HashMap<K, V> {
     final index = hashCode & (length - 1);
     var entry = buckets[index];
     while (entry != null) {
-      if (hashCode == entry.hashCode && _equals(entry.key, key)) {
+      if (hashCode == entry.hashCode &&
+          _equals(unsafeCast<K>(entry.key), unsafeCast<K>(key))) {
         entry.value = value;
         return;
       }
@@ -313,8 +318,9 @@ base class _CustomHashMap<K, V> extends _HashMap<K, V> {
     final index = hashCode & (length - 1);
     var entry = buckets[index];
     while (entry != null) {
-      if (hashCode == entry.hashCode && _equals(entry.key, key)) {
-        return entry.value;
+      if (hashCode == entry.hashCode &&
+          _equals(unsafeCast<K>(entry.key), unsafeCast<K>(key))) {
+        return unsafeCast<V>(entry.value);
       }
       entry = entry.next;
     }
@@ -335,15 +341,16 @@ base class _CustomHashMap<K, V> extends _HashMap<K, V> {
     final buckets = _buckets;
     final index = hashCode & (buckets.length - 1);
     var entry = buckets[index];
-    _HashMapEntry<K, V>? previous = null;
+    _HashMapEntry? previous = null;
     while (entry != null) {
       final next = entry.next;
-      if (hashCode == entry.hashCode && _equals(entry.key, lkey)) {
+      if (hashCode == entry.hashCode &&
+          _equals(unsafeCast<K>(entry.key), unsafeCast<K>(lkey))) {
         _removeEntry(entry, previous, index);
         _elementCount--;
         _modificationCount =
             (_modificationCount + 1) & _MODIFICATION_COUNT_MASK;
-        return entry.value;
+        return unsafeCast<V>(entry.value);
       }
       previous = entry;
       entry = next;
@@ -374,7 +381,7 @@ base class _IdentityHashMap<K, V> extends _HashMap<K, V> {
     var entry = buckets[index];
     while (entry != null) {
       if (hashCode == entry.hashCode && identical(entry.key, key)) {
-        return entry.value;
+        return unsafeCast<V>(entry.value);
       }
       entry = entry.next;
     }
@@ -405,7 +412,7 @@ base class _IdentityHashMap<K, V> extends _HashMap<K, V> {
     var entry = buckets[index];
     while (entry != null) {
       if (hashCode == entry.hashCode && identical(entry.key, key)) {
-        return entry.value;
+        return unsafeCast<V>(entry.value);
       }
       entry = entry.next;
     }
@@ -424,7 +431,7 @@ base class _IdentityHashMap<K, V> extends _HashMap<K, V> {
     final buckets = _buckets;
     final index = hashCode & (buckets.length - 1);
     var entry = buckets[index];
-    _HashMapEntry<K, V>? previous = null;
+    _HashMapEntry? previous = null;
     while (entry != null) {
       final next = entry.next;
       if (hashCode == entry.hashCode && identical(entry.key, key)) {
@@ -432,7 +439,7 @@ base class _IdentityHashMap<K, V> extends _HashMap<K, V> {
         _elementCount--;
         _modificationCount =
             (_modificationCount + 1) & _MODIFICATION_COUNT_MASK;
-        return entry.value;
+        return unsafeCast<V>(entry.value);
       }
       previous = entry;
       entry = next;
@@ -449,7 +456,7 @@ base class _IdentityHashMap<K, V> extends _HashMap<K, V> {
     var entry = buckets[index];
     while (entry != null) {
       if (hashCode == entry.hashCode && identical(entry.key, key)) {
-        return entry.value = update(entry.value);
+        return entry.value = update(unsafeCast<V>(entry.value));
       }
       entry = entry.next;
     }
@@ -465,11 +472,11 @@ base class _IdentityHashMap<K, V> extends _HashMap<K, V> {
   Set<K> _newKeySet() => new _IdentityHashSet<K>();
 }
 
-class _HashMapEntry<K, V> {
-  final K key;
-  V value;
+class _HashMapEntry {
+  final Object? key;
+  Object? value;
   final int hashCode;
-  _HashMapEntry<K, V>? next;
+  _HashMapEntry? next;
   _HashMapEntry(this.key, this.value, this.hashCode, this.next);
 }
 
@@ -511,7 +518,7 @@ abstract class _HashMapIterator<K, V, E> implements Iterator<E> {
   final int _stamp;
 
   int _index = 0;
-  _HashMapEntry<K, V>? _entry;
+  _HashMapEntry? _entry;
 
   _HashMapIterator(this._map) : _stamp = _map._modificationCount;
 
@@ -545,12 +552,12 @@ abstract class _HashMapIterator<K, V, E> implements Iterator<E> {
 
 class _HashMapKeyIterator<K, V> extends _HashMapIterator<K, V, K> {
   _HashMapKeyIterator(_HashMap<K, V> map) : super(map);
-  K get current => _entry!.key;
+  K get current => unsafeCast<K>(_entry!.key);
 }
 
 class _HashMapValueIterator<K, V> extends _HashMapIterator<K, V, V> {
   _HashMapValueIterator(_HashMap<K, V> map) : super(map);
-  V get current => _entry!.value;
+  V get current => unsafeCast<V>(_entry!.value);
 }
 
 @patch

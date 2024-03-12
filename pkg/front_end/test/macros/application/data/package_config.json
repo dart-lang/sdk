@@ -6,6 +6,10 @@
       "rootUri": "pkgs/macro/lib/"
     },
     {
+      "name": "example",
+      "rootUri": "pkgs/example/lib/"
+    },
+    {
       "name": "meta",
       "rootUri": "../../../../../meta/",
       "packageUri": "lib/",

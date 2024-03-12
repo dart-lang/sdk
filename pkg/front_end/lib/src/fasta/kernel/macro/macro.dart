@@ -999,9 +999,7 @@ class MacroApplications {
           }
           if (spans.isNotEmpty) {
             reOffsetMaps[intermediateAugmentationUri] = new ReOffset(
-                intermediateAugmentationUri,
-                augmentationImportUri,
-                reOffsetMap);
+                intermediateAugmentationUri, augmentationFileUri, reOffsetMap);
           }
         }
       }
