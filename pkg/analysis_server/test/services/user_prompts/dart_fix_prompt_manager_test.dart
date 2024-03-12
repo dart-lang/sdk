@@ -2,7 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/lsp/client_capabilities.dart';
+import 'package:analysis_server/src/lsp/constants.dart';
+import 'package:analysis_server/src/lsp/handlers/handler_execute_command.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manager.dart';
@@ -12,6 +18,8 @@ import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../lsp/server_abstract.dart';
+
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DartFixPromptTest);
@@ -19,12 +27,54 @@ void main() {
 }
 
 @reflectiveTest
-class DartFixPromptTest with ResourceProviderMixin {
+class DartFixPromptTest
+    with ResourceProviderMixin, ClientCapabilitiesHelperMixin {
   late TestServer server;
   late TestDartFixPromptManager promptManager;
   late UserPromptPreferences preferences;
+
+  /// A helper to sets all conditions required for in-editor prompts to be used.
+  void configureInEditorPromptSupport({
+    bool editorInitializationOption = true,
+    bool applyEditSupport = true,
+    bool changeAnnotationSupport = true,
+  }) {
+    setApplyEditSupport(applyEditSupport);
+    setChangeAnnotationSupport(changeAnnotationSupport);
+    server.lspClientCapabilities = LspClientCapabilities(ClientCapabilities(
+      workspace: workspaceCapabilities,
+      textDocument: textDocumentCapabilities,
+      window: windowCapabilities,
+      experimental: experimentalCapabilities,
+    ));
+
+    // Temporary flag to let editor control this for now.
+    server.initializationOptions = LspInitializationOptions({
+      if (editorInitializationOption) 'useInEditorDartFixPrompt': true,
+    });
+  }
+
+  void expectExternalPrompt() {
+    expect(promptManager.promptsShown, 1);
+    expect(server.lastPromptText, DartFixPromptManager.externalFixPromptText);
+    expect(server.lastPromptActions, [
+      DartFixPromptManager.learnMoreActionText,
+      DartFixPromptManager.doNotShowAgainActionText
+    ]);
+  }
+
+  void expectInEditorPrompt() {
+    expect(promptManager.promptsShown, 1);
+    expect(server.lastPromptText, DartFixPromptManager.inEditorPromptText);
+    expect(server.lastPromptActions, [
+      DartFixPromptManager.previewFixesActionText,
+      DartFixPromptManager.applyFixesActionText,
+      DartFixPromptManager.doNotShowAgainActionText
+    ]);
+  }
+
   void setUp() {
-    final instrumentationService = NoopInstrumentationService();
+    var instrumentationService = NoopInstrumentationService();
     server = TestServer(instrumentationService);
     preferences = UserPromptPreferences(
       resourceProvider,
@@ -140,9 +190,9 @@ class DartFixPromptTest with ResourceProviderMixin {
   Future<void> test_check_returnsFalseIfCancelled() async {
     // Trigger 50 checks at once. Each one should cancel the previous, with only
     // the final one completing.
-    final futures = List.generate(50, (_) => promptManager.performCheck());
+    var futures = List.generate(50, (_) => promptManager.performCheck());
     await pumpEventQueue(times: 5000);
-    final results = await Future.wait(futures);
+    var results = await Future.wait(futures);
 
     // Expect the first 49 to be false, the last to be true.
     expect(results.sublist(0, 49), everyElement(isFalse));
@@ -182,6 +232,74 @@ class DartFixPromptTest with ResourceProviderMixin {
     await pumpEventQueue(times: 5000);
     expect(promptManager.promptsShown, 0);
   }
+
+  Future<void> test_promptKind_external_noApplyEdit() async {
+    configureInEditorPromptSupport(
+      applyEditSupport: false,
+    );
+
+    promptManager.triggerCheck();
+    await pumpEventQueue(times: 5000);
+    expectExternalPrompt();
+  }
+
+  Future<void> test_promptKind_external_noChangeAnnotations() async {
+    configureInEditorPromptSupport(
+      changeAnnotationSupport: false,
+    );
+
+    promptManager.triggerCheck();
+    await pumpEventQueue(times: 5000);
+    expectExternalPrompt();
+  }
+
+  Future<void> test_promptKind_external_noClientFlag() async {
+    configureInEditorPromptSupport(
+      editorInitializationOption: false,
+    );
+
+    promptManager.triggerCheck();
+    await pumpEventQueue(times: 5000);
+    expectExternalPrompt();
+  }
+
+  Future<void> test_promptKind_external_opensUri() async {
+    server.respondToPromptWithAction = DartFixPromptManager.learnMoreActionText;
+    promptManager.triggerCheck();
+    await pumpEventQueue(times: 5000);
+    expect(promptManager.promptsShown, 1);
+    expect(server.lastOpenedUri, DartFixPromptManager.learnMoreUri);
+  }
+
+  Future<void> test_promptKind_inEditor() async {
+    configureInEditorPromptSupport();
+
+    promptManager.triggerCheck();
+    await pumpEventQueue(times: 5000);
+    expectInEditorPrompt();
+  }
+
+  Future<void> test_promptKind_inEditor_triggersCommand_apply() async {
+    configureInEditorPromptSupport();
+    server.respondToPromptWithAction =
+        DartFixPromptManager.applyFixesActionText;
+
+    promptManager.triggerCheck();
+    await pumpEventQueue(times: 5000);
+    expect(promptManager.promptsShown, 1);
+    expect(server.lastCommandParams.command, Commands.fixAllInWorkspace);
+  }
+
+  Future<void> test_promptKind_inEditor_triggersCommand_preview() async {
+    configureInEditorPromptSupport();
+    server.respondToPromptWithAction =
+        DartFixPromptManager.previewFixesActionText;
+
+    promptManager.triggerCheck();
+    await pumpEventQueue(times: 5000);
+    expect(promptManager.promptsShown, 1);
+    expect(server.lastCommandParams.command, Commands.previewFixAllInWorkspace);
+  }
 }
 
 class TestDartFixPromptManager extends DartFixPromptManager {
@@ -214,6 +332,20 @@ class TestDartFixPromptManager extends DartFixPromptManager {
   }
 }
 
+class TestExecuteCommandHandler implements ExecuteCommandHandler {
+  ExecuteCommandParams? lastParams;
+
+  @override
+  Future<ErrorOr<Object?>> handle(ExecuteCommandParams params,
+      MessageInfo message, CancellationToken token) async {
+    lastParams = params;
+    return success(null);
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 class TestServer implements LspAnalysisServer {
   @override
   final InstrumentationService instrumentationService;
@@ -222,13 +354,42 @@ class TestServer implements LspAnalysisServer {
   bool supportsShowMessageRequest = true;
 
   @override
-  OpenUriNotificationSender? openUriNotificationSender = (_) async {};
+  late OpenUriNotificationSender? openUriNotificationSender = (uri) async {
+    lastOpenedUri = uri;
+  };
+
+  @override
+  ExecuteCommandHandler? executeCommandHandler = TestExecuteCommandHandler();
+
+  Uri? lastOpenedUri;
+
+  String? lastPromptText;
+
+  List<String>? lastPromptActions;
+
+  @override
+  LspClientCapabilities lspClientCapabilities =
+      LspClientCapabilities(ClientCapabilities());
+
+  @override
+  LspInitializationOptions? initializationOptions;
+
+  String? respondToPromptWithAction;
 
   TestServer(this.instrumentationService);
 
+  ExecuteCommandParams get lastCommandParams =>
+      (executeCommandHandler as TestExecuteCommandHandler).lastParams!;
+
   @override
-  UserPromptSender? get userPromptSender =>
-      supportsShowMessageRequest ? (_, __, ___) async => null : null;
+  UserPromptSender? get userPromptSender => supportsShowMessageRequest
+      ? (_, promptText, promptActions) async {
+          lastPromptText = promptText;
+          lastPromptActions = promptActions;
+          assert(promptActions.contains(respondToPromptWithAction));
+          return respondToPromptWithAction;
+        }
+      : null;
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

@@ -59,10 +59,8 @@ class FailureStateMessageHandler extends ServerStateMessageHandler {
 
   @override
   FutureOr<ErrorOr<Object?>> handleUnknownMessage(IncomingMessage message) {
-    return error(
-        ErrorCodes.InternalError,
-        'An unrecoverable error occurred and the server cannot process messages',
-        null);
+    return error(ErrorCodes.InternalError,
+        'An unrecoverable error occurred and the server cannot process messages');
   }
 }
 

@@ -64,7 +64,7 @@ class PrepareRenameHandler extends LspMessageHandler<TextDocumentPositionParams,
       final initStatus = await refactoring.checkInitialConditions();
       if (initStatus.hasFatalError) {
         return error(
-            ServerErrorCodes.RenameNotValid, initStatus.problem!.message, null);
+            ServerErrorCodes.RenameNotValid, initStatus.problem!.message);
       }
 
       return success(TextDocumentPrepareRenameResult.t1(PlaceholderAndRange(
@@ -155,15 +155,15 @@ class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?>
       }
       if (initStatus.hasFatalError) {
         return error(
-            ServerErrorCodes.RenameNotValid, initStatus.problem!.message, null);
+            ServerErrorCodes.RenameNotValid, initStatus.problem!.message);
       }
 
       // Check the name is valid.
       refactoring.newName = params.newName;
       final optionsStatus = refactoring.checkNewName();
       if (optionsStatus.hasError) {
-        return error(ServerErrorCodes.RenameNotValid,
-            optionsStatus.problem!.message, null);
+        return error(
+            ServerErrorCodes.RenameNotValid, optionsStatus.problem!.message);
       }
 
       // Final validation.
@@ -172,8 +172,8 @@ class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?>
         return cancelled();
       }
       if (finalStatus.hasFatalError) {
-        return error(ServerErrorCodes.RenameNotValid,
-            finalStatus.problem!.message, null);
+        return error(
+            ServerErrorCodes.RenameNotValid, finalStatus.problem!.message);
       } else if (finalStatus.hasError || finalStatus.hasWarning) {
         final prompt = server.userPromptSender;
 

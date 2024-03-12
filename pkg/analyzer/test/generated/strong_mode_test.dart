@@ -1295,13 +1295,13 @@ MethodInvocation
       IntegerLiteral
         literal: 1
         parameter: ParameterMember
-          base: root::@parameter::x
+          base: self::@function::max::@parameter::x
           substitution: {T: Never}
         staticType: int
       IntegerLiteral
         literal: 2
         parameter: ParameterMember
-          base: root::@parameter::y
+          base: self::@function::max::@parameter::y
           substitution: {T: Never}
         staticType: int
     rightParenthesis: )
@@ -1441,21 +1441,21 @@ Block
             SimpleIdentifier
               token: list
               parameter: ParameterMember
-                base: root::@parameter::list
+                base: self::@function::_mergeSort::@parameter::list
                 substitution: {T: T}
               staticElement: self::@function::_mergeSort::@parameter::list
               staticType: T Function(T)
             SimpleIdentifier
               token: compare
               parameter: ParameterMember
-                base: root::@parameter::compare
+                base: self::@function::_mergeSort::@parameter::compare
                 substitution: {T: T}
               staticElement: self::@function::_mergeSort::@parameter::compare
               staticType: int Function(T, T)
             SimpleIdentifier
               token: target
               parameter: ParameterMember
-                base: root::@parameter::target
+                base: self::@function::_mergeSort::@parameter::target
                 substitution: {T: T}
               staticElement: self::@function::_mergeSort::@parameter::target
               staticType: T Function(T)
@@ -1477,21 +1477,21 @@ Block
             SimpleIdentifier
               token: list
               parameter: ParameterMember
-                base: root::@parameter::list
+                base: self::@function::_mergeSort::@parameter::list
                 substitution: {T: T}
               staticElement: self::@function::_mergeSort::@parameter::list
               staticType: T Function(T)
             SimpleIdentifier
               token: compare
               parameter: ParameterMember
-                base: root::@parameter::compare
+                base: self::@function::_mergeSort::@parameter::compare
                 substitution: {T: T}
               staticElement: self::@function::_mergeSort::@parameter::compare
               staticType: int Function(T, T)
             SimpleIdentifier
               token: list
               parameter: ParameterMember
-                base: root::@parameter::target
+                base: self::@function::_mergeSort::@parameter::target
                 substitution: {T: T}
               staticElement: self::@function::_mergeSort::@parameter::list
               staticType: T Function(T)
@@ -1513,21 +1513,21 @@ Block
             SimpleIdentifier
               token: target
               parameter: ParameterMember
-                base: root::@parameter::list
+                base: self::@function::_mergeSort::@parameter::list
                 substitution: {T: T}
               staticElement: self::@function::_mergeSort::@parameter::target
               staticType: T Function(T)
             SimpleIdentifier
               token: compare
               parameter: ParameterMember
-                base: root::@parameter::compare
+                base: self::@function::_mergeSort::@parameter::compare
                 substitution: {T: T}
               staticElement: self::@function::_mergeSort::@parameter::compare
               staticType: int Function(T, T)
             SimpleIdentifier
               token: target
               parameter: ParameterMember
-                base: root::@parameter::target
+                base: self::@function::_mergeSort::@parameter::target
                 substitution: {T: T}
               staticElement: self::@function::_mergeSort::@parameter::target
               staticType: T Function(T)
@@ -1549,21 +1549,21 @@ Block
             SimpleIdentifier
               token: target
               parameter: ParameterMember
-                base: root::@parameter::list
+                base: self::@function::_mergeSort::@parameter::list
                 substitution: {T: T}
               staticElement: self::@function::_mergeSort::@parameter::target
               staticType: T Function(T)
             SimpleIdentifier
               token: compare
               parameter: ParameterMember
-                base: root::@parameter::compare
+                base: self::@function::_mergeSort::@parameter::compare
                 substitution: {T: T}
               staticElement: self::@function::_mergeSort::@parameter::compare
               staticType: int Function(T, T)
             SimpleIdentifier
               token: list
               parameter: ParameterMember
-                base: root::@parameter::target
+                base: self::@function::_mergeSort::@parameter::target
                 substitution: {T: T}
               staticElement: self::@function::_mergeSort::@parameter::list
               staticType: T Function(T)
@@ -1610,21 +1610,21 @@ Block
             SimpleIdentifier
               token: list
               parameter: ParameterMember
-                base: root::@parameter::list
+                base: self::@function::_mergeSort::@parameter::list
                 substitution: {T: T}
               staticElement: self::@function::_mergeSort::@parameter::list
               staticType: List<T>
             SimpleIdentifier
               token: compare
               parameter: ParameterMember
-                base: root::@parameter::compare
+                base: self::@function::_mergeSort::@parameter::compare
                 substitution: {T: T}
               staticElement: self::@function::_mergeSort::@parameter::compare
               staticType: int Function(T, T)
             SimpleIdentifier
               token: target
               parameter: ParameterMember
-                base: root::@parameter::target
+                base: self::@function::_mergeSort::@parameter::target
                 substitution: {T: T}
               staticElement: self::@function::_mergeSort::@parameter::target
               staticType: List<T>
@@ -1646,21 +1646,21 @@ Block
             SimpleIdentifier
               token: list
               parameter: ParameterMember
-                base: root::@parameter::list
+                base: self::@function::_mergeSort::@parameter::list
                 substitution: {T: T}
               staticElement: self::@function::_mergeSort::@parameter::list
               staticType: List<T>
             SimpleIdentifier
               token: compare
               parameter: ParameterMember
-                base: root::@parameter::compare
+                base: self::@function::_mergeSort::@parameter::compare
                 substitution: {T: T}
               staticElement: self::@function::_mergeSort::@parameter::compare
               staticType: int Function(T, T)
             SimpleIdentifier
               token: list
               parameter: ParameterMember
-                base: root::@parameter::target
+                base: self::@function::_mergeSort::@parameter::target
                 substitution: {T: T}
               staticElement: self::@function::_mergeSort::@parameter::list
               staticType: List<T>
@@ -1682,21 +1682,21 @@ Block
             SimpleIdentifier
               token: target
               parameter: ParameterMember
-                base: root::@parameter::list
+                base: self::@function::_mergeSort::@parameter::list
                 substitution: {T: T}
               staticElement: self::@function::_mergeSort::@parameter::target
               staticType: List<T>
             SimpleIdentifier
               token: compare
               parameter: ParameterMember
-                base: root::@parameter::compare
+                base: self::@function::_mergeSort::@parameter::compare
                 substitution: {T: T}
               staticElement: self::@function::_mergeSort::@parameter::compare
               staticType: int Function(T, T)
             SimpleIdentifier
               token: target
               parameter: ParameterMember
-                base: root::@parameter::target
+                base: self::@function::_mergeSort::@parameter::target
                 substitution: {T: T}
               staticElement: self::@function::_mergeSort::@parameter::target
               staticType: List<T>
@@ -1718,21 +1718,21 @@ Block
             SimpleIdentifier
               token: target
               parameter: ParameterMember
-                base: root::@parameter::list
+                base: self::@function::_mergeSort::@parameter::list
                 substitution: {T: T}
               staticElement: self::@function::_mergeSort::@parameter::target
               staticType: List<T>
             SimpleIdentifier
               token: compare
               parameter: ParameterMember
-                base: root::@parameter::compare
+                base: self::@function::_mergeSort::@parameter::compare
                 substitution: {T: T}
               staticElement: self::@function::_mergeSort::@parameter::compare
               staticType: int Function(T, T)
             SimpleIdentifier
               token: list
               parameter: ParameterMember
-                base: root::@parameter::target
+                base: self::@function::_mergeSort::@parameter::target
                 substitution: {T: T}
               staticElement: self::@function::_mergeSort::@parameter::list
               staticType: List<T>
@@ -1779,21 +1779,21 @@ Block
             SimpleIdentifier
               token: list
               parameter: ParameterMember
-                base: root::@parameter::list
+                base: self::@function::_mergeSort::@parameter::list
                 substitution: {T: T}
               staticElement: self::@function::_mergeSort::@parameter::list
               staticType: T
             SimpleIdentifier
               token: compare
               parameter: ParameterMember
-                base: root::@parameter::compare
+                base: self::@function::_mergeSort::@parameter::compare
                 substitution: {T: T}
               staticElement: self::@function::_mergeSort::@parameter::compare
               staticType: int Function(T, T)
             SimpleIdentifier
               token: target
               parameter: ParameterMember
-                base: root::@parameter::target
+                base: self::@function::_mergeSort::@parameter::target
                 substitution: {T: T}
               staticElement: self::@function::_mergeSort::@parameter::target
               staticType: T
@@ -1815,21 +1815,21 @@ Block
             SimpleIdentifier
               token: list
               parameter: ParameterMember
-                base: root::@parameter::list
+                base: self::@function::_mergeSort::@parameter::list
                 substitution: {T: T}
               staticElement: self::@function::_mergeSort::@parameter::list
               staticType: T
             SimpleIdentifier
               token: compare
               parameter: ParameterMember
-                base: root::@parameter::compare
+                base: self::@function::_mergeSort::@parameter::compare
                 substitution: {T: T}
               staticElement: self::@function::_mergeSort::@parameter::compare
               staticType: int Function(T, T)
             SimpleIdentifier
               token: list
               parameter: ParameterMember
-                base: root::@parameter::target
+                base: self::@function::_mergeSort::@parameter::target
                 substitution: {T: T}
               staticElement: self::@function::_mergeSort::@parameter::list
               staticType: T
@@ -1851,21 +1851,21 @@ Block
             SimpleIdentifier
               token: target
               parameter: ParameterMember
-                base: root::@parameter::list
+                base: self::@function::_mergeSort::@parameter::list
                 substitution: {T: T}
               staticElement: self::@function::_mergeSort::@parameter::target
               staticType: T
             SimpleIdentifier
               token: compare
               parameter: ParameterMember
-                base: root::@parameter::compare
+                base: self::@function::_mergeSort::@parameter::compare
                 substitution: {T: T}
               staticElement: self::@function::_mergeSort::@parameter::compare
               staticType: int Function(T, T)
             SimpleIdentifier
               token: target
               parameter: ParameterMember
-                base: root::@parameter::target
+                base: self::@function::_mergeSort::@parameter::target
                 substitution: {T: T}
               staticElement: self::@function::_mergeSort::@parameter::target
               staticType: T
@@ -1887,21 +1887,21 @@ Block
             SimpleIdentifier
               token: target
               parameter: ParameterMember
-                base: root::@parameter::list
+                base: self::@function::_mergeSort::@parameter::list
                 substitution: {T: T}
               staticElement: self::@function::_mergeSort::@parameter::target
               staticType: T
             SimpleIdentifier
               token: compare
               parameter: ParameterMember
-                base: root::@parameter::compare
+                base: self::@function::_mergeSort::@parameter::compare
                 substitution: {T: T}
               staticElement: self::@function::_mergeSort::@parameter::compare
               staticType: int Function(T, T)
             SimpleIdentifier
               token: list
               parameter: ParameterMember
-                base: root::@parameter::target
+                base: self::@function::_mergeSort::@parameter::target
                 substitution: {T: T}
               staticElement: self::@function::_mergeSort::@parameter::list
               staticType: T
@@ -1945,7 +1945,7 @@ MethodInvocation
           staticElement: self::@function::g
           staticType: S Function<S>(S)
         parameter: ParameterMember
-          base: root::@parameter::x
+          base: self::@function::f::@parameter::x
           substitution: {T: dynamic}
         staticType: dynamic Function(dynamic)
         typeArgumentTypes
@@ -4766,13 +4766,13 @@ MethodInvocation
       NullLiteral
         literal: null
         parameter: ParameterMember
-          base: root::@parameter::p0
+          base: self::@class::C::@method::m::@parameter::p0
           substitution: {S0: Null, S1: Null}
         staticType: Null
       NullLiteral
         literal: null
         parameter: ParameterMember
-          base: root::@parameter::p1
+          base: self::@class::C::@method::m::@parameter::p1
           substitution: {S0: Null, S1: Null}
         staticType: Null
     rightParenthesis: )
@@ -4841,7 +4841,7 @@ MethodInvocation
       NullLiteral
         literal: null
         parameter: ParameterMember
-          base: root::@parameter::p0
+          base: self::@class::C::@method::m::@parameter::p0
           substitution: {S: Null}
         staticType: Null
     rightParenthesis: )

@@ -40,7 +40,9 @@ class ExecuteCommandHandler
           // Add commands for each of the refactorings.
           for (var entry in RefactoringProcessor.generators.entries)
             entry.key: RefactorCommandHandler(server, entry.key, entry.value),
-        };
+        } {
+    server.executeCommandHandler = this;
+  }
 
   @override
   Method get handlesMessage => Method.workspace_executeCommand;
@@ -55,7 +57,7 @@ class ExecuteCommandHandler
     final handler = commandHandlers[params.command];
     if (handler == null) {
       return error(ServerErrorCodes.UnknownCommand,
-          '${params.command} is not a valid command identifier', null);
+          '${params.command} is not a valid command identifier');
     }
 
     if (!handler.recordsOwnAnalytics) {
