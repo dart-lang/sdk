@@ -1807,6 +1807,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   void visitRecordPattern(RecordPattern node) {
     // `^()` to become object pattern.
     if (offset == node.leftParenthesis.offset) {
+      collector.completionLocation = 'ObjectPattern_type';
       declarationHelper(
         mustBeType: true,
         mustBeNonVoid: true,
@@ -2059,6 +2060,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       // Object pattern `Name^()`
       if (state.selection.coveringNode case NamedType type) {
         if (type.parent case ObjectPattern()) {
+          collector.completionLocation = 'ObjectPattern_type';
           type.accept(this);
           return;
         }
@@ -2685,6 +2687,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     // Object pattern `Name^()`
     if (state.selection.coveringNode case NamedType type) {
       if (type.parent case ObjectPattern()) {
+        collector.completionLocation = 'ObjectPattern_type';
         type.accept(this);
         return;
       }

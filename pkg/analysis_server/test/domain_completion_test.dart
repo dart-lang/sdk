@@ -2153,8 +2153,14 @@ suggestions
 
     var response = await handleSuccessfulRequest(request);
     var result = CompletionGetSuggestions2Result.fromResponse(response);
+
+    // Extract the internal request object.
+    var dartRequest = server.completionState.currentRequest;
+
     return CompletionResponseForTesting(
       requestOffset: completionOffset,
+      requestLocationName: dartRequest?.collectorLocationName,
+      opTypeLocationName: dartRequest?.opType.completionLocation,
       replacementOffset: result.replacementOffset,
       replacementLength: result.replacementLength,
       isIncomplete: result.isIncomplete,
@@ -2197,6 +2203,8 @@ class RequestWithFutureResponse {
     var result = CompletionGetSuggestions2Result.fromResponse(response);
     return CompletionResponseForTesting(
       requestOffset: offset,
+      requestLocationName: null,
+      opTypeLocationName: null,
       replacementOffset: result.replacementOffset,
       replacementLength: result.replacementLength,
       isIncomplete: result.isIncomplete,

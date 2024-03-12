@@ -157,8 +157,13 @@ To accept the current state change the expectation to
 
     await addTestFile(content);
 
+    // Extract the internal request object.
+    var dartRequest = server.completionState.currentRequest;
+
     response = CompletionResponseForTesting(
       requestOffset: driver.completionOffset,
+      requestLocationName: dartRequest?.collectorLocationName,
+      opTypeLocationName: dartRequest?.opType.completionLocation,
       replacementOffset: driver.replacementOffset,
       replacementLength: driver.replacementLength,
       isIncomplete: false, // TODO(scheglov): not correct
