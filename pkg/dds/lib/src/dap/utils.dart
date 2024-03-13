@@ -4,10 +4,12 @@
 
 import 'package:stack_trace/stack_trace.dart' as stack;
 
-/// Returns whether this URI is something that can be resolved to a file
+/// Returns whether this URI is something that can be resolved to a file-like
 /// URI via the VM Service.
 bool isResolvableUri(Uri uri) {
   return !uri.isScheme('file') &&
+      // Custom-scheme versions of file, like `dart-macro+file://`
+      !uri.scheme.endsWith('+file') &&
       !uri.isScheme('http') &&
       !uri.isScheme('https') &&
       // Parsed stack frames may have URIs with no scheme and the text
