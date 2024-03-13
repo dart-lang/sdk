@@ -1,6 +1,7 @@
 # Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
+
 # Flaky failures
 async_generator_breakpoint_test: Pass, Slow # Uses --stacktrace-every=...
 dds_log_history_size_gigantic_test: Pass, Slow # Involves processing lots of logs
@@ -40,6 +41,9 @@ uri_mappings_lookup_test: SkipByDesign # Relies on file paths in the SDK.
 
 [ $compiler == dartk && $runtime == vm && $system == fuchsia ]
 *: Skip # Not yet triaged.
+
+[ $compiler == fasta && $runtime == none ]
+*: ExtraSlow # Attempt to not flake in batch compile mode. See also issue 53672.
 
 [ $mode == debug && $system == windows ]
 dds_log_history_size_gigantic_test: Skip # Too slow: dartbug.com/41825
