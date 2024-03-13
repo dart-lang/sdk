@@ -41,6 +41,9 @@ class SimpleAllocator {
   size_t next_ = 0;
 };
 
+template <typename R, size_t N>
+SimpleAllocator(const R (&)[N]) -> SimpleAllocator<R, N>;
+
 }  // namespace
 
 intptr_t ComputeCallingConvention(
