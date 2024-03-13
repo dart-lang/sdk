@@ -1,23 +1,4 @@
 library test;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/inference/future_then_conditional2.dart:23:49: Error: A value of type 'Object' can't be returned from an async function with return type 'Future<int>'.
-//  - 'Object' is from 'dart:core'.
-//  - 'Future' is from 'dart:async'.
-//     return /*info:DOWN_CAST_COMPOSITE*/ await x ? 2 : new Future<int>.value(3);
-//                                                 ^
-//
-// pkg/front_end/testcases/inference/future_then_conditional2.dart:28:13: Error: A value of type 'Object' can't be returned from a function with return type 'FutureOr<int>'.
-//  - 'Object' is from 'dart:core'.
-//           x ? 2 : new Future<int>.value(3));
-//             ^
-//
-// pkg/front_end/testcases/inference/future_then_conditional2.dart:31:43: Error: A value of type 'Object' can't be returned from a function with return type 'FutureOr<int>'.
-//  - 'Object' is from 'dart:core'.
-//     return /*info:DOWN_CAST_COMPOSITE*/ x ? 2 : new Future<int>.value(3);
-//                                           ^
-//
 import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;
@@ -45,21 +26,11 @@ class MyFuture<T extends core::Object? = dynamic> extends core::Object implement
 static method test(self::MyFuture<core::bool> f) → void {
   asy::Future<core::int> t1 = f.{self::MyFuture::then}<core::int>((core::bool x) → asy::Future<core::int> async /* emittedValueType= core::int */ => x ?{core::int} 2 : await asy::Future::value<core::int>(3)){((core::bool) → FutureOr<core::int>, {onError: core::Function?}) → self::MyFuture<core::int>};
   asy::Future<core::int> t2 = f.{self::MyFuture::then}<core::int>((core::bool x) → asy::Future<core::int> async /* emittedValueType= core::int */ {
-    return invalid-expression "pkg/front_end/testcases/inference/future_then_conditional2.dart:23:49: Error: A value of type 'Object' can't be returned from an async function with return type 'Future<int>'.
- - 'Object' is from 'dart:core'.
- - 'Future' is from 'dart:async'.
-    return /*info:DOWN_CAST_COMPOSITE*/ await x ? 2 : new Future<int>.value(3);
-                                                ^" in (await x /* runtimeCheckType= asy::Future<core::bool> */ ?{core::Object} 2 : asy::Future::value<core::int>(3)) as{TypeError} core::int;
+    return await x /* runtimeCheckType= asy::Future<core::bool> */ ?{FutureOr<core::int>} 2 : asy::Future::value<core::int>(3);
   }){((core::bool) → FutureOr<core::int>, {onError: core::Function?}) → self::MyFuture<core::int>};
-  asy::Future<core::int> t5 = f.{self::MyFuture::then}<core::int>((core::bool x) → FutureOr<core::int> => invalid-expression "pkg/front_end/testcases/inference/future_then_conditional2.dart:28:13: Error: A value of type 'Object' can't be returned from a function with return type 'FutureOr<int>'.
- - 'Object' is from 'dart:core'.
-          x ? 2 : new Future<int>.value(3));
-            ^" in (x ?{core::Object} 2 : asy::Future::value<core::int>(3)) as{TypeError} FutureOr<core::int>){((core::bool) → FutureOr<core::int>, {onError: core::Function?}) → self::MyFuture<core::int>};
+  asy::Future<core::int> t5 = f.{self::MyFuture::then}<core::int>((core::bool x) → FutureOr<core::int> => x ?{FutureOr<core::int>} 2 : asy::Future::value<core::int>(3)){((core::bool) → FutureOr<core::int>, {onError: core::Function?}) → self::MyFuture<core::int>};
   asy::Future<core::int> t6 = f.{self::MyFuture::then}<core::int>((core::bool x) → FutureOr<core::int> {
-    return invalid-expression "pkg/front_end/testcases/inference/future_then_conditional2.dart:31:43: Error: A value of type 'Object' can't be returned from a function with return type 'FutureOr<int>'.
- - 'Object' is from 'dart:core'.
-    return /*info:DOWN_CAST_COMPOSITE*/ x ? 2 : new Future<int>.value(3);
-                                          ^" in (x ?{core::Object} 2 : asy::Future::value<core::int>(3)) as{TypeError} FutureOr<core::int>;
+    return x ?{FutureOr<core::int>} 2 : asy::Future::value<core::int>(3);
   }){((core::bool) → FutureOr<core::int>, {onError: core::Function?}) → self::MyFuture<core::int>};
 }
 static method main() → dynamic {}

@@ -266,6 +266,7 @@ BinaryExpression
 
   test_ifNull_lubUsedEvenIfItDoesNotSatisfyContext() async {
     await assertNoErrorsInCode('''
+// @dart=3.3
 class A {}
 class B1 extends A {}
 class B2 extends A {}

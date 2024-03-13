@@ -2,6 +2,15 @@
 
 ### Language
 
+Dart 3.4 makes improvements to the type analysis of conditional expressions
+(`e1 ? e2 : e3`), if-null expressions (`e1 ?? e2`), if-null assignments
+(`e1 ??= e2`), and switch expressions (`switch (e) { p1 => e1, ... }`). To take
+advantage of these improvements, set your package's
+[SDK constraint][language version] lower bound to 3.4 or greater
+(`sdk: '^3.4.0'`).
+
+[language version]: https://dart.dev/guides/language/evolution
+
 - **Breaking Change** [#54640][]: The pattern context type schema for
   cast patterns has been changed from `Object?` to `_` (the unknown
   type), to align with the specification. This change is not expected
