@@ -1911,24 +1911,13 @@ class DeclarationBuilderFromNode {
     ast.RecordTypeAnnotation node,
     TypeAnnotationLocation location,
   ) {
-    final unitNode = node.thisOrAncestorOfType<ast.CompilationUnit>()!;
-    final unitElement = unitNode.declaredElement!;
-    final macroLibrary = library(unitElement);
-
-    macro.RecordFieldDeclarationImpl buildField(
+    macro.RecordFieldImpl buildField(
       ast.RecordTypeAnnotationField field,
       TypeAnnotationLocation location,
     ) {
       final name = field.name?.lexeme ?? '';
-      return macro.RecordFieldDeclarationImpl(
+      return macro.RecordFieldImpl(
         id: macro.RemoteInstance.uniqueId,
-        identifier: IdentifierImplFromNode(
-          id: macro.RemoteInstance.uniqueId,
-          name: name,
-          getElement: () => null,
-        ),
-        library: macroLibrary,
-        metadata: const [],
         name: name,
         type: _typeAnnotationOrDynamic(field.type, location),
       );

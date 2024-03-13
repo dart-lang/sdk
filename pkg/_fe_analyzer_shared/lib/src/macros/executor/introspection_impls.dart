@@ -90,21 +90,19 @@ class RecordTypeAnnotationImpl extends TypeAnnotationImpl
   @override
   TypeAnnotationCode get code {
     RecordTypeAnnotationCode underlyingType = new RecordTypeAnnotationCode(
-      namedFields: [
-        for (RecordFieldDeclarationImpl field in namedFields) field.code
-      ],
+      namedFields: [for (RecordFieldImpl field in namedFields) field.code],
       positionalFields: [
-        for (RecordFieldDeclarationImpl field in positionalFields) field.code
+        for (RecordFieldImpl field in positionalFields) field.code
       ],
     );
     return isNullable ? underlyingType.asNullable : underlyingType;
   }
 
   @override
-  final List<RecordFieldDeclarationImpl> namedFields;
+  final List<RecordFieldImpl> namedFields;
 
   @override
-  final List<RecordFieldDeclarationImpl> positionalFields;
+  final List<RecordFieldImpl> positionalFields;
 
   @override
   RemoteInstanceKind get kind => RemoteInstanceKind.recordTypeAnnotation;
@@ -121,25 +119,20 @@ class RecordTypeAnnotationImpl extends TypeAnnotationImpl
     super.serializeUncached(serializer);
 
     serializer.startList();
-    for (RecordFieldDeclarationImpl field in namedFields) {
+    for (RecordFieldImpl field in namedFields) {
       field.serialize(serializer);
     }
     serializer.endList();
 
     serializer.startList();
-    for (RecordFieldDeclarationImpl field in positionalFields) {
+    for (RecordFieldImpl field in positionalFields) {
       field.serialize(serializer);
     }
     serializer.endList();
   }
 }
 
-// TODO: Currently the `name` is duplicated (if present) in both the
-// `identifier` and the `name` fields, because for positional fields they will
-// not be the same. We could optimize it to read the name from the `identifier`
-// field for named record fields though.
-class RecordFieldDeclarationImpl extends DeclarationImpl
-    implements RecordFieldDeclaration {
+class RecordFieldImpl extends RemoteInstance implements RecordField {
   @override
   RecordFieldCode get code {
     return new RecordFieldCode(type: type.code, name: name);
@@ -152,16 +145,13 @@ class RecordFieldDeclarationImpl extends DeclarationImpl
   final TypeAnnotationImpl type;
 
   @override
-  RemoteInstanceKind get kind => RemoteInstanceKind.recordFieldDeclaration;
+  RemoteInstanceKind get kind => RemoteInstanceKind.recordField;
 
-  RecordFieldDeclarationImpl({
-    required super.id,
-    required super.identifier,
-    required super.library,
-    required super.metadata,
+  RecordFieldImpl({
+    required int id,
     required this.name,
     required this.type,
-  });
+  }) : super(id);
 
   @override
   void serializeUncached(Serializer serializer) {
