@@ -45,42 +45,6 @@ static bool ShouldPrintInstruction(Instruction* instr) {
   return FLAG_print_redundant_il || !IsRedundant(instr);
 }
 
-const char* RepresentationToCString(Representation rep) {
-  switch (rep) {
-    case kTagged:
-      return "tagged";
-    case kUntagged:
-      return "untagged";
-    case kUnboxedDouble:
-      return "double";
-    case kUnboxedFloat:
-      return "float";
-    case kUnboxedUint8:
-      return "uint8";
-    case kUnboxedUint16:
-      return "uint16";
-    case kUnboxedInt32:
-      return "int32";
-    case kUnboxedUint32:
-      return "uint32";
-    case kUnboxedInt64:
-      return "int64";
-    case kUnboxedFloat32x4:
-      return "float32x4";
-    case kUnboxedInt32x4:
-      return "int32x4";
-    case kUnboxedFloat64x2:
-      return "float64x2";
-    case kPairOfTagged:
-      return "tagged-pair";
-    case kNoRepresentation:
-      return "none";
-    case kNumRepresentations:
-      UNREACHABLE();
-  }
-  return "?";
-}
-
 class IlTestPrinter : public AllStatic {
  public:
   static void PrintGraph(const char* phase, FlowGraph* flow_graph) {
@@ -231,7 +195,7 @@ class IlTestPrinter : public AllStatic {
     }
 
     void WriteAttribute(Representation rep) {
-      writer_->PrintValue(RepresentationToCString(rep));
+      writer_->PrintValue(RepresentationUtils::ToCString(rep));
     }
 
     void WriteAttribute(const Slot* slot) { writer_->PrintValue(slot->Name()); }
@@ -625,7 +589,7 @@ void Definition::PrintTo(BaseTextBuffer* f) const {
   }
 
   if (representation() != kNoRepresentation && representation() != kTagged) {
-    f->Printf(" %s", RepresentationToCString(representation()));
+    f->Printf(" %s", RepresentationUtils::ToCString(representation()));
   } else if (type_ != nullptr) {
     f->AddString(" ");
     type_->PrintTo(f);
@@ -942,7 +906,7 @@ void StoreFieldInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   f->Printf(" . %s = ", slot().Name());
   value()->PrintTo(f);
   if (slot().representation() != kTagged) {
-    f->Printf(" <%s>", RepresentationToCString(slot().representation()));
+    f->Printf(" <%s>", RepresentationUtils::ToCString(slot().representation()));
   }
 
   // Here, we just print the value of the enum field. We would prefer to get
@@ -1293,7 +1257,7 @@ void PhiInstr::PrintTo(BaseTextBuffer* f) const {
   }
 
   if (representation() != kNoRepresentation && representation() != kTagged) {
-    f->Printf(" %s", RepresentationToCString(representation()));
+    f->Printf(" %s", RepresentationUtils::ToCString(representation()));
   }
 
   if (HasType()) {
@@ -1314,15 +1278,16 @@ void UnboxIntegerInstr::PrintOperandsTo(BaseTextBuffer* f) const {
 }
 
 void IntConverterInstr::PrintOperandsTo(BaseTextBuffer* f) const {
-  f->Printf("%s->%s%s, ", RepresentationToCString(from()),
-            RepresentationToCString(to()), is_truncating() ? "[tr]" : "");
+  f->Printf("%s->%s%s, ", RepresentationUtils::ToCString(from()),
+            RepresentationUtils::ToCString(to()),
+            is_truncating() ? "[tr]" : "");
   Definition::PrintOperandsTo(f);
 }
 
 void BitCastInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   Definition::PrintOperandsTo(f);
-  f->Printf(" (%s -> %s)", RepresentationToCString(from()),
-            RepresentationToCString(to()));
+  f->Printf(" (%s -> %s)", RepresentationUtils::ToCString(from()),
+            RepresentationUtils::ToCString(to()));
 }
 
 void ParameterInstr::PrintOperandsTo(BaseTextBuffer* f) const {

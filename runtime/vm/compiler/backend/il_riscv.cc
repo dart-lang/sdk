@@ -761,7 +761,8 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
       int64_t v;
       const bool ok = compiler::HasIntegerValue(value_, &v);
       RELEASE_ASSERT(ok);
-      if (value_.IsSmi() && RepresentationUtils::IsUnsigned(representation())) {
+      if (value_.IsSmi() &&
+          RepresentationUtils::IsUnsignedInteger(representation())) {
         // If the value is negative, then the sign bit was preserved during
         // Smi untagging, which means the resulting value may be unexpected.
         ASSERT(v >= 0);
@@ -2263,8 +2264,8 @@ void LoadCodeUnitsInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
   }
   // Warning: element_address may use register TMP as base.
-  compiler::Address element_address = __ ElementAddressForRegIndexWithSize(
-      IsExternal(), class_id(), sz, index_scale(), /*index_unboxed=*/false, str,
+  compiler::Address element_address = __ ElementAddressForRegIndex(
+      IsExternal(), class_id(), index_scale(), /*index_unboxed=*/false, str,
       index.reg(), TMP);
   switch (sz) {
     case compiler::kUnsignedByte:
@@ -3877,7 +3878,7 @@ void BoxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 LocationSummary* UnboxInstr::MakeLocationSummary(Zone* zone, bool opt) const {
-  ASSERT(!RepresentationUtils::IsUnsigned(representation()));
+  ASSERT(!RepresentationUtils::IsUnsignedInteger(representation()));
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 1;
   const bool is_floating_point =

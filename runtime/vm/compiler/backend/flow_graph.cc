@@ -1996,10 +1996,13 @@ void FlowGraph::InsertConversion(Representation from,
     if (!Boxing::Supports(from) || !Boxing::Supports(to)) {
       if (FLAG_support_il_printer) {
         FATAL("Illegal conversion %s->%s for the use of %s at %s\n",
-              RepresentationToCString(from), RepresentationToCString(to),
+              RepresentationUtils::ToCString(from),
+              RepresentationUtils::ToCString(to),
               use->definition()->ToCString(), use->instruction()->ToCString());
       } else {
-        FATAL("Illegal representation conversion for a use of v%" Pd "\n",
+        FATAL("Illegal conversion %s->%s for a use of v%" Pd "\n",
+              RepresentationUtils::ToCString(from),
+              RepresentationUtils::ToCString(to),
               use->definition()->ssa_temp_index());
       }
     }

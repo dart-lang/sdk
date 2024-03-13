@@ -3747,7 +3747,7 @@ void BoxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 LocationSummary* UnboxInstr::MakeLocationSummary(Zone* zone, bool opt) const {
-  ASSERT(!RepresentationUtils::IsUnsigned(representation()));
+  ASSERT(!RepresentationUtils::IsUnsignedInteger(representation()));
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
   const bool needs_writable_input =

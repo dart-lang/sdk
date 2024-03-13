@@ -3955,7 +3955,9 @@ bool CheckNullInstr::AttributesEqual(const Instruction& other) const {
 
 BoxInstr* BoxInstr::Create(Representation from, Value* value) {
   switch (from) {
+    case kUnboxedInt8:
     case kUnboxedUint8:
+    case kUnboxedInt16:
     case kUnboxedUint16:
 #if defined(HAS_SMI_63_BITS)
     case kUnboxedInt32:
@@ -3963,7 +3965,7 @@ BoxInstr* BoxInstr::Create(Representation from, Value* value) {
 #endif
       return new BoxSmallIntInstr(from, value);
 
-#if defined(TARGET_ARCH_IS_32_BIT) || defined(DART_COMPRESSED_POINTERS)
+#if !defined(HAS_SMI_63_BITS)
     case kUnboxedInt32:
       return new BoxInt32Instr(value);
 
@@ -6812,19 +6814,9 @@ Definition* LoadIndexedInstr::Canonicalize(FlowGraph* flow_graph) {
   return this;
 }
 
-Representation LoadIndexedInstr::RepresentationOfArrayElement(
-    intptr_t array_cid) {
-  switch (array_cid) {
-    case kImmutableArrayCid:
-    case kRecordCid:
-    case kTypeArgumentsCid:
-      return kTagged;
-    case kExternalOneByteStringCid:
-    case kExternalTwoByteStringCid:
-      return kUnboxedIntPtr;
-    default:
-      return StoreIndexedInstr::RepresentationOfArrayElement(array_cid);
-  }
+Representation LoadIndexedInstr::ReturnRepresentation(intptr_t array_cid) {
+  return Boxing::NativeRepresentation(
+      RepresentationUtils::RepresentationOfArrayElement(array_cid));
 }
 
 StoreIndexedInstr::StoreIndexedInstr(Value* array,
@@ -6878,42 +6870,9 @@ Instruction* StoreIndexedInstr::Canonicalize(FlowGraph* flow_graph) {
   return this;
 }
 
-Representation StoreIndexedInstr::RepresentationOfArrayElement(
-    intptr_t array_cid) {
-  switch (array_cid) {
-    case kArrayCid:
-      return kTagged;
-    case kOneByteStringCid:
-    case kTwoByteStringCid:
-    case kTypedDataInt8ArrayCid:
-    case kTypedDataInt16ArrayCid:
-    case kTypedDataUint8ArrayCid:
-    case kTypedDataUint8ClampedArrayCid:
-    case kTypedDataUint16ArrayCid:
-    case kExternalTypedDataUint8ArrayCid:
-    case kExternalTypedDataUint8ClampedArrayCid:
-      return kUnboxedIntPtr;
-    case kTypedDataInt32ArrayCid:
-      return kUnboxedInt32;
-    case kTypedDataUint32ArrayCid:
-      return kUnboxedUint32;
-    case kTypedDataInt64ArrayCid:
-    case kTypedDataUint64ArrayCid:
-      return kUnboxedInt64;
-    case kTypedDataFloat32ArrayCid:
-      return kUnboxedFloat;
-    case kTypedDataFloat64ArrayCid:
-      return kUnboxedDouble;
-    case kTypedDataInt32x4ArrayCid:
-      return kUnboxedInt32x4;
-    case kTypedDataFloat32x4ArrayCid:
-      return kUnboxedFloat32x4;
-    case kTypedDataFloat64x2ArrayCid:
-      return kUnboxedFloat64x2;
-    default:
-      UNREACHABLE();
-      return kTagged;
-  }
+Representation StoreIndexedInstr::ValueRepresentation(intptr_t array_cid) {
+  return Boxing::NativeRepresentation(
+      RepresentationUtils::RepresentationOfArrayElement(array_cid));
 }
 
 Representation StoreIndexedInstr::RequiredInputRepresentation(
@@ -6934,7 +6893,7 @@ Representation StoreIndexedInstr::RequiredInputRepresentation(
     }
   }
   ASSERT(idx == 2);
-  return RepresentationOfArrayElement(class_id());
+  return ValueRepresentation(class_id());
 }
 
 #if defined(TARGET_ARCH_ARM64)
@@ -7477,10 +7436,9 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
                                              target_stack.offset_in_bytes()));
         }
       } else {
-#if defined(INCLUDE_IL_PRINTER)
-        __ Comment("def_target %s <- origin %s %s", def_target.ToCString(),
-                   origin.ToCString(), RepresentationToCString(origin_rep));
-#endif  // defined(INCLUDE_IL_PRINTER)
+        __ Comment("def_target %s <- origin %s %s",
+                   def_target.ToCString(compiler->zone()), origin.ToCString(),
+                   RepresentationUtils::ToCString(origin_rep));
 #ifdef DEBUG
         // Stack arguments split are in word-size chunks. These chunks can copy
         // too much. However, that doesn't matter in practise because we process
@@ -8040,11 +7998,9 @@ void CCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
     } else if (argument_location.IsStack()) {
       const Location src_loc = rebase.Rebase(locs()->in(i));
       const Representation src_rep = RequiredInputRepresentation(i);
-#if defined(INCLUDE_IL_PRINTER)
       __ Comment("Param %" Pd ": %s %s -> %s", i, src_loc.ToCString(),
-                 RepresentationToCString(src_rep),
+                 RepresentationUtils::ToCString(src_rep),
                  argument_location.ToCString());
-#endif
       compiler->EmitMoveToNative(argument_location, src_loc, src_rep,
                                  &temp_alloc);
     } else {
@@ -8237,10 +8193,15 @@ struct SimdOpInfo {
   Representation inputs[4];
 };
 
+static constexpr Representation SimdRepresentation(Representation rep) {
+  // Keep the old semantics where kUnboxedInt8 was a locally created
+  // alias for kUnboxedInt32, and pass everything else through unchanged.
+  return rep == kUnboxedInt8 ? kUnboxedInt32 : rep;
+}
+
 // Make representation from type name used by SIMD_OP_LIST.
-#define REP(T) (kUnboxed##T)
+#define REP(T) (SimdRepresentation(kUnboxed##T))
 static const Representation kUnboxedBool = kTagged;
-static const Representation kUnboxedInt8 = kUnboxedInt32;
 
 #define ENCODE_INPUTS_0()
 #define ENCODE_INPUTS_1(In0) REP(In0)

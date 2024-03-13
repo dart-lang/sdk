@@ -1479,8 +1479,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       }
       // Avoid any unnecessary (and potentially deoptimizing) int
       // conversions by using the representation returned from LoadIndexed.
-      body +=
-          Box(LoadIndexedInstr::RepresentationOfArrayElement(typed_data_cid));
+      body += Box(LoadIndexedInstr::ReturnRepresentation(typed_data_cid));
       if (kind == MethodRecognizer::kFfiLoadPointer) {
         const auto& pointer_class =
             Class::ZoneHandle(Z, IG->object_store()->ffi_pointer_class());
@@ -1555,7 +1554,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
         // Avoid any unnecessary (and potentially deoptimizing) int
         // conversions by using the representation consumed by StoreIndexed.
         body += UnboxTruncate(
-            StoreIndexedInstr::RepresentationOfArrayElement(typed_data_cid));
+            StoreIndexedInstr::ValueRepresentation(typed_data_cid));
         if (kind == MethodRecognizer::kFfiStoreFloat ||
             kind == MethodRecognizer::kFfiStoreFloatUnaligned) {
           body += DoubleToFloat();
@@ -1979,7 +1978,7 @@ Fragment FlowGraphBuilder::BuildTypedListGet(const Function& function,
     body += LoadLocal(arg_offset_in_bytes);
     body += LoadIndexed(view_cid, /*index_scale=*/1,
                         /*index_unboxed=*/false, kUnalignedAccess);
-    body += Box(LoadIndexedInstr::RepresentationOfArrayElement(view_cid));
+    body += Box(LoadIndexedInstr::ReturnRepresentation(view_cid));
   } else {
     const auto& native_function = TypedListGetNativeFunction(thread_, view_cid);
     body += LoadLocal(arg_receiver);
@@ -2031,8 +2030,7 @@ Fragment FlowGraphBuilder::BuildTypedListSet(const Function& function,
     body += LoadLocal(arg_value);
     body +=
         CheckNullOptimized(Symbols::Value(), CheckNullInstr::kArgumentError);
-    body += UnboxTruncate(
-        StoreIndexedInstr::RepresentationOfArrayElement(view_cid));
+    body += UnboxTruncate(StoreIndexedInstr::ValueRepresentation(view_cid));
     body += StoreIndexedTypedData(view_cid, /*index_scale=*/1,
                                   /*index_unboxed=*/false, kUnalignedAccess);
     body += NullConstant();

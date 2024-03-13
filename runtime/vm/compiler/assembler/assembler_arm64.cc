@@ -26,6 +26,22 @@ DEFINE_FLAG(bool, use_far_branches, false, "Always use far branches");
 
 namespace compiler {
 
+OperandSize Address::OperandSizeFor(intptr_t cid) {
+  auto const rep = RepresentationUtils::RepresentationOfArrayElement(cid);
+  switch (rep) {
+    case kUnboxedFloat:
+      return kSWord;
+    case kUnboxedDouble:
+      return kDWord;
+    case kUnboxedInt32x4:
+    case kUnboxedFloat32x4:
+    case kUnboxedFloat64x2:
+      return kQWord;
+    default:
+      return RepresentationUtils::OperandSize(rep);
+  }
+}
+
 Assembler::Assembler(ObjectPoolBuilder* object_pool_builder,
                      intptr_t far_branch_level)
     : AssemblerBase(object_pool_builder),

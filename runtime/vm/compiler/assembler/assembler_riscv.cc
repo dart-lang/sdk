@@ -4573,54 +4573,6 @@ void Assembler::GenerateUnRelocatedPcRelativeTailCall(
   jalr_fixed(ZR, TMP, lo);
 }
 
-static OperandSize OperandSizeFor(intptr_t cid) {
-  switch (cid) {
-    case kArrayCid:
-    case kImmutableArrayCid:
-    case kRecordCid:
-    case kTypeArgumentsCid:
-      return kObjectBytes;
-    case kOneByteStringCid:
-    case kExternalOneByteStringCid:
-      return kByte;
-    case kTwoByteStringCid:
-    case kExternalTwoByteStringCid:
-      return kTwoBytes;
-    case kTypedDataInt8ArrayCid:
-      return kByte;
-    case kTypedDataUint8ArrayCid:
-    case kTypedDataUint8ClampedArrayCid:
-    case kExternalTypedDataUint8ArrayCid:
-    case kExternalTypedDataUint8ClampedArrayCid:
-      return kUnsignedByte;
-    case kTypedDataInt16ArrayCid:
-      return kTwoBytes;
-    case kTypedDataUint16ArrayCid:
-      return kUnsignedTwoBytes;
-    case kTypedDataInt32ArrayCid:
-      return kFourBytes;
-    case kTypedDataUint32ArrayCid:
-      return kUnsignedFourBytes;
-    case kTypedDataInt64ArrayCid:
-    case kTypedDataUint64ArrayCid:
-      return kDWord;
-    case kTypedDataFloat32ArrayCid:
-      return kSWord;
-    case kTypedDataFloat64ArrayCid:
-      return kDWord;
-    case kTypedDataFloat32x4ArrayCid:
-    case kTypedDataInt32x4ArrayCid:
-    case kTypedDataFloat64x2ArrayCid:
-      return kQWord;
-    case kTypedDataInt8ArrayViewCid:
-      UNREACHABLE();
-      return kByte;
-    default:
-      UNREACHABLE();
-      return kByte;
-  }
-}
-
 bool Assembler::AddressCanHoldConstantIndex(const Object& constant,
                                             bool is_external,
                                             intptr_t cid,
@@ -4661,19 +4613,6 @@ Address Assembler::ElementAddressForRegIndex(bool is_external,
                                              Register array,
                                              Register index,
                                              Register temp) {
-  return ElementAddressForRegIndexWithSize(is_external, cid,
-                                           OperandSizeFor(cid), index_scale,
-                                           index_unboxed, array, index, temp);
-}
-
-Address Assembler::ElementAddressForRegIndexWithSize(bool is_external,
-                                                     intptr_t cid,
-                                                     OperandSize size,
-                                                     intptr_t index_scale,
-                                                     bool index_unboxed,
-                                                     Register array,
-                                                     Register index,
-                                                     Register temp) {
   // If unboxed, index is expected smi-tagged, (i.e, LSL 1) for all arrays.
   const intptr_t boxing_shift = index_unboxed ? 0 : -kSmiTagShift;
   const intptr_t shift = Utils::ShiftForPowerOfTwo(index_scale) + boxing_shift;

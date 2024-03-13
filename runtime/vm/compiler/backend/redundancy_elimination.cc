@@ -260,7 +260,16 @@ class Place : public ValueObject {
 
       case Instruction::kLoadIndexed: {
         LoadIndexedInstr* load_indexed = instr->AsLoadIndexed();
-        set_representation(load_indexed->representation());
+        // Since the same returned representation is used for arrays with small
+        // elements, use the array element representation instead.
+        //
+        // For example, loads from signed and unsigned byte views of the same
+        // array share the same place if the returned representation is used,
+        // which means a load which sign extends the byte to the native word
+        // size might be replaced with an load that zero extends the byte
+        // instead and vice versa.
+        set_representation(RepresentationUtils::RepresentationOfArrayElement(
+            load_indexed->class_id()));
         instance_ = load_indexed->array()->definition()->OriginalDefinition();
         SetIndex(load_indexed->index()->definition()->OriginalDefinition(),
                  load_indexed->index_scale(), load_indexed->class_id());
@@ -270,8 +279,10 @@ class Place : public ValueObject {
 
       case Instruction::kStoreIndexed: {
         StoreIndexedInstr* store_indexed = instr->AsStoreIndexed();
-        set_representation(store_indexed->RequiredInputRepresentation(
-            StoreIndexedInstr::kValuePos));
+        // Use the array element representation instead of the value
+        // representation for the same reasons as for LoadIndexed above.
+        set_representation(RepresentationUtils::RepresentationOfArrayElement(
+            store_indexed->class_id()));
         instance_ = store_indexed->array()->definition()->OriginalDefinition();
         SetIndex(store_indexed->index()->definition()->OriginalDefinition(),
                  store_indexed->index_scale(), store_indexed->class_id());
