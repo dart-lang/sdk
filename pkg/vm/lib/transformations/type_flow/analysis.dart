@@ -350,7 +350,7 @@ final class _DirectInvocation extends _Invocation {
     assert(areArgumentsValidFor(member));
     Args<Type> args = this.args;
     if (selector.memberAgreesToCallKind(member)) {
-      final closure = typeFlowAnalysis._closureByCallMethod[member];
+      final closure = typeFlowAnalysis.getClosureByCallMethod(member);
       if (closure != null && closure.function == null) {
         // Calling tear-off.
         //
@@ -489,6 +489,7 @@ final class _DispatchableInvocation extends _Invocation {
       if (!_collectTargetsForFunctionCall(
           args.receiver, targets, typeFlowAnalysis)) {
         // No known closure target, approximate function call with static type.
+        _setPolymorphic();
         return selector.staticResultType;
       }
     } else {
@@ -1903,6 +1904,9 @@ class TypeFlowAnalysis
   void adjustFunctionParameters(Member member) {
     _summaries[member]?.adjustFunctionParameters(member);
   }
+
+  Closure? getClosureByCallMethod(Member member) =>
+      _closureByCallMethod[member];
 
   /// ---- Implementation of [CallHandler] interface. ----
 

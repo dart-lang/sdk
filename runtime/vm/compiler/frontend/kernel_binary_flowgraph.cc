@@ -3056,6 +3056,8 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionInvocation(TokenPosition* p) {
   const TokenPosition position = ReadPosition();    // read position.
   if (p != nullptr) *p = position;
 
+  const DirectCallMetadata direct_call =
+      direct_call_metadata_helper_.GetDirectTargetForFunctionInvocation(offset);
   const InferredTypeMetadata result_type =
       inferred_type_metadata_helper_.GetInferredType(offset);
 
@@ -3107,7 +3109,7 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionInvocation(TokenPosition* p) {
       instructions += DebugStepCheck(position);
     }
     instructions +=
-        B->ClosureCall(Function::null_function(), position, type_args_len,
+        B->ClosureCall(direct_call.target_, position, type_args_len,
                        argument_count, argument_names, &result_type);
   } else {
     instructions += InstanceCall(
