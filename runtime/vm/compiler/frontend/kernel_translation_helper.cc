@@ -5,6 +5,7 @@
 #include "vm/compiler/frontend/kernel_translation_helper.h"
 
 #include "vm/class_finalizer.h"
+#include "vm/closure_functions_cache.h"
 #include "vm/compiler/aot/precompiler.h"
 #include "vm/compiler/backend/flow_graph_compiler.h"
 #include "vm/compiler/frontend/constant_reader.h"
@@ -2247,21 +2248,39 @@ void KernelReaderHelper::ReportUnexpectedTag(const char* variant, Tag tag) {
 
 void KernelReaderHelper::ReadUntilFunctionNode() {
   const Tag tag = PeekTag();
-  if (tag == kProcedure) {
-    ProcedureHelper procedure_helper(this);
-    procedure_helper.ReadUntilExcluding(ProcedureHelper::kFunction);
-    // Now at start of FunctionNode.
-  } else if (tag == kConstructor) {
-    ConstructorHelper constructor_helper(this);
-    constructor_helper.ReadUntilExcluding(ConstructorHelper::kFunction);
-    // Now at start of FunctionNode.
-    // Notice that we also have a list of initializers after that!
-  } else if (tag == kFunctionNode) {
-    // Already at start of FunctionNode.
-  } else {
-    ReportUnexpectedTag("a procedure, a constructor or a function node", tag);
-    UNREACHABLE();
+  switch (tag) {
+    case kProcedure: {
+      ProcedureHelper procedure_helper(this);
+      procedure_helper.ReadUntilExcluding(ProcedureHelper::kFunction);
+      // Now at start of FunctionNode.
+      break;
+    }
+    case kConstructor: {
+      ConstructorHelper constructor_helper(this);
+      constructor_helper.ReadUntilExcluding(ConstructorHelper::kFunction);
+      // Now at start of FunctionNode.
+      // Notice that we also have a list of initializers after that!
+      break;
+    }
+    case kFunctionDeclaration:
+      ReadTag();
+      ReadPosition();
+      SkipVariableDeclaration();
+      break;
+    case kFunctionExpression:
+      ReadTag();
+      ReadPosition();
+      break;
+    case kFunctionNode:
+      // Already at start of FunctionNode.
+      break;
+    default:
+      ReportUnexpectedTag(
+          "a procedure, a constructor, a local function or a function node",
+          tag);
+      UNREACHABLE();
   }
+  ASSERT(PeekTag() == kFunctionNode);
 }
 
 void KernelReaderHelper::SkipDartType() {
