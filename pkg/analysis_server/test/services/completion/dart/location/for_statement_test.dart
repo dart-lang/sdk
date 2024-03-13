@@ -50,10 +50,10 @@ void f(List<(int, int)> x01) {
 ''');
     assertResponse(r'''
 suggestions
-  await
-    kind: keyword
   x01
     kind: parameter
+  await
+    kind: keyword
 ''');
   }
 
@@ -146,11 +146,11 @@ void f(Object x) {
 ''');
     assertResponse(r'''
 suggestions
-  dynamic
+  var
     kind: keyword
   final
     kind: keyword
-  var
+  dynamic
     kind: keyword
   void
     kind: keyword
@@ -165,11 +165,11 @@ void f(Object x) {
 ''');
     assertResponse(r'''
 suggestions
-  dynamic
+  var
     kind: keyword
   final
     kind: keyword
-  var
+  dynamic
     kind: keyword
   void
     kind: keyword

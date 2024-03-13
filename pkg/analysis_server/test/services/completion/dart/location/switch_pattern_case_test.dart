@@ -81,8 +81,18 @@ class A01 {}
 ''');
     assertResponse(r'''
 suggestions
+  return
+    kind: keyword
+  if
+    kind: keyword
   A01
     kind: class
+  final
+    kind: keyword
+  for
+    kind: keyword
+  throw
+    kind: keyword
   A01
     kind: constructorInvocation
   assert
@@ -101,21 +111,11 @@ suggestions
     kind: keyword
   false
     kind: keyword
-  final
-    kind: keyword
-  for
-    kind: keyword
-  if
-    kind: keyword
   late
     kind: keyword
   null
     kind: keyword
-  return
-    kind: keyword
   switch
-    kind: keyword
-  throw
     kind: keyword
   true
     kind: keyword
@@ -358,15 +358,15 @@ void f(Object o) {
 ''');
     assertResponse(r'''
 suggestions
-  const
-    kind: keyword
   false
+    kind: keyword
+  true
     kind: keyword
   null
     kind: keyword
-  switch
+  const
     kind: keyword
-  true
+  switch
     kind: keyword
 ''');
   }
@@ -383,15 +383,15 @@ void f(Object o) {
 ''');
     assertResponse(r'''
 suggestions
-  const
-    kind: keyword
   false
+    kind: keyword
+  true
     kind: keyword
   null
     kind: keyword
-  switch
+  const
     kind: keyword
-  true
+  switch
     kind: keyword
 ''');
   }

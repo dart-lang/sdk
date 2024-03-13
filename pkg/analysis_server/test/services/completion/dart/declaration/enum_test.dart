@@ -131,12 +131,12 @@ void f() {
 ''');
     assertResponse(r'''
 suggestions
+  values
+    kind: field
   o0
     kind: enumConstant
   t0
     kind: enumConstant
-  values
-    kind: field
 ''');
   }
 
@@ -152,12 +152,12 @@ void f() {
 ''');
     assertResponse(r'''
 suggestions
+  values
+    kind: field
   o0
     kind: enumConstant
   t0
     kind: enumConstant
-  values
-    kind: field
 ''');
   }
 
@@ -172,14 +172,14 @@ void f() {
 ''');
     assertResponse(r'''
 suggestions
+  values
+    kind: field
+    deprecated: true
   o0
     kind: enumConstant
     deprecated: true
   t0
     kind: enumConstant
-    deprecated: true
-  values
-    kind: field
     deprecated: true
 ''');
   }
@@ -247,12 +247,12 @@ void f() {
 ''');
     assertResponse(r'''
 suggestions
+  values
+    kind: field
   a0
     kind: enumConstant
   c0
     kind: enumConstant
-  values
-    kind: field
 ''');
   }
 
@@ -267,12 +267,12 @@ void f() {
 ''');
     assertResponse(r'''
 suggestions
+  values
+    kind: field
   o0
     kind: enumConstant
   t0
     kind: enumConstant
-  values
-    kind: field
 ''');
   }
 
@@ -287,12 +287,12 @@ void f() {
 ''');
     assertResponse(r'''
 suggestions
+  values
+    kind: field
   o0
     kind: enumConstant
   t0
     kind: enumConstant
-  values
-    kind: field
 ''');
   }
 

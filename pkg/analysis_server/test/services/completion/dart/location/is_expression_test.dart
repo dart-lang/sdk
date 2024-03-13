@@ -22,6 +22,24 @@ void f(Object v01) {
 ''');
     assertResponse(r'''
 suggestions
+  v01
+    kind: parameter
+  return
+    kind: keyword
+  if
+    kind: keyword
+  final
+    kind: keyword
+  var
+    kind: keyword
+  throw
+    kind: keyword
+  for
+    kind: keyword
+  switch
+    kind: keyword
+  try
+    kind: keyword
   assert
     kind: keyword
   const
@@ -32,29 +50,11 @@ suggestions
     kind: keyword
   false
     kind: keyword
-  final
-    kind: keyword
-  for
-    kind: keyword
-  if
-    kind: keyword
   late
     kind: keyword
   null
     kind: keyword
-  return
-    kind: keyword
-  switch
-    kind: keyword
-  throw
-    kind: keyword
   true
-    kind: keyword
-  try
-    kind: keyword
-  v01
-    kind: parameter
-  var
     kind: keyword
   void
     kind: keyword

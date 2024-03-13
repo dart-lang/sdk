@@ -271,16 +271,16 @@ void f() {
 suggestions
   A0
     kind: class
-  A0
-    kind: constructorInvocation
   F0
+    kind: functionInvocation
+  a0
     kind: functionInvocation
   T0
     kind: topLevelVariable
-  a0
-    kind: functionInvocation
   m0
     kind: topLevelVariable
+  A0
+    kind: constructorInvocation
   t0
     kind: typeAlias
   t1
@@ -330,22 +330,22 @@ var m0 = T0;
 suggestions
   A0
     kind: class
-  A0
-    kind: constructorInvocation
   B0
     kind: class
-  B0
-    kind: constructorInvocation
   F0
+    kind: functionInvocation
+  b0
     kind: functionInvocation
   T0
     kind: topLevelVariable
-  b0
-    kind: functionInvocation
   m0
     kind: topLevelVariable
   n0
     kind: topLevelVariable
+  A0
+    kind: constructorInvocation
+  B0
+    kind: constructorInvocation
   t0
     kind: typeAlias
 ''');

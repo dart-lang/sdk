@@ -30,10 +30,10 @@ void f(Object a01) {
 
     assertResponse(r'''
 suggestions
-  a01
-    kind: parameter
   a11
     kind: localVariable
+  a01
+    kind: parameter
 ''');
   }
 
@@ -76,12 +76,12 @@ void f((int, int) a01) {
 
     assertResponse(r'''
 suggestions
-  a01
-    kind: parameter
   a11
     kind: localVariable
   a12
     kind: localVariable
+  a01
+    kind: parameter
 ''');
   }
 
@@ -96,12 +96,12 @@ void f((int, int) a01) {
 replacement
   left: 1
 suggestions
-  a01
-    kind: parameter
   a11
     kind: localVariable
   a12
     kind: localVariable
+  a01
+    kind: parameter
 ''');
   }
 
@@ -114,12 +114,12 @@ void f((int, int) a01) {
 
     assertResponse(r'''
 suggestions
-  a01
-    kind: parameter
   a11
     kind: localVariable
   a12
     kind: localVariable
+  a01
+    kind: parameter
 ''');
   }
 
@@ -134,12 +134,12 @@ void f((int, int) a01) {
 replacement
   left: 1
 suggestions
-  a01
-    kind: parameter
   a11
     kind: localVariable
   a12
     kind: localVariable
+  a01
+    kind: parameter
 ''');
   }
 
@@ -182,12 +182,12 @@ void f((int, int) a01) {
 
     assertResponse(r'''
 suggestions
-  a01
-    kind: parameter
   a11
     kind: localVariable
   a12
     kind: localVariable
+  a01
+    kind: parameter
 ''');
   }
 
@@ -202,12 +202,12 @@ void f((int, int) a01) {
 replacement
   left: 1
 suggestions
-  a01
-    kind: parameter
   a11
     kind: localVariable
   a12
     kind: localVariable
+  a01
+    kind: parameter
 ''');
   }
 
@@ -220,12 +220,12 @@ void f((int, int) a01) {
 
     assertResponse(r'''
 suggestions
-  a01
-    kind: parameter
   a11
     kind: localVariable
   a12
     kind: localVariable
+  a01
+    kind: parameter
 ''');
   }
 
@@ -240,12 +240,12 @@ void f((int, int) a01) {
 replacement
   left: 1
 suggestions
-  a01
-    kind: parameter
   a11
     kind: localVariable
   a12
     kind: localVariable
+  a01
+    kind: parameter
 ''');
   }
 
@@ -259,14 +259,14 @@ void f(Object a01) {
 
     assertResponse(r'''
 suggestions
-  a01
-    kind: parameter
   a11
     kind: localVariable
   a12
     kind: localVariable
   a13
     kind: localVariable
+  a01
+    kind: parameter
 ''');
   }
 
@@ -280,10 +280,10 @@ void f(Object a01) {
 
     assertResponse(r'''
 suggestions
-  a01
-    kind: parameter
   a11
     kind: localVariable
+  a01
+    kind: parameter
 ''');
   }
 
@@ -299,10 +299,10 @@ void f(Object a01) {
 replacement
   left: 1
 suggestions
-  a01
-    kind: parameter
   a11
     kind: localVariable
+  a01
+    kind: parameter
 ''');
   }
 
@@ -316,12 +316,12 @@ void f(Object a01) {
 
     assertResponse(r'''
 suggestions
-  a01
-    kind: parameter
   a11
     kind: localVariable
   a12
     kind: localVariable
+  a01
+    kind: parameter
 ''');
   }
 
@@ -338,12 +338,12 @@ void f(Object a01) {
 replacement
   left: 1
 suggestions
-  a01
-    kind: parameter
   a11
     kind: localVariable
   a12
     kind: localVariable
+  a01
+    kind: parameter
 ''');
   }
 
@@ -360,10 +360,10 @@ void f(Object a01) {
 
     assertResponse(r'''
 suggestions
-  a01
-    kind: parameter
   a11
     kind: localVariable
+  a01
+    kind: parameter
 ''');
   }
 
@@ -383,10 +383,10 @@ void f(Object a01) {
 replacement
   left: 1
 suggestions
-  a01
-    kind: parameter
   a11
     kind: localVariable
+  a01
+    kind: parameter
 ''');
   }
 
@@ -404,16 +404,16 @@ void f(Object a01) {
 
     assertResponse(r'''
 suggestions
-  a01
-    kind: parameter
-  a11
-    kind: localVariable
-  a12
-    kind: localVariable
   a13
     kind: localVariable
   a14
     kind: localVariable
+  a11
+    kind: localVariable
+  a12
+    kind: localVariable
+  a01
+    kind: parameter
 ''');
   }
 
@@ -433,16 +433,16 @@ void f(Object a01) {
 replacement
   left: 1
 suggestions
-  a01
-    kind: parameter
-  a11
-    kind: localVariable
-  a12
-    kind: localVariable
   a13
     kind: localVariable
   a14
     kind: localVariable
+  a11
+    kind: localVariable
+  a12
+    kind: localVariable
+  a01
+    kind: parameter
 ''');
   }
 
@@ -458,10 +458,10 @@ void f(Object a01) {
 
     assertResponse(r'''
 suggestions
-  a01
-    kind: parameter
   a11
     kind: localVariable
+  a01
+    kind: parameter
 ''');
   }
 
@@ -480,10 +480,10 @@ void f(Object a01) {
 replacement
   left: 1
 suggestions
-  a01
-    kind: parameter
   a11
     kind: localVariable
+  a01
+    kind: parameter
 ''');
   }
 
@@ -499,12 +499,12 @@ void f(Object a01) {
 
     assertResponse(r'''
 suggestions
-  a01
-    kind: parameter
   a11
     kind: localVariable
   a12
     kind: localVariable
+  a01
+    kind: parameter
 ''');
   }
 
@@ -523,12 +523,12 @@ void f(Object a01) {
 replacement
   left: 1
 suggestions
-  a01
-    kind: parameter
   a11
     kind: localVariable
   a12
     kind: localVariable
+  a01
+    kind: parameter
 ''');
   }
 
@@ -542,10 +542,10 @@ void f(Object a01) {
 
     assertResponse(r'''
 suggestions
-  a01
-    kind: parameter
   a11
     kind: localVariable
+  a01
+    kind: parameter
 ''');
   }
 
@@ -561,10 +561,10 @@ void f(Object a01) {
 replacement
   left: 1
 suggestions
-  a01
-    kind: parameter
   a11
     kind: localVariable
+  a01
+    kind: parameter
 ''');
   }
 
@@ -578,12 +578,12 @@ void f(Object a01) {
 
     assertResponse(r'''
 suggestions
-  a01
-    kind: parameter
   a11
     kind: localVariable
   a12
     kind: localVariable
+  a01
+    kind: parameter
 ''');
   }
 
@@ -599,12 +599,12 @@ void f(Object a01) {
 replacement
   left: 1
 suggestions
-  a01
-    kind: parameter
   a11
     kind: localVariable
   a12
     kind: localVariable
+  a01
+    kind: parameter
 ''');
   }
 
@@ -621,10 +621,10 @@ void f(Object a01) {
 
     assertResponse(r'''
 suggestions
-  a01
-    kind: parameter
   a11
     kind: localVariable
+  a01
+    kind: parameter
 ''');
   }
 
@@ -644,10 +644,10 @@ void f(Object a01) {
 replacement
   left: 1
 suggestions
-  a01
-    kind: parameter
   a11
     kind: localVariable
+  a01
+    kind: parameter
 ''');
   }
 
@@ -664,16 +664,16 @@ void f(Object a01) {
 
     assertResponse(r'''
 suggestions
-  a01
-    kind: parameter
-  a11
-    kind: localVariable
-  a12
-    kind: localVariable
   a13
     kind: localVariable
   a14
     kind: localVariable
+  a11
+    kind: localVariable
+  a12
+    kind: localVariable
+  a01
+    kind: parameter
 ''');
   }
 
@@ -693,16 +693,16 @@ void f(Object a01) {
 replacement
   left: 1
 suggestions
-  a01
-    kind: parameter
-  a11
-    kind: localVariable
-  a12
-    kind: localVariable
   a13
     kind: localVariable
   a14
     kind: localVariable
+  a11
+    kind: localVariable
+  a12
+    kind: localVariable
+  a01
+    kind: parameter
 ''');
   }
 
@@ -718,10 +718,10 @@ void f(Object a01) {
 
     assertResponse(r'''
 suggestions
-  a01
-    kind: parameter
   a11
     kind: localVariable
+  a01
+    kind: parameter
 ''');
   }
 
@@ -740,10 +740,10 @@ void f(Object a01) {
 replacement
   left: 1
 suggestions
-  a01
-    kind: parameter
   a11
     kind: localVariable
+  a01
+    kind: parameter
 ''');
   }
 
@@ -759,12 +759,12 @@ void f(Object a01) {
 
     assertResponse(r'''
 suggestions
-  a01
-    kind: parameter
   a11
     kind: localVariable
   a12
     kind: localVariable
+  a01
+    kind: parameter
 ''');
   }
 
@@ -783,12 +783,12 @@ void f(Object a01) {
 replacement
   left: 1
 suggestions
-  a01
-    kind: parameter
   a11
     kind: localVariable
   a12
     kind: localVariable
+  a01
+    kind: parameter
 ''');
   }
 
@@ -802,14 +802,14 @@ void f(Object a01) {
 
     assertResponse(r'''
 suggestions
-  a01
-    kind: parameter
   a11
     kind: localVariable
   a12
     kind: localVariable
   a13
     kind: localVariable
+  a01
+    kind: parameter
 ''');
   }
 
@@ -823,10 +823,10 @@ void f(Object a01) {
 
     assertResponse(r'''
 suggestions
-  a01
-    kind: parameter
   a11
     kind: localVariable
+  a01
+    kind: parameter
 ''');
   }
 
@@ -840,10 +840,10 @@ void f(Object a01) {
 
     assertResponse(r'''
 suggestions
-  a01
-    kind: parameter
   a11
     kind: localVariable
+  a01
+    kind: parameter
 ''');
   }
 
@@ -861,12 +861,12 @@ class C {
 
     assertResponse(r'''
 suggestions
-  a01
-    kind: parameter
   a11
     kind: localVariable
   a12
     kind: localVariable
+  a01
+    kind: parameter
 ''');
   }
 
@@ -880,10 +880,10 @@ void f(Object a01) {
 
     assertResponse(r'''
 suggestions
-  a01
-    kind: parameter
   a11
     kind: localVariable
+  a01
+    kind: parameter
 ''');
   }
 
@@ -897,12 +897,12 @@ void f((int, int) a01) {
 
     assertResponse(r'''
 suggestions
-  a01
-    kind: parameter
   a11
     kind: localVariable
   a12
     kind: localVariable
+  a01
+    kind: parameter
 ''');
   }
 
@@ -918,12 +918,12 @@ void f((int, int) a01) {
 replacement
   left: 1
 suggestions
-  a01
-    kind: parameter
   a11
     kind: localVariable
   a12
     kind: localVariable
+  a01
+    kind: parameter
 ''');
   }
 
@@ -967,12 +967,12 @@ void f((int, int) a01) {
 
     assertResponse(r'''
 suggestions
-  a01
-    kind: parameter
   a11
     kind: localVariable
   a12
     kind: localVariable
+  a01
+    kind: parameter
 ''');
   }
 
@@ -988,12 +988,12 @@ void f((int, int) a01) {
 replacement
   left: 1
 suggestions
-  a01
-    kind: parameter
   a11
     kind: localVariable
   a12
     kind: localVariable
+  a01
+    kind: parameter
 ''');
   }
 
@@ -1074,12 +1074,12 @@ void f((int, int) a01) {
 
     assertResponse(r'''
 suggestions
-  a01
-    kind: parameter
   a11
     kind: localVariable
   a12
     kind: localVariable
+  a01
+    kind: parameter
 ''');
   }
 
@@ -1095,12 +1095,12 @@ void f((int, int) a01) {
 replacement
   left: 1
 suggestions
-  a01
-    kind: parameter
   a11
     kind: localVariable
   a12
     kind: localVariable
+  a01
+    kind: parameter
 ''');
   }
 
@@ -1241,12 +1241,12 @@ void f((int, int) a01) {
 
     assertResponse(r'''
 suggestions
-  a01
-    kind: parameter
   a11
     kind: localVariable
   a12
     kind: localVariable
+  a01
+    kind: parameter
 ''');
   }
 
@@ -1266,12 +1266,12 @@ void f((int, int) a01) {
 replacement
   left: 1
 suggestions
-  a01
-    kind: parameter
   a11
     kind: localVariable
   a12
     kind: localVariable
+  a01
+    kind: parameter
 ''');
   }
 
@@ -1288,12 +1288,12 @@ void f((int, int) a01) {
 
     assertResponse(r'''
 suggestions
-  a01
-    kind: parameter
   a11
     kind: localVariable
   a12
     kind: localVariable
+  a01
+    kind: parameter
 ''');
   }
 
@@ -1313,12 +1313,12 @@ void f((int, int) a01) {
 replacement
   left: 1
 suggestions
-  a01
-    kind: parameter
   a11
     kind: localVariable
   a12
     kind: localVariable
+  a01
+    kind: parameter
 ''');
   }
 
@@ -1334,12 +1334,12 @@ void f((int, int) a01) {
 
     assertResponse(r'''
 suggestions
-  a01
-    kind: parameter
   a11
     kind: localVariable
   a12
     kind: localVariable
+  a01
+    kind: parameter
 ''');
   }
 
@@ -1357,12 +1357,12 @@ void f((int, int) a01) {
 replacement
   left: 1
 suggestions
-  a01
-    kind: parameter
   a11
     kind: localVariable
   a12
     kind: localVariable
+  a01
+    kind: parameter
 ''');
   }
 }

@@ -27,9 +27,9 @@ void m() {
 ''');
     assertResponse(r'''
 suggestions
-  dynamic
-    kind: keyword
   void
+    kind: keyword
+  dynamic
     kind: keyword
 ''');
   }
@@ -40,9 +40,9 @@ void m() {List<^> list;}
 ''');
     assertResponse(r'''
 suggestions
-  dynamic
-    kind: keyword
   void
+    kind: keyword
+  dynamic
     kind: keyword
 ''');
   }
@@ -95,9 +95,9 @@ suggestions
     kind: class
   B01
     kind: class
-  dynamic
-    kind: keyword
   void
+    kind: keyword
+  dynamic
     kind: keyword
 ''');
   }
@@ -122,9 +122,9 @@ suggestions
     kind: class
   B01
     kind: class
-  dynamic
-    kind: keyword
   void
+    kind: keyword
+  dynamic
     kind: keyword
 ''');
   }
@@ -149,9 +149,9 @@ suggestions
     kind: class
   B01
     kind: class
-  dynamic
-    kind: keyword
   void
+    kind: keyword
+  dynamic
     kind: keyword
 ''');
   }
@@ -176,9 +176,9 @@ suggestions
     kind: class
   B01
     kind: class
-  dynamic
-    kind: keyword
   void
+    kind: keyword
+  dynamic
     kind: keyword
 ''');
   }

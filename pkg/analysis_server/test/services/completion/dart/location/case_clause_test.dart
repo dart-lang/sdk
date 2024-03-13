@@ -117,6 +117,16 @@ void f() {switch(1) {case 1:^}}
 ''');
     assertResponse(r'''
 suggestions
+  return
+    kind: keyword
+  if
+    kind: keyword
+  final
+    kind: keyword
+  for
+    kind: keyword
+  throw
+    kind: keyword
   assert
     kind: keyword
   break
@@ -133,21 +143,11 @@ suggestions
     kind: keyword
   false
     kind: keyword
-  final
-    kind: keyword
-  for
-    kind: keyword
-  if
-    kind: keyword
   late
     kind: keyword
   null
     kind: keyword
-  return
-    kind: keyword
   switch
-    kind: keyword
-  throw
     kind: keyword
   true
     kind: keyword
@@ -196,6 +196,16 @@ class A{foo() {switch(1) {case 1:^}}}
 ''');
     assertResponse(r'''
 suggestions
+  return
+    kind: keyword
+  if
+    kind: keyword
+  final
+    kind: keyword
+  for
+    kind: keyword
+  throw
+    kind: keyword
   assert
     kind: keyword
   break
@@ -212,25 +222,15 @@ suggestions
     kind: keyword
   false
     kind: keyword
-  final
-    kind: keyword
-  for
-    kind: keyword
-  if
-    kind: keyword
   late
     kind: keyword
   null
-    kind: keyword
-  return
     kind: keyword
   super
     kind: keyword
   switch
     kind: keyword
   this
-    kind: keyword
-  throw
     kind: keyword
   true
     kind: keyword

@@ -27,13 +27,13 @@ void f() {foo(bar: ^);}
 suggestions
   const
     kind: keyword
+  true
+    kind: keyword
   false
     kind: keyword
   null
     kind: keyword
   switch
-    kind: keyword
-  true
     kind: keyword
 ''');
   }
@@ -68,13 +68,13 @@ void f() {foo(^);}
 suggestions
   const
     kind: keyword
+  true
+    kind: keyword
   false
     kind: keyword
   null
     kind: keyword
   switch
-    kind: keyword
-  true
     kind: keyword
 ''');
   }

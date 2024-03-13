@@ -119,8 +119,6 @@ suggestions
     kind: import
   dart:convert
     kind: import
-  dart:core
-    kind: import
   dart:ffi
     kind: import
   dart:html
@@ -138,6 +136,8 @@ suggestions
   package:test/
     kind: import
   package:test/test.dart
+    kind: import
+  dart:core
     kind: import
 ''');
   }
@@ -158,8 +158,6 @@ suggestions
     kind: import
   dart:convert
     kind: import
-  dart:core
-    kind: import
   dart:ffi
     kind: import
   dart:html
@@ -177,6 +175,8 @@ suggestions
   package:test/
     kind: import
   package:test/test.dart
+    kind: import
+  dart:core
     kind: import
 ''');
   }
@@ -199,8 +199,6 @@ suggestions
     kind: import
   dart:convert
     kind: import
-  dart:core
-    kind: import
   dart:ffi
     kind: import
   dart:html
@@ -218,6 +216,8 @@ suggestions
   package:test/
     kind: import
   package:test/test.dart
+    kind: import
+  dart:core
     kind: import
 ''');
   }
@@ -238,8 +238,6 @@ suggestions
     kind: import
   dart:convert
     kind: import
-  dart:core
-    kind: import
   dart:ffi
     kind: import
   dart:html
@@ -257,6 +255,8 @@ suggestions
   package:test/
     kind: import
   package:test/test.dart
+    kind: import
+  dart:core
     kind: import
 ''');
   }
@@ -277,8 +277,6 @@ suggestions
     kind: import
   dart:convert
     kind: import
-  dart:core
-    kind: import
   dart:ffi
     kind: import
   dart:html
@@ -296,6 +294,8 @@ suggestions
   package:test/
     kind: import
   package:test/test.dart
+    kind: import
+  dart:core
     kind: import
 ''');
   }
@@ -318,8 +318,6 @@ suggestions
     kind: import
   dart:convert
     kind: import
-  dart:core
-    kind: import
   dart:ffi
     kind: import
   dart:html
@@ -337,6 +335,8 @@ suggestions
   package:test/
     kind: import
   package:test/test.dart
+    kind: import
+  dart:core
     kind: import
 ''');
   }
@@ -372,8 +372,6 @@ suggestions
     kind: import
   dart:convert
     kind: import
-  dart:core
-    kind: import
   dart:ffi
     kind: import
   dart:html
@@ -391,6 +389,8 @@ suggestions
   package:test/
     kind: import
   package:test/test.dart
+    kind: import
+  dart:core
     kind: import
 ''');
   }
@@ -413,8 +413,6 @@ suggestions
     kind: import
   dart:convert
     kind: import
-  dart:core
-    kind: import
   dart:ffi
     kind: import
   dart:html
@@ -426,6 +424,8 @@ suggestions
   dart:math
     kind: import
   dart:typed_data
+    kind: import
+  dart:core
     kind: import
 ''');
   }
@@ -448,8 +448,6 @@ suggestions
     kind: import
   dart:convert
     kind: import
-  dart:core
-    kind: import
   dart:ffi
     kind: import
   dart:html
@@ -461,6 +459,8 @@ suggestions
   dart:math
     kind: import
   dart:typed_data
+    kind: import
+  dart:core
     kind: import
 ''');
   }
@@ -486,8 +486,6 @@ suggestions
     kind: import
   dart:convert
     kind: import
-  dart:core
-    kind: import
   dart:ffi
     kind: import
   dart:html
@@ -505,6 +503,8 @@ suggestions
   package:test/
     kind: import
   package:test/test.dart
+    kind: import
+  dart:core
     kind: import
 ''');
   }
@@ -832,8 +832,6 @@ suggestions
     kind: import
   dart:convert
     kind: import
-  dart:core
-    kind: import
   dart:ffi
     kind: import
   dart:html
@@ -851,6 +849,8 @@ suggestions
   package:test/
     kind: import
   package:test/test.dart
+    kind: import
+  dart:core
     kind: import
 ''');
   }
@@ -889,8 +889,6 @@ suggestions
     kind: import
   dart:convert
     kind: import
-  dart:core
-    kind: import
   dart:ffi
     kind: import
   dart:html
@@ -908,6 +906,8 @@ suggestions
   package:test/
     kind: import
   package:test/test.dart
+    kind: import
+  dart:core
     kind: import
 ''');
   }
@@ -930,8 +930,6 @@ suggestions
     kind: import
   dart:convert
     kind: import
-  dart:core
-    kind: import
   dart:ffi
     kind: import
   dart:html
@@ -949,6 +947,8 @@ suggestions
   package:test/
     kind: import
   package:test/test.dart
+    kind: import
+  dart:core
     kind: import
 ''');
   }
@@ -984,8 +984,6 @@ suggestions
     kind: import
   dart:convert
     kind: import
-  dart:core
-    kind: import
   dart:ffi
     kind: import
   dart:html
@@ -997,6 +995,8 @@ suggestions
   dart:math
     kind: import
   dart:typed_data
+    kind: import
+  dart:core
     kind: import
 ''');
   }

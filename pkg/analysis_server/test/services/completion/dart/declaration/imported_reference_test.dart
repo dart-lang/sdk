@@ -84,9 +84,9 @@ void f0() {
     assertResponse(r'''
 suggestions
   B0
-    kind: class
-  B0
     kind: constructorInvocation
+  B0
+    kind: class
   b0
     kind: functionInvocation
   h0
@@ -110,9 +110,9 @@ void f0() {expect(^)}
     assertResponse(r'''
 suggestions
   B0
-    kind: class
-  B0
     kind: constructorInvocation
+  B0
+    kind: class
   b0
     kind: functionInvocation
   h0
@@ -143,10 +143,10 @@ void f0() {
 suggestions
   A0
     kind: class
-  A0
-    kind: constructorInvocation
   B0
     kind: class
+  A0
+    kind: constructorInvocation
   B0
     kind: constructorInvocation
   b0
@@ -179,10 +179,10 @@ void f0() {
 suggestions
   A0
     kind: class
-  A0
-    kind: constructorInvocation
   B0
     kind: class
+  A0
+    kind: constructorInvocation
   B0
     kind: constructorInvocation
   b0
@@ -210,9 +210,9 @@ void f0() {
     assertResponse(r'''
 suggestions
   B0
-    kind: class
-  B0
     kind: constructorInvocation
+  B0
+    kind: class
   b0
     kind: functionInvocation
   h0
@@ -239,9 +239,9 @@ String b0() => true;
     assertResponse(r'''
 suggestions
   B0
-    kind: class
-  B0
     kind: constructorInvocation
+  B0
+    kind: class
   b0
     kind: functionInvocation
   h0
@@ -270,13 +270,13 @@ void f0() {
     assertResponse(r'''
 suggestions
   A0
-    kind: class
+    kind: constructorInvocation
+  B0
+    kind: constructorInvocation
   A0
-    kind: constructorInvocation
-  B0
     kind: class
   B0
-    kind: constructorInvocation
+    kind: class
   b0
     kind: functionInvocation
   h0
@@ -306,13 +306,13 @@ void f0() {
     assertResponse(r'''
 suggestions
   A0
-    kind: class
+    kind: constructorInvocation
+  B0
+    kind: constructorInvocation
   A0
-    kind: constructorInvocation
-  B0
     kind: class
   B0
-    kind: constructorInvocation
+    kind: class
   h0
     kind: functionInvocation
 ''');
@@ -450,16 +450,16 @@ void f0() {
 ''');
     assertResponse(r'''
 suggestions
-  A0
-    kind: class
-  A0
-    kind: constructorInvocation
-  Object
-    kind: class
-  Object
-    kind: constructorInvocation
   a0
     kind: localVariable
+  A0
+    kind: constructorInvocation
+  Object
+    kind: constructorInvocation
+  A0
+    kind: class
+  Object
+    kind: class
 ''');
   }
 
@@ -476,10 +476,10 @@ void f() {
 suggestions
   A0
     kind: class
-  A0
-    kind: constructorInvocation
   int
     kind: class
+  A0
+    kind: constructorInvocation
   int.fromEnvironment
     kind: constructorInvocation
 ''');
@@ -497,16 +497,16 @@ void f0() {
 ''');
     assertResponse(r'''
 suggestions
-  A0
-    kind: class
-  A0
-    kind: constructorInvocation
   a0
     kind: localVariable
-  f0
-    kind: functionInvocation
+  A0
+    kind: class
   int
     kind: class
+  f0
+    kind: functionInvocation
+  A0
+    kind: constructorInvocation
   int.fromEnvironment
     kind: constructorInvocation
 ''');
@@ -561,16 +561,16 @@ void f0() async {
 ''');
     assertResponse(r'''
 suggestions
-  A0
-    kind: class
-  A0
-    kind: constructorInvocation
-  Object
-    kind: class
-  Object
-    kind: constructorInvocation
   a0
     kind: localVariable
+  A0
+    kind: class
+  Object
+    kind: class
+  A0
+    kind: constructorInvocation
+  Object
+    kind: constructorInvocation
 ''');
   }
 
@@ -594,10 +594,10 @@ class B extends A0 {
 suggestions
   Object
     kind: class
-  Object
-    kind: constructorInvocation
   y0
     kind: functionInvocation
+  Object
+    kind: constructorInvocation
 ''');
   }
 
@@ -622,10 +622,10 @@ class B extends A0 {
 suggestions
   A0
     kind: class
-  A0
-    kind: constructorInvocation
   y0
     kind: methodInvocation
+  A0
+    kind: constructorInvocation
 ''');
   }
 
@@ -638,12 +638,12 @@ void f() {
 ''');
     assertResponse(r'''
 suggestions
-  Object
-    kind: class
-  Object
-    kind: constructorInvocation
   a0
     kind: localVariable
+  Object
+    kind: constructorInvocation
+  Object
+    kind: class
 ''');
   }
 
@@ -656,12 +656,12 @@ void f() {
 ''');
     assertResponse(r'''
 suggestions
+  a0
+    kind: localVariable
   Object
     kind: class
   Object
     kind: constructorInvocation
-  a0
-    kind: localVariable
 ''');
   }
 
@@ -738,23 +738,32 @@ class Z0 {}
 ''');
     assertResponse(r'''
 suggestions
+  f0
+    kind: localVariable
+  b1
+    kind: setter
+  c0
+    kind: getter
   A0
     kind: class
-  A0
-    kind: constructorInvocation
   C0
     kind: class
-  C0
-    kind: constructorInvocation
+  E0
+    kind: class
+  X0
+    kind: class
+  Z0
+    kind: class
+  g0.G0
+    kind: class
   D0
     kind: functionInvocation
-  D1
+  l0
     kind: functionInvocation
-    deprecated: true
-  E0
-    kind: class
-  E0
-    kind: constructorInvocation
+  a0
+    kind: methodInvocation
+  b0
+    kind: methodInvocation
   T0
     kind: topLevelVariable
   T1
@@ -763,34 +772,25 @@ suggestions
     kind: getter
   T3
     kind: setter
-  X0
-    kind: class
-  X0
-    kind: constructorInvocation
-  Z0
-    kind: class
-  Z0
-    kind: constructorInvocation
   _T2
     kind: topLevelVariable
-  a0
-    kind: methodInvocation
-  b0
-    kind: methodInvocation
-  b1
-    kind: setter
-  c0
-    kind: getter
-  f0
-    kind: localVariable
+  A0
+    kind: constructorInvocation
+  C0
+    kind: constructorInvocation
+  E0
+    kind: constructorInvocation
+  X0
+    kind: constructorInvocation
+  Z0
+    kind: constructorInvocation
   g0
     kind: library
   g0.G0
-    kind: class
-  g0.G0
     kind: constructorInvocation
-  l0
+  D1
     kind: functionInvocation
+    deprecated: true
 ''');
   }
 
@@ -877,10 +877,10 @@ suggestions
     kind: class
   Z0
     kind: class
-  g0
-    kind: library
   g0.G
     kind: class
+  g0
+    kind: library
 ''');
   }
 
@@ -995,14 +995,14 @@ suggestions
     kind: class
   E0
     kind: class
-  G0
-    kind: class
   X0
     kind: class
   Z0
     kind: class
   g0
     kind: library
+  G0
+    kind: class
 ''');
   }
 
@@ -1091,10 +1091,10 @@ suggestions
     kind: class
   Z0
     kind: class
-  g0
-    kind: library
   g0.G
     kind: class
+  g0
+    kind: library
 ''');
   }
 
@@ -1206,22 +1206,22 @@ class A extends E implements I with M {
 suggestions
   e0
     kind: field
-  e1
-    kind: methodInvocation
+  i0
+    kind: field
+  m0
+    kind: field
   f0
     kind: field
   f1
     kind: getter
   f2
     kind: setter
+  e1
+    kind: methodInvocation
   f3
     kind: methodInvocation
-  i0
-    kind: field
   i1
     kind: methodInvocation
-  m0
-    kind: field
   m2
     kind: methodInvocation
 ''');
@@ -1255,22 +1255,22 @@ class A extends E implements I with M {
 suggestions
   e0
     kind: field
-  e1
-    kind: methodInvocation
+  i0
+    kind: field
+  m0
+    kind: field
   f0
     kind: field
   f1
     kind: getter
   f2
     kind: setter
+  e1
+    kind: methodInvocation
   f3
     kind: methodInvocation
-  i0
-    kind: field
   i1
     kind: methodInvocation
-  m0
-    kind: field
   m1
     kind: methodInvocation
 ''');
@@ -1423,25 +1423,25 @@ class Z {}
 suggestions
   C0
     kind: class
-  C0
-    kind: constructorInvocation
-  D1
-    kind: functionInvocation
-    deprecated: true
   D2
     kind: functionInvocation
-  H0
-    kind: class
-  H0
-    kind: constructorInvocation
   T1
-    kind: topLevelVariable
-  T3
     kind: topLevelVariable
   T5
     kind: topLevelVariable
   _T6
     kind: topLevelVariable
+  C0
+    kind: constructorInvocation
+  H0
+    kind: class
+  T3
+    kind: topLevelVariable
+  H0
+    kind: constructorInvocation
+  D1
+    kind: functionInvocation
+    deprecated: true
 ''');
   }
 
@@ -1558,12 +1558,12 @@ void f() {
 replacement
   left: 2
 suggestions
+  a0
+    kind: localVariable
   A0
     kind: class
   A0
     kind: constructorInvocation
-  a0
-    kind: localVariable
 ''');
   }
 
@@ -1622,14 +1622,14 @@ class A {
 ''');
     assertResponse(r'''
 suggestions
-  Object
-    kind: class
-  Object
-    kind: constructorInvocation
-  a0
-    kind: methodInvocation
   e0
     kind: localVariable
+  Object
+    kind: class
+  a0
+    kind: methodInvocation
+  Object
+    kind: constructorInvocation
 ''');
   }
 
@@ -1648,16 +1648,16 @@ class A {
 ''');
     assertResponse(r'''
 suggestions
-  Object
-    kind: class
-  Object
-    kind: constructorInvocation
-  a0
-    kind: methodInvocation
   e0
     kind: localVariable
   s0
     kind: localVariable
+  Object
+    kind: class
+  a0
+    kind: methodInvocation
+  Object
+    kind: constructorInvocation
 ''');
   }
 
@@ -1707,15 +1707,15 @@ suggestions
   }
     kind: override
     selection: 90 38
+  _B0
+    kind: class
+  x0.B
+    kind: class
   A0
     kind: class
     deprecated: true
-  _B0
-    kind: class
   x0
     kind: library
-  x0.B
-    kind: class
 ''');
   }
 
@@ -1740,6 +1740,8 @@ class A {
 ''');
     assertResponse(r'''
 suggestions
+  b0
+    kind: topLevelVariable
   B0
     kind: constructorInvocation
   B0.named
@@ -1748,8 +1750,6 @@ suggestions
     kind: constructorInvocation
   C0.new
     kind: constructor
-  b0
-    kind: topLevelVariable
 ''');
   }
 
@@ -1771,10 +1771,10 @@ suggestions
     kind: class
   _B0
     kind: class
-  x0
-    kind: library
   x0.B
     kind: class
+  x0
+    kind: library
 ''');
   }
 
@@ -1797,10 +1797,10 @@ suggestions
     kind: class
   _B0
     kind: class
-  x0
-    kind: library
   x0.B
     kind: class
+  x0
+    kind: library
 ''');
   }
 
@@ -1823,12 +1823,12 @@ replacement
 suggestions
   A0
     kind: class
-  S2
-    kind: library
   S2.B
     kind: class
   _B0
     kind: class
+  S2
+    kind: library
 ''');
   }
 
@@ -1851,10 +1851,10 @@ suggestions
     kind: class
   _B0
     kind: class
-  x0
-    kind: library
   x0.B
     kind: class
+  x0
+    kind: library
 ''');
   }
 
@@ -1877,10 +1877,10 @@ suggestions
     kind: class
   _B0
     kind: class
-  x0
-    kind: library
   x0.B
     kind: class
+  x0
+    kind: library
 ''');
   }
 
@@ -2004,26 +2004,26 @@ class C0 {
 ''');
     assertResponse(r'''
 suggestions
-  A0
-    kind: class
+  f0
+    kind: localVariable
   A0
     kind: constructorInvocation
   C0
+    kind: constructorInvocation
+  A0
     kind: class
   C0
-    kind: constructorInvocation
-  F0
-    kind: functionInvocation
-  F1
-    kind: functionInvocation
+    kind: class
+  f1
+    kind: methodInvocation
   T0
     kind: topLevelVariable
   T1
     kind: topLevelVariable
-  f0
-    kind: localVariable
-  f1
-    kind: methodInvocation
+  F0
+    kind: functionInvocation
+  F1
+    kind: functionInvocation
 ''');
   }
 
@@ -2090,26 +2090,26 @@ class C0 {
 ''');
     assertResponse(r'''
 suggestions
-  A0
-    kind: class
+  f0
+    kind: localVariable
   A0
     kind: constructorInvocation
   C0
+    kind: constructorInvocation
+  A0
     kind: class
   C0
-    kind: constructorInvocation
-  F0
-    kind: functionInvocation
-  F1
-    kind: functionInvocation
+    kind: class
+  f1
+    kind: methodInvocation
   T0
     kind: topLevelVariable
   T1
     kind: topLevelVariable
-  f0
-    kind: localVariable
-  f1
-    kind: methodInvocation
+  F0
+    kind: functionInvocation
+  F1
+    kind: functionInvocation
 ''');
   }
 
@@ -2305,10 +2305,6 @@ class A0 {
 ''');
     assertResponse(r'''
 suggestions
-  A0
-    kind: class
-  A0
-    kind: constructorInvocation
   A0.new
     kind: constructor
   String.fromCharCode
@@ -2316,6 +2312,10 @@ suggestions
   String.fromCharCodes
     kind: constructor
   String.fromEnvironment
+    kind: constructorInvocation
+  A0
+    kind: class
+  A0
     kind: constructorInvocation
   f0
     kind: functionInvocation
@@ -2481,24 +2481,24 @@ class C2 {
 suggestions
   A0
     kind: class
-  A0
-    kind: constructorInvocation
   C1
     kind: class
-  C1
-    kind: constructorInvocation
   C2
     kind: class
-  C2
-    kind: constructorInvocation
   F0
     kind: functionInvocation
-  F1
-    kind: typeAlias
   b0
     kind: methodInvocation
   f0
     kind: methodInvocation
+  A0
+    kind: constructorInvocation
+  C1
+    kind: constructorInvocation
+  C2
+    kind: constructorInvocation
+  F1
+    kind: typeAlias
 ''');
   }
 
@@ -2848,14 +2848,14 @@ void f(a0) {
 ''');
     assertResponse(r'''
 suggestions
+  f0
+    kind: localVariable
+  a0
+    kind: parameter
   Object
     kind: class
   Object
     kind: constructorInvocation
-  a0
-    kind: parameter
-  f0
-    kind: localVariable
 ''');
   }
 
@@ -2868,12 +2868,12 @@ void f(a0) {
 ''');
     assertResponse(r'''
 suggestions
+  a0
+    kind: parameter
   Object
     kind: class
   Object
     kind: constructorInvocation
-  a0
-    kind: parameter
 ''');
   }
 
@@ -2886,12 +2886,12 @@ void f(a0) {
 ''');
     assertResponse(r'''
 suggestions
+  a0
+    kind: parameter
   Object
     kind: class
   Object
     kind: constructorInvocation
-  a0
-    kind: parameter
 ''');
   }
 
@@ -2968,12 +2968,12 @@ void f(args) {
 ''');
     assertResponse(r'''
 suggestions
+  i0
+    kind: localVariable
   Object
     kind: class
   Object
     kind: constructorInvocation
-  i0
-    kind: localVariable
 ''');
   }
 
@@ -3323,18 +3323,18 @@ String f0(List a0) {
 ''');
     assertResponse(r'''
 suggestions
-  Object
-    kind: class
-  Object
-    kind: constructorInvocation
-  a0
-    kind: parameter
-  b0
-    kind: functionInvocation
   b1
     kind: parameter
+  a0
+    kind: parameter
+  Object
+    kind: class
+  b0
+    kind: functionInvocation
   f0
     kind: functionInvocation
+  Object
+    kind: constructorInvocation
 ''');
   }
 
@@ -3388,18 +3388,18 @@ class A0 {
 ''');
     assertResponse(r'''
 suggestions
-  A0
-    kind: class
-  A0
-    kind: constructorInvocation
-  Object
-    kind: class
-  Object
-    kind: constructorInvocation
   _c0
     kind: field
   b0
     kind: field
+  A0
+    kind: class
+  Object
+    kind: class
+  A0
+    kind: constructorInvocation
+  Object
+    kind: constructorInvocation
 ''');
   }
 
@@ -3417,16 +3417,16 @@ void f0() {
 ''');
     assertResponse(r'''
 suggestions
-  A0
-    kind: class
-  A0
-    kind: constructorInvocation
-  Object
-    kind: class
-  Object
-    kind: constructorInvocation
   a0
     kind: localVariable
+  A0
+    kind: class
+  A0
+    kind: constructorInvocation
+  Object
+    kind: class
+  Object
+    kind: constructorInvocation
 ''');
   }
 
@@ -3444,18 +3444,18 @@ class A0 {
 ''');
     assertResponse(r'''
 suggestions
-  A0
-    kind: class
-  A0
-    kind: constructorInvocation
-  Object
-    kind: class
-  Object
-    kind: constructorInvocation
   _c0
     kind: field
   b0
     kind: field
+  A0
+    kind: class
+  A0
+    kind: constructorInvocation
+  Object
+    kind: class
+  Object
+    kind: constructorInvocation
 ''');
   }
 
@@ -3524,12 +3524,12 @@ void f() {
 suggestions
   A0
     kind: class
+  B0
+    kind: class
   A0.a1
     kind: constructorInvocation
   A0.a2
     kind: constructorInvocation
-  B0
-    kind: class
   B0.b1
     kind: constructorInvocation
   B0.b2
@@ -3556,8 +3556,6 @@ suggestions
     kind: import
   dart:convert
     kind: import
-  dart:core
-    kind: import
   dart:ffi
     kind: import
   dart:html
@@ -3571,6 +3569,8 @@ suggestions
   dart:typed_data
     kind: import
   package:test/test.dart
+    kind: import
+  dart:core
     kind: import
 ''');
   }
@@ -3602,24 +3602,24 @@ class C0 {
 ''');
     assertResponse(r'''
 suggestions
+  f0
+    kind: localVariable
+  T0
+    kind: topLevelVariable
+  T1
+    kind: topLevelVariable
   A0
+    kind: class
+  C0
     kind: class
   A0
     kind: constructorInvocation
-  C0
-    kind: class
   C0
     kind: constructorInvocation
   F0
     kind: functionInvocation
   F1
     kind: functionInvocation
-  T0
-    kind: topLevelVariable
-  T1
-    kind: topLevelVariable
-  f0
-    kind: localVariable
   f1
     kind: methodInvocation
 ''');
@@ -3869,28 +3869,28 @@ void f() {
 ''');
     assertResponse(r'''
 suggestions
+  n0
+    kind: localVariable
   C0
     kind: class
-  C0
-    kind: constructorInvocation
   C1
     kind: class
+  T0
+    kind: topLevelVariable
+  T1
+    kind: topLevelVariable
+  F0
+    kind: functionInvocation
+  F1
+    kind: functionInvocation
+  C0
+    kind: constructorInvocation
   C1
     kind: constructorInvocation
   D0
     kind: typeAlias
   D1
     kind: typeAlias
-  F0
-    kind: functionInvocation
-  F1
-    kind: functionInvocation
-  T0
-    kind: topLevelVariable
-  T1
-    kind: topLevelVariable
-  n0
-    kind: localVariable
 ''');
   }
 
@@ -3917,28 +3917,28 @@ void f() {
 ''');
     assertResponse(r'''
 suggestions
+  n0
+    kind: localVariable
   C0
     kind: class
-  C0
-    kind: constructorInvocation
   C1
     kind: class
+  T0
+    kind: topLevelVariable
+  T1
+    kind: topLevelVariable
+  F0
+    kind: functionInvocation
+  F1
+    kind: functionInvocation
+  C0
+    kind: constructorInvocation
   C1
     kind: constructorInvocation
   D0
     kind: typeAlias
   D1
     kind: typeAlias
-  F0
-    kind: functionInvocation
-  F1
-    kind: functionInvocation
-  T0
-    kind: topLevelVariable
-  T1
-    kind: topLevelVariable
-  n0
-    kind: localVariable
 ''');
   }
 
@@ -4046,18 +4046,18 @@ void f0() {
 ''');
     assertResponse(r'''
 suggestions
-  A0
-    kind: class
-  A0
-    kind: constructorInvocation
-  Object
-    kind: class
-  Object
-    kind: constructorInvocation
   a0
     kind: localVariable
+  A0
+    kind: class
+  A0
+    kind: constructorInvocation
   f1
     kind: functionInvocation
+  Object
+    kind: class
+  Object
+    kind: constructorInvocation
 ''');
   }
 
@@ -4505,11 +4505,11 @@ class A {
 suggestions
   _g0
     kind: getter
-  a0
-    kind: methodInvocation
   f0
     kind: getter
     deprecated: true
+  a0
+    kind: methodInvocation
 ''');
   }
 
@@ -4542,10 +4542,10 @@ class A extends B {
 ''');
     assertResponse(r'''
 suggestions
-  a2
-    kind: methodInvocation
   a3
     kind: field
+  a2
+    kind: methodInvocation
 ''');
   }
 
@@ -4562,19 +4562,19 @@ class A {
 ''');
     assertResponse(r'''
 suggestions
-  _a0
-    kind: methodInvocation
   _g0
     kind: field
   bool
     kind: class
+  f0
+    kind: field
+    deprecated: true
+  _a0
+    kind: methodInvocation
   bool.fromEnvironment
     kind: constructorInvocation
   bool.hasEnvironment
     kind: constructorInvocation
-  f0
-    kind: field
-    deprecated: true
 ''');
   }
 
@@ -4589,19 +4589,19 @@ class A {
 ''');
     assertResponse(r'''
 suggestions
-  a0
-    kind: methodInvocation
-    deprecated: true
+  x0
+    kind: parameter
   b0
+    kind: parameter
+  y0
     kind: parameter
   int
     kind: class
   int.fromEnvironment
     kind: constructorInvocation
-  x0
-    kind: parameter
-  y0
-    kind: parameter
+  a0
+    kind: methodInvocation
+    deprecated: true
 ''');
   }
 
@@ -4618,24 +4618,24 @@ class A {
 ''');
     assertResponse(r'''
 suggestions
+  x0
+    kind: parameter
+  y0
+    kind: parameter
   String
     kind: class
+  b0
+    kind: functionInvocation
+  f0
+    kind: functionInvocation
+  a0
+    kind: methodInvocation
   String.fromCharCode
     kind: constructorInvocation
   String.fromCharCodes
     kind: constructorInvocation
   String.fromEnvironment
     kind: constructorInvocation
-  a0
-    kind: methodInvocation
-  b0
-    kind: functionInvocation
-  f0
-    kind: functionInvocation
-  x0
-    kind: parameter
-  y0
-    kind: parameter
 ''');
   }
 
@@ -4926,14 +4926,14 @@ class C extends B with M1, M2 {
 suggestions
   M1
     kind: class
+  M2
+    kind: class
+  m0
+    kind: methodInvocation
   M1
     kind: constructorInvocation
   M2
-    kind: class
-  M2
     kind: constructorInvocation
-  m0
-    kind: methodInvocation
 ''');
   }
 
@@ -5194,17 +5194,17 @@ void f0() {
 ''');
     assertResponse(r'''
 suggestions
-  b0
-    kind: field
-    deprecated: true
   d0
     kind: getter
   f0
     kind: getter
-  m0
-    kind: methodInvocation
   s1
     kind: setter
+  b0
+    kind: field
+    deprecated: true
+  m0
+    kind: methodInvocation
 ''');
   }
 
@@ -5239,8 +5239,6 @@ suggestions
     kind: getter
   _g0
     kind: getter
-  _n0
-    kind: methodInvocation
   _s0
     kind: setter
   b0
@@ -5249,10 +5247,12 @@ suggestions
     kind: getter
   f0
     kind: getter
-  m0
-    kind: methodInvocation
   s1
     kind: setter
+  _n0
+    kind: methodInvocation
+  m0
+    kind: methodInvocation
 ''');
   }
 
@@ -5467,10 +5467,10 @@ f() {
 ''');
     assertResponse(r'''
 suggestions
-  call
-    kind: methodInvocation
   hashCode
     kind: getter
+  call
+    kind: methodInvocation
 ''');
   }
 
@@ -5549,10 +5549,10 @@ class A {
 ''');
     assertResponse(r'''
 suggestions
-  call
-    kind: methodInvocation
   hashCode
     kind: getter
+  call
+    kind: methodInvocation
 ''');
   }
 
@@ -5695,22 +5695,22 @@ class A0 {
 ''');
     assertResponse(r'''
 suggestions
+  t0
+    kind: localVariable
+  g0
+    kind: methodInvocation
   A0
+    kind: class
+  String
     kind: class
   A0
     kind: constructorInvocation
-  String
-    kind: class
   String.fromCharCode
     kind: constructorInvocation
   String.fromCharCodes
     kind: constructorInvocation
   String.fromEnvironment
     kind: constructorInvocation
-  g0
-    kind: methodInvocation
-  t0
-    kind: localVariable
 ''');
   }
 
@@ -5812,8 +5812,6 @@ suggestions
     kind: getter
   _g0
     kind: getter
-  _n0
-    kind: methodInvocation
   _s0
     kind: setter
   b0
@@ -5822,10 +5820,12 @@ suggestions
     kind: getter
   f0
     kind: getter
-  m0
-    kind: methodInvocation
   s0
     kind: setter
+  _n0
+    kind: methodInvocation
+  m0
+    kind: methodInvocation
 ''');
   }
 
@@ -6301,22 +6301,22 @@ class C0 {
 ''');
     assertResponse(r'''
 suggestions
-  C0
-    kind: class
+  f0
+    kind: localVariable
   C0
     kind: constructorInvocation
-  X0
-    kind: class
   X0.c
     kind: constructorInvocation
-  Y0
-    kind: class
   Y0._d
     kind: constructorInvocation
   Y0.c
     kind: constructorInvocation
-  f0
-    kind: localVariable
+  C0
+    kind: class
+  X0
+    kind: class
+  Y0
+    kind: class
 ''');
   }
 
@@ -6356,26 +6356,26 @@ class C0 {
 ''');
     assertResponse(r'''
 suggestions
-  C0
-    kind: class
+  f2
+    kind: localVariable
   C0
     kind: constructorInvocation
-  X0
-    kind: class
   X0.c
     kind: constructorInvocation
-  Y0
-    kind: class
   Y0._d
     kind: constructorInvocation
   Y0.c
     kind: constructorInvocation
+  C0
+    kind: class
+  X0
+    kind: class
+  Y0
+    kind: class
   f0
     kind: functionInvocation
   f1
     kind: functionInvocation
-  f2
-    kind: localVariable
 ''');
   }
 
@@ -6405,9 +6405,9 @@ void f() async* {
     assertResponse(r'''
 suggestions
   Object
-    kind: class
-  Object
     kind: constructorInvocation
+  Object
+    kind: class
 ''');
   }
 }

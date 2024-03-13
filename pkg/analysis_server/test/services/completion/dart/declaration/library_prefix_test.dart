@@ -94,14 +94,11 @@ class Z {}
 ''');
     assertResponse(r'''
 suggestions
-  D1
-    kind: functionInvocation
-    deprecated: true
+  g0.G
+    kind: class
   D2
     kind: functionInvocation
   T1
-    kind: topLevelVariable
-  T3
     kind: topLevelVariable
   T5
     kind: topLevelVariable
@@ -114,9 +111,12 @@ suggestions
   g0
     kind: library
   g0.G
-    kind: class
-  g0.G
     kind: constructorInvocation
+  D1
+    kind: functionInvocation
+    deprecated: true
+  T3
+    kind: topLevelVariable
 ''');
   }
 
@@ -165,10 +165,10 @@ suggestions
   }
     kind: override
     selection: 90 38
-  x0
-    kind: library
   x0.B
     kind: class
+  x0
+    kind: library
 ''');
   }
 
@@ -187,10 +187,10 @@ A T;
 ''');
     assertResponse(r'''
 suggestions
-  x0
-    kind: library
   x0.B
     kind: class
+  x0
+    kind: library
 ''');
   }
 
@@ -212,10 +212,10 @@ A Sew;
 replacement
   left: 1
 suggestions
-  S0
-    kind: library
   S0.B
     kind: class
+  S0
+    kind: library
 ''');
   }
 
@@ -234,10 +234,10 @@ A T;
 ''');
     assertResponse(r'''
 suggestions
-  x0
-    kind: library
   x0.B
     kind: class
+  x0
+    kind: library
 ''');
   }
 
@@ -256,10 +256,10 @@ A T;
 ''');
     assertResponse(r'''
 suggestions
-  x0
-    kind: library
   x0.B
     kind: class
+  x0
+    kind: library
 ''');
   }
 
@@ -277,10 +277,10 @@ A T;
 ''');
     assertResponse(r'''
 suggestions
-  x0
-    kind: library
   x0.B
     kind: class
+  x0
+    kind: library
 ''');
   }
 

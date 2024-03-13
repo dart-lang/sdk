@@ -58,11 +58,11 @@ suggestions
     kind: keyword
   false
     kind: keyword
+  true
+    kind: keyword
   null
     kind: keyword
   switch
-    kind: keyword
-  true
     kind: keyword
 ''');
   }
