@@ -445,6 +445,29 @@ void main(List<String> args) => print("$b $args");
     await server.close();
   });
 
+  test('regression test for dartbug.com/55185', () async {
+    final p = project(mainSrc: observeScript);
+    final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+    void onData(event) {
+      if (event.contains('The Dart VM service is listening on')) {
+        p.kill();
+      }
+    }
+
+    await p.runWithVmService([
+      'run',
+      '--enable-service-port-fallback',
+      // This argument must be the final option before the script name to
+      // correctly reproduce the failure. Without the fix, dart run's argument
+      // parser will assume the argument after --observe is the value for
+      // --observe, causing the script path to be swallowed, resulting in Pub
+      // trying to resolve the package path for the empty string.
+      '--observe',
+      p.relativeFilePath,
+    ], onData);
+    await server.close();
+  });
+
   test('without verbose CFE info', () async {
     final p = project(mainSrc: '''void main() {}''');
 

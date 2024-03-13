@@ -116,9 +116,17 @@ class MacroTypes {
   /// occurring in [libraryBuilder].
   List<macro.RecordFieldImpl> _createRecordFields(
       LibraryBuilder libraryBuilder, List<RecordTypeFieldBuilder>? fields) {
-    // TODO(johnniwinther): Support record fields once they are not required to
-    //  be declarations.
-    return const [];
+    if (fields == null) {
+      return const [];
+    }
+    List<macro.RecordFieldImpl> list = [];
+    for (RecordTypeFieldBuilder field in fields) {
+      list.add(new macro.RecordFieldImpl(
+          id: macro.RemoteInstance.uniqueId,
+          name: field.name,
+          type: getTypeAnnotation(libraryBuilder, field.type)));
+    }
+    return list;
   }
 
   /// Creates the [macro.TypeAnnotationImpl] corresponding to [typeBuilder]

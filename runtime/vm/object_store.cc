@@ -181,8 +181,6 @@ ErrorPtr ObjectStore::PreallocateObjects() {
   ASSERT(this->stack_overflow() == Instance::null());
   ASSERT(this->out_of_memory() == Instance::null());
 
-  this->closure_functions_ = GrowableObjectArray::New();
-
   Object& result = Object::Handle();
   const Library& library = Library::Handle(Library::CoreLibrary());
 

@@ -74,32 +74,40 @@ static method main() → void {
   self::testPointerLoad();
   self::testNestedLoad();
 }
+
+[@vm.closure-id=1]
 static method testLookupFunctionReturn() → void {
   final ffi::DynamicLibrary dylib = [@vm.inferred-type.metadata=dart.ffi::DynamicLibrary] ffi::DynamicLibrary::executable();
   final () → self::Struct1 function1 = block {
     _in::_nativeEffect(new self::Struct1::#fromTypedDataBase([@vm.inferred-type.metadata=dart.typed_data::_Uint8List] typ::Uint8List::•(#C20)));
   } => block {
     [@vm.inferred-type.metadata=dart.ffi::Pointer] synthesized ffi::Pointer<ffi::NativeFunction<() → self::Struct1>> #ffiTarget0 = [@vm.direct-call.metadata=dart.ffi::DynamicLibrary.lookup] [@vm.inferred-type.metadata=dart.ffi::Pointer (skip check)] dylib.{ffi::DynamicLibrary::lookup}<ffi::NativeFunction<() → self::Struct1>>("function1"){(core::String) → ffi::Pointer<ffi::NativeFunction<() → self::Struct1>>};
+
+    [@vm.closure-id=1]
     @#C24
     function #ffiClosure0() → self::Struct1 {
       return [@vm.inferred-type.metadata=#lib::Struct1] ffi::_ffiCall<self::Struct1>(#ffiTarget0);
     }
   } =>#ffiClosure0;
-  final self::Struct1 struct1 = [@vm.inferred-type.metadata=#lib::Struct1 (receiver not int)] function1(){() → self::Struct1};
+  final self::Struct1 struct1 = [@vm.direct-call.metadata=closure 1 in #lib::testLookupFunctionReturn] [@vm.inferred-type.metadata=#lib::Struct1 (receiver not int)] function1(){() → self::Struct1};
   core::print(struct1);
 }
+
+[@vm.closure-id=1]
 static method testAsFunctionReturn() → void {
   final ffi::Pointer<ffi::NativeFunction<() → self::Struct2>> pointer = [@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Pointer::fromAddress<ffi::NativeFunction<() → self::Struct2>>(3735928559);
   final () → self::Struct2 function2 = block {
     _in::_nativeEffect(new self::Struct2::#fromTypedDataBase([@vm.inferred-type.metadata=dart.typed_data::_Uint8List] typ::Uint8List::•(#C20)));
   } => block {
     [@vm.inferred-type.metadata=dart.ffi::Pointer] synthesized ffi::Pointer<ffi::NativeFunction<() → self::Struct2>> #ffiTarget1 = pointer;
+
+    [@vm.closure-id=1]
     @#C26
     function #ffiClosure1() → self::Struct2 {
       return [@vm.inferred-type.metadata=#lib::Struct2] ffi::_ffiCall<self::Struct2>(#ffiTarget1);
     }
   } =>#ffiClosure1;
-  final self::Struct2 struct2 = [@vm.inferred-type.metadata=#lib::Struct2 (receiver not int)] function2(){() → self::Struct2};
+  final self::Struct2 struct2 = [@vm.direct-call.metadata=closure 1 in #lib::testAsFunctionReturn] [@vm.inferred-type.metadata=#lib::Struct2 (receiver not int)] function2(){() → self::Struct2};
   core::print(struct2);
 }
 

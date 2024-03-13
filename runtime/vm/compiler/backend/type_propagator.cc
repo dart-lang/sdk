@@ -1899,7 +1899,15 @@ static CompileType ComputeArrayElementType(Value* array) {
 }
 
 CompileType LoadIndexedInstr::ComputeType() const {
-  switch (class_id_) {
+  // Use the precise array element representation instead of the returned
+  // representation, since for small elements, that results in a Smi type
+  // instead of a Int type on 32-bit architectures.
+  auto const rep =
+      RepresentationUtils::RepresentationOfArrayElement(class_id());
+  if (RepresentationUtils::IsUnboxed(rep)) {
+    return CompileType::FromUnboxedRepresentation(rep);
+  }
+  switch (class_id()) {
     case kArrayCid:
     case kImmutableArrayCid: {
       CompileType elem_type = ComputeArrayElementType(array());
@@ -1915,40 +1923,6 @@ CompileType LoadIndexedInstr::ComputeType() const {
       return CompileType::FromAbstractType(Object::dynamic_type(),
                                            CompileType::kCannotBeNull,
                                            CompileType::kCannotBeSentinel);
-
-    case kTypedDataFloat32ArrayCid:
-    case kTypedDataFloat64ArrayCid:
-      return CompileType::FromCid(kDoubleCid);
-
-    case kTypedDataFloat32x4ArrayCid:
-      return CompileType::FromCid(kFloat32x4Cid);
-
-    case kTypedDataInt32x4ArrayCid:
-      return CompileType::FromCid(kInt32x4Cid);
-
-    case kTypedDataFloat64x2ArrayCid:
-      return CompileType::FromCid(kFloat64x2Cid);
-
-    case kTypedDataInt8ArrayCid:
-    case kTypedDataUint8ArrayCid:
-    case kTypedDataUint8ClampedArrayCid:
-    case kExternalTypedDataUint8ArrayCid:
-    case kExternalTypedDataUint8ClampedArrayCid:
-    case kTypedDataInt16ArrayCid:
-    case kTypedDataUint16ArrayCid:
-    case kOneByteStringCid:
-    case kTwoByteStringCid:
-    case kExternalOneByteStringCid:
-    case kExternalTwoByteStringCid:
-      return CompileType::FromCid(kSmiCid);
-
-    case kTypedDataInt32ArrayCid:
-    case kTypedDataUint32ArrayCid:
-      return CompileType::Int32();
-
-    case kTypedDataInt64ArrayCid:
-    case kTypedDataUint64ArrayCid:
-      return CompileType::Int();
 
     case kRecordCid:
       return CompileType::Dynamic();

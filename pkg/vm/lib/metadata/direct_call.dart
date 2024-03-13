@@ -7,23 +7,42 @@ library vm.metadata.direct_call;
 import 'package:kernel/ast.dart';
 import 'package:kernel/src/printer.dart';
 
-/// Metadata for annotating method invocations converted to direct calls.
+/// Metadata for annotating invocations converted to direct calls.
 class DirectCallMetadata {
-  final Reference _targetReference;
-  final bool checkReceiverForNull;
+  // Target of the direct call or enclosing member of a closure.
+  final Reference _memberReference;
+  final int _flags;
+  final int _closureId;
 
-  DirectCallMetadata(Member target, bool checkReceiverForNull)
-      : this.byReference(
-            getNonNullableMemberReferenceGetter(target), checkReceiverForNull);
+  static const int flagCheckReceiverForNull = 1 << 0;
+  static const int flagClosure = 1 << 1;
 
-  DirectCallMetadata.byReference(
-      this._targetReference, this.checkReceiverForNull);
+  DirectCallMetadata.targetMember(Member target, bool checkReceiverForNull)
+      : this._(getNonNullableMemberReferenceGetter(target),
+            checkReceiverForNull ? flagCheckReceiverForNull : 0, 0);
 
-  Member get target => _targetReference.asMember;
+  DirectCallMetadata.targetClosure(
+      Member closureMember, int closureId, bool checkReceiverForNull)
+      : this._(
+            getNonNullableMemberReferenceGetter(closureMember),
+            (checkReceiverForNull ? flagCheckReceiverForNull : 0) | flagClosure,
+            closureId);
+
+  DirectCallMetadata._(this._memberReference, this._flags, this._closureId)
+      : assert(_closureId >= 0);
+
+  // Target member or enclosing member of a closure.
+  Member get _member => _memberReference.asMember;
+
+  Member? get targetMember => isClosure ? null : _member;
+
+  bool get checkReceiverForNull => (_flags & flagCheckReceiverForNull) != 0;
+  bool get isClosure => (_flags & flagClosure) != 0;
 
   @override
-  String toString() => "${target.toText(astTextStrategyForTesting)}"
-      "${checkReceiverForNull ? '??' : ''}";
+  String toString() => isClosure
+      ? 'closure ${_closureId} in ${_member.toText(astTextStrategyForTesting)}'
+      : '${_member.toText(astTextStrategyForTesting)}${checkReceiverForNull ? '??' : ''}';
 }
 
 /// Repository for [DirectCallMetadata].
@@ -41,19 +60,23 @@ class DirectCallMetadataRepository
   @override
   void writeToBinary(DirectCallMetadata metadata, Node node, BinarySink sink) {
     sink.writeNullAllowedCanonicalNameReference(
-        getMemberReferenceGetter(metadata.target));
-    sink.writeByte(metadata.checkReceiverForNull ? 1 : 0);
+        getMemberReferenceGetter(metadata._member));
+    sink.writeByte(metadata._flags);
+    if (metadata.isClosure) {
+      sink.writeUInt30(metadata._closureId);
+    }
   }
 
   @override
   DirectCallMetadata readFromBinary(Node node, BinarySource source) {
-    final targetReference =
+    final memberReference =
         source.readNullableCanonicalNameReference()?.reference;
-    if (targetReference == null) {
-      throw 'DirectCallMetadata should have a non-null target';
+    if (memberReference == null) {
+      throw 'DirectCallMetadata should have a non-null member';
     }
-    final checkReceiverForNull = (source.readByte() != 0);
-    return new DirectCallMetadata.byReference(
-        targetReference, checkReceiverForNull);
+    final flags = source.readByte();
+    final closureId =
+        (flags & DirectCallMetadata.flagClosure) != 0 ? source.readUInt30() : 0;
+    return DirectCallMetadata._(memberReference, flags, closureId);
   }
 }

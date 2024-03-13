@@ -874,7 +874,8 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
       int64_t v;
       const bool ok = compiler::HasIntegerValue(value_, &v);
       RELEASE_ASSERT(ok);
-      if (value_.IsSmi() && RepresentationUtils::IsUnsigned(representation())) {
+      if (value_.IsSmi() &&
+          RepresentationUtils::IsUnsignedInteger(representation())) {
         // If the value is negative, then the sign bit was preserved during
         // Smi untagging, which means the resulting value may be unexpected.
         ASSERT(v >= 0);

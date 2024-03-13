@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@Timeout(Duration(minutes: 1))
-library;
-
 import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/macros/bootstrap.dart';
@@ -23,7 +20,7 @@ String _resolvePath(String executableRelativePath) {
 }
 
 void main() {
-  group('DDC: Macros', () {
+  group('DDC: Macros', timeout: Timeout(Duration(minutes: 1)), () {
     late File testMacroDart;
     late File bootstrapDillFileVm;
     late File bootstrapDillFileDdc;

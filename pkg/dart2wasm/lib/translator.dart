@@ -945,7 +945,7 @@ class Translator with KernelNodes {
     DirectCallMetadataRepository metadata =
         component.metadata[DirectCallMetadataRepository.repositoryTag]
             as DirectCallMetadataRepository;
-    return metadata.mapping[node]?.target;
+    return metadata.mapping[node]?.targetMember;
   }
 
   bool shouldInline(Reference target) {

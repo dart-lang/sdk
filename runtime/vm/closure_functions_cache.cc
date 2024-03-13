@@ -75,9 +75,13 @@ void ClosureFunctionsCache::AddClosureFunctionLocked(
   DEBUG_ASSERT(
       thread->isolate_group()->program_lock()->IsCurrentThreadWriter());
 
-  const auto& closures =
+  auto& closures =
       GrowableObjectArray::Handle(zone, object_store->closure_functions());
-  ASSERT(!closures.IsNull());
+  if (closures.IsNull()) {
+    closures = GrowableObjectArray::New();
+    object_store->set_closure_functions(closures);
+  }
+
   ASSERT(allow_implicit_closure_functions ||
          function.IsNonImplicitClosureFunction());
   closures.Add(function, Heap::kOld);
@@ -116,10 +120,12 @@ intptr_t ClosureFunctionsCache::FindClosureIndex(const Function& needle) {
 
   const auto& closures_array =
       GrowableObjectArray::Handle(zone, object_store->closure_functions());
-  intptr_t num_closures = closures_array.Length();
-  for (intptr_t i = 0; i < num_closures; i++) {
-    if (closures_array.At(i) == needle.ptr()) {
-      return i;
+  if (!closures_array.IsNull()) {
+    intptr_t num_closures = closures_array.Length();
+    for (intptr_t i = 0; i < num_closures; i++) {
+      if (closures_array.At(i) == needle.ptr()) {
+        return i;
+      }
     }
   }
   return -1;
@@ -134,7 +140,7 @@ FunctionPtr ClosureFunctionsCache::ClosureFunctionFromIndex(intptr_t idx) {
 
   const auto& closures_array =
       GrowableObjectArray::Handle(zone, object_store->closure_functions());
-  if (idx < 0 || idx >= closures_array.Length()) {
+  if (idx < 0 || closures_array.IsNull() || idx >= closures_array.Length()) {
     return Function::null();
   }
   return Function::RawCast(closures_array.At(idx));
@@ -161,6 +167,9 @@ void ClosureFunctionsCache::ForAllClosureFunctions(
   // happen).
   const auto& closures =
       GrowableObjectArray::Handle(zone, object_store->closure_functions());
+  if (closures.IsNull()) {
+    return;
+  }
 
   if (!thread->IsInStoppedMutatorsScope()) {
     // The empty read locker scope will implicitly issue an acquire memory

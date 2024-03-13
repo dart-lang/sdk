@@ -188,7 +188,7 @@ static method test2() → void {
   exp::Expect::isTrue([@vm.inferred-type.metadata=dart.core::bool?] self::ok);
 }
 static method getDynamic3() → dynamic
-  return [@vm.inferred-type.metadata=#lib::B3? (receiver not int)] [@vm.inferred-type.metadata=dart.core::_Closure (closure 1 in #lib::unknown3)] self::unknown3();
+  return [@vm.direct-call.metadata=closure 1 in #lib::unknown3] [@vm.inferred-type.metadata=#lib::B3? (receiver not int)] [@vm.inferred-type.metadata=dart.core::_Closure (closure 1 in #lib::unknown3)] self::unknown3();
 static method test3() → void {
   [@vm.inferred-type.metadata=!? (receiver not int)] [@vm.inferred-type.metadata=#lib::B3?] self::getDynamic3(){dynamic}.aa3(1, 2, 3, 4, 5, 6, new self::T3::•());
   self::ok = false;
@@ -196,7 +196,7 @@ static method test3() → void {
   exp::Expect::isTrue([@vm.inferred-type.metadata=dart.core::bool?] self::ok);
 }
 static method getDynamic4() → dynamic
-  return [@vm.inferred-type.metadata=#lib::B4? (receiver not int)] [@vm.inferred-type.metadata=dart.core::_Closure (closure 1 in #lib::unknown4)] self::unknown4();
+  return [@vm.direct-call.metadata=closure 1 in #lib::unknown4] [@vm.inferred-type.metadata=#lib::B4? (receiver not int)] [@vm.inferred-type.metadata=dart.core::_Closure (closure 1 in #lib::unknown4)] self::unknown4();
 static method test4() → void {
   [@vm.inferred-type.metadata=!? (receiver not int)] [@vm.inferred-type.metadata=#lib::B4?] self::getDynamic4(){dynamic}.aa4(1, 2, 3, 4, 5, 6, 7, new self::T4::•());
   self::ok = false;

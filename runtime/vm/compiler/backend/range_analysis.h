@@ -32,6 +32,7 @@ class RangeBoundary : public ValueObject {
 
   enum RangeSize {
     kRangeBoundarySmi,
+    kRangeBoundaryInt8,
     kRangeBoundaryInt16,
     kRangeBoundaryInt32,
     kRangeBoundaryInt64,
@@ -98,6 +99,8 @@ class RangeBoundary : public ValueObject {
     switch (size) {
       case kRangeBoundarySmi:
         return FromConstant(compiler::target::kSmiMin);
+      case kRangeBoundaryInt8:
+        return FromConstant(kMinInt8);
       case kRangeBoundaryInt16:
         return FromConstant(kMinInt16);
       case kRangeBoundaryInt32:
@@ -113,6 +116,8 @@ class RangeBoundary : public ValueObject {
     switch (size) {
       case kRangeBoundarySmi:
         return FromConstant(compiler::target::kSmiMax);
+      case kRangeBoundaryInt8:
+        return FromConstant(kMaxInt8);
       case kRangeBoundaryInt16:
         return FromConstant(kMaxInt16);
       case kRangeBoundaryInt32:
@@ -462,21 +467,9 @@ class Range : public ZoneAllocated {
   // the given representation.
   static bool Fits(Range* range, Representation rep) {
     if (range == nullptr) return false;
-
-    switch (rep) {
-      case kUnboxedInt64:
-        return true;
-
-      case kUnboxedInt32:
-        return range->Fits(RangeBoundary::kRangeBoundaryInt32);
-
-      case kUnboxedUint32:
-        return range->IsWithin(0, kMaxUint32);
-
-      default:
-        break;
-    }
-    return false;
+    if (!RepresentationUtils::IsUnboxedInteger(rep)) return false;
+    const Range& other = Range::Full(rep);
+    return range->IsWithin(&other);
   }
 
   // Clamp this to be within size.

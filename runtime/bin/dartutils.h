@@ -11,6 +11,7 @@
 #include "platform/assert.h"
 #include "platform/globals.h"
 #include "platform/hashmap.h"
+#include "platform/syslog.h"
 
 namespace dart {
 namespace bin {
@@ -83,6 +84,14 @@ class CommandLineOptions {
   }
 
   Dart_Handle CreateRuntimeOptions();
+
+#if defined(DEBUG)
+  void DebugPrint() const {
+    for (int i = 0; i < count(); ++i) {
+      Syslog::PrintErr("[%d] = %s\n", i, GetArgument(i));
+    }
+  }
+#endif  // defined(DEBUG)
 
   void operator delete(void* pointer) { abort(); }
 

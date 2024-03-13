@@ -11,6 +11,7 @@
 #include "vm/compiler/frontend/prologue_builder.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/kernel_binary.h"
+#include "vm/kernel_loader.h"
 #include "vm/object_store.h"
 #include "vm/resolver.h"
 #include "vm/stack_frame.h"
@@ -1208,7 +1209,6 @@ Fragment StreamingFlowGraphBuilder::BuildExpression(TokenPosition* position) {
 
 Fragment StreamingFlowGraphBuilder::BuildStatement(TokenPosition* position) {
   ++num_ast_nodes_;
-  intptr_t offset = ReaderOffset();
   Tag tag = ReadTag();  // read tag.
   switch (tag) {
     case kExpressionStatement:
@@ -1248,7 +1248,7 @@ Fragment StreamingFlowGraphBuilder::BuildStatement(TokenPosition* position) {
     case kVariableDeclaration:
       return BuildVariableDeclaration(position);
     case kFunctionDeclaration:
-      return BuildFunctionDeclaration(offset, position);
+      return BuildFunctionDeclaration(position);
     case kForInStatement:
     case kAsyncForInStatement:
     case kIfCaseStatement:
@@ -3056,6 +3056,8 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionInvocation(TokenPosition* p) {
   const TokenPosition position = ReadPosition();    // read position.
   if (p != nullptr) *p = position;
 
+  const DirectCallMetadata direct_call =
+      direct_call_metadata_helper_.GetDirectTargetForFunctionInvocation(offset);
   const InferredTypeMetadata result_type =
       inferred_type_metadata_helper_.GetInferredType(offset);
 
@@ -3107,7 +3109,7 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionInvocation(TokenPosition* p) {
       instructions += DebugStepCheck(position);
     }
     instructions +=
-        B->ClosureCall(Function::null_function(), position, type_args_len,
+        B->ClosureCall(direct_call.target_, position, type_args_len,
                        argument_count, argument_names, &result_type);
   } else {
     instructions += InstanceCall(
@@ -4268,10 +4270,9 @@ Fragment StreamingFlowGraphBuilder::BuildRecordFieldGet(TokenPosition* p,
 }
 
 Fragment StreamingFlowGraphBuilder::BuildFunctionExpression() {
+  const intptr_t offset = ReaderOffset() - 1;  // Include the tag.
   ReadPosition();  // read position.
-  return BuildFunctionNode(TokenPosition::kNoSource, StringIndex(),
-                           /*has_valid_annotation=*/false, /*has_pragma=*/false,
-                           /*func_decl_offset=*/0);
+  return BuildFunctionNode(offset);
 }
 
 Fragment StreamingFlowGraphBuilder::BuildLet(TokenPosition* p) {
@@ -4430,7 +4431,8 @@ Fragment StreamingFlowGraphBuilder::BuildPartialTearoffInstantiation(
   instructions += flow_graph_builder_->LoadNativeField(
       Slot::Closure_instantiator_type_arguments());
   instructions += flow_graph_builder_->AllocateClosure(
-      position, /*has_instantiator_type_args=*/true, /*is_generic=*/false);
+      position, /*has_instantiator_type_args=*/true, /*is_generic=*/false,
+      /*is_tear_off=*/false);
   LocalVariable* new_closure = MakeTemporary();
 
   intptr_t num_type_args = ReadListLength();
@@ -5887,180 +5889,56 @@ Fragment StreamingFlowGraphBuilder::BuildVariableDeclaration(
 }
 
 Fragment StreamingFlowGraphBuilder::BuildFunctionDeclaration(
-    intptr_t offset,
     TokenPosition* position) {
+  const intptr_t offset = ReaderOffset() - 1;  // Include the tag.
   const TokenPosition pos = ReadPosition();
   if (position != nullptr) *position = pos;
 
   const intptr_t variable_offset = ReaderOffset() + data_program_offset_;
-
-  // Read variable declaration.
-  VariableDeclarationHelper helper(this);
-
-  bool has_pragma = false;
-  bool has_valid_annotation = false;
-  helper.ReadUntilExcluding(VariableDeclarationHelper::kAnnotations);
-  const intptr_t annotation_count = ReadListLength();
-  for (intptr_t i = 0; i < annotation_count; ++i) {
-    const intptr_t tag = PeekTag();
-    if (tag != kInvalidExpression) {
-      has_valid_annotation = true;
-    }
-    if (tag == kConstantExpression || tag == kFileUriConstantExpression) {
-      auto& instance = Instance::Handle();
-      instance = constant_reader_.ReadConstantExpression();
-      if (instance.clazz() == IG->object_store()->pragma_class()) {
-        has_pragma = true;
-      }
-      continue;
-    }
-    SkipExpression();
-  }
-  helper.SetJustRead(VariableDeclarationHelper::kAnnotations);
-
-  helper.ReadUntilExcluding(VariableDeclarationHelper::kEnd);
+  SkipVariableDeclaration();
 
   Fragment instructions = DebugStepCheck(pos);
-  instructions += BuildFunctionNode(pos, helper.name_index_,
-                                    has_valid_annotation, has_pragma, offset);
+  instructions += BuildFunctionNode(offset);
   instructions += StoreLocal(pos, LookupVariable(variable_offset));
   instructions += Drop();
   return instructions;
 }
 
 Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
-    TokenPosition parent_position,
-    StringIndex name_index,
-    bool has_valid_annotation,
-    bool has_pragma,
     intptr_t func_decl_offset) {
-  const intptr_t offset = ReaderOffset();
-
-  FunctionNodeHelper function_node_helper(this);
-  function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kTypeParameters);
-  TokenPosition position = function_node_helper.position_;
-
-  bool declaration = name_index >= 0;
-
-  if (declaration) {
-    position = parent_position;
-  }
-
+  const intptr_t func_node_offset = ReaderOffset();
   const auto& member_function =
       Function::Handle(Z, parsed_function()->function().GetOutermostFunction());
-  Function& function = Function::ZoneHandle(Z);
+  const Function& function = Function::ZoneHandle(
+      Z, KernelLoader::GetClosureFunction(
+             thread(), func_decl_offset, member_function,
+             parsed_function()->function(), closure_owner_));
 
-  {
-    SafepointReadRwLocker ml(thread(),
-                             thread()->isolate_group()->program_lock());
-    function = ClosureFunctionsCache::LookupClosureFunctionLocked(
-        member_function, offset);
-  }
-
-  if (function.IsNull()) {
+  if (function.context_scope() == ContextScope::null()) {
     SafepointWriteRwLocker ml(thread(),
                               thread()->isolate_group()->program_lock());
-    function = ClosureFunctionsCache::LookupClosureFunctionLocked(
-        member_function, offset);
-    if (function.IsNull()) {
+    if (function.context_scope() == ContextScope::null()) {
       for (intptr_t i = 0; i < scopes()->function_scopes.length(); ++i) {
-        if (scopes()->function_scopes[i].kernel_offset != offset) {
+        if (scopes()->function_scopes[i].kernel_offset !=
+            function.kernel_offset()) {
           continue;
         }
-
-        const String* name;
-        if (declaration) {
-          name = &H.DartSymbolObfuscate(name_index);
-        } else {
-          name = &Symbols::AnonymousClosure();
-        }
-        if (!closure_owner_.IsNull()) {
-          function = Function::NewClosureFunctionWithKind(
-              UntaggedFunction::kClosureFunction, *name,
-              parsed_function()->function(),
-              parsed_function()->function().is_static(), position,
-              closure_owner_);
-        } else {
-          function = Function::NewClosureFunction(
-              *name, parsed_function()->function(), position);
-        }
-
-        function.set_has_pragma(has_pragma);
-        if ((FLAG_enable_mirrors && has_valid_annotation) || has_pragma) {
-          auto& lib =
-              Library::Handle(Z, Class::Handle(Z, function.Owner()).library());
-          lib.AddMetadata(function, func_decl_offset);
-        }
-
-        if (function_node_helper.async_marker_ == FunctionNodeHelper::kAsync) {
-          function.set_modifier(UntaggedFunction::kAsync);
-          function.set_is_inlinable(false);
-          ASSERT(function.IsAsyncFunction());
-        } else if (function_node_helper.async_marker_ ==
-                   FunctionNodeHelper::kAsyncStar) {
-          function.set_modifier(UntaggedFunction::kAsyncGen);
-          function.set_is_inlinable(false);
-          ASSERT(function.IsAsyncGenerator());
-        } else if (function_node_helper.async_marker_ ==
-                   FunctionNodeHelper::kSyncStar) {
-          function.set_modifier(UntaggedFunction::kSyncGen);
-          function.set_is_inlinable(false);
-          ASSERT(function.IsSyncGenerator());
-        } else {
-          ASSERT(function_node_helper.async_marker_ ==
-                 FunctionNodeHelper::kSync);
-          ASSERT(!function.IsAsyncFunction());
-          ASSERT(!function.IsAsyncGenerator());
-          ASSERT(!function.IsSyncGenerator());
-        }
-
-        // If the start token position is synthetic, the end token position
-        // should be as well.
-        function.set_end_token_pos(
-            position.IsReal() ? function_node_helper.end_position_ : position);
 
         LocalScope* scope = scopes()->function_scopes[i].scope;
         const ContextScope& context_scope = ContextScope::Handle(
             Z, scope->PreserveOuterScope(function,
                                          flow_graph_builder_->context_depth_));
         function.set_context_scope(context_scope);
-        function.set_kernel_offset(offset);
-        type_translator_.SetupFunctionParameters(Class::Handle(Z), function,
-                                                 false,  // is_method
-                                                 true,   // is_closure
-                                                 &function_node_helper);
-        // type_translator_.SetupUnboxingInfoMetadata is not called here at the
-        // moment because closures do not have unboxed parameters and return
-        // value
-        function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kEnd);
-
-        // Finalize function type.
-        FunctionType& signature = FunctionType::Handle(Z, function.signature());
-        signature ^= ClassFinalizer::FinalizeType(signature);
-        function.SetSignature(signature);
-
-        if (has_pragma) {
-          if (Library::FindPragma(thread(), /*only_core=*/false, function,
-                                  Symbols::vm_invisible())) {
-            function.set_is_visible(false);
-          }
-        }
-
-        ASSERT(function.GetOutermostFunction() == member_function.ptr());
-        ASSERT(function.kernel_offset() == offset);
-        ClosureFunctionsCache::AddClosureFunctionLocked(function);
-        break;
       }
     }
   }
-  ASSERT(function.token_pos() == position);
-  ASSERT(function.parent_function() == parsed_function()->function().ptr());
 
-  function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kEnd);
+  ASSERT(function.kernel_offset() == func_node_offset);
+  SkipFunctionNode();
 
   Fragment instructions;
   instructions += Constant(function);
-  if (scopes()->IsClosureWithEmptyContext(offset)) {
+  if (scopes()->IsClosureWithEmptyContext(func_node_offset)) {
     instructions += NullConstant();
   } else {
     instructions += LoadLocal(parsed_function()->current_context_var());
@@ -6072,7 +5950,8 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
     instructions += LoadInstantiatorTypeArguments();
   }
   instructions += flow_graph_builder_->AllocateClosure(
-      position, has_instantiator_type_args, function.IsGeneric());
+      function.token_pos(), has_instantiator_type_args, function.IsGeneric(),
+      /*is_tear_off=*/false);
   LocalVariable* closure = MakeTemporary();
 
   // TODO(30455): We only need to save these if the closure uses any captured

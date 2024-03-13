@@ -473,7 +473,25 @@ void f() {
         detail: '() → String');
   }
 
-  Future<void> test_local_override() async {
+  Future<void> test_local_override_annotation() async {
+    final content = '''
+class Base {
+  String aa(String a) => '';
+}
+
+class Derived extends Base {
+  @over^
+}
+''';
+    await expectLabels(content,
+        label: 'override aa',
+        labelDetail: '(…) → String',
+        labelDescription: null,
+        filterText: null,
+        detail: '(String a) → String');
+  }
+
+  Future<void> test_local_override_name() async {
     final content = '''
 class Base {
   String aa(String a) => '';

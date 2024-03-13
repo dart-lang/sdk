@@ -1511,8 +1511,9 @@ void TypedDataSpecializer::TryInlineCall(TemplateDartCall<0>* call) {
     auto& type_class = Class::Handle(zone_);
 #define TRY_INLINE(iface, member_name, type, cid)                              \
   if (!member_name.IsNull()) {                                                 \
+    auto const rep = RepresentationUtils::RepresentationOfArrayElement(cid);   \
     const bool is_float_access =                                               \
-        cid == kTypedDataFloat32ArrayCid || cid == kTypedDataFloat64ArrayCid;  \
+        rep == kUnboxedFloat || rep == kUnboxedDouble;                         \
     if (receiver_type->IsAssignableTo(member_name)) {                          \
       if (is_length_getter) {                                                  \
         type_class = member_name.type_class();                                 \

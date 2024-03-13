@@ -147,7 +147,7 @@ class Message {
   // elements in the list are strings, making consumption by C++ simpler.
   // This has a side effect that boolean literal values like true become 'true'
   // and thus indistinguishable from the string literal 'true'.
-  List<String> _makeAllString(List<Object> list) {
+  List<String> _makeAllString(List<Object?> list) {
     var new_list = List<String>.filled(list.length, "");
     for (var i = 0; i < list.length; i++) {
       new_list[i] = list[i].toString();
@@ -168,7 +168,7 @@ class Message {
     };
     final keys = _makeAllString(params.keys.toList(growable: false));
     final values =
-        _makeAllString(params.values.cast<Object>().toList(growable: false));
+        _makeAllString(params.values.cast<Object?>().toList(growable: false));
     final request = List<Object?>.filled(6, null)
       ..[0] = 0 // Make room for OOB message type.
       ..[1] = receivePort.sendPort

@@ -156,6 +156,8 @@ class TranslationHelper {
                                                   bool required = true);
   virtual ClassPtr LookupClassByKernelClass(NameIndex klass,
                                             bool required = true);
+  ClassPtr LookupClassByKernelClassOrLibrary(NameIndex kernel_name,
+                                             bool required = true);
 
   FieldPtr LookupFieldByKernelField(NameIndex field, bool required = true);
   FieldPtr LookupFieldByKernelGetterOrSetter(NameIndex field,
@@ -173,6 +175,7 @@ class TranslationHelper {
   FunctionPtr LookupMethodByMember(NameIndex target,
                                    const String& method_name,
                                    bool required = true);
+  ObjectPtr LookupMemberByMember(NameIndex kernel_name, bool required = true);
   FunctionPtr LookupDynamicFunction(const Class& klass, const String& name);
 
   Type& GetDeclarationType(const Class& klass);
@@ -976,6 +979,11 @@ class MetadataHelper {
 };
 
 struct DirectCallMetadata {
+  enum Flag {
+    kFlagCheckReceiverForNull = 1 << 0,
+    kFlagClosure = 1 << 1,
+  };
+
   DirectCallMetadata(const Function& target, bool check_receiver_for_null)
       : target_(target), check_receiver_for_null_(check_receiver_for_null) {}
 
@@ -993,11 +1001,13 @@ class DirectCallMetadataHelper : public MetadataHelper {
   DirectCallMetadata GetDirectTargetForPropertyGet(intptr_t node_offset);
   DirectCallMetadata GetDirectTargetForPropertySet(intptr_t node_offset);
   DirectCallMetadata GetDirectTargetForMethodInvocation(intptr_t node_offset);
+  DirectCallMetadata GetDirectTargetForFunctionInvocation(intptr_t node_offset);
 
  private:
   bool ReadMetadata(intptr_t node_offset,
                     NameIndex* target_name,
-                    bool* check_receiver_for_null);
+                    bool* check_receiver_for_null,
+                    intptr_t* closure_id = nullptr);
 
   DISALLOW_COPY_AND_ASSIGN(DirectCallMetadataHelper);
 };

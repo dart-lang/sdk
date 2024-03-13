@@ -265,6 +265,10 @@ class _ReferenceVisitor extends RecursiveAstVisitor {
     var e = node.staticElement;
     if (e != null && _patternLevel == 0) {
       _addDeclaration(e);
+      var type = node.type.element;
+      if (type != null) {
+        _addDeclaration(type);
+      }
     }
     super.visitConstructorName(node);
   }

@@ -708,7 +708,13 @@ bool Options::ParseArguments(int argc,
       // processed in this loop.
       dart_options->AddArgument("run");
     } else {
-      dart_options->AddArgument(argv[i]);
+      // dart run isn't able to parse these options properly. Since it doesn't
+      // need to use the values from these options, just strip them from the
+      // argument list passed to dart run.
+      if (!IsOption(argv[i], "observe") &&
+          !IsOption(argv[i], "enable-vm-service")) {
+        dart_options->AddArgument(argv[i]);
+      }
       i++;
     }
     // Add DDS specific flags immediately after the dartdev command.

@@ -523,6 +523,7 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
 
   // Set flag to load and retain the vmservice library.
   flags->load_vmservice_library = true;
+  flags->null_safety = true;  // Service isolate runs in sound null safe mode.
   const uint8_t* isolate_snapshot_data = core_isolate_snapshot_data;
   const uint8_t* isolate_snapshot_instructions =
       core_isolate_snapshot_instructions;

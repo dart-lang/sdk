@@ -551,7 +551,7 @@ class C {}
     ]);
   }
 
-  test_class_unreachable_typedefBound() async {
+  test_class_unreachable_typeArgumentBound() async {
     await assertDiagnostics(r'''
 void main() {
   f();
@@ -1424,6 +1424,32 @@ int x = 1;
 ''', [
       lint(20, 1),
     ]);
+  }
+
+  test_typedef_reachable_referencedAsInstanceCreation_named() async {
+    await assertNoDiagnostics(r'''
+void main() {
+  T.named();
+}
+
+class C {
+  C.named();
+}
+
+typedef T = C;
+''');
+  }
+
+  test_typedef_reachable_referencedAsInstanceCreation_unnamed() async {
+    await assertNoDiagnostics(r'''
+void main() {
+  T();
+}
+
+class C {}
+
+typedef T = C;
+''');
   }
 
   test_typedef_reachable_referencedInObjectPattern() async {

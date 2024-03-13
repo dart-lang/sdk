@@ -6737,11 +6737,13 @@ class LoadIndexedInstr : public TemplateDefinition<2, NoThrow> {
     return GetDeoptId() != DeoptId::kNone;
   }
 
-  // Representation of LoadIndexed from arrays with given cid.
-  static Representation RepresentationOfArrayElement(intptr_t array_cid);
+  // The representation returned by LoadIndexed for arrays with the given cid.
+  // May not match the representation for the element returned by
+  // RepresentationUtils::RepresentationOfArrayElement.
+  static Representation ReturnRepresentation(intptr_t array_cid);
 
   Representation representation() const {
-    return RepresentationOfArrayElement(class_id());
+    return ReturnRepresentation(class_id());
   }
 
   virtual void InferRange(RangeAnalysis* analysis, Range* range);
@@ -7032,8 +7034,10 @@ class StoreIndexedInstr : public TemplateInstruction<3, NoThrow> {
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
-  // Representation of value passed to StoreIndexed for arrays with given cid.
-  static Representation RepresentationOfArrayElement(intptr_t array_cid);
+  // The value representation expected by StoreIndexed for arrays with the
+  // given cid. May not match the representation for the element returned by
+  // RepresentationUtils::RepresentationOfArrayElement.
+  static Representation ValueRepresentation(intptr_t array_cid);
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const;
 
@@ -7422,10 +7426,12 @@ class AllocateClosureInstr : public TemplateAllocation<3> {
                        Value* context,
                        Value* instantiator_type_args,  // Optional.
                        bool is_generic,
+                       bool is_tear_off,
                        intptr_t deopt_id)
       : TemplateAllocation(source, deopt_id),
         has_instantiator_type_args_(instantiator_type_args != nullptr),
-        is_generic_(is_generic) {
+        is_generic_(is_generic),
+        is_tear_off_(is_tear_off) {
     SetInputAt(kFunctionPos, closure_function);
     SetInputAt(kContextPos, context);
     if (has_instantiator_type_args_) {
@@ -7447,6 +7453,7 @@ class AllocateClosureInstr : public TemplateAllocation<3> {
     return has_instantiator_type_args_;
   }
   bool is_generic() const { return is_generic_; }
+  bool is_tear_off() const { return is_tear_off_; }
 
   const Function& known_function() const {
     Value* const value = closure_function();
@@ -7474,7 +7481,17 @@ class AllocateClosureInstr : public TemplateAllocation<3> {
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
+  virtual bool AllowsCSE() const { return is_tear_off(); }
+
   virtual bool HasUnknownSideEffects() const { return false; }
+
+  virtual bool AttributesEqual(const Instruction& other) const {
+    const auto other_ac = other.AsAllocateClosure();
+    return (other_ac->has_instantiator_type_args() ==
+            has_instantiator_type_args()) &&
+           (other_ac->is_generic() == is_generic()) &&
+           (other_ac->is_tear_off() == is_tear_off());
+  }
 
   virtual bool WillAllocateNewOrRemembered() const {
     return IsAllocatableInNewSpace(compiler::target::Closure::InstanceSize());
@@ -7482,7 +7499,8 @@ class AllocateClosureInstr : public TemplateAllocation<3> {
 
 #define FIELD_LIST(F)                                                          \
   F(const bool, has_instantiator_type_args_)                                   \
-  F(const bool, is_generic_)
+  F(const bool, is_generic_)                                                   \
+  F(const bool, is_tear_off_)
 
   DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(AllocateClosureInstr,
                                           TemplateAllocation,
@@ -8309,6 +8327,20 @@ struct Boxing : public AllStatic {
   // Whether the given representation can be boxed or unboxed.
   static bool Supports(Representation rep);
 
+  // The native representation that results from unboxing a value with the
+  // representation [rep].
+  //
+  // The native representation can hold all values represented by [rep], but
+  // may be larger than the value size of [rep]. For example, byte-sized
+  // values are zero or sign-extended to word-sized values on x86 architectures
+  // to avoid having to allocate byte registers.
+  static constexpr Representation NativeRepresentation(Representation rep) {
+    // Only change integer representations.
+    if (!RepresentationUtils::IsUnboxedInteger(rep)) return rep;
+    // Use signed word-sized integers for representations smaller than 4 bytes.
+    return RepresentationUtils::ValueSize(rep) < 4 ? kUnboxedIntPtr : rep;
+  }
+
   // Whether boxing this value requires allocating a new object.
   static bool RequiresAllocation(Representation rep);
 
@@ -8534,6 +8566,8 @@ class UnboxInstr : public TemplateDefinition<1, NoThrow, Pure> {
       : TemplateDefinition(deopt_id),
         representation_(representation),
         speculative_mode_(speculative_mode) {
+    // Unboxing doesn't currently handle non-native representations.
+    ASSERT_EQUAL(Boxing::NativeRepresentation(representation), representation);
     SetInputAt(0, value);
   }
 
@@ -10798,6 +10832,9 @@ class IntConverterInstr : public TemplateDefinition<1, NoThrow, Pure> {
         to_representation_(to),
         is_truncating_(to == kUnboxedUint32) {
     ASSERT(from != to);
+    // Integer conversion doesn't currently handle non-native representations.
+    ASSERT_EQUAL(Boxing::NativeRepresentation(from), from);
+    ASSERT_EQUAL(Boxing::NativeRepresentation(to), to);
     ASSERT(from == kUnboxedInt64 || from == kUnboxedUint32 ||
            from == kUnboxedInt32 || from == kUntagged);
     ASSERT(to == kUnboxedInt64 || to == kUnboxedUint32 || to == kUnboxedInt32 ||

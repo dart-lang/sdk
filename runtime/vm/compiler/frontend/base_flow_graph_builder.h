@@ -389,7 +389,8 @@ class BaseFlowGraphBuilder {
   // Top of the stack should be the closure function.
   Fragment AllocateClosure(TokenPosition position,
                            bool has_instantiator_type_args,
-                           bool is_generic);
+                           bool is_generic,
+                           bool is_tear_off);
   Fragment CreateArray();
   Fragment AllocateRecord(TokenPosition position, RecordShape shape);
   Fragment AllocateSmallRecord(TokenPosition position, RecordShape shape);
