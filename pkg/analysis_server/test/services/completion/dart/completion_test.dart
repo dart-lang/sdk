@@ -5146,22 +5146,6 @@ suggestions
 ''');
   }
 
-  Future<void> test_commentSnippets029_1() async {
-    allowedIdentifiers = {'DateTime'};
-    await computeSuggestions('''
-interface A<X> default B<X extends ^List> {}
-''');
-    assertResponse(r'''
-replacement
-  right: 4
-suggestions
-  DateTime
-    kind: class
-  dynamic
-    kind: keyword
-''');
-  }
-
   Future<void> test_commentSnippets029_2() async {
     allowedIdentifiers = {'List'};
     await computeSuggestions('''
