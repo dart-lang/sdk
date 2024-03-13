@@ -351,11 +351,6 @@ abstract class InternalExpression extends AuxiliaryExpression {
 /// Common base class for internal initializers.
 abstract class InternalInitializer extends AuxiliaryInitializer {
   @override
-  void replaceChild(TreeNode child, TreeNode replacement) {
-    // Do nothing. The node should not be part of the resulting AST, anyway.
-  }
-
-  @override
   void visitChildren(Visitor<dynamic> v) =>
       unsupported("${runtimeType}.visitChildren", -1, null);
 
@@ -3372,6 +3367,11 @@ class ExtensionTypeRepresentationFieldInitializer extends InternalInitializer {
       : assert(field.stubKind == ProcedureStubKind.RepresentationField),
         this.fieldReference = field.reference {
     value.parent = this;
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    value = v.transform(value)..parent = this;
   }
 
   /// [Procedure] that represents the representation field.

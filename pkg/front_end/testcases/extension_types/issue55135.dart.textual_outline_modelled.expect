@@ -1,0 +1,16 @@
+abstract class A {
+  factory A() = B;
+  int get x;
+}
+
+class B implements A {
+  final int x = 1;
+}
+
+expectEquals(x, y) {}
+
+extension type C._(A point) implements A {
+  C() : point = A();
+}
+
+void main() {}
