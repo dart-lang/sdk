@@ -60,7 +60,7 @@ final sortTextMaxValue = int.parse('9' * maximumRelevance.toString().length);
 /// A regex used for splitting the display text in a completion so that
 /// filterText only includes the symbol name and not any additional text (such
 /// as parens, ` => `).
-final _completionFilterTextSplitPattern = RegExp(r'[ \(]');
+final _completionFilterTextSplitPattern = RegExp(r'[=\(]');
 
 /// A regex to extract the type name from the parameter string of a setter
 /// completion item.
@@ -1020,7 +1020,7 @@ lsp.CompletionItem toCompletionItem(
   // (for example for a closure `(a, b) {}`) we'll end up with an empty string
   // but we should instead use the whole label.
   final filterText = !label.startsWith(_completionFilterTextSplitPattern)
-      ? label.split(_completionFilterTextSplitPattern).first
+      ? label.split(_completionFilterTextSplitPattern).first.trim()
       : label;
 
   // If we're using label details, we also don't want the label to include any
