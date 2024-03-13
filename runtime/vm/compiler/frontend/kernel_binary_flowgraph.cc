@@ -4429,7 +4429,8 @@ Fragment StreamingFlowGraphBuilder::BuildPartialTearoffInstantiation(
   instructions += flow_graph_builder_->LoadNativeField(
       Slot::Closure_instantiator_type_arguments());
   instructions += flow_graph_builder_->AllocateClosure(
-      position, /*has_instantiator_type_args=*/true, /*is_generic=*/false);
+      position, /*has_instantiator_type_args=*/true, /*is_generic=*/false,
+      /*is_tear_off=*/false);
   LocalVariable* new_closure = MakeTemporary();
 
   intptr_t num_type_args = ReadListLength();
@@ -5947,7 +5948,8 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
     instructions += LoadInstantiatorTypeArguments();
   }
   instructions += flow_graph_builder_->AllocateClosure(
-      function.token_pos(), has_instantiator_type_args, function.IsGeneric());
+      function.token_pos(), has_instantiator_type_args, function.IsGeneric(),
+      /*is_tear_off=*/false);
   LocalVariable* closure = MakeTemporary();
 
   // TODO(30455): We only need to save these if the closure uses any captured

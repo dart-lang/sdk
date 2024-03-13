@@ -1586,7 +1586,7 @@ void LICM::Optimize() {
         bool is_loop_invariant = false;
         if ((current->AllowsCSE() ||
              IsLoopInvariantLoad(loop_invariant_loads, i, current)) &&
-            (!seen_visible_effect || !current->MayThrow())) {
+            (!seen_visible_effect || !current->MayHaveVisibleEffect())) {
           is_loop_invariant = true;
           for (intptr_t i = 0; i < current->InputCount(); ++i) {
             Definition* input_def = current->InputAt(i)->definition();

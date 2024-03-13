@@ -913,14 +913,15 @@ Fragment BaseFlowGraphBuilder::AllocateContext(
 
 Fragment BaseFlowGraphBuilder::AllocateClosure(TokenPosition position,
                                                bool has_instantiator_type_args,
-                                               bool is_generic) {
+                                               bool is_generic,
+                                               bool is_tear_off) {
   Value* instantiator_type_args =
       (has_instantiator_type_args ? Pop() : nullptr);
   auto const context = Pop();
   auto const function = Pop();
   auto* allocate = new (Z) AllocateClosureInstr(
       InstructionSource(position), function, context, instantiator_type_args,
-      is_generic, GetNextDeoptId());
+      is_generic, is_tear_off, GetNextDeoptId());
   Push(allocate);
   return Fragment(allocate);
 }

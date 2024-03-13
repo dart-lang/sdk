@@ -7426,10 +7426,12 @@ class AllocateClosureInstr : public TemplateAllocation<3> {
                        Value* context,
                        Value* instantiator_type_args,  // Optional.
                        bool is_generic,
+                       bool is_tear_off,
                        intptr_t deopt_id)
       : TemplateAllocation(source, deopt_id),
         has_instantiator_type_args_(instantiator_type_args != nullptr),
-        is_generic_(is_generic) {
+        is_generic_(is_generic),
+        is_tear_off_(is_tear_off) {
     SetInputAt(kFunctionPos, closure_function);
     SetInputAt(kContextPos, context);
     if (has_instantiator_type_args_) {
@@ -7451,6 +7453,7 @@ class AllocateClosureInstr : public TemplateAllocation<3> {
     return has_instantiator_type_args_;
   }
   bool is_generic() const { return is_generic_; }
+  bool is_tear_off() const { return is_tear_off_; }
 
   const Function& known_function() const {
     Value* const value = closure_function();
@@ -7478,7 +7481,17 @@ class AllocateClosureInstr : public TemplateAllocation<3> {
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
+  virtual bool AllowsCSE() const { return is_tear_off(); }
+
   virtual bool HasUnknownSideEffects() const { return false; }
+
+  virtual bool AttributesEqual(const Instruction& other) const {
+    const auto other_ac = other.AsAllocateClosure();
+    return (other_ac->has_instantiator_type_args() ==
+            has_instantiator_type_args()) &&
+           (other_ac->is_generic() == is_generic()) &&
+           (other_ac->is_tear_off() == is_tear_off());
+  }
 
   virtual bool WillAllocateNewOrRemembered() const {
     return IsAllocatableInNewSpace(compiler::target::Closure::InstanceSize());
@@ -7486,7 +7499,8 @@ class AllocateClosureInstr : public TemplateAllocation<3> {
 
 #define FIELD_LIST(F)                                                          \
   F(const bool, has_instantiator_type_args_)                                   \
-  F(const bool, is_generic_)
+  F(const bool, is_generic_)                                                   \
+  F(const bool, is_tear_off_)
 
   DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(AllocateClosureInstr,
                                           TemplateAllocation,

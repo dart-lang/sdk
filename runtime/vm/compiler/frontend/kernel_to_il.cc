@@ -2168,8 +2168,8 @@ Fragment FlowGraphBuilder::BuildImplicitClosureCreation(
   if (has_instantiator_type_args) {
     fragment += LoadInstantiatorTypeArguments();
   }
-  fragment +=
-      AllocateClosure(position, has_instantiator_type_args, target.IsGeneric());
+  fragment += AllocateClosure(position, has_instantiator_type_args,
+                              target.IsGeneric(), /*is_tear_off=*/true);
 
   return fragment;
 }
