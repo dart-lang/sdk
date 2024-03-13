@@ -351,32 +351,14 @@ class Fixtures {
       id: RemoteInstance.uniqueId,
       isNullable: false,
       namedFields: [
-        RecordFieldDeclarationImpl(
-            id: RemoteInstance.uniqueId,
-            identifier:
-                IdentifierImpl(id: RemoteInstance.uniqueId, name: 'world'),
-            library: Fixtures.library,
-            metadata: [],
-            name: 'world',
-            type: stringType),
+        RecordFieldImpl(
+            id: RemoteInstance.uniqueId, name: 'world', type: stringType),
       ],
       positionalFields: [
-        RecordFieldDeclarationImpl(
-            id: RemoteInstance.uniqueId,
-            identifier:
-                IdentifierImpl(id: RemoteInstance.uniqueId, name: r'$1'),
-            library: Fixtures.library,
-            metadata: [],
-            name: null,
-            type: stringType),
-        RecordFieldDeclarationImpl(
-            id: RemoteInstance.uniqueId,
-            identifier:
-                IdentifierImpl(id: RemoteInstance.uniqueId, name: r'$2'),
-            library: Fixtures.library,
-            metadata: [],
-            name: 'hello',
-            type: nullableBoolType),
+        RecordFieldImpl(
+            id: RemoteInstance.uniqueId, name: null, type: stringType),
+        RecordFieldImpl(
+            id: RemoteInstance.uniqueId, name: 'hello', type: nullableBoolType),
       ]);
 
   // Top level, non-class declarations.

@@ -472,23 +472,15 @@ void main() {
             id: RemoteInstance.uniqueId,
             isNullable: rand.nextBool(),
             namedFields: [
-              RecordFieldDeclarationImpl(
+              RecordFieldImpl(
                 id: RemoteInstance.uniqueId,
-                identifier:
-                    IdentifierImpl(id: RemoteInstance.uniqueId, name: 'hello'),
-                library: Fixtures.library,
-                metadata: [],
                 name: 'hello',
                 type: barType,
               ),
             ],
             positionalFields: [
-              RecordFieldDeclarationImpl(
+              RecordFieldImpl(
                 id: RemoteInstance.uniqueId,
-                identifier:
-                    IdentifierImpl(id: RemoteInstance.uniqueId, name: r'$1'),
-                library: Fixtures.library,
-                metadata: [],
                 name: rand.nextBool() ? null : 'zoiks',
                 type: fooType,
               ),

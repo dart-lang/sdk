@@ -3420,6 +3420,7 @@ class Function : public Object {
       case UntaggedFunction::kNoSuchMethodDispatcher:
       case UntaggedFunction::kInvokeFieldDispatcher:
       case UntaggedFunction::kDynamicInvocationForwarder:
+      case UntaggedFunction::kFfiTrampoline:
       case UntaggedFunction::kRecordFieldGetter:
         return false;
       default:
@@ -3515,6 +3516,10 @@ class Function : public Object {
   bool MakesCopyOfParameters() const {
     return HasOptionalParameters() || IsSuspendableFunction();
   }
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  bool CanUseRegisterCallingConvention(Zone* zone) const;
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 #if defined(DART_PRECOMPILED_RUNTIME)
 #define DEFINE_GETTERS_AND_SETTERS(return_type, type, name)                    \

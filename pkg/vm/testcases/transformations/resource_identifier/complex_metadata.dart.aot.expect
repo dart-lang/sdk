@@ -6,19 +6,27 @@ import "package:meta/meta.dart" as meta;
 import "package:meta/meta.dart" show ResourceIdentifier;
 
 abstract class SomeClass extends core::Object {
-[@vm.unboxing-info.metadata=(i)->i]  @#C2
+
+  [@vm.unboxing-info.metadata=(i)->i]
+  @#C2
   static method stringMetadata([@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 42)] core::int i) → dynamic {
     return [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] i.{core::num::+}(1){(core::num) → core::int};
   }
-[@vm.unboxing-info.metadata=(i)->i]  @#C4
+
+  [@vm.unboxing-info.metadata=(i)->i]
+  @#C4
   static method doubleMetadata([@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 42)] core::int i) → dynamic {
     return [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] i.{core::num::+}(1){(core::num) → core::int};
   }
-[@vm.unboxing-info.metadata=(i)->i]  @#C6
+
+  [@vm.unboxing-info.metadata=(i)->i]
+  @#C6
   static method intMetadata([@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 42)] core::int i) → dynamic {
     return [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] i.{core::num::+}(1){(core::num) → core::int};
   }
-[@vm.unboxing-info.metadata=(i)->i]  @#C8
+
+  [@vm.unboxing-info.metadata=(i)->i]
+  @#C8
   static method boolMetadata([@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 42)] core::int i) → dynamic {
     return [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] i.{core::num::+}(1){(core::num) → core::int};
   }

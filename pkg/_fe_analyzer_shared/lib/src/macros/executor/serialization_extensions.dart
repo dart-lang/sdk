@@ -64,8 +64,8 @@ extension DeserializerExtensions on Deserializer {
         (this..moveNext())._expectOmittedTypeAnnotation(id),
       RemoteInstanceKind.formalParameterDeclaration =>
         (this..moveNext())._expectFormalParameterDeclaration(id),
-      RemoteInstanceKind.recordFieldDeclaration =>
-        (this..moveNext())._expectRecordFieldDeclaration(id),
+      RemoteInstanceKind.recordField =>
+        (this..moveNext())._expectRecordField(id),
       RemoteInstanceKind.recordTypeAnnotation =>
         (this..moveNext())._expectRecordTypeAnnotation(id),
       RemoteInstanceKind.typeAliasDeclaration =>
@@ -165,14 +165,10 @@ extension DeserializerExtensions on Deserializer {
         type: RemoteInstance.deserialize(this),
       );
 
-  RecordFieldDeclarationImpl _expectRecordFieldDeclaration(int id) =>
-      new RecordFieldDeclarationImpl(
-          id: id,
-          identifier: expectRemoteInstance(),
-          library: RemoteInstance.deserialize(this),
-          metadata: (this..moveNext())._expectRemoteInstanceList(),
-          name: (this..moveNext()).expectNullableString(),
-          type: (this..moveNext()).expectRemoteInstance());
+  RecordFieldImpl _expectRecordField(int id) => new RecordFieldImpl(
+      id: id,
+      name: expectNullableString(),
+      type: (this..moveNext()).expectRemoteInstance());
 
   RecordTypeAnnotationImpl _expectRecordTypeAnnotation(int id) =>
       new RecordTypeAnnotationImpl(

@@ -3359,19 +3359,41 @@ class TailCallInstr : public TemplateInstruction<1, Throws, Pure> {
 };
 
 // Move the given argument value into the place where callee expects it.
-// Currently all outgoing arguments are located in [SP+idx]
+//
+// [location] is expected to either be an SP relative stack slot or a
+// machine register.
+//
+// On 32-bit targets [location] might also be a pair of stack slots or a
+// pair of machine registers.
 class MoveArgumentInstr : public TemplateDefinition<1, NoThrow> {
  public:
   explicit MoveArgumentInstr(Value* value,
                              Representation representation,
-                             intptr_t sp_relative_index)
-      : representation_(representation), sp_relative_index_(sp_relative_index) {
+                             Location location)
+      : representation_(representation),
+        is_register_move_(IsRegisterMove(location)),
+        location_(location) {
+    ASSERT(IsSupportedLocation(location));
     SetInputAt(0, value);
   }
 
   DECLARE_INSTRUCTION(MoveArgument)
 
-  intptr_t sp_relative_index() const { return sp_relative_index_; }
+  bool is_register_move() const { return is_register_move_; }
+
+  // For stack locations returns the SP relative index corresponding
+  // to the first slot allocated for the argument.
+  intptr_t sp_relative_index() const {
+    ASSERT(!is_register_move());
+    Location loc = location();
+    if (loc.IsPairLocation()) {
+      loc = loc.AsPairLocation()->At(0);
+    }
+    return loc.stack_index();
+  }
+
+  Location location() const { return location_; }
+  Location* location_slot() { return &location_; }
 
   Value* value() const { return InputAt(0); }
 
@@ -3394,14 +3416,40 @@ class MoveArgumentInstr : public TemplateDefinition<1, NoThrow> {
 
 #define FIELD_LIST(F)                                                          \
   F(const Representation, representation_)                                     \
-  F(const intptr_t, sp_relative_index_)
+  F(const bool, is_register_move_)
 
   DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(MoveArgumentInstr,
                                           TemplateDefinition,
                                           FIELD_LIST)
 #undef FIELD_LIST
 
+  DECLARE_EXTRA_SERIALIZATION
+
  private:
+  static bool IsSupportedLocation(Location loc, bool can_be_fpu_value = true) {
+#if defined(TARGET_ARCH_IS_32_BIT)
+    if (loc.IsPairLocation()) {
+      auto pair_loc = loc.AsPairLocation();
+      return IsSupportedLocation(pair_loc->At(0), /*can_be_fpu_value=*/false) &&
+             IsSupportedLocation(pair_loc->At(1), /*can_be_fpu_value=*/false);
+    }
+#endif
+    if (loc.IsStackSlot() || (can_be_fpu_value && loc.IsDoubleStackSlot())) {
+      return loc.base_reg() == SPREG;
+    } else if (loc.IsRegister() || (can_be_fpu_value && loc.IsFpuRegister())) {
+      return true;
+    }
+    return false;
+  }
+
+  static bool IsRegisterMove(Location loc) {
+    return loc.IsMachineRegister() ||
+           (loc.IsPairLocation() &&
+            loc.AsPairLocation()->At(0).IsMachineRegister());
+  }
+
+  Location location_;
+
   DISALLOW_COPY_AND_ASSIGN(MoveArgumentInstr);
 };
 
@@ -4536,18 +4584,13 @@ class TemplateDartCall : public VariadicDefinition {
         ArgumentsSizeWithoutTypeArgs(), argument_names());
   }
 
-#define FIELD_LIST(F)                                                          \
-  F(const intptr_t, type_args_len_)                                            \
-  F(const Array&, argument_names_)                                             \
-  F(const TokenPosition, token_pos_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(TemplateDartCall,
-                                          VariadicDefinition,
-                                          FIELD_LIST)
-#undef FIELD_LIST
+  DECLARE_CUSTOM_SERIALIZATION(TemplateDartCall)
   DECLARE_EXTRA_SERIALIZATION
 
  private:
+  const intptr_t type_args_len_;
+  const Array& argument_names_;
+  const TokenPosition token_pos_;
   MoveArgumentsArray* move_arguments_ = nullptr;
 
   DISALLOW_COPY_AND_ASSIGN(TemplateDartCall);

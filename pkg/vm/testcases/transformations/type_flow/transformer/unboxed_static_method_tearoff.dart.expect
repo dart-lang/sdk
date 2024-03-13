@@ -7,12 +7,20 @@ class X extends core::Object {
     : super core::Object::•()
     ;
 }
-[@vm.inferred-type.metadata=dart.core::bool]static final field core::bool kTrue = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] [@vm.inferred-type.metadata=int] core::int::parse("1") =={core::num::==}{(core::Object) → core::bool} 1 ?{core::bool} true : false;
-[@vm.inferred-type.metadata=dart.core::bool]static final field core::bool kFalse = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] [@vm.inferred-type.metadata=int] core::int::parse("1") =={core::num::==}{(core::Object) → core::bool} 2 ?{core::bool} true : false;
+
+[@vm.inferred-type.metadata=dart.core::bool]
+static final field core::bool kTrue = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] [@vm.inferred-type.metadata=int] core::int::parse("1") =={core::num::==}{(core::Object) → core::bool} 1 ?{core::bool} true : false;
+
+[@vm.inferred-type.metadata=dart.core::bool]
+static final field core::bool kFalse = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] [@vm.inferred-type.metadata=int] core::int::parse("1") =={core::num::==}{(core::Object) → core::bool} 2 ?{core::bool} true : false;
 static field dynamic usedObject;
-[@vm.unboxing-info.metadata=()->i]static get mint() → core::int
+
+[@vm.unboxing-info.metadata=()->i]
+static get mint() → core::int
   return -6144092014192636707;
-[@vm.unboxing-info.metadata=()->i]static get smiOrMint() → core::int
+
+[@vm.unboxing-info.metadata=()->i]
+static get smiOrMint() → core::int
   return [@vm.inferred-type.metadata=dart.core::bool] self::kTrue ?{core::int} 1 : [@vm.inferred-type.metadata=int] self::mint;
 static method use(dynamic object) → void {
   self::usedObject == null ?{dynamic} self::usedObject = object : null;
@@ -47,11 +55,17 @@ static method takeNamed({core::int? unboxedSmi = #C1, dynamic unboxedInt = #C1, 
   self::use(boxedNullableX);
   self::use(boxedX);
 }
-[@vm.unboxing-info.metadata=()->i]static method returnUnboxedSmi() → dynamic
+
+[@vm.unboxing-info.metadata=()->i]
+static method returnUnboxedSmi() → dynamic
   return [@vm.inferred-type.metadata=dart.core::bool] self::kTrue ?{core::int} 1 : 2;
-[@vm.unboxing-info.metadata=()->i]static method returnUnboxedInt() → dynamic
+
+[@vm.unboxing-info.metadata=()->i]
+static method returnUnboxedInt() → dynamic
   return [@vm.inferred-type.metadata=dart.core::bool] self::kTrue ?{core::int} [@vm.inferred-type.metadata=int] self::smiOrMint : 2;
-[@vm.unboxing-info.metadata=()->d]static method returnUnboxedDouble() → dynamic
+
+[@vm.unboxing-info.metadata=()->d]
+static method returnUnboxedDouble() → dynamic
   return [@vm.inferred-type.metadata=dart.core::bool] self::kTrue ?{core::double} 1.1 : 2.2;
 static method returnBoxedNullableInt() → dynamic
   return [@vm.inferred-type.metadata=dart.core::bool] self::kTrue ?{core::int?} [@vm.inferred-type.metadata=int] self::smiOrMint : null;

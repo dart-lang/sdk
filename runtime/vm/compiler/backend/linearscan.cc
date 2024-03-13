@@ -205,6 +205,22 @@ void SSALivenessAnalysis::ComputeInitialSets() {
         }
       }
 
+      // Process detached MoveArguments interpreting them as
+      // fixed register inputs.
+      if (current->ArgumentCount() != 0) {
+        auto move_arguments = current->GetMoveArguments();
+        for (auto move : *move_arguments) {
+          if (move->is_register_move()) {
+            auto input = move->value();
+
+            live_in->Add(input->definition()->vreg(0));
+            if (input->definition()->HasPairRepresentation()) {
+              live_in->Add(input->definition()->vreg(1));
+            }
+          }
+        }
+      }
+
       // Add non-argument uses from the deoptimization environment (pushed
       // arguments are not allocated by the register allocator).
       if (current->env() != nullptr) {
@@ -689,10 +705,11 @@ void FlowGraphAllocator::BuildLiveRanges() {
 }
 
 void FlowGraphAllocator::SplitInitialDefinitionAt(LiveRange* range,
-                                                  intptr_t pos) {
+                                                  intptr_t pos,
+                                                  Location::Kind kind) {
   if (range->End() > pos) {
     LiveRange* tail = range->SplitAt(pos);
-    CompleteRange(tail, Location::kRegister);
+    CompleteRange(tail, kind);
   }
 }
 
@@ -786,10 +803,11 @@ void FlowGraphAllocator::ProcessInitialDefinition(
           location.AsPairLocation()->At(second_location_for_definition ? 1 : 0);
     }
     range->set_assigned_location(location);
-    if (location.IsRegister()) {
+    if (location.IsMachineRegister()) {
       CompleteRange(defn, range);
       if (range->End() > (GetLifetimePosition(block) + 1)) {
-        SplitInitialDefinitionAt(range, GetLifetimePosition(block) + 1);
+        SplitInitialDefinitionAt(range, GetLifetimePosition(block) + 1,
+                                 location.kind());
       }
       ConvertAllUses(range);
       BlockLocation(location, GetLifetimePosition(block),
@@ -1450,6 +1468,32 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
     }
   }
 
+  // Process MoveArguments interpreting them as fixed register inputs.
+  if (current->ArgumentCount() != 0) {
+    auto move_arguments = current->GetMoveArguments();
+    for (auto move : *move_arguments) {
+      if (move->is_register_move()) {
+        auto input = move->value();
+        if (move->location().IsPairLocation()) {
+          auto pair = move->location().AsPairLocation();
+          RELEASE_ASSERT(pair->At(0).IsMachineRegister() &&
+                         pair->At(1).IsMachineRegister());
+          ProcessOneInput(block, pos, pair->SlotAt(0), input,
+                          input->definition()->vreg(0),
+                          /*live_registers=*/nullptr);
+          ProcessOneInput(block, pos, pair->SlotAt(1), input,
+                          input->definition()->vreg(1),
+                          /*live_registers=*/nullptr);
+        } else {
+          RELEASE_ASSERT(move->location().IsMachineRegister());
+          ProcessOneInput(block, pos, move->location_slot(), input,
+                          input->definition()->vreg(0),
+                          /*live_registers=*/nullptr);
+        }
+      }
+    }
+  }
+
   // Process temps.
   for (intptr_t j = 0; j < locs->temp_count(); j++) {
     // Expected shape of live range:
@@ -1648,15 +1692,14 @@ void FlowGraphAllocator::NumberInstructions() {
     SetLifetimePosition(block, pos);
     pos += 2;
 
-    for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
-      Instruction* current = it.Current();
+    for (auto instr : block->instructions()) {
       // Do not assign numbers to parallel move instructions.
-      if (!current->IsParallelMove()) {
-        instructions_.Add(current);
-        block_entries_.Add(block);
-        SetLifetimePosition(current, pos);
-        pos += 2;
-      }
+      if (instr->IsParallelMove()) continue;
+
+      instructions_.Add(instr);
+      block_entries_.Add(block);
+      SetLifetimePosition(instr, pos);
+      pos += 2;
     }
     block->set_end_pos(pos);
   }
@@ -2277,6 +2320,21 @@ bool FlowGraphAllocator::AllocateFreeRegister(LiveRange* unallocated) {
   // If hint is available try hint first.
   // TODO(vegorov): ensure that phis are hinted on the back edge.
   Location hint = unallocated->finger()->FirstHint();
+
+  // Handle special case for incoming register values (see
+  // ProcessInitialDefinition): we implement them differently from fixed outputs
+  // which use prefilled ParallelMove, but that means there is not hinted
+  // use created and as a result we produce worse code by assigning a random
+  // free register.
+  if (!hint.IsMachineRegister() && unallocated->vreg() >= 0) {
+    auto* parent_range = GetLiveRange(unallocated->vreg());
+    if (parent_range->End() == unallocated->Start() &&
+        !IsBlockEntry(unallocated->Start()) &&
+        parent_range->assigned_location().IsMachineRegister()) {
+      hint = parent_range->assigned_location();
+    }
+  }
+
   if (hint.IsMachineRegister()) {
     if (!blocked_registers_[hint.register_code()]) {
       free_until =
@@ -3293,6 +3351,10 @@ void FlowGraphAllocator::RemoveFrameIfNotNeeded() {
   }
 }
 
+// Locations assigned by this pass are used when constructing [DeoptInfo] so
+// there is no need to worry about assigning out locations for detached
+// [MoveArgument] instructions - because we don't support register based
+// calling convention in JIT.
 void FlowGraphAllocator::AllocateOutgoingArguments() {
   const intptr_t total_spill_slot_count =
       flow_graph_.graph_entry()->spill_slot_count();
@@ -3300,7 +3362,8 @@ void FlowGraphAllocator::AllocateOutgoingArguments() {
   for (auto block : flow_graph_.reverse_postorder()) {
     for (auto instr : block->instructions()) {
       if (auto move_arg = instr->AsMoveArgument()) {
-        Location loc;
+        // Register calling conventions are not used in JIT.
+        ASSERT(!move_arg->is_register_move());
 
         const intptr_t spill_index =
             (total_spill_slot_count - 1) - move_arg->sp_relative_index();

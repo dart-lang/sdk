@@ -66,13 +66,13 @@ abstract interface class NamedTypeAnnotation implements TypeAnnotation {
   Iterable<TypeAnnotation> get typeArguments;
 }
 
-/// The interface for record type declarations.
+/// The interface for record type annotations.
 abstract interface class RecordTypeAnnotation implements TypeAnnotation {
   /// The positional fields for this record.
-  Iterable<RecordFieldDeclaration> get positionalFields;
+  Iterable<RecordField> get positionalFields;
 
   /// The named fields for this record.
-  Iterable<RecordFieldDeclaration> get namedFields;
+  Iterable<RecordField> get namedFields;
 }
 
 /// An omitted type annotation.
@@ -374,13 +374,12 @@ abstract interface class TypeParameter implements Annotatable {
 abstract interface class TypeParameterDeclaration
     implements TypeDeclaration, TypeParameter {}
 
-/// Introspection information for a field declaration on a Record type.
+/// Introspection information for a field on a Record type.
 ///
 /// Note that for positional fields the [identifier] will be the synthesized
 /// one (`$1` etc), while for named fields it will be the declared name.
-abstract interface class RecordFieldDeclaration implements Declaration {
-  /// A convenience method to get a `code` object equivalent to this field
-  /// declaration.
+abstract interface class RecordField {
+  /// A convenience method to get a `code` object equivalent to this field.
   RecordFieldCode get code;
 
   /// Record fields don't always have names (if they are positional).

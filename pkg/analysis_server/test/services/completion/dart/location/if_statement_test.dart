@@ -38,7 +38,7 @@ suggestions
   A1
     kind: class
   A1.named
-    kind: constructorInvocation
+    kind: constructor
   c01
     kind: topLevelVariable
   const

@@ -20,7 +20,9 @@ class Intermediate extends core::Object {
     : super core::Object::•()
     ;
 }
-[@vm.inferred-type.metadata=!]late static field core::Function unknown;
+
+[@vm.inferred-type.metadata=!]
+late static field core::Function unknown;
 static method getDynamic() → dynamic
   return block {
     [@vm.inferred-type.metadata=!] self::unknown;

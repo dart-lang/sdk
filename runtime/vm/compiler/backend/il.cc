@@ -5173,9 +5173,8 @@ intptr_t InstanceCallBaseInstr::ArgumentsSize() const {
     return ArgumentCountWithoutTypeArgs() + ((type_args_len() > 0) ? 1 : 0);
   }
 
-  return FlowGraph::ParameterOffsetAt(interface_target(),
-                                      ArgumentCountWithoutTypeArgs(),
-                                      /*last_slot=*/false) +
+  return FlowGraph::ComputeArgumentsSizeInWords(
+             interface_target(), ArgumentCountWithoutTypeArgs()) +
          ((type_args_len() > 0) ? 1 : 0);
 }
 
@@ -5360,9 +5359,8 @@ intptr_t DispatchTableCallInstr::ArgumentsSize() const {
     return ArgumentCountWithoutTypeArgs() + ((type_args_len() > 0) ? 1 : 0);
   }
 
-  return FlowGraph::ParameterOffsetAt(interface_target(),
-                                      ArgumentCountWithoutTypeArgs(),
-                                      /*last_slot=*/false) +
+  return FlowGraph::ComputeArgumentsSizeInWords(
+             interface_target(), ArgumentCountWithoutTypeArgs()) +
          ((type_args_len() > 0) ? 1 : 0);
 }
 
@@ -5435,9 +5433,8 @@ Representation StaticCallInstr::RequiredInputRepresentation(
 }
 
 intptr_t StaticCallInstr::ArgumentsSize() const {
-  return FlowGraph::ParameterOffsetAt(function(),
-                                      ArgumentCountWithoutTypeArgs(),
-                                      /*last_slot=*/false) +
+  return FlowGraph::ComputeArgumentsSizeInWords(
+             function(), ArgumentCountWithoutTypeArgs()) +
          ((type_args_len() > 0) ? 1 : 0);
 }
 
@@ -5900,9 +5897,8 @@ Representation CachableIdempotentCallInstr::RequiredInputRepresentation(
 }
 
 intptr_t CachableIdempotentCallInstr::ArgumentsSize() const {
-  return FlowGraph::ParameterOffsetAt(function(),
-                                      ArgumentCountWithoutTypeArgs(),
-                                      /*last_slot=*/false) +
+  return FlowGraph::ComputeArgumentsSizeInWords(
+             function(), ArgumentCountWithoutTypeArgs()) +
          ((type_args_len() > 0) ? 1 : 0);
 }
 

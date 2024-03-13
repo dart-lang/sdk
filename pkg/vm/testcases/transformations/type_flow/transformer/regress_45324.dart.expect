@@ -3,16 +3,25 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object /*hasConstConstructor*/  {
-[@vm.inferred-type.metadata=dart.core::_Smi (value: 1)] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1] [@vm.unboxing-info.metadata=()->i]  final field core::int targetPlatform;
+
+  [@vm.inferred-type.metadata=dart.core::_Smi (value: 1)]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]
+  [@vm.unboxing-info.metadata=()->i]
+  final field core::int targetPlatform;
 }
 class X extends core::Object implements self::A {
   synthetic constructor •() → self::X
     : super core::Object::•()
     ;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1] [@vm.unboxing-info.metadata=()->i]  get targetPlatform() → core::int
+
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]
+  [@vm.unboxing-info.metadata=()->i]
+  get targetPlatform() → core::int
     return 2;
 }
-[@vm.inferred-type.metadata=#lib::X]static field self::A a = new self::X::•();
+
+[@vm.inferred-type.metadata=#lib::X]
+static field self::A a = new self::X::•();
 static method main() → void {
   core::print([@vm.direct-call.metadata=#lib::X.targetPlatform] [@vm.inferred-type.metadata=dart.core::_Smi (value: 2)] [@vm.inferred-type.metadata=#lib::X] self::a.{self::A::targetPlatform}{core::int});
   core::print(#C2);

@@ -79,7 +79,7 @@ class UnboxingType {
           return sb.toString();
         }
       case UnboxingKind.unknown:
-        throw 'Unexpected UnboxingType.kUknown';
+        return '_|_';
     }
   }
 }
@@ -87,27 +87,33 @@ class UnboxingType {
 class UnboxingInfoMetadata {
   final List<UnboxingType> argsInfo;
   UnboxingType returnInfo;
+  bool mustUseStackCallingConvention;
 
   UnboxingInfoMetadata(int argsLen)
       : argsInfo = List<UnboxingType>.filled(argsLen, UnboxingType.kUnknown,
             growable: true),
-        returnInfo = UnboxingType.kUnknown;
+        returnInfo = UnboxingType.kUnknown,
+        mustUseStackCallingConvention = false;
 
   UnboxingInfoMetadata.readFromBinary(BinarySource source)
       : argsInfo = List<UnboxingType>.generate(
             source.readUInt30(), (_) => UnboxingType.readFromBinary(source),
             growable: true),
-        returnInfo = UnboxingType.readFromBinary(source);
+        returnInfo = UnboxingType.readFromBinary(source),
+        mustUseStackCallingConvention = source.readByte() != 0;
 
-  // Returns `true` if all arguments as well as the return value have to be
-  // boxed.
+  // Returns `true` if this [UnboxingInfoMetadata] matches default one:
+  // all arguments and the return value are boxed and the method is not
+  // forced to use stack based calling convention.
   //
-  // We don't have to write out metadata for fully boxed methods, because this
-  // is the default.
-  bool get isFullyBoxed {
+  // Trivial metadata can be omitted and not written into the Kernel binary.
+  bool get isTrivial {
     if (returnInfo != UnboxingType.kBoxed) return false;
     for (final argInfo in argsInfo) {
       if (argInfo != UnboxingType.kBoxed) return false;
+    }
+    if (mustUseStackCallingConvention) {
+      return false;
     }
     return true;
   }
@@ -118,11 +124,21 @@ class UnboxingInfoMetadata {
       argInfo.writeToBinary(sink);
     }
     returnInfo.writeToBinary(sink);
+    sink.writeByte(mustUseStackCallingConvention ? 1 : 0);
   }
+
+  /// Remove placeholder parameter info slot for setters that the getter is
+  /// grouped with.
+  UnboxingInfoMetadata toGetterInfo() => UnboxingInfoMetadata(0)
+    ..returnInfo = returnInfo
+    ..mustUseStackCallingConvention = mustUseStackCallingConvention;
 
   @override
   String toString() {
     final sb = StringBuffer();
+    if (mustUseStackCallingConvention) {
+      return '[!regcc]';
+    }
     sb.write('(');
     for (int i = 0; i < argsInfo.length; ++i) {
       final argInfo = argsInfo[i];

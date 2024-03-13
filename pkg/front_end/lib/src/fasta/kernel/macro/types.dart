@@ -112,9 +112,9 @@ class MacroTypes {
     }
   }
 
-  /// Creates the [macro.RecordFieldDeclarationImpl]s corresponding to [fields]
+  /// Creates the [macro.RecordFieldImpl]s corresponding to [fields]
   /// occurring in [libraryBuilder].
-  List<macro.RecordFieldDeclarationImpl> _createRecordFields(
+  List<macro.RecordFieldImpl> _createRecordFields(
       LibraryBuilder libraryBuilder, List<RecordTypeFieldBuilder>? fields) {
     // TODO(johnniwinther): Support record fields once they are not required to
     //  be declarations.

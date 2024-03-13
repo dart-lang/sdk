@@ -275,6 +275,12 @@ Location Location::ToEntrySpRelative() const {
   return ToSpRelative(fp_to_entry_sp_delta);
 }
 
+Location Location::ToCallerSpRelative() const {
+  const auto fp_to_caller_sp_delta =
+      (compiler::target::frame_layout.param_end_from_fp + 1);
+  return ToSpRelative(fp_to_caller_sp_delta);
+}
+
 Location Location::Pair(Location first, Location second) {
   PairLocation* pair_location = new PairLocation();
   ASSERT((reinterpret_cast<intptr_t>(pair_location) & kLocationTagMask) == 0);
@@ -436,8 +442,8 @@ void Location::PrintTo(BaseTextBuffer* f) const {
     } else if (kind() == kQuadStackSlot) {
       suffix = " f128";
     }
-    f->Printf("%s[%" Pd "] %s", base_reg() == FPREG ? "fp" : "sp",
-              stack_index(), suffix);
+    f->Printf("%s[%" Pd "]%s", base_reg() == FPREG ? "fp" : "sp", stack_index(),
+              suffix);
   } else if (IsPairLocation()) {
     f->AddString("(");
     AsPairLocation()->At(0).PrintTo(f);

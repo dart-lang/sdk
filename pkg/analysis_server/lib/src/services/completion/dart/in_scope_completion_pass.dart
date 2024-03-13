@@ -12,6 +12,7 @@ import 'package:analysis_server/src/services/completion/dart/suggestion_collecto
 import 'package:analysis_server/src/services/completion/dart/visibility_tracker.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server/src/utilities/extensions/completion_request.dart';
+import 'package:analysis_server/src/utilities/extensions/object.dart';
 import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -2443,11 +2444,12 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   void _forCollectionElement(
       TypedLiteral literal, NodeList<CollectionElement> elements) {
     var mustBeStatic = literal.inStaticContext;
+    var mustBeConst = literal.inConstantContext;
     keywordHelper.addCollectionElementKeywords(literal, elements,
-        mustBeStatic: mustBeStatic);
-    var preceedingElement = elements.elementBefore(offset);
-    declarationHelper(mustBeStatic: mustBeStatic)
-        .addLexicalDeclarations(preceedingElement ?? literal);
+        mustBeConst: mustBeConst, mustBeStatic: mustBeStatic);
+    var precedingElement = elements.elementBefore(offset);
+    declarationHelper(mustBeStatic: mustBeStatic, mustBeConstant: mustBeConst)
+        .addLexicalDeclarations(precedingElement ?? literal);
   }
 
   /// Add the suggestions that are appropriate when completing in the given
@@ -3254,7 +3256,9 @@ extension on Element? {
   /// function type.
   List<ParameterElement>? getParameters() {
     var self = this;
-    if (self is ExecutableElement) {
+    if (self is PropertyAccessorElement && self.isGetter) {
+      return self.returnType.ifTypeOrNull<FunctionType>()?.parameters;
+    } else if (self is ExecutableElement) {
       return self.parameters;
     } else if (self is VariableElement) {
       final type = self.type;

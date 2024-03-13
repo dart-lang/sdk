@@ -257,7 +257,7 @@ void MoveArgumentInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(compiler->is_optimizing());
 
   Location value = locs()->in(0);
-  const compiler::Address dst(ESP, sp_relative_index() * kWordSize);
+  const compiler::Address dst = LocationToStackSlotAddress(location());
   if (value.IsConstant()) {
     __ StoreToOffset(value.constant(), dst);
   } else {

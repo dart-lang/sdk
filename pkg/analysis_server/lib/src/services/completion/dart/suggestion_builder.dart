@@ -989,8 +989,16 @@ class SuggestionBuilder {
       return;
     }
     var offsetDelta = replacementRange.offset + replacement.indexOf(completion);
-    var displayText =
-        displayTextBuffer.isNotEmpty ? displayTextBuffer.toString() : null;
+
+    var displayText = displayTextBuffer.toString();
+    if (displayText.isEmpty) {
+      return;
+    }
+
+    if (skipAt) {
+      displayText = 'override $displayText';
+    }
+
     var suggestion = DartCompletionSuggestion(
         CompletionSuggestionKind.OVERRIDE,
         Relevance.override,

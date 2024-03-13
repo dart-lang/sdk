@@ -2741,6 +2741,8 @@ suggestions
     kind: class
   A0
     kind: constructorInvocation
+  A0.new
+    kind: constructor
   f0
     kind: functionInvocation
 ''');

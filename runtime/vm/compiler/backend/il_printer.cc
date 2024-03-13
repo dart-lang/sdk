@@ -128,7 +128,12 @@ class IlTestPrinter : public AllStatic {
       }
     }
     for (auto instr : block->instructions()) {
-      if (ShouldPrintInstruction(instr)) {
+      if (instr->ArgumentCount() != 0 && instr->GetMoveArguments() != nullptr) {
+        for (auto move_arg : *(instr->GetMoveArguments())) {
+          PrintInstruction(writer, move_arg);
+        }
+      }
+      if (ShouldPrintInstruction(instr) && !instr->IsMoveArgument()) {
         PrintInstruction(writer, instr);
       }
     }
@@ -1577,8 +1582,8 @@ void SuspendInstr::PrintOperandsTo(BaseTextBuffer* f) const {
 }
 
 void MoveArgumentInstr::PrintOperandsTo(BaseTextBuffer* f) const {
+  f->Printf("%s <- ", location().ToCString());
   value()->PrintTo(f);
-  f->Printf(", SP+%" Pd "", sp_relative_index());
 }
 
 void GotoInstr::PrintTo(BaseTextBuffer* f) const {

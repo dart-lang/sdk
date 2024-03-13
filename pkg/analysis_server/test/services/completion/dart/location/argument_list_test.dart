@@ -950,5 +950,23 @@ void f() {
   foo()$arguments;
 }
 ''', ' (invocation, function typed expression)');
+
+    await computeAndCheck('''
+$languageVersionLine
+class A {
+  void Function$parameters get f => throw 0;
+  void foo() {
+    f$arguments;
+  }
+}
+''', ' (invocation, function typed class getter)');
+
+    await computeAndCheck('''
+$languageVersionLine
+void Function$parameters get f => throw 0;
+void foo() {
+  f$arguments;
+}
+''', ' (invocation, function typed top-level getter)');
   }
 }

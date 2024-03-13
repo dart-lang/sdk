@@ -39,12 +39,16 @@ final class Struct11 extends ffi::Struct {
   constructor #fromTypedDataBase([@vm.inferred-arg-type.metadata=dart.ffi::Pointer] synthesized core::Object #typedDataBase) → self::Struct11
     : super ffi::Struct::_fromTypedDataBase(#typedDataBase)
     ;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]  get nested() → self::Struct12
+
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]
+  get nested() → self::Struct12
     return new self::Struct12::#fromTypedDataBase( block {
       synthesized core::Object #typedDataBase = [@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] this.{ffi::_Compound::_typedDataBase}{core::Object};
       synthesized core::int #offset = [@vm.inferred-type.metadata=dart.core::_Smi (value: 0)] self::Struct11::nested#offsetOf;
     } =>#typedDataBase is{ForLegacy} ffi::Pointer<ffi::NativeType> ?{core::Object} [@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_fromAddress<self::Struct12>([@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] [@vm.direct-call.metadata=dart.ffi::Pointer.address] [@vm.inferred-type.metadata=int] #typedDataBase.{ffi::Pointer::address}{core::int}.{core::num::+}(#offset){(core::num) → core::num}) : let synthesized typ::TypedData #typedData = _in::unsafeCast<typ::TypedData>(#typedDataBase) in [@vm.inferred-type.metadata=!] [@vm.inferred-type.metadata=!] #typedData.{typ::TypedData::buffer}{typ::ByteBuffer}.{typ::ByteBuffer::asUint8List}([@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] [@vm.inferred-type.metadata=dart.core::_Smi] #typedData.{typ::TypedData::offsetInBytes}{core::int}.{core::num::+}(#offset){(core::num) → core::num}, #C13.{core::List::[]}(ffi::_abi()){(core::int) → core::int*}){([core::int, core::int?]) → typ::Uint8List});
-[@vm.unboxing-info.metadata=()->i]  @#C15
+
+  [@vm.unboxing-info.metadata=()->i]
+  @#C15
   static get nested#offsetOf() → core::int
     return #C17.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
 }
@@ -54,8 +58,12 @@ final class Struct12 extends ffi::Struct {
     : super ffi::Struct::_fromTypedDataBase(#typedDataBase)
     ;
 }
-[@vm.inferred-type.metadata=dart.ffi::Pointer]static final field ffi::Pointer<ffi::NativeFunction<(self::Struct3) → ffi::Int32>> _#ffiCallback0 = [@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_createNativeCallableIsolateLocal<ffi::NativeFunction<(self::Struct3) → ffi::Int32>>(ffi::_nativeCallbackFunction<(self::Struct3) → ffi::Int32>(#C18, 0), null, false)/*isLegacy*/;
-[@vm.inferred-type.metadata=dart.ffi::Pointer]static final field ffi::Pointer<ffi::NativeFunction<() → self::Struct7>> _#ffiCallback1 = [@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_createNativeCallableIsolateLocal<ffi::NativeFunction<() → self::Struct7>>(ffi::_nativeCallbackFunction<() → self::Struct7>(#C19, null), null, false)/*isLegacy*/;
+
+[@vm.inferred-type.metadata=dart.ffi::Pointer]
+static final field ffi::Pointer<ffi::NativeFunction<(self::Struct3) → ffi::Int32>> _#ffiCallback0 = [@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_createNativeCallableIsolateLocal<ffi::NativeFunction<(self::Struct3) → ffi::Int32>>(ffi::_nativeCallbackFunction<(self::Struct3) → ffi::Int32>(#C18, 0), null, false)/*isLegacy*/;
+
+[@vm.inferred-type.metadata=dart.ffi::Pointer]
+static final field ffi::Pointer<ffi::NativeFunction<() → self::Struct7>> _#ffiCallback1 = [@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_createNativeCallableIsolateLocal<ffi::NativeFunction<() → self::Struct7>>(ffi::_nativeCallbackFunction<() → self::Struct7>(#C19, null), null, false)/*isLegacy*/;
 static method main() → void {
   self::testLookupFunctionReturn();
   self::testLookupFunctionArgument();
@@ -94,7 +102,9 @@ static method testAsFunctionReturn() → void {
   final self::Struct2 struct2 = [@vm.inferred-type.metadata=#lib::Struct2 (receiver not int)] function2(){() → self::Struct2};
   core::print(struct2);
 }
-[@vm.unboxing-info.metadata=(b)->i]static method useStruct3(self::Struct3 struct3) → core::int {
+
+[@vm.unboxing-info.metadata=(b)->i]
+static method useStruct3(self::Struct3 struct3) → core::int {
   return 42;
 }
 static method testFromFunctionArgument() → void {

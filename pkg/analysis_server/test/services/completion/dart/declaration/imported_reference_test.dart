@@ -1742,8 +1742,12 @@ class A {
 suggestions
   B0
     kind: constructorInvocation
+  B0.named
+    kind: constructor
   B0.namedConst
     kind: constructorInvocation
+  C0.new
+    kind: constructor
   b0
     kind: topLevelVariable
 ''');
@@ -2305,6 +2309,12 @@ suggestions
     kind: class
   A0
     kind: constructorInvocation
+  A0.new
+    kind: constructor
+  String.fromCharCode
+    kind: constructor
+  String.fromCharCodes
+    kind: constructor
   String.fromEnvironment
     kind: constructorInvocation
   f0

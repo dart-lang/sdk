@@ -103,7 +103,7 @@ class KeywordHelper {
   /// beginning of an element in a collection [literal].
   void addCollectionElementKeywords(
       TypedLiteral literal, NodeList<CollectionElement> elements,
-      {bool mustBeStatic = false}) {
+      {bool mustBeConst = false, bool mustBeStatic = false}) {
     // TODO(brianwilkerson): Consider determining whether there is a comma before
     //  the selection and inserting the comma if there isn't one.
     addKeyword(Keyword.FOR);
@@ -126,7 +126,8 @@ class KeywordHelper {
         }
       }
     }
-    addExpressionKeywords(literal, mustBeStatic: mustBeStatic);
+    addExpressionKeywords(literal,
+        mustBeConstant: mustBeConst, mustBeStatic: mustBeStatic);
   }
 
   /// Add the keywords that are appropriate when the selection is after the

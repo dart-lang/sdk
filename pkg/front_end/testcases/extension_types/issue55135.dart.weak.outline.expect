@@ -1,0 +1,33 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class B extends core::Object implements self::A {
+  final field core::int x;
+  synthetic constructor •() → self::B
+    ;
+}
+abstract class A extends core::Object {
+  abstract get x() → core::int;
+  static factory •() → self::A /* redirection-target: self::B::• */
+    return new self::B::•();
+}
+extension type C(self::A point) implements self::A {
+  abstract extension-type-member representation-field get point() → self::A;
+  constructor _ = self::C|constructor#_;
+  constructor tearoff _ = self::C|constructor#_#_#tearOff;
+  constructor • = self::C|constructor#;
+  constructor tearoff • = self::C|constructor#_#new#tearOff;
+}
+static extension-type-member method C|constructor#_(self::A point) → self::C /* erasure=self::A */
+  ;
+static extension-type-member method C|constructor#_#_#tearOff(self::A point) → self::C /* erasure=self::A */
+  return self::C|constructor#_(point);
+static extension-type-member method C|constructor#() → self::C /* erasure=self::A */
+  ;
+static extension-type-member method C|constructor#_#new#tearOff() → self::C /* erasure=self::A */
+  return self::C|constructor#();
+static method main() → void
+  ;
+static method expectEquals(dynamic x, dynamic y) → dynamic
+  ;

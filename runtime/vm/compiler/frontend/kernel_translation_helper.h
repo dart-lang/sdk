@@ -1228,6 +1228,7 @@ class UnboxingInfoMetadata : public ZoneAllocated {
 
   GrowableArray<UnboxingType> unboxed_args_info;
   UnboxingType return_info;
+  bool must_use_stack_calling_convention;
 
   DISALLOW_COPY_AND_ASSIGN(UnboxingInfoMetadata);
 };

@@ -6,13 +6,19 @@ class A extends core::Object {
   synthetic constructor •() → self::A
     : super core::Object::•()
     ;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]  get foo() → core::String
+
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]
+  get foo() → core::String
     return "foo";
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:2,getterSelectorId:3]  method getBar() → core::String
+
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:2,getterSelectorId:3]
+  method getBar() → core::String
     return "bar";
 }
 class B extends core::_Enum /*isEnum*/  {
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:4,getterSelectorId:5]  method _enumToString() → core::String
+
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:4,getterSelectorId:5]
+  method _enumToString() → core::String
     return "B.${[@vm.direct-call.metadata=dart.core::_Enum._name] this.{core::_Enum::_name}{core::String}}";
 }
 static method test0() → void {
@@ -24,7 +30,9 @@ static method test1() → void {
 static method test2() → void {
   core::print(#C3);
 }
-[@vm.unboxing-info.metadata=()->d]static get getD() → dynamic
+
+[@vm.unboxing-info.metadata=()->d]
+static get getD() → dynamic
   return 100.0;
 static method testDouble() → void {
   core::print(#C4);

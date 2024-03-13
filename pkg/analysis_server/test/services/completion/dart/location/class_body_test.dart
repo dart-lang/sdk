@@ -684,7 +684,7 @@ suggestions
     super.foo01();
   }
     kind: override
-    displayText: foo01() { … }
+    displayText: override foo01() { … }
     selection: 59 14
 ''');
   }
@@ -739,7 +739,7 @@ suggestions
     super.foo01();
   }
     kind: override
-    displayText: foo01() { … }
+    displayText: override foo01() { … }
     selection: 59 14
 ''');
   }
@@ -768,7 +768,7 @@ suggestions
     super.foo01();
   }
     kind: override
-    displayText: foo01() { … }
+    displayText: override foo01() { … }
     selection: 59 14
 ''');
   }
@@ -826,7 +826,7 @@ suggestions
     super.foo01();
   }
     kind: override
-    displayText: foo01() { … }
+    displayText: override foo01() { … }
     selection: 59 14
 ''');
   }
@@ -856,7 +856,7 @@ suggestions
     super.foo01();
   }
     kind: override
-    displayText: foo01() { … }
+    displayText: override foo01() { … }
     selection: 59 14
 ''');
   }
@@ -891,7 +891,7 @@ suggestions
     return super == other;
   }
     kind: override
-    displayText: ==(Object other) { … }
+    displayText: override ==(Object other) { … }
     selection: 74 22
 ''');
   }
@@ -1406,7 +1406,7 @@ suggestions
     super.foo01();
   }
     kind: override
-    displayText: foo01() { … }
+    displayText: override foo01() { … }
     selection: 59 14
 ''');
   }
@@ -1459,7 +1459,7 @@ suggestions
     super.foo01();
   }
     kind: override
-    displayText: foo01() { … }
+    displayText: override foo01() { … }
     selection: 59 14
 ''');
   }

@@ -121,7 +121,7 @@ enum RemoteInstanceKind {
   namedStaticType,
   namedTypeAnnotation,
   omittedTypeAnnotation,
-  recordFieldDeclaration,
+  recordField,
   recordTypeAnnotation,
   staticType,
   typeAliasDeclaration,

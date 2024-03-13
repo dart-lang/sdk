@@ -33,7 +33,7 @@ void f() {
   var x = null ?? 1;
 }
 ''', [
-      lint(21, 9),
+      lint(21, 4),
     ]);
   }
 
@@ -43,7 +43,7 @@ void f() {
   var x = 1 ?? null;
 }
 ''', [
-      lint(21, 9),
+      lint(26, 4),
       error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 26, 4),
     ]);
   }
@@ -57,9 +57,9 @@ class C {
   }
 }
 ''', [
-      lint(30, 9),
+      lint(35, 4),
       error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 35, 4),
-      lint(53, 9),
+      lint(53, 4),
     ]);
   }
 
@@ -81,9 +81,9 @@ class C {
 var x = 1 ?? null;
 var y = null ?? 1;
 ''', [
-      lint(8, 9),
+      lint(13, 4),
       error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 13, 4),
-      lint(27, 9),
+      lint(27, 4),
     ]);
   }
 
@@ -108,7 +108,7 @@ var x = 1 ?? 1;
     await assertDiagnostics(r'''
 var x = null ?? 1;
 ''', [
-      lint(8, 9),
+      lint(8, 4),
     ]);
   }
 
@@ -116,7 +116,7 @@ var x = null ?? 1;
     await assertDiagnostics(r'''
 var x = 1 ?? null;
 ''', [
-      lint(8, 9),
+      lint(13, 4),
       error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 13, 4),
     ]);
   }

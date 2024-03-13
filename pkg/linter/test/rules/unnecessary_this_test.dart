@@ -28,7 +28,7 @@ class A {
   void m2(int x) {}
 }
 ''', [
-      lint(67, 10),
+      lint(67, 4),
     ]);
   }
 
@@ -41,7 +41,7 @@ class A {
   }
 }
 ''', [
-      lint(46, 6),
+      lint(46, 4),
     ]);
   }
 
@@ -55,7 +55,7 @@ class A {
   void m() {}
 }
 ''', [
-      lint(28, 8),
+      lint(28, 4),
     ]);
   }
 
@@ -114,7 +114,7 @@ extension type E(Object o) {
   String m()=> this.toString();
 }
 ''', [
-      lint(44, 15),
+      lint(44, 4),
     ]);
   }
 
@@ -155,7 +155,7 @@ class A {
   void m2() {}
 }
 ''', [
-      lint(101, 9),
+      lint(101, 4),
     ]);
   }
 
@@ -252,7 +252,7 @@ class D extends C {
   }
 }
 ''', [
-      lint(67, 6),
+      lint(67, 4),
     ]);
   }
 

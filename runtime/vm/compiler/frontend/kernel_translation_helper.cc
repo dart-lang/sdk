@@ -2066,6 +2066,7 @@ UnboxingInfoMetadata* UnboxingInfoMetadataHelper::GetUnboxingInfoMetadata(
     info->unboxed_args_info[i] = ReadUnboxingType();
   }
   info->return_info = ReadUnboxingType();
+  info->must_use_stack_calling_convention = helper_->ReadBool();
   return info;
 }
 
