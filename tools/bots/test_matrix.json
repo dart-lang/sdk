@@ -518,18 +518,6 @@
         ]
       }
     },
-    "dartkp-weak-asserts-linux-(debug|release)-x64": {
-      "options": {
-        "enable-asserts": true,
-        "builder-tag": "vm_nnbd"
-      }
-    },
-    "dartk-weak-asserts-linux-(debug|release)-x64": {
-      "options": {
-        "enable-asserts": true,
-        "builder-tag": "vm_nnbd"
-      }
-    },
     "vm-eager-optimization-(linux|mac|win)-(debug|product|release)-(ia32|x64|x64c|simarm|simarm64|simarm64c|simriscv32|simriscv64)": {
       "options": {
         "builder-tag": "optimization_counter_threshold",
@@ -917,41 +905,6 @@
             "-nvm-aot-linux-${mode}-riscv64-qemu",
             "ffi"
           ]
-        }
-      ]
-    },
-    {
-      "builders": [
-        "vm-kernel-precomp-linux-release-x64"
-      ],
-      "meta": {
-        "description": "This configuration is used by the vm kernel precomp linux release builders. (includes co19_2 testing)"
-      },
-      "steps": [
-        {
-          "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": [
-            "runtime",
-            "dart_precompiled_runtime"
-          ]
-        },
-        {
-          "name": "vm nnbd tests in weak mode with asserts",
-          "arguments": [
-            "-ndartkp-weak-asserts-${system}-${mode}-${arch}"
-          ],
-          "fileset": "vm",
-          "shards": 6
-        },
-        {
-          "name": "vm co19 nnbd tests in weak mode with asserts",
-          "arguments": [
-            "-ndartkp-weak-asserts-${system}-${mode}-${arch}",
-            "co19"
-          ],
-          "fileset": "vm",
-          "shards": 15
         }
       ]
     },
@@ -1572,41 +1525,6 @@
             "runtime",
             "runtime_precompiled"
           ]
-        }
-      ]
-    },
-    {
-      "builders": [
-        "vm-kernel-linux-release-x64",
-        "vm-kernel-linux-debug-x64"
-      ],
-      "meta": {
-        "description": "This configuration is for the co19_2 kernel builder group."
-      },
-      "steps": [
-        {
-          "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": [
-            "runtime"
-          ]
-        },
-        {
-          "name": "vm nnbd tests in weak mode with asserts",
-          "arguments": [
-            "-ndartk-weak-asserts-${system}-${mode}-${arch}"
-          ],
-          "fileset": "vm",
-          "shards": 6
-        },
-        {
-          "name": "vm co19 nnbd tests in weak mode with asserts",
-          "arguments": [
-            "-ndartk-weak-asserts-${system}-${mode}-${arch}",
-            "co19"
-          ],
-          "fileset": "vm",
-          "shards": 8
         }
       ]
     },
