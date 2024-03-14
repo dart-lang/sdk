@@ -41,7 +41,7 @@ aot_snapshot("generate_dds_aot_snapshot") {
   # so it is built in # product mode in both release and
   # product builds, and is only built in debug mode in debug
   # builds. The following line ensures that the dartaotruntime
-  # and frontend_server_aot snapshot in an SDK build are
+  # and dds_aot snapshot in an SDK build are
   # always compatible with each other.
   force_product_mode = !dart_debug
 }
