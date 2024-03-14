@@ -8,10 +8,6 @@ import("runtime_args.gni")
 
 import("//build/config/sysroot.gni")
 
-if (is_fuchsia) {
-  import("//build/fuchsia/sdk.gni")
-}
-
 config("dart_public_config") {
   include_dirs = [
     ".",
@@ -175,19 +171,14 @@ config("dart_config") {
   }
 
   if (is_fuchsia) {
-    if (using_fuchsia_gn_sdk) {
-      lib_dirs = [ root_out_dir + "/lib" ]
-    }
-    if (using_fuchsia_gn_sdk || using_fuchsia_sdk) {
-      # TODO(chinmaygarde): Currently these targets need to be build in the
-      # Fuchsia tree as well as outside it using the SDK. However, not all
-      # Fuchsia features are available in the SDK. As these features are added,
-      # the guards can be removed. Eventually, only SDK builds will be present.
-      # Then, this flag can be removed completely.
-      defines += [ "FUCHSIA_SDK" ]
-    } else {
-      include_dirs += [ "//zircon/system/ulib/zx/include" ]
-    }
+    lib_dirs = [ "${fuchsia_arch_root}/lib" ]
+
+    # TODO(chinmaygarde): Currently these targets need to be build in the
+    # Fuchsia tree as well as outside it using the SDK. However, not all
+    # Fuchsia features are available in the SDK. As these features are added,
+    # the guards can be removed. Eventually, only SDK builds will be present.
+    # Then, this flag can be removed completely.
+    defines += [ "FUCHSIA_SDK" ]
   }
 
   # Below are flags copied from ../build/config/compiler/BUILD.gn that should
@@ -306,22 +297,10 @@ library_for_all_configs("libdart") {
     "../third_party/double-conversion/src:libdouble_conversion",
   ]
   if (is_fuchsia) {
-    if (using_fuchsia_gn_sdk) {
-      extra_deps += [
-        "$fuchsia_sdk_root/pkg/fdio",
-        "$fuchsia_sdk_root/pkg/trace-engine",
-      ]
-    } else if (using_fuchsia_sdk) {
-      extra_deps += [
-        "$fuchsia_sdk_root/pkg:fdio",
-        "$fuchsia_sdk_root/pkg:trace-engine",
-      ]
-    } else {
-      extra_deps += [
-        "//zircon/public/lib/fbl",
-        "//zircon/system/ulib/trace-engine",
-      ]
-    }
+    extra_deps += [
+      "$fuchsia_sdk/pkg/fdio",
+      "$fuchsia_sdk/pkg/trace-engine",
+    ]
   }
   configurable_deps = [
     "platform:libdart_platform",

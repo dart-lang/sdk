@@ -39,10 +39,6 @@ import("ffi/ffi_sources.gni")
 import("heap/heap_sources.gni")
 import("vm_sources.gni")
 
-if (is_fuchsia) {
-  import("//build/fuchsia/sdk.gni")
-}
-
 config("libdart_vm_config") {
   if (is_fuchsia) {
     libs = [ "zircon" ]
@@ -183,38 +179,17 @@ library_for_all_configs("libdart_vm") {
   ]
   extra_deps = []
   if (is_fuchsia) {
-    if (using_fuchsia_gn_sdk) {
-      extra_deps += [
-        "$fuchsia_sdk_root/fidl/fuchsia.intl",
-        "$fuchsia_sdk_root/pkg/async",
-        "$fuchsia_sdk_root/pkg/async-default",
-        "$fuchsia_sdk_root/pkg/async-loop",
-        "$fuchsia_sdk_root/pkg/async-loop-default",
-        "$fuchsia_sdk_root/pkg/inspect",
-        "$fuchsia_sdk_root/pkg/inspect_component_cpp",
-        "$fuchsia_sdk_root/pkg/sys_cpp",
-        "$fuchsia_sdk_root/pkg/trace-engine",
-      ]
-    } else if (using_fuchsia_sdk) {
-      extra_deps += [
-        "$fuchsia_sdk_root/fidl:fuchsia.intl",
-        "$fuchsia_sdk_root/pkg:async-loop",
-        "$fuchsia_sdk_root/pkg:async-loop-default",
-        "$fuchsia_sdk_root/pkg:inspect",
-        "$fuchsia_sdk_root/pkg:inspect_component_cpp",
-        "$fuchsia_sdk_root/pkg:sys_cpp",
-        "$fuchsia_sdk_root/pkg:trace-engine",
-      ]
-    } else {
-      extra_deps += [
-        "//sdk/fidl/fuchsia.intl",
-        "//sdk/lib/inspect/component/cpp",
-        "//sdk/lib/sys/cpp",
-        "//zircon/public/lib/fbl",
-        "//zircon/system/ulib/inspect",
-        "//zircon/system/ulib/trace-engine",
-      ]
-    }
+    extra_deps += [
+      "$fuchsia_sdk/fidl/fuchsia.intl",
+      "$fuchsia_sdk/pkg/async",
+      "$fuchsia_sdk/pkg/async-default",
+      "$fuchsia_sdk/pkg/async-loop",
+      "$fuchsia_sdk/pkg/async-loop-default",
+      "$fuchsia_sdk/pkg/inspect",
+      "$fuchsia_sdk/pkg/inspect_component_cpp",
+      "$fuchsia_sdk/pkg/sys_cpp",
+      "$fuchsia_sdk/pkg/trace-engine",
+    ]
   }
   public_configs = [ ":libdart_vm_config" ]
   sources = vm_sources + rebase_path(compiler_api_sources, ".", "./compiler/") +
@@ -238,16 +213,7 @@ library_for_all_configs_with_compiler("libdart_compiler") {
   extra_nonproduct_deps = [ ":libprotozero" ]
   extra_deps = []
   if (is_fuchsia) {
-    if (using_fuchsia_gn_sdk) {
-      extra_deps += [ "$fuchsia_sdk_root/pkg/trace-engine" ]
-    } else if (using_fuchsia_sdk) {
-      extra_deps += [ "$fuchsia_sdk_root/pkg:trace-engine" ]
-    } else {
-      extra_deps += [
-        "//zircon/public/lib/fbl",
-        "//zircon/system/ulib/trace-engine",
-      ]
-    }
+    extra_deps += [ "$fuchsia_sdk/pkg/trace-engine" ]
   }
 }
 
@@ -256,16 +222,7 @@ library_for_all_configs("libdart_lib") {
   extra_nonproduct_deps = [ ":libprotozero" ]
   extra_deps = []
   if (is_fuchsia) {
-    if (using_fuchsia_gn_sdk) {
-      extra_deps += [ "$fuchsia_sdk_root/pkg/trace-engine" ]
-    } else if (using_fuchsia_sdk) {
-      extra_deps += [ "$fuchsia_sdk_root/pkg:trace-engine" ]
-    } else {
-      extra_deps += [
-        "//zircon/public/lib/fbl",
-        "//zircon/system/ulib/trace-engine",
-      ]
-    }
+    extra_deps += [ "$fuchsia_sdk/pkg/trace-engine" ]
   }
   include_dirs = [ ".." ]
   allsources = async_runtime_cc_files + core_runtime_cc_files +

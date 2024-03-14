@@ -257,9 +257,7 @@ if (is_win) {
     "//build/config/win:winver",
   ]
   if (is_clang) {
-    _native_compiler_configs += [
-      "//build/config/win:relative_paths",
-    ]
+    _native_compiler_configs += [ "//build/config/win:relative_paths" ]
   }
 }
 if (is_posix) {
@@ -270,8 +268,8 @@ if (is_posix) {
 }
 if (is_fuchsia) {
   _native_compiler_configs += [
-    "//build/config/fuchsia:compiler",
-    "//build/config/fuchsia:runtime_library",
+    "//third_party/fuchsia/gn-sdk/src/config:compiler",
+    "//third_party/fuchsia/gn-sdk/src/config:runtime_library",
   ]
 }
 
@@ -450,8 +448,8 @@ foreach(_target_type,
         }
         if (is_fuchsia) {
           deps += [
-            "//build/config/fuchsia:runtime_library_group",
             "//build/fuchsia/config/clang:c++-runtime-deps",
+            "//third_party/fuchsia/gn-sdk/src/config:runtime_library_group",
           ]
         }
       }
