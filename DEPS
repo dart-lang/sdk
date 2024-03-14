@@ -163,7 +163,7 @@ vars = {
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
   "mime_rev": "9a168712d6db610c3822617c132daea72d4fd2b5",
   "mockito_rev": "3ef744f8749864f2a036eba60c4203cc8f638949",
-  "native_rev": "0901a3323022fdb59657cc2cb00ea5c80a8468a6", # mosum@ and dacoharkes@ are rolling breaking changes manually while the assets features are in experimental.
+  "native_rev": "4fc6a333badace5d569bde4496462cc237dc3363", # mosum@ and dacoharkes@ are rolling breaking changes manually while the assets features are in experimental.
   "package_config_rev": "3d90e6955ef19b7ce4f1b742a06a20ed4260700a",
   "path_rev": "a7b696071bd83d3ee0a0f1b57ac94d6b1f05cac4",
   "pool_rev": "c118f69d8a6441a8453bf7d455fd7c79d3ee1497",
@@ -185,7 +185,7 @@ vars = {
   "test_descriptor_rev": "35f97afacb2b7fe627f6ed0bede722fd48980848",
   "test_process_rev": "7fe39afbb6c444f256c1ec0eef008edebcd44644",
   "test_reflective_loader_rev": "9862703a3d14848376c8efde271c88022fba91eb",
-  "tools_rev": "fca993e4f287e8080f2a8d91dbfbace8b6a8a0bc",
+  "tools_rev": "378790dd8cdaecd8cb48283de445f7cf80419cc0",
   "typed_data_rev": "375efaa02a13dad0785cfbd9bdcb9f09aa8ef529",
   "usage_rev": "67ecd7d1328347ec15cbf8d8a46918df75a66af8",
   "vector_math_rev": "7e705f734e94917e9a5347578e6e496f8db38ac6",

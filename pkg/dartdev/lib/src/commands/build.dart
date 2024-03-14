@@ -12,6 +12,7 @@ import 'package:dartdev/src/sdk.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show Verbosity;
 import 'package:native_assets_builder/native_assets_builder.dart';
+import 'package:native_assets_cli/native_assets_cli.dart';
 import 'package:native_assets_cli/native_assets_cli_internal.dart';
 import 'package:path/path.dart' as path;
 import 'package:vm/target_os.dart'; // For possible --target-os values.
@@ -132,20 +133,24 @@ class BuildCommand extends DartdevCommand {
     ).build(
       workingDirectory: workingDirectory,
       target: target,
-      linkModePreference: LinkModePreference.dynamic,
-      buildMode: BuildMode.release,
+      linkModePreference: LinkModePreferenceImpl.dynamic,
+      buildMode: BuildModeImpl.release,
       includeParentEnvironment: true,
+      supportedAssetTypes: [
+        NativeCodeAsset.type,
+      ],
     );
-    final nativeAssets = buildResult.assets;
     if (!buildResult.success) {
       stderr.write('Native assets build failed.');
       return 255;
     }
+    final assets = buildResult.assets;
+    final nativeAssets = assets.whereType<NativeCodeAssetImpl>();
     final staticAssets =
-        nativeAssets.where((e) => e.linkMode == LinkMode.static);
+        nativeAssets.where((e) => e.linkMode == StaticLinkingImpl());
     if (staticAssets.isNotEmpty) {
       stderr.write(
-          """'dart build' does not yet support native artifacts packaged as ${LinkMode.static.name}.
+          """'dart build' does not yet support NativeCodeAssets with static linking.
 Use linkMode as dynamic library instead.""");
       return 255;
     }
@@ -155,23 +160,23 @@ Use linkMode as dynamic library instead.""");
     final tempDir = Directory.systemTemp.createTempSync();
     if (nativeAssets.isNotEmpty) {
       stdout.writeln('Copying native assets.');
-      KernelAsset targetLocation(Asset asset) {
-        final path = asset.path;
+      KernelAsset targetLocation(NativeCodeAssetImpl asset) {
+        final linkMode = asset.linkMode;
         final KernelAssetPath kernelAssetPath;
-        switch (path) {
-          case AssetSystemPath _:
-            kernelAssetPath = KernelAssetSystemPath(path.uri);
-          case AssetInExecutable _:
+        switch (linkMode) {
+          case DynamicLoadingSystemImpl _:
+            kernelAssetPath = KernelAssetSystemPath(linkMode.uri);
+          case LookupInExecutableImpl _:
             kernelAssetPath = KernelAssetInExecutable();
-          case AssetInProcess _:
+          case LookupInProcessImpl _:
             kernelAssetPath = KernelAssetInProcess();
-          case AssetAbsolutePath _:
+          case DynamicLoadingBundledImpl _:
             kernelAssetPath = KernelAssetRelativePath(
-              Uri(path: path.uri.pathSegments.last),
+              Uri(path: asset.file!.pathSegments.last),
             );
           default:
             throw Exception(
-              'Unsupported asset path type ${path.runtimeType} in asset $asset',
+              'Unsupported NativeCodeAsset linkMode ${linkMode.runtimeType} in asset $asset',
             );
         }
         return KernelAsset(
@@ -187,12 +192,10 @@ Use linkMode as dynamic library instead.""");
       final copiedFiles = await Future.wait([
         for (final assetMapping in assetTargetLocations.entries)
           if (assetMapping.value.path is KernelAssetRelativePath)
-            File.fromUri((assetMapping.key.path as AssetAbsolutePath).uri).copy(
-                outputUri
-                    .resolveUri(
-                        (assetMapping.value.path as KernelAssetRelativePath)
-                            .uri)
-                    .toFilePath())
+            File.fromUri(assetMapping.key.file!).copy(outputUri
+                .resolveUri(
+                    (assetMapping.value.path as KernelAssetRelativePath).uri)
+                .toFilePath())
       ]);
       stdout.writeln('Copied ${copiedFiles.length} native assets.');
 
