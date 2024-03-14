@@ -1,3 +1,15 @@
+## 3.3.2
+
+This is a patch release that:
+
+- Fixes an issue in the CFE that placed some structural parameter references out
+  of their context in the code restored from dill files, causing crashes in the
+  incremental compiler whenever it restored a typedef from dill such that the
+  typedef contained a generic function type on its right-hand side (issue
+  [#55158][]).
+
+[#55158]: https://github.com/dart-lang/sdk/issues/55158
+
 ## 3.3.1 - 2024-03-06
 
 This is a patch release that:
