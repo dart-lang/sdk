@@ -200,6 +200,8 @@ class ImplicitEnumNodes {
 }
 
 class LibraryBuilder {
+  static const _enableMacroCodeOptimizer = false;
+
   final Linker linker;
   final LibraryFileKind kind;
   final Uri uri;
@@ -536,20 +538,27 @@ class LibraryBuilder {
     final partialUnits = units.sublist(units.length - _macroResults.length);
     units.length -= _macroResults.length;
 
-    var optimizedCodeEdits = _CodeOptimizer(
-      elementFactory: linker.elementFactory,
-    ).optimize(
-      augmentationCode,
-      libraryDeclarationNames: element.definingCompilationUnit.children
-          .map((e) => e.name)
-          .nonNulls
-          .toSet(),
-      scannerConfiguration: Scanner.buildConfig(kind.file.featureSet),
-    );
-    var optimizedCode = macro.Edit.applyList(
-      optimizedCodeEdits,
-      augmentationCode,
-    );
+    List<macro.Edit> optimizedCodeEdits;
+    String optimizedCode;
+    if (_enableMacroCodeOptimizer) {
+      optimizedCodeEdits = _CodeOptimizer(
+        elementFactory: linker.elementFactory,
+      ).optimize(
+        augmentationCode,
+        libraryDeclarationNames: element.definingCompilationUnit.children
+            .map((e) => e.name)
+            .nonNulls
+            .toSet(),
+        scannerConfiguration: Scanner.buildConfig(kind.file.featureSet),
+      );
+      optimizedCode = macro.Edit.applyList(
+        optimizedCodeEdits,
+        augmentationCode,
+      );
+    } else {
+      optimizedCodeEdits = [];
+      optimizedCode = augmentationCode;
+    }
 
     final importState = kind.addMacroAugmentation(
       optimizedCode,

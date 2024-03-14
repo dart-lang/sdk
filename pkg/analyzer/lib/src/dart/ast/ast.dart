@@ -12634,8 +12634,7 @@ abstract final class NamedType implements TypeAnnotation {
 ///    typeName ::=
 ///        [Identifier] typeArguments? '?'?
 final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
-  @override
-  ImportPrefixReferenceImpl? importPrefix;
+  ImportPrefixReferenceImpl? _importPrefix;
 
   @override
   final Token name2;
@@ -12657,12 +12656,12 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
   /// Initialize a newly created type name. The [typeArguments] can be `null` if
   /// there are no type arguments.
   NamedTypeImpl({
-    required this.importPrefix,
+    required ImportPrefixReferenceImpl? importPrefix,
     required this.name2,
     required this.typeArguments,
     required this.question,
   }) {
-    _becomeParentOf(importPrefix);
+    this.importPrefix = importPrefix;
     _becomeParentOf(typeArguments);
   }
 
@@ -12671,6 +12670,16 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
 
   @override
   Token get endToken => question ?? typeArguments?.endToken ?? name2;
+
+  @override
+  ImportPrefixReferenceImpl? get importPrefix {
+    return _importPrefix;
+  }
+
+  set importPrefix(ImportPrefixReferenceImpl? value) {
+    _importPrefix = value;
+    _becomeParentOf(value);
+  }
 
   @override
   bool get isDeferred {
