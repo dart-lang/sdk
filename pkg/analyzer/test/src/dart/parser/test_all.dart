@@ -10,6 +10,8 @@ import 'extension_type_test.dart' as extension_type;
 import 'mixin_test.dart' as mixin_;
 import 'top_level_function_test.dart' as top_level_function;
 import 'top_level_variable_test.dart' as top_level_variable;
+import 'variable_declaration_statement_test.dart'
+    as variable_declaration_statement;
 
 /// Utility for manually running all tests.
 main() {
@@ -20,5 +22,6 @@ main() {
     mixin_.main();
     top_level_function.main();
     top_level_variable.main();
+    variable_declaration_statement.main();
   }, name: 'parser');
 }

@@ -3548,6 +3548,61 @@ class AstBuilder extends StackListener {
     var comment = _findComment(metadata, variables[0].beginToken);
     // var comment = _findComment(metadata,
     //     variables[0].beginToken ?? type?.beginToken ?? modifiers.beginToken);
+
+    // https://github.com/dart-lang/sdk/issues/53964
+    if (semicolon != null && semicolon.isSynthetic) {
+      if (variables.singleOrNull case var variable?) {
+        if (type is NamedTypeImpl) {
+          var importPrefix = type.importPrefix;
+          if (importPrefix != null) {
+            // x.^
+            // await y.foo();
+            {
+              var awaitToken = type.name2;
+              if (awaitToken.type == Keyword.AWAIT) {
+                push(
+                  ExpressionStatementImpl(
+                    expression: PrefixedIdentifierImpl(
+                      prefix: SimpleIdentifierImpl(importPrefix.name),
+                      period: importPrefix.period,
+                      identifier: SimpleIdentifierImpl(
+                        parser.rewriter.insertSyntheticIdentifier(
+                          importPrefix.period,
+                        ),
+                      ),
+                    ),
+                    semicolon: semicolon,
+                  ),
+                );
+                parser.rewriter.insertToken(semicolon, awaitToken);
+                parser.rewriter.insertToken(awaitToken, variable.name);
+                return;
+              }
+            }
+            // x.foo^
+            // await y.bar();
+            {
+              var awaitToken = variable.name;
+              if (awaitToken.type == Keyword.AWAIT) {
+                push(
+                  ExpressionStatementImpl(
+                    expression: PrefixedIdentifierImpl(
+                      prefix: SimpleIdentifierImpl(importPrefix.name),
+                      period: importPrefix.period,
+                      identifier: SimpleIdentifierImpl(type.name2),
+                    ),
+                    semicolon: semicolon,
+                  ),
+                );
+                parser.rewriter.insertToken(semicolon, awaitToken);
+                return;
+              }
+            }
+          }
+        }
+      }
+    }
+
     push(
       VariableDeclarationStatementImpl(
         variableList: VariableDeclarationListImpl(

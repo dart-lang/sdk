@@ -55,6 +55,44 @@ suggestions
 ''');
   }
 
+  Future<void> test_afterIdentifier_beforeAwait() async {
+    await computeSuggestions('''
+void f(A a) async {
+  a.^
+  await a.foo();
+}
+
+class A {
+  void m01() {}
+}
+''');
+    assertResponse(r'''
+suggestions
+  m01
+    kind: methodInvocation
+''');
+  }
+
+  Future<void> test_afterIdentifier_beforeAwait_partial() async {
+    await computeSuggestions('''
+void f(A a) async {
+  a.m0^ 
+  await 0;
+}
+
+class A {
+  void m01() {}
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 2
+suggestions
+  m01
+    kind: methodInvocation
+''');
+  }
+
   Future<void> test_afterIdentifier_beforeIdentifier_partial() async {
     newFile('$testPackageLibPath/a.dart', r'''
 void v01() {}
