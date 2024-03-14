@@ -149,6 +149,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     bool mustBeStatic = false,
     bool mustBeType = false,
     bool preferNonInvocation = false,
+    Set<AstNode> excludedNodes = const {},
   }) {
     var contextType = state.contextType;
     if (contextType is FunctionType) {
@@ -189,6 +190,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       mustBeType: mustBeType,
       preferNonInvocation: preferNonInvocation,
       skipImports: skipImports,
+      excludedNodes: excludedNodes,
     );
   }
 
@@ -2248,7 +2250,10 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
           rightParenthesis != null &&
           rightParenthesis.type == TokenType.CLOSE_PAREN &&
           rightParenthesis.isSynthetic) {
-        _forTypeAnnotation(node);
+        _forTypeAnnotation(
+          node,
+          excludedNodes: {typeParameters},
+        );
         return;
       }
     }
@@ -2804,11 +2809,14 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   /// Adds the suggestions that are appropriate when the selection is at the
   /// beginning of a type annotation.
-  void _forTypeAnnotation(AstNode node,
-      {bool mustBeExtensible = false,
-      bool mustBeImplementable = false,
-      bool mustBeMixable = false,
-      bool mustBeNonVoid = false}) {
+  void _forTypeAnnotation(
+    AstNode node, {
+    bool mustBeExtensible = false,
+    bool mustBeImplementable = false,
+    bool mustBeMixable = false,
+    bool mustBeNonVoid = false,
+    Set<AstNode> excludedNodes = const {},
+  }) {
     if (!(mustBeExtensible || mustBeImplementable || mustBeMixable)) {
       keywordHelper.addKeyword(Keyword.DYNAMIC);
       if (!mustBeNonVoid) {
@@ -2821,12 +2829,13 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       return;
     }
     declarationHelper(
-            mustBeExtensible: mustBeExtensible,
-            mustBeImplementable: mustBeImplementable,
-            mustBeMixable: mustBeMixable,
-            mustBeType: true,
-            mustBeNonVoid: mustBeNonVoid)
-        .addLexicalDeclarations(node);
+      mustBeExtensible: mustBeExtensible,
+      mustBeImplementable: mustBeImplementable,
+      mustBeMixable: mustBeMixable,
+      mustBeType: true,
+      mustBeNonVoid: mustBeNonVoid,
+      excludedNodes: excludedNodes,
+    ).addLexicalDeclarations(node);
   }
 
   /// Adds the suggestions that are appropriate when the selection is at the

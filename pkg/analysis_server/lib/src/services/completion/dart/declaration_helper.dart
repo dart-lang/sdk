@@ -75,6 +75,11 @@ class DeclarationHelper {
   /// suggestions are being produced by the various passes.
   final bool skipImports;
 
+  /// The nodes that should be excluded, for example because we identified
+  /// that they were created during parsing recovery, and don't contain
+  /// useful suggestions.
+  final Set<AstNode> excludedNodes;
+
   /// The number of local variables that have already been suggested.
   int _variableDistance = 0;
 
@@ -102,6 +107,7 @@ class DeclarationHelper {
     required this.mustBeType,
     required this.preferNonInvocation,
     required this.skipImports,
+    required this.excludedNodes,
   });
 
   /// Return the suggestion kind that should be used for executable elements.
@@ -1615,12 +1621,18 @@ class DeclarationHelper {
   }
 
   void _visitTypeParameterList(TypeParameterList? typeParameters) {
-    if (typeParameters != null) {
-      for (var typeParameter in typeParameters.typeParameters) {
-        var element = typeParameter.declaredElement;
-        if (element != null) {
-          _suggestTypeParameter(element);
-        }
+    if (typeParameters == null) {
+      return;
+    }
+
+    if (excludedNodes.contains(typeParameters)) {
+      return;
+    }
+
+    for (var typeParameter in typeParameters.typeParameters) {
+      var element = typeParameter.declaredElement;
+      if (element != null) {
+        _suggestTypeParameter(element);
       }
     }
   }
