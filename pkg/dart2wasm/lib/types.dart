@@ -6,7 +6,6 @@ import 'dart:math' show max;
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
-import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart' as type_env;
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
@@ -664,113 +663,16 @@ class Types {
     // to tell us anything about the type arguments of testedAgainstType.
     if (operandType.typeArguments.isEmpty) return false;
 
-    // TODO(http://dartbug.com/54998): If the CFE team provides this
-    // functionality on the [IsExpression]/[AsExpression] and/or as algorithm
-    // in `package:kernel` we can avoid doing that here.
-
-    // We can avoid checking [testedAgainstType]'s arguments if
-    //   a) the operand type is a super type of the [testedAgainstType]
-    //   b) the type arguments of the operand type imply the values of
-    //      [testedAgainstType] parameters of the subtype
-    //   c) the operand type expressed as the subtype with type arguments filled
-    //   in (from condition b) is a subtype of the subtype we check against.
-    //
-    // For this to hold, the [testedAgainstType]'s uninstantiated `this`
-    // (e.g. `Foo<Foo::T1, Foo::T2>`) expressed as it's supertype
-    // (e.g. Baz<Map<Foo::T1, Foo::T2>, int>`) must contain all of
-    // [testedAgainstType]'s type parameters in order for us to be able to find
-    // assignments to them. e.g.
-    //
-    //     class Baz<T, H> {}
-    //     class Foo<T1, T2> extends Baz<Map<T1, T2>, int> { }
-    //
-    //     Baz<Map<int, double>, int> obj;
-    //     if (obj is Foo<num, double>) { }
-    //
-    // We know that
-    //
-    //     * `obj` has static type `Baz<Map<int, double>, int>`
-    //     * if `obj is Foo`, then we must have `obj is Foo<int, double>`
-    //                      , therefore `obj is Foo<num, double>`
-    //
-    // Notice this can only be done if all [testedAgainstType] parameters appear
-    // in the expression as supertype
-
-    final subtypeThisType = testedAgainstType.classNode
-        .getThisType(coreTypes, Nullability.nonNullable);
-    final sameClass = (testedAgainstType.classNode == operandType.classNode);
-    final typeArgumentExpressions = sameClass
-        ? subtypeThisType.typeArguments
-        : translator.hierarchy.getInterfaceTypeArgumentsAsInstanceOfClass(
-            subtypeThisType, operandType.classNode);
-    if (typeArgumentExpressions == null) return false; // Classes unrelated
-
-    // Try to express operand type as the [testedAgainstType]'s class, thereby
-    // finding assignments to [testedAgainstType]'s type parameters.
-    //
-    // The matching is somewhat conservative but handles most cases we want to
-    // handle.
-    final typeParameterValues = <TypeParameter, DartType>{};
-    {
-      final subtypeParameters = testedAgainstType.classNode.typeParameters;
-      bool recurse(DartType typeExpr, DartType typeValue) {
-        if (typeExpr is TypeParameterType) {
-          if (typeExpr.nullability == Nullability.nullable) return false;
-          final parameter = typeExpr.parameter;
-          assert(subtypeParameters.contains(parameter));
-          final existing = typeParameterValues[parameter];
-          if (existing != null && existing != typeValue) return false;
-          typeParameterValues[parameter] = typeValue;
-          return true;
-        }
-        if (typeExpr is InterfaceType) {
-          if (typeValue is! InterfaceType) return false;
-          if (typeExpr.nullability != typeValue.nullability) return false;
-          if (typeExpr.classNode != typeValue.classNode) return false;
-          final length = typeExpr.typeArguments.length;
-          if (length != typeValue.typeArguments.length) return false;
-          for (int i = 0; i < length; ++i) {
-            if (!recurse(
-                typeExpr.typeArguments[i], typeValue.typeArguments[i])) {
-              return false;
-            }
-          }
-          return true;
-        }
-        return false;
-      }
-
-      final length = typeArgumentExpressions.length;
-      for (int i = 0; i < length; ++i) {
-        if (!recurse(
-            typeArgumentExpressions[i], operandType.typeArguments[i])) {
-          return false;
-        }
-      }
-    }
-
-    // If we didn't find values for all [testedAgainstType] parameters, we
-    // have to actually check the [testedAgainstType] arguments at runtime.
-    //
-    // Simple example when this is the case: `Object x; x is List<int>`
-    if (typeParameterValues.length !=
-        testedAgainstType.classNode.typeParameters.length) {
-      return false;
-    }
-
-    // We can express the [operandType] as [testedAgainstType]'s class as we
-    // found suitable type parameter values.
-    //
-    // If a cid-range check would succeed then this [impliedOperandType] is the
-    // type the operand is guaranteed to have (based on static type information)
-    final impliedOperandType = substitute(subtypeThisType, typeParameterValues);
+    final sufficiency = translator.typeEnvironment
+        .computeTypeShapeCheckSufficiency(
+            expressionStaticType: operandType,
+            checkTargetType:
+                testedAgainstType.withDeclaredNullability(Nullability.nullable),
+            subtypeCheckMode: type_env.SubtypeCheckMode.withNullabilities);
 
     // If `true` the caller only needs to check nullabillity and the actual
     // concrete class, no need to check [testedAgainstType] arguments.
-    return translator.typeEnvironment.isSubtypeOf(
-        impliedOperandType,
-        testedAgainstType.withDeclaredNullability(Nullability.nullable),
-        type_env.SubtypeCheckMode.withNullabilities);
+    return sufficiency == type_env.TypeShapeCheckSufficiency.interfaceShape;
   }
 
   bool _hasOnlyDefaultTypeArguments(InterfaceType testedAgainstType) {
