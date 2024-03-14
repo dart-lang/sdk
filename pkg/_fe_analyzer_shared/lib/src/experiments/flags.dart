@@ -82,10 +82,10 @@ enum ExperimentalFlag {
 
   inferenceUpdate3(
       name: 'inference-update-3',
-      isEnabledByDefault: false,
+      isEnabledByDefault: true,
       isExpired: false,
-      experimentEnabledVersion: defaultLanguageVersion,
-      experimentReleasedVersion: defaultLanguageVersion),
+      experimentEnabledVersion: const Version(3, 4),
+      experimentReleasedVersion: const Version(3, 4)),
 
   inlineClass(
       name: 'inline-class',

@@ -25,14 +25,14 @@ void f((int, int) r01) {
 ''');
     assertResponse(r'''
 suggestions
+  r01
+    kind: parameter
   const
     kind: keyword
   false
     kind: keyword
   null
     kind: keyword
-  r01
-    kind: parameter
   switch
     kind: keyword
   true

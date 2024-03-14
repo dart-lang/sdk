@@ -2235,6 +2235,24 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitTypeParameter(TypeParameter node) {
+    // class A {
+    //   Future<void^>
+    // }
+    // This is parsed as `Future<void>() {}`, where `() {}` are synthetic.
+    if (node.parent case TypeParameterList typeParameters) {
+      var leftParenthesis = typeParameters.rightBracket.next;
+      var rightParenthesis = leftParenthesis?.next;
+      if (leftParenthesis != null &&
+          leftParenthesis.type == TokenType.OPEN_PAREN &&
+          leftParenthesis.isSynthetic &&
+          rightParenthesis != null &&
+          rightParenthesis.type == TokenType.CLOSE_PAREN &&
+          rightParenthesis.isSynthetic) {
+        _forTypeAnnotation(node);
+        return;
+      }
+    }
+
     if (offset <= node.name.end) {
       // The cursor is in the name of the type parameter and there are no names
       // to suggest.

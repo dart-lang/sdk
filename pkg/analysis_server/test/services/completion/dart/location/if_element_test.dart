@@ -39,13 +39,13 @@ f() => [if (true) 1 else ^];
 ''');
     assertResponse(r'''
 suggestions
-  const
-    kind: keyword
-  false
+  if
     kind: keyword
   for
     kind: keyword
-  if
+  const
+    kind: keyword
+  false
     kind: keyword
   null
     kind: keyword
@@ -79,9 +79,9 @@ f() => [if (true) ^];
 suggestions
   const
     kind: keyword
-  false
-    kind: keyword
   for
+    kind: keyword
+  false
     kind: keyword
   if
     kind: keyword
@@ -102,21 +102,21 @@ void f(int i, int j) {
 ''');
     assertResponse(r'''
 suggestions
+  false
+    kind: keyword
+  null
+    kind: keyword
+  true
+    kind: keyword
   const
     kind: keyword
   else
-    kind: keyword
-  false
     kind: keyword
   for
     kind: keyword
   if
     kind: keyword
-  null
-    kind: keyword
   switch
-    kind: keyword
-  true
     kind: keyword
 ''');
   }
@@ -144,21 +144,21 @@ void f(int i) {
 ''');
     assertResponse(r'''
 suggestions
+  false
+    kind: keyword
+  null
+    kind: keyword
+  true
+    kind: keyword
   const
     kind: keyword
   else
-    kind: keyword
-  false
     kind: keyword
   for
     kind: keyword
   if
     kind: keyword
-  null
-    kind: keyword
   switch
-    kind: keyword
-  true
     kind: keyword
 ''');
   }
@@ -171,21 +171,21 @@ void f(int i) {
 ''');
     assertResponse(r'''
 suggestions
+  false
+    kind: keyword
+  null
+    kind: keyword
+  true
+    kind: keyword
   const
     kind: keyword
   else
-    kind: keyword
-  false
     kind: keyword
   for
     kind: keyword
   if
     kind: keyword
-  null
-    kind: keyword
   switch
-    kind: keyword
-  true
     kind: keyword
 ''');
   }
@@ -198,21 +198,21 @@ void f(int i) {
 ''');
     assertResponse(r'''
 suggestions
+  false
+    kind: keyword
+  null
+    kind: keyword
+  true
+    kind: keyword
   const
     kind: keyword
   else
-    kind: keyword
-  false
     kind: keyword
   for
     kind: keyword
   if
     kind: keyword
-  null
-    kind: keyword
   switch
-    kind: keyword
-  true
     kind: keyword
 ''');
   }
@@ -225,21 +225,21 @@ void f(int i) {
 ''');
     assertResponse(r'''
 suggestions
+  false
+    kind: keyword
+  null
+    kind: keyword
+  true
+    kind: keyword
   const
     kind: keyword
   else
-    kind: keyword
-  false
     kind: keyword
   for
     kind: keyword
   if
     kind: keyword
-  null
-    kind: keyword
   switch
-    kind: keyword
-  true
     kind: keyword
 ''');
   }
@@ -343,15 +343,15 @@ void f(Object o) {
 ''');
     assertResponse(r'''
 suggestions
-  const
-    kind: keyword
   false
+    kind: keyword
+  true
     kind: keyword
   null
     kind: keyword
-  switch
+  const
     kind: keyword
-  true
+  switch
     kind: keyword
 ''');
   }
@@ -390,15 +390,15 @@ var v = [ if (^) ];
 ''');
     assertResponse(r'''
 suggestions
-  const
-    kind: keyword
   false
+    kind: keyword
+  true
     kind: keyword
   null
     kind: keyword
-  switch
+  const
     kind: keyword
-  true
+  switch
     kind: keyword
 ''');
   }

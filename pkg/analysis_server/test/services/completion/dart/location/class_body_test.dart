@@ -58,15 +58,21 @@ suggestions
   }
     kind: override
     selection: 90 38
+  final
+    kind: keyword
+  static
+    kind: keyword
+  void
+    kind: keyword
   const
+    kind: keyword
+  set
+    kind: keyword
+  factory
     kind: keyword
   covariant
     kind: keyword
   dynamic
-    kind: keyword
-  factory
-    kind: keyword
-  final
     kind: keyword
   get
     kind: keyword
@@ -74,13 +80,7 @@ suggestions
     kind: keyword
   operator
     kind: keyword
-  set
-    kind: keyword
-  static
-    kind: keyword
   var
-    kind: keyword
-  void
     kind: keyword
 ''');
   }
@@ -122,15 +122,21 @@ suggestions
   }
     kind: override
     selection: 90 38
+  final
+    kind: keyword
+  static
+    kind: keyword
+  void
+    kind: keyword
   const
+    kind: keyword
+  set
+    kind: keyword
+  factory
     kind: keyword
   covariant
     kind: keyword
   dynamic
-    kind: keyword
-  factory
-    kind: keyword
-  final
     kind: keyword
   get
     kind: keyword
@@ -138,13 +144,7 @@ suggestions
     kind: keyword
   operator
     kind: keyword
-  set
-    kind: keyword
-  static
-    kind: keyword
   var
-    kind: keyword
-  void
     kind: keyword
 ''');
   }
@@ -186,15 +186,21 @@ suggestions
   }
     kind: override
     selection: 90 38
+  final
+    kind: keyword
+  static
+    kind: keyword
+  void
+    kind: keyword
   const
+    kind: keyword
+  set
+    kind: keyword
+  factory
     kind: keyword
   covariant
     kind: keyword
   dynamic
-    kind: keyword
-  factory
-    kind: keyword
-  final
     kind: keyword
   get
     kind: keyword
@@ -202,13 +208,7 @@ suggestions
     kind: keyword
   operator
     kind: keyword
-  set
-    kind: keyword
-  static
-    kind: keyword
   var
-    kind: keyword
-  void
     kind: keyword
 ''');
   }
@@ -250,15 +250,21 @@ suggestions
   }
     kind: override
     selection: 90 38
+  final
+    kind: keyword
+  static
+    kind: keyword
+  void
+    kind: keyword
   const
+    kind: keyword
+  set
+    kind: keyword
+  factory
     kind: keyword
   covariant
     kind: keyword
   dynamic
-    kind: keyword
-  factory
-    kind: keyword
-  final
     kind: keyword
   get
     kind: keyword
@@ -266,13 +272,7 @@ suggestions
     kind: keyword
   operator
     kind: keyword
-  set
-    kind: keyword
-  static
-    kind: keyword
   var
-    kind: keyword
-  void
     kind: keyword
 ''');
   }
@@ -327,15 +327,21 @@ suggestions
   }
     kind: override
     selection: 90 38
+  final
+    kind: keyword
+  static
+    kind: keyword
+  void
+    kind: keyword
   const
+    kind: keyword
+  set
+    kind: keyword
+  factory
     kind: keyword
   covariant
     kind: keyword
   dynamic
-    kind: keyword
-  factory
-    kind: keyword
-  final
     kind: keyword
   get
     kind: keyword
@@ -343,13 +349,7 @@ suggestions
     kind: keyword
   operator
     kind: keyword
-  set
-    kind: keyword
-  static
-    kind: keyword
   var
-    kind: keyword
-  void
     kind: keyword
 ''');
   }
@@ -623,6 +623,7 @@ mixin M {
   void _printKeywordsOrClass({
     String sampleClassName = 'Object',
   }) {
+    printerConfiguration.sorting = printer.Sorting.completionThenKind;
     printerConfiguration.filter = (suggestion) {
       final completion = suggestion.completion;
       if (suggestion.kind == CompletionSuggestionKind.KEYWORD) {
@@ -676,9 +677,6 @@ replacement
   left: 4
 suggestions
   override
-    kind: topLevelVariable
-    displayText: null
-  override
   void foo01() {
     // TODO: implement foo01
     super.foo01();
@@ -686,6 +684,9 @@ suggestions
     kind: override
     displayText: override foo01() { … }
     selection: 59 14
+  override
+    kind: topLevelVariable
+    displayText: null
 ''');
   }
 
@@ -731,9 +732,6 @@ replacement
   left: 4
 suggestions
   override
-    kind: topLevelVariable
-    displayText: null
-  override
   void foo01() {
     // TODO: implement foo01
     super.foo01();
@@ -741,6 +739,9 @@ suggestions
     kind: override
     displayText: override foo01() { … }
     selection: 59 14
+  override
+    kind: topLevelVariable
+    displayText: null
 ''');
   }
 
@@ -760,9 +761,6 @@ replacement
   left: 4
 suggestions
   override
-    kind: topLevelVariable
-    displayText: null
-  override
   void foo01() {
     // TODO: implement foo01
     super.foo01();
@@ -770,6 +768,9 @@ suggestions
     kind: override
     displayText: override foo01() { … }
     selection: 59 14
+  override
+    kind: topLevelVariable
+    displayText: null
 ''');
   }
 
@@ -818,9 +819,6 @@ replacement
   left: 4
 suggestions
   override
-    kind: topLevelVariable
-    displayText: null
-  override
   void foo01() {
     // TODO: implement foo01
     super.foo01();
@@ -828,6 +826,9 @@ suggestions
     kind: override
     displayText: override foo01() { … }
     selection: 59 14
+  override
+    kind: topLevelVariable
+    displayText: null
 ''');
   }
 
@@ -848,9 +849,6 @@ replacement
   left: 4
 suggestions
   override
-    kind: topLevelVariable
-    displayText: null
-  override
   void foo01() {
     // TODO: implement foo01
     super.foo01();
@@ -858,6 +856,9 @@ suggestions
     kind: override
     displayText: override foo01() { … }
     selection: 59 14
+  override
+    kind: topLevelVariable
+    displayText: null
 ''');
   }
 
@@ -883,9 +884,6 @@ replacement
   left: 4
 suggestions
   override
-    kind: topLevelVariable
-    displayText: null
-  override
   bool operator ==(Object other) {
     // TODO: implement ==
     return super == other;
@@ -893,6 +891,9 @@ suggestions
     kind: override
     displayText: override ==(Object other) { … }
     selection: 74 22
+  override
+    kind: topLevelVariable
+    displayText: null
 ''');
   }
 
@@ -1398,9 +1399,6 @@ replacement
   left: 4
 suggestions
   override
-    kind: topLevelVariable
-    displayText: null
-  override
   void foo01() {
     // TODO: implement foo01
     super.foo01();
@@ -1408,6 +1406,9 @@ suggestions
     kind: override
     displayText: override foo01() { … }
     selection: 59 14
+  override
+    kind: topLevelVariable
+    displayText: null
 ''');
   }
 
@@ -1451,9 +1452,6 @@ replacement
   left: 4
 suggestions
   override
-    kind: topLevelVariable
-    displayText: null
-  override
   void foo01() {
     // TODO: implement foo01
     super.foo01();
@@ -1461,6 +1459,9 @@ suggestions
     kind: override
     displayText: override foo01() { … }
     selection: 59 14
+  override
+    kind: topLevelVariable
+    displayText: null
 ''');
   }
 

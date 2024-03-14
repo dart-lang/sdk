@@ -319,6 +319,7 @@ AssignmentExpression
 
   test_ifNull_lubUsedEvenIfItDoesNotSatisfyContext() async {
     await assertNoErrorsInCode('''
+// @dart=3.3
 f(Object? o1, Object? o2, List<num> listNum) {
   if (o1 is Iterable<int>? && o2 is Iterable<num>) {
     o2 = (o1 ??= listNum);

@@ -35,16 +35,12 @@ int f01() => 0;
 ''');
     assertResponse(r'''
 suggestions
-  A1
-    kind: class
-  A1.named
-    kind: constructor
   c01
     kind: topLevelVariable
+  A1.named
+    kind: constructor
   const
     kind: keyword
-  f01
-    kind: functionInvocation
   false
     kind: keyword
   final
@@ -53,10 +49,14 @@ suggestions
     kind: keyword
   true
     kind: keyword
-  v01
-    kind: topLevelVariable
   var
     kind: keyword
+  A1
+    kind: class
+  f01
+    kind: functionInvocation
+  v01
+    kind: topLevelVariable
 ''');
   }
 
@@ -84,12 +84,12 @@ int B04() => 0;
 replacement
   left: 1
 suggestions
+  A02
+    kind: topLevelVariable
   A01
     kind: class
   A01
     kind: constructorInvocation
-  A02
-    kind: topLevelVariable
   A03
     kind: topLevelVariable
   A04
@@ -103,6 +103,10 @@ void f() { if (true) {} else ^ }
 ''');
     assertResponse(r'''
 suggestions
+  if
+    kind: keyword
+  return
+    kind: keyword
   assert
     kind: keyword
   const
@@ -117,13 +121,9 @@ suggestions
     kind: keyword
   for
     kind: keyword
-  if
-    kind: keyword
   late
     kind: keyword
   null
-    kind: keyword
-  return
     kind: keyword
   switch
     kind: keyword
@@ -148,15 +148,15 @@ foo() {if (^) }
 ''');
     assertResponse(r'''
 suggestions
-  const
-    kind: keyword
   false
+    kind: keyword
+  true
     kind: keyword
   null
     kind: keyword
-  switch
+  const
     kind: keyword
-  true
+  switch
     kind: keyword
 ''');
   }
@@ -180,19 +180,19 @@ class A {foo() {if (^) }}
 ''');
     assertResponse(r'''
 suggestions
-  const
-    kind: keyword
   false
     kind: keyword
+  true
+    kind: keyword
   null
+    kind: keyword
+  this
+    kind: keyword
+  const
     kind: keyword
   super
     kind: keyword
   switch
-    kind: keyword
-  this
-    kind: keyword
-  true
     kind: keyword
 ''');
   }
@@ -270,6 +270,10 @@ class A {foo() {if (true) ^}}
 ''');
     assertResponse(r'''
 suggestions
+  return
+    kind: keyword
+  throw
+    kind: keyword
   assert
     kind: keyword
   const
@@ -290,15 +294,11 @@ suggestions
     kind: keyword
   null
     kind: keyword
-  return
-    kind: keyword
   super
     kind: keyword
   switch
     kind: keyword
   this
-    kind: keyword
-  throw
     kind: keyword
   true
     kind: keyword
@@ -319,6 +319,10 @@ foo() {if (true) ^}
 ''');
     assertResponse(r'''
 suggestions
+  return
+    kind: keyword
+  throw
+    kind: keyword
   assert
     kind: keyword
   const
@@ -339,11 +343,7 @@ suggestions
     kind: keyword
   null
     kind: keyword
-  return
-    kind: keyword
   switch
-    kind: keyword
-  throw
     kind: keyword
   true
     kind: keyword
@@ -364,6 +364,10 @@ class A {foo() {if (true) ^ go();}}
 ''');
     assertResponse(r'''
 suggestions
+  return
+    kind: keyword
+  throw
+    kind: keyword
   assert
     kind: keyword
   const
@@ -384,15 +388,11 @@ suggestions
     kind: keyword
   null
     kind: keyword
-  return
-    kind: keyword
   super
     kind: keyword
   switch
     kind: keyword
   this
-    kind: keyword
-  throw
     kind: keyword
   true
     kind: keyword
@@ -414,6 +414,10 @@ foo() {if (true) ^ go();}
 ''');
     assertResponse(r'''
 suggestions
+  return
+    kind: keyword
+  throw
+    kind: keyword
   assert
     kind: keyword
   const
@@ -434,11 +438,7 @@ suggestions
     kind: keyword
   null
     kind: keyword
-  return
-    kind: keyword
   switch
-    kind: keyword
-  throw
     kind: keyword
   true
     kind: keyword
@@ -459,6 +459,10 @@ class A {foo() {if (true) ^;}}
 ''');
     assertResponse(r'''
 suggestions
+  return
+    kind: keyword
+  throw
+    kind: keyword
   assert
     kind: keyword
   const
@@ -479,15 +483,11 @@ suggestions
     kind: keyword
   null
     kind: keyword
-  return
-    kind: keyword
   super
     kind: keyword
   switch
     kind: keyword
   this
-    kind: keyword
-  throw
     kind: keyword
   true
     kind: keyword
@@ -508,6 +508,10 @@ foo() {if (true) ^;}
 ''');
     assertResponse(r'''
 suggestions
+  return
+    kind: keyword
+  throw
+    kind: keyword
   assert
     kind: keyword
   const
@@ -528,11 +532,7 @@ suggestions
     kind: keyword
   null
     kind: keyword
-  return
-    kind: keyword
   switch
-    kind: keyword
-  throw
     kind: keyword
   true
     kind: keyword
@@ -568,15 +568,15 @@ void f(Object o) {
 ''');
     assertResponse(r'''
 suggestions
-  const
-    kind: keyword
   false
+    kind: keyword
+  true
     kind: keyword
   null
     kind: keyword
-  switch
+  const
     kind: keyword
-  true
+  switch
     kind: keyword
 ''');
   }
@@ -619,15 +619,15 @@ void f() {
 ''');
     assertResponse(r'''
 suggestions
-  const
-    kind: keyword
   false
+    kind: keyword
+  true
     kind: keyword
   null
     kind: keyword
-  switch
+  const
     kind: keyword
-  true
+  switch
     kind: keyword
 ''');
   }

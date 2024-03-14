@@ -141,11 +141,11 @@ class ExperimentalFlag {
 
   static const ExperimentalFlag inferenceUpdate3 = const ExperimentalFlag(
       name: 'inference-update-3',
-      isEnabledByDefault: false,
+      isEnabledByDefault: true,
       isExpired: false,
-      enabledVersion: defaultLanguageVersion,
-      experimentEnabledVersion: defaultLanguageVersion,
-      experimentReleasedVersion: defaultLanguageVersion);
+      enabledVersion: const Version(3, 4),
+      experimentEnabledVersion: const Version(3, 4),
+      experimentReleasedVersion: const Version(3, 4));
 
   static const ExperimentalFlag inlineClass = const ExperimentalFlag(
       name: 'inline-class',

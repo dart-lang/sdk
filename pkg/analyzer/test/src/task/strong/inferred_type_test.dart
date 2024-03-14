@@ -1999,19 +1999,16 @@ void main() {
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           387,
           1),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 457, 38),
       error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           519,
           1),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 540, 32),
       error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           594,
           1),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 620, 32),
     ]);
     await disposeAnalysisContextCollection();
 
@@ -2031,19 +2028,16 @@ void main() {
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           389,
           1),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 459, 40),
       error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           523,
           1),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 544, 34),
       error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           600,
           1),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 626, 34),
     ]);
     await disposeAnalysisContextCollection();
 
@@ -2063,19 +2057,16 @@ void main() {
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           391,
           1),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 461, 38),
       error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           525,
           1),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 546, 32),
       error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           602,
           1),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 628, 32),
     ]);
     await disposeAnalysisContextCollection();
 
@@ -2098,22 +2089,16 @@ void main() {
                   .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
               393,
               1),
-          error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 463,
-              40),
           error(
               CompileTimeErrorCode
                   .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
               529,
               1),
-          error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 550,
-              34),
           error(
               CompileTimeErrorCode
                   .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
               608,
               1),
-          error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 634,
-              34),
         ]);
     await disposeAnalysisContextCollection();
 
@@ -2133,19 +2118,16 @@ void main() {
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           387,
           1),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 457, 40),
       error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           521,
           1),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 542, 34),
       error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           598,
           1),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 624, 34),
     ]);
     await disposeAnalysisContextCollection();
 
@@ -2165,19 +2147,16 @@ void main() {
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           385,
           1),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 455, 38),
       error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           517,
           1),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 538, 32),
       error(
           CompileTimeErrorCode
               .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           592,
           1),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 618, 32),
     ]);
     await disposeAnalysisContextCollection();
   }
@@ -2364,8 +2343,6 @@ $downwards<int> g3(bool x) async {
           contextMessages: [message(dartAsyncFile, 506, 4)]),
       error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 223, 7),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 236, 4),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 285, 29),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 352, 29),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 464, 1),
     ]);
     await disposeAnalysisContextCollection();
@@ -2375,8 +2352,6 @@ $downwards<int> g3(bool x) async {
           contextMessages: [message(dartAsyncFile, 506, 4)]),
       error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 223, 7),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 236, 4),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 285, 31),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 354, 31),
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 470, 1),
     ]);
     await disposeAnalysisContextCollection();

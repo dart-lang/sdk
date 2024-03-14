@@ -390,7 +390,7 @@ class Configuration {
   bool Function(CompletionSuggestion suggestion) filter;
 
   Configuration({
-    this.sorting = Sorting.completionThenKind,
+    this.sorting = Sorting.relevanceThenCompletionThenKind,
     this.withDeclaringType = false,
     this.withDefaultArgumentList = false,
     this.withDisplayText = false,

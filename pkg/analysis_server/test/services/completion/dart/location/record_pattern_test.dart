@@ -44,22 +44,22 @@ void f(({int f01, int f02, int g01}) x0) {
     // TODO(scheglov): This is wrong.
     assertResponse(r'''
 suggestions
-  const
-    kind: keyword
+  v01
+    kind: localVariable
+  x0
+    kind: parameter
   false
-    kind: keyword
-  final
     kind: keyword
   null
     kind: keyword
   true
     kind: keyword
-  v01
-    kind: localVariable
+  const
+    kind: keyword
+  final
+    kind: keyword
   var
     kind: keyword
-  x0
-    kind: parameter
 ''');
   }
 

@@ -125,18 +125,10 @@ suggestions
     kind: class
     docComplete: My documentation.\nShort description.\n\nLonger description.
     docSummary: My documentation.\nShort description.
-  C0
-    kind: constructorInvocation
-  E0
-    kind: enum
-    docComplete: My documentation.\nShort description.\n\nLonger description.
-    docSummary: My documentation.\nShort description.
   M0
     kind: class
     docComplete: My documentation.\nShort description.\n\nLonger description.
     docSummary: My documentation.\nShort description.
-  M0
-    kind: constructorInvocation
   f0
     kind: functionInvocation
     docComplete: My documentation.\nShort description.\n\nLonger description.
@@ -145,6 +137,14 @@ suggestions
     kind: topLevelVariable
     docComplete: My documentation.\nShort description.\n\nLonger description.
     docSummary: My documentation.\nShort description.
+  C0
+    kind: constructorInvocation
+  E0
+    kind: enum
+    docComplete: My documentation.\nShort description.\n\nLonger description.
+    docSummary: My documentation.\nShort description.
+  M0
+    kind: constructorInvocation
 ''');
   }
 }

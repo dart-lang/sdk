@@ -128,9 +128,6 @@ features:
   resource-identifiers:
     help: "Output arguments used by static functions."
 
-  inference-update-3: # See https://github.com/dart-lang/language/issues/1618
-    help: "Better handling of conditional expressions, and switch expressions."
-
 # Experiment flag only used for testing.
   test-experiment:
     help: >-
@@ -143,6 +140,20 @@ features:
 #
 # Shipped flags should be marked retired the following stable release.
 #
+
+  inference-update-3: # See https://github.com/dart-lang/language/issues/1618
+    enabledIn: '3.4.0'
+    validation: |
+      class A {}
+      class B1 implements A {}
+      class B2 implements A {}
+      class C1 implements B1, B2 {}
+      class C2 implements B1, B2 {}
+      B1 test(bool b, C1 c1, C2 c2) => b ? c1 : c2;
+      main() {
+        print('feature enabled');
+      }
+    help: "Better handling of conditional expressions, and switch expressions."
 
   inline-class:
     enabledIn: '3.3.0'

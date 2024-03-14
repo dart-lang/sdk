@@ -342,6 +342,7 @@ analysisOptions
     generic-metadata
     inference-update-1
     inference-update-2
+    inference-update-3
     inline-class
     named-arguments-anywhere
     non-nullable
@@ -414,6 +415,7 @@ analysisOptions
     generic-metadata
     inference-update-1
     inference-update-2
+    inference-update-3
     inline-class
     named-arguments-anywhere
     non-nullable

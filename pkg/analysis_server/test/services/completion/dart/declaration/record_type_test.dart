@@ -37,24 +37,24 @@ void f((int, {String foo02}) r) {
 
     assertResponse(r'''
 suggestions
+  hashCode
+    kind: getter
+    returnType: int
+  runtimeType
+    kind: getter
+    returnType: Type
   $1
     kind: identifier
     returnType: int
   foo02
     kind: identifier
     returnType: String
-  hashCode
-    kind: getter
-    returnType: int
-  noSuchMethod
-    kind: methodInvocation
-    returnType: dynamic
-  runtimeType
-    kind: getter
-    returnType: Type
   toString
     kind: methodInvocation
     returnType: String
+  noSuchMethod
+    kind: methodInvocation
+    returnType: dynamic
 ''');
   }
 
@@ -67,24 +67,24 @@ void f(({int foo01, String foo02}) r) {
 
     assertResponse(r'''
 suggestions
+  hashCode
+    kind: getter
+    returnType: int
+  runtimeType
+    kind: getter
+    returnType: Type
   foo01
     kind: identifier
     returnType: int
   foo02
     kind: identifier
     returnType: String
-  hashCode
-    kind: getter
-    returnType: int
-  noSuchMethod
-    kind: methodInvocation
-    returnType: dynamic
-  runtimeType
-    kind: getter
-    returnType: Type
   toString
     kind: methodInvocation
     returnType: String
+  noSuchMethod
+    kind: methodInvocation
+    returnType: dynamic
 ''');
   }
 
@@ -97,24 +97,24 @@ void f((int, String) r) {
 
     assertResponse(r'''
 suggestions
+  hashCode
+    kind: getter
+    returnType: int
+  runtimeType
+    kind: getter
+    returnType: Type
   $1
     kind: identifier
     returnType: int
   $2
     kind: identifier
     returnType: String
-  hashCode
-    kind: getter
-    returnType: int
-  noSuchMethod
-    kind: methodInvocation
-    returnType: dynamic
-  runtimeType
-    kind: getter
-    returnType: Type
   toString
     kind: methodInvocation
     returnType: String
+  noSuchMethod
+    kind: methodInvocation
+    returnType: dynamic
 ''');
   }
 }

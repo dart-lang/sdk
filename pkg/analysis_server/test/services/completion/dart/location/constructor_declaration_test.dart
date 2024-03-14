@@ -91,10 +91,10 @@ class A {
 ''');
     assertResponse(r'''
 suggestions
-  assert
-    kind: keyword
   f0
     kind: field
+  assert
+    kind: keyword
   this
     kind: keyword
 ''');
@@ -110,13 +110,13 @@ class A {
 ''');
     assertResponse(r'''
 suggestions
-  assert
+  super
     kind: keyword
   f0
     kind: field
   f1
     kind: field
-  super
+  assert
     kind: keyword
   this
     kind: keyword
@@ -133,11 +133,11 @@ class A {
 ''');
     assertResponse(r'''
 suggestions
-  assert
+  super
     kind: keyword
   f1
     kind: field
-  super
+  assert
     kind: keyword
   this
     kind: keyword
@@ -154,13 +154,13 @@ class A {
 ''');
     assertResponse(r'''
 suggestions
-  assert
+  super
     kind: keyword
   f0
     kind: field
   f1
     kind: field
-  super
+  assert
     kind: keyword
   this
     kind: keyword
@@ -177,11 +177,11 @@ class A {
 ''');
     assertResponse(r'''
 suggestions
-  assert
+  super
     kind: keyword
   f1
     kind: field
-  super
+  assert
     kind: keyword
   this
     kind: keyword

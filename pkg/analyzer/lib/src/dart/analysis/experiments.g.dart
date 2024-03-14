@@ -250,7 +250,7 @@ class ExperimentalFeatures {
     documentation:
         'Better handling of conditional expressions, and switch expressions.',
     experimentalReleaseVersion: null,
-    releaseVersion: null,
+    releaseVersion: Version.parse('3.4.0'),
   );
 
   static final inline_class = ExperimentalFeature(
@@ -459,7 +459,7 @@ class IsEnabledByDefault {
   static const bool inference_update_2 = true;
 
   /// Default state of the experiment "inference-update-3"
-  static const bool inference_update_3 = false;
+  static const bool inference_update_3 = true;
 
   /// Default state of the experiment "inline-class"
   static const bool inline_class = true;
