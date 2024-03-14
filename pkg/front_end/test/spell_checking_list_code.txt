@@ -285,6 +285,7 @@ columns
 com
 combinations
 combinator
+combinatorial
 combiner
 commands
 communicate
@@ -609,6 +610,7 @@ experimentation
 explaining
 explicitness
 explore
+explosion
 exportable
 exportee
 exportees
@@ -2046,6 +2048,7 @@ wise
 wiser
 wishes
 witness
+witnesses
 wn
 worst
 worthwhile

@@ -203,11 +203,13 @@ extension NotInstantiatedExtensionsExtensions<R>
         genericMetadataIsEnabled: genericMetadataIsEnabled,
         strictInference: false,
         typeSystemOperations: typeSystemOperations,
+        dataForTesting: null,
       );
       inferrer.constrainArgument(
         targetType,
         rawExtendedType,
         'extendedType',
+        nodeForTesting: null,
       );
       var inferredTypes = inferrer.tryChooseFinalTypes();
       if (inferredTypes == null) {

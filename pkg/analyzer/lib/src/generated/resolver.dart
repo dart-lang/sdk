@@ -36,6 +36,7 @@ import 'package:analyzer/src/dart/element/generic_inferrer.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/scope.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
@@ -378,6 +379,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       resolver: this,
       errorReporter: errorReporter,
       typeSystem: typeSystem,
+      dataForTesting: flowAnalysis.dataForTesting != null
+          ? TypeConstraintGenerationDataForTesting()
+          : null,
     );
     _assignmentExpressionResolver = AssignmentExpressionResolver(
       resolver: this,
@@ -818,6 +822,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             errorNode: typeNode,
             declaredType: typeNameElement.thisType,
             contextType: matchedType,
+            nodeForTesting: pattern,
           );
           return typeNode.type = typeNameElement.instantiate(
             typeArguments: typeArguments,
@@ -832,6 +837,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             errorNode: typeNode,
             declaredType: typeNameElement.aliasedType,
             contextType: matchedType,
+            nodeForTesting: pattern,
           );
           return typeNode.type = typeNameElement.instantiate(
             typeArguments: typeArguments,
@@ -1183,6 +1189,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       strictInference: analysisOptions.strictInference,
       strictCasts: analysisOptions.strictCasts,
       typeSystemOperations: flowAnalysis.typeOperations,
+      dataForTesting: inferenceHelper.dataForTesting,
+      nodeForTesting: expression,
     );
     if (typeArgumentTypes.isNotEmpty) {
       staticType = staticType.instantiate(typeArgumentTypes);
@@ -3606,6 +3614,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     required AstNode errorNode,
     required DartType declaredType,
     required DartType contextType,
+    required AstNode? nodeForTesting,
   }) {
     var inferrer = GenericInferrer(
       typeSystem,
@@ -3614,8 +3623,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       genericMetadataIsEnabled: genericMetadataIsEnabled,
       strictInference: analysisOptions.strictInference,
       typeSystemOperations: flowAnalysis.typeOperations,
+      dataForTesting: inferenceHelper.dataForTesting,
     );
-    inferrer.constrainReturnType(declaredType, contextType);
+    inferrer.constrainReturnType(declaredType, contextType,
+        nodeForTesting: nodeForTesting);
     return inferrer.chooseFinalTypes();
   }
 
@@ -3660,6 +3671,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         strictInference: analysisOptions.strictInference,
         strictCasts: analysisOptions.strictCasts,
         typeSystemOperations: flowAnalysis.typeOperations,
+        dataForTesting: inferenceHelper.dataForTesting,
+        nodeForTesting: expression,
       );
       if (typeArgumentTypes.isNotEmpty) {
         callMethodType = callMethodType.instantiate(typeArgumentTypes);

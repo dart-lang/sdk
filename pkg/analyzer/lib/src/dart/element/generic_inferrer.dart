@@ -105,12 +105,15 @@ class GenericInferrer {
 
   final TypeSystemOperations _typeSystemOperations;
 
+  final TypeConstraintGenerationDataForTesting? dataForTesting;
+
   GenericInferrer(this._typeSystem, this._typeFormals,
       {this.errorReporter,
       this.errorNode,
       required this.genericMetadataIsEnabled,
       required bool strictInference,
-      required TypeSystemOperations typeSystemOperations})
+      required TypeSystemOperations typeSystemOperations,
+      required this.dataForTesting})
       : _strictInference = strictInference,
         _typeSystemOperations = typeSystemOperations {
     if (errorReporter != null) {
@@ -136,7 +139,7 @@ class GenericInferrer {
   /// is a subtype of the [parameterType].
   void constrainArgument(
       DartType argumentType, DartType parameterType, String parameterName,
-      {InterfaceElement? genericClass}) {
+      {InterfaceElement? genericClass, required AstNode? nodeForTesting}) {
     var origin =
         TypeConstraintFromArgument<DartType, DartType, PromotableElement>(
       argumentType: argumentType,
@@ -145,7 +148,8 @@ class GenericInferrer {
       genericClassName: genericClass?.name,
       isGenericClassInDartCore: genericClass?.library.isDartCore ?? false,
     );
-    _tryMatchSubtypeOf(argumentType, parameterType, origin, covariant: false);
+    _tryMatchSubtypeOf(argumentType, parameterType, origin,
+        covariant: false, nodeForTesting: nodeForTesting);
   }
 
   /// Applies all the argument constraints implied by [parameters] and
@@ -153,7 +157,8 @@ class GenericInferrer {
   void constrainArguments(
       {InterfaceElement? genericClass,
       required List<ParameterElement> parameters,
-      required List<DartType> argumentTypes}) {
+      required List<DartType> argumentTypes,
+      required AstNode? nodeForTesting}) {
     for (int i = 0; i < argumentTypes.length; i++) {
       // Try to pass each argument to each parameter, recording any type
       // parameter bounds that were implied by this assignment.
@@ -162,6 +167,7 @@ class GenericInferrer {
         parameters[i].type,
         parameters[i].name,
         genericClass: genericClass,
+        nodeForTesting: nodeForTesting,
       );
     }
   }
@@ -169,7 +175,8 @@ class GenericInferrer {
   /// Constrain a universal function type [fnType] used in a context
   /// [contextType].
   void constrainGenericFunctionInContext(
-      FunctionType fnType, DartType contextType) {
+      FunctionType fnType, DartType contextType,
+      {required AstNode? nodeForTesting}) {
     var origin = TypeConstraintFromFunctionContext<DartType, DartType,
         PromotableElement>(functionType: fnType, contextType: contextType);
 
@@ -181,16 +188,19 @@ class GenericInferrer {
       returnType: fnType.returnType,
       nullabilitySuffix: fnType.nullabilitySuffix,
     );
-    _tryMatchSubtypeOf(inferFnType, contextType, origin, covariant: true);
+    _tryMatchSubtypeOf(inferFnType, contextType, origin,
+        covariant: true, nodeForTesting: nodeForTesting);
   }
 
   /// Apply a return type constraint, which asserts that the [declaredType]
   /// is a subtype of the [contextType].
-  void constrainReturnType(DartType declaredType, DartType contextType) {
+  void constrainReturnType(DartType declaredType, DartType contextType,
+      {required AstNode? nodeForTesting}) {
     var origin =
         TypeConstraintFromReturnType<DartType, DartType, PromotableElement>(
             declaredType: declaredType, contextType: contextType);
-    _tryMatchSubtypeOf(declaredType, contextType, origin, covariant: true);
+    _tryMatchSubtypeOf(declaredType, contextType, origin,
+        covariant: true, nodeForTesting: nodeForTesting);
   }
 
   /// Same as [chooseFinalTypes], but if [failAtError] is `true` (the default)
@@ -678,12 +688,14 @@ class GenericInferrer {
   /// attempt have been rewound (see [_rewindConstraints]).
   bool _tryMatchSubtypeOf(DartType t1, DartType t2,
       TypeConstraintOrigin<DartType, DartType, PromotableElement> origin,
-      {required bool covariant}) {
+      {required bool covariant, required AstNode? nodeForTesting}) {
     var gatherer = TypeConstraintGatherer(
         typeSystem: _typeSystem,
         typeParameters: _typeParameters,
-        typeSystemOperations: _typeSystemOperations);
-    var success = gatherer.trySubtypeMatch(t1, t2, !covariant);
+        typeSystemOperations: _typeSystemOperations,
+        dataForTesting: dataForTesting);
+    var success = gatherer.trySubtypeMatch(t1, t2, !covariant,
+        nodeForTesting: nodeForTesting);
     if (success) {
       var constraints = gatherer.computeConstraints();
       for (var entry in constraints.entries) {

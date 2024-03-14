@@ -626,9 +626,13 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
       strictInference: false,
       strictCasts: false,
       typeSystemOperations: typeSystemOperations,
+      dataForTesting: null,
+      nodeForTesting: null,
     );
     inferrer.constrainArguments(
-        parameters: ft.parameters, argumentTypes: arguments);
+        parameters: ft.parameters,
+        argumentTypes: arguments,
+        nodeForTesting: null);
     var typeArguments = inferrer.chooseFinalTypes();
 
     if (expectError) {

@@ -312,7 +312,7 @@ nonExhaustiveSwitchBounded<T2 extends D<T2>>(A<T2> a, Enum<T2> e) {
 nonExhaustiveSwitchCatchAll<T3 extends A<T3>>(A<T3> a, Enum<T3> e) {
   /*
    checkingOrder={A<T3>,B,C,D<D<dynamic>>,D1,D2},
-   error=non-exhaustive:D1(),
+   error=non-exhaustive:D1();D2(),
    expandedSubtypes={B,C,D1,D2},
    subtypes={B,C,D<D<dynamic>>},
    type=A<T3>

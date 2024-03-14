@@ -35,24 +35,30 @@ class TypeConstraintGatherer {
 
   final TypeSchemaEnvironment _environment;
 
+  final TypeInferenceResultForTesting? _inferenceResultForTesting;
+
   TypeConstraintGatherer(
       this._environment, Iterable<StructuralParameter> typeParameters,
       {required bool isNonNullableByDefault,
-      required OperationsCfe typeOperations})
+      required OperationsCfe typeOperations,
+      required TypeInferenceResultForTesting? inferenceResultForTesting})
       : typeOperations = typeOperations,
         _isNonNullableByDefault = isNonNullableByDefault,
         _parametersToConstrain =
-            new List<StructuralParameter>.of(typeParameters);
+            new List<StructuralParameter>.of(typeParameters),
+        _inferenceResultForTesting = inferenceResultForTesting;
 
   /// Applies all the argument constraints implied by trying to make
   /// [actualTypes] assignable to [formalTypes].
   void constrainArguments(
-      List<DartType> formalTypes, List<DartType> actualTypes) {
+      List<DartType> formalTypes, List<DartType> actualTypes,
+      {required TreeNode? treeNodeForTesting}) {
     assert(formalTypes.length == actualTypes.length);
     for (int i = 0; i < formalTypes.length; i++) {
       // Try to pass each argument to each parameter, recording any type
       // parameter bounds that were implied by this assignment.
-      tryConstrainLower(formalTypes[i], actualTypes[i]);
+      tryConstrainLower(formalTypes[i], actualTypes[i],
+          treeNodeForTesting: treeNodeForTesting);
     }
   }
 
@@ -87,12 +93,14 @@ class TypeConstraintGatherer {
   ///
   /// Doesn't change the already accumulated set of constraints if [bound] isn't
   /// a subtype of [type] under any set of constraints.
-  bool tryConstrainLower(DartType type, DartType bound) {
+  bool tryConstrainLower(DartType type, DartType bound,
+      {required TreeNode? treeNodeForTesting}) {
     if (_isNonNullableByDefault) {
       return _tryNullabilityAwareSubtypeMatch(bound, type,
-          constrainSupertype: true);
+          constrainSupertype: true, treeNodeForTesting: treeNodeForTesting);
     } else {
-      return _tryNullabilityObliviousSubtypeMatch(bound, type);
+      return _tryNullabilityObliviousSubtypeMatch(bound, type,
+          treeNodeForTesting: treeNodeForTesting);
     }
   }
 
@@ -100,12 +108,14 @@ class TypeConstraintGatherer {
   ///
   /// Doesn't change the already accumulated set of constraints if [type] isn't
   /// a subtype of [bound] under any set of constraints.
-  bool tryConstrainUpper(DartType type, DartType bound) {
+  bool tryConstrainUpper(DartType type, DartType bound,
+      {required TreeNode? treeNodeForTesting}) {
     if (_isNonNullableByDefault) {
       return _tryNullabilityAwareSubtypeMatch(type, bound,
-          constrainSupertype: false);
+          constrainSupertype: false, treeNodeForTesting: treeNodeForTesting);
     } else {
-      return _tryNullabilityObliviousSubtypeMatch(type, bound);
+      return _tryNullabilityObliviousSubtypeMatch(type, bound,
+          treeNodeForTesting: treeNodeForTesting);
     }
   }
 
@@ -116,9 +126,11 @@ class TypeConstraintGatherer {
   /// match fails, the member returns false, and the set of type
   /// constraints is unchanged.
   bool _tryNullabilityObliviousSubtypeMatch(
-      DartType subtype, DartType supertype) {
+      DartType subtype, DartType supertype,
+      {required TreeNode? treeNodeForTesting}) {
     int baseConstraintCount = _protoConstraints.length;
-    bool isMatch = _isNullabilityObliviousSubtypeMatch(subtype, supertype);
+    bool isMatch = _isNullabilityObliviousSubtypeMatch(subtype, supertype,
+        treeNodeForTesting: treeNodeForTesting);
     if (!isMatch) {
       _protoConstraints.length = baseConstraintCount;
     }
@@ -141,10 +153,12 @@ class TypeConstraintGatherer {
   /// parameters isn't allowed to also contain [UnknownType], that is, to be a
   /// type schema.
   bool _tryNullabilityAwareSubtypeMatch(DartType subtype, DartType supertype,
-      {required bool constrainSupertype}) {
+      {required bool constrainSupertype,
+      required TreeNode? treeNodeForTesting}) {
     int baseConstraintCount = _protoConstraints.length;
     bool isMatch = _isNullabilityAwareSubtypeMatch(subtype, supertype,
-        constrainSupertype: constrainSupertype);
+        constrainSupertype: constrainSupertype,
+        treeNodeForTesting: treeNodeForTesting);
     if (!isMatch) {
       _protoConstraints.length = baseConstraintCount;
     }
@@ -152,16 +166,33 @@ class TypeConstraintGatherer {
   }
 
   /// Add constraint: [lower] <: [parameter] <: TOP.
-  void _constrainParameterLower(StructuralParameter parameter, DartType lower) {
-    _protoConstraints.add(new GeneratedTypeConstraint.lower(parameter, lower));
+  void _constrainParameterLower(StructuralParameter parameter, DartType lower,
+      {required TreeNode? treeNodeForTesting}) {
+    GeneratedTypeConstraint generatedTypeConstraint =
+        new GeneratedTypeConstraint.lower(parameter, lower);
+    if (treeNodeForTesting != null && _inferenceResultForTesting != null) {
+      (_inferenceResultForTesting
+              .generatedTypeConstraints[treeNodeForTesting] ??= [])
+          .add(generatedTypeConstraint);
+    }
+    _protoConstraints.add(generatedTypeConstraint);
   }
 
   /// Add constraint: BOTTOM <: [parameter] <: [upper].
-  void _constrainParameterUpper(StructuralParameter parameter, DartType upper) {
-    _protoConstraints.add(new GeneratedTypeConstraint.upper(parameter, upper));
+  void _constrainParameterUpper(StructuralParameter parameter, DartType upper,
+      {required TreeNode? treeNodeForTesting}) {
+    GeneratedTypeConstraint generatedTypeConstraint =
+        new GeneratedTypeConstraint.upper(parameter, upper);
+    if (treeNodeForTesting != null && _inferenceResultForTesting != null) {
+      (_inferenceResultForTesting
+              .generatedTypeConstraints[treeNodeForTesting] ??= [])
+          .add(generatedTypeConstraint);
+    }
+    _protoConstraints.add(generatedTypeConstraint);
   }
 
-  bool _isFunctionSubtypeMatch(FunctionType subtype, FunctionType supertype) {
+  bool _isFunctionSubtypeMatch(FunctionType subtype, FunctionType supertype,
+      {required TreeNode? treeNodeForTesting}) {
     // A function type `(M0,..., Mn, [M{n+1}, ..., Mm]) -> R0` is a subtype
     // match for a function type `(N0,..., Nk, [N{k+1}, ..., Nr]) -> R1` with
     // respect to `L` under constraints `C0 + ... + Cr + C`
@@ -194,7 +225,8 @@ class TypeConstraintGatherer {
       List<StructuralParameter> freshTypeVariables = [];
       List<DartType> freshTypeVariablesAsTypes = [];
       if (!_matchTypeFormals(subtype.typeParameters, supertype.typeParameters,
-          freshTypeVariables, freshTypeVariablesAsTypes)) {
+          freshTypeVariables, freshTypeVariablesAsTypes,
+          treeNodeForTesting: treeNodeForTesting)) {
         return false;
       }
 
@@ -207,7 +239,8 @@ class TypeConstraintGatherer {
     // Test the return types.
     if (supertype.returnType is! VoidType &&
         !_isNullabilityObliviousSubtypeMatch(
-            subtype.returnType, supertype.returnType)) {
+            subtype.returnType, supertype.returnType,
+            treeNodeForTesting: treeNodeForTesting)) {
       return false;
     }
 
@@ -217,7 +250,8 @@ class TypeConstraintGatherer {
       DartType subtypeParameter = subtype.positionalParameters[i];
       // Termination: Both types shrink in size.
       if (!_isNullabilityObliviousSubtypeMatch(
-          supertypeParameter, subtypeParameter)) {
+          supertypeParameter, subtypeParameter,
+          treeNodeForTesting: treeNodeForTesting)) {
         return false;
       }
     }
@@ -232,7 +266,8 @@ class TypeConstraintGatherer {
       NamedType subtypeParameter = subtype.namedParameters[subtypeNameIndex];
       // Termination: Both types shrink in size.
       if (!_isNullabilityObliviousSubtypeMatch(
-          supertypeParameter.type, subtypeParameter.type)) {
+          supertypeParameter.type, subtypeParameter.type,
+          treeNodeForTesting: treeNodeForTesting)) {
         return false;
       }
     }
@@ -247,7 +282,8 @@ class TypeConstraintGatherer {
   /// otherwise they occur in the [subtype].
   bool _isNullabilityAwareInterfaceSubtypeMatch(
       InterfaceType subtype, InterfaceType supertype,
-      {required bool constrainSupertype}) {
+      {required bool constrainSupertype,
+      required TreeNode? treeNodeForTesting}) {
     List<DartType>? matchingSupertypeOfSubtypeArguments =
         getTypeArgumentsAsInstanceOf(subtype, supertype.classNode);
     if (matchingSupertypeOfSubtypeArguments == null) return false;
@@ -258,6 +294,7 @@ class TypeConstraintGatherer {
           supertype.typeArguments[i],
           matchingSupertypeOfSubtypeArguments[i],
           constrainSupertype: !constrainSupertype,
+          treeNodeForTesting: treeNodeForTesting,
         )) {
           return false;
         }
@@ -266,11 +303,13 @@ class TypeConstraintGatherer {
               supertype.typeArguments[i],
               matchingSupertypeOfSubtypeArguments[i],
               constrainSupertype: !constrainSupertype,
+              treeNodeForTesting: treeNodeForTesting,
             ) ||
             !_isNullabilityAwareSubtypeMatch(
               matchingSupertypeOfSubtypeArguments[i],
               supertype.typeArguments[i],
               constrainSupertype: constrainSupertype,
+              treeNodeForTesting: treeNodeForTesting,
             )) {
           return false;
         }
@@ -279,6 +318,7 @@ class TypeConstraintGatherer {
           matchingSupertypeOfSubtypeArguments[i],
           supertype.typeArguments[i],
           constrainSupertype: constrainSupertype,
+          treeNodeForTesting: treeNodeForTesting,
         )) {
           return false;
         }
@@ -290,7 +330,8 @@ class TypeConstraintGatherer {
   /// Whether the [subtype] interface is a subtype of the [supertype] interface
   /// with respect to variance.
   bool _isNullabilityObliviousInterfaceSubtypeMatch(
-      InterfaceType subtype, InterfaceType supertype) {
+      InterfaceType subtype, InterfaceType supertype,
+      {required TreeNode? treeNodeForTesting}) {
     // A type `P<M0, ..., Mk>` is a subtype match for `P<N0, ..., Nk>` with
     // respect to `L` under constraints `C0 + ... + Ck`:
     // - If `Mi` is a subtype match for `Ni` with respect to `L` under
@@ -318,22 +359,25 @@ class TypeConstraintGatherer {
       // Generate constraints and subtype match with respect to variance.
       int parameterVariance = supertype.classNode.typeParameters[i].variance;
       if (parameterVariance == Variance.contravariant) {
-        if (!_isNullabilityObliviousSubtypeMatch(supertype.typeArguments[i],
-            matchingSupertypeOfSubtypeArguments[i])) {
+        if (!_isNullabilityObliviousSubtypeMatch(
+            supertype.typeArguments[i], matchingSupertypeOfSubtypeArguments[i],
+            treeNodeForTesting: treeNodeForTesting)) {
           return false;
         }
       } else if (parameterVariance == Variance.invariant) {
         if (!_isNullabilityObliviousSubtypeMatch(supertype.typeArguments[i],
-                matchingSupertypeOfSubtypeArguments[i]) ||
+                matchingSupertypeOfSubtypeArguments[i],
+                treeNodeForTesting: treeNodeForTesting) ||
             !_isNullabilityObliviousSubtypeMatch(
                 matchingSupertypeOfSubtypeArguments[i],
-                supertype.typeArguments[i])) {
+                supertype.typeArguments[i],
+                treeNodeForTesting: treeNodeForTesting)) {
           return false;
         }
       } else {
         if (!_isNullabilityObliviousSubtypeMatch(
-            matchingSupertypeOfSubtypeArguments[i],
-            supertype.typeArguments[i])) {
+            matchingSupertypeOfSubtypeArguments[i], supertype.typeArguments[i],
+            treeNodeForTesting: treeNodeForTesting)) {
           return false;
         }
       }
@@ -354,7 +398,8 @@ class TypeConstraintGatherer {
   /// The type that contains the type parameters isn't allowed to also contain
   /// [UnknownType], that is, to be a type schema.
   bool _isNullabilityAwareSubtypeMatch(DartType p, DartType q,
-      {required bool constrainSupertype}) {
+      {required bool constrainSupertype,
+      required TreeNode? treeNodeForTesting}) {
     // If the type parameters being constrained occur in the supertype (that is,
     // [q]), the subtype (that is, [p]) is not allowed to contain them.  To
     // check that, the assert below uses the equivalence of the following: X ->
@@ -421,7 +466,8 @@ class TypeConstraintGatherer {
         isStructuralParameterTypeWithoutNullabilityMarker(p,
             isNonNullableByDefault: _isNonNullableByDefault) &&
         _parametersToConstrain.contains(p.parameter)) {
-      _constrainParameterUpper(p.parameter, q);
+      _constrainParameterUpper(p.parameter, q,
+          treeNodeForTesting: treeNodeForTesting);
       return true;
     }
 
@@ -435,7 +481,8 @@ class TypeConstraintGatherer {
         isStructuralParameterTypeWithoutNullabilityMarker(q,
             isNonNullableByDefault: _isNonNullableByDefault) &&
         _parametersToConstrain.contains(q.parameter)) {
-      _constrainParameterLower(q.parameter, p);
+      _constrainParameterLower(q.parameter, p,
+          treeNodeForTesting: treeNodeForTesting);
       return true;
     }
 
@@ -455,7 +502,8 @@ class TypeConstraintGatherer {
     if (typeOperations.getNullabilitySuffix(p) == NullabilitySuffix.star) {
       return _isNullabilityAwareSubtypeMatch(
           typeOperations.withNullabilitySuffix(p, NullabilitySuffix.none), q,
-          constrainSupertype: constrainSupertype);
+          constrainSupertype: constrainSupertype,
+          treeNodeForTesting: treeNodeForTesting);
     }
 
     // If Q is a legacy type Q0* then the match holds under constraint set C:
@@ -470,7 +518,8 @@ class TypeConstraintGatherer {
       if ((typeOperations.isDynamic(p) || typeOperations.isVoid(p)) &&
           _isNullabilityAwareSubtypeMatch(p,
               typeOperations.withNullabilitySuffix(q, NullabilitySuffix.none),
-              constrainSupertype: constrainSupertype)) {
+              constrainSupertype: constrainSupertype,
+              treeNodeForTesting: treeNodeForTesting)) {
         return true;
       }
       _protoConstraints.length = baseConstraintCount;
@@ -481,7 +530,8 @@ class TypeConstraintGatherer {
               p,
               typeOperations.withNullabilitySuffix(
                   q, NullabilitySuffix.question),
-              constrainSupertype: constrainSupertype)) {
+              constrainSupertype: constrainSupertype,
+              treeNodeForTesting: treeNodeForTesting)) {
         return true;
       }
       _protoConstraints.length = baseConstraintCount;
@@ -500,7 +550,8 @@ class TypeConstraintGatherer {
       if (p is FutureOrType &&
           _isNullabilityAwareSubtypeMatch(
               p.typeArgument, (q as FutureOrType).typeArgument,
-              constrainSupertype: constrainSupertype)) {
+              constrainSupertype: constrainSupertype,
+              treeNodeForTesting: treeNodeForTesting)) {
         return true;
       }
       _protoConstraints.length = baseConstraintCount;
@@ -509,7 +560,8 @@ class TypeConstraintGatherer {
           p,
           _environment.futureType(
               (q as FutureOrType).typeArgument, Nullability.nonNullable),
-          constrainSupertype: constrainSupertype);
+          constrainSupertype: constrainSupertype,
+          treeNodeForTesting: treeNodeForTesting);
       bool matchWithFutureAddsConstraints =
           _protoConstraints.length != baseConstraintCount;
       if (isMatchWithFuture && matchWithFutureAddsConstraints) {
@@ -518,7 +570,8 @@ class TypeConstraintGatherer {
       _protoConstraints.length = baseConstraintCount;
 
       if (_isNullabilityAwareSubtypeMatch(p, q.typeArgument,
-          constrainSupertype: constrainSupertype)) {
+          constrainSupertype: constrainSupertype,
+          treeNodeForTesting: treeNodeForTesting)) {
         return true;
       }
       _protoConstraints.length = baseConstraintCount;
@@ -547,20 +600,23 @@ class TypeConstraintGatherer {
       if (typeOperations.getNullabilitySuffix(p) ==
               NullabilitySuffix.question &&
           _isNullabilityAwareSubtypeMatch(rawP, rawQ,
-              constrainSupertype: constrainSupertype)) {
+              constrainSupertype: constrainSupertype,
+              treeNodeForTesting: treeNodeForTesting)) {
         return true;
       }
       _protoConstraints.length = baseConstraintCount;
 
       if ((typeOperations.isDynamic(p) || typeOperations.isVoid(p)) &&
           _isNullabilityAwareSubtypeMatch(typeOperations.objectType, rawQ,
-              constrainSupertype: constrainSupertype)) {
+              constrainSupertype: constrainSupertype,
+              treeNodeForTesting: treeNodeForTesting)) {
         return true;
       }
       _protoConstraints.length = baseConstraintCount;
 
       bool isMatchWithRawQ = _isNullabilityAwareSubtypeMatch(p, rawQ,
-          constrainSupertype: constrainSupertype);
+          constrainSupertype: constrainSupertype,
+          treeNodeForTesting: treeNodeForTesting);
       bool matchWithRawQAddsConstraints =
           _protoConstraints.length != baseConstraintCount;
       if (isMatchWithRawQ && matchWithRawQAddsConstraints) {
@@ -569,7 +625,8 @@ class TypeConstraintGatherer {
       _protoConstraints.length = baseConstraintCount;
 
       if (_isNullabilityAwareSubtypeMatch(p, typeOperations.nullType,
-          constrainSupertype: constrainSupertype)) {
+          constrainSupertype: constrainSupertype,
+          treeNodeForTesting: treeNodeForTesting)) {
         return true;
       }
       _protoConstraints.length = baseConstraintCount;
@@ -590,9 +647,11 @@ class TypeConstraintGatherer {
               _environment.futureType(
                   (p as FutureOrType).typeArgument, Nullability.nonNullable),
               q,
-              constrainSupertype: constrainSupertype) &&
+              constrainSupertype: constrainSupertype,
+              treeNodeForTesting: treeNodeForTesting) &&
           _isNullabilityAwareSubtypeMatch(p.typeArgument, q,
-              constrainSupertype: constrainSupertype)) {
+              constrainSupertype: constrainSupertype,
+              treeNodeForTesting: treeNodeForTesting)) {
         return true;
       }
       _protoConstraints.length = baseConstraintCount;
@@ -607,9 +666,11 @@ class TypeConstraintGatherer {
       if (_isNullabilityAwareSubtypeMatch(
               typeOperations.withNullabilitySuffix(p, NullabilitySuffix.none),
               q,
-              constrainSupertype: constrainSupertype) &&
+              constrainSupertype: constrainSupertype,
+              treeNodeForTesting: treeNodeForTesting) &&
           _isNullabilityAwareSubtypeMatch(typeOperations.nullType, q,
-              constrainSupertype: constrainSupertype)) {
+              constrainSupertype: constrainSupertype,
+              treeNodeForTesting: treeNodeForTesting)) {
         return true;
       }
       _protoConstraints.length = baseConstraintCount;
@@ -651,14 +712,16 @@ class TypeConstraintGatherer {
     if (p is TypeParameterType) {
       final int baseConstraintCount = _protoConstraints.length;
       if (_isNullabilityAwareSubtypeMatch(p.bound, q,
-          constrainSupertype: constrainSupertype)) {
+          constrainSupertype: constrainSupertype,
+          treeNodeForTesting: treeNodeForTesting)) {
         return true;
       }
       _protoConstraints.length = baseConstraintCount;
     } else if (p is StructuralParameterType) {
       final int baseConstraintCount = _protoConstraints.length;
       if (_isNullabilityAwareSubtypeMatch(p.bound, q,
-          constrainSupertype: constrainSupertype)) {
+          constrainSupertype: constrainSupertype,
+          treeNodeForTesting: treeNodeForTesting)) {
         return true;
       }
       _protoConstraints.length = baseConstraintCount;
@@ -681,7 +744,8 @@ class TypeConstraintGatherer {
         bool isMatch = true;
         for (int i = 0; isMatch && i < p.typeArguments.length; ++i) {
           isMatch = _isNullabilityAwareInterfaceSubtypeMatch(p, q,
-              constrainSupertype: constrainSupertype);
+              constrainSupertype: constrainSupertype,
+              treeNodeForTesting: treeNodeForTesting);
         }
         if (isMatch) return true;
         _protoConstraints.length = baseConstraintCount;
@@ -699,7 +763,8 @@ class TypeConstraintGatherer {
           isMatch = isMatch &&
               _isNullabilityAwareSubtypeMatch(
                   p.typeArguments[i], q.typeArguments[i],
-                  constrainSupertype: constrainSupertype);
+                  constrainSupertype: constrainSupertype,
+                  treeNodeForTesting: treeNodeForTesting);
         }
         if (isMatch) return true;
         _protoConstraints.length = baseConstraintCount;
@@ -723,7 +788,8 @@ class TypeConstraintGatherer {
         for (int i = 0; isMatch && i < sArguments.length; ++i) {
           isMatch = isMatch &&
               _isNullabilityAwareSubtypeMatch(sArguments[i], q.typeArguments[i],
-                  constrainSupertype: constrainSupertype);
+                  constrainSupertype: constrainSupertype,
+                  treeNodeForTesting: treeNodeForTesting);
         }
         if (isMatch) return true;
         _protoConstraints.length = baseConstraintCount;
@@ -756,13 +822,15 @@ class TypeConstraintGatherer {
       final int baseConstraintCount = _protoConstraints.length;
 
       if (_isNullabilityAwareSubtypeMatch(p.returnType, q.returnType,
-          constrainSupertype: constrainSupertype)) {
+          constrainSupertype: constrainSupertype,
+          treeNodeForTesting: treeNodeForTesting)) {
         bool isMatch = true;
         for (int i = 0; isMatch && i < q.positionalParameters.length; ++i) {
           isMatch = isMatch &&
               _isNullabilityAwareSubtypeMatch(
                   q.positionalParameters[i], p.positionalParameters[i],
-                  constrainSupertype: !constrainSupertype);
+                  constrainSupertype: !constrainSupertype,
+                  treeNodeForTesting: treeNodeForTesting);
         }
         if (isMatch) return true;
       }
@@ -782,13 +850,15 @@ class TypeConstraintGatherer {
       final int baseConstraintCount = _protoConstraints.length;
 
       if (_isNullabilityAwareSubtypeMatch(p.returnType, q.returnType,
-          constrainSupertype: constrainSupertype)) {
+          constrainSupertype: constrainSupertype,
+          treeNodeForTesting: treeNodeForTesting)) {
         bool isMatch = true;
         for (int i = 0; isMatch && i < p.positionalParameters.length; ++i) {
           isMatch = isMatch &&
               _isNullabilityAwareSubtypeMatch(
                   q.positionalParameters[i], p.positionalParameters[i],
-                  constrainSupertype: !constrainSupertype);
+                  constrainSupertype: !constrainSupertype,
+                  treeNodeForTesting: treeNodeForTesting);
         }
         Map<String, DartType> pNamedTypes = {};
         for (int i = 0; isMatch && i < p.namedParameters.length; ++i) {
@@ -800,7 +870,8 @@ class TypeConstraintGatherer {
           isMatch = isMatch &&
               _isNullabilityAwareSubtypeMatch(q.namedParameters[i].type,
                   pNamedTypes[q.namedParameters[i].name]!,
-                  constrainSupertype: !constrainSupertype);
+                  constrainSupertype: !constrainSupertype,
+                  treeNodeForTesting: treeNodeForTesting);
         }
         if (isMatch) return true;
       }
@@ -836,10 +907,12 @@ class TypeConstraintGatherer {
         isMatch = isMatch &&
             _isNullabilityAwareSubtypeMatch(
                 p.typeParameters[i].bound, q.typeParameters[i].bound,
-                constrainSupertype: constrainSupertype) &&
+                constrainSupertype: constrainSupertype,
+                treeNodeForTesting: treeNodeForTesting) &&
             _isNullabilityAwareSubtypeMatch(
                 q.typeParameters[i].bound, p.typeParameters[i].bound,
-                constrainSupertype: !constrainSupertype);
+                constrainSupertype: !constrainSupertype,
+                treeNodeForTesting: treeNodeForTesting);
       }
       if (isMatch) {
         List<DartType> typeParametersOfPAsTypesForQ =
@@ -851,7 +924,8 @@ class TypeConstraintGatherer {
         FunctionType instantiatedQ = FunctionTypeInstantiator.instantiate(
             q, typeParametersOfPAsTypesForQ);
         if (_isNullabilityAwareSubtypeMatch(instantiatedP, instantiatedQ,
-            constrainSupertype: constrainSupertype)) {
+            constrainSupertype: constrainSupertype,
+            treeNodeForTesting: treeNodeForTesting)) {
           List<GeneratedTypeConstraint> constraints =
               _protoConstraints.sublist(baseConstraintCount);
           _protoConstraints.length = baseConstraintCount;
@@ -871,10 +945,12 @@ class TypeConstraintGatherer {
           for (GeneratedTypeConstraint constraint in constraints) {
             if (constraint.isUpper) {
               _constrainParameterUpper(constraint.typeParameter,
-                  eliminator.eliminateToLeast(constraint.constraint));
+                  eliminator.eliminateToLeast(constraint.constraint),
+                  treeNodeForTesting: treeNodeForTesting);
             } else {
               _constrainParameterLower(constraint.typeParameter,
-                  eliminator.eliminateToGreatest(constraint.constraint));
+                  eliminator.eliminateToGreatest(constraint.constraint),
+                  treeNodeForTesting: treeNodeForTesting);
             }
           }
           return true;
@@ -913,12 +989,14 @@ class TypeConstraintGatherer {
         for (int i = 0; isMatch && i < p.positional.length; i++) {
           isMatch = isMatch &&
               _isNullabilityAwareSubtypeMatch(p.positional[i], q.positional[i],
-                  constrainSupertype: constrainSupertype);
+                  constrainSupertype: constrainSupertype,
+                  treeNodeForTesting: treeNodeForTesting);
         }
         for (int i = 0; isMatch && i < p.named.length; i++) {
           isMatch = isMatch &&
               _isNullabilityAwareSubtypeMatch(p.named[i].type, q.named[i].type,
-                  constrainSupertype: constrainSupertype);
+                  constrainSupertype: constrainSupertype,
+                  treeNodeForTesting: treeNodeForTesting);
         }
         if (isMatch) return true;
       }
@@ -936,8 +1014,8 @@ class TypeConstraintGatherer {
   /// In the case where `false` is returned, some bogus constraints may have
   /// been added to [_protoConstraints].  It is the caller's responsibility to
   /// discard them if necessary.
-  bool _isNullabilityObliviousSubtypeMatch(
-      DartType subtype, DartType supertype) {
+  bool _isNullabilityObliviousSubtypeMatch(DartType subtype, DartType supertype,
+      {required TreeNode? treeNodeForTesting}) {
     // The unknown type `?` is a subtype match for any type `Q` with no
     // constraints.
     if (typeOperations.isUnknownType(subtype)) return true;
@@ -958,7 +1036,8 @@ class TypeConstraintGatherer {
     // }
     if (subtype is StructuralParameterType &&
         _parametersToConstrain.contains(subtype.parameter)) {
-      _constrainParameterUpper(subtype.parameter, supertype);
+      _constrainParameterUpper(subtype.parameter, supertype,
+          treeNodeForTesting: treeNodeForTesting);
       return true;
     }
     // A type schema `Q` is a subtype match for a type variable `T` in `L`:
@@ -975,7 +1054,8 @@ class TypeConstraintGatherer {
     // }
     if (supertype is StructuralParameterType &&
         _parametersToConstrain.contains(supertype.parameter)) {
-      _constrainParameterLower(supertype.parameter, subtype);
+      _constrainParameterLower(supertype.parameter, subtype,
+          treeNodeForTesting: treeNodeForTesting);
       return true;
     }
     // Any two equal types `P` and `Q` are subtype matches under no constraints.
@@ -993,7 +1073,8 @@ class TypeConstraintGatherer {
         // - If `P` is a subtype match for `Q` with respect to `L` under
         //   constraints `C`.
         DartType supertypeArg = supertype.typeArgument;
-        return _isNullabilityObliviousSubtypeMatch(subtypeArg, supertypeArg);
+        return _isNullabilityObliviousSubtypeMatch(subtypeArg, supertypeArg,
+            treeNodeForTesting: treeNodeForTesting);
       }
 
       // `FutureOr<P>` is a subtype match for `Q` with respect to `L` under
@@ -1007,8 +1088,10 @@ class TypeConstraintGatherer {
           _isNonNullableByDefault
               ? Nullability.nonNullable
               : Nullability.legacy);
-      return _isNullabilityObliviousSubtypeMatch(subtypeFuture, supertype) &&
-          _isNullabilityObliviousSubtypeMatch(subtypeArg, supertype) &&
+      return _isNullabilityObliviousSubtypeMatch(subtypeFuture, supertype,
+              treeNodeForTesting: treeNodeForTesting) &&
+          _isNullabilityObliviousSubtypeMatch(subtypeArg, supertype,
+              treeNodeForTesting: treeNodeForTesting) &&
           new IsSubtypeOf.basedSolelyOnNullabilities(subtype, supertype)
               .isSubtypeWhenUsingNullabilities();
     }
@@ -1047,11 +1130,13 @@ class TypeConstraintGatherer {
       // constraints should be preferred.  If both matches against Future<X> and
       // X add new constraints, the former should be preferred over the latter.
       int oldProtoConstraintsLength = _protoConstraints.length;
-      bool matchesFuture =
-          _tryNullabilityObliviousSubtypeMatch(subtype, supertypeFuture);
+      bool matchesFuture = _tryNullabilityObliviousSubtypeMatch(
+          subtype, supertypeFuture,
+          treeNodeForTesting: treeNodeForTesting);
       bool matchesArg = oldProtoConstraintsLength != _protoConstraints.length
           ? false
-          : _isNullabilityObliviousSubtypeMatch(subtype, supertypeArg);
+          : _isNullabilityObliviousSubtypeMatch(subtype, supertypeArg,
+              treeNodeForTesting: treeNodeForTesting);
       return matchesFuture || matchesArg;
     }
 
@@ -1082,7 +1167,8 @@ class TypeConstraintGatherer {
       // - If `P` is a subtype match for `Q` with respect to `L` under
       //   constraints `C`.
       return _isNullabilityObliviousSubtypeMatch(
-          subtype.parameter.bound, supertype);
+          subtype.parameter.bound, supertype,
+          treeNodeForTesting: treeNodeForTesting);
     } else if (subtype is StructuralParameterType) {
       if (supertype is StructuralParameterType &&
           identical(subtype.parameter, supertype.parameter)) {
@@ -1098,19 +1184,22 @@ class TypeConstraintGatherer {
       // - If `P` is a subtype match for `Q` with respect to `L` under
       //   constraints `C`.
       return _isNullabilityObliviousSubtypeMatch(
-          subtype.parameter.bound, supertype);
+          subtype.parameter.bound, supertype,
+          treeNodeForTesting: treeNodeForTesting);
     }
     if (typeOperations.isInterfaceType(subtype) &&
         typeOperations.isInterfaceType(supertype)) {
       return _isNullabilityObliviousInterfaceSubtypeMatch(
-          subtype as InterfaceType, supertype as InterfaceType);
+          subtype as InterfaceType, supertype as InterfaceType,
+          treeNodeForTesting: treeNodeForTesting);
     }
     if (typeOperations.isFunctionType(subtype)) {
       if (typeOperations.isInterfaceType(supertype)) {
         return supertype == _environment.coreTypes.functionLegacyRawType ||
             supertype == _environment.coreTypes.objectLegacyRawType;
       } else if (supertype is FunctionType) {
-        return _isFunctionSubtypeMatch(subtype as FunctionType, supertype);
+        return _isFunctionSubtypeMatch(subtype as FunctionType, supertype,
+            treeNodeForTesting: treeNodeForTesting);
       }
     }
     // A type `P` is a subtype match for a type `Q` with respect to `L` under
@@ -1131,7 +1220,8 @@ class TypeConstraintGatherer {
         // S.  However, explicitly tearing off that call method will work and
         // insert an explicit instantiation, so the implicit tear off should
         // work as well.  Figure out how to support this case.
-        return _isNullabilityObliviousSubtypeMatch(callType, supertype);
+        return _isNullabilityObliviousSubtypeMatch(callType, supertype,
+            treeNodeForTesting: treeNodeForTesting);
       }
     }
     return false;
@@ -1153,7 +1243,8 @@ class TypeConstraintGatherer {
       List<StructuralParameter> params1,
       List<StructuralParameter> params2,
       List<StructuralParameter> freshTypeVariables,
-      List<DartType> freshTypeVariablesAsTypes) {
+      List<DartType> freshTypeVariablesAsTypes,
+      {required TreeNode? treeNodeForTesting}) {
     assert(params1.length == params2.length);
     // TODO(paulberry): in imitation of analyzer, we're checking the bounds as
     // we build up the substitutions.  But I don't think that's correct--I think
@@ -1172,7 +1263,10 @@ class TypeConstraintGatherer {
               params2.sublist(0, i + 1), freshTypeVariablesAsTypes)
           .substitute(params2[i].bound);
       pFresh.bound = bound2;
-      if (!_isNullabilityObliviousSubtypeMatch(bound2, bound1)) return false;
+      if (!_isNullabilityObliviousSubtypeMatch(bound2, bound1,
+          treeNodeForTesting: treeNodeForTesting)) {
+        return false;
+      }
     }
     return true;
   }

@@ -25,7 +25,8 @@ bool isExhaustive(ObjectPropertyLookup fieldLookup, Space valueSpace,
 /// Returns an empty list if all cases are reachable and the cases are
 /// exhaustive.
 List<ExhaustivenessError> reportErrors(
-    ObjectPropertyLookup fieldLookup, StaticType valueType, List<Space> cases) {
+    ObjectPropertyLookup fieldLookup, StaticType valueType, List<Space> cases,
+    {required bool computeUnreachable}) {
   _Checker checker = new _Checker(fieldLookup);
 
   List<ExhaustivenessError> errors = <ExhaustivenessError>[];
@@ -33,37 +34,43 @@ List<ExhaustivenessError> reportErrors(
   Space valuePattern = new Space(const Path.root(), valueType);
   List<List<Space>> caseRows = cases.map((space) => [space]).toList();
 
-  for (int i = 1; i < caseRows.length; i++) {
-    // See if this case is covered by previous ones.
-    if (checker._unmatched(caseRows.sublist(0, i), caseRows[i]) == null) {
-      errors.add(new UnreachableCaseError(valueType, cases, i));
+  if (computeUnreachable) {
+    for (int i = 1; i < caseRows.length; i++) {
+      // See if this case is covered by previous ones.
+      if (checker._unmatched(caseRows.sublist(0, i), caseRows[i],
+              returnMultipleWitnesses: false) ==
+          null) {
+        errors.add(new UnreachableCaseError(valueType, cases, i));
+      }
     }
   }
 
-  Witness? witness = checker._unmatched(caseRows, [valuePattern]);
-  if (witness != null) {
-    errors.add(new NonExhaustiveError(valueType, cases, witness));
+  List<Witness>? witnesses = checker._unmatched(caseRows, [valuePattern],
+      returnMultipleWitnesses: true);
+  if (witnesses != null) {
+    errors.add(new NonExhaustiveError(valueType, cases, witnesses));
   }
 
   return errors;
 }
 
 /// Determines if [cases] is exhaustive over all values contained by
-/// [valueSpace]. If so, returns `null`. Otherwise, returns a string describing
-/// an example of one value that isn't matched by anything in [cases].
-Witness? checkExhaustiveness(
+/// [valueSpace]. If so, returns `null`. Otherwise, returns a list of [Witness]s
+/// of values that aren't matched by anything in [cases].
+List<Witness>? checkExhaustiveness(
     ObjectPropertyLookup fieldLookup, Space valueSpace, List<Space> cases) {
   _Checker checker = new _Checker(fieldLookup);
 
   // TODO(johnniwinther): Perform reachability checking.
   List<List<Space>> caseRows = cases.map((space) => [space]).toList();
 
-  Witness? witness = checker._unmatched(caseRows, [valueSpace]);
+  List<Witness>? witnesses =
+      checker._unmatched(caseRows, [valueSpace], returnMultipleWitnesses: true);
 
   // Uncomment this to have it print out the witness for non-exhaustive matches.
-  // if (witness != null) print(witness);
+  // if (witnesses != null) witnesses.forEach(print);
 
-  return witness;
+  return witnesses;
 }
 
 class _Checker {
@@ -77,8 +84,10 @@ class _Checker {
   /// If found, returns it. This is a witness example showing that [caseRows] is
   /// not exhaustive over all values in [valuePatterns]. If it returns `null`,
   /// then [caseRows] exhaustively covers [valuePatterns].
-  Witness? _unmatched(List<List<Space>> caseRows, List<Space> valuePatterns,
-      [List<Predicate> witnessPredicates = const []]) {
+  List<Witness>? _unmatched(
+      List<List<Space>> caseRows, List<Space> valuePatterns,
+      {List<Predicate> witnessPredicates = const [],
+      required bool returnMultipleWitnesses}) {
     assert(caseRows.every((element) => element.length == valuePatterns.length),
         "Value patterns: $valuePatterns, case rows: $caseRows.");
     profile.count('_unmatched');
@@ -92,7 +101,7 @@ class _Checker {
       // If we ran out of rows too, then it means [witnessPredicates] is now a
       // complete description of at least one value that slipped past all the
       // rows.
-      return new Witness(witnessPredicates);
+      return [new Witness(witnessPredicates)];
     }
 
     // Look down the first column of tests.
@@ -107,6 +116,7 @@ class _Checker {
     for (SingleSpace firstValuePattern in firstValuePatterns.singleSpaces) {
       StaticType contextType = firstValuePattern.type;
       List<StaticType> stack = [firstValuePattern.type];
+      List<Witness>? witnesses;
       while (stack.isNotEmpty) {
         StaticType type = stack.removeAt(0);
         if (type.isSubtypeOf(StaticType.neverType)) {
@@ -114,14 +124,16 @@ class _Checker {
           continue;
         }
         if (type.isSealed) {
-          Witness? result = _filterByType(
+          List<Witness>? result = _filterByType(
               contextType,
               type,
               caseRows,
               firstValuePattern,
               valuePatterns,
               witnessPredicates,
-              firstValuePatterns.path);
+              firstValuePatterns.path,
+              // We don't use the witnesses, so only compute one.
+              returnMultipleWitnesses: false);
           if (result == null) {
             // This type was fully handled so no need to test its
             // subtypes.
@@ -131,19 +143,38 @@ class _Checker {
             stack.addAll(type.getSubtypes(keysOfInterest));
           }
         } else {
-          Witness? result = _filterByType(
+          List<Witness>? result = _filterByType(
               contextType,
               type,
               caseRows,
               firstValuePattern,
               valuePatterns,
               witnessPredicates,
-              firstValuePatterns.path);
+              firstValuePatterns.path,
+              // Don't collect multiple witnesses for to avoid combinatorial
+              // explosion. For instance returning
+              //
+              //    (E.a, E.b), (E.a, E.c) ... (E.z, E.z) // 675 witnesses
+              //
+              // for
+              //
+              //    enum E { a, b, ..., z }
+              //    method((E, E) r) => switch (r) { (E.a, E.a) => 0, };
+              //
+              returnMultipleWitnesses: false);
 
           // If we found a witness for a subtype that no rows match, then we
           // can stop. There may be others but we don't need to find more.
-          if (result != null) return result;
+          if (result != null) {
+            (witnesses ??= []).addAll(result);
+            if (!returnMultipleWitnesses) {
+              return witnesses;
+            }
+          }
         }
+      }
+      if (witnesses != null) {
+        return witnesses;
       }
     }
 
@@ -152,14 +183,15 @@ class _Checker {
     return null;
   }
 
-  Witness? _filterByType(
+  List<Witness>? _filterByType(
       StaticType contextType,
       StaticType type,
       List<List<Space>> caseRows,
       SingleSpace firstSingleSpaceValue,
       List<Space> valueSpaces,
       List<Predicate> witnessPredicates,
-      Path path) {
+      Path path,
+      {required bool returnMultipleWitnesses}) {
     profile.count('_filterByType');
     // Extend the witness with the type we're matching.
     List<Predicate> extendedWitness = [
@@ -232,7 +264,9 @@ class _Checker {
     }
 
     // Proceed to the next column.
-    return _unmatched(remainingRows, valueSpaces, extendedWitness);
+    return _unmatched(remainingRows, valueSpaces,
+        witnessPredicates: extendedWitness,
+        returnMultipleWitnesses: returnMultipleWitnesses);
   }
 
   /// Given a list of [propertyKeys] and [additionalPropertyKeys], and a
@@ -330,9 +364,9 @@ class NonExhaustiveError implements ExhaustivenessError {
 
   final List<Space> cases;
 
-  final Witness witness;
+  final List<Witness> witnesses;
 
-  NonExhaustiveError(this.valueType, this.cases, this.witness);
+  NonExhaustiveError(this.valueType, this.cases, this.witnesses);
 
   @override
   String toString() =>

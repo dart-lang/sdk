@@ -10,6 +10,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -59,11 +60,13 @@ class InvocationInferenceHelper {
   final ErrorReporter _errorReporter;
   final TypeSystemImpl _typeSystem;
   final bool _genericMetadataIsEnabled;
+  final TypeConstraintGenerationDataForTesting? dataForTesting;
 
   InvocationInferenceHelper({
     required ResolverVisitor resolver,
     required ErrorReporter errorReporter,
     required TypeSystemImpl typeSystem,
+    required this.dataForTesting,
   })  : _resolver = resolver,
         _errorReporter = errorReporter,
         _typeSystem = typeSystem,
@@ -134,6 +137,8 @@ class InvocationInferenceHelper {
         strictInference: _resolver.analysisOptions.strictInference,
         strictCasts: _resolver.analysisOptions.strictCasts,
         typeSystemOperations: _resolver.flowAnalysis.typeOperations,
+        dataForTesting: dataForTesting,
+        nodeForTesting: expression,
       );
       identifier.tearOffTypeArgumentTypes = typeArguments;
       if (typeArguments.isNotEmpty) {

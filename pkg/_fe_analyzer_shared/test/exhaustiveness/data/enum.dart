@@ -138,7 +138,7 @@ void nonExhaustiveSwitch3(Enum e) {
 void nonExhaustiveSwitch4(Enum e) {
   /*
    checkingOrder={Enum,Enum.a,Enum.b,Enum.c},
-   error=non-exhaustive:Enum.a,
+   error=non-exhaustive:Enum.a;Enum.c,
    subtypes={Enum.a,Enum.b,Enum.c},
    type=Enum
   */

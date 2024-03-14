@@ -18,6 +18,7 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/scope.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
 import 'package:analyzer/src/dart/resolver/ast_rewrite.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/named_type_resolver.dart';
@@ -104,6 +105,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   /// The set of required operations on types.
   final TypeSystemOperations typeSystemOperations;
 
+  final TypeConstraintGenerationDataForTesting? dataForTesting;
+
   factory ResolutionVisitor({
     required CompilationUnitElementImpl unitElement,
     required AnalysisErrorListener errorListener,
@@ -111,6 +114,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     required bool strictInference,
     required bool strictCasts,
     ElementWalker? elementWalker,
+    required TypeConstraintGenerationDataForTesting? dataForTesting,
   }) {
     var libraryElement = unitElement.library;
     var typeProvider = libraryElement.typeProvider;
@@ -147,6 +151,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       elementWalker,
       ElementHolder(unitElement),
       typeSystemOperations,
+      dataForTesting,
     );
   }
 
@@ -162,6 +167,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     this._elementWalker,
     this._elementHolder,
     this.typeSystemOperations,
+    this.dataForTesting,
   );
 
   DartType get _dynamicType => _typeProvider.dynamicType;
@@ -1112,7 +1118,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     node.typeArguments?.accept(this);
 
     _namedTypeResolver.nameScope = _nameScope;
-    _namedTypeResolver.resolve(node);
+    _namedTypeResolver.resolve(node, dataForTesting: dataForTesting);
 
     if (_namedTypeResolver.rewriteResult != null) {
       _namedTypeResolver.rewriteResult!.accept(this);

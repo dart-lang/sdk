@@ -107,7 +107,7 @@ exhaustiveNoSuchMethod(Typedef o) {
 nonExhaustiveRestrictedValue(Typedef o) {
   return /*
    checkingOrder={FutureOr<dynamic>,Object?,Future<dynamic>,Object,Null},
-   error=non-exhaustive:Future<dynamic>(hashCode: int())/Future<dynamic>(),
+   error=non-exhaustive:Future<dynamic>(hashCode: int())/Future<dynamic>();Object();null,
    expandedSubtypes={Object,Null,Future<dynamic>},
    fields={hashCode:int},
    subtypes={Object?,Future<dynamic>},
@@ -121,7 +121,7 @@ nonExhaustiveRestrictedValue(Typedef o) {
 nonExhaustiveRestrictedType(Typedef o) {
   return /*
    checkingOrder={FutureOr<dynamic>,Object?,Future<dynamic>,Object,Null},
-   error=non-exhaustive:Future<dynamic>(noSuchMethod: dynamic Function(Invocation) _)/Future<dynamic>(),
+   error=non-exhaustive:Future<dynamic>(noSuchMethod: dynamic Function(Invocation) _)/Future<dynamic>();Object();null,
    expandedSubtypes={Object,Null,Future<dynamic>},
    fields={noSuchMethod:dynamic Function(Invocation)},
    subtypes={Object?,Future<dynamic>},

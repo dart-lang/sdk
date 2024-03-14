@@ -7,6 +7,7 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -88,7 +89,8 @@ class AnnotationResolver {
       );
     }
 
-    _visitArguments(node, whyNotPromotedList);
+    _visitArguments(node, whyNotPromotedList,
+        dataForTesting: _resolver.inferenceHelper.dataForTesting);
   }
 
   void _constructorInvocation(
@@ -160,7 +162,8 @@ class AnnotationResolver {
       );
     }
 
-    _visitArguments(node, whyNotPromotedList);
+    _visitArguments(node, whyNotPromotedList,
+        dataForTesting: _resolver.inferenceHelper.dataForTesting);
   }
 
   void _localVariable(
@@ -175,7 +178,8 @@ class AnnotationResolver {
       );
     }
 
-    _visitArguments(node, whyNotPromotedList);
+    _visitArguments(node, whyNotPromotedList,
+        dataForTesting: _resolver.inferenceHelper.dataForTesting);
   }
 
   void _propertyAccessorElement(
@@ -188,7 +192,8 @@ class AnnotationResolver {
     node.element = element;
 
     _resolveAnnotationElementGetter(node, element);
-    _visitArguments(node, whyNotPromotedList);
+    _visitArguments(node, whyNotPromotedList,
+        dataForTesting: _resolver.inferenceHelper.dataForTesting);
   }
 
   void _resolve(
@@ -216,7 +221,8 @@ class AnnotationResolver {
         CompileTimeErrorCode.UNDEFINED_ANNOTATION,
         arguments: [name1.name],
       );
-      _visitArguments(node, whyNotPromotedList);
+      _visitArguments(node, whyNotPromotedList,
+          dataForTesting: _resolver.inferenceHelper.dataForTesting);
       return;
     }
 
@@ -269,7 +275,8 @@ class AnnotationResolver {
           var argumentList = node.arguments;
           if (aliasedType is InterfaceType && argumentList != null) {
             _typeAliasConstructorInvocation(node, element, name3, aliasedType,
-                argumentList, whyNotPromotedList);
+                argumentList, whyNotPromotedList,
+                dataForTesting: _resolver.inferenceHelper.dataForTesting);
           } else {
             _typeAliasGetter(node, element, name3, whyNotPromotedList);
           }
@@ -282,7 +289,8 @@ class AnnotationResolver {
             CompileTimeErrorCode.UNDEFINED_ANNOTATION,
             arguments: [name2.name],
           );
-          _visitArguments(node, whyNotPromotedList);
+          _visitArguments(node, whyNotPromotedList,
+              dataForTesting: _resolver.inferenceHelper.dataForTesting);
           return;
         }
       }
@@ -300,7 +308,8 @@ class AnnotationResolver {
       var argumentList = node.arguments;
       if (aliasedType is InterfaceType && argumentList != null) {
         _typeAliasConstructorInvocation(node, element1, name2, aliasedType,
-            argumentList, whyNotPromotedList);
+            argumentList, whyNotPromotedList,
+            dataForTesting: _resolver.inferenceHelper.dataForTesting);
       } else {
         _typeAliasGetter(node, element1, name2, whyNotPromotedList);
       }
@@ -317,7 +326,8 @@ class AnnotationResolver {
       CompileTimeErrorCode.INVALID_ANNOTATION,
     );
 
-    _visitArguments(node, whyNotPromotedList);
+    _visitArguments(node, whyNotPromotedList,
+        dataForTesting: _resolver.inferenceHelper.dataForTesting);
   }
 
   void _resolveAnnotationElementGetter(
@@ -340,13 +350,13 @@ class AnnotationResolver {
   }
 
   void _typeAliasConstructorInvocation(
-    AnnotationImpl node,
-    TypeAliasElement typeAliasElement,
-    SimpleIdentifierImpl? constructorName,
-    InterfaceType aliasedType,
-    ArgumentListImpl argumentList,
-    List<WhyNotPromotedGetter> whyNotPromotedList,
-  ) {
+      AnnotationImpl node,
+      TypeAliasElement typeAliasElement,
+      SimpleIdentifierImpl? constructorName,
+      InterfaceType aliasedType,
+      ArgumentListImpl argumentList,
+      List<WhyNotPromotedGetter> whyNotPromotedList,
+      {required TypeConstraintGenerationDataForTesting? dataForTesting}) {
     var constructorElement = aliasedType.lookUpConstructor(
       constructorName?.name,
       _definingLibrary,
@@ -397,11 +407,13 @@ class AnnotationResolver {
       );
     }
 
-    _visitArguments(node, whyNotPromotedList);
+    _visitArguments(node, whyNotPromotedList,
+        dataForTesting: _resolver.inferenceHelper.dataForTesting);
   }
 
   void _visitArguments(
-      AnnotationImpl node, List<WhyNotPromotedGetter> whyNotPromotedList) {
+      AnnotationImpl node, List<WhyNotPromotedGetter> whyNotPromotedList,
+      {required TypeConstraintGenerationDataForTesting? dataForTesting}) {
     var arguments = node.arguments;
     if (arguments != null) {
       AnnotationInferrer(
