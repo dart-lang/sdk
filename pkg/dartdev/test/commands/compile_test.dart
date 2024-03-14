@@ -680,31 +680,7 @@ void main() {
         reason: 'File not found: $outFile');
   }, skip: isRunningOnIA32);
 
-  test('Compile exe with unsound null safety', () async {
-    final p = project(mainSrc: '''
-void main() {}
-''');
-    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
-    final outFile = path.canonicalize(path.join(p.dirPath, 'myexe'));
-
-    final result = await p.run(
-      [
-        'compile',
-        'exe',
-        '--no-sound-null-safety',
-        '-o',
-        outFile,
-        inFile,
-      ],
-    );
-
-    expect(result.stdout, contains(unsoundNullSafetyError));
-    expect(result.stderr, isEmpty);
-    expect(result.exitCode, 64);
-    expect(File(outFile).existsSync(), false, reason: 'File found: $outFile');
-  }, skip: isRunningOnIA32);
-
-  test('Compile and run exe with --sound-null-safety', () async {
+  test('Compile and run exe (default sound null safety)', () async {
     final p = project(mainSrc: '''void main() {
       print((<int?>[] is List<int>) ? 'oh no' : 'sound');
     }''');
@@ -715,7 +691,6 @@ void main() {}
       [
         'compile',
         'exe',
-        '--sound-null-safety',
         '-o',
         outFile,
         inFile,
@@ -1056,32 +1031,6 @@ void main() {
     );
 
     expect(result.stdout, isNot(contains(soundNullSafetyMessage)));
-    expect(result.stderr, isEmpty);
-    expect(result.exitCode, 0);
-    expect(File(outFile).existsSync(), true,
-        reason: 'File not found: $outFile');
-  }, skip: isRunningOnIA32);
-
-  test('Compile AOT snapshot with unsound null safety', () async {
-    final p = project(mainSrc: '''
-void main() {}
-''');
-    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
-    final outFile = path.canonicalize(path.join(p.dirPath, 'myaot'));
-
-    final result = await p.run(
-      [
-        'compile',
-        'aot-snapshot',
-        '--no-sound-null-safety',
-        '-o',
-        outFile,
-        inFile,
-      ],
-    );
-
-    expect(result.stdout, contains(unsoundNullSafetyMessage));
-    expect(result.stdout, contains(unsoundNullSafetyWarning));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,
@@ -1455,30 +1404,7 @@ void main() {
         reason: 'File not found: $outFile');
   });
 
-  test('Compile JIT snapshot with unsound null safety', () async {
-    final p = project(mainSrc: '''
-void main() {}
-''');
-    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
-    final outFile = path.canonicalize(path.join(p.dirPath, 'myjit'));
-
-    final result = await p.run(
-      [
-        'compile',
-        'jit-snapshot',
-        '--no-sound-null-safety',
-        '-o',
-        outFile,
-        inFile,
-      ],
-    );
-
-    expect(result.stdout, contains(unsoundNullSafetyError));
-    expect(result.exitCode, 64);
-    expect(File(outFile).existsSync(), false, reason: 'File found: $outFile');
-  });
-
-  test('Compile JIT snapshot with --sound-null-safety', () async {
+  test('Compile JIT snapshot with (default sound null safety)', () async {
     final p = project(mainSrc: '''void main() {
       print((<int?>[] is List<int>) ? 'oh no' : 'sound');
     }''');
@@ -1489,7 +1415,6 @@ void main() {}
       [
         'compile',
         'jit-snapshot',
-        '--sound-null-safety',
         '-o',
         outFile,
         inFile,
@@ -1500,30 +1425,6 @@ void main() {}
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,
         reason: 'File not found: $outFile');
-  });
-
-  test('Compile JIT snapshot with --no-sound-null-safety', () async {
-    final p = project(mainSrc: '''void main() {
-      print((<int?>[] is List<int>) ? 'unsound' : 'oh no');
-    }''');
-    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
-    final outFile = path.canonicalize(path.join(p.dirPath, 'mydill'));
-
-    final result = await p.run(
-      [
-        'compile',
-        'jit-snapshot',
-        '--no-sound-null-safety',
-        '-o',
-        outFile,
-        inFile,
-      ],
-    );
-
-    expect(result.stderr, isNot(contains(soundNullSafetyMessage)));
-    expect(result.stdout, contains(unsoundNullSafetyError));
-    expect(result.exitCode, 64);
-    expect(File(outFile).existsSync(), false, reason: 'File found: $outFile');
   });
 
   test('Compile JIT snapshot with training args', () async {
