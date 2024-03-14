@@ -107,6 +107,8 @@ def WriteDepfile(depfile, stamp, dep_list):
     cwd = os.getcwd()
     relstamp = os.path.relpath(stamp, cwd)
     reldep_list = [os.path.relpath(d, cwd) for d in dep_list]
+    # Depfile paths must use an escape sequence for space characters.
+    reldep_list = [path.replace(" ", r"\ ") for path in reldep_list]
     with open(depfile, 'w') as f:
         print("{0}: {1}".format(relstamp, " ".join(reldep_list)), file=f)
 

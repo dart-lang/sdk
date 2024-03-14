@@ -218,11 +218,6 @@ class TestPluginManager implements PluginManager {
   }
 
   @override
-  void recordPluginFailure(String hostPackageName, String message) {
-    fail('Unexpected invocation of recordPluginFailure');
-  }
-
-  @override
   void removedContextRoot(analyzer.ContextRoot contextRoot) {
     fail('Unexpected invocation of removedContextRoot');
   }

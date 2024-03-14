@@ -47,16 +47,35 @@ suggestions
 ''');
   }
 
+  Future<void> test_afterLess_beforeGreater_topLevel() async {
+    await computeSuggestions('''
+class A01 {}
+
+Future<^>
+''');
+    assertResponse(r'''
+suggestions
+  A01
+    kind: class
+  void
+    kind: keyword
+  dynamic
+    kind: keyword
+''');
+  }
+
   Future<void> test_afterLess_beforeGreater_topLevel_partial() async {
     await computeSuggestions('''
-Future<v^>
+class A01 {}
+
+Future<A0^>
 ''');
     assertResponse(r'''
 replacement
-  left: 1
+  left: 2
 suggestions
-  void
-    kind: keyword
+  A01
+    kind: class
 ''');
   }
 

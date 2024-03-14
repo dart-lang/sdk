@@ -2451,7 +2451,7 @@ LintCode.use_key_in_widget_constructors:
 LintCode.use_late_for_private_fields_and_variables:
   status: needsFix
 LintCode.use_named_constants:
-  status: needsFix
+  status: hasFix
 LintCode.use_raw_strings:
   status: hasFix
 LintCode.use_rethrow_when_possible:
