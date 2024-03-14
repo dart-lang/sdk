@@ -343,6 +343,9 @@ Future<Map<Uri, ExecutorFactoryToken>> _compileMacros(
   // right sdk?
   precompilationOptions.sdkRoot = options.sdkRoot;
   precompilationOptions.sdkSummary = macroConfiguration.sdkSummary;
+  // TODO(johnniwinther): Strong mode should be the default option for the
+  // `CompilerOptions.nnbdMode`.
+  precompilationOptions.nnbdMode = NnbdMode.Strong;
   precompilationOptions.librariesSpecificationUri =
       options.librariesSpecificationUri;
   precompilationOptions.runningPrecompilations =
