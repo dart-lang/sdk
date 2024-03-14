@@ -32,6 +32,7 @@ class AstResolver {
     errorListener: _errorListener,
     strictInference: analysisOptions.strictInference,
     strictCasts: analysisOptions.strictCasts,
+    dataForTesting: null,
   );
   late final _scopeResolverVisitor = ScopeResolverVisitor(
     _unitElement.library,

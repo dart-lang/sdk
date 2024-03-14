@@ -13,6 +13,7 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/generic_inferrer.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
+import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/applicable_extensions.dart';
@@ -196,7 +197,9 @@ class ExtensionMemberResolver {
       receiverType = _typeSystem.promoteToNonNull(receiverType);
     }
 
-    var typeArgumentTypes = _inferTypeArguments(node, receiverType)!;
+    var typeArgumentTypes = _inferTypeArguments(node, receiverType,
+        dataForTesting: _resolver.inferenceHelper.dataForTesting,
+        nodeForTesting: node)!;
     nodeImpl.typeArgumentTypes = typeArgumentTypes;
 
     var substitution = Substitution.fromPairs(
@@ -311,9 +314,9 @@ class ExtensionMemberResolver {
   /// of extension's type parameters, or inference fails, return `dynamic`
   /// for all type parameters.
   List<DartType>? _inferTypeArguments(
-    ExtensionOverride node,
-    DartType receiverType,
-  ) {
+      ExtensionOverride node, DartType receiverType,
+      {required TypeConstraintGenerationDataForTesting? dataForTesting,
+      required AstNode? nodeForTesting}) {
     var element = node.element;
     var typeParameters = element.typeParameters;
     var typeArguments = node.typeArguments;
@@ -345,11 +348,13 @@ class ExtensionMemberResolver {
         genericMetadataIsEnabled: _genericMetadataIsEnabled,
         strictInference: _resolver.analysisOptions.strictInference,
         typeSystemOperations: _resolver.flowAnalysis.typeOperations,
+        dataForTesting: dataForTesting,
       );
       inferrer.constrainArgument(
         receiverType,
         element.extendedType,
         'extendedType',
+        nodeForTesting: nodeForTesting,
       );
       return inferrer.chooseFinalTypes();
     }

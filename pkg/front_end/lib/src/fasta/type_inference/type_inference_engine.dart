@@ -33,7 +33,8 @@ import 'factor_type.dart';
 import 'type_inferrer.dart';
 import 'type_schema.dart';
 import 'type_schema_elimination.dart' as type_schema_elimination;
-import 'type_schema_environment.dart' show TypeSchemaEnvironment;
+import 'type_schema_environment.dart'
+    show GeneratedTypeConstraint, TypeSchemaEnvironment;
 
 /// Visitor to check whether a given type mentions any of a class's type
 /// parameters in a non-covariant fashion.
@@ -1042,5 +1043,7 @@ class OperationsCfe
 /// Type inference results used for testing.
 class TypeInferenceResultForTesting {
   final Map<TreeNode, List<DartType>> inferredTypeArguments = {};
+  final Map<TreeNode, List<GeneratedTypeConstraint>> generatedTypeConstraints =
+      {};
   final Map<TreeNode, DartType> inferredVariableTypes = {};
 }

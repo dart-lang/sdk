@@ -423,6 +423,8 @@ class TypedLiteralResolver {
       strictInference: _resolver.analysisOptions.strictInference,
       strictCasts: _resolver.analysisOptions.strictCasts,
       typeSystemOperations: _resolver.flowAnalysis.typeOperations,
+      dataForTesting: _resolver.inferenceHelper.dataForTesting,
+      nodeForTesting: node,
     );
   }
 
@@ -456,7 +458,9 @@ class TypedLiteralResolver {
     }
 
     inferrer.constrainArguments(
-        parameters: parameters, argumentTypes: elementTypes);
+        parameters: parameters,
+        argumentTypes: elementTypes,
+        nodeForTesting: node);
     var typeArguments = inferrer.chooseFinalTypes();
     return element.instantiate(
       typeArguments: typeArguments,
@@ -476,6 +480,8 @@ class TypedLiteralResolver {
       strictInference: _resolver.analysisOptions.strictInference,
       strictCasts: _resolver.analysisOptions.strictCasts,
       typeSystemOperations: _resolver.flowAnalysis.typeOperations,
+      dataForTesting: _resolver.inferenceHelper.dataForTesting,
+      nodeForTesting: node,
     );
   }
 
@@ -570,6 +576,8 @@ class TypedLiteralResolver {
       strictInference: _resolver.analysisOptions.strictInference,
       strictCasts: _resolver.analysisOptions.strictCasts,
       typeSystemOperations: _resolver.flowAnalysis.typeOperations,
+      dataForTesting: _resolver.inferenceHelper.dataForTesting,
+      nodeForTesting: node,
     );
   }
 
@@ -710,6 +718,7 @@ class TypedLiteralResolver {
     inferrer.constrainArguments(
       parameters: parameters,
       argumentTypes: argumentTypes,
+      nodeForTesting: node,
     );
     var typeArguments = inferrer.chooseFinalTypes();
     return element.instantiate(
@@ -744,7 +753,9 @@ class TypedLiteralResolver {
       inferrer = _inferSetTypeDownwards(node, null);
     }
     inferrer.constrainArguments(
-        parameters: parameters, argumentTypes: argumentTypes);
+        parameters: parameters,
+        argumentTypes: argumentTypes,
+        nodeForTesting: node);
     var typeArguments = inferrer.chooseFinalTypes();
     return element.instantiate(
         typeArguments: typeArguments,

@@ -20,6 +20,7 @@ import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
+import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
@@ -139,6 +140,11 @@ class LibraryAnalyzer {
     var errorListener = RecordingErrorListener();
 
     return performance.run('resolve', (performance) {
+      TypeConstraintGenerationDataForTesting? inferenceDataForTesting =
+          _testingData != null
+              ? TypeConstraintGenerationDataForTesting()
+              : null;
+
       // TODO(scheglov): We don't need to do this for the whole unit.
       parsedUnit.accept(
         ResolutionVisitor(
@@ -152,8 +158,11 @@ class LibraryAnalyzer {
             libraryFilePath: _library.file.path,
             unitFilePath: file.path,
           ),
+          dataForTesting: inferenceDataForTesting,
         ),
       );
+      _testingData?.recordTypeConstraintGenerationDataForTesting(
+          file.uri, inferenceDataForTesting!);
 
       // TODO(scheglov): We don't need to do this for the whole unit.
       parsedUnit.accept(ScopeResolverVisitor(
@@ -171,6 +180,8 @@ class LibraryAnalyzer {
           featureSet: _libraryElement.featureSet,
           analysisOptions: _library.file.analysisOptions,
           flowAnalysisHelper: flowAnalysisHelper);
+      _testingData?.recordTypeConstraintGenerationDataForTesting(
+          file.uri, resolverVisitor.inferenceHelper.dataForTesting!);
 
       var nodeToResolve = node?.thisOrAncestorMatching((e) {
         return e.parent is ClassDeclaration ||
@@ -826,6 +837,9 @@ class LibraryAnalyzer {
     var unit = unitAnalysis.unit;
     var unitElement = unitAnalysis.element;
 
+    TypeConstraintGenerationDataForTesting? inferenceDataForTesting =
+        _testingData != null ? TypeConstraintGenerationDataForTesting() : null;
+
     unit.accept(
       ResolutionVisitor(
         unitElement: unitElement,
@@ -838,8 +852,11 @@ class LibraryAnalyzer {
           libraryFilePath: _library.file.path,
           unitFilePath: unitAnalysis.file.path,
         ),
+        dataForTesting: inferenceDataForTesting,
       ),
     );
+    _testingData?.recordTypeConstraintGenerationDataForTesting(
+        unitAnalysis.file.uri, inferenceDataForTesting!);
 
     var docImportLibraries = [
       for (var import in _library.docImports)
@@ -866,11 +883,14 @@ class LibraryAnalyzer {
     _testingData?.recordFlowAnalysisDataForTesting(
         unitAnalysis.file.uri, flowAnalysisHelper.dataForTesting!);
 
-    unit.accept(ResolverVisitor(
+    var resolver = ResolverVisitor(
         _inheritance, _libraryElement, source, _typeProvider, errorListener,
         analysisOptions: _library.file.analysisOptions,
         featureSet: unit.featureSet,
-        flowAnalysisHelper: flowAnalysisHelper));
+        flowAnalysisHelper: flowAnalysisHelper);
+    unit.accept(resolver);
+    _testingData?.recordTypeConstraintGenerationDataForTesting(
+        unitAnalysis.file.uri, resolver.inferenceHelper.dataForTesting!);
   }
 
   void _resolveLibraryAugmentationDirective({

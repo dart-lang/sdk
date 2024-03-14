@@ -190,13 +190,16 @@ abstract class TypeSchemaEnvironmentTestBase {
                       fieldNameInfo: {}, individualPropertyReasons: {}),
                   typeCacheNonNullable: {},
                   typeCacheNullable: {},
-                  typeCacheLegacy: {}));
+                  typeCacheLegacy: {}),
+              inferenceResultForTesting: null,
+              treeNodeForTesting: null);
       if (formalTypeNodes == null) {
         inferredTypeNodes = typeSchemaEnvironment.choosePreliminaryTypes(
             gatherer, typeParameterNodesToInfer, inferredTypeNodes,
             isNonNullableByDefault: isNonNullableByDefault);
       } else {
-        gatherer.constrainArguments(formalTypeNodes, actualTypeNodes!);
+        gatherer.constrainArguments(formalTypeNodes, actualTypeNodes!,
+            treeNodeForTesting: null);
         inferredTypeNodes = typeSchemaEnvironment.chooseFinalTypes(
             gatherer, typeParameterNodesToInfer, inferredTypeNodes!,
             isNonNullableByDefault: isNonNullableByDefault);

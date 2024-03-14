@@ -199,6 +199,8 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
         strictInference: resolver.analysisOptions.strictInference,
         strictCasts: resolver.analysisOptions.strictCasts,
         typeSystemOperations: resolver.flowAnalysis.typeOperations,
+        dataForTesting: resolver.inferenceHelper.dataForTesting,
+        nodeForTesting: node,
       );
 
       substitution = Substitution.fromPairs(
@@ -470,7 +472,8 @@ class InvocationInferrer<Node extends AstNodeImpl> {
       }
       if (parameter != null) {
         inferrer?.constrainArgument(
-            argument.typeOrThrow, parameter.type, parameter.name);
+            argument.typeOrThrow, parameter.type, parameter.name,
+            nodeForTesting: node);
       }
     }
   }
@@ -530,7 +533,8 @@ class InvocationInferrer<Node extends AstNodeImpl> {
         }
         if (parameter != null) {
           inferrer?.constrainArgument(
-              argument.typeOrThrow, parameter.type, parameter.name);
+              argument.typeOrThrow, parameter.type, parameter.name,
+              nodeForTesting: node);
         }
       }
     }

@@ -1281,9 +1281,11 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
       typeParameters: typeParameters,
       typeSystemOperations:
           TypeSystemOperations(typeSystem, strictCasts: false),
+      dataForTesting: null,
     );
 
-    var isMatch = gatherer.trySubtypeMatch(P, Q, leftSchema);
+    var isMatch =
+        gatherer.trySubtypeMatch(P, Q, leftSchema, nodeForTesting: null);
     expect(isMatch, isTrue);
 
     var constraints = gatherer.computeConstraints();
@@ -1307,9 +1309,11 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
       typeParameters: typeParameters,
       typeSystemOperations:
           TypeSystemOperations(typeSystem, strictCasts: false),
+      dataForTesting: null,
     );
 
-    var isMatch = gatherer.trySubtypeMatch(P, Q, leftSchema);
+    var isMatch =
+        gatherer.trySubtypeMatch(P, Q, leftSchema, nodeForTesting: null);
     expect(isMatch, isFalse);
     expect(gatherer.isConstraintSetEmpty, isTrue);
   }

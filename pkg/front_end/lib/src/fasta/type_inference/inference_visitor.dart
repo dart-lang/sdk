@@ -1123,9 +1123,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         isVoidAllowed: false);
 
     List<DartType> extensionTypeArguments = computeExtensionTypeArgument(
-        node.extension,
-        node.explicitTypeArguments,
-        receiverResult.inferredType);
+        node.extension, node.explicitTypeArguments, receiverResult.inferredType,
+        treeNodeForTesting: node);
 
     DartType receiverType =
         getExtensionReceiverType(node.extension, extensionTypeArguments);
@@ -1191,9 +1190,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         isVoidAllowed: false);
 
     List<DartType> extensionTypeArguments = computeExtensionTypeArgument(
-        node.extension,
-        node.explicitTypeArguments,
-        receiverResult.inferredType);
+        node.extension, node.explicitTypeArguments, receiverResult.inferredType,
+        treeNodeForTesting: node);
 
     DartType receiverType =
         getExtensionReceiverType(node.extension, extensionTypeArguments);
@@ -2700,7 +2698,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           listType, typeParametersToInfer, typeContext,
           isNonNullableByDefault: isNonNullableByDefault,
           isConst: node.isConst,
-          typeOperations: operations);
+          typeOperations: operations,
+          inferenceResultForTesting: dataForTesting?.typeInferenceResult,
+          treeNodeForTesting: node);
       inferredTypes = typeSchemaEnvironment.choosePreliminaryTypes(
           gatherer, typeParametersToInfer, null,
           isNonNullableByDefault: isNonNullableByDefault);
@@ -2718,7 +2718,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       }
     }
     if (inferenceNeeded) {
-      gatherer!.constrainArguments(formalTypes, actualTypes);
+      gatherer!.constrainArguments(formalTypes, actualTypes,
+          treeNodeForTesting: node);
       inferredTypes = typeSchemaEnvironment.chooseFinalTypes(
           gatherer, typeParametersToInfer, inferredTypes!,
           isNonNullableByDefault: isNonNullableByDefault);
@@ -4716,7 +4717,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           mapType, typeParametersToInfer, typeContext,
           isNonNullableByDefault: isNonNullableByDefault,
           isConst: node.isConst,
-          typeOperations: operations);
+          typeOperations: operations,
+          inferenceResultForTesting: dataForTesting?.typeInferenceResult,
+          treeNodeForTesting: node);
       inferredTypes = typeSchemaEnvironment.choosePreliminaryTypes(
           gatherer, typeParametersToInfer, null,
           isNonNullableByDefault: isNonNullableByDefault);
@@ -4792,11 +4795,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
                 setType, typeParametersToInfer, typeContext,
                 isNonNullableByDefault: isNonNullableByDefault,
                 isConst: node.isConst,
-                typeOperations: operations);
+                typeOperations: operations,
+                inferenceResultForTesting: dataForTesting?.typeInferenceResult,
+                treeNodeForTesting: node);
         List<DartType> inferredTypesForSet = typeSchemaEnvironment
             .choosePreliminaryTypes(gatherer, typeParametersToInfer, null,
                 isNonNullableByDefault: isNonNullableByDefault);
-        gatherer.constrainArguments(formalTypesForSet, actualTypesForSet);
+        gatherer.constrainArguments(formalTypesForSet, actualTypesForSet,
+            treeNodeForTesting: node);
         inferredTypesForSet = typeSchemaEnvironment.chooseFinalTypes(
             gatherer, typeParametersToInfer, inferredTypesForSet,
             isNonNullableByDefault: isNonNullableByDefault);
@@ -4836,7 +4842,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         return new ExpressionInferenceResult(
             NeverType.fromNullability(libraryBuilder.nonNullable), replacement);
       }
-      gatherer!.constrainArguments(formalTypes, actualTypes);
+      gatherer!.constrainArguments(formalTypes, actualTypes,
+          treeNodeForTesting: node);
       inferredTypes = typeSchemaEnvironment.chooseFinalTypes(
           gatherer, typeParametersToInfer, inferredTypes!,
           isNonNullableByDefault: isNonNullableByDefault);
@@ -5559,9 +5566,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         isVoidAllowed: false);
 
     List<DartType> extensionTypeArguments = computeExtensionTypeArgument(
-        node.extension,
-        node.explicitTypeArguments,
-        receiverResult.inferredType);
+        node.extension, node.explicitTypeArguments, receiverResult.inferredType,
+        treeNodeForTesting: node);
 
     DartType receiverType =
         getExtensionReceiverType(node.extension, extensionTypeArguments);
@@ -5959,9 +5965,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         isVoidAllowed: false);
 
     List<DartType> extensionTypeArguments = computeExtensionTypeArgument(
-        node.extension,
-        node.explicitTypeArguments,
-        receiverResult.inferredType);
+        node.extension, node.explicitTypeArguments, receiverResult.inferredType,
+        treeNodeForTesting: node);
 
     DartType receiverType =
         getExtensionReceiverType(node.extension, extensionTypeArguments);
@@ -7401,9 +7406,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         isVoidAllowed: false);
 
     List<DartType> extensionTypeArguments = computeExtensionTypeArgument(
-        node.extension,
-        node.explicitTypeArguments,
-        receiverResult.inferredType);
+        node.extension, node.explicitTypeArguments, receiverResult.inferredType,
+        treeNodeForTesting: node);
 
     DartType receiverType =
         getExtensionReceiverType(node.extension, extensionTypeArguments);
@@ -8058,7 +8062,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           setType, typeParametersToInfer, typeContext,
           isNonNullableByDefault: isNonNullableByDefault,
           isConst: node.isConst,
-          typeOperations: operations);
+          typeOperations: operations,
+          inferenceResultForTesting: dataForTesting?.typeInferenceResult,
+          treeNodeForTesting: node);
       inferredTypes = typeSchemaEnvironment.choosePreliminaryTypes(
           gatherer, typeParametersToInfer, null,
           isNonNullableByDefault: isNonNullableByDefault);
@@ -8077,7 +8083,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
 
     if (inferenceNeeded) {
-      gatherer!.constrainArguments(formalTypes, actualTypes);
+      gatherer!.constrainArguments(formalTypes, actualTypes,
+          treeNodeForTesting: node);
       inferredTypes = typeSchemaEnvironment.chooseFinalTypes(
           gatherer, typeParametersToInfer, inferredTypes!,
           isNonNullableByDefault: isNonNullableByDefault);
@@ -9310,9 +9317,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         ExpressionInferenceResult expressionResult =
             inferExpression(expression, contextType);
         if (contextType is! UnknownType) {
-          expressionResult =
-              coerceExpressionForAssignment(contextType, expressionResult) ??
-                  expressionResult;
+          expressionResult = coerceExpressionForAssignment(
+                  contextType, expressionResult,
+                  treeNodeForTesting: node) ??
+              expressionResult;
         }
 
         positionalTypes.add(
@@ -9359,9 +9367,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           ExpressionInferenceResult expressionResult =
               inferExpression(element.value, contextType);
           if (contextType is! UnknownType) {
-            expressionResult =
-                coerceExpressionForAssignment(contextType, expressionResult) ??
-                    expressionResult;
+            expressionResult = coerceExpressionForAssignment(
+                    contextType, expressionResult,
+                    treeNodeForTesting: node) ??
+                expressionResult;
           }
           Expression expression = expressionResult.expression;
           DartType type = expressionResult.postCoercionType ??
@@ -9391,9 +9400,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           ExpressionInferenceResult expressionResult =
               inferExpression(element as Expression, contextType);
           if (contextType is! UnknownType) {
-            expressionResult =
-                coerceExpressionForAssignment(contextType, expressionResult) ??
-                    expressionResult;
+            expressionResult = coerceExpressionForAssignment(
+                    contextType, expressionResult,
+                    treeNodeForTesting: node) ??
+                expressionResult;
           }
           Expression expression = expressionResult.expression;
           DartType type = expressionResult.postCoercionType ??
@@ -9535,9 +9545,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         inferExpression(node, context, isVoidAllowed: true).stopShorting();
 
     if (needsCoercion) {
-      expressionResult =
-          coerceExpressionForAssignment(context, expressionResult) ??
-              expressionResult;
+      expressionResult = coerceExpressionForAssignment(
+              context, expressionResult,
+              treeNodeForTesting: node) ??
+          expressionResult;
     }
 
     pushRewrite(expressionResult.expression);
@@ -11051,7 +11062,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   List<DartType> _inferTypeArguments(
       {required List<TypeParameter> typeParameters,
       required DartType declaredType,
-      required DartType contextType}) {
+      required DartType contextType,
+      required TreeNode? treeNodeForTesting}) {
     FreshStructuralParametersFromTypeParameters freshTypeParameters =
         getFreshStructuralParametersFromTypeParameters(typeParameters);
     List<StructuralParameter> typeParametersToInfer =
@@ -11061,7 +11073,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         typeSchemaEnvironment.setupGenericTypeInference(
             declaredType, typeParametersToInfer, contextType,
             isNonNullableByDefault: isNonNullableByDefault,
-            typeOperations: operations);
+            typeOperations: operations,
+            inferenceResultForTesting: dataForTesting?.typeInferenceResult,
+            treeNodeForTesting: treeNodeForTesting);
     return typeSchemaEnvironment.chooseFinalTypes(
         gatherer, typeParametersToInfer, null,
         isNonNullableByDefault: isNonNullableByDefault);
@@ -11086,7 +11100,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           List<DartType> inferredTypeArguments = _inferTypeArguments(
               typeParameters: typedefTypeParameters,
               declaredType: unaliasedTypedef,
-              contextType: matchedType);
+              contextType: matchedType,
+              treeNodeForTesting: pattern);
           requiredType = new TypedefType(typedef,
                   libraryBuilder.library.nonNullable, inferredTypeArguments)
               .unalias;
@@ -11109,7 +11124,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           List<DartType> inferredTypeArguments = _inferTypeArguments(
               typeParameters: typeParameters,
               declaredType: declaredType,
-              contextType: matchedType);
+              contextType: matchedType,
+              treeNodeForTesting: pattern);
           requiredType = new InterfaceType(requiredType.classNode,
               requiredType.declaredNullability, inferredTypeArguments);
         }
@@ -11133,7 +11149,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           List<DartType> inferredTypeArguments = _inferTypeArguments(
               typeParameters: typeParameters,
               declaredType: declaredType,
-              contextType: matchedType);
+              contextType: matchedType,
+              treeNodeForTesting: pattern);
           requiredType = new ExtensionType(
               requiredType.extensionTypeDeclaration,
               requiredType.declaredNullability,

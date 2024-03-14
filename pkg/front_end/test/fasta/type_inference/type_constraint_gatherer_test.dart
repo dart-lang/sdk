@@ -249,7 +249,8 @@ class TypeConstraintGathererTest {
         bound,
         clientLibrary,
         expectedConstraints,
-        (gatherer, type, bound) => gatherer.tryConstrainLower(type, bound),
+        (gatherer, type, bound) =>
+            gatherer.tryConstrainLower(type, bound, treeNodeForTesting: null),
         typeParameterNodesToConstrain);
   }
 
@@ -287,7 +288,8 @@ class TypeConstraintGathererTest {
         bound,
         clientLibrary,
         expectedConstraints,
-        (gatherer, type, bound) => gatherer.tryConstrainUpper(type, bound),
+        (gatherer, type, bound) =>
+            gatherer.tryConstrainUpper(type, bound, treeNodeForTesting: null),
         typeParameterNodesToConstrain);
   }
 
@@ -309,7 +311,8 @@ class TypeConstraintGathererTest {
                 fieldNameInfo: {}, individualPropertyReasons: {}),
             typeCacheNonNullable: {},
             typeCacheNullable: {},
-            typeCacheLegacy: {}));
+            typeCacheLegacy: {}),
+        inferenceResultForTesting: null);
     var constraints = tryConstrain(typeConstraintGatherer, a, b)
         ? typeConstraintGatherer.computeConstraints(
             isNonNullableByDefault: clientLibrary.isNonNullableByDefault)

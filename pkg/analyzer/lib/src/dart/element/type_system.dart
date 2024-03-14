@@ -25,6 +25,7 @@ import 'package:analyzer/src/dart/element/subtype.dart';
 import 'package:analyzer/src/dart/element/top_merge.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
+import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
 import 'package:analyzer/src/dart/element/type_demotion.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
@@ -628,6 +629,8 @@ class TypeSystemImpl implements TypeSystem {
     required bool genericMetadataIsEnabled,
     required bool strictInference,
     required bool strictCasts,
+    required TypeConstraintGenerationDataForTesting? dataForTesting,
+    required AstNode? nodeForTesting,
   }) {
     if (contextType.typeFormals.isNotEmpty || fnType.typeFormals.isEmpty) {
       return const <DartType>[];
@@ -642,8 +645,10 @@ class TypeSystemImpl implements TypeSystem {
         errorNode: errorNode,
         genericMetadataIsEnabled: genericMetadataIsEnabled,
         strictInference: strictInference,
-        typeSystemOperations: typeSystemOperations);
-    inferrer.constrainGenericFunctionInContext(fnType, contextType);
+        typeSystemOperations: typeSystemOperations,
+        dataForTesting: dataForTesting);
+    inferrer.constrainGenericFunctionInContext(fnType, contextType,
+        nodeForTesting: nodeForTesting);
 
     // Infer and instantiate the resulting type.
     return inferrer.chooseFinalTypes();
@@ -1473,10 +1478,13 @@ class TypeSystemImpl implements TypeSystem {
     var inferrer = GenericInferrer(this, typeParameters,
         genericMetadataIsEnabled: genericMetadataIsEnabled,
         strictInference: strictInference,
-        typeSystemOperations: typeSystemOperations);
+        typeSystemOperations: typeSystemOperations,
+        dataForTesting: null);
     for (int i = 0; i < srcTypes.length; i++) {
-      inferrer.constrainReturnType(srcTypes[i], destTypes[i]);
-      inferrer.constrainReturnType(destTypes[i], srcTypes[i]);
+      inferrer.constrainReturnType(srcTypes[i], destTypes[i],
+          nodeForTesting: null);
+      inferrer.constrainReturnType(destTypes[i], srcTypes[i],
+          nodeForTesting: null);
     }
 
     var inferredTypes = inferrer
@@ -1721,6 +1729,8 @@ class TypeSystemImpl implements TypeSystem {
     required bool strictInference,
     required bool strictCasts,
     required TypeSystemOperations typeSystemOperations,
+    required TypeConstraintGenerationDataForTesting? dataForTesting,
+    required AstNode? nodeForTesting,
   }) {
     // Create a GenericInferrer that will allow certain type parameters to be
     // inferred. It will optimistically assume these type parameters can be
@@ -1731,13 +1741,15 @@ class TypeSystemImpl implements TypeSystem {
         errorNode: errorNode,
         genericMetadataIsEnabled: genericMetadataIsEnabled,
         strictInference: strictInference,
-        typeSystemOperations: typeSystemOperations);
+        typeSystemOperations: typeSystemOperations,
+        dataForTesting: dataForTesting);
 
     if (contextReturnType != null) {
       if (isConst) {
         contextReturnType = eliminateTypeVariables(contextReturnType);
       }
-      inferrer.constrainReturnType(declaredReturnType, contextReturnType);
+      inferrer.constrainReturnType(declaredReturnType, contextReturnType,
+          nodeForTesting: nodeForTesting);
     }
 
     return inferrer;
