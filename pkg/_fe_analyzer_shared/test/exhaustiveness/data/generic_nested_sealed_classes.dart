@@ -69,7 +69,7 @@ exhaustiveLevel1<T3>(A<T3> a) {
   //  direct passing of type variables in D.
   /*
    checkingOrder={A<T3>,B<T3>,C,D<dynamic, dynamic>,B1<T3>,B2,C1,C2<dynamic>,D1<dynamic, dynamic>,D2<dynamic>,D3<dynamic>,D4},
-   error=non-exhaustive:D1<dynamic, dynamic>(),
+   error=non-exhaustive:D1<dynamic, dynamic>();D2<dynamic>();D3<dynamic>();D4(),
    expandedSubtypes={B1<T3>,B2,C1,C2<dynamic>,D1<dynamic, dynamic>,D2<dynamic>,D3<dynamic>,D4},
    subtypes={B<T3>,C,D<dynamic, dynamic>},
    type=A<T3>
@@ -124,7 +124,7 @@ exhaustiveLevel2<T4>(A<T4> a) {
   //  direct passing of type variables in D.
   /*
    checkingOrder={A<T4>,B<T4>,C,D<dynamic, dynamic>,B1<T4>,B2,C1,C2<dynamic>,D1<dynamic, dynamic>,D2<dynamic>,D3<dynamic>,D4},
-   error=non-exhaustive:D1<dynamic, dynamic>(),
+   error=non-exhaustive:D1<dynamic, dynamic>();D2<dynamic>(),
    expandedSubtypes={B1<T4>,B2,C1,C2<dynamic>,D1<dynamic, dynamic>,D2<dynamic>,D3<dynamic>,D4},
    subtypes={B<T4>,C,D<dynamic, dynamic>},
    type=A<T4>

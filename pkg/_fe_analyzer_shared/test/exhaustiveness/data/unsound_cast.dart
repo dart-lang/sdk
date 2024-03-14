@@ -20,7 +20,7 @@ class Z implements A, B {}
 
 method(S s) => /*
  checkingOrder={S,A,B,C},
- error=non-exhaustive:A(),
+ error=non-exhaustive:A();B();C(),
  subtypes={A,B,C},
  type=S
 */

@@ -139,6 +139,8 @@ void expectReportErrors(ObjectPropertyLookup objectFieldLookup,
     StaticType valueType, List<Object> cases,
     [String errors = '']) {
   expect(
-      reportErrors(objectFieldLookup, valueType, parseSpaces(cases)).join('\n'),
+      reportErrors(objectFieldLookup, valueType, parseSpaces(cases),
+              computeUnreachable: true)
+          .join('\n'),
       errors);
 }

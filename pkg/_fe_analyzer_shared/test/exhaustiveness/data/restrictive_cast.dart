@@ -26,12 +26,12 @@ int? value = 1;
 
 int? method(
         S s) => /*
- checkingOrder={S,A,B},
- error=non-exhaustive:A(b: false),
- fields={b:bool},
- subtypes={A,B},
- type=S
-*/
+         checkingOrder={S,A,B},
+         error=non-exhaustive:A(b: false);B(b: false),
+         fields={b:bool},
+         subtypes={A,B},
+         type=S
+        */
     switch (s) {
       A(b: true) as A /*space=A(b: true)|Null*/ => 0,
       B(b: true) as B /*space=B(b: true)|Null*/ => value,

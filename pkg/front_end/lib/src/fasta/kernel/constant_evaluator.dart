@@ -23,6 +23,7 @@ import 'dart:io' as io;
 import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/space.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
+import 'package:front_end/src/base/common.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/src/const_canonical_type.dart';
@@ -1540,8 +1541,9 @@ class ConstantsTransformer extends RemovingTransformer {
       cases.add(patternConverter.createRootSpace(type, patternGuard.pattern,
           hasGuard: patternGuard.guard != null));
     }
-    List<ExhaustivenessError> errors =
-        reportErrors(_exhaustivenessCache!, type, cases);
+    List<ExhaustivenessError> errors = reportErrors(
+        _exhaustivenessCache!, type, cases,
+        computeUnreachable: retainDataForTesting);
     List<ExhaustivenessError>? reportedErrors;
     if (_exhaustivenessDataForTesting != null) {
       reportedErrors = [];
@@ -1549,19 +1551,7 @@ class ConstantsTransformer extends RemovingTransformer {
     Library library = currentLibrary;
     for (ExhaustivenessError error in errors) {
       if (error is UnreachableCaseError) {
-        if (library.importUri.isScheme('dart') &&
-            library.importUri.path == 'html') {
-          // TODO(51754): Remove this.
-          continue;
-        }
         reportedErrors?.add(error);
-        // TODO(johnniwinther): Re-enable this, pending resolution on
-        // https://github.com/dart-lang/language/issues/2924
-        /*constantEvaluator.errorReporter.report(
-              constantEvaluator.createLocatedMessageWithOffset(
-                  node,
-                  patternGuards[error.index].fileOffset,
-                  messageUnreachableSwitchCase));*/
       } else if (error is NonExhaustiveError &&
           !hasDefault &&
           mustBeExhaustive) {
@@ -1575,8 +1565,8 @@ class ConstantsTransformer extends RemovingTransformer {
                         : templateNonExhaustiveSwitchStatement)
                     .withArguments(
                         expressionType,
-                        error.witness.asWitness,
-                        error.witness.asCorrection,
+                        error.witnesses.first.asWitness,
+                        error.witnesses.first.asCorrection,
                         library.isNonNullableByDefault)));
       }
     }

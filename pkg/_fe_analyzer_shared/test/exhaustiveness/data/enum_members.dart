@@ -100,7 +100,7 @@ exhaustiveNoSuchMethod(Typedef o) {
 nonExhaustiveRestrictedValue(Typedef o) {
   return /*
    checkingOrder={E,E.a,E.b,E.c},
-   error=non-exhaustive:E.a && Object(hashCode: int())/E.a,
+   error=non-exhaustive:E.a && Object(hashCode: int())/E.a;E.b && Object(hashCode: int())/E.b;E.c && Object(hashCode: int())/E.c,
    fields={hashCode:int},
    subtypes={E.a,E.b,E.c},
    type=E
@@ -113,7 +113,7 @@ nonExhaustiveRestrictedValue(Typedef o) {
 exhaustiveRestrictedValue(Typedef o) {
   return /*
    checkingOrder={E,E.a,E.b,E.c},
-   error=non-exhaustive:E.b && Object(hashCode: int())/E.b,
+   error=non-exhaustive:E.b && Object(hashCode: int())/E.b;E.c && Object(hashCode: int())/E.c,
    fields={hashCode:int},
    subtypes={E.a,E.b,E.c},
    type=E
@@ -127,7 +127,7 @@ exhaustiveRestrictedValue(Typedef o) {
 nonExhaustiveRestrictedType(Typedef o) {
   return /*
    checkingOrder={E,E.a,E.b,E.c},
-   error=non-exhaustive:E.a && Object(noSuchMethod: dynamic Function(Invocation) _)/E.a,
+   error=non-exhaustive:E.a && Object(noSuchMethod: dynamic Function(Invocation) _)/E.a;E.b && Object(noSuchMethod: dynamic Function(Invocation) _)/E.b;E.c && Object(noSuchMethod: dynamic Function(Invocation) _)/E.c,
    fields={noSuchMethod:dynamic Function(Invocation)},
    subtypes={E.a,E.b,E.c},
    type=E
@@ -143,7 +143,7 @@ nonExhaustiveRestrictedType(Typedef o) {
 exhaustiveRestrictedType(Typedef o) {
   return /*
    checkingOrder={E,E.a,E.b,E.c},
-   error=non-exhaustive:E.b && Object(noSuchMethod: dynamic Function(Invocation) _)/E.b,
+   error=non-exhaustive:E.b && Object(noSuchMethod: dynamic Function(Invocation) _)/E.b;E.c && Object(noSuchMethod: dynamic Function(Invocation) _)/E.c,
    fields={noSuchMethod:dynamic Function(Invocation)},
    subtypes={E.a,E.b,E.c},
    type=E

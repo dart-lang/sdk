@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/exhaustiveness/witness.dart';
+
 import 'exhaustive.dart';
 import 'key.dart';
 import 'space.dart';
@@ -80,13 +82,21 @@ String? typesToText(Iterable<StaticType> types) {
 
 String errorToText(ExhaustivenessError error) {
   if (error is NonExhaustiveError) {
-    String witnessText = error.witness.asWitness;
-    String correctionText = error.witness.asCorrection;
-    if (witnessText != correctionText) {
-      return 'non-exhaustive:$witnessText/$correctionText';
-    } else {
-      return 'non-exhaustive:$witnessText';
+    StringBuffer sb = new StringBuffer();
+    sb.write('non-exhaustive:');
+    String delimiter = '';
+    for (Witness witness in error.witnesses) {
+      sb.write(delimiter);
+      String witnessText = witness.asWitness;
+      String correctionText = witness.asCorrection;
+      if (witnessText != correctionText) {
+        sb.write('$witnessText/$correctionText');
+      } else {
+        sb.write(witnessText);
+      }
+      delimiter = ';';
     }
+    return sb.toString();
   } else {
     assert(error is UnreachableCaseError);
     return 'unreachable';
