@@ -42,11 +42,12 @@ static void GetCpuId(int32_t level, uint32_t info[4]) {
 }
 
 void CpuId::Init() {
-  uint32_t info[4] = {static_cast<uint32_t>(-1)};
+  const int info_length = 4;
+  uint32_t info[info_length] = {static_cast<uint32_t>(-1)};
 
   GetCpuId(0, info);
   if (FLAG_trace_cpuid) {
-    for (intptr_t i = 0; i < 3; i++) {
+    for (intptr_t i = 0; i < info_length; i++) {
       OS::PrintErr("cpuid(0) info[%" Pd "]: %0x\n", i, info[i]);
     }
   }
@@ -64,7 +65,7 @@ void CpuId::Init() {
 
   GetCpuId(1, info);
   if (FLAG_trace_cpuid) {
-    for (intptr_t i = 0; i < 3; i++) {
+    for (intptr_t i = 0; i < info_length; i++) {
       OS::PrintErr("cpuid(1) info[%" Pd "]: %0x\n", i, info[i]);
     }
   }
@@ -79,7 +80,7 @@ void CpuId::Init() {
 
   GetCpuId(0x80000001, info);
   if (FLAG_trace_cpuid) {
-    for (intptr_t i = 0; i < 3; i++) {
+    for (intptr_t i = 0; i < info_length; i++) {
       OS::PrintErr("cpuid(0x80000001) info[%" Pd "]: %0x\n", i, info[i]);
     }
   }
@@ -95,7 +96,7 @@ void CpuId::Init() {
   for (uint32_t i = 0; i < 2; i++) {
     GetCpuId(0x80000002U + i, info);
     if (FLAG_trace_cpuid) {
-      for (intptr_t j = 0; j < 3; j++) {
+      for (intptr_t j = 0; j < info_length; j++) {
         OS::PrintErr("cpuid(0x80000002U + %u) info[%" Pd "]: %0x\n", i, j,
                      info[j]);
       }
