@@ -1911,6 +1911,11 @@ class DartFixKind {
     DartFixKindPriority.IN_FILE,
     "Use x.isNotEmpty instead of '!x.isEmpty' everywhere in file",
   );
+  static const USE_NAMED_CONSTANTS = FixKind(
+    'dart.fix.use.namedConstants',
+    DartFixKindPriority.DEFAULT,
+    'Replace with a predefined named constant'
+  );
   static const USE_NOT_EQ_NULL = FixKind(
     'dart.fix.use.notEqNull',
     DartFixKindPriority.DEFAULT,

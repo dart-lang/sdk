@@ -205,6 +205,7 @@ import 'package:analysis_server/src/services/correction/dart/replace_with_identi
 import 'package:analysis_server/src/services/correction/dart/replace_with_interpolation.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_is_empty.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_is_nan.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_with_named_constant.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_not_null_aware.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_null_aware.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_part_of_uri.dart';
@@ -646,6 +647,9 @@ final _builtInLintProducers = <String, List<ProducerGenerator>>{
   ],
   LintNames.use_key_in_widget_constructors: [
     AddKeyToConstructors.new,
+  ],
+  LintNames.use_named_constants: [
+    ReplaceWithNamedConstant.new,
   ],
   LintNames.use_raw_strings: [
     ConvertToRawString.new,
