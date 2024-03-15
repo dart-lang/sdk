@@ -1472,7 +1472,7 @@ class FastaCommandOutput extends CompilationCommandOutput
   /// The test runner only validates the first line of the message, and not the
   /// suggested fixes.
   static final _errorRegexp = RegExp(
-      r"^(?:([^:]+):(\d+):(\d+): )?(Context|Error|Warning): (.*)$",
+      r"^(?:([^:\n\r]+):(\d+):(\d+): )?(Context|Error|Warning): (.*)$",
       multiLine: true);
 
   FastaCommandOutput(super.command, super.exitCode, super.hasTimedOut,
