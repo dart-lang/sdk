@@ -7,102 +7,239 @@ library allowed_external_member_type_test;
 
 import 'dart:js_interop';
 
+import 'package:js/js.dart' as pkgJs;
+
+@pkgJs.JS()
+class PkgJS {}
+
+@pkgJs.JS()
+@pkgJs.anonymous
+class Anonymous {}
+
+// Test `@staticInterop`, interop extension type, and top-level external
+// members.
+
 @JS()
 @staticInterop
-class JSClass {
-  external factory JSClass(List<int> baz);
+class StaticInterop {
+  external factory StaticInterop(_);
   //               ^
-  // [web] Type 'List<int>' is not a valid type in the signature of 'dart:js_interop' external APIs or APIs converted via 'toJS'.
+  // [web] External JS interop member contains invalid types in its function signature: 'StaticInterop Function(*dynamic*)'.
 
-  external factory JSClass.other(Object blu);
-  //               ^
-  // [web] Type 'Object' is not a valid type in the signature of 'dart:js_interop' external APIs or APIs converted via 'toJS'.
-
-  external static dynamic foo();
+  external static dynamic method();
   //                      ^
-  // [web] Type 'dynamic' is not a valid type in the signature of 'dart:js_interop' external APIs or APIs converted via 'toJS'.
+  // [web] External JS interop member contains invalid types in its function signature: '*dynamic* Function()'.
 
-  external static Function get fooGet;
+  external static Object field;
+  //                     ^
+  // [web] External JS interop member contains an invalid type: 'Object'.
+
+  external static Function get getter;
   //                           ^
-  // [web] Type 'Function' is not a valid type in the signature of 'dart:js_interop' external APIs or APIs converted via 'toJS'.
+  // [web] External JS interop member contains an invalid type: 'Function'.
 
-  external static set fooSet(void Function() bar);
+  external static set setter(void Function() _);
   //                  ^
-  // [web] Type 'void Function()' is not a valid type in the signature of 'dart:js_interop' external APIs or APIs converted via 'toJS'.
+  // [web] External JS interop member contains an invalid type: 'void Function()'.
 }
 
-extension JSClassExtension on JSClass {
-  external dynamic extFoo();
-  //               ^
-  // [web] Type 'dynamic' is not a valid type in the signature of 'dart:js_interop' external APIs or APIs converted via 'toJS'.
+extension JSClassExtension on StaticInterop {
+  external void method(List _);
+  //            ^
+  // [web] External JS interop member contains invalid types in its function signature: 'void Function(*List<dynamic>*)'.
 
-  external JSClass extFoo2(List<Object?> bar);
-  //               ^
-  // [web] Type 'List<Object?>' is not a valid type in the signature of 'dart:js_interop' external APIs or APIs converted via 'toJS'.
+  external List<Object?> field;
+  //                     ^
+  // [web] External JS interop member contains an invalid type: 'List<Object?>'.
 
-  external Function get extFooGet;
-  //                    ^
-  // [web] Type 'Function' is not a valid type in the signature of 'dart:js_interop' external APIs or APIs converted via 'toJS'.
+  external PkgJS get getter;
+  //                 ^
+  // [web] External JS interop member contains an invalid type: 'PkgJS'.
 
-  external set extFooSet(void Function() bar);
+  external set setter(Anonymous _);
   //           ^
-  // [web] Type 'void Function()' is not a valid type in the signature of 'dart:js_interop' external APIs or APIs converted via 'toJS'.
+  // [web] External JS interop member contains an invalid type: 'Anonymous'.
+  external Future operator [](List _);
+  //                       ^
+  // [web] External JS interop member contains invalid types in its function signature: '*Future<dynamic>* Function(*List<dynamic>*)'.
+  external void operator []=(List _, Future __);
+  //                     ^
+  // [web] External JS interop member contains invalid types in its function signature: 'void Function(*List<dynamic>*, *Future<dynamic>*)'.
 }
 
 @JS()
-extension type ExtensionType(JSObject _) {}
+@staticInterop
+@anonymous
+class AnonymousStaticInterop {
+  external factory AnonymousStaticInterop({Future a});
+  //               ^
+  // [web] External JS interop member contains invalid types in its function signature: 'AnonymousStaticInterop Function({*a: Future<dynamic>*})'.
+}
 
 @JS()
-external void jsFunctionTest(JSFunction foo);
+extension type ExtensionType._(JSObject _) {
+  external ExtensionType(Map _);
+  //       ^
+  // [web] External JS interop member contains invalid types in its function signature: 'ExtensionType Function(*Map<dynamic, dynamic>*)'.
+  external ExtensionType.constructor({Future a});
+  //       ^
+  // [web] External JS interop member contains invalid types in its function signature: 'ExtensionType Function({*a: Future<dynamic>*})'.
+  external factory ExtensionType.factory(_);
+  //               ^
+  // [web] External JS interop member contains invalid types in its function signature: 'ExtensionType Function(*dynamic*)'.
 
-@JS()
-external void useStaticInteropClass(JSClass foo);
+  external static dynamic staticMethod();
+  //                      ^
+  // [web] External JS interop member contains invalid types in its function signature: '*dynamic* Function()'.
 
-@JS()
-external void useStaticInteropExtensionType(ExtensionType foo);
+  external static Object? staticField;
+  //                      ^
+  // [web] External JS interop member contains an invalid type: 'Object?'.
 
-void declareTypeParameter<T extends JSAny?>() {}
+  external static Function get staticGetter;
+  //                           ^
+  // [web] External JS interop member contains an invalid type: 'Function'.
 
-T declareAndUseTypeParameter<T extends JSAny?>(T t) => t;
-
-T declareAndUseInvalidTypeParameter<T>(T t) => t;
-
-void main() {
-  ((double foo) => 4.0.toJS).toJS;
-
-  ((JSNumber foo) => 4.0).toJS;
-
-  ((List foo) => 4.0).toJS;
+  external static set staticSetter(void Function() _);
   //                  ^
-  // [web] Type 'List<dynamic>' is not a valid type in the signature of 'dart:js_interop' external APIs or APIs converted via 'toJS'.
+  // [web] External JS interop member contains an invalid type: 'void Function()'.
+  external void method(List _);
+  //            ^
+  // [web] External JS interop member contains invalid types in its function signature: 'void Function(*List<dynamic>*)'.
 
-  ((JSNumber foo) => () {}).toJS;
-  //                        ^
-  // [web] Type 'Null Function()' is not a valid type in the signature of 'dart:js_interop' external APIs or APIs converted via 'toJS'.
+  external List<Object?> field;
+  //                     ^
+  // [web] External JS interop member contains an invalid type: 'List<Object?>'.
 
-  ((((JSNumber foo) => 4.0) as dynamic) as Function).toJS;
-  //                                                 ^
+  external PkgJS get getter;
+  //                 ^
+  // [web] External JS interop member contains an invalid type: 'PkgJS'.
+
+  external set setter(Anonymous _);
+  //           ^
+  // [web] External JS interop member contains an invalid type: 'Anonymous'.
+  external Future operator [](List _);
+  //                       ^
+  // [web] External JS interop member contains invalid types in its function signature: '*Future<dynamic>* Function(*List<dynamic>*)'.
+  external void operator []=(List _, Future __);
+  //                     ^
+  // [web] External JS interop member contains invalid types in its function signature: 'void Function(*List<dynamic>*, *Future<dynamic>*)'.
+}
+
+extension ExtensionTypeExtension on ExtensionType {
+  external void extensionMethod(List _);
+  //            ^
+  // [web] External JS interop member contains invalid types in its function signature: 'void Function(*List<dynamic>*)'.
+
+  external List<Object?> extensionField;
+  //                     ^
+  // [web] External JS interop member contains an invalid type: 'List<Object?>'.
+
+  external PkgJS get extensionGetter;
+  //                 ^
+  // [web] External JS interop member contains an invalid type: 'PkgJS'.
+
+  external set extensionSetter(Anonymous _);
+  //           ^
+  // [web] External JS interop member contains an invalid type: 'Anonymous'.
+}
+
+@JS()
+external void method(List _);
+//            ^
+// [web] External JS interop member contains invalid types in its function signature: 'void Function(*List<dynamic>*)'.
+
+@JS()
+external List<Object?> field;
+//                     ^
+// [web] External JS interop member contains an invalid type: 'List<Object?>'.
+
+@JS()
+external PkgJS get getter;
+//                 ^
+// [web] External JS interop member contains an invalid type: 'PkgJS'.
+
+@JS()
+external set setter(Anonymous _);
+//           ^
+// [web] External JS interop member contains an invalid type: 'Anonymous'.
+
+@JS()
+external void optionalParameters(List _, [Anonymous __]);
+//            ^
+// [web] External JS interop member contains invalid types in its function signature: 'void Function(*List<dynamic>*, *Anonymous*)'.
+
+// While users can't use both positional and named parameters, make sure that
+// the error around invalid types is still accurate.
+@JS()
+external void positionalAndNamedParameters(List _, {Anonymous a});
+//            ^
+// [web] External JS interop member contains invalid types in its function signature: 'void Function(*List<dynamic>*, {*a: Anonymous*})'.
+//                                                            ^
+// [web] Named parameters for JS interop functions are only allowed in object literal constructors or @anonymous factories.
+
+// Allowed types.
+
+@JS()
+external JSString jsTypeMethod(JSFunction _);
+
+@JS()
+external StaticInterop staticInteropTypeMethod(StaticInterop _);
+
+@JS()
+external ExtensionType interopExtensionTypeMethod(ExtensionType _);
+
+@JS()
+external void primitivesMethod(num a, int b, double c, bool d, String e);
+
+void functionToJSTest<T extends JSAny, U extends ExtensionType,
+    V extends StaticInterop, W, Y>() {
+  // Test `toJS` conversions of functions.
+  ((double _) => 4.0.toJS).toJS;
+
+  ((JSArray _) => '').toJS;
+
+  () {}.toJS;
+
+  (_) {}.toJS;
+  //     ^
+  // [web] Function converted via 'toJS' contains invalid types in its function signature: 'Null Function(*dynamic*)'.
+
+  ((List _) => 4.0).toJS;
+  //                ^
+  // [web] Function converted via 'toJS' contains invalid types in its function signature: 'double Function(*List<dynamic>*)'.
+
+  ((JSNumber _) => () {}).toJS;
+  //                      ^
+  // [web] Function converted via 'toJS' contains invalid types in its function signature: '*Null Function()* Function(JSNumber)'.
+
+  ((((JSNumber _) => 4.0) as dynamic) as Function).toJS;
+  //                                               ^
   // [web] `Function.toJS` requires a statically known function type, but Type 'Function' is not a precise function type, e.g., `void Function()`.
 
-  void typeParametersTest<T extends JSAny, U extends ExtensionType,
-      V extends JSClass, W, Y>() {
-    ((T t) => t).toJS;
-    ((U u) => u).toJS;
-    ((V v) => v).toJS;
-    ((W w) => w as Y).toJS;
-    //                ^
-    // [web] Type 'W' is not a valid type in the signature of 'dart:js_interop' external APIs or APIs converted via 'toJS'.
-    // [web] Type 'Y' is not a valid type in the signature of 'dart:js_interop' external APIs or APIs converted via 'toJS'.
+  ((T t) => t).toJS;
+  ((U u) => u).toJS;
+  ((V v) => v).toJS;
+  ((W w) => w as Y).toJS;
+  //                ^
+  // [web] Function converted via 'toJS' contains invalid types in its function signature: '*Y* Function(*W*)'.
 
-    declareTypeParameter.toJS;
-    //                   ^
-    // [web] Functions converted via `toJS` cannot declare type parameters.
-    declareAndUseTypeParameter.toJS;
-    //                         ^
-    // [web] Functions converted via `toJS` cannot declare type parameters.
-    declareAndUseInvalidTypeParameter.toJS;
-    //                                ^
-    // [web] Functions converted via `toJS` cannot declare type parameters.
-    // [web] Type 'T' is not a valid type in the signature of 'dart:js_interop' external APIs or APIs converted via 'toJS'.
-  }
+  void declareTypeParameter<T extends JSAny?>() {}
+
+  T declareAndUseTypeParameter<T extends JSAny?>(T t) => t;
+
+  T declareAndUseInvalidTypeParameter<T>(T t) => t;
+
+  declareTypeParameter.toJS;
+  //                   ^
+  // [web] Functions converted via `toJS` cannot declare type parameters.
+  declareAndUseTypeParameter.toJS;
+  //                         ^
+  // [web] Functions converted via `toJS` cannot declare type parameters.
+  declareAndUseInvalidTypeParameter.toJS;
+  //                                ^
+  // [web] Function converted via 'toJS' contains invalid types in its function signature: '*T* Function(*T*)'.
+  // [web] Functions converted via `toJS` cannot declare type parameters.
 }
+
+void main() {}

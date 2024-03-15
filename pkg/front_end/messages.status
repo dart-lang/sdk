@@ -670,8 +670,12 @@ JsInteropOperatorCannotBeRenamed/analyzerCode: Fail # Web compiler specific
 JsInteropOperatorCannotBeRenamed/example: Fail # Web compiler specific
 JsInteropOperatorsNotSupported/analyzerCode: Fail # Web compiler specific
 JsInteropOperatorsNotSupported/example: Fail # Web compiler specific
-JsInteropStaticInteropExternalTypeViolation/analyzerCode: Fail # Web compiler specific
-JsInteropStaticInteropExternalTypeViolation/example: Fail # Web compiler specific
+JsInteropStaticInteropExternalAccessorTypeViolation/analyzerCode: Fail # Web compiler specific
+JsInteropStaticInteropExternalAccessorTypeViolation/example: Fail # Web compiler specific
+JsInteropStaticInteropExternalFunctionTypeViolation/analyzerCode: Fail # Web compiler specific
+JsInteropStaticInteropExternalFunctionTypeViolation/example: Fail # Web compiler specific
+JsInteropStaticInteropToJSFunctionTypeViolation/analyzerCode: Fail # Web compiler specific
+JsInteropStaticInteropToJSFunctionTypeViolation/example: Fail # Web compiler specific
 JsInteropStaticInteropGenerativeConstructor/analyzerCode: Fail # Web compiler specific
 JsInteropStaticInteropGenerativeConstructor/example: Fail # Web compiler specific
 JsInteropStaticInteropMockMissingGetterOrSetter/analyzerCode: Fail # Web compiler specific
