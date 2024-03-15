@@ -7,7 +7,6 @@
 //
 // VMOptions=--dwarf-stack-traces --resolve-dwarf-paths --save-debugging-info=$TEST_COMPILATION_DIR/debug.so
 
-import "dart:async";
 import "dart:io";
 
 import 'package:expect/expect.dart';

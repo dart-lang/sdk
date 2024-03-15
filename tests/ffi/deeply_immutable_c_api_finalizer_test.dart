@@ -4,7 +4,6 @@
 
 // SharedObjects=ffi_test_functions
 
-import 'dart:async';
 import 'dart:ffi';
 import 'dart:isolate';
 

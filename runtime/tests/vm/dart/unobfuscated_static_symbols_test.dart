@@ -10,12 +10,9 @@
 // OtherResources=use_save_debugging_info_flag_program.dart
 
 import "dart:io";
-import "dart:math";
-import "dart:typed_data";
 
 import 'package:expect/expect.dart';
 import 'package:native_stack_traces/elf.dart';
-import 'package:native_stack_traces/native_stack_traces.dart';
 import 'package:native_stack_traces/src/dwarf_container.dart';
 import 'package:native_stack_traces/src/macho.dart';
 import 'package:path/path.dart' as path;

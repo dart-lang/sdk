@@ -9,7 +9,6 @@
 import 'dart:ffi';
 
 import 'package:expect/expect.dart';
-import 'package:ffi/ffi.dart';
 import 'package:vm/testing/il_matchers.dart';
 
 @pragma('vm:never-inline')

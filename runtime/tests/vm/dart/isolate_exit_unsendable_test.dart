@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 import 'dart:isolate';
-import 'dart:nativewrappers';
 
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';

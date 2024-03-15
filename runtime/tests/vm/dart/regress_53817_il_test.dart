@@ -5,7 +5,6 @@
 // Check that CreateArray has a proper type (with type arguments) attached
 // to it.
 
-import 'dart:async';
 import 'package:vm/testing/il_matchers.dart';
 
 final class A {}

@@ -9,12 +9,9 @@
 // Check that subprocess spawning implementation uses _exit rather than exit on
 // paths which terminate fork child without exec-ing.
 
-import 'dart:async';
 import 'dart:ffi';
 import 'dart:io';
-import 'dart:isolate';
 
-import "package:expect/expect.dart";
 import '../../../../tests/ffi/dylib_utils.dart';
 
 final ffiTestFunctions = dlopenPlatformSpecific('ffi_test_functions');
