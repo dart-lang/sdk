@@ -59,6 +59,8 @@ advantage of these improvements, set your package's
   `ignored_advisories` section in the `pubspec.yaml` file. To learn more about
   pub's support for security advisories, visit
   [dart.dev/go/pub-security-advisories][pub-security-advisories].
+- `path`-dependencies inside `git`-dependencies are now resolved relative to the git
+  repo.
 - New command `dart pub unpack` that downloads a package from pub.dev and
   extracts it to a subfolder of the current directory.
 
