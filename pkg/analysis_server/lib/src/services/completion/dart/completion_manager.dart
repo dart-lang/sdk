@@ -290,6 +290,12 @@ class DartCompletionRequest {
 
   bool _aborted = false;
 
+  /// Return `true` if the completion is occurring in a constant context.
+  late final bool inConstantContext = () {
+    var entity = target.entity;
+    return entity is Expression && entity.inConstantContext;
+  }();
+
   factory DartCompletionRequest({
     required AnalysisSession analysisSession,
     required String filePath,
@@ -385,12 +391,6 @@ class DartCompletionRequest {
   /// Return `true` if free standing identifiers should be suggested
   bool get includeIdentifiers {
     return opType.includeIdentifiers;
-  }
-
-  /// Return `true` if the completion is occurring in a constant context.
-  bool get inConstantContext {
-    var entity = target.entity;
-    return entity is Expression && entity.inConstantContext;
   }
 
   InheritanceManager3 get inheritanceManager {
