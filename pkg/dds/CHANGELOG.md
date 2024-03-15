@@ -1,4 +1,4 @@
-# 3.3.0-unreleased
+# 3.3.0
 - **Breaking change:** [DAP] Several signatures in DAP debug adapter classes have been updated to use `Uri`s where they previously used `String path`s. This is to support communicating with the DAP client using URIs instead of file paths. URIs may be used only when the client sets the custom `supportsDartUris` client capability during initialization.
 - [DAP] Added support for using mapping `dart-macro+file:///` URIs in communication with the client if the `supportsDartUris` flag is set in arguments for `initializeRequest`.
 - Fixed issue where DDS would fail to initialize when an isolate in the target process was unable to handle service requests (b/323386606).
