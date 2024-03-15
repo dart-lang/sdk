@@ -5,9 +5,9 @@
 /// A collection of utility methods used by completion contributors.
 library;
 
-import 'package:analysis_server/src/protocol_server.dart'
-    show CompletionSuggestion, Location;
+import 'package:analysis_server/src/protocol_server.dart' show Location;
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
+import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -23,7 +23,7 @@ const DYNAMIC = 'dynamic';
 
 /// Sort by relevance first, highest to lowest, and then by the completion
 /// alphabetically.
-Comparator<CompletionSuggestion> completionComparator = (a, b) {
+Comparator<CompletionSuggestionBuilder> completionComparator = (a, b) {
   if (a.relevance == b.relevance) {
     return a.completion.compareTo(b.completion);
   }
