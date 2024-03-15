@@ -3583,7 +3583,8 @@ class AstBuilder extends StackListener {
             // await y.bar();
             {
               var awaitToken = variable.name;
-              if (awaitToken.type == Keyword.AWAIT) {
+              if (awaitToken.type == Keyword.AWAIT ||
+                  awaitToken.type == TokenType.IDENTIFIER) {
                 push(
                   ExpressionStatementImpl(
                     expression: PrefixedIdentifierImpl(

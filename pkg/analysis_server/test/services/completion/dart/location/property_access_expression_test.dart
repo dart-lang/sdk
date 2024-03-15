@@ -94,6 +94,24 @@ suggestions
   }
 
   Future<void> test_afterIdentifier_beforeIdentifier_partial() async {
+    await computeSuggestions('''
+void f(String x) {
+  x.len^
+  foo();
+}
+''');
+    allowedIdentifiers = {'length'};
+    assertResponse(r'''
+replacement
+  left: 3
+suggestions
+  length
+    kind: getter
+''');
+  }
+
+  Future<void>
+      test_afterIdentifier_beforeIdentifier_partial_importPrefix() async {
     newFile('$testPackageLibPath/a.dart', r'''
 void v01() {}
 void g01() {}
