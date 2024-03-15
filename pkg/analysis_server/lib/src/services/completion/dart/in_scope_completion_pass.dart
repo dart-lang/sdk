@@ -2685,7 +2685,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         case IfStatement declaration:
           if (declaration.elseKeyword == null) {
             keywordHelper.addKeyword(Keyword.ELSE);
-            return true;
+            return false;
           }
         case TryStatement declaration:
           if (declaration.finallyBlock == null) {

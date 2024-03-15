@@ -632,6 +632,25 @@ suggestions
 ''');
   }
 
+  Future<void> test_afterIfWithoutElse_beforeAwait_partial() async {
+    await computeSuggestions('''
+void f(int e01) async {
+  if (false) {}
+  e^
+  await 0;
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  e01
+    kind: parameter
+  else
+    kind: keyword
+''');
+  }
+
   Future<void> test_afterIfWithoutElse_beforeRightBrace() async {
     await computeSuggestions('''
 void f() { if (true) {} ^ }
