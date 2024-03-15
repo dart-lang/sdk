@@ -85,13 +85,9 @@ static method returnBoxedNullableX() → dynamic
   return [@vm.inferred-type.metadata=dart.core::bool] self::kTrue ?{self::X?} new self::X::•() : null;
 static method returnBoxedX() → dynamic
   return new self::X::•();
-
-[@vm.unboxing-info.metadata=[!regcc]]
 @#C3
 static method returnBoxedSmiFromEntryPoint() → core::int
   return [@vm.inferred-type.metadata=dart.core::bool] self::kTrue ?{core::int} 1 : 2;
-
-[@vm.unboxing-info.metadata=[!regcc]]
 @#C3
 static method takeBoxedSmiFromEntryPoint(core::int value) → void {}
 static method main() → dynamic {

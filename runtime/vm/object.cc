@@ -100,10 +100,6 @@ DEFINE_FLAG(bool,
             false,
             "Remove script timestamps to allow for deterministic testing.");
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-DEFINE_FLAG(bool, use_register_cc, true, "Use register calling conventions");
-#endif
-
 DECLARE_FLAG(bool, intrinsify);
 DECLARE_FLAG(bool, trace_deoptimization);
 DECLARE_FLAG(bool, trace_deoptimization_verbose);
@@ -27577,49 +27573,6 @@ ErrorPtr EntryPointMemberInvocationError(const Object& member) {
   OS::PrintErr("%s", error);
   return ApiError::New(String::Handle(String::New(error)));
 }
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
-// Note: see also [NeedsDynamicInvocationForwarder] which ensures that we
-// never land in a function which expects parameters in registers from a
-// dynamic call site.
-bool Function::CanUseRegisterCallingConvention(Zone* zone) const {
-#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64) ||                  \
-    defined(TARGET_ARCH_ARM)
-  if (!FLAG_precompiled_mode) {
-    return false;
-  }
-
-  if (!FLAG_use_register_cc) {
-    return false;
-  }
-
-  if (IsGeneric()) {
-    return false;
-  }
-
-  switch (kind()) {
-    case UntaggedFunction::kClosureFunction:
-    case UntaggedFunction::kImplicitClosureFunction:
-    case UntaggedFunction::kNoSuchMethodDispatcher:
-    case UntaggedFunction::kInvokeFieldDispatcher:
-    case UntaggedFunction::kDynamicInvocationForwarder:
-    case UntaggedFunction::kMethodExtractor:
-    case UntaggedFunction::kFfiTrampoline:
-    case UntaggedFunction::kFieldInitializer:
-    case UntaggedFunction::kIrregexpFunction:
-      return false;
-
-    default:
-      break;
-  }
-
-  const auto unboxing_metadata = kernel::UnboxingInfoMetadataOf(*this, zone);
-  return unboxing_metadata == nullptr ||
-         !unboxing_metadata->must_use_stack_calling_convention;
-#endif
-  return false;
-}
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 ErrorPtr Function::VerifyCallEntryPoint() const {
   if (!FLAG_verify_entry_points) return Error::null();

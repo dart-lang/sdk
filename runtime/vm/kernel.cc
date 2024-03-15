@@ -689,10 +689,6 @@ bool NeedsDynamicInvocationForwarder(const Function& function) {
     return true;
   }
 
-  if (function.CanUseRegisterCallingConvention(zone)) {
-    return true;
-  }
-
   // There are no parameters to type check for getters and if the return value
   // is boxed, then the dyn:* forwarder is not needed.
   if (function.IsImplicitGetterFunction()) {

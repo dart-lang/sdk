@@ -7,8 +7,6 @@ class A extends core::Object {
   constructor •() → self::A
     : super core::Object::•()
     ;
-
-  [@vm.unboxing-info.metadata=[!regcc]]
   @#C3
   static factory foo() → self::A /* redirection-target: self::B::• */
     return new self::B::•();
@@ -22,8 +20,6 @@ abstract class C extends core::Object {
   constructor •() → self::C
     : super core::Object::•()
     ;
-
-  [@vm.unboxing-info.metadata=[!regcc]]
   @#C3
   static factory bar() → self::C /* redirection-target: self::D::baz */
     return [@vm.inferred-type.metadata=#lib::E] self::D::baz();

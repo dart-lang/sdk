@@ -4,10 +4,7 @@
 
 #include "vm/compiler/backend/flow_graph.h"
 
-#include <array>
-
 #include "vm/bit_vector.h"
-#include "vm/compiler/backend/dart_calling_conventions.h"
 #include "vm/compiler/backend/flow_graph_compiler.h"
 #include "vm/compiler/backend/il.h"
 #include "vm/compiler/backend/il_printer.h"
@@ -46,8 +43,7 @@ FlowGraph::FlowGraph(const ParsedFunction& parsed_function,
       num_direct_parameters_(parsed_function.function().MakesCopyOfParameters()
                                  ? 0
                                  : parsed_function.function().NumParameters()),
-      direct_parameter_locations_(
-          parsed_function.function().num_fixed_parameters()),
+      direct_parameters_size_(0),
       graph_entry_(graph_entry),
       preorder_(),
       postorder_(),
@@ -64,11 +60,9 @@ FlowGraph::FlowGraph(const ParsedFunction& parsed_function,
       should_print_(false) {
   should_print_ = FlowGraphPrinter::ShouldPrint(parsed_function.function(),
                                                 &compiler_pass_filters_);
-  ComputeLocationsOfFixedParameters(
-      zone(), function(),
-      /*should_assign_stack_locations=*/
-      !parsed_function.function().MakesCopyOfParameters(),
-      &direct_parameter_locations_);
+
+  direct_parameters_size_ = ParameterOffsetAt(
+      function(), num_direct_parameters_, /*last_slot*/ false);
   DiscoverBlocks();
 }
 
@@ -78,17 +72,75 @@ void FlowGraph::EnsureSSATempIndex(Definition* defn, Definition* replacement) {
   }
 }
 
-intptr_t FlowGraph::ComputeArgumentsSizeInWords(const Function& function,
-                                                intptr_t argument_count) {
-  ASSERT(function.num_fixed_parameters() <= argument_count);
-  ASSERT(argument_count <= function.NumParameters());
+// When updating this check also [ParameterOffsetAt] and
+// [PopulateEnvironmentFromFunctionEntry]
+Location FlowGraph::ParameterLocationAt(const Function& function,
+                                        intptr_t index) {
+  ASSERT(index <= function.NumParameters());
+  intptr_t offset_in_words_from_caller_sp = 0;
+  for (intptr_t i = function.NumParameters() - 1; i > index; i--) {
+    if (function.is_unboxed_integer_parameter_at(i)) {
+      offset_in_words_from_caller_sp += compiler::target::kIntSpillFactor;
+    } else if (function.is_unboxed_double_parameter_at(i)) {
+      offset_in_words_from_caller_sp += compiler::target::kDoubleSpillFactor;
+    } else {
+      ASSERT(!function.is_unboxed_parameter_at(i));
+      // Boxed parameters occupy one word.
+      offset_in_words_from_caller_sp++;
+    }
+  }
 
-  const intptr_t fixed_parameters_size_in_bytes =
-      ComputeLocationsOfFixedParameters(Thread::Current()->zone(), function);
+  const auto offset_in_words_from_fp =
+      offset_in_words_from_caller_sp +
+      compiler::target::frame_layout.param_end_from_fp + 1;
 
-  // Currently we box all optional parameters.
-  return fixed_parameters_size_in_bytes +
-         (argument_count - function.num_fixed_parameters());
+  if (function.is_unboxed_double_parameter_at(index)) {
+    return Location::DoubleStackSlot(offset_in_words_from_fp, FPREG);
+  } else if (function.is_unboxed_integer_parameter_at(index)) {
+    if (compiler::target::kIntSpillFactor == 1) {
+      return Location::StackSlot(offset_in_words_from_fp, FPREG);
+    } else {
+      ASSERT(compiler::target::kIntSpillFactor == 2);
+      return Location::Pair(
+          Location::StackSlot(offset_in_words_from_fp, FPREG),
+          Location::StackSlot(offset_in_words_from_fp + 1, FPREG));
+    }
+  } else {
+    return Location::StackSlot(offset_in_words_from_fp, FPREG);
+  }
+}
+
+// When updating this check also [ParameterLocationAt] and
+// [PopulateEnvironmentFromFunctionEntry]
+intptr_t FlowGraph::ParameterOffsetAt(const Function& function,
+                                      intptr_t index,
+                                      bool last_slot /*=true*/) {
+  ASSERT(index <= function.NumParameters());
+  intptr_t param_offset = 0;
+  for (intptr_t i = 0; i < index; i++) {
+    if (function.is_unboxed_integer_parameter_at(i)) {
+      param_offset += compiler::target::kIntSpillFactor;
+    } else if (function.is_unboxed_double_parameter_at(i)) {
+      param_offset += compiler::target::kDoubleSpillFactor;
+    } else {
+      ASSERT(!function.is_unboxed_parameter_at(i));
+      // Boxed parameters occupy one word.
+      param_offset++;
+    }
+  }
+  if (last_slot) {
+    ASSERT(index < function.NumParameters());
+    if (function.is_unboxed_double_parameter_at(index) &&
+        compiler::target::kDoubleSpillFactor > 1) {
+      ASSERT(compiler::target::kDoubleSpillFactor == 2);
+      param_offset++;
+    } else if (function.is_unboxed_integer_parameter_at(index) &&
+               compiler::target::kIntSpillFactor > 1) {
+      ASSERT(compiler::target::kIntSpillFactor == 2);
+      param_offset++;
+    }
+  }
+  return param_offset;
 }
 
 Representation FlowGraph::ParameterRepresentationAt(const Function& function,
@@ -1158,7 +1210,12 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
   env.FillWith(constant_dead(), 0, num_direct_parameters());
   env.FillWith(constant_null(), num_direct_parameters(), num_stack_locals());
 
-  if (entry->catch_entries().is_empty()) {
+  if (entry->catch_entries().length() > 0) {
+    // Functions with try-catch have a fixed area of stack slots reserved
+    // so that all local variables are stored at a known location when
+    // on entry to the catch.
+    entry->set_fixed_slot_count(num_stack_locals());
+  } else {
     ASSERT(entry->unchecked_entry() != nullptr ? entry->SuccessorCount() == 2
                                                : entry->SuccessorCount() == 1);
   }
@@ -1186,21 +1243,8 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
 #endif  // defined(DEBUG)
 }
 
-intptr_t FlowGraph::ComputeLocationsOfFixedParameters(
-    Zone* zone,
-    const Function& function,
-    bool should_assign_stack_locations /* = false */,
-    compiler::ParameterInfoArray* parameter_info /* = nullptr */) {
-  return compiler::ComputeCallingConvention(
-      zone, function, function.num_fixed_parameters(),
-      [&](intptr_t i) {
-        const intptr_t index = (function.IsFactory() ? (i - 1) : i);
-        return index >= 0 ? ParameterRepresentationAt(function, index)
-                          : kTagged;
-      },
-      should_assign_stack_locations, parameter_info);
-}
-
+// When updating this check also [ParameterLocationAt] and
+// [ParameterOffsetAt].
 void FlowGraph::PopulateEnvironmentFromFunctionEntry(
     FunctionEntryInstr* function_entry,
     GrowableArray<Definition*>* env,
@@ -1208,34 +1252,55 @@ void FlowGraph::PopulateEnvironmentFromFunctionEntry(
     VariableLivenessAnalysis* variable_liveness,
     ZoneGrowableArray<Definition*>* inlining_parameters) {
   ASSERT(!IsCompiledForOsr());
+  const intptr_t direct_parameter_count = num_direct_parameters_;
 
   // Check if inlining_parameters include a type argument vector parameter.
   const intptr_t inlined_type_args_param =
       ((inlining_parameters != nullptr) && function().IsGeneric()) ? 1 : 0;
 
   ASSERT(variable_count() == env->length());
-  ASSERT(function().num_fixed_parameters() <= env->length());
+  ASSERT(direct_parameter_count <= env->length());
 
-  const bool copies_parameters = function().MakesCopyOfParameters();
-  for (intptr_t i = 0; i < function().num_fixed_parameters(); i++) {
-    const auto& [location, representation] = direct_parameter_locations_[i];
-    if (location.IsInvalid()) {
-      ASSERT(function().MakesCopyOfParameters());
-      continue;
+  intptr_t offset_in_words_from_fp =
+      (compiler::target::frame_layout.param_end_from_fp + 1) +
+      direct_parameters_size_;
+  for (intptr_t i = 0; i < direct_parameter_count; i++) {
+    ASSERT(FLAG_precompiled_mode || !function().is_unboxed_parameter_at(i));
+
+    const intptr_t index = (function().IsFactory() ? (i - 1) : i);
+
+    Representation rep;
+    Location location;
+
+    if (index >= 0 && function().is_unboxed_integer_parameter_at(index)) {
+      rep = kUnboxedInt64;
+      offset_in_words_from_fp -= compiler::target::kIntSpillFactor;
+      if (compiler::target::kIntSpillFactor == 1) {
+        location = Location::StackSlot(offset_in_words_from_fp, FPREG);
+      } else {
+        ASSERT(compiler::target::kIntSpillFactor == 2);
+        location = Location::Pair(
+            Location::StackSlot(offset_in_words_from_fp, FPREG),
+            Location::StackSlot(offset_in_words_from_fp + 1, FPREG));
+      }
+    } else if (index >= 0 && function().is_unboxed_double_parameter_at(index)) {
+      rep = kUnboxedDouble;
+      offset_in_words_from_fp -= compiler::target::kDoubleSpillFactor;
+      location = Location::DoubleStackSlot(offset_in_words_from_fp, FPREG);
+    } else {
+      ASSERT(index < 0 || !function().is_unboxed_parameter_at(index));
+      rep = kTagged;
+      offset_in_words_from_fp -= 1;
+      location = Location::StackSlot(offset_in_words_from_fp, FPREG);
     }
 
-    const intptr_t env_index =
-        copies_parameters ? EnvIndex(parsed_function_.RawParameterVariable(i))
-                          : i;
-
-    auto param = new (zone())
-        ParameterInstr(function_entry,
-                       /*env_index=*/env_index,
-                       /*param_index=*/i, location, representation);
+    auto param = new (zone()) ParameterInstr(function_entry,
+                                             /*env_index=*/i,
+                                             /*param_index=*/i, location, rep);
 
     AllocateSSAIndex(param);
     AddToInitialDefinitions(function_entry, param);
-    (*env)[env_index] = param;
+    (*env)[i] = param;
   }
 
   // Override the entries in the renaming environment which are special (i.e.
@@ -1340,7 +1405,6 @@ void FlowGraph::PopulateEnvironmentFromCatchEntry(
 
   // Add real definitions for all locals and parameters.
   ASSERT(variable_count() == env->length());
-  intptr_t additional_slots = 0;
   for (intptr_t i = 0, n = variable_count(); i < n; ++i) {
     // Local variables will arive on the stack while exception and
     // stack trace will be passed in fixed registers.
@@ -1350,22 +1414,7 @@ void FlowGraph::PopulateEnvironmentFromCatchEntry(
     } else if (raw_stacktrace_var_envindex == i) {
       loc = LocationStackTraceLocation();
     } else {
-      if (i < num_direct_parameters()) {
-        const auto [param_loc, param_rep] = GetDirectParameterInfoAt(i);
-        if (param_rep == kTagged && param_loc.IsStackSlot()) {
-          loc = param_loc;
-        } else {
-          // We can not reuse parameter location for synchronization purposes
-          // because it is either a register location or it is untagged
-          // location. This means we need to allocate additional slot
-          // for synchronization above slots reserved for other variables.
-          loc = EnvIndexToStackLocation(num_direct_parameters(),
-                                        n + additional_slots);
-          additional_slots++;
-        }
-      } else {
-        loc = EnvIndexToStackLocation(num_direct_parameters(), i);
-      }
+      loc = EnvIndexToStackLocation(num_direct_parameters(), i);
     }
     auto param = new (Z) ParameterInstr(
         catch_entry, /*env_index=*/i,
@@ -1375,10 +1424,6 @@ void FlowGraph::PopulateEnvironmentFromCatchEntry(
     (*env)[i] = param;
     AddToInitialDefinitions(catch_entry, param);
   }
-
-  graph_entry_->set_fixed_slot_count(Utils::Maximum(
-      graph_entry_->fixed_slot_count(),
-      variable_count() - num_direct_parameters() + additional_slots));
 }
 
 void FlowGraph::AttachEnvironment(Instruction* instr,
@@ -3074,11 +3119,7 @@ PhiInstr* FlowGraph::AddPhi(JoinEntryInstr* join,
 }
 
 void FlowGraph::InsertMoveArguments() {
-  compiler::ParameterInfoArray argument_locations;
-
   intptr_t max_argument_slot_count = 0;
-  auto& target = Function::Handle();
-
   for (BlockIterator block_it = reverse_postorder_iterator(); !block_it.Done();
        block_it.Advance()) {
     thread()->CheckForSafepoint();
@@ -3089,46 +3130,33 @@ void FlowGraph::InsertMoveArguments() {
       if (arg_count == 0) {
         continue;
       }
-
-      target = Function::null();
-      if (auto static_call = instruction->AsStaticCall()) {
-        target = static_call->function().ptr();
-      } else if (auto instance_call = instruction->AsInstanceCallBase()) {
-        target = instance_call->interface_target().ptr();
-      } else if (auto dispatch_call = instruction->AsDispatchTableCall()) {
-        target = dispatch_call->interface_target().ptr();
-      } else if (auto cachable_call = instruction->AsCachableIdempotentCall()) {
-        target = cachable_call->function().ptr();
-      }
-
       MoveArgumentsArray* arguments =
           new (Z) MoveArgumentsArray(zone(), arg_count);
       arguments->EnsureLength(arg_count, nullptr);
 
-      const intptr_t stack_arguments_size_in_words =
-          compiler::ComputeCallingConvention(
-              zone(), target, arg_count,
-              [&](intptr_t i) {
-                return instruction->RequiredInputRepresentation(i);
-              },
-              /*should_assign_stack_locations=*/true, &argument_locations);
-
-      for (intptr_t i = 0; i < arg_count; ++i) {
-        const auto& [location, rep] = argument_locations[i];
+      intptr_t sp_relative_index = 0;
+      for (intptr_t i = arg_count - 1; i >= 0; --i) {
         Value* arg = instruction->ArgumentValueAt(i);
-        (*arguments)[i] = new (Z) MoveArgumentInstr(
-            arg->CopyWithType(Z), rep, location.ToCallerSpRelative());
+        const auto rep = instruction->RequiredInputRepresentation(i);
+        (*arguments)[i] = new (Z)
+            MoveArgumentInstr(arg->CopyWithType(Z), rep, sp_relative_index);
+
+        static_assert(compiler::target::kIntSpillFactor ==
+                          compiler::target::kDoubleSpillFactor,
+                      "double and int are expected to be of the same size");
+        RELEASE_ASSERT(rep == kTagged || rep == kUnboxedDouble ||
+                       rep == kUnboxedInt64);
+        sp_relative_index +=
+            (rep == kTagged) ? 1 : compiler::target::kIntSpillFactor;
       }
-      max_argument_slot_count = Utils::Maximum(max_argument_slot_count,
-                                               stack_arguments_size_in_words);
+      max_argument_slot_count =
+          Utils::Maximum(max_argument_slot_count, sp_relative_index);
 
       for (auto move_arg : *arguments) {
         // Insert all MoveArgument instructions immediately before call.
         // MoveArgumentInstr::EmitNativeCode may generate more efficient
         // code for subsequent MoveArgument instructions (ARM, ARM64).
-        if (!move_arg->is_register_move()) {
-          InsertBefore(instruction, move_arg, /*env=*/nullptr, kEffect);
-        }
+        InsertBefore(instruction, move_arg, /*env=*/nullptr, kEffect);
       }
       instruction->ReplaceInputsWithMoveArguments(arguments);
       if (instruction->env() != nullptr) {

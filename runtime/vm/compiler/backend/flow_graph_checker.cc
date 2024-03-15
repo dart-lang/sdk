@@ -364,24 +364,13 @@ void FlowGraphChecker::VisitUseDef(Instruction* instruction,
     ASSERT1(def->previous() != nullptr, def);
     // Skip checks below for common constants as checking them could be slow.
     if (IsCommonConstant(def)) return;
-  } else if (def->next() == nullptr) {
-    // MaterializeObject and MoveArgument can be detached from the graph.
-    if (auto move_arg = def->AsMoveArgument()) {
-      ASSERT1(move_arg->location().IsMachineRegister() ||
-                  (move_arg->location().IsPairLocation() &&
-                   move_arg->location()
-                       .AsPairLocation()
-                       ->At(0)
-                       .IsMachineRegister() &&
-                   move_arg->location()
-                       .AsPairLocation()
-                       ->At(1)
-                       .IsMachineRegister()),
-              move_arg);
+  } else if (def->IsMaterializeObject()) {
+    // Materializations can be both linked into graph and detached.
+    if (def->next() != nullptr) {
+      ASSERT1(def->previous() != nullptr, def);
     } else {
-      ASSERT1(def->IsMaterializeObject(), def);
+      ASSERT1(def->previous() == nullptr, def);
     }
-    ASSERT1(def->previous() == nullptr, def);
   } else {
     // Others are fully linked into graph.
     ASSERT1(def->next() != nullptr, def);
@@ -434,14 +423,6 @@ void FlowGraphChecker::VisitDefUse(Definition* def,
     ASSERT2(DefDominatesUse(def, instruction), def, instruction);
   } else if (instruction->IsMaterializeObject()) {
     // Materializations can be both linked into graph and detached.
-    if (instruction->next() != nullptr) {
-      ASSERT1(instruction->previous() != nullptr, instruction);
-      ASSERT2(DefDominatesUse(def, instruction), def, instruction);
-    } else {
-      ASSERT1(instruction->previous() == nullptr, instruction);
-    }
-  } else if (instruction->IsMoveArgument()) {
-    // MoveArgument can be both linked into graph and detached.
     if (instruction->next() != nullptr) {
       ASSERT1(instruction->previous() != nullptr, instruction);
       ASSERT2(DefDominatesUse(def, instruction), def, instruction);

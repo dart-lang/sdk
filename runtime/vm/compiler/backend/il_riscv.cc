@@ -463,22 +463,18 @@ void MoveArgumentInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(compiler->is_optimizing());
 
   const Location value = compiler->RebaseIfImprovesAddressing(locs()->in(0));
+  const intptr_t offset = sp_relative_index() * compiler::target::kWordSize;
   if (value.IsRegister()) {
-    __ StoreToOffset(value.reg(), SP,
-                     location().stack_index() * compiler::target::kWordSize);
+    __ StoreToOffset(value.reg(), SP, offset);
 #if XLEN == 32
   } else if (value.IsPairLocation()) {
     __ StoreToOffset(value.AsPairLocation()->At(1).reg(), SP,
-                     location().AsPairLocation()->At(1).stack_index() *
-                         compiler::target::kWordSize);
-    __ StoreToOffset(value.AsPairLocation()->At(0).reg(), SP,
-                     location().AsPairLocation()->At(0).stack_index() *
-                         compiler::target::kWordSize);
+                     offset + compiler::target::kWordSize);
+    __ StoreToOffset(value.AsPairLocation()->At(0).reg(), SP, offset);
 #endif
   } else if (value.IsConstant()) {
     if (representation() == kUnboxedDouble) {
       ASSERT(value.constant_instruction()->HasZeroRepresentation());
-      intptr_t offset = location().stack_index() * compiler::target::kWordSize;
 #if XLEN == 32
       __ StoreToOffset(ZR, SP, offset + compiler::target::kWordSize);
       __ StoreToOffset(ZR, SP, offset);
@@ -488,15 +484,10 @@ void MoveArgumentInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     } else if (representation() == kUnboxedInt64) {
       ASSERT(value.constant_instruction()->HasZeroRepresentation());
 #if XLEN == 32
-      __ StoreToOffset(ZR, SP,
-                       location().AsPairLocation()->At(1).stack_index() *
-                           compiler::target::kWordSize);
-      __ StoreToOffset(ZR, SP,
-                       location().AsPairLocation()->At(0).stack_index() *
-                           compiler::target::kWordSize);
+      __ StoreToOffset(ZR, SP, offset + compiler::target::kWordSize);
+      __ StoreToOffset(ZR, SP, offset);
 #else
-      __ StoreToOffset(ZR, SP,
-                       location().stack_index() * compiler::target::kWordSize);
+      __ StoreToOffset(ZR, SP, offset);
 #endif
     } else {
       ASSERT(representation() == kTagged);
@@ -510,17 +501,14 @@ void MoveArgumentInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         reg = TMP;
         __ LoadObject(TMP, constant);
       }
-      __ StoreToOffset(reg, SP,
-                       location().stack_index() * compiler::target::kWordSize);
+      __ StoreToOffset(reg, SP, offset);
     }
   } else if (value.IsFpuRegister()) {
-    __ StoreDToOffset(value.fpu_reg(), SP,
-                      location().stack_index() * compiler::target::kWordSize);
+    __ StoreDToOffset(value.fpu_reg(), SP, offset);
   } else if (value.IsStackSlot()) {
     const intptr_t value_offset = value.ToStackSlotOffset();
     __ LoadFromOffset(TMP, value.base_reg(), value_offset);
-    __ StoreToOffset(TMP, SP,
-                     location().stack_index() * compiler::target::kWordSize);
+    __ StoreToOffset(TMP, SP, offset);
   } else {
     UNREACHABLE();
   }

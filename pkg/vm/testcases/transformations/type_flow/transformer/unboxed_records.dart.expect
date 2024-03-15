@@ -90,8 +90,6 @@ static method returnBoxed1() → dynamic
   return [@vm.inferred-type.metadata=dart.core::bool] self::condition ?{(core::int, core::int)?} ([@vm.inferred-type.metadata=int] core::int::parse("1"), 42) : null;
 static method returnBoxed2() → dynamic
   return [@vm.inferred-type.metadata=dart.core::bool] self::condition ?{core::Object} ([@vm.inferred-type.metadata=int] core::int::parse("1"), 42) : 42;
-
-[@vm.unboxing-info.metadata=[!regcc]]
 @#C3
 static method returnBoxed3() → dynamic
   return (1, 2);

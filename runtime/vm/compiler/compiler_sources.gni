@@ -44,8 +44,6 @@ compiler_sources = [
   "backend/compile_type.h",
   "backend/constant_propagator.cc",
   "backend/constant_propagator.h",
-  "backend/dart_calling_conventions.cc",
-  "backend/dart_calling_conventions.h",
   "backend/evaluator.cc",
   "backend/evaluator.h",
   "backend/flow_graph.cc",
