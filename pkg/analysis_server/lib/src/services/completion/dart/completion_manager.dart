@@ -18,7 +18,6 @@ import 'package:analysis_server/src/services/completion/dart/record_literal_cont
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_collector.dart';
 import 'package:analysis_server/src/services/completion/dart/uri_contributor.dart';
-import 'package:analysis_server/src/services/completion/dart/variable_name_contributor.dart';
 import 'package:analysis_server/src/utilities/selection.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -130,7 +129,6 @@ class DartCompletionManager {
       LibraryPrefixContributor(request, builder),
       RecordLiteralContributor(request, builder),
       if (enableUriContributor) UriContributor(request, builder),
-      VariableNameContributor(request, builder),
     ];
 
     if (includedElementKinds != null) {

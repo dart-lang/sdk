@@ -126,11 +126,14 @@ suggestions
   }
 
   Future<void> test_name() async {
+    allowedIdentifiers = {'Test'};
     await computeSuggestions('''
 class ^
 ''');
     assertResponse(r'''
 suggestions
+  Test
+    kind: identifier
 ''');
   }
 

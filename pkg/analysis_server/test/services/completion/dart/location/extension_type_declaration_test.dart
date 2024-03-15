@@ -120,6 +120,18 @@ suggestions
 ''');
   }
 
+  Future<void> test_name() async {
+    allowedIdentifiers = {'Test'};
+    await computeSuggestions('''
+extension type ^
+''');
+    assertResponse(r'''
+suggestions
+  Test
+    kind: identifier
+''');
+  }
+
   Future<void> test_representationField_annotation() async {
     await computeSuggestions('''
 extension type E(@^)
@@ -141,6 +153,8 @@ class C0 {}
 ''');
     assertResponse(r'''
 suggestions
+  _c0
+    kind: identifier
   c0
     kind: identifier
 ''');
