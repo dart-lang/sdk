@@ -1877,6 +1877,11 @@ bool Debugger::ShouldPauseOnException(DebuggerStackTrace* stack_trace,
     return true;
   }
   ASSERT(exc_pause_info_ == kPauseOnUnhandledExceptions);
+  // There might be no Dart stack if we hit an exception in the runtime, most
+  // likely OutOfMemory.
+  if (stack_trace->Length() == 0) {
+    return false;
+  }
   // Exceptions coming from invalid token positions should be skipped
   ActivationFrame* top_frame = stack_trace->FrameAt(0);
   if (!top_frame->TokenPos().IsReal() && top_frame->TryIndex() != -1) {

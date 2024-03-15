@@ -8,7 +8,7 @@ import 'dart:ffi';
 import 'dart:io';
 
 import 'package:native_assets_cli/native_assets_cli_internal.dart'
-    show CCompilerConfig;
+    show CCompilerConfigImpl;
 import 'package:smith/configuration.dart';
 import 'package:smith/smith.dart';
 
@@ -285,12 +285,12 @@ class TestConfiguration {
 
   late final Map<String, String> nativeCompilerEnvironmentVariables = () {
     String unparseKey(String key) => key.replaceAll('.', '__').toUpperCase();
-    final arKey = unparseKey(CCompilerConfig.arConfigKeyFull);
-    final ccKey = unparseKey(CCompilerConfig.ccConfigKeyFull);
-    final ldKey = unparseKey(CCompilerConfig.ldConfigKeyFull);
-    final envScriptKey = unparseKey(CCompilerConfig.envScriptConfigKeyFull);
+    final arKey = unparseKey(CCompilerConfigImpl.arConfigKeyFull);
+    final ccKey = unparseKey(CCompilerConfigImpl.ccConfigKeyFull);
+    final ldKey = unparseKey(CCompilerConfigImpl.ldConfigKeyFull);
+    final envScriptKey = unparseKey(CCompilerConfigImpl.envScriptConfigKeyFull);
     final envScriptArgsKey =
-        unparseKey(CCompilerConfig.envScriptArgsConfigKeyFull);
+        unparseKey(CCompilerConfigImpl.envScriptArgsConfigKeyFull);
 
     if (Platform.isWindows) {
       // Use MSVC from Depot Tools instead. When using clang from DEPS, we still

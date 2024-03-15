@@ -143,14 +143,14 @@ vars = {
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
   "dart_style_rev": "a6ad7693555a9add6f98ad6fd94de80d35c89415", # disable tools/rev_sdk_deps.dart
-  "dartdoc_rev": "89a3b4ae0b89c4e540fb00f27a61f0652ada6314",
-  "ecosystem_rev": "49a3cbb9a2d8acf974b4d616e20c38b59c360a5a",
+  "dartdoc_rev": "b001a15069bfd7cfec5edf5b441a2f0a9b4223eb",
+  "ecosystem_rev": "5a900ca68466efe8680d3500bc0a6172d07ef5a7",
   "file_rev": "3aa06490bf34bddf04c7ea964a50c177a4ca0de7",
   "fixnum_rev": "570b28adcfbfdd5b8a7230ea1d6ec0f9587493f1",
   "flute_rev": "a531c96a8b43d015c6bfbbfe3ab54867b0763b8b",
   "glob_rev": "379d60c7cc5c0e9fe7d0d45549ad0b1ca51396c8",
   "html_rev": "327e37a6a4dd46599737ee982f280d73a8f646f7",
-  "http_rev": "8da6e0ea5d67a08f98a14137e0d2bdcb113ae4ba",
+  "http_rev": "5dfea721993fd22363a5800ab7a2f3aeecee25f5",
   "http_multi_server_rev": "ba9d07f3596b24718ddf45c9e071d40879cca565",
   "http_parser_rev": "84db8b029d9b51859a0bb4966859af009f9442e3",
   "intl_rev": "5d65e3808ce40e6282e40881492607df4e35669f",
@@ -163,7 +163,7 @@ vars = {
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
   "mime_rev": "9a168712d6db610c3822617c132daea72d4fd2b5",
   "mockito_rev": "3ef744f8749864f2a036eba60c4203cc8f638949",
-  "native_rev": "0901a3323022fdb59657cc2cb00ea5c80a8468a6", # mosum@ and dacoharkes@ are rolling breaking changes manually while the assets features are in experimental.
+  "native_rev": "4fc6a333badace5d569bde4496462cc237dc3363", # mosum@ and dacoharkes@ are rolling breaking changes manually while the assets features are in experimental.
   "package_config_rev": "3d90e6955ef19b7ce4f1b742a06a20ed4260700a",
   "path_rev": "a7b696071bd83d3ee0a0f1b57ac94d6b1f05cac4",
   "pool_rev": "c118f69d8a6441a8453bf7d455fd7c79d3ee1497",
@@ -181,16 +181,16 @@ vars = {
   "sync_http_rev": "b849559fedc7c5d19a68950f255b6edde6eec6ef",
   "tar_rev": "6150a0c88d9bd17e3e961593a9a7a9564866e8b4",
   "term_glyph_rev": "85a4aa6bf25cd6ecaa5c56a1b259b2d95264a439",
-  "test_rev": "ba64bbbaa26f09e139c26f9ad6409995806aac6e",
+  "test_rev": "6a4e75a6283b1366ea21067f9ced0b6c87745d4a",
   "test_descriptor_rev": "35f97afacb2b7fe627f6ed0bede722fd48980848",
   "test_process_rev": "7fe39afbb6c444f256c1ec0eef008edebcd44644",
   "test_reflective_loader_rev": "9862703a3d14848376c8efde271c88022fba91eb",
-  "tools_rev": "fca993e4f287e8080f2a8d91dbfbace8b6a8a0bc",
+  "tools_rev": "378790dd8cdaecd8cb48283de445f7cf80419cc0",
   "typed_data_rev": "375efaa02a13dad0785cfbd9bdcb9f09aa8ef529",
   "usage_rev": "67ecd7d1328347ec15cbf8d8a46918df75a66af8",
   "vector_math_rev": "7e705f734e94917e9a5347578e6e496f8db38ac6",
   "watcher_rev": "21858a41da1482922e03ee65cdf2169d01d59a67",
-  "web_rev": "51e594b35b516b8678825e27e2f2d8051a594a57",
+  "web_rev": "2f13cd55f938f71bcd16c831110e3a196967337f",
   "web_socket_channel_rev": "3db86bc0a09e1038a0fa418262c8a92211c5de69",
   "webdev_rev": "51b5484348b4a8ede351e8dff0428b083495ba78", # https://github.com/flutter/devtools/issues/7231
   "webdriver_rev": "73a7ac8c0dcb0f84eae47e2133805295176aa972",
@@ -700,7 +700,7 @@ Var("dart_root") + "/third_party/pkg/tar":
     "packages": [
       {
       "package": "chromium/fuchsia/test-scripts",
-      "version": "version:2@49064713a73ae92d8c28164938b97869afd336aa",
+      "version": "EAdD2YcYwVrhF2q_zR6xUvPkcKlPb1tJyM_6_oOc84kC",
       }
     ],
     "condition": 'download_fuchsia_deps',
@@ -711,7 +711,7 @@ Var("dart_root") + "/third_party/pkg/tar":
     "packages": [
       {
       "package": "chromium/fuchsia/gn-sdk",
-      "version": "version:2@7f1f23fce153ca079a77492d9d47d803d60b774e",
+      "version": "RgErspyYHapUO2SpcW-vo2p8yaRUMUrq0eWjRVPfQjoC",
       }
     ],
     "condition": 'download_fuchsia_deps',
@@ -837,6 +837,16 @@ hooks = [
     'condition': 'download_emscripten'
   },
   {
+    'name': 'Erase arch/ from fuchsia sdk',
+    'pattern': '.',
+    'action': [
+      'rm',
+      '-rf',
+      'sdk/third_party/fuchsia/sdk/linux/arch',
+    ],
+    'condition': 'download_fuchsia_deps'
+  },
+  {
     'name': 'Download Fuchsia system images',
     'pattern': '.',
     'action': [
@@ -844,6 +854,16 @@ hooks = [
       'sdk/build/fuchsia/with_envs.py',
       'sdk/third_party/fuchsia/test_scripts/update_product_bundles.py',
       'terminal.x64',
+    ],
+    'condition': 'download_fuchsia_deps'
+  },
+  {
+    'name': 'Generate Fuchsia GN build rules',
+    'pattern': '.',
+    'action': [
+      'python3',
+      'sdk/build/fuchsia/with_envs.py',
+      'sdk/third_party/fuchsia/test_scripts/gen_build_defs.py',
     ],
     'condition': 'download_fuchsia_deps'
   },

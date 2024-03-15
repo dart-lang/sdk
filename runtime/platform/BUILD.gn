@@ -5,10 +5,6 @@
 import("../configs.gni")
 import("platform_sources.gni")
 
-if (is_fuchsia) {
-  import("//build/fuchsia/sdk.gni")
-}
-
 library_for_all_configs("libdart_platform") {
   target_type = "source_set"
   public_configs = [ "../vm:libdart_vm_config" ]
@@ -17,21 +13,9 @@ library_for_all_configs("libdart_platform") {
   extra_deps = []
 
   if (is_fuchsia) {
-    if (using_fuchsia_gn_sdk) {
-      extra_deps += [
-        "$fuchsia_sdk_root/pkg/inspect_component_cpp",
-        "$fuchsia_sdk_root/pkg/sys_cpp",
-      ]
-    } else if (using_fuchsia_sdk) {
-      extra_deps += [
-        "$fuchsia_sdk_root/pkg:inspect_component_cpp",
-        "$fuchsia_sdk_root/pkg:sys_cpp",
-      ]
-    } else {
-      extra_deps += [
-        "//sdk/lib/inspect/component/cpp",
-        "//sdk/lib/sys/cpp",
-      ]
-    }
+    extra_deps += [
+      "$fuchsia_sdk/pkg/inspect_component_cpp",
+      "$fuchsia_sdk/pkg/sys_cpp",
+    ]
   }
 }
