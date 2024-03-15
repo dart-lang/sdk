@@ -79,12 +79,12 @@ suggestions
   }
 
   Future<void> test_identifierStart() async {
+    allowedIdentifiers = {'isFoo'};
     await computeSuggestions('''
 static void f(bool isFoo) {
   is^
 }
 ''');
-    allowedIdentifiers = {'isFoo'};
     assertResponse(r'''
 replacement
   left: 2
@@ -95,18 +95,19 @@ suggestions
   }
 
   Future<void> test_identifierStart_notAtEndOfIs() async {
+    allowedIdentifiers = {'isFoo'};
     await computeSuggestions('''
 static void f(bool isFoo) {
   is ^
 }
 ''');
-    allowedIdentifiers = {'isFoo'};
     assertResponse(r'''
 suggestions
 ''');
   }
 
   Future<void> test_identifierStart_staticContext() async {
+    allowedIdentifiers = {'isF1', 'isF2'};
     await computeSuggestions('''
 class A {
   static bool get isF1 => false;
@@ -116,7 +117,6 @@ class A {
   }
 }
 ''');
-    allowedIdentifiers = {'isF1', 'isF2'};
     assertResponse(r'''
 replacement
   left: 2
@@ -127,12 +127,12 @@ suggestions
   }
 
   Future<void> test_identifierStart_voidFunction() async {
+    allowedIdentifiers = {'isFoo'};
     await computeSuggestions('''
 static void isFoo() {
   is^
 }
 ''');
-    allowedIdentifiers = {'isFoo'};
     assertResponse(r'''
 replacement
   left: 2

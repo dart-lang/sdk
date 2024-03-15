@@ -17,6 +17,7 @@ class PropertyAccessTest extends AbstractCompletionDriverTest
     with PropertyAccessTestCases {
   @failingTest
   Future<void> test_afterIdentifier_partial_if() async {
+    allowedIdentifiers = {'always', 'ifPresent'};
     await computeSuggestions('''
 enum E {
   always, ifPresent
@@ -25,7 +26,6 @@ void f() {
   E.if^;
 }
 ''');
-    allowedIdentifiers = {'always', 'ifPresent'};
     assertResponse(r'''
 replacement
   left: 2
@@ -94,13 +94,13 @@ suggestions
   }
 
   Future<void> test_afterIdentifier_beforeIdentifier_partial() async {
+    allowedIdentifiers = {'length'};
     await computeSuggestions('''
 void f(String x) {
   x.len^
   foo();
 }
 ''');
-    allowedIdentifiers = {'length'};
     assertResponse(r'''
 replacement
   left: 3
