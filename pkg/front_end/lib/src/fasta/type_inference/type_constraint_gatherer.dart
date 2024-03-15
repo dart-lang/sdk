@@ -463,8 +463,7 @@ class TypeConstraintGatherer {
     // [TypeParameter] objects are never the target of inference, and the
     // condition will always fail for them.
     if (p is StructuralParameterType &&
-        isStructuralParameterTypeWithoutNullabilityMarker(p,
-            isNonNullableByDefault: _isNonNullableByDefault) &&
+        typeOperations.getNullabilitySuffix(p) == NullabilitySuffix.none &&
         _parametersToConstrain.contains(p.parameter)) {
       _constrainParameterUpper(p.parameter, q,
           treeNodeForTesting: treeNodeForTesting);
@@ -478,8 +477,7 @@ class TypeConstraintGatherer {
     // [TypeParameter] objects are never the target of inference, and the
     // condition will always fail for them.
     if (q is StructuralParameterType &&
-        isStructuralParameterTypeWithoutNullabilityMarker(q,
-            isNonNullableByDefault: _isNonNullableByDefault) &&
+        typeOperations.getNullabilitySuffix(q) == NullabilitySuffix.none &&
         _parametersToConstrain.contains(q.parameter)) {
       _constrainParameterLower(q.parameter, p,
           treeNodeForTesting: treeNodeForTesting);
@@ -661,7 +659,7 @@ class TypeConstraintGatherer {
     //
     // If P0 is a subtype match for Q under constraint set C1.
     // And if Null is a subtype match for Q under constraint set C2.
-    if (isNullableTypeConstructorApplication(p)) {
+    if (typeOperations.getNullabilitySuffix(p) == NullabilitySuffix.question) {
       final int baseConstraintCount = _protoConstraints.length;
       if (_isNullabilityAwareSubtypeMatch(
               typeOperations.withNullabilitySuffix(p, NullabilitySuffix.none),
