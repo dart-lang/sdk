@@ -139,12 +139,10 @@ void main() {
         '--sound-null-safety',
         '--dart-sdk-summary',
         _resolvePath('../../ddc_outline.dill'),
-        '--enable-experiment=macros',
         '--packages=${packageConfig.uri}',
       ];
 
       executableArgs = [
-        '--enable-experiment=macros',
         _resolvePath('../../gen/dartdevc.dart.snapshot'),
         ...ddcArgs
       ];
@@ -154,7 +152,7 @@ void main() {
       if (tmp.existsSync()) tmp.deleteSync(recursive: true);
     });
 
-    test('compile in direct mode', () async {
+    test('compile using dartdevc source code', () async {
       await ddc.internalMain([
         ...ddcArgs,
         '--no-source-map',
@@ -189,7 +187,7 @@ void main() {
       expect(applyTestMacroJS.existsSync(), isTrue);
     });
 
-    test('compile in basic mode', () {
+    test('compile using dartdevc snapshot', () {
       var result = Process.runSync(Platform.executable, [
         ...executableArgs,
         '--no-source-map',
