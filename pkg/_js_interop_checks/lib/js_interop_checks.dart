@@ -47,10 +47,13 @@ import 'package:front_end/src/fasta/codes/fasta_codes.dart'
     show
         templateJsInteropExtensionTypeNotInterop,
         templateJsInteropFunctionToJSRequiresStaticType,
-        templateJsInteropStaticInteropExternalTypeViolation;
+        templateJsInteropStaticInteropExternalAccessorTypeViolation,
+        templateJsInteropStaticInteropExternalFunctionTypeViolation,
+        templateJsInteropStaticInteropToJSFunctionTypeViolation;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart' hide Pattern;
+import 'package:kernel/src/printer.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/type_environment.dart';
 
@@ -67,6 +70,9 @@ class JsInteropChecks extends RecursiveVisitor {
   final Map<String, Class> _nativeClasses;
   final JsInteropDiagnosticReporter _reporter;
   final StatefulStaticTypeContext _staticTypeContext;
+  final AstTextStrategy _textStrategy = const AstTextStrategy(
+      showNullableOnly: true, useQualifiedTypeParameterNames: false);
+
   bool _classHasJSAnnotation = false;
   bool _classHasAnonymousAnnotation = false;
   bool _classHasStaticInteropAnnotation = false;
@@ -398,14 +404,7 @@ class JsInteropChecks extends RecursiveVisitor {
               ((hasDartJSInteropAnnotation(annotatable) ||
                   annotatable is ExtensionTypeDeclaration))) {
             // Checks for dart:js_interop APIs only.
-            final function = node.function;
-            _reportProcedureIfNotAllowedType(function.returnType, node);
-            for (final parameter in function.positionalParameters) {
-              _reportProcedureIfNotAllowedType(parameter.type, node);
-            }
-            for (final parameter in function.namedParameters) {
-              _reportProcedureIfNotAllowedType(parameter.type, node);
-            }
+            _reportExternalProcedureIfNotAllowedFunctionType(node);
           }
         }
       }
@@ -749,10 +748,7 @@ class JsInteropChecks extends RecursiveVisitor {
       if (functionType.typeParameters.isNotEmpty) {
         report(messageJsInteropFunctionToJSTypeParameters);
       }
-      _reportStaticInvocationIfNotAllowedType(functionType.returnType, node);
-      for (final parameter in functionType.positionalParameters) {
-        _reportStaticInvocationIfNotAllowedType(parameter, node);
-      }
+      _reportFunctionToJSInvocationIfNotAllowedFunctionType(functionType, node);
     }
   }
 
@@ -950,25 +946,95 @@ class JsInteropChecks extends RecursiveVisitor {
     return false;
   }
 
-  void _reportIfNotAllowedExternalType(
-      DartType type, TreeNode node, Name name, Uri? fileUri) {
-    if (!_isAllowedExternalType(type)) {
-      _reporter.report(
-          templateJsInteropStaticInteropExternalTypeViolation.withArguments(
-              type, true),
-          node.fileOffset,
-          name.text.length,
-          fileUri);
+  bool _isAllowedExternalFunctionType(FunctionType type) =>
+      _isAllowedExternalType(type.returnType) &&
+      type.namedParameters.every((p) => _isAllowedExternalType(p.type)) &&
+      type.positionalParameters.every((p) => _isAllowedExternalType(p));
+
+  String _disallowedExternalFunctionTypeString(FunctionType functionType) {
+    String typeStringToErrorTypeString(String type) => '*$type*';
+    String typeToString(DartType type) {
+      final string = type.toText(_textStrategy);
+      return _isAllowedExternalType(type)
+          ? string
+          : typeStringToErrorTypeString(string);
+    }
+
+    String namedTypeToString(NamedType type) {
+      final string = type.toText(_textStrategy);
+      return _isAllowedExternalType(type.type)
+          ? string
+          : typeStringToErrorTypeString(string);
+    }
+
+    final positionalParameterTypeString =
+        functionType.positionalParameters.map(typeToString).join(', ');
+    final namedParameterTypeString =
+        functionType.namedParameters.map(namedTypeToString).join(', ');
+    String parameterTypeString;
+    if (positionalParameterTypeString.isNotEmpty &&
+        namedParameterTypeString.isNotEmpty) {
+      parameterTypeString =
+          '$positionalParameterTypeString, {$namedParameterTypeString}';
+    } else {
+      parameterTypeString = namedParameterTypeString.isNotEmpty
+          ? '{$namedParameterTypeString}'
+          : positionalParameterTypeString;
+    }
+    return '${typeToString(functionType.returnType)} '
+        'Function($parameterTypeString)';
+  }
+
+  void _reportExternalProcedureIfNotAllowedFunctionType(Procedure node) {
+    FunctionType functionType;
+    if (node.isExtensionMember || node.isExtensionTypeMember) {
+      functionType = extensionIndex.getFunctionType(node)!;
+    } else {
+      functionType = node.signatureType ??
+          node.function.computeFunctionType(Nullability.nonNullable);
+    }
+    final isGetter = extensionIndex.isGetter(node);
+    final isSetter = extensionIndex.isSetter(node);
+    if (isGetter || isSetter) {
+      // There's only one type, so only report that one type instead of a
+      // function type. This also avoids duplication in reporting external
+      // fields, which are just a getter and a setter.
+      final accessorType = isGetter
+          ? functionType.returnType
+          : functionType.positionalParameters[0];
+      if (!_isAllowedExternalType(accessorType)) {
+        _reporter.report(
+            templateJsInteropStaticInteropExternalAccessorTypeViolation
+                .withArguments(accessorType, true),
+            node.fileOffset,
+            node.name.text.length,
+            node.location?.file);
+      }
+    } else {
+      // Methods, operators, constructors, factories.
+      if (!_isAllowedExternalFunctionType(functionType)) {
+        _reporter.report(
+            templateJsInteropStaticInteropExternalFunctionTypeViolation
+                .withArguments(
+                    _disallowedExternalFunctionTypeString(functionType)),
+            node.fileOffset,
+            node.name.text.length,
+            node.location?.file);
+      }
     }
   }
 
-  void _reportProcedureIfNotAllowedType(DartType type, Procedure node) =>
-      _reportIfNotAllowedExternalType(type, node, node.name, node.fileUri);
-
-  void _reportStaticInvocationIfNotAllowedType(
-          DartType type, StaticInvocation node) =>
-      _reportIfNotAllowedExternalType(
-          type, node, node.name, node.location?.file);
+  void _reportFunctionToJSInvocationIfNotAllowedFunctionType(
+      FunctionType functionType, StaticInvocation invocation) {
+    if (!_isAllowedExternalFunctionType(functionType)) {
+      _reporter.report(
+          templateJsInteropStaticInteropToJSFunctionTypeViolation.withArguments(
+              _disallowedExternalFunctionTypeString(functionType)),
+          invocation.fileOffset,
+          invocation.name.text.length,
+          invocation.location?.file);
+    }
+  }
 }
 
 class JsInteropDiagnosticReporter {

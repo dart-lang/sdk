@@ -5936,9 +5936,19 @@ JsInteropNonStaticWithStaticInteropSupertype:
   problemMessage: "Class '#name' does not have an `@staticInterop` annotation, but has supertype '#name2', which does."
   correctionMessage: "Try marking '#name' as a `@staticInterop` class, or don't inherit '#name2'."
 
-JsInteropStaticInteropExternalTypeViolation:
-  problemMessage: "Type '#type' is not a valid type in the signature of 'dart:js_interop' external APIs or APIs converted via 'toJS'."
-  correctionMessage: "Use one of these valid types instead: JS types from 'dart:js_interop', '@staticInterop' types, 'dart:html' types when compiling to JS, void, bool, num, double, int, String, extension types that erases to one of these types, or a type parameter that is bound to a static interop or 'dart:html' type."
+# TODO(srujzs): Is there any way to save the correction message into a variable
+# to avoid duplication?
+JsInteropStaticInteropExternalAccessorTypeViolation:
+  problemMessage: "External JS interop member contains an invalid type: '#type'."
+  correctionMessage: "Use one of these valid types instead: JS types from 'dart:js_interop', void, bool, num, double, int, String, extension types that erase to one of these types, '@staticInterop' types, 'dart:html' types when compiling to JS, or a type parameter that is a subtype of a valid non-primitive type."
+
+JsInteropStaticInteropExternalFunctionTypeViolation:
+  problemMessage: "External JS interop member contains invalid types in its function signature: '#string2'."
+  correctionMessage: "Use one of these valid types instead: JS types from 'dart:js_interop', void, bool, num, double, int, String, extension types that erase to one of these types, '@staticInterop' types, 'dart:html' types when compiling to JS, or a type parameter that is a subtype of a valid non-primitive type."
+
+JsInteropStaticInteropToJSFunctionTypeViolation:
+  problemMessage: "Function converted via 'toJS' contains invalid types in its function signature: '#string2'."
+  correctionMessage: "Use one of these valid types instead: JS types from 'dart:js_interop', void, bool, num, double, int, String, extension types that erase to one of these types, '@staticInterop' types, 'dart:html' types when compiling to JS, or a type parameter that is a subtype of a valid non-primitive type."
 
 JsInteropStaticInteropGenerativeConstructor:
   problemMessage: "`@staticInterop` classes should not contain any generative constructors."

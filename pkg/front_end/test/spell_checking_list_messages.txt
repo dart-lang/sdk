@@ -50,6 +50,7 @@ defaultasset
 dname
 e.g
 enclose
+erase
 exhaustively
 exportable
 extensiontype

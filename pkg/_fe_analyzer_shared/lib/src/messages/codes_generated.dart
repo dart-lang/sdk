@@ -10752,6 +10752,42 @@ const MessageCode messageJsInteropOperatorsNotSupported = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String string2)>
+    templateJsInteropStaticInteropExternalFunctionTypeViolation =
+    const Template<Message Function(String string2)>(
+  "JsInteropStaticInteropExternalFunctionTypeViolation",
+  problemMessageTemplate:
+      r"""External JS interop member contains invalid types in its function signature: '#string2'.""",
+  correctionMessageTemplate:
+      r"""Use one of these valid types instead: JS types from 'dart:js_interop', void, bool, num, double, int, String, extension types that erase to one of these types, '@staticInterop' types, 'dart:html' types when compiling to JS, or a type parameter that is a subtype of a valid non-primitive type.""",
+  withArguments:
+      _withArgumentsJsInteropStaticInteropExternalFunctionTypeViolation,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string2)>
+    codeJsInteropStaticInteropExternalFunctionTypeViolation =
+    const Code<Message Function(String string2)>(
+  "JsInteropStaticInteropExternalFunctionTypeViolation",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropStaticInteropExternalFunctionTypeViolation(
+    String string2) {
+  if (string2.isEmpty) throw 'No string provided';
+  return new Message(
+    codeJsInteropStaticInteropExternalFunctionTypeViolation,
+    problemMessage:
+        """External JS interop member contains invalid types in its function signature: '${string2}'.""",
+    correctionMessage:
+        """Use one of these valid types instead: JS types from 'dart:js_interop', void, bool, num, double, int, String, extension types that erase to one of these types, '@staticInterop' types, 'dart:html' types when compiling to JS, or a type parameter that is a subtype of a valid non-primitive type.""",
+    arguments: {
+      'string2': string2,
+    },
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeJsInteropStaticInteropGenerativeConstructor =
     messageJsInteropStaticInteropGenerativeConstructor;
 
@@ -10951,6 +10987,41 @@ Message _withArgumentsJsInteropStaticInteropTearOffsDisallowed(
     arguments: {
       'string': string,
       'name': name,
+    },
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String string2)>
+    templateJsInteropStaticInteropToJSFunctionTypeViolation =
+    const Template<Message Function(String string2)>(
+  "JsInteropStaticInteropToJSFunctionTypeViolation",
+  problemMessageTemplate:
+      r"""Function converted via 'toJS' contains invalid types in its function signature: '#string2'.""",
+  correctionMessageTemplate:
+      r"""Use one of these valid types instead: JS types from 'dart:js_interop', void, bool, num, double, int, String, extension types that erase to one of these types, '@staticInterop' types, 'dart:html' types when compiling to JS, or a type parameter that is a subtype of a valid non-primitive type.""",
+  withArguments: _withArgumentsJsInteropStaticInteropToJSFunctionTypeViolation,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string2)>
+    codeJsInteropStaticInteropToJSFunctionTypeViolation =
+    const Code<Message Function(String string2)>(
+  "JsInteropStaticInteropToJSFunctionTypeViolation",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropStaticInteropToJSFunctionTypeViolation(
+    String string2) {
+  if (string2.isEmpty) throw 'No string provided';
+  return new Message(
+    codeJsInteropStaticInteropToJSFunctionTypeViolation,
+    problemMessage:
+        """Function converted via 'toJS' contains invalid types in its function signature: '${string2}'.""",
+    correctionMessage:
+        """Use one of these valid types instead: JS types from 'dart:js_interop', void, bool, num, double, int, String, extension types that erase to one of these types, '@staticInterop' types, 'dart:html' types when compiling to JS, or a type parameter that is a subtype of a valid non-primitive type.""",
+    arguments: {
+      'string2': string2,
     },
   );
 }

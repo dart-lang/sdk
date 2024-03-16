@@ -42,7 +42,11 @@ mixin PidTracker {
     // TODO(dantup): In Dart-Code DAP, we first try again with sigint and wait
     // for a few seconds before sending sigkill.
     for (var pid in pidsToTerminate) {
-      Process.killPid(pid, signal);
+      // Skip any negative pids. On Linux, kill -1 means kill everything that
+      // you can. See https://github.com/dart-lang/sdk/issues/55209 for details.
+      if (pid >= 0) {
+        Process.killPid(pid, signal);
+      }
     }
   }
 }

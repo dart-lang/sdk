@@ -948,6 +948,32 @@ class ExtensionIndex {
       ExtensionMemberKind.Operator,
       ProcedureKind.Operator);
 
+  /// Given an interop extension type or extension member [node], gets the
+  /// function type as written.
+  ///
+  /// Extension type and extension instance members include the instance as the
+  /// first positional parameter of the generated function. Since this was never
+  /// written by the user, it is excluded in the resulting function type.
+  ///
+  /// If not an interop extension type or extension member, returns null.
+  FunctionType? getFunctionType(Procedure node) {
+    if (getExtensionDescriptor(node) == null &&
+        getExtensionTypeDescriptor(node) == null) return null;
+
+    final functionType = node.signatureType ??
+        node.function.computeFunctionType(Nullability.nonNullable);
+    var positionalParameters = functionType.positionalParameters;
+    if (isInstanceInteropMember(node)) {
+      // Ignore the instance parameter.
+      positionalParameters = positionalParameters.skip(1).toList();
+    }
+    return FunctionType(positionalParameters, functionType.returnType,
+        functionType.declaredNullability,
+        namedParameters: functionType.namedParameters,
+        typeParameters: functionType.typeParameters,
+        requiredParameterCount: functionType.requiredParameterCount);
+  }
+
   /// Return whether [node] is an external static interop constructor/factory.
   ///
   /// If [literal] is true, we check if [node] is an object literal constructor,

@@ -27,13 +27,13 @@ external GeometryElement geometryElementTest();
 @JS()
 external void platformTest(Platform _);
 //            ^
-// [web] Type 'Platform' is not a valid type in the signature of 'dart:js_interop' external APIs or APIs converted via 'toJS'.
+// [web] External JS interop member contains invalid types in its function signature: 'void Function(*Platform*)'.
 
 // While the factory returns an `@Native` type that implements
 // `JavaScriptObject`, the public interface is not such a type.
 @JS()
 external void uint8ListTest(Uint8List _);
 //            ^
-// [web] Type 'Uint8List' is not a valid type in the signature of 'dart:js_interop' external APIs or APIs converted via 'toJS'.
+// [web] External JS interop member contains invalid types in its function signature: 'void Function(*Uint8List*)'.
 
 void main() {}
