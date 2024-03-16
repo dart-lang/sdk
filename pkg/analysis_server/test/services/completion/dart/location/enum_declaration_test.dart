@@ -352,4 +352,16 @@ suggestions
     kind: constructorInvocation
 ''');
   }
+
+  Future<void> test_name() async {
+    allowedIdentifiers = {'Test'};
+    await computeSuggestions('''
+enum ^
+''');
+    assertResponse(r'''
+suggestions
+  Test
+    kind: identifier
+''');
+  }
 }

@@ -97,4 +97,40 @@ Block
   rightBracket: }
 ''');
   }
+
+  test_recovery_propertyAccess_beforeIdentifier_hasIdentifier() {
+    final parseResult = parseStringWithErrors(r'''
+void f(x) {
+  x.foo
+  bar();
+}
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.EXPECTED_TOKEN, 22, 3),
+    ]);
+
+    final node = parseResult.findNode.singleBlock;
+    assertParsedNodeText(node, r'''
+Block
+  leftBracket: {
+  statements
+    ExpressionStatement
+      expression: PrefixedIdentifier
+        prefix: SimpleIdentifier
+          token: x
+        period: .
+        identifier: SimpleIdentifier
+          token: foo
+      semicolon: ; <synthetic>
+    ExpressionStatement
+      expression: MethodInvocation
+        methodName: SimpleIdentifier
+          token: bar
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+      semicolon: ;
+  rightBracket: }
+''');
+  }
 }

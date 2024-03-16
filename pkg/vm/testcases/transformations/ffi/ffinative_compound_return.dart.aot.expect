@@ -19,7 +19,6 @@ final class Struct1ByteInt extends ffi::Struct {
     return [@vm.inferred-type.metadata=int] ffi::_loadInt8([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] this.{ffi::_Compound::_typedDataBase}{core::Object}, [@vm.inferred-type.metadata=dart.core::_Smi (value: 0)] self::Struct1ByteInt::a0#offsetOf);
 
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:2,getterSelectorId:3]
-  [@vm.unboxing-info.metadata=[!regcc]]
   method toString() → core::String
     return "(${[@vm.direct-call.metadata=#lib::Struct1ByteInt.a0] this.{self::Struct1ByteInt::a0}{core::int}})";
 

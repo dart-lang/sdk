@@ -42,7 +42,6 @@ class E extends core::Object {
     ;
 
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]
-  [@vm.unboxing-info.metadata=[!regcc]]
   method toString() → core::String
     return "D";
 }

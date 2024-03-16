@@ -12,8 +12,6 @@
 // stack traces when unwinding through various built-in [Stream] methods.
 import 'dart:async';
 
-import 'package:expect/expect.dart';
-
 import 'harness.dart' as harness;
 
 Future<void> baz() async {

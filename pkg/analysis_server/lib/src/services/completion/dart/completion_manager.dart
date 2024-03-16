@@ -18,7 +18,6 @@ import 'package:analysis_server/src/services/completion/dart/record_literal_cont
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_collector.dart';
 import 'package:analysis_server/src/services/completion/dart/uri_contributor.dart';
-import 'package:analysis_server/src/services/completion/dart/variable_name_contributor.dart';
 import 'package:analysis_server/src/utilities/selection.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -130,7 +129,6 @@ class DartCompletionManager {
       LibraryPrefixContributor(request, builder),
       RecordLiteralContributor(request, builder),
       if (enableUriContributor) UriContributor(request, builder),
-      VariableNameContributor(request, builder),
     ];
 
     if (includedElementKinds != null) {
@@ -292,6 +290,12 @@ class DartCompletionRequest {
 
   bool _aborted = false;
 
+  /// Return `true` if the completion is occurring in a constant context.
+  late final bool inConstantContext = () {
+    var entity = target.entity;
+    return entity is Expression && entity.inConstantContext;
+  }();
+
   factory DartCompletionRequest({
     required AnalysisSession analysisSession,
     required String filePath,
@@ -387,12 +391,6 @@ class DartCompletionRequest {
   /// Return `true` if free standing identifiers should be suggested
   bool get includeIdentifiers {
     return opType.includeIdentifiers;
-  }
-
-  /// Return `true` if the completion is occurring in a constant context.
-  bool get inConstantContext {
-    var entity = target.entity;
-    return entity is Expression && entity.inConstantContext;
   }
 
   InheritanceManager3 get inheritanceManager {

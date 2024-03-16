@@ -8,14 +8,9 @@
 // Program generated as:
 //   dart dartfuzz.dart --seed 194851581 --no-fp --no-ffi
 
-import 'dart:async';
-import 'dart:cli';
 import 'dart:collection';
-import 'dart:convert';
 import 'dart:core';
 import 'dart:io';
-import 'dart:isolate';
-import 'dart:math';
 import 'dart:typed_data';
 
 Map<int, String> var0 = {

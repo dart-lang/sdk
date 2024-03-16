@@ -50,7 +50,11 @@ void CpuInfo::Cleanup() {
 
 bool CpuInfo::FieldContains(CpuInfoIndices idx, const char* search_string) {
   if (method_ == kCpuInfoCpuId) {
-    return CpuId::field(idx);
+    const char* field = CpuId::field(idx);
+    if (field == nullptr) return false;
+    bool contains = (strstr(field, search_string) != nullptr);
+    free(const_cast<char*>(field));
+    return contains;
   } else {
     UNREACHABLE();
   }

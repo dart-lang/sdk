@@ -6,8 +6,6 @@
 // Verifies that compiler doesn't crash if Typedef is only used from
 // function type of a call.
 
-import 'package:expect/expect.dart';
-
 class Message {}
 
 typedef void FooHandler(Message message);

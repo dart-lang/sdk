@@ -101,14 +101,9 @@ Fragment PrologueBuilder::BuildParameterHandling() {
   const int num_params =
       num_fixed_params + num_opt_pos_params + num_opt_named_params;
   ASSERT(function_.NumParameters() == num_params);
-
-  // This will contain information about registers assigned to fixed
-  // parameters as well as their stack locations relative to callee FP
-  // under the assumption that no other arguments were passed.
-  compiler::ParameterInfoArray fixed_params(num_fixed_params);
-  FlowGraph::ComputeLocationsOfFixedParameters(
-      zone_, function_,
-      /*should_assign_stack_locations=*/true, &fixed_params);
+  const intptr_t fixed_params_size =
+      FlowGraph::ParameterOffsetAt(function_, num_params, /*last_slot=*/false) -
+      num_opt_named_params - num_opt_pos_params;
 
   // Check that min_num_pos_args <= num_pos_args <= max_num_pos_args,
   // where num_pos_args is the number of positional arguments passed in.
@@ -133,24 +128,46 @@ Fragment PrologueBuilder::BuildParameterHandling() {
 
   // Copy mandatory parameters down.
   intptr_t param = 0;
-  for (; param < num_fixed_params; ++param) {
-    const auto [location, representation] = fixed_params[param];
+  intptr_t param_offset = -1;
 
-    const auto lo_location =
-        location.IsPairLocation() ? location.AsPairLocation()->At(0) : location;
-
-    if (lo_location.IsMachineRegister()) {
-      continue;
+  const auto update_param_offset = [&param_offset](const Function& function,
+                                                   intptr_t param_id) {
+    if (param_id < 0) {
+      // Type arguments of Factory constructor is processed with parameters
+      param_offset++;
+      return;
     }
+
+    // update parameter offset
+    if (function.is_unboxed_integer_parameter_at(param_id)) {
+      param_offset += compiler::target::kIntSpillFactor;
+    } else if (function.is_unboxed_double_parameter_at(param_id)) {
+      param_offset += compiler::target::kDoubleSpillFactor;
+    } else {
+      ASSERT(!function.is_unboxed_parameter_at(param_id));
+      // Tagged parameters always occupy one word
+      param_offset++;
+    }
+  };
+
+  for (; param < num_fixed_params; ++param) {
+    const intptr_t param_index = param - (function_.IsFactory() ? 1 : 0);
+    update_param_offset(function_, param_index);
+
+    const auto representation =
+        ((param_index >= 0)
+             ? FlowGraph::ParameterRepresentationAt(function_, param_index)
+             : kTagged);
 
     if ((num_opt_pos_params > 0) || (num_opt_named_params > 0)) {
       copy_args_prologue += LoadLocal(optional_count_var);
     } else {
       copy_args_prologue += IntConstant(0);
     }
-    const intptr_t stack_slot_offset = lo_location.ToStackSlotOffset();
     copy_args_prologue += LoadFpRelativeSlot(
-        stack_slot_offset,
+        compiler::target::kWordSize *
+            (compiler::target::frame_layout.param_end_from_fp +
+             fixed_params_size - param_offset),
         ParameterType(ParameterVariable(param), representation),
         representation);
     copy_args_prologue +=
@@ -161,20 +178,22 @@ Fragment PrologueBuilder::BuildParameterHandling() {
   // Copy optional parameters down.
   if (num_opt_pos_params > 0) {
     JoinEntryInstr* next_missing = nullptr;
-    for (intptr_t opt_param = 0; param < num_params; ++param, ++opt_param) {
+    for (intptr_t opt_param = 1; param < num_params; ++param, ++opt_param) {
+      const intptr_t param_index = param - (function_.IsFactory() ? 1 : 0);
+      update_param_offset(function_, param_index);
+
       TargetEntryInstr *supplied, *missing;
-      copy_args_prologue += IntConstant(opt_param + 1);
+      copy_args_prologue += IntConstant(opt_param);
       copy_args_prologue += LoadLocal(optional_count_var);
       copy_args_prologue += SmiRelationalOp(Token::kLTE);
       copy_args_prologue += BranchIfTrue(&supplied, &missing);
 
       Fragment good(supplied);
       good += LoadLocal(optional_count_var);
-      // Note: FP[param_end_from_fp + 1 + (optional_count_var - 1)] points to
-      // the first optional parameter.
       good += LoadFpRelativeSlot(
           compiler::target::kWordSize *
-              (compiler::target::frame_layout.param_end_from_fp - opt_param),
+              (compiler::target::frame_layout.param_end_from_fp +
+               fixed_params_size - param_offset),
           ParameterType(ParameterVariable(param)));
       good += StoreLocalRaw(TokenPosition::kNoSource, ParameterVariable(param));
       good += Drop();
@@ -185,7 +204,7 @@ Fragment PrologueBuilder::BuildParameterHandling() {
         not_good.current = next_missing;
       }
       next_missing = BuildJoinEntry();
-      not_good += Constant(DefaultParameterValueAt(opt_param));
+      not_good += Constant(DefaultParameterValueAt(opt_param - 1));
       not_good +=
           StoreLocalRaw(TokenPosition::kNoSource, ParameterVariable(param));
       not_good += Drop();

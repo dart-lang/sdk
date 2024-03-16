@@ -8,7 +8,6 @@
 // slow-path stack overflow checks which uses shared runtime stubs.
 
 import 'package:expect/expect.dart';
-import 'dart:math';
 
 filter_me() {
   int s = 0;

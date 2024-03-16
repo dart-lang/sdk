@@ -7,7 +7,6 @@
 
 // OtherResources=use_save_debugging_info_flag_program.dart
 
-import "dart:async";
 import "dart:io";
 
 import 'package:expect/expect.dart';
@@ -191,9 +190,9 @@ void checkSymbols(List<Symbol>? snapshotSymbols, List<Symbol> debugInfoSymbols,
 
 void checkElf(Elf? snapshot, Elf debugInfo, {required bool isAssembled}) {
   // All symbol tables have an initial entry with zero-valued fields.
-  final snapshotDynamicSymbols = snapshot?.dynamicSymbols?.skip(1)?.toList();
+  final snapshotDynamicSymbols = snapshot?.dynamicSymbols.skip(1).toList();
   final debugDynamicSymbols = debugInfo.dynamicSymbols.skip(1).toList();
-  final snapshotStaticSymbols = snapshot?.staticSymbols?.skip(1)?.toList();
+  final snapshotStaticSymbols = snapshot?.staticSymbols.skip(1).toList();
   final debugStaticSymbols = debugInfo.staticSymbols.skip(1).toList();
 
   // First, do our general round of checks against each group of tables.

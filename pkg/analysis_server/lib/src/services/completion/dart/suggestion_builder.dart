@@ -31,6 +31,10 @@ abstract class CompletionSuggestionBuilder {
   /// See [CompletionSuggestion.completion].
   String get completion;
 
+  /// The kind of the element, if there is the associated element.
+  /// We use it for completion metrics, to avoid [build].
+  protocol.ElementKind? get elementKind;
+
   /// The key used to de-duplicate suggestions.
   String get key => completion;
 
@@ -1670,6 +1674,9 @@ class ValueCompletionSuggestionBuilder implements CompletionSuggestionBuilder {
   String get completion => _suggestion.completion;
 
   @override
+  protocol.ElementKind? get elementKind => _suggestion.element?.kind;
+
+  @override
   String get key => completion;
 
   @override
@@ -1715,6 +1722,9 @@ class _CompletionSuggestionBuilderImpl implements CompletionSuggestionBuilder {
     required this.requiredImports,
     required this.isNotImported,
   });
+
+  @override
+  protocol.ElementKind? get elementKind => convertElementKind(orgElement.kind);
 
   // TODO(scheglov): implement better key for not-yet-imported
   @override

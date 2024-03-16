@@ -463,7 +463,7 @@ void MoveArgumentInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     } else if (value.IsFpuRegister()) {
       pusher.Flush(compiler);
       __ StoreDToOffset(value.fpu_reg(), SP,
-                        move_arg->location().stack_index() * kWordSize);
+                        move_arg->sp_relative_index() * kWordSize);
       continue;
     } else {
       ASSERT(value.IsStackSlot());
@@ -471,7 +471,7 @@ void MoveArgumentInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       reg = pusher.GetFreeTempRegister(compiler);
       __ LoadFromOffset(reg, value.base_reg(), value_offset);
     }
-    pusher.MoveRegister(compiler, move_arg->location().stack_index(), reg);
+    pusher.MoveRegister(compiler, move_arg->sp_relative_index(), reg);
   }
   pusher.Flush(compiler);
 }

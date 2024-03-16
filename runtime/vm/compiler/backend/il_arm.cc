@@ -598,22 +598,17 @@ void MoveArgumentInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
        move_arg = move_arg->next()->AsMoveArgument()) {
     const Location value = move_arg->locs()->in(0);
     if (value.IsRegister()) {
-      pusher.MoveRegister(compiler, move_arg->location().stack_index(),
-                          value.reg());
+      pusher.MoveRegister(compiler, move_arg->sp_relative_index(), value.reg());
     } else if (value.IsPairLocation()) {
-      RELEASE_ASSERT(move_arg->location().IsPairLocation());
-      auto pair = move_arg->location().AsPairLocation();
-      RELEASE_ASSERT(pair->At(0).IsStackSlot());
-      RELEASE_ASSERT(pair->At(1).IsStackSlot());
-      pusher.MoveRegister(compiler, pair->At(1).stack_index(),
+      pusher.MoveRegister(compiler, move_arg->sp_relative_index() + 1,
                           value.AsPairLocation()->At(1).reg());
-      pusher.MoveRegister(compiler, pair->At(0).stack_index(),
+      pusher.MoveRegister(compiler, move_arg->sp_relative_index(),
                           value.AsPairLocation()->At(0).reg());
     } else if (value.IsFpuRegister()) {
       pusher.Flush(compiler);
       __ StoreDToOffset(
           EvenDRegisterOf(value.fpu_reg()), SP,
-          move_arg->location().stack_index() * compiler::target::kWordSize);
+          move_arg->sp_relative_index() * compiler::target::kWordSize);
     } else {
       const Register reg = pusher.FindFreeRegister(compiler, move_arg);
       ASSERT(reg != kNoRegister);
@@ -624,7 +619,7 @@ void MoveArgumentInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         const intptr_t value_offset = value.ToStackSlotOffset();
         __ LoadFromOffset(reg, value.base_reg(), value_offset);
       }
-      pusher.MoveRegister(compiler, move_arg->location().stack_index(), reg);
+      pusher.MoveRegister(compiler, move_arg->sp_relative_index(), reg);
     }
   }
   pusher.Flush(compiler);

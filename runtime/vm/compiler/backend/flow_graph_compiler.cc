@@ -429,18 +429,22 @@ void FlowGraphCompiler::RecordCatchEntryMoves(Environment* env) {
         catch_block->initial_definitions();
     catch_entry_moves_maps_builder_->NewMapping(assembler()->CodeSize());
 
+    const intptr_t num_direct_parameters = flow_graph().num_direct_parameters();
+    const intptr_t ex_idx =
+        catch_block->raw_exception_var() != nullptr
+            ? flow_graph().EnvIndex(catch_block->raw_exception_var())
+            : -1;
+    const intptr_t st_idx =
+        catch_block->raw_stacktrace_var() != nullptr
+            ? flow_graph().EnvIndex(catch_block->raw_stacktrace_var())
+            : -1;
     for (intptr_t i = 0; i < flow_graph().variable_count(); ++i) {
       // Don't sync captured parameters. They are not in the environment.
       if (flow_graph().captured_parameters()->Contains(i)) continue;
-      auto param = (*idefs)[i]->AsParameter();
-
-      // Don't sync values that have been replaced with constants.
-      if (param == nullptr) continue;
-      RELEASE_ASSERT(param->env_index() == i);
-      Location dst = param->location();
-
       // Don't sync exception or stack trace variables.
-      if (dst.IsRegister()) continue;
+      if (i == ex_idx || i == st_idx) continue;
+      // Don't sync values that have been replaced with constants.
+      if ((*idefs)[i]->IsConstant()) continue;
 
       Location src = env->LocationAt(i);
       // Can only occur if AllocationSinking is enabled - and it is disabled
@@ -448,8 +452,9 @@ void FlowGraphCompiler::RecordCatchEntryMoves(Environment* env) {
       ASSERT(!src.IsInvalid());
       const Representation src_type =
           env->ValueAt(i)->definition()->representation();
-      const auto move = CatchEntryMoveFor(assembler(), src_type, src,
-                                          LocationToStackIndex(dst));
+      intptr_t dest_index = i - num_direct_parameters;
+      const auto move =
+          CatchEntryMoveFor(assembler(), src_type, src, dest_index);
       if (!move.IsRedundant()) {
         catch_entry_moves_maps_builder_->Append(move);
       }
@@ -1038,9 +1043,6 @@ void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs,
       const auto move_arg =
           instr->ArgumentValueAt(i)->instruction()->AsMoveArgument();
       const auto rep = move_arg->representation();
-      if (move_arg->is_register_move()) {
-        continue;
-      }
 
       ASSERT(rep == kTagged || rep == kUnboxedInt64 || rep == kUnboxedDouble);
       static_assert(compiler::target::kIntSpillFactor ==

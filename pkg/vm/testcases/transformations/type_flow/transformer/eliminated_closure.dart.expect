@@ -14,7 +14,6 @@ abstract class C extends core::Object {
 
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:2,getterSelectorId:3]
   [@vm.closure-id=0]
-  [@vm.unboxing-info.metadata=[!regcc]]
   method toString() → core::String
     return block {
       [@vm.direct-call.metadata=#lib::E.foo] [@vm.inferred-type.metadata=!] this.{self::C::foo}{self::A};

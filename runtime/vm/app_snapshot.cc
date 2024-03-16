@@ -167,7 +167,8 @@ class SerializationCluster : public ZoneAllocated {
       : name_(name),
         cid_(cid),
         target_instance_size_(target_instance_size),
-        is_canonical_(is_canonical) {
+        is_canonical_(is_canonical),
+        is_immutable_(Object::ShouldHaveImmutabilityBitSet(cid)) {
     ASSERT(target_instance_size == kSizeVaries || target_instance_size >= 0);
   }
   virtual ~SerializationCluster() {}
@@ -189,6 +190,7 @@ class SerializationCluster : public ZoneAllocated {
   const char* name() const { return name_; }
   intptr_t cid() const { return cid_; }
   bool is_canonical() const { return is_canonical_; }
+  bool is_immutable() const { return is_immutable_; }
   intptr_t size() const { return size_; }
   intptr_t num_objects() const { return num_objects_; }
 
@@ -206,6 +208,7 @@ class SerializationCluster : public ZoneAllocated {
   const intptr_t cid_;
   const intptr_t target_instance_size_;
   const bool is_canonical_;
+  const bool is_immutable_;
   intptr_t size_ = 0;
   intptr_t num_objects_ = 0;
   intptr_t target_memory_size_ = 0;
@@ -213,9 +216,12 @@ class SerializationCluster : public ZoneAllocated {
 
 class DeserializationCluster : public ZoneAllocated {
  public:
-  explicit DeserializationCluster(const char* name, bool is_canonical = false)
+  explicit DeserializationCluster(const char* name,
+                                  bool is_canonical = false,
+                                  bool is_immutable = false)
       : name_(name),
         is_canonical_(is_canonical),
+        is_immutable_(is_immutable),
         start_index_(-1),
         stop_index_(-1) {}
   virtual ~DeserializationCluster() {}
@@ -245,6 +251,7 @@ class DeserializationCluster : public ZoneAllocated {
 
   const char* const name_;
   const bool is_canonical_;
+  const bool is_immutable_;
   // The range of the ref array that belongs to this cluster.
   intptr_t start_index_;
   intptr_t stop_index_;
@@ -678,7 +685,15 @@ class Deserializer : public ThreadStackResource {
   static void InitializeHeader(ObjectPtr raw,
                                intptr_t cid,
                                intptr_t size,
-                               bool is_canonical = false);
+                               bool is_canonical = false) {
+    InitializeHeader(raw, cid, size, is_canonical,
+                     ShouldHaveImmutabilityBitSetCid(cid));
+  }
+  static void InitializeHeader(ObjectPtr raw,
+                               intptr_t cid,
+                               intptr_t size,
+                               bool is_canonical,
+                               bool is_immutable);
 
   // Reads raw data (for basic types).
   // sizeof(T) must be in {1,2,4,8}.
@@ -869,7 +884,8 @@ ObjectPtr Deserializer::Allocate(intptr_t size) {
 void Deserializer::InitializeHeader(ObjectPtr raw,
                                     intptr_t class_id,
                                     intptr_t size,
-                                    bool is_canonical) {
+                                    bool is_canonical,
+                                    bool is_immutable) {
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
   uword tags = 0;
   tags = UntaggedObject::ClassIdTag::update(class_id, tags);
@@ -879,7 +895,7 @@ void Deserializer::InitializeHeader(ObjectPtr raw,
   tags = UntaggedObject::NotMarkedBit::update(true, tags);
   tags = UntaggedObject::OldAndNotRememberedBit::update(true, tags);
   tags = UntaggedObject::NewBit::update(false, tags);
-  // TODO(https://dartbug.com/55136): Initialize the ImmutableBit.
+  tags = UntaggedObject::ImmutableBit::update(is_immutable, tags);
   raw->untag()->tags_ = tags;
 }
 
@@ -888,9 +904,10 @@ void SerializationCluster::WriteAndMeasureAlloc(Serializer* serializer) {
   intptr_t start_size = serializer->bytes_written();
   intptr_t start_data = serializer->GetDataSize();
   intptr_t start_objects = serializer->next_ref_index();
-  uint64_t cid_and_canonical =
-      (static_cast<uint64_t>(cid_) << 1) | (is_canonical() ? 0x1 : 0x0);
-  serializer->Write<uint64_t>(cid_and_canonical);
+  uint32_t tags = UntaggedObject::ClassIdTag::encode(cid_) |
+                  UntaggedObject::CanonicalBit::encode(is_canonical()) |
+                  UntaggedObject::ImmutableBit::encode(is_immutable());
+  serializer->Write<uint32_t>(tags);
   WriteAlloc(serializer);
   intptr_t stop_size = serializer->bytes_written();
   intptr_t stop_data = serializer->GetDataSize();
@@ -4575,9 +4592,12 @@ class AbstractInstanceDeserializationCluster : public DeserializationCluster {
 class InstanceDeserializationCluster
     : public AbstractInstanceDeserializationCluster {
  public:
-  explicit InstanceDeserializationCluster(intptr_t cid, bool is_canonical)
+  explicit InstanceDeserializationCluster(intptr_t cid,
+                                          bool is_canonical,
+                                          bool is_immutable)
       : AbstractInstanceDeserializationCluster("Instance", is_canonical),
-        cid_(cid) {}
+        cid_(cid),
+        is_immutable_(is_immutable) {}
   ~InstanceDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d) {
@@ -4598,6 +4618,7 @@ class InstanceDeserializationCluster
 
     const intptr_t cid = cid_;
     const bool mark_canonical = primary && is_canonical();
+    const bool is_immutable = is_immutable_;
     intptr_t next_field_offset = next_field_offset_in_words_
                                  << kCompressedWordSizeLog2;
     intptr_t instance_size = Object::RoundedAllocationSize(
@@ -4607,7 +4628,7 @@ class InstanceDeserializationCluster
     for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
       InstancePtr instance = static_cast<InstancePtr>(d.Ref(id));
       Deserializer::InitializeHeader(instance, cid, instance_size,
-                                     mark_canonical);
+                                     mark_canonical, is_immutable);
       intptr_t offset = Instance::NextFieldOffset();
       while (offset < next_field_offset) {
         if (unboxed_fields_bitmap.Get(offset / kCompressedWordSize)) {
@@ -4634,6 +4655,7 @@ class InstanceDeserializationCluster
 
  private:
   const intptr_t cid_;
+  const bool is_immutable_;
   intptr_t next_field_offset_in_words_;
   intptr_t instance_size_in_words_;
 };
@@ -8837,12 +8859,14 @@ Deserializer::~Deserializer() {
 }
 
 DeserializationCluster* Deserializer::ReadCluster() {
-  const uint64_t cid_and_canonical = Read<uint64_t>();
-  const intptr_t cid = (cid_and_canonical >> 1) & kMaxUint32;
-  const bool is_canonical = (cid_and_canonical & 0x1) == 0x1;
+  const uint32_t tags = Read<uint32_t>();
+  const intptr_t cid = UntaggedObject::ClassIdTag::decode(tags);
+  const bool is_canonical = UntaggedObject::CanonicalBit::decode(tags);
+  const bool is_immutable = UntaggedObject::ImmutableBit::decode(tags);
   Zone* Z = zone_;
   if (cid >= kNumPredefinedCids || cid == kInstanceCid) {
-    return new (Z) InstanceDeserializationCluster(cid, is_canonical);
+    return new (Z)
+        InstanceDeserializationCluster(cid, is_canonical, is_immutable);
   }
   if (IsTypedDataViewClassId(cid)) {
     ASSERT(!is_canonical);
@@ -9019,7 +9043,8 @@ DeserializationCluster* Deserializer::ReadCluster() {
 #define CASE_FFI_CID(name) case kFfi##name##Cid:
       CLASS_LIST_FFI_TYPE_MARKER(CASE_FFI_CID)
 #undef CASE_FFI_CID
-      return new (Z) InstanceDeserializationCluster(cid, is_canonical);
+      return new (Z)
+          InstanceDeserializationCluster(cid, is_canonical, is_immutable);
     case kDeltaEncodedTypedDataCid:
       return new (Z) DeltaEncodedTypedDataDeserializationCluster();
     default:

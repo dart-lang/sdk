@@ -4,7 +4,6 @@
 
 // Verifies that compiler can do CSE and LICM of taking a tear-off.
 
-import 'package:expect/expect.dart';
 import 'package:vm/testing/il_matchers.dart';
 
 class A {

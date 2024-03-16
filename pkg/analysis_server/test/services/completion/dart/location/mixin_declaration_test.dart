@@ -42,4 +42,16 @@ suggestions
     kind: keyword
 ''');
   }
+
+  Future<void> test_name() async {
+    allowedIdentifiers = {'Test'};
+    await computeSuggestions('''
+mixin ^
+''');
+    assertResponse(r'''
+suggestions
+  Test
+    kind: identifier
+''');
+  }
 }

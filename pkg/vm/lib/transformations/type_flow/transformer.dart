@@ -595,7 +595,7 @@ class AnnotateKernel extends RecursiveVisitor {
 
       final unboxingInfoMetadata =
           _unboxingInfo.getUnboxingInfoOfMember(member);
-      if (unboxingInfoMetadata != null && !unboxingInfoMetadata.isTrivial) {
+      if (unboxingInfoMetadata != null && !unboxingInfoMetadata.isFullyBoxed) {
         _unboxingInfoMetadata.mapping[member] = unboxingInfoMetadata;
       }
     } else {
@@ -617,7 +617,7 @@ class AnnotateKernel extends RecursiveVisitor {
               unboxingInfoMetadata.argsInfo[i] = UnboxingType.kBoxed;
             }
           }
-          if (!unboxingInfoMetadata.isTrivial) {
+          if (!unboxingInfoMetadata.isFullyBoxed) {
             _unboxingInfoMetadata.mapping[member] = unboxingInfoMetadata;
           }
         }

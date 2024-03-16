@@ -9,10 +9,7 @@
 #error "AOT runtime should not use compiler sources (including header files)"
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
-#include <utility>
-
 #include "vm/bit_vector.h"
-#include "vm/compiler/backend/dart_calling_conventions.h"
 #include "vm/compiler/backend/il.h"
 #include "vm/growable_array.h"
 #include "vm/hash_map.h"
@@ -129,6 +126,9 @@ class FlowGraph : public ZoneAllocated {
   // the arguments descriptor.
   intptr_t num_direct_parameters() const { return num_direct_parameters_; }
 
+  // The number of words on the stack used by the direct parameters.
+  intptr_t direct_parameters_size() const { return direct_parameters_size_; }
+
   // The number of variables (or boxes) which code can load from / store to.
   // The SSA renaming will insert phi's for them (and only them - i.e. there
   // will be no phi insertion for [LocalVariable]s pointing to the expression
@@ -143,6 +143,15 @@ class FlowGraph : public ZoneAllocated {
     ASSERT(IsCompiledForOsr());
     return variable_count() + graph_entry()->osr_entry()->stack_depth();
   }
+
+  // This function returns the offset (in words) of the [index]th
+  // parameter, relative to the first parameter.
+  // If [last_slot] is true it gives the offset of the last slot of that
+  // location, otherwise it returns the first one.
+  static intptr_t ParameterOffsetAt(const Function& function,
+                                    intptr_t index,
+                                    bool last_slot = true);
+  static Location ParameterLocationAt(const Function& function, intptr_t index);
 
   static Representation ParameterRepresentationAt(const Function& function,
                                                   intptr_t index);
@@ -548,20 +557,6 @@ class FlowGraph : public ZoneAllocated {
     max_argument_slot_count_ = count;
   }
 
-  const std::pair<Location, Representation>& GetDirectParameterInfoAt(
-      intptr_t i) {
-    return direct_parameter_locations_[i];
-  }
-
-  static intptr_t ComputeLocationsOfFixedParameters(
-      Zone* zone,
-      const Function& function,
-      bool should_assign_stack_locations = false,
-      compiler::ParameterInfoArray* parameter_info = nullptr);
-
-  static intptr_t ComputeArgumentsSizeInWords(const Function& function,
-                                              intptr_t arguments_count);
-
  private:
   friend class FlowGraphCompiler;  // TODO(ajcbik): restructure
   friend class FlowGraphChecker;
@@ -666,7 +661,7 @@ class FlowGraph : public ZoneAllocated {
   // Flow graph fields.
   const ParsedFunction& parsed_function_;
   intptr_t num_direct_parameters_;
-  compiler::ParameterInfoArray direct_parameter_locations_;
+  intptr_t direct_parameters_size_;
   GraphEntryInstr* graph_entry_;
   GrowableArray<BlockEntryInstr*> preorder_;
   GrowableArray<BlockEntryInstr*> postorder_;

@@ -2242,6 +2242,257 @@ LintCode:
         }
       }
       ```
+  unnecessary_brace_in_string_interps:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a string interpolation with
+      braces is used to interpolate a simple identifier and isn't followed by
+      alphanumeric text.
+
+      #### Example
+
+      The following code produces this diagnostic because the interpolation
+      element `${s}` uses braces when they are not necessary:
+
+      ```dart
+      String f(String s) {
+        return '"[!${s}!]"';
+      }
+      ```
+
+      #### Common fixes
+
+      Remove the unnecessary braces:
+
+      ```dart
+      String f(String s) {
+        return '"$s"';
+      }
+      ```
+  unnecessary_const:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the keyword `const` is used in
+      a [constant context][]. The keyword isn't required because it's implied.
+
+      #### Example
+
+      The following code produces this diagnostic because the keyword `const` in
+      the list literal isn't needed:
+
+      ```dart
+      const l = [!const!] <int>[];
+      ```
+
+      The list is implicitly `const` because of the keyword `const` on the
+      variable declaration.
+
+      #### Common fixes
+
+      Remove the unnecessary keyword:
+
+      ```dart
+      const l = <int>[];
+      ```
+  unnecessary_constructor_name:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a reference to an unnamed
+      constructor uses `.new`. The only place where `.new` is required is in a
+      constructor tear-off.
+
+      #### Example
+
+      The following code produces this diagnostic because `.new` is being used
+      to refer to the unnamed constructor where it isn't required:
+
+      ```dart
+      var o = Object.[!new!]();
+      ```
+
+      #### Common fixes
+
+      Remove the unnecessary `.new`:
+
+      ```dart
+      var o = Object();
+      ```
+  unnecessary_getters_setters:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a getter and setter pair
+      returns and sets the value of a field without any additional processing.
+
+      #### Example
+
+      The following code produces this diagnostic because the getter/setter pair
+      named `c` only expose the field named `_c`:
+
+      ```dart
+      class C {
+        int? _c;
+
+        int? get [!c!] => _c;
+
+        set c(int? v) => _c = v;
+      }
+      ```
+
+      #### Common fixes
+
+      Make the field public and remove the getter and setter:
+
+      ```dart
+      class C {
+        int? c;
+      }
+      ```
+  unnecessary_late:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a top-level variable or static
+      field with an initializer is marked as `late`. Top-level variables and
+      static fields are implicitly late, so they don't need to be explicitly
+      marked.
+
+      #### Example
+
+      The following code produces this diagnostic because the static field `c`
+      has the modifier `late` even though it has an initializer:
+
+      ```dart
+      class C {
+        static [!late!] String c = '';
+      }
+      ```
+
+      #### Common fixes
+
+      Remove the keyword `late`:
+
+      ```dart
+      class C {
+        static String c = '';
+      }
+      ```
+  unnecessary_new:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the keyword `new` is used to
+      invoke a constructor.
+
+      #### Example
+
+      The following code produces this diagnostic because the keyword `new` is
+      used to invoke the unnamed constructor from `Object`:
+
+      ```dart
+      var o = [!new!] Object();
+      ```
+
+      #### Common fixes
+
+      Remove the keyword `new`:
+
+      ```dart
+      var o = Object();
+      ```
+  unnecessary_null_aware_assignments:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the right-hand side of a
+      null-aware assignment is the `null` literal.
+
+      #### Example
+
+      The following code produces this diagnostic because the null aware
+      operator is being used to assign `null` to `s` when `s` is already `null`:
+
+      ```dart
+      void f(String? s) {
+        [!s ??= null!];
+      }
+      ```
+
+      #### Common fixes
+
+      If a non-null value should be assigned to the left-hand operand, then
+      change the right-hand side:
+
+      ```dart
+      void f(String? s) {
+        s ??= '';
+      }
+      ```
+
+      If there is no non-null value to assign to the left-hand operand, then
+      remove the assignment:
+
+      ```dart
+      void f(String? s) {
+      }
+      ```
+  unnecessary_null_in_if_null_operators:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the right operand of the `??`
+      operator is the literal `null`.
+
+      #### Example
+
+      The following code produces this diagnostic because the right-hand operand
+      of the `??` operator is `null`:
+
+      ```dart
+      String? f(String? s) => s ?? [!null!];
+      ```
+
+      #### Common fixes
+
+      If a non-null value should be used for the right-hand operand, then
+      change the right-hand side:
+
+      ```dart
+      String f(String? s) => s ?? '';
+      ```
+
+      If there is no non-null value to use for the right-hand operand, then
+      remove the operator and the right-hand operand:
+
+      ```dart
+      String? f(String? s) => s;
+      ```
+  unnecessary_nullable_for_final_variable_declarations:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a final field or variable has a
+      nullable type but is initialized to a non-nullable value.
+
+      #### Example
+
+      The following code produces this diagnostic because the final variable `i`
+      has a nullable type (`int?`), but can never be `null`:
+
+      ```dart
+      final int? [!i!] = 1;
+      ```
+
+      #### Common fixes
+
+      Make the type non-nullable:
+
+      ```dart
+      final int i = 1;
+      ```
   unnecessary_overrides:
     documentation: |-
       #### Description
@@ -2311,6 +2562,119 @@ LintCode:
 
       class D extends C {}
       ```
+  unnecessary_string_escapes:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when characters in a string are
+      escaped when escaping them is unnecessary.
+
+      #### Example
+
+      The following code produces this diagnostic because single quotes don't
+      need to be escaped inside strings delimited by double quotes:
+
+      ```dart
+      var s = "Don[!\!]'t use a backslash here.";
+      ```
+
+      #### Common fixes
+
+      Remove the unnecessary backslashes:
+
+      ```dart
+      var s = "Don't use a backslash here.";
+      ```
+  unnecessary_string_interpolations:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a string literal contains a
+      single interpolation of a `String`-valued variable and no other
+      characters.
+
+      #### Example
+
+      The following code produces this diagnostic because the string literal
+      contains a single interpolation and doesn't contain any character outside
+      the interpolation:
+
+      ```dart
+      String f(String s) => [!'$s'!];
+      ```
+
+      #### Common fixes
+
+      Replace the string literal with the content of the interpolation:
+
+      ```dart
+      String f(String s) => s;
+      ```
+  unnecessary_this:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the keyword `this` is used to
+      access a member that isn't shadowed.
+
+      #### Example
+
+      The following code produces this diagnostic because the use of `this` to
+      access the field `_f` isn't necessary:
+
+      ```dart
+      class C {
+        int _f = 2;
+
+        int get f => [!this!]._f;
+      }
+      ```
+
+      #### Common fixes
+
+      Remove the `this.`:
+
+      ```dart
+      class C {
+        int _f = 2;
+
+        int get f => _f;
+      }
+      ```
+  unnecessary_to_list_in_spreads:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when `toList` is used to convert an
+      `Iterable` to a `List` just before a spread operator is applied to the
+      list. The spread operator can be applied to any `Iterable`, so the
+      conversion isn't necessary.
+
+      #### Example
+
+      The following code produces this diagnostic because `toList` is invoked on
+      the result of `map`, which is an `Iterable` that the spread operator could
+      be applied to directly:
+
+      ```dart
+      List<String> toLowercase(List<String> strings) {
+        return [
+          ...strings.map((String s) => s.toLowerCase()).[!toList!](),
+        ];
+      }
+      ```
+
+      #### Common fixes
+
+      Remove the invocation of `toList`:
+
+      ```dart
+      List<String> toLowercase(List<String> strings) {
+        return [
+          ...strings.map((String s) => s.toLowerCase()),
+        ];
+      }
+      ```
   unrelated_type_equality_checks:
     documentation: |-
       #### Description
@@ -2353,6 +2717,64 @@ LintCode:
         return s.length == 1;
       }
       ```
+  use_function_type_syntax_for_parameters:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the older style function-valued
+      parameter syntax is used.
+
+      #### Example
+
+      The following code produces this diagnostic because the function-valued
+      parameter `f` is declared using an older style syntax:
+
+      ```dart
+      void g([!bool f(String s)!]) {}
+      ```
+
+      #### Common fixes
+
+      Use the generic function type syntax to declare the parameter:
+
+      ```dart
+      void g(bool Function(String) f) {}
+      ```
+  use_rethrow_when_possible:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a caught exception is thrown
+      using a `throw` expression rather than a `rethrow` statement.
+
+      #### Example
+
+      The following code produces this diagnostic because the caught exception
+      `e` is thrown using a `throw` expression:
+
+      ```dart
+      void f() {
+        try {
+          // ...
+        } catch (e) {
+          [!throw e!];
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      Use `rethrow` instead of `throw`:
+
+      ```dart
+      void f() {
+        try {
+          // ...
+        } catch (e) {
+          rethrow;
+        }
+      }
+      ```
   use_string_in_part_of_directives:
     documentation: |-
       #### Description
@@ -2385,6 +2807,40 @@ LintCode:
 
       ```dart
       part of 'lib.dart';
+      ```
+  use_super_parameters:
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a parameter to a constructor is
+      passed to a super constructor without being referenced or modified and a
+      `super` parameter isn't used.
+
+      #### Example
+
+      The following code produces this diagnostic because the parameters of the
+      constructor for `B` are only used as arguments to the super constructor:
+
+      ```dart
+      class A {
+        A({int? x, int? y});
+      }
+      class B extends A {
+        [!B!]({int? x, int? y}) : super(x: x, y: y);
+      }
+      ```
+
+      #### Common fixes
+
+      Use a `super` parameter to pass the arguments:
+
+      ```dart
+      class A {
+        A({int? x, int? y});
+      }
+      class B extends A {
+        B({super.x, super.y});
+      }
       ```
   valid_regexps:
     documentation: |-

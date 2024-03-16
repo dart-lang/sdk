@@ -12,7 +12,6 @@ class A extends core::Object {
     ;
 
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:2,getterSelectorId:3]
-  [@vm.unboxing-info.metadata=[!regcc]]
   method toString() → core::String
     return [@vm.inferred-type.metadata=! (receiver not int)] [@vm.direct-call.metadata=#lib::A.afield] [@vm.inferred-type.metadata=!] this.{self::A::afield}{core::List<dynamic>}.{core::Object::toString}(){() → core::String};
 }

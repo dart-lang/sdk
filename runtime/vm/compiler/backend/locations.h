@@ -507,11 +507,6 @@ class Location : public ValueObject {
   // at the entry (i.e. no additional frame was setup on the stack).
   Location ToEntrySpRelative() const;
 
-  // If the given location is FP relative stack location this returns
-  // corresponding SP relative location assuming that SP is equal to SP
-  // of caller before the call.
-  Location ToCallerSpRelative() const;
-
   const char* Name() const;
   void PrintTo(BaseTextBuffer* f) const;
   void Print() const;

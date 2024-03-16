@@ -5,7 +5,6 @@
 // Confirm that timezone information is available on pre-1970 dates, which
 // was a problem on Windows.
 
-import 'dart:async';
 import 'dart:io';
 
 import "package:expect/expect.dart";

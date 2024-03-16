@@ -4,7 +4,6 @@
 
 // Verify that socket connection gracefully closes if cancelled.
 
-import 'dart:async';
 import 'dart:io';
 
 import 'package:expect/expect.dart';
