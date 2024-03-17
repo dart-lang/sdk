@@ -517,6 +517,33 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
+    // `class X { final String in^; }` is parsed as
+    // `final <NoType> String ; in^`, where `in` is dropped.
+    var dropped = state.request.target.droppedToken;
+    if (dropped != null && dropped.end == offset) {
+      if (dropped.type.isKeyword) {
+        for (var fieldDeclaration in node.members) {
+          if (fieldDeclaration is FieldDeclaration) {
+            var fields = fieldDeclaration.fields;
+            if (fields.type == null) {
+              if (fields.variables case [var field]) {
+                var shouldBeTypeName = field.name;
+                var semicolon = shouldBeTypeName.next;
+                if (semicolon != null &&
+                    semicolon.type == TokenType.SEMICOLON &&
+                    semicolon.next == dropped) {
+                  identifierHelper(
+                    includePrivateIdentifiers: false,
+                  ).addSuggestionsFromTypeName(shouldBeTypeName.lexeme);
+                  return;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
     if (offset == node.offset) {
       _forCompilationUnitMemberBefore(node);
     } else if (offset < node.classKeyword.offset) {
