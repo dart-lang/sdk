@@ -242,6 +242,36 @@ main() {
       ]);
     });
 
+    test('includes correct Source.name for SDK and package sources', () async {
+      // Use a sample program that prints output to stderr that includes:
+      // - non stack frame lines
+      // - stack frames with file:// URIs
+      // - stack frames with package URIs (that need asynchronously resolving)
+      // - stack frames with dart URIs (that need asynchronously resolving)
+      final fileUri = Uri.file(dap.createTestFile('').path);
+      final (packageUri, _) = await dap.createFooPackage();
+      final dartUri = Uri.parse('dart:isolate-patch/isolate_patch.dart');
+      final testFile = dap.createTestFile(
+        stderrPrintingProgram(fileUri, packageUri, dartUri),
+      );
+
+      final outputEvents = await dap.client.collectOutput(file: testFile);
+      final outputSourceNames = outputEvents
+          .where((e) => e.category == 'stderr')
+          .map((output) => output.source?.name)
+          .where((sourceName) => (sourceName?.isNotEmpty ?? false))
+          .toList();
+
+      expect(
+        outputSourceNames,
+        [
+          fileUri.toFilePath(),
+          packageUri.toString(),
+          dartUri.toString(),
+        ],
+      );
+    });
+
     group('progress notifications', () {
       /// Helper to verify [events] are the expected start/update/end events
       /// in-order for a debug session starting.
