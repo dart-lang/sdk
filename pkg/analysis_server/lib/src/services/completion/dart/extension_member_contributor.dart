@@ -145,6 +145,7 @@ class ExtensionMemberContributor extends DartCompletionContributor {
 
   void _addTypeMembers(InterfaceType type, CompletionSuggestionKind kind,
       double inheritanceDistance) {
+    builder.laterReplacesEarlier = false;
     for (var method in type.methods) {
       memberBuilder.addSuggestionForMethod(
           method: method, kind: kind, inheritanceDistance: inheritanceDistance);
