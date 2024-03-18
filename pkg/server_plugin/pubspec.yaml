@@ -1,4 +1,4 @@
-name: analysis_server
+name: server_plugin
 # This package is not intended for consumption on pub.dev. DO NOT publish.
 publish_to: none
 
@@ -7,39 +7,12 @@ environment:
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dependencies:
-  _fe_analyzer_shared: any
   analyzer: any
   analyzer_plugin: any
-  args: any
-  collection: any
-  convert: any
-  crypto: any
-  dart_style: any
-  http: any
-  language_server_protocol: any
-  linter: any
-  memory_usage: any
-  meta: any
-  path: any
-  server_plugin: any
-  stream_channel: any
-  telemetry: any
-  test: any
-  unified_analytics: any
-  vm_service: any
-  watcher: any
-  yaml: any
-  yaml_edit: any
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependencies:
-  analyzer_utilities: any
-  cli_util: any
   lints: any
-  logging: any
-  matcher: any
-  test_descriptor: any
-  test_reflective_loader: any
 
 dependency_overrides:
   _fe_analyzer_shared:

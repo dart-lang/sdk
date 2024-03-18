@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/src/protocol_server.dart' show SourceEdit;
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
@@ -16,6 +15,7 @@ import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:collection/collection.dart';
+import 'package:server_plugin/edit/fix/fix.dart';
 
 /// The root of a set of classes that support testing for lint fixes.
 ///
