@@ -31,7 +31,7 @@ import 'package:testing/testing.dart'
     show Chain, ChainContext, ExpectationSet, Result, Step, TestDescription;
 
 import 'fasta/suite_utils.dart';
-import 'fasta/testing/suite.dart' show UPDATE_EXPECTATIONS;
+import 'fasta/testing/environment_keys.dart';
 import 'parser_test_listener.dart' show ParserTestListener;
 import 'parser_test_parser.dart' show TestParser;
 import 'testing_utils.dart' show checkEnvironment;
@@ -58,15 +58,16 @@ void main([List<String> arguments = const []]) => internalMain(createContext,
 Future<Context> createContext(
     Chain suite, Map<String, String> environment) async {
   const Set<String> knownEnvironmentKeys = {
-    UPDATE_EXPECTATIONS,
-    "trace",
-    "annotateLines"
+    EnvironmentKeys.updateExpectations,
+    EnvironmentKeys.trace,
+    EnvironmentKeys.annotateLines,
   };
   checkEnvironment(environment, knownEnvironmentKeys);
 
-  bool updateExpectations = environment[UPDATE_EXPECTATIONS] == "true";
-  bool trace = environment["trace"] == "true";
-  bool annotateLines = environment["annotateLines"] == "true";
+  bool updateExpectations =
+      environment[EnvironmentKeys.updateExpectations] == "true";
+  bool trace = environment[EnvironmentKeys.trace] == "true";
+  bool annotateLines = environment[EnvironmentKeys.annotateLines] == "true";
 
   return new Context(suite.name, updateExpectations, trace, annotateLines);
 }
@@ -102,7 +103,8 @@ class Context extends ChainContext with MatchContext {
   final bool updateExpectations;
 
   @override
-  String get updateExpectationsOption => '${UPDATE_EXPECTATIONS}=true';
+  String get updateExpectationsOption =>
+      '${EnvironmentKeys.updateExpectations}=true';
 
   @override
   bool get canBeFixWithUpdateExpectations => true;
