@@ -1228,6 +1228,10 @@ class UnboxingInfoMetadata : public ZoneAllocated {
     RecordShape record_shape = RecordShape::ForUnnamed(0);
   };
 
+  static constexpr uint8_t kMustUseStackCallingConventionFlag = 1 << 0;
+  static constexpr uint8_t kHasUnboxedParameterOrReturnValueFlag = 1 << 1;
+  static constexpr uint8_t kHasOverridesWithLessDirectParametersFlag = 1 << 2;
+
   UnboxingInfoMetadata() : unboxed_args_info(0), return_info() {}
 
   void SetArgsCount(intptr_t num_args) {
@@ -1236,8 +1240,12 @@ class UnboxingInfoMetadata : public ZoneAllocated {
     unboxed_args_info.FillWith(UnboxingType(), 0, num_args);
   }
 
+  // Caveat: this array does not cover receiver (`this`) which is always
+  // assumed to be boxed.
   GrowableArray<UnboxingType> unboxed_args_info;
   UnboxingType return_info;
+  bool must_use_stack_calling_convention;
+  bool has_overrides_with_less_direct_parameters;
 
   DISALLOW_COPY_AND_ASSIGN(UnboxingInfoMetadata);
 };

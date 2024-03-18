@@ -588,6 +588,14 @@ class CallingConventions {
        (kArgumentRegisters | R(kPointerToReturnStructRegisterCall))) == 0);
 };
 
+// Register based calling convention used for Dart functions.
+//
+// See |compiler::ComputeCallingConvention| for more details.
+struct DartCallingConvention {
+  static constexpr Register kCpuRegistersForArgs[] = {kNoRegister};
+  static constexpr FpuRegister kFpuRegistersForArgs[] = {kNoFpuRegister};
+};
+
 // TODO(riscv): Architecture-independent parts of the compiler should use
 // compare-and-branch instead of condition codes.
 enum Condition {

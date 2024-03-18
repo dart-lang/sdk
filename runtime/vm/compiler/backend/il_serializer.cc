@@ -667,8 +667,7 @@ void FlowGraphSerializer::WriteFlowGraph(
   // Write instructions
   for (auto block : flow_graph.reverse_postorder()) {
     Write<Instruction*>(block);
-    for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
-      Instruction* current = it.Current();
+    for (auto current : block->instructions()) {
       Write<Instruction*>(current);
     }
   }
@@ -680,8 +679,7 @@ void FlowGraphSerializer::WriteFlowGraph(
   // It may contain references to other instructions.
   for (auto block : flow_graph.reverse_postorder()) {
     block->WriteExtra(this);
-    for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
-      Instruction* current = it.Current();
+    for (auto current : block->instructions()) {
       current->WriteExtra(this);
     }
   }
@@ -2420,43 +2418,79 @@ FlowGraphDeserializer::ReadTrait<const compiler::TableSelector*>::Read(
 }
 
 template <intptr_t kExtraInputs>
-void TemplateDartCall<kExtraInputs>::WriteExtra(FlowGraphSerializer* s) {
-  VariadicDefinition::WriteExtra(s);
+void TemplateDartCall<kExtraInputs>::WriteTo(FlowGraphSerializer* s) {
+  VariadicDefinition::WriteTo(s);
+  s->Write<intptr_t>(type_args_len_);
+  s->Write<const Array&>(argument_names_);
+  s->Write<TokenPosition>(token_pos_);
   if (move_arguments_ == nullptr) {
     s->Write<intptr_t>(-1);
   } else {
     s->Write<intptr_t>(move_arguments_->length());
-#if defined(DEBUG)
-    // Verify that MoveArgument instructions are inserted immediately
-    // before this instruction. ReadExtra below relies on
-    // that when restoring move_arguments_.
-    Instruction* instr = this;
-    for (intptr_t i = move_arguments_->length() - 1; i >= 0; --i) {
-      do {
-        instr = instr->previous();
-        ASSERT(instr != nullptr);
-      } while (!instr->IsMoveArgument());
-      ASSERT(instr == (*move_arguments_)[i]);
+    // Write detached MoveArgument instructions.
+    for (auto move_arg : *move_arguments_) {
+      if (move_arg->next() == nullptr) {
+        s->Write<bool>(true);
+        s->Write<Instruction*>(move_arg);
+      } else {
+        s->Write<bool>(false);
+      }
     }
-#endif
+  }
+}
+
+template <intptr_t kExtraInputs>
+TemplateDartCall<kExtraInputs>::TemplateDartCall(FlowGraphDeserializer* d)
+    : VariadicDefinition(d),
+      type_args_len_(d->Read<intptr_t>()),
+      argument_names_(d->Read<const Array&>()),
+      token_pos_(d->Read<TokenPosition>()) {
+  const intptr_t num_move_args = d->Read<intptr_t>();
+  if (num_move_args >= 0) {
+    move_arguments_ =
+        new (d->zone()) MoveArgumentsArray(d->zone(), num_move_args);
+    move_arguments_->EnsureLength(num_move_args, nullptr);
+    for (intptr_t i = 0; i < num_move_args; i++) {
+      if (d->Read<bool>()) {
+        auto move_arg = d->Read<Instruction*>()->AsMoveArgument();
+        ASSERT(move_arg != nullptr);
+        (*move_arguments_)[i] = move_arg;
+      }
+    }
+  }
+}
+
+template <intptr_t kExtraInputs>
+void TemplateDartCall<kExtraInputs>::WriteExtra(FlowGraphSerializer* s) {
+  VariadicDefinition::WriteExtra(s);
+  if (move_arguments_ != nullptr) {
+    // Write extras for detached MoveArgument in reverse order, because
+    // we are going to read them back in reverse order.
+    for (intptr_t i = move_arguments_->length() - 1; i >= 0; --i) {
+      auto move_arg = move_arguments_->At(i);
+      if (move_arg->next() == nullptr) {
+        move_arg->WriteExtra(s);
+      }
+    }
   }
 }
 
 template <intptr_t kExtraInputs>
 void TemplateDartCall<kExtraInputs>::ReadExtra(FlowGraphDeserializer* d) {
   VariadicDefinition::ReadExtra(d);
-  const intptr_t num_move_args = d->Read<intptr_t>();
-  if (num_move_args >= 0) {
-    move_arguments_ =
-        new (d->zone()) MoveArgumentsArray(d->zone(), num_move_args);
-    move_arguments_->EnsureLength(num_move_args, nullptr);
-    Instruction* instr = this;
-    for (int i = num_move_args - 1; i >= 0; --i) {
-      do {
-        instr = instr->previous();
-        ASSERT(instr != nullptr);
-      } while (!instr->IsMoveArgument());
-      (*move_arguments_)[i] = instr->AsMoveArgument();
+  if (move_arguments_ != nullptr) {
+    Instruction* cursor = this;
+    for (intptr_t i = move_arguments_->length() - 1; i >= 0; --i) {
+      if ((*move_arguments_)[i] != nullptr) {
+        (*move_arguments_)[i]->ReadExtra(d);
+      } else {
+        // Note: IL might be serialized after ParallelMove instructions
+        // were inserted between MoveArguments.
+        do {
+          cursor = cursor->previous();
+        } while (!cursor->IsMoveArgument());
+        (*move_arguments_)[i] = cursor->AsMoveArgument();
+      }
     }
     if (env() != nullptr) {
       RepairArgumentUsesInEnvironment();
@@ -2467,6 +2501,16 @@ void TemplateDartCall<kExtraInputs>::ReadExtra(FlowGraphDeserializer* d) {
 // Explicit template instantiations, needed for the methods above.
 template class TemplateDartCall<0>;
 template class TemplateDartCall<1>;
+
+void MoveArgumentInstr::WriteExtra(FlowGraphSerializer* s) {
+  TemplateDefinition::WriteExtra(s);
+  location_.Write(s);
+}
+
+void MoveArgumentInstr::ReadExtra(FlowGraphDeserializer* d) {
+  TemplateDefinition::ReadExtra(d);
+  location_ = Location::Read(d);
+}
 
 template <>
 void FlowGraphSerializer::WriteTrait<TokenPosition>::Write(

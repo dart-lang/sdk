@@ -672,6 +672,16 @@ class CallingConventions {
        (kArgumentRegisters | R(kPointerToReturnStructRegisterCall))) == 0);
 };
 
+// Register based calling convention used for Dart functions.
+//
+// See |compiler::ComputeCallingConvention| for more details.
+struct DartCallingConvention {
+  static constexpr Register kCpuRegistersForArgs[] = {RDI, RSI, RDX,
+                                                      RBX, R8,  R9};
+  static constexpr FpuRegister kFpuRegistersForArgs[] = {XMM1, XMM2, XMM3,
+                                                         XMM4, XMM5, XMM6};
+};
+
 #undef R
 
 class Instr {

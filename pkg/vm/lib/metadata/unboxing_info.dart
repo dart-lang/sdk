@@ -79,50 +79,124 @@ class UnboxingType {
           return sb.toString();
         }
       case UnboxingKind.unknown:
-        throw 'Unexpected UnboxingType.kUknown';
+        return '_|_';
     }
   }
 }
 
 class UnboxingInfoMetadata {
+  /// For GDT selectors the length of this array reflects minimum number of
+  /// direct parameters (excluding this) across all implementations reachable
+  /// through a selector. If there is an override with less direct parameters
+  /// than interface target has declared then
+  /// [hasOverridesWithLessDirectParameters] must be set to `true`.
   final List<UnboxingType> argsInfo;
   UnboxingType returnInfo;
+  bool mustUseStackCallingConvention;
+  bool hasOverridesWithLessDirectParameters = false;
 
-  UnboxingInfoMetadata(int argsLen)
-      : argsInfo = List<UnboxingType>.filled(argsLen, UnboxingType.kUnknown,
-            growable: true),
-        returnInfo = UnboxingType.kUnknown;
+  UnboxingInfoMetadata(int argsLen,
+      {UnboxingType initialValue = UnboxingType.kUnknown})
+      : argsInfo = List<UnboxingType>.filled(
+          argsLen,
+          initialValue,
+          growable: true,
+        ),
+        returnInfo = initialValue,
+        mustUseStackCallingConvention = false;
 
-  UnboxingInfoMetadata.readFromBinary(BinarySource source)
-      : argsInfo = List<UnboxingType>.generate(
-            source.readUInt30(), (_) => UnboxingType.readFromBinary(source),
-            growable: true),
-        returnInfo = UnboxingType.readFromBinary(source);
-
-  // Returns `true` if all arguments as well as the return value have to be
-  // boxed.
-  //
-  // We don't have to write out metadata for fully boxed methods, because this
-  // is the default.
-  bool get isFullyBoxed {
-    if (returnInfo != UnboxingType.kBoxed) return false;
-    for (final argInfo in argsInfo) {
-      if (argInfo != UnboxingType.kBoxed) return false;
+  factory UnboxingInfoMetadata.readFromBinary(BinarySource source) {
+    final result = UnboxingInfoMetadata(source.readUInt30(),
+        initialValue: UnboxingType.kBoxed);
+    final flags = source.readByte();
+    result.mustUseStackCallingConvention =
+        (flags & _mustUseStackCallingConventionFlag) != 0;
+    result.hasOverridesWithLessDirectParameters =
+        (flags & _hasOverridesWithLessDirectParametersFlag) != 0;
+    if ((flags & _hasUnboxedParameterOrReturnValueFlag) != 0) {
+      for (var i = 0; i < result.argsInfo.length; i++) {
+        result.argsInfo[i] = UnboxingType.readFromBinary(source);
+      }
+      result.returnInfo = UnboxingType.readFromBinary(source);
     }
-    return true;
+    return result;
   }
+
+  void adjustParameterCount(int argsLen) {
+    if (argsLen != argsInfo.length) {
+      hasOverridesWithLessDirectParameters = true;
+    }
+
+    if (argsLen < argsInfo.length) {
+      argsInfo.length = argsLen;
+    }
+  }
+
+  bool get hasUnboxedParameterOrReturnValue {
+    if (returnInfo != UnboxingType.kBoxed) return true;
+    for (final argInfo in argsInfo) {
+      if (argInfo != UnboxingType.kBoxed) return true;
+    }
+    return false;
+  }
+
+  // Returns `true` if this [UnboxingInfoMetadata] matches default one:
+  // all arguments and the return value are boxed, the method is not
+  // forced to use stack based calling convention and there is no override
+  // which uses less direct parameters.
+  //
+  // Trivial metadata can be omitted and not written into the Kernel binary.
+  bool get isTrivial {
+    return !mustUseStackCallingConvention &&
+        !hasOverridesWithLessDirectParameters &&
+        !hasUnboxedParameterOrReturnValue;
+  }
+
+  static const _mustUseStackCallingConventionFlag = 1 << 0;
+  static const _hasUnboxedParameterOrReturnValueFlag = 1 << 1;
+  static const _hasOverridesWithLessDirectParametersFlag = 1 << 2;
 
   void writeToBinary(BinarySink sink) {
     sink.writeUInt30(argsInfo.length);
-    for (final argInfo in argsInfo) {
-      argInfo.writeToBinary(sink);
+    final flags = (mustUseStackCallingConvention
+            ? _mustUseStackCallingConventionFlag
+            : 0) |
+        (hasUnboxedParameterOrReturnValue
+            ? _hasUnboxedParameterOrReturnValueFlag
+            : 0) |
+        (hasOverridesWithLessDirectParameters
+            ? _hasOverridesWithLessDirectParametersFlag
+            : 0);
+    sink.writeByte(flags);
+    if ((flags & _hasUnboxedParameterOrReturnValueFlag) != 0) {
+      for (final argInfo in argsInfo) {
+        argInfo.writeToBinary(sink);
+      }
+      returnInfo.writeToBinary(sink);
     }
-    returnInfo.writeToBinary(sink);
+  }
+
+  /// Remove placeholder parameter info slot for setters that the getter is
+  /// grouped with.
+  UnboxingInfoMetadata toGetterInfo() => UnboxingInfoMetadata(0)
+    ..returnInfo = returnInfo
+    ..mustUseStackCallingConvention = mustUseStackCallingConvention;
+
+  UnboxingInfoMetadata toFieldInfo() {
+    if (argsInfo.length == 1 && argsInfo[0] == UnboxingType.kUnknown) {
+      // Drop information about the setter if we did not compute anything
+      // useful.
+      return toGetterInfo();
+    }
+    return this;
   }
 
   @override
   String toString() {
     final sb = StringBuffer();
+    if (mustUseStackCallingConvention) {
+      return '[!regcc]';
+    }
     sb.write('(');
     for (int i = 0; i < argsInfo.length; ++i) {
       final argInfo = argsInfo[i];
