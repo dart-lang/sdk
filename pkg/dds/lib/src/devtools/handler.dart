@@ -9,7 +9,7 @@ import 'dart:typed_data';
 
 import 'package:devtools_shared/devtools_deeplink_io.dart';
 import 'package:devtools_shared/devtools_extensions_io.dart';
-import 'package:devtools_shared/devtools_server.dart';
+import 'package:devtools_shared/devtools_server.dart' hide Handler;
 import 'package:mime/mime.dart';
 import 'package:path/path.dart' as path;
 import 'package:shelf/shelf.dart';
@@ -38,7 +38,7 @@ FutureOr<Handler> defaultHandler({
   ClientManager? clientManager,
   Analytics? analytics,
   Handler? notFoundHandler,
-  String? dtdUri,
+  DTDConnectionInfo? dtd,
 }) {
   // When served through DDS, the app root is /devtools.
   // This variable is used in base href and must start and end with `/`
@@ -141,7 +141,7 @@ FutureOr<Handler> defaultHandler({
       request,
       extensionsManager: ExtensionsManager(buildDir: buildDir),
       deeplinkManager: DeeplinkManager(),
-      dtdUri: dtdUri,
+      dtd: dtd,
       analytics: analytics ?? NoOpAnalytics(),
     );
   }

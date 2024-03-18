@@ -276,8 +276,10 @@ class DevToolsServer {
     handler ??= await defaultHandler(
       buildDir: customDevToolsPath!,
       clientManager: clientManager,
-      dtdUri: dtdUri,
       analytics: DevToolsUtils.initializeAnalytics(),
+      // TODO(kenz): pass the DTD secret here when DTD is started by DevTools
+      // server.
+      dtd: (uri: dtdUri, secret: null),
     );
 
     HttpServer? server;
