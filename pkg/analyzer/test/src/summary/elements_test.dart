@@ -28,6 +28,8 @@ main() {
     defineReflectiveTests(FunctionAugmentationFromBytesTest);
     defineReflectiveTests(MixinAugmentationKeepLinkingTest);
     defineReflectiveTests(MixinAugmentationFromBytesTest);
+    defineReflectiveTests(TopLevelVariableAugmentationKeepLinkingTest);
+    defineReflectiveTests(TopLevelVariableAugmentationFromBytesTest);
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
@@ -52401,6 +52403,91 @@ library
                 bound: A<dynamic>
                 defaultType: A<dynamic>
             augmentationTarget: self::@mixin::A
+''');
+  }
+}
+
+@reflectiveTest
+class TopLevelVariableAugmentationFromBytesTest extends ElementsBaseTest
+    with TopLevelVariableAugmentationMixin {
+  @override
+  bool get keepLinkingLibraries => false;
+}
+
+@reflectiveTest
+class TopLevelVariableAugmentationKeepLinkingTest extends ElementsBaseTest
+    with TopLevelVariableAugmentationMixin {
+  @override
+  bool get keepLinkingLibraries => true;
+}
+
+mixin TopLevelVariableAugmentationMixin on ElementsBaseTest {
+  test_function_augments_function() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment int foo = 1;
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+int foo = 0;
+''');
+
+    configuration
+      ..withExportScope = true
+      ..withPropertyLinking = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static foo @29
+        type: int
+        shouldUseTypeForInitializerInference: true
+        id: variable_0
+        getter: getter_0
+        setter: setter_0
+        augmentation: self::@augmentation::package:test/a.dart::@variableAugmentation::foo
+    accessors
+      synthetic static get foo @-1
+        returnType: int
+        id: getter_0
+        variable: variable_0
+      synthetic static set foo= @-1
+        parameters
+          requiredPositional _foo @-1
+            type: int
+        returnType: void
+        id: setter_0
+        variable: variable_0
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        topLevelVariables
+          augment static foo @41
+            type: int
+            shouldUseTypeForInitializerInference: true
+            id: variable_1
+            getter: getter_1
+            setter: setter_1
+            augmentationTarget: self::@variable::foo
+        accessors
+          synthetic static get foo @-1
+            returnType: int
+            id: getter_1
+            variable: variable_1
+          synthetic static set foo= @-1
+            parameters
+              requiredPositional _foo @-1
+                type: int
+            returnType: void
+            id: setter_1
+            variable: variable_1
+  exportedReferences
+    declared self::@augmentation::package:test/a.dart::@getter::foo
+    declared self::@augmentation::package:test/a.dart::@setter::foo
+  exportNamespace
+    foo: self::@augmentation::package:test/a.dart::@getter::foo
+    foo=: self::@augmentation::package:test/a.dart::@setter::foo
 ''');
   }
 }

@@ -1191,6 +1191,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       }
 
       element.hasInitializer = variable.initializer != null;
+      element.isAugmentation = node.augmentKeyword != null;
       element.isConst = node.variables.isConst;
       element.isExternal = node.externalKeyword != null;
       element.isFinal = node.variables.isFinal;
