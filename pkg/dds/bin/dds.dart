@@ -148,6 +148,8 @@ ${argParser.usage}
       'state': 'started',
       'ddsUri': dds.uri.toString(),
       if (dds.devToolsUri != null) 'devToolsUri': dds.devToolsUri.toString(),
+      if (dds.hostedDartToolingDaemon?.uri != null)
+        'dtdUri': dds.hostedDartToolingDaemon!.uri,
     }));
   } catch (e, st) {
     writeErrorResponse(e, st);

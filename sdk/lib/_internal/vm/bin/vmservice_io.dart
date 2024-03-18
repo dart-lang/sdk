@@ -145,6 +145,12 @@ class _DebuggingSession {
       final state = result['state'];
       if (state == 'started') {
         if (result.containsKey('devToolsUri')) {
+          // TODO(https://github.com/dart-lang/sdk/issues/55034): only print
+          // this if the Dart CLI flag `--print-dtd` is present.
+          if (result.containsKey('dtdUri') && false) {
+            final dtdUri = result['dtdUri'];
+            print('The Dart Tooling Daemon is listening on $dtdUri');
+          }
           // NOTE: update pkg/dartdev/lib/src/commands/run.dart if this message
           // is changed to ensure consistency.
           const devToolsMessagePrefix =

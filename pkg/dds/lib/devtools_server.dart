@@ -14,6 +14,7 @@ import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as shelf;
 
 import 'src/devtools/client.dart';
+import 'src/devtools/dtd.dart';
 import 'src/devtools/handler.dart';
 import 'src/devtools/machine_mode_command_handler.dart';
 import 'src/devtools/memory_profile.dart';
@@ -98,6 +99,12 @@ class DevToolsServer {
         help: 'Port to serve DevTools on; specify 0 to automatically use any '
             'available port.',
       )
+      ..addOption(
+        argDtdUri,
+        valueHelp: 'uri',
+        help: 'A URI pointing to a dart tooling daemon that devtools should '
+            'interface with.',
+      )
       ..addFlag(
         argLaunchBrowser,
         help:
@@ -116,12 +123,6 @@ class DevToolsServer {
         help:
             'Start devtools headlessly and write memory profiling samples to the '
             'indicated file.',
-      )
-      ..addOption(
-        argDtdUri,
-        valueHelp: 'uri',
-        help: 'A uri pointing to a dart tooling daemon that devtools should '
-            'interface with.',
       );
 
     argParser.addSeparator('App size options:');
@@ -273,13 +274,24 @@ class DevToolsServer {
     clientManager = ClientManager(
       requestNotificationPermissions: enableNotifications,
     );
+
+    String? dtdSecret;
+    if (dtdUri == null) {
+      final (:uri, :secret) = await startDtd(
+        machineMode: machineMode,
+        // TODO(https://github.com/dart-lang/sdk/issues/55034): pass the value
+        // of the Dart CLI flag `--print-dtd` here.
+        printDtdUri: false,
+      );
+      dtdUri = uri;
+      dtdSecret = secret;
+    }
+
     handler ??= await defaultHandler(
       buildDir: customDevToolsPath!,
       clientManager: clientManager,
       analytics: DevToolsUtils.initializeAnalytics(),
-      // TODO(kenz): pass the DTD secret here when DTD is started by DevTools
-      // server.
-      dtd: (uri: dtdUri, secret: null),
+      dtd: (uri: dtdUri, secret: dtdSecret),
     );
 
     HttpServer? server;

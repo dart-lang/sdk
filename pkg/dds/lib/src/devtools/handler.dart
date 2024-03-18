@@ -28,10 +28,17 @@ import 'utils.dart';
 /// [buildDir] is the path to the pre-compiled DevTools instance to be served.
 ///
 /// [notFoundHandler] is a [Handler] to which requests that could not be handled
-/// by the DevTools handler are forwarded (e.g., a proxy to the VM service).
+/// by the DevTools handler are forwarded (e.g., a proxy to the VM
+/// service).
 ///
 /// If [dds] is null, DevTools is not being served by a DDS instance and is
 /// served by a standalone server (see `package:dds/devtools_server.dart`).
+///
+/// If [dtd] or [dtd.uri] is null, the Dart Tooling Daemon is not available for
+/// this DevTools server connection.
+///
+/// If [dtd.uri] is non-null, but [dtd.secret] is null, then DTD was started by a
+/// client that is not the DevTools server (e.g. an IDE).
 FutureOr<Handler> defaultHandler({
   DartDevelopmentServiceImpl? dds,
   required String buildDir,
@@ -183,7 +190,9 @@ Future<Response> _serveStaticFile(
       try {
         fileBytes = file.readAsBytesSync();
       } catch (e) {
-        return Response.notFound('could not read file as bytes: ${file.path}');
+        return Response.notFound(
+          'could not read file as bytes: ${file.path}',
+        );
       }
     }
     return Response.ok(fileBytes, headers: headers);
@@ -193,7 +202,9 @@ Future<Response> _serveStaticFile(
   try {
     contents = file.readAsStringSync();
   } catch (e) {
-    return Response.notFound('could not read file as String: ${file.path}');
+    return Response.notFound(
+      'could not read file as String: ${file.path}',
+    );
   }
 
   if (baseHref != null) {
