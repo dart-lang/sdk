@@ -16,6 +16,7 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/java_core.dart';
+import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:collection/collection.dart';
@@ -437,6 +438,12 @@ class PostfixCompletionProcessor {
     if (node == null) {
       return false;
     }
+
+    var offset = completionContext.selectionOffset;
+    if (node?.commentTokenCovering(offset) != null) {
+      return false;
+    }
+
     var completer = DartPostfixCompletion.forKey(key);
     if (completer == null) {
       return false;

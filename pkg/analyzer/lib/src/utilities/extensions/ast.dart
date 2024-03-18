@@ -24,6 +24,20 @@ extension AstNodeExtension on AstNode {
     return result;
   }
 
+  /// Returns the comment token that covers the [offset].
+  Token? commentTokenCovering(int offset) {
+    for (var token in allTokens) {
+      for (Token? comment = token.precedingComments;
+          comment is Token;
+          comment = comment.next) {
+        if (comment.offset <= offset && offset <= comment.end) {
+          return comment;
+        }
+      }
+    }
+    return null;
+  }
+
   /// Return the minimal cover node for the range of characters beginning at the
   /// [offset] with the given [length], or `null` if the range is outside the
   /// range covered by the receiver.
