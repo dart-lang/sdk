@@ -140,5 +140,5 @@ dart.ci_sandbox_builder(
 luci.cq_tryjob_verifier(
     builder = "dart-internal:g3.dart-internal.try/g3-cbuild-try",
     cq_group = "sdk-main",
-    includable_only = True,
+    experiment_percentage = 100,
 )
