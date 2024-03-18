@@ -116,6 +116,7 @@ class _UnitApiSignatureComputer {
     signature.addInt(_kindFieldDeclaration);
 
     _addToken(node.abstractKeyword);
+    _addToken(node.augmentKeyword);
     _addToken(node.covariantKeyword);
     _addToken(node.externalKeyword);
     _addToken(node.staticKeyword);
