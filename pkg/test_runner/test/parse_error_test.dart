@@ -23,6 +23,9 @@ void _checkError(StaticError error,
 void main() {
   // TODO(55202): Add general testing of CFE and analyzer error parsing.
   testCfeErrors();
+  testDart2jsCompilerErrors();
+  testDart2WasmCompilerErrors();
+  testDevCompilerErrors();
 }
 
 void testCfeErrors() {
@@ -184,4 +187,111 @@ tests/language/explicit_type_instantiation_parsing_test.dart:207:12: Warning: Op
       column: 12,
       message:
           "Operand of null-aware operation '!' has type 'Type' which excludes null.");
+}
+
+void testDart2jsCompilerErrors() {
+  _testMultipleDart2jsCompilerErrors();
+}
+
+void _testMultipleDart2jsCompilerErrors() {
+  var errors = <StaticError>[];
+  Dart2jsCompilerCommandOutput.parseErrors('''
+tests/language/explicit_type_instantiation_parsing_test.dart:171:26:
+Error: Cannot access static member on an instantiated generic class.
+Try removing the type arguments or placing them after the member name.
+  expect1<Class>(Z<X, X>.instance);
+                         ^^^^^^^^
+tests/language/explicit_type_instantiation_parsing_test.dart:232:6:
+Error: A comparison expression can't be an operand of another comparison expression.
+Try putting parentheses around one of the comparisons.
+  X<2>(2);
+     ^
+''', errors);
+
+  var path = 'tests/language/explicit_type_instantiation_parsing_test.dart';
+
+  Expect.equals(2, errors.length);
+
+  _checkError(errors[0],
+      path: path,
+      line: 171,
+      column: 26,
+      message: "Cannot access static member on an instantiated generic class.");
+
+  _checkError(errors[1],
+      path: path,
+      line: 232,
+      column: 6,
+      message:
+          "A comparison expression can't be an operand of another comparison expression.");
+}
+
+void testDart2WasmCompilerErrors() {
+  _testMultipleDart2WasmCompilerErrors();
+}
+
+void _testMultipleDart2WasmCompilerErrors() {
+  var errors = <StaticError>[];
+  Dart2WasmCompilerCommandOutput.parseErrors('''
+tests/language/explicit_type_instantiation_parsing_test.dart:171:26: Error: Cannot access static member on an instantiated generic class.
+Try removing the type arguments or placing them after the member name.
+  expect1<Class>(Z<X, X>.instance);
+                         ^^^^^^^^
+tests/language/explicit_type_instantiation_parsing_test.dart:232:6: Error: A comparison expression can't be an operand of another comparison expression.
+Try putting parentheses around one of the comparisons.
+  X<2>(2);
+     ^
+''', errors);
+
+  var path = 'tests/language/explicit_type_instantiation_parsing_test.dart';
+
+  Expect.equals(2, errors.length);
+
+  _checkError(errors[0],
+      path: path,
+      line: 171,
+      column: 26,
+      message: "Cannot access static member on an instantiated generic class.");
+
+  _checkError(errors[1],
+      path: path,
+      line: 232,
+      column: 6,
+      message:
+          "A comparison expression can't be an operand of another comparison expression.");
+}
+
+void testDevCompilerErrors() {
+  _testMultipleDevCompilerErrors();
+}
+
+void _testMultipleDevCompilerErrors() {
+  var errors = <StaticError>[];
+  DevCompilerCommandOutput.parseErrors('''
+org-dartlang-app:/tests/language/explicit_type_instantiation_parsing_test.dart:171:26: Error: Cannot access static member on an instantiated generic class.
+Try removing the type arguments or placing them after the member name.
+  expect1<Class>(Z<X, X>.instance);
+                         ^^^^^^^^
+org-dartlang-app:/tests/language/explicit_type_instantiation_parsing_test.dart:232:6: Error: A comparison expression can't be an operand of another comparison expression.
+Try putting parentheses around one of the comparisons.
+  X<2>(2);
+     ^
+''', errors);
+
+  var path = 'tests/language/explicit_type_instantiation_parsing_test.dart';
+
+  Expect.equals(2, errors.length);
+
+  _checkError(errors[0],
+      path: path,
+      line: 171,
+      column: 26,
+      message: "Cannot access static member on an instantiated generic class.");
+
+  _checkError(errors[1],
+      path: path,
+      line: 232,
+      column: 6,
+      message:
+          "A comparison expression can't be an operand of another comparison expression.");
 }
