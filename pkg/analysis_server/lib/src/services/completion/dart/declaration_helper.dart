@@ -662,10 +662,9 @@ class DeclarationHelper {
         ? request.inheritanceManager.getInheritedConcreteMap2(type.element)
         : request.inheritanceManager.getInterface(type.element).map;
 
-    var library = request.libraryElement;
     var membersByName = <String, List<ExecutableElement>>{};
     for (var rawMember in map.values) {
-      if (!rawMember.isStatic && rawMember.isAccessibleIn(library)) {
+      if (_canAccessInstanceMember(rawMember)) {
         var name = rawMember.displayName;
         membersByName
             .putIfAbsent(name, () => <ExecutableElement>[])
@@ -1018,6 +1017,38 @@ class DeclarationHelper {
         }
       }
     }
+  }
+
+  bool _canAccessInstanceMember(ExecutableElement element) {
+    if (element.isStatic) {
+      return false;
+    }
+
+    var requestLibrary = request.libraryElement;
+    if (!element.isAccessibleIn(requestLibrary)) {
+      return false;
+    }
+
+    if (element.isProtected) {
+      var elementInterface = element.enclosingElement;
+      if (elementInterface is! InterfaceElement) {
+        return false;
+      }
+
+      if (elementInterface.library != requestLibrary) {
+        var contextInterface = request.target.enclosingInterfaceElement;
+        if (contextInterface == null) {
+          return false;
+        }
+
+        var contextType = contextInterface.thisType;
+        if (contextType.asInstanceOf(elementInterface) == null) {
+          return false;
+        }
+      }
+    }
+
+    return true;
   }
 
   /// Returns `true` if the [identifier] is composed of one or more underscore
@@ -1691,6 +1722,28 @@ extension on PropertyAccessorElement {
       if (variable2 case var variable?) {
         return variable.isConst;
       }
+    }
+    return false;
+  }
+}
+
+extension on ExecutableElement {
+  bool get isProtected {
+    final self = this;
+    if (self is PropertyAccessorElement &&
+        self.enclosingElement is InterfaceElement) {
+      if (self.hasProtected) {
+        return true;
+      }
+      var variable = self.variable2;
+      if (variable != null && variable.hasProtected) {
+        return true;
+      }
+    }
+    if (self is MethodElement &&
+        self.enclosingElement is InterfaceElement &&
+        self.hasProtected) {
+      return true;
     }
     return false;
   }
