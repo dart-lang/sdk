@@ -40,8 +40,6 @@ import 'package:path/path.dart' as path;
 /// Instances of the class `BestPracticesVerifier` traverse an AST structure
 /// looking for violations of Dart best practices.
 class BestPracticesVerifier extends RecursiveAstVisitor<void> {
-  static const String toIntMethodName = "toInt";
-
   /// The class containing the AST nodes being visited, or `null` if we are not
   /// in the scope of a class.
   InterfaceElement? _enclosingClass;
@@ -855,44 +853,42 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /// Check for the passed binary expression for the
-  /// [HintCode.DIVISION_OPTIMIZATION].
+  /// Checks the passed binary expression for [HintCode.DIVISION_OPTIMIZATION].
   ///
-  /// @param node the binary expression to check
-  /// @return `true` if and only if a hint code is generated on the passed node
-  /// See [HintCode.DIVISION_OPTIMIZATION].
+  /// Returns whether a hint code is generated.
   bool _checkForDivisionOptimizationHint(BinaryExpression node) {
-    // Return if the operator is not '/'
-    if (node.operator.type != TokenType.SLASH) {
-      return false;
-    }
+    if (node.operator.type != TokenType.SLASH) return false;
+
+    // Return if the two operands are not each `int`.
+    var leftType = node.leftOperand.staticType;
+    if (leftType == null || !leftType.isDartCoreInt) return false;
+
+    var rightType = node.rightOperand.staticType;
+    if (rightType == null || !rightType.isDartCoreInt) return false;
+
     // Return if the '/' operator is not defined in core, or if we don't know
-    // its static type
+    // its static type.
     var methodElement = node.staticElement;
-    if (methodElement == null) {
-      return false;
-    }
-    LibraryElement libraryElement = methodElement.library;
-    if (!libraryElement.isDartCore) {
-      return false;
-    }
-    // Report error if the (x/y) has toInt() invoked on it
+    if (methodElement == null) return false;
+
+    var libraryElement = methodElement.library;
+    if (!libraryElement.isDartCore) return false;
+
     var parent = node.parent;
-    if (parent is ParenthesizedExpression) {
-      ParenthesizedExpression parenthesizedExpression =
-          _wrapParenthesizedExpression(parent);
-      var grandParent = parenthesizedExpression.parent;
-      if (grandParent is MethodInvocation) {
-        if (toIntMethodName == grandParent.methodName.name &&
-            grandParent.argumentList.arguments.isEmpty) {
-          _errorReporter.atNode(
-            grandParent,
-            HintCode.DIVISION_OPTIMIZATION,
-          );
-          return true;
-        }
-      }
+    if (parent is! ParenthesizedExpression) return false;
+
+    var outermostParentheses = parent.thisOrAncestorMatching(
+        (e) => e.parent is! ParenthesizedExpression) as ParenthesizedExpression;
+    var grandParent = outermostParentheses.parent;
+    if (grandParent is! MethodInvocation) return false;
+
+    // Report an error if the `(x / y)` expression has `toInt()` invoked on it.
+    if (grandParent.methodName.name == 'toInt' &&
+        grandParent.argumentList.arguments.isEmpty) {
+      _errorReporter.atNode(grandParent, HintCode.DIVISION_OPTIMIZATION);
+      return true;
     }
+
     return false;
   }
 
@@ -1593,25 +1589,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       }
     }
     return element.hasNonVirtual;
-  }
-
-  /// Given a parenthesized expression, this returns the parent (or recursively
-  /// grand-parent) of the expression that is a parenthesized expression, but
-  /// whose parent is not a parenthesized expression.
-  ///
-  /// For example given the code `(((e)))`: `(e) -> (((e)))`.
-  ///
-  /// @param parenthesizedExpression some expression whose parent is a
-  ///        parenthesized expression
-  /// @return the first parent or grand-parent that is a parenthesized
-  ///         expression, that does not have a parenthesized expression parent
-  static ParenthesizedExpression _wrapParenthesizedExpression(
-      ParenthesizedExpression parenthesizedExpression) {
-    var parent = parenthesizedExpression.parent;
-    if (parent is ParenthesizedExpression) {
-      return _wrapParenthesizedExpression(parent);
-    }
-    return parenthesizedExpression;
   }
 }
 

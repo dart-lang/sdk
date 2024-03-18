@@ -17,64 +17,58 @@ main() {
 class DivisionOptimizationTest extends PubPackageResolutionTest {
   test_divisionOptimization() async {
     await assertNoErrorsInCode(r'''
-f(int x, int y) {
-  var v = x / y.toInt();
-  print(v);
+void f(int x, int y) {
+  x / y.toInt();
 }
 ''');
   }
 
   test_double() async {
-    await assertErrorsInCode(r'''
-f(double x, double y) {
-  var v = (x / y).toInt();
-  print(v);
+    await assertNoErrorsInCode(r'''
+void f(double x, double y) {
+  (x / y).toInt();
 }
-''', [
-      error(HintCode.DIVISION_OPTIMIZATION, 34, 15),
-    ]);
+''');
   }
 
   test_dynamic() async {
     await assertNoErrorsInCode(r'''
-f(x, y) {
-  var v = (x / y).toInt();
-  print(v);
+void f(x, y) {
+  (x / y).toInt();
 }
 ''');
   }
 
   test_int() async {
     await assertErrorsInCode(r'''
-f(int x, int y) {
-  var v = (x / y).toInt();
-  print(v);
+void f(int x, int y) {
+  (x / y).toInt();
 }
 ''', [
-      error(HintCode.DIVISION_OPTIMIZATION, 28, 15),
+      error(HintCode.DIVISION_OPTIMIZATION, 25, 15),
     ]);
   }
 
   test_nonNumeric() async {
     await assertNoErrorsInCode(r'''
 class A {
-  num operator /(x) { return x; }
+  A operator /(A x) { return x; }
+
+  void toInt() {}
 }
-f(A x, A y) {
-  var v = (x / y).toInt();
-  print(v);
+void f(A x, A y) {
+  (x / y).toInt();
 }
 ''');
   }
 
   test_wrappedInParentheses() async {
     await assertErrorsInCode(r'''
-f(int x, int y) {
-  var v = (((x / y))).toInt();
-  print(v);
+void f(int x, int y) {
+  (((x / y))).toInt();
 }
 ''', [
-      error(HintCode.DIVISION_OPTIMIZATION, 28, 19),
+      error(HintCode.DIVISION_OPTIMIZATION, 25, 19),
     ]);
   }
 }
