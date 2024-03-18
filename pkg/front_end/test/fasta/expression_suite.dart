@@ -53,7 +53,7 @@ import "package:yaml/yaml.dart" show YamlMap, YamlList, loadYamlNode;
 import '../testing_utils.dart' show checkEnvironment;
 import '../utils/kernel_chain.dart' show runDiff, openWrite;
 import 'suite_utils.dart';
-import 'testing/suite.dart';
+import 'testing/environment_keys.dart';
 
 class Context extends ChainContext {
   final CompilerContext compilerContext;
@@ -655,8 +655,8 @@ class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
 Future<Context> createContext(
     Chain suite, Map<String, String> environment) async {
   const Set<String> knownEnvironmentKeys = {
-    UPDATE_EXPECTATIONS,
-    "fuzz",
+    EnvironmentKeys.updateExpectations,
+    EnvironmentKeys.fuzz,
   };
   checkEnvironment(environment, knownEnvironmentKeys);
 
@@ -715,9 +715,10 @@ Future<Context> createContext(
   final ProcessedOptions optionsNoNNBD =
       new ProcessedOptions(options: optionBuilderNoNNBD, inputs: [entryPoint]);
 
-  final bool updateExpectations = environment[UPDATE_EXPECTATIONS] == "true";
+  final bool updateExpectations =
+      environment[EnvironmentKeys.updateExpectations] == "true";
 
-  final bool fuzz = environment["fuzz"] == "true";
+  final bool fuzz = environment[EnvironmentKeys.fuzz] == "true";
 
   final CompilerContext compilerContext = new CompilerContext(options);
   final CompilerContext compilerContextNoNNBD =

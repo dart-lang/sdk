@@ -69,7 +69,7 @@ import "package:yaml/yaml.dart" show YamlMap, loadYamlNode;
 
 import 'binary_md_dill_reader.dart' show DillComparer;
 import 'fasta/suite_utils.dart';
-import 'fasta/testing/suite.dart';
+import 'fasta/testing/environment_keys.dart';
 import "incremental_utils.dart" as util;
 import 'test_utils.dart';
 import 'testing_utils.dart' show checkEnvironment;
@@ -475,19 +475,20 @@ final Expectation ConstantCoverageReferenceWithoutNode =
 
 Future<Context> createContext(Chain suite, Map<String, String> environment) {
   const Set<String> knownEnvironmentKeys = {
-    UPDATE_EXPECTATIONS,
-    "addDebugBreaks",
-    "skipTests",
+    EnvironmentKeys.updateExpectations,
+    EnvironmentKeys.addDebugBreaks,
+    EnvironmentKeys.skipTests,
   };
   checkEnvironment(environment, knownEnvironmentKeys);
 
   // Disable colors to ensure that expectation files are the same across
   // platforms and independent of stdin/stderr.
   colors.enableColors = false;
-  Set<String> skipTests = environment["skipTests"]?.split(",").toSet() ?? {};
+  Set<String> skipTests =
+      environment[EnvironmentKeys.skipTests]?.split(",").toSet() ?? {};
   return new Future.value(new Context(
-    environment[UPDATE_EXPECTATIONS] == "true",
-    environment["addDebugBreaks"] == "true",
+    environment[EnvironmentKeys.updateExpectations] == "true",
+    environment[EnvironmentKeys.addDebugBreaks] == "true",
     skipTests,
   ));
 }

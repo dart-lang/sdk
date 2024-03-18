@@ -404,6 +404,17 @@ class ProcessedOptionsTest {
     var processed = new ProcessedOptions(options: raw);
     var uriTranslator = await processed.getUriTranslator();
     expect(uriTranslator.packages.packages, isEmpty);
+  }
+
+  Future<void> test_getUriTranslator_missingPackages() async {
+    var errors = <DiagnosticMessage>[];
+    var raw = new CompilerOptions()
+      ..fileSystem = fileSystem
+      ..packagesFileUri = new Uri(path: '/')
+      ..onDiagnostic = errors.add;
+    var processed = new ProcessedOptions(options: raw);
+    var uriTranslator = await processed.getUriTranslator();
+    expect(uriTranslator.packages.packages, isEmpty);
     expect((errors.single as FormattedMessage).problemMessage,
         startsWith(_stringPrefixOf(templateCantReadFile)));
   }

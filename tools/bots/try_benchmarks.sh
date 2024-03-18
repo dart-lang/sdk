@@ -168,20 +168,15 @@ main() {
 }
 EOF
     out/ReleaseIA32/dart --profile-period=10000 hello.dart
-    out/ReleaseIA32/dart --sound-null-safety --profile-period=10000 hello.dart
     out/ReleaseIA32/dart pkg/front_end/tool/perf.dart parse hello.dart
     out/ReleaseIA32/dart pkg/front_end/tool/perf.dart scan hello.dart
     out/ReleaseIA32/dart pkg/front_end/tool/fasta_perf.dart kernel_gen_e2e hello.dart
     out/ReleaseIA32/dart pkg/front_end/tool/fasta_perf.dart scan hello.dart
     out/ReleaseIA32/run_vm_tests --dfe=out/ReleaseIA32/kernel-service.dart.snapshot InitialRSS
-    out/ReleaseIA32/run_vm_tests --dfe=out/ReleaseIA32/kernel-service.dart.snapshot --sound-null-safety InitialRSS
     out/ReleaseIA32/run_vm_tests --dfe=out/ReleaseIA32/kernel-service.dart.snapshot KernelServiceCompileAll
-    out/ReleaseIA32/run_vm_tests --dfe=out/ReleaseIA32/kernel-service.dart.snapshot --sound-null-safety KernelServiceCompileAll
     out/ReleaseIA32/run_vm_tests --dfe=out/ReleaseIA32/kernel-service.dart.snapshot UseDartApi
-    out/ReleaseIA32/run_vm_tests --dfe=out/ReleaseIA32/kernel-service.dart.snapshot --sound-null-safety UseDartApi
     out/ReleaseIA32/dart --profile-period=10000 benchmarks/Example/dart/Example.dart
-    out/ReleaseIA32/dart --sound-null-safety --profile-period=10000 benchmarks/Example/dart/Example.dart
-    out/ReleaseIA32/dart --sound-null-safety benchmarks/FfiAsTypedList/dart/FfiAsTypedList.dart
+    out/ReleaseIA32/dart benchmarks/FfiAsTypedList/dart/FfiAsTypedList.dart
     cd ..
     rm -rf tmp
   elif [ "$command" = linux-x64-build ]; then
@@ -308,10 +303,7 @@ main() {
 }
 EOF
     out/ReleaseX64/dart --profile-period=10000 hello.dart
-    out/ReleaseX64/dart --sound-null-safety --profile-period=10000 hello.dart
     DART_CONFIGURATION=ReleaseX64 pkg/vm/tool/precompiler2 hello.dart blob.bin
-    DART_CONFIGURATION=ReleaseX64 pkg/vm/tool/dart_precompiled_runtime2 --profile-period=10000 blob.bin
-    DART_CONFIGURATION=ReleaseX64 pkg/vm/tool/precompiler2 --sound-null-safety hello.dart blob.bin
     DART_CONFIGURATION=ReleaseX64 pkg/vm/tool/dart_precompiled_runtime2 --profile-period=10000 blob.bin
     out/ReleaseX64/dart --profile-period=10000 --optimization-counter-threshold=-1 hello.dart
     DART_CONFIGURATION=ReleaseX64 pkg/dart2wasm/tool/compile_benchmark hello.dart hello.wasm
@@ -345,14 +337,10 @@ EOF
     out/ReleaseX64/dart --background-compilation=false pkg/front_end/tool/incremental_perf.dart.appjit --target=vm --sdk-summary=out/ReleaseX64/vm_platform_strong.dill --sdk-library-specification=sdk/lib/libraries.json pkg/front_end/benchmarks/ikg/hello.dart pkg/front_end/benchmarks/ikg/hello.edits.json
     out/ReleaseX64/dart pkg/kernel/test/binary_bench.dart --golem AstFromBinaryLazy out/ReleaseX64/vm_platform_strong.dill
     out/ReleaseX64/run_vm_tests --dfe=out/ReleaseX64/kernel-service.dart.snapshot InitialRSS
-    out/ReleaseX64/run_vm_tests --dfe=out/ReleaseX64/kernel-service.dart.snapshot --sound-null-safety InitialRSS
     out/ReleaseX64/run_vm_tests --dfe=out/ReleaseX64/kernel-service.dart.snapshot KernelServiceCompileAll
-    out/ReleaseX64/run_vm_tests --dfe=out/ReleaseX64/kernel-service.dart.snapshot --sound-null-safety KernelServiceCompileAll
     out/ReleaseX64/run_vm_tests --dfe=out/ReleaseX64/kernel-service.dart.snapshot UseDartApi
-    out/ReleaseX64/run_vm_tests --dfe=out/ReleaseX64/kernel-service.dart.snapshot --sound-null-safety UseDartApi
     out/ReleaseX64/dart --profile-period=10000 benchmarks/Example/dart/Example.dart
-    out/ReleaseX64/dart --sound-null-safety --profile-period=10000 benchmarks/Example/dart/Example.dart
-    out/ReleaseX64/dart --sound-null-safety --profile-period=10000 benchmarks/IsolateSpawn/dart/IsolateSpawn.dart
+    out/ReleaseX64/dart --profile-period=10000 benchmarks/IsolateSpawn/dart/IsolateSpawn.dart
     cd ..
     rm -rf tmp
   else

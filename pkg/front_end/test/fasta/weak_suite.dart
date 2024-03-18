@@ -5,12 +5,14 @@
 library fasta.test.weak_suite;
 
 import 'suite_utils.dart' show internalMain;
+import 'testing/environment_keys.dart';
 import 'testing/suite.dart';
 
 Future<FastaContext> createContext(
     Chain suite, Map<String, String> environment) {
-  environment[COMPILATION_MODE] = CompileMode.full.name;
-  environment["semiFuzz"] ??= "true";
+  environment[EnvironmentKeys.compilationMode] = CompileMode.full.name;
+  environment[EnvironmentKeys.semiFuzz] ??= "true";
+  environment[EnvironmentKeys.skipVm] ??= "true";
   return FastaContext.create(suite, environment);
 }
 

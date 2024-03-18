@@ -2249,11 +2249,11 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       // then we leave the formatting as-is and don't fade anything out.
       final isUserProject = pathInfo?.isUserCode ?? true;
 
-      // For the name, we usually use the package URI, but if we only ended up
-      // with a file URI, try to make it relative to cwd so it's not so long.
+      // For the name, we usually use the package URI, but if we only had a file
+      // URI to begin with, try to make it relative to cwd so it's not so long.
       final name = uri != null && fileLikeUri != null
-          ? (fileLikeUri.isScheme('file')
-              ? _converter.convertToRelativePath(fileLikeUri.toFilePath())
+          ? (uri.isScheme('file')
+              ? _converter.convertToRelativePath(uri.toFilePath())
               : uri.toString())
           : null;
 
