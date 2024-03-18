@@ -81,7 +81,6 @@ import 'package:analyzer/src/generated/element_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error_detection_helpers.dart';
 import 'package:analyzer/src/generated/static_type_analyzer.dart';
-import 'package:analyzer/src/generated/this_access_tracker.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/generated/variable_type_provider.dart';
 import 'package:analyzer/src/task/inference_error.dart';
@@ -96,50 +95,6 @@ typedef SharedPatternField
 /// A function which returns [NonPromotionReason]s that various types are not
 /// promoted.
 typedef WhyNotPromotedGetter = Map<DartType, NonPromotionReason> Function();
-
-/// Maintains and manages contextual type information used for
-/// inferring types.
-class InferenceContext {
-  final ResolverVisitor _resolver;
-
-  /// The type system in use.
-  final TypeSystemImpl _typeSystem;
-
-  /// The stack of contexts for nested function bodies.
-  final List<BodyInferenceContext> _bodyContexts = [];
-
-  InferenceContext._(ResolverVisitor resolver)
-      : _resolver = resolver,
-        _typeSystem = resolver.typeSystem;
-
-  BodyInferenceContext? get bodyContext {
-    if (_bodyContexts.isNotEmpty) {
-      return _bodyContexts.last;
-    } else {
-      return null;
-    }
-  }
-
-  DartType popFunctionBodyContext(FunctionBody node) {
-    var context = _bodyContexts.removeLast();
-
-    var flow = _resolver.flowAnalysis.flow;
-
-    return context.computeInferredReturnType(
-      endOfBlockIsReachable: flow == null || flow.isReachable,
-    );
-  }
-
-  void pushFunctionBodyContext(FunctionBody node, DartType? imposedType) {
-    _bodyContexts.add(
-      BodyInferenceContext(
-        typeSystem: _typeSystem,
-        node: node,
-        imposedType: imposedType,
-      ),
-    );
-  }
-}
 
 /// Instances of the class `ResolverVisitor` are used to resolve the nodes
 /// within a single compilation unit.
@@ -244,10 +199,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   final TypeSystemImpl typeSystem;
 
-  /// The helper for tracking if the current location has access to `this`.
-  final ThisAccessTracker _thisAccessTracker = ThisAccessTracker.unit();
-
-  late final InferenceContext inferenceContext;
+  /// Inference context information for the current function body, if the
+  /// current node is inside a function body.
+  BodyInferenceContext? _bodyContext;
 
   /// If a class, or mixin, is being resolved, the type of the class.
   /// Otherwise `null`.
@@ -417,10 +371,13 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       flowAnalysis,
     );
     elementResolver = ElementResolver(this);
-    inferenceContext = InferenceContext._(this);
     typeAnalyzer = StaticTypeAnalyzer(this);
     _functionReferenceResolver = FunctionReferenceResolver(this);
   }
+
+  /// Inference context information for the current function body, if the
+  /// current node is inside a function body.
+  BodyInferenceContext? get bodyContext => _bodyContext;
 
   /// Return the element representing the function containing the current node,
   /// or `null` if the current node is not contained in a function.
@@ -1891,16 +1848,16 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   DartType visitBlockFunctionBody(BlockFunctionBody node,
       {DartType? imposedType}) {
+    var oldBodyContext = _bodyContext;
     try {
-      inferenceContext.pushFunctionBodyContext(node, imposedType);
-      _thisAccessTracker.enterFunctionBody(node);
+      _bodyContext = BodyInferenceContext(
+          typeSystem: typeSystem, node: node, imposedType: imposedType);
       checkUnreachableNode(node);
       node.visitChildren(this);
+      return _finishFunctionBodyInference();
     } finally {
-      _thisAccessTracker.exitFunctionBody(node);
-      imposedType = inferenceContext.popFunctionBodyContext(node);
+      _bodyContext = oldBodyContext;
     }
-    return imposedType;
   }
 
   @override
@@ -2349,25 +2306,25 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       return imposedType ?? typeProvider.dynamicType;
     }
 
+    var oldBodyContext = _bodyContext;
     try {
-      inferenceContext.pushFunctionBodyContext(node, imposedType);
-      _thisAccessTracker.enterFunctionBody(node);
+      var bodyContext = _bodyContext = BodyInferenceContext(
+          typeSystem: typeSystem, node: node, imposedType: imposedType);
 
       checkUnreachableNode(node);
       analyzeExpression(
         node.expression,
-        inferenceContext.bodyContext!.contextType,
+        bodyContext.contextType,
       );
       popRewrite();
 
       flowAnalysis.flow?.handleExit();
 
-      inferenceContext.bodyContext!.addReturnExpression(node.expression);
+      bodyContext.addReturnExpression(node.expression);
+      return _finishFunctionBodyInference();
     } finally {
-      _thisAccessTracker.exitFunctionBody(node);
-      imposedType = inferenceContext.popFunctionBodyContext(node);
+      _bodyContext = oldBodyContext;
     }
-    return imposedType;
   }
 
   @override
@@ -2440,7 +2397,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
-    _thisAccessTracker.enterFieldDeclaration(node);
     try {
       assert(_thisType == null);
       _setupThisType();
@@ -2448,7 +2404,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       node.visitChildren(this);
       elementResolver.visitFieldDeclaration(node);
     } finally {
-      _thisAccessTracker.exitFieldDeclaration(node);
       _thisType = null;
     }
   }
@@ -3232,13 +3187,13 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     if (expression != null) {
       analyzeExpression(
         expression,
-        inferenceContext.bodyContext?.contextType,
+        bodyContext?.contextType,
       );
       // Pick up the expression again in case it was rewritten.
       expression = popRewrite();
     }
 
-    inferenceContext.bodyContext?.addReturnExpression(expression);
+    bodyContext?.addReturnExpression(expression);
     flowAnalysis.flow?.handleExit();
   }
 
@@ -3605,6 +3560,14 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   bool _debugPrint(String s) {
     print(s);
     return true;
+  }
+
+  DartType _finishFunctionBodyInference() {
+    var flow = flowAnalysis.flow;
+
+    return _bodyContext!.computeInferredReturnType(
+      endOfBlockIsReachable: flow == null || flow.isReachable,
+    );
   }
 
   /// Infers type arguments corresponding to [typeParameters] used it the

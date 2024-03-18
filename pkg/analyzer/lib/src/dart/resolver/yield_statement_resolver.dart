@@ -28,7 +28,7 @@ class YieldStatementResolver {
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
   void resolve(YieldStatement node) {
-    var bodyContext = _resolver.inferenceContext.bodyContext;
+    var bodyContext = _resolver.bodyContext;
     if (bodyContext != null && bodyContext.isGenerator) {
       _resolve_generator(bodyContext, node);
     } else {
