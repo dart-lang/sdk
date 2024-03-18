@@ -375,6 +375,7 @@ class Package implements Comparable<Package> {
           line.startsWith('extension ') ||
           line.startsWith('void ') ||
           line.startsWith('Future ') ||
+          line.startsWith('Future<') ||
           line.startsWith('final ') ||
           line.startsWith('const ')) {
         break;
