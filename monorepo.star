@@ -6,7 +6,20 @@ Defines the monorepo builders.
 """
 
 load("//lib/dart.star", "dart")
+load("//lib/defaults.star", "defaults")
 load("//lib/priority.star", "priority")
+
+monorepo_properties = {
+    "$flutter/goma": {"server": "goma.chromium.org"},
+    "$flutter/rbe": {
+        "instance": "projects/flutter-rbe-prod/instances/default",
+        "platform": "container-image=docker://gcr.io/cloud-marketplace/google/debian11@sha256:69e2789c9f3d28c6a0f13b25062c240ee7772be1f5e6d41bb4680b63eae6b304",
+    },
+    "clobber": False,
+    "environment": "unused",
+    "goma_jobs": "200",
+    "rbe_jobs": "200",
+}
 
 luci.gitiles_poller(
     name = "dart-gitiles-trigger-monorepo",
@@ -46,13 +59,7 @@ dart.ci_sandbox_builder(
     execution_timeout = 180 * time.minute,
     notifies = None,
     priority = priority.normal,
-    properties = {
-        "$flutter/goma": {"server": "goma.chromium.org"},
-        "clobber": False,
-        "config_name": "host_linux",
-        "environment": "unused",
-        "goma_jobs": "200",
-    },
+    properties = defaults.properties([monorepo_properties, {"config_name": "host_linux"}]),
     triggered_by = ["dart-gitiles-trigger-monorepo"],
     schedule = "triggered",
 )
@@ -72,14 +79,10 @@ dart.try_builder(
     "flutter-linux",
     executable = dart.flutter_recipe("engine_v2/engine_v2"),
     execution_timeout = 180 * time.minute,
-    properties = {
-        "$flutter/goma": {"server": "goma.chromium.org"},
+    properties = defaults.properties([monorepo_properties, {
         "builder_name_suffix": "-try",
-        "clobber": False,
         "config_name": "host_linux",
-        "environment": "unused",
-        "goma_jobs": "200",
-    },
+    }]),
     on_cq = False,
     cq_branches = ["main"],
 )
@@ -91,13 +94,7 @@ dart.ci_sandbox_builder(
     execution_timeout = 180 * time.minute,
     notifies = None,
     priority = priority.normal,
-    properties = {
-        "$flutter/goma": {"server": "goma.chromium.org"},
-        "clobber": False,
-        "config_name": "web_linux",
-        "environment": "unused",
-        "goma_jobs": "200",
-    },
+    properties = defaults.properties([monorepo_properties, {"config_name": "web_linux"}]),
     triggered_by = ["dart-gitiles-trigger-monorepo"],
     schedule = "triggered",
 )
@@ -117,14 +114,10 @@ dart.try_builder(
     "flutter-web",
     executable = dart.flutter_recipe("engine_v2/engine_v2"),
     execution_timeout = 180 * time.minute,
-    properties = {
-        "$flutter/goma": {"server": "goma.chromium.org"},
+    properties = defaults.properties([monorepo_properties, {
         "builder_name_suffix": "-try",
-        "clobber": False,
         "config_name": "web_linux",
-        "environment": "unused",
-        "goma_jobs": "200",
-    },
+    }]),
     on_cq = False,
     cq_branches = ["main"],
 )
