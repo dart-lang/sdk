@@ -1461,6 +1461,22 @@ mixin M {
 ''');
   }
 
+  test_topLevelVariable_augment_add() {
+    _assertNotSameSignature(r'''
+int a = 0;
+''', r'''
+augment int a = 0;
+''');
+  }
+
+  test_topLevelVariable_augment_remove() {
+    _assertNotSameSignature(r'''
+augment int a = 0;
+''', r'''
+int a = 0;
+''');
+  }
+
   test_topLevelVariable_final_add() {
     _assertNotSameSignature(r'''
 int a = 0;
