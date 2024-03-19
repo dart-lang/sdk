@@ -44,7 +44,7 @@ def BuildOptions():
     other_group.add_argument("-j",
                              type=int,
                              help='Ninja -j option for Goma/RBE builds.',
-                             default=1000)
+                             default=200 if sys.platform == 'win32' else 1000)
     other_group.add_argument("-l",
                              type=int,
                              help='Ninja -l option for Goma/RBE builds.',
@@ -140,7 +140,7 @@ rbe_started = None
 bootstrap_path = None
 
 
-def StartRBE(out_dir, use_goma):
+def StartRBE(out_dir, use_goma, env):
     global rbe_started, bootstrap_path
     rbe = 'goma' if use_goma else 'rbe'
     if rbe_started:
@@ -166,7 +166,7 @@ def StartRBE(out_dir, use_goma):
     bootstrap_command = [bootstrap_path]
     if use_goma:
         bootstrap_command = ['python3', bootstrap_path, 'ensure_start']
-    process = subprocess.Popen(bootstrap_command)
+    process = subprocess.Popen(bootstrap_command, env=env)
     process.wait()
     if process.returncode != 0:
         print(f"Starting {rbe} failed. Try running it manually: " + "\n\t" +
@@ -176,17 +176,17 @@ def StartRBE(out_dir, use_goma):
     return True
 
 
-def StopRBE():
+def StopRBE(env):
     global rbe_started, bootstrap_path
     if rbe_started != 'rbe':
         return
     bootstrap_command = [bootstrap_path, '--shutdown']
-    process = subprocess.Popen(bootstrap_command)
+    process = subprocess.Popen(bootstrap_command, env=env)
     process.wait()
 
 
 # Returns a tuple (build_config, command to run, whether rbe is used)
-def BuildOneConfig(options, targets, target_os, mode, arch, sanitizer):
+def BuildOneConfig(options, targets, target_os, mode, arch, sanitizer, env):
     build_config = utils.GetBuildConf(mode, arch, target_os, sanitizer)
     out_dir = utils.GetBuildRoot(HOST_OS, mode, arch, target_os, sanitizer)
     using_rbe = False
@@ -196,7 +196,7 @@ def BuildOneConfig(options, targets, target_os, mode, arch, sanitizer):
     use_rbe = UseRBE(out_dir)
     use_goma = UseGoma(out_dir)
     if use_rbe or use_goma:
-        if options.no_start_rbe or StartRBE(out_dir, use_goma):
+        if options.no_start_rbe or StartRBE(out_dir, use_goma, env):
             using_rbe = True
             command += [('-j%s' % str(options.j))]
             command += [('-l%s' % str(options.l))]
@@ -327,7 +327,7 @@ def Main():
         env.pop('SDKROOT', None)
 
     # Always run GN before building.
-    gn_py.RunGnOnConfiguredConfigurations(options)
+    gn_py.RunGnOnConfiguredConfigurations(options, env)
 
     # Build all targets for each requested configuration.
     configs = []
@@ -337,11 +337,11 @@ def Main():
                 for sanitizer in options.sanitizer:
                     configs.append(
                         BuildOneConfig(options, targets, target_os, mode, arch,
-                                       sanitizer))
+                                       sanitizer, env))
 
     exit_code = Build(configs, env, options)
 
-    StopRBE()
+    StopRBE(env)
 
     if exit_code == 0:
         endtime = time.time()
