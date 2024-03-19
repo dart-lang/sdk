@@ -15,7 +15,6 @@ import 'package:dtd_impl/dart_tooling_daemon.dart';
 void main(List<String> args, dynamic port) async {
   await DartToolingDaemon.startService(
     args,
-    shouldLogRequests: true,
     sendPort: port as SendPort?,
-  ); // TODO(@danchevalier): turn off logging
+  );
 }

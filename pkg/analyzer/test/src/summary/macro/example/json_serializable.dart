@@ -638,8 +638,8 @@ extension on FieldDeclaration {
     ConstructorMetadataAnnotation? jsonKey;
     for (var annotation in metadata) {
       if (annotation is! ConstructorMetadataAnnotation) continue;
-      if (annotation.type.name != 'JsonKey') continue;
-      var declaration = await builder.typeDeclarationOf(annotation.type);
+      if (annotation.type.identifier.name != 'JsonKey') continue;
+      var declaration = await builder.typeDeclarationOf(annotation.type.identifier);
       if (declaration.library.uri != jsonKeyUri) continue;
 
       if (jsonKey != null) {

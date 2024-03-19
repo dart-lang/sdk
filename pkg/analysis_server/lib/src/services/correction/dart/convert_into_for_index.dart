@@ -78,7 +78,7 @@ class ConvertIntoForIndex extends ResolvedCorrectionProducer {
     }
     // prepare environment
     var prefix = utils.getNodePrefix(forStatement);
-    var indent = utils.getIndent(1);
+    var indent = utils.oneIndent;
     var firstBlockLine = utils.getLineContentEnd(body.leftBracket.end);
     // add change
     await builder.addDartFileEdit(file, (builder) {

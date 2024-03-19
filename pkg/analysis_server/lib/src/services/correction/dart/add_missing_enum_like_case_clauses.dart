@@ -34,7 +34,7 @@ class AddMissingEnumLikeCaseClauses extends ResolvedCorrectionProducer {
       missingNames.sort();
 
       var statementIndent = utils.getLinePrefix(node.offset);
-      var singleIndent = utils.getIndent(1);
+      var singleIndent = utils.oneIndent;
       var location = utils.newCaseClauseAtEndLocation(
         switchKeyword: node.switchKeyword,
         leftBracket: node.leftBracket,

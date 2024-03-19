@@ -132,6 +132,23 @@ extension AstNodeExtension on AstNode {
       current = parent;
     }
   }
+
+  /// Returns the [ExpressionStatement] associated with `this` if `this` points
+  /// to the identifier for a simple `print`, and `null` otherwise.
+  ExpressionStatement? findSimplePrintInvocation() {
+    var parent = this.parent;
+    var grandparent = parent?.parent;
+    if (this case SimpleIdentifier(:var staticElement)) {
+      if (staticElement is FunctionElement &&
+          staticElement.name == 'print' &&
+          staticElement.library.isDartCore &&
+          parent is MethodInvocation &&
+          grandparent is ExpressionStatement) {
+        return grandparent;
+      }
+    }
+    return null;
+  }
 }
 
 extension BinaryExpressionExtension on BinaryExpression {

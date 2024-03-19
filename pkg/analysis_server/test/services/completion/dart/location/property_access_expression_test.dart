@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../../client/completion_driver_test.dart';
@@ -171,6 +172,76 @@ class A { foo() {int x; x.^}}
 ''');
     assertResponse(r'''
 suggestions
+''');
+  }
+
+  Future<void> test_isInternal_method_otherPackage() async {
+    var otherRoot = getFolder('$packagesRootPath/other');
+    newFile('${otherRoot.path}/lib/src/a.dart', r'''
+import 'package:meta/meta.dart';
+
+class A {
+  void f01() {}
+
+  @internal
+  void f02() {}
+}
+''');
+
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(
+          name: 'other',
+          rootPath: otherRoot.path,
+        ),
+      meta: true,
+    );
+
+    await computeSuggestions('''
+import 'package:other/src/a.dart''
+
+void f() {
+  A().^
+}
+''');
+
+    assertResponse(r'''
+suggestions
+  f01
+    kind: methodInvocation
+''');
+  }
+
+  Future<void> test_isInternal_method_samePackage() async {
+    writeTestPackageConfig(
+      meta: true,
+    );
+
+    newFile('$testPackageLibPath/src/a.dart', r'''
+import 'package:meta/meta.dart';
+
+class A {
+  void f01() {}
+
+  @internal
+  void f02() {}
+}
+''');
+
+    await computeSuggestions('''
+import 'src/a.dart''
+
+void f() {
+  A().^
+}
+''');
+
+    assertResponse(r'''
+suggestions
+  f01
+    kind: methodInvocation
+  f02
+    kind: methodInvocation
 ''');
   }
 

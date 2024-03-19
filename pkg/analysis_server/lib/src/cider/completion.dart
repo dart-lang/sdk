@@ -79,6 +79,7 @@ class CiderCompletionComputer {
 
       _dartCompletionRequest = DartCompletionRequest(
         analysisSession: analysisSession,
+        fileState: resolvedUnit.fileState,
         filePath: resolvedUnit.path,
         fileContent: resolvedUnit.content,
         unitElement: resolvedUnit.unitElement,

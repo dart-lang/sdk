@@ -11,6 +11,7 @@ import '../../../services/search/search_engine_test.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CompilationUnitFileHeaderTest);
+    defineReflectiveTests(FindSimplePrintInvocationTest);
   });
 }
 
@@ -177,5 +178,45 @@ class C {}
   void _assertTokens(List<String> expected) {
     expect(result.unit.fileHeader.map((token) => token.lexeme),
         orderedEquals(expected));
+  }
+}
+
+@reflectiveTest
+class FindSimplePrintInvocationTest extends PubPackageResolutionTest {
+  Future<void> test_customPrint() async {
+    await resolveTestCode('''
+void print(String toPrint) {
+}
+
+void f() {
+  print('hi');
+}
+''');
+    var printIdentifier = findNode.simple('print(\'hi\'');
+    var result = printIdentifier.findSimplePrintInvocation();
+    expect(result, null);
+  }
+
+  Future<void> test_negative() async {
+    await resolveTestCode('''
+void f() {
+  true ? print('hi') : print('false');
+}
+''');
+    var printIdentifier = findNode.simple('print(\'false');
+    var result = printIdentifier.findSimplePrintInvocation();
+    expect(result, null);
+  }
+
+  Future<void> test_simplePrintInvocation() async {
+    await resolveTestCode('''
+void f() {
+  print('hi');
+}
+''');
+    var printIdentifier = findNode.simple('print');
+    var expected = findNode.expressionStatement('print');
+    var result = printIdentifier.findSimplePrintInvocation();
+    expect(result, expected);
   }
 }

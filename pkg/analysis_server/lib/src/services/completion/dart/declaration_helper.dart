@@ -1029,6 +1029,14 @@ class DeclarationHelper {
       return false;
     }
 
+    if (element.isInternal) {
+      if (request.pubPackage case var pubPackage?) {
+        if (!pubPackage.contains(element.librarySource)) {
+          return false;
+        }
+      }
+    }
+
     if (element.isProtected) {
       var elementInterface = element.enclosingElement;
       if (elementInterface is! InterfaceElement) {
@@ -1727,7 +1735,20 @@ extension on PropertyAccessorElement {
   }
 }
 
-extension on ExecutableElement {
+extension on Element {
+  bool get isInternal {
+    if (hasInternal) {
+      return true;
+    }
+    if (this case PropertyAccessorElement accessor) {
+      var variable = accessor.variable2;
+      if (variable != null && variable.hasInternal) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   bool get isProtected {
     final self = this;
     if (self is PropertyAccessorElement &&

@@ -132,7 +132,7 @@ class ConvertToIfCaseStatementChain extends ResolvedCorrectionProducer {
 
     final range = utils.getLinesRangeStatements(statements);
     final firstIndent = utils.getLinePrefix(first.offset);
-    final singleIndent = utils.getIndent(1);
+    final singleIndent = utils.oneIndent;
 
     final code = utils.replaceSourceRangeIndent(
       range,

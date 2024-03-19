@@ -652,8 +652,12 @@ void main() {
         test('constructor invocations', () {
           final constructorMetadata = ConstructorMetadataAnnotationImpl(
               id: RemoteInstance.uniqueId,
-              type: IdentifierImpl(
-                  id: RemoteInstance.uniqueId, name: 'Singleton'),
+              type: NamedTypeAnnotationImpl(
+                  id: RemoteInstance.uniqueId,
+                  identifier: IdentifierImpl(
+                      id: RemoteInstance.uniqueId, name: 'Singleton'),
+                  isNullable: false,
+                  typeArguments: []),
               constructor:
                   IdentifierImpl(id: RemoteInstance.uniqueId, name: 'someName'),
               positionalArguments: [

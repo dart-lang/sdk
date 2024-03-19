@@ -141,12 +141,6 @@ class StringsTest {
     expect(removeEnd('www.domain.com', '.com'), 'www.domain');
   }
 
-  void test_repeat() {
-    expect(repeat('x', 0), '');
-    expect(repeat('x', 5), 'xxxxx');
-    expect(repeat('abc', 3), 'abcabcabc');
-  }
-
   void test_shorten() {
     expect(shorten('', 10), '');
     expect(shorten('0', 10), '0');

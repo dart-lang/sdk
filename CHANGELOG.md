@@ -52,6 +52,13 @@ advantage of these improvements, set your package's
 
 ### Tools
 
+#### Analyzer
+
+- Improved code completion. Fixed over 50% of completion correctness bugs,
+  tagged `analyzer-completion-correctness` in the [issue tracker][analyzer-completion-correction-issues].
+
+[analyzer-completion-correction-issues]: https://github.com/dart-lang/sdk/labels/analyzer-completion-correctness
+
 #### Pub
 
 - Dependency resolution and `dart pub outdated` will now surface if a dependency
