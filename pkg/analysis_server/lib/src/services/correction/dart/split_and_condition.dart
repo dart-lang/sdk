@@ -51,7 +51,7 @@ class SplitAndCondition extends ResolvedCorrectionProducer {
     }
     // prepare environment
     var prefix = utils.getNodePrefix(ifStatement);
-    var indent = utils.getIndent(1);
+    var indent = utils.oneIndent;
     // prepare "rightCondition"
     String rightConditionSource;
     {

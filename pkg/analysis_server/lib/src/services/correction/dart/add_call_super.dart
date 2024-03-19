@@ -82,7 +82,7 @@ class AddCallSuper extends ResolvedCorrectionProducer {
     var expression = body.expression;
     var semicolon = body.semicolon;
     var prefix = utils.getLinePrefix(expression.offset);
-    var prefixWithLine = eol + prefix + utils.getIndent(1);
+    var prefixWithLine = eol + prefix + utils.oneIndent;
 
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleReplacement(

@@ -30,8 +30,8 @@ class FlutterWrapGeneric extends ResolvedCorrectionProducer {
       return; // Lists need to be in multi-line format already.
     }
     var indentOld = utils.getLinePrefix(node.offset + eol.length + newlineIdx);
-    var indentArg = '$indentOld${utils.getIndent(1)}';
-    var indentList = '$indentOld${utils.getIndent(2)}';
+    var indentArg = '$indentOld${utils.oneIndent}';
+    var indentList = '$indentOld${utils.twoIndents}';
 
     await builder.addDartFileEdit(file, (builder) {
       builder.addReplacement(range.node(node), (builder) {

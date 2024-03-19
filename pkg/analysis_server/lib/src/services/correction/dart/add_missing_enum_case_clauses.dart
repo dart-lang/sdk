@@ -81,7 +81,7 @@ class AddMissingEnumCaseClauses extends ResolvedCorrectionProducer {
     }
 
     var statementIndent = utils.getLinePrefix(statement.offset);
-    var singleIndent = utils.getIndent(1);
+    var singleIndent = utils.oneIndent;
     var location = utils.newCaseClauseAtEndLocation(
       switchKeyword: statement.switchKeyword,
       leftBracket: statement.leftBracket,

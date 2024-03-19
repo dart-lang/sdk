@@ -309,7 +309,7 @@ class PostfixCompletionProcessor {
           builder.write(eol);
           var indent = utils.getNodePrefix(expr);
           builder.write(indent);
-          builder.write(utils.getIndent(1));
+          builder.write(utils.oneIndent);
           builder.selectHere();
           builder.write(eol);
           builder.write(indent);
@@ -351,7 +351,7 @@ class PostfixCompletionProcessor {
         builder.write('try {');
         builder.write(eol);
         builder.write(utils.replaceSourceIndent(
-            src, indent, '$indent${utils.getIndent(1)}',
+            src, indent, '$indent${utils.oneIndent}',
             includeLeading: true, ensureTrailingNewline: true));
         builder.selectHere();
         builder.write(indent);
@@ -363,7 +363,7 @@ class PostfixCompletionProcessor {
         builder.write(' catch (e, s) {');
         builder.write(eol);
         builder.write(indent);
-        builder.write(utils.getIndent(1));
+        builder.write(utils.oneIndent);
         builder.write('print(s);');
         builder.write(eol);
         builder.write(indent);

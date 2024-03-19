@@ -52,7 +52,7 @@ class CreateMissingOverrides extends ResolvedCorrectionProducer {
       return;
     }
 
-    var prefix = utils.getIndent(1);
+    var prefix = utils.oneIndent;
     await builder.addDartFileEdit(file, (builder) {
       final syntheticLeftBracket = targetClass.leftBracket.isSynthetic;
       if (syntheticLeftBracket) {

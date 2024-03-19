@@ -50,8 +50,7 @@ class AddReturnNull extends ResolvedCorrectionProducer {
     if (block.statements.isEmpty) {
       position = block.offset + 1;
       var prefix = utils.getLinePrefix(block.offset);
-      returnStatement =
-          '$eol$prefix${utils.getIndent(1)}return null;$eol$prefix';
+      returnStatement = '$eol$prefix${utils.oneIndent}return null;$eol$prefix';
     } else {
       var lastStatement = block.statements.last;
       position = lastStatement.offset + lastStatement.length;

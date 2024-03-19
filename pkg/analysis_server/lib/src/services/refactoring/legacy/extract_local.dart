@@ -191,7 +191,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
         occurrencesShift = edit.replacement.length;
       } else if (target is ExpressionFunctionBody) {
         var prefix = utils.getNodePrefix(target.parent!);
-        var indent = utils.getIndent(1);
+        var indent = utils.oneIndent;
         var expr = target.expression;
         {
           var code = '{$eol$prefix$indent';

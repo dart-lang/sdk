@@ -27,7 +27,7 @@ class AddRedeclare extends ResolvedCorrectionProducer {
     if (member == null) return;
 
     var token = member.firstTokenAfterCommentAndMetadata;
-    var indent = utils.getIndent(1);
+    var indent = utils.oneIndent;
     await builder.addDartFileEdit(file, (builder) {
       builder.addInsertion(token.offset, (builder) {
         builder.write('@');
