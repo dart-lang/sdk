@@ -2069,6 +2069,7 @@ class AnalysisDriver {
 
       return ResolvedForCompletionResultImpl(
         analysisSession: currentSession,
+        fileState: file,
         path: path,
         uri: file.uri,
         exists: file.exists,

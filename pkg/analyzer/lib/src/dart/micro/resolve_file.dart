@@ -615,6 +615,7 @@ class FileResolver {
 
         return ResolvedForCompletionResultImpl(
           analysisSession: analysisSession,
+          fileState: analysisResult.fileState,
           path: path,
           uri: file.uri,
           exists: file.exists,

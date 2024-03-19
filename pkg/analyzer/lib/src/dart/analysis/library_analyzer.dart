@@ -54,10 +54,12 @@ import 'package:analyzer/src/workspace/pub.dart';
 import 'package:path/path.dart' as path;
 
 class AnalysisForCompletionResult {
+  final FileState fileState;
   final CompilationUnit parsedUnit;
   final List<AstNode> resolvedNodes;
 
   AnalysisForCompletionResult({
+    required this.fileState,
     required this.parsedUnit,
     required this.resolvedNodes,
   });
@@ -195,6 +197,7 @@ class LibraryAnalyzer {
           nodeToResolve.accept(resolverVisitor);
           resolverVisitor.checkIdle();
           return AnalysisForCompletionResult(
+            fileState: file,
             parsedUnit: parsedUnit,
             resolvedNodes: [nodeToResolve],
           );
@@ -204,6 +207,7 @@ class LibraryAnalyzer {
       _parseAndResolve();
       var unit = _libraryUnits.values.first.unit;
       return AnalysisForCompletionResult(
+        fileState: file,
         parsedUnit: unit,
         resolvedNodes: [unit],
       );

@@ -18,6 +18,7 @@ import 'package:analysis_server/src/services/completion/dart/record_literal_cont
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_collector.dart';
 import 'package:analysis_server/src/services/completion/dart/uri_contributor.dart';
+import 'package:analysis_server/src/utilities/extensions/object.dart';
 import 'package:analysis_server/src/utilities/selection.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -30,12 +31,15 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
+import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/generated/source.dart' show SourceFactory;
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
+import 'package:analyzer/src/workspace/pub.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
@@ -266,6 +270,9 @@ class DartCompletionRequest {
   /// request.
   final OpType opType;
 
+  /// The file where completion is requested.
+  final FileState fileState;
+
   /// The absolute path of the file where completion is requested.
   final String path;
 
@@ -298,6 +305,7 @@ class DartCompletionRequest {
 
   factory DartCompletionRequest({
     required AnalysisSession analysisSession,
+    required FileState fileState,
     required String filePath,
     required String fileContent,
     required CompilationUnitElement unitElement,
@@ -335,6 +343,7 @@ class DartCompletionRequest {
       libraryElement: libraryElement,
       offset: offset,
       opType: opType,
+      fileState: fileState,
       path: filePath,
       replacementRange: target.computeReplacementRange(offset),
       source: unitElement.source,
@@ -349,8 +358,10 @@ class DartCompletionRequest {
     DartdocDirectiveInfo? dartdocDirectiveInfo,
     CompletionPreference completionPreference = CompletionPreference.insert,
   }) {
+    resolvedUnit as ResolvedUnitResultImpl;
     return DartCompletionRequest(
       analysisSession: resolvedUnit.session,
+      fileState: resolvedUnit.fileState,
       filePath: resolvedUnit.path,
       fileContent: resolvedUnit.content,
       unitElement: resolvedUnit.unit.declaredElement!,
@@ -372,6 +383,7 @@ class DartCompletionRequest {
     required this.libraryElement,
     required this.offset,
     required this.opType,
+    required this.fileState,
     required this.path,
     required this.replacementRange,
     required this.source,
@@ -399,6 +411,12 @@ class DartCompletionRequest {
 
   /// Answer the [DartType] for Object in dart:core
   InterfaceType get objectType => libraryElement.typeProvider.objectType;
+
+  /// Returns the [PubPackage] of the file where completion is requested.
+  /// Or `null` if the package is not [PubPackage].
+  PubPackage? get pubPackage {
+    return fileState.workspacePackage.ifTypeOrNull();
+  }
 
   /// The length of the text to be replaced if the remainder of the identifier
   /// containing the cursor is to be replaced when the suggestion is applied
