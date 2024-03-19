@@ -32,6 +32,7 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/resolver/exit_detector.dart';
 import 'package:analyzer/src/generated/java_core.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 const String _TOKEN_SEPARATOR = '\uFFFF';
@@ -217,12 +218,13 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     // names
     _prepareExcludedNames();
     _prepareNames();
-    // closure cannot have parameters
+    // Closure cannot have parameters.
     if (_selectionFunctionExpression != null && _parameters.isNotEmpty) {
-      var message = format(
-          'Cannot extract closure as method, it references {0} external variable{1}.',
-          _parameters.length,
-          _parameters.length == 1 ? '' : 's');
+      /// All referenced external variables are stored in this list named variables.
+      var variables = _parameters.map((parameter) => parameter.name).toList();
+      var count = variables.length;
+      var result = variables.quotedAndCommaSeparatedWithAnd;
+      var message = 'Cannot extract the closure as a method,' 'it references the external ${'variable'.pluralized(count)} $result.';
       return RefactoringStatus.fatal(message);
     }
     return result;

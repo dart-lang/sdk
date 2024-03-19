@@ -1058,10 +1058,6 @@ class PubspecFixRequestResult {
   PubspecFixRequestResult(this.edits, this.details);
 }
 
-extension on String {
-  String pluralized(int count) => count == 1 ? toString() : '${toString()}s';
-}
-
 extension on int {
   String get isAre => this == 1 ? 'is' : 'are';
 }

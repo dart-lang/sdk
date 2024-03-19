@@ -502,7 +502,7 @@ void doFoo(void Function() a) => a();
     );
 
     expect(response.valid, isFalse);
-    expect(response.message, contains('Cannot extract closure as method'));
+    expect(response.message, contains('Cannot extract the closure as a method'));
   }
 
   /// Test if the client does not call refactor.validate it still gets a
@@ -541,7 +541,7 @@ void doFoo(void Function() a) => a();
     });
     expect(
       errorNotification.message,
-      contains('Cannot extract closure as method'),
+      contains('Cannot extract the closure as a method'),
     );
   }
 
