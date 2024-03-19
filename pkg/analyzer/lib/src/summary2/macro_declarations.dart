@@ -429,7 +429,13 @@ class DeclarationBuilder {
           name: constructorName?.name ?? '',
           getElement: () => node.element,
         ),
-        type: identifierMacro,
+        type: macro.NamedTypeAnnotationImpl(
+            id: macro.RemoteInstance.uniqueId,
+            isNullable: false,
+            identifier: identifierMacro,
+            // TODO(scheglov): Support type arguments for constructor
+            // annotations.
+            typeArguments: []),
         positionalArguments: arguments
             .whereNotType<ast.NamedExpression>()
             .map((e) => _expressionCode(e))

@@ -278,7 +278,7 @@ class ConstructorMetadataAnnotationImpl extends MetadataAnnotationImpl
   final IdentifierImpl constructor;
 
   @override
-  final IdentifierImpl type;
+  final NamedTypeAnnotationImpl type;
 
   @override
   final List<ExpressionCode> positionalArguments;

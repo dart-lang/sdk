@@ -419,11 +419,13 @@ abstract interface class IdentifierMetadataAnnotation
   Identifier get identifier;
 }
 
-/// A [Metadata] annotation which is a constructor call.
+/// A [MetadataAnnotation] which is a constructor call.
 abstract interface class ConstructorMetadataAnnotation
     implements MetadataAnnotation {
-  /// And [Identifier] referring to the type that is being constructed.
-  Identifier get type;
+  /// The [NamedTypeAnnotation] of the type that is being constructed.
+  ///
+  /// If type arguments are provided, this is where they would appear.
+  NamedTypeAnnotation get type;
 
   /// An [Identifier] referring to the specific constructor being called.
   ///
