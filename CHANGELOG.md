@@ -9,9 +9,14 @@ This is a patch release that:
   [#55158][]).
 - Fixes an issue in the CFE that prevented redirecting factories from being
   resolved in initializers of extension types (issue [#55194][]).
+- Fixes an issues with VM's implementation of `DateTime.timeZoneName`
+  on Windows, which was checking whether current date is in the summer or
+  standard time rather than checking if the given moment is in the summer or
+  standard time (issue [#55240][]).
 
 [#55158]: https://github.com/dart-lang/sdk/issues/55158
 [#55194]: https://github.com/dart-lang/sdk/issues/55194
+[#55240]: https://github.com/dart-lang/sdk/issues/55240
 
 ## 3.3.1 - 2024-03-06
 

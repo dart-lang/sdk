@@ -34,6 +34,8 @@ testLocal() {
         Expect.equals(-4, offset.inHours);
       case "PDT" || "Pacific Daylight Time":
         Expect.equals(-7, offset.inHours);
+      case "PST" || "Pacific Standard Time":
+        Expect.equals(-8, offset.inHours);
       case "CST" || "Central Standard Time":
         Expect.equals(-6, offset.inHours);
       case "CDT" || "Central Daylight Time":
