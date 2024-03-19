@@ -163,7 +163,7 @@ vars = {
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
   "mime_rev": "9a168712d6db610c3822617c132daea72d4fd2b5",
   "mockito_rev": "3ef744f8749864f2a036eba60c4203cc8f638949",
-  "native_rev": "4fc6a333badace5d569bde4496462cc237dc3363", # mosum@ and dacoharkes@ are rolling breaking changes manually while the assets features are in experimental.
+  "native_rev": "71ada4b5c8001e6b8207ed40331d158e0912cd94", # mosum@ and dacoharkes@ are rolling breaking changes manually while the assets features are in experimental.
   "package_config_rev": "3d90e6955ef19b7ce4f1b742a06a20ed4260700a",
   "path_rev": "a7b696071bd83d3ee0a0f1b57ac94d6b1f05cac4",
   "pool_rev": "c118f69d8a6441a8453bf7d455fd7c79d3ee1497",

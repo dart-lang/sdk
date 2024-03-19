@@ -91,7 +91,7 @@ void main(List<String> args) async {
   test('dart build native assets build failure', timeout: longTimeout,
       () async {
     await nativeAssetsTest('dart_app', (dartAppUri) async {
-      final buildDotDart = dartAppUri.resolve('../native_add/build.dart');
+      final buildDotDart = dartAppUri.resolve('../native_add/hook/build.dart');
       await File.fromUri(buildDotDart).writeAsString('''
 void main(List<String> args) {
   throw UnimplementedError();
