@@ -1,4 +1,4 @@
-## 3.3.2
+## 3.3.2 - 2024-03-20
 
 This is a patch release that:
 
