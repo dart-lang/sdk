@@ -1,5 +1,6 @@
 # 3.3.1
 - [DAP] Fixed an issue introduced in 3.3.0 where `Source.name` could contain a file paths when a `package:` or `dart:` URI should have been used.
+- Updated `package:devtools_shared` version to ^8.0.1.
 
 # 3.3.0
 - **Breaking change:** [DAP] Several signatures in DAP debug adapter classes have been updated to use `Uri`s where they previously used `String path`s. This is to support communicating with the DAP client using URIs instead of file paths. URIs may be used only when the client sets the custom `supportsDartUris` client capability during initialization.

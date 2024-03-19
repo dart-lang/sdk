@@ -100,6 +100,10 @@ DEFINE_FLAG(bool,
             false,
             "Remove script timestamps to allow for deterministic testing.");
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+DEFINE_FLAG(bool, use_register_cc, true, "Use register calling conventions");
+#endif
+
 DECLARE_FLAG(bool, intrinsify);
 DECLARE_FLAG(bool, trace_deoptimization);
 DECLARE_FLAG(bool, trace_deoptimization_verbose);
@@ -27573,6 +27577,72 @@ ErrorPtr EntryPointMemberInvocationError(const Object& member) {
   OS::PrintErr("%s", error);
   return ApiError::New(String::Handle(String::New(error)));
 }
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+// Note: see also [NeedsDynamicInvocationForwarder] which ensures that we
+// never land in a function which expects parameters in registers from a
+// dynamic call site.
+intptr_t Function::MaxNumberOfParametersInRegisters(Zone* zone) const {
+#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64) ||                  \
+    defined(TARGET_ARCH_ARM)
+  if (!FLAG_precompiled_mode) {
+    return 0;
+  }
+
+  if (!FLAG_use_register_cc) {
+    return 0;
+  }
+
+  if (IsGeneric()) {
+    return 0;
+  }
+
+  switch (kind()) {
+    case UntaggedFunction::kClosureFunction:
+    case UntaggedFunction::kImplicitClosureFunction:
+    case UntaggedFunction::kNoSuchMethodDispatcher:
+    case UntaggedFunction::kInvokeFieldDispatcher:
+    case UntaggedFunction::kDynamicInvocationForwarder:
+    case UntaggedFunction::kMethodExtractor:
+    case UntaggedFunction::kFfiTrampoline:
+    case UntaggedFunction::kFieldInitializer:
+    case UntaggedFunction::kIrregexpFunction:
+      return 0;
+
+    default:
+      break;
+  }
+
+  const auto unboxing_metadata = kernel::UnboxingInfoMetadataOf(*this, zone);
+  if (unboxing_metadata != nullptr &&
+      unboxing_metadata->must_use_stack_calling_convention) {
+    return 0;
+  }
+
+  // Getters and setters have fixed signatures.
+  switch (kind()) {
+    case UntaggedFunction::kGetterFunction:
+    case UntaggedFunction::kImplicitGetter:
+    case UntaggedFunction::kSetterFunction:
+    case UntaggedFunction::kImplicitSetter:
+      return num_fixed_parameters();
+
+    default:
+      break;
+  }
+
+  if (unboxing_metadata != nullptr &&
+      unboxing_metadata->has_overrides_with_less_direct_parameters) {
+    // Receiver (`this`) can always be passed in the register because it is
+    // never an optional or named parameter.
+    return unboxing_metadata->unboxed_args_info.length() + 1;
+  }
+
+  return num_fixed_parameters();
+#endif
+  return 0;
+}
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 ErrorPtr Function::VerifyCallEntryPoint() const {
   if (!FLAG_verify_entry_points) return Error::null();

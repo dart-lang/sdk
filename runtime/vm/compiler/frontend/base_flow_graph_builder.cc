@@ -312,9 +312,8 @@ Fragment BaseFlowGraphBuilder::LoadArgDescriptor() {
   if (has_saved_args_desc_array()) {
     const ArgumentsDescriptor descriptor(saved_args_desc_array());
     // Double-check that compile-time Size() matches runtime size on target.
-    ASSERT_EQUAL(descriptor.Size(),
-                 FlowGraph::ParameterOffsetAt(function_, descriptor.Count(),
-                                              /*last_slot=*/false));
+    ASSERT_EQUAL(descriptor.Size(), FlowGraph::ComputeArgumentsSizeInWords(
+                                        function_, descriptor.Count()));
     return Constant(saved_args_desc_array());
   }
   ASSERT(parsed_function_->has_arg_desc_var());

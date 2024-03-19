@@ -519,6 +519,14 @@ class CallingConventions {
   static constexpr ExtensionStrategy kArgumentStackExtension = kExtendedTo4;
 };
 
+// Register based calling convention used for Dart functions.
+//
+// See |compiler::ComputeCallingConvention| for more details.
+struct DartCallingConvention {
+  static constexpr Register kCpuRegistersForArgs[] = {kNoRegister};
+  static constexpr FpuRegister kFpuRegistersForArgs[] = {kNoFpuRegister};
+};
+
 const uword kBreakInstructionFiller = 0xCCCCCCCC;
 
 }  // namespace dart

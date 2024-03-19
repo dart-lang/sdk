@@ -6871,6 +6871,10 @@ abstract final class FieldDeclaration implements ClassMember {
   /// The `abstract` keyword, or `null` if the keyword was not used.
   Token? get abstractKeyword;
 
+  /// Return the 'augment' keyword, or `null` if the keyword was absent.
+  @experimental
+  Token? get augmentKeyword;
+
   /// The 'covariant' keyword, or `null` if the keyword was not used.
   Token? get covariantKeyword;
 
@@ -6900,7 +6904,7 @@ final class FieldDeclarationImpl extends ClassMemberImpl
   @override
   final Token? abstractKeyword;
 
-  /// The 'augment' keyword, or `null` if the keyword was not used.
+  @override
   final Token? augmentKeyword;
 
   /// The 'covariant' keyword, or `null` if the keyword was not used.
@@ -6965,6 +6969,10 @@ final class FieldDeclarationImpl extends ClassMemberImpl
 
   @override
   ChildEntities get _childEntities => super._childEntities
+    ..addToken('abstractKeyword', abstractKeyword)
+    ..addToken('augmentKeyword', augmentKeyword)
+    ..addToken('covariantKeyword', covariantKeyword)
+    ..addToken('externalKeyword', externalKeyword)
     ..addToken('staticKeyword', staticKeyword)
     ..addNode('fields', fields)
     ..addToken('semicolon', semicolon);

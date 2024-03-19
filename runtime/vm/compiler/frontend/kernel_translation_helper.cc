@@ -2118,10 +2118,19 @@ UnboxingInfoMetadata* UnboxingInfoMetadataHelper::GetUnboxingInfoMetadata(
   const intptr_t num_args = helper_->ReadUInt();
   const auto info = new (helper_->zone_) UnboxingInfoMetadata();
   info->SetArgsCount(num_args);
-  for (intptr_t i = 0; i < num_args; i++) {
-    info->unboxed_args_info[i] = ReadUnboxingType();
+  const int8_t flags = helper_->ReadByte();
+  info->must_use_stack_calling_convention =
+      (flags & UnboxingInfoMetadata::kMustUseStackCallingConventionFlag) != 0;
+  info->has_overrides_with_less_direct_parameters =
+      (flags &
+       UnboxingInfoMetadata::kHasOverridesWithLessDirectParametersFlag) != 0;
+  if ((flags & UnboxingInfoMetadata::kHasUnboxedParameterOrReturnValueFlag) !=
+      0) {
+    for (intptr_t i = 0; i < num_args; i++) {
+      info->unboxed_args_info[i] = ReadUnboxingType();
+    }
+    info->return_info = ReadUnboxingType();
   }
-  info->return_info = ReadUnboxingType();
   return info;
 }
 

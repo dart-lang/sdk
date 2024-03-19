@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
@@ -27,13 +26,14 @@ class PostfixCompletionTest extends PubPackageAnalysisServerTest {
   }
 
   Future<void> test_for() async {
-    addTestFile('''
+    var key = '.for';
+    var offset = _newFileForCompletion(key, '''
 void f() {
   [].for
 }
 ''');
-    await waitForTasksFinished();
-    await _prepareCompletion('.for');
+
+    await _prepareCompletionAt(offset, key);
     _assertHasChange('Expand .for', '''
 void f() {
   for (var value in []) {
@@ -66,6 +66,20 @@ void f() {
     );
   }
 
+  Future<void> test_notApplicable_inComment_try() async {
+    var key = '.try';
+    var offset = _newFileForCompletion(key, '''
+void f() {
+  () {
+    // comment.try
+  };
+}
+''');
+
+    var result = await _isApplicable(offset: offset, key: key);
+    expect(result, isFalse);
+  }
+
   void _assertHasChange(String message, String expectedCode) {
     if (change.message == message) {
       if (change.edits.isNotEmpty) {
@@ -78,26 +92,55 @@ void f() {
     fail('Expected to find |$message| but got: ${change.message}');
   }
 
-  Future<void> _prepareCompletion(String key) async {
-    var offset = findOffset(key);
-    var src = testFileContent.replaceFirst(key, '', offset);
-    modifyTestFile(src);
-    await _prepareCompletionAt(offset, key);
+  Future<bool> _isApplicable({
+    required int offset,
+    required String key,
+  }) async {
+    var response = await handleSuccessfulRequest(
+      EditIsPostfixCompletionApplicableParams(
+        testFile.path,
+        key,
+        offset,
+      ).toRequest('0'),
+    );
+    var result = EditIsPostfixCompletionApplicableResult.fromResponse(response);
+    return result.value;
+  }
+
+  int _newFileForCompletion(
+    String key,
+    String content,
+  ) {
+    var keyOffset = content.indexOf(key);
+    expect(keyOffset, isNot(equals(-1)), reason: 'missing "$key"');
+
+    modifyFile2(
+      testFile,
+      content.substring(0, keyOffset) +
+          content.substring(keyOffset + key.length),
+    );
+
+    return keyOffset;
   }
 
   Future<void> _prepareCompletionAt(int offset, String key) async {
-    var params = EditGetPostfixCompletionParams(testFile.path, key, offset);
-    var request =
-        Request('0', 'edit.isPostfixCompletionApplicable', params.toJson());
-    var response = await handleSuccessfulRequest(request);
-    var isApplicable =
-        EditIsPostfixCompletionApplicableResult.fromResponse(response);
-    if (!isApplicable.value) {
+    var isApplicable = await _isApplicable(
+      offset: offset,
+      key: key,
+    );
+
+    if (!isApplicable) {
       fail('Postfix completion not applicable at given location');
     }
-    request = EditGetPostfixCompletionParams(testFile.path, key, offset)
-        .toRequest('1');
-    response = await handleSuccessfulRequest(request);
+
+    var response = await handleSuccessfulRequest(
+      EditGetPostfixCompletionParams(
+        testFile.path,
+        key,
+        offset,
+      ).toRequest('0'),
+    );
+
     var result = EditGetPostfixCompletionResult.fromResponse(response);
     change = result.change;
   }

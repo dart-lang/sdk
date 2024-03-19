@@ -80,7 +80,7 @@ void matchIL$getRecord2(FlowGraph graph) {
   ]);
 }
 
-void matchIL$record3(FlowGraph graph) {
+void matchIL$B$get$record3(FlowGraph graph) {
   graph.match([
     match.block('Graph'),
     match.block('Function', [
@@ -95,7 +95,7 @@ void matchIL$record3(FlowGraph graph) {
   ]);
 }
 
-void matchIL$record4(FlowGraph graph) {
+void matchIL$B$record4(FlowGraph graph) {
   graph.match([
     match.block('Graph'),
     match.block('Function', [

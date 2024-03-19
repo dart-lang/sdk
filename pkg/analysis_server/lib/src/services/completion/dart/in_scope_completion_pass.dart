@@ -3491,6 +3491,12 @@ extension on FormalParameter {
     if (name == null || name.isKeyword) {
       return true;
     }
+    if (name.isSynthetic) {
+      final next = name.next;
+      if (next != null && next.isKeyword) {
+        return true;
+      }
+    }
     var self = this;
     if (self is DefaultFormalParameter && self.separator != null) {
       var defaultValue = self.defaultValue;

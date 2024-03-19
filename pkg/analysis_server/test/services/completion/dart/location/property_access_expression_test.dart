@@ -173,4 +173,312 @@ class A { foo() {int x; x.^}}
 suggestions
 ''');
   }
+
+  Future<void> test_isProtected_field_otherLibrary_function() async {
+    writeTestPackageConfig(
+      meta: true,
+    );
+
+    newFile('$testPackageLibPath/a.dart', r'''
+import 'package:meta/meta.dart';
+
+class A {
+  int f01 = 0;
+
+  @protected
+  int f02 = 0;
+}
+''');
+
+    await computeSuggestions('''
+import 'a.dart';
+
+void f(A a) {
+  a.^
+}
+''');
+
+    assertResponse(r'''
+suggestions
+  f01
+    kind: field
+''');
+  }
+
+  Future<void> test_isProtected_field_sameLibrary_function() async {
+    writeTestPackageConfig(
+      meta: true,
+    );
+
+    await computeSuggestions('''
+import 'package:meta/meta.dart';
+
+class A {
+  int f01 = 0;
+
+  @protected
+  int f02 = 0;
+}
+
+void f(A a) {
+  a.^
+}
+''');
+
+    assertResponse(r'''
+suggestions
+  f01
+    kind: field
+  f02
+    kind: field
+''');
+  }
+
+  Future<void> test_isProtected_getter_otherLibrary_function() async {
+    writeTestPackageConfig(
+      meta: true,
+    );
+
+    newFile('$testPackageLibPath/a.dart', r'''
+import 'package:meta/meta.dart';
+
+class A {
+  int get f01 => 0;
+
+  @protected
+  int get f02 => 0;
+}
+''');
+
+    await computeSuggestions('''
+import 'a.dart';
+
+void f(A a) {
+  a.^
+}
+''');
+
+    assertResponse(r'''
+suggestions
+  f01
+    kind: getter
+''');
+  }
+
+  Future<void> test_isProtected_getter_sameLibrary_function() async {
+    writeTestPackageConfig(
+      meta: true,
+    );
+
+    await computeSuggestions('''
+import 'package:meta/meta.dart';
+
+class A {
+  int get f01 => 0;
+
+  @protected
+  int get f02 => 0;
+}
+
+void f(A a) {
+  a.^
+}
+''');
+
+    assertResponse(r'''
+suggestions
+  f01
+    kind: getter
+  f02
+    kind: getter
+''');
+  }
+
+  Future<void> test_isProtected_method_otherLibrary_class_notSubtype() async {
+    writeTestPackageConfig(
+      meta: true,
+    );
+
+    newFile('$testPackageLibPath/a.dart', r'''
+import 'package:meta/meta.dart';
+
+class A {
+  void f01() {}
+
+  @protected
+  void f02() {}
+}
+''');
+
+    await computeSuggestions('''
+import 'a.dart';
+
+class B {
+  void foo(A a) {
+    a.^
+  }
+}
+''');
+
+    assertResponse(r'''
+suggestions
+  f01
+    kind: methodInvocation
+''');
+  }
+
+  Future<void> test_isProtected_method_otherLibrary_class_subtype() async {
+    writeTestPackageConfig(
+      meta: true,
+    );
+
+    newFile('$testPackageLibPath/a.dart', r'''
+import 'package:meta/meta.dart';
+
+class A {
+  void f01() {}
+
+  @protected
+  void f02() {}
+}
+''');
+
+    await computeSuggestions('''
+import 'a.dart';
+
+class B extends A {
+  void foo() {
+    this.^
+  }
+}
+''');
+
+    assertResponse(r'''
+suggestions
+  f01
+    kind: methodInvocation
+  f02
+    kind: methodInvocation
+''');
+  }
+
+  Future<void> test_isProtected_method_otherLibrary_function() async {
+    writeTestPackageConfig(
+      meta: true,
+    );
+
+    newFile('$testPackageLibPath/a.dart', r'''
+import 'package:meta/meta.dart';
+
+class A {
+  void f01() {}
+
+  @protected
+  void f02() {}
+}
+''');
+
+    await computeSuggestions('''
+import 'a.dart';
+
+void f(A a) {
+  a.^
+}
+''');
+
+    assertResponse(r'''
+suggestions
+  f01
+    kind: methodInvocation
+''');
+  }
+
+  Future<void> test_isProtected_method_sameLibrary_function() async {
+    writeTestPackageConfig(
+      meta: true,
+    );
+
+    await computeSuggestions('''
+import 'package:meta/meta.dart';
+
+class A {
+  void f01() {}
+
+  @protected
+  void f02() {}
+}
+
+void f(A a) {
+  a.^
+}
+''');
+
+    assertResponse(r'''
+suggestions
+  f01
+    kind: methodInvocation
+  f02
+    kind: methodInvocation
+''');
+  }
+
+  Future<void> test_isProtected_setter_otherLibrary_function() async {
+    writeTestPackageConfig(
+      meta: true,
+    );
+
+    newFile('$testPackageLibPath/a.dart', r'''
+import 'package:meta/meta.dart';
+
+class A {
+  set f01(int _) {}
+
+  @protected
+  set f02(int _) {}
+}
+''');
+
+    await computeSuggestions('''
+import 'a.dart';
+
+void f(A a) {
+  a.^
+}
+''');
+
+    assertResponse(r'''
+suggestions
+  f01
+    kind: setter
+''');
+  }
+
+  Future<void> test_isProtected_setter_sameLibrary_function() async {
+    writeTestPackageConfig(
+      meta: true,
+    );
+
+    await computeSuggestions('''
+import 'package:meta/meta.dart';
+
+class A {
+  set f01(int _) {}
+
+  @protected
+  set f02(int _) {}
+}
+
+void f(A a) {
+  a.^
+}
+''');
+
+    assertResponse(r'''
+suggestions
+  f01
+    kind: setter
+  f02
+    kind: setter
+''');
+  }
 }

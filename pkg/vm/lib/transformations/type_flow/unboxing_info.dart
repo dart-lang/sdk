@@ -39,9 +39,9 @@ class UnboxingInfoManager {
   UnboxingInfoMetadata? getUnboxingInfoOfMember(Member member) {
     final UnboxingInfoMetadata? info = _memberInfo[member];
     if (member is Procedure && member.isGetter) {
-      // Remove placeholder parameter info slot for setters that the getter is
-      // grouped with.
-      return UnboxingInfoMetadata(0)..returnInfo = info!.returnInfo;
+      return info!.toGetterInfo();
+    } else if (member is Field) {
+      return info!.toFieldInfo();
     }
     return info;
   }
@@ -96,20 +96,13 @@ class UnboxingInfoManager {
                 : tableSelectorAssigner.methodOrSetterSelectorId(member);
         assert(selectorId != kInvalidSelectorId);
         selectorId = selectorUnionFind.find(selectorId);
-        info = selectorIdToInfo[selectorId];
-        if (info == null) {
-          info = UnboxingInfoMetadata(paramCount);
-          selectorIdToInfo[selectorId] = info;
-        } else {
-          if (paramCount < info.argsInfo.length) {
-            info.argsInfo.length = paramCount;
-          }
-        }
+        info =
+            selectorIdToInfo[selectorId] ??= UnboxingInfoMetadata(paramCount);
       } else {
         info = UnboxingInfoMetadata(paramCount);
       }
       _memberInfo[member] = info;
-      _updateUnboxingInfoOfMember(member, typeFlowAnalysis);
+      _updateUnboxingInfoOfMember(member, typeFlowAnalysis, info);
     }
 
     for (Library library in component.libraries) {
@@ -132,48 +125,58 @@ class UnboxingInfoManager {
     }
   }
 
-  void _updateUnboxingInfoOfMember(
-      Member member, TypeFlowAnalysis typeFlowAnalysis) {
-    if (typeFlowAnalysis.isMemberUsed(member)) {
-      final UnboxingInfoMetadata unboxingInfo = _memberInfo[member]!;
-      if (_cannotUnbox(member)) {
-        unboxingInfo.argsInfo.length = 0;
-        unboxingInfo.returnInfo = UnboxingType.kBoxed;
-        return;
+  void _updateUnboxingInfoOfMember(Member member,
+      TypeFlowAnalysis typeFlowAnalysis, UnboxingInfoMetadata unboxingInfo) {
+    if (!typeFlowAnalysis.isMemberUsed(member)) {
+      return;
+    }
+
+    if (_cannotUnbox(member)) {
+      unboxingInfo.argsInfo.length = 0;
+      unboxingInfo.returnInfo = UnboxingType.kBoxed;
+      unboxingInfo.mustUseStackCallingConvention = true;
+      return;
+    }
+
+    if (member is Procedure &&
+        member.isInstanceMember &&
+        !member.isGetter &&
+        !member.isSetter) {
+      unboxingInfo.adjustParameterCount(member.function.requiredParameterCount);
+    }
+
+    if (member is Procedure || member is Constructor) {
+      final Args<Type> argTypes = typeFlowAnalysis.argumentTypes(member)!;
+      final int firstParamIndex =
+          numTypeParams(member) + (hasReceiverArg(member) ? 1 : 0);
+
+      final positionalParams = member.function!.positionalParameters;
+      assert(argTypes.positionalCount ==
+          firstParamIndex + positionalParams.length);
+
+      for (int i = 0; i < positionalParams.length; i++) {
+        final inferredType = argTypes.values[firstParamIndex + i];
+        _applyToArg(member, unboxingInfo, i, inferredType);
       }
-      if (member is Procedure || member is Constructor) {
-        final Args<Type> argTypes = typeFlowAnalysis.argumentTypes(member)!;
-        final int firstParamIndex =
-            numTypeParams(member) + (hasReceiverArg(member) ? 1 : 0);
 
-        final positionalParams = member.function!.positionalParameters;
-        assert(argTypes.positionalCount ==
-            firstParamIndex + positionalParams.length);
-
-        for (int i = 0; i < positionalParams.length; i++) {
-          final inferredType = argTypes.values[firstParamIndex + i];
-          _applyToArg(member, unboxingInfo, i, inferredType);
-        }
-
-        final names = argTypes.names;
-        for (int i = 0; i < names.length; i++) {
-          final inferredType =
-              argTypes.values[firstParamIndex + positionalParams.length + i];
-          _applyToArg(
-              member, unboxingInfo, positionalParams.length + i, inferredType);
-        }
-
-        final Type resultType = typeFlowAnalysis.getSummary(member).resultType;
-        _applyToReturn(member, unboxingInfo, resultType);
-      } else if (member is Field) {
-        final inferredType = typeFlowAnalysis.getFieldValue(member).value;
-        if (member.hasSetter) {
-          _applyToArg(member, unboxingInfo, 0, inferredType);
-        }
-        _applyToReturn(member, unboxingInfo, inferredType);
-      } else {
-        assert(false, "Unexpected member: $member");
+      final names = argTypes.names;
+      for (int i = 0; i < names.length; i++) {
+        final inferredType =
+            argTypes.values[firstParamIndex + positionalParams.length + i];
+        _applyToArg(
+            member, unboxingInfo, positionalParams.length + i, inferredType);
       }
+
+      final Type resultType = typeFlowAnalysis.getSummary(member).resultType;
+      _applyToReturn(member, unboxingInfo, resultType);
+    } else if (member is Field) {
+      final inferredType = typeFlowAnalysis.getFieldValue(member).value;
+      if (member.hasSetter) {
+        _applyToArg(member, unboxingInfo, 0, inferredType);
+      }
+      _applyToReturn(member, unboxingInfo, inferredType);
+    } else {
+      assert(false, "Unexpected member: $member");
     }
   }
 

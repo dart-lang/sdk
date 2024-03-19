@@ -124,4 +124,24 @@ suggestions
     kind: keyword
 ''');
   }
+
+  Future<void> test_inMethod_parameterShadowField() async {
+    allowedIdentifiers = {'aaa'};
+    await computeSuggestions('''
+class A {
+  String aaa = '';
+}
+
+extension E on A {foo(int aaa) {  a^;} }
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  aaa
+    kind: parameter
+  assert
+    kind: keyword
+''');
+  }
 }

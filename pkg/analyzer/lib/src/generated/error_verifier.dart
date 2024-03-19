@@ -50,7 +50,6 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error_detection_helpers.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
-import 'package:analyzer/src/generated/this_access_tracker.dart';
 import 'package:analyzer/src/summary2/macro_application_error.dart';
 import 'package:analyzer/src/summary2/macro_type_location.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
@@ -216,8 +215,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// in the scope of an extension.
   ExtensionElement? _enclosingExtension;
 
-  /// The helper for tracking if the current location has access to `this`.
-  final ThisAccessTracker _thisAccessTracker = ThisAccessTracker.unit();
+  /// Whether the current location has access to `this`.
+  bool _hasAccessToThis = false;
 
   /// The context of the method or function that we are currently visiting, or
   /// `null` if we are not inside a method or function.
@@ -401,11 +400,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitBlockFunctionBody(BlockFunctionBody node) {
-    _thisAccessTracker.enterFunctionBody(node);
+    var oldHasAccessToThis = _hasAccessToThis;
     try {
+      _hasAccessToThis = _computeThisAccessForFunctionBody(node);
       super.visitBlockFunctionBody(node);
     } finally {
-      _thisAccessTracker.exitFunctionBody(node);
+      _hasAccessToThis = oldHasAccessToThis;
     }
   }
 
@@ -674,12 +674,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitExpressionFunctionBody(ExpressionFunctionBody node) {
-    _thisAccessTracker.enterFunctionBody(node);
+    var oldHasAccessToThis = _hasAccessToThis;
     try {
+      _hasAccessToThis = _computeThisAccessForFunctionBody(node);
       _returnTypeVerifier.verifyExpressionFunctionBody(node);
       super.visitExpressionFunctionBody(node);
     } finally {
-      _thisAccessTracker.exitFunctionBody(node);
+      _hasAccessToThis = oldHasAccessToThis;
     }
   }
 
@@ -759,7 +760,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   @override
   void visitFieldDeclaration(covariant FieldDeclarationImpl node) {
     var fields = node.fields;
-    _thisAccessTracker.enterFieldDeclaration(node);
     _isInStaticVariableDeclaration = node.isStatic;
     _isInInstanceNotLateVariableDeclaration =
         !node.isStatic && !node.fields.isLate;
@@ -771,7 +771,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         );
       }
     }
+    var oldHasAccessToThis = _hasAccessToThis;
     try {
+      _hasAccessToThis = !node.isStatic && node.fields.isLate;
       _checkForExtensionTypeDeclaresInstanceField(node);
       _checkForNotInitializedNonNullableStaticField(node);
       _checkForWrongTypeParameterVarianceInField(node);
@@ -788,7 +790,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     } finally {
       _isInStaticVariableDeclaration = false;
       _isInInstanceNotLateVariableDeclaration = false;
-      _thisAccessTracker.exitFieldDeclaration(node);
+      _hasAccessToThis = oldHasAccessToThis;
     }
   }
 
@@ -3684,7 +3686,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   ///
   /// See [CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS].
   void _checkForInvalidReferenceToThis(ThisExpression expression) {
-    if (!_thisAccessTracker.hasAccess) {
+    if (!_hasAccessToThis) {
       errorReporter.atNode(
         expression,
         CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS,
@@ -5821,6 +5823,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
     }
   }
+
+  bool _computeThisAccessForFunctionBody(FunctionBody node) =>
+      switch (node.parent) {
+        ConstructorDeclaration(:var factoryKeyword) => factoryKeyword == null,
+        MethodDeclaration(:var isStatic) => !isStatic,
+        _ => _hasAccessToThis
+      };
 
   /// Given an [expression] in a switch case whose value is expected to be an
   /// enum constant, return the name of the constant.

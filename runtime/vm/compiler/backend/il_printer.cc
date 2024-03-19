@@ -92,7 +92,12 @@ class IlTestPrinter : public AllStatic {
       }
     }
     for (auto instr : block->instructions()) {
-      if (ShouldPrintInstruction(instr)) {
+      if (instr->ArgumentCount() != 0 && instr->GetMoveArguments() != nullptr) {
+        for (auto move_arg : *(instr->GetMoveArguments())) {
+          PrintInstruction(writer, move_arg);
+        }
+      }
+      if (ShouldPrintInstruction(instr) && !instr->IsMoveArgument()) {
         PrintInstruction(writer, instr);
       }
     }
@@ -191,6 +196,38 @@ class IlTestPrinter : public AllStatic {
 
     void WriteAttribute(Representation rep) {
       writer_->PrintValue(RepresentationUtils::ToCString(rep));
+    }
+
+    static const char* LocationKindAsString(const Location& loc) {
+      if (loc.IsConstant()) {
+        return "C";
+      } else if (loc.IsPairLocation()) {
+        auto pair = loc.AsPairLocation();
+        return Thread::Current()->zone()->PrintToString(
+            "(%s, %s)", LocationKindAsString(pair->At(0)),
+            LocationKindAsString(pair->At(0)));
+      } else {
+        switch (loc.kind()) {
+          case Location::kUnallocated:
+            return ".";
+          case Location::kStackSlot:
+            return "stack(word)";
+          case Location::kDoubleStackSlot:
+            return "stack(f64)";
+          case Location::kQuadStackSlot:
+            return "stack(f128)";
+          case Location::kRegister:
+            return "reg(cpu)";
+          case Location::kFpuRegister:
+            return "reg(fpu)";
+          default:
+            return "?";
+        }
+      }
+    }
+
+    void WriteAttribute(const Location& loc) {
+      writer_->PrintValue(LocationKindAsString(loc));
     }
 
     void WriteAttribute(const Slot* slot) { writer_->PrintValue(slot->Name()); }
@@ -1542,8 +1579,8 @@ void SuspendInstr::PrintOperandsTo(BaseTextBuffer* f) const {
 }
 
 void MoveArgumentInstr::PrintOperandsTo(BaseTextBuffer* f) const {
+  f->Printf("%s <- ", location().ToCString());
   value()->PrintTo(f);
-  f->Printf(", SP+%" Pd "", sp_relative_index());
 }
 
 void GotoInstr::PrintTo(BaseTextBuffer* f) const {
