@@ -411,13 +411,26 @@ def ProcessOptions(args):
     if HOST_OS != 'win' and args.use_crashpad:
         print("Crashpad is only supported on Windows")
         return False
-    if os.environ.get('RBE_cfg') == None and \
+    default_rbe = os.environ.get('RBE') == '1' or \
+                  os.environ.get('DART_RBE') == '1' or \
+                  os.environ.get('RBE_cfg') != None
+    if not default_rbe and args.rbe:
+        args.goma = False
+    elif default_rbe and args.goma:
+        args.rbe = False
+    if not args.rbe and \
        (socket.getfqdn().endswith('.corp.google.com') or
-        socket.getfqdn().endswith('.c.googlers.com')) and \
-       sys.platform in ['linux']:
+        socket.getfqdn().endswith('.c.googlers.com')):
         print('You can speed up your build by following: go/dart-rbe')
         if not args.rbe and not args.goma:
             print('Goma is no longer enabled by default since RBE is ready.')
+    old_rbe_cfg = 'win-intel.cfg' if HOST_OS == 'win32' else 'linux-intel.cfg'
+    new_rbe_cfg = 'windows.cfg' if HOST_OS == 'win32' else 'unix.cfg'
+    if os.environ.get('RBE_cfg') == os.path.join(os.getcwd(), 'build', 'rbe',
+                                                 old_rbe_cfg):
+        print(f'warning: {old_rbe_cfg} is deprecated, please update your '
+              f'RBE_cfg variable to {new_rbe_cfg} use RBE=1 instead per '
+              'go/dart-rbe')
     return True
 
 
@@ -437,21 +450,24 @@ def ide_switch(host_os):
 def AddCommonGnOptionArgs(parser):
     """Adds arguments that will change the default GN arguments."""
 
-    use_rbe = os.environ.get('RBE_cfg') != None
+    default_rbe = os.environ.get('RBE') == '1' or \
+                  os.environ.get('DART_RBE') == '1' or \
+                  os.environ.get('RBE_cfg') != None
 
     parser.add_argument('--goma', help='Use goma', action='store_true')
     parser.add_argument('--no-goma',
                         help='Disable goma',
                         dest='goma',
                         action='store_false')
-    parser.set_defaults(goma=not use_rbe and sys.platform not in ['linux'])
+    parser.set_defaults(
+        goma=not default_rbe and sys.platform not in ['linux', 'win32'])
 
     parser.add_argument('--rbe', help='Use rbe', action='store_true')
     parser.add_argument('--no-rbe',
                         help='Disable rbe',
                         dest='rbe',
                         action='store_false')
-    parser.set_defaults(rbe=use_rbe)
+    parser.set_defaults(rbe=default_rbe)
 
     # Disable git hashes when remote compiling to ensure cache hits of the final
     # output artifacts when nothing has changed.
@@ -464,7 +480,7 @@ def AddCommonGnOptionArgs(parser):
                         help='Disable SDK hash checks',
                         dest='verify_sdk_hash',
                         action='store_false')
-    parser.set_defaults(verify_sdk_hash=not use_rbe)
+    parser.set_defaults(verify_sdk_hash=not default_rbe)
 
     parser.add_argument('--git-version',
                         help='Enable git commit in version',
@@ -475,7 +491,7 @@ def AddCommonGnOptionArgs(parser):
                         help='Disable git commit in version',
                         dest='git_version',
                         action='store_false')
-    parser.set_defaults(git_version=not use_rbe)
+    parser.set_defaults(git_version=not default_rbe)
 
     parser.add_argument('--clang', help='Use Clang', action='store_true')
     parser.add_argument('--no-clang',
@@ -611,6 +627,26 @@ def parse_args(args):
     return options
 
 
+def InitializeRBE(out_dir, env):
+    RBE_cfg = 'RBE_CFG' if HOST_OS == 'win32' else 'RBE_cfg'
+    RBE_server_address = ('RBE_SERVER_ADDRESS'
+                          if HOST_OS == 'win32' else 'RBE_server_address')
+    # Default RBE_cfg to the appropriate configuration file.
+    if not RBE_cfg in env:
+        env[RBE_cfg] = os.path.join(
+            os.getcwd(), 'build', 'rbe',
+            'windows.cfg' if HOST_OS == 'win32' else 'unix.cfg')
+    # Default RBE_server_address to inside the build directory.
+    if not RBE_server_address in env:
+        with open(env[RBE_cfg], 'r') as f:
+            if not any([l.startswith('server_address') for l in f.readlines()]):
+                schema = 'pipe' if HOST_OS == 'win32' else 'unix'
+                socket = os.path.join(os.getcwd(), out_dir, 'reproxy.sock')
+                if HOST_OS == 'win32':
+                    socket = socket.replace('\\', '_').replace(':', '_')
+                env[RBE_server_address] = f'{schema}://{socket}'
+
+
 def ExecutableName(basename):
     if utils.IsWindows():
         return f'{basename}.exe'
@@ -642,13 +678,17 @@ def BuildGnCommand(args, mode, arch, target_os, sanitizer, out_dir):
     return command
 
 
-def RunGnOnConfiguredConfigurations(args):
+def RunGnOnConfiguredConfigurations(args, env={}):
+    initialized_rbe = False
     commands = []
     for target_os in args.os:
         for mode in args.mode:
             for arch in args.arch:
                 for sanitizer in args.sanitizer:
                     out_dir = GetOutDir(mode, arch, target_os, sanitizer)
+                    if args.rbe and not initialized_rbe:
+                        InitializeRBE(out_dir, env)
+                        initialized_rbe = True
                     commands.append(
                         BuildGnCommand(args, mode, arch, target_os, sanitizer,
                                        out_dir))
@@ -664,7 +704,7 @@ def RunGnOnConfiguredConfigurations(args):
 
     for command in commands:
         try:
-            process = subprocess.Popen(command, cwd=DART_ROOT)
+            process = subprocess.Popen(command, cwd=DART_ROOT, env=env)
             active_commands.append([command, process])
         except Exception as e:
             print('Error: %s' % e)

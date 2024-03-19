@@ -517,12 +517,17 @@ def Update(force=False, no_download=False):
       subprocess.check_call([
           ciopfs, '-o', 'use_ino', toolchain_dir + '.ciopfs', toolchain_dir])
 
+    # Dart specific patch: Store the visual studio toolchain inside the exec
+    # root directory such that it can be sent to RBE and invoked with a
+    # relative path identical on all checkouts.
+    toolchain_dir = os.path.join(os.getcwd(), 'sdk', 'win_toolchain')
     get_toolchain_args = [
         sys.executable,
         os.path.join(depot_tools_path,
                     'win_toolchain',
                     'get_toolchain_if_necessary.py'),
         '--output-json', json_data_file,
+        '--toolchain-dir', toolchain_dir,
       ] + _GetDesiredVsToolchainHashes()
     if force:
       get_toolchain_args.append('--force')
