@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 import 'dart:math';
 
 import 'package:args/args.dart';
@@ -162,11 +163,15 @@ class DartToolingDaemon {
   /// Set [ipv6] to true to have the service use ipv6 instead of ipv4.
   ///
   /// Set [shouldLogRequests] to true to enable logging.
+  ///
+  /// When [sendPort] is non-null, information about the DTD connection will be
+  /// sent over [port] instead of being printed to stdout.
   static Future<DartToolingDaemon?> startService(
     List<String> args, {
     bool ipv6 = false,
     bool shouldLogRequests = false,
     int port = 0,
+    SendPort? sendPort,
   }) async {
     final argParser = DartToolingDaemonOptions.createArgParser();
     final parsedArgs = argParser.parse(args);
@@ -186,14 +191,17 @@ class DartToolingDaemon {
     );
     await dtd._startService(port: port);
     if (machineMode) {
-      print(
-        jsonEncode({
-          'tooling_daemon_details': {
-            'uri': dtd.uri.toString(),
-            ...(!unrestrictedMode ? {'trusted_client_secret': secret} : {}),
-          },
-        }),
-      );
+      final encoded = jsonEncode({
+        'tooling_daemon_details': {
+          'uri': dtd.uri.toString(),
+          ...(!unrestrictedMode ? {'trusted_client_secret': secret} : {}),
+        },
+      });
+      if (sendPort == null) {
+        print(encoded);
+      } else {
+        sendPort.send(encoded);
+      }
     } else {
       print(
         'The Dart Tooling Daemon is listening on '

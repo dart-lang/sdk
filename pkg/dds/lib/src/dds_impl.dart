@@ -9,6 +9,7 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:devtools_shared/devtools_server.dart' show DTDConnectionInfo;
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
 import 'package:meta/meta.dart';
 import 'package:shelf/shelf.dart';
@@ -24,6 +25,7 @@ import 'client.dart';
 import 'client_manager.dart';
 import 'constants.dart';
 import 'dap_handler.dart';
+import 'devtools/dtd.dart';
 import 'devtools/handler.dart';
 import 'expression_evaluator.dart';
 import 'isolate_manager.dart';
@@ -171,6 +173,20 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
       );
     }
     pipeline = pipeline.addMiddleware(_authCodeMiddleware);
+
+    if (_devToolsConfiguration?.enable ?? false) {
+      // If we are enabling DevTools in DDS, then we also need to start the Dart
+      // tooling daemon, since this is usually the responsibility of the
+      // DevTools server when a DTD uri is not already passed to the DevTools
+      // server on start.
+      _hostedDartToolingDaemon = await startDtd(
+        machineMode: false,
+        // TODO(https://github.com/dart-lang/sdk/issues/55034): pass the value
+        // of the Dart CLI flag `--print-dtd` here.
+        printDtdUri: false,
+      );
+    }
+
     final handler = pipeline.addHandler(_handlers().handler);
     // Start the DDS server.
     late String errorMessage;
@@ -348,13 +364,17 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
 
     // If DDS is serving DevTools, install the DevTools handlers and forward
     // any unhandled HTTP requests to the VM service.
-    if (_devToolsConfiguration != null && _devToolsConfiguration!.enable) {
+    if (_devToolsConfiguration?.enable ?? false) {
       final String buildDir =
           _devToolsConfiguration!.customBuildDirectoryPath.toFilePath();
       return defaultHandler(
         dds: this,
         buildDir: buildDir,
         notFoundHandler: notFoundHandler,
+        dtd: (
+          uri: _hostedDartToolingDaemon?.uri,
+          secret: _hostedDartToolingDaemon?.secret
+        ),
       ) as FutureOr<Response> Function(Request);
     }
 
@@ -464,6 +484,8 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
     return _devToolsUri;
   }
 
+  Uri? _devToolsUri;
+
   @override
   void setExternalDevToolsUri(Uri uri) {
     if (_devToolsConfiguration?.enable ?? false) {
@@ -472,7 +494,10 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
     _devToolsUri = uri;
   }
 
-  Uri? _devToolsUri;
+  @override
+  DTDConnectionInfo? get hostedDartToolingDaemon => _hostedDartToolingDaemon;
+
+  DTDConnectionInfo? _hostedDartToolingDaemon;
 
   final bool _ipv6;
 

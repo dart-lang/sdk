@@ -2566,6 +2566,13 @@ class TopLevelVariableElementLinkedData
     );
     element.macroDiagnostics = reader.readMacroDiagnostics();
     element.type = reader.readRequiredType();
+
+    final augmentationTarget = reader.readElement();
+    if (augmentationTarget is TopLevelVariableElementImpl) {
+      augmentationTarget.augmentation = element;
+      element.augmentationTarget = augmentationTarget;
+    }
+
     if (element is ConstTopLevelVariableElementImpl) {
       var initializer = reader._readOptionalExpression();
       if (initializer != null) {

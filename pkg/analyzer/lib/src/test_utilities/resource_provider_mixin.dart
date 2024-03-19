@@ -6,6 +6,7 @@ import 'dart:io';
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:path/path.dart' as path;
 import 'package:path/path.dart';
@@ -146,9 +147,26 @@ mixin ResourceProviderMixin {
     return newFile(path, content);
   }
 
+  File newPackageConfigJsonFileFromBuilder(
+    String directoryPath,
+    PackageConfigFileBuilder builder,
+  ) {
+    final content = builder.toContent(toUriStr: toUriStr);
+    return newPackageConfigJsonFile(directoryPath, content);
+  }
+
   File newPubspecYamlFile(String directoryPath, String content) {
     String path = join(directoryPath, file_paths.pubspecYaml);
     return newFile(path, content);
+  }
+
+  void newSinglePackageConfigJsonFile({
+    required String packagePath,
+    required String name,
+  }) {
+    final builder = PackageConfigFileBuilder()
+      ..add(name: name, rootPath: packagePath);
+    newPackageConfigJsonFileFromBuilder(packagePath, builder);
   }
 
   Uri toUri(String path) {

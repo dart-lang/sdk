@@ -71,6 +71,10 @@ class ElementDisplayStringBuilder {
   }
 
   void writeConstructorElement(ConstructorElement element) {
+    if (element.isAugmentation) {
+      _write('augment ');
+    }
+
     _writeType(element.returnType);
     _write(' ');
 
@@ -88,24 +92,16 @@ class ElementDisplayStringBuilder {
   }
 
   void writeEnumElement(EnumElement element) {
+    if (element.isAugmentation) {
+      _write('augment ');
+    }
+
     _write('enum ');
     _write(element.displayName);
     _writeTypeParameters(element.typeParameters);
     _writeTypesIfNotEmpty(' with ', element.mixins);
     _writeTypesIfNotEmpty(' implements ', element.interfaces);
   }
-
-  // void writePropertyAccessor(PropertyAccessorElement element) {
-  //   var variable = element.variable2;
-  //   if (variable == null) {
-  //     // builder.;
-  //   }
-  //
-  //   writeExecutableElement(
-  //     element,
-  //     (element.isGetter ? 'get ' : 'set ') + variable2.displayName,
-  //   );
-  // }
 
   void writeExecutableElement(ExecutableElement element, String name) {
     if (element.isAugmentation) {
@@ -135,6 +131,10 @@ class ElementDisplayStringBuilder {
   }
 
   void writeExtensionElement(ExtensionElement element) {
+    if (element.isAugmentation) {
+      _write('augment ');
+    }
+
     _write('extension');
     if (element.displayName.isNotEmpty) {
       _write(' ');

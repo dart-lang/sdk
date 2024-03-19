@@ -81,7 +81,8 @@ final class JSStringImpl implements String {
   @override
   String operator +(String other) {
     if (other is JSStringImpl) {
-      return JSStringImpl(_jsConcat(toExternRef, other.toExternRef));
+      return JSStringImpl(
+          _jsStringConcatImport(toExternRef, other.toExternRef));
     }
 
     // TODO(joshualitt): Refactor `string_patch.dart` so we can directly
@@ -712,32 +713,51 @@ bool _jsIdentical(WasmExternRef? ref1, WasmExternRef? ref2) =>
     js.JS<bool>('Object.is', ref1, ref2);
 
 @pragma("wasm:prefer-inline")
-int _jsCharCodeAt(WasmExternRef? stringRef, int index) => js
-    .JS<WasmI32>(
-        'WebAssembly.String.charCodeAt', stringRef, WasmI32.fromInt(index))
-    .toIntUnsigned();
-
-WasmExternRef _jsConcat(WasmExternRef? s1, WasmExternRef? s2) =>
-    js.JS<WasmExternRef>('WebAssembly.String.concat', s1, s2);
+int _jsCharCodeAt(WasmExternRef? stringRef, int index) =>
+    _jsStringCharCodeAtImport(stringRef, WasmI32.fromInt(index))
+        .toIntUnsigned();
 
 @pragma("wasm:prefer-inline")
 WasmExternRef _jsSubstring(
         WasmExternRef? stringRef, int startIndex, int endIndex) =>
-    js.JS<WasmExternRef>('WebAssembly.String.substring', stringRef,
-        WasmI32.fromInt(startIndex), WasmI32.fromInt(endIndex));
+    _jsStringSubstringImport(
+        stringRef, WasmI32.fromInt(startIndex), WasmI32.fromInt(endIndex));
 
 @pragma("wasm:prefer-inline")
 int _jsLength(WasmExternRef? stringRef) =>
-    js.JS<WasmI32>('WebAssembly.String.length', stringRef).toIntUnsigned();
+    _jsStringLengthImport(stringRef).toIntUnsigned();
 
 @pragma("wasm:prefer-inline")
 bool _jsEquals(WasmExternRef? s1, WasmExternRef? s2) =>
-    js.JS<WasmI32>('WebAssembly.String.equals', s1, s2).toBool();
+    _jsStringEqualsImport(s1, s2).toBool();
 
 @pragma("wasm:prefer-inline")
 int _jsCompare(WasmExternRef? s1, WasmExternRef? s2) =>
-    js.JS<WasmI32>('WebAssembly.String.compare', s1, s2).toIntSigned();
+    _jsStringCompareImport(s1, s2).toIntSigned();
 
 @pragma("wasm:prefer-inline")
-WasmExternRef _jsFromCharCode(int charCode) => js.JS<WasmExternRef>(
-    'WebAssembly.String.fromCharCode', WasmI32.fromInt(charCode));
+WasmExternRef _jsFromCharCode(int charCode) =>
+    _jsStringFromCharCodeImport(WasmI32.fromInt(charCode));
+
+@pragma("wasm:import", "wasm:js-string.charCodeAt")
+external WasmI32 _jsStringCharCodeAtImport(WasmExternRef? s, WasmI32 index);
+
+@pragma("wasm:import", "wasm:js-string.compare")
+external WasmI32 _jsStringCompareImport(WasmExternRef? s1, WasmExternRef? s2);
+
+@pragma("wasm:import", "wasm:js-string.concat")
+external WasmExternRef _jsStringConcatImport(
+    WasmExternRef? s1, WasmExternRef? s2);
+
+@pragma("wasm:import", "wasm:js-string.equals")
+external WasmI32 _jsStringEqualsImport(WasmExternRef? s1, WasmExternRef? s2);
+
+@pragma("wasm:import", "wasm:js-string.fromCharCode")
+external WasmExternRef _jsStringFromCharCodeImport(WasmI32 c);
+
+@pragma("wasm:import", "wasm:js-string.length")
+external WasmI32 _jsStringLengthImport(WasmExternRef? s);
+
+@pragma("wasm:import", "wasm:js-string.substring")
+external WasmExternRef _jsStringSubstringImport(
+    WasmExternRef? s, WasmI32 startIndex, WasmI32 endIndex);

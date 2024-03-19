@@ -10,6 +10,7 @@ import 'package:dds/dds.dart';
 import 'package:dds/src/dap/adapters/dart_cli_adapter.dart';
 import 'package:dds/src/dap/adapters/dart_test_adapter.dart';
 import 'package:dds/src/dap/isolate_manager.dart';
+import 'package:devtools_shared/devtools_server.dart' show DTDConnectionInfo;
 import 'package:vm_service/vm_service.dart';
 
 /// A [DartCliDebugAdapter] that captures information about the process that
@@ -242,6 +243,9 @@ class MockDartDevelopmentService implements DartDevelopmentService {
 
   @override
   Uri? get devToolsUri => throw UnimplementedError();
+
+  @override
+  DTDConnectionInfo? get hostedDartToolingDaemon => throw UnimplementedError();
 
   @override
   Future<void> get done => throw UnimplementedError();

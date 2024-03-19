@@ -242,23 +242,6 @@ class AnalysisContextCollectionTest with ResourceProviderMixin {
 
   Folder get sdkRoot => newFolder('/sdk');
 
-  File newPackageConfigJsonFileFromBuilder(
-    String directoryPath,
-    PackageConfigFileBuilder builder,
-  ) {
-    final content = builder.toContent(toUriStr: toUriStr);
-    return newPackageConfigJsonFile(directoryPath, content);
-  }
-
-  void newSinglePackageConfigJsonFile({
-    required String packagePath,
-    required String name,
-  }) {
-    final builder = PackageConfigFileBuilder()
-      ..add(name: name, rootPath: packagePath);
-    newPackageConfigJsonFileFromBuilder(packagePath, builder);
-  }
-
   void setUp() {
     ContextLocatorImpl.singleOptionContexts = enableSingleOptionContexts;
     createMockSdk(
@@ -528,6 +511,72 @@ contexts
 analysisOptions
   analysisOptions_0: /home/test/analysis_options.yaml
   analysisOptions_1: /home/test/lib/nested/analysis_options.yaml
+workspaces
+  workspace_0: PackageConfigWorkspace
+    root: /home/test
+    pubPackages
+      workspacePackage_0_0: PubPackage
+        root: /home/test
+''');
+  }
+
+  test_packageConfigWorkspace_multipleAnalysisOptions_nestedNestedExclude() async {
+    final workspaceRootPath = '/home';
+    final testPackageRootPath = '$workspaceRootPath/test';
+    final testPackageLibPath = '$testPackageRootPath/lib';
+
+    newPubspecYamlFile(testPackageRootPath, r'''
+name: test
+''');
+
+    newSinglePackageConfigJsonFile(
+      packagePath: testPackageRootPath,
+      name: 'test',
+    );
+
+    newAnalysisOptionsYamlFile(testPackageRootPath, '');
+    newFile('$testPackageLibPath/a.dart', '');
+
+    final nestedPath = '$testPackageLibPath/nested';
+    newAnalysisOptionsYamlFile(nestedPath, r'''
+analyzer:
+  exclude:
+    - excluded/**
+''');
+    newFile('$nestedPath/b.dart', '');
+    newFile('$nestedPath/excluded/b.dart', '');
+
+    final nestedNestedPath = '$nestedPath/nested';
+    newAnalysisOptionsYamlFile(nestedNestedPath, r'''
+analyzer:
+  exclude:
+    - excluded2/**
+''');
+    newFile('$nestedNestedPath/c.dart', '');
+    newFile('$nestedNestedPath/excluded2/d.dart', '');
+
+    _assertWorkspaceCollectionText(workspaceRootPath, r'''
+contexts
+  /home/test
+    packagesFile: /home/test/.dart_tool/package_config.json
+    workspace: workspace_0
+    analyzedFiles
+      /home/test/lib/a.dart
+        uri: package:test/a.dart
+        analysisOptions_0
+        workspacePackage_0_0
+      /home/test/lib/nested/b.dart
+        uri: package:test/nested/b.dart
+        analysisOptions_1
+        workspacePackage_0_0
+      /home/test/lib/nested/nested/c.dart
+        uri: package:test/nested/nested/c.dart
+        analysisOptions_2
+        workspacePackage_0_0
+analysisOptions
+  analysisOptions_0: /home/test/analysis_options.yaml
+  analysisOptions_1: /home/test/lib/nested/analysis_options.yaml
+  analysisOptions_2: /home/test/lib/nested/nested/analysis_options.yaml
 workspaces
   workspace_0: PackageConfigWorkspace
     root: /home/test
@@ -1104,6 +1153,91 @@ workspaces
     root: /home/test
     pubPackages
       workspacePackage_1_0: PubPackage
+        root: /home/test
+''');
+  }
+
+  @override
+  test_packageConfigWorkspace_multipleAnalysisOptions_nestedNestedExclude() async {
+    final workspaceRootPath = '/home';
+    final testPackageRootPath = '$workspaceRootPath/test';
+    final testPackageLibPath = '$testPackageRootPath/lib';
+
+    newPubspecYamlFile(testPackageRootPath, r'''
+name: test
+''');
+
+    newSinglePackageConfigJsonFile(
+      packagePath: testPackageRootPath,
+      name: 'test',
+    );
+
+    newAnalysisOptionsYamlFile(testPackageRootPath, '');
+    newFile('$testPackageLibPath/a.dart', '');
+
+    final nestedPath = '$testPackageLibPath/nested';
+    newAnalysisOptionsYamlFile(nestedPath, r'''
+analyzer:
+  exclude:
+    - excluded/**
+''');
+    newFile('$nestedPath/b.dart', '');
+    newFile('$nestedPath/excluded/b.dart', '');
+
+    final nestedNestedPath = '$nestedPath/nested';
+    newAnalysisOptionsYamlFile(nestedNestedPath, r'''
+analyzer:
+  exclude:
+    - excluded/**
+''');
+    newFile('$nestedNestedPath/c.dart', '');
+    newFile('$nestedNestedPath/excluded/d.dart', '');
+
+    _assertWorkspaceCollectionText(workspaceRootPath, r'''
+contexts
+  /home/test
+    packagesFile: /home/test/.dart_tool/package_config.json
+    workspace: workspace_0
+    analyzedFiles
+      /home/test/lib/a.dart
+        uri: package:test/a.dart
+        analysisOptions_0
+        workspacePackage_0_0
+  /home/test/lib/nested
+    packagesFile: /home/test/.dart_tool/package_config.json
+    workspace: workspace_1
+    analyzedFiles
+      /home/test/lib/nested/b.dart
+        uri: package:test/nested/b.dart
+        analysisOptions_1
+        workspacePackage_1_0
+  /home/test/lib/nested/nested
+    packagesFile: /home/test/.dart_tool/package_config.json
+    workspace: workspace_2
+    analyzedFiles
+      /home/test/lib/nested/nested/c.dart
+        uri: package:test/nested/nested/c.dart
+        analysisOptions_2
+        workspacePackage_2_0
+analysisOptions
+  analysisOptions_0: /home/test/analysis_options.yaml
+  analysisOptions_1: /home/test/lib/nested/analysis_options.yaml
+  analysisOptions_2: /home/test/lib/nested/nested/analysis_options.yaml
+workspaces
+  workspace_0: PackageConfigWorkspace
+    root: /home/test
+    pubPackages
+      workspacePackage_0_0: PubPackage
+        root: /home/test
+  workspace_1: PackageConfigWorkspace
+    root: /home/test
+    pubPackages
+      workspacePackage_1_0: PubPackage
+        root: /home/test
+  workspace_2: PackageConfigWorkspace
+    root: /home/test
+    pubPackages
+      workspacePackage_2_0: PubPackage
         root: /home/test
 ''');
   }

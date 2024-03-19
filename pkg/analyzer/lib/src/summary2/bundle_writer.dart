@@ -636,6 +636,12 @@ class BundleWriter {
     _resolutionSink._writeAnnotationList(element.metadata);
     _resolutionSink.writeMacroDiagnostics(element.macroDiagnostics);
     _resolutionSink.writeType(element.type);
+
+    _resolutionSink.writeElement(element.augmentationTarget);
+    if (element.isAugmentation) {
+      _propertyAugmentations.add(element);
+    }
+
     _resolutionSink._writeOptionalNode(element.constantInitializer);
   }
 
