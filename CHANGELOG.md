@@ -7,8 +7,11 @@ This is a patch release that:
   incremental compiler whenever it restored a typedef from dill such that the
   typedef contained a generic function type on its right-hand side (issue
   [#55158][]).
+- Fixes an issue in the CFE that prevented redirecting factories from being
+  resolved in initializers of extension types (issue [#55194][]).
 
 [#55158]: https://github.com/dart-lang/sdk/issues/55158
+[#55194]: https://github.com/dart-lang/sdk/issues/55194
 
 ## 3.3.1 - 2024-03-06
 
