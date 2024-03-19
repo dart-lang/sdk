@@ -113,22 +113,6 @@ const jsRuntimeBlobPart3 = r'''
         return wrapped;
     }
 
-    if (WebAssembly.String === undefined) {
-        WebAssembly.String = {
-            "charCodeAt": (s, i) => s.charCodeAt(i),
-            "compare": (s1, s2) => {
-                if (s1 < s2) return -1;
-                if (s1 > s2) return 1;
-                return 0;
-            },
-            "concat": (s1, s2) => s1 + s2,
-            "equals": (s1, s2) => s1 === s2,
-            "fromCharCode": (i) => String.fromCharCode(i),
-            "length": (s) => s.length,
-            "substring": (s, a, b) => s.substring(a, b),
-        };
-    }
-
     // Imports
     const dart2wasm = {
 ''';
@@ -150,9 +134,25 @@ const jsRuntimeBlobPart5 = r'''
         Array: Array,
         Reflect: Reflect,
     };
+
+    const jsStringPolyfill = {
+        "charCodeAt": (s, i) => s.charCodeAt(i),
+        "compare": (s1, s2) => {
+            if (s1 < s2) return -1;
+            if (s1 > s2) return 1;
+            return 0;
+        },
+        "concat": (s1, s2) => s1 + s2,
+        "equals": (s1, s2) => s1 === s2,
+        "fromCharCode": (i) => String.fromCharCode(i),
+        "length": (s) => s.length,
+        "substring": (s, a, b) => s.substring(a, b),
+    };
+
     dartInstance = await WebAssembly.instantiate(await modulePromise, {
         ...baseImports,
         ...(await importObjectPromise),
+        "wasm:js-string": jsStringPolyfill,
     });
 
     return dartInstance;
