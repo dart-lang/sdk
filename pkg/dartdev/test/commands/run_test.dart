@@ -1050,7 +1050,7 @@ void residentRun() {
 
   test('standalone dart program', () async {
     p = project(mainSrc: 'void main() {}');
-    p.deleteFile('pubspec.yaml');
+    p.deleteFile('.dart_tool/package_config.json');
     final runResult = await p.run([
       'run',
       '--$serverInfoOption=$serverInfoFile',
@@ -1058,7 +1058,7 @@ void residentRun() {
     ]);
 
     expect(runResult.stderr,
-        contains('resident mode is only supported for Dart packages.'));
+        contains('Unable to locate .dart_tool/package_config.json'));
     expect(runResult.exitCode, isNot(0));
     expect(File(serverInfoFile).existsSync(), true);
   });

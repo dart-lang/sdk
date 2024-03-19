@@ -5,7 +5,6 @@
 import 'dart:io';
 
 import 'package:args/args.dart';
-import 'package:package_config/package_config.dart';
 import 'package:path/path.dart' as p;
 import 'package:pub/pub.dart';
 
@@ -51,12 +50,12 @@ Future<DartExecutableWithPackageConfig> generateKernel(
   final packageRoot = _packageRootFor(executable);
   if (packageRoot == null) {
     throw FrontendCompilerException._(
-        'resident mode is only supported for Dart packages.',
+        'Unable to locate .dart_tool/package_config.json in any parent folder.'
+        'Did you run `pub get`?',
         CompilationIssue.standaloneProgramError);
   }
   await ensureCompilationServerIsRunning(serverInfoFile);
-  // TODO: allow custom package paths with a --packages flag
-  final packageConfig = await _resolvePackageConfig(executable, packageRoot);
+  final packageConfig = p.join(packageRoot, packageConfigName);
   final cachedKernel = _cachedKernelPath(executable.executable, packageRoot);
   Map<String, dynamic> result;
   try {
@@ -185,31 +184,10 @@ String? _packageRootFor(DartExecutableWithPackageConfig executable) {
       Directory(p.dirname(p.canonicalize(executable.executable)));
 
   while (currentDirectory.parent.path != currentDirectory.path) {
-    if (File(p.join(currentDirectory.path, 'pubspec.yaml')).existsSync() ||
-        File(p.join(currentDirectory.path, packageConfigName)).existsSync()) {
+    if (File(p.join(currentDirectory.path, packageConfigName)).existsSync()) {
       return currentDirectory.path;
     }
     currentDirectory = currentDirectory.parent;
-  }
-  return null;
-}
-
-/// Resolves the absolute path to [packageRoot]'s package_config.json file,
-/// returning null if the package does not contain one, or if the source
-/// being compiled is a standalone dart script not inside a package.
-Future<String?> _resolvePackageConfig(
-    DartExecutableWithPackageConfig executable, String packageRoot) async {
-  final packageConfig = await findPackageConfigUri(
-    Uri.file(p.canonicalize(executable.executable)),
-    recurse: true,
-    onError: (_) {},
-  );
-  if (packageConfig != null) {
-    final dotPackageFile = File(p.join(packageRoot, '.packages'));
-    final packageConfigFile = File(p.join(packageRoot, packageConfigName));
-    return packageConfigFile.existsSync()
-        ? packageConfigFile.path
-        : dotPackageFile.path;
   }
   return null;
 }

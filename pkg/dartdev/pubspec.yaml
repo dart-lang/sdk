@@ -26,7 +26,6 @@ dependencies:
   meta: any
   native_assets_builder: any
   native_assets_cli: any
-  package_config: any
   path: any
   pub: any
   telemetry: any
