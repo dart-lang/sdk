@@ -15,6 +15,7 @@ import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:collection/collection.dart';
+import 'package:server_plugin/edit/fix/dart_fix_context.dart';
 import 'package:server_plugin/edit/fix/fix.dart';
 
 /// The root of a set of classes that support testing for lint fixes.
@@ -92,11 +93,11 @@ class LintFixTester {
     }
 
     var workspace = DartChangeWorkspace([analysisSession]);
-    var context = DartFixContextImpl(
-      InstrumentationService.NULL_SERVICE,
-      workspace,
-      unitResult,
-      error,
+    var context = DartFixContext(
+      instrumentationService: InstrumentationService.NULL_SERVICE,
+      workspace: workspace,
+      resolvedResult: unitResult,
+      error: error,
     );
 
     List<Fix> fixes;

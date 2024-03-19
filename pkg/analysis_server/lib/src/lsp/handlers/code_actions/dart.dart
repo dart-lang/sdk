@@ -13,7 +13,6 @@ import 'package:analysis_server/src/protocol_server.dart'
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
-import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_context.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_processor.dart';
@@ -23,6 +22,7 @@ import 'package:analyzer/dart/analysis/session.dart'
     show InconsistentAnalysisException;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:server_plugin/edit/fix/dart_fix_context.dart';
 
 /// Produces [CodeAction]s from Dart source commands, fixes, assists and
 /// refactors from the server.
@@ -169,8 +169,12 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
             range.start.line > errorEndLine) {
           continue;
         }
-        var context = DartFixContextImpl(
-            server.instrumentationService, workspace, unit, error);
+        var context = DartFixContext(
+          instrumentationService: server.instrumentationService,
+          workspace: workspace,
+          resolvedResult: unit,
+          error: error,
+        );
         final fixes = await computeFixes(context);
         if (fixes.isNotEmpty) {
           final diagnostic = toDiagnostic(
