@@ -542,6 +542,8 @@ class DuplicateDefinitionVerifier {
     switch (element) {
       case ExecutableElement _:
         if (element.isAugmentation) return;
+      case FieldElement _:
+        if (element.isAugmentation) return;
       case InstanceElement _:
         if (element.isAugmentation) return;
     }
