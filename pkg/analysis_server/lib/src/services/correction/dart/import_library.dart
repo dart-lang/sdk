@@ -122,7 +122,7 @@ class ImportLibrary extends MultiCorrectionProducer {
       if (targetNode is Annotation) {
         var name = targetNode.name;
         if (name.staticElement == null) {
-          if (targetNode.arguments == null) {
+          if (targetNode.period != null && targetNode.arguments == null) {
             return const [];
           }
           targetNode = name;
@@ -157,6 +157,8 @@ class ImportLibrary extends MultiCorrectionProducer {
           return importPrefix.name.lexeme;
         }
         return node.name2.lexeme;
+      case PrefixedIdentifier():
+        return node.prefix.name;
       case SimpleIdentifier():
         return node.name;
     }
