@@ -542,22 +542,20 @@ class TypeConstraintGatherer {
     // constraint set C.  Or if P is a subtype match for Q0 under constraint set
     // C.  Or if P is a subtype match for Future<Q0> under empty constraint set
     // C.
-    if (typeOperations.matchFutureOr(q) != null) {
+    if (typeOperations.matchFutureOr(q) case DartType q0?) {
       final int baseConstraintCount = _protoConstraints.length;
 
-      if (p is FutureOrType &&
-          _isNullabilityAwareSubtypeMatch(
-              p.typeArgument, (q as FutureOrType).typeArgument,
-              constrainSupertype: constrainSupertype,
-              treeNodeForTesting: treeNodeForTesting)) {
-        return true;
+      if (typeOperations.matchFutureOr(p) case DartType p0?) {
+        if (_isNullabilityAwareSubtypeMatch(p0, q0,
+            constrainSupertype: constrainSupertype,
+            treeNodeForTesting: treeNodeForTesting)) {
+          return true;
+        }
       }
       _protoConstraints.length = baseConstraintCount;
 
       bool isMatchWithFuture = _isNullabilityAwareSubtypeMatch(
-          p,
-          _environment.futureType(
-              (q as FutureOrType).typeArgument, Nullability.nonNullable),
+          p, _environment.futureType(q0, Nullability.nonNullable),
           constrainSupertype: constrainSupertype,
           treeNodeForTesting: treeNodeForTesting);
       bool matchWithFutureAddsConstraints =
@@ -567,7 +565,7 @@ class TypeConstraintGatherer {
       }
       _protoConstraints.length = baseConstraintCount;
 
-      if (_isNullabilityAwareSubtypeMatch(p, q.typeArgument,
+      if (_isNullabilityAwareSubtypeMatch(p, q0,
           constrainSupertype: constrainSupertype,
           treeNodeForTesting: treeNodeForTesting)) {
         return true;
@@ -639,15 +637,13 @@ class TypeConstraintGatherer {
     //
     // If Future<P0> is a subtype match for Q under constraint set C1.
     // And if P0 is a subtype match for Q under constraint set C2.
-    if (typeOperations.matchFutureOr(p) != null) {
+    if (typeOperations.matchFutureOr(p) case DartType p0?) {
       final int baseConstraintCount = _protoConstraints.length;
       if (_isNullabilityAwareSubtypeMatch(
-              _environment.futureType(
-                  (p as FutureOrType).typeArgument, Nullability.nonNullable),
-              q,
+              _environment.futureType(p0, Nullability.nonNullable), q,
               constrainSupertype: constrainSupertype,
               treeNodeForTesting: treeNodeForTesting) &&
-          _isNullabilityAwareSubtypeMatch(p.typeArgument, q,
+          _isNullabilityAwareSubtypeMatch(p0, q,
               constrainSupertype: constrainSupertype,
               treeNodeForTesting: treeNodeForTesting)) {
         return true;

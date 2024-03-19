@@ -134,7 +134,6 @@ void _project() {
 
   test('hasPackageConfigFile positive', () {
     final p = project();
-    p.file('.dart_tool/package_config.json', _packageData);
     Project coreProj = Project.fromDirectory(p.dir);
     expect(coreProj.hasPackageConfigFile, isTrue);
     expect(coreProj.packageConfig, isNotNull);
@@ -143,6 +142,9 @@ void _project() {
 
   test('hasPackageConfigFile negative', () {
     final p = project();
+    var packageConfig =
+        File(path.join(p.dirPath, '.dart_tool/package_config.json'));
+    packageConfig.deleteSync();
     Project coreProj = Project.fromDirectory(p.dir);
     expect(coreProj.hasPackageConfigFile, isFalse);
   });

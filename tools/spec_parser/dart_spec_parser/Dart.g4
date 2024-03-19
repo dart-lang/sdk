@@ -3,6 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // CHANGES:
+//
+// v0.40 Include latest changes to mixin related class modifiers.
+//
 // v0.39 Translate actions from Java to Dart.
 //
 // v0.38 Broaden `initializerExpression` to match implemented behavior.
@@ -397,7 +400,7 @@ classDeclaration
     :    (classModifiers | mixinClassModifiers)
          CLASS typeWithParameters superclass? interfaces?
          LBRACE (metadata classMemberDeclaration)* RBRACE
-    |    classModifiers CLASS mixinApplicationClass
+    |    classModifiers MIXIN? CLASS mixinApplicationClass
     ;
 
 classModifiers
@@ -432,16 +435,9 @@ mixinApplicationClass
     ;
 
 mixinDeclaration
-    :    mixinModifier? MIXIN typeIdentifier typeParameters?
+    :    BASE? MIXIN typeIdentifier typeParameters?
          (ON typeNotVoidNotFunctionList)? interfaces?
          LBRACE (metadata mixinMemberDeclaration)* RBRACE
-    ;
-
-mixinModifier
-    :    SEALED
-    |    BASE
-    |    INTERFACE
-    |    FINAL
     ;
 
 // TODO: We might want to make this more strict.
