@@ -21,8 +21,6 @@ testLocal() {
     //
     // Hardcode some common timezones, in both their abbreviated and expanded
     // forms to account for differences between host platforms.
-    print(name);
-    print(offset);
     switch (name) {
       case "CET" || "Central European Time" || "Central European Standard Time":
         Expect.equals(1, offset.inHours);
