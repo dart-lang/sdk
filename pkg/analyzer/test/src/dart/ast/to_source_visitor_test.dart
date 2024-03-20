@@ -1444,10 +1444,14 @@ void f() {
     _assertSource(code, findNode.forEachPartsWithIdentifier(code));
   }
 
-  @failingTest
   void test_visitForEachPartsWithPattern() {
-    // TODO(brianwilkerson): Test this when the parser allows.
-    fail('Unable to parse patterns');
+    final code = 'final (a, b) in c';
+    final findNode = _parseStringToFindNode('''
+void f () {
+  for ($code) {}
+}
+''');
+    _assertSource(code, findNode.forEachPartsWithPattern(code));
   }
 
   void test_visitForEachStatement_declared() {
