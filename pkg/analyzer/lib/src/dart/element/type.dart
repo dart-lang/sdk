@@ -696,11 +696,13 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       return true;
     }
     if (other is InterfaceTypeImpl) {
+      if (!identical(other.element, element)) {
+        return false;
+      }
       if (other.nullabilitySuffix != nullabilitySuffix) {
         return false;
       }
-      return other.element == element &&
-          TypeImpl.equalArrays(other.typeArguments, typeArguments);
+      return TypeImpl.equalArrays(other.typeArguments, typeArguments);
     }
     return false;
   }
