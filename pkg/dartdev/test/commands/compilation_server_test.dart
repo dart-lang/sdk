@@ -69,7 +69,6 @@ void main() {
         'compilation-server',
         'start',
         '--$serverInfoOption=$serverInfoFile',
-        p.relativeFilePath,
       ]);
 
       expect(runResult.stdout, matches(compilationServerStartRegExp));
@@ -81,6 +80,34 @@ void main() {
         'compilation-server',
         'shutdown',
         '--$serverInfoOption=$serverInfoFile',
+      ]);
+
+      expect(result.stdout, matches(compilationServerShutdownRegExp));
+      expect(result.stderr, isEmpty);
+      expect(result.exitCode, 0);
+      expect(File(serverInfoFile).existsSync(), false);
+    });
+
+    test(
+        'start and shutdown when passing a relative path to --resident-server-info-file',
+        () async {
+      p = project(mainSrc: 'void main() {}');
+      final serverInfoFile = path.join(p.dirPath, 'info');
+      final runResult = await p.run([
+        'compilation-server',
+        'start',
+        '--$serverInfoOption=${path.relative(serverInfoFile, from: p.dirPath)}',
+      ]);
+
+      expect(runResult.stdout, matches(compilationServerStartRegExp));
+      expect(runResult.stderr, isEmpty);
+      expect(runResult.exitCode, 0);
+      expect(File(serverInfoFile).existsSync(), true);
+
+      final result = await p.run([
+        'compilation-server',
+        'shutdown',
+        '--$serverInfoOption=${path.relative(serverInfoFile, from: p.dirPath)}',
       ]);
 
       expect(result.stdout, matches(compilationServerShutdownRegExp));

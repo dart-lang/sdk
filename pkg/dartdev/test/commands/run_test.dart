@@ -959,6 +959,28 @@ void residentRun() {
     expect(kernelCache, isNot(null));
   });
 
+  test('--resident-server-info-file handles relative paths correctly',
+      () async {
+    p = project(mainSrc: "void main() { print('Hello World'); }");
+    final result = await p.run([
+      'run',
+      '--$serverInfoOption=${path.relative(serverInfoFile, from: p.dirPath)}',
+      p.relativeFilePath,
+    ]);
+    Directory? kernelCache = p.findDirectory('.dart_tool/kernel');
+
+    expect(result.exitCode, 0);
+    expect(
+      result.stdout,
+      allOf(
+        contains('Hello World'),
+        isNot(contains(residentFrontendServerPrefix)),
+      ),
+    );
+    expect(result.stderr, isEmpty);
+    expect(kernelCache, isNotNull);
+  });
+
   test('Handles experiments', () async {
     p = project(
       mainSrc: r"void main() { print(('hello','world').$1); }",
