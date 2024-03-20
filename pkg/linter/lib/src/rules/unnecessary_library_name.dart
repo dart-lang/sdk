@@ -28,14 +28,6 @@ have the same library name. To avoid that, library names tend to be long,
 including the package name and path, just to avoid accidental name clashes. That
 makes such library names hard to read, and not even useful as documentation.
 
-**GOOD:**
-```dart
-/// This library is awesome.
-library;
-
-part "apart.dart"; // contains: `part of "good_library.dart";`
-```
-
 **BAD:**
 ```dart
 /// This library has a long name.
@@ -45,16 +37,24 @@ library magnificator.src.helper.bananas;
 ```dart
 library utils; // Not as verbose, but risks conflicts.
 ```
+
+**GOOD:**
+```dart
+/// This library is awesome.
+library;
+
+part "apart.dart"; // contains: `part of "good_library.dart";`
+```
 ''';
 
-class UnnecessaryLibraryNames extends LintRule {
+class UnnecessaryLibraryName extends LintRule {
   static const LintCode code = LintCode(
-      'unnecessary_library_names', 'Library names are not necessary.',
+      'unnecessary_library_name', 'Library names are not necessary.',
       correctionMessage: 'Remove the library name.');
 
-  UnnecessaryLibraryNames()
+  UnnecessaryLibraryName()
       : super(
-            name: 'unnecessary_library_names',
+            name: 'unnecessary_library_name',
             description: _desc,
             details: _details,
             group: Group.style);

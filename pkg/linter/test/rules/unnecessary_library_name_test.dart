@@ -8,14 +8,14 @@ import '../rule_test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(UnnecessaryLibraryNamesTest);
+    defineReflectiveTests(UnnecessaryLibraryNameTest);
   });
 }
 
 @reflectiveTest
-class UnnecessaryLibraryNamesTest extends LintRuleTest {
+class UnnecessaryLibraryNameTest extends LintRuleTest {
   @override
-  String get lintRule => 'unnecessary_library_names';
+  String get lintRule => 'unnecessary_library_name';
 
   test_namedLibrary() async {
     await assertDiagnostics(r'''
