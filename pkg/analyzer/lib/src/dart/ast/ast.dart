@@ -17935,7 +17935,7 @@ final class ThrowExpressionImpl extends ExpressionImpl
 /// directives).
 abstract final class TopLevelVariableDeclaration
     implements CompilationUnitMember {
-  /// The 'augment' keyword.
+  /// The 'augment' keyword, or `null` if the keyword was absent.
   @experimental
   Token? get augmentKeyword;
 

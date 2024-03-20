@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
 import 'package:analysis_server/src/services/correction/base_processor.dart';
 import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
@@ -14,6 +13,7 @@ import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/util/file_paths.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
+import 'package:server_plugin/edit/fix/dart_fix_context.dart';
 import 'package:server_plugin/edit/fix/fix.dart';
 
 /// A function that can be executed to create a multi-correction producer.
@@ -64,12 +64,12 @@ class FixProcessor extends BaseProcessor {
 
   FixProcessor(this.fixContext)
       : super(
-          resolvedResult: fixContext.resolveResult,
+          resolvedResult: fixContext.resolvedResult,
           workspace: fixContext.workspace,
         );
 
   Future<List<Fix>> compute() async {
-    if (isMacroGenerated(fixContext.resolveResult.file.path)) {
+    if (isMacroGenerated(fixContext.resolvedResult.file.path)) {
       return fixes;
     }
     await _addFromProducers();

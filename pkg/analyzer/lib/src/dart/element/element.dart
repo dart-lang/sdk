@@ -3428,6 +3428,9 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
 
   InterfaceType? _supertype;
 
+  /// The cached result of [allSupertypes].
+  List<InterfaceType>? _allSupertypes;
+
   /// The type defined by the class.
   InterfaceType? _thisType;
 
@@ -3451,7 +3454,8 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
 
   @override
   List<InterfaceType> get allSupertypes {
-    return library.session.classHierarchy.implementedInterfaces(this);
+    return _allSupertypes ??=
+        library.session.classHierarchy.implementedInterfaces(this);
   }
 
   @override
@@ -3773,6 +3777,10 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
       String name, LibraryElement library) {
     return _implementationsOfSetter(name).firstWhereOrNull(
         (element) => element.isStatic && element.isAccessibleIn(library));
+  }
+
+  void resetCachedAllSupertypes() {
+    _allSupertypes = null;
   }
 
   /// Builds constructors for this mixin application.

@@ -82,6 +82,10 @@ extension IterableOfStringExtension on Iterable<String> {
   }
 }
 
+extension Pluralized on String {
+  String pluralized(int count) => count == 1 ? toString() : '${toString()}s';
+}
+
 extension StringExtension on String {
   /// If this is equal to [value], return [then], otherwise return `this`.
   String ifEqualThen(String value, String then) {

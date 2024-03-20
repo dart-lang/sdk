@@ -204,6 +204,7 @@ class _UnitApiSignatureComputer {
   }
 
   void _topLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+    _addToken(node.augmentKeyword);
     _addToken(node.externalKeyword);
     _addNodeList(node.metadata);
 

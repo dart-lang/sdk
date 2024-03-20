@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/dart/add_async.dart';
 import 'package:analysis_server/src/services/correction/dart/add_await.dart';
@@ -227,7 +226,6 @@ import 'package:analysis_server/src/services/correction/dart/use_not_eq_null.dar
 import 'package:analysis_server/src/services/correction/dart/use_rethrow.dart';
 import 'package:analysis_server/src/services/correction/dart/wrap_in_text.dart';
 import 'package:analysis_server/src/services/correction/dart/wrap_in_unawaited.dart';
-import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix_processor.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer/error/error.dart';
@@ -238,6 +236,7 @@ import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:server_plugin/edit/fix/dart_fix_context.dart';
 import 'package:server_plugin/edit/fix/fix.dart';
 
 final _builtInLintMultiProducers = {
@@ -1604,7 +1603,7 @@ class FixInFileProcessor {
 
   Future<List<Fix>> compute() async {
     var error = context.error;
-    var errors = context.resolveResult.errors
+    var errors = context.resolvedResult.errors
         .where((e) => error.errorCode.name == e.errorCode.name);
     if (errors.length < 2) {
       return const <Fix>[];
@@ -1612,12 +1611,12 @@ class FixInFileProcessor {
 
     var instrumentationService = context.instrumentationService;
     var workspace = context.workspace;
-    var resolveResult = context.resolveResult;
+    var resolvedResult = context.resolvedResult;
 
     var correctionContext = CorrectionProducerContext.createResolved(
       dartFixContext: context,
       diagnostic: error,
-      resolvedResult: resolveResult,
+      resolvedResult: resolvedResult,
       selectionOffset: error.offset,
       selectionLength: error.length,
       workspace: workspace,
@@ -1627,12 +1626,12 @@ class FixInFileProcessor {
     }
 
     /// Helper to create a [DartFixContextImpl] for a given error.
-    DartFixContextImpl createFixContext(AnalysisError error) {
-      return DartFixContextImpl(
-        instrumentationService,
-        workspace,
-        resolveResult,
-        error,
+    DartFixContext createFixContext(AnalysisError error) {
+      return DartFixContext(
+        instrumentationService: instrumentationService,
+        workspace: workspace,
+        resolvedResult: resolvedResult,
+        error: error,
       );
     }
 
@@ -1681,7 +1680,7 @@ class FixInFileProcessor {
       applyingBulkFixes: true,
       dartFixContext: fixContext,
       diagnostic: diagnostic,
-      resolvedResult: fixContext.resolveResult,
+      resolvedResult: fixContext.resolvedResult,
       selectionOffset: diagnostic.offset,
       selectionLength: diagnostic.length,
       workspace: fixContext.workspace,

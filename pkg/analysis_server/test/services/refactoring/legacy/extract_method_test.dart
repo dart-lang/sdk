@@ -1049,15 +1049,16 @@ class C {
 process(f(x)) {}
 void f() {
   int k = 2;
-  process((x) => x * k);
+  int a = 3;
+  process((x) => x * k * a);
 }
 ''');
-    _createRefactoringForString('(x) => x * k');
+    _createRefactoringForString('(x) => x * k * a');
     // check
     var status = await refactoring.checkInitialConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
         expectedMessage:
-            'Cannot extract closure as method, it references 1 external variable.');
+            'Cannot extract the closure as a method,' 'it references the external variables \'k\' and \'a\'.');
   }
 
   Future<void> test_closure_bad_referencesParameter() async {
@@ -1072,7 +1073,7 @@ void f(int k) {
     var status = await refactoring.checkInitialConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
         expectedMessage:
-            'Cannot extract closure as method, it references 1 external variable.');
+            'Cannot extract the closure as a method,' 'it references the external variable \'k\'.');
   }
 
   Future<void> test_fromTopLevelVariableInitializerClosure() async {

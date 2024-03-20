@@ -2292,4 +2292,47 @@ typedef A = List<int>;
           contextMessages: [message(testFile, 8, 1)]),
     ]);
   }
+
+  test_variable_variable_augment() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+
+augment int foo = 42;
+''');
+
+    newFile(testFile.path, r'''
+import augment 'a.dart';
+
+int foo = 0;
+''');
+
+    await resolveTestFile();
+    assertNoErrorsInResult();
+
+    await resolveFile2(a);
+    assertNoErrorsInResult();
+  }
+
+  test_variable_variable_inAugmentation() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+
+int foo = 42;
+''');
+
+    newFile(testFile.path, r'''
+import augment 'a.dart';
+
+int foo = 0;
+''');
+
+    await resolveTestFile();
+    assertNoErrorsInResult();
+
+    await resolveFile2(a);
+    assertErrorsInResult([
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 34, 3,
+          contextMessages: [message(testFile, 30, 3)]),
+    ]);
+  }
 }

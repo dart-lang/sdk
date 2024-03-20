@@ -15,6 +15,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart'
 import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:meta/meta.dart';
+import 'package:server_plugin/edit/fix/dart_fix_context.dart';
 import 'package:server_plugin/edit/fix/fix.dart';
 import 'package:test/test.dart';
 
@@ -244,11 +245,11 @@ abstract class FixInFileProcessorTest extends BaseFixProcessorTest {
 
   /// Computes fixes for the given [error] in [testUnit].
   Future<List<Fix>> _computeFixes(AnalysisError error) async {
-    var context = DartFixContextImpl(
-      TestInstrumentationService(),
-      await workspace,
-      testAnalysisResult,
-      error,
+    var context = DartFixContext(
+      instrumentationService: TestInstrumentationService(),
+      workspace: await workspace,
+      resolvedResult: testAnalysisResult,
+      error: error,
     );
 
     var fixes = await FixInFileProcessor(context).compute();
@@ -544,11 +545,11 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
 
   /// Computes fixes for the given [error] in [testUnit].
   Future<List<Fix>> _computeFixes(AnalysisError error) async {
-    var context = DartFixContextImpl(
-      TestInstrumentationService(),
-      await workspace,
-      testAnalysisResult,
-      error,
+    var context = DartFixContext(
+      instrumentationService: TestInstrumentationService(),
+      workspace: await workspace,
+      resolvedResult: testAnalysisResult,
+      error: error,
     );
     return await computeFixes(context);
   }
