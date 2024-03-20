@@ -833,6 +833,10 @@ mixin LspAnalysisServerTestMixin
 
   bool get initialized => _clientCapabilities != null;
 
+  /// The URI for an augmentation for [mainFileUri].
+  Uri get mainFileAugmentationUri => mainFileUri.replace(
+      path: mainFileUri.path.replaceFirst('.dart', '_augmentation.dart'));
+
   /// The URI for the macro-generated contents for [mainFileUri].
   Uri get mainFileMacroUri => mainFileUri.replace(scheme: macroClientUriScheme);
 

@@ -198,6 +198,20 @@ mixin LspRequestHelpersMixin {
         request, _fromJsonList(TextEdit.fromJson));
   }
 
+  Future<Location?> getAugmented(
+    Uri uri,
+    Position pos,
+  ) {
+    final request = makeRequest(
+      CustomMethods.augmented,
+      TextDocumentPositionParams(
+        textDocument: TextDocumentIdentifier(uri: uri),
+        position: pos,
+      ),
+    );
+    return expectSuccessfulResponseTo(request, Location.fromJson);
+  }
+
   Future<List<Either2<Command, CodeAction>>> getCodeActions(
     Uri fileUri, {
     Range? range,
