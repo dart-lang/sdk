@@ -1245,10 +1245,10 @@ class RecordTypePositionalFieldImpl extends RecordTypeFieldImpl
 /// representing the declared type of elements in the element model.
 abstract class TypeImpl implements DartType {
   @override
-  InstantiatedTypeAliasElement? alias;
+  final InstantiatedTypeAliasElement? alias;
 
   /// Initialize a newly created type.
-  TypeImpl({this.alias});
+  const TypeImpl({this.alias});
 
   @override
   DartType get extensionTypeErasure {

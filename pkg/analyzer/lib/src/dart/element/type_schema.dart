@@ -18,9 +18,9 @@ import 'package:analyzer/src/dart/element/type_visitor.dart';
 /// example `List<_>`. This is distinct from `List<dynamic>`. These types will
 /// never appear in the final resolved AST.
 class UnknownInferredType extends TypeImpl {
-  static final UnknownInferredType instance = UnknownInferredType._();
+  static const UnknownInferredType instance = UnknownInferredType._();
 
-  UnknownInferredType._();
+  const UnknownInferredType._();
 
   @override
   Element? get element => null;
