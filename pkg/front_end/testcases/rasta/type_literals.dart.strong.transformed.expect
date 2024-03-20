@@ -282,46 +282,6 @@ library;
 //     use(Func -= 42);
 //         ^^^^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:74:5: Warning: Operand of null-aware operation '??=' has type 'Type' which excludes null.
-//  - 'Type' is from 'dart:core'.
-//     C ??= 42;
-//     ^
-//
-// pkg/front_end/testcases/rasta/type_literals.dart:75:9: Warning: Operand of null-aware operation '??=' has type 'Type' which excludes null.
-//  - 'Type' is from 'dart:core'.
-//     use(C ??= 42);
-//         ^
-//
-// pkg/front_end/testcases/rasta/type_literals.dart:76:5: Warning: Operand of null-aware operation '??=' has type 'Type' which excludes null.
-//  - 'Type' is from 'dart:core'.
-//     dynamic ??= 42;
-//     ^
-//
-// pkg/front_end/testcases/rasta/type_literals.dart:77:9: Warning: Operand of null-aware operation '??=' has type 'Type' which excludes null.
-//  - 'Type' is from 'dart:core'.
-//     use(dynamic ??= 42);
-//         ^
-//
-// pkg/front_end/testcases/rasta/type_literals.dart:78:5: Warning: Operand of null-aware operation '??=' has type 'Type' which excludes null.
-//  - 'Type' is from 'dart:core'.
-//     T ??= 42;
-//     ^
-//
-// pkg/front_end/testcases/rasta/type_literals.dart:79:9: Warning: Operand of null-aware operation '??=' has type 'Type' which excludes null.
-//  - 'Type' is from 'dart:core'.
-//     use(T ??= 42);
-//         ^
-//
-// pkg/front_end/testcases/rasta/type_literals.dart:80:5: Warning: Operand of null-aware operation '??=' has type 'Type' which excludes null.
-//  - 'Type' is from 'dart:core'.
-//     Func ??= 42;
-//     ^
-//
-// pkg/front_end/testcases/rasta/type_literals.dart:81:9: Warning: Operand of null-aware operation '??=' has type 'Type' which excludes null.
-//  - 'Type' is from 'dart:core'.
-//     use(Func ??= 42);
-//         ^
-//
 import self as self;
 import "dart:core" as core;
 

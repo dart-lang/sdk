@@ -71,6 +71,7 @@ patterns/private_names_in_object_patterns: semiFuzzFailureOnForceRebuildBodies #
 records/issue51940: semiFuzzFailureOnForceRebuildBodies # can't split because of sealed class.
 regress/issue_39682: semiFuzzFailureOnForceRebuildBodies # has private method
 dart2wasm/inference_update_2/issue52452: semiFuzzFailureOnForceRebuildBodies # private fields in class.
+records/nullable_access_extension: semiFuzzFailureOnForceRebuildBodies # unnamed extension
 
 # FUZZ FRAMEWORK FAILURES
 class_modifiers/invalid_enum_modifiers: SemiFuzzFailure # the invalid modifiers disappear

@@ -72,7 +72,6 @@ CantUsePrefixWithNullAware/part_wrapped_script: Fail # Importing file in the (no
 CantUseSuperBoundedTypeForInstanceCreation/analyzerCode: Fail
 CantUseSuperBoundedTypeForInstanceCreation/example: Fail
 ClassImplementsDeferredClass/part_wrapped_script: Fail # Uses imports
-ClassInNullAwareReceiver/analyzerCode: Fail
 ColonInPlaceOfIn/example: Fail
 CompilingWithSoundNullSafety/analyzerCode: Fail
 CompilingWithoutSoundNullSafety/analyzerCode: Fail

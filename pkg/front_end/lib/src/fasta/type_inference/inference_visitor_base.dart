@@ -214,11 +214,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     }
   }
 
-  Expression createReachabilityError(
-      int fileOffset, Message errorMessage, Message warningMessage) {
-    if (libraryBuilder.loader.target.context.options.warnOnReachabilityCheck) {
-      helper.addProblem(warningMessage, fileOffset, noLength);
-    }
+  Expression createReachabilityError(int fileOffset, Message errorMessage) {
     Arguments arguments = new Arguments([
       new StringLiteral(errorMessage.problemMessage)..fileOffset = fileOffset
     ])

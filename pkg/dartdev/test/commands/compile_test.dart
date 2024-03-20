@@ -631,33 +631,6 @@ void main() {
         reason: 'File not found: $outFile');
   }, skip: isRunningOnIA32);
 
-  test('Compile exe with warnings', () async {
-    final p = project(mainSrc: '''
-void main() {
-  int i = 0;
-  i?.isEven;
-}
-''');
-    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
-    final outFile = path.canonicalize(path.join(p.dirPath, 'myexe'));
-
-    final result = await p.run(
-      [
-        'compile',
-        'exe',
-        '-o',
-        outFile,
-        inFile,
-      ],
-    );
-
-    expect(result.stdout, contains('Warning: '));
-    expect(result.stderr, isEmpty);
-    expect(result.exitCode, 0);
-    expect(File(outFile).existsSync(), true,
-        reason: 'File not found: $outFile');
-  }, skip: isRunningOnIA32);
-
   test('Compile exe with sound null safety', () async {
     final p = project(mainSrc: '''void main() {}''');
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
@@ -892,32 +865,6 @@ void main() {
         reason: 'File not found: $outFile');
   }, skip: isRunningOnIA32);
 
-  test('Compile wasm with warnings', () async {
-    final p = project(mainSrc: '''
-void main() {
-  int i = 0;
-  i?.isEven;
-}
-''');
-    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
-    final outFile = path.canonicalize(path.join(p.dirPath, 'mywasm.wasm'));
-
-    final result = await p.run(
-      [
-        'compile',
-        'wasm',
-        '-o',
-        outFile,
-        inFile,
-      ],
-    );
-
-    expect(result.stderr, contains('Warning: '));
-    expect(result.exitCode, 0);
-    expect(File(outFile).existsSync(), true,
-        reason: 'File not found: $outFile');
-  }, skip: isRunningOnIA32);
-
   test('Compile JS with sound null safety', () async {
     final p = project(mainSrc: '''void main() {}''');
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
@@ -1086,35 +1033,6 @@ void main() {
     // Only printed when -v/--verbose is used, not --verbosity.
     expect(result.stdout, isNot(contains(usingTargetOSMessage)));
     expect(result.stdout, isNot(contains(soundNullSafetyMessage)));
-    expect(result.stderr, isEmpty);
-    expect(result.exitCode, 0);
-  }, skip: isRunningOnIA32);
-
-  test('Compile AOT snapshot with warnings', () async {
-    final p = project(mainSrc: '''
-void main() {
-  int i = 0;
-  i?.isEven;
-}
-''');
-    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
-    final outFile = path.canonicalize(path.join(p.dirPath, 'myaot'));
-
-    final result = await p.run(
-      [
-        'compile',
-        'aot-snapshot',
-        '--verbosity=warning',
-        '-o',
-        outFile,
-        inFile,
-      ],
-    );
-
-    // Only printed when -v/--verbose is used, not --verbosity.
-    expect(result.stdout, isNot(contains(usingTargetOSMessage)));
-    expect(result.stdout, isNot(contains(soundNullSafetyMessage)));
-    expect(result.stdout, contains('Warning: '));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
   }, skip: isRunningOnIA32);
@@ -1358,31 +1276,6 @@ void main() {
     expect(result.exitCode, 64);
   });
 
-  test('Compile kernel with warnings', () async {
-    final p = project(mainSrc: '''
-void main() {
-    int i = 0;
-    i?.isEven;
-}''');
-    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
-    final outFile = path.canonicalize(path.join(p.dirPath, 'mydill'));
-
-    final result = await p.run(
-      [
-        'compile',
-        'kernel',
-        '--verbosity=warning',
-        '-o',
-        outFile,
-        inFile,
-      ],
-    );
-
-    expect(result.stderr, isNot(contains(soundNullSafetyMessage)));
-    expect(result.stdout, contains('Warning:'));
-    expect(result.exitCode, 0);
-  });
-
   test('Compile JIT snapshot with default (sound null safety)', () async {
     final p = project(mainSrc: '''void main() {}''');
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
@@ -1501,31 +1394,6 @@ void main() {
     expect(result.stderr, isNot(contains(soundNullSafetyMessage)));
     expect(result.stderr, contains('must be assigned before it can be used'));
     expect(result.exitCode, 254);
-  });
-
-  test('Compile JIT snapshot with warnings', () async {
-    final p = project(mainSrc: '''
-void main() {
-    int i = 0;
-    i?.isEven;
-}''');
-    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
-    final outFile = path.canonicalize(path.join(p.dirPath, 'myjit'));
-
-    final result = await p.run(
-      [
-        'compile',
-        'jit-snapshot',
-        '--verbosity=warning',
-        '-o',
-        outFile,
-        inFile,
-      ],
-    );
-
-    expect(result.stderr, isNot(contains(soundNullSafetyMessage)));
-    expect(result.stderr, contains('Warning:'));
-    expect(result.exitCode, 0);
   });
 
   if (Platform.isMacOS) {

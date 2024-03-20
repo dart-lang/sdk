@@ -39,11 +39,6 @@ library;
 //   const AbstractClass.id();
 //         ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/many_errors2.dart:29:12: Warning: Operand of null-aware operation '??=' has type 'B' which excludes null.
-//  - 'B' is from 'pkg/front_end/testcases/general/many_errors2.dart'.
-//   (new C().b ??= new B()).b;
-//            ^
-//
 // pkg/front_end/testcases/general/many_errors2.dart:29:27: Error: The getter 'b' isn't defined for the class 'B'.
 //  - 'B' is from 'pkg/front_end/testcases/general/many_errors2.dart'.
 // Try correcting the name to the name of an existing getter, or defining a getter or field named 'b'.

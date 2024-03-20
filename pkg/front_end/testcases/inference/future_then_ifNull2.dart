@@ -24,7 +24,6 @@ void test(MyFuture<int> f) {
   });
   Future<int> t5 = f. /*@typeArgs=int*/ /*@target=MyFuture.then*/ then(
       /*@returnType=FutureOr<int>*/ (/*@type=int*/ x) =>
-      // error:INVALID_CAST_FUNCTION_EXPR
           x ?? new Future<int>.value(3));
   Future<int> t6 = f. /*@typeArgs=int*/ /*@target=MyFuture.then*/ then(
       /*@returnType=FutureOr<int>*/ (/*@type=int*/ x) {

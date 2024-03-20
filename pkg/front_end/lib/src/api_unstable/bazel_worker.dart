@@ -58,6 +58,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
   bool trackNeededDillLibraries = false,
   bool verbose = false,
   NnbdMode nnbdMode = NnbdMode.Weak,
+  bool requirePrebuiltMacros = false,
   List<String> precompiledMacros = const [],
   SerializationMode macroSerializationMode = SerializationMode.byteData,
 }) {
@@ -84,6 +85,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
       environmentDefines: environmentDefines,
       verbose: verbose,
       nnbdMode: nnbdMode,
+      requirePrebuiltMacros: requirePrebuiltMacros,
       precompiledMacros: precompiledMacros,
       macroSerializationMode: macroSerializationMode);
 }
@@ -100,6 +102,7 @@ InitializedCompilerState initializeCompiler(
   Map<String, String>? environmentDefines, {
   bool verbose = false,
   NnbdMode nnbdMode = NnbdMode.Weak,
+  bool requirePrebuiltMacros = false,
   List<String> precompiledMacros = const [],
   SerializationMode macroSerializationMode = SerializationMode.byteData,
 }) {
@@ -121,6 +124,7 @@ InitializedCompilerState initializeCompiler(
         onError: (e) => throw e)
     ..verbose = verbose
     ..nnbdMode = nnbdMode
+    ..requirePrebuiltMacros = requirePrebuiltMacros
     ..precompiledMacros = precompiledMacros
     ..macroSerializationMode = macroSerializationMode;
 

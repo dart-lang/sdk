@@ -4701,14 +4701,6 @@ ReturnFromVoidFunction:
   analyzerCode: RETURN_OF_INVALID_TYPE
   declaration: "void foo() { return 1; }"
 
-ReturnWithoutExpression:
-  problemMessage: "Must explicitly return a value from a non-void function."
-  severity: WARNING
-  analyzerCode: RETURN_WITHOUT_VALUE
-  script: |
-    // @dart=2.9
-    int foo() { return; }
-
 ReturnWithoutExpressionSync:
   problemMessage: "A value must be explicitly returned from a non-void function."
   configuration: nnbd-strong
@@ -6003,49 +5995,6 @@ JsInteropStaticInteropWithNonStaticSupertype:
   problemMessage: "JS interop class '#name' has an `@staticInterop` annotation, but has supertype '#name2', which does not."
   correctionMessage: "Try marking the supertype as a static interop class using `@staticInterop`."
 
-NonNullableInNullAware:
-  problemMessage: "Operand of null-aware operation '#name' has type '#type' which excludes null."
-  severity: WARNING
-
-ThisInNullAwareReceiver:
-  problemMessage: "The receiver 'this' cannot be null."
-  correctionMessage: "Try replacing '?.' with '.'"
-  severity: WARNING
-  configuration: nnbd-strong
-  script: |
-    class C {
-      var field;
-      method() {
-        this?.field;
-      }
-    }
-
-ClassInNullAwareReceiver:
-  problemMessage: "The class '#name' cannot be null."
-  correctionMessage: "Try replacing '?.' with '.'"
-  severity: WARNING
-  configuration: nnbd-strong
-  script: |
-    class C {
-      static var field;
-    }
-    method() {
-      C?.field;
-    }
-
-ExtensionInNullAwareReceiver:
-  problemMessage: "The extension '#name' cannot be null."
-  correctionMessage: "Try replacing '?.' with '.'"
-  severity: WARNING
-  configuration: nnbd-strong
-  script: |
-    extension E on int {
-      static var field;
-    }
-    method() {
-      E?.field;
-    }
-
 NonNullableNotAssignedError:
   problemMessage: "Non-nullable variable '#name' must be assigned before it can be used."
   configuration: nnbd-strong
@@ -6160,10 +6109,6 @@ NonVoidReturnSetter:
 NeverReachableSwitchDefaultError:
   problemMessage: "`null` encountered as case in a switch expression with a non-nullable enum type."
 
-NeverReachableSwitchDefaultWarning:
-  problemMessage: "The default case is not reachable with sound null safety because the switch expression is non-nullable."
-  severity: WARNING
-
 NeverReachableSwitchExpressionError:
   problemMessage: "`null` encountered as case in a switch expression with a non-nullable type."
 
@@ -6178,10 +6123,6 @@ UnsoundSwitchStatementError:
 
 NeverValueError:
   problemMessage: "`null` encountered as the result from expression with type `Never`."
-
-NeverValueWarning:
-  problemMessage: "The expression can not result in a value with sound null safety because the expression type is `Never`."
-  severity: WARNING
 
 MainNotFunctionDeclaration:
   problemMessage: "The 'main' declaration must be a function declaration."
@@ -6910,23 +6851,6 @@ NonExhaustiveSwitchStatement:
       }
     }
 
-UnreachableSwitchCase:
-  problemMessage: "This case is covered by the previous cases."
-  analyzerCode: UNREACHABLE_SWITCH_CASE
-  severity: WARNING # TODO(johnniwinther): Should this be an error, warning or not emitted at all?
-  script: |
-    enum Enum { a, b }
-    method(Enum e) {
-      switch (e) {
-        case Enum.a:
-          break;
-        case Enum.b:
-          break;
-        case Enum.a:
-          break;
-      }
-    }
-
 PatternTypeMismatchInIrrefutableContext:
   problemMessage: "The matched value of type '#type' isn't assignable to the required type '#type2'."
   correctionMessage: "Try changing the required type of the pattern, or the matched value type."
@@ -6984,27 +6908,6 @@ RestPatternInMapPattern:
   problemMessage: "The '...' pattern can't appear in map patterns."
   script: |
     test(dynamic x) { if (x case {1: 1, ...}) {} }
-
-UnnecessaryNullAssertPattern:
-  problemMessage: The null-assert pattern will have no effect because the matched type isn't nullable.
-  correctionMessage: Try replacing the null-assert pattern with its nested pattern.
-  analyzerCode: UNNECESSARY_NULL_ASSERT_PATTERN
-  severity: WARNING
-  script: |
-    method(List<int> list) {
-      if (list case [var a!]) {}
-    }
-
-UnnecessaryNullCheckPattern:
-  problemMessage: The null-check pattern will have no effect because the matched type isn't nullable.
-  correctionMessage: Try replacing the null-check pattern with its nested pattern.
-  analyzerCode: UNNECESSARY_NULL_CHECK_PATTERN
-  comment: No parameters.
-  severity: WARNING
-  script: |
-    method(List<int> list) {
-      if (list case [var a?]) {}
-    }
 
 NonBoolCondition:
   problemMessage: "Conditions must have a static type of 'bool'."

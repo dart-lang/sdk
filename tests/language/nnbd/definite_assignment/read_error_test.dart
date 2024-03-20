@@ -34,7 +34,8 @@ void testDefinitelyUnassignedReads<T>() {
     use(x);
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
+    //  ^
+    // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
   // Error: not nullable.
@@ -43,7 +44,8 @@ void testDefinitelyUnassignedReads<T>() {
     use(x);
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
+    //  ^
+    // [cfe] Non-nullable variable 'x' must be assigned before it can be used.
   }
 
   // Ok: non-final and nullably typed.
@@ -58,7 +60,8 @@ void testDefinitelyUnassignedReads<T>() {
     use(x);
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
+    //  ^
+    // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
   // Error: final.
@@ -67,7 +70,8 @@ void testDefinitelyUnassignedReads<T>() {
     use(x);
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
+    //  ^
+    // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
   // Error: final and not nullable.
@@ -76,7 +80,8 @@ void testDefinitelyUnassignedReads<T>() {
     use(x);
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
+    //  ^
+    // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
   // Error: late
@@ -85,7 +90,8 @@ void testDefinitelyUnassignedReads<T>() {
     use(x);
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
+    //  ^
+    // [cfe] Late variable 'x' without initializer is definitely unassigned.
   }
 
   // Error: late and not nullable
@@ -94,7 +100,8 @@ void testDefinitelyUnassignedReads<T>() {
     use(x);
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
+    //  ^
+    // [cfe] Late variable 'x' without initializer is definitely unassigned.
   }
 
   // Error: late
@@ -103,7 +110,8 @@ void testDefinitelyUnassignedReads<T>() {
     use(x);
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
+    //  ^
+    // [cfe] Late variable 'x' without initializer is definitely unassigned.
   }
 
   // Error: late and not nullable
@@ -112,7 +120,8 @@ void testDefinitelyUnassignedReads<T>() {
     use(x);
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
+    //  ^
+    // [cfe] Late variable 'x' without initializer is definitely unassigned.
   }
 
   // Error: late and final
@@ -121,7 +130,8 @@ void testDefinitelyUnassignedReads<T>() {
     use(x);
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
+    //  ^
+    // [cfe] Late variable 'x' without initializer is definitely unassigned.
   }
 
   // Error: late and final and not nullable
@@ -130,7 +140,8 @@ void testDefinitelyUnassignedReads<T>() {
     use(x);
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
+    //  ^
+    // [cfe] Late variable 'x' without initializer is definitely unassigned.
   }
 
   // Error: late and final
@@ -139,7 +150,8 @@ void testDefinitelyUnassignedReads<T>() {
     use(x);
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
+    //  ^
+    // [cfe] Late variable 'x' without initializer is definitely unassigned.
   }
 
   // Error: late and final and not nullable
@@ -148,7 +160,8 @@ void testDefinitelyUnassignedReads<T>() {
     use(x);
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
+    //  ^
+    // [cfe] Late variable 'x' without initializer is definitely unassigned.
   }
 }
 
@@ -179,7 +192,8 @@ void testPotentiallyUnassignedReads<T>(bool b, T t) {
     use(x);
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
+    //  ^
+    // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
   // Error: not nullable.
@@ -192,7 +206,8 @@ void testPotentiallyUnassignedReads<T>(bool b, T t) {
     use(x);
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
+    //  ^
+    // [cfe] Non-nullable variable 'x' must be assigned before it can be used.
   }
 
   // Ok: non-final and nullable.
@@ -215,7 +230,8 @@ void testPotentiallyUnassignedReads<T>(bool b, T t) {
     use(x);
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
+    //  ^
+    // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
   // Error: final.
@@ -228,7 +244,8 @@ void testPotentiallyUnassignedReads<T>(bool b, T t) {
     use(x);
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
+    //  ^
+    // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
   // Error: final and not nullable.
@@ -241,7 +258,8 @@ void testPotentiallyUnassignedReads<T>(bool b, T t) {
     use(x);
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
+    //  ^
+    // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
   // Ok: late.
@@ -445,9 +463,10 @@ void testDefinitelyUnassignedReadForms() {
   {
     final dynamic x;
     x;
+//  ^
+// [cfe] Final variable 'x' must be assigned before it can be used.
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
   }
 
   {
@@ -455,63 +474,71 @@ void testDefinitelyUnassignedReadForms() {
     use(x);
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
+    //  ^
+    // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
   {
     final dynamic x;
     x(use);
+//  ^
+// [cfe] Final variable 'x' must be assigned before it can be used.
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
   }
 
   {
     final dynamic x;
     x.foo;
+//  ^
+// [cfe] Final variable 'x' must be assigned before it can be used.
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
   }
 
   {
     final dynamic x;
     x.foo();
+//  ^
+// [cfe] Final variable 'x' must be assigned before it can be used.
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
   }
 
   {
     final dynamic x;
     x.foo = 3;
+//  ^
+// [cfe] Final variable 'x' must be assigned before it can be used.
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
   }
 
   {
     final dynamic x;
     x?.foo;
+//  ^
+// [cfe] Final variable 'x' must be assigned before it can be used.
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
   }
 
   {
     final dynamic x;
     x..foo;
+//  ^
+// [cfe] Final variable 'x' must be assigned before it can be used.
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
   }
 
   {
     final dynamic x;
     x[0];
+//  ^
+// [cfe] Final variable 'x' must be assigned before it can be used.
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
   }
 
   {
@@ -519,31 +546,35 @@ void testDefinitelyUnassignedReadForms() {
     ([3])[x];
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
+    //    ^
+    // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
   {
     final dynamic x;
     (x as int);
+//   ^
+// [cfe] Final variable 'x' must be assigned before it can be used.
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
   }
 
   {
     final dynamic x;
     (x is int);
+//   ^
+// [cfe] Final variable 'x' must be assigned before it can be used.
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
   }
 
   {
     final dynamic x;
     (x == null);
+//   ^
+// [cfe] Final variable 'x' must be assigned before it can be used.
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
   }
 
   {
@@ -551,7 +582,8 @@ void testDefinitelyUnassignedReadForms() {
     (null == x);
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
+    //       ^
+    // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
   {
@@ -559,71 +591,80 @@ void testDefinitelyUnassignedReadForms() {
     (3 == x);
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
+    //    ^
+    // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
   {
     final dynamic x;
     (x == 3);
+//   ^
+// [cfe] Final variable 'x' must be assigned before it can be used.
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
   }
 
   {
     final dynamic x;
     (x == 3);
+//   ^
+// [cfe] Final variable 'x' must be assigned before it can be used.
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
   }
 
   {
     final dynamic x;
     x++;
+//  ^
+// [cfe] Final variable 'x' must be assigned before it can be used.
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
   }
 
   {
     final dynamic x;
     ++x;
+    //^
+    // [cfe] Final variable 'x' must be assigned before it can be used.
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
   }
 
   {
     final dynamic x;
     -x;
+//   ^
+// [cfe] Final variable 'x' must be assigned before it can be used.
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
   }
 
   {
     final dynamic x;
     x += 3;
+//  ^
+// [cfe] Final variable 'x' must be assigned before it can be used.
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
   }
 
   {
     final dynamic x;
     x ??= 3;
+//  ^
+// [cfe] Final variable 'x' must be assigned before it can be used.
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
   }
 
   {
     final dynamic x;
     x ?? 3;
+//  ^
+// [cfe] Final variable 'x' must be assigned before it can be used.
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
   }
 
   {
@@ -631,7 +672,8 @@ void testDefinitelyUnassignedReadForms() {
     3 ?? x;
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
+    //   ^
+    // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 }
 
@@ -650,9 +692,10 @@ void testPotentiallyUnassignedReadForms(bool b) {
       x = 3;
     }
     x;
+//  ^
+// [cfe] Final variable 'x' must be assigned before it can be used.
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
   }
 
   {
@@ -663,7 +706,8 @@ void testPotentiallyUnassignedReadForms(bool b) {
     use(x);
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
+    //  ^
+    // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
   {
@@ -672,9 +716,10 @@ void testPotentiallyUnassignedReadForms(bool b) {
       x = 3;
     }
     x(use);
+//  ^
+// [cfe] Final variable 'x' must be assigned before it can be used.
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
   }
 
   {
@@ -683,9 +728,10 @@ void testPotentiallyUnassignedReadForms(bool b) {
       x = 3;
     }
     x.foo;
+//  ^
+// [cfe] Final variable 'x' must be assigned before it can be used.
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
   }
 
   {
@@ -694,9 +740,10 @@ void testPotentiallyUnassignedReadForms(bool b) {
       x = 3;
     }
     x.foo();
+//  ^
+// [cfe] Final variable 'x' must be assigned before it can be used.
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
   }
 
   {
@@ -705,9 +752,10 @@ void testPotentiallyUnassignedReadForms(bool b) {
       x = 3;
     }
     x.foo = 3;
+//  ^
+// [cfe] Final variable 'x' must be assigned before it can be used.
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
   }
 
   {
@@ -716,9 +764,10 @@ void testPotentiallyUnassignedReadForms(bool b) {
       x = 3;
     }
     x?.foo;
+//  ^
+// [cfe] Final variable 'x' must be assigned before it can be used.
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
   }
 
   {
@@ -727,9 +776,10 @@ void testPotentiallyUnassignedReadForms(bool b) {
       x = 3;
     }
     x..foo;
+//  ^
+// [cfe] Final variable 'x' must be assigned before it can be used.
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
   }
 
   {
@@ -738,9 +788,10 @@ void testPotentiallyUnassignedReadForms(bool b) {
       x = 3;
     }
     x[0];
+//  ^
+// [cfe] Final variable 'x' must be assigned before it can be used.
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
   }
 
   {
@@ -751,7 +802,8 @@ void testPotentiallyUnassignedReadForms(bool b) {
     ([3])[x];
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
+    //    ^
+    // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
   {
@@ -760,9 +812,10 @@ void testPotentiallyUnassignedReadForms(bool b) {
       x = 3;
     }
     (x as int);
+//   ^
+// [cfe] Final variable 'x' must be assigned before it can be used.
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
   }
 
   {
@@ -771,9 +824,10 @@ void testPotentiallyUnassignedReadForms(bool b) {
       x = 3;
     }
     (x is int);
+//   ^
+// [cfe] Final variable 'x' must be assigned before it can be used.
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
   }
 
   {
@@ -782,9 +836,10 @@ void testPotentiallyUnassignedReadForms(bool b) {
       x = 3;
     }
     (x == null);
+//   ^
+// [cfe] Final variable 'x' must be assigned before it can be used.
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
   }
 
   {
@@ -795,7 +850,8 @@ void testPotentiallyUnassignedReadForms(bool b) {
     (null == x);
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
+    //       ^
+    // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
   {
@@ -806,7 +862,8 @@ void testPotentiallyUnassignedReadForms(bool b) {
     (3 == x);
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
+    //    ^
+    // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
   {
@@ -815,9 +872,10 @@ void testPotentiallyUnassignedReadForms(bool b) {
       x = 3;
     }
     (x == 3);
+//   ^
+// [cfe] Final variable 'x' must be assigned before it can be used.
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
   }
 
   {
@@ -826,9 +884,10 @@ void testPotentiallyUnassignedReadForms(bool b) {
       x = 3;
     }
     (x == 3);
+//   ^
+// [cfe] Final variable 'x' must be assigned before it can be used.
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
   }
 
   {
@@ -837,9 +896,11 @@ void testPotentiallyUnassignedReadForms(bool b) {
       x = 3;
     }
     x++;
+//  ^
+// [cfe] Final variable 'x' might already be assigned at this point.
+// [cfe] Final variable 'x' must be assigned before it can be used.
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
   }
 
   {
@@ -848,9 +909,11 @@ void testPotentiallyUnassignedReadForms(bool b) {
       x = 3;
     }
     ++x;
+    //^
+    // [cfe] Final variable 'x' might already be assigned at this point.
+    // [cfe] Final variable 'x' must be assigned before it can be used.
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
   }
 
   {
@@ -859,9 +922,10 @@ void testPotentiallyUnassignedReadForms(bool b) {
       x = 3;
     }
     -x;
+//   ^
+// [cfe] Final variable 'x' must be assigned before it can be used.
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
   }
 
   {
@@ -870,9 +934,11 @@ void testPotentiallyUnassignedReadForms(bool b) {
       x = 3;
     }
     x += 3;
+//  ^
+// [cfe] Final variable 'x' might already be assigned at this point.
+// [cfe] Final variable 'x' must be assigned before it can be used.
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
   }
 
   {
@@ -881,9 +947,11 @@ void testPotentiallyUnassignedReadForms(bool b) {
       x = 3;
     }
     x ??= 3;
+//  ^
+// [cfe] Final variable 'x' might already be assigned at this point.
+// [cfe] Final variable 'x' must be assigned before it can be used.
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
   }
 
   {
@@ -892,9 +960,10 @@ void testPotentiallyUnassignedReadForms(bool b) {
       x = 3;
     }
     x ?? 3;
+//  ^
+// [cfe] Final variable 'x' must be assigned before it can be used.
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
   }
 
   {
@@ -905,7 +974,8 @@ void testPotentiallyUnassignedReadForms(bool b) {
     3 ?? x;
     // ^
     // [analyzer] unspecified
-    // [cfe] unspecified
+    //   ^
+    // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 }
 
@@ -1070,8 +1140,6 @@ void testDefinitelyAssignedReadForms() {
     final dynamic x;
     x = 3;
     3 ?? x;
-//  ^
-// [cfe] Operand of null-aware operation '??' has type 'int' which excludes null.
 //       ^
 // [analyzer] STATIC_WARNING.DEAD_NULL_AWARE_EXPRESSION
   }

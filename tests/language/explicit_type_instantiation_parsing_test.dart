@@ -170,8 +170,8 @@ void main() {
   // Parsed as instantiation, can't access statics on instantiated type literal.
   expect1<Class>(Z<X, X>.instance);
   //                     ^^^^^^^^
-  // [cfe] Cannot access static member on an instantiated generic class.
   // [analyzer] unspecified
+  // [cfe] Cannot access static member on an instantiated generic class.
 
 
   // Not valid <typeList> inside `<..>`, so always parsed as operators.
@@ -205,8 +205,6 @@ void main() {
   expect1((Z<X, X>) - 2);
   expect1((Z<X, X>)[1]);
   expect1((Z<X, X>)![1].asBool);  // ignore: unnecessary_non_null_assertion
-  //       ^
-  // [cfe] Operand of null-aware operation '!' has type 'Type' which excludes null.
 
   // Works if the type argument would end in `>>` or `>>>` too.
   expect3(Z < X, Z < X, X >> X);
@@ -233,64 +231,64 @@ void main() {
   // Cannot parse as operators since grammar doesn't allow chaining.
   X<2>(2);
   // ^
-  // [cfe] A comparison expression can't be an operand of another comparison expression.
   // [analyzer] SYNTACTIC_ERROR.EQUALITY_CANNOT_BE_EQUALITY_OPERAND
+  // [cfe] A comparison expression can't be an operand of another comparison expression.
 
   X<2>;
-  //  ^
-  // [cfe] Expected an identifier, but got ';'.
-  // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
   // ^
-  // [cfe] A comparison expression can't be an operand of another comparison expression.
   // [analyzer] SYNTACTIC_ERROR.EQUALITY_CANNOT_BE_EQUALITY_OPERAND
+  // [cfe] A comparison expression can't be an operand of another comparison expression.
+  //  ^
+  // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
+  // [cfe] Expected an identifier, but got ';'.
 
   X<2>.instance; // Not type argument.
-  //  ^
-  // [cfe] Expected an identifier, but got '.'.
-  // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
   // ^
-  // [cfe] A comparison expression can't be an operand of another comparison expression.
   // [analyzer] SYNTACTIC_ERROR.EQUALITY_CANNOT_BE_EQUALITY_OPERAND
+  // [cfe] A comparison expression can't be an operand of another comparison expression.
+  //  ^
+  // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
+  // [cfe] Expected an identifier, but got '.'.
 
   X<2>.any;
-  //  ^
-  // [cfe] Expected an identifier, but got '.'.
-  // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
   // ^
-  // [cfe] A comparison expression can't be an operand of another comparison expression.
   // [analyzer] SYNTACTIC_ERROR.EQUALITY_CANNOT_BE_EQUALITY_OPERAND
+  // [cfe] A comparison expression can't be an operand of another comparison expression.
+  //  ^
+  // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
+  // [cfe] Expected an identifier, but got '.'.
 
   // This would be invalid even if `X` had an `any` member. See next.
   X<X>.any; // Invalid, Class does not have any static `any` member.
   //   ^^^
-  // [cfe] Member not found: 'any'.
   // [analyzer] unspecified
+  // [cfe] Member not found: 'any'.
 
   X<X>.instance; // Does have static `instance` member, can't access this way.
   //   ^^^^^^^^
-  // [cfe] Cannot access static member on an instantiated generic class.
   // [analyzer] unspecified
+  // [cfe] Cannot access static member on an instantiated generic class.
 
   // Parse error.
 
   X<X>2;
   // ^
-  // [cfe] A comparison expression can't be an operand of another comparison expression.
   // [analyzer] SYNTACTIC_ERROR.EQUALITY_CANNOT_BE_EQUALITY_OPERAND
+  // [cfe] A comparison expression can't be an operand of another comparison expression.
 
   // Doesn't parse as operators, would be valid if type arguments.
 
   // The following `-` forces operators, but those can't parse like this.
   X<X>-1;
   // ^
-  // [cfe] A comparison expression can't be an operand of another comparison expression.
   // [analyzer] SYNTACTIC_ERROR.EQUALITY_CANNOT_BE_EQUALITY_OPERAND
+  // [cfe] A comparison expression can't be an operand of another comparison expression.
 
   // Parsed as operators on function instantiation too (parsing doesn't know.)
   f1<X> - 1;
   //  ^
-  // [cfe] A comparison expression can't be an operand of another comparison expression.
   // [analyzer] SYNTACTIC_ERROR.EQUALITY_CANNOT_BE_EQUALITY_OPERAND
+  // [cfe] A comparison expression can't be an operand of another comparison expression.
 
   // Parsed as a generic invocation. Valid because of the `call` extension
   // method on `Object?`.
