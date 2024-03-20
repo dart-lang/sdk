@@ -31,7 +31,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
 
   TypeProviderImpl get _typeProvider => _resolver.typeProvider;
 
-  void resolve(SimpleIdentifierImpl node, {required DartType? contextType}) {
+  void resolve(SimpleIdentifierImpl node, {required DartType contextType}) {
     if (node.inDeclarationContext()) {
       return;
     }
@@ -119,7 +119,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
   }
 
   PropertyElementResolverResult? _resolve1(SimpleIdentifierImpl node,
-      {required DartType? contextType}) {
+      {required DartType contextType}) {
     _currentAlreadyResolved = false;
 
     //
@@ -228,7 +228,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
 
   void _resolve2(
       SimpleIdentifierImpl node, PropertyElementResolverResult? propertyResult,
-      {required DartType? contextType}) {
+      {required DartType contextType}) {
     if (_currentAlreadyResolved) {
       return;
     }

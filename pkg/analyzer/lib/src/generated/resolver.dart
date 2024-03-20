@@ -1111,7 +1111,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   /// If an [FunctionReference] is inserted, returns it; otherwise, returns
   /// [expression].
   ExpressionImpl insertGenericFunctionInstantiation(Expression expression,
-      {required DartType? contextType}) {
+      {required DartType contextType}) {
     expression as ExpressionImpl;
     if (!isConstructorTearoffsEnabled) {
       // Temporarily, only create [ImplicitCallReference] nodes under the
@@ -1122,14 +1122,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     }
 
     var staticType = expression.staticType;
-    var context = contextType;
-    if (context == null ||
-        staticType is! FunctionType ||
-        staticType.typeFormals.isEmpty) {
+    if (staticType is! FunctionType || staticType.typeFormals.isEmpty) {
       return expression;
     }
 
-    context = typeSystem.flatten(context);
+    var context = typeSystem.flatten(contextType);
     if (context is! FunctionType || context.typeFormals.isNotEmpty) {
       return expression;
     }
@@ -1339,7 +1336,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     if (node is IndexExpression) {
       var target = node.target;
       if (target != null) {
-        analyzeExpression(target, null);
+        analyzeExpression(target, UnknownInferredType.instance);
         popRewrite();
       }
 
@@ -1411,7 +1408,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
       return result;
     } else {
-      analyzeExpression(node, null);
+      analyzeExpression(node, UnknownInferredType.instance);
       popRewrite();
       return PropertyElementResolverResult();
     }
@@ -1734,7 +1731,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }) {
     checkUnreachableNode(node);
 
-    analyzeExpression(node.expression, null);
+    analyzeExpression(node.expression, UnknownInferredType.instance);
     popRewrite();
 
     node.type.accept(this);
@@ -2073,7 +2070,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     final fieldName = node.fieldName;
     var fieldElement = augmented.getField(fieldName.name);
     fieldName.staticElement = fieldElement;
-    var fieldType = fieldElement?.type;
+    var fieldType = fieldElement?.type ?? UnknownInferredType.instance;
     var expression = node.expression;
     analyzeExpression(expression, fieldType);
     expression = popRewrite()!;
@@ -2130,7 +2127,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     node.parameter.accept(this);
     var defaultValue = node.defaultValue;
     if (defaultValue != null) {
-      analyzeExpression(defaultValue, node.declaredElement?.type);
+      analyzeExpression(defaultValue,
+          node.declaredElement?.type ?? UnknownInferredType.instance);
       popRewrite();
     }
     ParameterElement element = node.declaredElement!;
@@ -2261,7 +2259,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     if (arguments != null) {
       var argumentList = arguments.argumentList;
       for (var argument in argumentList.arguments) {
-        analyzeExpression(argument, argument.staticParameterElement?.type);
+        analyzeExpression(
+            argument,
+            argument.staticParameterElement?.type ??
+                UnknownInferredType.instance);
         popRewrite();
       }
       arguments.typeArguments?.accept(this);
@@ -2312,7 +2313,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       checkUnreachableNode(node);
       analyzeExpression(
         node.expression,
-        bodyContext.contextType,
+        bodyContext.contextType ?? UnknownInferredType.instance,
       );
       popRewrite();
 
@@ -2361,7 +2362,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             resolver: this,
             node: node,
             argumentList: node.argumentList,
-            contextType: null,
+            contextType: UnknownInferredType.instance,
             whyNotPromotedList: whyNotPromotedList)
         .resolveInvocation(
             rawType: receiverContextType == null
@@ -2517,7 +2518,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     covariant FunctionExpressionInvocationImpl node, {
     DartType contextType = UnknownInferredType.instance,
   }) {
-    analyzeExpression(node.function, null);
+    analyzeExpression(node.function, UnknownInferredType.instance);
     node.function = popRewrite()!;
 
     var whyNotPromotedList = <Map<DartType, NonPromotionReason> Function()>[];
@@ -2636,7 +2637,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   void visitImplicitCallReference(ImplicitCallReference node) {
     checkUnreachableNode(node);
-    analyzeExpression(node.expression, null);
+    analyzeExpression(node.expression, UnknownInferredType.instance);
     popRewrite();
     node.typeArguments?.accept(this);
   }
@@ -2655,7 +2656,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
     var target = node.target;
     if (target != null) {
-      analyzeExpression(target, null);
+      analyzeExpression(target, UnknownInferredType.instance);
       popRewrite();
     }
     var targetType = node.realTarget.staticType;
@@ -2734,7 +2735,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   void visitIsExpression(covariant IsExpressionImpl node) {
     checkUnreachableNode(node);
 
-    analyzeExpression(node.expression, null);
+    analyzeExpression(node.expression, UnknownInferredType.instance);
     popRewrite();
 
     node.type.accept(this);
@@ -2782,9 +2783,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   void visitMapLiteralEntry(MapLiteralEntry node,
       {CollectionLiteralContext? context}) {
     checkUnreachableNode(node);
-    analyzeExpression(node.key, context?.keyType);
+    analyzeExpression(
+        node.key, context?.keyType ?? UnknownInferredType.instance);
     popRewrite();
-    analyzeExpression(node.value, context?.valueType);
+    analyzeExpression(
+        node.value, context?.valueType ?? UnknownInferredType.instance);
     popRewrite();
   }
 
@@ -3047,7 +3050,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
     var target = node.target;
     if (target != null) {
-      analyzeExpression(target, null);
+      analyzeExpression(target, UnknownInferredType.instance);
       popRewrite();
     }
 
@@ -3156,7 +3159,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             resolver: this,
             node: node,
             argumentList: node.argumentList,
-            contextType: null,
+            contextType: UnknownInferredType.instance,
             whyNotPromotedList: whyNotPromotedList)
         .resolveInvocation(rawType: node.staticElement?.type);
     checkForArgumentTypesNotAssignableInList(
@@ -3188,7 +3191,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     if (expression != null) {
       analyzeExpression(
         expression,
-        bodyContext?.contextType,
+        bodyContext?.contextType ?? UnknownInferredType.instance,
       );
       // Pick up the expression again in case it was rewritten.
       expression = popRewrite();
@@ -3240,7 +3243,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       iterableType = typeSystem.makeNullable(iterableType);
     }
     checkUnreachableNode(node);
-    analyzeExpression(node.expression, iterableType);
+    analyzeExpression(
+        node.expression, iterableType ?? UnknownInferredType.instance);
     popRewrite();
 
     if (!node.isNullAware) {
@@ -3272,7 +3276,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             resolver: this,
             node: node,
             argumentList: node.argumentList,
-            contextType: null,
+            contextType: UnknownInferredType.instance,
             whyNotPromotedList: whyNotPromotedList)
         .resolveInvocation(rawType: node.staticElement?.type);
     checkForArgumentTypesNotAssignableInList(
@@ -3599,7 +3603,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   /// If `expression` should be treated as `expression.call`, inserts an
   /// [ImplicitCallReference] node which wraps [expression].
   void _insertImplicitCallReference(ExpressionImpl expression,
-      {required DartType? contextType}) {
+      {required DartType contextType}) {
     var parent = expression.parent;
     if (_shouldSkipImplicitCallReferenceDueToForm(expression, parent)) {
       return;
@@ -3608,14 +3612,15 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     if (staticType == null) {
       return;
     }
-    DartType? context;
+    DartType context;
     if (parent is AssignmentExpression) {
-      context = parent.writeType;
+      if (parent.writeType == null) return;
+      context = parent.writeType!;
     } else {
       context = contextType;
     }
     var callMethod = getImplicitCallMethod(staticType, context, expression);
-    if (callMethod == null || context == null) {
+    if (callMethod == null) {
       return;
     }
 
@@ -3668,7 +3673,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   void _resolveRewrittenFunctionExpressionInvocation(
       FunctionExpressionInvocation node,
       List<WhyNotPromotedGetter> whyNotPromotedList,
-      {required DartType? contextType}) {
+      {required DartType contextType}) {
     var function = node.function;
 
     if (function is PropertyAccess && function.isNullAware) {

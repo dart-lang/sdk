@@ -40,7 +40,7 @@ class BinaryExpressionResolver {
 
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
-  void resolve(BinaryExpressionImpl node, {required DartType? contextType}) {
+  void resolve(BinaryExpressionImpl node, {required DartType contextType}) {
     var operator = node.operator.type;
 
     if (operator == TokenType.AMPERSAND_AMPERSAND) {
@@ -91,7 +91,7 @@ class BinaryExpressionResolver {
   }
 
   void _resolveEqual(BinaryExpressionImpl node, {required bool notEqual}) {
-    _resolver.analyzeExpression(node.leftOperand, null);
+    _resolver.analyzeExpression(node.leftOperand, UnknownInferredType.instance);
     var left = _resolver.popRewrite()!;
 
     var flowAnalysis = _resolver.flowAnalysis;
@@ -102,7 +102,8 @@ class BinaryExpressionResolver {
       leftInfo = flow?.equalityOperand_end(left, left.typeOrThrow);
     }
 
-    _resolver.analyzeExpression(node.rightOperand, null);
+    _resolver.analyzeExpression(
+        node.rightOperand, UnknownInferredType.instance);
     var right = _resolver.popRewrite()!;
     var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(right);
 
@@ -149,7 +150,7 @@ class BinaryExpressionResolver {
   }
 
   void _resolveIfNull(BinaryExpressionImpl node,
-      {required DartType? contextType}) {
+      {required DartType contextType}) {
     var left = node.leftOperand;
     var right = node.rightOperand;
     var flow = _resolver.flowAnalysis.flow;
@@ -158,19 +159,14 @@ class BinaryExpressionResolver {
     // analyzed as follows:
     //
     // - Let `T1` be the type of `e1` inferred with context type `K?`.
-    var leftContextType = contextType;
-    if (leftContextType != null) {
-      leftContextType = _typeSystem.makeNullable(leftContextType);
-    }
-    _resolver.analyzeExpression(left, leftContextType);
+    _resolver.analyzeExpression(left, _typeSystem.makeNullable(contextType));
     left = _resolver.popRewrite()!;
     var t1 = left.typeOrThrow;
 
     // - Let `T2` be the type of `e2` inferred with context type `J`, where:
     //   - If `K` is `_`, `J = T1`.
     DartType j;
-    if (contextType == null ||
-        contextType is DynamicType ||
+    if (contextType is DynamicType ||
         contextType is InvalidType ||
         contextType is UnknownInferredType) {
       j = t1;
@@ -190,8 +186,7 @@ class BinaryExpressionResolver {
     var t = _typeSystem.leastUpperBound(nonNullT1, t2);
 
     // - Let `S` be the greatest closure of `K`.
-    var s = _typeSystem
-        .greatestClosureOfSchema(contextType ?? UnknownInferredType.instance);
+    var s = _typeSystem.greatestClosureOfSchema(contextType);
 
     DartType staticType;
     // If `inferenceUpdate3` is not enabled, then the type of `E` is `T`.
@@ -280,8 +275,8 @@ class BinaryExpressionResolver {
   }
 
   void _resolveUserDefinable(BinaryExpressionImpl node,
-      {required DartType? contextType}) {
-    _resolver.analyzeExpression(node.leftOperand, null);
+      {required DartType contextType}) {
+    _resolver.analyzeExpression(node.leftOperand, UnknownInferredType.instance);
     var left = _resolver.popRewrite()!;
 
     if (left is SuperExpressionImpl) {
@@ -300,13 +295,15 @@ class BinaryExpressionResolver {
     _resolveUserDefinableElement(node, operator.lexeme);
 
     var invokeType = node.staticInvokeType;
-    DartType? rightContextType;
+    DartType rightContextType;
     if (invokeType != null && invokeType.parameters.isNotEmpty) {
       // If this is a user-defined operator, set the right operand context
       // using the operator method's parameter type.
       var rightParam = invokeType.parameters[0];
       rightContextType = _typeSystem.refineNumericInvocationContext(
           left.staticType, node.staticElement, contextType, rightParam.type);
+    } else {
+      rightContextType = UnknownInferredType.instance;
     }
 
     _resolver.analyzeExpression(node.rightOperand, rightContextType);

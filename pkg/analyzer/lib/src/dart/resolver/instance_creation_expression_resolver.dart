@@ -20,7 +20,7 @@ class InstanceCreationExpressionResolver {
   InstanceCreationExpressionResolver(this._resolver);
 
   void resolve(InstanceCreationExpressionImpl node,
-      {required DartType? contextType}) {
+      {required DartType contextType}) {
     // The parser can parse certain code as [InstanceCreationExpression] when it
     // might be an invocation of a method on a [FunctionReference] or
     // [ConstructorReference]. In such a case, it is this resolver's
@@ -50,7 +50,7 @@ class InstanceCreationExpressionResolver {
   }
 
   void _resolveInstanceCreationExpression(InstanceCreationExpressionImpl node,
-      {required DartType? contextType}) {
+      {required DartType contextType}) {
     var whyNotPromotedList = <WhyNotPromotedGetter>[];
     var constructorName = node.constructorName;
     constructorName.accept(_resolver);
@@ -82,7 +82,7 @@ class InstanceCreationExpressionResolver {
   void _resolveWithTypeNameWithTypeArguments(
       InstanceCreationExpressionImpl node,
       TypeArgumentListImpl typeNameTypeArguments,
-      {required DartType? contextType}) {
+      {required DartType contextType}) {
     // TODO(srawlins): Lookup the name and potentially rewrite `node` as a
     // [MethodInvocation].
     _resolveInstanceCreationExpression(node, contextType: contextType);

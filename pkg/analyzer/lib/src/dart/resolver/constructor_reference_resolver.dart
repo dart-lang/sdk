@@ -17,8 +17,7 @@ class ConstructorReferenceResolver {
 
   ConstructorReferenceResolver(this._resolver);
 
-  void resolve(ConstructorReferenceImpl node,
-      {required DartType? contextType}) {
+  void resolve(ConstructorReferenceImpl node, {required DartType contextType}) {
     if (!_resolver.isConstructorTearoffsEnabled &&
         node.constructorName.type.typeArguments == null) {
       // Only report this if [node] has no explicit type arguments; otherwise
@@ -87,7 +86,7 @@ class ConstructorReferenceResolver {
   }
 
   void _inferArgumentTypes(ConstructorReferenceImpl node,
-      {required DartType? contextType}) {
+      {required DartType contextType}) {
     var constructorName = node.constructorName;
     var elementToInfer = _resolver.inferenceHelper.constructorElementToInfer(
       constructorName: constructorName,

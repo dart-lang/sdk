@@ -41,8 +41,7 @@ class AssignmentExpressionResolver {
 
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
-  void resolve(AssignmentExpressionImpl node,
-      {required DartType? contextType}) {
+  void resolve(AssignmentExpressionImpl node, {required DartType contextType}) {
     var operator = node.operator.type;
     var hasRead = operator != TokenType.EQ;
     var isIfNull = operator == TokenType.QUESTION_QUESTION_EQ;
@@ -81,7 +80,7 @@ class AssignmentExpressionResolver {
     // TODO(scheglov): Use VariableElement and do in resolveForWrite() ?
     _assignmentShared.checkFinalAlreadyAssigned(left);
 
-    DartType? rhsContext;
+    DartType rhsContext;
     {
       var leftType = node.writeType;
       if (writeElement is VariableElement) {
@@ -183,7 +182,7 @@ class AssignmentExpressionResolver {
     return true;
   }
 
-  DartType? _computeRhsContext(AssignmentExpressionImpl node, DartType leftType,
+  DartType _computeRhsContext(AssignmentExpressionImpl node, DartType leftType,
       TokenType operator, Expression right) {
     switch (operator) {
       case TokenType.EQ:
@@ -201,7 +200,7 @@ class AssignmentExpressionResolver {
                 leftType, method, leftType, parameters[0].type);
           }
         }
-        return null;
+        return UnknownInferredType.instance;
     }
   }
 
@@ -259,7 +258,7 @@ class AssignmentExpressionResolver {
 
   void _resolveTypes(AssignmentExpressionImpl node,
       {required Map<DartType, NonPromotionReason> Function()? whyNotPromoted,
-      required DartType? contextType}) {
+      required DartType contextType}) {
     DartType assignedType;
 
     var rightHandSide = node.rightHandSide;
@@ -303,8 +302,7 @@ class AssignmentExpressionResolver {
       var nonNullT1 = _typeSystem.promoteToNonNull(t1);
       var t = _typeSystem.leastUpperBound(nonNullT1, t2);
       //   - Let `S` be the greatest closure of `K`.
-      var s = _typeSystem
-          .greatestClosureOfSchema(contextType ?? UnknownInferredType.instance);
+      var s = _typeSystem.greatestClosureOfSchema(contextType);
       // If `inferenceUpdate3` is not enabled, then the type of `E` is `T`.
       if (!_resolver.definingLibrary.featureSet
           .isEnabled(Feature.inference_update_3)) {

@@ -120,7 +120,8 @@ class TypedLiteralResolver {
         var elementType = typeArguments[0].typeOrThrow;
         literalType = _typeProvider.setType(elementType);
       } else {
-        inferrer = _inferSetTypeDownwards(node, literalResolution.contextType);
+        inferrer = _inferSetTypeDownwards(node,
+            literalResolution.contextType ?? UnknownInferredType.instance);
         if (literalResolution.contextType != null) {
           var typeArguments = inferrer.choosePreliminaryTypes();
           literalType = _typeProvider.setElement.instantiate(
@@ -134,7 +135,8 @@ class TypedLiteralResolver {
         var valueType = typeArguments[1].typeOrThrow;
         literalType = _typeProvider.mapType(keyType, valueType);
       } else {
-        inferrer = _inferMapTypeDownwards(node, literalResolution.contextType);
+        inferrer = _inferMapTypeDownwards(node,
+            literalResolution.contextType ?? UnknownInferredType.instance);
         if (literalResolution.contextType != null) {
           var typeArguments = inferrer.choosePreliminaryTypes();
           literalType = _typeProvider.mapElement.instantiate(
@@ -408,7 +410,7 @@ class TypedLiteralResolver {
   }
 
   GenericInferrer _inferListTypeDownwards(ListLiteral node,
-      {required DartType? contextType}) {
+      {required DartType contextType}) {
     var element = _typeProvider.listElement;
     var typeParameters = element.typeParameters;
 
@@ -469,7 +471,7 @@ class TypedLiteralResolver {
   }
 
   GenericInferrer _inferMapTypeDownwards(
-      SetOrMapLiteral node, DartType? contextType) {
+      SetOrMapLiteral node, DartType contextType) {
     var element = _typeProvider.mapElement;
     return _typeSystem.setupGenericTypeInference(
       typeParameters: element.typeParameters,
@@ -565,7 +567,7 @@ class TypedLiteralResolver {
   }
 
   GenericInferrer _inferSetTypeDownwards(
-      SetOrMapLiteral node, DartType? contextType) {
+      SetOrMapLiteral node, DartType contextType) {
     var element = _typeProvider.setElement;
     return _typeSystem.setupGenericTypeInference(
       typeParameters: element.typeParameters,
@@ -713,7 +715,7 @@ class TypedLiteralResolver {
 
     if (inferrer == null ||
         literalResolution.kind == _LiteralResolutionKind.set) {
-      inferrer = _inferMapTypeDownwards(node, null);
+      inferrer = _inferMapTypeDownwards(node, UnknownInferredType.instance);
     }
     inferrer.constrainArguments(
       parameters: parameters,
@@ -750,7 +752,7 @@ class TypedLiteralResolver {
 
     if (inferrer == null ||
         literalResolution.kind == _LiteralResolutionKind.map) {
-      inferrer = _inferSetTypeDownwards(node, null);
+      inferrer = _inferSetTypeDownwards(node, UnknownInferredType.instance);
     }
     inferrer.constrainArguments(
         parameters: parameters,

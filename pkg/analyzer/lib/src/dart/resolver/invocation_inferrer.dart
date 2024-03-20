@@ -13,6 +13,7 @@ import 'package:analyzer/src/dart/element/generic_inferrer.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
+import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -401,7 +402,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
   final ResolverVisitor resolver;
   final Node node;
   final ArgumentListImpl argumentList;
-  final DartType? contextType;
+  final DartType contextType;
   final List<WhyNotPromotedGetter> whyNotPromotedList;
 
   /// Prepares to perform type inference on an invocation expression of type
@@ -433,7 +434,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
   /// argument of the invocation.  Usually this is just the type of the
   /// corresponding parameter, but it can be different for certain primitive
   /// numeric operations.
-  DartType? _computeContextForArgument(DartType parameterType) => parameterType;
+  DartType _computeContextForArgument(DartType parameterType) => parameterType;
 
   /// If the invocation being processed is a call to `identical`, informs flow
   /// analysis about it, so that it can do appropriate promotions.
@@ -455,13 +456,15 @@ class InvocationInferrer<Node extends AstNodeImpl> {
     var arguments = argumentList.arguments;
     for (var deferredArgument in deferredFunctionLiterals) {
       var parameter = deferredArgument.parameter;
-      DartType? parameterContextType;
+      DartType parameterContextType;
       if (parameter != null) {
         var parameterType = parameter.type;
         if (substitution != null) {
           parameterType = substitution.substituteType(parameterType);
         }
         parameterContextType = _computeContextForArgument(parameterType);
+      } else {
+        parameterContextType = UnknownInferredType.instance;
       }
       var argument = arguments[deferredArgument.index];
       resolver.analyzeExpression(argument, parameterContextType);
@@ -516,13 +519,15 @@ class InvocationInferrer<Node extends AstNodeImpl> {
         // sense.  So we store an innocuous value in the list.
         whyNotPromotedList.add(() => const {});
       } else {
-        DartType? parameterContextType;
+        DartType parameterContextType;
         if (parameter != null) {
           var parameterType = parameter.type;
           if (substitution != null) {
             parameterType = substitution.substituteType(parameterType);
           }
           parameterContextType = _computeContextForArgument(parameterType);
+        } else {
+          parameterContextType = UnknownInferredType.instance;
         }
         resolver.analyzeExpression(argument, parameterContextType);
         argument = resolver.popRewrite()!;
@@ -573,7 +578,7 @@ class MethodInvocationInferrer
   }
 
   @override
-  DartType? _computeContextForArgument(DartType parameterType) {
+  DartType _computeContextForArgument(DartType parameterType) {
     var argumentContextType = super._computeContextForArgument(parameterType);
     var targetType = node.realTarget?.staticType;
     if (targetType != null) {
