@@ -18,7 +18,7 @@ class SuperHandler extends AbstractGoToHandler {
 
   @override
   Element? findRelatedElement(Element element) {
-    return _SuperComputer().computeSuper(element)?.nonSynthetic;
+    return _SuperComputer().computeSuper(element);
   }
 }
 

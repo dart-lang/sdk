@@ -120,6 +120,7 @@ abstract class Commands {
 
 abstract class CustomMethods {
   static const augmented = Method('dart/textDocument/augmented');
+  static const augmentation = Method('dart/textDocument/augmentation');
   static const diagnosticServer = Method('dart/diagnosticServer');
   static const reanalyze = Method('dart/reanalyze');
   static const openUri = Method('dart/openUri');

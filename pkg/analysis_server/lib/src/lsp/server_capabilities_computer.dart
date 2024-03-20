@@ -213,6 +213,7 @@ class ServerCapabilitiesComputer {
           // These fields are objects to allow for future expansion.
           'super': {},
           'augmented': {},
+          'augmentation': {},
         },
       },
     );

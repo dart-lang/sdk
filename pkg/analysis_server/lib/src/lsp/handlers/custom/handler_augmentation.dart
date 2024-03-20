@@ -6,20 +6,16 @@ import 'package:analysis_server/lsp_protocol/protocol.dart' hide Element;
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/abstract_go_to.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
-class AugmentedHandler extends AbstractGoToHandler {
-  AugmentedHandler(super.server);
+class AugmentationHandler extends AbstractGoToHandler {
+  AugmentationHandler(super.server);
 
   @override
-  Method get handlesMessage => CustomMethods.augmented;
+  Method get handlesMessage => CustomMethods.augmentation;
 
   @override
   Element? findRelatedElement(Element element) {
-    return switch (element) {
-      ExecutableElement element => element.augmentationTarget,
-      InstanceElement element => element.augmentationTarget,
-      PropertyInducingElement element => element.augmentationTarget,
-      _ => null,
-    };
+    return element.augmentation;
   }
 }

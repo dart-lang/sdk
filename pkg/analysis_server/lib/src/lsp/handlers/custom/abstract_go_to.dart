@@ -53,7 +53,7 @@ abstract class AbstractGoToHandler
         return success(null);
       }
 
-      var targetElement = findRelatedElement(element);
+      var targetElement = findRelatedElement(element)?.nonSynthetic;
       var sourcePath = targetElement?.declaration?.source?.fullName;
 
       if (targetElement == null || sourcePath == null) {
