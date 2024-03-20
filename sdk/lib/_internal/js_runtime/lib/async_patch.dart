@@ -407,19 +407,21 @@ void _asyncStarHelper(
           controller.isSuspended = true;
           return;
         }
-        bodyFunction(async_status_codes.SUCCESS, null);
+        bodyFunction(
+            controller.isCanceled
+                ? async_status_codes.STREAM_WAS_CANCELED
+                : async_status_codes.SUCCESS,
+            null);
       });
       return;
     } else if (object.state == _IterationMarker.YIELD_STAR) {
       Stream stream = object.value;
       // Errors of [stream] are passed though to the main stream. (see
       // [AsyncStreamController.addStream]).
-      // TODO(sigurdm): The spec is not very clear here. Clarify with Gilad.
       controller.addStream(stream).then((_) {
-        // No check for isPaused here because the spec 17.16.2 only
-        // demands checks *before* each element in [stream] not after the last
-        // one. On the other hand we check for isCanceled, as that check happens
-        // after insertion of each element.
+        // No need to check for pause because to get here the stream either
+        // completed normally or was cancelled. The stream cannot be paused
+        // after either of these states.
         int errorCode = controller.isCanceled
             ? async_status_codes.STREAM_WAS_CANCELED
             : async_status_codes.SUCCESS;
