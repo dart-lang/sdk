@@ -1,12 +1,4 @@
 library;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/patterns/list_pattern_inside_if_case.dart:36:23: Warning: The null-check pattern will have no effect because the matched type isn't nullable.
-// Try replacing the null-check pattern with its nested pattern.
-//   if (x case [1, 2, 3]?) {
-//                       ^
-//
 import self as self;
 import "dart:core" as core;
 

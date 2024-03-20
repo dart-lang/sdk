@@ -273,22 +273,6 @@ library;
 //     use(super.n(87));
 //                ^
 //
-// pkg/front_end/testcases/rasta/super.dart:197:11: Warning: Operand of null-aware operation '??=' has type 'void Function()' which excludes null.
-//     super.m ??= 42;
-//           ^
-//
-// pkg/front_end/testcases/rasta/super.dart:198:15: Warning: Operand of null-aware operation '??=' has type 'void Function()' which excludes null.
-//     use(super.m ??= 42);
-//               ^
-//
-// pkg/front_end/testcases/rasta/super.dart:199:11: Warning: Operand of null-aware operation '??=' has type 'void Function()' which excludes null.
-//     super.n ??= 42;
-//           ^
-//
-// pkg/front_end/testcases/rasta/super.dart:200:15: Warning: Operand of null-aware operation '??=' has type 'void Function()' which excludes null.
-//     use(super.n ??= 42);
-//               ^
-//
 // pkg/front_end/testcases/rasta/super.dart:224:13: Error: The operator '+' isn't defined for the class 'void Function()'.
 // Try correcting the operator to an existing operator, or defining a '+' operator.
 //     super.n += 42;

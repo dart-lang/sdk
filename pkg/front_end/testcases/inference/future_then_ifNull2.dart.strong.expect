@@ -1,23 +1,4 @@
 library test;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/inference/future_then_ifNull2.dart:20:11: Warning: Operand of null-aware operation '??' has type 'int' which excludes null.
-//           x ?? await new Future<int>.value(3));
-//           ^
-//
-// pkg/front_end/testcases/inference/future_then_ifNull2.dart:23:41: Warning: Operand of null-aware operation '??' has type 'int' which excludes null.
-//     return /*info:DOWN_CAST_COMPOSITE*/ await x ?? new Future<int>.value(3);
-//                                         ^
-//
-// pkg/front_end/testcases/inference/future_then_ifNull2.dart:28:11: Warning: Operand of null-aware operation '??' has type 'int' which excludes null.
-//           x ?? new Future<int>.value(3));
-//           ^
-//
-// pkg/front_end/testcases/inference/future_then_ifNull2.dart:31:41: Warning: Operand of null-aware operation '??' has type 'int' which excludes null.
-//     return /*info:DOWN_CAST_COMPOSITE*/ x ?? new Future<int>.value(3);
-//                                         ^
-//
 import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;

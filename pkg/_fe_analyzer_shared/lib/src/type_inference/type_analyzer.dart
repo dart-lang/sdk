@@ -2551,7 +2551,7 @@ abstract class TypeAnalyzerErrors<
 
   /// Called when a null-assert or null-check pattern is used with the matched
   /// type that is strictly non-nullable, so the null check is not necessary.
-  Error matchedTypeIsStrictlyNonNullable({
+  Error? matchedTypeIsStrictlyNonNullable({
     required Pattern pattern,
     required Type matchedType,
   });

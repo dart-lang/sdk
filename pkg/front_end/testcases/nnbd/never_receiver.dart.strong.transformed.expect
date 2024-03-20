@@ -2,26 +2,6 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/nnbd/never_receiver.dart:24:3: Warning: Operand of null-aware operation '?.' has type 'Never' which excludes null.
-//   x?.foo(); // Warning.
-//   ^
-//
-// pkg/front_end/testcases/nnbd/never_receiver.dart:25:3: Warning: Operand of null-aware operation '?.' has type 'Never' which excludes null.
-//   x?.bar; // Warning.
-//   ^
-//
-// pkg/front_end/testcases/nnbd/never_receiver.dart:26:3: Warning: Operand of null-aware operation '?.' has type 'Never' which excludes null.
-//   x?.baz = 42; // Warning.
-//   ^
-//
-// pkg/front_end/testcases/nnbd/never_receiver.dart:27:3: Warning: Operand of null-aware operation '?.' has type 'Never' which excludes null.
-//   x?[42]; // Warning.
-//   ^
-//
-// pkg/front_end/testcases/nnbd/never_receiver.dart:28:3: Warning: Operand of null-aware operation '?.' has type 'Never' which excludes null.
-//   x?[42] = 42; // Warning.
-//   ^
-//
 // pkg/front_end/testcases/nnbd/never_receiver.dart:30:5: Error: The method 'foo' isn't defined for the class 'Never?'.
 // Try correcting the name to the name of an existing method, or defining a method named 'foo'.
 //   y.foo(); // Error.

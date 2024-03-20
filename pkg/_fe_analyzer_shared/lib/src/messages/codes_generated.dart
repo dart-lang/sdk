@@ -1393,36 +1393,6 @@ const MessageCode messageClassInClass = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> templateClassInNullAwareReceiver =
-    const Template<Message Function(String name)>(
-  "ClassInNullAwareReceiver",
-  problemMessageTemplate: r"""The class '#name' cannot be null.""",
-  correctionMessageTemplate: r"""Try replacing '?.' with '.'""",
-  withArguments: _withArgumentsClassInNullAwareReceiver,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)> codeClassInNullAwareReceiver =
-    const Code<Message Function(String name)>(
-  "ClassInNullAwareReceiver",
-  severity: Severity.warning,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsClassInNullAwareReceiver(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  return new Message(
-    codeClassInNullAwareReceiver,
-    problemMessage: """The class '${name}' cannot be null.""",
-    correctionMessage: """Try replacing '?.' with '.'""",
-    arguments: {
-      'name': name,
-    },
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeColonInPlaceOfIn = messageColonInPlaceOfIn;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5226,37 +5196,6 @@ const MessageCode messageExtensionDeclaresInstanceField = const MessageCode(
   correctionMessage:
       r"""Try removing the field declaration or making it a static field""",
 );
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-    templateExtensionInNullAwareReceiver =
-    const Template<Message Function(String name)>(
-  "ExtensionInNullAwareReceiver",
-  problemMessageTemplate: r"""The extension '#name' cannot be null.""",
-  correctionMessageTemplate: r"""Try replacing '?.' with '.'""",
-  withArguments: _withArgumentsExtensionInNullAwareReceiver,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)> codeExtensionInNullAwareReceiver =
-    const Code<Message Function(String name)>(
-  "ExtensionInNullAwareReceiver",
-  severity: Severity.warning,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsExtensionInNullAwareReceiver(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  return new Message(
-    codeExtensionInNullAwareReceiver,
-    problemMessage: """The extension '${name}' cannot be null.""",
-    correctionMessage: """Try replacing '?.' with '.'""",
-    arguments: {
-      'name': name,
-    },
-  );
-}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
@@ -12704,18 +12643,6 @@ const MessageCode messageNeverReachableSwitchDefaultError = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeNeverReachableSwitchDefaultWarning =
-    messageNeverReachableSwitchDefaultWarning;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageNeverReachableSwitchDefaultWarning = const MessageCode(
-  "NeverReachableSwitchDefaultWarning",
-  severity: Severity.warning,
-  problemMessage:
-      r"""The default case is not reachable with sound null safety because the switch expression is non-nullable.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeNeverReachableSwitchExpressionError =
     messageNeverReachableSwitchExpressionError;
 
@@ -12746,17 +12673,6 @@ const MessageCode messageNeverValueError = const MessageCode(
   "NeverValueError",
   problemMessage:
       r"""`null` encountered as the result from expression with type `Never`.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeNeverValueWarning = messageNeverValueWarning;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageNeverValueWarning = const MessageCode(
-  "NeverValueWarning",
-  severity: Severity.warning,
-  problemMessage:
-      r"""The expression can not result in a value with sound null safety because the expression type is `Never`.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -15328,18 +15244,6 @@ const MessageCode messageReturnTypeFunctionExpression = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeReturnWithoutExpression = messageReturnWithoutExpression;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageReturnWithoutExpression = const MessageCode(
-  "ReturnWithoutExpression",
-  analyzerCodes: <String>["RETURN_WITHOUT_VALUE"],
-  severity: Severity.warning,
-  problemMessage:
-      r"""Must explicitly return a value from a non-void function.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeReturnWithoutExpressionAsync =
     messageReturnWithoutExpressionAsync;
 
@@ -16413,17 +16317,6 @@ const MessageCode messageThisAsIdentifier = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeThisInNullAwareReceiver = messageThisInNullAwareReceiver;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageThisInNullAwareReceiver = const MessageCode(
-  "ThisInNullAwareReceiver",
-  severity: Severity.warning,
-  problemMessage: r"""The receiver 'this' cannot be null.""",
-  correctionMessage: r"""Try replacing '?.' with '.'""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String string)> templateThisNotPromoted =
     const Template<Message Function(String string)>(
   "ThisNotPromoted",
@@ -17403,47 +17296,6 @@ const MessageCode messageUnnamedObjectPatternField = const MessageCode(
   problemMessage: r"""A pattern field in an object pattern must be named.""",
   correctionMessage:
       r"""Try adding a pattern name or ':' before the pattern.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeUnnecessaryNullAssertPattern =
-    messageUnnecessaryNullAssertPattern;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageUnnecessaryNullAssertPattern = const MessageCode(
-  "UnnecessaryNullAssertPattern",
-  analyzerCodes: <String>["UNNECESSARY_NULL_ASSERT_PATTERN"],
-  severity: Severity.warning,
-  problemMessage:
-      r"""The null-assert pattern will have no effect because the matched type isn't nullable.""",
-  correctionMessage:
-      r"""Try replacing the null-assert pattern with its nested pattern.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeUnnecessaryNullCheckPattern =
-    messageUnnecessaryNullCheckPattern;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageUnnecessaryNullCheckPattern = const MessageCode(
-  "UnnecessaryNullCheckPattern",
-  analyzerCodes: <String>["UNNECESSARY_NULL_CHECK_PATTERN"],
-  severity: Severity.warning,
-  problemMessage:
-      r"""The null-check pattern will have no effect because the matched type isn't nullable.""",
-  correctionMessage:
-      r"""Try replacing the null-check pattern with its nested pattern.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeUnreachableSwitchCase = messageUnreachableSwitchCase;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageUnreachableSwitchCase = const MessageCode(
-  "UnreachableSwitchCase",
-  analyzerCodes: <String>["UNREACHABLE_SWITCH_CASE"],
-  severity: Severity.warning,
-  problemMessage: r"""This case is covered by the previous cases.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

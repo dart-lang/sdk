@@ -1,15 +1,4 @@
 library;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/nnbd/shorting_null_check.dart:12:24: Warning: Operand of null-aware operation '!' has type 'int' which excludes null.
-// int? test1(A? a) => a?.zero!;
-//                        ^
-//
-// pkg/front_end/testcases/nnbd/shorting_null_check.dart:14:25: Warning: Operand of null-aware operation '!' has type 'int' which excludes null.
-// bool? test3(A? a) => a?.zero!.isEven;
-//                         ^
-//
 import self as self;
 import "dart:core" as core;
 

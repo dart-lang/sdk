@@ -3057,8 +3057,12 @@ e() {
       Future runTest({bool hideWarnings = true}) async {
         File file = new File('${tempDir.path}/foo.dart')..createSync();
         file.writeAsStringSync("""
+import 'dart:js_interop';
 main() {}
-method(int i) => i?.isEven;
+@JSExport('Foo')
+class Class {
+  void method() {}
+}
 """);
         File packageConfig =
             new File('${tempDir.path}/.dart_tool/package_config.json')
@@ -3090,11 +3094,12 @@ method(int i) => i?.isEven;
           file.path,
         ];
         StringBuffer output = new StringBuffer();
-        expect(await starter(args, output: output), 0);
+        int exitCode = await starter(args, output: output);
         String result = output.toString();
+        expect(exitCode, 0);
         Matcher matcher =
-            contains("Warning: Operand of null-aware operation '?.' "
-                "has type 'int' which excludes null.");
+            contains("Warning: The value in the `@JSExport` annotation on the "
+                "class or mixin 'Class' will be ignored.");
         if (hideWarnings) {
           matcher = isNot(matcher);
         }

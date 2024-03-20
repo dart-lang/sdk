@@ -51,14 +51,6 @@ library;
 // const bool.fromEnvironment("bar", defaultValue: null);
 //                                                 ^
 //
-// pkg/front_end/testcases/general/constants/various2.dart:12:34: Warning: Operand of null-aware operation '??' has type 'bool' which excludes null.
-// const bool nullAwareOnNullTrue = barFromEnvOrNull ?? true;
-//                                  ^
-//
-// pkg/front_end/testcases/general/constants/various2.dart:13:35: Warning: Operand of null-aware operation '??' has type 'bool' which excludes null.
-// const bool nullAwareOnNullFalse = barFromEnvOrNull ?? false;
-//                                   ^
-//
 // pkg/front_end/testcases/general/constants/various2.dart:25:51: Error: The value 'null' can't be assigned to the parameter type 'String' because 'String' is not nullable.
 // const String.fromEnvironment("bar", defaultValue: null);
 //                                                   ^

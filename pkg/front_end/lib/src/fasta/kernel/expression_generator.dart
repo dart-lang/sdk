@@ -629,16 +629,6 @@ class ThisPropertyAccessGenerator extends Generator {
   @override
   String get _plainNameForRead => name.text;
 
-  void _reportNonNullableInNullAwareWarningIfNeeded() {
-    if (isNullAware && _helper.libraryBuilder.isNonNullableByDefault) {
-      _helper.libraryBuilder.addProblem(
-          messageThisInNullAwareReceiver,
-          thisOffset ?? fileOffset,
-          thisOffset != null ? 4 : noLength,
-          _helper.uri);
-    }
-  }
-
   Expression get _thisExpression => thisVariable != null
       ? _forest.createVariableGet(fileOffset, thisVariable!)
       : _forest.createThisExpression(fileOffset);
@@ -649,13 +639,11 @@ class ThisPropertyAccessGenerator extends Generator {
   }
 
   Expression _createRead() {
-    _reportNonNullableInNullAwareWarningIfNeeded();
     return _forest.createPropertyGet(fileOffset, _thisExpression, name);
   }
 
   @override
   Expression buildAssignment(Expression value, {bool voidContext = false}) {
-    _reportNonNullableInNullAwareWarningIfNeeded();
     return _createWrite(fileOffset, value, forEffect: voidContext);
   }
 
@@ -681,7 +669,6 @@ class ThisPropertyAccessGenerator extends Generator {
       bool voidContext = false,
       bool isPreIncDec = false,
       bool isPostIncDec = false}) {
-    _reportNonNullableInNullAwareWarningIfNeeded();
     Expression binary = _helper.forest
         .createBinary(offset, _createRead(), binaryOperator, value);
     return _createWrite(fileOffset, binary, forEffect: voidContext);
@@ -695,7 +682,6 @@ class ThisPropertyAccessGenerator extends Generator {
       return buildCompoundAssignment(binaryOperator, value,
           offset: offset, voidContext: voidContext, isPostIncDec: true);
     }
-    _reportNonNullableInNullAwareWarningIfNeeded();
     VariableDeclarationImpl read =
         _helper.createVariableDeclarationForValue(_createRead());
     Expression binary = _helper.forest.createBinary(offset,
@@ -1137,26 +1123,14 @@ class ThisIndexedAccessGenerator extends Generator {
   @override
   String get _debugName => "ThisIndexedAccessGenerator";
 
-  void _reportNonNullableInNullAwareWarningIfNeeded() {
-    if (isNullAware && _helper.libraryBuilder.isNonNullableByDefault) {
-      _helper.libraryBuilder.addProblem(
-          messageThisInNullAwareReceiver,
-          thisOffset ?? fileOffset,
-          thisOffset != null ? 4 : noLength,
-          _helper.uri);
-    }
-  }
-
   @override
   Expression buildSimpleRead() {
-    _reportNonNullableInNullAwareWarningIfNeeded();
     Expression receiver = _helper.forest.createThisExpression(fileOffset);
     return _forest.createIndexGet(fileOffset, receiver, index);
   }
 
   @override
   Expression buildAssignment(Expression value, {bool voidContext = false}) {
-    _reportNonNullableInNullAwareWarningIfNeeded();
     Expression receiver = _helper.forest.createThisExpression(fileOffset);
     return _forest.createIndexSet(fileOffset, receiver, index, value,
         forEffect: voidContext);
@@ -1165,7 +1139,6 @@ class ThisIndexedAccessGenerator extends Generator {
   @override
   Expression buildIfNullAssignment(Expression value, DartType type, int offset,
       {bool voidContext = false}) {
-    _reportNonNullableInNullAwareWarningIfNeeded();
     Expression receiver = _helper.forest.createThisExpression(fileOffset);
     return new IfNullIndexSet(receiver, index, value,
         readOffset: fileOffset,
@@ -1181,7 +1154,6 @@ class ThisIndexedAccessGenerator extends Generator {
       bool voidContext = false,
       bool isPreIncDec = false,
       bool isPostIncDec = false}) {
-    _reportNonNullableInNullAwareWarningIfNeeded();
     Expression receiver = _helper.forest.createThisExpression(fileOffset);
     return new CompoundIndexSet(receiver, index, binaryOperator, value,
         readOffset: fileOffset,
@@ -1444,28 +1416,6 @@ class StaticAccessGenerator extends Generator {
         isNullAware: isNullAware);
   }
 
-  void _reportNonNullableInNullAwareWarningIfNeeded() {
-    if (isNullAware && _helper.libraryBuilder.isNonNullableByDefault) {
-      DeclarationBuilder declarationBuilder =
-          parentBuilder as DeclarationBuilder;
-      if (declarationBuilder.isExtension) {
-        String extensionName = declarationBuilder.name;
-        _helper.libraryBuilder.addProblem(
-            templateExtensionInNullAwareReceiver.withArguments(extensionName),
-            typeOffset ?? fileOffset,
-            typeOffset != null ? extensionName.length : noLength,
-            _helper.uri);
-      } else {
-        String className = declarationBuilder.name;
-        _helper.libraryBuilder.addProblem(
-            templateClassInNullAwareReceiver.withArguments(className),
-            typeOffset ?? fileOffset,
-            typeOffset != null ? className.length : noLength,
-            _helper.uri);
-      }
-    }
-  }
-
   @override
   String get _debugName => "StaticAccessGenerator";
 
@@ -1483,7 +1433,6 @@ class StaticAccessGenerator extends Generator {
     if (readTarget == null) {
       read = _makeInvalidRead(UnresolvedKind.Getter);
     } else {
-      _reportNonNullableInNullAwareWarningIfNeeded();
       if (readTarget is Procedure && readTarget.kind == ProcedureKind.Method) {
         read = _helper.forest.createStaticTearOff(fileOffset, readTarget);
       } else {
@@ -1495,7 +1444,6 @@ class StaticAccessGenerator extends Generator {
 
   @override
   Expression buildAssignment(Expression value, {bool voidContext = false}) {
-    _reportNonNullableInNullAwareWarningIfNeeded();
     return _createWrite(fileOffset, value);
   }
 
@@ -1504,7 +1452,6 @@ class StaticAccessGenerator extends Generator {
     if (writeTarget == null) {
       write = _makeInvalidWrite(value);
     } else {
-      _reportNonNullableInNullAwareWarningIfNeeded();
       write = new StaticSet(writeTarget!, value)..fileOffset = offset;
     }
     return write;
@@ -4475,13 +4422,6 @@ class ThisAccessGenerator extends Generator {
     ];
   }
 
-  void _reportNonNullableInNullAwareWarningIfNeeded() {
-    if (_helper.libraryBuilder.isNonNullableByDefault) {
-      _helper.libraryBuilder.addProblem(
-          messageThisInNullAwareReceiver, fileOffset, 4, _helper.uri);
-    }
-  }
-
   @override
   Expression_Generator_Initializer buildSelectorAccess(
       Selector selector, int operatorOffset, bool isNullAware) {
@@ -4502,9 +4442,6 @@ class ThisAccessGenerator extends Generator {
     if (selector is InvocationSelector) {
       // Notice that 'this' or 'super' can't be null. So we can ignore the
       // value of [isNullAware].
-      if (isNullAware) {
-        _reportNonNullableInNullAwareWarningIfNeeded();
-      }
       if (isSuper) {
         return _helper.buildSuperInvocation(
             name, selector.arguments, offsetForToken(selector.token));

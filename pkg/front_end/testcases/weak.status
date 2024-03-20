@@ -55,6 +55,7 @@ patterns/extension_tear_off: semiFuzzFailureOnForceRebuildBodies # private exten
 patterns/pattern_matching: semiFuzzFailureOnForceRebuildBodies # can't split because of sealed class.
 inference_update_2/call_invocation_with_hoisting: semiFuzzFailureOnForceRebuildBodies # privacy
 inference_update_2/cascaded_field_promotion: semiFuzzFailureOnForceRebuildBodies # privacy
+records/nullable_access_extension: semiFuzzFailureOnForceRebuildBodies # unnamed extension
 
 # FUZZ FRAMEWORK FAILURES
 class_modifiers/invalid_enum_modifiers: SemiFuzzFailure # the invalid modifiers disappear

@@ -179,7 +179,6 @@ void nullAssertPattern(E? e) {
       E.e1! => 0,
       //  ^
       // [analyzer] STATIC_WARNING.UNNECESSARY_NULL_ASSERT_PATTERN
-      // [cfe] The null-assert pattern will have no effect because the matched type isn't nullable.
       E.e2 => 1
   });
 }
