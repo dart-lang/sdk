@@ -104,19 +104,13 @@ DEFINE_NATIVE_ENTRY(StringBase_substringUnchecked, 0, 3) {
 static uint16_t CharacterLimit(const String& string,
                                intptr_t start,
                                intptr_t end) {
-  ASSERT(string.IsTwoByteString() || string.IsExternalTwoByteString());
+  ASSERT(string.IsTwoByteString());
   // Maybe do loop unrolling, and handle two uint16_t in a single uint32_t
   // operation.
   NoSafepointScope no_safepoint;
   uint16_t result = 0;
-  if (string.IsTwoByteString()) {
-    for (intptr_t i = start; i < end; i++) {
-      result |= TwoByteString::CharAt(string, i);
-    }
-  } else {
-    for (intptr_t i = start; i < end; i++) {
-      result |= ExternalTwoByteString::CharAt(string, i);
-    }
+  for (intptr_t i = start; i < end; i++) {
+    result |= TwoByteString::CharAt(string, i);
   }
   return result;
 }
@@ -180,7 +174,7 @@ DEFINE_NATIVE_ENTRY(StringBase_joinReplaceAllResult, 0, 4) {
   if (is_onebyte) {
     // If any of the base string slices are not one-byte, the result will be
     // a two-byte string.
-    if (!base.IsOneByteString() && !base.IsExternalOneByteString()) {
+    if (!base.IsOneByteString()) {
       is_onebyte = CheckSlicesOneByte(base, matches, len);
     }
   }

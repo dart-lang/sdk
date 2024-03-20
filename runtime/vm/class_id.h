@@ -132,9 +132,7 @@ static constexpr intptr_t kClassIdTagMax = (1 << 20) - 1;
 #define CLASS_LIST_STRINGS(V)                                                  \
   V(String)                                                                    \
   V(OneByteString)                                                             \
-  V(TwoByteString)                                                             \
-  V(ExternalOneByteString)                                                     \
-  V(ExternalTwoByteString)
+  V(TwoByteString)
 
 #define CLASS_LIST_TYPED_DATA(V)                                               \
   V(Int8Array)                                                                 \
@@ -274,7 +272,6 @@ bool IsNumberClassId(intptr_t index);
 bool IsIntegerClassId(intptr_t index);
 bool IsStringClassId(intptr_t index);
 bool IsOneByteStringClassId(intptr_t index);
-bool IsExternalStringClassId(intptr_t index);
 bool IsBuiltinListClassId(intptr_t index);
 bool IsTypeClassId(intptr_t index);
 bool IsTypedDataBaseClassId(intptr_t index);
@@ -348,21 +345,14 @@ inline bool IsIntegerClassId(intptr_t index) {
 
 // Make sure this check is updated when new StringCid types are added.
 COMPILE_ASSERT(kOneByteStringCid == kStringCid + 1 &&
-               kTwoByteStringCid == kStringCid + 2 &&
-               kExternalOneByteStringCid == kStringCid + 3 &&
-               kExternalTwoByteStringCid == kStringCid + 4);
+               kTwoByteStringCid == kStringCid + 2);
 
 inline bool IsStringClassId(intptr_t index) {
-  return (index >= kStringCid && index <= kExternalTwoByteStringCid);
+  return (index >= kStringCid && index <= kTwoByteStringCid);
 }
 
 inline bool IsOneByteStringClassId(intptr_t index) {
-  return (index == kOneByteStringCid || index == kExternalOneByteStringCid);
-}
-
-inline bool IsExternalStringClassId(intptr_t index) {
-  return (index == kExternalOneByteStringCid ||
-          index == kExternalTwoByteStringCid);
+  return (index == kOneByteStringCid);
 }
 
 inline bool IsArrayClassId(intptr_t index) {

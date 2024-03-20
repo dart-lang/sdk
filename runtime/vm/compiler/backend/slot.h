@@ -212,11 +212,7 @@ NONNULLABLE_BOXED_NATIVE_SLOTS_LIST(FOR_EACH_NATIVE_SLOT)
   AOT_ONLY_UNBOXED_NATIVE_ADDRESS_SLOTS_LIST(V)                                \
   V(Function, UntaggedFunction, entry_point, false, FINAL)                     \
   V(FinalizerBase, UntaggedFinalizerBase, isolate, false, VAR)                 \
-  V(PointerBase, UntaggedPointerBase, data, true, VAR)                         \
-  V(ExternalOneByteString, UntaggedExternalOneByteString, external_data,       \
-    false, FINAL)                                                              \
-  V(ExternalTwoByteString, UntaggedExternalTwoByteString, external_data,       \
-    false, FINAL)
+  V(PointerBase, UntaggedPointerBase, data, true, VAR)
 
 // For uses that do not need to know whether a given slot may contain an
 // inner pointer to a GC-able object or not. (Generally, such users only need

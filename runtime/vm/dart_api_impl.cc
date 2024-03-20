@@ -567,22 +567,10 @@ bool Api::StringGetPeerHelper(NativeArguments* arguments,
     return false;
   }
   intptr_t cid = raw_obj->GetClassId();
-  if (cid == kExternalOneByteStringCid) {
-    ExternalOneByteStringPtr raw_string =
-        static_cast<ExternalOneByteStringPtr>(raw_obj);
-    *peer = raw_string->untag()->peer_;
-    return true;
-  }
   if (cid == kOneByteStringCid || cid == kTwoByteStringCid) {
     auto isolate_group = arguments->thread()->isolate_group();
     *peer = isolate_group->heap()->GetPeer(raw_obj);
     return (*peer != nullptr);
-  }
-  if (cid == kExternalTwoByteStringCid) {
-    ExternalTwoByteStringPtr raw_string =
-        static_cast<ExternalTwoByteStringPtr>(raw_obj);
-    *peer = raw_string->untag()->peer_;
-    return true;
   }
   return false;
 }
@@ -2370,13 +2358,6 @@ DART_EXPORT bool Dart_IsStringLatin1(Dart_Handle object) {
   return IsOneByteStringClassId(Api::ClassId(object));
 }
 
-DART_EXPORT bool Dart_IsExternalString(Dart_Handle object) {
-  Thread* thread = Thread::Current();
-  CHECK_ISOLATE(thread->isolate());
-  TransitionNativeToVM transition(thread);
-  return IsExternalStringClassId(Api::ClassId(object));
-}
-
 DART_EXPORT bool Dart_IsList(Dart_Handle object) {
   DARTSCOPE(Thread::Current());
   if (IsBuiltinListClassId(Api::ClassId(object))) {
@@ -2909,50 +2890,6 @@ DART_EXPORT Dart_Handle Dart_NewStringFromUTF32(const int32_t* utf32_array,
   return Api::NewHandle(T, String::FromUTF32(utf32_array, length));
 }
 
-DART_EXPORT Dart_Handle
-Dart_NewExternalLatin1String(const uint8_t* latin1_array,
-                             intptr_t length,
-                             void* peer,
-                             intptr_t external_allocation_size,
-                             Dart_HandleFinalizer callback) {
-  DARTSCOPE(Thread::Current());
-  API_TIMELINE_DURATION(T);
-  if (latin1_array == nullptr && length != 0) {
-    RETURN_NULL_ERROR(latin1_array);
-  }
-  if (callback == nullptr) {
-    RETURN_NULL_ERROR(callback);
-  }
-  CHECK_LENGTH(length, String::kMaxElements);
-  CHECK_CALLBACK_STATE(T);
-  return Api::NewHandle(
-      T,
-      String::NewExternal(latin1_array, length, peer, external_allocation_size,
-                          callback, T->heap()->SpaceForExternal(length)));
-}
-
-DART_EXPORT Dart_Handle
-Dart_NewExternalUTF16String(const uint16_t* utf16_array,
-                            intptr_t length,
-                            void* peer,
-                            intptr_t external_allocation_size,
-                            Dart_HandleFinalizer callback) {
-  DARTSCOPE(Thread::Current());
-  if (utf16_array == nullptr && length != 0) {
-    RETURN_NULL_ERROR(utf16_array);
-  }
-  if (callback == nullptr) {
-    RETURN_NULL_ERROR(callback);
-  }
-  CHECK_LENGTH(length, String::kMaxElements);
-  CHECK_CALLBACK_STATE(T);
-  intptr_t bytes = length * sizeof(*utf16_array);
-  return Api::NewHandle(
-      T,
-      String::NewExternal(utf16_array, length, peer, external_allocation_size,
-                          callback, T->heap()->SpaceForExternal(bytes)));
-}
-
 DART_EXPORT Dart_Handle Dart_StringToCString(Dart_Handle object,
                                              const char** cstr) {
   DARTSCOPE(Thread::Current());
@@ -3098,13 +3035,8 @@ DART_EXPORT Dart_Handle Dart_StringGetProperties(Dart_Handle object,
     ReusableObjectHandleScope reused_obj_handle(thread);
     const String& str = Api::UnwrapStringHandle(reused_obj_handle, object);
     if (!str.IsNull()) {
-      if (str.IsExternal()) {
-        *peer = str.GetPeer();
-        ASSERT(*peer != nullptr);
-      } else {
-        NoSafepointScope no_safepoint_scope;
-        *peer = thread->heap()->GetPeer(str.ptr());
-      }
+      NoSafepointScope no_safepoint_scope;
+      *peer = thread->heap()->GetPeer(str.ptr());
       *char_size = str.CharSize();
       *str_len = str.Length();
       return Api::Success();

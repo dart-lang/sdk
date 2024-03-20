@@ -1971,18 +1971,10 @@ void RegExp::PrintJSONImpl(JSONStream* stream, bool ref) const {
     jsobj.AddProperty("_oneByteFunction", func);
     func = function(kTwoByteStringCid, /*sticky=*/false);
     jsobj.AddProperty("_twoByteFunction", func);
-    func = function(kExternalOneByteStringCid, /*sticky=*/false);
-    jsobj.AddProperty("_externalOneByteFunction", func);
-    func = function(kExternalTwoByteStringCid, /*sticky=*/false);
-    jsobj.AddProperty("_externalTwoByteFunction", func);
     func = function(kOneByteStringCid, /*sticky=*/true);
     jsobj.AddProperty("_oneByteFunctionSticky", func);
     func = function(kTwoByteStringCid, /*sticky=*/true);
     jsobj.AddProperty("_twoByteFunctionSticky", func);
-    func = function(kExternalOneByteStringCid, /*sticky=*/true);
-    jsobj.AddProperty("_externalOneByteFunctionSticky", func);
-    func = function(kExternalTwoByteStringCid, /*sticky=*/true);
-    jsobj.AddProperty("_externalTwoByteFunctionSticky", func);
   } else {
     TypedData& bc = TypedData::Handle();
     bc = bytecode(/*is_one_byte=*/true, /*sticky=*/false);

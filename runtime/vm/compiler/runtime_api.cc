@@ -550,8 +550,7 @@ word Instance::native_fields_array_offset() {
 }
 
 word Instance::DataOffsetFor(intptr_t cid) {
-  if (dart::IsExternalTypedDataClassId(cid) ||
-      dart::IsExternalStringClassId(cid)) {
+  if (dart::IsExternalTypedDataClassId(cid)) {
     // Elements start at offset 0 of the external data.
     return 0;
   }
@@ -592,10 +591,6 @@ word Instance::ElementSizeFor(intptr_t cid) {
       return dart::OneByteString::kBytesPerElement;
     case kTwoByteStringCid:
       return dart::TwoByteString::kBytesPerElement;
-    case kExternalOneByteStringCid:
-      return dart::ExternalOneByteString::kBytesPerElement;
-    case kExternalTwoByteStringCid:
-      return dart::ExternalTwoByteString::kBytesPerElement;
     default:
       UNIMPLEMENTED();
       return 0;

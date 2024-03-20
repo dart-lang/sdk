@@ -547,17 +547,6 @@ static bool BuildCodeUnitAt(FlowGraph* flow_graph, intptr_t cid) {
   index =
       PrepareIndexedOp(flow_graph, &builder, str, index, Slot::String_length());
 
-  // For external strings: Load external data.
-  if (cid == kExternalOneByteStringCid) {
-    str = builder.AddDefinition(new LoadFieldInstr(
-        new Value(str), Slot::ExternalOneByteString_external_data(),
-        InnerPointerAccess::kCannotBeInnerPointer, builder.Source()));
-  } else if (cid == kExternalTwoByteStringCid) {
-    str = builder.AddDefinition(new LoadFieldInstr(
-        new Value(str), Slot::ExternalTwoByteString_external_data(),
-        InnerPointerAccess::kCannotBeInnerPointer, builder.Source()));
-  }
-
   Definition* load = builder.AddDefinition(new LoadIndexedInstr(
       new Value(str), new Value(index), /*index_unboxed=*/false,
       target::Instance::ElementSizeFor(cid), cid, kAlignedAccess,
@@ -588,16 +577,6 @@ bool GraphIntrinsifier::Build_OneByteStringCodeUnitAt(FlowGraph* flow_graph) {
 
 bool GraphIntrinsifier::Build_TwoByteStringCodeUnitAt(FlowGraph* flow_graph) {
   return BuildCodeUnitAt(flow_graph, kTwoByteStringCid);
-}
-
-bool GraphIntrinsifier::Build_ExternalOneByteStringCodeUnitAt(
-    FlowGraph* flow_graph) {
-  return BuildCodeUnitAt(flow_graph, kExternalOneByteStringCid);
-}
-
-bool GraphIntrinsifier::Build_ExternalTwoByteStringCodeUnitAt(
-    FlowGraph* flow_graph) {
-  return BuildCodeUnitAt(flow_graph, kExternalTwoByteStringCid);
 }
 
 static bool BuildSimdOp(FlowGraph* flow_graph, intptr_t cid, Token::Kind kind) {

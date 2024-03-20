@@ -323,14 +323,6 @@ void MemoryCopyInstr::EmitComputeStartPointer(FlowGraphCompiler* compiler,
         offset =
             compiler::target::TwoByteString::data_offset() - kHeapObjectTag;
         break;
-      case kExternalOneByteStringCid:
-        __ LoadFromSlot(array_reg, array_reg,
-                        Slot::ExternalOneByteString_external_data());
-        break;
-      case kExternalTwoByteStringCid:
-        __ LoadFromSlot(array_reg, array_reg,
-                        Slot::ExternalTwoByteString_external_data());
-        break;
       default:
         UNREACHABLE();
         break;
@@ -1981,7 +1973,6 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case kExternalTypedDataUint8ArrayCid:
     case kExternalTypedDataUint8ClampedArrayCid:
     case kOneByteStringCid:
-    case kExternalOneByteStringCid:
       ASSERT(representation() == kUnboxedIntPtr);
       ASSERT(index_scale() == 1);
       __ ldr(result, element_address, compiler::kUnsignedByte);
@@ -1992,7 +1983,6 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     case kTypedDataUint16ArrayCid:
     case kTwoByteStringCid:
-    case kExternalTwoByteStringCid:
       ASSERT(representation() == kUnboxedIntPtr);
       __ ldr(result, element_address, compiler::kUnsignedTwoBytes);
       break;
@@ -2026,7 +2016,6 @@ void LoadCodeUnitsInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register result = locs()->out(0).reg();
   switch (class_id()) {
     case kOneByteStringCid:
-    case kExternalOneByteStringCid:
       switch (element_count()) {
         case 1:
           sz = compiler::kUnsignedByte;
@@ -2042,7 +2031,6 @@ void LoadCodeUnitsInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       }
       break;
     case kTwoByteStringCid:
-    case kExternalTwoByteStringCid:
       switch (element_count()) {
         case 1:
           sz = compiler::kUnsignedTwoBytes;

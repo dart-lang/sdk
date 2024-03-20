@@ -19,21 +19,16 @@ static constexpr uintptr_t kAsciiWordMask = 0x80808080u;
 #endif
 
 intptr_t Utf8::Length(const String& str) {
-  if (str.IsOneByteString() || str.IsExternalOneByteString()) {
+  if (str.IsOneByteString()) {
     // For 1-byte strings, all code points < 0x80 have single-byte UTF-8
     // encodings and all >= 0x80 have two-byte encodings.  To get the length,
     // start with the number of code points and add the number of high bits in
     // the bytes.
     uintptr_t char_length = str.Length();
     uintptr_t length = char_length;
-    const uintptr_t* data;
     NoSafepointScope no_safepoint;
-    if (str.IsOneByteString()) {
-      data = reinterpret_cast<const uintptr_t*>(OneByteString::DataStart(str));
-    } else {
-      data = reinterpret_cast<const uintptr_t*>(
-          ExternalOneByteString::DataStart(str));
-    }
+    const uintptr_t* data =
+        reinterpret_cast<const uintptr_t*>(OneByteString::DataStart(str));
     uintptr_t i;
     for (i = sizeof(uintptr_t); i <= char_length; i += sizeof(uintptr_t)) {
       uintptr_t chunk = *data++;
@@ -71,17 +66,12 @@ intptr_t Utf8::Encode(const String& src, char* dst, intptr_t len) {
   uintptr_t array_len = len;
   intptr_t pos = 0;
   ASSERT(static_cast<intptr_t>(array_len) >= Length(src));
-  if (src.IsOneByteString() || src.IsExternalOneByteString()) {
+  if (src.IsOneByteString()) {
     // For 1-byte strings, all code points < 0x80 have single-byte UTF-8
     // encodings and all >= 0x80 have two-byte encodings.
-    const uintptr_t* data;
     NoSafepointScope scope;
-    if (src.IsOneByteString()) {
-      data = reinterpret_cast<const uintptr_t*>(OneByteString::DataStart(src));
-    } else {
-      data = reinterpret_cast<const uintptr_t*>(
-          ExternalOneByteString::DataStart(src));
-    }
+    const uintptr_t* data =
+        reinterpret_cast<const uintptr_t*>(OneByteString::DataStart(src));
     uintptr_t char_length = src.Length();
     uintptr_t pos = 0;
     ASSERT(kMaxOneByteChar + 1 == 0x80);

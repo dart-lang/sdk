@@ -2998,13 +2998,11 @@ void LoadCodeUnitsInstr::InferRange(RangeAnalysis* analysis, Range* range) {
   ASSERT(element_count_ > 0);
   switch (class_id()) {
     case kOneByteStringCid:
-    case kExternalOneByteStringCid:
       ASSERT(element_count_ <= 4);
       *range = Range(zero, RangeBoundary::FromConstant(
                                Utils::NBitMask(kBitsPerByte * element_count_)));
       break;
     case kTwoByteStringCid:
-    case kExternalTwoByteStringCid:
       ASSERT(element_count_ <= 2);
       *range = Range(zero, RangeBoundary::FromConstant(Utils::NBitMask(
                                2 * kBitsPerByte * element_count_)));

@@ -244,8 +244,6 @@ const Slot& Slot::GetLengthFieldForArrayCid(intptr_t array_cid) {
 
     case kOneByteStringCid:
     case kTwoByteStringCid:
-    case kExternalOneByteStringCid:
-    case kExternalTwoByteStringCid:
       return GetNativeSlot(Kind::kString_length);
 
     case kArrayCid:

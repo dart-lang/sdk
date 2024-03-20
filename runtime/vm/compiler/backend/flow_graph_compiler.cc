@@ -1569,8 +1569,6 @@ void FlowGraphCompiler::GenerateStringTypeCheck(
   GrowableArray<intptr_t> args;
   args.Add(kOneByteStringCid);
   args.Add(kTwoByteStringCid);
-  args.Add(kExternalOneByteStringCid);
-  args.Add(kExternalTwoByteStringCid);
   CheckClassIds(class_id_reg, args, is_instance_lbl, is_not_instance_lbl);
 }
 

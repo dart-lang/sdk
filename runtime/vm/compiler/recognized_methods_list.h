@@ -454,10 +454,6 @@ namespace dart {
   V(_StringBase, get:length, StringBaseLength, 0x5842648b)                     \
   V(_OneByteString, codeUnitAt, OneByteStringCodeUnitAt, 0x17ea7d30)           \
   V(_TwoByteString, codeUnitAt, TwoByteStringCodeUnitAt, 0x17ea7d30)           \
-  V(_ExternalOneByteString, codeUnitAt, ExternalOneByteStringCodeUnitAt,       \
-    0x17ea7d30)                                                                \
-  V(_ExternalTwoByteString, codeUnitAt, ExternalTwoByteStringCodeUnitAt,       \
-    0x17ea7d30)                                                                \
   V(_Smi, ~, Smi_bitNegate, 0x82466cfc)                                        \
   V(_IntegerImplementation, +, Integer_add, 0x6f06d26c)                        \
   V(_IntegerImplementation, -, Integer_sub, 0x630fe15d)                        \

@@ -3305,8 +3305,6 @@ class MemoryCopyInstr : public TemplateInstruction<5, NoThrow> {
     switch (array_cid) {
       case kOneByteStringCid:
       case kTwoByteStringCid:
-      case kExternalOneByteStringCid:
-      case kExternalTwoByteStringCid:
         return true;
       default:
         return false;
@@ -8721,7 +8719,7 @@ bool Definition::IsInt64Definition() {
 }
 
 // Calls into the runtime and performs a case-insensitive comparison of the
-// UTF16 strings (i.e. TwoByteString or ExternalTwoByteString) located at
+// UTF16 strings (i.e. TwoByteString) located at
 // str[lhs_index:lhs_index + length] and str[rhs_index:rhs_index + length].
 // Depending on [handle_surrogates], we will treat the strings as either
 // UCS2 (no surrogate handling) or UTF16 (surrogates handled appropriately).
@@ -8735,7 +8733,7 @@ class CaseInsensitiveCompareInstr
                               bool handle_surrogates,
                               intptr_t cid)
       : handle_surrogates_(handle_surrogates), cid_(cid) {
-    ASSERT(cid == kTwoByteStringCid || cid == kExternalTwoByteStringCid);
+    ASSERT(cid == kTwoByteStringCid);
     ASSERT(index_scale() == 2);
     SetInputAt(0, str);
     SetInputAt(1, lhs_index);
@@ -8749,7 +8747,6 @@ class CaseInsensitiveCompareInstr
   Value* length() const { return inputs_[3]; }
 
   const RuntimeEntry& TargetFunction() const;
-  bool IsExternal() const { return cid_ == kExternalTwoByteStringCid; }
   intptr_t class_id() const { return cid_; }
 
   intptr_t index_scale() const {

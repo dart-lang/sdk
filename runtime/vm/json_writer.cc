@@ -376,14 +376,8 @@ bool JSONWriter::AddDartString(const String& s,
     NoSafepointScope no_safepoint;
     if (s.IsOneByteString()) {
       buffer_.AddEscapedLatin1(OneByteString::CharAddr(s, offset), count);
-    } else if (s.IsExternalOneByteString()) {
-      buffer_.AddEscapedLatin1(ExternalOneByteString::CharAddr(s, offset),
-                               count);
     } else if (s.IsTwoByteString()) {
       buffer_.AddEscapedUTF16(TwoByteString::CharAddr(s, offset), count);
-    } else if (s.IsExternalTwoByteString()) {
-      buffer_.AddEscapedUTF16(ExternalTwoByteString::CharAddr(s, offset),
-                              count);
     } else {
       UNREACHABLE();
     }

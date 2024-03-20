@@ -124,6 +124,7 @@ advantage of these improvements, set your package's
 [#53785]: https://github.com/dart-lang/sdk/issues/53785
 
 ### Dart Runtime
+
 - Dart VM flags and options can now be provided to any executable
   generated using `dart compile exe` via the `DART_VM_OPTIONS` environment
   variable. `DART_VM_OPTIONS` should be set to a list of comma-separated flags
@@ -136,6 +137,10 @@ advantage of these improvements, set your package's
   ```bash
   DART_VM_OPTIONS=--random_seed=42,--verbose_gc
   ```
+
+- Dart VM no longer supports external strings: `Dart_IsExternalString`,
+  `Dart_NewExternalLatin1String` and `Dart_NewExternalUTF16String` functions are
+  removed from Dart C API.
 
 ### Tools
 

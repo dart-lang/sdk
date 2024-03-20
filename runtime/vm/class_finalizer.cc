@@ -255,10 +255,6 @@ void ClassFinalizer::VerifyBootstrapClasses() {
   ASSERT_EQUAL(OneByteString::InstanceSize(), cls.host_instance_size());
   cls = object_store->two_byte_string_class();
   ASSERT_EQUAL(TwoByteString::InstanceSize(), cls.host_instance_size());
-  cls = object_store->external_one_byte_string_class();
-  ASSERT_EQUAL(ExternalOneByteString::InstanceSize(), cls.host_instance_size());
-  cls = object_store->external_two_byte_string_class();
-  ASSERT_EQUAL(ExternalTwoByteString::InstanceSize(), cls.host_instance_size());
   cls = object_store->double_class();
   ASSERT_EQUAL(Double::InstanceSize(), cls.host_instance_size());
   cls = object_store->bool_class();

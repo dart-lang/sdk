@@ -3209,19 +3209,6 @@ static Definition* PrepareInlineStringIndexOp(FlowGraph* flow_graph,
   index = flow_graph->CreateCheckBound(length, index, call->deopt_id());
   cursor = flow_graph->AppendTo(cursor, index, call->env(), FlowGraph::kValue);
 
-  // For external strings: Load backing store.
-  if (cid == kExternalOneByteStringCid) {
-    str = new LoadFieldInstr(
-        new Value(str), Slot::ExternalOneByteString_external_data(),
-        InnerPointerAccess::kCannotBeInnerPointer, call->source());
-    cursor = flow_graph->AppendTo(cursor, str, nullptr, FlowGraph::kValue);
-  } else if (cid == kExternalTwoByteStringCid) {
-    str = new LoadFieldInstr(
-        new Value(str), Slot::ExternalTwoByteString_external_data(),
-        InnerPointerAccess::kCannotBeInnerPointer, call->source());
-    cursor = flow_graph->AppendTo(cursor, str, nullptr, FlowGraph::kValue);
-  }
-
   LoadIndexedInstr* load_indexed = new (Z) LoadIndexedInstr(
       new (Z) Value(str), new (Z) Value(index), /*index_unboxed=*/false,
       compiler::target::Instance::ElementSizeFor(cid), cid, kAlignedAccess,
@@ -3244,7 +3231,7 @@ static bool InlineStringBaseCharAt(FlowGraph* flow_graph,
                                    FunctionEntryInstr** entry,
                                    Instruction** last,
                                    Definition** result) {
-  if ((cid != kOneByteStringCid) && (cid != kExternalOneByteStringCid)) {
+  if (cid != kOneByteStringCid) {
     return false;
   }
   Definition* str = receiver;
@@ -3278,9 +3265,7 @@ static bool InlineStringCodeUnitAt(FlowGraph* flow_graph,
   if (cid == kDynamicCid) {
     ASSERT(call->IsStaticCall());
     return false;
-  } else if ((cid != kOneByteStringCid) && (cid != kTwoByteStringCid) &&
-             (cid != kExternalOneByteStringCid) &&
-             (cid != kExternalTwoByteStringCid)) {
+  } else if ((cid != kOneByteStringCid) && (cid != kTwoByteStringCid)) {
     return false;
   }
   Definition* str = receiver;
@@ -4379,8 +4364,6 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
     }
     case MethodRecognizer::kOneByteStringCodeUnitAt:
     case MethodRecognizer::kTwoByteStringCodeUnitAt:
-    case MethodRecognizer::kExternalOneByteStringCodeUnitAt:
-    case MethodRecognizer::kExternalTwoByteStringCodeUnitAt:
       return InlineStringCodeUnitAt(flow_graph, call, receiver, receiver_cid,
                                     graph_entry, entry, last, result);
     case MethodRecognizer::kStringBaseCharAt:
