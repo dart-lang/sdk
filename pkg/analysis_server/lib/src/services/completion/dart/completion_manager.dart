@@ -18,7 +18,6 @@ import 'package:analysis_server/src/services/completion/dart/record_literal_cont
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_collector.dart';
 import 'package:analysis_server/src/services/completion/dart/uri_contributor.dart';
-import 'package:analysis_server/src/utilities/extensions/object.dart';
 import 'package:analysis_server/src/utilities/selection.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -39,7 +38,6 @@ import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/generated/source.dart' show SourceFactory;
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
-import 'package:analyzer/src/workspace/pub.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
@@ -411,12 +409,6 @@ class DartCompletionRequest {
 
   /// Answer the [DartType] for Object in dart:core
   InterfaceType get objectType => libraryElement.typeProvider.objectType;
-
-  /// Returns the [PubPackage] of the file where completion is requested.
-  /// Or `null` if the package is not [PubPackage].
-  PubPackage? get pubPackage {
-    return fileState.workspacePackage.ifTypeOrNull();
-  }
 
   /// The length of the text to be replaced if the remainder of the identifier
   /// containing the cursor is to be replaced when the suggestion is applied

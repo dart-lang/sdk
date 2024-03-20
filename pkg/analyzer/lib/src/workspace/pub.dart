@@ -456,6 +456,13 @@ class PubPackage extends WorkspacePackage {
     return false;
   }
 
+  /// Whether [file] is in the `test` directory of this package.
+  bool isInTestDirectory(File file) {
+    var resourceProvider = workspace.provider;
+    var packageRoot = resourceProvider.getFolder(root);
+    return packageRoot.getChildAssumingFolder('test').contains(file.path);
+  }
+
   @override
   Packages packagesAvailableTo(String libraryPath) {
     // TODO(brianwilkerson): Consider differentiating based on whether the

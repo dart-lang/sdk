@@ -552,4 +552,175 @@ suggestions
     kind: setter
 ''');
   }
+
+  Future<void> test_isVisibleForTesting_method_otherPackage() async {
+    var otherRoot = getFolder('$packagesRootPath/other');
+    newFile('${otherRoot.path}/lib/a.dart', r'''
+import 'package:meta/meta.dart';
+
+class A {
+  void f01() {}
+
+  @visibleForTesting
+  void f02() {}
+}
+''');
+
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(
+          name: 'other',
+          rootPath: otherRoot.path,
+        ),
+      meta: true,
+    );
+
+    await computeSuggestions('''
+import 'package:other/a.dart''
+
+void f() {
+  A().^
+}
+''');
+
+    assertResponse(r'''
+suggestions
+  f01
+    kind: methodInvocation
+''');
+  }
+
+  Future<void> test_isVisibleForTesting_method_otherPackage_test() async {
+    var otherRoot = getFolder('$packagesRootPath/other');
+    newFile('${otherRoot.path}/lib/a.dart', r'''
+import 'package:meta/meta.dart';
+
+class A {
+  void f01() {}
+
+  @visibleForTesting
+  void f02() {}
+}
+''');
+
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(
+          name: 'other',
+          rootPath: otherRoot.path,
+        ),
+      meta: true,
+    );
+
+    testFilePath = '$testPackageTestPath/test.dart';
+    await computeSuggestions('''
+import 'package:other/a.dart''
+
+void f() {
+  A().^
+}
+''');
+
+    assertResponse(r'''
+suggestions
+  f01
+    kind: methodInvocation
+''');
+  }
+
+  Future<void> test_isVisibleForTesting_method_sameLibrary() async {
+    writeTestPackageConfig(
+      meta: true,
+    );
+
+    await computeSuggestions('''
+import 'package:meta/meta.dart';
+
+class A {
+  void f01() {}
+
+  @visibleForTesting
+  void f02() {}
+}
+
+void f(A a) {
+  a.^
+}
+''');
+
+    assertResponse(r'''
+suggestions
+  f01
+    kind: methodInvocation
+  f02
+    kind: methodInvocation
+''');
+  }
+
+  Future<void>
+      test_isVisibleForTesting_method_samePackage_otherLibrary() async {
+    writeTestPackageConfig(
+      meta: true,
+    );
+
+    newFile('$testPackageLibPath/a.dart', r'''
+import 'package:meta/meta.dart';
+
+class A {
+  void f01() {}
+
+  @visibleForTesting
+  void f02() {}
+}
+''');
+
+    await computeSuggestions('''
+import 'a.dart';
+
+void f(A a) {
+  a.^
+}
+''');
+
+    assertResponse(r'''
+suggestions
+  f01
+    kind: methodInvocation
+''');
+  }
+
+  Future<void>
+      test_isVisibleForTesting_method_samePackage_otherLibrary_test() async {
+    writeTestPackageConfig(
+      meta: true,
+    );
+
+    newFile('$testPackageLibPath/a.dart', r'''
+import 'package:meta/meta.dart';
+
+class A {
+  void f01() {}
+
+  @visibleForTesting
+  void f02() {}
+}
+''');
+
+    testFilePath = '$testPackageTestPath/test.dart';
+    await computeSuggestions('''
+import 'package:test/a.dart';
+
+void f(A a) {
+  a.^
+}
+''');
+
+    assertResponse(r'''
+suggestions
+  f01
+    kind: methodInvocation
+  f02
+    kind: methodInvocation
+''');
+  }
 }
