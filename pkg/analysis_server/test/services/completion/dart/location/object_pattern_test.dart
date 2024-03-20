@@ -638,6 +638,7 @@ class A1 extends A0 {
 }
 ''');
     assertResponse(r'''
+location: ObjectPattern_fieldName
 locationOpType: ObjectPattern_fieldName
 suggestions
   f01
@@ -680,6 +681,7 @@ class A1 extends A0 {
 }
 ''');
     assertResponse(r'''
+location: ObjectPattern_fieldName
 locationOpType: ObjectPattern_fieldName
 replacement
   left: 1
@@ -806,6 +808,7 @@ class A1 extends A0 {
 }
 ''');
     assertResponse(r'''
+location: ObjectPattern_fieldName
 locationOpType: ObjectPattern_fieldName
 suggestions
   f11
@@ -833,6 +836,7 @@ class A1 extends A0 {
 }
 ''');
     assertResponse(r'''
+location: ObjectPattern_fieldName
 locationOpType: ObjectPattern_fieldName
 suggestions
   f02
