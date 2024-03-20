@@ -272,7 +272,9 @@ class FlowGraphBuilderHelper {
  public:
   explicit FlowGraphBuilderHelper(intptr_t num_parameters = 0)
       : state_(CompilerState::Current()),
-        flow_graph_(MakeDummyGraph(Thread::Current(), num_parameters)) {
+        flow_graph_(MakeDummyGraph(Thread::Current(),
+                                   num_parameters,
+                                   state_.is_optimizing())) {
     flow_graph_.CreateCommonConstants();
   }
 
@@ -375,7 +377,9 @@ class FlowGraphBuilderHelper {
   FlowGraph* flow_graph() { return &flow_graph_; }
 
  private:
-  static FlowGraph& MakeDummyGraph(Thread* thread, intptr_t num_parameters) {
+  static FlowGraph& MakeDummyGraph(Thread* thread,
+                                   intptr_t num_parameters,
+                                   bool is_optimizing) {
     const FunctionType& signature =
         FunctionType::ZoneHandle(FunctionType::New());
     signature.set_num_fixed_parameters(num_parameters);
@@ -403,7 +407,8 @@ class FlowGraphBuilderHelper {
         new FunctionEntryInstr(graph_entry, block_id, kInvalidTryIndex,
                                CompilerState::Current().GetNextDeoptId()));
     return *new FlowGraph(*parsed_function, graph_entry, block_id,
-                          PrologueInfo{-1, -1});
+                          PrologueInfo{-1, -1},
+                          FlowGraph::CompilationModeFrom(is_optimizing));
   }
 
   CompilerState& state_;

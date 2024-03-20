@@ -60,7 +60,6 @@ CompilerPassState::CompilerPassState(
       sinking(nullptr),
       call_specializer(nullptr),
       speculative_policy(speculative_policy),
-      reorder_blocks(false),
       sticky_flags(0),
       flow_graph_(flow_graph) {
   // Top scope function is at inlining id 0.
@@ -571,9 +570,7 @@ COMPILER_PASS(AllocateRegistersForGraphIntrinsic, {
 });
 
 COMPILER_PASS(ReorderBlocks, {
-  if (state->reorder_blocks) {
-    BlockScheduler::ReorderBlocks(flow_graph);
-  }
+  BlockScheduler::ReorderBlocks(flow_graph);
 
   // This is the last compiler pass.
   // Test that round-trip IL serialization works before generating code.

@@ -81,7 +81,8 @@ bool GraphIntrinsifier::GraphIntrinsify(const ParsedFunction& parsed_function,
                              CompilerState::Current().GetNextDeoptId()));
 
   FlowGraph* graph =
-      new FlowGraph(parsed_function, graph_entry, block_id, prologue_info);
+      new FlowGraph(parsed_function, graph_entry, block_id, prologue_info,
+                    FlowGraph::CompilationMode::kIntrinsic);
   compiler->set_intrinsic_flow_graph(*graph);
 
   const Function& function = parsed_function.function();

@@ -142,7 +142,7 @@ FlowGraphCompiler::FlowGraphCompiler(
       assembler_(assembler),
       parsed_function_(parsed_function),
       flow_graph_(*flow_graph),
-      block_order_(*flow_graph->CodegenBlockOrder(is_optimizing)),
+      block_order_(*flow_graph->CodegenBlockOrder()),
       current_block_(nullptr),
       exception_handlers_list_(nullptr),
       pc_descriptors_list_(nullptr),

@@ -113,10 +113,17 @@ struct PrologueInfo {
 // Class to encapsulate the construction and manipulation of the flow graph.
 class FlowGraph : public ZoneAllocated {
  public:
+  enum class CompilationMode {
+    kUnoptimized,
+    kOptimized,
+    kIntrinsic,
+  };
+
   FlowGraph(const ParsedFunction& parsed_function,
             GraphEntryInstr* graph_entry,
             intptr_t max_block_id,
-            PrologueInfo prologue_info);
+            PrologueInfo prologue_info,
+            CompilationMode compilation_mode);
 
   // Function properties.
   const ParsedFunction& parsed_function() const { return parsed_function_; }
@@ -203,8 +210,8 @@ class FlowGraph : public ZoneAllocated {
   const GrowableArray<BlockEntryInstr*>& optimized_block_order() const {
     return optimized_block_order_;
   }
-  static bool ShouldReorderBlocks(const Function& function, bool is_optimized);
-  GrowableArray<BlockEntryInstr*>* CodegenBlockOrder(bool is_optimized);
+  GrowableArray<BlockEntryInstr*>* CodegenBlockOrder();
+  const GrowableArray<BlockEntryInstr*>* CodegenBlockOrder() const;
 
   // Iterators.
   BlockIterator reverse_postorder_iterator() const {
@@ -491,6 +498,8 @@ class FlowGraph : public ZoneAllocated {
     return compiler_pass_filters_;
   }
 
+  bool should_reorder_blocks() const { return should_reorder_blocks_; }
+
   //
   // High-level utilities.
   //
@@ -561,6 +570,11 @@ class FlowGraph : public ZoneAllocated {
 
   static intptr_t ComputeArgumentsSizeInWords(const Function& function,
                                               intptr_t arguments_count);
+
+  static constexpr CompilationMode CompilationModeFrom(bool is_optimizing) {
+    return is_optimizing ? CompilationMode::kOptimized
+                         : CompilationMode::kUnoptimized;
+  }
 
  private:
   friend class FlowGraphCompiler;  // TODO(ajcbik): restructure
@@ -678,6 +692,7 @@ class FlowGraph : public ZoneAllocated {
   bool licm_allowed_;
   bool unmatched_representations_allowed_ = true;
   bool huge_method_ = false;
+  const bool should_reorder_blocks_;
 
   const PrologueInfo prologue_info_;
 
