@@ -496,6 +496,23 @@ suggestions
 ''');
   }
 
+  Future<void> test_propertyAccess_matches_null() async {
+    await computeSuggestions('''
+extension E on Null {
+  void f01() {}
+}
+
+void f() {
+  null.^
+}
+''');
+    assertResponse(r'''
+suggestions
+  f01
+    kind: methodInvocation
+''');
+  }
+
   Future<void> test_propertyAccess_matches_partial() async {
     await computeSuggestions('''
 extension E on int {
