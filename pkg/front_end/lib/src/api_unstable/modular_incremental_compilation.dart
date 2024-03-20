@@ -49,6 +49,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
     bool trackNeededDillLibraries = false,
     bool verbose = false,
     NnbdMode nnbdMode = NnbdMode.Weak,
+    bool requirePrebuiltMacros = false,
     List<String> precompiledMacros = const [],
     SerializationMode macroSerializationMode =
         SerializationMode.byteData}) async {
@@ -86,6 +87,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
               (cachedSdkInput == null ||
                   !digestsEqual(cachedSdkInput.digest, sdkDigest))) ||
           // TODO(davidmorgan): add correct change detection for macros.
+          oldState.options.requirePrebuiltMacros != requirePrebuiltMacros ||
           !equalLists(oldState.options.precompiledMacros, precompiledMacros) ||
           oldState.options.macroSerializationMode != macroSerializationMode) {
         // No - or immediately not correct - previous state.
@@ -108,6 +110,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
           ..explicitExperimentalFlags = explicitExperimentalFlags
           ..verbose = verbose
           ..nnbdMode = nnbdMode
+          ..requirePrebuiltMacros = requirePrebuiltMacros
           ..precompiledMacros = precompiledMacros
           ..macroSerializationMode = macroSerializationMode;
 

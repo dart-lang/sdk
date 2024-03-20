@@ -105,11 +105,13 @@ class CompilerOptions {
   /// This is part of the experimental macro feature.
   MultiMacroExecutor? macroExecutor;
 
-  /// If true, macro declarations will not be precompiled, even when the
-  /// feature is enabled and other libraries depend on them.
+  /// If true, all macro applications must have a corresponding prebuilt macro
+  /// supplied via `precompiledMacros`.
+  ///
+  /// Otherwise, that's an error.
   ///
   /// This is part of the experimental macro feature.
-  bool skipMacros = false;
+  bool requirePrebuiltMacros = false;
 
   /// Function that can create a [Uri] for the serialized result of a
   /// [Component].

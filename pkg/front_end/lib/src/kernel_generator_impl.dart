@@ -310,7 +310,9 @@ Future<Map<Uri, ExecutorFactoryToken>?> precompileMacros(
       // the compiler options for the precompilation.
       // TODO(johnniwinther): Assert that some works has been done.
       // TODO(johnniwinther): Stop in case of compile-time errors.
-      if (!options.rawOptionsForTesting.skipMacros) {
+      // Don't fail here for `requirePrebuiltMacros`: the build will fail later
+      // if the macro missing a prebuild is actually applied.
+      if (!options.rawOptionsForTesting.requirePrebuiltMacros) {
         return await _compileMacros(neededPrecompilations, options);
       }
     } else {
