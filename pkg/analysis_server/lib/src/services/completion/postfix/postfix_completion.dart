@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/services/correction/util.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -12,7 +13,6 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
-import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/java_core.dart';
@@ -248,47 +248,45 @@ class PostfixCompletionKind {
 }
 
 /// The computer for Dart postfix completions.
-class PostfixCompletionProcessor {
-  static final NO_COMPLETION = PostfixCompletion(
+final class PostfixCompletionProcessor {
+  static final _noCompletion = PostfixCompletion(
       DartPostfixCompletion.NO_TEMPLATE, SourceChange('', edits: []));
 
-  final PostfixCompletionContext completionContext;
+  final PostfixCompletionContext _completionContext;
   final CorrectionUtils utils;
-  AstNode? node;
-  PostfixCompletion? completion;
-  SourceChange change = SourceChange('postfix-completion');
-  final Map<String, LinkedEditGroup> linkedPositionGroups = {};
-  Position? exitPosition;
+  AstNode? _node;
+  PostfixCompletion? _completion;
 
-  PostfixCompletionProcessor(this.completionContext)
-      : utils = CorrectionUtils(completionContext.resolveResult);
+  PostfixCompletionProcessor(this._completionContext)
+      : utils = CorrectionUtils(_completionContext.resolveResult);
 
-  String get eol => utils.endOfLine;
+  String get _eol => utils.endOfLine;
 
-  String get file => completionContext.resolveResult.path;
+  String get _file => _completionContext.resolveResult.path;
 
-  String get key => completionContext.key;
+  String get _key => _completionContext.key;
 
-  LineInfo get lineInfo => completionContext.resolveResult.lineInfo;
+  int get _selectionOffset => _completionContext.selectionOffset;
 
-  int get selectionOffset => completionContext.selectionOffset;
+  AnalysisSession get _session => _completionContext.resolveResult.session;
 
-  AnalysisSession get session => completionContext.resolveResult.session;
+  TypeProvider get _typeProvider =>
+      _completionContext.resolveResult.typeProvider;
 
-  TypeProvider get typeProvider => completionContext.resolveResult.typeProvider;
+  TypeSystem get _typeSystem => _completionContext.resolveResult.typeSystem;
 
-  TypeSystem get typeSystem => completionContext.resolveResult.typeSystem;
+  CompilationUnit get _unit => _completionContext.resolveResult.unit;
 
   Future<PostfixCompletion> compute() async {
-    node = _selectedNode();
-    if (node == null) {
-      return NO_COMPLETION;
+    _node = _selectedNode();
+    if (_node == null) {
+      return _noCompletion;
     }
-    var completer = DartPostfixCompletion.forKey(key);
+    var completer = DartPostfixCompletion.forKey(_key);
     if (completer == null) {
-      return NO_COMPLETION;
+      return _noCompletion;
     }
-    return await completer.computer(this, completer) ?? NO_COMPLETION;
+    return await completer.computer(this, completer) ?? _noCompletion;
   }
 
   Future<PostfixCompletion?> expand(PostfixCompletionKind kind,
@@ -299,19 +297,19 @@ class PostfixCompletionProcessor {
       return null;
     }
 
-    var changeBuilder = ChangeBuilder(session: session);
-    await changeBuilder.addDartFileEdit(file, (builder) {
+    var changeBuilder = ChangeBuilder(session: _session);
+    await changeBuilder.addDartFileEdit(_file, (builder) {
       builder.addReplacement(range.node(expr), (builder) {
         var newSrc = sourcer(expr);
         builder.write(newSrc);
         if (withBraces) {
           builder.write(' {');
-          builder.write(eol);
+          builder.write(_eol);
           var indent = utils.getNodePrefix(expr);
           builder.write(indent);
           builder.write(utils.oneIndent);
           builder.selectHere();
-          builder.write(eol);
+          builder.write(_eol);
           builder.write(indent);
           builder.write('}');
         } else {
@@ -320,7 +318,7 @@ class PostfixCompletionProcessor {
       });
     });
     _setCompletionFromBuilder(changeBuilder, kind);
-    return completion;
+    return _completion;
   }
 
   Future<PostfixCompletion?> expandTry(
@@ -330,8 +328,9 @@ class PostfixCompletionProcessor {
     if (stmt == null) {
       return null;
     }
-    var changeBuilder = ChangeBuilder(session: session);
-    await changeBuilder.addDartFileEdit(file, (builder) {
+    var changeBuilder = ChangeBuilder(session: _session);
+    await changeBuilder.addDartFileEdit(_file, (builder) {
+      var lineInfo = _completionContext.resolveResult.lineInfo;
       // Embed the full line(s) of the statement in the try block.
       var startLine = lineInfo.getLocation(stmt.offset).lineNumber - 1;
       var endLine = lineInfo.getLocation(stmt.end).lineNumber - 1;
@@ -349,7 +348,7 @@ class PostfixCompletionProcessor {
           (builder) {
         builder.write(indent);
         builder.write('try {');
-        builder.write(eol);
+        builder.write(_eol);
         builder.write(utils.replaceSourceIndent(
             src, indent, '$indent${utils.oneIndent}',
             includeLeading: true, ensureTrailingNewline: true));
@@ -361,24 +360,23 @@ class PostfixCompletionProcessor {
           builder.addSimpleLinkedEdit('NAME', nameOfExceptionThrownBy(stmt));
         }
         builder.write(' catch (e, s) {');
-        builder.write(eol);
+        builder.write(_eol);
         builder.write(indent);
         builder.write(utils.oneIndent);
         builder.write('print(s);');
-        builder.write(eol);
+        builder.write(_eol);
         builder.write(indent);
         builder.write('}');
-        builder.write(eol);
+        builder.write(_eol);
       });
     });
     _setCompletionFromBuilder(changeBuilder, kind);
-    return completion;
+    return _completion;
   }
 
   Expression? findAssertExpression() {
-    final node = this.node;
-    if (node is Expression) {
-      var boolExpr = _findOuterExpression(node, typeProvider.boolType);
+    if (_node is Expression) {
+      var boolExpr = _findOuterExpression(_node, _typeProvider.boolType);
       if (boolExpr == null) {
         return null;
       }
@@ -390,11 +388,11 @@ class PostfixCompletionProcessor {
         if (type is! FunctionType) {
           return boolExpr;
         }
-        if (type.returnType == typeProvider.boolType) {
+        if (type.returnType == _typeProvider.boolType) {
           return grandParent;
         }
       }
-      if (boolExpr.staticType == typeProvider.boolType) {
+      if (boolExpr.staticType == _typeProvider.boolType) {
         return boolExpr;
       }
     }
@@ -402,19 +400,19 @@ class PostfixCompletionProcessor {
   }
 
   Expression? findBoolExpression() =>
-      _findOuterExpression(node, typeProvider.boolType);
+      _findOuterExpression(_node, _typeProvider.boolType);
 
   Expression? findIntExpression() =>
-      _findOuterExpression(node, typeProvider.intType);
+      _findOuterExpression(_node, _typeProvider.intType);
 
   Expression? findIterableExpression() =>
-      _findOuterExpression(node, typeProvider.iterableDynamicType);
+      _findOuterExpression(_node, _typeProvider.iterableDynamicType);
 
   Expression? findObjectExpression() =>
-      _findOuterExpression(node, typeProvider.objectQuestionType);
+      _findOuterExpression(_node, _typeProvider.objectQuestionType);
 
   Statement? findStatement() {
-    var astNode = node;
+    var astNode = _node;
     while (astNode != null) {
       if (astNode is Statement && astNode is! Block) {
         // Disallow control-flow statements.
@@ -434,17 +432,17 @@ class PostfixCompletionProcessor {
   }
 
   Future<bool> isApplicable() async {
-    node = _selectedNode();
-    if (node == null) {
+    _node = _selectedNode();
+    if (_node == null) {
       return false;
     }
 
-    var offset = completionContext.selectionOffset;
-    if (node?.commentTokenCovering(offset) != null) {
+    var offset = _completionContext.selectionOffset;
+    if (_node?.commentTokenCovering(offset) != null) {
       return false;
     }
 
-    var completer = DartPostfixCompletion.forKey(key);
+    var completer = DartPostfixCompletion.forKey(_key);
     if (completer == null) {
       return false;
     }
@@ -481,7 +479,7 @@ class PostfixCompletionProcessor {
   String newVariable(String base) {
     var name = base;
     var i = 1;
-    var vars = utils.findPossibleLocalVariableConflicts(selectionOffset);
+    var vars = _unit.findPossibleLocalVariableConflicts(_selectionOffset);
     while (vars.contains(name)) {
       name = '$base${i++}';
     }
@@ -512,7 +510,7 @@ class PostfixCompletionProcessor {
     var expr = list.firstWhereOrNull((expr) {
       var type = expr.staticType;
       if (type == null) return false;
-      return typeSystem.isSubtypeOf(type, builtInType);
+      return _typeSystem.isSubtypeOf(type, builtInType);
     });
     var exprParent = expr?.parent;
     if (expr is SimpleIdentifier && exprParent is PropertyAccess) {
@@ -524,17 +522,17 @@ class PostfixCompletionProcessor {
     return expr;
   }
 
-  AstNode? _selectedNode({int? at}) => NodeLocator(at ?? selectionOffset)
-      .searchWithin(completionContext.resolveResult.unit);
+  AstNode? _selectedNode({int? at}) =>
+      NodeLocator(at ?? _selectionOffset).searchWithin(_unit);
 
   void _setCompletionFromBuilder(
       ChangeBuilder builder, PostfixCompletionKind kind) {
     var change = builder.sourceChange;
     if (change.edits.isEmpty) {
-      completion = null;
+      _completion = null;
       return;
     }
     change.message = formatList(kind.message, null);
-    completion = PostfixCompletion(kind, change);
+    _completion = PostfixCompletion(kind, change);
   }
 }

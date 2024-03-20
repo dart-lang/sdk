@@ -11,6 +11,7 @@ import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/naming_conventions.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring_internal.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server/src/utilities/strings.dart';
 import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
@@ -119,7 +120,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     _prepareOffsetsLengths();
     // names
     excludedVariableNames =
-        utils.findPossibleLocalVariableConflicts(selectionOffset);
+        unit.findPossibleLocalVariableConflicts(selectionOffset);
     _prepareNames();
     // done
     return Future.value(result);
