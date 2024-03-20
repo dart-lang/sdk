@@ -31,6 +31,7 @@ The features are listed in alphabetical order.
 - [ ] Navigation - legacy
 - [ ] Navigation - LSP Go to Definition
 - [ ] Navigation - LSP Go to Type Definition
+- [ ] Navigation - Go to Super
 - [ ] Occurrences - legacy
 - [ ] Occurrences - LSP Document Highlights
 - [ ] Organize Imports

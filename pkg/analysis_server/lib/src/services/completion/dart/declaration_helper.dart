@@ -16,6 +16,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// A helper class that produces candidate suggestions for all of the
 /// declarations that are in scope at the completion location.
@@ -1730,41 +1731,6 @@ extension on PropertyAccessorElement {
       if (variable2 case var variable?) {
         return variable.isConst;
       }
-    }
-    return false;
-  }
-}
-
-extension on Element {
-  bool get isInternal {
-    if (hasInternal) {
-      return true;
-    }
-    if (this case PropertyAccessorElement accessor) {
-      var variable = accessor.variable2;
-      if (variable != null && variable.hasInternal) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  bool get isProtected {
-    final self = this;
-    if (self is PropertyAccessorElement &&
-        self.enclosingElement is InterfaceElement) {
-      if (self.hasProtected) {
-        return true;
-      }
-      var variable = self.variable2;
-      if (variable != null && variable.hasProtected) {
-        return true;
-      }
-    }
-    if (self is MethodElement &&
-        self.enclosingElement is InterfaceElement &&
-        self.hasProtected) {
-      return true;
     }
     return false;
   }

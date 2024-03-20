@@ -17,6 +17,41 @@ extension ElementExtension on Element {
     return null;
   }
 
+  /// Whether the element is effectively internal.
+  bool get isInternal {
+    if (hasInternal) {
+      return true;
+    }
+    if (this case PropertyAccessorElement accessor) {
+      var variable = accessor.variable2;
+      if (variable != null && variable.hasInternal) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /// Whether the element is effectively protected.
+  bool get isProtected {
+    final self = this;
+    if (self is PropertyAccessorElement &&
+        self.enclosingElement is InterfaceElement) {
+      if (self.hasProtected) {
+        return true;
+      }
+      var variable = self.variable2;
+      if (variable != null && variable.hasProtected) {
+        return true;
+      }
+    }
+    if (self is MethodElement &&
+        self.enclosingElement is InterfaceElement &&
+        self.hasProtected) {
+      return true;
+    }
+    return false;
+  }
+
   List<Element> get withAugmentations {
     final result = <Element>[];
     Element? current = this;

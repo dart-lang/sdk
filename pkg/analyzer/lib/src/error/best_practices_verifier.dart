@@ -33,6 +33,7 @@ import 'package:analyzer/src/error/must_call_super_verifier.dart';
 import 'package:analyzer/src/error/null_safe_api_verifier.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/lint/linter.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
@@ -1678,8 +1679,9 @@ class _InvalidAccessVerifier {
 
   void verifyImport(ImportDirective node) {
     var element = node.element?.importedLibrary;
-    if (_hasInternal(element) &&
-        !_isLibraryInWorkspacePackage(element!.library)) {
+    if (element != null &&
+        element.isInternal &&
+        !_isLibraryInWorkspacePackage(element.library)) {
       // The only way for an import directive's URI to have a `null`
       // `stringValue` is if its string contains an interpolation, in which case
       // the element would never have resolved in the first place.  So we can
@@ -1719,8 +1721,7 @@ class _InvalidAccessVerifier {
       return;
     }
 
-    if (_hasInternal(element) &&
-        !_isLibraryInWorkspacePackage(element.library)) {
+    if (element.isInternal && !_isLibraryInWorkspacePackage(element.library)) {
       var fieldName = node.name;
       if (fieldName == null) {
         return;
@@ -1744,8 +1745,9 @@ class _InvalidAccessVerifier {
       return;
     }
     var element = node.staticElement;
-    if (_hasInternal(element) &&
-        !_isLibraryInWorkspacePackage(element!.library)) {
+    if (element != null &&
+        element.isInternal &&
+        !_isLibraryInWorkspacePackage(element.library)) {
       _errorReporter.atNode(
         node,
         WarningCode.INVALID_USE_OF_INTERNAL_MEMBER,
@@ -1759,8 +1761,7 @@ class _InvalidAccessVerifier {
     required Token nameToken,
     required Element element,
   }) {
-    if (_hasInternal(element) &&
-        !_isLibraryInWorkspacePackage(element.library)) {
+    if (element.isInternal && !_isLibraryInWorkspacePackage(element.library)) {
       String name;
       SyntacticEntity node;
 
@@ -1784,7 +1785,7 @@ class _InvalidAccessVerifier {
   }
 
   void _checkForOtherInvalidAccess(AstNode node, Element element) {
-    bool hasProtected = _hasProtected(element);
+    var hasProtected = element.isProtected;
     if (hasProtected) {
       var definingClass = element.enclosingElement as InterfaceElement;
       if (_hasTypeOrSuperType(_enclosingClass, definingClass)) {
@@ -1889,44 +1890,6 @@ class _InvalidAccessVerifier {
         );
       }
     }
-  }
-
-  bool _hasInternal(Element? element) {
-    if (element == null) {
-      return false;
-    }
-    if (element.hasInternal) {
-      return true;
-    }
-    if (element is PropertyAccessorElement) {
-      var variable = element.variable2;
-      if (variable == null) {
-        return false;
-      }
-      if (variable.hasInternal) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  bool _hasProtected(Element element) {
-    if (element is PropertyAccessorElement &&
-        element.enclosingElement is InterfaceElement) {
-      if (element.hasProtected) {
-        return true;
-      }
-      var variable = element.variable2;
-      if (variable != null && variable.hasProtected) {
-        return true;
-      }
-    }
-    if (element is MethodElement &&
-        element.enclosingElement is InterfaceElement &&
-        element.hasProtected) {
-      return true;
-    }
-    return false;
   }
 
   bool _hasTypeOrSuperType(

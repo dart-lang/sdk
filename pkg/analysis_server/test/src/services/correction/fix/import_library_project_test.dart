@@ -981,6 +981,28 @@ void f() {
 ''');
   }
 
+  Future<void> test_withClass_static_getter_annotation() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+library lib;
+class Test {
+  const Test();
+  static const instance = Test();
+}
+''');
+    await resolveTestCode('''
+@Test.instance
+void f() {
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart';
+
+@Test.instance
+void f() {
+}
+''');
+  }
+
   Future<void> test_withExtension_pub_this() async {
     updateTestPubspecFile(r'''
 name: test

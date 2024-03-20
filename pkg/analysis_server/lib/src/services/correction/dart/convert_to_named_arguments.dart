@@ -63,7 +63,8 @@ class ConvertToNamedArguments extends ResolvedCorrectionProducer {
           ParameterElement? uniqueNamedParameter;
           for (var namedParameter in namedParameters) {
             if (typeSystem.isSubtypeOf(
-                argument.typeOrThrow, namedParameter.type)) {
+                    argument.typeOrThrow, namedParameter.type) &&
+                !_namedArgumentExists(extraArguments, namedParameter.name)) {
               if (uniqueNamedParameter == null) {
                 uniqueNamedParameter = namedParameter;
               } else {
@@ -90,5 +91,17 @@ class ConvertToNamedArguments extends ResolvedCorrectionProducer {
         }
       });
     }
+  }
+
+  /// Check if the argument with the [name] exists in the list of [arguments]
+  bool _namedArgumentExists(Iterable<Expression> arguments, String name) {
+    for (var argument in arguments) {
+      if (argument is NamedExpression) {
+        if (argument.name.label.name == name) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 }
