@@ -584,20 +584,6 @@ final class CorrectionUtils {
   /// Returns the [AstNode] that encloses the given offset.
   AstNode? findNode(int offset) => NodeLocator(offset).searchWithin(unit);
 
-  /// Returns names of elements that might conflict with a new local variable
-  /// declared at [offset].
-  Set<String> findPossibleLocalVariableConflicts(int offset) {
-    var conflicts = <String>{};
-    var enclosingNode = findNode(offset)!;
-    var enclosingBlock = enclosingNode.thisOrAncestorOfType<Block>();
-    if (enclosingBlock != null) {
-      var visitor = _CollectReferencedUnprefixedNames();
-      enclosingBlock.accept(visitor);
-      return visitor.names;
-    }
-    return conflicts;
-  }
-
   /// Returns a description of the place in which to insert an `ignore_for_file`
   /// comment.
   ///
@@ -1612,46 +1598,6 @@ class TokenUtils {
     } catch (e) {
       return [];
     }
-  }
-}
-
-class _CollectReferencedUnprefixedNames extends RecursiveAstVisitor<void> {
-  final Set<String> names = <String>{};
-
-  @override
-  void visitNamedType(NamedType node) {
-    if (node.importPrefix == null) {
-      names.add(node.name2.lexeme);
-    }
-
-    super.visitNamedType(node);
-  }
-
-  @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    if (!_isPrefixed(node) && !_isLabelName(node)) {
-      names.add(node.name);
-    }
-  }
-
-  @override
-  visitVariableDeclaration(VariableDeclaration node) {
-    names.add(node.name.lexeme);
-    return super.visitVariableDeclaration(node);
-  }
-
-  static bool _isLabelName(SimpleIdentifier node) {
-    return node.parent is Label;
-  }
-
-  static bool _isPrefixed(SimpleIdentifier node) {
-    var parent = node.parent;
-    return parent is ConstructorName && parent.name == node ||
-        parent is MethodInvocation &&
-            parent.methodName == node &&
-            parent.realTarget != null ||
-        parent is PrefixedIdentifier && parent.identifier == node ||
-        parent is PropertyAccess && parent.target == node;
   }
 }
 

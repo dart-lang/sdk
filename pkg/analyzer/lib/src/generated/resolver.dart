@@ -1816,12 +1816,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitAwaitExpression(AwaitExpression node, {DartType? contextType}) {
-    DartType? futureUnion;
-    if (contextType != null) {
-      futureUnion = _createFutureOr(contextType);
-    }
+    contextType ??= UnknownInferredType.instance;
     checkUnreachableNode(node);
-    analyzeExpression(node.expression, futureUnion);
+    analyzeExpression(node.expression, _createFutureOr(contextType));
     popRewrite();
     typeAnalyzer.visitAwaitExpression(node as AwaitExpressionImpl);
     _insertImplicitCallReference(

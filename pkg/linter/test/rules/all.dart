@@ -12,7 +12,7 @@ import 'avoid_annotating_with_dynamic_test.dart'
     as avoid_annotating_with_dynamic;
 import 'avoid_catching_errors_test.dart' as avoid_catching_errors;
 import 'avoid_classes_with_only_static_members_test.dart'
-    as avoid_class_with_only_static_members;
+    as avoid_classes_with_only_static_members;
 import 'avoid_dynamic_calls_test.dart' as avoid_dynamic_calls;
 import 'avoid_empty_else_test.dart' as avoid_empty_else;
 import 'avoid_equals_and_hash_code_on_mutable_classes_test.dart'
@@ -107,6 +107,8 @@ import 'lines_longer_than_80_chars_test.dart' as lines_longer_than_80_chars;
 import 'literal_only_boolean_expressions_test.dart'
     as literal_only_boolean_expressions;
 import 'matching_super_parameters_test.dart' as matching_super_parameters;
+import 'missing_code_block_language_in_doc_comment_test.dart'
+    as missing_code_block_language_in_doc_comment;
 import 'missing_whitespace_between_adjacent_strings_test.dart'
     as missing_whitespace_between_adjacent_strings;
 import 'no_adjacent_strings_in_list_test.dart' as no_adjacent_strings_in_list;
@@ -205,6 +207,7 @@ import 'unnecessary_lambdas_test.dart' as unnecessary_lambdas;
 import 'unnecessary_late_test.dart' as unnecessary_late;
 import 'unnecessary_library_directive_test.dart'
     as unnecessary_library_directive;
+import 'unnecessary_library_names_test.dart' as unnecessary_library_names;
 import 'unnecessary_new_test.dart' as unnecessary_new;
 import 'unnecessary_null_aware_assignments_test.dart'
     as unnecessary_null_aware_assignments;
@@ -265,7 +268,7 @@ void main() {
   annotate_redeclares.main();
   avoid_annotating_with_dynamic.main();
   avoid_catching_errors.main();
-  avoid_class_with_only_static_members.main();
+  avoid_classes_with_only_static_members.main();
   avoid_dynamic_calls.main();
   avoid_empty_else.main();
   avoid_equals_and_hash_code_on_mutable_classes.main();
@@ -333,6 +336,7 @@ void main() {
   lines_longer_than_80_chars.main();
   literal_only_boolean_expressions.main();
   matching_super_parameters.main();
+  missing_code_block_language_in_doc_comment.main();
   missing_whitespace_between_adjacent_strings.main();
   no_adjacent_strings_in_list.main();
   no_duplicate_case_values.main();
@@ -409,6 +413,7 @@ void main() {
   unnecessary_lambdas.main();
   unnecessary_late.main();
   unnecessary_library_directive.main();
+  unnecessary_library_names.main();
   unnecessary_new.main();
   unnecessary_null_aware_assignments.main();
   unnecessary_null_aware_operator_on_extension_on_nullable.main();

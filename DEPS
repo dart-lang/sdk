@@ -190,7 +190,7 @@ vars = {
   "usage_rev": "67ecd7d1328347ec15cbf8d8a46918df75a66af8",
   "vector_math_rev": "7e705f734e94917e9a5347578e6e496f8db38ac6",
   "watcher_rev": "21858a41da1482922e03ee65cdf2169d01d59a67",
-  "web_rev": "2f13cd55f938f71bcd16c831110e3a196967337f",
+  "web_rev": "4af904f156a17b143020f34576ecc534f815522c",
   "web_socket_channel_rev": "3db86bc0a09e1038a0fa418262c8a92211c5de69",
   "webdev_rev": "51b5484348b4a8ede351e8dff0428b083495ba78", # https://github.com/flutter/devtools/issues/7231
   "webdriver_rev": "73a7ac8c0dcb0f84eae47e2133805295176aa972",

@@ -17,6 +17,7 @@ import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
+import 'package:analyzer/src/workspace/pub.dart';
 
 /// A helper class that produces candidate suggestions for all of the
 /// declarations that are in scope at the completion location.
@@ -1031,10 +1032,11 @@ class DeclarationHelper {
     }
 
     if (element.isInternal) {
-      if (request.pubPackage case var pubPackage?) {
-        if (!pubPackage.contains(element.librarySource)) {
-          return false;
-        }
+      switch (request.fileState.workspacePackage) {
+        case PubPackage pubPackage:
+          if (!pubPackage.contains(element.librarySource)) {
+            return false;
+          }
       }
     }
 
@@ -1053,6 +1055,23 @@ class DeclarationHelper {
         var contextType = contextInterface.thisType;
         if (contextType.asInstanceOf(elementInterface) == null) {
           return false;
+        }
+      }
+    }
+
+    if (element.isVisibleForTesting) {
+      if (element.library != requestLibrary) {
+        var fileState = request.fileState;
+        switch (fileState.workspacePackage) {
+          case PubPackage pubPackage:
+            // Must be in the same package.
+            if (!pubPackage.contains(element.librarySource)) {
+              return false;
+            }
+            // Must be in the `test` directory.
+            if (!pubPackage.isInTestDirectory(fileState.resource)) {
+              return false;
+            }
         }
       }
     }

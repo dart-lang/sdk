@@ -182,6 +182,7 @@ linter:
     - unnecessary_lambdas
     - unnecessary_late
     - unnecessary_library_directive
+    - unnecessary_library_names
     - unnecessary_new
     - unnecessary_null_aware_assignments
     - unnecessary_null_aware_operator_on_extension_on_nullable

@@ -1800,7 +1800,7 @@ class _InvalidAccessVerifier {
       }
     }
 
-    bool hasVisibleForTesting = _hasVisibleForTesting(element);
+    var hasVisibleForTesting = element.isVisibleForTesting;
     if (hasVisibleForTesting) {
       if (_inTestDirectory || _inExportDirective(node)) {
         return;
@@ -1931,17 +1931,6 @@ class _InvalidAccessVerifier {
     final enclosingElement = element.enclosingElement;
     if (_hasVisibleForTemplate(enclosingElement)) {
       return true;
-    }
-    return false;
-  }
-
-  bool _hasVisibleForTesting(Element element) {
-    if (element.hasVisibleForTesting) {
-      return true;
-    }
-    if (element is PropertyAccessorElement) {
-      var variable = element.variable2;
-      return variable != null && variable.hasVisibleForTesting;
     }
     return false;
   }

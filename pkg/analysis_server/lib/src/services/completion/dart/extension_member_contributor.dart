@@ -88,7 +88,9 @@ class ExtensionMemberContributor extends DartCompletionContributor {
       }
 
       // Ignore nullability, consistent with non-extension members.
-      type = containingLibrary.typeSystem.promoteToNonNull(type);
+      if (!type.isDartCoreNull) {
+        type = containingLibrary.typeSystem.promoteToNonNull(type);
+      }
 
       _addExtensionMembers(extensions, defaultKind, type);
       expression.staticType;

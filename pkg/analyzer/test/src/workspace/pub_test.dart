@@ -724,6 +724,24 @@ class PubPackageTest extends WorkspacePackageTest {
     expect(package, isNull);
   }
 
+  test_isInTestDirectory() {
+    var pubPackage = myPackage as PubPackage;
+
+    expect(
+      pubPackage.isInTestDirectory(
+        getFile('$myPackageRootPath/lib/a.dart'),
+      ),
+      isFalse,
+    );
+
+    expect(
+      pubPackage.isInTestDirectory(
+        getFile('$myPackageRootPath/test/a.dart'),
+      ),
+      isTrue,
+    );
+  }
+
   void test_packagesAvailableTo() {
     var libraryPath = convertPath('/workspace/lib/test.dart');
     var package = findPackage(libraryPath)!;

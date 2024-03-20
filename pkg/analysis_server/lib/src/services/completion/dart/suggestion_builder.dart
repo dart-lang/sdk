@@ -188,7 +188,7 @@ class SuggestionBuilder {
   ///
   /// Includes a [URI] for [libraryUriStr] only if the items being suggested are
   /// not already imported.
-  Set<Uri> requiredImports = {};
+  List<Uri> requiredImports = const [];
 
   /// This flag is set to `true` while adding suggestions for top-level
   /// elements from not-yet-imported libraries.
@@ -1460,7 +1460,7 @@ class SuggestionBuilder {
       completion: completion,
       relevance: relevance,
       libraryUriStr: libraryUriStr,
-      requiredImports: requiredImports.toList(),
+      requiredImports: requiredImports,
       isNotImported: isNotImported,
     );
   }
