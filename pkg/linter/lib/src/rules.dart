@@ -196,6 +196,7 @@ import 'rules/unnecessary_getters_setters.dart';
 import 'rules/unnecessary_lambdas.dart';
 import 'rules/unnecessary_late.dart';
 import 'rules/unnecessary_library_directive.dart';
+import 'rules/unnecessary_library_names.dart';
 import 'rules/unnecessary_new.dart';
 import 'rules/unnecessary_null_aware_assignments.dart';
 import 'rules/unnecessary_null_aware_operator_on_extension_on_nullable.dart';
@@ -431,6 +432,7 @@ void registerLintRules() {
     ..register(UnnecessaryLambdas())
     ..register(UnnecessaryLate())
     ..register(UnnecessaryLibraryDirective())
+    ..register(UnnecessaryLibraryNames())
     ..register(UnnecessaryNew())
     ..register(UnnecessaryNullAwareAssignments())
     ..register(UnnecessaryNullAwareOperatorOnExtensionOnNullable())

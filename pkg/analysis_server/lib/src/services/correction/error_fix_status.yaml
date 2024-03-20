@@ -2383,6 +2383,8 @@ LintCode.unnecessary_late:
   status: hasFix
 LintCode.unnecessary_library_directive:
   status: hasFix
+LintCode.unnecessary_library_names:
+  status: needsFix
 LintCode.unnecessary_new:
   status: hasFix
 LintCode.no_wildcard_variable_uses:
