@@ -13,6 +13,8 @@ _STANDARD_PATHS = [
     "build/.+",
     "BUILD.gn",
     "sdk_args.gni",
+    "tools/gn.py",
+    "tools/build.py",
     # core libraries
     ".dart_tool/package_config.json",
     "tools/generate_package_config.py",
