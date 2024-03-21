@@ -1,0 +1,61 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef TA = self::A;
+class A extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::A
+    : super core::Object::•()
+    ;
+  const constructor named() → self::A
+    : super core::Object::•()
+    ;
+  static factory redir() → self::A /* redirection-target: self::B::• */
+    return new self::B::•();
+  static factory selfRedir() → self::A /* redirection-target: self::A::named */
+    return new self::A::named();
+}
+class B extends self::A /*hasConstConstructor*/  {
+  const constructor •() → self::B
+    : super self::A::•()
+    ;
+}
+class Test extends core::Object /*hasConstConstructor*/  {
+  final field self::A a;
+  const constructor named1() → self::Test
+    : self::Test::a = const self::A::•(), super core::Object::•()
+    ;
+  const constructor named2() → self::Test
+    : self::Test::a = const self::B::•(), super core::Object::•()
+    ;
+  const constructor named3() → self::Test
+    : self::Test::a = const self::A::named(), super core::Object::•()
+    ;
+  const constructor named4() → self::Test
+    : self::Test::a = const self::A::named(), super core::Object::•()
+    ;
+  const constructor named5() → self::Test
+    : self::Test::a = const self::A::•(), super core::Object::•()
+    ;
+  const constructor named6() → self::Test
+    : self::Test::a = const self::B::•(), super core::Object::•()
+    ;
+  const constructor named7() → self::Test
+    : self::Test::a = const self::A::named(), super core::Object::•()
+    ;
+  const constructor named8() → self::Test
+    : self::Test::a = const self::A::named(), super core::Object::•()
+    ;
+}
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue55152_5.dart:21:35 -> InstanceConstant(const A{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue55152_5.dart:22:35 -> InstanceConstant(const B{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue55152_5.dart:23:35 -> InstanceConstant(const A{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue55152_5.dart:24:35 -> InstanceConstant(const A{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue55152_5.dart:25:35 -> InstanceConstant(const A{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue55152_5.dart:26:35 -> InstanceConstant(const B{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue55152_5.dart:27:35 -> InstanceConstant(const A{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue55152_5.dart:28:35 -> InstanceConstant(const A{})
+Extra constant evaluation: evaluated: 10, effectively constant: 8

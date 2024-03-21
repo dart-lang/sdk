@@ -1,8 +1,2 @@
 # Generated file containing information about the VS toolchain on Windows.
 win_toolchain.json
-
-# Pulled linux sysroots.
-# Regex to prevent large when comparing checkouts with commits in which the
-# sysroot has been rolled.
-linux/alpine-linux-**-sysroot
-linux/debian_**-sysroot

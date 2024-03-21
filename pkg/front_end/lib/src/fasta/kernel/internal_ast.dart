@@ -686,7 +686,7 @@ class TypeAliasedFactoryInvocation extends StaticInvocation
 
   @override
   String toString() {
-    return "TypeAliasedConstructorInvocation(${toStringInternal()})";
+    return "TypeAliasedFactoryInvocation(${toStringInternal()})";
   }
 
   @override

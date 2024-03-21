@@ -77,12 +77,20 @@ static ExtraLoopInfo* ComputeExtraLoopInfo(Zone* zone, LoopInfo* loop_info) {
   return new (zone) ExtraLoopInfo(start, end);
 }
 
+static const GrowableArray<BlockEntryInstr*>& BlockOrderForAllocation(
+    const FlowGraph& flow_graph) {
+  // Currently CodegenBlockOrder is not topologically sorted in JIT and can't
+  // be used for register allocation.
+  return CompilerState::Current().is_aot() ? *flow_graph.CodegenBlockOrder()
+                                           : flow_graph.reverse_postorder();
+}
+
 FlowGraphAllocator::FlowGraphAllocator(const FlowGraph& flow_graph,
                                        bool intrinsic_mode)
     : flow_graph_(flow_graph),
       reaching_defs_(flow_graph),
       value_representations_(flow_graph.max_vreg()),
-      block_order_(flow_graph.reverse_postorder()),
+      block_order_(BlockOrderForAllocation(flow_graph)),
       postorder_(flow_graph.postorder()),
       instructions_(),
       block_entries_(),
@@ -582,19 +590,21 @@ static bool HasOnlyUnconstrainedUses(LiveRange* range) {
 }
 
 void FlowGraphAllocator::BuildLiveRanges() {
-  const intptr_t block_count = postorder_.length();
-  ASSERT(postorder_.Last()->IsGraphEntry());
+  const intptr_t block_count = block_order_.length();
+  ASSERT(block_order_[0]->IsGraphEntry());
   BitVector* current_interference_set = nullptr;
   Zone* zone = flow_graph_.zone();
-  for (intptr_t i = 0; i < (block_count - 1); i++) {
-    BlockEntryInstr* block = postorder_[i];
+  for (intptr_t x = block_count - 1; x > 0; --x) {
+    BlockEntryInstr* block = block_order_[x];
+
     ASSERT(BlockEntryAt(block->start_pos()) == block);
 
     // For every SSA value that is live out of this block, create an interval
     // that covers the whole block.  It will be shortened if we encounter a
     // definition of this value in this block.
-    for (BitVector::Iterator it(liveness_.GetLiveOutSetAt(i)); !it.Done();
-         it.Advance()) {
+    for (BitVector::Iterator it(
+             liveness_.GetLiveOutSetAt(block->postorder_number()));
+         !it.Done(); it.Advance()) {
       LiveRange* range = GetLiveRange(it.Current());
       range->AddUseInterval(block->start_pos(), block->end_pos());
     }
@@ -637,8 +647,9 @@ void FlowGraphAllocator::BuildLiveRanges() {
     if (block->IsLoopHeader()) {
       ASSERT(loop_info != nullptr);
       current_interference_set = nullptr;
-      for (BitVector::Iterator it(liveness_.GetLiveInSetAt(i)); !it.Done();
-           it.Advance()) {
+      for (BitVector::Iterator it(
+               liveness_.GetLiveInSetAt(block->postorder_number()));
+           !it.Done(); it.Advance()) {
         LiveRange* range = GetLiveRange(it.Current());
         intptr_t loop_end = extra_loop_info_[loop_info->id()]->end;
         if (HasOnlyUnconstrainedUsesInLoop(range, loop_end)) {
@@ -1681,11 +1692,7 @@ static ParallelMoveInstr* CreateParallelMoveAfter(Instruction* instr,
 void FlowGraphAllocator::NumberInstructions() {
   intptr_t pos = 0;
 
-  // The basic block order is reverse postorder.
-  const intptr_t block_count = postorder_.length();
-  for (intptr_t i = block_count - 1; i >= 0; i--) {
-    BlockEntryInstr* block = postorder_[i];
-
+  for (auto block : block_order_) {
     instructions_.Add(block);
     block_entries_.Add(block);
     block->set_start_pos(pos);
@@ -1706,9 +1713,7 @@ void FlowGraphAllocator::NumberInstructions() {
 
   // Create parallel moves in join predecessors.  This must be done after
   // all instructions are numbered.
-  for (intptr_t i = block_count - 1; i >= 0; i--) {
-    BlockEntryInstr* block = postorder_[i];
-
+  for (auto block : block_order_) {
     // For join entry predecessors create phi resolution moves if
     // necessary. They will be populated by the register allocator.
     JoinEntryInstr* join = block->AsJoinEntry();
@@ -3180,10 +3185,7 @@ void FlowGraphAllocator::CollectRepresentations() {
     }
   }
 
-  for (BlockIterator it = flow_graph_.reverse_postorder_iterator(); !it.Done();
-       it.Advance()) {
-    BlockEntryInstr* block = it.Current();
-
+  for (auto block : block_order_) {
     if (auto entry = block->AsBlockEntryWithInitialDefs()) {
       initial_definitions = entry->initial_definitions();
       for (intptr_t i = 0; i < initial_definitions->length(); ++i) {
@@ -3209,9 +3211,8 @@ void FlowGraphAllocator::CollectRepresentations() {
     }
 
     // Normal instructions.
-    for (ForwardInstructionIterator instr_it(block); !instr_it.Done();
-         instr_it.Advance()) {
-      Definition* def = instr_it.Current()->AsDefinition();
+    for (auto instr : block->instructions()) {
+      Definition* def = instr->AsDefinition();
       if ((def != nullptr) && (def->vreg(0) >= 0)) {
         const intptr_t vreg = def->vreg(0);
         value_representations_[vreg] =
@@ -3257,7 +3258,7 @@ void FlowGraphAllocator::RemoveFrameIfNotNeeded() {
 #if defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_ARM)
   bool has_write_barrier_call = false;
 #endif
-  for (auto block : flow_graph_.reverse_postorder()) {
+  for (auto block : block_order_) {
     for (auto instruction : block->instructions()) {
       if (instruction->HasLocs() && instruction->locs()->can_call()) {
         // Function contains a call and thus needs a frame.
@@ -3359,7 +3360,7 @@ void FlowGraphAllocator::AllocateOutgoingArguments() {
   const intptr_t total_spill_slot_count =
       flow_graph_.graph_entry()->spill_slot_count();
 
-  for (auto block : flow_graph_.reverse_postorder()) {
+  for (auto block : block_order_) {
     for (auto instr : block->instructions()) {
       if (auto move_arg = instr->AsMoveArgument()) {
         // Register calling conventions are not used in JIT.
@@ -3383,7 +3384,7 @@ void FlowGraphAllocator::AllocateOutgoingArguments() {
 void FlowGraphAllocator::ScheduleParallelMoves() {
   ParallelMoveResolver resolver;
 
-  for (auto block : flow_graph_.reverse_postorder()) {
+  for (auto block : block_order_) {
     if (block->HasParallelMove()) {
       resolver.Resolve(block->parallel_move());
     }

@@ -1,0 +1,29 @@
+// Copyright (c) 2024, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class A {
+  const A();
+  const factory A.redir() = B;
+  const A.named();
+  const factory A.selfRedir() = A.named;
+}
+
+class B extends A {
+  const B();
+}
+
+typedef TA = A;
+
+class Test {
+  final A a;
+
+  const Test.named1() : a = const A();
+  const Test.named2() : a = const A.redir();
+  const Test.named3() : a = const A.named();
+  const Test.named4() : a = const A.selfRedir();
+  const Test.named5() : a = const TA();
+  const Test.named6() : a = const TA.redir();
+  const Test.named7() : a = const TA.named();
+  const Test.named8() : a = const TA.selfRedir();
+}

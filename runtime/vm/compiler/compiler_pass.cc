@@ -330,8 +330,9 @@ FlowGraph* CompilerPass::RunForceOptimizedPipeline(
   INVOKE_PASS_AOT(DelayAllocations);
   INVOKE_PASS(EliminateWriteBarriers);
   INVOKE_PASS(FinalizeGraph);
-  INVOKE_PASS(AllocateRegisters);
   INVOKE_PASS(ReorderBlocks);
+  INVOKE_PASS(AllocateRegisters);
+  INVOKE_PASS(TestILSerialization);  // Must be last.
   return pass_state->flow_graph();
 }
 
@@ -398,8 +399,9 @@ FlowGraph* CompilerPass::RunPipeline(PipelineMode mode,
   INVOKE_PASS(EliminateWriteBarriers);
   INVOKE_PASS(FinalizeGraph);
   INVOKE_PASS(Canonicalize);
-  INVOKE_PASS(AllocateRegisters);
   INVOKE_PASS(ReorderBlocks);
+  INVOKE_PASS(AllocateRegisters);
+  INVOKE_PASS(TestILSerialization);  // Must be last.
   return pass_state->flow_graph();
 }
 
@@ -571,22 +573,6 @@ COMPILER_PASS(AllocateRegistersForGraphIntrinsic, {
 
 COMPILER_PASS(ReorderBlocks, {
   BlockScheduler::ReorderBlocks(flow_graph);
-
-  // This is the last compiler pass.
-  // Test that round-trip IL serialization works before generating code.
-  if (FLAG_test_il_serialization && CompilerState::Current().is_aot()) {
-    Zone* zone = flow_graph->zone();
-    auto* detached_defs = new (zone) ZoneGrowableArray<Definition*>(zone, 0);
-    flow_graph->CompactSSA(detached_defs);
-
-    ZoneWriteStream write_stream(flow_graph->zone(), 1024);
-    FlowGraphSerializer serializer(&write_stream);
-    serializer.WriteFlowGraph(*flow_graph, *detached_defs);
-    ReadStream read_stream(write_stream.buffer(), write_stream.bytes_written());
-    FlowGraphDeserializer deserializer(flow_graph->parsed_function(),
-                                       &read_stream);
-    state->set_flow_graph(deserializer.ReadFlowGraph());
-  }
 });
 
 COMPILER_PASS(EliminateWriteBarriers, { EliminateWriteBarriers(flow_graph); });
@@ -604,6 +590,24 @@ COMPILER_PASS(FinalizeGraph, {
   flow_graph->function().set_inlining_depth(state->inlining_depth);
   // Remove redefinitions for the rest of the pipeline.
   flow_graph->RemoveRedefinitions();
+});
+
+COMPILER_PASS(TestILSerialization, {
+  // This is the last compiler pass.
+  // Test that round-trip IL serialization works before generating code.
+  if (FLAG_test_il_serialization && CompilerState::Current().is_aot()) {
+    Zone* zone = flow_graph->zone();
+    auto* detached_defs = new (zone) ZoneGrowableArray<Definition*>(zone, 0);
+    flow_graph->CompactSSA(detached_defs);
+
+    ZoneWriteStream write_stream(flow_graph->zone(), 1024);
+    FlowGraphSerializer serializer(&write_stream);
+    serializer.WriteFlowGraph(*flow_graph, *detached_defs);
+    ReadStream read_stream(write_stream.buffer(), write_stream.bytes_written());
+    FlowGraphDeserializer deserializer(flow_graph->parsed_function(),
+                                       &read_stream);
+    state->set_flow_graph(deserializer.ReadFlowGraph());
+  }
 });
 
 COMPILER_PASS(GenerateCode, { state->graph_compiler->CompileGraph(); });

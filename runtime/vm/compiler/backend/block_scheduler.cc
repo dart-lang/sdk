@@ -225,8 +225,10 @@ void BlockScheduler::ReorderBlocksJIT(FlowGraph* flow_graph) {
     flow_graph->CodegenBlockOrder()->Add(checked_entry);
   }
   // Build a new block order.  Emit each chain when its first block occurs
-  // in the original reverse postorder ordering (which gives a topological
-  // sort of the blocks).
+  // in the original reverse postorder ordering.
+  // Note: the resulting order is not topologically sorted and can't be
+  // used a replacement for reverse_postorder in algorithms that expect
+  // topological sort.
   for (intptr_t i = block_count - 1; i >= 0; --i) {
     if (chains[i]->first->block == flow_graph->postorder()[i]) {
       for (Link* link = chains[i]->first; link != nullptr; link = link->next) {

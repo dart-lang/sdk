@@ -468,14 +468,25 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
     function.returnType = type;
   }
 
-  bool _hasBuiltOutlineExpressions = false;
+  bool hasBuiltOutlineExpressions = false;
+
+  bool get needsDefaultValuesBuiltAsOutlineExpressions {
+    if (formals != null) {
+      for (FormalParameterBuilder formal in formals!) {
+        if (formal.needsDefaultValuesBuiltAsOutlineExpressions) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
 
   @override
   void buildOutlineExpressions(
       ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
-    if (!_hasBuiltOutlineExpressions) {
+    if (!hasBuiltOutlineExpressions) {
       DeclarationBuilder? classOrExtensionBuilder =
           isClassMember || isExtensionMember || isExtensionTypeMember
               ? parent as DeclarationBuilder
@@ -508,7 +519,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
               libraryBuilder, delayedActionPerformers);
         }
       }
-      _hasBuiltOutlineExpressions = true;
+      hasBuiltOutlineExpressions = true;
     }
   }
 
