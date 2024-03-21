@@ -65,8 +65,7 @@ class CreateField extends CreateFieldOrGetter {
     if (targetElement.library.isInSdk) {
       return;
     }
-    utils.targetClassElement = targetElement;
-    // prepare target ClassDeclaration
+    // Prepare target ClassDeclaration.
     var targetDeclarationResult =
         await sessionHelper.getElementDeclaration(targetElement);
     if (targetDeclarationResult == null) {

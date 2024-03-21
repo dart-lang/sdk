@@ -41,8 +41,7 @@ class CreateFunction extends ResolvedCorrectionProducer {
     }
     insertOffset = enclosingMember.end;
     sourcePrefix = '$eol$eol';
-    utils.targetClassElement = null;
-    // build method source
+    // Build method source.
     await builder.addDartFileEdit(file, (builder) {
       builder.addInsertion(insertOffset, (builder) {
         builder.write(sourcePrefix);

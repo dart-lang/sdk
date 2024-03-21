@@ -54,15 +54,15 @@ class DebugAdapterCommand extends DartdevCommand {
   @override
   FutureOr<int> run() async {
     final args = argResults!;
-    final ipv6 = args[argIpv6] as bool;
+    final ipv6 = args.flag(argIpv6);
 
     final server = DapServer(
       stdin,
       stdout.nonBlocking,
       ipv6: ipv6,
-      enableDds: args[argDds],
-      enableAuthCodes: args[argAuthCodes],
-      test: args[argTest],
+      enableDds: args.flag(argDds),
+      enableAuthCodes: args.flag(argAuthCodes),
+      test: args.flag(argTest),
       // Protocol errors should be written to stderr to help debug (or in the
       // case of a user running this command to explain it's for tools).
       onError: (e) => stderr.writeln(

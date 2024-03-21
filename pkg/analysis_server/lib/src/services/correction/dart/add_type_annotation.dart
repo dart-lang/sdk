@@ -89,8 +89,6 @@ class AddTypeAnnotation extends ResolvedCorrectionProducer {
 
   Future<void> _applyChange(
       ChangeBuilder builder, Token? keyword, Token name, DartType type) async {
-    _configureTargetLocation(node);
-
     await builder.addDartFileEdit(file, (builder) {
       if (builder.canWriteType(type)) {
         if (keyword != null && keyword.keyword == Keyword.VAR) {
@@ -105,18 +103,6 @@ class AddTypeAnnotation extends ResolvedCorrectionProducer {
         }
       }
     });
-  }
-
-  /// Configure the [utils] using the given [target].
-  void _configureTargetLocation(Object target) {
-    utils.targetClassElement = null;
-    if (target is AstNode) {
-      var targetClassDeclaration =
-          target.thisOrAncestorOfType<ClassDeclaration>();
-      if (targetClassDeclaration != null) {
-        utils.targetClassElement = targetClassDeclaration.declaredElement;
-      }
-    }
   }
 
   Future<void> _forDeclaredIdentifier(
