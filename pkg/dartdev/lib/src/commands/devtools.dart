@@ -75,7 +75,7 @@ class DevToolsCommand extends DartdevCommand {
       serviceProtocolUri = args.rest.first;
       positionalServiceUri = true;
     } else if (args.wasParsed(DevToolsServer.argVmUri)) {
-      serviceProtocolUri = args[DevToolsServer.argVmUri];
+      serviceProtocolUri = args.option(DevToolsServer.argVmUri)!;
     }
 
     final argList = args.arguments.toList();
@@ -105,8 +105,8 @@ class DevToolsCommand extends DartdevCommand {
     if (uri == originalUri) {
       uri = await maybeStartDDS(
         uri: uri,
-        ddsHost: args[DevToolsServer.argDdsHost],
-        ddsPort: args[DevToolsServer.argDdsPort],
+        ddsHost: args.option(DevToolsServer.argDdsHost)!,
+        ddsPort: args.option(DevToolsServer.argDdsPort)!,
         machineMode: args.wasParsed(DevToolsServer.argMachine),
       );
     }

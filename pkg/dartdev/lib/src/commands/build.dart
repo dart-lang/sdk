@@ -89,19 +89,17 @@ class BuildCommand extends DartdevCommand {
     }
 
     final outputUri = Uri.directory(
-      (args[outputOptionName] as String?)
-              ?.normalizeCanonicalizePath()
-              .makeFolder() ??
+      args.option(outputOptionName)?.normalizeCanonicalizePath().makeFolder() ??
           sourceUri.toFilePath().removeDotDart().makeFolder(),
     );
 
-    final format = Kind.values.byName(args[formatOptionName] as String);
+    final format = Kind.values.byName(args.option(formatOptionName)!);
     final outputExeUri = outputUri.resolve(
       format.appendFileExtension(
         sourceUri.pathSegments.last.split('.').first,
       ),
     );
-    String? targetOS = args['target-os'];
+    String? targetOS = args.option('target-os');
     if (format != Kind.exe) {
       assert(format == Kind.aot);
       // If we're generating an AOT snapshot and not an executable, then
@@ -213,7 +211,7 @@ Use linkMode as dynamic library instead.""");
       sourceFile: sourceUri.toFilePath(),
       outputFile: outputExeUri.toFilePath(),
       verbose: verbose,
-      verbosity: args['verbosity'],
+      verbosity: args.option('verbosity')!,
       defines: [],
       nativeAssets: nativeAssetsDartUri?.toFilePath(),
       packages: packageConfig?.toFilePath(),

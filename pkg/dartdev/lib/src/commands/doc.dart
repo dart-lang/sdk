@@ -63,7 +63,7 @@ For additional documentation generation options, see the 'dartdoc_options.yaml' 
     final options = <String>[];
     final args = argResults!;
 
-    if (args['sdk-docs']) {
+    if (args.flag('sdk-docs')) {
       options.add('--sdk-docs');
     } else {
       if (args.rest.length > 1) {
@@ -81,7 +81,7 @@ For additional documentation generation options, see the 'dartdoc_options.yaml' 
       options.add('--input=${directory.path}');
     }
 
-    if (args['dry-run'] && args['validate-links']) {
+    if (args.flag('dry-run') && args.flag('validate-links')) {
       usageException("'dart doc' can not validate links when dry-running.");
     }
 
@@ -91,10 +91,10 @@ For additional documentation generation options, see the 'dartdoc_options.yaml' 
 
     // Build remaining options.
     options.addAll([
-      '--output=${args['output']}',
+      '--output=${args.option('output')!}',
       '--resources-dir=$resourcesPath',
-      args['validate-links'] ? '--validate-links' : '--no-validate-links',
-      if (args['dry-run']) '--no-generate-docs',
+      args.flag('validate-links') ? '--validate-links' : '--no-validate-links',
+      if (args.flag('dry-run')) '--no-generate-docs',
       if (verbose) ...['--verbose-warnings', '--show-stats'],
     ]);
 

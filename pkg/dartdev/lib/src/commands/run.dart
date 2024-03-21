@@ -322,7 +322,7 @@ class RunCommand extends DartdevCommand {
     }
 
     final residentServerInfoFile = hasServerInfoOption
-        ? File(maybeUriToFilename(args[serverInfoOption]))
+        ? File(maybeUriToFilename(args.option(serverInfoOption)!))
         : defaultResidentServerInfoFile;
 
     if (useResidentServer && residentServerInfoFile != null) {
@@ -361,7 +361,8 @@ class RunCommand extends DartdevCommand {
     VmInteropHandler.run(
       executable.executable,
       runArgs,
-      packageConfigOverride: args['packages'] ?? executable.packageConfig,
+      packageConfigOverride:
+          args.option('packages') ?? executable.packageConfig,
     );
     return 0;
   }

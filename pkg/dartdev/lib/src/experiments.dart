@@ -47,7 +47,7 @@ extension ArgResultsExtensions on ArgResults {
     // provided.
     if (options.contains(experimentFlagName)) {
       if (wasParsed(experimentFlagName)) {
-        enabledExperiments = this[experimentFlagName] as List<String>;
+        enabledExperiments = multiOption(experimentFlagName);
       }
     } else {
       // In the case where a command uses `ArgParser.allowAnything()` as its
