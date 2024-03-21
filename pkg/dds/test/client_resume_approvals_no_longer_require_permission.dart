@@ -13,49 +13,45 @@ const String clientName = 'TestClient';
 const String otherClientName = 'OtherTestClient';
 
 void fooBar() {
-  // ignore: unused_local_variable
   int i = 0;
-  while (true) {
-    i++;
-  }
+  print(i);
 }
 
-late VmService client1;
-late VmService client2;
-
 final test = <IsolateTest>[
-  // Multiple clients, hot reload approval.
-  (VmService service, IsolateRef isolateRef) async {
-    client1 = await createClient(
-      service: service,
-      clientName: clientName,
-      onPauseReload: true,
-    );
-    client2 = await createClient(
-      service: service,
-      clientName: otherClientName,
-      onPauseReload: true,
-    );
-  },
-  hasPausedAtStart,
-  // Paused on start, resume.
-  resumeIsolate,
-  // Reload and then pause.
-  reloadSources(pause: true),
-  hasStoppedPostRequest,
   (VmService service, IsolateRef isolateRef) async {
     final isolateId = isolateRef.id!;
-    // Check that client2 can't resume the isolate on its own.
+    final client1 = await createClient(
+      service: service,
+      clientName: clientName,
+      onPauseStart: true,
+    );
+    final client2 = await createClient(
+      service: service,
+      clientName: otherClientName,
+      onPauseStart: true,
+    );
+
+    await hasPausedAtStart(service, isolateRef);
+
+    // When one client resumes, DDS waits to resume until the other client
+    // indicates it's ready.
     await client2.readyToResume(isolateId);
-    await hasStoppedPostRequest(service, isolateRef);
-    await resumeIsolate(client1, isolateRef);
+    await hasPausedAtStart(service, isolateRef);
+
+    // If the only remaining client changes their resume permissions, DDS
+    // should check if the isolate should be resumed. In this case, the only
+    // other client requiring permission to resume has indicated it's ready
+    // so the isolate is resumed and pauses at exit.
+    await client1.requirePermissionToResume(onPauseStart: false);
+    await hasStoppedAtExit(service, isolateRef);
   },
 ];
 
 void main([args = const <String>[]]) => runIsolateTests(
       args,
       test,
-      'client_resume_approvals_reload_test.dart',
+      'client_resume_approvals_no_longer_require_permission.dart',
       testeeConcurrent: fooBar,
       pauseOnStart: true,
+      pauseOnExit: true,
     );

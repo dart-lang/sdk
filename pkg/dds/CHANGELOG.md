@@ -1,3 +1,8 @@
+# 4.0.0
+- Updated DDS protocol to version 2.0.
+- Added `readyToResume` and `requireUserPermissionToResume` RPCs.
+- **Breaking change:** `resume` is now treated as a user-initiated resume request and force resumes paused isolates, regardless of required resume approvals. Tooling relying on resume permissions should use the `readyToResume` RPC to indicate to DDS that they are ready to resume.
+
 # 3.4.0
 - Start the Dart Tooling Daemon from the DevTools server when a connection is not passed to the server on start.
 

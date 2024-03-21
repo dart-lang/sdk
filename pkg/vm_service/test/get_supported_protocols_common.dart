@@ -25,7 +25,7 @@ VMTest expectedProtocolTest(
       expect(protocols.length, expectedLength);
       for (final protocol in protocols) {
         expect(expectedProtocols.contains(protocol.protocolName), true);
-        expect(protocol.minor, greaterThan(0));
+        expect(protocol.minor, greaterThanOrEqualTo(0));
         expect(protocol.major, greaterThan(0));
       }
     };

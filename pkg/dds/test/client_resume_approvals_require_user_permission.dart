@@ -11,7 +11,6 @@ import 'common/test_helper.dart';
 
 const String clientName = 'TestClient';
 const String otherClientName = 'OtherTestClient';
-const String dummyClientName = 'DummyClient';
 
 void fooBar() {
   int i = 0;
@@ -19,7 +18,6 @@ void fooBar() {
 }
 
 final test = <IsolateTest>[
-  // Multiple clients, different client names.
   (VmService service, IsolateRef isolateRef) async {
     final isolateId = isolateRef.id!;
     final client1 = await createClient(
@@ -31,31 +29,47 @@ final test = <IsolateTest>[
     final client2 = await createClient(
       service: service,
       clientName: otherClientName,
-    );
-    // ignore: unused_local_variable
-    final client3 = await createClient(
-      service: service,
-      clientName: 'DummyClient',
+      onPauseStart: true,
+      onPauseExit: true,
     );
 
     await hasPausedAtStart(service, isolateRef);
+    await client1.requireUserPermissionToResume(
+      onPauseStart: true,
+      onPauseExit: true,
+    );
+
+    // Both clients indicate they're ready to resume but the isolate won't
+    // resume until `resume` is invoked to indicate the user has triggered a
+    // resume.
     await client2.readyToResume(isolateId);
     await hasPausedAtStart(service, isolateRef);
     await client1.readyToResume(isolateId);
+    await hasPausedAtStart(service, isolateRef);
+
+    // Indicate the user is ready to resume and the isolate should run to
+    // completion.
+    await client1.resume(isolateId);
     await hasStoppedAtExit(service, isolateRef);
-    await client2.requirePermissionToResume(
-      onPauseExit: true,
-    );
+
+    // Both clients indicate they're ready to resume but the isolate won't
+    // resume until `resume` is invoked to indicate the user has triggered a
+    // resume.
+    await client2.readyToResume(isolateId);
+    await hasStoppedAtExit(service, isolateRef);
     await client1.readyToResume(isolateId);
     await hasStoppedAtExit(service, isolateRef);
-    await client2.readyToResume(isolateId);
+
+    await client1.resume(isolateId);
+    // We can't verify the process actually resumes with this test harness, so
+    // we're going to assume it did.
   },
 ];
 
 void main([args = const <String>[]]) => runIsolateTests(
       args,
       test,
-      'client_resume_approvals_multiple_names_test.dart',
+      'client_resume_approvals_require_user_permission.dart',
       testeeConcurrent: fooBar,
       pauseOnStart: true,
       pauseOnExit: true,

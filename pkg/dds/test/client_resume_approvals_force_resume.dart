@@ -13,49 +13,44 @@ const String clientName = 'TestClient';
 const String otherClientName = 'OtherTestClient';
 
 void fooBar() {
-  // ignore: unused_local_variable
   int i = 0;
-  while (true) {
-    i++;
-  }
+  print(i);
 }
 
-late VmService client1;
-late VmService client2;
-
 final test = <IsolateTest>[
-  // Multiple clients, hot reload approval.
-  (VmService service, IsolateRef isolateRef) async {
-    client1 = await createClient(
-      service: service,
-      clientName: clientName,
-      onPauseReload: true,
-    );
-    client2 = await createClient(
-      service: service,
-      clientName: otherClientName,
-      onPauseReload: true,
-    );
-  },
-  hasPausedAtStart,
-  // Paused on start, resume.
-  resumeIsolate,
-  // Reload and then pause.
-  reloadSources(pause: true),
-  hasStoppedPostRequest,
+  // Multiple clients, different client names.
   (VmService service, IsolateRef isolateRef) async {
     final isolateId = isolateRef.id!;
-    // Check that client2 can't resume the isolate on its own.
-    await client2.readyToResume(isolateId);
-    await hasStoppedPostRequest(service, isolateRef);
-    await resumeIsolate(client1, isolateRef);
+    final client1 = await createClient(
+      service: service,
+      clientName: clientName,
+      onPauseStart: true,
+    );
+    // ignore: unused_local_variable
+    final client2 = await createClient(
+      service: service,
+      clientName: otherClientName,
+      onPauseStart: true,
+    );
+
+    await hasPausedAtStart(service, isolateRef);
+    await client1.requireUserPermissionToResume(
+      onPauseStart: true,
+    );
+
+    // Invocations of `resume` are considered to be resume requests made by the
+    // user and is treated as a force resume, ignoring any resume permissions
+    // set by clients.
+    await client1.resume(isolateId);
+    await hasStoppedAtExit(service, isolateRef);
   },
 ];
 
 void main([args = const <String>[]]) => runIsolateTests(
       args,
       test,
-      'client_resume_approvals_reload_test.dart',
+      'client_resume_approvals_force_resume.dart',
       testeeConcurrent: fooBar,
       pauseOnStart: true,
+      pauseOnExit: true,
     );
