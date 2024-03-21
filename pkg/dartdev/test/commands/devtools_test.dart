@@ -18,6 +18,9 @@ final dartVMServiceRegExp = RegExp(
 final ddsStartedRegExp = RegExp(
   r'Started the Dart Development Service \(DDS\) at (http://127.0.0.1:.*)',
 );
+final dtdStartedRegExp = RegExp(
+  r'Serving the Dart Tooling Daemon at (ws://127.0.0.1:.*)',
+);
 final servingDevToolsRegExp = RegExp(
   r'Serving DevTools at (http://127.0.0.1:.*)',
 );
@@ -138,10 +141,54 @@ void devtools() {
     });
   });
 
+  Future<void> startDevTools({
+    String? vmServiceUri,
+    bool shouldStartDds = false,
+    bool shouldPrintDtd = false,
+  }) async {
+    final process = await p.start([
+      'devtools',
+      '--no-launch-browser',
+      if (shouldPrintDtd) '--print-dtd',
+      if (vmServiceUri != null) vmServiceUri,
+    ]);
+    process.stderr.transform(utf8.decoder).listen(print);
+
+    bool startedDds = false;
+    bool startedDtd = false;
+    final devToolsServedCompleter = Completer<void>();
+    late StreamSubscription sub;
+    sub = process.stdout
+        .transform<String>(utf8.decoder)
+        .transform<String>(const LineSplitter())
+        .listen((event) async {
+      print(event);
+      if (event.contains(ddsStartedRegExp)) {
+        startedDds = true;
+      } else if (event.contains(dtdStartedRegExp)) {
+        startedDtd = true;
+      } else if (event.contains(servingDevToolsRegExp)) {
+        await sub.cancel();
+        devToolsServedCompleter.complete();
+      }
+    });
+
+    await devToolsServedCompleter.future;
+    expect(startedDds, shouldStartDds);
+    expect(startedDtd, shouldPrintDtd);
+
+    // kill the process
+    process.kill();
+  }
+
+  test('prints DTD URI', () async {
+    p = project();
+    await startDevTools(shouldPrintDtd: true);
+  });
+
   group('spawns DDS integration', () {
     late TestProject targetProject;
     Process? targetProjectInstance;
-    Process? process;
 
     setUp(() {
       // NOTE: we don't use `project()` here since it registers a tear-down
@@ -163,9 +210,7 @@ Future<void> main() async {
 
     tearDown(() {
       targetProjectInstance?.kill();
-      process?.kill();
       targetProjectInstance = null;
-      process = null;
       targetProject.dispose();
       p.dispose();
     });
@@ -197,40 +242,6 @@ Future<void> main() async {
       });
 
       return await serviceUriCompleter.future;
-    }
-
-    Future<void> startDevTools({
-      required String vmServiceUri,
-      required bool shouldStartDds,
-    }) async {
-      process = await p.start([
-        'devtools',
-        '--no-launch-browser',
-        vmServiceUri,
-      ]);
-      process!.stderr.transform(utf8.decoder).listen(print);
-
-      bool startedDds = false;
-      final devToolsServedCompleter = Completer<void>();
-      late StreamSubscription sub;
-      sub = process!.stdout
-          .transform<String>(utf8.decoder)
-          .transform<String>(const LineSplitter())
-          .listen((event) async {
-        if (event.contains(ddsStartedRegExp)) {
-          startedDds = true;
-        } else if (event.contains(servingDevToolsRegExp)) {
-          await sub.cancel();
-          devToolsServedCompleter.complete();
-        }
-      });
-
-      await devToolsServedCompleter.future;
-      expect(startedDds, shouldStartDds);
-
-      // kill the process
-      process!.kill();
-      process = null;
     }
 
     for (final disableAuthCodes in const [true, false]) {

@@ -124,7 +124,8 @@ bool VmService::Setup(const char* server_ip,
                       bool enable_service_port_fallback,
                       bool wait_for_dds_to_advertise_service,
                       bool serve_devtools,
-                      bool serve_observatory) {
+                      bool serve_observatory,
+                      bool print_dtd) {
   Dart_Isolate isolate = Dart_CurrentIsolate();
   ASSERT(isolate != nullptr);
   SetServerAddress("");
@@ -219,6 +220,10 @@ bool VmService::Setup(const char* server_ip,
 
   result = Dart_SetField(library, DartUtils::NewString("_serveObservatory"),
                          serve_observatory ? Dart_True() : Dart_False());
+  SHUTDOWN_ON_ERROR(result);
+
+  result = Dart_SetField(library, DartUtils::NewString("_printDtd"),
+                         print_dtd ? Dart_True() : Dart_False());
   SHUTDOWN_ON_ERROR(result);
 
 // Are we running on Windows?

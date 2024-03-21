@@ -181,8 +181,6 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
       // server on start.
       _hostedDartToolingDaemon = await startDtd(
         machineMode: false,
-        // TODO(https://github.com/dart-lang/sdk/issues/55034): pass the value
-        // of the Dart CLI flag `--print-dtd` here.
         printDtdUri: false,
       );
     }

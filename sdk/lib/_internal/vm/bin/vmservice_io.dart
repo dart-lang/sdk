@@ -65,6 +65,9 @@ bool _waitForDdsToAdvertiseService = false;
 @pragma('vm:entry-point', !const bool.fromEnvironment('dart.vm.product'))
 bool _serveObservatory = false;
 
+@pragma('vm:entry-point', !const bool.fromEnvironment('dart.vm.product'))
+bool _printDtd = false;
+
 // HTTP server.
 Server? server;
 Future<Server>? serverFuture;
@@ -103,27 +106,12 @@ class _DebuggingSession {
     ].join('/');
 
     final fullSdk = dartDir.endsWith('bin');
-
-    final dartAotPath = [
-      dartDir,
-      fullSdk
-          ? 'dartaotruntime${Platform.isWindows ? '.exe' : ''}'
-          : 'dart_precompiled_runtime_product${Platform.isWindows ? '.exe' : ''}',
-    ].join('/');
-    String snapshotName = [
+    final snapshotName = [
       dartDir,
       fullSdk ? 'snapshots' : 'gen',
-      'dds_aot.dart.snapshot',
+      'dds.dart.snapshot',
     ].join('/');
-    String execName = dartAotPath;
-    if (!File(snapshotName).existsSync() || !File(dartAotPath).existsSync()) {
-      snapshotName = [
-        dartDir,
-        fullSdk ? 'snapshots' : 'gen',
-        'dds.dart.snapshot',
-      ].join('/');
-      execName = dartPath.toString();
-    }
+    final execName = dartPath.toString();
 
     _process = await Process.start(
       execName,
@@ -144,19 +132,20 @@ class _DebuggingSession {
       final result = json.decode(event) as Map<String, dynamic>;
       final state = result['state'];
       if (state == 'started') {
-        if (result.containsKey('devToolsUri')) {
-          // TODO(https://github.com/dart-lang/sdk/issues/55034): only print
-          // this if the Dart CLI flag `--print-dtd` is present.
-          if (result.containsKey('dtdUri') && false) {
-            final dtdUri = result['dtdUri'];
-            print('The Dart Tooling Daemon is listening on $dtdUri');
-          }
+        if (result case {'devToolsUri': String devToolsUri}) {
           // NOTE: update pkg/dartdev/lib/src/commands/run.dart if this message
           // is changed to ensure consistency.
           const devToolsMessagePrefix =
               'The Dart DevTools debugger and profiler is available at:';
-          final devToolsUri = result['devToolsUri'];
           print('$devToolsMessagePrefix $devToolsUri');
+        }
+        if (result
+            case {
+              'dtd': {
+                'uri': String dtdUri,
+              }
+            } when _printDtd) {
+          print('The Dart Tooling Daemon (DTD) is available at: $dtdUri');
         }
         stderrSub.cancel();
         completer.complete();

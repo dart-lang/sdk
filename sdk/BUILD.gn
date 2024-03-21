@@ -46,7 +46,7 @@ declare_args() {
 # ........dart2wasm_product.snapshot (if not on ia32)
 # ........dartdev.dart.snapshot (app-jit snapshot or kernel dill file)
 # ........dartdevc.dart.snapshot
-# ........dds_aot.dart.snapshot (AOT snapshot) or dds.dart.snapshot (ia32)
+# ........dds.dart.snapshot
 # ........dart_tooling_daemon.dart.snapshot
 # ........frontend_server_aot.dart.snapshot (AOT snapshot, if not on ia32)
 # ........frontend_server.dart.snapshot
@@ -125,17 +125,10 @@ _platform_sdk_snapshots = [
     "../utils/kernel-service:frontend_server",
   ],
 ]
-if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
-  _platform_sdk_snapshots += [ [
-        "dds_aot",
-        "../utils/dds:dds_aot",
-      ] ]
-} else {
-  _platform_sdk_snapshots += [ [
-        "dds",
-        "../utils/dds:dds",
-      ] ]
-}
+_platform_sdk_snapshots += [ [
+      "dds",
+      "../utils/dds:dds",
+    ] ]
 if (dart_snapshot_kind == "app-jit") {
   _platform_sdk_snapshots += [ [
         "kernel-service",

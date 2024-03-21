@@ -24,25 +24,11 @@ class DDSRunner {
   }) async {
     final sdkDir = dirname(sdk.dart);
     final fullSdk = sdkDir.endsWith('bin');
-    String snapshotName = fullSdk
-        ? sdk.ddsAotSnapshot
-        : absolute(sdkDir, 'dds_aot.dart.snapshot');
-    String execName = sdk.dartAotRuntime;
-    // Check to see if the AOT snapshot and dartaotruntime are available.
-    // If not, fall back to running from the AppJIT snapshot.
-    //
-    // This can happen if:
-    //  - The SDK is built for IA32 which doesn't support AOT compilation
-    //  - We only have artifacts available from the 'runtime' build
-    //    configuration, which the VM SDK build bots frequently run from
-    if (!Sdk.checkArtifactExists(snapshotName, logError: false) ||
-        !Sdk.checkArtifactExists(sdk.dartAotRuntime, logError: false)) {
-      snapshotName =
-          fullSdk ? sdk.ddsSnapshot : absolute(sdkDir, 'dds.dart.snapshot');
-      if (!Sdk.checkArtifactExists(snapshotName)) {
-        return false;
-      }
-      execName = sdk.dart;
+    final execName = sdk.dart;
+    final snapshotName =
+        fullSdk ? sdk.ddsSnapshot : absolute(sdkDir, 'dds.dart.snapshot');
+    if (!Sdk.checkArtifactExists(snapshotName)) {
+      return false;
     }
 
     final process = await Process.start(

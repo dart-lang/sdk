@@ -144,12 +144,15 @@ ${argParser.usage}
           : null,
       enableServicePortFallback: enableServicePortFallback,
     );
+    final dtdInfo = dds.hostedDartToolingDaemon;
     stderr.write(json.encode({
       'state': 'started',
       'ddsUri': dds.uri.toString(),
       if (dds.devToolsUri != null) 'devToolsUri': dds.devToolsUri.toString(),
-      if (dds.hostedDartToolingDaemon?.uri != null)
-        'dtdUri': dds.hostedDartToolingDaemon!.uri,
+      if (dtdInfo != null)
+        'dtd': {
+          'uri': dtdInfo.uri,
+        },
     }));
   } catch (e, st) {
     writeErrorResponse(e, st);
