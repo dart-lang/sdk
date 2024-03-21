@@ -141,6 +141,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_interpolatio
 import 'package:analysis_server/src/services/correction/dart/remove_invocation.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_late.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_leading_underscore.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_library_name.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_method_declaration.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_name_from_combinator.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_name_from_declaration_clause.dart';
@@ -592,6 +593,9 @@ final _builtInLintProducers = <String, List<ProducerGenerator>>{
   ],
   LintNames.unnecessary_library_directive: [
     RemoveUnnecessaryLibraryDirective.new,
+  ],
+  LintNames.unnecessary_library_name: [
+    RemoveLibraryName.new,
   ],
   LintNames.unnecessary_new: [
     RemoveUnnecessaryNew.new,

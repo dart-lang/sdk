@@ -181,6 +181,7 @@ import 'remove_interpolation_braces_test.dart' as remove_interpolation_braces;
 import 'remove_invocation_test.dart' as remove_invocation;
 import 'remove_late_test.dart' as remove_late;
 import 'remove_leading_underscore_test.dart' as remove_leading_underscore;
+import 'remove_library_name_test.dart' as remove_library_name;
 import 'remove_method_declaration_test.dart' as remove_method_declaration;
 import 'remove_name_from_combinator_test.dart' as remove_name_from_combinator;
 import 'remove_name_from_declaration_clause_test.dart'
@@ -438,6 +439,7 @@ void main() {
     remove_invocation.main();
     remove_late.main();
     remove_leading_underscore.main();
+    remove_library_name.main();
     remove_method_declaration.main();
     remove_name_from_combinator.main();
     remove_name_from_declaration_clause.main();

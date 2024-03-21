@@ -170,6 +170,7 @@ class LintNames {
   static const String unnecessary_late = 'unnecessary_late';
   static const String unnecessary_library_directive =
       'unnecessary_library_directive';
+  static const String unnecessary_library_name = 'unnecessary_library_name';
   static const String unnecessary_new = 'unnecessary_new';
   static const String unnecessary_null_aware_assignments =
       'unnecessary_null_aware_assignments';
