@@ -6,6 +6,8 @@ import 'dart:typed_data';
 
 import 'package:build_integration/file_system/multi_root.dart'
     show MultiRootFileSystem;
+import 'package:front_end/src/api_prototype/macros.dart' as macros
+    show isMacroLibraryUri;
 import 'package:front_end/src/api_prototype/standard_file_system.dart'
     show StandardFileSystem;
 import 'package:front_end/src/api_unstable/vm.dart'
@@ -172,8 +174,13 @@ Future<CompilerOutput?> compileToModule(compiler.WasmCompilerOptions options,
 
   String? depFile = options.depFile;
   if (depFile != null) {
-    writeDepfile(compilerOptions.fileSystem, component.uriToSource.keys,
-        options.outputFile, depFile);
+    writeDepfile(
+        compilerOptions.fileSystem,
+        // TODO(https://dartbug.com/55246): track macro deps when available.
+        component.uriToSource.keys
+            .where((uri) => !macros.isMacroLibraryUri(uri)),
+        options.outputFile,
+        depFile);
   }
 
   final wasmModule = translator.translate();
