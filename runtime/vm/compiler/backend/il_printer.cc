@@ -57,6 +57,16 @@ class IlTestPrinter : public AllStatic {
       PrintBlock(&writer, block);
     }
     writer.CloseArray();
+    const auto& codegen_order = *flow_graph->CodegenBlockOrder();
+    if (!codegen_order.is_empty() &&
+        (&codegen_order != &flow_graph->reverse_postorder())) {
+      writer.OpenArray("cbo");
+      const auto block_count = flow_graph->reverse_postorder().length();
+      for (auto block : codegen_order) {
+        writer.PrintValue64((block_count - 1) - block->postorder_number());
+      }
+      writer.CloseArray();
+    }
     writer.OpenObject("desc");
     AttributesSerializer(&writer).WriteDescriptors();
     writer.CloseObject();

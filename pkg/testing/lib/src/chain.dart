@@ -4,8 +4,6 @@
 
 library testing.chain;
 
-import 'dart:async' show Future, Stream;
-
 import 'dart:convert' show json, JsonEncoder;
 
 import 'dart:io' show Directory, File, FileSystemEntity, exitCode;
@@ -31,27 +29,50 @@ typedef CreateContext = Future<ChainContext> Function(
 class Chain extends Suite {
   final Uri source;
 
-  final Uri uri;
+  final Uri root;
+
+  final List<Uri> subRoots;
+
+  final List<String> includeEndsWith;
 
   final List<RegExp> pattern;
 
   final List<RegExp> exclude;
 
-  Chain(String name, String kind, this.source, this.uri, Uri statusFile,
-      this.pattern, this.exclude)
+  Chain(String name, String kind, this.source, this.root, this.subRoots,
+      Uri statusFile, this.includeEndsWith, this.pattern, this.exclude)
       : super(name, kind, statusFile);
 
   factory Chain.fromJsonMap(Uri base, Map json, String name, String kind) {
     Uri source = base.resolve(json["source"]);
-    String path = json["path"];
-    if (!path.endsWith("/")) {
-      path += "/";
+    String root = json["root"];
+    if (!root.endsWith("/")) {
+      root += "/";
     }
-    Uri uri = base.resolve(path);
+    Uri rootUri = base.resolve(root);
+    List<Uri> subRoots = [];
+    List? subRootsList = json["subRoots"];
+    if (subRootsList != null) {
+      for (String subRoot in subRootsList) {
+        if (!subRoot.endsWith("/")) {
+          subRoot += "/";
+        }
+        subRoots.add(rootUri.resolve(subRoot));
+      }
+    } else {
+      subRoots.add(rootUri);
+    }
     Uri statusFile = base.resolve(json["status"]);
-    List<RegExp> pattern = [for (final p in json['pattern']) RegExp(p)];
-    List<RegExp> exclude = [for (final e in json['exclude']) RegExp(e)];
-    return Chain(name, kind, source, uri, statusFile, pattern, exclude);
+    List<String> includeEndsWith =
+        List<String>.from(json['includeEndsWith'] ?? const []);
+    List<RegExp> pattern = [
+      for (final p in json['pattern'] ?? const []) new RegExp(p)
+    ];
+    List<RegExp> exclude = [
+      for (final e in json['exclude'] ?? const []) new RegExp(e)
+    ];
+    return Chain(name, kind, source, rootUri, subRoots, statusFile,
+        includeEndsWith, pattern, exclude);
   }
 
   void writeImportOn(StringSink sink) {
@@ -78,9 +99,10 @@ class Chain extends Suite {
       "name": name,
       "kind": kind,
       "source": "$source",
-      "path": "$uri",
+      "root": "$root",
       "status": "$statusFile",
       "pattern": [for (final r in pattern) r.pattern],
+      "includeEndsWith": includeEndsWith,
       "exclude": [for (final r in exclude) r.pattern],
     };
   }
@@ -100,14 +122,17 @@ abstract class ChainContext {
     assert(shards >= 1, "Invalid shards count: $shards");
     assert(0 <= shard && shard < shards,
         "Invalid shard index: $shard, not in range [0,$shards[.");
-    List<String> partialSelectors = selectors
+    List<String> tripleDotSelectors = selectors
         .where((s) => s.endsWith('...'))
         .map((s) => s.substring(0, s.length - 3))
         .toList();
+    List<RegExp> asteriskSelectors = selectors
+        .where((s) => s.contains('*'))
+        .map((s) => _createRegExpForAsterisk(s))
+        .toList();
     TestExpectations expectations = readTestExpectations(
         <String>[suite.statusFile!.toFilePath()], expectationSet);
-    Stream<TestDescription> stream = list(suite);
-    List<TestDescription> descriptions = await stream.toList();
+    List<TestDescription> descriptions = await list(suite);
     descriptions.sort();
     if (shards > 1) {
       List<TestDescription> shardDescriptions = [];
@@ -130,7 +155,8 @@ abstract class ChainContext {
       if (selectors.isNotEmpty &&
           !selectors.contains(selector) &&
           !selectors.contains(suite.name) &&
-          !partialSelectors.any((s) => selector.startsWith(s))) {
+          !tripleDotSelectors.any((s) => selector.startsWith(s)) &&
+          !asteriskSelectors.any((s) => s.hasMatch(selector))) {
         continue;
       }
       final Set<Expectation> expectedOutcomes = processExpectedOutcomes(
@@ -242,22 +268,35 @@ abstract class ChainContext {
     await postRun();
   }
 
-  Stream<TestDescription> list(Chain suite) async* {
-    Directory testRoot = Directory.fromUri(suite.uri);
-    if (await testRoot.exists()) {
-      Stream<FileSystemEntity> files =
-          testRoot.list(recursive: true, followLinks: false);
-      await for (FileSystemEntity entity in files) {
-        if (entity is! File) continue;
-        String path = entity.uri.path;
-        if (suite.exclude.any((RegExp r) => path.contains(r))) continue;
-        if (suite.pattern.any((RegExp r) => path.contains(r))) {
-          yield FileBasedTestDescription(suite.uri, entity);
+  Future<List<TestDescription>> list(Chain suite) async {
+    List<TestDescription> result = [];
+    for (Uri subRoot in suite.subRoots) {
+      Directory testRoot = Directory.fromUri(subRoot);
+      if (testRoot.existsSync()) {
+        for (FileSystemEntity entity
+            in testRoot.listSync(recursive: true, followLinks: false)) {
+          if (entity is! File) continue;
+          // Use `.uri.path` instead of just `.path` to ensure forward slashes.
+          String path = entity.uri.path;
+
+          if (suite.exclude.any((RegExp r) => path.contains(r))) continue;
+
+          bool include = false;
+          if (suite.includeEndsWith.any((String end) => path.endsWith(end))) {
+            include = true;
+          }
+          if (!include && suite.pattern.any((RegExp r) => path.contains(r))) {
+            include = true;
+          }
+          if (include) {
+            result.add(new FileBasedTestDescription(suite.root, entity));
+          }
         }
+      } else {
+        throw "$subRoot isn't a directory";
       }
-    } else {
-      throw "${suite.uri} isn't a directory";
     }
+    return result;
   }
 
   Set<Expectation> processExpectedOutcomes(
@@ -377,4 +416,16 @@ Future<void> runChain(CreateContext f, Map<String, String> environment,
     ChainContext context = await f(suite, environment);
     return context.run(suite, selectors);
   });
+}
+
+RegExp _createRegExpForAsterisk(String s) {
+  StringBuffer sb = new StringBuffer("^");
+  String between = "";
+  for (String split in s.split("*")) {
+    sb.write(between);
+    between = ".*";
+    sb.write(RegExp.escape(split));
+  }
+  sb.write("\$");
+  return new RegExp(sb.toString());
 }

@@ -43,7 +43,7 @@ Uint32List calculateRetainers(HeapSnapshotGraph graph) {
 void matchIL$calculateRetainers(FlowGraph graph) {
   graph.dump();
   final descriptors = graph.descriptors;
-  for (var block in graph.blocks) {
+  for (var block in graph.blocks()) {
     for (var instr in [...?block['is']]) {
       if (instr['o'] != 'StaticCall') continue;
       final function = graph.attributesFor(instr)?['function'];

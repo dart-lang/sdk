@@ -491,7 +491,7 @@ class FastaContext extends ChainContext with MatchContext {
       platformBinaries = '$platformBinaries/';
     }
     return new Future.value(new FastaContext(
-        suite.uri,
+        suite.root,
         vm,
         platformBinaries == null
             ? computePlatformBinariesLocation(forceBuildDir: true)

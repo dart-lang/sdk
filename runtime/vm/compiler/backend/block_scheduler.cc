@@ -238,62 +238,153 @@ void BlockScheduler::ReorderBlocksJIT(FlowGraph* flow_graph) {
   }
 }
 
-// Moves blocks ending in a throw/rethrow, as well as any block post-dominated
-// by such a throwing block, to the end.
-void BlockScheduler::ReorderBlocksAOT(FlowGraph* flow_graph) {
-  auto& reverse_postorder = flow_graph->reverse_postorder();
-  const intptr_t block_count = reverse_postorder.length();
-  GrowableArray<bool> is_terminating(block_count);
-  is_terminating.FillWith(false, 0, block_count);
+// AOT block order is based on reverse post order but with two changes:
+//
+// - Blocks which always throw and their direct predecessors are considered
+// *cold* and moved to the end of the order.
+// - Blocks which belong to the same loop are kept together (where possible)
+// and not interspersed with other blocks.
+//
+namespace {
+class AOTBlockScheduler {
+ public:
+  explicit AOTBlockScheduler(FlowGraph* flow_graph)
+      : flow_graph_(flow_graph),
+        block_count_(flow_graph->reverse_postorder().length()),
+        marks_(block_count_),
+        postorder_(block_count_),
+        cold_postorder_(10) {
+    marks_.FillWith(0, 0, block_count_);
+  }
 
-  // Any block in the worklist is marked and any of its unconditional
-  // predecessors need to be marked as well.
-  GrowableArray<BlockEntryInstr*> worklist;
+  void ComputeOrder() {
+    ComputeOrderImpl();
 
-  // Add all throwing blocks to the worklist.
-  for (intptr_t i = 0; i < block_count; ++i) {
-    auto block = reverse_postorder[i];
-    auto last = block->last_instruction();
-    if (last->IsThrow() || last->IsReThrow()) {
-      const intptr_t preorder_nr = block->preorder_number();
-      is_terminating[preorder_nr] = true;
-      worklist.Add(block);
+    const auto codegen_order = flow_graph_->CodegenBlockOrder();
+    for (intptr_t i = postorder_.length() - 1; i >= 0; --i) {
+      codegen_order->Add(postorder_[i]);
+    }
+    for (intptr_t i = cold_postorder_.length() - 1; i >= 0; --i) {
+      codegen_order->Add(cold_postorder_[i]);
     }
   }
 
-  // Follow all indirect predecessors which unconditionally will end up in a
-  // throwing block.
-  while (worklist.length() > 0) {
-    auto block = worklist.RemoveLast();
-    for (intptr_t i = 0; i < block->PredecessorCount(); ++i) {
-      auto predecessor = block->PredecessorAt(i);
-      if (predecessor->last_instruction()->IsGoto()) {
-        const intptr_t preorder_nr = predecessor->preorder_number();
-        if (!is_terminating[preorder_nr]) {
-          is_terminating[preorder_nr] = true;
-          worklist.Add(predecessor);
+ private:
+  // The algorithm below is almost identical to |FlowGraph::DiscoverBlocks|, but
+  // with few tweaks which guarantee improved scheduling for cold code and
+  // loops.
+  void ComputeOrderImpl() {
+    PushBlock(flow_graph_->graph_entry());
+    while (!block_stack_.is_empty()) {
+      BlockEntryInstr* block = block_stack_.Last();
+      auto& marks = MarksOf(block);
+      auto last = block->last_instruction();
+      const auto successor_count = last->SuccessorCount();
+
+      if ((marks & kVisitedMark) == 0) {
+        marks |= kVisitedMark;
+
+        if (last->IsThrow() || last->IsReThrow()) {
+          marks |= kColdMark;
+        } else {
+          // When visiting a block inside a loop with two successors
+          // push the successor with lesser nesting *last*, so that it is
+          // visited first. This helps to keep blocks which belong to the
+          // same loop together.
+          //
+          // This is the main difference from |DiscoverBlocks| which always
+          // visits successors in reverse order.
+          if (successor_count == 2 && block->loop_info() != nullptr) {
+            auto succ0 = last->SuccessorAt(0);
+            auto succ1 = last->SuccessorAt(1);
+
+            if (succ0->NestingDepth() < succ1->NestingDepth()) {
+              PushBlock(succ1);
+              PushBlock(succ0);
+            } else {
+              PushBlock(succ0);
+              PushBlock(succ1);
+            }
+          } else {
+            for (intptr_t i = 0; i < successor_count; i++) {
+              PushBlock(last->SuccessorAt(i));
+            }
+          }
+
+          // We have pushed some successors to the stack. Process them first.
+          if (block_stack_.Last() != block) {
+            continue;
+          }
+
+          // No successors added, fall through.
         }
+      }
+
+      // All successors of this block were visited, which means we are
+      // done with this block.
+      block_stack_.RemoveLast();
+
+      // Propagate cold mark from the successors: if all successors are
+      // cold then this block is cold as well.
+      if (successor_count > 0) {
+        uint8_t cold_mark = kColdMark;
+        for (intptr_t i = 0; i < successor_count; i++) {
+          cold_mark &= MarksOf(last->SuccessorAt(i));
+        }
+        marks |= cold_mark;
+      }
+
+      if ((marks & (kColdMark | kPinnedMark)) == kColdMark) {
+        // This block is cold and not pinned: move it to cold section at
+        // the end.
+        cold_postorder_.Add(block);
+      } else {
+        postorder_.Add(block);
       }
     }
   }
 
-  // Emit code in reverse postorder but move any throwing blocks (except the
-  // function entry, which needs to come first) to the very end.
-  auto codegen_order = flow_graph->CodegenBlockOrder();
-  for (intptr_t i = 0; i < block_count; ++i) {
-    auto block = reverse_postorder[i];
-    const intptr_t preorder_nr = block->preorder_number();
-    if (!is_terminating[preorder_nr] || block->IsFunctionEntry()) {
-      codegen_order->Add(block);
+  // The block was added to the stack.
+  static constexpr uint8_t kSeenMark = 1 << 0;
+  // The block was visited and all of its successors were added to the stack.
+  static constexpr uint8_t kVisitedMark = 1 << 1;
+  // The block terminates with unconditional throw or rethrow.
+  static constexpr uint8_t kColdMark = 1 << 2;
+  // The block should not move to cold section.
+  static constexpr uint8_t kPinnedMark = 1 << 3;
+
+  uint8_t& MarksOf(BlockEntryInstr* block) {
+    return marks_[block->preorder_number()];
+  }
+
+  void PushBlock(BlockEntryInstr* block) {
+    auto& marks = MarksOf(block);
+    if ((marks & kSeenMark) == 0) {
+      marks |= kSeenMark;
+      block_stack_.Add(block);
+
+      if (block->IsFunctionEntry() || block->IsGraphEntry()) {
+        marks |= kPinnedMark;
+      }
     }
   }
-  for (intptr_t i = 0; i < block_count; ++i) {
-    auto block = reverse_postorder[i];
-    const intptr_t preorder_nr = block->preorder_number();
-    if (is_terminating[preorder_nr] && !block->IsFunctionEntry()) {
-      codegen_order->Add(block);
-    }
-  }
+
+  FlowGraph* const flow_graph_;
+  const intptr_t block_count_;
+
+  // Block marks for each block indexed by block preorder number.
+  GrowableArray<uint8_t> marks_;
+
+  // Stack of blocks to process.
+  GrowableArray<BlockEntryInstr*> block_stack_;
+
+  GrowableArray<BlockEntryInstr*> postorder_;
+  GrowableArray<BlockEntryInstr*> cold_postorder_;
+};
+}  // namespace
+
+void BlockScheduler::ReorderBlocksAOT(FlowGraph* flow_graph) {
+  AOTBlockScheduler(flow_graph).ComputeOrder();
 }
 
 }  // namespace dart

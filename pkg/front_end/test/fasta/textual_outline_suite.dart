@@ -54,7 +54,7 @@ const List<Map<String, String>> EXPECTATIONS = [
 ];
 
 Future<Context> createContext(Chain suite, Map<String, String> environment) {
-  return new Future.value(new Context(suite.uri, environment));
+  return new Future.value(new Context(suite.root, environment));
 }
 
 void main([List<String> arguments = const []]) => internalMain(

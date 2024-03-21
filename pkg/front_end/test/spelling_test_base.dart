@@ -47,8 +47,8 @@ abstract class SpellContext extends ChainContext {
   Set<String> reportedWordsDenylisted = {};
 
   @override
-  Stream<TestDescription> list(Chain suite) {
-    return filterList(suite, onlyInGit, super.list(suite));
+  Future<List<TestDescription>> list(Chain suite) async {
+    return filterList(suite, onlyInGit, await super.list(suite));
   }
 
   @override
