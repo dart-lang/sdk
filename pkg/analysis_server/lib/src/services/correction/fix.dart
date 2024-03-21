@@ -1135,6 +1135,11 @@ class DartFixKind {
     DartFixKindPriority.IN_FILE,
     'Remove leading underscores in file',
   );
+  static const REMOVE_LIBRARY_NAME = FixKind(
+    'dart.fix.remove.library.name',
+    DartFixKindPriority.DEFAULT,
+    'Remove the library name',
+  );
   static const REMOVE_METHOD_DECLARATION = FixKind(
     'dart.fix.remove.methodDeclaration',
     DartFixKindPriority.DEFAULT,

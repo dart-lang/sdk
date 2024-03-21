@@ -140,7 +140,7 @@ Future<void> ensureCompilationServerIsRunning(
         sdk.dartAotRuntime,
         [
           sdk.frontendServerAotSnapshot,
-          '--resident-info-file-name=${serverInfoFile.path}'
+          '--resident-info-file-name=${serverInfoFile.absolute.path}'
         ],
         workingDirectory: homeDir?.path,
         mode: ProcessStartMode.detachedWithStdio,
@@ -152,7 +152,7 @@ Future<void> ensureCompilationServerIsRunning(
         sdk.dart,
         [
           sdk.frontendServerSnapshot,
-          '--resident-info-file-name=${serverInfoFile.path}'
+          '--resident-info-file-name=${serverInfoFile.absolute.path}'
         ],
         workingDirectory: homeDir?.path,
         mode: ProcessStartMode.detachedWithStdio,

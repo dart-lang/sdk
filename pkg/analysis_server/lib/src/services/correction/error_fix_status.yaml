@@ -2384,7 +2384,7 @@ LintCode.unnecessary_late:
 LintCode.unnecessary_library_directive:
   status: hasFix
 LintCode.unnecessary_library_name:
-  status: needsFix
+  status: hasFix
 LintCode.unnecessary_new:
   status: hasFix
 LintCode.no_wildcard_variable_uses:
