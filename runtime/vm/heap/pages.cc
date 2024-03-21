@@ -428,9 +428,10 @@ void PageSpace::AcquireLock(FreeList* freelist) {
 }
 
 void PageSpace::ReleaseLock(FreeList* freelist) {
-  intptr_t size = freelist->TakeUnaccountedSizeLocked();
-  usage_.used_in_words += (size >> kWordSizeLog2);
+  usage_.used_in_words +=
+      (freelist->TakeUnaccountedSizeLocked() >> kWordSizeLog2);
   freelist->mutex()->Unlock();
+  usage_.used_in_words -= (freelist->ReleaseBumpAllocation() >> kWordSizeLog2);
 }
 
 void PageSpace::PauseConcurrentMarking() {
@@ -570,9 +571,10 @@ void PageSpace::MakeIterable() const {
   }
 }
 
-void PageSpace::AbandonBumpAllocation() {
+void PageSpace::ReleaseBumpAllocation() {
   for (intptr_t i = 0; i < num_freelists_; i++) {
-    freelists_[i].AbandonBumpAllocation();
+    size_t leftover = freelists_[i].ReleaseBumpAllocation();
+    usage_.used_in_words -= (leftover >> kWordSizeLog2);
   }
 }
 
@@ -713,7 +715,7 @@ void PageSpace::ResetProgressBars() const {
 void PageSpace::WriteProtect(bool read_only) {
   if (read_only) {
     // Avoid MakeIterable trying to write to the heap.
-    AbandonBumpAllocation();
+    ReleaseBumpAllocation();
   }
   for (ExclusivePageIterator it(this); !it.Done(); it.Advance()) {
     if (!it.page()->is_image()) {
@@ -1046,6 +1048,9 @@ void PageSpace::CollectGarbageHelper(Thread* thread,
     return;
   }
 
+  // Abandon the remainder of the bump allocation block.
+  ReleaseBumpAllocation();
+
   marker_->MarkObjects(this);
   usage_.used_in_words = marker_->marked_words() + allocated_black_in_words_;
   allocated_black_in_words_ = 0;
@@ -1053,8 +1058,6 @@ void PageSpace::CollectGarbageHelper(Thread* thread,
   delete marker_;
   marker_ = nullptr;
 
-  // Abandon the remainder of the bump allocation block.
-  AbandonBumpAllocation();
   // Reset the freelists and setup sweeping.
   for (intptr_t i = 0; i < num_freelists_; i++) {
     freelists_[i].Reset();
@@ -1274,17 +1277,20 @@ uword PageSpace::TryAllocateDataBumpLocked(FreeList* freelist, intptr_t size) {
     }
     intptr_t block_size = block->HeapSize();
     if (remaining > 0) {
+      usage_.used_in_words -= (remaining >> kWordSizeLog2);
       freelist->FreeLocked(freelist->top(), remaining);
     }
     freelist->set_top(reinterpret_cast<uword>(block));
     freelist->set_end(freelist->top() + block_size);
+    // To avoid accounting overhead during each bump pointer allocation, we add
+    // the size of the whole bump area here and subtract the remaining size
+    // when switching to a new area.
+    usage_.used_in_words += (block_size >> kWordSizeLog2);
     remaining = block_size;
   }
   ASSERT(remaining >= size);
   uword result = freelist->top();
   freelist->set_top(result + size);
-
-  freelist->AddUnaccountedSize(size);
 
 // Note: Remaining block is unwalkable until MakeIterable is called.
 #ifdef DEBUG

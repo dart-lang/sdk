@@ -6914,7 +6914,7 @@ class VMDeserializationRoots : public DeserializationRoots {
   void PostLoad(Deserializer* d, const Array& refs) {
     // Move remaining bump allocation space to the freelist so it used by C++
     // allocations (e.g., FinalizeVMIsolate) before allocating new pages.
-    d->heap()->old_space()->AbandonBumpAllocation();
+    d->heap()->old_space()->ReleaseBumpAllocation();
 
     if (!symbol_table_.IsNull()) {
       Symbols::InitFromSnapshot(d->isolate_group());

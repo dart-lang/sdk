@@ -339,7 +339,7 @@ class PageSpace {
   void SetupImagePage(void* pointer, uword size, bool is_executable);
 
   // Return any bump allocation block to the freelist.
-  void AbandonBumpAllocation();
+  void ReleaseBumpAllocation();
   // Have threads release marking stack blocks, etc.
   void AbandonMarkingForShutdown();
 
