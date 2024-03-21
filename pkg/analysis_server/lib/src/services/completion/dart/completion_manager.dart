@@ -11,7 +11,6 @@ import 'package:analysis_server/src/services/completion/dart/extension_member_co
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analysis_server/src/services/completion/dart/in_scope_completion_pass.dart';
 import 'package:analysis_server/src/services/completion/dart/library_member_contributor.dart';
-import 'package:analysis_server/src/services/completion/dart/library_prefix_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/not_imported_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/record_literal_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
@@ -126,7 +125,6 @@ class DartCompletionManager {
     var contributors = <DartCompletionContributor>[
       ExtensionMemberContributor(request, builder),
       LibraryMemberContributor(request, builder),
-      LibraryPrefixContributor(request, builder),
       RecordLiteralContributor(request, builder),
       if (enableUriContributor) UriContributor(request, builder),
     ];

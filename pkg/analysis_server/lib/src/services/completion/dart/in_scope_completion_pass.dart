@@ -1507,7 +1507,9 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
             constructorName.coversOffset(offset)) {
           collector.completionLocation =
               'InstanceCreationExpression_constructorName';
-          declarationHelper().addConstructorInvocations();
+          declarationHelper()
+            ..addConstructorInvocations()
+            ..addImportPrefixes();
         }
       }
     } else {

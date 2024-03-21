@@ -264,6 +264,20 @@ final class ImportData {
   ImportData({required this.libraryUriStr, required this.prefix});
 }
 
+/// A suggestion based on an import prefix.
+final class ImportPrefixSuggestion extends CandidateSuggestion {
+  final LibraryElement libraryElement;
+  final PrefixElement prefixElement;
+
+  ImportPrefixSuggestion({
+    required this.libraryElement,
+    required this.prefixElement,
+  });
+
+  @override
+  String get completion => prefixElement.name;
+}
+
 /// The information about a candidate suggestion based on a keyword.
 final class KeywordSuggestion extends CandidateSuggestion {
   /// The text to be inserted.
@@ -749,6 +763,11 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
         libraryUriStr = null;
       case TypeParameterSuggestion():
         suggestTypeParameter(suggestion.element);
+      case ImportPrefixSuggestion():
+        suggestPrefix(
+          suggestion.libraryElement,
+          suggestion.prefixElement.name,
+        );
     }
   }
 
