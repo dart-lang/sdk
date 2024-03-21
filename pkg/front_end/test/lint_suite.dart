@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io' show Directory, File, FileSystemEntity;
+import 'dart:io' show File;
 import 'dart:typed_data' show Uint8List;
 
 import 'package:_fe_analyzer_shared/src/parser/listener.dart' show Listener;
@@ -23,7 +23,7 @@ import 'package:testing/testing.dart'
     show Chain, ChainContext, Result, Step, TestDescription;
 
 import 'fasta/suite_utils.dart';
-import 'testing_utils.dart' show checkEnvironment, getGitFiles;
+import 'testing_utils.dart' show checkEnvironment, filterList;
 
 void main([List<String> arguments = const []]) => internalMain(createContext,
     arguments: arguments,
@@ -82,55 +82,43 @@ class Context extends ChainContext {
   ];
 
   @override
-  Stream<LintTestDescription> list(Chain suite) async* {
-    late Set<Uri> gitFiles;
-    if (onlyInGit) {
-      gitFiles = await getGitFiles(suite.uri);
-    }
+  Future<List<LintTestDescription>> list(Chain suite) async {
+    String rootString = "${suite.root}";
+    Uri apiUnstableUri =
+        Uri.base.resolve("pkg/front_end/lib/src/api_unstable/");
+    String apiUnstableString = apiUnstableUri.toString();
 
-    Directory testRoot = new Directory.fromUri(suite.uri);
-    if (await testRoot.exists()) {
-      Stream<FileSystemEntity> files =
-          testRoot.list(recursive: true, followLinks: false);
-      await for (FileSystemEntity entity in files) {
-        if (entity is! File) continue;
-        String path = entity.uri.path;
-        if (suite.exclude.any((RegExp r) => path.contains(r))) continue;
-        if (suite.pattern.any((RegExp r) => path.contains(r))) {
-          if (onlyInGit && !gitFiles.contains(entity.uri)) continue;
-          Uri root = suite.uri;
-          String baseName = "${entity.uri}".substring("$root".length);
-          baseName = baseName.substring(0, baseName.length - ".dart".length);
-          LintTestCache cache = new LintTestCache();
+    List<LintTestDescription> result = [];
+    for (TestDescription description
+        in await filterList(suite, onlyInGit, await super.list(suite))) {
+      String baseName = "${description.uri}".substring(rootString.length);
+      baseName = baseName.substring(0, baseName.length - ".dart".length);
+      LintTestCache cache = new LintTestCache();
 
-          yield new LintTestDescription(
-            "$baseName/ExplicitType",
-            entity.uri,
-            cache,
-            new ExplicitTypeLintListener(),
-          );
+      result.add(new LintTestDescription(
+        "$baseName/ExplicitType",
+        description.uri,
+        cache,
+        new ExplicitTypeLintListener(),
+      ));
 
-          yield new LintTestDescription(
-            "$baseName/ImportsTwice",
-            entity.uri,
-            cache,
-            new ImportsTwiceLintListener(),
-          );
+      result.add(new LintTestDescription(
+        "$baseName/ImportsTwice",
+        description.uri,
+        cache,
+        new ImportsTwiceLintListener(),
+      ));
 
-          String apiUnstableUri = "pkg/front_end/lib/src/api_unstable/";
-          if (!entity.uri.toString().contains(apiUnstableUri.toString())) {
-            yield new LintTestDescription(
-              "$baseName/Exports",
-              entity.uri,
-              cache,
-              new ExportsLintListener(),
-            );
-          }
-        }
+      if (!description.uri.toString().startsWith(apiUnstableString)) {
+        result.add(new LintTestDescription(
+          "$baseName/Exports",
+          description.uri,
+          cache,
+          new ExportsLintListener(),
+        ));
       }
-    } else {
-      throw "${suite.uri} isn't a directory";
     }
+    return result;
   }
 }
 

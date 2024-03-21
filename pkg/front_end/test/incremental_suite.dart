@@ -511,17 +511,19 @@ class Context extends ChainContext {
   Context(this.updateExpectations, this.breakBetween, this.skipTests);
 
   @override
-  Stream<TestDescription> list(Chain suite) {
-    if (skipTests.isEmpty) return super.list(suite);
-    return filterSkipped(super.list(suite));
+  Future<List<TestDescription>> list(Chain suite) async {
+    if (skipTests.isEmpty) return await super.list(suite);
+    return filterSkipped(await super.list(suite));
   }
 
-  Stream<TestDescription> filterSkipped(Stream<TestDescription> all) async* {
-    await for (TestDescription testDescription in all) {
+  List<TestDescription> filterSkipped(List<TestDescription> all) {
+    List<TestDescription> result = [];
+    for (TestDescription testDescription in all) {
       if (!skipTests.contains(testDescription.shortName)) {
-        yield testDescription;
+        result.add(testDescription);
       }
     }
+    return result;
   }
 
   @override
