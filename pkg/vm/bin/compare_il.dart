@@ -195,8 +195,13 @@ Map<String, Map<String, FlowGraph>> _loadGraphs(String ilFile, Renamer rename) {
 
   for (var graph in File(ilFile).readAsLinesSync()) {
     final m = jsonDecode(graph) as Map<String, dynamic>;
-    graphs.putIfAbsent(m['f'], () => {})[m['p']] =
-        FlowGraph(m['b'], m['desc'], m['flags'], rename: rename);
+    graphs.putIfAbsent(m['f'], () => {})[m['p']] = FlowGraph(
+      m['b'],
+      m['desc'],
+      m['flags'],
+      rename: rename,
+      codegenBlockOrder: m['cbo'],
+    );
   }
 
   return graphs;
