@@ -210,6 +210,8 @@ class FlowGraph : public ZoneAllocated {
   const GrowableArray<BlockEntryInstr*>& optimized_block_order() const {
     return optimized_block_order_;
   }
+
+  // In AOT these are guaranteed to be topologically sorted, but not in JIT.
   GrowableArray<BlockEntryInstr*>* CodegenBlockOrder();
   const GrowableArray<BlockEntryInstr*>* CodegenBlockOrder() const;
 
