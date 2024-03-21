@@ -27,7 +27,6 @@ class FlutterTarget extends VmTarget {
         'dart:developer',
         'dart:ffi',
         'dart:_internal',
-        'dart:_macros',
         'dart:isolate',
         'dart:math',
 

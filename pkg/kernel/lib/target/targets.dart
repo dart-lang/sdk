@@ -352,14 +352,8 @@ abstract class Target {
   /// testing purposes.
   bool allowPlatformPrivateLibraryAccess(Uri importer, Uri imported) =>
       importer.isScheme("dart") ||
-      (imported.isScheme('dart') &&
-          imported.path == '_internal' &&
-          importer.isScheme("package") &&
-          importer.path.startsWith("dart_internal/")) ||
-      (imported.isScheme('dart') &&
-          imported.path == '_macros' &&
-          importer.isScheme("package") &&
-          importer.path.startsWith("macros/"));
+      (importer.isScheme("package") &&
+          importer.path.startsWith("dart_internal/"));
 
   /// Whether the `native` language extension is supported within the library
   /// with the given import [uri].

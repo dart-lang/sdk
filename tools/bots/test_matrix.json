@@ -1017,6 +1017,7 @@
       "meta": {
         "description": "This configuration is used by the VM AOT builders. Includes VM service testing in addition to legacy Observatory service tests.",
         "__comment__": "This configuration should be merged with the other VM AOT builders config below once Observatory is removed."
+
       },
       "steps": [
         {
@@ -1049,6 +1050,7 @@
       "meta": {
         "description": "This configuration is used by the VM AOT builders. Includes VM service testing.",
         "__comment__": "vm-aot-linux-debug-x64 should be added back into this configuration once Observatory is removed."
+
       },
       "steps": [
         {
@@ -2872,7 +2874,6 @@
             "tools/verify_docs/bin/verify_docs.dart",
             "dart:_http",
             "dart:_internal",
-            "dart:_macros",
             "dart:_wasm",
             "dart:cli",
             "dart:convert",
@@ -2952,7 +2953,7 @@
         "pkg-win-release-arm64"
       ],
       "meta": {
-        "description": "This configuration is used by the pkg builders, no shards."
+          "description": "This configuration is used by the pkg builders, no shards."
       },
       "steps": [
         {
