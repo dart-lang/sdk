@@ -442,14 +442,6 @@ class InstanceViewElement extends CustomElement implements Renderable {
       if (_instance.twoByteFunction != null) {
         members.add(member('twoByteFunction', _instance.twoByteFunction));
       }
-      if (_instance.externalOneByteFunction != null) {
-        members.add(member(
-            'externalOneByteFunction', _instance.externalOneByteFunction));
-      }
-      if (_instance.externalTwoByteFunction != null) {
-        members.add(member(
-            'externalTwoByteFunction', _instance.externalTwoByteFunction));
-      }
       if (_instance.oneByteBytecode != null) {
         members.add(member('oneByteBytecode', _instance.oneByteBytecode));
       }

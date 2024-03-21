@@ -1855,8 +1855,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
         Return(TokenPosition::kNoSource, /* omit_result_type_check = */ true);
   }
 
-  return new (Z) FlowGraph(*parsed_function_, graph_entry_, last_used_block_id_,
-                           prologue_info);
+  return new (Z)
+      FlowGraph(*parsed_function_, graph_entry_, last_used_block_id_,
+                prologue_info, FlowGraph::CompilationModeFrom(optimizing_));
 }
 
 Fragment FlowGraphBuilder::BuildTypedDataViewFactoryConstructor(
@@ -2505,8 +2506,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfMethodExtractor(
 
   // There is no prologue code for a method extractor.
   PrologueInfo prologue_info(-1, -1);
-  return new (Z) FlowGraph(*parsed_function_, graph_entry_, last_used_block_id_,
-                           prologue_info);
+  return new (Z)
+      FlowGraph(*parsed_function_, graph_entry_, last_used_block_id_,
+                prologue_info, FlowGraph::CompilationModeFrom(optimizing_));
 }
 
 FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodDispatcher(
@@ -2604,8 +2606,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodDispatcher(
                      /* argument_count = */ 2, ICData::kNSMDispatch);
   body += Return(TokenPosition::kNoSource);
 
-  return new (Z) FlowGraph(*parsed_function_, graph_entry_, last_used_block_id_,
-                           prologue_info);
+  return new (Z)
+      FlowGraph(*parsed_function_, graph_entry_, last_used_block_id_,
+                prologue_info, FlowGraph::CompilationModeFrom(optimizing_));
 }
 
 FlowGraph* FlowGraphBuilder::BuildGraphOfRecordFieldGetter(
@@ -2752,8 +2755,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecordFieldGetter(
 
   // There is no prologue code for a record field getter.
   PrologueInfo prologue_info(-1, -1);
-  return new (Z) FlowGraph(*parsed_function_, graph_entry_, last_used_block_id_,
-                           prologue_info);
+  return new (Z)
+      FlowGraph(*parsed_function_, graph_entry_, last_used_block_id_,
+                prologue_info, FlowGraph::CompilationModeFrom(optimizing_));
 }
 
 // Information used by the various dynamic closure call fragment builders.
@@ -3679,8 +3683,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher(
 
   body += Return(TokenPosition::kNoSource);
 
-  return new (Z) FlowGraph(*parsed_function_, graph_entry_, last_used_block_id_,
-                           prologue_info);
+  return new (Z)
+      FlowGraph(*parsed_function_, graph_entry_, last_used_block_id_,
+                prologue_info, FlowGraph::CompilationModeFrom(optimizing_));
 }
 
 FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
@@ -3949,8 +3954,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
   }
   body += Return(TokenPosition::kNoSource);
 
-  return new (Z) FlowGraph(*parsed_function_, graph_entry_, last_used_block_id_,
-                           prologue_info);
+  return new (Z)
+      FlowGraph(*parsed_function_, graph_entry_, last_used_block_id_,
+                prologue_info, FlowGraph::CompilationModeFrom(optimizing_));
 }
 
 Fragment FlowGraphBuilder::BuildDefaultTypeHandling(const Function& function) {
@@ -4202,8 +4208,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
   // Return the result.
   closure += Return(function.end_token_pos());
 
-  return new (Z) FlowGraph(*parsed_function_, graph_entry_, last_used_block_id_,
-                           prologue_info);
+  return new (Z)
+      FlowGraph(*parsed_function_, graph_entry_, last_used_block_id_,
+                prologue_info, FlowGraph::CompilationModeFrom(optimizing_));
 }
 
 FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
@@ -4315,8 +4322,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
   body += Return(TokenPosition::kNoSource);
 
   PrologueInfo prologue_info(-1, -1);
-  return new (Z) FlowGraph(*parsed_function_, graph_entry_, last_used_block_id_,
-                           prologue_info);
+  return new (Z)
+      FlowGraph(*parsed_function_, graph_entry_, last_used_block_id_,
+                prologue_info, FlowGraph::CompilationModeFrom(optimizing_));
 }
 
 FlowGraph* FlowGraphBuilder::BuildGraphOfDynamicInvocationForwarder(
@@ -4412,8 +4420,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfDynamicInvocationForwarder(
   if (IsCompiledForOsr()) {
     graph_entry_->RelinkToOsrEntry(Z, last_used_block_id_ + 1);
   }
-  return new (Z) FlowGraph(*parsed_function_, graph_entry_, last_used_block_id_,
-                           prologue_info);
+  return new (Z)
+      FlowGraph(*parsed_function_, graph_entry_, last_used_block_id_,
+                prologue_info, FlowGraph::CompilationModeFrom(optimizing_));
 }
 
 void FlowGraphBuilder::SetConstantRangeOfCurrentDefinition(
@@ -5668,8 +5677,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfSyncFfiCallback(
   --catch_depth_;
 
   PrologueInfo prologue_info(-1, -1);
-  return new (Z) FlowGraph(*parsed_function_, graph_entry_, last_used_block_id_,
-                           prologue_info);
+  return new (Z)
+      FlowGraph(*parsed_function_, graph_entry_, last_used_block_id_,
+                prologue_info, FlowGraph::CompilationModeFrom(optimizing_));
 }
 
 FlowGraph* FlowGraphBuilder::BuildGraphOfAsyncFfiCallback(
@@ -5741,8 +5751,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfAsyncFfiCallback(
   --catch_depth_;
 
   PrologueInfo prologue_info(-1, -1);
-  return new (Z) FlowGraph(*parsed_function_, graph_entry_, last_used_block_id_,
-                           prologue_info);
+  return new (Z)
+      FlowGraph(*parsed_function_, graph_entry_, last_used_block_id_,
+                prologue_info, FlowGraph::CompilationModeFrom(optimizing_));
 }
 
 void FlowGraphBuilder::SetCurrentTryCatchBlock(TryCatchBlock* try_catch_block) {

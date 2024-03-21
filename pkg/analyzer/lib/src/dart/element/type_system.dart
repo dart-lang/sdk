@@ -121,8 +121,7 @@ class TypeSystemImpl implements TypeSystem {
   /// - `FutureOr<T>` where T is one of the two cases above.
   ///
   /// Note that this returns false if [t] is a top type such as Object.
-  bool acceptsFunctionType(DartType? t) {
-    if (t == null) return false;
+  bool acceptsFunctionType(DartType t) {
     if (t.isDartAsyncFutureOr) {
       return acceptsFunctionType((t as InterfaceType).typeArguments[0]);
     }
@@ -1571,7 +1570,7 @@ class TypeSystemImpl implements TypeSystem {
   DartType refineNumericInvocationContext(
       DartType? targetType,
       Element? methodElement,
-      DartType? invocationContext,
+      DartType invocationContext,
       DartType currentType) {
     if (targetType != null && methodElement is MethodElement) {
       return _refineNumericInvocationContextNullSafe(
@@ -1721,7 +1720,7 @@ class TypeSystemImpl implements TypeSystem {
   GenericInferrer setupGenericTypeInference({
     required List<TypeParameterElement> typeParameters,
     required DartType declaredReturnType,
-    required DartType? contextReturnType,
+    required DartType contextReturnType,
     ErrorReporter? errorReporter,
     AstNode? errorNode,
     required bool genericMetadataIsEnabled,
@@ -1744,13 +1743,11 @@ class TypeSystemImpl implements TypeSystem {
         typeSystemOperations: typeSystemOperations,
         dataForTesting: dataForTesting);
 
-    if (contextReturnType != null) {
-      if (isConst) {
-        contextReturnType = eliminateTypeVariables(contextReturnType);
-      }
-      inferrer.constrainReturnType(declaredReturnType, contextReturnType,
-          nodeForTesting: nodeForTesting);
+    if (isConst) {
+      contextReturnType = eliminateTypeVariables(contextReturnType);
     }
+    inferrer.constrainReturnType(declaredReturnType, contextReturnType,
+        nodeForTesting: nodeForTesting);
 
     return inferrer;
   }
@@ -1899,7 +1896,7 @@ class TypeSystemImpl implements TypeSystem {
   DartType _refineNumericInvocationContextNullSafe(
       DartType targetType,
       MethodElement methodElement,
-      DartType? invocationContext,
+      DartType invocationContext,
       DartType currentType) {
     // If the method being invoked comes from an extension, don't refine the
     // type because we can only make guarantees about methods defined in the
@@ -1908,9 +1905,6 @@ class TypeSystemImpl implements TypeSystem {
         methodElement.enclosingElement is ExtensionTypeElement) {
       return currentType;
     }
-
-    // Sometimes the analyzer represents the unknown context as `null`.
-    invocationContext ??= UnknownInferredType.instance;
 
     // If e is an expression of the form e1 + e2, e1 - e2, e1 * e2, e1 % e2 or
     // e1.remainder(e2)...

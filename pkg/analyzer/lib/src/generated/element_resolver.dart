@@ -269,7 +269,7 @@ class ElementResolver {
 
   void visitMethodInvocation(MethodInvocation node,
       {List<WhyNotPromotedGetter>? whyNotPromotedList,
-      required DartType? contextType}) {
+      required DartType contextType}) {
     whyNotPromotedList ??= [];
     _methodInvocationResolver.resolve(
         node as MethodInvocationImpl, whyNotPromotedList,

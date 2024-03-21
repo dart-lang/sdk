@@ -453,18 +453,6 @@ abstract class Instance extends Object implements InstanceRef {
   ///
   /// Provided for instance kinds:
   ///   RegExp
-  FunctionRef? get externalOneByteFunction;
-
-  /// [optional]
-  ///
-  /// Provided for instance kinds:
-  ///   RegExp
-  FunctionRef? get externalTwoByteFunction;
-
-  /// [optional]
-  ///
-  /// Provided for instance kinds:
-  ///   RegExp
   InstanceRef? get oneByteBytecode;
 
   /// [optional]

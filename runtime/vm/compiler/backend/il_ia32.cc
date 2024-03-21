@@ -200,14 +200,6 @@ void MemoryCopyInstr::EmitComputeStartPointer(FlowGraphCompiler* compiler,
         offset =
             compiler::target::TwoByteString::data_offset() - kHeapObjectTag;
         break;
-      case kExternalOneByteStringCid:
-        __ LoadFromSlot(array_reg, array_reg,
-                        Slot::ExternalOneByteString_external_data());
-        break;
-      case kExternalTwoByteStringCid:
-        __ LoadFromSlot(array_reg, array_reg,
-                        Slot::ExternalTwoByteString_external_data());
-        break;
       default:
         UNREACHABLE();
         break;
@@ -1701,8 +1693,7 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case kTypedDataUint8ClampedArrayCid:
     case kExternalTypedDataUint8ArrayCid:
     case kExternalTypedDataUint8ClampedArrayCid:
-    case kOneByteStringCid:
-    case kExternalOneByteStringCid: {
+    case kOneByteStringCid: {
       const Register result = locs()->out(0).reg();
       ASSERT(representation() == kUnboxedIntPtr);
       ASSERT(index_scale() == 1);
@@ -1716,8 +1707,7 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     }
     case kTypedDataUint16ArrayCid:
-    case kTwoByteStringCid:
-    case kExternalTwoByteStringCid: {
+    case kTwoByteStringCid: {
       const Register result = locs()->out(0).reg();
       ASSERT(representation() == kUnboxedIntPtr);
       __ movzxw(result, element_address);
@@ -3839,13 +3829,11 @@ void LoadCodeUnitsInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     switch (class_id()) {
       case kOneByteStringCid:
-      case kExternalOneByteStringCid:
         ASSERT(element_count() == 4);
         __ movl(result1, element_address);
         __ xorl(result2, result2);
         break;
       case kTwoByteStringCid:
-      case kExternalTwoByteStringCid:
         ASSERT(element_count() == 2);
         __ movl(result1, element_address);
         __ xorl(result2, result2);
@@ -3858,7 +3846,6 @@ void LoadCodeUnitsInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     Register result = locs()->out(0).reg();
     switch (class_id()) {
       case kOneByteStringCid:
-      case kExternalOneByteStringCid:
         switch (element_count()) {
           case 1:
             __ movzxb(result, element_address);
@@ -3874,7 +3861,6 @@ void LoadCodeUnitsInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         }
         break;
       case kTwoByteStringCid:
-      case kExternalTwoByteStringCid:
         switch (element_count()) {
           case 1:
             __ movzxw(result, element_address);

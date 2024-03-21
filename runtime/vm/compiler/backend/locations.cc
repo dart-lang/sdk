@@ -91,7 +91,6 @@ Representation RepresentationUtils::RepresentationOfArrayElement(
     case kTypedDataInt8ArrayCid:
       return kUnboxedInt8;
     case kOneByteStringCid:
-    case kExternalOneByteStringCid:
     case kTypedDataUint8ArrayCid:
     case kTypedDataUint8ClampedArrayCid:
     case kExternalTypedDataUint8ArrayCid:
@@ -100,7 +99,6 @@ Representation RepresentationUtils::RepresentationOfArrayElement(
     case kTypedDataInt16ArrayCid:
       return kUnboxedInt16;
     case kTwoByteStringCid:
-    case kExternalTwoByteStringCid:
     case kTypedDataUint16ArrayCid:
       return kUnboxedUint16;
     case kTypedDataInt32ArrayCid:

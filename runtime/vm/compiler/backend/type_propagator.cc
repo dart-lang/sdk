@@ -1738,9 +1738,7 @@ CompileType LoadFieldInstr::ComputeType() const {
 CompileType LoadCodeUnitsInstr::ComputeType() const {
   switch (class_id()) {
     case kOneByteStringCid:
-    case kExternalOneByteStringCid:
     case kTwoByteStringCid:
-    case kExternalTwoByteStringCid:
       return can_pack_into_smi() ? CompileType::FromCid(kSmiCid)
                                  : CompileType::Int();
     default:

@@ -138,8 +138,6 @@
   FIELD(Context, num_variables_offset)                                         \
   FIELD(Context, parent_offset)                                                \
   FIELD(Double, value_offset)                                                  \
-  FIELD(ExternalOneByteString, external_data_offset)                           \
-  FIELD(ExternalTwoByteString, external_data_offset)                           \
   FIELD(Float32x4, value_offset)                                               \
   FIELD(Float64x2, value_offset)                                               \
   FIELD(Field, initializer_function_offset)                                    \
@@ -421,8 +419,6 @@
   SIZEOF(Context, header_size, UntaggedContext)                                \
   SIZEOF(Double, InstanceSize, UntaggedDouble)                                 \
   SIZEOF(DynamicLibrary, InstanceSize, UntaggedDynamicLibrary)                 \
-  SIZEOF(ExternalOneByteString, InstanceSize, UntaggedExternalOneByteString)   \
-  SIZEOF(ExternalTwoByteString, InstanceSize, UntaggedExternalTwoByteString)   \
   SIZEOF(ExternalTypedData, InstanceSize, UntaggedExternalTypedData)           \
   SIZEOF(FfiTrampolineData, InstanceSize, UntaggedFfiTrampolineData)           \
   SIZEOF(Field, InstanceSize, UntaggedField)                                   \

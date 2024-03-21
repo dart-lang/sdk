@@ -69,8 +69,10 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFieldInitializer() {
   if (B->IsCompiledForOsr()) {
     B->graph_entry_->RelinkToOsrEntry(Z, B->last_used_block_id_ + 1);
   }
-  return new (Z) FlowGraph(*parsed_function(), B->graph_entry_,
-                           B->last_used_block_id_, prologue_info);
+  return new (Z) FlowGraph(
+      *parsed_function(), B->graph_entry_, B->last_used_block_id_,
+      prologue_info,
+      FlowGraph::CompilationModeFrom(flow_graph_builder_->optimizing_));
 }
 
 void StreamingFlowGraphBuilder::SetupDefaultParameterValues() {
@@ -892,9 +894,10 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(
     graph_entry->RelinkToOsrEntry(Z,
                                   flow_graph_builder_->last_used_block_id_ + 1);
   }
-  return new (Z)
-      FlowGraph(*parsed_function(), graph_entry,
-                flow_graph_builder_->last_used_block_id_, prologue_info);
+  return new (Z) FlowGraph(
+      *parsed_function(), graph_entry, flow_graph_builder_->last_used_block_id_,
+      prologue_info,
+      FlowGraph::CompilationModeFrom(flow_graph_builder_->optimizing_));
 }
 
 FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {

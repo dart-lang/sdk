@@ -118,8 +118,6 @@ class ObjectPointerVisitor;
   RW(Class, future_or_class)                                                   \
   RW(Class, one_byte_string_class)                                             \
   RW(Class, two_byte_string_class)                                             \
-  RW(Class, external_one_byte_string_class)                                    \
-  RW(Class, external_two_byte_string_class)                                    \
   RW(Type, bool_type)                                                          \
   RW(Class, bool_class)                                                        \
   RW(Class, array_class)                                                       \

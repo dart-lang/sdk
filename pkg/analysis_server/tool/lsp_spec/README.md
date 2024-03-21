@@ -184,6 +184,22 @@ Returns: `Location | null`
 
 Returns the location of the super definition of the class or method at the provided position or `null` if there isn't one.
 
+### dart/textDocument/augmented Method
+
+Direction: Client -> Server
+Params: `TextDocumentPositionParams`
+Returns: `Location | null`
+
+Returns the location of the declaration that is augmented at the provided position or `null` if the position is not an augmentation.
+
+### dart/textDocument/augmentation Method
+
+Direction: Client -> Server
+Params: `TextDocumentPositionParams`
+Returns: `Location | null`
+
+Returns the location of the augmentation for the declaration at the provided position or `null` if declaration is not augmented.
+
 ### $/analyzerStatus Notification (Deprecated)
 
 Direction: Server -> Client

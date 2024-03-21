@@ -1642,38 +1642,6 @@ ISOLATE_UNIT_TEST_CASE(StringEqualsUTF32) {
   EXPECT(!th_str.Equals(chars, 3));
 }
 
-static void NoopFinalizer(void* isolate_callback_data, void* peer) {}
-
-ISOLATE_UNIT_TEST_CASE(ExternalOneByteString) {
-  uint8_t characters[] = {0xF6, 0xF1, 0xE9};
-  intptr_t len = ARRAY_SIZE(characters);
-
-  const String& str = String::Handle(ExternalOneByteString::New(
-      characters, len, nullptr, 0, NoopFinalizer, Heap::kNew));
-  EXPECT(!str.IsOneByteString());
-  EXPECT(str.IsExternalOneByteString());
-  EXPECT_EQ(str.Length(), len);
-  EXPECT(str.Equals("\xC3\xB6\xC3\xB1\xC3\xA9"));
-
-  const String& copy = String::Handle(String::SubString(str, 0, len));
-  EXPECT(!copy.IsExternalOneByteString());
-  EXPECT(copy.IsOneByteString());
-  EXPECT_EQ(len, copy.Length());
-  EXPECT(copy.Equals(str));
-
-  const String& concat = String::Handle(String::Concat(str, str));
-  EXPECT(!concat.IsExternalOneByteString());
-  EXPECT(concat.IsOneByteString());
-  EXPECT_EQ(len * 2, concat.Length());
-  EXPECT(concat.Equals("\xC3\xB6\xC3\xB1\xC3\xA9\xC3\xB6\xC3\xB1\xC3\xA9"));
-
-  const String& substr = String::Handle(String::SubString(str, 1, 1));
-  EXPECT(!substr.IsExternalOneByteString());
-  EXPECT(substr.IsOneByteString());
-  EXPECT_EQ(1, substr.Length());
-  EXPECT(substr.Equals("\xC3\xB1"));
-}
-
 ISOLATE_UNIT_TEST_CASE(EscapeSpecialCharactersOneByteString) {
   uint8_t characters[] = {'a',  '\n', '\f', '\b', '\t',
                           '\v', '\r', '\\', '$',  'z'};
@@ -1690,29 +1658,6 @@ ISOLATE_UNIT_TEST_CASE(EscapeSpecialCharactersOneByteString) {
 
   const String& escaped_empty_str =
       String::Handle(String::EscapeSpecialCharacters(Symbols::Empty()));
-  EXPECT_EQ(escaped_empty_str.Length(), 0);
-}
-
-ISOLATE_UNIT_TEST_CASE(EscapeSpecialCharactersExternalOneByteString) {
-  uint8_t characters[] = {'a',  '\n', '\f', '\b', '\t',
-                          '\v', '\r', '\\', '$',  'z'};
-  intptr_t len = ARRAY_SIZE(characters);
-
-  const String& str = String::Handle(ExternalOneByteString::New(
-      characters, len, nullptr, 0, NoopFinalizer, Heap::kNew));
-  EXPECT(!str.IsOneByteString());
-  EXPECT(str.IsExternalOneByteString());
-  EXPECT_EQ(str.Length(), len);
-  EXPECT(str.Equals("a\n\f\b\t\v\r\\$z"));
-  const String& escaped_str =
-      String::Handle(String::EscapeSpecialCharacters(str));
-  EXPECT(escaped_str.Equals("a\\n\\f\\b\\t\\v\\r\\\\\\$z"));
-
-  const String& empty_str = String::Handle(ExternalOneByteString::New(
-      characters, 0, nullptr, 0, NoopFinalizer, Heap::kNew));
-  const String& escaped_empty_str =
-      String::Handle(String::EscapeSpecialCharacters(empty_str));
-  EXPECT_EQ(empty_str.Length(), 0);
   EXPECT_EQ(escaped_empty_str.Length(), 0);
 }
 
@@ -1736,60 +1681,6 @@ ISOLATE_UNIT_TEST_CASE(EscapeSpecialCharactersTwoByteString) {
       String::Handle(String::EscapeSpecialCharacters(empty_str));
   EXPECT_EQ(empty_str.Length(), 0);
   EXPECT_EQ(escaped_empty_str.Length(), 0);
-}
-
-ISOLATE_UNIT_TEST_CASE(EscapeSpecialCharactersExternalTwoByteString) {
-  uint16_t characters[] = {'a',  '\n', '\f', '\b', '\t',
-                           '\v', '\r', '\\', '$',  'z'};
-  intptr_t len = ARRAY_SIZE(characters);
-
-  const String& str = String::Handle(ExternalTwoByteString::New(
-      characters, len, nullptr, 0, NoopFinalizer, Heap::kNew));
-  EXPECT(str.IsExternalTwoByteString());
-  EXPECT_EQ(str.Length(), len);
-  EXPECT(str.Equals("a\n\f\b\t\v\r\\$z"));
-  const String& escaped_str =
-      String::Handle(String::EscapeSpecialCharacters(str));
-  EXPECT(escaped_str.Equals("a\\n\\f\\b\\t\\v\\r\\\\\\$z"));
-
-  const String& empty_str = String::Handle(ExternalTwoByteString::New(
-      characters, 0, nullptr, 0, NoopFinalizer, Heap::kNew));
-  const String& escaped_empty_str =
-      String::Handle(String::EscapeSpecialCharacters(empty_str));
-  EXPECT_EQ(empty_str.Length(), 0);
-  EXPECT_EQ(escaped_empty_str.Length(), 0);
-}
-
-ISOLATE_UNIT_TEST_CASE(ExternalTwoByteString) {
-  uint16_t characters[] = {0x1E6B, 0x1E85, 0x1E53};
-  intptr_t len = ARRAY_SIZE(characters);
-
-  const String& str = String::Handle(ExternalTwoByteString::New(
-      characters, len, nullptr, 0, NoopFinalizer, Heap::kNew));
-  EXPECT(!str.IsTwoByteString());
-  EXPECT(str.IsExternalTwoByteString());
-  EXPECT_EQ(str.Length(), len);
-  EXPECT(str.Equals("\xE1\xB9\xAB\xE1\xBA\x85\xE1\xB9\x93"));
-
-  const String& copy = String::Handle(String::SubString(str, 0, len));
-  EXPECT(!copy.IsExternalTwoByteString());
-  EXPECT(copy.IsTwoByteString());
-  EXPECT_EQ(len, copy.Length());
-  EXPECT(copy.Equals(str));
-
-  const String& concat = String::Handle(String::Concat(str, str));
-  EXPECT(!concat.IsExternalTwoByteString());
-  EXPECT(concat.IsTwoByteString());
-  EXPECT_EQ(len * 2, concat.Length());
-  EXPECT(
-      concat.Equals("\xE1\xB9\xAB\xE1\xBA\x85\xE1\xB9\x93"
-                    "\xE1\xB9\xAB\xE1\xBA\x85\xE1\xB9\x93"));
-
-  const String& substr = String::Handle(String::SubString(str, 1, 1));
-  EXPECT(!substr.IsExternalTwoByteString());
-  EXPECT(substr.IsTwoByteString());
-  EXPECT_EQ(1, substr.Length());
-  EXPECT(substr.Equals("\xE1\xBA\x85"));
 }
 
 ISOLATE_UNIT_TEST_CASE(Symbol) {
@@ -3438,39 +3329,6 @@ ISOLATE_UNIT_TEST_CASE(EqualsIgnoringPrivate) {
   mangled_name = OneByteString::New("foo@12345.named@12345");
   bare_name = OneByteString::New("foo.name");
   EXPECT(!String::EqualsIgnoringPrivateKey(mangled_name, bare_name));
-
-  const char* ext_mangled_str = "foo@12345.name@12345";
-  const char* ext_bare_str = "foo.name";
-  const char* ext_bad_bare_str = "foo.named";
-  String& ext_mangled_name = String::Handle();
-  String& ext_bare_name = String::Handle();
-  String& ext_bad_bare_name = String::Handle();
-
-  mangled_name = OneByteString::New("foo@12345.name@12345");
-  ext_mangled_name = ExternalOneByteString::New(
-      reinterpret_cast<const uint8_t*>(ext_mangled_str),
-      strlen(ext_mangled_str), nullptr, 0, NoopFinalizer, Heap::kNew);
-  EXPECT(ext_mangled_name.IsExternalOneByteString());
-  ext_bare_name = ExternalOneByteString::New(
-      reinterpret_cast<const uint8_t*>(ext_bare_str), strlen(ext_bare_str),
-      nullptr, 0, NoopFinalizer, Heap::kNew);
-  EXPECT(ext_bare_name.IsExternalOneByteString());
-  ext_bad_bare_name = ExternalOneByteString::New(
-      reinterpret_cast<const uint8_t*>(ext_bad_bare_str),
-      strlen(ext_bad_bare_str), nullptr, 0, NoopFinalizer, Heap::kNew);
-  EXPECT(ext_bad_bare_name.IsExternalOneByteString());
-
-  // str1 - OneByteString, str2 - ExternalOneByteString.
-  EXPECT(String::EqualsIgnoringPrivateKey(mangled_name, ext_bare_name));
-  EXPECT(!String::EqualsIgnoringPrivateKey(mangled_name, ext_bad_bare_name));
-
-  // str1 - ExternalOneByteString, str2 - OneByteString.
-  EXPECT(String::EqualsIgnoringPrivateKey(ext_mangled_name, bare_name));
-
-  // str1 - ExternalOneByteString, str2 - ExternalOneByteString.
-  EXPECT(String::EqualsIgnoringPrivateKey(ext_mangled_name, ext_bare_name));
-  EXPECT(
-      !String::EqualsIgnoringPrivateKey(ext_mangled_name, ext_bad_bare_name));
 }
 
 ISOLATE_UNIT_TEST_CASE_WITH_EXPECTATION(ArrayNew_Overflow_Crash, "Crash") {
@@ -7443,48 +7301,6 @@ void init() {
   HashSetNonConstEqualsConst(kScript);
 }
 
-TEST_CASE(OneByteStringExternalEqualsInternal) {
-  const char* kScript = R"(
-makeInternalString() {
-  return String.fromCharCodes(<int>[1, 1, 2, 3, 5, 8, 13]);
-}
-
-bool equalsAB(String a, String b) => !identical(a, b) && (a == b);
-bool equalsBA(String a, String b) => !identical(b, a) && (b == a);
-)";
-  Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID(lib);
-  Dart_Handle internal_string =
-      Dart_Invoke(lib, NewString("makeInternalString"), 0, nullptr);
-  EXPECT_VALID(internal_string);
-
-  Dart_Handle external_string;
-  uint8_t characters[] = {1, 1, 2, 3, 5, 8, 13};
-  intptr_t len = ARRAY_SIZE(characters);
-
-  {
-    TransitionNativeToVM transition(thread);
-
-    const String& str = String::Handle(ExternalOneByteString::New(
-        characters, len, nullptr, 0, NoopFinalizer, Heap::kNew));
-    EXPECT(!str.IsOneByteString());
-    EXPECT(str.IsExternalOneByteString());
-
-    external_string = Api::NewHandle(thread, str.ptr());
-  }
-
-  Dart_Handle args[2] = {internal_string, external_string};
-  Dart_Handle equalsAB_result =
-      Dart_Invoke(lib, NewString("equalsAB"), 2, args);
-  EXPECT_VALID(equalsAB_result);
-  EXPECT_TRUE(equalsAB_result);
-
-  Dart_Handle equalsBA_result =
-      Dart_Invoke(lib, NewString("equalsBA"), 2, args);
-  EXPECT_VALID(equalsBA_result);
-  EXPECT_TRUE(equalsBA_result);
-}
-
 static void CheckConcatAll(const String* data[], intptr_t n) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
@@ -7514,44 +7330,6 @@ ISOLATE_UNIT_TEST_CASE(Symbols_FromConcatAll) {
         String::Handle(String::FromUTF16(wide_chars, kWideCharsLen));
 
     const String* data[3] = {&two_str, &Symbols::Dot(), &two_str};
-    CheckConcatAll(data, 3);
-  }
-
-  {
-    uint8_t characters[] = {0xF6, 0xF1, 0xE9};
-    intptr_t len = ARRAY_SIZE(characters);
-
-    const String& str = String::Handle(ExternalOneByteString::New(
-        characters, len, nullptr, 0, NoopFinalizer, Heap::kNew));
-    const String* data[3] = {&str, &Symbols::Dot(), &str};
-    CheckConcatAll(data, 3);
-  }
-
-  {
-    uint16_t characters[] = {'a',  '\n', '\f', '\b', '\t',
-                             '\v', '\r', '\\', '$',  'z'};
-    intptr_t len = ARRAY_SIZE(characters);
-
-    const String& str = String::Handle(ExternalTwoByteString::New(
-        characters, len, nullptr, 0, NoopFinalizer, Heap::kNew));
-    const String* data[3] = {&str, &Symbols::Dot(), &str};
-    CheckConcatAll(data, 3);
-  }
-
-  {
-    uint8_t characters1[] = {0xF6, 0xF1, 0xE9};
-    intptr_t len1 = ARRAY_SIZE(characters1);
-
-    const String& str1 = String::Handle(ExternalOneByteString::New(
-        characters1, len1, nullptr, 0, NoopFinalizer, Heap::kNew));
-
-    uint16_t characters2[] = {'a',  '\n', '\f', '\b', '\t',
-                              '\v', '\r', '\\', '$',  'z'};
-    intptr_t len2 = ARRAY_SIZE(characters2);
-
-    const String& str2 = String::Handle(ExternalTwoByteString::New(
-        characters2, len2, nullptr, 0, NoopFinalizer, Heap::kNew));
-    const String* data[3] = {&str1, &Symbols::Dot(), &str2};
     CheckConcatAll(data, 3);
   }
 

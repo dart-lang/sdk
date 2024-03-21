@@ -1161,7 +1161,7 @@ static void JumpIfString(Assembler* assembler,
                          Register cid,
                          Register tmp,
                          Label* target) {
-  assembler->RangeCheck(cid, tmp, kOneByteStringCid, kExternalTwoByteStringCid,
+  assembler->RangeCheck(cid, tmp, kOneByteStringCid, kTwoByteStringCid,
                         Assembler::kIfInRange, target);
 }
 
@@ -1169,7 +1169,7 @@ static void JumpIfNotString(Assembler* assembler,
                             Register cid,
                             Register tmp,
                             Label* target) {
-  assembler->RangeCheck(cid, tmp, kOneByteStringCid, kExternalTwoByteStringCid,
+  assembler->RangeCheck(cid, tmp, kOneByteStringCid, kTwoByteStringCid,
                         Assembler::kIfNotInRange, target);
 }
 

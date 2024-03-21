@@ -94,8 +94,6 @@ struct CompilerPassState {
 
   SpeculativeInliningPolicy* speculative_policy;
 
-  bool reorder_blocks;
-
   intptr_t sticky_flags;
 
   FlowGraphCompiler* graph_compiler = nullptr;

@@ -404,14 +404,6 @@ void MemoryCopyInstr::EmitComputeStartPointer(FlowGraphCompiler* compiler,
         offset =
             compiler::target::TwoByteString::data_offset() - kHeapObjectTag;
         break;
-      case kExternalOneByteStringCid:
-        __ LoadFromSlot(array_reg, array_reg,
-                        Slot::ExternalOneByteString_external_data());
-        break;
-      case kExternalTwoByteStringCid:
-        __ LoadFromSlot(array_reg, array_reg,
-                        Slot::ExternalTwoByteString_external_data());
-        break;
       default:
         UNREACHABLE();
         break;
@@ -2170,8 +2162,7 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case kTypedDataUint8ClampedArrayCid:
     case kExternalTypedDataUint8ArrayCid:
     case kExternalTypedDataUint8ClampedArrayCid:
-    case kOneByteStringCid:
-    case kExternalOneByteStringCid: {
+    case kOneByteStringCid: {
       ASSERT(representation() == kUnboxedIntPtr);
       ASSERT(index_scale() == 1);
       const Register result = locs()->out(0).reg();
@@ -2185,8 +2176,7 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     }
     case kTypedDataUint16ArrayCid:
-    case kTwoByteStringCid:
-    case kExternalTwoByteStringCid: {
+    case kTwoByteStringCid: {
       ASSERT(representation() == kUnboxedIntPtr);
       const Register result = locs()->out(0).reg();
       __ lhu(result, element_address);
@@ -2242,7 +2232,6 @@ void LoadCodeUnitsInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register result = locs()->out(0).reg();
   switch (class_id()) {
     case kOneByteStringCid:
-    case kExternalOneByteStringCid:
       switch (element_count()) {
         case 1:
           sz = compiler::kUnsignedByte;
@@ -2258,7 +2247,6 @@ void LoadCodeUnitsInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       }
       break;
     case kTwoByteStringCid:
-    case kExternalTwoByteStringCid:
       switch (element_count()) {
         case 1:
           sz = compiler::kUnsignedTwoBytes;

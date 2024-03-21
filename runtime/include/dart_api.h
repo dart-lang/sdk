@@ -1926,7 +1926,6 @@ DART_EXPORT bool Dart_IsDouble(Dart_Handle object);
 DART_EXPORT bool Dart_IsBoolean(Dart_Handle object);
 DART_EXPORT bool Dart_IsString(Dart_Handle object);
 DART_EXPORT bool Dart_IsStringLatin1(Dart_Handle object); /* (ISO-8859-1) */
-DART_EXPORT bool Dart_IsExternalString(Dart_Handle object);
 DART_EXPORT bool Dart_IsList(Dart_Handle object);
 DART_EXPORT bool Dart_IsMap(Dart_Handle object);
 DART_EXPORT bool Dart_IsLibrary(Dart_Handle object);
@@ -2292,48 +2291,6 @@ DART_EXPORT Dart_Handle Dart_NewStringFromUTF16(const uint16_t* utf16_array,
  */
 DART_EXPORT Dart_Handle Dart_NewStringFromUTF32(const int32_t* utf32_array,
                                                 intptr_t length);
-
-/**
- * Returns a String which references an external array of
- * Latin-1 (ISO-8859-1) encoded characters.
- *
- * \param latin1_array Array of Latin-1 encoded characters. This must not move.
- * \param length The length of the characters array.
- * \param peer An external pointer to associate with this string.
- * \param external_allocation_size The number of externally allocated
- *   bytes for peer. Used to inform the garbage collector.
- * \param callback A callback to be called when this string is finalized.
- *
- * \return The String object if no error occurs. Otherwise returns
- *   an error handle.
- */
-DART_EXPORT Dart_Handle
-Dart_NewExternalLatin1String(const uint8_t* latin1_array,
-                             intptr_t length,
-                             void* peer,
-                             intptr_t external_allocation_size,
-                             Dart_HandleFinalizer callback);
-
-/**
- * Returns a String which references an external array of UTF-16 encoded
- * characters.
- *
- * \param utf16_array An array of UTF-16 encoded characters. This must not move.
- * \param length The length of the characters array.
- * \param peer An external pointer to associate with this string.
- * \param external_allocation_size The number of externally allocated
- *   bytes for peer. Used to inform the garbage collector.
- * \param callback A callback to be called when this string is finalized.
- *
- * \return The String object if no error occurs. Otherwise returns
- *   an error handle.
- */
-DART_EXPORT Dart_Handle
-Dart_NewExternalUTF16String(const uint16_t* utf16_array,
-                            intptr_t length,
-                            void* peer,
-                            intptr_t external_allocation_size,
-                            Dart_HandleFinalizer callback);
 
 /**
  * Gets the C string representation of a String.

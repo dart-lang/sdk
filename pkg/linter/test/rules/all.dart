@@ -207,7 +207,7 @@ import 'unnecessary_lambdas_test.dart' as unnecessary_lambdas;
 import 'unnecessary_late_test.dart' as unnecessary_late;
 import 'unnecessary_library_directive_test.dart'
     as unnecessary_library_directive;
-import 'unnecessary_library_names_test.dart' as unnecessary_library_names;
+import 'unnecessary_library_name_test.dart' as unnecessary_library_name;
 import 'unnecessary_new_test.dart' as unnecessary_new;
 import 'unnecessary_null_aware_assignments_test.dart'
     as unnecessary_null_aware_assignments;
@@ -413,7 +413,7 @@ void main() {
   unnecessary_lambdas.main();
   unnecessary_late.main();
   unnecessary_library_directive.main();
-  unnecessary_library_names.main();
+  unnecessary_library_name.main();
   unnecessary_new.main();
   unnecessary_null_aware_assignments.main();
   unnecessary_null_aware_operator_on_extension_on_nullable.main();

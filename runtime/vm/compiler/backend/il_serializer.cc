@@ -743,8 +743,9 @@ FlowGraph* FlowGraphDeserializer::ReadFlowGraph() {
     instr->ReadExtra(this);
   }
 
-  FlowGraph* flow_graph = new (Z)
-      FlowGraph(parsed_function(), graph_entry_, max_block_id, prologue_info);
+  FlowGraph* flow_graph =
+      new (Z) FlowGraph(parsed_function(), graph_entry_, max_block_id,
+                        prologue_info, FlowGraph::CompilationMode::kOptimized);
   flow_graph->set_current_ssa_temp_index(current_ssa_temp_index);
   flow_graph->CreateCommonConstants();
   flow_graph->disallow_licm();
@@ -754,7 +755,7 @@ FlowGraph* FlowGraphDeserializer::ReadFlowGraph() {
   {
     const intptr_t num_blocks = Read<intptr_t>();
     if (num_blocks != 0) {
-      auto* codegen_block_order = flow_graph->CodegenBlockOrder(true);
+      auto* codegen_block_order = flow_graph->CodegenBlockOrder();
       ASSERT(codegen_block_order == &flow_graph->optimized_block_order());
       for (intptr_t i = 0; i < num_blocks; ++i) {
         codegen_block_order->Add(ReadRef<BlockEntryInstr*>());

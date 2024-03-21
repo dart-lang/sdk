@@ -7,6 +7,8 @@ import 'dart:async';
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
+import 'package:analysis_server/src/lsp/handlers/custom/handler_augmentation.dart';
+import 'package:analysis_server/src/lsp/handlers/custom/handler_augmented.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/handler_diagnostic_server.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/handler_reanalyze.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/handler_super.dart';
@@ -77,7 +79,6 @@ class InitializedLspStateMessageHandler extends InitializedStateMessageHandler {
     CompletionResolveHandler.new,
     DefinitionHandler.new,
     DocumentLinkHandler.new,
-    SuperHandler.new,
     ReferencesHandler.new,
     CodeActionHandler.new,
     ExecuteCommandHandler.new,
@@ -112,6 +113,8 @@ class InitializedStateMessageHandler extends ServerStateMessageHandler {
   /// Generators for handlers that work with any [AnalysisServer].
   static const sharedHandlerGenerators =
       <_RequestHandlerGenerator<AnalysisServer>>[
+    AugmentationHandler.new,
+    AugmentedHandler.new,
     DartTextDocumentContentProviderHandler.new,
     DocumentColorHandler.new,
     DocumentColorPresentationHandler.new,
@@ -127,6 +130,7 @@ class InitializedStateMessageHandler extends ServerStateMessageHandler {
     PrepareCallHierarchyHandler.new,
     PrepareTypeHierarchyHandler.new,
     SignatureHelpHandler.new,
+    SuperHandler.new,
     TypeDefinitionHandler.new,
     TypeHierarchySubtypesHandler.new,
     TypeHierarchySupertypesHandler.new,

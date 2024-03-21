@@ -596,8 +596,6 @@ class Place : public ValueObject {
       case kImmutableArrayCid:
       case kOneByteStringCid:
       case kTwoByteStringCid:
-      case kExternalOneByteStringCid:
-      case kExternalTwoByteStringCid:
         // Object arrays and strings do not allow accessing them through
         // different types. No need to attach scale.
         return kNoSize;

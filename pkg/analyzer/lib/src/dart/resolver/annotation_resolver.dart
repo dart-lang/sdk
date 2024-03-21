@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
+import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -115,7 +116,7 @@ class AnnotationResolver {
               resolver: _resolver,
               node: node,
               argumentList: argumentList,
-              contextType: null,
+              contextType: UnknownInferredType.instance,
               whyNotPromotedList: whyNotPromotedList,
               constructorName: constructorName)
           .resolveInvocation(rawType: null);
@@ -132,7 +133,7 @@ class AnnotationResolver {
             resolver: _resolver,
             node: node,
             argumentList: argumentList,
-            contextType: null,
+            contextType: UnknownInferredType.instance,
             whyNotPromotedList: whyNotPromotedList,
             constructorName: constructorName)
         .resolveInvocation(rawType: constructorRawType);
@@ -420,7 +421,7 @@ class AnnotationResolver {
               resolver: _resolver,
               node: node,
               argumentList: arguments,
-              contextType: null,
+              contextType: UnknownInferredType.instance,
               whyNotPromotedList: whyNotPromotedList,
               constructorName: null)
           .resolveInvocation(rawType: null);

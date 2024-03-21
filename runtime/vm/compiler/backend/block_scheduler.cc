@@ -156,6 +156,10 @@ static void Union(GrowableArray<Chain*>* chains,
 }
 
 void BlockScheduler::ReorderBlocks(FlowGraph* flow_graph) {
+  if (!flow_graph->should_reorder_blocks()) {
+    return;
+  }
+
   if (CompilerState::Current().is_aot()) {
     ReorderBlocksAOT(flow_graph);
   } else {
@@ -164,10 +168,6 @@ void BlockScheduler::ReorderBlocks(FlowGraph* flow_graph) {
 }
 
 void BlockScheduler::ReorderBlocksJIT(FlowGraph* flow_graph) {
-  if (!FLAG_reorder_basic_blocks) {
-    return;
-  }
-
   // Add every block to a chain of length 1 and compute a list of edges
   // sorted by weight.
   intptr_t block_count = flow_graph->preorder().length();
@@ -219,10 +219,10 @@ void BlockScheduler::ReorderBlocksJIT(FlowGraph* flow_graph) {
   // Ensure the checked entry remains first to avoid needing another offset on
   // Instructions, compare Code::EntryPointOf.
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
-  flow_graph->CodegenBlockOrder(true)->Add(graph_entry);
+  flow_graph->CodegenBlockOrder()->Add(graph_entry);
   FunctionEntryInstr* checked_entry = graph_entry->normal_entry();
   if (checked_entry != nullptr) {
-    flow_graph->CodegenBlockOrder(true)->Add(checked_entry);
+    flow_graph->CodegenBlockOrder()->Add(checked_entry);
   }
   // Build a new block order.  Emit each chain when its first block occurs
   // in the original reverse postorder ordering (which gives a topological
@@ -231,7 +231,7 @@ void BlockScheduler::ReorderBlocksJIT(FlowGraph* flow_graph) {
     if (chains[i]->first->block == flow_graph->postorder()[i]) {
       for (Link* link = chains[i]->first; link != nullptr; link = link->next) {
         if ((link->block != checked_entry) && (link->block != graph_entry)) {
-          flow_graph->CodegenBlockOrder(true)->Add(link->block);
+          flow_graph->CodegenBlockOrder()->Add(link->block);
         }
       }
     }
@@ -241,10 +241,6 @@ void BlockScheduler::ReorderBlocksJIT(FlowGraph* flow_graph) {
 // Moves blocks ending in a throw/rethrow, as well as any block post-dominated
 // by such a throwing block, to the end.
 void BlockScheduler::ReorderBlocksAOT(FlowGraph* flow_graph) {
-  if (!FLAG_reorder_basic_blocks) {
-    return;
-  }
-
   auto& reverse_postorder = flow_graph->reverse_postorder();
   const intptr_t block_count = reverse_postorder.length();
   GrowableArray<bool> is_terminating(block_count);
@@ -283,7 +279,7 @@ void BlockScheduler::ReorderBlocksAOT(FlowGraph* flow_graph) {
 
   // Emit code in reverse postorder but move any throwing blocks (except the
   // function entry, which needs to come first) to the very end.
-  auto codegen_order = flow_graph->CodegenBlockOrder(true);
+  auto codegen_order = flow_graph->CodegenBlockOrder();
   for (intptr_t i = 0; i < block_count; ++i) {
     auto block = reverse_postorder[i];
     const intptr_t preorder_nr = block->preorder_number();

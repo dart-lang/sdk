@@ -633,8 +633,6 @@ ISOLATE_UNIT_TEST_CASE(HierarchyInfo_String_Subtype) {
   GrowableArray<intptr_t> expected_concrete_cids;
   expected_concrete_cids.Add(kOneByteStringCid);
   expected_concrete_cids.Add(kTwoByteStringCid);
-  expected_concrete_cids.Add(kExternalOneByteStringCid);
-  expected_concrete_cids.Add(kExternalTwoByteStringCid);
 
   GrowableArray<intptr_t> expected_abstract_cids;
   expected_abstract_cids.Add(type.type_class_id());

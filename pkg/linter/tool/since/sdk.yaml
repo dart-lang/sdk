@@ -190,7 +190,7 @@ unnecessary_getters_setters: 2.0.0
 unnecessary_lambdas: 2.0.0
 unnecessary_late: 2.16.0
 unnecessary_library_directive: 2.19.0
-unnecessary_library_names: 3.4.0-wip
+unnecessary_library_name: 3.4.0-wip
 unnecessary_new: 2.0.0
 unnecessary_null_aware_assignments: 2.0.0
 unnecessary_null_aware_operator_on_extension_on_nullable: 2.18.0

@@ -3516,8 +3516,6 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
 
       CompilerPassState pass_state(thread(), flow_graph, &speculative_policy,
                                    precompiler_);
-      pass_state.reorder_blocks =
-          FlowGraph::ShouldReorderBlocks(function, optimized());
 
       if (function.ForceOptimize()) {
         ASSERT(optimized());

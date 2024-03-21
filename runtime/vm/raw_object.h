@@ -3181,24 +3181,6 @@ class UntaggedTypedDataView : public UntaggedTypedDataBase {
   friend class ScavengerVisitorBase;
 };
 
-class UntaggedExternalOneByteString : public UntaggedString {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalOneByteString);
-
-  const uint8_t* external_data_;
-  void* peer_;
-  friend class Api;
-  friend class String;
-};
-
-class UntaggedExternalTwoByteString : public UntaggedString {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalTwoByteString);
-
-  const uint16_t* external_data_;
-  void* peer_;
-  friend class Api;
-  friend class String;
-};
-
 class UntaggedBool : public UntaggedInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Bool);
   VISIT_NOTHING();
@@ -3516,13 +3498,9 @@ class UntaggedRegExp : public UntaggedInstance {
   COMPRESSED_POINTER_FIELD(StringPtr, pattern)
   COMPRESSED_POINTER_FIELD(ObjectPtr, one_byte)  // FunctionPtr or TypedDataPtr
   COMPRESSED_POINTER_FIELD(ObjectPtr, two_byte)
-  COMPRESSED_POINTER_FIELD(ObjectPtr, external_one_byte)
-  COMPRESSED_POINTER_FIELD(ObjectPtr, external_two_byte)
   COMPRESSED_POINTER_FIELD(ObjectPtr, one_byte_sticky)
   COMPRESSED_POINTER_FIELD(ObjectPtr, two_byte_sticky)
-  COMPRESSED_POINTER_FIELD(ObjectPtr, external_one_byte_sticky)
-  COMPRESSED_POINTER_FIELD(ObjectPtr, external_two_byte_sticky)
-  VISIT_TO(external_two_byte_sticky)
+  VISIT_TO(two_byte_sticky)
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
   std::atomic<intptr_t> num_bracket_expressions_;

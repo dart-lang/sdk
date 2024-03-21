@@ -111,8 +111,7 @@ abstract final class _StringBase implements String {
   bool get _isOneByte {
     // Alternatively return false and override it on one-byte string classes.
     int id = ClassID.getID(this);
-    return id == ClassID.cidOneByteString ||
-        id == ClassID.cidExternalOneByteString;
+    return id == ClassID.cidOneByteString;
   }
 
   /**
@@ -1084,8 +1083,7 @@ final class _OneByteString extends _StringBase {
     // Specialize for single character pattern.
     final pCid = ClassID.getID(pattern);
     if ((pCid == ClassID.cidOneByteString) ||
-        (pCid == ClassID.cidTwoByteString) ||
-        (pCid == ClassID.cidExternalOneByteString)) {
+        (pCid == ClassID.cidTwoByteString)) {
       final String patternAsString = unsafeCast<String>(pattern);
       final len = this.length;
       if ((patternAsString.length == 1) && (start >= 0) && (start < len)) {
@@ -1107,8 +1105,7 @@ final class _OneByteString extends _StringBase {
   bool contains(Pattern pattern, [int start = 0]) {
     final pCid = ClassID.getID(pattern);
     if ((pCid == ClassID.cidOneByteString) ||
-        (pCid == ClassID.cidTwoByteString) ||
-        (pCid == ClassID.cidExternalOneByteString)) {
+        (pCid == ClassID.cidTwoByteString)) {
       final String patternAsString = unsafeCast<String>(pattern);
       final len = this.length;
       if ((patternAsString.length == 1) && (start >= 0) && (start < len)) {
@@ -1147,8 +1144,7 @@ final class _OneByteString extends _StringBase {
 
   String padLeft(int width, [String padding = ' ']) {
     int padCid = ClassID.getID(padding);
-    if ((padCid != ClassID.cidOneByteString) &&
-        (padCid != ClassID.cidExternalOneByteString)) {
+    if (padCid != ClassID.cidOneByteString) {
       return super.padLeft(width, padding);
     }
     int length = this.length;
@@ -1178,8 +1174,7 @@ final class _OneByteString extends _StringBase {
 
   String padRight(int width, [String padding = ' ']) {
     int padCid = ClassID.getID(padding);
-    if ((padCid != ClassID.cidOneByteString) &&
-        (padCid != ClassID.cidExternalOneByteString)) {
+    if (padCid != ClassID.cidOneByteString) {
       return super.padRight(width, padding);
     }
     int length = this.length;
@@ -1321,7 +1316,7 @@ final class _OneByteString extends _StringBase {
   }
 
   // Should be optimizable to a memory move.
-  // Accepts both _OneByteString and _ExternalOneByteString as argument.
+  // Accepts _OneByteString as argument.
   // Returns index after last character written.
   int _setRange(int index, String oneByteString, int start, int end) {
     assert(oneByteString._isOneByte);
@@ -1398,48 +1393,6 @@ final class _TwoByteString extends _StringBase {
       result._setAt(i, result.codeUnitAt(i - length));
     }
     return result;
-  }
-}
-
-@pragma('vm:deeply-immutable')
-@pragma("vm:entry-point")
-final class _ExternalOneByteString extends _StringBase {
-  factory _ExternalOneByteString._uninstantiable() {
-    throw "Unreachable";
-  }
-
-  bool _isWhitespace(int codeUnit) {
-    return _StringBase._isOneByteWhitespace(codeUnit);
-  }
-
-  @pragma("vm:recognized", "graph-intrinsic")
-  @pragma("vm:exact-result-type", "dart:core#_Smi")
-  @pragma("vm:external-name", "String_codeUnitAt")
-  external int codeUnitAt(int index);
-
-  bool operator ==(Object other) {
-    return super == other;
-  }
-}
-
-@pragma('vm:deeply-immutable')
-@pragma("vm:entry-point")
-final class _ExternalTwoByteString extends _StringBase {
-  factory _ExternalTwoByteString._uninstantiable() {
-    throw "Unreachable";
-  }
-
-  bool _isWhitespace(int codeUnit) {
-    return _StringBase._isTwoByteWhitespace(codeUnit);
-  }
-
-  @pragma("vm:recognized", "graph-intrinsic")
-  @pragma("vm:exact-result-type", "dart:core#_Smi")
-  @pragma("vm:external-name", "String_codeUnitAt")
-  external int codeUnitAt(int index);
-
-  bool operator ==(Object other) {
-    return super == other;
   }
 }
 

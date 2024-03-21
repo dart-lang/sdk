@@ -205,47 +205,6 @@ void benchmark(int count) {
   benchmark->set_score(elapsed_time);
 }
 
-static void NoopFinalizer(void* isolate_callback_data, void* peer) {}
-
-//
-// Measure time accessing internal and external strings.
-//
-BENCHMARK(DartStringAccess) {
-  const int kNumIterations = 10000000;
-  Timer timer;
-  timer.Start();
-  Dart_EnterScope();
-
-  // Create strings.
-  uint8_t data8[] = {'o', 'n', 'e', 0xFF};
-  int external_peer_data = 123;
-  intptr_t char_size;
-  intptr_t str_len;
-  Dart_Handle external_string = Dart_NewExternalLatin1String(
-      data8, ARRAY_SIZE(data8), &external_peer_data, sizeof(data8),
-      NoopFinalizer);
-  Dart_Handle internal_string = NewString("two");
-
-  // Run benchmark.
-  for (int64_t i = 0; i < kNumIterations; i++) {
-    EXPECT(Dart_IsString(internal_string));
-    EXPECT(!Dart_IsExternalString(internal_string));
-    EXPECT_VALID(external_string);
-    EXPECT(Dart_IsExternalString(external_string));
-    void* external_peer = nullptr;
-    EXPECT_VALID(Dart_StringGetProperties(external_string, &char_size, &str_len,
-                                          &external_peer));
-    EXPECT_EQ(1, char_size);
-    EXPECT_EQ(4, str_len);
-    EXPECT_EQ(&external_peer_data, external_peer);
-  }
-
-  Dart_ExitScope();
-  timer.Stop();
-  int64_t elapsed_time = timer.TotalElapsedTime();
-  benchmark->set_score(elapsed_time);
-}
-
 static void vmservice_resolver(Dart_NativeArguments args) {}
 
 static Dart_NativeFunction NativeResolver(Dart_Handle name,

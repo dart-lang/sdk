@@ -34,10 +34,17 @@ DEFINE_FLAG(bool, prune_dead_locals, true, "optimize dead locals away");
 // Quick access to the current zone.
 #define Z (zone())
 
+static bool ShouldReorderBlocks(const Function& function,
+                                FlowGraph::CompilationMode mode) {
+  return (mode == FlowGraph::CompilationMode::kOptimized) &&
+         FLAG_reorder_basic_blocks && !function.IsFfiCallbackTrampoline();
+}
+
 FlowGraph::FlowGraph(const ParsedFunction& parsed_function,
                      GraphEntryInstr* graph_entry,
                      intptr_t max_block_id,
-                     PrologueInfo prologue_info)
+                     PrologueInfo prologue_info,
+                     CompilationMode compilation_mode)
     : thread_(Thread::Current()),
       parent_(),
       current_ssa_temp_index_(0),
@@ -56,6 +63,8 @@ FlowGraph::FlowGraph(const ParsedFunction& parsed_function,
       constant_null_(nullptr),
       constant_dead_(nullptr),
       licm_allowed_(true),
+      should_reorder_blocks_(
+          ShouldReorderBlocks(parsed_function.function(), compilation_mode)),
       prologue_info_(prologue_info),
       loop_hierarchy_(nullptr),
       loop_invariant_loads_(nullptr),
@@ -152,16 +161,14 @@ void FlowGraph::ReplaceCurrentInstruction(ForwardInstructionIterator* iterator,
   iterator->RemoveCurrentFromGraph();
 }
 
-bool FlowGraph::ShouldReorderBlocks(const Function& function,
-                                    bool is_optimized) {
-  return is_optimized && FLAG_reorder_basic_blocks &&
-         !function.is_intrinsic() && !function.IsFfiCallbackTrampoline();
+GrowableArray<BlockEntryInstr*>* FlowGraph::CodegenBlockOrder() {
+  return should_reorder_blocks() ? &optimized_block_order_
+                                 : &reverse_postorder_;
 }
 
-GrowableArray<BlockEntryInstr*>* FlowGraph::CodegenBlockOrder(
-    bool is_optimized) {
-  return ShouldReorderBlocks(function(), is_optimized) ? &optimized_block_order_
-                                                       : &reverse_postorder_;
+const GrowableArray<BlockEntryInstr*>* FlowGraph::CodegenBlockOrder() const {
+  return should_reorder_blocks() ? &optimized_block_order_
+                                 : &reverse_postorder_;
 }
 
 ConstantInstr* FlowGraph::GetExistingConstant(

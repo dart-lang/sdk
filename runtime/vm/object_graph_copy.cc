@@ -193,8 +193,6 @@ static bool MightNeedReHashing(ObjectPtr object) {
   // same hash codes.
   if (cid == kOneByteStringCid) return false;
   if (cid == kTwoByteStringCid) return false;
-  if (cid == kExternalOneByteStringCid) return false;
-  if (cid == kExternalTwoByteStringCid) return false;
   if (cid == kMintCid) return false;
   if (cid == kDoubleCid) return false;
   if (cid == kBoolCid) return false;
@@ -476,8 +474,6 @@ class IdentityMap {
           break;
         case kOneByteStringCid:
         case kTwoByteStringCid:
-        case kExternalOneByteStringCid:
-        case kExternalTwoByteStringCid:
           hash = String::Hash(static_cast<StringPtr>(object));
           hash = Object::SetCachedHashIfNotSet(object, hash);
           break;

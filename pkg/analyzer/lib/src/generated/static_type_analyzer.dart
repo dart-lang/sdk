@@ -8,7 +8,6 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
-import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -86,7 +85,7 @@ class StaticTypeAnalyzer {
   }
 
   void visitConditionalExpression(covariant ConditionalExpressionImpl node,
-      {required DartType? contextType}) {
+      {required DartType contextType}) {
     // A conditional expression `E` of the form `b ? e1 : e2` with context type
     // `K` is analyzed as follows:
     //
@@ -97,8 +96,7 @@ class StaticTypeAnalyzer {
     // - Let `T` be  `UP(T1, T2)`
     var t = _typeSystem.leastUpperBound(t1, t2);
     // - Let `S` be the greatest closure of `K`
-    var s = _typeSystem
-        .greatestClosureOfSchema(contextType ?? UnknownInferredType.instance);
+    var s = _typeSystem.greatestClosureOfSchema(contextType);
     DartType staticType;
     // If `inferenceUpdate3` is not enabled, then the type of `E` is `T`.
     if (!_resolver.definingLibrary.featureSet
@@ -183,10 +181,9 @@ class StaticTypeAnalyzer {
   /// same contexttype
   /// </blockquote>
   void visitIntegerLiteral(IntegerLiteralImpl node,
-      {required DartType? contextType}) {
+      {required DartType contextType}) {
     var strictCasts = _resolver.analysisOptions.strictCasts;
-    if (contextType == null ||
-        _typeSystem.isAssignableTo(_typeProvider.intType, contextType,
+    if (_typeSystem.isAssignableTo(_typeProvider.intType, contextType,
             strictCasts: strictCasts) ||
         !_typeSystem.isAssignableTo(_typeProvider.doubleType, contextType,
             strictCasts: strictCasts)) {

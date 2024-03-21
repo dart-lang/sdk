@@ -6754,7 +6754,6 @@ static AlignmentType StrengthenAlignment(intptr_t cid,
     case kExternalTypedDataUint8ArrayCid:
     case kExternalTypedDataUint8ClampedArrayCid:
     case kOneByteStringCid:
-    case kExternalOneByteStringCid:
       // Don't need to worry about alignment for accessing bytes.
       return kAlignedAccess;
     case kTypedDataFloat64x2ArrayCid:
