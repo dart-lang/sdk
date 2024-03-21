@@ -2,7 +2,7 @@
 
 # Install Alpine sysroots for building with musl libc.
 #
-# Sysroots will be installed into //build/linux/alpine-linux-$arch-sysroot
+# Sysroots will be installed into //buildtools/sysroot/alpine-linux-$arch
 #
 # Architectures to be installed can be configured at the end of the script
 #
@@ -18,10 +18,10 @@ fi
 
 SCRIPT="$(readlink -f -- "$0")"
 
-WORKDIR="$(dirname -- "$(dirname -- "$SCRIPT")")"
+WORKDIR="$(dirname -- "$(dirname -- "$(dirname -- "$(dirname -- "$SCRIPT")")")")"
 
 if test $# -eq 0; then
   set aarch64 armv7 x86_64 x86
 fi
 
-echo "$@" | xargs -n 1 -- sh -xc 'apk add --root "$1/alpine-linux-$2-sysroot" --repositories-file /etc/apk/repositories --allow-untrusted --arch "$2" --no-cache --no-scripts --initdb -- alpine-base alpine-sdk linux-headers' -- "$WORKDIR"
+echo "$@" | xargs -n 1 -- sh -xc 'apk add --root "$1/buildtools/sysroot/alpine-linux-$2" --repositories-file /etc/apk/repositories --allow-untrusted --arch "$2" --no-cache --no-scripts --initdb -- build-base linux-headers' -- "$WORKDIR"
