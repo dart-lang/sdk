@@ -71,6 +71,9 @@ final class ConstructorSuggestion extends ImportableSuggestion {
   /// Mutually exclusive with [isRedirect].
   final bool isTearOff;
 
+  /// Whether the unnamed constructor should be suggested.
+  final bool suggestUnnamedAsNew;
+
   /// Whether a redirect should be suggested, not an invocation.
   /// Mutually exclusive with [isTearOff].
   ///
@@ -85,6 +88,7 @@ final class ConstructorSuggestion extends ImportableSuggestion {
     required this.hasClassName,
     required this.isTearOff,
     required this.isRedirect,
+    required this.suggestUnnamedAsNew,
   }) : assert((isTearOff ? 1 : 0) | (isRedirect ? 1 : 0) < 2);
 
   @override
@@ -619,8 +623,8 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
           kind: suggestion.isRedirect || suggestion.isTearOff
               ? CompletionSuggestionKind.IDENTIFIER
               : CompletionSuggestionKind.INVOCATION,
-          tearOff: suggestion.isTearOff,
           prefix: suggestion.prefix,
+          suggestUnnamedAsNew: suggestion.suggestUnnamedAsNew,
         );
         libraryUriStr = null;
       case EnumSuggestion():

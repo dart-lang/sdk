@@ -413,7 +413,7 @@ class SuggestionBuilder {
   void suggestConstructor(
     ConstructorElement constructor, {
     CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
-    bool tearOff = false,
+    bool suggestUnnamedAsNew = false,
     bool hasClassName = false,
     String? prefix,
   }) {
@@ -432,7 +432,7 @@ class SuggestionBuilder {
     }
 
     var completion = constructor.name;
-    if (tearOff && completion.isEmpty) {
+    if (completion.isEmpty && suggestUnnamedAsNew) {
       completion = 'new';
     }
 

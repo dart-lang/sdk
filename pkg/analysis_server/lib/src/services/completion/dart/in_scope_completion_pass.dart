@@ -153,6 +153,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     bool mustBeStatic = false,
     bool mustBeType = false,
     bool preferNonInvocation = false,
+    bool suggestUnnamedAsNew = false,
     Set<AstNode> excludedNodes = const {},
   }) {
     var contextType = state.contextType;
@@ -193,6 +194,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       mustBeStatic: mustBeStatic,
       mustBeType: mustBeType,
       preferNonInvocation: preferNonInvocation,
+      suggestUnnamedAsNew: suggestUnnamedAsNew,
       skipImports: skipImports,
       excludedNodes: excludedNodes,
     );
@@ -728,9 +730,32 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitConstructorSelector(ConstructorSelector node) {
-    // TODO(brianwilkerson): Figure out whether we need to suggest something in
-    //  this case, or whether we can remove the whole method.
     collector.completionLocation = 'ConstructorSelector_name';
+    if (!featureSet.isEnabled(Feature.enhanced_enums)) {
+      return;
+    }
+
+    var arguments = node.parent;
+    if (arguments is! EnumConstantArguments) {
+      return;
+    }
+
+    var enumConstant = arguments.parent;
+    if (enumConstant is! EnumConstantDeclaration) {
+      return;
+    }
+
+    var enumDeclaration = enumConstant.parent;
+    if (enumDeclaration is! EnumDeclaration) {
+      return;
+    }
+
+    var enumElement = enumDeclaration.declaredElement!;
+    declarationHelper(
+      suggestUnnamedAsNew: true,
+    ).addConstructorNamesForElement(
+      element: enumElement,
+    );
   }
 
   @override
