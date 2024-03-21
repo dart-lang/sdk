@@ -122,9 +122,13 @@ abstract class ChainContext {
     assert(shards >= 1, "Invalid shards count: $shards");
     assert(0 <= shard && shard < shards,
         "Invalid shard index: $shard, not in range [0,$shards[.");
-    List<String> partialSelectors = selectors
+    List<String> tripleDotSelectors = selectors
         .where((s) => s.endsWith('...'))
         .map((s) => s.substring(0, s.length - 3))
+        .toList();
+    List<RegExp> asteriskSelectors = selectors
+        .where((s) => s.contains('*'))
+        .map((s) => _createRegExpForAsterisk(s))
         .toList();
     TestExpectations expectations = readTestExpectations(
         <String>[suite.statusFile!.toFilePath()], expectationSet);
@@ -151,7 +155,8 @@ abstract class ChainContext {
       if (selectors.isNotEmpty &&
           !selectors.contains(selector) &&
           !selectors.contains(suite.name) &&
-          !partialSelectors.any((s) => selector.startsWith(s))) {
+          !tripleDotSelectors.any((s) => selector.startsWith(s)) &&
+          !asteriskSelectors.any((s) => s.hasMatch(selector))) {
         continue;
       }
       final Set<Expectation> expectedOutcomes = processExpectedOutcomes(
@@ -411,4 +416,16 @@ Future<void> runChain(CreateContext f, Map<String, String> environment,
     ChainContext context = await f(suite, environment);
     return context.run(suite, selectors);
   });
+}
+
+RegExp _createRegExpForAsterisk(String s) {
+  StringBuffer sb = new StringBuffer("^");
+  String between = "";
+  for (String split in s.split("*")) {
+    sb.write(between);
+    between = ".*";
+    sb.write(RegExp.escape(split));
+  }
+  sb.write("\$");
+  return new RegExp(sb.toString());
 }
