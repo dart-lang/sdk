@@ -22,6 +22,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/source/source.dart';
@@ -69,23 +70,23 @@ Map<String, String> _inverseMap(Map<String, String> map) {
 }
 
 /// [ExtractMethodRefactoring] implementation.
-class ExtractMethodRefactoringImpl extends RefactoringImpl
+final class ExtractMethodRefactoringImpl extends RefactoringImpl
     implements ExtractMethodRefactoring {
-  static const ERROR_EXITS =
+  static const errorExits =
       'Selected statements contain a return statement, but not all possible '
       'execution flows exit. Semantics may not be preserved.';
 
-  final SearchEngine searchEngine;
-  final ResolvedUnitResult resolveResult;
-  final int selectionOffset;
-  final int selectionLength;
-  late SourceRange selectionRange;
-  late CorrectionUtils utils;
-  final Set<Source> librariesToImport = <Source>{};
+  final SearchEngine _searchEngine;
+  final ResolvedUnitResult _resolveResult;
+  final int _selectionOffset;
+  final int _selectionLength;
+  SourceRange _selectionRange;
+  final CorrectionUtils _utils;
+  final Set<Source> _librariesToImport = <Source>{};
 
   @override
   String returnType = '';
-  String? variableType;
+  String? _variableType;
   late String name;
   bool extractAll = true;
   @override
@@ -124,11 +125,10 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
   final List<_Occurrence> _occurrences = [];
   bool _staticContext = false;
 
-  ExtractMethodRefactoringImpl(this.searchEngine, this.resolveResult,
-      this.selectionOffset, this.selectionLength) {
-    selectionRange = SourceRange(selectionOffset, selectionLength);
-    utils = CorrectionUtils(resolveResult);
-  }
+  ExtractMethodRefactoringImpl(this._searchEngine, this._resolveResult,
+      this._selectionOffset, this._selectionLength)
+      : _selectionRange = SourceRange(_selectionOffset, _selectionLength),
+        _utils = CorrectionUtils(_resolveResult);
 
   @override
   List<RefactoringMethodParameter> get parameters => _parameters;
@@ -140,7 +140,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
 
   @override
   String get refactoringName {
-    var node = NodeLocator(selectionOffset).searchWithin(resolveResult.unit);
+    var node = NodeLocator(_selectionOffset).searchWithin(_resolveResult.unit);
     if (node != null && node.thisOrAncestorOfType<ClassDeclaration>() != null) {
       return 'Extract Method';
     }
@@ -220,11 +220,13 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     _prepareNames();
     // Closure cannot have parameters.
     if (_selectionFunctionExpression != null && _parameters.isNotEmpty) {
-      /// All referenced external variables are stored in this list named variables.
+      // All referenced external variables are stored in this list of named
+      // variables.
       var variables = _parameters.map((parameter) => parameter.name).toList();
       var count = variables.length;
       var result = variables.quotedAndCommaSeparatedWithAnd;
-      var message = 'Cannot extract the closure as a method,' 'it references the external ${'variable'.pluralized(count)} $result.';
+      var message = 'Cannot extract the closure as a method,'
+          'it references the external ${'variable'.pluralized(count)} $result.';
       return RefactoringStatus.fatal(message);
     }
     return result;
@@ -252,17 +254,17 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
       } else {
         var sb = StringBuffer();
         // may be returns value
-        if (_selectionStatements != null && variableType != null) {
+        if (_selectionStatements != null && _variableType != null) {
           // single variable assignment / return statement
           if (_returnVariableName != null) {
             var occurrenceName =
                 occurrence._parameterOldToOccurrenceName[_returnVariableName];
             // may be declare variable
             if (!_parametersMap.containsKey(_returnVariableName)) {
-              if (variableType!.isEmpty) {
+              if (_variableType!.isEmpty) {
                 sb.write('var ');
               } else {
-                sb.write(variableType);
+                sb.write(_variableType);
                 sb.write(' ');
               }
             }
@@ -307,13 +309,13 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
       // add replace edit
       var edit = newSourceEdit_range(range, invocationSource);
       doSourceChange_addElementEdit(
-          change, resolveResult.unit.declaredElement!, edit);
+          change, _resolveResult.unit.declaredElement!, edit);
     }
     // add method declaration
     {
       // prepare environment
-      var prefix = utils.getNodePrefix(_parentMember!);
-      var eol = utils.endOfLine;
+      var prefix = _utils.getNodePrefix(_parentMember!);
+      var eol = _utils.endOfLine;
       // prepare annotations
       var annotations = '';
       {
@@ -355,7 +357,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
           } else {
             // Left indent once; returnExpressionSource was indented for method
             // shorthands.
-            returnExpressionSource = utils
+            returnExpressionSource = _utils
                 .indentSourceLeftRight('${returnExpressionSource.trim()};')
                 .trim();
 
@@ -389,12 +391,12 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
         var offset = _parentMember!.end;
         var edit = SourceEdit(offset, 0, '$eol$eol$prefix$declarationSource');
         doSourceChange_addElementEdit(
-            change, resolveResult.unit.declaredElement!, edit);
+            change, _resolveResult.unit.declaredElement!, edit);
       }
     }
     // done
-    await addLibraryImports(resolveResult.session, change,
-        resolveResult.libraryElement, librariesToImport);
+    await addLibraryImports(_resolveResult.session, change,
+        _resolveResult.libraryElement, _librariesToImport);
     return change;
   }
 
@@ -442,7 +444,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     // top-level function
     if (parent is CompilationUnit) {
       var libraryElement = parent.declaredElement!.library;
-      return validateCreateFunction(searchEngine, libraryElement, name);
+      return validateCreateFunction(_searchEngine, libraryElement, name);
     }
     // method of class
     InterfaceElement? interfaceElement;
@@ -456,8 +458,12 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
       interfaceElement = parent.declaredElement!;
     }
     if (interfaceElement != null) {
-      return validateCreateMethod(searchEngine,
-          AnalysisSessionHelper(resolveResult.session), interfaceElement, name);
+      return validateCreateMethod(
+        _searchEngine,
+        AnalysisSessionHelper(_resolveResult.session),
+        interfaceElement,
+        name,
+      );
     }
     // OK
     return result;
@@ -466,11 +472,11 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
   /// Checks if [selectionRange] selects [Expression] which can be extracted,
   /// and location of this [DartExpression] in AST allows extracting.
   RefactoringStatus _checkSelection() {
-    if (selectionOffset <= 0) {
+    if (_selectionOffset <= 0) {
       return RefactoringStatus.fatal(
           'The selection offset must be greater than zero.');
     }
-    if (selectionOffset + selectionLength >= resolveResult.content.length) {
+    if (_selectionOffset + _selectionLength >= _resolveResult.content.length) {
       return RefactoringStatus.fatal(
           'The selection end offset must be less than the length of the file.');
     }
@@ -480,13 +486,13 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
       var function = _findFunctionExpression();
       if (function != null) {
         _selectionFunctionExpression = function;
-        selectionRange = range.node(function);
+        _selectionRange = range.node(function);
         _parentMember = getEnclosingClassOrUnitMember(function);
         return RefactoringStatus();
       }
     }
 
-    var analyzer = _ExtractMethodAnalyzer(resolveResult, selectionRange);
+    var analyzer = _ExtractMethodAnalyzer(_resolveResult, _selectionRange);
     analyzer.analyze();
     // May be a fatal error.
     {
@@ -505,7 +511,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
         }
         if (node is Expression && _isExtractable(range.node(node))) {
           selectedNodes.add(node);
-          selectionRange = range.node(node);
+          _selectionRange = range.node(node);
           break;
         }
       }
@@ -517,8 +523,8 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
       _parentMember = getEnclosingClassOrUnitMember(selectedNode);
       // single expression selected
       if (selectedNodes.length == 1) {
-        if (!utils.selectionIncludesNonWhitespaceOutsideNode(
-            selectionRange, selectedNode)) {
+        if (!_utils.selectionIncludesNonWhitespaceOutsideNode(
+            _selectionRange, selectedNode)) {
           if (selectedNode is Expression) {
             _selectionExpression = selectedNode;
             // additional check for closure
@@ -578,11 +584,11 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
   /// If the [selectionRange] is associated with a [FunctionExpression], return
   /// this [FunctionExpression].
   FunctionExpression? _findFunctionExpression() {
-    if (selectionRange.length != 0) {
+    if (_selectionRange.length != 0) {
       return null;
     }
-    var offset = selectionRange.offset;
-    var node = NodeLocator2(offset, offset).searchWithin(resolveResult.unit);
+    var offset = _selectionRange.offset;
+    var node = NodeLocator2(offset, offset).searchWithin(_resolveResult.unit);
 
     // Check for the parameter list of a FunctionExpression.
     {
@@ -640,14 +646,14 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
   /// Returns the selected [Expression] source, with applying new parameter
   /// names.
   String _getMethodBodySource() {
-    var source = utils.getRangeText(selectionRange);
+    var source = _utils.getRangeText(_selectionRange);
     // prepare operations to replace variables with parameters
     var replaceEdits = <SourceEdit>[];
     for (var parameter in _parameters) {
       var ranges = _parameterReferencesMap[parameter.id];
       if (ranges != null) {
         for (var range in ranges) {
-          replaceEdits.add(SourceEdit(range.offset - selectionRange.offset,
+          replaceEdits.add(SourceEdit(range.offset - _selectionRange.offset,
               range.length, parameter.name));
         }
       }
@@ -661,17 +667,17 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
       var baseNode =
           selectionFunctionExpression.thisOrAncestorOfType<Statement>();
       if (baseNode != null) {
-        var baseIndent = utils.getNodePrefix(baseNode);
-        var targetIndent = utils.getNodePrefix(_parentMember!);
-        source = utils.replaceSourceIndent(source, baseIndent, targetIndent);
+        var baseIndent = _utils.getNodePrefix(baseNode);
+        var targetIndent = _utils.getNodePrefix(_parentMember!);
+        source = _utils.replaceSourceIndent(source, baseIndent, targetIndent);
         source = source.trim();
       }
     }
     final selectionStatements = _selectionStatements;
     if (selectionStatements != null) {
-      var selectionIndent = utils.getNodePrefix(selectionStatements[0]);
-      var targetIndent = '${utils.getNodePrefix(_parentMember!)}  ';
-      source = utils.replaceSourceIndent(source, selectionIndent, targetIndent,
+      var selectionIndent = _utils.getNodePrefix(selectionStatements[0]);
+      var targetIndent = '${_utils.getNodePrefix(_parentMember!)}  ';
+      source = _utils.replaceSourceIndent(source, selectionIndent, targetIndent,
           includeLeading: true, ensureTrailingNewline: true);
     }
     // done
@@ -679,21 +685,20 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
   }
 
   _SourcePattern _getSourcePattern(SourceRange range) {
-    var originalSource = utils.getText(range.offset, range.length);
+    var originalSource = _utils.getText(range.offset, range.length);
     var pattern = _SourcePattern();
     var replaceEdits = <SourceEdit>[];
-    resolveResult.unit
+    _resolveResult.unit
         .accept(_GetSourcePatternVisitor(range, pattern, replaceEdits));
     replaceEdits = replaceEdits.reversed.toList();
     var source = SourceEdit.applySequence(originalSource, replaceEdits);
     pattern.normalizedSource =
-        _getNormalizedSource(source, resolveResult.unit.featureSet);
+        _getNormalizedSource(source, _resolveResult.unit.featureSet);
     return pattern;
   }
 
-  String _getTypeCode(DartType type) {
-    return utils.getTypeSource(type, librariesToImport)!;
-  }
+  String _getTypeCode(DartType type) =>
+      _resolveResult.libraryElement.getTypeSource(type, _librariesToImport)!;
 
   void _initializeHasAwait() {
     var visitor = _HasAwaitVisitor();
@@ -711,7 +716,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
   void _initializeOccurrences() {
     _occurrences.clear();
     // prepare selection
-    var selectionPattern = _getSourcePattern(selectionRange);
+    var selectionPattern = _getSourcePattern(_selectionRange);
     var patternToSelectionName =
         _inverseMap(selectionPattern.originalToPatternNames);
     // prepare an enclosing parent - class or unit
@@ -730,7 +735,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     var result = RefactoringStatus();
     var assignedUsedVariables = <VariableElement>[];
 
-    var unit = resolveResult.unit;
+    var unit = _resolveResult.unit;
     _visibleRangeMap = VisibleRangesComputer.forNode(unit);
     unit.accept(
       _InitializeParametersVisitor(this, assignedUsedVariables),
@@ -746,12 +751,12 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     if (selectionStatements != null) {
       var hasReturn = selectionStatements.any(_mayEndWithReturnStatement);
       if (hasReturn && !ExitDetector.exits(selectionStatements.last)) {
-        result.addError(ERROR_EXITS);
+        result.addError(errorExits);
       }
     }
     // maybe ends with "return" statement
     if (selectionStatements != null) {
-      var typeSystem = resolveResult.typeSystem;
+      var typeSystem = _resolveResult.typeSystem;
       var returnTypeComputer = _ReturnTypeComputer(typeSystem);
       for (var statement in selectionStatements) {
         statement.accept(returnTypeComputer);
@@ -789,13 +794,13 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
   }
 
   Future<void> _initializeReturnType() async {
-    var typeProvider = resolveResult.typeProvider;
+    var typeProvider = _resolveResult.typeProvider;
     final returnTypeObj = _returnType;
     if (_selectionFunctionExpression != null) {
-      variableType = '';
+      _variableType = '';
       returnType = '';
     } else if (returnTypeObj == null) {
-      variableType = null;
+      _variableType = null;
       if (_hasAwait) {
         var futureVoid = typeProvider.futureType(typeProvider.voidType);
         returnType = _getTypeCode(futureVoid);
@@ -803,33 +808,33 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
         returnType = 'void';
       }
     } else if (returnTypeObj is DynamicType) {
-      variableType = '';
+      _variableType = '';
       if (_hasAwait) {
         returnType = _getTypeCode(typeProvider.futureDynamicType);
       } else {
         returnType = '';
       }
     } else {
-      variableType = _getTypeCode(returnTypeObj);
+      _variableType = _getTypeCode(returnTypeObj);
       if (_hasAwait) {
         if (returnTypeObj is InterfaceType &&
             returnTypeObj.element != typeProvider.futureElement) {
           returnType = _getTypeCode(typeProvider.futureType(returnTypeObj));
         }
       } else {
-        returnType = variableType!;
+        returnType = _variableType!;
       }
     }
   }
 
   /// Checks if the given [element] is declared in [selectionRange].
   bool _isDeclaredInSelection(Element element) {
-    return selectionRange.contains(element.nameOffset);
+    return _selectionRange.contains(element.nameOffset);
   }
 
   /// Checks if it is OK to extract the node with the given [SourceRange].
   bool _isExtractable(SourceRange range) {
-    var analyzer = _ExtractMethodAnalyzer(resolveResult, range);
+    var analyzer = _ExtractMethodAnalyzer(_resolveResult, range);
     analyzer.analyze();
     return analyzer.status.isOK;
   }
@@ -1279,7 +1284,7 @@ class _InitializeOccurrencesVisitor extends GeneralizingAstVisitor<void> {
     // if matches normalized node source, then add as occurrence
     if (selectionPattern.isCompatible(nodePattern)) {
       var occurrence =
-          _Occurrence(nodeRange, ref.selectionRange.intersects(nodeRange));
+          _Occurrence(nodeRange, ref._selectionRange.intersects(nodeRange));
       ref._occurrences.add(occurrence);
       // prepare mapping of parameter names to the occurrence variables
       nodePattern.originalToPatternNames
@@ -1324,7 +1329,7 @@ class _InitializeParametersVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     var nodeRange = range.node(node);
-    if (!ref.selectionRange.covers(nodeRange)) {
+    if (!ref._selectionRange.covers(nodeRange)) {
       return;
     }
     var name = node.name;
@@ -1342,9 +1347,9 @@ class _InitializeParametersVisitor extends GeneralizingAstVisitor<void> {
         if (parameter == null) {
           var parameterType = node.writeOrReadType!;
           var parametersBuffer = StringBuffer();
-          var parameterTypeCode = ref.utils.getTypeSource(
-              parameterType, ref.librariesToImport,
-              parametersBuffer: parametersBuffer);
+          var parameterTypeCode = ref._resolveResult.libraryElement
+              .getTypeSource(parameterType, ref._librariesToImport,
+                  parametersBuffer: parametersBuffer);
           if (parameterTypeCode == null) {
             return;
           }
@@ -1388,7 +1393,7 @@ class _InitializeParametersVisitor extends GeneralizingAstVisitor<void> {
   @override
   visitVariableDeclaration(VariableDeclaration node) {
     var nodeRange = range.node(node);
-    if (ref.selectionRange.covers(nodeRange)) {
+    if (ref._selectionRange.covers(nodeRange)) {
       final element = node.declaredElement!;
 
       // remember, if assigned and used after selection
@@ -1426,7 +1431,7 @@ class _IsUsedAfterSelectionVisitor extends GeneralizingAstVisitor<void> {
     var nodeElement = node.writeOrReadElement;
     if (identical(nodeElement, element)) {
       var nodeOffset = node.offset;
-      if (nodeOffset > ref.selectionRange.end) {
+      if (nodeOffset > ref._selectionRange.end) {
         result = true;
       }
     }
@@ -1500,5 +1505,199 @@ class _SourcePattern {
       }
     }
     return true;
+  }
+}
+
+extension on LibraryElement {
+  /// Returns the source to reference [type] in this [CompilationUnit].
+  ///
+  /// Fills [librariesToImport] with [LibraryElement]s whose elements are
+  /// used by the generated source, but not imported.
+  String? getTypeSource(DartType type, Set<Source> librariesToImport,
+      {StringBuffer? parametersBuffer}) {
+    var alias = type.alias;
+    if (alias != null) {
+      return _getTypeCodeElementArguments(
+        librariesToImport: librariesToImport,
+        element: alias.element,
+        isNullable: type.nullabilitySuffix == NullabilitySuffix.question,
+        typeArguments: alias.typeArguments,
+      );
+    }
+
+    if (type is DynamicType) {
+      return 'dynamic';
+    }
+
+    if (type is FunctionType) {
+      if (parametersBuffer == null) {
+        return 'Function';
+      }
+      parametersBuffer.write('(');
+      for (var parameter in type.parameters) {
+        var parameterType = getTypeSource(parameter.type, librariesToImport);
+        if (parametersBuffer.length != 1) {
+          parametersBuffer.write(', ');
+        }
+        parametersBuffer.write(parameterType);
+        parametersBuffer.write(' ');
+        parametersBuffer.write(parameter.name);
+      }
+      parametersBuffer.write(')');
+      return getTypeSource(type.returnType, librariesToImport);
+    }
+
+    if (type is InterfaceType) {
+      return _getTypeCodeElementArguments(
+        librariesToImport: librariesToImport,
+        element: type.element,
+        isNullable: type.nullabilitySuffix == NullabilitySuffix.question,
+        typeArguments: type.typeArguments,
+      );
+    }
+
+    if (type is InvalidType) {
+      return 'dynamic';
+    }
+
+    if (type is NeverType) {
+      return 'Never';
+    }
+
+    if (type is RecordType) {
+      return _getTypeCodeRecord(
+        librariesToImport: librariesToImport,
+        type: type,
+      );
+    }
+
+    if (type is TypeParameterType) {
+      // TODO(srawlins): Check whether the type parameter is visible. Return
+      // `type.element.name` when it is.
+      return 'dynamic';
+    }
+
+    if (type is VoidType) {
+      return 'void';
+    }
+
+    throw UnimplementedError('(${type.runtimeType}) $type');
+  }
+
+  /// Returns the import element used to import given [element] into the
+  /// library.
+  ///
+  /// May be `null` if was not imported, i.e. declared in the same library.
+  LibraryImportElement? _getImportElement(Element element) {
+    for (var imp in library.libraryImports) {
+      var definedNames = getImportNamespace(imp);
+      if (definedNames.containsValue(element)) {
+        return imp;
+      }
+    }
+    return null;
+  }
+
+  String? _getTypeCodeElementArguments({
+    required Set<Source> librariesToImport,
+    required Element element,
+    required bool isNullable,
+    required List<DartType> typeArguments,
+  }) {
+    var sb = StringBuffer();
+
+    // Check if imported.
+    var library = element.library;
+    if (library != null && library != this) {
+      // No source, if private.
+      if (element.isPrivate) {
+        return null;
+      }
+      // Ensure import.
+      var importElement = _getImportElement(element);
+      if (importElement != null) {
+        var prefix = importElement.prefix?.element;
+        if (prefix != null) {
+          sb.write(prefix.displayName);
+          sb.write('.');
+        }
+      } else {
+        librariesToImport.add(library.source);
+      }
+    }
+
+    // Append simple name.
+    var name = element.displayName;
+    sb.write(name);
+
+    // Append type arguments.
+    if (typeArguments.isNotEmpty) {
+      sb.write('<');
+      for (var i = 0; i < typeArguments.length; i++) {
+        var argument = typeArguments[i];
+        if (i != 0) {
+          sb.write(', ');
+        }
+        var argumentSrc = getTypeSource(argument, librariesToImport);
+        if (argumentSrc != null) {
+          sb.write(argumentSrc);
+        } else {
+          return null;
+        }
+      }
+      sb.write('>');
+    }
+
+    // Append nullability.
+    if (isNullable) {
+      sb.write('?');
+    }
+
+    return sb.toString();
+  }
+
+  String _getTypeCodeRecord({
+    required Set<Source> librariesToImport,
+    required RecordType type,
+  }) {
+    final buffer = StringBuffer();
+
+    final positionalFields = type.positionalFields;
+    final namedFields = type.namedFields;
+    final fieldCount = positionalFields.length + namedFields.length;
+    buffer.write('(');
+
+    var index = 0;
+    for (final field in positionalFields) {
+      buffer.write(
+        getTypeSource(field.type, librariesToImport),
+      );
+      if (index++ < fieldCount - 1) {
+        buffer.write(', ');
+      }
+    }
+
+    if (namedFields.isNotEmpty) {
+      buffer.write('{');
+      for (final field in namedFields) {
+        buffer.write(
+          getTypeSource(field.type, librariesToImport),
+        );
+        buffer.write(' ');
+        buffer.write(field.name);
+        if (index++ < fieldCount - 1) {
+          buffer.write(', ');
+        }
+      }
+      buffer.write('}');
+    }
+
+    buffer.write(')');
+
+    if (type.nullabilitySuffix == NullabilitySuffix.question) {
+      buffer.write('?');
+    }
+
+    return buffer.toString();
   }
 }

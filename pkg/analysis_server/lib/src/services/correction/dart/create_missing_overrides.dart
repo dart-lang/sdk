@@ -28,7 +28,6 @@ class CreateMissingOverrides extends ResolvedCorrectionProducer {
     if (targetClass is! ClassDeclaration) {
       return;
     }
-    utils.targetClassElement = targetClass.declaredElement;
     var signatures = [
       ...InheritanceOverrideVerifier.missingOverrides(targetClass),
       ...InheritanceOverrideVerifier.missingMustBeOverridden(targetClass)

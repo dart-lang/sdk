@@ -15,7 +15,6 @@ import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -546,21 +545,12 @@ final class CorrectionUtils {
 
   final CompilationUnit unit;
 
-  final LibraryElement? _library;
-
   final String _buffer;
-
-  /// The [ClassElement] the generated code is inserted to, so we can decide if
-  /// a type parameter may or may not be used.
-  InterfaceElement? targetClassElement;
-
-  ExecutableElement? targetExecutableElement;
 
   String? _endOfLine;
 
   CorrectionUtils(ParsedUnitResult result)
       : unit = result.unit,
-        _library = result is ResolvedUnitResult ? result.libraryElement : null,
         _buffer = result.content;
 
   /// Returns the EOL to use for this [CompilationUnit].
@@ -807,84 +797,6 @@ final class CorrectionUtils {
   /// Returns the text of the given range in the unit.
   String getText(int offset, int length) {
     return _buffer.substring(offset, offset + length);
-  }
-
-  /// Returns the source to reference [type] in this [CompilationUnit].
-  ///
-  /// Fills [librariesToImport] with [LibraryElement]s whose elements are
-  /// used by the generated source, but not imported.
-  String? getTypeSource(DartType type, Set<Source> librariesToImport,
-      {StringBuffer? parametersBuffer}) {
-    var alias = type.alias;
-    if (alias != null) {
-      return _getTypeCodeElementArguments(
-        librariesToImport: librariesToImport,
-        element: alias.element,
-        isNullable: type.nullabilitySuffix == NullabilitySuffix.question,
-        typeArguments: alias.typeArguments,
-      );
-    }
-
-    if (type is DynamicType) {
-      return 'dynamic';
-    }
-
-    if (type is FunctionType) {
-      if (parametersBuffer == null) {
-        return 'Function';
-      }
-      parametersBuffer.write('(');
-      for (var parameter in type.parameters) {
-        var parameterType = getTypeSource(parameter.type, librariesToImport);
-        if (parametersBuffer.length != 1) {
-          parametersBuffer.write(', ');
-        }
-        parametersBuffer.write(parameterType);
-        parametersBuffer.write(' ');
-        parametersBuffer.write(parameter.name);
-      }
-      parametersBuffer.write(')');
-      return getTypeSource(type.returnType, librariesToImport);
-    }
-
-    if (type is InterfaceType) {
-      return _getTypeCodeElementArguments(
-        librariesToImport: librariesToImport,
-        element: type.element,
-        isNullable: type.nullabilitySuffix == NullabilitySuffix.question,
-        typeArguments: type.typeArguments,
-      );
-    }
-
-    if (type is InvalidType) {
-      return 'dynamic';
-    }
-
-    if (type is NeverType) {
-      return 'Never';
-    }
-
-    if (type is RecordType) {
-      return _getTypeCodeRecord(
-        librariesToImport: librariesToImport,
-        type: type,
-      );
-    }
-
-    if (type is TypeParameterType) {
-      var element = type.element;
-      if (_isTypeParameterVisible(element)) {
-        return element.name;
-      } else {
-        return 'dynamic';
-      }
-    }
-
-    if (type is VoidType) {
-      return 'void';
-    }
-
-    throw UnimplementedError('(${type.runtimeType}) $type');
   }
 
   /// Splits [text] into lines, and removes one level of indent from each line.
@@ -1201,22 +1113,6 @@ final class CorrectionUtils {
         selection, range.node(node));
   }
 
-  /// Return the import element used to import given [element] into the library.
-  /// May be `null` if was not imported, i.e. declared in the same library.
-  LibraryImportElement? _getImportElement(Element element) {
-    var library = _library;
-    if (library == null) {
-      return null;
-    }
-    for (var imp in library.libraryImports) {
-      var definedNames = getImportNamespace(imp);
-      if (definedNames.containsValue(element)) {
-        return imp;
-      }
-    }
-    return null;
-  }
-
   /// Returns a description of the place in which to insert a new directive or a
   /// top-level declaration at the top of the file.
   InsertionLocation _getInsertionLocationTop() {
@@ -1310,110 +1206,6 @@ final class CorrectionUtils {
     return null;
   }
 
-  String? _getTypeCodeElementArguments({
-    required Set<Source> librariesToImport,
-    required Element element,
-    required bool isNullable,
-    required List<DartType> typeArguments,
-  }) {
-    var sb = StringBuffer();
-
-    // check if imported
-    var library = element.library;
-    if (library != null && library != _library) {
-      // no source, if private
-      if (element.isPrivate) {
-        return null;
-      }
-      // ensure import
-      var importElement = _getImportElement(element);
-      if (importElement != null) {
-        var prefix = importElement.prefix?.element;
-        if (prefix != null) {
-          sb.write(prefix.displayName);
-          sb.write('.');
-        }
-      } else {
-        librariesToImport.add(library.source);
-      }
-    }
-
-    // append simple name
-    var name = element.displayName;
-    sb.write(name);
-
-    // append type arguments
-    if (typeArguments.isNotEmpty) {
-      sb.write('<');
-      for (var i = 0; i < typeArguments.length; i++) {
-        var argument = typeArguments[i];
-        if (i != 0) {
-          sb.write(', ');
-        }
-        var argumentSrc = getTypeSource(argument, librariesToImport);
-        if (argumentSrc != null) {
-          sb.write(argumentSrc);
-        } else {
-          return null;
-        }
-      }
-      sb.write('>');
-    }
-
-    // append nullability
-    if (isNullable) {
-      sb.write('?');
-    }
-
-    // done
-    return sb.toString();
-  }
-
-  String _getTypeCodeRecord({
-    required Set<Source> librariesToImport,
-    required RecordType type,
-  }) {
-    final buffer = StringBuffer();
-
-    final positionalFields = type.positionalFields;
-    final namedFields = type.namedFields;
-    final fieldCount = positionalFields.length + namedFields.length;
-    buffer.write('(');
-
-    var index = 0;
-    for (final field in positionalFields) {
-      buffer.write(
-        getTypeSource(field.type, librariesToImport),
-      );
-      if (index++ < fieldCount - 1) {
-        buffer.write(', ');
-      }
-    }
-
-    if (namedFields.isNotEmpty) {
-      buffer.write('{');
-      for (final field in namedFields) {
-        buffer.write(
-          getTypeSource(field.type, librariesToImport),
-        );
-        buffer.write(' ');
-        buffer.write(field.name);
-        if (index++ < fieldCount - 1) {
-          buffer.write(', ');
-        }
-      }
-      buffer.write('}');
-    }
-
-    buffer.write(')');
-
-    if (type.nullabilitySuffix == NullabilitySuffix.question) {
-      buffer.write('?');
-    }
-
-    return buffer.toString();
-  }
-
   /// @return the [InvertedCondition] for the given logical expression.
   _InvertedCondition _invertCondition0(Expression expression) {
     if (expression is BooleanLiteral) {
@@ -1498,14 +1290,6 @@ final class CorrectionUtils {
     }
     // may be comment
     return TokenUtils.getTokens(trimmedText, unit.featureSet).isEmpty;
-  }
-
-  /// Checks if [element] is visible in [targetExecutableElement] or
-  /// [targetClassElement].
-  bool _isTypeParameterVisible(TypeParameterElement element) {
-    var enclosing = element.enclosingElement;
-    return identical(enclosing, targetExecutableElement) ||
-        identical(enclosing, targetClassElement);
   }
 
   /// Return `true` if [selection] covers [range] and there are any
