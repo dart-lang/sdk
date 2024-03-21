@@ -1894,6 +1894,33 @@ suggestions
     kind: keyword
 ''');
   }
+
+  Future<void> test_afterLeftBrace_beforeRightBrace_withShadow() async {
+    allowedIdentifiers = {'exitCode'};
+    newFile('$testPackageLibPath/a.dart', '''
+int get exitCode => 1;
+
+void set exitCode(int i){}
+''');
+    await computeSuggestions('''
+import 'a.dart';
+
+class A {
+  int get exitCode => 1;
+
+  void f() {
+    exi^;
+  }
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 3
+suggestions
+  exitCode
+    kind: getter
+''');
+  }
 }
 
 mixin WhileStatementTestCases on AbstractCompletionDriverTest {

@@ -523,6 +523,11 @@ class DeclarationHelper {
         case MixinElement():
           _suggestMixin(element, importData);
         case PropertyAccessorElement():
+          // Do not add synthetic setters, as these may prevent adding getters,
+          // they are both tracked with the same name in the [VisibilityTracker].
+          if (element.isSynthetic && element.isSetter) {
+            break;
+          }
           _suggestTopLevelProperty(element, importData);
         case TopLevelVariableElement():
           _suggestTopLevelVariable(element, importData);

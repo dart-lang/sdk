@@ -459,18 +459,18 @@ void f() {
 
   Future<void> test_local_getterAndSetter() async {
     final content = '''
-String a => '';
 set a(String value) {}
+String get a => '';
 void f() {
   a^
 }
 ''';
     await expectLabels(content,
         label: 'a',
-        labelDetail: '() → String',
+        labelDetail: ' String',
         labelDescription: null,
         filterText: null,
-        detail: '() → String');
+        detail: 'String');
   }
 
   Future<void> test_local_override_annotation() async {
