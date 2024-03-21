@@ -459,6 +459,7 @@ circularities
 circularity
 circumstance
 circumstances
+clarifying
 clashing
 class
 classes
@@ -564,6 +565,7 @@ completer
 completion
 complex
 compliance
+complication
 component
 components
 composed
@@ -2037,6 +2039,7 @@ neighbors
 neither
 nest
 nested
+nestedness
 nesting
 net
 never
@@ -2541,6 +2544,7 @@ refinements
 reflecting
 reflects
 regardless
+regards
 region
 regions
 register

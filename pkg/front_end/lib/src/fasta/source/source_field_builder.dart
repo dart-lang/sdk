@@ -484,6 +484,8 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
     _constInitializerToken = null;
   }
 
+  bool get hasOutlineExpressionsBuilt => _constInitializerToken == null;
+
   DartType get fieldType => _fieldEncoding.type;
 
   void set fieldType(DartType value) {

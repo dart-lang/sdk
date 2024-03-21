@@ -245,10 +245,7 @@ class FormalParameterBuilder extends ModifierBuilderImpl
     }
   }
 
-  /// Builds the default value from this [initializerToken] if this is a
-  /// formal parameter on a const constructor or instance method.
-  void buildOutlineExpressions(SourceLibraryBuilder libraryBuilder,
-      List<DelayedActionPerformer> delayedActionPerformers) {
+  bool get needsDefaultValuesBuiltAsOutlineExpressions {
     // For modular compilation we need to include default values for optional
     // and named parameters in several cases:
     // * for const constructors to enable constant evaluation,
@@ -256,15 +253,20 @@ class FormalParameterBuilder extends ModifierBuilderImpl
     //   noSuchMethod forwarders, and
     // * for generative constructors to support forwarding constructors
     //   in mixin applications.
-    bool needsDefaultValues = false;
     if (parent is ConstructorBuilder) {
-      needsDefaultValues = true;
+      return true;
     } else if (parent is SourceFactoryBuilder) {
-      needsDefaultValues = parent!.isFactory && parent!.isConst;
+      return parent!.isFactory && parent!.isConst;
     } else {
-      needsDefaultValues = parent!.isClassInstanceMember;
+      return parent!.isClassInstanceMember;
     }
-    if (needsDefaultValues) {
+  }
+
+  /// Builds the default value from this [initializerToken] if this is a
+  /// formal parameter on a const constructor or instance method.
+  void buildOutlineExpressions(SourceLibraryBuilder libraryBuilder,
+      List<DelayedActionPerformer> delayedActionPerformers) {
+    if (needsDefaultValuesBuiltAsOutlineExpressions) {
       if (initializerToken != null) {
         final DeclarationBuilder declarationBuilder =
             parent!.parent as DeclarationBuilder;
