@@ -557,6 +557,8 @@ bool Options::ParseArguments(int argc,
         // ignore it. --no-serve-observatory is a VM flag so we don't need to
         // handle that case here.
         skipVmOption = true;
+      } else if (IsOption(argv[i], "print-dtd-uri")) {
+        skipVmOption = true;
       }
       if (!skipVmOption) {
         temp_vm_options.AddArgument(argv[i]);

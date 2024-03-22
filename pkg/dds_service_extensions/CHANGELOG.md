@@ -1,3 +1,9 @@
+# 2.0.0
+- Updated to DDS protocol 2.0.
+- Added:
+  - `readyToResume`
+  - `requireUserPermissionToResume`
+
 # 1.7.0
 - Added:
   - `ClientName`

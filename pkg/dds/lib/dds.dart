@@ -166,7 +166,7 @@ abstract class DartDevelopmentService {
 
   /// The version of the DDS protocol supported by this [DartDevelopmentService]
   /// instance.
-  static const String protocolVersion = '1.6';
+  static const String protocolVersion = '2.0';
 }
 
 class DartDevelopmentServiceException implements Exception {

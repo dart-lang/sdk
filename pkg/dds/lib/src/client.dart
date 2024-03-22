@@ -179,6 +179,19 @@ class DartDevelopmentServiceClient {
       (parameters) => dds.isolateManager.resumeIsolate(this, parameters),
     );
 
+    _clientPeer.registerMethod(
+      'readyToResume',
+      (parameters) => dds.isolateManager.readyToResume(this, parameters),
+    );
+
+    _clientPeer.registerMethod(
+      'requireUserPermissionToResume',
+      (parameters) => dds.isolateManager.requireUserPermissionToResume(
+        this,
+        parameters,
+      ),
+    );
+
     _clientPeer.registerMethod('getStreamHistory', (parameters) {
       final stream = parameters['stream'].asString;
       final events = dds.streamManager.getStreamHistory(stream);

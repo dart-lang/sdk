@@ -41,7 +41,7 @@ final test = <IsolateTest>[
 
     // Check that client3 can't resume the isolate on its own.
     await hasPausedAtStart(service, isolateRef);
-    await client3.resume(isolateId);
+    await client3.readyToResume(isolateId);
     await hasPausedAtStart(service, isolateRef);
 
     // Change the name of client1. Since client2 has the same name that client1

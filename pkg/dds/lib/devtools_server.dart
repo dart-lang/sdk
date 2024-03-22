@@ -40,6 +40,7 @@ class DevToolsServer {
   static const argDdsPort = 'dds-port';
   static const argDebugMode = 'debug';
   static const argDtdUri = 'dtd-uri';
+  static const argPrintDtd = 'print-dtd';
   static const argLaunchBrowser = 'launch-browser';
   static const argMachine = 'machine';
   static const argHost = 'host';
@@ -102,7 +103,7 @@ class DevToolsServer {
       ..addOption(
         argDtdUri,
         valueHelp: 'uri',
-        help: 'A URI pointing to a dart tooling daemon that devtools should '
+        help: 'A URI pointing to a Dart Tooling Daemon that DevTools should '
             'interface with.',
       )
       ..addFlag(
@@ -197,6 +198,13 @@ class DevToolsServer {
         help: 'Causes the server to spawn Chrome in headless mode for use in '
             'automated testing.',
         hide: !verbose,
+      )
+      ..addFlag(
+        argPrintDtd,
+        negatable: false,
+        help: 'Print the address of the Dart Tooling Daemon, if one is hosted '
+            'by the DevTools server.',
+        hide: !verbose,
       );
 
     // Deprecated and hidden args.
@@ -238,6 +246,7 @@ class DevToolsServer {
     bool allowEmbedding = true,
     bool headlessMode = false,
     bool verboseMode = false,
+    bool printDtdUri = false,
     String? hostname,
     String? customDevToolsPath,
     int port = 0,
@@ -279,9 +288,7 @@ class DevToolsServer {
     if (dtdUri == null) {
       final (:uri, :secret) = await startDtd(
         machineMode: machineMode,
-        // TODO(https://github.com/dart-lang/sdk/issues/55034): pass the value
-        // of the Dart CLI flag `--print-dtd` here.
-        printDtdUri: false,
+        printDtdUri: printDtdUri,
       );
       dtdUri = uri;
       dtdSecret = secret;
@@ -484,6 +491,8 @@ class DevToolsServer {
       dtdUri = args[argDtdUri];
     }
 
+    final printDtdUri = args.wasParsed(argPrintDtd);
+
     if (help) {
       print(
           'Dart DevTools version ${await DevToolsUtils.getVersion(customDevToolsPath ?? "")}');
@@ -551,6 +560,7 @@ class DevToolsServer {
       appSizeBase: appSizeBase,
       appSizeTest: appSizeTest,
       dtdUri: dtdUri,
+      printDtdUri: printDtdUri,
     );
   }
 

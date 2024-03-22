@@ -223,6 +223,7 @@ class TestProject {
 
     sub = process.stdout
         .transform(utf8.decoder)
+        .transform(const LineSplitter())
         .listen(onData, onError: onError, onDone: onDone);
     subError = process.stderr.transform(utf8.decoder).listen(onStderr);
 

@@ -17,7 +17,7 @@ Future<DTDConnectionInfo> startDtd({
   required bool printDtdUri,
 }) async {
   final sdkPath = File(Platform.resolvedExecutable).parent.parent.path;
-  String dtdSnapshot = path.absolute(
+  final dtdSnapshot = path.absolute(
     sdkPath,
     'bin',
     'snapshots',

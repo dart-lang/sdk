@@ -52,7 +52,8 @@ namespace bin {
   V(no_serve_devtools, disable_devtools)                                       \
   V(serve_devtools, enable_devtools)                                           \
   V(no_serve_observatory, disable_observatory)                                 \
-  V(serve_observatory, enable_observatory)
+  V(serve_observatory, enable_observatory)                                     \
+  V(print_dtd, print_dtd)
 
 // Boolean flags that have a short form.
 #define SHORT_BOOL_OPTIONS_LIST(V)                                             \

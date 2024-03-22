@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:dds_service_extensions/dds_service_extensions.dart';
 import 'package:vm_service/vm_service.dart';
 
 import 'client_resume_approvals_common.dart';
@@ -34,7 +35,7 @@ final test = <IsolateTest>[
 
     // Give resume approval for client1 to ensure approval state is cleaned up
     // properly when both client1 and client2 have disconnected.
-    await client1.resume(isolateId);
+    await client1.readyToResume(isolateId);
     await hasPausedAtStart(service, isolate);
 
     // Once client1 is disconnected, we should still be paused.
@@ -47,7 +48,7 @@ final test = <IsolateTest>[
     client2.dispose();
     await hasPausedAtStart(service, isolate);
 
-    await service.resume(isolateId);
+    await service.readyToResume(isolateId);
   },
   hasStoppedAtExit,
 ];

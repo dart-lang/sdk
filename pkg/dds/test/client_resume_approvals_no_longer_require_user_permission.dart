@@ -10,6 +10,7 @@ import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
 
 const String clientName = 'TestClient';
+const String otherClientName = 'OtherTestClient';
 
 void fooBar() {
   int i = 0;
@@ -17,9 +18,8 @@ void fooBar() {
 }
 
 final test = <IsolateTest>[
-  // Multiple clients, same client names.
   (VmService service, IsolateRef isolateRef) async {
-    // ignore: unused_local_variable
+    final isolateId = isolateRef.id!;
     final client1 = await createClient(
       service: service,
       clientName: clientName,
@@ -27,18 +27,38 @@ final test = <IsolateTest>[
     );
     final client2 = await createClient(
       service: service,
-      clientName: clientName,
+      clientName: otherClientName,
+      onPauseStart: true,
     );
+
     await hasPausedAtStart(service, isolateRef);
-    await client2.readyToResume(isolateRef.id!);
+    await client1.requireUserPermissionToResume(
+      onPauseStart: true,
+    );
+
+    // Both clients indicate they're ready to resume but the isolate won't
+    // resume until `resume` is invoked to indicate the user has triggered a
+    // resume.
+    await client2.readyToResume(isolateId);
+    await hasPausedAtStart(service, isolateRef);
+    await client1.readyToResume(isolateId);
+    await hasPausedAtStart(service, isolateRef);
+
+    // If the user is no longer required to resume and all other clients have
+    // indicated they're ready to resume, the isolate should resume
+    // immediately.
+    await client1.requireUserPermissionToResume(
+      onPauseStart: false,
+    );
+
+    await hasStoppedAtExit(service, isolateRef);
   },
-  hasStoppedAtExit,
 ];
 
 void main([args = const <String>[]]) => runIsolateTests(
       args,
       test,
-      'client_resume_approvals_identical_names_test.dart',
+      'client_resume_approvals_no_longer_require_user_permission.dart',
       testeeConcurrent: fooBar,
       pauseOnStart: true,
       pauseOnExit: true,

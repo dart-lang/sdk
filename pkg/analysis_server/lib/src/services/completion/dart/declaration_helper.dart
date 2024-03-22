@@ -72,6 +72,9 @@ class DeclarationHelper {
   /// possible.
   final bool preferNonInvocation;
 
+  /// Whether unnamed constructors should be suggested as `.new`.
+  final bool suggestUnnamedAsNew;
+
   /// Whether the generation of suggestions for imports should be skipped. This
   /// exists as a temporary measure that will be removed after all of the
   /// suggestions are being produced by the various passes.
@@ -108,6 +111,7 @@ class DeclarationHelper {
     required this.mustBeStatic,
     required this.mustBeType,
     required this.preferNonInvocation,
+    required this.suggestUnnamedAsNew,
     required this.skipImports,
     required this.excludedNodes,
   });
@@ -1138,6 +1142,7 @@ class DeclarationHelper {
       hasClassName: hasClassName,
       isTearOff: isTearOff,
       isRedirect: isConstructorRedirect,
+      suggestUnnamedAsNew: suggestUnnamedAsNew || isTearOff,
     );
     collector.addSuggestion(suggestion);
   }

@@ -90,6 +90,16 @@ class RunningIsolate {
       // Mark approval by the client.
       _resumeApprovalsByName.add(resumingClient.name);
     }
+
+    // If the user is required to resume the isolate, we won't resume until a
+    // `resume` request is received or `setRequireUserPermissionToResume` is
+    // invoked and removes the requirement for this pause type.
+    final userPermissionMask =
+        isolateManager._requireUserPermissionToResumeMask;
+    if (userPermissionMask & _isolateStateMask != 0) {
+      return false;
+    }
+
     final requiredClientApprovals = <String>{};
     final permissions =
         isolateManager.dds.clientManager.clientResumePermissions;
@@ -293,12 +303,11 @@ class IsolateManager {
     isolates.remove(id);
   }
 
-  /// Handles `resume` RPC requests. If the client requires that approval be
-  /// given before resuming an isolate, this method will:
+  /// Handles `resume` RPC requests.
   ///
-  ///   - Update the approval state for the isolate.
-  ///   - Resume the isolate if approval has been given by all clients which
-  ///     require approval.
+  /// Invocations of `resume` are treated as user initiated and will bypass any
+  /// resume permissions set by tooling, force resuming the isolate and clear
+  /// any resume approvals.
   ///
   /// Returns a collected sentinel if the isolate no longer exists.
   Future<Map<String, dynamic>> resumeIsolate(
@@ -312,13 +321,98 @@ class IsolateManager {
         if (isolate == null) {
           return RPCResponses.collectedSentinel;
         }
+        return await _resumeCommon(isolate, parameters);
+      },
+    );
+  }
+
+  /// Handles `readyToResume` RPC requests. If the client requires
+  /// that approval be given before resuming an isolate, this method will:
+  ///
+  ///   - Update the approval state for the isolate.
+  ///   - Resume the isolate if approval has been given by all clients which
+  ///     require approval.
+  ///
+  /// Returns a collected sentinel if the isolate no longer exists.
+  Future<Map<String, dynamic>> readyToResume(
+    DartDevelopmentServiceClient client,
+    json_rpc.Parameters parameters,
+  ) async {
+    return await _mutex.runGuarded(
+      () async {
+        final isolateId = parameters['isolateId'].asString;
+        final isolate = isolates[isolateId];
+        if (isolate == null) {
+          return RPCResponses.collectedSentinel;
+        }
         if (isolate.shouldResume(resumingClient: client)) {
-          isolate.clearResumeApprovals();
-          return await _sendResumeRequest(isolateId, parameters);
+          return await _resumeCommon(isolate, parameters);
         }
         return RPCResponses.success;
       },
     );
+  }
+
+  Future<void> maybeResumeIsolates() async {
+    await _mutex.runGuarded(() async {
+      for (final isolate in isolates.values) {
+        if (isolate.shouldResume()) {
+          await _resumeCommon(isolate, json_rpc.Parameters('', {}));
+        }
+      }
+    });
+  }
+
+  Future<Map<String, dynamic>> _resumeCommon(
+    RunningIsolate isolate,
+    json_rpc.Parameters parameters,
+  ) async {
+    isolate.clearResumeApprovals();
+    return await _sendResumeRequest(isolate.id, parameters);
+  }
+
+  /// Handles `requireUserPermissionToResume` requests.
+  ///
+  /// Notifies DDS if it should wait for a `resume` request to resume isolates
+  /// paused on start or exit.
+  ///
+  /// This RPC should only be invoked by tooling which launched the target Dart
+  /// process and knows if the user indicated they wanted isolates paused on
+  /// start or exit.
+  Future<Map<String, dynamic>> requireUserPermissionToResume(
+    DartDevelopmentServiceClient client,
+    json_rpc.Parameters parameters,
+  ) async {
+    int pauseTypeMask = 0;
+    if (parameters['onPauseStart'].asBoolOr(false)) {
+      pauseTypeMask |= PauseTypeMasks.pauseOnStartMask;
+    }
+    if (parameters['onPauseExit'].asBoolOr(false)) {
+      pauseTypeMask |= PauseTypeMasks.pauseOnExitMask;
+    }
+    _requireUserPermissionToResumeMask = pauseTypeMask;
+
+    // Check if isolates have been waiting for a user resume and resume any
+    // isolates that no longer need to wait for a user resume.
+    await maybeResumeIsolates();
+
+    return RPCResponses.success;
+  }
+
+  /// Handles `getRequireUserPermissionToResume` requests.
+  ///
+  /// Returns an object indicating whether or not a `resume` request is
+  /// required for DDS to resume an isolate paused on start or exit.
+  Future<Map<String, dynamic>> getRequireUserPermissionToResume(
+      DartDevelopmentServiceClient client,
+      json_rpc.Parameters parameters) async {
+    bool flagFromMask(int mask) =>
+        _requireUserPermissionToResumeMask & mask != 0;
+    return <String, dynamic>{
+      'type': 'ResumePermissionsRequired',
+      'onPauseStart': flagFromMask(PauseTypeMasks.pauseOnStartMask),
+      'onPauseExit': flagFromMask(PauseTypeMasks.pauseOnExitMask),
+    };
   }
 
   Future<Map<String, dynamic>> getCachedCpuSamples(
@@ -381,5 +475,6 @@ class IsolateManager {
   bool _initialized = false;
   final DartDevelopmentServiceImpl dds;
   final _mutex = Mutex();
-  final Map<String, RunningIsolate> isolates = {};
+  int _requireUserPermissionToResumeMask = 0;
+  final isolates = <String, RunningIsolate>{};
 }
