@@ -75,7 +75,6 @@ dart.try_builder(
     },
     location_filters = paths.to_location_filters(paths.release),
     recipe = "release/sdk",
-    goma = False,  # no such package: infra_internal/goma/client/linux-arm64
 )
 
 dart.try_builder(
@@ -88,7 +87,7 @@ dart.try_builder(
         "disable_bcid": True,
     },
     recipe = "release/sdk",
-    goma = False,  # RBE gcc cross-compilation isn't supported yet
+    rbe = False,  # RBE gcc cross-compilation isn't supported yet
 )
 
 dart.try_builder(

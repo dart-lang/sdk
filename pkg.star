@@ -30,7 +30,6 @@ dart.ci_sandbox_builder(
     "pkg-linux-release-arm64",
     category = "pkg|la",
     dimensions = [jammy, arm64],
-    goma = False,  # no such package: infra_internal/goma/client/linux-arm64
     properties = {"clobber": False},
 )
 dart.ci_sandbox_builder(
@@ -56,7 +55,6 @@ dart.ci_sandbox_builder(
     "pkg-win-release-arm64",
     category = "pkg|wa",
     dimensions = [windows11, arm64, flutter_pool],
-    goma = False,  # no such package: infra_internal/goma/client/windows-arm64
     properties = [{"clobber": False}, no_reclient],
 )
 dart.ci_sandbox_builder(

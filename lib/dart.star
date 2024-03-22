@@ -19,11 +19,6 @@ load(
 load("//lib/paths.star", "paths")
 load("//lib/priority.star", "priority")
 
-_GOMA_RBE = {
-    "server_host": "goma.chromium.org",
-    "use_luci_auth": True,
-}
-
 _RELEASE_CHANNELS = ["beta", "dev", "stable"]
 _CHANNELS = ["beta", "stable", "try"]
 _BRANCHES = ["main"] + _RELEASE_CHANNELS
@@ -56,33 +51,23 @@ def _flutter_recipe(name):
         use_bbagent = True,
     )
 
-def _with_goma(goma, dimensions, properties):
-    """Decorates the properties to setup goma.
+def _with_rbe(rbe, properties):
+    """Decorates the properties to setup RBE.
 
-       Adds the $build/goma property when goma is used and disables goma via
-       the $dart/build property if not.
+       Enables/disables RBE via the $dart/build property.
 
     Args:
-        goma: Opt-in (True), opt-out (False) or default (None).
-        dimensions: The dimensions of the builder.
+        rbe: Opt-in (True), opt-out (False) or default (None).
         properties: The properties object to set $build/goma on (if opted-in).
 
     Returns:
-        A copy of the properties with goma related properties set if applicable.
+        A copy of the properties with RBE related properties set if applicable.
     """
     updated_properties = dict(properties)
-    if goma in (None, True):
-        goma_properties = {}
-        goma_properties.update(_GOMA_RBE)
-
-        enable_ats = dimensions["os"] in (focal["os"], jammy["os"], linux["os"])
-
-        goma_properties["enable_ats"] = enable_ats
-        updated_properties.setdefault("$build/goma", goma_properties)
-    else:
+    if rbe == False:
         updated_properties = dict(properties)
         updated_properties.setdefault("$dart/build", {})
-        updated_properties["$dart/build"].setdefault("disable_goma", True)
+        updated_properties["$dart/build"].setdefault("disable_rbe", True)
     return updated_properties
 
 def _try_builder(
@@ -96,7 +81,7 @@ def _try_builder(
         execution_timeout = None,
         experiment_percentage = None,
         experiments = None,
-        goma = None,
+        rbe = None,
         location_filters = None,
         properties = None,
         on_cq = False):
@@ -113,7 +98,7 @@ def _try_builder(
         execution_timeout: Time to allow for the build to run.
         experiment_percentage: What experiment percentage to use.
         experiments: Experiments to run on this builder, with percentages.
-        goma: Whether to use goma or not.
+        rbe: Whether to use RBE.
         location_filters: Locations that trigger this tryjob.
         properties: Extra properties to set for builds.
         on_cq: Whether the build is added to the default set of CQ tryjobs.
@@ -127,7 +112,7 @@ def _try_builder(
     if dimensions["pool"] in ["luci.flutter.prod", "luci.flutter.staging"]:
         dimensions.pop("host_class")
     properties = defaults.properties(properties)
-    builder_properties = _with_goma(goma, dimensions, properties)
+    builder_properties = _with_rbe(rbe, properties)
     builder = name + "-try"
     caches = caches if caches != None else defaults.caches(dimensions["os"])
     luci.builder(
@@ -168,7 +153,7 @@ def _builder(
         experimental = None,
         experiments = None,
         expiration_timeout = None,
-        goma = None,
+        rbe = None,
         notifies = "dart",
         priority = priority.normal,
         properties = None,
@@ -195,7 +180,7 @@ def _builder(
         experimental: Whether the build is experimental or not.
         experiments: Experiments to run on this builder, with percentages.
         expiration_timeout: How long builds should wait for a bot to run on.
-        goma: Whether to use goma or not.
+        rbe: Whether to use RBE or not.
         notifies: Which luci notifier group to notify (default: "dart").
         priority: What swarming priority this builder gets (default: NORMAL).
         properties: Extra properties to set for builds.
@@ -240,13 +225,12 @@ def _builder(
                 execution_timeout = execution_timeout,
                 experiment_percentage = experiment_percentage,
                 experiments = experiments,
-                goma = goma,
+                rbe = rbe,
                 location_filters = location_filters,
             )
         else:
-            builder_properties = _with_goma(
-                goma if service_account == accounts.try_builder else False,
-                dimensions,
+            builder_properties = _with_rbe(
+                rbe if service_account == accounts.try_builder else False,
                 properties,
             )
             builder = name + "-" + channel if channel else name

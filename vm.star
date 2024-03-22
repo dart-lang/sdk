@@ -106,7 +106,6 @@ _vm_builder(
     "vm-linux-release-arm64",
     category = "vm|jit|a6",
     dimensions = [jammy, arm64],
-    goma = False,  # no such package: infra_internal/goma/client/linux-arm64
     properties = {"clobber": False},
 )
 _vm_builder(
@@ -159,14 +158,12 @@ _nightly_builder(
     "vm-win-debug-arm64",
     category = "vm|jit|wad",
     dimensions = [windows11, arm64, flutter_pool],
-    goma = False,  # no such package: infra_internal/goma/client/windows-arm64
     properties = [{"clobber": False}, no_reclient],
 )
 _vm_builder(
     "vm-win-release-arm64",
     category = "vm|jit|war",
     dimensions = [windows11, arm64, flutter_pool],
-    goma = False,  # no such package: infra_internal/goma/client/windows-arm64
     properties = [{"clobber": False}, no_reclient],
 )
 
@@ -213,7 +210,6 @@ _nightly_builder(
     "vm-aot-linux-release-arm64",
     category = "vm|aot|a6",
     dimensions = [jammy, arm64],
-    goma = False,  # no such package: infra_internal/goma/client/linux-arm64
     properties = {"clobber": False},
 )
 _vm_builder(
@@ -245,14 +241,12 @@ _nightly_builder(
     "vm-aot-win-debug-arm64",
     category = "vm|aot|wad",
     dimensions = [windows11, arm64, flutter_pool],
-    goma = False,  # no such package: infra_internal/goma/client/windows-arm64
     properties = [{"clobber": False}, no_reclient],
 )
 _vm_builder(
     "vm-aot-win-release-arm64",
     category = "vm|aot|war",
     dimensions = [windows11, arm64, flutter_pool],
-    goma = False,  # no such package: infra_internal/goma/client/windows-arm64
     properties = [{"clobber": False}, no_reclient],
 )
 
@@ -389,13 +383,13 @@ _vm_builder(
     properties = [fuchsia_deps],
 )
 
-# Our sysroot does not support gcc, we can't use goma on RBE for this builder
+# Our sysroot does not support gcc, we can't use RBE for this builder
 _nightly_builder(
     "vm-gcc-linux",
     category = "vm|misc|g",
     dimensions = jammy,
     execution_timeout = 5 * time.hour,
-    goma = False,
+    rbe = False,
     properties = {
         "$dart/build": {
             "timeout": 75 * 60,  # 100 minutes,
@@ -407,7 +401,7 @@ _nightly_builder(
     "vm-msvc-windows",
     category = "vm|misc|m",
     dimensions = windows,
-    goma = False,
+    rbe = False,
 )
 
 # vm|ffi
@@ -450,7 +444,6 @@ _vm_builder(
     "vm-ffi-qemu-linux-release-riscv64",
     category = "vm|ffi|qr",
     dimensions = [jammy, arm64],
-    goma = False,  # no such package: infra_internal/goma/client/linux-arm64
     properties = {"clobber": False},
 )
 
