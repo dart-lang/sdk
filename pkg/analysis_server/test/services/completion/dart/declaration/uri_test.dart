@@ -1068,4 +1068,19 @@ suggestions
     kind: import
 ''');
   }
+
+  Future<void> test_partOf_file() async {
+    newFile('$testPackageLibPath/a.dart', '');
+    newFile('$testPackageLibPath/foo/b.dart', '');
+    await computeSuggestions('''
+part of '^'
+''');
+    assertResponse(r'''
+suggestions
+  a.dart
+    kind: import
+  foo/
+    kind: import
+''');
+  }
 }

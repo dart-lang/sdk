@@ -360,6 +360,9 @@ suggestions
   part '';
     kind: keyword
     selection: 6
+  part of '';
+    kind: keyword
+    selection: 9
   sealed
     kind: keyword
   typedef

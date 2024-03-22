@@ -208,6 +208,14 @@ class KeywordHelper {
     addKeywordFromText(Keyword.IMPORT, " '^';");
     addKeywordFromText(Keyword.EXPORT, " '^';");
     addKeywordFromText(Keyword.PART, " '^';");
+    if (unit.directives.isEmpty) {
+      collector.addSuggestion(
+        KeywordSuggestion.fromKeywordAndText(
+          keyword: null,
+          annotatedText: "${Keyword.PART.lexeme} ${Keyword.OF.lexeme} '^';",
+        ),
+      );
+    }
   }
 
   /// Add the keywords that are appropriate when the selection is in an enum

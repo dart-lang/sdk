@@ -2215,6 +2215,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         case Configuration():
         case NamespaceDirective():
         case PartDirective():
+        case PartOfDirective():
           UriHelper(state.request, collector).addSuggestions(node);
           return;
       }
