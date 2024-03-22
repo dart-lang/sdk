@@ -419,6 +419,22 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitAssertStatement(AssertStatement node) {
+    // `assert(^)`
+    // `assert(^, '')`
+    // `assert(x, ^)`
+    if (!node.leftParenthesis.isSynthetic &&
+        node.leftParenthesis.end <= offset) {
+      var comma = node.comma;
+      if (comma == null || offset <= comma.offset) {
+        collector.completionLocation = 'AssertStatement_condition';
+        _forExpression(node.condition);
+      } else {
+        collector.completionLocation = 'AssertStatement_message';
+        _forExpression(node.condition);
+      }
+      return;
+    }
+
     if (offset <= node.assertKeyword.end) {
       collector.completionLocation = 'Block_statement';
       _forStatement(node);
