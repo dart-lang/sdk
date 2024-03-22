@@ -918,12 +918,12 @@ ISOLATE_UNIT_TEST_CASE(IRTest_LoadThread) {
   auto load_thread_value = Value(load_thread_instr);
 
   auto* const convert_instr = new (zone) IntConverterInstr(
-      kUntagged, kUnboxedFfiIntPtr, &load_thread_value, DeoptId::kNone);
+      kUntagged, kUnboxedAddress, &load_thread_value, DeoptId::kNone);
   flow_graph->InsertBefore(return_instr, convert_instr, nullptr,
                            FlowGraph::kValue);
   auto convert_value = Value(convert_instr);
 
-  auto* const box_instr = BoxInstr::Create(kUnboxedFfiIntPtr, &convert_value);
+  auto* const box_instr = BoxInstr::Create(kUnboxedAddress, &convert_value);
   flow_graph->InsertBefore(return_instr, box_instr, nullptr, FlowGraph::kValue);
 
   return_instr->InputAt(0)->definition()->ReplaceUsesWith(box_instr);
@@ -1016,8 +1016,9 @@ ISOLATE_UNIT_TEST_CASE(IRTest_CachableIdempotentCall) {
 
   InputsArray args;
   CachableIdempotentCallInstr* call = new CachableIdempotentCallInstr(
-      InstructionSource(), increment_function, static_call->type_args_len(),
-      Array::empty_array(), std::move(args), DeoptId::kNone);
+      InstructionSource(), kUnboxedAddress, increment_function,
+      static_call->type_args_len(), Array::empty_array(), std::move(args),
+      DeoptId::kNone);
   static_call->ReplaceWith(call, nullptr);
 
   pipeline.RunForcedOptimizedAfterSSAPasses();
@@ -1056,25 +1057,13 @@ ISOLATE_UNIT_TEST_CASE(IRTest_CachableIdempotentCall) {
 
 // Helper to set up an inlined FfiCall by replacing a StaticCall.
 FlowGraph* SetupFfiFlowgraph(TestPipeline* pipeline,
-                             Zone* zone,
                              const compiler::ffi::CallMarshaller& marshaller,
                              uword native_entry,
                              bool is_leaf) {
   FlowGraph* flow_graph = pipeline->RunPasses({CompilerPass::kComputeSSA});
 
-  // Make an FfiCall based on ffi_trampoline that calls our native function.
-  auto ffi_call = new FfiCallInstr(DeoptId::kNone, marshaller, is_leaf);
-  RELEASE_ASSERT(ffi_call->InputCount() == 1);
-  // TargetAddress is the function pointer called.
-  const Representation address_repr =
-      compiler::target::kWordSize == 4 ? kUnboxedUint32 : kUnboxedInt64;
-  ffi_call->SetInputAt(
-      ffi_call->TargetAddressIndex(),
-      new Value(flow_graph->GetConstant(
-          Integer::Handle(Integer::NewCanonical(native_entry)), address_repr)));
-
-  // Replace the placeholder StaticCall with an FfiCall to our native function.
   {
+    // Locate the placeholder call.
     StaticCallInstr* static_call = nullptr;
     {
       ILMatcher cursor(flow_graph, flow_graph->graph_entry()->normal_entry(),
@@ -1083,8 +1072,33 @@ FlowGraph* SetupFfiFlowgraph(TestPipeline* pipeline,
     }
     RELEASE_ASSERT(static_call != nullptr);
 
+    // Store the native entry as an unboxed constant and convert it to an
+    // untagged pointer for the FfiCall.
+    Zone* const Z = flow_graph->zone();
+    auto* const load_entry_point = new (Z) IntConverterInstr(
+        kUnboxedIntPtr, kUntagged,
+        new (Z) Value(flow_graph->GetConstant(
+            Integer::Handle(Z, Integer::NewCanonical(native_entry)),
+            kUnboxedIntPtr)),
+        DeoptId::kNone);
+    flow_graph->InsertBefore(static_call, load_entry_point, /*env=*/nullptr,
+                             FlowGraph::kValue);
+
+    // Make an FfiCall based on ffi_trampoline that calls our native function.
+    const intptr_t num_arguments =
+        FfiCallInstr::InputCountForMarshaller(marshaller);
+    RELEASE_ASSERT(num_arguments == 1);
+    InputsArray arguments(num_arguments);
+    arguments.Add(new (Z) Value(load_entry_point));
+    auto* const ffi_call = new (Z)
+        FfiCallInstr(DeoptId::kNone, marshaller, is_leaf, std::move(arguments));
+    RELEASE_ASSERT(
+        ffi_call->InputAt(ffi_call->TargetAddressIndex())->definition() ==
+        load_entry_point);
     flow_graph->InsertBefore(static_call, ffi_call, /*env=*/nullptr,
                              FlowGraph::kEffect);
+
+    // Remove the placeholder call.
     static_call->RemoveFromGraph(/*return_previous=*/false);
   }
 
@@ -1212,8 +1226,8 @@ ISOLATE_UNIT_TEST_CASE(IRTest_FfiCallInstrLeafDoesntSpill) {
       [&](bool is_leaf, std::function<void(ParallelMoveInstr*)> verify) {
         // Build the SSA graph for "doFfiCall"
         TestPipeline pipeline(do_ffi_call, CompilerPass::kJIT);
-        FlowGraph* flow_graph = SetupFfiFlowgraph(
-            &pipeline, thread->zone(), marshaller, native_entry, is_leaf);
+        FlowGraph* flow_graph =
+            SetupFfiFlowgraph(&pipeline, marshaller, native_entry, is_leaf);
 
         {
           ParallelMoveInstr* parallel_move = nullptr;

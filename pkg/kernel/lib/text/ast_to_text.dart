@@ -2156,7 +2156,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
 
   @override
   void visitTypedefTearOff(TypedefTearOff node) {
-    writeTypeParameterList(node.typeParameters);
+    writeStructuralParameterList(node.structuralParameters);
     state = SYMBOL;
     writeSymbol('.(');
     writeNode(node.expression);
@@ -2991,7 +2991,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     writeSpaced('=');
     writeWord('typedef-tearoff');
     writeSpace();
-    writeTypeParameterList(node.parameters);
+    writeStructuralParameterList(node.parameters);
     state = SYMBOL;
     writeSymbol('.(');
     writeConstantReference(node.tearOffConstant);

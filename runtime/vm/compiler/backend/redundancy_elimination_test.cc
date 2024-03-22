@@ -593,7 +593,7 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_AliasingViaTypedDataAndUntaggedTypedData) {
   //   }
   //   array <- StaticCall(...) {_Uint32List}
   //   v1 <- LoadIndexed(array)
-  //   v2 <- LoadUntagged(array)
+  //   v2 <- LoadField(array, Slot::PointerBase_data())
   //   StoreIndexed(v2, index=vc0, value=vc42)
   //   v3 <- LoadIndexed(array)
   //   return v3
@@ -605,7 +605,7 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_AliasingViaTypedDataAndUntaggedTypedData) {
 
   StaticCallInstr* array;
   LoadIndexedInstr* v1;
-  LoadUntaggedInstr* v2;
+  LoadFieldInstr* v2;
   StoreIndexedInstr* store;
   LoadIndexedInstr* v3;
   ReturnInstr* ret;
@@ -627,9 +627,11 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_AliasingViaTypedDataAndUntaggedTypedData) {
         kTypedDataUint32ArrayCid, kAlignedAccess, DeoptId::kNone,
         InstructionSource()));
 
-    //   v2 <- LoadUntagged(array)
+    //   v2 <- LoadField(array, Slot::PointerBase_data())
     //   StoreIndexed(v2, index=0, value=42)
-    v2 = builder.AddDefinition(new LoadUntaggedInstr(new Value(array), 0));
+    v2 = builder.AddDefinition(new LoadFieldInstr(
+        new Value(array), Slot::PointerBase_data(),
+        InnerPointerAccess::kMayBeInnerPointer, InstructionSource()));
     store = builder.AddInstruction(new StoreIndexedInstr(
         new Value(v2), new Value(vc0), new Value(vc42), kNoStoreBarrier,
         /*index_unboxed=*/false, 1, kTypedDataUint32ArrayCid, kAlignedAccess,
@@ -651,7 +653,7 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_AliasingViaTypedDataAndUntaggedTypedData) {
   {
     Instruction* sc = nullptr;
     Instruction* li = nullptr;
-    Instruction* lu = nullptr;
+    Instruction* lf = nullptr;
     Instruction* s = nullptr;
     Instruction* li2 = nullptr;
     Instruction* r = nullptr;
@@ -660,14 +662,14 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_AliasingViaTypedDataAndUntaggedTypedData) {
         kMatchAndMoveFunctionEntry,
         {kMatchAndMoveStaticCall, &sc},
         {kMatchAndMoveLoadIndexed, &li},
-        {kMatchAndMoveLoadUntagged, &lu},
+        {kMatchAndMoveLoadField, &lf},
         {kMatchAndMoveStoreIndexed, &s},
         {kMatchAndMoveLoadIndexed, &li2},
         {kMatchReturn, &r},
     }));
     EXPECT(array == sc);
     EXPECT(v1 == li);
-    EXPECT(v2 == lu);
+    EXPECT(v2 == lf);
     EXPECT(store == s);
     EXPECT(v3 == li2);
     EXPECT(ret == r);
@@ -1702,6 +1704,227 @@ ISOLATE_UNIT_TEST_CASE(CSE_Redefinitions) {
                             it.ArgumentAt(1)->OriginalDefinition() == load0);
   EXPECT_PROPERTY(call, it.ArgumentAt(2)->IsRedefinition() &&
                             it.ArgumentAt(2)->OriginalDefinition() == load0);
+}
+
+ISOLATE_UNIT_TEST_CASE(AllocationSinking_NoViewDataMaterialization) {
+  auto* const kFunctionName = "unalignedUint16";
+  auto* const kInvokeNoDeoptName = "no_deopt";
+  auto* const kInvokeDeoptName = "deopt";
+  auto kScript = Utils::CStringUniquePtr(
+      OS::SCreate(nullptr, R"(
+        import 'dart:_internal';
+        import 'dart:typed_data';
+
+        @pragma("vm:never-inline")
+        void check(int x, int y) {
+          if (x != y) {
+            throw "Doesn't match";
+          }
+        }
+
+        @pragma("vm:never-inline")
+        bool %s(num x) {
+          var bytes = new ByteData(64);
+          if (x is int) {
+            for (var i = 2; i < 4; i++) {
+              bytes.setUint16(i, x + 1, Endian.host);
+              check(x + 1, bytes.getUint16(i, Endian.host));
+            }
+          } else {
+            // Force a garbage collection after deoptimization. In DEBUG mode,
+            // the scavenger tests that the view's data field was set correctly
+            // during deoptimization before recomputing it.
+            VMInternalsForTesting.collectAllGarbage();
+          }
+          // Make sure the array is also used on the non-int path.
+          check(0, bytes.getUint16(0, Endian.host));
+          return x is int;
+        }
+
+        bool %s() {
+          return %s(0xABCC);
+        }
+
+        bool %s() {
+          return %s(1.0);
+        }
+            )",
+                  kFunctionName, kInvokeNoDeoptName, kFunctionName,
+                  kInvokeDeoptName, kFunctionName),
+      std::free);
+
+  const auto& lib =
+      Library::Handle(LoadTestScript(kScript.get(), NoopNativeLookup));
+  EXPECT(!lib.IsNull());
+  if (lib.IsNull()) return;
+
+  const auto& function = Function::ZoneHandle(GetFunction(lib, kFunctionName));
+  EXPECT(!function.IsNull());
+  if (function.IsNull()) return;
+
+  // Run the unoptimized code.
+  auto& result = Object::Handle(Invoke(lib, kInvokeNoDeoptName));
+  EXPECT(Bool::Cast(result).value());
+
+  TestPipeline pipeline(function, CompilerPass::kJIT);
+  FlowGraph* flow_graph = pipeline.RunPasses({
+      CompilerPass::kComputeSSA,
+      CompilerPass::kApplyICData,
+      CompilerPass::kTryOptimizePatterns,
+      CompilerPass::kSetOuterInliningId,
+      CompilerPass::kTypePropagation,
+      CompilerPass::kApplyClassIds,
+      CompilerPass::kInlining,
+      CompilerPass::kTypePropagation,
+      CompilerPass::kApplyClassIds,
+      CompilerPass::kTypePropagation,
+      CompilerPass::kApplyICData,
+      CompilerPass::kCanonicalize,
+      CompilerPass::kBranchSimplify,
+      CompilerPass::kIfConvert,
+      CompilerPass::kCanonicalize,
+      CompilerPass::kConstantPropagation,
+      CompilerPass::kOptimisticallySpecializeSmiPhis,
+      CompilerPass::kTypePropagation,
+      CompilerPass::kWidenSmiToInt32,
+      CompilerPass::kSelectRepresentations,
+      CompilerPass::kCSE,
+      CompilerPass::kCanonicalize,
+      CompilerPass::kLICM,
+      CompilerPass::kTryOptimizePatterns,
+      CompilerPass::kSelectRepresentations,
+      CompilerPass::kDSE,
+      CompilerPass::kTypePropagation,
+      CompilerPass::kSelectRepresentations,
+      CompilerPass::kEliminateEnvironments,
+      CompilerPass::kEliminateDeadPhis,
+      CompilerPass::kDCE,
+      CompilerPass::kCanonicalize,
+      CompilerPass::kOptimizeBranches,
+  });
+
+  // Check for the soon-to-be-sunk ByteDataView allocation.
+
+  auto entry = flow_graph->graph_entry()->normal_entry();
+  EXPECT(entry != nullptr);
+
+  AllocateTypedDataInstr* alloc_typed_data = nullptr;
+  AllocateObjectInstr* alloc_view = nullptr;
+  StoreFieldInstr* store_view_typed_data = nullptr;
+  StoreFieldInstr* store_view_offset_in_bytes = nullptr;
+  StoreFieldInstr* store_view_length = nullptr;
+  LoadFieldInstr* load_typed_data_payload = nullptr;
+  StoreFieldInstr* store_view_payload = nullptr;
+
+  ILMatcher cursor(flow_graph, entry, true, ParallelMovesHandling::kSkip);
+  EXPECT(cursor.TryMatch({
+      kMoveGlob,
+      {kMatchAndMoveAllocateTypedData, &alloc_typed_data},
+      {kMatchAndMoveAllocateObject, &alloc_view},
+      {kMatchAndMoveStoreField, &store_view_typed_data},
+      {kMatchAndMoveStoreField, &store_view_offset_in_bytes},
+      {kMatchAndMoveStoreField, &store_view_length},
+      {kMatchAndMoveLoadField, &load_typed_data_payload},
+      {kMatchAndMoveStoreField, &store_view_payload},
+  }));
+  if (store_view_payload == nullptr) return;
+
+  EXPECT_EQ(alloc_view, store_view_typed_data->instance()->definition());
+  EXPECT(Slot::TypedDataView_typed_data().IsIdentical(
+      store_view_typed_data->slot()));
+  EXPECT_EQ(alloc_typed_data, store_view_typed_data->value()->definition());
+
+  EXPECT_EQ(alloc_view, store_view_length->instance()->definition());
+  EXPECT(Slot::TypedDataBase_length().IsIdentical(store_view_length->slot()));
+  EXPECT_EQ(alloc_typed_data->num_elements()->definition(),
+            store_view_length->value()->definition());
+
+  EXPECT_EQ(alloc_view, store_view_offset_in_bytes->instance()->definition());
+  EXPECT(Slot::TypedDataView_offset_in_bytes().IsIdentical(
+      store_view_offset_in_bytes->slot()));
+  EXPECT(store_view_offset_in_bytes->value()->BindsToSmiConstant());
+  EXPECT_EQ(0, store_view_offset_in_bytes->value()->BoundSmiConstant());
+
+  EXPECT_EQ(alloc_typed_data,
+            load_typed_data_payload->instance()->definition());
+  EXPECT(Slot::PointerBase_data().IsIdentical(load_typed_data_payload->slot()));
+
+  EXPECT_EQ(alloc_view, store_view_payload->instance()->definition());
+  EXPECT(Slot::PointerBase_data().IsIdentical(store_view_payload->slot()));
+  EXPECT_EQ(load_typed_data_payload, store_view_payload->value()->definition());
+
+  // Setting the view data field is the only use of the unsafe payload load.
+  EXPECT(load_typed_data_payload->HasOnlyUse(store_view_payload->value()));
+
+  pipeline.RunAdditionalPasses({
+      CompilerPass::kAllocationSinking_Sink,
+  });
+
+  // After sinking, the view allocation has been removed from the flow graph.
+  EXPECT_EQ(nullptr, alloc_view->previous());
+  EXPECT_EQ(nullptr, alloc_view->next());
+  // There is at least one MaterializeObject instruction created for the view.
+  intptr_t mat_count = 0;
+  for (auto block_it = flow_graph->reverse_postorder_iterator();
+       !block_it.Done(); block_it.Advance()) {
+    for (ForwardInstructionIterator it(block_it.Current()); !it.Done();
+         it.Advance()) {
+      auto* const mat = it.Current()->AsMaterializeObject();
+      if (mat == nullptr) continue;
+      if (mat->allocation() == alloc_view) {
+        ++mat_count;
+        for (intptr_t i = 0; i < mat->InputCount(); i++) {
+          // No slot of the materialization should correspond to the data field.
+          EXPECT(mat->FieldOffsetAt(i) !=
+                 Slot::PointerBase_data().offset_in_bytes());
+          // No input of the materialization should be a load of the typed
+          // data object's payload.
+          if (auto* const load = mat->InputAt(i)->definition()->AsLoadField()) {
+            if (load->instance()->definition() == alloc_typed_data) {
+              EXPECT(!load->slot().IsIdentical(Slot::PointerBase_data()));
+            }
+          }
+        }
+      }
+    }
+  }
+  EXPECT(mat_count > 0);
+  // There are no uses of the original unsafe payload load. In particular, no
+  // MaterializeObject instructions use it.
+  EXPECT(!load_typed_data_payload->HasUses());
+
+  pipeline.RunAdditionalPasses({
+      CompilerPass::kEliminateDeadPhis,
+      CompilerPass::kDCE,
+      CompilerPass::kCanonicalize,
+      CompilerPass::kTypePropagation,
+      CompilerPass::kSelectRepresentations_Final,
+      CompilerPass::kUseTableDispatch,
+      CompilerPass::kEliminateStackOverflowChecks,
+      CompilerPass::kCanonicalize,
+      CompilerPass::kAllocationSinking_DetachMaterializations,
+      CompilerPass::kEliminateWriteBarriers,
+      CompilerPass::kLoweringAfterCodeMotionDisabled,
+      CompilerPass::kFinalizeGraph,
+      CompilerPass::kCanonicalize,
+      CompilerPass::kReorderBlocks,
+      CompilerPass::kAllocateRegisters,
+      CompilerPass::kTestILSerialization,
+  });
+
+  // Finish the compilation and attach code so we can run it.
+  pipeline.CompileGraphAndAttachFunction();
+
+  // Can run optimized code fine without deoptimization.
+  result = Invoke(lib, kInvokeNoDeoptName);
+  EXPECT(function.HasOptimizedCode());
+  EXPECT(Bool::Cast(result).value());
+
+  // Can run code fine with deoptimization.
+  result = Invoke(lib, kInvokeDeoptName);
+  // Deoptimization has put us back to unoptimized code.
+  EXPECT(!function.HasOptimizedCode());
+  EXPECT(!Bool::Cast(result).value());
 }
 
 #endif  // !defined(TARGET_ARCH_IA32)

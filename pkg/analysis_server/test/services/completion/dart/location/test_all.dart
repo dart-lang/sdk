@@ -7,6 +7,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'argument_list_test.dart' as argument_list;
 import 'as_expression_test.dart' as as_expression;
 import 'assert_initializer_test.dart' as assert_initializer;
+import 'assert_statement_test.dart' as assert_statement;
 import 'assignment_expression_test.dart' as assignment_expression;
 import 'block_test.dart' as block;
 import 'case_clause_test.dart' as case_clause;
@@ -83,6 +84,7 @@ void main() {
     argument_list.main();
     as_expression.main();
     assert_initializer.main();
+    assert_statement.main();
     assignment_expression.main();
     block.main();
     case_clause.main();

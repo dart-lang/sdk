@@ -3436,8 +3436,7 @@ void FlowGraphCompiler::EmitMoveConst(const compiler::ffi::NativeLocation& dst,
     if (src.IsPairLocation()) {
       for (intptr_t i : {0, 1}) {
         const Representation src_type_split =
-            compiler::ffi::NativeType::FromUnboxedRepresentation(zone_,
-                                                                 src_type)
+            compiler::ffi::NativeType::FromRepresentation(zone_, src_type)
                 .Split(zone_, i)
                 .AsRepresentation();
         const auto& intermediate_native =

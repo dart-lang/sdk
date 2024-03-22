@@ -80,9 +80,7 @@ class BaseMarshaller : public ZoneAllocated {
   //
   // Implemented in BaseMarshaller because most Representations are the same
   // in Calls and Callbacks.
-  Representation RepInDart(intptr_t arg_index) const {
-    return Location(arg_index).payload_type().AsRepresentationOverApprox(zone_);
-  }
+  Representation RepInDart(intptr_t arg_index) const;
 
   // Representation on how the value is passed to or received from the FfiCall
   // instruction or StaticCall, NativeParameter, and NativeReturn instructions.

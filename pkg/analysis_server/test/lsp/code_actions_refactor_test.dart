@@ -502,7 +502,8 @@ void doFoo(void Function() a) => a();
     );
 
     expect(response.valid, isFalse);
-    expect(response.message, contains('Cannot extract the closure as a method'));
+    expect(
+        response.message, contains('Cannot extract the closure as a method'));
   }
 
   /// Test if the client does not call refactor.validate it still gets a
@@ -521,10 +522,7 @@ void doFoo(void Function() a) => a();
     final codeAction = await expectAction(
       content,
       command: Commands.performRefactor,
-
       title: extractMethodTitle,
-      // We expect an error notification so don't fail on it.
-      failTestOnAnyErrorNotification: false,
     );
     final command = codeAction.command!;
 

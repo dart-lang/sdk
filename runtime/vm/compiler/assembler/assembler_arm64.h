@@ -1879,7 +1879,7 @@ class Assembler : public AssemblerBase {
   Address PrepareLargeOffset(Register base,
                              int32_t offset,
                              OperandSize sz,
-                             Address::AddressType addr_type = Address::Offset);
+                             Address::AddressType addr_type);
   void LoadFromOffset(Register dest,
                       const Address& address,
                       OperandSize sz = kEightBytes) override;

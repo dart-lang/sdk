@@ -306,26 +306,31 @@ final class KeywordSuggestion extends CandidateSuggestion {
   /// be used as the selection offset. If the text doesn't contain a caret, then
   /// the insert text will be the annotated text and the selection offset will
   /// be at the end of the text.
-  factory KeywordSuggestion.fromKeywordAndText(
-      {required Keyword keyword, String? annotatedText}) {
-    String completion;
-    int selectionOffset;
-    var lexeme = keyword.lexeme;
-    if (annotatedText == null) {
-      completion = lexeme;
-      selectionOffset = completion.length;
-    } else {
+  factory KeywordSuggestion.fromKeywordAndText({
+    required Keyword? keyword,
+    required String? annotatedText,
+  }) {
+    assert(keyword != null || annotatedText != null);
+
+    var completion = '';
+    int? selectionOffset;
+
+    if (keyword != null) {
+      completion = keyword.lexeme;
+    }
+
+    if (annotatedText != null) {
       var caretIndex = annotatedText.indexOf('^');
       if (caretIndex < 0) {
-        completion = lexeme + annotatedText;
-        selectionOffset = completion.length;
+        completion += annotatedText;
       } else {
-        completion = lexeme +
-            annotatedText.substring(0, caretIndex) +
+        selectionOffset = completion.length + caretIndex;
+        completion += annotatedText.substring(0, caretIndex) +
             annotatedText.substring(caretIndex + 1);
-        selectionOffset = lexeme.length + caretIndex;
       }
     }
+
+    selectionOffset ??= completion.length;
     return KeywordSuggestion._(
       completion: completion,
       selectionOffset: selectionOffset,

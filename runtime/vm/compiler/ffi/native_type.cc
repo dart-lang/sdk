@@ -280,10 +280,6 @@ NativeUnionType& NativeUnionType::FromNativeTypes(Zone* zone,
 #if !defined(DART_PRECOMPILED_RUNTIME) && !defined(FFI_UNIT_TESTS)
 bool NativePrimitiveType::IsExpressibleAsRepresentation() const {
   switch (representation_) {
-    case kInt8:
-    case kUint8:
-    case kInt16:
-    case kUint16:
     case kInt24:
     case kUint24:
     case kInt40:
@@ -294,13 +290,16 @@ bool NativePrimitiveType::IsExpressibleAsRepresentation() const {
     case kUint56:
     case kHalfDouble:
       return false;
+    case kInt8:
+    case kUint8:
+    case kInt16:
+    case kUint16:
     case kInt32:
     case kUint32:
     case kInt64:
     case kUint64:  // We don't actually have a kUnboxedUint64.
     case kFloat:
     case kDouble:
-      return true;
     case kVoid:
       return true;
     default:
@@ -311,6 +310,14 @@ bool NativePrimitiveType::IsExpressibleAsRepresentation() const {
 Representation NativePrimitiveType::AsRepresentation() const {
   ASSERT(IsExpressibleAsRepresentation());
   switch (representation_) {
+    case kInt8:
+      return kUnboxedInt8;
+    case kUint8:
+      return kUnboxedUint8;
+    case kInt16:
+      return kUnboxedInt16;
+    case kUint16:
+      return kUnboxedUint16;
     case kInt32:
       return kUnboxedInt32;
     case kUint32:
@@ -323,7 +330,7 @@ Representation NativePrimitiveType::AsRepresentation() const {
     case kDouble:
       return kUnboxedDouble;
     case kVoid:
-      return kUnboxedFfiIntPtr;
+      return kUnboxedIntPtr;
     default:
       UNREACHABLE_THIS();
   }
@@ -413,13 +420,10 @@ static PrimitiveType TypeRepresentation(classid_t class_id) {
     case kFfiDoubleCid:
       return kDouble;
     case kPointerCid:
-      return compiler::target::kWordSize == 4 ? kUint32 : kInt64;
+    case kFfiHandleCid:
+      return kAddress;
     case kFfiVoidCid:
       return kVoid;
-    case kFfiHandleCid:
-      // We never expose this pointer as a Dart int, so no need to make it
-      // unsigned on 32 bit architectures.
-      return compiler::target::kWordSize == 4 ? kInt32 : kInt64;
     default:
       UNREACHABLE();
   }
@@ -613,32 +617,34 @@ static PrimitiveType fundamental_rep(Representation rep) {
       return kUint32;
     case kUnboxedInt64:
       return kInt64;
+    case kUntagged:
+    case kTagged:
+      return TypeRepresentation(kPointerCid);
     default:
       break;
   }
-  UNREACHABLE();
+  FATAL("Unhandled representation %u", rep);
 }
 
-NativePrimitiveType& NativeType::FromUnboxedRepresentation(Zone* zone,
-                                                           Representation rep) {
+NativePrimitiveType& NativeType::FromRepresentation(Zone* zone,
+                                                    Representation rep) {
   return *new (zone) NativePrimitiveType(fundamental_rep(rep));
 }
 
-const NativeFunctionType* NativeFunctionType::FromUnboxedRepresentation(
+const NativeFunctionType* NativeFunctionType::FromRepresentations(
     Zone* zone,
-    intptr_t num_arguments,
-    Representation representation) {
-  const auto& intptr_type =
-      compiler::ffi::NativePrimitiveType::FromUnboxedRepresentation(
-          zone, representation);
-  auto& argument_representations =
+    Representation return_representation,
+    const ZoneGrowableArray<Representation>& argument_representations) {
+  const auto& return_type =
+      NativePrimitiveType::FromRepresentation(zone, return_representation);
+  auto& argument_types =
       *new (zone) ZoneGrowableArray<const compiler::ffi::NativeType*>(
-          zone, num_arguments);
-  for (intptr_t i = 0; i < num_arguments; i++) {
-    argument_representations.Add(&intptr_type);
+          zone, argument_representations.length());
+  for (intptr_t i = 0; i < argument_representations.length(); i++) {
+    argument_types.Add(&NativePrimitiveType::FromRepresentation(
+        zone, argument_representations.At(i)));
   }
-  return new (zone)
-      compiler::ffi::NativeFunctionType(argument_representations, intptr_type);
+  return new (zone) NativeFunctionType(argument_types, return_type);
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME) && !defined(FFI_UNIT_TESTS)
 

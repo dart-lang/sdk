@@ -58,30 +58,16 @@ void matchIL$testOffset(FlowGraph graph) {
             'pointer',
             slot: 'PointerBase.data',
           ),
-      'pointer.address int64' <<
-          match.IntConverter(
-            'pointer.address untagged',
-            from: 'untagged',
-            to: 'int64',
-          ),
+      ...convertUntaggedAddressToInt64('pointer'),
       'pointer2.address int64' <<
           match.BinaryInt64Op(
             'pointer.address int64',
             'int 10',
           ),
       // `pointer2` is not allocated.
-      'pointer2.address untagged' <<
-          match.IntConverter(
-            'pointer2.address int64',
-            from: 'int64',
-            to: 'untagged',
-          ),
-      'pointer2.value' <<
-          match.LoadIndexed(
-            'pointer2.address untagged',
-            'int 0',
-          ),
-      match.Return('pointer2.value'),
+      ...convertInt64AddressToUntagged('pointer2'),
+      ...loadIndexedValueAsInt64('pointer2', 'int 0'),
+      match.Return('pointer2.value int64'),
     ]),
   ]);
 }
@@ -119,34 +105,20 @@ void matchIL$testAllocate(FlowGraph graph) {
             'pointer',
             slot: 'PointerBase.data',
           ),
-      'pointer.address int64' <<
-          match.IntConverter(
-            'pointer.address untagged',
-            from: 'untagged',
-            to: 'int64',
-          ),
+      ...convertUntaggedAddressToInt64('pointer'),
       'pointer2.address int64' <<
           match.BinaryInt64Op(
             'pointer.address int64',
             'int 10',
           ),
-      'pointer2.address untagged' <<
-          match.IntConverter(
-            'pointer2.address int64',
-            from: 'int64',
-            to: 'untagged',
-          ),
+      ...convertInt64AddressToUntagged('pointer2'),
       // The untagged pointer2.address can live through an allocation
       // even though it is marked `InnerPointerAccess::kMayBeInnerPointer`
       // because its cid is a Pointer cid.
       match.AllocateObject(),
       match.StoreStaticField(match.any),
-      'pointer2.value' <<
-          match.LoadIndexed(
-            'pointer2.address untagged',
-            'int 0',
-          ),
-      match.Return('pointer2.value'),
+      ...loadIndexedValueAsInt64('pointer2', 'int 0'),
+      match.Return('pointer2.value int64'),
     ]),
   ]);
 }
@@ -166,6 +138,7 @@ int testHoist(Pointer<Int8> pointer) {
 
 void matchIL$testHoist(FlowGraph graph) {
   graph.dump();
+  final indexRep = is32BitConfiguration ? 'int32' : 'int64';
   graph.match([
     match.block('Graph', [
       'int 0' << match.UnboxedConstant(value: 0),
@@ -177,7 +150,7 @@ void matchIL$testHoist(FlowGraph graph) {
           match.Parameter(
             index: 0,
           ),
-      'pointer.address' <<
+      'pointer[i].address untagged' <<
           match.LoadField(
             'pointer',
             slot: 'PointerBase.data',
@@ -186,6 +159,8 @@ void matchIL$testHoist(FlowGraph graph) {
     ]),
     'B1' <<
         match.block('Join', [
+          'result int64' << match.Phi('int 0', 'result'),
+          'i int64' << match.Phi('int 0', 'i'),
           match.CheckStackOverflow(),
           match.Branch(match.RelationalOp(match.any, match.any, kind: '<'),
               ifTrue: 'B2', ifFalse: 'B3'),
@@ -195,17 +170,21 @@ void matchIL$testHoist(FlowGraph graph) {
           // Do some allocation.
           match.AllocateObject(),
           match.StoreStaticField(match.any),
+          if (is32BitConfiguration) ...[
+            'i $indexRep' <<
+                match.IntConverter(
+                  'i int64',
+                  from: 'int64',
+                  to: indexRep,
+                ),
+          ],
           // Do a load indexed with the untagged pointer.address that is
           // hoisted out of the loop.
-          'pointer[i]' <<
-              match.LoadIndexed(
-                'pointer.address',
-                match.any, // i
-              ),
+          ...loadIndexedValueAsInt64('pointer[i]', 'i $indexRep'),
           'result' <<
               match.BinaryInt64Op(
                 match.any,
-                'pointer[i]',
+                'pointer[i].value int64',
               ),
           'i' <<
               match.BinaryInt64Op(
@@ -219,4 +198,64 @@ void matchIL$testHoist(FlowGraph graph) {
           match.Return(match.any),
         ]),
   ]);
+}
+
+final addressRep = is32BitConfiguration ? 'uint32' : 'int64';
+final valueRep = is32BitConfiguration ? 'int32' : 'int64';
+
+List<Matcher> convertUntaggedAddressToInt64(String name) {
+  return [
+    '$name.address $addressRep' <<
+        match.IntConverter(
+          '$name.address untagged',
+          from: 'untagged',
+          to: addressRep,
+        ),
+    if (is32BitConfiguration) ...[
+      '$name.address int64' <<
+          match.IntConverter(
+            '$name.address $addressRep',
+            from: addressRep,
+            to: 'int64',
+          ),
+    ],
+  ];
+}
+
+List<Matcher> convertInt64AddressToUntagged(String name) {
+  return [
+    if (is32BitConfiguration) ...[
+      '$name.address $addressRep' <<
+          match.IntConverter(
+            '$name.address int64',
+            from: 'int64',
+            to: addressRep,
+          ),
+    ],
+    // `pointer2` is not allocated.
+    '$name.address untagged' <<
+        match.IntConverter(
+          '$name.address $addressRep',
+          from: addressRep,
+          to: 'untagged',
+        ),
+  ];
+}
+
+List<Matcher> loadIndexedValueAsInt64(String name, String index) {
+  return [
+    '$name.value $valueRep' <<
+        match.LoadIndexed(
+          '$name.address untagged',
+          index,
+        ),
+    if (is32BitConfiguration) ...[
+      '$name.value int64' <<
+          match.IntConverter(
+            '$name.value $valueRep',
+            from: valueRep,
+            to: 'int64',
+          ),
+    ],
+  ];
 }

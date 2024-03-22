@@ -470,6 +470,7 @@ struct InstrAttrs {
   M(AllocateTypedData, _)                                                      \
   M(LoadField, _)                                                              \
   M(LoadUntagged, kNoGC)                                                       \
+  M(CalculateElementAddress, kNoGC)                                            \
   M(LoadClassId, kNoGC)                                                        \
   M(InstantiateType, _)                                                        \
   M(InstantiateTypeArguments, _)                                               \
@@ -2559,6 +2560,15 @@ class Definition : public Instruction {
   void AddInputUse(Value* value) { Value::AddToList(value, &input_use_list_); }
   void AddEnvUse(Value* value) { Value::AddToList(value, &env_use_list_); }
 
+  // Whether an instruction may create an untagged pointer to memory within
+  // a GC-movable object. If so, then there must be no GC-triggering
+  // instructions between the result and its uses.
+  virtual bool MayCreateUnsafeUntaggedPointer() const {
+    // To ensure the default is safe, conservatively assume any untagged
+    // result may be a GC-movable address.
+    return representation() == kUntagged;
+  }
+
   // Returns true if the definition can be replaced with a constant without
   // changing the behavior of the program.
   virtual bool CanReplaceWithConstant() const {
@@ -2753,12 +2763,6 @@ class VariadicDefinition : public Definition {
   explicit VariadicDefinition(const intptr_t num_inputs,
                               intptr_t deopt_id = DeoptId::kNone)
       : Definition(deopt_id), inputs_(num_inputs) {
-    inputs_.EnsureLength(num_inputs, nullptr);
-  }
-  VariadicDefinition(const intptr_t num_inputs,
-                     const InstructionSource& source,
-                     intptr_t deopt_id = DeoptId::kNone)
-      : Definition(source, deopt_id), inputs_(num_inputs) {
     inputs_.EnsureLength(num_inputs, nullptr);
   }
 
@@ -2970,6 +2974,12 @@ class NativeParameterInstr : public TemplateDefinition<0, NoThrow> {
     return marshaller_.RepInFfiCall(def_index_);
   }
 
+  virtual bool MayCreateUnsafeUntaggedPointer() const {
+    // Untagged values flowing into Dart code via callbacks are external
+    // pointers that are then converted into Dart objects in the IL.
+    return false;
+  }
+
   virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual bool HasUnknownSideEffects() const { return false; }
@@ -3112,39 +3122,21 @@ class MemoryCopyInstr : public TemplateInstruction<5, NoThrow> {
                   Value* length,
                   bool unboxed_inputs,
                   bool can_overlap = true)
-      : MemoryCopyInstr(Instance::ElementSizeFor(src_cid),
-                        src,
-                        kTagged,
-                        src_cid,
-                        dest,
-                        kTagged,
-                        dest_cid,
-                        src_start,
-                        dest_start,
-                        length,
-                        unboxed_inputs,
-                        can_overlap) {}
-
-  MemoryCopyInstr(intptr_t element_size,
-                  Value* src,
-                  Value* dest,
-                  Value* src_start,
-                  Value* dest_start,
-                  Value* length,
-                  bool unboxed_inputs,
-                  bool can_overlap = true)
-      : MemoryCopyInstr(element_size,
-                        src,
-                        kUntagged,
-                        kIllegalCid,
-                        dest,
-                        kUntagged,
-                        kIllegalCid,
-                        src_start,
-                        dest_start,
-                        length,
-                        unboxed_inputs,
-                        can_overlap) {}
+      : src_cid_(src_cid),
+        dest_cid_(dest_cid),
+        element_size_(Instance::ElementSizeFor(src_cid)),
+        unboxed_inputs_(unboxed_inputs),
+        can_overlap_(can_overlap) {
+    ASSERT(IsArrayTypeSupported(src_cid));
+    ASSERT(IsArrayTypeSupported(dest_cid));
+    ASSERT_EQUAL(Instance::ElementSizeFor(src_cid),
+                 Instance::ElementSizeFor(dest_cid));
+    SetInputAt(kSrcPos, src);
+    SetInputAt(kDestPos, dest);
+    SetInputAt(kSrcStartPos, src_start);
+    SetInputAt(kDestStartPos, dest_start);
+    SetInputAt(kLengthPos, length);
+  }
 
   enum {
     kSrcPos = 0,
@@ -3157,12 +3149,11 @@ class MemoryCopyInstr : public TemplateInstruction<5, NoThrow> {
   DECLARE_INSTRUCTION(MemoryCopy)
 
   virtual Representation RequiredInputRepresentation(intptr_t index) const {
-    if (index == kSrcPos) {
-      return src_representation_;
+    if (index == kSrcPos || index == kDestPos) {
+      // Can be either tagged or untagged.
+      return kNoRepresentation;
     }
-    if (index == kDestPos) {
-      return dest_representation_;
-    }
+    ASSERT(index <= kLengthPos);
     return unboxed_inputs() ? kUnboxedIntPtr : kTagged;
   }
 
@@ -3174,8 +3165,6 @@ class MemoryCopyInstr : public TemplateInstruction<5, NoThrow> {
       if (element_size_ != copy->element_size_) return false;
       if (unboxed_inputs_ != copy->unboxed_inputs_) return false;
       if (can_overlap_ != copy->can_overlap_) return false;
-      if (src_representation_ != copy->src_representation_) return false;
-      if (dest_representation_ != copy->dest_representation_) return false;
       if (src_cid_ != copy->src_cid_) return false;
       if (dest_cid_ != copy->dest_cid_) return false;
       return true;
@@ -3189,6 +3178,8 @@ class MemoryCopyInstr : public TemplateInstruction<5, NoThrow> {
   Value* dest_start() const { return inputs_[kDestStartPos]; }
   Value* length() const { return inputs_[kLengthPos]; }
 
+  classid_t src_cid() const { return src_cid_; }
+  classid_t dest_cid() const { return dest_cid_; }
   intptr_t element_size() const { return element_size_; }
   bool unboxed_inputs() const { return unboxed_inputs_; }
   bool can_overlap() const { return can_overlap_; }
@@ -3205,9 +3196,7 @@ class MemoryCopyInstr : public TemplateInstruction<5, NoThrow> {
   F(const classid_t, dest_cid_)                                                \
   F(intptr_t, element_size_)                                                   \
   F(bool, unboxed_inputs_)                                                     \
-  F(const bool, can_overlap_)                                                  \
-  F(const Representation, src_representation_)                                 \
-  F(const Representation, dest_representation_)
+  F(const bool, can_overlap_)
 
   DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(MemoryCopyInstr,
                                           TemplateInstruction,
@@ -3215,47 +3204,7 @@ class MemoryCopyInstr : public TemplateInstruction<5, NoThrow> {
 #undef FIELD_LIST
 
  private:
-  MemoryCopyInstr(intptr_t element_size,
-                  Value* src,
-                  Representation src_representation,
-                  classid_t src_cid,
-                  Value* dest,
-                  Representation dest_representation,
-                  classid_t dest_cid,
-                  Value* src_start,
-                  Value* dest_start,
-                  Value* length,
-                  bool unboxed_inputs,
-                  bool can_overlap = true)
-      : src_cid_(src_cid),
-        dest_cid_(dest_cid),
-        element_size_(element_size),
-        unboxed_inputs_(unboxed_inputs),
-        can_overlap_(can_overlap),
-        src_representation_(src_representation),
-        dest_representation_(dest_representation) {
-    if (src_representation == kTagged) {
-      ASSERT(IsArrayTypeSupported(src_cid));
-      ASSERT_EQUAL(Instance::ElementSizeFor(src_cid), element_size);
-    } else {
-      ASSERT_EQUAL(src_representation, kUntagged);
-      ASSERT_EQUAL(src_cid, kIllegalCid);
-    }
-    if (dest_representation == kTagged) {
-      ASSERT(IsArrayTypeSupported(dest_cid));
-      ASSERT_EQUAL(Instance::ElementSizeFor(dest_cid), element_size);
-    } else {
-      ASSERT_EQUAL(dest_representation, kUntagged);
-      ASSERT_EQUAL(dest_cid, kIllegalCid);
-    }
-    SetInputAt(kSrcPos, src);
-    SetInputAt(kDestPos, dest);
-    SetInputAt(kSrcStartPos, src_start);
-    SetInputAt(kDestStartPos, dest_start);
-    SetInputAt(kLengthPos, length);
-  }
-
-  // Set array_reg to point to the index indicated by start (contained in
+  // Set payload_reg to point to the index indicated by start (contained in
   // start_loc) of the typed data or string in array (contained in array_reg).
   // If array_rep is tagged, then the payload address is retrieved according
   // to array_cid, otherwise the register is assumed to already have the
@@ -3263,6 +3212,7 @@ class MemoryCopyInstr : public TemplateInstruction<5, NoThrow> {
   void EmitComputeStartPointer(FlowGraphCompiler* compiler,
                                classid_t array_cid,
                                Register array_reg,
+                               Register payload_reg,
                                Representation array_rep,
                                Location start_loc);
 
@@ -3299,16 +3249,15 @@ class MemoryCopyInstr : public TemplateInstruction<5, NoThrow> {
                     compiler::Label* copy_forwards = nullptr);
 
   static bool IsArrayTypeSupported(classid_t array_cid) {
-    if (IsTypedDataBaseClassId(array_cid)) {
-      return true;
-    }
-    switch (array_cid) {
-      case kOneByteStringCid:
-      case kTwoByteStringCid:
-        return true;
-      default:
-        return false;
-    }
+    // We don't handle clamping negative values in this instruction, instead
+    // those are handled via a native call.
+    if (IsClampedTypedDataBaseClassId(array_cid)) return false;
+    // We don't support the following cids for the given reasons:
+    // * kStringCid: doesn't give element size information or information
+    //   about how the payload address is calculated.
+    // * kPointerCid: doesn't give element size or signedness information.
+    if (array_cid == kPointerCid || array_cid == kStringCid) return false;
+    return IsTypedDataBaseClassId(array_cid) || IsStringClassId(array_cid);
   }
 
   DISALLOW_COPY_AND_ASSIGN(MemoryCopyInstr);
@@ -5665,32 +5614,25 @@ class CachableIdempotentCallInstr : public TemplateDartCall<0> {
   // (Right now the inputs are eagerly pushed and therefore have to be also
   // poped on the fast path.)
   CachableIdempotentCallInstr(const InstructionSource& source,
+                              Representation representation,
                               const Function& function,
                               intptr_t type_args_len,
                               const Array& argument_names,
                               InputsArray&& arguments,
-                              intptr_t deopt_id)
-      : TemplateDartCall(deopt_id,
-                         type_args_len,
-                         argument_names,
-                         std::move(arguments),
-                         source),
-        function_(function),
-        identity_(AliasIdentity::Unknown()) {
-    DEBUG_ASSERT(function.IsNotTemporaryScopedHandle());
-    ASSERT(AbstractType::Handle(function.result_type()).IsIntType());
-    ASSERT(!function.IsNull());
-#if defined(TARGET_ARCH_IA32)
-    // No pool to cache in on IA32.
-    FATAL("Not supported on IA32.");
-#endif
-  }
+                              intptr_t deopt_id);
 
   DECLARE_INSTRUCTION(CachableIdempotentCall)
 
   const Function& function() const { return function_; }
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
+
+  virtual bool MayCreateUnsafeUntaggedPointer() const {
+    // Either this is a pragma-annotated function, in which case the result
+    // is not an untagged address, or it's a call to the FFI resolver, in
+    // which case the returned value is not GC-movable.
+    return false;
+  }
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
@@ -5717,11 +5659,7 @@ class CachableIdempotentCallInstr : public TemplateDartCall<0> {
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const;
 
-  virtual Representation representation() const {
-    // If other representations are supported in the future, the location
-    // summary needs to be updated as well to stay consistent with static calls.
-    return kUnboxedFfiIntPtr;
-  }
+  virtual Representation representation() const { return representation_; }
 
   virtual AliasIdentity Identity() const { return identity_; }
   virtual void SetIdentity(AliasIdentity identity) { identity_ = identity; }
@@ -5729,6 +5667,7 @@ class CachableIdempotentCallInstr : public TemplateDartCall<0> {
   PRINT_OPERANDS_TO_SUPPORT
 
 #define FIELD_LIST(F)                                                          \
+  F(const Representation, representation_)                                     \
   F(const Function&, function_)                                                \
   F(AliasIdentity, identity_)
 
@@ -6020,12 +5959,20 @@ class FfiCallInstr : public VariadicDefinition {
  public:
   FfiCallInstr(intptr_t deopt_id,
                const compiler::ffi::CallMarshaller& marshaller,
-               bool is_leaf)
-      : VariadicDefinition(marshaller.NumDefinitions() + 1 +
-                               (marshaller.ReturnsCompound() ? 1 : 0),
-                           deopt_id),
+               bool is_leaf,
+               InputsArray&& inputs)
+      : VariadicDefinition(std::move(inputs), deopt_id),
         marshaller_(marshaller),
-        is_leaf_(is_leaf) {}
+        is_leaf_(is_leaf) {
+#if defined(DEBUG)
+    ASSERT_EQUAL(InputCount(), InputCountForMarshaller(marshaller));
+    // No argument to an FfiCall should be an unsafe untagged pointer,
+    // including the target address.
+    for (intptr_t i = 0; i < InputCount(); i++) {
+      ASSERT(!InputAt(i)->definition()->MayCreateUnsafeUntaggedPointer());
+    }
+#endif
+  }
 
   DECLARE_INSTRUCTION(FfiCall)
 
@@ -6041,6 +5988,14 @@ class FfiCallInstr : public VariadicDefinition {
   virtual bool MayThrow() const {
     // By Dart_PropagateError.
     return true;
+  }
+
+  virtual bool MayCreateUnsafeUntaggedPointer() const {
+    // The only case where we have an untagged result is when the return
+    // value is a pointer, which is then stored in a newly allocated FFI
+    // Pointer object by the generated IL, so the C code must return an
+    // external (not GC-movable) address to Dart.
+    return false;
   }
 
   // FfiCallInstr calls C code, which can call back into Dart.
@@ -6064,6 +6019,12 @@ class FfiCallInstr : public VariadicDefinition {
   // there are some bugs where it still switches code protections currently.
   static bool CanExecuteGeneratedCodeInSafepoint() {
     return FLAG_precompiled_mode;
+  }
+
+  static intptr_t InputCountForMarshaller(
+      const compiler::ffi::CallMarshaller& marshaller) {
+    return marshaller.NumDefinitions() + 1 +
+           (marshaller.ReturnsCompound() ? 1 : 0);
   }
 
   PRINT_OPERANDS_TO_SUPPORT
@@ -6100,8 +6061,10 @@ class FfiCallInstr : public VariadicDefinition {
 // Has the target address in a register passed as the last input in IL.
 class CCallInstr : public VariadicDefinition {
  public:
-  CCallInstr(
-      const compiler::ffi::NativeCallingConvention& native_calling_convention,
+  static CCallInstr* Make(
+      Zone* zone,
+      Representation return_representation,
+      const ZoneGrowableArray<Representation>& argument_representations,
       InputsArray&& inputs);
 
   DECLARE_INSTRUCTION(CCall)
@@ -6111,7 +6074,7 @@ class CCallInstr : public VariadicDefinition {
 
   // Input index of the function pointer to invoke.
   intptr_t TargetAddressIndex() const {
-    return native_calling_convention_.argument_locations().length();
+    return argument_representations_.length();
   }
 
   virtual bool MayThrow() const { return false; }
@@ -6122,8 +6085,38 @@ class CCallInstr : public VariadicDefinition {
 
   virtual bool CanCallDart() const { return false; }
 
-  virtual Representation RequiredInputRepresentation(intptr_t idx) const;
-  virtual Representation representation() const;
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    if (idx < argument_representations_.length()) {
+      return argument_representations_.At(idx);
+    }
+    ASSERT_EQUAL(idx, TargetAddressIndex());
+    return kUntagged;
+  }
+
+  virtual bool MayCreateUnsafeUntaggedPointer() const {
+    if (representation() != kUntagged) return false;
+    // Returns true iff any of the inputs to the target may be an unsafe
+    // untagged pointer.
+    //
+    // This assumes that the inputs to the target function are only used during
+    // the dynamic extent of the call and not cached/stored somehow.
+    for (intptr_t i = 0; i < TargetAddressIndex(); i++) {
+      if (InputAt(i)->definition()->MayCreateUnsafeUntaggedPointer()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  virtual Representation representation() const {
+    return return_representation_;
+  }
+
+  virtual CompileType ComputeType() const {
+    return RepresentationUtils::IsUnboxed(representation())
+               ? CompileType::FromUnboxedRepresentation(representation())
+               : CompileType::Object();
+  }
 
   void EmitParamMoves(FlowGraphCompiler* compiler,
                       Register saved_fp,
@@ -6131,15 +6124,20 @@ class CCallInstr : public VariadicDefinition {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F)                                                          \
-  F(const compiler::ffi::NativeCallingConvention&, native_calling_convention_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(CCallInstr,
-                                          VariadicDefinition,
-                                          FIELD_LIST)
-#undef FIELD_LIST
+  DECLARE_CUSTOM_SERIALIZATION(CCallInstr)
 
  private:
+  CCallInstr(
+      Representation return_representation,
+      const ZoneGrowableArray<Representation>& argument_representations,
+      const compiler::ffi::NativeCallingConvention& native_calling_convention,
+      InputsArray&& inputs);
+
+  // Serialized in the custom serializer.
+  const Representation return_representation_;
+  const ZoneGrowableArray<Representation>& argument_representations_;
+  // Not serialized.
+  const compiler::ffi::NativeCallingConvention& native_calling_convention_;
   DISALLOW_COPY_AND_ASSIGN(CCallInstr);
 };
 
@@ -6698,6 +6696,8 @@ class LoadIndexedInstr : public TemplateDefinition<2, NoThrow> {
                    const InstructionSource& source,
                    CompileType* result_type = nullptr);
 
+  enum { kArrayPos = 0, kIndexPos = 1 };
+
   TokenPosition token_pos() const { return token_pos_; }
 
   DECLARE_INSTRUCTION(LoadIndexed)
@@ -6705,35 +6705,29 @@ class LoadIndexedInstr : public TemplateDefinition<2, NoThrow> {
   virtual bool RecomputeType();
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
-    ASSERT(idx == 0 || idx == 1);
     // The array may be tagged or untagged (for external arrays).
-    if (idx == 0) return kNoRepresentation;
-
-    if (index_unboxed_) {
-#if defined(TARGET_ARCH_IS_64_BIT)
-      return kUnboxedInt64;
-#else
-      return kUnboxedUint32;
-#endif
-    } else {
-      return kTagged;  // Index is a smi.
-    }
+    if (idx == kArrayPos) return kNoRepresentation;
+    ASSERT_EQUAL(idx, kIndexPos);
+    return index_unboxed_ ? kUnboxedIntPtr : kTagged;
   }
 
-  bool IsExternal() const {
+  bool IsUntagged() const {
     return array()->definition()->representation() == kUntagged;
   }
 
-  Value* array() const { return inputs_[0]; }
-  Value* index() const { return inputs_[1]; }
+  Value* array() const { return inputs_[kArrayPos]; }
+  Value* index() const { return inputs_[kIndexPos]; }
   intptr_t index_scale() const { return index_scale_; }
   intptr_t class_id() const { return class_id_; }
   bool aligned() const { return alignment_ == kAlignedAccess; }
 
-  virtual intptr_t DeoptimizationTarget() const { return GetDeoptId(); }
-  virtual bool ComputeCanDeoptimize() const {
-    return GetDeoptId() != DeoptId::kNone;
+  virtual intptr_t DeoptimizationTarget() const {
+    // Direct access since this instruction cannot deoptimize, and the deopt-id
+    // was inherited from another instruction that could deoptimize.
+    return GetDeoptId();
   }
+
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   // The representation returned by LoadIndexed for arrays with the given cid.
   // May not match the representation for the element returned by
@@ -6749,6 +6743,8 @@ class LoadIndexedInstr : public TemplateDefinition<2, NoThrow> {
   virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
+
+  PRINT_OPERANDS_TO_SUPPORT
 
 #define FIELD_LIST(F)                                                          \
   F(const bool, index_unboxed_)                                                \
@@ -7039,7 +7035,7 @@ class StoreIndexedInstr : public TemplateInstruction<3, NoThrow> {
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const;
 
-  bool IsExternal() const {
+  bool IsUntagged() const {
     return array()->definition()->representation() == kUntagged;
   }
 
@@ -7053,9 +7049,9 @@ class StoreIndexedInstr : public TemplateInstruction<3, NoThrow> {
 
   virtual bool MayHaveVisibleEffect() const { return true; }
 
-  void PrintOperandsTo(BaseTextBuffer* f) const;
-
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
+
+  PRINT_OPERANDS_TO_SUPPORT
 
 #define FIELD_LIST(F)                                                          \
   F(StoreBarrierType, emit_store_barrier_)                                     \
@@ -7843,15 +7839,20 @@ class AllocateTypedDataInstr : public TemplateArrayAllocation<1> {
   DISALLOW_COPY_AND_ASSIGN(AllocateTypedDataInstr);
 };
 
-// This instruction is used to access fields in non-Dart objects, such as Thread
-// and IsolateGroup.
+// This instruction is used to access untagged fields in untagged pointers to
+// non-Dart objects, such as Thread and IsolateGroup, which do not point to
+// managed memory.
 //
-// Note: The instruction must not be moved without the indexed access or store
-// that depends on it (e.g. out of loops), as the GC may collect or move the
-// object containing that address.
+// To access untagged fields in Dart objects, use LoadField with an
+// appropriately created Slot.
+//
+// To access tagged fields in non-Dart objects, see
+// FlowGraphBuilder::RawLoadField in kernel_to_il.cc.
 class LoadUntaggedInstr : public TemplateDefinition<1, NoThrow> {
  public:
   LoadUntaggedInstr(Value* object, intptr_t offset) : offset_(offset) {
+    ASSERT(object->definition()->representation() == kUntagged);
+    ASSERT(!object->definition()->MayCreateUnsafeUntaggedPointer());
     SetInputAt(0, object);
   }
 
@@ -7866,6 +7867,11 @@ class LoadUntaggedInstr : public TemplateDefinition<1, NoThrow> {
 
   Value* object() const { return inputs_[0]; }
   intptr_t offset() const { return offset_; }
+
+  virtual bool MayCreateUnsafeUntaggedPointer() const {
+    // See the documentation for LoadUntaggedInstr.
+    return false;
+  }
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
@@ -7885,6 +7891,74 @@ class LoadUntaggedInstr : public TemplateDefinition<1, NoThrow> {
 
  private:
   DISALLOW_COPY_AND_ASSIGN(LoadUntaggedInstr);
+};
+
+// This instruction is used to perform untagged address calculations instead of
+// converting GC-movable untagged pointers to unboxed integers in IL. Given an
+// untagged address [base] as well as an [index] and [offset], where [index]
+// is scaled by [index_scale], returns the untagged address
+//
+//   base + (index * index_scale) + offset
+//
+// This allows the flow graph checker to enforce that there are no live untagged
+// addresses of GC-movable objects when GC can happen.
+class CalculateElementAddressInstr : public TemplateDefinition<3, NoThrow> {
+ public:
+  enum { kBasePos, kIndexPos, kOffsetPos };
+  CalculateElementAddressInstr(Value* base,
+                               Value* index,
+                               intptr_t index_scale,
+                               Value* offset)
+      : index_scale_(index_scale) {
+    ASSERT(base->definition()->representation() == kUntagged);
+    ASSERT(Utils::IsPowerOfTwo(index_scale));
+    ASSERT(1 <= index_scale && index_scale <= 16);
+    SetInputAt(kBasePos, base);
+    SetInputAt(kIndexPos, index);
+    SetInputAt(kOffsetPos, offset);
+  }
+
+  DECLARE_INSTRUCTION(CalculateElementAddress)
+
+  virtual Representation representation() const { return kUntagged; }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    if (idx == kBasePos) return kUntagged;
+    ASSERT(idx == kIndexPos || idx == kOffsetPos);
+    return kUnboxedIntPtr;
+  }
+
+  Value* base() const { return inputs_[kBasePos]; }
+  Value* index() const { return inputs_[kIndexPos]; }
+  Value* offset() const { return inputs_[kOffsetPos]; }
+  intptr_t index_scale() const { return index_scale_; }
+
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
+
+  virtual bool MayCreateUnsafeUntaggedPointer() const {
+    return base()->definition()->MayCreateUnsafeUntaggedPointer();
+  }
+
+  virtual bool AllowsCSE() const { return !MayCreateUnsafeUntaggedPointer(); }
+
+  virtual bool ComputeCanDeoptimize() const { return false; }
+
+  virtual bool HasUnknownSideEffects() const { return false; }
+  virtual bool AttributesEqual(const Instruction& other) const {
+    return other.AsCalculateElementAddress()->index_scale_ == index_scale_;
+  }
+
+  PRINT_OPERANDS_TO_SUPPORT
+
+#define FIELD_LIST(F) F(const intptr_t, index_scale_)
+
+  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(CalculateElementAddressInstr,
+                                          TemplateDefinition,
+                                          FIELD_LIST)
+#undef FIELD_LIST
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(CalculateElementAddressInstr);
 };
 
 class LoadClassIdInstr : public TemplateDefinition<1, NoThrow, Pure> {
@@ -8003,7 +8077,11 @@ class LoadFieldInstr : public TemplateLoadField<1> {
 
   virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
+  // Whether the load may return an untagged pointer that points to memory
+  // within the instance.
   bool MayCreateUntaggedAlias() const;
+
+  virtual bool MayCreateUnsafeUntaggedPointer() const;
 
   bool IsImmutableLoad() const {
     // The data() field in PointerBase is marked mutable, but is not actually
@@ -10836,10 +10914,11 @@ class IntConverterInstr : public TemplateDefinition<1, NoThrow, Pure> {
            from == kUnboxedInt32 || from == kUntagged);
     ASSERT(to == kUnboxedInt64 || to == kUnboxedUint32 || to == kUnboxedInt32 ||
            to == kUntagged);
-    ASSERT(from != kUntagged ||
-           (to == kUnboxedIntPtr || to == kUnboxedFfiIntPtr));
-    ASSERT(to != kUntagged ||
-           (from == kUnboxedIntPtr || from == kUnboxedFfiIntPtr));
+    ASSERT(from != kUntagged || to == kUnboxedIntPtr || to == kUnboxedAddress);
+    ASSERT(to != kUntagged || from == kUnboxedIntPtr ||
+           from == kUnboxedAddress);
+    // Don't allow conversions from unsafe untagged addresses.
+    ASSERT(!value->definition()->MayCreateUnsafeUntaggedPointer());
     SetInputAt(0, value);
   }
 
@@ -10872,6 +10951,12 @@ class IntConverterInstr : public TemplateDefinition<1, NoThrow, Pure> {
   virtual intptr_t DeoptimizationTarget() const { return GetDeoptId(); }
 
   virtual void InferRange(RangeAnalysis* analysis, Range* range);
+
+  virtual bool MayCreateUnsafeUntaggedPointer() const {
+    // The compiler no longer converts between unsafe untagged pointers and
+    // unboxed integers.
+    return false;
+  }
 
   DECLARE_INSTRUCTION(IntConverter);
 
@@ -10958,6 +11043,11 @@ class LoadThreadInstr : public TemplateDefinition<0, NoThrow, Pure> {
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     UNREACHABLE();
+  }
+
+  virtual bool MayCreateUnsafeUntaggedPointer() const {
+    // Threads are not GC-movable objects.
+    return false;
   }
 
   // CSE is allowed. The thread should always be the same value.

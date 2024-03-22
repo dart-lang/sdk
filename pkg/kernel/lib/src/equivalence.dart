@@ -3584,7 +3584,7 @@ class EquivalenceStrategy {
     if (other is! TypedefTearOff) return false;
     visitor.pushNodeState(node, other);
     bool result = true;
-    if (!checkTypedefTearOff_typeParameters(visitor, node, other)) {
+    if (!checkTypedefTearOff_structuralParameters(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkTypedefTearOff_expression(visitor, node, other)) {
@@ -7810,10 +7810,10 @@ class EquivalenceStrategy {
     return checkExpression_fileOffset(visitor, node, other);
   }
 
-  bool checkTypedefTearOff_typeParameters(
+  bool checkTypedefTearOff_structuralParameters(
       EquivalenceVisitor visitor, TypedefTearOff node, TypedefTearOff other) {
-    return visitor.checkLists(node.typeParameters, other.typeParameters,
-        visitor.checkNodes, 'typeParameters');
+    return visitor.checkLists(node.structuralParameters,
+        other.structuralParameters, visitor.checkNodes, 'structuralParameters');
   }
 
   bool checkTypedefTearOff_expression(

@@ -165,23 +165,21 @@ static constexpr Representation kUnboxedWord =
     compiler::target::kWordSize == 4 ? kUnboxedInt32 : kUnboxedInt64;
 // The representation for unsigned word-sized unboxed fields.
 //
-// Note: kUnboxedUword is identical to kUnboxedWord until range analysis can
-// handle unsigned 64-bit ranges. This means that range analysis will give
+// Note: 64-bit kUnboxedUword is identical to kUnboxedWord until range analysis
+// can handle unsigned 64-bit ranges. This means that range analysis will give
 // signed results for unboxed uword field values.
-static constexpr Representation kUnboxedUword = kUnboxedWord;
-
-// 'UnboxedFfiIntPtr' should be able to hold a pointer of the target word-size.
-// On a 32-bit platform, it's an unsigned 32-bit int because it should be
-// zero-extended to 64-bits, not sign-extended (pointers are inherently
-// unsigned).
-//
-// Issue(36370): Use [kUnboxedIntPtr] instead.
-static constexpr Representation kUnboxedFfiIntPtr =
+static constexpr Representation kUnboxedUword =
     compiler::target::kWordSize == 4 ? kUnboxedUint32 : kUnboxedInt64;
 
 // The representation which can be used for native pointers. We use signed 32/64
 // bit representation to be able to do arithmetic on pointers.
 static constexpr Representation kUnboxedIntPtr = kUnboxedWord;
+
+// The representation used for pointers being exposed to users as Dart integers,
+// or stored in a way that could be eventually exposed to users. In particular,
+// this ensures that a 32-bit address, when extended to a 64-bit Dart integer,
+// is zero-extended, not sign extended.
+static constexpr Representation kUnboxedAddress = kUnboxedUword;
 
 // Location objects are used to connect register allocator and code generator.
 // Instruction templates used by code generator have a corresponding

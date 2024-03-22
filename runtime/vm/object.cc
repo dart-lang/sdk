@@ -9190,7 +9190,10 @@ InstancePtr Function::GetFfiCallClosurePragmaValue() const {
 
 bool Function::RecognizedKindForceOptimize() const {
   switch (recognized_kind()) {
-    // Uses unboxed/untagged data not supported in unoptimized.
+    // Uses unboxed/untagged data not supported in unoptimized, or uses
+    // LoadIndexed/StoreIndexed/MemoryCopy instructions with typed data
+    // arrays, which requires optimization for payload extraction.
+    case MethodRecognizer::kCopyRangeFromUint8ListToOneByteString:
     case MethodRecognizer::kFinalizerBase_getIsolateFinalizers:
     case MethodRecognizer::kFinalizerBase_setIsolate:
     case MethodRecognizer::kFinalizerBase_setIsolateFinalizers:

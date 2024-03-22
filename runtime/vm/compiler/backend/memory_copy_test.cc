@@ -262,6 +262,8 @@ static void RunMemoryCopyInstrTest(intptr_t src_start,
           kMoveGlob,
           {kMatchAndMoveMemoryCopy, &memory_copy},
       }));
+      EXPECT_EQ(kUntagged, memory_copy->src()->definition()->representation());
+      EXPECT_EQ(kUntagged, memory_copy->dest()->definition()->representation());
       EXPECT(memory_copy->src_start()->BindsToConstant());
       EXPECT(memory_copy->dest_start()->BindsToConstant());
       EXPECT(memory_copy->length()->BindsToConstant());
@@ -388,6 +390,8 @@ static void RunMemoryCopyInstrTest(intptr_t src_start,
           kMoveGlob,
           {kMatchAndMoveMemoryCopy, &memory_copy},
       }));
+      EXPECT_EQ(kUntagged, memory_copy->src()->definition()->representation());
+      EXPECT_EQ(kUntagged, memory_copy->dest()->definition()->representation());
       EXPECT(!memory_copy->src_start()->BindsToConstant());
       EXPECT(!memory_copy->dest_start()->BindsToConstant());
       EXPECT(!memory_copy->length()->BindsToConstant());

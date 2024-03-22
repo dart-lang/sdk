@@ -192,26 +192,21 @@ class UriHelper {
   }
 
   void _simpleStringLiteral(SimpleStringLiteral node) {
-    var parent = node.parent;
-    if (parent is NamespaceDirective && parent.uri == node) {
-      var partialUri = _extractPartialUri(node);
-      if (partialUri != null) {
-        _addDartSuggestions();
-        _addPackageSuggestions(partialUri);
-        _addFileSuggestions(partialUri);
-      }
-    } else if (parent is Configuration && parent.uri == node) {
-      var partialUri = _extractPartialUri(node);
-      if (partialUri != null) {
-        _addDartSuggestions();
-        _addPackageSuggestions(partialUri);
-        _addFileSuggestions(partialUri);
-      }
-    } else if (parent is PartDirective && parent.uri == node) {
-      var partialUri = _extractPartialUri(node);
-      if (partialUri != null) {
-        _addFileSuggestions(partialUri);
-      }
+    switch (node.parent) {
+      case Configuration():
+      case NamespaceDirective():
+        var partialUri = _extractPartialUri(node);
+        if (partialUri != null) {
+          _addDartSuggestions();
+          _addPackageSuggestions(partialUri);
+          _addFileSuggestions(partialUri);
+        }
+      case PartDirective():
+      case PartOfDirective():
+        var partialUri = _extractPartialUri(node);
+        if (partialUri != null) {
+          _addFileSuggestions(partialUri);
+        }
     }
   }
 

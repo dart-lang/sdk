@@ -1383,7 +1383,6 @@
             "--mode=debug",
             "--arch=ia32",
             "--no-clang",
-            "--no-goma",
             "runtime"
           ]
         },
@@ -1394,7 +1393,6 @@
             "--mode=debug",
             "--arch=x64",
             "--no-clang",
-            "--no-goma",
             "runtime",
             "runtime_precompiled"
           ]
@@ -1406,7 +1404,6 @@
             "--mode=debug",
             "--arch=riscv64",
             "--no-clang",
-            "--no-goma",
             "runtime",
             "runtime_precompiled"
           ]
@@ -1418,7 +1415,6 @@
             "--mode=release",
             "--arch=ia32",
             "--no-clang",
-            "--no-goma",
             "runtime"
           ]
         },
@@ -1429,7 +1425,6 @@
             "--mode=release",
             "--arch=x64",
             "--no-clang",
-            "--no-goma",
             "runtime",
             "runtime_precompiled"
           ]
@@ -1441,7 +1436,6 @@
             "--mode=release",
             "--arch=riscv64",
             "--no-clang",
-            "--no-goma",
             "runtime",
             "runtime_precompiled"
           ]
@@ -1463,7 +1457,6 @@
             "--mode=debug",
             "--arch=arm64",
             "--no-clang",
-            "--no-goma",
             "runtime",
             "runtime_precompiled"
           ]
@@ -1475,7 +1468,6 @@
             "--mode=release",
             "--arch=arm64",
             "--no-clang",
-            "--no-goma",
             "runtime",
             "runtime_precompiled"
           ]
@@ -1487,7 +1479,6 @@
             "--mode=product",
             "--arch=arm64",
             "--no-clang",
-            "--no-goma",
             "runtime",
             "runtime_precompiled"
           ]
@@ -1499,7 +1490,6 @@
             "--mode=debug",
             "--arch=x64",
             "--no-clang",
-            "--no-goma",
             "runtime",
             "runtime_precompiled"
           ]
@@ -1511,7 +1501,6 @@
             "--mode=release",
             "--arch=x64",
             "--no-clang",
-            "--no-goma",
             "runtime",
             "runtime_precompiled"
           ]
@@ -1523,7 +1512,6 @@
             "--mode=product",
             "--arch=x64",
             "--no-clang",
-            "--no-goma",
             "runtime",
             "runtime_precompiled"
           ]
@@ -1611,7 +1599,6 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "--no-goma",
             "runtime"
           ]
         },
@@ -1637,7 +1624,6 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "--no-goma",
             "dart_precompiled_runtime",
             "gen_snapshot",
             "runtime"
@@ -1667,7 +1653,6 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "--no-goma",
             "--no-clang",
             "runtime"
           ]
@@ -1702,7 +1687,6 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "--no-goma",
             "--no-clang",
             "dart_precompiled_runtime",
             "gen_snapshot",

@@ -69,6 +69,24 @@ suggestions
   part '';
     kind: keyword
     selection: 6
+  part of '';
+    kind: keyword
+    selection: 9
+''');
+  }
+
+  Future<void> test_definingUnit_part_hasImport() async {
+    await computeSuggestions('''
+import 'dart:math';
+par^
+''');
+    assertResponse(r'''
+replacement
+  left: 3
+suggestions
+  part '';
+    kind: keyword
+    selection: 6
 ''');
   }
 }

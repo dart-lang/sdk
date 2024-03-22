@@ -5,6 +5,7 @@
 #include "vm/compiler/backend/locations.h"
 #include <limits>
 
+#include "vm/class_id.h"
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/backend/il_printer.h"
 #include "vm/log.h"
@@ -83,10 +84,11 @@ Representation RepresentationUtils::RepresentationOfArrayElement(
           kTypedDataCidRemainderInternal;
   }
   switch (cid) {
-    case kImmutableArrayCid:
+#define ARRAY_CASE(Name) case k##Name##Cid:
+    CLASS_LIST_ARRAYS(ARRAY_CASE)
+#undef ARRAY_CASE
     case kRecordCid:
     case kTypeArgumentsCid:
-    case kArrayCid:
       return kTagged;
     case kTypedDataInt8ArrayCid:
       return kUnboxedInt8;

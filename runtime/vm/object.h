@@ -11797,7 +11797,7 @@ class TypedDataView : public TypedDataBase {
   virtual uint8_t* Validate(uint8_t* data) const { return data; }
 
  private:
-  void RecomputeDataField() { ptr()->untag()->RecomputeDataField(); }
+  void RecomputeDataField() const { ptr()->untag()->RecomputeDataField(); }
 
   void Clear() {
     untag()->set_length(Smi::New(0));
@@ -11808,6 +11808,7 @@ class TypedDataView : public TypedDataBase {
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(TypedDataView, TypedDataBase);
   friend class Class;
+  friend class DeferredObject;
   friend class Object;
   friend class TypedDataViewDeserializationCluster;
 };

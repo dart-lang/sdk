@@ -2656,7 +2656,7 @@ Instruction* CheckStackOverflowInstr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 bool LoadFieldInstr::IsFixedLengthArrayCid(intptr_t cid) {
-  if (IsTypedDataClassId(cid) || IsExternalTypedDataClassId(cid)) {
+  if (IsTypedDataBaseClassId(cid)) {
     return true;
   }
 
@@ -2823,19 +2823,30 @@ bool LoadFieldInstr::TryEvaluateLoad(const Object& instance,
 }
 
 bool LoadFieldInstr::MayCreateUntaggedAlias() const {
-  // If the load is guaranteed to never retrieve a GC-moveable address,
-  // then the returned address can't alias the (GC-moveable) instance.
-  if (loads_inner_pointer() != InnerPointerAccess::kMayBeInnerPointer) {
+  if (!MayCreateUnsafeUntaggedPointer()) {
+    // If the load is guaranteed to never retrieve a GC-moveable address,
+    // then the returned address can't alias the (GC-moveable) instance.
     return false;
   }
   if (slot().IsIdentical(Slot::PointerBase_data())) {
-    // If we know statically that the instance is a Pointer, typed data view,
-    // or external typed data, then the data field doesn't alias the instance.
+    // If we know statically that the instance is a typed data view, then the
+    // data field doesn't alias the instance (but some other typed data object).
     const intptr_t cid = instance()->Type()->ToNullableCid();
-    if (cid == kPointerCid) return false;
-    if (IsTypedDataViewClassId(cid)) return false;
     if (IsUnmodifiableTypedDataViewClassId(cid)) return false;
-    if (IsExternalTypedDataClassId(cid)) return false;
+    if (IsTypedDataViewClassId(cid)) return false;
+  }
+  return true;
+}
+
+bool LoadFieldInstr::MayCreateUnsafeUntaggedPointer() const {
+  if (loads_inner_pointer() != InnerPointerAccess::kMayBeInnerPointer) {
+    // The load is guaranteed to never retrieve a GC-moveable address.
+    return false;
+  }
+  if (slot().IsIdentical(Slot::PointerBase_data())) {
+    // If we know statically that the instance is an external array, then
+    // the load retrieves a pointer to external memory.
+    return !IsExternalPayloadClassId(instance()->Type()->ToNullableCid());
   }
   return true;
 }
@@ -3434,7 +3445,7 @@ Definition* IntConverterInstr::Canonicalize(FlowGraph* flow_graph) {
     auto src_defn = first_converter->value()->definition();
     if (intermediate_rep == kUntagged) {
       // Both conversions are no-ops, as the other representations must be
-      // either kUnboxedIntPtr or kUnboxedFfiIntPtr.
+      // kUnboxedIntPtr.
     } else if (!Range::Fits(src_defn->range(), intermediate_rep)) {
       return this;
     }
@@ -3741,6 +3752,31 @@ Definition* EqualityCompareInstr::Canonicalize(FlowGraph* flow_graph) {
           /*needs_number_check=*/false, DeoptId::kNone);
       flow_graph->InsertBefore(this, replacement, env(), FlowGraph::kValue);
       return replacement;
+    }
+  }
+  return this;
+}
+
+Definition* CalculateElementAddressInstr::Canonicalize(FlowGraph* flow_graph) {
+  if (index()->BindsToSmiConstant() && offset()->BindsToSmiConstant()) {
+    const intptr_t offset_in_bytes = Utils::AddWithWrapAround(
+        Utils::MulWithWrapAround<intptr_t>(index()->BoundSmiConstant(),
+                                           index_scale()),
+        offset()->BoundSmiConstant());
+
+    if (offset_in_bytes == 0) return base()->definition();
+
+    if (compiler::target::IsSmi(offset_in_bytes)) {
+      auto* const Z = flow_graph->zone();
+      auto* const new_adjust = new (Z) CalculateElementAddressInstr(
+          base()->CopyWithType(Z),
+          new (Z) Value(
+              flow_graph->GetConstant(Object::smi_zero(), kUnboxedIntPtr)),
+          /*index_scale=*/1,
+          new (Z) Value(flow_graph->GetConstant(
+              Smi::Handle(Smi::New(offset_in_bytes)), kUnboxedIntPtr)));
+      flow_graph->InsertBefore(this, new_adjust, env(), FlowGraph::kValue);
+      return new_adjust;
     }
   }
   return this;
@@ -4567,12 +4603,8 @@ LocationSummary* LoadUntaggedInstr::MakeLocationSummary(Zone* zone,
 void LoadUntaggedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register obj = locs()->in(0).reg();
   Register result = locs()->out(0).reg();
-  if (object()->definition()->representation() == kUntagged) {
-    __ LoadFromOffset(result, obj, offset());
-  } else {
-    ASSERT(object()->definition()->representation() == kTagged);
-    __ LoadFieldFromOffset(result, obj, offset());
-  }
+  ASSERT(object()->definition()->representation() == kUntagged);
+  __ LoadFromOffset(result, obj, offset());
 }
 
 LocationSummary* LoadFieldInstr::MakeLocationSummary(Zone* zone,
@@ -5886,6 +5918,36 @@ void StaticCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
+CachableIdempotentCallInstr::CachableIdempotentCallInstr(
+    const InstructionSource& source,
+    Representation representation,
+    const Function& function,
+    intptr_t type_args_len,
+    const Array& argument_names,
+    InputsArray&& arguments,
+    intptr_t deopt_id)
+    : TemplateDartCall(deopt_id,
+                       type_args_len,
+                       argument_names,
+                       std::move(arguments),
+                       source),
+      representation_(representation),
+      function_(function),
+      identity_(AliasIdentity::Unknown()) {
+  DEBUG_ASSERT(function.IsNotTemporaryScopedHandle());
+  // We use kUntagged for the internal use in FfiNativeLookupAddress
+  // and kUnboxedAddress for pragma-annotated functions.
+  ASSERT(representation == kUnboxedAddress ||
+         function.ptr() ==
+             IsolateGroup::Current()->object_store()->ffi_resolver_function());
+  ASSERT(AbstractType::Handle(function.result_type()).IsIntType());
+  ASSERT(!function.IsNull());
+#if defined(TARGET_ARCH_IA32)
+  // No pool to cache in on IA32.
+  FATAL("Not supported on IA32.");
+#endif
+}
+
 Representation CachableIdempotentCallInstr::RequiredInputRepresentation(
     intptr_t idx) const {
   // The first input is the array of types for generic functions.
@@ -6715,9 +6777,7 @@ Definition* CheckBoundBaseInstr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 intptr_t CheckArrayBoundInstr::LengthOffsetFor(intptr_t class_id) {
-  if (IsTypedDataClassId(class_id) || IsTypedDataViewClassId(class_id) ||
-      IsUnmodifiableTypedDataViewClassId(class_id) ||
-      IsExternalTypedDataClassId(class_id)) {
+  if (IsTypedDataBaseClassId(class_id)) {
     return compiler::target::TypedDataBase::length_offset();
   }
 
@@ -6747,24 +6807,20 @@ Definition* CheckWritableInstr::Canonicalize(FlowGraph* flow_graph) {
 
 static AlignmentType StrengthenAlignment(intptr_t cid,
                                          AlignmentType alignment) {
-  switch (cid) {
-    case kTypedDataInt8ArrayCid:
-    case kTypedDataUint8ArrayCid:
-    case kTypedDataUint8ClampedArrayCid:
-    case kExternalTypedDataUint8ArrayCid:
-    case kExternalTypedDataUint8ClampedArrayCid:
-    case kOneByteStringCid:
+  switch (RepresentationUtils::RepresentationOfArrayElement(cid)) {
+    case kUnboxedInt8:
+    case kUnboxedUint8:
       // Don't need to worry about alignment for accessing bytes.
       return kAlignedAccess;
-    case kTypedDataFloat64x2ArrayCid:
-    case kTypedDataInt32x4ArrayCid:
-    case kTypedDataFloat32x4ArrayCid:
+    case kUnboxedFloat32x4:
+    case kUnboxedInt32x4:
+    case kUnboxedFloat64x2:
       // TODO(rmacnak): Investigate alignment requirements of floating point
       // loads.
       return kAlignedAccess;
+    default:
+      return alignment;
   }
-
-  return alignment;
 }
 
 LoadIndexedInstr::LoadIndexedInstr(Value* array,
@@ -6783,25 +6839,22 @@ LoadIndexedInstr::LoadIndexedInstr(Value* array,
       alignment_(StrengthenAlignment(class_id, alignment)),
       token_pos_(source.token_pos),
       result_type_(result_type) {
-  SetInputAt(0, array);
-  SetInputAt(1, index);
+  // In particular, notice that kPointerCid is _not_ supported because it gives
+  // no information about whether the elements are signed for elements with
+  // unboxed integer representations.  The constructor must take that
+  // information separately to allow kPointerCid.
+  ASSERT(class_id != kPointerCid);
+  SetInputAt(kArrayPos, array);
+  SetInputAt(kIndexPos, index);
 }
 
 Definition* LoadIndexedInstr::Canonicalize(FlowGraph* flow_graph) {
-  auto Z = flow_graph->zone();
-  if (auto* const untag_payload = array()->definition()->AsLoadField()) {
-    // If loading from an internal typed data object, remove the load of
-    // PointerBase.data, as LoadIndexed knows how to load from a tagged
-    // internal typed data object directly and the LoadField may interfere with
-    // possible allocation sinking.
-    if (untag_payload->slot().IsIdentical(Slot::PointerBase_data()) &&
-        IsTypedDataClassId(untag_payload->instance()->Type()->ToCid())) {
-      array()->BindTo(untag_payload->instance()->definition());
-    }
-  }
+  flow_graph->ExtractExternalUntaggedPayload(this, array(), class_id());
+
   if (auto box = index()->definition()->AsBoxInt64()) {
     // TODO(dartbug.com/39432): Make LoadIndexed fully suport unboxed indices.
     if (!box->ComputeCanDeoptimize() && compiler::target::kWordSize == 8) {
+      auto Z = flow_graph->zone();
       auto load = new (Z) LoadIndexedInstr(
           array()->CopyWithType(Z), box->value()->CopyWithType(Z),
           /*index_unboxed=*/true, index_scale(), class_id(), alignment_,
@@ -6837,26 +6890,23 @@ StoreIndexedInstr::StoreIndexedInstr(Value* array,
       alignment_(StrengthenAlignment(class_id, alignment)),
       token_pos_(source.token_pos),
       speculative_mode_(speculative_mode) {
+  // In particular, notice that kPointerCid is _not_ supported because it gives
+  // no information about whether the elements are signed for elements with
+  // unboxed integer representations. The constructor must take that information
+  // separately to allow kPointerCid.
+  ASSERT(class_id != kPointerCid);
   SetInputAt(kArrayPos, array);
   SetInputAt(kIndexPos, index);
   SetInputAt(kValuePos, value);
 }
 
 Instruction* StoreIndexedInstr::Canonicalize(FlowGraph* flow_graph) {
-  auto Z = flow_graph->zone();
-  if (auto* const untag_payload = array()->definition()->AsLoadField()) {
-    // If loading from an internal typed data object, remove the load of
-    // PointerBase.data, as LoadIndexed knows how to load from a tagged
-    // internal typed data object directly and the LoadField may interfere with
-    // possible allocation sinking.
-    if (untag_payload->slot().IsIdentical(Slot::PointerBase_data()) &&
-        IsTypedDataClassId(untag_payload->instance()->Type()->ToCid())) {
-      array()->BindTo(untag_payload->instance()->definition());
-    }
-  }
+  flow_graph->ExtractExternalUntaggedPayload(this, array(), class_id());
+
   if (auto box = index()->definition()->AsBoxInt64()) {
     // TODO(dartbug.com/39432): Make StoreIndexed fully suport unboxed indices.
     if (!box->ComputeCanDeoptimize() && compiler::target::kWordSize == 8) {
+      auto Z = flow_graph->zone();
       auto store = new (Z) StoreIndexedInstr(
           array()->CopyWithType(Z), box->value()->CopyWithType(Z),
           value()->CopyWithType(Z), emit_store_barrier_,
@@ -6904,6 +6954,9 @@ static const intptr_t kMaxElementSizeForEfficientCopy =
 #endif
 
 Instruction* MemoryCopyInstr::Canonicalize(FlowGraph* flow_graph) {
+  flow_graph->ExtractExternalUntaggedPayload(this, src(), src_cid_);
+  flow_graph->ExtractExternalUntaggedPayload(this, dest(), dest_cid_);
+
   if (!length()->BindsToSmiConstant()) {
     return this;
   } else if (length()->BoundSmiConstant() == 0) {
@@ -6933,16 +6986,16 @@ Instruction* MemoryCopyInstr::Canonicalize(FlowGraph* flow_graph) {
     return this;
   }
 
-  Zone* const zone = flow_graph->zone();
   // The new element size is larger than the original one, so it must be > 1.
   // That means unboxed integers will always require a shift, but Smis
   // may not if element_size == 2, so always use Smis.
-  auto* const length_instr = flow_graph->GetConstant(
-      Integer::ZoneHandle(zone, Integer::New(new_length, Heap::kOld)));
-  auto* const src_start_instr = flow_graph->GetConstant(
-      Integer::ZoneHandle(zone, Integer::New(new_src_start, Heap::kOld)));
-  auto* const dest_start_instr = flow_graph->GetConstant(
-      Integer::ZoneHandle(zone, Integer::New(new_dest_start, Heap::kOld)));
+  auto* const Z = flow_graph->zone();
+  auto* const length_instr =
+      flow_graph->GetConstant(Smi::ZoneHandle(Z, Smi::New(new_length)));
+  auto* const src_start_instr =
+      flow_graph->GetConstant(Smi::ZoneHandle(Z, Smi::New(new_src_start)));
+  auto* const dest_start_instr =
+      flow_graph->GetConstant(Smi::ZoneHandle(Z, Smi::New(new_dest_start)));
   length()->BindTo(length_instr);
   src_start()->BindTo(src_start_instr);
   dest_start()->BindTo(dest_start_instr);
@@ -6952,12 +7005,6 @@ Instruction* MemoryCopyInstr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 void MemoryCopyInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Register src_reg = locs()->in(kSrcPos).reg();
-  const Register dest_reg = locs()->in(kDestPos).reg();
-  const Representation src_rep = RequiredInputRepresentation(kSrcPos);
-  const Representation dest_rep = RequiredInputRepresentation(kDestPos);
-  const Location& src_start_loc = locs()->in(kSrcStartPos);
-  const Location& dest_start_loc = locs()->in(kDestStartPos);
   const Location& length_loc = locs()->in(kLengthPos);
   // Note that for all architectures, constant_length is only true if
   // length() binds to a _small_ constant, so we can end up generating a loop
@@ -6971,9 +7018,29 @@ void MemoryCopyInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // The zero constant case should be handled via canonicalization.
   ASSERT(!constant_length || num_elements > 0);
 
-  EmitComputeStartPointer(compiler, src_cid_, src_reg, src_rep, src_start_loc);
-  EmitComputeStartPointer(compiler, dest_cid_, dest_reg, dest_rep,
-                          dest_start_loc);
+#if defined(TARGET_ARCH_IA32)
+  // We don't have enough registers to create temps for these, so we just
+  // define them to be the same as src_reg and dest_reg below.
+  const Register src_payload_reg = locs()->in(kSrcPos).reg();
+  const Register dest_payload_reg = locs()->in(kDestPos).reg();
+#else
+  const Register src_payload_reg = locs()->temp(0).reg();
+  const Register dest_payload_reg = locs()->temp(1).reg();
+#endif
+
+  {
+    const Register src_reg = locs()->in(kSrcPos).reg();
+    const Register dest_reg = locs()->in(kDestPos).reg();
+    const Representation src_rep = src()->definition()->representation();
+    const Representation dest_rep = dest()->definition()->representation();
+    const Location& src_start_loc = locs()->in(kSrcStartPos);
+    const Location& dest_start_loc = locs()->in(kDestStartPos);
+
+    EmitComputeStartPointer(compiler, src_cid_, src_reg, src_payload_reg,
+                            src_rep, src_start_loc);
+    EmitComputeStartPointer(compiler, dest_cid_, dest_reg, dest_payload_reg,
+                            dest_rep, dest_start_loc);
+  }
 
   compiler::Label copy_forwards, done;
   if (!constant_length) {
@@ -6985,7 +7052,7 @@ void MemoryCopyInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
   // Omit the reversed loop for possible overlap if copying a single element.
   if (can_overlap() && num_elements != 1) {
-    __ CompareRegisters(dest_reg, src_reg);
+    __ CompareRegisters(dest_payload_reg, src_payload_reg);
     // Both regions are the same size, so if there is an overlap, then either:
     //
     // * The destination region comes before the source, so copying from
@@ -7007,21 +7074,22 @@ void MemoryCopyInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ BranchIf(UNSIGNED_LESS_EQUAL, &copy_forwards, jump_distance);
     __ Comment("Copying backwards");
     if (constant_length) {
-      EmitUnrolledCopy(compiler, dest_reg, src_reg, num_elements,
-                       /*reversed=*/true);
+      EmitUnrolledCopy(compiler, dest_payload_reg, src_payload_reg,
+                       num_elements, /*reversed=*/true);
     } else {
-      EmitLoopCopy(compiler, dest_reg, src_reg, length_reg, &done,
-                   &copy_forwards);
+      EmitLoopCopy(compiler, dest_payload_reg, src_payload_reg, length_reg,
+                   &done, &copy_forwards);
     }
     __ Jump(&done, jump_distance);
     __ Comment("Copying forwards");
   }
   __ Bind(&copy_forwards);
   if (constant_length) {
-    EmitUnrolledCopy(compiler, dest_reg, src_reg, num_elements,
+    EmitUnrolledCopy(compiler, dest_payload_reg, src_payload_reg, num_elements,
                      /*reversed=*/false);
   } else {
-    EmitLoopCopy(compiler, dest_reg, src_reg, length_reg, &done);
+    EmitLoopCopy(compiler, dest_payload_reg, src_payload_reg, length_reg,
+                 &done);
   }
   __ Bind(&done);
 #if defined(TARGET_ARCH_IA32)
@@ -7277,14 +7345,20 @@ void BitCastInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 Representation FfiCallInstr::RequiredInputRepresentation(intptr_t idx) const {
   if (idx < TargetAddressIndex()) {
-    // All input handles are passed as Tagged values on the stack to
-    // FfiCallInstr, which passes "handles", i.e. pointers, to these.
+    // All input handles are passed as tagged values to FfiCallInstr and
+    // are given stack locations. FfiCallInstr then passes an untagged pointer
+    // to the handle on the stack (Dart_Handle) to the C function.
     if (marshaller_.IsHandle(marshaller_.ArgumentIndex(idx))) {
       return kTagged;
     }
     return marshaller_.RepInFfiCall(idx);
   } else if (idx == TargetAddressIndex()) {
-    return kUnboxedFfiIntPtr;
+#if defined(DEBUG)
+    auto const rep =
+        InputAt(TargetAddressIndex())->definition()->representation();
+    ASSERT(rep == kUntagged || rep == kUnboxedAddress);
+#endif
+    return kNoRepresentation;  // Allows kUntagged or kUnboxedAddress.
   } else {
     ASSERT(idx == CompoundReturnTypedDataIndex());
     return kTagged;
@@ -7332,12 +7406,8 @@ LocationSummary* FfiCallInstr::MakeLocationSummaryInternal(
 
   if (marshaller_.ReturnsCompound()) {
     summary->set_in(CompoundReturnTypedDataIndex(), Location::Any());
-    // We don't care about return location, but we need to pass a register.
-    summary->set_out(
-        0, Location::RegisterLocation(CallingConventions::kReturnReg));
-  } else {
-    summary->set_out(0, marshaller_.LocInFfiCall(compiler::ffi::kResultIndex));
   }
+  summary->set_out(0, marshaller_.LocInFfiCall(compiler::ffi::kResultIndex));
 
   return summary;
 }
@@ -7387,10 +7457,7 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
     for (intptr_t i = 0; i < num_defs; i++) {
       __ Comment("  def_index %" Pd, def_index);
       const Location origin = rebase.Rebase(locs()->in(def_index));
-      const Representation origin_rep =
-          RequiredInputRepresentation(def_index) == kTagged
-              ? kUnboxedFfiIntPtr  // When arg_target.IsPointerToMemory().
-              : RequiredInputRepresentation(def_index);
+      const Representation origin_rep = RequiredInputRepresentation(def_index);
 
       // Find the native location where this individual definition should be
       // moved to.
@@ -7412,11 +7479,13 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
                   origin.AsPairLocation()->At(1).IsConstant())) {
         // Note: half of the pair can be constant.
         __ Comment("origin.IsPairLocation() and constant");
+        ASSERT(!marshaller_.IsHandle(arg_index));
         compiler->EmitMoveConst(def_target, origin, origin_rep, &temp_alloc);
       } else if (marshaller_.IsHandle(arg_index)) {
         __ Comment("marshaller_.IsHandle(arg_index)");
         // Handles are passed into FfiCalls as Tagged values on the stack, and
         // then we pass pointers to these handles to the native function here.
+        ASSERT(origin_rep == kTagged);
         ASSERT(compiler::target::LocalHandle::ptr_offset() == 0);
         ASSERT(compiler::target::LocalHandle::InstanceSize() ==
                compiler::target::kWordSize);
@@ -7466,7 +7535,7 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
       const auto& pointer_loc =
           arg_target.AsPointerToMemory().pointer_location();
 
-      // TypedData/Pointer data pointed to in temp.
+      // TypedData data pointed to in temp.
       const auto& dst = compiler::ffi::NativeRegistersLocation(
           compiler->zone(), pointer_loc.payload_type(),
           pointer_loc.container_type(), temp0);
@@ -7514,10 +7583,8 @@ void FfiCallInstr::EmitReturnMoves(FlowGraphCompiler* compiler,
     const Location dst_loc = locs()->out(0);
     const Representation dst_type = representation();
     compiler->EmitMoveFromNative(dst_loc, dst_type, src, &no_temp);
-  } else if (returnLocation.IsPointerToMemory() ||
-             returnLocation.IsMultiple()) {
+  } else if (marshaller_.ReturnsCompound()) {
     ASSERT(returnLocation.payload_type().IsCompound());
-    ASSERT(marshaller_.ReturnsCompound());
 
     // Get the typed data pointer which we have pinned to a stack slot.
     const Location typed_data_loc = locs()->in(CompoundReturnTypedDataIndex());
@@ -7545,11 +7612,8 @@ void FfiCallInstr::EmitReturnMoves(FlowGraphCompiler* compiler,
       // TypedData in IL.
       const intptr_t sp_offset =
           marshaller_.PassByPointerStackOffset(compiler::ffi::kResultIndex);
-      for (intptr_t i = 0; i < marshaller_.CompoundReturnSizeInBytes();
-           i += compiler::target::kWordSize) {
-        __ LoadMemoryValue(temp1, SPREG, i + sp_offset);
-        __ StoreMemoryValue(temp1, temp0, i);
-      }
+      __ UnrolledMemCopy(temp0, 0, SPREG, sp_offset,
+                         marshaller_.CompoundReturnSizeInBytes(), temp1);
     } else {
       ASSERT(returnLocation.IsMultiple());
       // Copy to the struct from the native locations.
@@ -7894,6 +7958,11 @@ Representation FfiCallInstr::representation() const {
     // Don't care, we're discarding the value.
     return kTagged;
   }
+  if (marshaller_.IsHandle(compiler::ffi::kResultIndex)) {
+    // The call returns a Dart_Handle, from which we need to extract the
+    // tagged pointer using RawLoadField.
+    return kUntagged;
+  }
   return marshaller_.RepInFfiCall(compiler::ffi::kResultIndex);
 }
 
@@ -7946,26 +8015,37 @@ LocationSummary* CCallInstr::MakeLocationSummaryInternal(
 }
 
 CCallInstr::CCallInstr(
+    Representation return_representation,
+    const ZoneGrowableArray<Representation>& argument_representations,
     const compiler::ffi::NativeCallingConvention& native_calling_convention,
     InputsArray&& inputs)
     : VariadicDefinition(std::move(inputs), DeoptId::kNone),
+      return_representation_(return_representation),
+      argument_representations_(argument_representations),
       native_calling_convention_(native_calling_convention) {
-#ifdef DEBUG
-  const intptr_t num_inputs =
-      native_calling_convention.argument_locations().length() + 1;
-  ASSERT(num_inputs == InputCount());
+#if defined(DEBUG)
+  const intptr_t num_inputs = argument_representations.length() + 1;
+  ASSERT_EQUAL(InputCount(), num_inputs);
+  // The target address should never be an unsafe untagged pointer.
+  ASSERT(!InputAt(TargetAddressIndex())
+              ->definition()
+              ->MayCreateUnsafeUntaggedPointer());
 #endif
 }
 
-Representation CCallInstr::RequiredInputRepresentation(intptr_t idx) const {
-  if (idx < native_calling_convention_.argument_locations().length()) {
-    const auto& argument_type =
-        native_calling_convention_.argument_locations().At(idx)->payload_type();
-    ASSERT(argument_type.IsExpressibleAsRepresentation());
-    return argument_type.AsRepresentation();
-  }
-  ASSERT(idx == TargetAddressIndex());
-  return kUnboxedFfiIntPtr;
+CCallInstr* CCallInstr::Make(
+    Zone* zone,
+    Representation return_representation,
+    const ZoneGrowableArray<Representation>& argument_representations,
+    InputsArray&& inputs) {
+  const auto& native_function_type =
+      *compiler::ffi::NativeFunctionType::FromRepresentations(
+          zone, return_representation, argument_representations);
+  const auto& native_calling_convention =
+      compiler::ffi::NativeCallingConvention::FromSignature(
+          zone, native_function_type);
+  return new (zone) CCallInstr(return_representation, argument_representations,
+                               native_calling_convention, std::move(inputs));
 }
 
 void CCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
@@ -8007,13 +8087,6 @@ void CCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
     }
   }
   __ Comment("EmitParamMovesEnd");
-}
-
-Representation CCallInstr::representation() const {
-  const auto& return_type =
-      native_calling_convention_.return_location().payload_type();
-  ASSERT(return_type.IsExpressibleAsRepresentation());
-  return return_type.AsRepresentation();
 }
 
 // SIMD

@@ -6132,7 +6132,6 @@ Fragment StreamingFlowGraphBuilder::BuildFfiCall() {
   // This can only be Pointer, so the data field points to unmanaged memory.
   code += LoadNativeField(Slot::PointerBase_data(),
                           InnerPointerAccess::kCannotBeInnerPointer);
-  code += B->ConvertUntaggedToUnboxed(kUnboxedFfiIntPtr);
 
   // Skip (empty) named arguments list.
   const intptr_t named_args_len = ReadListLength();
@@ -6214,9 +6213,8 @@ Fragment StreamingFlowGraphBuilder::BuildCachableIdempotentCall(
   code += BuildArgumentsCachableIdempotentCall(&argument_count);
 
   code += flow_graph_builder_->CachableIdempotentCall(
-      position, target, argument_count, argument_names,
+      position, kUnboxedAddress, target, argument_count, argument_names,
       /*type_args_len=*/0);
-  code += flow_graph_builder_->Box(kUnboxedFfiIntPtr);
 
   return code;
 }
@@ -6328,7 +6326,6 @@ Fragment StreamingFlowGraphBuilder::BuildFfiNativeAddressOf() {
   // unoptimized mode because then there is no reordering and we're consuming
   // the value directly.
   code += flow_graph_builder_->FfiNativeLookupAddress(native_annotation);
-  code += flow_graph_builder_->ConvertUnboxedToUntagged(kUnboxedFfiIntPtr);
   code += flow_graph_builder_->StoreNativeField(
       Slot::PointerBase_data(), InnerPointerAccess::kCannotBeInnerPointer,
       StoreFieldInstr::Kind::kInitializing);

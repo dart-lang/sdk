@@ -329,6 +329,8 @@ FlowGraph* CompilerPass::RunForceOptimizedPipeline(
   INVOKE_PASS(Canonicalize);
   INVOKE_PASS_AOT(DelayAllocations);
   INVOKE_PASS(EliminateWriteBarriers);
+  // This must be done after all other possible intra-block code motion.
+  INVOKE_PASS(LoweringAfterCodeMotionDisabled);
   INVOKE_PASS(FinalizeGraph);
   INVOKE_PASS(ReorderBlocks);
   INVOKE_PASS(AllocateRegisters);
@@ -397,6 +399,8 @@ FlowGraph* CompilerPass::RunPipeline(PipelineMode mode,
   INVOKE_PASS(Canonicalize);
   INVOKE_PASS(AllocationSinking_DetachMaterializations);
   INVOKE_PASS(EliminateWriteBarriers);
+  // This must be done after all other possible intra-block code motion.
+  INVOKE_PASS(LoweringAfterCodeMotionDisabled);
   INVOKE_PASS(FinalizeGraph);
   INVOKE_PASS(Canonicalize);
   INVOKE_PASS(ReorderBlocks);
@@ -609,6 +613,9 @@ COMPILER_PASS(TestILSerialization, {
     state->set_flow_graph(deserializer.ReadFlowGraph());
   }
 });
+
+COMPILER_PASS(LoweringAfterCodeMotionDisabled,
+              { flow_graph->ExtractNonInternalTypedDataPayloads(); });
 
 COMPILER_PASS(GenerateCode, { state->graph_compiler->CompileGraph(); });
 

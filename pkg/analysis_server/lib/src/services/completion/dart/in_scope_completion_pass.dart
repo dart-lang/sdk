@@ -419,6 +419,22 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitAssertStatement(AssertStatement node) {
+    // `assert(^)`
+    // `assert(^, '')`
+    // `assert(x, ^)`
+    if (!node.leftParenthesis.isSynthetic &&
+        node.leftParenthesis.end <= offset) {
+      var comma = node.comma;
+      if (comma == null || offset <= comma.offset) {
+        collector.completionLocation = 'AssertStatement_condition';
+        _forExpression(node.condition);
+      } else {
+        collector.completionLocation = 'AssertStatement_message';
+        _forExpression(node.condition);
+      }
+      return;
+    }
+
     if (offset <= node.assertKeyword.end) {
       collector.completionLocation = 'Block_statement';
       _forStatement(node);
@@ -811,6 +827,12 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     }
     if (node.keyword != null) {
       var type = node.type;
+      if (type == null && offset < name.offset) {
+        declarationHelper(
+          mustBeType: true,
+        ).addLexicalDeclarations(node);
+        return;
+      }
       if (!type.isSingleIdentifier && name.coversOffset(offset)) {
         // Don't suggest a name for the variable.
         return;
@@ -2209,6 +2231,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         case Configuration():
         case NamespaceDirective():
         case PartDirective():
+        case PartOfDirective():
           UriHelper(state.request, collector).addSuggestions(node);
           return;
       }
@@ -3003,12 +3026,60 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   /// Adds the suggestions that are appropriate when the selection is at the
   /// beginning of a pattern.
   void _forPattern(AstNode node, {bool mustBeConst = true}) {
-    // Object pattern `Name^()`
-    if (state.selection.coveringNode case NamedType type) {
-      if (type.parent case ObjectPattern()) {
-        collector.completionLocation = 'ObjectPattern_type';
-        type.accept(this);
-        return;
+    var coveringNode = state.selection.coveringNode;
+
+    // `if (x case ^ y)`
+    // The user want a type for incomplete DeclaredVariablePattern.
+    if (node case CaseClause caseClause) {
+      var pattern = caseClause.guardedPattern.pattern;
+      if (pattern is ConstantPattern) {
+        if (pattern.expression case SimpleIdentifier identifier) {
+          if (!identifier.isSynthetic && offset < identifier.offset) {
+            state.request.opType.includeConstructorSuggestions = false;
+            state.request.opType.mustBeConst = true;
+            declarationHelper(
+              mustBeType: true,
+            ).addLexicalDeclarations(node);
+            return;
+          }
+        }
+      }
+    }
+
+    // `if (x case Name^) {}`
+    // Might be a start of a DeclaredVariablePattern.
+    // Might be a start of a ObjectPattern.
+    // Might be a ConstantPattern.
+    if (coveringNode case SimpleIdentifier identifier) {
+      if (!identifier.isSynthetic) {
+        if (identifier.parent is ConstantPattern) {
+          keywordHelper.addPatternKeywords();
+          // TODO(scheglov): Actually we need constructors, but only const.
+          // And not-yet imported contributors does not work well yet.
+          state.request.opType.includeConstructorSuggestions = false;
+          state.request.opType.mustBeConst = true;
+          declarationHelper(
+            mustBeNonVoid: true,
+          ).addLexicalDeclarations(node);
+          return;
+        }
+      }
+    }
+
+    // DeclaredVariablePattern `Name^ y`
+    // ObjectPattern `Name^()`
+    if (coveringNode case NamedType type) {
+      switch (type.parent) {
+        case DeclaredVariablePattern():
+          collector.completionLocation = 'DeclaredVariablePattern_type';
+          state.request.opType.includeConstructorSuggestions = false;
+          type.accept(this);
+          return;
+        case ObjectPattern():
+          collector.completionLocation = 'ObjectPattern_type';
+          state.request.opType.includeConstructorSuggestions = false;
+          type.accept(this);
+          return;
       }
     }
 

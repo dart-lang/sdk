@@ -542,8 +542,8 @@ class TypeCheckingVisitor
       fail(node, 'Wrong number of type arguments');
       return NeverType.fromNullability(currentLibrary!.nonNullable);
     }
-    FreshStructuralParametersFromTypeParameters freshTypeParameters =
-        getFreshStructuralParametersFromTypeParameters(node.typeParameters);
+    FreshStructuralParameters freshTypeParameters =
+        getFreshStructuralParameters(node.structuralParameters);
     FunctionType result = freshTypeParameters.substitute(
             _instantiateAndCheck(functionType, node.typeArguments, node))
         as FunctionType;

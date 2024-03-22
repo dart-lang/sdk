@@ -1062,9 +1062,9 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   @override
   void visitTypedefTearOff(TypedefTearOff node) {
     _checkTypedefTearOff(node);
-    declareTypeParameters(node.typeParameters);
+    declareStructuralParameters(node.structuralParameters);
     super.visitTypedefTearOff(node);
-    undeclareTypeParameters(node.typeParameters);
+    undeclareStructuralParameters(node.structuralParameters);
   }
 
   void checkTargetedInvocation(Member target, InvocationExpression node) {
@@ -1352,9 +1352,9 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   @override
   void visitTypedefTearOffConstant(TypedefTearOffConstant node) {
     _checkTypedefTearOff(node);
-    declareTypeParameters(node.parameters);
+    declareStructuralParameters(node.parameters);
     super.visitTypedefTearOffConstant(node);
-    undeclareTypeParameters(node.parameters);
+    undeclareStructuralParameters(node.parameters);
   }
 
   void _checkInterfaceTarget(Expression node, Member interfaceTarget) {

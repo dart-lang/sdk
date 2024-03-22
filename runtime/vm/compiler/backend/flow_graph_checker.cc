@@ -456,6 +456,20 @@ void FlowGraphChecker::VisitDefUse(Definition* def,
     ASSERT2(!def->HasSSATemp() || DefDominatesUse(def, instruction), def,
             instruction);
   }
+  if (def->MayCreateUnsafeUntaggedPointer()) {
+    // We assume that all uses of a GC-movable untagged pointer are within the
+    // same basic block as the definition.
+    ASSERT2(def->GetBlock() == instruction->GetBlock(), def, instruction);
+    // Untagged pointers should not be returned from functions or FFI callbacks.
+    ASSERT2(!instruction->IsReturn() && !instruction->IsNativeReturn(), def,
+            instruction);
+    // Make sure no instruction between the definition and the use (including
+    // the use) can trigger GC.
+    for (const auto* current = def->next(); current != instruction->next();
+         current = current->next()) {
+      ASSERT2(!current->CanTriggerGC(), def, current);
+    }
+  }
 }
 
 void FlowGraphChecker::VisitConstant(ConstantInstr* constant) {

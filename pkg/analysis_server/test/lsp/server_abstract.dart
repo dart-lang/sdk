@@ -818,6 +818,12 @@ mixin LspAnalysisServerTestMixin
   /// list.
   final diagnostics = <Uri, List<Diagnostic>>{};
 
+  /// Whether to fail tests if any error notifications are received from the
+  /// server.
+  ///
+  /// This does not need to be set when using [expectErrorNotification].
+  bool failTestOnAnyErrorNotification = true;
+
   /// A stream of [NotificationMessage]s from the server that may be errors.
   Stream<NotificationMessage> get errorNotificationsFromServer {
     return notificationsFromServer.where(_isErrorNotification);
@@ -955,9 +961,13 @@ mixin LspAnalysisServerTestMixin
     Duration timeout = const Duration(seconds: 5),
   }) async {
     final firstError = errorNotificationsFromServer.first;
-    await f();
 
+    failTestOnAnyErrorNotification = false;
+
+    await f();
     final notificationFromServer = await firstError.timeout(timeout);
+
+    failTestOnAnyErrorNotification = true;
 
     expect(notificationFromServer, isNotNull);
     return ShowMessageParams.fromJson(
@@ -1069,17 +1079,18 @@ mixin LspAnalysisServerTestMixin
     Map<String, Object?>? initializationOptions,
     bool throwOnFailure = true,
     bool allowEmptyRootUri = false,
-    bool failTestOnAnyErrorNotification = true,
     bool includeClientRequestTime = false,
     void Function()? immediatelyAfterInitialized,
   }) async {
     this.includeClientRequestTime = includeClientRequestTime;
 
-    if (failTestOnAnyErrorNotification) {
-      errorNotificationsFromServer.listen((NotificationMessage error) {
+    errorNotificationsFromServer.listen((NotificationMessage error) {
+      // Always subscribe to this and check the flag here so it can be toggled
+      // during tests (for example automatically by expectErrorNotification).
+      if (failTestOnAnyErrorNotification) {
         fail('${error.toJson()}');
-      });
-    }
+      }
+    });
 
     final clientCapabilities = ClientCapabilities(
       workspace: workspaceCapabilities,

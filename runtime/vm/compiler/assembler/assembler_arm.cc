@@ -3732,9 +3732,9 @@ bool Assembler::AddressCanHoldConstantIndex(const Object& constant,
                                             intptr_t index_scale,
                                             bool* needs_base) {
   ASSERT(needs_base != nullptr);
-  if ((cid == kTypedDataInt32x4ArrayCid) ||
-      (cid == kTypedDataFloat32x4ArrayCid) ||
-      (cid == kTypedDataFloat64x2ArrayCid)) {
+  auto const rep = RepresentationUtils::RepresentationOfArrayElement(cid);
+  if ((rep == kUnboxedInt32x4) || (rep == kUnboxedFloat32x4) ||
+      (rep == kUnboxedFloat64x2)) {
     // We are using vldmd/vstmd which do not support offset.
     return false;
   }

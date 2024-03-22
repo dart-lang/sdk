@@ -11,13 +11,17 @@ import 'package:analysis_server/lsp_protocol/protocol.dart';
 /// (non-standard) way of using TextDocumentContentProvider. This will need to
 /// continue to be supported after switching to standard LSP support for some
 /// period to support outdated extensions.
-///
-/// This is current EXPERIMENTAL and has a suffix that will allow opting-in for
-/// dev/testing only if the Dart-Code and server versions match. This number
-/// will be increased if breaking changes to the API are made. The suffix should
-/// be removed here (and in Dart-Code) when work is complete and support is
-/// enabled by default in Dart-Code.
 const dartExperimentalTextDocumentContentProviderKey =
+    'supportsDartTextDocumentContentProvider';
+
+/// The original key used for [dartExperimentalTextDocumentContentProviderKey].
+///
+/// This is temporarily supported to avoid the macro support vanishing for users
+/// for a period if their SDK is updated before Dart-Code passes the standard
+/// flag.
+///
+const dartExperimentalTextDocumentContentProviderLegacyKey =
+    // TODO(dantup): Remove this after the next beta branch.
     'supportsDartTextDocumentContentProviderEXP1';
 
 /// Wraps the client (editor) capabilities to improve performance.
@@ -182,7 +186,10 @@ class LspClientCapabilities {
         _listToSet(commandParameterSupport['supportedKinds'] as List?)
             .cast<String>();
     final supportsDartExperimentalTextDocumentContentProvider =
-        experimental[dartExperimentalTextDocumentContentProviderKey] != null;
+        (experimental[dartExperimentalTextDocumentContentProviderKey] ??
+                experimental[
+                    dartExperimentalTextDocumentContentProviderLegacyKey]) !=
+            null;
 
     /// At the time of writing (2023-02-01) there is no official capability for
     /// supporting 'showMessageRequest' because LSP assumed all clients
