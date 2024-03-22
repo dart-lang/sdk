@@ -934,14 +934,13 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_nonFileScheme_rootUri() async {
+    // We expect an error notification about the invalid file we try to open.
+    failTestOnAnyErrorNotification = false;
+
     final rootUri = Uri.parse('vsls://');
     final fileUri = rootUri.replace(path: '/file1.dart');
 
-    await initialize(
-      rootUri: rootUri,
-      // We expect an error notification about the invalid file we try to open.
-      failTestOnAnyErrorNotification: false,
-    );
+    await initialize(rootUri: rootUri);
     expect(server.contextManager.includedPaths, equals([]));
 
     // Also open a non-file file to ensure it doesn't cause the root to be added.
@@ -954,6 +953,8 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   /// Related tests for didChangeWorkspaceFolders are in
   /// [ChangeWorkspaceFoldersTest].
   Future<void> test_nonFileScheme_workspaceFolders() async {
+    // We expect an error notification about the invalid file we try to open.
+    failTestOnAnyErrorNotification = false;
     newPubspecYamlFile(projectFolderPath, '');
 
     final rootUri = Uri.parse('vsls://');
@@ -964,8 +965,6 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
         rootUri,
         pathContext.toUri(projectFolderPath),
       ],
-      // We expect an error notification about the invalid file we try to open.
-      failTestOnAnyErrorNotification: false,
     );
     expect(server.contextManager.includedPaths, equals([projectFolderPath]));
 

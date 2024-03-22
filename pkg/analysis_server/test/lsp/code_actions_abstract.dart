@@ -23,15 +23,12 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
     CodeActionTriggerKind? triggerKind,
     String? filePath,
     bool openTargetFile = false,
-    bool failTestOnAnyErrorNotification = true,
   }) async {
     filePath ??= mainFilePath;
     var code = TestCode.parse(content);
     newFile(filePath, code.code);
 
-    await initialize(
-      failTestOnAnyErrorNotification: failTestOnAnyErrorNotification,
-    );
+    await initialize();
 
     var fileUri = uriConverter.toClientUri(filePath);
     if (openTargetFile) {

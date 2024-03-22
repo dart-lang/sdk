@@ -151,10 +151,7 @@ class ServerTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_inconsistentStateError() async {
-    await initialize(
-      // Error is expected and checked below.
-      failTestOnAnyErrorNotification: false,
-    );
+    await initialize();
     await openFile(mainFileUri, '');
     // Attempt to make an illegal modification to the file. This indicates the
     // client and server are out of sync and we expect the server to shut down.
@@ -260,10 +257,7 @@ class ServerTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_unknownNotifications_logError() async {
-    await initialize(
-      // Error is expected and checked below.
-      failTestOnAnyErrorNotification: false,
-    );
+    await initialize();
 
     final notification =
         makeNotification(Method.fromJson(r'some/randomNotification'), null);
