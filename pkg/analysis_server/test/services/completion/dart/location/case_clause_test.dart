@@ -61,6 +61,82 @@ suggestions
 ''');
   }
 
+  Future<void> test_afterCase_nameX_includeClass_imported() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A01 {}
+class A02 {}
+class B01 {}
+''');
+    await computeSuggestions('''
+import 'a.dart';
+
+void f(Object? x) {
+  if (x case A0^) {}
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 2
+suggestions
+  A01
+    kind: class
+  A01
+    kind: constructorInvocation
+  A02
+    kind: class
+  A02
+    kind: constructorInvocation
+''');
+  }
+
+  Future<void> test_afterCase_nameX_includeClass_local() async {
+    await computeSuggestions('''
+void f(Object? x) {
+  if (x case A0^) {}
+}
+
+class A01 {}
+class A02 {}
+class B01 {}
+''');
+    assertResponse(r'''
+replacement
+  left: 2
+suggestions
+  A01
+    kind: class
+  A01
+    kind: constructorInvocation
+  A02
+    kind: class
+  A02
+    kind: constructorInvocation
+''');
+  }
+
+  Future<void> test_afterCase_nameX_includeClass_notImported() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A01 {}
+class A02 {}
+class B01 {}
+''');
+    await computeSuggestions('''
+void f(Object? x) {
+  if (x case A0^) {}
+}
+''');
+    // TODO(scheglov): this is wrong, include only const constructors.
+    assertResponse(r'''
+replacement
+  left: 2
+suggestions
+  A01
+    kind: class
+  A02
+    kind: class
+''');
+  }
+
   Future<void> test_afterCaseClause_inIfElement() async {
     await computeSuggestions('''
 var v = [ if (o case != '' ^) ];
@@ -290,6 +366,69 @@ void f(Object o) {
 ''');
     assertResponse(r'''
 suggestions
+''');
+  }
+
+  Future<void> test_case_final_x_name() async {
+    await computeSuggestions('''
+void f(Object? x) {
+  if (x case final ^ y) {}
+}
+
+class A01 {}
+class A02 {}
+class B01 {}
+''');
+    assertResponse(r'''
+suggestions
+  A01
+    kind: class
+  A02
+    kind: class
+  B01
+    kind: class
+''');
+  }
+
+  Future<void> test_case_nothing_x_name() async {
+    await computeSuggestions('''
+void f(Object? x) {
+  if (x case ^ y) {}
+}
+
+class A01 {}
+class A02 {}
+class B01 {}
+''');
+    assertResponse(r'''
+suggestions
+  A01
+    kind: class
+  A02
+    kind: class
+  B01
+    kind: class
+''');
+  }
+
+  Future<void> test_declaredVariablePattern_typeX_name() async {
+    await computeSuggestions('''
+void f(Object? x) {
+  if (x case A0^ y) {}
+}
+
+class A01 {}
+class A02 {}
+class B01 {}
+''');
+    assertResponse(r'''
+replacement
+  left: 2
+suggestions
+  A01
+    kind: class
+  A02
+    kind: class
 ''');
   }
 
