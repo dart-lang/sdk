@@ -1,3 +1,8 @@
+## 2.0.0
+
+- Documentation improvements.
+- Deprecate use of `DTDConnection` in favor of `DartToolingDaemon`.
+
 ## 1.0.0
 
 - Solidified interface with dart tooling daemon.

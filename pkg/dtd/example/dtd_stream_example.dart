@@ -6,10 +6,16 @@ import 'dart:convert';
 
 import 'package:dtd/dtd.dart';
 
+/// To run this example pass the DTD uri as a parameter:
+///
+/// Example:
+/// ```sh
+/// dart run dtd_service_example.dart ws://127.0.0.1:62925/cKB5QFiAUNMzSzlb
+/// ```
 void main(List<String> args) async {
-  final url = args[0]; // pass the url as a param to the example
-  final clientA = await DartToolingDaemon.connect(Uri.parse(url));
-  final clientB = await DartToolingDaemon.connect(Uri.parse(url));
+  final dtdUrl = args[0]; // pass the url as a param to the example
+  final clientA = await DartToolingDaemon.connect(Uri.parse(dtdUrl));
+  final clientB = await DartToolingDaemon.connect(Uri.parse(dtdUrl));
   final aCompleter = Completer<void>();
   final bCompleter = Completer<void>();
 
@@ -26,6 +32,9 @@ void main(List<String> args) async {
     );
     aCompleter.complete();
   });
+
+  // Client B is used in this example to show that all clients listening to the
+  // stream will receive events that are sent to the stream.
   clientB.onEvent('Foo').listen((event) {
     print(
       jsonEncode(
@@ -45,7 +54,7 @@ void main(List<String> args) async {
   // Post an event to the Foo stream.
   await clientA.postEvent('Foo', 'kind1', {'event': 1});
 
-  // Wait for the clients to receive the events
+  // Both clients will receive the events
   await aCompleter.future;
   await bCompleter.future;
 

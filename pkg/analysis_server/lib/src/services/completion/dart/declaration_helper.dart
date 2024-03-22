@@ -258,6 +258,37 @@ class DeclarationHelper {
     }
   }
 
+  void addImportPrefixes() {
+    var library = request.libraryElement;
+    for (var element in library.libraryImports) {
+      var importPrefix = element.prefix;
+      if (importPrefix == null) {
+        continue;
+      }
+
+      var prefixElement = importPrefix.element;
+      if (!visibilityTracker.isVisible(prefixElement)) {
+        continue;
+      }
+
+      if (prefixElement.name.isEmpty) {
+        continue;
+      }
+
+      var importedLibrary = element.importedLibrary;
+      if (importedLibrary == null) {
+        continue;
+      }
+
+      collector.addSuggestion(
+        ImportPrefixSuggestion(
+          libraryElement: importedLibrary,
+          prefixElement: prefixElement,
+        ),
+      );
+    }
+  }
+
   /// Add any instance members defined for the given [type].
   ///
   /// If [onlySuper] is `true`, then only the members that are valid after a
@@ -314,6 +345,7 @@ class DeclarationHelper {
       var library = parent.declaredElement?.library;
       if (library != null) {
         _addTopLevelDeclarations(library);
+        addImportPrefixes();
         if (!skipImports) {
           _addImportedDeclarations(library);
         }

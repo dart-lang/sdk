@@ -11,12 +11,10 @@ import 'package:analysis_server/src/services/completion/dart/extension_member_co
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analysis_server/src/services/completion/dart/in_scope_completion_pass.dart';
 import 'package:analysis_server/src/services/completion/dart/library_member_contributor.dart';
-import 'package:analysis_server/src/services/completion/dart/library_prefix_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/not_imported_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/record_literal_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_collector.dart';
-import 'package:analysis_server/src/services/completion/dart/uri_contributor.dart';
 import 'package:analysis_server/src/utilities/selection.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -126,9 +124,7 @@ class DartCompletionManager {
     var contributors = <DartCompletionContributor>[
       ExtensionMemberContributor(request, builder),
       LibraryMemberContributor(request, builder),
-      LibraryPrefixContributor(request, builder),
       RecordLiteralContributor(request, builder),
-      if (enableUriContributor) UriContributor(request, builder),
     ];
 
     if (includedElementKinds != null) {
@@ -148,10 +144,12 @@ class DartCompletionManager {
         'InScopeCompletionPass',
         (performance) async {
           _runFirstPass(
-              request: request,
-              builder: builder,
-              skipImports: includedElementKinds != null,
-              suggestOverrides: enableOverrideContributor);
+            request: request,
+            builder: builder,
+            skipImports: includedElementKinds != null,
+            suggestOverrides: enableOverrideContributor,
+            suggestUris: enableUriContributor,
+          );
         },
       );
       for (var contributor in contributors) {
@@ -212,11 +210,13 @@ class DartCompletionManager {
   }
 
   // Run the first pass of the code completion algorithm.
-  void _runFirstPass(
-      {required DartCompletionRequest request,
-      required SuggestionBuilder builder,
-      required bool skipImports,
-      required bool suggestOverrides}) {
+  void _runFirstPass({
+    required DartCompletionRequest request,
+    required SuggestionBuilder builder,
+    required bool skipImports,
+    required bool suggestOverrides,
+    required bool suggestUris,
+  }) {
     var collector = SuggestionCollector();
     var selection = request.unit.select(offset: request.offset, length: 0);
     if (selection == null) {
@@ -224,10 +224,12 @@ class DartCompletionManager {
     }
     var state = CompletionState(request, selection);
     var pass = InScopeCompletionPass(
-        state: state,
-        collector: collector,
-        skipImports: skipImports,
-        suggestOverrides: suggestOverrides);
+      state: state,
+      collector: collector,
+      skipImports: skipImports,
+      suggestOverrides: suggestOverrides,
+      suggestUris: suggestUris,
+    );
     pass.computeSuggestions();
     request.collectorLocationName = collector.completionLocation;
     builder.suggestFromCandidates(collector.suggestions);

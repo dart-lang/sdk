@@ -10,6 +10,7 @@ import 'package:analysis_server/src/services/completion/dart/keyword_helper.dart
 import 'package:analysis_server/src/services/completion/dart/label_helper.dart';
 import 'package:analysis_server/src/services/completion/dart/override_helper.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_collector.dart';
+import 'package:analysis_server/src/services/completion/dart/uri_helper.dart';
 import 'package:analysis_server/src/services/completion/dart/visibility_tracker.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server/src/utilities/extensions/completion_request.dart';
@@ -50,6 +51,9 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   /// Whether suggestions for overrides should be produced.
   final bool suggestOverrides;
 
+  /// Whether suggestions for URIs should be produced.
+  final bool suggestUris;
+
   /// The helper used to suggest names at the declaration site.
   IdentifierHelper? _identifierHelper;
 
@@ -72,11 +76,13 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   ///
   /// The flag [skipImports] is a temporary measure that will be removed after
   /// all of the suggestions are being produced by the various passes.
-  InScopeCompletionPass(
-      {required this.state,
-      required this.collector,
-      required this.skipImports,
-      required this.suggestOverrides});
+  InScopeCompletionPass({
+    required this.state,
+    required this.collector,
+    required this.skipImports,
+    required this.suggestOverrides,
+    required this.suggestUris,
+  });
 
   /// Return the feature set that applies to the library for which completions
   /// are being computed.
@@ -391,6 +397,21 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitAssertInitializer(AssertInitializer node) {
+    // `assert(^)`
+    // `assert(^, '')`
+    // `assert(x, ^)`
+    if (node.leftParenthesis.end <= offset) {
+      var comma = node.comma;
+      if (comma == null || offset <= comma.offset) {
+        collector.completionLocation = 'AssertInitializer_condition';
+        _forExpression(node.condition);
+      } else {
+        collector.completionLocation = 'AssertInitializer_message';
+        _forExpression(node.condition);
+      }
+      return;
+    }
+
     collector.completionLocation = 'ConstructorDeclaration_initializer';
     keywordHelper.addConstructorInitializerKeywords(
         node.parent as ConstructorDeclaration, node);
@@ -1507,7 +1528,9 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
             constructorName.coversOffset(offset)) {
           collector.completionLocation =
               'InstanceCreationExpression_constructorName';
-          declarationHelper().addConstructorInvocations();
+          declarationHelper()
+            ..addConstructorInvocations()
+            ..addImportPrefixes();
         }
       }
     } else {
@@ -2181,6 +2204,16 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitSimpleStringLiteral(SimpleStringLiteral node) {
+    if (suggestUris) {
+      switch (node.parent) {
+        case Configuration():
+        case NamespaceDirective():
+        case PartDirective():
+          UriHelper(state.request, collector).addSuggestions(node);
+          return;
+      }
+    }
+
     _visitParentIfAtOrBeforeNode(node);
   }
 

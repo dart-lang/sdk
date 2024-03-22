@@ -264,6 +264,20 @@ final class ImportData {
   ImportData({required this.libraryUriStr, required this.prefix});
 }
 
+/// A suggestion based on an import prefix.
+final class ImportPrefixSuggestion extends CandidateSuggestion {
+  final LibraryElement libraryElement;
+  final PrefixElement prefixElement;
+
+  ImportPrefixSuggestion({
+    required this.libraryElement,
+    required this.prefixElement,
+  });
+
+  @override
+  String get completion => prefixElement.name;
+}
+
 /// The information about a candidate suggestion based on a keyword.
 final class KeywordSuggestion extends CandidateSuggestion {
   /// The text to be inserted.
@@ -601,6 +615,18 @@ final class TypeParameterSuggestion extends CandidateSuggestion {
   String get completion => element.name;
 }
 
+/// The URI suggestion.
+final class UriSuggestion extends CandidateSuggestion {
+  final String uriStr;
+
+  UriSuggestion({
+    required this.uriStr,
+  });
+
+  @override
+  String get completion => uriStr;
+}
+
 extension SuggestionBuilderExtension on SuggestionBuilder {
   // TODO(brianwilkerson): Move these to `SuggestionBuilder`, possibly as part
   //  of splitting it into a legacy builder and an LSP builder.
@@ -666,6 +692,11 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
         suggestFunctionCall();
       case IdentifierSuggestion():
         suggestName(suggestion.identifier);
+      case ImportPrefixSuggestion():
+        suggestPrefix(
+          suggestion.libraryElement,
+          suggestion.prefixElement.name,
+        );
       case KeywordSuggestion():
         suggestKeyword(suggestion.completion,
             offset: suggestion.selectionOffset);
@@ -749,6 +780,8 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
         libraryUriStr = null;
       case TypeParameterSuggestion():
         suggestTypeParameter(suggestion.element);
+      case UriSuggestion():
+        suggestUri(suggestion.uriStr);
     }
   }
 

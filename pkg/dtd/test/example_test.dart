@@ -99,7 +99,7 @@ void main() {
     final listDirCompleter = Completer<void>();
 
     final tmpDirectory = await Directory.systemTemp.createTemp();
-    DTDConnection? client;
+    DartToolingDaemon? client;
     try {
       client = await DartToolingDaemon.connect(
         toolingDaemonProcess.uri,
