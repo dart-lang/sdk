@@ -343,9 +343,6 @@ class BaseFlowGraphBuilder {
                       classid_t dest_cid,
                       bool unboxed_inputs,
                       bool can_overlap = true);
-  Fragment MemoryCopyUntagged(intptr_t element_size,
-                              bool unboxed_inputs,
-                              bool can_overlap = true);
   Fragment TailCall(const Code& code);
   Fragment Utf8Scan();
 

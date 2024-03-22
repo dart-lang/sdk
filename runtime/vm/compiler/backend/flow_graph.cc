@@ -2600,6 +2600,83 @@ void FlowGraph::EliminateEnvironments() {
   }
 }
 
+void FlowGraph::ExtractUntaggedPayload(Instruction* instr,
+                                       Value* array,
+                                       const Slot& slot,
+                                       InnerPointerAccess access) {
+  auto* const untag_payload = new (Z)
+      LoadFieldInstr(array->CopyWithType(Z), slot, access, instr->source());
+  InsertBefore(instr, untag_payload, instr->env(), FlowGraph::kValue);
+  array->BindTo(untag_payload);
+  ASSERT_EQUAL(array->definition()->representation(), kUntagged);
+}
+
+bool FlowGraph::ExtractExternalUntaggedPayload(Instruction* instr,
+                                               Value* array,
+                                               classid_t cid) {
+  ASSERT(array->instruction() == instr);
+  // Nothing to do if already untagged.
+  if (array->definition()->representation() != kTagged) return false;
+  // If we've determined at compile time that this is an object that has an
+  // external payload, use the cid of the compile type instead.
+  if (IsExternalPayloadClassId(array->Type()->ToCid())) {
+    cid = array->Type()->ToCid();
+  } else if (!IsExternalPayloadClassId(cid)) {
+    // Can't extract the payload address if it points to GC-managed memory.
+    return false;
+  }
+
+  const Slot* slot = nullptr;
+  if (cid == kPointerCid || IsExternalTypedDataClassId(cid)) {
+    slot = &Slot::PointerBase_data();
+  } else {
+    UNREACHABLE();
+  }
+
+  ExtractUntaggedPayload(instr, array, *slot,
+                         InnerPointerAccess::kCannotBeInnerPointer);
+  return true;
+}
+
+void FlowGraph::ExtractNonInternalTypedDataPayload(Instruction* instr,
+                                                   Value* array,
+                                                   classid_t cid) {
+  ASSERT(array->instruction() == instr);
+  // Skip if the array payload has already been extracted.
+  if (array->definition()->representation() == kUntagged) return;
+  if (!IsTypedDataBaseClassId(cid)) return;
+  auto const type_cid = array->Type()->ToCid();
+  // For external PointerBase objects, the payload should have already been
+  // extracted during canonicalization.
+  ASSERT(!IsExternalPayloadClassId(cid) || !IsExternalPayloadClassId(type_cid));
+  // Don't extract if the array is an internal typed data object.
+  if (IsTypedDataClassId(type_cid)) return;
+  ExtractUntaggedPayload(instr, array, Slot::PointerBase_data(),
+                         InnerPointerAccess::kMayBeInnerPointer);
+}
+
+void FlowGraph::ExtractNonInternalTypedDataPayloads() {
+  for (BlockIterator block_it = reverse_postorder_iterator(); !block_it.Done();
+       block_it.Advance()) {
+    BlockEntryInstr* block = block_it.Current();
+    for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
+      Instruction* current = it.Current();
+      if (auto* const load_indexed = current->AsLoadIndexed()) {
+        ExtractNonInternalTypedDataPayload(load_indexed, load_indexed->array(),
+                                           load_indexed->class_id());
+      } else if (auto* const store_indexed = current->AsStoreIndexed()) {
+        ExtractNonInternalTypedDataPayload(
+            store_indexed, store_indexed->array(), store_indexed->class_id());
+      } else if (auto* const memory_copy = current->AsMemoryCopy()) {
+        ExtractNonInternalTypedDataPayload(memory_copy, memory_copy->src(),
+                                           memory_copy->src_cid());
+        ExtractNonInternalTypedDataPayload(memory_copy, memory_copy->dest(),
+                                           memory_copy->dest_cid());
+      }
+    }
+  }
+}
+
 bool FlowGraph::Canonicalize() {
   bool changed = false;
 

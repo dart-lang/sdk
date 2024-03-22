@@ -122,7 +122,7 @@ namespace dart {
   V(::, _typedDataIndexCheck, TypedDataIndexCheck, 0x79215a89)                 \
   V(::, _byteDataByteOffsetCheck, ByteDataByteOffsetCheck, 0xbb05a064)         \
   V(::, copyRangeFromUint8ListToOneByteString,                                 \
-    CopyRangeFromUint8ListToOneByteString, 0xcc42cce1)                         \
+    CopyRangeFromUint8ListToOneByteString, 0xcc42d0a2)                         \
   V(_StringBase, _interpolate, StringBaseInterpolate, 0x8af456e6)              \
   V(_SuspendState, get:_functionData, SuspendState_getFunctionData,            \
     0x7281768e)                                                                \

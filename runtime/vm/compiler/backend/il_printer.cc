@@ -1463,7 +1463,25 @@ void StoreIndexedUnsafeInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   value()->PrintTo(f);
 }
 
+void LoadIndexedInstr::PrintOperandsTo(BaseTextBuffer* f) const {
+  auto& cls =
+      Class::Handle(IsolateGroup::Current()->class_table()->At(class_id()));
+  if (!cls.IsNull()) {
+    f->Printf("[%s] ", cls.ScrubbedNameCString());
+  } else {
+    f->Printf("[cid %" Pd "] ", class_id());
+  }
+  Instruction::PrintOperandsTo(f);
+}
+
 void StoreIndexedInstr::PrintOperandsTo(BaseTextBuffer* f) const {
+  auto& cls =
+      Class::Handle(IsolateGroup::Current()->class_table()->At(class_id()));
+  if (!cls.IsNull()) {
+    f->Printf("[%s] ", cls.ScrubbedNameCString());
+  } else {
+    f->Printf("[cid %" Pd "] ", class_id());
+  }
   Instruction::PrintOperandsTo(f);
   if (!ShouldEmitStoreBarrier()) {
     f->AddString(", NoStoreBarrier");
@@ -1472,46 +1490,24 @@ void StoreIndexedInstr::PrintOperandsTo(BaseTextBuffer* f) const {
 
 void MemoryCopyInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   Instruction::PrintOperandsTo(f);
-  // kTypedDataUint8ArrayCid is used as the default cid for cases where
-  // the destination object is a subclass of PointerBase and the arguments
-  // are given in terms of bytes, so only print if the cid differs.
-  switch (dest_representation_) {
-    case kUntagged:
-      f->Printf(", dest untagged");
-      break;
-    case kTagged:
-      if (dest_cid_ != kTypedDataUint8ArrayCid) {
-        const Class& cls = Class::Handle(
-            IsolateGroup::Current()->class_table()->At(dest_cid_));
-        if (!cls.IsNull()) {
-          f->Printf(", dest_cid=%s (%d)", cls.ScrubbedNameCString(), dest_cid_);
-        } else {
-          f->Printf(", dest_cid=%d", dest_cid_);
-        }
-      }
-      break;
-    default:
-      UNREACHABLE();
+  auto& cls =
+      Class::Handle(IsolateGroup::Current()->class_table()->At(dest_cid_));
+  if (!cls.IsNull()) {
+    f->Printf(", dest_cid=%s (%d)", cls.ScrubbedNameCString(), dest_cid_);
+  } else {
+    f->Printf(", dest_cid=%d", dest_cid_);
   }
-  switch (src_representation_) {
-    case kUntagged:
-      f->Printf(", src untagged");
-      break;
-    case kTagged:
-      if ((dest_representation_ == kTagged && dest_cid_ != src_cid_) ||
-          (dest_representation_ != kTagged &&
-           src_cid_ != kTypedDataUint8ArrayCid)) {
-        const Class& cls =
-            Class::Handle(IsolateGroup::Current()->class_table()->At(src_cid_));
-        if (!cls.IsNull()) {
-          f->Printf(", src_cid=%s (%d)", cls.ScrubbedNameCString(), src_cid_);
-        } else {
-          f->Printf(", src_cid=%d", src_cid_);
-        }
-      }
-      break;
-    default:
-      UNREACHABLE();
+  if (dest()->definition()->representation() == kUntagged) {
+    f->Printf(" [untagged]");
+  }
+  cls = IsolateGroup::Current()->class_table()->At(src_cid_);
+  if (!cls.IsNull()) {
+    f->Printf(", src_cid=%s (%d)", cls.ScrubbedNameCString(), src_cid_);
+  } else {
+    f->Printf(", src_cid=%d", src_cid_);
+  }
+  if (src()->definition()->representation() == kUntagged) {
+    f->Printf(" [untagged]");
   }
   if (element_size() != 1) {
     f->Printf(", element_size=%" Pd "", element_size());

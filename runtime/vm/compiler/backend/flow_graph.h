@@ -478,6 +478,13 @@ class FlowGraph : public ZoneAllocated {
   // Remove environments from the instructions which do not deoptimize.
   void EliminateEnvironments();
 
+  // Extract typed data payloads prior to any LoadIndexed, StoreIndexed, or
+  // MemoryCopy instruction where the incoming typed data array(s) are not
+  // proven to be internal typed data objects at compile time.
+  //
+  // Once this is done, no intra-block code motion should be performed.
+  void ExtractNonInternalTypedDataPayloads();
+
   bool IsReceiver(Definition* def) const;
 
   // Optimize (a << b) & c pattern: if c is a positive Smi or zero, then the
@@ -578,6 +585,18 @@ class FlowGraph : public ZoneAllocated {
                          : CompilationMode::kUnoptimized;
   }
 
+  // If either IsExternalPayloadClassId([cid]) or
+  // IsExternalPayloadClassId(array()->Type()->ToCid()) is true and
+  // [array] (an input of [instr]) is tagged, inserts a load of the array
+  // payload as an untagged pointer and rebinds [array] to the new load.
+  //
+  // Otherwise does not change the flow graph.
+  //
+  // Returns whether any changes were made to the flow graph.
+  bool ExtractExternalUntaggedPayload(Instruction* instr,
+                                      Value* array,
+                                      classid_t cid);
+
  private:
   friend class FlowGraphCompiler;  // TODO(ajcbik): restructure
   friend class FlowGraphChecker;
@@ -669,6 +688,15 @@ class FlowGraph : public ZoneAllocated {
                                        intptr_t ix,
                                        Representation rep,
                                        intptr_t cid);
+
+  void ExtractUntaggedPayload(Instruction* instr,
+                              Value* array,
+                              const Slot& slot,
+                              InnerPointerAccess access);
+
+  void ExtractNonInternalTypedDataPayload(Instruction* instr,
+                                          Value* array,
+                                          classid_t cid);
 
   Thread* thread_;
 

@@ -158,10 +158,9 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
 
   FlowGraph* BuildGraphOfRecognizedMethod(const Function& function);
 
-  Fragment BuildTypedListGet(const Function& function, intptr_t view_cid);
-  Fragment BuildTypedListSet(const Function& function, intptr_t view_cid);
-  Fragment BuildTypedDataMemMove(const Function& function,
-                                 intptr_t element_size);
+  Fragment BuildTypedListGet(const Function& function, classid_t cid);
+  Fragment BuildTypedListSet(const Function& function, classid_t cid);
+  Fragment BuildTypedDataMemMove(const Function& function, classid_t cid);
   Fragment BuildTypedDataViewFactoryConstructor(const Function& function,
                                                 classid_t cid);
   Fragment BuildTypedDataFactoryConstructor(const Function& function,

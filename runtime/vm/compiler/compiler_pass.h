@@ -55,6 +55,7 @@ namespace dart {
   V(WidenSmiToInt32)                                                           \
   V(EliminateWriteBarriers)                                                    \
   V(TestILSerialization)                                                       \
+  V(LoweringAfterCodeMotionDisabled)                                           \
   V(GenerateCode)
 
 class AllocationSinking;

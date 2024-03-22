@@ -42,9 +42,11 @@ void matchIL$retrieveFromView(FlowGraph graph) {
           match.LoadField('src', slot: 'TypedDataView.offset_in_bytes'),
       'offset' << match.UnboxInt64('boxed_offset'),
       'index' << match.BinaryInt64Op('offset', 'n', op_kind: '+'),
-      'data' << match.LoadField('typed_data', slot: 'PointerBase.data'),
       if (is32BitConfiguration) ...[
         'boxed_index' << match.BoxInt64('index'),
+      ],
+      'data' << match.LoadField('typed_data', slot: 'PointerBase.data'),
+      if (is32BitConfiguration) ...[
         'retval32' << match.LoadIndexed('data', 'boxed_index'),
         'retval' << match.IntConverter('retval32', from: 'int32', to: 'int64'),
       ] else ...[

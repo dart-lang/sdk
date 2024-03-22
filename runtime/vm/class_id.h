@@ -458,6 +458,21 @@ inline bool IsUnmodifiableTypedDataViewClassId(intptr_t index) {
               kTypedDataCidRemainderUnmodifiable);
 }
 
+inline bool IsClampedTypedDataBaseClassId(intptr_t index) {
+  if (!IsTypedDataBaseClassId(index)) return false;
+  const intptr_t internal_cid =
+      index - ((index - kFirstTypedDataCid) % kNumTypedDataCidRemainders) +
+      kTypedDataCidRemainderInternal;
+  // Currently, the only clamped typed data arrays are Uint8.
+  return internal_cid == kTypedDataUint8ClampedArrayCid;
+}
+
+// Whether the given cid is an external array cid, that is, an array where
+// the payload is not in GC-managed memory.
+inline bool IsExternalPayloadClassId(classid_t cid) {
+  return cid == kPointerCid || IsExternalTypedDataClassId(cid);
+}
+
 // For predefined cids only. Refer to Class::is_deeply_immutable for
 // instances of non-predefined classes.
 //

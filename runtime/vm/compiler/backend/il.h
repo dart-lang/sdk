@@ -3112,39 +3112,21 @@ class MemoryCopyInstr : public TemplateInstruction<5, NoThrow> {
                   Value* length,
                   bool unboxed_inputs,
                   bool can_overlap = true)
-      : MemoryCopyInstr(Instance::ElementSizeFor(src_cid),
-                        src,
-                        kTagged,
-                        src_cid,
-                        dest,
-                        kTagged,
-                        dest_cid,
-                        src_start,
-                        dest_start,
-                        length,
-                        unboxed_inputs,
-                        can_overlap) {}
-
-  MemoryCopyInstr(intptr_t element_size,
-                  Value* src,
-                  Value* dest,
-                  Value* src_start,
-                  Value* dest_start,
-                  Value* length,
-                  bool unboxed_inputs,
-                  bool can_overlap = true)
-      : MemoryCopyInstr(element_size,
-                        src,
-                        kUntagged,
-                        kIllegalCid,
-                        dest,
-                        kUntagged,
-                        kIllegalCid,
-                        src_start,
-                        dest_start,
-                        length,
-                        unboxed_inputs,
-                        can_overlap) {}
+      : src_cid_(src_cid),
+        dest_cid_(dest_cid),
+        element_size_(Instance::ElementSizeFor(src_cid)),
+        unboxed_inputs_(unboxed_inputs),
+        can_overlap_(can_overlap) {
+    ASSERT(IsArrayTypeSupported(src_cid));
+    ASSERT(IsArrayTypeSupported(dest_cid));
+    ASSERT_EQUAL(Instance::ElementSizeFor(src_cid),
+                 Instance::ElementSizeFor(dest_cid));
+    SetInputAt(kSrcPos, src);
+    SetInputAt(kDestPos, dest);
+    SetInputAt(kSrcStartPos, src_start);
+    SetInputAt(kDestStartPos, dest_start);
+    SetInputAt(kLengthPos, length);
+  }
 
   enum {
     kSrcPos = 0,
@@ -3157,12 +3139,11 @@ class MemoryCopyInstr : public TemplateInstruction<5, NoThrow> {
   DECLARE_INSTRUCTION(MemoryCopy)
 
   virtual Representation RequiredInputRepresentation(intptr_t index) const {
-    if (index == kSrcPos) {
-      return src_representation_;
+    if (index == kSrcPos || index == kDestPos) {
+      // Can be either tagged or untagged.
+      return kNoRepresentation;
     }
-    if (index == kDestPos) {
-      return dest_representation_;
-    }
+    ASSERT(index <= kLengthPos);
     return unboxed_inputs() ? kUnboxedIntPtr : kTagged;
   }
 
@@ -3174,8 +3155,6 @@ class MemoryCopyInstr : public TemplateInstruction<5, NoThrow> {
       if (element_size_ != copy->element_size_) return false;
       if (unboxed_inputs_ != copy->unboxed_inputs_) return false;
       if (can_overlap_ != copy->can_overlap_) return false;
-      if (src_representation_ != copy->src_representation_) return false;
-      if (dest_representation_ != copy->dest_representation_) return false;
       if (src_cid_ != copy->src_cid_) return false;
       if (dest_cid_ != copy->dest_cid_) return false;
       return true;
@@ -3189,6 +3168,8 @@ class MemoryCopyInstr : public TemplateInstruction<5, NoThrow> {
   Value* dest_start() const { return inputs_[kDestStartPos]; }
   Value* length() const { return inputs_[kLengthPos]; }
 
+  classid_t src_cid() const { return src_cid_; }
+  classid_t dest_cid() const { return dest_cid_; }
   intptr_t element_size() const { return element_size_; }
   bool unboxed_inputs() const { return unboxed_inputs_; }
   bool can_overlap() const { return can_overlap_; }
@@ -3205,9 +3186,7 @@ class MemoryCopyInstr : public TemplateInstruction<5, NoThrow> {
   F(const classid_t, dest_cid_)                                                \
   F(intptr_t, element_size_)                                                   \
   F(bool, unboxed_inputs_)                                                     \
-  F(const bool, can_overlap_)                                                  \
-  F(const Representation, src_representation_)                                 \
-  F(const Representation, dest_representation_)
+  F(const bool, can_overlap_)
 
   DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(MemoryCopyInstr,
                                           TemplateInstruction,
@@ -3215,46 +3194,6 @@ class MemoryCopyInstr : public TemplateInstruction<5, NoThrow> {
 #undef FIELD_LIST
 
  private:
-  MemoryCopyInstr(intptr_t element_size,
-                  Value* src,
-                  Representation src_representation,
-                  classid_t src_cid,
-                  Value* dest,
-                  Representation dest_representation,
-                  classid_t dest_cid,
-                  Value* src_start,
-                  Value* dest_start,
-                  Value* length,
-                  bool unboxed_inputs,
-                  bool can_overlap = true)
-      : src_cid_(src_cid),
-        dest_cid_(dest_cid),
-        element_size_(element_size),
-        unboxed_inputs_(unboxed_inputs),
-        can_overlap_(can_overlap),
-        src_representation_(src_representation),
-        dest_representation_(dest_representation) {
-    if (src_representation == kTagged) {
-      ASSERT(IsArrayTypeSupported(src_cid));
-      ASSERT_EQUAL(Instance::ElementSizeFor(src_cid), element_size);
-    } else {
-      ASSERT_EQUAL(src_representation, kUntagged);
-      ASSERT_EQUAL(src_cid, kIllegalCid);
-    }
-    if (dest_representation == kTagged) {
-      ASSERT(IsArrayTypeSupported(dest_cid));
-      ASSERT_EQUAL(Instance::ElementSizeFor(dest_cid), element_size);
-    } else {
-      ASSERT_EQUAL(dest_representation, kUntagged);
-      ASSERT_EQUAL(dest_cid, kIllegalCid);
-    }
-    SetInputAt(kSrcPos, src);
-    SetInputAt(kDestPos, dest);
-    SetInputAt(kSrcStartPos, src_start);
-    SetInputAt(kDestStartPos, dest_start);
-    SetInputAt(kLengthPos, length);
-  }
-
   // Set array_reg to point to the index indicated by start (contained in
   // start_loc) of the typed data or string in array (contained in array_reg).
   // If array_rep is tagged, then the payload address is retrieved according
@@ -3299,16 +3238,15 @@ class MemoryCopyInstr : public TemplateInstruction<5, NoThrow> {
                     compiler::Label* copy_forwards = nullptr);
 
   static bool IsArrayTypeSupported(classid_t array_cid) {
-    if (IsTypedDataBaseClassId(array_cid)) {
-      return true;
-    }
-    switch (array_cid) {
-      case kOneByteStringCid:
-      case kTwoByteStringCid:
-        return true;
-      default:
-        return false;
-    }
+    // We don't handle clamping negative values in this instruction, instead
+    // those are handled via a native call.
+    if (IsClampedTypedDataBaseClassId(array_cid)) return false;
+    // We don't support the following cids for the given reasons:
+    // * kStringCid: doesn't give element size information or information
+    //   about how the payload address is calculated.
+    // * kPointerCid: doesn't give element size or signedness information.
+    if (array_cid == kPointerCid || array_cid == kStringCid) return false;
+    return IsTypedDataBaseClassId(array_cid) || IsStringClassId(array_cid);
   }
 
   DISALLOW_COPY_AND_ASSIGN(MemoryCopyInstr);
@@ -6698,6 +6636,8 @@ class LoadIndexedInstr : public TemplateDefinition<2, NoThrow> {
                    const InstructionSource& source,
                    CompileType* result_type = nullptr);
 
+  enum { kArrayPos = 0, kIndexPos = 1 };
+
   TokenPosition token_pos() const { return token_pos_; }
 
   DECLARE_INSTRUCTION(LoadIndexed)
@@ -6705,9 +6645,9 @@ class LoadIndexedInstr : public TemplateDefinition<2, NoThrow> {
   virtual bool RecomputeType();
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
-    ASSERT(idx == 0 || idx == 1);
     // The array may be tagged or untagged (for external arrays).
-    if (idx == 0) return kNoRepresentation;
+    if (idx == kArrayPos) return kNoRepresentation;
+    ASSERT_EQUAL(idx, kIndexPos);
 
     if (index_unboxed_) {
 #if defined(TARGET_ARCH_IS_64_BIT)
@@ -6720,20 +6660,23 @@ class LoadIndexedInstr : public TemplateDefinition<2, NoThrow> {
     }
   }
 
-  bool IsExternal() const {
+  bool IsUntagged() const {
     return array()->definition()->representation() == kUntagged;
   }
 
-  Value* array() const { return inputs_[0]; }
-  Value* index() const { return inputs_[1]; }
+  Value* array() const { return inputs_[kArrayPos]; }
+  Value* index() const { return inputs_[kIndexPos]; }
   intptr_t index_scale() const { return index_scale_; }
   intptr_t class_id() const { return class_id_; }
   bool aligned() const { return alignment_ == kAlignedAccess; }
 
-  virtual intptr_t DeoptimizationTarget() const { return GetDeoptId(); }
-  virtual bool ComputeCanDeoptimize() const {
-    return GetDeoptId() != DeoptId::kNone;
+  virtual intptr_t DeoptimizationTarget() const {
+    // Direct access since this instruction cannot deoptimize, and the deopt-id
+    // was inherited from another instruction that could deoptimize.
+    return GetDeoptId();
   }
+
+  virtual bool ComputeCanDeoptimize() const { return false; }
 
   // The representation returned by LoadIndexed for arrays with the given cid.
   // May not match the representation for the element returned by
@@ -6749,6 +6692,8 @@ class LoadIndexedInstr : public TemplateDefinition<2, NoThrow> {
   virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
+
+  PRINT_OPERANDS_TO_SUPPORT
 
 #define FIELD_LIST(F)                                                          \
   F(const bool, index_unboxed_)                                                \
@@ -7039,7 +6984,7 @@ class StoreIndexedInstr : public TemplateInstruction<3, NoThrow> {
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const;
 
-  bool IsExternal() const {
+  bool IsUntagged() const {
     return array()->definition()->representation() == kUntagged;
   }
 
@@ -7053,9 +6998,9 @@ class StoreIndexedInstr : public TemplateInstruction<3, NoThrow> {
 
   virtual bool MayHaveVisibleEffect() const { return true; }
 
-  void PrintOperandsTo(BaseTextBuffer* f) const;
-
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
+
+  PRINT_OPERANDS_TO_SUPPORT
 
 #define FIELD_LIST(F)                                                          \
   F(StoreBarrierType, emit_store_barrier_)                                     \

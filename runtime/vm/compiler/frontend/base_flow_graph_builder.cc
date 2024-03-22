@@ -282,20 +282,6 @@ Fragment BaseFlowGraphBuilder::MemoryCopy(classid_t src_cid,
   return Fragment(copy);
 }
 
-Fragment BaseFlowGraphBuilder::MemoryCopyUntagged(intptr_t element_size,
-                                                  bool unboxed_inputs,
-                                                  bool can_overlap) {
-  Value* length = Pop();
-  Value* dest_start = Pop();
-  Value* src_start = Pop();
-  Value* dest = Pop();
-  Value* src = Pop();
-  auto copy =
-      new (Z) MemoryCopyInstr(element_size, src, dest, src_start, dest_start,
-                              length, unboxed_inputs, can_overlap);
-  return Fragment(copy);
-}
-
 Fragment BaseFlowGraphBuilder::TailCall(const Code& code) {
   Value* arg_desc = Pop();
   return Fragment(new (Z) TailCallInstr(code, arg_desc)).closed();
@@ -619,6 +605,8 @@ Fragment BaseFlowGraphBuilder::StoreStaticField(TokenPosition position,
 }
 
 Fragment BaseFlowGraphBuilder::StoreIndexed(classid_t class_id) {
+  // This fragment builder cannot be used for typed data accesses.
+  ASSERT(!IsTypedDataBaseClassId(class_id));
   Value* value = Pop();
   Value* index = Pop();
   const StoreBarrierType emit_store_barrier =
@@ -635,6 +623,7 @@ Fragment BaseFlowGraphBuilder::StoreIndexedTypedData(classid_t class_id,
                                                      intptr_t index_scale,
                                                      bool index_unboxed,
                                                      AlignmentType alignment) {
+  ASSERT(IsTypedDataBaseClassId(class_id));
   Value* value = Pop();
   Value* index = Pop();
   Value* c_pointer = Pop();
@@ -1025,9 +1014,15 @@ Fragment BaseFlowGraphBuilder::AllocateObject(TokenPosition position,
 }
 
 Fragment BaseFlowGraphBuilder::Box(Representation from) {
+  Fragment instructions;
+  if (from == kUnboxedFloat) {
+    instructions += FloatToDouble();
+    from = kUnboxedDouble;
+  }
   BoxInstr* box = BoxInstr::Create(from, Pop());
+  instructions <<= box;
   Push(box);
-  return Fragment(box);
+  return instructions;
 }
 
 Fragment BaseFlowGraphBuilder::DebugStepCheck(TokenPosition position) {

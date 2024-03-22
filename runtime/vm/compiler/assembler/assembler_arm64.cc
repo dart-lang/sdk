@@ -949,25 +949,29 @@ Address Assembler::PrepareLargeOffset(Register base,
 void Assembler::LoadFromOffset(Register dest,
                                const Address& addr,
                                OperandSize sz) {
-  ldr(dest, PrepareLargeOffset(addr.base(), addr.offset(), sz), sz);
+  ldr(dest, PrepareLargeOffset(addr.base(), addr.offset(), sz, addr.type()),
+      sz);
 }
 
 void Assembler::LoadSFromOffset(VRegister dest, Register base, int32_t offset) {
-  fldrs(dest, PrepareLargeOffset(base, offset, kSWord));
+  auto const type = Address::AddressType::Offset;
+  fldrs(dest, PrepareLargeOffset(base, offset, kSWord, type));
 }
 
 void Assembler::LoadDFromOffset(VRegister dest, Register base, int32_t offset) {
-  fldrd(dest, PrepareLargeOffset(base, offset, kDWord));
+  auto const type = Address::AddressType::Offset;
+  fldrd(dest, PrepareLargeOffset(base, offset, kDWord, type));
 }
 
 void Assembler::LoadQFromOffset(VRegister dest, Register base, int32_t offset) {
-  fldrq(dest, PrepareLargeOffset(base, offset, kQWord));
+  auto const type = Address::AddressType::Offset;
+  fldrq(dest, PrepareLargeOffset(base, offset, kQWord, type));
 }
 
 void Assembler::StoreToOffset(Register src,
                               const Address& addr,
                               OperandSize sz) {
-  str(src, PrepareLargeOffset(addr.base(), addr.offset(), sz), sz);
+  str(src, PrepareLargeOffset(addr.base(), addr.offset(), sz, addr.type()), sz);
 }
 
 void Assembler::StorePairToOffset(Register low,
@@ -975,21 +979,23 @@ void Assembler::StorePairToOffset(Register low,
                                   Register base,
                                   int32_t offset,
                                   OperandSize sz) {
-  stp(low, high,
-      PrepareLargeOffset(base, offset, sz, Address::AddressType::PairOffset),
-      sz);
+  auto const type = Address::AddressType::PairOffset;
+  stp(low, high, PrepareLargeOffset(base, offset, sz, type), sz);
 }
 
 void Assembler::StoreSToOffset(VRegister src, Register base, int32_t offset) {
-  fstrs(src, PrepareLargeOffset(base, offset, kSWord));
+  auto const type = Address::AddressType::Offset;
+  fstrs(src, PrepareLargeOffset(base, offset, kSWord, type));
 }
 
 void Assembler::StoreDToOffset(VRegister src, Register base, int32_t offset) {
-  fstrd(src, PrepareLargeOffset(base, offset, kDWord));
+  auto const type = Address::AddressType::Offset;
+  fstrd(src, PrepareLargeOffset(base, offset, kDWord, type));
 }
 
 void Assembler::StoreQToOffset(VRegister src, Register base, int32_t offset) {
-  fstrq(src, PrepareLargeOffset(base, offset, kQWord));
+  auto const type = Address::AddressType::Offset;
+  fstrq(src, PrepareLargeOffset(base, offset, kQWord, type));
 }
 
 void Assembler::VRecps(VRegister vd, VRegister vn) {

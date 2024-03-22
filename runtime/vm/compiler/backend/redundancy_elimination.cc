@@ -192,21 +192,21 @@ class Place : public ValueObject {
     kNoSize,
 
     // 1 byte (Int8List, Uint8List, Uint8ClampedList).
-    kInt8,
+    k1Byte,
 
     // 2 bytes (Int16List, Uint16List).
-    kInt16,
+    k2Bytes,
 
     // 4 bytes (Int32List, Uint32List, Float32List).
-    kInt32,
+    k4Bytes,
 
     // 8 bytes (Int64List, Uint64List, Float64List).
-    kInt64,
+    k8Bytes,
 
     // 16 bytes (Int32x4List, Float32x4List, Float64x2List).
-    kInt128,
+    k16Bytes,
 
-    kLargestElementSize = kInt128,
+    kLargestElementSize = k16Bytes,
   };
 
   Place(const Place& other)
@@ -373,8 +373,8 @@ class Place : public ValueObject {
   // typed array element that contains this typed array element.
   // In other words this method computes the only possible place with the given
   // size that can alias this place (due to alignment restrictions).
-  // For example for X[9|kInt8] and target size kInt32 we would return
-  // X[8|kInt32].
+  // For example for X[9|k1Byte] and target size k4Bytes we would return
+  // X[8|k4Bytes].
   Place ToLargerElement(ElementSize to) const {
     ASSERT(kind() == kConstantIndexed);
     ASSERT(element_size() != kNoSize);
@@ -387,8 +387,8 @@ class Place : public ValueObject {
   // S/S' - 1 return alias X[ByteOffs + S'*index|S'] - this is the byte offset
   // of a smaller typed array element which is contained within this typed
   // array element.
-  // For example X[8|kInt32] contains inside X[8|kInt16] (index is 0) and
-  // X[10|kInt16] (index is 1).
+  // For example X[8|k4Bytes] contains inside X[8|k2Bytes] (index is 0) and
+  // X[10|k2Bytes] (index is 1).
   Place ToSmallerElement(ElementSize to, intptr_t index) const {
     ASSERT(kind() == kConstantIndexed);
     ASSERT(element_size() != kNoSize);
@@ -536,40 +536,42 @@ class Place : public ValueObject {
     flags_ = ElementSizeBits::update(scale, flags_);
   }
 
-  void SetIndex(Definition* index, intptr_t scale, intptr_t class_id) {
+  void SetIndex(Definition* index, intptr_t scale, classid_t class_id) {
     ConstantInstr* index_constant = index->AsConstant();
     if ((index_constant != nullptr) && index_constant->value().IsSmi()) {
       const intptr_t index_value = Smi::Cast(index_constant->value()).Value();
-      const ElementSize size = ElementSizeFor(class_id);
-      const bool is_typed_access = (size != kNoSize);
-      // Indexing into [UntaggedTypedDataView]/[UntaggedExternalTypedData
-      // happens via a untagged load of the `_data` field (which points to C
-      // memory).
-      //
-      // Indexing into dart:ffi's [UntaggedPointer] happens via loading of the
-      // `c_memory_address_`, converting it to an integer, doing some arithmetic
-      // and finally using IntConverterInstr to convert to a untagged
-      // representation.
-      //
-      // In both cases the array used for load/store has untagged
-      // representation.
-      const bool can_be_view = instance_->representation() == kUntagged;
 
-      // If we are writing into the typed data scale the index to
-      // get byte offset. Otherwise ignore the scale.
-      if (!is_typed_access) {
-        scale = 1;
+      // Places only need to scale the index for typed data objects, as other
+      // types of arrays (for which ElementSizeFor returns kNoSize) cannot be
+      // accessed at different scales.
+      const ElementSize size = ElementSizeFor(class_id);
+      if (size == kNoSize) {
+        set_kind(kConstantIndexed);
+        set_element_size(size);
+        index_constant_ = index_value;
+        return;
       }
 
       // Guard against potential multiplication overflow and negative indices.
       if ((0 <= index_value) && (index_value < (kMaxInt32 / scale))) {
         const intptr_t scaled_index = index_value * scale;
 
+        // If the indexed array is a subclass of PointerBase, then it must be
+        // treated as a view unless the class id of the array is known at
+        // compile time to be an internal typed data object.
+        //
+        // Indexes into untagged pointers only happen for external typed data
+        // objects or dart:ffi's Pointer, but those should also be treated like
+        // views, since anyone who has access to the underlying pointer can
+        // modify the corresponding memory.
+        auto const cid = instance_->Type()->ToCid();
+        const bool can_be_view = instance_->representation() == kUntagged ||
+                                 !IsTypedDataClassId(cid);
+
         // Guard against unaligned byte offsets and access through raw
         // memory pointer (which can be pointing into another typed data).
-        if (!is_typed_access ||
-            (!can_be_view &&
-             Utils::IsAligned(scaled_index, ElementSizeMultiplier(size)))) {
+        if (!can_be_view &&
+            Utils::IsAligned(scaled_index, ElementSizeMultiplier(size))) {
           set_kind(kConstantIndexed);
           set_element_size(size);
           index_constant_ = scaled_index;
@@ -590,50 +592,34 @@ class Place : public ValueObject {
            ElementSizeBits::encode(scale);
   }
 
-  static ElementSize ElementSizeFor(intptr_t class_id) {
-    switch (class_id) {
-      case kArrayCid:
-      case kImmutableArrayCid:
-      case kOneByteStringCid:
-      case kTwoByteStringCid:
-        // Object arrays and strings do not allow accessing them through
-        // different types. No need to attach scale.
-        return kNoSize;
+  static ElementSize ElementSizeFor(classid_t class_id) {
+    // Object arrays and strings do not allow accessing them through
+    // different types. No need to attach scale.
+    if (!IsTypedDataBaseClassId(class_id)) return kNoSize;
 
-      case kTypedDataInt8ArrayCid:
-      case kTypedDataUint8ArrayCid:
-      case kTypedDataUint8ClampedArrayCid:
-      case kExternalTypedDataUint8ArrayCid:
-      case kExternalTypedDataUint8ClampedArrayCid:
-        return kInt8;
-
-      case kTypedDataInt16ArrayCid:
-      case kTypedDataUint16ArrayCid:
-        return kInt16;
-
-      case kTypedDataInt32ArrayCid:
-      case kTypedDataUint32ArrayCid:
-      case kTypedDataFloat32ArrayCid:
-        return kInt32;
-
-      case kTypedDataInt64ArrayCid:
-      case kTypedDataUint64ArrayCid:
-      case kTypedDataFloat64ArrayCid:
-        return kInt64;
-
-      case kTypedDataInt32x4ArrayCid:
-      case kTypedDataFloat32x4ArrayCid:
-      case kTypedDataFloat64x2ArrayCid:
-        return kInt128;
-
+    const auto rep =
+        RepresentationUtils::RepresentationOfArrayElement(class_id);
+    if (!RepresentationUtils::IsUnboxed(rep)) return kNoSize;
+    switch (RepresentationUtils::ValueSize(rep)) {
+      case 1:
+        return k1Byte;
+      case 2:
+        return k2Bytes;
+      case 4:
+        return k4Bytes;
+      case 8:
+        return k8Bytes;
+      case 16:
+        return k16Bytes;
       default:
-        UNREACHABLE();
+        FATAL("Unhandled value size for representation %s",
+              RepresentationUtils::ToCString(rep));
         return kNoSize;
     }
   }
 
-  static intptr_t ElementSizeMultiplier(ElementSize size) {
-    return 1 << (static_cast<intptr_t>(size) - static_cast<intptr_t>(kInt8));
+  static constexpr intptr_t ElementSizeMultiplier(ElementSize size) {
+    return 1 << (static_cast<intptr_t>(size) - static_cast<intptr_t>(k1Byte));
   }
 
   static intptr_t RoundByteOffset(ElementSize size, intptr_t offset) {
@@ -649,8 +635,13 @@ class Place : public ValueObject {
   class KindBits : public BitField<uword, Kind, 0, 3> {};
   class RepresentationBits
       : public BitField<uword, Representation, KindBits::kNextBit, 11> {};
-  class ElementSizeBits
-      : public BitField<uword, ElementSize, RepresentationBits::kNextBit, 3> {};
+
+  static constexpr int kNumElementSizeBits = Utils::ShiftForPowerOfTwo(
+      Utils::RoundUpToPowerOfTwo(kLargestElementSize));
+  class ElementSizeBits : public BitField<uword,
+                                          ElementSize,
+                                          RepresentationBits::kNextBit,
+                                          kNumElementSizeBits> {};
 
   uword flags_;
   Definition* instance_;
@@ -1001,7 +992,7 @@ class AliasedSet : public ZoneAllocated {
             // *[C'|S']) and thus we need to handle both element sizes smaller
             // and larger than S.
             const Place no_instance_alias = alias->CopyWithoutInstance();
-            for (intptr_t i = Place::kInt8; i <= Place::kLargestElementSize;
+            for (intptr_t i = Place::k1Byte; i <= Place::kLargestElementSize;
                  i++) {
               // Skip element sizes that a guaranteed to have no
               // representatives.
@@ -1962,11 +1953,10 @@ class LoadOptimizer : public ValueObject {
   // to loads because other array stores (intXX/uintXX/float32)
   // may implicitly convert the value stored.
   bool CanForwardStore(StoreIndexedInstr* array_store) {
-    return ((array_store == nullptr) ||
-            (array_store->class_id() == kArrayCid) ||
-            (array_store->class_id() == kTypedDataFloat64ArrayCid) ||
-            (array_store->class_id() == kTypedDataFloat32ArrayCid) ||
-            (array_store->class_id() == kTypedDataFloat32x4ArrayCid));
+    if (array_store == nullptr) return true;
+    auto const rep = RepresentationUtils::RepresentationOfArrayElement(
+        array_store->class_id());
+    return !RepresentationUtils::IsUnboxedInteger(rep) && rep != kUnboxedFloat;
   }
 
   static bool AlreadyPinnedByRedefinition(Definition* replacement,
@@ -2591,6 +2581,10 @@ class LoadOptimizer : public ValueObject {
       Value* input = new (Z) Value(replacement);
       phi->SetInputAt(i, input);
       replacement->AddInputUse(input);
+      // If any input is untagged, then the Phi should be marked as untagged.
+      if (replacement->representation() == kUntagged) {
+        phi->set_representation(kUntagged);
+      }
     }
 
     graph_->AllocateSSAIndex(phi);

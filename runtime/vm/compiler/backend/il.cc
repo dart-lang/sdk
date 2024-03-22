@@ -2656,7 +2656,7 @@ Instruction* CheckStackOverflowInstr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 bool LoadFieldInstr::IsFixedLengthArrayCid(intptr_t cid) {
-  if (IsTypedDataClassId(cid) || IsExternalTypedDataClassId(cid)) {
+  if (IsTypedDataBaseClassId(cid)) {
     return true;
   }
 
@@ -6715,9 +6715,7 @@ Definition* CheckBoundBaseInstr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 intptr_t CheckArrayBoundInstr::LengthOffsetFor(intptr_t class_id) {
-  if (IsTypedDataClassId(class_id) || IsTypedDataViewClassId(class_id) ||
-      IsUnmodifiableTypedDataViewClassId(class_id) ||
-      IsExternalTypedDataClassId(class_id)) {
+  if (IsTypedDataBaseClassId(class_id)) {
     return compiler::target::TypedDataBase::length_offset();
   }
 
@@ -6747,24 +6745,20 @@ Definition* CheckWritableInstr::Canonicalize(FlowGraph* flow_graph) {
 
 static AlignmentType StrengthenAlignment(intptr_t cid,
                                          AlignmentType alignment) {
-  switch (cid) {
-    case kTypedDataInt8ArrayCid:
-    case kTypedDataUint8ArrayCid:
-    case kTypedDataUint8ClampedArrayCid:
-    case kExternalTypedDataUint8ArrayCid:
-    case kExternalTypedDataUint8ClampedArrayCid:
-    case kOneByteStringCid:
+  switch (RepresentationUtils::RepresentationOfArrayElement(cid)) {
+    case kUnboxedInt8:
+    case kUnboxedUint8:
       // Don't need to worry about alignment for accessing bytes.
       return kAlignedAccess;
-    case kTypedDataFloat64x2ArrayCid:
-    case kTypedDataInt32x4ArrayCid:
-    case kTypedDataFloat32x4ArrayCid:
+    case kUnboxedFloat32x4:
+    case kUnboxedInt32x4:
+    case kUnboxedFloat64x2:
       // TODO(rmacnak): Investigate alignment requirements of floating point
       // loads.
       return kAlignedAccess;
+    default:
+      return alignment;
   }
-
-  return alignment;
 }
 
 LoadIndexedInstr::LoadIndexedInstr(Value* array,
@@ -6783,25 +6777,22 @@ LoadIndexedInstr::LoadIndexedInstr(Value* array,
       alignment_(StrengthenAlignment(class_id, alignment)),
       token_pos_(source.token_pos),
       result_type_(result_type) {
-  SetInputAt(0, array);
-  SetInputAt(1, index);
+  // In particular, notice that kPointerCid is _not_ supported because it gives
+  // no information about whether the elements are signed for elements with
+  // unboxed integer representations.  The constructor must take that
+  // information separately to allow kPointerCid.
+  ASSERT(class_id != kPointerCid);
+  SetInputAt(kArrayPos, array);
+  SetInputAt(kIndexPos, index);
 }
 
 Definition* LoadIndexedInstr::Canonicalize(FlowGraph* flow_graph) {
-  auto Z = flow_graph->zone();
-  if (auto* const untag_payload = array()->definition()->AsLoadField()) {
-    // If loading from an internal typed data object, remove the load of
-    // PointerBase.data, as LoadIndexed knows how to load from a tagged
-    // internal typed data object directly and the LoadField may interfere with
-    // possible allocation sinking.
-    if (untag_payload->slot().IsIdentical(Slot::PointerBase_data()) &&
-        IsTypedDataClassId(untag_payload->instance()->Type()->ToCid())) {
-      array()->BindTo(untag_payload->instance()->definition());
-    }
-  }
+  flow_graph->ExtractExternalUntaggedPayload(this, array(), class_id());
+
   if (auto box = index()->definition()->AsBoxInt64()) {
     // TODO(dartbug.com/39432): Make LoadIndexed fully suport unboxed indices.
     if (!box->ComputeCanDeoptimize() && compiler::target::kWordSize == 8) {
+      auto Z = flow_graph->zone();
       auto load = new (Z) LoadIndexedInstr(
           array()->CopyWithType(Z), box->value()->CopyWithType(Z),
           /*index_unboxed=*/true, index_scale(), class_id(), alignment_,
@@ -6837,26 +6828,23 @@ StoreIndexedInstr::StoreIndexedInstr(Value* array,
       alignment_(StrengthenAlignment(class_id, alignment)),
       token_pos_(source.token_pos),
       speculative_mode_(speculative_mode) {
+  // In particular, notice that kPointerCid is _not_ supported because it gives
+  // no information about whether the elements are signed for elements with
+  // unboxed integer representations. The constructor must take that information
+  // separately to allow kPointerCid.
+  ASSERT(class_id != kPointerCid);
   SetInputAt(kArrayPos, array);
   SetInputAt(kIndexPos, index);
   SetInputAt(kValuePos, value);
 }
 
 Instruction* StoreIndexedInstr::Canonicalize(FlowGraph* flow_graph) {
-  auto Z = flow_graph->zone();
-  if (auto* const untag_payload = array()->definition()->AsLoadField()) {
-    // If loading from an internal typed data object, remove the load of
-    // PointerBase.data, as LoadIndexed knows how to load from a tagged
-    // internal typed data object directly and the LoadField may interfere with
-    // possible allocation sinking.
-    if (untag_payload->slot().IsIdentical(Slot::PointerBase_data()) &&
-        IsTypedDataClassId(untag_payload->instance()->Type()->ToCid())) {
-      array()->BindTo(untag_payload->instance()->definition());
-    }
-  }
+  flow_graph->ExtractExternalUntaggedPayload(this, array(), class_id());
+
   if (auto box = index()->definition()->AsBoxInt64()) {
     // TODO(dartbug.com/39432): Make StoreIndexed fully suport unboxed indices.
     if (!box->ComputeCanDeoptimize() && compiler::target::kWordSize == 8) {
+      auto Z = flow_graph->zone();
       auto store = new (Z) StoreIndexedInstr(
           array()->CopyWithType(Z), box->value()->CopyWithType(Z),
           value()->CopyWithType(Z), emit_store_barrier_,
@@ -6904,6 +6892,9 @@ static const intptr_t kMaxElementSizeForEfficientCopy =
 #endif
 
 Instruction* MemoryCopyInstr::Canonicalize(FlowGraph* flow_graph) {
+  flow_graph->ExtractExternalUntaggedPayload(this, src(), src_cid_);
+  flow_graph->ExtractExternalUntaggedPayload(this, dest(), dest_cid_);
+
   if (!length()->BindsToSmiConstant()) {
     return this;
   } else if (length()->BoundSmiConstant() == 0) {
@@ -6933,16 +6924,16 @@ Instruction* MemoryCopyInstr::Canonicalize(FlowGraph* flow_graph) {
     return this;
   }
 
-  Zone* const zone = flow_graph->zone();
   // The new element size is larger than the original one, so it must be > 1.
   // That means unboxed integers will always require a shift, but Smis
   // may not if element_size == 2, so always use Smis.
-  auto* const length_instr = flow_graph->GetConstant(
-      Integer::ZoneHandle(zone, Integer::New(new_length, Heap::kOld)));
-  auto* const src_start_instr = flow_graph->GetConstant(
-      Integer::ZoneHandle(zone, Integer::New(new_src_start, Heap::kOld)));
-  auto* const dest_start_instr = flow_graph->GetConstant(
-      Integer::ZoneHandle(zone, Integer::New(new_dest_start, Heap::kOld)));
+  auto* const Z = flow_graph->zone();
+  auto* const length_instr =
+      flow_graph->GetConstant(Smi::ZoneHandle(Z, Smi::New(new_length)));
+  auto* const src_start_instr =
+      flow_graph->GetConstant(Smi::ZoneHandle(Z, Smi::New(new_src_start)));
+  auto* const dest_start_instr =
+      flow_graph->GetConstant(Smi::ZoneHandle(Z, Smi::New(new_dest_start)));
   length()->BindTo(length_instr);
   src_start()->BindTo(src_start_instr);
   dest_start()->BindTo(dest_start_instr);
@@ -6954,8 +6945,8 @@ Instruction* MemoryCopyInstr::Canonicalize(FlowGraph* flow_graph) {
 void MemoryCopyInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register src_reg = locs()->in(kSrcPos).reg();
   const Register dest_reg = locs()->in(kDestPos).reg();
-  const Representation src_rep = RequiredInputRepresentation(kSrcPos);
-  const Representation dest_rep = RequiredInputRepresentation(kDestPos);
+  const Representation src_rep = src()->definition()->representation();
+  const Representation dest_rep = dest()->definition()->representation();
   const Location& src_start_loc = locs()->in(kSrcStartPos);
   const Location& dest_start_loc = locs()->in(kDestStartPos);
   const Location& length_loc = locs()->in(kLengthPos);

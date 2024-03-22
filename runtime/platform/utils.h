@@ -63,7 +63,7 @@ class Utils {
   }
 
   template <typename T>
-  static inline int ShiftForPowerOfTwo(T x) {
+  static constexpr int ShiftForPowerOfTwo(T x) {
     ASSERT(IsPowerOfTwo(x));
     int num_shifts = 0;
     while (x > 1) {
