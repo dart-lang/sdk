@@ -289,13 +289,6 @@ final class KeywordSuggestion extends CandidateSuggestion {
   final int selectionOffset;
 
   /// Initialize a newly created candidate suggestion to suggest the [keyword].
-  factory KeywordSuggestion.fromKeyword({required Keyword keyword}) {
-    var lexeme = keyword.lexeme;
-    return KeywordSuggestion._(
-        completion: lexeme, selectionOffset: lexeme.length);
-  }
-
-  /// Initialize a newly created candidate suggestion to suggest the [keyword].
   ///
   /// If [annotatedText] is provided. The annotated text is used in cases where
   /// there is boilerplate that always follows the keyword that should also be
@@ -306,41 +299,36 @@ final class KeywordSuggestion extends CandidateSuggestion {
   /// be used as the selection offset. If the text doesn't contain a caret, then
   /// the insert text will be the annotated text and the selection offset will
   /// be at the end of the text.
-  factory KeywordSuggestion.fromKeywordAndText({
-    required Keyword? keyword,
+  factory KeywordSuggestion.fromKeyword({
+    required Keyword keyword,
     required String? annotatedText,
   }) {
-    assert(keyword != null || annotatedText != null);
-
-    var completion = '';
-    int? selectionOffset;
-
-    if (keyword != null) {
-      completion = keyword.lexeme;
-    }
+    var completion = keyword.lexeme;
+    var selectionOffset = completion.length;
 
     if (annotatedText != null) {
-      var caretIndex = annotatedText.indexOf('^');
-      if (caretIndex < 0) {
-        completion += annotatedText;
-      } else {
-        selectionOffset = completion.length + caretIndex;
-        completion += annotatedText.substring(0, caretIndex) +
-            annotatedText.substring(caretIndex + 1);
-      }
+      var (rawText, caretIndex) = annotatedText.withoutCaret;
+      completion += rawText;
+      selectionOffset += caretIndex ?? rawText.length;
     }
 
-    selectionOffset ??= completion.length;
     return KeywordSuggestion._(
       completion: completion,
       selectionOffset: selectionOffset,
     );
   }
 
-  /// Initialize a newly created candidate suggestion to suggest the [keyword].
-  factory KeywordSuggestion.fromPseudoKeyword({required String keyword}) {
+  /// If [annotatedText] contains a caret (`^`), then the completion will use
+  /// the annotated text with the caret removed and the index of the caret will
+  /// be used as the selection offset. If the text doesn't contain a caret, then
+  /// the insert text will be the annotated text and the selection offset will
+  /// be at the end of the text.
+  factory KeywordSuggestion.fromText(String annotatedText) {
+    var (rawText, caretIndex) = annotatedText.withoutCaret;
     return KeywordSuggestion._(
-        completion: keyword, selectionOffset: keyword.length);
+      completion: rawText,
+      selectionOffset: caretIndex ?? rawText.length,
+    );
   }
 
   /// Initialize a newly created candidate suggestion to suggest a keyword.
@@ -630,6 +618,18 @@ final class UriSuggestion extends CandidateSuggestion {
 
   @override
   String get completion => uriStr;
+}
+
+extension on String {
+  (String, int?) get withoutCaret {
+    var caretIndex = indexOf('^');
+    if (caretIndex < 0) {
+      return (this, null);
+    } else {
+      var rawText = substring(0, caretIndex) + substring(caretIndex + 1);
+      return (rawText, caretIndex);
+    }
+  }
 }
 
 extension SuggestionBuilderExtension on SuggestionBuilder {

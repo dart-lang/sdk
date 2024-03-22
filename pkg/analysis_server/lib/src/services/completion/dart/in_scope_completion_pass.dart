@@ -1064,7 +1064,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     if (name != null && offset <= name.end) {
       keywordHelper.addKeyword(Keyword.ON);
       if (featureSet.isEnabled(Feature.inline_class)) {
-        keywordHelper.addPseudoKeyword('type');
+        keywordHelper.addText('type');
       }
       identifierHelper(includePrivateIdentifiers: false).addTopLevelName();
       return;
@@ -2296,10 +2296,10 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   void visitSwitchDefault(SwitchDefault node) {
     if (offset <= node.keyword.offset) {
       keywordHelper.addKeyword(Keyword.CASE);
-      keywordHelper.addKeywordFromText(Keyword.DEFAULT, ':');
+      keywordHelper.addKeywordAndText(Keyword.DEFAULT, ':');
     } else if (offset <= node.keyword.end) {
       if (node.colon.isSynthetic) {
-        keywordHelper.addKeywordFromText(Keyword.DEFAULT, ':');
+        keywordHelper.addKeywordAndText(Keyword.DEFAULT, ':');
       } else {
         keywordHelper.addKeyword(Keyword.DEFAULT);
       }
@@ -2377,7 +2377,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       collector.completionLocation = 'SwitchMember_statement';
       if (node.statements.isEmpty || offset <= node.statements.first.offset) {
         keywordHelper.addKeyword(Keyword.CASE);
-        keywordHelper.addKeywordFromText(Keyword.DEFAULT, ':');
+        keywordHelper.addKeywordAndText(Keyword.DEFAULT, ':');
       }
       _forStatement(node);
     }
@@ -2397,10 +2397,10 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       collector.completionLocation = 'SwitchMember_statement';
       var members = node.members;
       keywordHelper.addKeyword(Keyword.CASE);
-      keywordHelper.addKeywordFromText(Keyword.DEFAULT, ':');
+      keywordHelper.addKeywordAndText(Keyword.DEFAULT, ':');
       if (members.isNotEmpty) {
         if (!members.any((element) => element is SwitchDefault)) {
-          keywordHelper.addKeywordFromText(Keyword.DEFAULT, ':');
+          keywordHelper.addKeywordAndText(Keyword.DEFAULT, ':');
         }
         var element = members.elementBefore(offset);
         if (element != null) {
