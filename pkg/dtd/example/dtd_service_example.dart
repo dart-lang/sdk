@@ -8,6 +8,53 @@ import 'dart:convert';
 import 'package:dtd/dtd.dart';
 import 'package:json_rpc_2/json_rpc_2.dart';
 
+/// To run this example pass the DTD uri as a parameter:
+///
+/// Example:
+/// ```sh
+/// dart run dtd_service_example.dart ws://127.0.0.1:62925/cKB5QFiAUNMzSzlb
+/// ```
+void main(List<String> args) async {
+  final dtdUrl = args[0]; // pass the url as a param to the example
+
+  DartToolingDaemon? clientA;
+  DartToolingDaemon? clientB;
+
+  try {
+    // Set up the services that will be used to show service method
+    // interactions.
+    clientA = await DartToolingDaemon.connect(Uri.parse(dtdUrl));
+    clientB = await DartToolingDaemon.connect(Uri.parse(dtdUrl));
+
+    // Register the ExampleServer.getServerState service method so that other
+    // clients can call it.
+    await clientA.registerService(
+      'ExampleServer',
+      'getServerState',
+      (params) async {
+        // This callback is what will be run when clients call
+        // ExampleServer.getServerState.
+        final getStateRequest = GetStateRequest.fromParams(params);
+
+        final duration = const Duration(minutes: 45);
+        final status =
+            getStateRequest.verbose ? 'The server is running' : 'Running';
+
+        return ExampleStateResponse(duration, status).toJson();
+      },
+    );
+
+    // Call the registered service from a different client.
+    final response = await clientB.getServerState(verbose: true);
+
+    // The ExampleServerState response is now printed.
+    print(jsonEncode(response.toJson()));
+  } finally {
+    await clientA?.close();
+    await clientB?.close();
+  }
+}
+
 /// A helper class used to simplify passing and receiving json parameters to
 /// ExampleServer.getServerState.
 class GetStateRequest {
@@ -64,10 +111,10 @@ class ExampleStateResponse {
   }
 }
 
-/// Adds the [getServerState] method to DTDConnection, so that calling the
+/// Adds the [getServerState] method to [DartToolingDaemon], so that calling the
 /// ExampleServer.getServerState service method can be wrapped nicely behind a
 /// method call from a given client.
-extension ExampleExtension on DTDConnection {
+extension ExampleExtension on DartToolingDaemon {
   Future<ExampleStateResponse> getServerState({bool verbose = false}) async {
     final result = await call(
       'ExampleServer',
@@ -75,46 +122,5 @@ extension ExampleExtension on DTDConnection {
       params: GetStateRequest(verbose).toJson(),
     );
     return ExampleStateResponse.fromDTDResponse(result);
-  }
-}
-
-void main(List<String> args) async {
-  final url = args[0]; // pass the url as a param to the example
-
-  DTDConnection? clientA;
-  DTDConnection? clientB;
-
-  try {
-    // Set up the services that will be used to show service method
-    // interactions.
-    clientA = await DartToolingDaemon.connect(Uri.parse(url));
-    clientB = await DartToolingDaemon.connect(Uri.parse(url));
-
-    // Register the ExampleServer.getServerState service method so that other
-    // clients can call it.
-    await clientA.registerService(
-      'ExampleServer',
-      'getServerState',
-      (params) async {
-        // This callback is what will be run when clients call
-        // ExampleServer.getServerState.
-        final getStateRequest = GetStateRequest.fromParams(params);
-
-        final duration = const Duration(minutes: 45);
-        final status =
-            getStateRequest.verbose ? 'The server is running' : 'Running';
-
-        return ExampleStateResponse(duration, status).toJson();
-      },
-    );
-
-    // Call the registered service from a different client.
-    final response = await clientB.getServerState(verbose: true);
-
-    // The ExampleServerState response is now printed.
-    print(jsonEncode(response.toJson()));
-  } finally {
-    await clientA?.close();
-    await clientB?.close();
   }
 }

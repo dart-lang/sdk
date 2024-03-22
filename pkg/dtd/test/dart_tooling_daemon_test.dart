@@ -11,8 +11,8 @@ import 'package:test/test.dart';
 import 'utils.dart';
 
 void main() {
-  late DTDConnection clientA;
-  late DTDConnection clientB;
+  late DartToolingDaemon clientA;
+  late DartToolingDaemon clientB;
   late Uri dtdUri;
   late ToolingDaemonTestProcess toolingDaemonProcess;
 

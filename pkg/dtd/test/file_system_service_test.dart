@@ -27,7 +27,7 @@ void main() {
   late File fFile;
   final aFileContents = 'These are the contents for aFile';
   final eFileContents = 'These are the contents for eFile';
-  late DTDConnection client;
+  late DartToolingDaemon client;
   late String dtdSecret;
   late Uri dtdUri;
   setUp(() async {

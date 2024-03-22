@@ -80,21 +80,16 @@ class DTDClient extends Client {
 
   /// Registers handlers for the Dart Tooling Daemon JSON RPC method endpoints.
   void _registerJsonRpcMethods() {
-    // TODO(danchevalier): do a once over of all methods and ensure that we have
-    // all necessary validations.
     _clientPeer.registerMethod('streamListen', _streamListen);
     _clientPeer.registerMethod('streamCancel', _streamCancel);
     _clientPeer.registerMethod('postEvent', _postEvent);
     _clientPeer.registerMethod('registerService', _registerService);
 
-    // TODO(danchevalier) implement and document _getRegisteredStreams
-    // _clientPeer.registerMethod('getRegisteredStreams', _getRegisteredStreams);
-
     // Handle service extension invocations.
     _clientPeer.registerFallback(_fallback);
   }
 
-  /// jrpc endpoint for cancelling a stream.
+  /// jrpc endpoint for listening to a stream.
   ///
   /// Parameters:
   /// 'streamId': the stream to be cancelled.
@@ -139,8 +134,8 @@ class DTDClient extends Client {
   ///
   /// Parameters:
   /// 'eventKind': the kind of event being sent.
-  /// 'data': the data being sent over the stream.
-  /// 'stream: the stream that is being posted to.
+  /// 'eventData': the data being sent over the stream.
+  /// 'streamId: the stream that is being posted to.
   _postEvent(parameters) async {
     final eventKind = parameters['eventKind'].asString;
     final eventData = parameters['eventData'].asMap;
@@ -212,7 +207,17 @@ class DTDClient extends Client {
     );
   }
 
-  /// Registers a [callback] to the client using the name "[service].[method]".
+  /// Registers a service method to the Dart Tooling Daemon using the name
+  /// "[service].[method]".
+  ///
+  /// This method is a helper for registering service methods that are available
+  /// when the Dart Tooling Daemon is initialized. To trigger a service method
+  /// registered with this helper see the
+  /// [dtd_protocol.md#servicemethod](https://github.com/dart-lang/sdk/blob/main/pkg/dtd_impl/dtd_protocol.md#servicemethod)
+  /// documentation.
+  ///
+  /// When a client of the Dart Tooling Daemon calls [service].[method], then
+  /// [callback] will be run with the parameters of that call.
   void registerServiceMethod(
     String service,
     String method,
