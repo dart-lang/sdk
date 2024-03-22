@@ -615,6 +615,18 @@ final class TypeParameterSuggestion extends CandidateSuggestion {
   String get completion => element.name;
 }
 
+/// The URI suggestion.
+final class UriSuggestion extends CandidateSuggestion {
+  final String uriStr;
+
+  UriSuggestion({
+    required this.uriStr,
+  });
+
+  @override
+  String get completion => uriStr;
+}
+
 extension SuggestionBuilderExtension on SuggestionBuilder {
   // TODO(brianwilkerson): Move these to `SuggestionBuilder`, possibly as part
   //  of splitting it into a legacy builder and an LSP builder.
@@ -680,6 +692,11 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
         suggestFunctionCall();
       case IdentifierSuggestion():
         suggestName(suggestion.identifier);
+      case ImportPrefixSuggestion():
+        suggestPrefix(
+          suggestion.libraryElement,
+          suggestion.prefixElement.name,
+        );
       case KeywordSuggestion():
         suggestKeyword(suggestion.completion,
             offset: suggestion.selectionOffset);
@@ -763,11 +780,8 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
         libraryUriStr = null;
       case TypeParameterSuggestion():
         suggestTypeParameter(suggestion.element);
-      case ImportPrefixSuggestion():
-        suggestPrefix(
-          suggestion.libraryElement,
-          suggestion.prefixElement.name,
-        );
+      case UriSuggestion():
+        suggestUri(suggestion.uriStr);
     }
   }
 
