@@ -164,11 +164,11 @@ LocationSummary* MemoryCopyInstr::MakeLocationSummary(Zone* zone,
           !IsTypedDataBaseClassId(dest_cid_)) ||
          opt);
   const intptr_t kNumInputs = 5;
-  const intptr_t kNumTemps = 0;
+  const intptr_t kNumTemps = 2;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  locs->set_in(kSrcPos, Location::RegisterLocation(RSI));
-  locs->set_in(kDestPos, Location::RegisterLocation(RDI));
+  locs->set_in(kSrcPos, Location::RequiresRegister());
+  locs->set_in(kDestPos, Location::RequiresRegister());
   const bool needs_writable_inputs =
       (((element_size_ == 1) && !unboxed_inputs_) ||
        ((element_size_ == 16) && unboxed_inputs_));
@@ -188,6 +188,9 @@ LocationSummary* MemoryCopyInstr::MakeLocationSummary(Zone* zone,
   } else {
     locs->set_in(kLengthPos, Location::RegisterLocation(RCX));
   }
+  // Used for the actual iteration.
+  locs->set_temp(0, Location::RegisterLocation(RSI));
+  locs->set_temp(1, Location::RegisterLocation(RDI));
   return locs;
 }
 
@@ -278,6 +281,7 @@ void MemoryCopyInstr::EmitLoopCopy(FlowGraphCompiler* compiler,
 void MemoryCopyInstr::EmitComputeStartPointer(FlowGraphCompiler* compiler,
                                               classid_t array_cid,
                                               Register array_reg,
+                                              Register payload_reg,
                                               Representation array_rep,
                                               Location start_loc) {
   intptr_t offset = 0;
@@ -312,7 +316,7 @@ void MemoryCopyInstr::EmitComputeStartPointer(FlowGraphCompiler* compiler,
     const int64_t start_value = Integer::Cast(constant).AsInt64Value();
     const intptr_t add_value = Utils::AddWithWrapAround(
         Utils::MulWithWrapAround<intptr_t>(start_value, element_size_), offset);
-    __ AddImmediate(array_reg, add_value);
+    __ leaq(payload_reg, compiler::Address(array_reg, add_value));
     return;
   }
   // Note that start_reg must be writable in the special cases below.
@@ -333,7 +337,7 @@ void MemoryCopyInstr::EmitComputeStartPointer(FlowGraphCompiler* compiler,
     __ ExtendNonNegativeSmi(start_reg);
   }
   auto const scale = ToScaleFactor(element_size_, index_unboxed);
-  __ leaq(array_reg, compiler::Address(array_reg, start_reg, scale, offset));
+  __ leaq(payload_reg, compiler::Address(array_reg, start_reg, scale, offset));
 }
 
 LocationSummary* MoveArgumentInstr::MakeLocationSummary(Zone* zone,

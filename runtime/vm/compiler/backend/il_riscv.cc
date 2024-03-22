@@ -182,15 +182,17 @@ LocationSummary* MemoryCopyInstr::MakeLocationSummary(Zone* zone,
           !IsTypedDataBaseClassId(dest_cid_)) ||
          opt);
   const intptr_t kNumInputs = 5;
-  const intptr_t kNumTemps = 0;
+  const intptr_t kNumTemps = 2;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  locs->set_in(kSrcPos, Location::WritableRegister());
-  locs->set_in(kDestPos, Location::WritableRegister());
+  locs->set_in(kSrcPos, Location::RequiresRegister());
+  locs->set_in(kDestPos, Location::RequiresRegister());
   locs->set_in(kSrcStartPos, LocationRegisterOrConstant(src_start()));
   locs->set_in(kDestStartPos, LocationRegisterOrConstant(dest_start()));
   locs->set_in(kLengthPos,
                LocationWritableRegisterOrSmiConstant(length(), 0, 4));
+  locs->set_temp(0, Location::RequiresRegister());
+  locs->set_temp(1, Location::RequiresRegister());
   return locs;
 }
 
@@ -393,6 +395,7 @@ void MemoryCopyInstr::EmitLoopCopy(FlowGraphCompiler* compiler,
 void MemoryCopyInstr::EmitComputeStartPointer(FlowGraphCompiler* compiler,
                                               classid_t array_cid,
                                               Register array_reg,
+                                              Register payload_reg,
                                               Representation array_rep,
                                               Location start_loc) {
   intptr_t offset = 0;
@@ -425,16 +428,16 @@ void MemoryCopyInstr::EmitComputeStartPointer(FlowGraphCompiler* compiler,
     const auto& constant = start_loc.constant();
     ASSERT(constant.IsInteger());
     const int64_t start_value = Integer::Cast(constant).AsInt64Value();
-    const intptr_t add_value = Utils::AddWithWrapAround(
-        Utils::MulWithWrapAround<intptr_t>(start_value, element_size_), offset);
-    __ AddImmediate(array_reg, add_value);
+    const intx_t add_value = Utils::AddWithWrapAround(
+        Utils::MulWithWrapAround<intx_t>(start_value, element_size_), offset);
+    __ AddImmediate(payload_reg, array_reg, add_value);
     return;
   }
-  __ AddImmediate(array_reg, offset);
   const Register start_reg = start_loc.reg();
   intptr_t shift = Utils::ShiftForPowerOfTwo(element_size_) -
                    (unboxed_inputs() ? 0 : kSmiTagShift);
-  __ AddShifted(array_reg, array_reg, start_reg, shift);
+  __ AddShifted(payload_reg, array_reg, start_reg, shift);
+  __ AddImmediate(payload_reg, offset);
 }
 
 LocationSummary* MoveArgumentInstr::MakeLocationSummary(Zone* zone,

@@ -91,6 +91,10 @@ LocationSummary* MemoryCopyInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumTemps = remove_loop ? 1 : 0;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  // Unlike other architectures, IA32 don't have enough registers to allocate
+  // temps to hold the payload address, so instead these the rep mov input
+  // registers ESI and EDI, respectively... except ESI is THR, so use another
+  // writable register for the input and save/restore ESI internally as needed.
   locs->set_in(kSrcPos, Location::WritableRegister());
   locs->set_in(kDestPos, Location::RegisterLocation(EDI));
   const bool needs_writable_inputs =
@@ -189,6 +193,7 @@ void MemoryCopyInstr::EmitLoopCopy(FlowGraphCompiler* compiler,
 void MemoryCopyInstr::EmitComputeStartPointer(FlowGraphCompiler* compiler,
                                               classid_t array_cid,
                                               Register array_reg,
+                                              Register payload_reg,
                                               Representation array_rep,
                                               Location start_loc) {
   intptr_t offset = 0;
@@ -223,7 +228,7 @@ void MemoryCopyInstr::EmitComputeStartPointer(FlowGraphCompiler* compiler,
     const int64_t start_value = Integer::Cast(constant).AsInt64Value();
     const intptr_t add_value = Utils::AddWithWrapAround(
         Utils::MulWithWrapAround<intptr_t>(start_value, element_size_), offset);
-    __ AddImmediate(array_reg, add_value);
+    __ leal(payload_reg, compiler::Address(array_reg, add_value));
     return;
   }
   // Note that start_reg must be writable in the special cases below.
@@ -242,7 +247,7 @@ void MemoryCopyInstr::EmitComputeStartPointer(FlowGraphCompiler* compiler,
     index_unboxed = false;
   }
   auto const scale = ToScaleFactor(element_size_, index_unboxed);
-  __ leal(array_reg, compiler::Address(array_reg, start_reg, scale, offset));
+  __ leal(payload_reg, compiler::Address(array_reg, start_reg, scale, offset));
 }
 
 LocationSummary* MoveArgumentInstr::MakeLocationSummary(Zone* zone,

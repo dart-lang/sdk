@@ -164,6 +164,8 @@ DEFINE_BACKEND(TailCall,
 static constexpr intptr_t kMaxMemoryCopyElementSize =
     2 * compiler::target::kWordSize;
 
+static constexpr intptr_t kMemoryCopyPayloadTemps = 2;
+
 LocationSummary* MemoryCopyInstr::MakeLocationSummary(Zone* zone,
                                                       bool opt) const {
   // The compiler must optimize any function that includes a MemoryCopy
@@ -173,11 +175,13 @@ LocationSummary* MemoryCopyInstr::MakeLocationSummary(Zone* zone,
           !IsTypedDataBaseClassId(dest_cid_)) ||
          opt);
   const intptr_t kNumInputs = 5;
-  const intptr_t kNumTemps = element_size_ >= kMaxMemoryCopyElementSize ? 1 : 0;
+  const intptr_t kNumTemps =
+      kMemoryCopyPayloadTemps +
+      (element_size_ >= kMaxMemoryCopyElementSize ? 1 : 0);
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  locs->set_in(kSrcPos, Location::WritableRegister());
-  locs->set_in(kDestPos, Location::WritableRegister());
+  locs->set_in(kSrcPos, Location::RequiresRegister());
+  locs->set_in(kDestPos, Location::RequiresRegister());
   locs->set_in(kSrcStartPos, LocationRegisterOrConstant(src_start()));
   locs->set_in(kDestStartPos, LocationRegisterOrConstant(dest_start()));
   locs->set_in(kLengthPos,
@@ -205,7 +209,7 @@ void MemoryCopyInstr::EmitUnrolledCopy(FlowGraphCompiler* compiler,
 
   if (mov_size == kMaxMemoryCopyElementSize) {
     RegList temp_regs = (1 << TMP);
-    for (intptr_t i = 0; i < locs()->temp_count(); i++) {
+    for (intptr_t i = kMemoryCopyPayloadTemps; i < locs()->temp_count(); i++) {
       temp_regs |= 1 << locs()->temp(i).reg();
     }
     auto block_mode = BlockAddressMode::IA_W;
@@ -358,7 +362,7 @@ void MemoryCopyInstr::EmitLoopCopy(FlowGraphCompiler* compiler,
       << (unboxed_inputs_ ? 0 : kSmiTagShift);
   // Used only for LDM/STM below.
   RegList temp_regs = (1 << TMP);
-  for (intptr_t i = 0; i < locs()->temp_count(); i++) {
+  for (intptr_t i = kMemoryCopyPayloadTemps; i < locs()->temp_count(); i++) {
     temp_regs |= 1 << locs()->temp(i).reg();
   }
   __ Comment("Copying by multiples of word size");
@@ -397,6 +401,7 @@ void MemoryCopyInstr::EmitLoopCopy(FlowGraphCompiler* compiler,
 void MemoryCopyInstr::EmitComputeStartPointer(FlowGraphCompiler* compiler,
                                               classid_t array_cid,
                                               Register array_reg,
+                                              Register payload_reg,
                                               Representation array_rep,
                                               Location start_loc) {
   intptr_t offset = 0;
@@ -431,18 +436,18 @@ void MemoryCopyInstr::EmitComputeStartPointer(FlowGraphCompiler* compiler,
     const int64_t start_value = Integer::Cast(constant).AsInt64Value();
     const intptr_t add_value = Utils::AddWithWrapAround(
         Utils::MulWithWrapAround<intptr_t>(start_value, element_size_), offset);
-    __ AddImmediate(array_reg, add_value);
+    __ AddImmediate(payload_reg, array_reg, add_value);
     return;
   }
-  __ AddImmediate(array_reg, offset);
   const Register start_reg = start_loc.reg();
   intptr_t shift = Utils::ShiftForPowerOfTwo(element_size_) -
                    (unboxed_inputs() ? 0 : kSmiTagShift);
   if (shift < 0) {
-    __ add(array_reg, array_reg, compiler::Operand(start_reg, ASR, -shift));
+    __ add(payload_reg, array_reg, compiler::Operand(start_reg, ASR, -shift));
   } else {
-    __ add(array_reg, array_reg, compiler::Operand(start_reg, LSL, shift));
+    __ add(payload_reg, array_reg, compiler::Operand(start_reg, LSL, shift));
   }
+  __ AddImmediate(payload_reg, offset);
 }
 
 LocationSummary* MoveArgumentInstr::MakeLocationSummary(Zone* zone,

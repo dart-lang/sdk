@@ -6943,12 +6943,6 @@ Instruction* MemoryCopyInstr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 void MemoryCopyInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Register src_reg = locs()->in(kSrcPos).reg();
-  const Register dest_reg = locs()->in(kDestPos).reg();
-  const Representation src_rep = src()->definition()->representation();
-  const Representation dest_rep = dest()->definition()->representation();
-  const Location& src_start_loc = locs()->in(kSrcStartPos);
-  const Location& dest_start_loc = locs()->in(kDestStartPos);
   const Location& length_loc = locs()->in(kLengthPos);
   // Note that for all architectures, constant_length is only true if
   // length() binds to a _small_ constant, so we can end up generating a loop
@@ -6962,9 +6956,29 @@ void MemoryCopyInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // The zero constant case should be handled via canonicalization.
   ASSERT(!constant_length || num_elements > 0);
 
-  EmitComputeStartPointer(compiler, src_cid_, src_reg, src_rep, src_start_loc);
-  EmitComputeStartPointer(compiler, dest_cid_, dest_reg, dest_rep,
-                          dest_start_loc);
+#if defined(TARGET_ARCH_IA32)
+  // We don't have enough registers to create temps for these, so we just
+  // define them to be the same as src_reg and dest_reg below.
+  const Register src_payload_reg = locs()->in(kSrcPos).reg();
+  const Register dest_payload_reg = locs()->in(kDestPos).reg();
+#else
+  const Register src_payload_reg = locs()->temp(0).reg();
+  const Register dest_payload_reg = locs()->temp(1).reg();
+#endif
+
+  {
+    const Register src_reg = locs()->in(kSrcPos).reg();
+    const Register dest_reg = locs()->in(kDestPos).reg();
+    const Representation src_rep = src()->definition()->representation();
+    const Representation dest_rep = dest()->definition()->representation();
+    const Location& src_start_loc = locs()->in(kSrcStartPos);
+    const Location& dest_start_loc = locs()->in(kDestStartPos);
+
+    EmitComputeStartPointer(compiler, src_cid_, src_reg, src_payload_reg,
+                            src_rep, src_start_loc);
+    EmitComputeStartPointer(compiler, dest_cid_, dest_reg, dest_payload_reg,
+                            dest_rep, dest_start_loc);
+  }
 
   compiler::Label copy_forwards, done;
   if (!constant_length) {
@@ -6976,7 +6990,7 @@ void MemoryCopyInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
   // Omit the reversed loop for possible overlap if copying a single element.
   if (can_overlap() && num_elements != 1) {
-    __ CompareRegisters(dest_reg, src_reg);
+    __ CompareRegisters(dest_payload_reg, src_payload_reg);
     // Both regions are the same size, so if there is an overlap, then either:
     //
     // * The destination region comes before the source, so copying from
@@ -6998,21 +7012,22 @@ void MemoryCopyInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ BranchIf(UNSIGNED_LESS_EQUAL, &copy_forwards, jump_distance);
     __ Comment("Copying backwards");
     if (constant_length) {
-      EmitUnrolledCopy(compiler, dest_reg, src_reg, num_elements,
-                       /*reversed=*/true);
+      EmitUnrolledCopy(compiler, dest_payload_reg, src_payload_reg,
+                       num_elements, /*reversed=*/true);
     } else {
-      EmitLoopCopy(compiler, dest_reg, src_reg, length_reg, &done,
-                   &copy_forwards);
+      EmitLoopCopy(compiler, dest_payload_reg, src_payload_reg, length_reg,
+                   &done, &copy_forwards);
     }
     __ Jump(&done, jump_distance);
     __ Comment("Copying forwards");
   }
   __ Bind(&copy_forwards);
   if (constant_length) {
-    EmitUnrolledCopy(compiler, dest_reg, src_reg, num_elements,
+    EmitUnrolledCopy(compiler, dest_payload_reg, src_payload_reg, num_elements,
                      /*reversed=*/false);
   } else {
-    EmitLoopCopy(compiler, dest_reg, src_reg, length_reg, &done);
+    EmitLoopCopy(compiler, dest_payload_reg, src_payload_reg, length_reg,
+                 &done);
   }
   __ Bind(&done);
 #if defined(TARGET_ARCH_IA32)

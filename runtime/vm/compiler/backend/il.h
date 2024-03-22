@@ -3194,7 +3194,7 @@ class MemoryCopyInstr : public TemplateInstruction<5, NoThrow> {
 #undef FIELD_LIST
 
  private:
-  // Set array_reg to point to the index indicated by start (contained in
+  // Set payload_reg to point to the index indicated by start (contained in
   // start_loc) of the typed data or string in array (contained in array_reg).
   // If array_rep is tagged, then the payload address is retrieved according
   // to array_cid, otherwise the register is assumed to already have the
@@ -3202,6 +3202,7 @@ class MemoryCopyInstr : public TemplateInstruction<5, NoThrow> {
   void EmitComputeStartPointer(FlowGraphCompiler* compiler,
                                classid_t array_cid,
                                Register array_reg,
+                               Register payload_reg,
                                Representation array_rep,
                                Location start_loc);
 
