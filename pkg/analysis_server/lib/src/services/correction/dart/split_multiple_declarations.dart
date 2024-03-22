@@ -34,6 +34,7 @@ class SplitMultipleDeclarations extends ResolvedCorrectionProducer {
     final hasMetadata = variableList.metadata.isNotEmpty;
 
     final parent = variableList.parent;
+    // TODO(sstasi95): consider fields
     final hasParentMetadata =
         (parent is TopLevelVariableDeclaration) && parent.metadata.isNotEmpty;
 
@@ -49,6 +50,10 @@ class SplitMultipleDeclarations extends ResolvedCorrectionProducer {
 
     final entities = variableList.childEntities
         .where((e) => e is KeywordToken || e is NamedType);
+    if (entities.isEmpty) {
+      return;
+    }
+
     final entitiesRange = range.startEnd(entities.first, entities.last);
     final keywordsAndType = utils.getRangeText(entitiesRange);
 
