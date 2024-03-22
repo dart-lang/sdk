@@ -73,8 +73,8 @@ class NativeType : public ZoneAllocated {
   static const NativeType& FromTypedDataClassId(Zone* zone, classid_t class_id);
 
 #if !defined(DART_PRECOMPILED_RUNTIME) && !defined(FFI_UNIT_TESTS)
-  static NativePrimitiveType& FromUnboxedRepresentation(Zone* zone,
-                                                        Representation rep);
+  static NativePrimitiveType& FromRepresentation(Zone* zone,
+                                                 Representation rep);
 #endif  // !defined(DART_PRECOMPILED_RUNTIME) && !defined(FFI_UNIT_TESTS)
 
   virtual bool IsPrimitive() const { return false; }
@@ -199,6 +199,16 @@ enum PrimitiveType {
   kVoid,
   // TODO(37470): Add packed data structures.
 };
+
+// Used for the type representation of kUntagged (Pointer, where the untagged
+// pointer in the data field is extracted by IL) and kTagged (Handle, turned
+// into untagged pointers to the stack during the FfiCall) values. Should
+// be kept consistent with the Representation kUnboxedAddress.
+#if defined(TARGET_ARCH_IS_32_BIT)
+constexpr PrimitiveType kAddress = kUint32;
+#else
+constexpr PrimitiveType kAddress = kInt64;
+#endif
 
 PrimitiveType PrimitiveTypeFromSizeInBytes(intptr_t size);
 
@@ -455,10 +465,10 @@ class NativeFunctionType : public ZoneAllocated {
         variadic_arguments_index_(variadic_arguments_index) {}
 
 #if !defined(DART_PRECOMPILED_RUNTIME) && !defined(FFI_UNIT_TESTS)
-  static const NativeFunctionType* FromUnboxedRepresentation(
+  static const NativeFunctionType* FromRepresentations(
       Zone* zone,
-      intptr_t num_arguments,
-      Representation representation);
+      Representation return_representation,
+      const ZoneGrowableArray<Representation>& argument_representations);
 #endif
 
   const NativeTypes& argument_types() const { return argument_types_; }

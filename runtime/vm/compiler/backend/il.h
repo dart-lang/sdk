@@ -5604,6 +5604,7 @@ class CachableIdempotentCallInstr : public TemplateDartCall<0> {
   // (Right now the inputs are eagerly pushed and therefore have to be also
   // poped on the fast path.)
   CachableIdempotentCallInstr(const InstructionSource& source,
+                              Representation representation,
                               const Function& function,
                               intptr_t type_args_len,
                               const Array& argument_names,
@@ -5614,9 +5615,13 @@ class CachableIdempotentCallInstr : public TemplateDartCall<0> {
                          argument_names,
                          std::move(arguments),
                          source),
+        representation_(representation),
         function_(function),
         identity_(AliasIdentity::Unknown()) {
     DEBUG_ASSERT(function.IsNotTemporaryScopedHandle());
+    // We use kUntagged for the internal use in FfiNativeLookupAddress
+    // and kUnboxedAddress for pragma-annotated functions.
+    ASSERT(representation == kUntagged || representation == kUnboxedAddress);
     ASSERT(AbstractType::Handle(function.result_type()).IsIntType());
     ASSERT(!function.IsNull());
 #if defined(TARGET_ARCH_IA32)
@@ -5656,11 +5661,7 @@ class CachableIdempotentCallInstr : public TemplateDartCall<0> {
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const;
 
-  virtual Representation representation() const {
-    // If other representations are supported in the future, the location
-    // summary needs to be updated as well to stay consistent with static calls.
-    return kUnboxedFfiIntPtr;
-  }
+  virtual Representation representation() const { return representation_; }
 
   virtual AliasIdentity Identity() const { return identity_; }
   virtual void SetIdentity(AliasIdentity identity) { identity_ = identity; }
@@ -5668,6 +5669,7 @@ class CachableIdempotentCallInstr : public TemplateDartCall<0> {
   PRINT_OPERANDS_TO_SUPPORT
 
 #define FIELD_LIST(F)                                                          \
+  F(const Representation, representation_)                                     \
   F(const Function&, function_)                                                \
   F(AliasIdentity, identity_)
 
@@ -6039,8 +6041,10 @@ class FfiCallInstr : public VariadicDefinition {
 // Has the target address in a register passed as the last input in IL.
 class CCallInstr : public VariadicDefinition {
  public:
-  CCallInstr(
-      const compiler::ffi::NativeCallingConvention& native_calling_convention,
+  static CCallInstr* Make(
+      Zone* zone,
+      Representation return_representation,
+      const ZoneGrowableArray<Representation>& argument_representations,
       InputsArray&& inputs);
 
   DECLARE_INSTRUCTION(CCall)
@@ -6050,7 +6054,7 @@ class CCallInstr : public VariadicDefinition {
 
   // Input index of the function pointer to invoke.
   intptr_t TargetAddressIndex() const {
-    return native_calling_convention_.argument_locations().length();
+    return argument_representations_.length();
   }
 
   virtual bool MayThrow() const { return false; }
@@ -6061,8 +6065,23 @@ class CCallInstr : public VariadicDefinition {
 
   virtual bool CanCallDart() const { return false; }
 
-  virtual Representation RequiredInputRepresentation(intptr_t idx) const;
-  virtual Representation representation() const;
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    if (idx < argument_representations_.length()) {
+      return argument_representations_.At(idx);
+    }
+    ASSERT_EQUAL(idx, TargetAddressIndex());
+    return kUntagged;
+  }
+
+  virtual Representation representation() const {
+    return return_representation_;
+  }
+
+  virtual CompileType ComputeType() const {
+    return RepresentationUtils::IsUnboxed(representation())
+               ? CompileType::FromUnboxedRepresentation(representation())
+               : CompileType::Object();
+  }
 
   void EmitParamMoves(FlowGraphCompiler* compiler,
                       Register saved_fp,
@@ -6070,15 +6089,20 @@ class CCallInstr : public VariadicDefinition {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F)                                                          \
-  F(const compiler::ffi::NativeCallingConvention&, native_calling_convention_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(CCallInstr,
-                                          VariadicDefinition,
-                                          FIELD_LIST)
-#undef FIELD_LIST
+  DECLARE_CUSTOM_SERIALIZATION(CCallInstr)
 
  private:
+  CCallInstr(
+      Representation return_representation,
+      const ZoneGrowableArray<Representation>& argument_representations,
+      const compiler::ffi::NativeCallingConvention& native_calling_convention,
+      InputsArray&& inputs);
+
+  // Serialized in the custom serializer.
+  const Representation return_representation_;
+  const ZoneGrowableArray<Representation>& argument_representations_;
+  // Not serialized.
+  const compiler::ffi::NativeCallingConvention& native_calling_convention_;
   DISALLOW_COPY_AND_ASSIGN(CCallInstr);
 };
 
@@ -6649,16 +6673,7 @@ class LoadIndexedInstr : public TemplateDefinition<2, NoThrow> {
     // The array may be tagged or untagged (for external arrays).
     if (idx == kArrayPos) return kNoRepresentation;
     ASSERT_EQUAL(idx, kIndexPos);
-
-    if (index_unboxed_) {
-#if defined(TARGET_ARCH_IS_64_BIT)
-      return kUnboxedInt64;
-#else
-      return kUnboxedUint32;
-#endif
-    } else {
-      return kTagged;  // Index is a smi.
-    }
+    return index_unboxed_ ? kUnboxedIntPtr : kTagged;
   }
 
   bool IsUntagged() const {
@@ -10782,10 +10797,9 @@ class IntConverterInstr : public TemplateDefinition<1, NoThrow, Pure> {
            from == kUnboxedInt32 || from == kUntagged);
     ASSERT(to == kUnboxedInt64 || to == kUnboxedUint32 || to == kUnboxedInt32 ||
            to == kUntagged);
-    ASSERT(from != kUntagged ||
-           (to == kUnboxedIntPtr || to == kUnboxedFfiIntPtr));
-    ASSERT(to != kUntagged ||
-           (from == kUnboxedIntPtr || from == kUnboxedFfiIntPtr));
+    ASSERT(from != kUntagged || to == kUnboxedIntPtr || to == kUnboxedAddress);
+    ASSERT(to != kUntagged || from == kUnboxedIntPtr ||
+           from == kUnboxedAddress);
     SetInputAt(0, value);
   }
 

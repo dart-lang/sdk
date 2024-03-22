@@ -404,25 +404,19 @@ Fragment BaseFlowGraphBuilder::LoadUntagged(intptr_t offset) {
   return Fragment(load);
 }
 
-Fragment BaseFlowGraphBuilder::ConvertUntaggedToUnboxed(
-    Representation to_representation) {
-  ASSERT(to_representation == kUnboxedIntPtr ||
-         to_representation == kUnboxedFfiIntPtr);
+Fragment BaseFlowGraphBuilder::ConvertUntaggedToUnboxed() {
   Value* value = Pop();
   auto converted = new (Z)
-      IntConverterInstr(kUntagged, to_representation, value, DeoptId::kNone);
+      IntConverterInstr(kUntagged, kUnboxedAddress, value, DeoptId::kNone);
   converted->mark_truncating();
   Push(converted);
   return Fragment(converted);
 }
 
-Fragment BaseFlowGraphBuilder::ConvertUnboxedToUntagged(
-    Representation from_representation) {
-  ASSERT(from_representation == kUnboxedIntPtr ||
-         from_representation == kUnboxedFfiIntPtr);
+Fragment BaseFlowGraphBuilder::ConvertUnboxedToUntagged() {
   Value* value = Pop();
   auto converted = new (Z)
-      IntConverterInstr(from_representation, kUntagged, value, DeoptId::kNone);
+      IntConverterInstr(kUnboxedAddress, kUntagged, value, DeoptId::kNone);
   converted->mark_truncating();
   Push(converted);
   return Fragment(converted);

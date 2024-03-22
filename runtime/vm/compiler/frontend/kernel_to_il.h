@@ -141,11 +141,10 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   // Resolves the address of a native symbol from the constant data of a
   // vm:ffi:native pragma.
   // Because it's used in optimized mode (as part of the implementation of
-  // @Native functions), it pushes the value as an unboxed value. This is safe
-  // to use in unoptimized mode too as long as the unboxed value is consumed
+  // @Native functions), it pushes the value as an untagged value. This is safe
+  // to use in unoptimized mode too as long as the untagged value is consumed
   // immediately.
   Fragment FfiNativeLookupAddress(const Instance& native);
-  Fragment FfiNativeLookupAddress(const Function& function);
   // Expects target address on stack.
   Fragment FfiCallFunctionBody(const Function& function,
                                const FunctionType& c_signature,
@@ -207,10 +206,10 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Fragment FfiCall(const compiler::ffi::CallMarshaller& marshaller,
                    bool is_leaf);
 
-  Fragment CCall(
-      const compiler::ffi::NativeCallingConvention& native_calling_convention);
-  Fragment CCall(intptr_t num_arguments,
-                 Representation representation = kUnboxedFfiIntPtr);
+  Fragment CallRuntimeEntry(
+      const RuntimeEntry& entry,
+      Representation return_representation,
+      const ZoneGrowableArray<Representation>& argument_representations);
 
   Fragment RethrowException(TokenPosition position, int catch_try_index);
   Fragment LoadLocal(LocalVariable* variable);
@@ -237,6 +236,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
                       intptr_t type_args_len = 0,
                       bool use_unchecked_entry = false);
   Fragment CachableIdempotentCall(TokenPosition position,
+                                  Representation representation,
                                   const Function& target,
                                   intptr_t argument_count,
                                   const Array& argument_names,
@@ -326,14 +326,6 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   // Compares arbitrary integers.
   Fragment IntRelationalOp(TokenPosition position, Token::Kind kind);
 
-  // Creates an ffi.Pointer holding a given address.
-  Fragment FfiPointerFromAddress();
-
-  // Pushes an (unboxed) bogus value returned when a native -> Dart callback
-  // throws an exception.
-  Fragment FfiExceptionalReturnValue(const AbstractType& result_type,
-                                     const Representation target);
-
   // Pops a Dart object and push the unboxed native version, according to the
   // semantics of FFI argument translation.
   //
@@ -397,24 +389,6 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
       ZoneGrowableArray<LocalVariable*>* definitions,
       const GrowableArray<Representation>& representations);
 
-  // Copies bytes from a TypedDataBase to the address of an kUnboxedFfiIntPtr.
-  Fragment CopyFromTypedDataBaseToUnboxedAddress(intptr_t length_in_bytes);
-
-  // Copies bytes from the address of an kUnboxedFfiIntPtr to a TypedDataBase.
-  Fragment CopyFromUnboxedAddressToTypedDataBase(intptr_t length_in_bytes);
-
-  // Generates a call to `Thread::EnterApiScope`.
-  Fragment EnterHandleScope();
-
-  // Generates a load of `Thread::api_top_scope`.
-  Fragment GetTopHandleScope();
-
-  // Generates a call to `Thread::ExitApiScope`.
-  Fragment ExitHandleScope();
-
-  // Leaves a `LocalHandle` on the stack.
-  Fragment AllocateHandle();
-
   // Loads a tagged value from an untagged base + offset from outside the heap.
   Fragment RawLoadField(int32_t offset);
 
@@ -422,12 +396,6 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   //
   // The store must be outside of the heap, does not emit a store barrier.
   Fragment RawStoreField(int32_t offset);
-
-  // Wraps an `Object` from the stack and leaves a `LocalHandle` on the stack.
-  Fragment WrapHandle();
-
-  // Unwraps a `LocalHandle` from the stack and leaves the object on the stack.
-  Fragment UnwrapHandle();
 
   // Wrap the current exception and stacktrace in an unhandled exception.
   Fragment UnhandledException();

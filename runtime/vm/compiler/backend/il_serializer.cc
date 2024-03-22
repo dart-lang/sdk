@@ -4,6 +4,7 @@
 
 #include "vm/compiler/backend/il_serializer.h"
 
+#include "vm/class_id.h"
 #include "vm/closure_functions_cache.h"
 #if defined(DART_PRECOMPILER)
 #include "vm/compiler/aot/precompiler.h"
@@ -1377,37 +1378,6 @@ MoveOperands::MoveOperands(FlowGraphDeserializer* d)
     : dest_(Location::Read(d)), src_(Location::Read(d)) {}
 
 template <>
-void FlowGraphSerializer::
-    WriteTrait<const compiler::ffi::NativeCallingConvention&>::Write(
-        FlowGraphSerializer* s,
-        const compiler::ffi::NativeCallingConvention& x) {
-  // A subset of NativeCallingConvention currently used by CCallInstr.
-  const auto& args = x.argument_locations();
-  for (intptr_t i = 0, n = args.length(); i < n; ++i) {
-    if (args.At(i)->payload_type().AsRepresentation() != kUnboxedFfiIntPtr) {
-      UNIMPLEMENTED();
-    }
-  }
-  if (x.return_location().payload_type().AsRepresentation() !=
-      kUnboxedFfiIntPtr) {
-    UNIMPLEMENTED();
-  }
-  s->Write<intptr_t>(args.length());
-}
-
-template <>
-const compiler::ffi::NativeCallingConvention& FlowGraphDeserializer::ReadTrait<
-    const compiler::ffi::NativeCallingConvention&>::Read(FlowGraphDeserializer*
-                                                             d) {
-  const intptr_t num_args = d->Read<intptr_t>();
-  const auto& native_function_type =
-      *compiler::ffi::NativeFunctionType::FromUnboxedRepresentation(
-          d->zone(), num_args, kUnboxedFfiIntPtr);
-  return compiler::ffi::NativeCallingConvention::FromSignature(
-      d->zone(), native_function_type);
-}
-
-template <>
 void FlowGraphSerializer::WriteTrait<const Object&>::Write(
     FlowGraphSerializer* s,
     const Object& x) {
@@ -2193,6 +2163,25 @@ PhiInstr::PhiInstr(FlowGraphDeserializer* d)
       representation_(d->Read<Representation>()),
       is_alive_(d->Read<bool>()),
       is_receiver_(d->Read<int8_t>()) {}
+
+void CCallInstr::WriteTo(FlowGraphSerializer* s) {
+  VariadicDefinition::WriteTo(s);
+  s->Write<Representation>(return_representation_);
+  s->Write<const ZoneGrowableArray<Representation>&>(argument_representations_);
+}
+
+CCallInstr::CCallInstr(FlowGraphDeserializer* d)
+    : VariadicDefinition(d),
+      return_representation_(d->Read<Representation>()),
+      argument_representations_(
+          d->Read<const ZoneGrowableArray<Representation>&>()),
+      native_calling_convention_(
+          compiler::ffi::NativeCallingConvention::FromSignature(
+              d->zone(),
+              *compiler::ffi::NativeFunctionType::FromRepresentations(
+                  d->zone(),
+                  return_representation_,
+                  argument_representations_))) {}
 
 template <>
 void FlowGraphSerializer::WriteTrait<Range*>::Write(FlowGraphSerializer* s,

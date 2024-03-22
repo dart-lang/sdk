@@ -3434,7 +3434,7 @@ Definition* IntConverterInstr::Canonicalize(FlowGraph* flow_graph) {
     auto src_defn = first_converter->value()->definition();
     if (intermediate_rep == kUntagged) {
       // Both conversions are no-ops, as the other representations must be
-      // either kUnboxedIntPtr or kUnboxedFfiIntPtr.
+      // kUnboxedIntPtr.
     } else if (!Range::Fits(src_defn->range(), intermediate_rep)) {
       return this;
     }
@@ -7283,14 +7283,20 @@ void BitCastInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 Representation FfiCallInstr::RequiredInputRepresentation(intptr_t idx) const {
   if (idx < TargetAddressIndex()) {
-    // All input handles are passed as Tagged values on the stack to
-    // FfiCallInstr, which passes "handles", i.e. pointers, to these.
+    // All input handles are passed as tagged values to FfiCallInstr and
+    // are given stack locations. FfiCallInstr then passes an untagged pointer
+    // to the handle on the stack (Dart_Handle) to the C function.
     if (marshaller_.IsHandle(marshaller_.ArgumentIndex(idx))) {
       return kTagged;
     }
     return marshaller_.RepInFfiCall(idx);
   } else if (idx == TargetAddressIndex()) {
-    return kUnboxedFfiIntPtr;
+#if defined(DEBUG)
+    auto const rep =
+        InputAt(TargetAddressIndex())->definition()->representation();
+    ASSERT(rep == kUntagged || rep == kUnboxedAddress);
+#endif
+    return kNoRepresentation;  // Allows kUntagged or kUnboxedAddress.
   } else {
     ASSERT(idx == CompoundReturnTypedDataIndex());
     return kTagged;
@@ -7338,12 +7344,8 @@ LocationSummary* FfiCallInstr::MakeLocationSummaryInternal(
 
   if (marshaller_.ReturnsCompound()) {
     summary->set_in(CompoundReturnTypedDataIndex(), Location::Any());
-    // We don't care about return location, but we need to pass a register.
-    summary->set_out(
-        0, Location::RegisterLocation(CallingConventions::kReturnReg));
-  } else {
-    summary->set_out(0, marshaller_.LocInFfiCall(compiler::ffi::kResultIndex));
   }
+  summary->set_out(0, marshaller_.LocInFfiCall(compiler::ffi::kResultIndex));
 
   return summary;
 }
@@ -7393,10 +7395,7 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
     for (intptr_t i = 0; i < num_defs; i++) {
       __ Comment("  def_index %" Pd, def_index);
       const Location origin = rebase.Rebase(locs()->in(def_index));
-      const Representation origin_rep =
-          RequiredInputRepresentation(def_index) == kTagged
-              ? kUnboxedFfiIntPtr  // When arg_target.IsPointerToMemory().
-              : RequiredInputRepresentation(def_index);
+      const Representation origin_rep = RequiredInputRepresentation(def_index);
 
       // Find the native location where this individual definition should be
       // moved to.
@@ -7418,11 +7417,13 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
                   origin.AsPairLocation()->At(1).IsConstant())) {
         // Note: half of the pair can be constant.
         __ Comment("origin.IsPairLocation() and constant");
+        ASSERT(!marshaller_.IsHandle(arg_index));
         compiler->EmitMoveConst(def_target, origin, origin_rep, &temp_alloc);
       } else if (marshaller_.IsHandle(arg_index)) {
         __ Comment("marshaller_.IsHandle(arg_index)");
         // Handles are passed into FfiCalls as Tagged values on the stack, and
         // then we pass pointers to these handles to the native function here.
+        ASSERT(origin_rep == kTagged);
         ASSERT(compiler::target::LocalHandle::ptr_offset() == 0);
         ASSERT(compiler::target::LocalHandle::InstanceSize() ==
                compiler::target::kWordSize);
@@ -7472,7 +7473,7 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
       const auto& pointer_loc =
           arg_target.AsPointerToMemory().pointer_location();
 
-      // TypedData/Pointer data pointed to in temp.
+      // TypedData data pointed to in temp.
       const auto& dst = compiler::ffi::NativeRegistersLocation(
           compiler->zone(), pointer_loc.payload_type(),
           pointer_loc.container_type(), temp0);
@@ -7520,10 +7521,8 @@ void FfiCallInstr::EmitReturnMoves(FlowGraphCompiler* compiler,
     const Location dst_loc = locs()->out(0);
     const Representation dst_type = representation();
     compiler->EmitMoveFromNative(dst_loc, dst_type, src, &no_temp);
-  } else if (returnLocation.IsPointerToMemory() ||
-             returnLocation.IsMultiple()) {
+  } else if (marshaller_.ReturnsCompound()) {
     ASSERT(returnLocation.payload_type().IsCompound());
-    ASSERT(marshaller_.ReturnsCompound());
 
     // Get the typed data pointer which we have pinned to a stack slot.
     const Location typed_data_loc = locs()->in(CompoundReturnTypedDataIndex());
@@ -7551,11 +7550,8 @@ void FfiCallInstr::EmitReturnMoves(FlowGraphCompiler* compiler,
       // TypedData in IL.
       const intptr_t sp_offset =
           marshaller_.PassByPointerStackOffset(compiler::ffi::kResultIndex);
-      for (intptr_t i = 0; i < marshaller_.CompoundReturnSizeInBytes();
-           i += compiler::target::kWordSize) {
-        __ LoadMemoryValue(temp1, SPREG, i + sp_offset);
-        __ StoreMemoryValue(temp1, temp0, i);
-      }
+      __ UnrolledMemCopy(temp0, 0, SPREG, sp_offset,
+                         marshaller_.CompoundReturnSizeInBytes(), temp1);
     } else {
       ASSERT(returnLocation.IsMultiple());
       // Copy to the struct from the native locations.
@@ -7900,6 +7896,11 @@ Representation FfiCallInstr::representation() const {
     // Don't care, we're discarding the value.
     return kTagged;
   }
+  if (marshaller_.IsHandle(compiler::ffi::kResultIndex)) {
+    // The call returns a Dart_Handle, from which we need to extract the
+    // tagged pointer using RawLoadField.
+    return kUntagged;
+  }
   return marshaller_.RepInFfiCall(compiler::ffi::kResultIndex);
 }
 
@@ -7952,26 +7953,33 @@ LocationSummary* CCallInstr::MakeLocationSummaryInternal(
 }
 
 CCallInstr::CCallInstr(
+    Representation return_representation,
+    const ZoneGrowableArray<Representation>& argument_representations,
     const compiler::ffi::NativeCallingConvention& native_calling_convention,
     InputsArray&& inputs)
     : VariadicDefinition(std::move(inputs), DeoptId::kNone),
+      return_representation_(return_representation),
+      argument_representations_(argument_representations),
       native_calling_convention_(native_calling_convention) {
-#ifdef DEBUG
-  const intptr_t num_inputs =
-      native_calling_convention.argument_locations().length() + 1;
-  ASSERT(num_inputs == InputCount());
+#if defined(DEBUG)
+  const intptr_t num_inputs = argument_representations.length() + 1;
+  ASSERT_EQUAL(InputCount(), num_inputs);
 #endif
 }
 
-Representation CCallInstr::RequiredInputRepresentation(intptr_t idx) const {
-  if (idx < native_calling_convention_.argument_locations().length()) {
-    const auto& argument_type =
-        native_calling_convention_.argument_locations().At(idx)->payload_type();
-    ASSERT(argument_type.IsExpressibleAsRepresentation());
-    return argument_type.AsRepresentation();
-  }
-  ASSERT(idx == TargetAddressIndex());
-  return kUnboxedFfiIntPtr;
+CCallInstr* CCallInstr::Make(
+    Zone* zone,
+    Representation return_representation,
+    const ZoneGrowableArray<Representation>& argument_representations,
+    InputsArray&& inputs) {
+  const auto& native_function_type =
+      *compiler::ffi::NativeFunctionType::FromRepresentations(
+          zone, return_representation, argument_representations);
+  const auto& native_calling_convention =
+      compiler::ffi::NativeCallingConvention::FromSignature(
+          zone, native_function_type);
+  return new (zone) CCallInstr(return_representation, argument_representations,
+                               native_calling_convention, std::move(inputs));
 }
 
 void CCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
@@ -8013,13 +8021,6 @@ void CCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
     }
   }
   __ Comment("EmitParamMovesEnd");
-}
-
-Representation CCallInstr::representation() const {
-  const auto& return_type =
-      native_calling_convention_.return_location().payload_type();
-  ASSERT(return_type.IsExpressibleAsRepresentation());
-  return return_type.AsRepresentation();
 }
 
 // SIMD

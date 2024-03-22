@@ -102,7 +102,6 @@ class NativeCallingConvention;
   V(LocationSummary*)                                                          \
   V(MoveOperands*)                                                             \
   V(const MoveSchedule*)                                                       \
-  V(const compiler::ffi::NativeCallingConvention&)                             \
   V(const Object&)                                                             \
   V(ParallelMoveInstr*)                                                        \
   V(PhiInstr*)                                                                 \

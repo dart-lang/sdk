@@ -1409,18 +1409,11 @@ void FfiCallInstr::PrintOperandsTo(BaseTextBuffer* f) const {
 }
 
 void CCallInstr::PrintOperandsTo(BaseTextBuffer* f) const {
-  f->AddString(" target_address=");
+  f->AddString("target_address=");
   InputAt(TargetAddressIndex())->PrintTo(f);
-
-  const auto& argument_locations =
-      native_calling_convention_.argument_locations();
-  for (intptr_t i = 0; i < argument_locations.length(); i++) {
-    const auto& arg_location = *argument_locations.At(i);
+  for (intptr_t i = 0, n = argument_representations_.length(); i < n; ++i) {
     f->AddString(", ");
     InputAt(i)->PrintTo(f);
-    f->AddString(" (@");
-    arg_location.PrintTo(f);
-    f->AddString(")");
   }
 }
 

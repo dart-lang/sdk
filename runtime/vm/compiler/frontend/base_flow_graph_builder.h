@@ -190,8 +190,8 @@ class BaseFlowGraphBuilder {
                        AlignmentType alignment = kAlignedAccess);
 
   Fragment LoadUntagged(intptr_t offset);
-  Fragment ConvertUntaggedToUnboxed(Representation to);
-  Fragment ConvertUnboxedToUntagged(Representation from);
+  Fragment ConvertUntaggedToUnboxed();
+  Fragment ConvertUnboxedToUntagged();
   Fragment FloatToDouble();
   Fragment DoubleToFloat();
 
