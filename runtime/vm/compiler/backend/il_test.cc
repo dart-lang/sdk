@@ -1085,11 +1085,16 @@ FlowGraph* SetupFfiFlowgraph(TestPipeline* pipeline,
                              FlowGraph::kValue);
 
     // Make an FfiCall based on ffi_trampoline that calls our native function.
-    auto* const ffi_call =
-        new (Z) FfiCallInstr(DeoptId::kNone, marshaller, is_leaf);
-    RELEASE_ASSERT(ffi_call->InputCount() == 1);
-    ffi_call->SetInputAt(ffi_call->TargetAddressIndex(),
-                         new (Z) Value(load_entry_point));
+    const intptr_t num_arguments =
+        FfiCallInstr::InputCountForMarshaller(marshaller);
+    RELEASE_ASSERT(num_arguments == 1);
+    InputsArray arguments(num_arguments);
+    arguments.Add(new (Z) Value(load_entry_point));
+    auto* const ffi_call = new (Z)
+        FfiCallInstr(DeoptId::kNone, marshaller, is_leaf, std::move(arguments));
+    RELEASE_ASSERT(
+        ffi_call->InputAt(ffi_call->TargetAddressIndex())->definition() ==
+        load_entry_point);
     flow_graph->InsertBefore(static_call, ffi_call, /*env=*/nullptr,
                              FlowGraph::kEffect);
 

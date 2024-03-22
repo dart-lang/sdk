@@ -441,6 +441,67 @@ void MemoryCopyInstr::EmitComputeStartPointer(FlowGraphCompiler* compiler,
   __ AddImmediate(payload_reg, offset);
 }
 
+LocationSummary* CalculateElementAddressInstr::MakeLocationSummary(
+    Zone* zone,
+    bool opt) const {
+  const intptr_t kNumInputs = 3;
+  const intptr_t kNumTemps = 0;
+  auto* const summary = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+
+  summary->set_in(kBasePos, Location::RequiresRegister());
+  summary->set_in(kIndexPos, Location::RequiresRegister());
+  // Only use a Smi constant for the index if multiplying it by the index
+  // scale would be an intx constant.
+  const intptr_t scale_shift = Utils::ShiftForPowerOfTwo(index_scale());
+  summary->set_in(
+      kIndexPos, LocationRegisterOrSmiConstant(index(), kMinIntX >> scale_shift,
+                                               kMaxIntX >> scale_shift));
+#if XLEN == 32
+  summary->set_in(kOffsetPos, LocationRegisterOrSmiConstant(offset()));
+#else
+  summary->set_in(kOffsetPos, LocationRegisterOrConstant(offset()));
+#endif
+  summary->set_out(0, Location::RequiresRegister());
+
+  return summary;
+}
+
+void CalculateElementAddressInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const Register base_reg = locs()->in(kBasePos).reg();
+  const Location& index_loc = locs()->in(kIndexPos);
+  const Location& offset_loc = locs()->in(kOffsetPos);
+  const Register result_reg = locs()->out(0).reg();
+
+  if (index_loc.IsConstant()) {
+    if (offset_loc.IsConstant()) {
+      ASSERT_EQUAL(Smi::Cast(index_loc.constant()).Value(), 0);
+      ASSERT(Integer::Cast(offset_loc.constant()).AsInt64Value() != 0);
+      // No index involved at all.
+      const intx_t offset_value =
+          Integer::Cast(offset_loc.constant()).AsInt64Value();
+      __ AddImmediate(result_reg, base_reg, offset_value);
+    } else {
+      __ add(result_reg, base_reg, offset_loc.reg());
+      // Don't need wrap-around as the index is constant only if multiplying
+      // it by the scale is an intx.
+      const intx_t scaled_index =
+          Smi::Cast(index_loc.constant()).Value() * index_scale();
+      __ AddImmediate(result_reg, scaled_index);
+    }
+  } else {
+    __ AddShifted(result_reg, base_reg, index_loc.reg(),
+                  Utils::ShiftForPowerOfTwo(index_scale()));
+    if (offset_loc.IsConstant()) {
+      const intx_t offset_value =
+          Integer::Cast(offset_loc.constant()).AsInt64Value();
+      __ AddImmediate(result_reg, offset_value);
+    } else {
+      __ AddRegisters(result_reg, offset_loc.reg());
+    }
+  }
+}
+
 LocationSummary* MoveArgumentInstr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
   const intptr_t kNumInputs = 1;

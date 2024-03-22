@@ -190,6 +190,7 @@ class BaseFlowGraphBuilder {
                        AlignmentType alignment = kAlignedAccess);
 
   Fragment LoadUntagged(intptr_t offset);
+  Fragment CalculateElementAddress(intptr_t index_scale);
   Fragment ConvertUntaggedToUnboxed();
   Fragment ConvertUnboxedToUntagged();
   Fragment FloatToDouble();

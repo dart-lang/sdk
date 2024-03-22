@@ -406,13 +406,11 @@ Fragment FlowGraphBuilder::FfiCall(
     bool is_leaf) {
   Fragment body;
 
-  FfiCallInstr* const call =
-      new (Z) FfiCallInstr(GetNextDeoptId(), marshaller, is_leaf);
-
-  for (intptr_t i = call->InputCount() - 1; i >= 0; --i) {
-    call->SetInputAt(i, Pop());
-  }
-
+  const intptr_t num_arguments =
+      FfiCallInstr::InputCountForMarshaller(marshaller);
+  InputsArray arguments = GetArguments(num_arguments);
+  FfiCallInstr* const call = new (Z)
+      FfiCallInstr(GetNextDeoptId(), marshaller, is_leaf, std::move(arguments));
   Push(call);
   body <<= call;
 
@@ -1868,7 +1866,15 @@ Fragment FlowGraphBuilder::BuildTypedDataViewFactoryConstructor(
       StoreNativeField(token_pos, Slot::TypedDataBase_length(),
                        StoreFieldInstr::Kind::kInitializing, kNoStoreBarrier);
 
-  // Update the inner pointer.
+  // First unbox the offset in bytes prior to the unsafe untagged load to avoid
+  // any boxes being inserted between the load and its use. While any such box
+  // is eventually canonicalized away, the FlowGraphChecker runs after every
+  // pass in DEBUG mode and may see the box before canonicalization happens.
+  body += LoadLocal(offset_in_bytes);
+  body += UnboxTruncate(kUnboxedIntPtr);
+  LocalVariable* unboxed_offset_in_bytes =
+      MakeTemporary("unboxed_offset_in_bytes");
+  // Now update the inner pointer.
   //
   // WARNING: Notice that we assume here no GC happens between the
   // LoadNativeField and the StoreNativeField, as the GC expects a properly
@@ -1877,14 +1883,13 @@ Fragment FlowGraphBuilder::BuildTypedDataViewFactoryConstructor(
   body += LoadLocal(typed_data);
   body += LoadNativeField(Slot::PointerBase_data(),
                           InnerPointerAccess::kMayBeInnerPointer);
-  body += ConvertUntaggedToUnboxed();
-  body += LoadLocal(offset_in_bytes);
-  body += UnboxTruncate(kUnboxedAddress);
-  body += BinaryIntegerOp(Token::kADD, kUnboxedAddress, /*is_truncating=*/true);
-  body += ConvertUnboxedToUntagged();
+  body += UnboxedIntConstant(0, kUnboxedIntPtr);
+  body += LoadLocal(unboxed_offset_in_bytes);
+  body += CalculateElementAddress(/*index_scale=*/1);
   body += StoreNativeField(Slot::PointerBase_data(),
                            InnerPointerAccess::kMayBeInnerPointer,
                            StoreFieldInstr::Kind::kInitializing);
+  body += DropTemporary(&unboxed_offset_in_bytes);
 
   return body;
 }
@@ -2053,43 +2058,50 @@ Fragment FlowGraphBuilder::BuildTypedDataMemMove(const Function& function,
   const intptr_t element_size = Instance::ElementSizeFor(cid);
   auto* const arg_reps =
       new (zone_) ZoneGrowableArray<Representation>(zone_, 3);
+  // First unbox the arguments to avoid any boxes being inserted between unsafe
+  // untagged loads and their uses. Also adjust the length to be in bytes, since
+  // that's what memmove expects.
+  call_memmove += LoadLocal(arg_to_start);
+  call_memmove += UnboxTruncate(kUnboxedIntPtr);
+  LocalVariable* to_start_unboxed = MakeTemporary("to_start_unboxed");
+  call_memmove += LoadLocal(arg_from_start);
+  call_memmove += UnboxTruncate(kUnboxedIntPtr);
+  LocalVariable* from_start_unboxed = MakeTemporary("from_start_unboxed");
+  // Used for length in bytes calculations, since memmove expects a size_t.
+  const Representation size_rep = kUnboxedUword;
+  call_memmove += LoadLocal(arg_count);
+  call_memmove += UnboxTruncate(size_rep);
+  call_memmove += UnboxedIntConstant(element_size, size_rep);
+  call_memmove +=
+      BinaryIntegerOp(Token::kMUL, size_rep, /*is_truncating=*/true);
+  LocalVariable* length_in_bytes = MakeTemporary("length_in_bytes");
   // dest: void*
   call_memmove += LoadLocal(arg_to);
   call_memmove += LoadNativeField(Slot::PointerBase_data(),
                                   InnerPointerAccess::kMayBeInnerPointer);
-  call_memmove += ConvertUntaggedToUnboxed();
-  call_memmove += LoadLocal(arg_to_start);
-  call_memmove += IntConstant(element_size);
-  call_memmove += SmiBinaryOp(Token::kMUL, /*is_truncating=*/true);
-  call_memmove += UnboxTruncate(kUnboxedAddress);
-  call_memmove +=
-      BinaryIntegerOp(Token::kADD, kUnboxedAddress, /*is_truncating=*/true);
-  call_memmove += ConvertUnboxedToUntagged();
+  call_memmove += LoadLocal(to_start_unboxed);
+  call_memmove += UnboxedIntConstant(0, kUnboxedIntPtr);
+  call_memmove += CalculateElementAddress(element_size);
   arg_reps->Add(kUntagged);
   // src: const void*
   call_memmove += LoadLocal(arg_from);
   call_memmove += LoadNativeField(Slot::PointerBase_data(),
                                   InnerPointerAccess::kMayBeInnerPointer);
-  call_memmove += ConvertUntaggedToUnboxed();
-  call_memmove += LoadLocal(arg_from_start);
-  call_memmove += IntConstant(element_size);
-  call_memmove += SmiBinaryOp(Token::kMUL, /*is_truncating=*/true);
-  call_memmove += UnboxTruncate(kUnboxedAddress);
-  call_memmove +=
-      BinaryIntegerOp(Token::kADD, kUnboxedAddress, /*is_truncating=*/true);
-  call_memmove += ConvertUnboxedToUntagged();
+  call_memmove += LoadLocal(from_start_unboxed);
+  call_memmove += UnboxedIntConstant(0, kUnboxedIntPtr);
+  call_memmove += CalculateElementAddress(element_size);
   arg_reps->Add(kUntagged);
   // n: size_t
-  call_memmove += LoadLocal(arg_count);
-  call_memmove += IntConstant(element_size);
-  call_memmove += SmiBinaryOp(Token::kMUL, /*is_truncating=*/true);
-  call_memmove += UnboxTruncate(kUnboxedUword);
-  arg_reps->Add(kUnboxedUword);
+  call_memmove += LoadLocal(length_in_bytes);
+  arg_reps->Add(size_rep);
   // memmove(dest, src, n)
   call_memmove +=
       CallRuntimeEntry(kMemoryMoveRuntimeEntry, kUntagged, *arg_reps);
   // The returned address is unused.
   call_memmove += Drop();
+  call_memmove += DropTemporary(&length_in_bytes);
+  call_memmove += DropTemporary(&from_start_unboxed);
+  call_memmove += DropTemporary(&to_start_unboxed);
   call_memmove += Goto(done);
 
   body.current = done;

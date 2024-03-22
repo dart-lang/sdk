@@ -1100,7 +1100,7 @@ class AliasedSet : public ZoneAllocated {
     for (Value* use = defn->input_use_list(); use != nullptr;
          use = use->next_use()) {
       Instruction* instr = use->instruction();
-      if (instr->HasUnknownSideEffects() || instr->IsLoadUntagged() ||
+      if (instr->HasUnknownSideEffects() ||
           (instr->IsLoadField() &&
            instr->AsLoadField()->MayCreateUntaggedAlias()) ||
           (instr->IsStoreIndexed() &&
@@ -1398,9 +1398,12 @@ static AliasedSet* NumberPlaces(FlowGraph* graph,
 
 // Load instructions handled by load elimination.
 static bool IsLoadEliminationCandidate(Instruction* instr) {
-  return (instr->IsLoadField() && instr->AsLoadField()->loads_inner_pointer() !=
-                                      InnerPointerAccess::kMayBeInnerPointer) ||
-         instr->IsLoadIndexed() || instr->IsLoadStaticField();
+  if (instr->IsDefinition() &&
+      instr->AsDefinition()->MayCreateUnsafeUntaggedPointer()) {
+    return false;
+  }
+  return instr->IsLoadField() || instr->IsLoadIndexed() ||
+         instr->IsLoadStaticField();
 }
 
 static bool IsLoopInvariantLoad(ZoneGrowableArray<BitVector*>* sets,
@@ -3769,6 +3772,25 @@ MaterializeObjectInstr* AllocationSinking::MaterializationFor(
   return nullptr;
 }
 
+static InnerPointerAccess AccessForSlotInAllocatedObject(Definition* alloc,
+                                                         const Slot& slot) {
+  if (slot.representation() != kUntagged) {
+    return InnerPointerAccess::kNotUntagged;
+  }
+  if (!slot.may_contain_inner_pointer()) {
+    return InnerPointerAccess::kCannotBeInnerPointer;
+  }
+  if (slot.IsIdentical(Slot::PointerBase_data())) {
+    // The data field of external arrays is not unsafe, as it never contains
+    // a GC-movable address.
+    if (alloc->IsAllocateObject() &&
+        IsExternalPayloadClassId(alloc->AsAllocateObject()->cls().id())) {
+      return InnerPointerAccess::kCannotBeInnerPointer;
+    }
+  }
+  return InnerPointerAccess::kMayBeInnerPointer;
+}
+
 // Insert MaterializeObject instruction for the given allocation before
 // the given instruction that can deoptimize.
 void AllocationSinking::CreateMaterializationAt(
@@ -3806,23 +3828,10 @@ void AllocationSinking::CreateMaterializationAt(
           /*index_scale=*/compiler::target::Instance::ElementSizeFor(array_cid),
           array_cid, kAlignedAccess, DeoptId::kNone, alloc->source());
     } else {
-      auto loads_inner_pointer =
-          slot->representation() != kUntagged ? InnerPointerAccess::kNotUntagged
-          : slot->may_contain_inner_pointer()
-              ? InnerPointerAccess::kMayBeInnerPointer
-              : InnerPointerAccess::kCannotBeInnerPointer;
-      // PointerBase.data loads for external typed data and pointers never
-      // access an inner pointer.
-      if (slot->IsIdentical(Slot::PointerBase_data())) {
-        if (auto* const alloc_obj = alloc->AsAllocateObject()) {
-          const classid_t cid = alloc_obj->cls().id();
-          if (cid == kPointerCid || IsExternalTypedDataClassId(cid)) {
-            loads_inner_pointer = InnerPointerAccess::kCannotBeInnerPointer;
-          }
-        }
-      }
-      load = new (Z) LoadFieldInstr(new (Z) Value(alloc), *slot,
-                                    loads_inner_pointer, alloc->source());
+      InnerPointerAccess access = AccessForSlotInAllocatedObject(alloc, *slot);
+      ASSERT(access != InnerPointerAccess::kMayBeInnerPointer);
+      load = new (Z)
+          LoadFieldInstr(new (Z) Value(alloc), *slot, access, alloc->source());
     }
     flow_graph_->InsertBefore(load_point, load, nullptr, FlowGraph::kValue);
     values.Add(new (Z) Value(load));
@@ -3940,6 +3949,14 @@ void AllocationSinking::ExitsCollector::CollectTransitively(Definition* alloc) {
   }
 }
 
+static bool IsDataFieldOfTypedDataView(Definition* alloc, const Slot& slot) {
+  if (!slot.IsIdentical(Slot::PointerBase_data())) return false;
+  // Internal typed data objects use AllocateTypedData.
+  if (!alloc->IsAllocateObject()) return false;
+  auto const cid = alloc->AsAllocateObject()->cls().id();
+  return IsTypedDataViewClassId(cid) || IsUnmodifiableTypedDataViewClassId(cid);
+}
+
 void AllocationSinking::InsertMaterializations(Definition* alloc) {
   // Collect all fields and array elements that are written for this instance.
   auto slots = new (Z) ZoneGrowableArray<const Slot*>(5);
@@ -3950,7 +3967,11 @@ void AllocationSinking::InsertMaterializations(Definition* alloc) {
       // Allocation instructions cannot be used in as inputs to themselves.
       ASSERT(!use->instruction()->AsAllocation());
       if (auto store = use->instruction()->AsStoreField()) {
-        AddSlot(slots, store->slot());
+        // Only add the data field slot for external arrays. For views, it is
+        // recomputed using the other fields in DeferredObject::Fill().
+        if (!IsDataFieldOfTypedDataView(alloc, store->slot())) {
+          AddSlot(slots, store->slot());
+        }
       } else if (auto store = use->instruction()->AsStoreIndexed()) {
         const intptr_t index = store->index()->BoundSmiConstant();
         intptr_t offset = -1;

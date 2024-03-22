@@ -1039,6 +1039,11 @@ void LoadUntaggedInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   f->Printf(", %" Pd, offset());
 }
 
+void CalculateElementAddressInstr::PrintOperandsTo(BaseTextBuffer* f) const {
+  Definition::PrintOperandsTo(f);
+  f->Printf(", index_scale=%" Pd "", index_scale());
+}
+
 void InstantiateTypeInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   const String& type_name = String::Handle(type().Name());
   f->Printf("%s,", type_name.ToCString());

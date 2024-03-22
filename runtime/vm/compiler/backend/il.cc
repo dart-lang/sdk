@@ -2823,19 +2823,30 @@ bool LoadFieldInstr::TryEvaluateLoad(const Object& instance,
 }
 
 bool LoadFieldInstr::MayCreateUntaggedAlias() const {
-  // If the load is guaranteed to never retrieve a GC-moveable address,
-  // then the returned address can't alias the (GC-moveable) instance.
-  if (loads_inner_pointer() != InnerPointerAccess::kMayBeInnerPointer) {
+  if (!MayCreateUnsafeUntaggedPointer()) {
+    // If the load is guaranteed to never retrieve a GC-moveable address,
+    // then the returned address can't alias the (GC-moveable) instance.
     return false;
   }
   if (slot().IsIdentical(Slot::PointerBase_data())) {
-    // If we know statically that the instance is a Pointer, typed data view,
-    // or external typed data, then the data field doesn't alias the instance.
+    // If we know statically that the instance is a typed data view, then the
+    // data field doesn't alias the instance (but some other typed data object).
     const intptr_t cid = instance()->Type()->ToNullableCid();
-    if (cid == kPointerCid) return false;
-    if (IsTypedDataViewClassId(cid)) return false;
     if (IsUnmodifiableTypedDataViewClassId(cid)) return false;
-    if (IsExternalTypedDataClassId(cid)) return false;
+    if (IsTypedDataViewClassId(cid)) return false;
+  }
+  return true;
+}
+
+bool LoadFieldInstr::MayCreateUnsafeUntaggedPointer() const {
+  if (loads_inner_pointer() != InnerPointerAccess::kMayBeInnerPointer) {
+    // The load is guaranteed to never retrieve a GC-moveable address.
+    return false;
+  }
+  if (slot().IsIdentical(Slot::PointerBase_data())) {
+    // If we know statically that the instance is an external array, then
+    // the load retrieves a pointer to external memory.
+    return !IsExternalPayloadClassId(instance()->Type()->ToNullableCid());
   }
   return true;
 }
@@ -3746,6 +3757,31 @@ Definition* EqualityCompareInstr::Canonicalize(FlowGraph* flow_graph) {
   return this;
 }
 
+Definition* CalculateElementAddressInstr::Canonicalize(FlowGraph* flow_graph) {
+  if (index()->BindsToSmiConstant() && offset()->BindsToSmiConstant()) {
+    const intptr_t offset_in_bytes = Utils::AddWithWrapAround(
+        Utils::MulWithWrapAround<intptr_t>(index()->BoundSmiConstant(),
+                                           index_scale()),
+        offset()->BoundSmiConstant());
+
+    if (offset_in_bytes == 0) return base()->definition();
+
+    if (compiler::target::IsSmi(offset_in_bytes)) {
+      auto* const Z = flow_graph->zone();
+      auto* const new_adjust = new (Z) CalculateElementAddressInstr(
+          base()->CopyWithType(Z),
+          new (Z) Value(
+              flow_graph->GetConstant(Object::smi_zero(), kUnboxedIntPtr)),
+          /*index_scale=*/1,
+          new (Z) Value(flow_graph->GetConstant(
+              Smi::Handle(Smi::New(offset_in_bytes)), kUnboxedIntPtr)));
+      flow_graph->InsertBefore(this, new_adjust, env(), FlowGraph::kValue);
+      return new_adjust;
+    }
+  }
+  return this;
+}
+
 Instruction* CheckClassInstr::Canonicalize(FlowGraph* flow_graph) {
   const intptr_t value_cid = value()->Type()->ToCid();
   if (value_cid == kDynamicCid) {
@@ -4567,12 +4603,8 @@ LocationSummary* LoadUntaggedInstr::MakeLocationSummary(Zone* zone,
 void LoadUntaggedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register obj = locs()->in(0).reg();
   Register result = locs()->out(0).reg();
-  if (object()->definition()->representation() == kUntagged) {
-    __ LoadFromOffset(result, obj, offset());
-  } else {
-    ASSERT(object()->definition()->representation() == kTagged);
-    __ LoadFieldFromOffset(result, obj, offset());
-  }
+  ASSERT(object()->definition()->representation() == kUntagged);
+  __ LoadFromOffset(result, obj, offset());
 }
 
 LocationSummary* LoadFieldInstr::MakeLocationSummary(Zone* zone,
@@ -5884,6 +5916,36 @@ void StaticCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                ArgumentAt(0));
     }
   }
+}
+
+CachableIdempotentCallInstr::CachableIdempotentCallInstr(
+    const InstructionSource& source,
+    Representation representation,
+    const Function& function,
+    intptr_t type_args_len,
+    const Array& argument_names,
+    InputsArray&& arguments,
+    intptr_t deopt_id)
+    : TemplateDartCall(deopt_id,
+                       type_args_len,
+                       argument_names,
+                       std::move(arguments),
+                       source),
+      representation_(representation),
+      function_(function),
+      identity_(AliasIdentity::Unknown()) {
+  DEBUG_ASSERT(function.IsNotTemporaryScopedHandle());
+  // We use kUntagged for the internal use in FfiNativeLookupAddress
+  // and kUnboxedAddress for pragma-annotated functions.
+  ASSERT(representation == kUnboxedAddress ||
+         function.ptr() ==
+             IsolateGroup::Current()->object_store()->ffi_resolver_function());
+  ASSERT(AbstractType::Handle(function.result_type()).IsIntType());
+  ASSERT(!function.IsNull());
+#if defined(TARGET_ARCH_IA32)
+  // No pool to cache in on IA32.
+  FATAL("Not supported on IA32.");
+#endif
 }
 
 Representation CachableIdempotentCallInstr::RequiredInputRepresentation(
@@ -7964,6 +8026,10 @@ CCallInstr::CCallInstr(
 #if defined(DEBUG)
   const intptr_t num_inputs = argument_representations.length() + 1;
   ASSERT_EQUAL(InputCount(), num_inputs);
+  // The target address should never be an unsafe untagged pointer.
+  ASSERT(!InputAt(TargetAddressIndex())
+              ->definition()
+              ->MayCreateUnsafeUntaggedPointer());
 #endif
 }
 

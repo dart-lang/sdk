@@ -978,6 +978,11 @@ void ConstantPropagator::VisitLoadUntagged(LoadUntaggedInstr* instr) {
   SetValue(instr, non_constant_);
 }
 
+void ConstantPropagator::VisitCalculateElementAddress(
+    CalculateElementAddressInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
 void ConstantPropagator::VisitLoadClassId(LoadClassIdInstr* instr) {
   // This first part duplicates the work done in LoadClassIdInstr::Canonicalize,
   // which replaces uses of LoadClassIdInstr where the object has a concrete

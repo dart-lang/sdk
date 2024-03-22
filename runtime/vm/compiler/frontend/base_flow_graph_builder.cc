@@ -422,6 +422,16 @@ Fragment BaseFlowGraphBuilder::ConvertUnboxedToUntagged() {
   return Fragment(converted);
 }
 
+Fragment BaseFlowGraphBuilder::CalculateElementAddress(intptr_t index_scale) {
+  Value* offset = Pop();
+  Value* index = Pop();
+  Value* base = Pop();
+  auto adjust =
+      new (Z) CalculateElementAddressInstr(base, index, index_scale, offset);
+  Push(adjust);
+  return Fragment(adjust);
+}
+
 Fragment BaseFlowGraphBuilder::FloatToDouble() {
   Value* value = Pop();
   FloatToDoubleInstr* instr = new FloatToDoubleInstr(value, DeoptId::kNone);
