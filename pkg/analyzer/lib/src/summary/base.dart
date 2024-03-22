@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Base functionality which code generated summary classes are built upon.
-library analyzer.src.summary.base;
+library;
 
 /// Annotation used in the summary IDL to indicate the id of a field.  The set
 /// of ids used by a class must cover the contiguous range from 0 to N-1, where
