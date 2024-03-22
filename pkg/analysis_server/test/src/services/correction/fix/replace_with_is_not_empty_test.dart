@@ -74,4 +74,14 @@ f(List c) {
 }
 ''');
   }
+
+  /// https://github.com/dart-lang/sdk/issues/55250
+  Future<void> test_nullableList() async {
+    await resolveTestCode('''
+f(List? c) {
+  if (c?.length != 0) {}
+}
+''');
+    await assertNoFix();
+  }
 }
