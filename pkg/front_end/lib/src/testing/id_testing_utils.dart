@@ -481,9 +481,9 @@ class ConstantToTextVisitor implements ConstantVisitor<void> {
             sb.write(' ');
           }
         }
-        TypeParameter typeParameter = node.parameters[i];
-        sb.write(typeParameter.name);
-        DartType bound = typeParameter.bound;
+        StructuralParameter structuralParameter = node.parameters[i];
+        sb.write(structuralParameter.name);
+        DartType bound = structuralParameter.bound;
         if (!(bound is InterfaceType && bound.classNode.name == 'Object')) {
           sb.write(' extends ');
           typeToText.visit(bound);

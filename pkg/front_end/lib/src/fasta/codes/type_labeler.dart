@@ -492,7 +492,7 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
     if (node.parameters.isNotEmpty) {
       result.add("<");
       bool first = true;
-      for (TypeParameter param in node.parameters) {
+      for (StructuralParameter param in node.parameters) {
         if (!first) result.add(", ");
         result.add(param.name ?? '');
         if (isObject(param.bound) && param.defaultType is DynamicType) {

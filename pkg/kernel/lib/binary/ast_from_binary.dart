@@ -511,7 +511,8 @@ class BinaryBuilder {
   }
 
   Constant _readTypedefTearOffConstant() {
-    final List<TypeParameter> parameters = readAndPushTypeParameterList();
+    final List<StructuralParameter> parameters =
+        readAndPushStructuralParameterList();
     final TearOffConstant tearOffConstant =
         readConstantReference() as TearOffConstant;
     final List<DartType> types = readDartTypeList();
@@ -2489,11 +2490,12 @@ class BinaryBuilder {
 
   Expression _readTypedefTearOff() {
     int offset = readOffset();
-    List<TypeParameter> typeParameters = readAndPushTypeParameterList();
+    List<StructuralParameter> structuralParameters =
+        readAndPushStructuralParameterList();
     Expression expression = readExpression();
     List<DartType> typeArguments = readDartTypeList();
-    typeParameterStack.length -= typeParameters.length;
-    return new TypedefTearOff(typeParameters, expression, typeArguments)
+    typeParameterStack.length -= structuralParameters.length;
+    return new TypedefTearOff(structuralParameters, expression, typeArguments)
       ..fileOffset = offset;
   }
 
