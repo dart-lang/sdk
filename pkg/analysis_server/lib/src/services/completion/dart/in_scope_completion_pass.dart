@@ -2338,6 +2338,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitSwitchPatternCase(SwitchPatternCase node) {
+    var coveringNode = state.selection.coveringNode;
+
     if (offset <= node.keyword.end) {
       keywordHelper.addKeyword(Keyword.CASE);
     } else if (offset <= node.colon.offset) {
@@ -2347,6 +2349,39 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
           collector.completionLocation = 'ObjectPattern_type';
           type.accept(this);
           return;
+        }
+      }
+
+      // `case ^ y:`
+      // The user want a type for incomplete DeclaredVariablePattern.
+      var pattern = node.guardedPattern.pattern;
+      if (pattern is ConstantPattern) {
+        if (pattern.expression case SimpleIdentifier identifier) {
+          if (!identifier.isSynthetic && offset < identifier.offset) {
+            state.request.opType.includeConstructorSuggestions = false;
+            state.request.opType.mustBeConst = true;
+            declarationHelper(
+              mustBeType: true,
+            ).addLexicalDeclarations(node);
+            return;
+          }
+        }
+      }
+
+      // DeclaredVariablePattern `case Name^ y:`
+      // ObjectPattern `case Name^(): `
+      if (coveringNode case NamedType type) {
+        switch (type.parent) {
+          case DeclaredVariablePattern():
+            collector.completionLocation = 'DeclaredVariablePattern_type';
+            state.request.opType.includeConstructorSuggestions = false;
+            type.accept(this);
+            return;
+          case ObjectPattern():
+            collector.completionLocation = 'ObjectPattern_type';
+            state.request.opType.includeConstructorSuggestions = false;
+            type.accept(this);
+            return;
         }
       }
 
