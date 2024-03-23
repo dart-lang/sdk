@@ -7,6 +7,7 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -33,6 +34,12 @@ class ReplaceWithIsEmpty extends ResolvedCorrectionProducer {
     var binary = _binary;
     var replacement = _replacement;
     if (binary == null || replacement == null) {
+      return;
+    }
+
+    // Skip nullable targets.
+    if (replacement.lengthTarget.staticType?.nullabilitySuffix ==
+        NullabilitySuffix.question) {
       return;
     }
 

@@ -1552,6 +1552,35 @@ suggestions
   }
 
   Future<void>
+      test_afterLeftBrace_beforeRightBrace_classGetterShadowsTopLevelGetter() async {
+    newFile('$testPackageLibPath/a.dart', '''
+int get m0 => 1;
+
+void set m0(int i) {}
+''');
+    printerConfiguration.withDeclaringType = true;
+    await computeSuggestions('''
+import 'a.dart';
+
+class A {
+  int get m0 => 1;
+
+  void f() {
+    m^;
+  }
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  m0
+    kind: getter
+    declaringType: A
+''');
+  }
+
+  Future<void>
       test_afterLeftBrace_beforeRightBrace_macroGenerated_generatedClass() async {
     addMacros([declareInLibraryMacro()]);
     await computeSuggestions('''
@@ -1892,33 +1921,6 @@ suggestions
     kind: keyword
   yield*
     kind: keyword
-''');
-  }
-
-  Future<void> test_afterLeftBrace_beforeRightBrace_withShadow() async {
-    allowedIdentifiers = {'exitCode'};
-    newFile('$testPackageLibPath/a.dart', '''
-int get exitCode => 1;
-
-void set exitCode(int i){}
-''');
-    await computeSuggestions('''
-import 'a.dart';
-
-class A {
-  int get exitCode => 1;
-
-  void f() {
-    exi^;
-  }
-}
-''');
-    assertResponse(r'''
-replacement
-  left: 3
-suggestions
-  exitCode
-    kind: getter
 ''');
   }
 }
