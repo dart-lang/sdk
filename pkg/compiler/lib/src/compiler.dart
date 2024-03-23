@@ -7,7 +7,6 @@ library dart2js.compiler_base;
 import 'dart:async' show Future;
 import 'dart:convert' show jsonEncode;
 
-import 'package:compiler/src/serialization/indexed_sink_source.dart';
 import 'package:compiler/src/universe/use.dart' show StaticUse;
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 import 'package:kernel/ast.dart' as ir;
@@ -656,13 +655,17 @@ class Compiler {
     GlobalTypeInferenceResults? globalTypeInferenceResultsForDumpInfo;
     AbstractValueDomain? abstractValueDomainForDumpInfo;
     OutputUnitData? outputUnitDataForDumpInfo;
-    if (options.dumpInfoWriteUri != null ||
-        options.dumpInfoReadUri != null ||
-        options.dumpInfo) {
+    DataSinkWriter? sinkForDumpInfo;
+    if (options.dumpInfoReadUri != null || options.dumpInfo) {
       globalTypeInferenceResultsForDumpInfo = globalTypeInferenceResults;
       abstractValueDomainForDumpInfo = closedWorld.abstractValueDomain;
       outputUnitDataForDumpInfo = closedWorld.outputUnitData;
       indicesForDumpInfo = indices;
+    }
+    if (options.dumpInfoWriteUri != null) {
+      sinkForDumpInfo = serializationTask.dataSinkWriterForDumpInfo(
+          closedWorld.abstractValueDomain, indices);
+      dumpInfoRegistry.registerDataSinkWriter(sinkForDumpInfo);
     }
 
     // Run codegen.
@@ -691,13 +694,10 @@ class Compiler {
             dumpInfoRegistry,
             codegenResults,
             programSize);
-        dumpInfoRegistry.clear();
+        dumpInfoRegistry.close();
         if (options.dumpInfoWriteUri != null) {
-          serializationTask.serializeDumpInfoProgramData(
-              backendStrategy,
-              dumpInfoData,
-              abstractValueDomainForDumpInfo!,
-              indicesForDumpInfo!);
+          serializationTask.serializeDumpInfoProgramData(sinkForDumpInfo!,
+              backendStrategy, dumpInfoData, dumpInfoRegistry);
         } else {
           await runDumpInfo(codegenResults,
               globalTypeInferenceResultsForDumpInfo!, dumpInfoData);

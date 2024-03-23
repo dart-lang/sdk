@@ -6,7 +6,7 @@
 /// Ultimately we should consider carefully when we use RegExps where a simple
 /// loop would do (and would do so far more performantly).
 /// See: https://github.com/dart-lang/linter/issues/1828
-library ascii_utils;
+library;
 
 import 'charcodes.dart';
 

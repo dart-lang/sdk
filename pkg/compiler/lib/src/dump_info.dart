@@ -41,7 +41,7 @@ import 'universe/world_impact.dart' show WorldImpact;
 ///
 /// This registry collects data while JS is being emitted and stores it to be
 /// processed by and used in the dump info stage. Since it holds references to
-/// AST nodes it should be cleared with [DumpInfoJsAstRegistry.clear] as soon
+/// AST nodes it should be cleared with [DumpInfoJsAstRegistry.close] as soon
 /// as the necessary data for it is extracted.
 ///
 /// See [DumpInfoProgramData.fromEmitterResults] for how this data is processed.
@@ -67,6 +67,8 @@ class DumpInfoJsAstRegistry {
   final Map<jsAst.Node, ConstantValue> _constantRegistry = {};
   final Map<jsAst.Node, List<Entity>> _entityRegistry = {};
   final List<CodeSpan> _stack = [];
+  DataSinkWriter? _dataSinkWriter;
+  int _impactCount = 0;
 
   DumpInfoJsAstRegistry(this.options)
       : _disabled = !options.dumpInfo && options.dumpInfoWriteUri == null;
@@ -87,11 +89,23 @@ class DumpInfoJsAstRegistry {
     _constantRegistry[code] = constant;
   }
 
+  void registerDataSinkWriter(DataSinkWriter dataSinkWriter) {
+    _dataSinkWriter = dataSinkWriter..startDeferrable();
+  }
+
   void registerImpact(MemberEntity member, CodegenImpact impact,
       {required bool isGenerated}) {
     if (_disabled) return;
-    if (isGenerated || options.dumpInfoWriteUri == null) {
-      _impactRegistry[member] = impact;
+    if (isGenerated || options.dumpInfo) {
+      if (options.dumpInfoWriteUri != null) {
+        // Serialize immediately so that we don't have to hold a reference to
+        // every impact until the end of the phase.
+        _dataSinkWriter!.writeMember(member);
+        impact.writeToDataSink(_dataSinkWriter!);
+        _impactCount++;
+      } else {
+        _impactRegistry[member] = impact;
+      }
     } else {
       _serializedImpactMembers.add(member);
     }
@@ -134,10 +148,11 @@ class DumpInfoJsAstRegistry {
     }
   }
 
-  void clear() {
+  void close() {
     assert(_stack.isEmpty);
     assert(_entityRegistry.isEmpty);
     assert(_constantRegistry.isEmpty);
+    _dataSinkWriter?.endDeferrable();
     _entityCode.clear();
     _constantCode.clear();
     _serializedImpactMembers.clear();
@@ -258,6 +273,18 @@ class DumpInfoProgramData {
 
   factory DumpInfoProgramData.readFromDataSource(DataSourceReader source,
       {required bool includeCodeText}) {
+    late int impactCount;
+    final registeredImpactsDeferrable =
+        source.readDeferrable((DataSourceReader source) {
+      final impacts = <MemberEntity, CodegenImpact>{};
+      for (var i = 0; i < impactCount; i++) {
+        final member = source.readMember();
+        final impact = CodegenImpact.readFromDataSource(source);
+        impacts[member] = impact;
+      }
+      return impacts;
+    });
+    impactCount = source.readInt();
     final programSize = source.readInt();
     final outputUnitSizesLength = source.readInt();
     final outputUnitSizes = <OutputUnit, int>{};
@@ -289,8 +316,6 @@ class DumpInfoProgramData {
       constantCode[constant] = codeSpan;
     }
     final serializedImpactMembers = source.readMembers().toSet();
-    final registeredImpacts = source.readMemberMap<MemberEntity, CodegenImpact>(
-        (_) => CodegenImpact.readFromDataSource(source));
     return DumpInfoProgramData._(
         programSize,
         outputUnitSizes,
@@ -299,12 +324,13 @@ class DumpInfoProgramData {
         entityCodeSize,
         constantCode,
         serializedImpactMembers,
-        registeredImpacts,
+        registeredImpactsDeferrable.loaded(),
         neededClasses: neededClasses,
         neededClassTypes: neededClassTypes);
   }
 
-  void writeToDataSink(DataSinkWriter sink) {
+  void writeToDataSink(DataSinkWriter sink, DumpInfoJsAstRegistry registry) {
+    sink.writeInt(registry._impactCount);
     sink.writeInt(programSize);
     sink.writeInt(outputUnitSizes.length);
     outputUnitSizes.forEach((outputUnit, size) {
@@ -332,8 +358,6 @@ class DumpInfoProgramData {
       _writeCodeSpan(sink, codeSpan);
     });
     sink.writeMembers(serializedImpactMembers);
-    sink.writeMemberMap(registeredImpacts,
-        (_, CodegenImpact impact) => impact.writeToDataSink(sink));
   }
 }
 
