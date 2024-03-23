@@ -2476,7 +2476,8 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     if (_environmentDefines == null && !backend.supportsUnevaluatedConstants) {
       throw new ArgumentError(
           "No 'environmentDefines' passed to the constant evaluator but the "
-          "ConstantsBackend does not support unevaluated constants.");
+              "ConstantsBackend does not support unevaluated constants.",
+          "_environmentDefines");
     }
     intFolder = new ConstantIntFolder.forSemantics(this, numberSemantics);
     pseudoPrimitiveClasses = <Class>{
@@ -2503,35 +2504,30 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
   Map<String, String>? _supportedLibrariesCache;
 
-  Map<String, String> _computeSupportedLibraries() {
-    Map<String, String> map = {};
-    for (Library library in component.libraries) {
-      if (library.importUri.isScheme('dart')) {
-        map[library.importUri.path] =
-            DartLibrarySupport.getDartLibrarySupportValue(
-                library.importUri.path,
-                libraryExists: true,
-                isSynthetic: library.isSynthetic,
-                isUnsupported: library.isUnsupported,
-                dartLibrarySupport: dartLibrarySupport);
-      }
-    }
-    return map;
-  }
+  Map<String, String> _computeSupportedLibraries() => {
+        for (Library library in component.libraries)
+          if (library.importUri.isScheme('dart') &&
+              DartLibrarySupport.isDartLibrarySupported(
+                  library.importUri.path,
+                  libraryExists: true,
+                  isSynthetic: library.isSynthetic,
+                  isUnsupported: library.isUnsupported,
+                  dartLibrarySupport: dartLibrarySupport))
+            (DartLibrarySupport.dartLibraryPrefix + library.importUri.path):
+                "true"
+      };
 
   String? lookupEnvironment(String key) {
     if (DartLibrarySupport.isDartLibraryQualifier(key)) {
-      String libraryName = DartLibrarySupport.getDartLibraryName(key);
-      String? value = (_supportedLibrariesCache ??=
-          _computeSupportedLibraries())[libraryName];
-      return value ?? "";
+      return (_supportedLibrariesCache ??= _computeSupportedLibraries())[key];
     }
     return _environmentDefines![key];
   }
 
   bool hasEnvironmentKey(String key) {
-    if (key.startsWith(DartLibrarySupport.dartLibraryPrefix)) {
-      return true;
+    if (DartLibrarySupport.isDartLibraryQualifier(key)) {
+      return (_supportedLibrariesCache ??= _computeSupportedLibraries())
+          .containsKey(key);
     }
     return _environmentDefines!.containsKey(key);
   }

@@ -181,12 +181,13 @@ abstract class DartLibrarySupport {
     return dottedName.substring(dartLibraryPrefix.length);
   }
 
-  /// Returns `"true"` if the "dart:[libraryName]" is supported and `""`
-  /// otherwise.
+  /// Whether the "dart:[libraryName]" is supported.
   ///
   /// This is used to determine conditional imports and `bool.fromEnvironment`
   /// constant values for "dart.library.[libraryName]" values.
-  static String getDartLibrarySupportValue(String libraryName,
+  /// If the value is `false`, no environment entry exists for the library name,
+  /// otherwise an entry with value `"true"` is created.
+  static bool isDartLibrarySupported(String libraryName,
       {required bool libraryExists,
       required bool isSynthetic,
       required bool isUnsupported,
@@ -208,7 +209,7 @@ abstract class DartLibrarySupport {
     bool isSupported = libraryExists && !isSynthetic && !isUnsupported;
     isSupported = dartLibrarySupport.computeDartLibrarySupport(libraryName,
         isSupportedBySpec: isSupported);
-    return isSupported ? "true" : "";
+    return isSupported;
   }
 }
 
