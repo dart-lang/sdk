@@ -41,7 +41,7 @@ class AnalysisOptionsMap {
   void add(Folder folder, AnalysisOptionsImpl options) {
     entries.add(OptionsMapEntry(folder, options));
     // Sort entries by (reverse) containment (for now).
-    entries.sort((e1, e2) => e1.folder.contains(e2.folder.path) ? 1 : -1);
+    entries.sort((e1, e2) => e2.folder.path.compareTo(e1.folder.path));
   }
 
   /// Perform the given [action] on all the mapped options.

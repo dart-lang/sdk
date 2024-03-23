@@ -38,6 +38,31 @@ class AnalysisOptionsMapTest with ResourceProviderMixin {
     expect(map.getOptions(file).file, isNull);
   }
 
+  /// https://github.com/dart-lang/sdk/issues/55252
+  test_optionsMapLookup() {
+    AnalysisOptions optionsFor(String file) =>
+        map.getOptions(newFile(file, ''));
+
+    AnalysisOptions addOptions(String folder) {
+      var options = AnalysisOptionsImpl();
+      map.add(newFolder(folder), options);
+      return options;
+    }
+
+    var fOptions = addOptions('/home/test/f');
+    addOptions('/home/test/g');
+    var fghOptions = addOptions('/home/test/f/g/h');
+    var fghiOptions = addOptions('/home/test/f/g/h/i');
+    addOptions('/home/test/h');
+    var fgOptions = addOptions('/home/test/f/g');
+
+    // Ensure lookup retrieves the most specific options files.
+    expect(optionsFor('/home/test/f/c.dart'), fOptions);
+    expect(optionsFor('/home/test/f/g/c.dart'), fgOptions);
+    expect(optionsFor('/home/test/f/g/h/c.dart'), fghOptions);
+    expect(optionsFor('/home/test/f/g/h/i/c.dart'), fghiOptions);
+  }
+
   test_singleOptions() {
     var rootOptions = AnalysisOptionsImpl();
     var rootFolder = newFolder('/home/test');
