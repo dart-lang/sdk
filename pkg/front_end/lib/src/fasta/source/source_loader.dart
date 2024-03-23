@@ -342,11 +342,16 @@ class SourceLoader extends Loader {
   }
 
   /// Return `"true"` if the [dottedName] is a 'dart.library.*' qualifier for a
-  /// supported dart:* library, and `""` otherwise.
+  /// supported dart:* library, and `null` otherwise.
   ///
   /// This is used to determine conditional imports and `bool.fromEnvironment`
   /// constant values for "dart.library.[libraryName]" values.
-  String getLibrarySupportValue(String dottedName) {
+  ///
+  /// The `null` value will not be equal to the tested string value of
+  /// a configurable URI, which is always non-`null`. This prevents
+  /// the configurable URI from matching an absent entry,
+  /// even for an `if (dart.library.nonLibrary == "")` test.
+  String? getLibrarySupportValue(String dottedName) {
     if (!DartLibrarySupport.isDartLibraryQualifier(dottedName)) {
       return "";
     }
@@ -356,11 +361,13 @@ class SourceLoader extends Loader {
     // TODO(johnniwinther): Why is the dill target sometimes not loaded at this
     // point? And does it matter?
     library ??= target.dillTarget.loader.lookupLibraryBuilder(uri);
-    return DartLibrarySupport.getDartLibrarySupportValue(libraryName,
-        libraryExists: library != null,
-        isSynthetic: library?.isSynthetic ?? true,
-        isUnsupported: library?.isUnsupported ?? true,
-        dartLibrarySupport: target.backendTarget.dartLibrarySupport);
+    return DartLibrarySupport.isDartLibrarySupported(libraryName,
+            libraryExists: library != null,
+            isSynthetic: library?.isSynthetic ?? true,
+            isUnsupported: library?.isUnsupported ?? true,
+            dartLibrarySupport: target.backendTarget.dartLibrarySupport)
+        ? "true"
+        : null;
   }
 
   SourceLibraryBuilder _createSourceLibraryBuilder(

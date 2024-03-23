@@ -59,6 +59,19 @@ advantage of these improvements, set your package's
 
 [analyzer-completion-correction-issues]: https://github.com/dart-lang/sdk/labels/analyzer-completion-correctness
 
+#### Compilers
+
+- The compilation environment will no longer pretend to contain
+  entries with value `""` for all `dart.library.foo` strings,
+  where `dart:foo` is not an available library.
+  Instead there will only be entries for the available libraries,
+  like `dart.library.core`, where the value was, and still is, `"true"`.
+  This should have no effect on `const bool.fromEnvironment(...)` or
+  `const String.fromEnvironment(...)` without a `defaultValue`
+  argument, an argument which was always ignored previously.
+  It changes the behavior of `const bool.hasEnvironment(...)` on such
+  an input, away from always being `true` and therefore useless.
+
 #### Pub
 
 - Dependency resolution and `dart pub outdated` will now surface if a dependency
