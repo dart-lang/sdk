@@ -30,6 +30,18 @@ abstract class DataSink {
   /// via an offset read.
   void writeDeferred(void writer());
 
+  /// Begins a block of data that can later be read as a deferred block.
+  /// [endDeferred] must eventually be called to end the block. This creates a
+  /// block similar to [writeDeferred] but does not require the data to be
+  /// written in a single closure.
+  void startDeferred();
+
+  /// End a block of data that can later be read as a deferred block.
+  /// [startDeferred] must be called before this to start the block. This
+  /// creates a block similar to [writeDeferred] but does not require the data
+  /// to be written in a single closure.
+  void endDeferred();
+
   /// Closes any underlying data sinks.
   void close();
 }
@@ -129,6 +141,14 @@ class DataSinkWriter {
 
   void writeDeferrable(void f()) {
     _sinkWriter.writeDeferred(f);
+  }
+
+  void startDeferrable() {
+    _sinkWriter.startDeferred();
+  }
+
+  void endDeferrable() {
+    _sinkWriter.endDeferred();
   }
 
   /// Writes a reference to [value] to this data sink. If [value] has not yet

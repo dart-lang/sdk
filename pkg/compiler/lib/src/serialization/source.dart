@@ -25,7 +25,9 @@ abstract class DataSource {
   E readEnum<E extends Enum>(List<E> values);
 
   /// Returns the offset for a deferred entity and skips it in the read queue.
-  /// The offset can later be passed to [readAtOffset] to get the value.
+  /// The offset can later be passed to [readAtOffset] to get the value. This
+  /// block can be written with either [DataSink.writeDeferred] or the
+  /// combination of [DataSink.startDeferred] and [DataSink.endDeferred].
   int readDeferred();
 
   /// Eagerly reads and returns the value for a deferred entity.

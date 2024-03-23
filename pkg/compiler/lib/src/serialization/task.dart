@@ -277,17 +277,22 @@ class SerializationTask extends CompilerTask {
     results.addAll(codegenResults);
   }
 
-  void serializeDumpInfoProgramData(
-      JsBackendStrategy backendStrategy,
-      DumpInfoProgramData dumpInfoProgramData,
-      AbstractValueDomain abstractValueDomain,
-      SerializationIndices indices) {
+  DataSinkWriter dataSinkWriterForDumpInfo(
+      AbstractValueDomain abstractValueDomain, SerializationIndices indices) {
     final outputUri = _options.dumpInfoWriteUri!;
     api.BinaryOutputSink dataOutput =
         _outputProvider.createBinarySink(outputUri);
     final sink = DataSinkWriter(BinaryDataSink(dataOutput), _options, indices);
     sink.registerAbstractValueDomain(abstractValueDomain);
-    dumpInfoProgramData.writeToDataSink(sink);
+    return sink;
+  }
+
+  void serializeDumpInfoProgramData(
+      DataSinkWriter sink,
+      JsBackendStrategy backendStrategy,
+      DumpInfoProgramData dumpInfoProgramData,
+      DumpInfoJsAstRegistry dumpInfoRegistry) {
+    dumpInfoProgramData.writeToDataSink(sink, dumpInfoRegistry);
     sink.close();
   }
 
@@ -302,7 +307,10 @@ class SerializationTask extends CompilerTask {
     final source = DataSourceReader(
         BinaryDataSource(dataInput.data, stringInterner: _stringInterner),
         _options,
-        indices);
+        indices,
+        // This must use a deferred strategy so that we can delay reading the
+        // registered impacts until we are able to read the count of them.
+        useDeferredStrategy: true);
     backendStrategy.prepareCodegenReader(source);
     source.registerAbstractValueDomain(abstractValueDomain);
     return DumpInfoProgramData.readFromDataSource(source,

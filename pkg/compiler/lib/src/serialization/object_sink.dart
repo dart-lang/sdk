@@ -50,6 +50,22 @@ class ObjectDataSink implements DataSink {
     _data![sizeIndex] = endIndex - startIndex;
   }
 
+  final List<(int, int)> _deferredOffsets = [];
+
+  @override
+  void startDeferred() {
+    final sizeIndex = length;
+    writeInt(0); // Padding so the offset won't collide with a nested write.
+    final startIndex = length;
+    _deferredOffsets.add((sizeIndex, startIndex));
+  }
+
+  @override
+  void endDeferred() {
+    final (sizeIndex, startIndex) = _deferredOffsets.removeLast();
+    _data![sizeIndex] = length - startIndex;
+  }
+
   @override
   void close() {
     _data = null;
