@@ -124,6 +124,7 @@ namespace dart {
   V(::, copyRangeFromUint8ListToOneByteString,                                 \
     CopyRangeFromUint8ListToOneByteString, 0xcc42d0a2)                         \
   V(_StringBase, _interpolate, StringBaseInterpolate, 0x8af456e6)              \
+  V(_StringBase, codeUnitAt, StringBaseCodeUnitAt, 0x17ea80f1)                 \
   V(_SuspendState, get:_functionData, SuspendState_getFunctionData,            \
     0x7281768e)                                                                \
   V(_SuspendState, set:_functionData, SuspendState_setFunctionData,            \
@@ -452,8 +453,6 @@ namespace dart {
   V(_GrowableList, [], GrowableArrayGetIndexed, 0x78e668b1)                    \
   V(_GrowableList, _setIndexed, GrowableArraySetIndexedUnchecked, 0x513c774f)  \
   V(_StringBase, get:length, StringBaseLength, 0x5842648b)                     \
-  V(_OneByteString, codeUnitAt, OneByteStringCodeUnitAt, 0x17ea7d30)           \
-  V(_TwoByteString, codeUnitAt, TwoByteStringCodeUnitAt, 0x17ea7d30)           \
   V(_Smi, ~, Smi_bitNegate, 0x82466cfc)                                        \
   V(_IntegerImplementation, +, Integer_add, 0x6f06d26c)                        \
   V(_IntegerImplementation, -, Integer_sub, 0x630fe15d)                        \

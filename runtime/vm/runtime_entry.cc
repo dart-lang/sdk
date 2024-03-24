@@ -146,6 +146,23 @@ DEFINE_RUNTIME_ENTRY(RangeError, 2) {
   Exceptions::ThrowByType(Exceptions::kRange, args);
 }
 
+DEFINE_RUNTIME_ENTRY(RangeErrorUnboxedInt64, 0) {
+  int64_t unboxed_length = thread->unboxed_int64_runtime_arg();
+  int64_t unboxed_index = thread->unboxed_int64_runtime_second_arg();
+  const auto& length = Integer::Handle(zone, Integer::New(unboxed_length));
+  const auto& index = Integer::Handle(zone, Integer::New(unboxed_index));
+  // Throw: new RangeError.range(index, 0, length - 1, "length");
+  const Array& args = Array::Handle(zone, Array::New(4));
+  args.SetAt(0, index);
+  args.SetAt(1, Integer::Handle(zone, Integer::New(0)));
+  args.SetAt(
+      2, Integer::Handle(
+             zone, Integer::Cast(length).ArithmeticOp(
+                       Token::kSUB, Integer::Handle(zone, Integer::New(1)))));
+  args.SetAt(3, Symbols::Length());
+  Exceptions::ThrowByType(Exceptions::kRange, args);
+}
+
 DEFINE_RUNTIME_ENTRY(WriteError, 0) {
   Exceptions::ThrowUnsupportedError("Cannot modify an unmodifiable list");
 }

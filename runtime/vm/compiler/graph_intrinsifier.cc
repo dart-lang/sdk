@@ -431,49 +431,6 @@ DEFINE_SIMD_ARRAY_GETTER_SETTER_INTRINSICS(Float64x2Array)
 #undef DEFINE_SIMD_ARRAY_GETTER_INTRINSIC
 #undef DEFINE_SIMD_ARRAY_SETTER_INTRINSIC
 
-static bool BuildCodeUnitAt(FlowGraph* flow_graph, intptr_t cid) {
-  GraphEntryInstr* graph_entry = flow_graph->graph_entry();
-  auto normal_entry = graph_entry->normal_entry();
-  BlockBuilder builder(flow_graph, normal_entry, /*with_frame=*/false);
-
-  Definition* str = builder.AddParameter(0);
-  Definition* index = builder.AddParameter(1);
-
-  VerifyParameterIsBoxed(&builder, 0);
-
-  index = CreateBoxedParameterIfNeeded(&builder, index, kUnboxedInt64, 1);
-  index =
-      PrepareIndexedOp(flow_graph, &builder, str, index, Slot::String_length());
-
-  Definition* load = builder.AddDefinition(new LoadIndexedInstr(
-      new Value(str), new Value(index), /*index_unboxed=*/false,
-      target::Instance::ElementSizeFor(cid), cid, kAlignedAccess,
-      DeoptId::kNone, builder.Source()));
-
-  // We don't perform [RangeAnalysis] for graph intrinsics. To inform the
-  // following boxing instruction about a more precise range we attach it here
-  // manually.
-  // http://dartbug.com/36632
-  auto const rep = RepresentationUtils::RepresentationOfArrayElement(cid);
-  load->set_range(Range::Full(rep));
-  Definition* result = CreateBoxedResultIfNeeded(&builder, load, rep);
-
-  if (result->IsBoxInteger()) {
-    result->AsBoxInteger()->ClearEnv();
-  }
-
-  builder.AddReturn(new Value(result));
-  return true;
-}
-
-bool GraphIntrinsifier::Build_OneByteStringCodeUnitAt(FlowGraph* flow_graph) {
-  return BuildCodeUnitAt(flow_graph, kOneByteStringCid);
-}
-
-bool GraphIntrinsifier::Build_TwoByteStringCodeUnitAt(FlowGraph* flow_graph) {
-  return BuildCodeUnitAt(flow_graph, kTwoByteStringCid);
-}
-
 static bool BuildSimdOp(FlowGraph* flow_graph, intptr_t cid, Token::Kind kind) {
   if (!FlowGraphCompiler::SupportsUnboxedSimd128()) return false;
 
