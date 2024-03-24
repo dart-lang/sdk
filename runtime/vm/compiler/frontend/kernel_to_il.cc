@@ -1058,6 +1058,7 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kFinalizerEntry_allocate:
     case MethodRecognizer::kFinalizerEntry_getExternalSize:
     case MethodRecognizer::kObjectEquals:
+    case MethodRecognizer::kStringBaseCodeUnitAt:
     case MethodRecognizer::kStringBaseLength:
     case MethodRecognizer::kStringBaseIsEmpty:
     case MethodRecognizer::kClassIDgetID:
@@ -1108,6 +1109,17 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
 #else
       return false;
 #endif
+    default:
+      return false;
+  }
+}
+
+bool FlowGraphBuilder::IsExpressionTempVarUsedInRecognizedMethodFlowGraph(
+    const Function& function) {
+  ASSERT(IsRecognizedMethodForFlowGraph(function));
+  switch (function.recognized_kind()) {
+    case MethodRecognizer::kStringBaseCodeUnitAt:
+      return true;
     default:
       return false;
   }
@@ -1292,6 +1304,51 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += LoadLocal(parsed_function_->RawParameterVariable(1));
       body += StrictCompare(Token::kEQ_STRICT);
       break;
+    case MethodRecognizer::kStringBaseCodeUnitAt: {
+      ASSERT_EQUAL(function.NumParameters(), 2);
+      body += LoadLocal(parsed_function_->RawParameterVariable(0));
+      body += LoadNativeField(Slot::String_length());
+      body += LoadLocal(parsed_function_->RawParameterVariable(1));
+      body += GenericCheckBound();
+      LocalVariable* safe_index = MakeTemporary();
+
+      JoinEntryInstr* done = BuildJoinEntry();
+      LocalVariable* result = parsed_function_->expression_temp_var();
+      TargetEntryInstr* one_byte_string;
+      TargetEntryInstr* two_byte_string;
+      body += LoadLocal(parsed_function_->RawParameterVariable(0));
+      body += LoadClassId();
+      body += IntConstant(kOneByteStringCid);
+      body += BranchIfEqual(&one_byte_string, &two_byte_string);
+
+      body.current = one_byte_string;
+      body += LoadLocal(parsed_function_->RawParameterVariable(0));
+      body += LoadLocal(safe_index);
+      body += LoadIndexed(
+          kOneByteStringCid,
+          /*index_scale=*/
+          compiler::target::Instance::ElementSizeFor(kOneByteStringCid),
+          /*index_unboxed=*/GenericCheckBoundInstr::UseUnboxedRepresentation());
+      body += StoreLocal(TokenPosition::kNoSource, result);
+      body += Drop();
+      body += Goto(done);
+
+      body.current = two_byte_string;
+      body += LoadLocal(parsed_function_->RawParameterVariable(0));
+      body += LoadLocal(safe_index);
+      body += LoadIndexed(
+          kTwoByteStringCid,
+          /*index_scale=*/
+          compiler::target::Instance::ElementSizeFor(kTwoByteStringCid),
+          /*index_unboxed=*/GenericCheckBoundInstr::UseUnboxedRepresentation());
+      body += StoreLocal(TokenPosition::kNoSource, result);
+      body += Drop();
+      body += Goto(done);
+
+      body.current = done;
+      body += DropTemporary(&safe_index);
+      body += LoadLocal(result);
+    } break;
     case MethodRecognizer::kStringBaseLength:
     case MethodRecognizer::kStringBaseIsEmpty:
       ASSERT_EQUAL(function.NumParameters(), 1);

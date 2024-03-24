@@ -48,6 +48,7 @@ namespace dart {
   V(TraceICCall)                                                               \
   V(PatchStaticCall)                                                           \
   V(RangeError)                                                                \
+  V(RangeErrorUnboxedInt64)                                                    \
   V(WriteError)                                                                \
   V(NullError)                                                                 \
   V(NullErrorWithSelector)                                                     \

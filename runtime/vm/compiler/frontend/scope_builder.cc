@@ -5,6 +5,7 @@
 #include "vm/compiler/frontend/scope_builder.h"
 
 #include "vm/compiler/backend/il.h"  // For CompileType.
+#include "vm/compiler/frontend/kernel_to_il.h"
 #include "vm/compiler/frontend/kernel_translation_helper.h"
 
 namespace dart {
@@ -166,6 +167,11 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
           FinalizeCatchVariables();
           --depth_.catch_;
         }
+      }
+      if (FlowGraphBuilder::IsRecognizedMethodForFlowGraph(function) &&
+          FlowGraphBuilder::IsExpressionTempVarUsedInRecognizedMethodFlowGraph(
+              function)) {
+        needs_expr_temp_ = true;
       }
       intptr_t pos = 0;
       if (function.IsClosureFunction()) {

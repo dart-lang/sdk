@@ -3156,8 +3156,25 @@ void NullErrorSlowPath::EmitSharedStubCall(FlowGraphCompiler* compiler,
 void RangeErrorSlowPath::PushArgumentsForRuntimeCall(
     FlowGraphCompiler* compiler) {
   LocationSummary* locs = instruction()->locs();
-  __ PushRegisterPair(locs->in(CheckBoundBaseInstr::kIndexPos).reg(),
-                      locs->in(CheckBoundBaseInstr::kLengthPos).reg());
+  if (GenericCheckBoundInstr::UseUnboxedRepresentation()) {
+    // Can't pass unboxed int64 value directly to runtime call, as all
+    // arguments are expected to be tagged (boxed).
+    // The unboxed int64 argument is passed through a dedicated slot in Thread.
+    // TODO(dartbug.com/33549): Clean this up when unboxed values
+    // could be passed as arguments.
+    __ StoreToOffset(
+        locs->in(CheckBoundBaseInstr::kLengthPos).reg(),
+        compiler::Address(
+            THR, compiler::target::Thread::unboxed_runtime_arg_offset()));
+    __ StoreToOffset(
+        locs->in(CheckBoundBaseInstr::kIndexPos).reg(),
+        compiler::Address(
+            THR, compiler::target::Thread::unboxed_runtime_arg_offset() +
+                     kInt64Size));
+  } else {
+    __ PushRegisterPair(locs->in(CheckBoundBaseInstr::kIndexPos).reg(),
+                        locs->in(CheckBoundBaseInstr::kLengthPos).reg());
+  }
 }
 
 void RangeErrorSlowPath::EmitSharedStubCall(FlowGraphCompiler* compiler,

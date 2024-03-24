@@ -3166,14 +3166,14 @@ static bool InlineStringBaseCharAt(FlowGraph* flow_graph,
   return true;
 }
 
-static bool InlineStringCodeUnitAt(FlowGraph* flow_graph,
-                                   Instruction* call,
-                                   Definition* receiver,
-                                   intptr_t cid,
-                                   GraphEntryInstr* graph_entry,
-                                   FunctionEntryInstr** entry,
-                                   Instruction** last,
-                                   Definition** result) {
+static bool InlineStringBaseCodeUnitAt(FlowGraph* flow_graph,
+                                       Instruction* call,
+                                       Definition* receiver,
+                                       intptr_t cid,
+                                       GraphEntryInstr* graph_entry,
+                                       FunctionEntryInstr** entry,
+                                       Instruction** last,
+                                       Definition** result) {
   if (cid == kDynamicCid) {
     ASSERT(call->IsStaticCall());
     return false;
@@ -3220,8 +3220,11 @@ bool FlowGraphInliner::TryReplaceInstanceCallWithInline(
     ASSERT((last != nullptr && result != nullptr) ||
            (target.recognized_kind() == MethodRecognizer::kObjectConstructor));
     // Determine if inlining instance methods needs a check.
+    // StringBase.codeUnitAt is monomorphic but its implementation is selected
+    // based on the receiver cid.
     FlowGraph::ToCheck check = FlowGraph::ToCheck::kNoCheck;
-    if (target.is_polymorphic_target()) {
+    if (target.is_polymorphic_target() ||
+        (target.recognized_kind() == MethodRecognizer::kStringBaseCodeUnitAt)) {
       check = FlowGraph::ToCheck::kCheckCid;
     } else {
       check = flow_graph->CheckForInstanceCall(call, target.kind());
@@ -4274,10 +4277,10 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
       return InlineSetIndexed(flow_graph, kind, target, call, receiver, source,
                               exactness, graph_entry, entry, last, result);
     }
-    case MethodRecognizer::kOneByteStringCodeUnitAt:
-    case MethodRecognizer::kTwoByteStringCodeUnitAt:
-      return InlineStringCodeUnitAt(flow_graph, call, receiver, receiver_cid,
-                                    graph_entry, entry, last, result);
+    case MethodRecognizer::kStringBaseCodeUnitAt:
+      return InlineStringBaseCodeUnitAt(flow_graph, call, receiver,
+                                        receiver_cid, graph_entry, entry, last,
+                                        result);
     case MethodRecognizer::kStringBaseCharAt:
       return InlineStringBaseCharAt(flow_graph, call, receiver, receiver_cid,
                                     graph_entry, entry, last, result);

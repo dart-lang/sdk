@@ -273,7 +273,11 @@ abstract final class _StringBase implements String {
   @pragma("vm:external-name", "String_charAt")
   external String operator [](int index);
 
-  int codeUnitAt(int index); // Implemented in the subclasses.
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  @pragma("vm:idempotent")
+  @pragma("vm:exact-result-type", "dart:core#_Smi")
+  external int codeUnitAt(int index);
 
   @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
@@ -1010,11 +1014,6 @@ final class _OneByteString extends _StringBase {
   @pragma("vm:external-name", "String_getHashCode")
   external int get hashCode;
 
-  @pragma("vm:recognized", "graph-intrinsic")
-  @pragma("vm:exact-result-type", "dart:core#_Smi")
-  @pragma("vm:external-name", "String_codeUnitAt")
-  external int codeUnitAt(int index);
-
   bool _isWhitespace(int codeUnit) {
     return _StringBase._isOneByteWhitespace(codeUnit);
   }
@@ -1362,11 +1361,6 @@ final class _TwoByteString extends _StringBase {
   bool _isWhitespace(int codeUnit) {
     return _StringBase._isTwoByteWhitespace(codeUnit);
   }
-
-  @pragma("vm:recognized", "graph-intrinsic")
-  @pragma("vm:exact-result-type", "dart:core#_Smi")
-  @pragma("vm:external-name", "String_codeUnitAt")
-  external int codeUnitAt(int index);
 
   @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type", bool)

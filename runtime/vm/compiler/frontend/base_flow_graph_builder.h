@@ -188,6 +188,7 @@ class BaseFlowGraphBuilder {
                        intptr_t index_scale = compiler::target::kWordSize,
                        bool index_unboxed = false,
                        AlignmentType alignment = kAlignedAccess);
+  Fragment GenericCheckBound();
 
   Fragment LoadUntagged(intptr_t offset);
   Fragment CalculateElementAddress(intptr_t index_scale);

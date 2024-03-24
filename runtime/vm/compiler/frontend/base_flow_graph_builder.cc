@@ -397,6 +397,14 @@ Fragment BaseFlowGraphBuilder::LoadIndexed(classid_t class_id,
   return Fragment(instr);
 }
 
+Fragment BaseFlowGraphBuilder::GenericCheckBound() {
+  Value* index = Pop();
+  Value* length = Pop();
+  auto* instr = new (Z) GenericCheckBoundInstr(length, index, GetNextDeoptId());
+  Push(instr);
+  return Fragment(instr);
+}
+
 Fragment BaseFlowGraphBuilder::LoadUntagged(intptr_t offset) {
   Value* object = Pop();
   auto load = new (Z) LoadUntaggedInstr(object, offset);

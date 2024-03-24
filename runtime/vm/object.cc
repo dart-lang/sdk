@@ -9240,6 +9240,7 @@ bool Function::RecognizedKindForceOptimize() const {
     case MethodRecognizer::kGetNativeField:
     case MethodRecognizer::kRecord_fieldNames:
     case MethodRecognizer::kRecord_numFields:
+    case MethodRecognizer::kStringBaseCodeUnitAt:
     case MethodRecognizer::kUtf8DecoderScan:
     case MethodRecognizer::kDouble_hashCode:
     case MethodRecognizer::kTypedList_GetInt8:

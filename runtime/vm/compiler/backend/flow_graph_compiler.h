@@ -273,10 +273,17 @@ class NullErrorSlowPath : public ThrowErrorSlowPathCode {
 class RangeErrorSlowPath : public ThrowErrorSlowPathCode {
  public:
   explicit RangeErrorSlowPath(GenericCheckBoundInstr* instruction)
-      : ThrowErrorSlowPathCode(instruction, kRangeErrorRuntimeEntry) {}
+      : ThrowErrorSlowPathCode(
+            instruction,
+            GenericCheckBoundInstr::UseUnboxedRepresentation()
+                ? kRangeErrorUnboxedInt64RuntimeEntry
+                : kRangeErrorRuntimeEntry) {}
   virtual const char* name() { return "check bound"; }
 
   virtual intptr_t GetNumberOfArgumentsForRuntimeCall() {
+    if (GenericCheckBoundInstr::UseUnboxedRepresentation()) {
+      return 0;  // Unboxed arguments are passed through Thread.
+    }
     return 2;  // length and index
   }
 

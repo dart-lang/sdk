@@ -448,15 +448,6 @@ DEFINE_NATIVE_ENTRY(String_charAt, 0, 2) {
   return Symbols::FromCharCode(thread, static_cast<int32_t>(value));
 }
 
-// Returns the 16-bit UTF-16 code unit at the given index.
-DEFINE_NATIVE_ENTRY(String_codeUnitAt, 0, 2) {
-  const String& receiver =
-      String::CheckedHandle(zone, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Integer, index, arguments->NativeArgAt(1));
-  uint16_t value = StringValueAt(receiver, index);
-  return Smi::New(static_cast<intptr_t>(value));
-}
-
 DEFINE_NATIVE_ENTRY(String_concat, 0, 2) {
   const String& receiver =
       String::CheckedHandle(zone, arguments->NativeArgAt(0));

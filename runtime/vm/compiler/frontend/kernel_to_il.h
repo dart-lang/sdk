@@ -60,6 +60,11 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   // graph building and its body is expressed in a custom-built IL.
   static bool IsRecognizedMethodForFlowGraph(const Function& function);
 
+  // Returns true if custom flow graph for given [function]
+  // needs an expression_temp_var().
+  static bool IsExpressionTempVarUsedInRecognizedMethodFlowGraph(
+      const Function& function);
+
  private:
   BlockEntryInstr* BuildPrologue(BlockEntryInstr* normal_entry,
                                  PrologueInfo* prologue_info);
