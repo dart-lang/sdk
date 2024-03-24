@@ -644,7 +644,9 @@ class _HttpClientResponse extends _HttpInboundMessageListInt
           statusCode == HttpStatus.seeOther ||
           statusCode == HttpStatus.temporaryRedirect;
     } else if (_httpRequest.method == "POST") {
-      return statusCode == HttpStatus.seeOther;
+      return statusCode == HttpStatus.seeOther || 
+          statusCode == HttpStatus.temporaryRedirect || 
+          statusCode == HttpStatus.permanentRedirect;
     }
     return false;
   }
