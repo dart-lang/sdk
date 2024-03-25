@@ -824,6 +824,10 @@ mixin LspAnalysisServerTestMixin
   /// This does not need to be set when using [expectErrorNotification].
   bool failTestOnAnyErrorNotification = true;
 
+  /// Whether to fail tests if any error diagnostics are received from the
+  /// server.
+  bool failTestOnErrorDiagnostic = true;
+
   /// A stream of [NotificationMessage]s from the server that may be errors.
   Stream<NotificationMessage> get errorNotificationsFromServer {
     return notificationsFromServer.where(_isErrorNotification);
@@ -1089,6 +1093,14 @@ mixin LspAnalysisServerTestMixin
       // during tests (for example automatically by expectErrorNotification).
       if (failTestOnAnyErrorNotification) {
         fail('${error.toJson()}');
+      }
+    });
+
+    publishedDiagnostics.listen((diagnostics) {
+      if (failTestOnErrorDiagnostic &&
+          diagnostics.diagnostics.any((diagnostic) =>
+              diagnostic.severity == DiagnosticSeverity.Error)) {
+        fail('Unexpected diagnostics: ${diagnostics.toJson()}');
       }
     });
 

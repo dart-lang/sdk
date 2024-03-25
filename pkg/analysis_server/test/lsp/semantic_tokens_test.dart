@@ -602,6 +602,8 @@ int double(int bbb) => bbb * 2;
   }
 
   Future<void> test_directives() async {
+    failTestOnErrorDiagnostic = false; // Test has invalid imports.
+
     final content = '''
 library foo;
 
@@ -704,6 +706,8 @@ extension type E(int i) {}
   }
 
   Future<void> test_invalidSyntax() async {
+    failTestOnErrorDiagnostic = false;
+
     final content = '''
 /// class docs
 class MyClass {
@@ -1266,6 +1270,8 @@ class!] MyClass {}
   }
 
   Future<void> test_record_fields() async {
+    failTestOnErrorDiagnostic = false; // Unresolved symbols.
+
     final content = r'''
 void f((int, {int field1}) record) {
   [!
@@ -1392,6 +1398,8 @@ multi
   }
 
   Future<void> test_strings_escape() async {
+    failTestOnErrorDiagnostic = false; // Last unicode escape is invalid.
+
     // The 9's in these strings are not part of the escapes (they make the
     // strings too long).
     final content = r'''
@@ -1508,6 +1516,8 @@ void f() {
   }
 
   Future<void> test_unresolvedOrInvalid() async {
+    failTestOnErrorDiagnostic = false;
+
     // Unresolved/invalid names should be marked as "source", which is used to
     // mark up code the server thinks should be uncolored (without this, a
     // clients other grammars would show through, losing the benefit from having

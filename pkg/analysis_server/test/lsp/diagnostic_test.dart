@@ -72,6 +72,14 @@ String b = "Test";
     expect(related.location.range.end.character, equals(16));
   }
 
+  @override
+  void setUp() {
+    super.setUp();
+
+    // These tests deliberately generate diagnostics.
+    failTestOnErrorDiagnostic = false;
+  }
+
   Future<void> test_afterDocumentEdits() async {
     const initialContents = 'int a = 1;';
     newFile(mainFilePath, initialContents);

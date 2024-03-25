@@ -426,6 +426,7 @@ void f(int a) {
   }
 
   Future<void> test_switchStatement() async {
+    failTestOnErrorDiagnostic = false; // Tests cases without breaks.
     final content = '''
 // @dart = 2.19
 

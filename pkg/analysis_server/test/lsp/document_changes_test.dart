@@ -118,6 +118,8 @@ class Bar {
   }
 
   Future<void> test_documentOpen_contentChanged_analysis() async {
+    failTestOnErrorDiagnostic = false;
+
     const content = '// original content';
     const newContent = 'new content'; // triggers diagnostic
     newFile(mainFilePath, content);
@@ -202,6 +204,8 @@ class Bar {
   ///
   /// https://github.com/dart-lang/sdk/issues/53475
   Future<void> test_documentOpen_fileDeleted_documentClosed() async {
+    failTestOnErrorDiagnostic = false;
+
     const content = 'error';
     newFile(mainFilePath, content);
 
@@ -236,6 +240,8 @@ class Bar {
   /// https://github.com/dart-lang/sdk/issues/53475
   Future<void>
       test_documentOpen_fileDeleted_fileCreated_documentClosed_fileDeleted() async {
+    failTestOnErrorDiagnostic = false;
+
     const content = 'error';
     newFile(mainFilePath, content);
 
@@ -288,6 +294,8 @@ class Bar {
   ///
   /// https://github.com/dart-lang/sdk/issues/51159
   Future<void> test_documentOpen_processesOverlay_dartSdk_issue51159() async {
+    failTestOnErrorDiagnostic = false;
+
     final binFolder = convertPath(join(projectFolderPath, 'bin'));
     final binMainFilePath = convertPath(join(binFolder, 'main.dart'));
     final binMainFileUri = pathContext.toUri(binMainFilePath);

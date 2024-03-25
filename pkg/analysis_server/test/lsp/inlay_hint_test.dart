@@ -105,6 +105,8 @@ void f(void Function(int) a) => a(1);
   /// additional error where the nameOffset of the parameter element was -1.
   /// https://github.com/Dart-Code/Dart-Code/issues/4436
   Future<void> test_unnamed2() async {
+    failTestOnErrorDiagnostic = false;
+
     final content = '''
 void f() {
   <int, void Function(int)>{
@@ -694,14 +696,14 @@ final m1 = {1: '', 2: ''};
 final m2 = {'': [1]};
 final m3 = {'': null};
 final m4 = <Object, String>{1: '', 2: ''};
-final Map<int, String> m1 = {1: '', 2: ''};
+final Map<int, String> m5 = {1: '', 2: ''};
 ''';
     final expected = '''
 final (Type:Map<int, String>) m1 = (Type:<int, String>){1: '', 2: ''};
 final (Type:Map<String, List<int>>) m2 = (Type:<String, List<int>>){'': (Type:<int>)[1]};
 final (Type:Map<String, Null>) m3 = (Type:<String, Null>){'': null};
 final (Type:Map<Object, String>) m4 = <Object, String>{1: '', 2: ''};
-final Map<int, String> m1 = (Type:<int, String>){1: '', 2: ''};
+final Map<int, String> m5 = (Type:<int, String>){1: '', 2: ''};
 ''';
     await _expectHints(content, expected);
   }
