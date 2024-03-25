@@ -38,7 +38,7 @@ const String? d ='d';
 const String? e = 'e';
 
 final r1 = ('a', 1);
-final r2 ;
+final r2;
 final r3= ('b', 2);
 ''');
   }
@@ -52,7 +52,41 @@ class SplitMultipleDeclarationsTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.avoid_multiple_declarations_per_line;
 
-  Future<void> test_const() async {
+  Future<void> test_fields_hasComments() async {
+    await resolveTestCode('''
+class A {
+  // comment
+  var a = 0,  b = 1;
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_fields_hasMetadata() async {
+    await resolveTestCode('''
+class A {
+  @deprecated
+  var a = 0,  b = 1;
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_fields_static() async {
+    await resolveTestCode('''
+class A {
+  static int a = 0, b = 1;
+}
+''');
+    await assertHasFix('''
+class A {
+  static int a = 0;
+  static int b = 1;
+}
+''');
+  }
+
+  Future<void> test_topLevelVariables_const() async {
     await resolveTestCode('''
 const a = 1, b = 2;
 ''');
@@ -62,7 +96,7 @@ const b = 2;
 ''');
   }
 
-  Future<void> test_constTyped() async {
+  Future<void> test_topLevelVariables_constTyped() async {
     await resolveTestCode('''
 const String a = '', b = '';
 ''');
@@ -72,17 +106,23 @@ const String b = '';
 ''');
   }
 
-  Future<void> test_indented() async {
+  Future<void> test_topLevelVariables_hasComments() async {
     await resolveTestCode('''
-  const String a = '', b = '';
+// comment
+var a = 0,  b = 1;
 ''');
-    await assertHasFix('''
-  const String a = '';
-  const String b = '';
-''');
+    await assertNoFix();
   }
 
-  Future<void> test_late() async {
+  Future<void> test_topLevelVariables_hasMetadata() async {
+    await resolveTestCode('''
+@deprecated
+var a = 0,  b = 1;
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_topLevelVariables_late() async {
     await resolveTestCode('''
 late String a = '', b = '';
 ''');
@@ -92,7 +132,7 @@ late String b = '';
 ''');
   }
 
-  Future<void> test_lateFinal() async {
+  Future<void> test_topLevelVariables_lateFinal() async {
     await resolveTestCode('''
 late final String a = '', b = '';
 ''');
@@ -102,7 +142,7 @@ late final String b = '';
 ''');
   }
 
-  Future<void> test_nullable() async {
+  Future<void> test_topLevelVariables_nullable() async {
     await resolveTestCode('''
 int? x1, y1, z1;
 ''');
@@ -113,7 +153,7 @@ int? z1;
 ''');
   }
 
-  Future<void> test_varInitialized() async {
+  Future<void> test_topLevelVariables_varInitialized() async {
     await resolveTestCode('''
 var a = 'a', b = 'b';
 ''');
@@ -123,7 +163,7 @@ var b = 'b';
 ''');
   }
 
-  Future<void> test_varNotInitialized() async {
+  Future<void> test_topLevelVariables_varNotInitialized() async {
     await resolveTestCode('''
 var a, b;
 ''');
@@ -133,30 +173,14 @@ var b;
 ''');
   }
 
-  Future<void> test_varRecords() async {
+  Future<void> test_topLevelVariables_varRecords() async {
     await resolveTestCode('''
 var r1 = ('a', 1), r2 , r3= ('b', 2);
 ''');
     await assertHasFix('''
 var r1 = ('a', 1);
-var r2 ;
+var r2;
 var r3= ('b', 2);
 ''');
-  }
-
-  Future<void> test_withCommentsBefore() async {
-    await resolveTestCode('''
-// multivariable comment
-var a = 'a',  b = 'b', c = 'c';
-''');
-    await assertNoFix();
-  }
-
-  Future<void> test_withMetadata() async {
-    await resolveTestCode('''
-@override
-var a = 'a',  b = 'b', c = 'c';
-''');
-    await assertNoFix();
   }
 }

@@ -25589,6 +25589,16 @@ float Float32x4::w() const {
   return untag()->value_[3];
 }
 
+bool Float32x4::CanonicalizeEquals(const Instance& other) const {
+  return memcmp(&untag()->value_, Float32x4::Cast(other).untag()->value_,
+                sizeof(simd128_value_t)) == 0;
+}
+
+uint32_t Float32x4::CanonicalizeHash() const {
+  return HashBytes(reinterpret_cast<const uint8_t*>(&untag()->value_),
+                   sizeof(simd128_value_t));
+}
+
 const char* Float32x4::ToCString() const {
   float _x = x();
   float _y = y();
@@ -25663,6 +25673,16 @@ void Int32x4::set_value(simd128_value_t value) const {
                  value);
 }
 
+bool Int32x4::CanonicalizeEquals(const Instance& other) const {
+  return memcmp(&untag()->value_, Int32x4::Cast(other).untag()->value_,
+                sizeof(simd128_value_t)) == 0;
+}
+
+uint32_t Int32x4::CanonicalizeHash() const {
+  return HashBytes(reinterpret_cast<const uint8_t*>(&untag()->value_),
+                   sizeof(simd128_value_t));
+}
+
 const char* Int32x4::ToCString() const {
   int32_t _x = x();
   int32_t _y = y();
@@ -25711,6 +25731,16 @@ simd128_value_t Float64x2::value() const {
 
 void Float64x2::set_value(simd128_value_t value) const {
   StoreSimd128(&untag()->value_[0], value);
+}
+
+bool Float64x2::CanonicalizeEquals(const Instance& other) const {
+  return memcmp(&untag()->value_, Float64x2::Cast(other).untag()->value_,
+                sizeof(simd128_value_t)) == 0;
+}
+
+uint32_t Float64x2::CanonicalizeHash() const {
+  return HashBytes(reinterpret_cast<const uint8_t*>(&untag()->value_),
+                   sizeof(simd128_value_t));
 }
 
 const char* Float64x2::ToCString() const {

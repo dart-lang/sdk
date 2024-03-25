@@ -419,7 +419,7 @@ class Serializer : public ThreadStackResource {
     stream_->WriteWordWith32BitWrites(value);
   }
 
-  void WriteBytes(const uint8_t* addr, intptr_t len) {
+  void WriteBytes(const void* addr, intptr_t len) {
     stream_->WriteBytes(addr, len);
   }
   void Align(intptr_t alignment, intptr_t offset = 0) {
@@ -5436,6 +5436,80 @@ class DoubleDeserializationCluster
 };
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
+class Simd128SerializationCluster : public SerializationCluster {
+ public:
+  explicit Simd128SerializationCluster(intptr_t cid, bool is_canonical)
+      : SerializationCluster("Simd128",
+                             cid,
+                             compiler::target::Int32x4::InstanceSize(),
+                             is_canonical) {
+    ASSERT_EQUAL(compiler::target::Int32x4::InstanceSize(),
+                 compiler::target::Float32x4::InstanceSize());
+    ASSERT_EQUAL(compiler::target::Int32x4::InstanceSize(),
+                 compiler::target::Float64x2::InstanceSize());
+  }
+  ~Simd128SerializationCluster() {}
+
+  void Trace(Serializer* s, ObjectPtr object) { objects_.Add(object); }
+
+  void WriteAlloc(Serializer* s) {
+    const intptr_t count = objects_.length();
+    s->WriteUnsigned(count);
+    for (intptr_t i = 0; i < count; i++) {
+      ObjectPtr vector = objects_[i];
+      s->AssignRef(vector);
+    }
+  }
+
+  void WriteFill(Serializer* s) {
+    const intptr_t count = objects_.length();
+    for (intptr_t i = 0; i < count; i++) {
+      ObjectPtr vector = objects_[i];
+      AutoTraceObject(vector);
+      ASSERT_EQUAL(Int32x4::value_offset(), Float32x4::value_offset());
+      ASSERT_EQUAL(Int32x4::value_offset(), Float64x2::value_offset());
+      s->WriteBytes(&(static_cast<Int32x4Ptr>(vector)->untag()->value_),
+                    sizeof(simd128_value_t));
+    }
+  }
+
+ private:
+  GrowableArray<ObjectPtr> objects_;
+};
+#endif  // !DART_PRECOMPILED_RUNTIME
+
+class Simd128DeserializationCluster
+    : public AbstractInstanceDeserializationCluster {
+ public:
+  explicit Simd128DeserializationCluster(intptr_t cid, bool is_canonical)
+      : AbstractInstanceDeserializationCluster("Simd128", is_canonical),
+        cid_(cid) {}
+  ~Simd128DeserializationCluster() {}
+
+  void ReadAlloc(Deserializer* d) {
+    ASSERT_EQUAL(Int32x4::InstanceSize(), Float32x4::InstanceSize());
+    ASSERT_EQUAL(Int32x4::InstanceSize(), Float64x2::InstanceSize());
+    ReadAllocFixedSize(d, Int32x4::InstanceSize());
+  }
+
+  void ReadFill(Deserializer* d_, bool primary) {
+    Deserializer::Local d(d_);
+    const intptr_t cid = cid_;
+    const bool mark_canonical = primary && is_canonical();
+    for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
+      ObjectPtr vector = d.Ref(id);
+      Deserializer::InitializeHeader(vector, cid, Int32x4::InstanceSize(),
+                                     mark_canonical);
+      d.ReadBytes(&(static_cast<Int32x4Ptr>(vector)->untag()->value_),
+                  sizeof(simd128_value_t));
+    }
+  }
+
+ private:
+  intptr_t cid_;
+};
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
 class GrowableObjectArraySerializationCluster : public SerializationCluster {
  public:
   GrowableObjectArraySerializationCluster()
@@ -7824,6 +7898,10 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid,
       return new (Z) MintSerializationCluster(is_canonical);
     case kDoubleCid:
       return new (Z) DoubleSerializationCluster(is_canonical);
+    case kInt32x4Cid:
+    case kFloat32x4Cid:
+    case kFloat64x2Cid:
+      return new (Z) Simd128SerializationCluster(cid, is_canonical);
     case kGrowableObjectArrayCid:
       return new (Z) GrowableObjectArraySerializationCluster();
     case kRecordCid:
@@ -9005,6 +9083,10 @@ DeserializationCluster* Deserializer::ReadCluster() {
       return new (Z) MintDeserializationCluster(is_canonical);
     case kDoubleCid:
       return new (Z) DoubleDeserializationCluster(is_canonical);
+    case kInt32x4Cid:
+    case kFloat32x4Cid:
+    case kFloat64x2Cid:
+      return new (Z) Simd128DeserializationCluster(cid, is_canonical);
     case kGrowableObjectArrayCid:
       ASSERT(!is_canonical);
       return new (Z) GrowableObjectArrayDeserializationCluster();
