@@ -17,15 +17,29 @@ import 'package:reload_test/frontend_server_controller.dart';
 import 'package:reload_test/hot_reload_memory_filesystem.dart';
 import 'package:reload_test/test_helpers.dart';
 
+enum RuntimePlatforms {
+  chrome('chrome'),
+  d8('d8'),
+  vm('vm');
+
+  const RuntimePlatforms(this.text);
+  final String text;
+}
+
 final argParser = ArgParser()
+  ..addOption('runtime',
+      abbr: 'r',
+      defaultsTo: 'd8',
+      allowed: RuntimePlatforms.values.map((v) => v.text),
+      help: 'runtime platform used to run tests.')
   ..addOption('named-configuration',
       abbr: 'n',
       defaultsTo: 'no-configuration',
       help: 'configuration name to use for emitting test result files.')
-  ..addOption('output-directory', help: 'Directory to emit test results files.')
+  ..addOption('output-directory', help: 'directory to emit test results files.')
   ..addFlag('debug',
       abbr: 'd',
-      defaultsTo: true,
+      defaultsTo: false,
       negatable: true,
       help: 'enables additional debug behavior and logging.')
   ..addFlag('verbose',
@@ -41,8 +55,10 @@ late final bool debug;
 /// (chrome, VM) and diffs across generations.
 Future<void> main(List<String> args) async {
   final argResults = argParser.parse(args);
-  verbose = argResults['verbose'] as bool;
+  final runtimePlatform =
+      RuntimePlatforms.values.byName(argResults['runtime'] as String);
   debug = argResults['debug'] as bool;
+  verbose = argResults['verbose'] as bool;
 
   // Used to communicate individual test failures to our test bots.
   final emitTestResultsJson = argResults['output-directory'] != null;
@@ -57,11 +73,7 @@ Future<void> main(List<String> args) async {
       buildRootUri.resolve('gen/utils/ddc/stable/sdk/ddc/dart_sdk.js');
   final ddcModuleLoaderJsUri =
       sdkRoot.resolve('pkg/dev_compiler/lib/js/ddc/ddc_module_loader.js');
-  final d8PreamblesUri = sdkRoot
-      .resolve('sdk/lib/_internal/js_dev_runtime/private/preambles/d8.js');
-  final sealNativeObjectJsUri = sdkRoot.resolve(
-      'sdk/lib/_internal/js_runtime/lib/preambles/seal_native_object.js');
-  final d8BinaryUri = sdkRoot.resolveUri(ddc_helpers.d8executableUri);
+  final d8Config = ddc_helpers.D8Configuration(sdkRoot);
 
   // Contains generated code for all tests.
   final generatedCodeDir = Directory.systemTemp.createTempSync();
@@ -261,58 +273,53 @@ Future<void> main(List<String> args) async {
 
     _print('Finished emitting assets.', label: testName);
 
-    // Run the compiled JS generations with D8.
-    // TODO(markzipan): Add logic for evaluating with Chrome or the VM.
-    _print('Preparing to execute JS with D8.', label: testName);
-    final entrypointModuleName = 'main.dart';
-    final entrypointLibraryExportName =
-        ddc_names.libraryUriToJsIdentifier(snapshotEntrypointUri);
-    final d8BootstrapJsUri = tempUri.resolve('generation0/bootstrap.js');
-
-    final d8BootstrapJS = ddc_helpers.generateD8Bootstrapper(
-      ddcModuleLoaderJsPath: escapedString(ddcModuleLoaderJsUri.toFilePath()),
-      dartSdkJsPath: escapedString(soundStableDartSdkJsUri.toFilePath()),
-      entrypointModuleName: escapedString(entrypointModuleName),
-      entrypointLibraryExportName: escapedString(entrypointLibraryExportName),
-      scriptDescriptors: filesystem.scriptDescriptorForBootstrap,
-      modifiedFilesPerGeneration: filesystem.generationsToModifiedFilePaths,
-    );
-
-    File.fromUri(d8BootstrapJsUri).writeAsStringSync(d8BootstrapJS);
-    _debugPrint('Writing D8 bootstrapper: $d8BootstrapJsUri', label: testName);
-
-    final d8OutputStreamController = StreamController<List<int>>();
-    final process = await startProcess('D8', d8BinaryUri.toFilePath(), [
-      sealNativeObjectJsUri.toFilePath(),
-      d8PreamblesUri.toFilePath(),
-      d8BootstrapJsUri.toFilePath()
-    ]);
-
-    // Send D8's output to a local buffer so we can write or process it later.
-    final d8OutputBuffer = StringBuffer();
-    unawaited(process.stdout.pipe(d8OutputStreamController.sink));
-    d8OutputStreamController.stream
+    final testOutputStreamController = StreamController<List<int>>();
+    final testOutputBuffer = StringBuffer();
+    testOutputStreamController.stream
         .transform(utf8.decoder)
-        .listen(d8OutputBuffer.write);
+        .listen(testOutputBuffer.write);
+    var testPassed = false;
+    switch (runtimePlatform) {
+      case RuntimePlatforms.d8:
+        // Run the compiled JS generations with D8.
+        // TODO(markzipan): Add logic for evaluating with Chrome or the VM.
+        _print('Creating D8 hot reload test suite.', label: testName);
 
-    final d8ExitCode = await process.exitCode;
-    final testPassed = d8ExitCode == 0;
+        final d8Suite = D8SuiteRunner(
+          config: d8Config,
+          bootstrapJsUri: tempUri.resolve('generation0/bootstrap.js'),
+          entrypointLibraryExportName:
+              ddc_names.libraryUriToJsIdentifier(snapshotEntrypointUri),
+          dartSdkJsUri: soundStableDartSdkJsUri,
+          ddcModuleLoaderJsUri: ddcModuleLoaderJsUri,
+          outputSink: IOSink(testOutputStreamController.sink),
+        );
+        await d8Suite.setupTest(
+          testName: testName,
+          scriptDescriptors: filesystem.scriptDescriptorForBootstrap,
+          generationToModifiedFiles: filesystem.generationsToModifiedFilePaths,
+        );
+        final d8ExitCode = await d8Suite.runTest(testName: testName);
+        testPassed = d8ExitCode == 0;
+        await d8Suite.teardownTest(testName: testName);
+        break;
+      case RuntimePlatforms.chrome:
+      case RuntimePlatforms.vm:
+        throw Exception('Unsupported platform: $runtimePlatform');
+    }
 
     stopwatch.stop();
+    final testOutput = testOutputBuffer.toString();
     outcome.elapsedTime = stopwatch.elapsed;
     outcome.matchedExpectations = testPassed;
-    outcome.testOutput = d8OutputBuffer.toString();
+    outcome.testOutput = testOutput;
     testOutcomes.add(outcome);
     if (testPassed) {
-      _print('D8 passed with:\n$d8OutputBuffer', label: testName);
+      _print('PASSED with:\n$testOutput', label: testName);
     } else {
-      _print('TEST FAILURE: D8 exited with:\n$d8OutputBuffer', label: testName);
-    }
-    _print(outcome.testOutput, label: testName);
-
-    if (!testPassed) {
+      _print('FAILED with:\n$testOutput', label: testName);
       await shutdown();
-      exit(d8ExitCode);
+      exit(1);
     }
   }
 
@@ -381,4 +388,126 @@ void _debugPrint(String message, {String? label}) {
     final labelText = label == null ? '' : '($label)';
     print('DEBUG$labelText: $message');
   }
+}
+
+abstract class HotReloadSuiteRunner {
+  final String entrypointModuleName;
+  final String entrypointLibraryExportName;
+  final Uri dartSdkJsUri;
+  final Uri ddcModuleLoaderJsUri;
+  final StreamSink<List<int>> outputSink;
+
+  HotReloadSuiteRunner({
+    required this.entrypointModuleName,
+    required this.entrypointLibraryExportName,
+    required this.dartSdkJsUri,
+    required this.ddcModuleLoaderJsUri,
+    required this.outputSink,
+  });
+
+  /// Logic that needs to be run before every test begins.
+  ///
+  /// [scriptDescriptors] and [generationToModifiedFiles] are only used for
+  /// DDC-based execution environments.
+  Future<void> setupTest(
+      {String? testName,
+      List<Map<String, String?>>? scriptDescriptors,
+      Map<String, List<String>>? generationToModifiedFiles});
+
+  /// Executes a test.
+  Future<int> runTest({String? testName});
+
+  /// Logic that needs to be run after every test completes.
+  Future<void> teardownTest({String? testName});
+}
+
+class D8SuiteRunner implements HotReloadSuiteRunner {
+  final ddc_helpers.D8Configuration config;
+  final Uri bootstrapJsUri;
+  @override
+  final String entrypointModuleName;
+  @override
+  final String entrypointLibraryExportName;
+  @override
+  final Uri dartSdkJsUri;
+  @override
+  final Uri ddcModuleLoaderJsUri;
+  @override
+  final StreamSink<List<int>> outputSink;
+
+  D8SuiteRunner._({
+    required this.config,
+    required this.bootstrapJsUri,
+    required this.entrypointModuleName,
+    required this.entrypointLibraryExportName,
+    required this.dartSdkJsUri,
+    required this.ddcModuleLoaderJsUri,
+    required this.outputSink,
+  });
+
+  factory D8SuiteRunner({
+    required ddc_helpers.D8Configuration config,
+    required Uri bootstrapJsUri,
+    String entrypointModuleName = 'main.dart',
+    String entrypointLibraryExportName = 'main',
+    required Uri dartSdkJsUri,
+    required Uri ddcModuleLoaderJsUri,
+    StreamSink<List<int>>? outputSink,
+  }) {
+    return D8SuiteRunner._(
+      config: config,
+      entrypointModuleName: entrypointModuleName,
+      entrypointLibraryExportName: entrypointLibraryExportName,
+      bootstrapJsUri: bootstrapJsUri,
+      dartSdkJsUri: dartSdkJsUri,
+      ddcModuleLoaderJsUri: ddcModuleLoaderJsUri,
+      outputSink: outputSink ?? stdout,
+    );
+  }
+
+  String _generateBootstrapper({
+    required List<Map<String, String?>> scriptDescriptors,
+    required Map<String, List<String>> generationToModifiedFiles,
+  }) {
+    return ddc_helpers.generateD8Bootstrapper(
+      ddcModuleLoaderJsPath: escapedString(ddcModuleLoaderJsUri.toFilePath()),
+      dartSdkJsPath: escapedString(dartSdkJsUri.toFilePath()),
+      entrypointModuleName: escapedString(entrypointModuleName),
+      entrypointLibraryExportName: escapedString(entrypointLibraryExportName),
+      scriptDescriptors: scriptDescriptors,
+      modifiedFilesPerGeneration: generationToModifiedFiles,
+    );
+  }
+
+  @override
+  Future<void> setupTest({
+    String? testName,
+    List<Map<String, String?>>? scriptDescriptors,
+    Map<String, List<String>>? generationToModifiedFiles,
+  }) async {
+    _print('Preparing to run D8 test.', label: testName);
+    if (scriptDescriptors == null || generationToModifiedFiles == null) {
+      throw ArgumentError('D8SuiteRunner requires that "scriptDescriptors" '
+          'and "generationToModifiedFiles" be provided during setup.');
+    }
+    final d8BootstrapJS = _generateBootstrapper(
+        scriptDescriptors: scriptDescriptors,
+        generationToModifiedFiles: generationToModifiedFiles);
+    File.fromUri(bootstrapJsUri).writeAsStringSync(d8BootstrapJS);
+    _debugPrint('Writing D8 bootstrapper: $bootstrapJsUri', label: testName);
+  }
+
+  @override
+  Future<int> runTest({String? testName}) async {
+    final process = await startProcess('D8', config.binary.toFilePath(), [
+      config.sealNativeObjectScript.toFilePath(),
+      config.preamblesScript.toFilePath(),
+      bootstrapJsUri.toFilePath()
+    ]);
+    unawaited(process.stdout.pipe(outputSink));
+    return process.exitCode;
+  }
+
+  @override
+  Future<void> teardownTest({String? testName}) async {}
 }

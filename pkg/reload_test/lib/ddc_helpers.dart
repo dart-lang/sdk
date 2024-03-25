@@ -8,16 +8,36 @@ import 'dart:io';
 
 final _encoder = JsonEncoder.withIndent('  ');
 
-Uri get d8executableUri {
-  final arch = Abi.current().toString().split('_')[1];
-  if (Platform.isWindows) {
-    return Uri.file('third_party/d8/windows/$arch/d8.exe');
-  } else if (Platform.isLinux) {
-    return Uri.file('third_party/d8/linux/$arch/d8');
-  } else if (Platform.isMacOS) {
-    return Uri.file('third_party/d8/macos/$arch/d8');
+class D8Configuration {
+  final Uri sdkRoot;
+  final Uri binary;
+  final Uri preamblesScript;
+  final Uri sealNativeObjectScript;
+
+  D8Configuration._(this.sdkRoot, this.binary, this.preamblesScript,
+      this.sealNativeObjectScript);
+
+  factory D8Configuration(Uri sdkRoot) {
+    final preamblesScript = sdkRoot
+        .resolve('sdk/lib/_internal/js_dev_runtime/private/preambles/d8.js');
+    final sealNativeObjectScript = sdkRoot.resolve(
+        'sdk/lib/_internal/js_runtime/lib/preambles/seal_native_object.js');
+    final arch = Abi.current().toString().split('_')[1];
+    final Uri binaryFromRoot;
+    if (Platform.isWindows) {
+      binaryFromRoot = Uri.file('third_party/d8/windows/$arch/d8.exe');
+    } else if (Platform.isLinux) {
+      binaryFromRoot = Uri.file('third_party/d8/linux/$arch/d8');
+    } else if (Platform.isMacOS) {
+      binaryFromRoot = Uri.file('third_party/d8/macos/$arch/d8');
+    } else {
+      throw UnsupportedError('Unsupported platform for running d8: '
+          '${Platform.operatingSystem}');
+    }
+    final binary = sdkRoot.resolveUri(binaryFromRoot);
+    return D8Configuration._(
+        sdkRoot, binary, preamblesScript, sealNativeObjectScript);
   }
-  throw UnsupportedError('Unsupported platform.');
 }
 
 /// Generates the JS bootstrapper for DDC with the DDC module system.
