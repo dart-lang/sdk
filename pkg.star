@@ -41,7 +41,6 @@ dart.ci_sandbox_builder(
 dart.ci_sandbox_builder(
     "pkg-mac-release-arm64",
     category = "pkg|ma",
-    channels = ["try"],
     dimensions = [mac, arm64],
     properties = [chrome, no_android],
 )

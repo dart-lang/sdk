@@ -215,7 +215,6 @@ _nightly_builder(
 _vm_builder(
     "vm-aot-mac-release-arm64",
     category = "vm|aot|m1",
-    channels = ["try"],
     dimensions = [mac, arm64],
     properties = [no_android, slow_shards],
 )
