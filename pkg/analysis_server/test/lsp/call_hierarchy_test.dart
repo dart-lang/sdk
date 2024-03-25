@@ -20,6 +20,7 @@ void main() {
 
 @reflectiveTest
 class IncomingCallHierarchyTest extends AbstractLspAnalysisServerTest {
+  late final String otherFilePath;
   late final Uri otherFileUri;
 
   /// Calls textDocument/prepareCallHierarchy at the location of `^` in
@@ -31,12 +32,12 @@ class IncomingCallHierarchyTest extends AbstractLspAnalysisServerTest {
     TestCode? otherCode,
     required List<CallHierarchyIncomingCall> expectedResults,
   }) async {
-    await initialize();
-    await openFile(mainFileUri, mainCode.code);
-
+    newFile(mainFilePath, mainCode.code);
     if (otherCode != null) {
-      await openFile(otherFileUri, otherCode.code);
+      newFile(otherFilePath, otherCode.code);
     }
+
+    await initialize();
 
     final prepareResult = await prepareCallHierarchy(
       mainFileUri,
@@ -50,8 +51,8 @@ class IncomingCallHierarchyTest extends AbstractLspAnalysisServerTest {
   @override
   void setUp() {
     super.setUp();
-    otherFileUri =
-        pathContext.toUri(join(projectFolderPath, 'lib', 'other.dart'));
+    otherFilePath = join(projectFolderPath, 'lib', 'other.dart');
+    otherFileUri = toUri(otherFilePath);
   }
 
   Future<void> test_constructor() async {
@@ -95,7 +96,7 @@ class Bar {
 
   Future<void> test_function() async {
     final code = TestCode.parse('''
-String fo^o() {}
+void fo^o() {}
 ''');
 
     final otherCode = TestCode.parse('''
@@ -207,7 +208,7 @@ class Foo {}
   Future<void> test_method() async {
     final code = TestCode.parse('''
 class A {
-  String fo^o() {}
+  void fo^o() {}
 }
 ''');
 
@@ -215,7 +216,7 @@ class A {
 import 'main.dart';
 
 class B {
-  String bar() {
+  void bar() {
     A().foo();
   }
 }
@@ -233,7 +234,7 @@ class B {
             kind: SymbolKind.Method,
             uri: otherFileUri,
             range: rangeOfPattern(
-                otherCode, RegExp(r'String bar\(\) \{.*\  }', dotAll: true)),
+                otherCode, RegExp(r'void bar\(\) \{.*\  }', dotAll: true)),
             selectionRange: rangeOfString(otherCode, 'bar'),
           ),
           // Ranges of calls within this container
@@ -328,6 +329,7 @@ class Bar {
 
 @reflectiveTest
 class OutgoingCallHierarchyTest extends AbstractLspAnalysisServerTest {
+  late final String otherFilePath;
   late final Uri otherFileUri;
 
   /// Calls textDocument/prepareCallHierarchy at the location of `^` in
@@ -339,12 +341,12 @@ class OutgoingCallHierarchyTest extends AbstractLspAnalysisServerTest {
     TestCode? otherCode,
     required List<CallHierarchyOutgoingCall> expectedResults,
   }) async {
-    await initialize();
-    await openFile(mainFileUri, mainCode.code);
-
+    newFile(mainFilePath, mainCode.code);
     if (otherCode != null) {
-      await openFile(otherFileUri, otherCode.code);
+      newFile(otherFilePath, otherCode.code);
     }
+
+    await initialize();
 
     final prepareResult = await prepareCallHierarchy(
       mainFileUri,
@@ -358,8 +360,8 @@ class OutgoingCallHierarchyTest extends AbstractLspAnalysisServerTest {
   @override
   void setUp() {
     super.setUp();
-    otherFileUri =
-        pathContext.toUri(join(projectFolderPath, 'lib', 'other.dart'));
+    otherFilePath = join(projectFolderPath, 'lib', 'other.dart');
+    otherFileUri = toUri(otherFilePath);
   }
 
   Future<void> test_constructor() async {
@@ -642,6 +644,7 @@ class Bar {
 
 @reflectiveTest
 class PrepareCallHierarchyTest extends AbstractLspAnalysisServerTest {
+  late final String otherFilePath;
   late final Uri otherFileUri;
 
   /// Calls textDocument/prepareCallHierarchy at the location of `^` in
@@ -649,8 +652,8 @@ class PrepareCallHierarchyTest extends AbstractLspAnalysisServerTest {
   Future<void> expectNullResults(String contents) async {
     final code = TestCode.parse(contents);
 
+    newFile(mainFilePath, code.code);
     await initialize();
-    await openFile(mainFileUri, code.code);
 
     final result = await prepareCallHierarchy(
       mainFileUri,
@@ -660,18 +663,18 @@ class PrepareCallHierarchyTest extends AbstractLspAnalysisServerTest {
   }
 
   /// Calls textDocument/prepareCallHierarchy at the location of `^` in
-  /// [maincode.code] and ensures the results match [expectedResults].
+  /// [mainCode.code] and ensures the results match [expectedResults].
   Future<void> expectResults({
     required TestCode mainCode,
     TestCode? otherCode,
     required CallHierarchyItem expectedResult,
   }) async {
-    await initialize();
-    await openFile(mainFileUri, mainCode.code);
-
+    newFile(mainFilePath, mainCode.code);
     if (otherCode != null) {
-      await openFile(otherFileUri, otherCode.code);
+      newFile(otherFilePath, otherCode.code);
     }
+
+    await initialize();
 
     final results = await prepareCallHierarchy(
       mainFileUri,
@@ -686,19 +689,20 @@ class PrepareCallHierarchyTest extends AbstractLspAnalysisServerTest {
   @override
   void setUp() {
     super.setUp();
-    otherFileUri = toUri(join(projectFolderPath, 'lib', 'other.dart'));
+    otherFilePath = join(projectFolderPath, 'lib', 'other.dart');
+    otherFileUri = toUri(otherFilePath);
   }
 
   Future<void> test_args() async {
-    await expectNullResults('main(int ^a) {}');
+    await expectNullResults('f(int ^a) {}');
   }
 
   Future<void> test_block() async {
-    await expectNullResults('main() {^}');
+    await expectNullResults('f() {^}');
   }
 
   Future<void> test_comment() async {
-    await expectNullResults('main() {} // this is a ^comment');
+    await expectNullResults('f() {} // this is a ^comment');
   }
 
   Future<void> test_constructor() async {

@@ -18,6 +18,8 @@ void main() {
 
 @reflectiveTest
 class AugmentationTest extends AbstractLspAnalysisServerTest {
+  String get mainFileAugmentationPath => fromUri(mainFileAugmentationUri);
+
   Future<void> test_class_body_augmentationToAugmentation() async {
     await verifyGoToAugmentation('''
 class A {}
@@ -239,14 +241,14 @@ augment class A {
   Future<void> verifyGoToAugmentation(String content) async {
     // Build an augmentation library for mainFileUri.
     var code = TestCode.parse('''
-augment library '$mainFileUri';
+library augment '$mainFileUri';
 
 $content
 ''');
 
+    newFile(mainFilePath, "import augment 'main_augmentation.dart';");
+    newFile(mainFileAugmentationPath, code.code);
     await initialize();
-    await openFile(mainFileUri, "import augment 'main_augmentation.dart';");
-    await openFile(mainFileAugmentationUri, code.code);
     var res = await getAugmentation(
       mainFileAugmentationUri,
       code.position.position,
@@ -261,14 +263,14 @@ $content
   Future<void> verifyNoAugmentation(String content) async {
     // Build an augmentation library for mainFileUri.
     var code = TestCode.parse('''
-augment library '$mainFileUri';
+library augment '$mainFileUri';
 
 $content
 ''');
 
+    newFile(mainFilePath, "import augment 'main_augmentation.dart';");
+    newFile(mainFileAugmentationPath, code.code);
     await initialize();
-    await openFile(mainFileUri, "import augment 'main_augmentation.dart';");
-    await openFile(mainFileAugmentationUri, code.code);
     var res = await getAugmentation(
       mainFileAugmentationUri,
       code.position.position,

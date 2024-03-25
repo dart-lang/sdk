@@ -102,18 +102,18 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
     f/*[0*/(int i) {
       do {/*[1*/
         print('with statements');/*1]*/
-      } while (i == 0)
+      } while (i == 0);
 
       do {/*[2*/
         // only comments/*2]*/
-      } while (i == 0)
+      } while (i == 0);
 
       // empty
       do {
-      } while (i == 0)
+      } while (i == 0);
 
       // no body
-      do;
+      while (false);
     }/*0]*/
     ''';
 

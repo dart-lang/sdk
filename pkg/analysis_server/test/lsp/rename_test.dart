@@ -412,7 +412,7 @@ final a = n^ew MyClass();
       expectedMessage:
           'Library already declares class with name \'MyOtherClass\'.',
       action: UserPromptActions.renameAnyway,
-      beforeResponding: () => replaceFile(999, mainFileUri, 'Updated content'),
+      beforeResponding: () => replaceFile(999, mainFileUri, '/*Updated*/'),
     );
     expect(result.result, isNull);
     expect(result.error, isNotNull);
@@ -668,8 +668,14 @@ class MyNewClass {}
     final mainCode = TestCode.parse(mainContent);
     final referencedCode = TestCode.parse(referencedContent);
 
+    // Create initial files (to avoid diagnostics).
+    newFile(mainFilePath, mainCode.code);
+    newFile(referencedFilePath, referencedCode.code);
+
     setDocumentChangesSupport();
     await initialize();
+
+    // Open files to assign versions.
     await openFile(mainFileUri, mainCode.code, version: mainVersion);
     await openFile(referencedFileUri, referencedCode.code,
         version: referencedVersion);

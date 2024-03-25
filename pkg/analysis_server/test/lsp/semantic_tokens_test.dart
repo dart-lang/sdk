@@ -125,11 +125,10 @@ class C {
     ];
 
     final otherFilePath = join(projectFolderPath, 'lib', 'other_file.dart');
-    final otherFileUri = pathContext.toUri(otherFilePath);
 
+    newFile(mainFilePath, code.code);
+    newFile(otherFilePath, otherCode.code);
     await initialize();
-    await openFile(mainFileUri, code.code);
-    await openFile(otherFileUri, otherCode.code);
 
     final tokens = await getSemanticTokens(mainFileUri);
     final decoded = _decodeSemanticTokens(content, tokens);
@@ -307,11 +306,11 @@ class MyClass {
   /// getter docs
   String get myGetter => 'GetterVal';
   /// setter docs
-  set mySetter(String v) {};
+  set mySetter(String v) {}
   /// static getter docs
   static String get myStaticGetter => 'StaticGetterVal';
   /// static setter docs
-  static set myStaticSetter(String staticV) {};
+  static set myStaticSetter(String staticV) {}
 }
 
 void f() {
@@ -562,7 +561,7 @@ class A {
     final content = '''
 /// before [aaa] after
 class MyClass {
-  String aaa;
+  String? aaa;
 }
 
 /// before [bbb] after
@@ -604,16 +603,18 @@ int double(int bbb) => bbb * 2;
 
   Future<void> test_directives() async {
     final content = '''
+library foo;
+
 import 'package:flutter/material.dart';
 export 'package:flutter/widgets.dart';
 import '../file.dart'
   if (dart.library.io) 'file_io.dart'
   if (dart.library.html) 'file_html.dart';
-
-library foo;
 ''';
 
     final expected = [
+      _Token('library', SemanticTokenTypes.keyword),
+      _Token('foo', SemanticTokenTypes.namespace),
       _Token('import', SemanticTokenTypes.keyword),
       _Token("'package:flutter/material.dart'", SemanticTokenTypes.string),
       _Token('export', SemanticTokenTypes.keyword),
@@ -632,8 +633,6 @@ library foo;
       _Token('library', CustomSemanticTokenTypes.source),
       _Token('html', CustomSemanticTokenTypes.source),
       _Token("'file_html.dart'", SemanticTokenTypes.string),
-      _Token('library', SemanticTokenTypes.keyword),
-      _Token('foo', SemanticTokenTypes.namespace),
     ];
 
     await _verifyTokens(content, expected);
@@ -815,7 +814,7 @@ void f() async {
   }
 
   Future<void> test_lastLine_code() async {
-    final content = 'String bar;';
+    final content = 'String? bar;';
 
     final expected = [
       _Token('String', SemanticTokenTypes.class_),
@@ -1022,7 +1021,7 @@ class MyClass {}
 
   Future<void> test_namedArguments() async {
     final content = '''
-f({String a}) {
+f({String? a}) {
   f(a: a);
 }
 ''';
@@ -1307,31 +1306,29 @@ void f((int, {int field1}) record) {
 // This test is to ensure the assertion in `offsetLengthPrioritySort` does
 // not trigger (as it does if length is ignored, which was a bug).
     final content = r'''
-var a = '$s$s';
+var s = '';
+var a = [!'$s$s'!];
 ''';
 
     final expected = [
-      _Token('var', SemanticTokenTypes.keyword),
-      _Token('a', SemanticTokenTypes.property,
-          [SemanticTokenModifiers.declaration]),
       _Token("'", SemanticTokenTypes.string),
       _Token(r'$', CustomSemanticTokenTypes.source,
           [CustomSemanticTokenModifiers.interpolation]),
-      _Token('s', CustomSemanticTokenTypes.source),
+      _Token('s', SemanticTokenTypes.property),
       _Token(r'$', CustomSemanticTokenTypes.source,
           [CustomSemanticTokenModifiers.interpolation]),
-      _Token('s', CustomSemanticTokenTypes.source),
+      _Token('s', SemanticTokenTypes.property),
       _Token("'", SemanticTokenTypes.string)
     ];
 
-    await _verifyTokens(content, expected);
+    await _verifyTokensInRange(content, expected);
   }
 
   Future<void> test_strings() async {
     final content = '''
 String foo(String c) => c;
 const string1 = 'test';
-const string2 = 'test1 \$string1 test2 \${foo('a' + 'b')}';
+var string2 = 'test1 \$string1 test2 \${foo('a' + 'b')}';
 const string3 = r'\$string1 \${string1.length}';
 const string4 = \'\'\'
 multi
@@ -1354,7 +1351,7 @@ multi
           [SemanticTokenModifiers.declaration]),
       _Token("'test'", SemanticTokenTypes.string),
 
-      _Token('const', SemanticTokenTypes.keyword),
+      _Token('var', SemanticTokenTypes.keyword),
       _Token('string2', SemanticTokenTypes.property,
           [SemanticTokenModifiers.declaration]),
       _Token(r"'test1 ", SemanticTokenTypes.string),
