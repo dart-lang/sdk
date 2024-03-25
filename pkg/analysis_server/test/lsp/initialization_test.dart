@@ -264,6 +264,9 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   Future<void> test_dynamicRegistration_config_codeAction() =>
       assertDynamicRegistration('codeAction', {Method.textDocument_codeAction});
 
+  Future<void> test_dynamicRegistration_config_codeLens() =>
+      assertDynamicRegistration('codeLens', {Method.textDocument_codeLens});
+
   Future<void> test_dynamicRegistration_config_colorProvider() =>
       assertDynamicRegistration(
           'colorProvider', {Method.textDocument_documentColor});

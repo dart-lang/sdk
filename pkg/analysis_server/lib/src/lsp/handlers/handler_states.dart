@@ -15,6 +15,7 @@ import 'package:analysis_server/src/lsp/handlers/custom/handler_super.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_call_hierarchy.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_change_workspace_folders.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_code_actions.dart';
+import 'package:analysis_server/src/lsp/handlers/handler_code_lens.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_completion.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_completion_resolve.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_dart_text_document_content_provider.dart';
@@ -115,6 +116,7 @@ class InitializedStateMessageHandler extends ServerStateMessageHandler {
       <_RequestHandlerGenerator<AnalysisServer>>[
     AugmentationHandler.new,
     AugmentedHandler.new,
+    CodeLensHandler.new,
     DartTextDocumentContentProviderHandler.new,
     DocumentColorHandler.new,
     DocumentColorPresentationHandler.new,

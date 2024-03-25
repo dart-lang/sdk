@@ -83,6 +83,14 @@ final fixDataFile = TextDocumentFilterWithScheme(
 final pubspecFile = TextDocumentFilterWithScheme(
     language: 'yaml', scheme: 'file', pattern: '**/pubspec.yaml');
 
+/// IDs of client-provided commands that the server knows about.
+///
+/// Clients can advertise support for these commands and the server can then use
+/// them in returns commands in CodeActions, CodeLenses etc.
+abstract class ClientCommands {
+  static const goToLocation = 'dart.goToLocation';
+}
+
 /// Constants for command IDs that are exchanged between LSP client/server.
 abstract class Commands {
   /// A list of all commands IDs that can be sent to the client to inform which

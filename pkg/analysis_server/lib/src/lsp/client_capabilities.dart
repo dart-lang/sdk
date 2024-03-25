@@ -109,7 +109,14 @@ class LspClientCapabilities {
   final bool experimentalSnippetTextEdit;
   final Set<String> codeActionCommandParameterSupportedKinds;
   final bool supportsShowMessageRequest;
+
+  /// Whether the client supports the custom Dart TextDocumentContentProvider,
+  /// meaning it can request file contents from the server for custom URI
+  /// schemes.
   final bool supportsDartExperimentalTextDocumentContentProvider;
+
+  /// A set of commands that exist on the client that the server may call.
+  final Set<String> supportedCommands;
 
   factory LspClientCapabilities(ClientCapabilities raw) {
     final workspace = raw.workspace;
@@ -190,6 +197,8 @@ class LspClientCapabilities {
                 experimental[
                     dartExperimentalTextDocumentContentProviderLegacyKey]) !=
             null;
+    final supportedCommands =
+        _listToSet(experimental['commands'] as List?).cast<String>();
 
     /// At the time of writing (2023-02-01) there is no official capability for
     /// supporting 'showMessageRequest' because LSP assumed all clients
@@ -239,6 +248,7 @@ class LspClientCapabilities {
       supportsShowMessageRequest: supportsShowMessageRequest,
       supportsDartExperimentalTextDocumentContentProvider:
           supportsDartExperimentalTextDocumentContentProvider,
+      supportedCommands: supportedCommands,
     );
   }
 
@@ -278,6 +288,7 @@ class LspClientCapabilities {
     required this.codeActionCommandParameterSupportedKinds,
     required this.supportsShowMessageRequest,
     required this.supportsDartExperimentalTextDocumentContentProvider,
+    required this.supportedCommands,
   });
 
   /// Converts a list to a `Set`, returning null if the list is null.
