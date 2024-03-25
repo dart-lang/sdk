@@ -342,6 +342,10 @@ abstract mixin class ListBase<E> implements List<E> {
     return ListMapView<E>(this);
   }
 
+  Iterable<R> enumerate<R>(R Function(int index, E item) mapper) {
+    return asMap().entries.map((entry) => mapper(entry.key, entry.value));
+  }
+
   List<E> operator +(List<E> other) => [...this, ...other];
 
   List<E> sublist(int start, [int? end]) {
