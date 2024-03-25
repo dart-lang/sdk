@@ -340,15 +340,18 @@ abstract class TypeEnvironment extends Types {
       {required DartType expressionStaticType,
       required DartType checkTargetType,
       required SubtypeCheckMode subtypeCheckMode}) {
-    if (checkTargetType is! InterfaceType ||
-        expressionStaticType is! InterfaceType) {
-      // TODO(cstefantsova): Support record, function, and futureOr types.
+    if (!IsSubtypeOf.basedSolelyOnNullabilities(
+            expressionStaticType, checkTargetType)
+        .inMode(subtypeCheckMode)) {
       return TypeShapeCheckSufficiency.insufficient;
-    } else {
+    } else if (checkTargetType is InterfaceType &&
+        expressionStaticType is InterfaceType) {
       // Analyze if an interface shape check is sufficient.
 
       // If `T` in `e is/as T` doesn't have type arguments, there's nothing more to
       // check besides the shape.
+      // TODO(cstefantsova): Investigate if [expressionStaticType] can be of any
+      // kind for the following sufficiency check to work.
       if (checkTargetType.typeArguments.isEmpty) {
         return TypeShapeCheckSufficiency.interfaceShape;
       }
@@ -366,12 +369,17 @@ abstract class TypeEnvironment extends Types {
       for (int typeParameterIndex = 0;
           typeParameterIndex < checkTargetTypeOwnTypeParameters.length;
           typeParameterIndex++) {
+        // TODO(cstefantsova): Investigate if super-bounded types can appear as
+        // [checkTargetType]s. In that case a subtype check should be done
+        // instead of the mutual subtype check.
         if (!_isRawTypeArgumentEquivalent(checkTargetType, typeParameterIndex,
             subtypeCheckMode: subtypeCheckMode)) {
           targetTypeArgumentsAreDefaultTypes = false;
           break;
         }
       }
+      // TODO(cstefantsova): Investigate if [expressionStaticType] can be of any
+      // kind for the following sufficiency check to work.
       if (targetTypeArgumentsAreDefaultTypes) {
         return TypeShapeCheckSufficiency.interfaceShape;
       }
@@ -526,6 +534,79 @@ abstract class TypeEnvironment extends Types {
           return TypeShapeCheckSufficiency.insufficient;
         }
       }
+    } else if (checkTargetType is RecordType &&
+        expressionStaticType is RecordType) {
+      bool isTopRecordTypeForTheShape = true;
+      for (DartType positional in checkTargetType.positional) {
+        if (!isTop(positional)) {
+          isTopRecordTypeForTheShape = false;
+          break;
+        }
+      }
+      for (NamedType named in checkTargetType.named) {
+        if (!isTop(named.type)) {
+          isTopRecordTypeForTheShape = false;
+          break;
+        }
+      }
+      if (isTopRecordTypeForTheShape) {
+        // TODO(cstefantsova): Investigate if [expressionStaticType] can be of
+        // any kind for the following sufficiency check to work.
+        return TypeShapeCheckSufficiency.recordShape;
+      }
+
+      if (isSubtypeOf(
+          expressionStaticType, checkTargetType, subtypeCheckMode)) {
+        return TypeShapeCheckSufficiency.recordShape;
+      } else {
+        return TypeShapeCheckSufficiency.insufficient;
+      }
+    } else if (checkTargetType is FunctionType &&
+        expressionStaticType is FunctionType) {
+      if (checkTargetType.typeParameters.isEmpty &&
+          expressionStaticType.typeParameters.isEmpty) {
+        bool isTopFunctionTypeForTheShape = true;
+        for (DartType positional in checkTargetType.positionalParameters) {
+          if (!isBottom(positional)) {
+            isTopFunctionTypeForTheShape = false;
+          }
+        }
+        for (NamedType named in checkTargetType.namedParameters) {
+          if (!isBottom(named.type)) {
+            isTopFunctionTypeForTheShape = false;
+          }
+        }
+        if (!isTop(checkTargetType.returnType)) {
+          isTopFunctionTypeForTheShape = false;
+        }
+
+        if (isTopFunctionTypeForTheShape) {
+          // TODO(cstefantsova): Investigate if [expressionStaticType] can be of
+          // any kind for the following sufficiency check to work.
+          return TypeShapeCheckSufficiency.functionShape;
+        }
+      }
+
+      if (isSubtypeOf(
+          expressionStaticType, checkTargetType, subtypeCheckMode)) {
+        return TypeShapeCheckSufficiency.functionShape;
+      } else {
+        return TypeShapeCheckSufficiency.insufficient;
+      }
+    } else if (checkTargetType is FutureOrType &&
+        expressionStaticType is FutureOrType) {
+      if (isTop(checkTargetType.typeArgument)) {
+        // TODO(cstefantsova): Investigate if [expressionStaticType] can be of
+        // any kind for the following sufficiency check to work.
+        return TypeShapeCheckSufficiency.futureOrShape;
+      } else if (isSubtypeOf(expressionStaticType.typeArgument,
+          checkTargetType.typeArgument, subtypeCheckMode)) {
+        return TypeShapeCheckSufficiency.futureOrShape;
+      } else {
+        return TypeShapeCheckSufficiency.insufficient;
+      }
+    } else {
+      return TypeShapeCheckSufficiency.insufficient;
     }
   }
 }
@@ -765,6 +846,15 @@ class IsSubtypeOf {
         return "IsSubtypeOf.onlyIfIgnoringNullabilities";
     }
     return "IsSubtypeOf.<unknown value '${_value}'>";
+  }
+
+  bool inMode(SubtypeCheckMode subtypeCheckMode) {
+    switch (subtypeCheckMode) {
+      case SubtypeCheckMode.withNullabilities:
+        return isSubtypeWhenUsingNullabilities();
+      case SubtypeCheckMode.ignoringNullabilities:
+        return isSubtypeWhenIgnoringNullabilities();
+    }
   }
 }
 
