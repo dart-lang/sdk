@@ -1005,8 +1005,7 @@ extension StringToJSString on String {
 /// external operator int [](int key);
 /// ```
 ///
-/// Operators that always return number or boolean values use the Dart type
-/// instead of a JS type for convenience as the conversions are inexpensive.
+/// All operators in this extension shall accept and return only JS types.
 // TODO(srujzs): Add more as needed. For now, we just expose the ones needed to
 // migrate from `dart:js_util`.
 extension JSAnyOperatorExtension on JSAny? {
@@ -1033,28 +1032,28 @@ extension JSAnyOperatorExtension on JSAny? {
   // Comparison operators.
 
   /// The result of <code>[this] > [any]</code> in JavaScript.
-  external bool greaterThan(JSAny? any);
+  external JSBoolean greaterThan(JSAny? any);
 
   /// The result of <code>[this] >= [any]</code> in JavaScript.
-  external bool greaterThanOrEqualTo(JSAny? any);
+  external JSBoolean greaterThanOrEqualTo(JSAny? any);
 
   /// The result of <code>[this] < [any]</code> in JavaScript.
-  external bool lessThan(JSAny? any);
+  external JSBoolean lessThan(JSAny? any);
 
   /// The result of <code>[this] <= [any]</code> in JavaScript.
-  external bool lessThanOrEqualTo(JSAny? any);
+  external JSBoolean lessThanOrEqualTo(JSAny? any);
 
   /// The result of <code>[this] == [any]</code> in JavaScript.
-  external bool equals(JSAny? any);
+  external JSBoolean equals(JSAny? any);
 
   /// The result of <code>[this] != [any]</code> in JavaScript.
-  external bool notEquals(JSAny? any);
+  external JSBoolean notEquals(JSAny? any);
 
   /// The result of <code>[this] === [any]</code> in JavaScript.
-  external bool strictEquals(JSAny? any);
+  external JSBoolean strictEquals(JSAny? any);
 
   /// The result of <code>[this] !== [any]</code> in JavaScript.
-  external bool strictNotEquals(JSAny? any);
+  external JSBoolean strictNotEquals(JSAny? any);
 
   // Bitwise operators.
 
@@ -1071,9 +1070,11 @@ extension JSAnyOperatorExtension on JSAny? {
   external JSAny? or(JSAny? any);
 
   /// The result of <code>![this]</code> in JavaScript.
+  // TODO(srujzs): Change this to JSBoolean to be consistent.
   external bool get not;
 
   /// The result of <code>!![this]</code> in JavaScript.
+  // TODO(srujzs): Change this to JSBoolean to be consistent.
   external bool get isTruthy;
 }
 
