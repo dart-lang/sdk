@@ -77,6 +77,7 @@ class HotReloadFrontendServerController {
         .transform(utf8.decoder)
         .transform(const LineSplitter())
         .listen((String s) {
+      if (debug) print('Frontend Server Response: $s');
       if (_boundaryKey == null) {
         if (s.startsWith(frontEndResponsePrefix)) {
           _boundaryKey = s.substring(frontEndResponsePrefix.length);
@@ -99,13 +100,9 @@ class HotReloadFrontendServerController {
   }
 
   Future<void> sendCompile(String dartSourcePath) async {
-    if (!started) {
-      throw Exception('Frontend Server has not been started yet.');
-    }
+    if (!started) throw Exception('Frontend Server has not been started yet.');
     final command = 'compile $dartSourcePath\n';
-    if (debug) {
-      print('Sending instruction to Frontend Server:\n$command');
-    }
+    if (debug) print('Sending instruction to Frontend Server:\n$command');
     input.add(command.codeUnits);
     await synchronizer.moveNext();
   }
@@ -118,14 +115,10 @@ class HotReloadFrontendServerController {
   Future<void> sendRecompile(String entrypointPath,
       {List<String> invalidatedFiles = const [],
       String boundaryKey = fakeBoundaryKey}) async {
-    if (!started) {
-      throw Exception('Frontend Server has not been started yet.');
-    }
+    if (!started) throw Exception('Frontend Server has not been started yet.');
     final command = 'recompile $entrypointPath $boundaryKey\n'
         '${invalidatedFiles.join('\n')}\n$boundaryKey\n';
-    if (debug) {
-      print('Sending instruction to Frontend Server:\n$command');
-    }
+    if (debug) print('Sending instruction to Frontend Server:\n$command');
     input.add(command.codeUnits);
     await synchronizer.moveNext();
   }
@@ -139,26 +132,18 @@ class HotReloadFrontendServerController {
   }
 
   void sendAccept() {
-    if (!started) {
-      throw Exception('Frontend Server has not been started yet.');
-    }
+    if (!started) throw Exception('Frontend Server has not been started yet.');
     final command = 'accept\n';
     // TODO(markzipan): We should reject certain invalid compiles (e.g., those
     // with unimplemented or invalid nodes).
-    if (debug) {
-      print('Sending instruction to Frontend Server:\n$command');
-    }
+    if (debug) print('Sending instruction to Frontend Server:\n$command');
     input.add(command.codeUnits);
   }
 
   void _sendQuit() {
-    if (!started) {
-      throw Exception('Frontend Server has not been started yet.');
-    }
+    if (!started) throw Exception('Frontend Server has not been started yet.');
     final command = 'quit\n';
-    if (debug) {
-      print('Sending instruction to Frontend Server:\n$command');
-    }
+    if (debug) print('Sending instruction to Frontend Server:\n$command');
     input.add(command.codeUnits);
   }
 

@@ -136,7 +136,7 @@ class HotReloadMemoryFilesystem {
           moduleName: libraryName,
           libraryName: libraryName,
           dartSourcePath: dartFileName,
-          jsSourcePath: fullyResolvedFileUri.path);
+          jsSourcePath: fullyResolvedFileUri.toFilePath());
       libraries.add(libraryInfo);
       if (generation == '0') {
         firstGenerationLibraries.add(libraryInfo);

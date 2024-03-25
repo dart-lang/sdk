@@ -44,14 +44,13 @@ String generateD8Bootstrapper({
   required String ddcModuleLoaderJsPath,
   required String dartSdkJsPath,
   required String entrypointModuleName,
-  String jsFileRoot = '/',
+  String jsFileRoot = '',
   String uuid = '00000000-0000-0000-0000-000000000000',
   required String entrypointLibraryExportName,
   required List<Map<String, String?>> scriptDescriptors,
   required Map<String, List<String>> modifiedFilesPerGeneration,
 }) {
   final d8BootstrapJS = '''
-
 load("$ddcModuleLoaderJsPath");
 load("$dartSdkJsPath");
 
@@ -70,6 +69,7 @@ let sdk = dart_library.import('dart_sdk');
 let scripts = ${_encoder.convert(scriptDescriptors)};
 
 let loadConfig = new self.\$dartLoader.LoadConfiguration();
+loadConfig.isWindows = ${Platform.isWindows};
 loadConfig.root = '$jsFileRoot';
 // Loading the entrypoint late is only necessary in Chrome.
 loadConfig.bootstrapScript = '';

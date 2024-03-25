@@ -732,6 +732,8 @@ if (!self.dart_library) {
         // DDCLoader, which is unique per-app.
         this.root = trimmedDirectory;
 
+        this.isWindows = false;
+
         // Optional event handlers.
         // Called when modules begin loading.
         this.onLoadStart = () => { };
@@ -837,21 +839,24 @@ if (!self.dart_library) {
     // Joins path segments from the root directory to [script]'s path to get a
     // complete URL.
     getScriptUrl(script) {
+      let pathSlash = this.loadConfig.isWindows ? "\\" : "/";
       // Get path segments for src
-      let splitSrc = script.src.toString().toString().split("/");
+      let splitSrc = script.src.toString().split(pathSlash);
       let j = 0;
       // Count number of relative path segments
       while (splitSrc[j] == "..") {
         j++;
       }
       // Get path segments for root directory
-      let splitDir = this.loadConfig.root.split("/");
+      let splitDir = !this.loadConfig.root
+        || this.loadConfig.root == pathSlash ? []
+        : this.loadConfig.root.split(pathSlash);
       // Account for relative path from the root directory
       let splitPath = splitDir
         .slice(0, splitDir.length - j)
         .concat(splitSrc.slice(j));
       // Join path segments to get a complete path
-      return splitPath.join("/");
+      return splitPath.join(pathSlash);
     };
 
     // Adds [script] to the dartLoader's internals as if it had been loaded and
