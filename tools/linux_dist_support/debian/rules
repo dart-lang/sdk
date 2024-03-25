@@ -74,7 +74,7 @@ override_dh_auto_configure:
 
 override_dh_auto_build:
 	cd dart; \
-	python3 tools/build.py --no-goma --mode release \
+	python3 tools/build.py --mode release \
 	  $(BUILD_FLAGS) $(TOOLCHAIN) create_sdk; \
 	cd ..
 

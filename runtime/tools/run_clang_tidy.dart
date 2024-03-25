@@ -16,7 +16,7 @@ import 'package:pool/pool.dart';
 Future<void> generatePerfettoBuildFlags() async {
   final processResult = await Process.run(
     './tools/build.py',
-    ['-mdebug', '-ax64', '--no-goma', 'third_party/perfetto/gn:gen_buildflags'],
+    ['-mdebug', '-ax64', 'third_party/perfetto/gn:gen_buildflags'],
   );
 
   final int exitCode = processResult.exitCode;
