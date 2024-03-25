@@ -22,6 +22,3 @@ per-file .clang-format,.gn,BUILD.gn,sdk_args.gni=file:/tools/OWNERS_BUILD
 
 # Infrastructure files.
 per-file .style.yapf,codereview.settings,PRESUBMIT.py=file:/tools/OWNERS_INFRA
-
-# Generated file
-per-file .packages=*
