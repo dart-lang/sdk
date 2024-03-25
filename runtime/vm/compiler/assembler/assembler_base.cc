@@ -508,10 +508,12 @@ intptr_t ObjectPoolBuilder::AddObject(ObjectPoolBuilderEntry entry) {
 #else
   if (entry.type() == ObjectPoolBuilderEntry::kImmediate128) {
     ASSERT(entry.patchable() == ObjectPoolBuilderEntry::kNotPatchable);
-    uword lo64 = static_cast<uword>(entry.imm128_.int_storage[0]) |
-                 (static_cast<uword>(entry.imm128_.int_storage[1]) << 32);
-    uword hi64 = static_cast<uword>(entry.imm128_.int_storage[2]) |
-                 (static_cast<uword>(entry.imm128_.int_storage[3]) << 32);
+    uword lo64 =
+        (static_cast<uword>(entry.imm128_.int_storage[0]) & 0xffffffff) |
+        (static_cast<uword>(entry.imm128_.int_storage[1]) << 32);
+    uword hi64 =
+        (static_cast<uword>(entry.imm128_.int_storage[2]) & 0xffffffff) |
+        (static_cast<uword>(entry.imm128_.int_storage[3]) << 32);
     intptr_t idx = AddImmediate(lo64);
     AddImmediate(hi64);
     object_pool_index_table_.Insert(ObjIndexPair(entry, idx));
