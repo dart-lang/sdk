@@ -443,9 +443,7 @@ void Assembler::LoadWordFromPoolIndex(Register dst,
     const uint16_t offset_low = Utils::Low16Bits(offset);
     const uint16_t offset_high = Utils::High16Bits(offset);
     movz(dst, Immediate(offset_low), 0);
-    if (offset_high != 0) {
-      movk(dst, Immediate(offset_high), 1);
-    }
+    movk(dst, Immediate(offset_high), 1);
     ldr(dst, Address(pp, dst));
   }
 }
@@ -471,9 +469,7 @@ void Assembler::StoreWordToPoolIndex(Register src,
     const uint16_t offset_low = Utils::Low16Bits(offset);
     const uint16_t offset_high = Utils::High16Bits(offset);
     movz(TMP, Immediate(offset_low), 0);
-    if (offset_high != 0) {
-      movk(TMP, Immediate(offset_high), 1);
-    }
+    movk(TMP, Immediate(offset_high), 1);
     str(src, Address(pp, TMP));
   }
 }
