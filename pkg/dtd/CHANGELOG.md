@@ -1,3 +1,7 @@
+## 2.1.0
+- Added `getProjectRoots` API.
+- Expose constant values from `dtd.dart`.
+
 ## 2.0.0
 
 - Documentation improvements.
