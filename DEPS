@@ -101,6 +101,7 @@ vars = {
   "boringssl_gen_rev": "9c7294fd58261a79794f5afaa26598cf1442ad20",
   "boringssl_rev": "d24a38200fef19150eef00cad35b138936c08767",
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
+  "cpu_features_rev": "936b9ab5515dead115606559502e3864958f7f6e",
   "devtools_rev": "5a2f92117eb2257fa38bbc4f4ccb18bb5dbd6ebe",
   "icu_rev": "81d656878ec611cb0b42d52c82e9dae93920d9ba",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
@@ -112,7 +113,7 @@ vars = {
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "protobuf_gn_rev": "ca669f79945418f6229e4fef89b666b2a88cbb10",
   "WebCore_rev": "bcb10901266c884e7b3740abc597ab95373ab55c",
-  "zlib_rev": "14dd4c4455602c9b71a1a89b5cafd1f4030d2e3f",
+  "zlib_rev": "24c07df5033183efad8607cba62e746bea7180bf",
 
   ### /third_party/pkg dependencies
   # 'tools/rev_sdk_deps.dart' can rev pkg dependencies to their latest; put an
@@ -317,6 +318,9 @@ deps = {
   Var("dart_root") + "/third_party/zlib":
       Var("chromium_git") + "/chromium/src/third_party/zlib.git" +
       "@" + Var("zlib_rev"),
+  Var("dart_root") + "/third_party/cpu_features/src":
+      Var("chromium_git") + "/external/github.com/google/cpu_features.git" +
+      "@" + Var("cpu_features_rev"),
 
   Var("dart_root") + "/third_party/libcxx":
       Var("llvm_git") + "/llvm-project/libcxx" + "@" + Var("libcxx_rev"),
