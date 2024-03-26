@@ -1,10 +1,10 @@
-## 3.3.3
+## 3.3.3 - 2024-03-27
 
 This is a patch release that:
 
-- Fixes an issue where dart vm crashed when running on pre-SSE41 older CPUs on Windows (issue [#140138][]).
+- Fixes an issue where dart vm crashed when running on pre-SSE41 older CPUs on Windows (issue [#55211][]).
 
-[#140138]: https://github.com/flutter/flutter/issues/140138
+[#55211]: https://github.com/dart-lang/sdk/issues/55211
 
 ## 3.3.2 - 2024-03-20
 
