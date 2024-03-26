@@ -308,8 +308,9 @@ class ExpressionEvaluationTestDriver {
       deleteAttempts++;
       try {
         await chromeDir.delete(recursive: true);
-      } on FileSystemException {
-        if (deleteAttempts > 3) rethrow;
+      } on FileSystemException catch (e) {
+        print('Error trying to delete chromeDir: $e');
+        if (deleteAttempts > 3) return;
         var delayMs = pow(10, deleteAttempts).floor();
         await Future.delayed(Duration(milliseconds: delayMs));
       }
