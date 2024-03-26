@@ -4695,8 +4695,9 @@ Fragment FlowGraphBuilder::IntRelationalOp(TokenPosition position,
 
 Fragment FlowGraphBuilder::NativeReturn(
     const compiler::ffi::CallbackMarshaller& marshaller) {
-  auto* instr = new (Z)
-      NativeReturnInstr(InstructionSource(), Pop(), marshaller, DeoptId::kNone);
+  const intptr_t num_return_defs = marshaller.NumReturnDefinitions();
+  ASSERT_EQUAL(num_return_defs, 1);
+  auto* instr = new (Z) NativeReturnInstr(Pop(), marshaller);
   return Fragment(instr).closed();
 }
 

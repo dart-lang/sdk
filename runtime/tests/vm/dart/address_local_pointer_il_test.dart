@@ -28,7 +28,7 @@ void matchIL$identity(FlowGraph graph) {
                 from: 'int64', to: 'uint32', is_truncating: true),
         'retval' << match.IntConverter('uint32', from: 'uint32', to: 'int64'),
       ],
-      match.Return(retval),
+      match.DartReturn(retval),
     ]),
   ]);
 }

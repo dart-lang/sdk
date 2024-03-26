@@ -67,7 +67,7 @@ void matchIL$testOffset(FlowGraph graph) {
       // `pointer2` is not allocated.
       ...convertInt64AddressToUntagged('pointer2'),
       ...loadIndexedValueAsInt64('pointer2', 'int 0'),
-      match.Return('pointer2.value int64'),
+      match.DartReturn('pointer2.value int64'),
     ]),
   ]);
 }
@@ -118,7 +118,7 @@ void matchIL$testAllocate(FlowGraph graph) {
       match.AllocateObject(),
       match.StoreStaticField(match.any),
       ...loadIndexedValueAsInt64('pointer2', 'int 0'),
-      match.Return('pointer2.value int64'),
+      match.DartReturn('pointer2.value int64'),
     ]),
   ]);
 }
@@ -195,7 +195,7 @@ void matchIL$testHoist(FlowGraph graph) {
         ]),
     'B3' <<
         match.block('Target', [
-          match.Return(match.any),
+          match.DartReturn(match.any),
         ]),
   ]);
 }

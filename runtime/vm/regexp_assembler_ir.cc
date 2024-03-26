@@ -257,7 +257,7 @@ void IRRegExpMacroAssembler::GenerateSuccessBlock() {
   PRINT(PushLocal(result_));
 
   // Return true on success.
-  AppendInstruction(new (Z) ReturnInstr(
+  AppendInstruction(new (Z) DartReturnInstr(
       InstructionSource(), Bind(LoadLocal(result_)), GetNextDeoptId()));
 }
 
@@ -266,7 +266,7 @@ void IRRegExpMacroAssembler::GenerateExitBlock() {
   TAG();
 
   // Return false on failure.
-  AppendInstruction(new (Z) ReturnInstr(
+  AppendInstruction(new (Z) DartReturnInstr(
       InstructionSource(), Bind(LoadLocal(result_)), GetNextDeoptId()));
 }
 

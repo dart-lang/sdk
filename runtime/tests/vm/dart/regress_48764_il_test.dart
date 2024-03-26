@@ -52,7 +52,7 @@ void matchIL$main_testForIn(FlowGraph graph) {
         ]),
     'B4' <<
         match.block('Target', [
-          match.Return(match.any),
+          match.DartReturn(match.any),
         ]),
     'B3' <<
         match.block('Target', [

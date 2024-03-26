@@ -594,7 +594,8 @@ void MoveArgumentInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-LocationSummary* ReturnInstr::MakeLocationSummary(Zone* zone, bool opt) const {
+LocationSummary* DartReturnInstr::MakeLocationSummary(Zone* zone,
+                                                      bool opt) const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
   LocationSummary* locs = new (zone)
@@ -637,7 +638,7 @@ LocationSummary* ReturnInstr::MakeLocationSummary(Zone* zone, bool opt) const {
 // Attempt optimized compilation at return instruction instead of at the entry.
 // The entry needs to be patchable, no inlined objects are allowed in the area
 // that will be overwritten by the patch instructions: a branch macro sequence.
-void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void DartReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (locs()->in(0).IsRegister()) {
     const Register result = locs()->in(0).reg();
     ASSERT(result == CallingConventions::kReturnReg);
@@ -673,7 +674,7 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(__ constant_pool_allowed());
   __ LeaveDartFrame(fp_sp_dist);  // Disallows constant pool use.
   __ ret();
-  // This ReturnInstr may be emitted out of order by the optimizer. The next
+  // This DartReturnInstr may be emitted out of order by the optimizer. The next
   // block may be a target expecting a properly set constant pool pointer.
   __ set_constant_pool_allowed(true);
 }

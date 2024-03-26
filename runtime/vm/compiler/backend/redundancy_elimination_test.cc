@@ -271,7 +271,7 @@ static void TestAliasingViaRedefinition(
   LoadFieldInstr* v1;
   StaticCallInstr* call;
   LoadFieldInstr* v4;
-  ReturnInstr* ret;
+  DartReturnInstr* ret;
 
   {
     BlockBuilder builder(H.flow_graph(), b1);
@@ -291,7 +291,7 @@ static void TestAliasingViaRedefinition(
         std::move(args), S.GetNextDeoptId(), 0, ICData::RebindRule::kStatic));
     v4 = builder.AddDefinition(
         new LoadFieldInstr(new Value(v2), slot, InstructionSource()));
-    ret = builder.AddInstruction(new ReturnInstr(
+    ret = builder.AddInstruction(new DartReturnInstr(
         InstructionSource(), new Value(v4), S.GetNextDeoptId()));
   }
   H.FinishGraph();
@@ -445,7 +445,7 @@ static void TestAliasingViaStore(
   LoadFieldInstr* v1;
   StaticCallInstr* call;
   LoadFieldInstr* v4;
-  ReturnInstr* ret;
+  DartReturnInstr* ret;
 
   {
     BlockBuilder builder(H.flow_graph(), b1);
@@ -479,7 +479,7 @@ static void TestAliasingViaStore(
         std::move(args), S.GetNextDeoptId(), 0, ICData::RebindRule::kStatic));
     v4 = builder.AddDefinition(
         new LoadFieldInstr(new Value(v0), slot, InstructionSource()));
-    ret = builder.AddInstruction(new ReturnInstr(
+    ret = builder.AddInstruction(new DartReturnInstr(
         InstructionSource(), new Value(v4), S.GetNextDeoptId()));
   }
   H.FinishGraph();
@@ -608,7 +608,7 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_AliasingViaTypedDataAndUntaggedTypedData) {
   LoadFieldInstr* v2;
   StoreIndexedInstr* store;
   LoadIndexedInstr* v3;
-  ReturnInstr* ret;
+  DartReturnInstr* ret;
 
   {
     BlockBuilder builder(H.flow_graph(), b1);
@@ -644,7 +644,7 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_AliasingViaTypedDataAndUntaggedTypedData) {
         InstructionSource()));
 
     //   return v3
-    ret = builder.AddInstruction(new ReturnInstr(
+    ret = builder.AddInstruction(new DartReturnInstr(
         InstructionSource(), new Value(v3), S.GetNextDeoptId()));
   }
   H.FinishGraph();
@@ -665,7 +665,7 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_AliasingViaTypedDataAndUntaggedTypedData) {
         {kMatchAndMoveLoadField, &lf},
         {kMatchAndMoveStoreIndexed, &s},
         {kMatchAndMoveLoadIndexed, &li2},
-        {kMatchReturn, &r},
+        {kMatchDartReturn, &r},
     }));
     EXPECT(array == sc);
     EXPECT(v1 == li);
@@ -718,7 +718,7 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_LoadDataFieldOfNewTypedData) {
   AllocateObjectInstr* view;
   LoadFieldInstr* v1;
   StoreFieldInstr* store;
-  ReturnInstr* ret;
+  DartReturnInstr* ret;
 
   {
     BlockBuilder builder(H.flow_graph(), b1);
@@ -745,7 +745,7 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_LoadDataFieldOfNewTypedData) {
         InstructionSource(), StoreFieldInstr::Kind::kInitializing));
 
     //   return view
-    ret = builder.AddInstruction(new ReturnInstr(
+    ret = builder.AddInstruction(new DartReturnInstr(
         InstructionSource(), new Value(view), S.GetNextDeoptId()));
   }
   H.FinishGraph();
@@ -764,7 +764,7 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_LoadDataFieldOfNewTypedData) {
         {kMatchAndMoveAllocateObject, &alloc_view},
         {kMatchAndMoveLoadField, &lf},
         {kMatchAndMoveStoreField, &sf},
-        {kMatchReturn, &r},
+        {kMatchDartReturn, &r},
     }));
     EXPECT(array == alloc_array);
     EXPECT(view == alloc_view);
@@ -806,7 +806,7 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_TypedArrayViewAliasing) {
   auto b1 = H.flow_graph()->graph_entry()->normal_entry();
 
   Definition* load;
-  ReturnInstr* ret;
+  DartReturnInstr* ret;
 
   {
     BlockBuilder builder(H.flow_graph(), b1);
@@ -960,7 +960,7 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_RedundantStaticFieldInitialization) {
       kMoveParallelMoves,
       kMatchAndMoveBinarySmiOp,
       kMoveParallelMoves,
-      kMatchReturn,
+      kMatchDartReturn,
   }));
 }
 
@@ -1007,7 +1007,7 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_RedundantInitializerCallAfterIf) {
       kMoveParallelMoves,
       {kMatchAndMoveLoadStaticField, &load_static_after_if},
       kMoveGlob,
-      kMatchReturn,
+      kMatchDartReturn,
   }));
   EXPECT(!load_static_after_if->calls_initializer());
 }
@@ -1153,7 +1153,7 @@ Vec3Mut main() {
       {kMatchAndMoveStoreField, &store1},
       {kMatchAndMoveStoreField, &store2},
       {kMatchAndMoveStoreField, &store3},
-      kMatchReturn,
+      kMatchDartReturn,
   }));
 
   EXPECT(store1->instance()->definition() == allocate);
@@ -1197,7 +1197,7 @@ main() {
       kMoveGlob,
       {kMatchAndMoveAllocateObject, &allocate},
       {kMatchAndMoveStoreField, &store1},  // initializing store
-      kMatchReturn,
+      kMatchDartReturn,
   }));
 
   EXPECT(store1->instance()->definition() == allocate);
@@ -1367,7 +1367,7 @@ main() {
       kMatchAndMoveStoreIndexed,
       kMatchAndMoveMoveArgument,
       {kMatchAndMoveStaticCall, &string_interpolate},
-      kMatchReturn,
+      kMatchDartReturn,
   }));
 
   EXPECT(string_interpolate->ArgumentAt(0) == create_array);
@@ -1464,7 +1464,7 @@ main() {
       kMatchAndMoveStoreIndexed,
       kMatchAndMoveMoveArgument,
       kMatchAndMoveStaticCall,
-      kMatchReturn,
+      kMatchDartReturn,
   }));
 
   Compiler::CompileOptimizedFunction(thread, function);
@@ -1636,7 +1636,7 @@ ISOLATE_UNIT_TEST_CASE(CSE_Redefinitions) {
   LoadFieldInstr* load1;
   LoadFieldInstr* load2;
   StaticCallInstr* call;
-  ReturnInstr* ret;
+  DartReturnInstr* ret;
 
   {
     BlockBuilder builder(H.flow_graph(), b1);

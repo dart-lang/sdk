@@ -116,7 +116,7 @@ static bool DefDominatesUse(Definition* def, Instruction* instruction) {
 // Returns true if instruction forces control flow.
 static bool IsControlFlow(Instruction* instruction) {
   return instruction->IsBranch() || instruction->IsGoto() ||
-         instruction->IsIndirectGoto() || instruction->IsReturn() ||
+         instruction->IsIndirectGoto() || instruction->IsReturnBase() ||
          instruction->IsThrow() || instruction->IsReThrow() ||
          instruction->IsTailCall();
 }
@@ -461,8 +461,7 @@ void FlowGraphChecker::VisitDefUse(Definition* def,
     // same basic block as the definition.
     ASSERT2(def->GetBlock() == instruction->GetBlock(), def, instruction);
     // Untagged pointers should not be returned from functions or FFI callbacks.
-    ASSERT2(!instruction->IsReturn() && !instruction->IsNativeReturn(), def,
-            instruction);
+    ASSERT2(!instruction->IsReturnBase(), def, instruction);
     // Make sure no instruction between the definition and the use (including
     // the use) can trigger GC.
     for (const auto* current = def->next(); current != instruction->next();

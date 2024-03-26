@@ -79,13 +79,13 @@ ISOLATE_UNIT_TEST_CASE(TypePropagator_RedefinitionAfterStrictCompareWithNull) {
 
   // In B2 v0 should not have any additional type information so reaching
   // type should be still nullable int.
-  auto b2_value = b2->last_instruction()->AsReturn()->value();
+  auto b2_value = b2->last_instruction()->AsDartReturn()->value();
   EXPECT(b2_value->Type()->IsNullableInt());
 
   // In B3 v0 is constrained by comparison with null - it should be non-nullable
   // integer. There should be a Redefinition inserted to prevent LICM past
   // the branch.
-  auto b3_value = b3->last_instruction()->AsReturn()->value();
+  auto b3_value = b3->last_instruction()->AsDartReturn()->value();
   EXPECT(b3_value->Type()->IsInt());
   EXPECT(b3_value->definition()->IsRedefinition());
   EXPECT(b3_value->definition()->GetBlock() == b3);
@@ -144,13 +144,13 @@ ISOLATE_UNIT_TEST_CASE(
   // There should be no information available about the incoming type of
   // the parameter either on entry or in B3.
   EXPECT_PROPERTY(v0->Type()->ToAbstractType(), it.IsDynamicType());
-  auto b3_value = b3->last_instruction()->AsReturn()->value();
+  auto b3_value = b3->last_instruction()->AsDartReturn()->value();
   EXPECT(b3_value->Type() == v0->Type());
 
   // In B3 v0 is constrained by comparison of its cid with kDoubleCid - it
   // should be non-nullable double. There should be a Redefinition inserted to
   // prevent LICM past the branch.
-  auto b2_value = b2->last_instruction()->AsReturn()->value();
+  auto b2_value = b2->last_instruction()->AsDartReturn()->value();
   EXPECT_PROPERTY(b2_value->Type(), it.IsDouble());
   EXPECT_PROPERTY(b2_value->definition(), it.IsRedefinition());
   EXPECT_PROPERTY(b2_value->definition()->GetBlock(), &it == b2);
@@ -350,8 +350,8 @@ ISOLATE_UNIT_TEST_CASE(TypePropagator_Regress36156) {
     BlockBuilder builder(H.flow_graph(), b7);
     v5 = H.Phi(b7, {{b5, v3}, {b6, H.DoubleConstant(1.0)}});
     builder.AddPhi(v5);
-    builder.AddInstruction(new ReturnInstr(InstructionSource(), new Value(v5),
-                                           S.GetNextDeoptId()));
+    builder.AddInstruction(new DartReturnInstr(
+        InstructionSource(), new Value(v5), S.GetNextDeoptId()));
   }
 
   H.FinishGraph();
@@ -571,7 +571,7 @@ ISOLATE_UNIT_TEST_CASE(TypePropagator_NonNullableLoadStaticField) {
       kMatchAndMoveBoxInt64,
       kMatchAndMoveMoveArgument,
       kMatchAndMoveStaticCall,
-      kMatchReturn,
+      kMatchDartReturn,
   }));
 
   EXPECT_PROPERTY(load->AsLoadStaticField()->Type(), !it.is_nullable());
@@ -741,7 +741,7 @@ ISOLATE_UNIT_TEST_CASE(TypePropagator_RecordFieldAccess) {
       {kMatchAndMoveLoadField, &load2},
       kMatchAndMoveMoveArgument,
       kMatchAndMoveStaticCall,
-      kMatchReturn,
+      kMatchDartReturn,
   }));
 
   EXPECT_PROPERTY(load1->Type()->ToAbstractType(), it.IsIntType());

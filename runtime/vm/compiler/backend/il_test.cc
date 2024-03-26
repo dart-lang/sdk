@@ -209,7 +209,7 @@ bool TestIntConverterCanonicalizationRule(Thread* thread,
   auto normal_entry = H.flow_graph()->graph_entry()->normal_entry();
 
   Definition* v0;
-  ReturnInstr* ret;
+  DartReturnInstr* ret;
 
   {
     BlockBuilder builder(H.flow_graph(), normal_entry);
@@ -280,7 +280,7 @@ ISOLATE_UNIT_TEST_CASE(IL_PhiCanonicalization) {
   auto b4 = H.TargetEntry();
 
   Definition* v0;
-  ReturnInstr* ret;
+  DartReturnInstr* ret;
   PhiInstr* phi;
 
   {
@@ -676,7 +676,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_DoubleEqualsSmi) {
       kMoveGlob,
       kMatchAndMoveBinaryDoubleOp,
       kMatchAndMoveEqualityCompare,
-      kMatchReturn,
+      kMatchDartReturn,
   }));
 }
 
@@ -902,13 +902,13 @@ ISOLATE_UNIT_TEST_CASE(IRTest_LoadThread) {
       CompilerPass::kComputeSSA,
   });
 
-  ReturnInstr* return_instr = nullptr;
+  DartReturnInstr* return_instr = nullptr;
   {
     ILMatcher cursor(flow_graph, flow_graph->graph_entry()->normal_entry());
 
     EXPECT(cursor.TryMatch({
         kMoveGlob,
-        {kMatchReturn, &return_instr},
+        {kMatchDartReturn, &return_instr},
     }));
   }
 
@@ -936,7 +936,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_LoadThread) {
         kMatchAndMoveLoadThread,
         kMatchAndMoveIntConverter,
         kMatchAndMoveBox,
-        kMatchReturn,
+        kMatchDartReturn,
     }));
   }
 
@@ -1010,7 +1010,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_CachableIdempotentCall) {
         kMoveGlob,
         {kMatchAndMoveStaticCall, &static_call},
         kMoveGlob,
-        kMatchReturn,
+        kMatchDartReturn,
     }));
   }
 
@@ -1034,7 +1034,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_CachableIdempotentCall) {
         // adds boxing.
         kMatchBox,
         kMoveGlob,
-        kMatchReturn,
+        kMatchDartReturn,
     }));
   }
 
@@ -1306,12 +1306,12 @@ static void TestConstantFoldToSmi(const Library& root_library,
   auto entry = flow_graph->graph_entry()->normal_entry();
   EXPECT(entry != nullptr);
 
-  ReturnInstr* ret = nullptr;
+  DartReturnInstr* ret = nullptr;
 
   ILMatcher cursor(flow_graph, entry, true, ParallelMovesHandling::kSkip);
   RELEASE_ASSERT(cursor.TryMatch({
       kMoveGlob,
-      {kMatchReturn, &ret},
+      {kMatchDartReturn, &ret},
   }));
 
   ConstantInstr* constant = ret->value()->definition()->AsConstant();
@@ -1486,7 +1486,7 @@ static void TestCanonicalizationOfTypedDataViewFieldLoads(
 
   Definition* array;
   Definition* load;
-  ReturnInstr* ret;
+  DartReturnInstr* ret;
 
   {
     BlockBuilder builder(H.flow_graph(), b1);
@@ -1549,7 +1549,7 @@ ISOLATE_UNIT_TEST_CASE(IL_Canonicalize_InstanceCallWithNoICDataInAOT) {
   auto b1 = H.flow_graph()->graph_entry()->normal_entry();
 
   InstanceCallInstr* length_call;
-  ReturnInstr* ret;
+  DartReturnInstr* ret;
 
   {
     BlockBuilder builder(H.flow_graph(), b1);
@@ -1586,7 +1586,7 @@ static void TestTestRangeCanonicalize(const AbstractType& type,
 
   auto normal_entry = H.flow_graph()->graph_entry()->normal_entry();
 
-  ReturnInstr* ret;
+  DartReturnInstr* ret;
   {
     BlockBuilder builder(H.flow_graph(), normal_entry);
     Definition* param = builder.AddParameter(0, kTagged);
@@ -1634,7 +1634,7 @@ void TestStaticFieldForwarding(Thread* thread,
   const auto constant_42 = H.IntConstant(42);
   const auto constant_24 = H.IntConstant(24);
   Definition* load;
-  ReturnInstr* ret;
+  DartReturnInstr* ret;
 
   {
     BlockBuilder builder(H.flow_graph(), b1);

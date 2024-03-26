@@ -1299,7 +1299,7 @@ Instruction* Instruction::RemoveFromGraph(bool return_previous) {
   ASSERT(!IsBlockEntry());
   ASSERT(!IsBranch());
   ASSERT(!IsThrow());
-  ASSERT(!IsReturn());
+  ASSERT(!IsReturnBase());
   ASSERT(!IsReThrow());
   ASSERT(!IsGoto());
   ASSERT(previous() != nullptr);
@@ -7862,7 +7862,7 @@ void StoreFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-const Code& ReturnInstr::GetReturnStub(FlowGraphCompiler* compiler) const {
+const Code& DartReturnInstr::GetReturnStub(FlowGraphCompiler* compiler) const {
   const Function& function = compiler->parsed_function().function();
   ASSERT(function.IsSuspendableFunction());
   if (function.IsAsyncFunction()) {

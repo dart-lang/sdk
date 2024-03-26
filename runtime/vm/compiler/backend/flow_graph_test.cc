@@ -358,7 +358,7 @@ ISOLATE_UNIT_TEST_CASE(FlowGraph_PhiUnboxingHeuristic_Double) {
       // After loop
       kMatchAndMoveTargetEntry,
       kMatchAndMoveBox,
-      kMatchReturn,
+      kMatchDartReturn,
   }));
 }
 
@@ -412,7 +412,7 @@ static void TestPhiUnboxingHeuristicSimd(const char* script) {
       // After loop
       kMatchAndMoveTargetEntry,
       kMatchAndMoveBox,
-      kMatchReturn,
+      kMatchDartReturn,
   }));
 }
 

@@ -3124,7 +3124,7 @@ class StoreOptimizer : public LivenessAnalysis {
           continue;
         }
 
-        if (instr->IsThrow() || instr->IsReThrow() || instr->IsReturn()) {
+        if (instr->IsThrow() || instr->IsReThrow() || instr->IsReturnBase()) {
           // Initialize live-out for exit blocks since it won't be computed
           // otherwise during the fixed point iteration.
           live_out->CopyFrom(all_places);
@@ -3132,24 +3132,20 @@ class StoreOptimizer : public LivenessAnalysis {
 
         // Handle side effects, deoptimization and function return.
         if (CompilerState::Current().is_aot()) {
-          // Instructions that return from the function, instructions with
-          // side effects are considered as loads from all places.
-          if (instr->HasUnknownSideEffects() || instr->IsReturn() ||
-              instr->MayThrow()) {
-            if (instr->HasUnknownSideEffects() || instr->IsReturn()) {
-              // Instructions that may throw and has unknown side effects
-              // still load from all places.
-              live_in->CopyFrom(all_places);
+          if (instr->HasUnknownSideEffects() || instr->IsReturnBase()) {
+            // An instruction that returns or has unknown side effects
+            // is treated as if it loads from all places.
+            live_in->CopyFrom(all_places);
+            continue;
+          } else if (instr->MayThrow()) {
+            if (block->try_index() == kInvalidTryIndex) {
+              // Outside of a try-catch block, an instruction that may throw
+              // is only treated as if it loads from escaping places.
+              live_in->AddAll(all_aliased_places);
             } else {
-              // If we are outside of try-catch block, instructions that "may
-              // throw" only "load from escaping places".
-              // If we are inside of try-catch block, instructions that "may
-              // throw" also "load from all places".
-              if (block->try_index() == kInvalidTryIndex) {
-                live_in->AddAll(all_aliased_places);
-              } else {
-                live_in->CopyFrom(all_places);
-              }
+              // Inside of a try-catch block, an instruction that may throw
+              // is treated as if it loads from all places.
+              live_in->CopyFrom(all_places);
             }
             continue;
           }
@@ -3163,7 +3159,7 @@ class StoreOptimizer : public LivenessAnalysis {
           // variables include also non-escaping(not aliased) ones, so
           // how to deal with that needs to be figured out.
           if (instr->HasUnknownSideEffects() || instr->CanDeoptimize() ||
-              instr->MayThrow() || instr->IsReturn()) {
+              instr->MayThrow() || instr->IsReturnBase()) {
             // Instructions that return from the function, instructions with
             // side effects and instructions that can deoptimize are considered
             // as loads from all places.

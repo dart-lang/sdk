@@ -32,7 +32,7 @@ void matchIL$deref(FlowGraph graph) {
         // 'unboxed' needs to be converted to int64 before returning.
         'address' << match.IntConverter('unboxed', from: 'uint32', to: 'int64'),
       ],
-      match.Return(retvalName),
+      match.DartReturn(retvalName),
     ]),
   ]);
 }
