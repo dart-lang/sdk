@@ -12879,11 +12879,11 @@ files
       kind: library_1
         libraryImports
           library_14 dart:async
-          library_11 package:macro/api.dart
+          library_11 package:macros/macros.dart
           library_0
           library_12 dart:core synthetic
         cycle_1
-          dependencies: cycle_0 dart:core package:macro/api.dart
+          dependencies: cycle_0 dart:core package:macros/macros.dart
           libraries: library_1
           apiSignature_1
           users: cycle_2
@@ -12926,122 +12926,24 @@ class MyClass {
           library_12 dart:core synthetic
       referencingFiles: file_2
       unlinkedKey: k03
-  /packages/_macros/lib/src/api.dart
-    uri: package:_macros/src/api.dart
-    current
-      id: file_4
-      kind: library_4
-        libraryImports
-          library_14 dart:async
-          library_16 dart:collection
-          library_12 dart:core synthetic
-        parts
-          partOfUriKnown_5
-          partOfUriKnown_6
-          partOfUriKnown_7
-          partOfUriKnown_8
-          partOfUriKnown_9
-          partOfUriKnown_10
-        cycle_3
-          dependencies: dart:collection dart:core
-          libraries: library_4
-          apiSignature_3
-          users: package:macro/api.dart
-      referencingFiles: file_11
-      unlinkedKey: k04
-  /packages/_macros/lib/src/api/builders.dart
-    uri: package:_macros/src/api/builders.dart
-    current
-      id: file_5
-      kind: partOfUriKnown_5
-        library: library_4
-      referencingFiles: file_4
-      unlinkedKey: k05
-  /packages/_macros/lib/src/api/code.dart
-    uri: package:_macros/src/api/code.dart
-    current
-      id: file_6
-      kind: partOfUriKnown_6
-        library: library_4
-      referencingFiles: file_4
-      unlinkedKey: k06
-  /packages/_macros/lib/src/api/diagnostic.dart
-    uri: package:_macros/src/api/diagnostic.dart
-    current
-      id: file_7
-      kind: partOfUriKnown_7
-        library: library_4
-      referencingFiles: file_4
-      unlinkedKey: k07
-  /packages/_macros/lib/src/api/exceptions.dart
-    uri: package:_macros/src/api/exceptions.dart
-    current
-      id: file_8
-      kind: partOfUriKnown_8
-        library: library_4
-      referencingFiles: file_4
-      unlinkedKey: k08
-  /packages/_macros/lib/src/api/introspection.dart
-    uri: package:_macros/src/api/introspection.dart
-    current
-      id: file_9
-      kind: partOfUriKnown_9
-        library: library_4
-      referencingFiles: file_4
-      unlinkedKey: k09
-  /packages/_macros/lib/src/api/macros.dart
-    uri: package:_macros/src/api/macros.dart
-    current
-      id: file_10
-      kind: partOfUriKnown_10
-        library: library_4
-      referencingFiles: file_4
-      unlinkedKey: k10
-  /packages/macros/lib/macros.dart
-    uri: package:macros/macros.dart
-    current
-      id: file_11
-      kind: library_11
-        libraryImports
-          library_12 dart:core synthetic
-        libraryExports
-          library_4
-        cycle_4
-          dependencies: cycle_3 dart:core
-          libraries: library_11
-          apiSignature_4
-          users: cycle_1
-      referencingFiles: file_1
-      unlinkedKey: k11
 libraryCycles
   /home/test/lib/a.dart
     current: cycle_0
-      key: k12
+      key: k04
     get: []
-    put: [k12]
+    put: [k04]
   /home/test/lib/b.dart
     current: cycle_1
-      key: k13
+      key: k05
     get: []
-    put: [k13]
+    put: [k05]
   /home/test/lib/test.dart
     current: cycle_2
-      key: k14
+      key: k06
     get: []
-    put: [k14]
-  /packages/_macros/lib/src/api.dart
-    current: cycle_3
-      key: k15
-    get: []
-    put: [k15]
-  /packages/macros/lib/macros.dart
-    current: cycle_4
-      key: k16
-    get: []
-    put: [k16]
+    put: [k06]
 elementFactory
   hasElement
-    package:_macros/src/api.dart
     package:test/a.dart
     package:test/b.dart
     package:test/test.dart
@@ -13073,11 +12975,11 @@ files
       kind: library_1
         libraryImports
           library_14 dart:async
-          library_11 package:macro/api.dart
+          library_11 package:macros/macros.dart
           library_0
           library_12 dart:core synthetic
         cycle_1
-          dependencies: cycle_0 dart:core package:macro/api.dart
+          dependencies: cycle_0 dart:core package:macros/macros.dart
           libraries: library_1
           apiSignature_1
           users: cycle_7
@@ -13117,120 +13019,22 @@ class MyClass {
           library_12 dart:core synthetic
       referencingFiles: file_2
       unlinkedKey: k03
-  /packages/_macros/lib/src/api.dart
-    uri: package:_macros/src/api.dart
-    current
-      id: file_4
-      kind: library_4
-        libraryImports
-          library_14 dart:async
-          library_16 dart:collection
-          library_12 dart:core synthetic
-        parts
-          partOfUriKnown_5
-          partOfUriKnown_6
-          partOfUriKnown_7
-          partOfUriKnown_8
-          partOfUriKnown_9
-          partOfUriKnown_10
-        cycle_3
-          dependencies: dart:collection dart:core
-          libraries: library_4
-          apiSignature_3
-          users: package:macro/api.dart
-      referencingFiles: file_11
-      unlinkedKey: k04
-  /packages/_macros/lib/src/api/builders.dart
-    uri: package:_macros/src/api/builders.dart
-    current
-      id: file_5
-      kind: partOfUriKnown_5
-        library: library_4
-      referencingFiles: file_4
-      unlinkedKey: k05
-  /packages/_macros/lib/src/api/code.dart
-    uri: package:_macros/src/api/code.dart
-    current
-      id: file_6
-      kind: partOfUriKnown_6
-        library: library_4
-      referencingFiles: file_4
-      unlinkedKey: k06
-  /packages/_macros/lib/src/api/diagnostic.dart
-    uri: package:_macros/src/api/diagnostic.dart
-    current
-      id: file_7
-      kind: partOfUriKnown_7
-        library: library_4
-      referencingFiles: file_4
-      unlinkedKey: k07
-  /packages/_macros/lib/src/api/exceptions.dart
-    uri: package:_macros/src/api/exceptions.dart
-    current
-      id: file_8
-      kind: partOfUriKnown_8
-        library: library_4
-      referencingFiles: file_4
-      unlinkedKey: k08
-  /packages/_macros/lib/src/api/introspection.dart
-    uri: package:_macros/src/api/introspection.dart
-    current
-      id: file_9
-      kind: partOfUriKnown_9
-        library: library_4
-      referencingFiles: file_4
-      unlinkedKey: k09
-  /packages/_macros/lib/src/api/macros.dart
-    uri: package:_macros/src/api/macros.dart
-    current
-      id: file_10
-      kind: partOfUriKnown_10
-        library: library_4
-      referencingFiles: file_4
-      unlinkedKey: k10
-  /packages/macros/lib/macros.dart
-    uri: package:macros/macros.dart
-    current
-      id: file_11
-      kind: library_11
-        libraryImports
-          library_12 dart:core synthetic
-        libraryExports
-          library_4
-        cycle_4
-          dependencies: cycle_3 dart:core
-          libraries: library_11
-          apiSignature_4
-          users: cycle_1
-      referencingFiles: file_1
-      unlinkedKey: k11
 libraryCycles
   /home/test/lib/a.dart
     current: cycle_0
-      key: k12
+      key: k04
     get: []
-    put: [k12]
+    put: [k04]
   /home/test/lib/b.dart
     current: cycle_1
-      key: k13
+      key: k05
     get: []
-    put: [k13]
+    put: [k05]
   /home/test/lib/test.dart
     get: []
-    put: [k14]
-  /packages/_macros/lib/src/api.dart
-    current: cycle_3
-      key: k15
-    get: []
-    put: [k15]
-  /packages/macros/lib/macros.dart
-    current: cycle_4
-      key: k16
-    get: []
-    put: [k16]
+    put: [k06]
 elementFactory
   hasElement
-    package:_macros/src/api.dart
     package:test/a.dart
     package:test/b.dart
 ''');
@@ -13258,11 +13062,11 @@ files
       kind: library_1
         libraryImports
           library_14 dart:async
-          library_11 package:macro/api.dart
+          library_11 package:macros/macros.dart
           library_0
           library_12 dart:core synthetic
         cycle_1
-          dependencies: cycle_0 dart:core package:macro/api.dart
+          dependencies: cycle_0 dart:core package:macros/macros.dart
           libraries: library_1
           apiSignature_1
           users: cycle_2
@@ -13305,122 +13109,24 @@ class MyClass {
           library_12 dart:core synthetic
       referencingFiles: file_2
       unlinkedKey: k03
-  /packages/_macros/lib/src/api.dart
-    uri: package:_macros/src/api.dart
-    current
-      id: file_4
-      kind: library_4
-        libraryImports
-          library_14 dart:async
-          library_16 dart:collection
-          library_12 dart:core synthetic
-        parts
-          partOfUriKnown_5
-          partOfUriKnown_6
-          partOfUriKnown_7
-          partOfUriKnown_8
-          partOfUriKnown_9
-          partOfUriKnown_10
-        cycle_3
-          dependencies: dart:collection dart:core
-          libraries: library_4
-          apiSignature_3
-          users: package:macro/api.dart
-      referencingFiles: file_11
-      unlinkedKey: k04
-  /packages/_macros/lib/src/api/builders.dart
-    uri: package:_macros/src/api/builders.dart
-    current
-      id: file_5
-      kind: partOfUriKnown_5
-        library: library_4
-      referencingFiles: file_4
-      unlinkedKey: k05
-  /packages/_macros/lib/src/api/code.dart
-    uri: package:_macros/src/api/code.dart
-    current
-      id: file_6
-      kind: partOfUriKnown_6
-        library: library_4
-      referencingFiles: file_4
-      unlinkedKey: k06
-  /packages/_macros/lib/src/api/diagnostic.dart
-    uri: package:_macros/src/api/diagnostic.dart
-    current
-      id: file_7
-      kind: partOfUriKnown_7
-        library: library_4
-      referencingFiles: file_4
-      unlinkedKey: k07
-  /packages/_macros/lib/src/api/exceptions.dart
-    uri: package:_macros/src/api/exceptions.dart
-    current
-      id: file_8
-      kind: partOfUriKnown_8
-        library: library_4
-      referencingFiles: file_4
-      unlinkedKey: k08
-  /packages/_macros/lib/src/api/introspection.dart
-    uri: package:_macros/src/api/introspection.dart
-    current
-      id: file_9
-      kind: partOfUriKnown_9
-        library: library_4
-      referencingFiles: file_4
-      unlinkedKey: k09
-  /packages/_macros/lib/src/api/macros.dart
-    uri: package:_macros/src/api/macros.dart
-    current
-      id: file_10
-      kind: partOfUriKnown_10
-        library: library_4
-      referencingFiles: file_4
-      unlinkedKey: k10
-  /packages/macros/lib/macros.dart
-    uri: package:macros/macros.dart
-    current
-      id: file_11
-      kind: library_11
-        libraryImports
-          library_12 dart:core synthetic
-        libraryExports
-          library_4
-        cycle_4
-          dependencies: cycle_3 dart:core
-          libraries: library_11
-          apiSignature_4
-          users: cycle_1
-      referencingFiles: file_1
-      unlinkedKey: k11
 libraryCycles
   /home/test/lib/a.dart
     current: cycle_0
-      key: k12
+      key: k04
     get: []
-    put: [k12]
+    put: [k04]
   /home/test/lib/b.dart
     current: cycle_1
-      key: k13
+      key: k05
     get: []
-    put: [k13]
+    put: [k05]
   /home/test/lib/test.dart
     current: cycle_2
-      key: k14
-    get: [k14]
-    put: [k14]
-  /packages/_macros/lib/src/api.dart
-    current: cycle_3
-      key: k15
-    get: []
-    put: [k15]
-  /packages/macros/lib/macros.dart
-    current: cycle_4
-      key: k16
-    get: []
-    put: [k16]
+      key: k06
+    get: [k06]
+    put: [k06]
 elementFactory
   hasElement
-    package:_macros/src/api.dart
     package:test/a.dart
     package:test/b.dart
     package:test/test.dart
@@ -13519,10 +13225,10 @@ files
       id: file_0
       kind: library_0
         libraryImports
-          library_10 package:macro/api.dart
+          library_10 package:macros/macros.dart
           library_11 dart:core synthetic
         cycle_0
-          dependencies: dart:core package:macro/api.dart
+          dependencies: dart:core package:macros/macros.dart
           libraries: library_0
           apiSignature_0
           users: cycle_1
@@ -13567,117 +13273,19 @@ class B {}
           library_11 dart:core synthetic
       referencingFiles: file_1
       unlinkedKey: k02
-  /packages/_macros/lib/src/api.dart
-    uri: package:_macros/src/api.dart
-    current
-      id: file_3
-      kind: library_3
-        libraryImports
-          library_13 dart:async
-          library_15 dart:collection
-          library_11 dart:core synthetic
-        parts
-          partOfUriKnown_4
-          partOfUriKnown_5
-          partOfUriKnown_6
-          partOfUriKnown_7
-          partOfUriKnown_8
-          partOfUriKnown_9
-        cycle_2
-          dependencies: dart:collection dart:core
-          libraries: library_3
-          apiSignature_2
-          users: package:macro/api.dart
-      referencingFiles: file_10
-      unlinkedKey: k03
-  /packages/_macros/lib/src/api/builders.dart
-    uri: package:_macros/src/api/builders.dart
-    current
-      id: file_4
-      kind: partOfUriKnown_4
-        library: library_3
-      referencingFiles: file_3
-      unlinkedKey: k04
-  /packages/_macros/lib/src/api/code.dart
-    uri: package:_macros/src/api/code.dart
-    current
-      id: file_5
-      kind: partOfUriKnown_5
-        library: library_3
-      referencingFiles: file_3
-      unlinkedKey: k05
-  /packages/_macros/lib/src/api/diagnostic.dart
-    uri: package:_macros/src/api/diagnostic.dart
-    current
-      id: file_6
-      kind: partOfUriKnown_6
-        library: library_3
-      referencingFiles: file_3
-      unlinkedKey: k06
-  /packages/_macros/lib/src/api/exceptions.dart
-    uri: package:_macros/src/api/exceptions.dart
-    current
-      id: file_7
-      kind: partOfUriKnown_7
-        library: library_3
-      referencingFiles: file_3
-      unlinkedKey: k07
-  /packages/_macros/lib/src/api/introspection.dart
-    uri: package:_macros/src/api/introspection.dart
-    current
-      id: file_8
-      kind: partOfUriKnown_8
-        library: library_3
-      referencingFiles: file_3
-      unlinkedKey: k08
-  /packages/_macros/lib/src/api/macros.dart
-    uri: package:_macros/src/api/macros.dart
-    current
-      id: file_9
-      kind: partOfUriKnown_9
-        library: library_3
-      referencingFiles: file_3
-      unlinkedKey: k09
-  /packages/macros/lib/macros.dart
-    uri: package:macros/macros.dart
-    current
-      id: file_10
-      kind: library_10
-        libraryImports
-          library_11 dart:core synthetic
-        libraryExports
-          library_3
-        cycle_3
-          dependencies: cycle_2 dart:core
-          libraries: library_10
-          apiSignature_3
-          users: cycle_0
-      referencingFiles: file_0
-      unlinkedKey: k10
 libraryCycles
   /home/test/lib/a.dart
     current: cycle_0
-      key: k11
+      key: k03
     get: []
-    put: [k11]
+    put: [k03]
   /home/test/lib/test.dart
     current: cycle_1
-      key: k12
+      key: k04
     get: []
-    put: [k12]
-  /packages/_macros/lib/src/api.dart
-    current: cycle_2
-      key: k13
-    get: []
-    put: [k13]
-  /packages/macros/lib/macros.dart
-    current: cycle_3
-      key: k14
-    get: []
-    put: [k14]
+    put: [k04]
 elementFactory
   hasElement
-    package:_macros/src/api.dart
     package:test/a.dart
     package:test/test.dart
 ''');
@@ -13690,10 +13298,10 @@ files
       id: file_0
       kind: library_0
         libraryImports
-          library_10 package:macro/api.dart
+          library_10 package:macros/macros.dart
           library_11 dart:core synthetic
         cycle_0
-          dependencies: dart:core package:macro/api.dart
+          dependencies: dart:core package:macros/macros.dart
           libraries: library_0
           apiSignature_0
           users: cycle_1
@@ -13738,117 +13346,19 @@ class B {}
           library_11 dart:core synthetic
       referencingFiles: file_1
       unlinkedKey: k02
-  /packages/_macros/lib/src/api.dart
-    uri: package:_macros/src/api.dart
-    current
-      id: file_3
-      kind: library_3
-        libraryImports
-          library_13 dart:async
-          library_15 dart:collection
-          library_11 dart:core synthetic
-        parts
-          partOfUriKnown_4
-          partOfUriKnown_5
-          partOfUriKnown_6
-          partOfUriKnown_7
-          partOfUriKnown_8
-          partOfUriKnown_9
-        cycle_2
-          dependencies: dart:collection dart:core
-          libraries: library_3
-          apiSignature_2
-          users: package:macro/api.dart
-      referencingFiles: file_10
-      unlinkedKey: k03
-  /packages/_macros/lib/src/api/builders.dart
-    uri: package:_macros/src/api/builders.dart
-    current
-      id: file_4
-      kind: partOfUriKnown_4
-        library: library_3
-      referencingFiles: file_3
-      unlinkedKey: k04
-  /packages/_macros/lib/src/api/code.dart
-    uri: package:_macros/src/api/code.dart
-    current
-      id: file_5
-      kind: partOfUriKnown_5
-        library: library_3
-      referencingFiles: file_3
-      unlinkedKey: k05
-  /packages/_macros/lib/src/api/diagnostic.dart
-    uri: package:_macros/src/api/diagnostic.dart
-    current
-      id: file_6
-      kind: partOfUriKnown_6
-        library: library_3
-      referencingFiles: file_3
-      unlinkedKey: k06
-  /packages/_macros/lib/src/api/exceptions.dart
-    uri: package:_macros/src/api/exceptions.dart
-    current
-      id: file_7
-      kind: partOfUriKnown_7
-        library: library_3
-      referencingFiles: file_3
-      unlinkedKey: k07
-  /packages/_macros/lib/src/api/introspection.dart
-    uri: package:_macros/src/api/introspection.dart
-    current
-      id: file_8
-      kind: partOfUriKnown_8
-        library: library_3
-      referencingFiles: file_3
-      unlinkedKey: k08
-  /packages/_macros/lib/src/api/macros.dart
-    uri: package:_macros/src/api/macros.dart
-    current
-      id: file_9
-      kind: partOfUriKnown_9
-        library: library_3
-      referencingFiles: file_3
-      unlinkedKey: k09
-  /packages/macros/lib/macros.dart
-    uri: package:macros/macros.dart
-    current
-      id: file_10
-      kind: library_10
-        libraryImports
-          library_11 dart:core synthetic
-        libraryExports
-          library_3
-        cycle_3
-          dependencies: cycle_2 dart:core
-          libraries: library_10
-          apiSignature_3
-          users: cycle_0
-      referencingFiles: file_0
-      unlinkedKey: k10
 libraryCycles
   /home/test/lib/a.dart
     current: cycle_0
-      key: k11
+      key: k03
     get: []
-    put: [k11]
+    put: [k03]
   /home/test/lib/test.dart
     current: cycle_1
-      key: k12
-    get: [k12]
-    put: [k12]
-  /packages/_macros/lib/src/api.dart
-    current: cycle_2
-      key: k13
-    get: []
-    put: [k13]
-  /packages/macros/lib/macros.dart
-    current: cycle_3
-      key: k14
-    get: []
-    put: [k14]
+      key: k04
+    get: [k04]
+    put: [k04]
 elementFactory
   hasElement
-    package:_macros/src/api.dart
     package:test/a.dart
     package:test/test.dart
   hasReader
@@ -13883,10 +13393,10 @@ files
       id: file_0
       kind: library_0
         libraryImports
-          library_10 package:macro/api.dart
+          library_10 package:macros/macros.dart
           library_11 dart:core synthetic
         cycle_0
-          dependencies: dart:core package:macro/api.dart
+          dependencies: dart:core package:macros/macros.dart
           libraries: library_0
           apiSignature_0
           users: cycle_1
@@ -13918,117 +13428,19 @@ files
           library_11 dart:core synthetic
       referencingFiles: file_1
       unlinkedKey: k02
-  /packages/_macros/lib/src/api.dart
-    uri: package:_macros/src/api.dart
-    current
-      id: file_3
-      kind: library_3
-        libraryImports
-          library_13 dart:async
-          library_15 dart:collection
-          library_11 dart:core synthetic
-        parts
-          partOfUriKnown_4
-          partOfUriKnown_5
-          partOfUriKnown_6
-          partOfUriKnown_7
-          partOfUriKnown_8
-          partOfUriKnown_9
-        cycle_2
-          dependencies: dart:collection dart:core
-          libraries: library_3
-          apiSignature_2
-          users: package:macro/api.dart
-      referencingFiles: file_10
-      unlinkedKey: k03
-  /packages/_macros/lib/src/api/builders.dart
-    uri: package:_macros/src/api/builders.dart
-    current
-      id: file_4
-      kind: partOfUriKnown_4
-        library: library_3
-      referencingFiles: file_3
-      unlinkedKey: k04
-  /packages/_macros/lib/src/api/code.dart
-    uri: package:_macros/src/api/code.dart
-    current
-      id: file_5
-      kind: partOfUriKnown_5
-        library: library_3
-      referencingFiles: file_3
-      unlinkedKey: k05
-  /packages/_macros/lib/src/api/diagnostic.dart
-    uri: package:_macros/src/api/diagnostic.dart
-    current
-      id: file_6
-      kind: partOfUriKnown_6
-        library: library_3
-      referencingFiles: file_3
-      unlinkedKey: k06
-  /packages/_macros/lib/src/api/exceptions.dart
-    uri: package:_macros/src/api/exceptions.dart
-    current
-      id: file_7
-      kind: partOfUriKnown_7
-        library: library_3
-      referencingFiles: file_3
-      unlinkedKey: k07
-  /packages/_macros/lib/src/api/introspection.dart
-    uri: package:_macros/src/api/introspection.dart
-    current
-      id: file_8
-      kind: partOfUriKnown_8
-        library: library_3
-      referencingFiles: file_3
-      unlinkedKey: k08
-  /packages/_macros/lib/src/api/macros.dart
-    uri: package:_macros/src/api/macros.dart
-    current
-      id: file_9
-      kind: partOfUriKnown_9
-        library: library_3
-      referencingFiles: file_3
-      unlinkedKey: k09
-  /packages/macros/lib/macros.dart
-    uri: package:macros/macros.dart
-    current
-      id: file_10
-      kind: library_10
-        libraryImports
-          library_11 dart:core synthetic
-        libraryExports
-          library_3
-        cycle_3
-          dependencies: cycle_2 dart:core
-          libraries: library_10
-          apiSignature_3
-          users: cycle_0
-      referencingFiles: file_0
-      unlinkedKey: k10
 libraryCycles
   /home/test/lib/append.dart
     current: cycle_0
-      key: k11
+      key: k03
     get: []
-    put: [k11]
+    put: [k03]
   /home/test/lib/test.dart
     current: cycle_1
-      key: k12
+      key: k04
     get: []
-    put: [k12]
-  /packages/_macros/lib/src/api.dart
-    current: cycle_2
-      key: k13
-    get: []
-    put: [k13]
-  /packages/macros/lib/macros.dart
-    current: cycle_3
-      key: k14
-    get: []
-    put: [k14]
+    put: [k04]
 elementFactory
   hasElement
-    package:_macros/src/api.dart
     package:test/append.dart
     package:test/test.dart
 ''');
@@ -14059,10 +13471,10 @@ files
       id: file_0
       kind: library_0
         libraryImports
-          library_10 package:macro/api.dart
+          library_10 package:macros/macros.dart
           library_11 dart:core synthetic
         cycle_0
-          dependencies: dart:core package:macro/api.dart
+          dependencies: dart:core package:macros/macros.dart
           libraries: library_0
           apiSignature_0
       unlinkedKey: k00
@@ -14076,8 +13488,8 @@ files
         cycle_6
           dependencies: dart:core
           libraries: library_17
-          apiSignature_4
-      unlinkedKey: k15
+          apiSignature_2
+      unlinkedKey: k05
   /home/test/lib/test.macro.dart
     uri: package:test/test.macro.dart
     current
@@ -14088,117 +13500,19 @@ files
           library_11 dart:core synthetic
       referencingFiles: file_1
       unlinkedKey: k02
-  /packages/_macros/lib/src/api.dart
-    uri: package:_macros/src/api.dart
-    current
-      id: file_3
-      kind: library_3
-        libraryImports
-          library_13 dart:async
-          library_15 dart:collection
-          library_11 dart:core synthetic
-        parts
-          partOfUriKnown_4
-          partOfUriKnown_5
-          partOfUriKnown_6
-          partOfUriKnown_7
-          partOfUriKnown_8
-          partOfUriKnown_9
-        cycle_2
-          dependencies: dart:collection dart:core
-          libraries: library_3
-          apiSignature_2
-          users: package:macro/api.dart
-      referencingFiles: file_10
-      unlinkedKey: k03
-  /packages/_macros/lib/src/api/builders.dart
-    uri: package:_macros/src/api/builders.dart
-    current
-      id: file_4
-      kind: partOfUriKnown_4
-        library: library_3
-      referencingFiles: file_3
-      unlinkedKey: k04
-  /packages/_macros/lib/src/api/code.dart
-    uri: package:_macros/src/api/code.dart
-    current
-      id: file_5
-      kind: partOfUriKnown_5
-        library: library_3
-      referencingFiles: file_3
-      unlinkedKey: k05
-  /packages/_macros/lib/src/api/diagnostic.dart
-    uri: package:_macros/src/api/diagnostic.dart
-    current
-      id: file_6
-      kind: partOfUriKnown_6
-        library: library_3
-      referencingFiles: file_3
-      unlinkedKey: k06
-  /packages/_macros/lib/src/api/exceptions.dart
-    uri: package:_macros/src/api/exceptions.dart
-    current
-      id: file_7
-      kind: partOfUriKnown_7
-        library: library_3
-      referencingFiles: file_3
-      unlinkedKey: k07
-  /packages/_macros/lib/src/api/introspection.dart
-    uri: package:_macros/src/api/introspection.dart
-    current
-      id: file_8
-      kind: partOfUriKnown_8
-        library: library_3
-      referencingFiles: file_3
-      unlinkedKey: k08
-  /packages/_macros/lib/src/api/macros.dart
-    uri: package:_macros/src/api/macros.dart
-    current
-      id: file_9
-      kind: partOfUriKnown_9
-        library: library_3
-      referencingFiles: file_3
-      unlinkedKey: k09
-  /packages/macros/lib/macros.dart
-    uri: package:macros/macros.dart
-    current
-      id: file_10
-      kind: library_10
-        libraryImports
-          library_11 dart:core synthetic
-        libraryExports
-          library_3
-        cycle_3
-          dependencies: cycle_2 dart:core
-          libraries: library_10
-          apiSignature_3
-          users: cycle_0
-      referencingFiles: file_0
-      unlinkedKey: k10
 libraryCycles
   /home/test/lib/append.dart
     current: cycle_0
-      key: k11
+      key: k03
     get: []
-    put: [k11]
+    put: [k03]
   /home/test/lib/test.dart
     current: cycle_6
-      key: k16
+      key: k06
     get: []
-    put: [k12, k16]
-  /packages/_macros/lib/src/api.dart
-    current: cycle_2
-      key: k13
-    get: []
-    put: [k13]
-  /packages/macros/lib/macros.dart
-    current: cycle_3
-      key: k14
-    get: []
-    put: [k14]
+    put: [k04, k06]
 elementFactory
   hasElement
-    package:_macros/src/api.dart
     package:test/append.dart
     package:test/test.dart
 ''');
@@ -14232,10 +13546,10 @@ files
       id: file_0
       kind: library_0
         libraryImports
-          library_10 package:macro/api.dart
+          library_10 package:macros/macros.dart
           library_11 dart:core synthetic
         cycle_0
-          dependencies: dart:core package:macro/api.dart
+          dependencies: dart:core package:macros/macros.dart
           libraries: library_0
           apiSignature_0
           users: cycle_7
@@ -14267,117 +13581,19 @@ files
           library_11 dart:core synthetic
       referencingFiles: file_1
       unlinkedKey: k02
-  /packages/_macros/lib/src/api.dart
-    uri: package:_macros/src/api.dart
-    current
-      id: file_3
-      kind: library_3
-        libraryImports
-          library_13 dart:async
-          library_15 dart:collection
-          library_11 dart:core synthetic
-        parts
-          partOfUriKnown_4
-          partOfUriKnown_5
-          partOfUriKnown_6
-          partOfUriKnown_7
-          partOfUriKnown_8
-          partOfUriKnown_9
-        cycle_2
-          dependencies: dart:collection dart:core
-          libraries: library_3
-          apiSignature_2
-          users: package:macro/api.dart
-      referencingFiles: file_10
-      unlinkedKey: k03
-  /packages/_macros/lib/src/api/builders.dart
-    uri: package:_macros/src/api/builders.dart
-    current
-      id: file_4
-      kind: partOfUriKnown_4
-        library: library_3
-      referencingFiles: file_3
-      unlinkedKey: k04
-  /packages/_macros/lib/src/api/code.dart
-    uri: package:_macros/src/api/code.dart
-    current
-      id: file_5
-      kind: partOfUriKnown_5
-        library: library_3
-      referencingFiles: file_3
-      unlinkedKey: k05
-  /packages/_macros/lib/src/api/diagnostic.dart
-    uri: package:_macros/src/api/diagnostic.dart
-    current
-      id: file_6
-      kind: partOfUriKnown_6
-        library: library_3
-      referencingFiles: file_3
-      unlinkedKey: k06
-  /packages/_macros/lib/src/api/exceptions.dart
-    uri: package:_macros/src/api/exceptions.dart
-    current
-      id: file_7
-      kind: partOfUriKnown_7
-        library: library_3
-      referencingFiles: file_3
-      unlinkedKey: k07
-  /packages/_macros/lib/src/api/introspection.dart
-    uri: package:_macros/src/api/introspection.dart
-    current
-      id: file_8
-      kind: partOfUriKnown_8
-        library: library_3
-      referencingFiles: file_3
-      unlinkedKey: k08
-  /packages/_macros/lib/src/api/macros.dart
-    uri: package:_macros/src/api/macros.dart
-    current
-      id: file_9
-      kind: partOfUriKnown_9
-        library: library_3
-      referencingFiles: file_3
-      unlinkedKey: k09
-  /packages/macros/lib/macros.dart
-    uri: package:macros/macros.dart
-    current
-      id: file_10
-      kind: library_10
-        libraryImports
-          library_11 dart:core synthetic
-        libraryExports
-          library_3
-        cycle_3
-          dependencies: cycle_2 dart:core
-          libraries: library_10
-          apiSignature_3
-          users: cycle_0
-      referencingFiles: file_0
-      unlinkedKey: k10
 libraryCycles
   /home/test/lib/append.dart
     current: cycle_0
-      key: k11
+      key: k03
     get: []
-    put: [k11]
+    put: [k03]
   /home/test/lib/test.dart
     current: cycle_7
-      key: k12
-    get: [k12]
-    put: [k12, k16]
-  /packages/_macros/lib/src/api.dart
-    current: cycle_2
-      key: k13
-    get: []
-    put: [k13]
-  /packages/macros/lib/macros.dart
-    current: cycle_3
-      key: k14
-    get: []
-    put: [k14]
+      key: k04
+    get: [k04]
+    put: [k04, k06]
 elementFactory
   hasElement
-    package:_macros/src/api.dart
     package:test/append.dart
     package:test/test.dart
   hasReader
@@ -14411,10 +13627,10 @@ files
       id: file_0
       kind: library_0
         libraryImports
-          library_10 package:macro/api.dart
+          library_10 package:macros/macros.dart
           library_11 dart:core synthetic
         cycle_0
-          dependencies: dart:core package:macro/api.dart
+          dependencies: dart:core package:macros/macros.dart
           libraries: library_0
           apiSignature_0
           users: cycle_1
@@ -14446,117 +13662,19 @@ files
           library_11 dart:core synthetic
       referencingFiles: file_1
       unlinkedKey: k02
-  /packages/_macros/lib/src/api.dart
-    uri: package:_macros/src/api.dart
-    current
-      id: file_3
-      kind: library_3
-        libraryImports
-          library_13 dart:async
-          library_15 dart:collection
-          library_11 dart:core synthetic
-        parts
-          partOfUriKnown_4
-          partOfUriKnown_5
-          partOfUriKnown_6
-          partOfUriKnown_7
-          partOfUriKnown_8
-          partOfUriKnown_9
-        cycle_2
-          dependencies: dart:collection dart:core
-          libraries: library_3
-          apiSignature_2
-          users: package:macro/api.dart
-      referencingFiles: file_10
-      unlinkedKey: k03
-  /packages/_macros/lib/src/api/builders.dart
-    uri: package:_macros/src/api/builders.dart
-    current
-      id: file_4
-      kind: partOfUriKnown_4
-        library: library_3
-      referencingFiles: file_3
-      unlinkedKey: k04
-  /packages/_macros/lib/src/api/code.dart
-    uri: package:_macros/src/api/code.dart
-    current
-      id: file_5
-      kind: partOfUriKnown_5
-        library: library_3
-      referencingFiles: file_3
-      unlinkedKey: k05
-  /packages/_macros/lib/src/api/diagnostic.dart
-    uri: package:_macros/src/api/diagnostic.dart
-    current
-      id: file_6
-      kind: partOfUriKnown_6
-        library: library_3
-      referencingFiles: file_3
-      unlinkedKey: k06
-  /packages/_macros/lib/src/api/exceptions.dart
-    uri: package:_macros/src/api/exceptions.dart
-    current
-      id: file_7
-      kind: partOfUriKnown_7
-        library: library_3
-      referencingFiles: file_3
-      unlinkedKey: k07
-  /packages/_macros/lib/src/api/introspection.dart
-    uri: package:_macros/src/api/introspection.dart
-    current
-      id: file_8
-      kind: partOfUriKnown_8
-        library: library_3
-      referencingFiles: file_3
-      unlinkedKey: k08
-  /packages/_macros/lib/src/api/macros.dart
-    uri: package:_macros/src/api/macros.dart
-    current
-      id: file_9
-      kind: partOfUriKnown_9
-        library: library_3
-      referencingFiles: file_3
-      unlinkedKey: k09
-  /packages/macros/lib/macros.dart
-    uri: package:macros/macros.dart
-    current
-      id: file_10
-      kind: library_10
-        libraryImports
-          library_11 dart:core synthetic
-        libraryExports
-          library_3
-        cycle_3
-          dependencies: cycle_2 dart:core
-          libraries: library_10
-          apiSignature_3
-          users: cycle_0
-      referencingFiles: file_0
-      unlinkedKey: k10
 libraryCycles
   /home/test/lib/append.dart
     current: cycle_0
-      key: k11
+      key: k03
     get: []
-    put: [k11]
+    put: [k03]
   /home/test/lib/test.dart
     current: cycle_1
-      key: k12
+      key: k04
     get: []
-    put: [k12]
-  /packages/_macros/lib/src/api.dart
-    current: cycle_2
-      key: k13
-    get: []
-    put: [k13]
-  /packages/macros/lib/macros.dart
-    current: cycle_3
-      key: k14
-    get: []
-    put: [k14]
+    put: [k04]
 elementFactory
   hasElement
-    package:_macros/src/api.dart
     package:test/append.dart
     package:test/test.dart
 ''');
@@ -14591,10 +13709,10 @@ files
       id: file_0
       kind: library_0
         libraryImports
-          library_10 package:macro/api.dart
+          library_10 package:macros/macros.dart
           library_11 dart:core synthetic
         cycle_0
-          dependencies: dart:core package:macro/api.dart
+          dependencies: dart:core package:macros/macros.dart
           libraries: library_0
           apiSignature_0
           users: cycle_6
@@ -14613,8 +13731,8 @@ files
         cycle_6
           dependencies: cycle_0 dart:core
           libraries: library_17
-          apiSignature_4
-      unlinkedKey: k15
+          apiSignature_2
+      unlinkedKey: k05
   /home/test/lib/test.macro.dart
     uri: package:test/test.macro.dart
     current
@@ -14625,118 +13743,20 @@ files
         libraryImports
           library_11 dart:core synthetic
       referencingFiles: file_1
-      unlinkedKey: k16
-  /packages/_macros/lib/src/api.dart
-    uri: package:_macros/src/api.dart
-    current
-      id: file_3
-      kind: library_3
-        libraryImports
-          library_13 dart:async
-          library_15 dart:collection
-          library_11 dart:core synthetic
-        parts
-          partOfUriKnown_4
-          partOfUriKnown_5
-          partOfUriKnown_6
-          partOfUriKnown_7
-          partOfUriKnown_8
-          partOfUriKnown_9
-        cycle_2
-          dependencies: dart:collection dart:core
-          libraries: library_3
-          apiSignature_2
-          users: package:macro/api.dart
-      referencingFiles: file_10
-      unlinkedKey: k03
-  /packages/_macros/lib/src/api/builders.dart
-    uri: package:_macros/src/api/builders.dart
-    current
-      id: file_4
-      kind: partOfUriKnown_4
-        library: library_3
-      referencingFiles: file_3
-      unlinkedKey: k04
-  /packages/_macros/lib/src/api/code.dart
-    uri: package:_macros/src/api/code.dart
-    current
-      id: file_5
-      kind: partOfUriKnown_5
-        library: library_3
-      referencingFiles: file_3
-      unlinkedKey: k05
-  /packages/_macros/lib/src/api/diagnostic.dart
-    uri: package:_macros/src/api/diagnostic.dart
-    current
-      id: file_6
-      kind: partOfUriKnown_6
-        library: library_3
-      referencingFiles: file_3
       unlinkedKey: k06
-  /packages/_macros/lib/src/api/exceptions.dart
-    uri: package:_macros/src/api/exceptions.dart
-    current
-      id: file_7
-      kind: partOfUriKnown_7
-        library: library_3
-      referencingFiles: file_3
-      unlinkedKey: k07
-  /packages/_macros/lib/src/api/introspection.dart
-    uri: package:_macros/src/api/introspection.dart
-    current
-      id: file_8
-      kind: partOfUriKnown_8
-        library: library_3
-      referencingFiles: file_3
-      unlinkedKey: k08
-  /packages/_macros/lib/src/api/macros.dart
-    uri: package:_macros/src/api/macros.dart
-    current
-      id: file_9
-      kind: partOfUriKnown_9
-        library: library_3
-      referencingFiles: file_3
-      unlinkedKey: k09
-  /packages/macros/lib/macros.dart
-    uri: package:macros/macros.dart
-    current
-      id: file_10
-      kind: library_10
-        libraryImports
-          library_11 dart:core synthetic
-        libraryExports
-          library_3
-        cycle_3
-          dependencies: cycle_2 dart:core
-          libraries: library_10
-          apiSignature_3
-          users: cycle_0
-      referencingFiles: file_0
-      unlinkedKey: k10
 libraryCycles
   /home/test/lib/append.dart
     current: cycle_0
-      key: k11
+      key: k03
     get: []
-    put: [k11]
+    put: [k03]
   /home/test/lib/test.dart
     current: cycle_6
-      key: k17
+      key: k07
     get: []
-    put: [k12, k17]
-  /packages/_macros/lib/src/api.dart
-    current: cycle_2
-      key: k13
-    get: []
-    put: [k13]
-  /packages/macros/lib/macros.dart
-    current: cycle_3
-      key: k14
-    get: []
-    put: [k14]
+    put: [k04, k07]
 elementFactory
   hasElement
-    package:_macros/src/api.dart
     package:test/append.dart
     package:test/test.dart
 ''');
@@ -14776,10 +13796,10 @@ files
       id: file_0
       kind: library_0
         libraryImports
-          library_10 package:macro/api.dart
+          library_10 package:macros/macros.dart
           library_11 dart:core synthetic
         cycle_0
-          dependencies: dart:core package:macro/api.dart
+          dependencies: dart:core package:macros/macros.dart
           libraries: library_0
           apiSignature_0
           users: cycle_1
@@ -14811,117 +13831,19 @@ files
           library_11 dart:core synthetic
       referencingFiles: file_1
       unlinkedKey: k02
-  /packages/_macros/lib/src/api.dart
-    uri: package:_macros/src/api.dart
-    current
-      id: file_3
-      kind: library_3
-        libraryImports
-          library_13 dart:async
-          library_15 dart:collection
-          library_11 dart:core synthetic
-        parts
-          partOfUriKnown_4
-          partOfUriKnown_5
-          partOfUriKnown_6
-          partOfUriKnown_7
-          partOfUriKnown_8
-          partOfUriKnown_9
-        cycle_2
-          dependencies: dart:collection dart:core
-          libraries: library_3
-          apiSignature_2
-          users: package:macro/api.dart
-      referencingFiles: file_10
-      unlinkedKey: k03
-  /packages/_macros/lib/src/api/builders.dart
-    uri: package:_macros/src/api/builders.dart
-    current
-      id: file_4
-      kind: partOfUriKnown_4
-        library: library_3
-      referencingFiles: file_3
-      unlinkedKey: k04
-  /packages/_macros/lib/src/api/code.dart
-    uri: package:_macros/src/api/code.dart
-    current
-      id: file_5
-      kind: partOfUriKnown_5
-        library: library_3
-      referencingFiles: file_3
-      unlinkedKey: k05
-  /packages/_macros/lib/src/api/diagnostic.dart
-    uri: package:_macros/src/api/diagnostic.dart
-    current
-      id: file_6
-      kind: partOfUriKnown_6
-        library: library_3
-      referencingFiles: file_3
-      unlinkedKey: k06
-  /packages/_macros/lib/src/api/exceptions.dart
-    uri: package:_macros/src/api/exceptions.dart
-    current
-      id: file_7
-      kind: partOfUriKnown_7
-        library: library_3
-      referencingFiles: file_3
-      unlinkedKey: k07
-  /packages/_macros/lib/src/api/introspection.dart
-    uri: package:_macros/src/api/introspection.dart
-    current
-      id: file_8
-      kind: partOfUriKnown_8
-        library: library_3
-      referencingFiles: file_3
-      unlinkedKey: k08
-  /packages/_macros/lib/src/api/macros.dart
-    uri: package:_macros/src/api/macros.dart
-    current
-      id: file_9
-      kind: partOfUriKnown_9
-        library: library_3
-      referencingFiles: file_3
-      unlinkedKey: k09
-  /packages/macros/lib/macros.dart
-    uri: package:macros/macros.dart
-    current
-      id: file_10
-      kind: library_10
-        libraryImports
-          library_11 dart:core synthetic
-        libraryExports
-          library_3
-        cycle_3
-          dependencies: cycle_2 dart:core
-          libraries: library_10
-          apiSignature_3
-          users: cycle_0
-      referencingFiles: file_0
-      unlinkedKey: k10
 libraryCycles
   /home/test/lib/append.dart
     current: cycle_0
-      key: k11
+      key: k03
     get: []
-    put: [k11]
+    put: [k03]
   /home/test/lib/test.dart
     current: cycle_1
-      key: k12
+      key: k04
     get: []
-    put: [k12]
-  /packages/_macros/lib/src/api.dart
-    current: cycle_2
-      key: k13
-    get: []
-    put: [k13]
-  /packages/macros/lib/macros.dart
-    current: cycle_3
-      key: k14
-    get: []
-    put: [k14]
+    put: [k04]
 elementFactory
   hasElement
-    package:_macros/src/api.dart
     package:test/append.dart
     package:test/test.dart
 ''');
@@ -14947,10 +13869,10 @@ files
       id: file_0
       kind: library_0
         libraryImports
-          library_10 package:macro/api.dart
+          library_10 package:macros/macros.dart
           library_11 dart:core synthetic
         cycle_0
-          dependencies: dart:core package:macro/api.dart
+          dependencies: dart:core package:macros/macros.dart
           libraries: library_0
           apiSignature_0
           users: cycle_6
@@ -14979,115 +13901,17 @@ files
           library_11 dart:core synthetic
       referencingFiles: file_1
       unlinkedKey: k02
-  /packages/_macros/lib/src/api.dart
-    uri: package:_macros/src/api.dart
-    current
-      id: file_3
-      kind: library_3
-        libraryImports
-          library_13 dart:async
-          library_15 dart:collection
-          library_11 dart:core synthetic
-        parts
-          partOfUriKnown_4
-          partOfUriKnown_5
-          partOfUriKnown_6
-          partOfUriKnown_7
-          partOfUriKnown_8
-          partOfUriKnown_9
-        cycle_2
-          dependencies: dart:collection dart:core
-          libraries: library_3
-          apiSignature_2
-          users: package:macro/api.dart
-      referencingFiles: file_10
-      unlinkedKey: k03
-  /packages/_macros/lib/src/api/builders.dart
-    uri: package:_macros/src/api/builders.dart
-    current
-      id: file_4
-      kind: partOfUriKnown_4
-        library: library_3
-      referencingFiles: file_3
-      unlinkedKey: k04
-  /packages/_macros/lib/src/api/code.dart
-    uri: package:_macros/src/api/code.dart
-    current
-      id: file_5
-      kind: partOfUriKnown_5
-        library: library_3
-      referencingFiles: file_3
-      unlinkedKey: k05
-  /packages/_macros/lib/src/api/diagnostic.dart
-    uri: package:_macros/src/api/diagnostic.dart
-    current
-      id: file_6
-      kind: partOfUriKnown_6
-        library: library_3
-      referencingFiles: file_3
-      unlinkedKey: k06
-  /packages/_macros/lib/src/api/exceptions.dart
-    uri: package:_macros/src/api/exceptions.dart
-    current
-      id: file_7
-      kind: partOfUriKnown_7
-        library: library_3
-      referencingFiles: file_3
-      unlinkedKey: k07
-  /packages/_macros/lib/src/api/introspection.dart
-    uri: package:_macros/src/api/introspection.dart
-    current
-      id: file_8
-      kind: partOfUriKnown_8
-        library: library_3
-      referencingFiles: file_3
-      unlinkedKey: k08
-  /packages/_macros/lib/src/api/macros.dart
-    uri: package:_macros/src/api/macros.dart
-    current
-      id: file_9
-      kind: partOfUriKnown_9
-        library: library_3
-      referencingFiles: file_3
-      unlinkedKey: k09
-  /packages/macros/lib/macros.dart
-    uri: package:macros/macros.dart
-    current
-      id: file_10
-      kind: library_10
-        libraryImports
-          library_11 dart:core synthetic
-        libraryExports
-          library_3
-        cycle_3
-          dependencies: cycle_2 dart:core
-          libraries: library_10
-          apiSignature_3
-          users: cycle_0
-      referencingFiles: file_0
-      unlinkedKey: k10
 libraryCycles
   /home/test/lib/append.dart
     current: cycle_0
-      key: k11
+      key: k03
     get: []
-    put: [k11]
+    put: [k03]
   /home/test/lib/test.dart
     get: []
-    put: [k12]
-  /packages/_macros/lib/src/api.dart
-    current: cycle_2
-      key: k13
-    get: []
-    put: [k13]
-  /packages/macros/lib/macros.dart
-    current: cycle_3
-      key: k14
-    get: []
-    put: [k14]
+    put: [k04]
 elementFactory
   hasElement
-    package:_macros/src/api.dart
     package:test/append.dart
 ''');
 
@@ -15113,10 +13937,10 @@ files
       id: file_0
       kind: library_0
         libraryImports
-          library_10 package:macro/api.dart
+          library_10 package:macros/macros.dart
           library_11 dart:core synthetic
         cycle_0
-          dependencies: dart:core package:macro/api.dart
+          dependencies: dart:core package:macros/macros.dart
           libraries: library_0
           apiSignature_0
           users: cycle_6
@@ -15148,117 +13972,19 @@ files
           library_11 dart:core synthetic
       referencingFiles: file_1
       unlinkedKey: k02
-  /packages/_macros/lib/src/api.dart
-    uri: package:_macros/src/api.dart
-    current
-      id: file_3
-      kind: library_3
-        libraryImports
-          library_13 dart:async
-          library_15 dart:collection
-          library_11 dart:core synthetic
-        parts
-          partOfUriKnown_4
-          partOfUriKnown_5
-          partOfUriKnown_6
-          partOfUriKnown_7
-          partOfUriKnown_8
-          partOfUriKnown_9
-        cycle_2
-          dependencies: dart:collection dart:core
-          libraries: library_3
-          apiSignature_2
-          users: package:macro/api.dart
-      referencingFiles: file_10
-      unlinkedKey: k03
-  /packages/_macros/lib/src/api/builders.dart
-    uri: package:_macros/src/api/builders.dart
-    current
-      id: file_4
-      kind: partOfUriKnown_4
-        library: library_3
-      referencingFiles: file_3
-      unlinkedKey: k04
-  /packages/_macros/lib/src/api/code.dart
-    uri: package:_macros/src/api/code.dart
-    current
-      id: file_5
-      kind: partOfUriKnown_5
-        library: library_3
-      referencingFiles: file_3
-      unlinkedKey: k05
-  /packages/_macros/lib/src/api/diagnostic.dart
-    uri: package:_macros/src/api/diagnostic.dart
-    current
-      id: file_6
-      kind: partOfUriKnown_6
-        library: library_3
-      referencingFiles: file_3
-      unlinkedKey: k06
-  /packages/_macros/lib/src/api/exceptions.dart
-    uri: package:_macros/src/api/exceptions.dart
-    current
-      id: file_7
-      kind: partOfUriKnown_7
-        library: library_3
-      referencingFiles: file_3
-      unlinkedKey: k07
-  /packages/_macros/lib/src/api/introspection.dart
-    uri: package:_macros/src/api/introspection.dart
-    current
-      id: file_8
-      kind: partOfUriKnown_8
-        library: library_3
-      referencingFiles: file_3
-      unlinkedKey: k08
-  /packages/_macros/lib/src/api/macros.dart
-    uri: package:_macros/src/api/macros.dart
-    current
-      id: file_9
-      kind: partOfUriKnown_9
-        library: library_3
-      referencingFiles: file_3
-      unlinkedKey: k09
-  /packages/macros/lib/macros.dart
-    uri: package:macros/macros.dart
-    current
-      id: file_10
-      kind: library_10
-        libraryImports
-          library_11 dart:core synthetic
-        libraryExports
-          library_3
-        cycle_3
-          dependencies: cycle_2 dart:core
-          libraries: library_10
-          apiSignature_3
-          users: cycle_0
-      referencingFiles: file_0
-      unlinkedKey: k10
 libraryCycles
   /home/test/lib/append.dart
     current: cycle_0
-      key: k11
+      key: k03
     get: []
-    put: [k11]
+    put: [k03]
   /home/test/lib/test.dart
     current: cycle_6
-      key: k12
-    get: [k12]
-    put: [k12]
-  /packages/_macros/lib/src/api.dart
-    current: cycle_2
-      key: k13
-    get: []
-    put: [k13]
-  /packages/macros/lib/macros.dart
-    current: cycle_3
-      key: k14
-    get: []
-    put: [k14]
+      key: k04
+    get: [k04]
+    put: [k04]
 elementFactory
   hasElement
-    package:_macros/src/api.dart
     package:test/append.dart
     package:test/test.dart
   hasReader
