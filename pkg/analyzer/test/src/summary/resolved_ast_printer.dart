@@ -1785,6 +1785,7 @@ Expected parent: (${parent.runtimeType}) $parent
     _sink.withIndent(() {
       var infoString = codeBlock.infoString;
       _sink.writelnWithIndent('infoString: ${infoString ?? '<empty>'}');
+      _sink.writelnWithIndent('type: ${codeBlock.type}');
       assert(codeBlock.lines.isNotEmpty);
       _sink.writelnWithIndent('lines');
       _sink.withIndent(() {

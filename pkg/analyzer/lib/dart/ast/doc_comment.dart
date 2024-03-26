@@ -24,6 +24,21 @@ final class BlockDocDirective implements DocDirective {
   DocDirectiveType get type => openingTag.type;
 }
 
+/// The type of Markdown code block in a documentation comment.
+@experimental
+enum CodeBlockType {
+  /// Fenced code blocks begin with a code fence, preceded by up to three spaces
+  /// of indentation.
+  ///
+  /// A code fence is a sequence of at least three consecutive backtick
+  /// characters (`) or tildes (~).
+  fenced,
+
+  /// Indented code blocks have every line of code preceded by four or more
+  /// spaces of indentation.
+  indented,
+}
+
 /// An instance of a [DocDirectiveType] in the text of a doc comment, either
 /// as a [SimpleDocDirective], represented by a single [DocDirectiveTag], or a
 /// [BlockDocDirective], represented by an opening [DocDirectiveTag] and a
@@ -441,9 +456,13 @@ final class MdCodeBlock {
   /// fence delimiter lines.
   final List<MdCodeBlockLine> lines;
 
+  /// The type of Markdown code block that is being represented.
+  final CodeBlockType type;
+
   MdCodeBlock({
     required this.infoString,
     required List<MdCodeBlockLine> lines,
+    required this.type,
   }) : lines = List.of(lines, growable: false);
 }
 

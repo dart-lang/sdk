@@ -661,6 +661,7 @@ Comment
   codeBlocks
     MdCodeBlock
       infoString: dart
+      type: CodeBlockType.fenced
       lines
         MdCodeBlockLine
           offset: 3
@@ -673,6 +674,7 @@ Comment
           length: 4
     MdCodeBlock
       infoString: dart
+      type: CodeBlockType.fenced
       lines
         MdCodeBlockLine
           offset: 58
@@ -757,6 +759,7 @@ Comment
   codeBlocks
     MdCodeBlock
       infoString: <empty>
+      type: CodeBlockType.fenced
       lines
         MdCodeBlockLine
           offset: 15
@@ -769,6 +772,7 @@ Comment
           length: 3
     MdCodeBlock
       infoString: dart
+      type: CodeBlockType.fenced
       lines
         MdCodeBlockLine
           offset: 53
@@ -801,6 +805,7 @@ Comment
   codeBlocks
     MdCodeBlock
       infoString: <empty>
+      type: CodeBlockType.fenced
       lines
         MdCodeBlockLine
           offset: 3
@@ -830,6 +835,7 @@ Comment
   codeBlocks
     MdCodeBlock
       infoString: <empty>
+      type: CodeBlockType.fenced
       lines
         MdCodeBlockLine
           offset: 3
@@ -866,6 +872,7 @@ Comment
   codeBlocks
     MdCodeBlock
       infoString: dart
+      type: CodeBlockType.fenced
       lines
         MdCodeBlockLine
           offset: 3
@@ -904,6 +911,7 @@ Comment
   codeBlocks
     MdCodeBlock
       infoString: <empty>
+      type: CodeBlockType.fenced
       lines
         MdCodeBlockLine
           offset: 3
@@ -942,6 +950,7 @@ Comment
   codeBlocks
     MdCodeBlock
       infoString: <empty>
+      type: CodeBlockType.fenced
       lines
         MdCodeBlockLine
           offset: 12
@@ -974,6 +983,7 @@ Comment
   codeBlocks
     MdCodeBlock
       infoString: <empty>
+      type: CodeBlockType.fenced
       lines
         MdCodeBlockLine
           offset: 12
@@ -1009,6 +1019,7 @@ Comment
   codeBlocks
     MdCodeBlock
       infoString: <empty>
+      type: CodeBlockType.fenced
       lines
         MdCodeBlockLine
           offset: 24
@@ -1043,6 +1054,7 @@ Comment
   codeBlocks
     MdCodeBlock
       infoString: <empty>
+      type: CodeBlockType.fenced
       lines
         MdCodeBlockLine
           offset: 25
@@ -1084,6 +1096,7 @@ Comment
   codeBlocks
     MdCodeBlock
       infoString: <empty>
+      type: CodeBlockType.fenced
       lines
         MdCodeBlockLine
           offset: 12
@@ -1096,6 +1109,7 @@ Comment
           length: 4
     MdCodeBlock
       infoString: dart
+      type: CodeBlockType.fenced
       lines
         MdCodeBlockLine
           offset: 54
@@ -1152,6 +1166,7 @@ Comment
   codeBlocks
     MdCodeBlock
       infoString: <empty>
+      type: CodeBlockType.indented
       lines
         MdCodeBlockLine
           offset: 17
@@ -1198,6 +1213,7 @@ Comment
   codeBlocks
     MdCodeBlock
       infoString: <empty>
+      type: CodeBlockType.indented
       lines
         MdCodeBlockLine
           offset: 3
@@ -1232,6 +1248,7 @@ Comment
   codeBlocks
     MdCodeBlock
       infoString: <empty>
+      type: CodeBlockType.indented
       lines
         MdCodeBlockLine
           offset: 10
@@ -1262,6 +1279,7 @@ Comment
   codeBlocks
     MdCodeBlock
       infoString: <empty>
+      type: CodeBlockType.fenced
       lines
         MdCodeBlockLine
           offset: 13

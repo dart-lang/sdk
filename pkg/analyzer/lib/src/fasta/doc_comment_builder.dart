@@ -548,7 +548,11 @@ final class DocCommentBuilder {
     }
 
     _codeBlocks.add(
-      MdCodeBlock(infoString: infoString, lines: fencedCodeBlockLines),
+      MdCodeBlock(
+        infoString: infoString,
+        lines: fencedCodeBlockLines,
+        type: CodeBlockType.fenced,
+      ),
     );
     return true;
   }
@@ -572,7 +576,11 @@ final class DocCommentBuilder {
       } else {
         // End the code block.
         _codeBlocks.add(
-          MdCodeBlock(infoString: null, lines: codeBlockLines),
+          MdCodeBlock(
+            infoString: null,
+            lines: codeBlockLines,
+            type: CodeBlockType.indented,
+          ),
         );
         return lineInfo;
       }
@@ -582,7 +590,11 @@ final class DocCommentBuilder {
 
     // The indented code block ends the comment.
     _codeBlocks.add(
-      MdCodeBlock(infoString: null, lines: codeBlockLines),
+      MdCodeBlock(
+        infoString: null,
+        lines: codeBlockLines,
+        type: CodeBlockType.indented,
+      ),
     );
     return lineInfo;
   }

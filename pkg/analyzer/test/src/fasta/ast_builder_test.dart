@@ -234,6 +234,7 @@ ClassDeclaration
     codeBlocks
       MdCodeBlock
         infoString: <empty>
+        type: CodeBlockType.fenced
         lines
           MdCodeBlockLine
             offset: 178
