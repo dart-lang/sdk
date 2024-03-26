@@ -5,13 +5,6 @@
 import 'dart:io' show exitCode;
 import 'dart:typed_data' show Uint8List;
 
-import 'package:_fe_analyzer_shared/src/macros/executor/isolated_executor.dart'
-    as isolated_executor;
-import 'package:_fe_analyzer_shared/src/macros/executor/multi_executor.dart';
-import 'package:_fe_analyzer_shared/src/macros/executor/process_executor.dart'
-    as process_executor;
-import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart'
-    show SerializationMode;
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart'
     show
@@ -28,6 +21,11 @@ import 'package:kernel/kernel.dart'
         Version;
 import 'package:kernel/target/targets.dart'
     show NoneTarget, Target, TargetFlags;
+import 'package:macros/src/executor/isolated_executor.dart'
+    as isolated_executor;
+import 'package:macros/src/executor/multi_executor.dart';
+import 'package:macros/src/executor/process_executor.dart' as process_executor;
+import 'package:macros/src/executor/serialization.dart' show SerializationMode;
 import 'package:package_config/package_config.dart';
 
 import '../api_prototype/compiler_options.dart'

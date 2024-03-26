@@ -5,16 +5,15 @@
 /// Defines the front-end API for converting source code to Dart Kernel objects.
 library front_end.kernel_generator_impl;
 
-import 'package:_fe_analyzer_shared/src/macros/bootstrap.dart';
-import 'package:_fe_analyzer_shared/src/macros/executor/kernel_executor.dart'
-    as kernelExecutor;
-import 'package:_fe_analyzer_shared/src/macros/executor/multi_executor.dart';
-import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart';
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/verifier.dart' show VerificationStage;
+import 'package:macros/src/bootstrap.dart';
+import 'package:macros/src/executor/kernel_executor.dart' as kernelExecutor;
+import 'package:macros/src/executor/multi_executor.dart';
+import 'package:macros/src/executor/serialization.dart';
 
 import 'api_prototype/file_system.dart' show FileSystem;
 import 'api_prototype/front_end.dart' show CompilerOptions, CompilerResult;

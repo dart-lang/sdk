@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/experiments/flags.dart';
-import 'package:_fe_analyzer_shared/src/macros/executor.dart' as macro;
+import 'package:macros/src/executor.dart' as macro;
 import 'package:_fe_analyzer_shared/src/messages/codes.dart';
 import 'package:_fe_analyzer_shared/src/parser/parser.dart';
 import 'package:_fe_analyzer_shared/src/parser/quote.dart';

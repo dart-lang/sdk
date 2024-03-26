@@ -7,7 +7,7 @@
 // ignore_for_file: deprecated_member_use_from_same_package
 
 // There is no public API exposed yet, the in-progress API lives here.
-import 'package:_fe_analyzer_shared/src/macros/api.dart';
+import 'package:macros/macros.dart';
 
 macro class JsonSerializable implements ClassDeclarationsMacro {
   const JsonSerializable();

@@ -202,10 +202,8 @@ foo() {
 
     final sdkRoot =
         path.normalize(path.join(dapIntegrationTestFolder, '../../../../..'));
-    final feSharedPath = path.join(sdkRoot, 'pkg', '_fe_analyzer_shared');
-
-    await addPackageDependency(
-        testAppDir, '_fe_analyzer_shared', Uri.file(feSharedPath));
+    final macrosPath = path.join(sdkRoot, 'pkg', 'macros');
+    await addPackageDependency(testAppDir, 'macros', Uri.file(macrosPath));
 
     createTestFile(
       filename: 'analysis_options.yaml',

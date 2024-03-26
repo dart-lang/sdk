@@ -15,8 +15,7 @@ import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 
 class AnalyzerStatePrinter {
-  static const String _macroApiUriStr =
-      'package:_fe_analyzer_shared/src/macros/api.dart';
+  static const String _macroApiUriStr = 'package:macros/macros.dart';
 
   static const String _macroApiUriRewrite = 'package:macro/api.dart';
 
@@ -67,6 +66,9 @@ class AnalyzerStatePrinter {
       if (isSdkLibrary) {
         if (cycle.libraries.any((e) => e.file.uriStr == 'dart:core')) {
           return 'dart:core';
+        } else if (cycle.libraries
+            .any((e) => e.file.uriStr == 'dart:collection')) {
+          return 'dart:collection';
         } else {
           throw UnimplementedError('$cycle');
         }

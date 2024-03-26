@@ -6,7 +6,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/macros/compiler/request_channel.dart';
-import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart';
+import 'package:_fe_analyzer_shared/src/macros/compiler/byte_data_serializer.dart';
 import 'package:test/test.dart';
 
 main() {

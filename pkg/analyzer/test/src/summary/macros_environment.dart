@@ -22,27 +22,21 @@ class MacrosEnvironment {
     var physical = PhysicalResourceProvider.INSTANCE;
 
     var packageRoot = physical.pathContext.normalize(package_root.packageRoot);
-    physical
-        .getFolder(packageRoot)
-        .getChildAssumingFolder('_fe_analyzer_shared/lib/src/macros')
-        .copyTo(
-          packageSharedFolder.getChildAssumingFolder('lib/src'),
+    physical.getFolder(packageRoot).getChildAssumingFolder('_macros').copyTo(
+          privateMacrosFolder.parent,
         );
-    physical
-        .getFolder(packageRoot)
-        .getChildAssumingFolder('dart_internal')
-        .copyTo(
-          _resourceProvider.getFolder('/packages'),
+    physical.getFolder(packageRoot).getChildAssumingFolder('macros').copyTo(
+          publicMacrosFolder.parent,
         );
     packageAnalyzerFolder =
         physical.getFolder(packageRoot).getChildAssumingFolder('analyzer');
   }
 
-  Folder get packageDartInternalFolder {
-    return _resourceProvider.getFolder('/packages/dart_internal');
+  Folder get privateMacrosFolder {
+    return _resourceProvider.getFolder('/packages/_macros');
   }
 
-  Folder get packageSharedFolder {
-    return _resourceProvider.getFolder('/packages/_fe_analyzer_shared');
+  Folder get publicMacrosFolder {
+    return _resourceProvider.getFolder('/packages/macros');
   }
 }

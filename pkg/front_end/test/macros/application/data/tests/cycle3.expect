@@ -19,11 +19,11 @@ static method method() → dynamic {}
 library;
 import self as mai;
 import "dart:core" as core;
-import "package:_fe_analyzer_shared/src/macros/api.dart" as api;
+import "package:_macros/src/api.dart" as api;
 import "main_lib2.dart" as mai2;
 
 import "dart:async";
-import "package:_fe_analyzer_shared/src/macros/api.dart";
+import "package:macros/macros.dart";
 import "org-dartlang-test:///a/b/c/main.dart";
 import "org-dartlang-test:///a/b/c/main_lib2.dart";
 
@@ -38,10 +38,10 @@ macro class Macro1 extends core::Object implements api::FunctionDeclarationsMacr
 library;
 import self as mai2;
 import "dart:core" as core;
-import "package:_fe_analyzer_shared/src/macros/api.dart" as api;
+import "package:_macros/src/api.dart" as api;
 
 import "dart:async";
-import "package:_fe_analyzer_shared/src/macros/api.dart";
+import "package:macros/macros.dart";
 
 macro class Macro2 extends core::Object implements api::FunctionDeclarationsMacro /*hasConstConstructor*/  {
   const constructor •() → mai2::Macro2

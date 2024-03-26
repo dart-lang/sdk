@@ -9,10 +9,10 @@ library;
 //
 import self as self;
 import "dart:core" as core;
-import "package:_fe_analyzer_shared/src/macros/api.dart" as api;
+import "package:_macros/src/api.dart" as api;
 
 import "dart:async";
-import "package:_fe_analyzer_shared/src/macros/api.dart";
+import "package:macros/macros.dart";
 
 macro class Macro extends core::Object implements api::FunctionDeclarationsMacro /*hasConstConstructor*/  {
   const constructor •() → self::Macro

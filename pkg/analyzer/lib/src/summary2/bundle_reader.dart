@@ -4,7 +4,6 @@
 
 import 'dart:typed_data';
 
-import 'package:_fe_analyzer_shared/src/macros/api.dart' as macro;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -37,6 +36,7 @@ import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer/src/utilities/uri_cache.dart';
+import 'package:macros/macros.dart' as macro;
 import 'package:pub_semver/pub_semver.dart';
 
 class BundleReader {

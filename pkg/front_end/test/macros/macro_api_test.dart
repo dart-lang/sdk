@@ -4,7 +4,7 @@
 
 import 'dart:io' show Platform;
 
-import 'package:_fe_analyzer_shared/src/macros/executor/multi_executor.dart';
+import 'package:macros/src/executor/multi_executor.dart';
 import 'package:expect/expect.dart';
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:front_end/src/api_prototype/front_end.dart';

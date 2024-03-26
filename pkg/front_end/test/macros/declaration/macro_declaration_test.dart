@@ -4,11 +4,11 @@
 
 import 'dart:io' show Directory, Platform;
 
-import 'package:_fe_analyzer_shared/src/macros/api.dart' hide Library;
-import 'package:_fe_analyzer_shared/src/macros/executor.dart';
-import 'package:_fe_analyzer_shared/src/macros/executor/multi_executor.dart';
-import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart';
-import 'package:_fe_analyzer_shared/src/macros/executor/span.dart';
+import 'package:macros/macros.dart' hide Library;
+import 'package:macros/src/executor.dart';
+import 'package:macros/src/executor/multi_executor.dart';
+import 'package:macros/src/executor/serialization.dart';
+import 'package:macros/src/executor/span.dart';
 import 'package:_fe_analyzer_shared/src/testing/features.dart';
 import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';

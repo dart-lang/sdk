@@ -708,6 +708,23 @@ copy("copy_api_readme") {
   outputs = [ "$root_out_dir/$dart_sdk_output/lib/api_readme.md" ]
 }
 
+# This rule copies the sdk_packages.yaml file to the root of the SDK, which
+# defines the locations of the vendored SDK packages.
+copy("copy_sdk_packages_yaml") {
+  visibility = [ ":create_common_sdk" ]
+  sources = [ "../sdk_packages.yaml" ]
+  outputs = [ "$root_out_dir/$dart_sdk_output/sdk_packages.yaml" ]
+}
+
+# This rule copies pkg/_macros to pkg/_macros in the built SDK. This is a
+# vendored SDK package.
+copy_tree("copy_pkg_macros") {
+  visibility = [ ":create_common_sdk" ]
+  source = "../pkg/_macros"
+  dest = "$root_out_dir/$dart_sdk_output/pkg/_macros"
+  exclude = "{}"
+}
+
 # Parts common to both platform and full SDKs.
 group("create_common_sdk") {
   visibility = [
@@ -721,8 +738,10 @@ group("create_common_sdk") {
     ":copy_headers",
     ":copy_libraries_specification",
     ":copy_license",
+    ":copy_pkg_macros",
     ":copy_prebuilt_devtools",
     ":copy_readme",
+    ":copy_sdk_packages_yaml",
     ":copy_vm_dill_files",
     ":write_dartdoc_options",
     ":write_revision_file",

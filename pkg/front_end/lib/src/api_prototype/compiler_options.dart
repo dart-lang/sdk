@@ -4,9 +4,6 @@
 
 library front_end.compiler_options;
 
-import 'package:_fe_analyzer_shared/src/macros/executor/multi_executor.dart';
-import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart'
-    as macros show SerializationMode;
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
     show DiagnosticMessage, DiagnosticMessageHandler;
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
@@ -14,6 +11,9 @@ import 'package:kernel/ast.dart' show Component, Version;
 import 'package:kernel/default_language_version.dart' as kernel
     show defaultLanguageVersion;
 import 'package:kernel/target/targets.dart' show Target;
+import 'package:macros/src/executor/multi_executor.dart';
+import 'package:macros/src/executor/serialization.dart' as macros
+    show SerializationMode;
 
 import '../api_unstable/util.dart';
 import '../base/nnbd_mode.dart';

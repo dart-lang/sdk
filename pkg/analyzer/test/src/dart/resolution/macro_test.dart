@@ -69,7 +69,7 @@ void f(B b) {}
 
   test_diagnostic_compilesWithError() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import 'package:_fe_analyzer_shared/src/macros/api.dart';
+import 'package:macros/macros.dart';
 
 macro class MyMacro implements ClassTypesMacro {
   const MyMacro();
@@ -250,7 +250,7 @@ class A3 {}
 
   test_diagnostic_definitionApplication_sameLibrary() async {
     await assertErrorsInCode('''
-import 'package:_fe_analyzer_shared/src/macros/api.dart';
+import 'package:macros/macros.dart';
 
 macro class MyMacro implements ClassDefinitionMacro {
   const MyMacro();
@@ -264,14 +264,14 @@ class A {}
 ''', [
       error(
           CompileTimeErrorCode.MACRO_DEFINITION_APPLICATION_SAME_LIBRARY_CYCLE,
-          206,
+          185,
           7),
     ]);
   }
 
   test_diagnostic_definitionApplication_sameLibraryCycle() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import 'package:_fe_analyzer_shared/src/macros/api.dart';
+import 'package:macros/macros.dart';
 import 'test.dart';
 
 macro class MyMacro implements ClassDefinitionMacro {
@@ -910,7 +910,7 @@ class A {}
 
   test_diagnostic_throwsException() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import 'package:_fe_analyzer_shared/src/macros/api.dart';
+import 'package:macros/macros.dart';
 
 macro class MyMacro implements ClassTypesMacro {
   const MyMacro();

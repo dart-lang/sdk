@@ -5,7 +5,7 @@
 // ignore_for_file: deprecated_member_use
 // ignore_for_file: deprecated_member_use_from_same_package
 
-import 'package:_fe_analyzer_shared/src/macros/api.dart';
+import 'package:macros/macros.dart';
 
 extension TypePhaseIntrospecterExtension on TypePhaseIntrospector {
   /// Converts [string] into `Code`.

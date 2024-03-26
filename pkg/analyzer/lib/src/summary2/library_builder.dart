@@ -4,7 +4,6 @@
 
 import 'package:_fe_analyzer_shared/src/field_promotability.dart';
 import 'package:_fe_analyzer_shared/src/macros/code_optimizer.dart' as macro;
-import 'package:_fe_analyzer_shared/src/macros/executor.dart' as macro;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
@@ -36,6 +35,7 @@ import 'package:analyzer/src/summary2/types_builder.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
+import 'package:macros/src/executor.dart' as macro;
 
 class AugmentedClassDeclarationBuilder
     extends AugmentedInstanceDeclarationBuilder {

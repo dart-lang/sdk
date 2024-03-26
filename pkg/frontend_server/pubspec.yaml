@@ -16,6 +16,7 @@ dependencies:
   dev_compiler: any
   front_end: any
   kernel: any
+  macros: any
   package_config: any
   path: any
   usage: any

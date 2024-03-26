@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/macros/api.dart';
+import 'package:macros/macros.dart';
 
 /// Macro that adds a `String` getter called `x` that return `OK`.
 macro class DeclareX implements ClassDeclarationsMacro  {
