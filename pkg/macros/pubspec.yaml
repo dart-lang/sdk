@@ -6,7 +6,7 @@ description: >-
 repository: https://github.com/dart-lang/sdk/tree/main/pkg/macros
 
 environment:
-  sdk: ^3.3.0
+  sdk: ^3.4.0-256.0.dev
 
 dependencies:
   _macros:
