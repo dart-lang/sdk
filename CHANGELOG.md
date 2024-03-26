@@ -46,10 +46,15 @@ advantage of these improvements, set your package's
 - Fixes an issue with several comparison operators in `JSAnyOperatorExtension`
   that were declared to return `JSBoolean` but really returned `bool`. This led
   to runtime errors when trying to use the return values. The implementation now
-  returns a `JSBoolean` to align with the interface. See issues [#55024] for
+  returns a `JSBoolean` to align with the interface. See issue [#55024] for
   more details.
+- Added `ExternalDartReference` and related conversion functions
+  `toExternalReference` and `toDartObject`. This is a faster alternative to
+  `JSBoxedDartObject`, but with fewer safety guarantees and fewer
+  interoperability capabilities. See [#55187] for more details.
 
 [#55024]: https://github.com/dart-lang/sdk/issues/55024
+[#55187]: https://github.com/dart-lang/sdk/issues/55187
 
 ### Tools
 

@@ -118,6 +118,22 @@ extension ObjectToJSBoxedDartObject on Object {
   }
 }
 
+/// [ExternalDartReference] <-> [Object]
+@patch
+extension ExternalDartReferenceToObject on ExternalDartReference {
+  @patch
+  @pragma('dart2js:prefer-inline')
+  Object get toDartObject => this;
+}
+
+@patch
+extension ObjectToExternalDartReference on Object {
+  @patch
+  @pragma('dart2js:prefer-inline')
+  ExternalDartReference get toExternalReference =>
+      this as ExternalDartReference;
+}
+
 /// [JSPromise] -> [Future].
 @patch
 extension JSPromiseToFuture<T extends JSAny?> on JSPromise<T> {

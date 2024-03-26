@@ -99,3 +99,14 @@ extension type ENonInterop._(EObject _) {
   //       ^
   // [web] Extension type member is marked 'external', but the representation type of its extension type is not a valid JS interop type.
 }
+
+extension type EExternalDartReference._(ExternalDartReference _) {
+  external EExternalDartReference();
+  //       ^
+  // [web] Extension type member is marked 'external', but the representation type of its extension type is not a valid JS interop type.
+}
+
+@JS()
+extension type EExternalDartReference2._(ExternalDartReference _) {}
+//             ^
+// [web] Extension type 'EExternalDartReference2' is marked with a '@JS' annotation, but its representation type is not a valid JS interop type: 'ExternalDartReference'.

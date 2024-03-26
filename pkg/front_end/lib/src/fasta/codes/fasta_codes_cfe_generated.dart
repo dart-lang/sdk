@@ -4723,7 +4723,7 @@ const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
   problemMessageTemplate:
       r"""External JS interop member contains an invalid type: '#type'.""",
   correctionMessageTemplate:
-      r"""Use one of these valid types instead: JS types from 'dart:js_interop', void, bool, num, double, int, String, extension types that erase to one of these types, '@staticInterop' types, 'dart:html' types when compiling to JS, or a type parameter that is a subtype of a valid non-primitive type.""",
+      r"""Use one of these valid types instead: JS types from 'dart:js_interop', ExternalDartReference, void, bool, num, double, int, String, extension types that erase to one of these types, '@staticInterop' types, 'dart:html' types when compiling to JS, or a type parameter that is a subtype of a valid non-primitive type.""",
   withArguments:
       _withArgumentsJsInteropStaticInteropExternalAccessorTypeViolation,
 );
@@ -4747,7 +4747,7 @@ Message _withArgumentsJsInteropStaticInteropExternalAccessorTypeViolation(
         """External JS interop member contains an invalid type: '${type}'.""" +
             labeler.originMessages,
     correctionMessage:
-        """Use one of these valid types instead: JS types from 'dart:js_interop', void, bool, num, double, int, String, extension types that erase to one of these types, '@staticInterop' types, 'dart:html' types when compiling to JS, or a type parameter that is a subtype of a valid non-primitive type.""",
+        """Use one of these valid types instead: JS types from 'dart:js_interop', ExternalDartReference, void, bool, num, double, int, String, extension types that erase to one of these types, '@staticInterop' types, 'dart:html' types when compiling to JS, or a type parameter that is a subtype of a valid non-primitive type.""",
     arguments: {
       'type': _type,
     },
