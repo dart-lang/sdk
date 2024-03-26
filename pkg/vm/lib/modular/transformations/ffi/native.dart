@@ -903,7 +903,7 @@ class FfiNativeTransformer extends FfiTransformer {
         ));
       } else {
         node.function.body = ExpressionStatement(nativeTypeCfe.generateStore(
-          VariableGet(node.function.positionalParameters[0]),
+          node.function.positionalParameters[0],
           dartType: dartType,
           fileOffset: node.fileOffset,
           typedDataBase: _generateAddressOfField(

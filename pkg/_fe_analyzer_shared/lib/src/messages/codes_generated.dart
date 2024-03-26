@@ -10406,9 +10406,9 @@ const MessageCode messageJsInteropExternalExtensionMemberOnTypeInvalid =
     const MessageCode(
   "JsInteropExternalExtensionMemberOnTypeInvalid",
   problemMessage:
-      r"""JS interop or Native class required for 'external' extension members.""",
+      r"""JS interop type or @Native type from an SDK web library required for 'external' extension members.""",
   correctionMessage:
-      r"""Try adding a JS interop annotation to the on type class of the extension.""",
+      r"""Try making the on-type a JS interop type or an @Native SDK web library type.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -10698,7 +10698,7 @@ const Template<Message Function(String string2)>
   problemMessageTemplate:
       r"""External JS interop member contains invalid types in its function signature: '#string2'.""",
   correctionMessageTemplate:
-      r"""Use one of these valid types instead: JS types from 'dart:js_interop', void, bool, num, double, int, String, extension types that erase to one of these types, '@staticInterop' types, 'dart:html' types when compiling to JS, or a type parameter that is a subtype of a valid non-primitive type.""",
+      r"""Use one of these valid types instead: JS types from 'dart:js_interop', ExternalDartReference, void, bool, num, double, int, String, extension types that erase to one of these types, '@staticInterop' types, 'dart:html' types when compiling to JS, or a type parameter that is a subtype of a valid non-primitive type.""",
   withArguments:
       _withArgumentsJsInteropStaticInteropExternalFunctionTypeViolation,
 );
@@ -10719,7 +10719,7 @@ Message _withArgumentsJsInteropStaticInteropExternalFunctionTypeViolation(
     problemMessage:
         """External JS interop member contains invalid types in its function signature: '${string2}'.""",
     correctionMessage:
-        """Use one of these valid types instead: JS types from 'dart:js_interop', void, bool, num, double, int, String, extension types that erase to one of these types, '@staticInterop' types, 'dart:html' types when compiling to JS, or a type parameter that is a subtype of a valid non-primitive type.""",
+        """Use one of these valid types instead: JS types from 'dart:js_interop', ExternalDartReference, void, bool, num, double, int, String, extension types that erase to one of these types, '@staticInterop' types, 'dart:html' types when compiling to JS, or a type parameter that is a subtype of a valid non-primitive type.""",
     arguments: {
       'string2': string2,
     },
@@ -10938,7 +10938,7 @@ const Template<Message Function(String string2)>
   problemMessageTemplate:
       r"""Function converted via 'toJS' contains invalid types in its function signature: '#string2'.""",
   correctionMessageTemplate:
-      r"""Use one of these valid types instead: JS types from 'dart:js_interop', void, bool, num, double, int, String, extension types that erase to one of these types, '@staticInterop' types, 'dart:html' types when compiling to JS, or a type parameter that is a subtype of a valid non-primitive type.""",
+      r"""Use one of these valid types instead: JS types from 'dart:js_interop', ExternalDartReference, void, bool, num, double, int, String, extension types that erase to one of these types, '@staticInterop' types, 'dart:html' types when compiling to JS, or a type parameter that is a subtype of a valid non-primitive type.""",
   withArguments: _withArgumentsJsInteropStaticInteropToJSFunctionTypeViolation,
 );
 
@@ -10958,7 +10958,7 @@ Message _withArgumentsJsInteropStaticInteropToJSFunctionTypeViolation(
     problemMessage:
         """Function converted via 'toJS' contains invalid types in its function signature: '${string2}'.""",
     correctionMessage:
-        """Use one of these valid types instead: JS types from 'dart:js_interop', void, bool, num, double, int, String, extension types that erase to one of these types, '@staticInterop' types, 'dart:html' types when compiling to JS, or a type parameter that is a subtype of a valid non-primitive type.""",
+        """Use one of these valid types instead: JS types from 'dart:js_interop', ExternalDartReference, void, bool, num, double, int, String, extension types that erase to one of these types, '@staticInterop' types, 'dart:html' types when compiling to JS, or a type parameter that is a subtype of a valid non-primitive type.""",
     arguments: {
       'string2': string2,
     },

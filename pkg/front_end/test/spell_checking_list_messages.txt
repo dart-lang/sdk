@@ -54,6 +54,7 @@ erase
 exhaustively
 exportable
 extensiontype
+externaldartreference
 f
 ffi
 finality
@@ -84,8 +85,8 @@ loadlibrary
 macro
 member(s)
 migrate
-modifier
 mocking
+modifier
 n
 name.#name
 name.stack

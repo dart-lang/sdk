@@ -257,7 +257,7 @@ class WasmFfiNativeTransformer extends FfiNativeTransformer {
         StaticInvocation(wasmF32FromDouble, Arguments([expr])),
       NativeType.kDouble =>
         StaticInvocation(wasmF64FromDouble, Arguments([expr])),
-      NativeType.kPointer || NativeType.kStruct => expr,
+      NativeType.kPointer => expr,
       NativeType.kBool => StaticInvocation(wasmI32FromBool, Arguments([expr])),
       NativeType.kVoid => null,
       _ => throw '_dartValueToFfiValue: $abiTypeNativeType cannot be converted'
@@ -297,7 +297,6 @@ class WasmFfiNativeTransformer extends FfiNativeTransformer {
 
       case NativeType.kPointer:
       case NativeType.kVoid:
-      case NativeType.kStruct:
         return expr;
 
       case NativeType.kUint64:
@@ -319,6 +318,7 @@ class WasmFfiNativeTransformer extends FfiNativeTransformer {
       case NativeType.kNativeInteger:
       case NativeType.kNativeType:
       case NativeType.kOpaque:
+      case NativeType.kStruct:
         throw '_ffiValueToDartValue: $nativeType cannot be converted';
     }
   }

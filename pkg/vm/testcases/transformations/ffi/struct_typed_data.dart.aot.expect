@@ -32,22 +32,22 @@ final class Coordinate extends ffi::Struct {
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
   [@vm.unboxing-info.metadata=()->d]
   get x() → core::double
-    return [@vm.inferred-type.metadata=dart.core::_Double] ffi::_loadDouble([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] this.{ffi::_Compound::_typedDataBase}{core::Object}, [@vm.inferred-type.metadata=dart.core::_Smi (value: 0)] self::Coordinate::x#offsetOf);
+    return [@vm.inferred-type.metadata=dart.core::_Double] ffi::_loadDouble([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] this.{ffi::_Compound::_typedDataBase}{core::Object}, [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] [@vm.inferred-type.metadata=dart.core::_Smi (value: 0)] self::Coordinate::x#offsetOf.{core::num::+}([@vm.direct-call.metadata=dart.ffi::_Compound._offsetInBytes] [@vm.inferred-type.metadata=int?] this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num});
 
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
   [@vm.unboxing-info.metadata=(d)->b]
   set x([@vm.inferred-arg-type.metadata=dart.core::_Double] synthesized core::double #externalFieldValue) → void
-    return ffi::_storeDouble([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] this.{ffi::_Compound::_typedDataBase}{core::Object}, [@vm.inferred-type.metadata=dart.core::_Smi (value: 0)] self::Coordinate::x#offsetOf, #externalFieldValue);
+    return ffi::_storeDouble([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] this.{ffi::_Compound::_typedDataBase}{core::Object}, [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] [@vm.inferred-type.metadata=dart.core::_Smi (value: 0)] self::Coordinate::x#offsetOf.{core::num::+}([@vm.direct-call.metadata=dart.ffi::_Compound._offsetInBytes] [@vm.inferred-type.metadata=int?] this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #externalFieldValue);
 
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]
   [@vm.unboxing-info.metadata=()->d]
   get y() → core::double
-    return [@vm.inferred-type.metadata=dart.core::_Double] ffi::_loadDouble([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] this.{ffi::_Compound::_typedDataBase}{core::Object}, [@vm.inferred-type.metadata=dart.core::_Smi (value: 8)] self::Coordinate::y#offsetOf);
+    return [@vm.inferred-type.metadata=dart.core::_Double] ffi::_loadDouble([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] this.{ffi::_Compound::_typedDataBase}{core::Object}, [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] [@vm.inferred-type.metadata=dart.core::_Smi (value: 8)] self::Coordinate::y#offsetOf.{core::num::+}([@vm.direct-call.metadata=dart.ffi::_Compound._offsetInBytes] [@vm.inferred-type.metadata=int?] this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num});
 
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]
   [@vm.unboxing-info.metadata=(d)->b]
   set y([@vm.inferred-arg-type.metadata=dart.core::_Double] synthesized core::double #externalFieldValue) → void
-    return ffi::_storeDouble([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] this.{ffi::_Compound::_typedDataBase}{core::Object}, [@vm.inferred-type.metadata=dart.core::_Smi (value: 8)] self::Coordinate::y#offsetOf, #externalFieldValue);
+    return ffi::_storeDouble([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] this.{ffi::_Compound::_typedDataBase}{core::Object}, [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] [@vm.inferred-type.metadata=dart.core::_Smi (value: 8)] self::Coordinate::y#offsetOf.{core::num::+}([@vm.direct-call.metadata=dart.ffi::_Compound._offsetInBytes] [@vm.inferred-type.metadata=int?] this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #externalFieldValue);
 
   [@vm.unboxing-info.metadata=()->i]
   @#C8

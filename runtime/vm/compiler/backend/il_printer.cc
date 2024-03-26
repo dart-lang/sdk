@@ -1423,7 +1423,17 @@ void CCallInstr::PrintOperandsTo(BaseTextBuffer* f) const {
 }
 
 void NativeReturnInstr::PrintOperandsTo(BaseTextBuffer* f) const {
-  InputAt(0)->PrintTo(f);
+  if (marshaller_.NumReturnDefinitions() == 1) {
+    InputAt(0)->PrintTo(f);
+  } else {
+    ASSERT_EQUAL(marshaller_.NumReturnDefinitions(), 2);
+    f->AddString("(");
+    InputAt(0)->PrintTo(f);
+    f->AddString(", ");
+    InputAt(1)->PrintTo(f);
+    f->AddString(")");
+  }
+
   f->AddString(" (@");
   marshaller_.Location(compiler::ffi::kResultIndex).PrintTo(f);
   f->AddString(")");

@@ -381,6 +381,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
 
   // Loads the _typedDataBase field from a subclass of _Compound.
   Fragment LoadTypedDataBaseFromCompound();
+  Fragment LoadOffsetInBytesFromCompound();
 
   // Copy `definitions` into TypedData.
   //

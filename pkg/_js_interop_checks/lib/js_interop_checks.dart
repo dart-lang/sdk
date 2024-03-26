@@ -927,6 +927,9 @@ class JsInteropChecks extends RecursiveVisitor {
     // If it can be used as a representation type of an interop extension type,
     // it is okay to be used on an external member.
     if (extensionIndex.isAllowedRepresentationType(type)) return true;
+    // ExternalDartReference is allowed on interop members even though it's not
+    // an interop type.
+    if (extensionIndex.isExternalDartReferenceType(type)) return true;
     if (type is InterfaceType) {
       final cls = type.classNode;
       // Primitive types are okay.
@@ -939,8 +942,8 @@ class JsInteropChecks extends RecursiveVisitor {
       }
     } else if (type is ExtensionType) {
       // Extension types that wrap other allowed types are also okay. Interop
-      // extension types are handled above, so this is essentially for extension
-      // types on primitives.
+      // extension types and ExternalDartReference are handled above, so this is
+      // essentially for extension types on primitives.
       return _isAllowedExternalType(type.extensionTypeErasure);
     }
     return false;

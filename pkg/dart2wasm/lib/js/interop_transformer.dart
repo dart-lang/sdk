@@ -36,8 +36,8 @@ class InteropTransformer extends Transformer {
 
   InteropTransformer._(this._staticTypeContext, this._util,
       this._methodCollector, extensionIndex)
-      : _callbackSpecializer = CallbackSpecializer(
-            _staticTypeContext, _util, _methodCollector, extensionIndex),
+      : _callbackSpecializer =
+            CallbackSpecializer(_staticTypeContext, _util, _methodCollector),
         _inlineExpander =
             InlineExpander(_staticTypeContext, _util, _methodCollector),
         _interopSpecializerFactory = InteropSpecializerFactory(

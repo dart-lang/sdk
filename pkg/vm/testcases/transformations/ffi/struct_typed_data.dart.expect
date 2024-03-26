@@ -11,14 +11,14 @@ import "package:expect/expect.dart";
 
 @#C6
 final class Coordinate extends ffi::Struct {
-  constructor #fromTypedDataBase(synthesized core::Object #typedDataBase) → self::Coordinate
-    : super ffi::Struct::_fromTypedDataBase(#typedDataBase)
+  constructor #fromTypedDataBase(synthesized core::Object #typedDataBase, synthesized core::int #offsetInBytes) → self::Coordinate
+    : super ffi::Struct::_fromTypedDataBase(#typedDataBase, #offsetInBytes)
     ;
   constructor #fromTypedData(synthesized typ::TypedData #typedData, synthesized core::int #offset, synthesized core::int #sizeInBytes) → self::Coordinate
     : super ffi::Struct::_fromTypedData(#typedData, #offset, #sizeInBytes)
     ;
   static factory •({core::double? x = #C4, core::double? y = #C4}) → self::Coordinate {
-    final self::Coordinate result = new self::Coordinate::#fromTypedDataBase(typ::Uint8List::•(self::Coordinate::#sizeOf));
+    final self::Coordinate result = new self::Coordinate::#fromTypedDataBase(typ::Uint8List::•(self::Coordinate::#sizeOf), #C7);
     if(!(x == null))
       result.{self::Coordinate::x} = x{core::double};
     if(!(y == null))
@@ -30,16 +30,16 @@ final class Coordinate extends ffi::Struct {
   }
   @#C8
   get x() → core::double
-    return ffi::_loadDouble(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::Coordinate::x#offsetOf);
+    return ffi::_loadDouble(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::Coordinate::x#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num});
   @#C8
   set x(synthesized core::double #externalFieldValue) → void
-    return ffi::_storeDouble(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::Coordinate::x#offsetOf, #externalFieldValue);
+    return ffi::_storeDouble(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::Coordinate::x#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #externalFieldValue);
   @#C8
   get y() → core::double
-    return ffi::_loadDouble(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::Coordinate::y#offsetOf);
+    return ffi::_loadDouble(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::Coordinate::y#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num});
   @#C8
   set y(synthesized core::double #externalFieldValue) → void
-    return ffi::_storeDouble(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::Coordinate::y#offsetOf, #externalFieldValue);
+    return ffi::_storeDouble(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::Coordinate::y#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #externalFieldValue);
   @#C10
   static get x#offsetOf() → core::int
     return #C11.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};

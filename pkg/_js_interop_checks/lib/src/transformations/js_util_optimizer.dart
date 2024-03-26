@@ -697,6 +697,7 @@ class ExtensionIndex {
   final Map<Reference, ExtensionTypeMemberDescriptor>
       _extensionTypeMemberIndex = {};
   final Map<Reference, Reference> _extensionTypeTearOffIndex = {};
+  final Set<Reference> _externalDartReferences = {};
   final Class? _javaScriptObject;
   final Set<Library> _processedExtensionLibraries = {};
   final Set<Library> _processedExtensionTypeLibraries = {};
@@ -1013,5 +1014,23 @@ class ExtensionIndex {
   }
 
   bool isJSType(ExtensionTypeDeclaration decl) =>
-      decl.enclosingLibrary.importUri.toString() == 'dart:js_interop';
+      decl.enclosingLibrary.importUri.toString() == 'dart:js_interop' &&
+      decl.name.startsWith('JS');
+
+  bool isExternalDartReference(ExtensionTypeDeclaration decl) =>
+      decl.enclosingLibrary.importUri.toString() == 'dart:js_interop' &&
+      decl.name == 'ExternalDartReference';
+
+  bool isExternalDartReferenceType(DartType type) {
+    if (type is ExtensionType) {
+      final decl = type.extensionTypeDeclaration;
+      if (_externalDartReferences.contains(decl.reference)) return true;
+      if (isExternalDartReference(decl) ||
+          isExternalDartReferenceType(decl.declaredRepresentationType)) {
+        _externalDartReferences.add(decl.reference);
+        return true;
+      }
+    }
+    return false;
+  }
 }

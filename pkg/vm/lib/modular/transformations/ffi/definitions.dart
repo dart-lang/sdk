@@ -552,26 +552,40 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     /// Add a constructor which 'load' can use.
     ///
     /// ```dart
-    /// #fromTypedDataBase(Object #typedDataBase) :
-    ///   super._fromTypedDataBase(#typedDataBase);
+    /// #fromTypedDataBase(Object #typedDataBase, int #offsetInBytes) :
+    ///   super._fromTypedDataBase(#typedDataBase, #offsetInBytes);
     /// ```
     final VariableDeclaration typedDataBase = VariableDeclaration(
-        "#typedDataBase",
-        type: coreTypes.objectNonNullableRawType,
-        isSynthesized: true);
+      "#typedDataBase",
+      type: coreTypes.objectNonNullableRawType,
+      isSynthesized: true,
+    );
+    final VariableDeclaration offsetInBytes = VariableDeclaration(
+      "#offsetInBytes",
+      type: coreTypes.intNonNullableRawType,
+      isSynthesized: true,
+    );
     final name = Name("#fromTypedDataBase");
     final reference = indexedClass?.lookupConstructorReference(name);
     final Constructor ctor = Constructor(
-        FunctionNode(EmptyStatement(),
-            positionalParameters: [typedDataBase],
-            returnType: InterfaceType(node, Nullability.nonNullable)),
+        FunctionNode(
+          EmptyStatement(),
+          positionalParameters: [
+            typedDataBase,
+            offsetInBytes,
+          ],
+          returnType: InterfaceType(node, Nullability.nonNullable),
+        ),
         name: name,
         initializers: [
           SuperInitializer(
               node.superclass == structClass
                   ? structFromTypedDataBase
                   : unionFromTypedDataBase,
-              Arguments([VariableGet(typedDataBase)]))
+              Arguments([
+                VariableGet(typedDataBase),
+                VariableGet(offsetInBytes),
+              ]))
         ],
         fileUri: node.fileUri,
         reference: reference)

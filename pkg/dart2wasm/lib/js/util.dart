@@ -68,9 +68,12 @@ class CoreTypesUtil {
       wasmExternRefClass.getThisType(coreTypes, Nullability.nullable);
 
   Procedure jsifyTarget(DartType type) =>
-      _extensionIndex.isStaticInteropType(type)
-          ? jsValueUnboxTarget
-          : jsifyRawTarget;
+      isJSValueType(type) ? jsValueUnboxTarget : jsifyRawTarget;
+
+  /// Return whether [type] erases to a `JSValue`.
+  bool isJSValueType(DartType type) =>
+      _extensionIndex.isStaticInteropType(type) ||
+      _extensionIndex.isExternalDartReferenceType(type);
 
   void annotateProcedure(
       Procedure procedure, String pragmaOptionString, AnnotationType type) {
@@ -101,7 +104,7 @@ class CoreTypesUtil {
       return invokeOneArg(dartifyRawTarget, invocation);
     } else {
       Expression expression;
-      if (_extensionIndex.isStaticInteropType(returnType)) {
+      if (isJSValueType(returnType)) {
         // TODO(joshualitt): Expose boxed `JSNull` and `JSUndefined` to Dart
         // code after migrating existing users of js interop on Dart2Wasm.
         // expression = _createJSValue(invocation);

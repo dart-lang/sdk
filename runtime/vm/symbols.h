@@ -468,6 +468,7 @@ class ObjectPointerVisitor;
   V(_objectHashCode, "_objectHashCode")                                        \
   V(_objectNoSuchMethod, "_objectNoSuchMethod")                                \
   V(_objectToString, "_objectToString")                                        \
+  V(_offsetInBytes, "_offsetInBytes")                                          \
   V(_onData, "_onData")                                                        \
   V(_onDone, "_onDone")                                                        \
   V(_onError, "_onError")                                                      \

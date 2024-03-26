@@ -136,6 +136,21 @@ extension ObjectToJSBoxedDartObject on Object {
   }
 }
 
+/// [ExternalDartReference] <-> [Object]
+@patch
+extension ExternalDartReferenceToObject on ExternalDartReference {
+  @patch
+  Object get toDartObject =>
+      jsObjectToDartObject((this as JSValue).toExternRef);
+}
+
+@patch
+extension ObjectToExternalDartReference on Object {
+  @patch
+  ExternalDartReference get toExternalReference =>
+      _boxNonNullable<ExternalDartReference>(jsObjectFromDartObject(this));
+}
+
 /// [JSPromise] -> [Future].
 @patch
 extension JSPromiseToFuture<T extends JSAny?> on JSPromise<T> {

@@ -12,18 +12,18 @@ final class Struct1ByteInt extends ffi::Struct {
   synthetic constructor •() → self::Struct1ByteInt
     : super ffi::Struct::•()
     ;
-  constructor #fromTypedDataBase(synthesized core::Object #typedDataBase) → self::Struct1ByteInt
-    : super ffi::Struct::_fromTypedDataBase(#typedDataBase)
+  constructor #fromTypedDataBase(synthesized core::Object #typedDataBase, synthesized core::int #offsetInBytes) → self::Struct1ByteInt
+    : super ffi::Struct::_fromTypedDataBase(#typedDataBase, #offsetInBytes)
     ;
   constructor #fromTypedData(synthesized typ::TypedData #typedData, synthesized core::int #offset, synthesized core::int #sizeInBytes) → self::Struct1ByteInt
     : super ffi::Struct::_fromTypedData(#typedData, #offset, #sizeInBytes)
     ;
   @#C7
   get a0() → core::int
-    return ffi::_loadInt8(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::Struct1ByteInt::a0#offsetOf);
+    return ffi::_loadInt8(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::Struct1ByteInt::a0#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num});
   @#C7
   set a0(synthesized core::int #externalFieldValue) → void
-    return ffi::_storeInt8(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::Struct1ByteInt::a0#offsetOf, #externalFieldValue);
+    return ffi::_storeInt8(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::Struct1ByteInt::a0#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #externalFieldValue);
   method toString() → core::String
     return "(${this.{self::Struct1ByteInt::a0}{core::int}})";
   @#C9
@@ -42,7 +42,7 @@ static method main() → void {
 @#C9
 static method returnStruct1ByteIntNative(core::int a0) → self::Struct1ByteInt
   return block {
-    _in::_nativeEffect(new self::Struct1ByteInt::#fromTypedDataBase(typ::Uint8List::•(#C12)));
+    _in::_nativeEffect(new self::Struct1ByteInt::#fromTypedDataBase(typ::Uint8List::•(#C12), #C10));
   } =>self::_returnStruct1ByteIntNative$Method$FfiNative(a0);
 @#C21
 external static method _returnStruct1ByteIntNative$Method$FfiNative(core::int #t0) → self::Struct1ByteInt;

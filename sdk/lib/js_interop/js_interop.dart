@@ -26,6 +26,9 @@
 /// > The runtime types differ based on the backend, so it is important to rely
 /// > on static functionality like the conversion functions, for example `toJS`
 /// > and not runtime mechanisms like type checks (`is`) and casts (`as`).
+/// > Similarly, `identical` may return different results for the same JS value
+/// > depending on the compiler. Use `==` to check for equality of two JS types
+/// > instead.
 ///
 /// {@category Web}
 library;
@@ -173,6 +176,10 @@ extension type JSPromise<T extends JSAny?>._(JSPromiseRepType _jsPromise)
 /// A Dart object that is wrapped with a JavaScript object so that it can be
 /// passed to JavaScript safely.
 ///
+/// Unlike [ExternalDartReference], this can be used as a JS type and is a
+/// subtype of [JSAny]. Users can also declare interop types using this as the
+/// representation type or declare interop members on this type.
+///
 /// Use this interface when you want to pass Dart objects within the same
 /// runtime through JavaScript. There are no usable members in the resulting
 /// [JSBoxedDartObject].
@@ -259,6 +266,33 @@ extension type JSSymbol._(JSSymbolRepType _jsSymbol) implements JSAny {}
 
 /// A JavaScript `BigInt`.
 extension type JSBigInt._(JSBigIntRepType _jsBigInt) implements JSAny {}
+
+/// An opaque reference to a Dart object that can be passed to JavaScript.
+///
+/// The reference representation depends on the underlying platform. When
+/// compiling to JavaScript, a Dart object is a JavaScript object, and can be
+/// used directly without any conversions. When compiling to Wasm, an internal
+/// Wasm function is used to convert the Dart object to an opaque JavaScript
+/// value, which can later be converted back using another internal function.
+///
+/// This interface is a faster alternative to [JSBoxedDartObject] by not
+/// wrapping the Dart object with a JavaScript object. However, unlike
+/// [JSBoxedDartObject], this value belongs to the Dart runtime, and therefore
+/// can not be used as a JS type. This means users cannot declare interop types
+/// using this as the representation type or declare interop members on this
+/// type. This type is also not a subtype of [JSAny]. This type can only be used
+/// as parameter and return types of external JavaScript interop members or
+/// callbacks. Use [JSBoxedDartObject] to avoid those limitations.
+///
+/// Besides these differences, [ExternalDartReference] operates functionally the
+/// same as [JSBoxedDartObject]. Use it to pass Dart objects within the same
+/// runtime through JavaScript. There are no usable members in the resulting
+/// [ExternalDartReference].
+///
+/// See [ObjectToExternalDartReference.toExternalReference] to allow an
+/// arbitrary [Object] to be passed to JavaScript.
+extension type ExternalDartReference._(
+    ExternalDartReferenceRepType _externalDartReference) implements Object {}
 
 /// JS type equivalent for `undefined` for interop member return types.
 ///
@@ -459,7 +493,7 @@ extension FunctionToJSExportedDartFunction on Function {
 
 /// Conversions from [JSBoxedDartObject] to [Object].
 extension JSBoxedDartObjectToObject on JSBoxedDartObject {
-  /// The Dart [Object] that this [JSBoxedDartObjectToObject] wrapped.
+  /// The Dart [Object] that this [JSBoxedDartObject] wrapped.
   ///
   /// Throws an [Exception] if the Dart runtime was not the same as the one in
   /// which the [Object] was wrapped or if this was not a wrapped Dart [Object].
@@ -473,7 +507,46 @@ extension ObjectToJSBoxedDartObject on Object {
   /// There are no usable members in the resulting [JSBoxedDartObject] and you
   /// may get a new [JSBoxedDartObject] when calling [toJSBox] on the same Dart
   /// [Object].
+  ///
+  /// Throws an [Exception] if this [Object] is a JavaScript value.
+  ///
+  /// Unlike [ObjectToExternalDartReference.toExternalReference], this returns a
+  /// JavaScript value. Therefore, the representation is guaranteed to be
+  /// consistent across all platforms and interop members can be declared on
+  /// [JSBoxedDartObject]s.
   external JSBoxedDartObject get toJSBox;
+}
+
+/// Conversions from [ExternalDartReference] to [Object].
+extension ExternalDartReferenceToObject on ExternalDartReference {
+  /// The Dart [Object] that this [ExternalDartReference] refers to.
+  ///
+  /// When compiling to JavaScript, a Dart object is a JavaScript object, and
+  /// therefore this directly returns the Dart object. When compiling to Wasm,
+  /// an internal Wasm function is used to convert the opaque JavaScript value
+  /// to the original Dart object.
+  external Object get toDartObject;
+}
+
+/// Conversions from [Object] to [ExternalDartReference].
+extension ObjectToExternalDartReference on Object {
+  /// An opaque reference to this [Object] which can be passed to JavaScript.
+  ///
+  /// When compiling to JavaScript, a Dart object is a JavaScript object, and
+  /// therefore this directly returns the Dart object. When compiling to Wasm,
+  /// an internal Wasm function is used to convert the Dart object to an opaque
+  /// JavaScript value.
+  ///
+  /// A value of type [ExternalDartReference] should be treated as completely
+  /// opaque. It can only be passed around as-is or converted back using
+  /// [ExternalDartReferenceToObject.toDartObject].
+  ///
+  /// When this getter is called multiple times on the same Dart object, the
+  /// underlying references in the resulting [ExternalDartReference]s are
+  /// guaranteed to be equal. Therefore, `==` will always return true between
+  /// such [ExternalDartReference]s. However, like JS types, `identical` between
+  /// such values may return different results depending on the compiler.
+  external ExternalDartReference get toExternalReference;
 }
 
 /// Conversions from [JSPromise] to [Future].

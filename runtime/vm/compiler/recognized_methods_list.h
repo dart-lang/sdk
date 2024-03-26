@@ -281,7 +281,7 @@ namespace dart {
     FfiNativeIsolateLocalCallbackFunction, 0x03e1a51f)                         \
   V(::, _nativeEffect, NativeEffect, 0x536f42b1)                               \
   V(::, _loadAbiSpecificInt, FfiLoadAbiSpecificInt, 0x77f96053)                \
-  V(::, _loadAbiSpecificIntAtIndex, FfiLoadAbiSpecificIntAtIndex, 0x6a964295)  \
+  V(::, _loadAbiSpecificIntAtIndex, FfiLoadAbiSpecificIntAtIndex, 0xaab9c762)  \
   V(::, _loadInt8, FfiLoadInt8, 0x0ef657b7)                                    \
   V(::, _loadInt16, FfiLoadInt16, 0xec35a90e)                                  \
   V(::, _loadInt32, FfiLoadInt32, 0xee13b7a4)                                  \
@@ -296,7 +296,7 @@ namespace dart {
   V(::, _loadDoubleUnaligned, FfiLoadDoubleUnaligned, 0xc9903159)              \
   V(::, _loadPointer, FfiLoadPointer, 0x99f984e4)                              \
   V(::, _storeAbiSpecificInt, FfiStoreAbiSpecificInt, 0xc6facca1)              \
-  V(::, _storeAbiSpecificIntAtIndex, FfiStoreAbiSpecificIntAtIndex, 0xc640762c)\
+  V(::, _storeAbiSpecificIntAtIndex, FfiStoreAbiSpecificIntAtIndex, 0x5b85a53f)\
   V(::, _storeInt8, FfiStoreInt8, 0xdf4226ed)                                  \
   V(::, _storeInt16, FfiStoreInt16, 0xd83f6b13)                                \
   V(::, _storeInt32, FfiStoreInt32, 0xfbd7a43e)                                \
