@@ -422,7 +422,7 @@ struct InstrAttrs {
   M(TailCall, kNoGC)                                                           \
   M(ParallelMove, kNoGC)                                                       \
   M(MoveArgument, kNoGC)                                                       \
-  M(Return, kNoGC)                                                             \
+  M(DartReturn, kNoGC)                                                         \
   M(NativeReturn, kNoGC)                                                       \
   M(Throw, kNoGC)                                                              \
   M(ReThrow, kNoGC)                                                            \
@@ -560,6 +560,7 @@ struct InstrAttrs {
   M(CheckBoundBase, _)                                                         \
   M(Comparison, _)                                                             \
   M(InstanceCallBase, _)                                                       \
+  M(ReturnBase, _)                                                             \
   M(ShiftIntegerOp, _)                                                         \
   M(UnaryIntegerOp, _)                                                         \
   M(UnboxInteger, _)
@@ -1079,7 +1080,7 @@ class Instruction : public ZoneAllocated {
   Instruction* next() const { return next_; }
   void set_next(Instruction* instr) {
     ASSERT(!IsGraphEntry());
-    ASSERT(!IsReturn());
+    ASSERT(!IsReturnBase());
     ASSERT(!IsBranch() || (instr == nullptr));
     ASSERT(!IsPhi());
     ASSERT(instr == nullptr || !instr->IsBlockEntry());
@@ -2221,8 +2222,7 @@ class NativeEntryInstr : public FunctionEntryInstr {
 
   PRINT_TO_SUPPORT
 
-#define FIELD_LIST(F)                                                          \
-  F(const compiler::ffi::CallbackMarshaller&, marshaller_)
+#define FIELD_LIST(F) F(const compiler::ffi::CallbackMarshaller&, marshaller_)
 
   DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(NativeEntryInstr,
                                           FunctionEntryInstr,
@@ -3410,19 +3410,45 @@ inline Definition* Instruction::ArgumentAt(intptr_t index) const {
   return ArgumentValueAt(index)->definition();
 }
 
-class ReturnInstr : public TemplateInstruction<1, NoThrow> {
+class ReturnBaseInstr : public Instruction {
  public:
-  ReturnInstr(const InstructionSource& source,
-              Value* value,
-              intptr_t deopt_id,
-              Representation representation = kTagged)
-      : TemplateInstruction(source, deopt_id),
+  explicit ReturnBaseInstr(const InstructionSource& source,
+                           intptr_t deopt_id = DeoptId::kNone)
+      : Instruction(source, deopt_id) {}
+
+  ReturnBaseInstr() : Instruction(DeoptId::kNone) {}
+
+  virtual bool ComputeCanDeoptimize() const { return false; }
+
+  virtual bool HasUnknownSideEffects() const { return false; }
+
+  virtual bool MayThrow() const { return false; }
+
+  virtual SpeculativeMode SpeculativeModeOfInput(intptr_t index) const {
+    return kNotSpeculative;
+  }
+
+  DECLARE_ABSTRACT_INSTRUCTION(ReturnBase)
+
+  DECLARE_EMPTY_SERIALIZATION(ReturnBaseInstr, Instruction)
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(ReturnBaseInstr);
+};
+
+class DartReturnInstr : public ReturnBaseInstr {
+ public:
+  DartReturnInstr(const InstructionSource& source,
+                  Value* value,
+                  intptr_t deopt_id,
+                  Representation representation = kTagged)
+      : ReturnBaseInstr(source, deopt_id),
         token_pos_(source.token_pos),
         representation_(representation) {
     SetInputAt(0, value);
   }
 
-  DECLARE_INSTRUCTION(Return)
+  DECLARE_INSTRUCTION(DartReturn)
 
   virtual TokenPosition token_pos() const { return token_pos_; }
   Value* value() const { return inputs_[0]; }
@@ -3433,18 +3459,9 @@ class ReturnInstr : public TemplateInstruction<1, NoThrow> {
     return true;
   }
 
-  virtual bool ComputeCanDeoptimize() const { return false; }
-
-  virtual bool HasUnknownSideEffects() const { return false; }
-
   virtual bool AttributesEqual(const Instruction& other) const {
-    auto const other_return = other.AsReturn();
+    auto const other_return = other.AsDartReturn();
     return token_pos() == other_return->token_pos();
-  }
-
-  virtual SpeculativeMode SpeculativeModeOfInput(intptr_t index) const {
-    ASSERT(index == 0);
-    return kNotSpeculative;
   }
 
   virtual intptr_t DeoptimizationTarget() const { return DeoptId::kNone; }
@@ -3456,29 +3473,38 @@ class ReturnInstr : public TemplateInstruction<1, NoThrow> {
     return representation_;
   }
 
+  virtual intptr_t InputCount() const { return 1; }
+
+  virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
+
 #define FIELD_LIST(F)                                                          \
   F(const TokenPosition, token_pos_)                                           \
   F(const Representation, representation_)
 
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(ReturnInstr,
-                                          TemplateInstruction,
+  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(DartReturnInstr,
+                                          ReturnBaseInstr,
                                           FIELD_LIST)
 #undef FIELD_LIST
+
+ protected:
+  EmbeddedArray<Value*, 1> inputs_;
 
  private:
   const Code& GetReturnStub(FlowGraphCompiler* compiler) const;
 
-  DISALLOW_COPY_AND_ASSIGN(ReturnInstr);
+  virtual void RawSetInputAt(intptr_t i, Value* value) { inputs_[i] = value; }
+
+  DISALLOW_COPY_AND_ASSIGN(DartReturnInstr);
 };
 
 // Represents a return from a Dart function into native code.
-class NativeReturnInstr : public ReturnInstr {
+class NativeReturnInstr : public ReturnBaseInstr {
  public:
-  NativeReturnInstr(const InstructionSource& source,
-                    Value* value,
-                    const compiler::ffi::CallbackMarshaller& marshaller,
-                    intptr_t deopt_id)
-      : ReturnInstr(source, value, deopt_id), marshaller_(marshaller) {}
+  NativeReturnInstr(Value* value,
+                    const compiler::ffi::CallbackMarshaller& marshaller)
+      : ReturnBaseInstr(), marshaller_(marshaller) {
+    SetInputAt(0, value);
+  }
 
   DECLARE_INSTRUCTION(NativeReturn)
 
@@ -3490,20 +3516,36 @@ class NativeReturnInstr : public ReturnInstr {
   }
 
   virtual bool CanBecomeDeoptimizationTarget() const {
-    // Unlike ReturnInstr, NativeReturnInstr cannot be inlined (because it's
+    // Unlike DartReturnInstr, NativeReturnInstr cannot be inlined (because it's
     // returning into native code).
     return false;
   }
 
+  virtual intptr_t InputCount() const {
+    return marshaller_.NumReturnDefinitions();
+  }
+
+  virtual bool AttributesEqual(const Instruction& other) const {
+    auto const other_return = other.AsNativeReturn();
+    return token_pos() == other_return->token_pos();
+  }
+
+  virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
+
 #define FIELD_LIST(F) F(const compiler::ffi::CallbackMarshaller&, marshaller_)
 
   DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(NativeReturnInstr,
-                                          ReturnInstr,
+                                          ReturnBaseInstr,
                                           FIELD_LIST)
 #undef FIELD_LIST
 
+ protected:
+  EmbeddedArray<Value*, 1> inputs_;
+
  private:
   void EmitReturnMoves(FlowGraphCompiler* compiler);
+
+  virtual void RawSetInputAt(intptr_t i, Value* value) { inputs_[i] = value; }
 
   DISALLOW_COPY_AND_ASSIGN(NativeReturnInstr);
 };

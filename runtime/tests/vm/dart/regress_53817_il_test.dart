@@ -46,7 +46,7 @@ void matchIL$createAndIterate(FlowGraph graph) {
             ].withoutWildcards),
     'loop_exit' <<
         match.block('Target', [
-          match.Return(match.any),
+          match.DartReturn(match.any),
         ]),
     'loop_body' <<
         match.block(

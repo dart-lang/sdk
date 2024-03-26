@@ -43,7 +43,7 @@ void matchIL$copyPointerContents(FlowGraph graph) {
     ]),
     'B4' <<
         match.block('Target', [
-          match.Return('cnull'),
+          match.DartReturn('cnull'),
         ]),
     'B96' <<
         match.block('Target', [
@@ -51,7 +51,7 @@ void matchIL$copyPointerContents(FlowGraph graph) {
           'src.data' << match.LoadField('src', slot: 'PointerBase.data'),
           match.MemoryCopy('src.data', 'dest.data', 'c0', 'c0', 'c25',
               element_size: 4),
-          match.Return('cnull'),
+          match.DartReturn('cnull'),
         ]),
   ]);
 }

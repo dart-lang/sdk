@@ -191,7 +191,7 @@ void ConstantPropagator::VisitParallelMove(ParallelMoveInstr* instr) {
 // Analysis of control instructions.  Unconditional successors are
 // reachable.  Conditional successors are reachable depending on the
 // constant value of the condition.
-void ConstantPropagator::VisitReturn(ReturnInstr* instr) {
+void ConstantPropagator::VisitDartReturn(DartReturnInstr* instr) {
   // Nothing to do.
 }
 

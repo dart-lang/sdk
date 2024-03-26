@@ -106,7 +106,7 @@ void matchIL$testCSE1(FlowGraph graph) {
         ]),
     'B5' <<
         match.block('Join', [
-          match.Return(match.any),
+          match.DartReturn(match.any),
         ]),
   ]);
 }
@@ -138,7 +138,7 @@ void matchIL$testCSE2(FlowGraph graph) {
         ]),
     'B5' <<
         match.block('Join', [
-          match.Return(match.any),
+          match.DartReturn(match.any),
         ]),
   ]);
 }
@@ -180,7 +180,7 @@ void matchIL$testCSE3(FlowGraph graph) {
         ]),
     'B5' <<
         match.block('Join', [
-          match.Return(match.any),
+          match.DartReturn(match.any),
         ]),
   ]);
 }
@@ -212,7 +212,7 @@ void matchIL$testLICM1(FlowGraph graph) {
         ]),
     'B4' <<
         match.block('Target', [
-          match.Return(match.any),
+          match.DartReturn(match.any),
         ]),
   ]);
 }
@@ -245,7 +245,7 @@ void matchIL$testLICM2(FlowGraph graph) {
         ]),
     'B4' <<
         match.block('Target', [
-          match.Return(match.any),
+          match.DartReturn(match.any),
         ]),
   ]);
 }

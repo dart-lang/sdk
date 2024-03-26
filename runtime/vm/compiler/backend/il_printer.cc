@@ -1423,7 +1423,7 @@ void CCallInstr::PrintOperandsTo(BaseTextBuffer* f) const {
 }
 
 void NativeReturnInstr::PrintOperandsTo(BaseTextBuffer* f) const {
-  value()->PrintTo(f);
+  InputAt(0)->PrintTo(f);
   f->AddString(" (@");
   marshaller_.Location(compiler::ffi::kResultIndex).PrintTo(f);
   f->AddString(")");

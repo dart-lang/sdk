@@ -170,11 +170,11 @@ void matchIL$throwInALoop(FlowGraph graph) {
         ]),
     'return_found' <<
         match.block('Target', [
-          match.Return('i'),
+          match.DartReturn('i'),
         ]),
     'return_fail' <<
         match.block('Target', [
-          match.Return(match.any),
+          match.DartReturn(match.any),
         ]),
     'throw' <<
         match.block('Target', [

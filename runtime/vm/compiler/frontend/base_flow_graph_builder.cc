@@ -214,7 +214,7 @@ Fragment BaseFlowGraphBuilder::Return(TokenPosition position) {
   const Function& function = parsed_function_->function();
   const Representation representation =
       FlowGraph::ReturnRepresentationOf(function);
-  ReturnInstr* return_instr = new (Z) ReturnInstr(
+  DartReturnInstr* return_instr = new (Z) DartReturnInstr(
       InstructionSource(position), value, GetNextDeoptId(), representation);
   if (exit_collector_ != nullptr) exit_collector_->AddExit(return_instr);
 

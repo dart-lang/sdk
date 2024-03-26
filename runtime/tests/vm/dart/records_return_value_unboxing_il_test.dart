@@ -62,7 +62,7 @@ void matchIL$getRecord1(FlowGraph graph) {
       'y' << match.Parameter(index: 1),
       'x_boxed' << match.BoxInt64('x'),
       'pair' << match.MakePair('x_boxed', 'y'),
-      match.Return('pair'),
+      match.DartReturn('pair'),
     ]),
   ]);
 }
@@ -75,7 +75,7 @@ void matchIL$getRecord2(FlowGraph graph) {
       'bar' << match.Parameter(index: 1),
       'bar_boxed' << match.BoxInt64('bar'),
       'pair' << match.MakePair('bar_boxed', 'foo'),
-      match.Return('pair'),
+      match.DartReturn('pair'),
     ]),
   ]);
 }
@@ -90,7 +90,7 @@ void matchIL$B$get$record3(FlowGraph graph) {
       'x_boxed' << match.BoxInt64('x'),
       'y_boxed' << match.Box('y'),
       'pair' << match.MakePair('x_boxed', 'y_boxed'),
-      match.Return('pair'),
+      match.DartReturn('pair'),
     ]),
   ]);
 }
@@ -105,7 +105,7 @@ void matchIL$B$record4(FlowGraph graph) {
       'x_boxed' << match.BoxInt64('x'),
       'y_boxed' << match.Box('y'),
       'pair' << match.MakePair('x_boxed', 'y_boxed'),
-      match.Return('pair'),
+      match.DartReturn('pair'),
     ]),
   ]);
 }
@@ -155,7 +155,7 @@ void matchIL$testSimple(FlowGraph graph) {
       'r4_boxed' << match.AllocateSmallRecord('r4_0', 'r4_y'),
       match.MoveArgument('r4_boxed'),
       match.StaticCall(),
-      match.Return(),
+      match.DartReturn(),
     ]),
   ]);
 }
@@ -199,7 +199,7 @@ void matchIL$testUnboxedRecordInTryCatch(FlowGraph graph) {
         ]),
     'B3' <<
         match.block('Join', [
-          match.Return(),
+          match.DartReturn(),
         ]),
   ]);
 }

@@ -89,8 +89,8 @@ ISOLATE_UNIT_TEST_CASE(ConstantPropagation_PhiUnwrappingAndConvergence) {
   EXPECT_EQ(2, blocks.length());
   EXPECT_PROPERTY(blocks[0], it.IsGraphEntry());
   EXPECT_PROPERTY(blocks[1], it.IsFunctionEntry());
-  EXPECT_PROPERTY(blocks[1]->next(), it.IsReturn());
-  EXPECT_PROPERTY(blocks[1]->next()->AsReturn(),
+  EXPECT_PROPERTY(blocks[1]->next(), it.IsDartReturn());
+  EXPECT_PROPERTY(blocks[1]->next()->AsDartReturn(),
                   it.value()->definition() == v0);
 }
 
@@ -146,7 +146,7 @@ static void ConstantPropagatorUnboxedOpTest(
   auto b2 = H.TargetEntry();
   auto b3 = H.TargetEntry();
   auto b4 = H.JoinEntry();
-  ReturnInstr* ret;
+  DartReturnInstr* ret;
 
   {
     BlockBuilder builder(H.flow_graph(), b1);
@@ -330,7 +330,7 @@ void StrictCompareSentinel(Thread* thread,
   ConstantPropagator::Optimize(H.flow_graph());
   FlowGraphPrinter::PrintGraph("After ConstantPropagator", H.flow_graph());
 
-  ReturnInstr* ret = nullptr;
+  DartReturnInstr* ret = nullptr;
 
   ILMatcher cursor(H.flow_graph(),
                    H.flow_graph()->graph_entry()->normal_entry(), true);
@@ -338,7 +338,7 @@ void StrictCompareSentinel(Thread* thread,
       kMatchAndMoveFunctionEntry,
       kMatchAndMoveLoadStaticField,
       // The StrictCompare instruction should be removed.
-      {kMatchReturn, &ret},
+      {kMatchDartReturn, &ret},
   }));
 
   EXPECT_PROPERTY(ret, it.value()->BindsToConstant());

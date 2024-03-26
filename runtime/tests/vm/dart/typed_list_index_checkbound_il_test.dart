@@ -52,7 +52,7 @@ void matchIL$retrieveFromView(FlowGraph graph) {
       ] else ...[
         'retval' << match.LoadIndexed('data', 'index'),
       ],
-      match.Return('retval'),
+      match.DartReturn('retval'),
     ]),
   ]);
 }
@@ -74,7 +74,7 @@ void matchIL$retrieveFromBase(FlowGraph graph) {
         match.GenericCheckBound('unboxed_len', 'n'),
         'retval' << match.LoadIndexed('src', 'n'),
       ],
-      match.Return('retval'),
+      match.DartReturn('retval'),
     ]),
   ]);
 }
@@ -100,7 +100,7 @@ void matchIL$retrieveFromExternal(FlowGraph graph) {
       ] else ...[
         'retval' << match.LoadIndexed('data', 'n'),
       ],
-      match.Return('retval'),
+      match.DartReturn('retval'),
     ]),
   ]);
 }

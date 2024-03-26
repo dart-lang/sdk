@@ -61,10 +61,10 @@ class BlockBuilder : public ValueObject {
 
   const Function& function() const { return flow_graph_->function(); }
 
-  ReturnInstr* AddReturn(Value* value) {
+  DartReturnInstr* AddReturn(Value* value) {
     const auto& function = flow_graph_->function();
     const auto representation = FlowGraph::ReturnRepresentationOf(function);
-    ReturnInstr* instr = new ReturnInstr(
+    DartReturnInstr* instr = new DartReturnInstr(
         Source(), value, CompilerState::Current().GetNextDeoptId(),
         representation);
     AddInstruction(instr);

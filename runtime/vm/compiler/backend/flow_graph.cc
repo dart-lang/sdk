@@ -1980,7 +1980,7 @@ void FlowGraph::InsertConversion(Representation from,
   } else if ((to == kPairOfTagged) && (from == kTagged)) {
     // Insert conversion to an unboxed record, which can be only used
     // in Return instruction.
-    ASSERT(use->instruction()->IsReturn());
+    ASSERT(use->instruction()->IsDartReturn());
     Definition* x = new (Z)
         LoadFieldInstr(use->CopyWithType(),
                        Slot::GetRecordFieldSlot(
@@ -2491,7 +2491,7 @@ void FlowGraph::WidenSmiToInt32() {
           // We assume that tagging before returning or pushing argument costs
           // very little compared to the cost of the return/call itself.
           ASSERT(!instr->IsMoveArgument());
-          if (!instr->IsReturn() &&
+          if (!instr->IsReturnBase() &&
               (use->use_index() >= instr->ArgumentCount())) {
             gain--;
             if (FLAG_support_il_printer && FLAG_trace_smi_widening) {

@@ -307,13 +307,13 @@ static void RunMemoryCopyInstrTest(intptr_t src_start,
     auto* const param_length = initial_defs->At(4)->AsParameter();
     EXPECT(param_length != nullptr);
 
-    ReturnInstr* return_instr;
+    DartReturnInstr* return_instr;
     {
       ILMatcher cursor(flow_graph, entry_instr);
 
       EXPECT(cursor.TryMatch({
           kMoveGlob,
-          {kMatchReturn, &return_instr},
+          {kMatchDartReturn, &return_instr},
       }));
     }
 
@@ -362,13 +362,13 @@ static void RunMemoryCopyInstrTest(intptr_t src_start,
             kMatchAndMoveUnbox,
             kMatchAndMoveUnbox,
             kMatchAndMoveMemoryCopy,
-            kMatchReturn,
+            kMatchDartReturn,
         }));
       } else {
         EXPECT(cursor.TryMatch({
             kMoveGlob,
             kMatchAndMoveMemoryCopy,
-            kMatchReturn,
+            kMatchDartReturn,
         }));
       }
     }

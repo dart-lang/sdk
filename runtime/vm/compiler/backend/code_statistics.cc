@@ -184,7 +184,7 @@ void CodeStatistics::AppendTo(CombinedCodeStatistics* stat) {
     if (bytes > 0) {
       stat->entries_[i].bytes += bytes;
       if (i != CombinedCodeStatistics::kTagParallelMove &&
-          i != CombinedCodeStatistics::kTagReturn &&
+          i != CombinedCodeStatistics::kTagDartReturn &&
           i != CombinedCodeStatistics::kTagCheckStackOverflow &&
           i != CombinedCodeStatistics::kTagCheckStackOverflowSlowPath) {
         returns_constant = false;

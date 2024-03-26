@@ -91,7 +91,7 @@ void InlineExitCollector::PrepareGraphs(FlowGraph* callee_graph) {
   RemoveUnreachableExits(callee_graph);
 }
 
-void InlineExitCollector::AddExit(ReturnInstr* exit) {
+void InlineExitCollector::AddExit(DartReturnInstr* exit) {
   Data data = {nullptr, exit};
   exits_.Add(data);
 }

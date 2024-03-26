@@ -673,7 +673,8 @@ static bool IsSmallLeafOrReduction(int inlining_depth,
     BlockEntryInstr* entry = block_it.Current();
     for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
       Instruction* current = it.Current();
-      if (current->IsReturn()) continue;
+      if (current->IsDartReturn()) continue;
+      ASSERT(!current->IsNativeReturn());
       ++instruction_count;
       if (current->IsInstanceCall() || current->IsPolymorphicInstanceCall() ||
           current->IsClosureCall()) {
@@ -1985,9 +1986,9 @@ PolymorphicInliner::PolymorphicInliner(CallSiteInliner* owner,
       num_variants_(call->NumberOfChecks()),
       variants_(call->targets_),
       inlined_variants_(zone()),
-      non_inlined_variants_(new (zone()) CallTargets(zone())),
+      non_inlined_variants_(new(zone()) CallTargets(zone())),
       inlined_entries_(num_variants_),
-      exit_collector_(new (Z) InlineExitCollector(owner->caller_graph(), call)),
+      exit_collector_(new(Z) InlineExitCollector(owner->caller_graph(), call)),
       caller_function_(caller_function) {}
 
 IsolateGroup* PolymorphicInliner::isolate_group() const {
@@ -2294,7 +2295,7 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
     owner_->caller_graph()->AllocateSSAIndex(fallback_call);
     fallback_call->InheritDeoptTarget(zone(), call_);
     fallback_call->set_total_call_count(call_->CallCount());
-    ReturnInstr* fallback_return = new ReturnInstr(
+    DartReturnInstr* fallback_return = new DartReturnInstr(
         call_->source(), new Value(fallback_call), DeoptId::kNone);
     fallback_return->InheritDeoptTargetAfter(owner_->caller_graph(), call_,
                                              fallback_call);
