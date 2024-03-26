@@ -169,8 +169,7 @@ def StartRBE(out_dir, use_goma, env):
     process = subprocess.Popen(bootstrap_command, env=env)
     process.wait()
     if process.returncode != 0:
-        print(f"Starting {rbe} failed. Try running it manually: " + "\n\t" +
-              ' '.join(bootstrap_command))
+        print(f"Failed to start {rbe}")
         return False
     rbe_started = rbe
     return True
@@ -201,9 +200,7 @@ def BuildOneConfig(options, targets, target_os, mode, arch, sanitizer, env):
             command += [('-j%s' % str(options.j))]
             command += [('-l%s' % str(options.l))]
         else:
-            # If we couldn't ensure that RBE is started, let the build start,
-            # but slowly so we can see any helpful error messages that pop out.
-            command += ['-j1']
+            exit(1)
     command += targets
     return (build_config, command, using_rbe)
 
