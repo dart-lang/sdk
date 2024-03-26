@@ -4528,7 +4528,6 @@ Fragment FlowGraphBuilder::LoadIndexedTypedDataUnboxed(
   return fragment;
 }
 
-
 Fragment FlowGraphBuilder::RawLoadField(int32_t offset) {
   Fragment code;
   code += UnboxedIntConstant(offset, kUnboxedIntPtr);
@@ -4696,8 +4695,14 @@ Fragment FlowGraphBuilder::IntRelationalOp(TokenPosition position,
 Fragment FlowGraphBuilder::NativeReturn(
     const compiler::ffi::CallbackMarshaller& marshaller) {
   const intptr_t num_return_defs = marshaller.NumReturnDefinitions();
-  ASSERT_EQUAL(num_return_defs, 1);
-  auto* instr = new (Z) NativeReturnInstr(Pop(), marshaller);
+  if (num_return_defs == 1) {
+    auto* instr = new (Z) NativeReturnInstr(Pop(), marshaller);
+    return Fragment(instr).closed();
+  }
+  ASSERT_EQUAL(num_return_defs, 2);
+  auto* offset = Pop();
+  auto* typed_data_base = Pop();
+  auto* instr = new (Z) NativeReturnInstr(typed_data_base, offset, marshaller);
   return Fragment(instr).closed();
 }
 
@@ -4732,36 +4737,38 @@ Fragment FlowGraphBuilder::WrapTypedDataBaseInCompound(
   const auto& compound_sub_class =
       Class::ZoneHandle(Z, compound_type.type_class());
   compound_sub_class.EnsureIsFinalized(thread_);
-  const auto& lib_ffi = Library::Handle(Z, Library::FfiLibrary());
-  const auto& compound_class =
-      Class::Handle(Z, lib_ffi.LookupClassAllowPrivate(Symbols::Compound()));
-  const auto& compound_typed_data_base =
-      Field::ZoneHandle(Z, compound_class.LookupInstanceFieldAllowPrivate(
-                               Symbols::_typedDataBase()));
-  ASSERT(!compound_typed_data_base.IsNull());
+
+  auto& state = thread_->compiler_state();
 
   Fragment body;
   LocalVariable* typed_data = MakeTemporary("typed_data_base");
   body += AllocateObject(TokenPosition::kNoSource, compound_sub_class, 0);
-  body += LoadLocal(MakeTemporary("compound"));  // Duplicate Struct or Union.
+  LocalVariable* compound = MakeTemporary("compound");
+  body += LoadLocal(compound);
   body += LoadLocal(typed_data);
-  body += StoreField(compound_typed_data_base,
+  body += StoreField(state.CompoundTypedDataBaseField(),
+                     StoreFieldInstr::Kind::kInitializing);
+  body += LoadLocal(compound);
+  body += IntConstant(0);
+  body += StoreField(state.CompoundOffsetInBytesField(),
                      StoreFieldInstr::Kind::kInitializing);
   body += DropTempsPreserveTop(1);  // Drop TypedData.
   return body;
 }
 
 Fragment FlowGraphBuilder::LoadTypedDataBaseFromCompound() {
-  const auto& lib_ffi = Library::Handle(Z, Library::FfiLibrary());
-  const auto& compound_class =
-      Class::Handle(Z, lib_ffi.LookupClassAllowPrivate(Symbols::Compound()));
-  const auto& compound_typed_data_base =
-      Field::ZoneHandle(Z, compound_class.LookupInstanceFieldAllowPrivate(
-                               Symbols::_typedDataBase()));
-  ASSERT(!compound_typed_data_base.IsNull());
-
   Fragment body;
-  body += LoadField(compound_typed_data_base, /*calls_initializer=*/false);
+  auto& state = thread_->compiler_state();
+  body += LoadField(state.CompoundTypedDataBaseField(),
+                    /*calls_initializer=*/false);
+  return body;
+}
+
+Fragment FlowGraphBuilder::LoadOffsetInBytesFromCompound() {
+  Fragment body;
+  auto& state = thread_->compiler_state();
+  body += LoadField(state.CompoundOffsetInBytesField(),
+                    /*calls_initializer=*/false);
   return body;
 }
 
@@ -4840,7 +4847,12 @@ Fragment FlowGraphBuilder::LoadTail(LocalVariable* variable,
   if (size == 8 || size == 4) {
     body += LoadLocal(variable);
     body += LoadTypedDataBaseFromCompound();
+    body += LoadNativeField(Slot::PointerBase_data(),
+                            InnerPointerAccess::kMayBeInnerPointer);
+    body += LoadLocal(variable);
+    body += LoadOffsetInBytesFromCompound();
     body += IntConstant(offset_in_bytes);
+    body += BinaryIntegerOp(Token::kADD, kTagged, /*is_truncating=*/true);
     body += LoadIndexedTypedDataUnboxed(representation, /*index_scale=*/1,
                                         /*index_unboxed=*/false);
     return body;
@@ -4853,7 +4865,12 @@ Fragment FlowGraphBuilder::LoadTail(LocalVariable* variable,
     while (remaining >= part_bytes) {
       body += LoadLocal(variable);
       body += LoadTypedDataBaseFromCompound();
+      body += LoadNativeField(Slot::PointerBase_data(),
+                              InnerPointerAccess::kMayBeInnerPointer);
+      body += LoadLocal(variable);
+      body += LoadOffsetInBytesFromCompound();
       body += IntConstant(offset_in_bytes);
+      body += BinaryIntegerOp(Token::kADD, kTagged, /*is_truncating=*/true);
       body += LoadIndexed(part_cid, /*index_scale*/ 1,
                           /*index_unboxed=*/false);
       if (shift != 0) {
@@ -4935,6 +4952,9 @@ Fragment FlowGraphBuilder::FfiCallConvertCompoundArgumentToNative(
     // Only load the typed data, do copying in the FFI call machine code.
     body += LoadLocal(variable);  // User-defined struct.
     body += LoadTypedDataBaseFromCompound();
+    body += LoadLocal(variable);  // User-defined struct.
+    body += LoadOffsetInBytesFromCompound();
+    body += UnboxTruncate(kUnboxedWord);
   }
   return body;
 }
@@ -5043,17 +5063,30 @@ Fragment FlowGraphBuilder::FfiCallbackConvertCompoundReturnToNative(
   Fragment body;
   const auto& native_loc = marshaller.Location(arg_index);
   if (native_loc.IsMultiple()) {
-    // We pass in typed data to native return instruction, and do the copying
-    // in machine code.
+    // Pass in typed data and offset to native return instruction, and do the
+    // copying in machine code.
+    LocalVariable* compound = MakeTemporary("compound");
+    body += LoadLocal(compound);
+    body += LoadOffsetInBytesFromCompound();
+    body += UnboxTruncate(kUnboxedWord);
+    body += StoreLocal(TokenPosition::kNoSource,
+                       parsed_function_->expression_temp_var());
+    body += Drop();
     body += LoadTypedDataBaseFromCompound();
+    body += LoadLocal(parsed_function_->expression_temp_var());
   } else {
     ASSERT(native_loc.IsPointerToMemory());
     // We copy the data into the right location in IL.
     const intptr_t length_in_bytes =
         marshaller.Location(arg_index).payload_type().SizeInBytes();
 
+    LocalVariable* compound = MakeTemporary("compound");
+    body += LoadLocal(compound);
     body += LoadTypedDataBaseFromCompound();
     LocalVariable* typed_data_base = MakeTemporary("typed_data_base");
+    body += LoadLocal(compound);
+    body += LoadOffsetInBytesFromCompound();
+    LocalVariable* offset = MakeTemporary("offset");
 
     auto* pointer_to_return =
         new (Z) NativeParameterInstr(marshaller, compiler::ffi::kResultIndex);
@@ -5067,7 +5100,9 @@ Fragment FlowGraphBuilder::FfiCallbackConvertCompoundReturnToNative(
       const intptr_t chunk_sizee = chunk_size(bytes_left);
 
       body += LoadLocal(typed_data_base);
+      body += LoadLocal(offset);
       body += IntConstant(offset_in_bytes);
+      body += BinaryIntegerOp(Token::kADD, kTagged, /*is_truncating=*/true);
       body += LoadIndexed(typed_data_cid(chunk_sizee), /*index_scale=*/1,
                           /*index_unboxed=*/false);
       LocalVariable* chunk_value = MakeTemporary("chunk_value");
@@ -5084,7 +5119,7 @@ Fragment FlowGraphBuilder::FfiCallbackConvertCompoundReturnToNative(
     }
 
     ASSERT(offset_in_bytes == length_in_bytes);
-    body += DropTempsPreserveTop(1);  // Keep address, drop typed_data_base.
+    body += DropTempsPreserveTop(3);
   }
   return body;
 }
@@ -5697,6 +5732,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfAsyncFfiCallback(
                        Call1ArgStubInstr::StubId::kFfiAsyncCallbackSend);
 
   body += FfiConvertPrimitiveToNative(marshaller, compiler::ffi::kResultIndex);
+  ASSERT_EQUAL(marshaller.NumReturnDefinitions(), 1);
   body += NativeReturn(marshaller);
 
   --try_depth_;
@@ -5712,6 +5748,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfAsyncFfiCallback(
   catch_body += NullConstant();
   catch_body +=
       FfiConvertPrimitiveToNative(marshaller, compiler::ffi::kResultIndex);
+  ASSERT_EQUAL(marshaller.NumReturnDefinitions(), 1);
   catch_body += NativeReturn(marshaller);
   --catch_depth_;
 

@@ -14,9 +14,16 @@ abstract final class _Compound implements NativeType {
   @pragma("vm:entry-point")
   final Object _typedDataBase;
 
+  /// Offset in bytes into [_typedDataBase].
+  @pragma("vm:entry-point")
+  final int _offsetInBytes;
+
   external _Compound._();
 
-  _Compound._fromTypedDataBase(this._typedDataBase);
+  _Compound._fromTypedDataBase(
+    this._typedDataBase,
+    this._offsetInBytes,
+  );
 
   /// Constructs a view on [typedData].
   ///
@@ -25,7 +32,8 @@ abstract final class _Compound implements NativeType {
     TypedData typedData,
     int offset,
     int sizeInBytes,
-  ) : _typedDataBase = Uint8List.sublistView(typedData, offset) {
+  )   : _typedDataBase = typedData,
+        _offsetInBytes = typedData.elementSizeInBytes * offset {
     if (typedData.lengthInBytes <
         typedData.elementSizeInBytes * offset + sizeInBytes) {
       throw RangeError.range(
@@ -147,7 +155,10 @@ abstract base class Struct extends _Compound implements SizedNativeType {
   /// Creates a view on a [TypedData] or [Pointer].
   ///
   /// Used in [StructPointer.ref], FFI calls, and FFI callbacks.
-  Struct._fromTypedDataBase(super._typedDataBase) : super._fromTypedDataBase();
+  Struct._fromTypedDataBase(
+    super._typedDataBase,
+    super._offsetInBytes,
+  ) : super._fromTypedDataBase();
 
   /// Creates a view on [typedData].
   ///

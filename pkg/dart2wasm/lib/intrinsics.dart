@@ -187,8 +187,19 @@ class Intrinsifier {
       // A compound (subclass of Struct or Union) is represented by its i32
       // address. The _typedDataBase field contains a Pointer pointing to the
       // compound, whose representation is the same.
+      // TODO(https://dartbug.com/55083): Implement structs backed by TypedData.
       codeGen.wrap(receiver, w.NumType.i32);
       return w.NumType.i32;
+    }
+
+    // _Compound._offsetInBytes
+    if (cls == translator.ffiCompoundClass && name == '_offsetInBytes') {
+      // A compound (subclass of Struct or Union) is represented by its i32
+      // address. The _offsetInBytes field contains is always 0.
+      // This also breaks nested structs, which are currently not used.
+      // TODO(https://dartbug.com/55083): Implement structs backed by TypedData.
+      b.i64_const(0);
+      return w.NumType.i64;
     }
 
     // Pointer.address

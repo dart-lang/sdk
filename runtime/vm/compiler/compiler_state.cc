@@ -141,6 +141,48 @@ DEFINE_TYPED_LIST_NATIVE_FUNCTION_GETTER(Float64x2, float64x2)
 
 #undef DEFINE_TYPED_LIST_NATIVE_FUNCTION_GETTER
 
+const Class& CompilerState::CompoundClass() {
+  if (compound_class_ == nullptr) {
+    Thread* thread = Thread::Current();
+    Zone* zone = thread->zone();
+
+    const auto& lib_ffi = Library::Handle(zone, Library::FfiLibrary());
+    const auto& cls = Class::Handle(
+        zone, lib_ffi.LookupClassAllowPrivate(Symbols::Compound()));
+    ASSERT(!cls.IsNull());
+    const Error& error = Error::Handle(zone, cls.EnsureIsFinalized(thread));
+    ASSERT(error.IsNull());
+    compound_class_ = &cls;
+  }
+  return *compound_class_;
+}
+
+const Field& CompilerState::CompoundOffsetInBytesField() {
+  if (compound_offset_in_bytes_field_ == nullptr) {
+    Thread* thread = Thread::Current();
+    Zone* zone = thread->zone();
+    const auto& field =
+        Field::ZoneHandle(zone, CompoundClass().LookupInstanceFieldAllowPrivate(
+                                    Symbols::_offsetInBytes()));
+    ASSERT(!field.IsNull());
+    compound_offset_in_bytes_field_ = &field;
+  }
+  return *compound_offset_in_bytes_field_;
+}
+
+const Field& CompilerState::CompoundTypedDataBaseField() {
+  if (compound_typed_data_base_field_ == nullptr) {
+    Thread* thread = Thread::Current();
+    Zone* zone = thread->zone();
+    const auto& field =
+        Field::ZoneHandle(zone, CompoundClass().LookupInstanceFieldAllowPrivate(
+                                    Symbols::_typedDataBase()));
+    ASSERT(!field.IsNull());
+    compound_typed_data_base_field_ = &field;
+  }
+  return *compound_typed_data_base_field_;
+}
+
 void CompilerState::ReportCrash() {
   OS::PrintErr("=== Crash occurred when compiling %s in %s mode in %s pass\n",
                function() != nullptr ? function()->ToFullyQualifiedCString()

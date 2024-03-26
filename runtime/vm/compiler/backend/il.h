@@ -3504,6 +3504,15 @@ class NativeReturnInstr : public ReturnBaseInstr {
                     const compiler::ffi::CallbackMarshaller& marshaller)
       : ReturnBaseInstr(), marshaller_(marshaller) {
     SetInputAt(0, value);
+    inputs_[1] = nullptr;
+  }
+
+  NativeReturnInstr(Value* typed_data_base,
+                    Value* offset,
+                    const compiler::ffi::CallbackMarshaller& marshaller)
+      : ReturnBaseInstr(), marshaller_(marshaller) {
+    SetInputAt(0, typed_data_base);
+    SetInputAt(1, offset);
   }
 
   DECLARE_INSTRUCTION(NativeReturn)
@@ -3511,8 +3520,14 @@ class NativeReturnInstr : public ReturnBaseInstr {
   PRINT_OPERANDS_TO_SUPPORT
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
-    ASSERT(idx == 0);
-    return marshaller_.RepInFfiCall(compiler::ffi::kResultIndex);
+    if (idx == 0) {
+      return marshaller_.RepInFfiCall(compiler::ffi::kResultIndex);
+    } else {
+      ASSERT_EQUAL(idx, 1);
+      ASSERT_EQUAL(InputCount(), 2);
+      // Offset in bytes for compounds.
+      return kUnboxedWord;
+    }
   }
 
   virtual bool CanBecomeDeoptimizationTarget() const {
@@ -3540,7 +3555,7 @@ class NativeReturnInstr : public ReturnBaseInstr {
 #undef FIELD_LIST
 
  protected:
-  EmbeddedArray<Value*, 1> inputs_;
+  EmbeddedArray<Value*, 2> inputs_;
 
  private:
   void EmitReturnMoves(FlowGraphCompiler* compiler);
@@ -6019,12 +6034,14 @@ class FfiCallInstr : public VariadicDefinition {
   DECLARE_INSTRUCTION(FfiCall)
 
   // Input index of the function pointer to invoke.
-  intptr_t TargetAddressIndex() const { return marshaller_.NumDefinitions(); }
+  intptr_t TargetAddressIndex() const {
+    return marshaller_.NumArgumentDefinitions();
+  }
 
   // Input index of the typed data to populate if return value is struct.
   intptr_t CompoundReturnTypedDataIndex() const {
     ASSERT(marshaller_.ReturnsCompound());
-    return marshaller_.NumDefinitions() + 1;
+    return marshaller_.NumArgumentDefinitions() + 1;
   }
 
   virtual bool MayThrow() const {
@@ -6065,7 +6082,7 @@ class FfiCallInstr : public VariadicDefinition {
 
   static intptr_t InputCountForMarshaller(
       const compiler::ffi::CallMarshaller& marshaller) {
-    return marshaller.NumDefinitions() + 1 +
+    return marshaller.NumArgumentDefinitions() + 1 +
            (marshaller.ReturnsCompound() ? 1 : 0);
   }
 

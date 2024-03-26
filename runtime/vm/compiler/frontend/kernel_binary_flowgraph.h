@@ -383,11 +383,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   // Build flow graph for '_loadAbiSpecificInt' and
   // '_loadAbiSpecificIntAtIndex', '_storeAbiSpecificInt', and
   // '_storeAbiSpecificIntAtIndex' call sites.
-  //
-  // The second argument is either offsetInBytes (at_index==false), or
-  // index (at_index==true).
-  Fragment BuildLoadAbiSpecificInt(bool at_index);
-  Fragment BuildStoreAbiSpecificInt(bool at_index);
+  Fragment BuildLoadStoreAbiSpecificInt(bool is_store, bool at_index);
 
   // Build FG for FFI call.
   Fragment BuildFfiCall();

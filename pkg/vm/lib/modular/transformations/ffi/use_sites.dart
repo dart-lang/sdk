@@ -189,6 +189,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
           uint8ListFactory,
           Arguments([sizeOfExpression]),
         ),
+        ConstantExpression(IntConstant(0)),
       ]),
     );
   }
@@ -269,7 +270,13 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
           abiSpecificLoadOrStoreExpression(
             nativeTypeCfe,
             typedDataBase: getCompoundTypedDataBaseField(
-                VariableGet(arrayVar), node.fileOffset),
+              VariableGet(arrayVar),
+              node.fileOffset,
+            ),
+            offsetInBytes: getCompoundOffsetInBytesField(
+              VariableGet(arrayVar),
+              node.fileOffset,
+            ),
             index: VariableGet(indexVar),
             value: target == abiSpecificIntegerArraySetElemAt
                 ? node.arguments.positional.last
@@ -985,25 +992,38 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         (node.arguments.types[0] as InterfaceType).classNode);
 
     final Expression sourceStruct, targetOffset;
+    final DartType sourceStructType;
 
     if (node.arguments.positional.length == 3) {
       // []= call, args are (receiver, index, source)
       sourceStruct = node.arguments.positional[2];
+      sourceStructType = node.arguments.types[0];
       targetOffset = multiply(node.arguments.positional[1],
           inlineSizeOf(node.arguments.types[0] as InterfaceType)!);
     } else {
       // .ref= call, args are (receiver, source)
       sourceStruct = node.arguments.positional[1];
+      sourceStructType = node.arguments.types[0];
       targetOffset = ConstantExpression(IntConstant(0));
     }
 
-    return referencedStruct.generateStore(
-      sourceStruct,
-      dartType: node.arguments.types[0],
-      offsetInBytes: targetOffset,
-      typedDataBase: target,
-      transformer: this,
-      fileOffset: node.fileOffset,
+    final sourceVar = VariableDeclaration(
+      "#source",
+      initializer: sourceStruct,
+      type: sourceStructType,
+      isSynthesized: true,
+    )..fileOffset = node.fileOffset;
+
+    return BlockExpression(
+      Block([sourceVar]),
+      referencedStruct.generateStore(
+        sourceVar,
+        dartType: node.arguments.types[0],
+        offsetInBytes: targetOffset,
+        typedDataBase: target,
+        transformer: this,
+        fileOffset: node.fileOffset,
+      ),
     );
   }
 
@@ -1040,14 +1060,17 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       ConstructorInvocation(
         constructor,
         Arguments([
-          typedDataBaseOffset(
-            getCompoundTypedDataBaseField(
-                VariableGet(arrayVar), node.fileOffset),
-            multiply(VariableGet(indexVar), inlineSizeOf(dartType)!),
-            inlineSizeOf(dartType)!,
-            dartType,
+          getCompoundTypedDataBaseField(
+            VariableGet(arrayVar),
             node.fileOffset,
-          )
+          ),
+          add(
+            getCompoundOffsetInBytesField(
+              VariableGet(arrayVar),
+              node.fileOffset,
+            ),
+            multiply(VariableGet(indexVar), inlineSizeOf(dartType)!),
+          ),
         ]),
       ),
     );
@@ -1071,7 +1094,8 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
   /// int #offset = #elementSize * #index;
   ///
   /// new Array<T>._(
-  ///   typedDataBaseOffset(#array._typedDataBase, #offset, #elementSize),
+  ///   #array._typedDataBase,
+  ///   #offset,
   ///   #array.nestedDimensionsFirst,
   ///   #array.nestedDimensionsRest
   /// )
@@ -1132,7 +1156,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         isSynthesized: true)
       ..fileOffset = node.fileOffset;
 
-    final checkIndexAndLocalVars = Block([
+    final checkIndexAndLocalVars = [
       arrayVar,
       indexVar,
       ExpressionStatement(InstanceInvocation(
@@ -1145,23 +1169,27 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       )),
       singleElementSizeVar,
       elementSizeVar,
-      offsetVar
-    ]);
+      offsetVar,
+    ];
 
     if (!setter) {
       // `[]`
       return BlockExpression(
-          checkIndexAndLocalVars,
+          Block(checkIndexAndLocalVars),
           ConstructorInvocation(
               arrayConstructor,
               Arguments([
-                typedDataBaseOffset(
-                    getCompoundTypedDataBaseField(
-                        VariableGet(arrayVar), node.fileOffset),
-                    VariableGet(offsetVar),
-                    VariableGet(elementSizeVar),
-                    dartType,
-                    node.fileOffset),
+                getCompoundTypedDataBaseField(
+                  VariableGet(arrayVar),
+                  node.fileOffset,
+                ),
+                add(
+                  getCompoundOffsetInBytesField(
+                    VariableGet(arrayVar),
+                    node.fileOffset,
+                  ),
+                  VariableGet(offsetVar),
+                ),
                 InstanceGet(InstanceAccessKind.Instance, VariableGet(arrayVar),
                     arrayNestedDimensionsFirst.name,
                     interfaceTarget: arrayNestedDimensionsFirst,
@@ -1176,17 +1204,39 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     }
 
     // `[]=`
+    final valueVar = VariableDeclaration(
+      "#value",
+      initializer: NullCheck(node.arguments.positional[2]),
+      type: InterfaceType(arrayClass, Nullability.nonNullable),
+      isSynthesized: true,
+    )..fileOffset = node.fileOffset;
     return BlockExpression(
-        checkIndexAndLocalVars,
+        Block([
+          ...checkIndexAndLocalVars,
+          valueVar,
+        ]),
         StaticInvocation(
             memCopy,
             Arguments([
               getCompoundTypedDataBaseField(
-                  VariableGet(arrayVar), node.fileOffset),
-              VariableGet(offsetVar),
+                VariableGet(arrayVar),
+                node.fileOffset,
+              ),
+              add(
+                getCompoundOffsetInBytesField(
+                  VariableGet(arrayVar),
+                  node.fileOffset,
+                ),
+                VariableGet(offsetVar),
+              ),
               getCompoundTypedDataBaseField(
-                  node.arguments.positional[2], node.fileOffset),
-              ConstantExpression(IntConstant(0)),
+                VariableGet(valueVar),
+                node.fileOffset,
+              ),
+              getCompoundOffsetInBytesField(
+                VariableGet(valueVar),
+                node.fileOffset,
+              ),
               VariableGet(elementSizeVar),
             ]))
           ..fileOffset = node.fileOffset);

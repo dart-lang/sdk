@@ -31,6 +31,7 @@
 #include "vm/compiler/jit/compiler.h"
 #include "vm/compiler/method_recognizer.h"
 #include "vm/compiler/runtime_api.h"
+#include "vm/constants.h"
 #include "vm/cpu.h"
 #include "vm/dart_entry.h"
 #include "vm/object.h"
@@ -7416,7 +7417,7 @@ LocationSummary* FfiCallInstr::MakeLocationSummaryInternal(
                   Location::RegisterLocation(
                       CallingConventions::kFirstNonArgumentRegister));
 #endif
-  for (intptr_t i = 0, n = marshaller_.NumDefinitions(); i < n; ++i) {
+  for (intptr_t i = 0, n = marshaller_.NumArgumentDefinitions(); i < n; ++i) {
     summary->set_in(i, marshaller_.LocInFfiCall(i));
   }
 
@@ -7471,6 +7472,13 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
     // First deal with moving all individual definitions passed in to the
     // FfiCall to the right native location based on calling convention.
     for (intptr_t i = 0; i < num_defs; i++) {
+      if (arg_target.IsPointerToMemory() && i == 1) {
+        // The offset_in_bytes is not an argument for C, so don't move it.
+        // It is used as offset_in_bytes_loc below and moved there if
+        // necessary.
+        def_index++;
+        continue;
+      }
       __ Comment("  def_index %" Pd, def_index);
       const Location origin = rebase.Rebase(locs()->in(def_index));
       const Representation origin_rep = RequiredInputRepresentation(def_index);
@@ -7558,10 +7566,27 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
       compiler->EmitNativeMove(dst, pointer_loc, &temp_alloc);
       __ LoadFromSlot(temp0, temp0, Slot::PointerBase_data());
 
+      __ Comment("IsPointerToMemory add offset");
+      const intptr_t offset_in_bytes_def_index =
+          def_index - 1;  // ++'d already.
+      const Location offset_in_bytes_loc =
+          rebase.Rebase(locs()->in(offset_in_bytes_def_index));
+      Register offset_in_bytes_reg = kNoRegister;
+      if (offset_in_bytes_loc.IsRegister()) {
+        offset_in_bytes_reg = offset_in_bytes_loc.reg();
+      } else {
+        offset_in_bytes_reg = temp1;
+        NoTemporaryAllocator no_temp;
+        compiler->EmitMove(Location::RegisterLocation(offset_in_bytes_reg),
+                           offset_in_bytes_loc, &no_temp);
+      }
+      __ AddRegisters(temp0, offset_in_bytes_reg);
+
       // Copy chunks. The destination may be rounded up to a multiple of the
       // word size, because we do the same rounding when we allocate the space
       // on the stack. But source may not be allocated by the VM and end at a
       // page boundary.
+      __ Comment("IsPointerToMemory copy chunks");
       const intptr_t sp_offset =
           marshaller_.PassByPointerStackOffset(arg_index);
       __ UnrolledMemCopy(SPREG, sp_offset, temp0, 0,
@@ -7890,10 +7915,17 @@ void NativeReturnInstr::EmitReturnMoves(FlowGraphCompiler* compiler) {
     return;
   }
   if (dst1.IsMultiple()) {
+    __ Comment("Load TypedDataBase data pointer and apply offset.");
+    ASSERT_EQUAL(locs()->input_count(), 2);
     Register typed_data_reg = locs()->in(0).reg();
     // Load the data pointer out of the TypedData/Pointer.
     __ LoadFromSlot(typed_data_reg, typed_data_reg, Slot::PointerBase_data());
 
+    // Apply offset.
+    Register offset_reg = locs()->in(1).reg();
+    __ AddRegisters(typed_data_reg, offset_reg);
+
+    __ Comment("Copy loop");
     const auto& multiple = dst1.AsMultiple();
     int offset_in_bytes = 0;
     for (intptr_t i = 0; i < multiple.locations().length(); i++) {
@@ -7921,24 +7953,31 @@ void NativeReturnInstr::EmitReturnMoves(FlowGraphCompiler* compiler) {
 
 LocationSummary* NativeReturnInstr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
-  const intptr_t kNumInputs = 1;
+  const intptr_t input_count = marshaller_.NumReturnDefinitions();
   const intptr_t kNumTemps = 0;
   LocationSummary* locs = new (zone)
-      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  ASSERT(marshaller_.NumReturnDefinitions() == 1);
+      LocationSummary(zone, input_count, kNumTemps, LocationSummary::kNoCall);
   const auto& native_loc = marshaller_.Location(compiler::ffi::kResultIndex);
-  const auto& native_return_loc =
-      native_loc.IsPointerToMemory()
-          ? native_loc.AsPointerToMemory().pointer_return_location()
-          : native_loc;
+
   if (native_loc.IsMultiple()) {
-    // We pass in a typed data for easy copying in machine code.
+    ASSERT_EQUAL(input_count, 2);
+    // Pass in a typed data and offset for easy copying in machine code.
     // Can be any register which does not conflict with return registers.
     Register typed_data_reg = CallingConventions::kSecondNonArgumentRegister;
     ASSERT(typed_data_reg != CallingConventions::kReturnReg);
     ASSERT(typed_data_reg != CallingConventions::kSecondReturnReg);
     locs->set_in(0, Location::RegisterLocation(typed_data_reg));
+
+    Register offset_in_bytes_reg = CallingConventions::kFfiAnyNonAbiRegister;
+    ASSERT(offset_in_bytes_reg != CallingConventions::kReturnReg);
+    ASSERT(offset_in_bytes_reg != CallingConventions::kSecondReturnReg);
+    locs->set_in(1, Location::RegisterLocation(offset_in_bytes_reg));
   } else {
+    ASSERT_EQUAL(input_count, 1);
+    const auto& native_return_loc =
+        native_loc.IsPointerToMemory()
+            ? native_loc.AsPointerToMemory().pointer_return_location()
+            : native_loc;
     locs->set_in(0, native_return_loc.AsLocation());
   }
   return locs;

@@ -170,7 +170,7 @@ sealed class NativeTypeCfe {
   /// [offsetInBytes] and [unaligned] based on the ABI of the struct. It also
   /// wraps the expression in a return statement.
   Expression generateStore(
-    Expression value, {
+    VariableDeclaration value, {
     required DartType dartType,
     required int fileOffset,
     required Expression typedDataBase,
@@ -199,7 +199,13 @@ sealed class NativeTypeCfe {
         ),
         transformer: transformer,
         unaligned: unalignedAccess,
-        offsetInBytes: StaticGet(offsetGetter),
+        offsetInBytes: transformer.add(
+          StaticGet(offsetGetter),
+          transformer.getCompoundOffsetInBytesField(
+            ThisExpression(),
+            fileOffset,
+          ),
+        ),
       ),
     );
   }
@@ -216,7 +222,7 @@ sealed class NativeTypeCfe {
     Procedure offsetGetter,
   ) {
     return ReturnStatement(generateStore(
-      VariableGet(argument)..fileOffset = fileOffset,
+      argument,
       dartType: dartType,
       fileOffset: fileOffset,
       typedDataBase: transformer.getCompoundTypedDataBaseField(
@@ -224,7 +230,13 @@ sealed class NativeTypeCfe {
         fileOffset,
       ),
       transformer: transformer,
-      offsetInBytes: StaticGet(offsetGetter),
+      offsetInBytes: transformer.add(
+        StaticGet(offsetGetter),
+        transformer.getCompoundOffsetInBytesField(
+          ThisExpression(),
+          fileOffset,
+        ),
+      ),
       unaligned: unalignedAccess,
     ));
   }
@@ -258,7 +270,7 @@ final class InvalidNativeTypeCfe extends NativeTypeCfe {
 
   @override
   Expression generateStore(
-    Expression value, {
+    VariableDeclaration value, {
     required DartType dartType,
     required int fileOffset,
     required Expression typedDataBase,
@@ -359,7 +371,7 @@ class PrimitiveNativeTypeCfe extends NativeTypeCfe {
   /// ```
   @override
   Expression generateStore(
-    Expression value, {
+    VariableDeclaration value, {
     required DartType dartType,
     required int fileOffset,
     required Expression typedDataBase,
@@ -374,7 +386,7 @@ class PrimitiveNativeTypeCfe extends NativeTypeCfe {
       Arguments([
         typedDataBase,
         offsetInBytes,
-        value,
+        VariableGet(value)..fileOffset = fileOffset,
       ]),
     )..fileOffset = fileOffset;
   }
@@ -446,7 +458,7 @@ class PointerNativeTypeCfe extends NativeTypeCfe {
   /// ```
   @override
   Expression generateStore(
-    Expression value, {
+    VariableDeclaration value, {
     required DartType dartType,
     required int fileOffset,
     required Expression typedDataBase,
@@ -460,7 +472,7 @@ class PointerNativeTypeCfe extends NativeTypeCfe {
         [
           typedDataBase,
           offsetInBytes,
-          value,
+          VariableGet(value)..fileOffset = fileOffset,
         ],
         types: [(dartType as InterfaceType).typeArguments.single],
       ),
@@ -511,7 +523,8 @@ abstract mixin class _CompoundLoadAndStoreMixin implements NativeTypeCfe {
   ///
   /// ```
   /// MyStruct.#fromTypedDataBase(
-  ///   typedDataBaseOffset(#typedDataBase, #offsetInBytes, size)
+  ///   #typedDataBase,
+  ///   #offsetInBytes,
   /// );
   /// ```
   @override
@@ -530,13 +543,8 @@ abstract mixin class _CompoundLoadAndStoreMixin implements NativeTypeCfe {
     return ConstructorInvocation(
       constructor,
       Arguments([
-        transformer.typedDataBaseOffset(
-          typedDataBase,
-          offsetInBytes,
-          _generateSize(transformer),
-          dartType,
-          fileOffset,
-        )
+        typedDataBase,
+        offsetInBytes,
       ]),
     )..fileOffset = fileOffset;
   }
@@ -548,7 +556,7 @@ abstract mixin class _CompoundLoadAndStoreMixin implements NativeTypeCfe {
   /// ```
   @override
   Expression generateStore(
-    Expression value, {
+    VariableDeclaration value, {
     required DartType dartType,
     required int fileOffset,
     required Expression typedDataBase,
@@ -561,8 +569,14 @@ abstract mixin class _CompoundLoadAndStoreMixin implements NativeTypeCfe {
       Arguments([
         typedDataBase,
         offsetInBytes,
-        transformer.getCompoundTypedDataBaseField(value, fileOffset),
-        ConstantExpression(IntConstant(0)),
+        transformer.getCompoundTypedDataBaseField(
+          VariableGet(value)..fileOffset = fileOffset,
+          fileOffset,
+        ),
+        transformer.getCompoundOffsetInBytesField(
+          VariableGet(value)..fileOffset = fileOffset,
+          fileOffset,
+        ),
         _generateSize(transformer),
       ]),
     )..fileOffset = fileOffset;
@@ -791,7 +805,9 @@ class ArrayNativeTypeCfe extends NativeTypeCfe {
   ///
   /// ```
   /// Array<Int8>._(
-  ///   typedDataBaseOffset(#typedDataBase, #offsetInBytes, size, typeArgument)
+  ///   #typedDataBase,
+  ///   #offsetInBytes,
+  ///   ...
   /// );
   /// ```
   @override
@@ -810,13 +826,8 @@ class ArrayNativeTypeCfe extends NativeTypeCfe {
       transformer.arrayConstructor,
       Arguments(
         [
-          transformer.typedDataBaseOffset(
-            typedDataBase,
-            offsetInBytes,
-            transformer.runtimeBranchOnLayout(size),
-            typeArgument,
-            fileOffset,
-          ),
+          typedDataBase,
+          offsetInBytes,
           ConstantExpression(IntConstant(length)),
           transformer.intListConstantExpression(nestedDimensions)
         ],
@@ -832,7 +843,7 @@ class ArrayNativeTypeCfe extends NativeTypeCfe {
   /// ```
   @override
   Expression generateStore(
-    Expression value, {
+    VariableDeclaration value, {
     required DartType dartType,
     required int fileOffset,
     required Expression typedDataBase,
@@ -845,8 +856,14 @@ class ArrayNativeTypeCfe extends NativeTypeCfe {
       Arguments([
         typedDataBase,
         offsetInBytes,
-        transformer.getCompoundTypedDataBaseField(value, fileOffset),
-        ConstantExpression(IntConstant(0)),
+        transformer.getCompoundTypedDataBaseField(
+          VariableGet(value)..fileOffset = fileOffset,
+          fileOffset,
+        ),
+        transformer.getCompoundOffsetInBytesField(
+          VariableGet(value)..fileOffset = fileOffset,
+          fileOffset,
+        ),
         transformer.runtimeBranchOnLayout(size),
       ]),
     )..fileOffset = fileOffset;
@@ -897,7 +914,7 @@ class AbiSpecificNativeTypeCfe extends NativeTypeCfe {
 
   @override
   Expression generateStore(
-    Expression value, {
+    VariableDeclaration value, {
     required DartType dartType,
     required int fileOffset,
     required Expression typedDataBase,
@@ -909,7 +926,7 @@ class AbiSpecificNativeTypeCfe extends NativeTypeCfe {
       this,
       typedDataBase: typedDataBase,
       offsetInBytes: offsetInBytes,
-      value: value,
+      value: VariableGet(value)..fileOffset = fileOffset,
       fileOffset: fileOffset,
     );
   }

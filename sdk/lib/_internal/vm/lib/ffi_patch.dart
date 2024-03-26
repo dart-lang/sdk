@@ -327,8 +327,12 @@ final class Array<T extends NativeType> extends _Compound {
   List<int>? _nestedDimensionsRestCache;
 
   @pragma("vm:entry-point")
-  Array._(super._typedDataBase, this._size, this._nestedDimensions)
-      : super._fromTypedDataBase();
+  Array._(
+    super._typedDataBase,
+    super._offsetInBytes,
+    this._size,
+    this._nestedDimensions,
+  ) : super._fromTypedDataBase();
 
   int get _nestedDimensionsFlattened =>
       _nestedDimensionsFlattenedCache ??= _nestedDimensions.fold<int>(
@@ -438,7 +442,7 @@ external int _loadAbiSpecificInt<T extends AbiSpecificInteger>(
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
 external int _loadAbiSpecificIntAtIndex<T extends AbiSpecificInteger>(
-    Object typedDataBase, int index);
+    Object typedDataBase, int offsetInBytes, int index);
 
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
@@ -509,7 +513,7 @@ external int _storeAbiSpecificInt<T extends AbiSpecificInteger>(
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
 external int _storeAbiSpecificIntAtIndex<T extends AbiSpecificInteger>(
-    Object typedDataBase, int index, int value);
+    Object typedDataBase, int offsetInBytes, int index, int value);
 
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
@@ -962,13 +966,20 @@ extension Int8Array on Array<Int8> {
   @patch
   int operator [](int index) {
     _checkIndex(index);
-    return _loadInt8(_typedDataBase, index);
+    return _loadInt8(
+      _typedDataBase,
+      _offsetInBytes + index,
+    );
   }
 
   @patch
   operator []=(int index, int value) {
     _checkIndex(index);
-    return _storeInt8(_typedDataBase, index, value);
+    return _storeInt8(
+      _typedDataBase,
+      _offsetInBytes + index,
+      value,
+    );
   }
 }
 
@@ -977,13 +988,20 @@ extension Int16Array on Array<Int16> {
   @patch
   int operator [](int index) {
     _checkIndex(index);
-    return _loadInt16(_typedDataBase, 2 * index);
+    return _loadInt16(
+      _typedDataBase,
+      _offsetInBytes + 2 * index,
+    );
   }
 
   @patch
   operator []=(int index, int value) {
     _checkIndex(index);
-    return _storeInt16(_typedDataBase, 2 * index, value);
+    return _storeInt16(
+      _typedDataBase,
+      _offsetInBytes + 2 * index,
+      value,
+    );
   }
 }
 
@@ -992,13 +1010,20 @@ extension Int32Array on Array<Int32> {
   @patch
   int operator [](int index) {
     _checkIndex(index);
-    return _loadInt32(_typedDataBase, 4 * index);
+    return _loadInt32(
+      _typedDataBase,
+      _offsetInBytes + 4 * index,
+    );
   }
 
   @patch
   operator []=(int index, int value) {
     _checkIndex(index);
-    return _storeInt32(_typedDataBase, 4 * index, value);
+    return _storeInt32(
+      _typedDataBase,
+      _offsetInBytes + 4 * index,
+      value,
+    );
   }
 }
 
@@ -1007,13 +1032,20 @@ extension Int64Array on Array<Int64> {
   @patch
   int operator [](int index) {
     _checkIndex(index);
-    return _loadInt64(_typedDataBase, 8 * index);
+    return _loadInt64(
+      _typedDataBase,
+      _offsetInBytes + 8 * index,
+    );
   }
 
   @patch
   operator []=(int index, int value) {
     _checkIndex(index);
-    return _storeInt64(_typedDataBase, 8 * index, value);
+    return _storeInt64(
+      _typedDataBase,
+      _offsetInBytes + 8 * index,
+      value,
+    );
   }
 }
 
@@ -1022,13 +1054,20 @@ extension Uint8Array on Array<Uint8> {
   @patch
   int operator [](int index) {
     _checkIndex(index);
-    return _loadUint8(_typedDataBase, index);
+    return _loadUint8(
+      _typedDataBase,
+      _offsetInBytes + index,
+    );
   }
 
   @patch
   operator []=(int index, int value) {
     _checkIndex(index);
-    return _storeUint8(_typedDataBase, index, value);
+    return _storeUint8(
+      _typedDataBase,
+      _offsetInBytes + index,
+      value,
+    );
   }
 }
 
@@ -1037,13 +1076,20 @@ extension Uint16Array on Array<Uint16> {
   @patch
   int operator [](int index) {
     _checkIndex(index);
-    return _loadUint16(_typedDataBase, 2 * index);
+    return _loadUint16(
+      _typedDataBase,
+      _offsetInBytes + 2 * index,
+    );
   }
 
   @patch
   operator []=(int index, int value) {
     _checkIndex(index);
-    return _storeUint16(_typedDataBase, 2 * index, value);
+    return _storeUint16(
+      _typedDataBase,
+      _offsetInBytes + 2 * index,
+      value,
+    );
   }
 }
 
@@ -1052,13 +1098,20 @@ extension Uint32Array on Array<Uint32> {
   @patch
   int operator [](int index) {
     _checkIndex(index);
-    return _loadUint32(_typedDataBase, 4 * index);
+    return _loadUint32(
+      _typedDataBase,
+      _offsetInBytes + 4 * index,
+    );
   }
 
   @patch
   operator []=(int index, int value) {
     _checkIndex(index);
-    return _storeUint32(_typedDataBase, 4 * index, value);
+    return _storeUint32(
+      _typedDataBase,
+      _offsetInBytes + 4 * index,
+      value,
+    );
   }
 }
 
@@ -1067,13 +1120,20 @@ extension Uint64Array on Array<Uint64> {
   @patch
   int operator [](int index) {
     _checkIndex(index);
-    return _loadUint64(_typedDataBase, 8 * index);
+    return _loadUint64(
+      _typedDataBase,
+      _offsetInBytes + 8 * index,
+    );
   }
 
   @patch
   operator []=(int index, int value) {
     _checkIndex(index);
-    return _storeUint64(_typedDataBase, 8 * index, value);
+    return _storeUint64(
+      _typedDataBase,
+      _offsetInBytes + 8 * index,
+      value,
+    );
   }
 }
 
@@ -1082,13 +1142,20 @@ extension FloatArray on Array<Float> {
   @patch
   double operator [](int index) {
     _checkIndex(index);
-    return _loadFloat(_typedDataBase, 4 * index);
+    return _loadFloat(
+      _typedDataBase,
+      _offsetInBytes + 4 * index,
+    );
   }
 
   @patch
   operator []=(int index, double value) {
     _checkIndex(index);
-    return _storeFloat(_typedDataBase, 4 * index, value);
+    return _storeFloat(
+      _typedDataBase,
+      _offsetInBytes + 4 * index,
+      value,
+    );
   }
 }
 
@@ -1097,13 +1164,20 @@ extension DoubleArray on Array<Double> {
   @patch
   double operator [](int index) {
     _checkIndex(index);
-    return _loadDouble(_typedDataBase, 8 * index);
+    return _loadDouble(
+      _typedDataBase,
+      _offsetInBytes + 8 * index,
+    );
   }
 
   @patch
   operator []=(int index, double value) {
     _checkIndex(index);
-    return _storeDouble(_typedDataBase, 8 * index, value);
+    return _storeDouble(
+      _typedDataBase,
+      _offsetInBytes + 8 * index,
+      value,
+    );
   }
 }
 
@@ -1112,13 +1186,20 @@ extension BoolArray on Array<Bool> {
   @patch
   bool operator [](int index) {
     _checkIndex(index);
-    return _loadBool(_typedDataBase, index);
+    return _loadBool(
+      _typedDataBase,
+      _offsetInBytes + index,
+    );
   }
 
   @patch
   operator []=(int index, bool value) {
     _checkIndex(index);
-    return _storeBool(_typedDataBase, index, value);
+    return _storeBool(
+      _typedDataBase,
+      _offsetInBytes + index,
+      value,
+    );
   }
 }
 
@@ -1253,13 +1334,20 @@ extension PointerArray<T extends NativeType> on Array<Pointer<T>> {
   @patch
   Pointer<T> operator [](int index) {
     _checkIndex(index);
-    return _loadPointer(_typedDataBase, _intPtrSize * index);
+    return _loadPointer(
+      _typedDataBase,
+      _offsetInBytes + _intPtrSize * index,
+    );
   }
 
   @patch
   void operator []=(int index, Pointer<T> value) {
     _checkIndex(index);
-    return _storePointer(_typedDataBase, _intPtrSize * index, value);
+    return _storePointer(
+      _typedDataBase,
+      _offsetInBytes + _intPtrSize * index,
+      value,
+    );
   }
 }
 
@@ -1400,6 +1488,8 @@ final class _ArraySize<T extends NativeType> implements Array<T> {
 
   Object get _typedDataBase =>
       throw UnsupportedError('_ArraySize._typedDataBase');
+
+  int get _offsetInBytes => throw UnsupportedError('_ArraySize._offsetInBytes');
 }
 
 @patch

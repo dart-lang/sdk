@@ -3387,13 +3387,16 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(TokenPosition* p) {
     case MethodRecognizer::kFfiNativeAsyncCallbackFunction:
       return BuildFfiNativeCallbackFunction(FfiCallbackKind::kAsyncCallback);
     case MethodRecognizer::kFfiLoadAbiSpecificInt:
-      return BuildLoadAbiSpecificInt(/*at_index=*/false);
+      return BuildLoadStoreAbiSpecificInt(/*is_store=*/false,
+                                          /*at_index=*/false);
     case MethodRecognizer::kFfiLoadAbiSpecificIntAtIndex:
-      return BuildLoadAbiSpecificInt(/*at_index=*/true);
+      return BuildLoadStoreAbiSpecificInt(/*is_store=*/false,
+                                          /*at_index=*/true);
     case MethodRecognizer::kFfiStoreAbiSpecificInt:
-      return BuildStoreAbiSpecificInt(/*at_index=*/false);
+      return BuildLoadStoreAbiSpecificInt(/*is_store=*/true,
+                                          /*at_index=*/false);
     case MethodRecognizer::kFfiStoreAbiSpecificIntAtIndex:
-      return BuildStoreAbiSpecificInt(/*at_index=*/true);
+      return BuildLoadStoreAbiSpecificInt(/*is_store=*/true, /*at_index=*/true);
     default:
       break;
   }
@@ -6023,57 +6026,16 @@ static void ReportIfNotNull(const char* error) {
   }
 }
 
-Fragment StreamingFlowGraphBuilder::BuildLoadAbiSpecificInt(bool at_index) {
-  const intptr_t argument_count = ReadUInt();     // Read argument count.
-  ASSERT(argument_count == 2);                    // TypedDataBase, offset/index
-  const intptr_t list_length = ReadListLength();  // Read types list length.
-  ASSERT(list_length == 1);                       // AbiSpecificInt.
-  // Read types.
-  const TypeArguments& type_arguments = T.BuildTypeArguments(list_length);
-  const AbstractType& type_argument =
-      AbstractType::Handle(type_arguments.TypeAt(0));
-
-  // AbiSpecificTypes can have an incomplete mapping.
-  const char* error = nullptr;
-  const auto* native_type =
-      compiler::ffi::NativeType::FromAbstractType(zone_, type_argument, &error);
-  ReportIfNotNull(error);
-
-  Fragment code;
-  // Read positional argument count.
-  const intptr_t positional_count = ReadListLength();
-  ASSERT(positional_count == 2);
-  code += BuildExpression();  // Argument 1: typedDataBase.
-  code += BuildExpression();  // Argument 2: offsetInBytes or index.
-  if (at_index) {
-    code += IntConstant(native_type->SizeInBytes());
-    code += B->BinaryIntegerOp(Token::kMUL, kTagged, /* truncate= */ true);
-  }
-
-  // Skip (empty) named arguments list.
-  const intptr_t named_args_len = ReadListLength();
-  ASSERT(named_args_len == 0);
-
-  // This call site is not guaranteed to be optimized. So, do a call to the
-  // correct force optimized function instead of compiling the body.
-  MethodRecognizer::Kind kind = compiler::ffi::FfiLoad(*native_type);
-  const char* function_name = MethodRecognizer::KindToFunctionNameCString(kind);
-  const Library& ffi_library = Library::Handle(Z, Library::FfiLibrary());
-  const Function& target = Function::ZoneHandle(
-      Z, ffi_library.LookupFunctionAllowPrivate(
-             String::Handle(Z, String::New(function_name))));
-  Array& argument_names = Array::ZoneHandle(Z);
-  code += StaticCall(TokenPosition::kNoSource, target, argument_count,
-                     argument_names, ICData::kStatic);
-
-  return code;
-}
-
-Fragment StreamingFlowGraphBuilder::BuildStoreAbiSpecificInt(bool at_index) {
-  const intptr_t argument_count = ReadUInt();
-  ASSERT(argument_count == 3);
+Fragment StreamingFlowGraphBuilder::BuildLoadStoreAbiSpecificInt(
+    bool is_store,
+    bool at_index) {
+  const intptr_t argument_count = ReadUInt();  // Read argument count.
+  const intptr_t expected_argument_count = 2   // TypedDataBase, offset
+                                           + (at_index ? 1 : 0)   // index
+                                           + (is_store ? 1 : 0);  // value
+  ASSERT_EQUAL(argument_count, expected_argument_count);
   const intptr_t list_length = ReadListLength();
-  ASSERT(list_length == 1);
+  ASSERT_EQUAL(list_length, 1);
   // Read types.
   const TypeArguments& type_arguments = T.BuildTypeArguments(list_length);
   const AbstractType& type_argument =
@@ -6088,14 +6050,18 @@ Fragment StreamingFlowGraphBuilder::BuildStoreAbiSpecificInt(bool at_index) {
   Fragment code;
   // Read positional argument count.
   const intptr_t positional_count = ReadListLength();
-  ASSERT(positional_count == 3);
+  ASSERT(positional_count == argument_count);
   code += BuildExpression();  // Argument 1: typedDataBase.
-  code += BuildExpression();  // Argument 2: offsetInBytes or index.
+  code += BuildExpression();  // Argument 2: offsetInBytes
   if (at_index) {
+    code += BuildExpression();  // Argument 3: index
     code += IntConstant(native_type->SizeInBytes());
     code += B->BinaryIntegerOp(Token::kMUL, kTagged, /* truncate= */ true);
+    code += B->BinaryIntegerOp(Token::kADD, kTagged, /* truncate= */ true);
   }
-  code += BuildExpression();  // Argument 3: value
+  if (is_store) {
+    code += BuildExpression();  // Argument 4: value
+  }
 
   // Skip (empty) named arguments list.
   const intptr_t named_args_len = ReadListLength();
@@ -6103,7 +6069,12 @@ Fragment StreamingFlowGraphBuilder::BuildStoreAbiSpecificInt(bool at_index) {
 
   // This call site is not guaranteed to be optimized. So, do a call to the
   // correct force optimized function instead of compiling the body.
-  MethodRecognizer::Kind kind = compiler::ffi::FfiStore(*native_type);
+  MethodRecognizer::Kind kind;
+  if (is_store) {
+    kind = compiler::ffi::FfiStore(*native_type);
+  } else {
+    kind = compiler::ffi::FfiLoad(*native_type);
+  }
   const char* function_name = MethodRecognizer::KindToFunctionNameCString(kind);
   const Library& ffi_library = Library::Handle(Z, Library::FfiLibrary());
   const Function& target = Function::ZoneHandle(
@@ -6111,7 +6082,8 @@ Fragment StreamingFlowGraphBuilder::BuildStoreAbiSpecificInt(bool at_index) {
              String::Handle(Z, String::New(function_name))));
   ASSERT(!target.IsNull());
   Array& argument_names = Array::ZoneHandle(Z);
-  code += StaticCall(TokenPosition::kNoSource, target, argument_count,
+  const intptr_t static_call_arg_count = 2 + (is_store ? 1 : 0);
+  code += StaticCall(TokenPosition::kNoSource, target, static_call_arg_count,
                      argument_names, ICData::kStatic);
 
   return code;

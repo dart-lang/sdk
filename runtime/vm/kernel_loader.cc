@@ -1524,7 +1524,7 @@ void KernelLoader::FinishClassLoading(const Class& klass,
     // subsequently with TypedData with field guards.
     if (klass.UserVisibleName() == Symbols::Compound().ptr() &&
         Library::Handle(Z, klass.library()).url() == Symbols::DartFfi().ptr()) {
-      ASSERT(fields_.length() == 1);
+      ASSERT_EQUAL(fields_.length(), 2);
       ASSERT(String::Handle(Z, fields_[0]->name())
                  .StartsWith(Symbols::_typedDataBase()));
       fields_[0]->set_guarded_cid(kDynamicCid);
