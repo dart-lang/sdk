@@ -17,6 +17,7 @@ import 'code_actions_assists_test.dart' as code_actions_assists;
 import 'code_actions_fixes_test.dart' as code_actions_fixes;
 import 'code_actions_refactor_test.dart' as code_actions_refactor;
 import 'code_actions_source_test.dart' as code_actions_source;
+import 'code_lens/test_all.dart' as code_lens;
 import 'commands/test_all.dart' as commands;
 import 'completion_dart_test.dart' as completion_dart;
 import 'completion_yaml_test.dart' as completion_yaml;
@@ -74,6 +75,7 @@ void main() {
     code_actions_fixes.main();
     code_actions_refactor.main();
     code_actions_source.main();
+    code_lens.main();
     completion_dart.main();
     completion_yaml.main();
     configuration.main();

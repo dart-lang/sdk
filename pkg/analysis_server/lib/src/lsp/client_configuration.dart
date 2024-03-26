@@ -6,6 +6,47 @@ import 'package:analysis_server/src/computer/computer_hover.dart';
 import 'package:collection/collection.dart';
 import 'package:path/path.dart' as path;
 
+/// Client configuration for Dart CodeLenses.
+///
+/// Defaults are set per-CodeLens but the user can override these by enabling
+/// all, disabling all, or setting their own preferences.
+///
+/// ```js
+/// "dart.codeLens": true, // Enables all CodeLens
+///
+/// "dart.codeLens": true, // Disables all CodeLens
+///
+/// "dart.codeLens": {
+///   "augmented": false, // Disables augmented but otherwise keeps defaults.
+/// }
+/// ```
+class LspClientCodeLensConfiguration {
+  final bool? _userOverride;
+  final Map<String, Object?>? _codeLensSettings;
+
+  LspClientCodeLensConfiguration(Object? userPreference)
+      : _userOverride = userPreference is bool ? userPreference : null,
+        _codeLensSettings =
+            userPreference is Map<String, Object?> ? userPreference : null;
+
+  /// Whether the "Go to Augmentation" CodeLens is enabled.
+  bool get augmentation => _getUserPreference('augmentation', true);
+
+  /// Whether the "Go to Augmented" CodeLens is enabled.
+  bool get augmented => _getUserPreference('augmented', true);
+
+  bool _getUserPreference(String name, bool defaultValue) {
+    if (_userOverride != null) {
+      return _userOverride;
+    }
+    return defaultValue
+        // Default true, enable if not explicit false.
+        ? (_codeLensSettings?[name] != false)
+        // Default false, enable only if explicit true.
+        : (_codeLensSettings?[name] == true);
+  }
+}
+
 /// Provides access to both global and resource-specific client configuration.
 ///
 /// Resource-specific config is currently only supported at the WorkspaceFolder
@@ -121,6 +162,8 @@ class LspClientConfiguration {
 /// Settings in this class are only allowed to be configured at the workspace
 /// level (they will be ignored at the resource level).
 class LspGlobalClientConfiguration extends LspResourceClientConfiguration {
+  late final codeLens = LspClientCodeLensConfiguration(_settings['codeLens']);
+
   LspGlobalClientConfiguration(Map<String, Object?> settings)
       : super(settings, null);
 

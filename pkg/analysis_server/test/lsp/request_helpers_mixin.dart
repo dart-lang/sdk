@@ -260,6 +260,17 @@ mixin LspRequestHelpersMixin {
     );
   }
 
+  Future<TextDocumentCodeLensResult> getCodeLens(Uri uri) {
+    final request = makeRequest(
+      Method.textDocument_codeLens,
+      CodeLensParams(
+        textDocument: TextDocumentIdentifier(uri: uri),
+      ),
+    );
+    return expectSuccessfulResponseTo(
+        request, _fromJsonList(CodeLens.fromJson));
+  }
+
   Future<List<ColorPresentation>> getColorPresentation(
       Uri fileUri, Range range, Color color) {
     final request = makeRequest(

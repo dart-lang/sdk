@@ -60,6 +60,9 @@ class ClientDynamicRegistrations {
   bool get codeActions =>
       _capabilities.textDocument?.codeAction?.dynamicRegistration ?? false;
 
+  bool get codeLens =>
+      _capabilities.textDocument?.codeLens?.dynamicRegistration ?? false;
+
   bool get colorProvider =>
       _capabilities.textDocument?.colorProvider?.dynamicRegistration ?? false;
 
@@ -176,6 +179,7 @@ class ServerCapabilitiesComputer {
       documentHighlightProvider: features.documentHighlight.staticRegistration,
       documentSymbolProvider: features.documentSymbol.staticRegistration,
       codeActionProvider: features.codeActions.staticRegistration,
+      codeLensProvider: features.codeLens.staticRegistration,
       colorProvider: features.colors.staticRegistration,
       documentFormattingProvider: features.format.staticRegistration,
       documentOnTypeFormattingProvider:

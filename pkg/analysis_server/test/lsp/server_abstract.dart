@@ -487,6 +487,10 @@ mixin ClientCapabilitiesHelperMixin {
     });
   }
 
+  void setClientSupportedCommands(List<String>? supportedCommands) {
+    experimentalCapabilities['commands'] = supportedCommands;
+  }
+
   void setCompletionItemDeprecatedFlagSupport() {
     textDocumentCapabilities =
         extendTextDocumentCapabilities(textDocumentCapabilities, {
