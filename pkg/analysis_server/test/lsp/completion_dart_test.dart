@@ -69,6 +69,10 @@ abstract class AbstractCompletionTest extends AbstractLspAnalysisServerTest
   @override
   void setUp() {
     super.setUp();
+
+    // Completion tests have incomplete code.
+    failTestOnErrorDiagnostic = false;
+
     setApplyEditSupport();
   }
 }
@@ -4776,6 +4780,10 @@ abstract class SnippetCompletionTest extends AbstractLspAnalysisServerTest
   @override
   void setUp() {
     super.setUp();
+
+    // Snippet completion tests have incomplete code.
+    failTestOnErrorDiagnostic = false;
+
     setCompletionItemSnippetSupport();
   }
 }

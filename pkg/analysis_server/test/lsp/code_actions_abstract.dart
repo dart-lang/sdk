@@ -141,6 +141,9 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
   void setUp() {
     super.setUp();
 
+    // Fix tests are likely to have diagnostics that need fixing.
+    failTestOnErrorDiagnostic = false;
+
     // Some defaults that most tests use. Tests can opt-out by overwriting these
     // before initializing.
     setApplyEditSupport();

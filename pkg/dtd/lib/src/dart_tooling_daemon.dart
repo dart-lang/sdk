@@ -10,7 +10,6 @@ import 'package:stream_channel/stream_channel.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 import '../dtd.dart';
-import 'file_system/constants.dart';
 
 typedef DTDServiceCallback = Future<Map<String, Object?>> Function(
   Parameters params,
@@ -300,6 +299,26 @@ class DartToolingDaemon {
       'getIDEWorkspaceRoots',
     );
     return IDEWorkspaceRoots.fromDTDResponse(result);
+  }
+
+  /// Gets the project roots contained within the current set of IDE workspace
+  /// roots.
+  ///
+  /// A project root is any directory that contains a 'pubspec.yaml' file. If
+  /// IDE workspace roots are not set, or if there are no project roots within
+  /// the IDE workspace roots, this method will return an empty [UriList].
+  ///
+  /// [depth] is the maximum depth that each IDE workspace root directory tree
+  /// will be searched for project roots.
+  Future<UriList> getProjectRoots({
+    int depth = defaultGetProjectRootsDepth,
+  }) async {
+    final result = await call(
+      kFileSystemServiceName,
+      'getProjectRoots',
+      params: {'depth': depth},
+    );
+    return UriList.fromDTDResponse(result);
   }
 }
 

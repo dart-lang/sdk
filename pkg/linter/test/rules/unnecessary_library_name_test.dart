@@ -25,6 +25,13 @@ library name;
     ]);
   }
 
+  test_namedLibrary_preUnnamedLibraries() async {
+    await assertNoDiagnostics(r'''
+// @dart = 2.14
+library name;
+''');
+  }
+
   test_unnamedLibrary() async {
     await assertNoDiagnostics(r'''
 library;

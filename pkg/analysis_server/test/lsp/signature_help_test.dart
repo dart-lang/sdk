@@ -150,6 +150,9 @@ final a = A(^);
   void setUp() {
     super.setUp();
 
+    // Signature help tests have incomplete signatures.
+    failTestOnErrorDiagnostic = false;
+
     setSignatureHelpContentFormat([MarkupKind.Markdown]);
   }
 

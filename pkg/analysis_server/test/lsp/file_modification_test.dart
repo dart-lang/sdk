@@ -52,8 +52,8 @@ class FileModificationTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_change_incremental() async {
-    final initialContent = '0123456789\n0123456789';
-    final expectedUpdatedContent = '0123456789\n01234   89';
+    final initialContent = '// 0123456789\n// 0123456789';
+    final expectedUpdatedContent = '// 0123456789\n// 01234   89';
 
     await initialize();
     await openFile(mainFileUri, initialContent);
@@ -61,8 +61,8 @@ class FileModificationTest extends AbstractLspAnalysisServerTest {
       // Replace line1:5-1:8 with spaces.
       TextDocumentContentChangeEvent.t1(TextDocumentContentChangeEvent1(
         range: Range(
-            start: Position(line: 1, character: 5),
-            end: Position(line: 1, character: 8)),
+            start: Position(line: 1, character: 8),
+            end: Position(line: 1, character: 11)),
         text: '   ',
       ))
     ]);
@@ -114,7 +114,7 @@ class FileModificationTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_open() async {
-    const testContent = 'CONTENT';
+    const testContent = '// CONTENT';
 
     await initialize();
     expect(_getOverlay(mainFilePath), isNull);

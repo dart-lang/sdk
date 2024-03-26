@@ -115,7 +115,7 @@ void f() {
 
   Future<void> test_onlySelf() => _testMarkedContent('''
 void f() {
-  /*[0*/prin^t/*0]*/();
+  /*[0*/prin^t/*0]*/('');
 }
 ''');
 
@@ -154,7 +154,7 @@ void f() {
 String /*[0*/foo/*0]*/ = 'bar';
 void f() {
   print(/*[1*/foo/*1]*/);
-  /*[2*/fo^o/*2]*/ = 2;
+  /*[2*/fo^o/*2]*/ = '';
 }
 ''');
 

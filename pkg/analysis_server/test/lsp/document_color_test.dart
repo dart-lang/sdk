@@ -212,6 +212,8 @@ var white = [!Color(0xFFFFFFFF)!];
   }
 
   Future<void> test_includesImportEdit() async {
+    failTestOnErrorDiagnostic = false; // Tests with missing import.
+
     // Create a file that doesn't already import the required library.
     content = '''
 const white = [!Colors.white!];

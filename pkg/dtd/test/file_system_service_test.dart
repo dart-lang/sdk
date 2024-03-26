@@ -19,10 +19,11 @@ void main() {
   late Directory tmpDirectory;
   late Directory fooDirectory;
   late Directory barDirectory;
+  late File fooPubspecFile;
+  late File barPubspecFile;
   late File aFile;
   late File bFile;
   late Directory cDir;
-  late File dFile;
   late File eFile;
   late File fFile;
   final aFileContents = 'These are the contents for aFile';
@@ -33,46 +34,48 @@ void main() {
   setUp(() async {
     tmpDirectory = await Directory.systemTemp.createTemp();
 
-    // Setup foo dir
-
-    fooDirectory = Directory(p.join(tmpDirectory.path, 'foo'));
     // Test directory structure:
     //
     // foo/
     //   a.txt
     //   b.txt
+    //   pubspec.yaml
     //   C/
     //     d.txt
+    //     pubspec.yaml
     // bar/
     //   e.txt
     //   f.txt
-    fooDirectory.createSync();
+    //   pubspec.yaml
 
-    aFile = File(p.join(fooDirectory.path, 'a.txt'));
-    bFile = File(p.join(fooDirectory.path, 'b.txt'));
-    cDir = Directory(p.join(fooDirectory.path, 'C'));
-    dFile = File(p.join(fooDirectory.path, 'C', 'd.txt'));
-    await aFile.writeAsString(aFileContents);
+    // Setup foo dir
+    fooDirectory = Directory(p.join(tmpDirectory.path, 'foo'))..createSync();
+    aFile = File(p.join(fooDirectory.path, 'a.txt'))
+      ..writeAsStringSync(aFileContents)
+      ..createSync();
+    bFile = File(p.join(fooDirectory.path, 'b.txt'))..createSync();
+    fooPubspecFile = File(p.join(fooDirectory.path, 'pubspec.yaml'))
+      ..createSync();
+    cDir = Directory(p.join(fooDirectory.path, 'C'))..createSync();
+    File(p.join(fooDirectory.path, 'C', 'd.txt')).createSync();
+    File(p.join(fooDirectory.path, 'C', 'pubspec.yaml')).createSync();
 
-    aFile.createSync();
-    bFile.createSync();
-    cDir.createSync();
-    dFile.createSync();
     fooDirContents.clear();
-    fooDirContents.addAll([aFile.uri, bFile.uri, cDir.uri]);
+    fooDirContents.addAll([aFile.uri, bFile.uri, fooPubspecFile.uri, cDir.uri]);
 
     // Setup bar dir
     barDirectory = Directory(p.join(tmpDirectory.path, 'bar'));
     barDirectory.createSync();
 
-    eFile = File(p.join(barDirectory.path, 'e.txt'));
-    fFile = File(p.join(barDirectory.path, 'f.txt'));
+    eFile = File(p.join(barDirectory.path, 'e.txt'))
+      ..writeAsStringSync(eFileContents)
+      ..createSync();
+    fFile = File(p.join(barDirectory.path, 'f.txt'))..createSync();
+    barPubspecFile = File(p.join(barDirectory.path, 'pubspec.yaml'))
+      ..createSync();
 
-    eFile.createSync();
-    eFile.writeAsStringSync(eFileContents);
-    fFile.createSync();
     barDirContents.clear();
-    barDirContents.addAll([eFile.uri, fFile.uri]);
+    barDirContents.addAll([eFile.uri, fFile.uri, barPubspecFile.uri]);
   });
 
   tearDown(() {
@@ -231,6 +234,76 @@ void main() {
             roots.ideWorkspaceRoots,
             containsAll([fooDirectory.uri, barDirectory.uri]),
           );
+        });
+      });
+
+      group('getProjectRoots', () {
+        test('with empty IDE workspace roots', () async {
+          final roots = await client.getIDEWorkspaceRoots();
+          expect(roots.ideWorkspaceRoots, isEmpty);
+
+          final projectRoots = await client.getProjectRoots();
+          expect(projectRoots.uris, isEmpty);
+        });
+
+        test('with a single IDE workspace root', () async {
+          await client.setIDEWorkspaceRoots(dtdSecret, [fooDirectory.uri]);
+          final projectRoots = await client.getProjectRoots();
+          final expected = [fooDirectory.uri, cDir.uri];
+          expect(projectRoots.uris, containsAll(expected));
+          expect(projectRoots.uris?.length, expected.length);
+        });
+
+        test('with a multiple IDE workspace roots', () async {
+          await client.setIDEWorkspaceRoots(
+            dtdSecret,
+            [fooDirectory.uri, barDirectory.uri],
+          );
+          final projectRoots = await client.getProjectRoots();
+          final expected = [fooDirectory.uri, cDir.uri, barDirectory.uri];
+          expect(projectRoots.uris, containsAll(expected));
+          expect(projectRoots.uris?.length, expected.length);
+        });
+
+        test('searches up to a specified depth', () async {
+          await client.setIDEWorkspaceRoots(
+            dtdSecret,
+            [fooDirectory.uri, barDirectory.uri],
+          );
+          final projectRoots = await client.getProjectRoots(depth: 1);
+          final expected = [fooDirectory.uri, barDirectory.uri];
+          expect(projectRoots.uris, containsAll(expected));
+          expect(projectRoots.uris?.length, expected.length);
+        });
+
+        test('does not follow symlinks', () async {
+          // Add a symlink under [fooDirectory] that points to the
+          // [tmpDirectory]. Since the [tmpDirectory] contains [fooDirectory]
+          // and [barDirectory], [client.getProjectRoots] would contain
+          // duplicates of each project root if the traversal followed symlinks.
+          final symlinkDir = Link(p.join(fooDirectory.path, 'SomeDir'))
+            ..createSync(tmpDirectory.path, recursive: true);
+          final extraRoot = Directory(p.join(tmpDirectory.path, 'Extra'))
+            ..createSync();
+          final symlinkFile = Link(p.join(extraRoot.path, 'pubspec.yaml'))
+            ..createSync(
+              p.join(tmpDirectory.path, 'pubspec.yaml'),
+              recursive: true,
+            );
+
+          await client.setIDEWorkspaceRoots(
+            dtdSecret,
+            [fooDirectory.uri, barDirectory.uri, extraRoot.uri],
+          );
+
+          final projectRoots = await client.getProjectRoots();
+          final expectedUris = [fooDirectory.uri, cDir.uri, barDirectory.uri];
+          expect(projectRoots.uris, containsAll(expectedUris));
+          expect(projectRoots.uris?.length, expectedUris.length);
+
+          symlinkDir.deleteSync();
+          symlinkFile.deleteSync();
+          extraRoot.deleteSync();
         });
       });
 

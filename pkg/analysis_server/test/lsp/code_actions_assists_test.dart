@@ -37,13 +37,13 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
     const content = '''
 import '[!dart:async!]';
 
-Future f;
+Future? f;
 ''';
 
     const expectedContent = '''
 import 'dart:async' show Future;
 
-Future f;
+Future? f;
 ''';
     await verifyActionEdits(
       content,
@@ -58,13 +58,13 @@ Future f;
     const content = '''
 import '[!dart:async!]';
 
-Future f;
+Future? f;
 ''';
 
     const expectedContent = '''
 import 'dart:async' show Future;
 
-Future f;
+Future? f;
 ''';
 
     setDocumentChangesSupport(false);
@@ -154,7 +154,7 @@ Widget build() {
     const content = '''
 import '[!dart:async!]';
 
-Future f;
+Future? f;
 ''';
 
     final action = await expectAction(

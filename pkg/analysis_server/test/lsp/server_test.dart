@@ -93,6 +93,8 @@ class ServerTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_analysisRoot_existsAndDoesNotExist() async {
+    failTestOnErrorDiagnostic = false;
+
     final notExistingPath = convertPath('/does/not/exist');
     resourceProvider.emitPathNotFoundExceptionsForPaths.add(notExistingPath);
 
