@@ -10406,9 +10406,9 @@ const MessageCode messageJsInteropExternalExtensionMemberOnTypeInvalid =
     const MessageCode(
   "JsInteropExternalExtensionMemberOnTypeInvalid",
   problemMessage:
-      r"""JS interop or Native class required for 'external' extension members.""",
+      r"""JS interop type or @Native type from an SDK web library required for 'external' extension members.""",
   correctionMessage:
-      r"""Try adding a JS interop annotation to the on type class of the extension.""",
+      r"""Try making the on-type a JS interop type or an @Native SDK web library type.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

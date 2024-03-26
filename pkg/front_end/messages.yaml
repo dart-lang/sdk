@@ -5870,8 +5870,8 @@ JsInteropExtensionTypeUsedWithWrongJsAnnotation:
   correctionMessage: "Try using the '@JS' annotation from 'dart:js_interop' annotation on this extension type instead."
 
 JsInteropExternalExtensionMemberOnTypeInvalid:
-  problemMessage: "JS interop or Native class required for 'external' extension members."
-  correctionMessage: "Try adding a JS interop annotation to the on type class of the extension."
+  problemMessage: "JS interop type or @Native type from an SDK web library required for 'external' extension members."
+  correctionMessage: "Try making the on-type a JS interop type or an @Native SDK web library type."
 
 JsInteropExternalExtensionMemberWithStaticDisallowed:
   problemMessage: "External extension members with the keyword 'static' on JS interop and @Native types are disallowed."
