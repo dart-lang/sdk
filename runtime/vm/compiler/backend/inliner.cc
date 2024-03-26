@@ -2183,8 +2183,8 @@ bool PolymorphicInliner::TryInlineRecognizedMethod(intptr_t receiver_cid,
     redefinition->InsertAfter(entry);
     InlineExitCollector* exit_collector =
         new (Z) InlineExitCollector(owner_->caller_graph(), call_);
-    ReturnInstr* return_result = new (Z)
-        ReturnInstr(call_->source(), new (Z) Value(result), DeoptId::kNone);
+    DartReturnInstr* return_result = new (Z)
+        DartReturnInstr(call_->source(), new (Z) Value(result), DeoptId::kNone);
     owner_->caller_graph()->AppendTo(
         last, return_result,
         call_->env(),  // Return can become deoptimization target.
