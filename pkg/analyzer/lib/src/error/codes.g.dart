@@ -214,6 +214,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  static const CompileTimeErrorCode AUGMENTATION_WITHOUT_DECLARATION =
+      CompileTimeErrorCode(
+    'AUGMENTATION_WITHOUT_DECLARATION',
+    "The declaration being augmented doesn't exist.",
+    correctionMessage:
+        "Try changing the augmentation to match an existing declaration.",
+  );
+
   static const CompileTimeErrorCode AUGMENTATION_WITHOUT_IMPORT =
       CompileTimeErrorCode(
     'AUGMENTATION_WITHOUT_IMPORT',
