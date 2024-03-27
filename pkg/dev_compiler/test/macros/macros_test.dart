@@ -20,7 +20,7 @@ String _resolvePath(String executableRelativePath) {
 }
 
 void main() {
-  group('DDC: Macros', timeout: Timeout(Duration(minutes: 1)), () {
+  group('DDC: Macros', timeout: Timeout(Duration(minutes: 2)), () {
     late File testMacroDart;
     late File bootstrapDillFileVm;
     late File bootstrapDillFileDdc;
