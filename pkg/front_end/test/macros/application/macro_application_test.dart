@@ -4,8 +4,8 @@
 
 import 'dart:io' show Directory, File, Platform;
 
-import 'package:_fe_analyzer_shared/src/macros/api.dart' hide Library;
-import 'package:_fe_analyzer_shared/src/macros/executor.dart';
+import 'package:macros/macros.dart' hide Library;
+import 'package:macros/src/executor.dart';
 import 'package:_fe_analyzer_shared/src/testing/id.dart'
     show ActualData, ClassId, Id, LibraryId;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';

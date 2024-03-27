@@ -12,8 +12,14 @@
       "languageVersion": "2.12"
     },
     {
-      "name": "_fe_analyzer_shared",
-      "rootUri": "../../../../../_fe_analyzer_shared/lib/"
+      "name": "macros",
+      "rootUri": "../../../../../macros/",
+      "packageUri": "lib/"
+    },
+    {
+      "name": "_macros",
+      "rootUri": "../../../../../_macros/",
+      "packageUri": "lib/"
     }
   ]
 }

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /*library: 
- compilationSequence=[main.dart|package:_fe_analyzer_shared/src/macros/api.dart],
+ compilationSequence=[main.dart|package:_macros/src/api.dart|package:macros/macros.dart],
  declaredMacros=[
   Extends,
   ExtendsAlias,
@@ -16,7 +16,7 @@
  macrosAreAvailable
 */
 
-import 'package:_fe_analyzer_shared/src/macros/api.dart';
+import 'package:macros/macros.dart';
 
 macro class Extends extends /*error: error=InterfaceClassExtendedOutsideOfLibrary*/Macro {}
 

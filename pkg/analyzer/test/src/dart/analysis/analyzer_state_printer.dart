@@ -15,10 +15,8 @@ import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 
 class AnalyzerStatePrinter {
-  static const String _macroApiUriStr =
-      'package:_fe_analyzer_shared/src/macros/api.dart';
-
-  static const String _macroApiUriRewrite = 'package:macro/api.dart';
+  static const String _macroUriStr = 'package:macros/macros.dart';
+  static const String _macroImplApiUriStr = 'package:_macros/src/api.dart';
 
   final MemoryByteStore byteStore;
   final UnlinkedUnitStoreImpl unlinkedUnitStore;
@@ -67,13 +65,16 @@ class AnalyzerStatePrinter {
       if (isSdkLibrary) {
         if (cycle.libraries.any((e) => e.file.uriStr == 'dart:core')) {
           return 'dart:core';
+        } else if (cycle.libraries
+            .any((e) => e.file.uriStr == 'dart:collection')) {
+          return 'dart:collection';
         } else {
           throw UnimplementedError('$cycle');
         }
       }
     }
-    if (cycle.libraries.any((e) => e.file.uriStr == _macroApiUriStr)) {
-      return _macroApiUriRewrite;
+    if (cycle.libraries.any((e) => e.file.uriStr == _macroUriStr)) {
+      return _macroUriStr;
     }
     return idProvider.libraryCycle(cycle);
   }
@@ -573,8 +574,8 @@ class AnalyzerStatePrinter {
       if (configuration.omitSdkFiles && file.uri.isScheme('dart')) {
         sink.write(' ${file.uri}');
       }
-      if (file.uriStr == _macroApiUriStr) {
-        sink.write(' $_macroApiUriRewrite');
+      if (file.uriStr == _macroUriStr) {
+        sink.write(' $_macroUriStr');
       }
 
       if (import.isSyntheticDartCore) {
@@ -687,7 +688,7 @@ class AnalyzerStatePrinter {
       if (configuration.omitSdkFiles && uri.isScheme('dart')) {
         continue;
       }
-      if ('$uri' == _macroApiUriStr) {
+      if (const {_macroUriStr, _macroImplApiUriStr}.contains('$uri')) {
         continue;
       }
       uriStrList.add('$uri');
@@ -705,7 +706,9 @@ class AnalyzerStatePrinter {
   }
 
   static bool _isMacroApiUri(Uri uri) {
-    return '$uri'.startsWith('package:_fe_analyzer_shared');
+    final uriStr = '$uri';
+    return uriStr.startsWith('package:macros/') ||
+        uriStr.startsWith('package:_macros/');
   }
 }
 

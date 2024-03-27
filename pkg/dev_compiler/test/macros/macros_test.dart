@@ -4,11 +4,11 @@
 
 import 'dart:io';
 
-import 'package:_fe_analyzer_shared/src/macros/bootstrap.dart';
-import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart';
 import 'package:bazel_worker/bazel_worker.dart';
 import 'package:dev_compiler/ddc.dart' as ddc;
 import 'package:frontend_server/compute_kernel.dart';
+import 'package:macros/src/bootstrap.dart';
+import 'package:macros/src/executor/serialization.dart';
 import 'package:test/test.dart';
 
 Directory tmp = Directory.systemTemp.createTempSync('ddc_worker_test');
@@ -39,7 +39,7 @@ void main() {
       testMacroDart = file('lib/test_macro.dart')
         ..createSync(recursive: true)
         ..writeAsStringSync('''
-import 'package:_fe_analyzer_shared/src/macros/api.dart';
+import 'package:macros/macros.dart';
 
 macro class TestMacro implements ClassDeclarationsMacro {
   const TestMacro();
@@ -63,8 +63,13 @@ macro class TestMacro implements ClassDeclarationsMacro {
         "packageUri": "lib/"
       },
       {
-        "name": "_fe_analyzer_shared",
-        "rootUri": "${Platform.script.resolve('../../../_fe_analyzer_shared')}",
+        "name": "_macros",
+        "rootUri": "${Platform.script.resolve('../../../_macros')}",
+        "packageUri": "lib/"
+      },
+      {
+        "name": "macros",
+        "rootUri": "${Platform.script.resolve('../../../macros')}",
         "packageUri": "lib/"
       },
       {

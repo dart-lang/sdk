@@ -7,7 +7,7 @@
 // ignore_for_file: deprecated_member_use_from_same_package
 
 // There is no public API exposed yet, the in-progress API lives here.
-import 'package:_fe_analyzer_shared/src/macros/api.dart';
+import 'package:macros/macros.dart';
 
 final _dartCore = Uri.parse('dart:core');
 
@@ -639,7 +639,8 @@ extension on FieldDeclaration {
     for (var annotation in metadata) {
       if (annotation is! ConstructorMetadataAnnotation) continue;
       if (annotation.type.identifier.name != 'JsonKey') continue;
-      var declaration = await builder.typeDeclarationOf(annotation.type.identifier);
+      var declaration =
+          await builder.typeDeclarationOf(annotation.type.identifier);
       if (declaration.library.uri != jsonKeyUri) continue;
 
       if (jsonKey != null) {

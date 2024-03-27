@@ -2,10 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart'
-    show SerializationMode;
 import 'package:kernel/kernel.dart' show Component, CanonicalName, Library;
 import 'package:kernel/target/targets.dart' show Target;
+import 'package:macros/src/executor/serialization.dart' show SerializationMode;
 
 import '../api_prototype/compiler_options.dart' show CompilerOptions;
 import '../api_prototype/experimental_flags.dart' show ExperimentalFlag;

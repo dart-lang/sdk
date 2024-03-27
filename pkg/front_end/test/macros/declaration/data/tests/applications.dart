@@ -4,7 +4,7 @@
 
 /*library: 
  compilationSequence=[
-  package:_fe_analyzer_shared/src/macros/api.dart|package:macro/macro.dart,
+  package:_macros/src/api.dart|package:macro/macro.dart|package:macros/macros.dart,
   main.dart],
  macroInstanceIds=[
   package:macro/macro.dart/Macro1/(),
@@ -27,6 +27,7 @@
  macrosAreAvailable,
  neededPrecompilations=[package:macro/macro.dart=Macro1(named/new)|Macro2(named/new)|Macro3(named/new)|Macro4(new)]
 */
+
 @Macro2.named()
 @prefix.Macro2()
 @prefix.Macro3.named()

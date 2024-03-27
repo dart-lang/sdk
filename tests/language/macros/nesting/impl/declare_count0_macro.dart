@@ -1,4 +1,4 @@
-import 'package:_fe_analyzer_shared/src/macros/api.dart';
+import 'package:macros/macros.dart';
 
 macro class DeclareCount0 implements ClassDeclarationsMacro {
   const DeclareCount0();

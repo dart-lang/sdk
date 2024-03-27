@@ -12,8 +12,7 @@ library;
 import 'dart:async';
 import 'dart:io';
 
-import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart'
-    show SerializationMode;
+import 'package:macros/src/executor/serialization.dart' show SerializationMode;
 import 'package:args/args.dart';
 import 'package:build_integration/file_system/multi_root.dart';
 import 'package:compiler/src/kernel/dart2js_target.dart';

@@ -94,12 +94,15 @@ Future<bool> main() async {
   Set<Uri> vmModularUris = new Set<Uri>();
   Set<Uri> feAnalyzerSharedUris = new Set<Uri>();
   Set<Uri> dartPlatformUris = new Set<Uri>();
+  Set<Uri> macrosUris = new Set<Uri>();
   Uri kernelUri = repoDir.resolve("pkg/kernel/");
   Uri vmModularUri = repoDir.resolve("pkg/vm/lib/modular/");
   Uri feAnalyzerSharedUri = repoDir.resolve("pkg/_fe_analyzer_shared/");
   Uri platformUri1 = repoDir.resolve("sdk/lib/");
   Uri platformUri2 = repoDir.resolve("runtime/lib/");
   Uri platformUri3 = repoDir.resolve("runtime/bin/");
+  Uri macrosUri = repoDir.resolve("pkg/macros");
+  Uri _macrosUri = repoDir.resolve("pkg/_macros");
   for (Uri uri in result) {
     if (uri.toString().startsWith(frontendLibUri.toString())) {
       frontEndUris.add(uri);
@@ -114,6 +117,9 @@ Future<bool> main() async {
         uri.toString().startsWith(platformUri2.toString()) ||
         uri.toString().startsWith(platformUri3.toString())) {
       dartPlatformUris.add(uri);
+    } else if (uri.toString().startsWith(_macrosUri.toString()) ||
+        uri.toString().startsWith(macrosUri.toString())) {
+      macrosUris.add(uri);
     } else if (uri.toString().endsWith(".dart")) {
       otherDartUris.add(uri);
     } else {

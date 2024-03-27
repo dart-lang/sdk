@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/macros/api.dart' as macro;
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary2/macro_type_location.dart';
+import 'package:macros/macros.dart' as macro;
 
 /// Base for all macro related diagnostics.
 sealed class AnalyzerMacroDiagnostic {}

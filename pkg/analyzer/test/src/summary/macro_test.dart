@@ -5,9 +5,6 @@
 import 'dart:io' as io;
 import 'dart:typed_data';
 
-import 'package:_fe_analyzer_shared/src/macros/bootstrap.dart' as macro;
-import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart'
-    as macro;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
@@ -18,8 +15,9 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary2/macro.dart';
 import 'package:analyzer/src/summary2/macro_application.dart';
 import 'package:analyzer/src/summary2/macro_application_error.dart';
-import 'package:analyzer/src/test_utilities/mock_packages.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
+import 'package:macros/src/bootstrap.dart' as macro;
+import 'package:macros/src/executor/serialization.dart' as macro;
 import 'package:path/path.dart' as package_path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -1239,7 +1237,7 @@ foo: String aaabbbccc
 
     newFile('$testPackageLibPath/arguments_text.dart', '''
 import 'dart:async';
-import 'package:_fe_analyzer_shared/src/macros/api.dart';
+import 'package:macros/macros.dart';
 
 macro class ArgumentsTextMacro implements ClassTypesMacro {
 ${fields.entries.map((e) => '  final ${e.value} ${e.key};').join('\n')}
@@ -5668,7 +5666,7 @@ void _starter() {}
 abstract class MacroElementsTest extends MacroElementsBaseTest {
   test_macroApplicationErrors_typesPhase_compileTimeError() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import 'package:_fe_analyzer_shared/src/macros/api.dart';
+import 'package:macros/macros.dart';
 
 macro class MyMacro implements ClassTypesMacro {
   const MyMacro();
@@ -12609,7 +12607,7 @@ class B {}
     }
 
     const macroCode = r'''
-import 'package:_fe_analyzer_shared/src/macros/api.dart';
+import 'package:macros/macros.dart';
 
 macro class MyMacro implements ClassTypesMacro {
   const MyMacro();
@@ -12649,10 +12647,8 @@ macro class MyMacro implements ClassTypesMacro {
       final testMain = testBin.newFile('main.dart');
       testMain.writeAsStringSync(macroMainContent);
 
-      final metaDir = compileRoot.getChildAssumingFolder('meta');
-      MockPackages.addMetaPackageFiles(metaDir);
-
-      MacrosEnvironment.instance.packageSharedFolder.copyTo(compileRoot);
+      MacrosEnvironment.instance.privateMacrosFolder.copyTo(compileRoot);
+      MacrosEnvironment.instance.publicMacrosFolder.copyTo(compileRoot);
 
       compileRoot
           .newFile('.dart_tool/package_config.json')
@@ -12666,13 +12662,13 @@ macro class MyMacro implements ClassTypesMacro {
       "packageUri": "lib/"
     },
     {
-      "name": "_fe_analyzer_shared",
-      "rootUri": "../_fe_analyzer_shared",
+      "name": "_macros",
+      "rootUri": "../_macros",
       "packageUri": "lib/"
     },
     {
-      "name": "meta",
-      "rootUri": "../meta",
+      "name": "macros",
+      "rootUri": "../macros",
       "packageUri": "lib/"
     }
   ]
@@ -12710,7 +12706,8 @@ macro class MyMacro implements ClassTypesMacro {
       final analysisDriver = driverFor(a);
       aBundleBytes = await analysisDriver.buildPackageBundle(
         uriList: [
-          Uri.parse('package:_fe_analyzer_shared/src/macros/api.dart'),
+          Uri.parse('package:_macros/src/api.dart'),
+          Uri.parse('package:macros/macros.dart'),
           Uri.parse('package:test/a.dart'),
         ],
       );
@@ -12789,7 +12786,7 @@ class A {}
 
     newFile('$testPackageLibPath/b.dart', r'''
 import 'dart:async';
-import 'package:_fe_analyzer_shared/src/macros/api.dart';
+import 'package:macros/macros.dart';
 import 'a.dart';
 
 macro class MyMacro implements ClassTypesMacro {
@@ -12867,7 +12864,7 @@ files
       id: file_0
       kind: library_0
         libraryImports
-          library_11 dart:core synthetic
+          library_12 dart:core synthetic
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -12881,12 +12878,12 @@ files
       id: file_1
       kind: library_1
         libraryImports
-          library_13 dart:async
-          library_4 package:macro/api.dart
+          library_14 dart:async
+          library_11 package:macros/macros.dart
           library_0
-          library_11 dart:core synthetic
+          library_12 dart:core synthetic
         cycle_1
-          dependencies: cycle_0 dart:core package:macro/api.dart
+          dependencies: cycle_0 dart:core package:macros/macros.dart
           libraries: library_1
           apiSignature_1
           users: cycle_2
@@ -12899,7 +12896,7 @@ files
       kind: library_2
         libraryImports
           library_1
-          library_11 dart:core synthetic
+          library_12 dart:core synthetic
         augmentationImports
           augmentation_3
         cycle_2
@@ -12926,7 +12923,7 @@ class MyClass {
         library: library_2
         libraryImports
           library_0
-          library_11 dart:core synthetic
+          library_12 dart:core synthetic
       referencingFiles: file_2
       unlinkedKey: k03
 libraryCycles
@@ -12963,7 +12960,7 @@ files
       id: file_0
       kind: library_0
         libraryImports
-          library_11 dart:core synthetic
+          library_12 dart:core synthetic
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -12977,28 +12974,28 @@ files
       id: file_1
       kind: library_1
         libraryImports
-          library_13 dart:async
-          library_4 package:macro/api.dart
+          library_14 dart:async
+          library_11 package:macros/macros.dart
           library_0
-          library_11 dart:core synthetic
+          library_12 dart:core synthetic
         cycle_1
-          dependencies: cycle_0 dart:core package:macro/api.dart
+          dependencies: cycle_0 dart:core package:macros/macros.dart
           libraries: library_1
           apiSignature_1
-          users: cycle_6
+          users: cycle_7
       referencingFiles: file_2
       unlinkedKey: k01
   /home/test/lib/test.dart
     uri: package:test/test.dart
     current
       id: file_2
-      kind: library_17
+      kind: library_18
         libraryImports
           library_1
-          library_11 dart:core synthetic
-        cycle_6
+          library_12 dart:core synthetic
+        cycle_7
           dependencies: cycle_1 dart:core
-          libraries: library_17
+          libraries: library_18
           apiSignature_2
       unlinkedKey: k02
   /home/test/lib/test.macro.dart
@@ -13019,7 +13016,7 @@ class MyClass {
         uriFile: file_2
         libraryImports
           library_0
-          library_11 dart:core synthetic
+          library_12 dart:core synthetic
       referencingFiles: file_2
       unlinkedKey: k03
 libraryCycles
@@ -13050,7 +13047,7 @@ files
       id: file_0
       kind: library_0
         libraryImports
-          library_11 dart:core synthetic
+          library_12 dart:core synthetic
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -13064,12 +13061,12 @@ files
       id: file_1
       kind: library_1
         libraryImports
-          library_13 dart:async
-          library_4 package:macro/api.dart
+          library_14 dart:async
+          library_11 package:macros/macros.dart
           library_0
-          library_11 dart:core synthetic
+          library_12 dart:core synthetic
         cycle_1
-          dependencies: cycle_0 dart:core package:macro/api.dart
+          dependencies: cycle_0 dart:core package:macros/macros.dart
           libraries: library_1
           apiSignature_1
           users: cycle_2
@@ -13082,7 +13079,7 @@ files
       kind: library_2
         libraryImports
           library_1
-          library_11 dart:core synthetic
+          library_12 dart:core synthetic
         augmentationImports
           augmentation_3
         cycle_2
@@ -13109,7 +13106,7 @@ class MyClass {
         library: library_2
         libraryImports
           library_0
-          library_11 dart:core synthetic
+          library_12 dart:core synthetic
       referencingFiles: file_2
       unlinkedKey: k03
 libraryCycles
@@ -13143,7 +13140,7 @@ elementFactory
     useEmptyByteStore();
 
     newFile('$testPackageLibPath/a.dart', r'''
-import 'package:_fe_analyzer_shared/src/macros/api.dart';
+import 'package:macros/macros.dart';
 
 macro class AddClassA implements ClassTypesMacro {
   const AddClassA();
@@ -13228,10 +13225,10 @@ files
       id: file_0
       kind: library_0
         libraryImports
-          library_3 package:macro/api.dart
-          library_10 dart:core synthetic
+          library_10 package:macros/macros.dart
+          library_11 dart:core synthetic
         cycle_0
-          dependencies: dart:core package:macro/api.dart
+          dependencies: dart:core package:macros/macros.dart
           libraries: library_0
           apiSignature_0
           users: cycle_1
@@ -13244,7 +13241,7 @@ files
       kind: library_1
         libraryImports
           library_0
-          library_10 dart:core synthetic
+          library_11 dart:core synthetic
         augmentationImports
           augmentation_2
         cycle_1
@@ -13273,7 +13270,7 @@ class B {}
         library: library_1
         libraryImports
           library_0
-          library_10 dart:core synthetic
+          library_11 dart:core synthetic
       referencingFiles: file_1
       unlinkedKey: k02
 libraryCycles
@@ -13301,10 +13298,10 @@ files
       id: file_0
       kind: library_0
         libraryImports
-          library_3 package:macro/api.dart
-          library_10 dart:core synthetic
+          library_10 package:macros/macros.dart
+          library_11 dart:core synthetic
         cycle_0
-          dependencies: dart:core package:macro/api.dart
+          dependencies: dart:core package:macros/macros.dart
           libraries: library_0
           apiSignature_0
           users: cycle_1
@@ -13317,7 +13314,7 @@ files
       kind: library_1
         libraryImports
           library_0
-          library_10 dart:core synthetic
+          library_11 dart:core synthetic
         augmentationImports
           augmentation_2
         cycle_1
@@ -13346,7 +13343,7 @@ class B {}
         library: library_1
         libraryImports
           library_0
-          library_10 dart:core synthetic
+          library_11 dart:core synthetic
       referencingFiles: file_1
       unlinkedKey: k02
 libraryCycles
@@ -13396,10 +13393,10 @@ files
       id: file_0
       kind: library_0
         libraryImports
-          library_3 package:macro/api.dart
-          library_10 dart:core synthetic
+          library_10 package:macros/macros.dart
+          library_11 dart:core synthetic
         cycle_0
-          dependencies: dart:core package:macro/api.dart
+          dependencies: dart:core package:macros/macros.dart
           libraries: library_0
           apiSignature_0
           users: cycle_1
@@ -13412,7 +13409,7 @@ files
       kind: library_1
         libraryImports
           library_0
-          library_10 dart:core synthetic
+          library_11 dart:core synthetic
         augmentationImports
           augmentation_2
         cycle_1
@@ -13428,7 +13425,7 @@ files
         augmented: library_1
         library: library_1
         libraryImports
-          library_10 dart:core synthetic
+          library_11 dart:core synthetic
       referencingFiles: file_1
       unlinkedKey: k02
 libraryCycles
@@ -13474,10 +13471,10 @@ files
       id: file_0
       kind: library_0
         libraryImports
-          library_3 package:macro/api.dart
-          library_10 dart:core synthetic
+          library_10 package:macros/macros.dart
+          library_11 dart:core synthetic
         cycle_0
-          dependencies: dart:core package:macro/api.dart
+          dependencies: dart:core package:macros/macros.dart
           libraries: library_0
           apiSignature_0
       unlinkedKey: k00
@@ -13485,12 +13482,12 @@ files
     uri: package:test/test.dart
     current
       id: file_1
-      kind: library_16
+      kind: library_17
         libraryImports
-          library_10 dart:core synthetic
-        cycle_5
+          library_11 dart:core synthetic
+        cycle_6
           dependencies: dart:core
-          libraries: library_16
+          libraries: library_17
           apiSignature_2
       unlinkedKey: k05
   /home/test/lib/test.macro.dart
@@ -13500,7 +13497,7 @@ files
       kind: augmentation_2
         uriFile: file_1
         libraryImports
-          library_10 dart:core synthetic
+          library_11 dart:core synthetic
       referencingFiles: file_1
       unlinkedKey: k02
 libraryCycles
@@ -13510,7 +13507,7 @@ libraryCycles
     get: []
     put: [k03]
   /home/test/lib/test.dart
-    current: cycle_5
+    current: cycle_6
       key: k06
     get: []
     put: [k04, k06]
@@ -13549,28 +13546,28 @@ files
       id: file_0
       kind: library_0
         libraryImports
-          library_3 package:macro/api.dart
-          library_10 dart:core synthetic
+          library_10 package:macros/macros.dart
+          library_11 dart:core synthetic
         cycle_0
-          dependencies: dart:core package:macro/api.dart
+          dependencies: dart:core package:macros/macros.dart
           libraries: library_0
           apiSignature_0
-          users: cycle_6
+          users: cycle_7
       referencingFiles: file_1
       unlinkedKey: k00
   /home/test/lib/test.dart
     uri: package:test/test.dart
     current
       id: file_1
-      kind: library_17
+      kind: library_18
         libraryImports
           library_0
-          library_10 dart:core synthetic
+          library_11 dart:core synthetic
         augmentationImports
           augmentation_2
-        cycle_6
+        cycle_7
           dependencies: cycle_0 dart:core
-          libraries: library_17
+          libraries: library_18
           apiSignature_1
       unlinkedKey: k01
   /home/test/lib/test.macro.dart
@@ -13578,10 +13575,10 @@ files
     current
       id: file_2
       kind: augmentation_2
-        augmented: library_17
-        library: library_17
+        augmented: library_18
+        library: library_18
         libraryImports
-          library_10 dart:core synthetic
+          library_11 dart:core synthetic
       referencingFiles: file_1
       unlinkedKey: k02
 libraryCycles
@@ -13591,7 +13588,7 @@ libraryCycles
     get: []
     put: [k03]
   /home/test/lib/test.dart
-    current: cycle_6
+    current: cycle_7
       key: k04
     get: [k04]
     put: [k04, k06]
@@ -13630,10 +13627,10 @@ files
       id: file_0
       kind: library_0
         libraryImports
-          library_3 package:macro/api.dart
-          library_10 dart:core synthetic
+          library_10 package:macros/macros.dart
+          library_11 dart:core synthetic
         cycle_0
-          dependencies: dart:core package:macro/api.dart
+          dependencies: dart:core package:macros/macros.dart
           libraries: library_0
           apiSignature_0
           users: cycle_1
@@ -13646,7 +13643,7 @@ files
       kind: library_1
         libraryImports
           library_0
-          library_10 dart:core synthetic
+          library_11 dart:core synthetic
         augmentationImports
           augmentation_2
         cycle_1
@@ -13662,7 +13659,7 @@ files
         augmented: library_1
         library: library_1
         libraryImports
-          library_10 dart:core synthetic
+          library_11 dart:core synthetic
       referencingFiles: file_1
       unlinkedKey: k02
 libraryCycles
@@ -13712,39 +13709,39 @@ files
       id: file_0
       kind: library_0
         libraryImports
-          library_3 package:macro/api.dart
-          library_10 dart:core synthetic
+          library_10 package:macros/macros.dart
+          library_11 dart:core synthetic
         cycle_0
-          dependencies: dart:core package:macro/api.dart
+          dependencies: dart:core package:macros/macros.dart
           libraries: library_0
           apiSignature_0
-          users: cycle_5
+          users: cycle_6
       referencingFiles: file_1
       unlinkedKey: k00
   /home/test/lib/test.dart
     uri: package:test/test.dart
     current
       id: file_1
-      kind: library_16
+      kind: library_17
         libraryImports
           library_0
-          library_10 dart:core synthetic
+          library_11 dart:core synthetic
         augmentationImports
-          augmentation_17
-        cycle_5
+          augmentation_18
+        cycle_6
           dependencies: cycle_0 dart:core
-          libraries: library_16
+          libraries: library_17
           apiSignature_2
       unlinkedKey: k05
   /home/test/lib/test.macro.dart
     uri: package:test/test.macro.dart
     current
       id: file_2
-      kind: augmentation_17
-        augmented: library_16
-        library: library_16
+      kind: augmentation_18
+        augmented: library_17
+        library: library_17
         libraryImports
-          library_10 dart:core synthetic
+          library_11 dart:core synthetic
       referencingFiles: file_1
       unlinkedKey: k06
 libraryCycles
@@ -13754,7 +13751,7 @@ libraryCycles
     get: []
     put: [k03]
   /home/test/lib/test.dart
-    current: cycle_5
+    current: cycle_6
       key: k07
     get: []
     put: [k04, k07]
@@ -13799,10 +13796,10 @@ files
       id: file_0
       kind: library_0
         libraryImports
-          library_3 package:macro/api.dart
-          library_10 dart:core synthetic
+          library_10 package:macros/macros.dart
+          library_11 dart:core synthetic
         cycle_0
-          dependencies: dart:core package:macro/api.dart
+          dependencies: dart:core package:macros/macros.dart
           libraries: library_0
           apiSignature_0
           users: cycle_1
@@ -13815,7 +13812,7 @@ files
       kind: library_1
         libraryImports
           library_0
-          library_10 dart:core synthetic
+          library_11 dart:core synthetic
         augmentationImports
           augmentation_2
         cycle_1
@@ -13831,7 +13828,7 @@ files
         augmented: library_1
         library: library_1
         libraryImports
-          library_10 dart:core synthetic
+          library_11 dart:core synthetic
       referencingFiles: file_1
       unlinkedKey: k02
 libraryCycles
@@ -13872,26 +13869,26 @@ files
       id: file_0
       kind: library_0
         libraryImports
-          library_3 package:macro/api.dart
-          library_10 dart:core synthetic
+          library_10 package:macros/macros.dart
+          library_11 dart:core synthetic
         cycle_0
-          dependencies: dart:core package:macro/api.dart
+          dependencies: dart:core package:macros/macros.dart
           libraries: library_0
           apiSignature_0
-          users: cycle_5
+          users: cycle_6
       referencingFiles: file_1
       unlinkedKey: k00
   /home/test/lib/test.dart
     uri: package:test/test.dart
     current
       id: file_1
-      kind: library_16
+      kind: library_17
         libraryImports
           library_0
-          library_10 dart:core synthetic
-        cycle_5
+          library_11 dart:core synthetic
+        cycle_6
           dependencies: cycle_0 dart:core
-          libraries: library_16
+          libraries: library_17
           apiSignature_1
       unlinkedKey: k01
   /home/test/lib/test.macro.dart
@@ -13901,7 +13898,7 @@ files
       kind: augmentation_2
         uriFile: file_1
         libraryImports
-          library_10 dart:core synthetic
+          library_11 dart:core synthetic
       referencingFiles: file_1
       unlinkedKey: k02
 libraryCycles
@@ -13940,28 +13937,28 @@ files
       id: file_0
       kind: library_0
         libraryImports
-          library_3 package:macro/api.dart
-          library_10 dart:core synthetic
+          library_10 package:macros/macros.dart
+          library_11 dart:core synthetic
         cycle_0
-          dependencies: dart:core package:macro/api.dart
+          dependencies: dart:core package:macros/macros.dart
           libraries: library_0
           apiSignature_0
-          users: cycle_5
+          users: cycle_6
       referencingFiles: file_1
       unlinkedKey: k00
   /home/test/lib/test.dart
     uri: package:test/test.dart
     current
       id: file_1
-      kind: library_16
+      kind: library_17
         libraryImports
           library_0
-          library_10 dart:core synthetic
+          library_11 dart:core synthetic
         augmentationImports
           augmentation_2
-        cycle_5
+        cycle_6
           dependencies: cycle_0 dart:core
-          libraries: library_16
+          libraries: library_17
           apiSignature_1
       unlinkedKey: k01
   /home/test/lib/test.macro.dart
@@ -13969,10 +13966,10 @@ files
     current
       id: file_2
       kind: augmentation_2
-        augmented: library_16
-        library: library_16
+        augmented: library_17
+        library: library_17
         libraryImports
-          library_10 dart:core synthetic
+          library_11 dart:core synthetic
       referencingFiles: file_1
       unlinkedKey: k02
 libraryCycles
@@ -13982,7 +13979,7 @@ libraryCycles
     get: []
     put: [k03]
   /home/test/lib/test.dart
-    current: cycle_5
+    current: cycle_6
       key: k04
     get: [k04]
     put: [k04]

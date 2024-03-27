@@ -7,12 +7,11 @@ environment:
   sdk: '>=3.3.0 <4.0.0'
 
 dependencies:
-  _fe_analyzer_shared: any
-  analyzer: any
+  macros: any
+
+dev_dependencies:
   test: any
 
 dependency_overrides:
-  _fe_analyzer_shared:
-    path: ../../../pkg/_fe_analyzer_shared
-  analyzer:
-    path: ../../../pkg/analyzer
+  macros:
+    path: ../../../pkg/macros

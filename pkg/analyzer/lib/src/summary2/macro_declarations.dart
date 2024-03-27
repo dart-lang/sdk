@@ -2,14 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/macros/api.dart' as macro;
-import 'package:_fe_analyzer_shared/src/macros/executor.dart' as macro;
-import 'package:_fe_analyzer_shared/src/macros/executor/exception_impls.dart'
-    as macro;
-import 'package:_fe_analyzer_shared/src/macros/executor/introspection_impls.dart'
-    as macro;
-import 'package:_fe_analyzer_shared/src/macros/executor/remote_instance.dart'
-    as macro;
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -23,6 +15,11 @@ import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:collection/collection.dart';
+import 'package:macros/macros.dart' as macro;
+import 'package:macros/src/executor.dart' as macro;
+import 'package:macros/src/executor/exception_impls.dart' as macro;
+import 'package:macros/src/executor/introspection_impls.dart' as macro;
+import 'package:macros/src/executor/remote_instance.dart' as macro;
 
 class ClassDeclarationImpl extends macro.ClassDeclarationImpl
     implements HasElement {

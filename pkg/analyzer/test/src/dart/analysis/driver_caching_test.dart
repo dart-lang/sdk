@@ -420,7 +420,7 @@ String getClassName() => 'MacroA';
 ''');
 
     newFile('$testPackageLibPath/my_macro.dart', r'''
-import 'package:_fe_analyzer_shared/src/macros/api.dart';
+import 'package:macros/macros.dart';
 import 'a.dart';
 
 macro class MyMacro implements ClassTypesMacro {
@@ -477,7 +477,7 @@ String getClassName() => 'MacroA';
 ''');
 
     newFile('$testPackageLibPath/my_macro.dart', r'''
-import 'package:_fe_analyzer_shared/src/macros/api.dart';
+import 'package:macros/macros.dart';
 part 'a.dart';
 
 macro class MyMacro implements ClassTypesMacro {
@@ -570,7 +570,7 @@ String getClassName() => 'MacroA';
 
     newFile('$testPackageLibPath/my_macro.dart', r'''
 import 'dart:async';
-import 'package:_fe_analyzer_shared/src/macros/api.dart';
+import 'package:macros/macros.dart';
 import 'a.dart';
 
 macro class MyMacro implements ClassTypesMacro {
@@ -659,7 +659,7 @@ String getClassName() => 'MacroB';
 
   File _newFileWithFixedNameMacro(String className) {
     return newFile('$testPackageLibPath/my_macro.dart', '''
-import 'package:_fe_analyzer_shared/src/macros/api.dart';
+import 'package:macros/macros.dart';
 
 macro class MyMacro implements ClassTypesMacro {
   const MyMacro();

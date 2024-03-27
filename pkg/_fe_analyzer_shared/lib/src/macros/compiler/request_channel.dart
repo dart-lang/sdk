@@ -6,8 +6,8 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:_fe_analyzer_shared/src/macros/executor/message_grouper.dart';
-import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart';
+import 'message_grouper.dart';
+import 'byte_data_serializer.dart';
 
 /// Channel for exchanging requests and responses over [Socket].
 class RequestChannel {

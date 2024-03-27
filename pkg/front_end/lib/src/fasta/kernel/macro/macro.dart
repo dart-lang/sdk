@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/macros/api.dart' as macro;
-import 'package:_fe_analyzer_shared/src/macros/executor.dart' as macro;
-import 'package:_fe_analyzer_shared/src/macros/executor/span.dart' as macro;
+import 'package:macros/macros.dart' as macro;
+import 'package:macros/src/executor.dart' as macro;
+import 'package:macros/src/executor/span.dart' as macro;
 import 'package:_fe_analyzer_shared/src/macros/uri.dart';
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
 import 'package:front_end/src/fasta/uri_offset.dart';
@@ -37,8 +37,7 @@ import 'offsets.dart';
 
 const String intermediateAugmentationScheme = 'org-dartlang-augmentation';
 
-final Uri macroLibraryUri =
-    Uri.parse('package:_fe_analyzer_shared/src/macros/api.dart');
+final Uri macroLibraryUri = Uri.parse('package:_macros/src/api.dart');
 const String macroClassName = 'Macro';
 
 class MacroDeclarationData {

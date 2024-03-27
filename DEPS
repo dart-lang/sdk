@@ -76,7 +76,7 @@ vars = {
   "jsc_tag": "version:274355",
 
   # https://chrome-infra-packages.appspot.com/p/fuchsia/third_party/clang
-  "clang_version": "git_revision:c58bc24fcf678c55b0bf522be89eff070507a005",
+  "clang_version": "git_revision:b1d2e8510b58893e58558ffdf3f8ba29c1e25e5a",
 
   # https://chrome-infra-packages.appspot.com/p/gn/gn
   "gn_version": "git_revision:a2e2717ea670249a34b0de4b3e54f268d320bdfa",
@@ -101,6 +101,7 @@ vars = {
   "boringssl_gen_rev": "9c7294fd58261a79794f5afaa26598cf1442ad20",
   "boringssl_rev": "d24a38200fef19150eef00cad35b138936c08767",
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
+  "cpu_features_rev": "936b9ab5515dead115606559502e3864958f7f6e",
   "devtools_rev": "5a2f92117eb2257fa38bbc4f4ccb18bb5dbd6ebe",
   "icu_rev": "81d656878ec611cb0b42d52c82e9dae93920d9ba",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
@@ -112,7 +113,7 @@ vars = {
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "protobuf_gn_rev": "ca669f79945418f6229e4fef89b666b2a88cbb10",
   "WebCore_rev": "bcb10901266c884e7b3740abc597ab95373ab55c",
-  "zlib_rev": "14dd4c4455602c9b71a1a89b5cafd1f4030d2e3f",
+  "zlib_rev": "24c07df5033183efad8607cba62e746bea7180bf",
 
   ### /third_party/pkg dependencies
   # 'tools/rev_sdk_deps.dart' can rev pkg dependencies to their latest; put an
@@ -130,8 +131,8 @@ vars = {
   "clock_rev": "daf0fadabc5b3dc8e6e71bf3fb27ef9c3b79df5c",
   "collection_rev": "fc616ff8fd7b732c07b2b19e31b6601e59900ccf",
   "convert_rev": "d4d6368cffb8f4f25522875ef8e1d5f7d158bbad",
-  "crypto_rev": "f059196bae4718187c9f421565f9cd1f8fb43898",
-  "csslib_rev": "b58e487dda565f4b9bd4ceb3655a963ae197219d",
+  "crypto_rev": "69d13c9903d4134582ce1bbd9a31cfd8a510c22d",
+  "csslib_rev": "42165256befc3994db510695c17e718e617435c9",
   # Note: Updates to dart_style have to be coordinated with the infrastructure
   # team so that the internal formatter `tools/sdks/dart-sdk/bin/dart format`
   # matches the version here. Please follow this process to make updates:
@@ -143,14 +144,14 @@ vars = {
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
   "dart_style_rev": "a6ad7693555a9add6f98ad6fd94de80d35c89415", # disable tools/rev_sdk_deps.dart
-  "dartdoc_rev": "7be9e2434eca787713a6a17ffc98f7ee12191b16",
+  "dartdoc_rev": "79c1675956f74b4e3f44134879beeb230a84bcd1",
   "ecosystem_rev": "5a900ca68466efe8680d3500bc0a6172d07ef5a7",
   "file_rev": "3aa06490bf34bddf04c7ea964a50c177a4ca0de7",
   "fixnum_rev": "570b28adcfbfdd5b8a7230ea1d6ec0f9587493f1",
   "flute_rev": "a531c96a8b43d015c6bfbbfe3ab54867b0763b8b",
   "glob_rev": "379d60c7cc5c0e9fe7d0d45549ad0b1ca51396c8",
   "html_rev": "327e37a6a4dd46599737ee982f280d73a8f646f7",
-  "http_rev": "5dfea721993fd22363a5800ab7a2f3aeecee25f5",
+  "http_rev": "7949d6f4a60bb5e9158da52910aa6bacda6b9286",
   "http_multi_server_rev": "ba9d07f3596b24718ddf45c9e071d40879cca565",
   "http_parser_rev": "84db8b029d9b51859a0bb4966859af009f9442e3",
   "intl_rev": "5d65e3808ce40e6282e40881492607df4e35669f",
@@ -158,7 +159,7 @@ vars = {
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # manually rolled
   "lints_rev": "ead770872e272e25a64315c120950ea8ad5b2509",
   "logging_rev": "7a7bd5e31ddfe23e34d37ded82d6d0cd5706862c",
-  "markdown_rev": "9c6b1afc3721571af37eaaefe043a6ae7637bd09",
+  "markdown_rev": "8d07abc6bce001b000097eca35c2f5e37538702a",
   "matcher_rev": "d954c8d979579b4b46427b0ea1d9c721117c191e",
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
   "mime_rev": "9a168712d6db610c3822617c132daea72d4fd2b5",
@@ -190,7 +191,7 @@ vars = {
   "usage_rev": "67ecd7d1328347ec15cbf8d8a46918df75a66af8",
   "vector_math_rev": "7e705f734e94917e9a5347578e6e496f8db38ac6",
   "watcher_rev": "21858a41da1482922e03ee65cdf2169d01d59a67",
-  "web_rev": "4af904f156a17b143020f34576ecc534f815522c",
+  "web_rev": "c522718242d535d8040447b0cc1d47df7f2525a4",
   "web_socket_channel_rev": "3db86bc0a09e1038a0fa418262c8a92211c5de69",
   "webdev_rev": "51b5484348b4a8ede351e8dff0428b083495ba78", # https://github.com/flutter/devtools/issues/7231
   "webdriver_rev": "73a7ac8c0dcb0f84eae47e2133805295176aa972",
@@ -317,6 +318,9 @@ deps = {
   Var("dart_root") + "/third_party/zlib":
       Var("chromium_git") + "/chromium/src/third_party/zlib.git" +
       "@" + Var("zlib_rev"),
+  Var("dart_root") + "/third_party/cpu_features/src":
+      Var("chromium_git") + "/external/github.com/google/cpu_features.git" +
+      "@" + Var("cpu_features_rev"),
 
   Var("dart_root") + "/third_party/libcxx":
       Var("llvm_git") + "/llvm-project/libcxx" + "@" + Var("libcxx_rev"),

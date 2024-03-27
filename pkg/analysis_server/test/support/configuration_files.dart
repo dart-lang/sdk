@@ -93,23 +93,15 @@ mixin ConfigurationFilesMixin on MockPackagesMixin {
       final packageRoot =
           physical.pathContext.normalize(package_root.packageRoot);
 
-      // Copy _fe_analyzer_shared from local SDK into the resource provider.
-      final testSharedFolder = resourceProvider
-          .getFolder(convertPath('$packagesRootPath/_fe_analyzer_shared'));
-      physical
-          .getFolder(packageRoot)
-          .getChildAssumingFolder('_fe_analyzer_shared/lib/src/macros')
-          .copyTo(testSharedFolder.getChildAssumingFolder('lib/src'));
-      config.add(name: '_fe_analyzer_shared', rootPath: testSharedFolder.path);
-
-      // Copy dart_internal from local SDK into the memory FS.
-      final testInternalFolder = resourceProvider
-          .getFolder(convertPath('$packagesRootPath/dart_internal'));
-      physical
-          .getFolder(packageRoot)
-          .getChildAssumingFolder('dart_internal')
-          .copyTo(testInternalFolder);
-      config.add(name: 'dart_internal', rootPath: testInternalFolder.path);
+      for (var package in ['macros', '_macros']) {
+        final destination = resourceProvider
+            .getFolder(convertPath('$packagesRootPath/$package'));
+        physical
+            .getFolder(packageRoot)
+            .getChildAssumingFolder(package)
+            .copyTo(destination.parent);
+        config.add(name: package, rootPath: destination.path);
+      }
     }
 
     _newPackageConfigJsonFile(
