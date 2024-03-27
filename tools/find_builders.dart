@@ -33,7 +33,6 @@ Future<void> main(List<String> args) async {
     ..sort();
 
   final gerritTryList = builders.map((b) => '$b-try').join(',');
-  print('Cq-Include-Trybots: dart-internal/g3.dart-internal.try:g3-cbuild-try');
   print('Cq-Include-Trybots: dart/try:$gerritTryList');
 }
 
