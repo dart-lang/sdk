@@ -439,6 +439,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void visitClassDeclaration(covariant ClassDeclarationImpl node) {
     try {
       final element = node.declaredElement!;
+
+      _checkAugmentations(
+        augmentKeyword: node.augmentKeyword,
+        element: element,
+      );
+
       final augmented = element.augmented;
       if (augmented == null) {
         return;
@@ -570,6 +576,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
       _checkForUndefinedConstructorInInitializerImplicit(node);
       _checkForReturnInGenerativeConstructor(node);
+      _checkAugmentations(
+        augmentKeyword: node.augmentKeyword,
+        element: element,
+      );
       _reportMacroDiagnostics(element);
       super.visitConstructorDeclaration(node);
     });
@@ -781,9 +791,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForNonFinalFieldInEnum(node);
 
       for (final field in fields.variables) {
-        if (field.declaredElement case final FieldElementImpl element) {
-          _reportMacroDiagnostics(element);
-        }
+        var element = field.declaredElement;
+        element as FieldElementImpl;
+        _checkAugmentations(
+          augmentKeyword: node.augmentKeyword,
+          element: element,
+        );
+        _reportMacroDiagnostics(element);
       }
 
       super.visitFieldDeclaration(node);
@@ -867,6 +881,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _returnTypeVerifier.verifyReturnType(returnType);
       _checkForMainFunction1(node.name, node.declaredElement!);
       _checkForMainFunction2(node);
+      _checkAugmentations(
+        augmentKeyword: node.augmentKeyword,
+        element: element,
+      );
       _reportMacroDiagnostics(element);
       super.visitFunctionDeclaration(node);
     });
@@ -1068,6 +1086,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForTypeAnnotationDeferredClass(returnType);
       _returnTypeVerifier.verifyReturnType(returnType);
       _checkForWrongTypeParameterVarianceInMethod(node);
+      _checkAugmentations(
+        augmentKeyword: node.augmentKeyword,
+        element: element,
+      );
       _reportMacroDiagnostics(element);
       super.visitMethodDeclaration(node);
     });
@@ -1097,6 +1119,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     // TODO(scheglov): Verify for all mixin errors.
     try {
       final element = node.declaredElement!;
+
+      _checkAugmentations(
+        augmentKeyword: node.augmentKeyword,
+        element: element,
+      );
+
       final augmented = element.augmented;
       if (augmented == null) {
         return;
@@ -1425,14 +1453,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     _checkForNotInitializedNonNullableVariable(node.variables, true);
 
     for (var variable in node.variables.variables) {
-      _checkForMainFunction1(variable.name, variable.declaredElement!);
-    }
-
-    for (final variable in node.variables.variables) {
       var element = variable.declaredElement;
-      if (element is TopLevelVariableElementImpl) {
-        _reportMacroDiagnostics(element);
-      }
+      element as TopLevelVariableElementImpl;
+      _checkForMainFunction1(variable.name, element);
+      _checkAugmentations(
+        augmentKeyword: node.augmentKeyword,
+        element: element,
+      );
+      _reportMacroDiagnostics(element);
     }
 
     super.visitTopLevelVariableDeclaration(node);
@@ -1505,6 +1533,26 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     super.visitVariableDeclarationStatement(node);
 
     _isInLateLocalVariable.removeLast();
+  }
+
+  void _checkAugmentations<T extends ElementImpl>({
+    required Token? augmentKeyword,
+    required T element,
+  }) {
+    if (augmentKeyword == null) {
+      return;
+    }
+
+    if (element is AugmentableElement<T>) {
+      var augmentationTarget = element.augmentationTarget;
+      if (augmentationTarget == null) {
+        errorReporter.atToken(
+          augmentKeyword,
+          CompileTimeErrorCode.AUGMENTATION_WITHOUT_DECLARATION,
+        );
+        return;
+      }
+    }
   }
 
   /// Checks the class for problems with the superclass, mixins, or implemented
