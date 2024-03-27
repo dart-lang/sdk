@@ -1002,7 +1002,8 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
-  void beginExtensionDeclaration(Token extensionKeyword, Token? nameToken) {
+  void beginExtensionDeclaration(
+      Token? augmentToken, Token extensionKeyword, Token? nameToken) {
     debugEvent("beginExtensionDeclaration");
     push(nameToken != null
         ? new SimpleIdentifier(nameToken)

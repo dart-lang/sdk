@@ -6,6 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'class_test.dart' as class_;
 import 'doc_comment_test.dart' as doc_comment;
+import 'extension_test.dart' as extension_;
 import 'extension_type_test.dart' as extension_type;
 import 'mixin_test.dart' as mixin_;
 import 'top_level_function_test.dart' as top_level_function;
@@ -18,6 +19,7 @@ main() {
   defineReflectiveSuite(() {
     class_.main();
     doc_comment.main();
+    extension_.main();
     extension_type.main();
     mixin_.main();
     top_level_function.main();

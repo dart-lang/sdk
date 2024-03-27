@@ -151,6 +151,20 @@ class ModifierContext {
     return token;
   }
 
+  /// Parse modifiers for extension declarations.
+  Token parseExtensionModifiers(Token token, Token keyword) {
+    token = _parseModifiers(token);
+    reportTopLevelModifierError(constToken, keyword);
+    reportTopLevelModifierError(externalToken, keyword);
+    reportExtraneousModifier(abstractToken);
+    reportExtraneousModifier(covariantToken);
+    reportExtraneousModifier(lateToken);
+    reportExtraneousModifier(requiredToken);
+    reportExtraneousModifier(staticToken);
+    reportExtraneousModifier(varToken);
+    return token;
+  }
+
   /// Parse modifiers for mixin declarations.
   Token parseMixinModifiers(Token token, Token keyword) {
     token = _parseModifiers(token);

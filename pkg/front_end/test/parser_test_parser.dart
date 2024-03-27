@@ -860,24 +860,30 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseExtension(Token beginToken, Token extensionKeyword) {
-    doPrint('parseExtension(' '$beginToken, ' '$extensionKeyword)');
+  Token parseExtension(
+      Token beginToken, Token? augmentToken, Token extensionKeyword) {
+    doPrint('parseExtension('
+        '$beginToken, '
+        '$augmentToken, '
+        '$extensionKeyword)');
     indent++;
-    var result = super.parseExtension(beginToken, extensionKeyword);
+    var result =
+        super.parseExtension(beginToken, augmentToken, extensionKeyword);
     indent--;
     return result;
   }
 
   @override
-  Token parseExtensionDeclaration(
-      Token beginToken, Token token, Token extensionKeyword) {
+  Token parseExtensionDeclaration(Token beginToken, Token token,
+      Token? augmentToken, Token extensionKeyword) {
     doPrint('parseExtensionDeclaration('
         '$beginToken, '
         '$token, '
+        '$augmentToken, '
         '$extensionKeyword)');
     indent++;
-    var result =
-        super.parseExtensionDeclaration(beginToken, token, extensionKeyword);
+    var result = super.parseExtensionDeclaration(
+        beginToken, token, augmentToken, extensionKeyword);
     indent--;
     return result;
   }
