@@ -305,7 +305,7 @@ class WriteErrorSlowPath : public ThrowErrorSlowPathCode {
   virtual void PushArgumentsForRuntimeCall(FlowGraphCompiler* compiler);
 
   virtual intptr_t GetNumberOfArgumentsForRuntimeCall() {
-    return 1;  // receiver
+    return 2;  // receiver, kind
   }
 };
 

@@ -1057,6 +1057,7 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kFinalizerBase_setIsolateFinalizers:
     case MethodRecognizer::kFinalizerEntry_allocate:
     case MethodRecognizer::kFinalizerEntry_getExternalSize:
+    case MethodRecognizer::kCheckNotDeeplyImmutable:
     case MethodRecognizer::kObjectEquals:
     case MethodRecognizer::kStringBaseCodeUnitAt:
     case MethodRecognizer::kStringBaseLength:
@@ -1833,6 +1834,13 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
       body += LoadNativeField(Slot::FinalizerEntry_external_size());
       body += Box(kUnboxedInt64);
+      break;
+    case MethodRecognizer::kCheckNotDeeplyImmutable:
+      ASSERT_EQUAL(function.NumParameters(), 1);
+      body += LoadLocal(parsed_function_->RawParameterVariable(0));
+      body += CheckNotDeeplyImmutable(
+          CheckWritableInstr::kDeeplyImmutableAttachNativeFinalizer);
+      body += NullConstant();
       break;
 #define IL_BODY(method, slot)                                                  \
   case MethodRecognizer::k##method:                                            \

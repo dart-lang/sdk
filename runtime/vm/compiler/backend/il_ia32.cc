@@ -5536,22 +5536,25 @@ void CheckArrayBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* CheckWritableInstr::MakeLocationSummary(Zone* zone,
                                                          bool opt) const {
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
+  const intptr_t kNumTemps = 1;
   LocationSummary* locs = new (zone) LocationSummary(
       zone, kNumInputs, kNumTemps,
       UseSharedSlowPathStub(opt) ? LocationSummary::kCallOnSharedSlowPath
                                  : LocationSummary::kCallOnSlowPath);
   locs->set_in(kReceiver, Location::RequiresRegister());
+  locs->set_temp(0, Location::RequiresRegister());
   return locs;
 }
 
 void CheckWritableInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   WriteErrorSlowPath* slow_path = new WriteErrorSlowPath(this);
+  const Register temp = locs()->temp(0).reg();
   compiler->AddSlowPathCode(slow_path);
-  __ movl(TMP, compiler::FieldAddress(locs()->in(0).reg(),
-                                      compiler::target::Object::tags_offset()));
-  __ testl(TMP, compiler::Immediate(
-                    1 << compiler::target::UntaggedObject::kImmutableBit));
+  __ movl(temp,
+          compiler::FieldAddress(locs()->in(0).reg(),
+                                 compiler::target::Object::tags_offset()));
+  __ testl(temp, compiler::Immediate(
+                     1 << compiler::target::UntaggedObject::kImmutableBit));
   __ j(NOT_ZERO, slow_path->entry_label());
 }
 

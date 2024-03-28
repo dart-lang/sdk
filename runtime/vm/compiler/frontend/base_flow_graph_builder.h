@@ -440,6 +440,8 @@ class BaseFlowGraphBuilder {
                               position);
   }
 
+  Fragment CheckNotDeeplyImmutable(CheckWritableInstr::Kind kind);
+
   // Records extra unchecked entry point 'unchecked_entry' in 'graph_entry'.
   void RecordUncheckedEntryPoint(GraphEntryInstr* graph_entry,
                                  FunctionEntryInstr* unchecked_entry);

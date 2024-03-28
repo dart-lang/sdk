@@ -1075,6 +1075,14 @@ Fragment BaseFlowGraphBuilder::CheckNullOptimized(
   return Fragment(check_null);
 }
 
+Fragment BaseFlowGraphBuilder::CheckNotDeeplyImmutable(
+    CheckWritableInstr::Kind kind) {
+  Value* value = Pop();
+  auto* check_writable = new (Z)
+      CheckWritableInstr(value, GetNextDeoptId(), InstructionSource(), kind);
+  return Fragment(check_writable);
+}
+
 void BaseFlowGraphBuilder::RecordUncheckedEntryPoint(
     GraphEntryInstr* graph_entry,
     FunctionEntryInstr* unchecked_entry) {

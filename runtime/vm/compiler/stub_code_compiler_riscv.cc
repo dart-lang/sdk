@@ -591,7 +591,7 @@ void StubCodeCompiler::GenerateRangeError(bool with_fpu_regs) {
 
 void StubCodeCompiler::GenerateWriteError(bool with_fpu_regs) {
   auto perform_runtime_call = [&]() {
-    __ CallRuntime(kWriteErrorRuntimeEntry, /*argument_count=*/1);
+    __ CallRuntime(kWriteErrorRuntimeEntry, /*argument_count=*/2);
     __ Breakpoint();
   };
 

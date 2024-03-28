@@ -26,6 +26,7 @@
 #include "vm/longjump.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
+#include "vm/pointer_tagging.h"
 #include "vm/raw_object.h"
 #include "vm/resolver.h"
 #include "vm/service_isolate.h"
@@ -3196,6 +3197,8 @@ void WriteErrorSlowPath::PushArgumentsForRuntimeCall(
     FlowGraphCompiler* compiler) {
   LocationSummary* locs = instruction()->locs();
   __ PushRegister(locs->in(CheckWritableInstr::kReceiver).reg());
+  __ PushImmediate(
+      compiler::target::ToRawSmi(instruction()->AsCheckWritable()->kind()));
 }
 
 void WriteErrorSlowPath::EmitSharedStubCall(FlowGraphCompiler* compiler,
