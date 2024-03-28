@@ -6059,8 +6059,9 @@ abstract final class Expression implements CollectionElement {
   /// Return the precedence of this expression.
   ///
   /// The precedence is a positive integer value that defines how the source
-  /// code is parsed into an AST. For example `a * b + c` is parsed as `(a * b)
-  /// + c` because the precedence of `*` is greater than the precedence of `+`.
+  /// code is parsed into an AST. For example `a * b + c` is parsed as
+  /// `(a * b) + c` because the precedence of `*` is greater than the precedence
+  /// of `+`.
   Precedence get precedence;
 
   /// If this expression is an argument to an invocation, and the AST structure
