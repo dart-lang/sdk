@@ -9193,6 +9193,36 @@ bool Function::RecognizedKindForceOptimize() const {
     // Uses unboxed/untagged data not supported in unoptimized, or uses
     // LoadIndexed/StoreIndexed/MemoryCopy instructions with typed data
     // arrays, which requires optimization for payload extraction.
+    case MethodRecognizer::kObjectArrayGetIndexed:
+    case MethodRecognizer::kGrowableArrayGetIndexed:
+    case MethodRecognizer::kInt8ArrayGetIndexed:
+    case MethodRecognizer::kExternalInt8ArrayGetIndexed:
+    case MethodRecognizer::kUint8ArrayGetIndexed:
+    case MethodRecognizer::kExternalUint8ArrayGetIndexed:
+    case MethodRecognizer::kUint8ClampedArrayGetIndexed:
+    case MethodRecognizer::kExternalUint8ClampedArrayGetIndexed:
+    case MethodRecognizer::kInt16ArrayGetIndexed:
+    case MethodRecognizer::kExternalInt16ArrayGetIndexed:
+    case MethodRecognizer::kUint16ArrayGetIndexed:
+    case MethodRecognizer::kExternalUint16ArrayGetIndexed:
+    case MethodRecognizer::kInt32ArrayGetIndexed:
+    case MethodRecognizer::kExternalInt32ArrayGetIndexed:
+    case MethodRecognizer::kUint32ArrayGetIndexed:
+    case MethodRecognizer::kExternalUint32ArrayGetIndexed:
+    case MethodRecognizer::kInt64ArrayGetIndexed:
+    case MethodRecognizer::kExternalInt64ArrayGetIndexed:
+    case MethodRecognizer::kUint64ArrayGetIndexed:
+    case MethodRecognizer::kExternalUint64ArrayGetIndexed:
+    case MethodRecognizer::kFloat32ArrayGetIndexed:
+    case MethodRecognizer::kExternalFloat32ArrayGetIndexed:
+    case MethodRecognizer::kFloat64ArrayGetIndexed:
+    case MethodRecognizer::kExternalFloat64ArrayGetIndexed:
+    case MethodRecognizer::kFloat32x4ArrayGetIndexed:
+    case MethodRecognizer::kExternalFloat32x4ArrayGetIndexed:
+    case MethodRecognizer::kFloat64x2ArrayGetIndexed:
+    case MethodRecognizer::kExternalFloat64x2ArrayGetIndexed:
+    case MethodRecognizer::kInt32x4ArrayGetIndexed:
+    case MethodRecognizer::kExternalInt32x4ArrayGetIndexed:
     case MethodRecognizer::kCopyRangeFromUint8ListToOneByteString:
     case MethodRecognizer::kFinalizerBase_getIsolateFinalizers:
     case MethodRecognizer::kFinalizerBase_setIsolate:

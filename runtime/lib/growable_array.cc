@@ -28,17 +28,6 @@ DEFINE_NATIVE_ENTRY(GrowableList_allocate, 0, 2) {
   return new_array.ptr();
 }
 
-DEFINE_NATIVE_ENTRY(GrowableList_getIndexed, 0, 2) {
-  const GrowableObjectArray& array =
-      GrowableObjectArray::CheckedHandle(zone, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Smi, index, arguments->NativeArgAt(1));
-  if ((index.Value() < 0) || (index.Value() >= array.Length())) {
-    Exceptions::ThrowRangeError("index", index, 0, array.Length() - 1);
-  }
-  const Instance& obj = Instance::CheckedHandle(zone, array.At(index.Value()));
-  return obj.ptr();
-}
-
 DEFINE_NATIVE_ENTRY(GrowableList_setIndexed, 0, 3) {
   const GrowableObjectArray& array =
       GrowableObjectArray::CheckedHandle(zone, arguments->NativeArgAt(0));

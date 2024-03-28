@@ -15,6 +15,37 @@ namespace dart {
   V(::, identical, ObjectIdentical, 0x0407f735)                                \
   V(ClassID, getID, ClassIDgetID, 0xdc7cfcaa)                                  \
   V(Object, Object., ObjectConstructor, 0xab6d6cfa)                            \
+  V(_Array, [], ObjectArrayGetIndexed, 0x78e66c72)                             \
+  V(_GrowableList, [], GrowableArrayGetIndexed, 0x78e66c72)                    \
+  V(_Int8List, [], Int8ArrayGetIndexed, 0x2321c262)                            \
+  V(_ExternalInt8Array, [], ExternalInt8ArrayGetIndexed, 0x2321c262)           \
+  V(_Uint8List, [], Uint8ArrayGetIndexed, 0x2321c262)                          \
+  V(_ExternalUint8Array, [], ExternalUint8ArrayGetIndexed, 0x2321c262)         \
+  V(_Uint8ClampedList, [], Uint8ClampedArrayGetIndexed, 0x2321c262)            \
+  V(_ExternalUint8ClampedArray, [], ExternalUint8ClampedArrayGetIndexed,       \
+    0x2321c262)                                                                \
+  V(_Int16List, [], Int16ArrayGetIndexed, 0x2321c262)                          \
+  V(_ExternalInt16Array, [], ExternalInt16ArrayGetIndexed, 0x2321c262)         \
+  V(_Uint16List, [], Uint16ArrayGetIndexed, 0x2321c262)                        \
+  V(_ExternalUint16Array, [], ExternalUint16ArrayGetIndexed, 0x2321c262)       \
+  V(_Int32List, [], Int32ArrayGetIndexed, 0x2321bea1)                          \
+  V(_ExternalInt32Array, [], ExternalInt32ArrayGetIndexed, 0x2321bea1)         \
+  V(_Uint32List, [], Uint32ArrayGetIndexed, 0x2321bea1)                        \
+  V(_ExternalUint32Array, [], ExternalUint32ArrayGetIndexed, 0x2321bea1)       \
+  V(_Int64List, [], Int64ArrayGetIndexed, 0x2321bea1)                          \
+  V(_ExternalInt64Array, [], ExternalInt64ArrayGetIndexed, 0x2321bea1)         \
+  V(_Uint64List, [], Uint64ArrayGetIndexed, 0x2321bea1)                        \
+  V(_ExternalUint64Array, [], ExternalUint64ArrayGetIndexed, 0x2321bea1)       \
+  V(_Float32List, [], Float32ArrayGetIndexed, 0x0784da3c)                      \
+  V(_ExternalFloat32Array, [], ExternalFloat32ArrayGetIndexed, 0x0784da3c)     \
+  V(_Float64List, [], Float64ArrayGetIndexed, 0x0784da3c)                      \
+  V(_ExternalFloat64Array, [], ExternalFloat64ArrayGetIndexed, 0x0784da3c)     \
+  V(_Float32x4List, [], Float32x4ArrayGetIndexed, 0xb0f79623)                  \
+  V(_ExternalFloat32x4Array, [], ExternalFloat32x4ArrayGetIndexed, 0xb0f79623) \
+  V(_Float64x2List, [], Float64x2ArrayGetIndexed, 0x5fd5df39)                  \
+  V(_ExternalFloat64x2Array, [], ExternalFloat64x2ArrayGetIndexed, 0x5fd5df39) \
+  V(_Int32x4List, [], Int32x4ArrayGetIndexed, 0x4967f00b)                      \
+  V(_ExternalInt32x4Array, [], ExternalInt32x4ArrayGetIndexed, 0x4967f00b)     \
   V(_List, ., ObjectArrayAllocate, 0x4c8eae02)                                 \
   V(_List, []=, ObjectArraySetIndexed, 0x3a3252da)                             \
   V(_GrowableList, ._withData, GrowableArrayAllocateWithData, 0x19394cc1)      \
@@ -394,39 +425,22 @@ namespace dart {
   V(_IntegerImplementation, <<, Integer_shl, 0x2d253e1b)                       \
 
 #define GRAPH_TYPED_DATA_INTRINSICS_LIST(V)                                    \
-  V(_Int8List, [], Int8ArrayGetIndexed, 0x7b31eba4)                            \
   V(_Int8List, []=, Int8ArraySetIndexed, 0x02f7bc29)                           \
-  V(_Uint8List, [], Uint8ArrayGetIndexed, 0xe0aa6f64)                          \
   V(_Uint8List, []=, Uint8ArraySetIndexed, 0xc8fdea5d)                         \
-  V(_ExternalUint8Array, [], ExternalUint8ArrayGetIndexed, 0xe0aa6f64)         \
   V(_ExternalUint8Array, []=, ExternalUint8ArraySetIndexed, 0xc8fdea5d)        \
-  V(_Uint8ClampedList, [], Uint8ClampedArrayGetIndexed, 0xe0aa6f64)            \
   V(_Uint8ClampedList, []=, Uint8ClampedArraySetIndexed, 0x45020fa5)           \
-  V(_ExternalUint8ClampedArray, [], ExternalUint8ClampedArrayGetIndexed,       \
-    0xe0aa6f64)                                                                \
   V(_ExternalUint8ClampedArray, []=, ExternalUint8ClampedArraySetIndexed,      \
     0x45020fa5)                                                                \
-  V(_Int16List, [], Int16ArrayGetIndexed, 0x97526723)                          \
   V(_Int16List, []=, Int16ArraySetIndexed, 0x3c52d77c)                         \
-  V(_Uint16List, [], Uint16ArrayGetIndexed, 0x4cba19cf)                        \
   V(_Uint16List, []=, Uint16ArraySetIndexed, 0x96e38a7c)                       \
-  V(_Int32List, [], Int32ArrayGetIndexed, 0x1113e36a)                          \
   V(_Int32List, []=, Int32ArraySetIndexed, 0x7cf2875c)                         \
-  V(_Uint32List, [], Uint32ArrayGetIndexed, 0x97cbdf48)                        \
   V(_Uint32List, []=, Uint32ArraySetIndexed, 0xe5065f1c)                       \
-  V(_Int64List, [], Int64ArrayGetIndexed, 0x03bd8740)                          \
   V(_Int64List, []=, Int64ArraySetIndexed, 0x672a7e1c)                         \
-  V(_Uint64List, [], Uint64ArrayGetIndexed, 0xcc7e9c0c)                        \
   V(_Uint64List, []=, Uint64ArraySetIndexed, 0x5e2325bc)                       \
-  V(_Float64List, [], Float64ArrayGetIndexed, 0x4cf25eb3)                      \
   V(_Float64List, []=, Float64ArraySetIndexed, 0x84d73842)                     \
-  V(_Float32List, [], Float32ArrayGetIndexed, 0x289ee54d)                      \
   V(_Float32List, []=, Float32ArraySetIndexed, 0x5e323082)                     \
-  V(_Float32x4List, [], Float32x4ArrayGetIndexed, 0x874fca98)                  \
   V(_Float32x4List, []=, Float32x4ArraySetIndexed, 0xadc022db)                 \
-  V(_Int32x4List, [], Int32x4ArrayGetIndexed, 0xc9f525b4)                      \
   V(_Int32x4List, []=, Int32x4ArraySetIndexed, 0xf38ac7d3)                     \
-  V(_Float64x2List, [], Float64x2ArrayGetIndexed, 0x7a32de78)                  \
   V(_Float64x2List, []=, Float64x2ArraySetIndexed, 0xf316f725)                 \
   V(_TypedListBase, get:length, TypedListBaseLength, 0x5842648b)               \
   V(_ByteDataView, get:length, ByteDataViewLength, 0x5842648b)                 \
@@ -445,13 +459,11 @@ namespace dart {
 
 #define GRAPH_CORE_INTRINSICS_LIST(V)                                          \
   V(_Array, get:length, ObjectArrayLength, 0x5842648b)                         \
-  V(_Array, [], ObjectArrayGetIndexed, 0x78e668b1)                             \
   V(_List, _setIndexed, ObjectArraySetIndexedUnchecked, 0xe6212a10)            \
   V(_GrowableList, get:length, GrowableArrayLength, 0x5842648b)                \
   V(_GrowableList, get:_capacity, GrowableArrayCapacity, 0x7d911012)           \
   V(_GrowableList, _setData, GrowableArraySetData, 0xbdcbb43b)                 \
   V(_GrowableList, _setLength, GrowableArraySetLength, 0xcc0d6dd6)             \
-  V(_GrowableList, [], GrowableArrayGetIndexed, 0x78e668b1)                    \
   V(_GrowableList, _setIndexed, GrowableArraySetIndexedUnchecked, 0x513c774f)  \
   V(_StringBase, get:length, StringBaseLength, 0x5842648b)                     \
   V(_Smi, ~, Smi_bitNegate, 0x82466cfc)                                        \

@@ -5,8 +5,9 @@
 part of "core_patch.dart";
 
 abstract class _Array<E> extends FixedLengthListBase<E> {
-  @pragma("vm:recognized", "graph-intrinsic")
-  @pragma("vm:external-name", "List_getIndexed")
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  @pragma("vm:idempotent")
   external E operator [](int index);
 
   @pragma("vm:recognized", "graph-intrinsic")
