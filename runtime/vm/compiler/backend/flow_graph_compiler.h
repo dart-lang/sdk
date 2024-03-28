@@ -301,6 +301,12 @@ class WriteErrorSlowPath : public ThrowErrorSlowPathCode {
 
   virtual void EmitSharedStubCall(FlowGraphCompiler* compiler,
                                   bool save_fpu_registers);
+
+  virtual void PushArgumentsForRuntimeCall(FlowGraphCompiler* compiler);
+
+  virtual intptr_t GetNumberOfArgumentsForRuntimeCall() {
+    return 2;  // receiver, kind
+  }
 };
 
 class LateInitializationErrorSlowPath : public ThrowErrorSlowPathCode {

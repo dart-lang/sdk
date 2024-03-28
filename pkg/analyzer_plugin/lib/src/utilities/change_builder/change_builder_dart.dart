@@ -72,7 +72,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     return DartLinkedEditBuilderImpl(this);
   }
 
-  /// Returns the indentation with the given [level].
+  @override
   String getIndent(int level) => '  ' * level;
 
   @override

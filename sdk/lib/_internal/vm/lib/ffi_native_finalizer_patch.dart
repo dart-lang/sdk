@@ -43,6 +43,7 @@ final class _NativeFinalizer extends FinalizerBase implements NativeFinalizer {
     Object? detach,
     int? externalSize,
   }) {
+    _checkNotDeeplyImmutable(value);
     externalSize ??= 0;
     RangeError.checkNotNegative(externalSize, 'externalSize');
     if (value == null) {
@@ -98,7 +99,7 @@ final class _NativeFinalizer extends FinalizerBase implements NativeFinalizer {
   }
 
   @pragma("vm:entry-point", "call")
-  static _handleNativeFinalizerMessage(_NativeFinalizer finalizer) {
+  static void _handleNativeFinalizerMessage(_NativeFinalizer finalizer) {
     finalizer._removeEntries();
   }
 }
@@ -142,3 +143,6 @@ void _attachAsTypedListFinalizer(
   isLeaf: true,
 )
 external Pointer<_AsTypedListFinalizerData> _allocateData();
+
+@pragma("vm:recognized", "other")
+external void _checkNotDeeplyImmutable(Object value);

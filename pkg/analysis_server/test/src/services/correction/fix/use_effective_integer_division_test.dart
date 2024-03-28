@@ -22,7 +22,7 @@ class UseEffectiveIntegerDivisionMultiTest extends BulkFixProcessorTest {
 void f() {
   var a = 5;
   var b = 2;
-  print((a / ((a / b).toInt())).toInt());
+  print((a / (a / b).toInt()).toInt());
 }
 ''');
     await assertHasFix('''
@@ -30,6 +30,23 @@ void f() {
   var a = 5;
   var b = 2;
   print(a ~/ (a ~/ b));
+}
+''');
+  }
+
+  Future<void> test_singleFile_extraParentheses() async {
+    await resolveTestCode('''
+void f() {
+  var a = 5;
+  var b = 2;
+  print((a / ((a / b).toInt())).toInt());
+}
+''');
+    await assertHasFix('''
+void f() {
+  var a = 5;
+  var b = 2;
+  print(a ~/ ((a ~/ b)));
 }
 ''');
   }
@@ -53,6 +70,34 @@ void f() {
   var a = 5;
   var b = 2;
   print(a ~/ b);
+}
+''');
+  }
+
+  Future<void> test_normalDivision_targetOfCascadedPropertyAccess() async {
+    await resolveTestCode('''
+void f() {
+  (1 / 2).toInt()..isEven;
+}
+''');
+    // This is surprising, but... `1 ~/ 2..isEven` is parsed the same as
+    // `(1 ~/ 2)..isEven`.
+    await assertHasFix('''
+void f() {
+  1 ~/ 2..isEven;
+}
+''');
+  }
+
+  Future<void> test_normalDivision_targetOfMethodCall() async {
+    await resolveTestCode('''
+void f() {
+  (1 / 2).toInt().toString();
+}
+''');
+    await assertHasFix('''
+void f() {
+  (1 ~/ 2).toString();
 }
 ''');
   }

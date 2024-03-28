@@ -6814,6 +6814,11 @@ intptr_t CheckArrayBoundInstr::LengthOffsetFor(intptr_t class_id) {
 }
 
 Definition* CheckWritableInstr::Canonicalize(FlowGraph* flow_graph) {
+  if (kind_ == Kind::kDeeplyImmutableAttachNativeFinalizer) {
+    return this;
+  }
+
+  ASSERT(kind_ == Kind::kWriteUnmodifiableTypedData);
   intptr_t cid = value()->Type()->ToCid();
   if ((cid != kIllegalCid) && (cid != kDynamicCid) &&
       !IsUnmodifiableTypedDataViewClassId(cid)) {

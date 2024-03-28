@@ -163,8 +163,24 @@ DEFINE_RUNTIME_ENTRY(RangeErrorUnboxedInt64, 0) {
   Exceptions::ThrowByType(Exceptions::kRange, args);
 }
 
-DEFINE_RUNTIME_ENTRY(WriteError, 0) {
-  Exceptions::ThrowUnsupportedError("Cannot modify an unmodifiable list");
+DEFINE_RUNTIME_ENTRY(WriteError, 2) {
+  const Instance& receiver = Instance::CheckedHandle(zone, arguments.ArgAt(0));
+  const Smi& kind = Smi::CheckedHandle(zone, arguments.ArgAt(1));
+  auto& message = String::Handle(zone);
+  switch (kind.Value()) {
+    case 0:  // CheckWritableInstr::Kind::kWriteUnmodifiableTypedData:
+      message = String::NewFormatted("Cannot modify an unmodifiable list: %s",
+                                     receiver.ToCString());
+      break;
+    case 1:  // CheckWritableInstr::Kind::kDeeplyImmutableAttachNativeFinalizer:
+      message = String::NewFormatted(
+          "Cannot attach NativeFinalizer to deeply immutable object: %s",
+          receiver.ToCString());
+      break;
+  }
+  const Array& args = Array::Handle(Array::New(1));
+  args.SetAt(0, message);
+  Exceptions::ThrowByType(Exceptions::kUnsupported, args);
 }
 
 static void NullErrorHelper(Zone* zone,

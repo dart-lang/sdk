@@ -10873,26 +10873,48 @@ class GenericCheckBoundInstr : public CheckBoundBaseInstr {
 
 class CheckWritableInstr : public TemplateDefinition<1, Throws, Pure> {
  public:
-  CheckWritableInstr(Value* array,
+  enum Kind {
+    kWriteUnmodifiableTypedData = 0,
+    kDeeplyImmutableAttachNativeFinalizer = 1,
+  };
+
+  CheckWritableInstr(Value* receiver,
                      intptr_t deopt_id,
-                     const InstructionSource& source)
-      : TemplateDefinition(source, deopt_id) {
-    SetInputAt(0, array);
+                     const InstructionSource& source,
+                     Kind kind = Kind::kWriteUnmodifiableTypedData)
+      : TemplateDefinition(source, deopt_id), kind_(kind) {
+    SetInputAt(kReceiver, receiver);
   }
 
   virtual bool AttributesEqual(const Instruction& other) const { return true; }
 
   DECLARE_INSTRUCTION(CheckWritable)
 
-  Value* value() const { return inputs_[0]; }
+  Value* value() const { return inputs_[kReceiver]; }
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   virtual Value* RedefinedValue() const;
 
   virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimizeAfterCall() const {
+    return !CompilerState::Current().is_aot();
+  }
 
-  DECLARE_EMPTY_SERIALIZATION(CheckWritableInstr, TemplateDefinition)
+  Kind kind() const { return kind_; }
+
+  // Give a name to the location/input indices.
+  enum {
+    kReceiver = 0,
+  };
+
+#define FIELD_LIST(F) F(const Kind, kind_)
+
+  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(CheckWritableInstr,
+                                          TemplateDefinition,
+                                          FIELD_LIST)
+
+#undef FIELD_LIST
 
  private:
   DISALLOW_COPY_AND_ASSIGN(CheckWritableInstr);
