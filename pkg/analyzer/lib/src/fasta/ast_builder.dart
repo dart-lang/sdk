@@ -309,7 +309,8 @@ class AstBuilder extends StackListener {
   void beginEnum(Token enumKeyword) {}
 
   @override
-  void beginExtensionDeclaration(Token extensionKeyword, Token? nameToken) {
+  void beginExtensionDeclaration(
+      Token? augmentKeyword, Token extensionKeyword, Token? nameToken) {
     assert(optional('extension', extensionKeyword));
     assert(_classLikeBuilder == null);
     debugEvent("ExtensionHeader");
@@ -321,6 +322,7 @@ class AstBuilder extends StackListener {
     _classLikeBuilder = _ExtensionDeclarationBuilder(
       comment: comment,
       metadata: metadata,
+      augmentKeyword: augmentKeyword,
       extensionKeyword: extensionKeyword,
       name: nameToken,
       typeParameters: typeParameters,
@@ -6086,6 +6088,7 @@ class _EnumDeclarationBuilder extends _ClassLikeDeclarationBuilder {
 }
 
 class _ExtensionDeclarationBuilder extends _ClassLikeDeclarationBuilder {
+  final Token? augmentKeyword;
   final Token extensionKeyword;
   final Token? name;
 
@@ -6095,6 +6098,7 @@ class _ExtensionDeclarationBuilder extends _ClassLikeDeclarationBuilder {
     required super.typeParameters,
     required super.leftBracket,
     required super.rightBracket,
+    required this.augmentKeyword,
     required this.extensionKeyword,
     required this.name,
   });
@@ -6107,6 +6111,7 @@ class _ExtensionDeclarationBuilder extends _ClassLikeDeclarationBuilder {
     return ExtensionDeclarationImpl(
       comment: comment,
       metadata: metadata,
+      augmentKeyword: augmentKeyword,
       extensionKeyword: extensionKeyword,
       typeKeyword: typeKeyword,
       name: name,

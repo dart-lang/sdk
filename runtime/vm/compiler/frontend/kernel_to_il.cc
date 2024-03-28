@@ -4847,8 +4847,6 @@ Fragment FlowGraphBuilder::LoadTail(LocalVariable* variable,
   if (size == 8 || size == 4) {
     body += LoadLocal(variable);
     body += LoadTypedDataBaseFromCompound();
-    body += LoadNativeField(Slot::PointerBase_data(),
-                            InnerPointerAccess::kMayBeInnerPointer);
     body += LoadLocal(variable);
     body += LoadOffsetInBytesFromCompound();
     body += IntConstant(offset_in_bytes);
@@ -4865,8 +4863,6 @@ Fragment FlowGraphBuilder::LoadTail(LocalVariable* variable,
     while (remaining >= part_bytes) {
       body += LoadLocal(variable);
       body += LoadTypedDataBaseFromCompound();
-      body += LoadNativeField(Slot::PointerBase_data(),
-                              InnerPointerAccess::kMayBeInnerPointer);
       body += LoadLocal(variable);
       body += LoadOffsetInBytesFromCompound();
       body += IntConstant(offset_in_bytes);

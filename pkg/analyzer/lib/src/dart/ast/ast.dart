@@ -6446,6 +6446,10 @@ final class ExtendsClauseImpl extends AstNodeImpl implements ExtendsClause {
 ///        'on' [TypeAnnotation] [ShowClause]? [HideClause]?
 ///        '{' [ClassMember]* '}'
 abstract final class ExtensionDeclaration implements CompilationUnitMember {
+  /// The 'augment' keyword, or `null` if the keyword was absent.
+  @experimental
+  Token? get augmentKeyword;
+
   @override
   ExtensionElement? get declaredElement;
 
@@ -6487,6 +6491,9 @@ abstract final class ExtensionDeclaration implements CompilationUnitMember {
 final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
     implements ExtensionDeclaration {
   @override
+  final Token? augmentKeyword;
+
+  @override
   final Token extensionKeyword;
 
   @override
@@ -6520,6 +6527,7 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   ExtensionDeclarationImpl({
     required super.comment,
     required super.metadata,
+    required this.augmentKeyword,
     required this.extensionKeyword,
     required this.typeKeyword,
     required this.name,
@@ -6547,7 +6555,8 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   }
 
   @override
-  Token get firstTokenAfterCommentAndMetadata => extensionKeyword;
+  Token get firstTokenAfterCommentAndMetadata =>
+      augmentKeyword ?? extensionKeyword;
 
   @override
   NodeListImpl<ClassMemberImpl> get members => _members;
@@ -6561,6 +6570,7 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
 
   @override
   ChildEntities get _childEntities => ChildEntities()
+    ..addToken('augmentKeyword', augmentKeyword)
     ..addToken('extensionKeyword', extensionKeyword)
     ..addToken('name', name)
     ..addNode('typeParameters', typeParameters)

@@ -271,7 +271,8 @@ class _Listener extends Listener {
   });
 
   @override
-  void beginExtensionDeclaration(Token extensionKeyword, Token? name) {
+  void beginExtensionDeclaration(
+      Token? augmentToken, Token extensionKeyword, Token? name) {
     if (name != null) {
       declaredNames.add(name.lexeme);
     }

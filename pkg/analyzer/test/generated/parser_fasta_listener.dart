@@ -198,8 +198,9 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void beginExtensionDeclaration(Token extensionKeyword, Token? name) {
-    super.beginExtensionDeclaration(extensionKeyword, name);
+  void beginExtensionDeclaration(
+      Token? augmentToken, Token extensionKeyword, Token? name) {
+    super.beginExtensionDeclaration(augmentToken, extensionKeyword, name);
     begin('ExtensionDeclaration');
   }
 

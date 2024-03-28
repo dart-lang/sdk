@@ -714,7 +714,9 @@ class Parser {
           Token? endGroup = keyword.next!.endGroup;
           if (endGroup != null && optional('on', endGroup.next!)) {
             directiveState?.checkDeclaration();
-            return parseExtension(beginToken, keyword);
+            ModifierContext context = new ModifierContext(this);
+            context.parseExtensionModifiers(modifierStart, keyword);
+            return parseExtension(beginToken, context.augmentToken, keyword);
           }
         }
         directiveState?.checkDeclaration();
@@ -762,9 +764,10 @@ class Parser {
           return parseMixin(
               beginToken, context.augmentToken, baseToken, keyword);
         } else if (identical(value, 'extension')) {
-          context.parseTopLevelKeywordModifiers(modifierStart, keyword);
+          context.parseExtensionModifiers(modifierStart, keyword);
           directiveState?.checkDeclaration();
-          return parseExtension(modifierStart.next!, keyword);
+          return parseExtension(
+              modifierStart.next!, context.augmentToken, keyword);
         } else if (identical(value, 'part')) {
           context.parseTopLevelKeywordModifiers(modifierStart, keyword);
           return parsePartOrPartOf(keyword, directiveState);
@@ -3056,7 +3059,8 @@ class Parser {
   }
 
   /// Parses an extension or extension type declaration.
-  Token parseExtension(Token beginToken, Token extensionKeyword) {
+  Token parseExtension(
+      Token beginToken, Token? augmentToken, Token extensionKeyword) {
     assert(optional('extension', extensionKeyword));
     Token token = extensionKeyword;
     listener.beginExtensionDeclarationPrelude(extensionKeyword);
@@ -3066,7 +3070,8 @@ class Parser {
       return parseExtensionTypeDeclaration(
           beginToken, token.next!, extensionKeyword, typeKeyword);
     } else {
-      return parseExtensionDeclaration(beginToken, token, extensionKeyword);
+      return parseExtensionDeclaration(
+          beginToken, token, augmentToken, extensionKeyword);
     }
   }
 
@@ -3084,8 +3089,8 @@ class Parser {
   ///   `}'
   /// ```
   ///
-  Token parseExtensionDeclaration(
-      Token beginToken, Token token, Token extensionKeyword) {
+  Token parseExtensionDeclaration(Token beginToken, Token token,
+      Token? augmentToken, Token extensionKeyword) {
     assert(optional('extension', extensionKeyword));
     assert(!optional('type', token));
     Token? name = token.next!;
@@ -3100,7 +3105,7 @@ class Parser {
     }
     token = computeTypeParamOrArg(token, /* inDeclaration = */ true)
         .parseVariables(token, this);
-    listener.beginExtensionDeclaration(extensionKeyword, name);
+    listener.beginExtensionDeclaration(augmentToken, extensionKeyword, name);
     Token onKeyword = token.next!;
     if (!optional('on', onKeyword)) {
       // Recovery

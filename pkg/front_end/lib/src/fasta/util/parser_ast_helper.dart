@@ -293,9 +293,11 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void beginExtensionDeclaration(Token extensionKeyword, Token? name) {
+  void beginExtensionDeclaration(
+      Token? augmentToken, Token extensionKeyword, Token? name) {
     ExtensionDeclarationBegin data = new ExtensionDeclarationBegin(
         ParserAstType.BEGIN,
+        augmentToken: augmentToken,
         extensionKeyword: extensionKeyword,
         name: name);
     seen(data);
@@ -3569,15 +3571,17 @@ class ExtensionDeclarationPreludeBegin extends ParserAstNode {
 }
 
 class ExtensionDeclarationBegin extends ParserAstNode {
+  final Token? augmentToken;
   final Token extensionKeyword;
   final Token? name;
 
   ExtensionDeclarationBegin(ParserAstType type,
-      {required this.extensionKeyword, this.name})
+      {this.augmentToken, required this.extensionKeyword, this.name})
       : super("ExtensionDeclaration", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
+        "augmentToken": augmentToken,
         "extensionKeyword": extensionKeyword,
         "name": name,
       };

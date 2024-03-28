@@ -429,7 +429,7 @@ void MemoryCopyInstr::EmitComputeStartPointer(FlowGraphCompiler* compiler,
     const auto& constant = start_loc.constant();
     ASSERT(constant.IsInteger());
     const int64_t start_value = Integer::Cast(constant).AsInt64Value();
-    const intx_t add_value = Utils::AddWithWrapAround(
+    const intx_t add_value = Utils::AddWithWrapAround<intx_t>(
         Utils::MulWithWrapAround<intx_t>(start_value, element_size_), offset);
     __ AddImmediate(payload_reg, array_reg, add_value);
     return;

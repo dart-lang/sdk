@@ -337,10 +337,15 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void beginExtensionDeclaration(Token extensionKeyword, Token? name) {
+  void beginExtensionDeclaration(
+      Token? augmentToken, Token extensionKeyword, Token? name) {
+    seen(augmentToken);
     seen(extensionKeyword);
     seen(name);
-    doPrint('beginExtensionDeclaration(' '$extensionKeyword, ' '$name)');
+    doPrint('beginExtensionDeclaration('
+        '$augmentToken, '
+        '$extensionKeyword, '
+        '$name)');
     indent++;
   }
 

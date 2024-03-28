@@ -601,6 +601,12 @@ class LspAnalysisServer extends AnalysisServer {
       // If we skip the work above, we still need to ensure plugins are notified
       // of the new overlay (which usually happens in `_afterOverlayChanged`).
       _notifyPluginsOverlayChanged(path, plugin.AddContentOverlay(content));
+
+      // We also need to ensure notifications like Outline can still sent in
+      // this case (which are usually triggered by the re-analysis), so force
+      // sending the resolved unit to the result stream even if we didn't need
+      // to re-analyze it.
+      unawaited(getResolvedUnit(path, sendCachedToStream: true));
     }
   }
 

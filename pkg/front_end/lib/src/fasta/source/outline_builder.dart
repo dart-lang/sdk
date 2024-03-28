@@ -1493,7 +1493,8 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void beginExtensionDeclaration(Token extensionKeyword, Token? nameToken) {
+  void beginExtensionDeclaration(
+      Token? augmentToken, Token extensionKeyword, Token? nameToken) {
     assert(checkState(extensionKeyword,
         [ValueKinds.NominalVariableListOrNull, ValueKinds.MetadataListOrNull]));
     debugEvent("beginExtensionDeclaration");
