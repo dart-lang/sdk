@@ -10877,20 +10877,25 @@ class CheckWritableInstr : public TemplateDefinition<1, Throws, Pure> {
                      intptr_t deopt_id,
                      const InstructionSource& source)
       : TemplateDefinition(source, deopt_id) {
-    SetInputAt(0, array);
+    SetInputAt(kReceiver, array);
   }
 
   virtual bool AttributesEqual(const Instruction& other) const { return true; }
 
   DECLARE_INSTRUCTION(CheckWritable)
 
-  Value* value() const { return inputs_[0]; }
+  Value* value() const { return inputs_[kReceiver]; }
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   virtual Value* RedefinedValue() const;
 
   virtual bool ComputeCanDeoptimize() const { return false; }
+
+  // Give a name to the location/input indices.
+  enum {
+    kReceiver = 0,
+  };
 
   DECLARE_EMPTY_SERIALIZATION(CheckWritableInstr, TemplateDefinition)
 

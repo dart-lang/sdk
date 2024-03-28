@@ -3192,6 +3192,12 @@ void RangeErrorSlowPath::EmitSharedStubCall(FlowGraphCompiler* compiler,
 #endif
 }
 
+void WriteErrorSlowPath::PushArgumentsForRuntimeCall(
+    FlowGraphCompiler* compiler) {
+  LocationSummary* locs = instruction()->locs();
+  __ PushRegister(locs->in(CheckWritableInstr::kReceiver).reg());
+}
+
 void WriteErrorSlowPath::EmitSharedStubCall(FlowGraphCompiler* compiler,
                                             bool save_fpu_registers) {
 #if defined(TARGET_ARCH_IA32)

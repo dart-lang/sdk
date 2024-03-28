@@ -163,8 +163,13 @@ DEFINE_RUNTIME_ENTRY(RangeErrorUnboxedInt64, 0) {
   Exceptions::ThrowByType(Exceptions::kRange, args);
 }
 
-DEFINE_RUNTIME_ENTRY(WriteError, 0) {
-  Exceptions::ThrowUnsupportedError("Cannot modify an unmodifiable list");
+DEFINE_RUNTIME_ENTRY(WriteError, 1) {
+  const Instance& receiver = Instance::CheckedHandle(zone, arguments.ArgAt(0));
+  const Array& args = Array::Handle(Array::New(1));
+  args.SetAt(
+      0, String::Handle(String::NewFormatted(
+             "Cannot modify an unmodifiable list: %s", receiver.ToCString())));
+  Exceptions::ThrowByType(Exceptions::kUnsupported, args);
 }
 
 static void NullErrorHelper(Zone* zone,
