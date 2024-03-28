@@ -1470,6 +1470,21 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         }
       } else {
         keywordHelper.addKeyword(Keyword.WHEN);
+
+        // `case Name ^`
+        // The user wants the pattern variable name.
+        var pattern = caseClause.guardedPattern.pattern;
+        if (pattern is ConstantPattern) {
+          if (pattern.expression case TypeLiteral typeLiteral) {
+            var namedType = typeLiteral.type;
+            if (namedType.end < offset) {
+              identifierHelper(
+                includePrivateIdentifiers: false,
+              ).addSuggestionsFromTypeName(namedType.name2.lexeme);
+              return;
+            }
+          }
+        }
       }
     } else if (offset >= node.leftParenthesis.end &&
         offset <= node.rightParenthesis.offset) {
@@ -2368,6 +2383,20 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         }
       }
 
+      // `case Name ^:`
+      // The user wants the pattern variable name.
+      if (pattern is ConstantPattern) {
+        if (pattern.expression case TypeLiteral typeLiteral) {
+          var namedType = typeLiteral.type;
+          if (namedType.end < offset) {
+            identifierHelper(
+              includePrivateIdentifiers: false,
+            ).addSuggestionsFromTypeName(namedType.name2.lexeme);
+            return;
+          }
+        }
+      }
+
       // DeclaredVariablePattern `case Name^ y:`
       // ObjectPattern `case Name^(): `
       if (coveringNode case NamedType type) {
@@ -3049,6 +3078,11 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     if (parent is GuardedPattern) {
       if (!node.name.isSynthetic) {
         keywordHelper.addKeyword(Keyword.WHEN);
+        if (node.type case NamedType namedType) {
+          identifierHelper(
+            includePrivateIdentifiers: false,
+          ).addSuggestionsFromTypeName(namedType.name2.lexeme);
+        }
       }
     } else if (parent is PatternField) {
       var outerPattern = parent.parent;

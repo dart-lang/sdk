@@ -587,7 +587,10 @@ class LspAnalysisServer extends AnalysisServer {
 
     // If the overlay is exactly the same as the previous content we can skip
     // notifying drivers which avoids re-analyzing the same content.
-    final driver = contextManager.getDriverFor(path);
+    // We use getAnalysisDriver() here because it can get content from
+    // dependencies (so the optimization works for them) but below we use
+    // `contextManager.driverFor` so we only add to the specific driver.
+    final driver = getAnalysisDriver(path);
     final contentIsUpdated =
         driver?.fsState.getExistingFromPath(path)?.content != content;
 
@@ -596,7 +599,7 @@ class LspAnalysisServer extends AnalysisServer {
 
       // If the file did not exist, and is "overlay only", it still should be
       // analyzed. Add it to driver to which it should have been added.
-      driver?.addFile(path);
+      contextManager.getDriverFor(path)?.addFile(path);
     } else {
       // If we skip the work above, we still need to ensure plugins are notified
       // of the new overlay (which usually happens in `_afterOverlayChanged`).
@@ -1018,9 +1021,8 @@ class LspAnalysisServer extends AnalysisServer {
 
   /// Checks whether [file] is in a project that can resolve 'package:flutter'
   /// libraries.
-  bool _isInFlutterProject(String file) =>
-      contextManager
-          .getDriverFor(file)
+  bool _isInFlutterProject(String filePath) =>
+      getAnalysisDriver(filePath)
           ?.currentSession
           .uriConverter
           .uriToPath(Uri.parse(Flutter.widgetsUri)) !=

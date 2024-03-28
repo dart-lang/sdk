@@ -229,6 +229,48 @@ suggestions
 ''');
   }
 
+  Future<void> test_afterCase_typeName_nameX() async {
+    allowedIdentifiers = {'myValue', 'value'};
+
+    await computeSuggestions('''
+class MyValue {}
+
+void f(Object? x) {
+  switch (x) {
+    case MyValue v^
+  }
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  value
+    kind: identifier
+''');
+  }
+
+  Future<void> test_afterCase_typeName_x() async {
+    allowedIdentifiers = {'myValue', 'value'};
+
+    await computeSuggestions('''
+class MyValue {}
+
+void f(Object? x) {
+  switch (x) {
+    case MyValue ^
+  }
+}
+''');
+    assertResponse(r'''
+suggestions
+  myValue
+    kind: identifier
+  value
+    kind: identifier
+''');
+  }
+
   Future<void> test_afterColon() async {
     await computeSuggestions('''
 void f(Object o) {
