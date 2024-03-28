@@ -992,29 +992,6 @@ final class CorrectionUtils {
             member is MethodDeclaration);
   }
 
-  /// Return the location of a new statement in the given [block], as the
-  /// first statement if [first] is `true`, or the last one if `false`.
-  InsertionLocation prepareNewStatementLocation(Block block, bool first) {
-    var statements = block.statements;
-    var empty = statements.isEmpty;
-    var last = empty || first ? block.leftBracket : statements.last;
-
-    var linePrefix = getLinePrefix(last.offset);
-    String prefix;
-    String suffix;
-    if (empty) {
-      prefix = endOfLine + linePrefix + oneIndent;
-      suffix = endOfLine + linePrefix;
-    } else if (first) {
-      prefix = endOfLine + linePrefix + oneIndent;
-      suffix = '';
-    } else {
-      prefix = endOfLine + linePrefix;
-      suffix = '';
-    }
-    return InsertionLocation(prefix: prefix, offset: last.end, suffix: suffix);
-  }
-
   /// Returns the source with indentation changed from [oldIndent] to
   /// [newIndent], keeping indentation of lines relative to each other.
   ///

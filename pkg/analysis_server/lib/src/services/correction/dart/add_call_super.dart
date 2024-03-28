@@ -59,20 +59,21 @@ class AddCallSuper extends ResolvedCorrectionProducer {
     _addition = '$name($argumentList)';
 
     if (body is BlockFunctionBody) {
-      await _block(builder, body);
+      await _block(builder, body.block);
     } else if (body is ExpressionFunctionBody) {
       await _expression(builder, body);
     }
   }
 
-  Future<void> _block(ChangeBuilder builder, BlockFunctionBody body) async {
-    var location = utils.prepareNewStatementLocation(body.block, true);
-
+  Future<void> _block(ChangeBuilder builder, Block block) async {
     await builder.addDartFileEdit(file, (builder) {
-      builder.addInsertion(location.offset, (builder) {
-        builder.write(location.prefix);
-        builder.write('super.$_addition;');
-        builder.write(location.suffix);
+      builder.addInsertion(block.leftBracket.end, (builder) {
+        builder.writeln();
+        builder.write('${builder.getIndent(2)}super.$_addition;');
+        if (block.statements.isEmpty) {
+          builder.writeln();
+          builder.write(builder.getIndent(1));
+        }
       });
     });
   }

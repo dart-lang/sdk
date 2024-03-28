@@ -30,6 +30,9 @@ abstract class DartEditBuilder implements EditBuilder {
   /// The logic is the same as the one used in [writeType]
   bool canWriteType(DartType? type, {ExecutableElement? methodBeingCopied});
 
+  /// Returns the indentation with the given [level].
+  String getIndent(int level);
+
   /// Write the code for a declaration of a class with the given [name]. If a
   /// list of [interfaces] is provided, then the class will implement those
   /// interfaces. If [isAbstract] is `true`, then the class will be abstract. If
