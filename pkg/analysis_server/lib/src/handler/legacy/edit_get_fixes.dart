@@ -4,14 +4,12 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
 import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/plugin/result_converter.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/request_handler_mixin.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
-import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix/analysis_options/fix_generator.dart';
 import 'package:analysis_server/src/services/correction/fix/pubspec/fix_generator.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
@@ -30,6 +28,8 @@ import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/file_paths.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
+import 'package:server_plugin/edit/fix/dart_fix_context.dart';
+import 'package:server_plugin/edit/fix/fix.dart';
 import 'package:yaml/yaml.dart';
 
 /// The handler for the `edit.getFixes` request.
@@ -178,8 +178,12 @@ class EditGetFixesHandler extends LegacyHandler
           var workspace = DartChangeWorkspace(
             await server.currentSessions,
           );
-          var context = DartFixContextImpl(
-              server.instrumentationService, workspace, result, error);
+          var context = DartFixContext(
+            instrumentationService: server.instrumentationService,
+            workspace: workspace,
+            resolvedResult: result,
+            error: error,
+          );
 
           List<Fix> fixes;
           try {

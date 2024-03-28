@@ -8,11 +8,11 @@ extension type Ext(core::Object? _) {
   constructor • = self::Ext|constructor#;
   constructor tearoff • = self::Ext|constructor#_#new#tearOff;
 }
-static extension-type-member method Ext|constructor#(core::Object? _) → self::Ext /* = core::Object? */
+static extension-type-member method Ext|constructor#(core::Object? _) → self::Ext% /* erasure=core::Object?, declared=! */
   ;
-static extension-type-member method Ext|constructor#_#new#tearOff(core::Object? _) → self::Ext /* = core::Object? */
+static extension-type-member method Ext|constructor#_#new#tearOff(core::Object? _) → self::Ext% /* erasure=core::Object?, declared=! */
   return self::Ext|constructor#(_);
-static extension-type-member method Ext|get#value(lowered final self::Ext /* = core::Object? */ #this) → core::int
+static extension-type-member method Ext|get#value(lowered final self::Ext% /* erasure=core::Object?, declared=! */ #this) → core::int
   ;
 static method main() → void
   ;

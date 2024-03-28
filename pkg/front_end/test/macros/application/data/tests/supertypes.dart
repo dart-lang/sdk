@@ -9,6 +9,8 @@ Definition Order:
  M:SupertypesMacro.new()
  C:SupertypesMacro.new()
 Definitions:
+library augment 'org-dartlang-test:///a/b/c/main.dart';
+
 import 'dart:core' as prefix0;
 
 augment class A {

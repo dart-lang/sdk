@@ -2,11 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
-import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/instrumentation/service.dart';
@@ -15,7 +12,8 @@ import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:analyzer/src/services/top_level_declarations.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
+import 'package:server_plugin/edit/fix/dart_fix_context.dart';
+import 'package:server_plugin/edit/fix/fix.dart';
 
 class CiderErrorFixes {
   final AnalysisError error;
@@ -52,9 +50,9 @@ class CiderFixesComputer {
           var workspace = DartChangeWorkspace([resolvedUnit.session]);
           var context = _CiderDartFixContextImpl(
             _fileResolver,
-            workspace,
-            resolvedUnit,
-            error,
+            workspace: workspace,
+            resolvedResult: resolvedUnit,
+            error: error,
           );
 
           var fixes = await computeFixes(context);
@@ -71,16 +69,15 @@ class CiderFixesComputer {
   }
 }
 
-class _CiderDartFixContextImpl extends DartFixContextImpl {
+class _CiderDartFixContextImpl extends DartFixContext {
   final FileResolver _fileResolver;
 
   _CiderDartFixContextImpl(
-    this._fileResolver,
-    ChangeWorkspace workspace,
-    ResolvedUnitResult resolvedUnit,
-    AnalysisError error,
-  ) : super(InstrumentationService.NULL_SERVICE, workspace, resolvedUnit,
-            error);
+    this._fileResolver, {
+    required super.workspace,
+    required super.resolvedResult,
+    required super.error,
+  }) : super(instrumentationService: InstrumentationService.NULL_SERVICE);
 
   @override
   Future<Map<LibraryElement, Element>> getTopLevelDeclarations(

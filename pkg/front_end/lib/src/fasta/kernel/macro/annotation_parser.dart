@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/experiments/flags.dart';
-import 'package:_fe_analyzer_shared/src/macros/executor.dart' as macro;
+import 'package:macros/src/executor.dart' as macro;
 import 'package:_fe_analyzer_shared/src/messages/codes.dart';
 import 'package:_fe_analyzer_shared/src/parser/parser.dart';
 import 'package:_fe_analyzer_shared/src/parser/quote.dart';
@@ -18,13 +18,15 @@ import '../../builder/prefix_builder.dart';
 import '../../scope.dart';
 import '../../source/diet_parser.dart';
 import '../../source/source_library_builder.dart';
+import '../../uri_offset.dart';
 import 'macro.dart';
 
 List<MacroApplication>? prebuildAnnotations(
     {required SourceLibraryBuilder enclosingLibrary,
     required List<MetadataBuilder>? metadataBuilders,
     required Uri fileUri,
-    required Scope scope}) {
+    required Scope scope,
+    required Set<ClassBuilder> currentMacroDeclarations}) {
   if (metadataBuilders == null) return null;
   List<MacroApplication>? result;
   for (MetadataBuilder metadataBuilder in metadataBuilders) {
@@ -37,7 +39,20 @@ List<MacroApplication>? prebuildAnnotations(
     MacroApplication? application = listener.popMacroApplication();
     if (application != null) {
       result ??= [];
-      result.add(application);
+      if (currentMacroDeclarations.contains(application.classBuilder)) {
+        ClassBuilder classBuilder = application.classBuilder;
+        UriOffset uriOffset = application.uriOffset;
+        enclosingLibrary.addProblem(
+            templateMacroDefinitionApplicationSameLibraryCycle
+                .withArguments(classBuilder.name),
+            uriOffset.fileOffset,
+            noLength,
+            uriOffset.uri);
+        result.add(
+            new MacroApplication.invalid(classBuilder, uriOffset: uriOffset));
+      } else {
+        result.add(application);
+      }
     }
   }
   if (result != null && result.length > 1) {
@@ -211,15 +226,14 @@ class _MacroListener implements Listener {
             constructorName,
             new macro.Arguments(argumentsNode.positionalArguments,
                 argumentsNode.namedArguments),
-            fileUri: uri,
-            fileOffset: beginToken.next!.charOffset)));
+            uriOffset: new UriOffset(uri, beginToken.next!.charOffset))));
         return;
       }
     } else {
       if (_macroClassBuilder != null && _unhandledReason != null) {
-        _erroneousMacroApplication = new MacroApplication.error(
+        _erroneousMacroApplication = new MacroApplication.unhandled(
             _unhandledReason!, _macroClassBuilder!,
-            fileUri: uri, fileOffset: beginToken.next!.charOffset);
+            uriOffset: new UriOffset(uri, beginToken.next!.charOffset));
       }
     }
     pushUnsupported();
@@ -612,7 +626,8 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void beginExtensionDeclaration(Token extensionKeyword, Token? name) {
+  void beginExtensionDeclaration(
+      Token? augmentToken, Token extensionKeyword, Token? name) {
     _unexpected();
   }
 

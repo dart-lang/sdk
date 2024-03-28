@@ -1,12 +1,4 @@
 library;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/general/issue49127.dart:10:3: Warning: The extension 'E' cannot be null.
-// Try replacing '?.' with '.'
-//   E?.s;
-//   ^
-//
 import self as self;
 import "dart:core" as core;
 

@@ -62,8 +62,6 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
 
   Token? _constInitializerToken;
 
-  bool hadTypesInferred = false;
-
   /// Whether the body of this field has been built.
   ///
   /// Constant fields have their initializer built in the outline so we avoid
@@ -313,8 +311,6 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
   @override
   Name get memberName => _memberName.name;
 
-  bool get isLateLowered => _fieldEncoding.isLateLowering;
-
   bool _typeEnsured = false;
   Set<ClassMember>? _overrideDependencies;
 
@@ -488,6 +484,8 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
     _constInitializerToken = null;
   }
 
+  bool get hasOutlineExpressionsBuilt => _constInitializerToken == null;
+
   DartType get fieldType => _fieldEncoding.type;
 
   void set fieldType(DartType value) {
@@ -656,9 +654,6 @@ abstract class FieldEncoding {
 
   /// Returns a list of the setters created by this field encoding.
   List<ClassMember> getLocalSetters(SourceFieldBuilder fieldBuilder);
-
-  /// Returns `true` if this encoding is a late lowering.
-  bool get isLateLowering;
 }
 
 class RegularFieldEncoding implements FieldEncoding {
@@ -793,9 +788,6 @@ class RegularFieldEncoding implements FieldEncoding {
               new SourceFieldMember(fieldBuilder, ClassMemberKind.Setter)
             ]
           : const <ClassMember>[];
-
-  @override
-  bool get isLateLowering => false;
 
   @override
   void buildImplicitDefaultValue() {
@@ -1267,9 +1259,6 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
     }
     return list;
   }
-
-  @override
-  bool get isLateLowering => true;
 }
 
 mixin NonFinalLate on AbstractLateFieldEncoding {
@@ -1635,12 +1624,6 @@ class _SynthesizedFieldClassMember implements ClassMember {
   bool get isField => _member is Field;
 
   @override
-  bool get isAssignable {
-    Member field = _member;
-    return field is Field && field.hasSetter;
-  }
-
-  @override
   bool get isSetter {
     Member procedure = _member;
     return procedure is Procedure && procedure.kind == ProcedureKind.Setter;
@@ -1650,18 +1633,6 @@ class _SynthesizedFieldClassMember implements ClassMember {
   bool get isGetter {
     Member procedure = _member;
     return procedure is Procedure && procedure.kind == ProcedureKind.Getter;
-  }
-
-  @override
-  bool get isFinal {
-    Member field = _member;
-    return field is Field && field.isFinal;
-  }
-
-  @override
-  bool get isConst {
-    Member field = _member;
-    return field is Field && field.isConst;
   }
 
   @override
@@ -2025,9 +1996,6 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
           : const <ClassMember>[];
 
   @override
-  bool get isLateLowering => false;
-
-  @override
   void buildImplicitDefaultValue() {
     throw new UnsupportedError("$runtimeType.buildImplicitDefaultValue");
   }
@@ -2158,9 +2126,6 @@ class RepresentationFieldEncoding implements FieldEncoding {
   @override
   List<ClassMember> getLocalSetters(SourceFieldBuilder fieldBuilder) =>
       const <ClassMember>[];
-
-  @override
-  bool get isLateLowering => false;
 
   @override
   void buildImplicitDefaultValue() {

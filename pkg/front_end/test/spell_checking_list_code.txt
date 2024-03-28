@@ -180,6 +180,7 @@ bother
 boundarykey
 boundness
 boxed
+breach
 breadcrumbs
 brevity
 brianwilkerson
@@ -284,6 +285,7 @@ columns
 com
 combinations
 combinator
+combinatorial
 combiner
 commands
 communicate
@@ -534,6 +536,7 @@ ef
 effects
 efficient
 efficiently
+ei
 eight
 eighth
 elected
@@ -588,6 +591,8 @@ examines
 exceeds
 exchange
 exchanging
+exe
+executables
 execute
 executor
 executors
@@ -605,6 +610,7 @@ experimentation
 explaining
 explicitness
 explore
+explosion
 exportable
 exportee
 exportees
@@ -948,6 +954,7 @@ lattice
 launch
 launched
 launcher
+launches
 launching
 layer
 layered
@@ -1245,6 +1252,7 @@ play
 player
 plugin
 plugins
+plural
 pm
 pn
 pointed
@@ -1269,6 +1277,7 @@ precompilation
 precompilations
 precompile
 precompiled
+precompiles
 precompiling
 precomputed
 preexisted
@@ -1333,6 +1342,7 @@ pv
 q
 q'i
 qi
+qk
 qm
 quad
 qualify
@@ -1495,6 +1505,7 @@ right's
 rightmost
 ring
 risk
+rk
 rn
 rnystrom
 robust
@@ -1514,6 +1525,7 @@ rpc
 rs
 rta
 runnable
+runtimes
 rvar
 s
 safer
@@ -2036,6 +2048,7 @@ wise
 wiser
 wishes
 witness
+witnesses
 wn
 worst
 worthwhile

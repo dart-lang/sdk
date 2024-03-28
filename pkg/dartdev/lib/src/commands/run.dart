@@ -265,6 +265,13 @@ class RunCommand extends DartdevCommand {
             help: 'Enable hosting Observatory through the VM Service.',
             defaultsTo: true)
         ..addFlag(
+          'print-dtd',
+          hide: !verbose,
+          help: 'Prints connection details for the Dart Tooling Daemon (DTD).'
+              'Useful for Dart DevTools extension authors working with DTD in the '
+              'extension development environment.',
+        )
+        ..addFlag(
           'debug-dds',
           hide: true,
         );
@@ -322,7 +329,7 @@ class RunCommand extends DartdevCommand {
     }
 
     final residentServerInfoFile = hasServerInfoOption
-        ? File(maybeUriToFilename(args[serverInfoOption]))
+        ? File(maybeUriToFilename(args.option(serverInfoOption)!))
         : defaultResidentServerInfoFile;
 
     if (useResidentServer && residentServerInfoFile != null) {
@@ -361,7 +368,8 @@ class RunCommand extends DartdevCommand {
     VmInteropHandler.run(
       executable.executable,
       runArgs,
-      packageConfigOverride: args['packages'] ?? executable.packageConfig,
+      packageConfigOverride:
+          args.option('packages') ?? executable.packageConfig,
     );
     return 0;
   }

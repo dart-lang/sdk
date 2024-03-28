@@ -236,7 +236,9 @@ extension DdsExtension on VmService {
   /// This provides a way for the VM service to wait for approval to resume
   /// from some set of clients. This is useful for clients which want to
   /// perform some operation on an isolate after a pause without it being
-  /// resumed by another client.
+  /// resumed by another client. These clients should invoke [readyToResume]
+  /// instead of [VmService.resume] to indicate to DDS that they have finished
+  /// their work and the isolate can be resumed.
   ///
   /// If the [onPauseStart] parameter is `true`, isolates will not resume after
   /// pausing on start until the client sends a `resume` request and all other
@@ -263,6 +265,11 @@ extension DdsExtension on VmService {
   ///   resume approval for the current pause event, the isolate will be
   ///   resumed if at least one other client has attempted to resume the
   ///   isolate.
+  /// - Resume permission behavior can be bypassed using the [VmService.resume]
+  ///   RPC, which is treated as a user-initiated resume that force resumes
+  ///   the isolate. Tooling relying on resume permissions should use
+  ///   [readyToResume] instead of [VmService.resume] to avoid force resuming
+  ///   the isolate.
   Future<Success> requirePermissionToResume({
     bool onPauseStart = false,
     bool onPauseReload = false,
@@ -274,6 +281,52 @@ extension DdsExtension on VmService {
       args: {
         'onPauseStart': onPauseStart,
         'onPauseReload': onPauseReload,
+        'onPauseExit': onPauseExit,
+      },
+    );
+  }
+
+  /// The [readyToResume] RPC indicates to DDS that the current client is ready
+  /// to resume the isolate.
+  ///
+  /// If the current client requires that approval be given before resuming an
+  /// isolate, this method will:
+  ///
+  ///   - Update the approval state for the isolate.
+  ///   - Resume the isolate if approval has been given by all clients which
+  ///     require approval.
+  ///
+  /// Throws a [SentinelException] if the isolate no longer exists.
+  Future<Success> readyToResume(String isolateId) async {
+    if (!(await _versionCheck(2, 0))) {
+      throw UnimplementedError('readyToResume requires DDS version 2.0');
+    }
+    return _callHelper<Success>(
+      'readyToResume',
+      isolateId: isolateId,
+    );
+  }
+
+  /// The [requireUserPermissionToResume] RPC notifies DDS if it should wait
+  /// for a [VmService.resume] request to resume isolates paused on start or
+  /// exit.
+  ///
+  /// This RPC should only be invoked by tooling which launched the target Dart
+  /// process and knows if the user indicated they wanted isolates paused on
+  /// start or exit.
+  Future<Success> requireUserPermissionToResume({
+    bool onPauseStart = false,
+    bool onPauseExit = false,
+  }) async {
+    if (!(await _versionCheck(2, 0))) {
+      throw UnimplementedError(
+        'requireUserPermissionToResume requires DDS version 2.0',
+      );
+    }
+    return _callHelper<Success>(
+      'requireUserPermissionToResume',
+      args: {
+        'onPauseStart': onPauseStart,
         'onPauseExit': onPauseExit,
       },
     );
@@ -308,6 +361,10 @@ extension DdsExtension on VmService {
     addTypeFactory('CachedCpuSamples', CachedCpuSamples.parse);
     addTypeFactory('Size', Size.parse);
     addTypeFactory('ClientName', ClientName.parse);
+    addTypeFactory(
+      'ResumePermissionsRequired',
+      ResumePermissionsRequired.parse,
+    );
     _factoriesRegistered = true;
   }
 }
@@ -441,4 +498,21 @@ class AvailableCachedCpuSamples extends Response {
 
   /// A [List] of [UserTag] names associated with CPU sample caches.
   final List<String> cacheNames;
+}
+
+class ResumePermissionsRequired extends Response {
+  static ResumePermissionsRequired? parse(Map<String, dynamic>? json) =>
+      json == null ? null : ResumePermissionsRequired._fromJson(json);
+
+  ResumePermissionsRequired({
+    required this.onPauseStart,
+    required this.onPauseExit,
+  });
+
+  ResumePermissionsRequired._fromJson(Map<String, dynamic> json)
+      : onPauseStart = json['onPauseStart'],
+        onPauseExit = json['onPauseExit'];
+
+  final bool onPauseStart;
+  final bool onPauseExit;
 }

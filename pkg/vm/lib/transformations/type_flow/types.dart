@@ -293,6 +293,9 @@ abstract class TypeHierarchy extends TypesBuilder
   /// values can flow through the program.
   Type specializeTypeCone(TFClass base, {bool allowWideCone = false});
 
+  /// Returns true if [cls] has allocated subtypes.
+  bool hasAllocatedSubtypes(TFClass cls);
+
   late final Type intType = fromStaticType(coreTypes.intLegacyRawType, true);
 }
 
@@ -347,6 +350,19 @@ abstract class Type extends TypeExpr {
   /// Returns specialization of this type using the given [TypeHierarchy].
   Type specialize(TypeHierarchy typeHierarchy) => this;
 
+  /// Returns true if specialization of this type is empty.
+  ///
+  /// This method is more precise than `type == emptyType` or
+  /// `type is EmptyType` tests as specialization can be more precise
+  /// than the type.
+  ///
+  /// This method is more efficient than `type.specialize(...) is EmptyType`
+  /// as it omits calculation of specialization. Also, unlike [specialize]
+  /// this method doesn't add a dependency if specialization is not empty
+  /// (specialization can only grow over time when new allocated
+  /// classes are discovered).
+  bool hasEmptySpecialization(TypeHierarchy typeHierarchy) => false;
+
   /// Calculate union of this and [other] types.
   ///
   /// This method is used when calculating type flow throughout the program.
@@ -398,6 +414,9 @@ class EmptyType extends Type {
 
   @override
   int get order => TypeOrder.Empty.index;
+
+  @override
+  bool hasEmptySpecialization(TypeHierarchy typeHierarchy) => true;
 
   @override
   Type union(Type other, TypeHierarchy typeHierarchy) => other;
@@ -828,6 +847,10 @@ class ConeType extends Type {
       typeHierarchy.specializeTypeCone(cls, allowWideCone: true);
 
   @override
+  bool hasEmptySpecialization(TypeHierarchy typeHierarchy) =>
+      !typeHierarchy.hasAllocatedSubtypes(cls);
+
+  @override
   Type union(Type other, TypeHierarchy typeHierarchy) {
     if (identical(this, other)) return this;
     if (other.order < this.order) {
@@ -910,6 +933,9 @@ class WideConeType extends ConeType {
 
   @override
   Type specialize(TypeHierarchy typeHierarchy) => this;
+
+  @override
+  bool hasEmptySpecialization(TypeHierarchy typeHierarchy) => false;
 
   @override
   Type union(Type other, TypeHierarchy typeHierarchy) {

@@ -8,11 +8,7 @@ import '../../dtd.dart';
 
 /// A list or [uris] on the system where the Dart Tooling Daemon is running.
 class UriList {
-  /// The key for the type parameter.
-  static const String _kType = 'type';
-
-  /// The key for the uris parameter.
-  static const String _kUris = 'uris';
+  const UriList({this.uris});
 
   factory UriList.fromDTDResponse(DTDResponse response) {
     if (response.result[_kType] != type) {
@@ -23,17 +19,19 @@ class UriList {
     return UriList._fromDTDResponse(response);
   }
 
-  /// A list of URIs.
-  List<Uri>? uris;
-
-  UriList({
-    this.uris,
-  });
-
   UriList._fromDTDResponse(DTDResponse response)
       : uris = List<String>.from(response.result[_kUris] as List)
             .map(Uri.parse)
             .toList();
+
+  /// The key for the type parameter.
+  static const String _kType = 'type';
+
+  /// The key for the uris parameter.
+  static const String _kUris = 'uris';
+
+  /// A list of URIs.
+  final List<Uri>? uris;
 
   static String get type => 'UriList';
 
@@ -43,17 +41,13 @@ class UriList {
       };
 
   @override
-  String toString() => '[UriList uris: $uris]';
+  String toString() => '[$type uris: $uris]';
 }
 
 /// The [content] of a file from the system where the Dart Tooling Daemon is
 /// running.
 class FileContent {
-  /// The key for the type parameter.
-  static const String _kType = 'type';
-
-  /// The key for the content parameter.
-  static const String _kContent = 'content';
+  const FileContent({this.content});
 
   factory FileContent.fromDTDResponse(DTDResponse response) {
     if (response.result[_kType] != type) {
@@ -64,16 +58,19 @@ class FileContent {
     return FileContent._fromDTDResponse(response);
   }
 
-  /// The content of the file as a String.
-  String? content;
+  FileContent._fromDTDResponse(DTDResponse response)
+      : content = response.result[_kContent] as String?;
 
-  FileContent({this.content});
+  /// The key for the type parameter.
+  static const String _kType = 'type';
 
-  FileContent._fromDTDResponse(DTDResponse response) {
-    content = response.result[_kContent] as String?;
-  }
+  /// The key for the content parameter.
+  static const String _kContent = 'content';
 
   static String get type => 'FileContent';
+
+  /// The content of the file as a String.
+  final String? content;
 
   Map<String, Object?> toJson() => <String, Object?>{
         _kType: type,
@@ -81,17 +78,12 @@ class FileContent {
       };
 
   @override
-  String toString() => '[FileContent content: $content]';
+  String toString() => '[$type content: $content]';
 }
 
 /// The list of roots in the IDE workspace.
 class IDEWorkspaceRoots {
-  /// The key for the type parameter.
-  static const String _kType = 'type';
-  static String get type => 'IDEWorkspaceRoots';
-
-  /// The key for the content parameter.
-  static const String kIDEWorkspaceRoots = 'ideWorkspaceRoots';
+  const IDEWorkspaceRoots({required this.ideWorkspaceRoots});
 
   factory IDEWorkspaceRoots.fromDTDResponse(DTDResponse response) {
     if (response.result[_kType] != type) {
@@ -102,16 +94,22 @@ class IDEWorkspaceRoots {
     return IDEWorkspaceRoots._fromDTDResponse(response);
   }
 
-  /// The lists of IDE workspace roots.
-  final List<Uri> ideWorkspaceRoots;
-
-  IDEWorkspaceRoots({required this.ideWorkspaceRoots});
-
   IDEWorkspaceRoots._fromDTDResponse(DTDResponse response)
       : ideWorkspaceRoots =
             List<String>.from(response.result[kIDEWorkspaceRoots] as List)
                 .map(Uri.parse)
                 .toList();
+
+  /// The key for the type parameter.
+  static const String _kType = 'type';
+
+  /// The key for the content parameter.
+  static const String kIDEWorkspaceRoots = 'ideWorkspaceRoots';
+
+  static String get type => 'IDEWorkspaceRoots';
+
+  /// The list of IDE workspace roots.
+  final List<Uri> ideWorkspaceRoots;
 
   Map<String, Object?> toJson() => <String, Object?>{
         _kType: type,
@@ -119,6 +117,5 @@ class IDEWorkspaceRoots {
       };
 
   @override
-  String toString() =>
-      '[IDEWorkspaceRoots ideWorkspaceRoots: $ideWorkspaceRoots]';
+  String toString() => '[$type ideWorkspaceRoots: $ideWorkspaceRoots]';
 }

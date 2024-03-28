@@ -335,7 +335,10 @@ bool _checkForSimpleGetter(MethodDeclaration getter, Expression? expression) {
       // Skipping library level getters, test that the enclosing element is
       // the same
       if (staticElement.enclosingElement == enclosingElement) {
-        return staticElement.isSynthetic && staticElement.variable.isPrivate;
+        var variable = staticElement.variable2;
+        if (variable != null) {
+          return staticElement.isSynthetic && variable.isPrivate;
+        }
       }
     }
   }

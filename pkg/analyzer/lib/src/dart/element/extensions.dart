@@ -111,10 +111,6 @@ extension ElementExtension on Element {
 }
 
 extension ExecutableElementExtension on ExecutableElement {
-  bool get isEnumConstructor {
-    return this is ConstructorElement && enclosingElement is EnumElementImpl;
-  }
-
   /// Whether the enclosing element is the class `Object`.
   bool get isObjectMember {
     final enclosing = enclosingElement;
@@ -151,10 +147,6 @@ extension InterfaceElementExtension on InterfaceElement {
 extension InterfaceTypeExtension on InterfaceType {
   bool get isDartCoreObjectNone {
     return isDartCoreObject && nullabilitySuffix == NullabilitySuffix.none;
-  }
-
-  bool get isDartCoreObjectQuestion {
-    return isDartCoreObject && nullabilitySuffix == NullabilitySuffix.question;
   }
 }
 

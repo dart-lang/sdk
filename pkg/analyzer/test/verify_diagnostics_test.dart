@@ -94,14 +94,29 @@ class DocumentationValidator {
 
     // Missing support for example files outside of `lib`.
     'LintCode.avoid_relative_lib_imports',
+    // Produces a CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY.
+    'LintCode.control_flow_in_finally',
     // Missing support for creating an indirect dependency on a package.
     'LintCode.depend_on_referenced_packages',
     // Missing support for specifying the name of the test file.
     'LintCode.file_names',
+    // Produces an unused import diagnostic.
+    'LintCode.implementation_imports',
+    // Doesn't produce a lint for the second example, even though the analyzer
+    // does when the example is pasted into a file.
+    'LintCode.prefer_inlined_adds',
+    // Produces an unused import diagnostic.
+    'LintCode.library_prefixes',
+    // Produces an unused element diagnostic.
+    'LintCode.library_private_types_in_public_api',
+    // Missing support for YAML files.
+    'LintCode.package_names',
     // The lint does nothing.
     'LintCode.package_prefixed_library_names',
     // Missing support for YAML files.
     'LintCode.secure_pubspec_urls',
+    // Extra warning.
+    'LintCode.recursive_getters',
 
     // Has `language=2.9`
     'ParserErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD',

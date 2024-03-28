@@ -195,12 +195,8 @@ namespace dart {
   F(RegExp, pattern_)                                                          \
   F(RegExp, one_byte_)                                                         \
   F(RegExp, two_byte_)                                                         \
-  F(RegExp, external_one_byte_)                                                \
-  F(RegExp, external_two_byte_)                                                \
   F(RegExp, one_byte_sticky_)                                                  \
   F(RegExp, two_byte_sticky_)                                                  \
-  F(RegExp, external_one_byte_sticky_)                                         \
-  F(RegExp, external_two_byte_sticky_)                                         \
   F(SuspendState, function_data_)                                              \
   F(SuspendState, then_callback_)                                              \
   F(SuspendState, error_callback_)                                             \

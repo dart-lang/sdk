@@ -6,6 +6,9 @@ import 'package:analysis_server/src/protocol_server.dart';
 
 class CompletionResponseForTesting {
   final int requestOffset;
+  final String? requestLocationName;
+  // TODO(scheglov): remove it when removing `OpType`.
+  final String? opTypeLocationName;
   final int replacementOffset;
   final int replacementLength;
   final bool isIncomplete;
@@ -13,6 +16,8 @@ class CompletionResponseForTesting {
 
   CompletionResponseForTesting({
     required this.requestOffset,
+    required this.requestLocationName,
+    required this.opTypeLocationName,
     required this.replacementOffset,
     required this.replacementLength,
     required this.isIncomplete,

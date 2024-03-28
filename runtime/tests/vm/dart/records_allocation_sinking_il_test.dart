@@ -45,7 +45,7 @@ void matchIL$test(FlowGraph graph) {
       match.StaticCall(),
       match.MoveArgument('baz_boxed'),
       match.StaticCall(),
-      match.Return(),
+      match.DartReturn(),
     ]),
   ]);
 }

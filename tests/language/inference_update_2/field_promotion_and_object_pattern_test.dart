@@ -4,8 +4,6 @@
 
 // Tests interactions between field promotion logic and object patterns.
 
-// SharedOptions=--enable-experiment=inference-update-2
-
 import '../static_type_helper.dart';
 
 class C {

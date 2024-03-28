@@ -22,7 +22,7 @@ class CancelRequestTest extends AbstractLspAnalysisServerTest {
   Future<void> test_cancel() async {
     final code = TestCode.parse('''
 void f() {
-  InOtherF^
+  ^
 }
 ''');
 

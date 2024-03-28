@@ -87,8 +87,8 @@ Future<Map<String, dynamic>> sendAndReceiveResponse(
 }
 
 /// Used to create compile requests for the run CLI command.
-/// Returns a JSON string that the resident compiler will be able to
-/// interpret.
+///
+/// Returns a JSON string that the resident compiler will be able to interpret.
 String createCompileJitJson({
   required String executable,
   required String outputDill,
@@ -101,17 +101,19 @@ String createCompileJitJson({
       commandString: compileString,
       sourceString: executable,
       outputString: outputDill,
-      if (args.wasParsed(defineOption)) defineOption: args[defineOption],
+      if (args.wasParsed(defineOption))
+        defineOption: args.multiOption(defineOption),
       if (args.options.contains(enableAssertsOption) &&
           args.wasParsed(enableAssertsOption))
         enableAssertsOption: true,
       if (args.wasParsed(enableExperimentOption))
-        enableExperimentOption: args[enableExperimentOption]
+        enableExperimentOption: args
+            .multiOption(enableExperimentOption)
             .map((e) => '--enable-experiment=$e')
             .toList(),
       if (packages != null) packageString: packages,
       if (args.wasParsed(verbosityOption))
-        verbosityOption: args[verbosityOption],
+        verbosityOption: args.flag(verbosityOption),
     },
   );
 }

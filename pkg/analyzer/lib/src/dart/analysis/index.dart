@@ -164,7 +164,9 @@ class IndexElementInfo {
           kind = accessor.isGetter
               ? IndexSyntheticElementKind.getter
               : IndexSyntheticElementKind.setter;
-          element = accessor.variable;
+          if (accessor.variable2 case var variable?) {
+            element = variable;
+          }
         }
       } else if (element is MethodElement) {
         Element enclosing = element.enclosingElement;

@@ -6,14 +6,22 @@
       "rootUri": "pkgs/macro/lib/"
     },
     {
+      "name": "example",
+      "rootUri": "pkgs/example/lib/"
+    },
+    {
       "name": "meta",
       "rootUri": "../../../../../meta/",
       "packageUri": "lib/",
       "languageVersion": "2.12"
     },
     {
-      "name": "_fe_analyzer_shared",
-      "rootUri": "../../../../../_fe_analyzer_shared/lib/"
+      "name": "macros",
+      "rootUri": "../../../../../macros/lib/"
+    },
+    {
+      "name": "_macros",
+      "rootUri": "../../../../../_macros/lib/"
     }
   ]
 }

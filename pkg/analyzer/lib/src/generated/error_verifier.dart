@@ -5,13 +5,11 @@
 import 'dart:collection';
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
-import 'package:_fe_analyzer_shared/src/macros/api.dart' as macro;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
@@ -51,13 +49,13 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error_detection_helpers.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
-import 'package:analyzer/src/generated/this_access_tracker.dart';
 import 'package:analyzer/src/summary2/macro_application_error.dart';
 import 'package:analyzer/src/summary2/macro_type_location.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:collection/collection.dart';
+import 'package:macros/macros.dart' as macro;
 
 class EnclosingExecutableContext {
   final ExecutableElement? element;
@@ -217,8 +215,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// in the scope of an extension.
   ExtensionElement? _enclosingExtension;
 
-  /// The helper for tracking if the current location has access to `this`.
-  final ThisAccessTracker _thisAccessTracker = ThisAccessTracker.unit();
+  /// Whether the current location has access to `this`.
+  bool _hasAccessToThis = false;
 
   /// The context of the method or function that we are currently visiting, or
   /// `null` if we are not inside a method or function.
@@ -402,11 +400,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitBlockFunctionBody(BlockFunctionBody node) {
-    _thisAccessTracker.enterFunctionBody(node);
+    var oldHasAccessToThis = _hasAccessToThis;
     try {
+      _hasAccessToThis = _computeThisAccessForFunctionBody(node);
       super.visitBlockFunctionBody(node);
     } finally {
-      _thisAccessTracker.exitFunctionBody(node);
+      _hasAccessToThis = oldHasAccessToThis;
     }
   }
 
@@ -440,6 +439,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void visitClassDeclaration(covariant ClassDeclarationImpl node) {
     try {
       final element = node.declaredElement!;
+
+      _checkAugmentations(
+        augmentKeyword: node.augmentKeyword,
+        element: element,
+      );
+
       final augmented = element.augmented;
       if (augmented == null) {
         return;
@@ -571,6 +576,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
       _checkForUndefinedConstructorInInitializerImplicit(node);
       _checkForReturnInGenerativeConstructor(node);
+      _checkAugmentations(
+        augmentKeyword: node.augmentKeyword,
+        element: element,
+      );
       _reportMacroDiagnostics(element);
       super.visitConstructorDeclaration(node);
     });
@@ -675,12 +684,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitExpressionFunctionBody(ExpressionFunctionBody node) {
-    _thisAccessTracker.enterFunctionBody(node);
+    var oldHasAccessToThis = _hasAccessToThis;
     try {
+      _hasAccessToThis = _computeThisAccessForFunctionBody(node);
       _returnTypeVerifier.verifyExpressionFunctionBody(node);
       super.visitExpressionFunctionBody(node);
     } finally {
-      _thisAccessTracker.exitFunctionBody(node);
+      _hasAccessToThis = oldHasAccessToThis;
     }
   }
 
@@ -760,7 +770,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   @override
   void visitFieldDeclaration(covariant FieldDeclarationImpl node) {
     var fields = node.fields;
-    _thisAccessTracker.enterFieldDeclaration(node);
     _isInStaticVariableDeclaration = node.isStatic;
     _isInInstanceNotLateVariableDeclaration =
         !node.isStatic && !node.fields.isLate;
@@ -772,7 +781,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         );
       }
     }
+    var oldHasAccessToThis = _hasAccessToThis;
     try {
+      _hasAccessToThis = !node.isStatic && node.fields.isLate;
       _checkForExtensionTypeDeclaresInstanceField(node);
       _checkForNotInitializedNonNullableStaticField(node);
       _checkForWrongTypeParameterVarianceInField(node);
@@ -780,16 +791,20 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForNonFinalFieldInEnum(node);
 
       for (final field in fields.variables) {
-        if (field.declaredElement case final FieldElementImpl element) {
-          _reportMacroDiagnostics(element);
-        }
+        var element = field.declaredElement;
+        element as FieldElementImpl;
+        _checkAugmentations(
+          augmentKeyword: node.augmentKeyword,
+          element: element,
+        );
+        _reportMacroDiagnostics(element);
       }
 
       super.visitFieldDeclaration(node);
     } finally {
       _isInStaticVariableDeclaration = false;
       _isInInstanceNotLateVariableDeclaration = false;
-      _thisAccessTracker.exitFieldDeclaration(node);
+      _hasAccessToThis = oldHasAccessToThis;
     }
   }
 
@@ -866,6 +881,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _returnTypeVerifier.verifyReturnType(returnType);
       _checkForMainFunction1(node.name, node.declaredElement!);
       _checkForMainFunction2(node);
+      _checkAugmentations(
+        augmentKeyword: node.augmentKeyword,
+        element: element,
+      );
       _reportMacroDiagnostics(element);
       super.visitFunctionDeclaration(node);
     });
@@ -1067,6 +1086,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForTypeAnnotationDeferredClass(returnType);
       _returnTypeVerifier.verifyReturnType(returnType);
       _checkForWrongTypeParameterVarianceInMethod(node);
+      _checkAugmentations(
+        augmentKeyword: node.augmentKeyword,
+        element: element,
+      );
       _reportMacroDiagnostics(element);
       super.visitMethodDeclaration(node);
     });
@@ -1096,6 +1119,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     // TODO(scheglov): Verify for all mixin errors.
     try {
       final element = node.declaredElement!;
+
+      _checkAugmentations(
+        augmentKeyword: node.augmentKeyword,
+        element: element,
+      );
+
       final augmented = element.augmented;
       if (augmented == null) {
         return;
@@ -1424,14 +1453,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     _checkForNotInitializedNonNullableVariable(node.variables, true);
 
     for (var variable in node.variables.variables) {
-      _checkForMainFunction1(variable.name, variable.declaredElement!);
-    }
-
-    for (final variable in node.variables.variables) {
       var element = variable.declaredElement;
-      if (element is TopLevelVariableElementImpl) {
-        _reportMacroDiagnostics(element);
-      }
+      element as TopLevelVariableElementImpl;
+      _checkForMainFunction1(variable.name, element);
+      _checkAugmentations(
+        augmentKeyword: node.augmentKeyword,
+        element: element,
+      );
+      _reportMacroDiagnostics(element);
     }
 
     super.visitTopLevelVariableDeclaration(node);
@@ -1504,6 +1533,26 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     super.visitVariableDeclarationStatement(node);
 
     _isInLateLocalVariable.removeLast();
+  }
+
+  void _checkAugmentations<T extends ElementImpl>({
+    required Token? augmentKeyword,
+    required T element,
+  }) {
+    if (augmentKeyword == null) {
+      return;
+    }
+
+    if (element is AugmentableElement<T>) {
+      var augmentationTarget = element.augmentationTarget;
+      if (augmentationTarget == null) {
+        errorReporter.atToken(
+          augmentKeyword,
+          CompileTimeErrorCode.AUGMENTATION_WITHOUT_DECLARATION,
+        );
+        return;
+      }
+    }
   }
 
   /// Checks the class for problems with the superclass, mixins, or implemented
@@ -1799,7 +1848,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         );
       }
     } else if (element is PropertyAccessorElement && element.isGetter) {
-      var variable = element.variable;
+      var variable = element.variable2;
+      if (variable == null) {
+        return;
+      }
       if (variable.isConst) {
         errorReporter.atNode(
           expression,
@@ -2278,7 +2330,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   void _checkForConflictingGenerics(NamedCompilationUnitMember node) {
-    var element = node.declaredElement as InterfaceElement;
+    var element = node.declaredElement as InterfaceElementImpl;
 
     // Report only on the declaration.
     if (element.isAugmentation) {
@@ -2836,6 +2888,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             strictInference: options.strictInference,
             strictCasts: options.strictCasts,
             typeSystemOperations: typeSystemOperations,
+            dataForTesting: null,
+            nodeForTesting: null,
           );
           if (typeArguments.isNotEmpty) {
             tearoffType = tearoffType.instantiate(typeArguments);
@@ -3680,7 +3734,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   ///
   /// See [CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS].
   void _checkForInvalidReferenceToThis(ThisExpression expression) {
-    if (!_thisAccessTracker.hasAccess) {
+    if (!_hasAccessToThis) {
       errorReporter.atNode(
         expression,
         CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS,
@@ -5817,6 +5871,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
     }
   }
+
+  bool _computeThisAccessForFunctionBody(FunctionBody node) =>
+      switch (node.parent) {
+        ConstructorDeclaration(:var factoryKeyword) => factoryKeyword == null,
+        MethodDeclaration(:var isStatic) => !isStatic,
+        _ => _hasAccessToThis
+      };
 
   /// Given an [expression] in a switch case whose value is expected to be an
   /// enum constant, return the name of the constant.

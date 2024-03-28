@@ -7,7 +7,7 @@
 // ignore_for_file: deprecated_member_use_from_same_package
 
 // There is no public API exposed yet, the in-progress API lives here.
-import 'package:_fe_analyzer_shared/src/macros/api.dart';
+import 'package:macros/macros.dart';
 
 macro class JsonSerializable implements ClassDeclarationsMacro {
   const JsonSerializable();
@@ -27,11 +27,9 @@ macro class JsonSerializable implements ClassDeclarationsMacro {
           Severity.error));
     }
 
-
     // Error if there is an existing `toJson` method.
     var methods = await builder.methodsOf(clazz);
-    var toJson =
-        methods.firstWhereOrNull((m) => m.identifier.name == 'toJson');
+    var toJson = methods.firstWhereOrNull((m) => m.identifier.name == 'toJson');
     if (toJson != null) {
       throw new DiagnosticException(Diagnostic(
           DiagnosticMessage(
@@ -280,14 +278,14 @@ extension on FieldDeclaration {
     ConstructorMetadataAnnotation? jsonKey;
     for (var annotation in metadata) {
       if (annotation is! ConstructorMetadataAnnotation) continue;
-      if (annotation.type.name != 'JsonKey') continue;
-      var declaration = await builder.typeDeclarationOf(annotation.type);
+      if (annotation.type.identifier.name != 'JsonKey') continue;
+      var declaration =
+          await builder.typeDeclarationOf(annotation.type.identifier);
       if (declaration.library.uri != jsonKeyUri) continue;
 
       if (jsonKey != null) {
         throw DiagnosticException(Diagnostic(
-            DiagnosticMessage(
-                'Only one JsonKey annotation is allowed.',
+            DiagnosticMessage('Only one JsonKey annotation is allowed.',
                 target: annotation.asDiagnosticTarget),
             Severity.error));
       } else {

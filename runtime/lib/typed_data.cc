@@ -34,26 +34,13 @@ DEFINE_NATIVE_ENTRY(TypedDataView_typedData, 0, 1) {
   return TypedDataView::Cast(instance).typed_data();
 }
 
-static bool IsClamped(intptr_t cid) {
-  COMPILE_ASSERT((kTypedDataUint8ClampedArrayCid + 1 ==
-                  kTypedDataUint8ClampedArrayViewCid) &&
-                 (kTypedDataUint8ClampedArrayCid + 2 ==
-                  kExternalTypedDataUint8ClampedArrayCid) &&
-                 (kTypedDataUint8ClampedArrayCid + 3 ==
-                  kUnmodifiableTypedDataUint8ClampedArrayViewCid));
-  return cid >= kTypedDataUint8ClampedArrayCid &&
-         cid <= kUnmodifiableTypedDataUint8ClampedArrayViewCid;
-}
-
-static bool IsUint8(intptr_t cid) {
-  COMPILE_ASSERT(
-      (kTypedDataUint8ArrayCid + 1 == kTypedDataUint8ArrayViewCid) &&
-      (kTypedDataUint8ArrayCid + 2 == kExternalTypedDataUint8ArrayCid) &&
-      (kTypedDataUint8ArrayCid + 3 ==
-       kUnmodifiableTypedDataUint8ArrayViewCid) &&
-      (kTypedDataUint8ArrayCid + 4 == kTypedDataUint8ClampedArrayCid));
-  return cid >= kTypedDataUint8ArrayCid &&
-         cid <= kUnmodifiableTypedDataUint8ClampedArrayViewCid;
+static bool IsTypedDataUint8ArrayClassId(intptr_t cid) {
+  if (!IsTypedDataBaseClassId(cid)) return false;
+  const intptr_t internal_cid =
+      cid - ((cid - kFirstTypedDataCid) % kNumTypedDataCidRemainders) +
+      kTypedDataCidRemainderInternal;
+  return internal_cid == kTypedDataUint8ArrayCid ||
+         internal_cid == kTypedDataUint8ClampedArrayCid;
 }
 
 DEFINE_NATIVE_ENTRY(TypedDataBase_setClampedRange, 0, 5) {
@@ -96,9 +83,13 @@ DEFINE_NATIVE_ENTRY(TypedDataBase_setClampedRange, 0, 5) {
   ASSERT(length_in_bytes <= src_length_in_bytes - src_start_in_bytes);
 #endif
 
+  ASSERT(IsClampedTypedDataBaseClassId(dst.ptr()->GetClassId()));
+  // The algorithm below assumes the clamped destination has uint8 elements.
   ASSERT_EQUAL(element_size_in_bytes, 1);
-  ASSERT(IsClamped(dst.ptr()->GetClassId()));
-  ASSERT(!IsUint8(src.ptr()->GetClassId()));
+  ASSERT(IsTypedDataUint8ArrayClassId(dst.ptr()->GetClassId()));
+  // The native entry should only be called when clamping is needed. When the
+  // source has uint8 elements, a direct memory move should be used instead.
+  ASSERT(!IsTypedDataUint8ArrayClassId(src.ptr()->GetClassId()));
 
   NoSafepointScope no_safepoint;
   uint8_t* dst_data =

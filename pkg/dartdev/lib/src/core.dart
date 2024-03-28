@@ -76,16 +76,17 @@ abstract class DartdevCommand extends Command<int> {
 
 extension DartDevCommand on Command {
   /// Return whether commands should emit verbose output.
-  bool get verbose => globalResults!['verbose'];
+  bool get verbose => globalResults!.flag('verbose');
 
   /// Return whether the tool should emit diagnostic output.
-  bool get diagnosticsEnabled => globalResults!['diagnostics'];
+  bool get diagnosticsEnabled => globalResults!.flag('diagnostics');
 
   /// Return whether any Dart experiments were specified by the user.
   bool get wereExperimentsSpecified =>
       globalResults?.wasParsed(experimentFlagName) ?? false;
 
-  List<String> get specifiedExperiments => globalResults![experimentFlagName];
+  List<String> get specifiedExperiments =>
+      globalResults!.multiOption(experimentFlagName);
 }
 
 /// A utility method to start a Dart VM instance with the given arguments and an

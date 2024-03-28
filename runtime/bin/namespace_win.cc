@@ -48,11 +48,14 @@ const char* Namespace::GetCurrent(Namespace* namespc) {
 }
 
 bool Namespace::SetCurrent(Namespace* namespc, const char* path) {
-  // TODO(zichangguo): "\\?\" prepended long path doesn't work.
-  // https://github.com/dart-lang/sdk/issues/42416
-  path = PrefixLongDirectoryPath(path);
-  Utf8ToWideScope system_path(path);
-  bool result = SetCurrentDirectoryW(system_path.wide()) != 0;
+  // SetCurrentDirectory does not actually support paths larger than MAX_PATH,
+  // this limitation is due to the size of the internal buffer used for storing
+  // current directory. In Windows 10, version 1607, changes have been made
+  // to the OS to lift MAX_PATH limitations from file and directory management
+  // APIs, but both application and OS need to opt-in into new behavior.
+  // See https://learn.microsoft.com/en-us/windows/win32/fileio/maximum-file-path-limitation?tabs=registry#enable-long-paths-in-windows-10-version-1607-and-later
+  const auto system_path = Utf8ToWideChar(path);
+  bool result = SetCurrentDirectoryW(system_path.get()) != 0;
   return result;
 }
 

@@ -304,7 +304,7 @@ mixin ErrorDetectionHelpers {
   /// > a method named `call`. In the case where the context type for `e`
   /// > is a function type or the type `Function`, `e` is treated as `e.call`.
   MethodElement? getImplicitCallMethod(
-      DartType type, DartType? context, SyntacticEntity errorNode) {
+      DartType type, DartType context, SyntacticEntity errorNode) {
     var visitedTypes = {type};
     while (type is TypeParameterType) {
       type = type.bound;
@@ -313,8 +313,7 @@ mixin ErrorDetectionHelpers {
         return null;
       }
     }
-    if (context != null &&
-        typeSystem.acceptsFunctionType(context) &&
+    if (typeSystem.acceptsFunctionType(context) &&
         type is InterfaceType &&
         type.nullabilitySuffix != NullabilitySuffix.question) {
       return type.lookUpMethod2(

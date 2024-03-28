@@ -481,15 +481,9 @@ class SubstituteTest extends _Base {
     }
 
     check(NullabilitySuffix.none, intNone, intNone);
-    check(NullabilitySuffix.none, intStar, intStar);
     check(NullabilitySuffix.none, intQuestion, intQuestion);
 
-    check(NullabilitySuffix.star, intNone, intStar);
-    check(NullabilitySuffix.star, intStar, intStar);
-    check(NullabilitySuffix.star, intQuestion, intQuestion);
-
     check(NullabilitySuffix.question, intNone, intQuestion);
-    check(NullabilitySuffix.question, intStar, intQuestion);
     check(NullabilitySuffix.question, intQuestion, intQuestion);
   }
 
@@ -546,21 +540,6 @@ class SubstituteWithNullabilityTest extends _Base {
       nullabilitySuffix: NullabilitySuffix.question,
     );
     _assertSubstitution(type, {U: intNone}, 'A<int>?');
-  }
-
-  test_interface_star() async {
-    // class A<T> {}
-    var T = typeParameter('T');
-    var A = class_(name: 'A', typeParameters: [T]);
-
-    var U = typeParameter('U');
-    var type = A.instantiate(
-      typeArguments: [
-        U.instantiate(nullabilitySuffix: NullabilitySuffix.none),
-      ],
-      nullabilitySuffix: NullabilitySuffix.star,
-    );
-    _assertSubstitution(type, {U: intNone}, 'A<int>*');
   }
 }
 

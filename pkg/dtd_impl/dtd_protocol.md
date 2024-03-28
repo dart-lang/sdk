@@ -154,7 +154,11 @@ subscribed) [RPC error](#rpc-errors) code is returned.
 ##### Response
 
 ```json
-{"id": "2", "type": "Success"}
+{
+  "jsonrpc": "2.0",
+  "result": {"type": "Success"},
+  "id": "2"
+}
 ```
 
 #### `streamCancel`
@@ -191,7 +195,11 @@ subscribed) [RPC error](#rpc-errors) code is returned.
 ##### Response
 
 ```json
-{"id": "2", "type": "Success"}
+{
+  "jsonrpc": "2.0",
+  "result": {"type": "Success"},
+  "id": "2"
+}
 ```
 
 #### `postEvent`
@@ -228,7 +236,11 @@ If successful, responds with [Success](#success-responses).
 ##### Response
 
 ```json
-{"id": "2", "type": "Success"}
+{
+  "jsonrpc": "2.0",
+  "result": {"type": "Success"},
+  "id": "2"
+}
 ```
 
 #### `registerService`
@@ -278,7 +290,11 @@ If the _method_ has already been registered on the _service_, the _132_
 ##### Response
 
 ```json
-{"id": "2", "type": "Success"}
+{
+  "jsonrpc": "2.0",
+  "result": {"type": "Success"},
+  "id": "2"
+}
 ```
 
 #### `service`.`method`
@@ -463,8 +479,11 @@ If _uri_ does not have a 'file' scheme, the 143 (File scheme expected on uri)
 
 ```json
 {
-  "type": "FileContent",
-  "content": "The contents\nof the file",
+  "jsonrpc": "2.0",
+  "result": {
+    "type": "FileContent",
+    "content": "The contents\nof the file",
+  },
   "id": "2"
 }
 ```
@@ -509,7 +528,11 @@ If _uri_ does not have a 'file' scheme, the 143 (File scheme expected on uri)
 #### Response
 
 ```json
-{"id": "2", "type": "Success"}
+{
+  "jsonrpc": "2.0",
+  "result": {"type": "Success"},
+  "id": "2"
+}
 ```
 
 ### listDirectoryContents
@@ -550,11 +573,14 @@ If _uri_ does not have a 'file' scheme, the 143 (File scheme expected on uri)
 
 ```json
 {
-  "type": "UriList",
-  "uris": [
-    "file:///path/to/dir/a.txt",
-    "file:///path/to/dir/b/",
-  ],
+  "jsonrpc": "2.0",
+  "result": {
+    "type": "UriList",
+    "uris": [
+      "file:///path/to/dir/a.txt",
+      "file:///path/to/dir/b/",
+    ],
+  },
   "id": "2"
 }
 ```
@@ -616,7 +642,11 @@ If one of the _roots_ is missing a 'file' scheme, the 143 (File scheme expected 
 ##### Response
 
 ```json
-{"id": "2", "type": "Success"}
+{
+  "jsonrpc": "2.0",
+  "result": {"type": "Success"},
+  "id": "2"
+}
 ```
 
 #### getIDEWorkspaceRoots
@@ -647,11 +677,57 @@ If successful, responds with [_IDEWorkspaceRoots_](#ideworkspaceroots).
 
 ```json
 {
-  "type": "IDEWorkspaceRoots",
-  "ideWorkspaceRoots": [
-    "file:///path/to/dir/a/",
-    "file:///path/to/dir/b/",
-  ],
+  "jsonrpc": "2.0",
+  "result": {
+    "type": "IDEWorkspaceRoots",
+    "ideWorkspaceRoots":: [
+      "file:///path/to/dir/a/",
+      "file:///path/to/dir/b/",
+    ],
+  },
+  "id": "2"
+}
+```
+
+#### getProjectRoots
+
+Used to get the project roots contained within the current set of IDE workspace roots
+(see [setIDEWorkspaceRoots](#setideworkspaceroots) and
+[getIDEWorkspaceRoots](#getideworkspaceroots)). A project root is any directory that
+contains a `pubspec.yaml` file.
+
+##### Parameters
+
+- `int depth` - The depth that each IDE workspace root directory tree will be searched
+  for project roots. Defaults to 4.
+
+##### Result
+
+If successful, responds with [_UriList_](#urilist).
+
+##### Code Sample
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "FileSystem.getProjectRoots",
+    "params": {"depth": 5},
+    "id": "2"
+}
+```
+
+##### Response
+
+```json
+{
+  "jsonrpc": "2.0",
+  "result": {
+    "type": "UriList",
+    "uris": [
+      "file:///path/to/dir/a/",
+      "file:///path/to/dir/b/",
+    ],
+  },
   "id": "2"
 }
 ```

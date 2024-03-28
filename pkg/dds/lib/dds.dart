@@ -150,6 +150,12 @@ abstract class DartDevelopmentService {
   /// Returns `null` if DevTools is not running.
   Uri? get devToolsUri;
 
+  /// Metadata for the Dart Tooling Daemon instance that is hosted by DevTools.
+  ///
+  /// This will be null if DTD was not started by the DevTools server. For
+  /// example, it may have been started by an IDE.
+  ({String? uri, String? secret})? get hostedDartToolingDaemon;
+
   /// Set to `true` if this instance of [DartDevelopmentService] is accepting
   /// requests.
   bool get isRunning;
@@ -160,7 +166,7 @@ abstract class DartDevelopmentService {
 
   /// The version of the DDS protocol supported by this [DartDevelopmentService]
   /// instance.
-  static const String protocolVersion = '1.6';
+  static const String protocolVersion = '2.0';
 }
 
 class DartDevelopmentServiceException implements Exception {

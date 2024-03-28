@@ -1,1 +1,13 @@
-include: package:lints/core.yaml
+include: package:lints/recommended.yaml
+
+analyzer:
+  errors:
+    avoid_renaming_method_parameters: ignore
+    constant_identifier_names: ignore
+    implementation_imports: ignore
+    library_prefixes: ignore
+
+linter:
+  rules:
+    - directives_ordering
+    - prefer_relative_imports

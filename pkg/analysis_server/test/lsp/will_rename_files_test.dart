@@ -45,9 +45,9 @@ part '../dest2/other.dart';<<<<<<<<<<
 part of '../dest1/main.dart';<<<<<<<<<<
 ''';
 
+    newFile(mainFilePath, mainContent);
+    newFile(fromUri(otherFileUri), otherContent);
     await initialize();
-    await openFile(mainFileUri, mainContent);
-    await openFile(otherFileUri, otherContent);
     final edit = await onWillRename([
       FileRename(
         oldUri: mainFileUri.toString(),
@@ -139,9 +139,9 @@ import 'other_new.dart';
 final a = A();
 ''';
 
+    newFile(mainFilePath, mainContent);
+    newFile(otherFilePath, otherContent);
     await initialize();
-    await openFile(mainFileUri, mainContent);
-    await openFile(otherFileUri, otherContent);
     final edit = await onWillRename([
       FileRename(
         oldUri: otherFileUri.toString(),
@@ -156,7 +156,6 @@ final a = A();
     final oldFolderPath = join(projectFolderPath, 'lib', 'folder');
     final newFolderPath = join(projectFolderPath, 'lib', 'folder_new');
     final otherFilePath = join(oldFolderPath, 'other.dart');
-    final otherFileUri = toUri(otherFilePath);
 
     final mainContent = '''
 import 'folder/other.dart';
@@ -175,9 +174,9 @@ import 'folder_new/other.dart';
 final a = A();
 ''';
 
+    newFile(mainFilePath, mainContent);
+    newFile(otherFilePath, otherContent);
     await initialize();
-    await openFile(mainFileUri, mainContent);
-    await openFile(otherFileUri, otherContent);
     final edit = await onWillRename([
       FileRename(
         oldUri: toUri(oldFolderPath).toString(),
@@ -250,17 +249,17 @@ final a = A();
             : convertPath('dest/${pathContext.basename(relativeTestPath)}')
     };
 
-    await initialize();
-
     final initialContent = buildFiles(pathMappings.keys.toList());
     final expectedContent =
         buildFiles(pathMappings.keys.toList(), pathMappings);
 
-    // Open files with initial content.
+    // Create files with initial content.
     for (final MapEntry(key: filePath, value: content)
         in initialContent.entries) {
-      await openFile(_asAbsoluteUri(filePath), content);
+      newFile(_asAbsolute(filePath), content);
     }
+
+    await initialize();
 
     // Collect edits for the renames.
     final edit = await onWillRename([

@@ -217,6 +217,9 @@ class SourceLoader extends Loader {
 
   ClassBuilder? _macroClassBuilder;
 
+  /// The macro declarations that are currently being compiled.
+  Set<ClassBuilder> _macroDeclarations = {};
+
   SourceLoader(this.fileSystem, this.includeComments, this.target)
       : dataForTesting =
             retainDataForTesting ? new SourceLoaderDataForTesting() : null;
@@ -339,11 +342,16 @@ class SourceLoader extends Loader {
   }
 
   /// Return `"true"` if the [dottedName] is a 'dart.library.*' qualifier for a
-  /// supported dart:* library, and `""` otherwise.
+  /// supported dart:* library, and `null` otherwise.
   ///
   /// This is used to determine conditional imports and `bool.fromEnvironment`
   /// constant values for "dart.library.[libraryName]" values.
-  String getLibrarySupportValue(String dottedName) {
+  ///
+  /// The `null` value will not be equal to the tested string value of
+  /// a configurable URI, which is always non-`null`. This prevents
+  /// the configurable URI from matching an absent entry,
+  /// even for an `if (dart.library.nonLibrary == "")` test.
+  String? getLibrarySupportValue(String dottedName) {
     if (!DartLibrarySupport.isDartLibraryQualifier(dottedName)) {
       return "";
     }
@@ -353,11 +361,13 @@ class SourceLoader extends Loader {
     // TODO(johnniwinther): Why is the dill target sometimes not loaded at this
     // point? And does it matter?
     library ??= target.dillTarget.loader.lookupLibraryBuilder(uri);
-    return DartLibrarySupport.getDartLibrarySupportValue(libraryName,
-        libraryExists: library != null,
-        isSynthetic: library?.isSynthetic ?? true,
-        isUnsupported: library?.isUnsupported ?? true,
-        dartLibrarySupport: target.backendTarget.dartLibrarySupport);
+    return DartLibrarySupport.isDartLibrarySupported(libraryName,
+            libraryExists: library != null,
+            isSynthetic: library?.isSynthetic ?? true,
+            isUnsupported: library?.isUnsupported ?? true,
+            dartLibrarySupport: target.backendTarget.dartLibrarySupport)
+        ? "true"
+        : null;
   }
 
   SourceLibraryBuilder _createSourceLibraryBuilder(
@@ -773,8 +783,6 @@ severity: $severity
     return formattedMessage;
   }
 
-  MemberBuilder getCompileTimeError() => target.getCompileTimeError(this);
-
   MemberBuilder getDuplicatedFieldInitializerError() {
     return target.getDuplicatedFieldInitializerError(this);
   }
@@ -793,9 +801,6 @@ severity: $severity
   }
 
   NnbdMode get nnbdMode => target.context.options.nnbdMode;
-
-  bool get enableUnscheduledExperiments =>
-      target.context.options.enableUnscheduledExperiments;
 
   CoreTypes get coreTypes {
     assert(_coreTypes != null, "CoreTypes has not been computed.");
@@ -1549,7 +1554,11 @@ severity: $severity
         ClassBuilder builder = iterator.current;
         if (builder.isMacro) {
           Uri libraryUri = builder.libraryBuilder.importUri;
-          if (!target.context.options.macroExecutor
+          if (target.context.options.runningPrecompilations
+              .contains(libraryUri)) {
+            // We are explicitly compiling this macro.
+            _macroDeclarations.add(builder);
+          } else if (!target.context.options.macroExecutor
               .libraryIsRegistered(libraryUri)) {
             (macroLibraries[libraryUri] ??= []).add(builder);
             if (retainDataForTesting) {
@@ -1684,8 +1693,19 @@ severity: $severity
           // We have found the first needed layer of precompilation. There might
           // be more layers but we'll compute these at the next attempt at
           // compilation, when this layer has been precompiled.
-          // TODO(johnniwinther): Use this to trigger a precompile step.
           return new NeededPrecompilations(neededPrecompilations);
+        }
+      }
+    }
+    if (compilationSteps.isNotEmpty) {
+      for (List<Uri> compilationStep in compilationSteps) {
+        for (Uri uri in compilationStep) {
+          List<ClassBuilder>? macroClasses = macroLibraries[uri];
+          if (macroClasses != null) {
+            // These macros are to be compiled during this (last) compilation
+            // step.
+            _macroDeclarations.addAll(macroClasses);
+          }
         }
       }
     }
@@ -1703,8 +1723,8 @@ severity: $severity
         this,
         target.context.options.macroExecutor,
         dataForTesting?.macroApplicationData);
-    macroApplications
-        .computeLibrariesMacroApplicationData(sourceLibraryBuilders);
+    macroApplications.computeLibrariesMacroApplicationData(
+        sourceLibraryBuilders, _macroDeclarations);
     if (macroApplications.hasLoadableMacroIds) {
       target.benchmarker?.beginSubdivide(
           BenchmarkSubdivides.computeMacroApplications_macroExecutorProvider);
@@ -1718,8 +1738,8 @@ severity: $severity
   Future<void> computeAdditionalMacroApplications(
       MacroApplications macroApplications,
       Iterable<SourceLibraryBuilder> sourceLibraryBuilders) async {
-    macroApplications
-        .computeLibrariesMacroApplicationData(sourceLibraryBuilders);
+    macroApplications.computeLibrariesMacroApplicationData(
+        sourceLibraryBuilders, _macroDeclarations);
     if (macroApplications.hasLoadableMacroIds) {
       target.benchmarker?.beginSubdivide(
           BenchmarkSubdivides.computeMacroApplications_macroExecutorProvider);
@@ -2848,32 +2868,6 @@ severity: $severity
     typeInferenceEngine.isTypeInferencePrepared = true;
 
     ticker.logMs("Performed top level inference");
-  }
-
-  Expression instantiateNoSuchMethodError(
-      Expression receiver, String name, Arguments arguments, int offset,
-      {bool isMethod = false,
-      bool isGetter = false,
-      bool isSetter = false,
-      bool isField = false,
-      bool isLocalVariable = false,
-      bool isDynamic = false,
-      bool isSuper = false,
-      bool isStatic = false,
-      bool isConstructor = false,
-      bool isTopLevel = false}) {
-    return target.backendTarget.instantiateNoSuchMethodError(
-        coreTypes, receiver, name, arguments, offset,
-        isMethod: isMethod,
-        isGetter: isGetter,
-        isSetter: isSetter,
-        isField: isField,
-        isLocalVariable: isLocalVariable,
-        isDynamic: isDynamic,
-        isSuper: isSuper,
-        isStatic: isStatic,
-        isConstructor: isConstructor,
-        isTopLevel: isTopLevel);
   }
 
   void _checkMainMethods(

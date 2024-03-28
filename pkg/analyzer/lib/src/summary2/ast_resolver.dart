@@ -10,6 +10,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/clients/build_resolvers/build_resolvers.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/resolution_visitor.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -32,6 +33,7 @@ class AstResolver {
     errorListener: _errorListener,
     strictInference: analysisOptions.strictInference,
     strictCasts: analysisOptions.strictCasts,
+    dataForTesting: null,
   );
   late final _scopeResolverVisitor = ScopeResolverVisitor(
     _unitElement.library,
@@ -96,7 +98,7 @@ class AstResolver {
 
   void resolveExpression(
     Expression Function() getNode, {
-    DartType? contextType,
+    DartType contextType = UnknownInferredType.instance,
   }) {
     Expression node = getNode();
     node.accept(_resolutionVisitor);

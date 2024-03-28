@@ -344,6 +344,13 @@ def ProcessOsOption(os_name):
 
 
 def ProcessOptions(args):
+    if args.goma:
+        print('Warning: Goma will be discontinued in the near future')
+        args.rbe = False
+    if args.verify_sdk_hash == None:
+        args.verify_sdk_hash = not args.rbe
+    if args.git_version == None:
+        args.git_version = not args.rbe
     if args.arch == 'all':
         if platform.system() == 'Darwin':
             # Targeting 32 bits not supported on MacOS.
@@ -411,18 +418,11 @@ def ProcessOptions(args):
     if HOST_OS != 'win' and args.use_crashpad:
         print("Crashpad is only supported on Windows")
         return False
-    default_rbe = os.environ.get('RBE') == '1' or \
-                  os.environ.get('DART_RBE') == '1' or \
-                  os.environ.get('RBE_cfg') != None
-    if not default_rbe and args.rbe:
-        args.goma = False
-    elif default_rbe and args.goma:
-        args.rbe = False
     if not args.rbe and \
        (socket.getfqdn().endswith('.corp.google.com') or
         socket.getfqdn().endswith('.c.googlers.com')):
         print('You can speed up your build by following: go/dart-rbe')
-        if not args.rbe and not args.goma:
+        if not args.goma:
             print('Goma is no longer enabled by default since RBE is ready.')
     old_rbe_cfg = 'win-intel.cfg' if HOST_OS == 'win32' else 'linux-intel.cfg'
     new_rbe_cfg = 'windows.cfg' if HOST_OS == 'win32' else 'unix.cfg'
@@ -450,24 +450,20 @@ def ide_switch(host_os):
 def AddCommonGnOptionArgs(parser):
     """Adds arguments that will change the default GN arguments."""
 
-    default_rbe = os.environ.get('RBE') == '1' or \
-                  os.environ.get('DART_RBE') == '1' or \
-                  os.environ.get('RBE_cfg') != None
-
     parser.add_argument('--goma', help='Use goma', action='store_true')
     parser.add_argument('--no-goma',
                         help='Disable goma',
                         dest='goma',
                         action='store_false')
-    parser.set_defaults(
-        goma=not default_rbe and sys.platform not in ['linux', 'win32'])
 
     parser.add_argument('--rbe', help='Use rbe', action='store_true')
     parser.add_argument('--no-rbe',
                         help='Disable rbe',
                         dest='rbe',
                         action='store_false')
-    parser.set_defaults(rbe=default_rbe)
+    parser.set_defaults(rbe=os.environ.get('RBE') == '1' or \
+                            os.environ.get('DART_RBE') == '1' or \
+                            os.environ.get('RBE_cfg') != None)
 
     # Disable git hashes when remote compiling to ensure cache hits of the final
     # output artifacts when nothing has changed.
@@ -480,7 +476,7 @@ def AddCommonGnOptionArgs(parser):
                         help='Disable SDK hash checks',
                         dest='verify_sdk_hash',
                         action='store_false')
-    parser.set_defaults(verify_sdk_hash=not default_rbe)
+    parser.set_defaults(verify_sdk_hash=None)
 
     parser.add_argument('--git-version',
                         help='Enable git commit in version',
@@ -491,7 +487,7 @@ def AddCommonGnOptionArgs(parser):
                         help='Disable git commit in version',
                         dest='git_version',
                         action='store_false')
-    parser.set_defaults(git_version=not default_rbe)
+    parser.set_defaults(git_version=None)
 
     parser.add_argument('--clang', help='Use Clang', action='store_true')
     parser.add_argument('--no-clang',

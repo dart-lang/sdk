@@ -231,7 +231,7 @@ class StatementCompletionProcessor {
     sb.append(eol);
     var indent = utils.getLinePrefix(selectionOffset);
     sb.append(indent);
-    sb.append(utils.getIndent(1));
+    sb.append(utils.oneIndent);
     if (needsExitMark && sb.exitOffset == null) {
       sb.setExitOffset();
     }

@@ -30,10 +30,13 @@ dev_dependencies:
   http_multi_server: any
   js: any
   lints: any
+  macros: any
   modular_test: any
+  reload_test: any
   shelf: any
   sourcemap_testing: any
   stack_trace: any
   test: any
   testing: any
+  vm_service: any
   webkit_inspection_protocol: any

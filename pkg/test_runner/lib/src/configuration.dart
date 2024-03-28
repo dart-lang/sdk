@@ -8,7 +8,7 @@ import 'dart:ffi';
 import 'dart:io';
 
 import 'package:native_assets_cli/native_assets_cli_internal.dart'
-    show CCompilerConfig;
+    show CCompilerConfigImpl;
 import 'package:smith/configuration.dart';
 import 'package:smith/smith.dart';
 
@@ -60,7 +60,6 @@ class TestConfiguration {
       this.taskCount = 1,
       this.shardCount = 1,
       this.shard = 1,
-      this.stepName,
       this.testServerPort = 0,
       this.testServerCrossOriginPort = 0,
       this.testDriverErrorPort = 0,
@@ -145,7 +144,6 @@ class TestConfiguration {
   final int shardCount;
   final int shard;
   final int repeat;
-  final String? stepName;
 
   final int testServerPort;
   final int testServerCrossOriginPort;
@@ -287,12 +285,12 @@ class TestConfiguration {
 
   late final Map<String, String> nativeCompilerEnvironmentVariables = () {
     String unparseKey(String key) => key.replaceAll('.', '__').toUpperCase();
-    final arKey = unparseKey(CCompilerConfig.arConfigKeyFull);
-    final ccKey = unparseKey(CCompilerConfig.ccConfigKeyFull);
-    final ldKey = unparseKey(CCompilerConfig.ldConfigKeyFull);
-    final envScriptKey = unparseKey(CCompilerConfig.envScriptConfigKeyFull);
+    final arKey = unparseKey(CCompilerConfigImpl.arConfigKeyFull);
+    final ccKey = unparseKey(CCompilerConfigImpl.ccConfigKeyFull);
+    final ldKey = unparseKey(CCompilerConfigImpl.ldConfigKeyFull);
+    final envScriptKey = unparseKey(CCompilerConfigImpl.envScriptConfigKeyFull);
     final envScriptArgsKey =
-        unparseKey(CCompilerConfig.envScriptArgsConfigKeyFull);
+        unparseKey(CCompilerConfigImpl.envScriptArgsConfigKeyFull);
 
     if (Platform.isWindows) {
       // Use MSVC from Depot Tools instead. When using clang from DEPS, we still
@@ -565,12 +563,11 @@ class Progress {
   static const verbose = Progress._('verbose');
   static const silent = Progress._('silent');
   static const status = Progress._('status');
-  static const buildbot = Progress._('buildbot');
 
   static final List<String> names = _all.keys.toList();
 
   static final _all = Map<String, Progress>.fromIterable(
-      [compact, color, line, verbose, silent, status, buildbot],
+      [compact, color, line, verbose, silent, status],
       key: (progress) => (progress as Progress).name);
 
   static Progress find(String name) {

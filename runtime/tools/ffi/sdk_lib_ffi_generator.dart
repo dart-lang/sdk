@@ -364,13 +364,13 @@ extension ${nativeType}Array on Array<$nativeType> {
   @patch
   $dartType operator [](int index) {
     _checkIndex(index);
-    return _load$nativeType(_typedDataBase, ${sizeTimes}index);
+    return _load$nativeType(_typedDataBase, _offsetInBytes + ${sizeTimes}index,);
   }
 
   @patch
   operator []=(int index, $dartType value) {
     _checkIndex(index);
-    return _store$nativeType(_typedDataBase, ${sizeTimes}index, value);
+    return _store$nativeType(_typedDataBase, _offsetInBytes + ${sizeTimes}index , value,);
   }
 }
 

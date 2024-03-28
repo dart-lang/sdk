@@ -460,13 +460,6 @@ class Library extends NamedNode
         : Nullability.legacy;
   }
 
-  Nullability nullableIfTrue(bool isNullable) {
-    if (isNonNullableByDefault) {
-      return isNullable ? Nullability.nullable : Nullability.nonNullable;
-    }
-    return Nullability.legacy;
-  }
-
   /// Returns the top-level fields and procedures defined in this library.
   ///
   /// This getter is for convenience, not efficiency.  Consider manually
@@ -685,11 +678,6 @@ class LibraryDependency extends TreeNode implements Annotatable {
 
   final List<Combinator> combinators;
 
-  LibraryDependency(int flags, List<Expression> annotations,
-      Library importedLibrary, String name, List<Combinator> combinators)
-      : this.byReference(
-            flags, annotations, importedLibrary.reference, name, combinators);
-
   LibraryDependency.deferredImport(Library importedLibrary, String name,
       {List<Combinator>? combinators, List<Expression>? annotations})
       : this.byReference(DeferredFlag, annotations ?? <Expression>[],
@@ -830,8 +818,6 @@ class Combinator extends TreeNode {
   bool isShow;
 
   final List<String> names;
-
-  LibraryDependency get dependency => parent as LibraryDependency;
 
   Combinator(this.isShow, this.names);
   Combinator.show(this.names) : isShow = true;
@@ -1678,8 +1664,6 @@ class Extension extends NamedNode
   @override
   R accept1<R, A>(TreeVisitor1<R, A> v, A arg) => v.visitExtension(this, arg);
 
-  R acceptReference<R>(Visitor<R> v) => v.visitExtensionReference(this);
-
   @override
   void visitChildren(Visitor v) {
     visitList(annotations, v);
@@ -2167,7 +2151,6 @@ sealed class Member extends NamedNode implements Annotatable, FileUriNode {
   /// Members can have this modifier independently of whether the enclosing
   /// library is external.
   bool get isExternal;
-  void set isExternal(bool value);
 
   /// If `true` this member is compiled from a member declared in an extension
   /// declaration.
@@ -2198,7 +2181,6 @@ sealed class Member extends NamedNode implements Annotatable, FileUriNode {
   /// If `true` this member is defined in a library for which non-nullable by
   /// default is enabled.
   bool get isNonNullableByDefault;
-  void set isNonNullableByDefault(bool value);
 
   /// If `true` this procedure is not part of the interface but only part of the
   /// class members.
@@ -2533,14 +2515,8 @@ class Field extends Member {
   bool get isExternal => false;
 
   @override
-  void set isExternal(bool value) {
-    if (value) throw 'Fields cannot be external';
-  }
-
-  @override
   bool get isNonNullableByDefault => flags & FlagNonNullableByDefault != 0;
 
-  @override
   void set isNonNullableByDefault(bool value) {
     flags = value
         ? (flags | FlagNonNullableByDefault)
@@ -2677,7 +2653,6 @@ class Constructor extends Member {
     flags = value ? (flags | FlagConst) : (flags & ~FlagConst);
   }
 
-  @override
   void set isExternal(bool value) {
     flags = value ? (flags | FlagExternal) : (flags & ~FlagExternal);
   }
@@ -2704,7 +2679,6 @@ class Constructor extends Member {
   @override
   bool get isNonNullableByDefault => flags & FlagNonNullableByDefault != 0;
 
-  @override
   void set isNonNullableByDefault(bool value) {
     flags = value
         ? (flags | FlagNonNullableByDefault)
@@ -3199,7 +3173,6 @@ class Procedure extends Member implements GenericFunction {
     flags = value ? (flags | FlagAbstract) : (flags & ~FlagAbstract);
   }
 
-  @override
   void set isExternal(bool value) {
     flags = value ? (flags | FlagExternal) : (flags & ~FlagExternal);
   }
@@ -3241,7 +3214,6 @@ class Procedure extends Member implements GenericFunction {
   @override
   bool get isNonNullableByDefault => flags & FlagNonNullableByDefault != 0;
 
-  @override
   void set isNonNullableByDefault(bool value) {
     flags = value
         ? (flags | FlagNonNullableByDefault)
@@ -5567,7 +5539,6 @@ class NamedExpression extends TreeNode {
 /// [SuperMethodInvocation], [StaticInvocation], and [ConstructorInvocation].
 abstract class InvocationExpression extends Expression {
   Arguments get arguments;
-  void set arguments(Arguments value);
 
   /// Name of the invoked method.
   Name get name;
@@ -5732,6 +5703,7 @@ class InstanceInvocation extends InstanceInvocationExpression {
   static const int FlagBoundsSafe = 1 << 1;
 
   final InstanceAccessKind kind;
+
   @override
   Expression receiver;
 
@@ -5885,6 +5857,7 @@ class InstanceGetterInvocation extends InstanceInvocationExpression {
   static const int FlagBoundsSafe = 1 << 1;
 
   final InstanceAccessKind kind;
+
   @override
   Expression receiver;
 
@@ -8770,6 +8743,11 @@ class FileUriConstantExpression extends ConstantExpression
   FileUriConstantExpression(Constant constant,
       {DartType type = const DynamicType(), required this.fileUri})
       : super(constant, type);
+
+  @override
+  Location? _getLocationInEnclosingFile(int offset) {
+    return _getLocationInComponent(enclosingComponent, fileUri, offset);
+  }
 }
 
 /// Synthetic expression of form `let v = x in y`
@@ -9103,19 +9081,19 @@ class RedirectingFactoryTearOff extends Expression {
 }
 
 class TypedefTearOff extends Expression {
-  final List<TypeParameter> typeParameters;
+  final List<StructuralParameter> structuralParameters;
   Expression expression;
   final List<DartType> typeArguments;
 
-  TypedefTearOff(this.typeParameters, this.expression, this.typeArguments) {
+  TypedefTearOff(
+      this.structuralParameters, this.expression, this.typeArguments) {
     expression.parent = this;
-    setParents(typeParameters, this);
   }
 
   @override
   DartType getStaticTypeInternal(StaticTypeContext context) {
-    FreshStructuralParametersFromTypeParameters freshTypeParameters =
-        getFreshStructuralParametersFromTypeParameters(typeParameters);
+    FreshStructuralParameters freshTypeParameters =
+        getFreshStructuralParameters(structuralParameters);
     FunctionType type = expression.getStaticType(context) as FunctionType;
     type = freshTypeParameters.substitute(
             FunctionTypeInstantiator.instantiate(type, typeArguments))
@@ -9137,7 +9115,7 @@ class TypedefTearOff extends Expression {
   @override
   void visitChildren(Visitor v) {
     expression.accept(v);
-    visitList(typeParameters, v);
+    visitList(structuralParameters, v);
     visitList(typeArguments, v);
   }
 
@@ -9145,7 +9123,6 @@ class TypedefTearOff extends Expression {
   void transformChildren(Transformer v) {
     expression = v.transform(expression);
     expression.parent = this;
-    v.transformList(typeParameters, this);
     v.transformDartTypeList(typeArguments);
   }
 
@@ -9153,7 +9130,6 @@ class TypedefTearOff extends Expression {
   void transformOrRemoveChildren(RemovingTransformer v) {
     expression = v.transform(expression);
     expression.parent = this;
-    v.transformList(typeParameters, this, dummyTypeParameter);
     v.transformDartTypeList(typeArguments);
   }
 
@@ -9164,7 +9140,7 @@ class TypedefTearOff extends Expression {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    printer.writeTypeParameters(typeParameters);
+    printer.writeStructuralParameters(structuralParameters);
     printer.write(".(");
     printer.writeExpression(expression);
     printer.writeTypeArguments(typeArguments);
@@ -9338,11 +9314,6 @@ class AssertBlock extends Statement {
   @override
   void visitChildren(Visitor v) {
     visitList(statements, v);
-  }
-
-  void addStatement(Statement node) {
-    statements.add(node);
-    node.parent = this;
   }
 
   @override
@@ -11137,10 +11108,6 @@ sealed class DartType extends Node {
   /// Will never return a typedef type.
   DartType get unalias => this;
 
-  /// If this is a typedef type, unfolds its type definition once, otherwise
-  /// returns the type itself.
-  DartType get unaliasOnce => this;
-
   /// Creates a copy of the type with the given [declaredNullability].
   ///
   /// Some types have fixed nullabilities, such as `dynamic`, `invalid-type`,
@@ -11881,7 +11848,6 @@ class TypedefType extends DartType {
     v.visitTypedefReference(typedefNode);
   }
 
-  @override
   DartType get unaliasOnce {
     DartType result =
         Substitution.fromTypedefType(this).substituteType(typedefNode.type!);
@@ -12812,19 +12778,6 @@ class StructuralParameterType extends DartType {
   StructuralParameterType.forAlphaRenamingFromTypeParameters(
       TypeParameter from, StructuralParameter to)
       : this(to, TypeParameterType.computeNullabilityFromBound(from));
-
-  /// Creates a type-parameter type with default nullability for the library.
-  ///
-  /// The nullability is computed as if the programmer omitted the modifier. It
-  /// means that in the opt-out libraries `Nullability.legacy` will be used, and
-  /// in opt-in libraries either `Nullability.nonNullable` or
-  /// `Nullability.undetermined` will be used, depending on the nullability of
-  /// the bound of [parameter].
-  StructuralParameterType.withDefaultNullabilityForLibrary(
-      this.parameter, Library library)
-      : declaredNullability = library.isNonNullableByDefault
-            ? computeNullabilityFromBound(parameter)
-            : Nullability.legacy;
 
   @override
   DartType get nonTypeVariableBound {
@@ -14485,8 +14438,7 @@ class RedirectingFactoryTearOffConstant extends Constant
 }
 
 class TypedefTearOffConstant extends Constant {
-  // TODO(johnniwinther): Change this to use [StructuralParameter].
-  final List<TypeParameter> parameters;
+  final List<StructuralParameter> parameters;
   final TearOffConstant tearOffConstant;
   final List<DartType> types;
 
@@ -14519,7 +14471,7 @@ class TypedefTearOffConstant extends Constant {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    printer.writeTypeParameters(parameters);
+    printer.writeStructuralParameters(parameters);
     printer.writeConstant(tearOffConstant);
     printer.writeTypeArguments(types);
   }
@@ -14535,7 +14487,8 @@ class TypedefTearOffConstant extends Constant {
     if (parameters.isNotEmpty) {
       Assumptions assumptions = new Assumptions();
       for (int index = 0; index < parameters.length; index++) {
-        assumptions.assume(parameters[index], other.parameters[index]);
+        assumptions.assumeStructuralParameter(
+            parameters[index], other.parameters[index]);
       }
       for (int index = 0; index < parameters.length; index++) {
         if (!parameters[index]
@@ -14556,7 +14509,7 @@ class TypedefTearOffConstant extends Constant {
   int _computeHashCode() {
     int hash = 1237;
     for (int i = 0; i < parameters.length; ++i) {
-      TypeParameter parameter = parameters[i];
+      StructuralParameter parameter = parameters[i];
       hash = 0x3fffffff & (hash * 31 + parameter.bound.hashCode);
     }
     for (int i = 0; i < types.length; ++i) {
@@ -14569,8 +14522,8 @@ class TypedefTearOffConstant extends Constant {
   @override
   DartType getType(StaticTypeContext context) {
     FunctionType type = tearOffConstant.getType(context) as FunctionType;
-    FreshStructuralParametersFromTypeParameters freshStructuralParameters =
-        getFreshStructuralParametersFromTypeParameters(parameters);
+    FreshStructuralParameters freshStructuralParameters =
+        getFreshStructuralParameters(parameters);
     type = freshStructuralParameters.substitute(
         FunctionTypeInstantiator.instantiate(type, types)) as FunctionType;
     return new FunctionType(
@@ -14918,10 +14871,7 @@ abstract class MetadataRepository<T> {
 }
 
 abstract class BinarySink {
-  int getBufferOffset();
-
   void writeByte(int byte);
-  void writeBytes(List<int> bytes);
   void writeUInt32(int value);
   void writeUInt30(int value);
 
@@ -14930,36 +14880,12 @@ abstract class BinarySink {
 
   void writeNullAllowedCanonicalNameReference(Reference? reference);
   void writeStringReference(String str);
-  void writeName(Name node);
   void writeDartType(DartType type);
   void writeConstantReference(Constant constant);
-  void writeNode(Node node);
-
-  void enterScope(
-      {List<TypeParameter> typeParameters,
-      bool memberScope = false,
-      bool variableScope = false});
-  void leaveScope(
-      {List<TypeParameter> typeParameters,
-      bool memberScope = false,
-      bool variableScope = false});
-
-  void enterFunctionTypeScope(
-      {List<StructuralParameter> typeParameters,
-      bool memberScope = false,
-      bool variableScope = false});
-  void leaveFunctionTypeScope(
-      {List<StructuralParameter> typeParameters,
-      bool memberScope = false,
-      bool variableScope = false});
 }
 
 abstract class BinarySource {
-  int get currentOffset;
-  List<int> get bytes;
-
   int readByte();
-  List<int> readBytes(int length);
   int readUInt30();
   int readUint32();
 
@@ -14968,13 +14894,8 @@ abstract class BinarySource {
 
   CanonicalName? readNullableCanonicalNameReference();
   String readStringReference();
-  Name readName();
   DartType readDartType();
   Constant readConstantReference();
-  FunctionNode readFunctionNode();
-
-  void enterScope({List<TypeParameter> typeParameters});
-  void leaveScope({List<TypeParameter> typeParameters});
 }
 
 // ------------------------------------------------------------------------
@@ -15131,14 +15052,6 @@ Reference getNonNullableMemberReferenceGetter(Member member) {
   return member.reference;
 }
 
-/// Returns the setter [Reference] object for the given member.
-///
-/// Returns `null` if the member is `null`.
-Reference? getMemberReferenceSetter(Member? member) {
-  if (member == null) return null;
-  return getNonNullableMemberReferenceSetter(member);
-}
-
 Reference getNonNullableMemberReferenceSetter(Member member) {
   if (member is Field) return member.setterReference!;
   return member.reference;
@@ -15239,24 +15152,6 @@ class _Hash {
 
 int listHashCode(List<Object> list) {
   return _Hash.finish(_Hash.combineListHash(list));
-}
-
-int mapHashCode(Map map) {
-  return mapHashCodeUnordered(map);
-}
-
-int mapHashCodeOrdered(Map map, [int hash = 2]) {
-  for (final Object x in map.keys) {
-    hash = _Hash.combine(x.hashCode, hash);
-  }
-  for (final Object x in map.values) {
-    hash = _Hash.combine(x.hashCode, hash);
-  }
-  return _Hash.finish(hash);
-}
-
-int mapHashCodeUnordered(Map map) {
-  return _Hash.finish(_Hash.combineMapHashUnordered(map));
 }
 
 bool listEquals(List a, List b) {
@@ -15416,11 +15311,6 @@ final List<Expression> emptyListOfExpression =
 final List<AssertStatement> emptyListOfAssertStatement =
     List.filled(0, dummyAssertStatement, growable: false);
 
-/// Almost const <Statement>[], but not const in an attempt to avoid
-/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
-final List<Statement> emptyListOfStatement =
-    List.filled(0, dummyStatement, growable: false);
-
 /// Almost const <SwitchCase>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
 final List<SwitchCase> emptyListOfSwitchCase =
@@ -15474,11 +15364,6 @@ final List<Constant> emptyListOfConstant =
 /// Almost const <String>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
 final List<String> emptyListOfString = List.filled(0, '', growable: false);
-
-/// Almost const <Reference>[], but not const in an attempt to avoid
-/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
-final List<Reference> emptyListOfReference =
-    List.filled(0, Reference(), growable: false);
 
 /// Almost const <Typedef>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
@@ -15536,11 +15421,6 @@ final List<ExtensionMemberDescriptor> emptyListOfExtensionMemberDescriptor =
 final List<ExtensionTypeMemberDescriptor>
     emptyListOfExtensionTypeMemberDescriptor =
     List.filled(0, dummyExtensionTypeMemberDescriptor, growable: false);
-
-/// Almost const <ExtensionType>[], but not const in an attempt to avoid
-/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
-final List<ExtensionType> emptyListOfExtensionType =
-    List.filled(0, dummyExtensionType, growable: false);
 
 /// Almost const <TypeDeclarationType>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.

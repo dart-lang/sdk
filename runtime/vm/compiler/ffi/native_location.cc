@@ -34,8 +34,7 @@ NativeLocation& NativeLocation::FromLocation(Zone* zone,
                                              Representation rep) {
   ASSERT(LocationCanBeExpressed(loc, rep));
 
-  const NativeType& native_rep =
-      NativeType::FromUnboxedRepresentation(zone, rep);
+  const NativeType& native_rep = NativeType::FromRepresentation(zone, rep);
 
   switch (loc.kind()) {
     case Location::Kind::kRegister:
@@ -65,10 +64,9 @@ NativeLocation& NativeLocation::FromPairLocation(Zone* zone,
                                                  intptr_t index) {
   ASSERT(pair_loc.IsPairLocation());
   ASSERT(index == 0 || index == 1);
-  const Representation rep =
-      NativeType::FromUnboxedRepresentation(zone, pair_rep)
-          .Split(zone, index)
-          .AsRepresentation();
+  const Representation rep = NativeType::FromRepresentation(zone, pair_rep)
+                                 .Split(zone, index)
+                                 .AsRepresentation();
   const Location loc = pair_loc.AsPairLocation()->At(index);
   return FromLocation(zone, loc, rep);
 }

@@ -423,8 +423,7 @@ static intptr_t Prepare(const RegExp& regexp,
                         const String& subject,
                         bool sticky,
                         Zone* zone) {
-  bool is_one_byte =
-      subject.IsOneByteString() || subject.IsExternalOneByteString();
+  bool is_one_byte = subject.IsOneByteString();
 
   if (regexp.bytecode(is_one_byte, sticky) == TypedData::null()) {
     const String& pattern = String::Handle(zone, regexp.pattern());
@@ -475,8 +474,7 @@ static ObjectPtr ExecRaw(const RegExp& regexp,
                          int32_t* output,
                          intptr_t output_size,
                          Zone* zone) {
-  bool is_one_byte =
-      subject.IsOneByteString() || subject.IsExternalOneByteString();
+  bool is_one_byte = subject.IsOneByteString();
 
   // We must have done EnsureCompiledIrregexp, so we can get the number of
   // registers.

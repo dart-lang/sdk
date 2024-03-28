@@ -45,25 +45,6 @@ class CheckingState {
       : _assumedReferences = assumedReferences ?? new UnionFind<Reference>(),
         _currentState = currentState;
 
-  /// Create a new [CheckingState] that inherits the [_currentState] and a copy
-  /// of the current assumptions. If [isAsserting] is `true`, the new state
-  /// will register inequivalences.
-  CheckingState createSubState({bool isAsserting = false}) {
-    return new CheckingState(
-        isAsserting: isAsserting,
-        assumedReferences: _assumedReferences.clone(),
-        currentState: _currentState)
-      .._assumedDeclarationMap.addAll(_assumedDeclarationMap);
-  }
-
-  /// Returns a state corresponding to the state which does _not_ register
-  /// inequivalences. If this state is already not registering inequivalences,
-  /// `this` is returned.
-  CheckingState toMatchingState() {
-    if (!isAsserting) return this;
-    return createSubState(isAsserting: false);
-  }
-
   /// Returns that value that should be used as the result value when
   /// inequivalence are found.
   ///

@@ -42,6 +42,19 @@ abstract interface class VmServiceInterface {
 
   /// Handler for calling extra service extensions.
   Future<Response> callServiceExtension(String method, {String? isolateId, Map<String, dynamic>? args});
+
+  /// Invoked by the Dart Development Service (DDS) immediately after it
+  /// connects.
+  /// 
+  /// [uri] is a HTTP URI pointing to the connected DDS instance.
+  ///
+  /// When invoked, the VM service implementation should enter single-client
+  /// mode, disconnecting all non-DDS clients and rejecting any other future
+  /// direct connections to the service. This is to ensure that assumptions
+  /// about state made by DDS are valid, as DDS assumes responsibility for
+  /// client management, stream management, and service extension routing upon
+  /// connection.
+  Future<void> yieldControlToDDS(String uri);
 ''');
     for (var m in methods) {
       m.generateDefinition(gen);
@@ -190,6 +203,12 @@ class VmServerConnection {
         gen.writeln('break;');
       }
     }
+    gen.writeln("case '_yieldControlToDDS':");
+    gen.writeln(
+        "await _serviceImplementation.yieldControlToDDS(params!['uri']!);");
+    gen.writeln('response = Success();');
+    gen.writeln('break;');
+
     // Handle service extensions
     gen.writeln('default:');
     gen.writeln('''

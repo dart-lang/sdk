@@ -55,21 +55,21 @@ extension type ET4(core::int id) {
   constructor • = self::ET4|constructor#;
   constructor tearoff • = self::ET4|constructor#_#new#tearOff;
 }
-static extension-type-member method ET1|constructor#(core::int id) → self::ET1 /* = core::int */
+static extension-type-member method ET1|constructor#(core::int id) → self::ET1% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method ET1|constructor#_#new#tearOff(core::int id) → self::ET1 /* = core::int */
+static extension-type-member method ET1|constructor#_#new#tearOff(core::int id) → self::ET1% /* erasure=core::int, declared=! */
   return self::ET1|constructor#(id);
-static extension-type-member method ET2|constructor#(core::int id) → self::ET2 /* = core::int */
+static extension-type-member method ET2|constructor#(core::int id) → self::ET2% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method ET2|constructor#_#new#tearOff(core::int id) → self::ET2 /* = core::int */
+static extension-type-member method ET2|constructor#_#new#tearOff(core::int id) → self::ET2% /* erasure=core::int, declared=! */
   return self::ET2|constructor#(id);
-static extension-type-member method ET3|constructor#(core::int id) → self::ET3 /* = core::int */
+static extension-type-member method ET3|constructor#(core::int id) → self::ET3% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method ET3|constructor#_#new#tearOff(core::int id) → self::ET3 /* = core::int */
+static extension-type-member method ET3|constructor#_#new#tearOff(core::int id) → self::ET3% /* erasure=core::int, declared=! */
   return self::ET3|constructor#(id);
-static extension-type-member method ET4|constructor#(core::int id) → self::ET4 /* = core::int */
+static extension-type-member method ET4|constructor#(core::int id) → self::ET4% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method ET4|constructor#_#new#tearOff(core::int id) → self::ET4 /* = core::int */
+static extension-type-member method ET4|constructor#_#new#tearOff(core::int id) → self::ET4% /* erasure=core::int, declared=! */
   return self::ET4|constructor#(id);
 static method main() → dynamic
   ;

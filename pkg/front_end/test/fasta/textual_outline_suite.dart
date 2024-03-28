@@ -24,8 +24,8 @@ import 'package:testing/testing.dart'
 
 import '../utils/kernel_chain.dart' show MatchContext;
 import 'suite_utils.dart';
+import 'testing/environment_keys.dart';
 import 'testing/folder_options.dart';
-import 'testing/suite.dart' show UPDATE_EXPECTATIONS;
 
 const int minSupportedMajorVersion = 2;
 const int minSupportedMinorVersion = 12;
@@ -54,7 +54,7 @@ const List<Map<String, String>> EXPECTATIONS = [
 ];
 
 Future<Context> createContext(Chain suite, Map<String, String> environment) {
-  return new Future.value(new Context(suite.uri, environment));
+  return new Future.value(new Context(suite.root, environment));
 }
 
 void main([List<String> arguments = const []]) => internalMain(
@@ -71,14 +71,16 @@ class Context extends ChainContext with MatchContext {
   final bool updateExpectations;
 
   @override
-  String get updateExpectationsOption => '${UPDATE_EXPECTATIONS}=true';
+  String get updateExpectationsOption =>
+      '${EnvironmentKeys.updateExpectations}=true';
 
   @override
   bool get canBeFixWithUpdateExpectations => true;
 
   Context(Uri baseUri, Map<String, String> environment)
       : suiteFolderOptions = new SuiteFolderOptions(baseUri),
-        updateExpectations = environment[UPDATE_EXPECTATIONS] == "true",
+        updateExpectations =
+            environment[EnvironmentKeys.updateExpectations] == "true",
         forcedExperimentalFlags =
             SuiteFolderOptions.computeForcedExperimentalFlags(environment);
 
@@ -183,9 +185,6 @@ class TextualOutline extends Step<TestDescription, TestDescription, Context> {
         for (MapEntry<ExperimentalFlag, bool> entry
             in experimentalFlagsExplicit.entries) {
           if (entry.value) {
-            // Don't treat "inline-class" as disabled by default as it's about
-            // to have the flag flipped.
-            if (entry.key.name == "inline-class") continue;
             if (!entry.key.isEnabledByDefault) {
               hasUnreleasedExperiment = true;
               break;

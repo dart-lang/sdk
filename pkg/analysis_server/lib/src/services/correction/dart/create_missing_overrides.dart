@@ -28,7 +28,6 @@ class CreateMissingOverrides extends ResolvedCorrectionProducer {
     if (targetClass is! ClassDeclaration) {
       return;
     }
-    utils.targetClassElement = targetClass.declaredElement;
     var signatures = [
       ...InheritanceOverrideVerifier.missingOverrides(targetClass),
       ...InheritanceOverrideVerifier.missingMustBeOverridden(targetClass)
@@ -52,7 +51,7 @@ class CreateMissingOverrides extends ResolvedCorrectionProducer {
       return;
     }
 
-    var prefix = utils.getIndent(1);
+    var prefix = utils.oneIndent;
     await builder.addDartFileEdit(file, (builder) {
       final syntheticLeftBracket = targetClass.leftBracket.isSynthetic;
       if (syntheticLeftBracket) {

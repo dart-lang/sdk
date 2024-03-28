@@ -6,46 +6,6 @@ library;
 //   static int staticField;
 //              ^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/null_aware2.dart:13:3: Warning: The class 'Foo' cannot be null.
-// Try replacing '?.' with '.'
-//   Foo?.staticField = 5;
-//   ^^^
-//
-// pkg/front_end/testcases/general/null_aware2.dart:17:3: Warning: The class 'Foo' cannot be null.
-// Try replacing '?.' with '.'
-//   Foo?.staticField ??= 5;
-//   ^^^
-//
-// pkg/front_end/testcases/general/null_aware2.dart:12:3: Warning: Operand of null-aware operation '?.' has type 'Foo' which excludes null.
-//  - 'Foo' is from 'pkg/front_end/testcases/general/null_aware2.dart'.
-//   foo?.field = 5;
-//   ^
-//
-// pkg/front_end/testcases/general/null_aware2.dart:14:7: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
-//   foo.field ??= 5;
-//       ^
-//
-// pkg/front_end/testcases/general/null_aware2.dart:15:7: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
-//   Foo.staticField ??= 5;
-//       ^
-//
-// pkg/front_end/testcases/general/null_aware2.dart:16:3: Warning: Operand of null-aware operation '?.' has type 'Foo' which excludes null.
-//  - 'Foo' is from 'pkg/front_end/testcases/general/null_aware2.dart'.
-//   foo?.field ??= 5;
-//   ^
-//
-// pkg/front_end/testcases/general/null_aware2.dart:17:8: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
-//   Foo?.staticField ??= 5;
-//        ^
-//
-// pkg/front_end/testcases/general/null_aware2.dart:19:22: Warning: Operand of null-aware operation '??' has type 'int' which excludes null.
-//   int intValue = foo.field ?? 6;
-//                      ^
-//
-// pkg/front_end/testcases/general/null_aware2.dart:20:22: Warning: Operand of null-aware operation '??' has type 'int' which excludes null.
-//   num numValue = foo.field ?? 4.5;
-//                      ^
-//
 // pkg/front_end/testcases/general/null_aware2.dart:6:7: Error: Field 'field' should be initialized because its type 'int' doesn't allow null.
 //   int field;
 //       ^^^^^

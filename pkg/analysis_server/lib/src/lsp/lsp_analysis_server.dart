@@ -587,7 +587,10 @@ class LspAnalysisServer extends AnalysisServer {
 
     // If the overlay is exactly the same as the previous content we can skip
     // notifying drivers which avoids re-analyzing the same content.
-    final driver = contextManager.getDriverFor(path);
+    // We use getAnalysisDriver() here because it can get content from
+    // dependencies (so the optimization works for them) but below we use
+    // `contextManager.driverFor` so we only add to the specific driver.
+    final driver = getAnalysisDriver(path);
     final contentIsUpdated =
         driver?.fsState.getExistingFromPath(path)?.content != content;
 
@@ -596,11 +599,17 @@ class LspAnalysisServer extends AnalysisServer {
 
       // If the file did not exist, and is "overlay only", it still should be
       // analyzed. Add it to driver to which it should have been added.
-      driver?.addFile(path);
+      contextManager.getDriverFor(path)?.addFile(path);
     } else {
       // If we skip the work above, we still need to ensure plugins are notified
       // of the new overlay (which usually happens in `_afterOverlayChanged`).
       _notifyPluginsOverlayChanged(path, plugin.AddContentOverlay(content));
+
+      // We also need to ensure notifications like Outline can still sent in
+      // this case (which are usually triggered by the re-analysis), so force
+      // sending the resolved unit to the result stream even if we didn't need
+      // to re-analyze it.
+      unawaited(getResolvedUnit(path, sendCachedToStream: true));
     }
   }
 
@@ -1012,9 +1021,8 @@ class LspAnalysisServer extends AnalysisServer {
 
   /// Checks whether [file] is in a project that can resolve 'package:flutter'
   /// libraries.
-  bool _isInFlutterProject(String file) =>
-      contextManager
-          .getDriverFor(file)
+  bool _isInFlutterProject(String filePath) =>
+      getAnalysisDriver(filePath)
           ?.currentSession
           .uriConverter
           .uriToPath(Uri.parse(Flutter.widgetsUri)) !=
@@ -1111,6 +1119,14 @@ class LspInitializationOptions {
   final int? completionBudgetMilliseconds;
   final bool allowOpenUri;
 
+  /// A temporary flag passed by Dart-Code to enable using in-editor fixes for
+  /// the "dart fix" prompt.
+  ///
+  /// This allows enabling it once there's been wider testing of the "Fix All in
+  /// Workspace" command without requiring a new SDK release. Once enabled in
+  /// Dart-Code, this flag can also be removed here for future SDKs.
+  final bool useInEditorDartFixPrompt;
+
   factory LspInitializationOptions(Object? options) =>
       LspInitializationOptions._(
         options is Map<String, Object?> ? options : const {},
@@ -1131,7 +1147,8 @@ class LspInitializationOptions {
         flutterOutline = options['flutterOutline'] == true,
         completionBudgetMilliseconds =
             options['completionBudgetMilliseconds'] as int?,
-        allowOpenUri = options['allowOpenUri'] == true;
+        allowOpenUri = options['allowOpenUri'] == true,
+        useInEditorDartFixPrompt = options['useInEditorDartFixPrompt'] == true;
 }
 
 class LspServerContextManagerCallbacks

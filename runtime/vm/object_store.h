@@ -118,8 +118,6 @@ class ObjectPointerVisitor;
   RW(Class, future_or_class)                                                   \
   RW(Class, one_byte_string_class)                                             \
   RW(Class, two_byte_string_class)                                             \
-  RW(Class, external_one_byte_string_class)                                    \
-  RW(Class, external_two_byte_string_class)                                    \
   RW(Type, bool_type)                                                          \
   RW(Class, bool_class)                                                        \
   RW(Class, array_class)                                                       \
@@ -206,8 +204,6 @@ class ObjectPointerVisitor;
   RW(Array, unique_dynamic_targets)                                            \
   RW(GrowableObjectArray, megamorphic_cache_table)                             \
   RW(GrowableObjectArray, ffi_callback_code)                                   \
-  RW(Code, build_generic_method_extractor_code)                                \
-  RW(Code, build_nongeneric_method_extractor_code)                             \
   RW(Code, dispatch_table_null_error_stub)                                     \
   RW(Code, late_initialization_error_stub_with_fpu_regs_stub)                  \
   RW(Code, late_initialization_error_stub_without_fpu_regs_stub)               \
@@ -246,6 +242,9 @@ class ObjectPointerVisitor;
   RW(Code, allocate_int32x4_array_stub)                                        \
   RW(Code, allocate_float64x2_array_stub)                                      \
   RW(Code, allocate_closure_stub)                                              \
+  RW(Code, allocate_closure_generic_stub)                                      \
+  RW(Code, allocate_closure_ta_stub)                                           \
+  RW(Code, allocate_closure_ta_generic_stub)                                   \
   RW(Code, allocate_context_stub)                                              \
   RW(Code, allocate_growable_array_stub)                                       \
   RW(Code, allocate_object_stub)                                               \
@@ -345,6 +344,9 @@ class ObjectPointerVisitor;
   DO(allocate_int32x4_array_stub, AllocateInt32x4Array)                        \
   DO(allocate_float64x2_array_stub, AllocateFloat64x2Array)                    \
   DO(allocate_closure_stub, AllocateClosure)                                   \
+  DO(allocate_closure_generic_stub, AllocateClosureGeneric)                    \
+  DO(allocate_closure_ta_stub, AllocateClosureTA)                              \
+  DO(allocate_closure_ta_generic_stub, AllocateClosureTAGeneric)               \
   DO(allocate_context_stub, AllocateContext)                                   \
   DO(allocate_growable_array_stub, AllocateGrowableArray)                      \
   DO(allocate_object_stub, AllocateObject)                                     \

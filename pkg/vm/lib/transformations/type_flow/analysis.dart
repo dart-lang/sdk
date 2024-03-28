@@ -186,7 +186,7 @@ abstract base class _Invocation extends _DependencyTracker
   // Process [receiver].call(args) for calls via field or getter.
   Type _processCallWithSubstitutedReceiver(
       Type receiver, TypeFlowAnalysis typeFlowAnalysis) {
-    if (receiver == emptyType) {
+    if (receiver.hasEmptySpecialization(typeFlowAnalysis.hierarchyCache)) {
       return emptyType;
     }
     final closure = receiver.closure;
@@ -350,7 +350,7 @@ final class _DirectInvocation extends _Invocation {
     assert(areArgumentsValidFor(member));
     Args<Type> args = this.args;
     if (selector.memberAgreesToCallKind(member)) {
-      final closure = typeFlowAnalysis._closureByCallMethod[member];
+      final closure = typeFlowAnalysis.getClosureByCallMethod(member);
       if (closure != null && closure.function == null) {
         // Calling tear-off.
         //
@@ -371,7 +371,8 @@ final class _DirectInvocation extends _Invocation {
           final receiver = typeFlowAnalysis
               .getSharedCapturedThis(member)
               .getValue(typeFlowAnalysis.hierarchyCache, typeFlowAnalysis);
-          if (receiver == emptyType) {
+          if (receiver
+              .hasEmptySpecialization(typeFlowAnalysis.hierarchyCache)) {
             return emptyType;
           }
           // Instance members do not take type parameters as arguments.
@@ -488,6 +489,7 @@ final class _DispatchableInvocation extends _Invocation {
       if (!_collectTargetsForFunctionCall(
           args.receiver, targets, typeFlowAnalysis)) {
         // No known closure target, approximate function call with static type.
+        _setPolymorphic();
         return selector.staticResultType;
       }
     } else {
@@ -1458,6 +1460,19 @@ class _ClassHierarchyCache extends TypeHierarchy {
     return cls.specializedConeType;
   }
 
+  @override
+  bool hasAllocatedSubtypes(TFClass cls) {
+    final clsImpl = cls as _TFClassImpl;
+    if (clsImpl._allocatedSubtypes.isNotEmpty) {
+      return true;
+    }
+    if (!_sealed) {
+      clsImpl.dependencyTracker
+          .addDependentInvocation(_typeFlowAnalysis.currentInvocation);
+    }
+    return false;
+  }
+
   bool _hasWideCone(_TFClassImpl cls) =>
       cls._allocatedSubtypes.length >
       _typeFlowAnalysis.config.maxAllocatedTypesInSetSpecialization;
@@ -1889,6 +1904,9 @@ class TypeFlowAnalysis
   void adjustFunctionParameters(Member member) {
     _summaries[member]?.adjustFunctionParameters(member);
   }
+
+  Closure? getClosureByCallMethod(Member member) =>
+      _closureByCallMethod[member];
 
   /// ---- Implementation of [CallHandler] interface. ----
 

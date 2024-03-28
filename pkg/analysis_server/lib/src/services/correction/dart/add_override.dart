@@ -40,7 +40,7 @@ class AddOverride extends ResolvedCorrectionProducer {
     }
 
     var exitPosition = Position(file, token.offset - 1);
-    var indent = utils.getIndent(1);
+    var indent = utils.oneIndent;
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleReplacement(
           range.startLength(token, 0), '@override$eol$indent');

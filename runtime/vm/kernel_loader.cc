@@ -9,6 +9,7 @@
 
 #include <memory>
 
+#include "vm/closure_functions_cache.h"
 #include "vm/compiler/backend/flow_graph_compiler.h"
 #include "vm/compiler/frontend/constant_reader.h"
 #include "vm/compiler/frontend/kernel_translation_helper.h"
@@ -1037,7 +1038,7 @@ void KernelLoader::FinishTopLevelClassLoading(
     field_helper.ReadUntilExcluding(FieldHelper::kAnnotations);
     intptr_t annotation_count = helper_.ReadListLength();
     uint32_t pragma_bits = 0;
-    ReadVMAnnotations(library, annotation_count, &pragma_bits);
+    ReadVMAnnotations(annotation_count, &pragma_bits);
     field_helper.SetJustRead(FieldHelper::kAnnotations);
 
     field_helper.ReadUntilExcluding(FieldHelper::kType);
@@ -1351,9 +1352,16 @@ void KernelLoader::LoadClass(const Library& library,
   class_helper.ReadUntilExcluding(ClassHelper::kAnnotations);
   intptr_t annotation_count = helper_.ReadListLength();
   uint32_t pragma_bits = 0;
-  ReadVMAnnotations(library, annotation_count, &pragma_bits);
+  ReadVMAnnotations(annotation_count, &pragma_bits);
   if (IsolateUnsendablePragma::decode(pragma_bits)) {
     out_class->set_is_isolate_unsendable_due_to_pragma(true);
+  }
+  if (DeeplyImmutablePragma::decode(pragma_bits)) {
+    out_class->set_is_deeply_immutable(true);
+    // Ensure that the pragma implies deeply immutability for VM recognized
+    // classes.
+    ASSERT(out_class->id() >= kNumPredefinedCids ||
+           IsDeeplyImmutableCid(out_class->id()));
   }
   if (HasPragma::decode(pragma_bits)) {
     out_class->set_has_pragma(true);
@@ -1433,7 +1441,7 @@ void KernelLoader::FinishClassLoading(const Class& klass,
       field_helper.ReadUntilExcluding(FieldHelper::kAnnotations);
       const intptr_t annotation_count = helper_.ReadListLength();
       uint32_t pragma_bits = 0;
-      ReadVMAnnotations(library, annotation_count, &pragma_bits);
+      ReadVMAnnotations(annotation_count, &pragma_bits);
       field_helper.SetJustRead(FieldHelper::kAnnotations);
 
       field_helper.ReadUntilExcluding(FieldHelper::kType);
@@ -1516,7 +1524,7 @@ void KernelLoader::FinishClassLoading(const Class& klass,
     // subsequently with TypedData with field guards.
     if (klass.UserVisibleName() == Symbols::Compound().ptr() &&
         Library::Handle(Z, klass.library()).url() == Symbols::DartFfi().ptr()) {
-      ASSERT(fields_.length() == 1);
+      ASSERT_EQUAL(fields_.length(), 2);
       ASSERT(String::Handle(Z, fields_[0]->name())
                  .StartsWith(Symbols::_typedDataBase()));
       fields_[0]->set_guarded_cid(kDynamicCid);
@@ -1560,7 +1568,7 @@ void KernelLoader::FinishClassLoading(const Class& klass,
     constructor_helper.ReadUntilExcluding(ConstructorHelper::kAnnotations);
     const intptr_t annotation_count = helper_.ReadListLength();
     uint32_t pragma_bits = 0;
-    ReadVMAnnotations(library, annotation_count, &pragma_bits);
+    ReadVMAnnotations(annotation_count, &pragma_bits);
     constructor_helper.SetJustRead(ConstructorHelper::kAnnotations);
     constructor_helper.ReadUntilExcluding(ConstructorHelper::kFunction);
 
@@ -1714,8 +1722,7 @@ void KernelLoader::FinishLoading(const Class& klass) {
 //
 //   `pragma_bits`: any recognized pragma that was found
 //
-void KernelLoader::ReadVMAnnotations(const Library& library,
-                                     intptr_t annotation_count,
+void KernelLoader::ReadVMAnnotations(intptr_t annotation_count,
                                      uint32_t* pragma_bits,
                                      String* native_name) {
   *pragma_bits = 0;
@@ -1753,6 +1760,10 @@ void KernelLoader::ReadVMAnnotations(const Library& library,
         if (constant_reader.IsStringConstant(name_index,
                                              "vm:isolate-unsendable")) {
           *pragma_bits = IsolateUnsendablePragma::update(true, *pragma_bits);
+        }
+        if (constant_reader.IsStringConstant(name_index,
+                                             "vm:deeply-immutable")) {
+          *pragma_bits = DeeplyImmutablePragma::update(true, *pragma_bits);
         }
         if (constant_reader.IsStringConstant(name_index, "vm:ffi:native")) {
           *pragma_bits = FfiNativePragma::update(true, *pragma_bits);
@@ -1795,7 +1806,7 @@ void KernelLoader::LoadProcedure(const Library& library,
   String& native_name = String::Handle(Z);
   uint32_t pragma_bits = 0;
   const intptr_t annotation_count = helper_.ReadListLength();
-  ReadVMAnnotations(library, annotation_count, &pragma_bits, &native_name);
+  ReadVMAnnotations(annotation_count, &pragma_bits, &native_name);
   is_external = is_external && native_name.IsNull();
   procedure_helper.SetJustRead(ProcedureHelper::kAnnotations);
   const Object& script_class =
@@ -2186,6 +2197,155 @@ UntaggedFunction::Kind KernelLoader::GetFunctionType(
   intptr_t kind = static_cast<int>(procedure_kind);
   ASSERT(0 <= kind && kind <= ProcedureHelper::kFactory);
   return static_cast<UntaggedFunction::Kind>(lookuptable[kind]);
+}
+
+FunctionPtr KernelLoader::LoadClosureFunction(const Function& parent_function,
+                                              const Object& closure_owner) {
+  const intptr_t func_decl_offset = helper_.ReaderOffset();
+  const Tag tag = helper_.ReadTag();
+  ASSERT((tag == kFunctionExpression) || (tag == kFunctionDeclaration));
+  const bool is_declaration = (tag == kFunctionDeclaration);
+
+  TokenPosition position = helper_.ReadPosition();  // read position.
+
+  uint32_t pragma_bits = 0;
+  intptr_t annotation_count = 0;
+  const String* name;
+  if (is_declaration) {
+    // Read variable declaration.
+    VariableDeclarationHelper variable_helper(&helper_);
+
+    variable_helper.ReadUntilExcluding(VariableDeclarationHelper::kAnnotations);
+    const intptr_t annotation_count = helper_.ReadListLength();
+    ReadVMAnnotations(annotation_count, &pragma_bits);
+    variable_helper.SetJustRead(VariableDeclarationHelper::kAnnotations);
+
+    variable_helper.ReadUntilExcluding(VariableDeclarationHelper::kEnd);
+    name = &H.DartSymbolObfuscate(variable_helper.name_index_);
+  } else {
+    name = &Symbols::AnonymousClosure();
+  }
+
+  const intptr_t func_node_offset = helper_.ReaderOffset();
+
+  FunctionNodeHelper function_node_helper(&helper_);
+  function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kTypeParameters);
+
+  Function& function = Function::Handle(Z);
+  if (!closure_owner.IsNull()) {
+    function = Function::NewClosureFunctionWithKind(
+        UntaggedFunction::kClosureFunction, *name, parent_function,
+        parent_function.is_static(), position, closure_owner);
+  } else {
+    function = Function::NewClosureFunction(*name, parent_function, position);
+  }
+
+  const bool has_pragma = HasPragma::decode(pragma_bits);
+  function.set_has_pragma(has_pragma);
+  function.set_is_visible(!InvisibleFunctionPragma::decode(pragma_bits));
+  if ((FLAG_enable_mirrors && (annotation_count > 0)) || has_pragma) {
+    const auto& lib =
+        Library::Handle(Z, Class::Handle(Z, function.Owner()).library());
+    lib.AddMetadata(function, func_decl_offset);
+  }
+
+  if (function_node_helper.async_marker_ == FunctionNodeHelper::kAsync) {
+    function.set_modifier(UntaggedFunction::kAsync);
+    function.set_is_inlinable(false);
+    ASSERT(function.IsAsyncFunction());
+  } else if (function_node_helper.async_marker_ ==
+             FunctionNodeHelper::kAsyncStar) {
+    function.set_modifier(UntaggedFunction::kAsyncGen);
+    function.set_is_inlinable(false);
+    ASSERT(function.IsAsyncGenerator());
+  } else if (function_node_helper.async_marker_ ==
+             FunctionNodeHelper::kSyncStar) {
+    function.set_modifier(UntaggedFunction::kSyncGen);
+    function.set_is_inlinable(false);
+    ASSERT(function.IsSyncGenerator());
+  } else {
+    ASSERT(function_node_helper.async_marker_ == FunctionNodeHelper::kSync);
+    ASSERT(!function.IsAsyncFunction());
+    ASSERT(!function.IsAsyncGenerator());
+    ASSERT(!function.IsSyncGenerator());
+  }
+
+  // If the start token position is synthetic, the end token position
+  // should be as well.
+  function.set_end_token_pos(
+      position.IsReal() ? function_node_helper.end_position_ : position);
+
+  function.set_kernel_offset(func_node_offset);
+  T.SetupFunctionParameters(Class::Handle(Z), function,
+                            false,  // is_method
+                            true,   // is_closure
+                            &function_node_helper);
+  // type_translator->SetupUnboxingInfoMetadata is not called here at the
+  // moment because closures do not have unboxed parameters and return
+  // value
+
+  // Finalize function type.
+  FunctionType& signature = FunctionType::Handle(Z, function.signature());
+  signature ^= ClassFinalizer::FinalizeType(signature);
+  function.SetSignature(signature);
+
+  ClosureFunctionsCache::AddClosureFunctionLocked(function);
+
+  return function.ptr();
+}
+
+FunctionPtr KernelLoader::GetClosureFunction(Thread* thread,
+                                             intptr_t func_decl_offset,
+                                             const Function& member_function,
+                                             const Function& parent_function,
+                                             const Object& closure_owner) {
+  Zone* zone = thread->zone();
+  Function& function = Function::Handle(zone);
+  intptr_t func_node_offset = -1;
+
+  const auto& kernel_info =
+      KernelProgramInfo::Handle(zone, member_function.KernelProgramInfo());
+  const auto& library_kernel_data =
+      TypedDataView::Handle(zone, member_function.KernelLibrary());
+  ASSERT(!library_kernel_data.IsNull());
+  const intptr_t library_kernel_offset = member_function.KernelLibraryOffset();
+
+  KernelLoader kernel_loader(kernel_info, library_kernel_data,
+                             library_kernel_offset);
+  {
+    // TODO(alexmarkov): Use func_decl_offset as a key in ClosureFunctionsCache
+    // instead of func_node_offset and avoid this reading.
+    kernel_loader.helper_.SetOffset(func_decl_offset);
+    kernel_loader.helper_.ReadUntilFunctionNode();
+    func_node_offset = kernel_loader.helper_.ReaderOffset();
+
+    {
+      SafepointReadRwLocker ml(thread, thread->isolate_group()->program_lock());
+      function = ClosureFunctionsCache::LookupClosureFunctionLocked(
+          member_function, func_node_offset);
+      if (!function.IsNull()) {
+        return function.ptr();
+      }
+    }
+  }
+
+  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+  function = ClosureFunctionsCache::LookupClosureFunctionLocked(
+      member_function, func_node_offset);
+  if (function.IsNull()) {
+    ActiveClassScope active_class_scope(
+        &kernel_loader.active_class_,
+        &Class::Handle(zone, member_function.Owner()));
+    ActiveMemberScope active_member(&kernel_loader.active_class_,
+                                    &member_function);
+    ActiveTypeParametersScope active_type_params(
+        &kernel_loader.active_class_, member_function,
+        &FunctionType::Handle(zone, parent_function.signature()), zone);
+    kernel_loader.helper_.SetOffset(func_decl_offset);
+    function =
+        kernel_loader.LoadClosureFunction(parent_function, closure_owner);
+  }
+  return function.ptr();
 }
 
 FunctionPtr CreateFieldInitializerFunction(Thread* thread,

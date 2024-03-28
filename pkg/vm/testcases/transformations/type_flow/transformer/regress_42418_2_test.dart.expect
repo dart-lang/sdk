@@ -12,7 +12,9 @@ class A extends core::Object {
   synthetic constructor •() → self::A
     : super core::Object::•()
     ;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  @#C3
+
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
+  @#C3
   method bar([@vm.inferred-arg-type.metadata=int] core::int? x) → void
     return [@vm.inferred-type.metadata=dart.core::Null? (value: null)] exp::Expect::isTrue([@vm.direct-call.metadata=dart.core::_IntegerImplementation.isOdd] [@vm.inferred-type.metadata=dart.core::bool] _in::unsafeCast<core::int>(x).{core::int::isOdd}{core::bool});
 }
@@ -20,7 +22,9 @@ class B extends core::Object {
   synthetic constructor •() → self::B
     : super core::Object::•()
     ;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  @#C3
+
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
+  @#C3
   method bar([@vm.inferred-arg-type.metadata=int?] core::int? x) → void
     return [@vm.inferred-type.metadata=dart.core::Null? (value: null)] exp::Expect::isTrue([@vm.direct-call.metadata=dart.core::_IntegerImplementation.isOdd] [@vm.inferred-type.metadata=dart.core::bool] x!.{core::int::isOdd}{core::bool});
 }
@@ -29,7 +33,9 @@ class C extends self::A implements self::B {
     : super self::A::•()
     ;
 }
-[@vm.inferred-type.metadata=dart.core::bool]static final field core::bool alwaysFalse = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] [@vm.inferred-type.metadata=int] core::int::parse("1") =={core::num::==}{(core::Object) → core::bool} 2;
+
+[@vm.inferred-type.metadata=dart.core::bool]
+static final field core::bool alwaysFalse = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] [@vm.inferred-type.metadata=int] core::int::parse("1") =={core::num::==}{(core::Object) → core::bool} 2;
 static method main() → dynamic {
   final math::Random r = [@vm.inferred-type.metadata=dart.math::_Random] math::Random::•();
   if([@vm.inferred-type.metadata=dart.core::bool] self::alwaysFalse) {

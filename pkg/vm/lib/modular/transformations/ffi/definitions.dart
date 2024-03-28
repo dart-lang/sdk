@@ -219,7 +219,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
           if (transformCompoundsInvalid.contains(e) ||
               transformCompounds.contains(e)) {
             final indexedClass = indexedCompoundClasses[e];
-            _addSizeOfField(e, indexedClass);
+            _addSizeOfGetter(e, indexedClass);
           }
         });
       } else {
@@ -238,10 +238,10 @@ class _FfiDefinitionTransformer extends FfiTransformer {
               compoundType is! InvalidNativeTypeCfe) {
             // Only replace fields if valid.
             _replaceFields(clazz, indexedClass, compoundData);
-            _addSizeOfField(clazz, indexedClass, compoundType.size);
+            _addSizeOfGetter(clazz, indexedClass, compoundType.size);
           } else {
             // Do add a sizeOf field even if invalid.
-            _addSizeOfField(clazz, indexedClass);
+            _addSizeOfGetter(clazz, indexedClass);
           }
           changedStructureNotifier?.registerClassMemberChange(clazz);
         }
@@ -303,7 +303,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
           currentLibraryIndex?.lookupIndexedClass(
         node.name,
       );
-      _addSizeOfField(node, indexedClass, nativeTypeCfe.size);
+      _addSizeOfGetter(node, indexedClass, nativeTypeCfe.size);
       _annotateAbiSpecificTypeWithMapping(node, nativeTypeCfe);
     }
     if (!_isUserCompound(node)) {
@@ -552,26 +552,40 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     /// Add a constructor which 'load' can use.
     ///
     /// ```dart
-    /// #fromTypedDataBase(Object #typedDataBase) :
-    ///   super._fromTypedDataBase(#typedDataBase);
+    /// #fromTypedDataBase(Object #typedDataBase, int #offsetInBytes) :
+    ///   super._fromTypedDataBase(#typedDataBase, #offsetInBytes);
     /// ```
     final VariableDeclaration typedDataBase = VariableDeclaration(
-        "#typedDataBase",
-        type: coreTypes.objectNonNullableRawType,
-        isSynthesized: true);
+      "#typedDataBase",
+      type: coreTypes.objectNonNullableRawType,
+      isSynthesized: true,
+    );
+    final VariableDeclaration offsetInBytes = VariableDeclaration(
+      "#offsetInBytes",
+      type: coreTypes.intNonNullableRawType,
+      isSynthesized: true,
+    );
     final name = Name("#fromTypedDataBase");
     final reference = indexedClass?.lookupConstructorReference(name);
     final Constructor ctor = Constructor(
-        FunctionNode(EmptyStatement(),
-            positionalParameters: [typedDataBase],
-            returnType: InterfaceType(node, Nullability.nonNullable)),
+        FunctionNode(
+          EmptyStatement(),
+          positionalParameters: [
+            typedDataBase,
+            offsetInBytes,
+          ],
+          returnType: InterfaceType(node, Nullability.nonNullable),
+        ),
         name: name,
         initializers: [
           SuperInitializer(
               node.superclass == structClass
                   ? structFromTypedDataBase
                   : unionFromTypedDataBase,
-              Arguments([VariableGet(typedDataBase)]))
+              Arguments([
+                VariableGet(typedDataBase),
+                VariableGet(offsetInBytes),
+              ]))
         ],
         fileUri: node.fileUri,
         reference: reference)
@@ -768,14 +782,24 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       final fieldOffsets = compoundLayout
           .map((Abi abi, CompoundLayout v) => MapEntry(abi, v.offsets[i]));
 
+      final offsetGetter = _createAddOffsetOfGetter(
+        node,
+        fieldOffsets,
+        field?.name.text ?? getter!.name.text,
+        field?.fileUri ?? getter!.fileUri,
+        field?.fileOffset ?? getter!.fileOffset,
+        indexedClass,
+      );
+      node.addProcedure(offsetGetter);
+
       if (field != null) {
         _generateMethodsForField(
           node,
           field,
           type,
-          fieldOffsets,
           unalignedAccess,
           indexedClass,
+          offsetGetter,
         );
       }
 
@@ -783,9 +807,9 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         getter.function.body = type.generateGetterStatement(
           getter.function.returnType,
           getter.fileOffset,
-          fieldOffsets,
           unalignedAccess,
           this,
+          offsetGetter,
         );
         getter.isExternal = false;
       }
@@ -794,10 +818,10 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         setter.function.body = type.generateSetterStatement(
           setter.function.positionalParameters.single.type,
           setter.fileOffset,
-          fieldOffsets,
           unalignedAccess,
           setter.function.positionalParameters.single,
           this,
+          offsetGetter,
         );
         setter.isExternal = false;
       }
@@ -954,13 +978,44 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         InterfaceType(pragmaClass, Nullability.nonNullable, [])));
   }
 
+  Procedure _createAddOffsetOfGetter(
+    Class node,
+    Map<Abi, int?> offsets,
+    String name,
+    Uri fileUri,
+    int fileOffset,
+    IndexedClass? indexedClass,
+  ) {
+    final nameNode = Name('$name#offsetOf', node.enclosingLibrary);
+    final getterReference = indexedClass?.lookupGetterReference(nameNode);
+    final Procedure result = Procedure(
+      nameNode,
+      ProcedureKind.Getter,
+      FunctionNode(
+        ReturnStatement(
+          runtimeBranchOnLayout(offsets),
+        ),
+        returnType: coreTypes.intNonNullableRawType,
+      ),
+      fileUri: fileUri,
+      reference: getterReference,
+    )
+      ..fileOffset = fileOffset
+      ..isNonNullableByDefault = true
+      ..isStatic = true
+      ..isSynthetic = true
+      ..annotations = [];
+    addPragmaPreferInline(result);
+    return result;
+  }
+
   void _generateMethodsForField(
     Class node,
     Field field,
     NativeTypeCfe type,
-    Map<Abi, int?> offsets,
     bool unalignedAccess,
     IndexedClass? indexedClass,
+    Procedure offsetGetter,
   ) {
     // TODO(johnniwinther): Avoid passing [indexedClass]. When compiling
     // incrementally, [field] should already carry the references from
@@ -968,9 +1023,9 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     final getterStatement = type.generateGetterStatement(
       field.type,
       field.fileOffset,
-      offsets,
       unalignedAccess,
       this,
+      offsetGetter,
     );
     Reference getterReference =
         indexedClass?.lookupGetterReference(field.name) ??
@@ -1008,10 +1063,10 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       final setterStatement = type.generateSetterStatement(
         field.type,
         field.fileOffset,
-        offsets,
         unalignedAccess,
         argument,
         this,
+        offsetGetter,
       );
       final setter = Procedure(
         field.name,
@@ -1037,7 +1092,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
   ///
   /// If sizes are not supplied still emits a field so that the use site
   /// transformer can still rewrite to it.
-  void _addSizeOfField(Class compound, IndexedClass? indexedClass,
+  void _addSizeOfGetter(Class compound, IndexedClass? indexedClass,
       [Map<Abi, int?>? sizes = null]) {
     if (sizes == null) {
       sizes = {for (var abi in Abi.values) abi: 0};
@@ -1056,20 +1111,8 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         reference: getterReference,
         isStatic: true)
       ..fileOffset = compound.fileOffset
-      ..isNonNullableByDefault = true
-      ..addAnnotation(
-        ConstantExpression(
-          InstanceConstant(
-            pragmaClass.reference,
-            [],
-            {
-              pragmaName.fieldReference: StringConstant("vm:prefer-inline"),
-              pragmaOptions.fieldReference: NullConstant(),
-            },
-          ),
-        ),
-      );
-
+      ..isNonNullableByDefault = true;
+    addPragmaPreferInline(getter);
     compound.addProcedure(getter);
   }
 

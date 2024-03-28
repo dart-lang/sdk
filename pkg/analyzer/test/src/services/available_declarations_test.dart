@@ -7,7 +7,6 @@ import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
@@ -1885,7 +1884,6 @@ enum MyEnum {
   }
 
   test_EXTENSION() async {
-    createAnalysisOptionsFile(experiments: [EnableString.extension_methods]);
     newFile('/home/test/lib/test.dart', r'''
 extension A on String {}
 

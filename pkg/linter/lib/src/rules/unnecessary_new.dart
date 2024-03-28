@@ -64,7 +64,7 @@ class _Visitor extends SimpleAstVisitor {
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (node.keyword?.type == Keyword.NEW) {
-      rule.reportLint(node);
+      rule.reportLintForToken(node.keyword);
     }
   }
 }

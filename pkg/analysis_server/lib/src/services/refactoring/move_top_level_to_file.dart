@@ -60,11 +60,11 @@ class MoveTopLevelToFile extends RefactoringProducer {
       ];
 
   @override
-  Future<void> compute(
+  Future<ComputeStatus> compute(
       List<Object?> commandArguments, ChangeBuilder builder) async {
     var members = _membersToMove();
     if (members == null) {
-      return;
+      return ComputeStatusFailure();
     }
     _initializeFromMembers(members);
     var pathContext = refactoringContext.server.resourceProvider.pathContext;
@@ -77,7 +77,7 @@ class MoveTopLevelToFile extends RefactoringProducer {
     var destinationImportUri =
         unitResult.session.uriConverter.pathToUri(destinationFilePath);
     if (destinationImportUri == null) {
-      return;
+      return ComputeStatusFailure();
     }
     var destinationFile =
         unitResult.session.resourceProvider.getFile(destinationFilePath);
@@ -165,6 +165,8 @@ class MoveTopLevelToFile extends RefactoringProducer {
         }
       });
     }
+
+    return ComputeStatusSuccess();
   }
 
   @override

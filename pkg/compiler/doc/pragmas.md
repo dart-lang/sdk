@@ -12,7 +12,7 @@
 | `dart2js:noElision` | Disables an optimization whereby unused fields or unused parameters are removed |
 | `dart2js:load-priority:normal` | [Affects deferred library loading](#load-priority) |
 | `dart2js:load-priority:high` | [Affects deferred library loading](#load-priority) |
-| `dart2js:resource-identifer` | [Collects data references to resources](resource-identifers.md) |
+| `dart2js:resource-identifier` | [Collects data references to resources](resource_identifiers.md) |
 | `weak-tearoff-reference` | [Declaring a static weak reference intrinsic method.](#declaring-a-static-weak-reference-intrinsic-method) |
 
 ## Unsafe pragmas for general use

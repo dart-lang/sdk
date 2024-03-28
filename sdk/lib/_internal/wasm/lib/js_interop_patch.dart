@@ -136,6 +136,21 @@ extension ObjectToJSBoxedDartObject on Object {
   }
 }
 
+/// [ExternalDartReference] <-> [Object]
+@patch
+extension ExternalDartReferenceToObject on ExternalDartReference {
+  @patch
+  Object get toDartObject =>
+      jsObjectToDartObject((this as JSValue).toExternRef);
+}
+
+@patch
+extension ObjectToExternalDartReference on Object {
+  @patch
+  ExternalDartReference get toExternalReference =>
+      _boxNonNullable<ExternalDartReference>(jsObjectFromDartObject(this));
+}
+
 /// [JSPromise] -> [Future].
 @patch
 extension JSPromiseToFuture<T extends JSAny?> on JSPromise<T> {
@@ -488,52 +503,44 @@ extension JSAnyOperatorExtension on JSAny? {
           '(o, a) => o ** a', this.toExternRef, any.toExternRef));
 
   @patch
-  bool greaterThan(JSAny? any) =>
+  JSBoolean greaterThan(JSAny? any) =>
       _boxNonNullable<JSBoolean>(js_helper.JS<WasmExternRef?>(
-              '(o, a) => o > a', this.toExternRef, any.toExternRef))
-          .toDart;
+          '(o, a) => o > a', this.toExternRef, any.toExternRef));
 
   @patch
-  bool greaterThanOrEqualTo(JSAny? any) =>
+  JSBoolean greaterThanOrEqualTo(JSAny? any) =>
       _boxNonNullable<JSBoolean>(js_helper.JS<WasmExternRef?>(
-              '(o, a) => o >= a', this.toExternRef, any.toExternRef))
-          .toDart;
+          '(o, a) => o >= a', this.toExternRef, any.toExternRef));
 
   @patch
-  bool lessThan(JSAny? any) =>
+  JSBoolean lessThan(JSAny? any) =>
       _boxNonNullable<JSBoolean>(js_helper.JS<WasmExternRef?>(
-              '(o, a) => o < a', this.toExternRef, any.toExternRef))
-          .toDart;
+          '(o, a) => o < a', this.toExternRef, any.toExternRef));
 
   @patch
-  bool lessThanOrEqualTo(JSAny? any) =>
+  JSBoolean lessThanOrEqualTo(JSAny? any) =>
       _boxNonNullable<JSBoolean>(js_helper.JS<WasmExternRef?>(
-              '(o, a) => o <= a', this.toExternRef, any.toExternRef))
-          .toDart;
+          '(o, a) => o <= a', this.toExternRef, any.toExternRef));
 
   @patch
-  bool equals(JSAny? any) =>
+  JSBoolean equals(JSAny? any) =>
       _boxNonNullable<JSBoolean>(js_helper.JS<WasmExternRef?>(
-              '(o, a) => o == a', this.toExternRef, any.toExternRef))
-          .toDart;
+          '(o, a) => o == a', this.toExternRef, any.toExternRef));
 
   @patch
-  bool notEquals(JSAny? any) =>
+  JSBoolean notEquals(JSAny? any) =>
       _boxNonNullable<JSBoolean>(js_helper.JS<WasmExternRef?>(
-              '(o, a) => o != a', this.toExternRef, any.toExternRef))
-          .toDart;
+          '(o, a) => o != a', this.toExternRef, any.toExternRef));
 
   @patch
-  bool strictEquals(JSAny? any) =>
+  JSBoolean strictEquals(JSAny? any) =>
       _boxNonNullable<JSBoolean>(js_helper.JS<WasmExternRef?>(
-              '(o, a) => o === a', this.toExternRef, any.toExternRef))
-          .toDart;
+          '(o, a) => o === a', this.toExternRef, any.toExternRef));
 
   @patch
-  bool strictNotEquals(JSAny? any) =>
+  JSBoolean strictNotEquals(JSAny? any) =>
       _boxNonNullable<JSBoolean>(js_helper.JS<WasmExternRef?>(
-              '(o, a) => o !== a', this.toExternRef, any.toExternRef))
-          .toDart;
+          '(o, a) => o !== a', this.toExternRef, any.toExternRef));
 
   @patch
   JSNumber unsignedRightShift(JSAny? any) =>

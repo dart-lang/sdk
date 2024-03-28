@@ -2,11 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_api_signature.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../ast/parse_base.dart';
+import '../../../util/feature_sets.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -15,7 +16,7 @@ main() {
 }
 
 @reflectiveTest
-class UnitApiSignatureTest extends ParseBase {
+class UnitApiSignatureTest {
   test_class_annotation() async {
     _assertNotSameSignature(r'''
 const a = 0;
@@ -273,6 +274,38 @@ class A {
 class A {
   factory A() =
   static void foo<U>() {}
+}
+''');
+  }
+
+  test_class_field_augment_add() {
+    _assertNotSameSignature(r'''
+library augment 'test.dart';
+
+augment class A {
+  int foo = 42;
+}
+''', r'''
+library augment 'test.dart';
+
+augment class A {
+  augment int foo = 42;
+}
+''');
+  }
+
+  test_class_field_augment_remove() {
+    _assertNotSameSignature(r'''
+library augment 'test.dart';
+
+augment class A {
+  augment int foo = 42;
+}
+''', r'''
+library augment 'test.dart';
+
+augment class A {
+  int foo = 42;
 }
 ''');
   }
@@ -1428,6 +1461,22 @@ mixin M {
 ''');
   }
 
+  test_topLevelVariable_augment_add() {
+    _assertNotSameSignature(r'''
+int a = 0;
+''', r'''
+augment int a = 0;
+''');
+  }
+
+  test_topLevelVariable_augment_remove() {
+    _assertNotSameSignature(r'''
+augment int a = 0;
+''', r'''
+int a = 0;
+''');
+  }
+
   test_topLevelVariable_final_add() {
     _assertNotSameSignature(r'''
 int a = 0;
@@ -1541,14 +1590,20 @@ typedef F = void Function(double);
   }
 
   void _assertSignature(String oldCode, String newCode, {required bool same}) {
-    var path = convertPath('/test.dart');
-
-    newFile(path, oldCode);
-    var oldUnit = parseUnit(path).unit;
+    var oldResult = parseString(
+      content: oldCode,
+      featureSet: FeatureSets.latestWithExperiments,
+      throwIfDiagnostics: false,
+    );
+    var oldUnit = oldResult.unit;
     var oldSignature = computeUnlinkedApiSignature(oldUnit);
 
-    newFile(path, newCode);
-    var newUnit = parseUnit(path).unit;
+    var newResult = parseString(
+      content: newCode,
+      featureSet: FeatureSets.latestWithExperiments,
+      throwIfDiagnostics: false,
+    );
+    var newUnit = newResult.unit;
     var newSignature = computeUnlinkedApiSignature(newUnit);
 
     if (same) {

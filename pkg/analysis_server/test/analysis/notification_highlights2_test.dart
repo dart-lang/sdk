@@ -134,7 +134,7 @@ class C {
     assertHasRegion(HighlightRegionType.BUILT_IN, 'augment');
   }
 
-  @FailingTest(reason: 'The token is not supported')
+  @SkippedTest(reason: 'The token is not supported')
   Future<void> test_BUILT_IN_augment_onEnum() async {
     addTestFile('''
 augment enum E {a, b}
@@ -143,8 +143,8 @@ augment enum E {a, b}
     assertHasRegion(HighlightRegionType.BUILT_IN, 'augment');
   }
 
-  @FailingTest(reason: 'The token is not supported')
-  Future<void> test_BUILT_IN_augment_onExtention() async {
+  @SkippedTest(reason: 'The token is not supported')
+  Future<void> test_BUILT_IN_augment_onExtension() async {
     addTestFile('''
 augment extension on int {}
 ''');
@@ -228,7 +228,6 @@ class C {
     assertHasRegion(HighlightRegionType.BUILT_IN, 'augment');
   }
 
-  @FailingTest(reason: 'The token is not supported')
   Future<void> test_BUILT_IN_augment_onTopLevelFunction() async {
     addTestFile('''
 augment int f(int x) => 0;
@@ -237,7 +236,6 @@ augment int f(int x) => 0;
     assertHasRegion(HighlightRegionType.BUILT_IN, 'augment');
   }
 
-  @FailingTest(reason: 'The token is not supported')
   Future<void> test_BUILT_IN_augment_onTopLevelGetter() async {
     addTestFile('''
 augment int get g => 0;
@@ -246,7 +244,6 @@ augment int get g => 0;
     assertHasRegion(HighlightRegionType.BUILT_IN, 'augment');
   }
 
-  @FailingTest(reason: 'The token is not supported')
   Future<void> test_BUILT_IN_augment_onTopLevelSetter() async {
     addTestFile('''
 augment set s(int x) {}
@@ -255,7 +252,6 @@ augment set s(int x) {}
     assertHasRegion(HighlightRegionType.BUILT_IN, 'augment');
   }
 
-  @FailingTest(reason: 'The token is not supported')
   Future<void> test_BUILT_IN_augment_onTopLevelVariable() async {
     addTestFile('''
 augment int v = 0;

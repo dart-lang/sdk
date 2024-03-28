@@ -98,8 +98,6 @@ class ObjectPointerVisitor;
   V(ExceptionVar, ":exception_var")                                            \
   V(Expando, "Expando")                                                        \
   V(ExprTemp, ":expr_temp")                                                    \
-  V(ExternalOneByteString, "_ExternalOneByteString")                           \
-  V(ExternalTwoByteString, "_ExternalTwoByteString")                           \
   V(FfiAbiSpecificMapping, "_FfiAbiSpecificMapping")                           \
   V(FfiAsyncCallback, "_FfiAsyncCallback")                                     \
   V(FfiBool, "Bool")                                                           \
@@ -470,6 +468,7 @@ class ObjectPointerVisitor;
   V(_objectHashCode, "_objectHashCode")                                        \
   V(_objectNoSuchMethod, "_objectNoSuchMethod")                                \
   V(_objectToString, "_objectToString")                                        \
+  V(_offsetInBytes, "_offsetInBytes")                                          \
   V(_onData, "_onData")                                                        \
   V(_onDone, "_onDone")                                                        \
   V(_onError, "_onError")                                                      \

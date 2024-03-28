@@ -18,6 +18,7 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/to_source_visitor.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/resolver/typed_literal_resolver.dart';
 import 'package:analyzer/src/fasta/token_utils.dart' as util show findPrevious;
 import 'package:analyzer/src/generated/resolver.dart';
@@ -2725,11 +2726,6 @@ abstract final class ClassDeclaration implements NamedCompilationUnitMember {
   /// does not implement any interfaces.
   ImplementsClause? get implementsClause;
 
-  /// Return the 'inline' keyword, or `null` if the keyword was absent.
-  @Deprecated('Replaced with extension types')
-  @experimental
-  Token? get inlineKeyword;
-
   /// Return the 'interface' keyword, or `null` if the keyword was absent.
   Token? get interfaceKeyword;
 
@@ -2865,12 +2861,6 @@ final class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
         augmentKeyword ??
         mixinKeyword ??
         classKeyword;
-  }
-
-  @Deprecated('Replaced with extension types')
-  @override
-  Token? get inlineKeyword {
-    return null;
   }
 
   @override
@@ -4350,7 +4340,7 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
   @override
   Token get firstTokenAfterCommentAndMetadata {
     return Token.lexicallyFirst(
-            externalKeyword, constKeyword, factoryKeyword) ??
+            externalKeyword, constKeyword, factoryKeyword, augmentKeyword) ??
         _returnType.beginToken;
   }
 
@@ -6305,7 +6295,8 @@ sealed class ExpressionImpl extends AstNodeImpl
   @override
   void resolveElement(
       ResolverVisitor resolver, CollectionLiteralContext? context) {
-    resolver.analyzeExpression(this, context?.elementType);
+    resolver.analyzeExpression(
+        this, context?.elementType ?? UnknownInferredType.instance);
   }
 
   /// Dispatches this expression to the [resolver], with the given [contextType]
@@ -6455,6 +6446,10 @@ final class ExtendsClauseImpl extends AstNodeImpl implements ExtendsClause {
 ///        'on' [TypeAnnotation] [ShowClause]? [HideClause]?
 ///        '{' [ClassMember]* '}'
 abstract final class ExtensionDeclaration implements CompilationUnitMember {
+  /// The 'augment' keyword, or `null` if the keyword was absent.
+  @experimental
+  Token? get augmentKeyword;
+
   @override
   ExtensionElement? get declaredElement;
 
@@ -6496,6 +6491,9 @@ abstract final class ExtensionDeclaration implements CompilationUnitMember {
 final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
     implements ExtensionDeclaration {
   @override
+  final Token? augmentKeyword;
+
+  @override
   final Token extensionKeyword;
 
   @override
@@ -6529,6 +6527,7 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   ExtensionDeclarationImpl({
     required super.comment,
     required super.metadata,
+    required this.augmentKeyword,
     required this.extensionKeyword,
     required this.typeKeyword,
     required this.name,
@@ -6556,7 +6555,8 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   }
 
   @override
-  Token get firstTokenAfterCommentAndMetadata => extensionKeyword;
+  Token get firstTokenAfterCommentAndMetadata =>
+      augmentKeyword ?? extensionKeyword;
 
   @override
   NodeListImpl<ClassMemberImpl> get members => _members;
@@ -6570,6 +6570,7 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
 
   @override
   ChildEntities get _childEntities => ChildEntities()
+    ..addToken('augmentKeyword', augmentKeyword)
     ..addToken('extensionKeyword', extensionKeyword)
     ..addToken('name', name)
     ..addNode('typeParameters', typeParameters)
@@ -6882,6 +6883,10 @@ abstract final class FieldDeclaration implements ClassMember {
   /// The `abstract` keyword, or `null` if the keyword was not used.
   Token? get abstractKeyword;
 
+  /// Return the 'augment' keyword, or `null` if the keyword was absent.
+  @experimental
+  Token? get augmentKeyword;
+
   /// The 'covariant' keyword, or `null` if the keyword was not used.
   Token? get covariantKeyword;
 
@@ -6911,7 +6916,7 @@ final class FieldDeclarationImpl extends ClassMemberImpl
   @override
   final Token? abstractKeyword;
 
-  /// The 'augment' keyword, or `null` if the keyword was not used.
+  @override
   final Token? augmentKeyword;
 
   /// The 'covariant' keyword, or `null` if the keyword was not used.
@@ -6976,6 +6981,10 @@ final class FieldDeclarationImpl extends ClassMemberImpl
 
   @override
   ChildEntities get _childEntities => super._childEntities
+    ..addToken('abstractKeyword', abstractKeyword)
+    ..addToken('augmentKeyword', augmentKeyword)
+    ..addToken('covariantKeyword', covariantKeyword)
+    ..addToken('externalKeyword', externalKeyword)
     ..addToken('staticKeyword', staticKeyword)
     ..addNode('fields', fields)
     ..addToken('semicolon', semicolon);
@@ -8246,6 +8255,10 @@ sealed class FunctionBodyImpl extends AstNodeImpl implements FunctionBody {
 ///    functionSignature ::=
 ///        [Type]? ('get' | 'set')? name [FormalParameterList]
 abstract final class FunctionDeclaration implements NamedCompilationUnitMember {
+  /// The 'augment' keyword.
+  @experimental
+  Token? get augmentKeyword;
+
   @override
   ExecutableElement? get declaredElement;
 
@@ -8284,8 +8297,7 @@ abstract final class FunctionDeclaration implements NamedCompilationUnitMember {
 ///        [Type]? ('get' | 'set')? [SimpleIdentifier] [FormalParameterList]
 final class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
     implements FunctionDeclaration {
-  /// The token representing the 'augment' keyword, or `null` if this is not an
-  /// function augmentation.
+  @override
   final Token? augmentKeyword;
 
   /// The token representing the 'external' keyword, or `null` if this is not an
@@ -12642,8 +12654,7 @@ abstract final class NamedType implements TypeAnnotation {
 ///    typeName ::=
 ///        [Identifier] typeArguments? '?'?
 final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
-  @override
-  ImportPrefixReferenceImpl? importPrefix;
+  ImportPrefixReferenceImpl? _importPrefix;
 
   @override
   final Token name2;
@@ -12665,12 +12676,12 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
   /// Initialize a newly created type name. The [typeArguments] can be `null` if
   /// there are no type arguments.
   NamedTypeImpl({
-    required this.importPrefix,
+    required ImportPrefixReferenceImpl? importPrefix,
     required this.name2,
     required this.typeArguments,
     required this.question,
   }) {
-    _becomeParentOf(importPrefix);
+    this.importPrefix = importPrefix;
     _becomeParentOf(typeArguments);
   }
 
@@ -12679,6 +12690,16 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
 
   @override
   Token get endToken => question ?? typeArguments?.endToken ?? name2;
+
+  @override
+  ImportPrefixReferenceImpl? get importPrefix {
+    return _importPrefix;
+  }
+
+  set importPrefix(ImportPrefixReferenceImpl? value) {
+    _importPrefix = value;
+    _becomeParentOf(value);
+  }
 
   @override
   bool get isDeferred {
@@ -17926,7 +17947,7 @@ final class ThrowExpressionImpl extends ExpressionImpl
 /// directives).
 abstract final class TopLevelVariableDeclaration
     implements CompilationUnitMember {
-  /// The 'augment' keyword.
+  /// The 'augment' keyword, or `null` if the keyword was absent.
   @experimental
   Token? get augmentKeyword;
 

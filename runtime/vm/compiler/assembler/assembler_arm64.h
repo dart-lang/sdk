@@ -248,53 +248,7 @@ class Address : public ValueObject {
               (static_cast<int32_t>(ext) << kExtendTypeShift);
   }
 
-  static OperandSize OperandSizeFor(intptr_t cid) {
-    switch (cid) {
-      case kArrayCid:
-      case kImmutableArrayCid:
-      case kRecordCid:
-      case kTypeArgumentsCid:
-        return kObjectBytes;
-      case kOneByteStringCid:
-      case kExternalOneByteStringCid:
-        return kByte;
-      case kTwoByteStringCid:
-      case kExternalTwoByteStringCid:
-        return kTwoBytes;
-      case kTypedDataInt8ArrayCid:
-        return kByte;
-      case kTypedDataUint8ArrayCid:
-      case kTypedDataUint8ClampedArrayCid:
-      case kExternalTypedDataUint8ArrayCid:
-      case kExternalTypedDataUint8ClampedArrayCid:
-        return kUnsignedByte;
-      case kTypedDataInt16ArrayCid:
-        return kTwoBytes;
-      case kTypedDataUint16ArrayCid:
-        return kUnsignedTwoBytes;
-      case kTypedDataInt32ArrayCid:
-        return kFourBytes;
-      case kTypedDataUint32ArrayCid:
-        return kUnsignedFourBytes;
-      case kTypedDataInt64ArrayCid:
-      case kTypedDataUint64ArrayCid:
-        return kDWord;
-      case kTypedDataFloat32ArrayCid:
-        return kSWord;
-      case kTypedDataFloat64ArrayCid:
-        return kDWord;
-      case kTypedDataFloat32x4ArrayCid:
-      case kTypedDataInt32x4ArrayCid:
-      case kTypedDataFloat64x2ArrayCid:
-        return kQWord;
-      case kTypedDataInt8ArrayViewCid:
-        UNREACHABLE();
-        return kByte;
-      default:
-        UNREACHABLE();
-        return kByte;
-    }
-  }
+  static OperandSize OperandSizeFor(intptr_t cid);
 
  private:
   uint32_t encoding(OperandSize sz) const {
@@ -1925,7 +1879,7 @@ class Assembler : public AssemblerBase {
   Address PrepareLargeOffset(Register base,
                              int32_t offset,
                              OperandSize sz,
-                             Address::AddressType addr_type = Address::Offset);
+                             Address::AddressType addr_type);
   void LoadFromOffset(Register dest,
                       const Address& address,
                       OperandSize sz = kEightBytes) override;

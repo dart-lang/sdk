@@ -56,7 +56,7 @@ class CoreTypesUtil {
         wasmExternRefClass =
             coreTypes.index.getClass('dart:_wasm', 'WasmExternRef'),
         wrapDartFunctionTarget = coreTypes.index
-            .getTopLevelProcedure('dart:_js_helper', '_wrapDartFunction') {}
+            .getTopLevelProcedure('dart:_js_helper', '_wrapDartFunction');
 
   DartType get nonNullableObjectType =>
       coreTypes.objectRawType(Nullability.nonNullable);
@@ -68,27 +68,24 @@ class CoreTypesUtil {
       wasmExternRefClass.getThisType(coreTypes, Nullability.nullable);
 
   Procedure jsifyTarget(DartType type) =>
-      _extensionIndex.isStaticInteropType(type)
-          ? jsValueUnboxTarget
-          : jsifyRawTarget;
+      isJSValueType(type) ? jsValueUnboxTarget : jsifyRawTarget;
+
+  /// Return whether [type] erases to a `JSValue`.
+  bool isJSValueType(DartType type) =>
+      _extensionIndex.isStaticInteropType(type) ||
+      _extensionIndex.isExternalDartReferenceType(type);
 
   void annotateProcedure(
       Procedure procedure, String pragmaOptionString, AnnotationType type) {
-    String pragmaNameType;
-    switch (type) {
-      case AnnotationType.import:
-        pragmaNameType = 'import';
-        break;
-      case AnnotationType.export:
-        pragmaNameType = 'export';
-        break;
-    }
+    String pragmaNameType = switch (type) {
+      AnnotationType.import => 'import',
+      AnnotationType.export => 'export'
+    };
     procedure.addAnnotation(ConstantExpression(
         InstanceConstant(coreTypes.pragmaClass.reference, [], {
       coreTypes.pragmaName.fieldReference:
           StringConstant('wasm:$pragmaNameType'),
-      coreTypes.pragmaOptions.fieldReference:
-          StringConstant('$pragmaOptionString')
+      coreTypes.pragmaOptions.fieldReference: StringConstant(pragmaOptionString)
     })));
   }
 
@@ -107,7 +104,7 @@ class CoreTypesUtil {
       return invokeOneArg(dartifyRawTarget, invocation);
     } else {
       Expression expression;
-      if (_extensionIndex.isStaticInteropType(returnType)) {
+      if (isJSValueType(returnType)) {
         // TODO(joshualitt): Expose boxed `JSNull` and `JSUndefined` to Dart
         // code after migrating existing users of js interop on Dart2Wasm.
         // expression = _createJSValue(invocation);

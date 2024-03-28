@@ -146,6 +146,23 @@ DEFINE_RUNTIME_ENTRY(RangeError, 2) {
   Exceptions::ThrowByType(Exceptions::kRange, args);
 }
 
+DEFINE_RUNTIME_ENTRY(RangeErrorUnboxedInt64, 0) {
+  int64_t unboxed_length = thread->unboxed_int64_runtime_arg();
+  int64_t unboxed_index = thread->unboxed_int64_runtime_second_arg();
+  const auto& length = Integer::Handle(zone, Integer::New(unboxed_length));
+  const auto& index = Integer::Handle(zone, Integer::New(unboxed_index));
+  // Throw: new RangeError.range(index, 0, length - 1, "length");
+  const Array& args = Array::Handle(zone, Array::New(4));
+  args.SetAt(0, index);
+  args.SetAt(1, Integer::Handle(zone, Integer::New(0)));
+  args.SetAt(
+      2, Integer::Handle(
+             zone, Integer::Cast(length).ArithmeticOp(
+                       Token::kSUB, Integer::Handle(zone, Integer::New(1)))));
+  args.SetAt(3, Symbols::Length());
+  Exceptions::ThrowByType(Exceptions::kRange, args);
+}
+
 DEFINE_RUNTIME_ENTRY(WriteError, 0) {
   Exceptions::ThrowUnsupportedError("Cannot modify an unmodifiable list");
 }
@@ -686,19 +703,24 @@ DEFINE_RUNTIME_ENTRY(SubtypeCheck, 5) {
   UNREACHABLE();
 }
 
-// Allocate a new closure and initializes its function and context fields with
-// the arguments and all other fields to null.
+// Allocate a new closure and initializes its function, context,
+// instantiator type arguments and delayed type arguments fields.
 // Arg0: function.
 // Arg1: context.
+// Arg2: instantiator type arguments.
+// Arg3: delayed type arguments.
 // Return value: newly allocated closure.
-DEFINE_RUNTIME_ENTRY(AllocateClosure, 2) {
+DEFINE_RUNTIME_ENTRY(AllocateClosure, 4) {
   const auto& function = Function::CheckedHandle(zone, arguments.ArgAt(0));
   const auto& context = Object::Handle(zone, arguments.ArgAt(1));
+  const auto& instantiator_type_args =
+      TypeArguments::CheckedHandle(zone, arguments.ArgAt(2));
+  const auto& delayed_type_args =
+      TypeArguments::CheckedHandle(zone, arguments.ArgAt(3));
   const Closure& closure = Closure::Handle(
-      zone,
-      Closure::New(Object::null_type_arguments(), Object::null_type_arguments(),
-                   Object::null_type_arguments(), function, context,
-                   SpaceForRuntimeAllocation()));
+      zone, Closure::New(instantiator_type_args, Object::null_type_arguments(),
+                         delayed_type_args, function, context,
+                         SpaceForRuntimeAllocation()));
   arguments.SetReturn(closure);
   RuntimeAllocationEpilogue(thread);
 }

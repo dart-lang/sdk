@@ -61,7 +61,7 @@ abstract final class Flutter {
       String eol,
       String Function(Expression) getNodeText,
       String Function(int) getLinePrefix,
-      String Function(int) getIndent,
+      String oneIndent,
       String Function(int, int) getText,
       String Function(String, String, String,
               {bool includeLeading, bool ensureTrailingNewline})
@@ -80,7 +80,7 @@ abstract final class Flutter {
         newlineLoc -= 1;
       }
       var indentOld = getLinePrefix(childArg.offset + eol.length + newlineLoc);
-      var indentNew = '$indentOld${getIndent(1)}';
+      var indentNew = '$indentOld$oneIndent';
       // The separator includes 'child:' but that has no newlines.
       var separator =
           getText(namedExp.offset, childArg.offset - namedExp.offset);

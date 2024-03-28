@@ -148,7 +148,6 @@ class KernelTarget extends TargetImplementation {
   /// Shared with [CompilerContext].
   final Map<Uri, Source> uriToSource = CompilerContext.current.uriToSource;
 
-  MemberBuilder? _cachedCompileTimeError;
   MemberBuilder? _cachedDuplicatedFieldInitializerError;
   MemberBuilder? _cachedNativeAnnotation;
 
@@ -180,14 +179,6 @@ class KernelTarget extends TargetImplementation {
   }
 
   Uri? translateUri(Uri uri) => uriTranslator.translate(uri);
-
-  /// Returns a reference to the constructor used for creating a compile-time
-  /// error. The constructor is expected to accept a single argument of type
-  /// String, which is the compile-time error message.
-  MemberBuilder getCompileTimeError(Loader loader) {
-    return _cachedCompileTimeError ??= loader.coreLibrary
-        .getConstructor("_CompileTimeError", bypassLibraryPrivacy: true);
-  }
 
   /// Returns a reference to the constructor used for creating a runtime error
   /// when a final field is initialized twice. The constructor is expected to

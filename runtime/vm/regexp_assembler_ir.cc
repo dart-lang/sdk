@@ -89,11 +89,9 @@ IRRegExpMacroAssembler::IRRegExpMacroAssembler(
       block_id_(1) {
   switch (specialization_cid) {
     case kOneByteStringCid:
-    case kExternalOneByteStringCid:
       mode_ = ASCII;
       break;
     case kTwoByteStringCid:
-    case kExternalTwoByteStringCid:
       mode_ = UC16;
       break;
     default:
@@ -259,7 +257,7 @@ void IRRegExpMacroAssembler::GenerateSuccessBlock() {
   PRINT(PushLocal(result_));
 
   // Return true on success.
-  AppendInstruction(new (Z) ReturnInstr(
+  AppendInstruction(new (Z) DartReturnInstr(
       InstructionSource(), Bind(LoadLocal(result_)), GetNextDeoptId()));
 }
 
@@ -268,7 +266,7 @@ void IRRegExpMacroAssembler::GenerateExitBlock() {
   TAG();
 
   // Return false on failure.
-  AppendInstruction(new (Z) ReturnInstr(
+  AppendInstruction(new (Z) DartReturnInstr(
       InstructionSource(), Bind(LoadLocal(result_)), GetNextDeoptId()));
 }
 
@@ -1723,22 +1721,6 @@ Value* IRRegExpMacroAssembler::LoadCodeUnitsAt(LocalVariable* index,
                                                intptr_t characters) {
   // Bind the pattern as the load receiver.
   Value* pattern_val = BindLoadLocal(*string_param_);
-  if (IsExternalStringClassId(specialization_cid_)) {
-    // The data of an external string is stored through one indirection.
-    const Slot* slot = nullptr;
-    if (specialization_cid_ == kExternalOneByteStringCid) {
-      slot = &Slot::ExternalOneByteString_external_data();
-    } else if (specialization_cid_ == kExternalTwoByteStringCid) {
-      slot = &Slot::ExternalTwoByteString_external_data();
-    } else {
-      UNREACHABLE();
-    }
-    // This pushes an untagged value on the stack which is immediately consumed
-    // by LoadCodeUnitsAtInstr below.
-    pattern_val = Bind(new (Z) LoadFieldInstr(
-        pattern_val, *slot, InnerPointerAccess::kCannotBeInnerPointer,
-        InstructionSource()));
-  }
 
   // Here pattern_val might be untagged so this must not trigger a GC.
   Value* index_val = BindLoadLocal(*index);

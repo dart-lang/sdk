@@ -4,8 +4,6 @@
 
 import 'dart:typed_data';
 
-import 'package:_fe_analyzer_shared/src/macros/executor/multi_executor.dart'
-    as macro;
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart' as ast;
 import 'package:analyzer/dart/element/element.dart';
@@ -29,6 +27,7 @@ import 'package:analyzer/src/summary2/types_builder.dart';
 import 'package:analyzer/src/summary2/variance_builder.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/uri_cache.dart';
+import 'package:macros/src/executor/multi_executor.dart' as macro;
 
 Future<LinkResult> link({
   required LinkedElementFactory elementFactory,

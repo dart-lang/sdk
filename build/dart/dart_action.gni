@@ -3,13 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 import("../executable_suffix.gni")
-import("prebuilt_dart_sdk.gni")
-
-_is_fuchsia = defined(is_fuchsia_tree) && is_fuchsia_tree
-
-if (_is_fuchsia) {
-  import("//build/dart/dart.gni")
-}
 
 # This file defines templates for running and compiling Dart code during
 # Dart's build.
@@ -99,8 +92,6 @@ template("_compiled_action") {
 template("_prebuilt_tool_action") {
   assert(defined(invoker.binary),
          "The path to where the prebuilt binary lives must be defined")
-  assert(_is_fuchsia || prebuilt_dart_exe_works,
-         "A pre built dart executable needs to be present")
 
   vm_args = []
   if (defined(invoker.vm_args)) {
@@ -180,22 +171,8 @@ template("prebuilt_dart_action") {
 
   _prebuilt_tool_action(target_name) {
     forward_variables_from(invoker, "*")
-    if (_is_fuchsia) {
-      binary = prebuilt_dart
-      dfe = "$prebuilt_dart_sdk/bin/snapshots/kernel-service.dart.snapshot"
-    } else {
-      binary = "$_dart_root/tools/sdks/dart-sdk/bin/dart$executable_suffix"
-      dfe = "$_dart_root/tools/sdks/dart-sdk/bin/snapshots/kernel-service.dart.snapshot"
-    }
-  }
-}
-
-if (_is_fuchsia) {
-  template("_prebuilt_gen_snapshot_action") {
-    _prebuilt_tool_action(target_name) {
-      forward_variables_from(invoker, "*")
-      binary = prebuilt_gen_snapshot
-    }
+    binary = "$_dart_root/tools/sdks/dart-sdk/bin/dart$executable_suffix"
+    dfe = "$_dart_root/tools/sdks/dart-sdk/bin/snapshots/kernel-service.dart.snapshot"
   }
 }
 
@@ -298,39 +275,33 @@ template("_built_tool_action") {
 #    visibility
 template("dart_action") {
   assert(defined(invoker.script), "script must be defined for $target_name")
-  if (!_is_fuchsia || !use_prebuilt_dart_sdk) {
-    _built_tool_action(target_name) {
-      tool = "$_dart_root/runtime/bin:dart"
-      forward_variables_from(invoker,
-                             [
-                               "args",
-                               "depfile",
-                               "deps",
-                               "inputs",
-                               "outputs",
-                               "packages",
-                               "pool",
-                               "script",
-                               "testonly",
-                               "tool",
-                               "visibility",
-                               "vm_args",
-                             ])
+  _built_tool_action(target_name) {
+    tool = "$_dart_root/runtime/bin:dart"
+    forward_variables_from(invoker,
+                           [
+                             "args",
+                             "depfile",
+                             "deps",
+                             "inputs",
+                             "outputs",
+                             "packages",
+                             "pool",
+                             "script",
+                             "testonly",
+                             "tool",
+                             "visibility",
+                             "vm_args",
+                           ])
 
-      # Dart has an implicit dependency on the kernel service so unless DFE is
-      # passed, we need to add this dep.
-      if (defined(invoker.dfe)) {
-        vm_args += [ "--dfe=" + rebase_path(invoker.dfe, root_build_dir) ]
-      } else {
-        if (!defined(invoker.deps)) {
-          deps = []
-        }
-        deps += [ "$_dart_root/utils/kernel-service:kernel-service" ]
+    # Dart has an implicit dependency on the kernel service so unless DFE is
+    # passed, we need to add this dep.
+    if (defined(invoker.dfe)) {
+      vm_args += [ "--dfe=" + rebase_path(invoker.dfe, root_build_dir) ]
+    } else {
+      if (!defined(invoker.deps)) {
+        deps = []
       }
-    }
-  } else {
-    prebuilt_dart_action(target_name) {
-      forward_variables_from(invoker, "*")
+      deps += [ "$_dart_root/utils/kernel-service:kernel-service" ]
     }
   }
 }
@@ -365,31 +336,25 @@ template("gen_snapshot_action") {
   assert(
       !defined(invoker.script),
       "script must not be defined for $target_name. If there is a script use args instead.")
-  if (!_is_fuchsia || !use_prebuilt_dart_sdk) {
-    _built_tool_action(target_name) {
-      if (product_mode) {
-        tool = "$_dart_root/runtime/bin:gen_snapshot_product"
-      } else {
-        tool = "$_dart_root/runtime/bin:gen_snapshot"
-      }
-      forward_variables_from(invoker,
-                             [
-                               "args",
-                               "depfile",
-                               "deps",
-                               "inputs",
-                               "outputs",
-                               "packages",
-                               "pool",
-                               "testonly",
-                               "tool",
-                               "visibility",
-                               "vm_args",
-                             ])
+  _built_tool_action(target_name) {
+    if (product_mode) {
+      tool = "$_dart_root/runtime/bin:gen_snapshot_product"
+    } else {
+      tool = "$_dart_root/runtime/bin:gen_snapshot"
     }
-  } else {
-    _prebuilt_gen_snapshot_action(target_name) {
-      forward_variables_from(invoker, "*")
-    }
+    forward_variables_from(invoker,
+                           [
+                             "args",
+                             "depfile",
+                             "deps",
+                             "inputs",
+                             "outputs",
+                             "packages",
+                             "pool",
+                             "testonly",
+                             "tool",
+                             "visibility",
+                             "vm_args",
+                           ])
   }
 }

@@ -223,8 +223,8 @@ abstract class _WrapMultipleWidgets extends ResolvedCorrectionProducer {
         builder.write('(');
 
         var indentOld = utils.getLinePrefix(firstWidget.offset);
-        var indentNew1 = indentOld + utils.getIndent(1);
-        var indentNew2 = indentOld + utils.getIndent(2);
+        var indentNew1 = indentOld + utils.oneIndent;
+        var indentNew2 = indentOld + utils.twoIndents;
 
         builder.write(eol);
         builder.write(indentNew1);
@@ -299,7 +299,7 @@ abstract class _WrapSingleWidget extends ResolvedCorrectionProducer {
         var leadingLines = _leadingLines;
         if (widgetSrc.contains(eol) || leadingLines.isNotEmpty) {
           var indentOld = utils.getLinePrefix(widgetExpr.offset);
-          var indentNew = '$indentOld${utils.getIndent(1)}';
+          var indentNew = '$indentOld${utils.oneIndent}';
 
           for (var leadingLine in leadingLines) {
             builder.write(eol);

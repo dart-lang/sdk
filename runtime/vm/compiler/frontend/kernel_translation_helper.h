@@ -156,6 +156,8 @@ class TranslationHelper {
                                                   bool required = true);
   virtual ClassPtr LookupClassByKernelClass(NameIndex klass,
                                             bool required = true);
+  ClassPtr LookupClassByKernelClassOrLibrary(NameIndex kernel_name,
+                                             bool required = true);
 
   FieldPtr LookupFieldByKernelField(NameIndex field, bool required = true);
   FieldPtr LookupFieldByKernelGetterOrSetter(NameIndex field,
@@ -173,6 +175,7 @@ class TranslationHelper {
   FunctionPtr LookupMethodByMember(NameIndex target,
                                    const String& method_name,
                                    bool required = true);
+  ObjectPtr LookupMemberByMember(NameIndex kernel_name, bool required = true);
   FunctionPtr LookupDynamicFunction(const Class& klass, const String& name);
 
   Type& GetDeclarationType(const Class& klass);
@@ -976,6 +979,11 @@ class MetadataHelper {
 };
 
 struct DirectCallMetadata {
+  enum Flag {
+    kFlagCheckReceiverForNull = 1 << 0,
+    kFlagClosure = 1 << 1,
+  };
+
   DirectCallMetadata(const Function& target, bool check_receiver_for_null)
       : target_(target), check_receiver_for_null_(check_receiver_for_null) {}
 
@@ -993,11 +1001,13 @@ class DirectCallMetadataHelper : public MetadataHelper {
   DirectCallMetadata GetDirectTargetForPropertyGet(intptr_t node_offset);
   DirectCallMetadata GetDirectTargetForPropertySet(intptr_t node_offset);
   DirectCallMetadata GetDirectTargetForMethodInvocation(intptr_t node_offset);
+  DirectCallMetadata GetDirectTargetForFunctionInvocation(intptr_t node_offset);
 
  private:
   bool ReadMetadata(intptr_t node_offset,
                     NameIndex* target_name,
-                    bool* check_receiver_for_null);
+                    bool* check_receiver_for_null,
+                    intptr_t* closure_id = nullptr);
 
   DISALLOW_COPY_AND_ASSIGN(DirectCallMetadataHelper);
 };
@@ -1218,6 +1228,10 @@ class UnboxingInfoMetadata : public ZoneAllocated {
     RecordShape record_shape = RecordShape::ForUnnamed(0);
   };
 
+  static constexpr uint8_t kMustUseStackCallingConventionFlag = 1 << 0;
+  static constexpr uint8_t kHasUnboxedParameterOrReturnValueFlag = 1 << 1;
+  static constexpr uint8_t kHasOverridesWithLessDirectParametersFlag = 1 << 2;
+
   UnboxingInfoMetadata() : unboxed_args_info(0), return_info() {}
 
   void SetArgsCount(intptr_t num_args) {
@@ -1226,8 +1240,12 @@ class UnboxingInfoMetadata : public ZoneAllocated {
     unboxed_args_info.FillWith(UnboxingType(), 0, num_args);
   }
 
+  // Caveat: this array does not cover receiver (`this`) which is always
+  // assumed to be boxed.
   GrowableArray<UnboxingType> unboxed_args_info;
   UnboxingType return_info;
+  bool must_use_stack_calling_convention;
+  bool has_overrides_with_less_direct_parameters;
 
   DISALLOW_COPY_AND_ASSIGN(UnboxingInfoMetadata);
 };

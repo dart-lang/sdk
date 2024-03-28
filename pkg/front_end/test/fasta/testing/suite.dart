@@ -136,15 +136,11 @@ import '../../utils/kernel_chain.dart'
         WriteDill;
 import '../../utils/validating_instrumentation.dart'
     show ValidatingInstrumentation;
+import 'environment_keys.dart';
 import 'folder_options.dart';
 import 'test_options.dart';
 
 export 'package:testing/testing.dart' show Chain, runMe;
-
-const String COMPILATION_MODE = " compilation mode ";
-
-const String UPDATE_EXPECTATIONS = "updateExpectations";
-const String UPDATE_COMMENTS = "updateComments";
 
 const String EXPECTATIONS = '''
 [
@@ -231,7 +227,8 @@ class FastaContext extends ChainContext with MatchContext {
   final bool updateExpectations;
 
   @override
-  String get updateExpectationsOption => '${UPDATE_EXPECTATIONS}=true';
+  String get updateExpectationsOption =>
+      '${EnvironmentKeys.updateExpectations}=true';
 
   @override
   bool get canBeFixWithUpdateExpectations => true;
@@ -461,17 +458,15 @@ class FastaContext extends ChainContext with MatchContext {
   static Future<FastaContext> create(
       Chain suite, Map<String, String> environment) {
     const Set<String> knownEnvironmentKeys = {
-      "enableExtensionMethods",
-      "enableNonNullable",
-      "soundNullSafety",
-      "ignoreExpectations",
-      UPDATE_EXPECTATIONS,
-      UPDATE_COMMENTS,
-      "skipVm",
-      "semiFuzz",
-      "verify",
-      "platformBinaries",
-      COMPILATION_MODE,
+      EnvironmentKeys.soundNullSafety,
+      EnvironmentKeys.ignoreExpectations,
+      EnvironmentKeys.updateExpectations,
+      EnvironmentKeys.updateComments,
+      EnvironmentKeys.skipVm,
+      EnvironmentKeys.semiFuzz,
+      EnvironmentKeys.verify,
+      EnvironmentKeys.platformBinaries,
+      EnvironmentKeys.compilationMode,
     };
     checkEnvironment(environment, knownEnvironmentKeys);
 
@@ -481,19 +476,22 @@ class FastaContext extends ChainContext with MatchContext {
     Map<ExperimentalFlag, bool> experimentalFlags =
         SuiteFolderOptions.computeForcedExperimentalFlags(environment);
 
-    bool soundNullSafety = environment["soundNullSafety"] == "true";
-    bool ignoreExpectations = environment["ignoreExpectations"] == "true";
-    bool updateExpectations = environment[UPDATE_EXPECTATIONS] == "true";
-    bool updateComments = environment[UPDATE_COMMENTS] == "true";
-    bool skipVm = environment["skipVm"] == "true";
-    bool semiFuzz = environment["semiFuzz"] == "true";
-    bool verify = environment["verify"] != "false";
-    String? platformBinaries = environment["platformBinaries"];
+    bool soundNullSafety =
+        environment[EnvironmentKeys.soundNullSafety] == "true";
+    bool ignoreExpectations =
+        environment[EnvironmentKeys.ignoreExpectations] == "true";
+    bool updateExpectations =
+        environment[EnvironmentKeys.updateExpectations] == "true";
+    bool updateComments = environment[EnvironmentKeys.updateComments] == "true";
+    bool skipVm = environment[EnvironmentKeys.skipVm] == "true";
+    bool semiFuzz = environment[EnvironmentKeys.semiFuzz] == "true";
+    bool verify = environment[EnvironmentKeys.verify] != "false";
+    String? platformBinaries = environment[EnvironmentKeys.platformBinaries];
     if (platformBinaries != null && !platformBinaries.endsWith('/')) {
       platformBinaries = '$platformBinaries/';
     }
     return new Future.value(new FastaContext(
-        suite.uri,
+        suite.root,
         vm,
         platformBinaries == null
             ? computePlatformBinariesLocation(forceBuildDir: true)
@@ -504,7 +502,7 @@ class FastaContext extends ChainContext with MatchContext {
         updateComments,
         skipVm,
         semiFuzz,
-        compileModeFromName(environment[COMPILATION_MODE]),
+        compileModeFromName(environment[EnvironmentKeys.compilationMode]),
         verify,
         soundNullSafety));
   }
@@ -2114,7 +2112,7 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
                       compilationSetup, sourceTarget),
                   context.expectationSet["InstrumentationMismatch"],
                   instrumentation.problemsAsString,
-                  autoFixCommand: '${UPDATE_COMMENTS}=true',
+                  autoFixCommand: '${EnvironmentKeys.updateComments}=true',
                   canBeFixWithUpdateExpectations: true);
             }
           }

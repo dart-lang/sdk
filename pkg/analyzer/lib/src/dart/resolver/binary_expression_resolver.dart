@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -39,7 +40,7 @@ class BinaryExpressionResolver {
 
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
-  void resolve(BinaryExpressionImpl node, {required DartType? contextType}) {
+  void resolve(BinaryExpressionImpl node, {required DartType contextType}) {
     var operator = node.operator.type;
 
     if (operator == TokenType.AMPERSAND_AMPERSAND) {
@@ -90,7 +91,7 @@ class BinaryExpressionResolver {
   }
 
   void _resolveEqual(BinaryExpressionImpl node, {required bool notEqual}) {
-    _resolver.analyzeExpression(node.leftOperand, null);
+    _resolver.analyzeExpression(node.leftOperand, UnknownInferredType.instance);
     var left = _resolver.popRewrite()!;
 
     var flowAnalysis = _resolver.flowAnalysis;
@@ -101,7 +102,8 @@ class BinaryExpressionResolver {
       leftInfo = flow?.equalityOperand_end(left, left.typeOrThrow);
     }
 
-    _resolver.analyzeExpression(node.rightOperand, null);
+    _resolver.analyzeExpression(
+        node.rightOperand, UnknownInferredType.instance);
     var right = _resolver.popRewrite()!;
     var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(right);
 
@@ -148,36 +150,64 @@ class BinaryExpressionResolver {
   }
 
   void _resolveIfNull(BinaryExpressionImpl node,
-      {required DartType? contextType}) {
+      {required DartType contextType}) {
     var left = node.leftOperand;
     var right = node.rightOperand;
     var flow = _resolver.flowAnalysis.flow;
 
-    var leftContextType = contextType;
-    if (leftContextType != null) {
-      leftContextType = _typeSystem.makeNullable(leftContextType);
-    }
-
-    _resolver.analyzeExpression(left, leftContextType);
+    // An if-null expression `E` of the form `e1 ?? e2` with context type `K` is
+    // analyzed as follows:
+    //
+    // - Let `T1` be the type of `e1` inferred with context type `K?`.
+    _resolver.analyzeExpression(left, _typeSystem.makeNullable(contextType));
     left = _resolver.popRewrite()!;
-    var leftType = left.typeOrThrow;
+    var t1 = left.typeOrThrow;
 
-    var rightContextType = contextType;
-    if (rightContextType == null ||
-        rightContextType is DynamicType ||
-        rightContextType is InvalidType ||
-        rightContextType is UnknownInferredType) {
-      rightContextType = leftType;
+    // - Let `T2` be the type of `e2` inferred with context type `J`, where:
+    //   - If `K` is `_`, `J = T1`.
+    DartType j;
+    if (contextType is DynamicType ||
+        contextType is InvalidType ||
+        contextType is UnknownInferredType) {
+      j = t1;
+    } else
+    //   - Otherwise, `J = K`.
+    {
+      j = contextType;
     }
-
-    flow?.ifNullExpression_rightBegin(left, leftType);
-    _resolver.analyzeExpression(right, rightContextType);
+    flow?.ifNullExpression_rightBegin(left, t1);
+    _resolver.analyzeExpression(right, j);
     right = _resolver.popRewrite()!;
     flow?.ifNullExpression_end();
+    var t2 = right.typeOrThrow;
 
-    var rightType = right.typeOrThrow;
-    var promotedLeftType = _typeSystem.promoteToNonNull(leftType);
-    var staticType = _typeSystem.leastUpperBound(promotedLeftType, rightType);
+    // - Let `T` be `UP(NonNull(T1), T2)`.
+    var nonNullT1 = _typeSystem.promoteToNonNull(t1);
+    var t = _typeSystem.leastUpperBound(nonNullT1, t2);
+
+    // - Let `S` be the greatest closure of `K`.
+    var s = _typeSystem.greatestClosureOfSchema(contextType);
+
+    DartType staticType;
+    // If `inferenceUpdate3` is not enabled, then the type of `E` is `T`.
+    if (!_resolver.definingLibrary.featureSet
+        .isEnabled(Feature.inference_update_3)) {
+      staticType = t;
+    } else
+    // - If `T <: S`, then the type of `E` is `T`.
+    if (_typeSystem.isSubtypeOf(t, s)) {
+      staticType = t;
+    } else
+    // - Otherwise, if `NonNull(T1) <: S` and `T2 <: S`, then the type of `E` is
+    //   `S`.
+    if (_typeSystem.isSubtypeOf(nonNullT1, s) &&
+        _typeSystem.isSubtypeOf(t2, s)) {
+      staticType = s;
+    } else
+    // - Otherwise, the type of `E` is `T`.
+    {
+      staticType = t;
+    }
 
     _inferenceHelper.recordStaticType(node, staticType);
 
@@ -245,8 +275,8 @@ class BinaryExpressionResolver {
   }
 
   void _resolveUserDefinable(BinaryExpressionImpl node,
-      {required DartType? contextType}) {
-    _resolver.analyzeExpression(node.leftOperand, null);
+      {required DartType contextType}) {
+    _resolver.analyzeExpression(node.leftOperand, UnknownInferredType.instance);
     var left = _resolver.popRewrite()!;
 
     if (left is SuperExpressionImpl) {
@@ -265,13 +295,15 @@ class BinaryExpressionResolver {
     _resolveUserDefinableElement(node, operator.lexeme);
 
     var invokeType = node.staticInvokeType;
-    DartType? rightContextType;
+    DartType rightContextType;
     if (invokeType != null && invokeType.parameters.isNotEmpty) {
       // If this is a user-defined operator, set the right operand context
       // using the operator method's parameter type.
       var rightParam = invokeType.parameters[0];
       rightContextType = _typeSystem.refineNumericInvocationContext(
           left.staticType, node.staticElement, contextType, rightParam.type);
+    } else {
+      rightContextType = UnknownInferredType.instance;
     }
 
     _resolver.analyzeExpression(node.rightOperand, rightContextType);

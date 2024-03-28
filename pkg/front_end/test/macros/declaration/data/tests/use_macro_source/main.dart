@@ -4,7 +4,7 @@
 
 /*library: 
  compilationSequence=[
-  macro_lib.dart|package:_fe_analyzer_shared/src/macros/api.dart,
+  macro_lib.dart|package:_macros/src/api.dart|package:macros/macros.dart,
   main.dart],
  macroInstanceIds=[
   macro_lib.dart/Macro1/(),

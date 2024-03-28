@@ -51,7 +51,7 @@ void matchIL$bar(FlowGraph graph) {
         ]),
     'B5' <<
         match.block('Join', [
-          match.Return('c_42'),
+          match.DartReturn('c_42'),
         ]),
     'B6' << match.block('CatchBlock'),
   ]);

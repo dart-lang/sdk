@@ -1204,12 +1204,12 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       return false;
     }
 
-    final packageFileUri = await thread.resolveUriToPackageLibPath(uri);
-    if (packageFileUri == null) {
+    final packageFileLikeUri = await thread.resolveUriToPackageLibPath(uri);
+    if (packageFileLikeUri == null) {
       return false;
     }
 
-    return !isInUserProject(packageFileUri);
+    return !isInUserProject(packageFileLikeUri);
   }
 
   /// Checks whether [uri] is inside the users project. This is used to support
@@ -1220,7 +1220,10 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       return false;
     }
 
-    var targetPath = targetUri.toFilePath();
+    // We could already be 'file', or we could be another supported file scheme
+    // like dart-macro+file, but we can only call toFilePath() on a file URI
+    // and we use the equivalent path to decide if this is within the workspace.
+    var targetPath = targetUri.replace(scheme: 'file').toFilePath();
 
     // Always compare paths case-insensitively to avoid any issues where APIs
     // may have returned different casing (e.g. Windows drive letters). It's
@@ -1570,7 +1573,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   }
 
   /// Converts a URI in the form org-dartlang-sdk:///sdk/lib/collection/hash_set.dart
-  /// to a local file URI based on the current SDK.
+  /// to a local file-like URI based on the current SDK.
   Uri? convertOrgDartlangSdkToPath(Uri uri) {
     // org-dartlang-sdk URIs can be in multiple forms:
     //
@@ -1607,6 +1610,8 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// Converts a file URI inside the current SDK root into a URI in the
   /// form org-dartlang-sdk:///sdk/lib/collection/hash_set.dart.
   Uri? convertUriToOrgDartlangSdk(Uri input) {
+    // TODO(dantup): We may need to expand this if we start using
+    //  macro-generated files in the SDK.
     if (!input.isScheme('file')) {
       return null;
     }
@@ -2219,9 +2224,9 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       }
       if (thread == null || !isResolvableUri(uri)) return null;
       try {
-        final fileUri = await thread.resolveUriToPath(uri);
-        return fileUri != null
-            ? (uri: fileUri, isUserCode: isInUserProject(fileUri))
+        final fileLikeUri = await thread.resolveUriToPath(uri);
+        return fileLikeUri != null
+            ? (uri: fileLikeUri, isUserCode: isInUserProject(fileLikeUri))
             : null;
       } catch (e, s) {
         // Swallow errors for the same reason noted above.
@@ -2236,17 +2241,19 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       final frame = frames[i];
       final uri = frame?.uri;
       final pathInfo = paths[i];
-      final fileUri = pathInfo?.uri;
+
+      // A file-like URI ('file://' or 'dart-macro+file://').
+      final fileLikeUri = pathInfo?.uri;
 
       // Default to true so that if we don't know whether this is user-project
       // then we leave the formatting as-is and don't fade anything out.
       final isUserProject = pathInfo?.isUserCode ?? true;
 
-      // For the name, we usually use the package URI, but if we only ended up
-      // with a file URI, try to make it relative to cwd so it's not so long.
-      final name = uri != null && fileUri != null
-          ? (fileUri.isScheme('file')
-              ? _converter.convertToRelativePath(fileUri.toFilePath())
+      // For the name, we usually use the package URI, but if we only had a file
+      // URI to begin with, try to make it relative to cwd so it's not so long.
+      final name = uri != null && fileLikeUri != null
+          ? (uri.isScheme('file')
+              ? _converter.convertToRelativePath(uri.toFilePath())
               : uri.toString())
           : null;
 
@@ -2262,7 +2269,8 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       final lineEnd = i != lines.length - 1 ? '\n' : '';
       final output = '$linePrefix$line$lineSuffix$lineEnd';
 
-      final clientPath = fileUri != null ? toClientPathOrUri(fileUri) : null;
+      final clientPath =
+          fileLikeUri != null ? toClientPathOrUri(fileLikeUri) : null;
       events.add(
         OutputEventBody(
           category: category,
@@ -2468,19 +2476,19 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       return;
     }
 
-    // Doesn't need resolving if already file.
+    // Doesn't need resolving if already file-like.
     if (isSupportedFileScheme(uri)) {
       return;
     }
 
-    final fileUri = await thread.resolveUriToPath(uri);
-    if (fileUri != null) {
+    final fileLikeUri = await thread.resolveUriToPath(uri);
+    if (fileLikeUri != null) {
       // Convert:
       //   uri -> resolvedUri
       //   fileUri -> resolvedFileUri
       final resolvedFieldName =
           'resolved${field.substring(0, 1).toUpperCase()}${field.substring(1)}';
-      data[resolvedFieldName] = fileUri.toString();
+      data[resolvedFieldName] = fileLikeUri.toString();
     }
   }
 
@@ -2705,7 +2713,8 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     }
   }
 
-  /// Whether the current client supports URIs in place of file paths.
+  /// Whether the current client supports URIs in place of file paths, including
+  /// file-like URIs that are not the 'file' scheme (such as 'dart-macro+file').
   bool get clientSupportsUri => _initializeArgs?.supportsDartUris ?? false;
 
   /// Returns whether [uri] is a file-like URI scheme that is supported by the
@@ -2714,8 +2723,10 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// Returning `true` here does not guarantee that the client supports URIs,
   /// the caller should also check [clientSupportsUri].
   bool isSupportedFileScheme(Uri uri) {
-    // TODO(dantup): Support macro URIs.
-    return uri.isScheme('file');
+    return uri.isScheme('file') ||
+        // Handle all file-like schemes that end '+file' like
+        // 'dart-macro+file://'.
+        (clientSupportsUri && uri.scheme.endsWith('+file'));
   }
 
   /// Converts a URI into a form that can be used by the client.

@@ -14,6 +14,7 @@ import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as shelf;
 
 import 'src/devtools/client.dart';
+import 'src/devtools/dtd.dart';
 import 'src/devtools/handler.dart';
 import 'src/devtools/machine_mode_command_handler.dart';
 import 'src/devtools/memory_profile.dart';
@@ -39,6 +40,7 @@ class DevToolsServer {
   static const argDdsPort = 'dds-port';
   static const argDebugMode = 'debug';
   static const argDtdUri = 'dtd-uri';
+  static const argPrintDtd = 'print-dtd';
   static const argLaunchBrowser = 'launch-browser';
   static const argMachine = 'machine';
   static const argHost = 'host';
@@ -98,6 +100,12 @@ class DevToolsServer {
         help: 'Port to serve DevTools on; specify 0 to automatically use any '
             'available port.',
       )
+      ..addOption(
+        argDtdUri,
+        valueHelp: 'uri',
+        help: 'A URI pointing to a Dart Tooling Daemon that DevTools should '
+            'interface with.',
+      )
       ..addFlag(
         argLaunchBrowser,
         help:
@@ -116,12 +124,6 @@ class DevToolsServer {
         help:
             'Start devtools headlessly and write memory profiling samples to the '
             'indicated file.',
-      )
-      ..addOption(
-        argDtdUri,
-        valueHelp: 'uri',
-        help: 'A uri pointing to a dart tooling daemon that devtools should '
-            'interface with.',
       );
 
     argParser.addSeparator('App size options:');
@@ -196,6 +198,13 @@ class DevToolsServer {
         help: 'Causes the server to spawn Chrome in headless mode for use in '
             'automated testing.',
         hide: !verbose,
+      )
+      ..addFlag(
+        argPrintDtd,
+        negatable: false,
+        help: 'Print the address of the Dart Tooling Daemon, if one is hosted '
+            'by the DevTools server.',
+        hide: !verbose,
       );
 
     // Deprecated and hidden args.
@@ -237,6 +246,7 @@ class DevToolsServer {
     bool allowEmbedding = true,
     bool headlessMode = false,
     bool verboseMode = false,
+    bool printDtdUri = false,
     String? hostname,
     String? customDevToolsPath,
     int port = 0,
@@ -273,11 +283,22 @@ class DevToolsServer {
     clientManager = ClientManager(
       requestNotificationPermissions: enableNotifications,
     );
+
+    String? dtdSecret;
+    if (dtdUri == null) {
+      final (:uri, :secret) = await startDtd(
+        machineMode: machineMode,
+        printDtdUri: printDtdUri,
+      );
+      dtdUri = uri;
+      dtdSecret = secret;
+    }
+
     handler ??= await defaultHandler(
       buildDir: customDevToolsPath!,
       clientManager: clientManager,
-      dtdUri: dtdUri,
       analytics: DevToolsUtils.initializeAnalytics(),
+      dtd: (uri: dtdUri, secret: dtdSecret),
     );
 
     HttpServer? server;
@@ -470,6 +491,8 @@ class DevToolsServer {
       dtdUri = args[argDtdUri];
     }
 
+    final printDtdUri = args.wasParsed(argPrintDtd);
+
     if (help) {
       print(
           'Dart DevTools version ${await DevToolsUtils.getVersion(customDevToolsPath ?? "")}');
@@ -537,6 +560,7 @@ class DevToolsServer {
       appSizeBase: appSizeBase,
       appSizeTest: appSizeTest,
       dtdUri: dtdUri,
+      printDtdUri: printDtdUri,
     );
   }
 

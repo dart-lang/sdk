@@ -58,7 +58,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_TypedDataAOT_Inlining) {
         kMoveParallelMoves,
         {kMatchAndMoveLoadIndexed, &load_indexed},
         kMoveGlob,
-        kMatchReturn,
+        kMatchDartReturn,
     }));
   } else {
     RELEASE_ASSERT(cursor.TryMatch({
@@ -73,7 +73,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_TypedDataAOT_Inlining) {
         kMoveParallelMoves,
         {kMatchAndMoveLoadIndexed, &load_indexed},
         kMoveGlob,
-        kMatchReturn,
+        kMatchDartReturn,
     }));
   }
 
@@ -168,7 +168,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_TypedDataAOT_FunctionalGetSet) {
           // Exit the loop.
           kMatchAndMoveBranchFalse,
           kMoveGlob,
-          kMatchReturn,
+          kMatchDartReturn,
       }));
     } else {
       EXPECT(cursor.TryMatch({
@@ -212,7 +212,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_TypedDataAOT_FunctionalGetSet) {
           // Exit the loop.
           kMatchAndMoveBranchFalse,
           kMoveGlob,
-          kMatchReturn,
+          kMatchDartReturn,
       }));
     }
   };
@@ -290,7 +290,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_TypedDataAOT_FunctionalIndexError) {
 
           // Return
           kMoveGlob,
-          kMatchReturn,
+          kMatchDartReturn,
       }));
     } else {
       EXPECT(cursor.TryMatch({
@@ -324,7 +324,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_TypedDataAOT_FunctionalIndexError) {
 
           // Return
           kMoveGlob,
-          kMatchReturn,
+          kMatchDartReturn,
       }));
     }
 

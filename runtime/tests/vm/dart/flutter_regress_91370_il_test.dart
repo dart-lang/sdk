@@ -252,7 +252,7 @@ void main(List<String> args) {
   }
 }
 
-void matchIL$testNarrowingThroughThisCallWithPositionalParam(
+void matchIL$B$testNarrowingThroughThisCallWithPositionalParam(
     FlowGraph beforeLICM, FlowGraph afterLICM) {
   final env = beforeLICM.match([
     match.block('Graph'),
@@ -315,10 +315,10 @@ void matchIL$testNarrowingThroughThisCallWithPositionalParam(
   ], env: env);
 }
 
-void matchIL$testNarrowingThroughThisCallWithNamedParams(
+void matchIL$B$testNarrowingThroughThisCallWithNamedParams(
     FlowGraph beforeLICM, FlowGraph afterLICM) {
   // Graph shape is basically the same.
-  matchIL$testNarrowingThroughThisCallWithPositionalParam(
+  matchIL$B$testNarrowingThroughThisCallWithPositionalParam(
       beforeLICM, afterLICM);
 }
 

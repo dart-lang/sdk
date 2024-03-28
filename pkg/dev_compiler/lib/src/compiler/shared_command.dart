@@ -5,6 +5,8 @@
 import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:front_end/src/api_prototype/macros.dart' as macros
+    show isMacroLibraryUri;
 import 'package:front_end/src/api_unstable/ddc.dart'
     show InitializedCompilerState, parseExperimentalArguments;
 import 'package:path/path.dart' as p;
@@ -433,7 +435,7 @@ Map placeSourceMap(Map sourceMap, String sourceMapPath, String? multiRootScheme,
       return sourcePath;
     }
 
-    if (scheme == 'org-dartlang-augmentation') {
+    if (macros.isMacroLibraryUri(uri)) {
       // TODO: https://github.com/dart-lang/sdk/issues/53913
       return sourcePath;
     }

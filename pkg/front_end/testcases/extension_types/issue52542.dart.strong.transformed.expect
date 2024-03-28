@@ -14,14 +14,14 @@ extension type Option<V extends core::Object? = dynamic>(core::Object? _value) {
   constructor • = self::Option|constructor#;
   constructor tearoff • = self::Option|constructor#_#new#tearOff;
 }
-static const field self::Option<Never> /* = core::Object? */ Option|none = #C1;
-static extension-type-member method Option|constructor#<V extends core::Object? = dynamic>(core::Object? _value) → self::Option<self::Option|constructor#::V%> /* = core::Object? */ {
-  lowered final self::Option<self::Option|constructor#::V%> /* = core::Object? */ #this = _value;
+static const field self::Option<Never>% /* erasure=core::Object?, declared=! */ Option|none = #C1;
+static extension-type-member method Option|constructor#<V extends core::Object? = dynamic>(core::Object? _value) → self::Option<self::Option|constructor#::V%>% /* erasure=core::Object?, declared=! */ {
+  lowered final self::Option<self::Option|constructor#::V%>% /* erasure=core::Object?, declared=! */ #this = _value;
   return #this;
 }
-static extension-type-member method Option|constructor#_#new#tearOff<V extends core::Object? = dynamic>(core::Object? _value) → self::Option<self::Option|constructor#_#new#tearOff::V%> /* = core::Object? */
+static extension-type-member method Option|constructor#_#new#tearOff<V extends core::Object? = dynamic>(core::Object? _value) → self::Option<self::Option|constructor#_#new#tearOff::V%>% /* erasure=core::Object?, declared=! */
   return self::Option|constructor#<self::Option|constructor#_#new#tearOff::V%>(_value);
-static extension-type-member method Option|get#value<V extends core::Object? = dynamic>(lowered final self::Option<self::Option|get#value::V%> /* = core::Object? */ #this) → self::Option|get#value::V%
+static extension-type-member method Option|get#value<V extends core::Object? = dynamic>(lowered final self::Option<self::Option|get#value::V%>% /* erasure=core::Object?, declared=! */ #this) → self::Option|get#value::V%
   return (#this as{Unchecked} core::Object?) is self::None ?{self::Option|get#value::V%} throw new core::StateError::•("No Value") : (#this as{Unchecked} core::Object?) as self::Option|get#value::V%;
 
 constants  {

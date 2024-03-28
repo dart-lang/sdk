@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:dds_service_extensions/dds_service_extensions.dart';
 import 'package:vm_service/vm_service.dart';
 
 import 'client_resume_approvals_common.dart';
@@ -45,7 +46,7 @@ final test = <IsolateTest>[
   (VmService service, IsolateRef isolateRef) async {
     final isolateId = isolateRef.id!;
     // Check that client2 can't resume the isolate on its own.
-    await client2.resume(isolateId);
+    await client2.readyToResume(isolateId);
     await hasStoppedPostRequest(service, isolateRef);
     await resumeIsolate(client1, isolateRef);
   },

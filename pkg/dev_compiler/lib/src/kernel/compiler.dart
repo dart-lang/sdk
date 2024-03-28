@@ -4075,23 +4075,23 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     SourceLocation? location;
     late String conditionSource;
-    if (node.location != null) {
-      var encodedSource =
-          node.enclosingComponent!.uriToSource[node.location!.file]!.source;
+    var assertLocation = node.location;
+    if (assertLocation != null) {
+      var fileUri = assertLocation.file;
+      var encodedSource = node.enclosingComponent!.uriToSource[fileUri]!.source;
       var source = utf8.decode(encodedSource, allowMalformed: true);
-
       conditionSource =
           source.substring(node.conditionStartOffset, node.conditionEndOffset);
+      // Assertions that appear in debugger expressions have a synthetic Uri
+      // that is different than the current library where the expression will
+      // be evaluated.
+      var savedUri = _currentUri;
+      _currentUri = fileUri;
       location = _toSourceLocation(node.conditionStartOffset)!;
+      _currentUri = savedUri;
     } else {
-      // Location is null in expression compilation when modules
-      // are loaded from kernel using expression compiler worker.
-      // Show the error only in that case, with the condition AST
-      // instead of the source.
-      //
-      // TODO(annagrin): Can we add some information to the kernel,
-      // or add better printing for the condition?
-      // Issue: https://github.com/dart-lang/sdk/issues/43986
+      // If the location is ever null, only show the error with the condition
+      // AST instead of the source.
       conditionSource = node.condition.toString();
     }
     return js.statement(' if (!#) #;', [
@@ -4878,14 +4878,17 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   @override
-  js_ast.Expression visitRecordIndexGet(RecordIndexGet node) {
-    return _emitPropertyGet(node.receiver, null, '\$${node.index + 1}');
-  }
+  js_ast.Expression visitRecordIndexGet(RecordIndexGet node) =>
+      _emitRecordElementGet(node.receiver, '\$${node.index + 1}');
 
   @override
-  js_ast.Expression visitRecordNameGet(RecordNameGet node) {
-    return _emitPropertyGet(node.receiver, null, node.name);
-  }
+  js_ast.Expression visitRecordNameGet(RecordNameGet node) =>
+      _emitRecordElementGet(node.receiver, node.name);
+
+  js_ast.Expression _emitRecordElementGet(
+          Expression receiver, String elementName) =>
+      js_ast.PropertyAccess(
+          _visitExpression(receiver), _emitMemberName(elementName));
 
   @override
   js_ast.Expression visitInstanceTearOff(InstanceTearOff node) {
@@ -4985,13 +4988,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         return runtimeCall('#(#)', [memberName, jsReceiver]);
       }
       // Otherwise generate this as a normal typed property get.
-    } else if (member == null &&
-        // Null member usually means this is a dynamic get but Records also have
-        // no member node for the element getters so avoid emitting a dynamic
-        // get when the types are known statically.
-        // Accesses of extension type getters don't lead to this code path
-        // at all so only the test for RecordType is needed.
-        receiver.getStaticType(_staticTypeContext) is! RecordType) {
+    } else if (member == null) {
       return runtimeCall('dload$_replSuffix(#, #)', [jsReceiver, jsName]);
     }
 

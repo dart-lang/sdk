@@ -489,6 +489,9 @@ class CompletionHandler
           capabilities,
           unit.lineInfo,
           item,
+          uriConverter: uriConverter,
+          pathContext: pathContext,
+          completionFilePath: unit.path,
           hasDefaultTextMode: defaults?.insertTextMode != null,
           hasDefaultEditRange: defaults?.editRange != null &&
               insertionRange == defaultInsertionRange &&
@@ -589,12 +592,12 @@ class CompletionHandler
   Future<ErrorOr<_CompletionResults>> _getServerYamlItems(
     YamlCompletionGenerator generator,
     LspClientCapabilities capabilities,
-    String path,
+    String filePath,
     LineInfo lineInfo,
     int offset,
     CancellationToken token,
   ) async {
-    final suggestions = generator.getSuggestions(path, offset);
+    final suggestions = generator.getSuggestions(filePath, offset);
     final insertLength = _computeInsertLength(
       offset,
       suggestions.replacementOffset,
@@ -625,6 +628,9 @@ class CompletionHandler
         capabilities,
         lineInfo,
         item,
+        uriConverter: uriConverter,
+        pathContext: pathContext,
+        completionFilePath: filePath,
         replacementRange: replacementRange,
         insertionRange: insertionRange,
         commitCharactersEnabled: false,
@@ -669,7 +675,7 @@ class CompletionHandler
 
   Iterable<CompletionItem> _pluginResultsToItems(
     LspClientCapabilities capabilities,
-    String path,
+    String filePath,
     LineInfo lineInfo,
     int offset,
     List<plugin.CompletionGetSuggestionsResult> pluginResults,
@@ -692,7 +698,7 @@ class CompletionHandler
         DartCompletionResolutionInfo? resolutionInfo;
         if (isNotImported && importUri != null) {
           resolutionInfo = DartCompletionResolutionInfo(
-            file: path,
+            file: filePath,
             importUris: [importUri],
           );
         }
@@ -701,6 +707,9 @@ class CompletionHandler
           capabilities,
           lineInfo,
           item,
+          uriConverter: uriConverter,
+          pathContext: pathContext,
+          completionFilePath: filePath,
           replacementRange: replacementRange,
           insertionRange: insertionRange,
           includeDocumentation:

@@ -18,6 +18,9 @@ final dartVMServiceRegExp = RegExp(
 final ddsStartedRegExp = RegExp(
   r'Started the Dart Development Service \(DDS\) at (http://127.0.0.1:.*)',
 );
+final dtdStartedRegExp = RegExp(
+  r'Serving the Dart Tooling Daemon at (ws://127.0.0.1:.*)',
+);
 final servingDevToolsRegExp = RegExp(
   r'Serving DevTools at (http://127.0.0.1:.*)',
 );
@@ -70,27 +73,60 @@ void devtools() {
       // start the devtools server
       process = await p.start(['devtools', '--no-launch-browser', '--machine']);
       process!.stderr.transform(utf8.decoder).listen(print);
-      final Stream<String> inStream = process!.stdout
+
+      String? devToolsHost;
+      int? devToolsPort;
+      final devToolsServedCompleter = Completer<void>();
+      final dtdServedCompleter = Completer<void>();
+
+      late StreamSubscription sub;
+      sub = process!.stdout
           .transform<String>(utf8.decoder)
-          .transform<String>(const LineSplitter());
+          .transform<String>(const LineSplitter())
+          .listen((line) async {
+        final json = jsonDecode(line);
+        final eventName = json['event'] as String?;
+        final params = (json['params'] as Map?)?.cast<String, Object?>();
+        switch (eventName) {
+          case 'server.dtdStarted':
+            // {"event":"server.dtdStarted","params":{
+            //   "uri":"ws://127.0.0.1:50882/nQf49D0YcbONeKVq"
+            // }}
+            expect(params!['uri'], isA<String>());
+            dtdServedCompleter.complete();
+          case 'server.started':
+            // {"event":"server.started","method":"server.started","params":{
+            //   "host":"127.0.0.1","port":9100,"pid":93508,"protocolVersion":"1.1.0"
+            // }}
+            expect(params!['host'], isA<String>());
+            expect(params['port'], isA<int>());
+            devToolsHost = params['host'] as String;
+            devToolsPort = params['port'] as int;
 
-      final line = await inStream.first;
-      final json = jsonDecode(line);
+            // We can cancel the subscription because the 'server.started' event
+            // is expected after the 'server.dtdStarted' event.
+            await sub.cancel();
+            devToolsServedCompleter.complete();
+          default:
+        }
+      });
 
-      // {"event":"server.started","method":"server.started","params":{
-      //   "host":"127.0.0.1","port":9100,"pid":93508,"protocolVersion":"1.1.0"
-      // }}
-      expect(json['event'], 'server.started');
-      expect(json['params'], isNotNull);
-
-      final host = json['params']['host'];
-      final port = json['params']['port'];
-      expect(host, isA<String>());
-      expect(port, isA<int>());
+      await Future.wait([
+        dtdServedCompleter.future,
+        devToolsServedCompleter.future,
+      ]).timeout(
+        const Duration(seconds: 5),
+        onTimeout: () => throw Exception(
+          'Expected DTD and DevTools to be served, but one or both were not.',
+        ),
+      );
 
       // Connect to the port and confirm we can load a devtools resource.
       HttpClient client = HttpClient();
-      final httpRequest = await client.get(host, port, 'index.html');
+      expect(devToolsHost, isNotNull);
+      expect(devToolsPort, isNotNull);
+      final httpRequest =
+          await client.get(devToolsHost!, devToolsPort!, 'index.html');
       final httpResponse = await httpRequest.close();
 
       final contents =
@@ -105,10 +141,54 @@ void devtools() {
     });
   });
 
+  Future<void> startDevTools({
+    String? vmServiceUri,
+    bool shouldStartDds = false,
+    bool shouldPrintDtd = false,
+  }) async {
+    final process = await p.start([
+      'devtools',
+      '--no-launch-browser',
+      if (shouldPrintDtd) '--print-dtd',
+      if (vmServiceUri != null) vmServiceUri,
+    ]);
+    process.stderr.transform(utf8.decoder).listen(print);
+
+    bool startedDds = false;
+    bool startedDtd = false;
+    final devToolsServedCompleter = Completer<void>();
+    late StreamSubscription sub;
+    sub = process.stdout
+        .transform<String>(utf8.decoder)
+        .transform<String>(const LineSplitter())
+        .listen((event) async {
+      print(event);
+      if (event.contains(ddsStartedRegExp)) {
+        startedDds = true;
+      } else if (event.contains(dtdStartedRegExp)) {
+        startedDtd = true;
+      } else if (event.contains(servingDevToolsRegExp)) {
+        await sub.cancel();
+        devToolsServedCompleter.complete();
+      }
+    });
+
+    await devToolsServedCompleter.future;
+    expect(startedDds, shouldStartDds);
+    expect(startedDtd, shouldPrintDtd);
+
+    // kill the process
+    process.kill();
+  }
+
+  test('prints DTD URI', () async {
+    p = project();
+    await startDevTools(shouldPrintDtd: true);
+  });
+
   group('spawns DDS integration', () {
     late TestProject targetProject;
     Process? targetProjectInstance;
-    Process? process;
 
     setUp(() {
       // NOTE: we don't use `project()` here since it registers a tear-down
@@ -130,9 +210,7 @@ Future<void> main() async {
 
     tearDown(() {
       targetProjectInstance?.kill();
-      process?.kill();
       targetProjectInstance = null;
-      process = null;
       targetProject.dispose();
       p.dispose();
     });
@@ -164,40 +242,6 @@ Future<void> main() async {
       });
 
       return await serviceUriCompleter.future;
-    }
-
-    Future<void> startDevTools({
-      required String vmServiceUri,
-      required bool shouldStartDds,
-    }) async {
-      process = await p.start([
-        'devtools',
-        '--no-launch-browser',
-        vmServiceUri,
-      ]);
-      process!.stderr.transform(utf8.decoder).listen(print);
-
-      bool startedDds = false;
-      final devToolsServedCompleter = Completer<void>();
-      late StreamSubscription sub;
-      sub = process!.stdout
-          .transform<String>(utf8.decoder)
-          .transform<String>(const LineSplitter())
-          .listen((event) async {
-        if (event.contains(ddsStartedRegExp)) {
-          startedDds = true;
-        } else if (event.contains(servingDevToolsRegExp)) {
-          await sub.cancel();
-          devToolsServedCompleter.complete();
-        }
-      });
-
-      await devToolsServedCompleter.future;
-      expect(startedDds, shouldStartDds);
-
-      // kill the process
-      process!.kill();
-      process = null;
     }
 
     for (final disableAuthCodes in const [true, false]) {

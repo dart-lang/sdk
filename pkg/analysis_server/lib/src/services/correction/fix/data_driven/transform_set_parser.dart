@@ -1126,7 +1126,6 @@ class TransformSetParser {
       final selector = _singleKey(
         map: node,
         errorNode: context.parentNode,
-        required: true,
         translators: {
           const {_changesKey}: (key, value) {
             var changes = _translateList(

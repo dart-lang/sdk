@@ -342,6 +342,7 @@ class ParseStringResultImpl implements ParseStringResult {
 
 class ResolvedForCompletionResultImpl {
   final AnalysisSession analysisSession;
+  final FileState fileState;
   final String path;
   final Uri uri;
   final bool exists;
@@ -371,6 +372,7 @@ class ResolvedForCompletionResultImpl {
 
   ResolvedForCompletionResultImpl({
     required this.analysisSession,
+    required this.fileState,
     required this.path,
     required this.uri,
     required this.exists,

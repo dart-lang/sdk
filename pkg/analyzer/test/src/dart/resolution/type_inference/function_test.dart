@@ -37,13 +37,13 @@ MethodInvocation
       IntegerLiteral
         literal: 1
         parameter: ParameterMember
-          base: root::@parameter::x
+          base: self::@function::foo::@parameter::x
           substitution: {T: int}
         staticType: int
       IntegerLiteral
         literal: 2
         parameter: ParameterMember
-          base: root::@parameter::y
+          base: self::@function::foo::@parameter::y
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -80,7 +80,7 @@ MethodInvocation
           label: SimpleIdentifier
             token: x
             staticElement: ParameterMember
-              base: root::@parameter::x
+              base: self::@function::foo::@parameter::x
               substitution: {T: int}
             staticType: null
           colon: :
@@ -88,7 +88,7 @@ MethodInvocation
           literal: 1
           staticType: int
         parameter: ParameterMember
-          base: root::@parameter::x
+          base: self::@function::foo::@parameter::x
           substitution: {T: int}
     rightParenthesis: )
   staticInvokeType: void Function({required int x, required int y})
@@ -123,7 +123,7 @@ MethodInvocation
       IntegerLiteral
         literal: 1
         parameter: ParameterMember
-          base: root::@parameter::x
+          base: self::@function::foo::@parameter::x
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -158,13 +158,13 @@ MethodInvocation
       IntegerLiteral
         literal: 1
         parameter: ParameterMember
-          base: root::@parameter::x
+          base: self::@function::foo::@parameter::x
           substitution: {T: int}
         staticType: int
       IntegerLiteral
         literal: 2
         parameter: ParameterMember
-          base: root::@parameter::y
+          base: self::@function::foo::@parameter::y
           substitution: {T: int}
         staticType: int
       IntegerLiteral
@@ -203,13 +203,13 @@ MethodInvocation
       IntegerLiteral
         literal: 1
         parameter: ParameterMember
-          base: root::@parameter::x
+          base: self::@function::foo::@parameter::x
           substitution: {T: int}
         staticType: int
       IntegerLiteral
         literal: 2
         parameter: ParameterMember
-          base: root::@parameter::y
+          base: self::@function::foo::@parameter::y
           substitution: {T: int}
         staticType: int
       NamedExpression

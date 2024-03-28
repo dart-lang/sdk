@@ -392,6 +392,26 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitCaseClause(CaseClause node) {
+    var pattern = node.guardedPattern.pattern;
+    switch (pattern) {
+      case ObjectPattern():
+        // case Na^():
+        if (pattern.type.end == offset) {
+          optype.completionLocation = 'ObjectPattern_type';
+          optype.includeTypeNameSuggestions = true;
+          return;
+        }
+      case RecordPattern():
+        // case ^():
+        if (pattern.leftParenthesis.offset == offset) {
+          optype.completionLocation = 'ObjectPattern_type';
+          optype.includeTypeNameSuggestions = true;
+          return;
+        }
+      default:
+        break;
+    }
+
     optype.completionLocation = 'CaseClause_pattern';
     optype.includeTypeNameSuggestions = true;
     optype.includeReturnValueSuggestions = true;
@@ -1049,6 +1069,28 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitLogicalAndPattern(LogicalAndPattern node) {
+    switch (node.rightOperand) {
+      case ObjectPattern pattern:
+        // case Na^():
+        if (pattern.type.end == offset) {
+          optype.completionLocation = 'ObjectPattern_type';
+          optype.includeTypeNameSuggestions = true;
+          return;
+        }
+      case RecordPattern pattern:
+        // case ^():
+        if (pattern.leftParenthesis.offset == offset) {
+          optype.includeTypeNameSuggestions = true;
+          optype.completionLocation = 'ObjectPattern_type';
+          return;
+        }
+      default:
+        break;
+    }
+  }
+
+  @override
   void visitMapLiteralEntry(MapLiteralEntry node) {
     optype.completionLocation = 'MapLiteralEntry_value';
     optype.includeReturnValueSuggestions = true;
@@ -1611,6 +1653,11 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
         }
       } else if (pattern is ConstantPattern) {
         optype.includeTypeNameSuggestions = true;
+      } else if (pattern is ObjectPattern) {
+        if (pattern.type.end == offset) {
+          optype.completionLocation = 'ObjectPattern_type';
+          optype.includeTypeNameSuggestions = true;
+        }
       }
     } else if (node.statements.contains(entity)) {
       optype.completionLocation = 'SwitchMember_statement';

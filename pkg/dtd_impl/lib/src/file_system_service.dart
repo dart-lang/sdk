@@ -5,6 +5,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:collection/collection.dart';
 import 'package:dtd_impl/src/constants.dart';
 import 'package:json_rpc_2/json_rpc_2.dart';
 import 'package:dtd/dtd.dart';
@@ -18,7 +19,10 @@ class FileSystemService {
   final bool unrestrictedMode;
   final List<Uri> _ideWorkspaceRoots = [];
 
+  // Note: these constants should match the values from
+  // package:dtd/src/file_system/constants.dart.
   static const String _serviceName = 'FileSystem';
+  static const int _defaultGetProjectRootsDepth = 4;
 
   void register(DTDClient client) {
     client
@@ -46,6 +50,11 @@ class FileSystemService {
         _serviceName,
         'getIDEWorkspaceRoots',
         _getIDEWorkspaceRoots,
+      )
+      ..registerServiceMethod(
+        _serviceName,
+        'getProjectRoots',
+        _getProjectRoots,
       );
   }
 
@@ -53,11 +62,10 @@ class FileSystemService {
     // If in unrestricted mode, no need to do these checks.
     if (unrestrictedMode) return;
 
-    for (final root in _ideWorkspaceRoots) {
-      if (uri.path.startsWith(root.path)) {
-        return;
-      }
+    if (_ideWorkspaceRoots.any((root) => uri.path.startsWith(root.path))) {
+      return;
     }
+
     throw RpcErrorCodes.buildRpcException(
       RpcErrorCodes.kPermissionDenied,
     );
@@ -91,6 +99,50 @@ class FileSystemService {
 
   Map<String, Object?> _getIDEWorkspaceRoots(Parameters _) {
     return IDEWorkspaceRoots(ideWorkspaceRoots: _ideWorkspaceRoots).toJson();
+  }
+
+  Future<Map<String, Object?>> _getProjectRoots(Parameters parameters) async {
+    final searchDepth =
+        parameters['depth'].asIntOr(_defaultGetProjectRootsDepth);
+
+    final projectRoots = <Uri>[];
+
+    // Recursive helper method to find all project roots within [directory], up
+    // to a maximum depth of [maxSearchDepth].
+    Future<void> findProjectRoots(
+      Directory dir, {
+      required int currentDepth,
+    }) async {
+      if (await dir.exists()) {
+        // Setting 'followLinks' to false means that any symbolic links returned
+        // in this list will have type [Link], and therefore will fail the type
+        // checks below for `whereType<File>` and `whereType<Directory>`. This
+        // ensures that we are not returning project roots that are outside of
+        // [_ideWorkspaceRoots].
+        final directoryContents = await (dir.list(followLinks: false)).toList();
+        final pubspec = directoryContents
+            .whereType<File>()
+            .firstWhereOrNull((entity) => entity.path.endsWith('pubspec.yaml'));
+        if (pubspec != null) {
+          projectRoots.add(dir.uri);
+        }
+
+        final nextLevel = currentDepth + 1;
+        if (nextLevel < searchDepth) {
+          await Future.wait([
+            for (final dir in directoryContents.whereType<Directory>())
+              findProjectRoots(dir, currentDepth: nextLevel),
+          ]);
+        }
+      }
+    }
+
+    await Future.wait([
+      for (final workspaceRoot in _ideWorkspaceRoots)
+        findProjectRoots(Directory.fromUri(workspaceRoot), currentDepth: 0),
+    ]);
+
+    return UriList(uris: projectRoots).toJson();
   }
 
   Future<Map<String, Object?>> _readFileAsString(Parameters parameters) async {

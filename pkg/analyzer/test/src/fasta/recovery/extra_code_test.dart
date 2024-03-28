@@ -322,7 +322,9 @@ class A<in X> {}
 ''',
         featureSet: FeatureSet.fromEnableFlags2(
           sdkLanguageVersion: ExperimentStatus.currentVersion,
-          flags: [EnableString.variance],
+          flags: [
+            Feature.variance.enableString,
+          ],
         ));
   }
 }

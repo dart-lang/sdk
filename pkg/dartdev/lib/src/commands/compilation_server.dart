@@ -61,7 +61,7 @@ class CompilationServerStartCommand extends DartdevCommand {
     final args = argResults!;
     final hasServerInfoOption = args.wasParsed(serverInfoOption);
     final residentServerInfoFile = hasServerInfoOption
-        ? File(maybeUriToFilename(args[serverInfoOption]))
+        ? File(maybeUriToFilename(args.option(serverInfoOption)!))
         : defaultResidentServerInfoFile;
 
     try {
@@ -108,7 +108,7 @@ Note that this command name and usage could change as we evolve the resident fro
   FutureOr<int> run() async {
     final args = argResults!;
     final serverInfoFile = args.wasParsed(serverInfoOption)
-        ? File(maybeUriToFilename(args[serverInfoOption]))
+        ? File(maybeUriToFilename(args.option(serverInfoOption)!))
         : defaultResidentServerInfoFile;
 
     if (serverInfoFile == null || !serverInfoFile.existsSync()) {

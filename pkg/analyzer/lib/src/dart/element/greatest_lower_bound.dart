@@ -177,28 +177,19 @@ class GreatestLowerBoundHelper {
       return NeverTypeImpl.instance;
     }
 
-    // DOWN(T1*, T2*) = S* where S is DOWN(T1, T2)
-    // DOWN(T1*, T2?) = S* where S is DOWN(T1, T2)
-    // DOWN(T1?, T2*) = S* where S is DOWN(T1, T2)
-    // DOWN(T1*, T2) = S where S is DOWN(T1, T2)
-    // DOWN(T1, T2*) = S where S is DOWN(T1, T2)
     // DOWN(T1?, T2?) = S? where S is DOWN(T1, T2)
     // DOWN(T1?, T2) = S where S is DOWN(T1, T2)
     // DOWN(T1, T2?) = S where S is DOWN(T1, T2)
     if (T1_nullability != NullabilitySuffix.none ||
         T2_nullability != NullabilitySuffix.none) {
-      var resultNullability = NullabilitySuffix.question;
-      if (T1_nullability == NullabilitySuffix.none ||
-          T2_nullability == NullabilitySuffix.none) {
-        resultNullability = NullabilitySuffix.none;
-      } else if (T1_nullability == NullabilitySuffix.star ||
-          T2_nullability == NullabilitySuffix.star) {
-        resultNullability = NullabilitySuffix.star;
-      }
       var T1_none = T1_impl.withNullability(NullabilitySuffix.none);
       var T2_none = T2_impl.withNullability(NullabilitySuffix.none);
       var S = getGreatestLowerBound(T1_none, T2_none);
-      return (S as TypeImpl).withNullability(resultNullability);
+      if (T1_nullability == NullabilitySuffix.question &&
+          T2_nullability == NullabilitySuffix.question) {
+        return (S as TypeImpl).withNullability(NullabilitySuffix.question);
+      }
+      return S;
     }
 
     assert(T1_nullability == NullabilitySuffix.none);

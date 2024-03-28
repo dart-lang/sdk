@@ -2,15 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
-import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/error/error.dart';
-import 'package:analyzer/instrumentation/service.dart';
-import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
-import 'package:analyzer/src/dart/analysis/file_state_filter.dart';
-import 'package:analyzer/src/services/top_level_declarations.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 /// An enumeration of quick fix kinds for the errors found in an analysis
@@ -36,59 +27,6 @@ class AnalysisOptionsFixKind {
     50,
     'Replace with the strict-raw-types analysis mode',
   );
-}
-
-/// The implementation of [DartFixContext].
-class DartFixContextImpl implements DartFixContext {
-  @override
-  final InstrumentationService instrumentationService;
-
-  @override
-  final ChangeWorkspace workspace;
-
-  @override
-  final ResolvedUnitResult resolveResult;
-
-  @override
-  final AnalysisError error;
-
-  @override
-  final bool autoTriggered;
-
-  DartFixContextImpl(this.instrumentationService, this.workspace,
-      this.resolveResult, this.error,
-      {this.autoTriggered = false});
-
-  @override
-  Future<Map<LibraryElement, Element>> getTopLevelDeclarations(
-      String name) async {
-    return TopLevelDeclarations(resolveResult).withName(name);
-  }
-
-  @override
-  Stream<LibraryElement> librariesWithExtensions(String memberName) async* {
-    var analysisContext = resolveResult.session.analysisContext;
-    var analysisDriver = (analysisContext as DriverBasedAnalysisContext).driver;
-    await analysisDriver.discoverAvailableFiles();
-
-    var fsState = analysisDriver.fsState;
-    var filter = FileStateFilter(
-      fsState.getFileForPath(resolveResult.path),
-    );
-
-    for (var file in fsState.knownFiles.toList()) {
-      if (!filter.shouldInclude(file)) {
-        continue;
-      }
-
-      var elementResult = await analysisDriver.getLibraryByUri(file.uriStr);
-      if (elementResult is! LibraryElementResult) {
-        continue;
-      }
-
-      yield elementResult.element;
-    }
-  }
 }
 
 /// An enumeration of quick fix kinds found in a Dart file.
@@ -1197,6 +1135,11 @@ class DartFixKind {
     DartFixKindPriority.IN_FILE,
     'Remove leading underscores in file',
   );
+  static const REMOVE_LIBRARY_NAME = FixKind(
+    'dart.fix.remove.library.name',
+    DartFixKindPriority.DEFAULT,
+    'Remove the library name',
+  );
   static const REMOVE_METHOD_DECLARATION = FixKind(
     'dart.fix.remove.methodDeclaration',
     DartFixKindPriority.DEFAULT,
@@ -1911,6 +1854,8 @@ class DartFixKind {
     DartFixKindPriority.IN_FILE,
     "Use x.isNotEmpty instead of '!x.isEmpty' everywhere in file",
   );
+  static const USE_NAMED_CONSTANTS = FixKind('dart.fix.use.namedConstants',
+      DartFixKindPriority.DEFAULT, 'Replace with a predefined named constant');
   static const USE_NOT_EQ_NULL = FixKind(
     'dart.fix.use.notEqNull',
     DartFixKindPriority.DEFAULT,

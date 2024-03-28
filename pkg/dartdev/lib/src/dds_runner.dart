@@ -4,7 +4,6 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:developer';
 import 'dart:io';
 
 import 'package:path/path.dart';
@@ -13,32 +12,6 @@ import 'sdk.dart';
 
 class DDSRunner {
   Uri? ddsUri;
-
-  Future<bool> startForCurrentProcess({
-    required String ddsHost,
-    required String ddsPort,
-    required bool disableServiceAuthCodes,
-    required bool enableDevTools,
-    required bool debugDds,
-    required bool enableServicePortFallback,
-  }) async {
-    ServiceProtocolInfo serviceInfo = await Service.getInfo();
-    // Wait for VM service to publish its connection info.
-    while (serviceInfo.serverUri == null) {
-      await Future.delayed(Duration(milliseconds: 10));
-      serviceInfo = await Service.getInfo();
-    }
-
-    return await start(
-      vmServiceUri: serviceInfo.serverUri!,
-      ddsHost: ddsHost,
-      ddsPort: ddsPort,
-      disableServiceAuthCodes: disableServiceAuthCodes,
-      enableDevTools: enableDevTools,
-      debugDds: debugDds,
-      enableServicePortFallback: enableServicePortFallback,
-    );
-  }
 
   Future<bool> start({
     required Uri vmServiceUri,
@@ -51,27 +24,11 @@ class DDSRunner {
   }) async {
     final sdkDir = dirname(sdk.dart);
     final fullSdk = sdkDir.endsWith('bin');
-    final devToolsBinaries =
-        fullSdk ? sdk.devToolsBinaries : absolute(sdkDir, 'devtools');
-    String snapshotName = fullSdk
-        ? sdk.ddsAotSnapshot
-        : absolute(sdkDir, 'dds_aot.dart.snapshot');
-    String execName = sdk.dartAotRuntime;
-    // Check to see if the AOT snapshot and dartaotruntime are available.
-    // If not, fall back to running from the AppJIT snapshot.
-    //
-    // This can happen if:
-    //  - The SDK is built for IA32 which doesn't support AOT compilation
-    //  - We only have artifacts available from the 'runtime' build
-    //    configuration, which the VM SDK build bots frequently run from
-    if (!Sdk.checkArtifactExists(snapshotName, logError: false) ||
-        !Sdk.checkArtifactExists(sdk.dartAotRuntime, logError: false)) {
-      snapshotName =
-          fullSdk ? sdk.ddsSnapshot : absolute(sdkDir, 'dds.dart.snapshot');
-      if (!Sdk.checkArtifactExists(snapshotName)) {
-        return false;
-      }
-      execName = sdk.dart;
+    final execName = sdk.dart;
+    final snapshotName =
+        fullSdk ? sdk.ddsSnapshot : absolute(sdkDir, 'dds.dart.snapshot');
+    if (!Sdk.checkArtifactExists(snapshotName)) {
+      return false;
     }
 
     final process = await Process.start(
@@ -79,14 +36,13 @@ class DDSRunner {
       [
         if (debugDds) '--enable-vm-service=0',
         snapshotName,
-        vmServiceUri.toString(),
-        ddsHost,
-        ddsPort,
-        disableServiceAuthCodes.toString(),
-        enableDevTools.toString(),
-        devToolsBinaries,
-        debugDds.toString(),
-        enableServicePortFallback.toString(),
+        '--vm-service-uri=$vmServiceUri',
+        '--bind-address=$ddsHost',
+        '--bind-port=$ddsPort',
+        if (disableServiceAuthCodes) '--disable-service-auth-codes',
+        if (enableDevTools) '--serve-devtools',
+        if (debugDds) '--enable-logging',
+        if (enableServicePortFallback) '--enable-service-port-fallback',
       ],
       mode: ProcessStartMode.detachedWithStdio,
     );

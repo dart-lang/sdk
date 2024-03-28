@@ -21,8 +21,6 @@ function stop {
   exit 2
 }
 
-export DART_CONFIGURATION=${DART_CONFIGURATION:-ReleaseX64}
-
 EXTRA_VM_ARGS=()
 
 while [[ "$1" == -* ]]; do

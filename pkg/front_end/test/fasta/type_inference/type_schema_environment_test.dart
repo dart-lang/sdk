@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/type_environment.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -442,7 +443,7 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
     parseTestLibrary("""
       class A;
       class B extends A;
-      
+
       class C<T extends Object*>;
       class D<T extends Object*> extends C<T*>;
     """);
@@ -555,6 +556,24 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
               parseType(type1), parseType(type2),
               isNonNullableByDefault: testLibrary.isNonNullableByDefault),
           parseType(upperBound));
+    });
+  }
+
+  @override
+  void checkTypeShapeCheckSufficiency(
+      {required String expressionStaticType,
+      required String checkTargetType,
+      required String typeParameters,
+      required TypeShapeCheckSufficiency sufficiency}) {
+    typeParserEnvironment.withStructuralParameters(typeParameters,
+        (List<StructuralParameter> structuralParameters) {
+      expect(
+          typeSchemaEnvironment.computeTypeShapeCheckSufficiency(
+                  expressionStaticType: parseType(expressionStaticType),
+                  checkTargetType: parseType(checkTargetType),
+                  subtypeCheckMode: SubtypeCheckMode.ignoringNullabilities) ==
+              sufficiency,
+          isTrue);
     });
   }
 }

@@ -48,7 +48,7 @@ class SurroundWith extends MultiCorrectionProducer {
     var statementsRange = utils.getLinesRangeStatements(selectedStatements);
     // prepare environment
     var indentOld = utils.getNodePrefix(firstStatement);
-    var indentNew = '$indentOld${utils.getIndent(1)}';
+    var indentNew = '$indentOld${utils.oneIndent}';
     var indentedCode = utils.replaceSourceRangeIndent(
         statementsRange, indentOld, indentNew,
         includeLeading: true, ensureTrailingNewline: true);

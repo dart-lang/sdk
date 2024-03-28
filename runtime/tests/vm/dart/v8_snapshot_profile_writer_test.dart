@@ -67,8 +67,6 @@ Future<void> testJIT(String dillPath, String snapshotKind) async {
   await withTempDir('v8-snapshot-profile-$description', (String tempDir) async {
     // Generate the snapshot profile.
     final profilePath = path.join(tempDir, 'profile.heapsnapshot');
-    final vmTextPath = path.join(tempDir, 'vm_instructions.bin');
-    final isolateTextPath = path.join(tempDir, 'isolate_instructions.bin');
     final vmDataPath = path.join(tempDir, 'vm_data.bin');
     final isolateDataPath = path.join(tempDir, 'isolate_data.bin');
 

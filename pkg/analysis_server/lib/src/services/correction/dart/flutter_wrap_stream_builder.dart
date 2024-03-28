@@ -42,8 +42,8 @@ class FlutterWrapStreamBuilder extends ResolvedCorrectionProducer {
         builder.writeln('>(');
 
         var indentOld = utils.getLinePrefix(widgetExpr.offset);
-        var indentNew1 = indentOld + utils.getIndent(1);
-        var indentNew2 = indentOld + utils.getIndent(2);
+        var indentNew1 = indentOld + utils.oneIndent;
+        var indentNew2 = indentOld + utils.twoIndents;
 
         builder.write(indentNew1);
         builder.writeln('stream: null,');

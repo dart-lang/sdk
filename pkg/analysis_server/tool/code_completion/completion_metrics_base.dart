@@ -120,6 +120,11 @@ abstract class CompletionMetricsComputer {
     final results = <ResolvedUnitResult>[];
     final pathContext = context.contextRoot.resourceProvider.pathContext;
     for (final filePath in context.contextRoot.analyzedFiles()) {
+      if (file_paths.isGenerated(filePath) ||
+          filePath.endsWith('animated_icons.dart') ||
+          filePath.endsWith('animated_icons_data.dart')) {
+        continue;
+      }
       if (file_paths.isDart(pathContext, filePath)) {
         try {
           final result = await context.currentSession.getResolvedUnit(filePath)

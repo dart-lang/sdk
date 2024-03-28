@@ -41,7 +41,7 @@ class ConvertIfStatementToSwitchStatement extends ResolvedCorrectionProducer {
     }
 
     final indent = utils.getLinePrefix(ifStatement.offset);
-    final singleIndent = utils.getIndent(1);
+    final singleIndent = utils.oneIndent;
     final caseIndent = '$indent$singleIndent';
 
     await builder.addDartFileEdit(file, (builder) {
@@ -185,7 +185,7 @@ class ConvertIfStatementToSwitchStatement extends ResolvedCorrectionProducer {
     // switch
     //   case
     //     statement
-    final singleIndent = utils.getIndent(1);
+    final singleIndent = utils.oneIndent;
     final newIndent = '$ifStatementIndent$singleIndent';
 
     final code = utils.replaceSourceRangeIndent(

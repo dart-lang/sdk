@@ -36,7 +36,7 @@ ISOLATE_UNIT_TEST_CASE(StreamingFlowGraphBuilder_ConstFoldStringConcats) {
   auto entry = flow_graph->graph_entry()->normal_entry();
   EXPECT(entry != nullptr);
 
-  ReturnInstr* ret = nullptr;
+  DartReturnInstr* ret = nullptr;
 
   ILMatcher cursor(flow_graph, entry);
   // clang-format off
@@ -44,7 +44,7 @@ ISOLATE_UNIT_TEST_CASE(StreamingFlowGraphBuilder_ConstFoldStringConcats) {
     kMatchAndMoveFunctionEntry,
     kMatchAndMoveCheckStackOverflow,
     kMoveDebugStepChecks,
-    {kMatchReturn, &ret},
+    {kMatchDartReturn, &ret},
   }));
   // clang-format on
 
@@ -90,7 +90,7 @@ ISOLATE_UNIT_TEST_CASE(StreamingFlowGraphBuilder_FlattenNestedStringInterp) {
     {kMatchAndMoveStoreIndexed, &store2},
     kMatchAndMoveStaticCall,
     kMoveDebugStepChecks,
-    kMatchReturn,
+    kMatchDartReturn,
   }));
   // clang-format on
 
@@ -149,7 +149,7 @@ ISOLATE_UNIT_TEST_CASE(StreamingFlowGraphBuilder_DropEmptyStringInterp) {
     {kMatchAndMoveStoreIndexed, &store3},
     kMatchAndMoveStaticCall,
     kMoveDebugStepChecks,
-    kMatchReturn,
+    kMatchDartReturn,
   }));
   // clang-format on
 
@@ -217,7 +217,7 @@ ISOLATE_UNIT_TEST_CASE(StreamingFlowGraphBuilder_ConcatStringLits) {
     {kMatchAndMoveStoreIndexed, &store3},
     kMatchAndMoveStaticCall,
     kMoveDebugStepChecks,
-    kMatchReturn,
+    kMatchDartReturn,
   }));
   // clang-format on
 
@@ -279,7 +279,7 @@ ISOLATE_UNIT_TEST_CASE(StreamingFlowGraphBuilder_InvariantFlagInListLiterals) {
     kMatchAndMoveStaticCall,
     {kMatchAndMoveInstanceCall, &call_add},
     kMoveDebugStepChecks,
-    kMatchReturn,
+    kMatchDartReturn,
   }));
   // clang-format on
 
@@ -338,7 +338,7 @@ ISOLATE_UNIT_TEST_CASE(StreamingFlowGraphBuilder_TypedClosureCall) {
 #endif
     kMatchAndMoveClosureCall,
     kMoveDebugStepChecks,
-    kMatchReturn,
+    kMatchDartReturn,
   };
   RELEASE_ASSERT(cursor.TryMatch(expected));
   // clang-format on
@@ -366,14 +366,14 @@ ISOLATE_UNIT_TEST_CASE(
   auto entry = flow_graph->graph_entry()->normal_entry();
   EXPECT(entry != nullptr);
 
-  ReturnInstr* return_instr = nullptr;
+  DartReturnInstr* return_instr = nullptr;
 
   ILMatcher cursor(flow_graph, entry);
   RELEASE_ASSERT(cursor.TryMatch({
       kMatchAndMoveFunctionEntry,
       kMatchAndMoveCheckStackOverflow,
       kMoveDebugStepChecks,
-      {kMatchReturn, &return_instr},
+      {kMatchDartReturn, &return_instr},
   }));
 
   EXPECT(return_instr != nullptr);

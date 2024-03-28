@@ -131,12 +131,12 @@ void f() {
 ''');
     assertResponse(r'''
 suggestions
+  values
+    kind: field
   o0
     kind: enumConstant
   t0
     kind: enumConstant
-  values
-    kind: field
 ''');
   }
 
@@ -152,12 +152,12 @@ void f() {
 ''');
     assertResponse(r'''
 suggestions
+  values
+    kind: field
   o0
     kind: enumConstant
   t0
     kind: enumConstant
-  values
-    kind: field
 ''');
   }
 
@@ -172,15 +172,38 @@ void f() {
 ''');
     assertResponse(r'''
 suggestions
+  values
+    kind: field
+    deprecated: true
   o0
     kind: enumConstant
     deprecated: true
   t0
     kind: enumConstant
     deprecated: true
-  values
-    kind: field
-    deprecated: true
+''');
+  }
+
+  Future<void> test_afterPeriod_namedConstructor() async {
+    allowedIdentifiers = {'named'};
+    await computeSuggestions('''
+enum E0 {
+  o0, t0;
+
+   factory E0.named() =>  E0.o0;
+}
+void f() {
+  E0.^
+}
+''');
+    assertResponse(r'''
+suggestions
+  named
+    kind: constructorInvocation
+  o0
+    kind: enumConstant
+  t0
+    kind: enumConstant
 ''');
   }
 
@@ -224,12 +247,12 @@ void f() {
 ''');
     assertResponse(r'''
 suggestions
+  values
+    kind: field
   a0
     kind: enumConstant
   c0
     kind: enumConstant
-  values
-    kind: field
 ''');
   }
 
@@ -244,12 +267,12 @@ void f() {
 ''');
     assertResponse(r'''
 suggestions
+  values
+    kind: field
   o0
     kind: enumConstant
   t0
     kind: enumConstant
-  values
-    kind: field
 ''');
   }
 
@@ -264,12 +287,12 @@ void f() {
 ''');
     assertResponse(r'''
 suggestions
+  values
+    kind: field
   o0
     kind: enumConstant
   t0
     kind: enumConstant
-  values
-    kind: field
 ''');
   }
 

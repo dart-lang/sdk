@@ -18,10 +18,7 @@ void main() {
 class FileModificationTest extends AbstractLspAnalysisServerTest {
   Future<void> test_change_badPosition() async {
     final contents = '';
-    await initialize(
-      // Error is expected and checked below.
-      failTestOnAnyErrorNotification: false,
-    );
+    await initialize();
     await openFile(mainFileUri, contents);
 
     // Since this is a notification and not a request, the server cannot
@@ -55,8 +52,8 @@ class FileModificationTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_change_incremental() async {
-    final initialContent = '0123456789\n0123456789';
-    final expectedUpdatedContent = '0123456789\n01234   89';
+    final initialContent = '// 0123456789\n// 0123456789';
+    final expectedUpdatedContent = '// 0123456789\n// 01234   89';
 
     await initialize();
     await openFile(mainFileUri, initialContent);
@@ -64,8 +61,8 @@ class FileModificationTest extends AbstractLspAnalysisServerTest {
       // Replace line1:5-1:8 with spaces.
       TextDocumentContentChangeEvent.t1(TextDocumentContentChangeEvent1(
         range: Range(
-            start: Position(line: 1, character: 5),
-            end: Position(line: 1, character: 8)),
+            start: Position(line: 1, character: 8),
+            end: Position(line: 1, character: 11)),
         text: '   ',
       ))
     ]);
@@ -86,10 +83,7 @@ class FileModificationTest extends AbstractLspAnalysisServerTest {
           end: Position(line: 1, character: 1)),
       text: 'test',
     ));
-    await initialize(
-      // Error is expected and checked below.
-      failTestOnAnyErrorNotification: false,
-    );
+    await initialize();
     final notificationParams = await expectErrorNotification(
       () => changeFile(222, mainFileUri, [simpleEdit]),
     );
@@ -120,7 +114,7 @@ class FileModificationTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_open() async {
-    const testContent = 'CONTENT';
+    const testContent = '// CONTENT';
 
     await initialize();
     expect(_getOverlay(mainFilePath), isNull);
@@ -134,10 +128,7 @@ class FileModificationTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_open_invalidPath() async {
-    await initialize(
-      // Error is expected and checked below.
-      failTestOnAnyErrorNotification: false,
-    );
+    await initialize();
 
     final notificationParams = await expectErrorNotification(
       () => openFile(Uri.http('localhost', 'not-a-file'), ''),

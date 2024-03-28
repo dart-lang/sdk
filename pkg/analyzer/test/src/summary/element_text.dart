@@ -788,18 +788,28 @@ class _ElementWriter {
       }
     }
 
+    /// Returns `true` if patterns were printed.
+    /// Returns `false` if no patterns configured.
+    bool printMessagePatterns(String message) {
+      var patterns = configuration.macroDiagnosticMessagePatterns;
+      if (patterns == null) {
+        return false;
+      }
+
+      _sink.writelnWithIndent('contains');
+      _sink.withIndent(() {
+        for (var pattern in patterns) {
+          if (message.contains(pattern)) {
+            _sink.writelnWithIndent(pattern);
+          }
+        }
+      });
+      return true;
+    }
+
     void writeMessage(MacroDiagnosticMessage object) {
       // Write the message.
-      if (configuration.macroDiagnosticMessagePatterns case var patterns?) {
-        _sink.writelnWithIndent('contains');
-        _sink.withIndent(() {
-          for (var pattern in patterns) {
-            if (object.message.contains(pattern)) {
-              _sink.writelnWithIndent(pattern);
-            }
-          }
-        });
-      } else {
+      if (!printMessagePatterns(object.message)) {
         final message = object.message;
         const stackTraceText = '#0';
         final stackTraceIndex = message.indexOf(stackTraceText);
@@ -908,9 +918,11 @@ class _ElementWriter {
                 _sink.writelnWithIndent(
                   'annotationIndex: ${diagnostic.annotationIndex}',
                 );
-                _sink.writelnWithIndent(
-                  'message: ${diagnostic.message}',
-                );
+                if (!printMessagePatterns(diagnostic.message)) {
+                  _sink.writelnWithIndent(
+                    'message: ${diagnostic.message}',
+                  );
+                }
                 if (configuration.withMacroStackTraces) {
                   _sink.writelnWithIndent(
                     'stackTrace:\n${diagnostic.stackTrace}',
@@ -1146,14 +1158,17 @@ class _ElementWriter {
   void _writePropertyAccessorElement(PropertyAccessorElement e) {
     e as PropertyAccessorElementImpl;
 
-    PropertyInducingElement variable = e.variable;
-    expect(variable, isNotNull);
-
-    var variableEnclosing = variable.enclosingElement;
-    if (variableEnclosing is CompilationUnitElement) {
-      expect(variableEnclosing.topLevelVariables, contains(variable));
-    } else if (variableEnclosing is InterfaceElement) {
-      expect(variableEnclosing.fields, contains(variable));
+    var variable = e.variable2;
+    if (variable != null) {
+      var variableEnclosing = variable.enclosingElement;
+      if (variableEnclosing is CompilationUnitElement) {
+        expect(variableEnclosing.topLevelVariables, contains(variable));
+      } else if (variableEnclosing is InterfaceElement) {
+        expect(variableEnclosing.fields, contains(variable));
+      }
+    } else {
+      expect(e.isAugmentation, isTrue);
+      expect(e.augmentationTarget, isNull);
     }
 
     if (e.isSynthetic) {
@@ -1183,7 +1198,11 @@ class _ElementWriter {
     void writeLinking() {
       if (configuration.withPropertyLinking) {
         _sink.writelnWithIndent('id: ${_idMap[e]}');
-        _sink.writelnWithIndent('variable: ${_idMap[e.variable]}');
+        if (e.variable2 case final variable?) {
+          _sink.writelnWithIndent('variable: ${_idMap[variable]}');
+        } else {
+          _sink.writelnWithIndent('variable: <null>');
+        }
       }
     }
 

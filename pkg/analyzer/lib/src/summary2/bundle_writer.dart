@@ -636,6 +636,12 @@ class BundleWriter {
     _resolutionSink._writeAnnotationList(element.metadata);
     _resolutionSink.writeMacroDiagnostics(element.macroDiagnostics);
     _resolutionSink.writeType(element.type);
+
+    _resolutionSink.writeElement(element.augmentationTarget);
+    if (element.isAugmentation) {
+      _propertyAugmentations.add(element);
+    }
+
     _resolutionSink._writeOptionalNode(element.constantInitializer);
   }
 
@@ -806,8 +812,6 @@ class ResolutionSink extends _SummaryDataWriter {
           writeByte(Tag.InterfaceType_noTypeArguments_none);
         } else if (nullabilitySuffix == NullabilitySuffix.question) {
           writeByte(Tag.InterfaceType_noTypeArguments_question);
-        } else if (nullabilitySuffix == NullabilitySuffix.star) {
-          writeByte(Tag.InterfaceType_noTypeArguments_star);
         }
         // TODO(scheglov): Write raw
         writeElement(type.element);

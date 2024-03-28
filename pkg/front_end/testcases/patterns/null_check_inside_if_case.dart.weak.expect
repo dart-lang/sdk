@@ -1,22 +1,4 @@
 library;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/patterns/null_check_inside_if_case.dart:11:19: Warning: The null-check pattern will have no effect because the matched type isn't nullable.
-// Try replacing the null-check pattern with its nested pattern.
-//   if (x case var y?) {}
-//                   ^
-//
-// pkg/front_end/testcases/patterns/null_check_inside_if_case.dart:12:19: Warning: The null-check pattern will have no effect because the matched type isn't nullable.
-// Try replacing the null-check pattern with its nested pattern.
-//   if (x case int y?) {}
-//                   ^
-//
-// pkg/front_end/testcases/patterns/null_check_inside_if_case.dart:13:22: Warning: The null-check pattern will have no effect because the matched type isn't nullable.
-// Try replacing the null-check pattern with its nested pattern.
-//   if (x case String y?) {}
-//                      ^
-//
 import self as self;
 import "dart:core" as core;
 

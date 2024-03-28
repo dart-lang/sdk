@@ -24,7 +24,13 @@ void main(List<String> args) async {
   void printUsage() {
     print('Usage: ddb [options] <dart-script-file>\n');
     print('Compiles <dart-script-file> with the dev_compiler and runs it on a '
-        'JS platform.\n');
+        'JS platform.\n'
+        'Optionally, mulitple Dart source files can be passed as arguments and '
+        'they will be compiled into seperate modules in the order provided. '
+        'The order will be treated as an import DAG with the last file as the '
+        'application entrypoint. The .dill file outputs from each compile will '
+        'be collected and passed as dependency summaries for the next compile '
+        'step.');
   }
 
   // Parse flags.
@@ -66,6 +72,11 @@ void main(List<String> args) async {
         negatable: true)
     ..addFlag('weak-null-safety-errors',
         help: 'Treat weak null safety warnings as errors.', defaultsTo: false)
+    ..addFlag('ddc-modules',
+        help: 'Emit modules in the ddc format. Currently supported in Chrome '
+            '(amd modules by default) and D8 (already uses ddc modules by '
+            'default).',
+        defaultsTo: false)
     ..addFlag('canary',
         help: 'Enable all compiler features under active development.',
         defaultsTo: false)
@@ -105,7 +116,7 @@ void main(List<String> args) async {
     print(parser.usage);
     exit(0);
   }
-  if (options.rest.length != 1) {
+  if (options.rest.isEmpty) {
     print('Dart script file required.\n');
     printUsage();
     exit(1);
@@ -130,21 +141,21 @@ void main(List<String> args) async {
       ? options['native-null-assertions'] as bool
       : soundNullSafety;
   var weakNullSafetyErrors = options['weak-null-safety-errors'] as bool;
+  var ddcModules = options['ddc-modules'] as bool;
   var canaryFeatures = options['canary'] as bool;
-  var entry = p.canonicalize(options.rest.first);
-  var out = (options['out'] as String?) ?? p.setExtension(entry, '.js');
-  var libRoot = p.dirname(entry);
-  var basename = p.basenameWithoutExtension(entry);
-  var libname =
-      js_names.pathToJSIdentifier(p.relative(p.withoutExtension(entry)));
+  var sourceFiles = options.rest.map(p.canonicalize);
+  var entryPoint = sourceFiles.last;
+  var libRoot = p.dirname(entryPoint);
+  var basename = p.basenameWithoutExtension(entryPoint);
+  var libname = pathToLibName(entryPoint);
 
   // This is used in the DDC module system and usually corresponds to the
   // entrypoint's path.
-  var appname = p.relative(p.withoutExtension(entry));
+  var appname = p.relative(p.withoutExtension(entryPoint));
 
   // This is used in the DDC module system for multiapp workflows and is
   // stubbed in ddb.
-  var uuid = "00000000-0000-0000-0000-000000000000";
+  var uuid = '00000000-0000-0000-0000-000000000000';
 
   // By default (no `-d`), we use the `dartdevc` binary on the user's path to
   // compute the SDK we use for execution.  I.e., we assume that `dart` is
@@ -214,6 +225,11 @@ void main(List<String> args) async {
   var runtime = options['runtime'] as String?;
   switch (runtime) {
     case 'node':
+      // TODO(nshahan): Cleanup after the ddc module format is used everywhere.
+      if (ddcModules) {
+        throw ('The combination of `--runtime=$runtime` and `--ddc-modules` '
+            'is not supported at this time.');
+      }
       node = true;
       mod = 'common';
       break;
@@ -223,7 +239,8 @@ void main(List<String> args) async {
       break;
     case 'chrome':
       chrome = true;
-      mod = 'amd';
+      // TODO(nshahan): Cleanup after the ddc module format is used everywhere.
+      mod = ddcModules ? 'ddc' : 'amd';
       break;
     default:
       throw Exception('Unexpected runtime: $runtime');
@@ -240,12 +257,14 @@ void main(List<String> args) async {
   ].join();
   var sdkJsPath =
       p.join(buildDir, 'gen', 'utils', 'ddc', compileModeDir, 'sdk', mod);
+  var preamblesDir = p.join(
+      sdkRoot, 'sdk', 'lib', '_internal', 'js_runtime', 'lib', 'preambles');
 
   // Print an initial empty line to separate the invocation from the output.
   if (verbose) {
     print('');
   }
-
+  var outputs = <String>[];
   if (compile) {
     var ddcArgs = [
       if (summarizeText) '--summarize-text',
@@ -257,11 +276,23 @@ void main(List<String> args) async {
       if (options['packages'] != null) '--packages=${options['packages']}',
       if (emitDebugSymbols) '--emit-debug-symbols',
       if (canaryFeatures) '--canary',
-      '-o',
-      out,
-      entry
     ];
-    await runDdc(ddcArgs);
+    var summaryFiles = [];
+    for (var sourceFile in sourceFiles) {
+      var out = p.setExtension(sourceFile, '.js');
+      var requestArgs = [
+        for (var summary in summaryFiles) '--summary=$summary',
+        '-o',
+        out,
+        sourceFile,
+      ];
+      await runDdc([...ddcArgs, ...requestArgs]);
+      outputs.add(out);
+      var summaryFile = p.setExtension(out, '.dill');
+      var libname =
+          js_names.pathToJSIdentifier(p.basenameWithoutExtension(sourceFile));
+      summaryFiles.add('$summaryFile=$libname');
+    }
   }
 
   if (run) {
@@ -279,23 +310,25 @@ void main(List<String> args) async {
         // Assume Linux
         chromeBinary = 'google-chrome';
       }
+      var amdModulePaths = [
+        for (var output in outputs)
+          '"${pathToLibName(output)}": "${p.withoutExtension(output)}"'
+      ].join(',\n        ');
 
       // Seal the native JavaScript Object prototype to avoid pollution before
       // loading the Dart SDK module.
-      var html = '''
-<script>
-delete Object.prototype.__proto__;
-Object.seal(Object.prototype);
-</script>
+      var amdModulesHtml = '''
+<script src="$preamblesDir/seal_native_object.js"></script>
 <script src='$requirePath/require.js'></script>
 <script>
   require.config({
     paths: {
         'dart_sdk': '$sdkJsPath/dart_sdk',
+        $amdModulePaths
     },
     waitSeconds: 15
   });
-  require(['dart_sdk', '$basename'],
+  require(['dart_sdk', '$libname'],
         function(sdk, app) {
     'use strict';
 
@@ -309,8 +342,28 @@ Object.seal(Object.prototype);
   });
 </script>
 ''';
-      var htmlFile = p.setExtension(out, '.html');
-      File(htmlFile).writeAsStringSync(html);
+      var ddcModuleScriptTags = [
+        for (var output in outputs) '<script src="$output"></script>'
+      ].join('\n');
+      var ddcModulesHtml = '''
+<script src="$preamblesDir/seal_native_object.js"></script>
+<script src="$ddcPath/lib/js/ddc/ddc_module_loader.js"></script>
+<script src="$sdkJsPath/dart_sdk.js"></script>
+$ddcModuleScriptTags
+<script>
+let sdk = dart_library.import("dart_sdk");
+sdk.dart.weakNullSafetyWarnings(
+    !($weakNullSafetyErrors || $soundNullSafety));
+sdk.dart.weakNullSafetyErrors($weakNullSafetyErrors);
+sdk.dart.nonNullAsserts($nonNullAsserts);
+sdk.dart.nativeNonNullAsserts($nativeNonNullAsserts);
+
+dart_library.start("$appname", "$uuid", "$basename", "$libname", false);
+</script>
+''';
+      var htmlFile = p.setExtension(entryPoint, '.html');
+      File(htmlFile)
+          .writeAsStringSync(ddcModules ? ddcModulesHtml : amdModulesHtml);
       var tmp = p.join(Directory.systemTemp.path, 'ddc');
 
       var process = await startProcess('Chrome', chromeBinary, [
@@ -354,17 +407,19 @@ try {
   process.exit(1);
 }
 ''';
-      var nodeFile = p.setExtension(out, '.run.js');
+      var nodeFile = p.setExtension(entryPoint, '.run.js');
       File(nodeFile).writeAsStringSync(runjs);
       var nodeBinary = binary ?? 'node';
       var process = await startProcess('Node', nodeBinary,
           ['--inspect=localhost:$port', nodeFile], {'NODE_PATH': nodePath});
       if (await process.exitCode != 0) exit(await process.exitCode);
     } else if (d8) {
+      var ddcModuleScriptTags =
+          [for (var output in outputs) 'load("$output");'].join('\n');
       var runjs = '''
 load("$ddcPath/lib/js/ddc/ddc_module_loader.js");
 load("$sdkJsPath/dart_sdk.js");
-load("$out");
+$ddcModuleScriptTags
 
 let sdk = dart_library.import('dart_sdk');
 // Create a self reference for JS interop tests that set fields on self.
@@ -381,9 +436,7 @@ self.dartMainRunner(function () {
   dart_library.start("$appname", "$uuid", "$basename", "$libname", false);
 });
 ''';
-      var preamblesDir = p.join(
-          sdkRoot, 'sdk', 'lib', '_internal', 'js_runtime', 'lib', 'preambles');
-      var d8File = p.setExtension(out, '.d8.js');
+      var d8File = p.setExtension(entryPoint, '.d8.js');
       File(d8File).writeAsStringSync(runjs);
       var d8Binary = binary ?? p.join(dartCheckoutPath, _d8executable);
       var process = await startProcess('D8', d8Binary, [
@@ -395,6 +448,11 @@ self.dartMainRunner(function () {
     }
   }
 }
+
+/// Converts a path to the expected default library name DDC will use.
+String pathToLibName(String path) =>
+    js_names.pathToJSIdentifier(p.withoutExtension(
+        p.isWithin(p.current, path) ? p.relative(path) : p.absolute(path)));
 
 String get _d8executable {
   final arch = Abi.current().toString().split('_')[1];

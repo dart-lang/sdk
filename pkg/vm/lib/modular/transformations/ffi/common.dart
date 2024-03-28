@@ -249,6 +249,7 @@ class FfiTransformer extends Transformer {
   final Procedure lookupFunctionMethod;
   final Procedure fromFunctionMethod;
   final Field compoundTypedDataBaseField;
+  final Field compoundOffsetInBytesField;
   final Field arraySizeField;
   final Field arrayNestedDimensionsField;
   final Procedure arrayCheckIndex;
@@ -410,6 +411,8 @@ class FfiTransformer extends Transformer {
             index.getProcedure('dart:ffi', 'Pointer', 'get:address'),
         compoundTypedDataBaseField =
             index.getField('dart:ffi', '_Compound', '_typedDataBase'),
+        compoundOffsetInBytesField =
+            index.getField('dart:ffi', '_Compound', '_offsetInBytes'),
         arraySizeField = index.getField('dart:ffi', 'Array', '_size'),
         arrayNestedDimensionsField =
             index.getField('dart:ffi', 'Array', '_nestedDimensions'),
@@ -843,128 +846,6 @@ class FfiTransformer extends Transformer {
         ),
       );
 
-  /// Generates an expression that returns a new `Pointer<dartType>` offset
-  /// by [offset] from [pointer].
-  ///
-  /// Sample output:
-  ///
-  /// ```
-  /// _fromAddress<dartType>(pointer.address + #offset)
-  /// ```
-  Expression _pointerOffset(Expression pointer, Expression offset,
-          DartType dartType, int fileOffset) =>
-      StaticInvocation(
-          fromAddressInternal,
-          Arguments([
-            add(
-                InstanceGet(
-                    InstanceAccessKind.Instance, pointer, addressGetter.name,
-                    interfaceTarget: addressGetter,
-                    resultType: addressGetter.getterType)
-                  ..fileOffset = fileOffset,
-                offset)
-          ], types: [
-            dartType
-          ]))
-        ..fileOffset = fileOffset;
-
-  /// Generates an expression that returns a new `TypedData` offset
-  /// by [offset] from [typedData].
-  ///
-  /// Sample output:
-  ///
-  /// ```
-  /// TypedData #typedData = typedData;
-  /// #typedData.buffer.asInt8List(#typedData.offsetInBytes + offset, length)
-  /// ```
-  Expression _typedDataOffset(Expression typedData, Expression offset,
-      Expression length, int fileOffset) {
-    final typedDataVar = VariableDeclaration("#typedData",
-        initializer: typedData,
-        type: InterfaceType(typedDataClass, Nullability.nonNullable),
-        isSynthesized: true)
-      ..fileOffset = fileOffset;
-    return Let(
-        typedDataVar,
-        InstanceInvocation(
-            InstanceAccessKind.Instance,
-            InstanceGet(InstanceAccessKind.Instance, VariableGet(typedDataVar),
-                typedDataBufferGetter.name,
-                interfaceTarget: typedDataBufferGetter,
-                resultType: typedDataBufferGetter.getterType)
-              ..fileOffset = fileOffset,
-            byteBufferAsUint8List.name,
-            Arguments([
-              add(
-                  InstanceGet(
-                      InstanceAccessKind.Instance,
-                      VariableGet(typedDataVar),
-                      typedDataOffsetInBytesGetter.name,
-                      interfaceTarget: typedDataOffsetInBytesGetter,
-                      resultType: typedDataOffsetInBytesGetter.getterType)
-                    ..fileOffset = fileOffset,
-                  offset),
-              length
-            ]),
-            interfaceTarget: byteBufferAsUint8List,
-            functionType: byteBufferAsUint8List.getterType as FunctionType));
-  }
-
-  /// Generates an expression that returns a new `TypedDataBase` offset
-  /// by [offset] from [typedDataBase].
-  ///
-  /// If [typedDataBase] is a `Pointer`, returns a `Pointer<dartType>`.
-  /// If [typedDataBase] is a `TypedData` returns a `TypedData`.
-  ///
-  /// Sample output:
-  ///
-  /// ```
-  /// Object #typedDataBase = typedDataBase;
-  /// int #offset = offset;
-  /// #typedDataBase is Pointer ?
-  ///   _pointerOffset<dartType>(#typedDataBase, #offset) :
-  ///   _typedDataOffset((#typedDataBase as TypedData), #offset, length)
-  /// ```
-  Expression typedDataBaseOffset(Expression typedDataBase, Expression offset,
-      Expression length, DartType dartType, int fileOffset) {
-    // Avoid generating the branch on the kind of typed data and the offset
-    // calculation if the end result is a no-op. This offset-generating method
-    // is used to load compound subtypes, which in many cases are not using any
-    // offset from their base.
-    if (offset case ConstantExpression(constant: IntConstant(value: 0))) {
-      return typedDataBase;
-    }
-
-    final typedDataBaseVar = VariableDeclaration("#typedDataBase",
-        initializer: typedDataBase,
-        type: coreTypes.objectNonNullableRawType,
-        isSynthesized: true)
-      ..fileOffset = fileOffset;
-    final offsetVar = VariableDeclaration("#offset",
-        initializer: offset,
-        type: coreTypes.intNonNullableRawType,
-        isSynthesized: true)
-      ..fileOffset = fileOffset;
-    return BlockExpression(
-        Block([typedDataBaseVar, offsetVar]),
-        ConditionalExpression(
-            IsExpression(VariableGet(typedDataBaseVar), pointerNativeTypeType),
-            _pointerOffset(VariableGet(typedDataBaseVar),
-                VariableGet(offsetVar), dartType, fileOffset),
-            _typedDataOffset(
-                StaticInvocation(
-                    unsafeCastMethod,
-                    Arguments([
-                      VariableGet(typedDataBaseVar)
-                    ], types: [
-                      InterfaceType(typedDataClass, Nullability.nonNullable)
-                    ])),
-                VariableGet(offsetVar),
-                length,
-                fileOffset),
-            coreTypes.objectNonNullableRawType));
-  }
-
   bool isPrimitiveType(DartType type) {
     if (type is InvalidType) {
       return false;
@@ -1169,11 +1050,24 @@ class FfiTransformer extends Transformer {
   }
 
   Expression getCompoundTypedDataBaseField(
-      Expression receiver, int fileOffset) {
+    Expression receiver,
+    int fileOffset,
+  ) {
     return InstanceGet(
         InstanceAccessKind.Instance, receiver, compoundTypedDataBaseField.name,
         interfaceTarget: compoundTypedDataBaseField,
         resultType: compoundTypedDataBaseField.type)
+      ..fileOffset = fileOffset;
+  }
+
+  Expression getCompoundOffsetInBytesField(
+    Expression receiver,
+    int fileOffset,
+  ) {
+    return InstanceGet(
+        InstanceAccessKind.Instance, receiver, compoundOffsetInBytesField.name,
+        interfaceTarget: compoundOffsetInBytesField,
+        resultType: compoundOffsetInBytesField.type)
       ..fileOffset = fileOffset;
   }
 
@@ -1253,7 +1147,6 @@ class FfiTransformer extends Transformer {
     Expression? value,
     required fileOffset,
   }) {
-    assert(index == null || offsetInBytes == null);
     final method = () {
       if (value != null) {
         if (index != null) {
@@ -1267,21 +1160,12 @@ class FfiTransformer extends Transformer {
       return loadAbiSpecificIntMethod;
     }();
 
-    final Expression offsetOrIndex = () {
-      if (offsetInBytes != null) {
-        return offsetInBytes;
-      }
-      if (index != null) {
-        return index;
-      }
-      return ConstantExpression(IntConstant(0));
-    }();
-
     return StaticInvocation(
       method,
       Arguments([
         typedDataBase,
-        offsetOrIndex,
+        offsetInBytes ?? ConstantExpression(IntConstant(0)),
+        if (index != null) index,
         if (value != null) value,
       ], types: [
         InterfaceType(nativeTypeCfe.clazz, Nullability.nonNullable)
@@ -1309,6 +1193,7 @@ class FfiTransformer extends Transformer {
                             ConstantExpression(IntConstant(1)),
                           ]))
                         ..fileOffset = nestedExpression.fileOffset,
+                      ConstantExpression(IntConstant(0)),
                     ]))
                   ..fileOffset = nestedExpression.fileOffset
               ])))
@@ -1484,6 +1369,21 @@ class FfiTransformer extends Transformer {
             allowInlineArray: allowInlineArray,
             allowVoid: allowVoid) !=
         null;
+  }
+
+  void addPragmaPreferInline(Procedure node) {
+    node.addAnnotation(
+      ConstantExpression(
+        InstanceConstant(
+          pragmaClass.reference,
+          [],
+          {
+            pragmaName.fieldReference: StringConstant("vm:prefer-inline"),
+            pragmaOptions.fieldReference: NullConstant(),
+          },
+        ),
+      ),
+    );
   }
 }
 

@@ -7,8 +7,6 @@
 // representation type, the promotability is inherited from the underlying
 // representation type member.
 
-// SharedOptions=--enable-experiment=inline-class
-
 import '../static_type_helper.dart';
 
 class C {

@@ -16,16 +16,16 @@ extension type ET(core::int i) {
 }
 static const field dynamic tearOff = self::ET|constructor#_#new#tearOff;
 static const field core::List<dynamic> a = const <dynamic>[self::tearOff];
-static const field core::List<(core::int) → self::ET /* = core::int */> b = const <(core::int) → self::ET /* = core::int */>[self::tearOff as{TypeError,ForDynamic} (core::int) → self::ET /* = core::int */];
+static const field core::List<(core::int) → self::ET% /* erasure=core::int, declared=! */> b = const <(core::int) → self::ET% /* erasure=core::int, declared=! */>[self::tearOff as{TypeError,ForDynamic} (core::int) → self::ET% /* erasure=core::int, declared=! */];
 static const field core::List<(core::int) → core::int> c = const <(core::int) → core::int>[self::tearOff as{TypeError,ForDynamic} (core::int) → core::int];
-static const field core::List<(core::int) → self::ET /* = core::int */> d = const <(core::int) → self::ET /* = core::int */>[self::ET|constructor#_#new#tearOff];
-static const field core::List<(core::int) → self::ET /* = core::int */> e = const <(core::int) → self::ET /* = core::int */>[self::ET|constructor#_#new#tearOff];
+static const field core::List<(core::int) → self::ET% /* erasure=core::int, declared=! */> d = const <(core::int) → self::ET% /* erasure=core::int, declared=! */>[self::ET|constructor#_#new#tearOff];
+static const field core::List<(core::int) → self::ET% /* erasure=core::int, declared=! */> e = const <(core::int) → self::ET% /* erasure=core::int, declared=! */>[self::ET|constructor#_#new#tearOff];
 static const field core::List<(core::int) → core::int> f = const <(core::int) → core::int>[invalid-expression "pkg/front_end/testcases/extension_types/const_collection.dart:15:31: Error: A value of type 'ET Function(int)' can't be assigned to a variable of type 'int Function(int)'.
 const f = <int Function(int)>[ET.new]; // Error
                               ^" in self::ET|constructor#_#new#tearOff as{TypeError} (core::int) → core::int];
-static extension-type-member method ET|constructor#(core::int i) → self::ET /* = core::int */
+static extension-type-member method ET|constructor#(core::int i) → self::ET% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method ET|constructor#_#new#tearOff(core::int i) → self::ET /* = core::int */
+static extension-type-member method ET|constructor#_#new#tearOff(core::int i) → self::ET% /* erasure=core::int, declared=! */
   return self::ET|constructor#(i);
 
 

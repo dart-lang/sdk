@@ -684,7 +684,8 @@ class ImportsVerifier {
       if (element is PropertyAccessorElement) {
         // If the getter or setter of a variable is used, then the variable (the
         // shown name) is used.
-        if (hasElement(identifier, element.variable)) {
+        var variable = element.variable2;
+        if (variable != null && hasElement(identifier, variable)) {
           identifiers.remove(identifier);
           break;
         }

@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
@@ -15,6 +14,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
@@ -74,7 +74,8 @@ class NamedTypeResolver with ScopeHelpers {
   /// given [node] is resolved, all its children must be already resolved.
   ///
   /// The client must set [nameScope] before calling [resolve].
-  void resolve(NamedTypeImpl node) {
+  void resolve(NamedTypeImpl node,
+      {required TypeConstraintGenerationDataForTesting? dataForTesting}) {
     rewriteResult = null;
     hasErrorReported = false;
 
@@ -86,7 +87,7 @@ class NamedTypeResolver with ScopeHelpers {
       importPrefix.element = prefixElement;
 
       if (prefixElement == null) {
-        _resolveToElement(node, null);
+        _resolveToElement(node, null, dataForTesting: dataForTesting);
         return;
       }
 
@@ -104,7 +105,7 @@ class NamedTypeResolver with ScopeHelpers {
       if (prefixElement is PrefixElement) {
         final nameToken = node.name2;
         final element = _lookupGetter(prefixElement.scope, nameToken);
-        _resolveToElement(node, element);
+        _resolveToElement(node, element, dataForTesting: dataForTesting);
         return;
       }
 
@@ -121,7 +122,7 @@ class NamedTypeResolver with ScopeHelpers {
       }
 
       final element = _lookupGetter(nameScope, node.name2);
-      _resolveToElement(node, element);
+      _resolveToElement(node, element, dataForTesting: dataForTesting);
     }
   }
 
@@ -161,7 +162,9 @@ class NamedTypeResolver with ScopeHelpers {
 
   /// We are resolving the [NamedType] in a redirecting constructor of the
   /// [enclosingClass].
-  InterfaceType _inferRedirectedConstructor(InterfaceElement element) {
+  InterfaceType _inferRedirectedConstructor(InterfaceElement element,
+      {required TypeConstraintGenerationDataForTesting? dataForTesting,
+      required AstNode? nodeForTesting}) {
     if (element == enclosingClass) {
       return element.thisType;
     } else {
@@ -177,6 +180,8 @@ class NamedTypeResolver with ScopeHelpers {
           strictInference: strictInference,
           strictCasts: strictCasts,
           typeSystemOperations: typeSystemOperations,
+          dataForTesting: dataForTesting,
+          nodeForTesting: nodeForTesting,
         );
         var typeArguments = inferrer.chooseFinalTypes();
         return element.instantiate(
@@ -187,7 +192,8 @@ class NamedTypeResolver with ScopeHelpers {
     }
   }
 
-  DartType _instantiateElement(NamedType node, Element element) {
+  DartType _instantiateElement(NamedType node, Element element,
+      {required TypeConstraintGenerationDataForTesting? dataForTesting}) {
     var nullability = _getNullability(node);
 
     var argumentList = node.typeArguments;
@@ -243,7 +249,8 @@ class NamedTypeResolver with ScopeHelpers {
       }
 
       if (identical(node, redirectedConstructor_namedType)) {
-        return _inferRedirectedConstructor(element);
+        return _inferRedirectedConstructor(element,
+            dataForTesting: dataForTesting, nodeForTesting: node);
       }
 
       return typeSystem.instantiateInterfaceToBounds(
@@ -286,7 +293,8 @@ class NamedTypeResolver with ScopeHelpers {
     return scopeLookupResult.getter;
   }
 
-  void _resolveToElement(NamedTypeImpl node, Element? element) {
+  void _resolveToElement(NamedTypeImpl node, Element? element,
+      {required TypeConstraintGenerationDataForTesting? dataForTesting}) {
     node.element = element;
 
     if (element == null) {
@@ -302,7 +310,8 @@ class NamedTypeResolver with ScopeHelpers {
       return;
     }
 
-    var type = _instantiateElement(node, element);
+    var type =
+        _instantiateElement(node, element, dataForTesting: dataForTesting);
     type = _verifyNullability(node, type);
     node.type = type;
   }

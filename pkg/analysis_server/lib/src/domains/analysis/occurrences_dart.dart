@@ -199,7 +199,7 @@ class _DartUnitOccurrencesComputerVisitor extends RecursiveAstVisitor<void> {
     if (canonicalElement is FieldFormalParameterElement) {
       canonicalElement = canonicalElement.field;
     } else if (canonicalElement is PropertyAccessorElement) {
-      canonicalElement = canonicalElement.variable;
+      canonicalElement = canonicalElement.variable2;
     }
     return canonicalElement?.declaration;
   }

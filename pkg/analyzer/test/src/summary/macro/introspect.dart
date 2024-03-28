@@ -4,7 +4,7 @@
 
 import 'dart:async';
 
-import 'package:_fe_analyzer_shared/src/macros/api.dart';
+import 'package:macros/macros.dart';
 
 /*macro*/ class Introspect
     implements
@@ -730,7 +730,7 @@ class _Printer {
   bool _shouldWriteArguments(ConstructorMetadataAnnotation annotation) {
     return !const {
       'Introspect',
-    }.contains(annotation.type.name);
+    }.contains(annotation.type.identifier.name);
   }
 
   Future<void> _writeExpressionCode(
@@ -785,7 +785,7 @@ class _Printer {
       case ConstructorMetadataAnnotation():
         sink.writelnWithIndent('ConstructorMetadataAnnotation');
         await sink.withIndent(() async {
-          sink.writelnWithIndent('type: ${e.type.name}');
+          sink.writelnWithIndent('type: ${e.type.identifier.name}');
           final constructorName = e.constructor.name;
           if (constructorName.isNotEmpty) {
             sink.writelnWithIndent('constructorName: $constructorName');

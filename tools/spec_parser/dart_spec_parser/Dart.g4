@@ -3,6 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // CHANGES:
+//
+// v0.41 Include support for augmentation libraries.
+//
+// v0.40 Include latest changes to mixin related class modifiers.
+//
 // v0.39 Translate actions from Java to Dart.
 //
 // v0.38 Broaden `initializerExpression` to match implemented behavior.
@@ -269,13 +274,12 @@ topLevelDefinition
     |    EXTERNAL getterSignature ';'
     |    EXTERNAL setterSignature ';'
     |    EXTERNAL finalVarOrType identifierList ';'
-    |    getterSignature functionBody
-    |    setterSignature functionBody
-    |    functionSignature functionBody
-    |    (FINAL | CONST) type? staticFinalDeclarationList ';'
-    |    LATE FINAL type? initializedIdentifierList ';'
-    |    LATE? varOrType identifier ('=' expression)?
-         (',' initializedIdentifier)* ';'
+    |    AUGMENT? getterSignature functionBody
+    |    AUGMENT? setterSignature functionBody
+    |    AUGMENT? functionSignature functionBody
+    |    AUGMENT? (FINAL | CONST) type? staticFinalDeclarationList ';'
+    |    AUGMENT? LATE FINAL type? initializedIdentifierList ';'
+    |    AUGMENT? LATE? varOrType initializedIdentifierList ';'
     ;
 
 declaredIdentifier
@@ -394,10 +398,10 @@ typeWithParameters
     ;
 
 classDeclaration
-    :    (classModifiers | mixinClassModifiers)
+    :    AUGMENT? (classModifiers | mixinClassModifiers)
          CLASS typeWithParameters superclass? interfaces?
          LBRACE (metadata classMemberDeclaration)* RBRACE
-    |    classModifiers CLASS mixinApplicationClass
+    |    classModifiers MIXIN? CLASS mixinApplicationClass
     ;
 
 classModifiers
@@ -423,7 +427,7 @@ interfaces
     ;
 
 classMemberDeclaration
-    :    methodSignature functionBody
+    :    AUGMENT? methodSignature functionBody
     |    declaration ';'
     ;
 
@@ -432,16 +436,9 @@ mixinApplicationClass
     ;
 
 mixinDeclaration
-    :    mixinModifier? MIXIN typeIdentifier typeParameters?
+    :    AUGMENT? BASE? MIXIN typeWithParameters
          (ON typeNotVoidNotFunctionList)? interfaces?
          LBRACE (metadata mixinMemberDeclaration)* RBRACE
-    ;
-
-mixinModifier
-    :    SEALED
-    |    BASE
-    |    INTERFACE
-    |    FINAL
     ;
 
 // TODO: We might want to make this more strict.
@@ -450,9 +447,8 @@ mixinMemberDeclaration
     ;
 
 extensionTypeDeclaration
-    :    EXTENSION TYPE CONST? typeWithParameters
-         representationDeclaration
-         interfaces?
+    :    AUGMENT? EXTENSION TYPE CONST? typeWithParameters
+         representationDeclaration interfaces?
          LBRACE (metadata extensionTypeMemberDeclaration)* RBRACE
     ;
 
@@ -467,12 +463,12 @@ extensionTypeMemberDeclaration
     ;
 
 extensionDeclaration
-    :    EXTENSION typeIdentifierNotType? typeParameters? ON type
-         LBRACE (metadata extensionMemberDefinition)* RBRACE
+    :    AUGMENT? EXTENSION typeIdentifierNotType? typeParameters? ON type
+         LBRACE (metadata extensionMemberDeclaration)* RBRACE
     ;
 
 // TODO: We might want to make this more strict.
-extensionMemberDefinition
+extensionMemberDeclaration
     :    classMemberDeclaration
     ;
 
@@ -494,17 +490,17 @@ declaration
     |    (EXTERNAL STATIC?)? setterSignature
     |    (EXTERNAL STATIC?)? functionSignature
     |    EXTERNAL (STATIC? finalVarOrType | COVARIANT varOrType) identifierList
-    |    ABSTRACT (finalVarOrType | COVARIANT varOrType) identifierList
     |    EXTERNAL? operatorSignature
-    |    STATIC (FINAL | CONST) type? staticFinalDeclarationList
-    |    STATIC LATE FINAL type? initializedIdentifierList
-    |    STATIC LATE? varOrType initializedIdentifierList
-    |    COVARIANT LATE FINAL type? identifierList
-    |    COVARIANT LATE? varOrType initializedIdentifierList
-    |    LATE? (FINAL type? | varOrType) initializedIdentifierList
-    |    redirectingFactoryConstructorSignature
-    |    constantConstructorSignature (redirection | initializers)?
-    |    constructorSignature (redirection | initializers)?
+    |    ABSTRACT (finalVarOrType | COVARIANT varOrType) identifierList
+    |    AUGMENT? STATIC (FINAL | CONST) type? staticFinalDeclarationList
+    |    AUGMENT? STATIC LATE FINAL type? initializedIdentifierList
+    |    AUGMENT? STATIC LATE? varOrType initializedIdentifierList
+    |    AUGMENT? COVARIANT LATE FINAL type? identifierList
+    |    AUGMENT? COVARIANT LATE? varOrType initializedIdentifierList
+    |    AUGMENT? LATE? (FINAL type? | varOrType) initializedIdentifierList
+    |    AUGMENT? redirectingFactoryConstructorSignature
+    |    AUGMENT? constantConstructorSignature (redirection | initializers)?
+    |    AUGMENT? constructorSignature (redirection | initializers)?
     ;
 
 staticFinalDeclarationList
@@ -601,7 +597,7 @@ mixinApplication
     ;
 
 enumType
-    :    ENUM typeIdentifier typeParameters? mixins? interfaces? LBRACE
+    :    AUGMENT? ENUM typeWithParameters mixins? interfaces? LBRACE
          enumEntry (',' enumEntry)* (',')?
          (';' (metadata classMemberDeclaration)*)?
          RBRACE
@@ -1370,7 +1366,12 @@ assertion
     ;
 
 libraryName
-    :    metadata LIBRARY dottedIdentifierList? ';'
+    :    metadata libraryNameBody ';'
+    ;
+
+libraryNameBody
+    :    LIBRARY dottedIdentifierList?
+    |    AUGMENT LIBRARY uri
     ;
 
 dottedIdentifierList
@@ -1379,11 +1380,16 @@ dottedIdentifierList
 
 importOrExport
     :    libraryImport
+    |    libraryAugmentImport
     |    libraryExport
     ;
 
 libraryImport
     :    metadata importSpecification
+    ;
+
+libraryAugmentImport
+    :    metadata IMPORT AUGMENT uri ';'
     ;
 
 importSpecification
@@ -1497,8 +1503,8 @@ typeNotVoidNotFunctionList
     ;
 
 typeAlias
-    :    TYPEDEF typeIdentifier typeParameters? '=' type ';'
-    |    TYPEDEF functionTypeAlias
+    :    AUGMENT? TYPEDEF typeWithParameters '=' type ';'
+    |    AUGMENT? TYPEDEF functionTypeAlias
     ;
 
 functionTypeAlias
@@ -1657,6 +1663,7 @@ builtInIdentifier
 
 otherIdentifierNotType
     :    ASYNC
+    |    AUGMENT
     |    BASE
     |    HIDE
     |    OF
@@ -1939,6 +1946,10 @@ YIELD
 
 ASYNC
     :    'async'
+    ;
+
+AUGMENT
+    :    'augment'
     ;
 
 BASE

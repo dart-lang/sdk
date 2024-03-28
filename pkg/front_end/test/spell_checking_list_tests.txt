@@ -423,6 +423,7 @@ incrementally
 increments
 indention
 indents
+indexable
 ing
 inhibit
 inlinable
@@ -727,6 +728,7 @@ somehow
 sorter
 soundly
 spans
+specializer
 spell
 spellcheck
 spelled

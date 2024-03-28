@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -11,6 +12,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
@@ -39,7 +41,7 @@ class AssignmentExpressionResolver {
 
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
-  void resolve(AssignmentExpressionImpl node) {
+  void resolve(AssignmentExpressionImpl node, {required DartType contextType}) {
     var operator = node.operator.type;
     var hasRead = operator != TokenType.EQ;
     var isIfNull = operator == TokenType.QUESTION_QUESTION_EQ;
@@ -78,7 +80,7 @@ class AssignmentExpressionResolver {
     // TODO(scheglov): Use VariableElement and do in resolveForWrite() ?
     _assignmentShared.checkFinalAlreadyAssigned(left);
 
-    DartType? rhsContext;
+    DartType rhsContext;
     {
       var leftType = node.writeType;
       if (writeElement is VariableElement) {
@@ -97,7 +99,8 @@ class AssignmentExpressionResolver {
     right = _resolver.popRewrite()!;
     var whyNotPromoted = flow?.whyNotPromoted(right);
 
-    _resolveTypes(node, whyNotPromoted: whyNotPromoted);
+    _resolveTypes(node,
+        whyNotPromoted: whyNotPromoted, contextType: contextType);
 
     if (flow != null) {
       if (writeElement is PromotableElement) {
@@ -179,7 +182,7 @@ class AssignmentExpressionResolver {
     return true;
   }
 
-  DartType? _computeRhsContext(AssignmentExpressionImpl node, DartType leftType,
+  DartType _computeRhsContext(AssignmentExpressionImpl node, DartType leftType,
       TokenType operator, Expression right) {
     switch (operator) {
       case TokenType.EQ:
@@ -197,7 +200,7 @@ class AssignmentExpressionResolver {
                 leftType, method, leftType, parameters[0].type);
           }
         }
-        return null;
+        return UnknownInferredType.instance;
     }
   }
 
@@ -254,7 +257,8 @@ class AssignmentExpressionResolver {
   }
 
   void _resolveTypes(AssignmentExpressionImpl node,
-      {required Map<DartType, NonPromotionReason> Function()? whyNotPromoted}) {
+      {required Map<DartType, NonPromotionReason> Function()? whyNotPromoted,
+      required DartType contextType}) {
     DartType assignedType;
 
     var rightHandSide = node.rightHandSide;
@@ -287,12 +291,37 @@ class AssignmentExpressionResolver {
 
     DartType nodeType;
     if (operator == TokenType.QUESTION_QUESTION_EQ) {
-      var leftType = node.readType!;
-
-      // The LHS value will be used only if it is non-null.
-      leftType = _typeSystem.promoteToNonNull(leftType);
-
-      nodeType = _typeSystem.leastUpperBound(leftType, assignedType);
+      // - An if-null assignment `E` of the form `lvalue ??= e` with context type
+      //   `K` is analyzed as follows:
+      //
+      //   - Let `T1` be the read type the lvalue.
+      var t1 = node.readType!;
+      //   - Let `T2` be the type of `e` inferred with context type `T1`.
+      var t2 = assignedType;
+      //   - Let `T` be `UP(NonNull(T1), T2)`.
+      var nonNullT1 = _typeSystem.promoteToNonNull(t1);
+      var t = _typeSystem.leastUpperBound(nonNullT1, t2);
+      //   - Let `S` be the greatest closure of `K`.
+      var s = _typeSystem.greatestClosureOfSchema(contextType);
+      // If `inferenceUpdate3` is not enabled, then the type of `E` is `T`.
+      if (!_resolver.definingLibrary.featureSet
+          .isEnabled(Feature.inference_update_3)) {
+        nodeType = t;
+      } else
+      //   - If `T <: S`, then the type of `E` is `T`.
+      if (_typeSystem.isSubtypeOf(t, s)) {
+        nodeType = t;
+      } else
+      //   - Otherwise, if `NonNull(T1) <: S` and `T2 <: S`, then the type of
+      //     `E` is `S`.
+      if (_typeSystem.isSubtypeOf(nonNullT1, s) &&
+          _typeSystem.isSubtypeOf(t2, s)) {
+        nodeType = s;
+      } else
+      //   - Otherwise, the type of `E` is `T`.
+      {
+        nodeType = t;
+      }
     } else {
       nodeType = assignedType;
     }

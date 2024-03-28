@@ -26,19 +26,19 @@ library from "org-dartlang-test:///structs.dart" as str {
     synthetic constructor •() → str::A
       : super dart.ffi::Struct::•()
       ;
-    constructor #fromTypedDataBase(synthesized dart.core::Object #typedDataBase) → str::A
-      : super dart.ffi::Struct::_fromTypedDataBase(#typedDataBase)
+    constructor #fromTypedDataBase(synthesized dart.core::Object #typedDataBase, synthesized dart.core::int #offsetInBytes) → str::A
+      : super dart.ffi::Struct::_fromTypedDataBase(#typedDataBase, #offsetInBytes)
       ;
     constructor #fromTypedData(synthesized dart.typed_data::TypedData #typedData, synthesized dart.core::int #offset, synthesized dart.core::int #sizeInBytes) → str::A
       : super dart.ffi::Struct::_fromTypedData(#typedData, #offset, #sizeInBytes)
       ;
     get yy() → str::Y
-      return new str::Y::#fromTypedDataBase( block {
-        synthesized dart.core::Object #typedDataBase = this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object};
-        synthesized dart.core::int #offset = #C8.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*};
-      } =>#typedDataBase is{ForLegacy} dart.ffi::Pointer<dart.ffi::NativeType> ?{dart.core::Object} dart.ffi::_fromAddress<str::Y>(#typedDataBase.{dart.ffi::Pointer::address}{dart.core::int}.{dart.core::num::+}(#offset){(dart.core::num) → dart.core::num}) : let synthesized dart.typed_data::TypedData #typedData = dart._internal::unsafeCast<dart.typed_data::TypedData>(#typedDataBase) in #typedData.{dart.typed_data::TypedData::buffer}{dart.typed_data::ByteBuffer}.{dart.typed_data::ByteBuffer::asUint8List}(#typedData.{dart.typed_data::TypedData::offsetInBytes}{dart.core::int}.{dart.core::num::+}(#offset){(dart.core::num) → dart.core::num}, #C8.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*}){([dart.core::int, dart.core::int?]) → dart.typed_data::Uint8List});
+      return new str::Y::#fromTypedDataBase(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, str::A::yy#offsetOf.{dart.core::num::+}(this.{dart.ffi::_Compound::_offsetInBytes}{dart.core::int}){(dart.core::num) → dart.core::num});
     set yy(synthesized str::Y #externalFieldValue) → void
-      return dart.ffi::_memCopy(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, #C8.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*}, #externalFieldValue.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, #C7, #C8.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*});
+      return dart.ffi::_memCopy(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, str::A::yy#offsetOf.{dart.core::num::+}(this.{dart.ffi::_Compound::_offsetInBytes}{dart.core::int}){(dart.core::num) → dart.core::num}, #externalFieldValue.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, #externalFieldValue.{dart.ffi::_Compound::_offsetInBytes}{dart.core::int}, #C8.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*});
+    @#C10
+    static get yy#offsetOf() → dart.core::int
+      return #C8.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*};
     @#C10
     static get #sizeOf() → dart.core::int*
       return #C8.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*};
@@ -47,8 +47,8 @@ library from "org-dartlang-test:///structs.dart" as str {
     synthetic constructor •() → str::Y
       : super dart.ffi::Struct::•()
       ;
-    constructor #fromTypedDataBase(synthesized dart.core::Object #typedDataBase) → str::Y
-      : super dart.ffi::Struct::_fromTypedDataBase(#typedDataBase)
+    constructor #fromTypedDataBase(synthesized dart.core::Object #typedDataBase, synthesized dart.core::int #offsetInBytes) → str::Y
+      : super dart.ffi::Struct::_fromTypedDataBase(#typedDataBase, #offsetInBytes)
       ;
     constructor #fromTypedData(synthesized dart.typed_data::TypedData #typedData, synthesized dart.core::int #offset, synthesized dart.core::int #sizeInBytes) → str::Y
       : super dart.ffi::Struct::_fromTypedData(#typedData, #offset, #sizeInBytes)

@@ -7,8 +7,7 @@ library fasta.incremental_compiler;
 import 'dart:async' show Completer;
 import 'dart:convert' show JsonEncoder;
 
-import 'package:_fe_analyzer_shared/src/macros/executor/multi_executor.dart'
-    as macros;
+import 'package:macros/src/executor/multi_executor.dart' as macros;
 import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
     show ScannerConfiguration;
 import 'package:front_end/src/fasta/kernel/benchmarker.dart'
@@ -128,7 +127,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
   DillTarget? _dillLoadedData;
   List<LibraryBuilder>? _platformBuilders;
+  List<LibraryBuilder>? get platformBuildersForTesting => _platformBuilders;
   Map<Uri, LibraryBuilder>? _userBuilders;
+  Map<Uri, LibraryBuilder>? get userBuildersForTesting => _userBuilders;
 
   final _InitializationStrategy _initializationStrategy;
 

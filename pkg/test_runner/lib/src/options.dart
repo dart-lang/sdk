@@ -187,11 +187,7 @@ test options, specifying how tests should be run.''')
         help: '''Progress indication mode.
 
 Allowed values are:
-compact, color, line, verbose, silent, status, buildbot''')
-    ..addOption('step-name',
-        aliases: ['step_name'],
-        hide: true,
-        help: 'Step name for use by -pbuildbot.')
+compact, color, line, verbose, silent, status''')
     ..addFlag('report',
         hide: true,
         help: 'Print a summary report of the number of tests, by expectation.')
@@ -405,7 +401,6 @@ has been specified on the command line.''')
     'shard',
     'shards',
     'silent-failures',
-    'step-name',
     'tasks',
     'tests',
     'time',
@@ -613,10 +608,7 @@ has been specified on the command line.''')
       data['report'] = true;
     }
 
-    // Use verbose progress indication for verbose output unless buildbot
-    // progress indication is requested.
-    if ((data['verbose'] as bool) &&
-        (data['progress'] as String?) != 'buildbot') {
+    if (data['verbose'] as bool) {
       data['progress'] = 'verbose';
     }
 
@@ -681,7 +673,6 @@ has been specified on the command line.''')
           taskCount: int.parse(data["tasks"] as String),
           shardCount: int.parse(data["shards"] as String),
           shard: int.parse(data["shard"] as String),
-          stepName: data["step-name"] as String?,
           testServerPort: int.parse(data['test-server-port'] as String),
           testServerCrossOriginPort:
               int.parse(data['test-server-cross-origin-port'] as String),

@@ -2,14 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// dart2jsOptions=-O2
+/// Requirements=checked-implicit-downcasts
 
 // Test that Function.toJS properly converts/casts arguments and return values
-// when using Dart types.
+// when using non-JS types.
 
 import 'dart:js_interop';
 import 'package:expect/expect.dart';
 import 'package:expect/minitest.dart';
+
+const isJSBackend = const bool.fromEnvironment('dart.library.html');
 
 @JS()
 external void eval(String code);
@@ -31,6 +33,9 @@ external void voidF(JSString s);
 
 @JS('jsFunction')
 external JSAny? anyF([JSAny? n]);
+
+@JS('jsFunction')
+external ExternalDartReference externalDartReferenceF(ExternalDartReference b);
 
 @JS()
 external JSAny? callFunctionWithUndefined();
@@ -70,6 +75,23 @@ void main() {
   voidF('voidF'.toJS);
   jsFunction = ((String arg) => arg).toJS;
   voidF('voidF'.toJS);
+
+  // Test ExternalDartReference.
+  final set = {};
+  jsFunction = ((ExternalDartReference arg) => arg).toJS;
+  expect(externalDartReferenceF(set.toExternalReference).toDartObject, set);
+  // This doesn't fail for the same reason JS types don't fail - the value gets
+  // boxed.
+  anyF(''.toJS);
+  // However, if we try to internalize it to the wrong value, that should fail.
+  jsFunction = ((ExternalDartReference arg) {
+    arg.toDartObject as Set;
+  }).toJS;
+  // TODO(srujzs): On dart2wasm, this is a `RuntimeError: illegal cast` because
+  // of the call to `internalize`. Is there any way to first check that the
+  // value can be internalized and throw if not? Would that slow down the
+  // round-trip? Most likely, so just check the JS compilers for now.
+  if (isJSBackend) Expect.throws(() => anyF(''.toJS));
 
   // Test nullability with JS null and JS undefined.
   eval('''
@@ -135,9 +157,7 @@ void main() {
     final any = anyF(empty);
     // TODO(54179): Better way of writing this is to cast to JSNumber and
     // convert, but currently that does not throw on dart2wasm.
-    if (!any.typeofEquals('number')) {
-      throw TypeError();
-    }
+    if (!any.isA<JSNumber>()) throw TypeError();
   });
   expect(anyF(zero), zero);
 
@@ -155,9 +175,7 @@ void main() {
     final any = anyF(empty);
     // TODO(54179): Better way of writing this is to cast to JSNumber and
     // convert, but currently that does not throw on dart2wasm.
-    if (!any.typeofEquals('number')) {
-      throw TypeError();
-    }
+    if (!any.isA<JSNumber>()) throw TypeError();
   });
   expect(anyF(zero), zero);
 
@@ -172,9 +190,7 @@ void main() {
     final any = anyF(empty);
     // TODO(54179): Better way of writing this is to cast to JSNumber and
     // convert, but currently that does not throw on dart2wasm.
-    if (!any.typeofEquals('number')) {
-      throw TypeError();
-    }
+    if (!any.isA<JSNumber>()) throw TypeError();
   });
   expect(anyF(zero), zero);
 }

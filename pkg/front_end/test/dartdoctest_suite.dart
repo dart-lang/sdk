@@ -29,12 +29,15 @@ class Context extends ChainContext {
   ];
 
   @override
-  Stream<DartDocTestTestDescription> list(Chain suite) async* {
-    await for (TestDescription entry in super.list(suite)) {
+  Future<List<DartDocTestTestDescription>> list(Chain suite) async {
+    List<DartDocTestTestDescription> result = [];
+    for (TestDescription entry in await super.list(suite)) {
       List<Test> tests = await dartDocTest.extractTestsFromUri(entry.uri);
       if (tests.isEmpty) continue;
-      yield new DartDocTestTestDescription(entry.shortName, entry.uri, tests);
+      result.add(
+          new DartDocTestTestDescription(entry.shortName, entry.uri, tests));
     }
+    return result;
   }
 
   DartDocTest dartDocTest = new DartDocTest();

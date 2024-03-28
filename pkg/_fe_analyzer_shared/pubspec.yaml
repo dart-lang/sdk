@@ -15,6 +15,7 @@ dependencies:
 # See also https://dart.dev/tools/pub/dependencies.
 dev_dependencies:
   checks: any
+  macros: any
   test: any
 
 dependency_overrides:

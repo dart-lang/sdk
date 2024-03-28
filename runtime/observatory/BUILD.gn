@@ -74,44 +74,46 @@ if (!is_debug) {
   observatory_ignore_patterns += [ "*.map" ]
 }
 
-# The ignore_patterns entry in the scopes accepted by copy_trees() is a
+# The ignore_patterns entry in the scopes accepted by copy_tree() is a
 # string of comma delimited patterns.
 observatory_ignore_string = "\$sdk"
 foreach(pattern, observatory_ignore_patterns) {
   observatory_ignore_string = "$observatory_ignore_string,$pattern"
 }
 
-copy_tree_specs = []
+copy_tree("copy_web_package") {
+  visibility = [
+    ":copy_observatory_package",
+    ":deploy_observatory",
+  ]
+  source = "web"
+  dest = "$target_out_dir/observatory/deployed/web"
+  exclude = observatory_ignore_string
+}
 
-copy_tree_specs += [
-  {
-    target = "copy_web_package"
-    visibility = [ ":deploy_observatory" ]
-    source = "web"
-    dest = "$target_out_dir/observatory/deployed/web"
-    ignore_patterns = observatory_ignore_string
-  },
-]
+copy_tree("copy_observatory_package") {
+  visibility = [
+    ":copy_main_dart_js",
+    ":deploy_observatory",
+  ]
+  source = "lib"
+  dest = "$target_out_dir/observatory/deployed/web/packages/observatory"
+  exclude = observatory_ignore_string
 
-copy_tree_specs += [
-  {
-    target = "copy_observatory_package"
-    visibility = [ ":deploy_observatory" ]
-    source = "lib"
-    dest = "$target_out_dir/observatory/deployed/web/packages/observatory"
-    ignore_patterns = observatory_ignore_string
-  },
-]
-
-# This is not a rule, rather, it generates rules with names of the form:
-#   "copy_$package_package" for the packages in observatory_pub_packages.
-copy_trees("copy_observatory_packages") {
-  sources = copy_tree_specs
+  # This deps prevents this copy and copy_web_package from racing on the
+  # creation of the "web" directory.
+  deps = [ ":copy_web_package" ]
 }
 
 copy("copy_main_dart_js") {
   visibility = [ ":deploy_observatory" ]
-  deps = [ ":build_observatory" ]
+  deps = [
+    ":build_observatory",
+
+    # This deps prevents this copy from racing with the above copy actions on
+    # the creation of the "web" directory.
+    ":copy_observatory_package",
+  ]
   sources = [ "$target_gen_dir/observatory/web/main.dart.js" ]
   if (is_debug) {
     sources += [ "$target_gen_dir/observatory/web/main.dart.js.map" ]

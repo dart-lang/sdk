@@ -8,17 +8,17 @@ extension type Ext(core::Object? _) {
   constructor • = self::Ext|constructor#;
   constructor tearoff • = self::Ext|constructor#_#new#tearOff;
 }
-static extension-type-member method Ext|constructor#(core::Object? _) → self::Ext /* = core::Object? */ {
-  lowered final self::Ext /* = core::Object? */ #this = _;
+static extension-type-member method Ext|constructor#(core::Object? _) → self::Ext% /* erasure=core::Object?, declared=! */ {
+  lowered final self::Ext% /* erasure=core::Object?, declared=! */ #this = _;
   return #this;
 }
-static extension-type-member method Ext|constructor#_#new#tearOff(core::Object? _) → self::Ext /* = core::Object? */
+static extension-type-member method Ext|constructor#_#new#tearOff(core::Object? _) → self::Ext% /* erasure=core::Object?, declared=! */
   return self::Ext|constructor#(_);
-static extension-type-member method Ext|get#value(lowered final self::Ext /* = core::Object? */ #this) → core::int
+static extension-type-member method Ext|get#value(lowered final self::Ext% /* erasure=core::Object?, declared=! */ #this) → core::int
   return 42;
 static method main() → void {
   {
-    final synthesized self::Ext /* = core::Object? */ #0#0 = self::Ext|constructor#("");
+    final synthesized self::Ext% /* erasure=core::Object?, declared=! */ #0#0 = self::Ext|constructor#("");
     {
       hoisted core::int value;
       if(true) {

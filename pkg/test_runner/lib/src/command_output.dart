@@ -429,9 +429,7 @@ class BrowserCommandOutput extends CommandOutput
 
     // Show the events unless the above error was sufficient.
     // TODO(rnystrom): Let users enable or disable this explicitly?
-    if (errorShown &&
-        progress != Progress.buildbot &&
-        progress != Progress.verbose) {
+    if (errorShown && progress != Progress.verbose) {
       return;
     }
 
@@ -1110,7 +1108,7 @@ class Dart2jsCompilerCommandOutput extends CompilationCommandOutput
   /// suggested fixes, so we only parse the first line.
   // TODO(rnystrom): Support validating context messages.
   static final _errorRegexp =
-      RegExp(r"^([^:]+):(\d+):(\d+):\n(Error): (.*)$", multiLine: true);
+      RegExp(r"^([^:\n\r]+):(\d+):(\d+):\n(Error): (.*)$", multiLine: true);
 
   Dart2jsCompilerCommandOutput(super.command, super.exitCode, super.timedOut,
       super.stdout, super.stderr, super.time, super.compilationSkipped);
@@ -1141,7 +1139,7 @@ class Dart2WasmCompilerCommandOutput extends CompilationCommandOutput
   /// suggested fixes, so we only parse the first line.
   // TODO(rnystrom): Support validating context messages.
   static final _errorRegexp =
-      RegExp(r"^([^:]+):(\d+):(\d+): (Error): (.*)$", multiLine: true);
+      RegExp(r"^([^:\n\r]+):(\d+):(\d+): (Error): (.*)$", multiLine: true);
 
   Dart2WasmCompilerCommandOutput(super.command, super.exitCode, super.timedOut,
       super.stdout, super.stderr, super.time, super.compilationSkipped);
@@ -1156,6 +1154,11 @@ class Dart2WasmCompilerCommandOutput extends CompilationCommandOutput
 }
 
 class DevCompilerCommandOutput extends CommandOutput with _StaticErrorOutput {
+  static void parseErrors(String stdout, List<StaticError> errors) {
+    _StaticErrorOutput._parseCfeErrors(
+        ErrorSource.web, _errorRegexp, stdout, errors);
+  }
+
   /// Matches the first line of a DDC error message. DDC prints errors to
   /// stdout that look like:
   ///
@@ -1168,7 +1171,7 @@ class DevCompilerCommandOutput extends CommandOutput with _StaticErrorOutput {
   /// suggested fixes, so we only parse the first line.
   // TODO(rnystrom): Support validating context messages.
   static final _errorRegexp = RegExp(
-      r"^org-dartlang-app:/([^:]+):(\d+):(\d+): (Error): (.*)$",
+      r"^org-dartlang-app:/([^\n\r]+):(\d+):(\d+): (Error): (.*)$",
       multiLine: true);
 
   DevCompilerCommandOutput(
@@ -1225,8 +1228,7 @@ class DevCompilerCommandOutput extends CommandOutput with _StaticErrorOutput {
   @override
   void _parseErrors() {
     var errors = <StaticError>[];
-    _StaticErrorOutput._parseCfeErrors(
-        ErrorSource.web, _errorRegexp, decodeUtf8(stdout), errors);
+    parseErrors(decodeUtf8(stdout), errors);
     errors.forEach(addError);
   }
 }
@@ -1474,7 +1476,7 @@ class FastaCommandOutput extends CompilationCommandOutput
   /// The test runner only validates the first line of the message, and not the
   /// suggested fixes.
   static final _errorRegexp = RegExp(
-      r"^(?:([^:]+):(\d+):(\d+): )?(Context|Error|Warning): (.*)$",
+      r"^(?:([^:\n\r]+):(\d+):(\d+): )?(Context|Error|Warning): (.*)$",
       multiLine: true);
 
   FastaCommandOutput(super.command, super.exitCode, super.hasTimedOut,

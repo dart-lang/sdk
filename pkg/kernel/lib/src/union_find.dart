@@ -16,30 +16,10 @@ class UnionFindNode<T> {
 }
 
 class UnionFind<T> {
-  final bool _useIdentity;
   final Map<T, UnionFindNode<T>> _nodeMap;
 
   UnionFind({bool useIdentity = false})
-      : _nodeMap = useIdentity ? new LinkedHashMap.identity() : {},
-        _useIdentity = useIdentity;
-
-  UnionFind<T> clone() {
-    UnionFind<T> newUnionFind = new UnionFind<T>(useIdentity: _useIdentity);
-    Map<UnionFindNode<T>, UnionFindNode<T>> oldToNewMap = {};
-
-    UnionFindNode<T> getNewNode(UnionFindNode<T> oldNode) {
-      UnionFindNode<T> newNode = newUnionFind[oldNode.value];
-      return oldToNewMap[oldNode] = newNode;
-    }
-
-    for (UnionFindNode<T> oldNode in _nodeMap.values) {
-      UnionFindNode<T> newNode = getNewNode(oldNode);
-      if (oldNode.parent != null) {
-        newNode.parent = getNewNode(oldNode.parent!);
-      }
-    }
-    return newUnionFind;
-  }
+      : _nodeMap = useIdentity ? new LinkedHashMap.identity() : {};
 
   UnionFindNode<T> operator [](T value) =>
       _nodeMap[value] ??= new UnionFindNode<T>(value);

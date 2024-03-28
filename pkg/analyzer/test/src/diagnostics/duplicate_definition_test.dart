@@ -35,6 +35,30 @@ class C {
     ]);
   }
 
+  test_instance_field_field_augment() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+
+augment class A {
+  augment int foo = 42;
+}
+''');
+
+    newFile(testFile.path, r'''
+import augment 'a.dart';
+
+class A {
+  int foo = 0;
+}
+''');
+
+    await resolveTestFile();
+    assertNoErrorsInResult();
+
+    await resolveFile2(a);
+    assertNoErrorsInResult();
+  }
+
   test_instance_field_field_field() async {
     await assertErrorsInCode(r'''
 class C {
@@ -47,6 +71,33 @@ class C {
           contextMessages: [message(testFile, 16, 3)]),
       error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 46, 3,
           contextMessages: [message(testFile, 16, 3)]),
+    ]);
+  }
+
+  test_instance_field_field_inAugmentation() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+
+augment class A {
+  int foo = 42;
+}
+''');
+
+    newFile(testFile.path, r'''
+import augment 'a.dart';
+
+class A {
+  int foo = 0;
+}
+''');
+
+    await resolveTestFile();
+    assertNoErrorsInResult();
+
+    await resolveFile2(a);
+    assertErrorsInResult([
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 54, 3,
+          contextMessages: [message(testFile, 42, 3)]),
     ]);
   }
 
@@ -2239,6 +2290,49 @@ typedef A = List<int>;
 ''', [
       error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 31, 1,
           contextMessages: [message(testFile, 8, 1)]),
+    ]);
+  }
+
+  test_variable_variable_augment() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+
+augment int foo = 42;
+''');
+
+    newFile(testFile.path, r'''
+import augment 'a.dart';
+
+int foo = 0;
+''');
+
+    await resolveTestFile();
+    assertNoErrorsInResult();
+
+    await resolveFile2(a);
+    assertNoErrorsInResult();
+  }
+
+  test_variable_variable_inAugmentation() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+
+int foo = 42;
+''');
+
+    newFile(testFile.path, r'''
+import augment 'a.dart';
+
+int foo = 0;
+''');
+
+    await resolveTestFile();
+    assertNoErrorsInResult();
+
+    await resolveFile2(a);
+    assertErrorsInResult([
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 34, 3,
+          contextMessages: [message(testFile, 30, 3)]),
     ]);
   }
 }

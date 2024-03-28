@@ -179,6 +179,9 @@ suggestions
   part '';
     kind: keyword
     selection: 6
+  part of '';
+    kind: keyword
+    selection: 9
   sealed
     kind: keyword
   typedef
@@ -200,6 +203,12 @@ import "package:foo/foo.dart";
     // TODO(brianwilkerson): Should not suggest export or part directives.
     assertResponse(r'''
 suggestions
+  import '';
+    kind: keyword
+    selection: 8
+  export '';
+    kind: keyword
+    selection: 8
   abstract
     kind: keyword
   base
@@ -214,18 +223,12 @@ suggestions
     kind: keyword
   enum
     kind: keyword
-  export '';
-    kind: keyword
-    selection: 8
   extension
     kind: keyword
   external
     kind: keyword
   final
     kind: keyword
-  import '';
-    kind: keyword
-    selection: 8
   interface
     kind: keyword
   late
@@ -255,10 +258,10 @@ import foo;
 ''');
     assertResponse(r'''
 suggestions
-  export '';
+  import '';
     kind: keyword
     selection: 8
-  import '';
+  export '';
     kind: keyword
     selection: 8
   library
@@ -306,10 +309,10 @@ import "package:foo/foo.dart";
 replacement
   right: 3
 suggestions
-  export '';
+  import '';
     kind: keyword
     selection: 8
-  import '';
+  export '';
     kind: keyword
     selection: 8
   library
@@ -644,10 +647,10 @@ suggestions
 replacement
   right: 3
 suggestions
-  export '';
+  import '';
     kind: keyword
     selection: 8
-  import '';
+  export '';
     kind: keyword
     selection: 8
   library
@@ -677,6 +680,12 @@ suggestions
 ''');
     assertResponse(r'''
 suggestions
+  import '';
+    kind: keyword
+    selection: 8
+  export '';
+    kind: keyword
+    selection: 8
   abstract
     kind: keyword
   base
@@ -691,18 +700,12 @@ suggestions
     kind: keyword
   enum
     kind: keyword
-  export '';
-    kind: keyword
-    selection: 8
   extension
     kind: keyword
   external
     kind: keyword
   final
     kind: keyword
-  import '';
-    kind: keyword
-    selection: 8
   interface
     kind: keyword
   late
@@ -714,6 +717,9 @@ suggestions
   part '';
     kind: keyword
     selection: 6
+  part of '';
+    kind: keyword
+    selection: 9
   sealed
     kind: keyword
   typedef
@@ -731,6 +737,12 @@ suggestions
 ''');
     assertResponse(r'''
 suggestions
+  import '';
+    kind: keyword
+    selection: 8
+  export '';
+    kind: keyword
+    selection: 8
   abstract
     kind: keyword
   base
@@ -745,18 +757,12 @@ suggestions
     kind: keyword
   enum
     kind: keyword
-  export '';
-    kind: keyword
-    selection: 8
   extension
     kind: keyword
   external
     kind: keyword
   final
     kind: keyword
-  import '';
-    kind: keyword
-    selection: 8
   interface
     kind: keyword
   late
@@ -768,6 +774,9 @@ suggestions
   part '';
     kind: keyword
     selection: 6
+  part of '';
+    kind: keyword
+    selection: 9
   sealed
     kind: keyword
   typedef
@@ -786,25 +795,29 @@ class A {}
 ''');
     assertResponse(r'''
 suggestions
-  abstract
-    kind: keyword
-  base
-    kind: keyword
   class
     kind: keyword
   const
+    kind: keyword
+  void
+    kind: keyword
+  final
+    kind: keyword
+  enum
+    kind: keyword
+  typedef
+    kind: keyword
+  abstract
+    kind: keyword
+  base
     kind: keyword
   covariant
     kind: keyword
   dynamic
     kind: keyword
-  enum
-    kind: keyword
   extension
     kind: keyword
   external
-    kind: keyword
-  final
     kind: keyword
   interface
     kind: keyword
@@ -814,11 +827,7 @@ suggestions
     kind: keyword
   sealed
     kind: keyword
-  typedef
-    kind: keyword
   var
-    kind: keyword
-  void
     kind: keyword
 ''');
   }
@@ -954,6 +963,9 @@ suggestions
   part '';
     kind: keyword
     selection: 6
+  part of '';
+    kind: keyword
+    selection: 9
   sealed
     kind: keyword
   typedef

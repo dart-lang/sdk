@@ -492,29 +492,6 @@ abstract interface class Process {
   Stream<List<int>> get stderr;
 
   /// The standard input stream of the process as an [IOSink].
-  ///
-  /// `stdin` is implemented as a pipe between the parent process and the
-  /// spawned subprocess.
-  ///
-  /// Data added to the [IOSink] (E.g. `Process.stdin.writeln('Hello!')`) is
-  /// written to to the pipe asynchronously.
-  ///
-  /// Errors writing the data (e.g. due to the subprocess exiting) can be
-  /// caught by awaiting `Process.stdin.flush()`. For example:
-  ///
-  /// ```dart
-  /// import 'dart:io';
-  ///
-  /// main() async {
-  ///   final process = await Process.start('false', const <String>[]);
-  ///   process.stdin.writeln('Hello World\n');  // May already have exited.
-  ///   try {
-  ///     await process.stdin.flush();
-  ///   } catch (e) {
-  ///     print(e);
-  ///   }
-  /// }
-  /// ```
   IOSink get stdin;
 
   /// The process id of the process.

@@ -71,6 +71,10 @@ class ElementDisplayStringBuilder {
   }
 
   void writeConstructorElement(ConstructorElement element) {
+    if (element.isAugmentation) {
+      _write('augment ');
+    }
+
     _writeType(element.returnType);
     _write(' ');
 
@@ -88,6 +92,10 @@ class ElementDisplayStringBuilder {
   }
 
   void writeEnumElement(EnumElement element) {
+    if (element.isAugmentation) {
+      _write('augment ');
+    }
+
     _write('enum ');
     _write(element.displayName);
     _writeTypeParameters(element.typeParameters);
@@ -123,6 +131,10 @@ class ElementDisplayStringBuilder {
   }
 
   void writeExtensionElement(ExtensionElement element) {
+    if (element.isAugmentation) {
+      _write('augment ');
+    }
+
     _write('extension');
     if (element.displayName.isNotEmpty) {
       _write(' ');

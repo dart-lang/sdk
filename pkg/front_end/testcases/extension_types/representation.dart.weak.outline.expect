@@ -46,15 +46,15 @@ extension type Duplicate(core::bool instanceField) {
   constructor • = self::Duplicate|constructor#;
   constructor tearoff • = self::Duplicate|constructor#_#new#tearOff;
 }
-static extension-type-member method Missing|constructor#() → self::Missing /* = invalid-type */
+static extension-type-member method Missing|constructor#() → self::Missing% /* erasure=invalid-type, declared=! */
   ;
-static extension-type-member method Missing|constructor#_#new#tearOff() → self::Missing /* = invalid-type */
+static extension-type-member method Missing|constructor#_#new#tearOff() → self::Missing% /* erasure=invalid-type, declared=! */
   return self::Missing|constructor#();
-static extension-type-member method Multiple|constructor#(core::bool instanceField1, core::int instanceField2) → self::Multiple /* = core::bool */
+static extension-type-member method Multiple|constructor#(core::bool instanceField1, core::int instanceField2) → self::Multiple% /* erasure=core::bool, declared=! */
   ;
-static extension-type-member method Multiple|constructor#_#new#tearOff(core::bool instanceField1, core::int instanceField2) → self::Multiple /* = core::bool */
+static extension-type-member method Multiple|constructor#_#new#tearOff(core::bool instanceField1, core::int instanceField2) → self::Multiple% /* erasure=core::bool, declared=! */
   return self::Multiple|constructor#(instanceField1, instanceField2);
-static extension-type-member method Duplicate|constructor#(core::int instanceField, core::int instanceField) → self::Duplicate /* = core::bool */
+static extension-type-member method Duplicate|constructor#(core::int instanceField, core::int instanceField) → self::Duplicate% /* erasure=core::bool, declared=! */
   ;
-static extension-type-member method Duplicate|constructor#_#new#tearOff(core::int instanceField, core::int instanceField) → self::Duplicate /* = core::bool */
+static extension-type-member method Duplicate|constructor#_#new#tearOff(core::int instanceField, core::int instanceField) → self::Duplicate% /* erasure=core::bool, declared=! */
   return self::Duplicate|constructor#(instanceField, instanceField);

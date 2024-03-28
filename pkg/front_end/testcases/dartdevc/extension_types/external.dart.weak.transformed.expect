@@ -46,55 +46,55 @@ extension type B(self::A a) {
   constructor named = self::B|constructor#named;
   constructor tearoff named = self::B|constructor#_#named#tearOff;
 }
-static extension-type-member method B|constructor#_(self::A a) → self::B /* = self::A */ {
-  lowered final self::B /* = self::A */ #this = a;
+static extension-type-member method B|constructor#_(self::A a) → self::B% /* erasure=self::A, declared=! */ {
+  lowered final self::B% /* erasure=self::A, declared=! */ #this = a;
   return #this;
 }
-static extension-type-member method B|constructor#_#_#tearOff(self::A a) → self::B /* = self::A */
+static extension-type-member method B|constructor#_#_#tearOff(self::A a) → self::B% /* erasure=self::A, declared=! */
   return self::B|constructor#_(a);
-external static extension-type-member method B|constructor#(self::A a) → self::B /* = self::A */;
-static extension-type-member method B|constructor#_#new#tearOff(self::A a) → self::B /* = self::A */
-  return js_2::_callConstructorUnchecked1<self::B /* = self::A */>(js_2::_getPropertyTrustType<core::Object>(_js2::staticInteropGlobalContext, "B"), a);
-external static extension-type-member method B|constructor#named(core::int i) → self::B /* = self::A */;
-static extension-type-member method B|constructor#_#named#tearOff(core::int i) → self::B /* = self::A */
-  return js_2::_callConstructorUnchecked1<self::B /* = self::A */>(js_2::_getPropertyTrustType<core::Object>(_js2::staticInteropGlobalContext, "B"), i);
+external static extension-type-member method B|constructor#(self::A a) → self::B% /* erasure=self::A, declared=! */;
+static extension-type-member method B|constructor#_#new#tearOff(self::A a) → self::B% /* erasure=self::A, declared=! */
+  return js_2::_callConstructorUnchecked1<self::B% /* erasure=self::A, declared=! */>(js_2::_getPropertyTrustType<core::Object>(_js2::staticInteropGlobalContext, "B"), a);
+external static extension-type-member method B|constructor#named(core::int i) → self::B% /* erasure=self::A, declared=! */;
+static extension-type-member method B|constructor#_#named#tearOff(core::int i) → self::B% /* erasure=self::A, declared=! */
+  return js_2::_callConstructorUnchecked1<self::B% /* erasure=self::A, declared=! */>(js_2::_getPropertyTrustType<core::Object>(_js2::staticInteropGlobalContext, "B"), i);
 external static extension-type-member method B|get#field(lowered self::A #this) → self::A;
 external static extension-type-member method B|set#field(lowered self::A #this, synthesized self::A #externalFieldValue) → void;
-external static extension-type-member method B|method(lowered final self::B /* = self::A */ #this) → self::A;
-static extension-type-member method B|get#method(lowered final self::B /* = self::A */ #this) → () → self::A
+external static extension-type-member method B|method(lowered final self::B% /* erasure=self::A, declared=! */ #this) → self::A;
+static extension-type-member method B|get#method(lowered final self::B% /* erasure=self::A, declared=! */ #this) → () → self::A
   return () → self::A => js_2::_callMethodUnchecked0<self::A>(#this, "method");
-external static extension-type-member method B|genericMethod<T extends self::B /* = self::A */>(lowered final self::B /* = self::A */ #this, self::B|genericMethod::T% t) → self::B|genericMethod::T%;
-static extension-type-member method B|get#genericMethod(lowered final self::B /* = self::A */ #this) → <T extends self::B /* = self::A */>(T%) → T%
-  return <T extends self::B /* = self::A */>(T% t) → T% => js_2::callMethod<T%>(#this, "genericMethod", <dynamic>[t]);
-external static extension-type-member method B|get#getter(lowered final self::B /* = self::A */ #this) → self::B /* = self::A */;
-external static extension-type-member method B|set#setter(lowered final self::B /* = self::A */ #this, self::B /* = self::A */ b) → void;
-external static extension-type-member method B|get#property(lowered final self::B /* = self::A */ #this) → self::B /* = self::A */;
-external static extension-type-member method B|set#property(lowered final self::B /* = self::A */ #this, self::B /* = self::A */ b) → void;
+external static extension-type-member method B|genericMethod<T extends self::B% /* erasure=self::A, declared=! */>(lowered final self::B% /* erasure=self::A, declared=! */ #this, self::B|genericMethod::T% t) → self::B|genericMethod::T%;
+static extension-type-member method B|get#genericMethod(lowered final self::B% /* erasure=self::A, declared=! */ #this) → <T extends self::B% /* erasure=self::A, declared=! */>(T%) → T%
+  return <T extends self::B% /* erasure=self::A, declared=! */>(T% t) → T% => js_2::callMethod<T%>(#this, "genericMethod", <dynamic>[t]);
+external static extension-type-member method B|get#getter(lowered final self::B% /* erasure=self::A, declared=! */ #this) → self::B% /* erasure=self::A, declared=! */;
+external static extension-type-member method B|set#setter(lowered final self::B% /* erasure=self::A, declared=! */ #this, self::B% /* erasure=self::A, declared=! */ b) → void;
+external static extension-type-member method B|get#property(lowered final self::B% /* erasure=self::A, declared=! */ #this) → self::B% /* erasure=self::A, declared=! */;
+external static extension-type-member method B|set#property(lowered final self::B% /* erasure=self::A, declared=! */ #this, self::B% /* erasure=self::A, declared=! */ b) → void;
 external static extension-type-member get B|staticField() → self::A;
 external static extension-type-member set B|staticField(synthesized self::A #externalFieldValue) → void;
 external static extension-type-member method B|staticMethod() → self::A;
-external static extension-type-member method B|staticGenericMethod<T extends self::B /* = self::A */>(self::B|staticGenericMethod::T% t) → self::B|staticGenericMethod::T%;
-external static extension-type-member get B|staticGetter() → self::B /* = self::A */;
-external static extension-type-member set B|staticSetter(self::B /* = self::A */ b) → void;
-external static extension-type-member get B|staticProperty() → self::B /* = self::A */;
-external static extension-type-member set B|staticProperty(self::B /* = self::A */ b) → void;
+external static extension-type-member method B|staticGenericMethod<T extends self::B% /* erasure=self::A, declared=! */>(self::B|staticGenericMethod::T% t) → self::B|staticGenericMethod::T%;
+external static extension-type-member get B|staticGetter() → self::B% /* erasure=self::A, declared=! */;
+external static extension-type-member set B|staticSetter(self::B% /* erasure=self::A, declared=! */ b) → void;
+external static extension-type-member get B|staticProperty() → self::B% /* erasure=self::A, declared=! */;
+external static extension-type-member set B|staticProperty(self::B% /* erasure=self::A, declared=! */ b) → void;
 static method method(self::A a) → void {
-  self::B /* = self::A */ b1 = js_2::_callConstructorUnchecked1<self::B /* = self::A */>(js_2::_getPropertyTrustType<core::Object>(_js2::staticInteropGlobalContext, "B"), a);
-  self::B /* = self::A */ b2 = js_2::_callConstructorUnchecked1<self::B /* = self::A */>(js_2::_getPropertyTrustType<core::Object>(_js2::staticInteropGlobalContext, "B"), 0);
+  self::B% /* erasure=self::A, declared=! */ b1 = js_2::_callConstructorUnchecked1<self::B% /* erasure=self::A, declared=! */>(js_2::_getPropertyTrustType<core::Object>(_js2::staticInteropGlobalContext, "B"), a);
+  self::B% /* erasure=self::A, declared=! */ b2 = js_2::_callConstructorUnchecked1<self::B% /* erasure=self::A, declared=! */>(js_2::_getPropertyTrustType<core::Object>(_js2::staticInteropGlobalContext, "B"), 0);
   a = js_2::getProperty<self::A>(b1, "field");
   js_2::setProperty<self::A>(b1, "field", a);
   a = js_2::_callMethodUnchecked0<self::A>(b1, "method");
-  b2 = js_2::_callMethodUnchecked1<self::B /* = self::A */>(b2, "genericMethod", b2);
-  b1 = js_2::getProperty<self::B /* = self::A */>(b2, "getter");
-  js_2::setProperty<self::B /* = self::A */>(b1, "setter", b2);
-  js_2::setProperty<self::B /* = self::A */>(b1, "property", js_2::getProperty<self::B /* = self::A */>(b2, "property"));
+  b2 = js_2::_callMethodUnchecked1<self::B% /* erasure=self::A, declared=! */>(b2, "genericMethod", b2);
+  b1 = js_2::getProperty<self::B% /* erasure=self::A, declared=! */>(b2, "getter");
+  js_2::setProperty<self::B% /* erasure=self::A, declared=! */>(b1, "setter", b2);
+  js_2::setProperty<self::B% /* erasure=self::A, declared=! */>(b1, "property", js_2::getProperty<self::B% /* erasure=self::A, declared=! */>(b2, "property"));
   a = js_2::getProperty<self::A>(js_2::_getPropertyTrustType<core::Object>(_js2::staticInteropGlobalContext, "B"), "staticField");
   js_2::setProperty<self::A>(js_2::_getPropertyTrustType<core::Object>(_js2::staticInteropGlobalContext, "B"), "staticField", a);
   a = js_2::_callMethodUnchecked0<self::A>(js_2::_getPropertyTrustType<core::Object>(_js2::staticInteropGlobalContext, "B"), "staticMethod");
-  b2 = js_2::_callMethodUnchecked1<self::B /* = self::A */>(js_2::_getPropertyTrustType<core::Object>(_js2::staticInteropGlobalContext, "B"), "staticGenericMethod", b2);
-  b1 = js_2::getProperty<self::B /* = self::A */>(js_2::_getPropertyTrustType<core::Object>(_js2::staticInteropGlobalContext, "B"), "staticGetter");
-  js_2::setProperty<self::B /* = self::A */>(js_2::_getPropertyTrustType<core::Object>(_js2::staticInteropGlobalContext, "B"), "staticSetter", b2);
-  js_2::setProperty<self::B /* = self::A */>(js_2::_getPropertyTrustType<core::Object>(_js2::staticInteropGlobalContext, "B"), "staticProperty", js_2::getProperty<self::B /* = self::A */>(js_2::_getPropertyTrustType<core::Object>(_js2::staticInteropGlobalContext, "B"), "staticProperty"));
+  b2 = js_2::_callMethodUnchecked1<self::B% /* erasure=self::A, declared=! */>(js_2::_getPropertyTrustType<core::Object>(_js2::staticInteropGlobalContext, "B"), "staticGenericMethod", b2);
+  b1 = js_2::getProperty<self::B% /* erasure=self::A, declared=! */>(js_2::_getPropertyTrustType<core::Object>(_js2::staticInteropGlobalContext, "B"), "staticGetter");
+  js_2::setProperty<self::B% /* erasure=self::A, declared=! */>(js_2::_getPropertyTrustType<core::Object>(_js2::staticInteropGlobalContext, "B"), "staticSetter", b2);
+  js_2::setProperty<self::B% /* erasure=self::A, declared=! */>(js_2::_getPropertyTrustType<core::Object>(_js2::staticInteropGlobalContext, "B"), "staticProperty", js_2::getProperty<self::B% /* erasure=self::A, declared=! */>(js_2::_getPropertyTrustType<core::Object>(_js2::staticInteropGlobalContext, "B"), "staticProperty"));
 }
 
 constants  {

@@ -264,6 +264,9 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   Future<void> test_dynamicRegistration_config_codeAction() =>
       assertDynamicRegistration('codeAction', {Method.textDocument_codeAction});
 
+  Future<void> test_dynamicRegistration_config_codeLens() =>
+      assertDynamicRegistration('codeLens', {Method.textDocument_codeLens});
+
   Future<void> test_dynamicRegistration_config_colorProvider() =>
       assertDynamicRegistration(
           'colorProvider', {Method.textDocument_documentColor});
@@ -820,6 +823,28 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     expect(server.contextManager.excludedPaths, equals([excludedFolderPath]));
   }
 
+  /// Tests that requests that requires a unit result are handled correctly even
+  /// if sent immediately after the `initialized` notification and do not result
+  /// in "File not Analyzed"-style errors because roots are set asynchronously.
+  Future<void> test_immediateRequests() async {
+    newFile(mainFilePath, 'void f() {}');
+    late Future<Either2<List<DocumentSymbol>, List<SymbolInformation>>> result;
+    await provideConfig(
+      () => initialize(
+        immediatelyAfterInitialized: () {
+          result = getDocumentSymbols(mainFileUri);
+        },
+      ),
+      {},
+    );
+
+    final symbols = (await result).map(
+      (docSymbols) => docSymbols,
+      (symbolInfos) => symbolInfos,
+    );
+    expect(symbols, hasLength(1));
+  }
+
   Future<void> test_initialize() async {
     final response = await initialize();
     expect(response, isNotNull);
@@ -912,14 +937,13 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_nonFileScheme_rootUri() async {
+    // We expect an error notification about the invalid file we try to open.
+    failTestOnAnyErrorNotification = false;
+
     final rootUri = Uri.parse('vsls://');
     final fileUri = rootUri.replace(path: '/file1.dart');
 
-    await initialize(
-      rootUri: rootUri,
-      // We expect an error notification about the invalid file we try to open.
-      failTestOnAnyErrorNotification: false,
-    );
+    await initialize(rootUri: rootUri);
     expect(server.contextManager.includedPaths, equals([]));
 
     // Also open a non-file file to ensure it doesn't cause the root to be added.
@@ -932,6 +956,8 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   /// Related tests for didChangeWorkspaceFolders are in
   /// [ChangeWorkspaceFoldersTest].
   Future<void> test_nonFileScheme_workspaceFolders() async {
+    // We expect an error notification about the invalid file we try to open.
+    failTestOnAnyErrorNotification = false;
     newPubspecYamlFile(projectFolderPath, '');
 
     final rootUri = Uri.parse('vsls://');
@@ -942,8 +968,6 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
         rootUri,
         pathContext.toUri(projectFolderPath),
       ],
-      // We expect an error notification about the invalid file we try to open.
-      failTestOnAnyErrorNotification: false,
     );
     expect(server.contextManager.includedPaths, equals([projectFolderPath]));
 

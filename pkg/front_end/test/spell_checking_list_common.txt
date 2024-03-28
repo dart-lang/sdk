@@ -166,6 +166,7 @@ appearing
 appears
 append
 appended
+appending
 appends
 application
 application's
@@ -290,6 +291,7 @@ below
 beneficial
 benefit
 benign
+besides
 best
 bets
 better
@@ -457,6 +459,7 @@ circularities
 circularity
 circumstance
 circumstances
+clarifying
 clashing
 class
 classes
@@ -562,6 +565,7 @@ completer
 completion
 complex
 compliance
+complication
 component
 components
 composed
@@ -1485,6 +1489,7 @@ imitation
 immediate
 immediately
 immutable
+impact
 implement
 implementation
 implementations
@@ -1540,11 +1545,13 @@ indicate
 indicated
 indicates
 indicating
+indication
 indices
 indirect
 indirectly
 induce
 induced
+inducing
 infer
 inference
 inferrable
@@ -1612,6 +1619,7 @@ instruction
 instructions
 instrumentation
 instrumented
+insufficient
 int
 intact
 integer
@@ -2031,6 +2039,7 @@ neighbors
 neither
 nest
 nested
+nestedness
 nesting
 net
 never
@@ -2066,6 +2075,7 @@ nothing
 notice
 noticed
 notifies
+notions
 now
 nowhere
 null
@@ -2086,6 +2096,7 @@ observed
 obtain
 obtained
 obvious
+obviously
 occur
 occurred
 occurrence
@@ -2423,6 +2434,7 @@ pseudo
 pub
 public
 publications
+publicly
 published
 pull
 punctuation
@@ -2532,6 +2544,7 @@ refinements
 reflecting
 reflects
 regardless
+regards
 region
 regions
 register
@@ -2554,6 +2567,7 @@ relations
 relationship
 relationships
 relative
+relaxed
 release
 releases
 relevant
@@ -2994,6 +3008,7 @@ successively
 succinct
 such
 suffice
+sufficiency
 sufficient
 sufficiently
 suffix

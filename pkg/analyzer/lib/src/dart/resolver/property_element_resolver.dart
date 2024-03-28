@@ -12,6 +12,7 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/lexical_lookup.dart';
@@ -898,7 +899,7 @@ class PropertyElementResolver with ScopeHelpers {
       atDynamicTarget: atDynamicTarget,
       readElementRequested: readElement,
       writeElementRequested: writeElement,
-      indexContextType: contextType,
+      indexContextType: contextType ?? UnknownInferredType.instance,
     );
   }
 }
@@ -914,8 +915,8 @@ class PropertyElementResolverResult {
   final DartType? getType;
 
   /// If [IndexExpression] is resolved, the context type of the index.
-  /// Might be `null` if `[]` or `[]=` are not resolved or invalid.
-  final DartType? indexContextType;
+  /// Might be `_` if `[]` or `[]=` are not resolved or invalid.
+  final DartType indexContextType;
 
   PropertyElementResolverResult({
     this.readElementRequested,
@@ -923,7 +924,7 @@ class PropertyElementResolverResult {
     this.writeElementRequested,
     this.writeElementRecovery,
     this.atDynamicTarget = false,
-    this.indexContextType,
+    this.indexContextType = UnknownInferredType.instance,
     this.functionTypeCallType,
     this.recordField,
     this.getType,

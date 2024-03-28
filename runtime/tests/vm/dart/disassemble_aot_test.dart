@@ -9,7 +9,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:expect/expect.dart';
 import 'package:path/path.dart' as path;
 
 import 'use_flag_test_helper.dart';

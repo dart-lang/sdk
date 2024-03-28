@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/body_inference_context.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -28,7 +29,7 @@ class YieldStatementResolver {
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
   void resolve(YieldStatement node) {
-    var bodyContext = _resolver.inferenceContext.bodyContext;
+    var bodyContext = _resolver.bodyContext;
     if (bodyContext != null && bodyContext.isGenerator) {
       _resolve_generator(bodyContext, node);
     } else {
@@ -140,7 +141,7 @@ class YieldStatementResolver {
     }
   }
 
-  DartType? _computeContextType(
+  DartType _computeContextType(
     BodyInferenceContext bodyContext,
     YieldStatement node,
   ) {
@@ -154,7 +155,7 @@ class YieldStatementResolver {
       }
       return contextType;
     } else {
-      return null;
+      return UnknownInferredType.instance;
     }
   }
 

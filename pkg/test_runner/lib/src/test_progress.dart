@@ -433,8 +433,6 @@ abstract class ProgressIndicator extends EventListener {
         return LineProgressIndicator(startTime);
       case Progress.status:
         return null;
-      case Progress.buildbot:
-        return BuildbotProgressIndicator(startTime);
     }
 
     throw "unreachable";
@@ -504,32 +502,6 @@ class LineProgressIndicator extends ProgressIndicator {
     }
     Terminal.print(
         'Done ${test.configurationString} ${test.displayName}: $status');
-  }
-}
-
-class BuildbotProgressIndicator extends ProgressIndicator {
-  static String? stepName;
-
-  BuildbotProgressIndicator(super.startTime);
-
-  @override
-  void _printDoneProgress(TestCase test) {
-    var status = 'pass';
-    if (test.unexpectedOutput) {
-      status = 'fail';
-    }
-    var percent = ((_completedTests / _foundTests) * 100).toInt().toString();
-    Terminal.print(
-        'Done ${test.configurationString} ${test.displayName}: $status');
-    Terminal.print('@@@STEP_CLEAR@@@');
-    Terminal.print('@@@STEP_TEXT@ $percent% +$_passedTests -$_failedTests @@@');
-  }
-
-  @override
-  void allDone() {
-    if (_failedTests == 0) return;
-    Terminal.print('@@@STEP_FAILURE@@@');
-    if (stepName != null) Terminal.print('@@@BUILD_STEP $stepName failures@@@');
   }
 }
 

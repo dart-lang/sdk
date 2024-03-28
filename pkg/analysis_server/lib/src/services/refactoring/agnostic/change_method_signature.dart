@@ -71,6 +71,8 @@ sealed class Available extends Availability {
     required this.refactoringContext,
   });
 
+  bool get hasPositionalParameters;
+
   bool get hasSelectedFormalParametersToConvertToNamed => false;
 
   bool get hasSelectedFormalParametersToMoveLeft => false;
@@ -419,6 +421,11 @@ final class _AvailableWithDeclaration extends Available {
   });
 
   @override
+  bool get hasPositionalParameters {
+    return declaration.element.parameters.any((e) => e.isPositional);
+  }
+
+  @override
   bool get hasSelectedFormalParametersToConvertToNamed {
     final selected = declaration.selected;
     if (selected.isEmpty) {
@@ -486,6 +493,11 @@ final class _AvailableWithExecutableElement extends Available {
     required super.refactoringContext,
     required this.element,
   });
+
+  @override
+  bool get hasPositionalParameters {
+    return element.parameters.any((e) => e.isPositional);
+  }
 }
 
 /// The target method declaration.
@@ -763,7 +775,10 @@ class _SignatureUpdater {
     final utils = CorrectionUtils(unitResult);
 
     /// Returns the code without the `required` modifier.
-    String withoutRequired(FormalParameter existing) {
+    String withoutRequired(
+      FormalParameter existing, {
+      required bool withSuper,
+    }) {
       final notDefault = existing.notDefault;
       final requiredToken = notDefault.requiredKeyword;
       if (requiredToken != null) {
@@ -775,7 +790,18 @@ class _SignatureUpdater {
         );
         return '$before $after';
       } else {
-        return utils.getNodeText(existing);
+        if (withSuper) {
+          var nameToken = notDefault.name!;
+          var before = utils.getRangeText(
+            range.startStart(existing, nameToken),
+          );
+          var after = utils.getRangeText(
+            range.startEnd(nameToken, existing),
+          );
+          return '${before}super.$after';
+        } else {
+          return utils.getNodeText(existing);
+        }
       }
     }
 
@@ -787,17 +813,26 @@ class _SignatureUpdater {
       final notDefault = existing.notDefault;
       final requiredToken = notDefault.requiredKeyword;
       if (requiredToken != null) {
-        return utils.getNodeText(existing);
-      } else if (withSuper) {
-        var nameToken = notDefault.name!;
-        var before = utils.getRangeText(
-          range.startStart(notDefault, nameToken),
-        );
-        // TODO(scheglov): what if already `super`?
-        return 'required ${before}super.${nameToken.lexeme}';
+        if (withSuper) {
+          var nameToken = notDefault.name!;
+          var before = utils.getRangeText(
+            range.startStart(requiredToken.next!, nameToken),
+          );
+          return 'required ${before}super.${nameToken.lexeme}';
+        } else {
+          return utils.getNodeText(existing);
+        }
       } else {
-        final after = utils.getNodeText(notDefault);
-        return 'required $after';
+        if (withSuper) {
+          var nameToken = notDefault.name!;
+          var before = utils.getRangeText(
+            range.startStart(notDefault, nameToken),
+          );
+          return 'required ${before}super.${nameToken.lexeme}';
+        } else {
+          final after = utils.getNodeText(notDefault);
+          return 'required $after';
+        }
       }
     }
 
@@ -849,10 +884,16 @@ class _SignatureUpdater {
         case NormalFormalParameter():
           switch (update.kind) {
             case FormalParameterKind.requiredPositional:
-              final text = withoutRequired(notDefault);
+              final text = withoutRequired(
+                notDefault,
+                withSuper: update.withSuper,
+              );
               requiredPositionalWrites.add(text);
             case FormalParameterKind.optionalPositional:
-              final text = withoutRequired(existing);
+              final text = withoutRequired(
+                existing,
+                withSuper: update.withSuper,
+              );
               optionalPositionalWrites.add(text);
             case FormalParameterKind.requiredNamed:
               final text = withRequired(
@@ -861,7 +902,10 @@ class _SignatureUpdater {
               );
               namedWrites.add(text);
             case FormalParameterKind.optionalNamed:
-              final text = withoutRequired(existing);
+              final text = withoutRequired(
+                existing,
+                withSuper: update.withSuper,
+              );
               namedWrites.add(text);
           }
         default:
@@ -1187,8 +1231,15 @@ class _SignatureUpdater {
     var formalParameterUpdatesNamed = <FormalParameterUpdate>[];
     for (var formalParameter in selection.formalParameters) {
       final element = formalParameter.element;
-      // TODO(scheglov): what if already named?
-      if (parameterElementsToSuper.contains(element)) {
+      if (element.isNamed) {
+        formalParameterUpdatesNamed.add(
+          FormalParameterUpdate(
+            id: formalParameter.id,
+            kind: FormalParameterKind.fromElement(element),
+            withSuper: true,
+          ),
+        );
+      } else if (parameterElementsToSuper.contains(element)) {
         formalParameterUpdatesNamed.add(
           FormalParameterUpdate(
             id: formalParameter.id,
@@ -1222,6 +1273,8 @@ class _SignatureUpdater {
     if (status is! ChangeStatusSuccess) {
       return status;
     }
+
+    // TODO(scheglov): Remove empty `super()`.
 
     return ChangeStatusSuccess();
   }

@@ -36,7 +36,7 @@ class InfoCommand extends DartdevCommand {
 
   @override
   FutureOr<int> run() async {
-    final elideFilePaths = argResults![removeFilePathsFlag] as bool;
+    final elideFilePaths = argResults!.flag(removeFilePathsFlag);
 
     print('');
     print(_message);

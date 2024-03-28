@@ -5,7 +5,7 @@
 import 'package:analysis_server/lsp_protocol/protocol.dart' as lsp;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/legacy_analysis_server.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
@@ -27,7 +27,7 @@ class DefinitionTest extends AbstractLspAnalysisServerTest {
   AnalysisServerOptions get serverOptions => AnalysisServerOptions()
     ..enabledExperiments = [
       ...super.serverOptions.enabledExperiments,
-      EnableString.macros,
+      Feature.macros.enableString,
     ];
 
   Future<void> test_acrossFiles() async {
@@ -52,15 +52,16 @@ class DefinitionTest extends AbstractLspAnalysisServerTest {
     [!foo!]() {}
     ''';
 
-    final referencedFileUri =
-        toUri(join(projectFolderPath, 'lib', 'referenced.dart'));
+    final referencedFilePath =
+        join(projectFolderPath, 'lib', 'referenced.dart');
+    final referencedFileUri = toUri(referencedFilePath);
 
     final mainCode = TestCode.parse(mainContents);
     final referencedCode = TestCode.parse(referencedContents);
 
+    newFile(mainFilePath, mainCode.code);
+    newFile(referencedFilePath, referencedCode.code);
     await initialize();
-    await openFile(mainFileUri, mainCode.code);
-    await openFile(referencedFileUri, referencedCode.code);
     final res =
         await getDefinitionAsLocation(mainFileUri, mainCode.position.position);
 
@@ -271,7 +272,7 @@ class [!A!] {
     final contents = '''
 class A {
   final String [!a!];
-  A(this.^a});
+  A(this.^a);
 }
 ''';
 
@@ -320,7 +321,7 @@ class A {
     final contents = '''
 bool [!greater!](int x, int y) => x > y;
 
-foo(int m) {
+foo(Object pair) {
   switch (pair) {
     case (int a, int b) when g^reater(a,b):
       break;
@@ -338,7 +339,7 @@ foo(int m) {
     import 'referenced.dart';
 
     void f() {
-      Icons.[!ad^d!]();
+      Icons().[!ad^d!];
     }
     ''';
 
@@ -346,23 +347,24 @@ foo(int m) {
     void unrelatedFunction() {}
 
     class Icons {
-      /// `targetRange` should not include the dartDoc but should include the full
-      /// function body. `targetSelectionRange` will be just the name.
+      /// `targetRange` should not include the dartDoc but should include the
+      /// full field body. `targetSelectionRange` will be just the name.
       [!String add = "Test"!];
     }
 
     void otherUnrelatedFunction() {}
     ''';
 
-    final referencedFileUri =
-        toUri(join(projectFolderPath, 'lib', 'referenced.dart'));
+    final referencedFilePath =
+        join(projectFolderPath, 'lib', 'referenced.dart');
+    final referencedFileUri = toUri(referencedFilePath);
 
     final mainCode = TestCode.parse(mainContents);
     final referencedCode = TestCode.parse(referencedContents);
 
+    newFile(mainFilePath, mainCode.code);
+    newFile(referencedFilePath, referencedCode.code);
     await initialize();
-    await openFile(mainFileUri, mainCode.code);
-    await openFile(referencedFileUri, referencedCode.code);
     final res = await getDefinitionAsLocationLinks(
         mainFileUri, mainCode.position.position);
 
@@ -400,15 +402,16 @@ foo(int m) {
     void otherUnrelatedFunction() {}
     ''';
 
-    final referencedFileUri =
-        toUri(join(projectFolderPath, 'lib', 'referenced.dart'));
+    final referencedFilePath =
+        join(projectFolderPath, 'lib', 'referenced.dart');
+    final referencedFileUri = toUri(referencedFilePath);
 
     final mainCode = TestCode.parse(mainContents);
     final referencedCode = TestCode.parse(referencedContents);
 
+    newFile(mainFilePath, mainCode.code);
+    newFile(referencedFilePath, referencedCode.code);
     await initialize();
-    await openFile(mainFileUri, mainCode.code);
-    await openFile(referencedFileUri, referencedCode.code);
     final res = await getDefinitionAsLocationLinks(
         mainFileUri, mainCode.position.position);
 
@@ -520,7 +523,7 @@ class A {}
     import 'lib.dart';
 
     void f() {
-      Icons.[!ad^d!]();
+      Icons().[!ad^d!];
     }
     ''';
 
@@ -542,17 +545,18 @@ class A {}
     void otherUnrelatedFunction() {}
     ''';
 
-    final libFileUri = toUri(join(projectFolderPath, 'lib', 'lib.dart'));
-    final partFileUri = toUri(join(projectFolderPath, 'lib', 'part.dart'));
+    final libFilePath = join(projectFolderPath, 'lib', 'lib.dart');
+    final partFilePath = join(projectFolderPath, 'lib', 'part.dart');
+    final partFileUri = toUri(partFilePath);
 
     final mainCode = TestCode.parse(mainContents);
     final libCode = TestCode.parse(libContents);
     final partCode = TestCode.parse(partContents);
 
+    newFile(mainFilePath, mainCode.code);
+    newFile(libFilePath, libCode.code);
+    newFile(partFilePath, partCode.code);
     await initialize();
-    await openFile(mainFileUri, mainCode.code);
-    await openFile(libFileUri, libCode.code);
-    await openFile(partFileUri, partCode.code);
     final res = await getDefinitionAsLocationLinks(
         mainFileUri, mainCode.position.position);
 
@@ -576,14 +580,15 @@ part 'pa^rt.dart';
 part of 'main.dart';
     ''';
 
-    final partFileUri = toUri(join(projectFolderPath, 'lib', 'part.dart'));
+    final partFilePath = join(projectFolderPath, 'lib', 'part.dart');
+    final partFileUri = toUri(partFilePath);
 
     final mainCode = TestCode.parse(mainContents);
     final partCode = TestCode.parse(partContents);
 
+    newFile(mainFilePath, mainCode.code);
+    newFile(partFilePath, partCode.code);
     await initialize();
-    await openFile(mainFileUri, mainCode.code);
-    await openFile(partFileUri, partCode.code);
     final res =
         await getDefinitionAsLocation(mainFileUri, mainCode.position.position);
 
@@ -599,14 +604,15 @@ part 'part.dart';
 part of 'ma^in.dart';
     ''';
 
-    final partFileUri = toUri(join(projectFolderPath, 'lib', 'part.dart'));
+    final partFilePath = join(projectFolderPath, 'lib', 'part.dart');
+    final partFileUri = toUri(partFilePath);
 
     final mainCode = TestCode.parse(mainContents);
     final partCode = TestCode.parse(partContents);
 
+    newFile(mainFilePath, mainCode.code);
+    newFile(partFilePath, partCode.code);
     await initialize();
-    await openFile(mainFileUri, mainCode.code);
-    await openFile(partFileUri, partCode.code);
     final res =
         await getDefinitionAsLocation(partFileUri, partCode.position.position);
 
@@ -673,9 +679,9 @@ class [!A!]<T> {}
   Future<void> test_variableInPattern() async {
     final contents = '''
 foo() {
-  var m = <String,int>{};
+  var m = <String, int>{};
   const [!str!] = 'h';
-  if (m case {'d':3, s^tr:4, ... }){}
+  if (m case {'d':3, s^tr:4, }){}
 }
 ''';
 

@@ -1,12 +1,4 @@
 library;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/patterns/records/record_pattern_inside_if_case.dart:32:45: Warning: The null-assert pattern will have no effect because the matched type isn't nullable.
-// Try replacing the null-assert pattern with its nested pattern.
-//   if (x case (int _, double y, foo: String _!, bar: var _)) {
-//                                             ^
-//
 import self as self;
 import "dart:core" as core;
 

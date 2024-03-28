@@ -7,6 +7,7 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:meta/meta.dart';
 
 extension ElementExtension on Element {
   // TODO(scheglov): Maybe just add to `Element`?
@@ -15,6 +16,55 @@ extension ElementExtension on Element {
       return augmentable.augmentation;
     }
     return null;
+  }
+
+  /// Whether the element is effectively [internal].
+  bool get isInternal {
+    if (hasInternal) {
+      return true;
+    }
+    if (this case PropertyAccessorElement accessor) {
+      var variable = accessor.variable2;
+      if (variable != null && variable.hasInternal) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /// Whether the element is effectively [protected].
+  bool get isProtected {
+    final self = this;
+    if (self is PropertyAccessorElement &&
+        self.enclosingElement is InterfaceElement) {
+      if (self.hasProtected) {
+        return true;
+      }
+      var variable = self.variable2;
+      if (variable != null && variable.hasProtected) {
+        return true;
+      }
+    }
+    if (self is MethodElement &&
+        self.enclosingElement is InterfaceElement &&
+        self.hasProtected) {
+      return true;
+    }
+    return false;
+  }
+
+  /// Whether the element is effectively [visibleForTesting].
+  bool get isVisibleForTesting {
+    if (hasVisibleForTesting) {
+      return true;
+    }
+    if (this case PropertyAccessorElement accessor) {
+      var variable = accessor.variable2;
+      if (variable != null && variable.hasVisibleForTesting) {
+        return true;
+      }
+    }
+    return false;
   }
 
   List<Element> get withAugmentations {

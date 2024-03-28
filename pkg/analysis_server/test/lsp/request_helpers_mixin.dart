@@ -198,6 +198,34 @@ mixin LspRequestHelpersMixin {
         request, _fromJsonList(TextEdit.fromJson));
   }
 
+  Future<Location?> getAugmentation(
+    Uri uri,
+    Position pos,
+  ) {
+    final request = makeRequest(
+      CustomMethods.augmentation,
+      TextDocumentPositionParams(
+        textDocument: TextDocumentIdentifier(uri: uri),
+        position: pos,
+      ),
+    );
+    return expectSuccessfulResponseTo(request, Location.fromJson);
+  }
+
+  Future<Location?> getAugmented(
+    Uri uri,
+    Position pos,
+  ) {
+    final request = makeRequest(
+      CustomMethods.augmented,
+      TextDocumentPositionParams(
+        textDocument: TextDocumentIdentifier(uri: uri),
+        position: pos,
+      ),
+    );
+    return expectSuccessfulResponseTo(request, Location.fromJson);
+  }
+
   Future<List<Either2<Command, CodeAction>>> getCodeActions(
     Uri fileUri, {
     Range? range,
@@ -230,6 +258,17 @@ mixin LspRequestHelpersMixin {
       _fromJsonList(_generateFromJsonFor(Command.canParse, Command.fromJson,
           CodeAction.canParse, CodeAction.fromJson)),
     );
+  }
+
+  Future<TextDocumentCodeLensResult> getCodeLens(Uri uri) {
+    final request = makeRequest(
+      Method.textDocument_codeLens,
+      CodeLensParams(
+        textDocument: TextDocumentIdentifier(uri: uri),
+      ),
+    );
+    return expectSuccessfulResponseTo(
+        request, _fromJsonList(CodeLens.fromJson));
   }
 
   Future<List<ColorPresentation>> getColorPresentation(

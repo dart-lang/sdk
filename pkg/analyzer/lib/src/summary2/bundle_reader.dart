@@ -4,7 +4,6 @@
 
 import 'dart:typed_data';
 
-import 'package:_fe_analyzer_shared/src/macros/api.dart' as macro;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -37,6 +36,7 @@ import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer/src/utilities/uri_cache.dart';
+import 'package:macros/macros.dart' as macro;
 import 'package:pub_semver/pub_semver.dart';
 
 class BundleReader {
@@ -1593,7 +1593,7 @@ class LibraryReader {
         }
       }
 
-      accessor.variable = property;
+      accessor.variable2 = property;
       if (isGetter) {
         property.getter = accessor;
       } else {
@@ -1910,7 +1910,7 @@ class PropertyAccessorElementLinkedData
     if (augmentationTarget is PropertyAccessorElementImpl) {
       augmentationTarget.augmentation = element;
       element.augmentationTarget = augmentationTarget;
-      element.variable = augmentationTarget.variable;
+      element.variable2 = augmentationTarget.variable2;
     }
 
     applyConstantOffsets?.perform();
@@ -2096,14 +2096,6 @@ class ResolutionReader {
       var type = element.instantiate(
         typeArguments: const <DartType>[],
         nullabilitySuffix: NullabilitySuffix.question,
-      );
-      return _readAliasElementArguments(type);
-    } else if (tag == Tag.InterfaceType_noTypeArguments_star) {
-      var element = readElement() as InterfaceElement;
-      var type = InterfaceTypeImpl(
-        element: element,
-        typeArguments: const <DartType>[],
-        nullabilitySuffix: NullabilitySuffix.star,
       );
       return _readAliasElementArguments(type);
     } else if (tag == Tag.InvalidType) {
@@ -2574,6 +2566,13 @@ class TopLevelVariableElementLinkedData
     );
     element.macroDiagnostics = reader.readMacroDiagnostics();
     element.type = reader.readRequiredType();
+
+    final augmentationTarget = reader.readElement();
+    if (augmentationTarget is TopLevelVariableElementImpl) {
+      augmentationTarget.augmentation = element;
+      element.augmentationTarget = augmentationTarget;
+    }
+
     if (element is ConstTopLevelVariableElementImpl) {
       var initializer = reader._readOptionalExpression();
       if (initializer != null) {

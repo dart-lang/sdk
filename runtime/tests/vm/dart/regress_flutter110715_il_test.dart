@@ -63,7 +63,7 @@ void matchIL$bug1(FlowGraph graph) {
         ]),
     'B4' <<
         match.block('Join', [
-          match.Return(),
+          match.DartReturn(),
         ]),
   ]);
 }
@@ -90,7 +90,7 @@ void matchIL$bug2(FlowGraph graph) {
         ]),
     'B4' <<
         match.block('Join', [
-          match.Return(),
+          match.DartReturn(),
         ]),
   ]);
 }

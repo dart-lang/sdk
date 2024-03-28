@@ -25,7 +25,7 @@ class RecordLiteralResolver {
 
   void resolve(
     RecordLiteralImpl node, {
-    required DartType? contextType,
+    required DartType contextType,
   }) {
     _resolveFields(node, contextType);
 
@@ -40,7 +40,7 @@ class RecordLiteralResolver {
   /// The type schemas contained in [contextType] should only be used for
   /// inferring the expressions in [node] if it is a record type with a shape
   /// that matches the shape of [node].
-  RecordType? _matchContextType(RecordLiteralImpl node, DartType? contextType) {
+  RecordType? _matchContextType(RecordLiteralImpl node, DartType contextType) {
     if (contextType is! RecordType) return null;
     if (contextType.namedFields.length + contextType.positionalFields.length !=
         node.fields.length) {
@@ -131,14 +131,12 @@ class RecordLiteralResolver {
     }
   }
 
-  DartType _resolveField(ExpressionImpl field, DartType? contextType) {
+  DartType _resolveField(ExpressionImpl field, DartType contextType) {
     var staticType = _resolver.analyzeExpression(field, contextType);
     field = _resolver.popRewrite()!;
 
     // Implicit cast from `dynamic`.
-    if (contextType != null &&
-        contextType is! UnknownInferredType &&
-        staticType is DynamicType) {
+    if (contextType is! UnknownInferredType && staticType is DynamicType) {
       var greatestClosureOfSchema =
           _resolver.typeSystem.greatestClosureOfSchema(contextType);
       if (!_resolver.typeSystem
@@ -157,7 +155,7 @@ class RecordLiteralResolver {
     return staticType;
   }
 
-  void _resolveFields(RecordLiteralImpl node, DartType? contextType) {
+  void _resolveFields(RecordLiteralImpl node, DartType contextType) {
     final positionalFields = <RecordTypePositionalFieldImpl>[];
     final namedFields = <RecordTypeNamedFieldImpl>[];
     var contextTypeAsRecord = _matchContextType(node, contextType);
@@ -165,12 +163,14 @@ class RecordLiteralResolver {
     for (final field in node.fields) {
       if (field is NamedExpressionImpl) {
         final name = field.name.label.name;
-        var fieldContextType = contextTypeAsRecord?.namedField(name)!.type;
+        var fieldContextType = contextTypeAsRecord?.namedField(name)!.type ??
+            UnknownInferredType.instance;
         namedFields.add(RecordTypeNamedFieldImpl(
             name: name, type: _resolveField(field, fieldContextType)));
       } else {
         var fieldContextType =
-            contextTypeAsRecord?.positionalFields[index++].type;
+            contextTypeAsRecord?.positionalFields[index++].type ??
+                UnknownInferredType.instance;
         positionalFields.add(RecordTypePositionalFieldImpl(
             type: _resolveField(field, fieldContextType)));
       }

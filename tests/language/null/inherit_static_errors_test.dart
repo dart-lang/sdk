@@ -13,6 +13,7 @@ class BadExtends extends Null {}
 //    ^
 // [cfe] 'Null' is restricted and can't be extended or implemented.
 // [cfe] The superclass, 'Null', has no unnamed constructor that takes no arguments.
+// [cfe] Subtypes of deeply immutable classes must be deeply immutable.
 //                       ^
 // [cfe] 'Null' is restricted and can't be extended or implemented.
 
@@ -21,6 +22,7 @@ class BadImplements implements Null {}
 // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_DISALLOWED_TYPE
 //    ^
 // [cfe] 'Null' is restricted and can't be extended or implemented.
+// [cfe] Subtypes of deeply immutable classes must be deeply immutable.
 //                             ^
 // [cfe] 'Null' is restricted and can't be extended or implemented.
 
@@ -29,6 +31,7 @@ class BadMixin extends Object with Null {}
 // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_DISALLOWED_TYPE
 //    ^
 // [cfe] 'Null' is restricted and can't be extended or implemented.
+// [cfe] Subtypes of deeply immutable classes must be deeply immutable.
 //                                 ^
 // [cfe] 'Null' is restricted and can't be extended or implemented.
 
@@ -37,5 +40,6 @@ class BadMixin2 = Object with Null;
 // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_DISALLOWED_TYPE
 //    ^
 // [cfe] 'Null' is restricted and can't be extended or implemented.
+// [cfe] Subtypes of deeply immutable classes must be deeply immutable.
 //                            ^
 // [cfe] 'Null' is restricted and can't be extended or implemented.

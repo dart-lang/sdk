@@ -8,9 +8,5 @@ inference_update_2/why_not_promoted_external_error_test: SkipByDesign # Non-JS-i
 number/web_int_literals_test: SkipByDesign # WASM has real integers.
 vm/*: SkipByDesign # Tests for the VM.
 
-[ $compiler == dart2wasm && $runtime == chrome ]
-async_star/yield_test: SkipSlow # Issue(http://dartbug.com/55025)
-async_star/yieldstar_test: SkipSlow # Issue(http://dartbug.com/55025)
-
 [ $compiler == dart2wasm && $runtime == d8 ]
 import/conditional_string_test: SkipByDesign # No XHR in d8

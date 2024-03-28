@@ -65,32 +65,6 @@ import 'type_schema_environment.dart'
         TypeVariableEliminator,
         TypeSchemaEnvironment;
 
-/// Given a [FunctionNode], gets the named parameter identified by [name], or
-/// `null` if there is no parameter with the given name.
-VariableDeclaration? getNamedFormal(FunctionNode function, String name) {
-  for (VariableDeclaration formal in function.namedParameters) {
-    if (formal.name == name) return formal;
-  }
-  return null;
-}
-
-/// Given a [FunctionNode], gets the [i]th positional formal parameter, or
-/// `null` if there is no parameter with that index.
-VariableDeclaration? getPositionalFormal(FunctionNode function, int i) {
-  if (i < function.positionalParameters.length) {
-    return function.positionalParameters[i];
-  } else {
-    return null;
-  }
-}
-
-bool isOverloadableArithmeticOperator(String name) {
-  return identical(name, '+') ||
-      identical(name, '-') ||
-      identical(name, '*') ||
-      identical(name, '%');
-}
-
 /// Given a [FunctionExpression], computes a set whose elements consist of (a)
 /// an integer corresponding to the zero-based index of each positional
 /// parameter of the function expression that has an explicit type annotation,
@@ -240,11 +214,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     }
   }
 
-  Expression createReachabilityError(
-      int fileOffset, Message errorMessage, Message warningMessage) {
-    if (libraryBuilder.loader.target.context.options.warnOnReachabilityCheck) {
-      helper.addProblem(warningMessage, fileOffset, noLength);
-    }
+  Expression createReachabilityError(int fileOffset, Message errorMessage) {
     Arguments arguments = new Arguments([
       new StringLiteral(errorMessage.problemMessage)..fileOffset = fileOffset
     ])
@@ -455,7 +425,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       DartType? declaredContextType,
       DartType? runtimeCheckedType,
       bool isVoidAllowed = false,
-      bool coerceExpression = true}) {
+      bool coerceExpression = true,
+      required TreeNode? treeNodeForTesting}) {
     fileOffset ??= inferenceResult.expression.fileOffset;
     contextType = computeGreatestClosure(contextType);
 
@@ -470,7 +441,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         isVoidAllowed: isVoidAllowed,
         isExpressionTypePrecise: preciseTypeErrorTemplate != null,
         coerceExpression: coerceExpression,
-        fileOffset: fileOffset);
+        fileOffset: fileOffset,
+        treeNodeForTesting: treeNodeForTesting);
 
     if (assignabilityResult.needsTearOff) {
       TypedTearoff typedTearoff = _tearOffCall(
@@ -581,7 +553,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         isVoidAllowed: isVoidAllowed,
         isExpressionTypePrecise: preciseTypeErrorTemplate != null,
         coerceExpression: isCoercionAllowed,
-        fileOffset: fileOffset);
+        fileOffset: fileOffset,
+        treeNodeForTesting: inferenceResult.expression);
 
     if (assignabilityResult.needsTearOff) {
       TypedTearoff typedTearoff = _tearOffCall(
@@ -721,7 +694,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           declaredContextType: declaredContextType,
           runtimeCheckedType: runtimeCheckedType,
           isVoidAllowed: isVoidAllowed,
-          coerceExpression: coerceExpression);
+          coerceExpression: coerceExpression,
+          treeNodeForTesting: inferenceResult.expression);
       if (coercionResult != null) {
         return coercionResult;
       }
@@ -861,7 +835,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       required bool isVoidAllowed,
       required bool isExpressionTypePrecise,
       required bool coerceExpression,
-      required int fileOffset}) {
+      required int fileOffset,
+      required TreeNode? treeNodeForTesting}) {
     // If an interface type is being assigned to a function type, see if we
     // should tear off `.call`.
     // TODO(paulberry): use resolveTypeParameter.  See findInterfaceMember.
@@ -911,8 +886,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     }
     ImplicitInstantiation? implicitInstantiation;
     if (coerceExpression && libraryFeatures.constructorTearoffs.isEnabled) {
-      implicitInstantiation =
-          computeImplicitInstantiation(expressionType, contextType);
+      implicitInstantiation = computeImplicitInstantiation(
+          expressionType, contextType,
+          treeNodeForTesting: treeNodeForTesting);
       if (implicitInstantiation != null) {
         expressionType = implicitInstantiation.instantiatedType;
       }
@@ -977,16 +953,13 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         implicitInstantiation: implicitInstantiation);
   }
 
-  bool isNull(DartType type) {
-    return type is NullType;
-  }
-
   /// Computes the type arguments for an access to an extension instance member
   /// on [extension] with the static [receiverType]. If [explicitTypeArguments]
   /// are provided, these are returned, otherwise type arguments are inferred
   /// using [receiverType].
   List<DartType> computeExtensionTypeArgument(Extension extension,
-      List<DartType>? explicitTypeArguments, DartType receiverType) {
+      List<DartType>? explicitTypeArguments, DartType receiverType,
+      {required TreeNode treeNodeForTesting}) {
     if (explicitTypeArguments != null) {
       assert(explicitTypeArguments.length == extension.typeParameters.length);
       return explicitTypeArguments;
@@ -994,14 +967,16 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       assert(explicitTypeArguments == null);
       return const <DartType>[];
     } else {
-      return inferExtensionTypeArguments(extension, receiverType);
+      return inferExtensionTypeArguments(extension, receiverType,
+          treeNodeForTesting: treeNodeForTesting);
     }
   }
 
   /// Infers the type arguments for an access to an extension instance member
   /// on [extension] with the static [receiverType].
   List<DartType> inferExtensionTypeArguments(
-      Extension extension, DartType receiverType) {
+      Extension extension, DartType receiverType,
+      {required TreeNode? treeNodeForTesting}) {
     FreshStructuralParametersFromTypeParameters freshTypeParameters =
         getFreshStructuralParametersFromTypeParameters(
             extension.typeParameters);
@@ -1013,8 +988,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     TypeConstraintGatherer gatherer = typeSchemaEnvironment
         .setupGenericTypeInference(null, typeParameters, null,
             isNonNullableByDefault: libraryBuilder.isNonNullableByDefault,
-            typeOperations: cfeOperations);
-    gatherer.constrainArguments([onType], [receiverType]);
+            typeOperations: cfeOperations,
+            inferenceResultForTesting: dataForTesting?.typeInferenceResult,
+            treeNodeForTesting: treeNodeForTesting);
+    gatherer.constrainArguments([onType], [receiverType],
+        treeNodeForTesting: treeNodeForTesting);
     inferredTypes = typeSchemaEnvironment.chooseFinalTypes(
         gatherer, typeParameters, inferredTypes,
         isNonNullableByDefault: isNonNullableByDefault);
@@ -1108,7 +1086,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           List<TypeParameter> typeParameters =
               extensionBuilder.extension.typeParameters;
           inferredTypeArguments = inferExtensionTypeArguments(
-              extensionBuilder.extension, receiverType);
+              extensionBuilder.extension, receiverType,
+              treeNodeForTesting: null);
           Substitution inferredSubstitution =
               Substitution.fromPairs(typeParameters, inferredTypeArguments);
 
@@ -1482,15 +1461,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     return null;
   }
 
-  /// If the [member] is a forwarding stub, return the target it forwards to.
-  /// Otherwise return the given [member].
-  Member getRealTarget(Member member) {
-    if (member is Procedure && member.isForwardingStub) {
-      return member.abstractForwardingStubTarget!;
-    }
-    return member;
-  }
-
   DartType getTypeArgumentOf(DartType type, Class class_) {
     if (type is InterfaceType && identical(type.classNode, class_)) {
       return type.typeArguments[0];
@@ -1754,7 +1724,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           calleeTypeParameters,
           typeContext,
           isNonNullableByDefault: isNonNullableByDefault,
-          typeOperations: cfeOperations);
+          typeOperations: cfeOperations,
+          inferenceResultForTesting: dataForTesting?.typeInferenceResult,
+          treeNodeForTesting: arguments);
       inferredTypes = typeSchemaEnvironment.choosePreliminaryTypes(
           gatherer, calleeTypeParameters, null,
           isNonNullableByDefault: isNonNullableByDefault);
@@ -1916,7 +1888,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           NamedExpression namedArgument = arguments.named[index];
           namedArgument.value = expression..parent = namedArgument;
         }
-        gatherer?.tryConstrainLower(formalType, inferredType);
+        gatherer?.tryConstrainLower(formalType, inferredType,
+            treeNodeForTesting: arguments);
         formalTypes.add(formalType);
         actualTypes.add(inferredType);
       }
@@ -1954,8 +1927,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             arguments.positional[deferredArgument.index] = expression
               ..parent = arguments;
           }
-          gatherer?.tryConstrainLower(
-              deferredArgument.formalType, inferredType);
+          gatherer?.tryConstrainLower(deferredArgument.formalType, inferredType,
+              treeNodeForTesting: arguments);
           actualTypes[deferredArgument.evaluationOrderIndex] = inferredType;
         }
         isFirstStage = false;
@@ -3606,7 +3579,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   /// to the [context] type. Return `null` if an implicit instantiation is not
   /// necessary or possible.
   ImplicitInstantiation? computeImplicitInstantiation(
-      DartType tearoffType, DartType context) {
+      DartType tearoffType, DartType context,
+      {required TreeNode? treeNodeForTesting}) {
     if (tearoffType is FunctionType &&
         context is FunctionType &&
         context.typeParameters.isEmpty) {
@@ -3620,7 +3594,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             typeSchemaEnvironment.setupGenericTypeInference(
                 instantiatedType, typeParameters, context,
                 isNonNullableByDefault: isNonNullableByDefault,
-                typeOperations: cfeOperations);
+                typeOperations: cfeOperations,
+                inferenceResultForTesting: dataForTesting?.typeInferenceResult,
+                treeNodeForTesting: treeNodeForTesting);
         inferredTypes = typeSchemaEnvironment.chooseFinalTypes(
             gatherer, typeParameters, inferredTypes,
             isNonNullableByDefault: isNonNullableByDefault);
@@ -3648,10 +3624,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           inferred: true);
 
       if (expression is TypedefTearOff) {
-        Substitution substitution =
-            Substitution.fromPairs(expression.typeParameters, typeArguments);
+        FunctionTypeInstantiator instantiator =
+            new FunctionTypeInstantiator.fromIterables(
+                expression.structuralParameters, typeArguments);
         typeArguments =
-            expression.typeArguments.map(substitution.substituteType).toList();
+            expression.typeArguments.map(instantiator.substitute).toList();
         expression = expression.expression;
       } else {
         LoweredTypedefTearOff? loweredTypedefTearOff =
@@ -3700,8 +3677,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   /// (if necessary).
   ExpressionInferenceResult instantiateTearOff(
       DartType tearoffType, DartType context, Expression expression) {
-    ImplicitInstantiation? implicitInstantiation =
-        computeImplicitInstantiation(tearoffType, context);
+    ImplicitInstantiation? implicitInstantiation = computeImplicitInstantiation(
+        tearoffType, context,
+        treeNodeForTesting: expression);
     return _applyImplicitInstantiation(
         implicitInstantiation, tearoffType, expression);
   }

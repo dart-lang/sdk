@@ -24,7 +24,7 @@ class PrefixedIdentifierResolver {
 
   PropertyAccessImpl? resolve(
     PrefixedIdentifierImpl node, {
-    required DartType? contextType,
+    required DartType contextType,
   }) {
     node.prefix.accept(_resolver);
 

@@ -15,8 +15,6 @@
 // the order in which the mixin declaration and application are analyzed does
 // not influence the behavior.
 
-// SharedOptions=--enable-experiment=inference-update-2
-
 class C1 = Object with M;
 
 class C2 extends Object with M {}

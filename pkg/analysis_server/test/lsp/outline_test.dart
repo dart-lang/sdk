@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -171,5 +173,37 @@ class A {
             start: Position(line: 9, character: 2),
             end: Position(line: 9, character: 17))));
     expect(fieldD.children, isNull);
+  }
+
+  /// As an optimization, when a file is opened but does not contain any changes
+  /// from what was on disk, we skip analysis (in onOverlayCreated).
+  /// We still need to ensure that notifications like Outline (which are
+  /// triggered by analysis results and only sent for open files) are sent to
+  /// the client.
+  Future<void> test_openedWithoutChanges() async {
+    var content = r'''
+class A {}
+''';
+
+    // Create the file on disk so that opening the file won't re-trigger
+    // analysis.
+    newFile(mainFilePath, content);
+
+    // Track when outlines arrive.
+    Outline? mainOutline;
+    unawaited(
+      waitForOutline(mainFileUri).then((outline) => mainOutline = outline),
+    );
+
+    await Future.wait([
+      initialize(initializationOptions: {'outline': true}),
+      waitForAnalysisComplete(),
+    ]);
+    await pumpEventQueue(times: 5000);
+    expect(mainOutline, isNull); // Shouldn't be sent yet, file is not open.
+
+    await openFile(mainFileUri, content);
+    await pumpEventQueue(times: 5000);
+    expect(mainOutline, isNotNull); // Should have been sent now.
   }
 }

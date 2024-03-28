@@ -64,7 +64,7 @@ class CreateCommand extends DartdevCommand {
   @override
   FutureOr<int> run() async {
     final args = argResults!;
-    if (args['list-templates']) {
+    if (args.flag('list-templates')) {
       log.stdout(_availableTemplatesJson());
       return 0;
     }
@@ -74,12 +74,12 @@ class CreateCommand extends DartdevCommand {
       return 1;
     }
 
-    String templateId = args['template'];
+    String templateId = args.option('template')!;
 
     String dir = args.rest.first;
     var targetDir = io.Directory(dir).absolute;
     dir = targetDir.path;
-    if (targetDir.existsSync() && !args['force']) {
+    if (targetDir.existsSync() && !args.flag('force')) {
       log.stderr(
         "Directory '$dir' already exists "
         "(use '--force' to force project generation).",
@@ -111,7 +111,7 @@ class CreateCommand extends DartdevCommand {
       DirectoryGeneratorTarget(generator, io.Directory(dir)),
     );
 
-    if (args['pub']) {
+    if (args.flag('pub')) {
       log.stdout('');
       final progress = log.progress('Running pub get');
 

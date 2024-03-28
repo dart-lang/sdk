@@ -4716,36 +4716,38 @@ Message _withArgumentsJsInteropIsAPrimitiveExtensionType(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
-    templateJsInteropStaticInteropExternalTypeViolation = const Template<
+    templateJsInteropStaticInteropExternalAccessorTypeViolation =
+    const Template<
         Message Function(DartType _type, bool isNonNullableByDefault)>(
-  "JsInteropStaticInteropExternalTypeViolation",
+  "JsInteropStaticInteropExternalAccessorTypeViolation",
   problemMessageTemplate:
-      r"""Type '#type' is not a valid type in the signature of 'dart:js_interop' external APIs or APIs converted via 'toJS'.""",
+      r"""External JS interop member contains an invalid type: '#type'.""",
   correctionMessageTemplate:
-      r"""Use one of these valid types instead: JS types from 'dart:js_interop', '@staticInterop' types, 'dart:html' types when compiling to JS, void, bool, num, double, int, String, extension types that erases to one of these types, or a type parameter that is bound to a static interop or 'dart:html' type.""",
-  withArguments: _withArgumentsJsInteropStaticInteropExternalTypeViolation,
+      r"""Use one of these valid types instead: JS types from 'dart:js_interop', ExternalDartReference, void, bool, num, double, int, String, extension types that erase to one of these types, '@staticInterop' types, 'dart:html' types when compiling to JS, or a type parameter that is a subtype of a valid non-primitive type.""",
+  withArguments:
+      _withArgumentsJsInteropStaticInteropExternalAccessorTypeViolation,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(DartType _type, bool isNonNullableByDefault)>
-    codeJsInteropStaticInteropExternalTypeViolation =
+    codeJsInteropStaticInteropExternalAccessorTypeViolation =
     const Code<Message Function(DartType _type, bool isNonNullableByDefault)>(
-  "JsInteropStaticInteropExternalTypeViolation",
+  "JsInteropStaticInteropExternalAccessorTypeViolation",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsJsInteropStaticInteropExternalTypeViolation(
+Message _withArgumentsJsInteropStaticInteropExternalAccessorTypeViolation(
     DartType _type, bool isNonNullableByDefault) {
   TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
   List<Object> typeParts = labeler.labelType(_type);
   String type = typeParts.join();
   return new Message(
-    codeJsInteropStaticInteropExternalTypeViolation,
+    codeJsInteropStaticInteropExternalAccessorTypeViolation,
     problemMessage:
-        """Type '${type}' is not a valid type in the signature of 'dart:js_interop' external APIs or APIs converted via 'toJS'.""" +
+        """External JS interop member contains an invalid type: '${type}'.""" +
             labeler.originMessages,
     correctionMessage:
-        """Use one of these valid types instead: JS types from 'dart:js_interop', '@staticInterop' types, 'dart:html' types when compiling to JS, void, bool, num, double, int, String, extension types that erases to one of these types, or a type parameter that is bound to a static interop or 'dart:html' type.""",
+        """Use one of these valid types instead: JS types from 'dart:js_interop', ExternalDartReference, void, bool, num, double, int, String, extension types that erase to one of these types, '@staticInterop' types, 'dart:html' types when compiling to JS, or a type parameter that is a subtype of a valid non-primitive type.""",
     arguments: {
       'type': _type,
     },
@@ -5174,48 +5176,6 @@ Message _withArgumentsNonNullAwareSpreadIsNull(
     problemMessage: """Can't spread a value with static type '${type}'.""" +
         labeler.originMessages,
     arguments: {
-      'type': _type,
-    },
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-        Message Function(
-            String name, DartType _type, bool isNonNullableByDefault)>
-    templateNonNullableInNullAware = const Template<
-        Message Function(
-            String name, DartType _type, bool isNonNullableByDefault)>(
-  "NonNullableInNullAware",
-  problemMessageTemplate:
-      r"""Operand of null-aware operation '#name' has type '#type' which excludes null.""",
-  withArguments: _withArgumentsNonNullableInNullAware,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<
-    Message Function(String name, DartType _type,
-        bool isNonNullableByDefault)> codeNonNullableInNullAware = const Code<
-    Message Function(String name, DartType _type, bool isNonNullableByDefault)>(
-  "NonNullableInNullAware",
-  severity: Severity.warning,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNonNullableInNullAware(
-    String name, DartType _type, bool isNonNullableByDefault) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
-  List<Object> typeParts = labeler.labelType(_type);
-  String type = typeParts.join();
-  return new Message(
-    codeNonNullableInNullAware,
-    problemMessage:
-        """Operand of null-aware operation '${name}' has type '${type}' which excludes null.""" +
-            labeler.originMessages,
-    arguments: {
-      'name': name,
       'type': _type,
     },
   );

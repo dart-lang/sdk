@@ -17,12 +17,12 @@ extension StringExtension on String {
     return '$fileName.dart';
   }
 
-  /// Assuming that the receiver is a valid identifier, return a lowerCamelCase
-  /// version of the identifier.
+  /// Returns a lowerCamelCase version of the receiver.
   ///
-  /// No checks are made that the receiver is a valid identifier, but the
-  /// receiver must contain at least one underscore (but neither at the
-  /// beginning nor the end), and must not have two adjacent underscores.
+  /// No checks are made that the receiver is a valid identifier, other than
+  /// the requirement that the receiver must contain at least one underscore
+  /// (but neither at the beginning nor the end), and must not have two adjacent
+  /// underscores.
   ///
   /// The resulting identifier is one in which only the letters following the
   /// underscores are capitalized.
@@ -38,6 +38,35 @@ extension StringExtension on String {
     var buffer = StringBuffer();
     buffer.write(firstWord.toLowerCase());
     for (var i = 1; i < words.length; i++) {
+      var word = words[i];
+      if (word.isEmpty) {
+        return null;
+      }
+      buffer.write(word._capitalized);
+    }
+    return buffer.toString();
+  }
+
+  /// Returns an UpperCamelCase version of the receiver.
+  ///
+  /// No checks are made that the receiver is a valid identifier, other than
+  /// the requirement that the receiver must contain at least one underscore
+  /// (but neither at the beginning nor the end), and must not have two adjacent
+  /// underscores.
+  ///
+  /// The resulting identifier is one in which only the first letter and the
+  /// letters following the underscores are capitalized.
+  String? get toUpperCamelCase {
+    var words = split('_');
+    if (words.length < 2) {
+      var first = words.firstOrNull;
+      if (first != null && first.isNotEmpty) {
+        return first._capitalized;
+      }
+      return null;
+    }
+    var buffer = StringBuffer();
+    for (var i = 0; i < words.length; i++) {
       var word = words[i];
       if (word.isEmpty) {
         return null;

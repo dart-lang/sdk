@@ -4,10 +4,8 @@
 
 import "dart:async";
 import "dart:io";
-import "dart:convert";
 
 import 'package:expect/config.dart';
-import 'package:expect/expect.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 

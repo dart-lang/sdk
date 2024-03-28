@@ -64,15 +64,15 @@ extension type E(core::String foo) implements #lib1::A {
   static redirecting-factory redirectingFactoryWithMismatchingParameters = self2::E|constructor#redirectingFactoryWithMismatchingParameters;
   static redirecting-factory tearoff redirectingFactoryWithMismatchingParameters = self2::E|constructor#_#redirectingFactoryWithMismatchingParameters#tearOff;
 }
-static extension-type-member method E|constructor#(core::String foo) → self2::E /* = core::String */
+static extension-type-member method E|constructor#(core::String foo) → self2::E /* erasure=core::String */
   ;
-static extension-type-member method E|constructor#_#new#tearOff(core::String foo) → self2::E /* = core::String */
+static extension-type-member method E|constructor#_#new#tearOff(core::String foo) → self2::E /* erasure=core::String */
   return self2::E|constructor#(foo);
-static extension-type-member method E|constructor#redirectingFactoryWithMismatchingParameters() → self2::E /* = core::String */
+static extension-type-member method E|constructor#redirectingFactoryWithMismatchingParameters() → self2::E /* erasure=core::String */
   return invalid-expression "pkg/front_end/testcases/extension_types/with_dependencies/issue53209_2/main_lib.dart:8:61: Error: The constructor function type 'E Function(String)' isn't a subtype of 'E Function()'.
   factory E.redirectingFactoryWithMismatchingParameters() = E;
                                                             ^";
-static extension-type-member method E|constructor#_#redirectingFactoryWithMismatchingParameters#tearOff() → self2::E /* = core::String */
+static extension-type-member method E|constructor#_#redirectingFactoryWithMismatchingParameters#tearOff() → self2::E /* erasure=core::String */
   return invalid-expression "pkg/front_end/testcases/extension_types/with_dependencies/issue53209_2/main_lib.dart:8:61: Error: The constructor function type 'E Function(String)' isn't a subtype of 'E Function()'.
   factory E.redirectingFactoryWithMismatchingParameters() = E;
                                                             ^";

@@ -2291,50 +2291,20 @@ void Assembler::LoadCompressedSmi(Register dest, const Address& slot) {
 }
 
 OperandSize Address::OperandSizeFor(intptr_t cid) {
-  switch (cid) {
-    case kArrayCid:
-    case kImmutableArrayCid:
-    case kRecordCid:
-    case kTypeArgumentsCid:
-      return kFourBytes;
-    case kOneByteStringCid:
-    case kExternalOneByteStringCid:
-      return kByte;
-    case kTwoByteStringCid:
-    case kExternalTwoByteStringCid:
-      return kTwoBytes;
-    case kTypedDataInt8ArrayCid:
-      return kByte;
-    case kTypedDataUint8ArrayCid:
-    case kTypedDataUint8ClampedArrayCid:
-    case kExternalTypedDataUint8ArrayCid:
-    case kExternalTypedDataUint8ClampedArrayCid:
-      return kUnsignedByte;
-    case kTypedDataInt16ArrayCid:
-      return kTwoBytes;
-    case kTypedDataUint16ArrayCid:
-      return kUnsignedTwoBytes;
-    case kTypedDataInt32ArrayCid:
-      return kFourBytes;
-    case kTypedDataUint32ArrayCid:
-      return kUnsignedFourBytes;
-    case kTypedDataInt64ArrayCid:
-    case kTypedDataUint64ArrayCid:
+  auto const rep = RepresentationUtils::RepresentationOfArrayElement(cid);
+  switch (rep) {
+    case kUnboxedInt64:
       return kDWord;
-    case kTypedDataFloat32ArrayCid:
+    case kUnboxedFloat:
       return kSWord;
-    case kTypedDataFloat64ArrayCid:
+    case kUnboxedDouble:
       return kDWord;
-    case kTypedDataFloat32x4ArrayCid:
-    case kTypedDataInt32x4ArrayCid:
-    case kTypedDataFloat64x2ArrayCid:
+    case kUnboxedInt32x4:
+    case kUnboxedFloat32x4:
+    case kUnboxedFloat64x2:
       return kRegList;
-    case kTypedDataInt8ArrayViewCid:
-      UNREACHABLE();
-      return kByte;
     default:
-      UNREACHABLE();
-      return kByte;
+      return RepresentationUtils::OperandSize(rep);
   }
 }
 
@@ -3762,9 +3732,9 @@ bool Assembler::AddressCanHoldConstantIndex(const Object& constant,
                                             intptr_t index_scale,
                                             bool* needs_base) {
   ASSERT(needs_base != nullptr);
-  if ((cid == kTypedDataInt32x4ArrayCid) ||
-      (cid == kTypedDataFloat32x4ArrayCid) ||
-      (cid == kTypedDataFloat64x2ArrayCid)) {
+  auto const rep = RepresentationUtils::RepresentationOfArrayElement(cid);
+  if ((rep == kUnboxedInt32x4) || (rep == kUnboxedFloat32x4) ||
+      (rep == kUnboxedFloat64x2)) {
     // We are using vldmd/vstmd which do not support offset.
     return false;
   }
@@ -3843,9 +3813,9 @@ Address Assembler::ElementAddressForRegIndex(bool is_load,
   ASSERT(array != IP);
   ASSERT(index != IP);
   const Register base = is_load ? IP : index;
-  if ((offset != 0) || (is_load && (size == kByte)) || (size == kTwoBytes) ||
-      (size == kUnsignedTwoBytes) || (size == kSWord) || (size == kDWord) ||
-      (size == kRegList)) {
+  if ((offset != 0) || (is_load && (size == kByte || size == kUnsignedByte)) ||
+      (size == kTwoBytes) || (size == kUnsignedTwoBytes) || (size == kSWord) ||
+      (size == kDWord) || (size == kRegList)) {
     if (shift < 0) {
       ASSERT(shift == -1);
       add(base, array, Operand(index, ASR, 1));

@@ -111,7 +111,11 @@ class _ElementRecorder {
       LibraryImportElement? import) {
     if (referencedElement is PropertyAccessorElement &&
         referencedElement.isSynthetic) {
-      referencedElement = referencedElement.variable;
+      var variable = referencedElement.variable2;
+      if (variable == null) {
+        return;
+      }
+      referencedElement = variable;
     }
     if (_isBeingMoved(referenceOffset)) {
       var imports =

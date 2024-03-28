@@ -6,7 +6,8 @@ import 'dart:typed_data';
 
 import 'package:build_integration/file_system/multi_root.dart'
     show MultiRootFileSystem;
-
+import 'package:front_end/src/api_prototype/macros.dart' as macros
+    show isMacroLibraryUri;
 import 'package:front_end/src/api_prototype/standard_file_system.dart'
     show StandardFileSystem;
 import 'package:front_end/src/api_unstable/vm.dart'
@@ -17,31 +18,31 @@ import 'package:front_end/src/api_unstable/vm.dart'
         kernelForProgram,
         NnbdMode,
         Severity;
-
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
-import 'package:kernel/library_index.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart' show writeComponentToText;
+import 'package:kernel/library_index.dart';
 import 'package:kernel/verifier.dart';
-
 import 'package:vm/kernel_front_end.dart' show writeDepfile;
-import 'package:vm/transformations/unreachable_code_elimination.dart'
-    as unreachable_code_elimination;
-import 'package:vm/transformations/type_flow/transformer.dart' as globalTypeFlow
-    show transformComponent;
 import 'package:vm/transformations/mixin_deduplication.dart'
     as mixin_deduplication show transformComponent;
-
-import 'package:dart2wasm/compiler_options.dart' as compiler;
-import 'package:dart2wasm/constant_evaluator.dart';
-import 'package:dart2wasm/js/runtime_generator.dart' as js;
-import 'package:dart2wasm/record_class_generator.dart';
-import 'package:dart2wasm/records.dart';
-import 'package:dart2wasm/target.dart' hide Mode;
-import 'package:dart2wasm/target.dart' as wasm show Mode;
-import 'package:dart2wasm/translator.dart';
+import 'package:vm/transformations/to_string_transformer.dart'
+    as to_string_transformer;
+import 'package:vm/transformations/type_flow/transformer.dart' as globalTypeFlow
+    show transformComponent;
+import 'package:vm/transformations/unreachable_code_elimination.dart'
+    as unreachable_code_elimination;
 import 'package:wasm_builder/wasm_builder.dart' show Module, Serializer;
+
+import 'compiler_options.dart' as compiler;
+import 'constant_evaluator.dart';
+import 'js/runtime_generator.dart' as js;
+import 'record_class_generator.dart';
+import 'records.dart';
+import 'target.dart' as wasm show Mode;
+import 'target.dart' hide Mode;
+import 'translator.dart';
 
 class CompilerOutput {
   final Module _wasmModule;
@@ -92,7 +93,7 @@ Future<CompilerOutput?> compileToModule(compiler.WasmCompilerOptions options,
     ..onDiagnostic = diagnosticMessageHandler
     ..nnbdMode = NnbdMode.Strong;
   if (options.multiRootScheme != null) {
-    compilerOptions.fileSystem = new MultiRootFileSystem(
+    compilerOptions.fileSystem = MultiRootFileSystem(
         options.multiRootScheme!,
         options.multiRoots.isEmpty ? [Uri.base] : options.multiRoots,
         StandardFileSystem.instance);
@@ -125,14 +126,19 @@ Future<CompilerOutput?> compileToModule(compiler.WasmCompilerOptions options,
     "dart:typed_data",
   ]);
 
+  if (options.dumpKernelAfterCfe != null) {
+    writeComponentToText(component, path: options.dumpKernelAfterCfe!);
+  }
+
+  if (options.deleteToStringPackageUri.isNotEmpty) {
+    to_string_transformer.transformComponent(
+        component, options.deleteToStringPackageUri);
+  }
+
   ConstantEvaluator constantEvaluator = ConstantEvaluator(
       options, target, component, coreTypes, classHierarchy, libraryIndex);
   unreachable_code_elimination.transformComponent(target, component,
       constantEvaluator, options.translatorOptions.enableAsserts);
-
-  if (options.dumpKernelAfterCfe != null) {
-    writeComponentToText(component, path: options.dumpKernelAfterCfe!);
-  }
 
   js.RuntimeFinalizer jsRuntimeFinalizer =
       js.createRuntimeFinalizer(component, coreTypes, classHierarchy);
@@ -168,8 +174,13 @@ Future<CompilerOutput?> compileToModule(compiler.WasmCompilerOptions options,
 
   String? depFile = options.depFile;
   if (depFile != null) {
-    writeDepfile(compilerOptions.fileSystem, component.uriToSource.keys,
-        options.outputFile, depFile);
+    writeDepfile(
+        compilerOptions.fileSystem,
+        // TODO(https://dartbug.com/55246): track macro deps when available.
+        component.uriToSource.keys
+            .where((uri) => !macros.isMacroLibraryUri(uri)),
+        options.outputFile,
+        depFile);
   }
 
   final wasmModule = translator.translate();

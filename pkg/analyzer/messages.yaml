@@ -1109,6 +1109,9 @@ CompileTimeErrorCode:
         }
       }
       ```
+  AUGMENTATION_WITHOUT_DECLARATION:
+    problemMessage: The declaration being augmented doesn't exist.
+    correctionMessage: Try changing the augmentation to match an existing declaration.
   AUGMENTATION_WITHOUT_IMPORT:
     problemMessage: The library does not import this augmentation.
     correctionMessage: Try updating the augmented library to import this augmentation.
@@ -20558,7 +20561,7 @@ HintCode:
       `x` and `y` is converted to an integer using `toInt`:
 
       ```dart
-      int divide(num x, num y) => [!(x / y).toInt()!];
+      int divide(int x, int y) => [!(x / y).toInt()!];
       ```
 
       #### Common fixes
@@ -20566,7 +20569,7 @@ HintCode:
       Use the integer division operator (`~/`):
 
       ```dart
-      int divide(num x, num y) => x ~/ y;
+      int divide(int x, int y) => x ~/ y;
       ```
   IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION:
     problemMessage: "The imported library defines a top-level function named 'loadLibrary' that is hidden by deferring this library."

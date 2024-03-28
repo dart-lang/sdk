@@ -7,7 +7,6 @@ import 'dart:collection';
 import 'package:analyzer/dart/ast/ast.dart' show AstNode;
 import 'package:analyzer/dart/ast/token.dart' show TokenType;
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
@@ -26,6 +25,7 @@ import 'package:analyzer/src/dart/element/subtype.dart';
 import 'package:analyzer/src/dart/element/top_merge.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
+import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
 import 'package:analyzer/src/dart/element/type_demotion.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
@@ -121,8 +121,7 @@ class TypeSystemImpl implements TypeSystem {
   /// - `FutureOr<T>` where T is one of the two cases above.
   ///
   /// Note that this returns false if [t] is a top type such as Object.
-  bool acceptsFunctionType(DartType? t) {
-    if (t == null) return false;
+  bool acceptsFunctionType(DartType t) {
     if (t.isDartAsyncFutureOr) {
       return acceptsFunctionType((t as InterfaceType).typeArguments[0]);
     }
@@ -356,18 +355,6 @@ class TypeSystemImpl implements TypeSystem {
       }
     }
 
-    // * Else if T is R* and Null <: S then factor(R, S)
-    // * Else if T is R* then factor(R, S)*
-    if (T_nullability == NullabilitySuffix.star) {
-      var R = (T as TypeImpl).withNullability(NullabilitySuffix.none);
-      var factor_RS = factor(R, S) as TypeImpl;
-      if (isSubtypeOf(nullNone, S)) {
-        return factor_RS;
-      } else {
-        return factor_RS.withNullability(NullabilitySuffix.star);
-      }
-    }
-
     // * Else if T is FutureOr<R> and Future<R> <: S then factor(R, S)
     // * Else if T is FutureOr<R> and R <: S then factor(Future<R>, S)
     if (T is InterfaceType && T.isDartAsyncFutureOr) {
@@ -391,7 +378,6 @@ class TypeSystemImpl implements TypeSystem {
     }
 
     // if T is S? then flatten(T) = flatten(S)?
-    // if T is S* then flatten(T) = flatten(S)*
     final nullabilitySuffix = T.nullabilitySuffix;
     if (nullabilitySuffix != NullabilitySuffix.none) {
       final S = (T as TypeImpl).withNullability(NullabilitySuffix.none);
@@ -471,7 +457,6 @@ class TypeSystemImpl implements TypeSystem {
   /// See `#the-future-value-type-of-an-asynchronous-non-generator-function`
   DartType futureValueType(DartType T) {
     // futureValueType(`S?`) = futureValueType(`S`), for all `S`.
-    // futureValueType(`S*`) = futureValueType(`S`), for all `S`.
     if (T.nullabilitySuffix != NullabilitySuffix.none) {
       var S = (T as TypeImpl).withNullability(NullabilitySuffix.none);
       return futureValueType(S);
@@ -643,6 +628,8 @@ class TypeSystemImpl implements TypeSystem {
     required bool genericMetadataIsEnabled,
     required bool strictInference,
     required bool strictCasts,
+    required TypeConstraintGenerationDataForTesting? dataForTesting,
+    required AstNode? nodeForTesting,
   }) {
     if (contextType.typeFormals.isNotEmpty || fnType.typeFormals.isEmpty) {
       return const <DartType>[];
@@ -657,8 +644,10 @@ class TypeSystemImpl implements TypeSystem {
         errorNode: errorNode,
         genericMetadataIsEnabled: genericMetadataIsEnabled,
         strictInference: strictInference,
-        typeSystemOperations: typeSystemOperations);
-    inferrer.constrainGenericFunctionInContext(fnType, contextType);
+        typeSystemOperations: typeSystemOperations,
+        dataForTesting: dataForTesting);
+    inferrer.constrainGenericFunctionInContext(fnType, contextType,
+        nodeForTesting: nodeForTesting);
 
     // Infer and instantiate the resulting type.
     return inferrer.chooseFinalTypes();
@@ -1019,16 +1008,12 @@ class TypeSystemImpl implements TypeSystem {
     if (T is TypeParameterTypeImpl) {
       // `T` is `X & B`, and `B` is incompatible with await.
       if (T.promotedBound case var B?) {
-        if (isIncompatibleWithAwait(B)) {
-          return true;
-        }
+        return isIncompatibleWithAwait(B);
       }
       // `T` is a type variable with bound `S`, and `S` is incompatible
       // with await.
       if (T.element.bound case var S?) {
-        if (isIncompatibleWithAwait(S)) {
-          return true;
-        }
+        return isIncompatibleWithAwait(S);
       }
     }
 
@@ -1101,24 +1086,6 @@ class TypeSystemImpl implements TypeSystem {
 
     // MOREBOTTOM(T?, S) = false
     if (T_nullability == NullabilitySuffix.question) {
-      return false;
-    }
-
-    // MOREBOTTOM(T*, S*) = MOREBOTTOM(T, S)
-    if (T_nullability == NullabilitySuffix.star &&
-        S_nullability == NullabilitySuffix.star) {
-      var T2 = T_impl.withNullability(NullabilitySuffix.none);
-      var S2 = S_impl.withNullability(NullabilitySuffix.none);
-      return isMoreBottom(T2, S2);
-    }
-
-    // MOREBOTTOM(T, S*) = true
-    if (S_nullability == NullabilitySuffix.star) {
-      return true;
-    }
-
-    // MOREBOTTOM(T*, S) = false
-    if (T_nullability == NullabilitySuffix.star) {
       return false;
     }
 
@@ -1210,24 +1177,6 @@ class TypeSystemImpl implements TypeSystem {
       return false;
     }
 
-    // MORETOP(T*, S*) = MORETOP(T, S)
-    if (T_nullability == NullabilitySuffix.star &&
-        S_nullability == NullabilitySuffix.star) {
-      var T2 = T_impl.withNullability(NullabilitySuffix.none);
-      var S2 = S_impl.withNullability(NullabilitySuffix.none);
-      return isMoreTop(T2, S2);
-    }
-
-    // MORETOP(T, S*) = true
-    if (S_nullability == NullabilitySuffix.star) {
-      return true;
-    }
-
-    // MORETOP(T*, S) = false
-    if (T_nullability == NullabilitySuffix.star) {
-      return false;
-    }
-
     // MORETOP(T?, S?) = MORETOP(T, S)
     if (T_nullability == NullabilitySuffix.question &&
         S_nullability == NullabilitySuffix.question) {
@@ -1293,16 +1242,14 @@ class TypeSystemImpl implements TypeSystem {
     var nullabilitySuffix = typeImpl.nullabilitySuffix;
 
     // NULL(Null) is true
-    // Also includes `Null?` and `Null*` from the rules below.
+    // Also includes `Null?` from the rules below.
     if (type.isDartCoreNull) {
       return true;
     }
 
     // NULL(T?) is true iff NULL(T) or BOTTOM(T)
-    // NULL(T*) is true iff NULL(T) or BOTTOM(T)
-    // Cases for `Null?` and `Null*` are already checked above.
-    if (nullabilitySuffix == NullabilitySuffix.question ||
-        nullabilitySuffix == NullabilitySuffix.star) {
+    // The case for `Null?` is already checked above.
+    if (nullabilitySuffix == NullabilitySuffix.question) {
       var T = typeImpl.withNullability(NullabilitySuffix.none);
       return isBottom(T);
     }
@@ -1414,9 +1361,7 @@ class TypeSystemImpl implements TypeSystem {
     var nullabilitySuffix = typeImpl.nullabilitySuffix;
 
     // TOP(T?) is true iff TOP(T) or OBJECT(T)
-    // TOP(T*) is true iff TOP(T) or OBJECT(T)
-    if (nullabilitySuffix == NullabilitySuffix.question ||
-        nullabilitySuffix == NullabilitySuffix.star) {
+    if (nullabilitySuffix == NullabilitySuffix.question) {
       var T = typeImpl.withNullability(NullabilitySuffix.none);
       return isTop(T) || isObject(T);
     }
@@ -1532,10 +1477,13 @@ class TypeSystemImpl implements TypeSystem {
     var inferrer = GenericInferrer(this, typeParameters,
         genericMetadataIsEnabled: genericMetadataIsEnabled,
         strictInference: strictInference,
-        typeSystemOperations: typeSystemOperations);
+        typeSystemOperations: typeSystemOperations,
+        dataForTesting: null);
     for (int i = 0; i < srcTypes.length; i++) {
-      inferrer.constrainReturnType(srcTypes[i], destTypes[i]);
-      inferrer.constrainReturnType(destTypes[i], srcTypes[i]);
+      inferrer.constrainReturnType(srcTypes[i], destTypes[i],
+          nodeForTesting: null);
+      inferrer.constrainReturnType(destTypes[i], srcTypes[i],
+          nodeForTesting: null);
     }
 
     var inferredTypes = inferrer
@@ -1622,7 +1570,7 @@ class TypeSystemImpl implements TypeSystem {
   DartType refineNumericInvocationContext(
       DartType? targetType,
       Element? methodElement,
-      DartType? invocationContext,
+      DartType invocationContext,
       DartType currentType) {
     if (targetType != null && methodElement is MethodElement) {
       return _refineNumericInvocationContextNullSafe(
@@ -1772,7 +1720,7 @@ class TypeSystemImpl implements TypeSystem {
   GenericInferrer setupGenericTypeInference({
     required List<TypeParameterElement> typeParameters,
     required DartType declaredReturnType,
-    required DartType? contextReturnType,
+    required DartType contextReturnType,
     ErrorReporter? errorReporter,
     AstNode? errorNode,
     required bool genericMetadataIsEnabled,
@@ -1780,6 +1728,8 @@ class TypeSystemImpl implements TypeSystem {
     required bool strictInference,
     required bool strictCasts,
     required TypeSystemOperations typeSystemOperations,
+    required TypeConstraintGenerationDataForTesting? dataForTesting,
+    required AstNode? nodeForTesting,
   }) {
     // Create a GenericInferrer that will allow certain type parameters to be
     // inferred. It will optimistically assume these type parameters can be
@@ -1790,14 +1740,14 @@ class TypeSystemImpl implements TypeSystem {
         errorNode: errorNode,
         genericMetadataIsEnabled: genericMetadataIsEnabled,
         strictInference: strictInference,
-        typeSystemOperations: typeSystemOperations);
+        typeSystemOperations: typeSystemOperations,
+        dataForTesting: dataForTesting);
 
-    if (contextReturnType != null) {
-      if (isConst) {
-        contextReturnType = eliminateTypeVariables(contextReturnType);
-      }
-      inferrer.constrainReturnType(declaredReturnType, contextReturnType);
+    if (isConst) {
+      contextReturnType = eliminateTypeVariables(contextReturnType);
     }
+    inferrer.constrainReturnType(declaredReturnType, contextReturnType,
+        nodeForTesting: nodeForTesting);
 
     return inferrer;
   }
@@ -1946,7 +1896,7 @@ class TypeSystemImpl implements TypeSystem {
   DartType _refineNumericInvocationContextNullSafe(
       DartType targetType,
       MethodElement methodElement,
-      DartType? invocationContext,
+      DartType invocationContext,
       DartType currentType) {
     // If the method being invoked comes from an extension, don't refine the
     // type because we can only make guarantees about methods defined in the
@@ -1955,9 +1905,6 @@ class TypeSystemImpl implements TypeSystem {
         methodElement.enclosingElement is ExtensionTypeElement) {
       return currentType;
     }
-
-    // Sometimes the analyzer represents the unknown context as `null`.
-    invocationContext ??= UnknownInferredType.instance;
 
     // If e is an expression of the form e1 + e2, e1 - e2, e1 * e2, e1 % e2 or
     // e1.remainder(e2)...
@@ -2184,19 +2131,9 @@ class TypeSystemImpl implements TypeSystem {
       return NullabilitySuffix.question;
     }
 
-    if (nullabilityOfType == NullabilitySuffix.star &&
-        nullabilityOfBound == NullabilitySuffix.none) {
-      return NullabilitySuffix.star;
-    }
-
     // Intersection with a non-nullable type always yields a non-nullable type,
     // as it's the most restrictive kind of types.
-    if (nullabilityOfType == NullabilitySuffix.none ||
-        nullabilityOfBound == NullabilitySuffix.none) {
-      return NullabilitySuffix.none;
-    }
-
-    return NullabilitySuffix.star;
+    return NullabilitySuffix.none;
   }
 }
 

@@ -523,6 +523,7 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
 
   // Set flag to load and retain the vmservice library.
   flags->load_vmservice_library = true;
+  flags->null_safety = true;  // Service isolate runs in sound null safe mode.
   const uint8_t* isolate_snapshot_data = core_isolate_snapshot_data;
   const uint8_t* isolate_snapshot_instructions =
       core_isolate_snapshot_instructions;
@@ -557,7 +558,7 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
           Options::vm_write_service_info_filename(), Options::trace_loading(),
           Options::deterministic(), Options::enable_service_port_fallback(),
           wait_for_dds_to_advertise_service, serve_devtools,
-          Options::enable_observatory())) {
+          Options::enable_observatory(), Options::print_dtd())) {
     *error = Utils::StrDup(VmService::GetErrorMessage());
     return nullptr;
   }

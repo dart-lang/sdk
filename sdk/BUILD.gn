@@ -46,7 +46,7 @@ declare_args() {
 # ........dart2wasm_product.snapshot (if not on ia32)
 # ........dartdev.dart.snapshot (app-jit snapshot or kernel dill file)
 # ........dartdevc.dart.snapshot
-# ........dds_aot.dart.snapshot (AOT snapshot) or dds.dart.snapshot (ia32)
+# ........dds.dart.snapshot
 # ........dart_tooling_daemon.dart.snapshot
 # ........frontend_server_aot.dart.snapshot (AOT snapshot, if not on ia32)
 # ........frontend_server.dart.snapshot
@@ -125,17 +125,10 @@ _platform_sdk_snapshots = [
     "../utils/kernel-service:frontend_server",
   ],
 ]
-if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
-  _platform_sdk_snapshots += [ [
-        "dds_aot",
-        "../utils/dds:dds_aot",
-      ] ]
-} else {
-  _platform_sdk_snapshots += [ [
-        "dds",
-        "../utils/dds:dds",
-      ] ]
-}
+_platform_sdk_snapshots += [ [
+      "dds",
+      "../utils/dds:dds",
+    ] ]
 if (dart_snapshot_kind == "app-jit") {
   _platform_sdk_snapshots += [ [
         "kernel-service",
@@ -161,7 +154,6 @@ _full_sdk_snapshots = _platform_sdk_snapshots + [
 # Libraries that go under lib/
 _full_sdk_libraries = [
   "_internal",
-  "_macros",
   "async",
   "cli",
   "collection",
@@ -194,7 +186,6 @@ _full_sdk_libraries = [
 #
 # _platform_sdk_libraries = [
 #   "_internal",
-#   "_macros",
 #   "async",
 #   "cli",
 #   "collection",
@@ -212,66 +203,44 @@ _full_sdk_libraries = [
 # ]
 _platform_sdk_libraries = _full_sdk_libraries
 
-# From here down to the copy_trees() invocation, we collect all the information
-# about trees that need to be copied in the list of scopes, copy_tree_specs.
-copy_tree_specs = []
-
 # This rule copies dartdoc templates to
 # bin/resources/dartdoc/templates
-copy_tree_specs += [
-  {
-    target = "copy_dartdoc_templates"
-    visibility = [ ":copy_dartdoc_files" ]
-    source = "../third_party/pkg/dartdoc/lib/templates"
-    dest = "$root_out_dir/$dart_sdk_output/bin/resources/dartdoc/templates"
-    ignore_patterns = "{}"
-  },
-]
+copy_tree("copy_dartdoc_templates") {
+  visibility = [ ":copy_dartdoc_files" ]
+  source = "../third_party/pkg/dartdoc/lib/templates"
+  dest = "$root_out_dir/$dart_sdk_output/bin/resources/dartdoc/templates"
+  exclude = "{}"
+}
 
 # This rule copies dartdoc resources to
 # bin/resources/dartdoc/resources
-copy_tree_specs += [
-  {
-    target = "copy_dartdoc_resources"
-    visibility = [ ":copy_dartdoc_files" ]
-    source = "../third_party/pkg/dartdoc/lib/resources"
-    dest = "$root_out_dir/$dart_sdk_output/bin/resources/dartdoc/resources"
-    ignore_patterns = "{}"
-  },
-]
+copy_tree("copy_dartdoc_resources") {
+  visibility = [ ":copy_dartdoc_files" ]
+  source = "../third_party/pkg/dartdoc/lib/resources"
+  dest = "$root_out_dir/$dart_sdk_output/bin/resources/dartdoc/resources"
+  exclude = "{}"
+}
 
 # This rule copies the pre-built DevTools application to
 # bin/resources/devtools/
-copy_tree_specs += [
-  {
-    target = "copy_prebuilt_devtools"
-    visibility = [ ":create_common_sdk" ]
-    source = "../third_party/devtools/web"
-    dest = "$root_out_dir/$dart_sdk_output/bin/resources/devtools"
-    ignore_patterns = "{}"
-  },
-]
+copy_tree("copy_prebuilt_devtools") {
+  visibility = [ ":create_common_sdk" ]
+  source = "../third_party/devtools/web"
+  dest = "$root_out_dir/$dart_sdk_output/bin/resources/devtools"
+  exclude = "{}"
+}
 
 # This loop generates rules to copy libraries to lib/
 foreach(library, _full_sdk_libraries) {
-  copy_tree_specs += [
-    {
-      target = "copy_${library}_library"
-      visibility = [
-        ":copy_full_sdk_libraries",
-        ":copy_platform_sdk_libraries",
-      ]
-      source = "lib/$library"
-      dest = "$root_out_dir/$dart_sdk_output/lib/$library"
-      ignore_patterns = "*.svn,doc,*.py,*.gypi,*.sh,.gitignore"
-    },
-  ]
-}
-
-# This generates targets for everything in copy_tree_specs. The targets have the
-# same name as the "target" fields in the scopes of copy_tree_specs.
-copy_trees("copy_trees") {
-  sources = copy_tree_specs
+  copy_tree("copy_${library}_library") {
+    visibility = [
+      ":copy_full_sdk_libraries",
+      ":copy_platform_sdk_libraries",
+    ]
+    source = "lib/$library"
+    dest = "$root_out_dir/$dart_sdk_output/lib/$library"
+    exclude = "*.svn,doc,*.py,*.gypi,*.sh,.gitignore"
+  }
 }
 
 _has_dot_sym = !is_win && rebase_path(".") == rebase_path("//sdk")
@@ -739,6 +708,23 @@ copy("copy_api_readme") {
   outputs = [ "$root_out_dir/$dart_sdk_output/lib/api_readme.md" ]
 }
 
+# This rule copies the sdk_packages.yaml file to the root of the SDK, which
+# defines the locations of the vendored SDK packages.
+copy("copy_sdk_packages_yaml") {
+  visibility = [ ":create_common_sdk" ]
+  sources = [ "../sdk_packages.yaml" ]
+  outputs = [ "$root_out_dir/$dart_sdk_output/sdk_packages.yaml" ]
+}
+
+# This rule copies pkg/_macros to pkg/_macros in the built SDK. This is a
+# vendored SDK package.
+copy_tree("copy_pkg_macros") {
+  visibility = [ ":create_common_sdk" ]
+  source = "../pkg/_macros"
+  dest = "$root_out_dir/$dart_sdk_output/pkg/_macros"
+  exclude = "{}"
+}
+
 # Parts common to both platform and full SDKs.
 group("create_common_sdk") {
   visibility = [
@@ -752,8 +738,10 @@ group("create_common_sdk") {
     ":copy_headers",
     ":copy_libraries_specification",
     ":copy_license",
+    ":copy_pkg_macros",
     ":copy_prebuilt_devtools",
     ":copy_readme",
+    ":copy_sdk_packages_yaml",
     ":copy_vm_dill_files",
     ":write_dartdoc_options",
     ":write_revision_file",

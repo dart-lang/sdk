@@ -416,7 +416,10 @@ abstract class RenameRefactoring implements Refactoring {
     var session = resolvedUnit.session;
     var sessionHelper = AnalysisSessionHelper(session);
     if (element is PropertyAccessorElement) {
-      element = element.variable;
+      element = element.variable2;
+      if (element == null) {
+        return null;
+      }
     }
     var enclosingElement = element.enclosingElement;
     if (enclosingElement is CompilationUnitElement) {

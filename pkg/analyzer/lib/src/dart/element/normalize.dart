@@ -69,10 +69,8 @@ class NormalizeHelper {
     }
 
     // * if S is Object then S
-    // * if S is Object* then S
     if (S.isDartCoreObject) {
-      if (S_nullability == NullabilitySuffix.none ||
-          S_nullability == NullabilitySuffix.star) {
+      if (S_nullability == NullabilitySuffix.none) {
         return S;
       }
     }
@@ -124,11 +122,6 @@ class NormalizeHelper {
     // NORM(T?)
     if (T_nullability == NullabilitySuffix.question) {
       return _nullabilityQuestion(T);
-    }
-
-    // NORM(T*)
-    if (T_nullability == NullabilitySuffix.star) {
-      return _nullabilityStar(T);
     }
 
     assert(T_nullability == NullabilitySuffix.none);
@@ -201,50 +194,9 @@ class NormalizeHelper {
       }
     }
 
-    // * if S is FutureOr<R>* and R is nullable then FutureOr<R>
-    if (S_nullability == NullabilitySuffix.star &&
-        S is InterfaceType &&
-        S.isDartAsyncFutureOr) {
-      var R = S.typeArguments[0];
-      if (typeSystem.isNullable(R)) {
-        return typeProvider.futureOrElement.instantiate(
-          typeArguments: [R],
-          nullabilitySuffix: NullabilitySuffix.none,
-        );
-      }
-    }
-
     // * if S is R? then R?
-    // * if S is R* then R?
     // * else S?
     return (S as TypeImpl).withNullability(NullabilitySuffix.question);
-  }
-
-  /// NORM(T*)
-  DartType _nullabilityStar(DartType T) {
-    // * let S be NORM(T)
-    var T_none = (T as TypeImpl).withNullability(NullabilitySuffix.none);
-    var S = _normalize(T_none);
-    var S_nullability = S.nullabilitySuffix;
-
-    // * if S is a top type then S
-    if (typeSystem.isTop(S)) {
-      return S;
-    }
-
-    // * if S is Null then Null
-    if (S_nullability == NullabilitySuffix.none && S.isDartCoreNull) {
-      return typeSystem.nullNone;
-    }
-
-    // * if S is R? then R?
-    if (S_nullability == NullabilitySuffix.question) {
-      return S;
-    }
-
-    // * if S is R* then R*
-    // * else S*
-    return (S as TypeImpl).withNullability(NullabilitySuffix.star);
   }
 
   /// NORM(X & T)

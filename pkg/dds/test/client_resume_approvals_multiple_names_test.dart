@@ -39,16 +39,16 @@ final test = <IsolateTest>[
     );
 
     await hasPausedAtStart(service, isolateRef);
-    await client2.resume(isolateId);
+    await client2.readyToResume(isolateId);
     await hasPausedAtStart(service, isolateRef);
-    await client1.resume(isolateId);
+    await client1.readyToResume(isolateId);
     await hasStoppedAtExit(service, isolateRef);
     await client2.requirePermissionToResume(
       onPauseExit: true,
     );
-    await client1.resume(isolateId);
+    await client1.readyToResume(isolateId);
     await hasStoppedAtExit(service, isolateRef);
-    await client2.resume(isolateId);
+    await client2.readyToResume(isolateId);
   },
 ];
 

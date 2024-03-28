@@ -158,7 +158,8 @@ class ForResolver {
           : _resolver.typeProvider.iterableType(valueType);
     }
 
-    _resolver.analyzeExpression(iterable, targetType);
+    _resolver.analyzeExpression(
+        iterable, targetType ?? UnknownInferredType.instance);
     iterable = _resolver.popRewrite()!;
 
     _resolver.nullableDereferenceVerifier.expression(

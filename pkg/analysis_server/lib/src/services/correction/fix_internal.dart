@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
-import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/dart/add_async.dart';
 import 'package:analysis_server/src/services/correction/dart/add_await.dart';
@@ -143,6 +141,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_interpolatio
 import 'package:analysis_server/src/services/correction/dart/remove_invocation.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_late.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_leading_underscore.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_library_name.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_method_declaration.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_name_from_combinator.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_name_from_declaration_clause.dart';
@@ -205,6 +204,7 @@ import 'package:analysis_server/src/services/correction/dart/replace_with_identi
 import 'package:analysis_server/src/services/correction/dart/replace_with_interpolation.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_is_empty.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_is_nan.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_with_named_constant.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_not_null_aware.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_null_aware.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_part_of_uri.dart';
@@ -227,7 +227,6 @@ import 'package:analysis_server/src/services/correction/dart/use_not_eq_null.dar
 import 'package:analysis_server/src/services/correction/dart/use_rethrow.dart';
 import 'package:analysis_server/src/services/correction/dart/wrap_in_text.dart';
 import 'package:analysis_server/src/services/correction/dart/wrap_in_unawaited.dart';
-import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix_processor.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer/error/error.dart';
@@ -238,6 +237,8 @@ import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:server_plugin/edit/fix/dart_fix_context.dart';
+import 'package:server_plugin/edit/fix/fix.dart';
 
 final _builtInLintMultiProducers = {
   LintNames.deprecated_member_use_from_same_package: [
@@ -593,6 +594,9 @@ final _builtInLintProducers = <String, List<ProducerGenerator>>{
   LintNames.unnecessary_library_directive: [
     RemoveUnnecessaryLibraryDirective.new,
   ],
+  LintNames.unnecessary_library_name: [
+    RemoveLibraryName.new,
+  ],
   LintNames.unnecessary_new: [
     RemoveUnnecessaryNew.new,
   ],
@@ -646,6 +650,9 @@ final _builtInLintProducers = <String, List<ProducerGenerator>>{
   ],
   LintNames.use_key_in_widget_constructors: [
     AddKeyToConstructors.new,
+  ],
+  LintNames.use_named_constants: [
+    ReplaceWithNamedConstant.new,
   ],
   LintNames.use_raw_strings: [
     ConvertToRawString.new,
@@ -1600,7 +1607,7 @@ class FixInFileProcessor {
 
   Future<List<Fix>> compute() async {
     var error = context.error;
-    var errors = context.resolveResult.errors
+    var errors = context.resolvedResult.errors
         .where((e) => error.errorCode.name == e.errorCode.name);
     if (errors.length < 2) {
       return const <Fix>[];
@@ -1608,12 +1615,12 @@ class FixInFileProcessor {
 
     var instrumentationService = context.instrumentationService;
     var workspace = context.workspace;
-    var resolveResult = context.resolveResult;
+    var resolvedResult = context.resolvedResult;
 
     var correctionContext = CorrectionProducerContext.createResolved(
       dartFixContext: context,
       diagnostic: error,
-      resolvedResult: resolveResult,
+      resolvedResult: resolvedResult,
       selectionOffset: error.offset,
       selectionLength: error.length,
       workspace: workspace,
@@ -1623,12 +1630,12 @@ class FixInFileProcessor {
     }
 
     /// Helper to create a [DartFixContextImpl] for a given error.
-    DartFixContextImpl createFixContext(AnalysisError error) {
-      return DartFixContextImpl(
-        instrumentationService,
-        workspace,
-        resolveResult,
-        error,
+    DartFixContext createFixContext(AnalysisError error) {
+      return DartFixContext(
+        instrumentationService: instrumentationService,
+        workspace: workspace,
+        resolvedResult: resolvedResult,
+        error: error,
       );
     }
 
@@ -1663,7 +1670,7 @@ class FixInFileProcessor {
             var fixKind = fixState.fixKind;
             sourceChange.id = fixKind.id;
             sourceChange.message = fixKind.message;
-            fixes.add(Fix(fixKind, sourceChange));
+            fixes.add(Fix(kind: fixKind, change: sourceChange));
           }
         }
       }
@@ -1677,7 +1684,7 @@ class FixInFileProcessor {
       applyingBulkFixes: true,
       dartFixContext: fixContext,
       diagnostic: diagnostic,
-      resolvedResult: fixContext.resolveResult,
+      resolvedResult: fixContext.resolvedResult,
       selectionOffset: diagnostic.offset,
       selectionLength: diagnostic.length,
       workspace: fixContext.workspace,
@@ -1690,7 +1697,14 @@ class FixInFileProcessor {
 
     try {
       var localBuilder = fixState.builder.copy();
+      var fixKind = producer.fixKind;
       await producer.compute(localBuilder);
+      assert(
+        !(producer.canBeAppliedToFile || producer.canBeAppliedInBulk) ||
+            producer.fixKind == fixKind,
+        'Producers use in bulk fixes must not modify FixKind during computation. '
+        '$producer changed from $fixKind to ${producer.fixKind}.',
+      );
 
       var multiFixKind = producer.multiFixKind;
       if (multiFixKind == null) {

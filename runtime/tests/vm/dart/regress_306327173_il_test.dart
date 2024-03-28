@@ -26,13 +26,13 @@ void matchIL$deref(FlowGraph graph) {
       'ptr' << match.Parameter(index: 0),
       'array' << match.LoadField('ptr', slot: 'PointerBase.data'),
       'unboxed' << match.LoadIndexed('array', 'c0'),
-      // 'unboxed' is a kUnboxedFfiIntPtr, which is uint32 on 32-bit archs
-      // and int64 on 64-bit arches.
+      // 'unboxed' is uint32 on 32-bit archs and int64 on 64-bit archs, so
+      // that 32-bit addresses are zero-extended to a 64-bit Dart integer.
       if (is32BitConfiguration) ...[
         // 'unboxed' needs to be converted to int64 before returning.
         'address' << match.IntConverter('unboxed', from: 'uint32', to: 'int64'),
       ],
-      match.Return(retvalName),
+      match.DartReturn(retvalName),
     ]),
   ]);
 }

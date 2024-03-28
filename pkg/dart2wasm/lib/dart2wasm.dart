@@ -8,8 +8,8 @@ import 'package:args/args.dart' as args;
 import 'package:front_end/src/api_unstable/vm.dart' show resolveInputUri;
 import 'package:front_end/src/api_unstable/vm.dart' as fe;
 
-import 'package:dart2wasm/generate_wasm.dart';
-import 'package:dart2wasm/option.dart';
+import 'generate_wasm.dart';
+import 'option.dart';
 
 // Used to allow us to keep defaults on their respective option structs.
 // Note: When adding new options, consider if CLI options should be add
@@ -83,6 +83,8 @@ final List<Option> options = [
           o.feExperimentalFlags = processFeExperimentalFlags(values)),
   StringOption("multi-root-scheme", (o, value) => o.multiRootScheme = value),
   UriMultiOption("multi-root", (o, values) => o.multiRoots = values),
+  StringMultiOption("delete-tostring-package-uri",
+      (o, values) => o.deleteToStringPackageUri = values),
   StringOption("depfile", (o, value) => o.depFile = value),
   StringOption(
       "js-runtime-output", (o, value) => o.outputJSRuntimeFile = value),
@@ -150,7 +152,7 @@ WasmCompilerOptions parseArguments(List<String> arguments) {
     return compilerOptions;
   } catch (e, s) {
     print(s);
-    print('Argument Error: ' + e.toString());
+    print('Argument Error: $e');
     usage();
   }
 }

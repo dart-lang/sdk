@@ -2,6 +2,15 @@
 
 ### Language
 
+Dart 3.4 makes improvements to the type analysis of conditional expressions
+(`e1 ? e2 : e3`), if-null expressions (`e1 ?? e2`), if-null assignments
+(`e1 ??= e2`), and switch expressions (`switch (e) { p1 => e1, ... }`). To take
+advantage of these improvements, set your package's
+[SDK constraint][language version] lower bound to 3.4 or greater
+(`sdk: '^3.4.0'`).
+
+[language version]: https://dart.dev/guides/language/evolution
+
 - **Breaking Change** [#54640][]: The pattern context type schema for
   cast patterns has been changed from `Object?` to `_` (the unknown
   type), to align with the specification. This change is not expected
@@ -19,6 +28,10 @@
 
 ### Libraries
 
+#### `dart:cli`
+
+- **Breaking change** [#52121][]: `waitFor` is removed in 3.4.
+
 #### `dart:io`
 
 - **Breaking change** [#53863][]: `Stdout` has a new field `lineTerminator`,
@@ -28,15 +41,56 @@
 
 [#53863]: https://github.com/dart-lang/sdk/issues/53863
 
+#### `dart:js_interop`
+
+- Fixes an issue with several comparison operators in `JSAnyOperatorExtension`
+  that were declared to return `JSBoolean` but really returned `bool`. This led
+  to runtime errors when trying to use the return values. The implementation now
+  returns a `JSBoolean` to align with the interface. See issue [#55024] for
+  more details.
+- Added `ExternalDartReference` and related conversion functions
+  `toExternalReference` and `toDartObject`. This is a faster alternative to
+  `JSBoxedDartObject`, but with fewer safety guarantees and fewer
+  interoperability capabilities. See [#55187] for more details.
+
+[#55024]: https://github.com/dart-lang/sdk/issues/55024
+[#55187]: https://github.com/dart-lang/sdk/issues/55187
+
 ### Tools
+
+#### Analyzer
+
+- Improved code completion. Fixed over 50% of completion correctness bugs,
+  tagged `analyzer-completion-correctness` in the [issue tracker][analyzer-completion-correction-issues].
+
+[analyzer-completion-correction-issues]: https://github.com/dart-lang/sdk/labels/analyzer-completion-correctness
+
+#### Compilers
+
+- The compilation environment will no longer pretend to contain
+  entries with value `""` for all `dart.library.foo` strings,
+  where `dart:foo` is not an available library.
+  Instead there will only be entries for the available libraries,
+  like `dart.library.core`, where the value was, and still is, `"true"`.
+  This should have no effect on `const bool.fromEnvironment(...)` or
+  `const String.fromEnvironment(...)` without a `defaultValue`
+  argument, an argument which was always ignored previously.
+  It changes the behavior of `const bool.hasEnvironment(...)` on such
+  an input, away from always being `true` and therefore useless.
 
 #### Pub
 
-- Dependency resolution will now surface if a dependency is affected by a
-  security advisory, unless the advisory is listed under a
-  `ignored_advisories` section in the `pubspec.yaml` file.
-  To learn more about pub's support for security advisories,
-  visit [dart.dev/go/pub-security-advisories][pub-security-advisories].
+- Dependency resolution and `dart pub outdated` will now surface if a dependency
+  is affected by a security advisory, unless the advisory is listed under a
+  `ignored_advisories` section in the `pubspec.yaml` file. To learn more about
+  pub's support for security advisories, visit
+  [dart.dev/go/pub-security-advisories][pub-security-advisories].
+- `path`-dependencies inside `git`-dependencies are now resolved relative to the git
+  repo.
+- New command `dart pub unpack` that downloads a package from pub.dev and
+  extracts it to a subfolder of the current directory.
+
+  This can be useful for inspecting the code, or playing with examples.
 
 [pub-security-advisories]: https://dart.dev/go/pub-security-advisories
 
@@ -89,6 +143,7 @@
 [#53785]: https://github.com/dart-lang/sdk/issues/53785
 
 ### Dart Runtime
+
 - Dart VM flags and options can now be provided to any executable
   generated using `dart compile exe` via the `DART_VM_OPTIONS` environment
   variable. `DART_VM_OPTIONS` should be set to a list of comma-separated flags
@@ -101,6 +156,21 @@
   ```bash
   DART_VM_OPTIONS=--random_seed=42,--verbose_gc
   ```
+
+- Dart VM no longer supports external strings: `Dart_IsExternalString`,
+  `Dart_NewExternalLatin1String` and `Dart_NewExternalUTF16String` functions are
+  removed from Dart C API.
+
+### Tools
+
+#### DevTools
+
+- Updated DevTools to version 2.33.0 from 2.31.1.
+  To learn more, check out the release notes for versions
+  [2.32.0][devtools-2-32-0] and [2.33.0][devtools-2-33-0].
+
+[devtools-2-32-0]: https://docs.flutter.dev/tools/devtools/release-notes/release-notes-2.32.0
+[devtools-2-33-0]: https://docs.flutter.dev/tools/devtools/release-notes/release-notes-2.33.0
 
 ## 3.3.0
 
@@ -335,6 +405,16 @@ for each element.
 
 [lints-3-0]: https://pub.dev/packages/lints/changelog#300
 
+#### DevTools
+
+- Updated DevTools to version 2.31.1 from 2.28.1.
+  To learn more, check out the release notes for versions
+  [2.29.0][devtools-2-29-0], [2.30.0][devtools-2-30-0],
+  and [2.31.0][devtools-2-31-0].
+
+[devtools-2-29-0]: https://docs.flutter.dev/tools/devtools/release-notes/release-notes-2.29.0
+[devtools-2-30-0]: https://docs.flutter.dev/tools/devtools/release-notes/release-notes-2.30.0
+[devtools-2-31-0]: https://docs.flutter.dev/tools/devtools/release-notes/release-notes-2.31.0
 
 #### Wasm compiler (dart2wasm)
 

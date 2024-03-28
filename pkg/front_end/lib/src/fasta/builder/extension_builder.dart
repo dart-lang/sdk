@@ -28,9 +28,6 @@ abstract class ExtensionBuilder implements DeclarationBuilder {
   // duplicate.
   Builder? lookupLocalMemberByName(Name name,
       {bool setter = false, bool required = false});
-
-  /// Calls [f] for each member declared in this extension.
-  void forEach(void f(String name, Builder builder));
 }
 
 abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl

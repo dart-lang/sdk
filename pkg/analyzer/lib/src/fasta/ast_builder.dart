@@ -309,7 +309,8 @@ class AstBuilder extends StackListener {
   void beginEnum(Token enumKeyword) {}
 
   @override
-  void beginExtensionDeclaration(Token extensionKeyword, Token? nameToken) {
+  void beginExtensionDeclaration(
+      Token? augmentKeyword, Token extensionKeyword, Token? nameToken) {
     assert(optional('extension', extensionKeyword));
     assert(_classLikeBuilder == null);
     debugEvent("ExtensionHeader");
@@ -321,6 +322,7 @@ class AstBuilder extends StackListener {
     _classLikeBuilder = _ExtensionDeclarationBuilder(
       comment: comment,
       metadata: metadata,
+      augmentKeyword: augmentKeyword,
       extensionKeyword: extensionKeyword,
       name: nameToken,
       typeParameters: typeParameters,
@@ -3548,6 +3550,62 @@ class AstBuilder extends StackListener {
     var comment = _findComment(metadata, variables[0].beginToken);
     // var comment = _findComment(metadata,
     //     variables[0].beginToken ?? type?.beginToken ?? modifiers.beginToken);
+
+    // https://github.com/dart-lang/sdk/issues/53964
+    if (semicolon != null && semicolon.isSynthetic) {
+      if (variables.singleOrNull case var variable?) {
+        if (type is NamedTypeImpl) {
+          var importPrefix = type.importPrefix;
+          if (importPrefix != null) {
+            // x.^
+            // await y.foo();
+            {
+              var awaitToken = type.name2;
+              if (awaitToken.type == Keyword.AWAIT) {
+                push(
+                  ExpressionStatementImpl(
+                    expression: PrefixedIdentifierImpl(
+                      prefix: SimpleIdentifierImpl(importPrefix.name),
+                      period: importPrefix.period,
+                      identifier: SimpleIdentifierImpl(
+                        parser.rewriter.insertSyntheticIdentifier(
+                          importPrefix.period,
+                        ),
+                      ),
+                    ),
+                    semicolon: semicolon,
+                  ),
+                );
+                parser.rewriter.insertToken(semicolon, awaitToken);
+                parser.rewriter.insertToken(awaitToken, variable.name);
+                return;
+              }
+            }
+            // x.foo^
+            // await y.bar();
+            {
+              var awaitToken = variable.name;
+              if (awaitToken.type == Keyword.AWAIT ||
+                  awaitToken.type == TokenType.IDENTIFIER) {
+                push(
+                  ExpressionStatementImpl(
+                    expression: PrefixedIdentifierImpl(
+                      prefix: SimpleIdentifierImpl(importPrefix.name),
+                      period: importPrefix.period,
+                      identifier: SimpleIdentifierImpl(type.name2),
+                    ),
+                    semicolon: semicolon,
+                  ),
+                );
+                parser.rewriter.insertToken(semicolon, awaitToken);
+                return;
+              }
+            }
+          }
+        }
+      }
+    }
+
     push(
       VariableDeclarationStatementImpl(
         variableList: VariableDeclarationListImpl(
@@ -6030,6 +6088,7 @@ class _EnumDeclarationBuilder extends _ClassLikeDeclarationBuilder {
 }
 
 class _ExtensionDeclarationBuilder extends _ClassLikeDeclarationBuilder {
+  final Token? augmentKeyword;
   final Token extensionKeyword;
   final Token? name;
 
@@ -6039,6 +6098,7 @@ class _ExtensionDeclarationBuilder extends _ClassLikeDeclarationBuilder {
     required super.typeParameters,
     required super.leftBracket,
     required super.rightBracket,
+    required this.augmentKeyword,
     required this.extensionKeyword,
     required this.name,
   });
@@ -6051,6 +6111,7 @@ class _ExtensionDeclarationBuilder extends _ClassLikeDeclarationBuilder {
     return ExtensionDeclarationImpl(
       comment: comment,
       metadata: metadata,
+      augmentKeyword: augmentKeyword,
       extensionKeyword: extensionKeyword,
       typeKeyword: typeKeyword,
       name: name,

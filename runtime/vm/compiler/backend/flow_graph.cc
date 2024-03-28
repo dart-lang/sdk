@@ -4,7 +4,10 @@
 
 #include "vm/compiler/backend/flow_graph.h"
 
+#include <array>
+
 #include "vm/bit_vector.h"
+#include "vm/compiler/backend/dart_calling_conventions.h"
 #include "vm/compiler/backend/flow_graph_compiler.h"
 #include "vm/compiler/backend/il.h"
 #include "vm/compiler/backend/il_printer.h"
@@ -31,10 +34,17 @@ DEFINE_FLAG(bool, prune_dead_locals, true, "optimize dead locals away");
 // Quick access to the current zone.
 #define Z (zone())
 
+static bool ShouldReorderBlocks(const Function& function,
+                                FlowGraph::CompilationMode mode) {
+  return (mode == FlowGraph::CompilationMode::kOptimized) &&
+         FLAG_reorder_basic_blocks && !function.IsFfiCallbackTrampoline();
+}
+
 FlowGraph::FlowGraph(const ParsedFunction& parsed_function,
                      GraphEntryInstr* graph_entry,
                      intptr_t max_block_id,
-                     PrologueInfo prologue_info)
+                     PrologueInfo prologue_info,
+                     CompilationMode compilation_mode)
     : thread_(Thread::Current()),
       parent_(),
       current_ssa_temp_index_(0),
@@ -43,7 +53,8 @@ FlowGraph::FlowGraph(const ParsedFunction& parsed_function,
       num_direct_parameters_(parsed_function.function().MakesCopyOfParameters()
                                  ? 0
                                  : parsed_function.function().NumParameters()),
-      direct_parameters_size_(0),
+      direct_parameter_locations_(
+          parsed_function.function().num_fixed_parameters()),
       graph_entry_(graph_entry),
       preorder_(),
       postorder_(),
@@ -52,6 +63,8 @@ FlowGraph::FlowGraph(const ParsedFunction& parsed_function,
       constant_null_(nullptr),
       constant_dead_(nullptr),
       licm_allowed_(true),
+      should_reorder_blocks_(
+          ShouldReorderBlocks(parsed_function.function(), compilation_mode)),
       prologue_info_(prologue_info),
       loop_hierarchy_(nullptr),
       loop_invariant_loads_(nullptr),
@@ -60,9 +73,11 @@ FlowGraph::FlowGraph(const ParsedFunction& parsed_function,
       should_print_(false) {
   should_print_ = FlowGraphPrinter::ShouldPrint(parsed_function.function(),
                                                 &compiler_pass_filters_);
-
-  direct_parameters_size_ = ParameterOffsetAt(
-      function(), num_direct_parameters_, /*last_slot*/ false);
+  ComputeLocationsOfFixedParameters(
+      zone(), function(),
+      /*should_assign_stack_locations=*/
+      !parsed_function.function().MakesCopyOfParameters(),
+      &direct_parameter_locations_);
   DiscoverBlocks();
 }
 
@@ -72,75 +87,17 @@ void FlowGraph::EnsureSSATempIndex(Definition* defn, Definition* replacement) {
   }
 }
 
-// When updating this check also [ParameterOffsetAt] and
-// [PopulateEnvironmentFromFunctionEntry]
-Location FlowGraph::ParameterLocationAt(const Function& function,
-                                        intptr_t index) {
-  ASSERT(index <= function.NumParameters());
-  intptr_t offset_in_words_from_caller_sp = 0;
-  for (intptr_t i = function.NumParameters() - 1; i > index; i--) {
-    if (function.is_unboxed_integer_parameter_at(i)) {
-      offset_in_words_from_caller_sp += compiler::target::kIntSpillFactor;
-    } else if (function.is_unboxed_double_parameter_at(i)) {
-      offset_in_words_from_caller_sp += compiler::target::kDoubleSpillFactor;
-    } else {
-      ASSERT(!function.is_unboxed_parameter_at(i));
-      // Boxed parameters occupy one word.
-      offset_in_words_from_caller_sp++;
-    }
-  }
+intptr_t FlowGraph::ComputeArgumentsSizeInWords(const Function& function,
+                                                intptr_t argument_count) {
+  ASSERT(function.num_fixed_parameters() <= argument_count);
+  ASSERT(argument_count <= function.NumParameters());
 
-  const auto offset_in_words_from_fp =
-      offset_in_words_from_caller_sp +
-      compiler::target::frame_layout.param_end_from_fp + 1;
+  const intptr_t fixed_parameters_size_in_bytes =
+      ComputeLocationsOfFixedParameters(Thread::Current()->zone(), function);
 
-  if (function.is_unboxed_double_parameter_at(index)) {
-    return Location::DoubleStackSlot(offset_in_words_from_fp, FPREG);
-  } else if (function.is_unboxed_integer_parameter_at(index)) {
-    if (compiler::target::kIntSpillFactor == 1) {
-      return Location::StackSlot(offset_in_words_from_fp, FPREG);
-    } else {
-      ASSERT(compiler::target::kIntSpillFactor == 2);
-      return Location::Pair(
-          Location::StackSlot(offset_in_words_from_fp, FPREG),
-          Location::StackSlot(offset_in_words_from_fp + 1, FPREG));
-    }
-  } else {
-    return Location::StackSlot(offset_in_words_from_fp, FPREG);
-  }
-}
-
-// When updating this check also [ParameterLocationAt] and
-// [PopulateEnvironmentFromFunctionEntry]
-intptr_t FlowGraph::ParameterOffsetAt(const Function& function,
-                                      intptr_t index,
-                                      bool last_slot /*=true*/) {
-  ASSERT(index <= function.NumParameters());
-  intptr_t param_offset = 0;
-  for (intptr_t i = 0; i < index; i++) {
-    if (function.is_unboxed_integer_parameter_at(i)) {
-      param_offset += compiler::target::kIntSpillFactor;
-    } else if (function.is_unboxed_double_parameter_at(i)) {
-      param_offset += compiler::target::kDoubleSpillFactor;
-    } else {
-      ASSERT(!function.is_unboxed_parameter_at(i));
-      // Boxed parameters occupy one word.
-      param_offset++;
-    }
-  }
-  if (last_slot) {
-    ASSERT(index < function.NumParameters());
-    if (function.is_unboxed_double_parameter_at(index) &&
-        compiler::target::kDoubleSpillFactor > 1) {
-      ASSERT(compiler::target::kDoubleSpillFactor == 2);
-      param_offset++;
-    } else if (function.is_unboxed_integer_parameter_at(index) &&
-               compiler::target::kIntSpillFactor > 1) {
-      ASSERT(compiler::target::kIntSpillFactor == 2);
-      param_offset++;
-    }
-  }
-  return param_offset;
+  // Currently we box all optional parameters.
+  return fixed_parameters_size_in_bytes +
+         (argument_count - function.num_fixed_parameters());
 }
 
 Representation FlowGraph::ParameterRepresentationAt(const Function& function,
@@ -204,16 +161,14 @@ void FlowGraph::ReplaceCurrentInstruction(ForwardInstructionIterator* iterator,
   iterator->RemoveCurrentFromGraph();
 }
 
-bool FlowGraph::ShouldReorderBlocks(const Function& function,
-                                    bool is_optimized) {
-  return is_optimized && FLAG_reorder_basic_blocks &&
-         !function.is_intrinsic() && !function.IsFfiCallbackTrampoline();
+GrowableArray<BlockEntryInstr*>* FlowGraph::CodegenBlockOrder() {
+  return should_reorder_blocks() ? &optimized_block_order_
+                                 : &reverse_postorder_;
 }
 
-GrowableArray<BlockEntryInstr*>* FlowGraph::CodegenBlockOrder(
-    bool is_optimized) {
-  return ShouldReorderBlocks(function(), is_optimized) ? &optimized_block_order_
-                                                       : &reverse_postorder_;
+const GrowableArray<BlockEntryInstr*>* FlowGraph::CodegenBlockOrder() const {
+  return should_reorder_blocks() ? &optimized_block_order_
+                                 : &reverse_postorder_;
 }
 
 ConstantInstr* FlowGraph::GetExistingConstant(
@@ -1210,12 +1165,7 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
   env.FillWith(constant_dead(), 0, num_direct_parameters());
   env.FillWith(constant_null(), num_direct_parameters(), num_stack_locals());
 
-  if (entry->catch_entries().length() > 0) {
-    // Functions with try-catch have a fixed area of stack slots reserved
-    // so that all local variables are stored at a known location when
-    // on entry to the catch.
-    entry->set_fixed_slot_count(num_stack_locals());
-  } else {
+  if (entry->catch_entries().is_empty()) {
     ASSERT(entry->unchecked_entry() != nullptr ? entry->SuccessorCount() == 2
                                                : entry->SuccessorCount() == 1);
   }
@@ -1243,8 +1193,21 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
 #endif  // defined(DEBUG)
 }
 
-// When updating this check also [ParameterLocationAt] and
-// [ParameterOffsetAt].
+intptr_t FlowGraph::ComputeLocationsOfFixedParameters(
+    Zone* zone,
+    const Function& function,
+    bool should_assign_stack_locations /* = false */,
+    compiler::ParameterInfoArray* parameter_info /* = nullptr */) {
+  return compiler::ComputeCallingConvention(
+      zone, function, function.num_fixed_parameters(),
+      [&](intptr_t i) {
+        const intptr_t index = (function.IsFactory() ? (i - 1) : i);
+        return index >= 0 ? ParameterRepresentationAt(function, index)
+                          : kTagged;
+      },
+      should_assign_stack_locations, parameter_info);
+}
+
 void FlowGraph::PopulateEnvironmentFromFunctionEntry(
     FunctionEntryInstr* function_entry,
     GrowableArray<Definition*>* env,
@@ -1252,55 +1215,34 @@ void FlowGraph::PopulateEnvironmentFromFunctionEntry(
     VariableLivenessAnalysis* variable_liveness,
     ZoneGrowableArray<Definition*>* inlining_parameters) {
   ASSERT(!IsCompiledForOsr());
-  const intptr_t direct_parameter_count = num_direct_parameters_;
 
   // Check if inlining_parameters include a type argument vector parameter.
   const intptr_t inlined_type_args_param =
       ((inlining_parameters != nullptr) && function().IsGeneric()) ? 1 : 0;
 
   ASSERT(variable_count() == env->length());
-  ASSERT(direct_parameter_count <= env->length());
+  ASSERT(function().num_fixed_parameters() <= env->length());
 
-  intptr_t offset_in_words_from_fp =
-      (compiler::target::frame_layout.param_end_from_fp + 1) +
-      direct_parameters_size_;
-  for (intptr_t i = 0; i < direct_parameter_count; i++) {
-    ASSERT(FLAG_precompiled_mode || !function().is_unboxed_parameter_at(i));
-
-    const intptr_t index = (function().IsFactory() ? (i - 1) : i);
-
-    Representation rep;
-    Location location;
-
-    if (index >= 0 && function().is_unboxed_integer_parameter_at(index)) {
-      rep = kUnboxedInt64;
-      offset_in_words_from_fp -= compiler::target::kIntSpillFactor;
-      if (compiler::target::kIntSpillFactor == 1) {
-        location = Location::StackSlot(offset_in_words_from_fp, FPREG);
-      } else {
-        ASSERT(compiler::target::kIntSpillFactor == 2);
-        location = Location::Pair(
-            Location::StackSlot(offset_in_words_from_fp, FPREG),
-            Location::StackSlot(offset_in_words_from_fp + 1, FPREG));
-      }
-    } else if (index >= 0 && function().is_unboxed_double_parameter_at(index)) {
-      rep = kUnboxedDouble;
-      offset_in_words_from_fp -= compiler::target::kDoubleSpillFactor;
-      location = Location::DoubleStackSlot(offset_in_words_from_fp, FPREG);
-    } else {
-      ASSERT(index < 0 || !function().is_unboxed_parameter_at(index));
-      rep = kTagged;
-      offset_in_words_from_fp -= 1;
-      location = Location::StackSlot(offset_in_words_from_fp, FPREG);
+  const bool copies_parameters = function().MakesCopyOfParameters();
+  for (intptr_t i = 0; i < function().num_fixed_parameters(); i++) {
+    const auto& [location, representation] = direct_parameter_locations_[i];
+    if (location.IsInvalid()) {
+      ASSERT(function().MakesCopyOfParameters());
+      continue;
     }
 
-    auto param = new (zone()) ParameterInstr(function_entry,
-                                             /*env_index=*/i,
-                                             /*param_index=*/i, location, rep);
+    const intptr_t env_index =
+        copies_parameters ? EnvIndex(parsed_function_.RawParameterVariable(i))
+                          : i;
+
+    auto param = new (zone())
+        ParameterInstr(function_entry,
+                       /*env_index=*/env_index,
+                       /*param_index=*/i, location, representation);
 
     AllocateSSAIndex(param);
     AddToInitialDefinitions(function_entry, param);
-    (*env)[i] = param;
+    (*env)[env_index] = param;
   }
 
   // Override the entries in the renaming environment which are special (i.e.
@@ -1405,6 +1347,7 @@ void FlowGraph::PopulateEnvironmentFromCatchEntry(
 
   // Add real definitions for all locals and parameters.
   ASSERT(variable_count() == env->length());
+  intptr_t additional_slots = 0;
   for (intptr_t i = 0, n = variable_count(); i < n; ++i) {
     // Local variables will arive on the stack while exception and
     // stack trace will be passed in fixed registers.
@@ -1414,7 +1357,22 @@ void FlowGraph::PopulateEnvironmentFromCatchEntry(
     } else if (raw_stacktrace_var_envindex == i) {
       loc = LocationStackTraceLocation();
     } else {
-      loc = EnvIndexToStackLocation(num_direct_parameters(), i);
+      if (i < num_direct_parameters()) {
+        const auto [param_loc, param_rep] = GetDirectParameterInfoAt(i);
+        if (param_rep == kTagged && param_loc.IsStackSlot()) {
+          loc = param_loc;
+        } else {
+          // We can not reuse parameter location for synchronization purposes
+          // because it is either a register location or it is untagged
+          // location. This means we need to allocate additional slot
+          // for synchronization above slots reserved for other variables.
+          loc = EnvIndexToStackLocation(num_direct_parameters(),
+                                        n + additional_slots);
+          additional_slots++;
+        }
+      } else {
+        loc = EnvIndexToStackLocation(num_direct_parameters(), i);
+      }
     }
     auto param = new (Z) ParameterInstr(
         catch_entry, /*env_index=*/i,
@@ -1424,6 +1382,10 @@ void FlowGraph::PopulateEnvironmentFromCatchEntry(
     (*env)[i] = param;
     AddToInitialDefinitions(catch_entry, param);
   }
+
+  graph_entry_->set_fixed_slot_count(Utils::Maximum(
+      graph_entry_->fixed_slot_count(),
+      variable_count() - num_direct_parameters() + additional_slots));
 }
 
 void FlowGraph::AttachEnvironment(Instruction* instr,
@@ -2018,7 +1980,7 @@ void FlowGraph::InsertConversion(Representation from,
   } else if ((to == kPairOfTagged) && (from == kTagged)) {
     // Insert conversion to an unboxed record, which can be only used
     // in Return instruction.
-    ASSERT(use->instruction()->IsReturn());
+    ASSERT(use->instruction()->IsDartReturn());
     Definition* x = new (Z)
         LoadFieldInstr(use->CopyWithType(),
                        Slot::GetRecordFieldSlot(
@@ -2041,10 +2003,13 @@ void FlowGraph::InsertConversion(Representation from,
     if (!Boxing::Supports(from) || !Boxing::Supports(to)) {
       if (FLAG_support_il_printer) {
         FATAL("Illegal conversion %s->%s for the use of %s at %s\n",
-              RepresentationToCString(from), RepresentationToCString(to),
+              RepresentationUtils::ToCString(from),
+              RepresentationUtils::ToCString(to),
               use->definition()->ToCString(), use->instruction()->ToCString());
       } else {
-        FATAL("Illegal representation conversion for a use of v%" Pd "\n",
+        FATAL("Illegal conversion %s->%s for a use of v%" Pd "\n",
+              RepresentationUtils::ToCString(from),
+              RepresentationUtils::ToCString(to),
               use->definition()->ssa_temp_index());
       }
     }
@@ -2526,7 +2491,7 @@ void FlowGraph::WidenSmiToInt32() {
           // We assume that tagging before returning or pushing argument costs
           // very little compared to the cost of the return/call itself.
           ASSERT(!instr->IsMoveArgument());
-          if (!instr->IsReturn() &&
+          if (!instr->IsReturnBase() &&
               (use->use_index() >= instr->ArgumentCount())) {
             gain--;
             if (FLAG_support_il_printer && FLAG_trace_smi_widening) {
@@ -2630,6 +2595,83 @@ void FlowGraph::EliminateEnvironments() {
         // the code for this instruction, however, leaving the environment
         // changes code.
         current->RemoveEnvironment();
+      }
+    }
+  }
+}
+
+void FlowGraph::ExtractUntaggedPayload(Instruction* instr,
+                                       Value* array,
+                                       const Slot& slot,
+                                       InnerPointerAccess access) {
+  auto* const untag_payload = new (Z)
+      LoadFieldInstr(array->CopyWithType(Z), slot, access, instr->source());
+  InsertBefore(instr, untag_payload, instr->env(), FlowGraph::kValue);
+  array->BindTo(untag_payload);
+  ASSERT_EQUAL(array->definition()->representation(), kUntagged);
+}
+
+bool FlowGraph::ExtractExternalUntaggedPayload(Instruction* instr,
+                                               Value* array,
+                                               classid_t cid) {
+  ASSERT(array->instruction() == instr);
+  // Nothing to do if already untagged.
+  if (array->definition()->representation() != kTagged) return false;
+  // If we've determined at compile time that this is an object that has an
+  // external payload, use the cid of the compile type instead.
+  if (IsExternalPayloadClassId(array->Type()->ToCid())) {
+    cid = array->Type()->ToCid();
+  } else if (!IsExternalPayloadClassId(cid)) {
+    // Can't extract the payload address if it points to GC-managed memory.
+    return false;
+  }
+
+  const Slot* slot = nullptr;
+  if (cid == kPointerCid || IsExternalTypedDataClassId(cid)) {
+    slot = &Slot::PointerBase_data();
+  } else {
+    UNREACHABLE();
+  }
+
+  ExtractUntaggedPayload(instr, array, *slot,
+                         InnerPointerAccess::kCannotBeInnerPointer);
+  return true;
+}
+
+void FlowGraph::ExtractNonInternalTypedDataPayload(Instruction* instr,
+                                                   Value* array,
+                                                   classid_t cid) {
+  ASSERT(array->instruction() == instr);
+  // Skip if the array payload has already been extracted.
+  if (array->definition()->representation() == kUntagged) return;
+  if (!IsTypedDataBaseClassId(cid)) return;
+  auto const type_cid = array->Type()->ToCid();
+  // For external PointerBase objects, the payload should have already been
+  // extracted during canonicalization.
+  ASSERT(!IsExternalPayloadClassId(cid) || !IsExternalPayloadClassId(type_cid));
+  // Don't extract if the array is an internal typed data object.
+  if (IsTypedDataClassId(type_cid)) return;
+  ExtractUntaggedPayload(instr, array, Slot::PointerBase_data(),
+                         InnerPointerAccess::kMayBeInnerPointer);
+}
+
+void FlowGraph::ExtractNonInternalTypedDataPayloads() {
+  for (BlockIterator block_it = reverse_postorder_iterator(); !block_it.Done();
+       block_it.Advance()) {
+    BlockEntryInstr* block = block_it.Current();
+    for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
+      Instruction* current = it.Current();
+      if (auto* const load_indexed = current->AsLoadIndexed()) {
+        ExtractNonInternalTypedDataPayload(load_indexed, load_indexed->array(),
+                                           load_indexed->class_id());
+      } else if (auto* const store_indexed = current->AsStoreIndexed()) {
+        ExtractNonInternalTypedDataPayload(
+            store_indexed, store_indexed->array(), store_indexed->class_id());
+      } else if (auto* const memory_copy = current->AsMemoryCopy()) {
+        ExtractNonInternalTypedDataPayload(memory_copy, memory_copy->src(),
+                                           memory_copy->src_cid());
+        ExtractNonInternalTypedDataPayload(memory_copy, memory_copy->dest(),
+                                           memory_copy->dest_cid());
       }
     }
   }
@@ -3116,7 +3158,11 @@ PhiInstr* FlowGraph::AddPhi(JoinEntryInstr* join,
 }
 
 void FlowGraph::InsertMoveArguments() {
+  compiler::ParameterInfoArray argument_locations;
+
   intptr_t max_argument_slot_count = 0;
+  auto& target = Function::Handle();
+
   for (BlockIterator block_it = reverse_postorder_iterator(); !block_it.Done();
        block_it.Advance()) {
     thread()->CheckForSafepoint();
@@ -3127,33 +3173,46 @@ void FlowGraph::InsertMoveArguments() {
       if (arg_count == 0) {
         continue;
       }
+
+      target = Function::null();
+      if (auto static_call = instruction->AsStaticCall()) {
+        target = static_call->function().ptr();
+      } else if (auto instance_call = instruction->AsInstanceCallBase()) {
+        target = instance_call->interface_target().ptr();
+      } else if (auto dispatch_call = instruction->AsDispatchTableCall()) {
+        target = dispatch_call->interface_target().ptr();
+      } else if (auto cachable_call = instruction->AsCachableIdempotentCall()) {
+        target = cachable_call->function().ptr();
+      }
+
       MoveArgumentsArray* arguments =
           new (Z) MoveArgumentsArray(zone(), arg_count);
       arguments->EnsureLength(arg_count, nullptr);
 
-      intptr_t sp_relative_index = 0;
-      for (intptr_t i = arg_count - 1; i >= 0; --i) {
-        Value* arg = instruction->ArgumentValueAt(i);
-        const auto rep = instruction->RequiredInputRepresentation(i);
-        (*arguments)[i] = new (Z)
-            MoveArgumentInstr(arg->CopyWithType(Z), rep, sp_relative_index);
+      const intptr_t stack_arguments_size_in_words =
+          compiler::ComputeCallingConvention(
+              zone(), target, arg_count,
+              [&](intptr_t i) {
+                return instruction->RequiredInputRepresentation(i);
+              },
+              /*should_assign_stack_locations=*/true, &argument_locations);
 
-        static_assert(compiler::target::kIntSpillFactor ==
-                          compiler::target::kDoubleSpillFactor,
-                      "double and int are expected to be of the same size");
-        RELEASE_ASSERT(rep == kTagged || rep == kUnboxedDouble ||
-                       rep == kUnboxedInt64);
-        sp_relative_index +=
-            (rep == kTagged) ? 1 : compiler::target::kIntSpillFactor;
+      for (intptr_t i = 0; i < arg_count; ++i) {
+        const auto& [location, rep] = argument_locations[i];
+        Value* arg = instruction->ArgumentValueAt(i);
+        (*arguments)[i] = new (Z) MoveArgumentInstr(
+            arg->CopyWithType(Z), rep, location.ToCallerSpRelative());
       }
-      max_argument_slot_count =
-          Utils::Maximum(max_argument_slot_count, sp_relative_index);
+      max_argument_slot_count = Utils::Maximum(max_argument_slot_count,
+                                               stack_arguments_size_in_words);
 
       for (auto move_arg : *arguments) {
         // Insert all MoveArgument instructions immediately before call.
         // MoveArgumentInstr::EmitNativeCode may generate more efficient
         // code for subsequent MoveArgument instructions (ARM, ARM64).
-        InsertBefore(instruction, move_arg, /*env=*/nullptr, kEffect);
+        if (!move_arg->is_register_move()) {
+          InsertBefore(instruction, move_arg, /*env=*/nullptr, kEffect);
+        }
       }
       instruction->ReplaceInputsWithMoveArguments(arguments);
       if (instruction->env() != nullptr) {

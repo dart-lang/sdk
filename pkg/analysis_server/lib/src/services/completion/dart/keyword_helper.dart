@@ -103,7 +103,7 @@ class KeywordHelper {
   /// beginning of an element in a collection [literal].
   void addCollectionElementKeywords(
       TypedLiteral literal, NodeList<CollectionElement> elements,
-      {bool mustBeStatic = false}) {
+      {bool mustBeConst = false, bool mustBeStatic = false}) {
     // TODO(brianwilkerson): Consider determining whether there is a comma before
     //  the selection and inserting the comma if there isn't one.
     addKeyword(Keyword.FOR);
@@ -126,7 +126,8 @@ class KeywordHelper {
         }
       }
     }
-    addExpressionKeywords(literal, mustBeStatic: mustBeStatic);
+    addExpressionKeywords(literal,
+        mustBeConstant: mustBeConst, mustBeStatic: mustBeStatic);
   }
 
   /// Add the keywords that are appropriate when the selection is after the
@@ -204,9 +205,12 @@ class KeywordHelper {
     if (before == null && !unit.directives.any((d) => d is LibraryDirective)) {
       addKeyword(Keyword.LIBRARY);
     }
-    addKeywordFromText(Keyword.IMPORT, " '^';");
-    addKeywordFromText(Keyword.EXPORT, " '^';");
-    addKeywordFromText(Keyword.PART, " '^';");
+    addKeywordAndText(Keyword.IMPORT, " '^';");
+    addKeywordAndText(Keyword.EXPORT, " '^';");
+    addKeywordAndText(Keyword.PART, " '^';");
+    if (unit.directives.isEmpty) {
+      addText("${Keyword.PART.lexeme} ${Keyword.OF.lexeme} '^';");
+    }
   }
 
   /// Add the keywords that are appropriate when the selection is in an enum
@@ -317,7 +321,7 @@ class KeywordHelper {
     if (node.onKeyword.isSynthetic) {
       addKeyword(Keyword.ON);
       if (node.name == null && featureSet.isEnabled(Feature.inline_class)) {
-        addPseudoKeyword('type');
+        addText('type');
       }
     }
   }
@@ -421,8 +425,8 @@ class KeywordHelper {
     if (_isAbsentOrIn(body?.keyword)) {
       addKeyword(Keyword.ASYNC);
       if (body is! ExpressionFunctionBody) {
-        addKeywordFromText(Keyword.ASYNC, '*');
-        addKeywordFromText(Keyword.SYNC, '*');
+        addKeywordAndText(Keyword.ASYNC, '*');
+        addKeywordAndText(Keyword.SYNC, '*');
       }
     }
   }
@@ -437,7 +441,7 @@ class KeywordHelper {
     if (firstCombinator == null || offset < firstCombinator.offset) {
       if (deferredKeyword == null) {
         if (asKeyword == null) {
-          addKeywordFromText(Keyword.DEFERRED, ' as');
+          addKeywordAndText(Keyword.DEFERRED, ' as');
           addKeyword(Keyword.AS);
           addKeyword(Keyword.HIDE);
           addKeyword(Keyword.SHOW);
@@ -464,7 +468,12 @@ class KeywordHelper {
 
   /// Add a keyword suggestion to suggest the [keyword].
   void addKeyword(Keyword keyword) {
-    collector.addSuggestion(KeywordSuggestion.fromKeyword(keyword));
+    collector.addSuggestion(
+      KeywordSuggestion.fromKeyword(
+        keyword: keyword,
+        annotatedText: null,
+      ),
+    );
   }
 
   /// Add a keyword suggestion to suggest the [keyword] followed by the
@@ -476,9 +485,13 @@ class KeywordHelper {
   /// be used as the selection offset. If the text doesn't contain a caret, then
   /// the insert text will be the annotated text and the selection offset will
   /// be at the end of the text.
-  void addKeywordFromText(Keyword keyword, String annotatedText) {
+  void addKeywordAndText(Keyword keyword, String annotatedText) {
     collector.addSuggestion(
-        KeywordSuggestion.fromKeywordAndText(keyword, annotatedText));
+      KeywordSuggestion.fromKeyword(
+        keyword: keyword,
+        annotatedText: annotatedText,
+      ),
+    );
   }
 
   /// Add the keywords that are appropriate when the selection is in a mixin
@@ -529,11 +542,6 @@ class KeywordHelper {
     addVariablePatternKeywords();
   }
 
-  /// Add a keyword suggestion to suggest the [keyword].
-  void addPseudoKeyword(String keyword) {
-    collector.addSuggestion(KeywordSuggestion.fromPseudoKeyword(keyword));
-  }
-
   /// Add the keywords that are appropriate when the selection is at the
   /// beginning of a statement. The [node] provides context to determine which
   /// keywords to include.
@@ -543,7 +551,7 @@ class KeywordHelper {
     } else if (node.inAsyncStarOrSyncStarMethodOrFunction) {
       addKeyword(Keyword.AWAIT);
       addKeyword(Keyword.YIELD);
-      addKeywordFromText(Keyword.YIELD, '*');
+      addKeywordAndText(Keyword.YIELD, '*');
     }
     if (node.inLoop) {
       addKeyword(Keyword.BREAK);
@@ -575,9 +583,16 @@ class KeywordHelper {
     addKeyword(Keyword.WHILE);
     if (node.inAsyncStarOrSyncStarMethodOrFunction) {
       addKeyword(Keyword.YIELD);
-      addKeywordFromText(Keyword.YIELD, '*');
+      addKeywordAndText(Keyword.YIELD, '*');
     }
     addKeyword(Keyword.LATE);
+  }
+
+  /// Add a keyword suggestion to suggest the [annotatedText].
+  void addText(String annotatedText) {
+    collector.addSuggestion(
+      KeywordSuggestion.fromText(annotatedText),
+    );
   }
 
   /// Add the keywords that are appropriate when the selection is after the

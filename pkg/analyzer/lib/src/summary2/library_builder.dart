@@ -4,7 +4,6 @@
 
 import 'package:_fe_analyzer_shared/src/field_promotability.dart';
 import 'package:_fe_analyzer_shared/src/macros/code_optimizer.dart' as macro;
-import 'package:_fe_analyzer_shared/src/macros/executor.dart' as macro;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
@@ -36,6 +35,7 @@ import 'package:analyzer/src/summary2/types_builder.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
+import 'package:macros/src/executor.dart' as macro;
 
 class AugmentedClassDeclarationBuilder
     extends AugmentedInstanceDeclarationBuilder {
@@ -72,7 +72,7 @@ abstract class AugmentedInstanceDeclarationBuilder {
         if (existing != null) {
           existing.augmentation = element;
           element.augmentationTarget = existing;
-          element.variable = existing.variable;
+          element.variable2 = existing.variable2;
         }
       }
       accessors[name] = element;
@@ -141,6 +141,43 @@ class AugmentedMixinDeclarationBuilder
   }
 }
 
+class AugmentedTopVariablesBuilder {
+  final Map<String, TopLevelVariableElementImpl> variables = {};
+  final Map<String, PropertyAccessorElementImpl> accessors = {};
+
+  void addAccessor(PropertyAccessorElementImpl element) {
+    final name = element.name;
+    if (element.isAugmentation) {
+      final existing = accessors[name];
+      if (existing != null) {
+        existing.augmentation = element;
+        element.augmentationTarget = existing;
+        element.variable2 = existing.variable2;
+      }
+    }
+    accessors[name] = element;
+  }
+
+  void addVariable(TopLevelVariableElementImpl element) {
+    final name = element.name;
+    if (element.isAugmentation) {
+      final existing = variables[name];
+      if (existing != null) {
+        existing.augmentation = element;
+        element.augmentationTarget = existing;
+      }
+    }
+    variables[name] = element;
+
+    if (element.getter case var getter?) {
+      addAccessor(getter);
+    }
+    if (element.setter case var setter?) {
+      addAccessor(setter);
+    }
+  }
+}
+
 class DefiningLinkingUnit extends LinkingUnit {
   DefiningLinkingUnit({
     required super.reference,
@@ -163,6 +200,8 @@ class ImplicitEnumNodes {
 }
 
 class LibraryBuilder {
+  static const _enableMacroCodeOptimizer = false;
+
   final Linker linker;
   final LibraryFileKind kind;
   final Uri uri;
@@ -175,6 +214,10 @@ class LibraryBuilder {
   /// The top-level elements that can be augmented.
   final Map<String, AugmentedInstanceDeclarationBuilder> _augmentedBuilders =
       {};
+
+  /// The top-level variables and accessors that can be augmented.
+  final AugmentedTopVariablesBuilder topVariables =
+      AugmentedTopVariablesBuilder();
 
   /// The top-level elements that can be augmented.
   final Map<String, ElementImpl> _augmentationTargets = {};
@@ -495,20 +538,27 @@ class LibraryBuilder {
     final partialUnits = units.sublist(units.length - _macroResults.length);
     units.length -= _macroResults.length;
 
-    var optimizedCodeEdits = _CodeOptimizer(
-      elementFactory: linker.elementFactory,
-    ).optimize(
-      augmentationCode,
-      libraryDeclarationNames: element.definingCompilationUnit.children
-          .map((e) => e.name)
-          .nonNulls
-          .toSet(),
-      scannerConfiguration: Scanner.buildConfig(kind.file.featureSet),
-    );
-    var optimizedCode = macro.Edit.applyList(
-      optimizedCodeEdits,
-      augmentationCode,
-    );
+    List<macro.Edit> optimizedCodeEdits;
+    String optimizedCode;
+    if (_enableMacroCodeOptimizer) {
+      optimizedCodeEdits = _CodeOptimizer(
+        elementFactory: linker.elementFactory,
+      ).optimize(
+        augmentationCode,
+        libraryDeclarationNames: element.definingCompilationUnit.children
+            .map((e) => e.name)
+            .nonNulls
+            .toSet(),
+        scannerConfiguration: Scanner.buildConfig(kind.file.featureSet),
+      );
+      optimizedCode = macro.Edit.applyList(
+        optimizedCodeEdits,
+        augmentationCode,
+      );
+    } else {
+      optimizedCodeEdits = [];
+      optimizedCode = augmentationCode;
+    }
 
     final importState = kind.addMacroAugmentation(
       optimizedCode,
@@ -602,8 +652,6 @@ class LibraryBuilder {
       if (classElement.isMixinApplication) continue;
       if (classElement.isAugmentation) continue;
       if (classElement.augmented case var augmented?) {
-        // TODO(scheglov): https://github.com/dart-lang/sdk/issues/54967
-        augmented.constructors; // remove when fixed
         var hasConst = augmented.constructors.any((e) => e.isConst);
         if (hasConst) {
           withConstConstructors.add(classElement);
@@ -1410,7 +1458,8 @@ class _FieldPromotability extends FieldPromotability<InterfaceElement,
       var nonPromotabilityReason = addGetter(classInfo, accessor, accessor.name,
           isAbstract: accessor.isAbstract);
       if (enabled && nonPromotabilityReason == null) {
-        _potentiallyPromotableFields.add(accessor.variable as FieldElementImpl);
+        _potentiallyPromotableFields
+            .add(accessor.variable2 as FieldElementImpl);
       }
     }
   }

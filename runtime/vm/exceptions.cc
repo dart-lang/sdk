@@ -378,71 +378,80 @@ void CatchEntryMove::WriteTo(BaseWriteStream* stream) {
 #endif
 
 #if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
+static intptr_t SlotIndexToFrameIndex(intptr_t slot) {
+  return runtime_frame_layout.FrameSlotForVariableIndex(-slot);
+}
+
+static intptr_t SlotIndexToFpRelativeOffset(intptr_t slot) {
+  return SlotIndexToFrameIndex(slot) * compiler::target::kWordSize;
+}
+
 const char* CatchEntryMove::ToCString() const {
   char from[256];
 
   switch (source_kind()) {
     case SourceKind::kConstant:
-      Utils::SNPrint(from, ARRAY_SIZE(from), "pp[%" Pd "]", src_slot());
+      Utils::SNPrint(from, ARRAY_SIZE(from), "pp[%" Pd "]",
+                     SlotIndexToFrameIndex(src_slot()));
       break;
 
     case SourceKind::kTaggedSlot:
-      Utils::SNPrint(from, ARRAY_SIZE(from), "fp[%" Pd "]", src_slot());
+      Utils::SNPrint(from, ARRAY_SIZE(from), "fp[%" Pd "]",
+                     SlotIndexToFrameIndex(src_slot()));
       break;
 
     case SourceKind::kFloatSlot:
-      Utils::SNPrint(from, ARRAY_SIZE(from), "f32 [fp + %" Pd "]",
-                     src_slot() * compiler::target::kWordSize);
+      Utils::SNPrint(from, ARRAY_SIZE(from), "f32 [fp%+" Pd "]",
+                     SlotIndexToFpRelativeOffset(src_slot()));
       break;
 
     case SourceKind::kDoubleSlot:
-      Utils::SNPrint(from, ARRAY_SIZE(from), "f64 [fp + %" Pd "]",
-                     src_slot() * compiler::target::kWordSize);
+      Utils::SNPrint(from, ARRAY_SIZE(from), "f64 [fp%+" Pd "]",
+                     SlotIndexToFpRelativeOffset(src_slot()));
       break;
 
     case SourceKind::kFloat32x4Slot:
-      Utils::SNPrint(from, ARRAY_SIZE(from), "f32x4 [fp + %" Pd "]",
-                     src_slot() * compiler::target::kWordSize);
+      Utils::SNPrint(from, ARRAY_SIZE(from), "f32x4 [fp%+" Pd "]",
+                     SlotIndexToFpRelativeOffset(src_slot()));
       break;
 
     case SourceKind::kFloat64x2Slot:
-      Utils::SNPrint(from, ARRAY_SIZE(from), "f64x2 [fp + %" Pd "]",
-                     src_slot() * compiler::target::kWordSize);
+      Utils::SNPrint(from, ARRAY_SIZE(from), "f64x2 [fp%+" Pd "]",
+                     SlotIndexToFpRelativeOffset(src_slot()));
       break;
 
     case SourceKind::kInt32x4Slot:
-      Utils::SNPrint(from, ARRAY_SIZE(from), "i32x4 [fp + %" Pd "]",
-                     src_slot() * compiler::target::kWordSize);
+      Utils::SNPrint(from, ARRAY_SIZE(from), "i32x4 [fp%+" Pd "]",
+                     SlotIndexToFpRelativeOffset(src_slot()));
       break;
 
     case SourceKind::kInt64PairSlot:
-      Utils::SNPrint(from, ARRAY_SIZE(from),
-                     "i64 ([fp + %" Pd "], [fp + %" Pd "])",
-                     src_lo_slot() * compiler::target::kWordSize,
-                     src_hi_slot() * compiler::target::kWordSize);
+      Utils::SNPrint(from, ARRAY_SIZE(from), "i64 ([fp%+" Pd "], [fp%+" Pd "])",
+                     SlotIndexToFpRelativeOffset(src_lo_slot()),
+                     SlotIndexToFpRelativeOffset(src_hi_slot()));
       break;
 
     case SourceKind::kInt64Slot:
-      Utils::SNPrint(from, ARRAY_SIZE(from), "i64 [fp + %" Pd "]",
-                     src_slot() * compiler::target::kWordSize);
+      Utils::SNPrint(from, ARRAY_SIZE(from), "i64 [fp%+" Pd "]",
+                     SlotIndexToFpRelativeOffset(src_slot()));
       break;
 
     case SourceKind::kInt32Slot:
-      Utils::SNPrint(from, ARRAY_SIZE(from), "i32 [fp + %" Pd "]",
-                     src_slot() * compiler::target::kWordSize);
+      Utils::SNPrint(from, ARRAY_SIZE(from), "i32 [fp%+" Pd "]",
+                     SlotIndexToFpRelativeOffset(src_slot()));
       break;
 
     case SourceKind::kUint32Slot:
       Utils::SNPrint(from, ARRAY_SIZE(from), "u32 [fp + %" Pd "]",
-                     src_slot() * compiler::target::kWordSize);
+                     SlotIndexToFpRelativeOffset(src_slot()));
       break;
 
     default:
       UNREACHABLE();
   }
 
-  return Thread::Current()->zone()->PrintToString("fp[%" Pd "] <- %s",
-                                                  dest_slot(), from);
+  return Thread::Current()->zone()->PrintToString(
+      "fp[%+" Pd "] <- %s", SlotIndexToFrameIndex(dest_slot()), from);
 }
 
 void CatchEntryMovesMapReader::PrintEntries() {

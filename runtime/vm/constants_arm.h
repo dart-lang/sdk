@@ -504,6 +504,7 @@ struct AllocateClosureABI {
   static constexpr Register kResultReg = AllocateObjectABI::kResultReg;
   static constexpr Register kFunctionReg = R1;
   static constexpr Register kContextReg = R2;
+  static constexpr Register kInstantiatorTypeArgsReg = R3;
   static constexpr Register kScratchReg = R4;
 };
 
@@ -746,6 +747,14 @@ class CallingConventions {
   COMPILE_ASSERT(
       ((R(kFirstNonArgumentRegister) | R(kSecondNonArgumentRegister)) &
        (kArgumentRegisters | R(kPointerToReturnStructRegisterCall))) == 0);
+};
+
+// Register based calling convention used for Dart functions.
+//
+// See |compiler::ComputeCallingConvention| for more details.
+struct DartCallingConvention {
+  static constexpr Register kCpuRegistersForArgs[] = {R1, R2, R3, R8};
+  static constexpr FpuRegister kFpuRegistersForArgs[] = {Q0, Q1, Q2, Q3};
 };
 
 #undef R

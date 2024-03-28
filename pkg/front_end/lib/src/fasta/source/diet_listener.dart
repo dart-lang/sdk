@@ -1002,7 +1002,8 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
-  void beginExtensionDeclaration(Token extensionKeyword, Token? nameToken) {
+  void beginExtensionDeclaration(
+      Token? augmentToken, Token extensionKeyword, Token? nameToken) {
     debugEvent("beginExtensionDeclaration");
     push(nameToken != null
         ? new SimpleIdentifier(nameToken)
@@ -1409,44 +1410,6 @@ class DietListener extends StackListenerImpl {
       return listener.finishMetadata(parent);
     }
     return null;
-  }
-
-  /// Returns [Token] found between [start] (inclusive) and [end]
-  /// (non-inclusive) that has its [Token.charOffset] equal to [offset].  If
-  /// there is no such token, null is returned.
-  Token? tokenForOffset(Token start, Token end, int offset) {
-    if (offset < start.charOffset || offset >= end.charOffset) {
-      return null;
-    }
-    while (start != end) {
-      if (offset == start.charOffset) {
-        return start;
-      }
-      start = start.next!;
-    }
-    return null;
-  }
-
-  /// Returns list of [Token]s found between [start] (inclusive) and [end]
-  /// (non-inclusive) that correspond to [offsets].  If there's no token between
-  /// [start] and [end] for the given offset, the corresponding item in the
-  /// resulting list is set to null.  [offsets] are assumed to be in ascending
-  /// order.
-  List<Token?> tokensForOffsets(Token start, Token end, List<int> offsets) {
-    List<Token?> result =
-        new List<Token?>.filled(offsets.length, null, growable: false);
-    for (int i = 0; start != end && i < offsets.length;) {
-      int offset = offsets[i];
-      if (offset < start.charOffset) {
-        ++i;
-      } else if (offset == start.charOffset) {
-        result[i] = start;
-        start = start.next!;
-      } else {
-        start = start.next!;
-      }
-    }
-    return result;
   }
 
   @override

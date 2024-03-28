@@ -1393,36 +1393,6 @@ const MessageCode messageClassInClass = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> templateClassInNullAwareReceiver =
-    const Template<Message Function(String name)>(
-  "ClassInNullAwareReceiver",
-  problemMessageTemplate: r"""The class '#name' cannot be null.""",
-  correctionMessageTemplate: r"""Try replacing '?.' with '.'""",
-  withArguments: _withArgumentsClassInNullAwareReceiver,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)> codeClassInNullAwareReceiver =
-    const Code<Message Function(String name)>(
-  "ClassInNullAwareReceiver",
-  severity: Severity.warning,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsClassInNullAwareReceiver(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  return new Message(
-    codeClassInNullAwareReceiver,
-    problemMessage: """The class '${name}' cannot be null.""",
-    correctionMessage: """Try replacing '?.' with '.'""",
-    arguments: {
-      'name': name,
-    },
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeColonInPlaceOfIn = messageColonInPlaceOfIn;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5229,37 +5199,6 @@ const MessageCode messageExtensionDeclaresInstanceField = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
-    templateExtensionInNullAwareReceiver =
-    const Template<Message Function(String name)>(
-  "ExtensionInNullAwareReceiver",
-  problemMessageTemplate: r"""The extension '#name' cannot be null.""",
-  correctionMessageTemplate: r"""Try replacing '?.' with '.'""",
-  withArguments: _withArgumentsExtensionInNullAwareReceiver,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)> codeExtensionInNullAwareReceiver =
-    const Code<Message Function(String name)>(
-  "ExtensionInNullAwareReceiver",
-  severity: Severity.warning,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsExtensionInNullAwareReceiver(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  return new Message(
-    codeExtensionInNullAwareReceiver,
-    problemMessage: """The extension '${name}' cannot be null.""",
-    correctionMessage: """Try replacing '?.' with '.'""",
-    arguments: {
-      'name': name,
-    },
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
     templateExtensionMemberConflictsWithObjectMember =
     const Template<Message Function(String name)>(
   "ExtensionMemberConflictsWithObjectMember",
@@ -5992,6 +5931,73 @@ const MessageCode messageFfiCreateOfStructOrUnion = const MessageCode(
   "FfiCreateOfStructOrUnion",
   problemMessage:
       r"""Subclasses of 'Struct' and 'Union' are backed by native memory, and can't be instantiated by a generative constructor. Try allocating it via allocation, or load from a 'Pointer'.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFfiDeeplyImmutableClassesMustBeFinalOrSealed =
+    messageFfiDeeplyImmutableClassesMustBeFinalOrSealed;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFfiDeeplyImmutableClassesMustBeFinalOrSealed =
+    const MessageCode(
+  "FfiDeeplyImmutableClassesMustBeFinalOrSealed",
+  problemMessage: r"""Deeply immutable classes must be final or sealed.""",
+  correctionMessage: r"""Try marking this class as final or sealed.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFfiDeeplyImmutableFieldsModifiers =
+    messageFfiDeeplyImmutableFieldsModifiers;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFfiDeeplyImmutableFieldsModifiers = const MessageCode(
+  "FfiDeeplyImmutableFieldsModifiers",
+  problemMessage:
+      r"""Deeply immutable classes must only have final non-late instance fields.""",
+  correctionMessage:
+      r"""Add the 'final' modifier to this field, and remove 'late' modifier from this field.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFfiDeeplyImmutableFieldsMustBeDeeplyImmutable =
+    messageFfiDeeplyImmutableFieldsMustBeDeeplyImmutable;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFfiDeeplyImmutableFieldsMustBeDeeplyImmutable =
+    const MessageCode(
+  "FfiDeeplyImmutableFieldsMustBeDeeplyImmutable",
+  problemMessage:
+      r"""Deeply immutable classes must only have deeply immutable instance fields. Deeply immutable types include 'int', 'double', 'bool', 'String', 'Pointer', 'Float32x4', 'Float64x2', 'Int32x4', and classes annotated with `@pragma('vm:deeply-immutable')`.""",
+  correctionMessage:
+      r"""Try changing the type of this field to a deeply immutable type or mark the type of this field as deeply immutable.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFfiDeeplyImmutableSubtypesMustBeDeeplyImmutable =
+    messageFfiDeeplyImmutableSubtypesMustBeDeeplyImmutable;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFfiDeeplyImmutableSubtypesMustBeDeeplyImmutable =
+    const MessageCode(
+  "FfiDeeplyImmutableSubtypesMustBeDeeplyImmutable",
+  problemMessage:
+      r"""Subtypes of deeply immutable classes must be deeply immutable.""",
+  correctionMessage:
+      r"""Try marking this class deeply immutable by adding `@pragma('vm:deeply-immutable')`.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFfiDeeplyImmutableSupertypeMustBeDeeplyImmutable =
+    messageFfiDeeplyImmutableSupertypeMustBeDeeplyImmutable;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFfiDeeplyImmutableSupertypeMustBeDeeplyImmutable =
+    const MessageCode(
+  "FfiDeeplyImmutableSupertypeMustBeDeeplyImmutable",
+  problemMessage:
+      r"""The super type of deeply immutable classes must be deeply immutable.""",
+  correctionMessage:
+      r"""Try marking the super class deeply immutable by adding `@pragma('vm:deeply-immutable')`.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9606,6 +9612,33 @@ const MessageCode messageInvalidInsideUnaryPattern = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String string)>
+    templateInvalidMacroApplicationTarget =
+    const Template<Message Function(String string)>(
+  "InvalidMacroApplicationTarget",
+  problemMessageTemplate: r"""The macro can only be applied to #string.""",
+  withArguments: _withArgumentsInvalidMacroApplicationTarget,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string)> codeInvalidMacroApplicationTarget =
+    const Code<Message Function(String string)>(
+  "InvalidMacroApplicationTarget",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidMacroApplicationTarget(String string) {
+  if (string.isEmpty) throw 'No string provided';
+  return new Message(
+    codeInvalidMacroApplicationTarget,
+    problemMessage: """The macro can only be applied to ${string}.""",
+    arguments: {
+      'string': string,
+    },
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeInvalidNnbdDillLibrary = messageInvalidNnbdDillLibrary;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -10373,9 +10406,9 @@ const MessageCode messageJsInteropExternalExtensionMemberOnTypeInvalid =
     const MessageCode(
   "JsInteropExternalExtensionMemberOnTypeInvalid",
   problemMessage:
-      r"""JS interop or Native class required for 'external' extension members.""",
+      r"""JS interop type or @Native type from an SDK web library required for 'external' extension members.""",
   correctionMessage:
-      r"""Try adding a JS interop annotation to the on type class of the extension.""",
+      r"""Try making the on-type a JS interop type or an @Native SDK web library type.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -10658,6 +10691,42 @@ const MessageCode messageJsInteropOperatorsNotSupported = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String string2)>
+    templateJsInteropStaticInteropExternalFunctionTypeViolation =
+    const Template<Message Function(String string2)>(
+  "JsInteropStaticInteropExternalFunctionTypeViolation",
+  problemMessageTemplate:
+      r"""External JS interop member contains invalid types in its function signature: '#string2'.""",
+  correctionMessageTemplate:
+      r"""Use one of these valid types instead: JS types from 'dart:js_interop', ExternalDartReference, void, bool, num, double, int, String, extension types that erase to one of these types, '@staticInterop' types, 'dart:html' types when compiling to JS, or a type parameter that is a subtype of a valid non-primitive type.""",
+  withArguments:
+      _withArgumentsJsInteropStaticInteropExternalFunctionTypeViolation,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string2)>
+    codeJsInteropStaticInteropExternalFunctionTypeViolation =
+    const Code<Message Function(String string2)>(
+  "JsInteropStaticInteropExternalFunctionTypeViolation",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropStaticInteropExternalFunctionTypeViolation(
+    String string2) {
+  if (string2.isEmpty) throw 'No string provided';
+  return new Message(
+    codeJsInteropStaticInteropExternalFunctionTypeViolation,
+    problemMessage:
+        """External JS interop member contains invalid types in its function signature: '${string2}'.""",
+    correctionMessage:
+        """Use one of these valid types instead: JS types from 'dart:js_interop', ExternalDartReference, void, bool, num, double, int, String, extension types that erase to one of these types, '@staticInterop' types, 'dart:html' types when compiling to JS, or a type parameter that is a subtype of a valid non-primitive type.""",
+    arguments: {
+      'string2': string2,
+    },
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeJsInteropStaticInteropGenerativeConstructor =
     messageJsInteropStaticInteropGenerativeConstructor;
 
@@ -10857,6 +10926,41 @@ Message _withArgumentsJsInteropStaticInteropTearOffsDisallowed(
     arguments: {
       'string': string,
       'name': name,
+    },
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String string2)>
+    templateJsInteropStaticInteropToJSFunctionTypeViolation =
+    const Template<Message Function(String string2)>(
+  "JsInteropStaticInteropToJSFunctionTypeViolation",
+  problemMessageTemplate:
+      r"""Function converted via 'toJS' contains invalid types in its function signature: '#string2'.""",
+  correctionMessageTemplate:
+      r"""Use one of these valid types instead: JS types from 'dart:js_interop', ExternalDartReference, void, bool, num, double, int, String, extension types that erase to one of these types, '@staticInterop' types, 'dart:html' types when compiling to JS, or a type parameter that is a subtype of a valid non-primitive type.""",
+  withArguments: _withArgumentsJsInteropStaticInteropToJSFunctionTypeViolation,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string2)>
+    codeJsInteropStaticInteropToJSFunctionTypeViolation =
+    const Code<Message Function(String string2)>(
+  "JsInteropStaticInteropToJSFunctionTypeViolation",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropStaticInteropToJSFunctionTypeViolation(
+    String string2) {
+  if (string2.isEmpty) throw 'No string provided';
+  return new Message(
+    codeJsInteropStaticInteropToJSFunctionTypeViolation,
+    problemMessage:
+        """Function converted via 'toJS' contains invalid types in its function signature: '${string2}'.""",
+    correctionMessage:
+        """Use one of these valid types instead: JS types from 'dart:js_interop', ExternalDartReference, void, bool, num, double, int, String, extension types that erase to one of these types, '@staticInterop' types, 'dart:html' types when compiling to JS, or a type parameter that is a subtype of a valid non-primitive type.""",
+    arguments: {
+      'string2': string2,
     },
   );
 }
@@ -11418,6 +11522,41 @@ Message _withArgumentsMacroClassNotDeclaredMacro(String name) {
     problemMessage:
         """Non-abstract class '${name}' implements 'Macro' but isn't declared as a macro class.""",
     correctionMessage: """Try adding the 'macro' class modifier.""",
+    arguments: {
+      'name': name,
+    },
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateMacroDefinitionApplicationSameLibraryCycle =
+    const Template<Message Function(String name)>(
+  "MacroDefinitionApplicationSameLibraryCycle",
+  problemMessageTemplate:
+      r"""The macro '#name' can't be applied in the same library cycle where it is defined.""",
+  correctionMessageTemplate:
+      r"""Try moving it to a different library that does not import the one where it is applied.""",
+  withArguments: _withArgumentsMacroDefinitionApplicationSameLibraryCycle,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeMacroDefinitionApplicationSameLibraryCycle =
+    const Code<Message Function(String name)>(
+  "MacroDefinitionApplicationSameLibraryCycle",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsMacroDefinitionApplicationSameLibraryCycle(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(
+    codeMacroDefinitionApplicationSameLibraryCycle,
+    problemMessage:
+        """The macro '${name}' can't be applied in the same library cycle where it is defined.""",
+    correctionMessage:
+        """Try moving it to a different library that does not import the one where it is applied.""",
     arguments: {
       'name': name,
     },
@@ -12504,18 +12643,6 @@ const MessageCode messageNeverReachableSwitchDefaultError = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeNeverReachableSwitchDefaultWarning =
-    messageNeverReachableSwitchDefaultWarning;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageNeverReachableSwitchDefaultWarning = const MessageCode(
-  "NeverReachableSwitchDefaultWarning",
-  severity: Severity.warning,
-  problemMessage:
-      r"""The default case is not reachable with sound null safety because the switch expression is non-nullable.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeNeverReachableSwitchExpressionError =
     messageNeverReachableSwitchExpressionError;
 
@@ -12546,17 +12673,6 @@ const MessageCode messageNeverValueError = const MessageCode(
   "NeverValueError",
   problemMessage:
       r"""`null` encountered as the result from expression with type `Never`.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeNeverValueWarning = messageNeverValueWarning;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageNeverValueWarning = const MessageCode(
-  "NeverValueWarning",
-  severity: Severity.warning,
-  problemMessage:
-      r"""The expression can not result in a value with sound null safety because the expression type is `Never`.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12627,6 +12743,15 @@ Message _withArgumentsNoFormals(Token token) {
     },
   );
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNoMacroApplicationTarget = messageNoMacroApplicationTarget;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNoMacroApplicationTarget = const MessageCode(
+  "NoMacroApplicationTarget",
+  problemMessage: r"""The macro can not be applied to this declaration.""",
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateNoSuchNamedParameter =
@@ -15119,18 +15244,6 @@ const MessageCode messageReturnTypeFunctionExpression = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeReturnWithoutExpression = messageReturnWithoutExpression;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageReturnWithoutExpression = const MessageCode(
-  "ReturnWithoutExpression",
-  analyzerCodes: <String>["RETURN_WITHOUT_VALUE"],
-  severity: Severity.warning,
-  problemMessage:
-      r"""Must explicitly return a value from a non-void function.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeReturnWithoutExpressionAsync =
     messageReturnWithoutExpressionAsync;
 
@@ -16204,17 +16317,6 @@ const MessageCode messageThisAsIdentifier = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeThisInNullAwareReceiver = messageThisInNullAwareReceiver;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageThisInNullAwareReceiver = const MessageCode(
-  "ThisInNullAwareReceiver",
-  severity: Severity.warning,
-  problemMessage: r"""The receiver 'this' cannot be null.""",
-  correctionMessage: r"""Try replacing '?.' with '.'""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String string)> templateThisNotPromoted =
     const Template<Message Function(String string)>(
   "ThisNotPromoted",
@@ -17194,47 +17296,6 @@ const MessageCode messageUnnamedObjectPatternField = const MessageCode(
   problemMessage: r"""A pattern field in an object pattern must be named.""",
   correctionMessage:
       r"""Try adding a pattern name or ':' before the pattern.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeUnnecessaryNullAssertPattern =
-    messageUnnecessaryNullAssertPattern;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageUnnecessaryNullAssertPattern = const MessageCode(
-  "UnnecessaryNullAssertPattern",
-  analyzerCodes: <String>["UNNECESSARY_NULL_ASSERT_PATTERN"],
-  severity: Severity.warning,
-  problemMessage:
-      r"""The null-assert pattern will have no effect because the matched type isn't nullable.""",
-  correctionMessage:
-      r"""Try replacing the null-assert pattern with its nested pattern.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeUnnecessaryNullCheckPattern =
-    messageUnnecessaryNullCheckPattern;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageUnnecessaryNullCheckPattern = const MessageCode(
-  "UnnecessaryNullCheckPattern",
-  analyzerCodes: <String>["UNNECESSARY_NULL_CHECK_PATTERN"],
-  severity: Severity.warning,
-  problemMessage:
-      r"""The null-check pattern will have no effect because the matched type isn't nullable.""",
-  correctionMessage:
-      r"""Try replacing the null-check pattern with its nested pattern.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeUnreachableSwitchCase = messageUnreachableSwitchCase;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageUnreachableSwitchCase = const MessageCode(
-  "UnreachableSwitchCase",
-  analyzerCodes: <String>["UNREACHABLE_SWITCH_CASE"],
-  severity: Severity.warning,
-  problemMessage: r"""This case is covered by the previous cases.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

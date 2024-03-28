@@ -75,7 +75,6 @@ class DynamicBoundedTest extends AbstractTypeSystemTest {
   test_interfaceType() {
     _assertNotDynamicBounded(intNone);
     _assertNotDynamicBounded(intQuestion);
-    _assertNotDynamicBounded(intStar);
   }
 
   test_never() {
@@ -190,7 +189,6 @@ class FunctionBoundedTest extends AbstractTypeSystemTest {
   test_interfaceType() {
     _assertNotFunctionBounded(intNone);
     _assertNotFunctionBounded(intQuestion);
-    _assertNotFunctionBounded(intStar);
   }
 
   test_never() {
@@ -234,7 +232,6 @@ class InvalidBoundedTest extends AbstractTypeSystemTest {
   test_interfaceType() {
     _assertNotInvalidBounded(intNone);
     _assertNotInvalidBounded(intQuestion);
-    _assertNotInvalidBounded(intStar);
   }
 
   test_invalid() {

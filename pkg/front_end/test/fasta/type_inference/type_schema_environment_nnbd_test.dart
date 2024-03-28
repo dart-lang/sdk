@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/type_environment.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -1637,6 +1638,362 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
     checkUpperBound(type1: "E5<String>?", type2: "B", upperBound: "A<String>?");
   }
 
+  void test_typeShapeCheckSufficiency() {
+    parseTestLibrary("""
+      class A<X>;
+      class B extends A<int>;
+      class C<Y> extends B;
+
+      class D<X>;
+      class E<Y> extends D<Y>;
+
+      class F<X>;
+      class G<Y, Z> extends F<Y>;
+    """);
+
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "A<int>",
+        checkTargetType: "C<int>",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.insufficient);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "A<int>",
+        checkTargetType: "C<String>",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.insufficient);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "A<int>",
+        checkTargetType: "C<dynamic>",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.interfaceShape);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "B",
+        checkTargetType: "C<int>",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.insufficient);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "B",
+        checkTargetType: "C<Object?>",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.interfaceShape);
+
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "D<int>",
+        checkTargetType: "E<int>",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.interfaceShape);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "D<int>",
+        checkTargetType: "E<num>",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.interfaceShape);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "D<int>",
+        checkTargetType: "E<dynamic>",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.interfaceShape);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "D<num>",
+        checkTargetType: "E<int>",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.insufficient);
+
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "F<int>",
+        checkTargetType: "G<int, String>",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.insufficient);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "F<int>",
+        checkTargetType: "G<num, String>",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.insufficient);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "F<int>",
+        checkTargetType: "G<dynamic, Object?>",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.interfaceShape);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "F<int>",
+        checkTargetType: "G<int, Object?>",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.interfaceShape);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "F<int>",
+        checkTargetType: "G<num, Object?>",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.interfaceShape);
+
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "(int,)",
+        checkTargetType: "(dynamic,)",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.recordShape);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "(int,)",
+        checkTargetType: "(num,)",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.recordShape);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "(int,)",
+        checkTargetType: "(String,)",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.insufficient);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "(int, {String foo})",
+        checkTargetType: "(dynamic, {dynamic foo})",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.recordShape);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "(int, {String foo})",
+        checkTargetType: "(dynamic, {String foo})",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.recordShape);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "(int, {String foo})",
+        checkTargetType: "(dynamic, {bool foo})",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.insufficient);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "(int, {String foo})",
+        checkTargetType: "(dynamic, {String bar})",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.insufficient);
+
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "(int) -> void",
+        checkTargetType: "(Never) -> void",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.functionShape);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "(num) -> String",
+        checkTargetType: "(int) -> Object",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.functionShape);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "(int) -> bool",
+        checkTargetType: "(String) -> dynamic",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.insufficient);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "(dynamic, {dynamic foo}) -> void",
+        checkTargetType: "(int, {String foo}) -> void",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.functionShape);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "(dynamic, {String foo}) -> Object?",
+        checkTargetType: "(bool, {String foo}) -> dynamic",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.functionShape);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "(dynamic, {bool foo}) -> Never?",
+        checkTargetType: "(int, {String foo}) -> Null",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.insufficient);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "(dynamic, {String foo}) -> Null",
+        checkTargetType: "(int, {String bar}) -> Null",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.insufficient);
+
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "FutureOr<String>",
+        checkTargetType: "FutureOr<Object?>",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.futureOrShape);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "FutureOr<String>",
+        checkTargetType: "FutureOr<Object>",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.futureOrShape);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "FutureOr<int>",
+        checkTargetType: "FutureOr<num>",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.futureOrShape);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "FutureOr<bool>",
+        checkTargetType: "FutureOr<String>",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.insufficient);
+
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "int",
+        checkTargetType: "(String,)",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.insufficient);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "int",
+        checkTargetType: "(num) -> void",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.insufficient);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "bool",
+        checkTargetType: "FutureOr<void>",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.insufficient);
+
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "(int,)",
+        checkTargetType: "String",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.insufficient);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "(int,)",
+        checkTargetType: "(num) -> void",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.insufficient);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "(bool,)",
+        checkTargetType: "FutureOr<void>",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.insufficient);
+
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "(int) -> void",
+        checkTargetType: "String",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.insufficient);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "(int) -> void",
+        checkTargetType: "(num,)",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.insufficient);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "(bool) -> FutureOr<Object?>",
+        checkTargetType: "FutureOr<void>",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.insufficient);
+
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "A<int>",
+        checkTargetType: "C<int>?",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.insufficient);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "A<int>",
+        checkTargetType: "C<String>?",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.insufficient);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "A<int>",
+        checkTargetType: "C<dynamic>?",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.interfaceShape);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "A<int>?",
+        checkTargetType: "C<dynamic>",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.insufficient);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "B",
+        checkTargetType: "C<int>?",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.insufficient);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "B?",
+        checkTargetType: "C<Object?>",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.insufficient);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "B",
+        checkTargetType: "C<Object?>?",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.interfaceShape);
+
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "D<int>",
+        checkTargetType: "E<int>?",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.interfaceShape);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "D<int>?",
+        checkTargetType: "E<int>",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.insufficient);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "D<int>",
+        checkTargetType: "E<num>?",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.interfaceShape);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "D<int>?",
+        checkTargetType: "E<num>",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.insufficient);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "D<int>",
+        checkTargetType: "E<dynamic>?",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.interfaceShape);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "D<int>?",
+        checkTargetType: "E<dynamic>",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.insufficient);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "D<num>",
+        checkTargetType: "E<int>?",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.insufficient);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "D<num>?",
+        checkTargetType: "E<int>",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.insufficient);
+
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "F<int>",
+        checkTargetType: "G<int, String>?",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.insufficient);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "F<int>?",
+        checkTargetType: "G<int, String>",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.insufficient);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "F<int>",
+        checkTargetType: "G<num, String>?",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.insufficient);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "F<int>?",
+        checkTargetType: "G<num, String>",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.insufficient);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "F<int>",
+        checkTargetType: "G<dynamic, Object?>?",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.interfaceShape);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "F<int>?",
+        checkTargetType: "G<dynamic, Object?>",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.insufficient);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "F<int>",
+        checkTargetType: "G<int, Object?>?",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.interfaceShape);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "F<int>?",
+        checkTargetType: "G<int, Object?>",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.insufficient);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "F<int>",
+        checkTargetType: "G<num, Object?>?",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.interfaceShape);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "F<int>?",
+        checkTargetType: "G<num, Object?>",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.insufficient);
+  }
+
   void checkUpperBound(
       {required String type1,
       required String type2,
@@ -1658,6 +2015,24 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
           typeSchemaEnvironment.getStandardUpperBound(dartType1, dartType2,
               isNonNullableByDefault: testLibrary.isNonNullableByDefault),
           parseType(upperBound));
+    });
+  }
+
+  @override
+  void checkTypeShapeCheckSufficiency(
+      {required String expressionStaticType,
+      required String checkTargetType,
+      required String typeParameters,
+      required TypeShapeCheckSufficiency sufficiency}) {
+    typeParserEnvironment.withStructuralParameters(typeParameters,
+        (List<StructuralParameter> structuralParameters) {
+      expect(
+          typeSchemaEnvironment.computeTypeShapeCheckSufficiency(
+                  expressionStaticType: parseType(expressionStaticType),
+                  checkTargetType: parseType(checkTargetType),
+                  subtypeCheckMode: SubtypeCheckMode.withNullabilities) ==
+              sufficiency,
+          isTrue);
     });
   }
 }

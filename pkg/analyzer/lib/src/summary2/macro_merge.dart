@@ -605,6 +605,25 @@ class _RewriteImportPrefixes extends ast.RecursiveAstVisitor<void> {
   _RewriteImportPrefixes(this.partialPrefixToMerged);
 
   @override
+  void visitNamedType(covariant ast.NamedTypeImpl node) {
+    if (node.importPrefix case var importPrefix?) {
+      final mergedPrefix = partialPrefixToMerged[importPrefix.element];
+      if (mergedPrefix != null) {
+        node.importPrefix = ast.ImportPrefixReferenceImpl(
+          name: StringToken(
+            TokenType.IDENTIFIER,
+            mergedPrefix.name,
+            -1,
+          ),
+          period: importPrefix.period,
+        )..element = mergedPrefix;
+      }
+    }
+
+    super.visitNamedType(node);
+  }
+
+  @override
   void visitSimpleIdentifier(covariant ast.SimpleIdentifierImpl node) {
     final mergedPrefix = partialPrefixToMerged[node.staticElement];
     if (mergedPrefix != null) {

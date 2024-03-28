@@ -30,8 +30,6 @@ abstract class Identifier {
 
   Expression? get initializer;
 
-  int get endCharOffset;
-
   Operator? get operator;
 
   QualifiedName withQualifier(Object qualifier);
@@ -61,9 +59,6 @@ class SimpleIdentifier implements Identifier {
 
   @override
   Expression? get initializer => null;
-
-  @override
-  int get endCharOffset => charOffset + name.length;
 
   @override
   Operator? get operator => null;
@@ -106,9 +101,6 @@ class OperatorIdentifier implements Identifier {
 
   @override
   Expression? get initializer => null;
-
-  @override
-  int get endCharOffset => charOffset + name.length;
 
   @override
   QualifiedName withQualifier(Object qualifier) {

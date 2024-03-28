@@ -204,7 +204,7 @@ class CompileKernelSnapshotCommand extends CompileSubcommandCommand {
     }
 
     // Determine output file name.
-    String? outputFile = args[outputFileOption.flag];
+    String? outputFile = args.option(outputFileOption.flag);
     if (outputFile == null) {
       final inputWithoutDart = sourcePath.endsWith('.dart')
           ? sourcePath.substring(0, sourcePath.length - 5)
@@ -219,7 +219,7 @@ class CompileKernelSnapshotCommand extends CompileSubcommandCommand {
       return genericErrorExitCode;
     }
 
-    final bool soundNullSafety = args['sound-null-safety'];
+    final bool soundNullSafety = args.flag('sound-null-safety');
     if (!soundNullSafety && !shouldAllowNoSoundNullSafety()) {
       return compileErrorExitCode;
     }
@@ -228,14 +228,14 @@ class CompileKernelSnapshotCommand extends CompileSubcommandCommand {
       await generateKernel(
         sourceFile: sourcePath,
         outputFile: outputFile,
-        defines: args['define'],
-        packages: args['packages'],
+        defines: args.multiOption('define'),
+        packages: args.option('packages'),
         enableExperiment: args.enabledExperiments.join(','),
-        linkPlatform: args['link-platform'],
-        embedSources: args['embed-sources'],
-        soundNullSafety: args['sound-null-safety'],
+        linkPlatform: args.flag('link-platform'),
+        embedSources: args.flag('embed-sources'),
+        soundNullSafety: args.flag('sound-null-safety'),
         verbose: verbose,
-        verbosity: args['verbosity'],
+        verbosity: args.option('verbosity')!,
       );
       return 0;
     } catch (e, st) {
@@ -316,7 +316,7 @@ class CompileJitSnapshotCommand extends CompileSubcommandCommand {
     }
 
     // Determine output file name.
-    String? outputFile = args[outputFileOption.flag];
+    String? outputFile = args.option(outputFileOption.flag);
     if (outputFile == null) {
       final inputWithoutDart = sourcePath.endsWith('.dart')
           ? sourcePath.substring(0, sourcePath.length - 5)
@@ -330,14 +330,14 @@ class CompileJitSnapshotCommand extends CompileSubcommandCommand {
     }
 
     final enabledExperiments = args.enabledExperiments;
-    final defines = args[defineOption.flag] as List<String>;
+    final defines = args.multiOption(defineOption.flag);
 
     // Build arguments.
     final buildArgs = <String>[];
     buildArgs.add('--snapshot-kind=app-jit');
     buildArgs.add('--snapshot=${path.canonicalize(outputFile)}');
 
-    final bool soundNullSafety = args['sound-null-safety'];
+    final bool soundNullSafety = args.flag('sound-null-safety');
     if (!soundNullSafety) {
       if (!shouldAllowNoSoundNullSafety()) {
         return compileErrorExitCode;
@@ -345,12 +345,12 @@ class CompileJitSnapshotCommand extends CompileSubcommandCommand {
       buildArgs.add('--no-sound-null-safety');
     }
 
-    final String? packages = args[packagesOption.flag];
+    final String? packages = args.option(packagesOption.flag);
     if (packages != null) {
       buildArgs.add('--packages=$packages');
     }
 
-    final String? verbosity = args[verbosityOption.flag];
+    final String verbosity = args.option(verbosityOption.flag)!;
     buildArgs.add('--verbosity=$verbosity');
 
     if (enabledExperiments.isNotEmpty) {
@@ -465,7 +465,7 @@ Remove debugging information from the output and save it separately to the speci
       return genericErrorExitCode;
     }
 
-    if (!args['sound-null-safety'] && !shouldAllowNoSoundNullSafety()) {
+    if (!args.flag('sound-null-safety') && !shouldAllowNoSoundNullSafety()) {
       return compileErrorExitCode;
     }
 
@@ -486,7 +486,7 @@ Remove debugging information from the output and save it separately to the speci
       }
     }
 
-    String? targetOS = args['target-os'];
+    String? targetOS = args.option('target-os');
     if (format != Kind.exe) {
       assert(format == Kind.aot);
       // If we're generating an AOT snapshot and not an executable, then
@@ -506,15 +506,15 @@ Remove debugging information from the output and save it separately to the speci
       await generateNative(
         kind: format,
         sourceFile: sourcePath,
-        outputFile: args['output'],
-        defines: args[defineOption.flag],
-        packages: args['packages'],
+        outputFile: args.option('output'),
+        defines: args.multiOption(defineOption.flag),
+        packages: args.option('packages'),
         enableExperiment: args.enabledExperiments.join(','),
-        soundNullSafety: args['sound-null-safety'],
-        debugFile: args['save-debugging-info'],
+        soundNullSafety: args.flag('sound-null-safety'),
+        debugFile: args.option('save-debugging-info'),
         verbose: verbose,
-        verbosity: args['verbosity'],
-        extraOptions: args['extra-gen-snapshot-options'],
+        verbosity: args.option('verbosity')!,
+        extraOptions: args.multiOption('extra-gen-snapshot-options'),
         targetOS: targetOS,
       );
       return 0;
@@ -531,7 +531,6 @@ Remove debugging information from the output and save it separately to the speci
 
 class CompileWasmCommand extends CompileSubcommandCommand {
   static const String commandName = 'wasm';
-  static const String format = 'wasm';
   static const String help =
       'Compile Dart to a WebAssembly/WasmGC module (EXPERIMENTAL).';
 
@@ -599,10 +598,10 @@ class CompileWasmCommand extends CompileSubcommandCommand {
       )
       ..addFlag(
         'minify',
-        defaultsTo: null,
         negatable: true,
         help: 'Minify names that are needed at runtime (such as class names). '
-            'Affects e.g. `<obj>.runtimeType.toString()`).',
+            'Affects e.g. `<obj>.runtimeType.toString()`). If passed, this '
+            'takes precedence over the optimization-level option.',
         hide: !verbose,
       )
       ..addFlag(
@@ -656,6 +655,13 @@ class CompileWasmCommand extends CompileSubcommandCommand {
         allowed: ['0', '1', '2', '3', '4'],
         defaultsTo: '1',
         valueHelp: 'level',
+        allowedHelp: {
+          '0': optimizationLevel0Flags.join(' '),
+          '1': optimizationLevel1Flags.join(' '),
+          '2': optimizationLevel2Flags.join(' '),
+          '3': optimizationLevel3Flags.join(' '),
+          '4': optimizationLevel4Flags.join(' '),
+        },
         hide: !verbose,
       )
       ..addOption(
@@ -683,7 +689,7 @@ class CompileWasmCommand extends CompileSubcommandCommand {
         'The support may change, or be removed, with no advance notice.\n');
 
     final args = argResults!;
-    final verbose = this.verbose || args['verbose'];
+    final verbose = this.verbose || args.flag('verbose');
 
     if (!Sdk.checkArtifactExists(sdk.librariesJson) ||
         !Sdk.checkArtifactExists(sdk.dartAotRuntime) ||
@@ -703,7 +709,7 @@ class CompileWasmCommand extends CompileSubcommandCommand {
     }
 
     // Determine output file name.
-    String? outputFile = args[outputFileOption.flag];
+    String? outputFile = args.option(outputFileOption.flag);
     if (outputFile == null) {
       final inputWithoutDart = sourcePath.endsWith('.dart')
           ? sourcePath.substring(0, sourcePath.length - 5)
@@ -720,39 +726,31 @@ class CompileWasmCommand extends CompileSubcommandCommand {
         outputFile.substring(0, outputFile.length - '.wasm'.length);
 
     final sdkPath = path.absolute(sdk.sdkPath);
-    final packages = args[packagesOption.flag];
-    final defines = args[defineOption.flag] as List<String>;
-    final extraCompilerOptions = args['extra-compiler-option'] as List<String>;
+    final packages = args.option(packagesOption.flag);
+    final defines = args.multiOption(defineOption.flag);
+    final extraCompilerOptions = args.multiOption('extra-compiler-option');
 
     int? maxPages;
-    if (args['shared-memory'] != null) {
-      maxPages = int.tryParse(args['shared-memory']);
+    if (args.option('shared-memory') != null) {
+      maxPages = int.tryParse(args.option('shared-memory')!);
       if (maxPages == null) {
         usageException(
             'Error: The --shared-memory flag must specify a number!');
       }
     }
 
-    final optimizationLevel = int.parse(args['optimization-level']);
+    final optimizationLevel = int.parse(args.option('optimization-level')!);
     final runWasmOpt = optimizationLevel >= 1;
 
     void handleOverride(List<String> flags, String name, bool? value) {
-      // If no override provided, default to what -O implies.D
+      // If no override provided, default to what -O implies.
       if (value == null) return;
 
-      if (value) {
-        // Explicitly opt into the flag, irrespective of -O settings.
-        flags.removeWhere((option) => option == '--no-$name');
-        if (!flags.contains('--$name')) {
-          flags.add('--$name');
-        }
-      } else {
-        // Explicit opt out of the flag, irrespective of -O settings.
-        flags.removeWhere((option) => option == '--$name');
-        if (!flags.contains('--no-$name')) {
-          flags.add('--no-$name');
-        }
-      }
+      flags.removeWhere((option) => option == '--no-$name');
+      flags.removeWhere((option) => option == '--$name');
+
+      // Explicitly use the the flag value, irrespective of -O settings.
+      value ? flags.add('--$name') : flags.add('--no-$name');
     }
 
     final optimizationFlags = (switch (optimizationLevel) {
@@ -764,19 +762,19 @@ class CompileWasmCommand extends CompileSubcommandCommand {
       _ => throw 'unreachable',
     })
         .toList();
-    handleOverride(optimizationFlags, 'minify', args['minify']);
+    handleOverride(optimizationFlags, 'minify',
+        args.wasParsed('minify') ? null : args.flag('minify'));
 
     final dart2wasmCommand = [
       sdk.dartAotRuntime,
       sdk.dart2wasmSnapshot,
-
       '--libraries-spec=${sdk.librariesJson}',
       '--dart-sdk=$sdkPath',
       if (verbose) '--verbose',
       if (packages != null) '--packages=$packages',
-      if (args['print-wasm']) '--print-wasm',
-      if (args['print-kernel']) '--print-kernel',
-      if (args['enable-asserts']) '--enable-asserts',
+      if (args.flag('print-wasm')) '--print-wasm',
+      if (args.flag('print-kernel')) '--print-kernel',
+      if (args.flag('enable-asserts')) '--enable-asserts',
       for (final define in defines) '-D$define',
       if (maxPages != null) ...[
         '--import-shared-memory',
@@ -810,7 +808,7 @@ class CompileWasmCommand extends CompileSubcommandCommand {
 
       final flags = [
         ...binaryenFlags,
-        if (args['name-section']) '-g',
+        if (args.flag('name-section')) '-g',
       ];
 
       if (verbose) {
@@ -900,6 +898,7 @@ For example: dart compile $name --packages=/tmp/pkgs.json main.dart''');
 
 class CompileCommand extends DartdevCommand {
   static const String cmdName = 'compile';
+
   CompileCommand({
     bool verbose = false,
     bool nativeAssetsExperimentEnabled = false,

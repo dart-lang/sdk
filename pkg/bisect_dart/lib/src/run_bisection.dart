@@ -15,7 +15,9 @@ Future<void> runMain(List<String> args) async {
     print(BisectionConfig.helpMessage());
     return;
   }
-  final config = BisectionConfig.fromConfig(await Config.fromArgs(args: args));
+  final config = BisectionConfig.fromConfig(
+    await Config.fromArguments(arguments: args),
+  );
   await runBisection(config);
 }
 

@@ -5,10 +5,14 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'argument_list_test.dart' as argument_list;
+import 'as_expression_test.dart' as as_expression;
+import 'assert_initializer_test.dart' as assert_initializer;
+import 'assert_statement_test.dart' as assert_statement;
 import 'assignment_expression_test.dart' as assignment_expression;
 import 'block_test.dart' as block;
 import 'case_clause_test.dart' as case_clause;
 import 'cast_pattern_test.dart' as cast_pattern;
+import 'catch_clause_test.dart' as catch_clause;
 import 'class_body_test.dart' as class_body;
 import 'class_declaration_test.dart' as class_declaration;
 import 'compilation_unit_member_test.dart' as compilation_unit_member;
@@ -18,7 +22,7 @@ import 'constructor_declaration_test.dart' as constructor_declaration;
 import 'constructor_invocation_test.dart' as constructor_invocation;
 import 'directive_uri_test.dart' as directive_uri;
 import 'enum_constant_test.dart' as enum_constant;
-import 'enum_test.dart' as enum_;
+import 'enum_declaration_test.dart' as enum_declaration;
 import 'extends_clause_test.dart' as extends_clause;
 import 'extension_body_test.dart' as extension_body;
 import 'extension_declaration_test.dart' as extension_declaration;
@@ -34,6 +38,7 @@ import 'if_statement_test.dart' as if_statement;
 import 'implements_clause_test.dart' as implements_clause;
 import 'import_directive_test.dart' as import_directive;
 import 'instance_creation_expression_test.dart' as instance_creation_expression;
+import 'is_expression_test.dart' as is_expression;
 import 'library_directive_test.dart' as library_directive;
 import 'list_literal_test.dart' as list_literal;
 import 'list_pattern_test.dart' as list_pattern;
@@ -77,10 +82,14 @@ import 'with_clause_test.dart' as with_clause;
 void main() {
   defineReflectiveSuite(() {
     argument_list.main();
+    as_expression.main();
+    assert_initializer.main();
+    assert_statement.main();
     assignment_expression.main();
     block.main();
     case_clause.main();
     cast_pattern.main();
+    catch_clause.main();
     class_body.main();
     class_declaration.main();
     compilation_unit_member.main();
@@ -90,7 +99,7 @@ void main() {
     constructor_invocation.main();
     directive_uri.main();
     enum_constant.main();
-    enum_.main();
+    enum_declaration.main();
     extends_clause.main();
     extension_body.main();
     extension_declaration.main();
@@ -106,6 +115,7 @@ void main() {
     implements_clause.main();
     import_directive.main();
     instance_creation_expression.main();
+    is_expression.main();
     library_directive.main();
     list_literal.main();
     list_pattern.main();

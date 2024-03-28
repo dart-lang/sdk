@@ -23,8 +23,8 @@ import 'dart:io' as io;
 import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/space.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
+import 'package:front_end/src/base/common.dart';
 import 'package:kernel/ast.dart';
-import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/src/const_canonical_type.dart';
 import 'package:kernel/src/find_type_visitor.dart';
@@ -49,37 +49,6 @@ import 'resource_identifier.dart' as ResourceIdentifiers;
 import 'static_weak_references.dart' show StaticWeakReferences;
 
 part 'constant_collection_builders.dart';
-
-Component transformComponent(
-    Target target,
-    Component component,
-    Map<String, String> environmentDefines,
-    ErrorReporter errorReporter,
-    EvaluationMode evaluationMode,
-    {required bool evaluateAnnotations,
-    required bool desugarSets,
-    required bool enableTripleShift,
-    required bool enableConstFunctions,
-    required bool enableConstructorTearOff,
-    required bool errorOnUnevaluatedConstant,
-    CoreTypes? coreTypes,
-    ClassHierarchy? hierarchy,
-    ExhaustivenessDataForTesting? exhaustivenessDataForTesting}) {
-  coreTypes ??= new CoreTypes(component);
-  hierarchy ??= new ClassHierarchy(component, coreTypes);
-
-  final TypeEnvironment typeEnvironment =
-      new TypeEnvironment(coreTypes, hierarchy);
-
-  transformLibraries(component, component.libraries, target, environmentDefines,
-      typeEnvironment, errorReporter, evaluationMode,
-      enableTripleShift: enableTripleShift,
-      enableConstFunctions: enableConstFunctions,
-      errorOnUnevaluatedConstant: errorOnUnevaluatedConstant,
-      evaluateAnnotations: evaluateAnnotations,
-      enableConstructorTearOff: enableConstructorTearOff);
-  return component;
-}
 
 ConstantEvaluationData transformLibraries(
     Component component,
@@ -1572,8 +1541,9 @@ class ConstantsTransformer extends RemovingTransformer {
       cases.add(patternConverter.createRootSpace(type, patternGuard.pattern,
           hasGuard: patternGuard.guard != null));
     }
-    List<ExhaustivenessError> errors =
-        reportErrors(_exhaustivenessCache!, type, cases);
+    List<ExhaustivenessError> errors = reportErrors(
+        _exhaustivenessCache!, type, cases,
+        computeUnreachable: retainDataForTesting);
     List<ExhaustivenessError>? reportedErrors;
     if (_exhaustivenessDataForTesting != null) {
       reportedErrors = [];
@@ -1581,19 +1551,7 @@ class ConstantsTransformer extends RemovingTransformer {
     Library library = currentLibrary;
     for (ExhaustivenessError error in errors) {
       if (error is UnreachableCaseError) {
-        if (library.importUri.isScheme('dart') &&
-            library.importUri.path == 'html') {
-          // TODO(51754): Remove this.
-          continue;
-        }
         reportedErrors?.add(error);
-        // TODO(johnniwinther): Re-enable this, pending resolution on
-        // https://github.com/dart-lang/language/issues/2924
-        /*constantEvaluator.errorReporter.report(
-              constantEvaluator.createLocatedMessageWithOffset(
-                  node,
-                  patternGuards[error.index].fileOffset,
-                  messageUnreachableSwitchCase));*/
       } else if (error is NonExhaustiveError &&
           !hasDefault &&
           mustBeExhaustive) {
@@ -1607,8 +1565,8 @@ class ConstantsTransformer extends RemovingTransformer {
                         : templateNonExhaustiveSwitchStatement)
                     .withArguments(
                         expressionType,
-                        error.witness.asWitness,
-                        error.witness.asCorrection,
+                        error.witnesses.first.asWitness,
+                        error.witnesses.first.asCorrection,
                         library.isNonNullableByDefault)));
       }
     }
@@ -2518,7 +2476,8 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     if (_environmentDefines == null && !backend.supportsUnevaluatedConstants) {
       throw new ArgumentError(
           "No 'environmentDefines' passed to the constant evaluator but the "
-          "ConstantsBackend does not support unevaluated constants.");
+              "ConstantsBackend does not support unevaluated constants.",
+          "_environmentDefines");
     }
     intFolder = new ConstantIntFolder.forSemantics(this, numberSemantics);
     pseudoPrimitiveClasses = <Class>{
@@ -2545,35 +2504,30 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
   Map<String, String>? _supportedLibrariesCache;
 
-  Map<String, String> _computeSupportedLibraries() {
-    Map<String, String> map = {};
-    for (Library library in component.libraries) {
-      if (library.importUri.isScheme('dart')) {
-        map[library.importUri.path] =
-            DartLibrarySupport.getDartLibrarySupportValue(
-                library.importUri.path,
-                libraryExists: true,
-                isSynthetic: library.isSynthetic,
-                isUnsupported: library.isUnsupported,
-                dartLibrarySupport: dartLibrarySupport);
-      }
-    }
-    return map;
-  }
+  Map<String, String> _computeSupportedLibraries() => {
+        for (Library library in component.libraries)
+          if (library.importUri.isScheme('dart') &&
+              DartLibrarySupport.isDartLibrarySupported(
+                  library.importUri.path,
+                  libraryExists: true,
+                  isSynthetic: library.isSynthetic,
+                  isUnsupported: library.isUnsupported,
+                  dartLibrarySupport: dartLibrarySupport))
+            (DartLibrarySupport.dartLibraryPrefix + library.importUri.path):
+                "true"
+      };
 
   String? lookupEnvironment(String key) {
     if (DartLibrarySupport.isDartLibraryQualifier(key)) {
-      String libraryName = DartLibrarySupport.getDartLibraryName(key);
-      String? value = (_supportedLibrariesCache ??=
-          _computeSupportedLibraries())[libraryName];
-      return value ?? "";
+      return (_supportedLibrariesCache ??= _computeSupportedLibraries())[key];
     }
     return _environmentDefines![key];
   }
 
   bool hasEnvironmentKey(String key) {
-    if (key.startsWith(DartLibrarySupport.dartLibraryPrefix)) {
-      return true;
+    if (DartLibrarySupport.isDartLibraryQualifier(key)) {
+      return (_supportedLibrariesCache ??= _computeSupportedLibraries())
+          .containsKey(key);
     }
     return _environmentDefines!.containsKey(key);
   }
@@ -5089,19 +5043,20 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
           new Instantiation(_wrap(constant),
               node.typeArguments.map((t) => env.substituteType(t)).toList()));
     }
-    List<TypeParameter>? typeParameters;
+
+    int? typeParameterCount;
     if (constant is TearOffConstant) {
       Member target = constant.target;
       if (target is Procedure) {
-        typeParameters = target.function.typeParameters;
+        typeParameterCount = target.function.typeParameters.length;
       } else if (target is Constructor) {
-        typeParameters = target.enclosingClass.typeParameters;
+        typeParameterCount = target.enclosingClass.typeParameters.length;
       }
     } else if (constant is TypedefTearOffConstant) {
-      typeParameters = constant.parameters;
+      typeParameterCount = constant.parameters.length;
     }
-    if (typeParameters != null) {
-      if (node.typeArguments.length == typeParameters.length) {
+    if (typeParameterCount != null) {
+      if (node.typeArguments.length == typeParameterCount) {
         List<DartType>? types = _evaluateDartTypes(node, node.typeArguments);
         if (types == null) {
           AbortConstant error = _gotError!;
@@ -5145,9 +5100,9 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
   Constant visitTypedefTearOff(TypedefTearOff node) {
     final Constant constant = _evaluateSubexpression(node.expression);
     if (constant is TearOffConstant) {
-      FreshTypeParameters freshTypeParameters =
-          getFreshTypeParameters(node.typeParameters);
-      List<TypeParameter> typeParameters =
+      FreshStructuralParameters freshTypeParameters =
+          getFreshStructuralParameters(node.structuralParameters);
+      List<StructuralParameter> typeParameters =
           freshTypeParameters.freshTypeParameters;
       List<DartType> typeArguments = new List<DartType>.generate(
           node.typeArguments.length,

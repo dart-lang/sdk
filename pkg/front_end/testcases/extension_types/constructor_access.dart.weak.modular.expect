@@ -14,43 +14,43 @@ extension type GenericClass<T extends core::Object? = dynamic>(T% it) {
   constructor • = self::GenericClass|constructor#;
   constructor tearoff • = self::GenericClass|constructor#_#new#tearOff;
 }
-static extension-type-member method Class|constructor#(core::int it) → self::Class /* = core::int */ {
-  lowered final self::Class /* = core::int */ #this = it;
+static extension-type-member method Class|constructor#(core::int it) → self::Class% /* erasure=core::int, declared=! */ {
+  lowered final self::Class% /* erasure=core::int, declared=! */ #this = it;
   return #this;
 }
-static extension-type-member method Class|constructor#_#new#tearOff(core::int it) → self::Class /* = core::int */
+static extension-type-member method Class|constructor#_#new#tearOff(core::int it) → self::Class% /* erasure=core::int, declared=! */
   return self::Class|constructor#(it);
-static extension-type-member method Class|constructor#named(core::int it) → self::Class /* = core::int */ {
-  lowered final self::Class /* = core::int */ #this = it.{core::num::+}(1){(core::num) → core::int};
+static extension-type-member method Class|constructor#named(core::int it) → self::Class% /* erasure=core::int, declared=! */ {
+  lowered final self::Class% /* erasure=core::int, declared=! */ #this = it.{core::num::+}(1){(core::num) → core::int};
   return #this;
 }
-static extension-type-member method Class|constructor#_#named#tearOff(core::int it) → self::Class /* = core::int */
+static extension-type-member method Class|constructor#_#named#tearOff(core::int it) → self::Class% /* erasure=core::int, declared=! */
   return self::Class|constructor#named(it);
-static extension-type-member method GenericClass|constructor#<T extends core::Object? = dynamic>(self::GenericClass|constructor#::T% it) → self::GenericClass<self::GenericClass|constructor#::T%> /* = self::GenericClass|constructor#::T% */ {
-  lowered final self::GenericClass<self::GenericClass|constructor#::T%> /* = self::GenericClass|constructor#::T% */ #this = it;
+static extension-type-member method GenericClass|constructor#<T extends core::Object? = dynamic>(self::GenericClass|constructor#::T% it) → self::GenericClass<self::GenericClass|constructor#::T%>% /* erasure=self::GenericClass|constructor#::T%, declared=! */ {
+  lowered final self::GenericClass<self::GenericClass|constructor#::T%>% /* erasure=self::GenericClass|constructor#::T%, declared=! */ #this = it;
   return #this;
 }
-static extension-type-member method GenericClass|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::GenericClass|constructor#_#new#tearOff::T% it) → self::GenericClass<self::GenericClass|constructor#_#new#tearOff::T%> /* = self::GenericClass|constructor#_#new#tearOff::T% */
+static extension-type-member method GenericClass|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::GenericClass|constructor#_#new#tearOff::T% it) → self::GenericClass<self::GenericClass|constructor#_#new#tearOff::T%>% /* erasure=self::GenericClass|constructor#_#new#tearOff::T%, declared=! */
   return self::GenericClass|constructor#<self::GenericClass|constructor#_#new#tearOff::T%>(it);
 static method main() → dynamic {
-  self::Class /* = core::int */ a = self::Class|constructor#(3);
-  self::Class /* = core::int */ b = self::Class|constructor#(4);
-  self::Class /* = core::int */ b2 = #C1(4){(core::int) → self::Class /* = core::int */};
-  self::Class /* = core::int */ c = self::Class|constructor#named(5);
-  self::Class /* = core::int */ c2 = #C2(5){(core::int) → self::Class /* = core::int */};
-  self::GenericClass<core::String> /* = core::String */ d = self::GenericClass|constructor#<core::String>("foo");
-  self::GenericClass<core::String> /* = core::String */ d2 = #C4("foo"){(core::String) → self::GenericClass<core::String> /* = core::String */};
-  self::GenericClass<core::String> /* = core::String */ d3 = #C3<core::String>("foo"){(core::String) → self::GenericClass<core::String> /* = core::String */};
-  self::GenericClass<core::String> /* = core::String */ e = self::GenericClass|constructor#<core::String>("bar");
-  self::GenericClass<core::String> /* = core::String */ e2 = #C4("bar"){(core::String) → self::GenericClass<core::String> /* = core::String */};
-  self::GenericClass<core::String> /* = core::String */ e3 = #C3<core::String>("bar"){(core::String) → self::GenericClass<core::String> /* = core::String */};
-  self::GenericClass<core::int> /* = core::int */ f = self::GenericClass|constructor#<core::int>(42);
-  self::GenericClass<core::int> /* = core::int */ f2 = #C5(42){(core::int) → self::GenericClass<core::int> /* = core::int */};
-  self::GenericClass<core::int> /* = core::int */ f3 = #C3<core::int>(42){(core::int) → self::GenericClass<core::int> /* = core::int */};
-  self::GenericClass<core::int> /* = core::int */ g = self::GenericClass|constructor#<core::int>(87);
-  self::GenericClass<core::int> /* = core::int */ g2 = #C3<core::int>(87){(core::int) → self::GenericClass<core::int> /* = core::int */};
-  self::GenericClass<core::num> /* = core::num */ h = self::GenericClass|constructor#<core::num>(123);
-  self::GenericClass<core::num> /* = core::num */ h2 = #C3<core::num>(123){(core::num) → self::GenericClass<core::num> /* = core::num */};
+  self::Class% /* erasure=core::int, declared=! */ a = self::Class|constructor#(3);
+  self::Class% /* erasure=core::int, declared=! */ b = self::Class|constructor#(4);
+  self::Class% /* erasure=core::int, declared=! */ b2 = #C1(4){(core::int) → self::Class% /* erasure=core::int, declared=! */};
+  self::Class% /* erasure=core::int, declared=! */ c = self::Class|constructor#named(5);
+  self::Class% /* erasure=core::int, declared=! */ c2 = #C2(5){(core::int) → self::Class% /* erasure=core::int, declared=! */};
+  self::GenericClass<core::String>% /* erasure=core::String, declared=! */ d = self::GenericClass|constructor#<core::String>("foo");
+  self::GenericClass<core::String>% /* erasure=core::String, declared=! */ d2 = #C4("foo"){(core::String) → self::GenericClass<core::String>% /* erasure=core::String, declared=! */};
+  self::GenericClass<core::String>% /* erasure=core::String, declared=! */ d3 = #C3<core::String>("foo"){(core::String) → self::GenericClass<core::String>% /* erasure=core::String, declared=! */};
+  self::GenericClass<core::String>% /* erasure=core::String, declared=! */ e = self::GenericClass|constructor#<core::String>("bar");
+  self::GenericClass<core::String>% /* erasure=core::String, declared=! */ e2 = #C4("bar"){(core::String) → self::GenericClass<core::String>% /* erasure=core::String, declared=! */};
+  self::GenericClass<core::String>% /* erasure=core::String, declared=! */ e3 = #C3<core::String>("bar"){(core::String) → self::GenericClass<core::String>% /* erasure=core::String, declared=! */};
+  self::GenericClass<core::int>% /* erasure=core::int, declared=! */ f = self::GenericClass|constructor#<core::int>(42);
+  self::GenericClass<core::int>% /* erasure=core::int, declared=! */ f2 = #C5(42){(core::int) → self::GenericClass<core::int>% /* erasure=core::int, declared=! */};
+  self::GenericClass<core::int>% /* erasure=core::int, declared=! */ f3 = #C3<core::int>(42){(core::int) → self::GenericClass<core::int>% /* erasure=core::int, declared=! */};
+  self::GenericClass<core::int>% /* erasure=core::int, declared=! */ g = self::GenericClass|constructor#<core::int>(87);
+  self::GenericClass<core::int>% /* erasure=core::int, declared=! */ g2 = #C3<core::int>(87){(core::int) → self::GenericClass<core::int>% /* erasure=core::int, declared=! */};
+  self::GenericClass<core::num>% /* erasure=core::num, declared=! */ h = self::GenericClass|constructor#<core::num>(123);
+  self::GenericClass<core::num>% /* erasure=core::num, declared=! */ h2 = #C3<core::num>(123){(core::num) → self::GenericClass<core::num>% /* erasure=core::num, declared=! */};
   self::expect(3, a as{Unchecked} core::int);
   self::expect(3, a);
   self::expect(4, b as{Unchecked} core::int);

@@ -7,8 +7,6 @@
 // Test that array allocation in noSuchMethod dispatcher is preserving the
 // length register correctly.
 
-import 'dart:async';
-
 import 'package:expect/expect.dart';
 
 final List<dynamic> list = <dynamic>[];

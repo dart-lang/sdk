@@ -19,28 +19,6 @@ DartType? rawExtensionTypeErasure(DartType type) {
   return type.accept1(const _ExtensionTypeErasure(), Variance.covariant);
 }
 
-/// Returns the extension type erasure of [supertype], that is, the type in
-/// which all extension types have been replaced with their representation type.
-Supertype extensionSupertypeErasure(Supertype supertype) {
-  if (supertype.typeArguments.isEmpty) {
-    return supertype;
-  }
-  List<DartType>? newTypeArguments;
-  for (int i = 0; i < supertype.typeArguments.length; i++) {
-    DartType typeArgument = supertype.typeArguments[i];
-    DartType? newTypeArgument =
-        typeArgument.accept1(const _ExtensionTypeErasure(), Variance.covariant);
-    if (newTypeArgument != null) {
-      newTypeArguments ??= supertype.typeArguments.toList(growable: false);
-      newTypeArguments[i] = newTypeArgument;
-    }
-  }
-  if (newTypeArguments != null) {
-    return new Supertype(supertype.classNode, newTypeArguments);
-  }
-  return supertype;
-}
-
 /// Visitor that replaces all extension types with their representation types.
 ///
 /// The visitor returns `null` if the type wasn't changed.

@@ -302,7 +302,6 @@ abstract class AbstractLspAnalysisServerTest
     newFile(analysisOptionsPath, '''
 analyzer:
   enable-experiment:
-    - inline-class
     - macros
 ''');
 
@@ -473,6 +472,23 @@ mixin ClientCapabilitiesHelperMixin {
   void setApplyEditSupport([bool supported = true]) {
     workspaceCapabilities = extendWorkspaceCapabilities(
         workspaceCapabilities, {'applyEdit': supported});
+  }
+
+  void setChangeAnnotationSupport([bool supported = true]) {
+    workspaceCapabilities = extendWorkspaceCapabilities(workspaceCapabilities, {
+      'workspaceEdit': {
+        'changeAnnotationSupport': supported
+            ? <String, Object?>{
+                // This is set to an empty object to indicate support. We don't
+                // currently use any of the child properties.
+              }
+            : null
+      }
+    });
+  }
+
+  void setClientSupportedCommands(List<String>? supportedCommands) {
+    experimentalCapabilities['commands'] = supportedCommands;
   }
 
   void setCompletionItemDeprecatedFlagSupport() {
@@ -806,6 +822,16 @@ mixin LspAnalysisServerTestMixin
   /// list.
   final diagnostics = <Uri, List<Diagnostic>>{};
 
+  /// Whether to fail tests if any error notifications are received from the
+  /// server.
+  ///
+  /// This does not need to be set when using [expectErrorNotification].
+  bool failTestOnAnyErrorNotification = true;
+
+  /// Whether to fail tests if any error diagnostics are received from the
+  /// server.
+  bool failTestOnErrorDiagnostic = true;
+
   /// A stream of [NotificationMessage]s from the server that may be errors.
   Stream<NotificationMessage> get errorNotificationsFromServer {
     return notificationsFromServer.where(_isErrorNotification);
@@ -820,6 +846,10 @@ mixin LspAnalysisServerTestMixin
       initialized ? Future.value() : waitForAnalysisComplete();
 
   bool get initialized => _clientCapabilities != null;
+
+  /// The URI for an augmentation for [mainFileUri].
+  Uri get mainFileAugmentationUri => mainFileUri.replace(
+      path: mainFileUri.path.replaceFirst('.dart', '_augmentation.dart'));
 
   /// The URI for the macro-generated contents for [mainFileUri].
   Uri get mainFileMacroUri => mainFileUri.replace(scheme: macroClientUriScheme);
@@ -939,9 +969,13 @@ mixin LspAnalysisServerTestMixin
     Duration timeout = const Duration(seconds: 5),
   }) async {
     final firstError = errorNotificationsFromServer.first;
-    await f();
 
+    failTestOnAnyErrorNotification = false;
+
+    await f();
     final notificationFromServer = await firstError.timeout(timeout);
+
+    failTestOnAnyErrorNotification = true;
 
     expect(notificationFromServer, isNotNull);
     return ShowMessageParams.fromJson(
@@ -1053,16 +1087,26 @@ mixin LspAnalysisServerTestMixin
     Map<String, Object?>? initializationOptions,
     bool throwOnFailure = true,
     bool allowEmptyRootUri = false,
-    bool failTestOnAnyErrorNotification = true,
     bool includeClientRequestTime = false,
+    void Function()? immediatelyAfterInitialized,
   }) async {
     this.includeClientRequestTime = includeClientRequestTime;
 
-    if (failTestOnAnyErrorNotification) {
-      errorNotificationsFromServer.listen((NotificationMessage error) {
+    errorNotificationsFromServer.listen((NotificationMessage error) {
+      // Always subscribe to this and check the flag here so it can be toggled
+      // during tests (for example automatically by expectErrorNotification).
+      if (failTestOnAnyErrorNotification) {
         fail('${error.toJson()}');
-      });
-    }
+      }
+    });
+
+    publishedDiagnostics.listen((diagnostics) {
+      if (failTestOnErrorDiagnostic &&
+          diagnostics.diagnostics.any((diagnostic) =>
+              diagnostic.severity == DiagnosticSeverity.Error)) {
+        fail('Unexpected diagnostics: ${diagnostics.toJson()}');
+      }
+    });
 
     final clientCapabilities = ClientCapabilities(
       workspace: workspaceCapabilities,
@@ -1119,7 +1163,10 @@ mixin LspAnalysisServerTestMixin
 
       final notification =
           makeNotification(Method.initialized, InitializedParams());
-      await sendNotificationToServer(notification);
+
+      final initializedNotification = sendNotificationToServer(notification);
+      immediatelyAfterInitialized?.call();
+      await initializedNotification;
       await pumpEventQueue();
     } else if (throwOnFailure) {
       throw 'Error during initialize request: '

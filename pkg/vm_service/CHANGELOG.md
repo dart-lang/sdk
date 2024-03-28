@@ -1,3 +1,8 @@
+## 14.2.0
+- Update to version `4.15` of the spec.
+- Added `closureReceiver` property to `Instance` and `InstanceRef`.
+- Added `Finalizer`, `NativeFinalizer`, and `FinalizerEntry` instance kinds.
+
 ## 14.1.0
 - Added `HeapSnapshotGraph.toChunks()`.
 - Added optional `calculateReferrers`, `decodeObjectData`, `decodeExternalProperties`,

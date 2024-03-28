@@ -131,8 +131,8 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
       await builder.addDartFileEdit(file, (builder) {
         builder.addInsertion(utils.getLineNext(insertOffset), (builder) {
           final declPrefix =
-              utils.getLinePrefix(classDeclaration.offset) + utils.getIndent(1);
-          final bodyPrefix = declPrefix + utils.getIndent(1);
+              utils.getLinePrefix(classDeclaration.offset) + utils.oneIndent;
+          final bodyPrefix = declPrefix + utils.oneIndent;
 
           builder.writeln('$declPrefix@override');
           builder.writeln(
@@ -155,7 +155,7 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
       String prefix;
       if (functionBody.block.statements.isEmpty) {
         offset = functionBody.block.leftBracket.offset;
-        prefix = utils.getLinePrefix(offset) + utils.getIndent(1);
+        prefix = utils.getLinePrefix(offset) + utils.oneIndent;
       } else {
         offset = functionBody.block.statements.last.endToken.offset;
         prefix = utils.getLinePrefix(offset);

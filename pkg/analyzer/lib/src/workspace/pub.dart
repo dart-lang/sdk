@@ -206,7 +206,7 @@ class PackageConfigWorkspace extends SimpleWorkspace {
 
   /// For some package file, which may or may not be a package source (it could
   /// be in `bin/`, `web/`, etc), find where its built counterpart will exist if
-  /// its a generated source.
+  /// it's a generated source.
   ///
   /// To get a [builtPath] for a package source file to use in this method,
   /// use [_builtPackageSourcePath]. For `bin/`, `web/`, etc, it must be relative
@@ -454,6 +454,13 @@ class PubPackage extends WorkspacePackage {
       return workspace.findPackageFor(path) != null;
     }
     return false;
+  }
+
+  /// Whether [file] is in the `test` directory of this package.
+  bool isInTestDirectory(File file) {
+    var resourceProvider = workspace.provider;
+    var packageRoot = resourceProvider.getFolder(root);
+    return packageRoot.getChildAssumingFolder('test').contains(file.path);
   }
 
   @override

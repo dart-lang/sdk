@@ -4,6 +4,7 @@ analyzer:
   language:
     strict-casts: true
   errors:
+    todo: ignore
     # Remove from lints/recommended:
     constant_identifier_names: ignore
     implementation_imports: ignore

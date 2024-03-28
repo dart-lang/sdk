@@ -917,7 +917,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     // Compute and report errors.
     final errors = patternConverter.hasInvalidType
         ? const <ExhaustivenessError>[]
-        : reportErrors(_exhaustivenessCache, scrutineeTypeEx, caseSpaces);
+        : reportErrors(_exhaustivenessCache, scrutineeTypeEx, caseSpaces,
+            computeUnreachable: true);
 
     final reportNonExhaustive = mustBeExhaustive && !hasDefault;
     for (final error in errors) {
@@ -937,11 +938,11 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         );
       } else if (error is NonExhaustiveError && reportNonExhaustive) {
         var errorBuffer = SimpleDartBuffer();
-        error.witness.toDart(errorBuffer, forCorrection: false);
+        error.witnesses.first.toDart(errorBuffer, forCorrection: false);
         var correctionTextBuffer = SimpleDartBuffer();
         var correctionDataBuffer = AnalyzerDartTemplateBuffer();
-        error.witness.toDart(correctionTextBuffer, forCorrection: true);
-        error.witness.toDart(correctionDataBuffer, forCorrection: true);
+        error.witnesses.first.toDart(correctionTextBuffer, forCorrection: true);
+        error.witnesses.first.toDart(correctionDataBuffer, forCorrection: true);
         _errorReporter.atToken(
           switchKeyword,
           isSwitchExpression

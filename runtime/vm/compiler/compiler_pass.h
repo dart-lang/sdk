@@ -54,6 +54,8 @@ namespace dart {
   V(UseTableDispatch)                                                          \
   V(WidenSmiToInt32)                                                           \
   V(EliminateWriteBarriers)                                                    \
+  V(TestILSerialization)                                                       \
+  V(LoweringAfterCodeMotionDisabled)                                           \
   V(GenerateCode)
 
 class AllocationSinking;
@@ -93,8 +95,6 @@ struct CompilerPassState {
   CallSpecializer* call_specializer;
 
   SpeculativeInliningPolicy* speculative_policy;
-
-  bool reorder_blocks;
 
   intptr_t sticky_flags;
 

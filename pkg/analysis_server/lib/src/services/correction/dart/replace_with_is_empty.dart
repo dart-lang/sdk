@@ -4,8 +4,10 @@
 
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -17,6 +19,10 @@ class ReplaceWithIsEmpty extends ResolvedCorrectionProducer {
   @override
   FixKind multiFixKind = DartFixKind.REPLACE_WITH_IS_EMPTY_MULTI;
 
+  BinaryExpression? _binary;
+
+  _Replacement? _replacement;
+
   @override
   bool get canBeAppliedInBulk => true;
 
@@ -25,24 +31,41 @@ class ReplaceWithIsEmpty extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var binary = node.thisOrAncestorOfType<BinaryExpression>();
-    if (binary == null) {
+    var binary = _binary;
+    var replacement = _replacement;
+    if (binary == null || replacement == null) {
       return;
     }
 
-    var replacement = _analyzeBinaryExpression(binary);
-    if (replacement == null) {
+    // Skip nullable targets.
+    if (replacement.lengthTarget.staticType?.nullabilitySuffix ==
+        NullabilitySuffix.question) {
       return;
     }
-
-    fixKind = replacement.fixKind;
-    multiFixKind = replacement.multiFixKind;
 
     var target = utils.getNodeText(replacement.lengthTarget);
     var getter = replacement.getter;
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleReplacement(range.node(binary), '$target.$getter');
     });
+  }
+
+  @override
+  void configure(CorrectionProducerContext<ResolvedUnitResult> context) {
+    super.configure(context);
+
+    var binary = _binary = node.thisOrAncestorOfType<BinaryExpression>();
+    if (binary == null) {
+      return;
+    }
+
+    var replacement = _replacement = _analyzeBinaryExpression(binary);
+    if (replacement == null) {
+      return;
+    }
+
+    fixKind = replacement.fixKind;
+    multiFixKind = replacement.multiFixKind;
   }
 
   static _Replacement? _analyzeBinaryExpression(BinaryExpression binary) {

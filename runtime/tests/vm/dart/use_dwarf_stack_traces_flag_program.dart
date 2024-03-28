@@ -6,8 +6,6 @@
 
 import 'dart:_internal' show VMInternalsForTesting;
 
-import "package:expect/expect.dart";
-
 class C {
   // operator*(o) is missing to trigger a noSuchMethodError when a C object
   // is used in the multiplication below.

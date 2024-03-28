@@ -135,7 +135,6 @@ namespace dart {
   V(String_getHashCode, 1)                                                     \
   V(String_getLength, 1)                                                       \
   V(String_charAt, 2)                                                          \
-  V(String_codeUnitAt, 2)                                                      \
   V(String_concat, 2)                                                          \
   V(String_fromEnvironment, 3)                                                 \
   V(String_toLowerCase, 1)                                                     \

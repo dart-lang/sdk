@@ -62,11 +62,6 @@ mixin ElementsTypesMixin {
     return interfaceTypeQuestion(element);
   }
 
-  InterfaceType get intStar {
-    var element = typeProvider.intType.element;
-    return interfaceTypeStar(element);
-  }
-
   DartType get invalidType => InvalidTypeImpl.instance;
 
   NeverTypeImpl get neverNone => NeverTypeImpl.instance;
@@ -83,11 +78,6 @@ mixin ElementsTypesMixin {
     return interfaceTypeQuestion(element) as InterfaceTypeImpl;
   }
 
-  InterfaceTypeImpl get nullStar {
-    var element = typeProvider.nullType.element;
-    return interfaceTypeStar(element) as InterfaceTypeImpl;
-  }
-
   InterfaceType get numNone {
     var element = typeProvider.numType.element;
     return interfaceTypeNone(element);
@@ -98,11 +88,6 @@ mixin ElementsTypesMixin {
     return interfaceTypeQuestion(element);
   }
 
-  InterfaceType get numStar {
-    var element = typeProvider.numType.element;
-    return interfaceTypeStar(element);
-  }
-
   InterfaceType get objectNone {
     var element = typeProvider.objectType.element;
     return interfaceTypeNone(element);
@@ -111,11 +96,6 @@ mixin ElementsTypesMixin {
   InterfaceType get objectQuestion {
     var element = typeProvider.objectType.element;
     return interfaceTypeQuestion(element);
-  }
-
-  InterfaceType get objectStar {
-    var element = typeProvider.objectType.element;
-    return interfaceTypeStar(element);
   }
 
   InterfaceType get recordNone {
@@ -131,11 +111,6 @@ mixin ElementsTypesMixin {
   InterfaceType get stringQuestion {
     var element = typeProvider.stringType.element;
     return interfaceTypeQuestion(element);
-  }
-
-  InterfaceType get stringStar {
-    var element = typeProvider.stringType.element;
-    return interfaceTypeStar(element);
   }
 
   LibraryElementImpl get testLibrary => throw UnimplementedError();
@@ -307,18 +282,6 @@ mixin ElementsTypesMixin {
     ) as InterfaceTypeImpl;
   }
 
-  InterfaceTypeImpl futureStar(DartType type) {
-    return typeProvider.futureElement.instantiate(
-      typeArguments: [type],
-      nullabilitySuffix: NullabilitySuffix.star,
-    ) as InterfaceTypeImpl;
-  }
-
-  InterfaceType futureType(DartType T) {
-    var futureElement = typeProvider.futureElement;
-    return interfaceTypeStar(futureElement, typeArguments: [T]);
-  }
-
   InterfaceType interfaceType(
     InterfaceElement element, {
     List<DartType> typeArguments = const [],
@@ -350,16 +313,6 @@ mixin ElementsTypesMixin {
     );
   }
 
-  InterfaceType interfaceTypeStar(
-    InterfaceElement element, {
-    List<DartType> typeArguments = const [],
-  }) {
-    return element.instantiate(
-      typeArguments: typeArguments,
-      nullabilitySuffix: NullabilitySuffix.star,
-    );
-  }
-
   InterfaceType iterableNone(DartType type) {
     return typeProvider.iterableElement.instantiate(
       typeArguments: [type],
@@ -371,13 +324,6 @@ mixin ElementsTypesMixin {
     return typeProvider.iterableElement.instantiate(
       typeArguments: [type],
       nullabilitySuffix: NullabilitySuffix.question,
-    );
-  }
-
-  InterfaceType iterableStar(DartType type) {
-    return typeProvider.iterableElement.instantiate(
-      typeArguments: [type],
-      nullabilitySuffix: NullabilitySuffix.star,
     );
   }
 
@@ -425,13 +371,6 @@ mixin ElementsTypesMixin {
     );
   }
 
-  InterfaceType listStar(DartType type) {
-    return typeProvider.listElement.instantiate(
-      typeArguments: [type],
-      nullabilitySuffix: NullabilitySuffix.star,
-    );
-  }
-
   InterfaceType mapNone(DartType key, DartType value) {
     return typeProvider.mapElement.instantiate(
       typeArguments: [key, value],
@@ -443,13 +382,6 @@ mixin ElementsTypesMixin {
     return typeProvider.mapElement.instantiate(
       typeArguments: [key, value],
       nullabilitySuffix: NullabilitySuffix.question,
-    );
-  }
-
-  InterfaceType mapStar(DartType key, DartType value) {
-    return typeProvider.mapElement.instantiate(
-      typeArguments: [key, value],
-      nullabilitySuffix: NullabilitySuffix.star,
     );
   }
 
@@ -605,17 +537,6 @@ mixin ElementsTypesMixin {
       positionalTypes: positionalTypes,
       namedTypes: namedTypes,
       nullabilitySuffix: NullabilitySuffix.question,
-    );
-  }
-
-  RecordTypeImpl recordTypeStar({
-    List<DartType> positionalTypes = const [],
-    Map<String, DartType> namedTypes = const {},
-  }) {
-    return recordType(
-      positionalTypes: positionalTypes,
-      namedTypes: namedTypes,
-      nullabilitySuffix: NullabilitySuffix.star,
     );
   }
 

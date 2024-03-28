@@ -261,7 +261,6 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   JoinEntryInstr* BuildJoinEntry();
   JoinEntryInstr* BuildJoinEntry(intptr_t try_index);
   Fragment Goto(JoinEntryInstr* destination);
-  Fragment BuildImplicitClosureCreation(const Function& target);
   Fragment CheckBoolean(TokenPosition position);
   Fragment CheckArgumentType(LocalVariable* variable, const AbstractType& type);
   Fragment RecordCoverage(TokenPosition position);
@@ -371,12 +370,8 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment BuildTryFinally(TokenPosition* position);
   Fragment BuildYieldStatement(TokenPosition* position);
   Fragment BuildVariableDeclaration(TokenPosition* position);
-  Fragment BuildFunctionDeclaration(intptr_t offset, TokenPosition* position);
-  Fragment BuildFunctionNode(TokenPosition parent_position,
-                             StringIndex name_index,
-                             bool has_valid_annotation,
-                             bool has_pragma,
-                             intptr_t func_decl_offset);
+  Fragment BuildFunctionDeclaration(TokenPosition* position);
+  Fragment BuildFunctionNode(intptr_t func_decl_offset);
 
   // Build flow graph for '_nativeEffect'.
   Fragment BuildNativeEffect();
@@ -388,11 +383,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   // Build flow graph for '_loadAbiSpecificInt' and
   // '_loadAbiSpecificIntAtIndex', '_storeAbiSpecificInt', and
   // '_storeAbiSpecificIntAtIndex' call sites.
-  //
-  // The second argument is either offsetInBytes (at_index==false), or
-  // index (at_index==true).
-  Fragment BuildLoadAbiSpecificInt(bool at_index);
-  Fragment BuildStoreAbiSpecificInt(bool at_index);
+  Fragment BuildLoadStoreAbiSpecificInt(bool is_store, bool at_index);
 
   // Build FG for FFI call.
   Fragment BuildFfiCall();

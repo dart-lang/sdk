@@ -813,20 +813,6 @@ class TwoByteString : public AllStatic {
   static word element_offset(intptr_t index);
 };
 
-class ExternalOneByteString : public AllStatic {
- public:
-  static word external_data_offset();
-  static word InstanceSize();
-  FINAL_CLASS();
-};
-
-class ExternalTwoByteString : public AllStatic {
- public:
-  static word external_data_offset();
-  static word InstanceSize();
-  FINAL_CLASS();
-};
-
 class Int32x4 : public AllStatic {
  public:
   static word value_offset();

@@ -1062,9 +1062,9 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   @override
   void visitTypedefTearOff(TypedefTearOff node) {
     _checkTypedefTearOff(node);
-    declareTypeParameters(node.typeParameters);
+    declareStructuralParameters(node.structuralParameters);
     super.visitTypedefTearOff(node);
-    undeclareTypeParameters(node.typeParameters);
+    undeclareStructuralParameters(node.structuralParameters);
   }
 
   void checkTargetedInvocation(Member target, InvocationExpression node) {
@@ -1352,9 +1352,9 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   @override
   void visitTypedefTearOffConstant(TypedefTearOffConstant node) {
     _checkTypedefTearOff(node);
-    declareTypeParameters(node.parameters);
+    declareStructuralParameters(node.parameters);
     super.visitTypedefTearOffConstant(node);
-    undeclareTypeParameters(node.parameters);
+    undeclareStructuralParameters(node.parameters);
   }
 
   void _checkInterfaceTarget(Expression node, Member interfaceTarget) {
@@ -1530,6 +1530,11 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
       if (node.fileOffset == TreeNode.noOffset &&
           !target.verification.allowNoFileOffset(stage, node)) {
         problem(node, "'$name' has no fileOffset", context: node);
+      }
+      try {
+        node.location;
+      } catch (e) {
+        problem(node, "'$name' crashes when asked for location", context: node);
       }
       return fileUri;
     }
@@ -1764,10 +1769,6 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   }
 }
 
-void verifyGetStaticType(TypeEnvironment env, Component component) {
-  component.accept(new VerifyGetStaticType(env));
-}
-
 class VerifyGetStaticType extends RecursiveVisitor {
   final TypeEnvironment env;
   Member? currentMember;
@@ -1831,32 +1832,6 @@ class VerifyGetStaticType extends RecursiveVisitor {
       rethrow;
     }
     super.defaultExpression(node);
-  }
-}
-
-class CheckParentPointers extends VisitorDefault<void> with VisitorVoidMixin {
-  static void check(TreeNode node) {
-    node.accept(new CheckParentPointers(node.parent));
-  }
-
-  TreeNode? parent;
-
-  CheckParentPointers([this.parent]);
-
-  @override
-  void defaultTreeNode(TreeNode node) {
-    if (node.parent != parent) {
-      throw new VerificationError(
-          parent,
-          node,
-          "Parent pointer on '${node.runtimeType}' "
-          "is '${node.parent.runtimeType}' "
-          "but should be '${parent.runtimeType}'.");
-    }
-    TreeNode? oldParent = parent;
-    parent = node;
-    node.visitChildren(this);
-    parent = oldParent;
   }
 }
 

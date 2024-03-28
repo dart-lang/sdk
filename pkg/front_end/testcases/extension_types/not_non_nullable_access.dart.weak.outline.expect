@@ -28,63 +28,63 @@ extension type ET2<T extends core::Object? = dynamic>(T% t) {
   constructor • = self::ET2|constructor#;
   constructor tearoff • = self::ET2|constructor#_#new#tearOff;
 }
-static extension-type-member method ET1|constructor#(core::int i) → self::ET1 /* = core::int */
+static extension-type-member method ET1|constructor#(core::int i) → self::ET1% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method ET1|constructor#_#new#tearOff(core::int i) → self::ET1 /* = core::int */
+static extension-type-member method ET1|constructor#_#new#tearOff(core::int i) → self::ET1% /* erasure=core::int, declared=! */
   return self::ET1|constructor#(i);
-static extension-type-member method ET1|+(lowered final self::ET1 /* = core::int */ #this, self::ET1? /* = core::int? */ i) → self::ET1? /* = core::int? */
+static extension-type-member method ET1|+(lowered final self::ET1% /* erasure=core::int, declared=! */ #this, self::ET1? /* erasure=core::int? */ i) → self::ET1? /* erasure=core::int? */
   ;
-static extension-type-member method ET1|unary-(lowered final self::ET1 /* = core::int */ #this) → core::int
+static extension-type-member method ET1|unary-(lowered final self::ET1% /* erasure=core::int, declared=! */ #this) → core::int
   ;
-static extension-type-member method ET1|[](lowered final self::ET1 /* = core::int */ #this, core::int index) → core::int
+static extension-type-member method ET1|[](lowered final self::ET1% /* erasure=core::int, declared=! */ #this, core::int index) → core::int
   ;
-static extension-type-member method ET1|[]=(lowered final self::ET1 /* = core::int */ #this, core::int index, core::int value) → void
+static extension-type-member method ET1|[]=(lowered final self::ET1% /* erasure=core::int, declared=! */ #this, core::int index, core::int value) → void
   ;
-static extension-type-member method ET1|foo(lowered final self::ET1 /* = core::int */ #this, core::int i) → void
+static extension-type-member method ET1|foo(lowered final self::ET1% /* erasure=core::int, declared=! */ #this, core::int i) → void
   ;
-static extension-type-member method ET1|get#foo(lowered final self::ET1 /* = core::int */ #this) → (core::int) → void
+static extension-type-member method ET1|get#foo(lowered final self::ET1% /* erasure=core::int, declared=! */ #this) → (core::int) → void
   return (core::int i) → void => self::ET1|foo(#this, i);
-static extension-type-member method ET1|get#getter(lowered final self::ET1 /* = core::int */ #this) → core::int
+static extension-type-member method ET1|get#getter(lowered final self::ET1% /* erasure=core::int, declared=! */ #this) → core::int
   ;
-static extension-type-member method ET1|set#setter(lowered final self::ET1 /* = core::int */ #this, core::int value) → void
+static extension-type-member method ET1|set#setter(lowered final self::ET1% /* erasure=core::int, declared=! */ #this, core::int value) → void
   ;
-static extension-type-member method ET2|constructor#<T extends core::Object? = dynamic>(self::ET2|constructor#::T% t) → self::ET2<self::ET2|constructor#::T%> /* = self::ET2|constructor#::T% */
+static extension-type-member method ET2|constructor#<T extends core::Object? = dynamic>(self::ET2|constructor#::T% t) → self::ET2<self::ET2|constructor#::T%>% /* erasure=self::ET2|constructor#::T%, declared=! */
   ;
-static extension-type-member method ET2|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::ET2|constructor#_#new#tearOff::T% t) → self::ET2<self::ET2|constructor#_#new#tearOff::T%> /* = self::ET2|constructor#_#new#tearOff::T% */
+static extension-type-member method ET2|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::ET2|constructor#_#new#tearOff::T% t) → self::ET2<self::ET2|constructor#_#new#tearOff::T%>% /* erasure=self::ET2|constructor#_#new#tearOff::T%, declared=! */
   return self::ET2|constructor#<self::ET2|constructor#_#new#tearOff::T%>(t);
-static extension-type-member method ET2|+<T extends core::Object? = dynamic>(lowered final self::ET2<self::ET2|+::T%> /* = self::ET2|+::T% */ #this, self::ET2<self::ET2|+::T%>? /* = self::ET2|+::T? */ t) → self::ET2<self::ET2|+::T%>? /* = self::ET2|+::T? */
+static extension-type-member method ET2|+<T extends core::Object? = dynamic>(lowered final self::ET2<self::ET2|+::T%>% /* erasure=self::ET2|+::T%, declared=! */ #this, self::ET2<self::ET2|+::T%>? /* erasure=self::ET2|+::T? */ t) → self::ET2<self::ET2|+::T%>? /* erasure=self::ET2|+::T? */
   ;
-static extension-type-member method ET2|unary-<T extends core::Object? = dynamic>(lowered final self::ET2<self::ET2|unary-::T%> /* = self::ET2|unary-::T% */ #this) → self::ET2|unary-::T%
+static extension-type-member method ET2|unary-<T extends core::Object? = dynamic>(lowered final self::ET2<self::ET2|unary-::T%>% /* erasure=self::ET2|unary-::T%, declared=! */ #this) → self::ET2|unary-::T%
   ;
-static extension-type-member method ET2|[]<T extends core::Object? = dynamic>(lowered final self::ET2<self::ET2|[]::T%> /* = self::ET2|[]::T% */ #this, core::int index) → self::ET2|[]::T%
+static extension-type-member method ET2|[]<T extends core::Object? = dynamic>(lowered final self::ET2<self::ET2|[]::T%>% /* erasure=self::ET2|[]::T%, declared=! */ #this, core::int index) → self::ET2|[]::T%
   ;
-static extension-type-member method ET2|[]=<T extends core::Object? = dynamic>(lowered final self::ET2<self::ET2|[]=::T%> /* = self::ET2|[]=::T% */ #this, core::int index, self::ET2|[]=::T% value) → void
+static extension-type-member method ET2|[]=<T extends core::Object? = dynamic>(lowered final self::ET2<self::ET2|[]=::T%>% /* erasure=self::ET2|[]=::T%, declared=! */ #this, core::int index, self::ET2|[]=::T% value) → void
   ;
-static extension-type-member method ET2|foo<T extends core::Object? = dynamic>(lowered final self::ET2<self::ET2|foo::T%> /* = self::ET2|foo::T% */ #this, self::ET2|foo::T% t) → void
+static extension-type-member method ET2|foo<T extends core::Object? = dynamic>(lowered final self::ET2<self::ET2|foo::T%>% /* erasure=self::ET2|foo::T%, declared=! */ #this, self::ET2|foo::T% t) → void
   ;
-static extension-type-member method ET2|get#foo<T extends core::Object? = dynamic>(lowered final self::ET2<self::ET2|get#foo::T%> /* = self::ET2|get#foo::T% */ #this) → (self::ET2|get#foo::T%) → void
+static extension-type-member method ET2|get#foo<T extends core::Object? = dynamic>(lowered final self::ET2<self::ET2|get#foo::T%>% /* erasure=self::ET2|get#foo::T%, declared=! */ #this) → (self::ET2|get#foo::T%) → void
   return (self::ET2|get#foo::T% t) → void => self::ET2|foo<self::ET2|get#foo::T%>(#this, t);
-static extension-type-member method ET2|get#getter<T extends core::Object? = dynamic>(lowered final self::ET2<self::ET2|get#getter::T%> /* = self::ET2|get#getter::T% */ #this) → self::ET2|get#getter::T%
+static extension-type-member method ET2|get#getter<T extends core::Object? = dynamic>(lowered final self::ET2<self::ET2|get#getter::T%>% /* erasure=self::ET2|get#getter::T%, declared=! */ #this) → self::ET2|get#getter::T%
   ;
-static extension-type-member method ET2|set#setter<T extends core::Object? = dynamic>(lowered final self::ET2<self::ET2|set#setter::T%> /* = self::ET2|set#setter::T% */ #this, self::ET2|set#setter::T% value) → void
+static extension-type-member method ET2|set#setter<T extends core::Object? = dynamic>(lowered final self::ET2<self::ET2|set#setter::T%>% /* erasure=self::ET2|set#setter::T%, declared=! */ #this, self::ET2|set#setter::T% value) → void
   ;
-static method method1(self::ET1 /* = core::int */ et) → dynamic
+static method method1(self::ET1% /* erasure=core::int, declared=! */ et) → dynamic
   ;
-static method method2(self::ET1? /* = core::int? */ et) → dynamic
+static method method2(self::ET1? /* erasure=core::int? */ et) → dynamic
   ;
-static method method3<S extends core::Object? = dynamic>(self::method3::S% s, self::ET2<self::method3::S%> /* = self::method3::S% */ et) → dynamic
+static method method3<S extends core::Object? = dynamic>(self::method3::S% s, self::ET2<self::method3::S%>% /* erasure=self::method3::S%, declared=! */ et) → dynamic
   ;
-static method method4<S extends core::Object? = dynamic>(self::method4::S% s, self::ET2<self::method4::S%>? /* = self::method4::S? */ et) → dynamic
+static method method4<S extends core::Object? = dynamic>(self::method4::S% s, self::ET2<self::method4::S%>? /* erasure=self::method4::S? */ et) → dynamic
   ;
-static method method5<S extends core::Object? = dynamic, U extends self::ET2<self::method5::S%> /* = self::method5::S% */ = self::ET2<dynamic> /* = dynamic */>(self::method5::S% s, self::method5::U% et) → dynamic
+static method method5<S extends core::Object? = dynamic, U extends self::ET2<self::method5::S%>% /* erasure=self::method5::S%, declared=! */ = self::ET2<dynamic>% /* erasure=dynamic, declared=! */>(self::method5::S% s, self::method5::U% et) → dynamic
   ;
-static method method6<S extends core::Object? = dynamic, U extends self::ET2<self::method6::S%> /* = self::method6::S% */ = self::ET2<dynamic> /* = dynamic */>(self::method6::S% s, self::method6::U? et) → dynamic
+static method method6<S extends core::Object? = dynamic, U extends self::ET2<self::method6::S%>% /* erasure=self::method6::S%, declared=! */ = self::ET2<dynamic>% /* erasure=dynamic, declared=! */>(self::method6::S% s, self::method6::U? et) → dynamic
   ;
-static method method7<S extends core::Object? = dynamic, U extends self::ET2<self::method7::S%> /* = self::method7::S% */ = self::ET2<dynamic> /* = dynamic */, V extends self::method7::U% = self::ET2<dynamic> /* = dynamic */>(self::method7::S% s, self::method7::V% et) → dynamic
+static method method7<S extends core::Object? = dynamic, U extends self::ET2<self::method7::S%>% /* erasure=self::method7::S%, declared=! */ = self::ET2<dynamic>% /* erasure=dynamic, declared=! */, V extends self::method7::U% = self::ET2<dynamic>% /* erasure=dynamic, declared=! */>(self::method7::S% s, self::method7::V% et) → dynamic
   ;
-static method method8<S extends core::Object? = dynamic, U extends self::ET2<self::method8::S%> /* = self::method8::S% */ = self::ET2<dynamic> /* = dynamic */, V extends self::method8::U% = self::ET2<dynamic> /* = dynamic */>(self::method8::S% s, self::method8::V? et) → dynamic
+static method method8<S extends core::Object? = dynamic, U extends self::ET2<self::method8::S%>% /* erasure=self::method8::S%, declared=! */ = self::ET2<dynamic>% /* erasure=dynamic, declared=! */, V extends self::method8::U% = self::ET2<dynamic>% /* erasure=dynamic, declared=! */>(self::method8::S% s, self::method8::V? et) → dynamic
   ;
-static method method9<S extends core::Object? = dynamic, U extends self::ET2<self::method9::S%> /* = self::method9::S% */ = self::ET2<dynamic> /* = dynamic */, V extends self::method9::U? = self::ET2<dynamic>? /* = dynamic */>(self::method9::S% s, self::method9::V% et) → dynamic
+static method method9<S extends core::Object? = dynamic, U extends self::ET2<self::method9::S%>% /* erasure=self::method9::S%, declared=! */ = self::ET2<dynamic>% /* erasure=dynamic, declared=! */, V extends self::method9::U? = self::ET2<dynamic>? /* erasure=dynamic */>(self::method9::S% s, self::method9::V% et) → dynamic
   ;
-static method method10<S extends core::Object? = dynamic, U extends self::ET2<self::method10::S%>? /* = self::method10::S? */ = self::ET2<dynamic>? /* = dynamic */, V extends self::method10::U% = self::ET2<dynamic>? /* = dynamic */>(self::method10::S% s, self::method10::V% et) → dynamic
+static method method10<S extends core::Object? = dynamic, U extends self::ET2<self::method10::S%>? /* erasure=self::method10::S? */ = self::ET2<dynamic>? /* erasure=dynamic */, V extends self::method10::U% = self::ET2<dynamic>? /* erasure=dynamic */>(self::method10::S% s, self::method10::V% et) → dynamic
   ;

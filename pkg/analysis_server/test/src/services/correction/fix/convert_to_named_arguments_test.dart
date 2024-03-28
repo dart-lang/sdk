@@ -145,4 +145,27 @@ void f() {
 ''');
     await assertNoFix();
   }
+
+  Future<void> test_noCompatibleParameterName() async {
+    await resolveTestCode('''
+abstract class Base {
+  final String? key;
+  const Base({this.key});
+}
+
+class A extends Base {
+  const A({super.key, this.child});
+  final Base? child;
+}
+
+class B extends Base {
+  const B({super.key});
+}
+
+void f() {
+  new A(child: B(), B());
+}
+''');
+    await assertNoFix();
+  }
 }

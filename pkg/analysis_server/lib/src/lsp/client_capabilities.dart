@@ -11,13 +11,17 @@ import 'package:analysis_server/lsp_protocol/protocol.dart';
 /// (non-standard) way of using TextDocumentContentProvider. This will need to
 /// continue to be supported after switching to standard LSP support for some
 /// period to support outdated extensions.
-///
-/// This is current EXPERIMENTAL and has a suffix that will allow opting-in for
-/// dev/testing only if the Dart-Code and server versions match. This number
-/// will be increased if breaking changes to the API are made. The suffix should
-/// be removed here (and in Dart-Code) when work is complete and support is
-/// enabled by default in Dart-Code.
 const dartExperimentalTextDocumentContentProviderKey =
+    'supportsDartTextDocumentContentProvider';
+
+/// The original key used for [dartExperimentalTextDocumentContentProviderKey].
+///
+/// This is temporarily supported to avoid the macro support vanishing for users
+/// for a period if their SDK is updated before Dart-Code passes the standard
+/// flag.
+///
+const dartExperimentalTextDocumentContentProviderLegacyKey =
+    // TODO(dantup): Remove this after the next beta branch.
     'supportsDartTextDocumentContentProviderEXP1';
 
 /// Wraps the client (editor) capabilities to improve performance.
@@ -73,6 +77,7 @@ class LspClientCapabilities {
 
   final ClientCapabilities raw;
   final bool documentChanges;
+  final bool changeAnnotations;
   final bool configuration;
   final bool createResourceOperations;
   final bool renameResourceOperations;
@@ -104,7 +109,14 @@ class LspClientCapabilities {
   final bool experimentalSnippetTextEdit;
   final Set<String> codeActionCommandParameterSupportedKinds;
   final bool supportsShowMessageRequest;
+
+  /// Whether the client supports the custom Dart TextDocumentContentProvider,
+  /// meaning it can request file contents from the server for custom URI
+  /// schemes.
   final bool supportsDartExperimentalTextDocumentContentProvider;
+
+  /// A set of commands that exist on the client that the server may call.
+  final Set<String> supportedCommands;
 
   factory LspClientCapabilities(ClientCapabilities raw) {
     final workspace = raw.workspace;
@@ -154,6 +166,7 @@ class LspClientCapabilities {
     final completionItemTags = _listToSet(completionItem?.tagSupport?.valueSet);
     final diagnosticTags = _listToSet(publishDiagnostics?.tagSupport?.valueSet);
     final documentChanges = workspaceEdit?.documentChanges ?? false;
+    final changeAnnotations = workspaceEdit?.changeAnnotationSupport != null;
     final documentSymbolKinds = _listToSet(documentSymbol?.symbolKind?.valueSet,
         defaults: defaultSupportedSymbolKinds);
     final hierarchicalSymbols =
@@ -180,7 +193,12 @@ class LspClientCapabilities {
         _listToSet(commandParameterSupport['supportedKinds'] as List?)
             .cast<String>();
     final supportsDartExperimentalTextDocumentContentProvider =
-        experimental[dartExperimentalTextDocumentContentProviderKey] != null;
+        (experimental[dartExperimentalTextDocumentContentProviderKey] ??
+                experimental[
+                    dartExperimentalTextDocumentContentProviderLegacyKey]) !=
+            null;
+    final supportedCommands =
+        _listToSet(experimental['commands'] as List?).cast<String>();
 
     /// At the time of writing (2023-02-01) there is no official capability for
     /// supporting 'showMessageRequest' because LSP assumed all clients
@@ -196,6 +214,7 @@ class LspClientCapabilities {
     return LspClientCapabilities._(
       raw,
       documentChanges: documentChanges,
+      changeAnnotations: changeAnnotations,
       configuration: configuration,
       createResourceOperations: createResourceOperations,
       renameResourceOperations: renameResourceOperations,
@@ -229,12 +248,14 @@ class LspClientCapabilities {
       supportsShowMessageRequest: supportsShowMessageRequest,
       supportsDartExperimentalTextDocumentContentProvider:
           supportsDartExperimentalTextDocumentContentProvider,
+      supportedCommands: supportedCommands,
     );
   }
 
   LspClientCapabilities._(
     this.raw, {
     required this.documentChanges,
+    required this.changeAnnotations,
     required this.configuration,
     required this.createResourceOperations,
     required this.renameResourceOperations,
@@ -267,6 +288,7 @@ class LspClientCapabilities {
     required this.codeActionCommandParameterSupportedKinds,
     required this.supportsShowMessageRequest,
     required this.supportsDartExperimentalTextDocumentContentProvider,
+    required this.supportedCommands,
   });
 
   /// Converts a list to a `Set`, returning null if the list is null.

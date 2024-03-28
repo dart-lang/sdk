@@ -23,29 +23,29 @@ extension type K<T extends core::Object? = dynamic>(T% i) {
   static factory • = self::K|constructor#;
   static factory tearoff • = self::K|constructor#_#new#tearOff;
 }
-static extension-type-member method I|constructor#_(core::int i) → self::I /* = core::int */
+static extension-type-member method I|constructor#_(core::int i) → self::I% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method I|constructor#_#_#tearOff(core::int i) → self::I /* = core::int */
+static extension-type-member method I|constructor#_#_#tearOff(core::int i) → self::I% /* erasure=core::int, declared=! */
   return self::I|constructor#_(i);
-static extension-type-member method I|constructor#() → self::I /* = core::int */
+static extension-type-member method I|constructor#() → self::I% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method I|constructor#_#new#tearOff() → self::I /* = core::int */
+static extension-type-member method I|constructor#_#new#tearOff() → self::I% /* erasure=core::int, declared=! */
   return self::I|constructor#();
-static extension-type-member method J|constructor#_(core::int i) → self::J /* = core::int */
+static extension-type-member method J|constructor#_(core::int i) → self::J% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method J|constructor#_#_#tearOff(core::int i) → self::J /* = core::int */
+static extension-type-member method J|constructor#_#_#tearOff(core::int i) → self::J% /* erasure=core::int, declared=! */
   return self::J|constructor#_(i);
-static extension-type-member method J|constructor#(core::int i) → self::J /* = core::int */
+static extension-type-member method J|constructor#(core::int i) → self::J% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method J|constructor#_#new#tearOff(core::int i) → self::J /* = core::int */
+static extension-type-member method J|constructor#_#new#tearOff(core::int i) → self::J% /* erasure=core::int, declared=! */
   return self::J|constructor#(i);
-static extension-type-member method K|constructor#_<T extends core::Object? = dynamic>(self::K|constructor#_::T% i) → self::K<self::K|constructor#_::T%> /* = self::K|constructor#_::T% */
+static extension-type-member method K|constructor#_<T extends core::Object? = dynamic>(self::K|constructor#_::T% i) → self::K<self::K|constructor#_::T%>% /* erasure=self::K|constructor#_::T%, declared=! */
   ;
-static extension-type-member method K|constructor#_#_#tearOff<T extends core::Object? = dynamic>(self::K|constructor#_#_#tearOff::T% i) → self::K<self::K|constructor#_#_#tearOff::T%> /* = self::K|constructor#_#_#tearOff::T% */
+static extension-type-member method K|constructor#_#_#tearOff<T extends core::Object? = dynamic>(self::K|constructor#_#_#tearOff::T% i) → self::K<self::K|constructor#_#_#tearOff::T%>% /* erasure=self::K|constructor#_#_#tearOff::T%, declared=! */
   return self::K|constructor#_<self::K|constructor#_#_#tearOff::T%>(i);
-static extension-type-member method K|constructor#<T extends core::Object? = dynamic>(self::K|constructor#::T% i) → self::K<self::K|constructor#::T%> /* = self::K|constructor#::T% */
+static extension-type-member method K|constructor#<T extends core::Object? = dynamic>(self::K|constructor#::T% i) → self::K<self::K|constructor#::T%>% /* erasure=self::K|constructor#::T%, declared=! */
   ;
-static extension-type-member method K|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::K|constructor#_#new#tearOff::T% i) → self::K<self::K|constructor#_#new#tearOff::T%> /* = self::K|constructor#_#new#tearOff::T% */
+static extension-type-member method K|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::K|constructor#_#new#tearOff::T% i) → self::K<self::K|constructor#_#new#tearOff::T%>% /* erasure=self::K|constructor#_#new#tearOff::T%, declared=! */
   return self::K|constructor#<self::K|constructor#_#new#tearOff::T%>(i);
 static method main() → dynamic
   ;

@@ -565,9 +565,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       languageVersion.version >=
           libraryFeatures.inferenceUpdate1.enabledVersion;
 
-  bool get isInferenceUpdate2Enabled =>
-      libraryFeatures.inferenceUpdate2.isEnabled;
-
   bool? _isNonNullableByDefault;
 
   @override
@@ -2802,11 +2799,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         application.cls.isAnonymousMixin = !isNamedMixinApplication;
         addBuilder(fullname, application, charOffset,
             getterReference: referencesFromIndexedClass?.cls.reference);
-        supertype = addNamedType(
-            new SyntheticTypeName(fullname, charOffset),
-            const NullabilityBuilder.omitted(),
-            applicationTypeArguments,
-            charOffset,
+        supertype = new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
+            application, const NullabilityBuilder.omitted(),
+            arguments: applicationTypeArguments,
+            fileUri: fileUri,
+            charOffset: charOffset,
             instanceTypeVariableAccess:
                 InstanceTypeVariableAccessState.Allowed);
         registerMixinApplication(application, mixin);
@@ -5765,10 +5762,6 @@ class TypeParameterScopeBuilder {
     _charOffset = charOffset;
     _typeVariables = typeVariables;
   }
-
-  /// Returns `true` if this scope builder is for an unnamed extension
-  /// declaration.
-  bool get isUnnamedExtension => extensionName?.isUnnamedExtension ?? false;
 
   /// Registers that this builder is preparing for an enum declaration with
   /// the given [name] and [typeVariables] located [charOffset].

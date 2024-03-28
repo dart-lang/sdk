@@ -202,6 +202,7 @@ extension WasmArrayExt<T> on WasmArray<T> {
   external void copy(
       int offset, WasmArray<T> source, int sourceOffset, int size);
   external void fill(int offset, T value, int size);
+  external WasmArray<T> clone();
 }
 
 extension I8ArrayExt on WasmArray<WasmI8> {

@@ -48,7 +48,6 @@ class TextDocumentChangeHandler
       return error(
         ServerErrorCodes.ClientServerInconsistentState,
         'Unable to edit document because the file was not previously opened: $path',
-        null,
       );
     }
     final newContents = applyAndConvertEditsToServer(

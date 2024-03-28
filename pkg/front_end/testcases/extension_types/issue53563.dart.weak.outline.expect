@@ -2,7 +2,7 @@ library;
 import self as self;
 import "dart:core" as core;
 
-typedef A<X extends core::Object? = dynamic> = self::B<X%> /* = core::int */;
+typedef A<X extends core::Object? = dynamic> = self::B<X%>% /* erasure=core::int, declared=! */;
 extension type B<T extends core::Object? = dynamic>(core::int it) {
   abstract extension-type-member representation-field get it() → core::int;
   get g0 = self::B|get#g0;
@@ -22,37 +22,37 @@ extension type B<T extends core::Object? = dynamic>(core::int it) {
   static redirecting-factory redirect = self::B|constructor#redirect;
   static redirecting-factory tearoff redirect = self::B|constructor#_#redirect#tearOff;
 }
-static extension-type-member method B|constructor#<T extends core::Object? = dynamic>(core::int it) → self::B<self::B|constructor#::T%> /* = core::int */
+static extension-type-member method B|constructor#<T extends core::Object? = dynamic>(core::int it) → self::B<self::B|constructor#::T%>% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method B|constructor#_#new#tearOff<T extends core::Object? = dynamic>(core::int it) → self::B<self::B|constructor#_#new#tearOff::T%> /* = core::int */
+static extension-type-member method B|constructor#_#new#tearOff<T extends core::Object? = dynamic>(core::int it) → self::B<self::B|constructor#_#new#tearOff::T%>% /* erasure=core::int, declared=! */
   return self::B|constructor#<self::B|constructor#_#new#tearOff::T%>(it);
-static extension-type-member method B|constructor#named<T extends core::Object? = dynamic>(core::int it) → self::B<self::B|constructor#named::T%> /* = core::int */
+static extension-type-member method B|constructor#named<T extends core::Object? = dynamic>(core::int it) → self::B<self::B|constructor#named::T%>% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method B|constructor#_#named#tearOff<T extends core::Object? = dynamic>(core::int it) → self::B<self::B|constructor#_#named#tearOff::T%> /* = core::int */
+static extension-type-member method B|constructor#_#named#tearOff<T extends core::Object? = dynamic>(core::int it) → self::B<self::B|constructor#_#named#tearOff::T%>% /* erasure=core::int, declared=! */
   return self::B|constructor#named<self::B|constructor#_#named#tearOff::T%>(it);
-static extension-type-member method B|constructor#fact<T extends core::Object? = dynamic>(core::int it) → self::B<self::B|constructor#fact::T%> /* = core::int */
+static extension-type-member method B|constructor#fact<T extends core::Object? = dynamic>(core::int it) → self::B<self::B|constructor#fact::T%>% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method B|constructor#_#fact#tearOff<T extends core::Object? = dynamic>(core::int it) → self::B<self::B|constructor#_#fact#tearOff::T%> /* = core::int */
+static extension-type-member method B|constructor#_#fact#tearOff<T extends core::Object? = dynamic>(core::int it) → self::B<self::B|constructor#_#fact#tearOff::T%>% /* erasure=core::int, declared=! */
   return self::B|constructor#fact<self::B|constructor#_#fact#tearOff::T%>(it);
-static extension-type-member method B|constructor#redirect<T extends core::Object? = dynamic>(core::int it) → self::B<self::B|constructor#redirect::T%> /* = core::int */ /* redirection-target: self::B|constructor#<self::B|constructor#redirect::T%>*/
+static extension-type-member method B|constructor#redirect<T extends core::Object? = dynamic>(core::int it) → self::B<self::B|constructor#redirect::T%>% /* erasure=core::int, declared=! */ /* redirection-target: self::B|constructor#<self::B|constructor#redirect::T%>*/
   return self::B|constructor#<self::B|constructor#redirect::T%>(it);
-static extension-type-member method B|constructor#_#redirect#tearOff<T extends core::Object? = dynamic>(core::int it) → self::B<self::B|constructor#_#redirect#tearOff::T%> /* = core::int */
+static extension-type-member method B|constructor#_#redirect#tearOff<T extends core::Object? = dynamic>(core::int it) → self::B<self::B|constructor#_#redirect#tearOff::T%>% /* erasure=core::int, declared=! */
   return self::B|constructor#<self::B|constructor#_#redirect#tearOff::T%>(it);
-static extension-type-member method B|get#g0<T extends core::Object? = dynamic>(lowered final self::B<self::B|get#g0::T%> /* = core::int */ #this) → dynamic
+static extension-type-member method B|get#g0<T extends core::Object? = dynamic>(lowered final self::B<self::B|get#g0::T%>% /* erasure=core::int, declared=! */ #this) → dynamic
   ;
-static extension-type-member method B|get#g1<T extends core::Object? = dynamic>(lowered final self::B<self::B|get#g1::T%> /* = core::int */ #this) → dynamic
+static extension-type-member method B|get#g1<T extends core::Object? = dynamic>(lowered final self::B<self::B|get#g1::T%>% /* erasure=core::int, declared=! */ #this) → dynamic
   ;
-static extension-type-member method B|get#g2<T extends core::Object? = dynamic>(lowered final self::B<self::B|get#g2::T%> /* = core::int */ #this) → dynamic
+static extension-type-member method B|get#g2<T extends core::Object? = dynamic>(lowered final self::B<self::B|get#g2::T%>% /* erasure=core::int, declared=! */ #this) → dynamic
   ;
-static extension-type-member method B|get#g3<T extends core::Object? = dynamic>(lowered final self::B<self::B|get#g3::T%> /* = core::int */ #this) → dynamic
+static extension-type-member method B|get#g3<T extends core::Object? = dynamic>(lowered final self::B<self::B|get#g3::T%>% /* erasure=core::int, declared=! */ #this) → dynamic
   ;
-static extension-type-member method B|get#g4<T extends core::Object? = dynamic>(lowered final self::B<self::B|get#g4::T%> /* = core::int */ #this) → dynamic
+static extension-type-member method B|get#g4<T extends core::Object? = dynamic>(lowered final self::B<self::B|get#g4::T%>% /* erasure=core::int, declared=! */ #this) → dynamic
   ;
-static extension-type-member method B|get#g5<T extends core::Object? = dynamic>(lowered final self::B<self::B|get#g5::T%> /* = core::int */ #this) → dynamic
+static extension-type-member method B|get#g5<T extends core::Object? = dynamic>(lowered final self::B<self::B|get#g5::T%>% /* erasure=core::int, declared=! */ #this) → dynamic
   ;
-static extension-type-member method B|get#g6<T extends core::Object? = dynamic>(lowered final self::B<self::B|get#g6::T%> /* = core::int */ #this) → dynamic
+static extension-type-member method B|get#g6<T extends core::Object? = dynamic>(lowered final self::B<self::B|get#g6::T%>% /* erasure=core::int, declared=! */ #this) → dynamic
   ;
-static extension-type-member method B|get#g7<T extends core::Object? = dynamic>(lowered final self::B<self::B|get#g7::T%> /* = core::int */ #this) → dynamic
+static extension-type-member method B|get#g7<T extends core::Object? = dynamic>(lowered final self::B<self::B|get#g7::T%>% /* erasure=core::int, declared=! */ #this) → dynamic
   ;
 static method main() → void
   ;

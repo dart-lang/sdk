@@ -176,13 +176,7 @@ class RuntimeTypeEqualityVisitor
   }
 
   bool _compatibleNullability(DartType T1, DartType T2) {
-    var T1_nullability = T1.nullabilitySuffix;
-    var T2_nullability = T2.nullabilitySuffix;
-    return T1_nullability == T2_nullability ||
-        T1_nullability == NullabilitySuffix.star &&
-            T2_nullability == NullabilitySuffix.none ||
-        T2_nullability == NullabilitySuffix.star &&
-            T1_nullability == NullabilitySuffix.none;
+    return T1.nullabilitySuffix == T2.nullabilitySuffix;
   }
 
   /// Determines if the two lists of type parameters are equal.  If they are,

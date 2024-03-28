@@ -9,13 +9,13 @@ extension type ET<T extends core::Object? = dynamic>(T% _) {
   constructor • = self::ET|constructor#;
   constructor tearoff • = self::ET|constructor#_#new#tearOff;
 }
-static extension-type-member method ET|constructor#<T extends core::Object? = dynamic>(self::ET|constructor#::T% _) → self::ET<self::ET|constructor#::T%> /* = self::ET|constructor#::T% */
+static extension-type-member method ET|constructor#<T extends core::Object? = dynamic>(self::ET|constructor#::T% _) → self::ET<self::ET|constructor#::T%>% /* erasure=self::ET|constructor#::T%, declared=! */
   ;
-static extension-type-member method ET|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::ET|constructor#_#new#tearOff::T% _) → self::ET<self::ET|constructor#_#new#tearOff::T%> /* = self::ET|constructor#_#new#tearOff::T% */
+static extension-type-member method ET|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::ET|constructor#_#new#tearOff::T% _) → self::ET<self::ET|constructor#_#new#tearOff::T%>% /* erasure=self::ET|constructor#_#new#tearOff::T%, declared=! */
   return self::ET|constructor#<self::ET|constructor#_#new#tearOff::T%>(_);
-static extension-type-member method ET|test<T extends core::Object? = dynamic>(lowered final self::ET<self::ET|test::T%> /* = self::ET|test::T% */ #this) → void
+static extension-type-member method ET|test<T extends core::Object? = dynamic>(lowered final self::ET<self::ET|test::T%>% /* erasure=self::ET|test::T%, declared=! */ #this) → void
   ;
-static extension-type-member method ET|get#test<T extends core::Object? = dynamic>(lowered final self::ET<self::ET|get#test::T%> /* = self::ET|get#test::T% */ #this) → () → void
+static extension-type-member method ET|get#test<T extends core::Object? = dynamic>(lowered final self::ET<self::ET|get#test::T%>% /* erasure=self::ET|get#test::T%, declared=! */ #this) → () → void
   return () → void => self::ET|test<self::ET|get#test::T%>(#this);
 static method main() → dynamic
   ;

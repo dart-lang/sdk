@@ -54,6 +54,7 @@ external void writeIntoOneByteString(String string, int index, int codePoint);
 /// [length] must specify ranges within the bounds of the list / string.
 @pragma("vm:recognized", "other")
 @pragma("vm:prefer-inline")
+@pragma("vm:idempotent")
 void copyRangeFromUint8ListToOneByteString(
     Uint8List from, String to, int fromStart, int toStart, int length) {
   for (int i = 0; i < length; i++) {

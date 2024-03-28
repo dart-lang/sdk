@@ -90,6 +90,23 @@ class TestProject {
         },
       ),
     );
+    file(
+      '.dart_tool/package_config.json',
+      JsonEncoder.withIndent('  ').convert(
+        {
+          'configVersion': 2,
+          'generator': 'utils.dart',
+          'packages': [
+            {
+              'name': name,
+              'rootUri': '../',
+              'packageUri': 'lib/',
+              'languageVersion': '3.2',
+            },
+          ],
+        },
+      ),
+    );
     if (analysisOptions != null) {
       file('analysis_options.yaml', analysisOptions);
     }
@@ -206,6 +223,7 @@ class TestProject {
 
     sub = process.stdout
         .transform(utf8.decoder)
+        .transform(const LineSplitter())
         .listen(onData, onError: onError, onDone: onDone);
     subError = process.stderr.transform(utf8.decoder).listen(onStderr);
 

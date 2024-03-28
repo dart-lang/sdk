@@ -21,6 +21,7 @@ dependencies:
   memory_usage: any
   meta: any
   path: any
+  server_plugin: any
   stream_channel: any
   telemetry: any
   test: any

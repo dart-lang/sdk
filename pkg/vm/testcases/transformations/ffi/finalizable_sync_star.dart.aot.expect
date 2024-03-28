@@ -11,7 +11,9 @@ class MyFinalizable extends core::Object implements ffi::Finalizable {
     : super core::Object::•()
     ;
 }
-[@vm.unboxing-info.metadata=()->i]static method doSomething() → core::int
+
+[@vm.unboxing-info.metadata=()->i]
+static method doSomething() → core::int
   return 3;
 static method useFinalizableSyncStar([@vm.inferred-arg-type.metadata=#lib::MyFinalizable] ffi::Finalizable finalizable) → core::Iterable<core::int> sync* /* emittedValueType= core::int */ {
   yield block {

@@ -1598,7 +1598,7 @@ MethodInvocation
       SimpleIdentifier
         token: s
         parameter: ParameterMember
-          base: root::@parameter::t
+          base: self::@function::test::@parameter::t
           substitution: {T: S}
         staticElement: self::@function::f::@parameter::s
         staticType: S & int
@@ -3516,7 +3516,7 @@ MethodInvocation
       IntegerLiteral
         literal: 0
         parameter: ParameterMember
-          base: root::@parameter::_
+          base: self::@function::foo::@parameter::_
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -3558,13 +3558,13 @@ MethodInvocation
       IntegerLiteral
         literal: 1
         parameter: ParameterMember
-          base: root::@parameter::a
+          base: package:test/a.dart::@function::foo::@parameter::a
           substitution: {T: int}
         staticType: int
       IntegerLiteral
         literal: 2
         parameter: ParameterMember
-          base: root::@parameter::b
+          base: package:test/a.dart::@function::foo::@parameter::b
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -3877,7 +3877,7 @@ MethodInvocation
       IntegerLiteral
         literal: 0
         parameter: ParameterMember
-          base: root::@parameter::a
+          base: self::@class::C::@method::foo::@parameter::a
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -5790,7 +5790,7 @@ MethodInvocation
       ThisExpression
         thisKeyword: this
         parameter: ParameterMember
-          base: root::@parameter::p
+          base: self::@class::A::@method::foo::@parameter::p
           substitution: {E: T}
         staticType: A<T>
     rightParenthesis: )
@@ -5852,7 +5852,7 @@ MethodInvocation
       IntegerLiteral
         literal: 0
         parameter: ParameterMember
-          base: root::@parameter::a
+          base: self::@function::foo::@parameter::a
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -6034,7 +6034,7 @@ MethodInvocation
       IntegerLiteral
         literal: 1
         parameter: ParameterMember
-          base: root::@parameter::a
+          base: g@15::@parameter::a
           substitution: {T: int, U: String}
         staticType: int
       SimpleStringLiteral
@@ -6069,7 +6069,7 @@ MethodInvocation
       IntegerLiteral
         literal: 0
         parameter: ParameterMember
-          base: root::@parameter::a
+          base: g@15::@parameter::a
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -6103,7 +6103,7 @@ MethodInvocation
           label: SimpleIdentifier
             token: a
             staticElement: ParameterMember
-              base: root::@parameter::a
+              base: g@15::@parameter::a
               substitution: {T: int}
             staticType: null
           colon: :
@@ -6111,7 +6111,7 @@ MethodInvocation
           literal: 0
           staticType: int
         parameter: ParameterMember
-          base: root::@parameter::a
+          base: g@15::@parameter::a
           substitution: {T: int}
     rightParenthesis: )
   staticInvokeType: int Function({required int a})
@@ -7058,7 +7058,9 @@ void f() {
 ''');
 
     var element = findNode.simple('a:').staticElement!;
-    expect(element.source, isNull);
+    // See https://github.com/dart-lang/sdk/issues/54669 for why we check for
+    // isNotNull despite #50660 suggesting the source would be null.
+    expect(element.source, isNotNull);
   }
 
   test_remainder_int_context_cascaded() async {
@@ -7633,7 +7635,7 @@ MethodInvocation
       IntegerLiteral
         literal: 0
         parameter: ParameterMember
-          base: root::@parameter::a
+          base: self::@function::foo::@parameter::a
           substitution: {T: int, U: bool}
         staticType: int
     rightParenthesis: )
@@ -7667,7 +7669,7 @@ MethodInvocation
       SimpleIdentifier
         token: o
         parameter: ParameterMember
-          base: root::@parameter::value
+          base: self::@function::foo::@parameter::value
           substitution: {T: Object}
         staticElement: self::@function::f::@parameter::o
         staticType: dynamic
@@ -7701,7 +7703,7 @@ MethodInvocation
       SimpleIdentifier
         token: o
         parameter: ParameterMember
-          base: root::@parameter::value
+          base: self::@function::foo::@parameter::value
           substitution: {T: Object}
         staticElement: self::@function::f::@parameter::o
         staticType: List<void>

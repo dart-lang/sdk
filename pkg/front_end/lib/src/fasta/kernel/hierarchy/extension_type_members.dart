@@ -14,10 +14,6 @@ import 'hierarchy_node.dart';
 import 'members_builder.dart';
 import 'members_node.dart';
 
-class ExtensionTypeHierarchyNodeDataForTesting {
-  ExtensionTypeHierarchyNodeDataForTesting();
-}
-
 class ExtensionTypeMembersNodeBuilder extends MembersNodeBuilder {
   final ExtensionTypeHierarchyNode _hierarchyNode;
   final ClassMembersBuilder _membersBuilder;

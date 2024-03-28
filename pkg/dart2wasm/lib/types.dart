@@ -4,16 +4,14 @@
 
 import 'dart:math' show max;
 
-import 'package:dart2wasm/class_info.dart';
-import 'package:dart2wasm/code_generator.dart';
-import 'package:dart2wasm/translator.dart';
-
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
-import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart' as type_env;
-
 import 'package:wasm_builder/wasm_builder.dart' as w;
+
+import 'class_info.dart';
+import 'code_generator.dart';
+import 'translator.dart';
 
 /// Values for the `_kind` field in `_TopType`. Must match the definitions in
 /// `_TopType`.
@@ -288,23 +286,23 @@ class Types {
     return typeNamesType;
   }
 
-  bool _isTypeConstant(DartType type) {
+  bool isTypeConstant(DartType type) {
     return type is DynamicType ||
         type is VoidType ||
         type is NeverType ||
         type is NullType ||
-        type is FutureOrType && _isTypeConstant(type.typeArgument) ||
+        type is FutureOrType && isTypeConstant(type.typeArgument) ||
         (type is FunctionType &&
-            type.typeParameters.every((p) => _isTypeConstant(p.bound)) &&
-            _isTypeConstant(type.returnType) &&
-            type.positionalParameters.every(_isTypeConstant) &&
-            type.namedParameters.every((n) => _isTypeConstant(n.type))) ||
-        type is InterfaceType && type.typeArguments.every(_isTypeConstant) ||
+            type.typeParameters.every((p) => isTypeConstant(p.bound)) &&
+            isTypeConstant(type.returnType) &&
+            type.positionalParameters.every(isTypeConstant) &&
+            type.namedParameters.every((n) => isTypeConstant(n.type))) ||
+        type is InterfaceType && type.typeArguments.every(isTypeConstant) ||
         (type is RecordType &&
-            type.positional.every(_isTypeConstant) &&
-            type.named.every((n) => _isTypeConstant(n.type))) ||
+            type.positional.every(isTypeConstant) &&
+            type.named.every((n) => isTypeConstant(n.type))) ||
         type is StructuralParameterType ||
-        type is ExtensionType && _isTypeConstant(type.extensionTypeErasure);
+        type is ExtensionType && isTypeConstant(type.extensionTypeErasure);
   }
 
   Class classForType(DartType type) {
@@ -360,7 +358,7 @@ class Types {
   /// Allocates a `WasmArray<_Type>` from [types] and pushes it to the
   /// stack.
   void _makeTypeArray(CodeGenerator codeGen, Iterable<DartType> types) {
-    if (types.every(_isTypeConstant)) {
+    if (types.every(isTypeConstant)) {
       translator.constants.instantiateConstant(codeGen.function, codeGen.b,
           translator.constants.makeTypeArray(types), typeArrayExpectedType);
     } else {
@@ -411,10 +409,10 @@ class Types {
           : s;
     } else if (s is NeverType) {
       return InterfaceType(coreTypes.futureClass, Nullability.nonNullable,
-          const [const NeverType.nonNullable()]);
+          const [NeverType.nonNullable()]);
     } else if (s is NullType) {
-      return InterfaceType(coreTypes.futureClass, Nullability.nullable,
-          const [const NullType()]);
+      return InterfaceType(
+          coreTypes.futureClass, Nullability.nullable, const [NullType()]);
     }
 
     // The type is normalized, and remains a `FutureOr` so now we normalize its
@@ -458,7 +456,7 @@ class Types {
     b.i64_const(type.requiredParameterCount);
 
     // WasmArray<_NamedParameter> namedParameters
-    if (type.namedParameters.every((n) => _isTypeConstant(n.type))) {
+    if (type.namedParameters.every((n) => isTypeConstant(n.type))) {
       translator.constants.instantiateConstant(
           codeGen.function,
           b,
@@ -470,7 +468,7 @@ class Types {
           namedParameterClass.constructors.single;
       List<Expression> expressions = [];
       for (NamedType n in type.namedParameters) {
-        expressions.add(_isTypeConstant(n.type)
+        expressions.add(isTypeConstant(n.type)
             ? ConstantExpression(
                 translator.constants.makeNamedParameterConstant(n),
                 namedParameterType)
@@ -496,7 +494,7 @@ class Types {
     // Always ensure type is normalized before making a type.
     type = normalize(type);
     final b = codeGen.b;
-    if (_isTypeConstant(type)) {
+    if (isTypeConstant(type)) {
       translator.constants.instantiateConstant(
           codeGen.function, b, TypeLiteralConstant(type), nonNullableTypeType);
       return nonNullableTypeType;
@@ -665,113 +663,16 @@ class Types {
     // to tell us anything about the type arguments of testedAgainstType.
     if (operandType.typeArguments.isEmpty) return false;
 
-    // TODO(http://dartbug.com/54998): If the CFE team provides this
-    // functionality on the [IsExpression]/[AsExpression] and/or as algorithm
-    // in `package:kernel` we can avoid doing that here.
-
-    // We can avoid checking [testedAgainstType]'s arguments if
-    //   a) the operand type is a super type of the [testedAgainstType]
-    //   b) the type arguments of the operand type imply the values of
-    //      [testedAgainstType] parameters of the subtype
-    //   c) the operand type expressed as the subtype with type arguments filled
-    //   in (from condition b) is a subtype of the subtype we check against.
-    //
-    // For this to hold, the [testedAgainstType]'s uninstantiated `this`
-    // (e.g. `Foo<Foo::T1, Foo::T2>`) expressed as it's supertype
-    // (e.g. Baz<Map<Foo::T1, Foo::T2>, int>`) must contain all of
-    // [testedAgainstType]'s type parameters in order for us to be able to find
-    // assignments to them. e.g.
-    //
-    //     class Baz<T, H> {}
-    //     class Foo<T1, T2> extends Baz<Map<T1, T2>, int> { }
-    //
-    //     Baz<Map<int, double>, int> obj;
-    //     if (obj is Foo<num, double>) { }
-    //
-    // We know that
-    //
-    //     * `obj` has static type `Baz<Map<int, double>, int>`
-    //     * if `obj is Foo`, then we must have `obj is Foo<int, double>`
-    //                      , therefore `obj is Foo<num, double>`
-    //
-    // Notice this can only be done if all [testedAgainstType] parameters appear
-    // in the expression as supertype
-
-    final subtypeThisType = testedAgainstType.classNode
-        .getThisType(coreTypes, Nullability.nonNullable);
-    final sameClass = (testedAgainstType.classNode == operandType.classNode);
-    final typeArgumentExpressions = sameClass
-        ? subtypeThisType.typeArguments
-        : translator.hierarchy.getInterfaceTypeArgumentsAsInstanceOfClass(
-            subtypeThisType, operandType.classNode);
-    if (typeArgumentExpressions == null) return false; // Classes unrelated
-
-    // Try to express operand type as the [testedAgainstType]'s class, thereby
-    // finding assignments to [testedAgainstType]'s type parameters.
-    //
-    // The matching is somewhat conservative but handles most cases we want to
-    // handle.
-    final typeParameterValues = <TypeParameter, DartType>{};
-    {
-      final subtypeParameters = testedAgainstType.classNode.typeParameters;
-      bool recurse(DartType typeExpr, DartType typeValue) {
-        if (typeExpr is TypeParameterType) {
-          if (typeExpr.nullability == Nullability.nullable) return false;
-          final parameter = typeExpr.parameter;
-          assert(subtypeParameters.contains(parameter));
-          final existing = typeParameterValues[parameter];
-          if (existing != null && existing != typeValue) return false;
-          typeParameterValues[parameter] = typeValue;
-          return true;
-        }
-        if (typeExpr is InterfaceType) {
-          if (typeValue is! InterfaceType) return false;
-          if (typeExpr.nullability != typeValue.nullability) return false;
-          if (typeExpr.classNode != typeValue.classNode) return false;
-          final length = typeExpr.typeArguments.length;
-          if (length != typeValue.typeArguments.length) return false;
-          for (int i = 0; i < length; ++i) {
-            if (!recurse(
-                typeExpr.typeArguments[i], typeValue.typeArguments[i])) {
-              return false;
-            }
-          }
-          return true;
-        }
-        return false;
-      }
-
-      final length = typeArgumentExpressions.length;
-      for (int i = 0; i < length; ++i) {
-        if (!recurse(
-            typeArgumentExpressions[i], operandType.typeArguments[i])) {
-          return false;
-        }
-      }
-    }
-
-    // If we didn't find values for all [testedAgainstType] parameters, we
-    // have to actually check the [testedAgainstType] arguments at runtime.
-    //
-    // Simple example when this is the case: `Object x; x is List<int>`
-    if (typeParameterValues.length !=
-        testedAgainstType.classNode.typeParameters.length) {
-      return false;
-    }
-
-    // We can express the [operandType] as [testedAgainstType]'s class as we
-    // found suitable type parameter values.
-    //
-    // If a cid-range check would succeed then this [impliedOperandType] is the
-    // type the operand is guaranteed to have (based on static type information)
-    final impliedOperandType = substitute(subtypeThisType, typeParameterValues);
+    final sufficiency = translator.typeEnvironment
+        .computeTypeShapeCheckSufficiency(
+            expressionStaticType: operandType,
+            checkTargetType:
+                testedAgainstType.withDeclaredNullability(Nullability.nullable),
+            subtypeCheckMode: type_env.SubtypeCheckMode.withNullabilities);
 
     // If `true` the caller only needs to check nullabillity and the actual
     // concrete class, no need to check [testedAgainstType] arguments.
-    return translator.typeEnvironment.isSubtypeOf(
-        impliedOperandType,
-        testedAgainstType.withDeclaredNullability(Nullability.nullable),
-        type_env.SubtypeCheckMode.withNullabilities);
+    return sufficiency == type_env.TypeShapeCheckSufficiency.interfaceShape;
   }
 
   bool _hasOnlyDefaultTypeArguments(InterfaceType testedAgainstType) {

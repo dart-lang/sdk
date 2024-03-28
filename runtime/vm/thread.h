@@ -176,6 +176,8 @@ class Thread;
   V(BoolPtr, bool_true_, Object::bool_true().ptr(), nullptr)                   \
   V(BoolPtr, bool_false_, Object::bool_false().ptr(), nullptr)                 \
   V(ArrayPtr, empty_array_, Object::empty_array().ptr(), nullptr)              \
+  V(TypeArgumentsPtr, empty_type_arguments_,                                   \
+    Object::empty_type_arguments().ptr(), nullptr)                             \
   V(TypePtr, dynamic_type_, Type::dynamic_type().ptr(), nullptr)
 
 // List of VM-global objects/addresses cached in each Thread object.

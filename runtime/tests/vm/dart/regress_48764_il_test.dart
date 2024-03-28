@@ -6,7 +6,6 @@
 // Verifies that compiler can infer type of captured local variable
 // and propagate it to a nested function.
 
-import 'package:expect/expect.dart';
 import 'package:vm/testing/il_matchers.dart';
 
 @pragma('vm:testing:match-inner-flow-graph', 'testForIn')
@@ -53,7 +52,7 @@ void matchIL$main_testForIn(FlowGraph graph) {
         ]),
     'B4' <<
         match.block('Target', [
-          match.Return(match.any),
+          match.DartReturn(match.any),
         ]),
     'B3' <<
         match.block('Target', [

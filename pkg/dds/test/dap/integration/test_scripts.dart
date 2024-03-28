@@ -166,7 +166,7 @@ const simpleBreakpointProgram = '''
 /// `hello()` method to a class that prints "Hello".
 const withHelloMacroImplementation = '''
 // There is no public API exposed yet, the in-progress API lives here.
-import 'package:_fe_analyzer_shared/src/macros/api.dart';
+import 'package:macros/macros.dart';
 
 macro class WithHello implements ClassDeclarationsMacro {
   const WithHello();

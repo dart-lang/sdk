@@ -267,38 +267,31 @@ dynamic nullable() {
   _ = nn ?? 1;
   //  ^^
   // [analyzer] unspecified
-  // [cfe] Operand of null-aware operation '??' has type 'int' which excludes null.
 
   _ = nn ??= 1;
   //  ^^
   // [analyzer] unspecified
-  // [cfe] Operand of null-aware operation '??=' has type 'int' which excludes null.
 
   _ = nn?.toRadixString(16);
   //  ^^
   // [analyzer] unspecified
-  // [cfe] Operand of null-aware operation '?.' has type 'int' which excludes null.
 
   _ = nn?..toRadixString(16);
   //  ^^
   // [analyzer] unspecified
-  // [cfe] Operand of null-aware operation '?..' has type 'int' which excludes null.
 
   _ = nn!;
   //  ^^
   // [analyzer] unspecified
-  // [cfe] Operand of null-aware operation '!' has type 'int' which excludes null.
 
   List<int> nni = [1];
   _ = [...?nni];
   //       ^^^
   // [analyzer] unspecified
-  // [cfe] Operand of null-aware operation '...?' has type 'List<int>' which excludes null.
 
   _ = nni?[0];
   //  ^^^
   // [analyzer] unspecified
-  // [cfe] Operand of null-aware operation '?.' has type 'List<int>' which excludes null.
 
   return _;
 }

@@ -168,7 +168,11 @@ class UseResultVerifier {
   static ElementAnnotation? _getUseResultMetadata(Element element) {
     // Implicit getters/setters.
     if (element.isSynthetic && element is PropertyAccessorElement) {
-      element = element.variable;
+      var variable = element.variable2;
+      if (variable == null) {
+        return null;
+      }
+      element = variable;
     }
     return element.metadata.firstWhereOrNull((e) => e.isUseResult);
   }

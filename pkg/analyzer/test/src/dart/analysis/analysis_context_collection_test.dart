@@ -43,7 +43,50 @@ main() {
 final _singleOptionsContextsDefault = ContextLocatorImpl.singleOptionContexts;
 
 @reflectiveTest
-class AnalysisContextCollectionLowTest with ResourceProviderMixin {
+class AnalysisContextCollectionLowTest
+    with ResourceProviderMixin, AnalysisContextCollectionLowTestMixin {}
+
+/// To be removed when `singleOptionContexts` defaults to false.
+@reflectiveTest
+class AnalysisContextCollectionLowTest_SingleOptionsPerContext
+    with ResourceProviderMixin, AnalysisContextCollectionLowTestMixin {
+  @override
+  bool get enableSingleOptionContexts => true;
+
+  @override
+  test_new_outer_inner() {
+    var outerFolder = newFolder('/test/outer');
+    newFile('/test/outer/lib/outer.dart', '');
+
+    var innerFolder = newFolder('/test/outer/inner');
+    newAnalysisOptionsYamlFile('/test/outer/inner', '');
+    newFile('/test/outer/inner/inner.dart', '');
+
+    var collection = _newCollection(includedPaths: [outerFolder.path]);
+
+    expect(collection.contexts, hasLength(2));
+
+    var outerContext = collection.contexts
+        .singleWhere((c) => c.contextRoot.root == outerFolder);
+    var innerContext = collection.contexts
+        .singleWhere((c) => c.contextRoot.root == innerFolder);
+    expect(innerContext, isNot(same(outerContext)));
+
+    // Outer and inner contexts own corresponding files.
+    expect(collection.contextFor(convertPath('/test/outer/lib/outer.dart')),
+        same(outerContext));
+    expect(collection.contextFor(convertPath('/test/outer/inner/inner.dart')),
+        same(innerContext));
+
+    // The file does not have to exist, during creation, or at all.
+    expect(collection.contextFor(convertPath('/test/outer/lib/outer2.dart')),
+        same(outerContext));
+    expect(collection.contextFor(convertPath('/test/outer/inner/inner2.dart')),
+        same(innerContext));
+  }
+}
+
+mixin AnalysisContextCollectionLowTestMixin on ResourceProviderMixin {
   bool get enableSingleOptionContexts => false;
 
   Folder get sdkRoot => newFolder('/sdk');
@@ -193,71 +236,408 @@ linter:
   }
 }
 
+@reflectiveTest
+class AnalysisContextCollectionTest
+    with ResourceProviderMixin, AnalysisContextCollectionTestMixin {}
+
 /// To be removed when `singleOptionContexts` defaults to false.
 @reflectiveTest
-class AnalysisContextCollectionLowTest_SingleOptionsPerContext
-    extends AnalysisContextCollectionLowTest {
+class AnalysisContextCollectionTest_SingleOptionsPerContext
+    with ResourceProviderMixin, AnalysisContextCollectionTestMixin {
   @override
   bool get enableSingleOptionContexts => true;
 
   @override
-  test_new_outer_inner() {
-    var outerFolder = newFolder('/test/outer');
-    newFile('/test/outer/lib/outer.dart', '');
+  test_packageConfigWorkspace_multipleAnalysisOptions() async {
+    final workspaceRootPath = '/home';
+    final testPackageRootPath = '$workspaceRootPath/test';
+    final testPackageLibPath = '$testPackageRootPath/lib';
 
-    var innerFolder = newFolder('/test/outer/inner');
-    newAnalysisOptionsYamlFile('/test/outer/inner', '');
-    newFile('/test/outer/inner/inner.dart', '');
+    newPubspecYamlFile(testPackageRootPath, r'''
+name: test
+''');
 
-    var collection = _newCollection(includedPaths: [outerFolder.path]);
+    newSinglePackageConfigJsonFile(
+      packagePath: testPackageRootPath,
+      name: 'test',
+    );
 
-    expect(collection.contexts, hasLength(2));
+    newAnalysisOptionsYamlFile(testPackageRootPath, '');
+    newFile('$testPackageLibPath/a.dart', '');
 
-    var outerContext = collection.contexts
-        .singleWhere((c) => c.contextRoot.root == outerFolder);
-    var innerContext = collection.contexts
-        .singleWhere((c) => c.contextRoot.root == innerFolder);
-    expect(innerContext, isNot(same(outerContext)));
+    final nestedPath = '$testPackageLibPath/nested';
+    newAnalysisOptionsYamlFile(nestedPath, '');
+    newFile('$nestedPath/b.dart', '');
 
-    // Outer and inner contexts own corresponding files.
-    expect(collection.contextFor(convertPath('/test/outer/lib/outer.dart')),
-        same(outerContext));
-    expect(collection.contextFor(convertPath('/test/outer/inner/inner.dart')),
-        same(innerContext));
+    _assertWorkspaceCollectionText(workspaceRootPath, r'''
+contexts
+  /home/test
+    packagesFile: /home/test/.dart_tool/package_config.json
+    workspace: workspace_0
+    analyzedFiles
+      /home/test/lib/a.dart
+        uri: package:test/a.dart
+        analysisOptions_0
+        workspacePackage_0_0
+  /home/test/lib/nested
+    packagesFile: /home/test/.dart_tool/package_config.json
+    workspace: workspace_1
+    analyzedFiles
+      /home/test/lib/nested/b.dart
+        uri: package:test/nested/b.dart
+        analysisOptions_1
+        workspacePackage_1_0
+analysisOptions
+  analysisOptions_0: /home/test/analysis_options.yaml
+  analysisOptions_1: /home/test/lib/nested/analysis_options.yaml
+workspaces
+  workspace_0: PackageConfigWorkspace
+    root: /home/test
+    pubPackages
+      workspacePackage_0_0: PubPackage
+        root: /home/test
+  workspace_1: PackageConfigWorkspace
+    root: /home/test
+    pubPackages
+      workspacePackage_1_0: PubPackage
+        root: /home/test
+''');
+  }
 
-    // The file does not have to exist, during creation, or at all.
-    expect(collection.contextFor(convertPath('/test/outer/lib/outer2.dart')),
-        same(outerContext));
-    expect(collection.contextFor(convertPath('/test/outer/inner/inner2.dart')),
-        same(innerContext));
+  @override
+  test_packageConfigWorkspace_multipleAnalysisOptions_nestedExclude() async {
+    final workspaceRootPath = '/home';
+    final testPackageRootPath = '$workspaceRootPath/test';
+    final testPackageLibPath = '$testPackageRootPath/lib';
+
+    newPubspecYamlFile(testPackageRootPath, r'''
+name: test
+''');
+
+    newSinglePackageConfigJsonFile(
+      packagePath: testPackageRootPath,
+      name: 'test',
+    );
+
+    newAnalysisOptionsYamlFile(testPackageRootPath, '');
+    newFile('$testPackageLibPath/a.dart', '');
+
+    final nestedPath = '$testPackageLibPath/nested';
+    newAnalysisOptionsYamlFile(nestedPath, r'''
+analyzer:
+  exclude:
+    - excluded/**
+''');
+    newFile('$nestedPath/b.dart', '');
+    newFile('$nestedPath/excluded/b.dart', '');
+
+    _assertWorkspaceCollectionText(workspaceRootPath, r'''
+contexts
+  /home/test
+    packagesFile: /home/test/.dart_tool/package_config.json
+    workspace: workspace_0
+    analyzedFiles
+      /home/test/lib/a.dart
+        uri: package:test/a.dart
+        analysisOptions_0
+        workspacePackage_0_0
+  /home/test/lib/nested
+    packagesFile: /home/test/.dart_tool/package_config.json
+    workspace: workspace_1
+    analyzedFiles
+      /home/test/lib/nested/b.dart
+        uri: package:test/nested/b.dart
+        analysisOptions_1
+        workspacePackage_1_0
+analysisOptions
+  analysisOptions_0: /home/test/analysis_options.yaml
+  analysisOptions_1: /home/test/lib/nested/analysis_options.yaml
+workspaces
+  workspace_0: PackageConfigWorkspace
+    root: /home/test
+    pubPackages
+      workspacePackage_0_0: PubPackage
+        root: /home/test
+  workspace_1: PackageConfigWorkspace
+    root: /home/test
+    pubPackages
+      workspacePackage_1_0: PubPackage
+        root: /home/test
+''');
+  }
+
+  @override
+  test_packageConfigWorkspace_multipleAnalysisOptions_nestedNestedExclude() async {
+    final workspaceRootPath = '/home';
+    final testPackageRootPath = '$workspaceRootPath/test';
+    final testPackageLibPath = '$testPackageRootPath/lib';
+
+    newPubspecYamlFile(testPackageRootPath, r'''
+name: test
+''');
+
+    newSinglePackageConfigJsonFile(
+      packagePath: testPackageRootPath,
+      name: 'test',
+    );
+
+    newAnalysisOptionsYamlFile(testPackageRootPath, '');
+    newFile('$testPackageLibPath/a.dart', '');
+
+    final nestedPath = '$testPackageLibPath/nested';
+    newAnalysisOptionsYamlFile(nestedPath, r'''
+analyzer:
+  exclude:
+    - excluded/**
+''');
+    newFile('$nestedPath/b.dart', '');
+    newFile('$nestedPath/excluded/b.dart', '');
+
+    final nestedNestedPath = '$nestedPath/nested';
+    newAnalysisOptionsYamlFile(nestedNestedPath, r'''
+analyzer:
+  exclude:
+    - excluded/**
+''');
+    newFile('$nestedNestedPath/c.dart', '');
+    newFile('$nestedNestedPath/excluded/d.dart', '');
+
+    _assertWorkspaceCollectionText(workspaceRootPath, r'''
+contexts
+  /home/test
+    packagesFile: /home/test/.dart_tool/package_config.json
+    workspace: workspace_0
+    analyzedFiles
+      /home/test/lib/a.dart
+        uri: package:test/a.dart
+        analysisOptions_0
+        workspacePackage_0_0
+  /home/test/lib/nested
+    packagesFile: /home/test/.dart_tool/package_config.json
+    workspace: workspace_1
+    analyzedFiles
+      /home/test/lib/nested/b.dart
+        uri: package:test/nested/b.dart
+        analysisOptions_1
+        workspacePackage_1_0
+  /home/test/lib/nested/nested
+    packagesFile: /home/test/.dart_tool/package_config.json
+    workspace: workspace_2
+    analyzedFiles
+      /home/test/lib/nested/nested/c.dart
+        uri: package:test/nested/nested/c.dart
+        analysisOptions_2
+        workspacePackage_2_0
+analysisOptions
+  analysisOptions_0: /home/test/analysis_options.yaml
+  analysisOptions_1: /home/test/lib/nested/analysis_options.yaml
+  analysisOptions_2: /home/test/lib/nested/nested/analysis_options.yaml
+workspaces
+  workspace_0: PackageConfigWorkspace
+    root: /home/test
+    pubPackages
+      workspacePackage_0_0: PubPackage
+        root: /home/test
+  workspace_1: PackageConfigWorkspace
+    root: /home/test
+    pubPackages
+      workspacePackage_1_0: PubPackage
+        root: /home/test
+  workspace_2: PackageConfigWorkspace
+    root: /home/test
+    pubPackages
+      workspacePackage_2_0: PubPackage
+        root: /home/test
+''');
+  }
+
+  @override
+  test_packageConfigWorkspace_multipleAnalysisOptions_outerExclude() async {
+    final workspaceRootPath = '/home';
+    final testPackageRootPath = '$workspaceRootPath/test';
+    final testPackageLibPath = '$testPackageRootPath/lib';
+
+    newPubspecYamlFile(testPackageRootPath, r'''
+name: test
+''');
+
+    newSinglePackageConfigJsonFile(
+      packagePath: testPackageRootPath,
+      name: 'test',
+    );
+
+    newAnalysisOptionsYamlFile(testPackageRootPath, r'''
+analyzer:
+  exclude:
+    - excluded/**
+''');
+    newFile('$testPackageLibPath/a.dart', '');
+    newFile('$testPackageRootPath/excluded/b.dart', '');
+
+    final nestedPath = '$testPackageLibPath/nested';
+    newAnalysisOptionsYamlFile(nestedPath, '');
+    newFile('$nestedPath/b.dart', '');
+
+    _assertWorkspaceCollectionText(workspaceRootPath, r'''
+contexts
+  /home/test
+    packagesFile: /home/test/.dart_tool/package_config.json
+    workspace: workspace_0
+    analyzedFiles
+      /home/test/lib/a.dart
+        uri: package:test/a.dart
+        analysisOptions_0
+        workspacePackage_0_0
+  /home/test/lib/nested
+    packagesFile: /home/test/.dart_tool/package_config.json
+    workspace: workspace_1
+    analyzedFiles
+      /home/test/lib/nested/b.dart
+        uri: package:test/nested/b.dart
+        analysisOptions_1
+        workspacePackage_1_0
+analysisOptions
+  analysisOptions_0: /home/test/analysis_options.yaml
+  analysisOptions_1: /home/test/lib/nested/analysis_options.yaml
+workspaces
+  workspace_0: PackageConfigWorkspace
+    root: /home/test
+    pubPackages
+      workspacePackage_0_0: PubPackage
+        root: /home/test
+  workspace_1: PackageConfigWorkspace
+    root: /home/test
+    pubPackages
+      workspacePackage_1_0: PubPackage
+        root: /home/test
+''');
+  }
+
+  @override
+  test_packageConfigWorkspace_multipleAnalysisOptions_overridingOptions() async {
+    final workspaceRootPath = '/home';
+    final testPackageRootPath = '$workspaceRootPath/test';
+    final testPackageLibPath = '$testPackageRootPath/lib';
+
+    newPubspecYamlFile(testPackageRootPath, r'''
+name: test
+''');
+
+    newSinglePackageConfigJsonFile(
+      packagePath: testPackageRootPath,
+      name: 'test',
+    );
+
+    var rootOptionsFile = newAnalysisOptionsYamlFile(testPackageRootPath, '');
+    newFile('$testPackageLibPath/a.dart', '');
+
+    final nestedPath = '$testPackageLibPath/nested';
+    newAnalysisOptionsYamlFile(nestedPath, '');
+    newFile('$nestedPath/b.dart', '');
+
+    // Verify that despite the nested options file
+    // (/home/test/nested/analysis_options.yaml), the nested file gets analyzed
+    // with the outer one (/home/test/analysis_options.yaml) as passed into
+    // the AnalysisContextCollection.
+    _assertWorkspaceCollectionText(
+        workspaceRootPath, optionsFile: rootOptionsFile, r'''
+contexts
+  /home/test
+    packagesFile: /home/test/.dart_tool/package_config.json
+    workspace: workspace_0
+    analyzedFiles
+      /home/test/lib/a.dart
+        uri: package:test/a.dart
+        analysisOptions_0
+        workspacePackage_0_0
+      /home/test/lib/nested/b.dart
+        uri: package:test/nested/b.dart
+        analysisOptions_0
+        workspacePackage_0_0
+analysisOptions
+  analysisOptions_0: /home/test/analysis_options.yaml
+workspaces
+  workspace_0: PackageConfigWorkspace
+    root: /home/test
+    pubPackages
+      workspacePackage_0_0: PubPackage
+        root: /home/test
+''');
+  }
+
+  @override
+  test_packageConfigWorkspace_singleAnalysisOptions_multipleContexts() async {
+    final workspaceRootPath = '/home';
+    final testPackageRootPath = '$workspaceRootPath/test';
+    final testPackageLibPath = '$testPackageRootPath/lib';
+
+    newAnalysisOptionsYamlFile(testPackageRootPath, '');
+
+    newPubspecYamlFile(testPackageRootPath, r'''
+name: test
+''');
+
+    newSinglePackageConfigJsonFile(
+      packagePath: testPackageRootPath,
+      name: 'test',
+    );
+
+    newFile('$testPackageLibPath/a.dart', '');
+
+    final nestedPackageRootPath = '$testPackageRootPath/nested';
+    newPubspecYamlFile(nestedPackageRootPath, r'''
+name: nested
+''');
+    newSinglePackageConfigJsonFile(
+      packagePath: nestedPackageRootPath,
+      name: 'nested',
+    );
+    newFile('$nestedPackageRootPath/lib/b.dart', '');
+
+    // TODO(pq): there should only be one shared options instance
+    _assertWorkspaceCollectionText(workspaceRootPath, r'''
+contexts
+  /home/test
+    packagesFile: /home/test/.dart_tool/package_config.json
+    workspace: workspace_0
+    analyzedFiles
+      /home/test/lib/a.dart
+        uri: package:test/a.dart
+        analysisOptions_0
+        workspacePackage_0_0
+  /home/test/nested
+    packagesFile: /home/test/nested/.dart_tool/package_config.json
+    workspace: workspace_1
+    analyzedFiles
+      /home/test/nested/lib/b.dart
+        uri: package:nested/b.dart
+        analysisOptions_1
+        workspacePackage_1_0
+analysisOptions
+  analysisOptions_0: /home/test/analysis_options.yaml
+  analysisOptions_1: /home/test/analysis_options.yaml
+workspaces
+  workspace_0: PackageConfigWorkspace
+    root: /home/test
+    pubPackages
+      workspacePackage_0_0: PubPackage
+        root: /home/test
+  workspace_1: PackageConfigWorkspace
+    root: /home/test/nested
+    pubPackages
+      workspacePackage_1_0: PubPackage
+        root: /home/test/nested
+''');
   }
 }
 
-@reflectiveTest
-class AnalysisContextCollectionTest with ResourceProviderMixin {
+mixin AnalysisContextCollectionTestMixin on ResourceProviderMixin {
   final _AnalysisContextCollectionPrinterConfiguration configuration =
       _AnalysisContextCollectionPrinterConfiguration();
 
   bool get enableSingleOptionContexts => false;
 
   Folder get sdkRoot => newFolder('/sdk');
-
-  File newPackageConfigJsonFileFromBuilder(
-    String directoryPath,
-    PackageConfigFileBuilder builder,
-  ) {
-    final content = builder.toContent(toUriStr: toUriStr);
-    return newPackageConfigJsonFile(directoryPath, content);
-  }
-
-  void newSinglePackageConfigJsonFile({
-    required String packagePath,
-    required String name,
-  }) {
-    final builder = PackageConfigFileBuilder()
-      ..add(name: name, rootPath: packagePath);
-    newPackageConfigJsonFileFromBuilder(packagePath, builder);
-  }
 
   void setUp() {
     ContextLocatorImpl.singleOptionContexts = enableSingleOptionContexts;
@@ -342,6 +722,7 @@ analysisOptions
     generic-metadata
     inference-update-1
     inference-update-2
+    inference-update-3
     inline-class
     named-arguments-anywhere
     non-nullable
@@ -414,6 +795,7 @@ analysisOptions
     generic-metadata
     inference-update-1
     inference-update-2
+    inference-update-3
     inline-class
     named-arguments-anywhere
     non-nullable
@@ -452,6 +834,176 @@ name: test
 
     newAnalysisOptionsYamlFile(testPackageRootPath, '');
     newFile('$testPackageLibPath/a.dart', '');
+
+    final nestedPath = '$testPackageLibPath/nested';
+    newAnalysisOptionsYamlFile(nestedPath, '');
+    newFile('$nestedPath/b.dart', '');
+
+    _assertWorkspaceCollectionText(workspaceRootPath, r'''
+contexts
+  /home/test
+    packagesFile: /home/test/.dart_tool/package_config.json
+    workspace: workspace_0
+    analyzedFiles
+      /home/test/lib/a.dart
+        uri: package:test/a.dart
+        analysisOptions_0
+        workspacePackage_0_0
+      /home/test/lib/nested/b.dart
+        uri: package:test/nested/b.dart
+        analysisOptions_1
+        workspacePackage_0_0
+analysisOptions
+  analysisOptions_0: /home/test/analysis_options.yaml
+  analysisOptions_1: /home/test/lib/nested/analysis_options.yaml
+workspaces
+  workspace_0: PackageConfigWorkspace
+    root: /home/test
+    pubPackages
+      workspacePackage_0_0: PubPackage
+        root: /home/test
+''');
+  }
+
+  test_packageConfigWorkspace_multipleAnalysisOptions_nestedExclude() async {
+    final workspaceRootPath = '/home';
+    final testPackageRootPath = '$workspaceRootPath/test';
+    final testPackageLibPath = '$testPackageRootPath/lib';
+
+    newPubspecYamlFile(testPackageRootPath, r'''
+name: test
+''');
+
+    newSinglePackageConfigJsonFile(
+      packagePath: testPackageRootPath,
+      name: 'test',
+    );
+
+    newAnalysisOptionsYamlFile(testPackageRootPath, '');
+    newFile('$testPackageLibPath/a.dart', '');
+
+    final nestedPath = '$testPackageLibPath/nested';
+    newAnalysisOptionsYamlFile(nestedPath, r'''
+analyzer:
+  exclude:
+    - excluded/**
+''');
+    newFile('$nestedPath/b.dart', '');
+    newFile('$nestedPath/excluded/b.dart', '');
+
+    _assertWorkspaceCollectionText(workspaceRootPath, r'''
+contexts
+  /home/test
+    packagesFile: /home/test/.dart_tool/package_config.json
+    workspace: workspace_0
+    analyzedFiles
+      /home/test/lib/a.dart
+        uri: package:test/a.dart
+        analysisOptions_0
+        workspacePackage_0_0
+      /home/test/lib/nested/b.dart
+        uri: package:test/nested/b.dart
+        analysisOptions_1
+        workspacePackage_0_0
+analysisOptions
+  analysisOptions_0: /home/test/analysis_options.yaml
+  analysisOptions_1: /home/test/lib/nested/analysis_options.yaml
+workspaces
+  workspace_0: PackageConfigWorkspace
+    root: /home/test
+    pubPackages
+      workspacePackage_0_0: PubPackage
+        root: /home/test
+''');
+  }
+
+  test_packageConfigWorkspace_multipleAnalysisOptions_nestedNestedExclude() async {
+    final workspaceRootPath = '/home';
+    final testPackageRootPath = '$workspaceRootPath/test';
+    final testPackageLibPath = '$testPackageRootPath/lib';
+
+    newPubspecYamlFile(testPackageRootPath, r'''
+name: test
+''');
+
+    newSinglePackageConfigJsonFile(
+      packagePath: testPackageRootPath,
+      name: 'test',
+    );
+
+    newAnalysisOptionsYamlFile(testPackageRootPath, '');
+    newFile('$testPackageLibPath/a.dart', '');
+
+    final nestedPath = '$testPackageLibPath/nested';
+    newAnalysisOptionsYamlFile(nestedPath, r'''
+analyzer:
+  exclude:
+    - excluded/**
+''');
+    newFile('$nestedPath/b.dart', '');
+    newFile('$nestedPath/excluded/b.dart', '');
+
+    final nestedNestedPath = '$nestedPath/nested';
+    newAnalysisOptionsYamlFile(nestedNestedPath, r'''
+analyzer:
+  exclude:
+    - excluded2/**
+''');
+    newFile('$nestedNestedPath/c.dart', '');
+    newFile('$nestedNestedPath/excluded2/d.dart', '');
+
+    _assertWorkspaceCollectionText(workspaceRootPath, r'''
+contexts
+  /home/test
+    packagesFile: /home/test/.dart_tool/package_config.json
+    workspace: workspace_0
+    analyzedFiles
+      /home/test/lib/a.dart
+        uri: package:test/a.dart
+        analysisOptions_0
+        workspacePackage_0_0
+      /home/test/lib/nested/b.dart
+        uri: package:test/nested/b.dart
+        analysisOptions_1
+        workspacePackage_0_0
+      /home/test/lib/nested/nested/c.dart
+        uri: package:test/nested/nested/c.dart
+        analysisOptions_2
+        workspacePackage_0_0
+analysisOptions
+  analysisOptions_0: /home/test/analysis_options.yaml
+  analysisOptions_1: /home/test/lib/nested/analysis_options.yaml
+  analysisOptions_2: /home/test/lib/nested/nested/analysis_options.yaml
+workspaces
+  workspace_0: PackageConfigWorkspace
+    root: /home/test
+    pubPackages
+      workspacePackage_0_0: PubPackage
+        root: /home/test
+''');
+  }
+
+  test_packageConfigWorkspace_multipleAnalysisOptions_outerExclude() async {
+    final workspaceRootPath = '/home';
+    final testPackageRootPath = '$workspaceRootPath/test';
+    final testPackageLibPath = '$testPackageRootPath/lib';
+
+    newPubspecYamlFile(testPackageRootPath, r'''
+name: test
+''');
+
+    newSinglePackageConfigJsonFile(
+      packagePath: testPackageRootPath,
+      name: 'test',
+    );
+
+    newAnalysisOptionsYamlFile(testPackageRootPath, r'''
+analyzer:
+  exclude:
+    - excluded/**
+''');
+    newFile('$testPackageLibPath/a.dart', '');
+    newFile('$testPackageRootPath/excluded/b.dart', '');
 
     final nestedPath = '$testPackageLibPath/nested';
     newAnalysisOptionsYamlFile(nestedPath, '');
@@ -717,6 +1269,49 @@ workspaces
 ''');
   }
 
+  test_packageConfigWorkspace_singleAnalysisOptions_exclude() async {
+    final workspaceRootPath = '/home';
+    final testPackageRootPath = '$workspaceRootPath/test';
+    final testPackageLibPath = '$testPackageRootPath/lib';
+
+    newPubspecYamlFile(testPackageRootPath, r'''
+name: test
+''');
+    newSinglePackageConfigJsonFile(
+      packagePath: testPackageRootPath,
+      name: 'test',
+    );
+    newAnalysisOptionsYamlFile(testPackageRootPath, r'''
+analyzer:
+  exclude:
+    - lib/nested/**
+''');
+
+    newFile('$testPackageLibPath/a.dart', '');
+    final nestedPath = '$testPackageLibPath/nested';
+    newFile('$nestedPath/b.dart', '');
+
+    _assertWorkspaceCollectionText(workspaceRootPath, r'''
+contexts
+  /home/test
+    packagesFile: /home/test/.dart_tool/package_config.json
+    workspace: workspace_0
+    analyzedFiles
+      /home/test/lib/a.dart
+        uri: package:test/a.dart
+        analysisOptions_0
+        workspacePackage_0_0
+analysisOptions
+  analysisOptions_0: /home/test/analysis_options.yaml
+workspaces
+  workspace_0: PackageConfigWorkspace
+    root: /home/test
+    pubPackages
+      workspacePackage_0_0: PubPackage
+        root: /home/test
+''');
+  }
+
   test_packageConfigWorkspace_singleAnalysisOptions_multipleContexts() async {
     final workspaceRootPath = '/home';
     final testPackageRootPath = '$workspaceRootPath/test';
@@ -830,188 +1425,6 @@ workspaces
       sink: TreeStringSink(sink: buffer, indent: ''),
     ).write(contextCollection);
     return buffer.toString();
-  }
-}
-
-/// To be removed when `singleOptionContexts` defaults to false.
-@reflectiveTest
-class AnalysisContextCollectionTest_SingleOptionsPerContext
-    extends AnalysisContextCollectionTest {
-  @override
-  bool get enableSingleOptionContexts => true;
-
-  @override
-  test_packageConfigWorkspace_multipleAnalysisOptions() async {
-    final workspaceRootPath = '/home';
-    final testPackageRootPath = '$workspaceRootPath/test';
-    final testPackageLibPath = '$testPackageRootPath/lib';
-
-    newPubspecYamlFile(testPackageRootPath, r'''
-name: test
-''');
-
-    newSinglePackageConfigJsonFile(
-      packagePath: testPackageRootPath,
-      name: 'test',
-    );
-
-    newAnalysisOptionsYamlFile(testPackageRootPath, '');
-    newFile('$testPackageLibPath/a.dart', '');
-
-    final nestedPath = '$testPackageLibPath/nested';
-    newAnalysisOptionsYamlFile(nestedPath, '');
-    newFile('$nestedPath/b.dart', '');
-
-    _assertWorkspaceCollectionText(workspaceRootPath, r'''
-contexts
-  /home/test
-    packagesFile: /home/test/.dart_tool/package_config.json
-    workspace: workspace_0
-    analyzedFiles
-      /home/test/lib/a.dart
-        uri: package:test/a.dart
-        analysisOptions_0
-        workspacePackage_0_0
-  /home/test/lib/nested
-    packagesFile: /home/test/.dart_tool/package_config.json
-    workspace: workspace_1
-    analyzedFiles
-      /home/test/lib/nested/b.dart
-        uri: package:test/nested/b.dart
-        analysisOptions_1
-        workspacePackage_1_0
-analysisOptions
-  analysisOptions_0: /home/test/analysis_options.yaml
-  analysisOptions_1: /home/test/lib/nested/analysis_options.yaml
-workspaces
-  workspace_0: PackageConfigWorkspace
-    root: /home/test
-    pubPackages
-      workspacePackage_0_0: PubPackage
-        root: /home/test
-  workspace_1: PackageConfigWorkspace
-    root: /home/test
-    pubPackages
-      workspacePackage_1_0: PubPackage
-        root: /home/test
-''');
-  }
-
-  @override
-  test_packageConfigWorkspace_multipleAnalysisOptions_overridingOptions() async {
-    final workspaceRootPath = '/home';
-    final testPackageRootPath = '$workspaceRootPath/test';
-    final testPackageLibPath = '$testPackageRootPath/lib';
-
-    newPubspecYamlFile(testPackageRootPath, r'''
-name: test
-''');
-
-    newSinglePackageConfigJsonFile(
-      packagePath: testPackageRootPath,
-      name: 'test',
-    );
-
-    var rootOptionsFile = newAnalysisOptionsYamlFile(testPackageRootPath, '');
-    newFile('$testPackageLibPath/a.dart', '');
-
-    final nestedPath = '$testPackageLibPath/nested';
-    newAnalysisOptionsYamlFile(nestedPath, '');
-    newFile('$nestedPath/b.dart', '');
-
-    // Verify that despite the nested options file
-    // (/home/test/nested/analysis_options.yaml), the nested file gets analyzed
-    // with the outer one (/home/test/analysis_options.yaml) as passed into
-    // the AnalysisContextCollection.
-    _assertWorkspaceCollectionText(
-        workspaceRootPath, optionsFile: rootOptionsFile, r'''
-contexts
-  /home/test
-    packagesFile: /home/test/.dart_tool/package_config.json
-    workspace: workspace_0
-    analyzedFiles
-      /home/test/lib/a.dart
-        uri: package:test/a.dart
-        analysisOptions_0
-        workspacePackage_0_0
-      /home/test/lib/nested/b.dart
-        uri: package:test/nested/b.dart
-        analysisOptions_0
-        workspacePackage_0_0
-analysisOptions
-  analysisOptions_0: /home/test/analysis_options.yaml
-workspaces
-  workspace_0: PackageConfigWorkspace
-    root: /home/test
-    pubPackages
-      workspacePackage_0_0: PubPackage
-        root: /home/test
-''');
-  }
-
-  @override
-  test_packageConfigWorkspace_singleAnalysisOptions_multipleContexts() async {
-    final workspaceRootPath = '/home';
-    final testPackageRootPath = '$workspaceRootPath/test';
-    final testPackageLibPath = '$testPackageRootPath/lib';
-
-    newAnalysisOptionsYamlFile(testPackageRootPath, '');
-
-    newPubspecYamlFile(testPackageRootPath, r'''
-name: test
-''');
-
-    newSinglePackageConfigJsonFile(
-      packagePath: testPackageRootPath,
-      name: 'test',
-    );
-
-    newFile('$testPackageLibPath/a.dart', '');
-
-    final nestedPackageRootPath = '$testPackageRootPath/nested';
-    newPubspecYamlFile(nestedPackageRootPath, r'''
-name: nested
-''');
-    newSinglePackageConfigJsonFile(
-      packagePath: nestedPackageRootPath,
-      name: 'nested',
-    );
-    newFile('$nestedPackageRootPath/lib/b.dart', '');
-
-    // TODO(pq): there should only be one shared options instance
-    _assertWorkspaceCollectionText(workspaceRootPath, r'''
-contexts
-  /home/test
-    packagesFile: /home/test/.dart_tool/package_config.json
-    workspace: workspace_0
-    analyzedFiles
-      /home/test/lib/a.dart
-        uri: package:test/a.dart
-        analysisOptions_0
-        workspacePackage_0_0
-  /home/test/nested
-    packagesFile: /home/test/nested/.dart_tool/package_config.json
-    workspace: workspace_1
-    analyzedFiles
-      /home/test/nested/lib/b.dart
-        uri: package:nested/b.dart
-        analysisOptions_1
-        workspacePackage_1_0
-analysisOptions
-  analysisOptions_0: /home/test/analysis_options.yaml
-  analysisOptions_1: /home/test/analysis_options.yaml
-workspaces
-  workspace_0: PackageConfigWorkspace
-    root: /home/test
-    pubPackages
-      workspacePackage_0_0: PubPackage
-        root: /home/test
-  workspace_1: PackageConfigWorkspace
-    root: /home/test/nested
-    pubPackages
-      workspacePackage_1_0: PubPackage
-        root: /home/test/nested
-''');
   }
 }
 

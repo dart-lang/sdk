@@ -74,7 +74,7 @@ void matchIL$unboxed1(FlowGraph graph) {
       'box_w' << match.Box('w'),
       match.StaticCall('box_w'),
       'result' << match.BinaryInt64Op('x', 'z'),
-      match.Return('result'),
+      match.DartReturn('result'),
     ]),
   ]);
 }
@@ -104,7 +104,7 @@ void matchIL$unboxed2(FlowGraph graph) {
       'box_w' << match.Box('w'),
       match.StaticCall('box_w'),
       'result' << match.BinaryDoubleOp('y', 'w'),
-      match.Return('result'),
+      match.DartReturn('result'),
     ]),
   ]);
 }

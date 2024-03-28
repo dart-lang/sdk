@@ -60,6 +60,9 @@ class ClientDynamicRegistrations {
   bool get codeActions =>
       _capabilities.textDocument?.codeAction?.dynamicRegistration ?? false;
 
+  bool get codeLens =>
+      _capabilities.textDocument?.codeLens?.dynamicRegistration ?? false;
+
   bool get colorProvider =>
       _capabilities.textDocument?.colorProvider?.dynamicRegistration ?? false;
 
@@ -176,6 +179,7 @@ class ServerCapabilitiesComputer {
       documentHighlightProvider: features.documentHighlight.staticRegistration,
       documentSymbolProvider: features.documentSymbol.staticRegistration,
       codeActionProvider: features.codeActions.staticRegistration,
+      codeLensProvider: features.codeLens.staticRegistration,
       colorProvider: features.colors.staticRegistration,
       documentFormattingProvider: features.format.staticRegistration,
       documentOnTypeFormattingProvider:
@@ -201,13 +205,21 @@ class ServerCapabilitiesComputer {
               )
             : null,
       ),
-      experimental: clientCapabilities
-              .supportsDartExperimentalTextDocumentContentProvider
-          ? {
-              'dartTextDocumentContentProvider':
-                  features.dartTextDocumentContentProvider.staticRegistration,
-            }
-          : null,
+      experimental: {
+        if (clientCapabilities
+            .supportsDartExperimentalTextDocumentContentProvider)
+          'dartTextDocumentContentProvider':
+              features.dartTextDocumentContentProvider.staticRegistration,
+        'textDocument': {
+          // These properties can be used by the client to know that we support
+          // custom methods like `dart/textDocument/augmented`.
+          //
+          // These fields are objects to allow for future expansion.
+          'super': {},
+          'augmented': {},
+          'augmentation': {},
+        },
+      },
     );
   }
 

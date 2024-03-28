@@ -77,7 +77,7 @@ Future<void> testTracePrecompiler(
     String tempDir, String scriptDill, List<String> flags) async {
   final reasonsFile = path.join(tempDir, 'reasons.json');
   final snapshot = path.join(tempDir, 'snapshot.so');
-  final result = await run(genSnapshot, <String>[
+  await run(genSnapshot, <String>[
     ...flags,
     '--write-retained-reasons-to=$reasonsFile',
     '--snapshot-kind=app-aot-elf',

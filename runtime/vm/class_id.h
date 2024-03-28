@@ -132,9 +132,7 @@ static constexpr intptr_t kClassIdTagMax = (1 << 20) - 1;
 #define CLASS_LIST_STRINGS(V)                                                  \
   V(String)                                                                    \
   V(OneByteString)                                                             \
-  V(TwoByteString)                                                             \
-  V(ExternalOneByteString)                                                     \
-  V(ExternalTwoByteString)
+  V(TwoByteString)
 
 #define CLASS_LIST_TYPED_DATA(V)                                               \
   V(Int8Array)                                                                 \
@@ -274,7 +272,6 @@ bool IsNumberClassId(intptr_t index);
 bool IsIntegerClassId(intptr_t index);
 bool IsStringClassId(intptr_t index);
 bool IsOneByteStringClassId(intptr_t index);
-bool IsExternalStringClassId(intptr_t index);
 bool IsBuiltinListClassId(intptr_t index);
 bool IsTypeClassId(intptr_t index);
 bool IsTypedDataBaseClassId(intptr_t index);
@@ -309,7 +306,7 @@ inline bool IsInternalOnlyClassId(intptr_t index) {
   return index <= kLastInternalOnlyCid;
 }
 
-  // Make sure this function is updated when new Error types are added.
+// Make sure this function is updated when new Error types are added.
 static const ClassId kFirstErrorCid = kErrorCid;
 static const ClassId kLastErrorCid = kUnwindErrorCid;
 COMPILE_ASSERT(kFirstErrorCid == kErrorCid &&
@@ -348,21 +345,14 @@ inline bool IsIntegerClassId(intptr_t index) {
 
 // Make sure this check is updated when new StringCid types are added.
 COMPILE_ASSERT(kOneByteStringCid == kStringCid + 1 &&
-               kTwoByteStringCid == kStringCid + 2 &&
-               kExternalOneByteStringCid == kStringCid + 3 &&
-               kExternalTwoByteStringCid == kStringCid + 4);
+               kTwoByteStringCid == kStringCid + 2);
 
 inline bool IsStringClassId(intptr_t index) {
-  return (index >= kStringCid && index <= kExternalTwoByteStringCid);
+  return (index >= kStringCid && index <= kTwoByteStringCid);
 }
 
 inline bool IsOneByteStringClassId(intptr_t index) {
-  return (index == kOneByteStringCid || index == kExternalOneByteStringCid);
-}
-
-inline bool IsExternalStringClassId(intptr_t index) {
-  return (index == kExternalOneByteStringCid ||
-          index == kExternalTwoByteStringCid);
+  return (index == kOneByteStringCid);
 }
 
 inline bool IsArrayClassId(intptr_t index) {
@@ -468,14 +458,56 @@ inline bool IsUnmodifiableTypedDataViewClassId(intptr_t index) {
               kTypedDataCidRemainderUnmodifiable);
 }
 
-inline bool ShouldHaveImmutabilityBitSet(intptr_t index) {
-  return IsUnmodifiableTypedDataViewClassId(index) || IsStringClassId(index) ||
-         index == kMintCid || index == kNeverCid || index == kSentinelCid ||
-         index == kStackTraceCid || index == kDoubleCid ||
-         index == kFloat32x4Cid || index == kFloat64x2Cid ||
-         index == kInt32x4Cid || index == kSendPortCid ||
-         index == kCapabilityCid || index == kRegExpCid || index == kBoolCid ||
-         index == kNullCid || index == kPointerCid;
+inline bool IsClampedTypedDataBaseClassId(intptr_t index) {
+  if (!IsTypedDataBaseClassId(index)) return false;
+  const intptr_t internal_cid =
+      index - ((index - kFirstTypedDataCid) % kNumTypedDataCidRemainders) +
+      kTypedDataCidRemainderInternal;
+  // Currently, the only clamped typed data arrays are Uint8.
+  return internal_cid == kTypedDataUint8ClampedArrayCid;
+}
+
+// Whether the given cid is an external array cid, that is, an array where
+// the payload is not in GC-managed memory.
+inline bool IsExternalPayloadClassId(classid_t cid) {
+  return cid == kPointerCid || IsExternalTypedDataClassId(cid);
+}
+
+// For predefined cids only. Refer to Class::is_deeply_immutable for
+// instances of non-predefined classes.
+//
+// Having the `@pragma('vm:deeply-immutable')`, which means statically proven
+// deeply immutable, implies true for this function. The other way around is not
+// guaranteed, predefined classes can be marked deeply immutable in the VM while
+// not having their subtypes or super type being deeply immutable.
+//
+// Keep consistent with runtime/docs/deeply_immutable.md.
+inline bool IsDeeplyImmutableCid(intptr_t predefined_cid) {
+  ASSERT(predefined_cid < kNumPredefinedCids);
+  return IsStringClassId(predefined_cid) || predefined_cid == kNumberCid ||
+         predefined_cid == kIntegerCid || predefined_cid == kSmiCid ||
+         predefined_cid == kMintCid || predefined_cid == kNeverCid ||
+         predefined_cid == kSentinelCid || predefined_cid == kStackTraceCid ||
+         predefined_cid == kDoubleCid || predefined_cid == kFloat32x4Cid ||
+         predefined_cid == kFloat64x2Cid || predefined_cid == kInt32x4Cid ||
+         predefined_cid == kSendPortCid || predefined_cid == kCapabilityCid ||
+         predefined_cid == kRegExpCid || predefined_cid == kBoolCid ||
+         predefined_cid == kNullCid || predefined_cid == kPointerCid ||
+         predefined_cid == kTypeCid || predefined_cid == kRecordTypeCid ||
+         predefined_cid == kFunctionTypeCid;
+}
+
+inline bool IsShallowlyImmutableCid(intptr_t predefined_cid) {
+  ASSERT(predefined_cid < kNumPredefinedCids);
+  // TODO(https://dartbug.com/55136): Mark kClosureCid as shallowly imutable.
+  return IsUnmodifiableTypedDataViewClassId(predefined_cid);
+}
+
+// See documentation on ImmutableBit in raw_object.h
+inline bool ShouldHaveImmutabilityBitSetCid(intptr_t predefined_cid) {
+  ASSERT(predefined_cid < kNumPredefinedCids);
+  return IsDeeplyImmutableCid(predefined_cid) ||
+         IsShallowlyImmutableCid(predefined_cid);
 }
 
 inline bool IsFfiTypeClassId(intptr_t index) {

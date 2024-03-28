@@ -405,8 +405,9 @@ class OnDemandCodegenResults implements CodegenResults {
   OnDemandCodegenResults(this.codegenInputs, this._functionCompiler);
 
   @override
-  CodegenResult getCodegenResults(MemberEntity member) {
-    return _functionCompiler.compile(member);
+  ({CodegenResult result, bool isGenerated}) getCodegenResults(
+      MemberEntity member) {
+    return (result: _functionCompiler.compile(member), isGenerated: true);
   }
 }
 
@@ -2229,7 +2230,8 @@ class ModularName extends js.Name implements js.AstContainer {
 /// Interface for reading the code generation results for all [MemberEntity]s.
 abstract class CodegenResults {
   CodegenInputs get codegenInputs;
-  CodegenResult getCodegenResults(MemberEntity member);
+  ({CodegenResult result, bool isGenerated}) getCodegenResults(
+      MemberEntity member);
 }
 
 /// Deserialized code generation results.
@@ -2246,12 +2248,15 @@ class DeserializedCodegenResults implements CodegenResults {
       this.codegenInputs, this._map, this._functionCompiler);
 
   @override
-  CodegenResult getCodegenResults(MemberEntity member) {
+  ({CodegenResult result, bool isGenerated}) getCodegenResults(
+      MemberEntity member) {
     // We only access these results once as it is picked up by the work queue
     // so it is safe to remove and free up space in the map. With deferred
     // deserialization this will also free the Deferrable holder.
     // Some entities such as parameter stubs are generated lazily and so we have
     // to compile them on the fly.
-    return _map.remove(member) ?? _functionCompiler.compile(member);
+    final deserialized = _map.remove(member);
+    if (deserialized != null) return (result: deserialized, isGenerated: false);
+    return (result: _functionCompiler.compile(member), isGenerated: true);
   }
 }

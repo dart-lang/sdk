@@ -283,7 +283,7 @@ class DartUnitHighlightsComputer {
     }
     if (element is PropertyAccessorElement) {
       var accessor = element;
-      var variable = accessor.variable;
+      var variable = accessor.variable2;
       if (variable is TopLevelVariableElement) {
         type = accessor.isGetter
             ? HighlightRegionType.TOP_LEVEL_GETTER_REFERENCE
@@ -1008,9 +1008,8 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
-    // TODO(brianwilkerson): Update the interface to expose the token.
-    // computer._addRegion_token(
-    //     node.augmentKeyword, HighlightRegionType.BUILT_IN);
+    computer._addRegion_token(
+        node.augmentKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(
         node.externalKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(
@@ -1466,6 +1465,12 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitSuperExpression(SuperExpression node) {
+    computer._addRegion_token(node.superKeyword, HighlightRegionType.KEYWORD);
+    super.visitSuperExpression(node);
+  }
+
+  @override
   void visitSuperFormalParameter(SuperFormalParameter node) {
     computer._addRegion_token(
       node.requiredKeyword,
@@ -1536,10 +1541,8 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-    // TODO(brianwilkerson): Uncomment the following lines when the token is
-    //  supported.
-    // computer._addRegion_token(
-    //     node.augmentKeyword, HighlightRegionType.BUILT_IN);
+    computer._addRegion_token(
+        node.augmentKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(
         node.externalKeyword, HighlightRegionType.BUILT_IN);
 

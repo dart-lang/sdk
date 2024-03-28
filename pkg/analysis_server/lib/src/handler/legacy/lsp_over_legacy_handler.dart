@@ -38,7 +38,7 @@ class LspOverLegacyHandler extends LegacyHandler {
 
   @override
   Future<void> handle() async {
-    server.sendLspNotifications = true;
+    server.initializeLsp();
     final params = LspHandleParams.fromRequest(request);
     final lspMessageJson = params.lspMessage;
     final reporter = LspJsonReporter();

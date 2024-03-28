@@ -26,8 +26,6 @@ main() {
   // e1?.id is equivalent to ((x) => x == null ? null : x.id)(e1).
   Expect.equals(null, nullC()?.v);
   Expect.equals(1, new C(1)?.v);
-  //                   ^
-  // [cfe] Operand of null-aware operation '?.' has type 'C' which excludes null.
   //                       ^^
   // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
 
@@ -37,14 +35,10 @@ main() {
     Expect.equals(1, C?.staticInt);
     //                ^^
     // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
-    //               ^
-    // [cfe] The class 'C' cannot be null.
   }
   {
     h.C.staticInt = 1;
     Expect.equals(1, h.C?.staticInt);
-    //                 ^
-    // [cfe] The class 'C' cannot be null.
     //                  ^^
     // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
   }
@@ -52,8 +46,6 @@ main() {
   // The static type of e1?.d is the static type of e1.id.
   {
     int? i = new C(1)?.v;
-    //           ^
-    // [cfe] Operand of null-aware operation '?.' has type 'C' which excludes null.
     //               ^^
     // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     Expect.equals(1, i);
@@ -64,7 +56,6 @@ main() {
     // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
     //              ^
     // [cfe] A value of type 'int?' can't be assigned to a variable of type 'String?'.
-    // [cfe] Operand of null-aware operation '?.' has type 'C' which excludes null.
     //                     ^^
     // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     Expect.equals(null, s);
@@ -72,8 +63,6 @@ main() {
   {
     C.staticInt = 1;
     int? i = C?.staticInt;
-    //       ^
-    // [cfe] The class 'C' cannot be null.
     //        ^^
     // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     Expect.equals(1, i);
@@ -81,8 +70,6 @@ main() {
   {
     h.C.staticInt = 1;
     int? i = h.C?.staticInt;
-    //         ^
-    // [cfe] The class 'C' cannot be null.
     //          ^^
     // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     Expect.equals(1, i);
@@ -92,11 +79,10 @@ main() {
     String? s = C?.staticInt;
     //          ^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
-    // [cfe] The class 'C' cannot be null.
-    //             ^
-    // [cfe] A value of type 'int?' can't be assigned to a variable of type 'String?'.
     //           ^^
     // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
+    //             ^
+    // [cfe] A value of type 'int?' can't be assigned to a variable of type 'String?'.
     Expect.equals(null, s);
   }
   {
@@ -106,8 +92,6 @@ main() {
     // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
     //             ^^
     // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
-    //            ^
-    // [cfe] The class 'C' cannot be null.
     //               ^
     // [cfe] A value of type 'int?' can't be assigned to a variable of type 'String?'.
     Expect.equals(null, s);

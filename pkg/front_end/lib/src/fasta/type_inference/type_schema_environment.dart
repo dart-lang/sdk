@@ -69,10 +69,6 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     return coreTypes.functionRawType(nullability);
   }
 
-  InterfaceType objectRawType(Nullability nullability) {
-    return coreTypes.objectRawType(nullability);
-  }
-
   /// Performs partial (either downwards or horizontal) inference, producing a
   /// set of inferred types that may contain references to the "unknown type".
   List<DartType> choosePreliminaryTypes(
@@ -356,7 +352,9 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       DartType? returnContextType,
       {required bool isNonNullableByDefault,
       bool isConst = false,
-      required OperationsCfe typeOperations}) {
+      required OperationsCfe typeOperations,
+      required TypeInferenceResultForTesting? inferenceResultForTesting,
+      required TreeNode? treeNodeForTesting}) {
     assert(typeParametersToInfer.isNotEmpty);
 
     // Create a TypeConstraintGatherer that will allow certain type parameters
@@ -366,7 +364,8 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     TypeConstraintGatherer gatherer = new TypeConstraintGatherer(
         this, typeParametersToInfer,
         isNonNullableByDefault: isNonNullableByDefault,
-        typeOperations: typeOperations);
+        typeOperations: typeOperations,
+        inferenceResultForTesting: inferenceResultForTesting);
 
     if (!isEmptyContext(returnContextType)) {
       if (isConst) {
@@ -382,7 +381,8 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
                   .substituteType(returnContextType!);
         }
       }
-      gatherer.tryConstrainUpper(declaredReturnType!, returnContextType!);
+      gatherer.tryConstrainUpper(declaredReturnType!, returnContextType!,
+          treeNodeForTesting: treeNodeForTesting);
     }
     return gatherer;
   }

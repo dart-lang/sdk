@@ -116,7 +116,7 @@ static bool DefDominatesUse(Definition* def, Instruction* instruction) {
 // Returns true if instruction forces control flow.
 static bool IsControlFlow(Instruction* instruction) {
   return instruction->IsBranch() || instruction->IsGoto() ||
-         instruction->IsIndirectGoto() || instruction->IsReturn() ||
+         instruction->IsIndirectGoto() || instruction->IsReturnBase() ||
          instruction->IsThrow() || instruction->IsReThrow() ||
          instruction->IsTailCall();
 }
@@ -364,13 +364,24 @@ void FlowGraphChecker::VisitUseDef(Instruction* instruction,
     ASSERT1(def->previous() != nullptr, def);
     // Skip checks below for common constants as checking them could be slow.
     if (IsCommonConstant(def)) return;
-  } else if (def->IsMaterializeObject()) {
-    // Materializations can be both linked into graph and detached.
-    if (def->next() != nullptr) {
-      ASSERT1(def->previous() != nullptr, def);
+  } else if (def->next() == nullptr) {
+    // MaterializeObject and MoveArgument can be detached from the graph.
+    if (auto move_arg = def->AsMoveArgument()) {
+      ASSERT1(move_arg->location().IsMachineRegister() ||
+                  (move_arg->location().IsPairLocation() &&
+                   move_arg->location()
+                       .AsPairLocation()
+                       ->At(0)
+                       .IsMachineRegister() &&
+                   move_arg->location()
+                       .AsPairLocation()
+                       ->At(1)
+                       .IsMachineRegister()),
+              move_arg);
     } else {
-      ASSERT1(def->previous() == nullptr, def);
+      ASSERT1(def->IsMaterializeObject(), def);
     }
+    ASSERT1(def->previous() == nullptr, def);
   } else {
     // Others are fully linked into graph.
     ASSERT1(def->next() != nullptr, def);
@@ -429,6 +440,14 @@ void FlowGraphChecker::VisitDefUse(Definition* def,
     } else {
       ASSERT1(instruction->previous() == nullptr, instruction);
     }
+  } else if (instruction->IsMoveArgument()) {
+    // MoveArgument can be both linked into graph and detached.
+    if (instruction->next() != nullptr) {
+      ASSERT1(instruction->previous() != nullptr, instruction);
+      ASSERT2(DefDominatesUse(def, instruction), def, instruction);
+    } else {
+      ASSERT1(instruction->previous() == nullptr, instruction);
+    }
   } else {
     // Others are fully linked into graph.
     ASSERT1(IsControlFlow(instruction) || instruction->next() != nullptr,
@@ -436,6 +455,19 @@ void FlowGraphChecker::VisitDefUse(Definition* def,
     ASSERT1(instruction->previous() != nullptr, instruction);
     ASSERT2(!def->HasSSATemp() || DefDominatesUse(def, instruction), def,
             instruction);
+  }
+  if (def->MayCreateUnsafeUntaggedPointer()) {
+    // We assume that all uses of a GC-movable untagged pointer are within the
+    // same basic block as the definition.
+    ASSERT2(def->GetBlock() == instruction->GetBlock(), def, instruction);
+    // Untagged pointers should not be returned from functions or FFI callbacks.
+    ASSERT2(!instruction->IsReturnBase(), def, instruction);
+    // Make sure no instruction between the definition and the use (including
+    // the use) can trigger GC.
+    for (const auto* current = def->next(); current != instruction->next();
+         current = current->next()) {
+      ASSERT2(!current->CanTriggerGC(), def, current);
+    }
   }
 }
 

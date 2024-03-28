@@ -8,8 +8,6 @@
 // Since the cascades are unnecessarily null-aware, the analyzer produces
 // warnings for it, so this test has to have "error" expectations.
 
-// SharedOptions=--enable-experiment=inference-update-2
-
 import '../static_type_helper.dart';
 
 class C {
@@ -24,8 +22,6 @@ void cascadedAccessReceivesTheBenefitOfPromotion(C c) {
   c._field as int;
   c._field.expectStaticType<Exactly<int>>();
   c
-//^
-// [cfe] Operand of null-aware operation '?..' has type 'C' which excludes null.
     ?.._field.expectStaticType<Exactly<int>>()
 //  ^^^
 // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
@@ -41,8 +37,6 @@ void fieldAccessOnACascadeExpressionRetainsPromotion(C c) {
   c._field as int;
   c._field.expectStaticType<Exactly<int>>();
   (c?..f())._field.expectStaticType<Exactly<int>>();
-// ^
-// [cfe] Operand of null-aware operation '?..' has type 'C' which excludes null.
 //  ^^^
 // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
 
@@ -53,8 +47,6 @@ void fieldAccessOnACascadeExpressionRetainsPromotion(C c) {
 void fieldsPromotableWithinCascade(C c) {
   // Within a cascade, a field can be promoted using `!`.
   c
-//^
-// [cfe] Operand of null-aware operation '?..' has type 'C' which excludes null.
     ?.._field.expectStaticType<Exactly<Object?>>()
 //  ^^^
 // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
@@ -66,8 +58,6 @@ void fieldsPromotableWithinCascade(C c) {
   // preserve the promotion, but it's extra work to do so, and it's not clear
   // that there would be enough user benefit to justify the work).
   c?._field.expectStaticType<Exactly<Object?>>();
-//^
-// [cfe] Operand of null-aware operation '?.' has type 'C' which excludes null.
 // ^^
 // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
 }
@@ -77,8 +67,6 @@ void ephemeralValueFieldsArePromotable(C Function() getC) {
   // variable) can still be promoted in one cascade section, and the results of
   // the promotion can be seen in later cascade sections.
   getC()
-    //^
-    // [cfe] Operand of null-aware operation '?..' has type 'C' which excludes null.
     ?.._field.expectStaticType<Exactly<Object?>>()
 //  ^^^
 // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
@@ -99,8 +87,6 @@ void writeCapturedValueFieldsArePromotable(C c) {
   }
 
   c
-//^
-// [cfe] Operand of null-aware operation '?..' has type 'C' which excludes null.
     ?.._field.expectStaticType<Exactly<Object?>>()
 //  ^^^
 // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
@@ -119,8 +105,6 @@ void writeDefeatsLaterAccessesButNotCascadeTarget(C c) {
   c._field as C;
   c._field.expectStaticType<Exactly<C>>();
   c
-//^
-// [cfe] Operand of null-aware operation '?..' has type 'C' which excludes null.
     ?.._field.f([c = C(C()), c._field.expectStaticType<Exactly<Object?>>()])
 //  ^^^
 // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
@@ -133,8 +117,6 @@ void cascadedInvocationsPermitted(C c) {
   c._field as int Function();
   c._field.expectStaticType<Exactly<int Function()>>();
   c?.._field().expectStaticType<Exactly<int>>();
-//^
-// [cfe] Operand of null-aware operation '?..' has type 'C' which excludes null.
 }
 
 main() {

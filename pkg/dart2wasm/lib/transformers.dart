@@ -6,10 +6,10 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/target/targets.dart';
-import 'package:kernel/type_environment.dart';
 import 'package:kernel/type_algebra.dart';
+import 'package:kernel/type_environment.dart';
 
-import 'package:dart2wasm/list_factory_specializer.dart';
+import 'list_factory_specializer.dart';
 
 void transformLibraries(List<Library> libraries, CoreTypes coreTypes,
     ClassHierarchy hierarchy, DiagnosticReporter diagnosticReporter) {
@@ -30,20 +30,32 @@ class _WasmTransformer extends Transformer {
 
   Member? _currentMember;
   StaticTypeContext? _cachedTypeContext;
+
   final Library _coreLibrary;
   final InterfaceType _nonNullableTypeType;
-  final Class _wasmBaseClass;
+
+  final Class _completerClass;
+  final Class _streamControllerClass;
   final Class _wasmArrayClass;
+  final Class _wasmBaseClass;
+
+  final Procedure _completerComplete;
+  final Procedure _completerConstructor;
+  final Procedure _completerGetFuture;
+  final Procedure _streamControllerAdd;
+  final Procedure _streamControllerAddError;
+  final Procedure _streamControllerAddStream;
+  final Procedure _streamControllerClose;
+  final Procedure _streamControllerConstructor;
+  final Procedure _streamControllerGetHasListener;
+  final Procedure _streamControllerGetIsPaused;
+  final Procedure _streamControllerGetStream;
+  final Procedure _streamControllerSetOnCancel;
+  final Procedure _streamControllerSetOnListen;
+  final Procedure _streamControllerSetOnResume;
+
   final List<_AsyncStarFrame> _asyncStarFrames = [];
   bool _enclosingIsAsyncStar = false;
-  late final controllerNullableObjectType = InterfaceType(
-      coreTypes.index.getClass('dart:async', 'StreamController'),
-      Nullability.nonNullable,
-      [coreTypes.objectNullableRawType]);
-  late final completerBoolType = InterfaceType(
-      coreTypes.index.getClass('dart:async', 'Completer'),
-      Nullability.nonNullable,
-      [coreTypes.boolNonNullableRawType]);
 
   final ListFactorySpecializer _listFactorySpecializer;
 
@@ -58,9 +70,40 @@ class _WasmTransformer extends Transformer {
         _nonNullableTypeType = coreTypes.index
             .getClass('dart:core', '_Type')
             .getThisType(coreTypes, Nullability.nonNullable),
-        _wasmBaseClass = coreTypes.index.getClass('dart:_wasm', '_WasmBase'),
-        _wasmArrayClass = coreTypes.index.getClass('dart:_wasm', 'WasmArray'),
         _coreLibrary = coreTypes.index.getLibrary('dart:core'),
+        _completerClass = coreTypes.index.getClass('dart:async', 'Completer'),
+        _streamControllerClass =
+            coreTypes.index.getClass('dart:async', 'StreamController'),
+        _wasmArrayClass = coreTypes.index.getClass('dart:_wasm', 'WasmArray'),
+        _wasmBaseClass = coreTypes.index.getClass('dart:_wasm', '_WasmBase'),
+        _completerComplete =
+            coreTypes.index.getProcedure('dart:async', 'Completer', 'complete'),
+        _completerConstructor =
+            coreTypes.index.getProcedure('dart:async', 'Completer', ''),
+        _completerGetFuture = coreTypes.index
+            .getProcedure('dart:async', 'Completer', 'get:future'),
+        _streamControllerAdd = coreTypes.index
+            .getProcedure('dart:async', 'StreamController', 'add'),
+        _streamControllerAddError = coreTypes.index
+            .getProcedure('dart:async', 'StreamController', 'addError'),
+        _streamControllerAddStream = coreTypes.index
+            .getProcedure('dart:async', 'StreamController', 'addStream'),
+        _streamControllerClose = coreTypes.index
+            .getProcedure('dart:async', 'StreamController', 'close'),
+        _streamControllerConstructor =
+            coreTypes.index.getProcedure('dart:async', 'StreamController', ''),
+        _streamControllerGetHasListener = coreTypes.index
+            .getProcedure('dart:async', 'StreamController', 'get:hasListener'),
+        _streamControllerGetIsPaused = coreTypes.index
+            .getProcedure('dart:async', 'StreamController', 'get:isPaused'),
+        _streamControllerGetStream = coreTypes.index
+            .getProcedure('dart:async', 'StreamController', 'get:stream'),
+        _streamControllerSetOnCancel = coreTypes.index
+            .getProcedure('dart:async', 'StreamController', 'set:onCancel'),
+        _streamControllerSetOnListen = coreTypes.index
+            .getProcedure('dart:async', 'StreamController', 'set:onListen'),
+        _streamControllerSetOnResume = coreTypes.index
+            .getProcedure('dart:async', 'StreamController', 'set:onResume'),
         _listFactorySpecializer = ListFactorySpecializer(coreTypes);
 
   @override
@@ -279,353 +322,257 @@ class _WasmTransformer extends Transformer {
     return _lowerForIn(stmt);
   }
 
-  StaticInvocation _completerBoolInitializer() => StaticInvocation(
-      coreTypes.index.getProcedure('dart:async', 'Completer', ''),
-      Arguments([], types: [coreTypes.boolNonNullableRawType]));
-
   InstanceInvocation _addToController(
       VariableDeclaration controller, Expression expression, int fileOffset) {
-    Procedure controllerAdd =
-        coreTypes.index.getProcedure('dart:async', 'StreamController', 'add');
+    final controllerNullableObjectType = InterfaceType(_streamControllerClass,
+        Nullability.nonNullable, [coreTypes.objectNullableRawType]);
     FunctionType controllerAddType =
         Substitution.fromInterfaceType(controllerNullableObjectType)
-                .substituteType(controllerAdd.function
+                .substituteType(_streamControllerAdd.function
                     .computeThisFunctionType(Nullability.nonNullable))
             as FunctionType;
     return InstanceInvocation(InstanceAccessKind.Instance,
         VariableGet(controller), Name('add'), Arguments([expression]),
-        interfaceTarget: controllerAdd, functionType: controllerAddType)
+        interfaceTarget: _streamControllerAdd, functionType: controllerAddType)
       ..fileOffset = fileOffset;
-  }
-
-  InstanceInvocation _addCompleterToController(VariableDeclaration controller,
-          VariableDeclaration completer, int fileOffset) =>
-      _addToController(controller, VariableGet(completer), fileOffset);
-
-  AwaitExpression _awaitCompleterFuture(
-      VariableDeclaration completer, int fileOffset) {
-    Procedure completerFuture =
-        coreTypes.index.getProcedure('dart:async', 'Completer', 'get:future');
-    // Future<bool>
-    DartType completerFutureType = InterfaceType(coreTypes.futureClass,
-        Nullability.nonNullable, [coreTypes.boolNonNullableRawType]);
-    return AwaitExpression(InstanceGet(
-        InstanceAccessKind.Instance, VariableGet(completer), Name('future'),
-        interfaceTarget: completerFuture, resultType: completerFutureType)
-      ..fileOffset = fileOffset);
   }
 
   TreeNode _lowerAsyncStar(FunctionNode functionNode) {
-    // TODO(joshualitt): This lowering is mostly reasonable, but if possible we
-    // should try and figure out a way to remove the even / odd dance. That
-    // said, this will be replaced by an intrinsic implementation ASAP so it may
-    // not be worth spending anymore time on this(aside from bug fixes).
+    // Convert the function into:
     //
-    // Transform
+    //    Stream<T> name(args) {
+    //      var #controller = StreamController<T>(sync: true);
     //
-    //   Stream<T> foo() async* {
-    //     ...
-    //     yield i;
-    //     ...
-    //     yield* bar;
-    //     ...
+    //      void #body() async {
+    //        Completer<void>? #paused;
+    //
+    //        #controller.onResume = #controller.onCancel = () {
+    //          #paused?.complete(null);
+    //          #paused = null;
+    //        };
+    //
+    //        try {
+    //          <transformed body>
+    //        } catch (e, s) {
+    //          #controller.addError(e, s);
+    //        } finally {
+    //          #controller.close();
+    //        }
+    //      }
+    //
+    //      #controller.onListen = () {
+    //        scheduleMicrotask(#body);
+    //      };
+    //
+    //      return controller.stream;
+    //    }
+    //
+    // Where `<transformed body>` is the body of `functionNode` with these
+    // transformations:
+    //
+    // - yield* e
+    //
+    //   ==>
+    //
+    //   await #controller.addStream(e);
+    //   if (!#controller.hasListener) {
+    //     return;
     //   }
     //
-    // Into
+    // - yield e
     //
-    //   Stream<T> foo() {
-    //     StreamController<Object?> #controller = StreamController<Object?>();
-    //     Future<void> Function() #body = () async {
-    //       Completer<bool> #completer = Completer<bool>();
-    //       #controller.add(#completer);
-    //       try {
-    //         await #completer.future;
-    //         ...
-    //         #controller.add(i);
-    //         #completer = Completer<bool>();
-    //         #controller.add(#completer)
-    //         await #completer.future;
-    //         ...
-    //         await for (var i in bar) {
-    //           #controller.add(i);
-    //           #completer = Completer<bool>();
-    //           #controller.add(#completer)
-    //           await #completer.future;
-    //         }
-    //         ...
-    //       } catch (e) {
-    //         #controller.addError(e);
-    //       } finally {
-    //         #controller.close();
-    //       }
-    //     };
-    //     bool isEven = false;
-    //     bool isFirst = true;
-    //     #controller.add(null);
-    //     return #controller.stream.asyncMap((value) async {
-    //       if (isFirst) {
-    //         #body();
-    //         return null;
-    //       }
-    //       if (value is Completer<Bool>) {
-    //         value.complete(true);
-    //       }
-    //       return value;
-    //     }).where((value) {
-    //       if (isFirst) {
-    //         isFirst = false;
-    //         return false;
-    //       }
-    //       bool keep = isEven;
-    //       isEven = !isEven;
-    //       return keep;
-    //     }).cast<T>();
+    //   ==>
+    //
+    //   #controller.add(e);
+    //   if (#controller.isPaused) {
+    //     await (#paused = Completer()).future;
     //   }
-    int fileOffset = functionNode.fileOffset;
+    //   if (!#controller.hasListener) {
+    //     return;
+    //   }
+    //
+    // The `yield` and `yield*` transformations are done by [visitYieldStatement].
 
-    // Initialize `#controller`.
+    final fileOffset = functionNode.fileOffset;
+    final emittedValueType = functionNode.emittedValueType!;
+
+    // var #controller = StreamController<T>(sync: true);
+    final controllerObjectType = InterfaceType(
+        _streamControllerClass, Nullability.nonNullable, [emittedValueType]);
+
+    // StreamController<T>(sync: true)
     final controllerInitializer = StaticInvocation(
-        coreTypes.index.getProcedure('dart:async', 'StreamController', ''),
-        Arguments([], types: [coreTypes.objectNullableRawType]));
-    final controller = VariableDeclaration('#controller',
+        _streamControllerConstructor,
+        Arguments([], types: [
+          emittedValueType
+        ], named: [
+          NamedExpression('sync', ConstantExpression(BoolConstant(true)))
+        ]));
+
+    // var #controller = ...
+    final controllerVar = VariableDeclaration('#controller',
         initializer: controllerInitializer..fileOffset = fileOffset,
-        type: controllerNullableObjectType,
+        type: controllerObjectType,
         isSynthesized: true)
       ..fileOffset = fileOffset;
 
-    // Initialize `#completer`.
-    final completer = VariableDeclaration('#completer',
-        initializer: _completerBoolInitializer()..fileOffset = fileOffset,
-        type: completerBoolType,
-        isSynthesized: true)
-      ..fileOffset = fileOffset;
+    // `void #body() async { ... }` statements.
+    final List<Statement> bodyStatements = [];
 
-    // Close `#controller`.
-    Procedure controllerCloseProc =
-        coreTypes.index.getProcedure('dart:async', 'StreamController', 'close');
-    FunctionType controllerCloseType =
-        Substitution.fromInterfaceType(controllerNullableObjectType)
-                .substituteType(controllerCloseProc.function
-                    .computeThisFunctionType(Nullability.nonNullable))
-            as FunctionType;
-    final callControllerClose = InstanceInvocation(InstanceAccessKind.Instance,
-        VariableGet(controller), Name('close'), Arguments([]),
-        interfaceTarget: controllerCloseProc,
-        functionType: controllerCloseType);
+    // Completer<void>? #paused;
+    final pausedVarType = InterfaceType(
+        _completerClass, Nullability.nullable, [const VoidType()]);
 
-    // Create a frame so yield statements within the body can access the right
-    // controller / completer.
-    _asyncStarFrames.add(_AsyncStarFrame(controller, completer));
+    final pausedVar = VariableDeclaration('#paused',
+        initializer: null, type: pausedVarType, isSynthesized: true);
 
-    // Visit the body to transform any yields. We will re-visit after
-    // transformation just to ensure everything we've added will also be
-    // lowered.
-    Statement? transformedBody =
-        functionNode.body?.accept<TreeNode>(this) as Statement?;
+    bodyStatements.add(pausedVar);
+
+    // controller.onResume = controller.onCancel = () {
+    //   #paused?.complete(null);
+    //   #paused = null;
+    // };
+    final List<Statement> onCancelCallbackBodyStatements = [
+      IfStatement(
+          EqualsNull(VariableGet(pausedVar)),
+          Block([]),
+          Block([
+            ExpressionStatement(InstanceInvocation(
+              InstanceAccessKind.Instance,
+              VariableGet(pausedVar),
+              Name('complete'),
+              Arguments([ConstantExpression(NullConstant())]),
+              interfaceTarget: _completerComplete,
+              functionType: substitute(_completerComplete.getterType, {
+                _completerClass.typeParameters.first: const VoidType()
+              }) as FunctionType,
+            )),
+            ExpressionStatement(VariableSet(
+              pausedVar,
+              ConstantExpression(NullConstant()),
+            ))
+          ])),
+    ];
+
+    final onCancelCallback = FunctionExpression(FunctionNode(
+      Block(onCancelCallbackBodyStatements),
+      typeParameters: [],
+      positionalParameters: [],
+      namedParameters: [],
+      requiredParameterCount: 0,
+      returnType: const VoidType(),
+    ));
+
+    final onCancelCallbackVar =
+        VariableDeclaration("#onCancelCallback", initializer: onCancelCallback);
+
+    bodyStatements.add(onCancelCallbackVar);
+
+    bodyStatements.add(ExpressionStatement(InstanceSet(
+        InstanceAccessKind.Instance,
+        VariableGet(controllerVar),
+        Name('onResume'),
+        VariableGet(onCancelCallbackVar),
+        interfaceTarget: _streamControllerSetOnResume)));
+
+    bodyStatements.add(ExpressionStatement(InstanceSet(
+        InstanceAccessKind.Instance,
+        VariableGet(controllerVar),
+        Name('onCancel'),
+        VariableGet(onCancelCallbackVar),
+        interfaceTarget: _streamControllerSetOnCancel)));
+
+    _asyncStarFrames
+        .add(_AsyncStarFrame(controllerVar, pausedVar, emittedValueType));
+    final Statement transformedBody =
+        functionNode.body!.accept<TreeNode>(this) as Statement;
     _asyncStarFrames.removeLast();
 
-    // Try-catch-finally around the body to call `controller.addError` and
-    // `controller.close`.
+    // The body will be wrapped with a `try-catch` to pass the error to the
+    // controller, and `try-finally` to close the controller.
     final exceptionVar = VariableDeclaration(null, isSynthesized: true);
+
     final stackTraceVar = VariableDeclaration(null,
         isSynthesized: true,
         type: coreTypes.stackTraceRawType(Nullability.nonNullable));
-    final Procedure controllerAddErrorProc = coreTypes.index
-        .getProcedure('dart:async', 'StreamController', 'addError');
-    final FunctionType controllerAddErrorType =
-        Substitution.fromInterfaceType(controllerNullableObjectType)
-                .substituteType(controllerAddErrorProc.function
-                    .computeThisFunctionType(Nullability.nonNullable))
-            as FunctionType;
-    final tryCatch = TryCatch(
-      Block([
-        ExpressionStatement(_awaitCompleterFuture(completer, fileOffset)),
-        if (transformedBody != null) transformedBody,
-      ]),
-      [
-        Catch(
-          exceptionVar,
-          stackTrace: stackTraceVar,
-          ExpressionStatement(InstanceInvocation(
-            InstanceAccessKind.Instance,
-            VariableGet(controller),
-            Name('addError'),
-            Arguments([VariableGet(exceptionVar), VariableGet(stackTraceVar)]),
-            interfaceTarget: controllerAddErrorProc,
-            functionType: controllerAddErrorType,
-          )),
-        )
-      ],
-    );
-    final tryFinally =
-        TryFinally(tryCatch, ExpressionStatement(callControllerClose));
 
-    // Locally declare body function.
-    final bodyFunction = FunctionNode(
-        Block([
-          completer,
-          ExpressionStatement(
-              _addCompleterToController(controller, completer, fileOffset)),
-          tryFinally,
-        ]),
+    final catch_ = Catch(
+        exceptionVar,
+        stackTrace: stackTraceVar,
+        ExpressionStatement(InstanceInvocation(
+          InstanceAccessKind.Instance,
+          VariableGet(controllerVar),
+          Name("addError"),
+          Arguments([VariableGet(exceptionVar), VariableGet(stackTraceVar)]),
+          interfaceTarget: _streamControllerAddError,
+          functionType: _streamControllerAddError.getterType as FunctionType,
+        )));
+
+    final finalizer = ExpressionStatement(InstanceInvocation(
+      InstanceAccessKind.Instance,
+      VariableGet(controllerVar),
+      Name("close"),
+      Arguments([]),
+      interfaceTarget: _streamControllerClose,
+      functionType: _streamControllerClose.getterType as FunctionType,
+    ));
+
+    bodyStatements
+        .add(TryFinally(TryCatch(transformedBody, [catch_]), finalizer));
+
+    final bodyFunction = FunctionNode(Block(bodyStatements),
         emittedValueType: const VoidType(),
         returnType: InterfaceType(
             coreTypes.futureClass, Nullability.nonNullable, [const VoidType()]),
         asyncMarker: AsyncMarker.Async,
         dartAsyncMarker: AsyncMarker.Async);
+
     final bodyInitializer = FunctionExpression(bodyFunction);
-    FunctionType bodyFunctionType =
+
+    final bodyFunctionType =
         bodyFunction.computeThisFunctionType(Nullability.nonNullable);
-    final body = VariableDeclaration('#body',
+
+    final bodyVar = VariableDeclaration('#body',
         initializer: bodyInitializer..fileOffset = fileOffset,
         type: bodyFunctionType,
         isSynthesized: true)
       ..fileOffset = fileOffset;
 
-    // Invoke body.
-    final invokeBody = FunctionInvocation(
-        FunctionAccessKind.FunctionType, VariableGet(body), Arguments([]),
-        functionType: bodyFunctionType);
+    // controller.onListen = () {
+    //   scheduleMicrotask(_body);
+    // };
+    final scheduleMicrotaskProcedure =
+        coreTypes.index.getTopLevelProcedure('dart:async', 'scheduleMicrotask');
 
-    // Create a 'counting' sentinel to let us know which values to filter.
-    final isEven = VariableDeclaration('#isEven',
-        initializer: ConstantExpression(BoolConstant(false))
-          ..fileOffset = fileOffset,
-        type: coreTypes.boolNonNullableRawType,
-        isSynthesized: true)
-      ..fileOffset = fileOffset;
-    final isFirst = VariableDeclaration('#isFirst',
-        initializer: ConstantExpression(BoolConstant(true))
-          ..fileOffset = fileOffset,
-        type: coreTypes.boolNonNullableRawType,
-        isSynthesized: true)
-      ..fileOffset = fileOffset;
-
-    // Get `controller.stream`
-    Procedure controllerStream = coreTypes.index
-        .getProcedure('dart:async', 'StreamController', 'get:stream');
-    DartType controllerStreamType =
-        Substitution.fromInterfaceType(controllerNullableObjectType)
-            .substituteType(controllerStream.function.returnType);
-    final getControllerStream = InstanceGet(
-        InstanceAccessKind.Instance, VariableGet(controller), Name('stream'),
-        interfaceTarget: controllerStream, resultType: controllerStreamType);
-
-    // Prepare `completerPrePass` to issue a round of completions to our hidden
-    // completers.
-    Procedure completerComplete =
-        coreTypes.index.getProcedure('dart:async', 'Completer', 'complete');
-    FunctionType completerCompleteType =
-        Substitution.fromInterfaceType(completerBoolType).substituteType(
-                completerComplete.function
-                    .computeThisFunctionType(Nullability.nonNullable))
-            as FunctionType;
-    final completerPrePassArg = VariableDeclaration('value',
-        type: coreTypes.objectNullableRawType, isSynthesized: true);
-    final completerPrePass = FunctionExpression(FunctionNode(
-      Block([
-        IfStatement(
-            VariableGet(isFirst),
-            Block([
-              ExpressionStatement(invokeBody),
-              ReturnStatement(ConstantExpression(NullConstant())),
-            ]),
-            null),
-        IfStatement(
-            Not(VariableGet(isEven)),
-            ExpressionStatement(InstanceInvocation(
-                InstanceAccessKind.Instance,
-                VariableGet(completerPrePassArg),
-                Name('complete'),
-                Arguments([ConstantExpression(BoolConstant(true))]),
-                interfaceTarget: completerComplete,
-                functionType: completerCompleteType)),
-            null),
-        ReturnStatement(VariableGet(completerPrePassArg)),
-      ]),
-      positionalParameters: [completerPrePassArg],
-      returnType: FutureOrType(
-          coreTypes.objectNullableRawType, Nullability.nonNullable),
-      asyncMarker: AsyncMarker.Async,
-      dartAsyncMarker: AsyncMarker.Async,
-      emittedValueType: coreTypes.objectNullableRawType,
-    ));
-
-    // Call `asyncMap`.
-    Procedure asyncMap =
-        coreTypes.index.getProcedure('dart:async', 'Stream', 'asyncMap');
-    final streamType = InterfaceType(coreTypes.streamClass,
-        Nullability.nonNullable, [coreTypes.objectNullableRawType]);
-    final asyncMapType = FunctionType([
-      FunctionType([
-        coreTypes.objectNullableRawType
-      ], FutureOrType(coreTypes.objectNullableRawType, Nullability.nonNullable),
-          Nullability.nonNullable, requiredParameterCount: 1)
-    ], streamType, Nullability.nonNullable, requiredParameterCount: 1);
-    final callAsyncMap = InstanceInvocation(
+    final setControllerOnListen = InstanceSet(
         InstanceAccessKind.Instance,
-        getControllerStream,
-        Name('asyncMap'),
-        Arguments([completerPrePass], types: [coreTypes.objectNullableRawType]),
-        interfaceTarget: asyncMap,
-        functionType: asyncMapType);
+        VariableGet(controllerVar),
+        Name('onListen'),
+        FunctionExpression(FunctionNode(ExpressionStatement(StaticInvocation(
+            scheduleMicrotaskProcedure, Arguments([VariableGet(bodyVar)]))))),
+        interfaceTarget: _streamControllerSetOnListen);
 
-    // Call `where`.
-    final whereFilterArg = VariableDeclaration('value',
-        type: coreTypes.objectNullableRawType, isSynthesized: true);
-    final whereKeep = VariableDeclaration('keep',
-        initializer: VariableGet(isEven),
-        type: coreTypes.boolNonNullableRawType,
-        isSynthesized: true);
-
-    final whereFilter = FunctionExpression(FunctionNode(
-        Block([
-          IfStatement(
-              VariableGet(isFirst),
-              Block([
-                ExpressionStatement(VariableSet(
-                    isFirst, ConstantExpression(BoolConstant(false)))),
-                ReturnStatement(ConstantExpression(BoolConstant(false)))
-              ]),
-              null),
-          whereKeep,
-          ExpressionStatement(VariableSet(isEven, Not(VariableGet(isEven)))),
-          ReturnStatement(VariableGet(whereKeep)),
-        ]),
-        positionalParameters: [whereFilterArg],
-        returnType: coreTypes.boolNonNullableRawType));
-
-    Procedure whereProc =
-        coreTypes.index.getProcedure('dart:async', 'Stream', 'where');
-    FunctionType whereProcType = Substitution.fromInterfaceType(streamType)
-        .substituteType(whereProc.function
-            .computeThisFunctionType(Nullability.nonNullable)) as FunctionType;
-    final callWhere = InstanceInvocation(InstanceAccessKind.Instance,
-        callAsyncMap, Name('where'), Arguments([whereFilter]),
-        interfaceTarget: whereProc, functionType: whereProcType);
-
-    // Finally call cast.
-
-    final DartType streamTypeArgument = functionNode.emittedValueType!;
-    Procedure castProc =
-        coreTypes.index.getProcedure('dart:async', 'Stream', 'cast');
-    final returnStreamType = InterfaceType(coreTypes.streamClass,
-        streamTypeArgument.nullability, [streamTypeArgument]);
-    final castProcType = FunctionType(
-        [], returnStreamType, Nullability.nonNullable,
-        requiredParameterCount: 1);
-    final castToExpectedType = InstanceInvocation(InstanceAccessKind.Instance,
-        callWhere, Name('cast'), Arguments([], types: [streamTypeArgument]),
-        interfaceTarget: castProc, functionType: castProcType);
     return FunctionNode(
         Block([
-          controller,
-          body,
-          isFirst,
-          isEven,
-          ExpressionStatement(_addToController(
-              controller, ConstantExpression(NullConstant()), fileOffset)),
-          ReturnStatement(castToExpectedType),
+          // var controller = StreamController<T>(sync: true);
+          controllerVar,
+
+          // var #body = ...;
+          bodyVar,
+
+          // controller.onListen = ...;
+          ExpressionStatement(setControllerOnListen),
+
+          // return controller.stream;
+          ReturnStatement(InstanceGet(
+            InstanceAccessKind.Instance,
+            VariableGet(controllerVar),
+            Name("stream"),
+            interfaceTarget: _streamControllerGetStream,
+            resultType: substitute(_streamControllerGetStream.getterType, {
+              _streamControllerClass.typeParameters.first: emittedValueType,
+            }),
+          ))
         ]),
         typeParameters: functionNode.typeParameters,
         positionalParameters: functionNode.positionalParameters,
@@ -642,48 +589,92 @@ class _WasmTransformer extends Transformer {
     if (!_enclosingIsAsyncStar) {
       return super.visitYieldStatement(yield);
     }
-    int fileOffset = yield.fileOffset;
-    _AsyncStarFrame frame = _asyncStarFrames.last;
-    VariableDeclaration controller = frame.controller;
-    VariableDeclaration completer = frame.completer;
-    bool isYieldStar = yield.isYieldStar;
 
-    // If [isYieldStar] then we need to create an `await for` loop to wrap the
-    // yields.
-    DartType yieldExpressionType = yield.expression.getStaticType(typeContext);
-    VariableDeclaration? awaitForVar;
-    if (isYieldStar) {
-      DartType awaitVarType = const DynamicType();
-      if (yieldExpressionType is InterfaceType) {
-        Class cls = yieldExpressionType.classReference.asClass;
-        if (cls == coreTypes.streamClass) {
-          awaitVarType = yieldExpressionType.typeArguments.single;
-        }
-      }
-      awaitForVar = VariableDeclaration('#awaitForVar',
-          type: awaitVarType, isSynthesized: true)
-        ..fileOffset = fileOffset;
-    }
+    final fileOffset = yield.fileOffset;
+    final frame = _asyncStarFrames.last;
+    final controllerVar = frame.controllerVar;
+    final pausedVar = frame.pausedVar;
+    final isYieldStar = yield.isYieldStar;
 
-    final yieldBody = Block([
-      ExpressionStatement(_addToController(
-          controller,
-          isYieldStar ? VariableGet(awaitForVar!) : yield.expression,
-          fileOffset)),
-      ExpressionStatement(VariableSet(completer, _completerBoolInitializer())),
-      ExpressionStatement(
-          _addCompleterToController(controller, completer, fileOffset)),
-      ExpressionStatement(_awaitCompleterFuture(completer, fileOffset)),
-    ]);
+    final transformedExpression = yield.expression.accept(this) as Expression;
+
+    final List<Statement> statements = [];
+
     if (isYieldStar) {
-      // If this is a yield* then wrap the yield in an `await for`.
-      ForInStatement awaitForIn = ForInStatement(
-          awaitForVar!, yield.expression, yieldBody,
-          isAsync: true);
-      return awaitForIn.accept<TreeNode>(this);
+      // yield* e
+      //
+      // ==>
+      //
+      // await #controller.addStream(e);
+      // if (!#controller.hasListener) return;
+
+      final controllerAddStreamProcedureType =
+          _streamControllerAddStream.getterType as FunctionType;
+
+      statements.add(ExpressionStatement(AwaitExpression(InstanceInvocation(
+        InstanceAccessKind.Instance,
+        VariableGet(controllerVar),
+        Name('addStream'),
+        Arguments([transformedExpression]),
+        interfaceTarget: _streamControllerAddStream,
+        functionType: substitute(controllerAddStreamProcedureType, {
+          _streamControllerClass.typeParameters.first: frame.emittedValueType,
+        }) as FunctionType,
+      ))));
+
+      statements.add(IfStatement(
+          InstanceGet(InstanceAccessKind.Instance, VariableGet(controllerVar),
+              Name('hasListener'),
+              interfaceTarget: _streamControllerGetHasListener,
+              resultType: coreTypes.boolNonNullableRawType),
+          Block([]),
+          ReturnStatement()));
     } else {
-      return yieldBody.accept<TreeNode>(this);
+      // yield e
+      //
+      // ==>
+      //
+      // #controller.add(e);
+      // if (#controller.isPaused) {
+      //   await (#paused = Completer()).future;
+      // }
+      // if (!#controller.hasListener) {
+      //   return;
+      // }
+
+      statements.add(ExpressionStatement(
+          _addToController(controllerVar, yield.expression, fileOffset)));
+
+      // if (controller.isPaused) ...
+      statements.add(IfStatement(
+          InstanceGet(InstanceAccessKind.Instance, VariableGet(controllerVar),
+              Name('isPaused'),
+              interfaceTarget: _streamControllerGetIsPaused,
+              resultType: coreTypes.boolNonNullableRawType),
+          ExpressionStatement(AwaitExpression(InstanceGet(
+              InstanceAccessKind.Instance,
+              VariableSet(
+                  pausedVar,
+                  StaticInvocation(_completerConstructor,
+                      Arguments([], types: [const VoidType()]))),
+              Name('future'),
+              interfaceTarget: _completerGetFuture,
+              resultType: substitute(_completerGetFuture.getterType,
+                  {_completerClass.typeParameters.first: const VoidType()})))),
+          null));
+
+      // if (!controller.hasListener) return;
+      statements.add(IfStatement(
+        InstanceGet(InstanceAccessKind.Instance, VariableGet(controllerVar),
+            Name('hasListener'),
+            interfaceTarget: _streamControllerGetHasListener,
+            resultType: coreTypes.boolNonNullableRawType),
+        Block([]),
+        ReturnStatement(),
+      ));
     }
+
+    return Block(statements);
   }
 
   @override
@@ -715,8 +706,9 @@ class _WasmTransformer extends Transformer {
 }
 
 class _AsyncStarFrame {
-  final VariableDeclaration controller;
-  final VariableDeclaration completer;
+  final VariableDeclaration controllerVar;
+  final VariableDeclaration pausedVar;
+  final DartType emittedValueType;
 
-  _AsyncStarFrame(this.controller, this.completer);
+  _AsyncStarFrame(this.controllerVar, this.pausedVar, this.emittedValueType);
 }

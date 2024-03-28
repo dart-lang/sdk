@@ -170,6 +170,7 @@ class LintNames {
   static const String unnecessary_late = 'unnecessary_late';
   static const String unnecessary_library_directive =
       'unnecessary_library_directive';
+  static const String unnecessary_library_name = 'unnecessary_library_name';
   static const String unnecessary_new = 'unnecessary_new';
   static const String unnecessary_null_aware_assignments =
       'unnecessary_null_aware_assignments';
@@ -196,6 +197,7 @@ class LintNames {
       'use_function_type_syntax_for_parameters';
   static const String use_key_in_widget_constructors =
       'use_key_in_widget_constructors';
+  static const String use_named_constants = 'use_named_constants';
   static const String use_raw_strings = 'use_raw_strings';
   static const String use_rethrow_when_possible = 'use_rethrow_when_possible';
   static const String use_string_in_part_of_directives =

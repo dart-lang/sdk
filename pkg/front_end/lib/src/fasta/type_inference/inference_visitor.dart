@@ -169,7 +169,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       : options = new TypeAnalyzerOptions(
             nullSafetyEnabled: inferrer.libraryBuilder.isNonNullableByDefault,
             patternsEnabled:
-                inferrer.libraryBuilder.libraryFeatures.patterns.isEnabled),
+                inferrer.libraryBuilder.libraryFeatures.patterns.isEnabled,
+            inferenceUpdate3Enabled: inferrer
+                .libraryBuilder.libraryFeatures.inferenceUpdate3.isEnabled),
         super(inferrer, helper);
 
   @override
@@ -286,8 +288,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
               result.nullAwareAction is InvalidExpression)) {
         Expression replacement = createLet(
             createVariable(result.expression, result.inferredType),
-            createReachabilityError(expression.fileOffset,
-                messageNeverValueError, messageNeverValueWarning));
+            createReachabilityError(
+                expression.fileOffset, messageNeverValueError));
         flowAnalysis.forwardExpression(replacement, result.expression);
         result =
             new ExpressionInferenceResult(result.inferredType, replacement);
@@ -571,13 +573,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     assert(expressionType.typeParameters.length == node.typeArguments.length);
     FunctionType resultType = FunctionTypeInstantiator.instantiate(
         expressionType, node.typeArguments);
-    FreshStructuralParametersFromTypeParameters freshTypeParameters =
-        getFreshStructuralParametersFromTypeParameters(node.typeParameters);
-    resultType = freshTypeParameters.substitute(resultType) as FunctionType;
+    FreshStructuralParameters freshStructuralParameters =
+        getFreshStructuralParameters(node.structuralParameters);
+    resultType =
+        freshStructuralParameters.substitute(resultType) as FunctionType;
     resultType = new FunctionType(resultType.positionalParameters,
         resultType.returnType, resultType.declaredNullability,
         namedParameters: resultType.namedParameters,
-        typeParameters: freshTypeParameters.freshTypeParameters,
+        typeParameters: freshStructuralParameters.freshTypeParameters,
         requiredParameterCount: resultType.requiredParameterCount);
     ExpressionInferenceResult inferredResult =
         instantiateTearOff(resultType, typeContext, node);
@@ -929,10 +932,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ExpressionInferenceResult result = inferExpression(
         node.variable.initializer!, typeContext,
         isVoidAllowed: false);
-    if (node.isNullAware) {
-      reportNonNullableInNullAwareWarningIfNeeded(
-          result.inferredType, "?..", node.fileOffset);
-    }
 
     node.variable.initializer = result.expression..parent = node.variable;
     node.variable.type = result.inferredType;
@@ -1015,10 +1014,18 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     node.condition = condition..parent = node;
     flowAnalysis.conditional_thenBegin(node.condition, node);
     bool isThenReachable = flowAnalysis.isReachable;
+
+    // A conditional expression `E` of the form `b ? e1 : e2` with context
+    // type `K` is analyzed as follows:
+    //
+    // - Let `T1` be the type of `e1` inferred with context type `K`
     ExpressionInferenceResult thenResult =
         inferExpression(node.then, typeContext, isVoidAllowed: true);
     node.then = thenResult.expression..parent = node;
     registerIfUnreachableForTesting(node.then, isReachable: isThenReachable);
+    DartType t1 = thenResult.inferredType;
+
+    // - Let `T2` be the type of `e2` inferred with context type `K`
     flowAnalysis.conditional_elseBegin(node.then, thenResult.inferredType);
     bool isOtherwiseReachable = flowAnalysis.isReachable;
     ExpressionInferenceResult otherwiseResult =
@@ -1026,9 +1033,37 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     node.otherwise = otherwiseResult.expression..parent = node;
     registerIfUnreachableForTesting(node.otherwise,
         isReachable: isOtherwiseReachable);
-    DartType inferredType = typeSchemaEnvironment.getStandardUpperBound(
-        thenResult.inferredType, otherwiseResult.inferredType,
+    DartType t2 = otherwiseResult.inferredType;
+
+    // - Let `T` be  `UP(T1, T2)`
+    DartType t = typeSchemaEnvironment.getStandardUpperBound(t1, t2,
         isNonNullableByDefault: isNonNullableByDefault);
+
+    // - Let `S` be the greatest closure of `K`
+    DartType s = computeGreatestClosure(typeContext);
+
+    DartType inferredType;
+    // If `inferenceUpdate3` is not enabled, then the type of `E` is `T`.
+    if (!libraryBuilder.libraryFeatures.inferenceUpdate3.isEnabled) {
+      inferredType = t;
+    } else
+    // - If `T <: S` then the type of `E` is `T`
+    if (typeSchemaEnvironment.isSubtypeOf(
+        t, s, SubtypeCheckMode.withNullabilities)) {
+      inferredType = t;
+    } else
+    // - Otherwise, if `T1 <: S` and `T2 <: S`, then the type of `E` is `S`
+    if (typeSchemaEnvironment.isSubtypeOf(
+            t1, s, SubtypeCheckMode.withNullabilities) &&
+        typeSchemaEnvironment.isSubtypeOf(
+            t2, s, SubtypeCheckMode.withNullabilities)) {
+      inferredType = s;
+    } else
+    // - Otherwise, the type of `E` is `T`
+    {
+      inferredType = t;
+    }
+
     flowAnalysis.conditional_end(
         node, inferredType, node.otherwise, otherwiseResult.inferredType);
     node.staticType = inferredType;
@@ -1085,9 +1120,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         isVoidAllowed: false);
 
     List<DartType> extensionTypeArguments = computeExtensionTypeArgument(
-        node.extension,
-        node.explicitTypeArguments,
-        receiverResult.inferredType);
+        node.extension, node.explicitTypeArguments, receiverResult.inferredType,
+        treeNodeForTesting: node);
 
     DartType receiverType =
         getExtensionReceiverType(node.extension, extensionTypeArguments);
@@ -1153,9 +1187,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         isVoidAllowed: false);
 
     List<DartType> extensionTypeArguments = computeExtensionTypeArgument(
-        node.extension,
-        node.explicitTypeArguments,
-        receiverResult.inferredType);
+        node.extension, node.explicitTypeArguments, receiverResult.inferredType,
+        treeNodeForTesting: node);
 
     DartType receiverType =
         getExtensionReceiverType(node.extension, extensionTypeArguments);
@@ -1870,71 +1903,78 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new ExpressionInferenceResult(inferredType, node);
   }
 
-  InitializerInferenceResult visitInvalidSuperInitializerJudgment(
-      InvalidSuperInitializerJudgment node) {
-    Substitution substitution = Substitution.fromSupertype(
-        hierarchyBuilder.getClassAsInstanceOf(
-            thisType!.classNode, node.target.enclosingClass)!);
-    FunctionType functionType = replaceReturnType(
-        substitution.substituteType(node.target.function
-            .computeThisFunctionType(libraryBuilder.nonNullable)
-            .withoutTypeParameters) as FunctionType,
-        thisType!);
-    InvocationInferenceResult invocationInferenceResult = inferInvocation(
-        this,
-        const UnknownType(),
-        node.fileOffset,
-        functionType,
-        node.argumentsJudgment,
-        skipTypeArgumentInference: true);
-    return new InitializerInferenceResult.fromInvocationInferenceResult(
-        invocationInferenceResult);
-  }
-
   ExpressionInferenceResult visitIfNullExpression(
       IfNullExpression node, DartType typeContext) {
-    // To infer `e0 ?? e1` in context `K`:
-    // - Infer `e0` in context `K?` to get `T0`
+    // An if-null expression `E` of the form `e1 ?? e2` with context type `K` is
+    // analyzed as follows:
+    //
+    // - Let `T1` be the type of `e1` inferred with context type `K?`.
     ExpressionInferenceResult lhsResult = inferExpression(
         node.left, computeNullable(typeContext),
         isVoidAllowed: false);
-    reportNonNullableInNullAwareWarningIfNeeded(
-        lhsResult.inferredType, "??", lhsResult.expression.fileOffset);
+    DartType t1 = lhsResult.inferredType;
 
     // This ends any shorting in `node.left`.
     Expression left = lhsResult.expression;
 
-    flowAnalysis.ifNullExpression_rightBegin(node.left, lhsResult.inferredType);
+    flowAnalysis.ifNullExpression_rightBegin(node.left, t1);
 
-    // - Let `J = T0` if `K` is `_`, otherwise `K`.
-    // - Infer `e1` in context `J` to get `T1`
-    ExpressionInferenceResult rhsResult;
+    // - Let `T2` be the type of `e2` inferred with context type `J`, where:
+    //   - If `K` is `_`, `J = T1`.
+    DartType j;
     if (typeContext is UnknownType) {
-      rhsResult = inferExpression(node.right, lhsResult.inferredType,
-          isVoidAllowed: true);
-    } else {
-      rhsResult = inferExpression(node.right, typeContext, isVoidAllowed: true);
+      j = t1;
+    } else
+    //   - Otherwise, `J = K`.
+    {
+      j = typeContext;
     }
+    ExpressionInferenceResult rhsResult =
+        inferExpression(node.right, j, isVoidAllowed: true);
+    DartType t2 = rhsResult.inferredType;
     flowAnalysis.ifNullExpression_end();
 
-    // - Then the inferred type is UP(NonNull(T0), T1).
-    DartType originalLhsType = lhsResult.inferredType;
-    DartType nonNullableLhsType = originalLhsType.toNonNull();
-    DartType inferredType = typeSchemaEnvironment.getStandardUpperBound(
-        nonNullableLhsType, rhsResult.inferredType,
+    // - Let `T` be `UP(NonNull(T1), T2)`.
+    DartType nonNullT1 = t1.toNonNull();
+    DartType t = typeSchemaEnvironment.getStandardUpperBound(nonNullT1, t2,
         isNonNullableByDefault: isNonNullableByDefault);
+
+    // - Let `S` be the greatest closure of `K`.
+    DartType s = computeGreatestClosure(typeContext);
+
+    DartType inferredType;
+    // If `inferenceUpdate3` is not enabled, then the type of `E` is `T`.
+    if (!libraryBuilder.libraryFeatures.inferenceUpdate3.isEnabled) {
+      inferredType = t;
+    } else
+    // - If `T <: S`, then the type of `E` is `T`.
+    if (typeSchemaEnvironment.isSubtypeOf(
+        t, s, SubtypeCheckMode.withNullabilities)) {
+      inferredType = t;
+    } else
+    // - Otherwise, if `NonNull(T1) <: S` and `T2 <: S`, then the type of `E` is
+    //   `S`.
+    if (typeSchemaEnvironment.isSubtypeOf(
+            nonNullT1, s, SubtypeCheckMode.withNullabilities) &&
+        typeSchemaEnvironment.isSubtypeOf(
+            t2, s, SubtypeCheckMode.withNullabilities)) {
+      inferredType = s;
+    } else
+    // - Otherwise, the type of `E` is `T`.
+    {
+      inferredType = t;
+    }
+
     Expression replacement;
     if (left is ThisExpression) {
       replacement = left;
     } else {
-      VariableDeclaration variable =
-          createVariable(left, lhsResult.inferredType);
+      VariableDeclaration variable = createVariable(left, t1);
       Expression equalsNull = createEqualsNull(createVariableGet(variable),
           fileOffset: lhsResult.expression.fileOffset);
       VariableGet variableGet = createVariableGet(variable);
-      if (isNonNullableByDefault &&
-          !identical(nonNullableLhsType, originalLhsType)) {
-        variableGet.promotedType = nonNullableLhsType;
+      if (isNonNullableByDefault && !identical(nonNullT1, t1)) {
+        variableGet.promotedType = nonNullT1;
       }
       ConditionalExpression conditional = new ConditionalExpression(
           equalsNull, rhsResult.expression, variableGet, inferredType)
@@ -2166,10 +2206,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             libraryBuilder.nullableIfTrue(element.isNullAware),
             <DartType>[inferredTypeArgument]),
         isVoidAllowed: true);
-    if (element.isNullAware) {
-      reportNonNullableInNullAwareWarningIfNeeded(
-          spreadResult.inferredType, "...?", element.expression.fileOffset);
-    }
     element.expression = spreadResult.expression..parent = element;
     DartType spreadType = spreadResult.inferredType;
     inferredSpreadTypes[element.expression] = spreadType;
@@ -2653,7 +2689,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           listType, typeParametersToInfer, typeContext,
           isNonNullableByDefault: isNonNullableByDefault,
           isConst: node.isConst,
-          typeOperations: operations);
+          typeOperations: operations,
+          inferenceResultForTesting: dataForTesting?.typeInferenceResult,
+          treeNodeForTesting: node);
       inferredTypes = typeSchemaEnvironment.choosePreliminaryTypes(
           gatherer, typeParametersToInfer, null,
           isNonNullableByDefault: isNonNullableByDefault);
@@ -2671,7 +2709,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       }
     }
     if (inferenceNeeded) {
-      gatherer!.constrainArguments(formalTypes, actualTypes);
+      gatherer!.constrainArguments(formalTypes, actualTypes,
+          treeNodeForTesting: node);
       inferredTypes = typeSchemaEnvironment.chooseFinalTypes(
           gatherer, typeParametersToInfer, inferredTypes!,
           isNonNullableByDefault: isNonNullableByDefault);
@@ -3893,10 +3932,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
     ExpressionInferenceResult spreadResult =
         inferExpression(entry.expression, spreadContext, isVoidAllowed: true);
-    if (entry.isNullAware) {
-      reportNonNullableInNullAwareWarningIfNeeded(
-          spreadResult.inferredType, "...?", entry.expression.fileOffset);
-    }
     entry.expression = spreadResult.expression..parent = entry;
     DartType spreadType = spreadResult.inferredType;
     inferredSpreadTypes[entry.expression] = spreadType;
@@ -4669,7 +4704,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           mapType, typeParametersToInfer, typeContext,
           isNonNullableByDefault: isNonNullableByDefault,
           isConst: node.isConst,
-          typeOperations: operations);
+          typeOperations: operations,
+          inferenceResultForTesting: dataForTesting?.typeInferenceResult,
+          treeNodeForTesting: node);
       inferredTypes = typeSchemaEnvironment.choosePreliminaryTypes(
           gatherer, typeParametersToInfer, null,
           isNonNullableByDefault: isNonNullableByDefault);
@@ -4745,11 +4782,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
                 setType, typeParametersToInfer, typeContext,
                 isNonNullableByDefault: isNonNullableByDefault,
                 isConst: node.isConst,
-                typeOperations: operations);
+                typeOperations: operations,
+                inferenceResultForTesting: dataForTesting?.typeInferenceResult,
+                treeNodeForTesting: node);
         List<DartType> inferredTypesForSet = typeSchemaEnvironment
             .choosePreliminaryTypes(gatherer, typeParametersToInfer, null,
                 isNonNullableByDefault: isNonNullableByDefault);
-        gatherer.constrainArguments(formalTypesForSet, actualTypesForSet);
+        gatherer.constrainArguments(formalTypesForSet, actualTypesForSet,
+            treeNodeForTesting: node);
         inferredTypesForSet = typeSchemaEnvironment.chooseFinalTypes(
             gatherer, typeParametersToInfer, inferredTypesForSet,
             isNonNullableByDefault: isNonNullableByDefault);
@@ -4789,7 +4829,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         return new ExpressionInferenceResult(
             NeverType.fromNullability(libraryBuilder.nonNullable), replacement);
       }
-      gatherer!.constrainArguments(formalTypes, actualTypes);
+      gatherer!.constrainArguments(formalTypes, actualTypes,
+          treeNodeForTesting: node);
       inferredTypes = typeSchemaEnvironment.chooseFinalTypes(
           gatherer, typeParametersToInfer, inferredTypes!,
           isNonNullableByDefault: isNonNullableByDefault);
@@ -4950,8 +4991,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType operandType = operandResult.nullAwareActionType;
 
     node.operand = operand..parent = node;
-    reportNonNullableInNullAwareWarningIfNeeded(
-        operandType, "!", node.operand.fileOffset);
     flowAnalysis.nonNullAssert_end(node.operand);
     DartType nonNullableResultType = operations.promoteToNonNull(operandType);
     return createNullAwareExpressionInferenceResult(
@@ -4962,8 +5001,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       NullAwareMethodInvocation node, DartType typeContext) {
     Link<NullAwareGuard> nullAwareGuards =
         inferSyntheticVariableNullAware(node.variable);
-    reportNonNullableInNullAwareWarningIfNeeded(
-        node.variable.type, "?.", node.variable.fileOffset);
     NullAwareGuard nullAwareGuard = createNullAwareGuard(node.variable);
     ExpressionInferenceResult invocationResult =
         inferExpression(node.invocation, typeContext, isVoidAllowed: true);
@@ -4977,8 +5014,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       NullAwarePropertyGet node, DartType typeContext) {
     Link<NullAwareGuard> nullAwareGuards =
         inferSyntheticVariableNullAware(node.variable);
-    reportNonNullableInNullAwareWarningIfNeeded(
-        node.variable.type, "?.", node.variable.fileOffset);
     NullAwareGuard nullAwareGuard = createNullAwareGuard(node.variable);
     ExpressionInferenceResult readResult =
         inferExpression(node.read, typeContext);
@@ -4990,8 +5025,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       NullAwarePropertySet node, DartType typeContext) {
     Link<NullAwareGuard> nullAwareGuards =
         inferSyntheticVariableNullAware(node.variable);
-    reportNonNullableInNullAwareWarningIfNeeded(
-        node.variable.type, "?.", node.variable.fileOffset);
     NullAwareGuard nullAwareGuard = createNullAwareGuard(node.variable);
     ExpressionInferenceResult writeResult =
         inferExpression(node.write, typeContext, isVoidAllowed: true);
@@ -5002,8 +5035,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   ExpressionInferenceResult visitNullAwareExtension(
       NullAwareExtension node, DartType typeContext) {
     inferSyntheticVariable(node.variable);
-    reportNonNullableInNullAwareWarningIfNeeded(
-        node.variable.type, "?.", node.variable.fileOffset);
     NullAwareGuard nullAwareGuard = createNullAwareGuard(node.variable);
     ExpressionInferenceResult expressionResult =
         inferExpression(node.expression, typeContext);
@@ -5015,18 +5046,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   ExpressionInferenceResult visitStaticPostIncDec(
       StaticPostIncDec node, DartType typeContext) {
-    inferSyntheticVariable(node.read);
-    inferSyntheticVariable(node.write);
-    DartType inferredType = node.read.type;
-
-    Expression replacement =
-        new Let(node.read, createLet(node.write, createVariableGet(node.read)))
-          ..fileOffset = node.fileOffset;
-    return new ExpressionInferenceResult(inferredType, replacement);
-  }
-
-  ExpressionInferenceResult visitSuperPostIncDec(
-      SuperPostIncDec node, DartType typeContext) {
     inferSyntheticVariable(node.read);
     inferSyntheticVariable(node.write);
     DartType inferredType = node.read.type;
@@ -5167,8 +5186,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             isThisReceiver: node.receiver is ThisExpression)
         .expressionInferenceResult;
 
-    reportNonNullableInNullAwareWarningIfNeeded(
-        readResult.inferredType, "??=", node.readOffset);
     Expression read = readResult.expression;
     DartType readType = readResult.inferredType;
 
@@ -5198,9 +5215,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression write = writeResult.expression;
 
     DartType nonNullableReadType = readType.toNonNull();
-    DartType inferredType = typeSchemaEnvironment.getStandardUpperBound(
-        nonNullableReadType, writeType,
-        isNonNullableByDefault: isNonNullableByDefault);
+    DartType inferredType = _analyzeIfNullTypes(
+        nonNullableReadType: nonNullableReadType,
+        rhsType: writeType,
+        typeContext: typeContext);
 
     Expression replacement;
     if (node.forEffect) {
@@ -5240,12 +5258,47 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         inferredType, replacement, nullAwareGuards);
   }
 
+  DartType _analyzeIfNullTypes(
+      {required DartType nonNullableReadType,
+      required DartType rhsType,
+      required DartType typeContext}) {
+    // - An if-null assignment `E` of the form `lvalue ??= e` with context type
+    //   `K` is analyzed as follows:
+    //
+    //   - Let `T1` be the read type the lvalue.
+    //   - Let `T2` be the type of `e` inferred with context type `T1`.
+    DartType t2 = rhsType;
+    //   - Let `T` be `UP(NonNull(T1), T2)`.
+    DartType nonNullT1 = nonNullableReadType;
+    DartType t = typeSchemaEnvironment.getStandardUpperBound(nonNullT1, t2,
+        isNonNullableByDefault: isNonNullableByDefault);
+    //   - Let `S` be the greatest closure of `K`.
+    DartType s = computeGreatestClosure(typeContext);
+    // If `inferenceUpdate3` is not enabled, then the type of `E` is `T`.
+    if (!libraryBuilder.libraryFeatures.inferenceUpdate3.isEnabled) {
+      return t;
+    } else
+    //   - If `T <: S`, then the type of `E` is `T`.
+    if (typeSchemaEnvironment.isSubtypeOf(
+        t, s, SubtypeCheckMode.withNullabilities)) {
+      return t;
+    }
+    //   - Otherwise, if `NonNull(T1) <: S` and `T2 <: S`, then the type of
+    //     `E` is `S`.
+    if (typeSchemaEnvironment.isSubtypeOf(
+            nonNullT1, s, SubtypeCheckMode.withNullabilities) &&
+        typeSchemaEnvironment.isSubtypeOf(
+            t2, s, SubtypeCheckMode.withNullabilities)) {
+      return s;
+    }
+    //   - Otherwise, the type of `E` is `T`.
+    return t;
+  }
+
   ExpressionInferenceResult visitIfNullSet(
       IfNullSet node, DartType typeContext) {
     ExpressionInferenceResult readResult =
         inferNullAwareExpression(node.read, const UnknownType());
-    reportNonNullableInNullAwareWarningIfNeeded(
-        readResult.inferredType, "??=", node.read.fileOffset);
 
     Link<NullAwareGuard> nullAwareGuards = readResult.nullAwareGuards;
     Expression read = readResult.nullAwareAction;
@@ -5258,9 +5311,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     DartType originalReadType = readType;
     DartType nonNullableReadType = originalReadType.toNonNull();
-    DartType inferredType = typeSchemaEnvironment.getStandardUpperBound(
-        nonNullableReadType, writeResult.inferredType,
-        isNonNullableByDefault: isNonNullableByDefault);
+    DartType inferredType = _analyzeIfNullTypes(
+        nonNullableReadType: nonNullableReadType,
+        rhsType: writeResult.inferredType,
+        typeContext: typeContext);
 
     Expression replacement;
     if (node.forEffect) {
@@ -5485,9 +5539,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         isVoidAllowed: false);
 
     List<DartType> extensionTypeArguments = computeExtensionTypeArgument(
-        node.extension,
-        node.explicitTypeArguments,
-        receiverResult.inferredType);
+        node.extension, node.explicitTypeArguments, receiverResult.inferredType,
+        treeNodeForTesting: node);
 
     DartType receiverType =
         getExtensionReceiverType(node.extension, extensionTypeArguments);
@@ -5615,8 +5668,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         readIndex,
         readIndexType,
         checkKind);
-    reportNonNullableInNullAwareWarningIfNeeded(
-        readResult.inferredType, "??=", node.readOffset);
     Expression read = readResult.expression;
     DartType readType = readResult.inferredType;
     flowAnalysis.ifNullExpression_rightBegin(read, readType);
@@ -5632,9 +5683,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     flowAnalysis.ifNullExpression_end();
 
     DartType nonNullableReadType = readType.toNonNull();
-    DartType inferredType = typeSchemaEnvironment.getStandardUpperBound(
-        nonNullableReadType, valueResult.inferredType,
-        isNonNullableByDefault: isNonNullableByDefault);
+    DartType inferredType = _analyzeIfNullTypes(
+        nonNullableReadType: nonNullableReadType,
+        rhsType: valueResult.inferredType,
+        typeContext: typeContext);
 
     VariableDeclaration? valueVariable;
     Expression? returnedValue;
@@ -5747,8 +5799,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         : const ObjectAccessTarget.missing();
 
     DartType readType = readTarget.getReturnType(this);
-    reportNonNullableInNullAwareWarningIfNeeded(
-        readType, "??=", node.readOffset);
     DartType readIndexType = readTarget.getIndexKeyType(this);
 
     ObjectAccessTarget writeTarget = node.setter != null
@@ -5801,9 +5851,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     flowAnalysis.ifNullExpression_end();
 
     DartType nonNullableReadType = readType.toNonNull();
-    DartType inferredType = typeSchemaEnvironment.getStandardUpperBound(
-        nonNullableReadType, valueResult.inferredType,
-        isNonNullableByDefault: isNonNullableByDefault);
+    DartType inferredType = _analyzeIfNullTypes(
+        nonNullableReadType: nonNullableReadType,
+        rhsType: valueResult.inferredType,
+        typeContext: typeContext);
 
     VariableDeclaration? valueVariable;
     Expression? returnedValue;
@@ -5883,9 +5934,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         isVoidAllowed: false);
 
     List<DartType> extensionTypeArguments = computeExtensionTypeArgument(
-        node.extension,
-        node.explicitTypeArguments,
-        receiverResult.inferredType);
+        node.extension, node.explicitTypeArguments, receiverResult.inferredType,
+        treeNodeForTesting: node);
 
     DartType receiverType =
         getExtensionReceiverType(node.extension, extensionTypeArguments);
@@ -5945,8 +5995,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         readIndex,
         readIndexType,
         MethodContravarianceCheckKind.none);
-    reportNonNullableInNullAwareWarningIfNeeded(
-        readResult.inferredType, "??=", node.readOffset);
     Expression read = readResult.expression;
     DartType readType = readResult.inferredType;
     flowAnalysis.ifNullExpression_rightBegin(read, readType);
@@ -5961,9 +6009,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     flowAnalysis.ifNullExpression_end();
 
     DartType nonNullableReadType = readType.toNonNull();
-    DartType inferredType = typeSchemaEnvironment.getStandardUpperBound(
-        nonNullableReadType, valueResult.inferredType,
-        isNonNullableByDefault: isNonNullableByDefault);
+    DartType inferredType = _analyzeIfNullTypes(
+        nonNullableReadType: nonNullableReadType,
+        rhsType: valueResult.inferredType,
+        typeContext: typeContext);
 
     VariableDeclaration? valueVariable;
     Expression? returnedValue;
@@ -7042,8 +7091,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ExpressionInferenceResult receiverResult = inferNullAwareExpression(
         node.receiver, const UnknownType(),
         isVoidAllowed: true);
-    reportNonNullableInNullAwareWarningIfNeeded(
-        receiverResult.inferredType, "?.", node.receiver.fileOffset);
 
     Link<NullAwareGuard> nullAwareGuards = receiverResult.nullAwareGuards;
     Expression receiver = receiverResult.nullAwareAction;
@@ -7324,9 +7371,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         isVoidAllowed: false);
 
     List<DartType> extensionTypeArguments = computeExtensionTypeArgument(
-        node.extension,
-        node.explicitTypeArguments,
-        receiverResult.inferredType);
+        node.extension, node.explicitTypeArguments, receiverResult.inferredType,
+        treeNodeForTesting: node);
 
     DartType receiverType =
         getExtensionReceiverType(node.extension, extensionTypeArguments);
@@ -7605,8 +7651,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ExpressionInferenceResult receiverResult = inferNullAwareExpression(
         node.receiver, const UnknownType(),
         isVoidAllowed: false);
-    reportNonNullableInNullAwareWarningIfNeeded(
-        receiverResult.inferredType, "?.", node.receiver.fileOffset);
 
     Link<NullAwareGuard> nullAwareGuards = receiverResult.nullAwareGuards;
     Expression receiver = receiverResult.nullAwareAction;
@@ -7658,9 +7702,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     flowAnalysis.ifNullExpression_end();
 
     DartType nonNullableReadType = readType.toNonNull();
-    DartType inferredType = typeSchemaEnvironment.getStandardUpperBound(
-        nonNullableReadType, valueResult.inferredType,
-        isNonNullableByDefault: isNonNullableByDefault);
+    DartType inferredType = _analyzeIfNullTypes(
+        nonNullableReadType: nonNullableReadType,
+        rhsType: valueResult.inferredType,
+        typeContext: typeContext);
 
     Expression replacement;
     if (node.forEffect) {
@@ -7980,7 +8025,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           setType, typeParametersToInfer, typeContext,
           isNonNullableByDefault: isNonNullableByDefault,
           isConst: node.isConst,
-          typeOperations: operations);
+          typeOperations: operations,
+          inferenceResultForTesting: dataForTesting?.typeInferenceResult,
+          treeNodeForTesting: node);
       inferredTypes = typeSchemaEnvironment.choosePreliminaryTypes(
           gatherer, typeParametersToInfer, null,
           isNonNullableByDefault: isNonNullableByDefault);
@@ -7999,7 +8046,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
 
     if (inferenceNeeded) {
-      gatherer!.constrainArguments(formalTypes, actualTypes);
+      gatherer!.constrainArguments(formalTypes, actualTypes,
+          treeNodeForTesting: node);
       inferredTypes = typeSchemaEnvironment.chooseFinalTypes(
           gatherer, typeParametersToInfer, inferredTypes!,
           isNonNullableByDefault: isNonNullableByDefault);
@@ -8381,9 +8429,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           [],
           [],
           _createExpressionStatement(createReachabilityError(
-              node.fileOffset,
-              messageNeverReachableSwitchDefaultError,
-              messageNeverReachableSwitchDefaultWarning)),
+              node.fileOffset, messageNeverReachableSwitchDefaultError)),
           isDefault: true)
         ..fileOffset = node.fileOffset
         ..parent = node);
@@ -9232,9 +9278,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         ExpressionInferenceResult expressionResult =
             inferExpression(expression, contextType);
         if (contextType is! UnknownType) {
-          expressionResult =
-              coerceExpressionForAssignment(contextType, expressionResult) ??
-                  expressionResult;
+          expressionResult = coerceExpressionForAssignment(
+                  contextType, expressionResult,
+                  treeNodeForTesting: node) ??
+              expressionResult;
         }
 
         positionalTypes.add(
@@ -9281,9 +9328,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           ExpressionInferenceResult expressionResult =
               inferExpression(element.value, contextType);
           if (contextType is! UnknownType) {
-            expressionResult =
-                coerceExpressionForAssignment(contextType, expressionResult) ??
-                    expressionResult;
+            expressionResult = coerceExpressionForAssignment(
+                    contextType, expressionResult,
+                    treeNodeForTesting: node) ??
+                expressionResult;
           }
           Expression expression = expressionResult.expression;
           DartType type = expressionResult.postCoercionType ??
@@ -9313,9 +9361,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           ExpressionInferenceResult expressionResult =
               inferExpression(element as Expression, contextType);
           if (contextType is! UnknownType) {
-            expressionResult =
-                coerceExpressionForAssignment(contextType, expressionResult) ??
-                    expressionResult;
+            expressionResult = coerceExpressionForAssignment(
+                    contextType, expressionResult,
+                    treeNodeForTesting: node) ??
+                expressionResult;
           }
           Expression expression = expressionResult.expression;
           DartType type = expressionResult.postCoercionType ??
@@ -9382,19 +9431,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new ExpressionInferenceResult(type, result);
   }
 
-  void reportNonNullableInNullAwareWarningIfNeeded(
-      DartType operandType, String operationName, int offset) {
-    if (operandType is! InvalidType &&
-        operandType.nullability == Nullability.nonNullable) {
-      libraryBuilder.addProblem(
-          templateNonNullableInNullAware.withArguments(
-              operationName, operandType, isNonNullableByDefault),
-          offset,
-          noLength,
-          helper.uri);
-    }
-  }
-
   /// Pops the top entry off of [_rewriteStack].
   Object? popRewrite([NullValue? nullValue]) {
     Object entry = _rewriteStack.removeLast();
@@ -9457,9 +9493,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         inferExpression(node, context, isVoidAllowed: true).stopShorting();
 
     if (needsCoercion) {
-      expressionResult =
-          coerceExpressionForAssignment(context, expressionResult) ??
-              expressionResult;
+      expressionResult = coerceExpressionForAssignment(
+              context, expressionResult,
+              treeNodeForTesting: node) ??
+          expressionResult;
     }
 
     pushRewrite(expressionResult.expression);
@@ -10973,7 +11010,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   List<DartType> _inferTypeArguments(
       {required List<TypeParameter> typeParameters,
       required DartType declaredType,
-      required DartType contextType}) {
+      required DartType contextType,
+      required TreeNode? treeNodeForTesting}) {
     FreshStructuralParametersFromTypeParameters freshTypeParameters =
         getFreshStructuralParametersFromTypeParameters(typeParameters);
     List<StructuralParameter> typeParametersToInfer =
@@ -10983,7 +11021,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         typeSchemaEnvironment.setupGenericTypeInference(
             declaredType, typeParametersToInfer, contextType,
             isNonNullableByDefault: isNonNullableByDefault,
-            typeOperations: operations);
+            typeOperations: operations,
+            inferenceResultForTesting: dataForTesting?.typeInferenceResult,
+            treeNodeForTesting: treeNodeForTesting);
     return typeSchemaEnvironment.chooseFinalTypes(
         gatherer, typeParametersToInfer, null,
         isNonNullableByDefault: isNonNullableByDefault);
@@ -11008,7 +11048,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           List<DartType> inferredTypeArguments = _inferTypeArguments(
               typeParameters: typedefTypeParameters,
               declaredType: unaliasedTypedef,
-              contextType: matchedType);
+              contextType: matchedType,
+              treeNodeForTesting: pattern);
           requiredType = new TypedefType(typedef,
                   libraryBuilder.library.nonNullable, inferredTypeArguments)
               .unalias;
@@ -11031,7 +11072,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           List<DartType> inferredTypeArguments = _inferTypeArguments(
               typeParameters: typeParameters,
               declaredType: declaredType,
-              contextType: matchedType);
+              contextType: matchedType,
+              treeNodeForTesting: pattern);
           requiredType = new InterfaceType(requiredType.classNode,
               requiredType.declaredNullability, inferredTypeArguments);
         }
@@ -11055,7 +11097,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           List<DartType> inferredTypeArguments = _inferTypeArguments(
               typeParameters: typeParameters,
               declaredType: declaredType,
-              contextType: matchedType);
+              contextType: matchedType,
+              treeNodeForTesting: pattern);
           requiredType = new ExtensionType(
               requiredType.extensionTypeDeclaration,
               requiredType.declaredNullability,

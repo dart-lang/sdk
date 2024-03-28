@@ -49,11 +49,11 @@ extension type EIAliasNullable(self::A? _) {
   constructor • = self::EIAliasNullable|constructor#;
   constructor tearoff • = self::EIAliasNullable|constructor#_#new#tearOff;
 }
-static extension-type-member method EINullable|constructor#(core::int? _) → self::EINullable /* = core::int? */
+static extension-type-member method EINullable|constructor#(core::int? _) → self::EINullable% /* erasure=core::int?, declared=! */
   ;
-static extension-type-member method EINullable|constructor#_#new#tearOff(core::int? _) → self::EINullable /* = core::int? */
+static extension-type-member method EINullable|constructor#_#new#tearOff(core::int? _) → self::EINullable% /* erasure=core::int?, declared=! */
   return self::EINullable|constructor#(_);
-static extension-type-member method EIAliasNullable|constructor#(self::A? _) → self::EIAliasNullable /* = self::A? */
+static extension-type-member method EIAliasNullable|constructor#(self::A? _) → self::EIAliasNullable% /* erasure=self::A?, declared=! */
   ;
-static extension-type-member method EIAliasNullable|constructor#_#new#tearOff(self::A? _) → self::EIAliasNullable /* = self::A? */
+static extension-type-member method EIAliasNullable|constructor#_#new#tearOff(self::A? _) → self::EIAliasNullable% /* erasure=self::A?, declared=! */
   return self::EIAliasNullable|constructor#(_);

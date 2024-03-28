@@ -54,12 +54,15 @@ abstract class AbstractCompletionDriverTest
   /// of the suggestions. Individual tests can replace the default set.
   Set<CompletionSuggestionKind> allowedKinds = {};
 
+  /// Whether keywords should be included in the text to be compared.
+  bool includeKeywords = true;
+
   /// Return `true` if closures (suggestions starting with a left paren) should
   /// be included in the text to be compared.
   bool get includeClosures => false;
 
-  /// Return `true` if keywords should be included in the text to be compared.
-  bool get includeKeywords => true;
+  /// Return `true` if overrides should be included in the text to be compared.
+  bool get includeOverrides => true;
 
   @override
   Future<List<CompletionSuggestion>> addTestFile(String content,
@@ -119,8 +122,9 @@ abstract class AbstractCompletionDriverTest
 The actual suggestions do not match the expected suggestions$where.
 
 To accept the current state change the expectation to
-
-$actual
+\r${'-' * 64}
+\r${actual.trimRight().split('\n').join('\n\r')}
+\r${'-' * 64}
 ''');
     }
   }
@@ -153,8 +157,13 @@ $actual
 
     await addTestFile(content);
 
+    // Extract the internal request object.
+    var dartRequest = server.completionState.currentRequest;
+
     response = CompletionResponseForTesting(
       requestOffset: driver.completionOffset,
+      requestLocationName: dartRequest?.collectorLocationName,
+      opTypeLocationName: dartRequest?.opType.completionLocation,
       replacementOffset: driver.replacementOffset,
       replacementLength: driver.replacementLength,
       isIncomplete: false, // TODO(scheglov): not correct
@@ -197,6 +206,8 @@ name: test
               allowedIdentifiers.contains(completion);
         } else if (kind == CompletionSuggestionKind.KEYWORD) {
           return includeKeywords;
+        } else if (kind == CompletionSuggestionKind.OVERRIDE) {
+          return includeOverrides;
         } else if (allowedKinds.contains(kind)) {
           return true;
         }

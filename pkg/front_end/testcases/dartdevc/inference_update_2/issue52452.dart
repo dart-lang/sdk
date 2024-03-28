@@ -5,8 +5,6 @@
 // Tests that field promotion is prevented if there is a synthetic instance
 // getter of the same name in the library that's a noSuchMethod forwarder.
 
-// SharedOptions=--enable-experiment=inference-update-2
-
 class C {
   final int? _f2;
   final int? _f3;

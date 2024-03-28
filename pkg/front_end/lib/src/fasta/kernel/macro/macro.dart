@@ -2,11 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/macros/api.dart' as macro;
-import 'package:_fe_analyzer_shared/src/macros/executor.dart' as macro;
-import 'package:_fe_analyzer_shared/src/macros/executor/span.dart' as macro;
+import 'package:macros/macros.dart' as macro;
+import 'package:macros/src/executor.dart' as macro;
+import 'package:macros/src/executor/span.dart' as macro;
 import 'package:_fe_analyzer_shared/src/macros/uri.dart';
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
+import 'package:front_end/src/fasta/uri_offset.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 
@@ -21,6 +22,7 @@ import '../../codes/fasta_codes.dart';
 import '../../source/source_class_builder.dart';
 import '../../source/source_constructor_builder.dart';
 import '../../source/source_extension_builder.dart';
+import '../../source/source_extension_type_declaration_builder.dart';
 import '../../source/source_factory_builder.dart';
 import '../../source/source_field_builder.dart';
 import '../../source/source_library_builder.dart';
@@ -35,8 +37,7 @@ import 'offsets.dart';
 
 const String intermediateAugmentationScheme = 'org-dartlang-augmentation';
 
-final Uri macroLibraryUri =
-    Uri.parse('package:_fe_analyzer_shared/src/macros/api.dart');
+final Uri macroLibraryUri = Uri.parse('package:_macros/src/api.dart');
 const String macroClassName = 'Macro';
 
 class MacroDeclarationData {
@@ -47,26 +48,43 @@ class MacroDeclarationData {
 }
 
 class MacroApplication {
-  final Uri fileUri;
-  final int fileOffset;
+  final UriOffset uriOffset;
   final ClassBuilder classBuilder;
   final String constructorName;
   final macro.Arguments arguments;
-  final String? errorReason;
-  final Set<macro.Phase> appliedPhases = {};
+  final bool isErroneous;
+  final String? unhandledReason;
 
+  /// Creates a [MacroApplication] for a macro annotation that should be
+  /// applied.
   MacroApplication(this.classBuilder, this.constructorName, this.arguments,
-      {required this.fileUri, required this.fileOffset})
-      : errorReason = null;
+      {required this.uriOffset})
+      : isErroneous = false,
+        unhandledReason = null;
 
-  MacroApplication.error(String this.errorReason, this.classBuilder,
-      {required this.fileUri, required this.fileOffset})
-      : constructorName = '',
+  /// Creates an erroneous [MacroApplication] for a macro annotation using
+  /// syntax that is not unhandled.
+  // TODO(johnniwinther): Separate this into unhandled (but valid) and
+  //  unsupported (thus invalid) annotations.
+  MacroApplication.unhandled(String this.unhandledReason, this.classBuilder,
+      {required this.uriOffset})
+      : isErroneous = true,
+        constructorName = '',
         arguments = new macro.Arguments(const [], const {});
 
-  bool get isErroneous => errorReason != null;
+  /// Creates an erroneous [MacroApplication] for an invalid macro application
+  /// for which an error has been reported, which should _not_ be applied. For
+  /// instance a macro annotation of a macro declared in the same library cycle.
+  MacroApplication.invalid(this.classBuilder, {required this.uriOffset})
+      : constructorName = '',
+        isErroneous = true,
+        unhandledReason = null,
+        arguments = new macro.Arguments(const [], const {});
+
+  bool get isUnhandled => unhandledReason != null;
 
   late macro.MacroInstanceIdentifier instanceIdentifier;
+  late Set<macro.Phase> phasesToExecute;
 
   @override
   String toString() {
@@ -168,16 +186,7 @@ class ApplicationDataForTesting {
   @override
   String toString() {
     StringBuffer sb = new StringBuffer();
-    Builder builder = applicationData.builder;
-    if (builder is MemberBuilder) {
-      if (builder.classBuilder != null) {
-        sb.write(builder.classBuilder!.name);
-        sb.write('.');
-      }
-      sb.write(builder.name);
-    } else {
-      sb.write((builder as ClassBuilder).name);
-    }
+    sb.write(applicationData.textForTesting);
     sb.write(':');
     sb.write(macroApplication);
     return sb.toString();
@@ -234,7 +243,7 @@ void checkMacroApplications(
               in applicationData.macroApplications) {
             Map<int, MacroApplication> applications =
                 macroApplications[application.classBuilder.cls] ??= {};
-            int fileOffset = application.fileOffset;
+            int fileOffset = application.uriOffset.fileOffset;
             assert(
                 !applications.containsKey(fileOffset),
                 "Multiple annotations at offset $fileOffset: "
@@ -253,10 +262,10 @@ void checkMacroApplications(
             MacroApplication? macroApplication =
                 applications?.remove(annotation.fileOffset);
             if (macroApplication != null) {
-              if (macroApplication.isErroneous) {
+              if (macroApplication.isUnhandled) {
                 libraryBuilder.addProblem(
                     templateUnhandledMacroApplication
-                        .withArguments(macroApplication.errorReason!),
+                        .withArguments(macroApplication.unhandledReason!),
                     annotation.fileOffset,
                     noLength,
                     fileUri);
@@ -358,14 +367,17 @@ class MacroApplications {
   bool get hasLoadableMacroIds => _pendingLibraryData.isNotEmpty;
 
   void computeLibrariesMacroApplicationData(
-      Iterable<SourceLibraryBuilder> libraryBuilders) {
+      Iterable<SourceLibraryBuilder> libraryBuilders,
+      Set<ClassBuilder> currentMacroDeclarations) {
     for (SourceLibraryBuilder libraryBuilder in libraryBuilders) {
-      _computeSourceLibraryMacroApplicationData(libraryBuilder);
+      _computeSourceLibraryMacroApplicationData(
+          libraryBuilder, currentMacroDeclarations);
     }
   }
 
   void _computeSourceLibraryMacroApplicationData(
-      SourceLibraryBuilder libraryBuilder) {
+      SourceLibraryBuilder libraryBuilder,
+      Set<ClassBuilder> currentMacroDeclarations) {
     // TODO(johnniwinther): Handle augmentation libraries.
     LibraryMacroApplicationData libraryMacroApplicationData =
         new LibraryMacroApplicationData();
@@ -374,7 +386,8 @@ class MacroApplications {
         enclosingLibrary: libraryBuilder,
         scope: libraryBuilder.scope,
         fileUri: libraryBuilder.fileUri,
-        metadataBuilders: libraryBuilder.metadata);
+        metadataBuilders: libraryBuilder.metadata,
+        currentMacroDeclarations: currentMacroDeclarations);
     if (libraryMacroApplications != null) {
       libraryMacroApplicationData.libraryApplications =
           new LibraryApplicationData(
@@ -392,7 +405,8 @@ class MacroApplications {
             enclosingLibrary: libraryBuilder,
             scope: classBuilder.scope,
             fileUri: classBuilder.fileUri,
-            metadataBuilders: classBuilder.metadata);
+            metadataBuilders: classBuilder.metadata,
+            currentMacroDeclarations: currentMacroDeclarations);
         if (classMacroApplications != null) {
           classMacroApplicationData.classApplications =
               new ClassApplicationData(_macroIntrospection, libraryBuilder,
@@ -406,7 +420,8 @@ class MacroApplications {
                 enclosingLibrary: libraryBuilder,
                 scope: classBuilder.scope,
                 fileUri: memberBuilder.fileUri,
-                metadataBuilders: memberBuilder.metadata);
+                metadataBuilders: memberBuilder.metadata,
+                currentMacroDeclarations: currentMacroDeclarations);
             if (macroApplications != null) {
               classMacroApplicationData.memberApplications[memberBuilder] =
                   new MemberApplicationData(_macroIntrospection, libraryBuilder,
@@ -417,7 +432,8 @@ class MacroApplications {
                 enclosingLibrary: libraryBuilder,
                 scope: classBuilder.scope,
                 fileUri: memberBuilder.fileUri,
-                metadataBuilders: memberBuilder.metadata);
+                metadataBuilders: memberBuilder.metadata,
+                currentMacroDeclarations: currentMacroDeclarations);
             if (macroApplications != null) {
               classMacroApplicationData.memberApplications[memberBuilder] =
                   new MemberApplicationData(_macroIntrospection, libraryBuilder,
@@ -437,7 +453,8 @@ class MacroApplications {
                 enclosingLibrary: libraryBuilder,
                 scope: classBuilder.scope,
                 fileUri: memberBuilder.fileUri,
-                metadataBuilders: memberBuilder.metadata);
+                metadataBuilders: memberBuilder.metadata,
+                currentMacroDeclarations: currentMacroDeclarations);
             if (macroApplications != null) {
               classMacroApplicationData.memberApplications[memberBuilder] =
                   new MemberApplicationData(_macroIntrospection, libraryBuilder,
@@ -448,7 +465,8 @@ class MacroApplications {
                 enclosingLibrary: libraryBuilder,
                 scope: classBuilder.scope,
                 fileUri: memberBuilder.fileUri,
-                metadataBuilders: memberBuilder.metadata);
+                metadataBuilders: memberBuilder.metadata,
+                currentMacroDeclarations: currentMacroDeclarations);
             if (macroApplications != null) {
               classMacroApplicationData.memberApplications[memberBuilder] =
                   new MemberApplicationData(_macroIntrospection, libraryBuilder,
@@ -470,7 +488,8 @@ class MacroApplications {
             enclosingLibrary: libraryBuilder,
             scope: libraryBuilder.scope,
             fileUri: builder.fileUri,
-            metadataBuilders: builder.metadata);
+            metadataBuilders: builder.metadata,
+            currentMacroDeclarations: currentMacroDeclarations);
         if (macroApplications != null) {
           libraryMacroApplicationData.memberApplications[builder] =
               new MemberApplicationData(_macroIntrospection, libraryBuilder,
@@ -481,22 +500,26 @@ class MacroApplications {
             enclosingLibrary: libraryBuilder,
             scope: libraryBuilder.scope,
             fileUri: builder.fileUri,
-            metadataBuilders: builder.metadata);
+            metadataBuilders: builder.metadata,
+            currentMacroDeclarations: currentMacroDeclarations);
         if (macroApplications != null) {
           libraryMacroApplicationData.memberApplications[builder] =
               new MemberApplicationData(_macroIntrospection, libraryBuilder,
                   builder, macroApplications);
         }
-      } else if (builder is PrefixBuilder ||
-          builder is SourceExtensionBuilder ||
+      } else if (builder is SourceExtensionBuilder ||
+          builder is SourceExtensionTypeDeclarationBuilder ||
           builder is SourceTypeAliasBuilder) {
+        // TODO(johnniwinther): Support macro applications.
+      } else if (builder is PrefixBuilder) {
         // Macro applications are not supported.
       } else {
         throw new UnsupportedError("Unexpected library member "
             "$builder (${builder.runtimeType})");
       }
     }
-    if (libraryMacroApplicationData.classData.isNotEmpty ||
+    if (libraryMacroApplications != null ||
+        libraryMacroApplicationData.classData.isNotEmpty ||
         libraryMacroApplicationData.memberApplications.isNotEmpty) {
       _libraryData[libraryBuilder] = libraryMacroApplicationData;
       dataForTesting?.libraryData[libraryBuilder] = libraryMacroApplicationData;
@@ -507,60 +530,91 @@ class MacroApplications {
   Future<void> loadMacroIds(Benchmarker? benchmarker) async {
     Map<MacroApplication, macro.MacroInstanceIdentifier> instanceIdCache = {};
 
-    Future<void> ensureMacroClassIds(
-        List<MacroApplication>? applications) async {
-      if (applications != null) {
-        for (MacroApplication application in applications) {
-          if (application.isErroneous) {
-            continue;
-          }
-          Uri libraryUri = application.classBuilder.libraryBuilder.importUri;
-          String macroClassName = application.classBuilder.name;
+    Future<void> ensureMacroClassIds(ApplicationData? applicationData) async {
+      if (applicationData == null) {
+        return;
+      }
+      macro.DeclarationKind targetDeclarationKind =
+          applicationData.declarationKind;
+      List<MacroApplication>? applications = applicationData.macroApplications;
+      for (MacroApplication application in applications) {
+        if (application.isErroneous) {
+          application.phasesToExecute = {};
+          continue;
+        }
+        Uri libraryUri = application.classBuilder.libraryBuilder.importUri;
+        String macroClassName = application.classBuilder.name;
+        try {
+          benchmarker?.beginSubdivide(
+              BenchmarkSubdivides.macroApplications_macroExecutorLoadMacro);
+          benchmarker?.endSubdivide();
           try {
-            benchmarker?.beginSubdivide(
-                BenchmarkSubdivides.macroApplications_macroExecutorLoadMacro);
-            benchmarker?.endSubdivide();
-            try {
-              benchmarker?.beginSubdivide(BenchmarkSubdivides
-                  .macroApplications_macroExecutorInstantiateMacro);
-              application.instanceIdentifier = instanceIdCache[application] ??=
-                  // TODO: Dispose of these instances using
-                  // `macroExecutor.disposeMacro` once we are done with them.
-                  await macroExecutor.instantiateMacro(
-                      libraryUri,
-                      macroClassName,
-                      application.constructorName,
-                      application.arguments);
-              benchmarker?.endSubdivide();
-            } catch (e, s) {
-              throw "Error instantiating macro `${application}`: "
-                  "$e\n$s";
+            benchmarker?.beginSubdivide(BenchmarkSubdivides
+                .macroApplications_macroExecutorInstantiateMacro);
+            macro.MacroInstanceIdentifier instance =
+                application.instanceIdentifier = instanceIdCache[
+                        application] ??=
+                    // TODO: Dispose of these instances using
+                    // `macroExecutor.disposeMacro` once we are done with them.
+                    await macroExecutor.instantiateMacro(
+                        libraryUri,
+                        macroClassName,
+                        application.constructorName,
+                        application.arguments);
+
+            application.phasesToExecute = macro.Phase.values.where((phase) {
+              return instance.shouldExecute(targetDeclarationKind, phase);
+            }).toSet();
+
+            if (!instance.supportsDeclarationKind(targetDeclarationKind)) {
+              Iterable<macro.DeclarationKind> supportedKinds = macro
+                  .DeclarationKind.values
+                  .where(instance.supportsDeclarationKind);
+              if (supportedKinds.isEmpty) {
+                // TODO(johnniwinther): Improve messaging here. Is it an error
+                //  for a macro class to _not_ implement at least one of the
+                //  macro interfaces?
+                applicationData.libraryBuilder.addProblem(
+                    messageNoMacroApplicationTarget,
+                    application.uriOffset.fileOffset,
+                    noLength,
+                    application.uriOffset.uri);
+              } else {
+                applicationData.libraryBuilder.addProblem(
+                    templateInvalidMacroApplicationTarget.withArguments(
+                        DeclarationKindHelper.joinWithOr(supportedKinds)),
+                    application.uriOffset.fileOffset,
+                    noLength,
+                    application.uriOffset.uri);
+              }
             }
+            benchmarker?.endSubdivide();
           } catch (e, s) {
-            throw "Error loading macro class "
-                "'${application.classBuilder.name}' from "
-                "'${application.classBuilder.libraryBuilder.importUri}': "
+            throw "Error instantiating macro `${application}`: "
                 "$e\n$s";
           }
+        } catch (e, s) {
+          throw "Error loading macro class "
+              "'${application.classBuilder.name}' from "
+              "'${application.classBuilder.libraryBuilder.importUri}': "
+              "$e\n$s";
         }
       }
     }
 
     for (LibraryMacroApplicationData libraryData in _pendingLibraryData) {
-      await ensureMacroClassIds(
-          libraryData.libraryApplications?.macroApplications);
+      await ensureMacroClassIds(libraryData.libraryApplications);
       for (ClassMacroApplicationData classData
           in libraryData.classData.values) {
-        await ensureMacroClassIds(
-            classData.classApplications?.macroApplications);
+        await ensureMacroClassIds(classData.classApplications);
         for (ApplicationData applicationData
             in classData.memberApplications.values) {
-          await ensureMacroClassIds(applicationData.macroApplications);
+          await ensureMacroClassIds(applicationData);
         }
       }
       for (ApplicationData applicationData
           in libraryData.memberApplications.values) {
-        await ensureMacroClassIds(applicationData.macroApplications);
+        await ensureMacroClassIds(applicationData);
       }
     }
     _pendingLibraryData.clear();
@@ -573,28 +627,23 @@ class MacroApplications {
     List<macro.MacroExecutionResult> results = [];
     for (MacroApplication macroApplication
         in applicationData.macroApplications) {
-      if (!macroApplication.appliedPhases.add(macro.Phase.types)) {
+      if (!macroApplication.phasesToExecute.remove(macro.Phase.types)) {
         continue;
       }
-      if (macroApplication.isErroneous) {
-        continue;
+      if (retainDataForTesting) {
+        dataForTesting!.typesApplicationOrder.add(
+            new ApplicationDataForTesting(applicationData, macroApplication));
       }
-      if (macroApplication.instanceIdentifier
-          .shouldExecute(applicationData.declarationKind, macro.Phase.types)) {
-        if (retainDataForTesting) {
-          dataForTesting!.typesApplicationOrder.add(
-              new ApplicationDataForTesting(applicationData, macroApplication));
-        }
-        macro.MacroExecutionResult result =
-            await _macroExecutor.executeTypesPhase(
-                macroApplication.instanceIdentifier,
-                macroTarget,
-                _macroIntrospection.typePhaseIntrospector);
-        result.reportDiagnostics(macroApplication, applicationData);
-        if (result.isNotEmpty) {
-          _registerMacroExecutionResult(originLibraryBuilder, result);
-          results.add(result);
-        }
+      macro.MacroExecutionResult result =
+          await _macroExecutor.executeTypesPhase(
+              macroApplication.instanceIdentifier,
+              macroTarget,
+              _macroIntrospection.typePhaseIntrospector);
+      result.reportDiagnostics(
+          _macroIntrospection, macroApplication, applicationData);
+      if (result.isNotEmpty) {
+        _registerMacroExecutionResult(originLibraryBuilder, result);
+        results.add(result);
       }
     }
 
@@ -695,54 +744,48 @@ class MacroApplications {
     macro.MacroTarget macroTarget = applicationData.macroTarget;
     for (MacroApplication macroApplication
         in applicationData.macroApplications) {
-      if (!macroApplication.appliedPhases.add(macro.Phase.declarations)) {
+      if (!macroApplication.phasesToExecute.remove(macro.Phase.declarations)) {
         continue;
       }
-      if (macroApplication.isErroneous) {
-        continue;
+      if (retainDataForTesting) {
+        dataForTesting!.declarationsApplicationOrder.add(
+            new ApplicationDataForTesting(applicationData, macroApplication));
       }
-      if (macroApplication.instanceIdentifier.shouldExecute(
-          applicationData.declarationKind, macro.Phase.declarations)) {
+      macro.MacroExecutionResult result =
+          await _macroExecutor.executeDeclarationsPhase(
+              macroApplication.instanceIdentifier,
+              macroTarget,
+              _macroIntrospection.declarationPhaseIntrospector);
+      result.reportDiagnostics(
+          _macroIntrospection, macroApplication, applicationData);
+      if (result.isNotEmpty) {
+        Map<macro.OmittedTypeAnnotation, String> omittedTypes = {};
+        List<macro.Span> spans = [];
+        String source = _macroExecutor.buildAugmentationLibrary(
+            originLibraryBuilder.importUri,
+            [result],
+            _macroIntrospection.resolveDeclaration,
+            _macroIntrospection.resolveIdentifier,
+            _macroIntrospection.types.inferOmittedType,
+            omittedTypes: omittedTypes,
+            spans: spans);
         if (retainDataForTesting) {
-          dataForTesting!.declarationsApplicationOrder.add(
-              new ApplicationDataForTesting(applicationData, macroApplication));
+          dataForTesting?.registerDeclarationsResult(
+              applicationData.builder, result, source);
         }
-        macro.MacroExecutionResult result =
-            await _macroExecutor.executeDeclarationsPhase(
-                macroApplication.instanceIdentifier,
-                macroTarget,
-                _macroIntrospection.declarationPhaseIntrospector);
-        result.reportDiagnostics(macroApplication, applicationData);
-        if (result.isNotEmpty) {
-          Map<macro.OmittedTypeAnnotation, String> omittedTypes = {};
-          List<macro.Span> spans = [];
-          String source = _macroExecutor.buildAugmentationLibrary(
-              originLibraryBuilder.importUri,
-              [result],
-              _macroIntrospection.resolveDeclaration,
-              _macroIntrospection.resolveIdentifier,
-              _macroIntrospection.types.inferOmittedType,
-              omittedTypes: omittedTypes,
-              spans: spans);
-          if (retainDataForTesting) {
-            dataForTesting?.registerDeclarationsResult(
-                applicationData.builder, result, source);
-          }
-          _registerMacroExecutionResult(originLibraryBuilder, result);
-          Map<String, OmittedTypeBuilder>? omittedTypeBuilders =
-              _macroIntrospection.types
-                  .computeOmittedTypeBuilders(omittedTypes);
+        _registerMacroExecutionResult(originLibraryBuilder, result);
+        Map<String, OmittedTypeBuilder>? omittedTypeBuilders =
+            _macroIntrospection.types.computeOmittedTypeBuilders(omittedTypes);
 
-          SourceLibraryBuilder augmentationLibrary = await applicationData
-              .libraryBuilder.origin
-              .createAugmentationLibrary(source,
-                  omittedTypes: omittedTypeBuilders);
-          _registerMacroExecutionResultSpan(
-              originLibraryBuilder, augmentationLibrary.importUri, spans);
-          await onAugmentationLibrary(augmentationLibrary);
-          if (retainDataForTesting) {
-            results.add(result);
-          }
+        SourceLibraryBuilder augmentationLibrary = await applicationData
+            .libraryBuilder.origin
+            .createAugmentationLibrary(source,
+                omittedTypes: omittedTypeBuilders);
+        _registerMacroExecutionResultSpan(
+            originLibraryBuilder, augmentationLibrary.importUri, spans);
+        await onAugmentationLibrary(augmentationLibrary);
+        if (retainDataForTesting) {
+          results.add(result);
         }
       }
     }
@@ -821,28 +864,23 @@ class MacroApplications {
     macro.MacroTarget macroTarget = applicationData.macroTarget;
     for (MacroApplication macroApplication
         in applicationData.macroApplications) {
-      if (!macroApplication.appliedPhases.add(macro.Phase.definitions)) {
+      if (!macroApplication.phasesToExecute.remove(macro.Phase.definitions)) {
         continue;
       }
-      if (macroApplication.isErroneous) {
-        continue;
+      if (retainDataForTesting) {
+        dataForTesting!.definitionApplicationOrder.add(
+            new ApplicationDataForTesting(applicationData, macroApplication));
       }
-      if (macroApplication.instanceIdentifier.shouldExecute(
-          applicationData.declarationKind, macro.Phase.definitions)) {
-        if (retainDataForTesting) {
-          dataForTesting!.definitionApplicationOrder.add(
-              new ApplicationDataForTesting(applicationData, macroApplication));
-        }
-        macro.MacroExecutionResult result =
-            await _macroExecutor.executeDefinitionsPhase(
-                macroApplication.instanceIdentifier,
-                macroTarget,
-                _macroIntrospection.definitionPhaseIntrospector);
-        result.reportDiagnostics(macroApplication, applicationData);
-        if (result.isNotEmpty) {
-          _registerMacroExecutionResult(originLibraryBuilder, result);
-          results.add(result);
-        }
+      macro.MacroExecutionResult result =
+          await _macroExecutor.executeDefinitionsPhase(
+              macroApplication.instanceIdentifier,
+              macroTarget,
+              _macroIntrospection.definitionPhaseIntrospector);
+      result.reportDiagnostics(
+          _macroIntrospection, macroApplication, applicationData);
+      if (result.isNotEmpty) {
+        _registerMacroExecutionResult(originLibraryBuilder, result);
+        results.add(result);
       }
     }
     if (retainDataForTesting) {
@@ -933,7 +971,8 @@ class MacroApplications {
           _macroIntrospection.types.inferOmittedType,
           spans: spans);
       Uri importUri = originLibraryBuilder.importUri;
-      Uri augmentationUri = toMacroLibraryUri(importUri);
+      Uri augmentationImportUri = toMacroLibraryUri(importUri);
+      Uri augmentationFileUri = toMacroLibraryUri(originLibraryBuilder.fileUri);
 
       Map<macro.Key, OffsetRange> output = {};
       for (macro.Span span in spans) {
@@ -959,7 +998,7 @@ class MacroApplications {
           }
           if (spans.isNotEmpty) {
             reOffsetMaps[intermediateAugmentationUri] = new ReOffset(
-                intermediateAugmentationUri, augmentationUri, reOffsetMap);
+                intermediateAugmentationUri, augmentationFileUri, reOffsetMap);
           }
         }
       }
@@ -968,7 +1007,7 @@ class MacroApplications {
           .target.context.options.showGeneratedMacroSourcesForTesting) {
         print('==============================================================');
         print('Origin library: ${importUri}');
-        print('Merged macro augmentation library: ${augmentationUri}');
+        print('Merged macro augmentation library: ${augmentationImportUri}');
         print('---------------------------source-----------------------------');
         print(source);
         print('==============================================================');
@@ -982,11 +1021,11 @@ class MacroApplications {
               enableNonNullable: true,
               enableTripleShift: true,
               forAugmentationLibrary: true));
-      component.uriToSource[augmentationUri] = new Source(
+      component.uriToSource[augmentationFileUri] = new Source(
           scannerResult.lineStarts,
           source.codeUnits,
-          augmentationUri,
-          augmentationUri);
+          augmentationImportUri,
+          augmentationFileUri);
       for (Uri intermediateAugmentationUri in intermediateAugmentationUris) {
         component.uriToSource.remove(intermediateAugmentationUri);
       }
@@ -1000,6 +1039,8 @@ class MacroApplications {
     _macroIntrospection.clear();
     if (!retainDataForTesting) {
       _libraryData.clear();
+      _libraryResults.clear();
+      _libraryResultSpans.clear();
     }
   }
 }
@@ -1040,6 +1081,8 @@ abstract class ApplicationData {
   macro.DeclarationKind get declarationKind;
 
   Builder get builder;
+
+  String get textForTesting;
 }
 
 class LibraryApplicationData extends ApplicationData {
@@ -1058,6 +1101,9 @@ class LibraryApplicationData extends ApplicationData {
 
   @override
   Builder get builder => libraryBuilder;
+
+  @override
+  String get textForTesting => libraryBuilder.importUri.toString();
 }
 
 /// Data needed to apply a list of macro applications to a class or member.
@@ -1090,6 +1136,9 @@ class ClassApplicationData extends DeclarationApplicationData {
 
   @override
   Builder get builder => _classBuilder;
+
+  @override
+  String get textForTesting => _classBuilder.name;
 }
 
 class MemberApplicationData extends DeclarationApplicationData {
@@ -1106,6 +1155,17 @@ class MemberApplicationData extends DeclarationApplicationData {
 
   @override
   Builder get builder => _memberBuilder;
+
+  @override
+  String get textForTesting {
+    StringBuffer sb = new StringBuffer();
+    if (_memberBuilder.classBuilder != null) {
+      sb.write(_memberBuilder.classBuilder!.name);
+      sb.write('.');
+    }
+    sb.write(_memberBuilder.name);
+    return sb.toString();
+  }
 }
 
 extension on macro.MacroExecutionResult {
@@ -1114,28 +1174,70 @@ extension on macro.MacroExecutionResult {
       libraryAugmentations.isNotEmpty ||
       typeAugmentations.isNotEmpty;
 
-  void reportDiagnostics(
+  void reportDiagnostics(MacroIntrospection introspection,
       MacroApplication macroApplication, ApplicationData applicationData) {
     // TODO(johnniwinther): Should the error be reported on the original
     //  annotation in case of nested macros?
-    Uri fileUri = macroApplication.fileUri;
-    int fileOffset = macroApplication.fileOffset;
+    UriOffset uriOffset = macroApplication.uriOffset;
     for (macro.Diagnostic diagnostic in diagnostics) {
       // TODO(johnniwinther): Improve diagnostic reporting.
+      switch (diagnostic.message.target) {
+        case null:
+          break;
+        case macro.DeclarationDiagnosticTarget(:macro.Declaration declaration):
+          uriOffset = introspection.getLocationFromDeclaration(declaration);
+        case macro.TypeAnnotationDiagnosticTarget(
+            :macro.TypeAnnotation typeAnnotation
+          ):
+          uriOffset = introspection.types
+                  .getLocationFromTypeAnnotation(typeAnnotation) ??
+              uriOffset;
+        case macro.MetadataAnnotationDiagnosticTarget():
+        // TODO(johnniwinther): Support metadata annotations.
+      }
       applicationData.libraryBuilder.addProblem(
           templateUnspecified.withArguments(diagnostic.message.message),
-          fileOffset,
+          uriOffset.fileOffset,
           -1,
-          fileUri);
+          uriOffset.uri);
     }
     if (exception != null) {
       // TODO(johnniwinther): Improve exception reporting.
       applicationData.libraryBuilder.addProblem(
           templateUnspecified.withArguments('${exception.runtimeType}: '
               '${exception!.message}\n${exception!.stackTrace}'),
-          fileOffset,
+          uriOffset.fileOffset,
           -1,
-          fileUri);
+          uriOffset.uri);
     }
+  }
+}
+
+extension DeclarationKindHelper on macro.DeclarationKind {
+  /// Returns the plural form description for the declaration kind.
+  String plural() => switch (this) {
+        macro.DeclarationKind.classType => 'classes',
+        macro.DeclarationKind.constructor => 'constructors',
+        macro.DeclarationKind.enumType => 'enums',
+        macro.DeclarationKind.enumValue => 'enum values',
+        macro.DeclarationKind.extension => 'extensions',
+        macro.DeclarationKind.extensionType => 'extension types',
+        macro.DeclarationKind.field => 'fields',
+        macro.DeclarationKind.function => 'functions',
+        macro.DeclarationKind.library => 'libraries',
+        macro.DeclarationKind.method => 'methods',
+        macro.DeclarationKind.mixinType => 'mixin declarations',
+        macro.DeclarationKind.typeAlias => 'typedefs',
+        macro.DeclarationKind.variable => 'variables',
+      };
+
+  /// Returns the list of [kinds] in text as "a, b or c" to use in messaging.
+  static String joinWithOr(Iterable<macro.DeclarationKind> kinds) {
+    List<String> pluralTexts = kinds.map((e) => e.plural()).toList();
+    if (pluralTexts.length == 1) {
+      return pluralTexts.single;
+    }
+    return '${pluralTexts.take(pluralTexts.length - 1).join(', ')}'
+        ' or ${pluralTexts.last}';
   }
 }

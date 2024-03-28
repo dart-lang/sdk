@@ -53,6 +53,38 @@ augment enum e {
 ''');
   }
 
+  @FailingTest(
+      issue: 'https://github.com/dart-lang/linter/issues/4881',
+      reason:
+          "ParserErrorCode.EXTRANEOUS_MODIFIER [27, 7, Can't have modifier 'augment' here.]")
+  test_augmentationExtensionType_lowerCase() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+
+extension type et(int i) { }
+''');
+
+    await assertNoDiagnostics(r'''
+library augment 'a.dart';
+
+augment extension type et(int i) { }
+''');
+  }
+
+  test_augmentationMixin_lowerCase() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+
+mixin m { }
+''');
+
+    await assertNoDiagnostics(r'''
+library augment 'a.dart';
+
+augment mixin m { }
+''');
+  }
+
   test_extensionType_lowerCase() async {
     // No need to test all the variations. Name checking is shared with other
     // declaration types.

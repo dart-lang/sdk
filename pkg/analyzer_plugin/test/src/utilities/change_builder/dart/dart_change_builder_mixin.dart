@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:test/test.dart';
 
@@ -29,7 +30,7 @@ mixin DartChangeBuilderMixin implements AbstractContextTest {
   }
 
   /// Return a newly created Dart change builder.
-  Future<ChangeBuilder> newBuilder() async {
-    return ChangeBuilder(session: await session);
+  Future<ChangeBuilderImpl> newBuilder() async {
+    return ChangeBuilder(session: await session) as ChangeBuilderImpl;
   }
 }

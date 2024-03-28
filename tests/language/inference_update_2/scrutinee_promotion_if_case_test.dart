@@ -5,8 +5,6 @@
 // Tests that field promotion takes effect when the thing being promoted is a
 // scrutinee of an if-case construct.
 
-// SharedOptions=--enable-experiment=inference-update-2
-
 import '../static_type_helper.dart';
 
 class C {

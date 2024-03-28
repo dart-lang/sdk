@@ -25,7 +25,7 @@ Future<void> runAllTests(bool soundNullSafety, List<String> args) async {
         soundNullSafety: soundNullSafety,
         moduleFormat: ModuleFormat.amd,
         args: args,
-        enableExperiments: ['inline-class'],
+        enableExperiments: [],
       );
       runSharedTests(setup, driver);
     });

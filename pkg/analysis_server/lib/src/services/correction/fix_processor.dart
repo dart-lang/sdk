@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
-import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
 import 'package:analysis_server/src/services/correction/base_processor.dart';
 import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
@@ -15,6 +13,8 @@ import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/util/file_paths.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
+import 'package:server_plugin/edit/fix/dart_fix_context.dart';
+import 'package:server_plugin/edit/fix/fix.dart';
 
 /// A function that can be executed to create a multi-correction producer.
 typedef MultiProducerGenerator = MultiCorrectionProducer Function();
@@ -64,12 +64,12 @@ class FixProcessor extends BaseProcessor {
 
   FixProcessor(this.fixContext)
       : super(
-          resolvedResult: fixContext.resolveResult,
+          resolvedResult: fixContext.resolvedResult,
           workspace: fixContext.workspace,
         );
 
   Future<List<Fix>> compute() async {
-    if (isMacroGenerated(fixContext.resolveResult.file.path)) {
+    if (isMacroGenerated(fixContext.resolvedResult.file.path)) {
       return fixes;
     }
     await _addFromProducers();
@@ -97,7 +97,7 @@ class FixProcessor extends BaseProcessor {
 
     change.id = kind.id;
     change.message = formatList(kind.message, producer.fixArguments);
-    fixes.add(Fix(kind, change));
+    fixes.add(Fix(kind: kind, change: change));
   }
 
   Future<void> _addFromProducers() async {
@@ -119,7 +119,15 @@ class FixProcessor extends BaseProcessor {
       var builder = ChangeBuilder(
           workspace: context.workspace, eol: context.utils.endOfLine);
       try {
+        var fixKind = producer.fixKind;
         await producer.compute(builder);
+        assert(
+          !(producer.canBeAppliedToFile || producer.canBeAppliedInBulk) ||
+              producer.fixKind == fixKind,
+          'Producers use in bulk fixes must not modify FixKind during computation. '
+          '$producer changed from $fixKind to ${producer.fixKind}.',
+        );
+
         _addFixFromBuilder(builder, producer);
       } on ConflictingEditException catch (exception, stackTrace) {
         // Handle the exception by (a) not adding a fix based on the producer

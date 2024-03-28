@@ -15,21 +15,21 @@ extension type Id(core::int id) {
   constructor • = self::Id|constructor#;
   constructor tearoff • = self::Id|constructor#_#new#tearOff;
 }
-static extension-type-member method Id|constructor#(core::int id) → self::Id /* = core::int */ {
-  lowered final self::Id /* = core::int */ #this = id;
+static extension-type-member method Id|constructor#(core::int id) → self::Id% /* erasure=core::int, declared=! */ {
+  lowered final self::Id% /* erasure=core::int, declared=! */ #this = id;
   return #this;
 }
-static extension-type-member method Id|constructor#_#new#tearOff(core::int id) → self::Id /* = core::int */
+static extension-type-member method Id|constructor#_#new#tearOff(core::int id) → self::Id% /* erasure=core::int, declared=! */
   return self::Id|constructor#(id);
 static method test() → dynamic {
-  self::Id /* = core::int */ c = self::Id|constructor#(2);
+  self::Id% /* erasure=core::int, declared=! */ c = self::Id|constructor#(2);
   core::print(invalid-expression "pkg/front_end/testcases/extension_types/issue52284.dart:9:11: Error: The getter 'unresolved' isn't defined for the class 'Id'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'unresolved'.
   print(c.unresolved); // Error
           ^^^^^^^^^^" in c{<unresolved>}.unresolved);
 }
 static method main() → dynamic {
-  self::Id /* = core::int */ c = self::Id|constructor#(2);
+  self::Id% /* erasure=core::int, declared=! */ c = self::Id|constructor#(2);
   self::expect(#C1, c.{core::Object::runtimeType}{core::Type});
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {

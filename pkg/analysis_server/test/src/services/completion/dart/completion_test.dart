@@ -11,7 +11,6 @@ void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ArgumentListCompletionTest);
     defineReflectiveTests(AsExpressionCompletionTest);
-    defineReflectiveTests(AssertStatementCompletionTest);
     defineReflectiveTests(ConstructorCompletionTest);
     defineReflectiveTests(DeclaredIdentifierCompletionTest);
     defineReflectiveTests(ExpressionFunctionBodyCompletionTest);
@@ -83,21 +82,6 @@ void f(Object o) {
 }
 ''');
     assertHasCompletion('dynamic');
-  }
-}
-
-@reflectiveTest
-class AssertStatementCompletionTest extends CompletionTestCase {
-  @failingTest
-  Future<void> test_message() async {
-    await getTestCodeSuggestions('''
-void f() {
-  assert(true, ^);
-}
-
-const c = <int>[];
-''');
-    assertHasCompletion('c');
   }
 }
 

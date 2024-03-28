@@ -1,0 +1,22 @@
+B1<T>? contextB1Question<T>(B1<T>? x) => x;
+
+Iterable<T>? contextIterableQuestion<T>(Iterable<T>? x) => x;
+
+class A {}
+
+class B1<T> implements A {}
+
+class B2<T> implements A {}
+
+class C1<T> implements B1<T>, B2<T> {}
+
+class C2<T> implements B1<T>, B2<T> {}
+
+extension Extension on String {
+  C1<int>? get pC1IntQuestion => null;
+  Iterable<int>? get pIterableIntQuestion => null;
+  set pC1IntQuestion(Object? value) {}
+  set pIterableIntQuestion(Object? value) {}
+}
+
+main() {}

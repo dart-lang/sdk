@@ -191,6 +191,7 @@ class ReadStream {
   final List<ByteData> _chunks;
   int _chunkIndex = 0;
   int _byteIndex = 0;
+  final ByteData _float64Buffer = ByteData(8);
 
   ReadStream(this._chunks) {
     for (int i = 0; i < _chunks.length; ++i) {
@@ -208,6 +209,11 @@ class ReadStream {
     }
     return _chunks[_chunkIndex].getUint8(_byteIndex++);
   }
+
+  bool _currentChunkHasBytes(int len) =>
+      _byteIndex + len < _currentChunk.lengthInBytes;
+
+  ByteData get _currentChunk => _chunks[_chunkIndex];
 
   int readByte() {
     return _readByte();
@@ -249,37 +255,69 @@ class ReadStream {
   }
 
   double readFloat64() {
-    final bytes = Uint8List(8);
-    for (int i = 0; i < 8; i++) {
-      bytes[i] = _readByte();
+    if (_currentChunkHasBytes(8)) {
+      final value = _currentChunk.getFloat64(_byteIndex, Endian.little);
+      _byteIndex += 8;
+      return value;
     }
-    return Float64List.view(bytes.buffer)[0];
+
+    for (int i = 0; i < 8; i++) {
+      _float64Buffer.setUint8(i, readByte());
+    }
+
+    return _float64Buffer.getFloat64(0, Endian.little);
   }
 
   String readUtf8() {
-    int len = readInteger();
+    final len = readInteger();
+
+    if (_currentChunkHasBytes(len)) {
+      final value = const Utf8Codec(allowMalformed: true).decode(
+          Uint8List.sublistView(_currentChunk, _byteIndex, _byteIndex + len));
+      _byteIndex += len;
+      return value;
+    }
+
     final bytes = Uint8List(len);
     for (int i = 0; i < len; i++) {
-      bytes[i] = _readByte();
+      bytes[i] = readByte();
     }
-    return Utf8Codec(allowMalformed: true).decode(bytes);
+    return const Utf8Codec(allowMalformed: true).decode(bytes);
   }
 
   String readLatin1() {
-    int len = readInteger();
-    final codeUnits = Uint8List(len);
-    for (int i = 0; i < len; i++) {
-      codeUnits[i] = _readByte();
+    final len = readInteger();
+
+    final Uint8List codeUnits;
+    if (_currentChunkHasBytes(len)) {
+      codeUnits =
+          Uint8List.sublistView(_currentChunk, _byteIndex, _byteIndex + len);
+      _byteIndex += len;
+    } else {
+      codeUnits = Uint8List(len);
+      for (int i = 0; i < len; i++) {
+        codeUnits[i] = readByte();
+      }
     }
+
     return String.fromCharCodes(codeUnits);
   }
 
   String readUtf16() {
-    int len = readInteger();
-    final codeUnits = Uint16List(len);
-    for (int i = 0; i < len; i++) {
-      codeUnits[i] = _readByte() | (_readByte() << 8);
+    final len = readInteger();
+
+    final Uint16List codeUnits;
+    if (_currentChunkHasBytes(len * 2) && _byteIndex & 1 == 0) {
+      codeUnits = Uint16List.sublistView(
+          _currentChunk, _byteIndex, _byteIndex + len * 2);
+      _byteIndex += len * 2;
+    } else {
+      codeUnits = Uint16List(len);
+      for (int i = 0; i < len; i++) {
+        codeUnits[i] = readByte() | (readByte() << 8);
+      }
     }
+
     return String.fromCharCodes(codeUnits);
   }
 }

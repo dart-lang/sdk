@@ -655,13 +655,6 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
       true,
       ['int <: T <: _'],
     );
-    _checkMatch(
-      [T],
-      listNone(intNone),
-      iterableStar(T_none),
-      true,
-      ['int <: T <: _'],
-    );
 
     _checkNotMatch([T], listNone(intNone), iterableNone(stringNone), true);
   }
@@ -732,9 +725,7 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
     }
 
     check(objectQuestion, dynamicType, 'Object? <: T <: _');
-    check(objectStar, dynamicType, 'Object? <: T <: _');
     check(voidNone, objectQuestion, 'Object? <: T <: _');
-    check(voidNone, objectStar, 'Object? <: T <: _');
   }
 
   /// If `P` is `FutureOr<P0>` the match holds under constraint set `C1 + C2`:
@@ -844,7 +835,6 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
 
     checkMatch(numNone, '_ <: T <: num');
     checkMatch(numQuestion, '_ <: T <: num?');
-    checkMatch(numStar, '_ <: T <: num*');
   }
 
   /// If `P` is a type variable `X` with bound `B` (or a promoted type
@@ -1252,7 +1242,6 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
 
     _checkNotMatch([T], intNone, stringQuestion, true);
     _checkNotMatch([T], intQuestion, stringQuestion, true);
-    _checkNotMatch([T], intStar, stringQuestion, true);
   }
 
   /// If `Q` is `dynamic`, `Object?`, or `void` then the match holds under
@@ -1272,7 +1261,6 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
 
     checkMatch(numNone, 'num <: T <: _');
     checkMatch(numQuestion, 'num? <: T <: _');
-    checkMatch(numStar, 'num* <: T <: _');
   }
 
   /// If `Q` is `_` then the match holds with no constraints.
@@ -1293,9 +1281,11 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
       typeParameters: typeParameters,
       typeSystemOperations:
           TypeSystemOperations(typeSystem, strictCasts: false),
+      dataForTesting: null,
     );
 
-    var isMatch = gatherer.trySubtypeMatch(P, Q, leftSchema);
+    var isMatch =
+        gatherer.trySubtypeMatch(P, Q, leftSchema, nodeForTesting: null);
     expect(isMatch, isTrue);
 
     var constraints = gatherer.computeConstraints();
@@ -1319,9 +1309,11 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
       typeParameters: typeParameters,
       typeSystemOperations:
           TypeSystemOperations(typeSystem, strictCasts: false),
+      dataForTesting: null,
     );
 
-    var isMatch = gatherer.trySubtypeMatch(P, Q, leftSchema);
+    var isMatch =
+        gatherer.trySubtypeMatch(P, Q, leftSchema, nodeForTesting: null);
     expect(isMatch, isFalse);
     expect(gatherer.isConstraintSetEmpty, isTrue);
   }

@@ -38,6 +38,7 @@ Future<io.Process> spawnDartProcess(
   bool serveObservatory = true,
   bool pauseOnStart = true,
   bool disableServiceAuthCodes = false,
+  bool subscribeToStdio = true,
 }) async {
   final executable = io.Platform.executable;
   final tmpDir = await io.Directory.systemTemp.createTemp('dart_service');
@@ -55,12 +56,14 @@ Future<io.Process> spawnDartProcess(
     io.Platform.script.resolve(script).toString(),
   ];
   final process = await io.Process.start(executable, arguments);
-  process.stdout
-      .transform(utf8.decoder)
-      .listen((line) => print('TESTEE OUT: $line'));
-  process.stderr
-      .transform(utf8.decoder)
-      .listen((line) => print('TESTEE ERR: $line'));
+  if (subscribeToStdio) {
+    process.stdout
+        .transform(utf8.decoder)
+        .listen((line) => print('TESTEE OUT: $line'));
+    process.stderr
+        .transform(utf8.decoder)
+        .listen((line) => print('TESTEE ERR: $line'));
+  }
   while ((await serviceInfoFile.length()) <= 5) {
     await Future.delayed(const Duration(milliseconds: 50));
   }

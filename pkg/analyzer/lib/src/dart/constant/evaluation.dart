@@ -166,10 +166,11 @@ class ConstantEvaluationEngine {
       if (element is PropertyAccessorElement) {
         // The annotation is a reference to a compile-time constant variable.
         // Just copy the evaluation result.
-        VariableElementImpl variableElement =
-            element.variable.declaration as VariableElementImpl;
-        if (variableElement.evaluationResult != null) {
-          constant.evaluationResult = variableElement.evaluationResult;
+        var variableElement =
+            element.variable2?.declaration as VariableElementImpl?;
+        var evaluationResult = variableElement?.evaluationResult;
+        if (evaluationResult != null) {
+          constant.evaluationResult = evaluationResult;
         } else {
           // This could happen in the event that the annotation refers to a
           // non-constant.  The error is detected elsewhere, so just silently
@@ -301,7 +302,9 @@ class ConstantEvaluationEngine {
       if (element is PropertyAccessorElement) {
         // The annotation is a reference to a compile-time constant variable,
         // so it depends on the variable.
-        callback(element.variable.declaration);
+        if (element.variable2 case var variable?) {
+          callback(variable.declaration);
+        }
       } else if (element is ConstructorElement) {
         // The annotation is a constructor invocation, so it depends on the
         // constructor.
@@ -1688,8 +1691,9 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   }) {
     var errorNode2 = evaluationEngine.configuration.errorNode(errorNode);
     element = element?.declaration;
+
     var variableElement =
-        element is PropertyAccessorElement ? element.variable : element;
+        element is PropertyAccessorElement ? element.variable2 : element;
 
     // TODO(srawlins): Remove this check when [FunctionReference]s are inserted
     // for generic function instantiation for pre-constructor-references code.
@@ -2654,7 +2658,16 @@ class _InstanceCreationEvaluator {
             _fieldMap[fieldName] = evaluationResult;
             var getter = definingType.getGetter(fieldName);
             if (getter != null) {
-              var field = getter.variable;
+              var field = getter.variable2;
+              if (field == null) {
+                return _InitializersEvaluationResult(
+                  InvalidConstant.forElement(
+                    getter,
+                    CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+                  ),
+                  evaluationIsComplete: true,
+                );
+              }
               if (!typeSystem.runtimeTypeMatch(evaluationResult, field.type)) {
                 // Mark the type mismatch error as a runtime exception if the
                 // initializer is statically assignable to the field.

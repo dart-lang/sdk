@@ -5,7 +5,6 @@
 import 'package:kernel/ast.dart';
 import 'package:kernel/type_environment.dart';
 
-import '../kernel/internal_ast.dart';
 import '../type_inference/external_ast_helper.dart';
 import 'matching_cache.dart';
 
@@ -391,123 +390,6 @@ class DelayedOrExpression extends AbstractDelayedExpression {
       identical(this, expression) ||
       _left.uses(expression) ||
       _right.uses(expression);
-}
-
-/// A conditional expression of the [_condition], [_then] and [_otherwise]
-/// expressions.
-class DelayedConditionalExpression extends AbstractDelayedExpression {
-  final DelayedExpression _condition;
-  final DelayedExpression _then;
-  final DelayedExpression _otherwise;
-  final int fileOffset;
-
-  DelayedConditionalExpression(this._condition, this._then, this._otherwise,
-      {required this.fileOffset});
-
-  @override
-  DartType getType(TypeEnvironment typeEnvironment) =>
-      typeEnvironment.coreTypes.boolNonNullableRawType;
-
-  @override
-  Expression createExpression(TypeEnvironment typeEnvironment,
-      {List<Expression>? effects, required bool inCacheInitializer}) {
-    return createConditionalExpression(
-        _condition.createExpression(typeEnvironment,
-            effects: effects, inCacheInitializer: inCacheInitializer),
-        _then.createExpression(typeEnvironment,
-            effects: effects, inCacheInitializer: inCacheInitializer),
-        _otherwise.createExpression(typeEnvironment,
-            effects: effects, inCacheInitializer: inCacheInitializer),
-        staticType: typeEnvironment.coreTypes.boolNonNullableRawType,
-        fileOffset: fileOffset);
-  }
-
-  @override
-  void registerUse() {
-    _condition.registerUse();
-    _then.registerUse();
-    _otherwise.registerUse();
-  }
-
-  @override
-  bool uses(DelayedExpression expression) =>
-      identical(this, expression) ||
-      _condition.uses(expression) ||
-      _then.uses(expression) ||
-      _otherwise.uses(expression);
-}
-
-/// A read of [_variable].
-class VariableGetExpression extends AbstractDelayedExpression {
-  final VariableDeclaration _variable;
-  final int fileOffset;
-
-  VariableGetExpression(this._variable, {required this.fileOffset});
-
-  @override
-  Expression createExpression(TypeEnvironment typeEnvironment,
-      {List<Expression>? effects, required bool inCacheInitializer}) {
-    VariableDeclaration variable = _variable;
-    if (variable is VariableDeclarationImpl && variable.lateGetter != null) {
-      return createLocalFunctionInvocation(variable.lateGetter!,
-          arguments: createArguments([], fileOffset: fileOffset),
-          fileOffset: fileOffset);
-    } else {
-      return createVariableGet(_variable);
-    }
-  }
-
-  @override
-  DartType getType(TypeEnvironment typeEnvironment) {
-    return _variable.type;
-  }
-
-  @override
-  void registerUse() {}
-
-  @override
-  bool uses(DelayedExpression expression) => identical(this, expression);
-}
-
-/// An assignment of [_variable] with [_value].
-///
-/// If [allowFinalAssignment] is `true`, the created [VariableSet] is allowed to
-/// assign to a final variable. This is used for encoding initialization of
-/// final pattern variables.
-// TODO(johnniwinther): Should we instead mark the variable as non-final?
-class VariableSetExpression extends AbstractDelayedExpression {
-  final VariableDeclaration _variable;
-  final DelayedExpression _value;
-  final bool allowFinalAssignment;
-  final int fileOffset;
-
-  VariableSetExpression(this._variable, this._value,
-      {this.allowFinalAssignment = false, required this.fileOffset});
-
-  @override
-  Expression createExpression(TypeEnvironment typeEnvironment,
-      {List<Expression>? effects, required bool inCacheInitializer}) {
-    return createVariableSet(
-        _variable,
-        _value.createExpression(typeEnvironment,
-            effects: effects, inCacheInitializer: inCacheInitializer),
-        allowFinalAssignment: allowFinalAssignment,
-        fileOffset: fileOffset);
-  }
-
-  @override
-  DartType getType(TypeEnvironment typeEnvironment) {
-    return _value.getType(typeEnvironment);
-  }
-
-  @override
-  void registerUse() {
-    _value.registerUse();
-  }
-
-  @override
-  bool uses(DelayedExpression expression) =>
-      identical(this, expression) || _value.uses(expression);
 }
 
 /// A expression that executes [_effect] for effect and results in [_result].

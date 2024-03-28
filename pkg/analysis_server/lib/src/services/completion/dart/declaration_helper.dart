@@ -17,6 +17,7 @@ import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
+import 'package:analyzer/src/workspace/pub.dart';
 
 /// A helper class that produces candidate suggestions for all of the
 /// declarations that are in scope at the completion location.
@@ -71,10 +72,18 @@ class DeclarationHelper {
   /// possible.
   final bool preferNonInvocation;
 
+  /// Whether unnamed constructors should be suggested as `.new`.
+  final bool suggestUnnamedAsNew;
+
   /// Whether the generation of suggestions for imports should be skipped. This
   /// exists as a temporary measure that will be removed after all of the
   /// suggestions are being produced by the various passes.
   final bool skipImports;
+
+  /// The nodes that should be excluded, for example because we identified
+  /// that they were created during parsing recovery, and don't contain
+  /// useful suggestions.
+  final Set<AstNode> excludedNodes;
 
   /// The number of local variables that have already been suggested.
   int _variableDistance = 0;
@@ -102,7 +111,9 @@ class DeclarationHelper {
     required this.mustBeStatic,
     required this.mustBeType,
     required this.preferNonInvocation,
+    required this.suggestUnnamedAsNew,
     required this.skipImports,
+    required this.excludedNodes,
   });
 
   /// Return the suggestion kind that should be used for executable elements.
@@ -119,6 +130,21 @@ class DeclarationHelper {
     }
   }
 
+  /// Add suggestions for all constructors of [element].
+  void addConstructorNamesForElement({
+    required InterfaceElement element,
+  }) {
+    var constructors = element.augmented?.constructors ?? element.constructors;
+    for (var constructor in constructors) {
+      _suggestConstructor(
+        constructor,
+        hasClassName: true,
+        importData: null,
+        isConstructorRedirect: false,
+      );
+    }
+  }
+
   /// Add suggestions for all of the named constructors in the [type]. If
   /// [exclude] is not `null` it is the name of a constructor that should be
   /// omitted from the list, typically because suggesting it would result in an
@@ -127,9 +153,32 @@ class DeclarationHelper {
       {required InterfaceType type, String? exclude}) {
     for (var constructor in type.constructors) {
       var name = constructor.name;
-      if (name.isNotEmpty && name != exclude) {
-        _suggestConstructor(constructor, hasClassName: true, importData: null);
+      if (name.isNotEmpty &&
+          name != exclude &&
+          !(mustBeConstant && !constructor.isConst)) {
+        _suggestConstructor(
+          constructor,
+          hasClassName: true,
+          importData: null,
+          isConstructorRedirect: false,
+        );
       }
+    }
+  }
+
+  /// Add suggestions for declarations through [prefixElement].
+  void addDeclarationsThroughImportPrefix(PrefixElement prefixElement) {
+    for (var importElement in prefixElement.imports) {
+      var importedLibrary = importElement.importedLibrary;
+      if (importedLibrary == null) {
+        continue;
+      }
+
+      _addDeclarationsImportedFrom(
+        library: importedLibrary,
+        namespace: importElement.namespace,
+        prefix: null,
+      );
     }
   }
 
@@ -209,6 +258,37 @@ class DeclarationHelper {
     }
   }
 
+  void addImportPrefixes() {
+    var library = request.libraryElement;
+    for (var element in library.libraryImports) {
+      var importPrefix = element.prefix;
+      if (importPrefix == null) {
+        continue;
+      }
+
+      var prefixElement = importPrefix.element;
+      if (!visibilityTracker.isVisible(prefixElement)) {
+        continue;
+      }
+
+      if (prefixElement.name.isEmpty) {
+        continue;
+      }
+
+      var importedLibrary = element.importedLibrary;
+      if (importedLibrary == null) {
+        continue;
+      }
+
+      collector.addSuggestion(
+        ImportPrefixSuggestion(
+          libraryElement: importedLibrary,
+          prefixElement: prefixElement,
+        ),
+      );
+    }
+  }
+
   /// Add any instance members defined for the given [type].
   ///
   /// If [onlySuper] is `true`, then only the members that are valid after a
@@ -258,13 +338,14 @@ class DeclarationHelper {
     CompilationUnitMember? topLevelMember;
     if (parent is CompilationUnitMember) {
       topLevelMember = parent;
-      _addMembersOf(parent, containingMember);
+      _addMembersOfEnclosingNode(parent);
       parent = parent.parent;
     }
     if (parent is CompilationUnit) {
       var library = parent.declaredElement?.library;
       if (library != null) {
         _addTopLevelDeclarations(library);
+        addImportPrefixes();
         if (!skipImports) {
           _addImportedDeclarations(library);
         }
@@ -311,7 +392,8 @@ class DeclarationHelper {
       for (var superParameter in superConstructor.parameters) {
         if (superParameter.isNamed &&
             !specified.contains(superParameter.name)) {
-          collector.addSuggestion(SuperParameterSuggestion(superParameter));
+          collector
+              .addSuggestion(SuperParameterSuggestion(element: superParameter));
         }
       }
     } else if (node.isPositional) {
@@ -321,14 +403,15 @@ class DeclarationHelper {
           .toList();
       if (indexOfThis >= 0 && indexOfThis < superPositionalList.length) {
         var superPositional = superPositionalList[indexOfThis];
-        collector.addSuggestion(SuperParameterSuggestion(superPositional));
+        collector
+            .addSuggestion(SuperParameterSuggestion(element: superPositional));
       }
     }
   }
 
   /// Add suggestions for all of the constructor in the [library] that could be
   /// a redirection target for the [redirectingConstructor].
-  void addPosibleRedirectionsInLibrary(
+  void addPossibleRedirectionsInLibrary(
       ConstructorElement redirectingConstructor, LibraryElement library) {
     var classElement =
         redirectingConstructor.enclosingElement.augmented?.declaration;
@@ -343,8 +426,12 @@ class DeclarationHelper {
           for (var constructor in classElement.constructors) {
             if (constructor != redirectingConstructor &&
                 constructor.isAccessibleIn(library)) {
-              _suggestConstructor(constructor,
-                  hasClassName: false, importData: null);
+              _suggestConstructor(
+                constructor,
+                hasClassName: false,
+                importData: null,
+                isConstructorRedirect: true,
+              );
             }
           }
         }
@@ -365,7 +452,7 @@ class DeclarationHelper {
         var augmented = element.augmented;
         _addStaticMembers(
             accessors: augmented?.accessors ?? element.accessors,
-            constructors: const [],
+            constructors: augmented?.constructors ?? element.constructors,
             containingElement: element,
             fields: augmented?.fields ?? element.fields,
             methods: augmented?.methods ?? element.methods);
@@ -472,6 +559,11 @@ class DeclarationHelper {
         case MixinElement():
           _suggestMixin(element, importData);
         case PropertyAccessorElement():
+          // Do not add synthetic setters, as these may prevent adding getters,
+          // they are both tracked with the same name in the [VisibilityTracker].
+          if (element.isSynthetic && element.isSetter) {
+            break;
+          }
           _suggestTopLevelProperty(element, importData);
         case TopLevelVariableElement():
           _suggestTopLevelVariable(element, importData);
@@ -536,7 +628,7 @@ class DeclarationHelper {
           prefix: importElement.prefix?.element.name,
         );
         if (importedLibrary.isDartCore && mustBeType) {
-          collector.addSuggestion(NameSuggestion('Never'));
+          collector.addSuggestion(NameSuggestion(name: 'Never'));
         }
       }
     }
@@ -545,17 +637,21 @@ class DeclarationHelper {
   /// Adds a suggestion for the top-level [element].
   void _addImportedElement(Element element) {
     var suggestion = switch (element) {
-      ClassElement() => ClassSuggestion(null, element),
-      EnumElement() => EnumSuggestion(null, element),
-      ExtensionElement() => ExtensionSuggestion(null, element),
-      ExtensionTypeElement() => ExtensionTypeSuggestion(null, element),
-      FunctionElement() =>
-        TopLevelFunctionSuggestion(null, element, _executableSuggestionKind),
-      MixinElement() => MixinSuggestion(null, element),
+      ClassElement() => ClassSuggestion(importData: null, element: element),
+      EnumElement() => EnumSuggestion(importData: null, element: element),
+      ExtensionElement() =>
+        ExtensionSuggestion(importData: null, element: element),
+      ExtensionTypeElement() =>
+        ExtensionTypeSuggestion(importData: null, element: element),
+      FunctionElement() => TopLevelFunctionSuggestion(
+          importData: null, element: element, kind: _executableSuggestionKind),
+      MixinElement() => MixinSuggestion(importData: null, element: element),
       PropertyAccessorElement() =>
-        TopLevelPropertyAccessSuggestion(null, element),
-      TopLevelVariableElement() => TopLevelVariableSuggestion(null, element),
-      TypeAliasElement() => TypeAliasSuggestion(null, element),
+        TopLevelPropertyAccessSuggestion(importData: null, element: element),
+      TopLevelVariableElement() =>
+        TopLevelVariableSuggestion(importData: null, element: element),
+      TypeAliasElement() =>
+        TypeAliasSuggestion(importData: null, element: element),
       _ => null
     };
     if (suggestion != null) {
@@ -609,10 +705,9 @@ class DeclarationHelper {
         ? request.inheritanceManager.getInheritedConcreteMap2(type.element)
         : request.inheritanceManager.getInterface(type.element).map;
 
-    var library = request.libraryElement;
     var membersByName = <String, List<ExecutableElement>>{};
     for (var rawMember in map.values) {
-      if (!rawMember.isStatic && rawMember.isAccessibleIn(library)) {
+      if (_canAccessInstanceMember(rawMember)) {
         var name = rawMember.displayName;
         membersByName
             .putIfAbsent(name, () => <ExecutableElement>[])
@@ -770,146 +865,6 @@ class DeclarationHelper {
     return currentNode;
   }
 
-  /// Adds suggestions for the [members] of the [containingElement].
-  void _addMembers(Element containingElement, NodeList<ClassMember> members) {
-    // TODO(brianwilkerson): Replace this method with methods similar to
-    //  `_addMembersOfClass`.
-    for (var member in members) {
-      switch (member) {
-        case ConstructorDeclaration():
-          // Constructors are suggested when the enclosing class is suggested.
-          break;
-        case FieldDeclaration():
-          if (mustBeStatic && !member.isStatic) {
-            continue;
-          }
-          for (var field in member.fields.variables) {
-            var declaredElement = field.declaredElement;
-            if (declaredElement is FieldElement) {
-              _suggestField(declaredElement, containingElement);
-            }
-          }
-        case MethodDeclaration():
-          if (mustBeStatic && !member.isStatic) {
-            continue;
-          }
-          var declaredElement = member.declaredElement;
-          if (declaredElement is MethodElement) {
-            _suggestMethod(declaredElement, containingElement);
-          } else if (declaredElement is PropertyAccessorElement) {
-            _suggestProperty(declaredElement, containingElement);
-          }
-      }
-    }
-    // Add any immediate members from augmentations.
-    var augmentation = containingElement.augmentation;
-    while (augmentation is ClassElement) {
-      for (var accessor in augmentation.accessors) {
-        if (!accessor.isSynthetic) {
-          _suggestProperty(accessor, containingElement);
-        }
-      }
-      for (var field in augmentation.fields) {
-        if (!field.isSynthetic) {
-          _suggestField(field, containingElement);
-        }
-      }
-      for (var method in augmentation.methods) {
-        _suggestMethod(method, containingElement);
-      }
-      augmentation = augmentation.augmentation;
-    }
-  }
-
-  /// Adds suggestions for any members of the [parent].
-  ///
-  /// The [containingMember] is the member within the [parent] in which
-  /// completion was requested.
-  void _addMembersOf(CompilationUnitMember parent, AstNode containingMember) {
-    switch (parent) {
-      case ClassDeclaration():
-        var classElement = parent.declaredElement;
-        if (classElement != null) {
-          if (!mustBeType) {
-            _addMembersOfClass(classElement);
-          }
-          _suggestTypeParameters(classElement.typeParameters);
-        }
-      case EnumDeclaration():
-        var enumElement = parent.declaredElement;
-        if (enumElement != null) {
-          if (!mustBeType) {
-            _addMembers(enumElement, parent.members);
-          }
-          _suggestTypeParameters(enumElement.typeParameters);
-        }
-      case ExtensionDeclaration():
-        var extensionElement = parent.declaredElement;
-        if (extensionElement != null) {
-          if (!mustBeType) {
-            _addMembers(extensionElement, parent.members);
-          }
-          _suggestTypeParameters(extensionElement.typeParameters);
-        }
-      case ExtensionTypeDeclaration():
-        var extensionTypeElement = parent.declaredElement;
-        if (extensionTypeElement != null) {
-          if (!mustBeType) {
-            _addMembers(extensionTypeElement, parent.members);
-            var fieldElement = parent.representation.fieldElement;
-            if (fieldElement != null) {
-              _suggestField(fieldElement, extensionTypeElement);
-            }
-          }
-          _suggestTypeParameters(extensionTypeElement.typeParameters);
-        }
-      case MixinDeclaration():
-        var mixinElement = parent.declaredElement;
-        if (mixinElement != null) {
-          if (!mustBeType) {
-            _addMembers(mixinElement, parent.members);
-          }
-          _suggestTypeParameters(mixinElement.typeParameters);
-        }
-      case ClassTypeAlias():
-        var aliasElement = parent.declaredElement;
-        if (aliasElement != null) {
-          _suggestTypeParameters(aliasElement.typeParameters);
-        }
-      case FunctionTypeAlias():
-        var aliasElement = parent.declaredElement;
-        if (aliasElement != null) {
-          _suggestTypeParameters(aliasElement.typeParameters);
-        }
-      case GenericTypeAlias():
-        var aliasElement = parent.declaredElement;
-        if (aliasElement is TypeAliasElement) {
-          _suggestTypeParameters(aliasElement.typeParameters);
-        }
-    }
-  }
-
-  /// Adds suggestions for the [members] of the [containingElement].
-  void _addMembersOfClass(ClassElement classElement) {
-    // Add any immediate members from augmentations.
-    var augmented = classElement.augmented;
-    for (var accessor in augmented?.accessors ?? classElement.accessors) {
-      if (!accessor.isSynthetic && (!mustBeStatic || accessor.isStatic)) {
-        _suggestProperty(accessor, classElement);
-      }
-    }
-    for (var field in augmented?.fields ?? classElement.fields) {
-      if (!field.isSynthetic && (!mustBeStatic || field.isStatic)) {
-        _suggestField(field, classElement);
-      }
-    }
-    for (var method in augmented?.methods ?? classElement.methods) {
-      if (!mustBeStatic || method.isStatic) {
-        _suggestMethod(method, classElement);
-      }
-    }
-  }
-
   /// Adds suggestions for the instance members declared on `Object`.
   void _addMembersOfDartCoreObject() {
     _addInstanceMembers(
@@ -917,6 +872,97 @@ class DeclarationHelper {
         excludedGetters: const {},
         includeMethods: true,
         includeSetters: true);
+  }
+
+  /// Completion is inside the declaration with [element].
+  void _addMembersOfEnclosingInstance(InstanceElement element) {
+    var augmented = element.augmented;
+
+    var accessors = augmented?.accessors ?? element.accessors;
+    for (var accessor in accessors) {
+      if (!accessor.isSynthetic && (!mustBeStatic || accessor.isStatic)) {
+        _suggestProperty(accessor, element);
+      }
+    }
+
+    var fields = augmented?.fields ?? element.fields;
+    for (var field in fields) {
+      if (!field.isSynthetic && (!mustBeStatic || field.isStatic)) {
+        _suggestField(field, element);
+      }
+    }
+
+    var methods = augmented?.methods ?? element.methods;
+    for (var method in methods) {
+      if (!mustBeStatic || method.isStatic) {
+        _suggestMethod(method, element);
+      }
+    }
+  }
+
+  /// Completion is inside [declaration].
+  void _addMembersOfEnclosingNode(CompilationUnitMember declaration) {
+    switch (declaration) {
+      case ClassDeclaration():
+        var element = declaration.declaredElement;
+        if (element != null) {
+          if (!mustBeType) {
+            _addMembersOfEnclosingInstance(element);
+          }
+          _suggestTypeParameters(element.typeParameters);
+        }
+      case ClassTypeAlias():
+        var element = declaration.declaredElement;
+        if (element != null) {
+          _suggestTypeParameters(element.typeParameters);
+        }
+      case EnumDeclaration():
+        var element = declaration.declaredElement;
+        if (element != null) {
+          if (!mustBeType) {
+            _addMembersOfEnclosingInstance(element);
+          }
+          _suggestTypeParameters(element.typeParameters);
+        }
+      case ExtensionDeclaration():
+        var element = declaration.declaredElement;
+        if (element != null) {
+          if (!mustBeType) {
+            _addMembersOfEnclosingInstance(element);
+          }
+          _suggestTypeParameters(element.typeParameters);
+        }
+      case ExtensionTypeDeclaration():
+        var element = declaration.declaredElement;
+        if (element != null) {
+          if (!mustBeType) {
+            _addMembersOfEnclosingInstance(element);
+            var fieldElement = declaration.representation.fieldElement;
+            if (fieldElement != null) {
+              _suggestField(fieldElement, element);
+            }
+          }
+          _suggestTypeParameters(element.typeParameters);
+        }
+      case FunctionTypeAlias():
+        var element = declaration.declaredElement;
+        if (element != null) {
+          _suggestTypeParameters(element.typeParameters);
+        }
+      case GenericTypeAlias():
+        var element = declaration.declaredElement;
+        if (element is TypeAliasElement) {
+          _suggestTypeParameters(element.typeParameters);
+        }
+      case MixinDeclaration():
+        var element = declaration.declaredElement;
+        if (element != null) {
+          if (!mustBeType) {
+            _addMembersOfEnclosingInstance(element);
+          }
+          _suggestTypeParameters(element.typeParameters);
+        }
+    }
   }
 
   /// Add the static [accessors], [constructors], [fields], and [methods]
@@ -940,8 +986,8 @@ class DeclarationHelper {
               (containingElement is EnumElement && field.name == 'values')) &&
           field.isVisibleIn(request.libraryElement)) {
         if (field.isEnumConstant) {
-          var suggestion =
-              EnumConstantSuggestion(null, field, includeEnumName: false);
+          var suggestion = EnumConstantSuggestion(
+              importData: null, element: field, includeEnumName: false);
           collector.addSuggestion(suggestion);
         } else {
           _suggestField(field, containingElement);
@@ -952,11 +998,14 @@ class DeclarationHelper {
       var allowNonFactory =
           containingElement is ClassElement && !containingElement.isAbstract;
       for (var constructor in constructors) {
-        if (constructor.name.isNotEmpty &&
-            constructor.isVisibleIn(request.libraryElement) &&
+        if (constructor.isVisibleIn(request.libraryElement) &&
             (allowNonFactory || constructor.isFactory)) {
-          _suggestConstructor(constructor,
-              hasClassName: true, importData: null);
+          _suggestConstructor(
+            constructor,
+            hasClassName: true,
+            importData: null,
+            isConstructorRedirect: false,
+          );
         }
       }
       for (var method in methods) {
@@ -1013,6 +1062,64 @@ class DeclarationHelper {
     }
   }
 
+  bool _canAccessInstanceMember(ExecutableElement element) {
+    if (element.isStatic) {
+      return false;
+    }
+
+    var requestLibrary = request.libraryElement;
+    if (!element.isAccessibleIn(requestLibrary)) {
+      return false;
+    }
+
+    if (element.isInternal) {
+      switch (request.fileState.workspacePackage) {
+        case PubPackage pubPackage:
+          if (!pubPackage.contains(element.librarySource)) {
+            return false;
+          }
+      }
+    }
+
+    if (element.isProtected) {
+      var elementInterface = element.enclosingElement;
+      if (elementInterface is! InterfaceElement) {
+        return false;
+      }
+
+      if (elementInterface.library != requestLibrary) {
+        var contextInterface = request.target.enclosingInterfaceElement;
+        if (contextInterface == null) {
+          return false;
+        }
+
+        var contextType = contextInterface.thisType;
+        if (contextType.asInstanceOf(elementInterface) == null) {
+          return false;
+        }
+      }
+    }
+
+    if (element.isVisibleForTesting) {
+      if (element.library != requestLibrary) {
+        var fileState = request.fileState;
+        switch (fileState.workspacePackage) {
+          case PubPackage pubPackage:
+            // Must be in the same package.
+            if (!pubPackage.contains(element.librarySource)) {
+              return false;
+            }
+            // Must be in the `test` directory.
+            if (!pubPackage.isInTestDirectory(fileState.resource)) {
+              return false;
+            }
+        }
+      }
+    }
+
+    return true;
+  }
+
   /// Returns `true` if the [identifier] is composed of one or more underscore
   /// characters and nothing else.
   bool _isUnused(String identifier) => UnusedIdentifier.hasMatch(identifier);
@@ -1029,7 +1136,8 @@ class DeclarationHelper {
         return;
       }
       if (!mustBeConstant) {
-        var suggestion = ClassSuggestion(importData, element);
+        var suggestion =
+            ClassSuggestion(importData: importData, element: element);
         collector.addSuggestion(suggestion);
       }
       if (!mustBeType) {
@@ -1044,12 +1152,30 @@ class DeclarationHelper {
 
   /// Adds a suggestion for the constructor represented by the [element]. The
   /// [prefix] is the prefix by which the class is imported.
-  void _suggestConstructor(ConstructorElement element,
-      {required ImportData? importData, required bool hasClassName}) {
-    if (mustBeAssignable || (mustBeConstant && !element.isConst)) {
+  void _suggestConstructor(
+    ConstructorElement element, {
+    required ImportData? importData,
+    required bool hasClassName,
+    required bool isConstructorRedirect,
+  }) {
+    if (mustBeAssignable) {
       return;
     }
-    var suggestion = ConstructorSuggestion(importData, element, hasClassName);
+
+    if (!element.isVisibleIn(request.libraryElement)) {
+      return;
+    }
+
+    var isTearOff = preferNonInvocation || (mustBeConstant && !element.isConst);
+
+    var suggestion = ConstructorSuggestion(
+      importData: importData,
+      element: element,
+      hasClassName: hasClassName,
+      isTearOff: isTearOff,
+      isRedirect: isConstructorRedirect,
+      suggestUnnamedAsNew: suggestUnnamedAsNew || isTearOff,
+    );
     collector.addSuggestion(suggestion);
   }
 
@@ -1063,8 +1189,12 @@ class DeclarationHelper {
     for (var constructor in constructors) {
       if (constructor.isVisibleIn(request.libraryElement) &&
           (allowNonFactory || constructor.isFactory)) {
-        _suggestConstructor(constructor,
-            hasClassName: false, importData: importData);
+        _suggestConstructor(
+          constructor,
+          hasClassName: false,
+          importData: importData,
+          isConstructorRedirect: false,
+        );
       }
     }
   }
@@ -1076,7 +1206,7 @@ class DeclarationHelper {
       if (mustBeExtendable || mustBeImplementable || mustBeMixable) {
         return;
       }
-      var suggestion = EnumSuggestion(importData, element);
+      var suggestion = EnumSuggestion(importData: importData, element: element);
       collector.addSuggestion(suggestion);
       if (!mustBeType) {
         if (element.augmented case var augmented?) {
@@ -1095,7 +1225,8 @@ class DeclarationHelper {
       if (mustBeExtendable || mustBeImplementable || mustBeMixable) {
         return;
       }
-      var suggestion = ExtensionSuggestion(importData, element);
+      var suggestion =
+          ExtensionSuggestion(importData: importData, element: element);
       collector.addSuggestion(suggestion);
       if (!mustBeType) {
         if (element.augmented case var augmented?) {
@@ -1113,7 +1244,8 @@ class DeclarationHelper {
       if (mustBeExtendable || mustBeImplementable || mustBeMixable) {
         return;
       }
-      var suggestion = ExtensionTypeSuggestion(importData, element);
+      var suggestion =
+          ExtensionTypeSuggestion(importData: importData, element: element);
       collector.addSuggestion(suggestion);
       if (!mustBeType) {
         if (element.augmented case var augmented?) {
@@ -1132,8 +1264,10 @@ class DeclarationHelper {
           (mustBeConstant && !element.isConst)) {
         return;
       }
-      var suggestion = FieldSuggestion(element,
-          (containingElement is ClassElement) ? containingElement : null);
+      var suggestion = FieldSuggestion(
+          element: element,
+          referencingClass:
+              (containingElement is ClassElement) ? containingElement : null);
       collector.addSuggestion(suggestion);
     }
   }
@@ -1146,8 +1280,8 @@ class DeclarationHelper {
           (mustBeNonVoid && element.returnType is VoidType)) {
         return;
       }
-      var suggestion =
-          LocalFunctionSuggestion(_executableSuggestionKind, element);
+      var suggestion = LocalFunctionSuggestion(
+          kind: _executableSuggestionKind, element: element);
       collector.addSuggestion(suggestion);
     }
   }
@@ -1171,8 +1305,11 @@ class DeclarationHelper {
           (mustBeNonVoid && element.returnType is VoidType)) {
         return;
       }
-      var suggestion = MethodSuggestion(_executableSuggestionKind, element,
-          (containingElement is ClassElement) ? containingElement : null);
+      var suggestion = MethodSuggestion(
+          kind: _executableSuggestionKind,
+          element: element,
+          referencingClass:
+              (containingElement is ClassElement) ? containingElement : null);
       collector.addSuggestion(suggestion);
     }
   }
@@ -1186,7 +1323,8 @@ class DeclarationHelper {
               !element.isImplementableIn(request.libraryElement))) {
         return;
       }
-      var suggestion = MixinSuggestion(importData, element);
+      var suggestion =
+          MixinSuggestion(importData: importData, element: element);
       collector.addSuggestion(suggestion);
       if (!mustBeType) {
         if (element.augmented case var augmented?) {
@@ -1202,7 +1340,10 @@ class DeclarationHelper {
       if (mustBeConstant || _isUnused(element.name)) {
         return;
       }
-      var suggestion = FormalParameterSuggestion(element);
+      var suggestion = FormalParameterSuggestion(
+        element: element,
+        distance: _variableDistance++,
+      );
       collector.addSuggestion(suggestion);
     }
   }
@@ -1224,8 +1365,10 @@ class DeclarationHelper {
           (mustBeNonVoid && element.returnType is VoidType)) {
         return;
       }
-      var suggestion = PropertyAccessSuggestion(element,
-          (containingElement is ClassElement) ? containingElement : null);
+      var suggestion = PropertyAccessSuggestion(
+          element: element,
+          referencingClass:
+              (containingElement is ClassElement) ? containingElement : null);
       collector.addSuggestion(suggestion);
     }
   }
@@ -1233,7 +1376,7 @@ class DeclarationHelper {
   /// Adds a suggestion for the record type [field] with the given [name].
   void _suggestRecordField(
       {required RecordTypeField field, required String name}) {
-    collector.addSuggestion(RecordFieldSuggestion(field, name));
+    collector.addSuggestion(RecordFieldSuggestion(field: field, name: name));
   }
 
   /// Adds a suggestion for the enum constant represented by the [element].
@@ -1249,10 +1392,12 @@ class DeclarationHelper {
         request.libraryElement.typeSystem
             .isSubtypeOf(element.type, contextType)) {
       if (element.isEnumConstant) {
-        var suggestion = EnumConstantSuggestion(importData, element);
+        var suggestion =
+            EnumConstantSuggestion(importData: importData, element: element);
         collector.addSuggestion(suggestion);
       } else {
-        var suggestion = StaticFieldSuggestion(importData, element);
+        var suggestion =
+            StaticFieldSuggestion(importData: importData, element: element);
         collector.addSuggestion(suggestion);
       }
     }
@@ -1279,7 +1424,9 @@ class DeclarationHelper {
         return;
       }
       var suggestion = TopLevelFunctionSuggestion(
-          importData, element, _executableSuggestionKind);
+          importData: importData,
+          element: element,
+          kind: _executableSuggestionKind);
       collector.addSuggestion(suggestion);
     }
   }
@@ -1297,7 +1444,8 @@ class DeclarationHelper {
           mustBeType) {
         return;
       }
-      var suggestion = TopLevelPropertyAccessSuggestion(importData, element);
+      var suggestion = TopLevelPropertyAccessSuggestion(
+          importData: importData, element: element);
       collector.addSuggestion(suggestion);
     }
   }
@@ -1312,7 +1460,8 @@ class DeclarationHelper {
           mustBeType) {
         return;
       }
-      var suggestion = TopLevelVariableSuggestion(importData, element);
+      var suggestion =
+          TopLevelVariableSuggestion(importData: importData, element: element);
       collector.addSuggestion(suggestion);
     }
   }
@@ -1321,7 +1470,8 @@ class DeclarationHelper {
   /// [prefix] is the prefix by which the element is imported.
   void _suggestTypeAlias(TypeAliasElement element, ImportData? importData) {
     if (visibilityTracker.isVisible(element)) {
-      var suggestion = TypeAliasSuggestion(importData, element);
+      var suggestion =
+          TypeAliasSuggestion(importData: importData, element: element);
       collector.addSuggestion(suggestion);
       if (!mustBeType) {
         _addConstructorsForAliasedElement(element, importData);
@@ -1332,7 +1482,7 @@ class DeclarationHelper {
   /// Adds a suggestion for the type parameter represented by the [element].
   void _suggestTypeParameter(TypeParameterElement element) {
     if (visibilityTracker.isVisible(element)) {
-      var suggestion = TypeParameterSuggestion(element);
+      var suggestion = TypeParameterSuggestion(element: element);
       collector.addSuggestion(suggestion);
     }
   }
@@ -1350,7 +1500,8 @@ class DeclarationHelper {
       if (mustBeConstant && !element.isConst) {
         return;
       }
-      var suggestion = LocalVariableSuggestion(element, _variableDistance++);
+      var suggestion = LocalVariableSuggestion(
+          element: element, distance: _variableDistance++);
       collector.addSuggestion(suggestion);
     }
   }
@@ -1571,12 +1722,18 @@ class DeclarationHelper {
   }
 
   void _visitTypeParameterList(TypeParameterList? typeParameters) {
-    if (typeParameters != null) {
-      for (var typeParameter in typeParameters.typeParameters) {
-        var element = typeParameter.declaredElement;
-        if (element != null) {
-          _suggestTypeParameter(element);
-        }
+    if (typeParameters == null) {
+      return;
+    }
+
+    if (excludedNodes.contains(typeParameters)) {
+      return;
+    }
+
+    for (var typeParameter in typeParameters.typeParameters) {
+      var element = typeParameter.declaredElement;
+      if (element != null) {
+        _suggestTypeParameter(element);
       }
     }
   }
@@ -1630,5 +1787,12 @@ extension on List<ExecutableElement> {
 
 extension on PropertyAccessorElement {
   /// Whether this accessor is an accessor for a constant variable.
-  bool get isConst => isSynthetic && variable.isConst;
+  bool get isConst {
+    if (isSynthetic) {
+      if (variable2 case var variable?) {
+        return variable.isConst;
+      }
+    }
+    return false;
+  }
 }

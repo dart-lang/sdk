@@ -385,6 +385,8 @@ class ChangeWorkspaceFoldersTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_changeWorkspaceFolders_removeFlushesDiagnostics() async {
+    failTestOnErrorDiagnostic = false;
+
     // Add our standard test project as well as a dummy project.
     await initialize(workspaceFolders: [projectFolderUri, workspaceFolder1Uri]);
 

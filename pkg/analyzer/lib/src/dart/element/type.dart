@@ -696,11 +696,13 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       return true;
     }
     if (other is InterfaceTypeImpl) {
+      if (!identical(other.element, element)) {
+        return false;
+      }
       if (other.nullabilitySuffix != nullabilitySuffix) {
         return false;
       }
-      return other.element == element &&
-          TypeImpl.equalArrays(other.typeArguments, typeArguments);
+      return TypeImpl.equalArrays(other.typeArguments, typeArguments);
     }
     return false;
   }
@@ -1243,10 +1245,10 @@ class RecordTypePositionalFieldImpl extends RecordTypeFieldImpl
 /// representing the declared type of elements in the element model.
 abstract class TypeImpl implements DartType {
   @override
-  InstantiatedTypeAliasElement? alias;
+  final InstantiatedTypeAliasElement? alias;
 
   /// Initialize a newly created type.
-  TypeImpl({this.alias});
+  const TypeImpl({this.alias});
 
   @override
   DartType get extensionTypeErasure {
@@ -1514,9 +1516,6 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
     if (nullabilitySuffix == NullabilitySuffix.question ||
         bound.nullabilitySuffix == NullabilitySuffix.question) {
       newNullabilitySuffix = NullabilitySuffix.question;
-    } else if (nullabilitySuffix == NullabilitySuffix.star ||
-        bound.nullabilitySuffix == NullabilitySuffix.star) {
-      newNullabilitySuffix = NullabilitySuffix.star;
     } else {
       newNullabilitySuffix = NullabilitySuffix.none;
     }

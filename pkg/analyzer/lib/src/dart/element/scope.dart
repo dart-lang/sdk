@@ -147,11 +147,21 @@ class LibraryOrAugmentationScope extends EnclosedScope {
   }
 
   void _addUnitElements(CompilationUnitElement compilationUnit) {
-    compilationUnit.accessors.forEach(_addPropertyAccessor);
+    for (var element in compilationUnit.accessors) {
+      if (element.augmentation == null) {
+        _addPropertyAccessor(element);
+      }
+    }
+
+    for (var element in compilationUnit.functions) {
+      if (element.augmentation == null) {
+        _addGetter(element);
+      }
+    }
+
     compilationUnit.enums.forEach(_addGetter);
     compilationUnit.extensions.forEach(_addExtension);
     compilationUnit.extensionTypes.forEach(_addGetter);
-    compilationUnit.functions.forEach(_addGetter);
     compilationUnit.typeAliases.forEach(_addGetter);
     compilationUnit.mixins.forEach(_addGetter);
     compilationUnit.classes.forEach(_addGetter);

@@ -10,8 +10,6 @@
 // invocation of a field get.  We need to make sure the re-interpretation logic
 // properly accounts for the promotion.
 
-// SharedOptions=--enable-experiment=inference-update-2
-
 import '../static_type_helper.dart';
 
 class C {

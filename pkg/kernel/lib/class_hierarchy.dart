@@ -346,25 +346,10 @@ abstract class ClassHierarchy
 
   void set coreTypes(CoreTypes coreTypes);
 
-  void set onAmbiguousSupertypes(
-      HandleAmbiguousSupertypes onAmbiguousSupertypes);
-
-  void set mixinInferrer(MixinInferrer mixinInferrer);
-
   /// Given the [unordered] classes, return them in such order that classes
   /// occur after their superclasses.  If some superclasses are not in
   /// [unordered], they are not included.
   Iterable<Class> getOrderedClasses(Iterable<Class> unordered);
-
-  // Returns the instantiation of each generic supertype implemented by this
-  // class (e.g. getClassAsInstanceOf applied to all superclasses and
-  // interfaces).
-  List<Supertype> genericSupertypesOf(Class class_);
-
-  /// Returns the instantiation of [superclass] that is implemented by [type],
-  /// or `null` if [type] does not implement [superclass].  [superclass] must
-  /// be a generic class.
-  Supertype? asInstantiationOf(Supertype type, Class superclass);
 
   /// Returns the list of potential targets of dynamic dispatch to an instance
   /// of [class_].
@@ -398,13 +383,6 @@ abstract class ClassHierarchy
   /// True if [subclass] inherits from [superclass] though zero or more
   /// `extends` relationships.
   bool isSubclassOf(Class subclass, Class superclass);
-
-  /// True if the given class is used as the right-hand operand to a
-  /// mixin application (i.e. [Class.mixedInType]).
-  bool isUsedAsMixin(Class class_);
-
-  /// True if the given class is extended by another class using `extends`.
-  bool isExtended(Class class_);
 
   /// Returns the set of libraries for which this class hierarchy can be
   /// queried.
@@ -697,23 +675,7 @@ class ClosedWorldClassHierarchy
   CoreTypes coreTypes;
   late HandleAmbiguousSupertypes _onAmbiguousSupertypes;
   late HandleAmbiguousSupertypes _onAmbiguousSupertypesNotWrapped;
-  MixinInferrer? mixinInferrer;
-
-  @override
-  void set onAmbiguousSupertypes(
-      HandleAmbiguousSupertypes onAmbiguousSupertypes) {
-    _onAmbiguousSupertypesNotWrapped = onAmbiguousSupertypes;
-    _onAmbiguousSupertypes = (Class class_, Supertype a, Supertype b) {
-      onAmbiguousSupertypes(class_, a, b);
-      List<Supertype>? recorded = _recordedAmbiguousSupertypes[class_];
-      if (recorded == null) {
-        recorded = <Supertype>[];
-        _recordedAmbiguousSupertypes[class_] = recorded;
-      }
-      recorded.add(a);
-      recorded.add(b);
-    };
-  }
+  final MixinInferrer? mixinInferrer;
 
   /// The insert order is important.
   final Map<Class, _ClassInfo> _infoMap =
@@ -786,16 +748,21 @@ class ClosedWorldClassHierarchy
     return _infoMap.keys;
   }
 
-  int get numberOfClasses {
-    allBetsOff = true;
-    return _infoMap.length;
-  }
-
   _ClosedWorldClassHierarchySubtypes? _cachedClassHierarchySubtypes;
 
   ClosedWorldClassHierarchy._internal(this.coreTypes,
       HandleAmbiguousSupertypes onAmbiguousSupertypes, this.mixinInferrer) {
-    this.onAmbiguousSupertypes = onAmbiguousSupertypes;
+    _onAmbiguousSupertypesNotWrapped = onAmbiguousSupertypes;
+    _onAmbiguousSupertypes = (Class class_, Supertype a, Supertype b) {
+      onAmbiguousSupertypes(class_, a, b);
+      List<Supertype>? recorded = _recordedAmbiguousSupertypes[class_];
+      if (recorded == null) {
+        recorded = <Supertype>[];
+        _recordedAmbiguousSupertypes[class_] = recorded;
+      }
+      recorded.add(a);
+      recorded.add(b);
+    };
   }
 
   ClassHierarchySubtypes computeSubtypesInformation() {
@@ -823,16 +790,6 @@ class ClosedWorldClassHierarchy
   bool isSubInterfaceOf(Class subtype, Class superclass) {
     if (identical(subtype, superclass)) return true;
     return infoFor(subtype).isSubtypeOf(infoFor(superclass));
-  }
-
-  @override
-  bool isUsedAsMixin(Class class_) {
-    return infoFor(class_).directMixers.isNotEmpty;
-  }
-
-  @override
-  bool isExtended(Class class_) {
-    return infoFor(class_).directExtenders.isNotEmpty;
   }
 
   List<_ClassInfo> _getRankedSuperclassInfos(_ClassInfo info) {
@@ -1209,7 +1166,9 @@ class ClosedWorldClassHierarchy
     }
   }
 
-  @override
+  // Returns the instantiation of each generic supertype implemented by this
+  // class (e.g. getClassAsInstanceOf applied to all superclasses and
+  // interfaces).
   List<Supertype> genericSupertypesOf(Class class_) {
     Map<Class, Supertype>? supertypes = infoFor(class_).genericSuperType;
     if (supertypes == null) return const <Supertype>[];
@@ -1406,20 +1365,6 @@ class ClosedWorldClassHierarchy
       }
     }
     return true;
-  }
-
-  @override
-  Supertype? asInstantiationOf(Supertype type, Class superclass) {
-    // This is similar to getTypeAsInstanceOf, except that it assumes that
-    // superclass is a generic class.  It thus does not rely on being able
-    // to answer isSubtypeOf queries and so can be used before we have built
-    // the intervals needed for those queries.
-    assert(superclass.typeParameters.isNotEmpty);
-    if (type.classNode == superclass) {
-      return superclass.asThisSupertype;
-    }
-    Map<Class, Supertype>? map = infoFor(type.classNode).genericSuperType;
-    return map == null ? null : map[superclass];
   }
 
   void _initialize(List<Library> libraries) {
@@ -2061,12 +2006,6 @@ class ClassSet extends IterableBase<Class> {
   @override
   bool contains(Object? class_) {
     return _classes.contains(class_);
-  }
-
-  ClassSet union(ClassSet other) {
-    Set<Class> result = new Set<Class>.of(_classes);
-    result.addAll(other._classes);
-    return new ClassSet(result);
   }
 
   @override

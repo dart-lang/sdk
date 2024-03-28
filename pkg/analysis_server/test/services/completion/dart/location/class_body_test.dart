@@ -58,15 +58,21 @@ suggestions
   }
     kind: override
     selection: 90 38
+  final
+    kind: keyword
+  static
+    kind: keyword
+  void
+    kind: keyword
   const
+    kind: keyword
+  set
+    kind: keyword
+  factory
     kind: keyword
   covariant
     kind: keyword
   dynamic
-    kind: keyword
-  factory
-    kind: keyword
-  final
     kind: keyword
   get
     kind: keyword
@@ -74,13 +80,7 @@ suggestions
     kind: keyword
   operator
     kind: keyword
-  set
-    kind: keyword
-  static
-    kind: keyword
   var
-    kind: keyword
-  void
     kind: keyword
 ''');
   }
@@ -122,15 +122,21 @@ suggestions
   }
     kind: override
     selection: 90 38
+  final
+    kind: keyword
+  static
+    kind: keyword
+  void
+    kind: keyword
   const
+    kind: keyword
+  set
+    kind: keyword
+  factory
     kind: keyword
   covariant
     kind: keyword
   dynamic
-    kind: keyword
-  factory
-    kind: keyword
-  final
     kind: keyword
   get
     kind: keyword
@@ -138,13 +144,7 @@ suggestions
     kind: keyword
   operator
     kind: keyword
-  set
-    kind: keyword
-  static
-    kind: keyword
   var
-    kind: keyword
-  void
     kind: keyword
 ''');
   }
@@ -186,15 +186,21 @@ suggestions
   }
     kind: override
     selection: 90 38
+  final
+    kind: keyword
+  static
+    kind: keyword
+  void
+    kind: keyword
   const
+    kind: keyword
+  set
+    kind: keyword
+  factory
     kind: keyword
   covariant
     kind: keyword
   dynamic
-    kind: keyword
-  factory
-    kind: keyword
-  final
     kind: keyword
   get
     kind: keyword
@@ -202,13 +208,7 @@ suggestions
     kind: keyword
   operator
     kind: keyword
-  set
-    kind: keyword
-  static
-    kind: keyword
   var
-    kind: keyword
-  void
     kind: keyword
 ''');
   }
@@ -250,15 +250,21 @@ suggestions
   }
     kind: override
     selection: 90 38
+  final
+    kind: keyword
+  static
+    kind: keyword
+  void
+    kind: keyword
   const
+    kind: keyword
+  set
+    kind: keyword
+  factory
     kind: keyword
   covariant
     kind: keyword
   dynamic
-    kind: keyword
-  factory
-    kind: keyword
-  final
     kind: keyword
   get
     kind: keyword
@@ -266,13 +272,7 @@ suggestions
     kind: keyword
   operator
     kind: keyword
-  set
-    kind: keyword
-  static
-    kind: keyword
   var
-    kind: keyword
-  void
     kind: keyword
 ''');
   }
@@ -327,15 +327,21 @@ suggestions
   }
     kind: override
     selection: 90 38
+  final
+    kind: keyword
+  static
+    kind: keyword
+  void
+    kind: keyword
   const
+    kind: keyword
+  set
+    kind: keyword
+  factory
     kind: keyword
   covariant
     kind: keyword
   dynamic
-    kind: keyword
-  factory
-    kind: keyword
-  final
     kind: keyword
   get
     kind: keyword
@@ -343,13 +349,7 @@ suggestions
     kind: keyword
   operator
     kind: keyword
-  set
-    kind: keyword
-  static
-    kind: keyword
   var
-    kind: keyword
-  void
     kind: keyword
 ''');
   }
@@ -623,6 +623,7 @@ mixin M {
   void _printKeywordsOrClass({
     String sampleClassName = 'Object',
   }) {
+    printerConfiguration.sorting = printer.Sorting.completionThenKind;
     printerConfiguration.filter = (suggestion) {
       final completion = suggestion.completion;
       if (suggestion.kind == CompletionSuggestionKind.KEYWORD) {
@@ -646,13 +647,254 @@ mixin OverrideTestCases on AbstractCompletionDriverTest {
 
     printerConfiguration = printer.Configuration(
       filter: (suggestion) {
-        if (suggestion.kind == CompletionSuggestionKind.OVERRIDE) {
-          return suggestion.completion.contains('foo0');
+        switch (suggestion.kind) {
+          case CompletionSuggestionKind.IDENTIFIER:
+            return suggestion.completion == 'override';
+          case CompletionSuggestionKind.OVERRIDE:
+            return suggestion.completion.contains('foo0');
         }
         return false;
       },
       withDisplayText: true,
     );
+  }
+
+  Future<void> test_class_atOverride_afterField_beforeRightBrace() async {
+    await computeSuggestions('''
+class A {
+  void foo01() {}
+}
+
+class B extends A {
+  final int bar01 = 0;
+
+  @over^
+}
+''');
+
+    assertResponse(r'''
+replacement
+  left: 4
+suggestions
+  override
+  void foo01() {
+    // TODO: implement foo01
+    super.foo01();
+  }
+    kind: override
+    displayText: override foo01() { … }
+    selection: 59 14
+  override
+    kind: topLevelVariable
+    displayText: null
+''');
+  }
+
+  Future<void>
+      test_class_atOverride_afterLeftBrace_beforeField_prevLine() async {
+    await computeSuggestions('''
+class A {
+  void foo01() {}
+}
+
+class B extends A {
+  @over^
+  final int bar01 = 0;
+}
+''');
+
+    assertResponse(r'''
+replacement
+  left: 4
+suggestions
+  override
+    kind: topLevelVariable
+    displayText: null
+''');
+  }
+
+  Future<void>
+      test_class_atOverride_afterLeftBrace_beforeField_skipLine() async {
+    await computeSuggestions('''
+class A {
+  void foo01() {}
+}
+
+class B extends A {
+  @over^
+
+  final int bar01 = 0;
+}
+''');
+
+    assertResponse(r'''
+replacement
+  left: 4
+suggestions
+  override
+  void foo01() {
+    // TODO: implement foo01
+    super.foo01();
+  }
+    kind: override
+    displayText: override foo01() { … }
+    selection: 59 14
+  override
+    kind: topLevelVariable
+    displayText: null
+''');
+  }
+
+  Future<void> test_class_atOverride_afterLeftBrace_beforeRightBrace() async {
+    await computeSuggestions('''
+class A {
+  void foo01() {}
+}
+
+class B extends A {
+  @over^
+}
+''');
+
+    assertResponse(r'''
+replacement
+  left: 4
+suggestions
+  override
+  void foo01() {
+    // TODO: implement foo01
+    super.foo01();
+  }
+    kind: override
+    displayText: override foo01() { … }
+    selection: 59 14
+  override
+    kind: topLevelVariable
+    displayText: null
+''');
+  }
+
+  Future<void> test_class_atOverride_afterMethod_beforeMethod_prevLine() async {
+    await computeSuggestions('''
+class A {
+  void foo01() {}
+}
+
+class B extends A {
+  void bar01() {}
+
+  @over^
+  void bar02() {}
+}
+''');
+
+    // Note, no `foo01` override suggestion.
+    assertResponse(r'''
+replacement
+  left: 4
+suggestions
+  override
+    kind: topLevelVariable
+    displayText: null
+''');
+  }
+
+  Future<void> test_class_atOverride_afterMethod_beforeMethod_skipLine() async {
+    await computeSuggestions('''
+class A {
+  void foo01() {}
+}
+
+class B extends A {
+  void bar01() {}
+
+  @over^
+
+  void bar02() {}
+}
+''');
+
+    assertResponse(r'''
+replacement
+  left: 4
+suggestions
+  override
+  void foo01() {
+    // TODO: implement foo01
+    super.foo01();
+  }
+    kind: override
+    displayText: override foo01() { … }
+    selection: 59 14
+  override
+    kind: topLevelVariable
+    displayText: null
+''');
+  }
+
+  Future<void> test_class_atOverride_afterMethod_beforeRightBrace() async {
+    await computeSuggestions('''
+class A {
+  void foo01() {}
+}
+
+class B extends A {
+  void bar() {}
+  @over^
+}
+''');
+
+    assertResponse(r'''
+replacement
+  left: 4
+suggestions
+  override
+  void foo01() {
+    // TODO: implement foo01
+    super.foo01();
+  }
+    kind: override
+    displayText: override foo01() { … }
+    selection: 59 14
+  override
+    kind: topLevelVariable
+    displayText: null
+''');
+  }
+
+  Future<void> test_class_atOverride_operator() async {
+    await computeSuggestions('''
+class A {
+  @over^
+}
+''');
+
+    printerConfiguration.filter = (suggestion) {
+      switch (suggestion.kind) {
+        case CompletionSuggestionKind.IDENTIFIER:
+          return suggestion.completion == 'override';
+        case CompletionSuggestionKind.OVERRIDE:
+          return suggestion.completion.contains('==');
+      }
+      return false;
+    };
+
+    assertResponse(r'''
+replacement
+  left: 4
+suggestions
+  override
+  bool operator ==(Object other) {
+    // TODO: implement ==
+    return super == other;
+  }
+    kind: override
+    displayText: override ==(Object other) { … }
+    selection: 74 22
+  override
+    kind: topLevelVariable
+    displayText: null
+''');
   }
 
   Future<void> test_class_inComment() async {
@@ -1136,6 +1378,116 @@ extension E on A {
 replacement
   left: 3
 suggestions
+''');
+  }
+
+  Future<void> test_mixin_beforeMethod_atOverride_skipLine() async {
+    await computeSuggestions('''
+class A {
+  void foo01() {}
+}
+
+mixin B on A {
+  @over^
+
+  void bar() {}
+}
+''');
+
+    assertResponse(r'''
+replacement
+  left: 4
+suggestions
+  override
+  void foo01() {
+    // TODO: implement foo01
+    super.foo01();
+  }
+    kind: override
+    displayText: override foo01() { … }
+    selection: 59 14
+  override
+    kind: topLevelVariable
+    displayText: null
+''');
+  }
+
+  Future<void> test_mixin_beforeRightBrace() async {
+    await computeSuggestions('''
+class A {
+  void foo01() {}
+}
+
+mixin B on A {
+  ^
+}
+''');
+
+    assertResponse(r'''
+suggestions
+  @override
+  void foo01() {
+    // TODO: implement foo01
+    super.foo01();
+  }
+    kind: override
+    displayText: foo01() { … }
+    selection: 60 14
+''');
+  }
+
+  Future<void> test_mixin_beforeRightBrace_atOverride() async {
+    await computeSuggestions('''
+class A {
+  void foo01() {}
+}
+
+mixin B on A {
+  @over^
+}
+''');
+
+    assertResponse(r'''
+replacement
+  left: 4
+suggestions
+  override
+  void foo01() {
+    // TODO: implement foo01
+    super.foo01();
+  }
+    kind: override
+    displayText: override foo01() { … }
+    selection: 59 14
+  override
+    kind: topLevelVariable
+    displayText: null
+''');
+  }
+
+  Future<void> test_mixin_beforeRightBrace_partial() async {
+    await computeSuggestions('''
+class A {
+  void foo01() {}
+}
+
+mixin B on A {
+  foo0^
+}
+''');
+
+    assertResponse(r'''
+replacement
+  left: 4
+suggestions
+  @override
+  void foo01() {
+    // TODO: implement foo01
+    super.foo01();
+  }
+    kind: override
+    displayText: foo01() { … }
+    selection: 60 14
 ''');
   }
 

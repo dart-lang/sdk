@@ -32,6 +32,7 @@ import 'package:macro/macro.dart';
 @SequenceMacro(0)
 /*class: Class1:
 declarations:
+library augment 'org-dartlang-test:///a/b/c/main.dart';
 
 augment class Class1 {
   method() {}
@@ -43,11 +44,13 @@ class Class1 {}
 @SequenceMacro(1)
 /*class: Class2:
 declarations:
+library augment 'org-dartlang-test:///a/b/c/main.dart';
 
 augment class Class2 {
   method() {}
 }
 
+library augment 'org-dartlang-test:///a/b/c/main.dart';
 
 augment class Class2 {
   method1() {}
@@ -58,6 +61,7 @@ class Class2 {}
 @SequenceMacro(0)
 /*class: Class3:
 declarations:
+library augment 'org-dartlang-test:///a/b/c/main.dart';
 
 augment class Class3 {
   method1() {}
@@ -73,16 +77,19 @@ class Class3 {
 @SequenceMacro(2)
 /*class: Class4:
 declarations:
+library augment 'org-dartlang-test:///a/b/c/main.dart';
 
 augment class Class4 {
   method1() {}
 }
 
+library augment 'org-dartlang-test:///a/b/c/main.dart';
 
 augment class Class4 {
   method3() {}
 }
 
+library augment 'org-dartlang-test:///a/b/c/main.dart';
 
 augment class Class4 {
   method4() {}
@@ -99,6 +106,7 @@ class Class4 {
 @SequenceMacro(0)
 /*class: Class5c:
 declarations:
+library augment 'org-dartlang-test:///a/b/c/main.dart';
 
 augment class Class5c {
   method2() {}
@@ -109,6 +117,7 @@ class Class5c extends Class5b {}
 @SequenceMacro(0)
 /*class: Class5b:
 declarations:
+library augment 'org-dartlang-test:///a/b/c/main.dart';
 
 augment class Class5b {
   method1() {}
@@ -119,6 +128,7 @@ class Class5b extends Class5a {}
 @SequenceMacro(0)
 /*class: Class5a:
 declarations:
+library augment 'org-dartlang-test:///a/b/c/main.dart';
 
 augment class Class5a {
   method() {}
@@ -129,6 +139,7 @@ class Class5a {}
 @SequenceMacro(0)
 /*class: Class6d:
 declarations:
+library augment 'org-dartlang-test:///a/b/c/main.dart';
 
 augment abstract class Class6d {
   method2() {}
@@ -139,6 +150,7 @@ abstract class Class6d implements Class6c, Class6b {}
 @SequenceMacro(0)
 /*class: Class6c:
 declarations:
+library augment 'org-dartlang-test:///a/b/c/main.dart';
 
 augment class Class6c {
   method() {}
@@ -149,6 +161,7 @@ class Class6c {}
 @SequenceMacro(0)
 /*class: Class6b:
 declarations:
+library augment 'org-dartlang-test:///a/b/c/main.dart';
 
 augment abstract class Class6b {
   method1() {}
@@ -159,6 +172,7 @@ abstract class Class6b implements Class6a {}
 @SequenceMacro(0)
 /*class: Class6a:
 declarations:
+library augment 'org-dartlang-test:///a/b/c/main.dart';
 
 augment class Class6a {
   method() {}
@@ -168,6 +182,7 @@ class Class6a {}
 
 /*class: Class7d:
 declarations:
+library augment 'org-dartlang-test:///a/b/c/main.dart';
 
 augment class Class7d {
   method2() {}
@@ -179,6 +194,7 @@ class Class7d extends Class7b with Class7c {}
 @SequenceMacro(0)
 /*class: Class7c:
 declarations:
+library augment 'org-dartlang-test:///a/b/c/main.dart';
 
 augment mixin Class7c {
   method() {}
@@ -189,6 +205,7 @@ mixin Class7c {}
 @SequenceMacro(0)
 /*class: Class7b:
 declarations:
+library augment 'org-dartlang-test:///a/b/c/main.dart';
 
 augment class Class7b {
   method1() {}
@@ -199,6 +216,7 @@ class Class7b with Class7a {}
 @SequenceMacro(0)
 /*class: Class7a:
 declarations:
+library augment 'org-dartlang-test:///a/b/c/main.dart';
 
 augment mixin Class7a {
   method() {}

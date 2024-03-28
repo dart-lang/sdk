@@ -2,11 +2,6 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/nnbd/issue41102.dart:17:12: Warning: Operand of null-aware operation '?.' has type 'List<dynamic>' which excludes null.
-//  - 'List' is from 'dart:core'.
-// final s2 = s1?.length;
-//            ^
-//
 // pkg/front_end/testcases/nnbd/issue41102.dart:19:36: Error: The value 'null' can't be assigned to the parameter type 'int' because 'int' is not nullable.
 // final s3 = new List<int>.filled(2, null);
 //                                    ^

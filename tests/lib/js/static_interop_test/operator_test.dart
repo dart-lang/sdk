@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=inline-class
-
 // Test operators through overloading and the ones defined in dart:js_interop.
 
 @JS()
@@ -59,56 +57,58 @@ extension on int {
   JSBigInt get toBigInt => BigInt(this.toString());
 }
 
+int toInt(JSAny any) => (any as JSNumber).toDartInt;
+
 void dartJsInteropOperatorsTest() {
   // Arithmetic.
   final i10 = 10.toJS;
-  expect(i10.add(1.toJS), 11.toJS);
-  expect(i10.subtract(1.toJS), 9.toJS);
-  expect(i10.multiply(2.toJS), 20.toJS);
-  expect(i10.divide(10.toJS), 1.toJS);
-  expect(i10.modulo(5.toJS), 0.toJS);
-  expect(i10.exponentiate(2.toJS), 100.toJS);
+  expect(toInt(i10.add(1.toJS)), 11);
+  expect(toInt(i10.subtract(1.toJS)), 9);
+  expect(toInt(i10.multiply(2.toJS)), 20);
+  expect(toInt(i10.divide(10.toJS)), 1);
+  expect(toInt(i10.modulo(5.toJS)), 0);
+  expect(toInt(i10.exponentiate(2.toJS)), 100);
 
   // Bitwise.
-  expect(i10.unsignedRightShift(1.toJS), 5.toJS);
+  expect(toInt(i10.unsignedRightShift(1.toJS)), 5);
 
   // Comparison/relational.
   final t = true.toJS;
   final f = false.toJS;
   // Equality attempts to coerce, whereas strict equality does not.
-  Expect.isTrue(t.equals(1.toJS));
-  Expect.isFalse(t.notEquals(1.toJS));
-  Expect.isFalse(t.strictEquals(1.toJS));
-  Expect.isTrue(t.strictNotEquals(1.toJS));
+  Expect.isTrue(t.equals(1.toJS).toDart);
+  Expect.isFalse(t.notEquals(1.toJS).toDart);
+  Expect.isFalse(t.strictEquals(1.toJS).toDart);
+  Expect.isTrue(t.strictNotEquals(1.toJS).toDart);
   Expect.isFalse((t.and(f) as JSBoolean).toDart);
   Expect.isTrue((t.or(f) as JSBoolean).toDart);
   Expect.isFalse(t.not);
   Expect.isTrue(t.isTruthy);
-  Expect.isFalse(i10.lessThan(i10));
-  Expect.isTrue(i10.lessThanOrEqualTo(i10));
-  Expect.isFalse(i10.greaterThan(i10));
-  Expect.isTrue(i10.greaterThanOrEqualTo(i10));
+  Expect.isFalse(i10.lessThan(i10).toDart);
+  Expect.isTrue(i10.lessThanOrEqualTo(i10).toDart);
+  Expect.isFalse(i10.greaterThan(i10).toDart);
+  Expect.isTrue(i10.greaterThanOrEqualTo(i10).toDart);
 
   // Nulls.
-  expect(null.add(null), 0.toJS);
-  expect(null.subtract(null), 0.toJS);
-  expect(null.multiply(null), 0.toJS);
+  expect(toInt(null.add(null)), 0);
+  expect(toInt(null.subtract(null)), 0);
+  expect(toInt(null.multiply(null)), 0);
   Expect.isTrue(isNaN(null.divide(null)));
   Expect.isTrue(isNaN(null.modulo(null)));
-  expect(null.exponentiate(null), 1.toJS);
-  expect(null.unsignedRightShift(null), 0.toJS);
-  Expect.isTrue(null.equals(null));
-  Expect.isFalse(null.notEquals(null));
-  Expect.isTrue(null.strictEquals(null));
-  Expect.isFalse(null.strictNotEquals(null));
+  expect(toInt(null.exponentiate(null)), 1);
+  expect(toInt(null.unsignedRightShift(null)), 0);
+  Expect.isTrue(null.equals(null).toDart);
+  Expect.isFalse(null.notEquals(null).toDart);
+  Expect.isTrue(null.strictEquals(null).toDart);
+  Expect.isFalse(null.strictNotEquals(null).toDart);
   expect(null.and(null), null);
   expect(null.or(null), null);
   Expect.isTrue(null.not);
   Expect.isFalse(null.isTruthy);
-  Expect.isFalse(null.lessThan(null));
-  Expect.isTrue(null.lessThanOrEqualTo(null));
-  Expect.isFalse(null.greaterThan(null));
-  Expect.isTrue(null.greaterThanOrEqualTo(null));
+  Expect.isFalse(null.lessThan(null).toDart);
+  Expect.isTrue(null.lessThanOrEqualTo(null).toDart);
+  Expect.isFalse(null.greaterThan(null).toDart);
+  Expect.isTrue(null.greaterThanOrEqualTo(null).toDart);
 
   // Different types.
   final b10 = 10.toBigInt;
@@ -120,20 +120,20 @@ void dartJsInteropOperatorsTest() {
   expect(b10.exponentiate(2.toBigInt), 100.toBigInt);
   // Note that `unsignedRightShift` can not be used with BigInts and always
   // returns a number.
-  expect(t.unsignedRightShift(f), 1.toJS);
+  expect(toInt(t.unsignedRightShift(f)), 1);
   final b1 = 1.toBigInt;
-  Expect.isTrue(b1.equals(t));
-  Expect.isFalse(b1.notEquals(t));
-  Expect.isFalse(b1.strictEquals(t));
-  Expect.isTrue(b1.strictNotEquals(t));
+  Expect.isTrue(b1.equals(t).toDart);
+  Expect.isFalse(b1.notEquals(t).toDart);
+  Expect.isFalse(b1.strictEquals(t).toDart);
+  Expect.isTrue(b1.strictNotEquals(t).toDart);
   expect(b10.and(b1), b1);
   expect(b10.or(b1), b10);
   Expect.isFalse(b10.not);
   Expect.isTrue(b10.isTruthy);
-  Expect.isFalse(b10.lessThan(b10));
-  Expect.isTrue(b10.lessThanOrEqualTo(b10));
-  Expect.isFalse(b10.greaterThan(b10));
-  Expect.isTrue(b10.greaterThanOrEqualTo(b10));
+  Expect.isFalse(b10.lessThan(b10).toDart);
+  Expect.isTrue(b10.lessThanOrEqualTo(b10).toDart);
+  Expect.isFalse(b10.greaterThan(b10).toDart);
+  Expect.isTrue(b10.greaterThanOrEqualTo(b10).toDart);
 }
 
 void main() {

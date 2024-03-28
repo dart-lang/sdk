@@ -2,15 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:dart2wasm/class_info.dart';
-import 'package:dart2wasm/code_generator.dart';
-import 'package:dart2wasm/dynamic_forwarders.dart';
-import 'package:dart2wasm/translator.dart';
-
 import 'package:kernel/ast.dart';
-
 import 'package:wasm_builder/wasm_builder.dart' as w;
+
 import 'abi.dart' show kWasmAbiEnumIndex;
+import 'class_info.dart';
+import 'code_generator.dart';
+import 'dynamic_forwarders.dart';
+import 'translator.dart';
 
 typedef CodeGenCallback = void Function(CodeGenerator);
 
@@ -188,8 +187,19 @@ class Intrinsifier {
       // A compound (subclass of Struct or Union) is represented by its i32
       // address. The _typedDataBase field contains a Pointer pointing to the
       // compound, whose representation is the same.
+      // TODO(https://dartbug.com/55083): Implement structs backed by TypedData.
       codeGen.wrap(receiver, w.NumType.i32);
       return w.NumType.i32;
+    }
+
+    // _Compound._offsetInBytes
+    if (cls == translator.ffiCompoundClass && name == '_offsetInBytes') {
+      // A compound (subclass of Struct or Union) is represented by its i32
+      // address. The _offsetInBytes field contains is always 0.
+      // This also breaks nested structs, which are currently not used.
+      // TODO(https://dartbug.com/55083): Implement structs backed by TypedData.
+      b.i64_const(0);
+      return w.NumType.i64;
     }
 
     // Pointer.address
@@ -308,7 +318,7 @@ class Intrinsifier {
 
       // If the list is indexed by a constant, or the ABI index, just pick
       // the element at that constant index.
-      int? constIndex = null;
+      int? constIndex;
       if (arg is IntLiteral) {
         constIndex = arg.value;
       } else if (arg is ConstantExpression) {
@@ -532,8 +542,51 @@ class Intrinsifier {
             b.i32_wrap_i64();
             b.array_fill(arrayType);
             return codeGen.voidMarker;
+          case 'clone':
+            // Until `array.new_copy` we need a special case for empty arrays.
+            // https://github.com/WebAssembly/gc/issues/367
+            final sourceArray = node.arguments.positional[0];
+
+            final sourceArrayRefType =
+                w.RefType.def(arrayType, nullable: false);
+            final sourceArrayLocal = codeGen.addLocal(sourceArrayRefType);
+            final newArrayLocal = codeGen.addLocal(sourceArrayRefType);
+
+            codeGen.wrap(sourceArray, sourceArrayRefType);
+            b.local_tee(sourceArrayLocal);
+
+            b.array_len();
+            b.if_([], [sourceArrayRefType]);
+            // Non-empty array. Create new one with the first element of the
+            // source, then copy the rest.
+            b.local_get(sourceArrayLocal);
+            b.i32_const(0);
+            b.array_get(arrayType);
+            b.local_get(sourceArrayLocal);
+            b.array_len();
+            b.array_new(arrayType);
+            b.local_tee(newArrayLocal); // copy dest
+            b.i32_const(1); // copy dest offset
+            b.local_get(sourceArrayLocal); // copy source
+            b.i32_const(1); // copy source offset
+
+            // copy size
+            b.local_get(sourceArrayLocal);
+            b.array_len();
+            b.i32_const(1);
+            b.i32_sub();
+
+            b.array_copy(arrayType, arrayType);
+
+            b.local_get(newArrayLocal);
+            b.else_();
+            // Empty array.
+            b.array_new_fixed(arrayType, 0);
+            b.end();
+
+            return sourceArrayRefType;
           default:
-            throw 'unknown';
+            throw 'Unhandled WasmArrayExt external method: $memberName';
         }
       }
 

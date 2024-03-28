@@ -8,6 +8,7 @@ import 'package:analysis_server/src/lsp/client_configuration.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_call_hierarchy.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_change_workspace_folders.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_code_actions.dart';
+import 'package:analysis_server/src/lsp/handlers/handler_code_lens.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_completion.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_dart_text_document_content_provider.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_definition.dart';
@@ -87,6 +88,7 @@ class LspFeatures {
   final CallHierarchyRegistrations callHierarchy;
   final ChangeWorkspaceFoldersRegistrations changeNotifications;
   final CodeActionRegistrations codeActions;
+  final CodeLensRegistrations codeLens;
   final CompletionRegistrations completion;
   final DefinitionRegistrations definition;
   final DocumentLinkRegistrations documentLink;
@@ -120,6 +122,7 @@ class LspFeatures {
       : callHierarchy = CallHierarchyRegistrations(context),
         changeNotifications = ChangeWorkspaceFoldersRegistrations(context),
         codeActions = CodeActionRegistrations(context),
+        codeLens = CodeLensRegistrations(context),
         colors = DocumentColorRegistrations(context),
         completion = CompletionRegistrations(context),
         definition = DefinitionRegistrations(context),
@@ -153,6 +156,7 @@ class LspFeatures {
         callHierarchy,
         changeNotifications,
         codeActions,
+        codeLens,
         completion,
         definition,
         documentLink,

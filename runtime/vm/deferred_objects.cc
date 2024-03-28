@@ -510,6 +510,12 @@ void DeferredObject::Fill() {
             }
           }
         }
+
+        if (obj.IsTypedDataView()) {
+          // The data field does not get materialized for typed data views
+          // because it is not a safe untagged pointer and must be recomputed.
+          TypedDataView::Cast(obj).RecomputeDataField();
+        }
       }
       break;
   }

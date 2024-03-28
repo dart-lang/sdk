@@ -344,11 +344,4 @@ class DartTypeEquivalence implements DartTypeVisitor1<bool, DartType> {
     }
     return parameter;
   }
-
-  DartTypeEquivalence copy() {
-    return new DartTypeEquivalence(coreTypes,
-        equateTopTypes: equateTopTypes,
-        ignoreAllNullabilities: ignoreAllNullabilities,
-        ignoreTopLevelNullability: ignoreTopLevelNullability);
-  }
 }

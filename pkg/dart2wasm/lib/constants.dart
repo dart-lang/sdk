@@ -2,20 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:math';
 import 'dart:typed_data';
-
-import 'package:dart2wasm/class_info.dart';
-import 'package:dart2wasm/closures.dart';
-import 'package:dart2wasm/param_info.dart';
-import 'package:dart2wasm/translator.dart';
-import 'package:dart2wasm/types.dart';
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/type_algebra.dart'
     show FunctionTypeInstantiator, substitute;
-
 import 'package:wasm_builder/wasm_builder.dart' as w;
+
+import 'class_info.dart';
+import 'closures.dart';
+import 'param_info.dart';
+import 'translator.dart';
+import 'types.dart';
 
 const int maxArrayNewFixedLength = 10000;
 
@@ -54,7 +52,7 @@ class Constants {
 
   bool currentlyCreating = false;
 
-  Constants(this.translator) {}
+  Constants(this.translator);
 
   w.ModuleBuilder get m => translator.m;
 
@@ -234,6 +232,10 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
   Translator get translator => constants.translator;
   Types get types => translator.types;
   w.ModuleBuilder get m => constants.m;
+
+  Constant get _uninitializedHashBaseIndexConstant =>
+      (translator.uninitializedHashBaseIndex.initializer as ConstantExpression)
+          .constant;
 
   ConstantInfo? ensureConstant(Constant constant) {
     // To properly canonicalize type literal constants, we normalize the
@@ -501,80 +503,74 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
 
   @override
   ConstantInfo? visitMapConstant(MapConstant constant) {
-    Constant keyTypeConstant = TypeLiteralConstant(constant.keyType);
-    ensureConstant(keyTypeConstant);
-    Constant valueTypeConstant = TypeLiteralConstant(constant.valueType);
-    ensureConstant(valueTypeConstant);
-    List<Constant> dataElements =
-        List.generate(constant.entries.length * 2, (i) {
+    final listElements = List.generate(constant.entries.length * 2, (i) {
       ConstantMapEntry entry = constant.entries[i >> 1];
       return i.isEven ? entry.key : entry.value;
     });
-    ListConstant dataList = ListConstant(const DynamicType(), dataElements);
-    bool lazy = ensureConstant(dataList)?.isLazy ?? false;
 
-    ClassInfo info = translator.classInfo[translator.immutableMapClass]!;
-    translator.functions.recordClassAllocation(info.classId);
-    w.RefType type = info.nonNullableType;
-    return createConstant(constant, type, lazy: lazy, (function, b) {
-      w.RefType indexType =
-          info.struct.fields[FieldIndex.hashBaseIndex].type as w.RefType;
-      w.RefType dataType =
-          info.struct.fields[FieldIndex.hashBaseData].type as w.RefType;
+    final instanceConstant =
+        InstanceConstant(translator.immutableMapClass.reference, [
+      constant.keyType,
+      constant.valueType
+    ], {
+      // _index = _uninitializedHashBaseIndex
+      translator.hashFieldBaseIndexField.fieldReference:
+          _uninitializedHashBaseIndexConstant,
 
-      b.i32_const(info.classId);
-      b.i32_const(initialIdentityHash);
-      b.ref_null(indexType.heapType); // _index
-      b.i64_const(_computeHashMask(constant.entries.length)); // _hashMask
-      constants.instantiateConstant(function, b, dataList, dataType); // _data
-      b.i64_const(dataElements.length); // _usedData
-      b.i64_const(0); // _deletedKeys
-      constants.instantiateConstant(
-          function, b, keyTypeConstant, constants.typeInfo.nullableType);
-      constants.instantiateConstant(
-          function, b, valueTypeConstant, constants.typeInfo.nullableType);
-      b.struct_new(info.struct);
+      // _hashMask
+      translator.hashFieldBaseHashMaskField.fieldReference: IntConstant(0),
+
+      // _data
+      translator.hashFieldBaseDataField.fieldReference:
+          InstanceConstant(translator.wasmArrayClass.reference, [
+        translator.coreTypes.objectNullableRawType
+      ], {
+        translator.wasmArrayValueField.fieldReference: ListConstant(
+            translator.coreTypes.objectNullableRawType, listElements)
+      }),
+
+      // _usedData
+      translator.hashFieldBaseUsedDataField.fieldReference:
+          IntConstant(listElements.length),
+
+      // _deletedKeys
+      translator.hashFieldBaseDeletedKeysField.fieldReference: IntConstant(0),
     });
+
+    return ensureConstant(instanceConstant);
   }
 
   @override
   ConstantInfo? visitSetConstant(SetConstant constant) {
-    Constant elementTypeConstant = TypeLiteralConstant(constant.typeArgument);
-    ensureConstant(elementTypeConstant);
-    ListConstant dataList = ListConstant(const DynamicType(), constant.entries);
-    bool lazy = ensureConstant(dataList)?.isLazy ?? false;
+    final instanceConstant =
+        InstanceConstant(translator.immutableSetClass.reference, [
+      constant.typeArgument
+    ], {
+      // _index = _uninitializedHashBaseIndex
+      translator.hashFieldBaseIndexField.fieldReference:
+          _uninitializedHashBaseIndexConstant,
 
-    ClassInfo info = translator.classInfo[translator.immutableSetClass]!;
-    translator.functions.recordClassAllocation(info.classId);
-    w.RefType type = info.nonNullableType;
-    return createConstant(constant, type, lazy: lazy, (function, b) {
-      w.RefType indexType =
-          info.struct.fields[FieldIndex.hashBaseIndex].type as w.RefType;
-      w.RefType dataType =
-          info.struct.fields[FieldIndex.hashBaseData].type as w.RefType;
+      // _hashMask
+      translator.hashFieldBaseHashMaskField.fieldReference: IntConstant(0),
 
-      b.i32_const(info.classId);
-      b.i32_const(initialIdentityHash);
-      b.ref_null(indexType.heapType); // _index
-      b.i64_const(_computeHashMask(constant.entries.length)); // _hashMask
-      constants.instantiateConstant(function, b, dataList, dataType); // _data
-      b.i64_const(constant.entries.length); // _usedData
-      b.i64_const(0); // _deletedKeys
-      constants.instantiateConstant(
-          function, b, elementTypeConstant, constants.typeInfo.nullableType);
-      b.struct_new(info.struct);
+      // _data
+      translator.hashFieldBaseDataField.fieldReference:
+          InstanceConstant(translator.wasmArrayClass.reference, [
+        translator.coreTypes.objectNullableRawType
+      ], {
+        translator.wasmArrayValueField.fieldReference: ListConstant(
+            translator.coreTypes.objectNullableRawType, constant.entries)
+      }),
+
+      // _usedData
+      translator.hashFieldBaseUsedDataField.fieldReference:
+          IntConstant(constant.entries.length),
+
+      // _deletedKeys
+      translator.hashFieldBaseDeletedKeysField.fieldReference: IntConstant(0),
     });
-  }
 
-  int _computeHashMask(int entries) {
-    // This computation of the hash mask follows the computations in
-    // [_ImmutableLinkedHashMapMixin._createIndex],
-    // [_ImmutableLinkedHashSetMixin._createIndex] and
-    // [_HashBase._indexSizeToHashMask].
-    const int initialIndexSize = 8;
-    final int indexSize = max(entries * 2, initialIndexSize);
-    final int hashMask = (1 << (31 - (indexSize - 1).bitLength)) - 1;
-    return hashMask;
+    return ensureConstant(instanceConstant);
   }
 
   @override
@@ -595,7 +591,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
       b.global_get(translator.globals.dummyStructGlobal); // Dummy context
       b.global_get(closure.vtable);
       constants.instantiateConstant(
-          function, b, functionTypeConstant, this.types.nonNullableTypeType);
+          function, b, functionTypeConstant, types.nonNullableTypeType);
       b.struct_new(struct);
     });
   }

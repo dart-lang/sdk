@@ -9,16 +9,16 @@ library;
 import self as self;
 import "dart:core" as core;
 
-class A<X extends self::E /* = invalid-type */> extends core::Object {
+class A<X extends self::E% /* erasure=invalid-type, declared=! */> extends core::Object {
   synthetic constructor •() → self::A<self::A::X%>
     ;
 }
 extension type E(invalid-type it) {
-  abstract extension-type-member representation-field get it() → <Y extends self::A<self::E /* = invalid-type */> = dynamic>() → dynamic;
+  abstract extension-type-member representation-field get it() → <Y extends self::A<self::E% /* erasure=invalid-type, declared=! */> = dynamic>() → dynamic;
   constructor • = self::E|constructor#;
   constructor tearoff • = self::E|constructor#_#new#tearOff;
 }
-static extension-type-member method E|constructor#(<Y extends self::A<self::E /* = invalid-type */> = dynamic>() → dynamic it) → self::E /* = invalid-type */
+static extension-type-member method E|constructor#(<Y extends self::A<self::E% /* erasure=invalid-type, declared=! */> = dynamic>() → dynamic it) → self::E% /* erasure=invalid-type, declared=! */
   ;
-static extension-type-member method E|constructor#_#new#tearOff(<Y extends self::A<self::E /* = invalid-type */> = dynamic>() → dynamic it) → self::E /* = invalid-type */
+static extension-type-member method E|constructor#_#new#tearOff(<Y extends self::A<self::E% /* erasure=invalid-type, declared=! */> = dynamic>() → dynamic it) → self::E% /* erasure=invalid-type, declared=! */
   return self::E|constructor#(it);

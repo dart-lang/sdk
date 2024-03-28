@@ -142,7 +142,7 @@ FlowGraphCompiler::FlowGraphCompiler(
       assembler_(assembler),
       parsed_function_(parsed_function),
       flow_graph_(*flow_graph),
-      block_order_(*flow_graph->CodegenBlockOrder(is_optimizing)),
+      block_order_(*flow_graph->CodegenBlockOrder()),
       current_block_(nullptr),
       exception_handlers_list_(nullptr),
       pc_descriptors_list_(nullptr),
@@ -429,22 +429,18 @@ void FlowGraphCompiler::RecordCatchEntryMoves(Environment* env) {
         catch_block->initial_definitions();
     catch_entry_moves_maps_builder_->NewMapping(assembler()->CodeSize());
 
-    const intptr_t num_direct_parameters = flow_graph().num_direct_parameters();
-    const intptr_t ex_idx =
-        catch_block->raw_exception_var() != nullptr
-            ? flow_graph().EnvIndex(catch_block->raw_exception_var())
-            : -1;
-    const intptr_t st_idx =
-        catch_block->raw_stacktrace_var() != nullptr
-            ? flow_graph().EnvIndex(catch_block->raw_stacktrace_var())
-            : -1;
     for (intptr_t i = 0; i < flow_graph().variable_count(); ++i) {
       // Don't sync captured parameters. They are not in the environment.
       if (flow_graph().captured_parameters()->Contains(i)) continue;
-      // Don't sync exception or stack trace variables.
-      if (i == ex_idx || i == st_idx) continue;
+      auto param = (*idefs)[i]->AsParameter();
+
       // Don't sync values that have been replaced with constants.
-      if ((*idefs)[i]->IsConstant()) continue;
+      if (param == nullptr) continue;
+      RELEASE_ASSERT(param->env_index() == i);
+      Location dst = param->location();
+
+      // Don't sync exception or stack trace variables.
+      if (dst.IsRegister()) continue;
 
       Location src = env->LocationAt(i);
       // Can only occur if AllocationSinking is enabled - and it is disabled
@@ -452,9 +448,8 @@ void FlowGraphCompiler::RecordCatchEntryMoves(Environment* env) {
       ASSERT(!src.IsInvalid());
       const Representation src_type =
           env->ValueAt(i)->definition()->representation();
-      intptr_t dest_index = i - num_direct_parameters;
-      const auto move =
-          CatchEntryMoveFor(assembler(), src_type, src, dest_index);
+      const auto move = CatchEntryMoveFor(assembler(), src_type, src,
+                                          LocationToStackIndex(dst));
       if (!move.IsRedundant()) {
         catch_entry_moves_maps_builder_->Append(move);
       }
@@ -1043,6 +1038,9 @@ void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs,
       const auto move_arg =
           instr->ArgumentValueAt(i)->instruction()->AsMoveArgument();
       const auto rep = move_arg->representation();
+      if (move_arg->is_register_move()) {
+        continue;
+      }
 
       ASSERT(rep == kTagged || rep == kUnboxedInt64 || rep == kUnboxedDouble);
       static_assert(compiler::target::kIntSpillFactor ==
@@ -1410,28 +1408,6 @@ bool FlowGraphCompiler::TryIntrinsifyHelper() {
   compiler::Label exit;
   set_intrinsic_slow_path_label(&exit);
 
-  if (FLAG_intrinsify) {
-    const auto& function = parsed_function().function();
-    if (function.IsMethodExtractor()) {
-#if !defined(TARGET_ARCH_IA32)
-      auto& extracted_method =
-          Function::ZoneHandle(function.extracted_method_closure());
-      auto& klass = Class::Handle(extracted_method.Owner());
-      const intptr_t type_arguments_field_offset =
-          compiler::target::Class::HasTypeArgumentsField(klass)
-              ? (compiler::target::Class::TypeArgumentsFieldOffset(klass) -
-                 kHeapObjectTag)
-              : 0;
-
-      SpecialStatsBegin(CombinedCodeStatistics::kTagIntrinsics);
-      GenerateMethodExtractorIntrinsic(extracted_method,
-                                       type_arguments_field_offset);
-      SpecialStatsEnd(CombinedCodeStatistics::kTagIntrinsics);
-      return true;
-#endif  // !defined(TARGET_ARCH_IA32)
-    }
-  }
-
   EnterIntrinsicMode();
 
   SpecialStatsBegin(CombinedCodeStatistics::kTagIntrinsics);
@@ -1593,8 +1569,6 @@ void FlowGraphCompiler::GenerateStringTypeCheck(
   GrowableArray<intptr_t> args;
   args.Add(kOneByteStringCid);
   args.Add(kTwoByteStringCid);
-  args.Add(kExternalOneByteStringCid);
-  args.Add(kExternalTwoByteStringCid);
   CheckClassIds(class_id_reg, args, is_instance_lbl, is_not_instance_lbl);
 }
 
@@ -3182,8 +3156,25 @@ void NullErrorSlowPath::EmitSharedStubCall(FlowGraphCompiler* compiler,
 void RangeErrorSlowPath::PushArgumentsForRuntimeCall(
     FlowGraphCompiler* compiler) {
   LocationSummary* locs = instruction()->locs();
-  __ PushRegisterPair(locs->in(CheckBoundBaseInstr::kIndexPos).reg(),
-                      locs->in(CheckBoundBaseInstr::kLengthPos).reg());
+  if (GenericCheckBoundInstr::UseUnboxedRepresentation()) {
+    // Can't pass unboxed int64 value directly to runtime call, as all
+    // arguments are expected to be tagged (boxed).
+    // The unboxed int64 argument is passed through a dedicated slot in Thread.
+    // TODO(dartbug.com/33549): Clean this up when unboxed values
+    // could be passed as arguments.
+    __ StoreToOffset(
+        locs->in(CheckBoundBaseInstr::kLengthPos).reg(),
+        compiler::Address(
+            THR, compiler::target::Thread::unboxed_runtime_arg_offset()));
+    __ StoreToOffset(
+        locs->in(CheckBoundBaseInstr::kIndexPos).reg(),
+        compiler::Address(
+            THR, compiler::target::Thread::unboxed_runtime_arg_offset() +
+                     kInt64Size));
+  } else {
+    __ PushRegisterPair(locs->in(CheckBoundBaseInstr::kIndexPos).reg(),
+                        locs->in(CheckBoundBaseInstr::kLengthPos).reg());
+  }
 }
 
 void RangeErrorSlowPath::EmitSharedStubCall(FlowGraphCompiler* compiler,
@@ -3462,8 +3453,7 @@ void FlowGraphCompiler::EmitMoveConst(const compiler::ffi::NativeLocation& dst,
     if (src.IsPairLocation()) {
       for (intptr_t i : {0, 1}) {
         const Representation src_type_split =
-            compiler::ffi::NativeType::FromUnboxedRepresentation(zone_,
-                                                                 src_type)
+            compiler::ffi::NativeType::FromRepresentation(zone_, src_type)
                 .Split(zone_, i)
                 .AsRepresentation();
         const auto& intermediate_native =

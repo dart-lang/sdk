@@ -88,10 +88,6 @@ augment class A {
 ''');
   }
 
-  @FailingTest(
-      issue: 'https://github.com/dart-lang/linter/issues/4890',
-      reason:
-          "CompileTimeErrorCode.DUPLICATE_DEFINITION [55, 1, The name 'v' is already defined.]")
   test_augmentedTopLevelGetter() async {
     newFile('$testPackageLibPath/a.dart', r'''
 import augment 'test.dart';

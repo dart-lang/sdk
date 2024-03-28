@@ -2,13 +2,11 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-import("../../build/dart/copy_tree.gni")
+import("../aot_snapshot.gni")
 import("../application_snapshot.gni")
 
 group("dtd") {
-  public_deps = [
-    ":copy_dtd_snapshot",
-  ]
+  public_deps = [ ":copy_dtd_snapshot" ]
 }
 
 copy("copy_dtd_snapshot") {

@@ -10,6 +10,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/assignment_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
@@ -40,7 +41,7 @@ class PrefixExpressionResolver {
 
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
-  void resolve(PrefixExpressionImpl node, {required DartType? contextType}) {
+  void resolve(PrefixExpressionImpl node, {required DartType contextType}) {
     var operator = node.operator.type;
 
     if (operator == TokenType.BANG) {
@@ -71,12 +72,14 @@ class PrefixExpressionResolver {
 
       _assignmentShared.checkFinalAlreadyAssigned(node.operand);
     } else {
-      DartType? innerContextType;
+      DartType innerContextType;
       if (operator == TokenType.MINUS && operand is IntegerLiteralImpl) {
         // Negated integer literals should undergo int->double conversion in the
         // same circumstances as non-negated integer literals, so pass the
         // context type through.
         innerContextType = contextType;
+      } else {
+        innerContextType = UnknownInferredType.instance;
       }
       _resolver.analyzeExpression(operand, innerContextType);
       _resolver.popRewrite();

@@ -213,15 +213,6 @@ abstract class ObjectAccessTarget {
   bool get isExtensionTypeMember =>
       kind == ObjectAccessTargetKind.extensionTypeMember;
 
-  /// Returns `true` if this is an access to the representation field of an
-  /// extension type declaration.
-  bool get isExtensionTypeRepresentation =>
-      kind == ObjectAccessTargetKind.extensionTypeRepresentation;
-
-  bool get isRecordNamedAccess => kind == ObjectAccessTargetKind.recordNamed;
-  bool get isRecordIndexedAccess =>
-      kind == ObjectAccessTargetKind.recordIndexed;
-
   /// Returns `true` if this is an access to the 'call' method on a function.
   bool get isCallFunction => kind == ObjectAccessTargetKind.callFunction;
 

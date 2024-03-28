@@ -209,6 +209,8 @@ CompileTimeErrorCode.ASSIGNMENT_TO_TYPE:
   status: noFix
 CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT:
   status: hasFix
+CompileTimeErrorCode.AUGMENTATION_WITHOUT_DECLARATION:
+  status: noFix
 CompileTimeErrorCode.AUGMENTATION_WITHOUT_IMPORT:
   status: needsFix
   notes: |-
@@ -2142,6 +2144,8 @@ LintCode.matching_super_parameters:
        parameter name.
     2. Transpose two super parameters if doing so would match up their
        super-constructor parameters.
+LintCode.missing_code_block_language_in_doc_comment:
+  status: needsEvaluation
 LintCode.missing_whitespace_between_adjacent_strings:
   status: needsFix
   notes: |-
@@ -2381,6 +2385,8 @@ LintCode.unnecessary_late:
   status: hasFix
 LintCode.unnecessary_library_directive:
   status: hasFix
+LintCode.unnecessary_library_name:
+  status: hasFix
 LintCode.unnecessary_new:
   status: hasFix
 LintCode.no_wildcard_variable_uses:
@@ -2449,7 +2455,7 @@ LintCode.use_key_in_widget_constructors:
 LintCode.use_late_for_private_fields_and_variables:
   status: needsFix
 LintCode.use_named_constants:
-  status: needsFix
+  status: hasFix
 LintCode.use_raw_strings:
   status: hasFix
 LintCode.use_rethrow_when_possible:

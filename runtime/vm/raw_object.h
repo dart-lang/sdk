@@ -255,9 +255,27 @@ class UntaggedObject {
   class OldAndNotRememberedBit
       : public BitField<uword, bool, kOldAndNotRememberedBit, 1> {};
 
-  // Will be set to 1 iff
-  //   - is unmodifiable typed data view (backing store may be mutable)
-  //   - is transitively immutable
+  // Will be set to 1 for the following instances:
+  //
+  // 1. Deeply immutable instances.
+  //    `Class::is_deeply_immutable`.
+  //    a. Statically guaranteed deeply immutable instances.
+  //       `@pragma('vm:deeply-immutable')`.
+  //    b. VM recognized deeply immutable instances.
+  //       `IsDeeplyImmutableCid(intptr_t predefined_cid)`.
+  // 2. Shallowly unmodifiable instances.
+  //    `IsShallowlyImmutableCid(intptr_t predefined_cid)`
+  //    a. Unmodifiable typed data view (backing store may be mutable).
+  //    b. Closures (the context may be modifiable).
+  //
+  // The bit is used in `CanShareObject` in object_graph_copy, where special
+  // care is taken to look at the shallow immutable instances. Shallow immutable
+  // instances always need special care in the VM because the VM needs to know
+  // what their fields are.
+  //
+  // The bit is also used to make typed data stores efficient. 2.a.
+  //
+  // See also Class::kIsDeeplyImmutableBit.
   class ImmutableBit : public BitField<uword, bool, kImmutableBit, 1> {};
 
   class ReservedBit : public BitField<uword, intptr_t, kReservedBit, 1> {};
@@ -3163,24 +3181,6 @@ class UntaggedTypedDataView : public UntaggedTypedDataBase {
   friend class ScavengerVisitorBase;
 };
 
-class UntaggedExternalOneByteString : public UntaggedString {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalOneByteString);
-
-  const uint8_t* external_data_;
-  void* peer_;
-  friend class Api;
-  friend class String;
-};
-
-class UntaggedExternalTwoByteString : public UntaggedString {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalTwoByteString);
-
-  const uint16_t* external_data_;
-  void* peer_;
-  friend class Api;
-  friend class String;
-};
-
 class UntaggedBool : public UntaggedInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Bool);
   VISIT_NOTHING();
@@ -3300,8 +3300,10 @@ class UntaggedInt32x4 : public UntaggedInstance {
 
   ALIGN8 int32_t value_[4];
 
-  friend class Simd128MessageSerializationCluster;
+  friend class Simd128DeserializationCluster;
   friend class Simd128MessageDeserializationCluster;
+  friend class Simd128MessageSerializationCluster;
+  friend class Simd128SerializationCluster;
 
  public:
   int32_t x() const { return value_[0]; }
@@ -3498,13 +3500,9 @@ class UntaggedRegExp : public UntaggedInstance {
   COMPRESSED_POINTER_FIELD(StringPtr, pattern)
   COMPRESSED_POINTER_FIELD(ObjectPtr, one_byte)  // FunctionPtr or TypedDataPtr
   COMPRESSED_POINTER_FIELD(ObjectPtr, two_byte)
-  COMPRESSED_POINTER_FIELD(ObjectPtr, external_one_byte)
-  COMPRESSED_POINTER_FIELD(ObjectPtr, external_two_byte)
   COMPRESSED_POINTER_FIELD(ObjectPtr, one_byte_sticky)
   COMPRESSED_POINTER_FIELD(ObjectPtr, two_byte_sticky)
-  COMPRESSED_POINTER_FIELD(ObjectPtr, external_one_byte_sticky)
-  COMPRESSED_POINTER_FIELD(ObjectPtr, external_two_byte_sticky)
-  VISIT_TO(external_two_byte_sticky)
+  VISIT_TO(two_byte_sticky)
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
   std::atomic<intptr_t> num_bracket_expressions_;

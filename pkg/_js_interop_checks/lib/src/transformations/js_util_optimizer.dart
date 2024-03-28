@@ -697,6 +697,7 @@ class ExtensionIndex {
   final Map<Reference, ExtensionTypeMemberDescriptor>
       _extensionTypeMemberIndex = {};
   final Map<Reference, Reference> _extensionTypeTearOffIndex = {};
+  final Set<Reference> _externalDartReferences = {};
   final Class? _javaScriptObject;
   final Set<Library> _processedExtensionLibraries = {};
   final Set<Library> _processedExtensionTypeLibraries = {};
@@ -948,6 +949,32 @@ class ExtensionIndex {
       ExtensionMemberKind.Operator,
       ProcedureKind.Operator);
 
+  /// Given an interop extension type or extension member [node], gets the
+  /// function type as written.
+  ///
+  /// Extension type and extension instance members include the instance as the
+  /// first positional parameter of the generated function. Since this was never
+  /// written by the user, it is excluded in the resulting function type.
+  ///
+  /// If not an interop extension type or extension member, returns null.
+  FunctionType? getFunctionType(Procedure node) {
+    if (getExtensionDescriptor(node) == null &&
+        getExtensionTypeDescriptor(node) == null) return null;
+
+    final functionType = node.signatureType ??
+        node.function.computeFunctionType(Nullability.nonNullable);
+    var positionalParameters = functionType.positionalParameters;
+    if (isInstanceInteropMember(node)) {
+      // Ignore the instance parameter.
+      positionalParameters = positionalParameters.skip(1).toList();
+    }
+    return FunctionType(positionalParameters, functionType.returnType,
+        functionType.declaredNullability,
+        namedParameters: functionType.namedParameters,
+        typeParameters: functionType.typeParameters,
+        requiredParameterCount: functionType.requiredParameterCount);
+  }
+
   /// Return whether [node] is an external static interop constructor/factory.
   ///
   /// If [literal] is true, we check if [node] is an object literal constructor,
@@ -958,10 +985,8 @@ class ExtensionIndex {
       final kind = getExtensionTypeDescriptor(node)?.kind;
       final namedParams = node.function.namedParameters;
       return (kind == ExtensionTypeMemberKind.Constructor ||
-                  kind == ExtensionTypeMemberKind.Factory) &&
-              literal
-          ? namedParams.isNotEmpty
-          : namedParams.isEmpty;
+              kind == ExtensionTypeMemberKind.Factory) &&
+          (literal ? namedParams.isNotEmpty : namedParams.isEmpty);
     } else if (node.kind == ProcedureKind.Factory &&
         node.enclosingClass != null &&
         hasJSInteropAnnotation(node.enclosingClass!)) {
@@ -989,5 +1014,23 @@ class ExtensionIndex {
   }
 
   bool isJSType(ExtensionTypeDeclaration decl) =>
-      decl.enclosingLibrary.importUri.toString() == 'dart:js_interop';
+      decl.enclosingLibrary.importUri.toString() == 'dart:js_interop' &&
+      decl.name.startsWith('JS');
+
+  bool isExternalDartReference(ExtensionTypeDeclaration decl) =>
+      decl.enclosingLibrary.importUri.toString() == 'dart:js_interop' &&
+      decl.name == 'ExternalDartReference';
+
+  bool isExternalDartReferenceType(DartType type) {
+    if (type is ExtensionType) {
+      final decl = type.extensionTypeDeclaration;
+      if (_externalDartReferences.contains(decl.reference)) return true;
+      if (isExternalDartReference(decl) ||
+          isExternalDartReferenceType(decl.declaredRepresentationType)) {
+        _externalDartReferences.add(decl.reference);
+        return true;
+      }
+    }
+    return false;
+  }
 }

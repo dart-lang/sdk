@@ -36,6 +36,49 @@ void main() {
 
 @reflectiveTest
 class DartEditBuilderImpl extends DartEditBuilderImplTest {
+  Future<void> test_sourceEditDescriptions_delete() async {
+    var path = convertPath('$testPackageRootPath/lib/test.dart');
+
+    var builder = await newBuilder();
+    builder.currentChangeDescription = 'Change Desc';
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addDeletion(SourceRange(0, 1));
+    });
+
+    expect(builder.sourceChange.edits[0].edits[0].description, 'Change Desc');
+  }
+
+  Future<void> test_sourceEditDescriptions_insert() async {
+    var path = convertPath('$testPackageRootPath/lib/test.dart');
+
+    var builder = await newBuilder();
+    builder.currentChangeDescription = 'Change Desc';
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addSimpleInsertion(0, '_');
+      builder.addInsertion(0, (builder) => builder.write('_'));
+    });
+
+    expect(builder.sourceChange.edits[0].edits[0].description, 'Change Desc');
+    expect(builder.sourceChange.edits[0].edits[1].description, 'Change Desc');
+  }
+
+  Future<void> test_sourceEditDescriptions_replace() async {
+    var path = convertPath('$testPackageRootPath/lib/test.dart');
+
+    var builder = await newBuilder();
+    builder.currentChangeDescription = 'Change Desc';
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addSimpleReplacement(SourceRange(0, 1), '_');
+      builder.addReplacement(
+        SourceRange(10, 1),
+        (builder) => builder.write('_'),
+      );
+    });
+
+    expect(builder.sourceChange.edits[0].edits[0].description, 'Change Desc');
+    expect(builder.sourceChange.edits[0].edits[1].description, 'Change Desc');
+  }
+
   Future<void> test_writeParameter_covariantAndRequired() async {
     var path = convertPath('$testPackageRootPath/lib/test.dart');
     var content = 'class A {}';
@@ -849,7 +892,7 @@ class MyClass {}''';
           },
           type: A.declaredElement?.instantiate(
             typeArguments: [],
-            nullabilitySuffix: NullabilitySuffix.star,
+            nullabilitySuffix: NullabilitySuffix.none,
           ),
         );
       });
@@ -877,7 +920,7 @@ class MyClass {}''';
           'foo',
           type: A.declaredElement?.instantiate(
             typeArguments: [],
-            nullabilitySuffix: NullabilitySuffix.star,
+            nullabilitySuffix: NullabilitySuffix.none,
           ),
           typeGroupName: 'type',
         );
@@ -914,7 +957,7 @@ class MyClass {}''';
           isFinal: true,
           type: A.declaredElement?.instantiate(
             typeArguments: [],
-            nullabilitySuffix: NullabilitySuffix.star,
+            nullabilitySuffix: NullabilitySuffix.none,
           ),
           typeGroupName: 'type',
         );
@@ -1531,7 +1574,7 @@ a''');
 
     var classA = await _getClassElement(path, 'A');
     DartType typeT = classA.typeParameters.single.instantiate(
-      nullabilitySuffix: NullabilitySuffix.star,
+      nullabilitySuffix: NullabilitySuffix.none,
     );
 
     var builder = await newBuilder();
@@ -1598,19 +1641,19 @@ class B {}
       builder.addInsertion(0, (builder) {
         builder.writeType(a1.instantiate(
           typeArguments: [],
-          nullabilitySuffix: NullabilitySuffix.star,
+          nullabilitySuffix: NullabilitySuffix.none,
         ));
         builder.write(' a1; ');
 
         builder.writeType(a2.instantiate(
           typeArguments: [],
-          nullabilitySuffix: NullabilitySuffix.star,
+          nullabilitySuffix: NullabilitySuffix.none,
         ));
         builder.write(' a2; ');
 
         builder.writeType(b.instantiate(
           typeArguments: [],
-          nullabilitySuffix: NullabilitySuffix.star,
+          nullabilitySuffix: NullabilitySuffix.none,
         ));
         builder.write(' b;');
       });

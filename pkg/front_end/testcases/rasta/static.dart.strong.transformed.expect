@@ -158,30 +158,6 @@ library;
 //     use(Foo.staticField());
 //                        ^
 //
-// pkg/front_end/testcases/rasta/static.dart:75:9: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
-//     Foo.staticConstant ??= 87;
-//         ^
-//
-// pkg/front_end/testcases/rasta/static.dart:76:13: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
-//     use(Foo.staticConstant ??= 87);
-//             ^
-//
-// pkg/front_end/testcases/rasta/static.dart:77:9: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
-//     Foo.staticField ??= 87;
-//         ^
-//
-// pkg/front_end/testcases/rasta/static.dart:78:13: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
-//     use(Foo.staticField ??= 87);
-//             ^
-//
-// pkg/front_end/testcases/rasta/static.dart:79:9: Warning: Operand of null-aware operation '??=' has type 'dynamic Function()' which excludes null.
-//     Foo.staticFunction ??= 87;
-//         ^
-//
-// pkg/front_end/testcases/rasta/static.dart:80:13: Warning: Operand of null-aware operation '??=' has type 'dynamic Function()' which excludes null.
-//     use(Foo.staticFunction ??= 87);
-//             ^
-//
 import self as self;
 import "dart:core" as core;
 

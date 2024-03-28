@@ -272,6 +272,7 @@ dart/snapshot_version_test: RuntimeError # Please triage.
 dart/awaiter_stacks/sync_async_start_pkg_test_test: SkipSlow
 dart/data_uri_spawn_test: SkipSlow
 dart/heap_snapshot_referrers_test: SkipSlow
+dart/heap_snapshot_test: SkipSlow
 dart/heapsnapshot_cli_test: SkipSlow
 dart/isolates/reload_many_isolates_live_and_die_test: SkipSlow # The test itself does reloading of subprocesses.
 dart/kernel_determinism_test: SkipSlow

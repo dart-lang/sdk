@@ -69,13 +69,6 @@ static const NativeType& ConvertIfSoftFp(Zone* zone,
   return type;
 }
 
-// The native dual of `kUnboxedFfiIntPtr`.
-//
-// It has the same signedness as `kUnboxedFfiIntPtr` to avoid sign conversions
-// when converting between both.
-const PrimitiveType kFfiIntPtr =
-    compiler::target::kWordSize == 8 ? kInt64 : kUint32;
-
 static PrimitiveType TypeForSize(intptr_t size) {
   switch (size) {
     case 8:
@@ -338,7 +331,7 @@ class ArgumentAllocator : public ValueObject {
 
     } else if (size > 0) {
       // Pointer in register if available, else pointer on stack.
-      const auto& pointer_type = *new (zone_) NativePrimitiveType(kFfiIntPtr);
+      const auto& pointer_type = *new (zone_) NativePrimitiveType(kAddress);
       const auto& pointer_location = AllocateArgument(pointer_type);
       return *new (zone_)
           PointerToMemoryLocation(pointer_location, compound_type);
@@ -548,7 +541,7 @@ class ArgumentAllocator : public ValueObject {
     }
 
     // Otherwise, passed by reference.
-    const auto& pointer_type = *new (zone_) NativePrimitiveType(kFfiIntPtr);
+    const auto& pointer_type = *new (zone_) NativePrimitiveType(kAddress);
     const auto& pointer_location = AllocateArgument(pointer_type);
     return *new (zone_)
         PointerToMemoryLocation(pointer_location, compound_type);
@@ -738,7 +731,7 @@ static NativeLocations& ArgumentLocations(
 static const NativeLocation& PointerToMemoryResultLocation(
     Zone* zone,
     const NativeCompoundType& payload_type) {
-  const auto& pointer_type = *new (zone) NativePrimitiveType(kFfiIntPtr);
+  const auto& pointer_type = *new (zone) NativePrimitiveType(kAddress);
   const auto& pointer_location = *new (zone) NativeRegistersLocation(
       zone, pointer_type, pointer_type,
       CallingConventions::kPointerToReturnStructRegisterCall);
@@ -755,7 +748,7 @@ static const NativeLocation& PointerToMemoryResultLocation(
 static const NativeLocation& PointerToMemoryResultLocation(
     Zone* zone,
     const NativeCompoundType& payload_type) {
-  const auto& pointer_type = *new (zone) NativePrimitiveType(kFfiIntPtr);
+  const auto& pointer_type = *new (zone) NativePrimitiveType(kAddress);
   const auto& pointer_location = *new (zone) NativeStackLocation(
       pointer_type, pointer_type, CallingConventions::kStackPointerRegister, 0);
   const auto& pointer_return_location = *new (zone) NativeRegistersLocation(

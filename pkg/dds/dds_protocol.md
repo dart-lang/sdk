@@ -1,6 +1,6 @@
-# Dart Development Service Protocol 1.5
+# Dart Development Service Protocol 2.0
 
-This document describes _version 1.5_ of the Dart Development Service Protocol.
+This document describes _version 2.0_ of the Dart Development Service Protocol.
 This protocol is an extension of the Dart VM Service Protocol and implements it
 in it's entirety. For details on the VM Service Protocol, see the [Dart VM Service Protocol Specification][service-protocol].
 
@@ -172,6 +172,26 @@ void postEvent(String stream, String eventKind, Map eventData)
 ```
 The _postEvent_ RPC is used to send events to custom Event streams.
 
+### readyToResume
+
+```
+Success readyToResume(string isolateId)
+```
+
+The _readyToResume_ RPC indicates to DDS that the current client is ready
+to resume the isolate.
+
+If the current client requires that approval be given before resuming an
+isolate, this method will:
+
+- Update the approval state for the isolate.
+- Resume the isolate if approval has been given by all clients which
+  require approval.
+
+Returns a collected sentinel if the isolate no longer exists.
+
+See [Success](#success).
+
 ### requirePermissionToResume
 
 ```
@@ -184,6 +204,8 @@ The _requirePermissionToResume_ RPC is used to change the pause/resume behavior
 of isolates by providing a way for the VM service to wait for approval to resume
 from some set of clients. This is useful for clients which want to perform some
 operation on an isolate after a pause without it being resumed by another client.
+These clients should invoke [readyToResume](#readyToResume) instead of [resume](resume)
+to indicate to DDS that they have finished their work and the isolate can be resumed.
 
 If the _onPauseStart_ parameter is `true`, isolates will not resume after pausing
 on start until the client sends a `resume` request and all other clients which
@@ -206,6 +228,30 @@ need to provide resume approval for this pause type have done so.
   already given approval. In the case that no other client requires resume
   approval for the current pause event, the isolate will be resumed if at
   least one other client has attempted to [resume](resume) the isolate.
+- Resume permission behavior can be bypassed using the [VmService.resume]
+  RPC, which is treated as a user-initiated resume that force resumes
+  the isolate. Tooling relying on resume permissions should use
+  [readyToResume](#readyToResume) instead of [resume](resume) to avoid force
+  resuming the isolate.
+
+See [Success](#success).
+
+### requireUserPermissionToResume
+
+```
+Success requireUserPermissionToResume(bool onPauseStart [optional],
+                                      bool onPauseExit [optional])
+```
+
+The _requireUserPermissionToResume_ RPC notifies DDS if it should wait
+for a [resume](resume) request to resume isolates paused on start or
+exit.
+
+This RPC should only be invoked by tooling which launched the target Dart
+process and knows if the user indicated they wanted isolates paused on
+start or exit.
+
+See [Success](#success).
 
 ### setClientName
 

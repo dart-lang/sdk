@@ -83,6 +83,14 @@ final fixDataFile = TextDocumentFilterWithScheme(
 final pubspecFile = TextDocumentFilterWithScheme(
     language: 'yaml', scheme: 'file', pattern: '**/pubspec.yaml');
 
+/// IDs of client-provided commands that the server knows about.
+///
+/// Clients can advertise support for these commands and the server can then use
+/// them in returns commands in CodeActions, CodeLenses etc.
+abstract class ClientCommands {
+  static const goToLocation = 'dart.goToLocation';
+}
+
 /// Constants for command IDs that are exchanged between LSP client/server.
 abstract class Commands {
   /// A list of all commands IDs that can be sent to the client to inform which
@@ -92,6 +100,8 @@ abstract class Commands {
     sortMembers,
     organizeImports,
     fixAll,
+    previewFixAllInWorkspace,
+    fixAllInWorkspace,
     sendWorkspaceEdit,
     performRefactor,
     validateRefactor,
@@ -99,16 +109,26 @@ abstract class Commands {
     // Add commands for each of the new refactorings.
     ...RefactoringProcessor.generators.keys,
   ];
-  static const sortMembers = 'edit.sortMembers';
-  static const organizeImports = 'edit.organizeImports';
-  static const fixAll = 'edit.fixAll';
-  static const sendWorkspaceEdit = 'edit.sendWorkspaceEdit';
+  static const sortMembers = 'dart.edit.sortMembers';
+  static const organizeImports = 'dart.edit.organizeImports';
+  static const fixAll = 'dart.edit.fixAll';
+  static const fixAllInWorkspace = 'dart.edit.fixAllInWorkspace';
+  static const previewFixAllInWorkspace = 'dart.edit.fixAllInWorkspace.preview';
+  static const sendWorkspaceEdit = 'dart.edit.sendWorkspaceEdit';
+  static const logAction = 'dart.logAction';
+  // TODO(dantup): These command IDs are globally registered in the editor so
+  //  should be prefixed (eg. with "dart.") to avoid potential collisions with
+  //  other extensions. However, the refactor.* are hard-coded into Dart-Code
+  //  for some improved integration, so cannot be updated until some time has
+  //  passed where Dart-Code supports prefixed versions.
+  //  Support for "dart." prefixed versions shipped in Dart-Code March 2023.
   static const performRefactor = 'refactor.perform';
   static const validateRefactor = 'refactor.validate';
-  static const logAction = 'dart.logAction';
 }
 
 abstract class CustomMethods {
+  static const augmented = Method('dart/textDocument/augmented');
+  static const augmentation = Method('dart/textDocument/augmentation');
   static const diagnosticServer = Method('dart/diagnosticServer');
   static const reanalyze = Method('dart/reanalyze');
   static const openUri = Method('dart/openUri');
@@ -264,6 +284,9 @@ abstract class ServerErrorCodes {
 
   /// A file that is expected to be analyzed, but failed.
   static const FileAnalysisFailed = ErrorCodes(-32013);
+
+  /// Computation of a refactoring change failed.
+  static const RefactoringComputeStatusFailure = ErrorCodes(-32014);
 
   /// An error raised when the server detects that the server and client are out
   /// of sync and cannot recover. For example if a textDocument/didChange notification

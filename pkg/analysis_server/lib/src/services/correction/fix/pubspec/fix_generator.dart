@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/scanner/characters.dart';
-import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/src/services/correction/fix/pubspec/fix_kind.dart';
 import 'package:analysis_server/src/utilities/yaml_node_locator.dart';
 import 'package:analyzer/dart/analysis/session.dart';
@@ -18,6 +17,7 @@ import 'package:analyzer/src/util/yaml.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:server_plugin/edit/fix/fix.dart';
 import 'package:yaml/yaml.dart';
 
 /// The generator used to generate fixes in pubspec.yaml files.
@@ -147,7 +147,7 @@ class PubspecFixGenerator {
     }
     change.id = kind.id;
     change.message = formatList(kind.message, null);
-    fixes.add(Fix(kind, change));
+    fixes.add(Fix(kind: kind, change: change));
   }
 
   Future<void> _addMissingDependency(ErrorCode errorCode) async {
@@ -165,14 +165,14 @@ class PubspecFixGenerator {
 
     if (addDeps.isNotEmpty) {
       var (text, offset) = _getTextAndOffset(node, 'dependencies', addDeps);
-      await builder.addGenericFileEdit(file, (builder) {
+      await builder.addYamlFileEdit(file, (builder) {
         builder.addSimpleInsertion(offset, text);
       });
     }
     if (addDevDeps.isNotEmpty) {
       var (text, offset) =
           _getTextAndOffset(node, 'dev_dependencies', addDevDeps);
-      await builder.addGenericFileEdit(file, (builder) {
+      await builder.addYamlFileEdit(file, (builder) {
         builder.addSimpleInsertion(offset, text);
       });
     }
@@ -191,7 +191,7 @@ class PubspecFixGenerator {
         if (currentEntry != null && prevEntry != null) {
           var startOffset = prevEntry.value.span.end.offset;
           var endOffset = currentEntry.value.span.end.offset;
-          await builder.addGenericFileEdit(file, (builder) {
+          await builder.addYamlFileEdit(file, (builder) {
             builder
                 .addDeletion(SourceRange(startOffset, endOffset - startOffset));
           });
@@ -248,7 +248,7 @@ class PubspecFixGenerator {
               edit = _Range(edit.startOffset, endOffset);
             } else {
               // Edits don't conflict, add previously computed edit to builder.
-              await builder.addGenericFileEdit(file, (builder) {
+              await builder.addYamlFileEdit(file, (builder) {
                 builder.addDeletion(SourceRange(
                     edit!.startOffset, edit.endOffset - edit.startOffset));
               });
@@ -259,7 +259,7 @@ class PubspecFixGenerator {
         // Iterated through all the entries to be removed, add the last computed
         // edit to builder.
         if (edit != null) {
-          await builder.addGenericFileEdit(file, (builder) {
+          await builder.addYamlFileEdit(file, (builder) {
             builder.addDeletion(SourceRange(
                 edit!.startOffset, edit.endOffset - edit.startOffset));
           });
@@ -280,7 +280,7 @@ class PubspecFixGenerator {
       // map.
       return;
     }
-    await builder.addGenericFileEdit(file, (builder) {
+    await builder.addYamlFileEdit(file, (builder) {
       // TODO(brianwilkerson): Generalize this to add a key to any map by
       //  inserting the indentation of the line containing `firstOffset` after
       //  the end-of-line marker.

@@ -139,8 +139,8 @@ class DartdevRunner extends CommandRunner<int> {
     // We don't want to run analytics when we're running in a CI environment
     // unless we're explicitly testing analytics for dartdev.
     final implicitlySuppressAnalytics = isBot() && !_isAnalyticsTest;
-    bool suppressAnalytics = !topLevelResults['analytics'] ||
-        topLevelResults['suppress-analytics'] ||
+    bool suppressAnalytics = !topLevelResults.flag('analytics') ||
+        topLevelResults.flag('suppress-analytics') ||
         implicitlySuppressAnalytics;
 
     if (topLevelResults.wasParsed('analytics')) {
@@ -148,8 +148,8 @@ class DartdevRunner extends CommandRunner<int> {
           '`--[no-]analytics` is deprecated.  Use `--suppress-analytics` '
           'to disable analytics for one run instead.');
     }
-    final enableAnalytics = topLevelResults['enable-analytics'];
-    final disableAnalytics = topLevelResults['disable-analytics'];
+    final enableAnalytics = topLevelResults.flag('enable-analytics');
+    final disableAnalytics = topLevelResults.flag('disable-analytics');
 
     if (!implicitlySuppressAnalytics &&
         suppressAnalytics &&
@@ -211,7 +211,7 @@ class DartdevRunner extends CommandRunner<int> {
       }
     }
 
-    if (topLevelResults['diagnostics']) {
+    if (topLevelResults.flag('diagnostics')) {
       log = Logger.verbose(ansi: ansi);
     }
 

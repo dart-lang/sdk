@@ -7,8 +7,6 @@
 // the underlying representation type, the implementation generates the
 // appropriate "why not promoted" context message.
 
-// SharedOptions=--enable-experiment=inline-class
-
 class C1 {
   int? get _notField => 0;
   //       ^^^^^^^^^

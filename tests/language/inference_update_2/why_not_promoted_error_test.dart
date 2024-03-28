@@ -5,8 +5,6 @@
 // Tests that the appropriate "why not promoted" context messages are shown when
 // field promotion fails.
 
-// SharedOptions=--enable-experiment=inference-update-2
-
 class C {
   int? get _privateGetter => publicField;
   //       ^^^^^^^^^^^^^^

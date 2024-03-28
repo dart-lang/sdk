@@ -15,7 +15,11 @@ import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart';
 import 'package:test/test.dart';
 
-const _existingFile = 'existingFile';
+const _existingFilePrefix = 'existingFile';
+int _nextFileIndex = 0;
+String _uniqueExistingFile() =>
+    '${_existingFilePrefix}Unreliable${_nextFileIndex++}';
+final _existingFile = _uniqueExistingFile();
 const _nonExistingFile = 'nonExistingFile';
 
 const _smallFileContents = 'Hello world!';
@@ -34,13 +38,13 @@ FutureOr<Response> handler(Request request) {
 
   if (request.method == 'HEAD') {
     // 'exists'
-    return uri.pathSegments.last == _existingFile
+    return uri.pathSegments.last.startsWith(_existingFilePrefix)
         ? Response.ok(null, headers: headers)
         : Response.notFound(uri.toString());
   }
   if (request.method == 'GET') {
     // 'readAsBytes'
-    return uri.pathSegments.last == _existingFile
+    return uri.pathSegments.last.startsWith(_existingFilePrefix)
         ? Response.ok(_smallFileContents, headers: headers)
         : Response.notFound(uri.toString());
   }
@@ -57,36 +61,24 @@ FutureOr<Response> noisyHandler(Request request) {
 
   if (request.method == 'HEAD' || request.method == 'GET') {
     // 'exists' or 'readAsBytes'
-    return uri.pathSegments.last == _existingFile
+    return uri.pathSegments.last.startsWith(_existingFilePrefix)
         ? Response.ok(contents, headers: headers)
         : Response.notFound(uri.toString());
   }
   return Response.internalServerError();
 }
 
-int _attempts = 0;
+Set<String> _filesSeen = {};
+
+/// Handler that sometimes fails. To make testing easier, this deterministically
+/// fails the first time a file is requested, then deterministically serves the
+/// contents properly. For proper test coverage, tests using this handler should
+/// use [_uniqueExistingFile] to obtain a unique file name for each test.
 FutureOr<Response> unreliableHandler(Request request) {
-  final uri = request.requestedUri;
-  final headers = {
-    'content-length': '${utf8.encode(_smallFileContents).length}',
-    ...request.headers,
-  };
-
-  if ((_attempts++) % 5 == 0) return Response.internalServerError();
-
-  if (request.method == 'HEAD') {
-    // 'exists'
-    return uri.pathSegments.last == _existingFile
-        ? Response.ok(null, headers: headers)
-        : Response.notFound(uri.toString());
+  if (_filesSeen.add(request.requestedUri.pathSegments.last)) {
+    return Response.internalServerError();
   }
-  if (request.method == 'GET') {
-    // 'readAsBytes'
-    return uri.pathSegments.last == _existingFile
-        ? Response.ok(_smallFileContents, headers: headers)
-        : Response.notFound(uri.toString());
-  }
-  return Response.internalServerError();
+  return handler(request);
 }
 
 FutureOr<Response> alwaysFailingHandler(Request request) {
@@ -102,8 +94,9 @@ void main() async {
       var port = await findUnusedPort();
 
       server = await HttpMultiServer.bind(hostname, port);
-      fileSystem =
-          AssetFileSystem(StandardFileSystem.instance, hostname, '$port');
+      fileSystem = AssetFileSystem.forTesting(
+          StandardFileSystem.instance, hostname, '$port',
+          retries: 0);
 
       serveRequests(server, handler);
     });
@@ -160,8 +153,9 @@ void main() async {
       var port = await findUnusedPort();
 
       server = await HttpMultiServer.bind(hostname, port);
-      fileSystem =
-          AssetFileSystem(StandardFileSystem.instance, hostname, '$port');
+      fileSystem = AssetFileSystem.forTesting(
+          StandardFileSystem.instance, hostname, '$port',
+          retries: 0);
 
       serveRequests(server, noisyHandler);
     });
@@ -238,8 +232,9 @@ void main() async {
       var port = await findUnusedPort();
 
       server = await HttpMultiServer.bind(hostname, port);
-      fileSystem =
-          AssetFileSystem(StandardFileSystem.instance, hostname, '$port');
+      fileSystem = AssetFileSystem.forTesting(
+          StandardFileSystem.instance, hostname, '$port',
+          retries: 1);
 
       serveRequests(server, unreliableHandler);
     });
@@ -250,7 +245,7 @@ void main() async {
     });
 
     test('can tell if file exists', () async {
-      var entity = fileSystem.entityForUri(Uri.parse(_existingFile));
+      var entity = fileSystem.entityForUri(Uri.parse(_uniqueExistingFile()));
       expect(await entity.exists(), true);
     });
 
@@ -260,17 +255,17 @@ void main() async {
     });
 
     test('can read existing file using readAsBytes', () async {
-      var entity = fileSystem.entityForUri(Uri.parse(_existingFile));
+      var entity = fileSystem.entityForUri(Uri.parse(_uniqueExistingFile()));
       expect(await entity.readAsBytes(), _smallFileBytes);
     });
 
     test('can read and decode existing file using readAsBytes', () async {
-      var entity = fileSystem.entityForUri(Uri.parse(_existingFile));
+      var entity = fileSystem.entityForUri(Uri.parse(_uniqueExistingFile()));
       expect(utf8.decode(await entity.readAsBytes()), _smallFileContents);
     });
 
     test('can read existing file using readAsString', () async {
-      var entity = fileSystem.entityForUri(Uri.parse(_existingFile));
+      var entity = fileSystem.entityForUri(Uri.parse(_uniqueExistingFile()));
       expect(await entity.readAsString(), _smallFileContents);
     });
 
@@ -281,10 +276,11 @@ void main() async {
     });
 
     test('can read a lot of files concurrently', () async {
-      var entity = fileSystem.entityForUri(Uri.parse(_existingFile));
       var futures = [
         for (var i = 0; i < 512; i++)
-          _expectContents(entity, _smallFileContents),
+          _expectContents(
+              fileSystem.entityForUri(Uri.parse(_uniqueExistingFile())),
+              _smallFileContents),
       ];
       await Future.wait(futures);
     }, timeout: const Timeout.factor(2));
@@ -296,8 +292,9 @@ void main() async {
       var port = await findUnusedPort();
 
       server = await HttpMultiServer.bind(hostname, port);
-      fileSystem =
-          AssetFileSystem(StandardFileSystem.instance, hostname, '$port');
+      fileSystem = AssetFileSystem.forTesting(
+          StandardFileSystem.instance, hostname, '$port',
+          retries: 0);
 
       serveRequests(server, alwaysFailingHandler);
     });

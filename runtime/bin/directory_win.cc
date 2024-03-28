@@ -47,8 +47,8 @@ const char* PathBuffer::AsScopedString() const {
 }
 
 bool PathBuffer::Add(const char* name) {
-  Utf8ToWideScope wide_name(name);
-  return AddW(wide_name.wide());
+  const auto wide_name = Utf8ToWideChar(name);
+  return AddW(wide_name.get());
 }
 
 bool PathBuffer::AddW(const wchar_t* name) {
@@ -228,114 +228,137 @@ void DirectoryListingEntry::ResetLink() {
   }
 }
 
-static bool DeleteFile(const wchar_t* file_name, PathBuffer* path) {
-  if (!path->AddW(file_name)) {
-    return false;
+namespace {
+class RecursiveDeleter {
+ public:
+  RecursiveDeleter() : path_() {}
+
+  // Delete the given directory recursively. Expects an absolute long prefixed
+  // path - which allows deletion to proceed without checking if path needs to
+  // be prefixed while recursing.
+  bool DeleteRecursively(const std::unique_ptr<wchar_t[]>& path) {
+    ASSERT(wcsncmp(path.get(), L"\\\\?\\", 4) == 0);
+    path_.Reset(0);
+    if (path == nullptr || !path_.AddW(path.get()) || path_.length() == 0) {
+      return false;
+    }
+
+    if (path_.AsStringW()[path_.length() - 1] == '\\') {
+      // Strip trailing slash otherwise FindFirstFileW will fail.
+      path_.Reset(path_.length() - 1);
+    }
+
+    return DeleteDirectory();
   }
 
-  if (DeleteFileW(path->AsStringW()) != 0) {
-    return true;
-  }
+ private:
+  const wchar_t* path() const { return path_.AsStringW(); }
 
-  // If we failed because the file is read-only, make it writeable and try
-  // again. This mirrors Linux/Mac where a directory containing read-only files
-  // can still be recursively deleted.
-  if (GetLastError() == ERROR_ACCESS_DENIED) {
-    DWORD attributes = GetFileAttributesW(path->AsStringW());
+  bool DeleteDirectory() {
+    DWORD attributes = GetFileAttributesW(path());
     if (attributes == INVALID_FILE_ATTRIBUTES) {
       return false;
     }
 
-    if ((attributes & FILE_ATTRIBUTE_READONLY) == FILE_ATTRIBUTE_READONLY) {
-      attributes &= ~FILE_ATTRIBUTE_READONLY;
+    // If the directory is a junction, it's pointing to some other place in the
+    // filesystem that we do not want to recurse into.
+    if ((attributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0) {
+      // Just delete the junction itself.
+      return RemoveDirectoryW(path()) != 0;
+    }
 
-      if (SetFileAttributesW(path->AsStringW(), attributes) == 0) {
+    // If it's a file, remove it directly.
+    if ((attributes & FILE_ATTRIBUTE_DIRECTORY) == 0) {
+      return DeleteFile();
+    }
+
+    if (!path_.AddW(L"\\*")) {
+      return false;
+    }
+
+    WIN32_FIND_DATAW find_file_data;
+    HANDLE find_handle = FindFirstFileW(path(), &find_file_data);
+
+    if (find_handle == INVALID_HANDLE_VALUE) {
+      return false;
+    }
+
+    // Adjust the path by removing the '*' used for the search.
+    const int path_length = path_.length() - 1;
+    path_.Reset(path_length);
+
+    do {
+      if (!DeleteEntry(&find_file_data)) {
+        break;
+      }
+      path_.Reset(path_length);  // DeleteEntry adds to the path.
+    } while (FindNextFileW(find_handle, &find_file_data) != 0);
+
+    DWORD last_error = GetLastError();
+    // Always close handle.
+    FindClose(find_handle);
+    if (last_error != ERROR_NO_MORE_FILES) {
+      // Unexpected error, set and return.
+      SetLastError(last_error);
+      return false;
+    }
+    // All content deleted successfully, try to delete directory.
+    // Drop the "\" from the end of the path.
+    path_.Reset(path_length - 1);
+    return RemoveDirectoryW(path()) != 0;
+  }
+
+  bool DeleteEntry(LPWIN32_FIND_DATAW find_file_data) {
+    wchar_t* entry_name = find_file_data->cFileName;
+    if ((wcscmp(entry_name, L".") == 0) || (wcscmp(entry_name, L"..") == 0)) {
+      return true;
+    }
+
+    if (!path_.AddW(entry_name)) {
+      return false;
+    }
+
+    DWORD attributes = find_file_data->dwFileAttributes;
+    if ((attributes & FILE_ATTRIBUTE_DIRECTORY) != 0) {
+      return DeleteDirectory();
+    } else {
+      return DeleteFile();
+    }
+  }
+
+  bool DeleteFile() {
+    if (DeleteFileW(path()) != 0) {
+      return true;
+    }
+
+    // If we failed because the file is read-only, make it writeable and try
+    // again. This mirrors Linux/Mac where a directory containing read-only
+    // files can still be recursively deleted.
+    if (GetLastError() == ERROR_ACCESS_DENIED) {
+      DWORD attributes = GetFileAttributesW(path());
+      if (attributes == INVALID_FILE_ATTRIBUTES) {
         return false;
       }
 
-      return DeleteFileW(path->AsStringW()) != 0;
+      if ((attributes & FILE_ATTRIBUTE_READONLY) == FILE_ATTRIBUTE_READONLY) {
+        attributes &= ~FILE_ATTRIBUTE_READONLY;
+
+        if (SetFileAttributesW(path(), attributes) == 0) {
+          return false;
+        }
+
+        return DeleteFileW(path()) != 0;
+      }
     }
-  }
 
-  return false;
-}
-
-static bool DeleteDir(const wchar_t* dir_name, PathBuffer* path) {
-  if ((wcscmp(dir_name, L".") == 0) || (wcscmp(dir_name, L"..") == 0)) {
-    return true;
-  }
-  return path->AddW(dir_name) && DeleteRecursively(path);
-}
-
-static bool DeleteEntry(LPWIN32_FIND_DATAW find_file_data, PathBuffer* path) {
-  DWORD attributes = find_file_data->dwFileAttributes;
-
-  if ((attributes & FILE_ATTRIBUTE_DIRECTORY) != 0) {
-    return DeleteDir(find_file_data->cFileName, path);
-  } else {
-    return DeleteFile(find_file_data->cFileName, path);
-  }
-}
-
-static bool DeleteRecursively(PathBuffer* path) {
-  PathBuffer prefixed_path;
-  if (!prefixed_path.Add(PrefixLongDirectoryPath(path->AsScopedString()))) {
     return false;
   }
 
-  DWORD attributes = GetFileAttributesW(prefixed_path.AsStringW());
-  if (attributes == INVALID_FILE_ATTRIBUTES) {
-    return false;
-  }
-  // If the directory is a junction, it's pointing to some other place in the
-  // filesystem that we do not want to recurse into.
-  if ((attributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0) {
-    // Just delete the junction itself.
-    return RemoveDirectoryW(prefixed_path.AsStringW()) != 0;
-  }
-  // If it's a file, remove it directly.
-  if ((attributes & FILE_ATTRIBUTE_DIRECTORY) == 0) {
-    return DeleteFile(L"", &prefixed_path);
-  }
+  PathBuffer path_;
+};
+}  // namespace
 
-  if (!prefixed_path.AddW(L"\\*")) {
-    return false;
-  }
-
-  WIN32_FIND_DATAW find_file_data;
-  HANDLE find_handle =
-      FindFirstFileW(prefixed_path.AsStringW(), &find_file_data);
-
-  if (find_handle == INVALID_HANDLE_VALUE) {
-    return false;
-  }
-
-  // Adjust the path by removing the '*' used for the search.
-  int path_length = prefixed_path.length() - 1;
-  prefixed_path.Reset(path_length);
-
-  do {
-    if (!DeleteEntry(&find_file_data, &prefixed_path)) {
-      break;
-    }
-    prefixed_path.Reset(path_length);  // DeleteEntry adds to the path.
-  } while (FindNextFileW(find_handle, &find_file_data) != 0);
-
-  DWORD last_error = GetLastError();
-  // Always close handle.
-  FindClose(find_handle);
-  if (last_error != ERROR_NO_MORE_FILES) {
-    // Unexpected error, set and return.
-    SetLastError(last_error);
-    return false;
-  }
-  // All content deleted successfully, try to delete directory.
-  prefixed_path.Reset(path_length -
-                      1);  // Drop the "\" from the end of the path.
-  return RemoveDirectoryW(prefixed_path.AsStringW()) != 0;
-}
-
-static Directory::ExistsResult ExistsHelper(const wchar_t* dir_name) {
+Directory::ExistsResult Directory::Exists(const wchar_t* dir_name) {
   DWORD attributes = GetFileAttributesW(dir_name);
   if (attributes == INVALID_FILE_ATTRIBUTES) {
     DWORD last_error = GetLastError();
@@ -356,9 +379,8 @@ static Directory::ExistsResult ExistsHelper(const wchar_t* dir_name) {
 
 Directory::ExistsResult Directory::Exists(Namespace* namespc,
                                           const char* dir_name) {
-  const char* prefixed_dir_name = PrefixLongDirectoryPath(dir_name);
-  Utf8ToWideScope system_name(prefixed_dir_name);
-  return ExistsHelper(system_name.wide());
+  const auto path = ToWinAPIDirectoryPath(dir_name);
+  return Exists(path.get());
 }
 
 char* Directory::CurrentNoScope() {
@@ -378,12 +400,11 @@ char* Directory::CurrentNoScope() {
 }
 
 bool Directory::Create(Namespace* namespc, const char* dir_name) {
-  const char* prefixed_dir_name = PrefixLongDirectoryPath(dir_name);
-  Utf8ToWideScope system_name(prefixed_dir_name);
-  int create_status = CreateDirectoryW(system_name.wide(), nullptr);
+  const auto path = ToWinAPIDirectoryPath(dir_name);
+  int create_status = CreateDirectoryW(path.get(), nullptr);
   // If the directory already existed, treat it as a success.
   if ((create_status == 0) && (GetLastError() == ERROR_ALREADY_EXISTS) &&
-      (ExistsHelper(system_name.wide()) == EXISTS)) {
+      (Exists(path.get()) == EXISTS)) {
     return true;
   }
   return (create_status != 0);
@@ -399,8 +420,8 @@ const char* Directory::SystemTemp(Namespace* namespc) {
 // Creates a new temporary directory with a UUID as suffix.
 static const char* CreateTempFromUUID(const char* prefix) {
   PathBuffer path;
-  Utf8ToWideScope system_prefix(prefix);
-  if (!path.AddW(system_prefix.wide())) {
+  const auto system_prefix = Utf8ToWideChar(prefix);
+  if (!path.AddW(system_prefix.get())) {
     return nullptr;
   }
 
@@ -414,14 +435,14 @@ static const char* CreateTempFromUUID(const char* prefix) {
   if ((status != RPC_S_OK) && (status != RPC_S_UUID_LOCAL_ONLY)) {
     return nullptr;
   }
-  RPC_WSTR uuid_string;
+  wchar_t* uuid_string;
   status = UuidToStringW(&uuid, &uuid_string);
   if (status != RPC_S_OK) {
     return nullptr;
   }
 
   // RPC_WSTR is an unsigned short*, so we cast to wchar_t*.
-  if (!path.AddW(reinterpret_cast<wchar_t*>(uuid_string))) {
+  if (!path.AddW(uuid_string)) {
     return nullptr;
   }
   RpcStringFreeW(&uuid_string);
@@ -445,8 +466,8 @@ static const char* CreateTempFromUUID(const char* prefix) {
 // to have a small bound on the number of calls to CreateDirectoryW().
 const char* Directory::CreateTemp(Namespace* namespc, const char* prefix) {
   PathBuffer path;
-  Utf8ToWideScope system_prefix(prefix);
-  if (!path.AddW(system_prefix.wide())) {
+  const auto system_prefix = Utf8ToWideChar(prefix);
+  if (!path.AddW(system_prefix.get())) {
     return nullptr;
   }
 
@@ -485,39 +506,35 @@ const char* Directory::CreateTemp(Namespace* namespc, const char* prefix) {
 bool Directory::Delete(Namespace* namespc,
                        const char* dir_name,
                        bool recursive) {
-  const char* prefixed_dir_name = PrefixLongDirectoryPath(dir_name);
+  const auto path =
+      ToWinAPIDirectoryPath(dir_name, /*force_long_prefix=*/recursive);
   bool result = false;
-  Utf8ToWideScope system_dir_name(prefixed_dir_name);
   if (!recursive) {
-    if (File::GetType(namespc, prefixed_dir_name, true) == File::kIsDirectory) {
-      result = (RemoveDirectoryW(system_dir_name.wide()) != 0);
+    if (File::GetType(path.get(), /*follow_links=*/true) ==
+        File::kIsDirectory) {
+      result = (RemoveDirectoryW(path.get()) != 0);
     } else {
       SetLastError(ERROR_FILE_NOT_FOUND);
     }
   } else {
-    PathBuffer path;
-    if (path.AddW(system_dir_name.wide())) {
-      result = DeleteRecursively(&path);
-    }
+    RecursiveDeleter deleter;
+    result = deleter.DeleteRecursively(path);
   }
   return result;
 }
 
 bool Directory::Rename(Namespace* namespc,
-                       const char* path,
-                       const char* new_path) {
-  const char* prefixed_dir = PrefixLongDirectoryPath(path);
-  Utf8ToWideScope system_path(prefixed_dir);
-  ExistsResult exists = ExistsHelper(system_path.wide());
+                       const char* old_name,
+                       const char* new_name) {
+  const auto old_path = ToWinAPIDirectoryPath(old_name);
+  ExistsResult exists = Exists(old_path.get());
   if (exists != EXISTS) {
     SetLastError(ERROR_FILE_NOT_FOUND);
     return false;
   }
-  const char* prefixed_new_dir = PrefixLongDirectoryPath(new_path);
-  Utf8ToWideScope system_new_path(prefixed_new_dir);
+  const auto new_path = ToWinAPIDirectoryPath(new_name);
   DWORD flags = MOVEFILE_WRITE_THROUGH;
-  int move_status =
-      MoveFileExW(system_path.wide(), system_new_path.wide(), flags);
+  int move_status = MoveFileExW(old_path.get(), new_path.get(), flags);
   return (move_status != 0);
 }
 

@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 import 'dart:math';
 
 import 'package:args/args.dart';
@@ -101,6 +102,13 @@ class DartToolingDaemon {
 
   final String secret;
 
+  /// Any requests to DTD must have this token as the first element of the
+  /// uri path.
+  ///
+  /// This provides an obfuscation step to prevent bad actors from stumbling
+  /// onto the dtd address.
+  final String _uriToken = _generateSecret();
+
   /// The uri of the current [DartToolingDaemon] service.
   Uri? get uri => _uri;
   Uri? _uri;
@@ -118,7 +126,7 @@ class DartToolingDaemon {
       () async {
         Future<HttpServer?> startServer() async {
           try {
-            return await io.serve(_handlers().handler, host, port);
+            return await io.serve(_handlers(), host, port);
           } on SocketException catch (e) {
             errorMessage = e.message;
             if (e.osError != null) {
@@ -146,7 +154,7 @@ class DartToolingDaemon {
       scheme: 'ws',
       host: host,
       port: _server.port,
-      path: '/',
+      path: '/$_uriToken',
     );
   }
 
@@ -155,11 +163,15 @@ class DartToolingDaemon {
   /// Set [ipv6] to true to have the service use ipv6 instead of ipv4.
   ///
   /// Set [shouldLogRequests] to true to enable logging.
+  ///
+  /// When [sendPort] is non-null, information about the DTD connection will be
+  /// sent over [port] instead of being printed to stdout.
   static Future<DartToolingDaemon?> startService(
     List<String> args, {
     bool ipv6 = false,
     bool shouldLogRequests = false,
     int port = 0,
+    SendPort? sendPort,
   }) async {
     final argParser = DartToolingDaemonOptions.createArgParser();
     final parsedArgs = argParser.parse(args);
@@ -179,14 +191,17 @@ class DartToolingDaemon {
     );
     await dtd._startService(port: port);
     if (machineMode) {
-      print(
-        jsonEncode({
-          'tooling_daemon_details': {
-            'uri': dtd.uri.toString(),
-            ...(!unrestrictedMode ? {'trusted_client_secret': secret} : {}),
-          },
-        }),
-      );
+      final encoded = jsonEncode({
+        'tooling_daemon_details': {
+          'uri': dtd.uri.toString(),
+          ...(!unrestrictedMode ? {'trusted_client_secret': secret} : {}),
+        },
+      });
+      if (sendPort == null) {
+        print(encoded);
+      } else {
+        sendPort.send(encoded);
+      }
     } else {
       print(
         'The Dart Tooling Daemon is listening on '
@@ -203,9 +218,25 @@ class DartToolingDaemon {
   // Attempt to upgrade HTTP requests to a websocket before processing them as
   // standard HTTP requests. The websocket handler will fail quickly if the
   // request doesn't appear to be a websocket upgrade request.
-  Cascade _handlers() {
-    return Cascade().add(_webSocketHandler()).add(_sseHandler());
+  Handler _handlers() {
+    return Pipeline().addMiddleware(_uriTokenHandler).addHandler(
+          Cascade().add(_webSocketHandler()).add(_sseHandler()).handler,
+        );
   }
+
+  Handler _uriTokenHandler(Handler innerHandler) => (Request request) {
+        final forbidden =
+            Response.forbidden('missing or invalid authentication code');
+        final pathSegments = request.url.pathSegments;
+        if (pathSegments.isEmpty) {
+          return forbidden;
+        }
+        final token = pathSegments[0];
+        if (token != _uriToken) {
+          return forbidden;
+        }
+        return innerHandler(request);
+      };
 
   Handler _webSocketHandler() => webSocketHandler((WebSocketChannel ws) {
         final client = DTDClient.fromWebSocket(

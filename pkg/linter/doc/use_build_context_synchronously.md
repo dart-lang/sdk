@@ -81,7 +81,7 @@ This calculation is based on a few simple properties:
 * We implement this calculation with a standard SimpleVisitor from the analyzer.
   We create the visitor with **child** as the reference node to consider. Each
   visit method descends down various child nodes, receiving their returned
-  "async state" in order to calculate the state of it's own visited node,
+  "async state" in order to calculate the state of its own visited node,
   relative to **child**.
 * At the entrypoint of the visitation, **child**'s parent is **parent**. Then we
   descend into **parent**'s various descendents, and so for every other visit

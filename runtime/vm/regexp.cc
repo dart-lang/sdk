@@ -5304,8 +5304,7 @@ RegExpEngine::CompilationResult RegExpEngine::CompileIR(
   const Function& function = parsed_function->function();
   const intptr_t specialization_cid = function.string_specialization_cid();
   const bool is_sticky = function.is_sticky_specialization();
-  const bool is_one_byte = (specialization_cid == kOneByteStringCid ||
-                            specialization_cid == kExternalOneByteStringCid);
+  const bool is_one_byte = (specialization_cid == kOneByteStringCid);
   RegExp& regexp = RegExp::Handle(zone, function.regexp());
   const String& pattern = String::Handle(zone, regexp.pattern());
 
@@ -5588,8 +5587,7 @@ RegExpPtr RegExpEngine::CreateRegExp(Thread* thread,
     const Class& owner =
         Class::Handle(zone, lib.LookupClass(Symbols::RegExp()));
 
-    for (intptr_t cid = kOneByteStringCid; cid <= kExternalTwoByteStringCid;
-         cid++) {
+    for (intptr_t cid = kOneByteStringCid; cid <= kTwoByteStringCid; cid++) {
       CreateSpecializedFunction(thread, zone, regexp, cid, /*sticky=*/false,
                                 owner);
       CreateSpecializedFunction(thread, zone, regexp, cid, /*sticky=*/true,

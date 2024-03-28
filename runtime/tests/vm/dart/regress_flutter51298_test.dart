@@ -10,8 +10,6 @@
 // This would cause a crash due to bad offsets causing entry to hit the pre-code
 // barrier of int3s.
 
-import 'dart:async';
-
 Iterable<bool> state_machine() sync* {
   bool a = true;
 

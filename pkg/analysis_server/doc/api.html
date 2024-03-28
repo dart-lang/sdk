@@ -110,7 +110,7 @@ a:focus, a:hover {
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  1.36.0
+  1.37.0
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -245,6 +245,11 @@ a:focus, a:hover {
   ignoring the item or treating it with some default/fallback handling.
 </p>
 <h3>Changelog</h3>
+<h4>1.37.0</h4>
+<ul>
+  <li><tt>SourceEdit</tt> now has an optional human-readable <tt>description</tt> that
+  may contain a description of a change.</li>
+</ul>
 <h4>1.36.0</h4>
 <ul>
   <li>
@@ -5584,6 +5589,11 @@ a:focus, a:hover {
         <p>
           A human-readable description of the change to be applied.
         </p>
+        <p>
+          If this change includes multiple edits made for different reasons (such as
+          during a bulk fix operation), the individual items in <tt>edits</tt> may
+          contain more specific descriptions.
+        </p>
       </dd><dt class="field"><b>edits: List&lt;<a href="#type_SourceFileEdit">SourceFileEdit</a>&gt;</b></dt><dd>
         
         <p>
@@ -5645,6 +5655,23 @@ a:focus, a:hover {
           not be appropriate (referred to as potential edits). Such edits will
           have an id so that they can be referenced. Edits in the same response
           that do not need to be referenced will not have an id.
+        </p>
+      </dd><dt class="field"><b>description: String<span style="color:#999999"> (optional)</span></b></dt><dd>
+        
+        <p>
+          A human readable description of the change made by this edit.
+        </p>
+        <p>
+          This description should be short and suitable to use as a heading
+          with changes grouped by it. For example, a change made as part of
+          a quick-fix may use the message "Replace final with var", allowing
+          multiple changes and multiple applications of the fix to be grouped
+          together.
+        </p>
+        <p>
+          This value may be more specific than any value in an enclosing
+          <tt>SourceChange.message</tt> which could contain edits made for
+          different reasons (such as during a bulk fix operation).
         </p>
       </dd></dl></dd><dt class="typeDefinition"><a name="type_SourceFileEdit">SourceFileEdit: object</a></dt><dd>
     <p>

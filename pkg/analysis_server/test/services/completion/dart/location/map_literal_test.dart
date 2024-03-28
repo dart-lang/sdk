@@ -23,19 +23,19 @@ f() => <String, int>{'a' : 1, ^, 'b' : 2];
 ''');
     assertResponse(r'''
 suggestions
-  const
-    kind: keyword
   false
-    kind: keyword
-  for
-    kind: keyword
-  if
     kind: keyword
   null
     kind: keyword
-  switch
-    kind: keyword
   true
+    kind: keyword
+  if
+    kind: keyword
+  for
+    kind: keyword
+  const
+    kind: keyword
+  switch
     kind: keyword
 ''');
   }
@@ -46,19 +46,19 @@ f() => <String, int>{'a' : 1, 'b' : 2, ^};
 ''');
     assertResponse(r'''
 suggestions
-  const
-    kind: keyword
   false
+    kind: keyword
+  null
+    kind: keyword
+  true
+    kind: keyword
+  const
     kind: keyword
   for
     kind: keyword
   if
     kind: keyword
-  null
-    kind: keyword
   switch
-    kind: keyword
-  true
     kind: keyword
 ''');
   }
@@ -69,19 +69,19 @@ f() => <String, int>{^'a' : 1};
 ''');
     assertResponse(r'''
 suggestions
-  const
-    kind: keyword
   false
-    kind: keyword
-  for
-    kind: keyword
-  if
     kind: keyword
   null
     kind: keyword
-  switch
-    kind: keyword
   true
+    kind: keyword
+  if
+    kind: keyword
+  for
+    kind: keyword
+  const
+    kind: keyword
+  switch
     kind: keyword
 ''');
   }
@@ -92,19 +92,19 @@ f() => <String, int>{^};
 ''');
     assertResponse(r'''
 suggestions
-  const
-    kind: keyword
   false
+    kind: keyword
+  null
+    kind: keyword
+  true
+    kind: keyword
+  const
     kind: keyword
   for
     kind: keyword
   if
     kind: keyword
-  null
-    kind: keyword
   switch
-    kind: keyword
-  true
     kind: keyword
 ''');
   }

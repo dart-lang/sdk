@@ -23,15 +23,12 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
     CodeActionTriggerKind? triggerKind,
     String? filePath,
     bool openTargetFile = false,
-    bool failTestOnAnyErrorNotification = true,
   }) async {
     filePath ??= mainFilePath;
     var code = TestCode.parse(content);
     newFile(filePath, code.code);
 
-    await initialize(
-      failTestOnAnyErrorNotification: failTestOnAnyErrorNotification,
-    );
+    await initialize();
 
     var fileUri = uriConverter.toClientUri(filePath);
     if (openTargetFile) {
@@ -143,6 +140,9 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
   @override
   void setUp() {
     super.setUp();
+
+    // Fix tests are likely to have diagnostics that need fixing.
+    failTestOnErrorDiagnostic = false;
 
     // Some defaults that most tests use. Tests can opt-out by overwriting these
     // before initializing.

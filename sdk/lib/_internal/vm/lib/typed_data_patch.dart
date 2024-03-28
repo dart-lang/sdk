@@ -2445,13 +2445,13 @@ final class _Int16List extends _TypedList
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   int operator [](int index) {
     index = _typedDataIndexCheck(this, index, length);
-    return _getIndexedInt16(index);
+    return _getInt16(index * Int16List.bytesPerElement);
   }
 
   @pragma("vm:recognized", "graph-intrinsic")
   void operator []=(int index, int value) {
     index = _typedDataIndexCheck(this, index, length);
-    _setIndexedInt16(index, value);
+    _setInt16(index * Int16List.bytesPerElement, value);
   }
 
   @pragma("vm:prefer-inline")
@@ -2484,14 +2484,6 @@ final class _Int16List extends _TypedList
   void _fastSetRange(
           int start, int count, _TypedListBase from, int skipCount) =>
       _memMove2(start, count, from, skipCount);
-
-  int _getIndexedInt16(int index) {
-    return _getInt16(index * Int16List.bytesPerElement);
-  }
-
-  void _setIndexedInt16(int index, int value) {
-    _setInt16(index * Int16List.bytesPerElement, value);
-  }
 }
 
 @patch
@@ -2522,13 +2514,13 @@ final class _Uint16List extends _TypedList
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   int operator [](int index) {
     index = _typedDataIndexCheck(this, index, length);
-    return _getIndexedUint16(index);
+    return _getUint16(index * Uint16List.bytesPerElement);
   }
 
   @pragma("vm:recognized", "graph-intrinsic")
   void operator []=(int index, int value) {
     index = _typedDataIndexCheck(this, index, length);
-    _setIndexedUint16(index, value);
+    _setUint16(index * Uint16List.bytesPerElement, value);
   }
 
   @pragma("vm:prefer-inline")
@@ -2561,14 +2553,6 @@ final class _Uint16List extends _TypedList
   void _fastSetRange(
           int start, int count, _TypedListBase from, int skipCount) =>
       _memMove2(start, count, from, skipCount);
-
-  int _getIndexedUint16(int index) {
-    return _getUint16(index * Uint16List.bytesPerElement);
-  }
-
-  void _setIndexedUint16(int index, int value) {
-    _setUint16(index * Uint16List.bytesPerElement, value);
-  }
 }
 
 @patch
@@ -2598,13 +2582,13 @@ final class _Int32List extends _TypedList
   @pragma("vm:recognized", "graph-intrinsic")
   int operator [](int index) {
     index = _typedDataIndexCheck(this, index, length);
-    return _getIndexedInt32(index);
+    return _getInt32(index * Int32List.bytesPerElement);
   }
 
   @pragma("vm:recognized", "graph-intrinsic")
   void operator []=(int index, int value) {
     index = _typedDataIndexCheck(this, index, length);
-    _setIndexedInt32(index, value);
+    _setInt32(index * Int32List.bytesPerElement, value);
   }
 
   // Method(s) implementing the TypedData interface.
@@ -2624,14 +2608,6 @@ final class _Int32List extends _TypedList
   void _fastSetRange(
           int start, int count, _TypedListBase from, int skipCount) =>
       _memMove4(start, count, from, skipCount);
-
-  int _getIndexedInt32(int index) {
-    return _getInt32(index * Int32List.bytesPerElement);
-  }
-
-  void _setIndexedInt32(int index, int value) {
-    _setInt32(index * Int32List.bytesPerElement, value);
-  }
 }
 
 @patch
@@ -2661,13 +2637,13 @@ final class _Uint32List extends _TypedList
   @pragma("vm:recognized", "graph-intrinsic")
   int operator [](int index) {
     index = _typedDataIndexCheck(this, index, length);
-    return _getIndexedUint32(index);
+    return _getUint32(index * Uint32List.bytesPerElement);
   }
 
   @pragma("vm:recognized", "graph-intrinsic")
   void operator []=(int index, int value) {
     index = _typedDataIndexCheck(this, index, length);
-    _setIndexedUint32(index, value);
+    _setUint32(index * Uint32List.bytesPerElement, value);
   }
 
   // Method(s) implementing the TypedData interface.
@@ -2687,14 +2663,6 @@ final class _Uint32List extends _TypedList
   void _fastSetRange(
           int start, int count, _TypedListBase from, int skipCount) =>
       _memMove4(start, count, from, skipCount);
-
-  int _getIndexedUint32(int index) {
-    return _getUint32(index * Uint32List.bytesPerElement);
-  }
-
-  void _setIndexedUint32(int index, int value) {
-    _setUint32(index * Uint32List.bytesPerElement, value);
-  }
 }
 
 @patch
@@ -2724,13 +2692,13 @@ final class _Int64List extends _TypedList
   @pragma("vm:recognized", "graph-intrinsic")
   int operator [](int index) {
     index = _typedDataIndexCheck(this, index, length);
-    return _getIndexedInt64(index);
+    return _getInt64(index * Int64List.bytesPerElement);
   }
 
   @pragma("vm:recognized", "graph-intrinsic")
   void operator []=(int index, int value) {
     index = _typedDataIndexCheck(this, index, length);
-    _setIndexedInt64(index, value);
+    _setInt64(index * Int64List.bytesPerElement, value);
   }
 
   // Method(s) implementing the TypedData interface.
@@ -2750,14 +2718,6 @@ final class _Int64List extends _TypedList
   void _fastSetRange(
           int start, int count, _TypedListBase from, int skipCount) =>
       _memMove8(start, count, from, skipCount);
-
-  int _getIndexedInt64(int index) {
-    return _getInt64(index * Int64List.bytesPerElement);
-  }
-
-  void _setIndexedInt64(int index, int value) {
-    _setInt64(index * Int64List.bytesPerElement, value);
-  }
 }
 
 @patch
@@ -2787,13 +2747,13 @@ final class _Uint64List extends _TypedList
   @pragma("vm:recognized", "graph-intrinsic")
   int operator [](int index) {
     index = _typedDataIndexCheck(this, index, length);
-    return _getIndexedUint64(index);
+    return _getUint64(index * Uint64List.bytesPerElement);
   }
 
   @pragma("vm:recognized", "graph-intrinsic")
   void operator []=(int index, int value) {
     index = _typedDataIndexCheck(this, index, length);
-    _setIndexedUint64(index, value);
+    _setUint64(index * Uint64List.bytesPerElement, value);
   }
 
   // Method(s) implementing the TypedData interface.
@@ -2813,14 +2773,6 @@ final class _Uint64List extends _TypedList
   void _fastSetRange(
           int start, int count, _TypedListBase from, int skipCount) =>
       _memMove8(start, count, from, skipCount);
-
-  int _getIndexedUint64(int index) {
-    return _getUint64(index * Uint64List.bytesPerElement);
-  }
-
-  void _setIndexedUint64(int index, int value) {
-    _setUint64(index * Uint64List.bytesPerElement, value);
-  }
 }
 
 @patch
@@ -2851,13 +2803,13 @@ final class _Float32List extends _TypedList
   @pragma("vm:exact-result-type", "dart:core#_Double")
   double operator [](int index) {
     index = _typedDataIndexCheck(this, index, length);
-    return _getIndexedFloat32(index);
+    return _getFloat32(index * Float32List.bytesPerElement);
   }
 
   @pragma("vm:recognized", "graph-intrinsic")
   void operator []=(int index, double value) {
     index = _typedDataIndexCheck(this, index, length);
-    _setIndexedFloat32(index, value);
+    _setFloat32(index * Float32List.bytesPerElement, value);
   }
 
   // Method(s) implementing the TypedData interface.
@@ -2877,14 +2829,6 @@ final class _Float32List extends _TypedList
   void _fastSetRange(
           int start, int count, _TypedListBase from, int skipCount) =>
       _memMove4(start, count, from, skipCount);
-
-  double _getIndexedFloat32(int index) {
-    return _getFloat32(index * Float32List.bytesPerElement);
-  }
-
-  void _setIndexedFloat32(int index, double value) {
-    _setFloat32(index * Float32List.bytesPerElement, value);
-  }
 }
 
 @patch
@@ -2915,13 +2859,13 @@ final class _Float64List extends _TypedList
   @pragma("vm:exact-result-type", "dart:core#_Double")
   double operator [](int index) {
     index = _typedDataIndexCheck(this, index, length);
-    return _getIndexedFloat64(index);
+    return _getFloat64(index * Float64List.bytesPerElement);
   }
 
   @pragma("vm:recognized", "graph-intrinsic")
   void operator []=(int index, double value) {
     index = _typedDataIndexCheck(this, index, length);
-    _setIndexedFloat64(index, value);
+    _setFloat64(index * Float64List.bytesPerElement, value);
   }
 
   // Method(s) implementing the TypedData interface.
@@ -2941,14 +2885,6 @@ final class _Float64List extends _TypedList
   void _fastSetRange(
           int start, int count, _TypedListBase from, int skipCount) =>
       _memMove8(start, count, from, skipCount);
-
-  double _getIndexedFloat64(int index) {
-    return _getFloat64(index * Float64List.bytesPerElement);
-  }
-
-  void _setIndexedFloat64(int index, double value) {
-    _setFloat64(index * Float64List.bytesPerElement, value);
-  }
 }
 
 @patch
@@ -2978,13 +2914,13 @@ final class _Float32x4List extends _TypedList
   @pragma("vm:exact-result-type", _Float32x4)
   Float32x4 operator [](int index) {
     index = _typedDataIndexCheck(this, index, length);
-    return _getIndexedFloat32x4(index);
+    return _getFloat32x4(index * Float32x4List.bytesPerElement);
   }
 
   @pragma("vm:recognized", "graph-intrinsic")
   void operator []=(int index, Float32x4 value) {
     index = _typedDataIndexCheck(this, index, length);
-    _setIndexedFloat32x4(index, value);
+    _setFloat32x4(index * Float32x4List.bytesPerElement, value);
   }
 
   // Method(s) implementing the TypedData interface.
@@ -3004,14 +2940,6 @@ final class _Float32x4List extends _TypedList
   void _fastSetRange(
           int start, int count, _TypedListBase from, int skipCount) =>
       _memMove16(start, count, from, skipCount);
-
-  Float32x4 _getIndexedFloat32x4(int index) {
-    return _getFloat32x4(index * Float32x4List.bytesPerElement);
-  }
-
-  void _setIndexedFloat32x4(int index, Float32x4 value) {
-    _setFloat32x4(index * Float32x4List.bytesPerElement, value);
-  }
 }
 
 @patch
@@ -3041,13 +2969,13 @@ final class _Int32x4List extends _TypedList
   @pragma("vm:exact-result-type", _Int32x4)
   Int32x4 operator [](int index) {
     index = _typedDataIndexCheck(this, index, length);
-    return _getIndexedInt32x4(index);
+    return _getInt32x4(index * Int32x4List.bytesPerElement);
   }
 
   @pragma("vm:recognized", "graph-intrinsic")
   void operator []=(int index, Int32x4 value) {
     index = _typedDataIndexCheck(this, index, length);
-    _setIndexedInt32x4(index, value);
+    _setInt32x4(index * Int32x4List.bytesPerElement, value);
   }
 
   // Method(s) implementing the TypedData interface.
@@ -3067,14 +2995,6 @@ final class _Int32x4List extends _TypedList
   void _fastSetRange(
           int start, int count, _TypedListBase from, int skipCount) =>
       _memMove16(start, count, from, skipCount);
-
-  Int32x4 _getIndexedInt32x4(int index) {
-    return _getInt32x4(index * Int32x4List.bytesPerElement);
-  }
-
-  void _setIndexedInt32x4(int index, Int32x4 value) {
-    _setInt32x4(index * Int32x4List.bytesPerElement, value);
-  }
 }
 
 @patch
@@ -3104,13 +3024,13 @@ final class _Float64x2List extends _TypedList
   @pragma("vm:exact-result-type", _Float64x2)
   Float64x2 operator [](int index) {
     index = _typedDataIndexCheck(this, index, length);
-    return _getIndexedFloat64x2(index);
+    return _getFloat64x2(index * Float64x2List.bytesPerElement);
   }
 
   @pragma("vm:recognized", "graph-intrinsic")
   void operator []=(int index, Float64x2 value) {
     index = _typedDataIndexCheck(this, index, length);
-    _setIndexedFloat64x2(index, value);
+    _setFloat64x2(index * Float64x2List.bytesPerElement, value);
   }
 
   // Method(s) implementing the TypedData interface.
@@ -3130,14 +3050,6 @@ final class _Float64x2List extends _TypedList
   void _fastSetRange(
           int start, int count, _TypedListBase from, int skipCount) =>
       _memMove16(start, count, from, skipCount);
-
-  Float64x2 _getIndexedFloat64x2(int index) {
-    return _getFloat64x2(index * Float64x2List.bytesPerElement);
-  }
-
-  void _setIndexedFloat64x2(int index, Float64x2 value) {
-    _setFloat64x2(index * Float64x2List.bytesPerElement, value);
-  }
 }
 
 @pragma("vm:entry-point")
@@ -3280,12 +3192,12 @@ final class _ExternalInt16Array extends _TypedList
   // Method(s) implementing the List interface.
   int operator [](int index) {
     index = _typedDataIndexCheck(this, index, length);
-    return _getIndexedInt16(index);
+    return _getInt16(index * Int16List.bytesPerElement);
   }
 
   void operator []=(int index, int value) {
     index = _typedDataIndexCheck(this, index, length);
-    _setIndexedInt16(index, value);
+    _setInt16(index * Int16List.bytesPerElement, value);
   }
 
   // Method(s) implementing the TypedData interface.
@@ -3305,14 +3217,6 @@ final class _ExternalInt16Array extends _TypedList
   void _fastSetRange(
           int start, int count, _TypedListBase from, int skipCount) =>
       _memMove2(start, count, from, skipCount);
-
-  int _getIndexedInt16(int index) {
-    return _getInt16(index * Int16List.bytesPerElement);
-  }
-
-  void _setIndexedInt16(int index, int value) {
-    _setInt16(index * Int16List.bytesPerElement, value);
-  }
 }
 
 @pragma("vm:entry-point")
@@ -3326,12 +3230,12 @@ final class _ExternalUint16Array extends _TypedList
   // Method(s) implementing the List interface.
   int operator [](int index) {
     index = _typedDataIndexCheck(this, index, length);
-    return _getIndexedUint16(index);
+    return _getUint16(index * Uint16List.bytesPerElement);
   }
 
   void operator []=(int index, int value) {
     index = _typedDataIndexCheck(this, index, length);
-    _setIndexedUint16(index, value);
+    _setUint16(index * Uint16List.bytesPerElement, value);
   }
 
   // Method(s) implementing the TypedData interface.
@@ -3351,14 +3255,6 @@ final class _ExternalUint16Array extends _TypedList
   void _fastSetRange(
           int start, int count, _TypedListBase from, int skipCount) =>
       _memMove2(start, count, from, skipCount);
-
-  int _getIndexedUint16(int index) {
-    return _getUint16(index * Uint16List.bytesPerElement);
-  }
-
-  void _setIndexedUint16(int index, int value) {
-    _setUint16(index * Uint16List.bytesPerElement, value);
-  }
 }
 
 @pragma("vm:entry-point")
@@ -3372,12 +3268,12 @@ final class _ExternalInt32Array extends _TypedList
   // Method(s) implementing the List interface.
   int operator [](int index) {
     index = _typedDataIndexCheck(this, index, length);
-    return _getIndexedInt32(index);
+    return _getInt32(index * Int32List.bytesPerElement);
   }
 
   void operator []=(int index, int value) {
     index = _typedDataIndexCheck(this, index, length);
-    _setIndexedInt32(index, value);
+    _setInt32(index * Int32List.bytesPerElement, value);
   }
 
   // Method(s) implementing the TypedData interface.
@@ -3397,14 +3293,6 @@ final class _ExternalInt32Array extends _TypedList
   void _fastSetRange(
           int start, int count, _TypedListBase from, int skipCount) =>
       _memMove4(start, count, from, skipCount);
-
-  int _getIndexedInt32(int index) {
-    return _getInt32(index * Int32List.bytesPerElement);
-  }
-
-  void _setIndexedInt32(int index, int value) {
-    _setInt32(index * Int32List.bytesPerElement, value);
-  }
 }
 
 @pragma("vm:entry-point")
@@ -3418,12 +3306,12 @@ final class _ExternalUint32Array extends _TypedList
   // Method(s) implementing the List interface.
   int operator [](int index) {
     index = _typedDataIndexCheck(this, index, length);
-    return _getIndexedUint32(index);
+    return _getUint32(index * Uint32List.bytesPerElement);
   }
 
   void operator []=(int index, int value) {
     index = _typedDataIndexCheck(this, index, length);
-    _setIndexedUint32(index, value);
+    _setUint32(index * Uint32List.bytesPerElement, value);
   }
 
   // Method(s) implementing the TypedData interface.
@@ -3443,14 +3331,6 @@ final class _ExternalUint32Array extends _TypedList
   void _fastSetRange(
           int start, int count, _TypedListBase from, int skipCount) =>
       _memMove4(start, count, from, skipCount);
-
-  int _getIndexedUint32(int index) {
-    return _getUint32(index * Uint32List.bytesPerElement);
-  }
-
-  void _setIndexedUint32(int index, int value) {
-    _setUint32(index * Uint32List.bytesPerElement, value);
-  }
 }
 
 @pragma("vm:entry-point")
@@ -3464,12 +3344,12 @@ final class _ExternalInt64Array extends _TypedList
   // Method(s) implementing the List interface.
   int operator [](int index) {
     index = _typedDataIndexCheck(this, index, length);
-    return _getIndexedInt64(index);
+    return _getInt64(index * Int64List.bytesPerElement);
   }
 
   void operator []=(int index, int value) {
     index = _typedDataIndexCheck(this, index, length);
-    _setIndexedInt64(index, value);
+    _setInt64(index * Int64List.bytesPerElement, value);
   }
 
   // Method(s) implementing the TypedData interface.
@@ -3489,14 +3369,6 @@ final class _ExternalInt64Array extends _TypedList
   void _fastSetRange(
           int start, int count, _TypedListBase from, int skipCount) =>
       _memMove8(start, count, from, skipCount);
-
-  int _getIndexedInt64(int index) {
-    return _getInt64(index * Int64List.bytesPerElement);
-  }
-
-  void _setIndexedInt64(int index, int value) {
-    _setInt64(index * Int64List.bytesPerElement, value);
-  }
 }
 
 @pragma("vm:entry-point")
@@ -3510,12 +3382,12 @@ final class _ExternalUint64Array extends _TypedList
   // Method(s) implementing the List interface.
   int operator [](int index) {
     index = _typedDataIndexCheck(this, index, length);
-    return _getIndexedUint64(index);
+    return _getUint64(index * Uint64List.bytesPerElement);
   }
 
   void operator []=(int index, int value) {
     index = _typedDataIndexCheck(this, index, length);
-    _setIndexedUint64(index, value);
+    _setUint64(index * Uint64List.bytesPerElement, value);
   }
 
   // Method(s) implementing the TypedData interface.
@@ -3535,14 +3407,6 @@ final class _ExternalUint64Array extends _TypedList
   void _fastSetRange(
           int start, int count, _TypedListBase from, int skipCount) =>
       _memMove8(start, count, from, skipCount);
-
-  int _getIndexedUint64(int index) {
-    return _getUint64(index * Uint64List.bytesPerElement);
-  }
-
-  void _setIndexedUint64(int index, int value) {
-    _setUint64(index * Uint64List.bytesPerElement, value);
-  }
 }
 
 @pragma("vm:entry-point")
@@ -3556,12 +3420,12 @@ final class _ExternalFloat32Array extends _TypedList
   // Method(s) implementing the List interface.
   double operator [](int index) {
     index = _typedDataIndexCheck(this, index, length);
-    return _getIndexedFloat32(index);
+    return _getFloat32(index * Float32List.bytesPerElement);
   }
 
   void operator []=(int index, double value) {
     index = _typedDataIndexCheck(this, index, length);
-    _setIndexedFloat32(index, value);
+    _setFloat32(index * Float32List.bytesPerElement, value);
   }
 
   // Method(s) implementing the TypedData interface.
@@ -3581,14 +3445,6 @@ final class _ExternalFloat32Array extends _TypedList
   void _fastSetRange(
           int start, int count, _TypedListBase from, int skipCount) =>
       _memMove4(start, count, from, skipCount);
-
-  double _getIndexedFloat32(int index) {
-    return _getFloat32(index * Float32List.bytesPerElement);
-  }
-
-  void _setIndexedFloat32(int index, double value) {
-    _setFloat32(index * Float32List.bytesPerElement, value);
-  }
 }
 
 @pragma("vm:entry-point")
@@ -3602,12 +3458,12 @@ final class _ExternalFloat64Array extends _TypedList
   // Method(s) implementing the List interface.
   double operator [](int index) {
     index = _typedDataIndexCheck(this, index, length);
-    return _getIndexedFloat64(index);
+    return _getFloat64(index * Float64List.bytesPerElement);
   }
 
   void operator []=(int index, double value) {
     index = _typedDataIndexCheck(this, index, length);
-    _setIndexedFloat64(index, value);
+    _setFloat64(index * Float64List.bytesPerElement, value);
   }
 
   // Method(s) implementing the TypedData interface.
@@ -3627,14 +3483,6 @@ final class _ExternalFloat64Array extends _TypedList
   void _fastSetRange(
           int start, int count, _TypedListBase from, int skipCount) =>
       _memMove8(start, count, from, skipCount);
-
-  double _getIndexedFloat64(int index) {
-    return _getFloat64(index * Float64List.bytesPerElement);
-  }
-
-  void _setIndexedFloat64(int index, double value) {
-    _setFloat64(index * Float64List.bytesPerElement, value);
-  }
 }
 
 @pragma("vm:entry-point")
@@ -3648,12 +3496,12 @@ final class _ExternalFloat32x4Array extends _TypedList
   // Method(s) implementing the List interface.
   Float32x4 operator [](int index) {
     index = _typedDataIndexCheck(this, index, length);
-    return _getIndexedFloat32x4(index);
+    return _getFloat32x4(index * Float32x4List.bytesPerElement);
   }
 
   void operator []=(int index, Float32x4 value) {
     index = _typedDataIndexCheck(this, index, length);
-    _setIndexedFloat32x4(index, value);
+    _setFloat32x4(index * Float32x4List.bytesPerElement, value);
   }
 
   // Method(s) implementing the TypedData interface.
@@ -3673,14 +3521,6 @@ final class _ExternalFloat32x4Array extends _TypedList
   void _fastSetRange(
           int start, int count, _TypedListBase from, int skipCount) =>
       _memMove16(start, count, from, skipCount);
-
-  Float32x4 _getIndexedFloat32x4(int index) {
-    return _getFloat32x4(index * Float32x4List.bytesPerElement);
-  }
-
-  void _setIndexedFloat32x4(int index, Float32x4 value) {
-    _setFloat32x4(index * Float32x4List.bytesPerElement, value);
-  }
 }
 
 @pragma("vm:entry-point")
@@ -3694,12 +3534,12 @@ final class _ExternalInt32x4Array extends _TypedList
   // Method(s) implementing the List interface.
   Int32x4 operator [](int index) {
     index = _typedDataIndexCheck(this, index, length);
-    return _getIndexedInt32x4(index);
+    return _getInt32x4(index * Int32x4List.bytesPerElement);
   }
 
   void operator []=(int index, Int32x4 value) {
     index = _typedDataIndexCheck(this, index, length);
-    _setIndexedInt32x4(index, value);
+    _setInt32x4(index * Int32x4List.bytesPerElement, value);
   }
 
   // Method(s) implementing the TypedData interface.
@@ -3719,14 +3559,6 @@ final class _ExternalInt32x4Array extends _TypedList
   void _fastSetRange(
           int start, int count, _TypedListBase from, int skipCount) =>
       _memMove16(start, count, from, skipCount);
-
-  Int32x4 _getIndexedInt32x4(int index) {
-    return _getInt32x4(index * Int32x4List.bytesPerElement);
-  }
-
-  void _setIndexedInt32x4(int index, Int32x4 value) {
-    _setInt32x4(index * Int32x4List.bytesPerElement, value);
-  }
 }
 
 @pragma("vm:entry-point")
@@ -3740,12 +3572,12 @@ final class _ExternalFloat64x2Array extends _TypedList
   // Method(s) implementing the List interface.
   Float64x2 operator [](int index) {
     index = _typedDataIndexCheck(this, index, length);
-    return _getIndexedFloat64x2(index);
+    return _getFloat64x2(index * Float64x2List.bytesPerElement);
   }
 
   void operator []=(int index, Float64x2 value) {
     index = _typedDataIndexCheck(this, index, length);
-    _setIndexedFloat64x2(index, value);
+    _setFloat64x2(index * Float64x2List.bytesPerElement, value);
   }
 
   // Method(s) implementing the TypedData interface.
@@ -3765,17 +3597,10 @@ final class _ExternalFloat64x2Array extends _TypedList
   void _fastSetRange(
           int start, int count, _TypedListBase from, int skipCount) =>
       _memMove16(start, count, from, skipCount);
-
-  Float64x2 _getIndexedFloat64x2(int index) {
-    return _getFloat64x2(index * Float64x2List.bytesPerElement);
-  }
-
-  void _setIndexedFloat64x2(int index, Float64x2 value) {
-    _setFloat64x2(index * Float64x2List.bytesPerElement, value);
-  }
 }
 
 @patch
+@pragma('vm:deeply-immutable')
 class Float32x4 {
   @patch
   @pragma("vm:prefer-inline")
@@ -3824,6 +3649,7 @@ class Float32x4 {
   external factory Float32x4.fromFloat64x2(Float64x2 v);
 }
 
+@pragma('vm:deeply-immutable')
 @pragma("vm:entry-point")
 final class _Float32x4 implements Float32x4 {
   @pragma("vm:recognized", "graph-intrinsic")
@@ -3977,6 +3803,7 @@ final class _Float32x4 implements Float32x4 {
 }
 
 @patch
+@pragma('vm:deeply-immutable')
 class Int32x4 {
   @patch
   @pragma("vm:prefer-inline")
@@ -4015,6 +3842,7 @@ class Int32x4 {
   external factory Int32x4.fromFloat32x4Bits(Float32x4 x);
 }
 
+@pragma('vm:deeply-immutable')
 @pragma("vm:entry-point")
 final class _Int32x4 implements Int32x4 {
   @pragma("vm:external-name", "Int32x4_or")
@@ -4155,6 +3983,7 @@ final class _Int32x4 implements Int32x4 {
 }
 
 @patch
+@pragma('vm:deeply-immutable')
 class Float64x2 {
   @patch
   @pragma("vm:prefer-inline")
@@ -4194,6 +4023,7 @@ class Float64x2 {
   external factory Float64x2.fromFloat32x4(Float32x4 v);
 }
 
+@pragma('vm:deeply-immutable')
 @pragma("vm:entry-point")
 final class _Float64x2 implements Float64x2 {
   @pragma("vm:recognized", "graph-intrinsic")

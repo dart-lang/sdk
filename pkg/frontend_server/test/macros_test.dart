@@ -4,8 +4,8 @@
 
 import 'dart:io';
 
-import 'package:_fe_analyzer_shared/src/macros/bootstrap.dart';
-import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart';
+import 'package:macros/src/bootstrap.dart';
+import 'package:macros/src/executor/serialization.dart';
 import 'package:frontend_server/compute_kernel.dart';
 import 'package:test/test.dart';
 
@@ -60,7 +60,7 @@ void main() async {
       File testMacroFile = new File('${tempDir.path}/lib/test_macro.dart')
         ..createSync(recursive: true)
         ..writeAsStringSync('''
-import 'package:_fe_analyzer_shared/src/macros/api.dart';
+import 'package:macros/macros.dart';
 
 macro class TestMacro implements ClassDeclarationsMacro {
   const TestMacro();

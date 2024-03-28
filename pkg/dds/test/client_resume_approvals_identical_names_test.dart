@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:dds_service_extensions/dds_service_extensions.dart';
 import 'package:vm_service/vm_service.dart';
 
 import 'client_resume_approvals_common.dart';
@@ -29,7 +30,7 @@ final test = <IsolateTest>[
       clientName: clientName,
     );
     await hasPausedAtStart(service, isolateRef);
-    await resumeIsolate(client2, isolateRef);
+    await client2.readyToResume(isolateRef.id!);
   },
   hasStoppedAtExit,
 ];

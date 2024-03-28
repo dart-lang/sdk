@@ -8,6 +8,15 @@ import 'dart:js_interop';
 
 extension type NonLiteral._(JSObject o) implements JSObject {}
 
+extension type NonLiteralWithMembers._(JSObject o) implements JSObject {
+  external NonLiteralWithMembers();
+
+  external bool field;
+  external bool get getter;
+  external void setter(bool _);
+  external void method();
+}
+
 extension type ObjectLiteral._(JSObject o) implements JSObject {
   external ObjectLiteral({int a});
 }
@@ -43,6 +52,7 @@ void test<T extends JSAny?, U extends NonLiteral>(JSAny? any) {
   tearoffWithGenericTypeParam();
 
   any.isA<NonLiteral>();
+  any.isA<NonLiteralWithMembers>();
   any.isA<ObjectLiteral>();
   //  ^
   // [web] Type argument 'ObjectLiteral' has an object literal constructor. Because 'isA' uses the type's name or '@JS()' rename, this may result in an incorrect type check.

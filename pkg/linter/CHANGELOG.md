@@ -1,3 +1,8 @@
+# 3.4.0-wip
+
+- new lint: `unnecessary_library_name`
+- new lint: `missing_code_block_language_in_doc_comment`
+
 # 3.3.0
 
 - removed lint: `always_require_non_null_named_parameters`

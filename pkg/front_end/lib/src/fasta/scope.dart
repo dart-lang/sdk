@@ -600,8 +600,6 @@ class Scope extends MutableScope {
 
   Iterable<Builder> get localMembers => _local?.values ?? const {};
 
-  Iterable<MemberBuilder> get localSetters => _setters?.values ?? const {};
-
   bool hasLocalLabel(String name) =>
       labels != null && labels!.containsKey(name);
 
@@ -699,11 +697,6 @@ class Scope extends MutableScope {
     if (scope._extensions != null) {
       (_extensions ??= {}).addAll(scope._extensions!);
     }
-  }
-
-  void forEach(f(String name, Builder member)) {
-    _local?.forEach(f);
-    _setters?.forEach(f);
   }
 
   String get debugString {

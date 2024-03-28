@@ -6,8 +6,6 @@
 // doesn't interfere with promotability of fields having the same name elsewhere
 // in the library.
 
-// SharedOptions=--enable-experiment=inline-class
-
 import '../static_type_helper.dart';
 
 extension type E(int? _field) {}

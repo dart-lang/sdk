@@ -207,11 +207,13 @@ abstract class ContextResolutionTest with ResourceProviderMixin {
 
 class PubPackageAnalysisServerTest extends ContextResolutionTest
     with MockPackagesMixin, ConfigurationFilesMixin, TestMacros {
+  // TODO(scheglov): Consider turning it back into a getter.
+  late String testFilePath = '$testPackageLibPath/test.dart';
+
   // If experiments are needed,
   // add `import 'package:analyzer/dart/analysis/features.dart';`
   // and list the necessary experiments here.
   List<String> get experiments => [
-        Feature.inline_class.enableString,
         Feature.macros.enableString,
       ];
 
@@ -227,8 +229,6 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest
   }
 
   String get testFileContent => testFile.readAsStringSync();
-
-  String get testFilePath => '$testPackageLibPath/test.dart';
 
   String get testPackageLibPath => '$testPackageRootPath/lib';
 

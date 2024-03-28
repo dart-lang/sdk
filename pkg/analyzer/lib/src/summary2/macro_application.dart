@@ -2,11 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/macros/api.dart' as macro;
-import 'package:_fe_analyzer_shared/src/macros/executor.dart' as macro;
-import 'package:_fe_analyzer_shared/src/macros/executor/exception_impls.dart'
-    as macro;
-import 'package:_fe_analyzer_shared/src/macros/executor/multi_executor.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -22,6 +17,10 @@ import 'package:analyzer/src/summary2/macro_declarations.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:collection/collection.dart';
+import 'package:macros/macros.dart' as macro;
+import 'package:macros/src/executor.dart' as macro;
+import 'package:macros/src/executor/exception_impls.dart' as macro;
+import 'package:macros/src/executor/multi_executor.dart';
 import 'package:meta/meta.dart';
 
 /// The full list of [macro.ArgumentKind]s for this dart type, with type
@@ -466,27 +465,27 @@ class LibraryMacroApplier {
         continue;
       }
 
-      final arguments = await _runWithCatchingExceptions(
+      final instance = await _runWithCatchingExceptions(
         () async {
-          return _buildArguments(
+          final arguments = _buildArguments(
             annotationIndex: annotationIndex,
             constructor: constructorElement,
             node: importedMacro.arguments,
+          );
+
+          return await importedMacro.bundleExecutor.instantiate(
+            libraryUri: importedMacro.macroLibrary.source.uri,
+            className: importedMacro.macroClass.name,
+            constructorName: importedMacro.constructorName ?? '',
+            arguments: arguments,
           );
         },
         targetElement: targetElement,
         annotationIndex: annotationIndex,
       );
-      if (arguments == null) {
+      if (instance == null) {
         continue;
       }
-
-      final instance = await importedMacro.bundleExecutor.instantiate(
-        libraryUri: importedMacro.macroLibrary.source.uri,
-        className: importedMacro.macroClass.name,
-        constructorName: importedMacro.constructorName ?? '',
-        arguments: arguments,
-      );
 
       final phasesToExecute = macro.Phase.values.where((phase) {
         return instance.shouldExecute(targetDeclarationKind, phase);
@@ -1240,7 +1239,7 @@ class _TypePhaseIntrospector implements macro.TypePhaseIntrospector {
     final lookup = libraryElement.scope.lookup(name);
     var element = lookup.getter ?? lookup.setter;
     if (element is PropertyAccessorElement && element.isSynthetic) {
-      element = element.variable;
+      element = element.variable2;
     }
     if (element == null) {
       throw macro.MacroImplementationExceptionImpl(

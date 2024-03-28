@@ -14,14 +14,7 @@
 none:
   libraries: {}
 
-common:
-  libraries:
-    _macros:
-      uri: _macros/macros.dart
-
 vm_common:
-  include:
-    - target: "common"
   libraries:
     _builtin:
       uri: "_internal/vm/bin/builtin.dart"
@@ -116,8 +109,6 @@ vm:
   libraries:
     cli:
       uri: "cli/cli.dart"
-      patches:
-        - "_internal/vm/bin/cli_patch.dart"
 
 wasm:
   include:
@@ -202,8 +193,6 @@ wasm_base:
       uri: _internal/wasm/lib/typed_data.dart
 
 wasm_common:
-  include:
-    - target: "common"
   libraries:
     core:
       uri: core/core.dart
@@ -242,7 +231,7 @@ wasm_common:
       uri: collection/collection.dart
       patches:
       - _internal/vm_shared/lib/collection_patch.dart
-      - _internal/vm_shared/lib/compact_hash.dart
+      - _internal/wasm/lib/compact_hash.dart
       - _internal/wasm/lib/hash_factories.dart
     developer:
       uri: developer/developer.dart
@@ -320,8 +309,6 @@ dart2js_server:
       patches: "js/_js_server.dart"
 
 _dart2js_common:
-  include:
-    - target: "common"
   libraries:
     async:
       uri: "async/async.dart"
@@ -443,8 +430,6 @@ _dart2js_common:
       uri: "_internal/js_shared/lib/synced/recipe_syntax.dart"
 
 dartdevc:
-  include:
-    - target: "common"
   libraries:
     _runtime:
       uri: "_internal/js_dev_runtime/private/ddc_runtime/runtime.dart"

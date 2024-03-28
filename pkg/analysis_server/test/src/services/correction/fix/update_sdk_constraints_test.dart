@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -70,8 +69,6 @@ class C {
   }
 
   Future<void> test_gtGtGtOperator() async {
-    writeTestPackageConfig(languageVersion: latestLanguageVersion);
-    createAnalysisOptionsFile(experiments: [EnableString.triple_shift]);
     await assertUpdate(content: '''
 class C {
   C operator >>>(C other) => this;

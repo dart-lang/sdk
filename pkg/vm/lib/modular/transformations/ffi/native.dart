@@ -533,24 +533,18 @@ class FfiNativeTransformer extends FfiTransformer {
     // current function a body that does the wrapping/unwrapping.
     node.isExternal = false;
 
-    node.addAnnotation(ConstantExpression(
-      InstanceConstant(pragmaClass.reference, [], {
-        pragmaName.fieldReference: StringConstant("vm:prefer-inline"),
-        pragmaOptions.fieldReference: NullConstant(),
-      }),
-    ));
+    addPragmaPreferInline(node);
 
     final parent = node.parent;
-    var fileUri = currentLibrary.fileUri;
-    if (parent is Class) {
-      fileUri = parent.fileUri;
-    } else if (parent is Library) {
-      fileUri = parent.fileUri;
-    }
+    final fileUri = node.fileUri;
+
+    final name = Name(
+        '_${node.name.text}\$${node.kind.name}\$FfiNative', currentLibrary);
+    final reference = currentLibraryIndex?.lookupGetterReference(name);
 
     int varCounter = 0;
     final nonWrappedFfiNative = Procedure(
-      Name('_${node.name.text}\$${node.kind.name}\$FfiNative', currentLibrary),
+      name,
       ProcedureKind.Method,
       FunctionNode(
         /*body=*/ null,
@@ -568,6 +562,7 @@ class FfiNativeTransformer extends FfiTransformer {
       fileUri: fileUri,
       isStatic: true,
       isExternal: true,
+      reference: reference,
     )
       ..isNonNullableByDefault = node.isNonNullableByDefault
       ..fileOffset = node.fileOffset;
@@ -908,7 +903,7 @@ class FfiNativeTransformer extends FfiTransformer {
         ));
       } else {
         node.function.body = ExpressionStatement(nativeTypeCfe.generateStore(
-          VariableGet(node.function.positionalParameters[0]),
+          node.function.positionalParameters[0],
           dartType: dartType,
           fileOffset: node.fileOffset,
           typedDataBase: _generateAddressOfField(

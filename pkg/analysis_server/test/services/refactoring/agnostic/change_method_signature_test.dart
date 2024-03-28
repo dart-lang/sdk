@@ -1352,6 +1352,117 @@ void f() {
 ''');
   }
 
+  Future<void>
+      test_classConstructor_requiredPositional_toRequiredNamed_canSuper_optionalNamed() async {
+    await _analyzeValidSelection(r'''
+class A {
+  ^A(int a, int b);
+}
+
+class B extends A {
+  B(int a, {int b = 0}) : super(a, b);
+}
+
+void f() {
+  A(0, 1);
+  B(2, b: 3);
+}
+''');
+
+    final signatureUpdate = MethodSignatureUpdate(
+      formalParameters: [
+        FormalParameterUpdate(
+          id: 0,
+          kind: FormalParameterKind.requiredNamed,
+        ),
+        FormalParameterUpdate(
+          id: 1,
+          kind: FormalParameterKind.requiredNamed,
+        ),
+      ],
+      formalParametersTrailingComma: TrailingComma.always,
+      argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
+    );
+
+    // Note, `B.b` is left optional named.
+    await _assertUpdate(signatureUpdate, r'''
+>>>>>>> /home/test/lib/test.dart
+class A {
+  A({
+    required int a,
+    required int b,
+  });
+}
+
+class B extends A {
+  B({
+    required int super.a,
+    int super.b = 0,
+  }) : super();
+}
+
+void f() {
+  A(a: 0, b: 1);
+  B(a: 2, b: 3);
+}
+''');
+  }
+
+  Future<void>
+      test_classConstructor_requiredPositional_toRequiredNamed_canSuper_requiredNamed() async {
+    await _analyzeValidSelection(r'''
+class A {
+  ^A(int a, int b);
+}
+
+class B extends A {
+  B(int a, {required int b}) : super(a, b);
+}
+
+void f() {
+  A(0, 1);
+  B(2, b: 3);
+}
+''');
+
+    final signatureUpdate = MethodSignatureUpdate(
+      formalParameters: [
+        FormalParameterUpdate(
+          id: 0,
+          kind: FormalParameterKind.requiredNamed,
+        ),
+        FormalParameterUpdate(
+          id: 1,
+          kind: FormalParameterKind.requiredNamed,
+        ),
+      ],
+      formalParametersTrailingComma: TrailingComma.always,
+      argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
+    );
+
+    await _assertUpdate(signatureUpdate, r'''
+>>>>>>> /home/test/lib/test.dart
+class A {
+  A({
+    required int a,
+    required int b,
+  });
+}
+
+class B extends A {
+  B({
+    required int super.a,
+    required int super.b,
+  }) : super();
+}
+
+void f() {
+  A(a: 0, b: 1);
+  B(a: 2, b: 3);
+}
+''');
+  }
+
   Future<void> test_classConstructor_superConstructorInvocation_named() async {
     await _analyzeValidSelection(r'''
 class A {
@@ -1421,6 +1532,44 @@ class A {
 
 class B extends A {
   B() : super(a: 0);
+}
+''');
+  }
+
+  Future<void> test_classMethod_optionalNamed_in_macro_remove() async {
+    addMacros([declareInLibraryMacro()]);
+    await _analyzeValidSelection(r'''
+import 'macros.dart';
+
+@DeclareInType('void foo() {  test(a: 0, b: 1, c: 2);}')
+class A {
+  void ^test({int a, int b, int c}) {}
+}
+''');
+
+    final signatureUpdate = MethodSignatureUpdate(
+      formalParameters: [
+        FormalParameterUpdate(
+          id: 0,
+          kind: FormalParameterKind.optionalNamed,
+        ),
+        FormalParameterUpdate(
+          id: 2,
+          kind: FormalParameterKind.optionalNamed,
+        ),
+      ],
+      removedNamedFormalParameters: {'b'},
+      formalParametersTrailingComma: TrailingComma.ifPresent,
+      argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
+    );
+
+    await _assertUpdate(signatureUpdate, r'''
+>>>>>>> /home/test/lib/test.dart
+import 'macros.dart';
+
+@DeclareInType('void foo() {  test(a: 0, b: 1, c: 2);}')
+class A {
+  void test({int a, int c}) {}
 }
 ''');
   }

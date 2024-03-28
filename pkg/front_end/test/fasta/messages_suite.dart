@@ -130,8 +130,9 @@ class MessageTestSuite extends ChainContext {
   /// failure by the [Validate] step that can be suppressed via the status
   /// file.
   @override
-  Stream<MessageTestDescription> list(Chain suite) async* {
-    Uri uri = suite.uri.resolve("messages.yaml");
+  Future<List<MessageTestDescription>> list(Chain suite) {
+    List<MessageTestDescription> result = [];
+    Uri uri = suite.root.resolve("messages.yaml");
     File file = new File.fromUri(uri);
     String fileContent = file.readAsStringSync();
     YamlMap messages = loadYamlNode(fileContent, sourceUrl: uri) as YamlMap;
@@ -425,81 +426,81 @@ class MessageTestSuite extends ChainContext {
 
       if (!fastOnly) {
         for (Example example in examples) {
-          yield createDescription(example.name, example, null);
+          result.add(createDescription(example.name, example, null));
         }
         // "Wrap" example as a part.
         for (Example example in examples) {
-          yield createDescription(
+          result.add(createDescription(
               "part_wrapped_${example.name}",
               new PartWrapExample("part_wrapped_${example.name}", name,
                   exampleAllowMoreCodes, example),
-              null);
+              null));
         }
       }
 
-      yield createDescription(
+      result.add(createDescription(
           "knownKeys",
           null,
           unknownKeys.isNotEmpty
               ? "Unknown keys: ${unknownKeys.join(' ')}."
-              : null);
+              : null));
 
-      yield createDescription(
+      result.add(createDescription(
           'hasPublishedDocs',
           null,
           badHasPublishedDocsValue.isNotEmpty
               ? "Bad hasPublishedDocs value (only 'true' supported) in:"
                   " ${badHasPublishedDocsValue.join(', ')}"
-              : null);
+              : null));
 
-      yield createDescription(
+      result.add(createDescription(
           "severity",
           null,
           badSeverity != null
               ? "Unknown severity: '${badSeverity.value}'."
               : null,
-          location: badSeverity?.span.start);
+          location: badSeverity?.span.start));
 
-      yield createDescription(
+      result.add(createDescription(
           "unnecessarySeverity",
           null,
           unnecessarySeverity != null
               ? "The 'ERROR' severity is the default and not necessary."
               : null,
-          location: unnecessarySeverity?.span.start);
+          location: unnecessarySeverity?.span.start));
 
-      yield createDescription(
+      result.add(createDescription(
           "spelling",
           null,
           spellingMessages != null
               ? spellingMessages.join("\n") + spellingPostMessage
-              : null);
+              : null));
 
       bool exampleAndAnalyzerCodeRequired = severity != Severity.context &&
           severity != Severity.internalProblem &&
           severity != Severity.ignored;
 
-      yield createDescription(
+      result.add(createDescription(
           "externalExample",
           null,
           exampleAndAnalyzerCodeRequired &&
                   externalTest != null &&
-                  !(new File.fromUri(suite.uri.resolve(externalTest))
+                  !(new File.fromUri(suite.root.resolve(externalTest))
                       .existsSync())
               ? "Given external example for $name points to a nonexisting file "
-                  "(${suite.uri.resolve(externalTest)})."
-              : null);
+                  "(${suite.root.resolve(externalTest)})."
+              : null));
 
-      yield createDescription(
+      result.add(createDescription(
           "example",
           null,
           exampleAndAnalyzerCodeRequired &&
                   examples.isEmpty &&
                   externalTest == null
               ? "No example for $name, please add at least one example."
-              : null);
+              : null));
 
-      yield createDescription(
+      result.add(createDescription(
           "analyzerCode",
           null,
           exampleAndAnalyzerCodeRequired &&
@@ -510,8 +511,9 @@ class MessageTestSuite extends ChainContext {
                   " <BUILDDIR>/dart-sdk/bin/dartanalyzer --format=machine"
                   " on an example to find the code."
                   " The code is printed just before the file name."
-              : null);
+              : null));
     }
+    return Future.value(result);
   }
 
   String formatProblems(

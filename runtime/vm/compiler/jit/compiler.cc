@@ -194,8 +194,9 @@ FlowGraph* IrregexpCompilationPipeline::BuildFlowGraph(
     result.graph_entry->RelinkToOsrEntry(zone, result.num_blocks);
   }
   PrologueInfo prologue_info(-1, -1);
-  return new (zone) FlowGraph(*parsed_function, result.graph_entry,
-                              result.num_blocks, prologue_info);
+  return new (zone)
+      FlowGraph(*parsed_function, result.graph_entry, result.num_blocks,
+                prologue_info, FlowGraph::CompilationModeFrom(optimized));
 }
 
 CompilationPipeline* CompilationPipeline::New(Zone* zone,
@@ -557,16 +558,13 @@ CodePtr CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         FlowGraphPrinter::PrintGraph("Unoptimized Compilation", flow_graph);
       }
 
-      const bool reorder_blocks =
-          FlowGraph::ShouldReorderBlocks(function, optimized());
-      if (reorder_blocks) {
+      if (flow_graph->should_reorder_blocks()) {
         TIMELINE_DURATION(thread(), CompilerVerbose,
                           "BlockScheduler::AssignEdgeWeights");
         BlockScheduler::AssignEdgeWeights(flow_graph);
       }
 
       CompilerPassState pass_state(thread(), flow_graph, &speculative_policy);
-      pass_state.reorder_blocks = reorder_blocks;
 
       if (function.ForceOptimize()) {
         ASSERT(optimized());

@@ -11,8 +11,6 @@ import '../reference_from_index.dart';
 import '../verifier.dart';
 import 'changed_structure_notifier.dart';
 
-final List<String> targetNames = targets.keys.toList();
-
 class TargetFlags {
   final bool trackWidgetCreation;
   final bool soundNullSafety;
@@ -183,12 +181,13 @@ abstract class DartLibrarySupport {
     return dottedName.substring(dartLibraryPrefix.length);
   }
 
-  /// Returns `"true"` if the "dart:[libraryName]" is supported and `""`
-  /// otherwise.
+  /// Whether the "dart:[libraryName]" is supported.
   ///
   /// This is used to determine conditional imports and `bool.fromEnvironment`
   /// constant values for "dart.library.[libraryName]" values.
-  static String getDartLibrarySupportValue(String libraryName,
+  /// If the value is `false`, no environment entry exists for the library name,
+  /// otherwise an entry with value `"true"` is created.
+  static bool isDartLibrarySupported(String libraryName,
       {required bool libraryExists,
       required bool isSynthetic,
       required bool isUnsupported,
@@ -210,7 +209,7 @@ abstract class DartLibrarySupport {
     bool isSupported = libraryExists && !isSynthetic && !isUnsupported;
     isSupported = dartLibrarySupport.computeDartLibrarySupport(libraryName,
         isSupportedBySpec: isSupported);
-    return isSupported ? "true" : "";
+    return isSupported;
   }
 }
 
@@ -354,14 +353,8 @@ abstract class Target {
   /// testing purposes.
   bool allowPlatformPrivateLibraryAccess(Uri importer, Uri imported) =>
       importer.isScheme("dart") ||
-      (imported.isScheme('dart') &&
-          imported.path == '_internal' &&
-          importer.isScheme("package") &&
-          importer.path.startsWith("dart_internal/")) ||
-      (imported.isScheme('dart') &&
-          imported.path == '_macros' &&
-          importer.isScheme("package") &&
-          importer.path.startsWith("macros/"));
+      (importer.isScheme("package") &&
+          importer.path.startsWith("dart_internal/"));
 
   /// Whether the `native` language extension is supported within the library
   /// with the given import [uri].

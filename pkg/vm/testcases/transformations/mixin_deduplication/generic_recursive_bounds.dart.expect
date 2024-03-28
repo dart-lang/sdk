@@ -1,0 +1,47 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+
+class B1<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::B1<self::B1::T%>
+    : super core::Object::•()
+    ;
+}
+abstract class M1 extends core::Object /*isMixinDeclaration*/  {
+}
+abstract class _SC1&B1&M1<A extends self::_SC1&B1&M1::B = dynamic, B extends core::List<self::_SC1&B1&M1::A> = core::List<dynamic>> extends self::B1<self::_SC1&B1&M1::A> implements self::M1 /*isAnonymousMixin,isEliminatedMixin*/  {
+  synthetic constructor •() → self::_SC1&B1&M1<self::_SC1&B1&M1::A, self::_SC1&B1&M1::B>
+    : super self::B1::•()
+    ;
+}
+class SC1<A extends self::SC1::B = dynamic, B extends core::List<self::SC1::A> = core::List<dynamic>> extends self::_SC1&B1&M1<self::SC1::A, self::SC1::B> {
+  synthetic constructor •() → self::SC1<self::SC1::A, self::SC1::B>
+    : super self::_SC1&B1&M1::•()
+    ;
+}
+class SC2<A extends self::SC2::B = dynamic, B extends core::List<self::SC2::A> = core::List<dynamic>> extends self::_SC1&B1&M1<self::SC2::A, self::SC2::B> {
+  synthetic constructor •() → self::SC2<self::SC2::A, self::SC2::B>
+    : super self::_SC1&B1&M1::•()
+    ;
+}
+abstract class _SC3&B1&M1<A extends self::_SC3&B1&M1::B = dynamic, B extends core::List<self::_SC3&B1&M1::A?> = core::List<dynamic>> extends self::B1<self::_SC3&B1&M1::A> implements self::M1 /*isAnonymousMixin,isEliminatedMixin*/  {
+  synthetic constructor •() → self::_SC3&B1&M1<self::_SC3&B1&M1::A, self::_SC3&B1&M1::B>
+    : super self::B1::•()
+    ;
+}
+class SC3<A extends self::SC3::B = dynamic, B extends core::List<self::SC3::A?> = core::List<dynamic>> extends self::_SC3&B1&M1<self::SC3::A, self::SC3::B> {
+  synthetic constructor •() → self::SC3<self::SC3::A, self::SC3::B>
+    : super self::_SC3&B1&M1::•()
+    ;
+}
+abstract class _SC4&B1&M1<A extends self::_SC4&B1&M1::B% = dynamic, B extends core::List<self::_SC4&B1&M1::A%>? = core::List<dynamic>?> extends self::B1<self::_SC4&B1&M1::A%> implements self::M1 /*isAnonymousMixin,isEliminatedMixin*/  {
+  synthetic constructor •() → self::_SC4&B1&M1<self::_SC4&B1&M1::A%, self::_SC4&B1&M1::B%>
+    : super self::B1::•()
+    ;
+}
+class SC4<A extends self::SC4::B% = dynamic, B extends core::List<self::SC4::A%>? = core::List<dynamic>?> extends self::_SC4&B1&M1<self::SC4::A%, self::SC4::B%> {
+  synthetic constructor •() → self::SC4<self::SC4::A%, self::SC4::B%>
+    : super self::_SC4&B1&M1::•()
+    ;
+}
+static method main() → dynamic {}

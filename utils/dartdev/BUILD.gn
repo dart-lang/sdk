@@ -28,23 +28,13 @@ application_snapshot("generate_dartdev_snapshot") {
     "../dtd:dtd",
   ]
 
-  # DDS should be run from AOT snapshot on all architectures except IA32/X86.
-  if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
-    deps += [ "../dds:dds_aot" ]
-  }
-
   vm_args = [ "--sound-null-safety" ]
   output = "$root_gen_dir/dartdev.dart.snapshot"
 }
 
-copy_trees("copy_prebuilt_devtools") {
-  sources = [
-    {
-      target = "copy_prebuilt_devtools"
-      visibility = [ ":dartdev" ]
-      source = "../../third_party/devtools/web"
-      dest = "$root_out_dir/devtools"
-      ignore_patterns = "{}"
-    },
-  ]
+copy_tree("copy_prebuilt_devtools") {
+  visibility = [ ":dartdev" ]
+  source = "../../third_party/devtools/web"
+  dest = "$root_out_dir/devtools"
+  exclude = "{}"
 }

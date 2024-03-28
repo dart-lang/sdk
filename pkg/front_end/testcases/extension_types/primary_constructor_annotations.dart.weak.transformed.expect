@@ -8,11 +8,11 @@ extension type ExtensionType(core::int id) {
   constructor tearoff • = self::ExtensionType|constructor#_#new#tearOff;
 }
 static const field core::Object annotation = #C1;
-static extension-type-member method ExtensionType|constructor#(@#C1 core::int id) → self::ExtensionType /* = core::int */ {
-  lowered final self::ExtensionType /* = core::int */ #this = id;
+static extension-type-member method ExtensionType|constructor#(@#C1 core::int id) → self::ExtensionType% /* erasure=core::int, declared=! */ {
+  lowered final self::ExtensionType% /* erasure=core::int, declared=! */ #this = id;
   return #this;
 }
-static extension-type-member method ExtensionType|constructor#_#new#tearOff(core::int id) → self::ExtensionType /* = core::int */
+static extension-type-member method ExtensionType|constructor#_#new#tearOff(core::int id) → self::ExtensionType% /* erasure=core::int, declared=! */
   return self::ExtensionType|constructor#(id);
 
 constants  {

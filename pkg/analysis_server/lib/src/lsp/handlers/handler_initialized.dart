@@ -37,6 +37,10 @@ class InitializedMessageHandler
       await server.updateWorkspaceFolders(openWorkspacePaths, const []);
     }
 
+    // Mark initialization as done so that handlers that want to wait on this
+    // can continue.
+    server.completeLspInitialization();
+
     return success(null);
   }
 }

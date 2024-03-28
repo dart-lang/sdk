@@ -1,0 +1,29 @@
+Iterable<T>? contextIterableQuestion<T>(Iterable<T>? x) => x;
+
+class A {}
+
+class B1<T> implements A {}
+
+class B2<T> implements A {}
+
+class C1<T> implements B1<T>, B2<T> {}
+
+class C2<T> implements B1<T>, B2<T> {}
+
+B1<T>? contextB1Question<T>(B1<T>? x) => x;
+
+class Indexable<ReadType, WriteType> {
+  final ReadType _value;
+  Indexable(this._value);
+}
+
+extension<ReadType, WriteType> on Indexable<ReadType, WriteType> {
+  ReadType operator [](int index) => _value;
+  operator []=(int index, WriteType value) {}
+}
+
+Indexable<ReadType, WriteType>? maybeIndexable<ReadType, WriteType>(
+        ReadType value) =>
+    Indexable<ReadType, WriteType>(value);
+
+main() {}

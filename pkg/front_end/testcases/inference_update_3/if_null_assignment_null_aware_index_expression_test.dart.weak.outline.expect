@@ -1,0 +1,41 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    ;
+}
+class B1<T extends core::Object? = dynamic> extends core::Object implements self::A {
+  synthetic constructor •() → self::B1<self::B1::T%>
+    ;
+}
+class B2<T extends core::Object? = dynamic> extends core::Object implements self::A {
+  synthetic constructor •() → self::B2<self::B2::T%>
+    ;
+}
+class C1<T extends core::Object? = dynamic> extends core::Object implements self::B1<self::C1::T%>, self::B2<self::C1::T%> {
+  synthetic constructor •() → self::C1<self::C1::T%>
+    ;
+}
+class C2<T extends core::Object? = dynamic> extends core::Object implements self::B1<self::C2::T%>, self::B2<self::C2::T%> {
+  synthetic constructor •() → self::C2<self::C2::T%>
+    ;
+}
+class Indexable<ReadType extends core::Object? = dynamic, WriteType extends core::Object? = dynamic> extends core::Object {
+  final field self::Indexable::ReadType% _value;
+  constructor •(self::Indexable::ReadType% _value) → self::Indexable<self::Indexable::ReadType%, self::Indexable::WriteType%>
+    ;
+  operator [](core::int index) → self::Indexable::ReadType%
+    ;
+  operator []=(core::int index, covariant-by-class self::Indexable::WriteType% value) → void
+    ;
+}
+static method contextIterableQuestion<T extends core::Object? = dynamic>(core::Iterable<self::contextIterableQuestion::T%>? x) → core::Iterable<self::contextIterableQuestion::T%>?
+  ;
+static method contextB1Question<T extends core::Object? = dynamic>(self::B1<self::contextB1Question::T%>? x) → self::B1<self::contextB1Question::T%>?
+  ;
+static method maybeIndexable<ReadType extends core::Object? = dynamic, WriteType extends core::Object? = dynamic>(self::maybeIndexable::ReadType% value) → self::Indexable<self::maybeIndexable::ReadType%, self::maybeIndexable::WriteType%>?
+  ;
+static method main() → dynamic
+  ;

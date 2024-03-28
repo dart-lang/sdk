@@ -8,6 +8,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -606,7 +607,8 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
   }
 
   List<DartType> _inferCall(FunctionType ft, List<DartType> arguments,
-      {DartType? returnType, bool expectError = false}) {
+      {DartType returnType = UnknownInferredType.instance,
+      bool expectError = false}) {
     var listener = RecordingErrorListener();
 
     var reporter = ErrorReporter(
@@ -626,9 +628,13 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
       strictInference: false,
       strictCasts: false,
       typeSystemOperations: typeSystemOperations,
+      dataForTesting: null,
+      nodeForTesting: null,
     );
     inferrer.constrainArguments(
-        parameters: ft.parameters, argumentTypes: arguments);
+        parameters: ft.parameters,
+        argumentTypes: arguments,
+        nodeForTesting: null);
     var typeArguments = inferrer.chooseFinalTypes();
 
     if (expectError) {
@@ -642,7 +648,8 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
   }
 
   FunctionType _inferCall2(FunctionType ft, List<DartType> arguments,
-      {DartType? returnType, bool expectError = false}) {
+      {DartType returnType = UnknownInferredType.instance,
+      bool expectError = false}) {
     var typeArguments = _inferCall(
       ft,
       arguments,

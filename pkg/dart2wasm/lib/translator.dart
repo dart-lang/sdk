@@ -2,30 +2,29 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:dart2wasm/class_info.dart';
-import 'package:dart2wasm/closures.dart';
-import 'package:dart2wasm/code_generator.dart';
-import 'package:dart2wasm/constants.dart';
-import 'package:dart2wasm/dispatch_table.dart';
-import 'package:dart2wasm/dynamic_forwarders.dart';
-import 'package:dart2wasm/functions.dart';
-import 'package:dart2wasm/globals.dart';
-import 'package:dart2wasm/kernel_nodes.dart';
-import 'package:dart2wasm/param_info.dart';
-import 'package:dart2wasm/records.dart';
-import 'package:dart2wasm/reference_extensions.dart';
-import 'package:dart2wasm/types.dart';
-
 import 'package:kernel/ast.dart';
-import 'package:kernel/library_index.dart';
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClassHierarchySubtypes, ClosedWorldClassHierarchy;
 import 'package:kernel/core_types.dart';
+import 'package:kernel/library_index.dart';
 import 'package:kernel/src/printer.dart';
 import 'package:kernel/type_environment.dart';
 import 'package:vm/metadata/direct_call.dart';
-
 import 'package:wasm_builder/wasm_builder.dart' as w;
+
+import 'class_info.dart';
+import 'closures.dart';
+import 'code_generator.dart';
+import 'constants.dart';
+import 'dispatch_table.dart';
+import 'dynamic_forwarders.dart';
+import 'functions.dart';
+import 'globals.dart';
+import 'kernel_nodes.dart';
+import 'param_info.dart';
+import 'records.dart';
+import 'reference_extensions.dart';
+import 'types.dart';
 
 /// Options controlling the translation.
 class TranslatorOptions {
@@ -58,6 +57,7 @@ class Translator with KernelNodes {
   final TranslatorOptions options;
 
   // Kernel input and context.
+  @override
   final Component component;
   final List<Library> libraries;
   final CoreTypes coreTypes;
@@ -66,6 +66,7 @@ class Translator with KernelNodes {
   late final ClassHierarchySubtypes subtypes;
 
   // Other parts of the global compiler state.
+  @override
   final LibraryIndex index;
   late final ClosureLayouter closureLayouter;
   late final ClassInfoCollector classInfoCollector;
@@ -145,6 +146,9 @@ class Translator with KernelNodes {
       w.RefType.def(typeArrayType, nullable: false);
   late final w.RefType nullableObjectArrayTypeRef =
       w.RefType.def(nullableObjectArrayType, nullable: false);
+
+  late final PartialInstantiator partialInstantiator =
+      PartialInstantiator(this);
 
   /// Dart types that have specialized Wasm representations.
   late final Map<Class, w.StorageType> builtinTypes = {
@@ -319,9 +323,8 @@ class Translator with KernelNodes {
         canonicalName = "$canonicalName=";
       } else if (reference.isGetter || reference.isTearOffReference) {
         int dot = canonicalName.indexOf('.');
-        canonicalName = canonicalName.substring(0, dot + 1) +
-            '=' +
-            canonicalName.substring(dot + 1);
+        canonicalName =
+            '${canonicalName.substring(0, dot + 1)}=${canonicalName.substring(dot + 1)}';
       }
       canonicalName = member.enclosingLibrary == libraries.first
           ? canonicalName
@@ -942,7 +945,7 @@ class Translator with KernelNodes {
     DirectCallMetadataRepository metadata =
         component.metadata[DirectCallMetadataRepository.repositoryTag]
             as DirectCallMetadataRepository;
-    return metadata.mapping[node]?.target;
+    return metadata.mapping[node]?.targetMember;
   }
 
   bool shouldInline(Reference target) {
@@ -994,29 +997,6 @@ class Translator with KernelNodes {
     return null;
   }
 
-  w.ValueType makeList(
-      w.FunctionBuilder function,
-      void generateType(w.InstructionsBuilder b),
-      int length,
-      void Function(w.ValueType, int) generateItem,
-      {bool isGrowable = false}) {
-    final b = function.body;
-
-    final Class cls = isGrowable ? growableListClass : fixedLengthListClass;
-    final ClassInfo info = classInfo[cls]!;
-    functions.recordClassAllocation(info.classId);
-    final w.ArrayType arrayType = listArrayType;
-
-    b.i32_const(info.classId);
-    b.i32_const(initialIdentityHash);
-    generateType(b);
-    b.i64_const(length);
-    makeArray(function, arrayType, length, generateItem);
-    b.struct_new(info.struct);
-
-    return info.nonNullableType;
-  }
-
   w.ValueType makeArray(w.FunctionBuilder function, w.ArrayType arrayType,
       int length, void Function(w.ValueType, int) generateItem) {
     final b = function.body;
@@ -1049,8 +1029,8 @@ class Translator with KernelNodes {
   }
 
   /// Indexes a Dart `_ListBase` on the stack.
-  void indexList(
-      w.InstructionsBuilder b, void pushIndex(w.InstructionsBuilder b)) {
+  void indexList(w.InstructionsBuilder b,
+      void Function(w.InstructionsBuilder b) pushIndex) {
     getListBaseArray(b);
     pushIndex(b);
     b.array_get(nullableObjectArrayType);
@@ -1108,6 +1088,7 @@ class _ClosureTrampolineGenerator implements _FunctionGenerator {
       this.paramInfo,
       this.takesContextOrReceiver);
 
+  @override
   void generate(Translator translator) {
     final b = trampoline.body;
     int targetIndex = 0;
@@ -1173,6 +1154,7 @@ class _ClosureDynamicEntryGenerator implements _FunctionGenerator {
   _ClosureDynamicEntryGenerator(
       this.functionNode, this.target, this.paramInfo, this.name, this.function);
 
+  @override
   void generate(Translator translator) {
     final b = function.body;
 
@@ -1352,5 +1334,95 @@ class NodeCounter extends VisitorDefault<void> with VisitorVoidMixin {
   void defaultNode(Node node) {
     count++;
     node.visitChildren(this);
+  }
+}
+
+/// Creates forwarders for generic functions where the caller passes a constant
+/// type argument.
+///
+/// Let's say we have
+///
+///     foo<T>(args) => ...;
+///
+/// and 3 call sites
+///
+///    foo<int>(args)
+///    foo<int>(args)
+///    foo<double>(args)
+///
+/// the callsites can instead call a forwarder
+///
+///    fooInt(args)
+///    fooInt(args)
+///    fooDouble(args)
+///
+///    fooInt(args) => foo<int>(args)
+///    fooDouble(args) => foo<double>(args)
+///
+/// This saves code size on the call site.
+class PartialInstantiator {
+  final Translator translator;
+
+  final Map<(Reference, DartType), w.BaseFunction> _oneTypeArgument = {};
+  final Map<(Reference, DartType, DartType), w.BaseFunction> _twoTypeArguments =
+      {};
+
+  PartialInstantiator(this.translator);
+
+  w.BaseFunction getOneTypeArgumentForwarder(
+      Reference target, DartType type, String name) {
+    assert(translator.types.isTypeConstant(type));
+
+    return _oneTypeArgument.putIfAbsent((target, type), () {
+      final wasmTarget = translator.functions.getFunction(target);
+
+      final function = translator.m.functions.define(
+          translator.m.types.defineFunction(
+            [...wasmTarget.type.inputs.skip(1)],
+            wasmTarget.type.outputs,
+          ),
+          name);
+      final b = function.body;
+      translator.constants.instantiateConstant(function, b,
+          TypeLiteralConstant(type), translator.types.nonNullableTypeType);
+      for (int i = 1; i < wasmTarget.type.inputs.length; ++i) {
+        b.local_get(b.locals[i - 1]);
+      }
+      b.call(wasmTarget);
+      b.return_();
+      b.end();
+
+      return function;
+    });
+  }
+
+  w.BaseFunction getTwoTypeArgumentForwarder(
+      Reference target, DartType type1, DartType type2, String name) {
+    assert(translator.types.isTypeConstant(type1));
+    assert(translator.types.isTypeConstant(type2));
+
+    return _twoTypeArguments.putIfAbsent((target, type1, type2), () {
+      final wasmTarget = translator.functions.getFunction(target);
+
+      final function = translator.m.functions.define(
+          translator.m.types.defineFunction(
+            [...wasmTarget.type.inputs.skip(2)],
+            wasmTarget.type.outputs,
+          ),
+          name);
+      final b = function.body;
+      translator.constants.instantiateConstant(function, b,
+          TypeLiteralConstant(type1), translator.types.nonNullableTypeType);
+      translator.constants.instantiateConstant(function, b,
+          TypeLiteralConstant(type2), translator.types.nonNullableTypeType);
+      for (int i = 2; i < wasmTarget.type.inputs.length; ++i) {
+        b.local_get(b.locals[i - 2]);
+      }
+      b.call(wasmTarget);
+      b.return_();
+      b.end();
+
+      return function;
+    });
   }
 }

@@ -28,7 +28,7 @@ class AnalyzerStatusTest extends AbstractLspAnalysisServerIntegrationTest {
 
     // Send a modification
     await openFile(mainFileUri, initialContents);
-    await replaceFile(222, mainFileUri, 'String a = 1;');
+    await replaceFile(222, mainFileUri, 'int a = 2;');
 
     // Ensure the notifications come through again.
     await startNotification;

@@ -52,6 +52,166 @@ suggestions
 ''');
   }
 
+  Future<void> test_afterCase_declaredVariablePattern_typeX_name() async {
+    // It is essential to import this library.
+    // Currently not-yet imported contributor adds classes.
+    // But we want to exercise InScopeCompletionPass.
+    newFile('$testPackageLibPath/a.dart', r'''
+class A01 {}
+class A02 {}
+class B01 {}
+''');
+
+    await computeSuggestions('''
+import 'a.dart';
+
+void f(Object? x) {
+  switch (x) {
+    case 0: break;
+    case A0^ y:
+      break;
+  }
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 2
+suggestions
+  A01
+    kind: class
+  A02
+    kind: class
+''');
+  }
+
+  Future<void> test_afterCase_final_x_name() async {
+    await computeSuggestions('''
+void f(Object? x) {
+  switch (x) {
+    case final ^ y:
+  }
+}
+
+class A01 {}
+class A02 {}
+class B01 {}
+''');
+    assertResponse(r'''
+suggestions
+  A01
+    kind: class
+  A02
+    kind: class
+  B01
+    kind: class
+''');
+  }
+
+  Future<void> test_afterCase_nameX_includeClass_imported() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A01 {}
+class A02 {}
+class B01 {}
+''');
+    await computeSuggestions('''
+import 'a.dart';
+
+void f(Object? x) {
+  switch (x) {
+    case A0^
+  }
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 2
+suggestions
+  A01
+    kind: class
+  A01
+    kind: constructorInvocation
+  A02
+    kind: class
+  A02
+    kind: constructorInvocation
+''');
+  }
+
+  Future<void> test_afterCase_nameX_includeClass_local() async {
+    await computeSuggestions('''
+void f(Object? x) {
+  switch (x) {
+    case A0^
+  }
+}
+
+class A01 {}
+class A02 {}
+class B01 {}
+''');
+    assertResponse(r'''
+replacement
+  left: 2
+suggestions
+  A01
+    kind: class
+  A01
+    kind: constructorInvocation
+  A02
+    kind: class
+  A02
+    kind: constructorInvocation
+''');
+  }
+
+  Future<void> test_afterCase_nameX_includeClass_notImported() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A01 {}
+class A02 {}
+class B01 {}
+''');
+    await computeSuggestions('''
+void f(Object? x) {
+  switch (x) {
+    case A0^
+  }
+}
+''');
+    // TODO(scheglov): this is wrong, include only const constructors.
+    assertResponse(r'''
+replacement
+  left: 2
+suggestions
+  A01
+    kind: class
+  A02
+    kind: class
+''');
+  }
+
+  Future<void> test_afterCase_nothing_x_name() async {
+    await computeSuggestions('''
+void f(Object? x) {
+  switch (x) {
+    case ^ y:
+  }
+}
+
+class A01 {}
+class A02 {}
+class B01 {}
+''');
+    assertResponse(r'''
+suggestions
+  A01
+    kind: class
+  A02
+    kind: class
+  B01
+    kind: class
+''');
+  }
+
   Future<void> test_afterCase_partial() async {
     await computeSuggestions('''
 void f(Object x) {
@@ -69,6 +229,48 @@ suggestions
 ''');
   }
 
+  Future<void> test_afterCase_typeName_nameX() async {
+    allowedIdentifiers = {'myValue', 'value'};
+
+    await computeSuggestions('''
+class MyValue {}
+
+void f(Object? x) {
+  switch (x) {
+    case MyValue v^
+  }
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  value
+    kind: identifier
+''');
+  }
+
+  Future<void> test_afterCase_typeName_x() async {
+    allowedIdentifiers = {'myValue', 'value'};
+
+    await computeSuggestions('''
+class MyValue {}
+
+void f(Object? x) {
+  switch (x) {
+    case MyValue ^
+  }
+}
+''');
+    assertResponse(r'''
+suggestions
+  myValue
+    kind: identifier
+  value
+    kind: identifier
+''');
+  }
+
   Future<void> test_afterColon() async {
     await computeSuggestions('''
 void f(Object o) {
@@ -81,8 +283,18 @@ class A01 {}
 ''');
     assertResponse(r'''
 suggestions
+  return
+    kind: keyword
+  if
+    kind: keyword
   A01
     kind: class
+  final
+    kind: keyword
+  for
+    kind: keyword
+  throw
+    kind: keyword
   A01
     kind: constructorInvocation
   assert
@@ -101,21 +313,11 @@ suggestions
     kind: keyword
   false
     kind: keyword
-  final
-    kind: keyword
-  for
-    kind: keyword
-  if
-    kind: keyword
   late
     kind: keyword
   null
     kind: keyword
-  return
-    kind: keyword
   switch
-    kind: keyword
-  throw
     kind: keyword
   true
     kind: keyword
@@ -358,15 +560,15 @@ void f(Object o) {
 ''');
     assertResponse(r'''
 suggestions
-  const
-    kind: keyword
   false
+    kind: keyword
+  true
     kind: keyword
   null
     kind: keyword
-  switch
+  const
     kind: keyword
-  true
+  switch
     kind: keyword
 ''');
   }
@@ -383,15 +585,15 @@ void f(Object o) {
 ''');
     assertResponse(r'''
 suggestions
-  const
-    kind: keyword
   false
+    kind: keyword
+  true
     kind: keyword
   null
     kind: keyword
-  switch
+  const
     kind: keyword
-  true
+  switch
     kind: keyword
 ''');
   }

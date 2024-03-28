@@ -15,7 +15,6 @@ import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -128,7 +127,7 @@ Future<void> addLibraryImports(AnalysisSession session, SourceChange change,
 
   // If still at the beginning of the file, skip shebang and line comments.
   {
-    var desc = libUtils.getInsertionLocationTop();
+    var desc = libUtils._getInsertionLocationTop();
     var offset = desc.offset;
     for (var i = 0; i < uriList.length; i++) {
       var importUri = uriList[i];
@@ -539,22 +538,19 @@ bool _allListsIdentical(List<List<Object>> lists, int position) {
   return true;
 }
 
-class CorrectionUtils {
+final class CorrectionUtils {
+  static const String _oneIndent = '  ';
+
+  static const String _twoIndents = _oneIndent + _oneIndent;
+
   final CompilationUnit unit;
-  final LibraryElement? _library;
+
   final String _buffer;
-
-  /// The [ClassElement] the generated code is inserted to, so we can decide if
-  /// a type parameter may or may not be used.
-  InterfaceElement? targetClassElement;
-
-  ExecutableElement? targetExecutableElement;
 
   String? _endOfLine;
 
   CorrectionUtils(ParsedUnitResult result)
       : unit = result.unit,
-        _library = result is ResolvedUnitResult ? result.libraryElement : null,
         _buffer = result.content;
 
   /// Returns the EOL to use for this [CompilationUnit].
@@ -571,44 +567,12 @@ class CorrectionUtils {
     }
   }
 
+  String get oneIndent => _oneIndent;
+
+  String get twoIndents => _twoIndents;
+
   /// Returns the [AstNode] that encloses the given offset.
   AstNode? findNode(int offset) => NodeLocator(offset).searchWithin(unit);
-
-  /// Returns names of elements that might conflict with a new local variable
-  /// declared at [offset].
-  Set<String> findPossibleLocalVariableConflicts(int offset) {
-    var conflicts = <String>{};
-    var enclosingNode = findNode(offset)!;
-    var enclosingBlock = enclosingNode.thisOrAncestorOfType<Block>();
-    if (enclosingBlock != null) {
-      var visitor = _CollectReferencedUnprefixedNames();
-      enclosingBlock.accept(visitor);
-      return visitor.names;
-    }
-    return conflicts;
-  }
-
-  /// Returns the [ExpressionStatement] associated with [node] if [node] points
-  /// to the identifier for a simple `print`.  Returns `null`,
-  /// otherwise.
-  ExpressionStatement? findSimplePrintInvocation(AstNode node) {
-    var parent = node.parent;
-    var grandparent = parent?.parent;
-    if (node is SimpleIdentifier) {
-      var element = node.staticElement;
-      if (element is FunctionElement &&
-          element.name == 'print' &&
-          element.library.isDartCore &&
-          parent is MethodInvocation &&
-          grandparent is ExpressionStatement) {
-        return grandparent;
-      }
-    }
-    return null;
-  }
-
-  /// Returns the indentation with the given level.
-  String getIndent(int level) => repeat('  ', level);
 
   /// Returns a description of the place in which to insert an `ignore_for_file`
   /// comment.
@@ -662,60 +626,6 @@ class CorrectionUtils {
     return InsertionLocation(
       prefix: insertEmptyLineBefore ? endOfLine : '',
       offset: insertOffset,
-      suffix: insertEmptyLineAfter ? endOfLine : '',
-    );
-  }
-
-  /// Returns a description of the place in which to insert a new directive or a
-  /// top-level declaration at the top of the file.
-  InsertionLocation getInsertionLocationTop() {
-    // skip leading line comments
-    var offset = 0;
-    var insertEmptyLineBefore = false;
-    var insertEmptyLineAfter = false;
-    var source = _buffer;
-    // skip hash-bang
-    if (offset < source.length - 2) {
-      var linePrefix = getText(offset, 2);
-      if (linePrefix == '#!') {
-        insertEmptyLineBefore = true;
-        offset = getLineNext(offset);
-        // skip empty lines to first line comment
-        var emptyOffset = offset;
-        while (emptyOffset < source.length - 2) {
-          var nextLineOffset = getLineNext(emptyOffset);
-          var line = source.substring(emptyOffset, nextLineOffset);
-          if (line.trim().isEmpty) {
-            emptyOffset = nextLineOffset;
-            continue;
-          } else if (line.startsWith('//')) {
-            offset = emptyOffset;
-            break;
-          } else {
-            break;
-          }
-        }
-      }
-    }
-    // skip line comments
-    while (offset < source.length - 2) {
-      var linePrefix = getText(offset, 2);
-      if (linePrefix == '//') {
-        insertEmptyLineBefore = true;
-        offset = getLineNext(offset);
-      } else {
-        break;
-      }
-    }
-    // determine if empty line is required after
-    var nextLineOffset = getLineNext(offset);
-    var insertLine = source.substring(offset, nextLineOffset);
-    if (insertLine.trim().isNotEmpty) {
-      insertEmptyLineAfter = true;
-    }
-    return InsertionLocation(
-      prefix: insertEmptyLineBefore ? endOfLine : '',
-      offset: offset,
       suffix: insertEmptyLineAfter ? endOfLine : '',
     );
   }
@@ -811,7 +721,7 @@ class CorrectionUtils {
     var startOffset = sourceRange.offset;
     var startLineOffset = getLineContentStart(startOffset);
     if (skipLeadingEmptyLines) {
-      startLineOffset = skipEmptyLinesLeft(startLineOffset);
+      startLineOffset = _skipEmptyLinesLeft(startLineOffset);
     }
     // end
     var endOffset = sourceRange.end;
@@ -889,89 +799,11 @@ class CorrectionUtils {
     return _buffer.substring(offset, offset + length);
   }
 
-  /// Returns the source to reference [type] in this [CompilationUnit].
-  ///
-  /// Fills [librariesToImport] with [LibraryElement]s whose elements are
-  /// used by the generated source, but not imported.
-  String? getTypeSource(DartType type, Set<Source> librariesToImport,
-      {StringBuffer? parametersBuffer}) {
-    var alias = type.alias;
-    if (alias != null) {
-      return _getTypeCodeElementArguments(
-        librariesToImport: librariesToImport,
-        element: alias.element,
-        isNullable: type.nullabilitySuffix == NullabilitySuffix.question,
-        typeArguments: alias.typeArguments,
-      );
-    }
-
-    if (type is DynamicType) {
-      return 'dynamic';
-    }
-
-    if (type is FunctionType) {
-      if (parametersBuffer == null) {
-        return 'Function';
-      }
-      parametersBuffer.write('(');
-      for (var parameter in type.parameters) {
-        var parameterType = getTypeSource(parameter.type, librariesToImport);
-        if (parametersBuffer.length != 1) {
-          parametersBuffer.write(', ');
-        }
-        parametersBuffer.write(parameterType);
-        parametersBuffer.write(' ');
-        parametersBuffer.write(parameter.name);
-      }
-      parametersBuffer.write(')');
-      return getTypeSource(type.returnType, librariesToImport);
-    }
-
-    if (type is InterfaceType) {
-      return _getTypeCodeElementArguments(
-        librariesToImport: librariesToImport,
-        element: type.element,
-        isNullable: type.nullabilitySuffix == NullabilitySuffix.question,
-        typeArguments: type.typeArguments,
-      );
-    }
-
-    if (type is InvalidType) {
-      return 'dynamic';
-    }
-
-    if (type is NeverType) {
-      return 'Never';
-    }
-
-    if (type is RecordType) {
-      return _getTypeCodeRecord(
-        librariesToImport: librariesToImport,
-        type: type,
-      );
-    }
-
-    if (type is TypeParameterType) {
-      var element = type.element;
-      if (_isTypeParameterVisible(element)) {
-        return element.name;
-      } else {
-        return 'dynamic';
-      }
-    }
-
-    if (type is VoidType) {
-      return 'void';
-    }
-
-    throw UnimplementedError('(${type.runtimeType}) $type');
-  }
-
   /// Splits [text] into lines, and removes one level of indent from each line.
   /// Lines that don't start with indentation are left as is.
   String indentLeft(String text) {
     final buffer = StringBuffer();
-    final indent = getIndent(1);
+    final indent = oneIndent;
     final eol = endOfLine;
     final lines = text.split(eol);
     for (final line in lines) {
@@ -989,10 +821,10 @@ class CorrectionUtils {
     return buffer.toString();
   }
 
-  /// Splits [text] into lines, and adds [level] indents to each line.
+  /// Adds [level] indents to each line.
   String indentRight(String text, {int level = 1}) {
     final buffer = StringBuffer();
-    final indent = getIndent(level);
+    final indent = _oneIndent * level;
     final eol = endOfLine;
     final lines = text.split(eol);
     for (final line in lines) {
@@ -1007,7 +839,7 @@ class CorrectionUtils {
   /// Indents given source left or right.
   String indentSourceLeftRight(String source, {bool indentLeft = true}) {
     var sb = StringBuffer();
-    var indent = getIndent(1);
+    var indent = oneIndent;
     var eol = endOfLine;
     var lines = source.split(eol);
     for (var i = 0; i < lines.length; i++) {
@@ -1034,24 +866,6 @@ class CorrectionUtils {
   String invertCondition(Expression expression) =>
       _invertCondition0(expression)._source;
 
-  /// Return `true` if the given class, mixin, enum or extension [declaration]
-  /// has open '{' and close '}' on the same line, e.g. `class X {}`.
-  bool isClassWithEmptyBody(CompilationUnitMember declaration) {
-    return getLineThis(_getLeftBracket(declaration)!.offset) ==
-        getLineThis(_getRightBracket(declaration)!.offset);
-  }
-
-  /// Return <code>true</code> if [range] contains only whitespace or comments.
-  bool isJustWhitespaceOrComment(SourceRange range) {
-    var trimmedText = getRangeText(range).trim();
-    // may be whitespace
-    if (trimmedText.isEmpty) {
-      return true;
-    }
-    // may be comment
-    return TokenUtils.getTokens(trimmedText, unit.featureSet).isEmpty;
-  }
-
   InsertionLocation newCaseClauseAtEndLocation({
     required Token switchKeyword,
     required Token leftBracket,
@@ -1074,14 +888,12 @@ class CorrectionUtils {
   InsertionLocation prepareEnumNewConstructorLocation(
     EnumDeclaration enumDeclaration,
   ) {
-    var indent = getIndent(1);
-
     var targetMember = enumDeclaration.members
         .where((e) => e is FieldDeclaration || e is ConstructorDeclaration)
         .lastOrNull;
     if (targetMember != null) {
       return InsertionLocation(
-        prefix: endOfLine + endOfLine + indent,
+        prefix: endOfLine + endOfLine + oneIndent,
         offset: targetMember.end,
         suffix: '',
       );
@@ -1090,7 +902,7 @@ class CorrectionUtils {
     var semicolon = enumDeclaration.semicolon;
     if (semicolon != null) {
       return InsertionLocation(
-        prefix: endOfLine + endOfLine + indent,
+        prefix: endOfLine + endOfLine + oneIndent,
         offset: semicolon.end,
         suffix: '',
       );
@@ -1098,7 +910,7 @@ class CorrectionUtils {
 
     var lastConstant = enumDeclaration.constants.last;
     return InsertionLocation(
-      prefix: ';$endOfLine$endOfLine$indent',
+      prefix: ';$endOfLine$endOfLine$oneIndent',
       offset: lastConstant.end,
       suffix: '',
     );
@@ -1107,7 +919,6 @@ class CorrectionUtils {
   InsertionLocation? prepareNewClassMemberLocation(
       CompilationUnitMember declaration,
       bool Function(ClassMember existingMember) shouldSkip) {
-    var indent = getIndent(1);
     // Find the last target member.
     ClassMember? targetMember;
     var members = _getMembers(declaration);
@@ -1124,17 +935,17 @@ class CorrectionUtils {
     // After the last target member.
     if (targetMember != null) {
       return InsertionLocation(
-        prefix: endOfLine + endOfLine + indent,
+        prefix: endOfLine + endOfLine + oneIndent,
         offset: targetMember.end,
         suffix: '',
       );
     }
     // At the beginning of the class.
-    var suffix = members.isNotEmpty || isClassWithEmptyBody(declaration)
+    var suffix = members.isNotEmpty || _isClassWithEmptyBody(declaration)
         ? endOfLine
         : '';
     return InsertionLocation(
-      prefix: endOfLine + indent,
+      prefix: endOfLine + oneIndent,
       offset: _getLeftBracket(declaration)!.end,
       suffix: suffix,
     );
@@ -1189,14 +1000,13 @@ class CorrectionUtils {
     var last = empty || first ? block.leftBracket : statements.last;
 
     var linePrefix = getLinePrefix(last.offset);
-    var indent = getIndent(1);
     String prefix;
     String suffix;
     if (empty) {
-      prefix = endOfLine + linePrefix + indent;
+      prefix = endOfLine + linePrefix + oneIndent;
       suffix = endOfLine + linePrefix;
     } else if (first) {
-      prefix = endOfLine + linePrefix + indent;
+      prefix = endOfLine + linePrefix + oneIndent;
       suffix = '';
     } else {
       prefix = endOfLine + linePrefix;
@@ -1303,39 +1113,58 @@ class CorrectionUtils {
         selection, range.node(node));
   }
 
-  /// Skip spaces, tabs and EOLs on the left from [index].
-  ///
-  /// If [index] is the start of a method, then in the most cases return the end
-  /// of the previous not-whitespace line.
-  int skipEmptyLinesLeft(int index) {
-    var lastLine = index;
-    while (index > 0) {
-      var c = _buffer.codeUnitAt(index - 1);
-      if (!isWhitespace(c)) {
-        return lastLine;
+  /// Returns a description of the place in which to insert a new directive or a
+  /// top-level declaration at the top of the file.
+  InsertionLocation _getInsertionLocationTop() {
+    // skip leading line comments
+    var offset = 0;
+    var insertEmptyLineBefore = false;
+    var insertEmptyLineAfter = false;
+    var source = _buffer;
+    // skip hash-bang
+    if (offset < source.length - 2) {
+      var linePrefix = getText(offset, 2);
+      if (linePrefix == '#!') {
+        insertEmptyLineBefore = true;
+        offset = getLineNext(offset);
+        // skip empty lines to first line comment
+        var emptyOffset = offset;
+        while (emptyOffset < source.length - 2) {
+          var nextLineOffset = getLineNext(emptyOffset);
+          var line = source.substring(emptyOffset, nextLineOffset);
+          if (line.trim().isEmpty) {
+            emptyOffset = nextLineOffset;
+            continue;
+          } else if (line.startsWith('//')) {
+            offset = emptyOffset;
+            break;
+          } else {
+            break;
+          }
+        }
       }
-      if (isEOL(c)) {
-        lastLine = index;
-      }
-      index--;
     }
-    return 0;
-  }
-
-  /// Return the import element used to import given [element] into the library.
-  /// May be `null` if was not imported, i.e. declared in the same library.
-  LibraryImportElement? _getImportElement(Element element) {
-    var library = _library;
-    if (library == null) {
-      return null;
-    }
-    for (var imp in library.libraryImports) {
-      var definedNames = getImportNamespace(imp);
-      if (definedNames.containsValue(element)) {
-        return imp;
+    // skip line comments
+    while (offset < source.length - 2) {
+      var linePrefix = getText(offset, 2);
+      if (linePrefix == '//') {
+        insertEmptyLineBefore = true;
+        offset = getLineNext(offset);
+      } else {
+        break;
       }
     }
-    return null;
+    // determine if empty line is required after
+    var nextLineOffset = getLineNext(offset);
+    var insertLine = source.substring(offset, nextLineOffset);
+    if (insertLine.trim().isNotEmpty) {
+      insertEmptyLineAfter = true;
+    }
+    return InsertionLocation(
+      prefix: insertEmptyLineBefore ? endOfLine : '',
+      offset: offset,
+      suffix: insertEmptyLineAfter ? endOfLine : '',
+    );
   }
 
   Token? _getLeftBracket(CompilationUnitMember declaration) {
@@ -1375,110 +1204,6 @@ class CorrectionUtils {
       return declaration.rightBracket;
     }
     return null;
-  }
-
-  String? _getTypeCodeElementArguments({
-    required Set<Source> librariesToImport,
-    required Element element,
-    required bool isNullable,
-    required List<DartType> typeArguments,
-  }) {
-    var sb = StringBuffer();
-
-    // check if imported
-    var library = element.library;
-    if (library != null && library != _library) {
-      // no source, if private
-      if (element.isPrivate) {
-        return null;
-      }
-      // ensure import
-      var importElement = _getImportElement(element);
-      if (importElement != null) {
-        var prefix = importElement.prefix?.element;
-        if (prefix != null) {
-          sb.write(prefix.displayName);
-          sb.write('.');
-        }
-      } else {
-        librariesToImport.add(library.source);
-      }
-    }
-
-    // append simple name
-    var name = element.displayName;
-    sb.write(name);
-
-    // append type arguments
-    if (typeArguments.isNotEmpty) {
-      sb.write('<');
-      for (var i = 0; i < typeArguments.length; i++) {
-        var argument = typeArguments[i];
-        if (i != 0) {
-          sb.write(', ');
-        }
-        var argumentSrc = getTypeSource(argument, librariesToImport);
-        if (argumentSrc != null) {
-          sb.write(argumentSrc);
-        } else {
-          return null;
-        }
-      }
-      sb.write('>');
-    }
-
-    // append nullability
-    if (isNullable) {
-      sb.write('?');
-    }
-
-    // done
-    return sb.toString();
-  }
-
-  String _getTypeCodeRecord({
-    required Set<Source> librariesToImport,
-    required RecordType type,
-  }) {
-    final buffer = StringBuffer();
-
-    final positionalFields = type.positionalFields;
-    final namedFields = type.namedFields;
-    final fieldCount = positionalFields.length + namedFields.length;
-    buffer.write('(');
-
-    var index = 0;
-    for (final field in positionalFields) {
-      buffer.write(
-        getTypeSource(field.type, librariesToImport),
-      );
-      if (index++ < fieldCount - 1) {
-        buffer.write(', ');
-      }
-    }
-
-    if (namedFields.isNotEmpty) {
-      buffer.write('{');
-      for (final field in namedFields) {
-        buffer.write(
-          getTypeSource(field.type, librariesToImport),
-        );
-        buffer.write(' ');
-        buffer.write(field.name);
-        if (index++ < fieldCount - 1) {
-          buffer.write(', ');
-        }
-      }
-      buffer.write('}');
-    }
-
-    buffer.write(')');
-
-    if (type.nullabilitySuffix == NullabilitySuffix.question) {
-      buffer.write('?');
-    }
-
-    return buffer.toString();
   }
 
   /// @return the [InvertedCondition] for the given logical expression.
@@ -1549,12 +1274,22 @@ class CorrectionUtils {
     return _InvertedCondition._simple(getNodeText(expression));
   }
 
-  /// Checks if [element] is visible in [targetExecutableElement] or
-  /// [targetClassElement].
-  bool _isTypeParameterVisible(TypeParameterElement element) {
-    var enclosing = element.enclosingElement;
-    return identical(enclosing, targetExecutableElement) ||
-        identical(enclosing, targetClassElement);
+  /// Return `true` if the given class, mixin, enum or extension [declaration]
+  /// has open '{' and close '}' on the same line, e.g. `class X {}`.
+  bool _isClassWithEmptyBody(CompilationUnitMember declaration) {
+    return getLineThis(_getLeftBracket(declaration)!.offset) ==
+        getLineThis(_getRightBracket(declaration)!.offset);
+  }
+
+  /// Returns whether [range] contains only whitespace or comments.
+  bool _isJustWhitespaceOrComment(SourceRange range) {
+    var trimmedText = getRangeText(range).trim();
+    // may be whitespace
+    if (trimmedText.isEmpty) {
+      return true;
+    }
+    // may be comment
+    return TokenUtils.getTokens(trimmedText, unit.featureSet).isEmpty;
   }
 
   /// Return `true` if [selection] covers [range] and there are any
@@ -1566,17 +1301,36 @@ class CorrectionUtils {
       return false;
     }
     // non-whitespace between selection start and range start
-    if (!isJustWhitespaceOrComment(
+    if (!_isJustWhitespaceOrComment(
         range.startOffsetEndOffset(selection.offset, sourceRange.offset))) {
       return true;
     }
     // non-whitespace after range
-    if (!isJustWhitespaceOrComment(
+    if (!_isJustWhitespaceOrComment(
         range.startOffsetEndOffset(sourceRange.end, selection.end))) {
       return true;
     }
     // only whitespace in selection around range
     return false;
+  }
+
+  /// Skip spaces, tabs and EOLs on the left from [index].
+  ///
+  /// If [index] is the start of a method, then in the most cases return the end
+  /// of the previous not-whitespace line.
+  int _skipEmptyLinesLeft(int index) {
+    var lastLine = index;
+    while (index > 0) {
+      var c = _buffer.codeUnitAt(index - 1);
+      if (!isWhitespace(c)) {
+        return lastLine;
+      }
+      if (isEOL(c)) {
+        lastLine = index;
+      }
+      index--;
+    }
+    return 0;
   }
 }
 
@@ -1628,46 +1382,6 @@ class TokenUtils {
     } catch (e) {
       return [];
     }
-  }
-}
-
-class _CollectReferencedUnprefixedNames extends RecursiveAstVisitor<void> {
-  final Set<String> names = <String>{};
-
-  @override
-  void visitNamedType(NamedType node) {
-    if (node.importPrefix == null) {
-      names.add(node.name2.lexeme);
-    }
-
-    super.visitNamedType(node);
-  }
-
-  @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    if (!_isPrefixed(node) && !_isLabelName(node)) {
-      names.add(node.name);
-    }
-  }
-
-  @override
-  visitVariableDeclaration(VariableDeclaration node) {
-    names.add(node.name.lexeme);
-    return super.visitVariableDeclaration(node);
-  }
-
-  static bool _isLabelName(SimpleIdentifier node) {
-    return node.parent is Label;
-  }
-
-  static bool _isPrefixed(SimpleIdentifier node) {
-    var parent = node.parent;
-    return parent is ConstructorName && parent.name == node ||
-        parent is MethodInvocation &&
-            parent.methodName == node &&
-            parent.realTarget != null ||
-        parent is PrefixedIdentifier && parent.identifier == node ||
-        parent is PropertyAccess && parent.target == node;
   }
 }
 

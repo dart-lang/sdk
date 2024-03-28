@@ -17,6 +17,3 @@ LibTest/mirrors/*: SkipByDesign # dart:mirrors is not supported.
 
 [ $compiler == dart2wasm && $runtime == chrome ]
 Language/Expressions/Function_Invocation/async_generator_invokation_t10: SkipSlow # Issue(http://dartbug.com/55025)
-Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_async_A03_t03: SkipSlow # Issue(http://dartbug.com/55025)
-Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_async_A03_t07: SkipSlow # Issue(http://dartbug.com/55025)
-Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_async_A03_t11: SkipSlow # Issue(http://dartbug.com/55025)

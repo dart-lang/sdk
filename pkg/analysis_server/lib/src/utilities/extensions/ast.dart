@@ -5,8 +5,10 @@
 import 'package:analysis_server/src/utilities/extensions/element.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 
@@ -18,6 +20,46 @@ class ThrowStatement {
     required this.statement,
     required this.expression,
   });
+}
+
+class _ReferencedUnprefixedNamesCollector extends RecursiveAstVisitor<void> {
+  final Set<String> names = <String>{};
+
+  @override
+  void visitNamedType(NamedType node) {
+    if (node.importPrefix == null) {
+      names.add(node.name2.lexeme);
+    }
+
+    super.visitNamedType(node);
+  }
+
+  @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    if (!_isPrefixed(node) && !_isLabelName(node)) {
+      names.add(node.name);
+    }
+  }
+
+  @override
+  visitVariableDeclaration(VariableDeclaration node) {
+    names.add(node.name.lexeme);
+    return super.visitVariableDeclaration(node);
+  }
+
+  static bool _isLabelName(SimpleIdentifier node) {
+    return node.parent is Label;
+  }
+
+  static bool _isPrefixed(SimpleIdentifier node) {
+    var parent = node.parent;
+    return parent is ConstructorName && parent.name == node ||
+        parent is MethodInvocation &&
+            parent.methodName == node &&
+            parent.realTarget != null ||
+        parent is PrefixedIdentifier && parent.identifier == node ||
+        parent is PropertyAccess && parent.target == node;
+  }
 }
 
 extension AnnotatedNodeExtension on AnnotatedNode {
@@ -132,6 +174,23 @@ extension AstNodeExtension on AstNode {
       current = parent;
     }
   }
+
+  /// Returns the [ExpressionStatement] associated with `this` if `this` points
+  /// to the identifier for a simple `print`, and `null` otherwise.
+  ExpressionStatement? findSimplePrintInvocation() {
+    var parent = this.parent;
+    var grandparent = parent?.parent;
+    if (this case SimpleIdentifier(:var staticElement)) {
+      if (staticElement is FunctionElement &&
+          staticElement.name == 'print' &&
+          staticElement.library.isDartCore &&
+          parent is MethodInvocation &&
+          grandparent is ExpressionStatement) {
+        return grandparent;
+      }
+    }
+    return null;
+  }
 }
 
 extension BinaryExpressionExtension on BinaryExpression {
@@ -184,6 +243,20 @@ extension CompilationUnitExtension on CompilationUnit {
       previousLine = currentLine;
     }
     return header;
+  }
+
+  /// Returns names of elements that might conflict with a new local variable
+  /// declared at [offset].
+  Set<String> findPossibleLocalVariableConflicts(int offset) {
+    var conflicts = <String>{};
+    var enclosingNode = NodeLocator(offset).searchWithin(this)!;
+    var enclosingBlock = enclosingNode.thisOrAncestorOfType<Block>();
+    if (enclosingBlock != null) {
+      var visitor = _ReferencedUnprefixedNamesCollector();
+      enclosingBlock.accept(visitor);
+      return visitor.names;
+    }
+    return conflicts;
   }
 }
 

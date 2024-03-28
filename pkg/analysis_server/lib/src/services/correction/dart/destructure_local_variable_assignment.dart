@@ -6,6 +6,7 @@ import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/name_suggestion.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -58,14 +59,14 @@ class DestructureLocalVariableAssignment extends ResolvedCorrectionProducer {
     var varMap = <ObjectFieldName, List<AstNode>>{};
 
     for (var propertyReference in propertyReferences.entries) {
-      var excludes = utils.findPossibleLocalVariableConflicts(node.offset);
+      var excludes = unit.findPossibleLocalVariableConflicts(node.offset);
       excludes.addAll(namesInScope);
 
       var references = propertyReference.value;
       for (var reference in references) {
         if (reference.inSetterContext) return;
         excludes
-            .addAll(utils.findPossibleLocalVariableConflicts(reference.offset));
+            .addAll(unit.findPossibleLocalVariableConflicts(reference.offset));
       }
 
       var fieldName = ObjectFieldName.forName(propertyReference.key, excludes);

@@ -32,15 +32,9 @@ Future<Map<String, dynamic>> _createHttpProfileRequestFromProfileMap(
     'request': requestProfile['requestData']!,
     'response': responseData,
     if (!ref && requestProfile['requestEndTimestamp'] != null)
-      'requestBody':
-          await (requestProfile['_requestBodyStream'] as Stream<List<int>>)
-              .expand((List<int> i) => i)
-              .toList(),
+      'requestBody': requestProfile['requestBodyBytes']!,
     if (!ref && responseData['endTime'] != null)
-      'responseBody':
-          await (requestProfile['_responseBodyStream'] as Stream<List<int>>)
-              .expand((List<int> i) => i)
-              .toList(),
+      'responseBody': requestProfile['responseBodyBytes']!,
   };
 }
 

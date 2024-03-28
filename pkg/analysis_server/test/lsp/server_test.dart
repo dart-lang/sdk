@@ -93,6 +93,8 @@ class ServerTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_analysisRoot_existsAndDoesNotExist() async {
+    failTestOnErrorDiagnostic = false;
+
     final notExistingPath = convertPath('/does/not/exist');
     resourceProvider.emitPathNotFoundExceptionsForPaths.add(notExistingPath);
 
@@ -145,11 +147,13 @@ class ServerTest extends AbstractLspAnalysisServerTest {
     expect(hoverItems, hasLength(1));
   }
 
+  Future<void> test_executeCommandHandler() async {
+    await initialize();
+    expect(server.executeCommandHandler, isNotNull);
+  }
+
   Future<void> test_inconsistentStateError() async {
-    await initialize(
-      // Error is expected and checked below.
-      failTestOnAnyErrorNotification: false,
-    );
+    await initialize();
     await openFile(mainFileUri, '');
     // Attempt to make an illegal modification to the file. This indicates the
     // client and server are out of sync and we expect the server to shut down.
@@ -255,10 +259,7 @@ class ServerTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_unknownNotifications_logError() async {
-    await initialize(
-      // Error is expected and checked below.
-      failTestOnAnyErrorNotification: false,
-    );
+    await initialize();
 
     final notification =
         makeNotification(Method.fromJson(r'some/randomNotification'), null);

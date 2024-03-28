@@ -6,6 +6,8 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../src/lsp/lsp_packet_transformer_test.dart' as lsp_packet_transformer;
 import 'analyzer_status_test.dart' as analyzer_status;
+import 'augmentation_test.dart' as augmentation;
+import 'augmented_test.dart' as augmented;
 import 'call_hierarchy_test.dart' as call_hierarchy;
 import 'cancel_request_test.dart' as cancel_request;
 import 'change_workspace_folders_test.dart' as change_workspace_folders;
@@ -15,6 +17,8 @@ import 'code_actions_assists_test.dart' as code_actions_assists;
 import 'code_actions_fixes_test.dart' as code_actions_fixes;
 import 'code_actions_refactor_test.dart' as code_actions_refactor;
 import 'code_actions_source_test.dart' as code_actions_source;
+import 'code_lens/test_all.dart' as code_lens;
+import 'commands/test_all.dart' as commands;
 import 'completion_dart_test.dart' as completion_dart;
 import 'completion_yaml_test.dart' as completion_yaml;
 import 'configuration_test.dart' as configuration;
@@ -59,8 +63,11 @@ import 'workspace_symbols_test.dart' as workspace_symbols;
 void main() {
   defineReflectiveSuite(() {
     analyzer_status.main();
+    augmentation.main();
+    augmented.main();
     call_hierarchy.main();
     cancel_request.main();
+    commands.main();
     change_workspace_folders.main();
     client_configuration.main();
     closing_labels.main();
@@ -68,6 +75,7 @@ void main() {
     code_actions_fixes.main();
     code_actions_refactor.main();
     code_actions_source.main();
+    code_lens.main();
     completion_dart.main();
     completion_yaml.main();
     configuration.main();

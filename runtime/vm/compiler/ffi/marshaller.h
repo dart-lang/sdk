@@ -56,9 +56,9 @@ class BaseMarshaller : public ZoneAllocated {
   // `arg_index` is the index of an argument.
   // `def_index_in_argument` is the definition in one argument.
   // `def_index_global` is the index of the definition in all arguments.
-  intptr_t NumDefinitions() const;
-  intptr_t NumDefinitions(intptr_t arg_index) const;
-  intptr_t NumReturnDefinitions() const;
+  intptr_t NumArgumentDefinitions() const;
+  virtual intptr_t NumDefinitions(intptr_t arg_index) const;
+  virtual intptr_t NumReturnDefinitions() const = 0;
   bool ArgumentIndexIsReturn(intptr_t arg_index) const;
   bool DefinitionIndexIsReturn(intptr_t def_index_global) const;
   intptr_t ArgumentIndex(intptr_t def_index_global) const;
@@ -80,9 +80,7 @@ class BaseMarshaller : public ZoneAllocated {
   //
   // Implemented in BaseMarshaller because most Representations are the same
   // in Calls and Callbacks.
-  Representation RepInDart(intptr_t arg_index) const {
-    return Location(arg_index).payload_type().AsRepresentationOverApprox(zone_);
-  }
+  Representation RepInDart(intptr_t arg_index) const;
 
   // Representation on how the value is passed to or received from the FfiCall
   // instruction or StaticCall, NativeParameter, and NativeReturn instructions.
@@ -199,6 +197,9 @@ class CallMarshaller : public BaseMarshaller {
                        c_signature,
                        native_calling_convention) {}
 
+  virtual intptr_t NumDefinitions(intptr_t arg_index) const;
+  virtual intptr_t NumReturnDefinitions() const;
+
   virtual Representation RepInFfiCall(intptr_t def_index_global) const;
 
   // The location of the inputs to the IL FfiCall instruction.
@@ -241,6 +242,9 @@ class CallbackMarshaller : public BaseMarshaller {
         callback_locs_(callback_locs) {}
 
   virtual Representation RepInFfiCall(intptr_t def_index_global) const;
+
+  virtual intptr_t NumDefinitions(intptr_t arg_index) const;
+  virtual intptr_t NumReturnDefinitions() const;
 
   // All parameters are saved on stack to do safe-point transition.
   const NativeLocation& NativeLocationOfNativeParameter(
