@@ -1,3 +1,10 @@
+## 1.14.0-wip
+
+* Introduce `TargetKind.constructor`, to indicate that an annotation is valid on
+  any constructor.
+* Introduce `TargetKind.typeParamteer`, to indicate that an annotation is valid
+  on any type parameter.
+
 ## 1.13.0
 
 * Add type checks for the `@ResourceIdentifier` experimental annotation.
@@ -6,20 +13,19 @@
 
 * Introduce the `@ResourceIdentifier` experimental annotation for static methods
   whose constant literal arguments should be collected during compilation.
-* Indicate that `@required` and `@Required` are set
-  to be deprecated for later removal.
+* Indicate that `@required` and `@Required` are set to be deprecated for later
+  removal.
 
 ## 1.11.0
 
-* Introduce `TargetKind.extensionType` to indicate that an annotation
-  is valid on any extension type declaration.
+* Introduce `TargetKind.extensionType` to indicate that an annotation is valid
+  on any extension type declaration.
 
 ## 1.10.0
 
 * Introduce `@redeclare` to annotate extension type members that redeclare
   members from a superinterface.
-* Migrate the `TargetKind` enum to a class to ease the addition of new
-  kinds.
+* Migrate the `TargetKind` enum to a class to ease the addition of new kinds.
 
 ## 1.9.1
 
@@ -64,8 +70,8 @@
 
 * Introduce `TargetKind.topLevelVariable` that indicates that an annotation
   is valid on any top-level variable declaration.
-* Introduce `@useResult` to annotate methods, fields, or getters that
-  return values that should be used - stored, passed as arguments, etc.
+* Introduce `@useResult` to annotate methods, fields, or getters that return
+  values that should be used - stored, passed as arguments, etc.
 * Updates for documentation.
 
 ## 1.3.0
@@ -75,11 +81,11 @@
 ## 1.3.0-nullsafety.6
 
 * Update SDK constraints to `>=2.12.0-0 <3.0.0` based on beta release
-    guidelines.
+  guidelines.
 
 ## 1.3.0-nullsafety.5
 
-* Allow prerelease versions of the `2.12` sdk.
+* Allow prerelease versions of the `2.12` SDK.
 
 ## 1.3.0-nullsafety.4
 
@@ -92,11 +98,11 @@
 
 ## 1.3.0-nullsafety.2
 
-* Update for the 2.10 dev sdk.
+* Update for the 2.10 dev SDK.
 
 ## 1.3.0-nullsafety.1
 
-* Allow the <=2.9.10 stable sdk.
+* Allow the <=2.9.10 stable SDK.
 
 ## 1.3.0-nullsafety
 
@@ -119,9 +125,9 @@
 * Introduce `unawaited` to mark invocations that return a `Future` where it's
   intentional that the future is not being awaited. (Moved from
   `package:pedantic`.)
-* Introduce `@doNotStore` to annotate methods, getters and functions to
-  indicate that values obtained by invoking them should not be stored in a
-  field or top-level variable.
+* Introduce `@doNotStore` to annotate methods, getters and functions to indicate
+  that values obtained by invoking them should not be stored in a field or
+  top-level variable.
 
 ## 1.1.8
 
