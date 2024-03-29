@@ -23,7 +23,6 @@ import 'package:analysis_server/src/services/completion/yaml/yaml_completion_gen
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
-import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 
 /// The handler for the `completion.getSuggestions2` request.
@@ -43,8 +42,6 @@ class CompletionGetSuggestions2Handler extends CompletionHandler
     required CompletionBudget budget,
     required OperationPerformanceImpl performance,
     required DartCompletionRequest request,
-    Set<ElementKind>? includedElementKinds,
-    Set<String>? includedElementNames,
     NotImportedSuggestions? notImportedSuggestions,
     required bool useFilter,
   }) async {
@@ -62,8 +59,6 @@ class CompletionGetSuggestions2Handler extends CompletionHandler
     await performance.runAsync('computeSuggestions', (performance) async {
       var manager = DartCompletionManager(
         budget: budget,
-        includedElementKinds: includedElementKinds,
-        includedElementNames: includedElementNames,
         notImportedSuggestions: notImportedSuggestions,
       );
 
