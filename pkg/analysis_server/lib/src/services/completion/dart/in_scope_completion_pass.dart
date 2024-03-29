@@ -159,6 +159,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     bool mustBeNonVoid = false,
     bool mustBeStatic = false,
     bool mustBeType = false,
+    bool excludeTypeNames = false,
     bool preferNonInvocation = false,
     bool suggestUnnamedAsNew = false,
     Set<AstNode> excludedNodes = const {},
@@ -200,6 +201,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       mustBeNonVoid: mustBeNonVoid,
       mustBeStatic: mustBeStatic,
       mustBeType: mustBeType,
+      excludeTypeNames: excludeTypeNames,
       preferNonInvocation: preferNonInvocation,
       suggestUnnamedAsNew: suggestUnnamedAsNew,
       skipImports: skipImports,
@@ -1534,6 +1536,15 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         } else {
           type = element.type;
         }
+      } else if (element is PrefixElement) {
+        var isInstanceCreation =
+            node.parent?.parent?.parent is InstanceCreationExpression;
+        declarationHelper(
+          excludeTypeNames: isInstanceCreation,
+          mustBeType: !isInstanceCreation,
+          mustBeNonVoid: isInstanceCreation,
+        ).addDeclarationsThroughImportPrefix(element);
+        return;
       } else if (element is VariableElement) {
         type = element.type;
       } else {
@@ -1720,12 +1731,15 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       if (type != null) {
         _forMemberAccess(node, node.parent, type);
       }
-      if ((type == null || type.isDartCoreType) &&
+      if ((type == null || type is InvalidType || type.isDartCoreType) &&
           target is Identifier &&
           (!node.isCascaded || offset == operator.offset + 1)) {
         var element = target.staticElement;
         if (element is InterfaceElement || element is ExtensionTypeElement) {
           declarationHelper().addStaticMembersOfElement(element!);
+        }
+        if (element is PrefixElement) {
+          declarationHelper().addDeclarationsThroughImportPrefix(element);
         }
       }
     }
@@ -1835,7 +1849,10 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       }
     }
 
-    _forTypeAnnotation(node);
+    _forTypeAnnotation(
+      node,
+      excludeTypeNames: node.parent?.parent is InstanceCreationExpression,
+    );
   }
 
   @override
@@ -1990,11 +2007,17 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
           var parent = node.parent;
           var mustBeAssignable =
               parent is AssignmentExpression && node == parent.leftHandSide;
-          declarationHelper(
-            mustBeAssignable: mustBeAssignable,
-            preferNonInvocation: element is InterfaceElement &&
-                state.request.shouldSuggestTearOff(element),
-          ).addStaticMembersOfElement(element);
+          if (element is PrefixElement) {
+            declarationHelper(
+              mustBeAssignable: mustBeAssignable,
+            ).addDeclarationsThroughImportPrefix(element);
+          } else {
+            declarationHelper(
+              mustBeAssignable: mustBeAssignable,
+              preferNonInvocation: element is InterfaceElement &&
+                  state.request.shouldSuggestTearOff(element),
+            ).addStaticMembersOfElement(element);
+          }
         }
       }
     }
@@ -2032,12 +2055,15 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         _forMemberAccess(node, parent, type,
             onlySuper: target is SuperExpression);
       }
-      if ((type == null || type.isDartCoreType) &&
+      if ((type == null || type is InvalidType || type.isDartCoreType) &&
           target is Identifier &&
           (!node.isCascaded || offset == operator.offset + 1)) {
         var element = target.staticElement;
         if (element is InterfaceElement || element is ExtensionTypeElement) {
           declarationHelper().addStaticMembersOfElement(element!);
+        }
+        if (element is PrefixElement) {
+          declarationHelper().addDeclarationsThroughImportPrefix(element);
         }
       }
       if (type == null && target is ExtensionOverride) {
@@ -2255,6 +2281,18 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     }
     var type = node.type;
     if (type != null) {
+      if (type is NamedType) {
+        if (type.importPrefix case var importPrefix?) {
+          var prefixElement = importPrefix.element;
+          if (prefixElement is PrefixElement) {
+            if (type.name2.coversOffset(offset)) {
+              declarationHelper(
+                mustBeType: true,
+              ).addDeclarationsThroughImportPrefix(prefixElement);
+            }
+          }
+        }
+      }
       if (type.beginToken.coversOffset(offset)) {
         keywordHelper
             .addFormalParameterKeywords(node.parentFormalParameterList);
@@ -3261,6 +3299,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     bool mustBeImplementable = false,
     bool mustBeMixable = false,
     bool mustBeNonVoid = false,
+    bool excludeTypeNames = false,
     Set<AstNode> excludedNodes = const {},
   }) {
     if (!(mustBeExtensible || mustBeImplementable || mustBeMixable)) {
@@ -3269,11 +3308,24 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         keywordHelper.addKeyword(Keyword.VOID);
       }
     }
-    if (node is NamedType && node.importPrefix != null) {
-      // TODO(brianwilkerson): Figure out a better way to handle prefixed
-      //  identifiers.
-      return;
+
+    if (node is NamedType) {
+      if (node.importPrefix case var importPrefix?) {
+        var prefixElement = importPrefix.element;
+        if (prefixElement is PrefixElement) {
+          declarationHelper(
+            mustBeExtensible: mustBeExtensible,
+            mustBeImplementable: mustBeImplementable,
+            mustBeMixable: mustBeMixable,
+            mustBeNonVoid: mustBeNonVoid,
+            excludedNodes: excludedNodes,
+            excludeTypeNames: excludeTypeNames,
+          ).addDeclarationsThroughImportPrefix(prefixElement);
+        }
+        return;
+      }
     }
+
     declarationHelper(
       mustBeExtensible: mustBeExtensible,
       mustBeImplementable: mustBeImplementable,

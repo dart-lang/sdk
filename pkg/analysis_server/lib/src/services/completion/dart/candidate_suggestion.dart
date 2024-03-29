@@ -348,6 +348,19 @@ final class LabelSuggestion extends CandidateSuggestion {
   String get completion => label.label.name;
 }
 
+/// The suggestion for `loadLibrary()`.
+final class LoadLibraryFunctionSuggestion extends ExecutableSuggestion {
+  final FunctionElement element;
+
+  LoadLibraryFunctionSuggestion({
+    required super.kind,
+    required this.element,
+  });
+
+  @override
+  String get completion => element.name;
+}
+
 /// The information about a candidate suggestion based on a local function.
 final class LocalFunctionSuggestion extends ExecutableSuggestion {
   /// The element on which the suggestion is based.
@@ -728,6 +741,10 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
             offset: suggestion.selectionOffset);
       case LabelSuggestion():
         suggestLabel(suggestion.label);
+      case LoadLibraryFunctionSuggestion():
+        suggestLoadLibraryFunction(
+          suggestion.element,
+        );
       case LocalFunctionSuggestion():
         suggestTopLevelFunction(suggestion.element);
       case LocalVariableSuggestion():

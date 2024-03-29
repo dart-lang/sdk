@@ -69,6 +69,10 @@ class DeclarationHelper {
   /// Whether suggestions should be limited to only include types.
   final bool mustBeType;
 
+  /// Whether suggestions should exclude type names, e.g. include only
+  /// constructor invocations.
+  final bool excludeTypeNames;
+
   /// Whether suggestions should be tear-offs rather than invocations where
   /// possible.
   final bool preferNonInvocation;
@@ -111,6 +115,7 @@ class DeclarationHelper {
     required this.mustBeNonVoid,
     required this.mustBeStatic,
     required this.mustBeType,
+    required this.excludeTypeNames,
     required this.preferNonInvocation,
     required this.suggestUnnamedAsNew,
     required this.skipImports,
@@ -180,6 +185,17 @@ class DeclarationHelper {
         namespace: importElement.namespace,
         prefix: null,
       );
+
+      if (importElement.prefix case var importPrefix?) {
+        if (importPrefix is DeferredImportElementPrefix) {
+          collector.addSuggestion(
+            LoadLibraryFunctionSuggestion(
+              kind: CompletionSuggestionKind.INVOCATION,
+              element: importedLibrary.loadLibraryFunction,
+            ),
+          );
+        }
+      }
     }
   }
 
@@ -1195,7 +1211,7 @@ class DeclarationHelper {
           (mustBeMixable && !element.isMixableIn(request.libraryElement))) {
         return;
       }
-      if (!mustBeConstant) {
+      if (!mustBeConstant && !excludeTypeNames) {
         var suggestion =
             ClassSuggestion(importData: importData, element: element);
         collector.addSuggestion(suggestion);

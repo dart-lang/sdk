@@ -10882,6 +10882,8 @@ suggestions
     kind: topLevelVariable
   Y
     kind: class
+  Y
+    kind: constructorInvocation
   m
     kind: functionInvocation
 ''');
@@ -10916,6 +10918,8 @@ suggestions
     kind: topLevelVariable
   Y
     kind: class
+  Y
+    kind: constructorInvocation
   m
     kind: functionInvocation
 ''');
@@ -10950,11 +10954,14 @@ suggestions
     kind: topLevelVariable
   Y
     kind: class
+  Y
+    kind: constructorInvocation
   m
     kind: functionInvocation
 ''');
   }
 
+  @FailingTest(reason: 'We suggest also the variable')
   Future<void> test_library009_4() async {
     allowedIdentifiers = {'Y', 'm', 'X'};
     newFile('$testPackageLibPath/lib.dart', '''

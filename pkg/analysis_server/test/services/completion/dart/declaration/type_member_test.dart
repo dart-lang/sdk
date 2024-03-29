@@ -3180,8 +3180,12 @@ class C {}
 suggestions
   A0
     kind: class
+  A0
+    kind: constructorInvocation
   B0
     kind: class
+  B0
+    kind: constructorInvocation
 ''');
   }
 
@@ -4445,8 +4449,12 @@ suggestions
     kind: topLevelVariable
   X0
     kind: class
+  X0
+    kind: constructorInvocation
   Y0
     kind: class
+  Y0
+    kind: constructorInvocation
 ''');
   }
 
