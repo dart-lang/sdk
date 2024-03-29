@@ -348,6 +348,19 @@ final class LabelSuggestion extends CandidateSuggestion {
   String get completion => label.label.name;
 }
 
+/// The suggestion for `loadLibrary()`.
+final class LoadLibraryFunctionSuggestion extends ExecutableSuggestion {
+  final FunctionElement element;
+
+  LoadLibraryFunctionSuggestion({
+    required super.kind,
+    required this.element,
+  });
+
+  @override
+  String get completion => element.name;
+}
+
 /// The information about a candidate suggestion based on a local function.
 final class LocalFunctionSuggestion extends ExecutableSuggestion {
   /// The element on which the suggestion is based.
@@ -504,6 +517,27 @@ final class RecordFieldSuggestion extends CandidateSuggestion {
 
   @override
   String get completion => name;
+}
+
+/// The information about a candidate suggestion based on a named field of
+/// a record type.
+final class RecordLiteralNamedFieldSuggestion extends CandidateSuggestion {
+  final RecordTypeNamedField field;
+  final bool appendColon;
+  final bool appendComma;
+
+  RecordLiteralNamedFieldSuggestion.newField({
+    required this.field,
+    required this.appendComma,
+  }) : appendColon = true;
+
+  RecordLiteralNamedFieldSuggestion.onlyName({
+    required this.field,
+  })  : appendColon = false,
+        appendComma = false;
+
+  @override
+  String get completion => field.name;
 }
 
 /// The information about a candidate suggestion based on a static field in a
@@ -707,6 +741,10 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
             offset: suggestion.selectionOffset);
       case LabelSuggestion():
         suggestLabel(suggestion.label);
+      case LoadLibraryFunctionSuggestion():
+        suggestLoadLibraryFunction(
+          suggestion.element,
+        );
       case LocalFunctionSuggestion():
         suggestTopLevelFunction(suggestion.element);
       case LocalVariableSuggestion():
@@ -759,6 +797,12 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
         );
       case RecordFieldSuggestion():
         suggestRecordField(field: suggestion.field, name: suggestion.name);
+      case RecordLiteralNamedFieldSuggestion():
+        suggestNamedRecordField(
+          suggestion.field,
+          appendColon: suggestion.appendColon,
+          appendComma: suggestion.appendComma,
+        );
       case StaticFieldSuggestion():
         libraryUriStr = suggestion.libraryUriStr;
         suggestStaticField(suggestion.element, prefix: suggestion.prefix);

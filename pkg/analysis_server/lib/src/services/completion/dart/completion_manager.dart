@@ -7,12 +7,9 @@ import 'package:analysis_server/src/provisional/completion/completion_core.dart'
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/candidate_suggestion.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_state.dart';
-import 'package:analysis_server/src/services/completion/dart/extension_member_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analysis_server/src/services/completion/dart/in_scope_completion_pass.dart';
-import 'package:analysis_server/src/services/completion/dart/library_member_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/not_imported_contributor.dart';
-import 'package:analysis_server/src/services/completion/dart/record_literal_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_collector.dart';
 import 'package:analysis_server/src/utilities/selection.dart';
@@ -121,11 +118,7 @@ class DartCompletionManager {
     // Compute the list of contributors that will be run.
     var builder =
         SuggestionBuilder(request, useFilter: useFilter, listener: listener);
-    var contributors = <DartCompletionContributor>[
-      ExtensionMemberContributor(request, builder),
-      LibraryMemberContributor(request, builder),
-      RecordLiteralContributor(request, builder),
-    ];
+    var contributors = <DartCompletionContributor>[];
 
     if (includedElementKinds != null) {
       _addIncludedElementKinds(request);

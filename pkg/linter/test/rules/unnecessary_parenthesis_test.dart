@@ -205,6 +205,22 @@ void g((int,) i) { }
     ]);
   }
 
+  test_spread() async {
+    await assertNoDiagnostics(r'''
+void f(Object p) {
+  [...(p as List)];
+}
+''');
+  }
+
+  test_spread_nullAware() async {
+    await assertNoDiagnostics(r'''
+void f(Object? p) {
+  [...?(p as List?)];
+}
+''');
+  }
+
   test_switchExpression_expressionStatement() async {
     await assertNoDiagnostics(r'''
 void f(Object? x) {

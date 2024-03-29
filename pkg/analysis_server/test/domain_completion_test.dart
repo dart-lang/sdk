@@ -1811,6 +1811,10 @@ suggestions
     kind: class
     isNotImported: null
     libraryUri: dart:math
+  Random
+    kind: constructorInvocation
+    isNotImported: null
+    libraryUri: dart:math
 ''');
   }
 

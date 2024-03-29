@@ -197,7 +197,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
     var receiverWasDynamic = _lintIfDynamic(node.realTarget);
     if (!receiverWasDynamic) {
-      var target = node.target;
+      var target = node.realTarget;
       // The ".call" method is special, where "a.call()" is treated ~as "a()".
       //
       // If the method is "call", and the receiver is a function, we assume then
