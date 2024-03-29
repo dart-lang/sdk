@@ -15,6 +15,7 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
+import 'package:analyzer/src/dart/resolver/applicable_extensions.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/workspace/pub.dart';
@@ -356,6 +357,20 @@ class DeclarationHelper {
     }
   }
 
+  /// Add members from the given [ExtensionElement].
+  void addMembersFromExtensionElement(ExtensionElement extension) {
+    for (var method in extension.methods) {
+      if (!method.isStatic) {
+        _suggestMethod(method, extension);
+      }
+    }
+    for (var accessor in extension.accessors) {
+      if (!accessor.isStatic) {
+        _suggestProperty(accessor, extension);
+      }
+    }
+  }
+
   /// Add any parameters from the super constructor of the constructor
   /// containing the [node] that can be referenced as a super parameter.
   void addParametersFromSuperConstructor(SuperFormalParameter node) {
@@ -573,6 +588,40 @@ class DeclarationHelper {
     }
   }
 
+  /// Add members from all the applicable extensions that are visible for the
+  /// given [InterfaceType].
+  void _addExtensionMembers(
+      {required InterfaceType type,
+      required Set<String> excludedGetters,
+      required bool includeMethods,
+      required bool includeSetters}) {
+    var libraryElement = request.libraryElement;
+
+    var applicableExtensions = libraryElement.accessibleExtensions.applicableTo(
+      targetLibrary: libraryElement,
+      // Ignore nullability, consistent with non-extension members.
+      targetType: type.isDartCoreNull
+          ? type
+          : libraryElement.typeSystem.promoteToNonNull(type),
+      strictCasts: false,
+    );
+    for (var instantiatedExtension in applicableExtensions) {
+      var extension = instantiatedExtension.extension;
+      if (includeMethods) {
+        for (var method in extension.methods) {
+          if (!method.isStatic) {
+            _suggestMethod(method, extension);
+          }
+        }
+      }
+      for (var accessor in extension.accessors) {
+        if (accessor.isGetter || includeSetters && accessor.isSetter) {
+          _suggestProperty(accessor, extension);
+        }
+      }
+    }
+  }
+
   /// Add suggestions for any of the fields defined by the record [type] except
   /// for those whose names are in the set of [excludedFields].
   void _addFieldsOfRecordType({
@@ -738,6 +787,12 @@ class DeclarationHelper {
         type.allSupertypes.any((type) => type.isDartCoreFunction)) {
       _suggestFunctionCall(); // from builder
     }
+    // Add members from extensions
+    _addExtensionMembers(
+        type: type,
+        excludedGetters: excludedGetters,
+        includeMethods: includeMethods,
+        includeSetters: includeSetters);
   }
 
   /// Adds suggestions for any local declarations that are visible at the
@@ -898,6 +953,11 @@ class DeclarationHelper {
         _suggestMethod(method, element);
       }
     }
+    _addExtensionMembers(
+        type: element.thisType as InterfaceType,
+        excludedGetters: {},
+        includeMethods: true,
+        includeSetters: true);
   }
 
   /// Completion is inside [declaration].

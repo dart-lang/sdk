@@ -2023,6 +2023,9 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
           declarationHelper().addStaticMembersOfElement(element!);
         }
       }
+      if (type == null && target is ExtensionOverride) {
+        declarationHelper().addMembersFromExtensionElement(target.element);
+      }
     }
   }
 
