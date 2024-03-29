@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/doc_comment.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
@@ -69,13 +70,14 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitComment(Comment node) {
     for (var codeBlock in node.codeBlocks) {
-      if (codeBlock.infoString == null) {
-        var openingCodeBlockFence = codeBlock.lines.first;
-        rule.reportLintForOffset(
-          openingCodeBlockFence.offset,
-          openingCodeBlockFence.length,
-        );
-      }
+      if (codeBlock.infoString != null) continue;
+      if (codeBlock.type != CodeBlockType.fenced) continue;
+
+      var openingCodeBlockFence = codeBlock.lines.first;
+      rule.reportLintForOffset(
+        openingCodeBlockFence.offset,
+        openingCodeBlockFence.length,
+      );
     }
   }
 }
