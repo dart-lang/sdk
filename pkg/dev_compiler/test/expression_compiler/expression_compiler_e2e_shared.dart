@@ -148,6 +148,9 @@ void closuresTest() {
   return;
 }
 
+// Caution: this test function should not be reused across multiple test cases
+// to prevent data races. See http://github.com/dart-lang/sdk/issues/55299 for
+// details.
 void forLoopTest() {
   int x = 15;
   for(int i = 0; i < 10; i++) {
@@ -156,6 +159,9 @@ void forLoopTest() {
   };
 }
 
+// Caution: this test function should not be reused across multiple test cases
+// to prevent data races. See http://github.com/dart-lang/sdk/issues/55299 for
+// details.
 int iteratorLoopTest() {
   var l = <String>['1', '2', '3'];
 
@@ -1418,18 +1424,14 @@ void runAgnosticSharedTestsShard2(
     });
 
     group('simple loops', () {
-      test('expression using local', () async {
+      // Caution: this breakpoint should not be reused across multiple test
+      // cases to prevent data races. See
+      // http://github.com/dart-lang/sdk/issues/55299 for details.
+      test('expression using local & loop var', () async {
         await driver.checkInFrame(
             breakpointId: 'forLoopTestBP',
-            expression: 'x',
-            expectedResult: '15');
-      });
-
-      test('expression using loop variable', () async {
-        await driver.checkInFrame(
-            breakpointId: 'forLoopTestBP',
-            expression: 'i',
-            expectedResult: '0');
+            expression: r'"$x + $i"',
+            expectedResult: '15 + 0');
       });
     });
 
@@ -1479,6 +1481,9 @@ void runAgnosticSharedTestsShard2(
     });
 
     group('iterator loops', () {
+      // Caution: this breakpoint should not be reused across multiple test
+      // cases to prevent data races. See
+      // http://github.com/dart-lang/sdk/issues/55299 for details.
       test('expression loop variable', () async {
         await driver.checkInFrame(
             breakpointId: 'iteratorLoopTestBP',
