@@ -94,6 +94,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     // `case const (a + b):` is OK.
     if (parent is ConstantPattern) return;
 
+    // `[...(p as List)]` is OK.
+    if (parent is SpreadElement) return;
+
     // Don't over-report on records missing trailing commas.
     // `(int,) r = (3);` is OK.
     if (parent is VariableDeclaration &&
