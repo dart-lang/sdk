@@ -77,7 +77,7 @@ class TargetKind {
   static const mixinType = TargetKind._('mixins', 'mixinType');
 
   /// Indicates that an annotation is valid on any formal parameter declaration,
-  /// whether it's in a function, method, constructor, or closure.
+  /// whether it's in a function (named or anonymous), method, or constructor.
   static const parameter = TargetKind._('parameters', 'parameter');
 
   /// Indicates that an annotation is valid on any setter declaration, both
@@ -99,6 +99,12 @@ class TargetKind {
   /// Indicates that an annotation is valid on any typedef declaration.`
   static const typedefType = TargetKind._('typedefs', 'typedefType');
 
+  /// Indicates that an annotation is valid on any type parameter declaration,
+  /// whether it's on a class, enum, function type, function, mixin, extension,
+  /// extension type, or typedef.
+  static const typeParameter = TargetKind._(
+      'type parameters (classes, enums, mixins, or typedefs)', 'typeParameter');
+
   /// All current [TargetKind] values of targets to
   /// which an annotation can be applied.
   static const values = [
@@ -116,6 +122,7 @@ class TargetKind {
     setter,
     topLevelVariable,
     type,
+    typeParameter,
     typedefType,
   ];
 
