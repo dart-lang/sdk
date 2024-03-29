@@ -27,6 +27,7 @@ import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
+import 'package:analyzer/src/utilities/extensions/ast.dart';
 
 /// A completion pass that will create candidate suggestions based on the
 /// elements in scope in the library containing the selection, as well as
@@ -1773,29 +1774,35 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   @override
   void visitNamedExpression(NamedExpression node) {
     if (offset <= node.name.label.end) {
-      var argumentList = node.parent;
-      if (argumentList is! ArgumentList) {
-        return;
-      }
+      switch (node.parent) {
+        case ArgumentList argumentList:
+          var parameters = argumentList.invokedFormalParameters;
+          if (parameters != null) {
+            var (positionalArgumentCount: _, :usedNames) =
+                argumentList.argumentContext(-1);
+            usedNames.remove(node.name.label.name);
 
-      var parameters = argumentList.invokedFormalParameters;
-      if (parameters != null) {
-        var (positionalArgumentCount: _, :usedNames) =
-            argumentList.argumentContext(-1);
-        usedNames.remove(node.name.label.name);
-
-        var appendColon = node.name.colon.isSynthetic;
-        for (int i = 0; i < parameters.length; i++) {
-          var parameter = parameters[i];
-          if (parameter.isNamed) {
-            if (!usedNames.contains(parameter.name)) {
-              collector.addSuggestion(NamedArgumentSuggestion(
-                  parameter: parameter,
-                  appendColon: appendColon,
-                  appendComma: false));
+            var appendColon = node.name.colon.isSynthetic;
+            for (int i = 0; i < parameters.length; i++) {
+              var parameter = parameters[i];
+              if (parameter.isNamed) {
+                if (!usedNames.contains(parameter.name)) {
+                  collector.addSuggestion(NamedArgumentSuggestion(
+                      parameter: parameter,
+                      appendColon: appendColon,
+                      appendComma: false));
+                }
+              }
             }
           }
-        }
+        case RecordLiteral recordLiteral:
+          collector.completionLocation = 'RecordLiteral_fieldName';
+          _suggestRecordLiteralNamedFields(
+            contextType: _computeContextType(recordLiteral),
+            containerNode: node,
+            recordLiteral: recordLiteral,
+            isNewField: false,
+          );
       }
     } else if (offset >= node.name.colon.end) {
       _forExpression(node, mustBeNonVoid: node.parent is ArgumentList);
@@ -1873,6 +1880,16 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       }
     }
     collector.completionLocation = 'ParenthesizedExpression_expression';
+
+    if (node.expression case SimpleIdentifier()) {
+      _suggestRecordLiteralNamedFields(
+        contextType: _computeContextType(node),
+        containerNode: node,
+        recordLiteral: null,
+        isNewField: true,
+      );
+    }
+
     _forExpression(node);
   }
 
@@ -2032,6 +2049,14 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   @override
   void visitRecordLiteral(RecordLiteral node) {
     collector.completionLocation = 'RecordLiteral_fields';
+
+    _suggestRecordLiteralNamedFields(
+      contextType: _computeContextType(node),
+      containerNode: node,
+      recordLiteral: node,
+      isNewField: true,
+    );
+
     _forExpression(node);
   }
 
@@ -2812,6 +2837,23 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     }
   }
 
+  /// Returns the context type in which [node] is analyzed.
+  DartType? _computeContextType(Expression node) {
+    return state.request.featureComputer
+        .computeContextType(node.parent!, node.offset);
+  }
+
+  /// Returns the first non-synthetic token within the [node] that is at
+  /// or after the [offset].
+  Token? _computeDisplacedToken(AstNode node) {
+    for (var token in node.allTokens) {
+      if (!token.isSynthetic && offset <= token.offset) {
+        return token;
+      }
+    }
+    return null;
+  }
+
   /// Add the suggestions that are appropriate at the beginning of an annotation.
   void _forAnnotation(AstNode node) {
     declarationHelper(mustBeConstant: true).addLexicalDeclarations(node);
@@ -3372,6 +3414,50 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         replacementRange: SourceRange(offset, 0),
         skipAt: skipAt,
       );
+    }
+  }
+
+  void _suggestRecordLiteralNamedFields({
+    required DartType? contextType,
+    required AstNode containerNode,
+    required RecordLiteral? recordLiteral,
+    required bool isNewField,
+  }) {
+    if (contextType is! RecordType) {
+      return;
+    }
+
+    var displaced = _computeDisplacedToken(containerNode);
+    if (displaced == null) {
+      return;
+    }
+
+    var includedNames = const <String>{};
+    if (recordLiteral != null) {
+      includedNames = recordLiteral.fields
+          .whereType<NamedExpression>()
+          .map((e) => e.name.label.name)
+          .toSet();
+    }
+
+    for (final field in contextType.namedFields) {
+      if (!includedNames.contains(field.name)) {
+        if (isNewField) {
+          collector.addSuggestion(
+            RecordLiteralNamedFieldSuggestion.newField(
+              field: field,
+              appendComma: displaced.type != TokenType.COMMA &&
+                  displaced.type != TokenType.CLOSE_PAREN,
+            ),
+          );
+        } else {
+          collector.addSuggestion(
+            RecordLiteralNamedFieldSuggestion.onlyName(
+              field: field,
+            ),
+          );
+        }
+      }
     }
   }
 

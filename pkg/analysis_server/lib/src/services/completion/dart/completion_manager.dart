@@ -11,7 +11,6 @@ import 'package:analysis_server/src/services/completion/dart/feature_computer.da
 import 'package:analysis_server/src/services/completion/dart/in_scope_completion_pass.dart';
 import 'package:analysis_server/src/services/completion/dart/library_member_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/not_imported_contributor.dart';
-import 'package:analysis_server/src/services/completion/dart/record_literal_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_collector.dart';
 import 'package:analysis_server/src/utilities/selection.dart';
@@ -122,7 +121,6 @@ class DartCompletionManager {
         SuggestionBuilder(request, useFilter: useFilter, listener: listener);
     var contributors = <DartCompletionContributor>[
       LibraryMemberContributor(request, builder),
-      RecordLiteralContributor(request, builder),
     ];
 
     if (includedElementKinds != null) {
