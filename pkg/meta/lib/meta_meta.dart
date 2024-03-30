@@ -42,6 +42,12 @@ class TargetKind {
   /// Indicates that an annotation is valid on any class declaration.
   static const classType = TargetKind._('classes', 'classType');
 
+  /// Indicates that an annotation is valid on any constructor declaration, both
+  /// factory and generative constructors, whether it's in a class, enum, or
+  /// extension type. Extension type primary constructors are not supported,
+  /// because there is no way to annotate a primary constructor.
+  static const constructor = TargetKind._('constructors', 'constructor');
+
   /// Indicates that an annotation is valid on any enum declaration.
   static const enumType = TargetKind._('enums', 'enumType');
 
@@ -52,7 +58,8 @@ class TargetKind {
   static const extensionType = TargetKind._('extension types', 'extensionType');
 
   /// Indicates that an annotation is valid on any field declaration, both
-  /// instance and static fields, whether it's in a class, mixin or extension.
+  /// instance and static fields, whether it's in a class, enum, mixin, or
+  /// extension.
   static const field = TargetKind._('fields', 'field');
 
   /// Indicates that an annotation is valid on any top-level function
@@ -65,24 +72,26 @@ class TargetKind {
   static const library = TargetKind._('libraries', 'library');
 
   /// Indicates that an annotation is valid on any getter declaration, both
-  /// instance or static getters, whether it's in a class, mixin, extension, or
-  /// at the top-level of a library.
+  /// instance or static getters, whether it's in a class, enum, mixin,
+  /// extension, extension type, or at the top-level of a library.
   static const getter = TargetKind._('getters', 'getter');
 
   /// Indicates that an annotation is valid on any method declaration, both
-  /// instance and static methods, whether it's in a class, mixin or extension.
+  /// instance and static methods, whether it's in a class, enum, mixin,
+  /// extension, or extension type.
   static const method = TargetKind._('methods', 'method');
 
   /// Indicates that an annotation is valid on any mixin declaration.
   static const mixinType = TargetKind._('mixins', 'mixinType');
 
   /// Indicates that an annotation is valid on any formal parameter declaration,
-  /// whether it's in a function (named or anonymous), method, or constructor.
+  /// whether it's in a constructor, function (named or anonymous), function
+  /// type, function-typed formal parameter, or method.
   static const parameter = TargetKind._('parameters', 'parameter');
 
   /// Indicates that an annotation is valid on any setter declaration, both
-  /// instance or static setters, whether it's in a class, mixin, extension, or
-  /// at the top-level of a library.
+  /// instance or static setters, whether it's in a class, enum, mixin,
+  /// extension, extension type, or at the top-level of a library.
   static const setter = TargetKind._('setters', 'setter');
 
   /// Indicates that an annotation is valid on any top-level variable
@@ -91,24 +100,25 @@ class TargetKind {
       TargetKind._('top-level variables', 'topLevelVariable');
 
   /// Indicates that an annotation is valid on any declaration that introduces a
-  /// type. This includes classes, enums, mixins and typedefs, but does not
+  /// type. This includes classes, enums, mixins, and typedefs, but does not
   /// include extensions because extensions don't introduce a type.
+  // TODO(srawlins): This should include extension types.
   static const type =
       TargetKind._('types (classes, enums, mixins, or typedefs)', 'type');
 
-  /// Indicates that an annotation is valid on any typedef declaration.`
+  /// Indicates that an annotation is valid on any typedef declaration.
   static const typedefType = TargetKind._('typedefs', 'typedefType');
 
   /// Indicates that an annotation is valid on any type parameter declaration,
   /// whether it's on a class, enum, function type, function, mixin, extension,
   /// extension type, or typedef.
-  static const typeParameter = TargetKind._(
-      'type parameters (classes, enums, mixins, or typedefs)', 'typeParameter');
+  static const typeParameter = TargetKind._('type parameters', 'typeParameter');
 
   /// All current [TargetKind] values of targets to
   /// which an annotation can be applied.
   static const values = [
     classType,
+    constructor,
     enumType,
     extension,
     extensionType,
@@ -122,8 +132,8 @@ class TargetKind {
     setter,
     topLevelVariable,
     type,
-    typeParameter,
     typedefType,
+    typeParameter,
   ];
 
   /// A user visible string used to describe this target kind.

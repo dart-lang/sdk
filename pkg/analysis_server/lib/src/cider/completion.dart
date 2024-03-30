@@ -92,13 +92,9 @@ class CiderCompletionComputer {
         'suggestions',
         (performance) async {
           var result = await _logger.runAsync('Compute suggestions', () async {
-            var includedElementKinds = <ElementKind>{};
-            var includedElementNames = <String>{};
-
             var manager = DartCompletionManager(
               budget: CompletionBudget(CompletionBudget.defaultDuration),
-              includedElementKinds: includedElementKinds,
-              includedElementNames: includedElementNames,
+              skipImports: true,
             );
 
             return await manager.computeSuggestions(

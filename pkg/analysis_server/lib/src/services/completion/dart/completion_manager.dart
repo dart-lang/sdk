@@ -32,7 +32,6 @@ import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/generated/source.dart' show SourceFactory;
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 
@@ -61,20 +60,14 @@ class DartCompletionManager {
   /// Time budget to computing suggestions.
   final CompletionBudget budget;
 
-  /// If not `null`, then instead of using [ImportedReferenceContributor],
-  /// fill this set with kinds of elements that are applicable at the
-  /// completion location, so should be suggested from available suggestion
-  /// sets.
-  final Set<protocol.ElementKind>? includedElementKinds;
-
-  /// If [includedElementKinds] is not null, must be also not `null`, and
-  /// will be filled with names of all top-level declarations from all
-  /// included suggestion sets.
-  final Set<String>? includedElementNames;
-
   /// The listener to be notified at certain points in the process of building
   /// suggestions, or `null` if no notification should occur.
   final SuggestionListener? listener;
+
+  /// Whether the generation of suggestions for imports should be skipped. This
+  /// exists as a temporary measure that will be removed after all of the
+  /// suggestions are being produced by the various passes.
+  final bool skipImports;
 
   /// If specified, will be filled with suggestions and URIs from libraries
   /// that are not yet imported, but could be imported into the requested
@@ -82,18 +75,12 @@ class DartCompletionManager {
   /// with the import index property updated.
   final NotImportedSuggestions? notImportedSuggestions;
 
-  /// Initialize a newly created completion manager. The parameters
-  /// [includedElementKinds], [includedElementNames], and
-  /// [includedSuggestionRelevanceTags] must either all be `null` or must all be
-  /// non-`null`.
   DartCompletionManager({
     required this.budget,
-    this.includedElementKinds,
-    this.includedElementNames,
     this.listener,
+    this.skipImports = false,
     this.notImportedSuggestions,
-  }) : assert((includedElementKinds != null && includedElementNames != null) ||
-            (includedElementKinds == null && includedElementNames == null));
+  });
 
   Future<List<CompletionSuggestionBuilder>> computeSuggestions(
     DartCompletionRequest request,
@@ -120,10 +107,6 @@ class DartCompletionManager {
         SuggestionBuilder(request, useFilter: useFilter, listener: listener);
     var contributors = <DartCompletionContributor>[];
 
-    if (includedElementKinds != null) {
-      _addIncludedElementKinds(request);
-    }
-
     final notImportedSuggestions = this.notImportedSuggestions;
     if (notImportedSuggestions != null) {
       contributors.add(
@@ -139,7 +122,6 @@ class DartCompletionManager {
           _runFirstPass(
             request: request,
             builder: builder,
-            skipImports: includedElementKinds != null,
             suggestOverrides: enableOverrideContributor,
             suggestUris: enableUriContributor,
           );
@@ -165,48 +147,10 @@ class DartCompletionManager {
     return builder.suggestions.toList();
   }
 
-  void _addIncludedElementKinds(DartCompletionRequest request) {
-    var opType = request.opType;
-
-    if (!opType.includeIdentifiers) return;
-
-    var kinds = includedElementKinds;
-    if (kinds != null) {
-      if (opType.includeConstructorSuggestions) {
-        kinds.add(protocol.ElementKind.CONSTRUCTOR);
-      }
-      if (opType.includeTypeNameSuggestions) {
-        kinds.add(protocol.ElementKind.CLASS);
-        kinds.add(protocol.ElementKind.CLASS_TYPE_ALIAS);
-        kinds.add(protocol.ElementKind.ENUM);
-        kinds.add(protocol.ElementKind.FUNCTION_TYPE_ALIAS);
-        kinds.add(protocol.ElementKind.MIXIN);
-        kinds.add(protocol.ElementKind.TYPE_ALIAS);
-      }
-      if (opType.includeReturnValueSuggestions) {
-        kinds.add(protocol.ElementKind.CONSTRUCTOR);
-        kinds.add(protocol.ElementKind.ENUM_CONSTANT);
-        kinds.add(protocol.ElementKind.EXTENSION);
-        kinds.add(protocol.ElementKind.FUNCTION);
-        // Top-level properties.
-        kinds.add(protocol.ElementKind.GETTER);
-        kinds.add(protocol.ElementKind.SETTER);
-        kinds.add(protocol.ElementKind.TOP_LEVEL_VARIABLE);
-      }
-      if (opType.includeAnnotationSuggestions) {
-        kinds.add(protocol.ElementKind.CONSTRUCTOR);
-        // Top-level properties.
-        kinds.add(protocol.ElementKind.GETTER);
-        kinds.add(protocol.ElementKind.TOP_LEVEL_VARIABLE);
-      }
-    }
-  }
-
   // Run the first pass of the code completion algorithm.
   void _runFirstPass({
     required DartCompletionRequest request,
     required SuggestionBuilder builder,
-    required bool skipImports,
     required bool suggestOverrides,
     required bool suggestUris,
   }) {
