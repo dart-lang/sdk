@@ -41,6 +41,9 @@ advantage of these improvements, set your package's
   `stderr`. Classes that `implement Stdout` must define the `lineTerminator`
   field. The default semantics of `stdout` and `stderr` are not changed.
 
+- Deprecates `FileSystemDeleteEvent.isDirectory`, which always returns
+  `false`.
+
 [#53863]: https://github.com/dart-lang/sdk/issues/53863
 
 #### `dart:js_interop`
