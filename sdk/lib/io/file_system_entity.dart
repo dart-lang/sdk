@@ -897,11 +897,13 @@ sealed class FileSystemEvent {
   /// relative.
   final String path;
 
-  /// Is `true` if the event target was a directory.
+  /// Whether the event target is a directory.
   ///
-  /// Note that if the file has been deleted by the time the event has arrived,
-  /// this will always be `false` on Windows. In particular, it will always be
-  /// `false` for `delete` events.
+  /// The value will always be `false` for [FileSystemDeleteEvent].
+  ///
+  /// On Windows, the value may also be `false` for a create, move or
+  /// modify event on a directory, if that directory was deleted
+  /// soon after this create, modify or move event occured.
   final bool isDirectory;
 
   FileSystemEvent._(this.type, this.path, this.isDirectory);
@@ -936,10 +938,15 @@ final class FileSystemModifyEvent extends FileSystemEvent {
 final class FileSystemDeleteEvent extends FileSystemEvent {
   /// Constructs a new [FileSystemDeleteEvent].
   FileSystemDeleteEvent(String path, bool isDirectory)
-      : super._(FileSystemEvent.delete, path, isDirectory);
+      : super._(FileSystemEvent.delete, path, false);
 
-  String toString() =>
-      "FileSystemDeleteEvent('$path', isDirectory=$isDirectory)";
+  String toString() => "FileSystemDeleteEvent('$path')";
+
+  /// Whether the file system object was a directory.
+  ///
+  /// The value will always be `false` for [FileSystemDeleteEvent].
+  @Deprecated('always false for FileSystemDeleteEvent')
+  bool get isDirectory => false;
 }
 
 /// File system event for moving of file system objects.
