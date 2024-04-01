@@ -1173,6 +1173,18 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
   }
 
   @override
+  HInstruction visitSubtract(HSubtract node) {
+    HInstruction left = node.left;
+    HInstruction right = node.right;
+    if (right is HConstant) {
+      final constant = right.constant;
+      // Rewrite `a - 0` to `a`, provided the zero is not negative zero.
+      if (constant.isZero && !constant.isMinusZero) return left;
+    }
+    return super.visitSubtract(node);
+  }
+
+  @override
   HInstruction visitMultiply(HMultiply node) {
     HInstruction left = node.left;
     HInstruction right = node.right;
