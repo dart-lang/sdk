@@ -19,11 +19,11 @@ import 'package:analyzer/src/test_utilities/platform.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/utilities/extensions/file_system.dart';
+import 'package:analyzer_utilities/test/mock_packages/mock_packages.dart';
 import 'package:linter/src/rules.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
-import 'src/utilities/mock_packages.dart';
 import 'support/configuration_files.dart';
 import 'test_macros.dart';
 
