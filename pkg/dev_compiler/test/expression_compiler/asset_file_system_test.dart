@@ -155,7 +155,7 @@ void main() async {
       server = await HttpMultiServer.bind(hostname, port);
       fileSystem = AssetFileSystem.forTesting(
           StandardFileSystem.instance, hostname, '$port',
-          retries: 0);
+          retries: 1);
 
       serveRequests(server, noisyHandler);
     });
