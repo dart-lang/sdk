@@ -3,13 +3,13 @@
   "packages": [
     {
       "name": "flutter",
-      "rootUri": "../../mock_packages/flutter/",
+      "rootUri": "../../../../analyzer_utilities/lib/test/mock_packages/package_content/flutter/",
       "packageUri": "lib/",
       "languageVersion": "2.17"
     },
     {
       "name": "meta",
-      "rootUri": "../../../../analysis_server/test/mock_packages/meta/",
+      "rootUri": "../../../../analyzer_utilities/lib/test/mock_packages/package_content/meta/",
       "packageUri": "lib/",
       "languageVersion": "2.17"
     }

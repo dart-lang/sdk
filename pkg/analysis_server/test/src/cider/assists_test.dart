@@ -10,10 +10,10 @@ import 'package:analysis_server/src/services/correction/fix_processor.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' show SourceEdit;
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
+import 'package:analyzer_utilities/test/mock_packages/mock_packages.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../utilities/mock_packages.dart';
 import 'cider_service.dart';
 
 void main() {
