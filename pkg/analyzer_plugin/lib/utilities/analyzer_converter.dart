@@ -321,10 +321,11 @@ extension ElementExtensions on analyzer.Element? {
     if (currentElement is analyzer.CompilationUnitElement) {
       return currentElement;
     }
-    if (currentElement?.enclosingElement is analyzer.LibraryElement) {
+    if (currentElement?.enclosingElement
+        is analyzer.LibraryOrAugmentationElement) {
       currentElement = currentElement?.enclosingElement;
     }
-    if (currentElement is analyzer.LibraryElement) {
+    if (currentElement is analyzer.LibraryOrAugmentationElement) {
       return currentElement.definingCompilationUnit;
     }
     for (;

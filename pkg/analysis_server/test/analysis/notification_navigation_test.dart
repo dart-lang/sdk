@@ -463,6 +463,44 @@ void f() {
     assertHasTarget('foo', targetFile: aFile);
   }
 
+  Future<void>
+      test_class_constructor_annotationConstructor_importPrefix() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  const A();
+  const A.named();
+}
+''');
+
+    addTestFile('''
+library augment 'b.dart';
+import 'a.dart' as prefix;
+
+class B {
+  @prefix.A()
+  @prefix.A.named()
+  B().foo();
+}
+''');
+
+    await prepareNavigation();
+
+    assertHasRegion('prefix.A()');
+    assertHasTarget('prefix;');
+
+    assertHasRegion('A()');
+    assertHasTarget('A();', targetFile: a);
+
+    assertHasRegion('prefix.A.named()');
+    assertHasTarget('prefix;');
+
+    assertHasRegion('A.named()');
+    assertHasTarget('named()', targetFile: a);
+
+    assertHasRegion('named()');
+    assertHasTarget('named()', targetFile: a);
+  }
+
   Future<void> test_class_constructor_named() async {
     addTestFile('''
 class A {
@@ -1379,6 +1417,35 @@ library my.lib;
     await prepareNavigation();
     assertHasRegionString('my.lib');
     assertHasTargetString('my.lib');
+  }
+
+  Future<void>
+      test_libraryAugmentation_topLevelFunction_annotationConstructor_importPrefix() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  const A();
+}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+import augment 'test.dart';
+''');
+
+    addTestFile('''
+library augment 'b.dart';
+import 'a.dart' as prefix;
+
+@prefix.A()
+external B().foo();
+''');
+
+    await prepareNavigation();
+
+    assertHasRegion('prefix.A()');
+    assertHasTarget('prefix;');
+
+    assertHasRegion('A()');
+    assertHasTarget('A();', targetFile: a);
   }
 
   Future<void> test_multiplyDefinedElement() async {
