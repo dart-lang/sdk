@@ -5251,34 +5251,47 @@ class AstBuilder extends StackListener {
     var prefix = pop(NullValues.Prefix) as SimpleIdentifierImpl?;
     var configurations = pop() as List<ConfigurationImpl>?;
 
-    final directive = directives.last as ImportDirectiveImpl;
+    final directive = directives.last;
+    switch (directive) {
+      case AugmentationImportDirectiveImpl():
+        directives.last = AugmentationImportDirectiveImpl(
+          comment: directive.documentationComment,
+          metadata: directive.metadata,
+          importKeyword: directive.importKeyword,
+          augmentKeyword: directive.augmentKeyword,
+          uri: directive.uri,
+          semicolon: semicolon ?? directive.semicolon,
+        );
+      case ImportDirectiveImpl():
+        // TODO(scheglov): This code would be easier if we used one object.
+        var mergedAsKeyword = directive.asKeyword;
+        var mergedPrefix = directive.prefix;
+        if (directive.asKeyword == null && asKeyword != null) {
+          mergedAsKeyword = asKeyword;
+          mergedPrefix = prefix;
+        }
 
-    // TODO(scheglov): This code would be easier if we used one object.
-    var mergedAsKeyword = directive.asKeyword;
-    var mergedPrefix = directive.prefix;
-    if (directive.asKeyword == null && asKeyword != null) {
-      mergedAsKeyword = asKeyword;
-      mergedPrefix = prefix;
+        directives.last = ImportDirectiveImpl(
+          comment: directive.documentationComment,
+          metadata: directive.metadata,
+          importKeyword: directive.importKeyword,
+          uri: directive.uri,
+          configurations: [
+            ...directive.configurations,
+            ...?configurations,
+          ],
+          deferredKeyword: directive.deferredKeyword ?? deferredKeyword,
+          asKeyword: mergedAsKeyword,
+          prefix: mergedPrefix,
+          combinators: [
+            ...directive.combinators,
+            ...?combinators,
+          ],
+          semicolon: semicolon ?? directive.semicolon,
+        );
+      default:
+        throw UnimplementedError('${directive.runtimeType}');
     }
-
-    directives.last = ImportDirectiveImpl(
-      comment: directive.documentationComment,
-      metadata: directive.metadata,
-      importKeyword: directive.importKeyword,
-      uri: directive.uri,
-      configurations: [
-        ...directive.configurations,
-        ...?configurations,
-      ],
-      deferredKeyword: directive.deferredKeyword ?? deferredKeyword,
-      asKeyword: mergedAsKeyword,
-      prefix: mergedPrefix,
-      combinators: [
-        ...directive.combinators,
-        ...?combinators,
-      ],
-      semicolon: semicolon ?? directive.semicolon,
-    );
   }
 
   @override

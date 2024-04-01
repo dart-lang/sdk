@@ -4,10 +4,13 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'augmentation_import_directive_test.dart'
+    as augmentation_import_directive;
 import 'class_test.dart' as class_;
 import 'doc_comment_test.dart' as doc_comment;
 import 'extension_test.dart' as extension_;
 import 'extension_type_test.dart' as extension_type;
+import 'import_directive_test.dart' as import_directive;
 import 'mixin_test.dart' as mixin_;
 import 'top_level_function_test.dart' as top_level_function;
 import 'top_level_variable_test.dart' as top_level_variable;
@@ -17,10 +20,12 @@ import 'variable_declaration_statement_test.dart'
 /// Utility for manually running all tests.
 main() {
   defineReflectiveSuite(() {
+    augmentation_import_directive.main();
     class_.main();
     doc_comment.main();
     extension_.main();
     extension_type.main();
+    import_directive.main();
     mixin_.main();
     top_level_function.main();
     top_level_variable.main();
