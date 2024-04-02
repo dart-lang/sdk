@@ -138,7 +138,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     // extension _ on Null {}
-    if (parent is ExtensionDeclaration) {
+    if (parent is ExtensionOnClause) {
       return;
     }
 

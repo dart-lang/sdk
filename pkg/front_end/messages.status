@@ -321,6 +321,8 @@ ExtendsVoid/analyzerCode: Fail # Feature not yet in analyzer.
 ExtendsVoid/example: Fail # Feature not yet enabled by default.
 ExtensionInNullAwareReceiver/analyzerCode: Fail
 ExtensionMemberConflictsWithObjectMember/analyzerCode: Fail
+ExtensionAugmentationHasOnClause/part_wrapped_script: Fail
+ExtensionAugmentationHasOnClause/script: Fail
 ExtensionTypeImplementsDeferred/part_wrapped_script: Fail # Uses imports
 ExtensionTypeImplementsDeferred/script: Fail # Uses imports
 ExtensionTypePrimaryConstructorFunctionFormalParameterSyntax/analyzerCode: Fail

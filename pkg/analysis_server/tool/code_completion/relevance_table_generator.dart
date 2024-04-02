@@ -649,7 +649,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
-    _recordDataForNode('ExtensionDeclaration_extendedType', node.extendedType);
+    _recordDataForNode('ExtensionDeclaration_onClause', node.onClause);
     for (var member in node.members) {
       _recordDataForNode('ExtensionDeclaration_member', member,
           allowedKeywords: memberKeywords);

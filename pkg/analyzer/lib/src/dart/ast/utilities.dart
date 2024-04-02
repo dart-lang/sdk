@@ -544,11 +544,17 @@ class AstComparator implements AstVisitor<bool> {
         isEqualTokens(node.extensionKeyword, other.extensionKeyword) &&
         isEqualTokens(node.name, other.name) &&
         isEqualNodes(node.typeParameters, other.typeParameters) &&
-        isEqualTokens(node.onKeyword, other.onKeyword) &&
-        isEqualNodes(node.extendedType, other.extendedType) &&
+        isEqualNodes(node.onClause, other.onClause) &&
         isEqualTokens(node.leftBracket, other.leftBracket) &&
         _isEqualNodeLists(node.members, other.members) &&
         isEqualTokens(node.rightBracket, other.rightBracket);
+  }
+
+  @override
+  bool visitExtensionOnClause(ExtensionOnClause node) {
+    var other = _other as ExtensionOnClause;
+    return isEqualTokens(node.onKeyword, other.onKeyword) &&
+        isEqualNodes(node.extendedType, other.extendedType);
   }
 
   @override
@@ -2498,9 +2504,6 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
       return true;
     } else if (identical(node.typeParameters, _oldNode)) {
       node.typeParameters = _newNode as TypeParameterListImpl;
-      return true;
-    } else if (identical(node.extendedType, _oldNode)) {
-      node.extendedType = _newNode as TypeAnnotationImpl;
       return true;
     } else if (_replaceInList(node.members)) {
       return true;

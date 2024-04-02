@@ -185,15 +185,21 @@ class DartUnitOutlineComputer {
       ExtensionDeclaration node, List<Outline> extensionContents) {
     var nameToken = node.name;
     var name = nameToken?.lexeme ?? '';
+
+    Location? location;
+    if (nameToken != null) {
+      location = _getLocationToken(nameToken);
+    } else if (node.onClause case var onClause?) {
+      location = _getLocationNode(onClause.extendedType);
+    }
+
     var element = Element(
         ElementKind.EXTENSION,
         name,
         Element.makeFlags(
             isPrivate: Identifier.isPrivateName(name),
             isDeprecated: _isDeprecated(node)),
-        location: nameToken != null
-            ? _getLocationToken(nameToken)
-            : _getLocationNode(node.extendedType),
+        location: location,
         typeParameters: _getTypeParametersStr(node.typeParameters));
     return _nodeOutline(node, element, extensionContents);
   }

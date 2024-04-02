@@ -457,9 +457,8 @@ class ArgumentsMover : public ValueObject {
   // Flush all buffered registers.
   void Flush(FlowGraphCompiler* compiler) {
     if (pending_register_ != kNoRegister) {
-      __ StoreToOffset(
-          pending_register_,
-          compiler::Address(SP, pending_sp_relative_index_ * kWordSize));
+      __ StoreToOffset(pending_register_, SP,
+                       pending_sp_relative_index_ * kWordSize);
       pending_sp_relative_index_ = -1;
       pending_register_ = kNoRegister;
     }

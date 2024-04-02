@@ -338,10 +338,10 @@ void MoveArgumentInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Location value = locs()->in(0);
   const compiler::Address dst = LocationToStackSlotAddress(location());
   if (value.IsConstant()) {
-    __ StoreToOffset(value.constant(), dst);
+    __ Store(value.constant(), dst);
   } else {
     ASSERT(value.IsRegister());
-    __ StoreToOffset(value.reg(), dst);
+    __ Store(value.reg(), dst);
   }
 }
 
@@ -1771,8 +1771,7 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ movl(result_hi, element_address);
     } else {
       Register result = locs()->out(0).reg();
-      __ LoadFromOffset(result, element_address,
-                        RepresentationUtils::OperandSize(rep));
+      __ Load(result, element_address, RepresentationUtils::OperandSize(rep));
     }
   } else if (RepresentationUtils::IsUnboxed(rep)) {
     XmmRegister result = locs()->out(0).fpu_reg();
@@ -1923,8 +1922,7 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ movl(element_address, value_hi);
     } else {
       Register value = locs()->in(2).reg();
-      __ StoreToOffset(value, element_address,
-                       RepresentationUtils::OperandSize(rep));
+      __ Store(value, element_address, RepresentationUtils::OperandSize(rep));
     }
   } else if (RepresentationUtils::IsUnboxed(rep)) {
     if (rep == kUnboxedFloat) {

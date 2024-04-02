@@ -249,19 +249,15 @@ static void CopyBytes(FlowGraphCompiler* compiler,
     auto const sz = OperandSizeFor(XLEN / 8);
     const intptr_t offset = (reversed ? -1 : 1) * (XLEN / 8);
     const intptr_t initial = reversed ? offset : 0;
-    __ LoadFromOffset(TMP, compiler::Address(src_reg, initial), sz);
-    __ LoadFromOffset(TMP2, compiler::Address(src_reg, initial + offset), sz);
-    __ StoreToOffset(TMP, compiler::Address(dest_reg, initial), sz);
-    __ StoreToOffset(TMP2, compiler::Address(dest_reg, initial + offset), sz);
-    __ LoadFromOffset(TMP, compiler::Address(src_reg, initial + 2 * offset),
-                      sz);
-    __ LoadFromOffset(TMP2, compiler::Address(src_reg, initial + 3 * offset),
-                      sz);
+    __ LoadFromOffset(TMP, src_reg, initial, sz);
+    __ LoadFromOffset(TMP2, src_reg, initial + offset, sz);
+    __ StoreToOffset(TMP, dest_reg, initial, sz);
+    __ StoreToOffset(TMP2, dest_reg, initial + offset, sz);
+    __ LoadFromOffset(TMP, src_reg, initial + 2 * offset, sz);
+    __ LoadFromOffset(TMP2, src_reg, initial + 3 * offset, sz);
     __ addi(src_reg, src_reg, 4 * offset);
-    __ StoreToOffset(TMP, compiler::Address(dest_reg, initial + 2 * offset),
-                     sz);
-    __ StoreToOffset(TMP2, compiler::Address(dest_reg, initial + 3 * offset),
-                     sz);
+    __ StoreToOffset(TMP, dest_reg, initial + 2 * offset, sz);
+    __ StoreToOffset(TMP2, dest_reg, initial + 3 * offset, sz);
     __ addi(dest_reg, dest_reg, 4 * offset);
     return;
   }
@@ -272,11 +268,11 @@ static void CopyBytes(FlowGraphCompiler* compiler,
     auto const sz = OperandSizeFor(XLEN / 8);
     const intptr_t offset = (reversed ? -1 : 1) * (XLEN / 8);
     const intptr_t initial = reversed ? offset : 0;
-    __ LoadFromOffset(TMP, compiler::Address(src_reg, initial), sz);
-    __ LoadFromOffset(TMP2, compiler::Address(src_reg, initial + offset), sz);
+    __ LoadFromOffset(TMP, src_reg, initial, sz);
+    __ LoadFromOffset(TMP2, src_reg, initial + offset, sz);
     __ addi(src_reg, src_reg, 2 * offset);
-    __ StoreToOffset(TMP, compiler::Address(dest_reg, initial), sz);
-    __ StoreToOffset(TMP2, compiler::Address(dest_reg, initial + offset), sz);
+    __ StoreToOffset(TMP, dest_reg, initial, sz);
+    __ StoreToOffset(TMP2, dest_reg, initial + offset, sz);
     __ addi(dest_reg, dest_reg, 2 * offset);
     return;
   }
@@ -286,9 +282,9 @@ static void CopyBytes(FlowGraphCompiler* compiler,
   auto const sz = OperandSizeFor(count);
   const intptr_t offset = (reversed ? -1 : 1) * count;
   const intptr_t initial = reversed ? offset : 0;
-  __ LoadFromOffset(TMP, compiler::Address(src_reg, initial), sz);
+  __ LoadFromOffset(TMP, src_reg, initial, sz);
   __ addi(src_reg, src_reg, offset);
-  __ StoreToOffset(TMP, compiler::Address(dest_reg, initial), sz);
+  __ StoreToOffset(TMP, dest_reg, initial, sz);
   __ addi(dest_reg, dest_reg, offset);
 }
 
@@ -1758,10 +1754,8 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       ASSERT(temp1 != CallingConventions::kReturnReg);
       ASSERT(temp2 != CallingConventions::kReturnReg);
       compiler::Label not_error;
-      __ LoadFromOffset(
-          temp1,
-          compiler::Address(CallingConventions::kReturnReg,
-                            compiler::target::LocalHandle::ptr_offset()));
+      __ LoadFromOffset(temp1, CallingConventions::kReturnReg,
+                        compiler::target::LocalHandle::ptr_offset());
       __ BranchIfSmi(temp1, &not_error);
       __ LoadClassId(temp1, temp1);
       __ RangeCheck(temp1, temp2, kFirstErrorCid, kLastErrorCid,
@@ -2189,13 +2183,11 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                          element_address.offset() + 4));
     } else {
       const Register result = locs()->out(0).reg();
-      __ LoadFromOffset(result, element_address,
-                        RepresentationUtils::OperandSize(rep));
+      __ Load(result, element_address, RepresentationUtils::OperandSize(rep));
     }
 #else
     const Register result = locs()->out(0).reg();
-    __ LoadFromOffset(result, element_address,
-                      RepresentationUtils::OperandSize(rep));
+    __ Load(result, element_address, RepresentationUtils::OperandSize(rep));
 #endif
   } else if (RepresentationUtils::IsUnboxed(rep)) {
     const FRegister result = locs()->out(0).fpu_reg();
@@ -2502,11 +2494,10 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     } else {
       if (locs()->in(2).IsConstant()) {
         ASSERT(locs()->in(2).constant_instruction()->HasZeroRepresentation());
-        __ StoreToOffset(ZR, element_address,
-                         RepresentationUtils::OperandSize(rep));
+        __ Store(ZR, element_address, RepresentationUtils::OperandSize(rep));
       } else {
-        __ StoreToOffset(locs()->in(2).reg(), element_address,
-                         RepresentationUtils::OperandSize(rep));
+        __ Store(locs()->in(2).reg(), element_address,
+                 RepresentationUtils::OperandSize(rep));
       }
     }
   } else if (RepresentationUtils::IsUnboxed(rep)) {

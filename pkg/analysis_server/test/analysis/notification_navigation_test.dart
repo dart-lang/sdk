@@ -1709,6 +1709,22 @@ class A {
     }
   }
 
+  Future<void> test_string_augmentLibrary() async {
+    var augmentedCode = 'import augment "test.dart";';
+    var augmentedFile =
+        newFile('$testPackageLibPath/augmented.dart', augmentedCode).path;
+    addTestFile('library augment "augmented.dart";');
+    await prepareNavigation();
+    assertHasRegionString('"augmented.dart"');
+    assertHasFileTarget(augmentedFile, 0, 0);
+  }
+
+  Future<void> test_string_augmentLibrary_unresolvedUri() async {
+    addTestFile('library augment "no.dart";');
+    await prepareNavigation();
+    assertNoRegionString('"no.dart"');
+  }
+
   Future<void> test_string_configuration() async {
     newFile('$testPackageLibPath/lib.dart', '').path;
     var lib2File = newFile('$testPackageLibPath/lib2.dart', '').path;
@@ -1751,6 +1767,22 @@ class A {
 
   Future<void> test_string_import_unresolvedUri() async {
     addTestFile('import "no.dart";');
+    await prepareNavigation();
+    assertNoRegionString('"no.dart"');
+  }
+
+  Future<void> test_string_importAugment() async {
+    var augmentCode = 'library augment "test.dart";';
+    var augmentFile =
+        newFile('$testPackageLibPath/augment.dart', augmentCode).path;
+    addTestFile('import augment "augment.dart";');
+    await prepareNavigation();
+    assertHasRegionString('"augment.dart"');
+    assertHasFileTarget(augmentFile, 0, 0);
+  }
+
+  Future<void> test_string_importAugment_unresolvedUri() async {
+    addTestFile('import augment "no.dart";');
     await prepareNavigation();
     assertNoRegionString('"no.dart"');
   }

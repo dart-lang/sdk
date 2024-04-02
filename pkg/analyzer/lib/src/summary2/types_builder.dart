@@ -271,7 +271,11 @@ class TypesBuilder {
 
   void _extensionDeclaration(ExtensionDeclaration node) {
     var element = node.declaredElement as ExtensionElementImpl;
-    element.extendedType = node.extendedType.typeOrThrow;
+    if (node.onClause case var onClause?) {
+      element.extendedType = onClause.extendedType.typeOrThrow;
+    } else {
+      element.extendedType = InvalidTypeImpl.instance;
+    }
   }
 
   void _extensionTypeDeclaration(ExtensionTypeDeclarationImpl node) {}

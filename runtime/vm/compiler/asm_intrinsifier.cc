@@ -45,7 +45,7 @@ void AsmIntrinsifier::StringEquality(Assembler* assembler,
   __ CompareClassId(obj2, string_cid, temp1);
   __ BranchIf(NOT_EQUAL, normal_ir_body, AssemblerBase::kNearJump);
 
-  __ LoadFromOffset(temp1, FieldAddress(obj1, target::String::length_offset()));
+  __ LoadFieldFromOffset(temp1, obj1, target::String::length_offset());
   __ CompareWithMemoryValue(
       temp1, FieldAddress(obj2, target::String::length_offset()));
   __ BranchIf(NOT_EQUAL, &is_false, AssemblerBase::kNearJump);

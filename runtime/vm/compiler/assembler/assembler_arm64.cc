@@ -942,11 +942,15 @@ Address Assembler::PrepareLargeOffset(Register base,
   }
 }
 
-void Assembler::LoadFromOffset(Register dest,
-                               const Address& addr,
-                               OperandSize sz) {
-  ldr(dest, PrepareLargeOffset(addr.base(), addr.offset(), sz, addr.type()),
-      sz);
+void Assembler::Load(Register dst, const Address& addr, OperandSize sz) {
+  if (addr.type() == Address::AddressType::Offset ||
+      addr.type() == Address::AddressType::PairOffset) {
+    ldr(dst, PrepareLargeOffset(addr.base(), addr.offset(), sz, addr.type()),
+        sz);
+  } else {
+    // Pass the address through unchanged.
+    ldr(dst, addr, sz);
+  }
 }
 
 void Assembler::LoadSFromOffset(VRegister dest, Register base, int32_t offset) {
@@ -964,10 +968,15 @@ void Assembler::LoadQFromOffset(VRegister dest, Register base, int32_t offset) {
   fldrq(dest, PrepareLargeOffset(base, offset, kQWord, type));
 }
 
-void Assembler::StoreToOffset(Register src,
-                              const Address& addr,
-                              OperandSize sz) {
-  str(src, PrepareLargeOffset(addr.base(), addr.offset(), sz, addr.type()), sz);
+void Assembler::Store(Register src, const Address& addr, OperandSize sz) {
+  if (addr.type() == Address::AddressType::Offset ||
+      addr.type() == Address::AddressType::PairOffset) {
+    str(src, PrepareLargeOffset(addr.base(), addr.offset(), sz, addr.type()),
+        sz);
+  } else {
+    // Pass the address through unchanged.
+    str(src, addr, sz);
+  }
 }
 
 void Assembler::StorePairToOffset(Register low,
@@ -1024,55 +1033,19 @@ void Assembler::VRSqrts(VRegister vd, VRegister vn) {
   vmuls(vd, vd, VTMP);
 }
 
+#if defined(DART_COMPRESSED_POINTERS)
 void Assembler::LoadCompressed(Register dest, const Address& slot) {
-#if !defined(DART_COMPRESSED_POINTERS)
-  ldr(dest, slot);
-#else
   ldr(dest, slot, kUnsignedFourBytes);  // Zero-extension.
   add(dest, dest, Operand(HEAP_BITS, LSL, 32));
-#endif
 }
 
 void Assembler::LoadCompressedFromOffset(Register dest,
                                          Register base,
                                          int32_t offset) {
-#if !defined(DART_COMPRESSED_POINTERS)
-  LoadFromOffset(dest, base, offset, kObjectBytes);
-#else
   LoadFromOffset(dest, base, offset, kUnsignedFourBytes);  // Zero-extension.
   add(dest, dest, Operand(HEAP_BITS, LSL, 32));
-#endif
 }
-
-void Assembler::LoadCompressedSmi(Register dest, const Address& slot) {
-#if !defined(DART_COMPRESSED_POINTERS)
-  ldr(dest, slot);
-#else
-  ldr(dest, slot, kUnsignedFourBytes);                     // Zero-extension.
 #endif
-#if defined(DEBUG)
-  Label done;
-  BranchIfSmi(dest, &done, kNearJump);
-  Stop("Expected Smi");
-  Bind(&done);
-#endif
-}
-
-void Assembler::LoadCompressedSmiFromOffset(Register dest,
-                                            Register base,
-                                            int32_t offset) {
-#if !defined(DART_COMPRESSED_POINTERS)
-  LoadFromOffset(dest, base, offset);
-#else
-  LoadFromOffset(dest, base, offset, kUnsignedFourBytes);  // Zero-extension.
-#endif
-#if defined(DEBUG)
-  Label done;
-  BranchIfSmi(dest, &done);
-  Stop("Expected Smi");
-  Bind(&done);
-#endif
-}
 
 void Assembler::StoreIntoObjectOffset(Register object,
                                       int32_t offset,
@@ -1087,6 +1060,7 @@ void Assembler::StoreIntoObjectOffset(Register object,
   StoreBarrier(object, value, value_can_be_smi);
 }
 
+#if defined(DART_COMPRESSED_POINTERS)
 void Assembler::StoreCompressedIntoObjectOffset(Register object,
                                                 int32_t offset,
                                                 Register value,
@@ -1099,6 +1073,7 @@ void Assembler::StoreCompressedIntoObjectOffset(Register object,
   }
   StoreBarrier(object, value, value_can_be_smi);
 }
+#endif
 
 void Assembler::StoreIntoObject(Register object,
                                 const Address& dest,
@@ -1111,6 +1086,7 @@ void Assembler::StoreIntoObject(Register object,
   StoreBarrier(object, value, can_be_smi);
 }
 
+#if defined(DART_COMPRESSED_POINTERS)
 void Assembler::StoreCompressedIntoObject(Register object,
                                           const Address& dest,
                                           Register value,
@@ -1121,6 +1097,7 @@ void Assembler::StoreCompressedIntoObject(Register object,
   str(value, dest, kObjectBytes);
   StoreBarrier(object, value, can_be_smi);
 }
+#endif
 
 void Assembler::StoreBarrier(Register object,
                              Register value,
@@ -1195,6 +1172,7 @@ void Assembler::StoreIntoArray(Register object,
   StoreIntoArrayBarrier(object, slot, value, can_be_smi);
 }
 
+#if defined(DART_COMPRESSED_POINTERS)
 void Assembler::StoreCompressedIntoArray(Register object,
                                          Register slot,
                                          Register value,
@@ -1202,6 +1180,7 @@ void Assembler::StoreCompressedIntoArray(Register object,
   str(value, Address(slot, 0), kObjectBytes);
   StoreIntoArrayBarrier(object, slot, value, can_be_smi);
 }
+#endif
 
 void Assembler::StoreIntoArrayBarrier(Register object,
                                       Register slot,
@@ -1274,6 +1253,7 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   // No store buffer update.
 }
 
+#if defined(DART_COMPRESSED_POINTERS)
 void Assembler::StoreCompressedIntoObjectNoBarrier(Register object,
                                                    const Address& dest,
                                                    Register value,
@@ -1298,6 +1278,7 @@ void Assembler::StoreCompressedIntoObjectNoBarrier(Register object,
 #endif  // defined(DEBUG)
   // No store buffer update.
 }
+#endif
 
 void Assembler::StoreIntoObjectOffsetNoBarrier(Register object,
                                                int32_t offset,
@@ -1313,6 +1294,7 @@ void Assembler::StoreIntoObjectOffsetNoBarrier(Register object,
   }
 }
 
+#if defined(DART_COMPRESSED_POINTERS)
 void Assembler::StoreCompressedIntoObjectOffsetNoBarrier(
     Register object,
     int32_t offset,
@@ -1328,6 +1310,7 @@ void Assembler::StoreCompressedIntoObjectOffsetNoBarrier(
     StoreCompressedIntoObjectNoBarrier(object, Address(TMP), value);
   }
 }
+#endif
 
 void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Address& dest,
@@ -1346,6 +1329,7 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   }
 }
 
+#if defined(DART_COMPRESSED_POINTERS)
 void Assembler::StoreCompressedIntoObjectNoBarrier(Register object,
                                                    const Address& dest,
                                                    const Object& value,
@@ -1364,6 +1348,7 @@ void Assembler::StoreCompressedIntoObjectNoBarrier(Register object,
     str(TMP2, dest, kObjectBytes);
   }
 }
+#endif
 
 void Assembler::StoreIntoObjectOffsetNoBarrier(Register object,
                                                int32_t offset,
@@ -1387,6 +1372,7 @@ void Assembler::StoreIntoObjectOffsetNoBarrier(Register object,
   }
 }
 
+#if defined(DART_COMPRESSED_POINTERS)
 void Assembler::StoreCompressedIntoObjectOffsetNoBarrier(
     Register object,
     int32_t offset,
@@ -1411,6 +1397,7 @@ void Assembler::StoreCompressedIntoObjectOffsetNoBarrier(
     StoreCompressedIntoObjectNoBarrier(object, Address(TMP), value);
   }
 }
+#endif
 
 void Assembler::StoreInternalPointer(Register object,
                                      const Address& dest,
@@ -2128,8 +2115,7 @@ void Assembler::TryAllocateObject(intptr_t cid,
 
     const uword tags = target::MakeTagWordForNewSpaceObject(cid, instance_size);
     LoadImmediate(temp_reg, tags);
-    StoreToOffset(temp_reg,
-                  FieldAddress(instance_reg, target::Object::tags_offset()));
+    Store(temp_reg, FieldAddress(instance_reg, target::Object::tags_offset()));
   } else {
     b(failure);
   }
@@ -2355,6 +2341,7 @@ void Assembler::LoadStaticFieldAddress(Register address,
       Operand(scratch, LSL, target::kWordSizeLog2 - kSmiTagShift));
 }
 
+#if defined(DART_COMPRESSED_POINTERS)
 void Assembler::LoadCompressedFieldAddressForRegOffset(
     Register address,
     Register instance,
@@ -2364,6 +2351,7 @@ void Assembler::LoadCompressedFieldAddressForRegOffset(
               target::kCompressedWordSizeLog2 - kSmiTagShift));
   AddImmediate(address, -kHeapObjectTag);
 }
+#endif
 
 void Assembler::LoadFieldAddressForRegOffset(Register address,
                                              Register instance,

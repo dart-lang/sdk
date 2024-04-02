@@ -7528,9 +7528,8 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
           const auto& target_stack = def_target.AsStack();
           __ AddImmediate(temp0, origin.base_reg(),
                           origin.stack_index() * compiler::target::kWordSize);
-          __ StoreToOffset(temp0,
-                           compiler::Address(target_stack.base_register(),
-                                             target_stack.offset_in_bytes()));
+          __ StoreToOffset(temp0, target_stack.base_register(),
+                           target_stack.offset_in_bytes());
         }
       } else {
         __ Comment("def_target %s <- origin %s %s",

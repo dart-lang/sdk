@@ -474,6 +474,11 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       element.methods = holder.methods;
     }
 
+    node.onClause?.accept(this);
+  }
+
+  @override
+  void visitExtensionOnClause(ExtensionOnClause node) {
     node.extendedType.accept(this);
   }
 

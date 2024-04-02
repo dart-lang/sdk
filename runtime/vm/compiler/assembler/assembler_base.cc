@@ -32,53 +32,158 @@ AssemblerBase::~AssemblerBase() {}
 void AssemblerBase::LoadFromSlot(Register dst,
                                  Register base,
                                  const Slot& slot) {
-  auto const rep = slot.representation();
-  const FieldAddress address(base, slot.offset_in_bytes());
-  if (rep != kTagged) {
-    auto const sz = RepresentationUtils::OperandSize(rep);
-    return LoadFromOffset(dst, address, sz);
+  if (slot.is_unboxed()) {
+    // The result cannot be a floating point or SIMD value.
+    ASSERT(slot.representation() == kUntagged ||
+           RepresentationUtils::IsUnboxedInteger(slot.representation()));
+    // Since we only have a single destination register, the result value must
+    // fit into a register.
+    ASSERT(RepresentationUtils::ValueSize(slot.representation()) <=
+           compiler::target::kWordSize);
+    const intptr_t offset = slot.offset_in_bytes() - kHeapObjectTag;
+    auto const sz = RepresentationUtils::OperandSize(slot.representation());
+    return LoadFromOffset(dst, base, offset, sz);
   }
-  if (slot.is_compressed()) {
-    if (slot.type().ToCid() == kSmiCid) {
-      return LoadCompressedSmi(dst, address);
-    } else {
-      return LoadCompressedField(dst, address);
-    }
+  if (!slot.is_compressed()) {
+    LoadFieldFromOffset(dst, base, slot.offset_in_bytes());
+  } else if (slot.type().ToCid() == kSmiCid) {
+    LoadCompressedSmiFieldFromOffset(dst, base, slot.offset_in_bytes());
+  } else {
+    LoadCompressedFieldFromOffset(dst, base, slot.offset_in_bytes());
   }
-  return LoadField(dst, address);
 }
 
-void AssemblerBase::StoreToSlot(Register src, Register base, const Slot& slot) {
-  auto const rep = slot.representation();
-  const FieldAddress address(base, slot.offset_in_bytes());
-  if (rep != kTagged) {
-    auto const sz = RepresentationUtils::OperandSize(rep);
-    return StoreToOffset(src, address, sz);
+void AssemblerBase::StoreToSlot(Register src,
+                                Register base,
+                                const Slot& slot,
+                                MemoryOrder memory_order) {
+  auto const can_be_smi =
+      slot.type().CanBeSmi() ? kValueCanBeSmi : kValueIsNotSmi;
+  StoreToSlot(src, base, slot, can_be_smi, memory_order);
+}
+
+void AssemblerBase::StoreToSlot(Register src,
+                                Register base,
+                                const Slot& slot,
+                                CanBeSmi can_be_smi,
+                                MemoryOrder memory_order) {
+  if (slot.is_unboxed()) {
+    // Same as the no barrier case.
+    StoreToSlotNoBarrier(src, base, slot, memory_order);
   }
   if (slot.is_compressed()) {
-    return StoreCompressedIntoObject(
-        base, address, src,
-        slot.type().CanBeSmi() ? kValueCanBeSmi : kValueIsNotSmi);
+    StoreCompressedIntoObjectOffset(base, slot.offset_in_bytes(), src,
+                                    can_be_smi, memory_order);
+  } else {
+    StoreIntoObjectOffset(base, slot.offset_in_bytes(), src, can_be_smi,
+                          memory_order);
   }
-  return StoreIntoObject(
-      base, address, src,
-      slot.type().CanBeSmi() ? kValueCanBeSmi : kValueIsNotSmi);
 }
 
 void AssemblerBase::StoreToSlotNoBarrier(Register src,
                                          Register base,
-                                         const Slot& slot) {
-  auto const rep = slot.representation();
-  const FieldAddress address(base, slot.offset_in_bytes());
-  if (rep != kTagged) {
-    auto const sz = RepresentationUtils::OperandSize(rep);
-    return StoreToOffset(src, address, sz);
+                                         const Slot& slot,
+                                         MemoryOrder memory_order) {
+  if (slot.is_unboxed()) {
+    // The stored value cannot be a floating point or SIMD value.
+    ASSERT(slot.representation() == kUntagged ||
+           RepresentationUtils::IsUnboxedInteger(slot.representation()));
+    // Since we only have a single source register, the stored value must
+    // fit into a register.
+    ASSERT(RepresentationUtils::ValueSize(slot.representation()) <=
+           compiler::target::kWordSize);
+    const intptr_t offset = slot.offset_in_bytes() - kHeapObjectTag;
+    auto const sz = RepresentationUtils::OperandSize(slot.representation());
+    return StoreToOffset(src, base, offset, sz);
   }
   if (slot.is_compressed()) {
-    return StoreCompressedIntoObjectNoBarrier(base, address, src);
+    StoreCompressedIntoObjectOffsetNoBarrier(base, slot.offset_in_bytes(), src,
+                                             memory_order);
+  } else {
+    StoreIntoObjectOffsetNoBarrier(base, slot.offset_in_bytes(), src,
+                                   memory_order);
   }
-  return StoreIntoObjectNoBarrier(base, address, src);
 }
+
+void AssemblerBase::LoadFromOffset(Register dst,
+                                   Register base,
+                                   int32_t offset,
+                                   OperandSize sz) {
+  Load(dst, Address(base, offset), sz);
+}
+
+void AssemblerBase::StoreToOffset(Register src,
+                                  Register base,
+                                  int32_t offset,
+                                  OperandSize sz) {
+  Store(src, Address(base, offset), sz);
+}
+
+void AssemblerBase::LoadField(Register dst,
+                              const FieldAddress& address,
+                              OperandSize sz) {
+  Load(dst, address, sz);
+}
+
+void AssemblerBase::LoadCompressedField(Register dst,
+                                        const FieldAddress& address) {
+  LoadCompressed(dst, address);
+}
+
+void AssemblerBase::StoreIntoObjectOffset(Register object,
+                                          int32_t offset,
+                                          Register value,
+                                          CanBeSmi can_be_smi,
+                                          MemoryOrder memory_order) {
+  StoreIntoObject(object, FieldAddress(object, offset), value, can_be_smi,
+                  memory_order);
+}
+void AssemblerBase::StoreIntoObjectOffsetNoBarrier(Register object,
+                                                   int32_t offset,
+                                                   Register value,
+                                                   MemoryOrder memory_order) {
+  StoreIntoObjectNoBarrier(object, FieldAddress(object, offset), value,
+                           memory_order);
+}
+void AssemblerBase::StoreIntoObjectOffsetNoBarrier(Register object,
+                                                   int32_t offset,
+                                                   const Object& value,
+                                                   MemoryOrder memory_order) {
+  StoreIntoObjectNoBarrier(object, FieldAddress(object, offset), value,
+                           memory_order);
+}
+
+#if defined(DART_COMPRESSED_POINTERS)
+void AssemblerBase::LoadCompressedFromOffset(Register dst,
+                                             Register base,
+                                             int32_t offset) {
+  LoadCompressed(dst, Address(base, offset));
+}
+void AssemblerBase::StoreCompressedIntoObjectOffset(Register object,
+                                                    int32_t offset,
+                                                    Register value,
+                                                    CanBeSmi can_be_smi,
+                                                    MemoryOrder memory_order) {
+  StoreCompressedIntoObject(object, FieldAddress(object, offset), value,
+                            can_be_smi, memory_order);
+}
+void AssemblerBase::StoreCompressedIntoObjectOffsetNoBarrier(
+    Register object,
+    int32_t offset,
+    Register value,
+    MemoryOrder memory_order) {
+  StoreCompressedIntoObjectNoBarrier(object, FieldAddress(object, offset),
+                                     value, memory_order);
+}
+void AssemblerBase::StoreCompressedIntoObjectOffsetNoBarrier(
+    Register object,
+    int32_t offset,
+    const Object& value,
+    MemoryOrder memory_order) {
+  StoreCompressedIntoObjectNoBarrier(object, FieldAddress(object, offset),
+                                     value, memory_order);
+}
+#endif
 
 void AssemblerBase::UnrolledMemCopy(Register dst_base,
                                     intptr_t dst_offset,
@@ -89,28 +194,24 @@ void AssemblerBase::UnrolledMemCopy(Register dst_base,
   intptr_t offset = 0;
   if (target::kWordSize >= 8) {
     while (offset + 8 <= size) {
-      LoadFromOffset(temp, Address(src_base, src_offset + offset), kEightBytes);
-      StoreToOffset(temp, Address(dst_base, dst_offset + offset), kEightBytes);
+      LoadFromOffset(temp, src_base, src_offset + offset, kEightBytes);
+      StoreToOffset(temp, dst_base, dst_offset + offset, kEightBytes);
       offset += 8;
     }
   }
   while (offset + 4 <= size) {
-    LoadFromOffset(temp, Address(src_base, src_offset + offset),
-                   kUnsignedFourBytes);
-    StoreToOffset(temp, Address(dst_base, dst_offset + offset),
-                  kUnsignedFourBytes);
+    LoadFromOffset(temp, src_base, src_offset + offset, kUnsignedFourBytes);
+    StoreToOffset(temp, dst_base, dst_offset + offset, kUnsignedFourBytes);
     offset += 4;
   }
   while (offset + 2 <= size) {
-    LoadFromOffset(temp, Address(src_base, src_offset + offset),
-                   kUnsignedTwoBytes);
-    StoreToOffset(temp, Address(dst_base, dst_offset + offset),
-                  kUnsignedTwoBytes);
+    LoadFromOffset(temp, src_base, src_offset + offset, kUnsignedTwoBytes);
+    StoreToOffset(temp, dst_base, dst_offset + offset, kUnsignedTwoBytes);
     offset += 2;
   }
   while (offset + 1 <= size) {
-    LoadFromOffset(temp, Address(src_base, src_offset + offset), kUnsignedByte);
-    StoreToOffset(temp, Address(dst_base, dst_offset + offset), kUnsignedByte);
+    LoadFromOffset(temp, src_base, src_offset + offset, kUnsignedByte);
+    StoreToOffset(temp, dst_base, dst_offset + offset, kUnsignedByte);
     offset += 1;
   }
   ASSERT(offset == size);

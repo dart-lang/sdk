@@ -268,6 +268,46 @@ class [!A!] {
     await testContents(contents);
   }
 
+  Future<void> test_directive_augmentLibrary() async {
+    await verifyDirective(
+      source: "library augment 'destin^ation.dart';",
+      destination: "import augment 'source.dart';",
+    );
+  }
+
+  Future<void> test_directive_export() async {
+    await verifyDirective(
+      source: "export 'destin^ation.dart';",
+    );
+  }
+
+  Future<void> test_directive_import() async {
+    await verifyDirective(
+      source: "import 'desti^nation.dart';",
+    );
+  }
+
+  Future<void> test_directive_importAugment() async {
+    await verifyDirective(
+      source: "import augment 'destin^ation.dart';",
+      destination: "library augment 'source.dart';",
+    );
+  }
+
+  Future<void> test_directive_part() async {
+    await verifyDirective(
+      source: "part 'desti^nation.dart';",
+      destination: "part of 'source.dart';",
+    );
+  }
+
+  Future<void> test_directive_partOf() async {
+    await verifyDirective(
+      source: "part of 'destin^ation.dart';",
+      destination: "part 'source.dart';",
+    );
+  }
+
   Future<void> test_fieldFormalParam() async {
     final contents = '''
 class A {
@@ -571,54 +611,6 @@ class A {}
     );
   }
 
-  Future<void> test_partFilename() async {
-    final mainContents = '''
-part 'pa^rt.dart';
-    ''';
-
-    final partContents = '''
-part of 'main.dart';
-    ''';
-
-    final partFilePath = join(projectFolderPath, 'lib', 'part.dart');
-    final partFileUri = toUri(partFilePath);
-
-    final mainCode = TestCode.parse(mainContents);
-    final partCode = TestCode.parse(partContents);
-
-    newFile(mainFilePath, mainCode.code);
-    newFile(partFilePath, partCode.code);
-    await initialize();
-    final res =
-        await getDefinitionAsLocation(mainFileUri, mainCode.position.position);
-
-    expect(res.single.uri, equals(partFileUri));
-  }
-
-  Future<void> test_partOfFilename() async {
-    final mainContents = '''
-part 'part.dart';
-    ''';
-
-    final partContents = '''
-part of 'ma^in.dart';
-    ''';
-
-    final partFilePath = join(projectFolderPath, 'lib', 'part.dart');
-    final partFileUri = toUri(partFilePath);
-
-    final mainCode = TestCode.parse(mainContents);
-    final partCode = TestCode.parse(partContents);
-
-    newFile(mainFilePath, mainCode.code);
-    newFile(partFilePath, partCode.code);
-    await initialize();
-    final res =
-        await getDefinitionAsLocation(partFileUri, partCode.position.position);
-
-    expect(res.single.uri, equals(mainFileUri));
-  }
-
   Future<void> test_sameLine() async {
     final contents = '''
 int plusOne(int [!value!]) => 1 + val^ue;
@@ -713,5 +705,30 @@ foo() {
     var loc = res.single;
     expect(loc.range, equals(code.range.range));
     expect(loc.uri, equals(mainFileUri));
+  }
+
+  /// Verifies that invoking Definition at `^` in [source] (which will be
+  /// written into `source.dart`) navigate to `destination.dart` (with the
+  /// content [destination]).
+  Future<void> verifyDirective({
+    required String source,
+    String destination = '',
+  }) async {
+    final destinationCode = TestCode.parse(destination);
+    final sourceCode = TestCode.parse(source);
+
+    final sourceFilePath = join(projectFolderPath, 'lib', 'source.dart');
+    final sourceFileUri = toUri(sourceFilePath);
+    final destinationFilePath =
+        join(projectFolderPath, 'lib', 'destination.dart');
+    final destinationFileUri = toUri(destinationFilePath);
+
+    newFile(sourceFilePath, sourceCode.code);
+    newFile(destinationFilePath, destinationCode.code);
+    await initialize();
+    final res = await getDefinitionAsLocation(
+        sourceFileUri, sourceCode.position.position);
+
+    expect(res.single.uri, equals(destinationFileUri));
   }
 }

@@ -120,7 +120,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     } else if (parent is MixinDeclaration) {
       return parent.name.lexeme;
     } else if (parent is ExtensionDeclaration) {
-      return parent.extendedType.toSource();
+      if (parent.onClause case var onClause?) {
+        return onClause.extendedType.toSource();
+      }
     }
     return 'unknown';
   }

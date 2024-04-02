@@ -305,7 +305,7 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void endExtensionDeclaration(Token beginToken, Token extensionKeyword,
-      Token onKeyword, Token endToken) {
+      Token? onKeyword, Token endToken) {
     ExtensionDeclarationEnd data = new ExtensionDeclarationEnd(
         ParserAstType.END,
         beginToken: beginToken,
@@ -3590,13 +3590,13 @@ class ExtensionDeclarationBegin extends ParserAstNode {
 class ExtensionDeclarationEnd extends ParserAstNode {
   final Token beginToken;
   final Token extensionKeyword;
-  final Token onKeyword;
+  final Token? onKeyword;
   final Token endToken;
 
   ExtensionDeclarationEnd(ParserAstType type,
       {required this.beginToken,
       required this.extensionKeyword,
-      required this.onKeyword,
+      this.onKeyword,
       required this.endToken})
       : super("ExtensionDeclaration", type);
 

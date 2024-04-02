@@ -1545,28 +1545,12 @@ void Assembler::LoadQImmediate(FpuRegister dst, simd128_value_t immediate) {
                               kHeapObjectTag));
 }
 
+#if defined(DART_COMPRESSED_POINTERS)
 void Assembler::LoadCompressed(Register dest, const Address& slot) {
-#if !defined(DART_COMPRESSED_POINTERS)
-  movq(dest, slot);
-#else
   movl(dest, slot);  // Zero-extension.
   addq(dest, Address(THR, target::Thread::heap_base_offset()));
-#endif
 }
-
-void Assembler::LoadCompressedSmi(Register dest, const Address& slot) {
-#if !defined(DART_COMPRESSED_POINTERS)
-  movq(dest, slot);
-#else
-  movl(dest, slot);  // Zero-extension.
 #endif
-#if defined(DEBUG)
-  Label done;
-  BranchIfSmi(dest, &done, kNearJump);
-  Stop("Expected Smi");
-  Bind(&done);
-#endif
-}
 
 void Assembler::StoreIntoObject(Register object,
                                 const Address& dest,
@@ -1581,6 +1565,7 @@ void Assembler::StoreIntoObject(Register object,
   StoreBarrier(object, value, can_be_smi);
 }
 
+#if defined(DART_COMPRESSED_POINTERS)
 void Assembler::StoreCompressedIntoObject(Register object,
                                           const Address& dest,
                                           Register value,
@@ -1593,6 +1578,7 @@ void Assembler::StoreCompressedIntoObject(Register object,
   }
   StoreBarrier(object, value, can_be_smi);
 }
+#endif
 
 void Assembler::StoreBarrier(Register object,
                              Register value,
@@ -1652,6 +1638,7 @@ void Assembler::StoreIntoArray(Register object,
   StoreIntoArrayBarrier(object, slot, value, can_be_smi);
 }
 
+#if defined(DART_COMPRESSED_POINTERS)
 void Assembler::StoreCompressedIntoArray(Register object,
                                          Register slot,
                                          Register value,
@@ -1659,6 +1646,7 @@ void Assembler::StoreCompressedIntoArray(Register object,
   OBJ(mov)(Address(slot, 0), value);
   StoreIntoArrayBarrier(object, slot, value, can_be_smi);
 }
+#endif
 
 void Assembler::StoreIntoArrayBarrier(Register object,
                                       Register slot,
@@ -1728,6 +1716,7 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   // No store buffer update.
 }
 
+#if defined(DART_COMPRESSED_POINTERS)
 void Assembler::StoreCompressedIntoObjectNoBarrier(Register object,
                                                    const Address& dest,
                                                    Register value,
@@ -1756,6 +1745,7 @@ void Assembler::StoreCompressedIntoObjectNoBarrier(Register object,
 #endif  // defined(DEBUG)
   // No store buffer update.
 }
+#endif
 
 void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Address& dest,
@@ -1769,6 +1759,7 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   }
 }
 
+#if defined(DART_COMPRESSED_POINTERS)
 void Assembler::StoreCompressedIntoObjectNoBarrier(Register object,
                                                    const Address& dest,
                                                    const Object& value,
@@ -1776,6 +1767,7 @@ void Assembler::StoreCompressedIntoObjectNoBarrier(Register object,
   LoadObject(TMP, value);
   StoreCompressedIntoObjectNoBarrier(object, dest, TMP, memory_order);
 }
+#endif
 
 void Assembler::StoreInternalPointer(Register object,
                                      const Address& dest,
@@ -1830,9 +1822,7 @@ void Assembler::Bind(Label* label) {
   label->BindTo(bound);
 }
 
-void Assembler::LoadFromOffset(Register reg,
-                               const Address& address,
-                               OperandSize sz) {
+void Assembler::Load(Register reg, const Address& address, OperandSize sz) {
   switch (sz) {
     case kByte:
       return movsxb(reg, address);
@@ -1854,9 +1844,7 @@ void Assembler::LoadFromOffset(Register reg,
   }
 }
 
-void Assembler::StoreToOffset(Register reg,
-                              const Address& address,
-                              OperandSize sz) {
+void Assembler::Store(Register reg, const Address& address, OperandSize sz) {
   switch (sz) {
     case kByte:
     case kUnsignedByte:

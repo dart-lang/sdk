@@ -2352,6 +2352,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
+  void visitExtensionOnClause(ExtensionOnClause node) {
+    checkUnreachableNode(node);
+    node.visitChildren(this);
+  }
+
+  @override
   void visitExtensionOverride(covariant ExtensionOverrideImpl node) {
     var whyNotPromotedList = <Map<DartType, NonPromotionReason> Function()>[];
     node.typeArguments?.accept(this);
@@ -4296,7 +4302,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
   void visitExtensionDeclarationInScope(ExtensionDeclaration node) {
     node.typeParameters?.accept(this);
-    node.extendedType.accept(this);
+    node.onClause?.accept(this);
   }
 
   void visitExtensionMembersInScope(ExtensionDeclaration node) {

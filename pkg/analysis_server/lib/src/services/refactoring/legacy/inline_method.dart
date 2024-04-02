@@ -15,6 +15,7 @@ import 'package:analysis_server/src/utilities/strings.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
@@ -572,6 +573,12 @@ class _ReferenceProcessor {
         }
         // do replace
         var methodUsageRange = range.node(usage);
+        var awaitKeyword = Keyword.AWAIT.lexeme;
+        if (usage.parent is AwaitExpression &&
+            source.startsWith(awaitKeyword)) {
+          // remove the duplicate await keyword and the following whitespace.
+          source = source.substring(awaitKeyword.length + 1);
+        }
         var edit = newSourceEdit_range(methodUsageRange, source);
         _addRefEdit(edit);
       } else {

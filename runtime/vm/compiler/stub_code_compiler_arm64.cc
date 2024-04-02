@@ -41,7 +41,7 @@ void StubCodeCompiler::EnsureIsNewOrRemembered() {
   // Page's TLAB use is always ascending.
   Label done;
   __ AndImmediate(TMP, R0, target::kPageMask);
-  __ LoadFromOffset(TMP, Address(TMP, target::Page::original_top_offset()));
+  __ LoadFromOffset(TMP, TMP, target::Page::original_top_offset());
   __ CompareRegisters(R0, TMP);
   __ BranchIf(UNSIGNED_GREATER_EQUAL, &done);
 
@@ -465,9 +465,8 @@ void StubCodeCompiler::GenerateLoadFfiCallbackMetadataRuntimeFunction(
   __ andi(dst, dst, Immediate(FfiCallbackMetadata::kPageMask));
 
   // Load the function from the function table.
-  __ LoadFromOffset(
-      dst,
-      Address(dst, FfiCallbackMetadata::RuntimeFunctionOffset(function_index)));
+  __ LoadFromOffset(dst, dst,
+                    FfiCallbackMetadata::RuntimeFunctionOffset(function_index));
 }
 
 void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {

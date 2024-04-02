@@ -58,7 +58,7 @@ class CompletionState {
             return element.thisType;
           }
         case ExtensionDeclaration():
-          return node.extendedType.type;
+          return node.onClause?.extendedType.type;
         case MixinDeclaration():
           var element = node.declaredElement;
           if (element != null) {

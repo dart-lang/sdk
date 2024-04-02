@@ -2807,6 +2807,15 @@ ExtensionDeclaresInstanceField:
     setter, or method.
   hasPublishedDocs: true
 
+ExtensionAugmentationHasOnClause:
+  index: 179
+  problemMessage: "Extension augmentations can't have 'on' clauses."
+  correctionMessage: "Try removing the 'on' clause."
+  analyzerCode: ParserErrorCode.EXTENSION_AUGMENTATION_HAS_ON_CLAUSE
+  script: |
+    augment extension E on int {}
+  comment: No parameters.
+
 ExtensionTypeDeclaresInstanceField:
   problemMessage: "Extension types can't declare instance fields"
   correctionMessage: "Try removing the field declaration or making it a static field"

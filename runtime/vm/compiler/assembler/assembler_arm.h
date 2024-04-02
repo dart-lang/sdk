@@ -415,7 +415,7 @@ class Assembler : public AssemblerBase {
 
   void PushValueAtOffset(Register base, int32_t offset) { UNIMPLEMENTED(); }
 
-  void Bind(Label* label);
+  void Bind(Label* label) override;
   // Unconditional jump to a given label. [distance] is ignored on ARM.
   void Jump(Label* label, JumpDistance distance = kFarJump) { b(label); }
   // Unconditional jump to a given address in register.
@@ -423,16 +423,9 @@ class Assembler : public AssemblerBase {
   // Unconditional jump to a given address in memory.
   void Jump(const Address& address) { Branch(address); }
 
-  void LoadField(Register dst, const FieldAddress& address) override {
-    LoadFromOffset(dst, address);
-  }
   void LoadMemoryValue(Register dst, Register base, int32_t offset) {
     LoadFromOffset(dst, base, offset);
   }
-  void LoadCompressed(Register dest, const Address& slot) {
-    LoadFromOffset(dest, slot);
-  }
-  void LoadCompressedSmi(Register dest, const Address& slot) override;
   void StoreMemoryValue(Register src, Register base, int32_t offset) {
     StoreToOffset(src, base, offset);
   }
@@ -440,7 +433,7 @@ class Assembler : public AssemblerBase {
                    Register address,
                    int32_t offset = 0,
                    OperandSize size = kFourBytes) override {
-    LoadFromOffset(dst, Address(address, offset), size);
+    Load(dst, Address(address, offset), size);
     dmb();
   }
   void StoreRelease(Register src,
@@ -450,23 +443,16 @@ class Assembler : public AssemblerBase {
   }
   void StoreRelease(Register src, Address dest) {
     dmb();
-    StoreToOffset(src, dest);
+    Store(src, dest);
 
     // We don't run TSAN bots on 32 bit.
-  }
-
-  void CompareWithCompressedFieldFromOffset(Register value,
-                                            Register base,
-                                            int32_t offset) {
-    LoadCompressedFieldFromOffset(TMP, base, offset);
-    cmp(value, Operand(TMP));
   }
 
   void CompareWithMemoryValue(Register value,
                               Address address,
                               OperandSize size = kFourBytes) override {
     ASSERT_EQUAL(size, kFourBytes);
-    LoadFromOffset(TMP, address, size);
+    Load(TMP, address, size);
     cmp(value, Operand(TMP));
   }
 
@@ -1022,32 +1008,34 @@ class Assembler : public AssemblerBase {
   void StoreIntoArray(Register object,
                       Register slot,
                       Register value,
-                      CanBeSmi can_value_be_smi = kValueCanBeSmi);
-  void StoreIntoObjectOffset(Register object,
-                             int32_t offset,
-                             Register value,
-                             CanBeSmi can_value_be_smi = kValueCanBeSmi,
-                             MemoryOrder memory_order = kRelaxedNonAtomic);
+                      CanBeSmi can_value_be_smi = kValueCanBeSmi) override;
+  void StoreIntoObjectOffset(
+      Register object,
+      int32_t offset,
+      Register value,
+      CanBeSmi can_value_be_smi = kValueCanBeSmi,
+      MemoryOrder memory_order = kRelaxedNonAtomic) override;
 
   void StoreIntoObjectNoBarrier(
       Register object,
       const Address& dest,
       Register value,
       MemoryOrder memory_order = kRelaxedNonAtomic) override;
-  void StoreIntoObjectNoBarrier(Register object,
-                                const Address& dest,
-                                const Object& value,
-                                MemoryOrder memory_order = kRelaxedNonAtomic);
+  void StoreIntoObjectNoBarrier(
+      Register object,
+      const Address& dest,
+      const Object& value,
+      MemoryOrder memory_order = kRelaxedNonAtomic) override;
   void StoreIntoObjectOffsetNoBarrier(
       Register object,
       int32_t offset,
       Register value,
-      MemoryOrder memory_order = kRelaxedNonAtomic);
+      MemoryOrder memory_order = kRelaxedNonAtomic) override;
   void StoreIntoObjectOffsetNoBarrier(
       Register object,
       int32_t offset,
       const Object& value,
-      MemoryOrder memory_order = kRelaxedNonAtomic);
+      MemoryOrder memory_order = kRelaxedNonAtomic) override;
 
   // Stores a non-tagged value into a heap object.
   void StoreInternalPointer(Register object,
@@ -1106,46 +1094,40 @@ class Assembler : public AssemblerBase {
                                   OperandSize sz,
                                   Condition cond);
 
-  void LoadFromOffset(Register reg,
-                      const Address& address,
-                      OperandSize type,
-                      Condition cond);
-  void LoadFromOffset(Register reg,
-                      const Address& address,
-                      OperandSize type = kFourBytes) override {
-    LoadFromOffset(reg, address, type, AL);
+  void Load(Register reg,
+            const Address& address,
+            OperandSize type,
+            Condition cond);
+  void Load(Register reg,
+            const Address& address,
+            OperandSize type = kFourBytes) override {
+    Load(reg, address, type, AL);
   }
   void LoadFromOffset(Register reg,
                       Register base,
                       int32_t offset,
-                      OperandSize type = kFourBytes,
-                      Condition cond = AL) {
-    LoadFromOffset(reg, Address(base, offset), type, cond);
+                      OperandSize type = kFourBytes) override {
+    LoadFromOffset(reg, base, offset, type, AL);
+  }
+  void LoadFromOffset(Register reg,
+                      Register base,
+                      int32_t offset,
+                      OperandSize type,
+                      Condition cond) {
+    Load(reg, Address(base, offset), type, cond);
   }
   void LoadFieldFromOffset(Register reg,
                            Register base,
                            int32_t offset,
-                           OperandSize sz = kFourBytes) override {
-    LoadFromOffset(reg, FieldAddress(base, offset), sz, AL);
+                           OperandSize type = kFourBytes) override {
+    LoadFieldFromOffset(reg, base, offset, type, AL);
   }
   void LoadFieldFromOffset(Register reg,
                            Register base,
                            int32_t offset,
                            OperandSize type,
                            Condition cond) {
-    LoadFromOffset(reg, FieldAddress(base, offset), type, cond);
-  }
-  void LoadCompressedFieldFromOffset(Register reg,
-                                     Register base,
-                                     int32_t offset) override {
-    LoadCompressedFieldFromOffset(reg, base, offset, kFourBytes, AL);
-  }
-  void LoadCompressedFieldFromOffset(Register reg,
-                                     Register base,
-                                     int32_t offset,
-                                     OperandSize type,
-                                     Condition cond = AL) {
-    LoadFieldFromOffset(reg, base, offset, type, cond);
+    Load(reg, FieldAddress(base, offset), type, cond);
   }
   // For loading indexed payloads out of tagged objects like Arrays. If the
   // payload objects are word-sized, use TIMES_HALF_WORD_SIZE if the contents of
@@ -1155,47 +1137,52 @@ class Assembler : public AssemblerBase {
                           int32_t payload_start,
                           Register index,
                           ScaleFactor scale,
-                          OperandSize type = kFourBytes) {
+                          OperandSize type = kFourBytes) override {
     add(dst, base, Operand(index, LSL, scale));
     LoadFromOffset(dst, dst, payload_start - kHeapObjectTag, type);
-  }
-  void LoadIndexedCompressed(Register dst,
-                             Register base,
-                             int32_t offset,
-                             Register index) {
-    add(dst, base, Operand(index, LSL, TIMES_COMPRESSED_WORD_SIZE));
-    LoadCompressedFieldFromOffset(dst, dst, offset);
   }
   void LoadFromStack(Register dst, intptr_t depth);
   void StoreToStack(Register src, intptr_t depth);
   void CompareToStack(Register src, intptr_t depth);
 
-  void StoreToOffset(Register reg,
-                     const Address& address,
-                     OperandSize type,
-                     Condition cond);
-  void StoreToOffset(Register reg,
-                     const Address& address,
-                     OperandSize type = kFourBytes) override {
-    StoreToOffset(reg, address, type, AL);
+  void Store(Register reg,
+             const Address& address,
+             OperandSize type,
+             Condition cond);
+  void Store(Register reg,
+             const Address& address,
+             OperandSize type = kFourBytes) override {
+    Store(reg, address, type, AL);
   }
   void StoreToOffset(Register reg,
                      Register base,
                      int32_t offset,
-                     OperandSize type = kFourBytes,
-                     Condition cond = AL) {
-    StoreToOffset(reg, Address(base, offset), type, cond);
+                     OperandSize type = kFourBytes) override {
+    StoreToOffset(reg, base, offset, type, AL);
+  }
+  void StoreToOffset(Register reg,
+                     Register base,
+                     int32_t offset,
+                     OperandSize type,
+                     Condition cond) {
+    Store(reg, Address(base, offset), type, cond);
   }
   void StoreFieldToOffset(Register reg,
                           Register base,
                           int32_t offset,
-                          OperandSize type = kFourBytes,
-                          Condition cond = AL) {
-    StoreToOffset(reg, FieldAddress(base, offset), type, cond);
+                          OperandSize type = kFourBytes) override {
+    StoreFieldToOffset(reg, base, offset, type, AL);
+  }
+  void StoreFieldToOffset(Register reg,
+                          Register base,
+                          int32_t offset,
+                          OperandSize type,
+                          Condition cond) {
+    Store(reg, FieldAddress(base, offset), type, cond);
   }
   void StoreZero(const Address& address, Register temp) {
     mov(temp, Operand(0));
-    StoreToOffset(temp, address);
+    Store(temp, address);
   }
   void LoadSFromOffset(SRegister reg,
                        Register base,
@@ -1545,16 +1532,9 @@ class Assembler : public AssemblerBase {
                               Register field,
                               Register scratch);
 
-  void LoadCompressedFieldAddressForRegOffset(Register address,
-                                              Register instance,
-                                              Register offset_in_words_as_smi) {
-    return LoadFieldAddressForRegOffset(address, instance,
-                                        offset_in_words_as_smi);
-  }
-
   void LoadFieldAddressForRegOffset(Register address,
                                     Register instance,
-                                    Register offset_in_words_as_smi);
+                                    Register offset_in_words_as_smi) override;
 
   void LoadFieldAddressForOffset(Register address,
                                  Register instance,

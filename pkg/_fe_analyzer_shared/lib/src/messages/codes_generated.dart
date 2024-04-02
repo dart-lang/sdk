@@ -5161,6 +5161,18 @@ const MessageCode messageExtendsVoid = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExtensionAugmentationHasOnClause =
+    messageExtensionAugmentationHasOnClause;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExtensionAugmentationHasOnClause = const MessageCode(
+  "ExtensionAugmentationHasOnClause",
+  index: 179,
+  problemMessage: r"""Extension augmentations can't have 'on' clauses.""",
+  correctionMessage: r"""Try removing the 'on' clause.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExtensionDeclaresAbstractMember =
     messageExtensionDeclaresAbstractMember;
 

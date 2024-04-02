@@ -1264,17 +1264,18 @@ extension E on (int, int) {}
 ExtensionDeclaration
   extensionKeyword: extension @0
   name: E @10
-  onKeyword: on @12
-  extendedType: RecordTypeAnnotation
-    leftParenthesis: ( @15
-    positionalFields
-      RecordTypeAnnotationPositionalField
-        type: NamedType
-          name: int @16
-      RecordTypeAnnotationPositionalField
-        type: NamedType
-          name: int @21
-    rightParenthesis: ) @24
+  onClause: ExtensionOnClause
+    onKeyword: on @12
+    extendedType: RecordTypeAnnotation
+      leftParenthesis: ( @15
+      positionalFields
+        RecordTypeAnnotationPositionalField
+          type: NamedType
+            name: int @16
+        RecordTypeAnnotationPositionalField
+          type: NamedType
+            name: int @21
+      rightParenthesis: ) @24
   leftBracket: { @26
   rightBracket: } @27
 ''',

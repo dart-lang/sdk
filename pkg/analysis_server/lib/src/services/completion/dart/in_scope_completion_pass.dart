@@ -1075,11 +1075,10 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       identifierHelper(includePrivateIdentifiers: false).addTopLevelName();
     }
     if (offset <= node.leftBracket.offset) {
-      if (node.onKeyword.isSynthetic) {
-        keywordHelper.addExtensionDeclarationKeywords(node);
-      } else {
-        collector.completionLocation = 'ExtensionDeclaration_extendedType';
-        _forTypeAnnotation(node);
+      if (node.onClause case var onClause?) {
+        if (onClause.onKeyword.isSynthetic) {
+          keywordHelper.addExtensionDeclarationKeywords(node);
+        }
       }
       return;
     }
@@ -1087,6 +1086,17 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       collector.completionLocation = 'ExtensionDeclaration_member';
       _forExtensionMember(node);
     }
+  }
+
+  @override
+  void visitExtensionOnClause(ExtensionOnClause node) {
+    if (offset <= node.onKeyword.end) {
+      keywordHelper.addKeyword(Keyword.ON);
+      return;
+    }
+
+    collector.completionLocation = 'ExtensionOnClause_extendedType';
+    _forTypeAnnotation(node);
   }
 
   @override

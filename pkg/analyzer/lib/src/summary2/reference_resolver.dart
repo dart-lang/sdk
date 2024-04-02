@@ -147,7 +147,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     scope = TypeParameterScope(scope, element.typeParameters);
 
     node.typeParameters?.accept(this);
-    node.extendedType.accept(this);
+    node.onClause?.accept(this);
 
     scope = ExtensionScope(scope, element);
     LinkingNodeContext(node, scope);
@@ -156,6 +156,11 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     nodesToBuildType.addDeclaration(node);
 
     scope = outerScope;
+  }
+
+  @override
+  void visitExtensionOnClause(ExtensionOnClause node) {
+    node.extendedType.accept(this);
   }
 
   @override
