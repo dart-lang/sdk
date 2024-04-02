@@ -72,7 +72,7 @@ class AddCallSuper extends ResolvedCorrectionProducer {
         builder.write('${builder.getIndent(2)}super.$_addition;');
         if (block.statements.isEmpty) {
           builder.writeln();
-          builder.write(builder.getIndent(1));
+          builder.writeIndent();
         }
       });
     });

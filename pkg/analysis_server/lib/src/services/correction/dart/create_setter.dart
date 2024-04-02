@@ -94,31 +94,22 @@ class CreateSetter extends ResolvedCorrectionProducer {
     } else {
       return;
     }
-    // prepare location
-    var targetUnit = targetDeclarationResult.resolvedUnit;
-    if (targetUnit == null) {
-      return;
-    }
-    var targetLocation = CorrectionUtils(targetUnit)
-        .prepareNewGetterLocation(targetNode); // Rename to "AccessorLocation"
-    if (targetLocation == null) {
-      return;
-    }
-    // build method source
+    // Build setter source.
     var targetFile = targetSource.fullName;
     _setterName = nameNode.name;
     await builder.addDartFileEdit(targetFile, (builder) {
-      builder.addInsertion(targetLocation.offset, (builder) {
-        var parameterTypeNode = climbPropertyAccess(nameNode);
-        var parameterType = inferUndefinedExpressionType(parameterTypeNode);
-        builder.write(targetLocation.prefix);
-        builder.writeSetterDeclaration(_setterName,
-            isStatic: staticModifier,
-            nameGroupName: 'NAME',
-            parameterType: parameterType,
-            parameterTypeGroupName: 'TYPE');
-        builder.write(targetLocation.suffix);
-      });
+      builder.addGetterInsertion(
+        targetNode,
+        (builder) {
+          var parameterTypeNode = climbPropertyAccess(nameNode);
+          var parameterType = inferUndefinedExpressionType(parameterTypeNode);
+          builder.writeSetterDeclaration(_setterName,
+              isStatic: staticModifier,
+              nameGroupName: 'NAME',
+              parameterType: parameterType,
+              parameterTypeGroupName: 'TYPE');
+        },
+      );
     });
   }
 }

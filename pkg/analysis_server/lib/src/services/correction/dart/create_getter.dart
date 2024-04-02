@@ -209,28 +209,19 @@ class CreateGetter extends CreateFieldOrGetter {
     } else {
       return;
     }
-    // prepare location
-    var resolvedUnit = targetDeclarationResult.resolvedUnit;
-    if (resolvedUnit == null) {
-      return;
-    }
-    var targetLocation =
-        CorrectionUtils(resolvedUnit).prepareNewGetterLocation(targetNode);
-    if (targetLocation == null) {
-      return;
-    }
-    // build method source
+    // Build method source.
     var targetFile = targetSource.fullName;
     await builder.addDartFileEdit(targetFile, (builder) {
-      builder.addInsertion(targetLocation.offset, (builder) {
-        builder.write(targetLocation.prefix);
-        builder.writeGetterDeclaration(_getterName,
-            isStatic: staticModifier,
-            nameGroupName: 'NAME',
-            returnType: fieldType ?? typeProvider.dynamicType,
-            returnTypeGroupName: 'TYPE');
-        builder.write(targetLocation.suffix);
-      });
+      builder.addGetterInsertion(
+        targetNode,
+        (builder) {
+          builder.writeGetterDeclaration(_getterName,
+              isStatic: staticModifier,
+              nameGroupName: 'NAME',
+              returnType: fieldType ?? typeProvider.dynamicType,
+              returnTypeGroupName: 'TYPE');
+        },
+      );
     });
   }
 }
