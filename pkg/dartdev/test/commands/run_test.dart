@@ -858,6 +858,7 @@ void residentRun() {
     serverInfoFile = path.join(serverInfoDirectory.dirPath, 'info');
     final result = await serverInfoDirectory.run([
       'run',
+      '--resident',
       '--$residentCompilerInfoFileOption=$serverInfoFile',
       serverInfoDirectory.relativeFilePath,
     ]);
@@ -881,10 +882,30 @@ void residentRun() {
     } catch (_) {}
   });
 
+  test(
+      'passing --resident is a prerequisite for passing --resident-compiler-info-file',
+      () async {
+    p = project(mainSrc: 'void main() {}');
+    final result = await p.run([
+      'run',
+      '--$residentCompilerInfoFileOption=$serverInfoFile',
+      p.relativeFilePath,
+    ]);
+
+    expect(result.exitCode, 255);
+    expect(
+      result.stderr,
+      contains(
+        'Error: the --resident flag must be passed whenever the --resident-compiler-info-file option is passed.',
+      ),
+    );
+  });
+
   test("'Hello World'", () async {
     p = project(mainSrc: "void main() { print('Hello World'); }");
     final result = await p.run([
       'run',
+      '--resident',
       '--$residentCompilerInfoFileOption=$serverInfoFile',
       p.relativeFilePath,
     ]);
@@ -907,6 +928,7 @@ void residentRun() {
     p = project(mainSrc: "void main() { print('Hello World'); }");
     final result = await p.run([
       'run',
+      '--resident',
       '--resident-server-info-file=$serverInfoFile',
       p.relativeFilePath,
     ]);
@@ -929,6 +951,7 @@ void residentRun() {
     p = project(mainSrc: "void main() { print('Hello World'); }");
     final result = await p.run([
       'run',
+      '--resident',
       '--$residentCompilerInfoFileOption',
       path.relative(serverInfoFile, from: p.dirPath),
       p.relativeFilePath,
@@ -956,6 +979,7 @@ void residentRun() {
     );
     final result = await p.run([
       'run',
+      '--resident',
       '--$residentCompilerInfoFileOption=$serverInfoFile',
       '--enable-experiment=test-experiment',
       p.relativeFilePath,
@@ -981,11 +1005,13 @@ void residentRun() {
 
     final runResult1 = await p.run([
       'run',
+      '--resident',
       '--$residentCompilerInfoFileOption=$serverInfoFile',
       p.relativeFilePath,
     ]);
     final runResult2 = await p2.run([
       'run',
+      '--resident',
       '--$residentCompilerInfoFileOption=$serverInfoFile',
       p2.relativeFilePath,
     ]);
@@ -1014,6 +1040,7 @@ void residentRun() {
 
     final runResult1 = await p.run([
       'run',
+      '--resident',
       '--$residentCompilerInfoFileOption=$serverInfoFile',
       path.join(p.dirPath, 'lib/main.dart'),
     ]);
@@ -1023,6 +1050,7 @@ void residentRun() {
 
     final runResult2 = await p.run([
       'run',
+      '--resident',
       '--$residentCompilerInfoFileOption=$serverInfoFile',
       path.join(p.dirPath, 'bin/main.dart'),
     ]);
@@ -1041,6 +1069,7 @@ void residentRun() {
     p.deleteFile('.dart_tool/package_config.json');
     final runResult = await p.run([
       'run',
+      '--resident',
       '--$residentCompilerInfoFileOption=$serverInfoFile',
       p.relativeFilePath,
     ]);
@@ -1072,6 +1101,7 @@ void residentRun() {
     TestProject p2 = project(mainSrc: 'void main() {}');
     final runResult1 = await p2.run([
       'run',
+      '--resident',
       '--$residentCompilerInfoFileOption=$tempServerInfoFile',
       p2.relativeFilePath,
     ]);
@@ -1081,11 +1111,13 @@ void residentRun() {
 
     await p.run([
       'run',
+      '--resident',
       '--$residentCompilerInfoFileOption=$tempServerInfoFile',
       p.relativeFilePath,
     ]);
     final runResult2 = await p.run([
       'run',
+      '--resident',
       '--$residentCompilerInfoFileOption=$tempServerInfoFile',
       p.relativeFilePath,
     ]);
@@ -1132,6 +1164,7 @@ void residentRun() {
 
     await p.runWithVmService([
       'run',
+      '--resident',
       '--$residentCompilerInfoFileOption=$serverInfoFile',
       '--observe=0',
       '--pause-isolates-on-start',
@@ -1153,6 +1186,7 @@ void residentRun() {
     sawCFEMsg = false;
     await p.runWithVmService([
       'run',
+      '--resident',
       '--$residentCompilerInfoFileOption=$serverInfoFile',
       '--observe=0',
       '--pause-isolates-on-start',
@@ -1196,6 +1230,7 @@ void residentRun() {
 
     await p.runWithVmService([
       'run',
+      '--resident',
       '--$residentCompilerInfoFileOption=$serverInfoFile',
       '--observe=0/::1',
       '--pause-isolates-on-start',

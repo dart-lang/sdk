@@ -326,14 +326,21 @@ class RunCommand extends DartdevCommand {
     final String? residentCompilerInfoFileArg =
         args[CompilationServerCommand.residentCompilerInfoFileFlag] ??
             args[CompilationServerCommand.legacyResidentServerInfoFileFlag];
-    final useResidentServer =
-        args.wasParsed(residentOption) || residentCompilerInfoFileArg != null;
+    final useResidentCompiler = args.wasParsed(residentOption);
+    if (residentCompilerInfoFileArg != null && !useResidentCompiler) {
+      log.stderr(
+        'Error: the --resident flag must be passed whenever the '
+        '--resident-compiler-info-file option is passed.',
+      );
+      return errorExitCode;
+    }
+
     DartExecutableWithPackageConfig executable;
     final hasExperiments = args.enabledExperiments.isNotEmpty;
     try {
       executable = await getExecutableForCommand(
         mainCommand,
-        allowSnapshot: !(useResidentServer || hasExperiments),
+        allowSnapshot: !(useResidentCompiler || hasExperiments),
         nativeAssets: nativeAssets,
       );
     } on CommandResolutionFailedException catch (e) {
@@ -345,7 +352,7 @@ class RunCommand extends DartdevCommand {
         ? File(maybeUriToFilename(residentCompilerInfoFileArg))
         : defaultResidentServerInfoFile;
 
-    if (useResidentServer && residentCompilerInfoFile != null) {
+    if (useResidentCompiler && residentCompilerInfoFile != null) {
       try {
         // Ensure the parent directory exists.
         if (!residentCompilerInfoFile.parent.existsSync()) {

@@ -44,6 +44,7 @@ void main() {
       final serverInfoFile = path.join(p.dirPath, 'info');
       final runResult = await p.run([
         'run',
+        '--resident',
         '--$residentCompilerInfoFileOption=$serverInfoFile',
         p.relativeFilePath,
       ]);
