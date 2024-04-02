@@ -29,33 +29,30 @@ import 'package:meta/meta.dart';
 /// Two or more string literals that are implicitly concatenated because of
 /// being adjacent (separated only by whitespace).
 ///
-/// While the grammar only allows adjacent strings when all of the strings are
+/// For example
+/// ```dart
+/// 'Hello ' 'World'
+/// ```
+///
+/// While the grammar only allows adjacent strings where all of the strings are
 /// of the same kind (single line or multi-line), this class doesn't enforce
 /// that restriction.
 ///
 ///    adjacentStrings ::=
 ///        [StringLiteral] [StringLiteral]+
 abstract final class AdjacentStrings implements StringLiteral {
-  /// Return the strings that are implicitly concatenated.
+  /// The strings that are implicitly concatenated.
   NodeList<StringLiteral> get strings;
 }
 
-/// Two or more string literals that are implicitly concatenated because of
-/// being adjacent (separated only by whitespace).
-///
-/// While the grammar only allows adjacent strings when all of the strings are
-/// of the same kind (single line or multi-line), this class doesn't enforce
-/// that restriction.
-///
-///    adjacentStrings ::=
-///        [StringLiteral] [StringLiteral]+
 final class AdjacentStringsImpl extends StringLiteralImpl
     implements AdjacentStrings {
-  /// The strings that are implicitly concatenated.
   final NodeListImpl<StringLiteralImpl> _strings = NodeListImpl._();
 
-  /// Initialize a newly created list of adjacent strings. To be syntactically
-  /// valid, the list of [strings] must contain at least two elements.
+  /// Initializes a newly created list of adjacent strings.
+  ///
+  /// To be syntactically valid, the list of [strings] must contain at least two
+  /// elements.
   AdjacentStringsImpl({
     required List<StringLiteralImpl> strings,
   }) {
@@ -98,37 +95,38 @@ final class AdjacentStringsImpl extends StringLiteralImpl
   }
 }
 
-/// An AST node that can be annotated with both a documentation comment and a
-/// list of annotations.
+/// An AST node that can be annotated with either a documentation comment, a
+/// list of annotations (metadata), or both.
 abstract final class AnnotatedNode implements AstNode {
-  /// Return the documentation comment associated with this node, or `null` if
-  /// this node does not have a documentation comment associated with it.
+  /// The documentation comment associated with this node, or `null` if this
+  /// node doesn't have a documentation comment associated with it.
   Comment? get documentationComment;
 
-  /// Return the first token following the comment and metadata.
+  /// The first token following the comment and metadata.
   Token get firstTokenAfterCommentAndMetadata;
 
-  /// Return the annotations associated with this node.
+  /// The annotations associated with this node.
+  ///
+  /// If there are no annotations, then the returned list is empty.
   NodeList<Annotation> get metadata;
 
-  /// Return a list containing the comment and annotations associated with this
-  /// node, sorted in lexical order.
+  /// A list containing the comment and annotations associated with this node,
+  /// sorted in lexical order.
+  ///
+  /// If there are neither annotations nor a comment, then the returned list is
+  /// empty.
   List<AstNode> get sortedCommentAndAnnotations;
 }
 
-/// An AST node that can be annotated with both a documentation comment and a
-/// list of annotations.
 sealed class AnnotatedNodeImpl extends AstNodeImpl implements AnnotatedNode {
-  /// The documentation comment associated with this node, or `null` if this
-  /// node does not have a documentation comment associated with it.
   CommentImpl? _comment;
 
-  /// The annotations associated with this node.
   final NodeListImpl<AnnotationImpl> _metadata = NodeListImpl._();
 
-  /// Initialize a newly created annotated node. Either or both of the [comment]
-  /// and [metadata] can be `null` if the node does not have the corresponding
-  /// attribute.
+  /// Initializes a newly created annotated node.
+  ///
+  /// Either or both of the [comment] and [metadata] can be `null` if the node
+  /// doesn't have the corresponding attribute.
   AnnotatedNodeImpl({
     required CommentImpl? comment,
     required List<AnnotationImpl>? metadata,
@@ -195,9 +193,10 @@ sealed class AnnotatedNodeImpl extends AstNodeImpl implements AnnotatedNode {
     }
   }
 
-  /// Return `true` if there are no annotations before the comment. Note that a
-  /// result of `true` does not imply that there is a comment, nor that there
-  /// are annotations associated with this node.
+  /// Returns `true` if there are no annotations before the comment.
+  ///
+  /// Note that a result of `true` doesn't imply that there's a comment, nor
+  /// that there are annotations associated with this node.
   bool _commentIsBeforeAnnotations() {
     if (_comment == null || _metadata.isEmpty) {
       return true;
@@ -207,7 +206,17 @@ sealed class AnnotatedNodeImpl extends AstNodeImpl implements AnnotatedNode {
   }
 }
 
-/// An annotation that can be associated with an AST node.
+/// An annotation that can be associated with a declaration.
+///
+/// For example
+/// ```dart
+/// @override
+/// ```
+///
+/// or
+/// ```dart
+/// @Deprecated('1.3.2')
+/// ```
 ///
 ///    metadata ::=
 ///        annotation*
@@ -220,96 +229,75 @@ sealed class AnnotatedNodeImpl extends AstNodeImpl implements AnnotatedNode {
 ///      | qualifiedName
 ///      | constructorDesignation argumentPart
 abstract final class Annotation implements AstNode {
-  /// Return the arguments to the constructor being invoked, or `null` if this
-  /// annotation is not the invocation of a constructor.
+  /// The arguments to the constructor being invoked, or `null` if this
+  /// annotation isn't the invocation of a constructor.
   ArgumentList? get arguments;
 
-  /// Return the at sign that introduced the annotation.
+  /// The at sign (`@`) that introduces the annotation.
   Token get atSign;
 
-  /// Return the name of the constructor being invoked, or `null` if this
-  /// annotation is not the invocation of a named constructor.
+  /// The name of the constructor being invoked, or `null` if this annotation
+  /// isn't the invocation of a named constructor.
   SimpleIdentifier? get constructorName;
 
-  /// Return the element associated with this annotation, or `null` if the AST
-  /// structure has not been resolved or if this annotation could not be
-  /// resolved.
+  /// The element associated with this annotation, or `null` if the AST
+  /// structure hasn't been resolved or if this annotation couldn't be resolved.
   Element? get element;
 
-  /// Return the element annotation representing this annotation in the element
-  /// model; `null` when the AST has not been resolved.
+  /// The element annotation representing this annotation in the element model,
+  /// or `null` if the AST hasn't been resolved.
   ElementAnnotation? get elementAnnotation;
 
-  /// Return the name of the class defining the constructor that is being
-  /// invoked or the name of the field that is being referenced.
+  /// The name of either the class defining the constructor that is being
+  /// invoked or the field that is being referenced.
+  ///
+  /// If a named constructor is being referenced, then the name of the
+  /// constructor is available using [constructorName].
   Identifier get name;
 
   @override
   AstNode get parent;
 
-  /// Return the period before the constructor name, or `null` if this
-  /// annotation is not the invocation of a named constructor.
+  /// The period before the constructor name, or `null` if this annotation isn't
+  /// the invocation of a named constructor.
   Token? get period;
 
-  /// Returns the type arguments to the constructor being invoked, or `null` if
-  /// (a) this annotation is not the invocation of a constructor or (b) this
-  /// annotation does not specify type arguments explicitly.
+  /// The type arguments to the constructor being invoked, or `null` if either
+  /// this annotation isn't the invocation of a constructor or this annotation
+  /// doesn't specify type arguments explicitly.
   ///
   /// Note that type arguments are only valid if [Feature.generic_metadata] is
   /// enabled.
   TypeArgumentList? get typeArguments;
 }
 
-/// An annotation that can be associated with an AST node.
-///
-///    metadata ::=
-///        annotation*
-///
-///    annotation ::=
-///        '@' [Identifier] ('.' [SimpleIdentifier])? [ArgumentList]?
 final class AnnotationImpl extends AstNodeImpl implements Annotation {
-  /// The at sign that introduced the annotation.
   @override
   final Token atSign;
 
-  /// The name of the class defining the constructor that is being invoked or
-  /// the name of the field that is being referenced.
   IdentifierImpl _name;
 
-  /// The type arguments to the constructor being invoked, or `null` if (a) this
-  /// annotation is not the invocation of a constructor or (b) this annotation
-  /// does not specify type arguments explicitly.
-  ///
-  /// Note that type arguments are only valid if [Feature.generic_metadata] is
-  /// enabled.
   TypeArgumentListImpl? _typeArguments;
 
-  /// The period before the constructor name, or `null` if this annotation is
-  /// not the invocation of a named constructor.
   @override
   final Token? period;
 
-  /// The name of the constructor being invoked, or `null` if this annotation is
-  /// not the invocation of a named constructor.
   SimpleIdentifierImpl? _constructorName;
 
-  /// The arguments to the constructor being invoked, or `null` if this
-  /// annotation is not the invocation of a constructor.
   ArgumentListImpl? _arguments;
 
-  /// The element associated with this annotation, or `null` if the AST
-  /// structure has not been resolved or if this annotation could not be
-  /// resolved.
   Element? _element;
 
-  /// The element annotation representing this annotation in the element model.
   @override
   ElementAnnotationImpl? elementAnnotation;
 
-  /// Initialize a newly created annotation. Both the [period] and the
-  /// [constructorName] can be `null` if the annotation is not referencing a
-  /// named constructor. The [arguments] can be `null` if the annotation is not
-  /// referencing a constructor.
+  /// Initializes a newly created annotation.
+  ///
+  /// Both the [period] and the [constructorName] can be `null` if the
+  /// annotation isn't referencing a named constructor.
+  ///
+  /// The [arguments] can be `null` if the annotation isn't referencing a
+  /// constructor.
   ///
   /// Note that type arguments are only valid if [Feature.generic_metadata] is
   /// enabled.
@@ -384,8 +372,6 @@ final class AnnotationImpl extends AstNodeImpl implements Annotation {
   @override
   TypeArgumentListImpl? get typeArguments => _typeArguments;
 
-  /// Sets the type arguments to the constructor being invoked to the given
-  /// [typeArguments].
   set typeArguments(TypeArgumentListImpl? typeArguments) {
     _typeArguments = _becomeParentOf(typeArguments);
   }
@@ -423,50 +409,42 @@ final class AnnotationImpl extends AstNodeImpl implements Annotation {
 ///        [NamedExpression] (',' [NamedExpression])*
 ///      | [Expression] (',' [Expression])* (',' [NamedExpression])*
 abstract final class ArgumentList implements AstNode {
-  /// Return the expressions producing the values of the arguments.
+  /// The expressions producing the values of the arguments.
+  ///
+  /// If there are no arguments the list will be empty.
   ///
   /// Although the language requires that positional arguments appear before
-  /// named arguments, this class allows them to be intermixed.
+  /// named arguments unless the [Feature.named_arguments_anywhere] is enabled,
+  /// this class allows them to be intermixed.
   NodeList<Expression> get arguments;
 
-  /// Return the left parenthesis.
+  /// The left parenthesis.
   Token get leftParenthesis;
 
-  /// Return the right parenthesis.
+  /// The right parenthesis.
   Token get rightParenthesis;
 }
 
-/// A list of arguments in the invocation of an executable element (that is, a
-/// function, method, or constructor).
-///
-///    argumentList ::=
-///        '(' arguments? ')'
-///
-///    arguments ::=
-///        [NamedExpression] (',' [NamedExpression])*
-///      | [Expression] (',' [Expression])* (',' [NamedExpression])*
 final class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
-  /// The left parenthesis.
   @override
   final Token leftParenthesis;
 
-  /// The expressions producing the values of the arguments.
   final NodeListImpl<ExpressionImpl> _arguments = NodeListImpl._();
 
-  /// The right parenthesis.
   @override
   final Token rightParenthesis;
 
   /// A list containing the elements representing the parameters corresponding
-  /// to each of the arguments in this list, or `null` if the AST has not been
-  /// resolved or if the function or method being invoked could not be
-  /// determined based on static type information. The list must be the same
-  /// length as the number of arguments, but can contain `null` entries if a
-  /// given argument does not correspond to a formal parameter.
+  /// to each of the arguments in this list, or `null` if the AST hasn't been
+  /// resolved or if the function or method being invoked couldn't be
+  /// determined based on static type information.
+  ///
+  /// The list must be the same length as the number of arguments, but can
+  /// contain `null` entries if a given argument doesn't correspond to a formal
+  /// parameter.
   List<ParameterElement?>? _correspondingStaticParameters;
 
-  /// Initialize a newly created list of arguments. The list of [arguments] can
-  /// be `null` if there are no arguments.
+  /// Initializes a newly created list of arguments.
   ArgumentListImpl({
     required this.leftParenthesis,
     required List<ExpressionImpl> arguments,
@@ -510,20 +488,19 @@ final class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
     _arguments.accept(visitor);
   }
 
-  /// If
-  /// * the given [expression] is a child of this list,
-  /// * the AST structure has been resolved,
-  /// * the function being invoked is known based on static type information,
-  ///   and
-  /// * the expression corresponds to one of the parameters of the function
-  ///   being invoked,
-  /// then return the parameter element representing the parameter to which the
-  /// value of the given expression will be bound. Otherwise, return `null`.
+  /// Returns the parameter element representing the parameter to which the
+  /// value of the given expression is bound, or `null` if any of the following
+  /// are not true
+  /// - the given [expression] is a child of this list
+  /// - the AST structure is resolved
+  /// - the function being invoked is known based on static type information
+  /// - the expression corresponds to one of the parameters of the function
+  ///   being invoked
   ParameterElement? _getStaticParameterElementFor(Expression expression) {
     if (_correspondingStaticParameters == null ||
         _correspondingStaticParameters!.length != _arguments.length) {
-      // Either the AST structure has not been resolved, the invocation of which
-      // this list is a part could not be resolved, or the argument list was
+      // Either the AST structure hasn't been resolved, the invocation of which
+      // this list is a part couldn't be resolved, or the argument list was
       // modified after the parameters were set.
       return null;
     }
@@ -541,32 +518,25 @@ final class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
 ///    asExpression ::=
 ///        [Expression] 'as' [TypeAnnotation]
 abstract final class AsExpression implements Expression {
-  /// Return the 'as' operator.
+  /// The `as` operator.
   Token get asOperator;
 
-  /// Return the expression used to compute the value being cast.
+  /// The expression used to compute the value being cast.
   Expression get expression;
 
-  /// Return the type being cast to.
+  /// The type being cast to.
   TypeAnnotation get type;
 }
 
-/// An as expression.
-///
-///    asExpression ::=
-///        [Expression] 'as' [NamedType]
 final class AsExpressionImpl extends ExpressionImpl implements AsExpression {
-  /// The expression used to compute the value being cast.
   ExpressionImpl _expression;
 
-  /// The 'as' operator.
   @override
   final Token asOperator;
 
-  /// The type being cast to.
   TypeAnnotationImpl _type;
 
-  /// Initialize a newly created as expression.
+  /// Initializes a newly created as expression.
   AsExpressionImpl({
     required ExpressionImpl expression,
     required this.asOperator,
@@ -628,10 +598,6 @@ final class AsExpressionImpl extends ExpressionImpl implements AsExpression {
 abstract final class AssertInitializer
     implements Assertion, ConstructorInitializer {}
 
-/// An assert in the initializer list of a constructor.
-///
-///    assertInitializer ::=
-///        'assert' '(' [Expression] (',' [Expression])? ')'
 final class AssertInitializerImpl extends ConstructorInitializerImpl
     implements AssertInitializer {
   @override
@@ -640,20 +606,17 @@ final class AssertInitializerImpl extends ConstructorInitializerImpl
   @override
   final Token leftParenthesis;
 
-  /// The condition that is being asserted to be `true`.
   ExpressionImpl _condition;
 
   @override
   final Token? comma;
 
-  /// The message to report if the assertion fails, or `null` if no message was
-  /// supplied.
   ExpressionImpl? _message;
 
   @override
   final Token rightParenthesis;
 
-  /// Initialize a newly created assert initializer.
+  /// Initializes a newly created assert initializer.
   AssertInitializerImpl({
     required this.assertKeyword,
     required this.leftParenthesis,
@@ -708,24 +671,24 @@ final class AssertInitializerImpl extends ConstructorInitializerImpl
 
 /// An assertion, either in a block or in the initializer list of a constructor.
 abstract final class Assertion implements AstNode {
-  /// Return the token representing the 'assert' keyword.
+  /// The token representing the `assert` keyword.
   Token get assertKeyword;
 
-  /// Return the comma between the [condition] and the [message], or `null` if
-  /// no message was supplied.
+  /// The comma between the [condition] and the [message], or `null` if no
+  /// message was supplied.
   Token? get comma;
 
-  /// Return the condition that is being asserted to be `true`.
+  /// The condition that is being asserted to be `true`.
   Expression get condition;
 
-  /// Return the left parenthesis.
+  /// The left parenthesis.
   Token get leftParenthesis;
 
-  /// Return the message to report if the assertion fails, or `null` if no
-  /// message was supplied.
+  /// The message to report if the assertion fails, or `null` if no message was
+  /// supplied.
   Expression? get message;
 
-  ///  Return the right parenthesis.
+  /// The right parenthesis.
   Token get rightParenthesis;
 }
 
@@ -734,14 +697,10 @@ abstract final class Assertion implements AstNode {
 ///    assertStatement ::=
 ///        'assert' '(' [Expression] (',' [Expression])? ')' ';'
 abstract final class AssertStatement implements Assertion, Statement {
-  /// Return the semicolon terminating the statement.
+  /// The semicolon terminating the statement.
   Token get semicolon;
 }
 
-/// An assert statement.
-///
-///    assertStatement ::=
-///        'assert' '(' [Expression] ')' ';'
 final class AssertStatementImpl extends StatementImpl
     implements AssertStatement {
   @override
@@ -750,14 +709,11 @@ final class AssertStatementImpl extends StatementImpl
   @override
   final Token leftParenthesis;
 
-  /// The condition that is being asserted to be `true`.
   ExpressionImpl _condition;
 
   @override
   final Token? comma;
 
-  /// The message to report if the assertion fails, or `null` if no message was
-  /// supplied.
   ExpressionImpl? _message;
 
   @override
@@ -766,7 +722,7 @@ final class AssertStatementImpl extends StatementImpl
   @override
   final Token semicolon;
 
-  /// Initialize a newly created assert statement.
+  /// Initializes a newly created assert statement.
   AssertStatementImpl({
     required this.assertKeyword,
     required this.leftParenthesis,
@@ -825,16 +781,14 @@ final class AssertStatementImpl extends StatementImpl
 ///
 ///    variablePattern ::= identifier
 abstract final class AssignedVariablePattern implements VariablePattern {
-  /// Return the element referenced by this pattern, or `null` if either
-  /// [name] does not resolve to an element, or the AST structure has not
-  /// been resolved. In valid code this will be either [LocalVariableElement]
-  /// or [ParameterElement].
+  /// The element referenced by this pattern, or `null` if either [name] doesn't
+  /// resolve to an element or the AST structure hasn't been resolved.
+  ///
+  /// In valid code this is either a [LocalVariableElement] or a
+  /// [ParameterElement].
   Element? get element;
 }
 
-/// A variable pattern in [PatternAssignment].
-///
-///    variablePattern ::= identifier
 final class AssignedVariablePatternImpl extends VariablePatternImpl
     implements AssignedVariablePattern {
   @override
@@ -894,41 +848,30 @@ abstract final class AssignmentExpression
         NullShortableExpression,
         MethodReferenceExpression,
         CompoundAssignmentExpression {
-  /// Return the expression used to compute the left hand side.
+  /// The expression used to compute the left hand side.
   Expression get leftHandSide;
 
-  /// Return the assignment operator being applied.
+  /// The assignment operator being applied.
   Token get operator;
 
-  /// Return the expression used to compute the right hand side.
+  /// The expression used to compute the right-hand side.
   Expression get rightHandSide;
 }
 
-/// An assignment expression.
-///
-///    assignmentExpression ::=
-///        [Expression] operator [Expression]
 final class AssignmentExpressionImpl extends ExpressionImpl
     with NullShortableExpressionImpl, CompoundAssignmentExpressionImpl
     implements AssignmentExpression {
-  /// The expression used to compute the left hand side.
   ExpressionImpl _leftHandSide;
 
-  /// The assignment operator being applied.
   @override
   final Token operator;
 
-  /// The expression used to compute the right hand side.
   ExpressionImpl _rightHandSide;
 
-  /// The element associated with the operator based on the static type of the
-  /// left-hand-side, or `null` if the AST structure has not been resolved, if
-  /// the operator is not a compound operator, or if the operator could not be
-  /// resolved.
   @override
   MethodElement? staticElement;
 
-  /// Initialize a newly created assignment expression.
+  /// Initializes a newly created assignment expression.
   AssignmentExpressionImpl({
     required ExpressionImpl leftHandSide,
     required this.operator,
@@ -971,10 +914,9 @@ final class AssignmentExpressionImpl extends ExpressionImpl
   @override
   AstNode? get _nullShortingExtensionCandidate => parent;
 
-  /// If the AST structure has been resolved, and the function being invoked is
-  /// known based on static type information, then return the parameter element
-  /// representing the parameter to which the value of the right operand will be
-  /// bound. Otherwise, return `null`.
+  /// The parameter element representing the parameter to which the value of the
+  /// right operand is bound, or `null` if the AST structure is not resolved or
+  /// the function being invoked is not known based on static type information.
   ParameterElement? get _staticParameterElementForRightHandSide {
     Element? executableElement;
     if (operator.type != TokenType.EQ) {
@@ -1021,35 +963,35 @@ final class AssignmentExpressionImpl extends ExpressionImpl
 abstract final class AstNode implements SyntacticEntity {
   /// A comparator that can be used to sort AST nodes in lexical order.
   ///
-  /// In other words, `compare` will return a negative value if the offset of
-  /// the first node is less than the offset of the second node, zero (0) if
-  /// the nodes have the same offset, and a positive value if the offset of the
+  /// In other words, `compare` returns a negative value if the offset of the
+  /// first node is less than the offset of the second node, zero (0) if the
+  /// nodes have the same offset, and a positive value if the offset of the
   /// first node is greater than the offset of the second node.
   static Comparator<AstNode> LEXICAL_ORDER =
       (AstNode first, AstNode second) => first.offset - second.offset;
 
-  /// Return the first token included in this node's source range.
+  /// The first token included in this node's source range.
   Token get beginToken;
 
-  /// Return an iterator that can be used to iterate through all the entities
-  /// (either AST nodes or tokens) that make up the contents of this node,
-  /// including doc comments but excluding other comments.
+  /// An iterator that can be used to iterate through all the entities (either
+  /// AST nodes or tokens) that make up the contents of this node, including doc
+  /// comments but excluding other comments.
   Iterable<SyntacticEntity> get childEntities;
 
-  /// Return the offset of the character immediately following the last
-  /// character of this node's source range.
+  /// The offset of the character immediately following the last character of
+  /// this node's source range.
   ///
   /// This is equivalent to `node.offset + node.length`. For a compilation unit
-  /// this will be equal to the length of the unit's source. For synthetic nodes
-  /// this will be equivalent to the node's offset (because the length is zero
-  /// (0) by definition).
+  /// this is equal to the length of the unit's source. For synthetic nodes this
+  /// is equivalent to the node's offset (because the length is zero (`0`) by
+  /// definition).
   @override
   int get end;
 
-  /// Return the last token included in this node's source range.
+  /// The last token included in this node's source range.
   Token get endToken;
 
-  /// Return `true` if this node is a synthetic node.
+  /// Whether this node is a synthetic node.
   ///
   /// A synthetic node is a node that was introduced by the parser in order to
   /// recover from an error in the code. Synthetic nodes always have a length
@@ -1062,14 +1004,14 @@ abstract final class AstNode implements SyntacticEntity {
   @override
   int get offset;
 
-  /// Return this node's parent node, or `null` if this node is the root of an
+  /// Returns this node's parent node, or `null` if this node is the root of an
   /// AST structure.
   ///
   /// Note that the relationship between an AST node and its parent node may
   /// change over the lifetime of a node.
   AstNode? get parent;
 
-  /// Return the node at the root of this node's AST structure.
+  /// The node at the root of this node's AST structure.
   ///
   /// Note that this method's performance is linear with respect to the depth
   /// of the node in the AST structure (O(depth)).
@@ -1077,52 +1019,64 @@ abstract final class AstNode implements SyntacticEntity {
 
   /// Use the given [visitor] to visit this node.
   ///
-  /// Return the value returned by the visitor as a result of visiting this
+  /// Returns the value returned by the visitor as a result of visiting this
   /// node.
   E? accept<E>(AstVisitor<E> visitor);
 
-  /// Return the token before [target] or `null` if it cannot be found.
+  /// Returns the token before [target], or `null` if it can't be found.
   Token? findPrevious(Token target);
 
-  /// Return the value of the property with the given [name], or `null` if this
-  /// node does not have a property with the given name.
+  /// Returns the value of the property with the given [name], or `null` if this
+  /// node doesn't have a property with the given name.
   E? getProperty<E>(String name);
 
   /// Set the value of the property with the given [name] to the given [value].
-  /// If the value is `null`, the property will effectively be removed.
+  ///
+  /// If the value is `null`, the property is removed.
   void setProperty(String name, Object? value);
 
-  /// Return either this node or the most immediate ancestor of this node for
-  /// which the [predicate] returns `true`, or `null` if there is no such node.
+  /// Returns either this node or the most immediate ancestor of this node for
+  /// which the [predicate] returns `true`, or `null` if there's no such node.
   E? thisOrAncestorMatching<E extends AstNode>(
     bool Function(AstNode) predicate,
   );
 
-  /// Return either this node or the most immediate ancestor of this node that
-  /// has the given type, or `null` if there is no such node.
+  /// Returns either this node or the most immediate ancestor of this node that
+  /// has the given type, or `null` if there's no such node.
   E? thisOrAncestorOfType<E extends AstNode>();
 
-  /// Return a textual description of this node in a form approximating valid
+  /// Returns a textual description of this node in a form approximating valid
   /// source.
   ///
-  /// The returned string will not be valid source primarily in the case where
-  /// the node itself is not well-formed.
+  /// The returned string isn't valid source code primarily in the case where
+  /// the node itself isn't well-formed.
+  ///
+  /// Clients should never depend on the returned value being valid code, nor
+  /// being consistent from one version of the package to the next. As a result,
+  /// clients should never display the returned string to users.
   String toSource();
+
+  /// Returns a textual description of this node.
+  ///
+  /// The returned string is intended to be useful only for debugging.
+  ///
+  /// Clients should never depend on the returned value being useful for any
+  /// purpose, nor being consistent from one version of the package to the next.
+  /// As a result, clients should never display the returned string to users.
+  @override
+  String toString();
 
   /// Use the given [visitor] to visit all of the children of this node.
   ///
-  /// The children will be visited in lexical order.
+  /// The children are visited in lexical order.
   void visitChildren(AstVisitor visitor);
 }
 
-/// A node in the AST structure for a Dart program.
 sealed class AstNodeImpl implements AstNode {
-  /// The parent of the node, or `null` if the node is the root of an AST
-  /// structure.
   AstNode? _parent;
 
   /// A table mapping the names of properties to their values, or `null` if this
-  /// node does not have any properties associated with it.
+  /// node doesn't have any properties associated with it.
   Map<String, Object>? _propertyMap;
 
   @override
@@ -1142,9 +1096,9 @@ sealed class AstNodeImpl implements AstNode {
     return endToken.offset + endToken.length - beginToken.offset;
   }
 
-  /// Return properties (tokens and nodes) of this node, with names, in the
-  /// order in which these entities should normally appear, not necessary in
-  /// the order they really are (because of recovery).
+  /// The properties (tokens and nodes) of this node, with names, in the order
+  /// in which these entities should normally appear, not necessarily in the
+  /// order they really are (because of recovery).
   Iterable<ChildEntity> get namedChildEntities => _childEntities.entities;
 
   @override
@@ -1227,7 +1181,7 @@ sealed class AstNodeImpl implements AstNode {
   @override
   String toString() => toSource();
 
-  /// Make this node the parent of the given [child] node. Return the child
+  /// Returns the [child] node after making this node the parent of the [child]
   /// node.
   T _becomeParentOf<T extends AstNodeImpl?>(T child) {
     child?._parent = this;
@@ -1241,10 +1195,10 @@ sealed class AstNodeImpl implements AstNode {
 /// that implement this interface that provide useful default behaviors in
 /// `package:analyzer/dart/ast/visitor.dart`. A couple of the most useful
 /// include
-/// * SimpleAstVisitor which implements every visit method by doing nothing,
-/// * RecursiveAstVisitor which will cause every node in a structure to be
-///   visited, and
-/// * ThrowingAstVisitor which implements every visit method by throwing an
+/// - SimpleAstVisitor which implements every visit method by doing nothing,
+/// - RecursiveAstVisitor which causes every node in a structure to be visited,
+///   and
+/// - ThrowingAstVisitor which implements every visit method by throwing an
 ///   exception.
 abstract class AstVisitor<R> {
   R? visitAdjacentStrings(AdjacentStrings node);
@@ -1599,23 +1553,19 @@ abstract class AstVisitor<R> {
 ///        [Annotation] 'import' 'augment' [StringLiteral] ';'
 @experimental
 abstract final class AugmentationImportDirective implements UriBasedDirective {
-  /// The token representing the 'augment' keyword.
+  /// The token representing the `augment` keyword.
   Token get augmentKeyword;
 
   @override
   AugmentationImportElement? get element;
 
-  /// The token representing the 'import' keyword.
+  /// The token representing the `import` keyword.
   Token get importKeyword;
 
-  /// Return the semicolon terminating the directive.
+  /// The semicolon terminating the directive.
   Token get semicolon;
 }
 
-/// An augmentation import directive.
-///
-///    importDirective ::=
-///        [Annotation] 'import' 'augment' [StringLiteral] ';'
 final class AugmentationImportDirectiveImpl extends UriBasedDirectiveImpl
     implements AugmentationImportDirective {
   @override
@@ -1667,27 +1617,21 @@ final class AugmentationImportDirectiveImpl extends UriBasedDirectiveImpl
 ///    awaitExpression ::=
 ///        'await' [Expression]
 abstract final class AwaitExpression implements Expression {
-  /// Return the 'await' keyword.
+  /// The `await` keyword.
   Token get awaitKeyword;
 
-  /// Return the expression whose value is being waited on.
+  /// The expression whose value is being waited on.
   Expression get expression;
 }
 
-/// An await expression.
-///
-///    awaitExpression ::=
-///        'await' [Expression]
 final class AwaitExpressionImpl extends ExpressionImpl
     implements AwaitExpression {
-  /// The 'await' keyword.
   @override
   final Token awaitKeyword;
 
-  /// The expression whose value is being waited on.
   ExpressionImpl _expression;
 
-  /// Initialize a newly created await expression.
+  /// Initializes a newly created await expression.
   AwaitExpressionImpl({
     required this.awaitKeyword,
     required ExpressionImpl expression,
@@ -1738,46 +1682,36 @@ final class AwaitExpressionImpl extends ExpressionImpl
 ///        [Expression] [Token] [Expression]
 abstract final class BinaryExpression
     implements Expression, MethodReferenceExpression {
-  /// Return the expression used to compute the left operand.
+  /// The expression used to compute the left operand.
   Expression get leftOperand;
 
-  /// Return the binary operator being applied.
+  /// The binary operator being applied.
   Token get operator;
 
-  /// Return the expression used to compute the right operand.
+  /// The expression used to compute the right operand.
   Expression get rightOperand;
 
-  /// The function type of the invocation, or `null` if the AST structure has
-  /// not been resolved, or if the invocation could not be resolved.
+  /// The function type of the invocation, or `null` if the AST structure hasn't
+  /// been resolved or if the invocation couldn't be resolved.
   FunctionType? get staticInvokeType;
 }
 
-/// A binary (infix) expression.
-///
-///    binaryExpression ::=
-///        [Expression] [Token] [Expression]
 final class BinaryExpressionImpl extends ExpressionImpl
     implements BinaryExpression {
-  /// The expression used to compute the left operand.
   ExpressionImpl _leftOperand;
 
-  /// The binary operator being applied.
   @override
   final Token operator;
 
-  /// The expression used to compute the right operand.
   ExpressionImpl _rightOperand;
 
-  /// The element associated with the operator based on the static type of the
-  /// left operand, or `null` if the AST structure has not been resolved, if the
-  /// operator is not user definable, or if the operator could not be resolved.
   @override
   MethodElement? staticElement;
 
   @override
   FunctionType? staticInvokeType;
 
-  /// Initialize a newly created binary expression.
+  /// Initializes a newly created binary expression.
   BinaryExpressionImpl({
     required ExpressionImpl leftOperand,
     required this.operator,
@@ -1837,13 +1771,13 @@ final class BinaryExpressionImpl extends ExpressionImpl
 ///    block ::=
 ///        '{' statement* '}'
 abstract final class Block implements Statement {
-  /// Return the left curly bracket.
+  /// The left curly bracket.
   Token get leftBracket;
 
-  /// Return the right curly bracket.
+  /// The right curly bracket.
   Token get rightBracket;
 
-  /// Return the statements contained in the block.
+  /// The statements contained in the block.
   NodeList<Statement> get statements;
 }
 
@@ -1852,33 +1786,27 @@ abstract final class Block implements Statement {
 ///    blockFunctionBody ::=
 ///        ('async' | 'async' '*' | 'sync' '*')? [Block]
 abstract final class BlockFunctionBody implements FunctionBody {
-  /// Return the block representing the body of the function.
+  /// The block representing the body of the function.
   Block get block;
 }
 
-/// A function body that consists of a block of statements.
-///
-///    blockFunctionBody ::=
-///        ('async' | 'async' '*' | 'sync' '*')? [Block]
 final class BlockFunctionBodyImpl extends FunctionBodyImpl
     implements BlockFunctionBody {
-  /// The token representing the 'async' or 'sync' keyword, or `null` if there
-  /// is no such keyword.
   @override
   final Token? keyword;
 
-  /// The star optionally following the 'async' or 'sync' keyword, or `null` if
-  /// there is wither no such keyword or no star.
   @override
   final Token? star;
 
-  /// The block representing the body of the function.
   BlockImpl _block;
 
-  /// Initialize a newly created function body consisting of a block of
-  /// statements. The [keyword] can be `null` if there is no keyword specified
-  /// for the block. The [star] can be `null` if there is no star following the
-  /// keyword (and must be `null` if there is no keyword).
+  /// Initializes a newly created function body consisting of a block of
+  /// statements.
+  ///
+  /// The [keyword] can be `null` if there's no keyword specified for the block.
+  ///
+  /// The [star] can be `null` if there's no star following the keyword (and
+  /// must be `null` if there's no keyword).
   BlockFunctionBodyImpl({
     required this.keyword,
     required this.star,
@@ -1933,23 +1861,16 @@ final class BlockFunctionBodyImpl extends FunctionBodyImpl
   }
 }
 
-/// A sequence of statements.
-///
-///    block ::=
-///        '{' statement* '}'
 final class BlockImpl extends StatementImpl implements Block {
-  /// The left curly bracket.
   @override
   final Token leftBracket;
 
-  /// The statements contained in the block.
   final NodeListImpl<StatementImpl> _statements = NodeListImpl._();
 
-  /// The right curly bracket.
   @override
   final Token rightBracket;
 
-  /// Initialize a newly created block of code.
+  /// Initializes a newly created block of code.
   BlockImpl({
     required this.leftBracket,
     required List<StatementImpl> statements,
@@ -1987,27 +1908,21 @@ final class BlockImpl extends StatementImpl implements Block {
 ///    booleanLiteral ::=
 ///        'false' | 'true'
 abstract final class BooleanLiteral implements Literal {
-  /// Return the token representing the literal.
+  /// The token representing the literal.
   Token get literal;
 
-  /// Return the value of the literal.
+  /// The value of the literal.
   bool get value;
 }
 
-/// A boolean literal expression.
-///
-///    booleanLiteral ::=
-///        'false' | 'true'
 final class BooleanLiteralImpl extends LiteralImpl implements BooleanLiteral {
-  /// The token representing the literal.
   @override
   final Token literal;
 
-  /// The value of the literal.
   @override
   final bool value;
 
-  /// Initialize a newly created boolean literal.
+  /// Initializes a newly created boolean literal.
   BooleanLiteralImpl({
     required this.literal,
     required this.value,
@@ -2045,55 +1960,45 @@ final class BooleanLiteralImpl extends LiteralImpl implements BooleanLiteral {
 ///    breakStatement ::=
 ///        'break' [SimpleIdentifier]? ';'
 abstract final class BreakStatement implements Statement {
-  /// Return the token representing the 'break' keyword.
+  /// The token representing the `break` keyword.
   Token get breakKeyword;
 
-  /// Return the label associated with the statement, or `null` if there is no
-  /// label.
+  /// The label associated with the statement, or `null` if there's no label.
   SimpleIdentifier? get label;
 
-  /// Return the semicolon terminating the statement.
+  /// The semicolon terminating the statement.
   Token get semicolon;
 
-  /// Return the node from which this break statement is breaking.
+  /// The node from which this break statement is breaking, or `null` if the AST
+  /// hasn't yet been resolved or if the target couldn't be resolved.
   ///
-  /// This will be either a [Statement] (in the case of breaking out of a
-  /// loop), a [SwitchMember] (in the case of a labeled break statement whose
-  /// label matches a label on a switch case in an enclosing switch statement),
-  /// or `null` if the AST has not yet been resolved or if the target could not
-  /// be resolved. Note that if the source code has errors, the target might be
-  /// invalid (e.g. trying to break to a switch case).
+  /// This is either a [Statement] (in the case of breaking out of a loop), a
+  /// [SwitchMember] (in the case of a labeled break statement whose label
+  /// matches a label on a switch case in an enclosing switch statement).
+  ///
+  /// Note that if the source code has errors, the target might be invalid.
+  /// For example, if the break statement is trying to break to a switch case
+  /// the target will be the switch case even though breaking to a switch case
+  /// isn't valid.
   AstNode? get target;
 }
 
-/// A break statement.
-///
-///    breakStatement ::=
-///        'break' [SimpleIdentifier]? ';'
 final class BreakStatementImpl extends StatementImpl implements BreakStatement {
-  /// The token representing the 'break' keyword.
   @override
   final Token breakKeyword;
 
-  /// The label associated with the statement, or `null` if there is no label.
   SimpleIdentifierImpl? _label;
 
-  /// The semicolon terminating the statement.
   @override
   final Token semicolon;
 
-  /// The AstNode which this break statement is breaking from.  This will be
-  /// either a [Statement] (in the case of breaking out of a loop), a
-  /// [SwitchMember] (in the case of a labeled break statement whose label
-  /// matches a label on a switch case in an enclosing switch statement), or
-  /// `null` if the AST has not yet been resolved or if the target could not be
-  /// resolved. Note that if the source code has errors, the target might be
-  /// invalid (e.g. trying to break to a switch case).
   @override
   AstNode? target;
 
-  /// Initialize a newly created break statement. The [label] can be `null` if
-  /// there is no label associated with the statement.
+  /// Initializes a newly created break statement.
+  ///
+  /// The [label] can be `null` if there's no label associated with the
+  /// statement.
   BreakStatementImpl({
     required this.breakKeyword,
     required SimpleIdentifierImpl? label,
@@ -2148,41 +2053,26 @@ final class BreakStatementImpl extends StatementImpl implements BreakStatement {
 ///      | identifier
 abstract final class CascadeExpression
     implements Expression, NullShortableExpression {
-  /// Return the cascade sections sharing the common target.
+  /// The cascade sections sharing the common target.
   NodeList<Expression> get cascadeSections;
 
   /// Whether this cascade is null aware (as opposed to non-null).
   bool get isNullAware;
 
-  /// Return the target of the cascade sections.
+  /// The target of the cascade sections.
   Expression get target;
 }
 
-/// A sequence of cascaded expressions: expressions that share a common target.
-/// There are three kinds of expressions that can be used in a cascade
-/// expression: [IndexExpression], [MethodInvocation] and [PropertyAccess].
-///
-///    cascadeExpression ::=
-///        [Expression] cascadeSection*
-///
-///    cascadeSection ::=
-///        '..'  (cascadeSelector arguments*) (assignableSelector arguments*)*
-///        (assignmentOperator expressionWithoutCascade)?
-///
-///    cascadeSelector ::=
-///        '[ ' expression '] '
-///      | identifier
 final class CascadeExpressionImpl extends ExpressionImpl
     with NullShortableExpressionImpl
     implements CascadeExpression {
-  /// The target of the cascade sections.
   ExpressionImpl _target;
 
-  /// The cascade sections sharing the common target.
   final NodeListImpl<ExpressionImpl> _cascadeSections = NodeListImpl._();
 
-  /// Initialize a newly created cascade expression. The list of
-  /// [cascadeSections] must contain at least one element.
+  /// Initializes a newly created cascade expression.
+  ///
+  /// The list of [cascadeSections] must contain at least one element.
   CascadeExpressionImpl({
     required ExpressionImpl target,
     required List<ExpressionImpl> cascadeSections,
@@ -2248,17 +2138,13 @@ final class CascadeExpressionImpl extends ExpressionImpl
 ///    caseClause ::=
 ///        'case' [GuardedPattern]
 abstract final class CaseClause implements AstNode {
-  /// Return the token representing the 'case' keyword.
+  /// The token representing the `case` keyword.
   Token get caseKeyword;
 
-  /// Return the pattern controlling whether the statements will be executed.
+  /// The pattern controlling whether the statements are executed.
   GuardedPattern get guardedPattern;
 }
 
-/// The `case` clause that can optionally appear in an `if` statement.
-///
-///    caseClause ::=
-///        'case' [DartPattern] [WhenClause]?
 final class CaseClauseImpl extends AstNodeImpl implements CaseClause {
   @override
   final Token caseKeyword;
@@ -2301,17 +2187,13 @@ abstract final class CastPattern implements DartPattern {
   /// The `as` token.
   Token get asToken;
 
-  /// The pattern whose matched value will be cast.
+  /// The pattern used to match the value being cast.
   DartPattern get pattern;
 
   /// The type that the value being matched is cast to.
   TypeAnnotation get type;
 }
 
-/// A cast pattern.
-///
-///    castPattern ::=
-///        [DartPattern] 'as' [TypeAnnotation]
 final class CastPatternImpl extends DartPatternImpl implements CastPattern {
   @override
   final Token asToken;
@@ -2395,91 +2277,71 @@ final class CastPatternImpl extends DartPatternImpl implements CastPattern {
 ///    catchPart ::=
 ///        'catch' '(' [CatchClauseParameter] (',' [CatchClauseParameter])? ')'
 abstract final class CatchClause implements AstNode {
-  /// Return the body of the catch block.
+  /// The body of the catch block.
   Block get body;
 
-  /// Return the token representing the 'catch' keyword, or `null` if there is
-  /// no 'catch' keyword.
+  /// The token representing the `catch` keyword, or `null` if there's no
+  /// `catch` keyword.
   Token? get catchKeyword;
 
-  /// Return the comma separating the exception parameter from the stack trace
-  /// parameter, or `null` if there is no stack trace parameter.
+  /// The comma separating the exception parameter from the stack trace
+  /// parameter, or `null` if there's no stack trace parameter.
   Token? get comma;
 
-  /// Return the parameter whose value will be the exception that was thrown, or
-  /// `null` if there is no 'catch' keyword.
+  /// The parameter whose value is the exception that was thrown, or `null` if
+  /// there's no `catch` keyword.
   CatchClauseParameter? get exceptionParameter;
-
-  /// Return the type of exceptions caught by this catch clause, or `null` if
-  /// this catch clause catches every type of exception.
-  TypeAnnotation? get exceptionType;
-
-  /// Return the left parenthesis, or `null` if there is no 'catch' keyword.
-  Token? get leftParenthesis;
-
-  /// Return the token representing the 'on' keyword, or `null` if there is no
-  /// 'on' keyword.
-  Token? get onKeyword;
-
-  /// Return the right parenthesis, or `null` if there is no 'catch' keyword.
-  Token? get rightParenthesis;
-
-  /// Return the parameter whose value will be the stack trace associated with
-  /// the exception, or `null` if there is no stack trace parameter.
-  CatchClauseParameter? get stackTraceParameter;
-}
-
-/// A catch clause within a try statement.
-///
-///    onPart ::=
-///        catchPart [Block]
-///      | 'on' type catchPart? [Block]
-///
-///    catchPart ::=
-///        'catch' '(' [SimpleIdentifier] (',' [SimpleIdentifier])? ')'
-final class CatchClauseImpl extends AstNodeImpl implements CatchClause {
-  /// The token representing the 'on' keyword, or `null` if there is no 'on'
-  /// keyword.
-  @override
-  final Token? onKeyword;
 
   /// The type of exceptions caught by this catch clause, or `null` if this
   /// catch clause catches every type of exception.
+  TypeAnnotation? get exceptionType;
+
+  /// The left parenthesis, or `null` if there's no `catch` keyword.
+  Token? get leftParenthesis;
+
+  /// The token representing the `on` keyword, or `null` if there's no `on`
+  /// keyword.
+  Token? get onKeyword;
+
+  /// The right parenthesis, or `null` if there's no `catch` keyword.
+  Token? get rightParenthesis;
+
+  /// The parameter whose value is the stack trace associated with the
+  /// exception, or `null` if there's no stack trace parameter.
+  CatchClauseParameter? get stackTraceParameter;
+}
+
+final class CatchClauseImpl extends AstNodeImpl implements CatchClause {
+  @override
+  final Token? onKeyword;
+
   TypeAnnotationImpl? _exceptionType;
 
-  /// The token representing the 'catch' keyword, or `null` if there is no
-  /// 'catch' keyword.
   @override
   final Token? catchKeyword;
 
-  /// The left parenthesis, or `null` if there is no 'catch' keyword.
   @override
   final Token? leftParenthesis;
 
-  /// The parameter whose value will be the exception that was thrown, or `null`
-  /// if there is no 'catch' keyword.
   CatchClauseParameterImpl? _exceptionParameter;
 
-  /// The comma separating the exception parameter from the stack trace
-  /// parameter, or `null` if there is no stack trace parameter.
   @override
   final Token? comma;
 
-  /// The parameter whose value will be the stack trace associated with the
-  /// exception, or `null` if there is no stack trace parameter.
   CatchClauseParameterImpl? _stackTraceParameter;
 
-  /// The right parenthesis, or `null` if there is no 'catch' keyword.
   @override
   final Token? rightParenthesis;
 
-  /// The body of the catch block.
   BlockImpl _body;
 
-  /// Initialize a newly created catch clause. The [onKeyword] and
-  /// [exceptionType] can be `null` if the clause will catch all exceptions. The
-  /// [comma] and [_stackTraceParameter] can be `null` if the stack trace
-  /// parameter is not defined.
+  /// Initializes a newly created catch clause.
+  ///
+  /// The [onKeyword] and [exceptionType] can be `null` if the clause is to
+  /// catch all exceptions.
+  ///
+  /// The [comma] and [_stackTraceParameter] can be `null` if the stack trace
+  /// parameter isn't defined.
   CatchClauseImpl({
     required this.onKeyword,
     required TypeAnnotationImpl? exceptionType,
@@ -2570,9 +2432,9 @@ final class CatchClauseImpl extends AstNodeImpl implements CatchClause {
   }
 }
 
-/// The 'exception' or 'stackTrace' parameter in [CatchClause].
+/// An 'exception' or 'stackTrace' parameter in [CatchClause].
 abstract final class CatchClauseParameter extends AstNode {
-  /// The declared element, or `null` if the AST has not been resolved.
+  /// The declared element, or `null` if the AST hasn't been resolved.
   LocalVariableElement? get declaredElement;
 
   /// The name of the parameter.
@@ -2610,7 +2472,7 @@ final class CatchClauseParameterImpl extends AstNodeImpl
   void visitChildren(AstVisitor visitor) {}
 }
 
-/// Helper class to allow iteration of child entities of an AST node.
+/// A helper class to allow iteration of child entities of an AST node.
 class ChildEntities {
   /// The list of child entities to be iterated over.
   final List<ChildEntity> entities = [];
@@ -2699,67 +2561,65 @@ class ChildEntity {
 ///      | 'abstract'? ('base' | 'interface' | 'final')?
 ///      | 'abstract'? 'base'? 'mixin'
 abstract final class ClassDeclaration implements NamedCompilationUnitMember {
-  /// Return the 'abstract' keyword, or `null` if the keyword was absent.
-  ///
-  /// In valid code only [ClassDeclaration] can specify it.
+  /// The `abstract` keyword, or `null` if the keyword was absent.
   Token? get abstractKeyword;
 
-  /// Return the 'augment' keyword, or `null` if the keyword was absent.
+  /// The `augment` keyword, or `null` if the keyword was absent.
   @experimental
   Token? get augmentKeyword;
 
-  /// Return the 'base' keyword, or `null` if the keyword was absent.
+  /// The `base` keyword, or `null` if the keyword was absent.
   Token? get baseKeyword;
 
-  /// Returns the token representing the 'class' keyword.
+  /// The token representing the `class` keyword.
   Token get classKeyword;
 
   @override
   ClassElement? get declaredElement;
 
-  /// Returns the `extends` clause for this class, or `null` if the class
-  /// does not extend any other class.
+  /// The `extends` clause for this class, or `null` if the class doesn't extend
+  /// any other class.
   ExtendsClause? get extendsClause;
 
-  /// Return the 'final' keyword, or `null` if the keyword was absent.
+  /// The `final` keyword, or `null` if the keyword was absent.
   Token? get finalKeyword;
 
-  /// Returns the `implements` clause for the class, or `null` if the class
-  /// does not implement any interfaces.
+  /// The `implements` clause for the class, or `null` if the class doesn't
+  /// implement any interfaces.
   ImplementsClause? get implementsClause;
 
-  /// Return the 'interface' keyword, or `null` if the keyword was absent.
+  /// The `interface` keyword, or `null` if the keyword was absent.
   Token? get interfaceKeyword;
 
-  /// Returns the left curly bracket.
+  /// The left curly bracket.
   Token get leftBracket;
 
-  /// Return the 'macro' keyword, or `null` if the keyword was absent.
+  /// The `macro` keyword, or `null` if the keyword was absent.
   @experimental
   Token? get macroKeyword;
 
-  /// Returns the members defined by the class.
+  /// The members defined by the class.
   NodeList<ClassMember> get members;
 
-  /// Return the 'mixin' keyword, or `null` if the keyword was absent.
+  /// The `mixin` keyword, or `null` if the keyword was absent.
   Token? get mixinKeyword;
 
-  /// Return the native clause for this class, or `null` if the class does not
-  /// have a native clause.
+  /// The native clause for this class, or `null` if the class doesn't have a
+  /// native clause.
   NativeClause? get nativeClause;
 
-  /// Returns the right curly bracket.
+  /// The right curly bracket.
   Token get rightBracket;
 
-  /// Return the 'sealed' keyword, or `null` if the keyword was absent.
+  /// The `sealed` keyword, or `null` if the keyword was absent.
   Token? get sealedKeyword;
 
-  /// Returns the type parameters for the class, or `null` if the class does
-  /// not have any type parameters.
+  /// The type parameters for the class, or `null` if the class doesn't have any
+  /// type parameters.
   TypeParameterList? get typeParameters;
 
-  /// Returns the `with` clause for the class, or `null` if the class does not
-  /// have a `with` clause.
+  /// The `with` clause for the class, or `null` if the class doesn't have a
+  /// `with` clause.
   WithClause? get withClause;
 }
 
@@ -2900,17 +2760,15 @@ final class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
   }
 }
 
-/// A node that declares a name within the scope of a class declarations.
-///
-/// When the 'extension-methods' experiment is enabled, these nodes can also be
-/// located inside extension declarations.
+/// A node that declares a name within the scope of a class, enum, extension,
+/// extension type, or mixin declaration.
 sealed class ClassMember implements Declaration {}
 
-/// A node that declares a name within the scope of a class.
 sealed class ClassMemberImpl extends DeclarationImpl implements ClassMember {
-  /// Initialize a newly created member of a class. Either or both of the
-  /// [comment] and [metadata] can be `null` if the member does not have the
-  /// corresponding attribute.
+  /// Initializes a newly created member of a class.
+  ///
+  /// Either or both of the [comment] and [metadata] can be `null` if the member
+  /// doesn't have the corresponding attribute.
   ClassMemberImpl({
     required super.comment,
     required super.metadata,
@@ -2920,7 +2778,8 @@ sealed class ClassMemberImpl extends DeclarationImpl implements ClassMember {
 /// A class type alias.
 ///
 ///    classTypeAlias ::=
-///        classModifiers 'class' [SimpleIdentifier] [TypeParameterList]? '=' mixinApplication
+///        classModifiers 'class' [SimpleIdentifier] [TypeParameterList]? '='
+///        mixinApplication
 ///
 ///    classModifiers ::= 'sealed'
 ///      | 'abstract'? ('base' | 'interface' | 'final')?
@@ -2929,123 +2788,103 @@ sealed class ClassMemberImpl extends DeclarationImpl implements ClassMember {
 ///    mixinApplication ::=
 ///        [NamedType] [WithClause] [ImplementsClause]? ';'
 abstract final class ClassTypeAlias implements TypeAlias {
-  /// Return the token for the 'abstract' keyword, or `null` if this is not
-  /// defining an abstract class.
+  /// The token for the `abstract` keyword, or `null` if this isn't defining an
+  /// abstract class.
   Token? get abstractKeyword;
 
-  /// Return the 'base' keyword, or `null` if the keyword was absent.
+  /// The `base` keyword, or `null` if the keyword was absent.
   Token? get baseKeyword;
 
   @override
   ClassElement? get declaredElement;
 
-  /// Return the token for the '=' separating the name from the definition.
+  /// The token for the '=' separating the name from the definition.
   Token get equals;
 
-  /// Return the 'final' keyword, or `null` if the keyword was absent.
+  /// The `final` keyword, or `null` if the keyword was absent.
   Token? get finalKeyword;
 
-  /// Return the implements clause for this class, or `null` if there is no
-  /// implements clause.
+  /// The implements clause for this class, or `null` if there's no implements
+  /// clause.
   ImplementsClause? get implementsClause;
 
-  /// Return the 'interface' keyword, or `null` if the keyword was absent.
+  /// The `interface` keyword, or `null` if the keyword was absent.
   Token? get interfaceKeyword;
 
-  /// Return the 'mixin' keyword, or `null` if the keyword was absent.
+  /// The `mixin` keyword, or `null` if the keyword was absent.
   Token? get mixinKeyword;
 
-  /// Return the 'sealed' keyword, or `null` if the keyword was absent.
+  /// The `sealed` keyword, or `null` if the keyword was absent.
   Token? get sealedKeyword;
 
-  /// Return the name of the superclass of the class being declared.
+  /// The name of the superclass of the class being declared.
   NamedType get superclass;
 
-  /// Return the type parameters for the class, or `null` if the class does not
-  /// have any type parameters.
+  /// The type parameters for the class, or `null` if the class doesn't have any
+  /// type parameters.
   TypeParameterList? get typeParameters;
 
-  /// Return the with clause for this class.
+  /// The with clause for this class.
   WithClause get withClause;
 }
 
-/// A class type alias.
-///
-///    classTypeAlias ::=
-///        classModifiers 'class' [SimpleIdentifier] [TypeParameterList]? '=' mixinApplication
-///
-///    classModifiers ::= 'sealed'
-///      | 'abstract'? ('base' | 'interface' | 'final')?
-///      | 'abstract'? 'base'? 'mixin'
-///
-///    mixinApplication ::=
-///        [NamedType] [WithClause] [ImplementsClause]? ';'
 final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
-  /// The type parameters for the class, or `null` if the class does not have
-  /// any type parameters.
   TypeParameterListImpl? _typeParameters;
 
-  /// The token for the '=' separating the name from the definition.
   @override
   final Token equals;
 
-  /// The token for the 'abstract' keyword, or `null` if this is not defining an
-  /// abstract class.
   @override
   final Token? abstractKeyword;
 
-  /// The token for the 'macro' keyword, or `null` if this is not defining a
+  /// The token for the `macro` keyword, or `null` if this isn't defining a
   /// macro class.
+// TODO(brianwilkerson): Move this comment to the getter when it's added to
+  //  the public API.
   final Token? macroKeyword;
 
-  /// The token for the 'sealed' keyword, or `null` if this is not defining a
-  /// sealed class.
   @override
   final Token? sealedKeyword;
 
-  /// The token for the 'base' keyword, or `null` if this is not defining a base
-  /// class.
   @override
   final Token? baseKeyword;
 
-  /// The token for the 'interface' keyword, or `null` if this is not defining
-  /// an interface class.
   @override
   final Token? interfaceKeyword;
 
-  /// The token for the 'final' keyword, or `null` if this is not defining a
-  /// final class.
   @override
   final Token? finalKeyword;
 
-  /// The token for the 'augment' keyword, or `null` if this is not defining an
+  /// The token for the `augment` keyword, or `null` if this isn't defining an
   /// augmentation class.
+// TODO(brianwilkerson): Move this comment to the getter when it's added to
+  //  the public API.
   final Token? augmentKeyword;
 
-  /// The token for the 'mixin' keyword, or `null` if this is not defining a
-  /// mixin class.
   @override
   final Token? mixinKeyword;
 
-  /// The name of the superclass of the class being declared.
   NamedTypeImpl _superclass;
 
-  /// The with clause for this class.
   WithClauseImpl _withClause;
 
-  /// The implements clause for this class, or `null` if there is no implements
-  /// clause.
   ImplementsClauseImpl? _implementsClause;
 
   @override
   ClassElementImpl? declaredElement;
 
-  /// Initialize a newly created class type alias. Either or both of the
-  /// [comment] and [metadata] can be `null` if the class type alias does not
-  /// have the corresponding attribute. The [typeParameters] can be `null` if
-  /// the class does not have any type parameters. The [abstractKeyword] can be
-  /// `null` if the class is not abstract. The [implementsClause] can be `null`
-  /// if the class does not implement any interfaces.
+  /// Initializes a newly created class type alias.
+  ///
+  /// Either or both of the [comment] and [metadata] can be `null` if the class
+  /// type alias doesn't have the corresponding attribute.
+  ///
+  /// The [typeParameters] can be `null` if the class doesn't have any type
+  /// parameters.
+  ///
+  /// The [abstractKeyword] can be `null` if the class isn't abstract.
+  ///
+  /// The [implementsClause] can be `null` if the class doesn't implement any
+  /// interfaces.
   ClassTypeAliasImpl({
     required super.comment,
     required super.metadata,
@@ -3148,14 +2987,6 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   }
 }
 
-/// An element in a list, map or set literal.
-///
-///    collectionElement ::=
-///        [Expression]
-///      | [IfElement]
-///      | [ForElement]
-///      | [MapLiteralEntry]
-///      | [SpreadElement]
 sealed class CollectionElement implements AstNode {}
 
 sealed class CollectionElementImpl extends AstNodeImpl
@@ -3172,23 +3003,16 @@ sealed class CollectionElementImpl extends AstNodeImpl
 ///        [HideCombinator]
 ///      | [ShowCombinator]
 sealed class Combinator implements AstNode {
-  /// Return the 'hide' or 'show' keyword specifying what kind of processing is
-  /// to be done on the names.
+  /// The `hide` or `show` keyword specifying what kind of processing is to be
+  /// done on the names.
   Token get keyword;
 }
 
-/// A combinator associated with an import or export directive.
-///
-///    combinator ::=
-///        [HideCombinator]
-///      | [ShowCombinator]
 sealed class CombinatorImpl extends AstNodeImpl implements Combinator {
-  /// The 'hide' or 'show' keyword specifying what kind of processing is to be
-  /// done on the names.
   @override
   final Token keyword;
 
-  /// Initialize a newly created combinator.
+  /// Initializes a newly created combinator.
   CombinatorImpl({
     required this.keyword,
   });
@@ -3214,7 +3038,7 @@ sealed class CombinatorImpl extends AstNodeImpl implements Combinator {
 ///        '/ **' (CHARACTER | [CommentReference])* '&#42;/'
 ///      | ('///' (CHARACTER - EOL)* EOL)+
 abstract final class Comment implements AstNode {
-  /// The Markdown code blocks (both fenced and indented) parsed in this
+  /// The markdown code blocks (both fenced and indented) contained in this
   /// comment.
   @experimental
   List<MdCodeBlock> get codeBlocks;
@@ -3226,53 +3050,35 @@ abstract final class Comment implements AstNode {
   List<DocImport> get docImports;
 
   /// Whether this comment has a line beginning with '@nodoc', indicating its
-  /// contents are not intended for publishing.
+  /// contents aren't intended for publishing.
   @experimental
   bool get hasNodoc;
 
-  /// Return `true` if this is a block comment.
+  /// Whether this is a block comment.
   bool get isBlock;
 
-  /// Return `true` if this is a documentation comment.
+  /// Whether this is a documentation comment.
   bool get isDocumentation;
 
-  /// Return `true` if this is an end-of-line comment.
+  /// Whether this is an end-of-line comment.
   bool get isEndOfLine;
 
-  /// Return the references embedded within the documentation comment.
+  /// The references embedded within the documentation comment.
+  ///
+  /// If there are no references in the comment then the list will be empty.
   NodeList<CommentReference> get references;
 
-  /// Return the tokens representing the comment.
+  /// The tokens representing the comment.
   List<Token> get tokens;
 }
 
-/// A comment within the source code.
-///
-///    comment ::=
-///        endOfLineComment
-///      | blockComment
-///      | documentationComment
-///
-///    endOfLineComment ::=
-///        '//' (CHARACTER - EOL)* EOL
-///
-///    blockComment ::=
-///        '/ *' CHARACTER* '&#42;/'
-///
-///    documentationComment ::=
-///        '/ **' (CHARACTER | [CommentReference])* '&#42;/'
-///      | ('///' (CHARACTER - EOL)* EOL)+
 final class CommentImpl extends AstNodeImpl implements Comment {
-  /// The tokens representing the comment.
   @override
   final List<Token> tokens;
 
   /// The type of the comment.
   final CommentType _type;
 
-  /// The references embedded within the documentation comment. This list will
-  /// be empty unless this is a documentation comment that has references embedded
-  /// within it.
   final NodeListImpl<CommentReferenceImpl> _references = NodeListImpl._();
 
   @override
@@ -3287,10 +3093,14 @@ final class CommentImpl extends AstNodeImpl implements Comment {
   @override
   final bool hasNodoc;
 
-  /// Initialize a newly created comment. The list of [tokens] must contain at
-  /// least one token. The [_type] is the type of the comment. The list of
-  /// [references] can be empty if the comment does not contain any embedded
-  /// references.
+  /// Initializes a newly created comment.
+  ///
+  /// The list of [tokens] must contain at least one token.
+  ///
+  /// The [type] is the type of the comment.
+  ///
+  /// The list of [references] can be empty if the comment doesn't contain any
+  /// embedded references.
   CommentImpl({
     required this.tokens,
     required CommentType type,
@@ -3361,27 +3171,21 @@ abstract final class CommentReference implements AstNode {
   /// The comment-referable expression being referenced.
   CommentReferableExpression get expression;
 
-  /// Return the token representing the 'new' keyword, or `null` if there was no
-  /// 'new' keyword.
+  /// The token representing the `new` keyword, or `null` if there was no `new`
+  /// keyword.
   Token? get newKeyword;
 }
 
-/// A reference to a Dart element that is found within a documentation comment.
-///
-///    commentReference ::=
-///        '[' 'new'? [Identifier] ']'
 final class CommentReferenceImpl extends AstNodeImpl
     implements CommentReference {
-  /// The token representing the 'new' keyword, or `null` if there was no 'new'
-  /// keyword.
   @override
   final Token? newKeyword;
 
-  /// The expression being referenced.
   CommentReferableExpressionImpl _expression;
 
-  /// Initialize a newly created reference to a Dart element. The [newKeyword]
-  /// can be `null` if the reference is not to a constructor.
+  /// Initializes a newly created reference to a Dart element.
+  ///
+  /// The [newKeyword] can be `null` if the reference isn't to a constructor.
   CommentReferenceImpl({
     required this.newKeyword,
     required CommentReferableExpressionImpl expression,
@@ -3430,7 +3234,7 @@ class CommentType {
   /// The name of the comment type.
   final String name;
 
-  /// Initialize a newly created comment type to have the given [name].
+  /// Initializes a newly created comment type to have the given [name].
   const CommentType(this.name);
 
   @override
@@ -3440,9 +3244,9 @@ class CommentType {
 /// A compilation unit.
 ///
 /// While the grammar restricts the order of the directives and declarations
-/// within a compilation unit, this class does not enforce those restrictions.
-/// In particular, the children of a compilation unit will be visited in lexical
-/// order even if lexical order does not conform to the restrictions of the
+/// within a compilation unit, this class doesn't enforce those restrictions.
+/// In particular, the children of a compilation unit are visited in lexical
+/// order even if lexical order doesn't conform to the restrictions of the
 /// grammar.
 ///
 ///    compilationUnit ::=
@@ -3459,88 +3263,68 @@ class CommentType {
 ///    declarations ::=
 ///        [CompilationUnitMember]*
 abstract final class CompilationUnit implements AstNode {
-  /// Return the declarations contained in this compilation unit.
+  /// The first (non-EOF) token in the token stream that was parsed to form this
+  /// compilation unit.
+  @override
+  Token get beginToken;
+
+  /// The declarations contained in this compilation unit.
   NodeList<CompilationUnitMember> get declarations;
 
-  /// Return the element associated with this compilation unit, or `null` if the
-  /// AST structure has not been resolved.
+  /// The element associated with this compilation unit, or `null` if the AST
+  /// structure hasn't been resolved.
   CompilationUnitElement? get declaredElement;
 
-  /// Return the directives contained in this compilation unit.
+  /// The directives contained in this compilation unit.
   NodeList<Directive> get directives;
+
+  /// The last token in the token stream that was parsed to form this
+  /// compilation unit.
+  ///
+  /// This token should always have a type of [TokenType.EOF].
+  @override
+  Token get endToken;
 
   /// The set of features available to this compilation unit.
   ///
-  /// Determined by some combination of the .packages file, the enclosing
-  /// package's SDK version constraint, and/or the presence of a `@dart`
-  /// directive in a comment at the top of the file.
+  /// Determined by some combination of the `package_config.json` file, the
+  /// enclosing package's SDK version constraint, and/or the presence of a
+  /// `@dart` directive in a comment at the top of the file.
   FeatureSet get featureSet;
 
   /// The language version override specified for this compilation unit using a
   /// token like '// @dart = 2.7', or `null` if no override is specified.
   LanguageVersionToken? get languageVersionToken;
 
-  /// Return the line information for this compilation unit.
+  /// The line information for this compilation unit.
   LineInfo get lineInfo;
 
-  /// Return the script tag at the beginning of the compilation unit, or `null`
-  /// if there is no script tag in this compilation unit.
+  /// The script tag at the beginning of the compilation unit, or `null` if
+  /// there's no script tag in this compilation unit.
   ScriptTag? get scriptTag;
 
-  /// Return a list containing all of the directives and declarations in this
+  /// A list containing all of the directives and declarations in this
   /// compilation unit, sorted in lexical order.
   List<AstNode> get sortedDirectivesAndDeclarations;
 }
 
-/// A compilation unit.
-///
-/// While the grammar restricts the order of the directives and declarations
-/// within a compilation unit, this class does not enforce those restrictions.
-/// In particular, the children of a compilation unit will be visited in lexical
-/// order even if lexical order does not conform to the restrictions of the
-/// grammar.
-///
-///    compilationUnit ::=
-///        directives declarations
-///
-///    directives ::=
-///        [ScriptTag]? [LibraryDirective]? namespaceDirective* [PartDirective]*
-///      | [PartOfDirective]
-///
-///    namespaceDirective ::=
-///        [ImportDirective]
-///      | [ExportDirective]
-///
-///    declarations ::=
-///        [CompilationUnitMember]*
 final class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
-  /// The first token in the token stream that was parsed to form this
-  /// compilation unit.
   @override
   Token beginToken;
 
-  /// The script tag at the beginning of the compilation unit, or `null` if
-  /// there is no script tag in this compilation unit.
   ScriptTagImpl? _scriptTag;
 
-  /// The directives contained in this compilation unit.
   final NodeListImpl<DirectiveImpl> _directives = NodeListImpl._();
 
-  /// The declarations contained in this compilation unit.
   final NodeListImpl<CompilationUnitMemberImpl> _declarations =
       NodeListImpl._();
 
-  /// The last token in the token stream that was parsed to form this
-  /// compilation unit. This token should always have a type of [TokenType.EOF].
   @override
   final Token endToken;
 
-  /// The element associated with this compilation unit, or `null` if the AST
-  /// structure has not been resolved.
   @override
   CompilationUnitElementImpl? declaredElement;
 
-  /// The line information for this compilation unit.
   @override
   final LineInfo lineInfo;
 
@@ -3550,16 +3334,24 @@ final class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
   @override
   final FeatureSet featureSet;
 
-  /// Nodes that were parsed, but happened at locations where they are not
-  /// allowed. So, instead of dropping them, we remember them here. Quick
-  /// fixes could look here to determine which source range to remove.
+  /// Nodes that were parsed, but happened at locations where they aren't
+  /// allowed.
+  ///
+  /// Instead of dropping them, we remember them here. Quick fixes can look
+  /// here to determine which source range to remove.
   final List<AstNodeImpl> invalidNodes;
 
-  /// Initialize a newly created compilation unit to have the given directives
-  /// and declarations. The [scriptTag] can be `null` if there is no script tag
-  /// in the compilation unit. The list of [directives] can be `null` if there
-  /// are no directives in the compilation unit. The list of [declarations] can
-  /// be `null` if there are no declarations in the compilation unit.
+  /// Initializes a newly created compilation unit to have the given directives
+  /// and declarations.
+  ///
+  /// The [scriptTag] can be `null` if there's no script tag in the compilation
+  /// unit.
+  ///
+  /// The list of [directives] can be `null` if there are no directives in the
+  /// compilation unit.
+  ///
+  /// The list of [declarations] can be `null` if there are no declarations in
+  /// the compilation unit.
   CompilationUnitImpl({
     required this.beginToken,
     required ScriptTagImpl? scriptTag,
@@ -3630,8 +3422,7 @@ final class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
       ..addNodeList('declarations', declarations);
   }
 
-  /// Return `true` if all of the directives are lexically before any
-  /// declarations.
+  /// Whether all of the directives are lexically before any declarations.
   bool get _directivesAreBeforeDeclarations {
     if (_directives.isEmpty || _declarations.isEmpty) {
       return true;
@@ -3674,22 +3465,12 @@ final class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
 ///      | [TopLevelVariableDeclaration]
 abstract final class CompilationUnitMember implements Declaration {}
 
-/// A node that declares one or more names within the scope of a compilation
-/// unit.
-///
-///    compilationUnitMember ::=
-///        [ClassDeclaration]
-///      | [MixinDeclaration]
-///      | [ExtensionDeclaration]
-///      | [EnumDeclaration]
-///      | [TypeAlias]
-///      | [FunctionDeclaration]
-///      | [TopLevelVariableDeclaration]
 sealed class CompilationUnitMemberImpl extends DeclarationImpl
     implements CompilationUnitMember {
-  /// Initialize a newly created generic compilation unit member. Either or both
-  /// of the [comment] and [metadata] can be `null` if the member does not have
-  /// the corresponding attribute.
+  /// Initializes a newly created compilation unit member.
+  ///
+  /// Either or both of the [comment] and [metadata] can be `null` if the member
+  /// doesn't have the corresponding attribute.
   CompilationUnitMemberImpl({
     required super.comment,
     required super.metadata,
@@ -3705,51 +3486,45 @@ sealed class CompilationUnitMemberImpl extends DeclarationImpl
 /// compound assignment operator, and in a [PrefixExpression] or
 /// [PostfixExpression] when the operator is an increment operator.
 abstract final class CompoundAssignmentExpression implements Expression {
-  /// The element that is used to read the value.
-  ///
-  /// If this node is not a compound assignment, this element is `null`.
+  /// The element that is used to read the value, or `null` if this node isn't a
+  /// compound assignment, if the AST structure hasn't been resolved, or if the
+  /// target couldn't be resolved.
   ///
   /// In valid code this element can be a [LocalVariableElement], a
   /// [ParameterElement], or a [PropertyAccessorElement] getter.
   ///
-  /// In invalid code this element is `null`, for example `int += 2`. For
-  /// recovery [writeElement] is filled, and can be used for navigation.
-  ///
-  /// This element is `null` if the AST structure has not been resolved, or
-  /// if the target could not be resolved.
+  /// In invalid code this element is `null`. For example, in `int += 2`, for
+  /// recovery purposes, [writeElement] is filled, and can be used for
+  /// navigation.
   Element? get readElement;
 
-  /// The type of the value read with the [readElement].
+  /// The type of the value read with the [readElement], or `null` if this node
+  /// isn't a compound assignment.
   ///
-  /// If this node is not a compound assignment, this type is `null`.
-  ///
-  /// In invalid code, e.g. `int += 2`, this type is `dynamic`.
-  ///
-  /// This type is `null` if the AST structure has not been resolved.
-  ///
-  /// If the target could not be resolved, this type is `dynamic`.
+  /// Returns the type `dynamic` if the code is invalid, if the AST structure
+  /// hasn't been resolved, or if the target couldn't be resolved.
   DartType? get readType;
 
-  /// The element that is used to write the result.
+  /// The element that is used to write the result, or `null` if the AST
+  /// structure hasn't been resolved, or if the target couldn't be resolved.
   ///
   /// In valid code this is a [LocalVariableElement], [ParameterElement], or a
   /// [PropertyAccessorElement] setter.
   ///
   /// In invalid code, for recovery, we might use other elements, for example a
   /// [PropertyAccessorElement] getter `myGetter = 0` even though the getter
-  /// cannot be used to write a value. We do this to help the user to navigate
+  /// can't be used to write a value. We do this to help the user to navigate
   /// to the getter, and maybe add the corresponding setter.
   ///
   /// If this node is a compound assignment, e. g. `x += 2`, both [readElement]
-  /// and [writeElement] could be not `null`.
-  ///
-  /// This element is `null` if the AST structure has not been resolved, or
-  /// if the target could not be resolved.
+  /// and [writeElement] could be non-`null`.
   Element? get writeElement;
 
+  /// The type of the target of the assignment.
+  ///
   /// The types of assigned values must be subtypes of this type.
   ///
-  /// If the target could not be resolved, this type is `dynamic`.
+  /// If the target couldn't be resolved, this type is `dynamic`.
   DartType? get writeType;
 }
 
@@ -3773,50 +3548,37 @@ base mixin CompoundAssignmentExpressionImpl
 ///    conditionalExpression ::=
 ///        [Expression] '?' [Expression] ':' [Expression]
 abstract final class ConditionalExpression implements Expression {
-  /// Return the token used to separate the then expression from the else
-  /// expression.
+  /// The token used to separate the then expression from the else expression.
   Token get colon;
 
-  /// Return the condition used to determine which of the expressions is
-  /// executed next.
+  /// The condition used to determine which of the expressions is executed next.
   Expression get condition;
 
-  /// Return the expression that is executed if the condition evaluates to
-  /// `false`.
+  /// The expression that is executed if the condition evaluates to `false`.
   Expression get elseExpression;
 
-  /// Return the token used to separate the condition from the then expression.
+  /// The token used to separate the condition from the then expression.
   Token get question;
 
-  /// Return the expression that is executed if the condition evaluates to
-  /// `true`.
+  /// The expression that is executed if the condition evaluates to `true`.
   Expression get thenExpression;
 }
 
-/// A conditional expression.
-///
-///    conditionalExpression ::=
-///        [Expression] '?' [Expression] ':' [Expression]
 final class ConditionalExpressionImpl extends ExpressionImpl
     implements ConditionalExpression {
-  /// The condition used to determine which of the expressions is executed next.
   ExpressionImpl _condition;
 
-  /// The token used to separate the condition from the then expression.
   @override
   final Token question;
 
-  /// The expression that is executed if the condition evaluates to `true`.
   ExpressionImpl _thenExpression;
 
-  /// The token used to separate the then expression from the else expression.
   @override
   final Token colon;
 
-  /// The expression that is executed if the condition evaluates to `false`.
   ExpressionImpl _elseExpression;
 
-  /// Initialize a newly created conditional expression.
+  /// Initializes a newly created conditional expression.
   ConditionalExpressionImpl({
     required ExpressionImpl condition,
     required this.question,
@@ -3897,45 +3659,35 @@ final class ConditionalExpressionImpl extends ExpressionImpl
 ///    dottedName ::=
 ///        identifier ('.' identifier)*
 abstract final class Configuration implements AstNode {
-  /// Return the token for the equal operator, or `null` if the condition does
-  /// not include an equality test.
+  /// The token for the equal operator, or `null` if the condition doesn't
+  /// include an equality test.
   Token? get equalToken;
 
-  /// Return the token for the 'if' keyword.
+  /// The token for the `if` keyword.
   Token get ifKeyword;
 
-  /// Return the token for the left parenthesis.
+  /// The token for the left parenthesis.
   Token get leftParenthesis;
 
-  /// Return the name of the declared variable whose value is being used in the
+  /// The name of the declared variable whose value is being used in the
   /// condition.
   DottedName get name;
 
   /// The result of resolving [uri].
   DirectiveUri? get resolvedUri;
 
-  /// Return the token for the right parenthesis.
+  /// The token for the right parenthesis.
   Token get rightParenthesis;
 
-  /// Return the URI of the implementation library to be used if the condition
-  /// is true.
+  /// The URI of the implementation library to be used if the condition is
+  /// `true`.
   StringLiteral get uri;
 
-  /// Return the value to which the value of the declared variable will be
-  /// compared, or `null` if the condition does not include an equality test.
+  /// The value to which the value of the declared variable is compared, or
+  /// `null` if the condition doesn't include an equality test.
   StringLiteral? get value;
 }
 
-/// A configuration in either an import or export directive.
-///
-///     configuration ::=
-///         'if' '(' test ')' uri
-///
-///     test ::=
-///         dottedName ('==' stringLiteral)?
-///
-///     dottedName ::=
-///         identifier ('.' identifier)*
 final class ConfigurationImpl extends AstNodeImpl implements Configuration {
   @override
   final Token ifKeyword;
@@ -4022,8 +3774,6 @@ final class ConfigurationImpl extends AstNodeImpl implements Configuration {
   }
 }
 
-/// This class is used as a marker of constant context for initializers
-/// of constant fields and top-level variables read from summaries.
 final class ConstantContextForExpressionImpl extends AstNodeImpl {
   final Element variable;
   final ExpressionImpl expression;
@@ -4053,31 +3803,19 @@ final class ConstantContextForExpressionImpl extends AstNodeImpl {
 ///
 /// This node is also used to recover from cases where a different kind of
 /// expression is used as a pattern, so clients need to handle the case where
-/// the expression is not one of the valid alternatives.
+/// the expression isn't one of the valid alternatives.
 ///
 ///    constantPattern ::=
 ///        'const'? [Expression]
 abstract final class ConstantPattern implements DartPattern {
-  /// Return the `const` keyword, or `null` if the expression is not preceded by
-  /// the keyword `const`.
+  /// The `const` keyword, or `null` if the expression isn't preceded by the
+  /// keyword `const`.
   Token? get constKeyword;
 
-  /// Return the constant expression being used as a pattern.
+  /// The constant expression being used as a pattern.
   Expression get expression;
 }
 
-/// An expression being used as a pattern.
-///
-/// The only expressions that can be validly used as a pattern are `bool`,
-/// `double`, `int`, `null`, and `String` literals and references to constant
-/// variables.
-///
-/// This node is also used to recover from cases where a different kind of
-/// expression is used as a pattern, so clients need to handle the case where
-/// the expression is not one of the valid alternatives.
-///
-///    constantPattern ::=
-///        'const'? [Expression]
 final class ConstantPatternImpl extends DartPatternImpl
     implements ConstantPattern {
   @override
@@ -4140,76 +3878,6 @@ final class ConstantPatternImpl extends DartPatternImpl
 ///
 ///    constructorDeclaration ::=
 ///        constructorSignature [FunctionBody]?
-///      | constructorName formalParameterList ':' 'this' ('.' [SimpleIdentifier])? arguments
-///
-///    constructorSignature ::=
-///        'external'? constructorName formalParameterList initializerList?
-///      | 'external'? 'factory' factoryName formalParameterList initializerList?
-///      | 'external'? 'const'  constructorName formalParameterList initializerList?
-///
-///    constructorName ::=
-///        [SimpleIdentifier] ('.' name)?
-///
-///    factoryName ::=
-///        [Identifier] ('.' [SimpleIdentifier])?
-///
-///    initializerList ::=
-///        ':' [ConstructorInitializer] (',' [ConstructorInitializer])*
-abstract final class ConstructorDeclaration implements ClassMember {
-  /// Return the 'augment' keyword, or `null` if the keyword was absent.
-  Token? get augmentKeyword;
-
-  /// Return the body of the constructor.
-  FunctionBody get body;
-
-  /// Return the token for the 'const' keyword, or `null` if the constructor is
-  /// not a const constructor.
-  Token? get constKeyword;
-
-  @override
-  ConstructorElement? get declaredElement;
-
-  /// Return the token for the 'external' keyword to the given [token].
-  Token? get externalKeyword;
-
-  /// Return the token for the 'factory' keyword, or `null` if the constructor
-  /// is not a factory constructor.
-  Token? get factoryKeyword;
-
-  /// Return the initializers associated with the constructor.
-  NodeList<ConstructorInitializer> get initializers;
-
-  /// Return the name of the constructor, or `null` if the constructor being
-  /// declared is unnamed.
-  Token? get name;
-
-  /// Return the parameters associated with the constructor.
-  FormalParameterList get parameters;
-
-  /// Return the token for the period before the constructor name, or `null` if
-  /// the constructor being declared is unnamed.
-  Token? get period;
-
-  /// Return the name of the constructor to which this constructor will be
-  /// redirected, or `null` if this is not a redirecting factory constructor.
-  ConstructorName? get redirectedConstructor;
-
-  /// Return the type of object being created.
-  ///
-  /// This can be different than the type in which the constructor is being
-  /// declared if the constructor is the implementation of a factory
-  /// constructor.
-  Identifier get returnType;
-
-  /// Return the token for the separator (colon or equals) before the
-  /// initializer list or redirection, or `null` if there are no initializers.
-  Token? get separator;
-}
-
-/// A constructor declaration.
-///
-///    constructorDeclaration ::=
-///        constructorSignature [FunctionBody]?
 ///      | constructorName formalParameterList ':' 'this'
 ///        ('.' [SimpleIdentifier])? arguments
 ///
@@ -4221,86 +3889,127 @@ abstract final class ConstructorDeclaration implements ClassMember {
 ///        initializerList?
 ///
 ///    constructorName ::=
-///        [SimpleIdentifier] ('.' [SimpleIdentifier])?
+///        [SimpleIdentifier] ('.' name)?
 ///
 ///    factoryName ::=
 ///        [Identifier] ('.' [SimpleIdentifier])?
 ///
 ///    initializerList ::=
 ///        ':' [ConstructorInitializer] (',' [ConstructorInitializer])*
+abstract final class ConstructorDeclaration implements ClassMember {
+  /// The `augment` keyword, or `null` if the keyword was absent.
+  Token? get augmentKeyword;
+
+  /// The body of the constructor.
+  FunctionBody get body;
+
+  /// The token for the `const` keyword, or `null` if the constructor isn't a
+  /// const constructor.
+  Token? get constKeyword;
+
+  @override
+  ConstructorElement? get declaredElement;
+
+  /// The token for the `external` keyword to the given [token].
+  Token? get externalKeyword;
+
+  /// The token for the `factory` keyword, or `null` if the constructor isn't a
+  /// factory constructor.
+  Token? get factoryKeyword;
+
+  /// The initializers associated with the constructor.
+  NodeList<ConstructorInitializer> get initializers;
+
+  /// The name of the constructor, or `null` if the constructor being declared
+  /// is unnamed.
+  Token? get name;
+
+  /// The parameters associated with the constructor.
+  FormalParameterList get parameters;
+
+  /// The token for the period before the constructor name, or `null` if the
+  /// constructor being declared is unnamed.
+  Token? get period;
+
+  /// The name of the constructor to which this constructor is redirected, or
+  /// `null` if this isn't a redirecting factory constructor.
+  ConstructorName? get redirectedConstructor;
+
+  /// The type of object being created.
+  ///
+  /// This can be different than the type in which the constructor is being
+  /// declared if the constructor is the implementation of a factory
+  /// constructor.
+  Identifier get returnType;
+
+  /// The token for the separator (colon or equals) before the initializer list
+  /// or redirection, or `null` if there are neither initializers nor a
+  /// redirection.
+  Token? get separator;
+}
+
 final class ConstructorDeclarationImpl extends ClassMemberImpl
     implements ConstructorDeclaration {
   @override
   final Token? augmentKeyword;
 
-  /// The token for the 'external' keyword, or `null` if the constructor is not
-  /// external.
   @override
   final Token? externalKeyword;
 
-  /// The token for the 'const' keyword, or `null` if the constructor is not a
-  /// const constructor.
   @override
   Token? constKeyword;
 
-  /// The token for the 'factory' keyword, or `null` if the constructor is not a
-  /// factory constructor.
   @override
   final Token? factoryKeyword;
 
-  /// The type of object being created. This can be different than the type in
-  /// which the constructor is being declared if the constructor is the
-  /// implementation of a factory constructor.
   IdentifierImpl _returnType;
 
-  /// The token for the period before the constructor name, or `null` if the
-  /// constructor being declared is unnamed.
   @override
   final Token? period;
 
-  /// The name of the constructor, or `null` if the constructor being declared
-  /// is unnamed.
   @override
   final Token? name;
 
-  /// The parameters associated with the constructor.
   FormalParameterListImpl _parameters;
 
-  /// The token for the separator (colon or equals) before the initializer list
-  /// or redirection, or `null` if there are no initializers.
   @override
   Token? separator;
 
-  /// The initializers associated with the constructor.
   final NodeListImpl<ConstructorInitializerImpl> _initializers =
       NodeListImpl._();
 
-  /// The name of the constructor to which this constructor will be redirected,
-  /// or `null` if this is not a redirecting factory constructor.
   ConstructorNameImpl? _redirectedConstructor;
 
-  /// The body of the constructor.
   FunctionBodyImpl _body;
 
-  /// The element associated with this constructor, or `null` if the AST
-  /// structure has not been resolved or if this constructor could not be
-  /// resolved.
   @override
   ConstructorElementImpl? declaredElement;
 
-  /// Initialize a newly created constructor declaration. The [externalKeyword]
-  /// can be `null` if the constructor is not external. Either or both of the
-  /// [comment] and [metadata] can be `null` if the constructor does not have
-  /// the corresponding attribute. The [constKeyword] can be `null` if the
-  /// constructor cannot be used to create a constant. The [factoryKeyword] can
-  /// be `null` if the constructor is not a factory. The [period] and [name] can
-  /// both be `null` if the constructor is not a named constructor. The
-  /// [separator] can be `null` if the constructor does not have any
-  /// initializers and does not redirect to a different constructor. The list of
-  /// [initializers] can be `null` if the constructor does not have any
-  /// initializers. The [redirectedConstructor] can be `null` if the constructor
-  /// does not redirect to a different constructor. The [body] can be `null` if
-  /// the constructor does not have a body.
+  /// Initializes a newly created constructor declaration.
+  ///
+  /// The [externalKeyword] can be `null` if the constructor isn't external.
+  ///
+  /// Either or both of the [comment] and [metadata] can be `null` if the
+  /// constructor doesn't have the corresponding attribute.
+  ///
+  /// The [constKeyword] can be `null` if the constructor can't be used to
+  /// create a constant.
+  ///
+  /// The [factoryKeyword] can be `null` if the constructor isn't a factory.
+  ///
+  /// The [period] and [name] can both be `null` if the constructor isn't a
+  /// named constructor.
+  ///
+  /// The [separator] can be `null` if the constructor doesn't have any
+  /// initializers and doesn't redirect to a different constructor.
+  ///
+  /// The list of [initializers] can be `null` if the constructor doesn't have
+  /// any initializers.
+  ///
+  /// The [redirectedConstructor] can be `null` if the constructor doesn't
+  /// redirect to a different constructor.
+  ///
+  /// The [body] can be `null` if the constructor doesn't have a body.
   ConstructorDeclarationImpl({
     required super.comment,
     required super.metadata,
@@ -4349,9 +4058,11 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
   @override
   NodeListImpl<ConstructorInitializerImpl> get initializers => _initializers;
 
-  // A trivial constructor is a generative constructor that is not a
-  // redirecting constructor, declares no parameters, has no
-  // initializer list, has no body, and is not external.
+  /// Whether this is a trivial constructor.
+  ///
+  /// A trivial constructor is a generative constructor that isn't a redirecting
+  /// constructor, declares no parameters, has no initializer list, has no body,
+  /// and isn't external.
   bool get isTrivial =>
       redirectedConstructor == null &&
       parameters.parameters.isEmpty &&
@@ -4417,54 +4128,43 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
 ///        ('this' '.')? [SimpleIdentifier] '=' [Expression]
 abstract final class ConstructorFieldInitializer
     implements ConstructorInitializer {
-  /// Return the token for the equal sign between the field name and the
-  /// expression.
+  /// The token for the equal sign between the field name and the expression.
   Token get equals;
 
-  /// Return the expression computing the value to which the field will be
-  /// initialized.
+  /// The expression computing the value to which the field is initialized.
   Expression get expression;
 
-  /// Return the name of the field being initialized.
+  /// The name of the field being initialized.
   SimpleIdentifier get fieldName;
 
-  /// Return the token for the period after the 'this' keyword, or `null` if
-  /// there is no 'this' keyword.
+  /// The token for the period after the `this` keyword, or `null` if there's no
+  /// `this` keyword.
   Token? get period;
 
-  /// Return the token for the 'this' keyword, or `null` if there is no 'this'
-  /// keyword.
+  /// The token for the `this` keyword, or `null` if there's no `this` keyword.
   Token? get thisKeyword;
 }
 
-/// The initialization of a field within a constructor's initialization list.
-///
-///    fieldInitializer ::=
-///        ('this' '.')? [SimpleIdentifier] '=' [Expression]
 final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
     implements ConstructorFieldInitializer {
-  /// The token for the 'this' keyword, or `null` if there is no 'this' keyword.
   @override
   final Token? thisKeyword;
 
-  /// The token for the period after the 'this' keyword, or `null` if there is
-  /// no 'this' keyword.
   @override
   final Token? period;
 
-  /// The name of the field being initialized.
   SimpleIdentifierImpl _fieldName;
 
-  /// The token for the equal sign between the field name and the expression.
   @override
   final Token equals;
 
-  /// The expression computing the value to which the field will be initialized.
   ExpressionImpl _expression;
 
-  /// Initialize a newly created field initializer to initialize the field with
-  /// the given name to the value of the given expression. The [thisKeyword] and
-  /// [period] can be `null` if the 'this' keyword was not specified.
+  /// Initializes a newly created field initializer to initialize the field with
+  /// the given name to the value of the given expression.
+  ///
+  /// The [thisKeyword] and [period] can be `null` if the `this` keyword isn't
+  /// specified.
   ConstructorFieldInitializerImpl({
     required this.thisKeyword,
     required this.period,
@@ -4529,12 +4229,6 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
 ///      | [RedirectingConstructorInvocation]
 sealed class ConstructorInitializer implements AstNode {}
 
-/// A node that can occur in the initializer list of a constructor declaration.
-///
-///    constructorInitializer ::=
-///        [SuperConstructorInvocation]
-///      | [ConstructorFieldInitializer]
-///      | [RedirectingConstructorInvocation]
 sealed class ConstructorInitializerImpl extends AstNodeImpl
     implements ConstructorInitializer {}
 
@@ -4544,43 +4238,33 @@ sealed class ConstructorInitializerImpl extends AstNodeImpl
 ///        type ('.' identifier)?
 abstract final class ConstructorName
     implements AstNode, ConstructorReferenceNode {
-  /// Return the name of the constructor, or `null` if the specified constructor
-  /// is the unnamed constructor.
+  /// The name of the constructor, or `null` if the specified constructor is the
+  /// unnamed constructor and the name `new` wasn't explicitly used.
   SimpleIdentifier? get name;
-
-  /// Return the token for the period before the constructor name, or `null` if
-  /// the specified constructor is the unnamed constructor.
-  Token? get period;
-
-  /// Return the name of the type defining the constructor.
-  NamedType get type;
-}
-
-/// The name of the constructor.
-///
-///    constructorName ::=
-///        type ('.' identifier)?
-final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
-  /// The name of the type defining the constructor.
-  NamedTypeImpl _type;
 
   /// The token for the period before the constructor name, or `null` if the
   /// specified constructor is the unnamed constructor.
+  Token? get period;
+
+  /// The name of the type defining the constructor.
+  NamedType get type;
+}
+
+final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
+  NamedTypeImpl _type;
+
   @override
   Token? period;
 
-  /// The name of the constructor, or `null` if the specified constructor is the
-  /// unnamed constructor.
   SimpleIdentifierImpl? _name;
 
-  /// The element associated with this constructor name based on static type
-  /// information, or `null` if the AST structure has not been resolved or if
-  /// this constructor name could not be resolved.
   @override
   ConstructorElement? staticElement;
 
-  /// Initialize a newly created constructor name. The [period] and [name] can
-  /// be`null` if the constructor being named is the unnamed constructor.
+  /// Initializes a newly created constructor name.
+  ///
+  /// The [period] and [name] can be `null` if the constructor being named is
+  /// the unnamed constructor.
   ConstructorNameImpl({
     required NamedTypeImpl type,
     required this.period,
@@ -4632,11 +4316,12 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
   }
 }
 
-/// An expression representing a reference to a constructor, e.g. the expression
-/// `List.filled` in `var x = List.filled;`.
+/// An expression representing a reference to a constructor.
 ///
-/// Objects of this type are not produced directly by the parser (because the
-/// parser cannot tell whether an identifier refers to a type); they are
+/// For example, the expression `List.filled` in `var x = List.filled;`.
+///
+/// Objects of this type aren't produced directly by the parser (because the
+/// parser can't tell whether an identifier refers to a type); they are
 /// produced at resolution time.
 abstract final class ConstructorReference
     implements Expression, CommentReferableExpression {
@@ -4644,12 +4329,6 @@ abstract final class ConstructorReference
   ConstructorName get constructorName;
 }
 
-/// An expression representing a reference to a constructor, e.g. the expression
-/// `List.filled` in `var x = List.filled;`.
-///
-/// Objects of this type are not produced directly by the parser (because the
-/// parser cannot tell whether an identifier refers to a type); they are
-/// produced at resolution time.
 final class ConstructorReferenceImpl extends CommentReferableExpressionImpl
     implements ConstructorReference {
   ConstructorNameImpl _constructorName;
@@ -4697,9 +4376,9 @@ final class ConstructorReferenceImpl extends CommentReferableExpressionImpl
 
 /// An AST node that makes reference to a constructor.
 abstract final class ConstructorReferenceNode implements AstNode {
-  /// Return the element associated with the referenced constructor based on
-  /// static type information, or `null` if the AST structure has not been
-  /// resolved or if the constructor could not be resolved.
+  /// The element associated with the referenced constructor based on static
+  /// type information, or `null` if the AST structure hasn't been resolved or
+  /// if the constructor couldn't be resolved.
   ConstructorElement? get staticElement;
 }
 
@@ -4708,10 +4387,10 @@ abstract final class ConstructorReferenceNode implements AstNode {
 ///    constructorSelector ::=
 ///        '.' identifier
 abstract final class ConstructorSelector implements AstNode {
-  /// Return the constructor name.
+  /// The constructor name.
   SimpleIdentifier get name;
 
-  /// Return the period before the constructor name.
+  /// The period before the constructor name.
   Token get period;
 }
 
@@ -4755,55 +4434,44 @@ final class ConstructorSelectorImpl extends AstNodeImpl
 ///    continueStatement ::=
 ///        'continue' [SimpleIdentifier]? ';'
 abstract final class ContinueStatement implements Statement {
-  /// Return the token representing the 'continue' keyword.
+  /// The token representing the `continue` keyword.
   Token get continueKeyword;
 
-  /// Return the label associated with the statement, or `null` if there is no
-  /// label.
+  /// The label associated with the statement, or `null` if there's no label.
   SimpleIdentifier? get label;
 
-  /// Return the semicolon terminating the statement.
+  /// The semicolon terminating the statement.
   Token get semicolon;
 
-  /// Return the node to which this continue statement is continuing.
+  /// The node to which this continue statement is continuing, or `null` if the
+  /// AST hasn't yet been resolved or if the target couldn't be resolved.
   ///
-  /// This will be either a [Statement] (in the case of continuing a loop), a
+  /// This is either a [Statement] (in the case of continuing a loop), or a
   /// [SwitchMember] (in the case of continuing from one switch case to
-  /// another), or `null` if the AST has not yet been resolved or if the target
-  /// could not be resolved. Note that if the source code has errors, the
-  /// target might be invalid (e.g. the target may be in an enclosing
-  /// function).
+  /// another).
+  ///
+  /// Note that if the source code has errors, the target might be invalid.
+  /// For example, the target might be in an enclosing function.
   AstNode? get target;
 }
 
-/// A continue statement.
-///
-///    continueStatement ::=
-///        'continue' [SimpleIdentifier]? ';'
 final class ContinueStatementImpl extends StatementImpl
     implements ContinueStatement {
-  /// The token representing the 'continue' keyword.
   @override
   final Token continueKeyword;
 
-  /// The label associated with the statement, or `null` if there is no label.
   SimpleIdentifierImpl? _label;
 
-  /// The semicolon terminating the statement.
   @override
   final Token semicolon;
 
-  /// The AstNode which this continue statement is continuing to.  This will be
-  /// either a Statement (in the case of continuing a loop) or a SwitchMember
-  /// (in the case of continuing from one switch case to another).  Null if the
-  /// AST has not yet been resolved or if the target could not be resolved.
-  /// Note that if the source code has errors, the target may be invalid (e.g.
-  /// the target may be in an enclosing function).
   @override
   AstNode? target;
 
-  /// Initialize a newly created continue statement. The [label] can be `null`
-  /// if there is no label associated with the statement.
+  /// Initializes a newly created continue statement.
+  ///
+  /// The [label] can be `null` if there's no label associated with the
+  /// statement.
   ContinueStatementImpl({
     required this.continueKeyword,
     required SimpleIdentifierImpl? label,
@@ -4858,50 +4526,34 @@ final class ContinueStatementImpl extends StatementImpl
 ///      | [RecordPattern]
 ///      | [RelationalPattern]
 sealed class DartPattern implements AstNode, ListPatternElement {
-  /// The matched value type, or `null` if the node is not resolved yet.
+  /// The matched value type, or `null` if the node isn't resolved yet.
   DartType? get matchedValueType;
 
-  /// Return the precedence of this pattern.
+  /// The precedence of this pattern.
   ///
   /// The precedence is a positive integer value that defines how the source
   /// code is parsed into an AST. For example `a | b & c` is parsed as `a | (b
   /// & c)` because the precedence of `&` is greater than the precedence of `|`.
   PatternPrecedence get precedence;
 
-  /// If this pattern is a parenthesized pattern, return the result of
-  /// unwrapping the pattern inside the parentheses. Otherwise, return this
-  /// pattern.
+  /// If this pattern is a parenthesized pattern, the result of unwrapping the
+  /// pattern inside the parentheses. Otherwise, this pattern.
   DartPattern get unParenthesized;
 }
 
-/// A pattern.
-///
-///    pattern ::=
-///        [AssignedVariablePattern]
-///      | [DeclaredVariablePattern]
-///      | [CastPattern]
-///      | [ConstantPattern]
-///      | [ListPattern]
-///      | [LogicalAndPattern]
-///      | [LogicalOrPattern]
-///      | [MapPattern]
-///      | [NullAssertPattern]
-///      | [NullCheckPattern]
-///      | [ObjectPattern]
-///      | [ParenthesizedPattern]
-///      | [RecordPattern]
-///      | [RelationalPattern]
 sealed class DartPatternImpl extends AstNodeImpl
     implements DartPattern, ListPatternElementImpl {
   @override
   DartType? matchedValueType;
 
-  /// Returns the context for this pattern.
-  /// * Declaration context:
+  /// The context for this pattern.
+  ///
+  /// The possible contexts are
+  /// - Declaration context:
   ///     [ForEachPartsWithPatternImpl]
   ///     [PatternVariableDeclarationImpl]
-  /// * Assignment context: [PatternAssignmentImpl]
-  /// * Matching context: [GuardedPatternImpl]
+  /// - Assignment context: [PatternAssignmentImpl]
+  /// - Matching context: [GuardedPatternImpl]
   AstNodeImpl? get patternContext {
     for (DartPatternImpl current = this;;) {
       var parent = current.parent;
@@ -4936,6 +4588,12 @@ sealed class DartPatternImpl extends AstNodeImpl
 
   DartType computePatternSchema(ResolverVisitor resolverVisitor);
 
+  /// Dispatches this pattern to the [resolver], with the given [context]
+  /// information.
+  ///
+  /// Note: most code shouldn't call this method directly, but should instead
+  /// call [ResolverVisitor.dispatchPattern], which has some special logic for
+  /// handling dynamic contexts.
   void resolvePattern(
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
@@ -4946,18 +4604,17 @@ sealed class DartPatternImpl extends AstNodeImpl
 ///
 /// Each declared name is visible within a name scope.
 abstract final class Declaration implements AnnotatedNode {
-  /// Return the element associated with this declaration, or `null` if either
-  /// this node corresponds to a list of declarations or if the AST structure
-  /// has not been resolved.
+  /// The element associated with this declaration, or `null` if either this
+  /// node corresponds to a list of declarations or if the AST structure hasn't
+  /// been resolved.
   Element? get declaredElement;
 }
 
-/// A node that represents the declaration of one or more names. Each declared
-/// name is visible within a name scope.
 sealed class DeclarationImpl extends AnnotatedNodeImpl implements Declaration {
-  /// Initialize a newly created declaration. Either or both of the [comment]
-  /// and [metadata] can be `null` if the declaration does not have the
-  /// corresponding attribute.
+  /// Initializes a newly created declaration.
+  ///
+  /// Either or both of the [comment] and [metadata] can be `null` if the
+  /// declaration doesn't have the corresponding attribute.
   DeclarationImpl({
     required super.comment,
     required super.metadata,
@@ -4972,39 +4629,32 @@ abstract final class DeclaredIdentifier implements Declaration {
   @override
   LocalVariableElement? get declaredElement;
 
-  /// Return `true` if this variable was declared with the 'const' modifier.
+  /// Whether this variable was declared with the 'const' modifier.
   bool get isConst;
 
-  /// Return `true` if this variable was declared with the 'final' modifier.
-  /// Variables that are declared with the 'const' modifier will return `false`
+  /// Whether this variable was declared with the 'final' modifier.
+  ///
+  /// Returns `false` for variables that are declared with the 'const' modifier
   /// even though they are implicitly final.
   bool get isFinal;
 
-  /// Return the token representing either the 'final', 'const' or 'var'
-  /// keyword, or `null` if no keyword was used.
+  /// The token representing either the `final`, `const` or `var` keyword, or
+  /// `null` if no keyword was used.
   Token? get keyword;
 
-  /// Return the name of the variable being declared.
+  /// The name of the variable being declared.
   Token get name;
 
-  /// Return the name of the declared type of the parameter, or `null` if the
-  /// parameter does not have a declared type.
+  /// The name of the declared type of the parameter, or `null` if the parameter
+  /// doesn't have a declared type.
   TypeAnnotation? get type;
 }
 
-/// The declaration of a single identifier.
-///
-///    declaredIdentifier ::=
-///        [Annotation] finalConstVarOrType [SimpleIdentifier]
 final class DeclaredIdentifierImpl extends DeclarationImpl
     implements DeclaredIdentifier {
-  /// The token representing either the 'final', 'const' or 'var' keyword, or
-  /// `null` if no keyword was used.
   @override
   final Token? keyword;
 
-  /// The name of the declared type of the parameter, or `null` if the parameter
-  /// does not have a declared type.
   TypeAnnotationImpl? _type;
 
   @override
@@ -5013,10 +4663,14 @@ final class DeclaredIdentifierImpl extends DeclarationImpl
   @override
   LocalVariableElementImpl? declaredElement;
 
-  /// Initialize a newly created formal parameter. Either or both of the
-  /// [comment] and [metadata] can be `null` if the declaration does not have
-  /// the corresponding attribute. The [keyword] can be `null` if a type name is
-  /// given. The [type] must be `null` if the keyword is 'var'.
+  /// Initializes a newly created formal parameter.
+  ///
+  /// Either or both of the [comment] and [metadata] can be `null` if the
+  /// declaration doesn't have the corresponding attribute.
+  ///
+  /// The [keyword] can be `null` if a type name is given.
+  ///
+  /// The [type] must be `null` if the keyword is `var`.
   DeclaredIdentifierImpl({
     required super.comment,
     required super.metadata,
@@ -5069,11 +4723,11 @@ final class DeclaredIdentifierImpl extends DeclarationImpl
 ///    variablePattern ::=
 ///        ( 'var' | 'final' | 'final'? [TypeAnnotation])? [Identifier]
 sealed class DeclaredVariablePattern implements VariablePattern {
-  /// Return the element associated with this declaration, or `null` if the AST
-  /// structure has not been resolved.
+  /// The element associated with this declaration, or `null` if the AST
+  /// structure hasn't been resolved.
   BindPatternVariableElement? get declaredElement;
 
-  /// The 'var' or 'final' keyword.
+  /// The `var` or `final` keyword.
   Token? get keyword;
 
   /// The type that the variable is required to match, or `null` if any type is
@@ -5081,10 +4735,6 @@ sealed class DeclaredVariablePattern implements VariablePattern {
   TypeAnnotation? get type;
 }
 
-/// A variable pattern.
-///
-///    variablePattern ::=
-///        ( 'var' | 'final' | 'final'? [TypeAnnotation])? [Identifier]
 final class DeclaredVariablePatternImpl extends VariablePatternImpl
     implements DeclaredVariablePattern {
   @override
@@ -5110,7 +4760,7 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
   @override
   Token get endToken => name;
 
-  /// If [keyword] is `final`, returns it.
+  /// The `final` keyword, or `null` if the `final` keyword isn't used.
   Token? get finalKeyword {
     final keyword = this.keyword;
     if (keyword != null && keyword.keyword == Keyword.FINAL) {
@@ -5171,47 +4821,34 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
 ///    defaultNamedParameter ::=
 ///        [NormalFormalParameter] (':' [Expression])?
 abstract final class DefaultFormalParameter implements FormalParameter {
-  /// Return the expression computing the default value for the parameter, or
-  /// `null` if there is no default value.
+  /// The expression computing the default value for the parameter, or `null` if
+  /// there's no default value.
   Expression? get defaultValue;
 
-  /// Return the formal parameter with which the default value is associated.
+  /// The formal parameter with which the default value is associated.
   NormalFormalParameter get parameter;
 
-  /// Return the token separating the parameter from the default value, or
-  /// `null` if there is no default value.
+  /// The token separating the parameter from the default value, or `null` if
+  /// there's no default value.
   Token? get separator;
 }
 
-/// A formal parameter with a default value. There are two kinds of parameters
-/// that are both represented by this class: named formal parameters and
-/// positional formal parameters.
-///
-///    defaultFormalParameter ::=
-///        [NormalFormalParameter] ('=' [Expression])?
-///
-///    defaultNamedParameter ::=
-///        [NormalFormalParameter] (':' [Expression])?
 final class DefaultFormalParameterImpl extends FormalParameterImpl
     implements DefaultFormalParameter {
-  /// The formal parameter with which the default value is associated.
   NormalFormalParameterImpl _parameter;
 
-  /// The kind of this parameter.
   @override
   ParameterKind kind;
 
-  /// The token separating the parameter from the default value, or `null` if
-  /// there is no default value.
   @override
   final Token? separator;
 
-  /// The expression computing the default value for the parameter, or `null` if
-  /// there is no default value.
   ExpressionImpl? _defaultValue;
 
-  /// Initialize a newly created default formal parameter. The [separator] and
-  /// [defaultValue] can be `null` if there is no default value.
+  /// Initializes a newly created default formal parameter.
+  ///
+  /// The [separator] and [defaultValue] can be `null` if there's no default
+  /// value.
   DefaultFormalParameterImpl({
     required NormalFormalParameterImpl parameter,
     required this.kind,
@@ -5298,28 +4935,18 @@ final class DefaultFormalParameterImpl extends FormalParameterImpl
 ///      | [PartDirective]
 ///      | [PartOfDirective]
 sealed class Directive implements AnnotatedNode {
-  /// Return the element associated with this directive, or `null` if the AST
-  /// structure has not been resolved.
+  /// The element associated with this directive, or `null` if the AST structure
+  /// hasn't been resolved or if this directive couldn't be resolved.
   Element? get element;
 }
 
-/// A node that represents a directive.
-///
-///    directive ::=
-///        [AugmentationImportDirective]
-///      | [ExportDirective]
-///      | [ImportDirective]
-///      | [LibraryDirective]
-///      | [PartDirective]
-///      | [PartOfDirective]
 sealed class DirectiveImpl extends AnnotatedNodeImpl implements Directive {
-  /// The element associated with this directive, or `null` if the AST structure
-  /// has not been resolved or if this directive could not be resolved.
   ElementImpl? _element;
 
-  /// Initialize a newly create directive. Either or both of the [comment] and
-  /// [metadata] can be `null` if the directive does not have the corresponding
-  /// attribute.
+  /// Initializes a newly create directive.
+  ///
+  /// Either or both of the [comment] and [metadata] can be `null` if the
+  /// directive doesn't have the corresponding attribute.
   DirectiveImpl({
     required super.comment,
     required super.metadata,
@@ -5328,7 +4955,6 @@ sealed class DirectiveImpl extends AnnotatedNodeImpl implements Directive {
   @override
   ElementImpl? get element => _element;
 
-  /// Set the element associated with this directive to be the given [element].
   set element(ElementImpl? element) {
     _element = element;
   }
@@ -5339,60 +4965,49 @@ sealed class DirectiveImpl extends AnnotatedNodeImpl implements Directive {
 ///    doStatement ::=
 ///        'do' [Statement] 'while' '(' [Expression] ')' ';'
 abstract final class DoStatement implements Statement {
-  /// Return the body of the loop.
+  /// The body of the loop.
   Statement get body;
 
-  /// Return the condition that determines when the loop will terminate.
+  /// The condition that determines when the loop terminates.
   Expression get condition;
 
-  /// Return the token representing the 'do' keyword.
+  /// The token representing the `do` keyword.
   Token get doKeyword;
 
-  /// Return the left parenthesis.
+  /// The left parenthesis.
   Token get leftParenthesis;
 
-  /// Return the right parenthesis.
+  /// The right parenthesis.
   Token get rightParenthesis;
 
-  /// Return the semicolon terminating the statement.
+  /// The semicolon terminating the statement.
   Token get semicolon;
 
-  /// Return the token representing the 'while' keyword.
+  /// The token representing the `while` keyword.
   Token get whileKeyword;
 }
 
-/// A do statement.
-///
-///    doStatement ::=
-///        'do' [Statement] 'while' '(' [Expression] ')' ';'
 final class DoStatementImpl extends StatementImpl implements DoStatement {
-  /// The token representing the 'do' keyword.
   @override
   final Token doKeyword;
 
-  /// The body of the loop.
   StatementImpl _body;
 
-  /// The token representing the 'while' keyword.
   @override
   final Token whileKeyword;
 
-  /// The left parenthesis.
   @override
   final Token leftParenthesis;
 
-  /// The condition that determines when the loop will terminate.
   ExpressionImpl _condition;
 
-  /// The right parenthesis.
   @override
   final Token rightParenthesis;
 
-  /// The semicolon terminating the statement.
   @override
   final Token semicolon;
 
-  /// Initialize a newly created do loop.
+  /// Initializes a newly created do loop.
   DoStatementImpl({
     required this.doKeyword,
     required StatementImpl body,
@@ -5452,19 +5067,16 @@ final class DoStatementImpl extends StatementImpl implements DoStatement {
 ///    dottedName ::=
 ///        [SimpleIdentifier] ('.' [SimpleIdentifier])*
 abstract final class DottedName implements AstNode {
-  /// Return the components of the identifier.
+  /// The components of the identifier.
   NodeList<SimpleIdentifier> get components;
 }
 
-/// A dotted name, used in a configuration within an import or export directive.
-///
-///    dottedName ::=
-///        [SimpleIdentifier] ('.' [SimpleIdentifier])*
 final class DottedNameImpl extends AstNodeImpl implements DottedName {
-  /// The components of the identifier.
   final NodeListImpl<SimpleIdentifierImpl> _components = NodeListImpl._();
 
-  /// Initialize a newly created dotted name.
+  /// Initializes a newly created dotted name.
+  ///
+  /// The list of [components] must contain at least one element.
   DottedNameImpl({
     required List<SimpleIdentifierImpl> components,
   }) {
@@ -5503,31 +5115,21 @@ final class DottedNameImpl extends AstNodeImpl implements DottedName {
 ///    exponent ::=
 ///        ('e' | 'E') ('+' | '-')? decimalDigit+
 abstract final class DoubleLiteral implements Literal {
-  /// Return the token representing the literal.
+  /// The token representing the literal.
   Token get literal;
 
-  /// Return the value of the literal.
+  /// The value of the literal.
   double get value;
 }
 
-/// A floating point literal expression.
-///
-///    doubleLiteral ::=
-///        decimalDigit+ ('.' decimalDigit*)? exponent?
-///      | '.' decimalDigit+ exponent?
-///
-///    exponent ::=
-///        ('e' | 'E') ('+' | '-')? decimalDigit+
 final class DoubleLiteralImpl extends LiteralImpl implements DoubleLiteral {
-  /// The token representing the literal.
   @override
   final Token literal;
 
-  /// The value of the literal.
   @override
   double value;
 
-  /// Initialize a newly created floating point literal.
+  /// Initializes a newly created floating point literal.
   DoubleLiteralImpl({
     required this.literal,
     required this.value,
@@ -5557,30 +5159,24 @@ final class DoubleLiteralImpl extends LiteralImpl implements DoubleLiteral {
   }
 }
 
-/// An empty function body, which can only appear in constructors or abstract
-/// methods.
+/// An empty function body.
+///
+/// An empty function body can only appear in constructors or abstract methods.
 ///
 ///    emptyFunctionBody ::=
 ///        ';'
 abstract final class EmptyFunctionBody implements FunctionBody {
-  /// Return the token representing the semicolon that marks the end of the
-  /// function body.
+  /// The token representing the semicolon that marks the end of the function
+  /// body.
   Token get semicolon;
 }
 
-/// An empty function body, which can only appear in constructors or abstract
-/// methods.
-///
-///    emptyFunctionBody ::=
-///        ';'
 final class EmptyFunctionBodyImpl extends FunctionBodyImpl
     implements EmptyFunctionBody {
-  /// The token representing the semicolon that marks the end of the function
-  /// body.
   @override
   final Token semicolon;
 
-  /// Initialize a newly created function body.
+  /// Initializes a newly created function body.
   EmptyFunctionBodyImpl({
     required this.semicolon,
   });
@@ -5613,20 +5209,15 @@ final class EmptyFunctionBodyImpl extends FunctionBodyImpl
 ///    emptyStatement ::=
 ///        ';'
 abstract final class EmptyStatement implements Statement {
-  /// Return the semicolon terminating the statement.
+  /// The semicolon terminating the statement.
   Token get semicolon;
 }
 
-/// An empty statement.
-///
-///    emptyStatement ::=
-///        ';'
 final class EmptyStatementImpl extends StatementImpl implements EmptyStatement {
-  /// The semicolon terminating the statement.
   @override
   final Token semicolon;
 
-  /// Initialize a newly created empty statement.
+  /// Initializes a newly created empty statement.
   EmptyStatementImpl({
     required this.semicolon,
   });
@@ -5658,17 +5249,16 @@ final class EmptyStatementImpl extends StatementImpl implements EmptyStatement {
 ///    enumConstantArguments ::=
 ///        [TypeArgumentList]? [ConstructorSelector]? [ArgumentList]
 abstract final class EnumConstantArguments implements AstNode {
-  /// Return the explicit arguments (there are always implicit `index` and
-  /// `name` leading arguments) to the invoked constructor.
+  /// The explicit arguments (there are always implicit `index` and `name`
+  /// leading arguments) to the invoked constructor.
   ArgumentList get argumentList;
 
-  /// Return the selector of the constructor that is invoked by this enum
-  /// constant, or `null` if the default constructor is invoked.
+  /// The selector of the constructor that is invoked by this enum constant, or
+  /// `null` if the default constructor is invoked.
   ConstructorSelector? get constructorSelector;
 
-  /// Return the type arguments applied to the enclosing enum declaration
-  /// when invoking the constructor, or `null` if no type arguments were
-  /// provided.
+  /// The type arguments applied to the enclosing enum declaration when invoking
+  /// the constructor, or `null` if no type arguments were provided.
   TypeArgumentList? get typeArguments;
 }
 
@@ -5721,24 +5311,23 @@ final class EnumConstantArgumentsImpl extends AstNodeImpl
 
 /// The declaration of an enum constant.
 abstract final class EnumConstantDeclaration implements Declaration {
-  /// Return the explicit arguments (there are always implicit `index` and
-  /// `name` leading arguments) to the invoked constructor, or `null` if this
-  /// constant does not provide any explicit arguments.
+  /// The explicit arguments (there are always implicit `index` and `name`
+  /// leading arguments) to the invoked constructor, or `null` if this constant
+  /// doesn't provide any explicit arguments.
   EnumConstantArguments? get arguments;
 
-  /// Return the constructor that is invoked by this enum constant, or `null`
-  /// if the AST structure has not been resolved, or if the constructor could
-  /// not be resolved.
+  /// The constructor that is invoked by this enum constant, or `null` if the
+  /// AST structure hasn't been resolved, or if the constructor couldn't be
+  /// resolved.
   ConstructorElement? get constructorElement;
 
   @override
   FieldElement? get declaredElement;
 
-  /// Return the name of the constant.
+  /// The name of the constant.
   Token get name;
 }
 
-/// The declaration of an enum constant.
 final class EnumConstantDeclarationImpl extends DeclarationImpl
     implements EnumConstantDeclaration {
   @override
@@ -5753,9 +5342,10 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
   @override
   ConstructorElement? constructorElement;
 
-  /// Initialize a newly created enum constant declaration. Either or both of
-  /// the [documentationComment] and [metadata] can be `null` if the constant
-  /// does not have the corresponding attribute.
+  /// Initializes a newly created enum constant declaration.
+  ///
+  /// Either or both of the [documentationComment] and [metadata] can be `null`
+  /// if the constant doesn't have the corresponding attributes.
   EnumConstantDeclarationImpl({
     required super.comment,
     required super.metadata,
@@ -5794,88 +5384,73 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
 ///        [WithClause]? [ImplementsClause]? '{' [SimpleIdentifier]
 ///        (',' [SimpleIdentifier])* (';' [ClassMember]+)? '}'
 abstract final class EnumDeclaration implements NamedCompilationUnitMember {
-  /// Return the enumeration constants being declared.
+  /// The enumeration constants being declared.
   NodeList<EnumConstantDeclaration> get constants;
 
   @override
   EnumElement? get declaredElement;
 
-  /// Return the 'enum' keyword.
+  /// The `enum` keyword.
   Token get enumKeyword;
 
-  /// Returns the `implements` clause for the enumeration, or `null` if the
-  /// enumeration does not implement any interfaces.
+  /// The `implements` clause for the enumeration, or `null` if the enumeration
+  /// doesn't implement any interfaces.
   ImplementsClause? get implementsClause;
 
-  /// Return the left curly bracket.
+  /// The left curly bracket.
   Token get leftBracket;
 
-  /// Return the members declared by the enumeration.
+  /// The members declared by the enumeration.
   NodeList<ClassMember> get members;
 
-  /// Return the right curly bracket.
+  /// The right curly bracket.
   Token get rightBracket;
 
-  /// Return the optional semicolon after the last constant.
+  /// The optional semicolon after the last constant.
   Token? get semicolon;
 
-  /// Returns the type parameters for the enumeration, or `null` if the
-  /// enumeration does not have any type parameters.
+  /// The type parameters for the enumeration, or `null` if the enumeration
+  /// doesn't have any type parameters.
   TypeParameterList? get typeParameters;
 
-  /// Return the `with` clause for the enumeration, or `null` if the
-  /// enumeration does not have a `with` clause.
+  /// The `with` clause for the enumeration, or `null` if the enumeration
+  /// doesn't have a `with` clause.
   WithClause? get withClause;
 }
 
-/// The declaration of an enumeration.
-///
-///    enumType ::=
-///        metadata 'enum' [SimpleIdentifier] [TypeParameterList]?
-///        [WithClause]? [ImplementsClause]? '{' [SimpleIdentifier]
-///        (',' [SimpleIdentifier])* (';' [ClassMember]+)? '}'
 final class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
     implements EnumDeclaration {
-  /// The 'enum' keyword.
   @override
   final Token enumKeyword;
 
-  /// The type parameters, or `null` if the enumeration does not have any
-  /// type parameters.
   TypeParameterListImpl? _typeParameters;
 
-  /// The `with` clause for the enumeration, or `null` if the class does not
-  /// have a `with` clause.
   WithClauseImpl? _withClause;
 
-  /// The `implements` clause for the enumeration, or `null` if the enumeration
-  /// does not implement any interfaces.
   ImplementsClauseImpl? _implementsClause;
 
-  /// The left curly bracket.
   @override
   final Token leftBracket;
 
-  /// The enumeration constants being declared.
   final NodeListImpl<EnumConstantDeclarationImpl> _constants = NodeListImpl._();
 
   @override
   final Token? semicolon;
 
-  /// The members defined by the enum.
   final NodeListImpl<ClassMemberImpl> _members = NodeListImpl._();
 
-  /// The right curly bracket.
   @override
   final Token rightBracket;
 
   @override
   EnumElementImpl? declaredElement;
 
-  /// Initialize a newly created enumeration declaration. Either or both of the
-  /// [comment] and [metadata] can be `null` if the declaration does not have
-  /// the corresponding attribute. The list of [constants] must contain at least
-  /// one value.
+  /// Initializes a newly created enumeration declaration.
+  ///
+  /// Either or both of the [comment] and [metadata] can be `null` if the
+  /// declaration doesn't have the corresponding attribute.
+  ///
+  /// The list of [constants] must contain at least one value.
   EnumDeclarationImpl({
     required super.comment,
     required super.metadata,
@@ -5965,28 +5540,26 @@ final class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
 ///    exportDirective ::=
 ///        [Annotation] 'export' [StringLiteral] [Combinator]* ';'
 abstract final class ExportDirective implements NamespaceDirective {
-  /// Return the element associated with this directive, or `null` if the AST
-  /// structure has not been resolved.
+  /// The element associated with this directive, or `null` if the AST structure
+  /// hasn't been resolved.
   @override
   LibraryExportElement? get element;
 
-  /// The token representing the 'export' keyword.
+  /// The token representing the `export` keyword.
   Token get exportKeyword;
 }
 
-/// An export directive.
-///
-///    exportDirective ::=
-///        [Annotation] 'export' [StringLiteral] [Combinator]* ';'
 final class ExportDirectiveImpl extends NamespaceDirectiveImpl
     implements ExportDirective {
   @override
   final Token exportKeyword;
 
-  /// Initialize a newly created export directive. Either or both of the
-  /// [comment] and [metadata] can be `null` if the directive does not have the
-  /// corresponding attribute. The list of [combinators] can be `null` if there
-  /// are no combinators.
+  /// Initializes a newly created export directive.
+  ///
+  /// Either or both of the [comment] and [metadata] can be `null` if the
+  /// directive doesn't have the corresponding attribute.
+  ///
+  /// The list of [combinators] can be `null` if there are no combinators.
   ExportDirectiveImpl({
     required super.comment,
     required super.metadata,
@@ -6031,22 +5604,24 @@ final class ExportDirectiveImpl extends NamespaceDirectiveImpl
 ///      | [ConditionalExpression] cascadeSection*
 ///      | [ThrowExpression]
 abstract final class Expression implements CollectionElement {
+  /// Whether this expression is in a constant context.
+  ///
   /// An expression _e_ is said to _occur in a constant context_,
-  /// * if _e_ is an element of a constant list literal, or a key or value of an
+  /// - if _e_ is an element of a constant list literal, or a key or value of an
   ///   entry of a constant map literal.
-  /// * if _e_ is an actual argument of a constant object expression or of a
+  /// - if _e_ is an actual argument of a constant object expression or of a
   ///   metadata annotation.
-  /// * if _e_ is the initializing expression of a constant variable
+  /// - if _e_ is the initializing expression of a constant variable
   ///   declaration.
-  /// * if _e_ is a switch case expression.
-  /// * if _e_ is an immediate subexpression of an expression _e1_ which occurs
+  /// - if _e_ is a switch case expression.
+  /// - if _e_ is an immediate subexpression of an expression _e1_ which occurs
   ///   in a constant context, unless _e1_ is a `throw` expression or a function
   ///   literal.
   ///
   /// This roughly means that everything which is inside a syntactically
   /// constant expression is in a constant context. A `throw` expression is
   /// currently not allowed in a constant expression, but extensions affecting
-  /// that status may be considered. A similar situation arises for function
+  /// that status might be considered. A similar situation arises for function
   /// literals.
   ///
   /// Note that the default value of an optional formal parameter is _not_ a
@@ -6054,11 +5629,11 @@ abstract final class Expression implements CollectionElement {
   /// semantics of default values.
   bool get inConstantContext;
 
-  /// Return `true` if this expression is syntactically valid for the LHS of an
+  /// Whether this expression is syntactically valid for the LHS of an
   /// [AssignmentExpression].
   bool get isAssignable;
 
-  /// Return the precedence of this expression.
+  /// The precedence of this expression.
   ///
   /// The precedence is a positive integer value that defines how the source
   /// code is parsed into an AST. For example `a * b + c` is parsed as
@@ -6066,20 +5641,22 @@ abstract final class Expression implements CollectionElement {
   /// of `+`.
   Precedence get precedence;
 
-  /// If this expression is an argument to an invocation, and the AST structure
-  /// has been resolved, and the function being invoked is known based on static
-  /// type information, and this expression corresponds to one of the parameters
-  /// of the function being invoked, then return the parameter element
-  /// representing the parameter to which the value of this expression will be
-  /// bound. Otherwise, return `null`.
+  /// The parameter element representing the parameter to which the value of
+  /// this expression is bound, or `null` if any of these conditions are not
+  /// `true`
+  /// - this expression is an argument to an invocation
+  /// - the AST structure is resolved
+  /// - the function being invoked is known based on static type information
+  /// - this expression corresponds to one of the parameters of the function
+  ///   being invoked
   ParameterElement? get staticParameterElement;
 
-  /// Return the static type of this expression, or `null` if the AST structure
-  /// has not been resolved.
+  /// The static type of this expression, or `null` if the AST structure hasn't
+  /// been resolved.
   DartType? get staticType;
 
-  /// If this expression is a parenthesized expression, return the result of
-  /// unwrapping the expression inside the parentheses. Otherwise, return this
+  /// If this expression is a parenthesized expression, returns the result of
+  /// unwrapping the expression inside the parentheses. Otherwise, returns this
   /// expression.
   Expression get unParenthesized;
 }
@@ -6089,51 +5666,50 @@ abstract final class Expression implements CollectionElement {
 ///    expressionFunctionBody ::=
 ///        'async'? '=>' [Expression] ';'
 abstract final class ExpressionFunctionBody implements FunctionBody {
-  /// Return the expression representing the body of the function.
+  /// The expression representing the body of the function.
   Expression get expression;
-
-  /// Return the token introducing the expression that represents the body of the
-  /// function.
-  Token get functionDefinition;
-
-  /// Return the semicolon terminating the statement.
-  Token? get semicolon;
-}
-
-/// A function body consisting of a single expression.
-///
-///    expressionFunctionBody ::=
-///        'async'? '=>' [Expression] ';'
-final class ExpressionFunctionBodyImpl extends FunctionBodyImpl
-    implements ExpressionFunctionBody {
-  /// The token representing the 'async' keyword, or `null` if there is no such
-  /// keyword.
-  @override
-  final Token? keyword;
-
-  /// The star optionally following the 'async' or 'sync' keyword, or `null` if
-  /// there is wither no such keyword or no star.
-  ///
-  /// It is an error for an expression function body to feature the star, but
-  /// the parser will accept it.
-  @override
-  final Token? star;
 
   /// The token introducing the expression that represents the body of the
   /// function.
+  Token get functionDefinition;
+
+  /// The token representing the `async` keyword, or `null` if there's no such
+  /// keyword.
+  @override
+  Token? get keyword;
+
+  /// The semicolon terminating the statement.
+  Token? get semicolon;
+
+  /// The star following the `async` keyword, or `null` if there's no star.
+  ///
+  /// It's an error for an expression function body to feature the star, but
+  /// the parser accepts it.
+  @override
+  Token? get star;
+}
+
+final class ExpressionFunctionBodyImpl extends FunctionBodyImpl
+    implements ExpressionFunctionBody {
+  @override
+  final Token? keyword;
+
+  @override
+  final Token? star;
+
   @override
   final Token functionDefinition;
 
-  /// The expression representing the body of the function.
   ExpressionImpl _expression;
 
-  /// The semicolon terminating the statement.
   @override
   final Token? semicolon;
 
-  /// Initialize a newly created function body consisting of a block of
-  /// statements. The [keyword] can be `null` if the function body is not an
-  /// async function body.
+  /// Initializes a newly created function body consisting of a block of
+  /// statements.
+  ///
+  /// The [keyword] can be `null` if the function body isn't an async function
+  /// body.
   ExpressionFunctionBodyImpl({
     required this.keyword,
     required this.star,
@@ -6198,16 +5774,8 @@ final class ExpressionFunctionBodyImpl extends FunctionBodyImpl
   }
 }
 
-/// A node that represents an expression.
-///
-///    expression ::=
-///        [AssignmentExpression]
-///      | [ConditionalExpression] cascadeSection*
-///      | [ThrowExpression]
 sealed class ExpressionImpl extends AstNodeImpl
     implements CollectionElementImpl, Expression {
-  /// The static type of this expression, or `null` if the AST structure has not
-  /// been resolved.
   @override
   DartType? staticType;
 
@@ -6281,7 +5849,7 @@ sealed class ExpressionImpl extends AstNodeImpl
         return parent._staticParameterElementForRightHandSide;
       }
     } else if (parent is PrefixExpressionImpl) {
-      // TODO(scheglov): This does not look right, there is no element for
+      // TODO(scheglov): This doesn't look right, there's no element for
       // the operand, for `a++` we invoke `a = a + 1`, so the parameter
       // is for `1`, not for `a`.
       return parent._staticParameterElementForOperand;
@@ -6306,8 +5874,8 @@ sealed class ExpressionImpl extends AstNodeImpl
   /// information.
   ///
   /// Note: most code shouldn't call this method directly, but should instead
-  /// call [ResolverVisitor.analyzeExpression], which has some special logic for
-  /// handling dynamic contexts.
+  /// call [ResolverVisitor.dispatchExpression], which has some special logic
+  /// for handling dynamic contexts.
   void resolveExpression(ResolverVisitor resolver, DartType contextType);
 }
 
@@ -6316,30 +5884,22 @@ sealed class ExpressionImpl extends AstNodeImpl
 ///    expressionStatement ::=
 ///        [Expression]? ';'
 abstract final class ExpressionStatement implements Statement {
-  /// Return the expression that comprises the statement.
-  Expression get expression;
-
-  /// Return the semicolon terminating the statement, or `null` if the
-  /// expression is a function expression and therefore isn't followed by a
-  /// semicolon.
-  Token? get semicolon;
-}
-
-/// An expression used as a statement.
-///
-///    expressionStatement ::=
-///        [Expression]? ';'
-final class ExpressionStatementImpl extends StatementImpl
-    implements ExpressionStatement {
   /// The expression that comprises the statement.
-  ExpressionImpl _expression;
+  Expression get expression;
 
   /// The semicolon terminating the statement, or `null` if the expression is a
   /// function expression and therefore isn't followed by a semicolon.
+  Token? get semicolon;
+}
+
+final class ExpressionStatementImpl extends StatementImpl
+    implements ExpressionStatement {
+  ExpressionImpl _expression;
+
   @override
   final Token? semicolon;
 
-  /// Initialize a newly created expression statement.
+  /// Initializes a newly created expression statement.
   ExpressionStatementImpl({
     required ExpressionImpl expression,
     required this.semicolon,
@@ -6388,26 +5948,20 @@ final class ExpressionStatementImpl extends StatementImpl
 ///    extendsClause ::=
 ///        'extends' [NamedType]
 abstract final class ExtendsClause implements AstNode {
-  /// Return the token representing the 'extends' keyword.
+  /// The token representing the `extends` keyword.
   Token get extendsKeyword;
 
-  /// Return the name of the class that is being extended.
+  /// The name of the class that is being extended.
   NamedType get superclass;
 }
 
-/// The "extends" clause in a class declaration.
-///
-///    extendsClause ::=
-///        'extends' [NamedType]
 final class ExtendsClauseImpl extends AstNodeImpl implements ExtendsClause {
-  /// The token representing the 'extends' keyword.
   @override
   final Token extendsKeyword;
 
-  /// The name of the class that is being extended.
   NamedTypeImpl _superclass;
 
-  /// Initialize a newly created extends clause.
+  /// Initializes a newly created extends clause.
   ExtendsClauseImpl({
     required this.extendsKeyword,
     required NamedTypeImpl superclass,
@@ -6449,7 +6003,7 @@ final class ExtendsClauseImpl extends AstNodeImpl implements ExtendsClause {
 ///        'on' [TypeAnnotation] [ShowClause]? [HideClause]?
 ///        '{' [ClassMember]* '}'
 abstract final class ExtensionDeclaration implements CompilationUnitMember {
-  /// The 'augment' keyword, or `null` if the keyword was absent.
+  /// The `augment` keyword, or `null` if the keyword was absent.
   @experimental
   Token? get augmentKeyword;
 
@@ -6460,17 +6014,16 @@ abstract final class ExtensionDeclaration implements CompilationUnitMember {
   @Deprecated('Use onClause instead')
   TypeAnnotation get extendedType;
 
-  /// Return the token representing the 'extension' keyword.
+  /// The token representing the `extension` keyword.
   Token get extensionKeyword;
 
-  /// Return the left curly bracket.
+  /// The left curly bracket.
   Token get leftBracket;
 
-  /// Return the members being added to the extended class.
+  /// The members being added to the extended class.
   NodeList<ClassMember> get members;
 
-  /// Return the name of the extension, or `null` if the extension does not have
-  /// a name.
+  /// The name of the extension, or `null` if the extension doesn't have a name.
   Token? get name;
 
   /// The `on` clause, `null` if an augmentation.
@@ -6480,22 +6033,17 @@ abstract final class ExtensionDeclaration implements CompilationUnitMember {
   @Deprecated('Use onClause instead')
   Token get onKeyword;
 
-  /// Return the right curly bracket.
+  /// The right curly bracket.
   Token get rightBracket;
 
-  /// Return the token representing the 'type' keyword.
+  /// The token representing the `type` keyword.
   Token? get typeKeyword;
 
-  /// Return the type parameters for the extension, or `null` if the extension
-  /// does not have any type parameters.
+  /// The type parameters for the extension, or `null` if the extension doesn't
+  /// have any type parameters.
   TypeParameterList? get typeParameters;
 }
 
-/// The declaration of an extension of a type.
-///
-///    extension ::=
-///        'extension' [SimpleIdentifier] [TypeParameterList]?
-///        'on' [TypeAnnotation] '{' [ClassMember]* '}'
 final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
     implements ExtensionDeclaration {
   @override
@@ -6510,8 +6058,6 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   @override
   final Token? name;
 
-  /// The type parameters for the extension, or `null` if the extension does not
-  /// have any type parameters.
   TypeParameterListImpl? _typeParameters;
 
   @override
@@ -6520,7 +6066,6 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   @override
   final Token leftBracket;
 
-  /// The members being added to the extended class.
   final NodeListImpl<ClassMemberImpl> _members = NodeListImpl._();
 
   @override
@@ -6652,17 +6197,18 @@ final class ExtensionOnClauseImpl extends AstNodeImpl
 ///    extensionOverride ::=
 ///        [Identifier] [TypeArgumentList]? [ArgumentList]
 abstract final class ExtensionOverride implements Expression {
-  /// Return the list of arguments to the override. In valid code this will
-  /// contain a single argument, which evaluates to the object being extended.
+  /// The list of arguments to the override.
+  ///
+  /// In valid code this contains a single argument that evaluates to the object
+  /// being extended.
   ArgumentList get argumentList;
 
   /// The forced extension element.
   ExtensionElement get element;
 
-  /// Return the actual type extended by this override, produced by applying
-  /// [typeArgumentTypes] to the generic type extended by the extension.
-  ///
-  /// Return `null` if the AST structure has not been resolved.
+  /// The actual type extended by this override, produced by applying
+  /// [typeArgumentTypes] to the generic type extended by the extension, or
+  /// `null` if the AST structure hasn't been resolved.
   DartType? get extendedType;
 
   /// The optional import prefix before [name].
@@ -6674,25 +6220,18 @@ abstract final class ExtensionOverride implements Expression {
   /// The name of the extension being selected.
   Token get name;
 
-  /// Return the type arguments to be applied to the extension, or `null` if no
-  /// type arguments were provided.
+  /// The type arguments to be applied to the extension, or `null` if there are
+  /// no type arguments.
   TypeArgumentList? get typeArguments;
 
-  /// Return the actual type arguments to be applied to the extension, either
-  /// explicitly specified in [typeArguments], or inferred.
+  /// The actual type arguments to be applied to the extension, either
+  /// explicitly specified in [typeArguments], or inferred, or `null` if the AST
+  /// structure hasn't been resolved.
   ///
-  /// If the AST has been resolved, never returns `null`, returns an empty list
-  /// if the extension does not have type parameters.
-  ///
-  /// Return `null` if the AST structure has not been resolved.
+  /// An empty list if the extension doesn't have type arguments.
   List<DartType>? get typeArgumentTypes;
 }
 
-/// An override to force resolution to choose a member from a specific
-/// extension.
-///
-///    extensionOverride ::=
-///        [Identifier] [TypeArgumentList]? [ArgumentList]
 final class ExtensionOverrideImpl extends ExpressionImpl
     implements ExtensionOverride {
   @override
@@ -6704,12 +6243,8 @@ final class ExtensionOverrideImpl extends ExpressionImpl
   @override
   final ExtensionElement element;
 
-  /// The type arguments to be applied to the extension, or `null` if no type
-  /// arguments were provided.
   TypeArgumentListImpl? _typeArguments;
 
-  /// The list of arguments to the override. In valid code this will contain a
-  /// single argument, which evaluates to the object being extended.
   ArgumentListImpl _argumentList;
 
   @override
@@ -6797,20 +6332,20 @@ final class ExtensionOverrideImpl extends ExpressionImpl
 @experimental
 abstract final class ExtensionTypeDeclaration
     implements NamedCompilationUnitMember {
-  /// The 'augment' keyword, or `null` if the keyword was absent.
+  /// The `augment` keyword, or `null` if the keyword was absent.
   @experimental
   Token? get augmentKeyword;
 
-  /// The 'const' keyword.
+  /// The `const` keyword.
   Token? get constKeyword;
 
   @override
   ExtensionTypeElement? get declaredElement;
 
-  /// The 'extension' keyword.
+  /// The `extension` keyword.
   Token get extensionKeyword;
 
-  /// The 'implements' clause.
+  /// The `implements` clause.
   ImplementsClause? get implementsClause;
 
   /// The left curly bracket.
@@ -6825,7 +6360,7 @@ abstract final class ExtensionTypeDeclaration
   /// The right curly bracket.
   Token get rightBracket;
 
-  /// The 'type' keyword.
+  /// The `type` keyword.
   Token get typeKeyword;
 
   /// The type parameters.
@@ -6939,41 +6474,37 @@ final class ExtensionTypeDeclarationImpl extends NamedCompilationUnitMemberImpl
 ///      | 'abstract' (<finalVarOrType> | 'covariant' <varOrType>)
 ///            <identifierList>
 ///
-/// (Note: there is no `<fieldDeclaration>` production in the grammar; this is a
+/// (Note: there's no `<fieldDeclaration>` production in the grammar; this is a
 /// subset of the grammar production `<declaration>`, which encompasses
 /// everything that can appear inside a class declaration except methods).
 abstract final class FieldDeclaration implements ClassMember {
-  /// The `abstract` keyword, or `null` if the keyword was not used.
+  /// The `abstract` keyword, or `null` if the keyword isn't used.
   Token? get abstractKeyword;
 
-  /// Return the 'augment' keyword, or `null` if the keyword was absent.
+  /// The `augment` keyword, or `null` if the keyword was absent.
   @experimental
   Token? get augmentKeyword;
 
-  /// The 'covariant' keyword, or `null` if the keyword was not used.
+  /// The `covariant` keyword, or `null` if the keyword isn't used.
   Token? get covariantKeyword;
 
-  /// The `external` keyword, or `null` if the keyword was not used.
+  /// The `external` keyword, or `null` if the keyword isn't used.
   Token? get externalKeyword;
 
-  /// Return the fields being declared.
+  /// The fields being declared.
   VariableDeclarationList get fields;
 
-  /// Return `true` if the fields are declared to be static.
+  /// Whether the fields are declared to be static.
   bool get isStatic;
 
-  /// Return the semicolon terminating the declaration.
+  /// The semicolon terminating the declaration.
   Token get semicolon;
 
-  /// Return the token representing the 'static' keyword, or `null` if the
-  /// fields are not static.
+  /// The token representing the `static` keyword, or `null` if the fields
+  /// aren't static.
   Token? get staticKeyword;
 }
 
-/// The declaration of one or more fields of the same type.
-///
-///    fieldDeclaration ::=
-///        'static'? [VariableDeclarationList] ';'
 final class FieldDeclarationImpl extends ClassMemberImpl
     implements FieldDeclaration {
   @override
@@ -6982,29 +6513,26 @@ final class FieldDeclarationImpl extends ClassMemberImpl
   @override
   final Token? augmentKeyword;
 
-  /// The 'covariant' keyword, or `null` if the keyword was not used.
   @override
   final Token? covariantKeyword;
 
   @override
   final Token? externalKeyword;
 
-  /// The token representing the 'static' keyword, or `null` if the fields are
-  /// not static.
   @override
   final Token? staticKeyword;
 
-  /// The fields being declared.
   VariableDeclarationListImpl _fieldList;
 
-  /// The semicolon terminating the declaration.
   @override
   final Token semicolon;
 
-  /// Initialize a newly created field declaration. Either or both of the
-  /// [comment] and [metadata] can be `null` if the declaration does not have
-  /// the corresponding attribute. The [staticKeyword] can be `null` if the
-  /// field is not a static field.
+  /// Initializes a newly created field declaration.
+  ///
+  /// Either or both of the [comment] and [metadata] can be `null` if the
+  /// declaration doesn't have the corresponding attribute.
+  ///
+  /// The [staticKeyword] can be `null` if the field isn't a static field.
   FieldDeclarationImpl({
     required super.comment,
     required super.metadata,
@@ -7065,85 +6593,82 @@ final class FieldDeclarationImpl extends ClassMemberImpl
 /// A field formal parameter.
 ///
 ///    fieldFormalParameter ::=
-///        ('final' [TypeAnnotation] | 'const' [TypeAnnotation] | 'var' | [TypeAnnotation])?
+///        ('final' [TypeAnnotation] | 'const' [TypeAnnotation] | 'var' |
+///        [TypeAnnotation])?
 ///        'this' '.' name ([TypeParameterList]? [FormalParameterList])?
 abstract final class FieldFormalParameter implements NormalFormalParameter {
-  /// Return the token representing either the 'final', 'const' or 'var'
-  /// keyword, or `null` if no keyword was used.
+  /// The token representing either the `final`, `const` or `var` keyword, or
+  /// `null` if no keyword was used.
   Token? get keyword;
 
   @override
   Token get name;
 
-  /// Return the parameters of the function-typed parameter, or `null` if this
-  /// is not a function-typed field formal parameter.
+  /// The parameters of the function-typed parameter, or `null` if this isn't a
+  /// function-typed field formal parameter.
   FormalParameterList? get parameters;
 
-  /// Return the token representing the period.
+  /// The token representing the period.
   Token get period;
 
+  /// The question mark indicating that the function type is nullable, or `null`
+  /// if there's no question mark, which will always be the case when the
+  /// parameter doesn't use the older style for denoting a function typed
+  /// parameter.
+  ///
   /// If the parameter is function-typed, and has the question mark, then its
   /// function type is nullable. Having a nullable function type means that the
-  /// parameter can be null.
+  /// parameter can be `null`.
   Token? get question;
 
-  /// Return the token representing the 'this' keyword.
+  /// The token representing the `this` keyword.
   Token get thisKeyword;
 
-  /// Return the declared type of the parameter, or `null` if the parameter does
-  /// not have a declared type.
+  /// The declared type of the parameter, or `null` if the parameter doesn't
+  /// have a declared type.
   ///
-  /// Note that if this is a function-typed field formal parameter this is the
-  /// return type of the function.
+  /// If this is a function-typed field formal parameter this is the return type
+  /// of the function.
   TypeAnnotation? get type;
 
-  /// Return the type parameters associated with this method, or `null` if this
-  /// method is not a generic method.
+  /// The type parameters associated with this method, or `null` if this method
+  /// isn't a generic method.
   TypeParameterList? get typeParameters;
 }
 
-/// A field formal parameter.
-///
-///    fieldFormalParameter ::=
-///        ('final' [NamedType] | 'const' [NamedType] | 'var' | [NamedType])?
-///        'this' '.' [SimpleIdentifier]
-///        ([TypeParameterList]? [FormalParameterList])?
 final class FieldFormalParameterImpl extends NormalFormalParameterImpl
     implements FieldFormalParameter {
-  /// The token representing either the 'final', 'const' or 'var' keyword, or
-  /// `null` if no keyword was used.
   @override
   final Token? keyword;
 
-  /// The name of the declared type of the parameter, or `null` if the parameter
-  /// does not have a declared type.
   TypeAnnotationImpl? _type;
 
-  /// The token representing the 'this' keyword.
   @override
   final Token thisKeyword;
 
-  /// The token representing the period.
   @override
   final Token period;
 
-  /// The type parameters associated with the method, or `null` if the method is
-  /// not a generic method.
   TypeParameterListImpl? _typeParameters;
 
-  /// The parameters of the function-typed parameter, or `null` if this is not a
-  /// function-typed field formal parameter.
   FormalParameterListImpl? _parameters;
 
   @override
   final Token? question;
 
-  /// Initialize a newly created formal parameter. Either or both of the
-  /// [comment] and [metadata] can be `null` if the parameter does not have the
-  /// corresponding attribute. The [keyword] can be `null` if there is a type.
-  /// The [type] must be `null` if the keyword is 'var'. The [thisKeyword] and
-  /// [period] can be `null` if the keyword 'this' was not provided.  The
-  /// [parameters] can be `null` if this is not a function-typed field formal
+  /// Initializes a newly created formal parameter.
+  ///
+  /// Either or both of the [comment] and [metadata] can be `null` if the
+  /// parameter doesn't have the corresponding attribute.
+  ///
+  /// The [keyword] can be `null` if there's a type.
+  ///
+  /// The [type] must be `null` if the keyword is `var`.
+  ///
+  /// The [thisKeyword] and [period] can be `null` if the keyword `this` isn't
+  /// provided.
+  ///
+  /// The [parameters] can be `null` if this isn't a function-typed field formal
   /// parameter.
   FieldFormalParameterImpl({
     required super.comment,
@@ -7246,10 +6771,10 @@ final class FieldFormalParameterImpl extends NormalFormalParameterImpl
 
 /// The parts of a for-each loop that control the iteration.
 sealed class ForEachParts implements ForLoopParts {
-  /// Return the token representing the 'in' keyword.
+  /// The token representing the `in` keyword.
   Token get inKeyword;
 
-  /// Return the expression evaluated to produce the iterator.
+  /// The expression evaluated to produce the iterator.
   Expression get iterable;
 }
 
@@ -7257,12 +6782,12 @@ sealed class ForEachPartsImpl extends ForLoopPartsImpl implements ForEachParts {
   @override
   final Token inKeyword;
 
-  /// The expression evaluated to produce the iterator.
   ExpressionImpl _iterable;
 
-  /// Initialize a newly created for-each statement whose loop control variable
-  /// is declared internally (in the for-loop part). The [awaitKeyword] can be
-  /// `null` if this is not an asynchronous for loop.
+  /// Initializes a newly created for-each statement whose loop control variable
+  /// is declared internally (in the for-loop part).
+  ///
+  /// The [awaitKeyword] can be `null` if this isn't an asynchronous for loop.
   ForEachPartsImpl({
     required this.inKeyword,
     required ExpressionImpl iterable,
@@ -7300,16 +6825,15 @@ sealed class ForEachPartsImpl extends ForLoopPartsImpl implements ForEachParts {
 ///   forLoopParts ::=
 ///       [DeclaredIdentifier] 'in' [Expression]
 abstract final class ForEachPartsWithDeclaration implements ForEachParts {
-  /// Return the declaration of the loop variable.
+  /// The declaration of the loop variable.
   DeclaredIdentifier get loopVariable;
 }
 
 final class ForEachPartsWithDeclarationImpl extends ForEachPartsImpl
     implements ForEachPartsWithDeclaration {
-  /// The declaration of the loop variable.
   DeclaredIdentifierImpl _loopVariable;
 
-  /// Initialize a newly created for-each statement whose loop control variable
+  /// Initializes a newly created for-each statement whose loop control variable
   /// is declared internally (inside the for-loop part).
   ForEachPartsWithDeclarationImpl({
     required DeclaredIdentifierImpl loopVariable,
@@ -7351,16 +6875,15 @@ final class ForEachPartsWithDeclarationImpl extends ForEachPartsImpl
 ///   forLoopParts ::=
 ///       [SimpleIdentifier] 'in' [Expression]
 abstract final class ForEachPartsWithIdentifier implements ForEachParts {
-  /// Return the loop variable.
+  /// The loop variable.
   SimpleIdentifier get identifier;
 }
 
 final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
     implements ForEachPartsWithIdentifier {
-  /// The loop variable.
   SimpleIdentifierImpl _identifier;
 
-  /// Initialize a newly created for-each statement whose loop control variable
+  /// Initializes a newly created for-each statement whose loop control variable
   /// is declared externally (outside the for-loop part).
   ForEachPartsWithIdentifierImpl({
     required SimpleIdentifierImpl identifier,
@@ -7401,23 +6924,18 @@ final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
 ///    forEachPartsWithPattern ::=
 ///        ( 'final' | 'var' ) [DartPattern] 'in' [Expression]
 abstract final class ForEachPartsWithPattern implements ForEachParts {
-  /// Return the `var` or `final` keyword introducing the pattern.
+  /// The `var` or `final` keyword introducing the pattern.
   Token get keyword;
 
-  /// Returns the annotations associated with this node.
+  /// The annotations associated with this node.
   NodeList<Annotation> get metadata;
 
-  /// The pattern that will match the expression.
+  /// The pattern used to match the expression.
   DartPattern get pattern;
 }
 
-/// A for-loop part with a pattern.
-///
-///    forEachPartsWithPattern ::=
-///        ( 'final' | 'var' ) [DartPattern] 'in' [Expression]
 final class ForEachPartsWithPatternImpl extends ForEachPartsImpl
     implements ForEachPartsWithPattern {
-  /// The annotations associated with this node.
   final NodeListImpl<AnnotationImpl> _metadata = NodeListImpl._();
 
   @override
@@ -7481,23 +6999,23 @@ final class ForEachPartsWithPatternImpl extends ForEachPartsImpl
 
 /// The basic structure of a for element.
 abstract final class ForElement implements CollectionElement {
-  /// Return the token representing the 'await' keyword, or `null` if there was
-  /// no 'await' keyword.
+  /// The token representing the `await` keyword, or `null` if there was no
+  /// `await` keyword.
   Token? get awaitKeyword;
 
-  /// Return the body of the loop.
+  /// The body of the loop.
   CollectionElement get body;
 
-  /// Return the token representing the 'for' keyword.
+  /// The token representing the `for` keyword.
   Token get forKeyword;
 
-  /// Return the parts of the for element that control the iteration.
+  /// The parts of the for element that control the iteration.
   ForLoopParts get forLoopParts;
 
-  /// Return the left parenthesis.
+  /// The left parenthesis.
   Token get leftParenthesis;
 
-  /// Return the right parenthesis.
+  /// The right parenthesis.
   Token get rightParenthesis;
 }
 
@@ -7516,10 +7034,9 @@ final class ForElementImpl extends CollectionElementImpl implements ForElement {
   @override
   final Token rightParenthesis;
 
-  /// The body of the loop.
   CollectionElementImpl _body;
 
-  /// Initialize a newly created for element.
+  /// Initializes a newly created for element.
   ForElementImpl({
     required this.awaitKeyword,
     required this.forKeyword,
@@ -7599,82 +7116,75 @@ sealed class ForLoopPartsImpl extends AstNodeImpl implements ForLoopParts {}
 ///        [NormalFormalParameter]
 ///      | [DefaultFormalParameter]
 sealed class FormalParameter implements AstNode {
-  /// The 'covariant' keyword, or `null` if the keyword was not used.
+  /// The `covariant` keyword, or `null` if the keyword isn't used.
   Token? get covariantKeyword;
 
-  /// Return the element representing this parameter, or `null` if this
-  /// parameter has not been resolved.
+  /// The element representing this parameter, or `null` if this parameter
+  /// hasn't been resolved.
   ParameterElement? get declaredElement;
 
-  /// Return `true` if this parameter was declared with the 'const' modifier.
+  /// Whether this parameter was declared with the 'const' modifier.
   bool get isConst;
 
-  /// Indicates whether the parameter has an explicit type.
+  /// Whether the parameter has an explicit type.
   bool get isExplicitlyTyped;
 
-  /// Return `true` if this parameter was declared with the 'final' modifier.
+  /// Whether this parameter was declared with the 'final' modifier.
   ///
-  /// Parameters that are declared with the 'const' modifier will return
-  /// `false` even though they are implicitly final.
+  /// Returns `false` for parameters that are declared with the 'const' modifier
+  /// even though they are implicitly final.
   bool get isFinal;
 
-  /// Return `true` if this parameter is a named parameter.
+  /// Whether this parameter is a named parameter.
   ///
   /// Named parameters can either be required or optional.
   bool get isNamed;
 
-  /// Return `true` if this parameter is an optional parameter.
+  /// Whether this parameter is an optional parameter.
   ///
   /// Optional parameters can either be positional or named.
   bool get isOptional;
 
-  /// Return `true` if this parameter is both an optional and named parameter.
+  /// Whether this parameter is both an optional and named parameter.
   bool get isOptionalNamed;
 
-  /// Return `true` if this parameter is both an optional and positional
+  /// Whether this parameter is both an optional and positional
   /// parameter.
   bool get isOptionalPositional;
 
-  /// Return `true` if this parameter is a positional parameter.
+  /// Whether this parameter is a positional parameter.
   ///
   /// Positional parameters can either be required or optional.
   bool get isPositional;
 
-  /// Return `true` if this parameter is a required parameter.
+  /// Whether this parameter is a required parameter.
   ///
   /// Required parameters can either be positional or named.
   ///
-  /// Note: this will return `false` for a named parameter that is annotated
-  /// with the `@required` annotation.
+  /// Note: this returns `false` for a named parameter that is annotated with
+  /// the `@required` annotation.
   bool get isRequired;
 
-  /// Return `true` if this parameter is both a required and named parameter.
+  /// Whether this parameter is both a required and named parameter.
   ///
-  /// Note: this will return `false` for a named parameter that is annotated
-  /// with the `@required` annotation.
+  /// Note: this returns `false` for a named parameter that is annotated with
+  /// the `@required` annotation.
   bool get isRequiredNamed;
 
-  /// Return `true` if this parameter is both a required and positional
-  /// parameter.
+  /// Whether this parameter is both a required and positional parameter.
   bool get isRequiredPositional;
 
-  /// Return the annotations associated with this parameter.
+  /// The annotations associated with this parameter.
   NodeList<Annotation> get metadata;
 
-  /// Return the name of the parameter being declared, or `null` if the
-  /// parameter doesn't have a name, such as when it's part of a generic
-  /// function type.
+  /// The name of the parameter being declared, or `null` if the parameter
+  /// doesn't have a name, such as when it's part of a generic function type.
   Token? get name;
 
-  /// The 'required' keyword, or `null` if the keyword was not used.
+  /// The `required` keyword, or `null` if the keyword isn't used.
   Token? get requiredKeyword;
 }
 
-/// A node representing a parameter to a function.
-///
-///    formalParameter ::=
-///        [NormalFormalParameter]
-///      | [DefaultFormalParameter]
 sealed class FormalParameterImpl extends AstNodeImpl
     implements FormalParameter {
   @override
@@ -7704,7 +7214,7 @@ sealed class FormalParameterImpl extends AstNodeImpl
   @override
   bool get isRequiredPositional => kind.isRequiredPositional;
 
-  /// Return the kind of this parameter.
+  /// The kind of this parameter.
   ParameterKind get kind;
 
   @override
@@ -7714,11 +7224,11 @@ sealed class FormalParameterImpl extends AstNodeImpl
 /// The formal parameter list of a method declaration, function declaration, or
 /// function type alias.
 ///
-/// While the grammar requires all optional formal parameters to follow all of
-/// the normal formal parameters and at most one grouping of optional formal
-/// parameters, this class does not enforce those constraints. All parameters
-/// are flattened into a single list, which can have any or all kinds of
-/// parameters (normal, named, and positional) in any order.
+/// While the grammar requires all required positional parameters to be first,
+/// optionally being followed by either optional positional parameters or named
+/// parameters (but not both), this class doesn't enforce those constraints. All
+/// parameters are flattened into a single list, which can have any or all kinds
+/// of parameters (normal, named, and positional) in any order.
 ///
 ///    formalParameterList ::=
 ///        '(' ')'
@@ -7738,84 +7248,53 @@ sealed class FormalParameterImpl extends AstNodeImpl
 ///    namedFormalParameters ::=
 ///        '{' [DefaultFormalParameter] (',' [DefaultFormalParameter])* '}'
 abstract final class FormalParameterList implements AstNode {
-  /// Return the left square bracket ('[') or left curly brace ('{') introducing
-  /// the optional parameters, or `null` if there are no optional parameters.
+  /// The left square bracket ('[') or left curly brace ('{') introducing the
+  /// optional or named parameters, or `null` if there are neither optional nor
+  /// named parameters.
   Token? get leftDelimiter;
 
-  /// Return the left parenthesis.
+  /// The left parenthesis.
   Token get leftParenthesis;
 
-  /// Return a list containing the elements representing the parameters in this
-  /// list.
+  /// A list containing the elements representing the parameters in this list.
   ///
-  /// The list will contain `null`s if the parameters in this list have not
-  /// been resolved.
+  /// The list contains `null`s if the parameters in this list haven't been
+  /// resolved.
   List<ParameterElement?> get parameterElements;
 
-  /// Return the parameters associated with the method.
+  /// The parameters associated with the method.
   NodeList<FormalParameter> get parameters;
 
-  /// Return the right square bracket (']') or right curly brace ('}')
-  /// terminating the optional parameters, or `null` if there are no optional
-  /// parameters.
+  /// The right square bracket (']') or right curly brace ('}') terminating the
+  /// optional or named parameters, or `null` if there are neither optional nor
+  /// named parameters.
   Token? get rightDelimiter;
 
-  /// Return the right parenthesis.
+  /// The right parenthesis.
   Token get rightParenthesis;
 }
 
-/// The formal parameter list of a method declaration, function declaration, or
-/// function type alias.
-///
-/// While the grammar requires all optional formal parameters to follow all of
-/// the normal formal parameters and at most one grouping of optional formal
-/// parameters, this class does not enforce those constraints. All parameters
-/// are flattened into a single list, which can have any or all kinds of
-/// parameters (normal, named, and positional) in any order.
-///
-///    formalParameterList ::=
-///        '(' ')'
-///      | '(' normalFormalParameters (',' optionalFormalParameters)? ')'
-///      | '(' optionalFormalParameters ')'
-///
-///    normalFormalParameters ::=
-///        [NormalFormalParameter] (',' [NormalFormalParameter])*
-///
-///    optionalFormalParameters ::=
-///        optionalPositionalFormalParameters
-///      | namedFormalParameters
-///
-///    optionalPositionalFormalParameters ::=
-///        '[' [DefaultFormalParameter] (',' [DefaultFormalParameter])* ']'
-///
-///    namedFormalParameters ::=
-///        '{' [DefaultFormalParameter] (',' [DefaultFormalParameter])* '}'
 final class FormalParameterListImpl extends AstNodeImpl
     implements FormalParameterList {
-  /// The left parenthesis.
   @override
   final Token leftParenthesis;
 
-  /// The parameters associated with the method.
   final NodeListImpl<FormalParameterImpl> _parameters = NodeListImpl._();
 
-  /// The left square bracket ('[') or left curly brace ('{') introducing the
-  /// optional parameters, or `null` if there are no optional parameters.
   @override
   final Token? leftDelimiter;
 
-  /// The right square bracket (']') or right curly brace ('}') terminating the
-  /// optional parameters, or `null` if there are no optional parameters.
   @override
   final Token? rightDelimiter;
 
-  /// The right parenthesis.
   @override
   final Token rightParenthesis;
 
-  /// Initialize a newly created parameter list. The list of [parameters] can be
-  /// `null` if there are no parameters. The [leftDelimiter] and
-  /// [rightDelimiter] can be `null` if there are no optional parameters.
+  /// Initializes a newly created parameter list.
+  ///
+  /// The [leftDelimiter] and [rightDelimiter] can be `null` if there are no
+  /// optional or named parameters, but it must be the case that either both are
+  /// `null` or that both are non-`null`.
   FormalParameterListImpl({
     required this.leftParenthesis,
     required List<FormalParameterImpl> parameters,
@@ -7879,17 +7358,17 @@ final class FormalParameterListImpl extends AstNodeImpl
 ///       [VariableDeclaration] ';' [Expression]? ';' expressionList?
 ///     | [Expression]? ';' [Expression]? ';' expressionList?
 sealed class ForParts implements ForLoopParts {
-  /// Return the condition used to determine when to terminate the loop, or
-  /// `null` if there is no condition.
+  /// The condition used to determine when to terminate the loop, or `null` if
+  /// there's no condition.
   Expression? get condition;
 
-  /// Return the semicolon separating the initializer and the condition.
+  /// The semicolon separating the initializer and the condition.
   Token get leftSeparator;
 
-  /// Return the semicolon separating the condition and the updater.
+  /// The semicolon separating the condition and the updater.
   Token get rightSeparator;
 
-  /// Return the list of expressions run after each execution of the loop body.
+  /// The list of expressions run after each execution of the loop body.
   NodeList<Expression> get updaters;
 }
 
@@ -7897,20 +7376,19 @@ sealed class ForPartsImpl extends ForLoopPartsImpl implements ForParts {
   @override
   final Token leftSeparator;
 
-  /// The condition used to determine when to terminate the loop, or `null` if
-  /// there is no condition.
   ExpressionImpl? _condition;
 
   @override
   final Token rightSeparator;
 
-  /// The list of expressions run after each execution of the loop body.
   final NodeListImpl<ExpressionImpl> _updaters = NodeListImpl._();
 
-  /// Initialize a newly created for statement. Either the [variableList] or the
-  /// [initialization] must be `null`. Either the [condition] and the list of
-  /// [updaters] can be `null` if the loop does not have the corresponding
-  /// attribute.
+  /// Initializes a newly created for statement.
+  ///
+  /// Either the [variableList] or the [initialization] must be `null`.
+  ///
+  /// Either the [condition] and the list of [updaters] can be `null` if the
+  /// loop doesn't have the corresponding attribute.
   ForPartsImpl({
     required this.leftSeparator,
     required ExpressionImpl? condition,
@@ -7957,20 +7435,18 @@ sealed class ForPartsImpl extends ForLoopPartsImpl implements ForParts {
 ///   forLoopParts ::=
 ///       [VariableDeclarationList] ';' [Expression]? ';' expressionList?
 abstract final class ForPartsWithDeclarations implements ForParts {
-  /// Return the declaration of the loop variables.
+  /// The declaration of the loop variables.
   VariableDeclarationList get variables;
 }
 
 final class ForPartsWithDeclarationsImpl extends ForPartsImpl
     implements ForPartsWithDeclarations {
-  /// The declaration of the loop variables, or `null` if there are no
-  /// variables.  Note that a for statement cannot have both a variable list and
-  /// an initialization expression, but can validly have neither.
   VariableDeclarationListImpl _variableList;
 
-  /// Initialize a newly created for statement. Both the [condition] and the
-  /// list of [updaters] can be `null` if the loop does not have the
-  /// corresponding attribute.
+  /// Initializes a newly created for statement.
+  ///
+  /// Both the [condition] and the list of [updaters] can be `null` if the loop
+  /// doesn't have the corresponding attribute.
   ForPartsWithDeclarationsImpl({
     required VariableDeclarationListImpl variableList,
     required super.leftSeparator,
@@ -8014,21 +7490,22 @@ final class ForPartsWithDeclarationsImpl extends ForPartsImpl
 ///   forLoopParts ::=
 ///       [Expression]? ';' [Expression]? ';' expressionList?
 abstract final class ForPartsWithExpression implements ForParts {
-  /// Return the initialization expression, or `null` if there is no
-  /// initialization expression.
+  /// The initialization expression, or `null` if there's no initialization
+  /// expression.
+  ///
+  /// Note that a for statement can't have both a variable list and an
+  /// initialization expression, but can validly have neither.
   Expression? get initialization;
 }
 
 final class ForPartsWithExpressionImpl extends ForPartsImpl
     implements ForPartsWithExpression {
-  /// The initialization expression, or `null` if there is no initialization
-  /// expression. Note that a for statement cannot have both a variable list and
-  /// an initialization expression, but can validly have neither.
   ExpressionImpl? _initialization;
 
-  /// Initialize a newly created for statement. Both the [condition] and the
-  /// list of [updaters] can be `null` if the loop does not have the
-  /// corresponding attribute.
+  /// Initializes a newly created for statement.
+  ///
+  /// Both the [condition] and the list of [updaters] can be `null` if the loop
+  /// doesn't have the corresponding attribute.
   ForPartsWithExpressionImpl({
     required ExpressionImpl? initialization,
     required super.leftSeparator,
@@ -8065,21 +7542,16 @@ final class ForPartsWithExpressionImpl extends ForPartsImpl
   }
 }
 
-/// The parts of a for loop that control the iteration when there is a pattern
+/// The parts of a for loop that control the iteration when there's a pattern
 /// declaration as part of the for loop.
 ///
 ///   forLoopParts ::=
 ///       [PatternVariableDeclaration] ';' [Expression]? ';' expressionList?
 abstract final class ForPartsWithPattern implements ForParts {
-  /// Return the declaration of the loop variables.
+  /// The declaration of the loop variables.
   PatternVariableDeclaration get variables;
 }
 
-/// The parts of a for loop that control the iteration when there is a pattern
-/// declaration as part of the for loop.
-///
-///   forLoopParts ::=
-///       [PatternVariableDeclaration] ';' [Expression]? ';' expressionList?
 final class ForPartsWithPatternImpl extends ForPartsImpl
     implements ForPartsWithPattern {
   @override
@@ -8123,29 +7595,24 @@ final class ForPartsWithPatternImpl extends ForPartsImpl
 ///     | [Expression]? ';' [Expression]? ';' expressionList?
 ///     | [DeclaredIdentifier] 'in' [Expression]
 ///     | [SimpleIdentifier] 'in' [Expression]
-///
-/// This is the class that is used to represent a for loop when either the
-/// 'control-flow-collections' or 'spread-collections' experiments are enabled.
-/// If neither of those experiments are enabled, then either `ForStatement` or
-/// `ForEachStatement` will be used.
 abstract final class ForStatement implements Statement {
-  /// Return the token representing the 'await' keyword, or `null` if there is
-  /// no 'await' keyword.
+  /// The token representing the `await` keyword, or `null` if there's no
+  /// `await` keyword.
   Token? get awaitKeyword;
 
-  /// Return the body of the loop.
+  /// The body of the loop.
   Statement get body;
 
-  /// Return the token representing the 'for' keyword.
+  /// The token representing the `for` keyword.
   Token get forKeyword;
 
-  /// Return the parts of the for element that control the iteration.
+  /// The parts of the for element that control the iteration.
   ForLoopParts get forLoopParts;
 
-  /// Return the left parenthesis.
+  /// The left parenthesis.
   Token get leftParenthesis;
 
-  /// Return the right parenthesis.
+  /// The right parenthesis.
   Token get rightParenthesis;
 }
 
@@ -8164,10 +7631,9 @@ final class ForStatementImpl extends StatementImpl implements ForStatement {
   @override
   final Token rightParenthesis;
 
-  /// The body of the loop.
   StatementImpl _body;
 
-  /// Initialize a newly created for statement.
+  /// Initializes a newly created for statement.
   ForStatementImpl({
     required this.awaitKeyword,
     required this.forKeyword,
@@ -8228,21 +7694,21 @@ final class ForStatementImpl extends StatementImpl implements ForStatement {
 ///      | [ExpressionFunctionBody]
 ///      | [NativeFunctionBody]
 sealed class FunctionBody implements AstNode {
-  /// Return `true` if this function body is asynchronous.
+  /// Whether this function body is asynchronous.
   bool get isAsynchronous;
 
-  /// Return `true` if this function body is a generator.
+  /// Whether this function body is a generator.
   bool get isGenerator;
 
-  /// Return `true` if this function body is synchronous.
+  /// Whether this function body is synchronous.
   bool get isSynchronous;
 
-  /// Return the token representing the 'async' or 'sync' keyword, or `null` if
-  /// there is no such keyword.
+  /// The token representing the `async` or `sync` keyword, or `null` if there's
+  /// no such keyword.
   Token? get keyword;
 
-  /// Return the star following the 'async' or 'sync' keyword, or `null` if
-  /// there is no star.
+  /// The star following the `async` or `sync` keyword, or `null` if there's no
+  /// star.
   Token? get star;
 
   /// If [variable] is a local variable or parameter declared anywhere within
@@ -8250,51 +7716,38 @@ sealed class FunctionBody implements AstNode {
   /// boolean indicating whether [variable] is potentially mutated within the
   /// scope of its declaration.
   ///
-  /// If [variable] is not a local variable or parameter declared within the top
+  /// If [variable] isn't a local variable or parameter declared within the top
   /// level function or method containing this [FunctionBody], return `false`.
   ///
-  /// Throws an exception if resolution has not yet been performed.
+  /// Throws an exception if resolution hasn't been performed.
   bool isPotentiallyMutatedInScope(VariableElement variable);
 }
 
-/// A node representing the body of a function or method.
-///
-///    functionBody ::=
-///        [BlockFunctionBody]
-///      | [EmptyFunctionBody]
-///      | [ExpressionFunctionBody]
 sealed class FunctionBodyImpl extends AstNodeImpl implements FunctionBody {
   /// Additional information about local variables and parameters that are
-  /// declared within this function body or any enclosing function body.  `null`
-  /// if resolution has not yet been performed.
+  /// declared within this function body or any enclosing function body, or
+  /// `null` if resolution hasn't yet been performed.
   LocalVariableInfo? localVariableInfo;
 
-  /// Return `true` if this function body is asynchronous.
   @override
   bool get isAsynchronous => false;
 
-  /// Return `true` if this function body is a generator.
   @override
   bool get isGenerator => false;
 
-  /// Return `true` if this function body is synchronous.
   @override
   bool get isSynchronous => true;
 
-  /// Return the token representing the 'async' or 'sync' keyword, or `null` if
-  /// there is no such keyword.
   @override
   Token? get keyword => null;
 
-  /// Return the star following the 'async' or 'sync' keyword, or `null` if
-  /// there is no star.
   @override
   Token? get star => null;
 
   @override
   bool isPotentiallyMutatedInScope(VariableElement variable) {
     if (localVariableInfo == null) {
-      throw StateError('Resolution has not yet been performed');
+      throw StateError('Resolution has not been performed');
     }
     return localVariableInfo!.potentiallyMutatedInScope.contains(variable);
   }
@@ -8302,7 +7755,7 @@ sealed class FunctionBodyImpl extends AstNodeImpl implements FunctionBody {
   /// Dispatch this function body to the resolver, imposing [imposedType] as the
   /// return type context for `return` statements.
   ///
-  /// Return value is the actual return type of the method.
+  /// Returns value is the actual return type of the method.
   DartType resolve(ResolverVisitor resolver, DartType? imposedType);
 }
 
@@ -8318,76 +7771,64 @@ sealed class FunctionBodyImpl extends AstNodeImpl implements FunctionBody {
 ///    functionSignature ::=
 ///        [Type]? ('get' | 'set')? name [FormalParameterList]
 abstract final class FunctionDeclaration implements NamedCompilationUnitMember {
-  /// The 'augment' keyword.
+  /// The `augment` keyword, or `null` if there is no `augment` keyword.
   @experimental
   Token? get augmentKeyword;
 
   @override
   ExecutableElement? get declaredElement;
 
-  /// Return the token representing the 'external' keyword, or `null` if this is
-  /// not an external function.
+  /// The token representing the `external` keyword, or `null` if this isn't an
+  /// external function.
   Token? get externalKeyword;
 
-  /// Return the function expression being wrapped.
+  /// The function expression being wrapped.
   FunctionExpression get functionExpression;
 
-  /// Return `true` if this function declares a getter.
+  /// Whether this function declares a getter.
   bool get isGetter;
 
-  /// Return `true` if this function declares a setter.
+  /// Whether this function declares a setter.
   bool get isSetter;
 
-  /// Return the token representing the 'get' or 'set' keyword, or `null` if
-  /// this is a function declaration rather than a property declaration.
+  /// The token representing the `get` or `set` keyword, or `null` if this is a
+  /// function declaration rather than a property declaration.
   Token? get propertyKeyword;
 
-  /// Return the return type of the function, or `null` if no return type was
-  /// declared.
+  /// The return type of the function, or `null` if no return type was declared.
   TypeAnnotation? get returnType;
 }
 
-/// A function declaration.
-///
-/// Wrapped in a [FunctionDeclarationStatementImpl] to represent a local
-/// function declaration, otherwise a top-level function declaration.
-///
-///    functionDeclaration ::=
-///        'external' functionSignature
-///      | functionSignature [FunctionBody]
-///
-///    functionSignature ::=
-///        [Type]? ('get' | 'set')? [SimpleIdentifier] [FormalParameterList]
 final class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
     implements FunctionDeclaration {
   @override
   final Token? augmentKeyword;
 
-  /// The token representing the 'external' keyword, or `null` if this is not an
-  /// external function.
   @override
   final Token? externalKeyword;
 
-  /// The return type of the function, or `null` if no return type was declared.
   TypeAnnotationImpl? _returnType;
 
-  /// The token representing the 'get' or 'set' keyword, or `null` if this is a
-  /// function declaration rather than a property declaration.
   @override
   final Token? propertyKeyword;
 
-  /// The function expression being wrapped.
   FunctionExpressionImpl _functionExpression;
 
   @override
   ExecutableElementImpl? declaredElement;
 
-  /// Initialize a newly created function declaration. Either or both of the
-  /// [comment] and [metadata] can be `null` if the function does not have the
-  /// corresponding attribute. The [externalKeyword] can be `null` if the
-  /// function is not an external function. The [returnType] can be `null` if no
-  /// return type was specified. The [propertyKeyword] can be `null` if the
-  /// function is neither a getter or a setter.
+  /// Initializes a newly created function declaration.
+  ///
+  /// Either or both of the [comment] and [metadata] can be `null` if the
+  /// function doesn't have the corresponding attribute.
+  ///
+  /// The [externalKeyword] can be `null` if the function isn't an external
+  /// function.
+  ///
+  /// The [returnType] can be `null` if no return type was specified.
+  ///
+  /// The [propertyKeyword] can be `null` if the function is neither a getter or
+  /// a setter.
   FunctionDeclarationImpl({
     required super.comment,
     required super.metadata,
@@ -8457,17 +7898,15 @@ final class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
 
 /// A [FunctionDeclaration] used as a statement.
 abstract final class FunctionDeclarationStatement implements Statement {
-  /// Return the function declaration being wrapped.
+  /// The function declaration being wrapped.
   FunctionDeclaration get functionDeclaration;
 }
 
-/// A [FunctionDeclaration] used as a statement.
 final class FunctionDeclarationStatementImpl extends StatementImpl
     implements FunctionDeclarationStatement {
-  /// The function declaration being wrapped.
   FunctionDeclarationImpl _functionDeclaration;
 
-  /// Initialize a newly created function declaration statement.
+  /// Initializes a newly created function declaration statement.
   FunctionDeclarationStatementImpl({
     required FunctionDeclarationImpl functionDeclaration,
   }) : _functionDeclaration = functionDeclaration {
@@ -8506,48 +7945,40 @@ final class FunctionDeclarationStatementImpl extends StatementImpl
 ///    functionExpression ::=
 ///        [TypeParameterList]? [FormalParameterList] [FunctionBody]
 abstract final class FunctionExpression implements Expression {
-  /// Return the body of the function.
+  /// The body of the function.
   FunctionBody get body;
 
-  /// Return the element associated with the function, or `null` if the AST
-  /// structure has not been resolved.
+  /// The element associated with the function, or `null` if the AST structure
+  /// hasn't been resolved.
   ExecutableElement? get declaredElement;
-
-  /// Return the parameters associated with the function, or `null` if the
-  /// function is part of a top-level getter.
-  FormalParameterList? get parameters;
-
-  /// Return the type parameters associated with this method, or `null` if this
-  /// method is not a generic method.
-  TypeParameterList? get typeParameters;
-}
-
-/// A function expression.
-///
-///    functionExpression ::=
-///        [TypeParameterList]? [FormalParameterList] [FunctionBody]
-final class FunctionExpressionImpl extends ExpressionImpl
-    implements FunctionExpression {
-  /// The type parameters associated with the method, or `null` if the method is
-  /// not a generic method.
-  TypeParameterListImpl? _typeParameters;
 
   /// The parameters associated with the function, or `null` if the function is
   /// part of a top-level getter.
+  FormalParameterList? get parameters;
+
+  /// The type parameters associated with this method, or `null` if this method
+  /// isn't a generic method.
+  TypeParameterList? get typeParameters;
+}
+
+final class FunctionExpressionImpl extends ExpressionImpl
+    implements FunctionExpression {
+  TypeParameterListImpl? _typeParameters;
+
   FormalParameterListImpl? _parameters;
 
-  /// The body of the function.
   FunctionBodyImpl _body;
 
-  /// If resolution has been performed, this boolean indicates whether a
-  /// function type was supplied via context for this function expression.
-  /// `false` if resolution hasn't been performed yet.
+  /// Whether a function type was supplied via context for this function
+  /// expression.
+  ///
+  /// Returns `false` if resolution hasn't been performed yet.
   bool wasFunctionTypeSupplied = false;
 
   @override
   ExecutableElementImpl? declaredElement;
 
-  /// Initialize a newly created function declaration.
+  /// Initializes a newly created function declaration.
   FunctionExpressionImpl({
     required TypeParameterListImpl? typeParameters,
     required FormalParameterListImpl? parameters,
@@ -8631,36 +8062,25 @@ final class FunctionExpressionImpl extends ExpressionImpl
 ///        [Expression] [TypeArgumentList]? [ArgumentList]
 abstract final class FunctionExpressionInvocation
     implements NullShortableExpression, InvocationExpression {
-  /// Return the expression producing the function being invoked.
+  /// The expression producing the function being invoked.
   @override
   Expression get function;
 
-  /// Return the element associated with the function being invoked based on
-  /// static type information, or `null` if the AST structure has not been
-  /// resolved or the function could not be resolved.
+  /// The element associated with the function being invoked based on static
+  /// type information, or `null` if the AST structure hasn't been resolved or
+  /// the function couldn't be resolved.
   ExecutableElement? get staticElement;
 }
 
-/// The invocation of a function resulting from evaluating an expression.
-/// Invocations of methods and other forms of functions are represented by
-/// [MethodInvocation] nodes. Invocations of getters and setters are represented
-/// by either [PrefixedIdentifier] or [PropertyAccess] nodes.
-///
-///    functionExpressionInvocation ::=
-///        [Expression] [TypeArgumentList]? [ArgumentList]
 final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
     with NullShortableExpressionImpl
     implements FunctionExpressionInvocation {
-  /// The expression producing the function being invoked.
   ExpressionImpl _function;
 
-  /// The element associated with the function being invoked based on static
-  /// type information, or `null` if the AST structure has not been resolved or
-  /// the function could not be resolved.
   @override
   ExecutableElement? staticElement;
 
-  /// Initialize a newly created function expression invocation.
+  /// Initializes a newly created function expression invocation.
   FunctionExpressionInvocationImpl({
     required ExpressionImpl function,
     required super.typeArguments,
@@ -8716,36 +8136,34 @@ final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
 }
 
 /// An expression representing a reference to a function, possibly with type
-/// arguments applied to it, e.g. the expression `print` in `var x = print;`.
+/// arguments applied to it.
+///
+/// For example, the expression `print` in `var x = print;`.
 abstract final class FunctionReference
     implements Expression, CommentReferableExpression {
   /// The function being referenced.
   ///
-  /// In error-free code, this will be either a SimpleIdentifier (indicating a
-  /// function that is in scope), a PrefixedIdentifier (indicating a either
+  /// In error-free code, this is either a [SimpleIdentifier] (indicating a
+  /// function that is in scope), a [PrefixedIdentifier] (indicating a either
   /// function imported via prefix or a static method in a class), or a
-  /// PropertyAccess (indicating a static method in a class imported via
-  /// prefix).  In code with errors, this could be other kinds of expressions
-  /// (e.g. `(...)<int>` parses as a FunctionReference whose referent is a
-  /// ParenthesizedExpression.
+  /// [PropertyAccess] (indicating a static method in a class imported via
+  /// prefix). In code with errors, this could be other kinds of expressions.
+  /// For example, `(...)<int>` parses as a [FunctionReference] whose referent
+  /// is a [ParenthesizedExpression].
   Expression get function;
 
   /// The type arguments being applied to the function, or `null` if there are
   /// no type arguments.
   TypeArgumentList? get typeArguments;
 
-  /// The actual type arguments being applied to the function, either explicitly
-  /// specified in [typeArguments], or inferred.
+  /// The actual type arguments being applied to the function, either
+  /// explicitly specified in [typeArguments], or inferred.
   ///
-  /// If the AST has been resolved, never returns `null`, returns an empty list
-  /// if the function does not have type parameters.
-  ///
-  /// Returns `null` if the AST structure has not been resolved.
+  /// An empty list if the function doesn't have type parameters, or `null` if
+  /// the AST structure hasn't been resolved.
   List<DartType>? get typeArgumentTypes;
 }
 
-/// An expression representing a reference to a function, possibly with type
-/// arguments applied to it, e.g. the expression `print` in `var x = print;`.
 final class FunctionReferenceImpl extends CommentReferableExpressionImpl
     implements FunctionReference {
   ExpressionImpl _function;
@@ -8811,7 +8229,8 @@ final class FunctionReferenceImpl extends CommentReferableExpressionImpl
 /// A function type alias.
 ///
 ///    functionTypeAlias ::=
-///        'typedef' functionPrefix [TypeParameterList]? [FormalParameterList] ';'
+///        'typedef' functionPrefix [TypeParameterList]?
+///        [FormalParameterList] ';'
 ///
 ///    functionPrefix ::=
 ///        [TypeAnnotation]? [SimpleIdentifier]
@@ -8819,46 +8238,37 @@ abstract final class FunctionTypeAlias implements TypeAlias {
   @override
   TypeAliasElement? get declaredElement;
 
-  /// Return the parameters associated with the function type.
+  /// The parameters associated with the function type.
   FormalParameterList get parameters;
 
-  /// Return the return type of the function type being defined, or `null` if no
-  /// return type was given.
+  /// The return type of the function type being defined, or `null` if no return
+  /// type was given.
   TypeAnnotation? get returnType;
 
-  /// Return the type parameters for the function type, or `null` if the
-  /// function type does not have any type parameters.
+  /// The type parameters for the function type, or `null` if the function type
+  /// doesn't have any type parameters.
   TypeParameterList? get typeParameters;
 }
 
-/// A function type alias.
-///
-///    functionTypeAlias ::=
-///        'typedef' functionPrefix [TypeParameterList]? [FormalParameterList] ';'
-///
-///    functionPrefix ::=
-///        [TypeAnnotation]? [SimpleIdentifier]
 final class FunctionTypeAliasImpl extends TypeAliasImpl
     implements FunctionTypeAlias {
-  /// The name of the return type of the function type being defined, or `null`
-  /// if no return type was given.
   TypeAnnotationImpl? _returnType;
 
-  /// The type parameters for the function type, or `null` if the function type
-  /// does not have any type parameters.
   TypeParameterListImpl? _typeParameters;
 
-  /// The parameters associated with the function type.
   FormalParameterListImpl _parameters;
 
   @override
   TypeAliasElementImpl? declaredElement;
 
-  /// Initialize a newly created function type alias. Either or both of the
-  /// [comment] and [metadata] can be `null` if the function does not have the
-  /// corresponding attribute. The [returnType] can be `null` if no return type
-  /// was specified. The [typeParameters] can be `null` if the function has no
-  /// type parameters.
+  /// Initializes a newly created function type alias.
+  ///
+  /// Either or both of the [comment] and [metadata] can be `null` if the
+  /// function doesn't have the corresponding attribute.
+  ///
+  /// The [returnType] can be `null` if no return type was specified.
+  ///
+  /// The [typeParameters] can be `null` if the function has no type parameters.
   FunctionTypeAliasImpl({
     required super.comment,
     required super.metadata,
@@ -8928,48 +8338,41 @@ abstract final class FunctionTypedFormalParameter
   @override
   Token get name;
 
-  /// Return the parameters of the function-typed parameter.
+  /// The parameters of the function-typed parameter.
   FormalParameterList get parameters;
 
-  /// Return the question mark indicating that the function type is nullable, or
-  /// `null` if there is no question mark. Having a nullable function type means
-  /// that the parameter can be null.
+  /// The question mark indicating that the function type is nullable, or `null`
+  /// if there's no question mark.
+  ///
+  /// Having a nullable function type means that the parameter can be null.
   Token? get question;
 
-  /// Return the return type of the function, or `null` if the function does not
-  /// have a return type.
+  /// The return type of the function, or `null` if the function doesn't have a
+  /// return type.
   TypeAnnotation? get returnType;
 
-  /// Return the type parameters associated with this function, or `null` if
-  /// this function is not a generic function.
+  /// The type parameters associated with this function, or `null` if this
+  /// function isn't a generic function.
   TypeParameterList? get typeParameters;
 }
 
-/// A function-typed formal parameter.
-///
-///    functionSignature ::=
-///        [NamedType]? [SimpleIdentifier] [TypeParameterList]?
-///        [FormalParameterList] '?'?
 final class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
     implements FunctionTypedFormalParameter {
-  /// The return type of the function, or `null` if the function does not have a
-  /// return type.
   TypeAnnotationImpl? _returnType;
 
-  /// The type parameters associated with the function, or `null` if the
-  /// function is not a generic function.
   TypeParameterListImpl? _typeParameters;
 
-  /// The parameters of the function-typed parameter.
   FormalParameterListImpl _parameters;
 
   @override
   final Token? question;
 
-  /// Initialize a newly created formal parameter. Either or both of the
-  /// [comment] and [metadata] can be `null` if the parameter does not have the
-  /// corresponding attribute. The [returnType] can be `null` if no return type
-  /// was specified.
+  /// Initializes a newly created formal parameter.
+  ///
+  /// Either or both of the [comment] and [metadata] can be `null` if the
+  /// parameter doesn't have the corresponding attribute.
+  ///
+  /// The [returnType] can be `null` if no return type was specified.
   FunctionTypedFormalParameterImpl({
     required super.comment,
     required super.metadata,
@@ -9087,63 +8490,30 @@ final class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
 ///    optionalPositionalParameterTypes ::=
 ///        [ normalParameterTypes ,? ]
 abstract final class GenericFunctionType implements TypeAnnotation {
-  /// Return the keyword 'Function'.
+  /// The `Function` keyword.
   Token get functionKeyword;
 
-  /// Return the parameters associated with the function type.
+  /// The parameters associated with the function type.
   FormalParameterList get parameters;
 
-  /// Return the return type of the function type being defined, or `null` if
-  /// no return type was given.
+  /// The return type of the function type being defined, or `null` if no return
+  /// type was given.
   TypeAnnotation? get returnType;
 
-  /// Return the type parameters for the function type, or `null` if the
-  /// function type does not have any type parameters.
+  /// The type parameters for the function type, or `null` if the function type
+  /// doesn't have any type parameters.
   TypeParameterList? get typeParameters;
 }
 
-/// An anonymous function type.
-///
-///    functionType ::=
-///        [TypeAnnotation]? 'Function' [TypeParameterList]?
-///        [FormalParameterList]
-///
-/// where the FormalParameterList is being used to represent the following
-/// grammar, despite the fact that FormalParameterList can represent a much
-/// larger grammar than the one below. This is done in order to simplify the
-/// implementation.
-///
-///    parameterTypeList ::=
-///        () |
-///        ( normalParameterTypes ,? ) |
-///        ( normalParameterTypes , optionalParameterTypes ) |
-///        ( optionalParameterTypes )
-///    namedParameterTypes ::=
-///        { namedParameterType (, namedParameterType)* ,? }
-///    namedParameterType ::=
-///        [TypeAnnotation]? [SimpleIdentifier]
-///    normalParameterTypes ::=
-///        normalParameterType (, normalParameterType)*
-///    normalParameterType ::=
-///        [TypeAnnotation] [SimpleIdentifier]?
-///    optionalParameterTypes ::=
-///        optionalPositionalParameterTypes | namedParameterTypes
-///    optionalPositionalParameterTypes ::=
-///        [ normalParameterTypes ,? ]
 final class GenericFunctionTypeImpl extends TypeAnnotationImpl
     implements GenericFunctionType {
-  /// The name of the return type of the function type being defined, or
-  /// `null` if no return type was given.
   TypeAnnotationImpl? _returnType;
 
   @override
   final Token functionKeyword;
 
-  /// The type parameters for the function type, or `null` if the function type
-  /// does not have any type parameters.
   TypeParameterListImpl? _typeParameters;
 
-  /// The parameters associated with the function type.
   FormalParameterListImpl _parameters;
 
   @override
@@ -9152,11 +8522,11 @@ final class GenericFunctionTypeImpl extends TypeAnnotationImpl
   @override
   DartType? type;
 
-  /// Return the element associated with the function type, or `null` if the
-  /// AST structure has not been resolved.
+  /// The element associated with the function type, or `null` if the AST
+  /// structure hasn't been resolved.
   GenericFunctionTypeElementImpl? declaredElement;
 
-  /// Initialize a newly created generic function type.
+  /// Initializes a newly created generic function type.
   GenericFunctionTypeImpl({
     required TypeAnnotationImpl? returnType,
     required this.functionKeyword,
@@ -9191,13 +8561,9 @@ final class GenericFunctionTypeImpl extends TypeAnnotationImpl
     _returnType = _becomeParentOf(type);
   }
 
-  /// Return the type parameters for the function type, or `null` if the
-  /// function type does not have any type parameters.
   @override
   TypeParameterListImpl? get typeParameters => _typeParameters;
 
-  /// Set the type parameters for the function type to the given list of
-  /// [typeParameters].
   set typeParameters(TypeParameterListImpl? typeParameters) {
     _typeParameters = _becomeParentOf(typeParameters);
   }
@@ -9226,37 +8592,29 @@ final class GenericFunctionTypeImpl extends TypeAnnotationImpl
 /// A generic type alias.
 ///
 ///    functionTypeAlias ::=
-///        'typedef' [SimpleIdentifier] [TypeParameterList]? = [FunctionType] ';'
+///        'typedef' [SimpleIdentifier] [TypeParameterList]? =
+///        [FunctionType] ';'
 abstract final class GenericTypeAlias implements TypeAlias {
-  /// Return the equal sign separating the name being defined from the function
-  /// type.
+  /// The equal sign separating the name being defined from the function type.
   Token get equals;
 
-  /// Return the type of function being defined by the alias.
-  ///
-  /// When the non-function type aliases feature is enabled and the denoted
-  /// type is not a [GenericFunctionType], return `null`.
+  /// The type of function being defined by the alias, or `null` if the
+  /// non-function type aliases feature is enabled and the denoted type isn't a
+  /// [GenericFunctionType].
   GenericFunctionType? get functionType;
 
-  /// Return the type being defined by the alias.
+  /// The type being defined by the alias.
   TypeAnnotation get type;
 
-  /// Return the type parameters for the function type, or `null` if the
-  /// function type does not have any type parameters.
+  /// The type parameters for the function type, or `null` if the function type
+  /// doesn't have any type parameters.
   TypeParameterList? get typeParameters;
 }
 
-/// A generic type alias.
-///
-///    functionTypeAlias ::=
-///        'typedef' [SimpleIdentifier] [TypeParameterList]? = [FunctionType] ';'
 final class GenericTypeAliasImpl extends TypeAliasImpl
     implements GenericTypeAlias {
-  /// The type being defined by the alias.
   TypeAnnotationImpl _type;
 
-  /// The type parameters for the function type, or `null` if the function
-  /// type does not have any type parameters.
   TypeParameterListImpl? _typeParameters;
 
   @override
@@ -9265,10 +8623,12 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
   @override
   ElementImpl? declaredElement;
 
-  /// Returns a newly created generic type alias. Either or both of the
-  /// [comment] and [metadata] can be `null` if the variable list does not have
-  /// the corresponding attribute. The [typeParameters] can be `null` if there
-  /// are no type parameters.
+  /// Initializes a newly created generic type alias.
+  ///
+  /// Either or both of the [comment] and [metadata] can be `null` if the
+  /// variable list doesn't have the corresponding attribute.
+  ///
+  /// The [typeParameters] can be `null` if there are no type parameters.
   GenericTypeAliasImpl({
     required super.comment,
     required super.metadata,
@@ -9284,11 +8644,6 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
     _becomeParentOf(_type);
   }
 
-  /// The type of function being defined by the alias.
-  ///
-  /// If the non-function type aliases feature is enabled, a type alias may have
-  /// a [_type] which is not a [GenericFunctionTypeImpl].  In that case `null`
-  /// is returned.
   @override
   GenericFunctionType? get functionType {
     var type = _type;
@@ -9302,7 +8657,6 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
   @override
   TypeAnnotationImpl get type => _type;
 
-  /// Set the type being defined by the alias to the given [TypeAnnotation].
   set type(TypeAnnotationImpl typeAnnotation) {
     _type = _becomeParentOf(typeAnnotation);
   }
@@ -9341,17 +8695,13 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
 ///    guardedPattern ::=
 ///        [DartPattern] [WhenClause]?
 abstract final class GuardedPattern implements AstNode {
-  /// Return the pattern controlling whether the statements will be executed.
+  /// The pattern controlling whether the statements are executed.
   DartPattern get pattern;
 
-  /// Return the clause controlling whether the statements will be executed.
+  /// The clause controlling whether the statements are be executed.
   WhenClause? get whenClause;
 }
 
-/// The `case` clause that can optionally appear in an `if` statement.
-///
-///    caseClause ::=
-///        'case' [DartPattern] [WhenClause]?
 final class GuardedPatternImpl extends AstNodeImpl implements GuardedPattern {
   @override
   final DartPatternImpl pattern;
@@ -9392,28 +8742,21 @@ final class GuardedPatternImpl extends AstNodeImpl implements GuardedPattern {
   }
 }
 
-/// A combinator that restricts the names being imported to those that are not
+/// A combinator that restricts the names being imported to those that aren't
 /// in a given list.
 ///
 ///    hideCombinator ::=
 ///        'hide' [SimpleIdentifier] (',' [SimpleIdentifier])*
 abstract final class HideCombinator implements Combinator {
-  /// Return the list of names from the library that are hidden by this
-  /// combinator.
+  /// The list of names from the library that are hidden by this combinator.
   NodeList<SimpleIdentifier> get hiddenNames;
 }
 
-/// A combinator that restricts the names being imported to those that are not
-/// in a given list.
-///
-///    hideCombinator ::=
-///        'hide' [SimpleIdentifier] (',' [SimpleIdentifier])*
 final class HideCombinatorImpl extends CombinatorImpl
     implements HideCombinator {
-  /// The list of names from the library that are hidden by this combinator.
   final NodeListImpl<SimpleIdentifierImpl> _hiddenNames = NodeListImpl._();
 
-  /// Initialize a newly created import show combinator.
+  /// Initializes a newly created import show combinator.
   HideCombinatorImpl({
     required super.keyword,
     required List<SimpleIdentifierImpl> hiddenNames,
@@ -9447,27 +8790,20 @@ final class HideCombinatorImpl extends CombinatorImpl
 ///        [SimpleIdentifier]
 ///      | [PrefixedIdentifier]
 sealed class Identifier implements Expression, CommentReferableExpression {
-  /// Return the lexical representation of the identifier.
+  /// The lexical representation of the identifier.
   String get name;
 
-  /// Return the element associated with this identifier based on static type
-  /// information, or `null` if the AST structure has not been resolved or if
-  /// this identifier could not be resolved.
-  ///
-  /// One example of the latter case is an identifier that is not defined
-  /// within the scope in which it appears.
+  /// The element associated with this identifier based on static type
+  /// information, or `null` if the AST structure hasn't been resolved or if
+  /// this identifier couldn't be resolved. One example of the latter case is an
+  /// identifier that isn't defined within the scope in which it appears.
   Element? get staticElement;
 
-  /// Return `true` if the given [name] is visible only within the library in
-  /// which it is declared.
+  /// Returns `true` if the given [name] is visible only within the library in
+  /// which it's declared.
   static bool isPrivateName(String name) => name.isNotEmpty && name[0] == "_";
 }
 
-/// A node that represents an identifier.
-///
-///    identifier ::=
-///        [SimpleIdentifier]
-///      | [PrefixedIdentifier]
 sealed class IdentifierImpl extends CommentReferableExpressionImpl
     implements Identifier {
   @override
@@ -9476,38 +8812,36 @@ sealed class IdentifierImpl extends CommentReferableExpressionImpl
 
 /// The basic structure of an if element.
 abstract final class IfElement implements CollectionElement {
-  /// Return the `case` clause used to match a pattern against the [expression].
+  /// The `case` clause used to match a pattern against the [expression].
   CaseClause? get caseClause;
 
-  /// Return the condition used to determine which of the statements is executed
-  /// next.
+  /// The condition used to determine which of the statements is executed next.
   @Deprecated('Use expression instead')
   Expression get condition;
 
-  /// Return the statement that is executed if the condition evaluates to
-  /// `false`, or `null` if there is no else statement.
+  /// The statement that is executed if the condition evaluates to `false`, or
+  /// `null` if there's no else statement.
   CollectionElement? get elseElement;
 
-  /// Return the token representing the 'else' keyword, or `null` if there is no
-  /// else statement.
+  /// The token representing the `else` keyword, or `null` if there's no else
+  /// expression.
   Token? get elseKeyword;
 
-  /// Return the expression used to either determine which of the statements is
+  /// The expression used to either determine which of the statements is
   /// executed next or to compute the value to be matched against the pattern in
   /// the `case` clause.
   Expression get expression;
 
-  /// Return the token representing the 'if' keyword.
+  /// The token representing the `if` keyword.
   Token get ifKeyword;
 
-  /// Return the left parenthesis.
+  /// The left parenthesis.
   Token get leftParenthesis;
 
-  /// Return the right parenthesis.
+  /// The right parenthesis.
   Token get rightParenthesis;
 
-  /// Return the statement that is executed if the condition evaluates to
-  /// `true`.
+  /// The statement that is executed if the condition evaluates to `true`.
   CollectionElement get thenElement;
 }
 
@@ -9530,14 +8864,11 @@ final class IfElementImpl extends CollectionElementImpl
   @override
   final Token? elseKeyword;
 
-  /// The element to be executed if the condition is `true`.
   CollectionElementImpl _thenElement;
 
-  /// The element to be executed if the condition is `false`, or `null` if there
-  /// is no such element.
   CollectionElementImpl? _elseElement;
 
-  /// Initialize a newly created for element.
+  /// Initializes a newly created for element.
   IfElementImpl({
     required this.ifKeyword,
     required this.leftParenthesis,
@@ -9625,10 +8956,10 @@ final class IfElementImpl extends CollectionElementImpl
 
 sealed class IfElementOrStatementImpl<E extends AstNodeImpl>
     implements AstNodeImpl {
-  /// Return the `case` clause used to match a pattern against the [expression].
+  /// The `case` clause used to match a pattern against the [expression].
   CaseClauseImpl? get caseClause;
 
-  /// Return the expression used to either determine which of the statements is
+  /// The expression used to either determine which of the statements is
   /// executed next or to compute the value matched against the pattern in the
   /// `case` clause.
   ExpressionImpl get expression;
@@ -9646,47 +8977,40 @@ sealed class IfElementOrStatementImpl<E extends AstNodeImpl>
 ///        'if' '(' [Expression] [CaseClause]? ')'[Statement]
 ///        ('else' [Statement])?
 abstract final class IfStatement implements Statement {
-  /// Return the `case` clause used to match a pattern against the [expression].
+  /// The `case` clause used to match a pattern against the [expression].
   CaseClause? get caseClause;
 
-  /// Return the condition used to determine which of the statements is executed
-  /// next.
+  /// The condition used to determine which of the statements is executed next.
   @Deprecated('Use expression instead')
   Expression get condition;
 
-  /// Return the token representing the 'else' keyword, or `null` if there is no
-  /// else statement.
+  /// The token representing the `else` keyword, or `null` if there's no else
+  /// statement.
   Token? get elseKeyword;
 
-  /// Return the statement that is executed if the condition evaluates to
-  /// `false`, or `null` if there is no else statement.
+  /// The statement that is executed if the condition evaluates to `false`, or
+  /// `null` if there's no else statement.
   Statement? get elseStatement;
 
-  /// Return the expression used to either determine which of the statements is
+  /// The expression used to either determine which of the statements is
   /// executed next or to compute the value matched against the pattern in the
   /// `case` clause.
   Expression get expression;
 
-  /// Return the token representing the 'if' keyword.
+  /// The token representing the `if` keyword.
   // TODO(scheglov): Extract shared `IfCondition`, see the patterns spec.
   Token get ifKeyword;
 
-  /// Return the left parenthesis.
+  /// The left parenthesis.
   Token get leftParenthesis;
 
-  /// Return the right parenthesis.
+  /// The right parenthesis.
   Token get rightParenthesis;
 
-  /// Return the statement that is executed if the condition evaluates to
-  /// `true`.
+  /// The statement that is executed if the condition evaluates to `true`.
   Statement get thenStatement;
 }
 
-/// An if statement.
-///
-///    ifStatement ::=
-///        'if' '(' [Expression] [CaseClause]? ')'[Statement]
-///        ('else' [Statement])?
 final class IfStatementImpl extends StatementImpl
     implements IfStatement, IfElementOrStatementImpl<StatementImpl> {
   @override
@@ -9695,7 +9019,6 @@ final class IfStatementImpl extends StatementImpl
   @override
   final Token leftParenthesis;
 
-  /// The condition used to determine which of the branches is executed next.
   ExpressionImpl _expression;
 
   @override
@@ -9707,15 +9030,14 @@ final class IfStatementImpl extends StatementImpl
   @override
   final Token? elseKeyword;
 
-  /// The statement that is executed if the condition evaluates to `true`.
   StatementImpl _thenStatement;
 
-  /// The statement that is executed if the condition evaluates to `false`, or
-  /// `null` if there is no else statement.
   StatementImpl? _elseStatement;
 
-  /// Initialize a newly created if statement. The [elseKeyword] and
-  /// [elseStatement] can be `null` if there is no else clause.
+  /// Initializes a newly created if statement.
+  ///
+  /// The [elseKeyword] and [elseStatement] can be `null` if there's no else
+  /// clause.
   IfStatementImpl({
     required this.ifKeyword,
     required this.leftParenthesis,
@@ -9804,27 +9126,21 @@ final class IfStatementImpl extends StatementImpl
 ///    implementsClause ::=
 ///        'implements' [NamedType] (',' [NamedType])*
 abstract final class ImplementsClause implements AstNode {
-  /// Return the token representing the 'implements' keyword.
+  /// The token representing the `implements` keyword.
   Token get implementsKeyword;
 
-  /// Return the list of the interfaces that are being implemented.
+  /// The list of the interfaces that are being implemented.
   NodeList<NamedType> get interfaces;
 }
 
-/// The "implements" clause in an class declaration.
-///
-///    implementsClause ::=
-///        'implements' [NamedType] (',' [NamedType])*
 final class ImplementsClauseImpl extends AstNodeImpl
     implements ImplementsClause {
-  /// The token representing the 'implements' keyword.
   @override
   final Token implementsKeyword;
 
-  /// The interfaces that are being implemented.
   final NodeListImpl<NamedTypeImpl> _interfaces = NodeListImpl._();
 
-  /// Initialize a newly created implements clause.
+  /// Initializes a newly created implements clause.
   ImplementsClauseImpl({
     required this.implementsKeyword,
     required List<NamedTypeImpl> interfaces,
@@ -9858,16 +9174,16 @@ final class ImplementsClauseImpl extends AstNodeImpl
 
 /// An expression representing an implicit 'call' method reference.
 ///
-/// Objects of this type are not produced directly by the parser (because the
-/// parser cannot tell whether an expression refers to a callable type); they
+/// Objects of this type aren't produced directly by the parser (because the
+/// parser can't tell whether an expression refers to a callable type); they
 /// are produced at resolution time.
 abstract final class ImplicitCallReference
     implements MethodReferenceExpression {
-  /// Return the expression from which a `call` method is being referenced.
+  /// The expression from which a `call` method is being referenced.
   Expression get expression;
 
-  /// Return the element associated with the implicit 'call' reference based on
-  /// the static types.
+  /// The element associated with the implicit `call` reference based on the
+  /// static types.
   @override
   MethodElement get staticElement;
 
@@ -9878,7 +9194,7 @@ abstract final class ImplicitCallReference
   /// The actual type arguments being applied to the tear-off, either explicitly
   /// specified in [typeArguments], or inferred.
   ///
-  /// Returns an empty list if the 'call' method does not have type parameters.
+  /// An empty list if the 'call' method doesn't have type parameters.
   List<DartType> get typeArgumentTypes;
 }
 
@@ -9954,62 +9270,56 @@ final class ImplicitCallReferenceImpl extends ExpressionImpl
 /// An import directive.
 ///
 ///    importDirective ::=
-///        [Annotation] 'import' [StringLiteral] ('as' identifier)? [Combinator]* ';'
-///      | [Annotation] 'import' [StringLiteral] 'deferred' 'as' identifier [Combinator]* ';'
+///        [Annotation] 'import' [StringLiteral] ('as' identifier)?
+///        [Combinator]* ';'
+///      | [Annotation] 'import' [StringLiteral] 'deferred' 'as' identifier
+///        [Combinator]* ';'
 abstract final class ImportDirective implements NamespaceDirective {
-  /// Return the token representing the 'as' keyword, or `null` if the imported
-  /// names are not prefixed.
+  /// The token representing the `as` keyword, or `null` if the imported names
+  /// aren't prefixed.
   Token? get asKeyword;
 
-  /// Return the token representing the 'deferred' keyword, or `null` if the
-  /// imported URI is not deferred.
+  /// The token representing the `deferred` keyword, or `null` if the imported
+  /// URI isn't deferred.
   Token? get deferredKeyword;
 
-  /// Return the element associated with this directive, or `null` if the AST
-  /// structure has not been resolved.
+  /// The element associated with this directive, or `null` if the AST structure
+  /// hasn't been resolved.
   @override
   LibraryImportElement? get element;
 
-  /// The token representing the 'import' keyword.
+  /// The token representing the `import` keyword.
   Token get importKeyword;
 
-  /// Return the prefix to be used with the imported names, or `null` if the
-  /// imported names are not prefixed.
+  /// The prefix to be used with the imported names, or `null` if the imported
+  /// names aren't prefixed.
   SimpleIdentifier? get prefix;
 }
 
-/// An import directive.
-///
-///    importDirective ::=
-///        [Annotation] 'import' [StringLiteral] ('as' identifier)?
-//         [Combinator]* ';'
-///      | [Annotation] 'import' [StringLiteral] 'deferred' 'as' identifier
-//         [Combinator]* ';'
 final class ImportDirectiveImpl extends NamespaceDirectiveImpl
     implements ImportDirective {
   @override
   final Token importKeyword;
 
-  /// The token representing the 'deferred' keyword, or `null` if the imported
-  /// is not deferred.
   @override
   final Token? deferredKeyword;
 
-  /// The token representing the 'as' keyword, or `null` if the imported names
-  /// are not prefixed.
   @override
   final Token? asKeyword;
 
-  /// The prefix to be used with the imported names, or `null` if the imported
-  /// names are not prefixed.
   SimpleIdentifierImpl? _prefix;
 
-  /// Initialize a newly created import directive. Either or both of the
-  /// [comment] and [metadata] can be `null` if the function does not have the
-  /// corresponding attribute. The [deferredKeyword] can be `null` if the import
-  /// is not deferred. The [asKeyword] and [prefix] can be `null` if the import
-  /// does not specify a prefix. The list of [combinators] can be `null` if
-  /// there are no combinators.
+  /// Initializes a newly created import directive.
+  ///
+  /// Either or both of the [comment] and [metadata] can be `null` if the
+  /// function doesn't have the corresponding attribute.
+  ///
+  /// The [deferredKeyword] can be `null` if the import isn't deferred.
+  ///
+  /// The [asKeyword] and [prefix] can be `null` if the import doesn't specify a
+  /// prefix.
+  ///
+  /// The list of [combinators] can be `null` if there are no combinators.
   ImportDirectiveImpl({
     required super.comment,
     required super.metadata,
@@ -10061,10 +9371,12 @@ final class ImportDirectiveImpl extends NamespaceDirectiveImpl
     combinators.accept(visitor);
   }
 
-  /// Return `true` if the non-URI components of the two directives are
-  /// syntactically identical. URIs are checked outside to see if they resolve
-  /// to the same absolute URI, so to the same library, regardless of the used
-  /// syntax (absolute, relative, not normalized).
+  /// Returns `true` if the non-URI components of the two directives are
+  /// syntactically identical.
+  ///
+  /// URIs are checked outside to see if they resolve to the same absolute URI,
+  /// so to the same library, regardless of the used syntax (absolute, relative,
+  /// not normalized).
   static bool areSyntacticallyIdenticalExceptUri(
     NamespaceDirective node1,
     NamespaceDirective node2,
@@ -10118,8 +9430,9 @@ final class ImportDirectiveImpl extends NamespaceDirectiveImpl
 
 /// Reference to an import prefix name.
 abstract final class ImportPrefixReference implements AstNode {
-  /// The element to which [name] is resolved. Usually a [PrefixElement], but
-  /// can be anything in invalid code.
+  /// The element to which [name] is resolved.
+  ///
+  /// Usually a [PrefixElement], but can be anything in invalid code.
   Element? get element;
 
   /// The name of the referenced import prefix.
@@ -10171,80 +9484,74 @@ final class ImportPrefixReferenceImpl extends AstNodeImpl
 ///        [Expression] '[' [Expression] ']'
 abstract final class IndexExpression
     implements NullShortableExpression, MethodReferenceExpression {
-  /// Return the expression used to compute the index.
+  /// The expression used to compute the index.
   Expression get index;
 
-  /// Return `true` if this expression is cascaded.
+  /// Whether this expression is cascaded.
   ///
-  /// If it is, then the target of this expression is not stored locally but is
+  /// If it is, then the target of this expression isn't stored locally but is
   /// stored in the nearest ancestor that is a [CascadeExpression].
   bool get isCascaded;
 
   /// Whether this index expression is null aware (as opposed to non-null).
   bool get isNullAware;
 
-  /// Return the left square bracket.
+  /// The left square bracket.
   Token get leftBracket;
 
-  /// Return the period (".." | "?..") before a cascaded index expression, or
-  /// `null` if this index expression is not part of a cascade expression.
+  /// The period (".." | "?..") before a cascaded index expression, or `null` if
+  /// this index expression isn't part of a cascade expression.
   Token? get period;
 
-  /// Return the question mark before the left bracket, or `null` if there is no
+  /// The question mark before the left bracket, or `null` if there's no
   /// question mark.
   Token? get question;
 
-  /// Return the expression used to compute the object being indexed.
+  /// The expression used to compute the object being indexed.
   ///
-  /// If this index expression is not part of a cascade expression, then this
+  /// If this index expression isn't part of a cascade expression, then this
   /// is the same as [target]. If this index expression is part of a cascade
   /// expression, then the target expression stored with the cascade expression
   /// is returned.
   Expression get realTarget;
 
-  /// Return the right square bracket.
+  /// The right square bracket.
   Token get rightBracket;
 
-  /// Return the expression used to compute the object being indexed, or `null`
-  /// if this index expression is part of a cascade expression.
+  /// The expression used to compute the object being indexed, or `null` if this
+  /// index expression is part of a cascade expression.
   ///
   /// Use [realTarget] to get the target independent of whether this is part of
   /// a cascade expression.
   Expression? get target;
 
-  /// Return `true` if this expression is computing a right-hand value (that is,
-  /// if this expression is in a context where the operator '[]' will be
+  /// Returns `true` if this expression is computing a right-hand value (that
+  /// is, if this expression is in a context where the operator '[]' is
   /// invoked).
   ///
-  /// Note that [inGetterContext] and [inSetterContext] are not opposites, nor
-  /// are they mutually exclusive. In other words, it is possible for both
+  /// Note that [inGetterContext] and [inSetterContext] aren't opposites, nor
+  /// are they mutually exclusive. In other words, it's possible for both
   /// methods to return `true` when invoked on the same node.
   // TODO(brianwilkerson): Convert this to a getter.
   bool inGetterContext();
 
-  /// Return `true` if this expression is computing a left-hand value (that is,
-  /// if this expression is in a context where the operator '[]=' will be
+  /// Returns `true` if this expression is computing a left-hand value (that is,
+  /// if this expression is in a context where the operator '[]=' is
   /// invoked).
   ///
-  /// Note that [inGetterContext] and [inSetterContext] are not opposites, nor
-  /// are they mutually exclusive. In other words, it is possible for both
+  /// Note that [inGetterContext] and [inSetterContext] aren't opposites, nor
+  /// are they mutually exclusive. In other words, it's possible for both
   /// methods to return `true` when invoked on the same node.
   // TODO(brianwilkerson): Convert this to a getter.
   bool inSetterContext();
 }
 
-/// An index expression.
-///
-///    indexExpression ::=
-///        [Expression] '[' [Expression] ']'
 final class IndexExpressionImpl extends ExpressionImpl
     with NullShortableExpressionImpl
     implements IndexExpression {
   @override
   Token? period;
 
-  /// The expression used to compute the object being indexed, or `null` if this
-  /// index expression is part of a cascade expression.
   ExpressionImpl? _target;
 
   @override
@@ -10253,19 +9560,18 @@ final class IndexExpressionImpl extends ExpressionImpl
   @override
   final Token leftBracket;
 
-  /// The expression used to compute the index.
   ExpressionImpl _index;
 
   @override
   final Token rightBracket;
 
   /// The element associated with the operator based on the static type of the
-  /// target, or `null` if the AST structure has not been resolved or if the
-  /// operator could not be resolved.
+  /// target, or `null` if the AST structure hasn't been resolved or if the
+  /// operator couldn't be resolved.
   @override
   MethodElement? staticElement;
 
-  /// Initialize a newly created index expression that is a child of a cascade
+  /// Initializes a newly created index expression that is a child of a cascade
   /// expression.
   IndexExpressionImpl.forCascade({
     required this.period,
@@ -10277,7 +9583,7 @@ final class IndexExpressionImpl extends ExpressionImpl
     _becomeParentOf(_index);
   }
 
-  /// Initialize a newly created index expression that is not a child of a
+  /// Initializes a newly created index expression that isn't a child of a
   /// cascade expression.
   IndexExpressionImpl.forTarget({
     required ExpressionImpl? target,
@@ -10344,7 +9650,7 @@ final class IndexExpressionImpl extends ExpressionImpl
     _target = _becomeParentOf(expression);
   }
 
-  /// Return the cascade that contains this [IndexExpression].
+  /// The cascade that contains this [IndexExpression].
   ///
   /// We expect that [isCascaded] is `true`.
   CascadeExpressionImpl get _ancestorCascade {
@@ -10367,10 +9673,10 @@ final class IndexExpressionImpl extends ExpressionImpl
   @override
   AstNode get _nullShortingExtensionCandidate => parent!;
 
-  /// If the AST structure has been resolved, and the function being invoked is
-  /// known based on static type information, then return the parameter element
-  /// representing the parameter to which the value of the index expression will
-  /// be bound. Otherwise, return `null`.
+  /// The parameter element representing the parameter to which the value of the
+  /// index expression is bound, or `null` if the AST structure is not resolved,
+  /// or the function being invoked is not known based on static type
+  /// information.
   ParameterElement? get _staticParameterElementForIndex {
     Element? element = staticElement;
 
@@ -10439,54 +9745,47 @@ final class IndexExpressionImpl extends ExpressionImpl
 /// An instance creation expression.
 ///
 ///    newExpression ::=
-///        ('new' | 'const')? [NamedType] ('.' [SimpleIdentifier])? [ArgumentList]
+///        ('new' | 'const')? [NamedType] ('.' [SimpleIdentifier])?
+///        [ArgumentList]
 abstract final class InstanceCreationExpression implements Expression {
-  /// Return the list of arguments to the constructor.
+  /// The list of arguments to the constructor.
   ArgumentList get argumentList;
 
-  /// Return the name of the constructor to be invoked.
+  /// The name of the constructor to be invoked.
   ConstructorName get constructorName;
 
-  /// Return `true` if this creation expression is used to invoke a constant
-  /// constructor, either because the keyword `const` was explicitly provided or
-  /// because no keyword was provided and this expression is in a constant
-  /// context.
+  /// Whether this creation expression is used to invoke a constant constructor,
+  /// either because the keyword `const` was explicitly provided or because no
+  /// keyword was provided and this expression is in a constant context.
   bool get isConst;
 
-  /// Return the 'new' or 'const' keyword used to indicate how an object should
-  /// be created, or `null` if the keyword was not explicitly provided.
+  /// The `new` or `const` keyword used to indicate how an object should be
+  /// created, or `null` if the keyword isn't explicitly provided.
   Token? get keyword;
 }
 
-/// An instance creation expression.
-///
-///    newExpression ::=
-///        ('new' | 'const')? [NamedType] ('.' [SimpleIdentifier])?
-///        [ArgumentList]
 final class InstanceCreationExpressionImpl extends ExpressionImpl
     implements InstanceCreationExpression {
   // TODO(brianwilkerson): Consider making InstanceCreationExpressionImpl extend
   // InvocationExpressionImpl. This would probably be a breaking change, but is
   // also probably worth it.
 
-  /// The 'new' or 'const' keyword used to indicate how an object should be
-  /// created, or `null` if the keyword is implicit.
   @override
   Token? keyword;
 
-  /// The name of the constructor to be invoked.
   ConstructorNameImpl _constructorName;
 
   /// The type arguments associated with the constructor, rather than with the
-  /// class in which the constructor is defined. It is always an error if there
-  /// are type arguments because Dart doesn't currently support generic
-  /// constructors, but we capture them in the AST in order to recover better.
+  /// class in which the constructor is defined.
+  ///
+  /// It's always an error if there are type arguments because Dart doesn't
+  /// currently support generic constructors, but we capture them in the AST in
+  /// order to recover better.
   TypeArgumentListImpl? _typeArguments;
 
-  /// The list of arguments to the constructor.
   ArgumentListImpl _argumentList;
 
-  /// Initialize a newly created instance creation expression.
+  /// Initializes a newly created instance creation expression.
   InstanceCreationExpressionImpl({
     required this.keyword,
     required ConstructorNameImpl constructorName,
@@ -10529,22 +9828,20 @@ final class InstanceCreationExpressionImpl extends ExpressionImpl
     }
   }
 
-  /// Return `true` if this is an implicit constructor invocations.
+  /// Whether this is an implicit constructor invocation.
   bool get isImplicit => keyword == null;
 
   @override
   Precedence get precedence => Precedence.primary;
 
-  /// Return the type arguments associated with the constructor, rather than
-  /// with the class in which the constructor is defined. It is always an error
-  /// if there are type arguments because Dart doesn't currently support generic
-  /// constructors, but we capture them in the AST in order to recover better.
+  /// The type arguments associated with the constructor, rather than with the
+  /// class in which the constructor is defined.
+  ///
+  /// It's always an error if there are type arguments because Dart doesn't
+  /// currently support generic constructors, but we capture them in the AST in
+  /// order to recover better.
   TypeArgumentListImpl? get typeArguments => _typeArguments;
 
-  /// Return the type arguments associated with the constructor, rather than
-  /// with the class in which the constructor is defined. It is always an error
-  /// if there are type arguments because Dart doesn't currently support generic
-  /// constructors, but we capture them in the AST in order to recover better.
   set typeArguments(TypeArgumentListImpl? typeArguments) {
     _typeArguments = _becomeParentOf(typeArguments);
   }
@@ -10586,36 +9883,22 @@ final class InstanceCreationExpressionImpl extends ExpressionImpl
 ///        '0x' hexadecimalDigit+
 ///      | '0X' hexadecimalDigit+
 abstract final class IntegerLiteral implements Literal {
-  /// Return the token representing the literal.
+  /// The token representing the literal.
   Token get literal;
 
-  /// Return the value of the literal, or `null` when [literal] does not
-  /// represent a valid `int` value, for example because of overflow.
+  /// The value of the literal, or `null` when [literal] doesn't represent a
+  /// valid `int` value, for example because of overflow.
   int? get value;
 }
 
-/// An integer literal expression.
-///
-///    integerLiteral ::=
-///        decimalIntegerLiteral
-///      | hexadecimalIntegerLiteral
-///
-///    decimalIntegerLiteral ::=
-///        decimalDigit+
-///
-///    hexadecimalIntegerLiteral ::=
-///        '0x' hexadecimalDigit+
-///      | '0X' hexadecimalDigit+
 final class IntegerLiteralImpl extends LiteralImpl implements IntegerLiteral {
-  /// The token representing the literal.
   @override
   final Token literal;
 
-  /// The value of the literal.
   @override
   int? value = 0;
 
-  /// Initialize a newly created integer literal.
+  /// Initializes a newly created integer literal.
   IntegerLiteralImpl({
     required this.literal,
     required this.value,
@@ -10627,12 +9910,11 @@ final class IntegerLiteralImpl extends LiteralImpl implements IntegerLiteral {
   @override
   Token get endToken => literal;
 
-  /// Returns whether this literal's [parent] is a [PrefixExpression] of unary
-  /// negation.
+  /// Whether this literal's [parent] is a [PrefixExpression] of unary negation.
   ///
   /// Note: this does *not* indicate that the value itself is negated, just that
   /// the literal is the child of a negation operation. The literal value itself
-  /// will always be positive.
+  /// is always positive.
   bool get immediatelyNegated {
     final parent = this.parent!;
     return parent is PrefixExpression &&
@@ -10657,7 +9939,7 @@ final class IntegerLiteralImpl extends LiteralImpl implements IntegerLiteral {
   }
 
   static bool isValidAsDouble(String lexeme) {
-    // Less than 16 characters must be a valid double since it will be less than
+    // Less than 16 characters must be a valid double since it's less than
     // 9007199254740992, 0x10000000000000, both 16 characters and 53 bits.
     if (lexeme.length < 16) {
       return true;
@@ -10687,24 +9969,28 @@ final class IntegerLiteralImpl extends LiteralImpl implements IntegerLiteral {
     return fullPrecision & bottomMask == BigInt.zero;
   }
 
-  /// Return `true` if the given [lexeme] is a valid lexeme for an integer
-  /// literal. The flag [isNegative] should be `true` if the lexeme is preceded
-  /// by a unary negation operator.
+  /// Returns `true` if the given [lexeme] is a valid lexeme for an integer
+  /// literal.
+  ///
+  /// The flag [isNegative] should be `true` if the lexeme is preceded by a
+  /// unary negation operator.
   static bool isValidAsInteger(String lexeme, bool isNegative) {
     // TODO(jmesserly): this depends on the platform int implementation, and
-    // may not be accurate if run on dart4web.
+    // might not be accurate if run on dart4web.
     //
     // (Prior to https://dart-review.googlesource.com/c/sdk/+/63023 there was
-    // a partial implementation here which may be a good starting point.
+    // a partial implementation here which might be a good starting point.
     // _isValidDecimalLiteral relied on int.parse so that would need some fixes.
     // _isValidHexadecimalLiteral worked except for negative int64 max.)
     if (isNegative) lexeme = '-$lexeme';
     return int.tryParse(lexeme) != null;
   }
 
-  /// Suggest the nearest valid double to a user. If the integer they wrote
-  /// requires more than a 53 bit mantissa, or more than 10 exponent bits, do
-  /// them the favor of suggesting the nearest integer that would work for them.
+  /// Suggest the nearest valid double to a user.
+  ///
+  /// If the integer they wrote requires more than a 53 bit mantissa, or more
+  /// than 10 exponent bits, do them the favor of suggesting the nearest integer
+  /// that would work for them.
   static double nearestValidDouble(String lexeme) =>
       math.min(double.maxFinite, BigInt.parse(lexeme).toDouble());
 }
@@ -10716,11 +10002,6 @@ final class IntegerLiteralImpl extends LiteralImpl implements IntegerLiteral {
 ///      | [InterpolationString]
 sealed class InterpolationElement implements AstNode {}
 
-/// A node within a [StringInterpolation].
-///
-///    interpolationElement ::=
-///        [InterpolationExpression]
-///      | [InterpolationString]
 sealed class InterpolationElementImpl extends AstNodeImpl
     implements InterpolationElement {}
 
@@ -10730,43 +10011,32 @@ sealed class InterpolationElementImpl extends AstNodeImpl
 ///        '$' [SimpleIdentifier]
 ///      | '$' '{' [Expression] '}'
 abstract final class InterpolationExpression implements InterpolationElement {
-  /// Return the expression to be evaluated for the value to be converted into a
+  /// The expression to be evaluated for the value to be converted into a
   /// string.
   Expression get expression;
 
-  /// Return the token used to introduce the interpolation expression; either
-  /// '$' if the expression is a simple identifier or '${' if the expression is
-  /// a full expression.
+  /// The token used to introduce the interpolation expression.
+  ///
+  /// This will either be `$` if the expression is a simple identifier or `${`
+  /// if the expression is a full expression.
   Token get leftBracket;
-
-  /// Return the right curly bracket, or `null` if the expression is an
-  /// identifier without brackets.
-  Token? get rightBracket;
-}
-
-/// An expression embedded in a string interpolation.
-///
-///    interpolationExpression ::=
-///        '$' [SimpleIdentifier]
-///      | '$' '{' [Expression] '}'
-final class InterpolationExpressionImpl extends InterpolationElementImpl
-    implements InterpolationExpression {
-  /// The token used to introduce the interpolation expression; either '$' if
-  /// the expression is a simple identifier or '${' if the expression is a full
-  /// expression.
-  @override
-  final Token leftBracket;
-
-  /// The expression to be evaluated for the value to be converted into a
-  /// string.
-  ExpressionImpl _expression;
 
   /// The right curly bracket, or `null` if the expression is an identifier
   /// without brackets.
+  Token? get rightBracket;
+}
+
+final class InterpolationExpressionImpl extends InterpolationElementImpl
+    implements InterpolationExpression {
+  @override
+  final Token leftBracket;
+
+  ExpressionImpl _expression;
+
   @override
   final Token? rightBracket;
 
-  /// Initialize a newly created interpolation expression.
+  /// Initializes a newly created interpolation expression.
   InterpolationExpressionImpl({
     required this.leftBracket,
     required ExpressionImpl expression,
@@ -10809,34 +10079,28 @@ final class InterpolationExpressionImpl extends InterpolationElementImpl
 ///    interpolationString ::=
 ///        characters
 abstract final class InterpolationString implements InterpolationElement {
-  /// Return the characters that will be added to the string.
+  /// The characters that are added to the string.
   Token get contents;
 
-  /// Return the offset of the after-last contents character.
+  /// The offset of the after-last contents character.
   int get contentsEnd;
 
-  /// Return the offset of the first contents character.
+  /// The offset of the first contents character.
   int get contentsOffset;
 
-  /// Return the value of the literal.
+  /// The value of the literal.
   String get value;
 }
 
-/// A non-empty substring of an interpolated string.
-///
-///    interpolationString ::=
-///        characters
 final class InterpolationStringImpl extends InterpolationElementImpl
     implements InterpolationString {
-  /// The characters that will be added to the string.
   @override
   final Token contents;
 
-  /// The value of the literal.
   @override
   String value;
 
-  /// Initialize a newly created string of characters that are part of a string
+  /// Initializes a newly created string of characters that are part of a string
   /// interpolation.
   InterpolationStringImpl({
     required this.contents,
@@ -10875,54 +10139,50 @@ final class InterpolationStringImpl extends InterpolationElementImpl
   void visitChildren(AstVisitor visitor) {}
 }
 
-/// The invocation of a function or method; either a
-/// [FunctionExpressionInvocation] or a [MethodInvocation].
+/// The invocation of a function or method.
+///
+/// This will either be a [FunctionExpressionInvocation] or a
+/// [MethodInvocation].
 abstract final class InvocationExpression implements Expression {
-  /// Return the list of arguments to the method.
+  /// The list of arguments to the method.
   ArgumentList get argumentList;
 
   /// The expression that identifies the function or method being invoked.
+  ///
   /// For example:
   ///
-  ///     (o.m)<TArgs>(args); // target will be `o.m`
-  ///     o.m<TArgs>(args);   // target will be `m`
+  ///     (o.m)<TArgs>(args); // target is `o.m`
+  ///     o.m<TArgs>(args);   // target is `m`
   ///
-  /// In either case, the [function.staticType] will be the
-  /// [staticInvokeType] before applying type arguments `TArgs`.
+  /// In either case, the [function.staticType] is the [staticInvokeType] before
+  /// applying type arguments `TArgs`.
   Expression get function;
 
-  /// Return the function type of the invocation based on the static type
-  /// information, or `null` if the AST structure has not been resolved, or if
-  /// the invoke could not be resolved.
+  /// The function type of the invocation based on the static type information,
+  /// or `null` if the AST structure hasn't been resolved, or if the invoke
+  /// couldn't be resolved.
   ///
-  /// This will usually be a [FunctionType], but it can also be `dynamic` or
+  /// This is usually a [FunctionType], but it can also be `dynamic` or
   /// `Function`. In the case of interface types that have a `call` method, we
   /// store the type of that `call` method here as parameterized.
   DartType? get staticInvokeType;
 
-  /// Return the type arguments to be applied to the method being invoked, or
-  /// `null` if no type arguments were provided.
+  /// The type arguments to be applied to the method being invoked, or `null` if
+  /// no type arguments were provided.
   TypeArgumentList? get typeArguments;
 
-  /// Return the actual type arguments of the invocation, either explicitly
-  /// specified in [typeArguments], or inferred.
+  /// The actual type arguments of the invocation, either explicitly specified
+  /// in [typeArguments], or inferred, or `null` if the AST structure hasn't
+  /// been resolved.
   ///
-  /// If the AST has been resolved, never returns `null`, returns an empty list
-  /// if the [function] does not have type parameters.
-  ///
-  /// Return `null` if the AST structure has not been resolved.
+  /// An empty list if the [function] doesn't have type parameters.
   List<DartType>? get typeArgumentTypes;
 }
 
-/// Common base class for [FunctionExpressionInvocationImpl] and
-/// [MethodInvocationImpl].
 sealed class InvocationExpressionImpl extends ExpressionImpl
     implements InvocationExpression {
-  /// The list of arguments to the function.
   ArgumentListImpl _argumentList;
 
-  /// The type arguments to be applied to the method being invoked, or `null` if
-  /// no type arguments were provided.
   TypeArgumentListImpl? _typeArguments;
 
   @override
@@ -10931,7 +10191,7 @@ sealed class InvocationExpressionImpl extends ExpressionImpl
   @override
   DartType? staticInvokeType;
 
-  /// Initialize a newly created invocation.
+  /// Initializes a newly created invocation.
   InvocationExpressionImpl({
     required TypeArgumentListImpl? typeArguments,
     required ArgumentListImpl argumentList,
@@ -10961,42 +10221,33 @@ sealed class InvocationExpressionImpl extends ExpressionImpl
 ///    isExpression ::=
 ///        [Expression] 'is' '!'? [TypeAnnotation]
 abstract final class IsExpression implements Expression {
-  /// Return the expression used to compute the value whose type is being
-  /// tested.
+  /// The expression used to compute the value whose type is being tested.
   Expression get expression;
 
-  /// Return the is operator.
+  /// The is operator.
   Token get isOperator;
 
-  /// Return the not operator, or `null` if the sense of the test is not
-  /// negated.
+  /// The not operator, or `null` if the sense of the test isn't negated.
   Token? get notOperator;
 
-  /// Return the type being tested for.
+  /// The type being tested for.
   TypeAnnotation get type;
 }
 
-/// An is expression.
-///
-///    isExpression ::=
-///        [Expression] 'is' '!'? [NamedType]
 final class IsExpressionImpl extends ExpressionImpl implements IsExpression {
-  /// The expression used to compute the value whose type is being tested.
   ExpressionImpl _expression;
 
-  /// The is operator.
   @override
   final Token isOperator;
 
-  /// The not operator, or `null` if the sense of the test is not negated.
   @override
   final Token? notOperator;
 
-  /// The name of the type being tested for.
   TypeAnnotationImpl _type;
 
-  /// Initialize a newly created is expression. The [notOperator] can be `null`
-  /// if the sense of the test is not negated.
+  /// Initializes a newly created is expression.
+  ///
+  /// The [notOperator] can be `null` if the sense of the test isn't negated.
   IsExpressionImpl({
     required ExpressionImpl expression,
     required this.isOperator,
@@ -11058,10 +10309,10 @@ final class IsExpressionImpl extends ExpressionImpl implements IsExpression {
 ///    label ::=
 ///        [SimpleIdentifier] ':'
 abstract final class Label implements AstNode {
-  /// Return the colon that separates the label from the statement.
+  /// The colon that separates the label from the statement.
   Token get colon;
 
-  /// Return the label being associated with the statement.
+  /// The label being associated with the statement.
   SimpleIdentifier get label;
 }
 
@@ -11070,26 +10321,20 @@ abstract final class Label implements AstNode {
 ///    labeledStatement ::=
 ///       [Label]+ [Statement]
 abstract final class LabeledStatement implements Statement {
-  /// Return the labels being associated with the statement.
+  /// The labels being associated with the statement.
   NodeList<Label> get labels;
 
-  /// Return the statement with which the labels are being associated.
+  /// The statement with which the labels are being associated.
   Statement get statement;
 }
 
-/// A statement that has a label associated with them.
-///
-///    labeledStatement ::=
-///       [Label]+ [Statement]
 final class LabeledStatementImpl extends StatementImpl
     implements LabeledStatement {
-  /// The labels being associated with the statement.
   final NodeListImpl<LabelImpl> _labels = NodeListImpl._();
 
-  /// The statement with which the labels are being associated.
   StatementImpl _statement;
 
-  /// Initialize a newly created labeled statement.
+  /// Initializes a newly created labeled statement.
   LabeledStatementImpl({
     required List<LabelImpl> labels,
     required StatementImpl statement,
@@ -11137,19 +10382,13 @@ final class LabeledStatementImpl extends StatementImpl
   }
 }
 
-/// A label on either a [LabeledStatement] or a [NamedExpression].
-///
-///    label ::=
-///        [SimpleIdentifier] ':'
 final class LabelImpl extends AstNodeImpl implements Label {
-  /// The label being associated with the statement.
   SimpleIdentifierImpl _label;
 
-  /// The colon that separates the label from the statement.
   @override
   final Token colon;
 
-  /// Initialize a newly created label.
+  /// Initializes a newly created label.
   LabelImpl({
     required SimpleIdentifierImpl label,
     required this.colon,
@@ -11190,20 +10429,16 @@ final class LabelImpl extends AstNodeImpl implements Label {
 ///        [metadata] 'library' 'augment' [StringLiteral] ';'
 @experimental
 abstract final class LibraryAugmentationDirective implements UriBasedDirective {
-  /// Return the token representing the 'augment' keyword.
+  /// The token representing the `augment` keyword.
   Token get augmentKeyword;
 
-  /// Return the token representing the 'library' keyword.
+  /// The token representing the `library` keyword.
   Token get libraryKeyword;
 
-  /// Return the semicolon terminating the directive.
+  /// The semicolon terminating the directive.
   Token get semicolon;
 }
 
-/// A library directive.
-///
-///    libraryAugmentationDirective ::=
-///        [metadata] 'library' 'augment' [StringLiteral] ';'
 @experimental
 final class LibraryAugmentationDirectiveImpl extends UriBasedDirectiveImpl
     implements LibraryAugmentationDirective {
@@ -11249,36 +10484,30 @@ final class LibraryAugmentationDirectiveImpl extends UriBasedDirectiveImpl
 ///    libraryDirective ::=
 ///        [Annotation] 'library' [LibraryIdentifier]? ';'
 abstract final class LibraryDirective implements Directive {
-  /// Return the token representing the 'library' keyword.
+  /// The token representing the `library` keyword.
   Token get libraryKeyword;
 
-  /// Return the name of the library being defined.
+  /// The name of the library being defined.
   LibraryIdentifier? get name2;
 
-  /// Return the semicolon terminating the directive.
+  /// The semicolon terminating the directive.
   Token get semicolon;
 }
 
-/// A library directive.
-///
-///    libraryDirective ::=
-///        [Annotation] 'library' [Identifier] ';'
 final class LibraryDirectiveImpl extends DirectiveImpl
     implements LibraryDirective {
-  /// The token representing the 'library' keyword.
   @override
   final Token libraryKeyword;
 
-  /// The name of the library being defined.
   LibraryIdentifierImpl? _name;
 
-  /// The semicolon terminating the directive.
   @override
   final Token semicolon;
 
-  /// Initialize a newly created library directive. Either or both of the
-  /// [comment] and [metadata] can be `null` if the directive does not have the
-  /// corresponding attribute.
+  /// Initializes a newly created library directive.
+  ///
+  /// Either or both of the [comment] and [metadata] can be `null` if the
+  /// directive doesn't have the corresponding attribute.
   LibraryDirectiveImpl({
     required super.comment,
     required super.metadata,
@@ -11323,20 +10552,15 @@ final class LibraryDirectiveImpl extends DirectiveImpl
 ///    libraryIdentifier ::=
 ///        [SimpleIdentifier] ('.' [SimpleIdentifier])*
 abstract final class LibraryIdentifier implements Identifier {
-  /// Return the components of the identifier.
+  /// The components of the identifier.
   NodeList<SimpleIdentifier> get components;
 }
 
-/// The identifier for a library.
-///
-///    libraryIdentifier ::=
-///        [SimpleIdentifier] ('.' [SimpleIdentifier])*
 final class LibraryIdentifierImpl extends IdentifierImpl
     implements LibraryIdentifier {
-  /// The components of the identifier.
   final NodeListImpl<SimpleIdentifierImpl> _components = NodeListImpl._();
 
-  /// Initialize a newly created prefixed identifier.
+  /// Initializes a newly created prefixed identifier.
   LibraryIdentifierImpl({
     required List<SimpleIdentifierImpl> components,
   }) {
@@ -11402,32 +10626,32 @@ final class LibraryIdentifierImpl extends IdentifierImpl
 ///    elements ::=
 ///        [CollectionElement] (',' [CollectionElement])* ','?
 abstract final class ListLiteral implements TypedLiteral {
-  /// Return the syntactic elements used to compute the elements of the list.
+  /// The syntactic elements used to compute the elements of the list.
   NodeList<CollectionElement> get elements;
 
-  /// Return the left square bracket.
+  /// The left square bracket.
   Token get leftBracket;
 
-  /// Return the right square bracket.
+  /// The right square bracket.
   Token get rightBracket;
 }
 
 final class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
-  /// The left square bracket.
   @override
   final Token leftBracket;
 
-  /// The expressions used to compute the elements of the list.
   final NodeListImpl<CollectionElementImpl> _elements = NodeListImpl._();
 
-  /// The right square bracket.
   @override
   final Token rightBracket;
 
-  /// Initialize a newly created list literal. The [constKeyword] can be `null`
-  /// if the literal is not a constant. The [typeArguments] can be `null` if no
-  /// type arguments were declared. The list of [elements] can be `null` if the
-  /// list is empty.
+  /// Initializes a newly created list literal.
+  ///
+  /// The [constKeyword] can be `null` if the literal isn't a constant.
+  ///
+  /// The [typeArguments] can be `null` if no type arguments were declared.
+  ///
+  /// The list of [elements] can be `null` if the list is empty.
   ListLiteralImpl({
     required super.constKeyword,
     required super.typeArguments,
@@ -11483,21 +10707,21 @@ final class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
 ///    listPattern ::=
 ///        [TypeArgumentList]? '[' [DartPattern] (',' [DartPattern])* ','? ']'
 abstract final class ListPattern implements DartPattern {
-  /// Return the elements in this pattern.
+  /// The elements in this pattern.
   NodeList<ListPatternElement> get elements;
 
-  /// Return the left square bracket.
+  /// The left square bracket.
   Token get leftBracket;
 
   /// The required type, specified by [typeArguments] or inferred from the
-  /// matched value type; or `null` if the node is not resolved yet.
+  /// matched value type, or `null` if the node isn't resolved yet.
   DartType? get requiredType;
 
-  /// Return the right square bracket.
+  /// The right square bracket.
   Token get rightBracket;
 
-  /// Return the type arguments associated with this pattern, or `null` if no
-  /// type arguments were declared.
+  /// The type arguments associated with this pattern, or `null` if no type
+  /// arguments were declared.
   TypeArgumentList? get typeArguments;
 }
 
@@ -11507,10 +10731,6 @@ sealed class ListPatternElement implements AstNode {}
 abstract final class ListPatternElementImpl
     implements AstNodeImpl, ListPatternElement {}
 
-/// A list pattern.
-///
-///    listPattern ::=
-///        [TypeArgumentList]? '[' [DartPattern] (',' [DartPattern])* ','? ']'
 final class ListPatternImpl extends DartPatternImpl implements ListPattern {
   @override
   final TypeArgumentListImpl? typeArguments;
@@ -11594,16 +10814,6 @@ final class ListPatternImpl extends DartPatternImpl implements ListPattern {
 ///      | [StringLiteral]
 sealed class Literal implements Expression {}
 
-/// A node that represents a literal expression.
-///
-///    literal ::=
-///        [BooleanLiteral]
-///      | [DoubleLiteral]
-///      | [IntegerLiteral]
-///      | [ListLiteral]
-///      | [MapLiteral]
-///      | [NullLiteral]
-///      | [StringLiteral]
 sealed class LiteralImpl extends ExpressionImpl implements Literal {
   @override
   Precedence get precedence => Precedence.primary;
@@ -11632,10 +10842,6 @@ abstract final class LogicalAndPattern implements DartPattern {
   DartPattern get rightOperand;
 }
 
-/// A logical-and pattern.
-///
-///    logicalAndPattern ::=
-///        [DartPattern] '&&' [DartPattern]
 final class LogicalAndPatternImpl extends DartPatternImpl
     implements LogicalAndPattern {
   @override
@@ -11711,10 +10917,6 @@ abstract final class LogicalOrPattern implements DartPattern {
   DartPattern get rightOperand;
 }
 
-/// A logical-or pattern.
-///
-///    logicalOrPattern ::=
-///        [DartPattern] '||' [DartPattern]
 final class LogicalOrPatternImpl extends DartPatternImpl
     implements LogicalOrPattern {
   @override
@@ -11781,35 +10983,26 @@ final class LogicalOrPatternImpl extends DartPatternImpl
 ///    mapLiteralEntry ::=
 ///        [Expression] ':' [Expression]
 abstract final class MapLiteralEntry implements CollectionElement {
-  /// Return the expression computing the key with which the value will be
-  /// associated.
+  /// The expression computing the key with which the value is associated.
   Expression get key;
 
-  /// Return the colon that separates the key from the value.
+  /// The colon that separates the key from the value.
   Token get separator;
 
-  /// Return the expression computing the value that will be associated with the
-  /// key.
+  /// The expression computing the value that is associated with the key.
   Expression get value;
 }
 
-/// A single key/value pair in a map literal.
-///
-///    mapLiteralEntry ::=
-///        [Expression] ':' [Expression]
 final class MapLiteralEntryImpl extends CollectionElementImpl
     implements MapLiteralEntry {
-  /// The expression computing the key with which the value will be associated.
   ExpressionImpl _key;
 
-  /// The colon that separates the key from the value.
   @override
   final Token separator;
 
-  /// The expression computing the value that will be associated with the key.
   ExpressionImpl _value;
 
-  /// Initialize a newly created map literal entry.
+  /// Initializes a newly created map literal entry.
   MapLiteralEntryImpl({
     required ExpressionImpl key,
     required this.separator,
@@ -11869,20 +11062,20 @@ final class MapLiteralEntryImpl extends CollectionElementImpl
 ///        [TypeArgumentList]? '{' [MapPatternEntry] (',' [MapPatternEntry])*
 ///        ','? '}'
 abstract final class MapPattern implements DartPattern {
-  /// Return the elements in this pattern.
+  /// The elements in this pattern.
   NodeList<MapPatternElement> get elements;
 
-  /// Return the left curly bracket.
+  /// The left curly bracket.
   Token get leftBracket;
 
-  /// The matched value type, or `null` if the node is not resolved yet.
+  /// The matched value type, or `null` if the node isn't resolved yet.
   DartType? get requiredType;
 
-  /// Return the right curly bracket.
+  /// The right curly bracket.
   Token get rightBracket;
 
-  /// Return the type arguments associated with this pattern, or `null` if no
-  /// type arguments were declared.
+  /// The type arguments associated with this pattern, or `null` if no type
+  /// arguments were declared.
   TypeArgumentList? get typeArguments;
 }
 
@@ -11896,20 +11089,16 @@ sealed class MapPatternElementImpl implements AstNodeImpl, MapPatternElement {}
 ///    mapPatternEntry ::=
 ///        [Expression] ':' [DartPattern]
 abstract final class MapPatternEntry implements AstNode, MapPatternElement {
-  /// Return the expression computing the key of the entry to be matched.
+  /// The expression computing the key of the entry to be matched.
   Expression get key;
 
-  /// Return the colon that separates the key from the value.
+  /// The colon that separates the key from the value.
   Token get separator;
 
-  /// Return the pattern used to match the value.
+  /// The pattern used to match the value.
   DartPattern get value;
 }
 
-/// An entry in a map pattern.
-///
-///    mapPatternEntry ::=
-///        [Expression] ':' [DartPattern]
 final class MapPatternEntryImpl extends AstNodeImpl
     implements MapPatternEntry, MapPatternElementImpl {
   ExpressionImpl _key;
@@ -11958,11 +11147,6 @@ final class MapPatternEntryImpl extends AstNodeImpl
   }
 }
 
-/// A map pattern.
-///
-///    mapPattern ::=
-///        [TypeArgumentList]? '{' [MapPatternEntry] (',' [MapPatternEntry])*
-///        ','? '}'
 final class MapPatternImpl extends DartPatternImpl implements MapPattern {
   @override
   final TypeArgumentListImpl? typeArguments;
@@ -12058,59 +11242,59 @@ final class MapPatternImpl extends DartPatternImpl implements MapPattern {
 /// children of a class declaration. When the experiment is enabled, these nodes
 /// can also be children of an extension declaration.
 abstract final class MethodDeclaration implements ClassMember {
-  /// The token for the 'augment' keyword.
+  /// The token for the `augment` keyword.
   Token? get augmentKeyword;
 
-  /// Return the body of the method.
+  /// The body of the method.
   FunctionBody get body;
 
   @override
   ExecutableElement? get declaredElement;
 
-  /// Return the token for the 'external' keyword, or `null` if the constructor
-  /// is not external.
+  /// The token for the `external` keyword, or `null` if the constructor isn't
+  /// external.
   Token? get externalKeyword;
 
-  /// Return `true` if this method is declared to be an abstract method.
+  /// Whether this method is declared to be an abstract method.
   bool get isAbstract;
 
-  /// Return `true` if this method declares a getter.
+  /// Whether this method declares a getter.
   bool get isGetter;
 
-  /// Return `true` if this method declares an operator.
+  /// Whether this method declares an operator.
   bool get isOperator;
 
-  /// Return `true` if this method declares a setter.
+  /// Whether this method declares a setter.
   bool get isSetter;
 
-  /// Return `true` if this method is declared to be a static method.
+  /// Whether this method is declared to be a static method.
   bool get isStatic;
 
-  /// Return the token representing the 'abstract' or 'static' keyword, or
-  /// `null` if neither modifier was specified.
+  /// The token representing the `abstract` or `static` keyword, or `null` if
+  /// neither modifier was specified.
   Token? get modifierKeyword;
 
-  /// Return the name of the method.
+  /// The name of the method.
   Token get name;
 
-  /// Return the token representing the 'operator' keyword, or `null` if this
-  /// method does not declare an operator.
+  /// The token representing the `operator` keyword, or `null` if this method
+  /// doesn't declare an operator.
   Token? get operatorKeyword;
 
-  /// Return the parameters associated with the method, or `null` if this method
+  /// The parameters associated with the method, or `null` if this method
   /// declares a getter.
   FormalParameterList? get parameters;
 
-  /// Return the token representing the 'get' or 'set' keyword, or `null` if
-  /// this is a method declaration rather than a property declaration.
+  /// The token representing the `get` or `set` keyword, or `null` if this is a
+  /// method declaration rather than a property
+  /// declaration.
   Token? get propertyKeyword;
 
-  /// Return the return type of the method, or `null` if no return type was
-  /// declared.
+  /// The return type of the method, or `null` if no return type was declared.
   TypeAnnotation? get returnType;
 
-  /// Return the type parameters associated with this method, or `null` if this
-  /// method is not a generic method.
+  /// The type parameters associated with this method, or `null` if this method
+  /// isn't a generic method.
   TypeParameterList? get typeParameters;
 }
 
@@ -12234,75 +11418,63 @@ final class MethodDeclarationImpl extends ClassMemberImpl
 /// [PropertyAccess] nodes.
 ///
 ///    methodInvocation ::=
-///        ([Expression] '.')? [SimpleIdentifier] [TypeArgumentList]? [ArgumentList]
+///        ([Expression] '.')? [SimpleIdentifier] [TypeArgumentList]?
+///        [ArgumentList]
 abstract final class MethodInvocation
     implements NullShortableExpression, InvocationExpression {
-  /// Return `true` if this expression is cascaded.
+  /// Whether this expression is cascaded.
   ///
-  /// If it is, then the target of this expression is not stored locally but is
+  /// If it is, then the target of this expression isn't stored locally but is
   /// stored in the nearest ancestor that is a [CascadeExpression].
   bool get isCascaded;
 
   /// Whether this method invocation is null aware (as opposed to non-null).
   bool get isNullAware;
 
-  /// Return the name of the method being invoked.
+  /// The name of the method being invoked.
   SimpleIdentifier get methodName;
 
-  /// Return the operator that separates the target from the method name, or
-  /// `null` if there is no target.
+  /// The operator that separates the target from the method name, or `null` if
+  /// there's no target.
   ///
-  /// In an ordinary method invocation this will be period ('.'). In a cascade
-  /// section this will be the cascade operator ('..').
+  /// In an ordinary method invocation this is either a period (`.`) or a
+  /// null-aware opertator (`?.`). In a cascade section this is the cascade
+  /// operator ('..').
   Token? get operator;
 
-  /// Return the expression used to compute the receiver of the invocation.
+  /// The expression used to compute the receiver of the invocation.
   ///
-  /// If this invocation is not part of a cascade expression, then this is the
+  /// If this invocation isn't part of a cascade expression, then this is the
   /// same as [target]. If this invocation is part of a cascade expression,
   /// then the target stored with the cascade expression is returned.
   Expression? get realTarget;
 
-  /// Return the expression producing the object on which the method is defined,
-  /// or `null` if there is no target (that is, the target is implicitly `this`)
-  /// or if this method invocation is part of a cascade expression.
+  /// The expression producing the object on which the method is defined, or
+  /// `null` if there's no target (that is, the target is implicitly `this`) or
+  /// if this method invocation is part of a cascade expression.
   ///
   /// Use [realTarget] to get the target independent of whether this is part of
   /// a cascade expression.
   Expression? get target;
 }
 
-/// The invocation of either a function or a method. Invocations of functions
-/// resulting from evaluating an expression are represented by
-/// [FunctionExpressionInvocation] nodes. Invocations of getters and setters are
-/// represented by either [PrefixedIdentifier] or [PropertyAccess] nodes.
-///
-///    methodInvocation ::=
-///        ([Expression] '.')? [SimpleIdentifier] [TypeArgumentList]?
-///        [ArgumentList]
 final class MethodInvocationImpl extends InvocationExpressionImpl
     with NullShortableExpressionImpl
     implements MethodInvocation {
-  /// The expression producing the object on which the method is defined, or
-  /// `null` if there is no target (that is, the target is implicitly `this`).
   ExpressionImpl? _target;
 
-  /// The operator that separates the target from the method name, or `null`
-  /// if there is no target. In an ordinary method invocation this will be a
-  /// period ('.'). In a cascade section this will be the cascade operator
-  /// ('..' | '?..').
   @override
   Token? operator;
 
-  /// The name of the method being invoked.
   SimpleIdentifierImpl _methodName;
 
   /// The invoke type of the [methodName] if the target element is a getter,
   /// or `null` otherwise.
   DartType? _methodNameType;
 
-  /// Initialize a newly created method invocation. The [target] and [operator]
-  /// can be `null` if there is no target.
+  /// Initializes a newly created method invocation.
+  ///
+  /// The [target] and [operator] can be `null` if there's no target.
   MethodInvocationImpl({
     required ExpressionImpl? target,
     required this.operator,
@@ -12357,15 +11529,14 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
   /// The invoke type of the [methodName].
   ///
   /// If the target element is a [MethodElement], this is the same as the
-  /// [staticInvokeType]. If the target element is a getter, presumably
-  /// returning an [ExecutableElement] so that it can be invoked in this
-  /// [MethodInvocation], then this type is the type of the getter, and the
-  /// [staticInvokeType] is the invoked type of the returned element.
+  /// [staticInvokeType].
+  ///
+  /// If the target element is a getter, presumably returning an
+  /// [ExecutableElement] so that it can be invoked in this [MethodInvocation],
+  /// then this type is the type of the getter, and the [staticInvokeType] is
+  /// the invoked type of the returned element.
   DartType? get methodNameType => _methodNameType ?? staticInvokeType;
 
-  /// Set the [methodName] invoke type, only if the target element is a getter.
-  /// Otherwise, the target element itself is invoked, [_methodNameType] is
-  /// `null`, and the getter will return [staticInvokeType].
   set methodNameType(DartType? methodNameType) {
     _methodNameType = methodNameType;
   }
@@ -12388,7 +11559,7 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
     _target = _becomeParentOf(expression);
   }
 
-  /// Return the cascade that contains this [IndexExpression].
+  /// The cascade that contains this [IndexExpression].
   ///
   /// We expect that [isCascaded] is `true`.
   CascadeExpressionImpl get _ancestorCascade {
@@ -12434,11 +11605,11 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
 
 /// An expression that implicitly makes reference to a method.
 abstract final class MethodReferenceExpression implements Expression {
-  /// Return the element associated with the expression based on the static
-  /// types, or `null` if the AST structure has not been resolved, or there is
-  /// no meaningful static element to return (e.g. because this is a
-  /// non-compound assignment expression, or because the method referred to
-  /// could not be resolved).
+  /// The element associated with the expression based on the static types, or
+  /// `null` if the AST structure hasn't been resolved, or there's no meaningful
+  /// static element to return. The latter case can occur, for example, when
+  /// this is a non-compound assignment expression, or when the method referred
+  /// to couldn't be resolved.
   MethodElement? get staticElement;
 }
 
@@ -12448,37 +11619,37 @@ abstract final class MethodReferenceExpression implements Expression {
 ///        'base'? 'mixin' name [TypeParameterList]?
 ///        [OnClause]? [ImplementsClause]? '{' [ClassMember]* '}'
 abstract final class MixinDeclaration implements NamedCompilationUnitMember {
-  /// Return the 'augment' keyword, or `null` if the keyword was absent.
+  /// The `augment` keyword, or `null` if the keyword was absent.
   Token? get augmentKeyword;
 
-  /// Return the 'base' keyword, or `null` if the keyword was absent.
+  /// The `base` keyword, or `null` if the keyword was absent.
   Token? get baseKeyword;
 
   @override
   MixinElement? get declaredElement;
 
-  /// Returns the `implements` clause for the mixin, or `null` if the mixin
-  /// does not implement any interfaces.
+  /// The `implements` clause for the mixin, or `null` if the mixin doesn't
+  /// implement any interfaces.
   ImplementsClause? get implementsClause;
 
-  /// Returns the left curly bracket.
+  /// The left curly bracket.
   Token get leftBracket;
 
-  /// Returns the members defined by the mixin.
+  /// The members defined by the mixin.
   NodeList<ClassMember> get members;
 
-  /// Return the token representing the 'mixin' keyword.
+  /// The token representing the `mixin` keyword.
   Token get mixinKeyword;
 
-  /// Return the on clause for the mixin, or `null` if the mixin does not have
-  /// any superclass constraints.
+  /// The on clause for the mixin, or `null` if the mixin doesn't have any
+  /// superclass constraints.
   OnClause? get onClause;
 
-  /// Returns the right curly bracket.
+  /// The right curly bracket.
   Token get rightBracket;
 
-  /// Returns the type parameters for the mixin, or `null` if the mixin does
-  /// not have any type parameters.
+  /// The type parameters for the mixin, or `null` if the mixin doesn't have any
+  /// type parameters.
   TypeParameterList? get typeParameters;
 }
 
@@ -12571,20 +11742,19 @@ final class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
 /// A node that declares a single name within the scope of a compilation unit.
 abstract final class NamedCompilationUnitMember
     implements CompilationUnitMember {
-  /// Return the name of the member being declared.
+  /// The name of the member being declared.
   Token get name;
 }
 
-/// A node that declares a single name within the scope of a compilation unit.
 sealed class NamedCompilationUnitMemberImpl extends CompilationUnitMemberImpl
     implements NamedCompilationUnitMember {
-  /// The name of the member being declared.
   @override
   final Token name;
 
-  /// Initialize a newly created compilation unit member with the given [name].
+  /// Initializes a newly created compilation unit member with the given [name].
+  ///
   /// Either or both of the [comment] and [metadata] can be `null` if the member
-  /// does not have the corresponding attribute.
+  /// doesn't have the corresponding attribute.
   NamedCompilationUnitMemberImpl({
     required super.comment,
     required super.metadata,
@@ -12592,38 +11762,32 @@ sealed class NamedCompilationUnitMemberImpl extends CompilationUnitMemberImpl
   });
 }
 
-/// An expression that has a name associated with it. They are used in method
-/// invocations when there are named parameters.
+/// An expression that has a name associated with it.
+///
+/// They are only used in method invocations when there are named parameters.
 ///
 ///    namedExpression ::=
 ///        [Label] [Expression]
 abstract final class NamedExpression implements Expression {
-  /// Return the element representing the parameter being named by this
-  /// expression, or `null` if the AST structure has not been resolved or if
-  /// there is no parameter with the same name as this expression.
+  /// The element representing the parameter being named by this expression, or
+  /// `null` if the AST structure hasn't been resolved or if there's no
+  /// parameter with the same name as this expression.
   ParameterElement? get element;
 
-  /// Return the expression with which the name is associated.
+  /// The expression with which the name is associated.
   Expression get expression;
 
-  /// Return the name associated with the expression.
+  /// The name associated with the expression.
   Label get name;
 }
 
-/// An expression that has a name associated with it. They are used in method
-/// invocations when there are named parameters.
-///
-///    namedExpression ::=
-///        [Label] [Expression]
 final class NamedExpressionImpl extends ExpressionImpl
     implements NamedExpression {
-  /// The name associated with the expression.
   LabelImpl _name;
 
-  /// The expression with which the name is associated.
   ExpressionImpl _expression;
 
-  /// Initialize a newly created named expression..
+  /// Initializes a newly created named expression.
   NamedExpressionImpl({
     required LabelImpl name,
     required ExpressionImpl expression,
@@ -12691,31 +11855,34 @@ final class NamedExpressionImpl extends ExpressionImpl
 ///        [ImportPrefixReference]? name typeArguments?
 abstract final class NamedType implements TypeAnnotation {
   /// The element of [name2] considering [importPrefix] for example a
-  /// [ClassElement], or [TypeAliasElement]. Can be `null` if [name2] cannot
-  /// be resolved, or there is no element for the type name, e.g. for `void`.
+  /// [ClassElement], or [TypeAliasElement], or `null` if [name2] can't be
+  /// resolved, or there's no element for the type name, such as for `void`.
   Element? get element;
 
   /// The optional import prefix before [name2].
   ImportPrefixReference? get importPrefix;
 
-  /// Return `true` if this type is a deferred type.
+  /// Whether this type is a deferred type.
   ///
-  /// 15.1 Static Types: A type <i>T</i> is deferred iff it is of the form
-  /// </i>p.T</i> where <i>p</i> is a deferred prefix.
+  /// A deferred type is a type that is referenced through an import prefix
+  /// (such as `p.T`), where the prefix is used by a deferred import.
+  ///
+  /// Returns `false` if the AST structure hasn't been resolved.
   bool get isDeferred;
 
-  /// Return the name of the type.
+  /// The name of the type.
   Token get name2;
 
-  /// Return the type arguments associated with the type, or `null` if there are
-  /// no type arguments.
+  /// The type being named, or `null` if the AST structure hasn't been resolved,
+  /// or if this is part of a [ConstructorReference].
+  @override
+  DartType? get type;
+
+  /// The type arguments associated with the type, or `null` if there are no
+  /// type arguments.
   TypeArgumentList? get typeArguments;
 }
 
-/// The name of a type, which can optionally include type arguments.
-///
-///    typeName ::=
-///        [Identifier] typeArguments? '?'?
 final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
   ImportPrefixReferenceImpl? _importPrefix;
 
@@ -12731,13 +11898,12 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
   @override
   final Token? question;
 
-  /// The type being named, or `null` if the AST structure has not been
-  /// resolved, or if this is part of a [ConstructorReference].
   @override
   DartType? type;
 
-  /// Initialize a newly created type name. The [typeArguments] can be `null` if
-  /// there are no type arguments.
+  /// Initializes a newly created type name.
+  ///
+  /// The [typeArguments] can be `null` if there are no type arguments.
   NamedTypeImpl({
     required ImportPrefixReferenceImpl? importPrefix,
     required this.name2,
@@ -12803,39 +11969,32 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
 ///        [ExportDirective]
 ///      | [ImportDirective]
 sealed class NamespaceDirective implements UriBasedDirective {
-  /// Return the combinators used to control how names are imported or exported.
+  /// The combinators used to control how names are imported or exported.
   NodeList<Combinator> get combinators;
 
-  /// Return the configurations used to control which library will actually be
-  /// loaded at run-time.
+  /// The configurations used to control which library is actually loaded at
+  /// run-time.
   NodeList<Configuration> get configurations;
 
-  /// Return the semicolon terminating the directive.
+  /// The semicolon terminating the directive.
   Token get semicolon;
 }
 
-/// A node that represents a directive that impacts the namespace of a library.
-///
-///    directive ::=
-///        [ExportDirective]
-///      | [ImportDirective]
 sealed class NamespaceDirectiveImpl extends UriBasedDirectiveImpl
     implements NamespaceDirective {
-  /// The configurations used to control which library will actually be loaded
-  /// at run-time.
   final NodeListImpl<ConfigurationImpl> _configurations = NodeListImpl._();
 
-  /// The combinators used to control which names are imported or exported.
   final NodeListImpl<CombinatorImpl> _combinators = NodeListImpl._();
 
-  /// The semicolon terminating the directive.
   @override
   final Token semicolon;
 
-  /// Initialize a newly created namespace directive. Either or both of the
-  /// [comment] and [metadata] can be `null` if the directive does not have the
-  /// corresponding attribute. The list of [combinators] can be `null` if there
-  /// are no combinators.
+  /// Initializes a newly created namespace directive.
+  ///
+  /// Either or both of the [comment] and [metadata] can be `null` if the
+  /// directive doesn't have the corresponding attribute.
+  ///
+  /// The list of [combinators] can be `null` if there are no combinators.
   NamespaceDirectiveImpl({
     required super.comment,
     required super.metadata,
@@ -12863,17 +12022,13 @@ sealed class NamespaceDirectiveImpl extends UriBasedDirectiveImpl
 ///    nativeClause ::=
 ///        'native' [StringLiteral]
 abstract final class NativeClause implements AstNode {
-  /// Return the name of the native object that implements the class.
+  /// The name of the native object that implements the class.
   StringLiteral? get name;
 
-  /// Return the token representing the 'native' keyword.
+  /// The token representing the `native` keyword.
   Token get nativeKeyword;
 }
 
-/// The "native" clause in an class declaration.
-///
-///    nativeClause ::=
-///        'native' [StringLiteral]
 final class NativeClauseImpl extends AstNodeImpl implements NativeClause {
   @override
   final Token nativeKeyword;
@@ -12881,7 +12036,7 @@ final class NativeClauseImpl extends AstNodeImpl implements NativeClause {
   @override
   final StringLiteralImpl? name;
 
-  /// Initialize a newly created native clause.
+  /// Initializes a newly created native clause.
   NativeClauseImpl({
     required this.nativeKeyword,
     required this.name,
@@ -12917,40 +12072,29 @@ final class NativeClauseImpl extends AstNodeImpl implements NativeClause {
 ///    nativeFunctionBody ::=
 ///        'native' [SimpleStringLiteral] ';'
 abstract final class NativeFunctionBody implements FunctionBody {
-  /// Return the token representing 'native' that marks the start of the
-  /// function body.
-  Token get nativeKeyword;
-
-  /// Return the token representing the semicolon that marks the end of the
-  /// function body.
-  Token get semicolon;
-
-  /// Return the string literal representing the string after the 'native'
-  /// token.
-  StringLiteral? get stringLiteral;
-}
-
-/// A function body that consists of a native keyword followed by a string
-/// literal.
-///
-///    nativeFunctionBody ::=
-///        'native' [SimpleStringLiteral] ';'
-final class NativeFunctionBodyImpl extends FunctionBodyImpl
-    implements NativeFunctionBody {
   /// The token representing 'native' that marks the start of the function body.
-  @override
-  final Token nativeKeyword;
-
-  /// The string literal, after the 'native' token.
-  StringLiteralImpl? _stringLiteral;
+  Token get nativeKeyword;
 
   /// The token representing the semicolon that marks the end of the function
   /// body.
+  Token get semicolon;
+
+  /// The string literal representing the string after the 'native' token.
+  StringLiteral? get stringLiteral;
+}
+
+final class NativeFunctionBodyImpl extends FunctionBodyImpl
+    implements NativeFunctionBody {
+  @override
+  final Token nativeKeyword;
+
+  StringLiteralImpl? _stringLiteral;
+
   @override
   final Token semicolon;
 
-  /// Initialize a newly created function body consisting of the 'native' token,
-  /// a string literal, and a semicolon.
+  /// Initializes a newly created function body consisting of the 'native'
+  /// token, a string literal, and a semicolon.
   NativeFunctionBodyImpl({
     required this.nativeKeyword,
     required StringLiteralImpl? stringLiteral,
@@ -12993,22 +12137,22 @@ final class NativeFunctionBodyImpl extends FunctionBodyImpl
 
 /// A list of AST nodes that have a common parent.
 abstract final class NodeList<E extends AstNode> implements List<E> {
-  /// Return the first token included in this node list's source range, or
-  /// `null` if the list is empty.
+  /// The first token included in this node list's source range, or `null` if
+  /// the list is empty.
   Token? get beginToken;
 
-  /// Return the last token included in this node list's source range, or `null`
-  /// if the list is empty.
+  /// The last token included in this node list's source range, or `null` if the
+  /// list is empty.
   Token? get endToken;
 
   @Deprecated('NodeList cannot be resized')
   @override
   set length(int newLength);
 
-  /// Return the node that is the parent of each of the elements in the list.
+  /// The node that is the parent of each of the elements in the list.
   AstNode get owner;
 
-  /// Return the node at the given [index] in the list or throw a [RangeError]
+  /// Returns the node at the given [index] in the list or throw a [RangeError]
   /// if [index] is out of bounds.
   @override
   E operator [](int index);
@@ -13037,18 +12181,15 @@ abstract final class NodeList<E extends AstNode> implements List<E> {
   E removeAt(int index);
 }
 
-/// A list of AST nodes that have a common parent.
 final class NodeListImpl<E extends AstNode>
     with ListMixin<E>
     implements NodeList<E> {
-  /// The node that is the parent of each of the elements in the list.
   late final AstNodeImpl _owner;
 
-  /// The elements contained in the list.
   late final List<E> _elements;
 
-  /// Initialize a newly created list of nodes such that all of the nodes that
-  /// are added to the list will have their parent set to the given [owner].
+  /// Initializes a newly created list of nodes such that all of the nodes that
+  /// are added to the list have their parent set to the given [owner].
   NodeListImpl(AstNodeImpl owner) : _owner = owner;
 
   /// Create a partially initialized instance, [_initialize] must be called.
@@ -13154,52 +12295,41 @@ final class NodeListImpl<E extends AstNode>
   }
 }
 
-/// A formal parameter that is required (is not optional).
+/// A formal parameter that is required (isn't optional).
 ///
 ///    normalFormalParameter ::=
 ///        [FunctionTypedFormalParameter]
 ///      | [FieldFormalParameter]
 ///      | [SimpleFormalParameter]
 sealed class NormalFormalParameter implements FormalParameter {
-  /// Return the documentation comment associated with this parameter, or `null`
-  /// if this parameter does not have a documentation comment associated with
-  /// it.
+  /// The documentation comment associated with this parameter, or `null` if
+  /// this parameter doesn't have a documentation comment associated with it.
   Comment? get documentationComment;
 
-  /// Return a list containing the comment and annotations associated with this
+  /// A list containing the comment and annotations associated with this
   /// parameter, sorted in lexical order.
   List<AstNode> get sortedCommentAndAnnotations;
 }
 
-/// A formal parameter that is required (is not optional).
-///
-///    normalFormalParameter ::=
-///        [FunctionTypedFormalParameter]
-///      | [FieldFormalParameter]
-///      | [SimpleFormalParameter]
 sealed class NormalFormalParameterImpl extends FormalParameterImpl
     implements NormalFormalParameter {
-  /// The documentation comment associated with this parameter, or `null` if
-  /// this parameter does not have a documentation comment associated with it.
   CommentImpl? _comment;
 
-  /// The annotations associated with this parameter.
   final NodeListImpl<AnnotationImpl> _metadata = NodeListImpl._();
 
-  /// The 'covariant' keyword, or `null` if the keyword was not used.
   @override
   final Token? covariantKeyword;
 
-  /// The 'required' keyword, or `null` if the keyword was not used.
   @override
   final Token? requiredKeyword;
 
   @override
   final Token? name;
 
-  /// Initialize a newly created formal parameter. Either or both of the
-  /// [comment] and [metadata] can be `null` if the parameter does not have the
-  /// corresponding attribute.
+  /// Initializes a newly created formal parameter.
+  ///
+  /// Either or both of the [comment] and [metadata] can be `null` if the
+  /// parameter doesn't have the corresponding attribute.
   NormalFormalParameterImpl({
     required CommentImpl? comment,
     required List<AnnotationImpl>? metadata,
@@ -13266,7 +12396,7 @@ sealed class NormalFormalParameterImpl extends FormalParameterImpl
     }
   }
 
-  /// Return `true` if the comment is lexically before any annotations.
+  /// Returns `true` if the comment is lexically before any annotations.
   bool _commentIsBeforeAnnotations() {
     if (_comment == null || _metadata.isEmpty) {
       return true;
@@ -13288,10 +12418,6 @@ abstract final class NullAssertPattern implements DartPattern {
   DartPattern get pattern;
 }
 
-/// A null-assert pattern.
-///
-///    nullAssertPattern ::=
-///        [DartPattern] '!'
 final class NullAssertPatternImpl extends DartPatternImpl
     implements NullAssertPattern {
   @override
@@ -13362,10 +12488,6 @@ abstract final class NullCheckPattern implements DartPattern {
   DartPattern get pattern;
 }
 
-/// A null-check pattern.
-///
-///    nullCheckPattern ::=
-///        [DartPattern] '?'
 final class NullCheckPatternImpl extends DartPatternImpl
     implements NullCheckPattern {
   @override
@@ -13429,20 +12551,15 @@ final class NullCheckPatternImpl extends DartPatternImpl
 ///    nullLiteral ::=
 ///        'null'
 abstract final class NullLiteral implements Literal {
-  /// Return the token representing the literal.
+  /// The token representing the literal.
   Token get literal;
 }
 
-/// A null literal expression.
-///
-///    nullLiteral ::=
-///        'null'
 final class NullLiteralImpl extends LiteralImpl implements NullLiteral {
-  /// The token representing the literal.
   @override
   final Token literal;
 
-  /// Initialize a newly created null literal.
+  /// Initializes a newly created null literal.
   NullLiteralImpl({
     required this.literal,
   });
@@ -13473,9 +12590,11 @@ final class NullLiteralImpl extends LiteralImpl implements NullLiteral {
 
 /// Abstract interface for expressions that may participate in null-shorting.
 abstract final class NullShortableExpression implements Expression {
-  /// Returns the expression that terminates any null shorting that might occur
-  /// in this expression.  This may be called regardless of whether this
-  /// expression is itself null-aware.
+  /// The expression that terminates any null shorting that might occur in this
+  /// expression.
+  ///
+  /// This might be called regardless of whether this expression is itself
+  /// null-aware.
   ///
   /// For example, the statement `a?.b[c] = d;` contains the following
   /// null-shortable subexpressions:
@@ -13489,7 +12608,6 @@ abstract final class NullShortableExpression implements Expression {
   Expression get nullShortingTermination;
 }
 
-/// Mixin that can be used to implement [NullShortableExpression].
 base mixin NullShortableExpressionImpl implements NullShortableExpression {
   @override
   Expression get nullShortingTermination {
@@ -13505,14 +12623,15 @@ base mixin NullShortableExpressionImpl implements NullShortableExpression {
     }
   }
 
-  /// Gets the ancestor of this node to which null-shorting might be extended.
+  /// The ancestor of this node to which null-shorting might be extended.
+  ///
   /// Usually this is just the node's parent, however if `this` is the base of
-  /// a cascade section, it will be the cascade expression itself, which may be
-  /// a more distant ancestor.
+  /// a cascade section, it's the cascade expression itself, which might be a
+  /// more distant ancestor.
   AstNode? get _nullShortingExtensionCandidate;
 
-  /// Indicates whether the effect of any null-shorting within [descendant]
-  /// (which should be a descendant of `this`) should extend to include `this`.
+  /// Whether the effect of any null-shorting within [descendant] (which should
+  /// be a descendant of `this`) should extend to include `this`.
   bool _extendsNullShorting(Expression descendant);
 }
 
@@ -13521,23 +12640,19 @@ base mixin NullShortableExpressionImpl implements NullShortableExpression {
 ///    objectPattern ::=
 ///        [Identifier] [TypeArgumentList]? '(' [PatternField] ')'
 abstract final class ObjectPattern implements DartPattern {
-  /// Return the patterns matching the properties of the object.
+  /// The patterns matching the properties of the object.
   NodeList<PatternField> get fields;
 
-  /// Return the left parenthesis.
+  /// The left parenthesis.
   Token get leftParenthesis;
 
-  /// Return the right parenthesis.
+  /// The right parenthesis.
   Token get rightParenthesis;
 
-  /// The name of the type of object from which values will be extracted.
+  /// The name of the type of object from which values are extracted.
   NamedType get type;
 }
 
-/// An object pattern.
-///
-///    objectPattern ::=
-///        [Identifier] [TypeArgumentList]? '(' [PatternField] ')'
 final class ObjectPatternImpl extends DartPatternImpl implements ObjectPattern {
   final NodeListImpl<PatternFieldImpl> _fields = NodeListImpl._();
 
@@ -13620,25 +12735,20 @@ final class ObjectPatternImpl extends DartPatternImpl implements ObjectPattern {
 ///    onClause ::=
 ///        'on' [NamedType] (',' [NamedType])*
 abstract final class OnClause implements AstNode {
-  /// Return the token representing the 'on' keyword.
+  /// The token representing the `on` keyword.
   Token get onKeyword;
 
-  /// Return the list of the classes are superclass constraints for the mixin.
+  /// The list of the classes are superclass constraints for the mixin.
   NodeList<NamedType> get superclassConstraints;
 }
 
-/// The "on" clause in a mixin declaration.
-///
-///    onClause ::=
-///        'on' [NamedType] (',' [NamedType])*
 final class OnClauseImpl extends AstNodeImpl implements OnClause {
   @override
   final Token onKeyword;
 
-  /// The classes are super-class constraints for the mixin.
   final NodeListImpl<NamedTypeImpl> _superclassConstraints = NodeListImpl._();
 
-  /// Initialize a newly created on clause.
+  /// Initializes a newly created on clause.
   OnClauseImpl({
     required this.onKeyword,
     required List<NamedTypeImpl> superclassConstraints,
@@ -13676,34 +12786,27 @@ final class OnClauseImpl extends AstNodeImpl implements OnClause {
 ///    parenthesizedExpression ::=
 ///        '(' [Expression] ')'
 abstract final class ParenthesizedExpression implements Expression {
-  /// Return the expression within the parentheses.
+  /// The expression within the parentheses.
   Expression get expression;
 
-  /// Return the left parenthesis.
+  /// The left parenthesis.
   Token get leftParenthesis;
 
-  /// Return the right parenthesis.
+  /// The right parenthesis.
   Token get rightParenthesis;
 }
 
-/// A parenthesized expression.
-///
-///    parenthesizedExpression ::=
-///        '(' [Expression] ')'
 final class ParenthesizedExpressionImpl extends ExpressionImpl
     implements ParenthesizedExpression {
-  /// The left parenthesis.
   @override
   final Token leftParenthesis;
 
-  /// The expression within the parentheses.
   ExpressionImpl _expression;
 
-  /// The right parenthesis.
   @override
   final Token rightParenthesis;
 
-  /// Initialize a newly created parenthesized expression.
+  /// Initializes a newly created parenthesized expression.
   ParenthesizedExpressionImpl({
     required this.leftParenthesis,
     required ExpressionImpl expression,
@@ -13765,20 +12868,16 @@ final class ParenthesizedExpressionImpl extends ExpressionImpl
 ///    parenthesizedPattern ::=
 ///        '(' [DartPattern] ')'
 abstract final class ParenthesizedPattern implements DartPattern {
-  /// Return the left parenthesis.
+  /// The left parenthesis.
   Token get leftParenthesis;
 
   /// The pattern within the parentheses.
   DartPattern get pattern;
 
-  /// Return the right parenthesis.
+  /// The right parenthesis.
   Token get rightParenthesis;
 }
 
-/// A parenthesized pattern.
-///
-///    parenthesizedPattern ::=
-///        '(' [DartPattern] ')'
 final class ParenthesizedPatternImpl extends DartPatternImpl
     implements ParenthesizedPattern {
   @override
@@ -13856,30 +12955,25 @@ abstract final class PartDirective implements UriBasedDirective {
   @override
   PartElement? get element;
 
-  /// Return the token representing the 'part' keyword.
+  /// The token representing the `part` keyword.
   Token get partKeyword;
 
-  /// Return the semicolon terminating the directive.
+  /// The semicolon terminating the directive.
   Token get semicolon;
 }
 
-/// A part directive.
-///
-///    partDirective ::=
-///        [Annotation] 'part' [StringLiteral] ';'
 final class PartDirectiveImpl extends UriBasedDirectiveImpl
     implements PartDirective {
-  /// The token representing the 'part' keyword.
   @override
   final Token partKeyword;
 
-  /// The semicolon terminating the directive.
   @override
   final Token semicolon;
 
-  /// Initialize a newly created part directive. Either or both of the [comment]
-  /// and [metadata] can be `null` if the directive does not have the
-  /// corresponding attribute.
+  /// Initializes a newly created part directive.
+  ///
+  /// Either or both of the [comment] and [metadata] can be `null` if the
+  /// directive doesn't have the corresponding attribute.
   PartDirectiveImpl({
     required super.comment,
     required super.metadata,
@@ -13914,54 +13008,44 @@ final class PartDirectiveImpl extends UriBasedDirectiveImpl
 ///    partOfDirective ::=
 ///        [Annotation] 'part' 'of' [Identifier] ';'
 abstract final class PartOfDirective implements Directive {
-  /// Return the name of the library that the containing compilation unit is
-  /// part of.
-  LibraryIdentifier? get libraryName;
-
-  /// Return the token representing the 'of' keyword.
-  Token get ofKeyword;
-
-  /// Return the token representing the 'part' keyword.
-  Token get partKeyword;
-
-  /// Return the semicolon terminating the directive.
-  Token get semicolon;
-
-  /// Return the URI of the library that the containing compilation unit is part
-  /// of, or `null` if no URI was given (typically because a library name was
-  /// provided).
-  StringLiteral? get uri;
-}
-
-/// A part-of directive.
-///
-///    partOfDirective ::=
-///        [Annotation] 'part' 'of' [Identifier] ';'
-final class PartOfDirectiveImpl extends DirectiveImpl
-    implements PartOfDirective {
-  /// The token representing the 'part' keyword.
-  @override
-  final Token partKeyword;
-
-  /// The token representing the 'of' keyword.
-  @override
-  final Token ofKeyword;
-
-  /// The URI of the library that the containing compilation unit is part of.
-  StringLiteralImpl? _uri;
-
   /// The name of the library that the containing compilation unit is part of,
   /// or `null` if no name was given (typically because a library URI was
   /// provided).
-  LibraryIdentifierImpl? _libraryName;
+  LibraryIdentifier? get libraryName;
+
+  /// The token representing the `of` keyword.
+  Token get ofKeyword;
+
+  /// The token representing the `part` keyword.
+  Token get partKeyword;
 
   /// The semicolon terminating the directive.
+  Token get semicolon;
+
+  /// The URI of the library that the containing compilation unit is part of, or
+  /// `null` if no URI was given (typically because a library name was provided).
+  StringLiteral? get uri;
+}
+
+final class PartOfDirectiveImpl extends DirectiveImpl
+    implements PartOfDirective {
+  @override
+  final Token partKeyword;
+
+  @override
+  final Token ofKeyword;
+
+  StringLiteralImpl? _uri;
+
+  LibraryIdentifierImpl? _libraryName;
+
   @override
   final Token semicolon;
 
-  /// Initialize a newly created part-of directive. Either or both of the
-  /// [comment] and [metadata] can be `null` if the directive does not have the
-  /// corresponding attribute.
+  /// Initializes a newly created part-of directive.
+  ///
+  /// Either or both of the [comment] and [metadata] can be `null` if the
+  /// directive doesn't have the corresponding attribute.
   PartOfDirectiveImpl({
     required super.comment,
     required super.metadata,
@@ -14020,23 +13104,16 @@ final class PartOfDirectiveImpl extends DirectiveImpl
 ///    patternAssignment ::=
 ///        [DartPattern] '=' [Expression]
 abstract final class PatternAssignment implements Expression {
-  /// Return the equal sign separating the pattern from the expression.
+  /// The equal sign separating the pattern from the expression.
   Token get equals;
 
-  /// The expression that will be matched by the pattern.
+  /// The expression that is matched by the pattern.
   Expression get expression;
 
-  /// The pattern that will match the expression.
+  /// The pattern that matches the expression.
   DartPattern get pattern;
 }
 
-/// A pattern assignment.
-///
-///    patternAssignment ::=
-///        [DartPattern] '=' [Expression]
-///
-/// When used as the condition in an `if`, the pattern is always a
-/// [PatternVariable] whose type is not `null`.
 final class PatternAssignmentImpl extends ExpressionImpl
     implements PatternAssignment {
   @override
@@ -14048,7 +13125,7 @@ final class PatternAssignmentImpl extends ExpressionImpl
   final DartPatternImpl pattern;
 
   /// The pattern type schema, used for downward inference of [expression];
-  /// or `null` if the node is not resolved yet.
+  /// or `null` if the node isn't resolved yet.
   DartType? patternTypeSchema;
 
   PatternAssignmentImpl({
@@ -14104,14 +13181,15 @@ final class PatternAssignmentImpl extends ExpressionImpl
 ///    patternField ::=
 ///        [PatternFieldName]? [DartPattern]
 abstract final class PatternField implements AstNode {
-  /// The name specified explicitly by [name], or implied by the variable
-  /// pattern inside [pattern]. Always `null` if [name] is `null`. Can be `null`
-  /// if [name] does not have the explicit name and [pattern] is not a variable
-  /// pattern.
+  /// The effective name of the field, or `null` if [name] is `null` and
+  /// [pattern] isn't a variable pattern.
+  ///
+  /// The effective name can either be specified explicitly by [name], or
+  /// implied by the variable pattern inside [pattern].
   String? get effectiveName;
 
-  /// The element referenced by [effectiveName]. Is `null` if not resolved yet,
-  /// not `null` inside valid [ObjectPattern]s, always `null` inside
+  /// The element referenced by [effectiveName], or `null` if not resolved yet,
+  /// non-`null` inside valid [ObjectPattern]s, always `null` inside
   /// [RecordPattern]s.
   Element? get element;
 
@@ -14122,10 +13200,6 @@ abstract final class PatternField implements AstNode {
   DartPattern get pattern;
 }
 
-/// A field in a record pattern.
-///
-///    patternField ::=
-///        [PatternFieldName]? [DartPattern]
 final class PatternFieldImpl extends AstNodeImpl implements PatternField {
   @override
   Element? element;
@@ -14184,10 +13258,6 @@ abstract final class PatternFieldName implements AstNode {
   Token? get name;
 }
 
-/// A field name in a record pattern field.
-///
-///    patternFieldName ::=
-///        [Token]? ':'
 final class PatternFieldNameImpl extends AstNodeImpl
     implements PatternFieldName {
   @override
@@ -14223,23 +13293,19 @@ final class PatternFieldNameImpl extends AstNodeImpl
 ///    patternDeclaration ::=
 ///        ( 'final' | 'var' ) [DartPattern] '=' [Expression]
 abstract final class PatternVariableDeclaration implements AnnotatedNode {
-  /// Return the equal sign separating the pattern from the expression.
+  /// The equal sign separating the pattern from the expression.
   Token get equals;
 
-  /// The expression that will be matched by the pattern.
+  /// The expression that is matched by the pattern.
   Expression get expression;
 
-  /// Return the `var` or `final` keyword introducing the declaration.
+  /// The `var` or `final` keyword introducing the declaration.
   Token get keyword;
 
-  /// The pattern that will match the expression.
+  /// The pattern that matches the expression.
   DartPattern get pattern;
 }
 
-/// A pattern variable declaration.
-///
-///    patternDeclaration ::=
-///        ( 'final' | 'var' ) [DartPattern] '=' [Expression]
 final class PatternVariableDeclarationImpl extends AnnotatedNodeImpl
     implements PatternVariableDeclaration {
   @override
@@ -14254,7 +13320,7 @@ final class PatternVariableDeclarationImpl extends AnnotatedNodeImpl
   final DartPatternImpl pattern;
 
   /// The pattern type schema, used for downward inference of [expression];
-  /// or `null` if the node is not resolved yet.
+  /// or `null` if the node isn't resolved yet.
   DartType? patternTypeSchema;
 
   /// Variables declared in [pattern].
@@ -14320,14 +13386,10 @@ abstract final class PatternVariableDeclarationStatement implements Statement {
   /// The pattern declaration.
   PatternVariableDeclaration get declaration;
 
-  /// Return the semicolon terminating the statement.
+  /// The semicolon terminating the statement.
   Token get semicolon;
 }
 
-/// A pattern variable declaration statement.
-///
-///    patternDeclarationStatement ::=
-///        [PatternVariableDeclaration] ';'
 final class PatternVariableDeclarationStatementImpl extends StatementImpl
     implements PatternVariableDeclarationStatement {
   @override
@@ -14374,34 +13436,31 @@ abstract final class PostfixExpression
         NullShortableExpression,
         MethodReferenceExpression,
         CompoundAssignmentExpression {
-  /// Return the expression computing the operand for the operator.
+  /// The expression computing the operand for the operator.
   Expression get operand;
 
-  /// Return the postfix operator being applied to the operand.
+  /// The postfix operator being applied to the operand.
   Token get operator;
+
+  /// The element associated with the operator based on the static type of the
+  /// operand, or `null` if the AST structure hasn't been resolved, if the
+  /// operator isn't user definable, or if the operator couldn't be resolved.
+  @override
+  MethodElement? get staticElement;
 }
 
-/// A postfix unary expression.
-///
-///    postfixExpression ::=
-///        [Expression] [Token]
 final class PostfixExpressionImpl extends ExpressionImpl
     with NullShortableExpressionImpl, CompoundAssignmentExpressionImpl
     implements PostfixExpression {
-  /// The expression computing the operand for the operator.
   ExpressionImpl _operand;
 
-  /// The postfix operator being applied to the operand.
   @override
   final Token operator;
 
-  /// The element associated with the operator based on the static type of the
-  /// operand, or `null` if the AST structure has not been resolved, if the
-  /// operator is not user definable, or if the operator could not be resolved.
   @override
   MethodElement? staticElement;
 
-  /// Initialize a newly created postfix expression.
+  /// Initializes a newly created postfix expression.
   PostfixExpressionImpl({
     required ExpressionImpl operand,
     required this.operator,
@@ -14433,10 +13492,9 @@ final class PostfixExpressionImpl extends ExpressionImpl
   @override
   AstNode? get _nullShortingExtensionCandidate => parent;
 
-  /// If the AST structure has been resolved, and the function being invoked is
-  /// known based on static type information, then return the parameter element
-  /// representing the parameter to which the value of the operand will be
-  /// bound.  Otherwise, return `null`.
+  /// The parameter element representing the parameter to which the value of the
+  /// operand is bound, or `null` ff the AST structure is not resolved or the
+  /// function being invoked isn't known based on static type information.
   ParameterElement? get _staticParameterElementForOperand {
     if (staticElement == null) {
       return null;
@@ -14472,42 +13530,34 @@ final class PostfixExpressionImpl extends ExpressionImpl
 ///    prefixedIdentifier ::=
 ///        [SimpleIdentifier] '.' [SimpleIdentifier]
 abstract final class PrefixedIdentifier implements Identifier {
-  /// Return the identifier being prefixed.
+  /// The identifier being prefixed.
   SimpleIdentifier get identifier;
 
-  /// Return `true` if this type is a deferred type. If the AST structure has
-  /// not been resolved, then return `false`.
+  /// Whether this type is a deferred type.
   ///
-  /// 15.1 Static Types: A type <i>T</i> is deferred iff it is of the form
-  /// </i>p.T</i> where <i>p</i> is a deferred prefix.
+  /// A deferred type is a type that is referenced through an import prefix
+  /// (such as `p.T`), where the prefix is used by a deferred import.
+  ///
+  /// Returns `false` if the AST structure hasn't been resolved.
   bool get isDeferred;
 
-  /// Return the period used to separate the prefix from the identifier.
+  /// The period used to separate the prefix from the identifier.
   Token get period;
 
-  /// Return the prefix associated with the library in which the identifier is
-  /// defined.
+  /// The prefix associated with the library in which the identifier is defined.
   SimpleIdentifier get prefix;
 }
 
-/// An identifier that is prefixed or an access to an object property where the
-/// target of the property access is a simple identifier.
-///
-///    prefixedIdentifier ::=
-///        [SimpleIdentifier] '.' [SimpleIdentifier]
 final class PrefixedIdentifierImpl extends IdentifierImpl
     implements PrefixedIdentifier {
-  /// The prefix associated with the library in which the identifier is defined.
   SimpleIdentifierImpl _prefix;
 
-  /// The period used to separate the prefix from the identifier.
   @override
   final Token period;
 
-  /// The identifier being prefixed.
   SimpleIdentifierImpl _identifier;
 
-  /// Initialize a newly created prefixed identifier.
+  /// Initializes a newly created prefixed identifier.
   PrefixedIdentifierImpl({
     required SimpleIdentifierImpl prefix,
     required this.period,
@@ -14593,34 +13643,31 @@ abstract final class PrefixExpression
         NullShortableExpression,
         MethodReferenceExpression,
         CompoundAssignmentExpression {
-  /// Return the expression computing the operand for the operator.
-  Expression get operand;
-
-  /// Return the prefix operator being applied to the operand.
-  Token get operator;
-}
-
-/// A prefix unary expression.
-///
-///    prefixExpression ::=
-///        [Token] [Expression]
-final class PrefixExpressionImpl extends ExpressionImpl
-    with NullShortableExpressionImpl, CompoundAssignmentExpressionImpl
-    implements PrefixExpression {
-  /// The prefix operator being applied to the operand.
-  @override
-  final Token operator;
-
-  /// The expression computing the operand for the operator.
-  ExpressionImpl _operand;
-
   /// The element associated with the operator based on the static type of the
-  /// operand, or `null` if the AST structure has not been resolved, if the
-  /// operator is not user definable, or if the operator could not be resolved.
+  /// operand, or `null` if the AST structure hasn't been resolved, if the
+  /// operator isn't user definable, or if the operator couldn't be resolved.
   @override
   MethodElement? staticElement;
 
-  /// Initialize a newly created prefix expression.
+  /// The expression computing the operand for the operator.
+  Expression get operand;
+
+  /// The prefix operator being applied to the operand.
+  Token get operator;
+}
+
+final class PrefixExpressionImpl extends ExpressionImpl
+    with NullShortableExpressionImpl, CompoundAssignmentExpressionImpl
+    implements PrefixExpression {
+  @override
+  final Token operator;
+
+  ExpressionImpl _operand;
+
+  @override
+  MethodElement? staticElement;
+
+  /// Initializes a newly created prefix expression.
   PrefixExpressionImpl({
     required this.operator,
     required ExpressionImpl operand,
@@ -14652,10 +13699,9 @@ final class PrefixExpressionImpl extends ExpressionImpl
   @override
   AstNode? get _nullShortingExtensionCandidate => parent;
 
-  /// If the AST structure has been resolved, and the function being invoked is
-  /// known based on static type information, then return the parameter element
-  /// representing the parameter to which the value of the operand will be
-  /// bound.  Otherwise, return `null`.
+  /// The parameter element representing the parameter to which the value of the
+  /// operand is bound, or `null` if the AST structure is not resolved or the
+  /// function being invoked isn't known based on static type information.
   ParameterElement? get _staticParameterElementForOperand {
     if (staticElement == null) {
       return null;
@@ -14695,59 +13741,47 @@ final class PrefixExpressionImpl extends ExpressionImpl
 ///        [Expression] '.' [SimpleIdentifier]
 abstract final class PropertyAccess
     implements NullShortableExpression, CommentReferableExpression {
-  /// Return `true` if this expression is cascaded.
+  /// Whether this expression is cascaded.
   ///
-  /// If it is, then the target of this expression is not stored locally but is
+  /// If it is, then the target of this expression isn't stored locally but is
   /// stored in the nearest ancestor that is a [CascadeExpression].
   bool get isCascaded;
 
   /// Whether this property access is null aware (as opposed to non-null).
   bool get isNullAware;
 
-  /// Return the property access operator.
+  /// The property access operator.
   Token get operator;
 
-  /// Return the name of the property being accessed.
+  /// The name of the property being accessed.
   SimpleIdentifier get propertyName;
 
-  /// Return the expression used to compute the receiver of the invocation.
+  /// The expression used to compute the receiver of the invocation.
   ///
-  /// If this invocation is not part of a cascade expression, then this is the
+  /// If this invocation isn't part of a cascade expression, then this is the
   /// same as [target]. If this invocation is part of a cascade expression,
   /// then the target stored with the cascade expression is returned.
   Expression get realTarget;
 
-  /// Return the expression computing the object defining the property being
-  /// accessed, or `null` if this property access is part of a cascade
-  /// expression.
+  /// The expression computing the object defining the property being accessed,
+  /// or `null` if this property access is part of a cascade expression.
   ///
   /// Use [realTarget] to get the target independent of whether this is part of
   /// a cascade expression.
   Expression? get target;
 }
 
-/// The access of a property of an object.
-///
-/// Note, however, that accesses to properties of objects can also be
-/// represented as [PrefixedIdentifier] nodes in cases where the target is also
-/// a simple identifier.
-///
-///    propertyAccess ::=
-///        [Expression] '.' [SimpleIdentifier]
 final class PropertyAccessImpl extends CommentReferableExpressionImpl
     with NullShortableExpressionImpl
     implements PropertyAccess {
-  /// The expression computing the object defining the property being accessed.
   ExpressionImpl? _target;
 
-  /// The property access operator.
   @override
   final Token operator;
 
-  /// The name of the property being accessed.
   SimpleIdentifierImpl _propertyName;
 
-  /// Initialize a newly created property access expression.
+  /// Initializes a newly created property access expression.
   PropertyAccessImpl({
     required ExpressionImpl? target,
     required this.operator,
@@ -14811,9 +13845,9 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
     _target = _becomeParentOf(expression);
   }
 
-  /// Return the cascade that contains this [IndexExpression].
+  /// The cascade that contains this [IndexExpression].
   ///
-  /// We expect that [isCascaded] is `true`.
+  /// This method assumes that [isCascaded] is `true`.
   CascadeExpressionImpl get _ancestorCascade {
     assert(isCascaded);
     for (var ancestor = parent!;; ancestor = ancestor.parent!) {
@@ -14857,22 +13891,24 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
 ///
 ///    recordField  ::= (identifier ':')? [Expression]
 abstract final class RecordLiteral implements Literal {
-  /// Return the token representing the 'const' keyword, or `null` if the
-  /// literal is not a constant.
+  /// The token representing the `const` keyword, or `null` if the literal isn't
+  /// a constant.
   Token? get constKeyword;
 
-  /// Return the syntactic elements used to compute the fields of the record.
+  /// The syntactic elements used to compute the fields of the record.
   NodeList<Expression> get fields;
 
-  /// Return `true` if this literal is a constant expression, either because the
-  /// keyword `const` was explicitly provided or because no keyword was provided
-  /// and this expression is in a constant context.
+  /// Whether this literal is a constant expression.
+  ///
+  /// It is a constant expression if either the keyword `const` was explicitly
+  /// provided or because no keyword was provided and this expression occurs in
+  /// a constant context.
   bool get isConst;
 
-  /// Return the left parenthesis.
+  /// The left parenthesis.
   Token get leftParenthesis;
 
-  /// Return the right parenthesis.
+  /// The right parenthesis.
   Token get rightParenthesis;
 }
 
@@ -14883,13 +13919,12 @@ final class RecordLiteralImpl extends LiteralImpl implements RecordLiteral {
   @override
   final Token leftParenthesis;
 
-  /// The syntactic elements used to compute the fields of the record.
   final NodeListImpl<ExpressionImpl> _fields = NodeListImpl._();
 
   @override
   final Token rightParenthesis;
 
-  /// Initialize a newly created record literal.
+  /// Initializes a newly created record literal.
   RecordLiteralImpl({
     required this.constKeyword,
     required this.leftParenthesis,
@@ -14938,20 +13973,16 @@ final class RecordLiteralImpl extends LiteralImpl implements RecordLiteral {
 ///    recordPattern ::=
 ///        '(' [PatternField] (',' [PatternField])* ')'
 abstract final class RecordPattern implements DartPattern {
-  /// Return the fields of the record pattern.
+  /// The fields of the record pattern.
   NodeList<PatternField> get fields;
 
-  /// Return the left parenthesis.
+  /// The left parenthesis.
   Token get leftParenthesis;
 
-  /// Return the right parenthesis.
+  /// The right parenthesis.
   Token get rightParenthesis;
 }
 
-/// A record pattern.
-///
-///    recordPattern ::=
-///        '(' [PatternField] (',' [PatternField])* ')'
 final class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
   final NodeListImpl<PatternFieldImpl> _fields = NodeListImpl._();
 
@@ -15275,55 +14306,48 @@ final class RecordTypeAnnotationPositionalFieldImpl
 ///        'this' ('.' identifier)? arguments
 abstract final class RedirectingConstructorInvocation
     implements ConstructorInitializer, ConstructorReferenceNode {
-  /// Return the list of arguments to the constructor.
+  /// The list of arguments to the constructor.
   ArgumentList get argumentList;
-
-  /// Return the name of the constructor that is being invoked, or `null` if the
-  /// unnamed constructor is being invoked.
-  SimpleIdentifier? get constructorName;
-
-  /// Return the token for the period before the name of the constructor that is
-  /// being invoked, or `null` if the unnamed constructor is being invoked.
-  Token? get period;
-
-  /// Return the token for the 'this' keyword.
-  Token get thisKeyword;
-}
-
-/// The invocation of a constructor in the same class from within a
-/// constructor's initialization list.
-///
-///    redirectingConstructorInvocation ::=
-///        'this' ('.' identifier)? arguments
-final class RedirectingConstructorInvocationImpl
-    extends ConstructorInitializerImpl
-    implements RedirectingConstructorInvocation {
-  /// The token for the 'this' keyword.
-  @override
-  final Token thisKeyword;
-
-  /// The token for the period before the name of the constructor that is being
-  /// invoked, or `null` if the unnamed constructor is being invoked.
-  @override
-  final Token? period;
 
   /// The name of the constructor that is being invoked, or `null` if the
   /// unnamed constructor is being invoked.
-  SimpleIdentifierImpl? _constructorName;
+  SimpleIdentifier? get constructorName;
 
-  /// The list of arguments to the constructor.
-  ArgumentListImpl _argumentList;
+  /// The token for the period before the name of the constructor that is being
+  /// invoked, or `null` if the unnamed constructor is being invoked.
+  Token? get period;
 
   /// The element associated with the constructor based on static type
-  /// information, or `null` if the AST structure has not been resolved or if
-  /// the constructor could not be resolved.
+  /// information, or `null` if the AST structure hasn't been resolved or if the
+  /// constructor couldn't be resolved.
+  @override
+  ConstructorElement? get staticElement;
+
+  /// The token for the `this` keyword.
+  Token get thisKeyword;
+}
+
+final class RedirectingConstructorInvocationImpl
+    extends ConstructorInitializerImpl
+    implements RedirectingConstructorInvocation {
+  @override
+  final Token thisKeyword;
+
+  @override
+  final Token? period;
+
+  SimpleIdentifierImpl? _constructorName;
+
+  ArgumentListImpl _argumentList;
+
   @override
   ConstructorElement? staticElement;
 
-  /// Initialize a newly created redirecting invocation to invoke the
-  /// constructor with the given name with the given arguments. The
-  /// [constructorName] can be `null` if the constructor being invoked is the
-  /// unnamed constructor.
+  /// Initializes a newly created redirecting invocation to invoke the
+  /// constructor with the given name with the given arguments.
+  ///
+  /// The [constructorName] can be `null` if the constructor being invoked is
+  /// the unnamed constructor.
   RedirectingConstructorInvocationImpl({
     required this.thisKeyword,
     required this.period,
@@ -15381,17 +14405,13 @@ abstract final class RelationalPattern implements DartPattern {
   /// The element of the [operator] for the matched type.
   MethodElement? get element;
 
-  /// Return the expression used to compute the operand.
+  /// The expression used to compute the operand.
   Expression get operand;
 
-  /// Return the relational operator being applied.
+  /// The relational operator being applied.
   Token get operator;
 }
 
-/// A relational pattern.
-///
-///    relationalPattern ::=
-///        (equalityOperator | relationalOperator) [Expression]
 final class RelationalPatternImpl extends DartPatternImpl
     implements RelationalPattern {
   ExpressionImpl _operand;
@@ -15654,21 +14674,16 @@ final class RestPatternElementImpl extends AstNodeImpl
 ///    rethrowExpression ::=
 ///        'rethrow'
 abstract final class RethrowExpression implements Expression {
-  /// Return the token representing the 'rethrow' keyword.
+  /// The token representing the `rethrow` keyword.
   Token get rethrowKeyword;
 }
 
-/// A rethrow expression.
-///
-///    rethrowExpression ::=
-///        'rethrow'
 final class RethrowExpressionImpl extends ExpressionImpl
     implements RethrowExpression {
-  /// The token representing the 'rethrow' keyword.
   @override
   final Token rethrowKeyword;
 
-  /// Initialize a newly created rethrow expression.
+  /// Initializes a newly created rethrow expression.
   RethrowExpressionImpl({
     required this.rethrowKeyword,
   });
@@ -15705,37 +14720,30 @@ final class RethrowExpressionImpl extends ExpressionImpl
 ///    returnStatement ::=
 ///        'return' [Expression]? ';'
 abstract final class ReturnStatement implements Statement {
-  /// Return the expression computing the value to be returned, or `null` if no
+  /// The expression computing the value to be returned, or `null` if no
   /// explicit value was provided.
   Expression? get expression;
 
-  /// Return the token representing the 'return' keyword.
+  /// The token representing the `return` keyword.
   Token get returnKeyword;
 
-  /// Return the semicolon terminating the statement.
+  /// The semicolon terminating the statement.
   Token get semicolon;
 }
 
-/// A return statement.
-///
-///    returnStatement ::=
-///        'return' [Expression]? ';'
 final class ReturnStatementImpl extends StatementImpl
     implements ReturnStatement {
-  /// The token representing the 'return' keyword.
   @override
   final Token returnKeyword;
 
-  /// The expression computing the value to be returned, or `null` if no
-  /// explicit value was provided.
   ExpressionImpl? _expression;
 
-  /// The semicolon terminating the statement.
   @override
   final Token semicolon;
 
-  /// Initialize a newly created return statement. The [expression] can be
-  /// `null` if no explicit value was provided.
+  /// Initializes a newly created return statement.
+  ///
+  /// The [expression] can be `null` if no explicit value was provided.
   ReturnStatementImpl({
     required this.returnKeyword,
     required ExpressionImpl? expression,
@@ -15778,21 +14786,15 @@ final class ReturnStatementImpl extends StatementImpl
 ///    scriptTag ::=
 ///        '#!' (~NEWLINE)* NEWLINE
 abstract final class ScriptTag implements AstNode {
-  /// Return the token representing this script tag.
+  /// The token representing this script tag.
   Token get scriptTag;
 }
 
-/// A script tag that can optionally occur at the beginning of a compilation
-/// unit.
-///
-///    scriptTag ::=
-///        '#!' (~NEWLINE)* NEWLINE
 final class ScriptTagImpl extends AstNodeImpl implements ScriptTag {
-  /// The token representing this script tag.
   @override
   final Token scriptTag;
 
-  /// Initialize a newly created script tag.
+  /// Initializes a newly created script tag.
   ScriptTagImpl({
     required this.scriptTag,
   });
@@ -15827,53 +14829,52 @@ final class ScriptTagImpl extends AstNodeImpl implements ScriptTag {
 /// This is the class that is used to represent either a map or set literal when
 /// either the 'control-flow-collections' or 'spread-collections' experiments
 /// are enabled. If neither of those experiments are enabled, then `MapLiteral`
-/// will be used to represent a map literal and `SetLiteral` will be used for
-/// set literals.
+/// is used to represent a map literal and `SetLiteral` is used for set
+/// literals.
 abstract final class SetOrMapLiteral implements TypedLiteral {
-  /// Return the syntactic elements used to compute the elements of the set or
-  /// map.
+  /// The syntactic elements used to compute the elements of the set or map.
   NodeList<CollectionElement> get elements;
 
-  /// Return `true` if this literal represents a map literal.
+  /// Whether this literal represents a map literal.
   ///
-  /// This getter will always return `false` if [isSet] returns `true`.
+  /// This getter always returns `false` if [isSet] returns `true`.
   ///
-  /// However, this getter is _not_ the inverse of [isSet]. It is possible for
+  /// However, this getter is _not_ the inverse of [isSet]. It's possible for
   /// both getters to return `false` if
   ///
-  /// - the AST has not been resolved (because determining the kind of the
+  /// - the AST hasn't been resolved (because determining the kind of the
   ///   literal is done during resolution),
   /// - the literal is ambiguous (contains one or more spread elements and none
   ///   of those elements can be used to determine the kind of the literal), or
   /// - the literal is invalid because it contains both expressions (for sets)
   ///   and map entries (for maps).
   ///
-  /// In both of the latter two cases there will be compilation errors
-  /// associated with the literal.
+  /// In both of the latter two cases there are compilation errors associated
+  /// with the literal.
   bool get isMap;
 
-  /// Return `true` if this literal represents a set literal.
+  /// Whether this literal represents a set literal.
   ///
-  /// This getter will always return `false` if [isMap] returns `true`.
+  /// This getter always returns `false` if [isMap] returns `true`.
   ///
-  /// However, this getter is _not_ the inverse of [isMap]. It is possible for
+  /// However, this getter is _not_ the inverse of [isMap]. It's possible for
   /// both getters to return `false` if
   ///
-  /// - the AST has not been resolved (because determining the kind of the
+  /// - the AST hasn't been resolved (because determining the kind of the
   ///   literal is done during resolution),
   /// - the literal is ambiguous (contains one or more spread elements and none
   ///   of those elements can be used to determine the kind of the literal), or
   /// - the literal is invalid because it contains both expressions (for sets)
   ///   and map entries (for maps).
   ///
-  /// In both of the latter two cases there will be compilation errors
-  /// associated with the literal.
+  /// In both of the latter two cases there are compilation errors associated
+  /// with the literal.
   bool get isSet;
 
-  /// Return the left curly bracket.
+  /// The left curly bracket.
   Token get leftBracket;
 
-  /// Return the right curly bracket.
+  /// The right curly bracket.
   Token get rightBracket;
 }
 
@@ -15882,21 +14883,20 @@ final class SetOrMapLiteralImpl extends TypedLiteralImpl
   @override
   final Token leftBracket;
 
-  /// The syntactic elements in the set.
   final NodeListImpl<CollectionElementImpl> _elements = NodeListImpl._();
 
   @override
   final Token rightBracket;
 
   /// A representation of whether this literal represents a map or a set, or
-  /// whether the kind has not or cannot be determined.
+  /// whether the kind hasn't or can't be determined.
   _SetOrMapKind _resolvedKind = _SetOrMapKind.unresolved;
 
   /// The context type computed by
   /// [ResolverVisitor._computeSetOrMapContextType].
   ///
-  /// Note that this is not the same as the context pushed down by type
-  /// inference (which can be obtained via [InferenceContext.getContext]).  For
+  /// Note that this isn't the same as the context pushed down by type
+  /// inference (which can be obtained via [InferenceContext.getContext]). For
   /// example, in the following code:
   ///
   ///     var m = {};
@@ -15905,10 +14905,13 @@ final class SetOrMapLiteralImpl extends TypedLiteralImpl
   /// `contextType` is `Map<dynamic, dynamic>`.
   InterfaceType? contextType;
 
-  /// Initialize a newly created set or map literal. The [constKeyword] can be
-  /// `null` if the literal is not a constant. The [typeArguments] can be `null`
-  /// if no type arguments were declared. The [elements] can be `null` if the
-  /// set is empty.
+  /// Initializes a newly created set or map literal.
+  ///
+  /// The [constKeyword] can be `null` if the literal isn't a constant.
+  ///
+  /// The [typeArguments] can be `null` if no type arguments were declared.
+  ///
+  /// The [elements] can be `null` if the set is empty.
   SetOrMapLiteralImpl({
     required super.constKeyword,
     required super.typeArguments,
@@ -15981,28 +14984,22 @@ final class SetOrMapLiteralImpl extends TypedLiteralImpl
   }
 }
 
-/// A combinator that restricts the names being imported to those in a given list.
-///
-///    showCombinator ::=
-///        'show' [SimpleIdentifier] (',' [SimpleIdentifier])*
-abstract final class ShowCombinator implements Combinator {
-  /// Return the list of names from the library that are made visible by this
-  /// combinator.
-  NodeList<SimpleIdentifier> get shownNames;
-}
-
 /// A combinator that restricts the names being imported to those in a given
 /// list.
 ///
 ///    showCombinator ::=
 ///        'show' [SimpleIdentifier] (',' [SimpleIdentifier])*
-final class ShowCombinatorImpl extends CombinatorImpl
-    implements ShowCombinator {
+abstract final class ShowCombinator implements Combinator {
   /// The list of names from the library that are made visible by this
   /// combinator.
+  NodeList<SimpleIdentifier> get shownNames;
+}
+
+final class ShowCombinatorImpl extends CombinatorImpl
+    implements ShowCombinator {
   final NodeListImpl<SimpleIdentifierImpl> _shownNames = NodeListImpl._();
 
-  /// Initialize a newly created import show combinator.
+  /// Initializes a newly created import show combinator.
   ShowCombinatorImpl({
     required super.keyword,
     required List<SimpleIdentifierImpl> shownNames,
@@ -16034,36 +15031,33 @@ final class ShowCombinatorImpl extends CombinatorImpl
 /// A simple formal parameter.
 ///
 ///    simpleFormalParameter ::=
-///        ('final' [TypeAnnotation] | 'var' | [TypeAnnotation])? [SimpleIdentifier]
+///        ('final' [TypeAnnotation] | 'var' | [TypeAnnotation])?
+///        [SimpleIdentifier]
 abstract final class SimpleFormalParameter implements NormalFormalParameter {
-  /// Return the token representing either the 'final', 'const' or 'var'
-  /// keyword, or `null` if no keyword was used.
+  /// The token representing either the `final`, `const` or `var` keyword, or
+  /// `null` if no keyword was used.
   Token? get keyword;
 
-  /// Return the declared type of the parameter, or `null` if the parameter does
-  /// not have a declared type.
+  /// The declared type of the parameter, or `null` if the parameter doesn't
+  /// have a declared type.
   TypeAnnotation? get type;
 }
 
-/// A simple formal parameter.
-///
-///    simpleFormalParameter ::=
-///        ('final' [NamedType] | 'var' | [NamedType])? [SimpleIdentifier]
 final class SimpleFormalParameterImpl extends NormalFormalParameterImpl
     implements SimpleFormalParameter {
-  /// The token representing either the 'final', 'const' or 'var' keyword, or
-  /// `null` if no keyword was used.
   @override
   final Token? keyword;
 
-  /// The name of the declared type of the parameter, or `null` if the parameter
-  /// does not have a declared type.
   TypeAnnotationImpl? _type;
 
-  /// Initialize a newly created formal parameter. Either or both of the
-  /// [comment] and [metadata] can be `null` if the parameter does not have the
-  /// corresponding attribute. The [keyword] can be `null` if a type was
-  /// specified. The [type] must be `null` if the keyword is 'var'.
+  /// Initializes a newly created formal parameter.
+  ///
+  /// Either or both of the [comment] and [metadata] can be `null` if the
+  /// parameter doesn't have the corresponding attribute.
+  ///
+  /// The [keyword] can be `null` if a type was specified.
+  ///
+  /// The [type] must be `null` if the keyword is `var`.
   SimpleFormalParameterImpl({
     required super.comment,
     required super.metadata,
@@ -16138,64 +15132,50 @@ final class SimpleFormalParameterImpl extends NormalFormalParameterImpl
 ///
 ///    internalCharacter ::= '_' | '$' | letter | digit
 abstract final class SimpleIdentifier implements Identifier {
-  /// Return `true` if this identifier is the "name" part of a prefixed
-  /// identifier or a method invocation.
+  /// Whether this identifier is the "name" part of a prefixed identifier or a
+  /// method invocation.
   bool get isQualified;
 
   /// If the identifier is a tear-off, return the inferred type arguments
   /// applied to the function type of the element to produce its `[staticType]`.
   ///
-  /// Return an empty list if the function type does not have type parameters.
-  ///
-  /// Return an empty list if the context type has type parameters.
-  ///
-  /// Return `null` if not a tear-off.
-  ///
-  /// Return `null` if the AST structure has not been resolved.
+  /// An empty list if the function type doesn't have type parameters or if the
+  /// context type has type parameters, or `null` if this node isn't a tear-off
+  /// or if the AST structure hasn't been resolved.
   List<DartType>? get tearOffTypeArgumentTypes;
 
-  /// Return the token representing the identifier.
+  /// The token representing the identifier.
   Token get token;
 
-  /// Return `true` if this identifier is the name being declared in a
-  /// declaration.
+  /// Whether this identifier is the name being declared in a declaration.
   // TODO(brianwilkerson): Convert this to a getter.
   bool inDeclarationContext();
 
-  /// Return `true` if this expression is computing a right-hand value.
+  /// Whether this expression is computing a right-hand value.
   ///
-  /// Note that [inGetterContext] and [inSetterContext] are not opposites, nor
-  /// are they mutually exclusive. In other words, it is possible for both
+  /// Note that [inGetterContext] and [inSetterContext] aren't opposites, nor
+  /// are they mutually exclusive. In other words, it's possible for both
   /// methods to return `true` when invoked on the same node.
   // TODO(brianwilkerson): Convert this to a getter.
   bool inGetterContext();
 
-  /// Return `true` if this expression is computing a left-hand value.
+  /// Whether this expression is computing a left-hand value.
   ///
-  /// Note that [inGetterContext] and [inSetterContext] are not opposites, nor
-  /// are they mutually exclusive. In other words, it is possible for both
+  /// Note that [inGetterContext] and [inSetterContext] aren't opposites, nor
+  /// are they mutually exclusive. In other words, it's possible for both
   /// methods to return `true` when invoked on the same node.
   // TODO(brianwilkerson): Convert this to a getter.
   bool inSetterContext();
 }
 
-/// A simple identifier.
-///
-///    simpleIdentifier ::=
-///        initialCharacter internalCharacter*
-///
-///    initialCharacter ::= '_' | '$' | letter
-///
-///    internalCharacter ::= '_' | '$' | letter | digit
 final class SimpleIdentifierImpl extends IdentifierImpl
     implements SimpleIdentifier {
-  /// The token representing the identifier.
   @override
   Token token;
 
   /// The element associated with this identifier based on static type
-  /// information, or `null` if the AST structure has not been resolved or if
-  /// this identifier could not be resolved.
+  /// information, or `null` if the AST structure hasn't been resolved or if
+  /// this identifier couldn't be resolved.
   Element? _staticElement;
 
   @override
@@ -16206,14 +15186,14 @@ final class SimpleIdentifierImpl extends IdentifierImpl
   /// read context is intended, and prior to falling back on implicit `this` (if
   /// appropriate).
   ///
-  /// `null` if this identifier is not meant to be looked up in the enclosing
+  /// Or `null` if this identifier isn't meant to be looked up in the enclosing
   /// scope.
   ScopeLookupResult? scopeLookupResult;
 
-  /// Initialize a newly created identifier.
+  /// Initializes a newly created identifier.
   SimpleIdentifierImpl(this.token);
 
-  /// Return the cascade that contains this [SimpleIdentifier].
+  /// The cascade that contains this [SimpleIdentifier].
   CascadeExpressionImpl? get ancestorCascade {
     var operatorType = token.previous?.type;
     if (operatorType == TokenType.PERIOD_PERIOD ||
@@ -16255,6 +15235,10 @@ final class SimpleIdentifierImpl extends IdentifierImpl
   @override
   Precedence get precedence => Precedence.primary;
 
+  /// The element being referenced by this identifier, or `null` if this
+  /// identifier is used to either read or write a value, the AST structure
+  /// hasn't been resolved, or if this identifier couldn't be resolved.
+  ///
   /// This element is set when this identifier is used not as an expression,
   /// but just to reference some element.
   ///
@@ -16264,22 +15248,18 @@ final class SimpleIdentifierImpl extends IdentifierImpl
   /// prefix and the identifier in a [PrefixedIdentifier] (which then can be
   /// used to read or write a value).
   ///
-  /// In invalid code, for recovery, any element could be used, e.g. a
-  /// setter as a type name `set mySetter(_) {} mySetter topVar;`. We do this
-  /// to help the user to navigate to this element, and maybe change its name,
-  /// add a new declaration, etc.
+  /// In invalid code, for recovery, any element could be used. For example, in
+  /// `set mySetter(_) {} mySetter topVar;` a setter is used as a type name. We
+  /// do this to help the user to navigate to this element, and maybe change its
+  /// name, add a new declaration, etc.
   ///
-  /// Return `null` if this identifier is used to either read or write a value,
-  /// or the AST structure has not been resolved, or if this identifier could
-  /// not be resolved.
-  ///
-  /// If either [readElement] or [writeElement] are not `null`, the
+  /// If either [readElement] or [writeElement] aren't `null`, the
   /// [referenceElement] is `null`, because the identifier is being used to
   /// read or write a value.
   ///
-  /// All three [readElement], [writeElement], and [referenceElement] can be
-  /// `null` when the AST structure has not been resolved, or this identifier
-  /// could not be resolved.
+  /// All three of [readElement], [writeElement], and [referenceElement] can be
+  /// `null` when the AST structure hasn't been resolved, or this identifier
+  /// couldn't be resolved.
   Element? get referenceElement => null;
 
   @override
@@ -16310,7 +15290,6 @@ final class SimpleIdentifierImpl extends IdentifierImpl
 
   @override
   bool inGetterContext() {
-    // TODO(brianwilkerson): Convert this to a getter.
     AstNode initialParent = this.parent!;
     AstNode parent = initialParent;
     AstNode target = this;
@@ -16353,7 +15332,6 @@ final class SimpleIdentifierImpl extends IdentifierImpl
 
   @override
   bool inSetterContext() {
-    // TODO(brianwilkerson): Convert this to a getter.
     AstNode initialParent = this.parent!;
     AstNode parent = initialParent;
     AstNode target = this;
@@ -16396,7 +15374,7 @@ final class SimpleIdentifierImpl extends IdentifierImpl
   }
 }
 
-/// A string literal expression that does not contain any interpolations.
+/// A string literal expression that doesn't contain any interpolations.
 ///
 ///    simpleStringLiteral ::=
 ///        rawStringLiteral
@@ -16417,44 +15395,22 @@ final class SimpleIdentifierImpl extends IdentifierImpl
 ///        "'" characters "'"
 ///      | '"' characters '"'
 abstract final class SimpleStringLiteral implements SingleStringLiteral {
-  /// Return the token representing the literal.
+  /// The token representing the literal.
   Token get literal;
 
-  /// Return the value of the literal.
+  /// The value of the literal.
   String get value;
 }
 
-/// A string literal expression that does not contain any interpolations.
-///
-///    simpleStringLiteral ::=
-///        rawStringLiteral
-///      | basicStringLiteral
-///
-///    rawStringLiteral ::=
-///        'r' basicStringLiteral
-///
-///    simpleStringLiteral ::=
-///        multiLineStringLiteral
-///      | singleLineStringLiteral
-///
-///    multiLineStringLiteral ::=
-///        "'''" characters "'''"
-///      | '"""' characters '"""'
-///
-///    singleLineStringLiteral ::=
-///        "'" characters "'"
-///      | '"' characters '"'
 final class SimpleStringLiteralImpl extends SingleStringLiteralImpl
     implements SimpleStringLiteral {
-  /// The token representing the literal.
   @override
   final Token literal;
 
-  /// The value of the literal.
   @override
   String value;
 
-  /// Initialize a newly created simple string literal.
+  /// Initializes a newly created simple string literal.
   SimpleStringLiteralImpl({
     required this.literal,
     required this.value,
@@ -16517,30 +15473,27 @@ final class SimpleStringLiteralImpl extends SingleStringLiteralImpl
 ///        [SimpleStringLiteral]
 ///      | [StringInterpolation]
 sealed class SingleStringLiteral implements StringLiteral {
-  /// Return the offset of the after-last contents character.
+  /// The offset of the after-last contents character.
   int get contentsEnd;
 
-  /// Return the offset of the first contents character.
+  /// The offset of the first contents character.
   ///
   /// If the string is multiline, then leading whitespaces are skipped.
   int get contentsOffset;
 
-  /// Return `true` if this string literal is a multi-line string.
+  /// Whether this string literal is a multi-line string.
   bool get isMultiline;
 
-  /// Return `true` if this string literal is a raw string.
+  /// Whether this string literal is a raw string.
   bool get isRaw;
 
-  /// Return `true` if this string literal uses single quotes (' or '''), or
-  /// `false` if this string literal uses double quotes (" or """).
+  /// Whether this string literal uses single quotes (' or ''').
+  ///
+  /// If `false` is returned then the string literal uses double quotes
+  /// (" or """).
   bool get isSingleQuoted;
 }
 
-/// A single string literal expression.
-///
-///    singleStringLiteral ::=
-///        [SimpleStringLiteral]
-///      | [StringInterpolation]
 sealed class SingleStringLiteralImpl extends StringLiteralImpl
     implements SingleStringLiteral {}
 
@@ -16631,28 +15584,11 @@ final class SpreadElementImpl extends AstNodeImpl
 ///      | [ExpressionStatement]
 ///      | [FunctionDeclarationStatement]
 abstract final class Statement implements AstNode {
-  /// If this is a labeled statement, return the unlabeled portion of the
-  /// statement, otherwise return the statement itself.
+  /// If this is a labeled statement, returns the statement being labeled,
+  /// otherwise returns the statement itself.
   Statement get unlabeled;
 }
 
-/// A node that represents a statement.
-///
-///    statement ::=
-///        [Block]
-///      | [VariableDeclarationStatement]
-///      | [ForStatement]
-///      | [ForEachStatement]
-///      | [WhileStatement]
-///      | [DoStatement]
-///      | [SwitchStatement]
-///      | [IfStatement]
-///      | [TryStatement]
-///      | [BreakStatement]
-///      | [ContinueStatement]
-///      | [ReturnStatement]
-///      | [ExpressionStatement]
-///      | [FunctionDeclarationStatement]
 sealed class StatementImpl extends AstNodeImpl implements Statement {
   @override
   StatementImpl get unlabeled => this;
@@ -16664,32 +15600,30 @@ sealed class StatementImpl extends AstNodeImpl implements Statement {
 ///        ''' [InterpolationElement]* '''
 ///      | '"' [InterpolationElement]* '"'
 abstract final class StringInterpolation implements SingleStringLiteral {
-  /// Return the elements that will be composed to produce the resulting string.
+  /// The elements that are composed to produce the resulting string.
+  ///
   /// The list includes [firstString] and [lastString].
   NodeList<InterpolationElement> get elements;
 
-  /// Return the first element in this interpolation, which is always a string.
-  /// The string might be empty if there is no text before the first
+  /// The first element in this interpolation, which is always a string.
+  ///
+  /// The string might be empty if there's no text before the first
   /// interpolation expression (such as in `'$foo bar'`).
   InterpolationString get firstString;
 
-  /// Return the last element in this interpolation, which is always a string.
-  /// The string might be empty if there is no text after the last
+  /// The last element in this interpolation, which is always a string.
+  ///
+  /// The string might be empty if there's no text after the last
   /// interpolation expression (such as in `'foo $bar'`).
   InterpolationString get lastString;
 }
 
-/// A string interpolation literal.
-///
-///    stringInterpolation ::=
-///        ''' [InterpolationElement]* '''
-///      | '"' [InterpolationElement]* '"'
 final class StringInterpolationImpl extends SingleStringLiteralImpl
     implements StringInterpolation {
-  /// The elements that will be composed to produce the resulting string.
+  /// The elements that are composed to produce the resulting string.
   final NodeListImpl<InterpolationElementImpl> _elements = NodeListImpl._();
 
-  /// Initialize a newly created string interpolation expression.
+  /// Initializes a newly created string interpolation expression.
   StringInterpolationImpl({
     required List<InterpolationElementImpl> elements,
   }) {
@@ -16725,7 +15659,6 @@ final class StringInterpolationImpl extends SingleStringLiteralImpl
     return element.contentsOffset;
   }
 
-  /// Return the elements that will be composed to produce the resulting string.
   @override
   NodeListImpl<InterpolationElementImpl> get elements => _elements;
 
@@ -16829,8 +15762,10 @@ class StringLexemeHelper {
   }
 
   /// Given the [lexeme] for a multi-line string whose content begins at the
-  /// given [start] index, return the index of the first character that is
-  /// included in the value of the string. According to the specification:
+  /// given [start] index, returns the index of the first character that is
+  /// included in the value of the string.
+  ///
+  /// According to the specification:
   ///
   /// If the first line of a multiline string consists solely of the whitespace
   /// characters defined by the production WHITESPACE 20.1), possibly prefixed
@@ -16874,17 +15809,11 @@ class StringLexemeHelper {
 ///      | [AdjacentStrings]
 ///      | [StringInterpolation]
 sealed class StringLiteral implements Literal {
-  /// Return the value of the string literal, or `null` if the string is not a
-  /// constant string without any string interpolation.
+  /// The value of the string literal, or `null` if the string isn't a constant
+  /// string without any string interpolation.
   String? get stringValue;
 }
 
-/// A string literal expression.
-///
-///    stringLiteral ::=
-///        [SimpleStringLiteral]
-///      | [AdjacentStrings]
-///      | [StringInterpolation]
 sealed class StringLiteralImpl extends LiteralImpl implements StringLiteral {
   @override
   String? get stringValue {
@@ -16897,8 +15826,9 @@ sealed class StringLiteralImpl extends LiteralImpl implements StringLiteral {
     return buffer.toString();
   }
 
-  /// Append the value of this string literal to the given [buffer]. Throw an
-  /// [ArgumentError] if the string is not a constant string without any
+  /// Append the value of this string literal to the given [buffer].
+  ///
+  /// Throw an [ArgumentError] if the string isn't a constant string without any
   /// string interpolation.
   void _appendStringValue(StringBuffer buffer);
 }
@@ -16910,54 +15840,41 @@ sealed class StringLiteralImpl extends LiteralImpl implements StringLiteral {
 ///        'super' ('.' [SimpleIdentifier])? [ArgumentList]
 abstract final class SuperConstructorInvocation
     implements ConstructorInitializer, ConstructorReferenceNode {
-  /// Return the list of arguments to the constructor.
+  /// The list of arguments to the constructor.
   ArgumentList get argumentList;
-
-  /// Return the name of the constructor that is being invoked, or `null` if the
-  /// unnamed constructor is being invoked.
-  SimpleIdentifier? get constructorName;
-
-  /// Return the token for the period before the name of the constructor that is
-  /// being invoked, or `null` if the unnamed constructor is being invoked.
-  Token? get period;
-
-  /// Return the token for the 'super' keyword.
-  Token get superKeyword;
-}
-
-/// The invocation of a superclass' constructor from within a constructor's
-/// initialization list.
-///
-///    superInvocation ::=
-///        'super' ('.' [SimpleIdentifier])? [ArgumentList]
-final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
-    implements SuperConstructorInvocation {
-  /// The token for the 'super' keyword.
-  @override
-  final Token superKeyword;
-
-  /// The token for the period before the name of the constructor that is being
-  /// invoked, or `null` if the unnamed constructor is being invoked.
-  @override
-  final Token? period;
 
   /// The name of the constructor that is being invoked, or `null` if the
   /// unnamed constructor is being invoked.
+  SimpleIdentifier? get constructorName;
+
+  /// The token for the period before the name of the constructor that is being
+  /// invoked, or `null` if the unnamed constructor is being invoked.
+  Token? get period;
+
+  /// The token for the `super` keyword.
+  Token get superKeyword;
+}
+
+final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
+    implements SuperConstructorInvocation {
+  @override
+  final Token superKeyword;
+
+  @override
+  final Token? period;
+
   SimpleIdentifierImpl? _constructorName;
 
-  /// The list of arguments to the constructor.
   ArgumentListImpl _argumentList;
 
-  /// The element associated with the constructor based on static type
-  /// information, or `null` if the AST structure has not been resolved or if
-  /// the constructor could not be resolved.
   @override
   ConstructorElement? staticElement;
 
-  /// Initialize a newly created super invocation to invoke the inherited
-  /// constructor with the given name with the given arguments. The [period] and
-  /// [constructorName] can be `null` if the constructor being invoked is the
-  /// unnamed constructor.
+  /// Initializes a newly created super invocation to invoke the inherited
+  /// constructor with the given name with the given arguments.
+  ///
+  /// The [period] and [constructorName] can be `null` if the constructor being
+  /// invoked is the unnamed constructor.
   SuperConstructorInvocationImpl({
     required this.superKeyword,
     required this.period,
@@ -17012,21 +15929,16 @@ final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
 ///    superExpression ::=
 ///        'super'
 abstract final class SuperExpression implements Expression {
-  /// Return the token representing the 'super' keyword.
+  /// The token representing the `super` keyword.
   Token get superKeyword;
 }
 
-/// A super expression.
-///
-///    superExpression ::=
-///        'super'
 final class SuperExpressionImpl extends ExpressionImpl
     implements SuperExpression {
-  /// The token representing the 'super' keyword.
   @override
   final Token superKeyword;
 
-  /// Initialize a newly created super expression.
+  /// Initializes a newly created super expression.
   SuperExpressionImpl({
     required this.superKeyword,
   });
@@ -17061,85 +15973,83 @@ final class SuperExpressionImpl extends ExpressionImpl
 /// A super-initializer formal parameter.
 ///
 ///    superFormalParameter ::=
-///        ('final' [TypeAnnotation] | 'const' [TypeAnnotation] | 'var' | [TypeAnnotation])?
+///        ('final' [TypeAnnotation] | 'const' [TypeAnnotation] | 'var' |
+///        [TypeAnnotation])?
 ///        'super' '.' name ([TypeParameterList]? [FormalParameterList])?
 abstract final class SuperFormalParameter implements NormalFormalParameter {
-  /// Return the token representing either the 'final', 'const' or 'var'
-  /// keyword, or `null` if no keyword was used.
+  /// The token representing either the `final`, `const` or `var` keyword, or
+  /// `null` if no keyword was used.
   Token? get keyword;
 
+  /// The name of the parameter being declared.
   @override
   Token get name;
 
-  /// Return the parameters of the function-typed parameter, or `null` if this
-  /// is not a function-typed field formal parameter.
+  /// The parameters of the function-typed parameter, or `null` if this isn't a
+  /// function-typed field formal parameter.
   FormalParameterList? get parameters;
 
-  /// Return the token representing the period.
+  /// The token representing the period.
   Token get period;
 
+  /// The question mark indicating that the function type is nullable, or `null`
+  /// if there's no question mark, which will always be the case when the
+  /// parameter doesn't use the older style for denoting a function typed
+  /// parameter.
+  ///
   /// If the parameter is function-typed, and has the question mark, then its
   /// function type is nullable. Having a nullable function type means that the
-  /// parameter can be null.
+  /// parameter can be `null`.
   Token? get question;
 
-  /// Return the token representing the 'super' keyword.
+  /// The token representing the `super` keyword.
   Token get superKeyword;
 
-  /// Return the declared type of the parameter, or `null` if the parameter does
-  /// not have a declared type.
+  /// The declared type of the parameter, or `null` if the parameter doesn't
+  /// have a declared type.
   ///
-  /// Note that if this is a function-typed field formal parameter this is the
-  /// return type of the function.
+  /// If this is a function-typed field formal parameter this is the return type
+  /// of the function.
   TypeAnnotation? get type;
 
-  /// Return the type parameters associated with this method, or `null` if this
-  /// method is not a generic method.
+  /// The type parameters associated with this method, or `null` if this method
+  /// isn't a generic method.
   TypeParameterList? get typeParameters;
 }
 
-/// A super-initializer formal parameter.
-///
-///    fieldFormalParameter ::=
-///        ('final' [NamedType] | 'const' [NamedType] | 'var' | [NamedType])?
-///        'super' '.' [SimpleIdentifier]
-///        ([TypeParameterList]? [FormalParameterList])?
 final class SuperFormalParameterImpl extends NormalFormalParameterImpl
     implements SuperFormalParameter {
-  /// The token representing either the 'final', 'const' or 'var' keyword, or
-  /// `null` if no keyword was used.
   @override
   final Token? keyword;
 
-  /// The name of the declared type of the parameter, or `null` if the parameter
-  /// does not have a declared type.
   TypeAnnotationImpl? _type;
 
-  /// The token representing the 'super' keyword.
   @override
   final Token superKeyword;
 
-  /// The token representing the period.
   @override
   final Token period;
 
-  /// The type parameters associated with the method, or `null` if the method is
-  /// not a generic method.
   TypeParameterListImpl? _typeParameters;
 
-  /// The parameters of the function-typed parameter, or `null` if this is not a
-  /// function-typed field formal parameter.
   FormalParameterListImpl? _parameters;
 
   @override
   final Token? question;
 
-  /// Initialize a newly created formal parameter. Either or both of the
-  /// [comment] and [metadata] can be `null` if the parameter does not have the
-  /// corresponding attribute. The [keyword] can be `null` if there is a type.
-  /// The [type] must be `null` if the keyword is 'var'. The [thisKeyword] and
-  /// [period] can be `null` if the keyword 'this' was not provided.  The
-  /// [parameters] can be `null` if this is not a function-typed field formal
+  /// Initializes a newly created formal parameter.
+  ///
+  /// Either or both of the [comment] and [metadata] can be `null` if the
+  /// parameter doesn't have the corresponding attribute.
+  ///
+  /// The [keyword] can be `null` if there's a type.
+  ///
+  /// The [type] must be `null` if the keyword is `var`.
+  ///
+  /// The [thisKeyword] and [period] can be `null` if the keyword `this` isn't
+  /// provided.
+  ///
+  /// The[parameters] can be `null` if this isn't a function-typed field formal
   /// parameter.
   SuperFormalParameterImpl({
     required super.comment,
@@ -17245,20 +16155,16 @@ final class SuperFormalParameterImpl extends NormalFormalParameterImpl
 ///    switchCase ::=
 ///        [SimpleIdentifier]* 'case' [Expression] ':' [Statement]*
 abstract final class SwitchCase implements SwitchMember {
-  /// Return the expression controlling whether the statements will be executed.
+  /// The expression controlling whether the statements are executed.
   Expression get expression;
 }
 
-/// A case in a switch statement.
-///
-///    switchCase ::=
-///        [SimpleIdentifier]* 'case' [Expression] ':' [Statement]*
 final class SwitchCaseImpl extends SwitchMemberImpl implements SwitchCase {
-  /// The expression controlling whether the statements will be executed.
   ExpressionImpl _expression;
 
-  /// Initialize a newly created switch case. The list of [labels] can be `null`
-  /// if there are no labels.
+  /// Initializes a newly created switch case.
+  ///
+  /// The list of [labels] can be `null` if there are no labels.
   SwitchCaseImpl({
     required super.labels,
     required super.keyword,
@@ -17301,14 +16207,11 @@ final class SwitchCaseImpl extends SwitchMemberImpl implements SwitchCase {
 ///        [SimpleIdentifier]* 'default' ':' [Statement]*
 abstract final class SwitchDefault implements SwitchMember {}
 
-/// The default case in a switch statement.
-///
-///    switchDefault ::=
-///        [SimpleIdentifier]* 'default' ':' [Statement]*
 final class SwitchDefaultImpl extends SwitchMemberImpl
     implements SwitchDefault {
-  /// Initialize a newly created switch default. The list of [labels] can be
-  /// `null` if there are no labels.
+  /// Initializes a newly created switch default.
+  ///
+  /// The list of [labels] can be `null` if there are no labels.
   SwitchDefaultImpl({
     required super.labels,
     required super.keyword,
@@ -17339,26 +16242,25 @@ final class SwitchDefaultImpl extends SwitchMemberImpl
 ///        'switch' '(' [Expression] ')' '{' [SwitchExpressionCase]
 ///        (',' [SwitchExpressionCase])* ','? '}'
 abstract final class SwitchExpression implements Expression {
-  /// Return the cases that can be selected by the expression.
+  /// The cases that can be selected by the expression.
   NodeList<SwitchExpressionCase> get cases;
 
-  /// Return the expression used to determine which of the switch cases will
-  /// be selected.
+  /// The expression used to determine which of the switch cases is selected.
   Expression get expression;
 
-  /// Return the left curly bracket.
+  /// The left curly bracket.
   Token get leftBracket;
 
-  /// Return the left parenthesis.
+  /// The left parenthesis.
   Token get leftParenthesis;
 
-  /// Return the right curly bracket.
+  /// The right curly bracket.
   Token get rightBracket;
 
-  /// Return the right parenthesis.
+  /// The right parenthesis.
   Token get rightParenthesis;
 
-  /// Return the token representing the 'switch' keyword.
+  /// The token representing the `switch` keyword.
   Token get switchKeyword;
 }
 
@@ -17367,22 +16269,17 @@ abstract final class SwitchExpression implements Expression {
 ///    switchExpressionCase ::=
 ///        [GuardedPattern] '=>' [Expression]
 abstract final class SwitchExpressionCase implements AstNode {
-  /// Return the arrow separating the pattern from the expression.
+  /// The arrow separating the pattern from the expression.
   Token get arrow;
 
-  /// Return the expression whose value will be returned from the switch
-  /// expression if the pattern matches.
+  /// The expression whose value is returned from the switch expression if the
+  /// pattern matches.
   Expression get expression;
 
-  /// Return the refutable pattern that must match for the [expression] to
-  /// be executed.
+  /// The refutable pattern that must match for the [expression] to be executed.
   GuardedPattern get guardedPattern;
 }
 
-/// A case in a switch expression.
-///
-///    switchExpressionCase ::=
-///        [GuardedPattern] '=>' [Expression]
 final class SwitchExpressionCaseImpl extends AstNodeImpl
     implements SwitchExpressionCase {
   @override
@@ -17432,11 +16329,6 @@ final class SwitchExpressionCaseImpl extends AstNodeImpl
   }
 }
 
-/// A switch expression.
-///
-///    switchExpression ::=
-///        'switch' '(' [Expression] ')' '{' [SwitchExpressionCase]
-///        (',' [SwitchExpressionCase])* ','? '}'
 final class SwitchExpressionImpl extends ExpressionImpl
     implements SwitchExpression {
   @override
@@ -17535,43 +16427,33 @@ final class SwitchExpressionImpl extends ExpressionImpl
 // TODO(brianwilkerson): Consider renaming `SwitchMember`, `SwitchCase`, and
 //  `SwitchDefault` to start with `SwitchStatement` for consistency.
 sealed class SwitchMember implements AstNode {
-  /// Return the colon separating the keyword or the expression from the
-  /// statements.
+  /// The colon separating the keyword or the expression from the statements.
   Token get colon;
 
-  /// Return the token representing the 'case' or 'default' keyword.
+  /// The token representing the `case` or `default` keyword.
   Token get keyword;
 
-  /// Return the labels associated with the switch member.
+  /// The labels associated with the switch member.
   NodeList<Label> get labels;
 
-  /// Return the statements that will be executed if this switch member is
-  /// selected.
+  /// The statements that are executed if this switch member is selected.
   NodeList<Statement> get statements;
 }
 
-/// An element within a switch statement.
-///
-///    switchMember ::=
-///        switchCase
-///      | switchDefault
 sealed class SwitchMemberImpl extends AstNodeImpl implements SwitchMember {
-  /// The labels associated with the switch member.
   final NodeListImpl<LabelImpl> _labels = NodeListImpl._();
 
-  /// The token representing the 'case' or 'default' keyword.
   @override
   final Token keyword;
 
-  /// The colon separating the keyword or the expression from the statements.
   @override
   final Token colon;
 
-  /// The statements that will be executed if this switch member is selected.
   final NodeListImpl<StatementImpl> _statements = NodeListImpl._();
 
-  /// Initialize a newly created switch member. The list of [labels] can be
-  /// `null` if there are no labels.
+  /// Initializes a newly created switch member.
+  ///
+  /// The list of [labels] can be `null` if there are no labels.
   SwitchMemberImpl({
     required List<LabelImpl> labels,
     required this.keyword,
@@ -17610,14 +16492,10 @@ sealed class SwitchMemberImpl extends AstNodeImpl implements SwitchMember {
 ///    switchPatternCase ::=
 ///        [Label]* 'case' [DartPattern] [WhenClause]? ':' [Statement]*
 abstract final class SwitchPatternCase implements SwitchMember {
-  /// Return the pattern controlling whether the statements will be executed.
+  /// The pattern controlling whether the statements is executed.
   GuardedPattern get guardedPattern;
 }
 
-/// A pattern-based case in a switch statement.
-///
-///    switchPatternCase ::=
-///        [Label]* 'case' [DartPattern] [WhenClause]? ':' [Statement]*
 final class SwitchPatternCaseImpl extends SwitchMemberImpl
     implements SwitchPatternCase {
   @override
@@ -17657,26 +16535,25 @@ final class SwitchPatternCaseImpl extends SwitchMemberImpl
 ///    switchStatement ::=
 ///        'switch' '(' [Expression] ')' '{' [SwitchCase]* [SwitchDefault]? '}'
 abstract final class SwitchStatement implements Statement {
-  /// Return the expression used to determine which of the switch members will
-  /// be selected.
+  /// The expression used to determine which of the switch members is selected.
   Expression get expression;
 
-  /// Return the left curly bracket.
+  /// The left curly bracket.
   Token get leftBracket;
 
-  /// Return the left parenthesis.
+  /// The left parenthesis.
   Token get leftParenthesis;
 
-  /// Return the switch members that can be selected by the expression.
+  /// The switch members that can be selected by the expression.
   NodeList<SwitchMember> get members;
 
-  /// Return the right curly bracket.
+  /// The right curly bracket.
   Token get rightBracket;
 
-  /// Return the right parenthesis.
+  /// The right parenthesis.
   Token get rightParenthesis;
 
-  /// Return the token representing the 'switch' keyword.
+  /// The token representing the `switch` keyword.
   Token get switchKeyword;
 }
 
@@ -17694,44 +16571,33 @@ class SwitchStatementCaseGroup {
   }
 }
 
-/// A switch statement.
-///
-///    switchStatement ::=
-///        'switch' '(' [Expression] ')' '{' [SwitchCase]* [SwitchDefault]? '}'
 final class SwitchStatementImpl extends StatementImpl
     implements SwitchStatement {
-  /// The token representing the 'switch' keyword.
   @override
   final Token switchKeyword;
 
-  /// The left parenthesis.
   @override
   final Token leftParenthesis;
 
-  /// The expression used to determine which of the switch members will be
-  /// selected.
   ExpressionImpl _expression;
 
-  /// The right parenthesis.
   @override
   final Token rightParenthesis;
 
-  /// The left curly bracket.
   @override
   final Token leftBracket;
 
-  /// The switch members that can be selected by the expression.
   final NodeListImpl<SwitchMemberImpl> _members = NodeListImpl._();
 
   late final List<SwitchStatementCaseGroup> memberGroups =
       _computeMemberGroups();
 
-  /// The right curly bracket.
   @override
   final Token rightBracket;
 
-  /// Initialize a newly created switch statement. The list of [members] can be
-  /// `null` if there are no switch members.
+  /// Initializes a newly created switch statement.
+  ///
+  /// The list of [members] can be `null` if there are no switch members.
   SwitchStatementImpl({
     required this.switchKeyword,
     required this.leftParenthesis,
@@ -17809,27 +16675,21 @@ final class SwitchStatementImpl extends StatementImpl
 ///    symbolLiteral ::=
 ///        '#' (operator | (identifier ('.' identifier)*))
 abstract final class SymbolLiteral implements Literal {
-  /// Return the components of the literal.
+  /// The components of the literal.
   List<Token> get components;
 
-  /// Return the token introducing the literal.
+  /// The token introducing the literal.
   Token get poundSign;
 }
 
-/// A symbol literal expression.
-///
-///    symbolLiteral ::=
-///        '#' (operator | (identifier ('.' identifier)*))
 final class SymbolLiteralImpl extends LiteralImpl implements SymbolLiteral {
-  /// The token introducing the literal.
   @override
   final Token poundSign;
 
-  /// The components of the literal.
   @override
   final List<Token> components;
 
-  /// Initialize a newly created symbol literal.
+  /// Initializes a newly created symbol literal.
   SymbolLiteralImpl({
     required this.poundSign,
     required this.components,
@@ -17862,9 +16722,11 @@ final class SymbolLiteralImpl extends LiteralImpl implements SymbolLiteral {
 }
 
 /// An identifier that can be used to look up names in the lexical scope when
-/// there is no identifier in the AST structure. There is no identifier in the
-/// AST when the parser could not distinguish between a method invocation and an
-/// invocation of a top-level function imported with a prefix.
+/// there's no identifier in the AST structure.
+///
+/// For example, there's no identifier in the AST when the parser can't
+/// distinguish between a method invocation and an invocation of a top-level
+/// function imported with a prefix.
 final class SyntheticIdentifier implements SimpleIdentifier {
   @override
   final String name;
@@ -17880,21 +16742,16 @@ final class SyntheticIdentifier implements SimpleIdentifier {
 ///    thisExpression ::=
 ///        'this'
 abstract final class ThisExpression implements Expression {
-  /// Return the token representing the 'this' keyword.
+  /// The token representing the `this` keyword.
   Token get thisKeyword;
 }
 
-/// A this expression.
-///
-///    thisExpression ::=
-///        'this'
 final class ThisExpressionImpl extends ExpressionImpl
     implements ThisExpression {
-  /// The token representing the 'this' keyword.
   @override
   final Token thisKeyword;
 
-  /// Initialize a newly created this expression.
+  /// Initializes a newly created this expression.
   ThisExpressionImpl({
     required this.thisKeyword,
   });
@@ -17931,27 +16788,21 @@ final class ThisExpressionImpl extends ExpressionImpl
 ///    throwExpression ::=
 ///        'throw' [Expression]
 abstract final class ThrowExpression implements Expression {
-  /// Return the expression computing the exception to be thrown.
+  /// The expression computing the exception to be thrown.
   Expression get expression;
 
-  /// Return the token representing the 'throw' keyword.
+  /// The token representing the `throw` keyword.
   Token get throwKeyword;
 }
 
-/// A throw expression.
-///
-///    throwExpression ::=
-///        'throw' [Expression]
 final class ThrowExpressionImpl extends ExpressionImpl
     implements ThrowExpression {
-  /// The token representing the 'throw' keyword.
   @override
   final Token throwKeyword;
 
-  /// The expression computing the exception to be thrown.
   ExpressionImpl _expression;
 
-  /// Initialize a newly created throw expression.
+  /// Initializes a newly created throw expression.
   ThrowExpressionImpl({
     required this.throwKeyword,
     required ExpressionImpl expression,
@@ -18004,34 +16855,28 @@ final class ThrowExpressionImpl extends ExpressionImpl
 ///      | 'late'? <varOrType> <initializedIdentifierList> ';'
 ///      | 'external' <finalVarOrType> <identifierList> ';'
 ///
-/// (Note: there is no <topLevelVariableDeclaration> production in the grammar;
+/// (Note: there's no <topLevelVariableDeclaration> production in the grammar;
 /// this is a subset of the grammar production <topLevelDeclaration>, which
 /// encompasses everything that can appear inside a Dart file after part
 /// directives).
 abstract final class TopLevelVariableDeclaration
     implements CompilationUnitMember {
-  /// The 'augment' keyword, or `null` if the keyword was absent.
+  /// The `augment` keyword, or `null` if the keyword was absent.
   @experimental
   Token? get augmentKeyword;
 
-  /// The `external` keyword, or `null` if the keyword was not used.
+  /// The `external` keyword, or `null` if the keyword isn't used.
   Token? get externalKeyword;
 
-  /// Return the semicolon terminating the declaration.
+  /// The semicolon terminating the declaration.
   Token get semicolon;
 
-  /// Return the top-level variables being declared.
+  /// The top-level variables being declared.
   VariableDeclarationList get variables;
 }
 
-/// The declaration of one or more top-level variables of the same type.
-///
-///    topLevelVariableDeclaration ::=
-///        ('final' | 'const') type? staticFinalDeclarationList ';'
-///      | variableDeclaration ';'
 final class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
     implements TopLevelVariableDeclaration {
-  /// The top-level variables being declared.
   VariableDeclarationListImpl _variableList;
 
   @override
@@ -18040,13 +16885,13 @@ final class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
   @override
   final Token? externalKeyword;
 
-  /// The semicolon terminating the declaration.
   @override
   final Token semicolon;
 
-  /// Initialize a newly created top-level variable declaration. Either or both
-  /// of the [comment] and [metadata] can be `null` if the variable does not
-  /// have the corresponding attribute.
+  /// Initializes a newly created top-level variable declaration.
+  ///
+  /// Either or both of the [comment] and [metadata] can be `null` if the
+  /// variable doesn't have the corresponding attribute.
   TopLevelVariableDeclarationImpl({
     required super.comment,
     required super.metadata,
@@ -18101,54 +16946,41 @@ final class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
 ///    finallyClause ::=
 ///        'finally' [Block]
 abstract final class TryStatement implements Statement {
-  /// Return the body of the statement.
+  /// The body of the statement.
   Block get body;
 
-  /// Return the catch clauses contained in the try statement.
+  /// The catch clauses contained in the try statement.
   NodeList<CatchClause> get catchClauses;
 
-  /// Return the finally block contained in the try statement, or `null` if the
-  /// statement does not contain a finally clause.
+  /// The finally block contained in the try statement, or `null` if the
+  /// statement doesn't contain a finally clause.
   Block? get finallyBlock;
 
-  /// Return the token representing the 'finally' keyword, or `null` if the
-  /// statement does not contain a finally clause.
+  /// The token representing the `finally` keyword, or `null` if the statement
+  /// doesn't contain a finally clause.
   Token? get finallyKeyword;
 
-  /// Return the token representing the 'try' keyword.
+  /// The token representing the `try` keyword.
   Token get tryKeyword;
 }
 
-/// A try statement.
-///
-///    tryStatement ::=
-///        'try' [Block] ([CatchClause]+ finallyClause? | finallyClause)
-///
-///    finallyClause ::=
-///        'finally' [Block]
 final class TryStatementImpl extends StatementImpl implements TryStatement {
-  /// The token representing the 'try' keyword.
   @override
   final Token tryKeyword;
 
-  /// The body of the statement.
   BlockImpl _body;
 
-  /// The catch clauses contained in the try statement.
   final NodeListImpl<CatchClauseImpl> _catchClauses = NodeListImpl._();
 
-  /// The token representing the 'finally' keyword, or `null` if the statement
-  /// does not contain a finally clause.
   @override
   final Token? finallyKeyword;
 
-  /// The finally block contained in the try statement, or `null` if the
-  /// statement does not contain a finally clause.
   BlockImpl? _finallyBlock;
 
-  /// Initialize a newly created try statement. The list of [catchClauses] can
-  /// be`null` if there are no catch clauses. The [finallyKeyword] and
-  /// [finallyBlock] can be `null` if there is no finally clause.
+  /// Initializes a newly created try statement.
+  ///
+  /// The [finallyKeyword] and [finallyBlock] can be `null` if there's no
+  /// finally clause.
   TryStatementImpl({
     required this.tryKeyword,
     required BlockImpl body,
@@ -18220,32 +17052,25 @@ final class TryStatementImpl extends StatementImpl implements TryStatement {
 ///      | [FunctionTypeAlias]
 ///      | [GenericTypeAlias]
 abstract final class TypeAlias implements NamedCompilationUnitMember {
-  /// Return the semicolon terminating the declaration.
+  /// The semicolon terminating the declaration.
   Token get semicolon;
 
-  /// Return the token representing the 'typedef' or 'class' keyword.
+  /// The token representing the `typedef` or `class` keyword.
   Token get typedefKeyword;
 }
 
-/// The declaration of a type alias.
-///
-///    typeAlias ::=
-///        [ClassTypeAlias]
-///      | [FunctionTypeAlias]
-///      | [GenericTypeAlias]
 sealed class TypeAliasImpl extends NamedCompilationUnitMemberImpl
     implements TypeAlias {
-  /// The token representing the 'typedef' or 'class' keyword.
   @override
   final Token typedefKeyword;
 
-  /// The semicolon terminating the declaration.
   @override
   final Token semicolon;
 
-  /// Initialize a newly created type alias. Either or both of the [comment] and
-  /// [metadata] can be `null` if the declaration does not have the
-  /// corresponding attribute.
+  /// Initializes a newly created type alias.
+  ///
+  /// Either or both of the [comment] and [metadata] can be `null` if the
+  /// declaration doesn't have the corresponding attribute.
   TypeAliasImpl({
     required super.comment,
     required super.metadata,
@@ -18268,20 +17093,14 @@ sealed class TypeAliasImpl extends NamedCompilationUnitMemberImpl
 ///      | [GenericFunctionType]
 ///      | [RecordTypeAnnotation]
 sealed class TypeAnnotation implements AstNode {
-  /// The question mark indicating that the type is nullable, or `null` if there
-  /// is no question mark.
+  /// The question mark indicating that the type is nullable, or `null` if
+  /// there's no question mark.
   Token? get question;
 
-  /// Return the type being named, or `null` if the AST structure has not been
-  /// resolved.
+  /// The type being named, or `null` if the AST structure hasn't been resolved.
   DartType? get type;
 }
 
-/// A type annotation.
-///
-///    type ::=
-///        [NamedType]
-///      | [GenericFunctionType]
 sealed class TypeAnnotationImpl extends AstNodeImpl implements TypeAnnotation {}
 
 /// A list of type arguments.
@@ -18289,34 +17108,27 @@ sealed class TypeAnnotationImpl extends AstNodeImpl implements TypeAnnotation {}
 ///    typeArguments ::=
 ///        '<' typeName (',' typeName)* '>'
 abstract final class TypeArgumentList implements AstNode {
-  /// Return the type arguments associated with the type.
+  /// The type arguments associated with the type.
   NodeList<TypeAnnotation> get arguments;
 
-  /// Return the left bracket.
+  /// The left bracket.
   Token get leftBracket;
 
-  /// Return the right bracket.
+  /// The right bracket.
   Token get rightBracket;
 }
 
-/// A list of type arguments.
-///
-///    typeArguments ::=
-///        '<' typeName (',' typeName)* '>'
 final class TypeArgumentListImpl extends AstNodeImpl
     implements TypeArgumentList {
-  /// The left bracket.
   @override
   final Token leftBracket;
 
-  /// The type arguments associated with the type.
   final NodeListImpl<TypeAnnotationImpl> _arguments = NodeListImpl._();
 
-  /// The right bracket.
   @override
   final Token rightBracket;
 
-  /// Initialize a newly created list of type arguments.
+  /// Initializes a newly created list of type arguments.
   TypeArgumentListImpl({
     required this.leftBracket,
     required List<TypeAnnotationImpl> arguments,
@@ -18356,38 +17168,33 @@ final class TypeArgumentListImpl extends AstNodeImpl
 ///        [ListLiteral]
 ///      | [SetOrMapLiteral]
 sealed class TypedLiteral implements Literal {
-  /// Return the token representing the 'const' keyword, or `null` if the
-  /// literal is not a constant.
+  /// The token representing the `const` keyword, or `null` if the literal isn't
+  /// a constant.
   Token? get constKeyword;
 
-  /// Return `true` if this literal is a constant expression, either because the
-  /// keyword `const` was explicitly provided or because no keyword was provided
-  /// and this expression is in a constant context.
+  /// Whether this literal is a constant expression.
+  ///
+  /// It is a constant expression if either the keyword `const` was explicitly
+  /// provided or because no keyword was provided and this expression occurs in
+  /// a constant context.
   bool get isConst;
-
-  /// Return the type argument associated with this literal, or `null` if no
-  /// type arguments were declared.
-  TypeArgumentList? get typeArguments;
-}
-
-/// A literal that has a type associated with it.
-///
-///    typedLiteral ::=
-///        [ListLiteral]
-///      | [MapLiteral]
-sealed class TypedLiteralImpl extends LiteralImpl implements TypedLiteral {
-  /// The token representing the 'const' keyword, or `null` if the literal is
-  /// not a constant.
-  @override
-  Token? constKeyword;
 
   /// The type argument associated with this literal, or `null` if no type
   /// arguments were declared.
+  TypeArgumentList? get typeArguments;
+}
+
+sealed class TypedLiteralImpl extends LiteralImpl implements TypedLiteral {
+  @override
+  Token? constKeyword;
+
   TypeArgumentListImpl? _typeArguments;
 
-  /// Initialize a newly created typed literal. The [constKeyword] can be
-  /// `null` if the literal is not a constant. The [typeArguments] can be `null`
-  /// if no type arguments were declared.
+  /// Initializes a newly created typed literal.
+  ///
+  /// The [constKeyword] can be `null` if the literal isn't a constant.
+  ///
+  /// The [typeArguments] can be `null` if no type arguments were declared.
   TypedLiteralImpl({
     required this.constKeyword,
     required TypeArgumentListImpl? typeArguments,
@@ -18418,15 +17225,15 @@ sealed class TypedLiteralImpl extends LiteralImpl implements TypedLiteral {
   }
 }
 
-/// An expression representing a type, e.g. the expression `int` in
+/// An expression representing a type, such as the expression `int` in
 /// `var x = int;`.
 ///
-/// Objects of this type are not produced directly by the parser (because the
-/// parser cannot tell whether an identifier refers to a type); they are
+/// Objects of this type aren't produced directly by the parser (because the
+/// parser can't tell whether an identifier refers to a type); they are
 /// produced at resolution time.
 ///
-/// The `.staticType` getter returns the type of the expression (which will
-/// always be the type `Type`).  To see the type represented by the type literal
+/// The `.staticType` getter returns the type of the expression (which is
+/// always the type `Type`). To get the type represented by the type literal
 /// use `.typeName.type`.
 abstract final class TypeLiteral
     implements Expression, CommentReferableExpression {
@@ -18434,16 +17241,6 @@ abstract final class TypeLiteral
   NamedType get type;
 }
 
-/// An expression representing a type, e.g. the expression `int` in
-/// `var x = int;`.
-///
-/// Objects of this type are not produced directly by the parser (because the
-/// parser cannot tell whether an identifier refers to a type); they are
-/// produced at resolution time.
-///
-/// The `.staticType` getter returns the type of the expression (which will
-/// always be the type `Type`).  To see the type represented by the type literal
-/// use `.typeName.type`.
 final class TypeLiteralImpl extends CommentReferableExpressionImpl
     implements TypeLiteral {
   NamedTypeImpl _typeName;
@@ -18500,51 +17297,44 @@ final class TypeLiteralImpl extends CommentReferableExpressionImpl
 ///    typeParameter ::=
 ///        name ('extends' [TypeAnnotation])?
 abstract final class TypeParameter implements Declaration {
-  /// Return the upper bound for legal arguments, or `null` if there is no
-  /// explicit upper bound.
+  /// The upper bound for legal arguments, or `null` if there's no explicit
+  /// upper bound.
   TypeAnnotation? get bound;
 
   @override
   TypeParameterElement? get declaredElement;
 
-  /// Return the token representing the 'extends' keyword, or `null` if there is
-  /// no explicit upper bound.
+  /// The token representing the `extends` keyword, or `null` if there's no
+  /// explicit upper bound.
   Token? get extendsKeyword;
 
-  /// Return the name of the type parameter.
+  /// The name of the type parameter.
   Token get name;
 }
 
-/// A type parameter.
-///
-///    typeParameter ::=
-///        typeParameterVariance? [SimpleIdentifier] ('extends' [NamedType])?
-///
-///    typeParameterVariance ::= 'out' | 'inout' | 'in'
 final class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
   @override
   final Token name;
 
-  /// The token representing the variance modifier keyword, or `null` if
-  /// there is no explicit variance modifier, meaning legacy covariance.
+  /// The token representing the variance modifier keyword, or `null` if there's
+  /// no explicit variance modifier, meaning legacy covariance.
   Token? varianceKeyword;
 
-  /// The token representing the 'extends' keyword, or `null` if there is no
-  /// explicit upper bound.
   @override
   Token? extendsKeyword;
 
-  /// The name of the upper bound for legal arguments, or `null` if there is no
-  /// explicit upper bound.
   TypeAnnotationImpl? _bound;
 
   @override
   TypeParameterElementImpl? declaredElement;
 
-  /// Initialize a newly created type parameter. Either or both of the [comment]
-  /// and [metadata] can be `null` if the parameter does not have the
-  /// corresponding attribute. The [extendsKeyword] and [bound] can be `null` if
-  /// the parameter does not have an upper bound.
+  /// Initializes a newly created type parameter.
+  ///
+  /// Either or both of the [comment] and [metadata] can be `null` if the
+  /// parameter doesn't have the corresponding attribute.
+  ///
+  /// The [extendsKeyword] and [bound] can be `null` if the parameter doesn't
+  /// have a bound.
   TypeParameterImpl({
     required super.comment,
     required super.metadata,
@@ -18592,34 +17382,27 @@ final class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
 ///    typeParameterList ::=
 ///        '<' [TypeParameter] (',' [TypeParameter])* '>'
 abstract final class TypeParameterList implements AstNode {
-  /// Return the left angle bracket.
+  /// The left angle bracket.
   Token get leftBracket;
 
-  /// Return the right angle bracket.
+  /// The right angle bracket.
   Token get rightBracket;
 
-  /// Return the type parameters for the type.
+  /// The type parameters for the type.
   NodeList<TypeParameter> get typeParameters;
 }
 
-/// Type parameters within a declaration.
-///
-///    typeParameterList ::=
-///        '<' [TypeParameter] (',' [TypeParameter])* '>'
 final class TypeParameterListImpl extends AstNodeImpl
     implements TypeParameterList {
-  /// The left angle bracket.
   @override
   final Token leftBracket;
 
-  /// The type parameters in the list.
   final NodeListImpl<TypeParameterImpl> _typeParameters = NodeListImpl._();
 
-  /// The right angle bracket.
   @override
   final Token rightBracket;
 
-  /// Initialize a newly created list of type parameters.
+  /// Initializes a newly created list of type parameters.
   TypeParameterListImpl({
     required this.leftBracket,
     required List<TypeParameterImpl> typeParameters,
@@ -18660,24 +17443,18 @@ final class TypeParameterListImpl extends AstNodeImpl
 ///      | [ImportDirective]
 ///      | [PartDirective]
 sealed class UriBasedDirective implements Directive {
-  /// Return the URI referenced by this directive.
+  /// The URI referenced by this directive.
   StringLiteral get uri;
 }
 
-/// A directive that references a URI.
-///
-///    uriBasedDirective ::=
-///        [ExportDirective]
-///      | [ImportDirective]
-///      | [PartDirective]
 sealed class UriBasedDirectiveImpl extends DirectiveImpl
     implements UriBasedDirective {
-  /// The URI referenced by this directive.
   StringLiteralImpl _uri;
 
-  /// Initialize a newly create URI-based directive. Either or both of the
-  /// [comment] and [metadata] can be `null` if the directive does not have the
-  /// corresponding attribute.
+  /// Initializes a newly create URI-based directive.
+  ///
+  /// Either or both of the [comment] and [metadata] can be `null` if the
+  /// directive doesn't have the corresponding attribute.
   UriBasedDirectiveImpl({
     required super.comment,
     required super.metadata,
@@ -18699,8 +17476,10 @@ sealed class UriBasedDirectiveImpl extends DirectiveImpl
     _uri.accept(visitor);
   }
 
-  /// Validate this directive, but do not check for existence. Return a code
-  /// indicating the problem if there is one, or `null` no problem.
+  /// Validate this directive, but don't check for existence.
+  ///
+  /// Returns a code indicating the problem if a problem was found, or `null` if
+  /// there's no problem.
   static UriValidationCode? validateUri(
       bool isImport, StringLiteral uriLiteral, String? uriContent) {
     if (uriLiteral is StringInterpolation) {
@@ -18735,7 +17514,7 @@ class UriValidationCode {
   /// The name of the validation code.
   final String name;
 
-  /// Initialize a newly created validation code to have the given [name].
+  /// Initializes a newly created validation code to have the given [name].
   const UriValidationCode(this.name);
 
   @override
@@ -18749,48 +17528,38 @@ class UriValidationCode {
 ///
 ///    variableDeclaration ::=
 ///        name ('=' [Expression])?
-// TODO(paulberry): the grammar does not allow metadata to be associated with a
+// TODO(paulberry): the grammar doesn't allow metadata to be associated with a
 // VariableDeclaration, and currently we don't record comments for it either.
-// Consider changing the class hierarchy so that [VariableDeclaration] does not
+// Consider changing the class hierarchy so that [VariableDeclaration] doesn't
 // extend [Declaration].
 abstract final class VariableDeclaration implements Declaration {
   @override
   VariableElement? get declaredElement;
 
-  /// Return the equal sign separating the variable name from the initial value,
-  /// or `null` if the initial value was not specified.
+  /// The equal sign separating the variable name from the initial value, or
+  /// `null` if the initial value isn't specified.
   Token? get equals;
 
-  /// Return the expression used to compute the initial value for the variable,
-  /// or `null` if the initial value was not specified.
+  /// The expression used to compute the initial value for the variable, or
+  /// `null` if the initial value isn't specified.
   Expression? get initializer;
 
-  /// Return `true` if this variable was declared with the 'const' modifier.
+  /// Whether this variable was declared with the 'const' modifier.
   bool get isConst;
 
-  /// Return `true` if this variable was declared with the 'final' modifier.
+  /// Whether this variable was declared with the 'final' modifier.
   ///
-  /// Variables that are declared with the 'const' modifier will return `false`
-  /// even though they are implicitly final.
+  /// Variables that are declared with the 'const' modifier return `false` even
+  /// though they are implicitly final.
   bool get isFinal;
 
-  /// Return `true` if this variable was declared with the 'late' modifier.
+  /// Whether this variable was declared with the 'late' modifier.
   bool get isLate;
 
-  /// Return the name of the variable being declared.
+  /// The name of the variable being declared.
   Token get name;
 }
 
-/// An identifier that has an initial value associated with it. Instances of
-/// this class are always children of the class [VariableDeclarationList].
-///
-///    variableDeclaration ::=
-///        [SimpleIdentifier] ('=' [Expression])?
-///
-// TODO(paulberry): the grammar does not allow metadata to be associated with
-// a VariableDeclaration, and currently we don't record comments for it either.
-// Consider changing the class hierarchy so that [VariableDeclaration] does not
-// extend [Declaration].
 final class VariableDeclarationImpl extends DeclarationImpl
     implements VariableDeclaration {
   @override
@@ -18799,13 +17568,9 @@ final class VariableDeclarationImpl extends DeclarationImpl
   @override
   VariableElementImpl? declaredElement;
 
-  /// The equal sign separating the variable name from the initial value, or
-  /// `null` if the initial value was not specified.
   @override
   final Token? equals;
 
-  /// The expression used to compute the initial value for the variable, or
-  /// `null` if the initial value was not specified.
   ExpressionImpl? _initializer;
 
   /// When this node is read as a part of summaries, we usually don't want
@@ -18814,8 +17579,9 @@ final class VariableDeclarationImpl extends DeclarationImpl
   /// [initializer] is `null`.
   bool hasInitializer = false;
 
-  /// Initialize a newly created variable declaration. The [equals] and
-  /// [initializer] can be `null` if there is no initializer.
+  /// Initializes a newly created variable declaration.
+  ///
+  /// The [equals] and [initializer] can be `null` if there's no initializer.
   VariableDeclarationImpl({
     required this.name,
     required this.equals,
@@ -18895,49 +17661,6 @@ final class VariableDeclarationImpl extends DeclarationImpl
 /// The declaration of one or more variables of the same type.
 ///
 ///    variableDeclarationList ::=
-///        finalConstVarOrType [VariableDeclaration] (',' [VariableDeclaration])*
-///
-///    finalConstVarOrType ::=
-///      'final' 'late'? [TypeAnnotation]?
-///      | 'const' [TypeAnnotation]?
-///      | 'var'
-///      | 'late'? [TypeAnnotation]
-abstract final class VariableDeclarationList implements AnnotatedNode {
-  /// Return `true` if the variables in this list were declared with the 'const'
-  /// modifier.
-  bool get isConst;
-
-  /// Return `true` if the variables in this list were declared with the 'final'
-  /// modifier.
-  ///
-  /// Variables that are declared with the 'const' modifier will return `false`
-  /// even though they are implicitly final. (In other words, this is a
-  /// syntactic check rather than a semantic check.)
-  bool get isFinal;
-
-  /// Return `true` if the variables in this list were declared with the 'late'
-  /// modifier.
-  bool get isLate;
-
-  /// Return the token representing the 'final', 'const' or 'var' keyword, or
-  /// `null` if no keyword was included.
-  Token? get keyword;
-
-  /// Return the token representing the 'late' keyword, or `null` if the late
-  /// modifier was not included.
-  Token? get lateKeyword;
-
-  /// Return the type of the variables being declared, or `null` if no type was
-  /// provided.
-  TypeAnnotation? get type;
-
-  /// Return a list containing the individual variables being declared.
-  NodeList<VariableDeclaration> get variables;
-}
-
-/// The declaration of one or more variables of the same type.
-///
-///    variableDeclarationList ::=
 ///        finalConstVarOrType [VariableDeclaration]
 ///        (',' [VariableDeclaration])*
 ///
@@ -18946,29 +17669,58 @@ abstract final class VariableDeclarationList implements AnnotatedNode {
 ///      | 'const' [TypeAnnotation]?
 ///      | 'var'
 ///      | 'late'? [TypeAnnotation]
-final class VariableDeclarationListImpl extends AnnotatedNodeImpl
-    implements VariableDeclarationList {
-  /// The token representing the 'final', 'const' or 'var' keyword, or `null` if
-  /// no keyword was included.
-  @override
-  final Token? keyword;
+abstract final class VariableDeclarationList implements AnnotatedNode {
+  /// Whether the variables in this list were declared with the 'const'
+  /// modifier.
+  bool get isConst;
 
-  /// The token representing the 'late' keyword, or `null` if the late modifier
-  /// was not included.
-  @override
-  final Token? lateKeyword;
+  /// Whether the variables in this list were declared with the 'final'
+  /// modifier.
+  ///
+  /// Variables that are declared with the 'const' modifier return `false` even
+  /// though they are implicitly final. (In other words, this is a syntactic
+  /// check rather than a semantic check.)
+  bool get isFinal;
+
+  /// Whether the variables in this list were declared with the 'late' modifier.
+  bool get isLate;
+
+  /// The token representing the `final`, `const` or `var` keyword, or `null` if
+  /// no keyword was included.
+  Token? get keyword;
+
+  /// The token representing the `late` keyword, or `null` if the late modifier
+  /// isn't included.
+  Token? get lateKeyword;
 
   /// The type of the variables being declared, or `null` if no type was
   /// provided.
-  TypeAnnotationImpl? _type;
+  TypeAnnotation? get type;
 
   /// A list containing the individual variables being declared.
+  NodeList<VariableDeclaration> get variables;
+}
+
+final class VariableDeclarationListImpl extends AnnotatedNodeImpl
+    implements VariableDeclarationList {
+  @override
+  final Token? keyword;
+
+  @override
+  final Token? lateKeyword;
+
+  TypeAnnotationImpl? _type;
+
   final NodeListImpl<VariableDeclarationImpl> _variables = NodeListImpl._();
 
-  /// Initialize a newly created variable declaration list. Either or both of
-  /// the [comment] and [metadata] can be `null` if the variable list does not
-  /// have the corresponding attribute. The [keyword] can be `null` if a type
-  /// was specified. The [type] must be `null` if the keyword is 'var'.
+  /// Initializes a newly created variable declaration list.
+  ///
+  /// Either or both of the [comment] and [metadata] can be `null` if the
+  /// variable list doesn't have the corresponding attribute.
+  ///
+  /// The [keyword] can be `null` if a type was specified.
+  ///
+  /// The [type] must be `null` if the keyword is `var`.
   VariableDeclarationListImpl({
     required super.comment,
     required super.metadata,
@@ -19036,28 +17788,21 @@ final class VariableDeclarationListImpl extends AnnotatedNodeImpl
 ///    variableDeclarationStatement ::=
 ///        [VariableDeclarationList] ';'
 abstract final class VariableDeclarationStatement implements Statement {
-  /// Return the semicolon terminating the statement.
+  /// The semicolon terminating the statement.
   Token get semicolon;
 
-  /// Return the variables being declared.
+  /// The variables being declared.
   VariableDeclarationList get variables;
 }
 
-/// A list of variables that are being declared in a context where a statement
-/// is required.
-///
-///    variableDeclarationStatement ::=
-///        [VariableDeclarationList] ';'
 final class VariableDeclarationStatementImpl extends StatementImpl
     implements VariableDeclarationStatement {
-  /// The variables being declared.
   VariableDeclarationListImpl _variableList;
 
-  /// The semicolon terminating the statement.
   @override
   final Token semicolon;
 
-  /// Initialize a newly created variable declaration statement.
+  /// Initializes a newly created variable declaration statement.
   VariableDeclarationStatementImpl({
     required VariableDeclarationListImpl variableList,
     required this.semicolon,
@@ -19123,19 +17868,14 @@ sealed class VariablePatternImpl extends DartPatternImpl
 ///    switchCase ::=
 ///        'when' [Expression]
 abstract final class WhenClause implements AstNode {
-  /// Return the condition that is evaluated when the [pattern] matches, that
-  /// must evaluate to `true` in order for the [expression] to be executed.
+  /// The condition that is evaluated when the [pattern] matches, that must
+  /// evaluate to `true` in order for the [expression] to be executed.
   Expression get expression;
 
-  /// Return the `when` keyword.
+  /// The `when` keyword.
   Token get whenKeyword;
 }
 
-/// A guard in a pattern-based `case` in a `switch` statement or `switch`
-/// expression.
-///
-///    switchCase ::=
-///        'when' [Expression]
 final class WhenClauseImpl extends AstNodeImpl implements WhenClause {
   ExpressionImpl _expression;
 
@@ -19181,47 +17921,37 @@ final class WhenClauseImpl extends AstNodeImpl implements WhenClause {
 ///    whileStatement ::=
 ///        'while' '(' [Expression] ')' [Statement]
 abstract final class WhileStatement implements Statement {
-  /// Return the body of the loop.
+  /// The body of the loop.
   Statement get body;
 
-  /// Return the expression used to determine whether to execute the body of the
-  /// loop.
+  /// The expression used to determine whether to execute the body of the loop.
   Expression get condition;
 
-  /// Return the left parenthesis.
+  /// The left parenthesis.
   Token get leftParenthesis;
 
-  /// Return the right parenthesis.
+  /// The right parenthesis.
   Token get rightParenthesis;
 
-  /// Return the token representing the 'while' keyword.
+  /// The token representing the `while` keyword.
   Token get whileKeyword;
 }
 
-/// A while statement.
-///
-///    whileStatement ::=
-///        'while' '(' [Expression] ')' [Statement]
 final class WhileStatementImpl extends StatementImpl implements WhileStatement {
-  /// The token representing the 'while' keyword.
   @override
   final Token whileKeyword;
 
-  /// The left parenthesis.
   @override
   final Token leftParenthesis;
 
-  /// The expression used to determine whether to execute the body of the loop.
   ExpressionImpl _condition;
 
-  /// The right parenthesis.
   @override
   final Token rightParenthesis;
 
-  /// The body of the loop.
   StatementImpl _body;
 
-  /// Initialize a newly created while statement.
+  /// Initializes a newly created while statement.
   WhileStatementImpl({
     required this.whileKeyword,
     required this.leftParenthesis,
@@ -19277,7 +18007,7 @@ final class WhileStatementImpl extends StatementImpl implements WhileStatement {
 ///    wildcardPattern ::=
 ///        ( 'var' | 'final' | 'final'? [TypeAnnotation])? '_'
 abstract final class WildcardPattern implements DartPattern {
-  /// The 'var' or 'final' keyword.
+  /// The `var` or `final` keyword.
   Token? get keyword;
 
   /// The `_` token.
@@ -19288,10 +18018,6 @@ abstract final class WildcardPattern implements DartPattern {
   TypeAnnotation? get type;
 }
 
-/// A wildcard pattern.
-///
-///    variablePattern ::=
-///        ( 'var' | 'final' | 'final'? [TypeAnnotation])? '_'
 final class WildcardPatternImpl extends DartPatternImpl
     implements WildcardPattern {
   @override
@@ -19376,26 +18102,20 @@ final class WildcardPatternImpl extends DartPatternImpl
 ///    withClause ::=
 ///        'with' [NamedType] (',' [NamedType])*
 abstract final class WithClause implements AstNode {
-  /// Return the names of the mixins that were specified.
+  /// The names of the mixins that were specified.
   NodeList<NamedType> get mixinTypes;
 
-  /// Return the token representing the 'with' keyword.
+  /// The token representing the `with` keyword.
   Token get withKeyword;
 }
 
-/// The with clause in a class declaration.
-///
-///    withClause ::=
-///        'with' [NamedType] (',' [NamedType])*
 final class WithClauseImpl extends AstNodeImpl implements WithClause {
-  /// The token representing the 'with' keyword.
   @override
   final Token withKeyword;
 
-  /// The names of the mixins that were specified.
   final NodeListImpl<NamedTypeImpl> _mixinTypes = NodeListImpl._();
 
-  /// Initialize a newly created with clause.
+  /// Initializes a newly created with clause.
   WithClauseImpl({
     required this.withKeyword,
     required List<NamedTypeImpl> mixinTypes,
@@ -19432,41 +18152,34 @@ final class WithClauseImpl extends AstNodeImpl implements WithClause {
 ///    yieldStatement ::=
 ///        'yield' '*'? [Expression] ‘;’
 abstract final class YieldStatement implements Statement {
-  /// Return the expression whose value will be yielded.
+  /// The expression whose value is yielded.
   Expression get expression;
 
-  /// Return the semicolon following the expression.
+  /// The semicolon following the expression.
   Token get semicolon;
 
-  /// Return the star optionally following the 'yield' keyword.
+  /// The star optionally following the `yield` keyword.
   Token? get star;
 
-  /// Return the 'yield' keyword.
+  /// The `yield` keyword.
   Token get yieldKeyword;
 }
 
-/// A yield statement.
-///
-///    yieldStatement ::=
-///        'yield' '*'? [Expression] ‘;’
 final class YieldStatementImpl extends StatementImpl implements YieldStatement {
-  /// The 'yield' keyword.
   @override
   final Token yieldKeyword;
 
-  /// The star optionally following the 'yield' keyword.
   @override
   final Token? star;
 
-  /// The expression whose value will be yielded.
   ExpressionImpl _expression;
 
-  /// The semicolon following the expression.
   @override
   final Token semicolon;
 
-  /// Initialize a newly created yield expression. The [star] can be `null` if
-  /// no star was provided.
+  /// Initializes a newly created yield expression.
+  ///
+  /// The [star] can be `null` if no star was provided.
   YieldStatementImpl({
     required this.yieldKeyword,
     required this.star,
@@ -19518,9 +18231,9 @@ enum _SetOrMapKind {
   set,
 
   /// Indicates that either
-  /// - the literal is syntactically ambiguous and resolution has not yet been
+  /// - the literal is syntactically ambiguous and resolution hasn't yet been
   ///   performed, or
-  /// - the literal is invalid because resolution was not able to resolve the
+  /// - the literal is invalid because resolution isn't able to resolve the
   ///   ambiguity.
   unresolved
 }
