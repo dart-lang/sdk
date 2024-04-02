@@ -2,6 +2,8 @@
 
 - Introduce `TargetKind.constructor`, to indicate that an annotation is valid on
   any constructor.
+- Introduce `TargetKind.directive`, to indicate that an annotation is valid on
+  any directive.
 - Introduce `TargetKind.typeParamteer`, to indicate that an annotation is valid
   on any type parameter.
 - Introduce `@doNotSubmit` to annotate members that should not be submitted to

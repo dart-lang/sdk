@@ -48,6 +48,11 @@ class TargetKind {
   /// because there is no way to annotate a primary constructor.
   static const constructor = TargetKind._('constructors', 'constructor');
 
+  /// Indicates that an annotation is valid on any directive in a library or
+  /// part file, whether it's a `library`, `import`, `export`, `part`, or
+  /// `part of` directive.
+  static const directive = TargetKind._('directives', 'directive');
+
   /// Indicates that an annotation is valid on any enum declaration.
   static const enumType = TargetKind._('enums', 'enumType');
 
@@ -119,6 +124,7 @@ class TargetKind {
   static const values = [
     classType,
     constructor,
+    directive,
     enumType,
     extension,
     extensionType,
