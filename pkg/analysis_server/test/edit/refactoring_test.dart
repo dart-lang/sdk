@@ -1321,6 +1321,22 @@ void f() {
 ''');
   }
 
+  Future<void> test_topLevelFunction_async() {
+    addTestFile('''
+Future<int> a() async => 3;
+Future<int> b() async => await a();
+Future<int> c() async => await b();
+}
+''');
+    return assertSuccessfulRefactoring(() {
+      return _sendInlineRequest('b(');
+    }, '''
+Future<int> a() async => 3;
+Future<int> c() async => await a();
+}
+''');
+  }
+
   Future<void> test_topLevelFunction_oneInvocation() {
     addTestFile('''
 test(a, b) {
