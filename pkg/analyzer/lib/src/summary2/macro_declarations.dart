@@ -1326,6 +1326,10 @@ class DeclarationBuilderFromNode {
   ) {
     final element = node.declaredElement!;
 
+    final declarationElement = element.augmented!.declaration;
+    final declarationNode = builder.nodeOfElement(declarationElement)
+        as ast.ExtensionDeclarationImpl;
+
     return ExtensionDeclarationImpl._(
       id: macro.RemoteInstance.uniqueId,
       identifier: _declaredIdentifier2(node.name?.lexeme ?? '', element),
@@ -1333,7 +1337,7 @@ class DeclarationBuilderFromNode {
       metadata: _buildMetadata(element),
       typeParameters: _typeParameterDeclarations(node.typeParameters),
       onType: _typeAnnotation(
-        node.extendedType,
+        declarationNode.onClause!.extendedType,
         ExtensionElementOnTypeLocation(element),
       ),
       element: element,

@@ -1347,6 +1347,8 @@ abstract class AstVisitor<R> {
 
   R? visitExtensionDeclaration(ExtensionDeclaration node);
 
+  R? visitExtensionOnClause(ExtensionOnClause node);
+
   R? visitExtensionOverride(ExtensionOverride node);
 
   R? visitExtensionTypeDeclaration(ExtensionTypeDeclaration node);
@@ -6454,7 +6456,8 @@ abstract final class ExtensionDeclaration implements CompilationUnitMember {
   @override
   ExtensionElement? get declaredElement;
 
-  /// Return the type that is being extended.
+  /// The type that is being extended.
+  @Deprecated('Use onClause instead')
   TypeAnnotation get extendedType;
 
   /// Return the token representing the 'extension' keyword.
@@ -6470,7 +6473,11 @@ abstract final class ExtensionDeclaration implements CompilationUnitMember {
   /// a name.
   Token? get name;
 
-  /// Return the token representing the 'on' keyword.
+  /// The `on` clause, `null` if an augmentation.
+  ExtensionOnClause? get onClause;
+
+  /// The token representing the 'on' keyword.
+  @Deprecated('Use onClause instead')
   Token get onKeyword;
 
   /// Return the right curly bracket.
@@ -6508,10 +6515,7 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   TypeParameterListImpl? _typeParameters;
 
   @override
-  final Token onKeyword;
-
-  /// The type that is being extended.
-  TypeAnnotationImpl _extendedType;
+  ExtensionOnClauseImpl? onClause;
 
   @override
   final Token leftBracket;
@@ -6533,26 +6537,23 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
     required this.typeKeyword,
     required this.name,
     required TypeParameterListImpl? typeParameters,
-    required this.onKeyword,
-    required TypeAnnotationImpl extendedType,
+    required this.onClause,
     required this.leftBracket,
     required List<ClassMemberImpl> members,
     required this.rightBracket,
-  })  : _typeParameters = typeParameters,
-        _extendedType = extendedType {
+  }) : _typeParameters = typeParameters {
     _becomeParentOf(_typeParameters);
-    _becomeParentOf(_extendedType);
+    _becomeParentOf(onClause);
     _members._initialize(this, members);
   }
 
   @override
   Token get endToken => rightBracket;
 
+  @Deprecated('Use onClause instead')
   @override
-  TypeAnnotationImpl get extendedType => _extendedType;
-
-  set extendedType(TypeAnnotationImpl extendedClass) {
-    _extendedType = _becomeParentOf(extendedClass);
+  TypeAnnotationImpl get extendedType {
+    return onClause!.extendedType;
   }
 
   @override
@@ -6561,6 +6562,10 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
 
   @override
   NodeListImpl<ClassMemberImpl> get members => _members;
+
+  @Deprecated('Use onClause instead')
+  @override
+  Token get onKeyword => onClause!.onKeyword;
 
   @override
   TypeParameterListImpl? get typeParameters => _typeParameters;
@@ -6575,8 +6580,7 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
     ..addToken('extensionKeyword', extensionKeyword)
     ..addToken('name', name)
     ..addNode('typeParameters', typeParameters)
-    ..addToken('onKeyword', onKeyword)
-    ..addNode('extendedType', extendedType)
+    ..addNode('onClause', onClause)
     ..addToken('leftBracket', leftBracket)
     ..addNodeList('members', members)
     ..addToken('rightBracket', rightBracket);
@@ -6589,8 +6593,56 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     _typeParameters?.accept(visitor);
-    _extendedType.accept(visitor);
+    onClause?.accept(visitor);
     _members.accept(visitor);
+  }
+}
+
+/// The `on` clause in an extension declaration.
+///
+///    onClause ::= 'on' [TypeAnnotation]
+abstract final class ExtensionOnClause implements AstNode {
+  /// The extended type.
+  TypeAnnotation get extendedType;
+
+  /// The 'on' keyword.
+  Token get onKeyword;
+}
+
+final class ExtensionOnClauseImpl extends AstNodeImpl
+    implements ExtensionOnClause {
+  @override
+  final Token onKeyword;
+
+  @override
+  final TypeAnnotationImpl extendedType;
+
+  ExtensionOnClauseImpl({
+    required this.onKeyword,
+    required this.extendedType,
+  }) {
+    _becomeParentOf(extendedType);
+  }
+
+  @override
+  Token get beginToken => onKeyword;
+
+  @override
+  Token get endToken => extendedType.endToken;
+
+  @override
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('onKeyword', onKeyword)
+    ..addNode('extendedType', extendedType);
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    return visitor.visitExtensionOnClause(this);
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    extendedType.accept(visitor);
   }
 }
 

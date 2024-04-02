@@ -541,7 +541,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
     _visitChildren(node, {
       'name': node.name,
       'typeParameters': node.typeParameters,
-      'extendedType': node.extendedType,
+      'onClause': node.onClause,
       'member': node.members,
     });
     super.visitExtensionDeclaration(node);

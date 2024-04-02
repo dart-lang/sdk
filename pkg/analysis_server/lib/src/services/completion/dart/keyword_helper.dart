@@ -318,7 +318,8 @@ class KeywordHelper {
   /// extension declaration between the name of the extension and the body. The
   /// [node] is the extension declaration containing the selection point.
   void addExtensionDeclarationKeywords(ExtensionDeclaration node) {
-    if (node.onKeyword.isSynthetic) {
+    var onClause = node.onClause;
+    if (onClause == null || onClause.onKeyword.isSynthetic) {
       addKeyword(Keyword.ON);
       if (node.name == null && featureSet.isEnabled(Feature.inline_class)) {
         addText('type');

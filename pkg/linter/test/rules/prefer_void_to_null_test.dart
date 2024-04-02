@@ -142,6 +142,12 @@ void f(int a) {
     ]);
   }
 
+  test_extension() async {
+    await assertNoDiagnostics(r'''
+extension _ on Null {}
+''');
+  }
+
   /// https://github.com/dart-lang/linter/issues/4759
   test_extensionTypeRepresentation() async {
     await assertNoDiagnostics(r'''

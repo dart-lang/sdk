@@ -324,6 +324,12 @@ class LinterVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitExtensionOnClause(ExtensionOnClause node) {
+    _runSubscriptions(node, registry._forExtensionOnClause);
+    node.visitChildren(this);
+  }
+
+  @override
   void visitExtensionOverride(ExtensionOverride node) {
     _runSubscriptions(node, registry._forExtensionOverride);
     node.visitChildren(this);
@@ -1132,6 +1138,7 @@ class NodeLintRegistry {
   final List<_Subscription<ExtensionDeclaration>> _forExtensionDeclaration = [];
   final List<_Subscription<ExtensionTypeDeclaration>>
       _forExtensionTypeDeclaration = [];
+  final List<_Subscription<ExtensionOnClause>> _forExtensionOnClause = [];
   final List<_Subscription<ExtensionOverride>> _forExtensionOverride = [];
   final List<_Subscription<ObjectPattern>> _forObjectPattern = [];
   final List<_Subscription<FieldDeclaration>> _forFieldDeclaration = [];
@@ -1500,6 +1507,11 @@ class NodeLintRegistry {
 
   void addExtensionDeclaration(LintRule linter, AstVisitor visitor) {
     _forExtensionDeclaration
+        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
+  void addExtensionOnClause(LintRule linter, AstVisitor visitor) {
+    _forExtensionOnClause
         .add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 

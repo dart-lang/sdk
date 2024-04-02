@@ -656,7 +656,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     inGenericContext = inGenericContext || node.typeParameters != null;
     data.recordPercentage(
         'Extensions with type parameters', node.typeParameters != null);
-    _recordDataForNode('ExtensionDeclaration (type)', node.extendedType);
+    _recordDataForNode('ExtensionDeclaration (onClause)', node.onClause);
     for (var member in node.members) {
       _recordDataForNode('ExtensionDeclaration (member)', member,
           allowedKeywords: memberKeywords);

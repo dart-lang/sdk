@@ -319,6 +319,9 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
       visitCompilationUnitMember(node);
 
   @override
+  R? visitExtensionOnClause(ExtensionOnClause node) => visitNode(node);
+
+  @override
   R? visitExtensionOverride(ExtensionOverride node) => visitExpression(node);
 
   @override
@@ -1089,6 +1092,12 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitExtensionDeclaration(ExtensionDeclaration node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R? visitExtensionOnClause(ExtensionOnClause node) {
     node.visitChildren(this);
     return null;
   }
@@ -1979,6 +1988,9 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   R? visitExtensionDeclaration(ExtensionDeclaration node) => null;
 
   @override
+  R? visitExtensionOnClause(ExtensionOnClause node) => null;
+
+  @override
   R? visitExtensionOverride(ExtensionOverride node) => null;
 
   @override
@@ -2517,6 +2529,9 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitExtensionDeclaration(ExtensionDeclaration node) => _throw(node);
+
+  @override
+  R? visitExtensionOnClause(ExtensionOnClause node) => _throw(node);
 
   @override
   R? visitExtensionOverride(ExtensionOverride node) => _throw(node);
@@ -3323,6 +3338,14 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   T? visitExtensionDeclaration(ExtensionDeclaration node) {
     stopwatch.start();
     T? result = _baseVisitor.visitExtensionDeclaration(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T? visitExtensionOnClause(ExtensionOnClause node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitExtensionOnClause(node);
     stopwatch.stop();
     return result;
   }
@@ -4464,6 +4487,9 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitExtensionDeclaration(ExtensionDeclaration node) => visitNode(node);
+
+  @override
+  R? visitExtensionOnClause(ExtensionOnClause node) => visitNode(node);
 
   @override
   R? visitExtensionOverride(ExtensionOverride node) => visitNode(node);

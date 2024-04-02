@@ -104,6 +104,7 @@ export 'package:analyzer/src/dart/ast/ast.dart'
         ExpressionStatement,
         ExtendsClause,
         ExtensionDeclaration,
+        ExtensionOnClause,
         ExtensionOverride,
         ExtensionTypeDeclaration,
         FieldDeclaration,

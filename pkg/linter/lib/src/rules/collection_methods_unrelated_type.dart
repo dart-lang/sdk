@@ -344,7 +344,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       } else if (parent is EnumDeclaration) {
         return parent.declaredElement?.thisType;
       } else if (parent is ExtensionDeclaration) {
-        return parent.extendedType.type;
+        return parent.onClause?.extendedType.type;
       }
     }
     return null;

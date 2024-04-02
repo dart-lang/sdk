@@ -436,17 +436,22 @@ class ToSourceVisitor implements AstVisitor<void> {
   @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
+    _visitToken(node.augmentKeyword, suffix: ' ');
     _visitToken(node.extensionKeyword, suffix: ' ');
     _visitToken(node.typeKeyword, suffix: ' ');
     _visitToken(node.name);
     _visitNode(node.typeParameters);
     sink.write(' ');
-    _visitToken(node.onKeyword);
-    sink.write(' ');
-    _visitNode(node.extendedType, suffix: ' ');
+    _visitNode(node.onClause, suffix: ' ');
     _visitToken(node.leftBracket);
     _visitNodeList(node.members, separator: ' ');
     _visitToken(node.rightBracket);
+  }
+
+  @override
+  void visitExtensionOnClause(ExtensionOnClause node) {
+    sink.write('on ');
+    _visitNode(node.extendedType);
   }
 
   @override

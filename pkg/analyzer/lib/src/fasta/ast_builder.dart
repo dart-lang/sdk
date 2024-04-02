@@ -1557,16 +1557,22 @@ class AstBuilder extends StackListener {
 
   @override
   void endExtensionDeclaration(
-      Token beginToken, Token extensionKeyword, Token onKeyword, Token token) {
+      Token beginToken, Token extensionKeyword, Token? onKeyword, Token token) {
     final builder = _classLikeBuilder as _ExtensionDeclarationBuilder;
 
-    final type = pop() as TypeAnnotationImpl;
+    ExtensionOnClauseImpl? onClause;
+    if (onKeyword != null) {
+      var extendedType = pop() as TypeAnnotationImpl;
+      onClause = ExtensionOnClauseImpl(
+        onKeyword: onKeyword,
+        extendedType: extendedType,
+      );
+    }
 
     declarations.add(
       builder.build(
-        extendedType: type,
-        onKeyword: onKeyword,
         typeKeyword: null,
+        onClause: onClause,
       ),
     );
 
@@ -6118,8 +6124,7 @@ class _ExtensionDeclarationBuilder extends _ClassLikeDeclarationBuilder {
 
   ExtensionDeclarationImpl build({
     required Token? typeKeyword,
-    required Token onKeyword,
-    required TypeAnnotationImpl extendedType,
+    required ExtensionOnClauseImpl? onClause,
   }) {
     return ExtensionDeclarationImpl(
       comment: comment,
@@ -6129,8 +6134,7 @@ class _ExtensionDeclarationBuilder extends _ClassLikeDeclarationBuilder {
       typeKeyword: typeKeyword,
       name: name,
       typeParameters: typeParameters,
-      onKeyword: onKeyword,
-      extendedType: extendedType,
+      onClause: onClause,
       leftBracket: leftBracket,
       members: members,
       rightBracket: rightBracket,

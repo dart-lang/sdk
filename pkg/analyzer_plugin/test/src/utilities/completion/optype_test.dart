@@ -1144,12 +1144,11 @@ void g(void Function() f) {}
         completionLocation: 'ExtensionDeclaration_member', typeNames: true);
   }
 
-  Future<void> test_extensionDeclaration_extendedType() async {
+  Future<void> test_extensionOnClause_extendedType() async {
     // SimpleIdentifier  MethodDeclaration  ExtensionDeclaration
     addTestSource('extension E on ^ {}');
     await assertOpType(
-        completionLocation: 'ExtensionDeclaration_extendedType',
-        typeNames: true);
+        completionLocation: 'ExtensionOnClause_extendedType', typeNames: true);
   }
 
   Future<void> test_extensionOverride_argumentList() async {

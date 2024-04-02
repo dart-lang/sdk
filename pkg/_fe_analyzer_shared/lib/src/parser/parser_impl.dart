@@ -3106,22 +3106,36 @@ class Parser {
     token = computeTypeParamOrArg(token, /* inDeclaration = */ true)
         .parseVariables(token, this);
     listener.beginExtensionDeclaration(augmentToken, extensionKeyword, name);
-    Token onKeyword = token.next!;
-    if (!optional('on', onKeyword)) {
-      // Recovery
-      if (optional('extends', onKeyword) ||
-          optional('implements', onKeyword) ||
-          optional('with', onKeyword)) {
-        reportRecoverableError(
-            onKeyword, codes.templateExpectedInstead.withArguments('on'));
+
+    Token? onKeyword = token.next!;
+    if (augmentToken != null) {
+      if (!optional('on', onKeyword)) {
+        // Extension augmentations should not provide `on` clauses.
+        onKeyword = null;
       } else {
+        // If `on` clause is provided, report, but parse it.
         reportRecoverableError(
-            token, codes.templateExpectedAfterButGot.withArguments('on'));
-        onKeyword = rewriter.insertSyntheticKeyword(token, Keyword.ON);
+            onKeyword, codes.messageExtensionAugmentationHasOnClause);
+        TypeInfo typeInfo = computeType(onKeyword, /* required = */ true);
+        token = typeInfo.ensureTypeOrVoid(onKeyword, this);
       }
+    } else {
+      if (!optional('on', onKeyword)) {
+        // Recovery
+        if (optional('extends', onKeyword) ||
+            optional('implements', onKeyword) ||
+            optional('with', onKeyword)) {
+          reportRecoverableError(
+              onKeyword, codes.templateExpectedInstead.withArguments('on'));
+        } else {
+          reportRecoverableError(
+              token, codes.templateExpectedAfterButGot.withArguments('on'));
+          onKeyword = rewriter.insertSyntheticKeyword(token, Keyword.ON);
+        }
+      }
+      TypeInfo typeInfo = computeType(onKeyword, /* required = */ true);
+      token = typeInfo.ensureTypeOrVoid(onKeyword, this);
     }
-    TypeInfo typeInfo = computeType(onKeyword, /* required = */ true);
-    token = typeInfo.ensureTypeOrVoid(onKeyword, this);
 
     if (!optional('{', token.next!)) {
       // Recovery

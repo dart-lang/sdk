@@ -367,7 +367,7 @@ class ImportLibrary extends MultiCorrectionProducer {
       if (parent is ClassDeclaration) {
         return parent.declaredElement?.thisType;
       } else if (parent is ExtensionDeclaration) {
-        return parent.extendedType.type;
+        return parent.onClause?.extendedType.type;
       } else if (parent is MixinDeclaration) {
         return parent.declaredElement?.thisType;
       } else {

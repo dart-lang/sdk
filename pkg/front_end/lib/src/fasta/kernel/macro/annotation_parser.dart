@@ -1232,7 +1232,7 @@ class _MacroListener implements Listener {
 
   @override
   void endExtensionDeclaration(Token beginToken, Token extensionKeyword,
-      Token onKeyword, Token endToken) {
+      Token? onKeyword, Token endToken) {
     _unexpected();
   }
 

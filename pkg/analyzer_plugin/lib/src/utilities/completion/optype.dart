@@ -697,8 +697,8 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
-    if (identical(entity, node.extendedType)) {
-      optype.completionLocation = 'ExtensionDeclaration_extendedType';
+    if (identical(entity, node.onClause)) {
+      optype.completionLocation = 'ExtensionDeclaration_onClause';
       optype.includeTypeNameSuggestions = true;
     } else if (node.members.contains(entity) ||
         identical(entity, node.rightBracket)) {
@@ -706,6 +706,12 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       optype.completionLocation = 'ExtensionDeclaration_member';
       optype.includeTypeNameSuggestions = true;
     }
+  }
+
+  @override
+  void visitExtensionOnClause(ExtensionOnClause node) {
+    optype.completionLocation = 'ExtensionOnClause_extendedType';
+    optype.includeTypeNameSuggestions = true;
   }
 
   @override

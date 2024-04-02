@@ -143,15 +143,6 @@ augment enum E {a, b}
     assertHasRegion(HighlightRegionType.BUILT_IN, 'augment');
   }
 
-  @SkippedTest(reason: 'The token is not supported')
-  Future<void> test_BUILT_IN_augment_onExtension() async {
-    addTestFile('''
-augment extension on int {}
-''');
-    await prepareHighlights();
-    assertHasRegion(HighlightRegionType.BUILT_IN, 'augment');
-  }
-
   Future<void> test_BUILT_IN_augment_onImport() async {
     addTestFile('''
 import augment 'a.dart';
@@ -1252,6 +1243,34 @@ void f() {
     assertHasRegion(HighlightRegionType.EXTENSION, 'E on int');
     assertHasRegion(HighlightRegionType.EXTENSION, 'E(0)');
     assertHasRegion(HighlightRegionType.EXTENSION, 'E.bar()');
+  }
+
+  Future<void> test_extension_augment() async {
+    final testCode = TestCode.parse(r'''
+augment extension E {}
+''');
+    addTestFile(testCode.code);
+    await prepareHighlights();
+    assertHighlightText(testCode, -1, r'''
+0 + 7 |augment| BUILT_IN
+8 + 9 |extension| KEYWORD
+18 + 1 |E| EXTENSION
+''');
+  }
+
+  Future<void> test_extension_augment_hasOnClause() async {
+    final testCode = TestCode.parse(r'''
+augment extension E on int {}
+''');
+    addTestFile(testCode.code);
+    await prepareHighlights();
+    assertHighlightText(testCode, -1, r'''
+0 + 7 |augment| BUILT_IN
+8 + 9 |extension| KEYWORD
+18 + 1 |E| EXTENSION
+20 + 2 |on| BUILT_IN
+23 + 3 |int| CLASS
+''');
   }
 
   Future<void> test_extensionType() async {

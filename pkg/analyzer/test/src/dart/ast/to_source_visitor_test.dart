@@ -1213,6 +1213,14 @@ class C $code {}
     _assertSource(code, findNode.extendsClause(code));
   }
 
+  void test_visitExtensionDeclaration_augment() {
+    final code = 'augment extension E {}';
+    final findNode = _parseStringToFindNode('''
+$code
+''');
+    _assertSource(code, findNode.extensionDeclaration(code));
+  }
+
   void test_visitExtensionDeclaration_empty() {
     final code = 'extension E on C {}';
     final findNode = _parseStringToFindNode('''

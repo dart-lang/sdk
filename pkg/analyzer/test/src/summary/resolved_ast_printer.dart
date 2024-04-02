@@ -553,6 +553,14 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitExtensionOnClause(ExtensionOnClause node) {
+    _sink.writeln('ExtensionOnClause');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
   void visitExtensionOverride(ExtensionOverride node) {
     _sink.writeln('ExtensionOverride');
     _sink.withIndent(() {
