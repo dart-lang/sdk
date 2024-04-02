@@ -29,3 +29,5 @@ MINOR 4
 PATCH 0
 PRERELEASE 282
 PRERELEASE_PATCH 1
+
+# Reauthoring due to: https://github.com/dart-lang/sdk/issues/55338
