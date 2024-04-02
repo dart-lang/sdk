@@ -4875,8 +4875,32 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   js_ast.Expression visitInstanceGet(InstanceGet node) {
-    return _emitPropertyGet(
-        node.receiver, node.interfaceTarget, node.name.text);
+    // TODO(nshahan): Marking an end span for property accessors would improve
+    // source maps and hovering in the debugger. Unfortunately this is not
+    // possible as Kernel does not store this data.
+    var member = node.interfaceTarget;
+    var receiver = node.receiver;
+    var jsReceiver = _visitExpression(receiver);
+    if (_isNonStaticJsInteropCallMember(member)) {
+      // Historically DDC has treated this as a "callable class" and the access
+      // of `.call` as a no-op.
+      //
+      // This is here to preserve the existing behavior for the non-static
+      // JavaScript interop (including some failing cases) but could potentially
+      // be cleaned up as a breaking change.
+      return jsReceiver;
+    }
+    var memberName = node.name.text;
+    if (_isObjectGetter(memberName) &&
+        _shouldCallObjectMemberHelper(receiver)) {
+      // The names of the static helper methods in the runtime must match the
+      // names of the Object instance getters.
+      return runtimeCall('#(#)', [memberName, jsReceiver]);
+    }
+    // Otherwise generate this as a normal typed property get.
+    var jsMemberName =
+        _emitMemberName(memberName, member: node.interfaceTarget);
+    return js_ast.PropertyAccess(jsReceiver, jsMemberName);
   }
 
   @override
@@ -4894,8 +4918,34 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   js_ast.Expression visitInstanceTearOff(InstanceTearOff node) {
-    return _emitPropertyGet(
-        node.receiver, node.interfaceTarget, node.name.text);
+    var member = node.interfaceTarget;
+    var receiver = node.receiver;
+    var jsReceiver = _visitExpression(receiver);
+    if (_isNonStaticJsInteropCallMember(member)) {
+      // Historically DDC has treated this as a "callable class" and the tearoff
+      // of `.call` as a no-op.
+      //
+      // This is here to preserve the existing behavior for the non-static
+      // JavaScript interop (including some failing cases) but could potentially
+      // be cleaned up as a breaking change.
+      return jsReceiver;
+    }
+    var memberName = node.name.text;
+    if (_isObjectMethodTearoff(memberName) &&
+        _shouldCallObjectMemberHelper(receiver)) {
+      // The names of the static helper methods in the runtime must start with
+      // the names of the Object instance methods.
+      var tearOffName = '${memberName}Tearoff';
+      return runtimeCall('#(#)', [tearOffName, jsReceiver]);
+    }
+    var jsMemberName = _emitMemberName(memberName, member: member);
+    if (_reifyTearoff(member)) {
+      return runtimeCall('bind(#, #)', [jsReceiver, jsMemberName]);
+    }
+    var jsPropertyAccess = js_ast.PropertyAccess(jsReceiver, jsMemberName);
+    return isJsMember(member)
+        ? runtimeCall('tearoffInterop(#)', [jsPropertyAccess])
+        : jsPropertyAccess;
   }
 
   /// Returns `true` when [member] is a `.call` member (field, getter or method)
@@ -4960,50 +5010,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       return _triviallyConstNoInterop(e.variable.initializer);
     }
     return false;
-  }
-
-  // TODO(54463): Refactor and specialize this code for each type of 'get'.
-  js_ast.Expression _emitPropertyGet(
-      Expression receiver, Member member, String memberName) {
-    var jsReceiver = _visitExpression(receiver);
-    if (_isNonStaticJsInteropCallMember(member)) {
-      // Historically DDC has treated this as a "callable class" and the
-      // tearoff of `.call` as a no-op. This is still needed here to preserve
-      // the existing behavior for the non-static JavaScript interop (including
-      // potentially failing cases).
-      return jsReceiver;
-    }
-    var jsName = _emitMemberName(memberName, member: member);
-
-    // TODO(jmesserly): we need to mark an end span for property accessors so
-    // they can be hovered. Unfortunately this is not possible as Kernel does
-    // not store this data.
-    if (_isObjectMember(memberName) &&
-        _shouldCallObjectMemberHelper(receiver)) {
-      if (_isObjectMethodTearoff(memberName)) {
-        if (memberName == 'toString') {
-          return runtimeCall('toStringTearoff(#)', [jsReceiver]);
-        }
-        if (memberName == 'noSuchMethod') {
-          return runtimeCall('noSuchMethodTearoff(#)', [jsReceiver]);
-        }
-        assert(false, 'Unexpected Object method tearoff: $memberName');
-      }
-      // The names of the static helper methods in the runtime must match the
-      // names of the Object instance members.
-      return runtimeCall('#(#)', [memberName, jsReceiver]);
-    }
-    // Otherwise generate this as a normal typed property get.
-    if (_reifyTearoff(member)) {
-      return runtimeCall('bind(#, #)', [jsReceiver, jsName]);
-    } else if (member is Procedure &&
-        !member.isAccessor &&
-        isJsMember(member)) {
-      return runtimeCall(
-          'tearoffInterop(#)', [js_ast.PropertyAccess(jsReceiver, jsName)]);
-    } else {
-      return js_ast.PropertyAccess(jsReceiver, jsName);
-    }
   }
 
   /// Return whether [member] returns a native object whose type needs to be
@@ -7516,7 +7522,11 @@ bool _isObjectMember(String name) {
   return false;
 }
 
+bool _isObjectGetter(String name) =>
+    name == 'hashCode' || name == 'runtimeType';
+
 bool _isObjectMethodTearoff(String name) =>
+    // "==" isn't in here because there is no syntax to tear it off.
     name == 'toString' || name == 'noSuchMethod';
 
 bool _isObjectMethodCall(String name, Arguments args) {
