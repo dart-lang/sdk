@@ -1785,6 +1785,29 @@ class _InvalidAccessVerifier {
   }
 
   void _checkForOtherInvalidAccess(AstNode node, Element element) {
+    bool hasDoNotSubmit = _hasDoNotSubmit(element);
+    if (hasDoNotSubmit) {
+      // It's valid for a member annotated with `@doNotSubmit` to access another
+      // member annotated with `@doNotSubmit`. For example, this is valid:
+      // ```
+      // @doNotSubmit
+      // void foo() {}
+      //
+      // @doNotSubmit
+      // void bar() {
+      //   // OK: `foo` is annotated with `@doNotSubmit` but so is `bar`.
+      //   foo();
+      // }
+      // ```
+      var declaration = node.thisOrAncestorOfType<Declaration>();
+      if (declaration != null) {
+        var element = declaration.declaredElement;
+        if (element != null && _hasDoNotSubmit(element)) {
+          return;
+        }
+      }
+    }
+
     var hasProtected = element.isProtected;
     if (hasProtected) {
       var definingClass = element.enclosingElement as InterfaceElement;
@@ -1844,6 +1867,14 @@ class _InvalidAccessVerifier {
     if (definingClass == null) {
       return;
     }
+    if (hasDoNotSubmit) {
+      _errorReporter.atOffset(
+        offset: errorEntity.offset,
+        length: errorEntity.length,
+        errorCode: WarningCode.INVALID_USE_OF_DO_NOT_SUBMIT_MEMBER,
+        arguments: [name],
+      );
+    }
     if (hasProtected) {
       _errorReporter.atOffset(
         offset: errorEntity.offset,
@@ -1890,6 +1921,17 @@ class _InvalidAccessVerifier {
         );
       }
     }
+  }
+
+  bool _hasDoNotSubmit(Element element) {
+    if (element.hasDoNotSubmit) {
+      return true;
+    }
+    if (element is PropertyAccessorElement) {
+      var variable = element.variable2;
+      return variable != null && variable.hasDoNotSubmit;
+    }
+    return false;
   }
 
   bool _hasTypeOrSuperType(

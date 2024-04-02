@@ -1511,6 +1511,10 @@ class ElementAnnotationImpl implements ElementAnnotation {
   /// stored.
   static const String _doNotStoreVariableName = 'doNotStore';
 
+  /// The name of the top-level variable used to mark a declaration as not to be
+  /// used (for ephemeral testing and debugging only).
+  static const String _doNotSubmitVariableName = 'doNotSubmit';
+
   /// The name of the top-level variable used to mark a method as being a
   /// factory.
   static const String _factoryVariableName = 'factory';
@@ -1702,6 +1706,9 @@ class ElementAnnotationImpl implements ElementAnnotation {
 
   @override
   bool get isDoNotStore => _isPackageMetaGetter(_doNotStoreVariableName);
+
+  @override
+  bool get isDoNotSubmit => _isPackageMetaGetter(_doNotSubmitVariableName);
 
   @override
   bool get isFactory => _isPackageMetaGetter(_factoryVariableName);
@@ -1997,6 +2004,18 @@ abstract class ElementImpl implements Element {
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isDoNotStore) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  bool get hasDoNotSubmit {
+    final metadata = this.metadata;
+    for (var i = 0; i < metadata.length; i++) {
+      var annotation = metadata[i];
+      if (annotation.isDoNotSubmit) {
         return true;
       }
     }
@@ -5465,6 +5484,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
 
   @override
   bool get hasDoNotStore => false;
+
+  @override
+  bool get hasDoNotSubmit => false;
 
   @override
   bool get hasFactory => false;

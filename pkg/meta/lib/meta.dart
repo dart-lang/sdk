@@ -90,6 +90,42 @@ const _Checked checked = _Checked();
 ///   or top-level variable.
 const _DoNotStore doNotStore = _DoNotStore();
 
+/// Used to annotate a method, getter or top-level getter or function that is
+/// not intended to be accessed in checked-in code, but might be ephemerally
+/// used during development or local testing.
+///
+/// The intention of this annotation is to signify an API is available for
+/// temporary or ephemeral use (such as debugging or local testing), but should
+/// be removed before the code is submitted or merged into a tested branch of
+/// the repository (e.g. `main` or similar).
+///
+/// For example:
+///
+/// ```dart
+/// void test(
+///   String name,
+///   void Function() testFunction, {
+///   @doNotSubmit bool skip = false,
+/// }) { /* ... */ }
+///
+/// void main() {
+///   // OK.
+///   test('foo', () => print('foo'));
+///
+///   // HINT: Remove before submitting.
+///   test('bar', () => print('bar'), skip: true);
+/// }
+/// ```
+///
+/// Tools, such as the analyzer, can provide feedback if
+///
+/// * a declaration that has this annotation is referenced anywhere, including
+///   the library in which it is declared, in checked-in code. Exceptions are
+///   being referenced by a declaration that is also annotated with
+///   `@doNotSubmit` _or_ referencing a parameter that is annotated with
+///   `@doNotSubmit` in the same method or function.
+const _DoNotSubmit doNotSubmit = _DoNotSubmit();
+
 /// Used to annotate a library, or any declaration that is part of the public
 /// interface of a library (such as top-level members, class members, and
 /// function parameters) to indicate that the annotated API is experimental and
@@ -524,6 +560,18 @@ class _Checked {
 })
 class _DoNotStore {
   const _DoNotStore();
+}
+
+@Target({
+  TargetKind.function,
+  TargetKind.getter,
+  TargetKind.method,
+  TargetKind.parameter,
+  TargetKind.setter,
+  TargetKind.topLevelVariable,
+})
+class _DoNotSubmit {
+  const _DoNotSubmit();
 }
 
 class _Experimental {
