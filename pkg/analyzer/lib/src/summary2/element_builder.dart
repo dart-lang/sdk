@@ -1026,13 +1026,13 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitNamedType(NamedType node) {
-    node.typeArguments?.accept(this);
+  void visitMixinOnClause(MixinOnClause node) {
+    node.superclassConstraints.accept(this);
   }
 
   @override
-  void visitOnClause(OnClause node) {
-    node.superclassConstraints.accept(this);
+  void visitNamedType(NamedType node) {
+    node.typeArguments?.accept(this);
   }
 
   @override

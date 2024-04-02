@@ -967,6 +967,14 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitMixinOnClause(MixinOnClause node) {
+    for (var constraint in node.superclassConstraints) {
+      _recordDataForNode('OnClause_superclassConstraint', constraint);
+    }
+    super.visitMixinOnClause(node);
+  }
+
+  @override
   void visitNamedExpression(NamedExpression node) {
     // Named expressions only occur in argument lists and are handled there.
     super.visitNamedExpression(node);
@@ -994,14 +1002,6 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   void visitNullLiteral(NullLiteral node) {
     // There are no completions.
     super.visitNullLiteral(node);
-  }
-
-  @override
-  void visitOnClause(OnClause node) {
-    for (var constraint in node.superclassConstraints) {
-      _recordDataForNode('OnClause_superclassConstraint', constraint);
-    }
-    super.visitOnClause(node);
   }
 
   @override

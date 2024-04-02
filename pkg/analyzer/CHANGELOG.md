@@ -9,6 +9,10 @@
   use `PropertyInducingElement? get variable2` instead.
   The reason for this is that when the property accessor is an augmentation
   without the corresponding declaration, there is no corresponding variable.
+* Deprecated `ExtensionDeclaration.onKeyword` and `extendedType`.
+  Use `ExtensionOnClause? get onClause` instead.
+  Extension augmentations are not allowed to have `onClause`.
+* Deprecated `OnClause`, use `MixinOnClause` instead.
 
 ## 6.4.1
 * Patch for crash in ffi_verifier.

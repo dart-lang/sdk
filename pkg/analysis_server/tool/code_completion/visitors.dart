@@ -561,6 +561,12 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitMixinOnClause(MixinOnClause node) {
+    safelyRecordKeywordCompletion(node.onKeyword);
+    super.visitMixinOnClause(node);
+  }
+
+  @override
   void visitNativeClause(NativeClause node) {
     safelyRecordKeywordCompletion(node.nativeKeyword);
     super.visitNativeClause(node);
@@ -576,12 +582,6 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
   void visitNullLiteral(NullLiteral node) {
     safelyRecordKeywordCompletion(node.literal);
     super.visitNullLiteral(node);
-  }
-
-  @override
-  void visitOnClause(OnClause node) {
-    safelyRecordKeywordCompletion(node.onKeyword);
-    super.visitOnClause(node);
   }
 
   @override

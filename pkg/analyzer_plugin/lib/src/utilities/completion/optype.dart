@@ -1175,6 +1175,12 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitMixinOnClause(MixinOnClause node) {
+    optype.completionLocation = 'MixinOnClause_superclassConstraint';
+    optype.includeTypeNameSuggestions = true;
+  }
+
+  @override
   void visitNamedExpression(NamedExpression node) {
     if (identical(entity, node.expression)) {
       var context = _argumentListContext(node.parent);
@@ -1269,12 +1275,6 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       );
     }
     optype.completionLocation = 'ObjectPattern_fieldName';
-  }
-
-  @override
-  void visitOnClause(OnClause node) {
-    optype.completionLocation = 'OnClause_superclassConstraint';
-    optype.includeTypeNameSuggestions = true;
   }
 
   @override

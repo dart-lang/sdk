@@ -946,6 +946,14 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitMixinOnClause(MixinOnClause node) {
+    _visitChildren(node, {
+      'superclassConstraints': node.superclassConstraints,
+    });
+    super.visitMixinOnClause(node);
+  }
+
+  @override
   void visitNamedExpression(NamedExpression node) {
     _visitChildren(node, {
       'name': node.name,
@@ -983,14 +991,6 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
   void visitNullLiteral(NullLiteral node) {
     _visitChildren(node, {});
     super.visitNullLiteral(node);
-  }
-
-  @override
-  void visitOnClause(OnClause node) {
-    _visitChildren(node, {
-      'superclassConstraints': node.superclassConstraints,
-    });
-    super.visitOnClause(node);
   }
 
   @override

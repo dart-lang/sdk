@@ -856,6 +856,14 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitMixinOnClause(MixinOnClause node) {
+    for (NamedType namedType in node.superclassConstraints) {
+      recordSuperType(namedType, IndexRelationKind.CONSTRAINS);
+      namedType.accept(this);
+    }
+  }
+
+  @override
   visitNamedType(NamedType node) {
     _recordImportPrefixedElement(
       importPrefix: node.importPrefix,
@@ -864,14 +872,6 @@ class _IndexContributor extends GeneralizingAstVisitor {
     );
 
     node.typeArguments?.accept(this);
-  }
-
-  @override
-  void visitOnClause(OnClause node) {
-    for (NamedType namedType in node.superclassConstraints) {
-      recordSuperType(namedType, IndexRelationKind.CONSTRAINS);
-      namedType.accept(this);
-    }
   }
 
   @override
@@ -1032,7 +1032,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   void _addSubtype(String name,
       {NamedType? superclass,
       WithClause? withClause,
-      OnClause? onClause,
+      MixinOnClause? onClause,
       ImplementsClause? implementsClause,
       required List<ClassMember> memberNodes}) {
     List<String> supertypes = [];

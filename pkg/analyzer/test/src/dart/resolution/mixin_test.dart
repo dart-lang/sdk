@@ -321,9 +321,9 @@ class B {}
 mixin M on A, B {}
 ''');
 
-    final node = findNode.singleOnClause;
+    final node = findNode.singleMixinOnClause;
     assertResolvedNodeText(node, r'''
-OnClause
+MixinOnClause
   onKeyword: on
   superclassConstraints
     NamedType

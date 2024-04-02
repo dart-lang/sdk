@@ -515,6 +515,12 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R? visitMixinDeclaration(MixinDeclaration node) =>
       visitNamedCompilationUnitMember(node);
 
+  @override
+  R? visitMixinOnClause(MixinOnClause node) {
+    // ignore:deprecated_member_use_from_same_package
+    return visitOnClause(node);
+  }
+
   R? visitNamedCompilationUnitMember(NamedCompilationUnitMember node) =>
       visitCompilationUnitMember(node);
 
@@ -554,6 +560,7 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   @override
   R? visitObjectPattern(ObjectPattern node) => visitDartPattern(node);
 
+  @Deprecated('Use visitMixinOnClause() instead')
   @override
   R? visitOnClause(OnClause node) => visitNode(node);
 
@@ -1409,6 +1416,12 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
   }
 
   @override
+  R? visitMixinOnClause(MixinOnClause node) {
+    // ignore:deprecated_member_use_from_same_package
+    return visitOnClause(node);
+  }
+
+  @override
   R? visitNamedExpression(NamedExpression node) {
     node.visitChildren(this);
     return null;
@@ -1456,6 +1469,7 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
     return null;
   }
 
+  @Deprecated('Use visitMixinOnClause() instead')
   @override
   R? visitOnClause(OnClause node) {
     node.visitChildren(this);
@@ -2149,6 +2163,12 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   R? visitMixinDeclaration(MixinDeclaration node) => null;
 
   @override
+  R? visitMixinOnClause(MixinOnClause node) {
+    // ignore:deprecated_member_use_from_same_package
+    return visitOnClause(node);
+  }
+
+  @override
   R? visitNamedExpression(NamedExpression node) => null;
 
   @override
@@ -2172,6 +2192,7 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   @override
   R? visitObjectPattern(ObjectPattern node) => null;
 
+  @Deprecated('Use visitMixinOnClause() instead')
   @override
   R? visitOnClause(OnClause node) => null;
 
@@ -2697,6 +2718,12 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
   R? visitMixinDeclaration(MixinDeclaration node) => _throw(node);
 
   @override
+  R? visitMixinOnClause(MixinOnClause node) {
+    // ignore:deprecated_member_use_from_same_package
+    return visitOnClause(node);
+  }
+
+  @override
   R? visitNamedExpression(NamedExpression node) => _throw(node);
 
   @override
@@ -2720,6 +2747,7 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
   @override
   R? visitObjectPattern(ObjectPattern node) => _throw(node);
 
+  @Deprecated('Use visitMixinOnClause() instead')
   @override
   R? visitOnClause(OnClause node) => _throw(node);
 
@@ -3759,6 +3787,12 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   }
 
   @override
+  T? visitMixinOnClause(MixinOnClause node) {
+    // ignore:deprecated_member_use_from_same_package
+    return visitOnClause(node);
+  }
+
+  @override
   T? visitNamedExpression(NamedExpression node) {
     stopwatch.start();
     T? result = _baseVisitor.visitNamedExpression(node);
@@ -3822,6 +3856,7 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
     return result;
   }
 
+  @Deprecated('Use visitMixinOnClause() instead')
   @override
   T? visitOnClause(OnClause node) {
     stopwatch.start();
@@ -4658,6 +4693,12 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
   R? visitMixinDeclaration(MixinDeclaration node) => visitNode(node);
 
   @override
+  R? visitMixinOnClause(MixinOnClause node) {
+    // ignore:deprecated_member_use_from_same_package
+    return visitOnClause(node);
+  }
+
+  @override
   R? visitNamedExpression(NamedExpression node) => visitNode(node);
 
   @override
@@ -4686,6 +4727,7 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
   @override
   R? visitObjectPattern(ObjectPattern node) => visitNode(node);
 
+  @Deprecated('Use visitMixinOnClause() instead')
   @override
   R? visitOnClause(OnClause node) => visitNode(node);
 

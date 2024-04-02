@@ -1055,6 +1055,14 @@ class AstComparator implements AstVisitor<bool> {
   }
 
   @override
+  bool visitMixinOnClause(MixinOnClause node) {
+    var other = _other as MixinOnClause;
+    return isEqualTokens(node.onKeyword, other.onKeyword) &&
+        _isEqualNodeLists(
+            node.superclassConstraints, other.superclassConstraints);
+  }
+
+  @override
   bool visitNamedExpression(NamedExpression node) {
     NamedExpression other = _other as NamedExpression;
     return isEqualNodes(node.name, other.name) &&
@@ -1114,12 +1122,10 @@ class AstComparator implements AstVisitor<bool> {
         isEqualTokens(node.rightParenthesis, other.rightParenthesis);
   }
 
+  @Deprecated('Use visitMixinOnClause() instead')
   @override
   bool visitOnClause(OnClause node) {
-    OnClause other = _other as OnClause;
-    return isEqualTokens(node.onKeyword, other.onKeyword) &&
-        _isEqualNodeLists(
-            node.superclassConstraints, other.superclassConstraints);
+    return visitMixinOnClause(node);
   }
 
   @override
@@ -2972,6 +2978,14 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   }
 
   @override
+  bool visitMixinOnClause(covariant MixinOnClauseImpl node) {
+    if (_replaceInList(node.superclassConstraints)) {
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
   bool visitNamedExpression(covariant NamedExpressionImpl node) {
     if (identical(node.name, _oldNode)) {
       node.name = _newNode as LabelImpl;
@@ -3016,12 +3030,10 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitNullLiteral(NullLiteral node) => visitNode(node);
 
+  @Deprecated('Use visitMixinOnClause() instead')
   @override
-  bool visitOnClause(covariant OnClauseImpl node) {
-    if (_replaceInList(node.superclassConstraints)) {
-      return true;
-    }
-    return visitNode(node);
+  bool visitOnClause(covariant MixinOnClauseImpl node) {
+    return visitMixinOnClause(node);
   }
 
   @override

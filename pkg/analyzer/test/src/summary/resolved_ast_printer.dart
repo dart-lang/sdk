@@ -1032,6 +1032,14 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitMixinOnClause(MixinOnClause node) {
+    _sink.writeln('MixinOnClause');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
   void visitNamedExpression(NamedExpression node) {
     _sink.writeln('NamedExpression');
     _sink.withIndent(() {
@@ -1094,14 +1102,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
       _writePatternMatchedValueType(node);
-    });
-  }
-
-  @override
-  void visitOnClause(OnClause node) {
-    _sink.writeln('OnClause');
-    _sink.withIndent(() {
-      _writeNamedChildEntities(node);
     });
   }
 

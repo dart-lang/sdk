@@ -150,7 +150,7 @@ class _ClassVerifier {
   final Token classNameToken;
   final List<ClassMember> members;
   final ImplementsClause? implementsClause;
-  final OnClause? onClause;
+  final MixinOnClause? onClause;
   final NamedType? superclass;
   final WithClause? withClause;
 

@@ -26,6 +26,13 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 
+/// The "on" clause in a mixin declaration.
+///
+///    onClause ::=
+///        'on' [NamedType] (',' [NamedType])*
+@Deprecated('Use MixinOnClause instead')
+typedef OnClause = MixinOnClause;
+
 /// Two or more string literals that are implicitly concatenated because of
 /// being adjacent (separated only by whitespace).
 ///
@@ -1405,6 +1412,8 @@ abstract class AstVisitor<R> {
 
   R? visitMixinDeclaration(MixinDeclaration node);
 
+  R? visitMixinOnClause(MixinOnClause node);
+
   R? visitNamedExpression(NamedExpression node);
 
   R? visitNamedType(NamedType node);
@@ -1421,6 +1430,7 @@ abstract class AstVisitor<R> {
 
   R? visitObjectPattern(ObjectPattern node);
 
+  @Deprecated('Use visitMixinOnClause() instead')
   R? visitOnClause(OnClause node);
 
   R? visitParenthesizedExpression(ParenthesizedExpression node);
@@ -11643,7 +11653,7 @@ abstract final class MixinDeclaration implements NamedCompilationUnitMember {
 
   /// The on clause for the mixin, or `null` if the mixin doesn't have any
   /// superclass constraints.
-  OnClause? get onClause;
+  MixinOnClause? get onClause;
 
   /// The right curly bracket.
   Token get rightBracket;
@@ -11668,7 +11678,7 @@ final class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
   final TypeParameterListImpl? typeParameters;
 
   @override
-  final OnClauseImpl? onClause;
+  final MixinOnClauseImpl? onClause;
 
   @override
   final ImplementsClauseImpl? implementsClause;
@@ -11736,6 +11746,56 @@ final class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
     onClause?.accept(visitor);
     implementsClause?.accept(visitor);
     members.accept(visitor);
+  }
+}
+
+/// The "on" clause in a mixin declaration.
+///
+///    onClause ::=
+///        'on' [NamedType] (',' [NamedType])*
+abstract final class MixinOnClause implements AstNode {
+  /// The token representing the `on` keyword.
+  Token get onKeyword;
+
+  /// The list of the classes are superclass constraints for the mixin.
+  NodeList<NamedType> get superclassConstraints;
+}
+
+final class MixinOnClauseImpl extends AstNodeImpl implements MixinOnClause {
+  @override
+  final Token onKeyword;
+
+  final NodeListImpl<NamedTypeImpl> _superclassConstraints = NodeListImpl._();
+
+  MixinOnClauseImpl({
+    required this.onKeyword,
+    required List<NamedTypeImpl> superclassConstraints,
+  }) {
+    _superclassConstraints._initialize(this, superclassConstraints);
+  }
+
+  @override
+  Token get beginToken => onKeyword;
+
+  @override
+  Token get endToken => _superclassConstraints.endToken ?? onKeyword;
+
+  @override
+  NodeListImpl<NamedTypeImpl> get superclassConstraints =>
+      _superclassConstraints;
+
+  @override
+  // TODO(paulberry): add commas.
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('onKeyword', onKeyword)
+    ..addNodeList('superclassConstraints', superclassConstraints);
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitMixinOnClause(this);
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    _superclassConstraints.accept(visitor);
   }
 }
 
@@ -12727,57 +12787,6 @@ final class ObjectPatternImpl extends DartPatternImpl implements ObjectPattern {
   void visitChildren(AstVisitor visitor) {
     type.accept(visitor);
     fields.accept(visitor);
-  }
-}
-
-/// The "on" clause in a mixin declaration.
-///
-///    onClause ::=
-///        'on' [NamedType] (',' [NamedType])*
-abstract final class OnClause implements AstNode {
-  /// The token representing the `on` keyword.
-  Token get onKeyword;
-
-  /// The list of the classes are superclass constraints for the mixin.
-  NodeList<NamedType> get superclassConstraints;
-}
-
-final class OnClauseImpl extends AstNodeImpl implements OnClause {
-  @override
-  final Token onKeyword;
-
-  final NodeListImpl<NamedTypeImpl> _superclassConstraints = NodeListImpl._();
-
-  /// Initializes a newly created on clause.
-  OnClauseImpl({
-    required this.onKeyword,
-    required List<NamedTypeImpl> superclassConstraints,
-  }) {
-    _superclassConstraints._initialize(this, superclassConstraints);
-  }
-
-  @override
-  Token get beginToken => onKeyword;
-
-  @override
-  Token get endToken => _superclassConstraints.endToken ?? onKeyword;
-
-  @override
-  NodeListImpl<NamedTypeImpl> get superclassConstraints =>
-      _superclassConstraints;
-
-  @override
-  // TODO(paulberry): add commas.
-  ChildEntities get _childEntities => ChildEntities()
-    ..addToken('onKeyword', onKeyword)
-    ..addNodeList('superclassConstraints', superclassConstraints);
-
-  @override
-  E? accept<E>(AstVisitor<E> visitor) => visitor.visitOnClause(this);
-
-  @override
-  void visitChildren(AstVisitor visitor) {
-    _superclassConstraints.accept(visitor);
   }
 }
 

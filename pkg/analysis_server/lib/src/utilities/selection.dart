@@ -267,13 +267,13 @@ class _ChildrenFinder extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitObjectPattern(ObjectPattern node) {
-    _fromList(node.fields);
+  void visitMixinOnClause(MixinOnClause node) {
+    _fromList(node.superclassConstraints);
   }
 
   @override
-  void visitOnClause(OnClause node) {
-    _fromList(node.superclassConstraints);
+  void visitObjectPattern(ObjectPattern node) {
+    _fromList(node.fields);
   }
 
   @override

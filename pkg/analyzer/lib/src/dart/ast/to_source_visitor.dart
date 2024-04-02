@@ -930,6 +930,12 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitMixinOnClause(MixinOnClause node) {
+    sink.write('on ');
+    _visitNodeList(node.superclassConstraints, separator: ', ');
+  }
+
+  @override
   void visitNamedExpression(NamedExpression node) {
     _visitNode(node.name);
     _visitNode(node.expression, prefix: ' ');
@@ -983,6 +989,7 @@ class ToSourceVisitor implements AstVisitor<void> {
     sink.write(')');
   }
 
+  @Deprecated('Use visitMixinOnClause() instead')
   @override
   void visitOnClause(OnClause node) {
     sink.write('on ');
