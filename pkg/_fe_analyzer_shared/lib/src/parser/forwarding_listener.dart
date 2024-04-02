@@ -2088,8 +2088,10 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginExtensionTypeDeclaration(Token extensionKeyword, Token name) {
-    listener?.beginExtensionTypeDeclaration(extensionKeyword, name);
+  void beginExtensionTypeDeclaration(
+      Token? augmentToken, Token extensionKeyword, Token name) {
+    listener?.beginExtensionTypeDeclaration(
+        augmentToken, extensionKeyword, name);
   }
 
   @override
@@ -2100,10 +2102,10 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endExtensionTypeDeclaration(Token beginToken, Token extensionKeyword,
-      Token typeKeyword, Token endToken) {
+  void endExtensionTypeDeclaration(Token beginToken, Token? augmentToken,
+      Token extensionKeyword, Token typeKeyword, Token endToken) {
     listener?.endExtensionTypeDeclaration(
-        beginToken, extensionKeyword, typeKeyword, endToken);
+        beginToken, augmentToken, extensionKeyword, typeKeyword, endToken);
   }
 
   @override

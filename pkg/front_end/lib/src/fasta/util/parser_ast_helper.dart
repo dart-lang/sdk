@@ -316,20 +316,23 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void beginExtensionTypeDeclaration(Token extensionKeyword, Token name) {
+  void beginExtensionTypeDeclaration(
+      Token? augmentKeyword, Token extensionKeyword, Token name) {
     ExtensionTypeDeclarationBegin data = new ExtensionTypeDeclarationBegin(
         ParserAstType.BEGIN,
+        augmentKeyword: augmentKeyword,
         extensionKeyword: extensionKeyword,
         name: name);
     seen(data);
   }
 
   @override
-  void endExtensionTypeDeclaration(Token beginToken, Token extensionKeyword,
-      Token typeKeyword, Token endToken) {
+  void endExtensionTypeDeclaration(Token beginToken, Token? augmentToken,
+      Token extensionKeyword, Token typeKeyword, Token endToken) {
     ExtensionTypeDeclarationEnd data = new ExtensionTypeDeclarationEnd(
         ParserAstType.END,
         beginToken: beginToken,
+        augmentToken: augmentToken,
         extensionKeyword: extensionKeyword,
         typeKeyword: typeKeyword,
         endToken: endToken);
@@ -3610,15 +3613,17 @@ class ExtensionDeclarationEnd extends ParserAstNode {
 }
 
 class ExtensionTypeDeclarationBegin extends ParserAstNode {
+  final Token? augmentKeyword;
   final Token extensionKeyword;
   final Token name;
 
   ExtensionTypeDeclarationBegin(ParserAstType type,
-      {required this.extensionKeyword, required this.name})
+      {this.augmentKeyword, required this.extensionKeyword, required this.name})
       : super("ExtensionTypeDeclaration", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
+        "augmentKeyword": augmentKeyword,
         "extensionKeyword": extensionKeyword,
         "name": name,
       };
@@ -3626,12 +3631,14 @@ class ExtensionTypeDeclarationBegin extends ParserAstNode {
 
 class ExtensionTypeDeclarationEnd extends ParserAstNode {
   final Token beginToken;
+  final Token? augmentToken;
   final Token extensionKeyword;
   final Token typeKeyword;
   final Token endToken;
 
   ExtensionTypeDeclarationEnd(ParserAstType type,
       {required this.beginToken,
+      this.augmentToken,
       required this.extensionKeyword,
       required this.typeKeyword,
       required this.endToken})
@@ -3640,6 +3647,7 @@ class ExtensionTypeDeclarationEnd extends ParserAstNode {
   @override
   Map<String, Object?> get deprecatedArguments => {
         "beginToken": beginToken,
+        "augmentToken": augmentToken,
         "extensionKeyword": extensionKeyword,
         "typeKeyword": typeKeyword,
         "endToken": endToken,

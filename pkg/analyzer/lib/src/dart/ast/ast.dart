@@ -6797,6 +6797,10 @@ final class ExtensionOverrideImpl extends ExpressionImpl
 @experimental
 abstract final class ExtensionTypeDeclaration
     implements NamedCompilationUnitMember {
+  /// The 'augment' keyword, or `null` if the keyword was absent.
+  @experimental
+  Token? get augmentKeyword;
+
   /// The 'const' keyword.
   Token? get constKeyword;
 
@@ -6831,6 +6835,9 @@ abstract final class ExtensionTypeDeclaration
 final class ExtensionTypeDeclarationImpl extends NamedCompilationUnitMemberImpl
     implements ExtensionTypeDeclaration {
   @override
+  final Token? augmentKeyword;
+
+  @override
   final Token extensionKeyword;
 
   @override
@@ -6863,6 +6870,7 @@ final class ExtensionTypeDeclarationImpl extends NamedCompilationUnitMemberImpl
   ExtensionTypeDeclarationImpl({
     required super.comment,
     required super.metadata,
+    required this.augmentKeyword,
     required this.extensionKeyword,
     required this.typeKeyword,
     required this.constKeyword,
@@ -6884,10 +6892,12 @@ final class ExtensionTypeDeclarationImpl extends NamedCompilationUnitMemberImpl
   Token get endToken => rightBracket;
 
   @override
-  Token get firstTokenAfterCommentAndMetadata => extensionKeyword;
+  Token get firstTokenAfterCommentAndMetadata =>
+      augmentKeyword ?? extensionKeyword;
 
   @override
   ChildEntities get _childEntities => super._childEntities
+    ..addToken('augmentKeyword', augmentKeyword)
     ..addToken('extensionKeyword', extensionKeyword)
     ..addToken('typeKeyword', typeKeyword)
     ..addToken('constKeyword', constKeyword)

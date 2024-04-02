@@ -332,7 +332,8 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void beginExtensionTypeDeclaration(Token extensionKeyword, Token name) {
+  void beginExtensionTypeDeclaration(
+      Token? augmentKeyword, Token extensionKeyword, Token name) {
     assert(optional('extension', extensionKeyword));
     assert(_classLikeBuilder == null);
 
@@ -343,6 +344,7 @@ class AstBuilder extends StackListener {
     _classLikeBuilder = _ExtensionTypeDeclarationBuilder(
       comment: comment,
       metadata: metadata,
+      augmentKeyword: augmentKeyword,
       extensionKeyword: extensionKeyword,
       name: name,
       typeParameters: typeParameters,
@@ -1635,8 +1637,8 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endExtensionTypeDeclaration(Token beginToken, Token extensionKeyword,
-      Token typeKeyword, Token endToken) {
+  void endExtensionTypeDeclaration(Token beginToken, Token? augmentToken,
+      Token extensionKeyword, Token typeKeyword, Token endToken) {
     final implementsClause =
         pop(NullValues.IdentifierList) as ImplementsClauseImpl?;
     var representation = pop(const NullValue<RepresentationDeclarationImpl>())
@@ -6143,6 +6145,7 @@ class _ExtensionDeclarationBuilder extends _ClassLikeDeclarationBuilder {
 }
 
 class _ExtensionTypeDeclarationBuilder extends _ClassLikeDeclarationBuilder {
+  final Token? augmentKeyword;
   final Token extensionKeyword;
   final Token name;
 
@@ -6152,6 +6155,7 @@ class _ExtensionTypeDeclarationBuilder extends _ClassLikeDeclarationBuilder {
     required super.typeParameters,
     required super.leftBracket,
     required super.rightBracket,
+    required this.augmentKeyword,
     required this.extensionKeyword,
     required this.name,
   });
@@ -6165,6 +6169,7 @@ class _ExtensionTypeDeclarationBuilder extends _ClassLikeDeclarationBuilder {
     return ExtensionTypeDeclarationImpl(
       comment: comment,
       metadata: metadata,
+      augmentKeyword: augmentKeyword,
       extensionKeyword: extensionKeyword,
       typeKeyword: typeKeyword,
       constKeyword: constKeyword,
