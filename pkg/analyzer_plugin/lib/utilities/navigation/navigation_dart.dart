@@ -293,6 +293,8 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
+    node.metadata.accept(this);
+
     // For a default constructor, override the class name to be the declaration
     // itself rather than linking to the class.
     var nameToken = node.name;
@@ -302,6 +304,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
       node.returnType.accept(this);
       computer._addRegionForToken(nameToken, node.declaredElement);
     }
+
     node.parameters.accept(this);
     node.initializers.accept(this);
     node.redirectedConstructor?.accept(this);

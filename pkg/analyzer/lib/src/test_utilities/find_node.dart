@@ -36,6 +36,9 @@ class FindNode {
 
   AssignmentExpression get singleAssignmentExpression => _single();
 
+  AugmentationImportDirective get singleAugmentationImportDirective =>
+      _single();
+
   AwaitExpression get singleAwaitExpression => _single();
 
   BinaryExpression get singleBinaryExpression => _single();
