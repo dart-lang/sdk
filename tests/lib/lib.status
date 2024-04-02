@@ -79,6 +79,8 @@ js/js_util/properties_test: SkipByDesign # Issue 42085. CSP policy disallows inj
 js/method_call_on_object_test: SkipByDesign # Issue 42085.
 js/mock_test/*: SkipByDesign # Issue 42085.
 js/parameters_test: SkipByDesign # Issue 42085.
+js/static_interop_test/call_getter_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
+js/static_interop_test/call_method_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/static_interop_test/extension_type/external_extension_member_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/static_interop_test/extension_type/external_member_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/static_interop_test/extension_type/external_static_member_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
