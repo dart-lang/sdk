@@ -93,6 +93,8 @@ const _Checked checked = _Checked();
 
 const _DoNotStore doNotStore = _DoNotStore();
 
+const _DoNotSubmit doNotSubmit = _DoNotSubmit();
+
 const _Experimental experimental = _Experimental();
 
 const _Factory factory = _Factory();
@@ -198,6 +200,10 @@ class _Checked {
 })
 class _DoNotStore {
   const _DoNotStore();
+}
+
+class _DoNotSubmit {
+  const _DoNotSubmit();
 }
 
 class _Experimental {

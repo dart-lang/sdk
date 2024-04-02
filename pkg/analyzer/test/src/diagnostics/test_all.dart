@@ -414,6 +414,7 @@ import 'invalid_annotation_test.dart' as invalid_annotation;
 import 'invalid_assignment_test.dart' as invalid_assignment;
 import 'invalid_constant_test.dart' as invalid_constant;
 import 'invalid_constructor_name_test.dart' as invalid_constructor_name;
+import 'invalid_do_not_submit_test.dart' as invalid_do_not_submit;
 import 'invalid_exception_value_test.dart' as invalid_exception_value;
 import 'invalid_export_of_internal_element_test.dart'
     as invalid_export_of_internal_element;
@@ -1168,6 +1169,7 @@ main() {
     invalid_assignment.main();
     invalid_constant.main();
     invalid_constructor_name.main();
+    invalid_do_not_submit.main();
     invalid_exception_value.main();
     invalid_export_of_internal_element.main();
     invalid_extension_argument_count.main();

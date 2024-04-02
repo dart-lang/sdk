@@ -586,6 +586,9 @@ abstract class Member implements Element {
   bool get hasDoNotStore => _declaration.hasDoNotStore;
 
   @override
+  bool get hasDoNotSubmit => _declaration.hasDoNotSubmit;
+
+  @override
   bool get hasFactory => _declaration.hasFactory;
 
   @override

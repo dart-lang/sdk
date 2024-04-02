@@ -593,6 +593,9 @@ abstract class Element implements AnalysisTarget {
   /// Whether the element has an annotation of the form `@doNotStore`.
   bool get hasDoNotStore;
 
+  /// Whether the element has an annotation of the form `@doNotSubmit`.
+  bool get hasDoNotSubmit;
+
   /// Whether the element has an annotation of the form `@factory`.
   bool get hasFactory;
 
@@ -839,6 +842,9 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
 
   /// Whether the annotation marks the associated element as not to be stored.
   bool get isDoNotStore;
+
+  /// Whether the annotation marks the associated member as not to be used.
+  bool get isDoNotSubmit;
 
   /// Whether the annotation marks the associated member as a factory.
   bool get isFactory;

@@ -6736,6 +6736,14 @@ class WarningCode extends AnalyzerErrorCode {
 
   ///  Parameters:
   ///  0: the name of the member
+  static const WarningCode INVALID_USE_OF_DO_NOT_SUBMIT_MEMBER = WarningCode(
+    'INVALID_USE_OF_DO_NOT_SUBMIT_MEMBER',
+    "Uses of '{0}' should not be submitted to source control.",
+    correctionMessage: "Try removing the reference to '{0}'.",
+  );
+
+  ///  Parameters:
+  ///  0: the name of the member
   static const WarningCode INVALID_USE_OF_INTERNAL_MEMBER = WarningCode(
     'INVALID_USE_OF_INTERNAL_MEMBER',
     "The member '{0}' can only be used within its package.",
