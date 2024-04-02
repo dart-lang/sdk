@@ -13,7 +13,6 @@ import 'package:file/memory.dart';
 import 'package:path/path.dart' as path;
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
-import 'package:unified_analytics/src/enums.dart';
 import 'package:unified_analytics/unified_analytics.dart';
 
 /// A long [Timeout] is provided for tests that start a process on
@@ -250,23 +249,19 @@ class TestProject {
   FakeAnalytics _createFakeAnalytics() {
     final fs = MemoryFileSystem.test(style: FileSystemStyle.posix);
     final homeDirectory = fs.directory('/');
-    final FakeAnalytics initialAnalytics = FakeAnalytics(
+    final FakeAnalytics initialAnalytics = Analytics.fake(
       tool: DashTool.dartTool,
       homeDirectory: homeDirectory,
       dartVersion: 'dartVersion',
-      platform: DevicePlatform.linux,
       fs: fs,
-      surveyHandler: SurveyHandler(homeDirectory: homeDirectory, fs: fs),
     );
     initialAnalytics.clientShowedMessage();
 
-    return FakeAnalytics(
+    return Analytics.fake(
       tool: DashTool.dartTool,
       homeDirectory: homeDirectory,
       dartVersion: 'dartVersion',
-      platform: DevicePlatform.linux,
       fs: fs,
-      surveyHandler: SurveyHandler(homeDirectory: homeDirectory, fs: fs),
     );
   }
 

@@ -186,7 +186,7 @@ vars = {
   "test_descriptor_rev": "b61cfb4479fafd78eb9d365cc2f7cdb43c2aed34",
   "test_process_rev": "94ee46d76f89ebb7d73cef3e23bab288b1e43b50",
   "test_reflective_loader_rev": "d7167a2375d8a0c02c12b960c059a115a777f238",
-  "tools_rev": "f611290b530123ee2f0a3fda7c440d85dd080a30", # https://github.com/dart-lang/tools/pull/247
+  "tools_rev": "d86ea23c79d2e9dc622d3376aa80d94fbf30bf60",
   "typed_data_rev": "8c7393cbbbba7a5d38c6772371f92d6b38e433fc",
   "usage_rev": "67ecd7d1328347ec15cbf8d8a46918df75a66af8",
   "vector_math_rev": "7e705f734e94917e9a5347578e6e496f8db38ac6",
