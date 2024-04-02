@@ -193,7 +193,7 @@ vars = {
   "watcher_rev": "1bd2f20d0d924c8422aa2b9afdb165bff4f053c0",
   "web_rev": "e773de957b289d001c90c6b830e91634e305667d",
   "web_socket_channel_rev": "19d82db86acb7309dd08c40a2af3285232751e83",
-  "webdev_rev": "51b5484348b4a8ede351e8dff0428b083495ba78", # https://github.com/flutter/devtools/issues/7231
+  "webdev_rev": "4067462c8d605266a23c3725948a0314102c95f9",
   "webdriver_rev": "c80e01e6ce121e55c31e33a31e5d3950023e6bc9",
   "webkit_inspection_protocol_rev": "153fea4fe5ac45bebf0c2e76bb3d76b0f1fcdaae",
   "yaml_rev": "5a1c4be2437bc4122ccf08a3a0f06a7683e62f30",
