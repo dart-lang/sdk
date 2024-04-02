@@ -16,15 +16,14 @@ import '../utils.dart';
 class CompilationServerCommand extends DartdevCommand {
   static const commandName = 'compilation-server';
 
-  static const commandDescription = 'Control the resident frontend compiler.';
+  static const commandDescription = 'Control resident frontend compilers.';
 
   static const residentServerInfoFileFlag = 'resident-server-info-file';
   static const residentServerInfoFileFlagDescription =
-      'Specify the file that the Dart CLI uses to communicate with the '
-      'resident frontend compiler. Passing this flag results in having one '
-      'unique resident frontend compiler per file. This is needed when '
-      'writing unit tests that utilize resident mode in order to maintain '
-      'isolation.';
+      'The path to an info file that the Dart CLI will use to communicate with '
+      'a resident frontend compiler. Each unique info file is associated with '
+      'a unique resident frontend compiler. If this flag is ommitted, the '
+      'default info file will be used.';
 
   CompilationServerCommand({bool verbose = false})
       : super(
@@ -41,7 +40,7 @@ class CompilationServerCommand extends DartdevCommand {
 class CompilationServerStartCommand extends DartdevCommand {
   static const commandName = 'start';
 
-  static const commandDescription = 'Starts the resident frontend compiler.';
+  static const commandDescription = 'Start a resident frontend compiler.';
 
   CompilationServerStartCommand({bool verbose = false})
       : super(
@@ -82,9 +81,7 @@ class CompilationServerShutdownCommand extends DartdevCommand {
   static const commandName = 'shutdown';
 
   static const commandDescription = '''
-Shut down the resident frontend compiler.
-
-Frontend compilers stay resident in memory when using 'dart run --resident'. This command will shutdown any remaining frontend compiler processes.
+Shut down a resident frontend compiler.
 
 Note that this command name and usage could change as we evolve the resident frontend compiler behavior.''';
 

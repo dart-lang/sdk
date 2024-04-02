@@ -52,12 +52,17 @@ class RunCommand extends DartdevCommand {
         ) {
     argParser
       ..addFlag(
-        'resident',
+        residentOption,
         abbr: 'r',
         negatable: false,
-        help:
-            'Enable faster startup times with the resident frontend compiler.\n'
-            "See 'dart ${CompilationServerCommand.commandName} -h' for more information.",
+        help: 'Enable faster startup times by using a resident frontend '
+            'compiler for compilation.\n'
+            'If --resident-server-info-file is provided in conjunction with '
+            'this flag, the specified info file will be used, otherwise the '
+            'default info file will be used. If there is not already a '
+            'compiler associated with the selected info file, one will be '
+            "started. Refer to 'dart ${CompilationServerCommand.commandName} "
+            "start -h' for more information about info files.",
         hide: !verbose,
       )
       ..addOption(
