@@ -768,6 +768,9 @@ class _ExpressionTransformer extends Transformer {
   TreeNode visitRethrow(Rethrow expr) => nullary(expr);
 
   @override
+  TreeNode visitFileUriExpression(FileUriExpression expr) => unary(expr);
+
+  @override
   TreeNode visitVariableGet(VariableGet expr) {
     Expression result = expr;
     // Getting a final or const variable is not an effect so it can be

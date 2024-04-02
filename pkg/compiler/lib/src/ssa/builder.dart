@@ -6228,6 +6228,11 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       ..cleanUp();
   }
 
+  @override
+  void visitFileUriExpression(ir.FileUriExpression node) {
+    node.expression.accept(this);
+  }
+
   bool _tryInlineMethod(
       FunctionEntity function,
       Selector? selector,

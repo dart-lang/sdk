@@ -2246,6 +2246,11 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
     return TypeInformationConstantVisitor(this, node)
         .visitConstant(node.constant);
   }
+
+  @override
+  TypeInformation visitFileUriExpression(ir.FileUriExpression node) {
+    return visit(node.expression)!;
+  }
 }
 
 class TypeInformationConstantVisitor

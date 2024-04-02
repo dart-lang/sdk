@@ -3160,6 +3160,12 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     return translator.topInfo.nullableType;
   }
 
+  @override
+  w.ValueType visitFileUriExpression(
+      FileUriExpression node, w.ValueType expectedType) {
+    return wrap(node.expression, expectedType);
+  }
+
   // Generates a function for a constructor's body, where the allocated struct
   // object is passed to this function.
   void generateConstructorBody(Reference target) {
