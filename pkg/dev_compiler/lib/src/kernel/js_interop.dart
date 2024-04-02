@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_js_interop_checks/src/js_interop.dart';
 import 'package:kernel/kernel.dart';
 
 import 'kernel_helpers.dart';
@@ -157,4 +158,34 @@ bool usesJSInterop(NamedNode n) {
     return n.annotations.any(isJSInteropAnnotation);
   }
   return false;
+}
+
+/// Returns `true` when [member] is a JavaScript interop member using the
+/// package:js style of interop.
+///
+/// Will return `false` when the newer static interop style is used or when
+/// [member] is not a JavaScript interop member at all.
+bool isNonStaticJsInterop(Member member) {
+  return member.isExternal &&
+      !member.isExtensionMember &&
+      !member.isExtensionTypeMember &&
+      _usesNonStaticInteropAnnotation(member);
+}
+
+/// Returns `true` when [member] is a JavaScript interop member using the
+/// package:js style of interop annotation.
+///
+/// This does not mean [member] has the annotation directly because it can
+/// be applied on the class or the library level.
+///
+/// Will return `false` when the newer static interop style annotation is
+/// found or when [member] is not a JavaScript interop member at all.
+bool _usesNonStaticInteropAnnotation(Member member) {
+  var enclosingClass = member.enclosingClass;
+  if (enclosingClass != null) {
+    return hasPackageJSAnnotation(enclosingClass) &&
+        !hasStaticInteropAnnotation(enclosingClass);
+  }
+  return hasPackageJSAnnotation(member) ||
+      hasPackageJSAnnotation(member.enclosingLibrary);
 }

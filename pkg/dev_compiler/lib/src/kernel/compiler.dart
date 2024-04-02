@@ -4896,6 +4896,13 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         node.receiver, node.interfaceTarget, node.name.text);
   }
 
+  /// Returns `true` when [member] is a `.call` member (field, getter or method)
+  /// of a non-static JavaScript Interop class.
+  bool _isNonStaticJsInteropCallMember(Member? member) =>
+      member != null &&
+      member.name.text == 'call' &&
+      isNonStaticJsInterop(member);
+
   @override
   js_ast.Expression visitDynamicSet(DynamicSet node) {
     return _emitPropertySet(node.receiver, null, node.value, node.name.text);
@@ -4958,16 +4965,15 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   // TODO(54463): Refactor and specialize this code for each type of 'get'.
   js_ast.Expression _emitPropertyGet(
       Expression receiver, Member? member, String memberName) {
-    // TODO(jmesserly): should tearoff of `.call` on a function type be
-    // encoded as a different node, or possibly eliminated?
-    // (Regardless, we'll still need to handle the callable JS interop classes.)
-    if (memberName == 'call' &&
-        _isDirectCallable(receiver.getStaticType(_staticTypeContext))) {
-      // Tearoff of `call` on a function type is a no-op;
-      return _visitExpression(receiver);
+    var jsReceiver = _visitExpression(receiver);
+    if (_isNonStaticJsInteropCallMember(member)) {
+      // Historically DDC has treated this as a "callable class" and the
+      // tearoff of `.call` as a no-op. This is still needed here to preserve
+      // the existing behavior for the non-static JavaScript interop (including
+      // potentially failing cases).
+      return jsReceiver;
     }
     var jsName = _emitMemberName(memberName, member: member);
-    var jsReceiver = _visitExpression(receiver);
 
     // TODO(jmesserly): we need to mark an end span for property accessors so
     // they can be hovered. Unfortunately this is not possible as Kernel does
@@ -7391,7 +7397,22 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   js_ast.Expression visitFunctionTearOff(FunctionTearOff node) {
-    return _emitPropertyGet(node.receiver, null, 'call');
+    var receiver = node.receiver;
+    var receiverType = receiver.getStaticType(_staticTypeContext);
+    var jsReceiver = _visitExpression(receiver);
+    if (receiverType is InterfaceType &&
+        receiverType.classNode == _coreTypes.functionClass) {
+      // Historically DDC has treated this case as a dynamic get and allowed it
+      // to evaluate at runtime.
+      //
+      // This is here to preserve the existing behavior for the non-static
+      // JavaScript interop (including some failing cases) but could potentially
+      // be cleaned up as a breaking change.
+      return runtimeCall(
+          'dload$_replSuffix(#, #)', [jsReceiver, js.string('call')]);
+    }
+    // Otherwise, tearoff of `call` on a function type is a no-op.
+    return jsReceiver;
   }
 
   /// Creates header comments with helpful compilation information.
