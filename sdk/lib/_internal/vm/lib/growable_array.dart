@@ -259,8 +259,9 @@ class _GrowableList<T> extends ListBase<T> {
   @pragma("vm:external-name", "GrowableList_setData")
   external void _setData(_List array);
 
-  @pragma("vm:recognized", "graph-intrinsic")
-  @pragma("vm:external-name", "GrowableList_getIndexed")
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  @pragma("vm:idempotent")
   external T operator [](int index);
 
   @pragma("vm:recognized", "other")

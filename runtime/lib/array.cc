@@ -16,15 +16,6 @@ DEFINE_NATIVE_ENTRY(List_allocate, 0, 2) {
   return Object::null();
 }
 
-DEFINE_NATIVE_ENTRY(List_getIndexed, 0, 2) {
-  const Array& array = Array::CheckedHandle(zone, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Smi, index, arguments->NativeArgAt(1));
-  if ((index.Value() < 0) || (index.Value() >= array.Length())) {
-    Exceptions::ThrowRangeError("index", index, 0, array.Length() - 1);
-  }
-  return array.At(index.Value());
-}
-
 DEFINE_NATIVE_ENTRY(List_setIndexed, 0, 3) {
   const Array& array = Array::CheckedHandle(zone, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, index, arguments->NativeArgAt(1));

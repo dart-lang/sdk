@@ -2054,6 +2054,10 @@ RangeBoundary RangeBoundary::IntersectionMin(RangeBoundary a, RangeBoundary b) {
     return a;
   }
 
+  if (a.IsConstant() && b.IsConstant()) {
+    return RangeBoundary(Utils::Maximum(a.ConstantValue(), b.ConstantValue()));
+  }
+
   if (a.IsMinimumOrBelow(RangeBoundary::kRangeBoundarySmi)) {
     return b;
   } else if (b.IsMinimumOrBelow(RangeBoundary::kRangeBoundarySmi)) {
@@ -2077,6 +2081,10 @@ RangeBoundary RangeBoundary::IntersectionMax(RangeBoundary a, RangeBoundary b) {
 
   if (a.Equals(b)) {
     return a;
+  }
+
+  if (a.IsConstant() && b.IsConstant()) {
+    return RangeBoundary(Utils::Minimum(a.ConstantValue(), b.ConstantValue()));
   }
 
   if (a.IsMaximumOrAbove(RangeBoundary::kRangeBoundarySmi)) {
