@@ -451,6 +451,17 @@
     "sinceDartSdk": "2.0.0"
   },
   {
+    "name": "unintended_html_in_doc_comment",
+    "description": "Use of angle brackets in a doc comment is treated as HTML by Markdown.",
+    "group": "errors",
+    "state": "stable",
+    "incompatible": [],
+    "sets": [],
+    "fixStatus": "needsEvaluation",
+    "details": "**DO** reference only in-scope identifiers in doc comments.\n\nWhen a developer writes a reference with angle brackets within a doc comment,\nthe angle brackets are interpreted as HTML. The text within pairs of opening and\nclosing angle brackets generally get swallowed by the browser, and will not be\ndisplayed.\n\nWrap text with angle brackets within a code block or within a code span, unless\nthey are delimiters for a Markdown autolink. You can also replace `<` with\n`&lt;` and `>` with `&gt;`.\n\n**BAD:**\n```dart\n/// Text List<int>.\n/// Text [List<int>].\n/// <assignment> -> <variable> = <expression>\n```\n\n**GOOD:**\n```dart\n/// Text `List<int>`.\n/// `<assignment> -> <variable> = <expression>`\n/// <http://foo.bar.baz>\n```\n\n",
+    "sinceDartSdk": "3.4.0-wip"
+  },
+  {
     "name": "unnecessary_statements",
     "description": "Avoid using unnecessary statements.",
     "group": "errors",
@@ -2195,13 +2206,13 @@
   },
   {
     "name": "require_trailing_commas",
-    "description": "Use trailing commas for all function calls and declarations.",
+    "description": "Use trailing commas for all parameter lists and argument lists.",
     "group": "style",
     "state": "stable",
     "incompatible": [],
     "sets": [],
     "fixStatus": "hasFix",
-    "details": "**DO** use trailing commas for all function calls and declarations unless the\nfunction call or definition, from the start of the function name up to the\nclosing parenthesis, fits in a single line.\n\n**BAD:**\n```dart\nvoid run() {\n  method('does not fit on one line',\n      'test test test test test test test test test test test');\n}\n```\n\n**GOOD:**\n```dart\nvoid run() {\n  method(\n    'does not fit on one line',\n    'test test test test test test test test test test test',\n  );\n}\n```\n\n**EXCEPTION:** If the final parameter/argument is positional (vs named) and is\neither a function literal implemented using curly braces, a literal map, a\nliteral set or a literal array. This exception only applies if the final\nparameter does not fit entirely on one line.\n\n**NOTE:** This lint rule assumes `dart format` has been run over the code and\nmay produce false positives until that has happened.\n\n",
+    "details": "**DO** use trailing commas for all multi-line parameter lists and argument\nlists. A parameter list or argument list that fits on one line, including the\nopening parenthesis and closing parenthesis, does not require a trailing comma.\n\n**BAD:**\n```dart\nvoid run() {\n  method('does not fit on one line',\n      'test test test test test test test test test test test');\n}\n```\n\n**GOOD:**\n```dart\nvoid run() {\n  method(\n    'does not fit on one line',\n    'test test test test test test test test test test test',\n  );\n}\n```\n\n**EXCEPTION:** If the final argument in an argument list is positional (vs\nnamed) and is either a function literal with curly braces, a map literal, a set\nliteral, or a list literal, then a trailing comma is not required.\nThis exception only applies if the final argument does not fit entirely on one\nline.\n\n**NOTE:** This lint rule assumes that code has been formatted with `dart format`\nand may produce false positives on unformatted code.\n\n",
     "sinceDartSdk": "2.14.0"
   },
   {
@@ -2477,6 +2488,17 @@
     "fixStatus": "hasFix",
     "details": "**DO** use library directives if you want to document a library and/or annotate \na library.\n\n**BAD:**\n```dart\nlibrary;\n```\n\n**GOOD:**\n```dart\n/// This library does important things\nlibrary;\n```\n\n```dart\n@TestOn('js')\nlibrary;\n```\n\nNOTE: Due to limitations with this lint, libraries with parts will not be\nflagged for unnecessary library directives.\n",
     "sinceDartSdk": "2.19.0"
+  },
+  {
+    "name": "unnecessary_library_name",
+    "description": "Don't have a library name in a `library` declaration.",
+    "group": "style",
+    "state": "stable",
+    "incompatible": [],
+    "sets": [],
+    "fixStatus": "hasFix",
+    "details": "**DON'T** have a library name in a `library` declaration.\n\nLibrary names are not necessary.\n\nA library does not need a library declaration, but one can be added to attach\nlibrary documentation and library metadata to. A declaration of `library;` is\nsufficient for those uses.\n\nThe only *use* of a library name is for a `part` file to refer back to its\nowning library, but part files should prefer to use a string URI to refer back\nto the library file, not a library name.\n\nIf a library name is added to a library declaration, it introduces the risk of\nname *conflicts*. It's a compile-time error if two libraries in the same program\nhave the same library name. To avoid that, library names tend to be long,\nincluding the package name and path, just to avoid accidental name clashes. That\nmakes such library names hard to read, and not even useful as documentation.\n\n**BAD:**\n```dart\n/// This library has a long name.\nlibrary magnificator.src.helper.bananas;\n```\n\n```dart\nlibrary utils; // Not as verbose, but risks conflicts.\n```\n\n**GOOD:**\n```dart\n/// This library is awesome.\nlibrary;\n\npart \"apart.dart\"; // contains: `part of \"good_library.dart\";`\n```\n",
+    "sinceDartSdk": "3.4.0-wip"
   },
   {
     "name": "unnecessary_new",
@@ -2760,7 +2782,7 @@
     "state": "stable",
     "incompatible": [],
     "sets": [],
-    "fixStatus": "needsFix",
+    "fixStatus": "hasFix",
     "details": "Where possible, use already defined const values.\n\n**BAD:**\n```dart\nconst Duration(seconds: 0);\n```\n\n**GOOD:**\n```dart\nDuration.zero;\n```\n\n",
     "sinceDartSdk": "2.13.0"
   },
