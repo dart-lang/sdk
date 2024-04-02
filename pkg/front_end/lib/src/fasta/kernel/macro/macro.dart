@@ -2,14 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:macros/macros.dart' as macro;
-import 'package:macros/src/executor.dart' as macro;
-import 'package:macros/src/executor/span.dart' as macro;
 import 'package:_fe_analyzer_shared/src/macros/uri.dart';
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
 import 'package:front_end/src/fasta/uri_offset.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
+import 'package:macros/macros.dart' as macro;
+import 'package:macros/src/executor.dart' as macro;
+import 'package:macros/src/executor/span.dart' as macro;
 
 import '../../../api_prototype/compiler_options.dart';
 import '../../../base/common.dart';
@@ -551,22 +551,34 @@ class MacroApplications {
           try {
             benchmarker?.beginSubdivide(BenchmarkSubdivides
                 .macroApplications_macroExecutorInstantiateMacro);
-            macro.MacroInstanceIdentifier instance =
-                application.instanceIdentifier = instanceIdCache[
-                        application] ??=
-                    // TODO: Dispose of these instances using
-                    // `macroExecutor.disposeMacro` once we are done with them.
-                    await macroExecutor.instantiateMacro(
-                        libraryUri,
-                        macroClassName,
-                        application.constructorName,
-                        application.arguments);
+            macro.MacroInstanceIdentifier? instance;
+            try {
+              instance = application.instanceIdentifier = instanceIdCache[
+                      application] ??=
+                  // TODO: Dispose of these instances using
+                  // `macroExecutor.disposeMacro` once we are done with them.
+                  await macroExecutor.instantiateMacro(
+                      libraryUri,
+                      macroClassName,
+                      application.constructorName,
+                      application.arguments);
+            } catch (_) {
+              applicationData.libraryBuilder.addProblem(
+                  messageUnsupportedMacroApplication,
+                  application.uriOffset.fileOffset,
+                  noLength,
+                  application.uriOffset.uri);
+            }
 
-            application.phasesToExecute = macro.Phase.values.where((phase) {
-              return instance.shouldExecute(targetDeclarationKind, phase);
-            }).toSet();
+            application.phasesToExecute = instance == null
+                ? {}
+                : macro.Phase.values.where((phase) {
+                    return instance!
+                        .shouldExecute(targetDeclarationKind, phase);
+                  }).toSet();
 
-            if (!instance.supportsDeclarationKind(targetDeclarationKind)) {
+            if (instance != null &&
+                !instance.supportsDeclarationKind(targetDeclarationKind)) {
               Iterable<macro.DeclarationKind> supportedKinds = macro
                   .DeclarationKind.values
                   .where(instance.supportsDeclarationKind);
