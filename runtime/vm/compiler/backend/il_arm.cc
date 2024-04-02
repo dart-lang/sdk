@@ -300,10 +300,8 @@ static void CopyUpToWordMultiple(FlowGraphCompiler* compiler,
     tested_bits |= (1 << tested_bit);
     __ tst(length_reg, compiler::Operand(1 << tested_bit));
     auto const sz = OperandSizeFor(bytes);
-    __ LoadFromOffset(TMP, compiler::Address(src_reg, bytes, mode), sz,
-                      NOT_ZERO);
-    __ StoreToOffset(TMP, compiler::Address(dest_reg, bytes, mode), sz,
-                     NOT_ZERO);
+    __ Load(TMP, compiler::Address(src_reg, bytes, mode), sz, NOT_ZERO);
+    __ Store(TMP, compiler::Address(dest_reg, bytes, mode), sz, NOT_ZERO);
   }
 
   __ bics(length_reg, length_reg, compiler::Operand(tested_bits));
@@ -2322,8 +2320,7 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     } else {
       const Register result = locs()->out(0).reg();
       if (aligned()) {
-        __ LoadFromOffset(result, element_address,
-                          RepresentationUtils::OperandSize(rep));
+        __ Load(result, element_address, RepresentationUtils::OperandSize(rep));
       } else {
         switch (rep) {
           case kUnboxedUint32:
@@ -2552,8 +2549,7 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     } else {
       const Register value = locs()->in(2).reg();
       if (aligned()) {
-        __ StoreToOffset(value, element_address,
-                         RepresentationUtils::OperandSize(rep));
+        __ Store(value, element_address, RepresentationUtils::OperandSize(rep));
       } else {
         switch (rep) {
           case kUnboxedUint32:

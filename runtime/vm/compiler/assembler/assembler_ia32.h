@@ -617,64 +617,22 @@ class Assembler : public AssemblerBase {
     j(condition, label, distance);
   }
 
-  // Arch-specific LoadFromOffset to choose the right operation for [sz].
-  void LoadFromOffset(Register dst,
-                      const Address& address,
-                      OperandSize sz = kFourBytes) override;
-  void LoadFromOffset(Register dst,
-                      Register base,
-                      int32_t offset,
-                      OperandSize sz = kFourBytes) {
-    LoadFromOffset(dst, Address(base, offset), sz);
-  }
-  void LoadField(Register dst, const FieldAddress& address) override {
-    LoadField(dst, address, kFourBytes);
-  }
-  void LoadField(Register dst, const FieldAddress& address, OperandSize sz) {
-    LoadFromOffset(dst, address, sz);
-  }
-  void LoadFieldFromOffset(Register reg,
-                           Register base,
-                           int32_t offset,
-                           OperandSize sz = kFourBytes) override {
-    LoadFromOffset(reg, FieldAddress(base, offset), sz);
-  }
-  void LoadCompressedFieldFromOffset(Register reg,
-                                     Register base,
-                                     int32_t offset) override {
-    LoadFieldFromOffset(reg, base, offset);
-  }
+  // Arch-specific Load to choose the right operation for [sz].
+  void Load(Register dst,
+            const Address& address,
+            OperandSize sz = kFourBytes) override;
   void LoadIndexedPayload(Register dst,
                           Register base,
                           int32_t payload_offset,
                           Register index,
                           ScaleFactor scale,
-                          OperandSize sz = kFourBytes) {
-    LoadFromOffset(dst, FieldAddress(base, index, scale, payload_offset), sz);
+                          OperandSize sz = kFourBytes) override {
+    Load(dst, FieldAddress(base, index, scale, payload_offset), sz);
   }
-  void LoadIndexedCompressed(Register dst,
-                             Register base,
-                             int32_t offset,
-                             Register index) {
-    LoadCompressedField(
-        dst, FieldAddress(base, index, TIMES_COMPRESSED_WORD_SIZE, offset));
-  }
-  void StoreToOffset(Register src,
-                     const Address& address,
-                     OperandSize sz = kFourBytes) override;
-  void StoreToOffset(Register src,
-                     Register base,
-                     int32_t offset,
-                     OperandSize sz = kFourBytes) {
-    StoreToOffset(src, Address(base, offset), sz);
-  }
-  void StoreToOffset(const Object& value, const Address& address);
-  void StoreFieldToOffset(Register src,
-                          Register base,
-                          int32_t offset,
-                          OperandSize sz = kFourBytes) {
-    StoreToOffset(src, FieldAddress(base, offset), sz);
-  }
+  void Store(Register src,
+             const Address& address,
+             OperandSize sz = kFourBytes) override;
+  void Store(const Object& value, const Address& address);
   void StoreZero(const Address& address, Register temp = kNoRegister) {
     movl(address, Immediate(0));
   }
@@ -718,7 +676,7 @@ class Assembler : public AssemblerBase {
                    OperandSize size = kFourBytes) override {
     // On intel loads have load-acquire behavior (i.e. loads are not re-ordered
     // with other loads).
-    LoadFromOffset(dst, Address(address, offset), size);
+    Load(dst, Address(address, offset), size);
   }
   void StoreRelease(Register src,
                     Register address,
@@ -848,9 +806,6 @@ class Assembler : public AssemblerBase {
   void PushObject(const Object& object);
   void CompareObject(Register reg, const Object& object);
 
-  void LoadCompressed(Register dest, const Address& slot) { movl(dest, slot); }
-  void LoadCompressedSmi(Register dst, const Address& slot) override;
-
   // Store into a heap object and apply the generational write barrier. (Unlike
   // the other architectures, this does not apply the incremental write barrier,
   // and so concurrent marking is not enabled for now on IA32.) All stores into
@@ -874,24 +829,40 @@ class Assembler : public AssemblerBase {
   void StoreIntoArray(Register object,  // Object we are storing into.
                       Register slot,    // Where we are storing into.
                       Register value,   // Value we are storing.
-                      CanBeSmi can_value_be_smi = kValueCanBeSmi,
-                      Register scratch = kNoRegister);
+                      CanBeSmi can_value_be_smi = kValueCanBeSmi) override {
+    StoreIntoArray(object, slot, value, can_value_be_smi, kNoRegister);
+  }
+  void StoreIntoArray(Register object,  // Object we are storing into.
+                      Register slot,    // Where we are storing into.
+                      Register value,   // Value we are storing.
+                      CanBeSmi can_value_be_smi,
+                      Register scratch);
   void StoreIntoObjectNoBarrier(
       Register object,
       const Address& dest,
       Register value,
       MemoryOrder memory_order = kRelaxedNonAtomic) override;
-  void StoreIntoObjectNoBarrier(Register object,
-                                const Address& dest,
-                                const Object& value,
-                                MemoryOrder memory_order = kRelaxedNonAtomic);
+  void StoreIntoObjectNoBarrier(
+      Register object,
+      const Address& dest,
+      const Object& value,
+      MemoryOrder memory_order = kRelaxedNonAtomic) override;
 
+  void StoreIntoObjectOffset(
+      Register object,  // Object we are storing into.
+      int32_t offset,   // Where we are storing into.
+      Register value,   // Value we are storing.
+      CanBeSmi can_value_be_smi = kValueCanBeSmi,
+      MemoryOrder memory_order = kRelaxedNonAtomic) override {
+    StoreIntoObjectOffset(object, offset, value, can_value_be_smi, memory_order,
+                          kNoRegister);
+  }
   void StoreIntoObjectOffset(Register object,  // Object we are storing into.
                              int32_t offset,   // Where we are storing into.
                              Register value,   // Value we are storing.
-                             CanBeSmi can_value_be_smi = kValueCanBeSmi,
-                             MemoryOrder memory_order = kRelaxedNonAtomic,
-                             Register scratch = kNoRegister) {
+                             CanBeSmi can_value_be_smi,
+                             MemoryOrder memory_order,
+                             Register scratch) {
     StoreIntoObject(object, FieldAddress(object, offset), value,
                     can_value_be_smi, memory_order, scratch);
   }
@@ -899,7 +870,7 @@ class Assembler : public AssemblerBase {
       Register object,
       int32_t offset,
       Register value,
-      MemoryOrder memory_order = kRelaxedNonAtomic) {
+      MemoryOrder memory_order = kRelaxedNonAtomic) override {
     StoreIntoObjectNoBarrier(object, FieldAddress(object, offset), value,
                              memory_order);
   }
@@ -907,7 +878,7 @@ class Assembler : public AssemblerBase {
       Register object,
       int32_t offset,
       const Object& value,
-      MemoryOrder memory_order = kRelaxedNonAtomic) {
+      MemoryOrder memory_order = kRelaxedNonAtomic) override {
     StoreIntoObjectNoBarrier(object, FieldAddress(object, offset), value,
                              memory_order);
   }
@@ -1042,8 +1013,8 @@ class Assembler : public AssemblerBase {
   void LoadStaticFieldAddress(Register address,
                               Register field,
                               Register scratch) {
-    LoadCompressedFieldFromOffset(
-        scratch, field, target::Field::host_offset_or_field_id_offset());
+    LoadFieldFromOffset(scratch, field,
+                        target::Field::host_offset_or_field_id_offset());
     const intptr_t field_table_offset =
         compiler::target::Thread::field_table_values_offset();
     LoadMemoryValue(address, THR, static_cast<int32_t>(field_table_offset));
@@ -1051,15 +1022,9 @@ class Assembler : public AssemblerBase {
     leal(address, Address(address, scratch, TIMES_HALF_WORD_SIZE, 0));
   }
 
-  void LoadCompressedFieldAddressForRegOffset(Register address,
-                                              Register instance,
-                                              Register offset_in_words_as_smi) {
-    LoadFieldAddressForRegOffset(address, instance, offset_in_words_as_smi);
-  }
-
   void LoadFieldAddressForRegOffset(Register address,
                                     Register instance,
-                                    Register offset_in_words_as_smi) {
+                                    Register offset_in_words_as_smi) override {
     static_assert(kSmiTagShift == 1, "adjust scale factor");
     leal(address, FieldAddress(instance, offset_in_words_as_smi, TIMES_2, 0));
   }
@@ -1122,7 +1087,7 @@ class Assembler : public AssemblerBase {
                     Label* equals) override;
 
   void Align(intptr_t alignment, intptr_t offset);
-  void Bind(Label* label);
+  void Bind(Label* label) override;
   void Jump(Label* label, JumpDistance distance = kFarJump) {
     jmp(label, distance);
   }

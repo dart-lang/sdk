@@ -1796,9 +1796,7 @@ void Assembler::CompareRegisters(Register a, Register b) {
   cmpl(a, b);
 }
 
-void Assembler::LoadFromOffset(Register reg,
-                               const Address& address,
-                               OperandSize type) {
+void Assembler::Load(Register reg, const Address& address, OperandSize type) {
   switch (type) {
     case kByte:
       return movsxb(reg, address);
@@ -1817,9 +1815,7 @@ void Assembler::LoadFromOffset(Register reg,
   }
 }
 
-void Assembler::StoreToOffset(Register reg,
-                              const Address& address,
-                              OperandSize sz) {
+void Assembler::Store(Register reg, const Address& address, OperandSize sz) {
   switch (sz) {
     case kByte:
     case kUnsignedByte:
@@ -1836,7 +1832,7 @@ void Assembler::StoreToOffset(Register reg,
   }
 }
 
-void Assembler::StoreToOffset(const Object& object, const Address& dst) {
+void Assembler::Store(const Object& object, const Address& dst) {
   if (target::CanEmbedAsRawPointerInGeneratedCode(object)) {
     movl(dst, Immediate(target::ToRawPointer(object)));
   } else {
@@ -2078,16 +2074,6 @@ void Assembler::CompareObject(Register reg, const Object& object) {
       buffer_.EmitObject(object);
     }
   }
-}
-
-void Assembler::LoadCompressedSmi(Register dest, const Address& slot) {
-  movl(dest, slot);
-#if defined(DEBUG)
-  Label done;
-  BranchIfSmi(dest, &done, kNearJump);
-  Stop("Expected Smi");
-  Bind(&done);
-#endif
 }
 
 void Assembler::StoreIntoObject(Register object,

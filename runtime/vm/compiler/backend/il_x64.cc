@@ -1996,8 +1996,7 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(representation() == Boxing::NativeRepresentation(rep));
   if (RepresentationUtils::IsUnboxedInteger(rep)) {
     Register result = locs()->out(0).reg();
-    __ LoadFromOffset(result, element_address,
-                      RepresentationUtils::OperandSize(rep));
+    __ Load(result, element_address, RepresentationUtils::OperandSize(rep));
   } else if (RepresentationUtils::IsUnboxed(rep)) {
     XmmRegister result = locs()->out(0).fpu_reg();
     if (rep == kUnboxedFloat) {
@@ -2216,8 +2215,7 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       }
     } else {
       Register value = locs()->in(2).reg();
-      __ StoreToOffset(value, element_address,
-                       RepresentationUtils::OperandSize(rep));
+      __ Store(value, element_address, RepresentationUtils::OperandSize(rep));
     }
   } else if (RepresentationUtils::IsUnboxed(rep)) {
     if (rep == kUnboxedFloat) {

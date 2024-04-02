@@ -1773,7 +1773,7 @@ void Assembler::StoreIntoObject(Register object,
   if (memory_order == kRelease) {
     StoreRelease(value, dest);
   } else {
-    StoreToOffset(value, dest);
+    Store(value, dest);
   }
 
   // In parallel, test whether
@@ -1909,7 +1909,7 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   if (memory_order == kRelease) {
     StoreRelease(value, dest);
   } else {
-    StoreToOffset(value, dest);
+    Store(value, dest);
   }
 #if defined(DEBUG)
   // We can't assert the incremental barrier is not needed here, only the
@@ -2030,7 +2030,7 @@ void Assembler::StoreIntoSmiField(const Address& dest, Register value) {
   Stop("New value must be Smi.");
   Bind(&done);
 #endif  // defined(DEBUG)
-  StoreToOffset(value, dest);
+  Store(value, dest);
 }
 
 void Assembler::ExtractClassIdFromTags(Register result,
@@ -2278,16 +2278,6 @@ void Assembler::BindARMv7(Label* label) {
 
 void Assembler::Bind(Label* label) {
   BindARMv7(label);
-}
-
-void Assembler::LoadCompressedSmi(Register dest, const Address& slot) {
-  ldr(dest, slot);
-#if defined(DEBUG)
-  Label done;
-  BranchIfSmi(dest, &done, kNearJump);
-  Stop("Expected Smi");
-  Bind(&done);
-#endif
 }
 
 OperandSize Address::OperandSizeFor(intptr_t cid) {
@@ -2890,10 +2880,10 @@ Address Assembler::PrepareLargeStoreOffset(const Address& address,
   return Address(base, offset, mode);
 }
 
-void Assembler::LoadFromOffset(Register reg,
-                               const Address& address,
-                               OperandSize size,
-                               Condition cond) {
+void Assembler::Load(Register reg,
+                     const Address& address,
+                     OperandSize size,
+                     Condition cond) {
   const Address& addr = PrepareLargeLoadOffset(address, size, cond);
   switch (size) {
     case kByte:
@@ -2932,10 +2922,10 @@ void Assembler::CompareToStack(Register src, intptr_t depth) {
   CompareRegisters(src, TMP);
 }
 
-void Assembler::StoreToOffset(Register reg,
-                              const Address& address,
-                              OperandSize size,
-                              Condition cond) {
+void Assembler::Store(Register reg,
+                      const Address& address,
+                      OperandSize size,
+                      Condition cond) {
   const Address& addr = PrepareLargeStoreOffset(address, size, cond);
   switch (size) {
     case kUnsignedByte:
@@ -3866,8 +3856,8 @@ void Assembler::LoadElementAddressForRegIndex(Register address,
 void Assembler::LoadStaticFieldAddress(Register address,
                                        Register field,
                                        Register scratch) {
-  LoadCompressedFieldFromOffset(
-      scratch, field, target::Field::host_offset_or_field_id_offset());
+  LoadFieldFromOffset(scratch, field,
+                      target::Field::host_offset_or_field_id_offset());
   const intptr_t field_table_offset =
       compiler::target::Thread::field_table_values_offset();
   LoadMemoryValue(address, THR, static_cast<int32_t>(field_table_offset));

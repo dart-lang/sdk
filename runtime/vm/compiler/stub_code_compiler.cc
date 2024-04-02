@@ -1383,7 +1383,7 @@ void StubCodeCompiler::GenerateAllocateRecordStub() {
     __ AndImmediate(temp_reg, -target::ObjectAlignment::kObjectAlignment);
 
     // Now allocate the object.
-    __ LoadFromOffset(result_reg, Address(THR, target::Thread::top_offset()));
+    __ LoadFromOffset(result_reg, THR, target::Thread::top_offset());
     __ MoveRegister(new_top_reg, temp_reg);
     __ AddRegisters(new_top_reg, result_reg);
     // Check if the allocation fits into the remaining space.
@@ -1394,7 +1394,7 @@ void StubCodeCompiler::GenerateAllocateRecordStub() {
 
     // Successfully allocated the object, now update top to point to
     // next object start and initialize the object.
-    __ StoreToOffset(new_top_reg, Address(THR, target::Thread::top_offset()));
+    __ StoreToOffset(new_top_reg, THR, target::Thread::top_offset());
     __ AddImmediate(result_reg, kHeapObjectTag);
 
     // Calculate the size tag.
@@ -1414,9 +1414,8 @@ void StubCodeCompiler::GenerateAllocateRecordStub() {
       __ Bind(&done);
       uword tags = target::MakeTagWordForNewSpaceObject(kRecordCid, 0);
       __ OrImmediate(temp_reg, tags);
-      __ StoreToOffset(
-          temp_reg,
-          FieldAddress(result_reg, target::Object::tags_offset()));  // Tags.
+      __ StoreFieldToOffset(temp_reg, result_reg,
+                            target::Object::tags_offset());  // Tags.
     }
 
     __ StoreCompressedIntoObjectNoBarrier(
@@ -1807,11 +1806,10 @@ static void CallDartCoreLibraryFunction(
     __ Call(Address(THR, entry_point_offset_in_thread));
   } else {
     __ LoadIsolateGroup(FUNCTION_REG);
-    __ LoadFromOffset(
-        FUNCTION_REG,
-        Address(FUNCTION_REG, target::IsolateGroup::object_store_offset()));
-    __ LoadFromOffset(FUNCTION_REG,
-                      Address(FUNCTION_REG, function_offset_in_object_store));
+    __ LoadFromOffset(FUNCTION_REG, FUNCTION_REG,
+                      target::IsolateGroup::object_store_offset());
+    __ LoadFromOffset(FUNCTION_REG, FUNCTION_REG,
+                      function_offset_in_object_store);
     __ LoadCompressedFieldFromOffset(CODE_REG, FUNCTION_REG,
                                      target::Function::code_offset());
     if (!uses_args_desc) {
@@ -1855,7 +1853,7 @@ static void GenerateAllocateSuspendState(Assembler* assembler,
   __ AndImmediate(temp_reg, -target::ObjectAlignment::kObjectAlignment);
 
   // Now allocate the object.
-  __ LoadFromOffset(result_reg, Address(THR, target::Thread::top_offset()));
+  __ LoadFromOffset(result_reg, THR, target::Thread::top_offset());
   __ AddRegisters(temp_reg, result_reg);
   // Check if the allocation fits into the remaining space.
   __ CompareWithMemoryValue(temp_reg,
@@ -1865,7 +1863,7 @@ static void GenerateAllocateSuspendState(Assembler* assembler,
 
   // Successfully allocated the object, now update top to point to
   // next object start and initialize the object.
-  __ StoreToOffset(temp_reg, Address(THR, target::Thread::top_offset()));
+  __ StoreToOffset(temp_reg, THR, target::Thread::top_offset());
   __ SubRegisters(temp_reg, result_reg);
   __ AddImmediate(result_reg, kHeapObjectTag);
 
@@ -1873,9 +1871,8 @@ static void GenerateAllocateSuspendState(Assembler* assembler,
     // Use rounded object size to calculate and save frame capacity.
     __ AddImmediate(temp_reg, temp_reg,
                     -target::SuspendState::payload_offset());
-    __ StoreToOffset(
-        temp_reg, FieldAddress(result_reg,
-                               target::SuspendState::frame_capacity_offset()));
+    __ StoreFieldToOffset(temp_reg, result_reg,
+                          target::SuspendState::frame_capacity_offset());
     // Restore rounded object size.
     __ AddImmediate(temp_reg, temp_reg, target::SuspendState::payload_offset());
   }
@@ -1897,14 +1894,12 @@ static void GenerateAllocateSuspendState(Assembler* assembler,
     __ Bind(&done);
     uword tags = target::MakeTagWordForNewSpaceObject(kSuspendStateCid, 0);
     __ OrImmediate(temp_reg, tags);
-    __ StoreToOffset(
-        temp_reg,
-        FieldAddress(result_reg, target::Object::tags_offset()));  // Tags.
+    __ StoreFieldToOffset(temp_reg, result_reg,
+                          target::Object::tags_offset());  // Tags.
   }
 
-  __ StoreToOffset(
-      frame_size_reg,
-      FieldAddress(result_reg, target::SuspendState::frame_size_offset()));
+  __ StoreFieldToOffset(frame_size_reg, result_reg,
+                        target::SuspendState::frame_size_offset());
 }
 
 void StubCodeCompiler::GenerateSuspendStub(
@@ -1927,7 +1922,7 @@ void StubCodeCompiler::GenerateSuspendStub(
   SPILLS_LR_TO_FRAME({});  // Simulate entering the caller (Dart) frame.
 #endif
 
-  __ LoadFromOffset(kSuspendState, Address(FPREG, SuspendStateFpOffset()));
+  __ LoadFromOffset(kSuspendState, FPREG, SuspendStateFpOffset());
 
   __ AddImmediate(
       kFrameSize, FPREG,
@@ -1954,9 +1949,8 @@ void StubCodeCompiler::GenerateSuspendStub(
                      target::SuspendState::frame_capacity_offset()));
     __ BranchIf(UNSIGNED_GREATER, &resize_suspend_state);
 
-    __ StoreToOffset(
-        kFrameSize,
-        FieldAddress(kSuspendState, target::SuspendState::frame_size_offset()));
+    __ StoreFieldToOffset(kFrameSize, kSuspendState,
+                          target::SuspendState::frame_size_offset());
     __ Jump(&init_done);
 
     __ Bind(&alloc_suspend_state);
@@ -1996,9 +1990,8 @@ void StubCodeCompiler::GenerateSuspendStub(
   __ Bind(&alloc_done);
 
   __ Comment("Save SuspendState to frame");
-  __ LoadFromOffset(
-      kTemp, Address(FPREG, kSavedCallerFpSlotFromFp * target::kWordSize));
-  __ StoreToOffset(kSuspendState, Address(kTemp, SuspendStateFpOffset()));
+  __ LoadFromOffset(kTemp, FPREG, kSavedCallerFpSlotFromFp * target::kWordSize);
+  __ StoreToOffset(kSuspendState, kTemp, SuspendStateFpOffset());
 
   __ Bind(&init_done);
   __ Comment("Copy frame to SuspendState");
@@ -2007,9 +2000,8 @@ void StubCodeCompiler::GenerateSuspendStub(
   {
     // Verify that SuspendState.frame_size == kFrameSize.
     Label okay;
-    __ LoadFromOffset(
-        kTemp,
-        FieldAddress(kSuspendState, target::SuspendState::frame_size_offset()));
+    __ LoadFieldFromOffset(kTemp, kSuspendState,
+                           target::SuspendState::frame_size_offset());
     __ CompareRegisters(kTemp, kFrameSize);
     __ BranchIf(EQUAL, &okay);
     __ Breakpoint();
@@ -2028,23 +2020,21 @@ void StubCodeCompiler::GenerateSuspendStub(
     __ PopRegister(THR);
   }
 
-  __ LoadFromOffset(
-      kTemp, Address(FPREG, kSavedCallerPcSlotFromFp * target::kWordSize));
-  __ StoreToOffset(
-      kTemp, FieldAddress(kSuspendState, target::SuspendState::pc_offset()));
+  __ LoadFromOffset(kTemp, FPREG, kSavedCallerPcSlotFromFp * target::kWordSize);
+  __ StoreFieldToOffset(kTemp, kSuspendState,
+                        target::SuspendState::pc_offset());
 
 #ifdef DEBUG
   {
     // Verify that kSuspendState matches :suspend_state in the copied stack
     // frame.
     Label okay;
-    __ LoadFromOffset(
-        kTemp,
-        FieldAddress(kSuspendState, target::SuspendState::frame_size_offset()));
+    __ LoadFieldFromOffset(kTemp, kSuspendState,
+                           target::SuspendState::frame_size_offset());
     __ AddRegisters(kTemp, kSuspendState);
-    __ LoadFromOffset(
-        kTemp, FieldAddress(kTemp, target::SuspendState::payload_offset() +
-                                       SuspendStateFpOffset()));
+    __ LoadFieldFromOffset(
+        kTemp, kTemp,
+        target::SuspendState::payload_offset() + SuspendStateFpOffset());
     __ CompareRegisters(kTemp, kSuspendState);
     __ BranchIf(EQUAL, &okay);
     __ Breakpoint();
@@ -2060,7 +2050,7 @@ void StubCodeCompiler::GenerateSuspendStub(
 
   // Write barrier.
   __ AndImmediate(kTemp, kSuspendState, target::kPageMask);
-  __ LoadFromOffset(kTemp, Address(kTemp, target::Page::original_top_offset()));
+  __ LoadFromOffset(kTemp, kTemp, target::Page::original_top_offset());
   __ CompareRegisters(kSuspendState, kTemp);
   __ BranchIf(UNSIGNED_LESS, &remember_object);
   // Assumption: SuspendStates are always on non-image pages.
@@ -2097,8 +2087,8 @@ void StubCodeCompiler::GenerateSuspendStub(
   // will only unwind frame and return.
   if (!FLAG_precompiled_mode) {
     __ LoadFromOffset(
-        PP, Address(FPREG, target::frame_layout.saved_caller_pp_from_fp *
-                               target::kWordSize));
+        PP, FPREG,
+        target::frame_layout.saved_caller_pp_from_fp * target::kWordSize);
   }
 #endif
   __ Ret();
@@ -2225,8 +2215,8 @@ void StubCodeCompiler::GenerateInitSuspendableFunctionStub(
   __ LeaveStubFrame();
 
   // Set :suspend_state in the caller frame.
-  __ StoreToOffset(CallingConventions::kReturnReg,
-                   Address(FPREG, SuspendStateFpOffset()));
+  __ StoreToOffset(CallingConventions::kReturnReg, FPREG,
+                   SuspendStateFpOffset());
   __ Ret();
 }
 
@@ -2266,8 +2256,7 @@ void StubCodeCompiler::GenerateResumeStub() {
 
   const intptr_t param_offset =
       target::frame_layout.param_end_from_fp * target::kWordSize;
-  __ LoadFromOffset(kSuspendState,
-                    Address(FPREG, param_offset + 4 * target::kWordSize));
+  __ LoadFromOffset(kSuspendState, FPREG, param_offset + 4 * target::kWordSize);
 #ifdef DEBUG
   {
     Label okay;
@@ -2278,8 +2267,8 @@ void StubCodeCompiler::GenerateResumeStub() {
   }
   {
     Label okay;
-    __ LoadFromOffset(
-        kTemp, FieldAddress(kSuspendState, target::SuspendState::pc_offset()));
+    __ LoadFieldFromOffset(kTemp, kSuspendState,
+                           target::SuspendState::pc_offset());
     __ CompareImmediate(kTemp, 0);
     __ BranchIf(NOT_EQUAL, &okay);
     __ Breakpoint();
@@ -2287,17 +2276,16 @@ void StubCodeCompiler::GenerateResumeStub() {
   }
 #endif
 
-  __ LoadFromOffset(
-      kFrameSize,
-      FieldAddress(kSuspendState, target::SuspendState::frame_size_offset()));
+  __ LoadFieldFromOffset(kFrameSize, kSuspendState,
+                         target::SuspendState::frame_size_offset());
 #ifdef DEBUG
   {
     Label okay;
     __ MoveRegister(kTemp, kFrameSize);
     __ AddRegisters(kTemp, kSuspendState);
-    __ LoadFromOffset(
-        kTemp, FieldAddress(kTemp, target::SuspendState::payload_offset() +
-                                       SuspendStateFpOffset()));
+    __ LoadFieldFromOffset(
+        kTemp, kTemp,
+        target::SuspendState::payload_offset() + SuspendStateFpOffset());
     __ CompareRegisters(kTemp, kSuspendState);
     __ BranchIf(EQUAL, &okay);
     __ Breakpoint();
@@ -2310,13 +2298,11 @@ void StubCodeCompiler::GenerateResumeStub() {
     __ MoveRegister(kTemp, kSuspendState);
     __ AddRegisters(kTemp, kFrameSize);
     __ LoadFromOffset(
-        CODE_REG,
-        Address(kTemp,
-                target::SuspendState::payload_offset() - kHeapObjectTag +
-                    target::frame_layout.code_from_fp * target::kWordSize));
-    __ StoreToOffset(
-        CODE_REG,
-        Address(FPREG, target::frame_layout.code_from_fp * target::kWordSize));
+        CODE_REG, kTemp,
+        target::SuspendState::payload_offset() - kHeapObjectTag +
+            target::frame_layout.code_from_fp * target::kWordSize);
+    __ StoreToOffset(CODE_REG, FPREG,
+                     target::frame_layout.code_from_fp * target::kWordSize);
 #if !defined(TARGET_ARCH_IA32)
     __ LoadPoolPointer(PP);
 #endif
@@ -2349,8 +2335,8 @@ void StubCodeCompiler::GenerateResumeStub() {
 
   __ Comment("Transfer control");
 
-  __ LoadFromOffset(kResumePc, FieldAddress(kSuspendState,
-                                            target::SuspendState::pc_offset()));
+  __ LoadFieldFromOffset(kResumePc, kSuspendState,
+                         target::SuspendState::pc_offset());
   __ StoreZero(FieldAddress(kSuspendState, target::SuspendState::pc_offset()),
                kTemp);
 
@@ -2363,15 +2349,14 @@ void StubCodeCompiler::GenerateResumeStub() {
 
   static_assert((kException != CODE_REG) && (kException != PP),
                 "should not interfere");
-  __ LoadFromOffset(kException,
-                    Address(FPREG, param_offset + 2 * target::kWordSize));
+  __ LoadFromOffset(kException, FPREG, param_offset + 2 * target::kWordSize);
   __ CompareObject(kException, NullObject());
   __ BranchIf(NOT_EQUAL, &call_runtime);
 
   if (!FLAG_precompiled_mode) {
     // Check if Code is disabled.
-    __ LoadFromOffset(
-        kTemp, FieldAddress(CODE_REG, target::Code::instructions_offset()));
+    __ LoadFieldFromOffset(kTemp, CODE_REG,
+                           target::Code::instructions_offset());
     __ CompareWithMemoryValue(
         kTemp,
         FieldAddress(CODE_REG, target::Code::active_instructions_offset()));
@@ -2380,25 +2365,23 @@ void StubCodeCompiler::GenerateResumeStub() {
 #if !defined(PRODUCT)
     // Check if there is a breakpoint at resumption.
     __ LoadIsolate(kTemp);
-    __ LoadFromOffset(
-        kTemp,
-        Address(kTemp, target::Isolate::has_resumption_breakpoints_offset()),
-        kUnsignedByte);
+    __ LoadFromOffset(kTemp, kTemp,
+                      target::Isolate::has_resumption_breakpoints_offset(),
+                      kUnsignedByte);
     __ CompareImmediate(kTemp, 0);
     __ BranchIf(NOT_EQUAL, &call_runtime);
 #endif
   }
 
-  __ LoadFromOffset(CallingConventions::kReturnReg,
-                    Address(FPREG, param_offset + 3 * target::kWordSize));
+  __ LoadFromOffset(CallingConventions::kReturnReg, FPREG,
+                    param_offset + 3 * target::kWordSize);
 
   __ Jump(kResumePc);
 
   __ Comment("Call runtime to throw exception or deopt");
   __ Bind(&call_runtime);
 
-  __ LoadFromOffset(kStackTrace,
-                    Address(FPREG, param_offset + 1 * target::kWordSize));
+  __ LoadFromOffset(kStackTrace, FPREG, param_offset + 1 * target::kWordSize);
   static_assert((kStackTrace != CODE_REG) && (kStackTrace != PP),
                 "should not interfere");
 
@@ -2421,8 +2404,8 @@ void StubCodeCompiler::GenerateResumeStub() {
     __ Breakpoint();
   } else {
     __ LeaveStubFrame();
-    __ LoadFromOffset(CallingConventions::kReturnReg,
-                      Address(FPREG, param_offset + 3 * target::kWordSize));
+    __ LoadFromOffset(CallingConventions::kReturnReg, FPREG,
+                      param_offset + 3 * target::kWordSize);
     // Lazy deoptimize.
     __ Ret();
   }
@@ -2438,7 +2421,7 @@ void StubCodeCompiler::GenerateReturnStub(
   SPILLS_LR_TO_FRAME({});  // Simulate entering the caller (Dart) frame.
 #endif
 
-  __ LoadFromOffset(kSuspendState, Address(FPREG, SuspendStateFpOffset()));
+  __ LoadFromOffset(kSuspendState, FPREG, SuspendStateFpOffset());
 #ifdef DEBUG
   {
     Label okay;
@@ -2492,7 +2475,7 @@ void StubCodeCompiler::GenerateAsyncExceptionHandlerStub() {
   SPILLS_LR_TO_FRAME({});  // Simulate entering the caller (Dart) frame.
 #endif
 
-  __ LoadFromOffset(kSuspendState, Address(FPREG, SuspendStateFpOffset()));
+  __ LoadFromOffset(kSuspendState, FPREG, SuspendStateFpOffset());
 
   // Check if suspend_state is initialized. Otherwise
   // exception was thrown from the prologue code and
@@ -2546,8 +2529,7 @@ void StubCodeCompiler::GenerateCloneSuspendStateStub() {
   {
     // Can only clone _SuspendState objects with copied frames.
     Label okay;
-    __ LoadFromOffset(kTemp,
-                      FieldAddress(kSource, target::SuspendState::pc_offset()));
+    __ LoadFieldFromOffset(kTemp, kSource, target::SuspendState::pc_offset());
     __ CompareImmediate(kTemp, 0);
     __ BranchIf(NOT_EQUAL, &okay);
     __ Breakpoint();
@@ -2555,18 +2537,15 @@ void StubCodeCompiler::GenerateCloneSuspendStateStub() {
   }
 #endif
 
-  __ LoadFromOffset(
-      kFrameSize,
-      FieldAddress(kSource, target::SuspendState::frame_size_offset()));
+  __ LoadFieldFromOffset(kFrameSize, kSource,
+                         target::SuspendState::frame_size_offset());
 
   GenerateAllocateSuspendState(assembler, &alloc_slow_case, kDestination,
                                kFrameSize, kTemp);
 
   // Copy pc.
-  __ LoadFromOffset(kTemp,
-                    FieldAddress(kSource, target::SuspendState::pc_offset()));
-  __ StoreToOffset(
-      kTemp, FieldAddress(kDestination, target::SuspendState::pc_offset()));
+  __ LoadFieldFromOffset(kTemp, kSource, target::SuspendState::pc_offset());
+  __ StoreFieldToOffset(kTemp, kDestination, target::SuspendState::pc_offset());
 
   // Copy function_data.
   __ LoadCompressedFieldFromOffset(
@@ -2606,13 +2585,12 @@ void StubCodeCompiler::GenerateCloneSuspendStateStub() {
 
   // Update value of :suspend_state variable in the copied frame
   // for the new SuspendState.
-  __ LoadFromOffset(
-      kTemp,
-      FieldAddress(kDestination, target::SuspendState::frame_size_offset()));
+  __ LoadFieldFromOffset(kTemp, kDestination,
+                         target::SuspendState::frame_size_offset());
   __ AddRegisters(kTemp, kDestination);
-  __ StoreToOffset(kDestination,
-                   FieldAddress(kTemp, target::SuspendState::payload_offset() +
-                                           SuspendStateFpOffset()));
+  __ StoreFieldToOffset(
+      kDestination, kTemp,
+      target::SuspendState::payload_offset() + SuspendStateFpOffset());
 
   __ MoveRegister(CallingConventions::kReturnReg, kDestination);
   EnsureIsNewOrRemembered();
