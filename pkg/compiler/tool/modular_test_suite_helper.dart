@@ -242,7 +242,7 @@ class ConcatenateDillsStep extends IOModularStep {
       '${Flags.inputDill}=${toUri(module, dillId)}',
       for (String flag in flags) '--enable-experiment=$flag',
       '${Flags.dillDependencies}=${dillDependencies.join(',')}',
-      '${Flags.cfeOnly}',
+      '${Flags.stage}=cfe',
       '--out=${toUri(module, fullDillId)}',
     ];
     var result =
@@ -294,8 +294,8 @@ class ComputeClosedWorldStep extends IOModularStep {
       '${Flags.entryUri}=$fakeRoot${module.mainSource}',
       '${Flags.inputDill}=${toUri(module, fullDillId)}',
       for (String flag in flags) '--enable-experiment=$flag',
-      '${Flags.writeClosedWorld}=${toUri(module, closedWorldId)}',
-      Flags.noClosedWorldInData,
+      '${Flags.closedWorldUri}=${toUri(module, closedWorldId)}',
+      '${Flags.stage}=closed-world',
     ];
     var result =
         await _runProcess(Platform.resolvedExecutable, args, root.toFilePath());
@@ -341,10 +341,9 @@ class GlobalAnalysisStep extends IOModularStep {
       '${Flags.entryUri}=$fakeRoot${module.mainSource}',
       '${Flags.inputDill}=${toUri(module, fullDillId)}',
       for (String flag in flags) '--enable-experiment=$flag',
-      '${Flags.readClosedWorld}=${toUri(module, closedWorldId)}',
-      '${Flags.writeData}=${toUri(module, globalDataId)}',
-      // TODO(joshualitt): delete this flag after google3 roll
-      '${Flags.noClosedWorldInData}',
+      '${Flags.closedWorldUri}=${toUri(module, closedWorldId)}',
+      '${Flags.globalInferenceUri}=${toUri(module, globalDataId)}',
+      '${Flags.stage}=global-inference',
     ];
     var result =
         await _runProcess(Platform.resolvedExecutable, args, root.toFilePath());
@@ -396,11 +395,12 @@ class Dart2jsCodegenStep extends IOModularStep {
       '${Flags.entryUri}=$fakeRoot${module.mainSource}',
       '${Flags.inputDill}=${toUri(module, fullDillId)}',
       for (String flag in flags) '--enable-experiment=$flag',
-      '${Flags.readClosedWorld}=${toUri(module, closedWorldId)}',
-      '${Flags.readData}=${toUri(module, globalDataId)}',
-      '${Flags.writeCodegen}=${toUri(module, codeId.dataId)}',
+      '${Flags.closedWorldUri}=${toUri(module, closedWorldId)}',
+      '${Flags.globalInferenceUri}=${toUri(module, globalDataId)}',
+      '${Flags.codegenUri}=${toUri(module, codeId.dataId)}',
       '${Flags.codegenShard}=${codeId.shard}',
       '${Flags.codegenShards}=${codeId.dataId.shards}',
+      '${Flags.stage}=codegen',
     ];
     var result =
         await _runProcess(Platform.resolvedExecutable, args, root.toFilePath());
@@ -446,11 +446,12 @@ class Dart2jsEmissionStep extends IOModularStep {
       '${Flags.entryUri}=$fakeRoot${module.mainSource}',
       '${Flags.inputDill}=${toUri(module, fullDillId)}',
       for (String flag in flags) '${Flags.enableLanguageExperiments}=$flag',
-      '${Flags.readClosedWorld}=${toUri(module, closedWorldId)}',
-      '${Flags.readData}=${toUri(module, globalDataId)}',
-      '${Flags.readCodegen}=${toUri(module, codeId)}',
+      '${Flags.closedWorldUri}=${toUri(module, closedWorldId)}',
+      '${Flags.globalInferenceUri}=${toUri(module, globalDataId)}',
+      '${Flags.codegenUri}=${toUri(module, codeId)}',
       '${Flags.codegenShards}=${codeId.shards}',
-      '${Flags.writeDumpInfoData}=${toUri(module, dumpInfoDataId)}',
+      '${Flags.dumpInfoDataUri}=${toUri(module, dumpInfoDataId)}',
+      '${Flags.stage}=emit-js',
       '--out=${toUri(module, jsId)}',
     ];
     var result =
@@ -503,11 +504,12 @@ class Dart2jsDumpInfoStep extends IOModularStep {
       '${Flags.entryUri}=$fakeRoot${module.mainSource}',
       '${Flags.inputDill}=${toUri(module, fullDillId)}',
       for (String flag in flags) '${Flags.enableLanguageExperiments}=$flag',
-      '${Flags.readClosedWorld}=${toUri(module, closedWorldId)}',
-      '${Flags.readData}=${toUri(module, globalDataId)}',
-      '${Flags.readCodegen}=${toUri(module, codeId)}',
+      '${Flags.closedWorldUri}=${toUri(module, closedWorldId)}',
+      '${Flags.globalInferenceUri}=${toUri(module, globalDataId)}',
+      '${Flags.codegenUri}=${toUri(module, codeId)}',
       '${Flags.codegenShards}=${codeId.shards}',
-      '${Flags.readDumpInfoData}=${toUri(module, dumpInfoDataId)}',
+      '${Flags.dumpInfoDataUri}=${toUri(module, dumpInfoDataId)}',
+      '${Flags.stage}=dump-info',
       '--out=${toUri(module, jsId)}',
     ];
     var result =

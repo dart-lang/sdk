@@ -402,7 +402,7 @@ Future<Output?> run(Input input) async {
   ir.Component? component;
   fe.InitializedCompilerState? initializedCompilerState =
       input.initializedCompilerState;
-  if (options.stage.shouldLoadFromDill) {
+  if (options.shouldLoadFromDill) {
     _LoadFromKernelResult result =
         await _loadFromKernel(options, compilerInput, targetName, reporter);
     component = result.component;

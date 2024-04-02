@@ -37,7 +37,7 @@ Future<void> generateJavaScriptCode(Compiler compiler,
       globalTypeInferenceResults.inferredData,
       SourceLookup(compiler.componentForTesting),
       globalTypeInferenceResults.closedWorld);
-  if (compiler.options.dumpInfo) {
+  if (compiler.options.stage.emitsDumpInfo) {
     await compiler.runDumpInfo(
         codegenResults,
         globalTypeInferenceResults,
@@ -155,7 +155,7 @@ runTest(
       packageConfig: packageConfig,
       librariesSpecificationUri: librariesSpecificationUri,
       outputProvider: cfeDillCollector,
-      options: options + ['--out=$cfeDillFileUri', Flags.cfeOnly]);
+      options: options + ['--out=$cfeDillFileUri', '${Flags.stage}=cfe']);
   Expect.isTrue(resultCfeDill.isSuccess);
   Expect.isTrue(cfeDillCollector.binaryOutputMap.containsKey(cfeDillFileUri));
 
@@ -172,7 +172,8 @@ runTest(
       options: options +
           [
             '${Flags.inputDill}=$cfeDillFileUri',
-            '${Flags.writeClosedWorld}=$closedWorldUri'
+            '${Flags.closedWorldUri}=$closedWorldUri',
+            '${Flags.stage}=closed-world'
           ],
       outputProvider: collector3a,
       beforeRun: (Compiler compiler) {
@@ -194,8 +195,9 @@ runTest(
       options: commonOptions +
           [
             '${Flags.inputDill}=$cfeDillFileUri',
-            '${Flags.readClosedWorld}=$closedWorldFileUri',
-            '${Flags.writeData}=$globalDataUri'
+            '${Flags.closedWorldUri}=$closedWorldFileUri',
+            '${Flags.globalInferenceUri}=$globalDataUri',
+            '${Flags.stage}=global-inference'
           ],
       outputProvider: collector3b,
       beforeRun: (Compiler compiler) {
@@ -230,8 +232,9 @@ runTest(
       options: commonOptions +
           [
             '${Flags.inputDill}=$cfeDillFileUri',
-            '${Flags.readClosedWorld}=$closedWorldFileUri',
-            '${Flags.readData}=$globalDataFileUri',
+            '${Flags.closedWorldUri}=$closedWorldFileUri',
+            '${Flags.globalInferenceUri}=$globalDataFileUri',
+            '${Flags.stage}=codegen-emit-js',
             '--out=$jsOutUri'
           ],
       outputProvider: collector4,
