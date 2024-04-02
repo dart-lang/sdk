@@ -18,8 +18,9 @@ class CompilationServerCommand extends DartdevCommand {
 
   static const commandDescription = 'Control resident frontend compilers.';
 
-  static const residentServerInfoFileFlag = 'resident-server-info-file';
-  static const residentServerInfoFileFlagDescription =
+  static const legacyResidentServerInfoFileFlag = 'resident-server-info-file';
+  static const residentCompilerInfoFileFlag = residentCompilerInfoFileOption;
+  static const residentCompilerInfoFileFlagDescription =
       'The path to an info file that the Dart CLI will use to communicate with '
       'a resident frontend compiler. Each unique info file is associated with '
       'a unique resident frontend compiler. If this flag is ommitted, the '
@@ -49,22 +50,31 @@ class CompilationServerStartCommand extends DartdevCommand {
           false,
           hidden: !verbose,
         ) {
-    argParser.addOption(
-      CompilationServerCommand.residentServerInfoFileFlag,
-      help: CompilationServerCommand.residentServerInfoFileFlagDescription,
-    );
+    argParser
+      ..addOption(
+        CompilationServerCommand.residentCompilerInfoFileFlag,
+        help: CompilationServerCommand.residentCompilerInfoFileFlagDescription,
+      )
+      ..addOption(
+        CompilationServerCommand.legacyResidentServerInfoFileFlag,
+        // This option is only available for backwards compatibility, and should
+        // never be shown in the help message.
+        hide: true,
+      );
   }
 
   @override
   FutureOr<int> run() async {
     final args = argResults!;
-    final hasServerInfoOption = args.wasParsed(serverInfoOption);
-    final residentServerInfoFile = hasServerInfoOption
-        ? File(maybeUriToFilename(args.option(serverInfoOption)!))
+    final String? infoFileArg =
+        args[CompilationServerCommand.residentCompilerInfoFileFlag] ??
+            args[CompilationServerCommand.legacyResidentServerInfoFileFlag];
+    final residentCompilerInfoFile = infoFileArg != null
+        ? File(maybeUriToFilename(infoFileArg))
         : defaultResidentServerInfoFile;
 
     try {
-      await ensureCompilationServerIsRunning(residentServerInfoFile!);
+      await ensureCompilationServerIsRunning(residentCompilerInfoFile!);
     } catch (e) {
       // We already print the error in `ensureCompilationServerIsRunning` when we
       // throw a state error.
@@ -87,10 +97,17 @@ Note that this command name and usage could change as we evolve the resident fro
 
   CompilationServerShutdownCommand({bool verbose = false})
       : super(commandName, commandDescription, false, hidden: !verbose) {
-    argParser.addOption(
-      CompilationServerCommand.residentServerInfoFileFlag,
-      help: CompilationServerCommand.residentServerInfoFileFlagDescription,
-    );
+    argParser
+      ..addOption(
+        CompilationServerCommand.residentCompilerInfoFileFlag,
+        help: CompilationServerCommand.residentCompilerInfoFileFlagDescription,
+      )
+      ..addOption(
+        CompilationServerCommand.legacyResidentServerInfoFileFlag,
+        // This option is only available for backwards compatibility, and should
+        // never be shown in the help message.
+        hide: true,
+      );
   }
 
   // This argument parser is here solely to ensure that VM specific flags are
@@ -104,21 +121,33 @@ Note that this command name and usage could change as we evolve the resident fro
   @override
   FutureOr<int> run() async {
     final args = argResults!;
-    final serverInfoFile = args.wasParsed(serverInfoOption)
-        ? File(maybeUriToFilename(args.option(serverInfoOption)!))
-        : defaultResidentServerInfoFile;
+    final File? residentCompilerInfoFile;
+    if (args.wasParsed(CompilationServerCommand.residentCompilerInfoFileFlag)) {
+      residentCompilerInfoFile = File(maybeUriToFilename(
+        args[CompilationServerCommand.residentCompilerInfoFileFlag],
+      ));
+    } else if (args.wasParsed(
+      CompilationServerCommand.legacyResidentServerInfoFileFlag,
+    )) {
+      residentCompilerInfoFile = File(maybeUriToFilename(
+        args[CompilationServerCommand.legacyResidentServerInfoFileFlag],
+      ));
+    } else {
+      residentCompilerInfoFile = defaultResidentServerInfoFile;
+    }
 
-    if (serverInfoFile == null || !serverInfoFile.existsSync()) {
-      log.stdout('No server instance running.');
+    if (residentCompilerInfoFile == null ||
+        !residentCompilerInfoFile.existsSync()) {
+      log.stdout('No resident frontend compiler instance running.');
       return 0;
     }
-    final serverInfo = await serverInfoFile.readAsString();
+    final serverInfo = await residentCompilerInfoFile.readAsString();
     final serverResponse = await sendAndReceiveResponse(
       residentServerShutdownCommand,
-      serverInfoFile,
+      residentCompilerInfoFile,
     );
 
-    cleanupResidentServerInfo(serverInfoFile);
+    cleanupResidentServerInfo(residentCompilerInfoFile);
     if (serverResponse.containsKey(responseErrorString)) {
       log.stderr(serverResponse[responseErrorString]);
       return DartdevCommand.errorExitCode;
