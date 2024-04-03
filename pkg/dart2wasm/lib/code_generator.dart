@@ -1105,6 +1105,35 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       } else {
         b.ref_null(w.HeapType.none);
       }
+      final Location? location = node.location;
+      final w.RefType stringRefType =
+          translator.classInfo[translator.stringBaseClass]!.nullableType;
+      if (location != null) {
+        translator.constants.instantiateConstant(
+          function,
+          b,
+          StringConstant(location.file.toString()),
+          stringRefType,
+        );
+        b.i64_const(location.line);
+        b.i64_const(location.column);
+        final String sourceString =
+            node.enclosingComponent!.uriToSource[location.file]!.text;
+        final String conditionString = sourceString.substring(
+            node.conditionStartOffset, node.conditionEndOffset);
+        translator.constants.instantiateConstant(
+          function,
+          b,
+          StringConstant(conditionString),
+          stringRefType,
+        );
+      } else {
+        b.ref_null(stringRefType.heapType);
+        b.i64_const(0);
+        b.i64_const(0);
+        b.ref_null(stringRefType.heapType);
+      }
+
       call(translator.throwAssertionError.reference);
 
       b.unreachable();
