@@ -68,6 +68,86 @@ void cleanupResidentServerInfo(File serverInfoFile) {
   }
 }
 
+Future<bool> isFileKernelFile(final File file) async {
+  final bytes = await file.openRead(0, 4).expand((i) => i).toList();
+  if (bytes.length < 4) {
+    return false;
+  }
+  // Check for the magic number at the start of kernel files.
+  return bytes[0] == 0x90 &&
+      bytes[1] == 0xab &&
+      bytes[2] == 0xcd &&
+      bytes[3] == 0xef;
+}
+
+Future<bool> isFileAppJitSnapshot(final File file) async {
+  final bytes = await file.openRead(0, 8).expand((i) => i).toList();
+  if (bytes.length < 8) {
+    return false;
+  }
+  // Check for the magic number at the start of AppJIT snapshots.
+  return bytes[0] == 0xdc &&
+      bytes[1] == 0xdc &&
+      bytes[2] == 0xf6 &&
+      bytes[3] == 0xf6 &&
+      bytes[4] == 0 &&
+      bytes[5] == 0 &&
+      bytes[6] == 0 &&
+      bytes[7] == 0;
+}
+
+Future<bool> isFileAotSnapshot(final File file) async {
+  // Check for any of the the magic numbers that can be found at the start of an
+  // AOT snapshot.
+
+  final bytes = await file.openRead(0, 4).expand((i) => i).toList();
+  // Check for the COFF magic numbers.
+  if (bytes.length < 2) {
+    return false;
+  }
+  if (bytes[0] == 0x01 && bytes[1] == 0xc0 || // arm32
+      bytes[0] == 0xaa && bytes[1] == 0x64 || // arm64
+      bytes[0] == 0x50 && bytes[1] == 0x32 || // riscv32
+      bytes[0] == 0x50 && bytes[1] == 0x64 /* riscv64 */) {
+    return true;
+  }
+
+  if (bytes.length < 4) {
+    return false;
+  }
+  // Check for the ELF magic number.
+  if (bytes[0] == 0x7f &&
+      bytes[1] == 0x45 &&
+      bytes[2] == 0x4c &&
+      bytes[3] == 0x46) {
+    return true;
+  }
+  // Check for the Mach-O magic numbers.
+  if (bytes[0] == 0xfe &&
+      bytes[1] == 0xed &&
+      bytes[2] == 0xfa &&
+      bytes[3] == 0xce) {
+    // macho32
+    return true;
+  }
+  if (bytes[0] == 0xfe &&
+      bytes[1] == 0xed &&
+      bytes[2] == 0xfa &&
+      bytes[3] == 0xcf) {
+    // macho64
+    return true;
+  }
+  if (bytes[0] == 0xcf &&
+      bytes[1] == 0xfa &&
+      bytes[2] == 0xed &&
+      bytes[3] == 0xfe) {
+    // macho64_arm64
+    return true;
+  }
+
+  return false;
+}
+
 // TODO: when frontend_server is migrated to null safe Dart, everything
 // below this comment can be removed and imported from resident_frontend_server
 
