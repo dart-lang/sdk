@@ -42,9 +42,8 @@ void AssemblerBase::LoadFromSlot(Register dst,
            compiler::target::kWordSize);
     const intptr_t offset = slot.offset_in_bytes() - kHeapObjectTag;
     auto const sz = RepresentationUtils::OperandSize(slot.representation());
-    return LoadFromOffset(dst, base, offset, sz);
-  }
-  if (!slot.is_compressed()) {
+    LoadFromOffset(dst, base, offset, sz);
+  } else if (!slot.is_compressed()) {
     LoadFieldFromOffset(dst, base, slot.offset_in_bytes());
   } else if (slot.type().ToCid() == kSmiCid) {
     LoadCompressedSmiFieldFromOffset(dst, base, slot.offset_in_bytes());
@@ -70,8 +69,7 @@ void AssemblerBase::StoreToSlot(Register src,
   if (slot.is_unboxed()) {
     // Same as the no barrier case.
     StoreToSlotNoBarrier(src, base, slot, memory_order);
-  }
-  if (slot.is_compressed()) {
+  } else if (slot.is_compressed()) {
     StoreCompressedIntoObjectOffset(base, slot.offset_in_bytes(), src,
                                     can_be_smi, memory_order);
   } else {
@@ -94,9 +92,8 @@ void AssemblerBase::StoreToSlotNoBarrier(Register src,
            compiler::target::kWordSize);
     const intptr_t offset = slot.offset_in_bytes() - kHeapObjectTag;
     auto const sz = RepresentationUtils::OperandSize(slot.representation());
-    return StoreToOffset(src, base, offset, sz);
-  }
-  if (slot.is_compressed()) {
+    StoreToOffset(src, base, offset, sz);
+  } else if (slot.is_compressed()) {
     StoreCompressedIntoObjectOffsetNoBarrier(base, slot.offset_in_bytes(), src,
                                              memory_order);
   } else {

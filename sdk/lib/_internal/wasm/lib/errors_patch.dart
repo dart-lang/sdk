@@ -176,11 +176,45 @@ class NoSuchMethodError {
   }
 }
 
+class _AssertionErrorImpl extends AssertionError {
+  _AssertionErrorImpl(Object? message, this._fileUri, this._line, this._column,
+      this._conditionSource)
+      : super(message);
+
+  final String? _fileUri;
+  final int _line;
+  final int _column;
+  final String? _conditionSource;
+
+  String toString() {
+    var failureMessage = "";
+    if (_fileUri != null && _conditionSource != null) {
+      failureMessage += "$_fileUri:${_line}:${_column}\n$_conditionSource\n";
+    }
+    failureMessage +=
+        message != null ? Error.safeToString(message) : "is not true";
+
+    return "Assertion failed: $failureMessage";
+  }
+}
+
 @patch
 class AssertionError {
   @pragma("wasm:entry-point")
-  static Never _throwWithMessage(Object? message) {
-    throw AssertionError(message);
+  static Never _throwWithMessage(
+    Object? message,
+    String? fileUri,
+    int line,
+    int column,
+    String? conditionSource,
+  ) {
+    throw _AssertionErrorImpl(
+      message,
+      fileUri,
+      line,
+      column,
+      conditionSource,
+    );
   }
 }
 
