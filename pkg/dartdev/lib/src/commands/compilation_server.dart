@@ -11,7 +11,6 @@ import 'package:dartdev/src/generate_kernel.dart';
 import '../core.dart';
 import '../resident_frontend_constants.dart';
 import '../resident_frontend_utils.dart';
-import '../utils.dart';
 
 class CompilationServerCommand extends DartdevCommand {
   static const commandName = 'compilation-server';
@@ -25,6 +24,11 @@ class CompilationServerCommand extends DartdevCommand {
       'a resident frontend compiler. Each unique info file is associated with '
       'a unique resident frontend compiler. If this flag is ommitted, the '
       'default info file will be used.';
+
+  static const inaccessibleDefaultResidentCompilerInfoFileMessage =
+      'The default resident frontend compiler info file could not be accessed. '
+      'Please explicitly provide the path to a resident compiler info file '
+      'using the --resident-compiler-info-file option.';
 
   CompilationServerCommand({bool verbose = false})
       : super(
@@ -66,15 +70,19 @@ class CompilationServerStartCommand extends DartdevCommand {
   @override
   FutureOr<int> run() async {
     final args = argResults!;
-    final String? infoFileArg =
-        args[CompilationServerCommand.residentCompilerInfoFileFlag] ??
-            args[CompilationServerCommand.legacyResidentServerInfoFileFlag];
-    final residentCompilerInfoFile = infoFileArg != null
-        ? File(maybeUriToFilename(infoFileArg))
-        : defaultResidentServerInfoFile;
+
+    final File? residentCompilerInfoFile =
+        getResidentCompilerInfoFileConsideringArgs(args);
+    if (residentCompilerInfoFile == null) {
+      log.stderr(
+        CompilationServerCommand
+            .inaccessibleDefaultResidentCompilerInfoFileMessage,
+      );
+      return DartdevCommand.errorExitCode;
+    }
 
     try {
-      await ensureCompilationServerIsRunning(residentCompilerInfoFile!);
+      await ensureCompilationServerIsRunning(residentCompilerInfoFile);
     } catch (e) {
       // We already print the error in `ensureCompilationServerIsRunning` when we
       // throw a state error.
@@ -121,23 +129,18 @@ Note that this command name and usage could change as we evolve the resident fro
   @override
   FutureOr<int> run() async {
     final args = argResults!;
-    final File? residentCompilerInfoFile;
-    if (args.wasParsed(CompilationServerCommand.residentCompilerInfoFileFlag)) {
-      residentCompilerInfoFile = File(maybeUriToFilename(
-        args[CompilationServerCommand.residentCompilerInfoFileFlag],
-      ));
-    } else if (args.wasParsed(
-      CompilationServerCommand.legacyResidentServerInfoFileFlag,
-    )) {
-      residentCompilerInfoFile = File(maybeUriToFilename(
-        args[CompilationServerCommand.legacyResidentServerInfoFileFlag],
-      ));
-    } else {
-      residentCompilerInfoFile = defaultResidentServerInfoFile;
+
+    final File? residentCompilerInfoFile =
+        getResidentCompilerInfoFileConsideringArgs(args);
+    if (residentCompilerInfoFile == null) {
+      log.stderr(
+        CompilationServerCommand
+            .inaccessibleDefaultResidentCompilerInfoFileMessage,
+      );
+      return DartdevCommand.errorExitCode;
     }
 
-    if (residentCompilerInfoFile == null ||
-        !residentCompilerInfoFile.existsSync()) {
+    if (!residentCompilerInfoFile.existsSync()) {
       log.stdout('No resident frontend compiler instance running.');
       return 0;
     }

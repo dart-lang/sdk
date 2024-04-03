@@ -8,8 +8,10 @@ import 'dart:io' show File, FileSystemException, InternetAddress, Socket;
 import 'package:args/args.dart';
 import 'package:path/path.dart' as p;
 
+import 'commands/compilation_server.dart' show CompilationServerCommand;
 import 'resident_frontend_constants.dart';
 import 'unified_analytics.dart';
+import 'utils.dart' show maybeUriToFilename;
 
 /// The Resident Frontend Compiler's shutdown command.
 final residentServerShutdownCommand = jsonEncode(
@@ -18,23 +20,33 @@ final residentServerShutdownCommand = jsonEncode(
   },
 );
 
-// TODO: The current implementation gives 1 server to a user and stores the info
-// file in the .dart directory in the user's home. This adds some fragility to
-// the --resident command as it expects this environment variable to exist.
-//
-// If/when the resident frontend compiler is used without requiring the
-// --resident flag, this reliance on the environment variable should be
-// addressed.
-
-/// The path to the directory that stores the Resident Frontend Compiler's
-/// information file, which stores the server's address and port number.
+/// The default resident frontend compiler information file.
 ///
-/// File has the `form: address:__ port:__`.
+/// Resident frontend compiler info files contain the contents:
+/// `address:$address port:$port`.
 File? get defaultResidentServerInfoFile {
   var dartConfigDir = getDartStorageDirectory();
   if (dartConfigDir == null) return null;
 
   return File(p.join(dartConfigDir.path, 'dartdev_compilation_server_info'));
+}
+
+File? getResidentCompilerInfoFileConsideringArgs(final ArgResults args) {
+  if (args.wasParsed(CompilationServerCommand.residentCompilerInfoFileFlag)) {
+    return File(maybeUriToFilename(
+      args[CompilationServerCommand.residentCompilerInfoFileFlag],
+    ));
+  } else if (args.wasParsed(
+    CompilationServerCommand.legacyResidentServerInfoFileFlag,
+  )) {
+    return File(maybeUriToFilename(
+      args[CompilationServerCommand.legacyResidentServerInfoFileFlag],
+    ));
+  } else if (defaultResidentServerInfoFile != null) {
+    return defaultResidentServerInfoFile!;
+  } else {
+    return null;
+  }
 }
 
 final String packageConfigName = p.join('.dart_tool', 'package_config.json');
