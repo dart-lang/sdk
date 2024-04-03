@@ -5257,17 +5257,17 @@ class C {}
 
 ### enum_constant_same_name_as_enclosing
 
-_The name of the enum constant can't be the same as the enum's name._
+_The name of the enum value can't be the same as the enum's name._
 
 #### Description
 
-The analyzer produces this diagnostic when an enum constant has the same
-name as the enum in which it's declared.
+The analyzer produces this diagnostic when an enum value has the same name
+as the enum in which it's declared.
 
 #### Example
 
-The following code produces this diagnostic because the enum constant `E`
-has the same name as the enclosing enum `E`:
+The following code produces this diagnostic because the enum value `E` has
+the same name as the enclosing enum `E`:
 
 ```dart
 enum E {
@@ -5299,14 +5299,14 @@ _The invoked constructor isn't a 'const' constructor._
 
 #### Description
 
-The analyzer produces this diagnostic when an enum constant is being
-created using either a factory constructor or a generative constructor
-that isn't marked as being `const`.
+The analyzer produces this diagnostic when an enum value is being created
+using either a factory constructor or a generative constructor that isn't
+marked as being `const`.
 
 #### Example
 
-The following code produces this diagnostic because the enum constant `e`
-is being initialized by a factory constructor:
+The following code produces this diagnostic because the enum value `e` is
+being initialized by a factory constructor:
 
 ```dart
 enum E {
@@ -5338,8 +5338,8 @@ _Mixins applied to enums can't have instance variables._
 
 The analyzer produces this diagnostic when a mixin that's applied to an
 enum declares one or more instance variables. This isn't allowed because
-the enum constants are constant, and there isn't any way for the
-constructor in the enum to initialize any of the mixin's fields.
+the enum values are constant, and there isn't any way for the constructor
+in the enum to initialize any of the mixin's fields.
 
 #### Example
 
@@ -10875,7 +10875,7 @@ E f() => const [!E!](2);
 
 #### Common fixes
 
-If there's an enum constant with the same value, or if you add such a
+If there's an enum value with the same value, or if you add such a
 constant, then reference the constant directly:
 
 ```dart
@@ -12576,7 +12576,7 @@ must be handled.
 
 #### Example
 
-The following code produces this diagnostic because the enum constant `e2`
+The following code produces this diagnostic because the enum value `e2`
 isn't handled:
 
 ```dart
@@ -21212,8 +21212,8 @@ _There's no constant named '{0}' in '{1}'._
 
 #### Description
 
-The analyzer produces this diagnostic when it encounters an identifier that
-appears to be the name of an enum constant, and the name either isn't
+The analyzer produces this diagnostic when it encounters an identifier
+that appears to be the name of an enum value, and the name either isn't
 defined or isn't visible in the scope in which it's being referenced.
 
 #### Example
@@ -21256,11 +21256,11 @@ _The enum doesn't have an unnamed constructor._
 #### Description
 
 The analyzer produces this diagnostic when the constructor invoked to
-initialize an enum constant doesn't exist.
+initialize an enum value doesn't exist.
 
 #### Examples
 
-The following code produces this diagnostic because the enum constant `c`
+The following code produces this diagnostic because the enum value `c`
 is being initialized by the unnamed constructor, but there's no unnamed
 constructor defined in `E`:
 
@@ -21272,9 +21272,9 @@ enum E {
 }
 ```
 
-The following code produces this diagnostic because the enum constant `c`
-is being initialized by the constructor named `x`, but there's no
-constructor named `x` defined in `E`:
+The following code produces this diagnostic because the enum value `c` is
+being initialized by the constructor named `x`, but there's no constructor
+named `x` defined in `E`:
 
 ```dart
 enum E {
@@ -21286,9 +21286,9 @@ enum E {
 
 #### Common fixes
 
-If the enum constant is being initialized by the unnamed constructor and
-one of the named constructors should have been used, then add the name of
-the constructor:
+If the enum value is being initialized by the unnamed constructor and one
+of the named constructors should have been used, then add the name of the
+constructor:
 
 ```dart
 enum E {
@@ -21298,8 +21298,8 @@ enum E {
 }
 ```
 
-If the enum constant is being initialized by the unnamed constructor and
-none of the named constructors are appropriate, then define the unnamed
+If the enum value is being initialized by the unnamed constructor and none
+of the named constructors are appropriate, then define the unnamed
 constructor:
 
 ```dart
@@ -21310,9 +21310,9 @@ enum E {
 }
 ```
 
-If the enum constant is being initialized by a named constructor and one
-of the existing constructors should have been used, then change the name
-of the constructor being invoked (or remove it if the unnamed constructor
+If the enum value is being initialized by a named constructor and one of
+the existing constructors should have been used, then change the name of
+the constructor being invoked (or remove it if the unnamed constructor
 should be used):
 
 ```dart
@@ -21324,9 +21324,9 @@ enum E {
 }
 ```
 
-If the enum constant is being initialized by a named constructor and none
-of the existing constructors should have been used, then define a
-constructor with the name that was used:
+If the enum value is being initialized by a named constructor and none of
+the existing constructors should have been used, then define a constructor
+with the name that was used:
 
 ```dart
 enum E {
@@ -23371,7 +23371,7 @@ _A member named 'values' can't be declared in an enum._
 #### Description
 
 The analyzer produces this diagnostic when an enum declaration defines a
-member named `values`, whether the member is an enum constant, an instance
+member named `values`, whether the member is an enum value, an instance
 member, or a static member.
 
 Any such member conflicts with the implicit declaration of the static
@@ -23644,14 +23644,14 @@ given._
 
 #### Description
 
-The analyzer produces this diagnostic when an enum constant in an enum
-that has type parameters is instantiated and type arguments are provided,
-but the number of type arguments isn't the same as the number of type
+The analyzer produces this diagnostic when an enum value in an enum that
+has type parameters is instantiated and type arguments are provided, but
+the number of type arguments isn't the same as the number of type
 parameters.
 
 #### Example
 
-The following code produces this diagnostic because the enum constant `c`
+The following code produces this diagnostic because the enum value `c`
 provides one type argument even though the enum `E` is declared to have
 two type parameters:
 

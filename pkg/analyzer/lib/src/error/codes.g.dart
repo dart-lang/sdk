@@ -1409,14 +1409,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode ENUM_CONSTANT_INVOKES_FACTORY_CONSTRUCTOR =
       CompileTimeErrorCode(
     'ENUM_CONSTANT_INVOKES_FACTORY_CONSTRUCTOR',
-    "An enum constant can't invoke a factory constructor.",
+    "An enum value can't invoke a factory constructor.",
     correctionMessage: "Try using a generative constructor.",
   );
 
   static const CompileTimeErrorCode ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING =
       CompileTimeErrorCode(
     'ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING',
-    "The name of the enum constant can't be the same as the enum's name.",
+    "The name of the enum value can't be the same as the enum's name.",
     correctionMessage: "Try renaming the constant.",
     hasPublishedDocs: true,
   );
@@ -2872,7 +2872,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR = CompileTimeErrorCode(
     'INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR',
     "Generative enum constructors can only be used as targets of redirection.",
-    correctionMessage: "Try using an enum constant, or a factory constructor.",
+    correctionMessage: "Try using an enum value, or a factory constructor.",
     hasPublishedDocs: true,
   );
 
@@ -5284,7 +5284,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
-  ///  0: the name of the enum constant that is not defined
+  ///  0: the name of the enum value that is not defined
   ///  1: the name of the enum used to access the constant
   static const CompileTimeErrorCode UNDEFINED_ENUM_CONSTANT =
       CompileTimeErrorCode(
