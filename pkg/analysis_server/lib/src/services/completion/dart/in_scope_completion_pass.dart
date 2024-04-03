@@ -3468,8 +3468,10 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     required InterfaceElement? element,
     bool skipAt = false,
   }) {
-    // TODO(brianwilkerson): Check whether there's sufficient remaining time
-    //  before computing suggestions for overrides.
+    if (state.budget.isEmpty) {
+      // Don't suggest overrides if the time budget has already been spent.
+      return;
+    }
     if (suggestOverrides && element != null) {
       overrideHelper.computeOverridesFor(
         interfaceElement: element,

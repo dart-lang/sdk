@@ -159,7 +159,7 @@ class DartCompletionManager {
     if (selection == null) {
       throw AbortCompletion();
     }
-    var state = CompletionState(request, selection);
+    var state = CompletionState(request, selection, budget);
     var pass = InScopeCompletionPass(
       state: state,
       collector: collector,
