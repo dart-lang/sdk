@@ -1465,7 +1465,7 @@ extension ArrayArray<T extends NativeType> on Array<Array<T>> {
 
 /// Bounds checking indexing methods on [Array]s of [AbiSpecificInteger].
 @Since('2.16')
-extension AbiSpecificIntegerArray on Array<AbiSpecificInteger> {
+extension AbiSpecificIntegerArray<T extends AbiSpecificInteger> on Array<T> {
   external int operator [](int index);
 
   external void operator []=(int index, int value);
