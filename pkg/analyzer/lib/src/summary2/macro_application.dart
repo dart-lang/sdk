@@ -343,8 +343,12 @@ class LibraryMacroApplier {
     return results;
   }
 
-  Future<List<macro.MacroExecutionResult>?> executeDefinitionsPhase() async {
-    final application = _nextForDefinitionsPhase();
+  Future<List<macro.MacroExecutionResult>?> executeDefinitionsPhase({
+    required LibraryElementImpl library,
+  }) async {
+    final application = _nextForDefinitionsPhase(
+      library: library,
+    );
     if (application == null) {
       return null;
     }
@@ -726,8 +730,11 @@ class LibraryMacroApplier {
     required Element? targetElement,
   }) {
     for (final application in _applications.reversed) {
+      final applicationElement = application.target.element;
+      if (applicationElement.library != library) {
+        continue;
+      }
       if (targetElement != null) {
-        final applicationElement = application.target.element;
         if (applicationElement != targetElement &&
             applicationElement.enclosingElement != targetElement) {
           continue;
@@ -740,8 +747,14 @@ class LibraryMacroApplier {
     return null;
   }
 
-  _MacroApplication? _nextForDefinitionsPhase() {
+  _MacroApplication? _nextForDefinitionsPhase({
+    required LibraryElementImpl library,
+  }) {
     for (final application in _applications.reversed) {
+      final applicationElement = application.target.element;
+      if (applicationElement.library != library) {
+        continue;
+      }
       if (application.phasesToExecute.remove(macro.Phase.definitions)) {
         return application;
       }
