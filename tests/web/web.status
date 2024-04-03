@@ -48,7 +48,10 @@ consistent_index_error_string_test: Slow, Pass # Issue 25940
 deferred_custom_loader_test: SkipByDesign # Issue 25683
 deferred_fail_and_retry_test: SkipByDesign # Uses eval to simulate failed loading.
 internal/object_members_test: SkipByDesign # Uses eval for interop
+js_interop_non_null_asserts_disabled_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
+js_interop_non_null_asserts_enabled_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 regress/issue/49129_test: SkipByDesign # Uses eval for interop
+
 
 [ $compiler == dart2js && !$host_asserts ]
 deferred/many_parts/many_parts_test: Slow, Pass # Large stress test by design

@@ -99,6 +99,16 @@ void nativeNonNullAsserts(bool enable) {
   _nativeNonNullAsserts = enable;
 }
 
+@notNull
+bool _jsInteropNonNullAsserts = false;
+
+/// Enables null assertions on non-static JavaScript interop APIs to make sure
+/// values returned are sound with respect to the nullability.
+void jsInteropNonNullAsserts(bool enable) {
+  // This value is only read from `jsInteropNullCheck`.
+  _jsInteropNonNullAsserts = enable;
+}
+
 /// A JavaScript Symbol used to store the Rti signature object on a function.
 ///
 /// Accessed by a call to `JS_GET_NAME(JsGetName.SIGNATURE_NAME)`.
@@ -143,20 +153,30 @@ bool isDartFunction(Object? obj) {
 Expando<Function> _assertInteropExpando = Expando<Function>();
 
 @NoReifyGeneric()
-F tearoffInterop<F extends Function?>(F f) {
+F tearoffInterop<F extends Function?>(F f, bool checkReturnType) {
   // Wrap a JS function with a closure that ensures all function arguments are
   // native JS functions.
   if (f is! LegacyJavaScriptObject || f == null) return f;
   var ret = _assertInteropExpando[f];
   if (ret == null) {
-    ret = JS(
-        '',
-        'function (...arguments) {'
-            ' var args = arguments.map(#);'
-            ' return #.apply(this, args);'
-            '}',
-        assertInterop,
-        f);
+    ret = checkReturnType
+        ? JS(
+            '',
+            'function (...arguments) {'
+                ' var args = arguments.map(#);'
+                ' return #(#.apply(this, args));'
+                '}',
+            assertInterop,
+            jsInteropNullCheck,
+            f)
+        : JS(
+            '',
+            'function (...arguments) {'
+                ' var args = arguments.map(#);'
+                ' return #.apply(this, args);'
+                '}',
+            assertInterop,
+            f);
     _assertInteropExpando[f] = ret;
   }
   // Suppress a cast back to F.

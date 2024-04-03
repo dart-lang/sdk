@@ -4899,7 +4899,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // Otherwise generate this as a normal typed property get.
     var jsMemberName =
         _emitMemberName(memberName, member: node.interfaceTarget);
-    return js_ast.PropertyAccess(jsReceiver, jsMemberName);
+    var instanceGet = js_ast.PropertyAccess(jsReceiver, jsMemberName);
+    return _isNullCheckableJsInterop(node.interfaceTarget)
+        ? _wrapWithJsInteropNullCheck(instanceGet)
+        : instanceGet;
   }
 
   @override
@@ -4943,7 +4946,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
     var jsPropertyAccess = js_ast.PropertyAccess(jsReceiver, jsMemberName);
     return isJsMember(member)
-        ? runtimeCall('tearoffInterop(#)', [jsPropertyAccess])
+        ? runtimeCall('tearoffInterop(#, #)',
+            [jsPropertyAccess, js.boolean(_isNullCheckableJsInterop(member))])
         : jsPropertyAccess;
   }
 
@@ -5009,6 +5013,26 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       return _triviallyConstNoInterop(e.variable.initializer);
     }
     return false;
+  }
+
+  /// Returns [expression] wrapped in an optional null check.
+  ///
+  /// The null check is enabled by setting a flag during the application
+  /// bootstrap via `jsInteropNonNullAsserts(true)` in the SDK runtime library.
+  js_ast.Expression _wrapWithJsInteropNullCheck(js_ast.Expression expression) =>
+      runtimeCall('jsInteropNullCheck(#)', [expression]);
+
+  /// Returns `true` when [member] is a JavaScript interop API that should be
+  /// checked to be not null when the runtime flag `--interop-null-assertions`
+  /// is enabled.
+  ///
+  /// These APIs are defined using the non-static package:js interop library and
+  /// are typed to be non-nullable.
+  bool _isNullCheckableJsInterop(Member member) {
+    var type =
+        member is Procedure ? member.function.returnType : member.getterType;
+    return type.nullability == Nullability.nonNullable &&
+        isNonStaticJsInterop(member);
   }
 
   /// Return whether [member] returns a native object whose type needs to be
@@ -5097,7 +5121,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         return runtimeCall('global');
       }
     }
-    return _emitStaticGet(target);
+    var staticGet = _emitStaticGet(target);
+    return _isNullCheckableJsInterop(target)
+        ? _wrapWithJsInteropNullCheck(staticGet)
+        : staticGet;
   }
 
   @override
@@ -5138,15 +5165,21 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   js_ast.Expression visitInstanceInvocation(InstanceInvocation node) {
-    return _emitMethodCall(
+    var invocation = _emitMethodCall(
         node.receiver, node.interfaceTarget, node.arguments, node);
+    return _isNullCheckableJsInterop(node.interfaceTarget)
+        ? _wrapWithJsInteropNullCheck(invocation)
+        : invocation;
   }
 
   @override
   js_ast.Expression visitInstanceGetterInvocation(
       InstanceGetterInvocation node) {
-    return _emitMethodCall(
+    var getterInvocation = _emitMethodCall(
         node.receiver, node.interfaceTarget, node.arguments, node);
+    return _isNullCheckableJsInterop(node.interfaceTarget)
+        ? _wrapWithJsInteropNullCheck(getterInvocation)
+        : getterInvocation;
   }
 
   @override
@@ -6152,7 +6185,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     var fn = _emitStaticTarget(target);
     var args = _emitArgumentList(node.arguments, target: target);
-    return js_ast.Call(fn, args);
+    var staticCall = js_ast.Call(fn, args);
+    return _isNullCheckableJsInterop(target)
+        ? _wrapWithJsInteropNullCheck(staticCall)
+        : staticCall;
   }
 
   js_ast.Expression _emitJSObjectGetPrototypeOf(js_ast.Expression obj,
@@ -7171,8 +7207,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         return _emitStaticTarget(node.target);
       }
       if (node.target.isExternal && !isSdk) {
-        return runtimeCall(
-            'tearoffInterop(#)', [_emitStaticTarget(node.target)]);
+        return runtimeCall('tearoffInterop(#, #)', [
+          _emitStaticTarget(node.target),
+          js.boolean(_isNullCheckableJsInterop(node.target))
+        ]);
       }
     }
     if (node is TypeLiteralConstant) {

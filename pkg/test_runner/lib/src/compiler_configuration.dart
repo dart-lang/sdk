@@ -677,10 +677,13 @@ class DevCompilerConfiguration extends CompilerConfiguration {
       List<String> sharedOptions, Map<String, String> environment) {
     var args = <String>[];
     // Remove option for generating non-null assertions for non-nullable
-    // method parameters in weak mode. DDC treats this as a runtime flag for
-    // the bootstrapping code, instead of a compiler option.
+    // method parameters in weak mode, native APIs and JavaScript interop APIs.
+    // DDC treats all of these as runtime flags for the bootstrapping code,
+    // instead of a compiler option.
     var options = sharedOptions.toList();
     options.remove('--null-assertions');
+    options.remove('--native-null-assertions');
+    options.remove('--interop-null-assertions');
     if (!_useSdk || !_soundNullSafety) {
       // If we're testing a built SDK, DDC will find its own summary.
       //
@@ -767,6 +770,8 @@ class DevCompilerConfiguration extends CompilerConfiguration {
       runFile = "$tempDir/$moduleName.d8.js";
       var nonNullAsserts = arguments.contains('--null-assertions');
       var nativeNonNullAsserts = arguments.contains('--native-null-assertions');
+      var jsInteropNonNullAsserts =
+          arguments.contains('--interop-null-assertions');
       var weakNullSafetyErrors =
           arguments.contains('--weak-null-safety-errors');
       var weakNullSafetyWarnings = !(weakNullSafetyErrors || _soundNullSafety);
@@ -806,6 +811,7 @@ class DevCompilerConfiguration extends CompilerConfiguration {
         sdk.dart.weakNullSafetyErrors($weakNullSafetyErrors);
         sdk.dart.nonNullAsserts($nonNullAsserts);
         sdk.dart.nativeNonNullAsserts($nativeNonNullAsserts);
+        sdk.dart.jsInteropNonNullAsserts($jsInteropNonNullAsserts);
 
         // Invoke main through the d8 preamble to ensure the code is running
         // within the fake event loop.

@@ -1167,6 +1167,21 @@ defineLazyFieldOld(to, name, desc) => JS('', '''(() => {
   return ${defineProperty(to, name, desc)};
 })()''');
 
+/// Checks for null or undefined and returns [val].
+///
+/// Throws a [TypeError] when [val] is null or undefined and the option for
+/// these checks has been enabled by [jsInteropNonNullAsserts].
+///
+/// Called from generated code when the compiler detects a non-static JavaScript
+/// interop API access that is typed to be non-nullable.
+Object? jsInteropNullCheck(Object? val) {
+  if (_jsInteropNonNullAsserts && val == null) {
+    throw TypeErrorImpl('Unexpected null value encountered from a '
+        'JavaScript Interop API typed as non-nullable.');
+  }
+  return val;
+}
+
 checkNativeNonNull(dynamic variable) {
   if (_nativeNonNullAsserts && variable == null) {
     // TODO(srujzs): Add link/patch for instructions to disable in internal

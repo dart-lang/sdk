@@ -969,6 +969,10 @@ class StandardTestSuite extends TestSuite {
             Path(compilationTempDir).relativeTo(Repository.dir).toString();
         var nullAssertions =
             testFile.sharedOptions.contains('--null-assertions');
+        var nativeNonNullAsserts =
+            testFile.ddcOptions.contains('--native-null-assertions');
+        var jsInteropNonNullAsserts =
+            testFile.ddcOptions.contains('--interop-null-assertions');
         var weakNullSafetyErrors =
             testFile.ddcOptions.contains('--weak-null-safety-errors');
         content = ddcHtml(
@@ -979,6 +983,8 @@ class StandardTestSuite extends TestSuite {
             configuration.nnbdMode,
             ddcConfig.buildOptionsDir,
             nullAssertions,
+            nativeNonNullAsserts,
+            jsInteropNonNullAsserts,
             weakNullSafetyErrors);
       } else {
         throw UnsupportedError(
