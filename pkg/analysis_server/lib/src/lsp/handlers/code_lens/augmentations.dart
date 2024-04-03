@@ -29,16 +29,18 @@ class AugmentationCodeLensProvider extends AbstractCodeLensProvider {
     Map<String, LineInfo?> lineInfoCache,
   ) async {
     var performance = message.performance;
-    final path = pathOfDoc(params.textDocument);
-    final unit = await performance.runAsync(
+    var path = pathOfDoc(params.textDocument);
+    var unit = await performance.runAsync(
       'requireResolvedUnit',
       (_) async => path.mapResult(requireResolvedUnit),
     );
-    return await performance.runAsync(
-      '_getCodeLenses',
-      (performance) =>
-          _getCodeLenses(unit.result, token, performance, lineInfoCache),
-    );
+    return await unit.mapResult((result) {
+      return performance.runAsync(
+        '_getCodeLenses',
+        (performance) =>
+            _getCodeLenses(result, token, performance, lineInfoCache),
+      );
+    });
   }
 
   @override

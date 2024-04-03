@@ -296,6 +296,8 @@ abstract class AbstractLspAnalysisServerTest
     newFile(join(projectFolderPath, 'lib', 'file.dart'), '');
     mainFilePath = join(projectFolderPath, 'lib', 'main.dart');
     mainFileUri = toUri(mainFilePath);
+    nonExistentFilePath = join(projectFolderPath, 'lib', 'not_existing.dart');
+    nonExistentFileUri = toUri(nonExistentFilePath);
     pubspecFilePath = join(projectFolderPath, file_paths.pubspecYaml);
     pubspecFileUri = toUri(pubspecFilePath);
     analysisOptionsPath = join(projectFolderPath, 'analysis_options.yaml');
@@ -793,9 +795,14 @@ mixin LspAnalysisServerTestMixin
 
   late String projectFolderPath,
       mainFilePath,
+      nonExistentFilePath,
       pubspecFilePath,
       analysisOptionsPath;
-  late Uri projectFolderUri, mainFileUri, pubspecFileUri, analysisOptionsUri;
+  late Uri projectFolderUri,
+      mainFileUri,
+      nonExistentFileUri,
+      pubspecFileUri,
+      analysisOptionsUri;
   final String simplePubspecContent = 'name: my_project';
 
   /// The client capabilities sent to the server during initialization.
