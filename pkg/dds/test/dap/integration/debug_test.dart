@@ -40,7 +40,7 @@ main() {
       expect(vmConnection.category, anyOf('console', isNull));
 
       // Expect the normal applications output.
-      final output = outputEvents.skip(1).map((e) => e.output).join();
+      final output = outputEvents.skip(2).map((e) => e.output).join();
       expectLines(output, [
         'Hello!',
         'World!',
@@ -119,7 +119,7 @@ main() {
       // Expect the normal applications output. This means we set up the
       // debugger without crashing, even though we imported files with commas
       // in the name.
-      final output = outputEvents.skip(1).map((e) => e.output).join();
+      final output = outputEvents.skip(2).map((e) => e.output).join();
       expectLines(output, [
         'Hello!',
         'World!',
