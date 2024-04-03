@@ -133,41 +133,31 @@ bootstrap_path = None
 
 def StartRBE(out_dir, env):
     global rbe_started, bootstrap_path
-    rbe = 'rbe'
-    if rbe_started:
-        return True
-    args_gn_path = os.path.join(out_dir, 'args.gn')
-    rbe_dir = 'buildtools/reclient'
-    with open(args_gn_path, 'r') as fp:
-        for line in fp:
-            if 'rbe_dir' in line:
-                words = line.split()
-                rbe_dir = words[2][1:-1]  # rbe_dir = "/path/to/rbe"
-    if not rbe_dir:
-        print(f'Could not find {rbe} for {out_dir}')
-        return False
-    if not os.path.exists(rbe_dir) or not os.path.isdir(rbe_dir):
-        print(f'Could not find {rbe} at {rbe_dir}')
-        return False
-    bootstrap = 'bootstrap'
-    bootstrap_path = os.path.join(rbe_dir, bootstrap)
-    bootstrap_command = [bootstrap_path]
-    process = subprocess.Popen(bootstrap_command, env=env)
-    process.wait()
-    if process.returncode != 0:
-        print(f"Failed to start {rbe}")
-        return False
-    rbe_started = True
+    if not rbe_started:
+        rbe_dir = 'buildtools/reclient'
+        with open(os.path.join(out_dir, 'args.gn'), 'r') as fp:
+            for line in fp:
+                if 'rbe_dir' in line:
+                    words = line.split()
+                    rbe_dir = words[2][1:-1]  # rbe_dir = "/path/to/rbe"
+        bootstrap_path = os.path.join(rbe_dir, 'bootstrap')
+        bootstrap_command = [bootstrap_path]
+        process = subprocess.Popen(bootstrap_command, env=env)
+        process.wait()
+        if process.returncode != 0:
+            print('Failed to start RBE')
+            return False
+        rbe_started = True
     return True
 
 
 def StopRBE(env):
     global rbe_started, bootstrap_path
-    if not rbe_started:
-        return
-    bootstrap_command = [bootstrap_path, '--shutdown']
-    process = subprocess.Popen(bootstrap_command, env=env)
-    process.wait()
+    if rbe_started:
+        bootstrap_command = [bootstrap_path, '--shutdown']
+        process = subprocess.Popen(bootstrap_command, env=env)
+        process.wait()
+        rbe_started = False
 
 
 # Returns a tuple (build_config, command to run, whether rbe is used)
