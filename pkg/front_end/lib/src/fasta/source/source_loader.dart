@@ -261,9 +261,7 @@ class SourceLoader extends Loader {
 
   void registerLibraryBuilder(LibraryBuilder libraryBuilder) {
     Uri uri = libraryBuilder.importUri;
-    if (uri.isScheme("dart") && uri.path == "core") {
-      _coreLibrary = libraryBuilder;
-    }
+    _markDartLibraries(uri, libraryBuilder);
     _builders[uri] = libraryBuilder;
   }
 
@@ -533,7 +531,7 @@ class SourceLoader extends Loader {
     }
   }
 
-  void _checkForDartCore(Uri uri, LibraryBuilder libraryBuilder) {
+  void _markDartLibraries(Uri uri, LibraryBuilder libraryBuilder) {
     if (uri.isScheme("dart")) {
       if (uri.path == "core") {
         _coreLibrary = libraryBuilder;
@@ -541,6 +539,11 @@ class SourceLoader extends Loader {
         typedDataLibrary = libraryBuilder;
       }
     }
+  }
+
+  void _checkForDartCore(Uri uri, LibraryBuilder libraryBuilder) {
+    _markDartLibraries(uri, libraryBuilder);
+
     // TODO(johnniwinther): If we save the created library in [_builders]
     // here, i.e. before calling `target.loadExtraRequiredLibraries` below,
     // the order of the libraries change, making `dart:core` come before the

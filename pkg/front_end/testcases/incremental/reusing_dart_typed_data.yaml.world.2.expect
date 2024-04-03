@@ -1,0 +1,18 @@
+main = <No Member>;
+library from "org-dartlang-test:///main.dart" as main {
+//
+// Problems in library:
+//
+// org-dartlang-test:///main.dart:3:16: Error: 'ByteBuffer' is restricted and can't be extended or implemented.
+// abstract class Foo extends ByteBuffer {}
+//                ^
+//
+
+  import "dart:typed_data";
+
+  abstract class Foo extends dart.typed_data::ByteBuffer {
+    synthetic constructor •() → main::Foo
+      : super dart.typed_data::ByteBuffer::•()
+      ;
+  }
+}
