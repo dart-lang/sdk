@@ -9360,14 +9360,12 @@ class AssertStatement extends Statement {
   Expression condition;
   Expression? message; // May be null.
 
-  /// Character offset in the source where the assertion condition begins.
-  ///
-  /// Note: This is not the offset into the UTF8 encoded `List<int>` source.
+  /// Character offset in the source ([Source.text]) where the assertion
+  /// condition begins.
   int conditionStartOffset;
 
-  /// Character offset in the source where the assertion condition ends.
-  ///
-  /// Note: This is not the offset into the UTF8 encoded `List<int>` source.
+  /// Character offset in the source ([Source.text]) where the assertion
+  /// condition ends.
   int conditionEndOffset;
 
   @override
