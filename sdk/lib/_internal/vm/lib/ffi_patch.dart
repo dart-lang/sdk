@@ -1380,7 +1380,7 @@ extension UnionArray<T extends Union> on Array<T> {
 }
 
 @patch
-extension AbiSpecificIntegerArray on Array<AbiSpecificInteger> {
+extension AbiSpecificIntegerArray<T extends AbiSpecificInteger> on Array<T> {
   @patch
   int operator [](int index) {
     throw ArgumentError(
