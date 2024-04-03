@@ -93,6 +93,8 @@ abstract class ContextResolutionTest with ResourceProviderMixin {
   final List<GeneralAnalysisService> _analysisGeneralServices = [];
   final Map<AnalysisService, List<String>> _analysisFileSubscriptions = {};
 
+  void Function(Notification)? notificationListener;
+
   Folder get sdkRoot => newFolder('/sdk');
 
   Future<void> addGeneralAnalysisSubscription(
@@ -126,7 +128,9 @@ abstract class ContextResolutionTest with ResourceProviderMixin {
     return response;
   }
 
-  void processNotification(Notification notification) {}
+  void processNotification(Notification notification) {
+    notificationListener?.call(notification);
+  }
 
   Future<void> removeGeneralAnalysisSubscription(
     GeneralAnalysisService service,

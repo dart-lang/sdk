@@ -921,12 +921,7 @@ config("optimize_speed") {
 
 config("symbols") {
   if (is_win) {
-    import("//build/toolchain/goma.gni")
-    if (use_goma) {
-      cflags = [ "/Z7" ]  # No PDB file
-    } else {
-      cflags = [ "/Zi" ]  # Produce PDB file, no edit and continue.
-    }
+    cflags = [ "/Zi" ]  # Produce PDB file, no edit and continue.
     ldflags = [ "/DEBUG" ]
   } else {
     cflags = [

@@ -3332,7 +3332,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     NamedType? superclass,
     WithClause? withClause,
     ImplementsClause? implementsClause,
-    OnClause? onClause,
+    MixinOnClause? onClause,
   ) {
     if (superclass != null) {
       final type = superclass.type;
@@ -4594,7 +4594,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   ///
   /// See [CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS],
   /// [CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS].
-  bool _checkForOnClauseErrorCodes(OnClause? onClause) {
+  bool _checkForOnClauseErrorCodes(MixinOnClause? onClause) {
     if (onClause == null) {
       return false;
     }
@@ -4913,7 +4913,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       NamedType? superclass,
       WithClause? withClause,
       ImplementsClause? implementsClause,
-      OnClause? onClause) {
+      MixinOnClause? onClause) {
     void reportErrorsForSealedClassesAndMixins(List<NamedType> namedTypes) {
       for (NamedType namedType in namedTypes) {
         final type = namedType.type;
@@ -5708,7 +5708,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   /// Checks the class for problems with the superclass, mixins, or implemented
   /// interfaces.
-  void _checkMixinInheritance(MixinDeclaration node, OnClause? onClause,
+  void _checkMixinInheritance(MixinDeclaration node, MixinOnClause? onClause,
       ImplementsClause? implementsClause) {
     // Only check for all of the inheritance logic around clauses if there
     // isn't an error code such as "Cannot implement double" already.

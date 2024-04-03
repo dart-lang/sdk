@@ -21,7 +21,7 @@ const dartVMServiceMessagePrefix =
     'The Dart VM service is listening on http://127.0.0.1:';
 final dartVMServiceRegExp =
     RegExp(r'The Dart VM service is listening on (http://127.0.0.1:.*)');
-const residentFrontendServerPrefix =
+const residentFrontendCompilerPrefix =
     'The Resident Frontend Compiler is listening at 127.0.0.1:';
 const dtdMessagePrefix = 'The Dart Tooling Daemon (DTD) is available at:';
 
@@ -858,7 +858,8 @@ void residentRun() {
     serverInfoFile = path.join(serverInfoDirectory.dirPath, 'info');
     final result = await serverInfoDirectory.run([
       'run',
-      '--$serverInfoOption=$serverInfoFile',
+      '--resident',
+      '--$residentCompilerInfoFileOption=$serverInfoFile',
       serverInfoDirectory.relativeFilePath,
     ]);
     expect(result.exitCode, 0);
@@ -881,11 +882,31 @@ void residentRun() {
     } catch (_) {}
   });
 
+  test(
+      'passing --resident is a prerequisite for passing --resident-compiler-info-file',
+      () async {
+    p = project(mainSrc: 'void main() {}');
+    final result = await p.run([
+      'run',
+      '--$residentCompilerInfoFileOption=$serverInfoFile',
+      p.relativeFilePath,
+    ]);
+
+    expect(result.exitCode, 255);
+    expect(
+      result.stderr,
+      contains(
+        'Error: the --resident flag must be passed whenever the --resident-compiler-info-file option is passed.',
+      ),
+    );
+  });
+
   test("'Hello World'", () async {
     p = project(mainSrc: "void main() { print('Hello World'); }");
     final result = await p.run([
       'run',
-      '--$serverInfoOption=$serverInfoFile',
+      '--resident',
+      '--$residentCompilerInfoFileOption=$serverInfoFile',
       p.relativeFilePath,
     ]);
     Directory? kernelCache = p.findDirectory('.dart_tool/kernel');
@@ -895,19 +916,20 @@ void residentRun() {
       result.stdout,
       allOf(
         contains('Hello World'),
-        isNot(contains(residentFrontendServerPrefix)),
+        isNot(contains(residentFrontendCompilerPrefix)),
       ),
     );
     expect(result.stderr, isEmpty);
     expect(kernelCache, isNot(null));
   });
 
-  test('--resident-server-info-file handles relative paths correctly',
+  test("'Hello World' with legacy --resident-server-info-file option",
       () async {
     p = project(mainSrc: "void main() { print('Hello World'); }");
     final result = await p.run([
       'run',
-      '--$serverInfoOption=${path.relative(serverInfoFile, from: p.dirPath)}',
+      '--resident',
+      '--resident-server-info-file=$serverInfoFile',
       p.relativeFilePath,
     ]);
     Directory? kernelCache = p.findDirectory('.dart_tool/kernel');
@@ -917,7 +939,31 @@ void residentRun() {
       result.stdout,
       allOf(
         contains('Hello World'),
-        isNot(contains(residentFrontendServerPrefix)),
+        isNot(contains(residentFrontendCompilerPrefix)),
+      ),
+    );
+    expect(result.stderr, isEmpty);
+    expect(kernelCache, isNot(null));
+  });
+
+  test('--resident-compiler-info-file handles relative paths correctly',
+      () async {
+    p = project(mainSrc: "void main() { print('Hello World'); }");
+    final result = await p.run([
+      'run',
+      '--resident',
+      '--$residentCompilerInfoFileOption',
+      path.relative(serverInfoFile, from: p.dirPath),
+      p.relativeFilePath,
+    ]);
+    Directory? kernelCache = p.findDirectory('.dart_tool/kernel');
+
+    expect(result.exitCode, 0);
+    expect(
+      result.stdout,
+      allOf(
+        contains('Hello World'),
+        isNot(contains(residentFrontendCompilerPrefix)),
       ),
     );
     expect(result.stderr, isEmpty);
@@ -933,7 +979,8 @@ void residentRun() {
     );
     final result = await p.run([
       'run',
-      '--$serverInfoOption=$serverInfoFile',
+      '--resident',
+      '--$residentCompilerInfoFileOption=$serverInfoFile',
       '--enable-experiment=test-experiment',
       p.relativeFilePath,
     ]);
@@ -944,7 +991,7 @@ void residentRun() {
       result.stdout,
       allOf(
         contains('hello'),
-        isNot(contains(residentFrontendServerPrefix)),
+        isNot(contains(residentFrontendCompilerPrefix)),
       ),
     );
     expect(result.exitCode, 0);
@@ -958,12 +1005,14 @@ void residentRun() {
 
     final runResult1 = await p.run([
       'run',
-      '--$serverInfoOption=$serverInfoFile',
+      '--resident',
+      '--$residentCompilerInfoFileOption=$serverInfoFile',
       p.relativeFilePath,
     ]);
     final runResult2 = await p2.run([
       'run',
-      '--$serverInfoOption=$serverInfoFile',
+      '--resident',
+      '--$residentCompilerInfoFileOption=$serverInfoFile',
       p2.relativeFilePath,
     ]);
 
@@ -972,14 +1021,14 @@ void residentRun() {
       runResult1.stdout,
       allOf(
         contains('1'),
-        isNot(contains(residentFrontendServerPrefix)),
+        isNot(contains(residentFrontendCompilerPrefix)),
       ),
     );
     expect(
       runResult2.stdout,
       allOf(
         contains('2'),
-        isNot(contains(residentFrontendServerPrefix)),
+        isNot(contains(residentFrontendCompilerPrefix)),
       ),
     );
   });
@@ -991,7 +1040,8 @@ void residentRun() {
 
     final runResult1 = await p.run([
       'run',
-      '--$serverInfoOption=$serverInfoFile',
+      '--resident',
+      '--$residentCompilerInfoFileOption=$serverInfoFile',
       path.join(p.dirPath, 'lib/main.dart'),
     ]);
     expect(runResult1.exitCode, 0);
@@ -1000,7 +1050,8 @@ void residentRun() {
 
     final runResult2 = await p.run([
       'run',
-      '--$serverInfoOption=$serverInfoFile',
+      '--resident',
+      '--$residentCompilerInfoFileOption=$serverInfoFile',
       path.join(p.dirPath, 'bin/main.dart'),
     ]);
     expect(runResult2.exitCode, 0);
@@ -1018,7 +1069,8 @@ void residentRun() {
     p.deleteFile('.dart_tool/package_config.json');
     final runResult = await p.run([
       'run',
-      '--$serverInfoOption=$serverInfoFile',
+      '--resident',
+      '--$residentCompilerInfoFileOption=$serverInfoFile',
       p.relativeFilePath,
     ]);
 
@@ -1049,27 +1101,30 @@ void residentRun() {
     TestProject p2 = project(mainSrc: 'void main() {}');
     final runResult1 = await p2.run([
       'run',
-      '--$serverInfoOption=$tempServerInfoFile',
+      '--resident',
+      '--$residentCompilerInfoFileOption=$tempServerInfoFile',
       p2.relativeFilePath,
     ]);
     await deleteDirectory(p2.dir);
     expect(runResult1.exitCode, 0);
-    expect(runResult1.stdout, contains(residentFrontendServerPrefix));
+    expect(runResult1.stdout, contains(residentFrontendCompilerPrefix));
 
     await p.run([
       'run',
-      '--$serverInfoOption=$tempServerInfoFile',
+      '--resident',
+      '--$residentCompilerInfoFileOption=$tempServerInfoFile',
       p.relativeFilePath,
     ]);
     final runResult2 = await p.run([
       'run',
-      '--$serverInfoOption=$tempServerInfoFile',
+      '--resident',
+      '--$residentCompilerInfoFileOption=$tempServerInfoFile',
       p.relativeFilePath,
     ]);
 
     expect(runResult2.exitCode, 0);
     expect(runResult2.stderr, isEmpty);
-    expect(runResult2.stdout, isNot(contains(residentFrontendServerPrefix)));
+    expect(runResult2.stdout, isNot(contains(residentFrontendCompilerPrefix)));
   });
 
   test('VM flags are passed properly', () async {
@@ -1109,7 +1164,8 @@ void residentRun() {
 
     await p.runWithVmService([
       'run',
-      '--$serverInfoOption=$serverInfoFile',
+      '--resident',
+      '--$residentCompilerInfoFileOption=$serverInfoFile',
       '--observe=0',
       '--pause-isolates-on-start',
       // This should negate the above flag.
@@ -1130,7 +1186,8 @@ void residentRun() {
     sawCFEMsg = false;
     await p.runWithVmService([
       'run',
-      '--$serverInfoOption=$serverInfoFile',
+      '--resident',
+      '--$residentCompilerInfoFileOption=$serverInfoFile',
       '--observe=0',
       '--pause-isolates-on-start',
       // This should negate the above flag.
@@ -1173,7 +1230,8 @@ void residentRun() {
 
     await p.runWithVmService([
       'run',
-      '--$serverInfoOption=$serverInfoFile',
+      '--resident',
+      '--$residentCompilerInfoFileOption=$serverInfoFile',
       '--observe=0/::1',
       '--pause-isolates-on-start',
       // This should negate the above flag.

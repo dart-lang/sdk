@@ -52,18 +52,29 @@ class RunCommand extends DartdevCommand {
         ) {
     argParser
       ..addFlag(
-        'resident',
+        residentOption,
         abbr: 'r',
         negatable: false,
-        help:
-            'Enable faster startup times with the resident frontend compiler.\n'
-            "See 'dart ${CompilationServerCommand.commandName} -h' for more information.",
+        help: 'Enable faster startup times by using a resident frontend '
+            'compiler for compilation.\n'
+            'If --resident-compiler-info-file is provided in conjunction with '
+            'this flag, the specified info file will be used, otherwise the '
+            'default info file will be used. If there is not already a '
+            'compiler associated with the selected info file, one will be '
+            "started. Refer to 'dart ${CompilationServerCommand.commandName} "
+            "start -h' for more information about info files.",
         hide: !verbose,
       )
       ..addOption(
-        CompilationServerCommand.residentServerInfoFileFlag,
+        CompilationServerCommand.residentCompilerInfoFileFlag,
         hide: !verbose,
-        help: CompilationServerCommand.residentServerInfoFileFlagDescription,
+        help: CompilationServerCommand.residentCompilerInfoFileFlagDescription,
+      )
+      ..addOption(
+        CompilationServerCommand.legacyResidentServerInfoFileFlag,
+        // This option is only available for backwards compatibility, and should
+        // never be shown in the help message.
+        hide: true,
       );
     // NOTE: When updating this list of flags, be sure to add any VM flags to
     // the list of flags in Options::ProcessVMDebuggingOptions in
@@ -312,15 +323,24 @@ class RunCommand extends DartdevCommand {
       nativeAssets = assets?.toFilePath();
     }
 
-    final hasServerInfoOption = args.wasParsed(serverInfoOption);
-    final useResidentServer =
-        args.wasParsed(residentOption) || hasServerInfoOption;
+    final String? residentCompilerInfoFileArg =
+        args[CompilationServerCommand.residentCompilerInfoFileFlag] ??
+            args[CompilationServerCommand.legacyResidentServerInfoFileFlag];
+    final useResidentCompiler = args.wasParsed(residentOption);
+    if (residentCompilerInfoFileArg != null && !useResidentCompiler) {
+      log.stderr(
+        'Error: the --resident flag must be passed whenever the '
+        '--resident-compiler-info-file option is passed.',
+      );
+      return errorExitCode;
+    }
+
     DartExecutableWithPackageConfig executable;
     final hasExperiments = args.enabledExperiments.isNotEmpty;
     try {
       executable = await getExecutableForCommand(
         mainCommand,
-        allowSnapshot: !(useResidentServer || hasExperiments),
+        allowSnapshot: !(useResidentCompiler || hasExperiments),
         nativeAssets: nativeAssets,
       );
     } on CommandResolutionFailedException catch (e) {
@@ -328,21 +348,21 @@ class RunCommand extends DartdevCommand {
       return errorExitCode;
     }
 
-    final residentServerInfoFile = hasServerInfoOption
-        ? File(maybeUriToFilename(args.option(serverInfoOption)!))
+    final residentCompilerInfoFile = residentCompilerInfoFileArg != null
+        ? File(maybeUriToFilename(residentCompilerInfoFileArg))
         : defaultResidentServerInfoFile;
 
-    if (useResidentServer && residentServerInfoFile != null) {
+    if (useResidentCompiler && residentCompilerInfoFile != null) {
       try {
         // Ensure the parent directory exists.
-        if (!residentServerInfoFile.parent.existsSync()) {
-          residentServerInfoFile.parent.createSync();
+        if (!residentCompilerInfoFile.parent.existsSync()) {
+          residentCompilerInfoFile.parent.createSync();
         }
 
         // TODO(#49694) handle the case when executable is a kernel file
         executable = await generateKernel(
           executable,
-          residentServerInfoFile,
+          residentCompilerInfoFile,
           args,
           createCompileJitJson,
         );
@@ -354,11 +374,11 @@ class RunCommand extends DartdevCommand {
           try {
             await sendAndReceiveResponse(
               residentServerShutdownCommand,
-              residentServerInfoFile,
+              residentCompilerInfoFile,
             );
           } catch (_) {
           } finally {
-            cleanupResidentServerInfo(residentServerInfoFile);
+            cleanupResidentServerInfo(residentCompilerInfoFile);
           }
         }
         return errorExitCode;

@@ -1413,7 +1413,7 @@ mixin M on C implements A, (int, int), B {}
 MixinDeclaration
   mixinKeyword: mixin @11
   name: M @17
-  onClause: OnClause
+  onClause: MixinOnClause
     onKeyword: on @19
     superclassConstraints
       NamedType
@@ -1464,7 +1464,7 @@ mixin M on A, (int, int), B {}
 MixinDeclaration
   mixinKeyword: mixin @0
   name: M @6
-  onClause: OnClause
+  onClause: MixinOnClause
     onKeyword: on @8
     superclassConstraints
       NamedType

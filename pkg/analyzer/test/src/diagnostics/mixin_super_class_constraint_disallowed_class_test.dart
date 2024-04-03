@@ -31,9 +31,9 @@ mixin M on Enum {}
           27, 4),
     ]);
 
-    final node = findNode.singleOnClause;
+    final node = findNode.singleMixinOnClause;
     assertResolvedNodeText(node, r'''
-OnClause
+MixinOnClause
   onKeyword: on
   superclassConstraints
     NamedType
@@ -51,9 +51,9 @@ mixin M on int {}
           11, 3),
     ]);
 
-    final node = findNode.singleOnClause;
+    final node = findNode.singleMixinOnClause;
     assertResolvedNodeText(node, r'''
-OnClause
+MixinOnClause
   onKeyword: on
   superclassConstraints
     NamedType

@@ -2898,6 +2898,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
+  void visitMixinOnClause(MixinOnClause node) {
+    checkUnreachableNode(node);
+    node.visitChildren(this);
+  }
+
+  @override
   void visitNamedExpression(NamedExpression node,
       {DartType contextType = UnknownInferredType.instance}) {
     checkUnreachableNode(node);
@@ -2940,12 +2946,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     typeAnalyzer.visitNullLiteral(node as NullLiteralImpl);
     flowAnalysis.flow?.nullLiteral(node, node.typeOrThrow);
     checkUnreachableNode(node);
-  }
-
-  @override
-  void visitOnClause(OnClause node) {
-    checkUnreachableNode(node);
-    node.visitChildren(this);
   }
 
   @override

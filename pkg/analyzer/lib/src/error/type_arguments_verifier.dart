@@ -569,7 +569,7 @@ class TypeArgumentsVerifier {
       case ExtendsClause _:
       case GenericTypeAlias _:
       case ImplementsClause _:
-      case OnClause _:
+      case MixinOnClause _:
       case WithClause _:
         return false;
     }

@@ -4,7 +4,7 @@
 
 /// The name of the subdirectory in .dart_tool where dartdev stores kernel files
 const dartdevKernelCache = 'kernel';
-const serverInfoOption = 'resident-server-info-file';
+const residentCompilerInfoFileOption = 'resident-compiler-info-file';
 const residentOption = 'resident';
 const responseSuccessString = 'success';
 const responseErrorString = 'errorMessage';

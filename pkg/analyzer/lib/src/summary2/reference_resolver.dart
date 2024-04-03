@@ -352,6 +352,11 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitMixinOnClause(MixinOnClause node) {
+    node.superclassConstraints.accept(this);
+  }
+
+  @override
   void visitNamedType(covariant NamedTypeImpl node) {
     Element? element;
     final importPrefix = node.importPrefix;
@@ -398,11 +403,6 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
       node.type = builder;
       nodesToBuildType.addTypeBuilder(builder);
     }
-  }
-
-  @override
-  void visitOnClause(OnClause node) {
-    node.superclassConstraints.accept(this);
   }
 
   @override

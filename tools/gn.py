@@ -292,32 +292,6 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash,
                 if prefix != None:
                     gn_args[arch + '_toolchain_prefix'] = prefix
 
-    goma_dir = os.environ.get('GOMA_DIR')
-    # Search for goma in depot_tools in path
-    goma_depot_tools_dir = None
-    for path in os.environ.get('PATH', '').split(os.pathsep):
-        if os.path.basename(path) == 'depot_tools':
-            cipd_bin = os.path.join(path, '.cipd_bin')
-            if os.path.isfile(os.path.join(cipd_bin, ExecutableName('gomacc'))):
-                goma_depot_tools_dir = cipd_bin
-                break
-    # Otherwise use goma from home directory.
-    # TODO(whesse): Remove support for goma installed in home directory.
-    # Goma will only be distributed through depot_tools.
-    goma_home_dir = os.path.join(os.getenv('HOME', ''), 'goma')
-    if args.goma and goma_dir:
-        gn_args['use_goma'] = True
-        gn_args['goma_dir'] = goma_dir
-    elif args.goma and goma_depot_tools_dir:
-        gn_args['use_goma'] = True
-        gn_args['goma_dir'] = goma_depot_tools_dir
-    elif args.goma and os.path.exists(goma_home_dir):
-        gn_args['use_goma'] = True
-        gn_args['goma_dir'] = goma_home_dir
-    else:
-        gn_args['use_goma'] = False
-        gn_args['goma_dir'] = None
-
     gn_args['use_rbe'] = args.rbe
 
     # Code coverage requires -O0 to be set.
@@ -344,9 +318,6 @@ def ProcessOsOption(os_name):
 
 
 def ProcessOptions(args):
-    if args.goma:
-        print('Warning: Goma will be discontinued in the near future')
-        args.rbe = False
     if args.verify_sdk_hash == None:
         args.verify_sdk_hash = not args.rbe
     if args.git_version == None:
@@ -422,8 +393,6 @@ def ProcessOptions(args):
        (socket.getfqdn().endswith('.corp.google.com') or
         socket.getfqdn().endswith('.c.googlers.com')):
         print('You can speed up your build by following: go/dart-rbe')
-        if not args.goma:
-            print('Goma is no longer enabled by default since RBE is ready.')
     old_rbe_cfg = 'win-intel.cfg' if HOST_OS == 'win32' else 'linux-intel.cfg'
     new_rbe_cfg = 'windows.cfg' if HOST_OS == 'win32' else 'unix.cfg'
     if os.environ.get('RBE_cfg') == os.path.join(os.getcwd(), 'build', 'rbe',
@@ -449,12 +418,6 @@ def ide_switch(host_os):
 
 def AddCommonGnOptionArgs(parser):
     """Adds arguments that will change the default GN arguments."""
-
-    parser.add_argument('--goma', help='Use goma', action='store_true')
-    parser.add_argument('--no-goma',
-                        help='Disable goma',
-                        dest='goma',
-                        action='store_false')
 
     parser.add_argument('--rbe', help='Use rbe', action='store_true')
     parser.add_argument('--no-rbe',

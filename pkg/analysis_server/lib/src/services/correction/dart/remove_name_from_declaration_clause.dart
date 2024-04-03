@@ -35,7 +35,7 @@ class RemoveNameFromDeclarationClause extends ResolvedCorrectionProducer {
     } else if (clause is ImplementsClause) {
       clauseName = 'implements';
       nameList = clause.interfaces;
-    } else if (clause is OnClause) {
+    } else if (clause is MixinOnClause) {
       clauseName = 'on';
       nameList = clause.superclassConstraints;
     } else if (clause is WithClause) {

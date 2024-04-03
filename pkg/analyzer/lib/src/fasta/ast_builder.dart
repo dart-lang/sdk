@@ -4772,7 +4772,7 @@ class AstBuilder extends StackListener {
 
     var implementsClause =
         pop(NullValues.IdentifierList) as ImplementsClauseImpl?;
-    var onClause = pop(NullValues.IdentifierList) as OnClauseImpl?;
+    var onClause = pop(NullValues.IdentifierList) as MixinOnClauseImpl?;
     var baseKeyword = pop(NullValues.Token) as Token?;
     var augmentKeyword = pop(NullValues.Token) as Token?;
     var typeParameters = pop() as TypeParameterListImpl?;
@@ -4808,7 +4808,7 @@ class AstBuilder extends StackListener {
         errorCode: ParserErrorCode.EXPECTED_NAMED_TYPE_ON,
       );
       push(
-        OnClauseImpl(
+        MixinOnClauseImpl(
           onKeyword: onKeyword,
           superclassConstraints: onTypes,
         ),
@@ -5307,14 +5307,14 @@ class AstBuilder extends StackListener {
     final builder = _classLikeBuilder as _MixinDeclarationBuilder;
     var implementsClause =
         pop(NullValues.IdentifierList) as ImplementsClauseImpl?;
-    var onClause = pop(NullValues.IdentifierList) as OnClauseImpl?;
+    var onClause = pop(NullValues.IdentifierList) as MixinOnClauseImpl?;
 
     if (onClause != null) {
       final existingClause = builder.onClause;
       if (existingClause == null) {
         builder.onClause = onClause;
       } else {
-        builder.onClause = OnClauseImpl(
+        builder.onClause = MixinOnClauseImpl(
           onKeyword: existingClause.onKeyword,
           superclassConstraints: [
             ...existingClause.superclassConstraints,
@@ -6189,7 +6189,7 @@ class _MixinDeclarationBuilder extends _ClassLikeDeclarationBuilder {
   final Token? baseKeyword;
   final Token mixinKeyword;
   final Token name;
-  OnClauseImpl? onClause;
+  MixinOnClauseImpl? onClause;
   ImplementsClauseImpl? implementsClause;
 
   _MixinDeclarationBuilder({

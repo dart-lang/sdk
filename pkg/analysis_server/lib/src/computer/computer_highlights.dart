@@ -1249,6 +1249,12 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitMixinOnClause(MixinOnClause node) {
+    computer._addRegion_token(node.onKeyword, HighlightRegionType.BUILT_IN);
+    super.visitMixinOnClause(node);
+  }
+
+  @override
   void visitNamedType(NamedType node) {
     if (node.importPrefix case final importPrefix?) {
       computer._addRegion_token(
@@ -1298,12 +1304,6 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   void visitNullLiteral(NullLiteral node) {
     computer._addRegion_token(node.literal, HighlightRegionType.KEYWORD);
     super.visitNullLiteral(node);
-  }
-
-  @override
-  void visitOnClause(OnClause node) {
-    computer._addRegion_token(node.onKeyword, HighlightRegionType.BUILT_IN);
-    super.visitOnClause(node);
   }
 
   @override

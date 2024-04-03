@@ -1627,7 +1627,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   void _resolveOnClause({
     required Declaration? declaration,
-    required OnClauseImpl? clause,
+    required MixinOnClauseImpl? clause,
   }) {
     if (clause == null) return;
 
@@ -1679,7 +1679,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         return;
       case MixinElement():
         if (clause is ImplementsClause ||
-            clause is OnClause ||
+            clause is MixinOnClause ||
             clause is WithClause) {
           return;
         }
@@ -1703,7 +1703,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         }
       case ImplementsClause():
         errorCode = CompileTimeErrorCode.IMPLEMENTS_NON_CLASS;
-      case OnClause():
+      case MixinOnClause():
         errorCode =
             CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE;
       case WithClause():

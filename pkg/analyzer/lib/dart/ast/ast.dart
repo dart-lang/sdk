@@ -168,6 +168,7 @@ export 'package:analyzer/src/dart/ast/ast.dart'
         MethodInvocation,
         MethodReferenceExpression,
         MixinDeclaration,
+        MixinOnClause,
         NamedCompilationUnitMember,
         NamedExpression,
         NamedType,
@@ -181,6 +182,7 @@ export 'package:analyzer/src/dart/ast/ast.dart'
         NullLiteral,
         NullShortableExpression,
         ObjectPattern,
+        // ignore:deprecated_member_use_from_same_package
         OnClause,
         ParenthesizedExpression,
         ParenthesizedPattern,

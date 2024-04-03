@@ -1796,6 +1796,16 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   }
 
   @override
+  void visitMixinOnClause(MixinOnClause node) {
+    var onKeyword = node.onKeyword;
+    if (offset <= onKeyword.end) {
+      keywordHelper.addKeyword(Keyword.ON);
+    } else {
+      _forTypeAnnotation(node);
+    }
+  }
+
+  @override
   void visitNamedExpression(NamedExpression node) {
     if (offset <= node.name.label.end) {
       switch (node.parent) {
@@ -1879,16 +1889,6 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         type: node.type.typeOrThrow,
         excludedGetters: node.fields.fieldNames,
       );
-    }
-  }
-
-  @override
-  void visitOnClause(OnClause node) {
-    var onKeyword = node.onKeyword;
-    if (offset <= onKeyword.end) {
-      keywordHelper.addKeyword(Keyword.ON);
-    } else {
-      _forTypeAnnotation(node);
     }
   }
 
@@ -3468,8 +3468,10 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     required InterfaceElement? element,
     bool skipAt = false,
   }) {
-    // TODO(brianwilkerson): Check whether there's sufficient remaining time
-    //  before computing suggestions for overrides.
+    if (state.budget.isEmpty) {
+      // Don't suggest overrides if the time budget has already been spent.
+      return;
+    }
     if (suggestOverrides && element != null) {
       overrideHelper.computeOverridesFor(
         interfaceElement: element,
@@ -3671,9 +3673,9 @@ extension on AstNode {
       MethodDeclaration(:var metadata) => metadata.contains(child),
       MixinDeclaration(:var members, :var metadata) =>
         members.contains(child) || metadata.contains(child),
-      ObjectPattern(:var fields) => fields.contains(child),
-      OnClause(:var superclassConstraints) =>
+      MixinOnClause(:var superclassConstraints) =>
         superclassConstraints.contains(child),
+      ObjectPattern(:var fields) => fields.contains(child),
       PartDirective(:var metadata) => metadata.contains(child),
       PartOfDirective(:var metadata) => metadata.contains(child),
       PatternVariableDeclaration(:var metadata) => metadata.contains(child),

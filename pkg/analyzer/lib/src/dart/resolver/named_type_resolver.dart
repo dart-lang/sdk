@@ -391,7 +391,7 @@ class NamedTypeResolver with ScopeHelpers {
             node,
             CompileTimeErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE,
           );
-        } else if (parent is OnClause) {
+        } else if (parent is MixinOnClause) {
           errorReporter.atNode(
             node,
             CompileTimeErrorCode.NULLABLE_TYPE_IN_ON_CLAUSE,
@@ -449,7 +449,7 @@ class NamedTypeResolver with ScopeHelpers {
       } else if (parent is ImplementsClause) {
         errorCode = CompileTimeErrorCode
             .IMPLEMENTS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER;
-      } else if (parent is OnClause) {
+      } else if (parent is MixinOnClause) {
         errorCode =
             CompileTimeErrorCode.MIXIN_ON_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER;
       } else if (parent is WithClause) {

@@ -636,6 +636,12 @@ class LinterVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitMixinOnClause(MixinOnClause node) {
+    _runSubscriptions(node, registry._forMixinOnClause);
+    node.visitChildren(this);
+  }
+
+  @override
   void visitNamedExpression(NamedExpression node) {
     _runSubscriptions(node, registry._forNamedExpression);
     node.visitChildren(this);
@@ -683,9 +689,10 @@ class LinterVisitor implements AstVisitor<void> {
     node.visitChildren(this);
   }
 
+  @Deprecated('Use visitMixinOnClause() instead')
   @override
   void visitOnClause(OnClause node) {
-    _runSubscriptions(node, registry._forOnClause);
+    _runSubscriptions(node, registry._forMixinOnClause);
     node.visitChildren(this);
   }
 
@@ -1203,6 +1210,7 @@ class NodeLintRegistry {
   final List<_Subscription<MethodDeclaration>> _forMethodDeclaration = [];
   final List<_Subscription<MethodInvocation>> _forMethodInvocation = [];
   final List<_Subscription<MixinDeclaration>> _forMixinDeclaration = [];
+  final List<_Subscription<MixinOnClause>> _forMixinOnClause = [];
   final List<_Subscription<NamedExpression>> _forNamedExpression = [];
   final List<_Subscription<NamedType>> _forNamedType = [];
   final List<_Subscription<NativeClause>> _forNativeClause = [];
@@ -1210,7 +1218,6 @@ class NodeLintRegistry {
   final List<_Subscription<NullAssertPattern>> _forNullAssertPattern = [];
   final List<_Subscription<NullCheckPattern>> _forNullCheckPattern = [];
   final List<_Subscription<NullLiteral>> _forNullLiteral = [];
-  final List<_Subscription<OnClause>> _forOnClause = [];
   final List<_Subscription<ParenthesizedExpression>>
       _forParenthesizedExpression = [];
   final List<_Subscription<ParenthesizedPattern>> _forParenthesizedPattern = [];
@@ -1746,6 +1753,10 @@ class NodeLintRegistry {
     _forMixinDeclaration.add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
+  void addMixinOnClause(LintRule linter, AstVisitor visitor) {
+    _forMixinOnClause.add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
   void addNamedExpression(LintRule linter, AstVisitor visitor) {
     _forNamedExpression.add(_Subscription(linter, visitor, _getTimer(linter)));
   }
@@ -1780,8 +1791,9 @@ class NodeLintRegistry {
     _forObjectPattern.add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
+  @Deprecated('Use addMixinOnClause() instead')
   void addOnClause(LintRule linter, AstVisitor visitor) {
-    _forOnClause.add(_Subscription(linter, visitor, _getTimer(linter)));
+    addMixinOnClause(linter, visitor);
   }
 
   void addParenthesizedExpression(LintRule linter, AstVisitor visitor) {

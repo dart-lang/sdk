@@ -122,9 +122,9 @@ class FindNode {
 
   MixinDeclaration get singleMixinDeclaration => _single();
 
-  NamedType get singleNamedType => _single();
+  MixinOnClause get singleMixinOnClause => _single();
 
-  OnClause get singleOnClause => _single();
+  NamedType get singleNamedType => _single();
 
   ParenthesizedExpression get singleParenthesizedExpression => _single();
 
