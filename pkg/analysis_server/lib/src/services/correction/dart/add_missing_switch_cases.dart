@@ -59,15 +59,13 @@ class AddMissingSwitchCases extends ResolvedCorrectionProducer {
   }) async {
     final lineIndent = utils.getLinePrefix(node.offset);
     final singleIndent = utils.oneIndent;
-    final location = utils.newCaseClauseAtEndLocation(
-      switchKeyword: node.switchKeyword,
-      leftBracket: node.leftBracket,
-      rightBracket: node.rightBracket,
-    );
 
     await builder.addDartFileEdit(file, (builder) {
-      builder.addInsertion(location.offset, (builder) {
-        builder.write(location.prefix);
+      builder.addCaseClauseAtEndInsertion(
+          switchKeyword: node.switchKeyword,
+          rightParenthesis: node.rightParenthesis,
+          leftBracket: node.leftBracket,
+          rightBracket: node.rightBracket, (builder) {
         builder.write(lineIndent);
         builder.write(singleIndent);
         builder.writeln('// TODO: Handle this case.');
@@ -75,7 +73,6 @@ class AddMissingSwitchCases extends ResolvedCorrectionProducer {
         builder.write(singleIndent);
         _writePatternParts(builder, patternParts);
         builder.writeln(' => throw UnimplementedError(),');
-        builder.write(location.suffix);
       });
     });
   }
@@ -87,15 +84,13 @@ class AddMissingSwitchCases extends ResolvedCorrectionProducer {
   }) async {
     final lineIndent = utils.getLinePrefix(node.offset);
     final singleIndent = utils.oneIndent;
-    final location = utils.newCaseClauseAtEndLocation(
-      switchKeyword: node.switchKeyword,
-      leftBracket: node.leftBracket,
-      rightBracket: node.rightBracket,
-    );
 
     await builder.addDartFileEdit(file, (builder) {
-      builder.addInsertion(location.offset, (builder) {
-        builder.write(location.prefix);
+      builder.addCaseClauseAtEndInsertion(
+          switchKeyword: node.switchKeyword,
+          rightParenthesis: node.rightParenthesis,
+          leftBracket: node.leftBracket,
+          rightBracket: node.rightBracket, (builder) {
         builder.write(lineIndent);
         builder.write(singleIndent);
         builder.write('case ');
@@ -105,7 +100,6 @@ class AddMissingSwitchCases extends ResolvedCorrectionProducer {
         builder.write(singleIndent);
         builder.write(singleIndent);
         builder.writeln('// TODO: Handle this case.');
-        builder.write(location.suffix);
       });
     });
   }

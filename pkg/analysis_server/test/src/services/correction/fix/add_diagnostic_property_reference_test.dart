@@ -542,6 +542,7 @@ import 'package:flutter/widgets.dart';
 
 class C extends Widget with Diagnosticable {
   String field = '';
+
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);

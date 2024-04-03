@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
@@ -322,6 +323,16 @@ abstract class DartFileEditBuilder implements FileEditBuilder {
   /// edits.
   List<Uri> get requiredImports;
 
+  /// Adds an insertion for a case clause at the end of a switch statement or
+  /// switch expression.
+  void addCaseClauseAtEndInsertion(
+    void Function(DartEditBuilder builder) buildEdit, {
+    required Token switchKeyword,
+    required Token rightParenthesis,
+    required Token leftBracket,
+    required Token rightBracket,
+  });
+
   /// Adds an insertion for a field.
   ///
   /// The field is inserted after the last existing field, or at the beginning
@@ -344,6 +355,16 @@ abstract class DartFileEditBuilder implements FileEditBuilder {
   @override
   void addInsertion(
       int offset, void Function(DartEditBuilder builder) buildEdit);
+
+  /// Adds an insertion for a method.
+  ///
+  /// The method is inserted after the last existing field, constructor, or
+  /// method, or at the beginning of [compilationUnitMember], if it has none of
+  /// these.
+  void addMethodInsertion(
+    CompilationUnitMember compilationUnitMember,
+    void Function(DartEditBuilder builder) buildEdit,
+  );
 
   @override
   void addReplacement(

@@ -866,25 +866,6 @@ final class CorrectionUtils {
   String invertCondition(Expression expression) =>
       _invertCondition0(expression)._source;
 
-  InsertionLocation newCaseClauseAtEndLocation({
-    required Token switchKeyword,
-    required Token leftBracket,
-    required Token rightBracket,
-  }) {
-    var blockStartLine = getLineThis(leftBracket.offset);
-    var blockEndLine = getLineThis(rightBracket.offset);
-    var offset = blockEndLine;
-    var prefix = '';
-    var suffix = '';
-    if (blockStartLine == blockEndLine) {
-      // The switch body is on a single line.
-      prefix = endOfLine;
-      offset = leftBracket.end;
-      suffix = getLinePrefix(switchKeyword.offset);
-    }
-    return InsertionLocation(prefix: prefix, offset: offset, suffix: suffix);
-  }
-
   InsertionLocation prepareEnumNewConstructorLocation(
     EnumDeclaration enumDeclaration,
   ) {
@@ -964,16 +945,6 @@ final class CorrectionUtils {
             member is FieldDeclaration || member is ConstructorDeclaration;
 
     return prepareNewClassMemberLocation(classDeclaration, shouldSkip);
-  }
-
-  InsertionLocation? prepareNewMethodLocation(
-      CompilationUnitMember declaration) {
-    return prepareNewClassMemberLocation(
-        declaration,
-        (member) =>
-            member is FieldDeclaration ||
-            member is ConstructorDeclaration ||
-            member is MethodDeclaration);
   }
 
   /// Returns the source with indentation changed from [oldIndent] to

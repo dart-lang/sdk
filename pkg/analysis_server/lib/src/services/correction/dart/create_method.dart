@@ -4,7 +4,6 @@
 
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -108,13 +107,12 @@ class CreateMethod extends ResolvedCorrectionProducer {
     }
     _memberName = (node as SimpleIdentifier).name;
     var invocation = node.parent as MethodInvocation;
-    // prepare environment
+    // Prepare environment.
     Element? targetElement;
     var staticModifier = false;
 
     CompilationUnitMember? targetNode;
     var target = invocation.realTarget;
-    var utilsForTargetNode = utils;
     if (target is ExtensionOverride) {
       targetElement = target.element;
       if (targetElement is ExtensionElement) {
@@ -155,7 +153,7 @@ class CreateMethod extends ResolvedCorrectionProducer {
       if (targetClassElement.library.isInSdk) {
         return;
       }
-      // prepare target ClassDeclaration
+      // Prepare target ClassDeclaration.
       if (targetClassElement is MixinElement) {
         targetNode = await getMixinDeclaration(targetClassElement);
       } else if (targetClassElement is ClassElement) {
@@ -166,57 +164,49 @@ class CreateMethod extends ResolvedCorrectionProducer {
       if (targetNode == null) {
         return;
       }
-      // maybe static
+      // Maybe static.
       if (target is Identifier) {
         staticModifier = target.staticElement?.kind == ElementKind.CLASS ||
             target.staticElement?.kind == ElementKind.EXTENSION_TYPE ||
             target.staticElement?.kind == ElementKind.MIXIN;
       }
-      // use different utils
+      // Use different utils.
       var targetPath = targetClassElement.source.fullName;
       var targetResolveResult =
           await unitResult.session.getResolvedUnit(targetPath);
       if (targetResolveResult is! ResolvedUnitResult) {
         return;
       }
-      utilsForTargetNode = CorrectionUtils(targetResolveResult);
     }
-    if (targetElement == null || targetNode == null) {
-      return;
-    }
-    var targetLocation =
-        utilsForTargetNode.prepareNewMethodLocation(targetNode);
-    if (targetLocation == null) {
-      return;
-    }
-    var targetSource = targetElement.source;
+    var targetSource = targetElement?.source;
     if (targetSource == null) {
       return;
     }
     var targetFile = targetSource.fullName;
-    // build method source
+    // Build method source.
     await builder.addDartFileEdit(targetFile, (builder) {
-      builder.addInsertion(targetLocation.offset, (builder) {
-        builder.write(targetLocation.prefix);
-        // maybe "static"
+      if (targetNode == null) {
+        return;
+      }
+      builder.addMethodInsertion(targetNode, (builder) {
+        // Maybe 'static'.
         if (staticModifier) {
           builder.write('static ');
         }
-        // append return type
+        // Append return type.
         {
           var type = inferUndefinedExpressionType(invocation);
           if (builder.writeType(type, groupName: 'RETURN_TYPE')) {
             builder.write(' ');
           }
         }
-        // append name
+        // Append name.
         builder.addLinkedEdit('NAME', (builder) {
           builder.write(_memberName);
         });
         builder.write('(');
         builder.writeParametersMatchingArguments(invocation.argumentList);
         builder.write(') {}');
-        builder.write(targetLocation.suffix);
       });
       if (targetFile == file) {
         builder.addLinkedPosition(range.node(node), 'NAME');
