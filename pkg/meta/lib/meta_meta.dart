@@ -53,6 +53,9 @@ class TargetKind {
   /// `part of` directive.
   static const directive = TargetKind._('directives', 'directive');
 
+  /// Indicates that an annotation is valid on any enum value declaration.
+  static const enumValue = TargetKind._('enum values', 'enumValue');
+
   /// Indicates that an annotation is valid on any enum declaration.
   static const enumType = TargetKind._('enums', 'enumType');
 
@@ -125,6 +128,7 @@ class TargetKind {
     classType,
     constructor,
     directive,
+    enumValue,
     enumType,
     extension,
     extensionType,
