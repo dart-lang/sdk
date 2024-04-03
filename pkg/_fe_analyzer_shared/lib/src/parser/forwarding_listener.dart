@@ -779,8 +779,9 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleEnumHeader(Token enumKeyword, Token leftBrace) {
-    listener?.handleEnumHeader(enumKeyword, leftBrace);
+  void handleEnumHeader(
+      Token? augmentToken, Token enumKeyword, Token leftBrace) {
+    listener?.handleEnumHeader(augmentToken, enumKeyword, leftBrace);
   }
 
   @override

@@ -395,7 +395,8 @@ class Listener implements UnescapeErrorListener {
   /// - type variables
   /// - with clause
   /// - implemented types
-  void handleEnumHeader(Token enumKeyword, Token leftBrace) {
+  void handleEnumHeader(
+      Token? augmentToken, Token enumKeyword, Token leftBrace) {
     logEvent("EnumHeader");
   }
 

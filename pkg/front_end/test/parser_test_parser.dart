@@ -609,10 +609,10 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseEnum(Token beginToken, Token enumKeyword) {
-    doPrint('parseEnum(' '$beginToken, ' '$enumKeyword)');
+  Token parseEnum(Token beginToken, Token? augmentToken, Token enumKeyword) {
+    doPrint('parseEnum(' '$beginToken, ' '$augmentToken, ' '$enumKeyword)');
     indent++;
-    var result = super.parseEnum(beginToken, enumKeyword);
+    var result = super.parseEnum(beginToken, augmentToken, enumKeyword);
     indent--;
     return result;
   }

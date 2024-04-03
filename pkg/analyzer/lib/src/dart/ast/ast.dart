@@ -5394,6 +5394,10 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
 ///        [WithClause]? [ImplementsClause]? '{' [SimpleIdentifier]
 ///        (',' [SimpleIdentifier])* (';' [ClassMember]+)? '}'
 abstract final class EnumDeclaration implements NamedCompilationUnitMember {
+  /// The `augment` keyword, or `null` if the keyword was absent.
+  @experimental
+  Token? get augmentKeyword;
+
   /// The enumeration constants being declared.
   NodeList<EnumConstantDeclaration> get constants;
 
@@ -5431,6 +5435,9 @@ abstract final class EnumDeclaration implements NamedCompilationUnitMember {
 final class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
     implements EnumDeclaration {
   @override
+  final Token? augmentKeyword;
+
+  @override
   final Token enumKeyword;
 
   TypeParameterListImpl? _typeParameters;
@@ -5464,6 +5471,7 @@ final class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
   EnumDeclarationImpl({
     required super.comment,
     required super.metadata,
+    required this.augmentKeyword,
     required this.enumKeyword,
     required super.name,
     required TypeParameterListImpl? typeParameters,
@@ -5491,7 +5499,7 @@ final class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
   Token get endToken => rightBracket;
 
   @override
-  Token get firstTokenAfterCommentAndMetadata => enumKeyword;
+  Token get firstTokenAfterCommentAndMetadata => augmentKeyword ?? enumKeyword;
 
   @override
   ImplementsClauseImpl? get implementsClause => _implementsClause;
@@ -5520,6 +5528,7 @@ final class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
   @override
   // TODO(brianwilkerson): Add commas?
   ChildEntities get _childEntities => super._childEntities
+    ..addToken('augmentKeyword', augmentKeyword)
     ..addToken('enumKeyword', enumKeyword)
     ..addToken('name', name)
     ..addNode('typeParameters', typeParameters)

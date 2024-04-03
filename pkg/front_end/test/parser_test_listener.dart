@@ -580,10 +580,13 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void handleEnumHeader(Token enumKeyword, Token leftBrace) {
+  void handleEnumHeader(
+      Token? augmentToken, Token enumKeyword, Token leftBrace) {
+    seen(augmentToken);
     seen(enumKeyword);
     seen(leftBrace);
-    doPrint('handleEnumHeader(' '$enumKeyword, ' '$leftBrace)');
+    doPrint(
+        'handleEnumHeader(' '$augmentToken, ' '$enumKeyword, ' '$leftBrace)');
   }
 
   @override
