@@ -999,18 +999,6 @@ abstract class CommonServerContextManagerCallbacks
     var path = result.path;
     filesToFlush.add(path);
 
-    if (result is AnalysisResultWithErrors) {
-      if (analysisServer.isAnalyzed(path)) {
-        final serverErrors = server.doAnalysisError_listFromEngine(result);
-        recordAnalysisErrors(path, serverErrors);
-      }
-    }
-
-    if (result is ResolvedUnitResult) {
-      analysisServer.filesResolvedSinceLastIdle.add(path);
-      handleResolvedUnitResult(result);
-    }
-
     // If this is a virtual file and the client supports URIs, we need to notify
     // that it's been updated.
     var lspUri = analysisServer.uriConverter.toClientUri(result.path);
@@ -1026,6 +1014,18 @@ abstract class CommonServerContextManagerCallbacks
         jsonrpc: lsp.jsonRpcVersion,
       );
       analysisServer.sendLspNotification(message);
+    }
+
+    if (result is AnalysisResultWithErrors) {
+      if (analysisServer.isAnalyzed(path)) {
+        final serverErrors = server.doAnalysisError_listFromEngine(result);
+        recordAnalysisErrors(path, serverErrors);
+      }
+    }
+
+    if (result is ResolvedUnitResult) {
+      analysisServer.filesResolvedSinceLastIdle.add(path);
+      handleResolvedUnitResult(result);
     }
   }
 

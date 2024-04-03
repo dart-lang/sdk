@@ -7,15 +7,114 @@ import 'dart:convert';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
+import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analysis_server/src/protocol_server.dart';
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/utilities/extensions/file_system.dart';
 import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
+import 'package:collection/collection.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
 import '../analysis_server_base.dart';
 import '../lsp/change_verifier.dart';
 import '../lsp/request_helpers_mixin.dart';
+import '../services/completion/dart/text_expectations.dart';
+import '../utils/tree_string_sink.dart';
+
+class EventsCollector {
+  final ContextResolutionTest test;
+  List<Object> events = [];
+
+  EventsCollector(this.test) {
+    test.notificationListener = (notification) {
+      switch (notification.event) {
+        case ANALYSIS_NOTIFICATION_ERRORS:
+          events.add(
+            AnalysisErrorsParams.fromNotification(notification),
+          );
+        case ANALYSIS_NOTIFICATION_FLUSH_RESULTS:
+          events.add(
+            AnalysisFlushResultsParams.fromNotification(notification),
+          );
+        case LSP_NOTIFICATION_NOTIFICATION:
+          final params = LspNotificationParams.fromNotification(notification);
+          events.add(params.lspNotification);
+        default:
+          throw StateError(notification.event);
+      }
+    };
+  }
+
+  List<Object> take() {
+    final result = events;
+    events = [];
+    return result;
+  }
+}
+
+class EventsPrinter {
+  final EventsPrinterConfiguration configuration;
+  final ResourceProvider resourceProvider;
+  final TreeStringSink sink;
+
+  EventsPrinter({
+    required this.configuration,
+    required this.resourceProvider,
+    required this.sink,
+  });
+
+  void write(List<Object> events) {
+    for (final event in events) {
+      switch (event) {
+        case AnalysisErrorsParams():
+          sink.writelnWithIndent('AnalysisErrors');
+          sink.withIndent(() {
+            _writelnFile(name: 'file', event.file);
+            if (event.errors.isNotEmpty) {
+              sink.writelnWithIndent('errors: notEmpty');
+            } else {
+              sink.writelnWithIndent('errors: empty');
+            }
+          });
+        case AnalysisFlushResultsParams():
+          sink.writeElements(
+            'AnalysisFlushResults',
+            event.files.sorted(),
+            _writelnFile,
+          );
+        case NotificationMessage():
+          switch (event.method) {
+            case CustomMethods.dartTextDocumentContentDidChange:
+              sink.writelnWithIndent(event.method);
+              var params =
+                  event.params as DartTextDocumentContentDidChangeParams;
+              sink.withIndent(() {
+                sink.writeIndentedLine(() {
+                  sink.write('uri: ');
+                  sink.write(params.uri);
+                });
+              });
+          }
+        default:
+          throw UnimplementedError('${event.runtimeType}');
+      }
+    }
+  }
+
+  void _writelnFile(String path, {String? name}) {
+    sink.writeIndentedLine(() {
+      if (name != null) {
+        sink.write('$name: ');
+      }
+      final file = resourceProvider.getFile(path);
+      sink.write(file.posixPath);
+    });
+  }
+}
+
+class EventsPrinterConfiguration {}
 
 abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
     with
@@ -59,6 +158,31 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
         convertPath(filePath): AddContentOverlay(content),
       }).toRequest('${_nextLspRequestId++}'),
     );
+  }
+
+  Future<void> assertEventsText(
+    EventsCollector collector,
+    String expected,
+  ) async {
+    await pumpEventQueue(times: 5000);
+
+    final buffer = StringBuffer();
+    final sink = TreeStringSink(sink: buffer, indent: '');
+
+    final events = collector.take();
+    EventsPrinter(
+      configuration: EventsPrinterConfiguration(),
+      resourceProvider: resourceProvider,
+      sink: sink,
+    ).write(events);
+
+    final actual = buffer.toString();
+    if (actual != expected) {
+      print('-------- Actual --------');
+      print('$actual------------------------');
+      TextExpectationsCollector.add(actual);
+    }
+    expect(actual, expected);
   }
 
   /// Creates a legacy request with an auto-assigned ID.
