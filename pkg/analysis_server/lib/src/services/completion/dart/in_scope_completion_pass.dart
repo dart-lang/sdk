@@ -940,10 +940,6 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   void visitExportDirective(ExportDirective node) {
     if (offset == node.offset) {
       _forCompilationUnitMemberBefore(node);
-    } else if (offset <= node.uri.offset) {
-      return;
-    } else if (offset <= node.uri.end) {
-      // TODO(brianwilkerson): Complete the URI.
     }
   }
 
@@ -1527,9 +1523,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       _forCompilationUnitMemberBefore(node);
     } else if (offset <= node.uri.offset) {
       return;
-    } else if (offset <= node.uri.end) {
-      // TODO(brianwilkerson): Complete the URI.
-    } else {
+    } else if (offset >= node.uri.end) {
       keywordHelper.addImportDirectiveKeywords(node);
     }
   }
@@ -2320,9 +2314,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     if (suggestUris) {
       switch (node.parent) {
         case Configuration():
-        case NamespaceDirective():
-        case PartDirective():
         case PartOfDirective():
+        case UriBasedDirective():
           UriHelper(state.request, collector).addSuggestions(node);
           return;
       }
