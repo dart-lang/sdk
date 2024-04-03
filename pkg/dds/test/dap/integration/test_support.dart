@@ -17,8 +17,8 @@ import 'test_server.dart';
 
 /// A [RegExp] that matches the "Connecting to VM Service" banner that is sent
 /// by the DAP adapter as the first output event for a debug session.
-final dapVmServiceBannerPattern =
-    RegExp(r'Connecting to VM Service at ([^\s]+)\s');
+final dapVmServiceBannerPattern = RegExp(
+    r'Connecting to VM Service at ([^\s]+)\s|Connected to the VM Service');
 
 /// Whether to run the DAP server in-process with the tests, or externally in
 /// another process.

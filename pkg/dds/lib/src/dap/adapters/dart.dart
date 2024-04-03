@@ -646,6 +646,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     sendConsoleOutput('Connecting to VM Service at $uri');
     final vmService = await _vmServiceConnectUri(uri.toString());
     logger?.call('Connected to debugger at $uri!');
+    sendConsoleOutput('Connected to the VM Service.');
 
     // Fetch DDS capabilities.
     final supportedProtocols = await vmService.getSupportedProtocols();
