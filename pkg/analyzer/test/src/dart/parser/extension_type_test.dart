@@ -15,6 +15,32 @@ main() {
 
 @reflectiveTest
 class ExtensionTypeDeclarationParserTest extends ParserDiagnosticsTest {
+  test_augment() {
+    final parseResult = parseStringWithErrors(r'''
+library augment 'a.dart';
+
+augment extension type A(int it) {}
+''');
+    parseResult.assertNoErrors();
+
+    final node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  augmentKeyword: augment
+  extensionKeyword: extension
+  typeKeyword: type
+  name: A
+  representation: RepresentationDeclaration
+    leftParenthesis: (
+    fieldType: NamedType
+      name: int
+    fieldName: it
+    rightParenthesis: )
+  leftBracket: {
+  rightBracket: }
+''');
+  }
+
   test_error_fieldModifier_const() {
     final parseResult = parseStringWithErrors(r'''
 extension type A(const int it) {}

@@ -141,6 +141,9 @@ abstract class DartEditBuilder implements EditBuilder {
   /// be imported from any of the given [uris].
   void writeImportedName(List<Uri> uris, String name);
 
+  /// Writes an indent, two spaces for every [level].
+  void writeIndent([int level = 1]);
+
   /// Write the code for a declaration of a local variable with the given
   /// [name]. If an [initializerWriter] is provided, it will be invoked to write
   /// the content of the initializer. (The equal sign separating the variable
@@ -318,6 +321,25 @@ abstract class DartFileEditBuilder implements FileEditBuilder {
   /// A list of new URIs that must be imported for the types being referenced in
   /// edits.
   List<Uri> get requiredImports;
+
+  /// Adds an insertion for a field.
+  ///
+  /// The field is inserted after the last existing field, or at the beginning
+  /// of [compilationUnitMember], if it has no existing fields.
+  void addFieldInsertion(
+    CompilationUnitMember compilationUnitMember,
+    void Function(DartEditBuilder builder) buildEdit,
+  );
+
+  /// Adds an insertion for a getter.
+  ///
+  /// The getter is inserted after the last existing field, constructor, or
+  /// getter, or at the beginning of [compilationUnitMember], if it has none of
+  /// these.
+  void addGetterInsertion(
+    CompilationUnitMember compilationUnitMember,
+    void Function(DartEditBuilder builder) buildEdit,
+  );
 
   @override
   void addInsertion(

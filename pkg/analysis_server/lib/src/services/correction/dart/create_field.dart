@@ -78,28 +78,16 @@ class CreateField extends CreateFieldOrGetter {
     if (!(targetNode is ClassDeclaration || targetNode is MixinDeclaration)) {
       return;
     }
-    // prepare location
-    var targetUnit = targetDeclarationResult.resolvedUnit;
-    if (targetUnit == null) {
-      return;
-    }
-    var targetLocation =
-        CorrectionUtils(targetUnit).prepareNewFieldLocation(targetNode);
-    if (targetLocation == null) {
-      return;
-    }
-    // build field source
+    // Build field source.
     var targetSource = targetElement.source;
     var targetFile = targetSource.fullName;
     await builder.addDartFileEdit(targetFile, (builder) {
-      builder.addInsertion(targetLocation.offset, (builder) {
-        builder.write(targetLocation.prefix);
+      builder.addFieldInsertion(targetNode, (builder) {
         builder.writeFieldDeclaration(_fieldName,
             isStatic: staticModifier,
             nameGroupName: 'NAME',
             type: fieldType,
             typeGroupName: 'TYPE');
-        builder.write(targetLocation.suffix);
       });
     });
   }
@@ -113,21 +101,12 @@ class CreateField extends CreateFieldOrGetter {
 
     _fieldName = parameter.name.lexeme;
 
-    var targetLocation = utils.prepareNewFieldLocation(targetClassNode);
-    if (targetLocation == null) {
-      return;
-    }
-
-    //
     // Add proposal.
-    //
     await builder.addDartFileEdit(file, (builder) {
       var fieldType = parameter.type?.type;
-      builder.addInsertion(targetLocation.offset, (builder) {
-        builder.write(targetLocation.prefix);
+      builder.addFieldInsertion(targetClassNode, (builder) {
         builder.writeFieldDeclaration(_fieldName,
             nameGroupName: 'NAME', type: fieldType, typeGroupName: 'TYPE');
-        builder.write(targetLocation.suffix);
       });
     });
   }

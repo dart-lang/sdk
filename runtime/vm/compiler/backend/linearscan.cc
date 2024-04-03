@@ -3258,11 +3258,21 @@ void FlowGraphAllocator::RemoveFrameIfNotNeeded() {
 #if defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_ARM)
   bool has_write_barrier_call = false;
 #endif
+  intptr_t num_calls_on_shared_slow_path = 0;
   for (auto block : block_order_) {
     for (auto instruction : block->instructions()) {
       if (instruction->HasLocs() && instruction->locs()->can_call()) {
-        // Function contains a call and thus needs a frame.
-        return;
+        if (!instruction->locs()->call_on_shared_slow_path()) {
+          // Function contains a call and thus needs a frame.
+          return;
+        }
+        // For calls on shared slow paths the frame can be created on
+        // a slow path around the call. Only allow one call on a shared
+        // slow path to avoid extra code size.
+        ++num_calls_on_shared_slow_path;
+        if (num_calls_on_shared_slow_path > 1) {
+          return;
+        }
       }
 
       // Some instructions contain write barriers inside, which can call

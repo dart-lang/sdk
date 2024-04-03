@@ -26,23 +26,30 @@ main(List<String> args) {
       // Unsound platform dill files are no longer packaged in the SDK and must
       // be read from the build directory during tests.
       '--platform-binaries=$buildRoot',
+      '${Flags.closedWorldUri}=$closedWorldUri',
+      '${Flags.globalInferenceUri}=$globalInferenceUri',
     ];
     await internalMain([
           'pkg/compiler/test/codesize/swarm/swarm.dart',
-          Flags.cfeOnly,
+          '${Flags.stage}=cfe',
           '--out=${dillUri}',
         ] +
         commonArgs);
     await internalMain([
           'pkg/compiler/test/codesize/swarm/swarm.dart',
           '${Flags.inputDill}=$dillUri',
-          '${Flags.writeClosedWorld}=$closedWorldUri',
+          '${Flags.stage}=closed-world',
         ] +
         commonArgs);
     await internalMain([
           '$dillUri',
-          '${Flags.readClosedWorld}=$closedWorldUri',
-          '${Flags.writeData}=$globalInferenceUri',
+          '${Flags.stage}=global-inference',
+          '--out=${outUri}',
+        ] +
+        commonArgs);
+    await internalMain([
+          '$dillUri',
+          '${Flags.stage}=codegen-emit-js',
           '--out=${outUri}',
         ] +
         commonArgs);

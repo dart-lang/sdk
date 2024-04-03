@@ -267,15 +267,16 @@ class Listener implements UnescapeErrorListener {
   /// - type variables
   ///
   /// At this point we have parsed the name and type parameter declarations.
-  void beginExtensionTypeDeclaration(Token extensionKeyword, Token name) {}
+  void beginExtensionTypeDeclaration(
+      Token? augmentKeyword, Token extensionKeyword, Token name) {}
 
   /// Handle the end of an extension methods declaration.  Substructures:
   /// - substructures from [beginExtensionTypeDeclaration]
   /// - primary constructor formals
   /// - implements clause
   /// - body
-  void endExtensionTypeDeclaration(Token beginToken, Token extensionKeyword,
-      Token typeKeyword, Token endToken) {
+  void endExtensionTypeDeclaration(Token beginToken, Token? augmentToken,
+      Token extensionKeyword, Token typeKeyword, Token endToken) {
     logEvent('ExtensionTypeDeclaration');
   }
 

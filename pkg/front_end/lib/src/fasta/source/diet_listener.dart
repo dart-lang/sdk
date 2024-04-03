@@ -1019,7 +1019,8 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
-  void beginExtensionTypeDeclaration(Token extensionKeyword, Token nameToken) {
+  void beginExtensionTypeDeclaration(
+      Token? augmentToken, Token extensionKeyword, Token nameToken) {
     debugEvent("beginExtensionTypeDeclaration");
     push(new SimpleIdentifier(nameToken));
     push(extensionKeyword);
@@ -1081,8 +1082,8 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
-  void endExtensionTypeDeclaration(Token beginToken, Token extensionKeyword,
-      Token typeKeyword, Token endToken) {
+  void endExtensionTypeDeclaration(Token beginToken, Token? augmentToken,
+      Token extensionKeyword, Token typeKeyword, Token endToken) {
     debugEvent("endExtensionTypeDeclaration");
     checkEmpty(extensionKeyword.charOffset);
   }

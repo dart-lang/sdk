@@ -221,6 +221,14 @@ class MoveFieldInitializers {
         if (!isFirst) {
           initExpr = CloneVisitorNotMembers().clone(initExpr);
         }
+        if (c.fileUri != f.fileUri) {
+          if (initExpr is ConstantExpression) {
+            initExpr = FileUriConstantExpression(initExpr.constant,
+                type: initExpr.type, fileUri: f.fileUri);
+          } else {
+            initExpr = FileUriExpression(initExpr, f.fileUri);
+          }
+        }
         final Initializer newInit = initializedFields.contains(f)
             ? LocalInitializer(VariableDeclaration(null,
                 initializer: initExpr, isSynthesized: true))

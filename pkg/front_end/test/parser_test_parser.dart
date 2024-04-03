@@ -890,15 +890,16 @@ class TestParser extends Parser {
 
   @override
   Token parseExtensionTypeDeclaration(Token beginToken, Token token,
-      Token extensionKeyword, Token typeKeyword) {
+      Token? augmentToken, Token extensionKeyword, Token typeKeyword) {
     doPrint('parseExtensionTypeDeclaration('
         '$beginToken, '
         '$token, '
+        '$augmentToken, '
         '$extensionKeyword, '
         '$typeKeyword)');
     indent++;
     var result = super.parseExtensionTypeDeclaration(
-        beginToken, token, extensionKeyword, typeKeyword);
+        beginToken, token, augmentToken, extensionKeyword, typeKeyword);
     indent--;
     return result;
   }

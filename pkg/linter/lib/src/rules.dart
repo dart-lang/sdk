@@ -186,6 +186,7 @@ import 'rules/type_annotate_public_apis.dart';
 import 'rules/type_init_formals.dart';
 import 'rules/type_literal_in_constant_pattern.dart';
 import 'rules/unawaited_futures.dart';
+import 'rules/unintended_html_in_doc_comment.dart';
 import 'rules/unnecessary_await_in_return.dart';
 import 'rules/unnecessary_brace_in_string_interps.dart';
 import 'rules/unnecessary_breaks.dart';
@@ -422,6 +423,7 @@ void registerLintRules() {
     ..register(TypeInitFormals())
     ..register(TypeLiteralInConstantPattern())
     ..register(UnawaitedFutures())
+    ..register(UnintendedHtmlInDocComment())
     ..register(UnnecessaryAwaitInReturn())
     ..register(UnnecessaryBraceInStringInterps())
     ..register(UnnecessaryBreaks())

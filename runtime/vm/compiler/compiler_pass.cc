@@ -320,6 +320,7 @@ FlowGraph* CompilerPass::RunForceOptimizedPipeline(
   INVOKE_PASS(SelectRepresentations_Final);
   INVOKE_PASS(CSE);
   INVOKE_PASS(TypePropagation);
+  INVOKE_PASS(RangeAnalysis);
   INVOKE_PASS(TryCatchOptimization);
   INVOKE_PASS(EliminateEnvironments);
   INVOKE_PASS(EliminateDeadPhis);
@@ -328,6 +329,7 @@ FlowGraph* CompilerPass::RunForceOptimizedPipeline(
   INVOKE_PASS(DCE);
   INVOKE_PASS(Canonicalize);
   INVOKE_PASS_AOT(DelayAllocations);
+  INVOKE_PASS(EliminateStackOverflowChecks);
   INVOKE_PASS(EliminateWriteBarriers);
   // This must be done after all other possible intra-block code motion.
   INVOKE_PASS(LoweringAfterCodeMotionDisabled);

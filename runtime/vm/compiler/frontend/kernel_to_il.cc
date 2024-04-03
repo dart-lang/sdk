@@ -868,6 +868,39 @@ Fragment FlowGraphBuilder::NativeFunctionBody(const Function& function,
   return body;
 }
 
+static bool CanUnboxElements(classid_t cid) {
+  switch (RepresentationUtils::RepresentationOfArrayElement(cid)) {
+    case kUnboxedFloat:
+    case kUnboxedDouble:
+      return FlowGraphCompiler::SupportsUnboxedDoubles();
+    case kUnboxedInt32x4:
+    case kUnboxedFloat32x4:
+    case kUnboxedFloat64x2:
+      return FlowGraphCompiler::SupportsUnboxedSimd128();
+    default:
+      return true;
+  }
+}
+
+const Function& TypedListGetNativeFunction(Thread* thread, classid_t cid) {
+  auto& state = thread->compiler_state();
+  switch (RepresentationUtils::RepresentationOfArrayElement(cid)) {
+    case kUnboxedFloat:
+      return state.TypedListGetFloat32();
+    case kUnboxedDouble:
+      return state.TypedListGetFloat64();
+    case kUnboxedInt32x4:
+      return state.TypedListGetInt32x4();
+    case kUnboxedFloat32x4:
+      return state.TypedListGetFloat32x4();
+    case kUnboxedFloat64x2:
+      return state.TypedListGetFloat64x2();
+    default:
+      UNREACHABLE();
+      return Object::null_function();
+  }
+}
+
 #define LOAD_NATIVE_FIELD(V)                                                   \
   V(ByteDataViewLength, TypedDataBase_length)                                  \
   V(ByteDataViewOffsetInBytes, TypedDataView_offset_in_bytes)                  \
@@ -928,6 +961,36 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
   const MethodRecognizer::Kind kind = function.recognized_kind();
 
   switch (kind) {
+    case MethodRecognizer::kObjectArrayGetIndexed:
+    case MethodRecognizer::kGrowableArrayGetIndexed:
+    case MethodRecognizer::kInt8ArrayGetIndexed:
+    case MethodRecognizer::kExternalInt8ArrayGetIndexed:
+    case MethodRecognizer::kUint8ArrayGetIndexed:
+    case MethodRecognizer::kExternalUint8ArrayGetIndexed:
+    case MethodRecognizer::kUint8ClampedArrayGetIndexed:
+    case MethodRecognizer::kExternalUint8ClampedArrayGetIndexed:
+    case MethodRecognizer::kInt16ArrayGetIndexed:
+    case MethodRecognizer::kExternalInt16ArrayGetIndexed:
+    case MethodRecognizer::kUint16ArrayGetIndexed:
+    case MethodRecognizer::kExternalUint16ArrayGetIndexed:
+    case MethodRecognizer::kInt32ArrayGetIndexed:
+    case MethodRecognizer::kExternalInt32ArrayGetIndexed:
+    case MethodRecognizer::kUint32ArrayGetIndexed:
+    case MethodRecognizer::kExternalUint32ArrayGetIndexed:
+    case MethodRecognizer::kInt64ArrayGetIndexed:
+    case MethodRecognizer::kExternalInt64ArrayGetIndexed:
+    case MethodRecognizer::kUint64ArrayGetIndexed:
+    case MethodRecognizer::kExternalUint64ArrayGetIndexed:
+    case MethodRecognizer::kFloat32ArrayGetIndexed:
+    case MethodRecognizer::kExternalFloat32ArrayGetIndexed:
+    case MethodRecognizer::kFloat64ArrayGetIndexed:
+    case MethodRecognizer::kExternalFloat64ArrayGetIndexed:
+    case MethodRecognizer::kFloat32x4ArrayGetIndexed:
+    case MethodRecognizer::kExternalFloat32x4ArrayGetIndexed:
+    case MethodRecognizer::kFloat64x2ArrayGetIndexed:
+    case MethodRecognizer::kExternalFloat64x2ArrayGetIndexed:
+    case MethodRecognizer::kInt32x4ArrayGetIndexed:
+    case MethodRecognizer::kExternalInt32x4ArrayGetIndexed:
     case MethodRecognizer::kRecord_fieldAt:
     case MethodRecognizer::kRecord_fieldNames:
     case MethodRecognizer::kRecord_numFields:
@@ -1143,8 +1206,88 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
   Fragment body(instruction_cursor);
   body += CheckStackOverflowInPrologue(function.token_pos());
 
+  if (function.IsDynamicInvocationForwarder()) {
+    body += BuildDefaultTypeHandling(function);
+    BuildTypeArgumentTypeChecks(
+        TypeChecksToBuild::kCheckNonCovariantTypeParameterBounds, &body);
+    BuildArgumentTypeChecks(&body, &body, nullptr);
+  }
+
   const MethodRecognizer::Kind kind = function.recognized_kind();
   switch (kind) {
+    case MethodRecognizer::kObjectArrayGetIndexed:
+    case MethodRecognizer::kGrowableArrayGetIndexed:
+    case MethodRecognizer::kInt8ArrayGetIndexed:
+    case MethodRecognizer::kExternalInt8ArrayGetIndexed:
+    case MethodRecognizer::kUint8ArrayGetIndexed:
+    case MethodRecognizer::kExternalUint8ArrayGetIndexed:
+    case MethodRecognizer::kUint8ClampedArrayGetIndexed:
+    case MethodRecognizer::kExternalUint8ClampedArrayGetIndexed:
+    case MethodRecognizer::kInt16ArrayGetIndexed:
+    case MethodRecognizer::kExternalInt16ArrayGetIndexed:
+    case MethodRecognizer::kUint16ArrayGetIndexed:
+    case MethodRecognizer::kExternalUint16ArrayGetIndexed:
+    case MethodRecognizer::kInt32ArrayGetIndexed:
+    case MethodRecognizer::kExternalInt32ArrayGetIndexed:
+    case MethodRecognizer::kUint32ArrayGetIndexed:
+    case MethodRecognizer::kExternalUint32ArrayGetIndexed:
+    case MethodRecognizer::kInt64ArrayGetIndexed:
+    case MethodRecognizer::kExternalInt64ArrayGetIndexed:
+    case MethodRecognizer::kUint64ArrayGetIndexed:
+    case MethodRecognizer::kExternalUint64ArrayGetIndexed:
+    case MethodRecognizer::kFloat32ArrayGetIndexed:
+    case MethodRecognizer::kExternalFloat32ArrayGetIndexed:
+    case MethodRecognizer::kFloat64ArrayGetIndexed:
+    case MethodRecognizer::kExternalFloat64ArrayGetIndexed:
+    case MethodRecognizer::kFloat32x4ArrayGetIndexed:
+    case MethodRecognizer::kExternalFloat32x4ArrayGetIndexed:
+    case MethodRecognizer::kFloat64x2ArrayGetIndexed:
+    case MethodRecognizer::kExternalFloat64x2ArrayGetIndexed:
+    case MethodRecognizer::kInt32x4ArrayGetIndexed:
+    case MethodRecognizer::kExternalInt32x4ArrayGetIndexed: {
+      ASSERT_EQUAL(function.NumParameters(), 2);
+      intptr_t array_cid = MethodRecognizer::MethodKindToReceiverCid(kind);
+      const Representation elem_rep =
+          RepresentationUtils::RepresentationOfArrayElement(array_cid);
+      body += LoadLocal(parsed_function_->RawParameterVariable(0));
+      body += LoadNativeField(Slot::GetLengthFieldForArrayCid(array_cid));
+      body += LoadLocal(parsed_function_->RawParameterVariable(1));
+      body += GenericCheckBound();
+      LocalVariable* safe_index = MakeTemporary();
+      body += LoadLocal(parsed_function_->RawParameterVariable(0));
+      if (IsTypedDataBaseClassId(array_cid) && !CanUnboxElements(array_cid)) {
+        const auto& native_function =
+            TypedListGetNativeFunction(thread_, array_cid);
+        body += LoadLocal(safe_index);
+        body += UnboxTruncate(kUnboxedIntPtr);
+        body += IntConstant(Utils::ShiftForPowerOfTwo(
+            RepresentationUtils::ValueSize(elem_rep)));
+        body += BinaryIntegerOp(Token::kSHL, kUnboxedIntPtr,
+                                /*is_truncating=*/true);
+        body += StaticCall(TokenPosition::kNoSource, native_function, 2,
+                           ICData::kNoRebind);
+      } else {
+        if (kind == MethodRecognizer::kGrowableArrayGetIndexed) {
+          body += LoadNativeField(Slot::GrowableObjectArray_data());
+          array_cid = kArrayCid;
+        } else if (IsExternalTypedDataClassId(array_cid)) {
+          body += LoadNativeField(Slot::PointerBase_data(),
+                                  InnerPointerAccess::kCannotBeInnerPointer);
+        }
+        body += LoadLocal(safe_index);
+        body +=
+            LoadIndexed(array_cid,
+                        /*index_scale=*/
+                        compiler::target::Instance::ElementSizeFor(array_cid),
+                        /*index_unboxed=*/
+                        GenericCheckBoundInstr::UseUnboxedRepresentation());
+        if (elem_rep == kUnboxedFloat) {
+          body += FloatToDouble();
+        }
+      }
+      body += DropTempsPreserveTop(1);  // Drop [safe_index], keep result.
+      break;
+    }
     case MethodRecognizer::kRecord_fieldAt:
       ASSERT_EQUAL(function.NumParameters(), 2);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
@@ -1957,40 +2100,6 @@ Fragment FlowGraphBuilder::BuildTypedDataViewFactoryConstructor(
   body += DropTemporary(&unboxed_offset_in_bytes);
 
   return body;
-}
-
-static bool CanUnboxElements(classid_t cid) {
-  switch (RepresentationUtils::RepresentationOfArrayElement(cid)) {
-    case kUnboxedFloat:
-    case kUnboxedDouble:
-      return FlowGraphCompiler::SupportsUnboxedDoubles();
-    case kUnboxedInt32x4:
-    case kUnboxedFloat32x4:
-    case kUnboxedFloat64x2:
-      return FlowGraphCompiler::SupportsUnboxedSimd128();
-    default:
-      return true;
-  }
-}
-
-static const Function& TypedListGetNativeFunction(Thread* thread,
-                                                  classid_t cid) {
-  auto& state = thread->compiler_state();
-  switch (RepresentationUtils::RepresentationOfArrayElement(cid)) {
-    case kUnboxedFloat:
-      return state.TypedListGetFloat32();
-    case kUnboxedDouble:
-      return state.TypedListGetFloat64();
-    case kUnboxedInt32x4:
-      return state.TypedListGetInt32x4();
-    case kUnboxedFloat32x4:
-      return state.TypedListGetFloat32x4();
-    case kUnboxedFloat64x2:
-      return state.TypedListGetFloat64x2();
-    default:
-      UNREACHABLE();
-      return Object::null_function();
-  }
 }
 
 Fragment FlowGraphBuilder::BuildTypedListGet(const Function& function,
@@ -4379,6 +4488,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfDynamicInvocationForwarder(
   }
   if (target.IsMethodExtractor()) {
     return BuildGraphOfMethodExtractor(target);
+  }
+  if (FlowGraphBuilder::IsRecognizedMethodForFlowGraph(function)) {
+    return BuildGraphOfRecognizedMethod(function);
   }
 
   graph_entry_ = new (Z) GraphEntryInstr(*parsed_function_, osr_id_);

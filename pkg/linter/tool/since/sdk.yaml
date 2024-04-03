@@ -180,6 +180,7 @@ type_annotate_public_apis: 2.0.0
 type_init_formals: 2.0.0
 type_literal_in_constant_pattern: 3.0.0
 unawaited_futures: 2.0.0
+unintended_html_in_doc_comment: 3.4.0-wip
 unnecessary_await_in_return: 2.1.1
 unnecessary_brace_in_string_interps: 2.0.0
 unnecessary_breaks: 3.0.0

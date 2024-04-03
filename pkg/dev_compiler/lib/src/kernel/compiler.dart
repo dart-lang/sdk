@@ -4868,7 +4868,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   js_ast.Expression visitDynamicGet(DynamicGet node) {
-    return _emitPropertyGet(node.receiver, null, node.name.text);
+    var jsReceiver = _visitExpression(node.receiver);
+    var jsMemberName = _emitMemberName(node.name.text);
+    return runtimeCall('dload$_replSuffix(#, #)', [jsReceiver, jsMemberName]);
   }
 
   @override
@@ -4895,6 +4897,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return _emitPropertyGet(
         node.receiver, node.interfaceTarget, node.name.text);
   }
+
+  /// Returns `true` when [member] is a `.call` member (field, getter or method)
+  /// of a non-static JavaScript interop class.
+  bool _isNonStaticJsInteropCallMember(Member member) =>
+      member.name.text == 'call' && isNonStaticJsInterop(member);
 
   @override
   js_ast.Expression visitDynamicSet(DynamicSet node) {
@@ -4957,42 +4964,37 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   // TODO(54463): Refactor and specialize this code for each type of 'get'.
   js_ast.Expression _emitPropertyGet(
-      Expression receiver, Member? member, String memberName) {
-    // TODO(jmesserly): should tearoff of `.call` on a function type be
-    // encoded as a different node, or possibly eliminated?
-    // (Regardless, we'll still need to handle the callable JS interop classes.)
-    if (memberName == 'call' &&
-        _isDirectCallable(receiver.getStaticType(_staticTypeContext))) {
-      // Tearoff of `call` on a function type is a no-op;
-      return _visitExpression(receiver);
+      Expression receiver, Member member, String memberName) {
+    var jsReceiver = _visitExpression(receiver);
+    if (_isNonStaticJsInteropCallMember(member)) {
+      // Historically DDC has treated this as a "callable class" and the
+      // tearoff of `.call` as a no-op. This is still needed here to preserve
+      // the existing behavior for the non-static JavaScript interop (including
+      // potentially failing cases).
+      return jsReceiver;
     }
     var jsName = _emitMemberName(memberName, member: member);
-    var jsReceiver = _visitExpression(receiver);
 
     // TODO(jmesserly): we need to mark an end span for property accessors so
     // they can be hovered. Unfortunately this is not possible as Kernel does
     // not store this data.
-    if (_isObjectMember(memberName)) {
-      if (_shouldCallObjectMemberHelper(receiver)) {
-        if (_isObjectMethodTearoff(memberName)) {
-          if (memberName == 'toString') {
-            return runtimeCall('toStringTearoff(#)', [jsReceiver]);
-          }
-          if (memberName == 'noSuchMethod') {
-            return runtimeCall('noSuchMethodTearoff(#)', [jsReceiver]);
-          }
-          assert(false, 'Unexpected Object method tearoff: $memberName');
+    if (_isObjectMember(memberName) &&
+        _shouldCallObjectMemberHelper(receiver)) {
+      if (_isObjectMethodTearoff(memberName)) {
+        if (memberName == 'toString') {
+          return runtimeCall('toStringTearoff(#)', [jsReceiver]);
         }
-        // The names of the static helper methods in the runtime must match the
-        // names of the Object instance members.
-        return runtimeCall('#(#)', [memberName, jsReceiver]);
+        if (memberName == 'noSuchMethod') {
+          return runtimeCall('noSuchMethodTearoff(#)', [jsReceiver]);
+        }
+        assert(false, 'Unexpected Object method tearoff: $memberName');
       }
-      // Otherwise generate this as a normal typed property get.
-    } else if (member == null) {
-      return runtimeCall('dload$_replSuffix(#, #)', [jsReceiver, jsName]);
+      // The names of the static helper methods in the runtime must match the
+      // names of the Object instance members.
+      return runtimeCall('#(#)', [memberName, jsReceiver]);
     }
-
-    if (member != null && _reifyTearoff(member)) {
+    // Otherwise generate this as a normal typed property get.
+    if (_reifyTearoff(member)) {
       return runtimeCall('bind(#, #)', [jsReceiver, jsName]);
     } else if (member is Procedure &&
         !member.isAccessor &&
@@ -7391,7 +7393,22 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   js_ast.Expression visitFunctionTearOff(FunctionTearOff node) {
-    return _emitPropertyGet(node.receiver, null, 'call');
+    var receiver = node.receiver;
+    var receiverType = receiver.getStaticType(_staticTypeContext);
+    var jsReceiver = _visitExpression(receiver);
+    if (receiverType is InterfaceType &&
+        receiverType.classNode == _coreTypes.functionClass) {
+      // Historically DDC has treated this case as a dynamic get and allowed it
+      // to evaluate at runtime.
+      //
+      // This is here to preserve the existing behavior for the non-static
+      // JavaScript interop (including some failing cases) but could potentially
+      // be cleaned up as a breaking change.
+      return runtimeCall(
+          'dload$_replSuffix(#, #)', [jsReceiver, js.string('call')]);
+    }
+    // Otherwise, tearoff of `call` on a function type is a no-op.
+    return jsReceiver;
   }
 
   /// Creates header comments with helpful compilation information.

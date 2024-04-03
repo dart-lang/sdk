@@ -2363,6 +2363,10 @@ LintCode.type_literal_in_constant_pattern:
   status: hasFix
 LintCode.unawaited_futures:
   status: hasFix
+LintCode.unintended_html_in_doc_comment:
+  status: needsFix
+  notes: |-
+    The fix is to encode the angle brackets.
 LintCode.unnecessary_await_in_return:
   status: needsFix
   notes: |-

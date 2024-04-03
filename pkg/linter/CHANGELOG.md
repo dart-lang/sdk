@@ -1,5 +1,6 @@
 # 3.4.0-wip
 
+- new lint: `unintended_html_in_doc_comment`
 - new lint: `unnecessary_library_name`
 - new lint: `missing_code_block_language_in_doc_comment`
 

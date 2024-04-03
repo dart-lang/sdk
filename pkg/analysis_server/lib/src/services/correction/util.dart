@@ -966,22 +966,6 @@ final class CorrectionUtils {
     return prepareNewClassMemberLocation(classDeclaration, shouldSkip);
   }
 
-  InsertionLocation? prepareNewFieldLocation(
-      CompilationUnitMember declaration) {
-    return prepareNewClassMemberLocation(
-        declaration, (member) => member is FieldDeclaration);
-  }
-
-  InsertionLocation? prepareNewGetterLocation(
-      CompilationUnitMember declaration) {
-    return prepareNewClassMemberLocation(
-        declaration,
-        (member) =>
-            member is FieldDeclaration ||
-            member is ConstructorDeclaration ||
-            member is MethodDeclaration && member.isGetter);
-  }
-
   InsertionLocation? prepareNewMethodLocation(
       CompilationUnitMember declaration) {
     return prepareNewClassMemberLocation(

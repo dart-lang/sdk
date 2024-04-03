@@ -90,7 +90,7 @@ main() {
       '--deferred-map=def/deferred.json',
       '--no-sound-null-safety',
       '--no-csp',
-      Flags.dumpInfo,
+      '--stage=dump-info-all',
     ], [
       'custom.js', 'custom.js.map',
       'custom.js_1.part.js', 'custom.js_1.part.js.map',

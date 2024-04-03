@@ -11,7 +11,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
-import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -310,6 +309,11 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       }
     }
     write(name);
+  }
+
+  @override
+  void writeIndent([int level = 1]) {
+    write(getIndent(level));
   }
 
   @override
@@ -1420,6 +1424,31 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   List<Uri> get requiredImports => librariesToImport.keys.toList();
 
   @override
+  void addFieldInsertion(
+    CompilationUnitMember compilationUnitMember,
+    void Function(DartEditBuilder builder) buildEdit,
+  ) =>
+      _addCompilationUnitMemberInsertion(
+        compilationUnitMember,
+        buildEdit,
+        lastMemberFilter: (member) => member is FieldDeclaration,
+      );
+
+  @override
+  void addGetterInsertion(
+    CompilationUnitMember compilationUnitMember,
+    void Function(DartEditBuilder builder) buildEdit,
+  ) =>
+      _addCompilationUnitMemberInsertion(
+        compilationUnitMember,
+        buildEdit,
+        lastMemberFilter: (member) =>
+            member is FieldDeclaration ||
+            member is ConstructorDeclaration ||
+            member is MethodDeclaration && member.isGetter,
+      );
+
+  @override
   void addInsertion(
           int offset, void Function(DartEditBuilder builder) buildEdit,
           {bool insertBeforeExisting = false}) =>
@@ -1642,6 +1671,39 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
         builder.write('void');
       }
     });
+  }
+
+  /// Adds an insertion into a [CompilationUnitMember].
+  ///
+  /// The new member is inserted at an offset determined by [lastMemberFilter].
+  ///
+  /// The offset is just after the last member of [compilationUnitMember] that
+  /// matches [lastMemberFilter]. If no existing member matches, then the offset
+  /// is at the beginning of [compilationUnitMember], just after it's opening
+  /// brace.
+  void _addCompilationUnitMemberInsertion(
+    CompilationUnitMember compilationUnitMember,
+    void Function(DartEditBuilder builder) buildEdit, {
+    required bool Function(ClassMember existingMember) lastMemberFilter,
+  }) {
+    var preparer = _InsertionPreparer(compilationUnitMember);
+    var offset = preparer.insertionLocation(
+      resolvedUnit.lineInfo,
+      lastMemberFilter: lastMemberFilter,
+    );
+    if (offset == null) {
+      return;
+    }
+
+    addInsertion(
+      offset,
+      insertBeforeExisting: false,
+      (builder) {
+        preparer.writePrefix(builder);
+        buildEdit(builder);
+        preparer.writeSuffix(builder);
+      },
+    );
   }
 
   /// Adds edits ensure that all the [imports] are imported into the library.
@@ -2226,6 +2288,78 @@ class _EnclosingElementFinder {
   }
 }
 
+/// A utility for preparing the location of an insertion within a container,
+/// like a class or mixin.
+class _InsertionPreparer {
+  final CompilationUnitMember _declaration;
+  late final ClassMember? _targetMember;
+
+  _InsertionPreparer(this._declaration);
+
+  /// Returns the offset of where a new member should be inserted, as a new
+  /// member of [_declaration].
+  ///
+  /// The offset is just after the last member of [_declaration] that matches
+  /// [lastMemberFilter]. If no existing member matches, then the offset is at
+  /// the beginning of [_declaration], just after it's opening brace.
+  int? insertionLocation(
+    LineInfo lineInfo, {
+    required bool Function(ClassMember existingMember) lastMemberFilter,
+  }) {
+    var members = _declaration.members;
+    if (members == null) {
+      assert(
+        false,
+        'Unexpected CompilationUnitMember: "$_declaration" is '
+        '"${_declaration.runtimeType}"',
+      );
+      return null;
+    }
+    var targetMember =
+        _targetMember = members.lastWhereOrNull(lastMemberFilter);
+    // After the last target member.
+    if (targetMember != null) {
+      return targetMember.end;
+    }
+    // At the beginning of the class.
+    // TODO(srawlins): The left bracket location can be synthetic. If so, we
+    // should perhaps write opening and closing brackets around the inserted
+    // text.
+    var leftBracket = _declaration.leftBracket;
+    if (leftBracket == null) {
+      return null;
+    }
+    return leftBracket.end;
+  }
+
+  /// Writes some prefix text before the new member, typically newlines and
+  /// indents, based on the surrounding members.
+  ///
+  /// This method can only be invoked after [insertionLocation], which first
+  /// determines the target member that the insertion follows.
+  void writePrefix(DartEditBuilder builder) {
+    if (_targetMember == null) {
+      builder.writeln();
+      builder.writeIndent();
+    } else {
+      builder.writeln();
+      builder.writeln();
+      builder.writeIndent();
+    }
+  }
+
+  /// Writes some suffix text after the new member, typically newlines, based
+  /// on the surrounding members.
+  ///
+  /// This method can only be invoked after [insertionLocation], which first
+  /// determines the target member that the insertion follows.
+  void writeSuffix(DartEditBuilder builder) {
+    if (_targetMember == null && (_declaration.members?.isNotEmpty ?? false)) {
+      builder.writeln();
+    }
+  }
+}
+
 /// Information about a library import.
 class _LibraryImport {
   final String uriText;
@@ -2295,5 +2429,33 @@ class _LibraryImport {
     return "import '$uriText'${prefix.isNotEmpty ? 'as $prefix' : ''}"
         '${allShownNames.isNotEmpty ? 'show ${allShownNames.join(', ')}' : ''}'
         '${allHiddenNames.isNotEmpty ? 'hide ${allHiddenNames.join(', ')}' : ''};';
+  }
+}
+
+extension on CompilationUnitMember {
+  /// The left bracket of a [CompilationUnitMember] with a known left bracket,
+  /// and `null` otherwise.
+  Token? get leftBracket {
+    var self = this;
+    return switch (self) {
+      ClassDeclaration() => self.leftBracket,
+      ExtensionDeclaration() => self.leftBracket,
+      ExtensionTypeDeclaration() => self.leftBracket,
+      MixinDeclaration() => self.leftBracket,
+      _ => null,
+    };
+  }
+
+  /// The members of a [CompilationUnitMember] with a known list of members, and
+  /// `null` otherwise.
+  List<ClassMember>? get members {
+    var self = this;
+    return switch (self) {
+      ClassDeclaration() => self.members,
+      ExtensionDeclaration() => self.members,
+      ExtensionTypeDeclaration() => self.members,
+      MixinDeclaration() => self.members,
+      _ => null,
+    };
   }
 }

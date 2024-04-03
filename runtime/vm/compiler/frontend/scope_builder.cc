@@ -361,6 +361,12 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
       const auto& target = Function::ZoneHandle(Z, function.ForwardingTarget());
       ASSERT(!target.IsNull());
 
+      if (FlowGraphBuilder::IsRecognizedMethodForFlowGraph(function) &&
+          FlowGraphBuilder::IsExpressionTempVarUsedInRecognizedMethodFlowGraph(
+              function)) {
+        needs_expr_temp_ = true;
+      }
+
       if (helper_.PeekTag() == kField) {
         // Create [this] variable.
         const Class& klass = Class::Handle(Z, function.Owner());

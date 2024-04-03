@@ -71,7 +71,8 @@ class DumpInfoJsAstRegistry {
   int _impactCount = 0;
 
   DumpInfoJsAstRegistry(this.options)
-      : _disabled = !options.dumpInfo && options.dumpInfoWriteUri == null;
+      : _disabled = !options.stage.emitsDumpInfo &&
+            !options.stage.shouldWriteDumpInfoData;
 
   bool get useBinaryFormat => options.useDumpInfoBinaryFormat;
 
@@ -96,8 +97,8 @@ class DumpInfoJsAstRegistry {
   void registerImpact(MemberEntity member, CodegenImpact impact,
       {required bool isGenerated}) {
     if (_disabled) return;
-    if (isGenerated || options.dumpInfo) {
-      if (options.dumpInfoWriteUri != null) {
+    if (isGenerated || options.stage.emitsDumpInfo) {
+      if (options.stage.shouldWriteDumpInfoData) {
         // Serialize immediately so that we don't have to hold a reference to
         // every impact until the end of the phase.
         _dataSinkWriter!.writeMember(member);
@@ -1471,10 +1472,6 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
 
   @override
   String get name => "Dump Info";
-
-  /// Whether or not this dump info task is running using serialized dump info
-  /// data from an earlier dart2js invocation.
-  bool get useSerializedData => options.dumpInfoReadUri != null;
 
   /// The size of the generated output.
   late DumpInfoProgramData _dumpInfoData;

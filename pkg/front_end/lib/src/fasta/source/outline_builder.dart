@@ -1555,7 +1555,8 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void beginExtensionTypeDeclaration(Token extensionKeyword, Token nameToken) {
+  void beginExtensionTypeDeclaration(
+      Token? augmentToken, Token extensionKeyword, Token nameToken) {
     assert(checkState(extensionKeyword,
         [ValueKinds.NominalVariableListOrNull, ValueKinds.MetadataListOrNull]));
     debugEvent("beginExtensionTypeDeclaration");
@@ -1575,8 +1576,8 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void endExtensionTypeDeclaration(Token beginToken, Token extensionKeyword,
-      Token typeKeyword, Token endToken) {
+  void endExtensionTypeDeclaration(Token beginToken, Token? augmentToken,
+      Token extensionKeyword, Token typeKeyword, Token endToken) {
     assert(checkState(extensionKeyword, [
       ValueKinds.TypeBuilderListOrNull,
       ValueKinds.NominalVariableListOrNull,

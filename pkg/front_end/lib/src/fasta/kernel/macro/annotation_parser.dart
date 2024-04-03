@@ -2358,7 +2358,8 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void beginExtensionTypeDeclaration(Token extensionKeyword, Token name) {
+  void beginExtensionTypeDeclaration(
+      Token? augmentToken, Token extensionKeyword, Token name) {
     _unsupported();
   }
 
@@ -2369,8 +2370,8 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void endExtensionTypeDeclaration(Token beginToken, Token extensionKeyword,
-      Token? typeKeyword, Token endToken) {
+  void endExtensionTypeDeclaration(Token beginToken, Token? augmentToken,
+      Token extensionKeyword, Token? typeKeyword, Token endToken) {
     _unsupported();
   }
 

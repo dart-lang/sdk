@@ -3068,7 +3068,7 @@ class Parser {
       // 'extension' 'type'
       Token typeKeyword = token.next!;
       return parseExtensionTypeDeclaration(
-          beginToken, token.next!, extensionKeyword, typeKeyword);
+          beginToken, token.next!, augmentToken, extensionKeyword, typeKeyword);
     } else {
       return parseExtensionDeclaration(
           beginToken, token, augmentToken, extensionKeyword);
@@ -3178,7 +3178,7 @@ class Parser {
   ///        ('.' <identifier>)? <formals> '{' <memberDeclaration>* '}'
   ///
   Token parseExtensionTypeDeclaration(Token beginToken, Token token,
-      Token extensionKeyword, Token typeKeyword) {
+      Token? augmentToken, Token extensionKeyword, Token typeKeyword) {
     assert(token.isIdentifier && token.lexeme == 'type');
     Token? constKeyword = null;
     if (optional('const', token.next!)) {
@@ -3199,7 +3199,8 @@ class Parser {
     token = name;
     token = computeTypeParamOrArg(token, /* inDeclaration = */ true)
         .parseVariables(token, this);
-    listener.beginExtensionTypeDeclaration(extensionKeyword, name);
+    listener.beginExtensionTypeDeclaration(
+        augmentToken, extensionKeyword, name);
     if (optional('(', token.next!) || optional('.', token.next!)) {
       Token beginPrimaryConstructor = token.next!;
       listener.beginPrimaryConstructor(beginPrimaryConstructor);
@@ -3234,7 +3235,7 @@ class Parser {
     token = parseClassOrMixinOrExtensionBody(
         token, DeclarationKind.ExtensionType, name.lexeme);
     listener.endExtensionTypeDeclaration(
-        beginToken, extensionKeyword, typeKeyword, token);
+        beginToken, augmentToken, extensionKeyword, typeKeyword, token);
     return token;
   }
 

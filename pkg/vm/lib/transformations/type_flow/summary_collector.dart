@@ -2635,6 +2635,11 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     _visit(node.operand);
     return _staticType(node);
   }
+
+  @override
+  TypeExpr visitFileUriExpression(FileUriExpression node) {
+    return _visit(node.expression);
+  }
 }
 
 class RuntimeTypeTranslatorImpl

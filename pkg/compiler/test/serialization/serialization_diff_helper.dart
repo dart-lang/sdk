@@ -41,45 +41,48 @@ Future<CompiledOutput> compileWithSerialization(
     return outputProvider.clear();
   }
 
-  await compile([...options, '--out=$cfeDillUri', Flags.cfeOnly]);
-  await compile([
-    ...options,
-    '${Flags.inputDill}=$cfeDillUri',
-    '${Flags.writeClosedWorld}=$closedWorldUri'
-  ]);
-  await compile([
-    ...options,
-    '${Flags.inputDill}=$cfeDillUri',
-    '${Flags.readClosedWorld}=$closedWorldUri',
-    '${Flags.writeData}=$globalDataUri'
-  ]);
-  await compile([
-    ...options,
-    '${Flags.inputDill}=$cfeDillUri',
-    '${Flags.readClosedWorld}=$closedWorldUri',
-    '${Flags.readData}=$globalDataUri',
-    '${Flags.writeCodegen}=$codegenUri',
+  final commonFlags = [
+    '${Flags.closedWorldUri}=$closedWorldUri',
+    '${Flags.globalInferenceUri}=$globalDataUri',
+    '${Flags.codegenUri}=$codegenUri',
     '${Flags.codegenShards}=2',
-    '${Flags.codegenShard}=0',
-  ]);
+  ];
+
+  await compile(
+      [...options, '--out=$cfeDillUri', '${Flags.stage}=cfe'] + commonFlags);
   await compile([
-    ...options,
-    '${Flags.inputDill}=$cfeDillUri',
-    '${Flags.readClosedWorld}=$closedWorldUri',
-    '${Flags.readData}=$globalDataUri',
-    '${Flags.writeCodegen}=$codegenUri',
-    '${Flags.codegenShards}=2',
-    '${Flags.codegenShard}=1',
-  ]);
+        ...options,
+        '${Flags.inputDill}=$cfeDillUri',
+        '${Flags.stage}=closed-world',
+      ] +
+      commonFlags);
+  await compile([
+        ...options,
+        '${Flags.inputDill}=$cfeDillUri',
+        '${Flags.stage}=global-inference'
+      ] +
+      commonFlags);
+  await compile([
+        ...options,
+        '${Flags.inputDill}=$cfeDillUri',
+        '${Flags.stage}=codegen',
+        '${Flags.codegenShard}=0',
+      ] +
+      commonFlags);
+  await compile([
+        ...options,
+        '${Flags.inputDill}=$cfeDillUri',
+        '${Flags.stage}=codegen',
+        '${Flags.codegenShard}=1',
+      ] +
+      commonFlags);
   final output = await compile([
-    ...options,
-    '${Flags.inputDill}=$cfeDillUri',
-    '${Flags.readClosedWorld}=$closedWorldUri',
-    '${Flags.readData}=$globalDataUri',
-    '${Flags.readCodegen}=$codegenUri',
-    '${Flags.codegenShards}=2',
-    '--out=$jsOutUri'
-  ]);
+        ...options,
+        '${Flags.inputDill}=$cfeDillUri',
+        '--out=$jsOutUri',
+        '${Flags.stage}=emit-js',
+      ] +
+      commonFlags);
   return output;
 }
 

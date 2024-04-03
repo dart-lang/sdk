@@ -3060,10 +3060,25 @@ void ThrowErrorSlowPathCode::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(entry_label());
   EmitCodeAtSlowPathEntry(compiler);
   LocationSummary* locs = instruction()->locs();
-  // Save registers as they are needed for lazy deopt / exception handling.
+  const bool has_frame = compiler->flow_graph().graph_entry()->NeedsFrame();
   if (use_shared_stub) {
+    if (!has_frame) {
+#if !defined(TARGET_ARCH_IA32)
+      ASSERT(__ constant_pool_allowed());
+      __ set_constant_pool_allowed(false);
+#endif
+      __ EnterDartFrame(0);
+    }
     EmitSharedStubCall(compiler, live_fpu_registers);
+#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
+    if (!has_frame) {
+      // Undo EnterDartFrame for the code generated after this slow path.
+      RESTORES_LR_FROM_FRAME({});
+    }
+#endif
   } else {
+    ASSERT(has_frame);
+    // Save registers as they are needed for lazy deopt / exception handling.
     compiler->SaveLiveRegisters(locs);
     PushArgumentsForRuntimeCall(compiler);
     __ CallRuntime(runtime_entry_, num_args);

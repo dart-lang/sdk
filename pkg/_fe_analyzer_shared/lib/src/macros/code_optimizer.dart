@@ -279,7 +279,8 @@ class _Listener extends Listener {
   }
 
   @override
-  void beginExtensionTypeDeclaration(Token extensionKeyword, Token name) {
+  void beginExtensionTypeDeclaration(
+      Token? augmentToken, Token extensionKeyword, Token name) {
     declaredNames.add(name.lexeme);
   }
 
