@@ -8,6 +8,7 @@ import 'augmentation_import_directive_test.dart'
     as augmentation_import_directive;
 import 'class_test.dart' as class_;
 import 'doc_comment_test.dart' as doc_comment;
+import 'enum_test.dart' as enum_;
 import 'extension_test.dart' as extension_;
 import 'extension_type_test.dart' as extension_type;
 import 'import_directive_test.dart' as import_directive;
@@ -23,6 +24,7 @@ main() {
     augmentation_import_directive.main();
     class_.main();
     doc_comment.main();
+    enum_.main();
     extension_.main();
     extension_type.main();
     import_directive.main();

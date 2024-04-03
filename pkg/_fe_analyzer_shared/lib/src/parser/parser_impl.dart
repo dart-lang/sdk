@@ -681,7 +681,7 @@ class Parser {
       if (sealedToken != null) {
         reportRecoverableError(sealedToken, codes.messageSealedEnum);
       }
-      return parseEnum(beginToken, keyword);
+      return parseEnum(beginToken, context.augmentToken, keyword);
     } else {
       // The remaining top level keywords are built-in keywords
       // and can be used in a top level declaration
@@ -2352,7 +2352,7 @@ class Parser {
   ///     metadata id argumentPart?
   ///   | metadata id typeArguments? '.' id arguments
   /// ```
-  Token parseEnum(Token beginToken, Token enumKeyword) {
+  Token parseEnum(Token beginToken, Token? augmentToken, Token enumKeyword) {
     assert(optional('enum', enumKeyword));
     listener.beginUncategorizedTopLevelDeclaration(enumKeyword);
     Token token =
@@ -2364,7 +2364,7 @@ class Parser {
     int elementCount = 0;
     int memberCount = 0;
     if (optional('{', leftBrace)) {
-      listener.handleEnumHeader(enumKeyword, leftBrace);
+      listener.handleEnumHeader(augmentToken, enumKeyword, leftBrace);
       token = leftBrace;
       while (true) {
         Token next = token.next!;
@@ -2418,7 +2418,7 @@ class Parser {
       }
     } else {
       leftBrace = ensureBlock(token, BlockKind.enumDeclaration);
-      listener.handleEnumHeader(enumKeyword, leftBrace);
+      listener.handleEnumHeader(augmentToken, enumKeyword, leftBrace);
       listener.handleEnumElements(token, elementCount);
       token = leftBrace.endGroup!;
     }

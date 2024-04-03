@@ -348,11 +348,17 @@ class RunCommand extends DartdevCommand {
       return errorExitCode;
     }
 
-    final residentCompilerInfoFile = residentCompilerInfoFileArg != null
-        ? File(maybeUriToFilename(residentCompilerInfoFileArg))
-        : defaultResidentServerInfoFile;
+    if (useResidentCompiler) {
+      final File? residentCompilerInfoFile =
+          getResidentCompilerInfoFileConsideringArgs(args);
+      if (residentCompilerInfoFile == null) {
+        log.stderr(
+          CompilationServerCommand
+              .inaccessibleDefaultResidentCompilerInfoFileMessage,
+        );
+        return errorExitCode;
+      }
 
-    if (useResidentCompiler && residentCompilerInfoFile != null) {
       try {
         // Ensure the parent directory exists.
         if (!residentCompilerInfoFile.parent.existsSync()) {

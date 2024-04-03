@@ -8,6 +8,7 @@ import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../tool/lsp_spec/matchers.dart';
 import '../../utils/lsp_protocol_extensions.dart';
 import '../../utils/test_code_extensions.dart';
 import '../server_abstract.dart';
@@ -94,9 +95,9 @@ abstract class AbstractAugmentationCodeLensTest
     );
   }
 
-  /// Expects no CodeLens in [sourceUri] with the title [codeLensTitle].
-  Future<void> expectNoCodeLenses() async {
-    var documentCodeLenses = (await getCodeLens(sourceUri)) ?? [];
+  /// Expects no CodeLens in [uri]/[sourceUri] with the title [codeLensTitle].
+  Future<void> expectNoCodeLenses([Uri? uri]) async {
+    var documentCodeLenses = (await getCodeLens(uri ?? sourceUri)) ?? [];
     var matchingCodeLenses = documentCodeLenses
         .where((codeLens) => codeLens.command?.title == codeLensTitle);
     expect(matchingCodeLenses, isEmpty);
@@ -231,6 +232,16 @@ augment void [!f!]() {}
 
     await initialize();
     await expectNavigationCodeLens();
+  }
+
+  test_error_nonExistentFile() async {
+    await initialize();
+
+    await expectLater(
+      expectNoCodeLenses(nonExistentFileUri),
+      throwsA(isResponseError(ServerErrorCodes.InvalidFilePath,
+          message: 'File does not exist')),
+    );
   }
 
   test_unavailable_disabledEntirely() async {

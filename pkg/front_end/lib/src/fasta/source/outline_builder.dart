@@ -2957,7 +2957,8 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void handleEnumHeader(Token enumKeyword, Token leftBrace) {
+  void handleEnumHeader(
+      Token? augmentToken, Token enumKeyword, Token leftBrace) {
     assert(checkState(enumKeyword, [
       /* interfaces */ ValueKinds.TypeBuilderListOrNull,
       /* mixins */ unionOfKinds([

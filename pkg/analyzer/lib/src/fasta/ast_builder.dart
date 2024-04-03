@@ -4089,7 +4089,8 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void handleEnumHeader(Token enumKeyword, Token leftBrace) {
+  void handleEnumHeader(
+      Token? augmentToken, Token enumKeyword, Token leftBrace) {
     assert(optional('enum', enumKeyword));
     assert(optional('{', leftBrace));
     debugEvent("EnumHeader");
@@ -4120,6 +4121,7 @@ class AstBuilder extends StackListener {
     _classLikeBuilder = _EnumDeclarationBuilder(
       comment: comment,
       metadata: metadata,
+      augmentKeyword: augmentToken,
       enumKeyword: enumKeyword,
       name: name.token,
       typeParameters: typeParameters,
@@ -6070,6 +6072,7 @@ class _ConstructorNameWithInvalidTypeArgs {
 }
 
 class _EnumDeclarationBuilder extends _ClassLikeDeclarationBuilder {
+  final Token? augmentKeyword;
   final Token enumKeyword;
   final Token name;
   final WithClauseImpl? withClause;
@@ -6083,6 +6086,7 @@ class _EnumDeclarationBuilder extends _ClassLikeDeclarationBuilder {
     required super.typeParameters,
     required super.leftBracket,
     required super.rightBracket,
+    required this.augmentKeyword,
     required this.enumKeyword,
     required this.name,
     required this.withClause,
@@ -6094,6 +6098,7 @@ class _EnumDeclarationBuilder extends _ClassLikeDeclarationBuilder {
     return EnumDeclarationImpl(
       comment: comment,
       metadata: metadata,
+      augmentKeyword: augmentKeyword,
       enumKeyword: enumKeyword,
       name: name,
       typeParameters: typeParameters,

@@ -1145,7 +1145,8 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
-  void handleEnumHeader(Token enumKeyword, Token leftBrace) {
+  void handleEnumHeader(
+      Token? augmentToken, Token enumKeyword, Token leftBrace) {
     debugEvent("EnumHeader");
   }
 

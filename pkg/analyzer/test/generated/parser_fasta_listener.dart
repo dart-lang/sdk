@@ -1411,9 +1411,10 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void handleEnumHeader(Token enumKeyword, Token leftBrace) {
+  void handleEnumHeader(
+      Token? augmentToken, Token enumKeyword, Token leftBrace) {
     expectIn('Enum');
-    super.handleEnumHeader(enumKeyword, leftBrace);
+    super.handleEnumHeader(augmentToken, enumKeyword, leftBrace);
   }
 
   @override

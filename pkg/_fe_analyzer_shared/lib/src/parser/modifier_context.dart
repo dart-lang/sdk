@@ -141,8 +141,6 @@ class ModifierContext {
     reportTopLevelModifierError(constToken, keyword);
     reportTopLevelModifierError(externalToken, keyword);
     reportExtraneousModifier(abstractToken);
-    // TODO(johnniwinther): Should we support 'augment' on enums.
-    reportExtraneousModifier(augmentToken);
     reportExtraneousModifier(covariantToken);
     reportExtraneousModifier(lateToken);
     reportExtraneousModifier(requiredToken);

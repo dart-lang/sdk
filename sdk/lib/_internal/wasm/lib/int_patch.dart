@@ -3,9 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:_internal" show has63BitSmis, patch, unsafeCast;
-import "dart:_string" show StringBase;
-import "dart:_js_types" show JSStringImpl;
-
 import "dart:typed_data" show Int64List;
 
 @patch

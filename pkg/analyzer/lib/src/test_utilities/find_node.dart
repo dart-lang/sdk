@@ -56,6 +56,8 @@ class FindNode {
   ConstructorFieldInitializer get singleConstructorFieldInitializer =>
       _single();
 
+  EnumDeclaration get singleEnumDeclaration => _single();
+
   ExportDirective get singleExportDirective => _single();
 
   ExtendsClause get singleExtendsClause => _single();

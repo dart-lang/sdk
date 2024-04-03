@@ -4078,8 +4078,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var assertLocation = node.location;
     if (assertLocation != null) {
       var fileUri = assertLocation.file;
-      var encodedSource = node.enclosingComponent!.uriToSource[fileUri]!.source;
-      var source = utf8.decode(encodedSource, allowMalformed: true);
+      var source = node.enclosingComponent!.uriToSource[fileUri]!.text;
       conditionSource =
           source.substring(node.conditionStartOffset, node.conditionEndOffset);
       // Assertions that appear in debugger expressions have a synthetic Uri

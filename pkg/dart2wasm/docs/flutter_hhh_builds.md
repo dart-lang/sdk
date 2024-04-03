@@ -4,7 +4,7 @@
 
 Flutter apps are built with the `flutter` command line tool. For building web
 apps it's using the `dart compile wasm` command from the Dart SDK. We ensure it
-uses the Dart SDK we built by patching the tools usages of the `dart` binary:
+uses the Dart SDK we built by patching the usages of the `dart` binary:
 
 ```
 <flutter> % git diff
@@ -40,29 +40,33 @@ index ba3703b86e..e0fb968fab 100644
  class _TestArtifacts implements Artifacts {
 ```
 
-We then ensure the flutter tool is re-built via
+We then ensure the Flutter tool is re-built via
+
 ```
 <flutter> % rm bin/cache/flutter_tools.snapshot
 ```
-=> Next time one runs `flutter` it will re-built the flutter commandline tool.
 
-## Modify the flutter engine
+=> Next time one runs `flutter` it will re-build the Flutter command line tool.
 
-Building flutter apps requires not only the dart2wasm compiler but also the
+## Modify the Flutter engine
+
+Building Flutter apps requires not only the dart2wasm compiler but also the
 platform file. As there may be dependencies (e.g. adding a member in core
 libraries that the compiler has an intrinsic for) we also need to ensure the
-core libraries are compiled with the same dart version (resulting in a correct
-`dart2wasm_platform.dill` file that also includes the `dart:ui` flutter library)
+core libraries are compiled with the same Dart version (resulting in a correct
+`dart2wasm_platform.dill` file that also includes the `dart:ui` Flutter
+library).
 
 ### Build it
 
-Have a normal flutter engine checkout. Ensure you've sync'ed all dependencies to
+Have a normal Flutter engine checkout. Ensure you've synced all dependencies to
 their correct version using
+
 ```
 <src> % gclient sync -D
 ```
 
-Then checkout the dart version we want. If the commit is available in the dart
+Then checkout the Dart version we want. If the commit is available in the Dart
 checkout from `<src>/third_party/dart` then one may
 
 ```
@@ -74,14 +78,16 @@ checkout from `<src>/third_party/dart` then one may
 ```
 
 but for local development one may just
+
 ```
 <src> % cd third_party/dart
 <src>/third_party/dart % git checkout ...
 ```
 
 Now we have to make some modification to ensure that the build of the platform
-file doesn't use the downloaded prebuilt sdk but the one in
+file doesn't use the downloaded prebuilt SDK but the one in
 `<src>/third_party/dart`, we do that by applying the following patch:
+
 ```
 <src>/flutter % git diff
 diff --git a/web_sdk/BUILD.gn b/web_sdk/BUILD.gn
@@ -112,27 +118,25 @@ index f1383ae321..caa8aac8f1 100644
 ```
 
 Then build the release web engine via
+
 ```
 <src> % flutter/lib/web_ui/dev/felt build
 ```
 
-NOTE: If you modify the dart sources, the incremental build may not work
+NOTE: If you modify the Dart sources, the incremental build may not work
 correctly. You man want to `rm -rf <src>/out/wasm_release/flutter_web_sdk` or
 `rm -rf <src>/out`.
 
-
 ## Build the Dart SDK
 
-Build the normal Dart SDK in the same version as used in flutter engine via
+Build the normal Dart SDK in the same version as used in Flutter engine via
 `tools/build.py -mrelease create_sdk`
 
-
-NOTE: You can (after synching dependencies with `gclient sync -D`) make
+NOTE: You can (after syncing dependencies with `gclient sync -D`) make
 `<src>/third_party/dart` a symlink to the normal Dart SDK you work on. That
 avoids the need to keep the two in sync.
 
-
-## Building a flutter app (e.g. wonderous)
+## Building a Flutter app (e.g. Wonderous)
 
 ```
 <path-to-flutter-app> % flutter                             \
