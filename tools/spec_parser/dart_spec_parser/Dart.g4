@@ -4,6 +4,8 @@
 
 // CHANGES:
 //
+// v0.42 Add missing `enumEntry` update for augmentations.
+//
 // v0.41 Include support for augmentation libraries.
 //
 // v0.40 Include latest changes to mixin related class modifiers.
@@ -604,8 +606,9 @@ enumType
     ;
 
 enumEntry
-    :    metadata identifier argumentPart?
-    |    metadata identifier typeArguments? '.' identifierOrNew arguments
+    :    metadata AUGMENT? identifier argumentPart?
+    |    metadata AUGMENT? identifier typeArguments?
+         '.' identifierOrNew arguments
     ;
 
 typeParameter
