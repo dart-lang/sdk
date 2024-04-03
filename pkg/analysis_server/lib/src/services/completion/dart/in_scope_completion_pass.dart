@@ -3463,6 +3463,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   }) {
     if (state.budget.isEmpty) {
       // Don't suggest overrides if the time budget has already been spent.
+      collector.isIncomplete = true;
       return;
     }
     if (suggestOverrides && element != null) {
