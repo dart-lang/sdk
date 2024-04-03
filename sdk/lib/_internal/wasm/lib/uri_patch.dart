@@ -28,7 +28,7 @@ class _Uri {
   static bool get _isWindows => _isWindowsCached;
 
   static final bool _isWindowsCached = JS<bool>("""() => {
-        return typeof process != undefined &&
+        return typeof process != "undefined" &&
                Object.prototype.toString.call(process) == "[object process]" &&
                process.platform == "win32"
       }""");
