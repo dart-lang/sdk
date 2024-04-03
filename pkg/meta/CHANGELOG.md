@@ -1,4 +1,4 @@
-## 1.14.0-wip
+## 1.14.0
 
 - Introduce `TargetKind.constructor`, to indicate that an annotation is valid on
   any constructor declaration.
