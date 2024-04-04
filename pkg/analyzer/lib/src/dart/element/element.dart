@@ -1531,6 +1531,10 @@ class ElementAnnotationImpl implements ElementAnnotation {
   /// literal.
   static const String _literalVariableName = 'literal';
 
+  /// The name of the top-level variable used to mark a returned element as
+  /// requiring use.
+  static const String _mustBeConstVariableName = 'mustBeConst';
+
   /// The name of the top-level variable used to mark a type as having
   /// "optional" type arguments.
   static const String _optionalTypeArgsVariableName = 'optionalTypeArgs';
@@ -1731,6 +1735,9 @@ class ElementAnnotationImpl implements ElementAnnotation {
 
   @override
   bool get isLiteral => _isPackageMetaGetter(_literalVariableName);
+
+  @override
+  bool get isMustBeConst => _isPackageMetaGetter(_mustBeConstVariableName);
 
   @override
   bool get isMustBeOverridden => _isPackageMetaGetter(_mustBeOverridden);
@@ -2107,6 +2114,18 @@ abstract class ElementImpl implements Element {
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isLiteral) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  bool get hasMustBeConst {
+    final metadata = this.metadata;
+    for (var i = 0; i < metadata.length; i++) {
+      var annotation = metadata[i];
+      if (annotation.isMustBeConst) {
         return true;
       }
     }
@@ -5508,6 +5527,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
 
   @override
   bool get hasLiteral => false;
+
+  @override
+  bool get hasMustBeConst => false;
 
   @override
   bool get hasMustBeOverridden => false;

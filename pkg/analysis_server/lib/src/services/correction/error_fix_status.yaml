@@ -3721,6 +3721,8 @@ WarningCode.MUST_BE_IMMUTABLE:
   status: noFix
 WarningCode.MUST_CALL_SUPER:
   status: hasFix
+WarningCode.NON_CONST_ARGUMENT_FOR_CONST_PARAMETER:
+  status: needsEvaluation
 WarningCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR:
   status: needsFix
   notes: |-

@@ -109,6 +109,8 @@ const _IsTestGroup isTestGroup = _IsTestGroup();
 
 const _Literal literal = _Literal();
 
+const mustBeConst = _MustBeConst();
+
 const _MustBeOverridden mustBeOverridden = _MustBeOverridden();
 
 const _MustCallSuper mustCallSuper = _MustCallSuper();
@@ -189,6 +191,14 @@ class _AlwaysThrows {
 
 class _Checked {
   const _Checked();
+}
+
+@Target({
+  TargetKind.parameter,
+  TargetKind.typedefType,
+})
+class _MustBeConst {
+  const _MustBeConst();
 }
 
 @Target({
@@ -295,7 +305,6 @@ class Target {
   final Set<TargetKind> kinds;
   const Target(this.kinds);
 }
-
 
 class TargetKind {
   const TargetKind._(this.displayString, this.name);

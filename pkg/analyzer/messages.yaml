@@ -24889,6 +24889,48 @@ WarningCode:
         }
       }
       ```
+  NON_CONST_ARGUMENT_FOR_CONST_PARAMETER:
+    problemMessage: "Argument '{0}' must be a constant."
+    correctionMessage: Try replacing the argument with a constant.
+    comment: |-
+      Parameters:
+      0: the name of the argument
+    hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a parameter is
+      annotated with the `@mustBeConst` annotation and the
+      corresponding argument is not a constant expression.
+
+      #### Example
+
+      The following code produces this diagnostic on the invocation of
+      the function `f` because the value of the argument passed to the
+      function `g` isn't a constant:
+
+      ```dart
+      import 'package:meta/meta.dart' show mustBeConst;
+
+      int f(int value) => g([!value!]);
+
+      int g(@mustBeConst int value) => value + 1;
+      ```
+
+      #### Common fixes
+
+      If a suitable constant is available to use, then replace the argument
+      with a constant:
+
+      ```dart
+      import 'package:meta/meta.dart' show mustBeConst;
+
+      const v = 3;
+
+      int f() => g(v);
+
+      int g(@mustBeConst int value) => value + 1;
+      ```
   NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW:
     sharedName: NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR
     problemMessage: "This instance creation must be 'const', because the {0} constructor is marked as '@literal'."

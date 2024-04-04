@@ -96,6 +96,7 @@ import 'conflicting_type_variable_and_container_test.dart'
     as conflicting_type_variable_and_container;
 import 'conflicting_type_variable_and_member_test.dart'
     as conflicting_type_variable_and_member;
+import 'const_argument_test.dart' as const_argument_test;
 import 'const_constructor_field_type_mismatch_test.dart'
     as const_constructor_field_type_mismatch;
 import 'const_constructor_param_type_mismatch_test.dart'
@@ -967,6 +968,7 @@ main() {
     conflicting_static_and_instance.main();
     conflicting_type_variable_and_container.main();
     conflicting_type_variable_and_member.main();
+    const_argument_test.main();
     const_constructor_field_type_mismatch.main();
     const_constructor_param_type_mismatch.main();
     const_constructor_with_field_initialized_by_non_const.main();

@@ -6,7 +6,7 @@
   any directive.
 - Introduce `TargetKind.enumValue`, to indicate that an annotation is valid on
   any enum value declaration.
-- Introduce `TargetKind.typeParamteer`, to indicate that an annotation is valid
+- Introduce `TargetKind.typeParameter`, to indicate that an annotation is valid
   on any type parameter declaration.
 - Introduce `@doNotSubmit` to annotate members that should not be submitted to
   source control, typically because they are intended to be used ephemerally
@@ -41,6 +41,8 @@
     );
   }
   ```
+- Introduce `@mustBeConst` to annotate parameters which only accept constant
+  arguments.
 
 ## 1.13.0
 
