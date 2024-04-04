@@ -53,10 +53,6 @@ augment enum e {
 ''');
   }
 
-  @FailingTest(
-      issue: 'https://github.com/dart-lang/linter/issues/4881',
-      reason:
-          "ParserErrorCode.EXTRANEOUS_MODIFIER [27, 7, Can't have modifier 'augment' here.]")
   test_augmentationExtensionType_lowerCase() async {
     newFile('$testPackageLibPath/a.dart', r'''
 import augment 'test.dart';

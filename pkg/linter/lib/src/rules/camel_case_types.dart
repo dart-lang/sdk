@@ -97,7 +97,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
-    // TODO(pq): don't lint augmented augmentations, https://github.com/dart-lang/linter/issues/4881
+    // Don't lint augmentations.
+    if (node.augmentKeyword != null) return;
+
     check(node.name);
   }
 
