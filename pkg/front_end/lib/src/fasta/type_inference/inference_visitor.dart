@@ -94,8 +94,16 @@ abstract class InferenceVisitor {
 
 class InferenceVisitorImpl extends InferenceVisitorBase
     with
-        TypeAnalyzer<TreeNode, Statement, Expression, VariableDeclaration,
-            DartType, Pattern, InvalidExpression, DartType>,
+        TypeAnalyzer<
+            TreeNode,
+            Statement,
+            Expression,
+            VariableDeclaration,
+            DartType,
+            Pattern,
+            InvalidExpression,
+            DartType,
+            StructuralParameter>,
         StackChecker
     implements
         ExpressionVisitor1<ExpressionInferenceResult, DartType>,

@@ -102,7 +102,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     with
         ErrorDetectionHelpers,
         TypeAnalyzer<AstNode, Statement, Expression, PromotableElement,
-            DartType, DartPattern, void, DartType> {
+            DartType, DartPattern, void, DartType, TypeParameterElement> {
   /// Debug-only: if `true`, manipulations of [_rewriteStack] performed by
   /// [popRewrite], [pushRewrite], and [replaceExpression] will be printed.
   static const bool _debugRewriteStack = false;
@@ -401,8 +401,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  shared.TypeAnalyzerOperations<PromotableElement, DartType, DartType>
-      get operations => flowAnalysis.typeOperations;
+  shared.TypeAnalyzerOperations<PromotableElement, DartType, DartType,
+      TypeParameterElement> get operations => flowAnalysis.typeOperations;
 
   /// Gets the current depth of the [_rewriteStack].  This may be used in
   /// assertions to verify that pushes and pops are properly balanced.

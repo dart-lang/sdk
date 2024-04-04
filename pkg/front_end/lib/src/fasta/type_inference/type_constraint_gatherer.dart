@@ -459,13 +459,12 @@ class TypeConstraintGatherer {
     // If P is a type variable X in L, then the match holds:
     //
     // Under constraint _ <: X <: Q.
-    // TODO(cstefantsova): Don't forget to remove the commented out code below.
-    // [TypeParameter] objects are never the target of inference, and the
-    // condition will always fail for them.
-    if (p is StructuralParameterType &&
-        typeOperations.getNullabilitySuffix(p) == NullabilitySuffix.none &&
-        _parametersToConstrain.contains(p.parameter)) {
-      _constrainParameterUpper(p.parameter, q,
+    NullabilitySuffix pNullability = typeOperations.getNullabilitySuffix(p);
+    if (typeOperations.matchInferableParameter(p)
+        case StructuralParameter pParameter?
+        when pNullability == NullabilitySuffix.none &&
+            _parametersToConstrain.contains(pParameter)) {
+      _constrainParameterUpper(pParameter, q,
           treeNodeForTesting: treeNodeForTesting);
       return true;
     }
@@ -473,13 +472,12 @@ class TypeConstraintGatherer {
     // If Q is a type variable X in L, then the match holds:
     //
     // Under constraint P <: X <: _.
-    // TODO(cstefantsova): Don't forget to remove the commented out code below.
-    // [TypeParameter] objects are never the target of inference, and the
-    // condition will always fail for them.
-    if (q is StructuralParameterType &&
-        typeOperations.getNullabilitySuffix(q) == NullabilitySuffix.none &&
-        _parametersToConstrain.contains(q.parameter)) {
-      _constrainParameterLower(q.parameter, p,
+    NullabilitySuffix qNullability = typeOperations.getNullabilitySuffix(q);
+    if (typeOperations.matchInferableParameter(q)
+        case StructuralParameter qParameter?
+        when qNullability == NullabilitySuffix.none &&
+            _parametersToConstrain.contains(qParameter)) {
+      _constrainParameterLower(qParameter, p,
           treeNodeForTesting: treeNodeForTesting);
       return true;
     }
@@ -497,7 +495,7 @@ class TypeConstraintGatherer {
     // If P is a legacy type P0* then the match holds under constraint set C:
     //
     // Only if P0 is a subtype match for Q under constraint set C.
-    if (typeOperations.getNullabilitySuffix(p) == NullabilitySuffix.star) {
+    if (pNullability == NullabilitySuffix.star) {
       return _isNullabilityAwareSubtypeMatch(
           typeOperations.withNullabilitySuffix(p, NullabilitySuffix.none), q,
           constrainSupertype: constrainSupertype,
@@ -510,7 +508,7 @@ class TypeConstraintGatherer {
     // set C.
     // Or if P is not dynamic or void and P is a subtype match for Q0? under
     // constraint set C.
-    if (typeOperations.getNullabilitySuffix(q) == NullabilitySuffix.star) {
+    if (qNullability == NullabilitySuffix.star) {
       final int baseConstraintCount = _protoConstraints.length;
 
       if ((typeOperations.isDynamic(p) || typeOperations.isVoid(p)) &&
@@ -555,7 +553,7 @@ class TypeConstraintGatherer {
       _protoConstraints.length = baseConstraintCount;
 
       bool isMatchWithFuture = _isNullabilityAwareSubtypeMatch(
-          p, _environment.futureType(q0, Nullability.nonNullable),
+          p, typeOperations.futureType(q0),
           constrainSupertype: constrainSupertype,
           treeNodeForTesting: treeNodeForTesting);
       bool matchWithFutureAddsConstraints =
@@ -586,15 +584,14 @@ class TypeConstraintGatherer {
     // Or if P is a subtype match for Q0 under non-empty constraint set C.
     // Or if P is a subtype match for Null under constraint set C.
     // Or if P is a subtype match for Q0 under empty constraint set C.
-    if (typeOperations.getNullabilitySuffix(q) == NullabilitySuffix.question) {
+    if (qNullability == NullabilitySuffix.question) {
       final int baseConstraintCount = _protoConstraints.length;
       final DartType rawP =
           typeOperations.withNullabilitySuffix(p, NullabilitySuffix.none);
       final DartType rawQ =
           typeOperations.withNullabilitySuffix(q, NullabilitySuffix.none);
 
-      if (typeOperations.getNullabilitySuffix(p) ==
-              NullabilitySuffix.question &&
+      if (pNullability == NullabilitySuffix.question &&
           _isNullabilityAwareSubtypeMatch(rawP, rawQ,
               constrainSupertype: constrainSupertype,
               treeNodeForTesting: treeNodeForTesting)) {
@@ -639,8 +636,7 @@ class TypeConstraintGatherer {
     // And if P0 is a subtype match for Q under constraint set C2.
     if (typeOperations.matchFutureOr(p) case DartType p0?) {
       final int baseConstraintCount = _protoConstraints.length;
-      if (_isNullabilityAwareSubtypeMatch(
-              _environment.futureType(p0, Nullability.nonNullable), q,
+      if (_isNullabilityAwareSubtypeMatch(typeOperations.futureType(p0), q,
               constrainSupertype: constrainSupertype,
               treeNodeForTesting: treeNodeForTesting) &&
           _isNullabilityAwareSubtypeMatch(p0, q,
@@ -655,7 +651,7 @@ class TypeConstraintGatherer {
     //
     // If P0 is a subtype match for Q under constraint set C1.
     // And if Null is a subtype match for Q under constraint set C2.
-    if (typeOperations.getNullabilitySuffix(p) == NullabilitySuffix.question) {
+    if (pNullability == NullabilitySuffix.question) {
       final int baseConstraintCount = _protoConstraints.length;
       if (_isNullabilityAwareSubtypeMatch(
               typeOperations.withNullabilitySuffix(p, NullabilitySuffix.none),
@@ -1077,11 +1073,7 @@ class TypeConstraintGatherer {
       //   constraints `C0`.
       // - And `P` is a subtype match for `Q` with respect to `L` under
       //   constraints `C1`.
-      InterfaceType subtypeFuture = _environment.futureType(
-          subtypeArg,
-          _isNonNullableByDefault
-              ? Nullability.nonNullable
-              : Nullability.legacy);
+      InterfaceType subtypeFuture = typeOperations.futureType(subtypeArg);
       return _isNullabilityObliviousSubtypeMatch(subtypeFuture, supertype,
               treeNodeForTesting: treeNodeForTesting) &&
           _isNullabilityObliviousSubtypeMatch(subtypeArg, supertype,
@@ -1116,8 +1108,9 @@ class TypeConstraintGatherer {
           supertype.nullability);
       DartType supertypeArg =
           supertype.typeArgument.withDeclaredNullability(unitedNullability);
-      DartType supertypeFuture =
-          _environment.futureType(supertypeArg, unitedNullability);
+      DartType supertypeFuture = typeOperations
+          .futureType(supertypeArg)
+          .withDeclaredNullability(unitedNullability);
 
       // The match against FutureOr<X> succeeds if the match against either
       // Future<X> or X succeeds.  If they both succeed, the one adding new
