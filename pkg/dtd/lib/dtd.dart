@@ -5,7 +5,8 @@
 /// Support for communicating with the Dart Tooling Daemon.
 library;
 
+export 'src/constants.dart';
 export 'src/dart_tooling_daemon.dart';
-export 'src/file_system/constants.dart';
 export 'src/file_system/types.dart';
+export 'src/response_types.dart';
 export 'src/rpc_error_codes.dart';

@@ -297,7 +297,6 @@ class DevToolsServer {
     handler ??= await defaultHandler(
       buildDir: customDevToolsPath!,
       clientManager: clientManager,
-      analytics: DevToolsUtils.initializeAnalytics(),
       dtd: (uri: dtdUri, secret: dtdSecret),
     );
 

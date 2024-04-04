@@ -153,6 +153,8 @@ String ddcHtml(
     NnbdMode mode,
     String genDir,
     bool nonNullAsserts,
+    bool nativeNonNullAsserts,
+    bool jsInteropNonNullAsserts,
     bool weakNullSafetyErrors) {
   var testId = pathToJSIdentifier(testName);
   var testIdAlias = pathToJSIdentifier(testNameAlias);
@@ -242,6 +244,8 @@ requirejs(["$testName", "dart_sdk", "async_helper"],
   sdk.dart.weakNullSafetyWarnings(!($weakNullSafetyErrors || $soundNullSafety));
   sdk.dart.weakNullSafetyErrors($weakNullSafetyErrors);
   sdk.dart.nonNullAsserts($nonNullAsserts);
+  sdk.dart.nativeNonNullAsserts($nativeNonNullAsserts);
+  sdk.dart.jsInteropNonNullAsserts($jsInteropNonNullAsserts);
 
   dartMainRunner(function testMainWrapper() {
     // Some callbacks are not scheduled with timers/microtasks, so they don't

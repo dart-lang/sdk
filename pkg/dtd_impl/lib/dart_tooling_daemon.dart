@@ -19,7 +19,8 @@ import 'src/constants.dart';
 import 'src/dtd_client.dart';
 import 'src/dtd_client_manager.dart';
 import 'src/dtd_stream_manager.dart';
-import 'src/file_system_service.dart';
+import 'src/service/file_system_service.dart';
+import 'src/service/unified_analytics_service.dart';
 
 /// Contains all the flags and options used by the DTD argument parser.
 enum DartToolingDaemonOptions {
@@ -35,6 +36,12 @@ enum DartToolingDaemonOptions {
     isFlag: true,
     negatable: false,
     help: 'Disables restrictions on services registered by DTD.',
+  ),
+  fakeAnalytics(
+    isFlag: true,
+    negatable: false,
+    help: 'Uses fake analytics instances for the UnifiedAnalytics service.',
+    hide: true,
   );
 
   const DartToolingDaemonOptions({
@@ -79,6 +86,7 @@ class DartToolingDaemon {
     required bool unrestrictedMode,
     bool ipv6 = false,
     bool shouldLogRequests = false,
+    bool useFakeAnalytics = false,
   })  : _ipv6 = ipv6,
         _shouldLogRequests = shouldLogRequests {
     streamManager = DTDStreamManager(this);
@@ -87,6 +95,7 @@ class DartToolingDaemon {
       secret: secret,
       unrestrictedMode: unrestrictedMode,
     );
+    unifiedAnalyticsService = UnifiedAnalyticsService(fake: useFakeAnalytics);
   }
   static const _kSseHandlerPath = '\$debugHandler';
 
@@ -99,6 +108,9 @@ class DartToolingDaemon {
   late HttpServer _server;
   final bool _shouldLogRequests;
   late final FileSystemService fileSystemService;
+
+  /// Provides interaction with package:unified_analytics for DTD clients.
+  late final UnifiedAnalyticsService unifiedAnalyticsService;
 
   final String secret;
 
@@ -181,6 +193,8 @@ class DartToolingDaemon {
     final machineMode = parsedArgs[DartToolingDaemonOptions.machine.name];
     final unrestrictedMode =
         parsedArgs[DartToolingDaemonOptions.unrestricted.name];
+    final useFakeAnalytics =
+        parsedArgs[DartToolingDaemonOptions.fakeAnalytics.name];
 
     final secret = _generateSecret();
     final dtd = DartToolingDaemon._(
@@ -188,6 +202,7 @@ class DartToolingDaemon {
       unrestrictedMode: unrestrictedMode,
       ipv6: ipv6,
       shouldLogRequests: shouldLogRequests,
+      useFakeAnalytics: useFakeAnalytics,
     );
     await dtd._startService(port: port);
     if (machineMode) {
@@ -267,6 +282,7 @@ class DartToolingDaemon {
 
   void _registerInternalServiceMethods(DTDClient client) {
     fileSystemService.register(client);
+    unifiedAnalyticsService.register(client);
   }
 
   static String _generateSecret() {

@@ -11,13 +11,16 @@ dependencies:
   args: any
   collection: any
   dart_service_protocol_shared: any
+  dtd: any
+  file: any
   json_rpc_2: any
+  path: any
   shelf: any
   shelf_web_socket: any
   sse: any
   stream_channel: any
+  unified_analytics: any
   web_socket_channel: any
-  dtd: any
 
 # We use 'any' version constraints here as we get our package versions from
 # the dart-lang/sdk repo's DEPS file. Note that this is a special case; the

@@ -45,7 +45,7 @@ main() {
 
       // Expect the normal applications output.
       final output = outputEvents
-          .skip(1)
+          .skip(2)
           .map((e) => e.output)
           // The stdout also contains the VM Service+DevTools banners.
           .where(
@@ -98,7 +98,7 @@ main() {
 
       // Expect the normal applications output.
       final output = outputEvents
-          .skip(1)
+          .skip(2)
           .map((e) => e.output)
           // The stdout also contains the VM Service+DevTools banners.
           .where(
