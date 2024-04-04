@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/code_lens/abstract_code_lens_provider.dart';
 import 'package:analysis_server/src/lsp/handlers/code_lens/augmentations.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
