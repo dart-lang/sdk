@@ -566,12 +566,7 @@ CodePtr CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
 
       CompilerPassState pass_state(thread(), flow_graph, &speculative_policy);
 
-      if (function.ForceOptimize()) {
-        ASSERT(optimized());
-        TIMELINE_DURATION(thread(), CompilerVerbose, "OptimizationPasses");
-        flow_graph = CompilerPass::RunForceOptimizedPipeline(CompilerPass::kJIT,
-                                                             &pass_state);
-      } else if (optimized()) {
+      if (optimized()) {
         TIMELINE_DURATION(thread(), CompilerVerbose, "OptimizationPasses");
 
         JitCallSpecializer call_specializer(flow_graph, &speculative_policy);

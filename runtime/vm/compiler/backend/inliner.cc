@@ -1467,11 +1467,7 @@ class CallSiteInliner : public ValueObject {
             CompilerPassState state(Thread::Current(), callee_graph,
                                     inliner_->speculative_policy_);
             state.call_specializer = &call_specializer;
-            if (function.ForceOptimize()) {
-              CompilerPass::RunForceOptimizedInliningPipeline(&state);
-            } else {
-              CompilerPass::RunInliningPipeline(CompilerPass::kAOT, &state);
-            }
+            CompilerPass::RunInliningPipeline(CompilerPass::kAOT, &state);
 #else
             UNREACHABLE();
 #endif  // defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)
@@ -1482,11 +1478,7 @@ class CallSiteInliner : public ValueObject {
             CompilerPassState state(Thread::Current(), callee_graph,
                                     inliner_->speculative_policy_);
             state.call_specializer = &call_specializer;
-            if (function.ForceOptimize()) {
-              CompilerPass::RunForceOptimizedInliningPipeline(&state);
-            } else {
-              CompilerPass::RunInliningPipeline(CompilerPass::kJIT, &state);
-            }
+            CompilerPass::RunInliningPipeline(CompilerPass::kJIT, &state);
           }
         }
 

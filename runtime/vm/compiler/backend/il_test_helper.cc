@@ -185,7 +185,6 @@ void TestPipeline::RunAdditionalPasses(
   pass_state_->call_specializer = nullptr;
 }
 
-// Keep in sync with CompilerPass::RunForceOptimizedPipeline.
 void TestPipeline::RunForcedOptimizedAfterSSAPasses() {
   RunAdditionalPasses({
       CompilerPass::kSetOuterInliningId,
