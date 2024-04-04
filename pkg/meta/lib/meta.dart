@@ -617,6 +617,7 @@ class _DoNotStore {
 }
 
 @Target({
+  TargetKind.constructor,
   TargetKind.function,
   TargetKind.getter,
   TargetKind.method,
