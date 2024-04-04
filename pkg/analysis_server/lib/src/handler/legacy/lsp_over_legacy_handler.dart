@@ -89,8 +89,8 @@ class LspOverLegacyHandler extends LegacyHandler {
 
     final lspResponse = ResponseMessage(
       id: message.id,
-      error: result.isError ? result.error : null,
-      result: !result.isError ? result.result : null,
+      error: result.errorOrNull,
+      result: result.resultOrNull,
       jsonrpc: jsonRpcVersion,
     );
 

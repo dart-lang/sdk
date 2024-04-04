@@ -40,7 +40,7 @@ class DocumentColorHandler
 
     final path = pathOfDoc(params.textDocument);
     final unit = await path.mapResult(requireResolvedUnit);
-    return unit.mapResult((unit) => _getColors(unit));
+    return unit.mapResultSync((unit) => _getColors(unit));
   }
 
   ErrorOr<List<ColorInformation>> _getColors(ResolvedUnitResult unit) {

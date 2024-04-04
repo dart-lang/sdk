@@ -35,8 +35,8 @@ class HoverHandler
     final pos = params.position;
     final path = pathOfDoc(params.textDocument);
     final unit = await path.mapResult(requireResolvedUnit);
-    final offset = await unit.mapResult((unit) => toOffset(unit.lineInfo, pos));
-    return offset.mapResult((offset) => _getHover(unit.result, offset));
+    final offset = unit.mapResultSync((unit) => toOffset(unit.lineInfo, pos));
+    return (unit, offset).mapResultsSync(_getHover);
   }
 
   Hover? toHover(LineInfo lineInfo, HoverInformation? hover) {

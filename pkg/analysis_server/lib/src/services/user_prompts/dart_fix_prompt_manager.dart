@@ -243,13 +243,15 @@ class DartFixPromptManager {
       NotCancelableToken(),
     );
 
-    if (result.isError) {
-      unawaited(userPromptSender(
-        MessageType.error,
-        "Failed to execute '$command': ${result.error.message}",
-        [],
-      ));
-    }
+    result.ifError(
+      (error) {
+        unawaited(userPromptSender(
+          MessageType.error,
+          "Failed to execute '$command': ${error.message}",
+          [],
+        ));
+      },
+    );
   }
 
   /// Performs a check to see if "dart fix" may be able to fix diagnostics in

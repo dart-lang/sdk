@@ -43,7 +43,7 @@ class OrganizeImportsCommandHandler extends SimpleEditCommandHandler {
       return error(ErrorCodes.RequestCancelled, 'Request was cancelled');
     }
 
-    return result.mapResult((result) {
+    return result.mapResult((result) async {
       final code = result.content;
       final unit = result.unit;
 
@@ -66,7 +66,7 @@ class OrganizeImportsCommandHandler extends SimpleEditCommandHandler {
         return success(null);
       }
 
-      return sendSourceEditsToClient(docIdentifier, unit, edits);
+      return await sendSourceEditsToClient(docIdentifier, unit, edits);
     });
   }
 }

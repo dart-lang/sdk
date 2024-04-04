@@ -40,7 +40,7 @@ class ImplementationHandler
       'requireResolvedUnit',
       (_) async => path.mapResult(requireResolvedUnit),
     );
-    final offset = await unit.mapResult((unit) => toOffset(unit.lineInfo, pos));
+    final offset = unit.mapResultSync((unit) => toOffset(unit.lineInfo, pos));
     return await performance.runAsync(
         '_getImplementations',
         (performance) async => offset.mapResult((offset) =>

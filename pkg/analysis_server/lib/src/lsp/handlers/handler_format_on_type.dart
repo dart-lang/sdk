@@ -47,14 +47,14 @@ class FormatOnTypeHandler extends SharedMessageHandler<
     }
 
     final path = pathOfDoc(params.textDocument);
-    return path.mapResult((path) {
+    return path.mapResult((path) async {
       if (!server.lspClientConfiguration.forResource(path).enableSdkFormatter) {
         // Because we now support formatting for just some WorkspaceFolders
         // we should silently do nothing for those that are disabled.
         return success(null);
       }
 
-      return formatFile(path);
+      return await formatFile(path);
     });
   }
 }

@@ -39,7 +39,7 @@ class DocumentSymbolHandler extends SharedMessageHandler<DocumentSymbolParams,
 
     final path = pathOfDoc(params.textDocument);
     final unit = await path.mapResult(requireResolvedUnit);
-    return unit.mapResult(
+    return unit.mapResultSync(
         (unit) => _getSymbols(clientCapabilities, path.result, unit));
   }
 

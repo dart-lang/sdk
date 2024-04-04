@@ -44,7 +44,7 @@ class CodeLensHandler
       if (providerResult.isError) {
         return failure(providerResult);
       }
-      allResults.addAll(providerResult.result);
+      providerResult.ifResult(allResults.addAll);
     }
 
     return success(allResults);
