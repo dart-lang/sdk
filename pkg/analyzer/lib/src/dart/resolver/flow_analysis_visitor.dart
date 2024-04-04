@@ -456,6 +456,11 @@ class TypeSystemOperations
   }
 
   @override
+  DartType futureType(DartType argumentType) {
+    return typeSystem.typeProvider.futureType(argumentType);
+  }
+
+  @override
   String getDisplayString(DartType type) => type.getDisplayString();
 
   @override

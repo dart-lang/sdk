@@ -126,7 +126,7 @@ class TypeConstraintGatherer {
 
       // Or if `P` is a subtype match for `Future<Q0>` under non-empty
       // constraint set `C`.
-      var futureQ0 = _futureNone(Q0);
+      var futureQ0 = _typeSystemOperations.futureType(Q0);
       var P_matches_FutureQ0 = trySubtypeMatch(P, futureQ0, leftSchema,
           nodeForTesting: nodeForTesting);
       if (P_matches_FutureQ0 && _constraints.length != rewind) {
@@ -206,7 +206,7 @@ class TypeConstraintGatherer {
 
       // If `Future<P0>` is a subtype match for `Q` under constraint set `C1`.
       // And if `P0` is a subtype match for `Q` under constraint set `C2`.
-      var future_P0 = _futureNone(P0);
+      var future_P0 = _typeSystemOperations.futureType(P0);
       if (trySubtypeMatch(future_P0, Q, leftSchema,
               nodeForTesting: nodeForTesting) &&
           trySubtypeMatch(P0, Q, leftSchema, nodeForTesting: nodeForTesting)) {
@@ -558,14 +558,6 @@ class TypeConstraintGatherer {
     }
 
     return true;
-  }
-
-  InterfaceType _futureNone(DartType valueType) {
-    var element = _typeSystem.typeProvider.futureElement;
-    return element.instantiate(
-      typeArguments: fixedTypeList(valueType),
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
   }
 
   bool _interfaceType(InterfaceType P, InterfaceType Q, bool leftSchema,

@@ -553,7 +553,7 @@ class TypeConstraintGatherer {
       _protoConstraints.length = baseConstraintCount;
 
       bool isMatchWithFuture = _isNullabilityAwareSubtypeMatch(
-          p, _environment.futureType(q0, Nullability.nonNullable),
+          p, typeOperations.futureType(q0),
           constrainSupertype: constrainSupertype,
           treeNodeForTesting: treeNodeForTesting);
       bool matchWithFutureAddsConstraints =
@@ -636,8 +636,7 @@ class TypeConstraintGatherer {
     // And if P0 is a subtype match for Q under constraint set C2.
     if (typeOperations.matchFutureOr(p) case DartType p0?) {
       final int baseConstraintCount = _protoConstraints.length;
-      if (_isNullabilityAwareSubtypeMatch(
-              _environment.futureType(p0, Nullability.nonNullable), q,
+      if (_isNullabilityAwareSubtypeMatch(typeOperations.futureType(p0), q,
               constrainSupertype: constrainSupertype,
               treeNodeForTesting: treeNodeForTesting) &&
           _isNullabilityAwareSubtypeMatch(p0, q,
@@ -1074,11 +1073,7 @@ class TypeConstraintGatherer {
       //   constraints `C0`.
       // - And `P` is a subtype match for `Q` with respect to `L` under
       //   constraints `C1`.
-      InterfaceType subtypeFuture = _environment.futureType(
-          subtypeArg,
-          _isNonNullableByDefault
-              ? Nullability.nonNullable
-              : Nullability.legacy);
+      InterfaceType subtypeFuture = typeOperations.futureType(subtypeArg);
       return _isNullabilityObliviousSubtypeMatch(subtypeFuture, supertype,
               treeNodeForTesting: treeNodeForTesting) &&
           _isNullabilityObliviousSubtypeMatch(subtypeArg, supertype,
@@ -1113,8 +1108,9 @@ class TypeConstraintGatherer {
           supertype.nullability);
       DartType supertypeArg =
           supertype.typeArgument.withDeclaredNullability(unitedNullability);
-      DartType supertypeFuture =
-          _environment.futureType(supertypeArg, unitedNullability);
+      DartType supertypeFuture = typeOperations
+          .futureType(supertypeArg)
+          .withDeclaredNullability(unitedNullability);
 
       // The match against FutureOr<X> succeeds if the match against either
       // Future<X> or X succeeds.  If they both succeed, the one adding new

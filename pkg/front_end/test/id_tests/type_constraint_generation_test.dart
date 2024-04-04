@@ -93,6 +93,10 @@ class _InferredTypeArgumentsDataInterpreter
           sb.write("${actualData[i].typeParameter.name} <: ");
           sb.write(typeToText(actualData[i].constraint,
               TypeRepresentation.analyzerNonNullableByDefault));
+        } else {
+          sb.write("${actualData[i].typeParameter.name} :> ");
+          sb.write(typeToText(actualData[i].constraint,
+              TypeRepresentation.analyzerNonNullableByDefault));
         }
       }
     }

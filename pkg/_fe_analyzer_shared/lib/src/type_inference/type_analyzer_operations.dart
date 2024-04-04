@@ -73,6 +73,10 @@ abstract interface class TypeAnalyzerOperations<
   /// If [type] is a record type, returns it.
   RecordType<Type>? asRecordType(Type type);
 
+  /// Returns the type `Future` with omitted nullability and type argument
+  /// [argumentType].
+  Type futureType(Type argumentType);
+
   /// Return the presentation of this type as it should appear when presented
   /// to users in contexts such as error messages.
   ///

@@ -3257,6 +3257,11 @@ class MiniAstOperations
     // TODO(cstefantsova): Add support for type parameter objects in Mini AST.
     return null;
   }
+
+  @override
+  Type futureType(Type argumentType) {
+    return PrimaryType('Future', args: [argumentType]);
+  }
 }
 
 /// Representation of an expression or statement in the pseudo-Dart language
