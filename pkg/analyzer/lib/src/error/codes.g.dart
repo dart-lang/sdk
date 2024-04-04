@@ -6740,6 +6740,7 @@ class WarningCode extends AnalyzerErrorCode {
     'INVALID_USE_OF_DO_NOT_SUBMIT_MEMBER',
     "Uses of '{0}' should not be submitted to source control.",
     correctionMessage: "Try removing the reference to '{0}'.",
+    hasPublishedDocs: true,
   );
 
   ///  Parameters:
@@ -6940,6 +6941,7 @@ class WarningCode extends AnalyzerErrorCode {
     'NON_CONST_ARGUMENT_FOR_CONST_PARAMETER',
     "Argument '{0}' must be a constant.",
     correctionMessage: "Try replacing the argument with a constant.",
+    hasPublishedDocs: true,
   );
 
   ///  Generates a warning for non-const instance creation using a constructor
