@@ -2076,20 +2076,12 @@ void Assembler::CompareObject(Register reg, const Object& object) {
   }
 }
 
-void Assembler::StoreIntoObject(Register object,
-                                const Address& dest,
-                                Register value,
-                                CanBeSmi can_be_smi,
-                                MemoryOrder memory_order,
-                                Register scratch) {
+void Assembler::StoreBarrier(Register object,
+                             Register value,
+                             CanBeSmi can_be_smi,
+                             Register scratch) {
   // x.slot = x. Barrier should have be removed at the IL level.
   ASSERT(object != value);
-
-  if (memory_order == kRelease) {
-    StoreRelease(value, dest.base(), dest.disp32());
-  } else {
-    movl(dest, value);
-  }
 
   bool spill_scratch = false;
   if (scratch == kNoRegister) {
@@ -2115,6 +2107,13 @@ void Assembler::StoreIntoObject(Register object,
   Label done;
   if (can_be_smi == kValueCanBeSmi) {
     BranchIfSmi(value, &done, kNearJump);
+  } else {
+#if defined(DEBUG)
+    Label passed_check;
+    BranchIfNotSmi(value, &passed_check, kNearJump);
+    Breakpoint();
+    Bind(&passed_check);
+#endif
   }
   if (spill_scratch) {
     pushl(scratch);
@@ -2153,43 +2152,12 @@ void Assembler::StoreIntoObject(Register object,
   Bind(&done);
 }
 
-void Assembler::StoreIntoObjectNoBarrier(Register object,
-                                         const Address& dest,
-                                         Register value,
-                                         MemoryOrder memory_order) {
-  if (memory_order == kRelease) {
-    StoreRelease(value, dest.base(), dest.disp32());
-  } else {
-    movl(dest, value);
-  }
-#if defined(DEBUG)
-  // We can't assert the incremental barrier is not needed here, only the
-  // generational barrier. We sometimes omit the write barrier when 'value' is
-  // a constant, but we don't eagerly mark 'value' and instead assume it is also
-  // reachable via a constant pool, so it doesn't matter if it is not traced via
-  // 'object'.
-  Label done;
-  BranchIfSmi(value, &done, kNearJump);
-  testb(FieldAddress(value, target::Object::tags_offset()),
-        Immediate(1 << target::UntaggedObject::kNewBit));
-  j(ZERO, &done, Assembler::kNearJump);
-  testb(FieldAddress(object, target::Object::tags_offset()),
-        Immediate(1 << target::UntaggedObject::kOldAndNotRememberedBit));
-  j(ZERO, &done, Assembler::kNearJump);
-  Stop("Write barrier is required");
-  Bind(&done);
-#endif  // defined(DEBUG)
-}
-
-void Assembler::StoreIntoArray(Register object,
-                               Register slot,
-                               Register value,
-                               CanBeSmi can_be_smi,
-                               Register scratch) {
+void Assembler::ArrayStoreBarrier(Register object,
+                                  Register slot,
+                                  Register value,
+                                  CanBeSmi can_be_smi,
+                                  Register scratch) {
   ASSERT(object != value);
-  movl(Address(slot, 0), value);
-
-  ASSERT(scratch != kNoRegister);
   ASSERT(scratch != object);
   ASSERT(scratch != value);
   ASSERT(scratch != slot);
@@ -2204,6 +2172,13 @@ void Assembler::StoreIntoArray(Register object,
   Label done;
   if (can_be_smi == kValueCanBeSmi) {
     BranchIfSmi(value, &done, kNearJump);
+  } else {
+#if defined(DEBUG)
+    Label passed_check;
+    BranchIfNotSmi(value, &passed_check, kNearJump);
+    Breakpoint();
+    Bind(&passed_check);
+#endif
   }
   movl(scratch, FieldAddress(object, target::Object::tags_offset()));
   shrl(scratch, Immediate(target::UntaggedObject::kBarrierOverlapShift));
@@ -2222,10 +2197,31 @@ void Assembler::StoreIntoArray(Register object,
   Bind(&done);
 }
 
-void Assembler::StoreIntoObjectNoBarrier(Register object,
-                                         const Address& dest,
-                                         const Object& value,
-                                         MemoryOrder memory_order) {
+void Assembler::VerifyStoreNeedsNoWriteBarrier(Register object,
+                                               Register value) {
+  // We can't assert the incremental barrier is not needed here, only the
+  // generational barrier. We sometimes omit the write barrier when 'value' is
+  // a constant, but we don't eagerly mark 'value' and instead assume it is also
+  // reachable via a constant pool, so it doesn't matter if it is not traced via
+  // 'object'.
+  Label done;
+  BranchIfSmi(value, &done, kNearJump);
+  testb(FieldAddress(value, target::Object::tags_offset()),
+        Immediate(1 << target::UntaggedObject::kNewBit));
+  j(ZERO, &done, Assembler::kNearJump);
+  testb(FieldAddress(object, target::Object::tags_offset()),
+        Immediate(1 << target::UntaggedObject::kOldAndNotRememberedBit));
+  j(ZERO, &done, Assembler::kNearJump);
+  Stop("Write barrier is required");
+  Bind(&done);
+}
+
+void Assembler::StoreObjectIntoObjectNoBarrier(Register object,
+                                               const Address& dest,
+                                               const Object& value,
+                                               MemoryOrder memory_order,
+                                               OperandSize size) {
+  ASSERT_EQUAL(size, kFourBytes);
   ASSERT(IsOriginalObject(value));
   // Ignoring memory_order.
   // On intel stores have store-release behavior (i.e. stores are not

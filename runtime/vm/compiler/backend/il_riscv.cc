@@ -2529,7 +2529,7 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     ASSERT(!ShouldEmitStoreBarrier());  // Specially treated above.
     if (locs()->in(2).IsConstant()) {
       const Object& constant = locs()->in(2).constant();
-      __ StoreIntoObjectNoBarrier(array, element_address, constant);
+      __ StoreObjectIntoObjectNoBarrier(array, element_address, constant);
     } else {
       const Register value = locs()->in(2).reg();
       __ StoreIntoObjectNoBarrier(array, element_address, value);

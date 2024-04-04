@@ -47,6 +47,8 @@
       "out/ReleaseX64/dart",
       "out/ReleaseX64/dart2js_platform.dill",
       "out/ReleaseX64/dart2js_platform_unsound.dill",
+      "out/ReleaseX64/ddc_outline.dill",
+      "out/ReleaseX64/gen/utils/ddc/",
       "pkg/",
       "runtime/tests/",
       "sdk/",
@@ -606,6 +608,13 @@
         ],
         "nnbd": "weak",
         "use-sdk": true
+      }
+    },
+    "ddc-hostasserts-linux-d8": {
+      "options": {
+        "checked": true,
+        "host-asserts": true,
+        "use-sdk": false
       }
     },
     "cfe-weak-(linux|mac|win)": {
@@ -2088,6 +2097,38 @@
             "-nweb-dev-canary-unittest-asserts-linux",
             "pkg//dev_compiler/"
           ]
+        }
+      ]
+    },
+    {
+      "builders": [
+        "ddc-hostasserts-linux-d8"
+      ],
+      "meta": {
+        "description": "DDC with assertions during compilation running in d8"
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "dart2js_bot",
+            "ddc_stable_test"
+          ]
+        },
+        {
+          "name": "ddc sdk tests",
+          "arguments": [
+            "-nddc-hostasserts-linux-d8",
+            "co19",
+            "corelib",
+            "dartdevc",
+            "language",
+            "lib",
+            "web"
+          ],
+          "shards": 12,
+          "fileset": "js_platform_hostasserts"
         }
       ]
     },

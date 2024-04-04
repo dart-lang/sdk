@@ -671,21 +671,24 @@ class Assembler : public AssemblerBase {
   }
 
   void LoadAcquire(Register dst,
-                   Register address,
-                   int32_t offset = 0,
+                   const Address& address,
                    OperandSize size = kFourBytes) override {
     // On intel loads have load-acquire behavior (i.e. loads are not re-ordered
     // with other loads).
-    Load(dst, Address(address, offset), size);
+    Load(dst, address, size);
+#if defined(TARGET_USES_THREAD_SANITIZER)
+#error No support for TSAN on IA32.
+#endif
   }
   void StoreRelease(Register src,
-                    Register address,
-                    int32_t offset = 0) override {
+                    const Address& address,
+                    OperandSize size = kFourBytes) override {
     // On intel stores have store-release behavior (i.e. stores are not
     // re-ordered with other stores).
-    movl(Address(address, offset), src);
-
-    // We don't run TSAN on 32 bit systems.
+    Store(src, address, size);
+#if defined(TARGET_USES_THREAD_SANITIZER)
+#error No support for TSAN on IA32.
+#endif
   }
 
   void CompareWithMemoryValue(Register value,
@@ -806,82 +809,23 @@ class Assembler : public AssemblerBase {
   void PushObject(const Object& object);
   void CompareObject(Register reg, const Object& object);
 
-  // Store into a heap object and apply the generational write barrier. (Unlike
-  // the other architectures, this does not apply the incremental write barrier,
-  // and so concurrent marking is not enabled for now on IA32.) All stores into
-  // heap objects must pass through this function or, if the value can be proven
-  // either Smi or old-and-premarked, its NoBarrier variants.
-  // Destroys the value register.
-  void StoreIntoObject(Register object,      // Object we are storing into.
-                       const Address& dest,  // Where we are storing into.
-                       Register value,       // Value we are storing.
-                       CanBeSmi can_value_be_smi = kValueCanBeSmi,
-                       MemoryOrder memory_order = kRelaxedNonAtomic) override {
-    StoreIntoObject(object, dest, value, can_value_be_smi, memory_order,
-                    kNoRegister);
-  }
-  void StoreIntoObject(Register object,      // Object we are storing into.
-                       const Address& dest,  // Where we are storing into.
-                       Register value,       // Value we are storing.
-                       CanBeSmi can_value_be_smi,
-                       MemoryOrder memory_order,
-                       Register scratch);
-  void StoreIntoArray(Register object,  // Object we are storing into.
-                      Register slot,    // Where we are storing into.
-                      Register value,   // Value we are storing.
-                      CanBeSmi can_value_be_smi = kValueCanBeSmi) override {
-    StoreIntoArray(object, slot, value, can_value_be_smi, kNoRegister);
-  }
-  void StoreIntoArray(Register object,  // Object we are storing into.
-                      Register slot,    // Where we are storing into.
-                      Register value,   // Value we are storing.
-                      CanBeSmi can_value_be_smi,
-                      Register scratch);
-  void StoreIntoObjectNoBarrier(
-      Register object,
-      const Address& dest,
-      Register value,
-      MemoryOrder memory_order = kRelaxedNonAtomic) override;
-  void StoreIntoObjectNoBarrier(
+  void StoreObjectIntoObjectNoBarrier(
       Register object,
       const Address& dest,
       const Object& value,
-      MemoryOrder memory_order = kRelaxedNonAtomic) override;
+      MemoryOrder memory_order = kRelaxedNonAtomic,
+      OperandSize size = kFourBytes) override;
 
-  void StoreIntoObjectOffset(
-      Register object,  // Object we are storing into.
-      int32_t offset,   // Where we are storing into.
-      Register value,   // Value we are storing.
-      CanBeSmi can_value_be_smi = kValueCanBeSmi,
-      MemoryOrder memory_order = kRelaxedNonAtomic) override {
-    StoreIntoObjectOffset(object, offset, value, can_value_be_smi, memory_order,
-                          kNoRegister);
-  }
-  void StoreIntoObjectOffset(Register object,  // Object we are storing into.
-                             int32_t offset,   // Where we are storing into.
-                             Register value,   // Value we are storing.
-                             CanBeSmi can_value_be_smi,
-                             MemoryOrder memory_order,
-                             Register scratch) {
-    StoreIntoObject(object, FieldAddress(object, offset), value,
-                    can_value_be_smi, memory_order, scratch);
-  }
-  void StoreIntoObjectOffsetNoBarrier(
-      Register object,
-      int32_t offset,
-      Register value,
-      MemoryOrder memory_order = kRelaxedNonAtomic) override {
-    StoreIntoObjectNoBarrier(object, FieldAddress(object, offset), value,
-                             memory_order);
-  }
-  void StoreIntoObjectOffsetNoBarrier(
-      Register object,
-      int32_t offset,
-      const Object& value,
-      MemoryOrder memory_order = kRelaxedNonAtomic) override {
-    StoreIntoObjectNoBarrier(object, FieldAddress(object, offset), value,
-                             memory_order);
-  }
+  void StoreBarrier(Register object,
+                    Register value,
+                    CanBeSmi can_be_smi,
+                    Register scratch) override;
+  void ArrayStoreBarrier(Register object,
+                         Register slot,
+                         Register value,
+                         CanBeSmi can_be_smi,
+                         Register scratch) override;
+  void VerifyStoreNeedsNoWriteBarrier(Register object, Register value) override;
 
   // Stores a non-tagged value into a heap object.
   void StoreInternalPointer(Register object,

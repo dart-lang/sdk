@@ -6254,7 +6254,7 @@ ASSEMBLER_TEST_GENERATE(StoreReleaseLoadAcquire, assembler) {
       __ movq(reg, Immediate(0xAABBCCDD + i));
     }
   }
-  __ StoreRelease(CallingConventions::kArg3Reg, RSP, 0);
+  __ StoreReleaseToOffset(CallingConventions::kArg3Reg, RSP, 0);
 
   __ pushq(TMP);
 
@@ -6294,7 +6294,7 @@ ASSEMBLER_TEST_GENERATE(StoreReleaseLoadAcquire, assembler) {
       __ Bind(&ok);
     }
   }
-  __ LoadAcquire(CallingConventions::kReturnReg, RSP, 0);
+  __ LoadAcquireFromOffset(CallingConventions::kReturnReg, RSP, 0);
   __ popq(RCX);
   __ popq(RCX);
   __ ret();
@@ -6316,8 +6316,8 @@ ASSEMBLER_TEST_GENERATE(StoreReleaseLoadAcquire1024, assembler) {
   __ xorq(RCX, RCX);
   __ pushq(RCX);
   __ subq(RSP, Immediate(1024));
-  __ StoreRelease(CallingConventions::kArg3Reg, RSP, 1024);
-  __ LoadAcquire(CallingConventions::kReturnReg, RSP, 1024);
+  __ StoreReleaseToOffset(CallingConventions::kArg3Reg, RSP, 1024);
+  __ LoadAcquireFromOffset(CallingConventions::kReturnReg, RSP, 1024);
   __ addq(RSP, Immediate(1024));
   __ popq(RCX);
   __ popq(RCX);

@@ -2605,7 +2605,8 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ StoreIntoArray(array, temp, value, CanValueBeSmi());
     } else if (locs()->in(2).IsConstant()) {
       const Object& constant = locs()->in(2).constant();
-      __ StoreIntoObjectNoBarrier(array, compiler::Address(temp), constant);
+      __ StoreObjectIntoObjectNoBarrier(array, compiler::Address(temp),
+                                        constant);
     } else {
       const Register value = locs()->in(2).reg();
       __ StoreIntoObjectNoBarrier(array, compiler::Address(temp), value);

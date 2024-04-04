@@ -2581,26 +2581,27 @@ void Assembler::TsanStoreRelease(Register addr) {
 #endif
 
 void Assembler::LoadAcquire(Register dst,
-                            Register address,
-                            int32_t offset,
+                            const Address& address,
                             OperandSize size) {
-  ASSERT(dst != address);
-  LoadFromOffset(dst, address, offset, size);
+  ASSERT(dst != address.base());
+  Load(dst, address, size);
   fence(HartEffects::kRead, HartEffects::kMemory);
 
 #if defined(TARGET_USES_THREAD_SANITIZER)
-  if (offset == 0) {
-    TsanLoadAcquire(address);
+  if (address.offset() == 0) {
+    TsanLoadAcquire(address.base());
   } else {
-    AddImmediate(TMP2, address, offset);
+    AddImmediate(TMP2, address.base(), address.offset());
     TsanLoadAcquire(TMP2);
   }
 #endif
 }
 
-void Assembler::StoreRelease(Register src, Register address, int32_t offset) {
+void Assembler::StoreRelease(Register src,
+                             const Address& address,
+                             OperandSize size) {
   fence(HartEffects::kMemory, HartEffects::kWrite);
-  StoreToOffset(src, address, offset);
+  Store(src, address, size);
 }
 
 void Assembler::CompareWithMemoryValue(Register value,
@@ -3252,32 +3253,21 @@ void Assembler::StoreDToOffset(FRegister src, Register base, int32_t offset) {
   fsd(src, PrepareLargeOffset(base, offset));
 }
 
-// Store into a heap object and apply the generational and incremental write
-// barriers. All stores into heap objects must pass through this function or,
-// if the value can be proven either Smi or old-and-premarked, its NoBarrier
-// variants.
-// Preserves object and value registers.
-void Assembler::StoreIntoObject(Register object,
-                                const Address& dest,
-                                Register value,
-                                CanBeSmi can_value_be_smi,
-                                MemoryOrder memory_order) {
-  // stlr does not feature an address operand.
-  ASSERT(memory_order == kRelaxedNonAtomic);
-  Store(value, dest);
-  StoreBarrier(object, value, can_value_be_smi);
-}
 void Assembler::StoreBarrier(Register object,
                              Register value,
-                             CanBeSmi can_value_be_smi) {
+                             CanBeSmi can_value_be_smi,
+                             Register scratch) {
   // x.slot = x. Barrier should have be removed at the IL level.
   ASSERT(object != value);
+  ASSERT(object != scratch);
+  ASSERT(value != scratch);
   ASSERT(object != RA);
   ASSERT(value != RA);
-  ASSERT(object != TMP);
+  ASSERT(scratch != RA);
   ASSERT(object != TMP2);
-  ASSERT(value != TMP);
   ASSERT(value != TMP2);
+  ASSERT(scratch != TMP2);
+  ASSERT(scratch != kNoRegister);
 
   // In parallel, test whether
   //  - object is old and not remembered and value is new, or
@@ -3290,12 +3280,19 @@ void Assembler::StoreBarrier(Register object,
   Label done;
   if (can_value_be_smi == kValueCanBeSmi) {
     BranchIfSmi(value, &done, kNearJump);
+  } else {
+#if defined(DEBUG)
+    Label passed_check;
+    BranchIfNotSmi(value, &passed_check, kNearJump);
+    Breakpoint();
+    Bind(&passed_check);
+#endif
   }
-  lbu(TMP, FieldAddress(object, target::Object::tags_offset()));
+  lbu(scratch, FieldAddress(object, target::Object::tags_offset()));
   lbu(TMP2, FieldAddress(value, target::Object::tags_offset()));
-  srli(TMP, TMP, target::UntaggedObject::kBarrierOverlapShift);
-  and_(TMP, TMP, TMP2);
-  ble(TMP, WRITE_BARRIER_STATE, &done, kNearJump);
+  srli(scratch, scratch, target::UntaggedObject::kBarrierOverlapShift);
+  and_(scratch, scratch, TMP2);
+  ble(scratch, WRITE_BARRIER_STATE, &done, kNearJump);
 
   Register objectForCall = object;
   if (value != kWriteBarrierValueReg) {
@@ -3325,25 +3322,29 @@ void Assembler::StoreBarrier(Register object,
   }
   Bind(&done);
 }
-void Assembler::StoreIntoArray(Register object,
-                               Register slot,
-                               Register value,
-                               CanBeSmi can_value_be_smi) {
-  sx(value, Address(slot, 0));
-  StoreIntoArrayBarrier(object, slot, value, can_value_be_smi);
-}
-void Assembler::StoreIntoArrayBarrier(Register object,
-                                      Register slot,
-                                      Register value,
-                                      CanBeSmi can_value_be_smi) {
+
+void Assembler::ArrayStoreBarrier(Register object,
+                                  Register slot,
+                                  Register value,
+                                  CanBeSmi can_value_be_smi,
+                                  Register scratch) {
   // TODO(riscv): Use RA2 to avoid spilling RA inline?
   const bool spill_lr = true;
-  ASSERT(object != TMP);
+  ASSERT(object != slot);
+  ASSERT(object != value);
+  ASSERT(object != scratch);
+  ASSERT(slot != value);
+  ASSERT(slot != scratch);
+  ASSERT(value != scratch);
+  ASSERT(object != RA);
+  ASSERT(slot != RA);
+  ASSERT(value != RA);
+  ASSERT(scratch != RA);
   ASSERT(object != TMP2);
-  ASSERT(value != TMP);
-  ASSERT(value != TMP2);
-  ASSERT(slot != TMP);
   ASSERT(slot != TMP2);
+  ASSERT(value != TMP2);
+  ASSERT(scratch != TMP2);
+  ASSERT(scratch != kNoRegister);
 
   // In parallel, test whether
   //  - object is old and not remembered and value is new, or
@@ -3356,12 +3357,19 @@ void Assembler::StoreIntoArrayBarrier(Register object,
   Label done;
   if (can_value_be_smi == kValueCanBeSmi) {
     BranchIfSmi(value, &done, kNearJump);
+  } else {
+#if defined(DEBUG)
+    Label passed_check;
+    BranchIfNotSmi(value, &passed_check, kNearJump);
+    Breakpoint();
+    Bind(&passed_check);
+#endif
   }
-  lbu(TMP, FieldAddress(object, target::Object::tags_offset()));
+  lbu(scratch, FieldAddress(object, target::Object::tags_offset()));
   lbu(TMP2, FieldAddress(value, target::Object::tags_offset()));
-  srli(TMP, TMP, target::UntaggedObject::kBarrierOverlapShift);
-  and_(TMP, TMP, TMP2);
-  ble(TMP, WRITE_BARRIER_STATE, &done, kNearJump);
+  srli(scratch, scratch, target::UntaggedObject::kBarrierOverlapShift);
+  and_(scratch, scratch, TMP2);
+  ble(scratch, WRITE_BARRIER_STATE, &done, kNearJump);
   if (spill_lr) {
     PushRegister(RA);
   }
@@ -3379,25 +3387,8 @@ void Assembler::StoreIntoArrayBarrier(Register object,
   Bind(&done);
 }
 
-void Assembler::StoreIntoObjectOffset(Register object,
-                                      int32_t offset,
-                                      Register value,
-                                      CanBeSmi can_value_be_smi,
-                                      MemoryOrder memory_order) {
-  if (memory_order == kRelease) {
-    StoreRelease(value, object, offset - kHeapObjectTag);
-  } else {
-    StoreToOffset(value, object, offset - kHeapObjectTag);
-  }
-  StoreBarrier(object, value, can_value_be_smi);
-}
-void Assembler::StoreIntoObjectNoBarrier(Register object,
-                                         const Address& dest,
-                                         Register value,
-                                         MemoryOrder memory_order) {
-  ASSERT(memory_order == kRelaxedNonAtomic);
-  Store(value, dest);
-#if defined(DEBUG)
+void Assembler::VerifyStoreNeedsNoWriteBarrier(Register object,
+                                               Register value) {
   // We can't assert the incremental barrier is not needed here, only the
   // generational barrier. We sometimes omit the write barrier when 'value' is
   // a constant, but we don't eagerly mark 'value' and instead assume it is also
@@ -3413,39 +3404,13 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   beqz(TMP2, &done, kNearJump);
   Stop("Write barrier is required");
   Bind(&done);
-#endif
 }
-void Assembler::StoreIntoObjectOffsetNoBarrier(Register object,
-                                               int32_t offset,
-                                               Register value,
-                                               MemoryOrder memory_order) {
-  if (memory_order == kRelease) {
-    StoreRelease(value, object, offset - kHeapObjectTag);
-  } else {
-    StoreToOffset(value, object, offset - kHeapObjectTag);
-  }
-#if defined(DEBUG)
-  // We can't assert the incremental barrier is not needed here, only the
-  // generational barrier. We sometimes omit the write barrier when 'value' is
-  // a constant, but we don't eagerly mark 'value' and instead assume it is also
-  // reachable via a constant pool, so it doesn't matter if it is not traced via
-  // 'object'.
-  Label done;
-  BranchIfSmi(value, &done, kNearJump);
-  lbu(TMP2, FieldAddress(value, target::Object::tags_offset()));
-  andi(TMP2, TMP2, 1 << target::UntaggedObject::kNewBit);
-  beqz(TMP2, &done, kNearJump);
-  lbu(TMP2, FieldAddress(object, target::Object::tags_offset()));
-  andi(TMP2, TMP2, 1 << target::UntaggedObject::kOldAndNotRememberedBit);
-  beqz(TMP2, &done, kNearJump);
-  Stop("Write barrier is required");
-  Bind(&done);
-#endif
-}
-void Assembler::StoreIntoObjectNoBarrier(Register object,
-                                         const Address& dest,
-                                         const Object& value,
-                                         MemoryOrder memory_order) {
+
+void Assembler::StoreObjectIntoObjectNoBarrier(Register object,
+                                               const Address& dest,
+                                               const Object& value,
+                                               MemoryOrder memory_order,
+                                               OperandSize size) {
   ASSERT(IsOriginalObject(value));
   DEBUG_ASSERT(IsNotTemporaryScopedHandle(value));
   // No store buffer update.
@@ -3455,34 +3420,14 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   } else if (target::IsSmi(value) && (target::ToRawSmi(value) == 0)) {
     value_reg = ZR;
   } else {
-    LoadObject(TMP2, value);
-    value_reg = TMP2;
+    ASSERT(object != TMP);
+    LoadObject(TMP, value);
+    value_reg = TMP;
   }
   if (memory_order == kRelease) {
     fence(HartEffects::kMemory, HartEffects::kWrite);
   }
-  sx(value_reg, dest);
-}
-void Assembler::StoreIntoObjectOffsetNoBarrier(Register object,
-                                               int32_t offset,
-                                               const Object& value,
-                                               MemoryOrder memory_order) {
-  if (memory_order == kRelease) {
-    Register value_reg = TMP2;
-    if (IsSameObject(compiler::NullObject(), value)) {
-      value_reg = NULL_REG;
-    } else if (target::IsSmi(value) && (target::ToRawSmi(value) == 0)) {
-      value_reg = ZR;
-    } else {
-      LoadObject(value_reg, value);
-    }
-    StoreIntoObjectOffsetNoBarrier(object, offset, value_reg, memory_order);
-  } else if (IsITypeImm(offset - kHeapObjectTag)) {
-    StoreIntoObjectNoBarrier(object, FieldAddress(object, offset), value);
-  } else {
-    AddImmediate(TMP, object, offset - kHeapObjectTag);
-    StoreIntoObjectNoBarrier(object, Address(TMP), value);
-  }
+  Store(value_reg, dest, size);
 }
 
 // Stores a non-tagged value into a heap object.

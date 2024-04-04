@@ -299,9 +299,10 @@ void StubCodeCompiler::GenerateInstantiateTypeArgumentsStub() {
     static_assert(TypeArguments::Cache::kSentinelIndex ==
                       TypeArguments::Cache::kInstantiatorTypeArgsIndex,
                   "sentinel is not same index as instantiator type args");
-    __ LoadAcquireCompressed(InstantiationABI::kScratchReg, kEntryReg,
-                             TypeArguments::Cache::kInstantiatorTypeArgsIndex *
-                                 target::kCompressedWordSize);
+    __ LoadAcquireCompressedFromOffset(
+        InstantiationABI::kScratchReg, kEntryReg,
+        TypeArguments::Cache::kInstantiatorTypeArgsIndex *
+            target::kCompressedWordSize);
     // Test for an unoccupied entry by checking for the Smi sentinel.
     __ BranchIfSmi(InstantiationABI::kScratchReg, not_found);
     // Otherwise it must be occupied and contain TypeArguments objects.
@@ -321,7 +322,7 @@ void StubCodeCompiler::GenerateInstantiateTypeArgumentsStub() {
   };
 
   // Lookup cache before calling runtime.
-  __ LoadAcquireCompressed(
+  __ LoadAcquireCompressedFromOffset(
       InstantiationABI::kScratchReg,
       InstantiationABI::kUninstantiatedTypeArgumentsReg,
       target::TypeArguments::instantiations_offset() - kHeapObjectTag);
@@ -374,7 +375,7 @@ void StubCodeCompiler::GenerateInstantiateTypeArgumentsStub() {
       TypeArguments::Cache::kHeaderSize * target::kCompressedWordSize);
 
   __ Comment("Calculate probe mask");
-  __ LoadAcquireCompressed(
+  __ LoadAcquireCompressedFromOffset(
       InstantiationABI::kScratchReg, kEntryReg,
       TypeArguments::Cache::kMetadataIndex * target::kCompressedWordSize);
   __ LsrImmediate(
@@ -2649,10 +2650,11 @@ static void GenerateSubtypeTestCacheLoopBody(Assembler* assembler,
   //
   // Instead, just use LoadAcquire to load the lower bits when compressed and
   // only compare the low bits of the loaded value using CompareObjectRegisters.
-  __ LoadAcquire(TypeTestABI::kScratchReg, cache_entry_reg,
-                 target::kCompressedWordSize *
-                     target::SubtypeTestCache::kInstanceCidOrSignature,
-                 kObjectBytes);
+  __ LoadAcquireFromOffset(
+      TypeTestABI::kScratchReg, cache_entry_reg,
+      target::kCompressedWordSize *
+          target::SubtypeTestCache::kInstanceCidOrSignature,
+      kObjectBytes);
   __ CompareObjectRegisters(TypeTestABI::kScratchReg, null_reg);
   __ BranchIf(EQUAL, not_found, Assembler::kNearJump);
   __ CompareObjectRegisters(TypeTestABI::kScratchReg, instance_cid_or_sig_reg);
@@ -3153,7 +3155,7 @@ void StubCodeCompiler::GenerateSubtypeTestCacheSearch(
   __ Bind(&search_stc);
 #endif
 
-  __ LoadAcquireCompressed(
+  __ LoadAcquireCompressedFromOffset(
       cache_entry_reg, TypeTestABI::kSubtypeTestCacheReg,
       target::SubtypeTestCache::cache_offset() - kHeapObjectTag);
 

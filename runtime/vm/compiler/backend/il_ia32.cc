@@ -1944,7 +1944,7 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ StoreIntoArray(array, slot, value, CanValueBeSmi(), scratch);
     } else if (locs()->in(2).IsConstant()) {
       const Object& constant = locs()->in(2).constant();
-      __ StoreIntoObjectNoBarrier(array, element_address, constant);
+      __ StoreObjectIntoObjectNoBarrier(array, element_address, constant);
     } else {
       Register value = locs()->in(2).reg();
       __ StoreIntoObjectNoBarrier(array, element_address, value);
@@ -2336,9 +2336,9 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
     } else {
       compiler::Label init_loop;
       __ Bind(&init_loop);
-      __ StoreIntoObjectNoBarrier(AllocateArrayABI::kResultReg,
-                                  compiler::Address(EDI, 0),
-                                  Object::null_object());
+      __ StoreObjectIntoObjectNoBarrier(AllocateArrayABI::kResultReg,
+                                        compiler::Address(EDI, 0),
+                                        Object::null_object());
       __ addl(EDI, compiler::Immediate(kWordSize));
       __ cmpl(EDI, EBX);
       __ j(BELOW, &init_loop, compiler::Assembler::kNearJump);

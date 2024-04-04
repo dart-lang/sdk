@@ -15,6 +15,7 @@ wasm/*: SkipByDesign
 
 [ $compiler == ddc ]
 async_stacktrace_test: Skip # Issue 53555
+native/*: Skip # dart2js tests for native keyword
 
 [ $runtime == jsshell ]
 deferred/load_in_correct_order_test: SkipByDesign # jsshell preamble does not support this test.

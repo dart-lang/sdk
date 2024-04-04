@@ -992,8 +992,8 @@ void StubCodeCompiler::GenerateAllocateArrayStub() {
     for (intptr_t offset = 0; offset < target::kObjectAlignment;
          offset += target::kWordSize) {
       // No generational barrier needed, since we are storing null.
-      __ StoreIntoObjectNoBarrier(AllocateArrayABI::kResultReg,
-                                  Address(EDI, offset), NullObject());
+      __ StoreObjectIntoObjectNoBarrier(AllocateArrayABI::kResultReg,
+                                        Address(EDI, offset), NullObject());
     }
     // Safe to only check every kObjectAlignment bytes instead of each word.
     ASSERT(kAllocationRedZoneSize >= target::kObjectAlignment);
@@ -1253,7 +1253,7 @@ void StubCodeCompiler::GenerateAllocateContextStub() {
     // EAX: new object.
     // EDX: number of context variables.
     // No generational barrier needed, since we are storing null.
-    __ StoreIntoObjectNoBarrier(
+    __ StoreObjectIntoObjectNoBarrier(
         EAX, FieldAddress(EAX, target::Context::parent_offset()), NullObject());
 
     // Initialize the context variables.
@@ -1267,8 +1267,8 @@ void StubCodeCompiler::GenerateAllocateContextStub() {
       __ Bind(&loop);
       __ decl(EDX);
       // No generational barrier needed, since we are storing null.
-      __ StoreIntoObjectNoBarrier(EAX, Address(EBX, EDX, TIMES_4, 0),
-                                  NullObject());
+      __ StoreObjectIntoObjectNoBarrier(EAX, Address(EBX, EDX, TIMES_4, 0),
+                                        NullObject());
       __ Bind(&entry);
       __ cmpl(EDX, Immediate(0));
       __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
@@ -1662,7 +1662,7 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
       for (intptr_t current_offset = target::Instance::first_field_offset();
            current_offset < instance_size;
            current_offset += target::kWordSize) {
-        __ StoreIntoObjectNoBarrier(
+        __ StoreObjectIntoObjectNoBarrier(
             AllocateObjectABI::kResultReg,
             FieldAddress(AllocateObjectABI::kResultReg, current_offset),
             NullObject());
@@ -1680,8 +1680,8 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
       __ Bind(&loop);
       for (intptr_t offset = 0; offset < target::kObjectAlignment;
            offset += target::kWordSize) {
-        __ StoreIntoObjectNoBarrier(AllocateObjectABI::kResultReg,
-                                    Address(ECX, offset), NullObject());
+        __ StoreObjectIntoObjectNoBarrier(AllocateObjectABI::kResultReg,
+                                          Address(ECX, offset), NullObject());
       }
       // Safe to only check every kObjectAlignment bytes instead of each word.
       ASSERT(kAllocationRedZoneSize >= target::kObjectAlignment);
@@ -2467,7 +2467,7 @@ static void GenerateSubtypeTestCacheLoop(
     __ CompareToStack(src, original_tos_offset + depth);
   };
 
-  __ LoadAcquireCompressed(
+  __ LoadAcquireCompressedFromOffset(
       STCInternal::kScratchReg, STCInternal::kCacheArrayReg,
       target::kCompressedWordSize *
           target::SubtypeTestCache::kInstanceCidOrSignature);

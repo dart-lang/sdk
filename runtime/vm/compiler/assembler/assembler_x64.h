@@ -852,69 +852,32 @@ class Assembler : public AssemblerBase {
 
   // Unaware of write barrier (use StoreInto* methods for storing to objects).
   // TODO(koda): Add StackAddress/HeapAddress types to prevent misuse.
-  void StoreObject(const Address& dst, const Object& obj);
+  void StoreObject(const Address& dst,
+                   const Object& obj,
+                   OperandSize size = kWordBytes);
   void PushObject(const Object& object);
   void CompareObject(Register reg, const Object& object);
 
 #if defined(DART_COMPRESSED_POINTERS)
   void LoadCompressed(Register dest, const Address& slot) override;
 #endif
-  // Store into a heap object and apply the generational and incremental write
-  // barriers. All stores into heap objects must pass through this function or,
-  // if the value can be proven either Smi or old-and-premarked, its NoBarrier
-  // variants.
-  // Preserves object and value registers.
-  void StoreIntoObject(Register object,      // Object we are storing into.
-                       const Address& dest,  // Where we are storing into.
-                       Register value,       // Value we are storing.
-                       CanBeSmi can_be_smi = kValueCanBeSmi,
-                       MemoryOrder memory_order = kRelaxedNonAtomic) override;
-#if defined(DART_COMPRESSED_POINTERS)
-  void StoreCompressedIntoObject(
-      Register object,      // Object we are storing into.
-      const Address& dest,  // Where we are storing into.
-      Register value,       // Value we are storing.
-      CanBeSmi can_be_smi = kValueCanBeSmi,
-      MemoryOrder memory_order = kRelaxedNonAtomic) override;
-#endif
   void StoreBarrier(Register object,  // Object we are storing into.
                     Register value,   // Value we are storing.
-                    CanBeSmi can_be_smi);
-  void StoreIntoArray(Register object,  // Object we are storing into.
-                      Register slot,    // Where we are storing into.
-                      Register value,   // Value we are storing.
-                      CanBeSmi can_be_smi = kValueCanBeSmi) override;
-#if defined(DART_COMPRESSED_POINTERS)
-  void StoreCompressedIntoArray(Register object,  // Object we are storing into.
-                                Register slot,    // Where we are storing into.
-                                Register value,   // Value we are storing.
-                                CanBeSmi can_be_smi = kValueCanBeSmi) override;
-#endif
+                    CanBeSmi can_be_smi,
+                    Register scratch) override;
+  void ArrayStoreBarrier(Register object,  // Object we are storing into.
+                         Register slot,    // Slot into which we are storing.
+                         Register value,   // Value we are storing.
+                         CanBeSmi can_be_smi,
+                         Register scratch) override;
+  void VerifyStoreNeedsNoWriteBarrier(Register object, Register value) override;
 
-  void StoreIntoObjectNoBarrier(
-      Register object,
-      const Address& dest,
-      Register value,
-      MemoryOrder memory_order = kRelaxedNonAtomic) override;
-#if defined(DART_COMPRESSED_POINTERS)
-  void StoreCompressedIntoObjectNoBarrier(
-      Register object,
-      const Address& dest,
-      Register value,
-      MemoryOrder memory_order = kRelaxedNonAtomic) override;
-#endif
-  void StoreIntoObjectNoBarrier(
+  void StoreObjectIntoObjectNoBarrier(
       Register object,
       const Address& dest,
       const Object& value,
-      MemoryOrder memory_order = kRelaxedNonAtomic) override;
-#if defined(DART_COMPRESSED_POINTERS)
-  void StoreCompressedIntoObjectNoBarrier(
-      Register object,
-      const Address& dest,
-      const Object& value,
-      MemoryOrder memory_order = kRelaxedNonAtomic) override;
-#endif
+      MemoryOrder memory_order = kRelaxedNonAtomic,
+      OperandSize size = kWordBytes) override;
 
   // Stores a non-tagged value into a heap object.
   void StoreInternalPointer(Register object,
@@ -1153,50 +1116,35 @@ class Assembler : public AssemblerBase {
 #endif
 
   void LoadAcquire(Register dst,
-                   Register address,
-                   int32_t offset = 0,
+                   const Address& address,
                    OperandSize size = kEightBytes) override {
     // On intel loads have load-acquire behavior (i.e. loads are not re-ordered
     // with other loads).
-    Load(dst, Address(address, offset), size);
+    Load(dst, address, size);
 #if defined(TARGET_USES_THREAD_SANITIZER)
-    TsanLoadAcquire(Address(address, offset));
+    TsanLoadAcquire(address);
 #endif
   }
 #if defined(DART_COMPRESSED_POINTERS)
-  void LoadAcquireCompressed(Register dst,
-                             Register address,
-                             int32_t offset = 0) override {
+  void LoadAcquireCompressed(Register dst, const Address& address) override {
     // On intel loads have load-acquire behavior (i.e. loads are not re-ordered
     // with other loads).
-    LoadCompressed(dst, Address(address, offset));
+    LoadCompressed(dst, address);
 #if defined(TARGET_USES_THREAD_SANITIZER)
-    TsanLoadAcquire(Address(address, offset));
+    TsanLoadAcquire(address);
 #endif
   }
 #endif
   void StoreRelease(Register src,
-                    Register address,
-                    int32_t offset = 0) override {
+                    const Address& address,
+                    OperandSize size = kWordBytes) override {
     // On intel stores have store-release behavior (i.e. stores are not
     // re-ordered with other stores).
-    movq(Address(address, offset), src);
+    Store(src, address, size);
 #if defined(TARGET_USES_THREAD_SANITIZER)
-    TsanStoreRelease(Address(address, offset));
+    TsanStoreRelease(address);
 #endif
   }
-#if defined(DART_COMPRESSED_POINTERS)
-  void StoreReleaseCompressed(Register src,
-                              Register address,
-                              int32_t offset = 0) override {
-    // On intel stores have store-release behavior (i.e. stores are not
-    // re-ordered with other stores).
-    OBJ(mov)(Address(address, offset), src);
-#if defined(TARGET_USES_THREAD_SANITIZER)
-    TsanStoreRelease(Address(address, offset));
-#endif
-  }
-#endif
 
   void CompareWithMemoryValue(Register value,
                               Address address,
@@ -1513,7 +1461,9 @@ class Assembler : public AssemblerBase {
                              CanBeSmi can_be_smi = kValueCanBeSmi);
 
   // Unaware of write barrier (use StoreInto* methods for storing to objects).
-  void MoveImmediate(const Address& dst, const Immediate& imm);
+  void MoveImmediate(const Address& dst,
+                     const Immediate& imm,
+                     OperandSize size = kWordBytes);
 
   friend class dart::FlowGraphCompiler;
   std::function<void(Register reg)> generate_invoke_write_barrier_wrapper_;

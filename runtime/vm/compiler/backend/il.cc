@@ -4629,28 +4629,7 @@ LocationSummary* LoadFieldInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumInputs = 1;
   LocationSummary* locs = nullptr;
   auto const rep = slot().representation();
-  if (rep != kTagged) {
-    ASSERT(!calls_initializer());
-
-    const intptr_t kNumTemps = 0;
-    locs = new (zone)
-        LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-    locs->set_in(0, Location::RequiresRegister());
-    if (rep == kUntagged) {
-      locs->set_out(0, Location::RequiresRegister());
-    } else if (RepresentationUtils::IsUnboxedInteger(rep)) {
-      const size_t value_size = RepresentationUtils::ValueSize(rep);
-      if (value_size <= compiler::target::kWordSize) {
-        locs->set_out(0, Location::RequiresRegister());
-      } else {
-        ASSERT(value_size == 2 * compiler::target::kWordSize);
-        locs->set_out(0, Location::Pair(Location::RequiresRegister(),
-                                        Location::RequiresRegister()));
-      }
-    } else {
-      locs->set_out(0, Location::RequiresFpuRegister());
-    }
-  } else if (calls_initializer()) {
+  if (calls_initializer()) {
     if (throw_exception_on_initialization()) {
       const bool using_shared_stub = UseSharedSlowPathStub(opt);
       const intptr_t kNumTemps = using_shared_stub ? 1 : 0;
@@ -4678,63 +4657,62 @@ LocationSummary* LoadFieldInstr::MakeLocationSummary(Zone* zone,
     locs = new (zone)
         LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
     locs->set_in(0, Location::RequiresRegister());
-    locs->set_out(0, Location::RequiresRegister());
+    if (rep == kTagged || rep == kUntagged) {
+      locs->set_out(0, Location::RequiresRegister());
+    } else if (RepresentationUtils::IsUnboxedInteger(rep)) {
+      const size_t value_size = RepresentationUtils::ValueSize(rep);
+      if (value_size <= compiler::target::kWordSize) {
+        locs->set_out(0, Location::RequiresRegister());
+      } else {
+        ASSERT(value_size == 2 * compiler::target::kWordSize);
+        locs->set_out(0, Location::Pair(Location::RequiresRegister(),
+                                        Location::RequiresRegister()));
+      }
+    } else {
+      locs->set_out(0, Location::RequiresFpuRegister());
+    }
   }
   return locs;
 }
 
 void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register instance_reg = locs()->in(0).reg();
+
   auto const rep = slot().representation();
-  if (rep != kTagged) {
-    if (rep == kUntagged) {
-      const Register result = locs()->out(0).reg();
-      __ LoadFieldFromOffset(result, instance_reg, OffsetInBytes(),
-                             RepresentationUtils::OperandSize(rep));
-    } else if (RepresentationUtils::IsUnboxedInteger(rep)) {
-      const size_t value_size = RepresentationUtils::ValueSize(rep);
-      if (value_size <= compiler::target::kWordSize) {
-        const Register result = locs()->out(0).reg();
-        __ LoadFieldFromOffset(result, instance_reg, OffsetInBytes(),
-                               RepresentationUtils::OperandSize(rep));
-      } else {
-        auto const result_pair = locs()->out(0).AsPairLocation();
-        const Register result_lo = result_pair->At(0).reg();
-        const Register result_hi = result_pair->At(1).reg();
-        __ LoadFieldFromOffset(result_lo, instance_reg, OffsetInBytes());
-        __ LoadFieldFromOffset(result_hi, instance_reg,
-                               OffsetInBytes() + compiler::target::kWordSize);
-      }
-    } else {
-      const FpuRegister result = locs()->out(0).fpu_reg();
-      const intptr_t cid = slot().field().guarded_cid();
-      switch (cid) {
-        case kDoubleCid:
-          __ LoadUnboxedDouble(result, instance_reg,
-                               OffsetInBytes() - kHeapObjectTag);
-          break;
-        case kFloat32x4Cid:
-        case kFloat64x2Cid:
-          __ LoadUnboxedSimd128(result, instance_reg,
-                                OffsetInBytes() - kHeapObjectTag);
-          break;
-        default:
-          UNREACHABLE();
-      }
-    }
-    return;
-  }
-
-  // Tagged load.
-  const Register result = locs()->out(0).reg();
-  if (slot().is_compressed()) {
-    __ LoadCompressedFieldFromOffset(result, instance_reg, OffsetInBytes());
-  } else {
-    __ LoadFieldFromOffset(result, instance_reg, OffsetInBytes());
-  }
-
   if (calls_initializer()) {
+    __ LoadFromSlot(locs()->out(0).reg(), instance_reg, slot());
     EmitNativeCodeForInitializerCall(compiler);
+  } else if (rep == kTagged || rep == kUntagged) {
+    __ LoadFromSlot(locs()->out(0).reg(), instance_reg, slot());
+  } else if (RepresentationUtils::IsUnboxedInteger(rep)) {
+    const size_t value_size = RepresentationUtils::ValueSize(rep);
+    if (value_size <= compiler::target::kWordSize) {
+      __ LoadFromSlot(locs()->out(0).reg(), instance_reg, slot());
+    } else {
+      auto const result_pair = locs()->out(0).AsPairLocation();
+      const Register result_lo = result_pair->At(0).reg();
+      const Register result_hi = result_pair->At(1).reg();
+      __ LoadFieldFromOffset(result_lo, instance_reg, OffsetInBytes());
+      __ LoadFieldFromOffset(result_hi, instance_reg,
+                             OffsetInBytes() + compiler::target::kWordSize);
+    }
+  } else {
+    ASSERT(slot().IsDartField());
+    const intptr_t cid = slot().field().guarded_cid();
+    const FpuRegister result = locs()->out(0).fpu_reg();
+    switch (cid) {
+      case kDoubleCid:
+        __ LoadUnboxedDouble(result, instance_reg,
+                             OffsetInBytes() - kHeapObjectTag);
+        break;
+      case kFloat32x4Cid:
+      case kFloat64x2Cid:
+        __ LoadUnboxedSimd128(result, instance_reg,
+                              OffsetInBytes() - kHeapObjectTag);
+        break;
+      default:
+        UNREACHABLE();
+    }
   }
 }
 
@@ -7726,54 +7704,47 @@ LocationSummary* StoreFieldInstr::MakeLocationSummary(Zone* zone,
 
   summary->set_in(kInstancePos, Location::RequiresRegister());
   const Representation rep = slot().representation();
-  if (rep != kTagged) {
-    if (rep == kUntagged) {
+  if (rep == kUntagged) {
+    summary->set_in(kValuePos, Location::RequiresRegister());
+  } else if (RepresentationUtils::IsUnboxedInteger(rep)) {
+    const size_t value_size = RepresentationUtils::ValueSize(rep);
+    if (value_size <= compiler::target::kWordSize) {
       summary->set_in(kValuePos, Location::RequiresRegister());
-    } else if (RepresentationUtils::IsUnboxedInteger(rep)) {
-      const size_t value_size = RepresentationUtils::ValueSize(rep);
-      if (value_size <= compiler::target::kWordSize) {
-        summary->set_in(kValuePos, Location::RequiresRegister());
-      } else {
-        ASSERT(value_size == 2 * compiler::target::kWordSize);
-        summary->set_in(kValuePos,
-                        Location::Pair(Location::RequiresRegister(),
-                                       Location::RequiresRegister()));
-      }
     } else {
-      summary->set_in(kValuePos, Location::RequiresFpuRegister());
+      ASSERT(value_size == 2 * compiler::target::kWordSize);
+      summary->set_in(kValuePos, Location::Pair(Location::RequiresRegister(),
+                                                Location::RequiresRegister()));
     }
+  } else if (RepresentationUtils::IsUnboxed(rep)) {
+    summary->set_in(kValuePos, Location::RequiresFpuRegister());
+  } else if (ShouldEmitStoreBarrier()) {
+    summary->set_in(kValuePos,
+                    Location::RegisterLocation(kWriteBarrierValueReg));
   } else {
-    Location value_loc;
-    if (ShouldEmitStoreBarrier()) {
-      summary->set_in(kValuePos,
-                      Location::RegisterLocation(kWriteBarrierValueReg));
-    } else {
 #if defined(TARGET_ARCH_IA32)
-      // IA32 supports emitting `mov mem, Imm32` even for heap
-      // pointer immediates.
-      summary->set_in(kValuePos, LocationRegisterOrConstant(value()));
+    // IA32 supports emitting `mov mem, Imm32` even for heap
+    // pointer immediates.
+    summary->set_in(kValuePos, LocationRegisterOrConstant(value()));
 #elif defined(TARGET_ARCH_X64)
-      // X64 supports emitting `mov mem, Imm32` only with non-pointer
-      // immediate.
-      summary->set_in(kValuePos, LocationRegisterOrSmiConstant(value()));
+    // X64 supports emitting `mov mem, Imm32` only with non-pointer
+    // immediate.
+    summary->set_in(kValuePos, LocationRegisterOrSmiConstant(value()));
 #elif defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_RISCV32) ||            \
     defined(TARGET_ARCH_RISCV64)
-      // ARM64 and RISC-V have dedicated zero and null registers which can be
-      // used in store instructions.
-      Location value_loc = Location::RequiresRegister();
-      if (auto constant = value()->definition()->AsConstant()) {
-        const auto& value = constant->value();
-        if (value.IsNull() ||
-            (value.IsSmi() && Smi::Cast(value).Value() == 0)) {
-          value_loc = Location::Constant(constant);
-        }
+    // ARM64 and RISC-V have dedicated zero and null registers which can be
+    // used in store instructions.
+    Location value_loc = Location::RequiresRegister();
+    if (auto constant = value()->definition()->AsConstant()) {
+      const auto& value = constant->value();
+      if (value.IsNull() || (value.IsSmi() && Smi::Cast(value).Value() == 0)) {
+        value_loc = Location::Constant(constant);
       }
-      summary->set_in(kValuePos, value_loc);
-#else
-      // No support for moving immediate to memory directly.
-      summary->set_in(kValuePos, Location::RequiresRegister());
-#endif
     }
+    summary->set_in(kValuePos, value_loc);
+#else
+    // No support for moving immediate to memory directly.
+    summary->set_in(kValuePos, Location::RequiresRegister());
+#endif
   }
   if (kNumTemps == 1) {
     summary->set_temp(0, Location::RequiresRegister());
@@ -7788,106 +7759,56 @@ void StoreFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const intptr_t offset_in_bytes = OffsetInBytes();
   ASSERT(offset_in_bytes > 0);  // Field is finalized and points after header.
 
-  auto const rep = slot().representation();
-  if (slot().representation() != kTagged) {
-    // Unboxed field.
-    ASSERT(memory_order_ != compiler::AssemblerBase::kRelease);
-    if (rep == kUntagged) {
-      const Register value = locs()->in(kValuePos).reg();
-      __ StoreFieldToOffset(value, instance_reg, offset_in_bytes,
-                            RepresentationUtils::OperandSize(rep));
-    } else if (RepresentationUtils::IsUnboxedInteger(rep)) {
-      const size_t value_size = RepresentationUtils::ValueSize(rep);
-      if (value_size <= compiler::target::kWordSize) {
-        const Register value = locs()->in(kValuePos).reg();
-        __ StoreFieldToOffset(value, instance_reg, offset_in_bytes,
-                              RepresentationUtils::OperandSize(rep));
-      } else {
-        auto const value_pair = locs()->in(kValuePos).AsPairLocation();
-        const Register value_lo = value_pair->At(0).reg();
-        const Register value_hi = value_pair->At(1).reg();
-        __ StoreFieldToOffset(value_lo, instance_reg, offset_in_bytes);
-        __ StoreFieldToOffset(value_hi, instance_reg,
-                              offset_in_bytes + compiler::target::kWordSize);
-      }
+  const Representation rep = slot().representation();
+  if (rep == kUntagged) {
+    __ StoreToSlotNoBarrier(locs()->in(kValuePos).reg(), instance_reg, slot(),
+                            memory_order_);
+  } else if (RepresentationUtils::IsUnboxedInteger(rep)) {
+    const size_t value_size = RepresentationUtils::ValueSize(rep);
+    if (value_size <= compiler::target::kWordSize) {
+      __ StoreToSlotNoBarrier(locs()->in(kValuePos).reg(), instance_reg, slot(),
+                              memory_order_);
     } else {
-      // This is an FPU store.
-      const intptr_t cid = slot().field().guarded_cid();
-      const FpuRegister value = locs()->in(kValuePos).fpu_reg();
-      switch (cid) {
-        case kDoubleCid:
-          __ StoreUnboxedDouble(value, instance_reg,
-                                offset_in_bytes - kHeapObjectTag);
-          return;
-        case kFloat32x4Cid:
-        case kFloat64x2Cid:
-          __ StoreUnboxedSimd128(value, instance_reg,
-                                 offset_in_bytes - kHeapObjectTag);
-          return;
-        default:
-          UNREACHABLE();
-      }
+      ASSERT(slot().representation() == kUnboxedInt64);
+      ASSERT_EQUAL(compiler::target::kWordSize, kInt32Size);
+      auto const value_pair = locs()->in(kValuePos).AsPairLocation();
+      const Register value_lo = value_pair->At(0).reg();
+      const Register value_hi = value_pair->At(1).reg();
+      __ StoreFieldToOffset(value_lo, instance_reg, offset_in_bytes);
+      __ StoreFieldToOffset(value_hi, instance_reg,
+                            offset_in_bytes + compiler::target::kWordSize);
     }
-    return;
-  }
-
-  // Store of a tagged pointer.
-  const bool compressed = slot().is_compressed();
-  if (ShouldEmitStoreBarrier()) {
-    Register value_reg = locs()->in(kValuePos).reg();
-    if (!compressed) {
-#if defined(TARGET_ARCH_IA32)
-      __ StoreIntoObjectOffset(instance_reg, offset_in_bytes, value_reg,
-                               CanValueBeSmi(), memory_order_,
-                               locs()->temp(0).reg());
-#else
-      __ StoreIntoObjectOffset(instance_reg, offset_in_bytes, value_reg,
-                               CanValueBeSmi(), memory_order_);
-#endif
-    } else {
-#if defined(DART_COMPRESSED_POINTERS)
-      __ StoreCompressedIntoObjectOffset(instance_reg, offset_in_bytes,
-                                         value_reg, CanValueBeSmi(),
-                                         memory_order_);
-#else
-      UNREACHABLE();
-#endif
-    }
-  } else {
-    if (locs()->in(kValuePos).IsConstant()) {
-#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_IA32) ||                   \
-    defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_RISCV32) ||              \
-    defined(TARGET_ARCH_RISCV64)
-      const auto& value = locs()->in(kValuePos).constant();
-      if (!compressed) {
-        __ StoreIntoObjectOffsetNoBarrier(instance_reg, offset_in_bytes, value,
-                                          memory_order_);
-      } else {
-#if defined(DART_COMPRESSED_POINTERS)
-        __ StoreCompressedIntoObjectOffsetNoBarrier(
-            instance_reg, offset_in_bytes, value, memory_order_);
-#else
+  } else if (RepresentationUtils::IsUnboxed(rep)) {
+    ASSERT(slot().IsDartField());
+    const intptr_t cid = slot().field().guarded_cid();
+    const FpuRegister value = locs()->in(kValuePos).fpu_reg();
+    switch (cid) {
+      case kDoubleCid:
+        __ StoreUnboxedDouble(value, instance_reg,
+                              offset_in_bytes - kHeapObjectTag);
+        return;
+      case kFloat32x4Cid:
+      case kFloat64x2Cid:
+        __ StoreUnboxedSimd128(value, instance_reg,
+                               offset_in_bytes - kHeapObjectTag);
+        return;
+      default:
         UNREACHABLE();
-#endif
-      }
-      return;
-#else
-      UNREACHABLE();
-#endif
     }
-
-    Register value_reg = locs()->in(kValuePos).reg();
-    if (!compressed) {
-      __ StoreIntoObjectOffsetNoBarrier(instance_reg, offset_in_bytes,
-                                        value_reg, memory_order_);
-    } else {
-#if defined(DART_COMPRESSED_POINTERS)
-      __ StoreCompressedIntoObjectOffsetNoBarrier(instance_reg, offset_in_bytes,
-                                                  value_reg, memory_order_);
-#else
-      UNREACHABLE();
-#endif
-    }
+  } else if (ShouldEmitStoreBarrier()) {
+    const Register scratch_reg =
+        locs()->temp_count() > 0 ? locs()->temp(0).reg() : TMP;
+    __ StoreToSlot(locs()->in(kValuePos).reg(), instance_reg, slot(),
+                   CanValueBeSmi(), memory_order_, scratch_reg);
+  } else if (locs()->in(kValuePos).IsConstant()) {
+    const auto& value = locs()->in(kValuePos).constant();
+    auto const size =
+        slot().is_compressed() ? compiler::kObjectBytes : compiler::kWordBytes;
+    __ StoreObjectIntoObjectOffsetNoBarrier(instance_reg, offset_in_bytes,
+                                            value, memory_order_, size);
+  } else {
+    __ StoreToSlotNoBarrier(locs()->in(kValuePos).reg(), instance_reg, slot(),
+                            memory_order_);
   }
 }
 
