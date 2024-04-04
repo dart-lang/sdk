@@ -1035,82 +1035,27 @@ void Assembler::VRSqrts(VRegister vd, VRegister vn) {
 
 #if defined(DART_COMPRESSED_POINTERS)
 void Assembler::LoadCompressed(Register dest, const Address& slot) {
-  ldr(dest, slot, kUnsignedFourBytes);  // Zero-extension.
+  Load(dest, slot, kUnsignedFourBytes);  // Zero-extension.
   add(dest, dest, Operand(HEAP_BITS, LSL, 32));
-}
-
-void Assembler::LoadCompressedFromOffset(Register dest,
-                                         Register base,
-                                         int32_t offset) {
-  LoadFromOffset(dest, base, offset, kUnsignedFourBytes);  // Zero-extension.
-  add(dest, dest, Operand(HEAP_BITS, LSL, 32));
-}
-#endif
-
-void Assembler::StoreIntoObjectOffset(Register object,
-                                      int32_t offset,
-                                      Register value,
-                                      CanBeSmi value_can_be_smi,
-                                      MemoryOrder memory_order) {
-  if (memory_order == kRelease) {
-    StoreRelease(value, object, offset);
-  } else {
-    StoreToOffset(value, object, offset - kHeapObjectTag);
-  }
-  StoreBarrier(object, value, value_can_be_smi);
-}
-
-#if defined(DART_COMPRESSED_POINTERS)
-void Assembler::StoreCompressedIntoObjectOffset(Register object,
-                                                int32_t offset,
-                                                Register value,
-                                                CanBeSmi value_can_be_smi,
-                                                MemoryOrder memory_order) {
-  if (memory_order == kRelease) {
-    StoreReleaseCompressed(value, object, offset);
-  } else {
-    StoreToOffset(value, object, offset - kHeapObjectTag, kObjectBytes);
-  }
-  StoreBarrier(object, value, value_can_be_smi);
-}
-#endif
-
-void Assembler::StoreIntoObject(Register object,
-                                const Address& dest,
-                                Register value,
-                                CanBeSmi can_be_smi,
-                                MemoryOrder memory_order) {
-  // stlr does not feature an address operand.
-  ASSERT(memory_order == kRelaxedNonAtomic);
-  str(value, dest);
-  StoreBarrier(object, value, can_be_smi);
-}
-
-#if defined(DART_COMPRESSED_POINTERS)
-void Assembler::StoreCompressedIntoObject(Register object,
-                                          const Address& dest,
-                                          Register value,
-                                          CanBeSmi can_be_smi,
-                                          MemoryOrder memory_order) {
-  // stlr does not feature an address operand.
-  ASSERT(memory_order == kRelaxedNonAtomic);
-  str(value, dest, kObjectBytes);
-  StoreBarrier(object, value, can_be_smi);
 }
 #endif
 
 void Assembler::StoreBarrier(Register object,
                              Register value,
-                             CanBeSmi can_be_smi) {
+                             CanBeSmi can_be_smi,
+                             Register scratch) {
   const bool spill_lr = lr_state().LRContainsReturnAddress();
   // x.slot = x. Barrier should have be removed at the IL level.
   ASSERT(object != value);
+  ASSERT(object != scratch);
+  ASSERT(value != scratch);
   ASSERT(object != LINK_REGISTER);
   ASSERT(value != LINK_REGISTER);
-  ASSERT(object != TMP);
+  ASSERT(scratch != LINK_REGISTER);
   ASSERT(object != TMP2);
-  ASSERT(value != TMP);
   ASSERT(value != TMP2);
+  ASSERT(scratch != TMP2);
+  ASSERT(scratch != kNoRegister);
 
   // In parallel, test whether
   //  - object is old and not remembered and value is new, or
@@ -1122,12 +1067,20 @@ void Assembler::StoreBarrier(Register object,
   Label done;
   if (can_be_smi == kValueCanBeSmi) {
     BranchIfSmi(value, &done);
+  } else {
+#if defined(DEBUG)
+    Label passed_check;
+    BranchIfNotSmi(value, &passed_check, kNearJump);
+    Breakpoint();
+    Bind(&passed_check);
+#endif
   }
-  ldr(TMP, FieldAddress(object, target::Object::tags_offset()), kUnsignedByte);
+  ldr(scratch, FieldAddress(object, target::Object::tags_offset()),
+      kUnsignedByte);
   ldr(TMP2, FieldAddress(value, target::Object::tags_offset()), kUnsignedByte);
-  and_(TMP, TMP2,
-       Operand(TMP, LSR, target::UntaggedObject::kBarrierOverlapShift));
-  tst(TMP, Operand(HEAP_BITS, LSR, 32));
+  and_(scratch, TMP2,
+       Operand(scratch, LSR, target::UntaggedObject::kBarrierOverlapShift));
+  tst(scratch, Operand(HEAP_BITS, LSR, 32));
   b(&done, ZERO);
 
   if (spill_lr) {
@@ -1164,35 +1117,27 @@ void Assembler::StoreBarrier(Register object,
   Bind(&done);
 }
 
-void Assembler::StoreIntoArray(Register object,
-                               Register slot,
-                               Register value,
-                               CanBeSmi can_be_smi) {
-  str(value, Address(slot, 0));
-  StoreIntoArrayBarrier(object, slot, value, can_be_smi);
-}
-
-#if defined(DART_COMPRESSED_POINTERS)
-void Assembler::StoreCompressedIntoArray(Register object,
-                                         Register slot,
-                                         Register value,
-                                         CanBeSmi can_be_smi) {
-  str(value, Address(slot, 0), kObjectBytes);
-  StoreIntoArrayBarrier(object, slot, value, can_be_smi);
-}
-#endif
-
-void Assembler::StoreIntoArrayBarrier(Register object,
-                                      Register slot,
-                                      Register value,
-                                      CanBeSmi can_be_smi) {
+void Assembler::ArrayStoreBarrier(Register object,
+                                  Register slot,
+                                  Register value,
+                                  CanBeSmi can_be_smi,
+                                  Register scratch) {
   const bool spill_lr = lr_state().LRContainsReturnAddress();
-  ASSERT(object != TMP);
+  ASSERT(object != slot);
+  ASSERT(object != value);
+  ASSERT(object != scratch);
+  ASSERT(slot != value);
+  ASSERT(slot != scratch);
+  ASSERT(value != scratch);
+  ASSERT(object != LINK_REGISTER);
+  ASSERT(slot != LINK_REGISTER);
+  ASSERT(value != LINK_REGISTER);
+  ASSERT(scratch != LINK_REGISTER);
   ASSERT(object != TMP2);
-  ASSERT(value != TMP);
-  ASSERT(value != TMP2);
-  ASSERT(slot != TMP);
   ASSERT(slot != TMP2);
+  ASSERT(value != TMP2);
+  ASSERT(scratch != TMP2);
+  ASSERT(scratch != kNoRegister);
 
   // In parallel, test whether
   //  - object is old and not remembered and value is new, or
@@ -1204,12 +1149,20 @@ void Assembler::StoreIntoArrayBarrier(Register object,
   Label done;
   if (can_be_smi == kValueCanBeSmi) {
     BranchIfSmi(value, &done);
+  } else {
+#if defined(DEBUG)
+    Label passed_check;
+    BranchIfNotSmi(value, &passed_check, kNearJump);
+    Breakpoint();
+    Bind(&passed_check);
+#endif
   }
-  ldr(TMP, FieldAddress(object, target::Object::tags_offset()), kUnsignedByte);
+  ldr(scratch, FieldAddress(object, target::Object::tags_offset()),
+      kUnsignedByte);
   ldr(TMP2, FieldAddress(value, target::Object::tags_offset()), kUnsignedByte);
-  and_(TMP, TMP2,
-       Operand(TMP, LSR, target::UntaggedObject::kBarrierOverlapShift));
-  tst(TMP, Operand(HEAP_BITS, LSR, 32));
+  and_(scratch, TMP2,
+       Operand(scratch, LSR, target::UntaggedObject::kBarrierOverlapShift));
+  tst(scratch, Operand(HEAP_BITS, LSR, 32));
   b(&done, ZERO);
   if (spill_lr) {
     SPILLS_LR_TO_FRAME(Push(LR));
@@ -1228,176 +1181,48 @@ void Assembler::StoreIntoArrayBarrier(Register object,
   Bind(&done);
 }
 
-void Assembler::StoreIntoObjectNoBarrier(Register object,
-                                         const Address& dest,
-                                         Register value,
-                                         MemoryOrder memory_order) {
-  // stlr does not feature an address operand.
-  ASSERT(memory_order == kRelaxedNonAtomic);
-  str(value, dest);
-#if defined(DEBUG)
-  // We can't assert the incremental barrier is not needed here, only the
-  // generational barrier. We sometimes omit the write barrier when 'value' is
-  // a constant, but we don't eagerly mark 'value' and instead assume it is also
-  // reachable via a constant pool, so it doesn't matter if it is not traced via
-  // 'object'.
-  Label done;
-  BranchIfSmi(value, &done, kNearJump);
-  ldr(TMP, FieldAddress(value, target::Object::tags_offset()), kUnsignedByte);
-  tbz(&done, TMP, target::UntaggedObject::kNewBit);
-  ldr(TMP, FieldAddress(object, target::Object::tags_offset()), kUnsignedByte);
-  tbz(&done, TMP, target::UntaggedObject::kOldAndNotRememberedBit);
-  Stop("Write barrier is required");
-  Bind(&done);
-#endif  // defined(DEBUG)
-  // No store buffer update.
-}
-
-#if defined(DART_COMPRESSED_POINTERS)
-void Assembler::StoreCompressedIntoObjectNoBarrier(Register object,
-                                                   const Address& dest,
-                                                   Register value,
-                                                   MemoryOrder memory_order) {
-  // stlr does not feature an address operand.
-  ASSERT(memory_order == kRelaxedNonAtomic);
-  str(value, dest, kObjectBytes);
-#if defined(DEBUG)
-  // We can't assert the incremental barrier is not needed here, only the
-  // generational barrier. We sometimes omit the write barrier when 'value' is
-  // a constant, but we don't eagerly mark 'value' and instead assume it is also
-  // reachable via a constant pool, so it doesn't matter if it is not traced via
-  // 'object'.
-  Label done;
-  BranchIfSmi(value, &done, kNearJump);
-  ldr(TMP, FieldAddress(value, target::Object::tags_offset()), kUnsignedByte);
-  tbz(&done, TMP, target::UntaggedObject::kNewBit);
-  ldr(TMP, FieldAddress(object, target::Object::tags_offset()), kUnsignedByte);
-  tbz(&done, TMP, target::UntaggedObject::kOldAndNotRememberedBit);
-  Stop("Write barrier is required");
-  Bind(&done);
-#endif  // defined(DEBUG)
-  // No store buffer update.
-}
-#endif
-
-void Assembler::StoreIntoObjectOffsetNoBarrier(Register object,
-                                               int32_t offset,
-                                               Register value,
-                                               MemoryOrder memory_order) {
-  if (memory_order == kRelease) {
-    StoreRelease(value, object, offset);
-  } else if (FieldAddress::CanHoldOffset(offset)) {
-    StoreIntoObjectNoBarrier(object, FieldAddress(object, offset), value);
-  } else {
-    AddImmediate(TMP, object, offset - kHeapObjectTag);
-    StoreIntoObjectNoBarrier(object, Address(TMP), value);
-  }
-}
-
-#if defined(DART_COMPRESSED_POINTERS)
-void Assembler::StoreCompressedIntoObjectOffsetNoBarrier(
-    Register object,
-    int32_t offset,
-    Register value,
-    MemoryOrder memory_order) {
-  if (memory_order == kRelease) {
-    StoreReleaseCompressed(value, object, offset);
-  } else if (FieldAddress::CanHoldOffset(offset)) {
-    StoreCompressedIntoObjectNoBarrier(object, FieldAddress(object, offset),
-                                       value);
-  } else {
-    AddImmediate(TMP, object, offset - kHeapObjectTag);
-    StoreCompressedIntoObjectNoBarrier(object, Address(TMP), value);
-  }
-}
-#endif
-
-void Assembler::StoreIntoObjectNoBarrier(Register object,
-                                         const Address& dest,
-                                         const Object& value,
-                                         MemoryOrder memory_order) {
-  RELEASE_ASSERT(memory_order == kRelaxedNonAtomic);
-  ASSERT(IsOriginalObject(value));
-  DEBUG_ASSERT(IsNotTemporaryScopedHandle(value));
-  if (IsSameObject(compiler::NullObject(), value)) {
-    str(NULL_REG, dest);
-  } else if (target::IsSmi(value) && (target::ToRawSmi(value) == 0)) {
-    str(ZR, dest);
-  } else {
-    LoadObject(TMP2, value);
-    str(TMP2, dest);
-  }
-}
-
-#if defined(DART_COMPRESSED_POINTERS)
-void Assembler::StoreCompressedIntoObjectNoBarrier(Register object,
-                                                   const Address& dest,
-                                                   const Object& value,
-                                                   MemoryOrder memory_order) {
-  // stlr does not feature an address operand.
-  RELEASE_ASSERT(memory_order == kRelaxedNonAtomic);
-  ASSERT(IsOriginalObject(value));
-  DEBUG_ASSERT(IsNotTemporaryScopedHandle(value));
-  // No store buffer update.
-  if (IsSameObject(compiler::NullObject(), value)) {
-    str(NULL_REG, dest, kObjectBytes);
-  } else if (target::IsSmi(value) && (target::ToRawSmi(value) == 0)) {
-    str(ZR, dest, kObjectBytes);
-  } else {
-    LoadObject(TMP2, value);
-    str(TMP2, dest, kObjectBytes);
-  }
-}
-#endif
-
-void Assembler::StoreIntoObjectOffsetNoBarrier(Register object,
-                                               int32_t offset,
+void Assembler::StoreObjectIntoObjectNoBarrier(Register object,
+                                               const Address& address,
                                                const Object& value,
-                                               MemoryOrder memory_order) {
-  if (memory_order == kRelease) {
-    Register value_reg = TMP2;
-    if (IsSameObject(compiler::NullObject(), value)) {
-      value_reg = NULL_REG;
-    } else if (target::IsSmi(value) && (target::ToRawSmi(value) == 0)) {
-      value_reg = ZR;
-    } else {
-      LoadObject(value_reg, value);
-    }
-    StoreIntoObjectOffsetNoBarrier(object, offset, value_reg, memory_order);
-  } else if (FieldAddress::CanHoldOffset(offset)) {
-    StoreIntoObjectNoBarrier(object, FieldAddress(object, offset), value);
+                                               MemoryOrder memory_order,
+                                               OperandSize size) {
+  ASSERT(IsOriginalObject(value));
+  DEBUG_ASSERT(IsNotTemporaryScopedHandle(value));
+  Register src = kNoRegister;
+  if (IsSameObject(compiler::NullObject(), value)) {
+    src = NULL_REG;
+  } else if (target::IsSmi(value) && (target::ToRawSmi(value) == 0)) {
+    src = ZR;
   } else {
-    AddImmediate(TMP, object, offset - kHeapObjectTag);
-    StoreIntoObjectNoBarrier(object, Address(TMP), value);
+    // Store uses TMP2 when the address cannot be fully contained in the
+    // instruction, so TMP is safe to use as a scratch register here.
+    src = TMP;
+    ASSERT(object != src);
+    LoadObject(src, value);
+  }
+  if (memory_order == kRelease) {
+    StoreRelease(src, address, size);
+  } else {
+    Store(src, address, size);
   }
 }
 
-#if defined(DART_COMPRESSED_POINTERS)
-void Assembler::StoreCompressedIntoObjectOffsetNoBarrier(
-    Register object,
-    int32_t offset,
-    const Object& value,
-    MemoryOrder memory_order) {
-  Register value_reg = TMP2;
-  if (memory_order == kRelease) {
-    if (IsSameObject(compiler::NullObject(), value)) {
-      value_reg = NULL_REG;
-    } else if (target::IsSmi(value) && (target::ToRawSmi(value) == 0)) {
-      value_reg = ZR;
-    } else {
-      LoadObject(value_reg, value);
-    }
-    StoreCompressedIntoObjectOffsetNoBarrier(object, offset, value_reg,
-                                             memory_order);
-  } else if (FieldAddress::CanHoldOffset(offset)) {
-    StoreCompressedIntoObjectNoBarrier(object, FieldAddress(object, offset),
-                                       value);
-  } else {
-    AddImmediate(TMP, object, offset - kHeapObjectTag);
-    StoreCompressedIntoObjectNoBarrier(object, Address(TMP), value);
-  }
+void Assembler::VerifyStoreNeedsNoWriteBarrier(Register object,
+                                               Register value) {
+  // We can't assert the incremental barrier is not needed here, only the
+  // generational barrier. We sometimes omit the write barrier when 'value' is
+  // a constant, but we don't eagerly mark 'value' and instead assume it is also
+  // reachable via a constant pool, so it doesn't matter if it is not traced via
+  // 'object'.
+  Label done;
+  BranchIfSmi(value, &done, kNearJump);
+  ldr(TMP, FieldAddress(value, target::Object::tags_offset()), kUnsignedByte);
+  tbz(&done, TMP, target::UntaggedObject::kNewBit);
+  ldr(TMP, FieldAddress(object, target::Object::tags_offset()), kUnsignedByte);
+  tbz(&done, TMP, target::UntaggedObject::kOldAndNotRememberedBit);
+  Stop("Write barrier is required");
+  Bind(&done);
 }
-#endif
 
 void Assembler::StoreInternalPointer(Register object,
                                      const Address& dest,

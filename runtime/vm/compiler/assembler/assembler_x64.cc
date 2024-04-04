@@ -1451,18 +1451,21 @@ void Assembler::LoadUniqueObject(
   LoadObjectHelper(dst, object, true, snapshot_behavior);
 }
 
-void Assembler::StoreObject(const Address& dst, const Object& object) {
+void Assembler::StoreObject(const Address& dst,
+                            const Object& object,
+                            OperandSize size) {
   ASSERT(IsOriginalObject(object));
+  ASSERT(size == kWordBytes || size == kObjectBytes);
 
   intptr_t offset_from_thread;
   if (target::CanLoadFromThread(object, &offset_from_thread)) {
     movq(TMP, Address(THR, offset_from_thread));
-    movq(dst, TMP);
+    Store(TMP, dst, size);
   } else if (target::IsSmi(object)) {
-    MoveImmediate(dst, Immediate(target::ToRawSmi(object)));
+    MoveImmediate(dst, Immediate(target::ToRawSmi(object)), size);
   } else {
     LoadObject(TMP, object);
-    movq(dst, TMP);
+    Store(TMP, dst, size);
   }
 }
 
@@ -1508,12 +1511,24 @@ void Assembler::LoadImmediate(Register reg, const Immediate& imm) {
   }
 }
 
-void Assembler::MoveImmediate(const Address& dst, const Immediate& imm) {
+void Assembler::MoveImmediate(const Address& dst,
+                              const Immediate& imm,
+                              OperandSize size) {
   if (imm.is_int32()) {
-    movq(dst, imm);
+    if (size == kFourBytes) {
+      movl(dst, imm);
+    } else {
+      ASSERT(size == kEightBytes);
+      movq(dst, imm);
+    }
   } else {
     LoadImmediate(TMP, imm);
-    movq(dst, TMP);
+    if (size == kFourBytes) {
+      movl(dst, TMP);
+    } else {
+      ASSERT(size == kEightBytes);
+      movq(dst, TMP);
+    }
   }
 }
 
@@ -1552,41 +1567,15 @@ void Assembler::LoadCompressed(Register dest, const Address& slot) {
 }
 #endif
 
-void Assembler::StoreIntoObject(Register object,
-                                const Address& dest,
-                                Register value,
-                                CanBeSmi can_be_smi,
-                                MemoryOrder memory_order) {
-  if (memory_order == kRelease) {
-    StoreRelease(value, dest.base(), dest.disp32());
-  } else {
-    movq(dest, value);
-  }
-  StoreBarrier(object, value, can_be_smi);
-}
-
-#if defined(DART_COMPRESSED_POINTERS)
-void Assembler::StoreCompressedIntoObject(Register object,
-                                          const Address& dest,
-                                          Register value,
-                                          CanBeSmi can_be_smi,
-                                          MemoryOrder memory_order) {
-  if (memory_order == kRelease) {
-    StoreReleaseCompressed(value, dest.base(), dest.disp8());
-  } else {
-    OBJ(mov)(dest, value);
-  }
-  StoreBarrier(object, value, can_be_smi);
-}
-#endif
-
 void Assembler::StoreBarrier(Register object,
                              Register value,
-                             CanBeSmi can_be_smi) {
+                             CanBeSmi can_be_smi,
+                             Register scratch) {
   // x.slot = x. Barrier should have be removed at the IL level.
   ASSERT(object != value);
-  ASSERT(object != TMP);
-  ASSERT(value != TMP);
+  ASSERT(object != scratch);
+  ASSERT(value != scratch);
+  ASSERT(scratch != kNoRegister);
 
   // In parallel, test whether
   //  - object is old and not remembered and value is new, or
@@ -1598,12 +1587,19 @@ void Assembler::StoreBarrier(Register object,
   Label done;
   if (can_be_smi == kValueCanBeSmi) {
     BranchIfSmi(value, &done, kNearJump);
+  } else {
+#if defined(DEBUG)
+    Label passed_check;
+    BranchIfNotSmi(value, &passed_check, kNearJump);
+    Breakpoint();
+    Bind(&passed_check);
+#endif
   }
-  movb(ByteRegisterOf(TMP),
+  movb(ByteRegisterOf(scratch),
        FieldAddress(object, target::Object::tags_offset()));
-  shrl(TMP, Immediate(target::UntaggedObject::kBarrierOverlapShift));
-  andl(TMP, Address(THR, target::Thread::write_barrier_mask_offset()));
-  testb(FieldAddress(value, target::Object::tags_offset()), TMP);
+  shrl(scratch, Immediate(target::UntaggedObject::kBarrierOverlapShift));
+  andl(scratch, Address(THR, target::Thread::write_barrier_mask_offset()));
+  testb(FieldAddress(value, target::Object::tags_offset()), scratch);
   j(ZERO, &done, kNearJump);
 
   Register object_for_call = object;
@@ -1630,31 +1626,15 @@ void Assembler::StoreBarrier(Register object,
   Bind(&done);
 }
 
-void Assembler::StoreIntoArray(Register object,
-                               Register slot,
-                               Register value,
-                               CanBeSmi can_be_smi) {
-  movq(Address(slot, 0), value);
-  StoreIntoArrayBarrier(object, slot, value, can_be_smi);
-}
-
-#if defined(DART_COMPRESSED_POINTERS)
-void Assembler::StoreCompressedIntoArray(Register object,
-                                         Register slot,
-                                         Register value,
-                                         CanBeSmi can_be_smi) {
-  OBJ(mov)(Address(slot, 0), value);
-  StoreIntoArrayBarrier(object, slot, value, can_be_smi);
-}
-#endif
-
-void Assembler::StoreIntoArrayBarrier(Register object,
-                                      Register slot,
-                                      Register value,
-                                      CanBeSmi can_be_smi) {
-  ASSERT(object != TMP);
-  ASSERT(value != TMP);
-  ASSERT(slot != TMP);
+void Assembler::ArrayStoreBarrier(Register object,
+                                  Register slot,
+                                  Register value,
+                                  CanBeSmi can_be_smi,
+                                  Register scratch) {
+  ASSERT(object != scratch);
+  ASSERT(value != scratch);
+  ASSERT(slot != scratch);
+  ASSERT(scratch != kNoRegister);
 
   // In parallel, test whether
   //  - object is old and not remembered and value is new, or
@@ -1666,12 +1646,19 @@ void Assembler::StoreIntoArrayBarrier(Register object,
   Label done;
   if (can_be_smi == kValueCanBeSmi) {
     BranchIfSmi(value, &done, kNearJump);
+  } else {
+#if defined(DEBUG)
+    Label passed_check;
+    BranchIfNotSmi(value, &passed_check, kNearJump);
+    Breakpoint();
+    Bind(&passed_check);
+#endif
   }
-  movb(ByteRegisterOf(TMP),
+  movb(ByteRegisterOf(scratch),
        FieldAddress(object, target::Object::tags_offset()));
-  shrl(TMP, Immediate(target::UntaggedObject::kBarrierOverlapShift));
-  andl(TMP, Address(THR, target::Thread::write_barrier_mask_offset()));
-  testb(FieldAddress(value, target::Object::tags_offset()), TMP);
+  shrl(scratch, Immediate(target::UntaggedObject::kBarrierOverlapShift));
+  andl(scratch, Address(THR, target::Thread::write_barrier_mask_offset()));
+  testb(FieldAddress(value, target::Object::tags_offset()), scratch);
   j(ZERO, &done, kNearJump);
 
   if ((object != kWriteBarrierObjectReg) || (value != kWriteBarrierValueReg) ||
@@ -1687,16 +1674,8 @@ void Assembler::StoreIntoArrayBarrier(Register object,
   Bind(&done);
 }
 
-void Assembler::StoreIntoObjectNoBarrier(Register object,
-                                         const Address& dest,
-                                         Register value,
-                                         MemoryOrder memory_order) {
-  if (memory_order == kRelease) {
-    StoreRelease(value, dest.base(), dest.disp32());
-  } else {
-    movq(dest, value);
-  }
-#if defined(DEBUG)
+void Assembler::VerifyStoreNeedsNoWriteBarrier(Register object,
+                                               Register value) {
   // We can't assert the incremental barrier is not needed here, only the
   // generational barrier. We sometimes omit the write barrier when 'value' is
   // a constant, but we don't eagerly mark 'value' and instead assume it is also
@@ -1712,62 +1691,20 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   j(ZERO, &done, Assembler::kNearJump);
   Stop("Write barrier is required");
   Bind(&done);
-#endif  // defined(DEBUG)
-  // No store buffer update.
 }
 
-#if defined(DART_COMPRESSED_POINTERS)
-void Assembler::StoreCompressedIntoObjectNoBarrier(Register object,
-                                                   const Address& dest,
-                                                   Register value,
-                                                   MemoryOrder memory_order) {
-  if (memory_order == kRelease) {
-    StoreReleaseCompressed(value, dest.base(), dest.disp8());
-  } else {
-    OBJ(mov)(dest, value);
-  }
-#if defined(DEBUG)
-  // We can't assert the incremental barrier is not needed here, only the
-  // generational barrier. We sometimes omit the write barrier when 'value' is
-  // a constant, but we don't eagerly mark 'value' and instead assume it is also
-  // reachable via a constant pool, so it doesn't matter if it is not traced via
-  // 'object'.
-  Label done;
-  BranchIfSmi(value, &done, kNearJump);
-  testb(FieldAddress(value, target::Object::tags_offset()),
-        Immediate(1 << target::UntaggedObject::kNewBit));
-  j(ZERO, &done, Assembler::kNearJump);
-  testb(FieldAddress(object, target::Object::tags_offset()),
-        Immediate(1 << target::UntaggedObject::kOldAndNotRememberedBit));
-  j(ZERO, &done, Assembler::kNearJump);
-  Stop("Write barrier is required");
-  Bind(&done);
-#endif  // defined(DEBUG)
-  // No store buffer update.
-}
-#endif
-
-void Assembler::StoreIntoObjectNoBarrier(Register object,
-                                         const Address& dest,
-                                         const Object& value,
-                                         MemoryOrder memory_order) {
+void Assembler::StoreObjectIntoObjectNoBarrier(Register object,
+                                               const Address& dest,
+                                               const Object& value,
+                                               MemoryOrder memory_order,
+                                               OperandSize size) {
   if (memory_order == kRelease) {
     LoadObject(TMP, value);
-    StoreIntoObjectNoBarrier(object, dest, TMP, memory_order);
+    StoreIntoObjectNoBarrier(object, dest, TMP, memory_order, size);
   } else {
-    StoreObject(dest, value);
+    StoreObject(dest, value, size);
   }
 }
-
-#if defined(DART_COMPRESSED_POINTERS)
-void Assembler::StoreCompressedIntoObjectNoBarrier(Register object,
-                                                   const Address& dest,
-                                                   const Object& value,
-                                                   MemoryOrder memory_order) {
-  LoadObject(TMP, value);
-  StoreCompressedIntoObjectNoBarrier(object, dest, TMP, memory_order);
-}
-#endif
 
 void Assembler::StoreInternalPointer(Register object,
                                      const Address& dest,

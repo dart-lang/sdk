@@ -1758,23 +1758,17 @@ Register AllocateRegister(RegList* used) {
                    used);
 }
 
-void Assembler::StoreIntoObject(Register object,
-                                const Address& dest,
-                                Register value,
-                                CanBeSmi can_be_smi,
-                                MemoryOrder memory_order) {
+void Assembler::StoreBarrier(Register object,
+                             Register value,
+                             CanBeSmi can_be_smi,
+                             Register scratch) {
   // x.slot = x. Barrier should have be removed at the IL level.
   ASSERT(object != value);
   ASSERT(object != LINK_REGISTER);
   ASSERT(value != LINK_REGISTER);
-  ASSERT(object != TMP);
-  ASSERT(value != TMP);
-
-  if (memory_order == kRelease) {
-    StoreRelease(value, dest);
-  } else {
-    Store(value, dest);
-  }
+  ASSERT(object != scratch);
+  ASSERT(value != scratch);
+  ASSERT(scratch != kNoRegister);
 
   // In parallel, test whether
   //  - object is old and not remembered and value is new, or
@@ -1786,18 +1780,25 @@ void Assembler::StoreIntoObject(Register object,
   Label done;
   if (can_be_smi == kValueCanBeSmi) {
     BranchIfSmi(value, &done, kNearJump);
+  } else {
+#if defined(DEBUG)
+    Label passed_check;
+    BranchIfNotSmi(value, &passed_check, kNearJump);
+    Breakpoint();
+    Bind(&passed_check);
+#endif
   }
   const bool preserve_lr = lr_state().LRContainsReturnAddress();
   if (preserve_lr) {
     SPILLS_LR_TO_FRAME(Push(LR));
   }
   CLOBBERS_LR({
-    ldrb(TMP, FieldAddress(object, target::Object::tags_offset()));
+    ldrb(scratch, FieldAddress(object, target::Object::tags_offset()));
     ldrb(LR, FieldAddress(value, target::Object::tags_offset()));
-    and_(TMP, LR,
-         Operand(TMP, LSR, target::UntaggedObject::kBarrierOverlapShift));
+    and_(scratch, LR,
+         Operand(scratch, LSR, target::UntaggedObject::kBarrierOverlapShift));
     ldr(LR, Address(THR, target::Thread::write_barrier_mask_offset()));
-    tst(TMP, Operand(LR));
+    tst(scratch, Operand(LR));
   });
   if (value != kWriteBarrierValueReg) {
     // Unlikely. Only non-graph intrinsics.
@@ -1832,20 +1833,18 @@ void Assembler::StoreIntoObject(Register object,
   Bind(&done);
 }
 
-void Assembler::StoreIntoArray(Register object,
-                               Register slot,
-                               Register value,
-                               CanBeSmi can_be_smi) {
-  // x.slot = x. Barrier should have be removed at the IL level.
-  ASSERT(object != value);
+void Assembler::ArrayStoreBarrier(Register object,
+                                  Register slot,
+                                  Register value,
+                                  CanBeSmi can_be_smi,
+                                  Register scratch) {
   ASSERT(object != LINK_REGISTER);
   ASSERT(value != LINK_REGISTER);
   ASSERT(slot != LINK_REGISTER);
-  ASSERT(object != TMP);
-  ASSERT(value != TMP);
-  ASSERT(slot != TMP);
-
-  str(value, Address(slot, 0));
+  ASSERT(object != scratch);
+  ASSERT(value != scratch);
+  ASSERT(slot != scratch);
+  ASSERT(scratch != kNoRegister);
 
   // In parallel, test whether
   //  - object is old and not remembered and value is new, or
@@ -1857,6 +1856,13 @@ void Assembler::StoreIntoArray(Register object,
   Label done;
   if (can_be_smi == kValueCanBeSmi) {
     BranchIfSmi(value, &done, kNearJump);
+  } else {
+#if defined(DEBUG)
+    Label passed_check;
+    BranchIfNotSmi(value, &passed_check, kNearJump);
+    Breakpoint();
+    Bind(&passed_check);
+#endif
   }
   const bool preserve_lr = lr_state().LRContainsReturnAddress();
   if (preserve_lr) {
@@ -1864,12 +1870,12 @@ void Assembler::StoreIntoArray(Register object,
   }
 
   CLOBBERS_LR({
-    ldrb(TMP, FieldAddress(object, target::Object::tags_offset()));
+    ldrb(scratch, FieldAddress(object, target::Object::tags_offset()));
     ldrb(LR, FieldAddress(value, target::Object::tags_offset()));
-    and_(TMP, LR,
-         Operand(TMP, LSR, target::UntaggedObject::kBarrierOverlapShift));
+    and_(scratch, LR,
+         Operand(scratch, LSR, target::UntaggedObject::kBarrierOverlapShift));
     ldr(LR, Address(THR, target::Thread::write_barrier_mask_offset()));
-    tst(TMP, Operand(LR));
+    tst(scratch, Operand(LR));
   });
 
   if ((object != kWriteBarrierObjectReg) || (value != kWriteBarrierValueReg) ||
@@ -1886,32 +1892,39 @@ void Assembler::StoreIntoArray(Register object,
   Bind(&done);
 }
 
-void Assembler::StoreIntoObjectOffset(Register object,
-                                      int32_t offset,
-                                      Register value,
-                                      CanBeSmi can_value_be_smi,
-                                      MemoryOrder memory_order) {
+void Assembler::StoreObjectIntoObjectNoBarrier(Register object,
+                                               const Address& dest,
+                                               const Object& value,
+                                               MemoryOrder memory_order,
+                                               OperandSize size) {
+  ASSERT_EQUAL(size, kFourBytes);
+  ASSERT_EQUAL(dest.mode(), Address::Mode::Offset);
+  ASSERT_EQUAL(dest.kind(), Address::OffsetKind::Immediate);
   int32_t ignored = 0;
-  if (Address::CanHoldStoreOffset(kFourBytes, offset - kHeapObjectTag,
-                                  &ignored)) {
-    StoreIntoObject(object, FieldAddress(object, offset), value,
-                    can_value_be_smi, memory_order);
+  Register scratch = TMP;
+  if (!Address::CanHoldStoreOffset(size, dest.offset(), &ignored)) {
+    // As there is no TMP2 on ARM7, Store uses TMP when the instruction cannot
+    // contain the offset, so we need to use a different scratch register
+    // for loading the object.
+    scratch = dest.base() == R9 ? R8 : R9;
+    Push(scratch);
+  }
+  ASSERT(IsOriginalObject(value));
+  DEBUG_ASSERT(IsNotTemporaryScopedHandle(value));
+  // No store buffer update.
+  LoadObject(scratch, value);
+  if (memory_order == kRelease) {
+    StoreRelease(scratch, dest);
   } else {
-    AddImmediate(IP, object, offset - kHeapObjectTag);
-    StoreIntoObject(object, Address(IP), value, can_value_be_smi, memory_order);
+    Store(scratch, dest);
+  }
+  if (scratch != TMP) {
+    Pop(scratch);
   }
 }
 
-void Assembler::StoreIntoObjectNoBarrier(Register object,
-                                         const Address& dest,
-                                         Register value,
-                                         MemoryOrder memory_order) {
-  if (memory_order == kRelease) {
-    StoreRelease(value, dest);
-  } else {
-    Store(value, dest);
-  }
-#if defined(DEBUG)
+void Assembler::VerifyStoreNeedsNoWriteBarrier(Register object,
+                                               Register value) {
   // We can't assert the incremental barrier is not needed here, only the
   // generational barrier. We sometimes omit the write barrier when 'value' is
   // a constant, but we don't eagerly mark 'value' and instead assume it is also
@@ -1927,60 +1940,6 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   b(&done, ZERO);
   Stop("Write barrier is required");
   Bind(&done);
-#endif  // defined(DEBUG)
-  // No store buffer update.
-}
-
-void Assembler::StoreIntoObjectNoBarrier(Register object,
-                                         const Address& dest,
-                                         const Object& value,
-                                         MemoryOrder memory_order) {
-  ASSERT(IsOriginalObject(value));
-  DEBUG_ASSERT(IsNotTemporaryScopedHandle(value));
-  // No store buffer update.
-  LoadObject(IP, value);
-  if (memory_order == kRelease) {
-    StoreRelease(IP, dest);
-  } else {
-    str(IP, dest);
-  }
-}
-
-void Assembler::StoreIntoObjectOffsetNoBarrier(Register object,
-                                               int32_t offset,
-                                               Register value,
-                                               MemoryOrder memory_order) {
-  int32_t ignored = 0;
-  if (Address::CanHoldStoreOffset(kFourBytes, offset - kHeapObjectTag,
-                                  &ignored)) {
-    StoreIntoObjectNoBarrier(object, FieldAddress(object, offset), value,
-                             memory_order);
-  } else {
-    Register base = object == R9 ? R8 : R9;
-    Push(base);
-    AddImmediate(base, object, offset - kHeapObjectTag);
-    StoreIntoObjectNoBarrier(object, Address(base), value, memory_order);
-    Pop(base);
-  }
-}
-
-void Assembler::StoreIntoObjectOffsetNoBarrier(Register object,
-                                               int32_t offset,
-                                               const Object& value,
-                                               MemoryOrder memory_order) {
-  ASSERT(IsOriginalObject(value));
-  int32_t ignored = 0;
-  if (Address::CanHoldStoreOffset(kFourBytes, offset - kHeapObjectTag,
-                                  &ignored)) {
-    StoreIntoObjectNoBarrier(object, FieldAddress(object, offset), value,
-                             memory_order);
-  } else {
-    Register base = object == R9 ? R8 : R9;
-    Push(base);
-    AddImmediate(base, object, offset - kHeapObjectTag);
-    StoreIntoObjectNoBarrier(object, Address(base), value, memory_order);
-    Pop(base);
-  }
 }
 
 void Assembler::StoreInternalPointer(Register object,

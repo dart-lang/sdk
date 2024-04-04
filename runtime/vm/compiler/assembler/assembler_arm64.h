@@ -524,12 +524,13 @@ class Assembler : public AssemblerBase {
 #endif
 
   void LoadAcquire(Register dst,
-                   Register address,
-                   int32_t offset = 0,
+                   const Address& address,
                    OperandSize size = kEightBytes) override {
-    Register src = address;
-    if (offset != 0) {
-      AddImmediate(TMP2, address, offset);
+    // ldar does not feature an address operand.
+    ASSERT(address.type() == Address::AddressType::Offset);
+    Register src = address.base();
+    if (address.offset() != 0) {
+      AddImmediate(TMP2, src, address.offset());
       src = TMP2;
     }
     ldar(dst, src, size);
@@ -539,43 +540,27 @@ class Assembler : public AssemblerBase {
   }
 
 #if defined(DART_COMPRESSED_POINTERS)
-  void LoadAcquireCompressed(Register dst,
-                             Register address,
-                             int32_t offset = 0) override {
-    LoadAcquire(dst, address, offset, kObjectBytes);
+  void LoadAcquireCompressed(Register dst, const Address& address) override {
+    LoadAcquire(dst, address, kObjectBytes);
     add(dst, dst, Operand(HEAP_BITS, LSL, 32));
   }
 #endif
 
   void StoreRelease(Register src,
-                    Register address,
-                    int32_t offset = 0) override {
-    Register kDestReg = address;
-    if (offset != 0) {
-      kDestReg = TMP;
-      AddImmediate(kDestReg, address, offset);
+                    const Address& address,
+                    OperandSize size = kEightBytes) override {
+    // stlr does not feature an address operand.
+    ASSERT(address.type() == Address::AddressType::Offset);
+    Register dst = address.base();
+    if (address.offset() != 0) {
+      AddImmediate(TMP2, dst, address.offset());
+      dst = TMP2;
     }
-    stlr(src, kDestReg);
+    stlr(src, dst, size);
 #if defined(TARGET_USES_THREAD_SANITIZER)
-    TsanStoreRelease(kDestReg);
+    TsanStoreRelease(dst);
 #endif
   }
-
-#if defined(DART_COMPRESSED_POINTERS)
-  void StoreReleaseCompressed(Register src,
-                              Register address,
-                              int32_t offset = 0) override {
-    Register kResultReg = address;
-    if (offset != 0) {
-      kResultReg = TMP;
-      AddImmediate(kResultReg, address, offset);
-    }
-    stlr(src, kResultReg, kObjectBytes);
-#if defined(TARGET_USES_THREAD_SANITIZER)
-    TsanStoreRelease(kResultReg);
-#endif
-  }
-#endif
 
   void CompareWithMemoryValue(Register value,
                               Address address,
@@ -1956,108 +1941,25 @@ class Assembler : public AssemblerBase {
 
 #if defined(DART_COMPRESSED_POINTERS)
   void LoadCompressed(Register dest, const Address& slot) override;
-  void LoadCompressedFromOffset(Register dest,
-                                Register base,
-                                int32_t offset) override;
 #endif
 
-  // Store into a heap object and apply the generational and incremental write
-  // barriers. All stores into heap objects must pass through this function or,
-  // if the value can be proven either Smi or old-and-premarked, its NoBarrier
-  // variants.
-  // Preserves object and value registers.
-  void StoreIntoObject(Register object,
-                       const Address& dest,
-                       Register value,
-                       CanBeSmi can_value_be_smi = kValueCanBeSmi,
-                       MemoryOrder memory_order = kRelaxedNonAtomic) override;
-#if defined(DART_COMPRESSED_POINTERS)
-  void StoreCompressedIntoObject(
-      Register object,
-      const Address& dest,
-      Register value,
-      CanBeSmi can_value_be_smi = kValueCanBeSmi,
-      MemoryOrder memory_order = kRelaxedNonAtomic) override;
-#endif
-  void StoreBarrier(Register object, Register value, CanBeSmi can_value_be_smi);
-  void StoreIntoArray(Register object,
-                      Register slot,
-                      Register value,
-                      CanBeSmi can_value_be_smi = kValueCanBeSmi) override;
-#if defined(DART_COMPRESSED_POINTERS)
-  void StoreCompressedIntoArray(
-      Register object,
-      Register slot,
-      Register value,
-      CanBeSmi can_value_be_smi = kValueCanBeSmi) override;
-#endif
-  void StoreIntoArrayBarrier(Register object,
-                             Register slot,
-                             Register value,
-                             CanBeSmi can_value_be_smi);
+  void StoreBarrier(Register object,
+                    Register value,
+                    CanBeSmi can_value_be_smi,
+                    Register scratch) override;
+  void ArrayStoreBarrier(Register object,
+                         Register slot,
+                         Register value,
+                         CanBeSmi can_value_be_smi,
+                         Register scratch) override;
+  void VerifyStoreNeedsNoWriteBarrier(Register object, Register value) override;
 
-  void StoreIntoObjectOffset(
+  void StoreObjectIntoObjectNoBarrier(
       Register object,
-      int32_t offset,
-      Register value,
-      CanBeSmi can_value_be_smi = kValueCanBeSmi,
-      MemoryOrder memory_order = kRelaxedNonAtomic) override;
-#if defined(DART_COMPRESSED_POINTERS)
-  void StoreCompressedIntoObjectOffset(
-      Register object,
-      int32_t offset,
-      Register value,
-      CanBeSmi can_value_be_smi = kValueCanBeSmi,
-      MemoryOrder memory_order = kRelaxedNonAtomic) override;
-#endif
-  void StoreIntoObjectNoBarrier(
-      Register object,
-      const Address& dest,
-      Register value,
-      MemoryOrder memory_order = kRelaxedNonAtomic) override;
-#if defined(DART_COMPRESSED_POINTERS)
-  void StoreCompressedIntoObjectNoBarrier(
-      Register object,
-      const Address& dest,
-      Register value,
-      MemoryOrder memory_order = kRelaxedNonAtomic) override;
-#endif
-  void StoreIntoObjectOffsetNoBarrier(
-      Register object,
-      int32_t offset,
-      Register value,
-      MemoryOrder memory_order = kRelaxedNonAtomic) override;
-#if defined(DART_COMPRESSED_POINTERS)
-  void StoreCompressedIntoObjectOffsetNoBarrier(
-      Register object,
-      int32_t offset,
-      Register value,
-      MemoryOrder memory_order = kRelaxedNonAtomic) override;
-#endif
-  void StoreIntoObjectNoBarrier(
-      Register object,
-      const Address& dest,
+      const Address& address,
       const Object& value,
-      MemoryOrder memory_order = kRelaxedNonAtomic) override;
-#if defined(DART_COMPRESSED_POINTERS)
-  void StoreCompressedIntoObjectNoBarrier(
-      Register object,
-      const Address& dest,
-      const Object& value,
-      MemoryOrder memory_order = kRelaxedNonAtomic) override;
-#endif
-  void StoreIntoObjectOffsetNoBarrier(
-      Register object,
-      int32_t offset,
-      const Object& value,
-      MemoryOrder memory_order = kRelaxedNonAtomic) override;
-#if defined(DART_COMPRESSED_POINTERS)
-  void StoreCompressedIntoObjectOffsetNoBarrier(
-      Register object,
-      int32_t offset,
-      const Object& value,
-      MemoryOrder memory_order = kRelaxedNonAtomic) override;
-#endif
+      MemoryOrder memory_order = kRelaxedNonAtomic,
+      OperandSize size = kWordBytes) override;
 
   // Stores a non-tagged value into a heap object.
   void StoreInternalPointer(Register object,

@@ -430,22 +430,16 @@ class Assembler : public AssemblerBase {
     StoreToOffset(src, base, offset);
   }
   void LoadAcquire(Register dst,
-                   Register address,
-                   int32_t offset = 0,
+                   const Address& address,
                    OperandSize size = kFourBytes) override {
-    Load(dst, Address(address, offset), size);
+    Load(dst, address, size);
     dmb();
   }
   void StoreRelease(Register src,
-                    Register address,
-                    int32_t offset = 0) override {
-    StoreRelease(src, Address(address, offset));
-  }
-  void StoreRelease(Register src, Address dest) {
+                    const Address& address,
+                    OperandSize size = kFourBytes) override {
     dmb();
-    Store(src, dest);
-
-    // We don't run TSAN bots on 32 bit.
+    Store(src, address, size);
   }
 
   void CompareWithMemoryValue(Register value,
@@ -995,47 +989,23 @@ class Assembler : public AssemblerBase {
   }
   void CompareObject(Register rn, const Object& object);
 
-  // Store into a heap object and apply the generational and incremental write
-  // barriers. All stores into heap objects must pass through this function or,
-  // if the value can be proven either Smi or old-and-premarked, its NoBarrier
-  // variants.
-  // Preserves object and value registers.
-  void StoreIntoObject(Register object,      // Object we are storing into.
-                       const Address& dest,  // Where we are storing into.
-                       Register value,       // Value we are storing.
-                       CanBeSmi can_value_be_smi = kValueCanBeSmi,
-                       MemoryOrder memory_order = kRelaxedNonAtomic) override;
-  void StoreIntoArray(Register object,
-                      Register slot,
-                      Register value,
-                      CanBeSmi can_value_be_smi = kValueCanBeSmi) override;
-  void StoreIntoObjectOffset(
+  void StoreObjectIntoObjectNoBarrier(
       Register object,
-      int32_t offset,
-      Register value,
-      CanBeSmi can_value_be_smi = kValueCanBeSmi,
-      MemoryOrder memory_order = kRelaxedNonAtomic) override;
+      const Address& dest,
+      const Object& value,
+      MemoryOrder memory_order = kRelaxedNonAtomic,
+      OperandSize size = kWordBytes) override;
 
-  void StoreIntoObjectNoBarrier(
-      Register object,
-      const Address& dest,
-      Register value,
-      MemoryOrder memory_order = kRelaxedNonAtomic) override;
-  void StoreIntoObjectNoBarrier(
-      Register object,
-      const Address& dest,
-      const Object& value,
-      MemoryOrder memory_order = kRelaxedNonAtomic) override;
-  void StoreIntoObjectOffsetNoBarrier(
-      Register object,
-      int32_t offset,
-      Register value,
-      MemoryOrder memory_order = kRelaxedNonAtomic) override;
-  void StoreIntoObjectOffsetNoBarrier(
-      Register object,
-      int32_t offset,
-      const Object& value,
-      MemoryOrder memory_order = kRelaxedNonAtomic) override;
+  void StoreBarrier(Register object,
+                    Register value,
+                    CanBeSmi can_be_smi,
+                    Register scratch) override;
+  void ArrayStoreBarrier(Register object,
+                         Register slot,
+                         Register value,
+                         CanBeSmi can_be_smi,
+                         Register scratch) override;
+  void VerifyStoreNeedsNoWriteBarrier(Register object, Register value) override;
 
   // Stores a non-tagged value into a heap object.
   void StoreInternalPointer(Register object,

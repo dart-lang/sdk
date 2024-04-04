@@ -2236,7 +2236,8 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ StoreCompressedIntoArray(array, slot, value, CanValueBeSmi());
     } else if (locs()->in(2).IsConstant()) {
       const Object& constant = locs()->in(2).constant();
-      __ StoreCompressedIntoObjectNoBarrier(array, element_address, constant);
+      __ StoreCompressedObjectIntoObjectNoBarrier(array, element_address,
+                                                  constant);
     } else {
       Register value = locs()->in(2).reg();
       __ StoreCompressedIntoObjectNoBarrier(array, element_address, value);

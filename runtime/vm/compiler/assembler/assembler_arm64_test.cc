@@ -7568,8 +7568,8 @@ ASSEMBLER_TEST_GENERATE(StoreReleaseLoadAcquire, assembler) {
   __ Push(R1);
   __ mov(R1, R0);
   __ LoadImmediate(R0, 0);
-  __ StoreRelease(R1, SP, 0);
-  __ LoadAcquire(R0, SP, 0);
+  __ StoreReleaseToOffset(R1, SP, 0);
+  __ LoadAcquireFromOffset(R0, SP, 0);
   __ Pop(R1);
   __ Pop(R1);
   __ RestoreCSP();
@@ -7604,8 +7604,8 @@ ASSEMBLER_TEST_GENERATE(StoreReleaseLoadAcquire1024, assembler) {
   __ mov(R1, R0);
   __ LoadImmediate(R0, 0);
   __ sub(SP, SP, Operand(1024 * target::kWordSize));
-  __ StoreRelease(R1, SP, 1024);
-  __ LoadAcquire(R0, SP, 1024);
+  __ StoreReleaseToOffset(R1, SP, 1024);
+  __ LoadAcquireFromOffset(R0, SP, 1024);
   __ add(SP, SP, Operand(1024 * target::kWordSize));
   __ Pop(R1);
   __ Pop(R1);
@@ -7626,8 +7626,8 @@ ASSEMBLER_TEST_RUN(StoreReleaseLoadAcquire1024, test) {
       "mov r1, r0\n"
       "movz r0, #0x0\n"
       "sub sp, sp, #0x2000\n"
-      "add tmp, sp, #0x400\n"
-      "stlr r1, tmp\n"
+      "add tmp2, sp, #0x400\n"
+      "stlr r1, tmp2\n"
       "add tmp2, sp, #0x400\n"
       "ldar r0, tmp2\n"
       "add sp, sp, #0x2000\n"
