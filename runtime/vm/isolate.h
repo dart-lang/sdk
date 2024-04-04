@@ -1553,7 +1553,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   bool is_system_isolate_ = false;
   // End accessed from generated code.
 
-  IsolateGroup* isolate_group_;
+  IsolateGroup* const isolate_group_;
   IdleTimeHandler idle_time_handler_;
   std::unique_ptr<IsolateObjectStore> isolate_object_store_;
 

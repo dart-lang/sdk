@@ -6288,11 +6288,11 @@ FunctionPtr Class::LookupFunctionReadLocked(const String& name,
 #if defined(DEBUG)
   ASSERT(thread->isolate_group()->program_lock()->IsCurrentThreadReader());
 #endif
+  ASSERT(functions() != Array::null());
   REUSABLE_ARRAY_HANDLESCOPE(thread);
   REUSABLE_FUNCTION_HANDLESCOPE(thread);
   Array& funcs = thread->ArrayHandle();
   funcs = functions();
-  ASSERT(!funcs.IsNull());
   const intptr_t len = funcs.Length();
   Function& function = thread->FunctionHandle();
   if (len >= kFunctionLookupHashThreshold) {

@@ -1015,11 +1015,10 @@ void AllocateTypedDataInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 Representation StoreFieldInstr::RequiredInputRepresentation(
     intptr_t index) const {
-  ASSERT((index == 0) || (index == 1));
   if (index == 0) {
-    // The instance is always tagged.
-    return kTagged;
+    return slot_.has_untagged_instance() ? kUntagged : kTagged;
   }
+  ASSERT_EQUAL(index, 1);
   return slot().representation();
 }
 
@@ -4677,6 +4676,9 @@ LocationSummary* LoadFieldInstr::MakeLocationSummary(Zone* zone,
 
 void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register instance_reg = locs()->in(0).reg();
+  ASSERT(OffsetInBytes() >= 0);  // Field is finalized.
+  // For fields on Dart objects, the offset must point after the header.
+  ASSERT(OffsetInBytes() != 0 || slot().has_untagged_instance());
 
   auto const rep = slot().representation();
   if (calls_initializer()) {
@@ -7181,7 +7183,7 @@ void MemoryCopyInstr::EmitUnrolledCopy(FlowGraphCompiler* compiler,
 #endif
 
 bool Utf8ScanInstr::IsScanFlagsUnboxed() const {
-  return scan_flags_field_.is_unboxed();
+  return RepresentationUtils::IsUnboxed(scan_flags_field_.representation());
 }
 
 InvokeMathCFunctionInstr::InvokeMathCFunctionInstr(
@@ -7659,38 +7661,6 @@ void FfiCallInstr::EmitReturnMoves(FlowGraphCompiler* compiler,
   __ Comment("EmitReturnMovesEnd");
 }
 
-LocationSummary* RawStoreFieldInstr::MakeLocationSummary(
-    Zone* zone,
-    bool is_optimizing) const {
-  LocationSummary* summary =
-      new (zone) LocationSummary(zone, /*num_inputs=*/2,
-                                 /*num_temps=*/0, LocationSummary::kNoCall);
-
-  summary->set_in(kBase, Location::RequiresRegister());
-  summary->set_in(kValue, Location::RequiresRegister());
-
-  return summary;
-}
-
-Representation RawStoreFieldInstr::RequiredInputRepresentation(
-    intptr_t idx) const {
-  switch (idx) {
-    case kBase:
-      return kUntagged;
-    case kValue:
-      return kTagged;
-    default:
-      break;
-  }
-  UNREACHABLE();
-}
-
-void RawStoreFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Register base_reg = locs()->in(kBase).reg();
-  const Register value_reg = locs()->in(kValue).reg();
-  compiler->assembler()->StoreMemoryValue(value_reg, base_reg, offset_);
-}
-
 LocationSummary* StoreFieldInstr::MakeLocationSummary(Zone* zone,
                                                       bool opt) const {
   const intptr_t kNumInputs = 2;
@@ -7756,8 +7726,9 @@ LocationSummary* StoreFieldInstr::MakeLocationSummary(Zone* zone,
 
 void StoreFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register instance_reg = locs()->in(kInstancePos).reg();
-  const intptr_t offset_in_bytes = OffsetInBytes();
-  ASSERT(offset_in_bytes > 0);  // Field is finalized and points after header.
+  ASSERT(OffsetInBytes() >= 0);  // Field is finalized.
+  // For fields on Dart objects, the offset must point after the header.
+  ASSERT(OffsetInBytes() != 0 || slot().has_untagged_instance());
 
   const Representation rep = slot().representation();
   if (rep == kUntagged) {
@@ -7774,9 +7745,9 @@ void StoreFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       auto const value_pair = locs()->in(kValuePos).AsPairLocation();
       const Register value_lo = value_pair->At(0).reg();
       const Register value_hi = value_pair->At(1).reg();
-      __ StoreFieldToOffset(value_lo, instance_reg, offset_in_bytes);
+      __ StoreFieldToOffset(value_lo, instance_reg, OffsetInBytes());
       __ StoreFieldToOffset(value_hi, instance_reg,
-                            offset_in_bytes + compiler::target::kWordSize);
+                            OffsetInBytes() + compiler::target::kWordSize);
     }
   } else if (RepresentationUtils::IsUnboxed(rep)) {
     ASSERT(slot().IsDartField());
@@ -7785,12 +7756,12 @@ void StoreFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     switch (cid) {
       case kDoubleCid:
         __ StoreUnboxedDouble(value, instance_reg,
-                              offset_in_bytes - kHeapObjectTag);
+                              OffsetInBytes() - kHeapObjectTag);
         return;
       case kFloat32x4Cid:
       case kFloat64x2Cid:
         __ StoreUnboxedSimd128(value, instance_reg,
-                               offset_in_bytes - kHeapObjectTag);
+                               OffsetInBytes() - kHeapObjectTag);
         return;
       default:
         UNREACHABLE();
@@ -7804,7 +7775,7 @@ void StoreFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     const auto& value = locs()->in(kValuePos).constant();
     auto const size =
         slot().is_compressed() ? compiler::kObjectBytes : compiler::kWordBytes;
-    __ StoreObjectIntoObjectOffsetNoBarrier(instance_reg, offset_in_bytes,
+    __ StoreObjectIntoObjectOffsetNoBarrier(instance_reg, OffsetInBytes(),
                                             value, memory_order_, size);
   } else {
     __ StoreToSlotNoBarrier(locs()->in(kValuePos).reg(), instance_reg, slot(),
@@ -7940,7 +7911,7 @@ Representation FfiCallInstr::representation() const {
   }
   if (marshaller_.IsHandle(compiler::ffi::kResultIndex)) {
     // The call returns a Dart_Handle, from which we need to extract the
-    // tagged pointer using RawLoadField.
+    // tagged pointer using LoadField with an appropriate slot.
     return kUntagged;
   }
   return marshaller_.RepInFfiCall(compiler::ffi::kResultIndex);

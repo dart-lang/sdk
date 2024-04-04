@@ -38,8 +38,8 @@ class LocalScope;
 class LocalVariable;
 class ParsedFunction;
 
-// The list of slots that correspond to nullable boxed fields of native objects
-// in the following format:
+// The list of slots that correspond to nullable boxed fields of native
+// Dart objects in the following format:
 //
 //     V(class_name, underlying_type, field_name, exact_type, FINAL|VAR)
 //
@@ -51,7 +51,7 @@ class ParsedFunction;
 // - the last component specifies whether field behaves like a final field
 //   (i.e. initialized once at construction time and does not change after
 //   that) or like a non-final field.
-#define NULLABLE_BOXED_NATIVE_SLOTS_LIST(V)                                    \
+#define NULLABLE_TAGGED_NATIVE_DART_SLOTS_LIST(V)                              \
   V(Array, UntaggedArray, type_arguments, TypeArguments, FINAL)                \
   V(Finalizer, UntaggedFinalizer, type_arguments, TypeArguments, FINAL)        \
   V(FinalizerBase, UntaggedFinalizerBase, all_entries, Set, VAR)               \
@@ -87,7 +87,7 @@ class ParsedFunction;
   V(WeakReference, UntaggedWeakReference, type_arguments, TypeArguments, FINAL)
 
 // The list of slots that correspond to non-nullable boxed fields of native
-// objects in the following format:
+// Dart objects that contain integers in the following format:
 //
 //     V(class_name, underlying_type, field_name, exact_type, FINAL|VAR)
 //
@@ -99,26 +99,13 @@ class ParsedFunction;
 // - the last component specifies whether field behaves like a final field
 //   (i.e. initialized once at construction time and does not change after
 //   that) or like a non-final field.
-#define NONNULLABLE_BOXED_NATIVE_SLOTS_LIST(V)                                 \
+#define NONNULLABLE_INT_TAGGED_NATIVE_DART_SLOTS_LIST(V)                       \
   V(Array, UntaggedArray, length, Smi, FINAL)                                  \
-  V(Closure, UntaggedClosure, function, Function, FINAL)                       \
-  V(Closure, UntaggedClosure, context, Dynamic, FINAL)                         \
-  V(Closure, UntaggedClosure, hash, Context, VAR)                              \
-  V(Finalizer, UntaggedFinalizer, callback, Closure, FINAL)                    \
-  V(NativeFinalizer, UntaggedFinalizer, callback, Pointer, FINAL)              \
-  V(Function, UntaggedFunction, data, Dynamic, FINAL)                          \
-  V(FunctionType, UntaggedFunctionType, named_parameter_names, Array, FINAL)   \
-  V(FunctionType, UntaggedFunctionType, parameter_types, Array, FINAL)         \
+  V(Closure, UntaggedClosure, hash, Smi, VAR)                                  \
   V(GrowableObjectArray, UntaggedGrowableObjectArray, length, Smi, VAR)        \
-  V(GrowableObjectArray, UntaggedGrowableObjectArray, data, Array, VAR)        \
   V(TypedDataBase, UntaggedTypedDataBase, length, Smi, FINAL)                  \
   V(TypedDataView, UntaggedTypedDataView, offset_in_bytes, Smi, FINAL)         \
-  V(TypedDataView, UntaggedTypedDataView, typed_data, Dynamic, FINAL)          \
   V(String, UntaggedString, length, Smi, FINAL)                                \
-  V(LinkedHashBase, UntaggedLinkedHashBase, index, TypedDataUint32Array, VAR)  \
-  V(LinkedHashBase, UntaggedLinkedHashBase, data, Array, VAR)                  \
-  V(ImmutableLinkedHashBase, UntaggedLinkedHashBase, data, ImmutableArray,     \
-    FINAL)                                                                     \
   V(LinkedHashBase, UntaggedLinkedHashBase, hash_mask, Smi, VAR)               \
   V(LinkedHashBase, UntaggedLinkedHashBase, used_data, Smi, VAR)               \
   V(LinkedHashBase, UntaggedLinkedHashBase, deleted_keys, Smi, VAR)            \
@@ -129,24 +116,41 @@ class ParsedFunction;
   V(Record, UntaggedRecord, shape, Smi, FINAL)                                 \
   V(TypeArguments, UntaggedTypeArguments, hash, Smi, VAR)                      \
   V(TypeArguments, UntaggedTypeArguments, length, Smi, FINAL)                  \
-  V(AbstractType, UntaggedTypeArguments, hash, Smi, VAR)                       \
+  V(AbstractType, UntaggedTypeArguments, hash, Smi, VAR)
+
+// The list of slots that correspond to non-nullable boxed fields of native
+// Dart objects that do not contain integers in the following format:
+//
+//     V(class_name, underlying_type, field_name, exact_type, FINAL|VAR)
+//
+// - class_name and field_name specify the name of the host class and the name
+//   of the field respectively;
+// - underlying_type: the Raw class which holds the field;
+// - exact_type specifies exact type of the field (any load from this field
+//   would only yield instances of this type);
+// - the last component specifies whether field behaves like a final field
+//   (i.e. initialized once at construction time and does not change after
+//   that) or like a non-final field.
+#define NONNULLABLE_NONINT_TAGGED_NATIVE_DART_SLOTS_LIST(V)                    \
+  V(Closure, UntaggedClosure, function, Function, FINAL)                       \
+  V(Closure, UntaggedClosure, context, Dynamic, FINAL)                         \
+  V(Finalizer, UntaggedFinalizer, callback, Closure, FINAL)                    \
+  V(NativeFinalizer, UntaggedFinalizer, callback, Pointer, FINAL)              \
+  V(Function, UntaggedFunction, data, Dynamic, FINAL)                          \
+  V(FunctionType, UntaggedFunctionType, named_parameter_names, Array, FINAL)   \
+  V(FunctionType, UntaggedFunctionType, parameter_types, Array, FINAL)         \
+  V(GrowableObjectArray, UntaggedGrowableObjectArray, data, Array, VAR)        \
+  V(TypedDataView, UntaggedTypedDataView, typed_data, Dynamic, FINAL)          \
+  V(LinkedHashBase, UntaggedLinkedHashBase, index, TypedDataUint32Array, VAR)  \
+  V(LinkedHashBase, UntaggedLinkedHashBase, data, Array, VAR)                  \
+  V(ImmutableLinkedHashBase, UntaggedLinkedHashBase, data, ImmutableArray,     \
+    FINAL)                                                                     \
   V(TypeParameters, UntaggedTypeParameters, names, Array, FINAL)               \
   V(UnhandledException, UntaggedUnhandledException, exception, Dynamic, FINAL) \
   V(UnhandledException, UntaggedUnhandledException, stacktrace, Dynamic, FINAL)
 
-// Don't use Object or Instance, use Dynamic instead. The cid here should
-// correspond to an exact type or Dynamic, not a static type.
-// If we ever get a field of which the exact type is Instance (not a subtype),
-// update the check below.
-#define FOR_EACH_NATIVE_SLOT(_, __, ___, field_type, ____)                     \
-  static_assert(k##field_type##Cid != kObjectCid);                             \
-  static_assert(k##field_type##Cid != kInstanceCid);
-NULLABLE_BOXED_NATIVE_SLOTS_LIST(FOR_EACH_NATIVE_SLOT)
-NONNULLABLE_BOXED_NATIVE_SLOTS_LIST(FOR_EACH_NATIVE_SLOT)
-#undef FOR_EACH_NATIVE_SLOT
-
-// List of slots that correspond to unboxed fields of native objects that
-// do not contain untagged addresses in the following format:
+// List of slots that correspond to fields of native objects that contain
+// unboxed values in the following format:
 //
 //     V(class_name, underlying_type, field_name, representation, FINAL|VAR)
 //
@@ -163,7 +167,7 @@ NONNULLABLE_BOXED_NATIVE_SLOTS_LIST(FOR_EACH_NATIVE_SLOT)
 //
 // Note: Currently LoadFieldInstr::IsImmutableLengthLoad() assumes that no
 // unboxed slots represent length loads.
-#define UNBOXED_NATIVE_NONADDRESS_SLOTS_LIST(V)                                \
+#define UNBOXED_NATIVE_DART_SLOTS_LIST(V)                                      \
   V(AbstractType, UntaggedAbstractType, flags, Uint32, FINAL)                  \
   V(ClosureData, UntaggedClosureData, packed_fields, Uint32, FINAL)            \
   V(FinalizerEntry, UntaggedFinalizerEntry, external_size, IntPtr, VAR)        \
@@ -174,16 +178,16 @@ NONNULLABLE_BOXED_NATIVE_SLOTS_LIST(FOR_EACH_NATIVE_SLOT)
     FINAL)                                                                     \
   V(SubtypeTestCache, UntaggedSubtypeTestCache, num_inputs, Uint32, FINAL)
 
-// Unboxed native slots containing untagged addresses that do not exist
-// in JIT mode. See UNBOXED_NATIVE_ADDRESS_SLOTS_LIST for the format.
+// Native slots containing untagged addresses that do not exist in JIT mode.
+// See UNTAGGED_NATIVE_DART_SLOTS_LIST for the format.
 #if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)
-#define AOT_ONLY_UNBOXED_NATIVE_ADDRESS_SLOTS_LIST(V)                          \
+#define AOT_ONLY_UNTAGGED_NATIVE_DART_SLOTS_LIST(V)                            \
   V(Closure, UntaggedClosure, entry_point, false, FINAL)
 #else
-#define AOT_ONLY_UNBOXED_NATIVE_ADDRESS_SLOTS_LIST(V)
+#define AOT_ONLY_UNTAGGED_NATIVE_DART_SLOTS_LIST(V)
 #endif
 
-// List of slots that correspond to unboxed fields of native objects containing
+// List of slots that correspond to fields of native Dart objects containing
 // untagged addresses in the following format:
 //
 //     V(class_name, underlying_type, field_name, gc_may_move, FINAL|VAR)
@@ -198,35 +202,209 @@ NONNULLABLE_BOXED_NATIVE_SLOTS_LIST(FOR_EACH_NATIVE_SLOT)
 //   (i.e. initialized once at construction time and does not change after
 //   that) or like a non-final field.
 //
-// Note: As the underlying field is unboxed, these slots cannot be nullable.
+// Note: As the underlying field is untagged, these slots cannot be nullable.
 //
-// Note: All slots for unboxed fields that contain untagged addresses are given
-// the kUntagged representation, and so a value loaded from these fields must
-// be converted explicitly to an unboxed integer representation for any
-// pointer arithmetic before use, and an unboxed integer must be converted
-// explicitly to an untagged address before being stored to these fields.
-//
-// Note: Currently LoadFieldInstr::IsImmutableLengthLoad() assumes that no
-// unboxed slots represent length loads.
-#define UNBOXED_NATIVE_ADDRESS_SLOTS_LIST(V)                                   \
-  AOT_ONLY_UNBOXED_NATIVE_ADDRESS_SLOTS_LIST(V)                                \
+// Note: All slots for fields that contain untagged addresses are given
+// the kUntagged representation.
+#define UNTAGGED_NATIVE_DART_SLOTS_LIST(V)                                     \
+  AOT_ONLY_UNTAGGED_NATIVE_DART_SLOTS_LIST(V)                                  \
   V(Function, UntaggedFunction, entry_point, false, FINAL)                     \
   V(FinalizerBase, UntaggedFinalizerBase, isolate, false, VAR)                 \
   V(PointerBase, UntaggedPointerBase, data, true, VAR)
 
-// For uses that do not need to know whether a given slot may contain an
-// inner pointer to a GC-able object or not. (Generally, such users only need
-// the class name, the underlying type, and/or the field name.)
-#define UNBOXED_NATIVE_SLOTS_LIST(V)                                           \
-  UNBOXED_NATIVE_NONADDRESS_SLOTS_LIST(V) UNBOXED_NATIVE_ADDRESS_SLOTS_LIST(V)
+// List of slots that correspond to fields of non-Dart objects containing
+// tagged addresses of Dart objects in the following format:
+//
+//     V(class_name, _, field_name, exact_type, FINAL|VAR)
+//
+// - class_name and field_name specify the name of the host class and the name
+//   of the field respectively;
+// - exact_type specifies exact type of the field (any load from this field
+//   would only yield instances of this type);
+// - the last component specifies whether field behaves like a final field
+//   (i.e. initialized once at construction time and does not change after
+//   that) or like a non-final field.
+//
+// Note: Currently LoadFieldInstr::IsImmutableLengthLoad() assumes that no
+// slots of non-Dart values represent length loads.
+#define NULLABLE_TAGGED_NATIVE_NONDART_SLOTS_LIST(V)                           \
+  V(Isolate, _, finalizers, GrowableObjectArray, VAR)                          \
+  V(LocalHandle, _, ptr, Dynamic, VAR)                                         \
+  V(ObjectStore, _, record_field_names, Array, VAR)                            \
+  V(PersistentHandle, _, ptr, Dynamic, VAR)
 
-// For uses that do not need the exact_type (boxed) or representation (unboxed)
-// or whether a boxed native slot is nullable. (Generally, such users only need
-// the class name, the underlying type, and/or the field name.)
+// List of slots that correspond to fields of non-Dart objects containing
+// unboxed values in the following format:
+//
+//     V(class_name, _, field_name, representation, FINAL|VAR)
+//
+// - class_name and field_name specify the name of the host class and the name
+//   of the field respectively;
+// - representation specifies the representation of the bits stored within
+//   the unboxed field (minus the kUnboxed prefix);
+// - the last component specifies whether field behaves like a final field
+//   (i.e. initialized once at construction time and does not change after
+//   that) or like a non-final field.
+//
+// Note: As the underlying field is unboxed, these slots cannot be nullable.
+//
+// Note: Currently LoadFieldInstr::IsImmutableLengthLoad() assumes that no
+// slots of non-Dart values represent length loads.
+#define UNBOXED_NATIVE_NONDART_SLOTS_LIST(V)                                   \
+  V(StreamInfo, _, enabled, IntPtr, VAR)
+
+// List of slots that correspond to fields of non-Dart objects containing
+// untagged addresses in the following format:
+//
+//     V(class_name, _, field_name, gc_may_move, FINAL|VAR)
+//
+// - class_name and field_name specify the name of the host class and the name
+//   of the field respectively;
+// - gc_may_move: whether the untagged address contained in this field is a
+//   pointer to memory that may be moved by the GC, which means a value loaded
+//   from this field is invalidated by any instruction that can cause GC;
+// - the last component specifies whether field behaves like a final field
+//   (i.e. initialized once at construction time and does not change after
+//   that) or like a non-final field.
+//
+// Note: As the underlying field is untagged, these slots cannot be nullable.
+//
+// Note: All slots for fields that contain untagged addresses are given
+// the kUntagged representation.
+//
+// Note: while Thread::isolate_ and IsolateGroup::object_store_ aren't const
+// fields, they should never change during a given execution of the code
+// generated for a function and the compiler only does intra-procedural
+// load optimizations.
+#define UNTAGGED_NATIVE_NONDART_SLOTS_LIST(V)                                  \
+  V(IsolateGroup, _, object_store, false, FINAL)                               \
+  V(Thread, _, api_top_scope, false, VAR)                                      \
+  V(Thread, _, isolate, false, FINAL)                                          \
+  V(Thread, _, isolate_group, false, FINAL)                                    \
+  V(Thread, _, service_extension_stream, false, FINAL)
+
+// No untagged slot on a non-Dart object should contain a GC-movable address.
+// The gc_may_move field is only there so that any code that operates on
+// UNTAGGED_NATIVE_SLOTS_LIST can use that field as desired.
+#define CHECK_NATIVE_NONDART_SLOT(__, ___, ____, gc_may_move, _____)           \
+  static_assert(!gc_may_move);
+UNTAGGED_NATIVE_NONDART_SLOTS_LIST(CHECK_NATIVE_NONDART_SLOT)
+#undef CHECK_NATIVE_NONDART_SLOT
+
+// For uses that need any native slot that contain an unboxed integer. Such uses
+// can only use the following arguments for each entry:
+//     V(class_name, _, field_name, rep, FINAL|VAR)
+#define UNBOXED_NATIVE_SLOTS_LIST(V)                                           \
+  UNBOXED_NATIVE_DART_SLOTS_LIST(V)                                            \
+  UNBOXED_NATIVE_NONDART_SLOTS_LIST(V)
+
+// For uses that need any native slot that contain an untagged address. Such
+// uses can only use the following arguments for each entry:
+//     V(class_name, _, field_name, gc_may_move, FINAL|VAR)
+#define UNTAGGED_NATIVE_SLOTS_LIST(V)                                          \
+  UNTAGGED_NATIVE_DART_SLOTS_LIST(V)                                           \
+  UNTAGGED_NATIVE_NONDART_SLOTS_LIST(V)
+
+// For uses that need any native slot that does not contain a Dart object. Such
+// uses can only use the following arguments for each entry:
+//     V(class_name, _, field_name, _, FINAL|VAR)
+#define NOT_TAGGED_NATIVE_SLOTS_LIST(V)                                        \
+  UNBOXED_NATIVE_SLOTS_LIST(V)                                                 \
+  UNTAGGED_NATIVE_SLOTS_LIST(V)
+
+// For uses that need any native slot that is guaranteed to contain a tagged
+// integer. Such uses can only use the following arguments for each entry:
+//     V(class_name, _, field_name, exact_type, FINAL|VAR)
+#define TAGGED_INT_NATIVE_SLOTS_LIST(V)                                        \
+  NONNULLABLE_INT_TAGGED_NATIVE_DART_SLOTS_LIST(V)
+
+// For uses that need any native slot that contains a tagged object which is not
+// guaranteed to be a integer. This includes nullable integer slots, since
+// those slots may return a non-integer value (null). Such uses can
+// only use the following arguments for each entry:
+//     V(class_name, _, field_name, exact_type, FINAL|VAR)
+#define TAGGED_NONINT_NATIVE_SLOTS_LIST(V)                                     \
+  NULLABLE_TAGGED_NATIVE_DART_SLOTS_LIST(V)                                    \
+  NONNULLABLE_NONINT_TAGGED_NATIVE_DART_SLOTS_LIST(V)                          \
+  NULLABLE_TAGGED_NATIVE_NONDART_SLOTS_LIST(V)
+
+// For uses that need any native slot that is not guaranteed to contain an
+// integer, whether a Dart object or unboxed. Such uses can only use the
+// following arguments for each entry:
+//     V(class_name, _, field_name, _, FINAL|VAR)
+#define NOT_INT_NATIVE_SLOTS_LIST(V)                                           \
+  TAGGED_NONINT_NATIVE_SLOTS_LIST(V)                                           \
+  UNTAGGED_NATIVE_SLOTS_LIST(V)
+
+// For uses that need any native slot on Dart objects that contains a Dart
+// object (e.g., for write barrier purposes). Such uses can use the following
+// arguments for each entry:
+//     V(class_name, underlying_class, field_name, exact_type, FINAL|VAR)
+#define TAGGED_NATIVE_DART_SLOTS_LIST(V)                                       \
+  NULLABLE_TAGGED_NATIVE_DART_SLOTS_LIST(V)                                    \
+  NONNULLABLE_INT_TAGGED_NATIVE_DART_SLOTS_LIST(V)                             \
+  NONNULLABLE_NONINT_TAGGED_NATIVE_DART_SLOTS_LIST(V)
+
+// For uses that need any native slot that is not on a Dart object or does
+// not contain a Dart object (e.g., for write barrier purposes). Such uses
+// can only use the following arguments for each entry:
+//     V(class_name, _, field_name, _, FINAL|VAR)
+#define NOT_TAGGED_NATIVE_DART_SLOTS_LIST(V)                                   \
+  NULLABLE_TAGGED_NATIVE_NONDART_SLOTS_LIST(V)                                 \
+  NOT_TAGGED_NATIVE_SLOTS_LIST(V)
+
+// For uses that need any native slot that contains a Dart object. Such uses can
+// only use the following arguments for each entry:
+//     V(class_name, _, field_name, exact_type, FINAL|VAR)
+#define TAGGED_NATIVE_SLOTS_LIST(V)                                            \
+  TAGGED_INT_NATIVE_SLOTS_LIST(V)                                              \
+  TAGGED_NONINT_NATIVE_SLOTS_LIST(V)
+
+// For uses that need all native slots. Such uses can only use the following
+// arguments for each entry:
+//     V(class_name, _, field_name, _, FINAL|VAR)
 #define NATIVE_SLOTS_LIST(V)                                                   \
-  NULLABLE_BOXED_NATIVE_SLOTS_LIST(V)                                          \
-  NONNULLABLE_BOXED_NATIVE_SLOTS_LIST(V)                                       \
-  UNBOXED_NATIVE_SLOTS_LIST(V)
+  TAGGED_NATIVE_SLOTS_LIST(V)                                                  \
+  NOT_TAGGED_NATIVE_SLOTS_LIST(V)
+
+// For tagged slots, the cid should either be Dynamic or the precise cid
+// of the values stored in the corresponding field. That means the cid should
+// not be the cid of an abstract superclass, because then the code will assume
+// the cid of retrieved values is always the given cid.
+//
+// Note: If we ever need native slots with CompileTypes created from an
+// AbstractType instead, then a new base category should be created for those,
+// possibly replacing the cid field with the name of the abstract type.
+#define CHECK_TAGGED_NATIVE_SLOT(__, ___, ____, field_type, _____)             \
+  static_assert(k##field_type##Cid != kObjectCid);                             \
+  static_assert(k##field_type##Cid != kInstanceCid);                           \
+  static_assert(k##field_type##Cid != kIntegerCid);                            \
+  static_assert(k##field_type##Cid != kStringCid);                             \
+  static_assert(k##field_type##Cid != kAbstractTypeCid);
+TAGGED_NATIVE_SLOTS_LIST(CHECK_TAGGED_NATIVE_SLOT)
+#undef CHECK_NULLABLE_TAGGED_NATIVE_SLOT
+
+// Currently we only create slots with CompileTypes created from a precise cid,
+// so integer slots listed here must only contain Smis (or Mints, but no slot
+// currently does has only Mints, adjust this check if one is added).
+//
+// Note: If we ever add a category of native slots with AbstractType-based
+// CompileTypes that always contain integers, then add additional checks that
+// the AbstractTypes of those slots are subtypes of Integer.
+#define CHECK_INT_NATIVE_SLOT(__, ___, ____, field_type, _____)                \
+  static_assert(k##field_type##Cid == kSmiCid);
+TAGGED_INT_NATIVE_SLOTS_LIST(CHECK_INT_NATIVE_SLOT)
+#undef CHECK_INT_NATIVE_SLOT
+
+// Any slot with an integer type should go into the correct category.
+//
+// Note: If we ever add native slots with AbstractType-based CompileTypes, then
+// add appropriate checks that the AbstractType is not a subtype of Integer.
+#define CHECK_NONINT_NATIVE_SLOT(__, ___, ____, field_type, _____)             \
+  static_assert(k##field_type##Cid != kSmiCid);                                \
+  static_assert(k##field_type##Cid != kMintCid);
+TAGGED_NONINT_NATIVE_SLOTS_LIST(CHECK_NONINT_NATIVE_SLOT)
+#undef CHECK_NONINT_NATIVE_SLOT
 
 class FieldGuardState {
  public:
@@ -313,7 +491,7 @@ class Slot : public ZoneAllocated {
                          const ParsedFunction* parsed_function);
 
   // Convenience getters for native slots.
-#define DEFINE_GETTER(ClassName, UnderlyingType, FieldName, __, ___)           \
+#define DEFINE_GETTER(ClassName, __, FieldName, ___, ____)                     \
   static const Slot& ClassName##_##FieldName() {                               \
     return GetNativeSlot(Kind::k##ClassName##_##FieldName);                    \
   }
@@ -374,7 +552,10 @@ class Slot : public ZoneAllocated {
     return kind() == Kind::kCapturedVariable || kind() == Kind::kContext_parent;
   }
 
-  bool is_unboxed() const { return IsUnboxedBit::decode(flags_); }
+  bool is_tagged() const { return !IsNonTaggedBit::decode(flags_); }
+  bool has_untagged_instance() const {
+    return HasUntaggedInstanceBit::decode(flags_);
+  }
 
   void Write(FlowGraphSerializer* s) const;
   static const Slot& Read(FlowGraphDeserializer* d);
@@ -403,13 +584,6 @@ class Slot : public ZoneAllocated {
              other.type_,
              other.representation_,
              other.field_guard_state_) {}
-
-  using IsImmutableBit = BitField<int8_t, bool, 0, 1>;
-  using IsGuardedBit = BitField<int8_t, bool, IsImmutableBit::kNextBit, 1>;
-  using IsCompressedBit = BitField<int8_t, bool, IsGuardedBit::kNextBit, 1>;
-  using IsUnboxedBit = BitField<int8_t, bool, IsCompressedBit::kNextBit, 1>;
-  using MayContainInnerPointerBit =
-      BitField<int8_t, bool, IsUnboxedBit::kNextBit, 1>;
 
   template <typename T>
   const T* DataAs() const {
@@ -446,6 +620,19 @@ class Slot : public ZoneAllocated {
   const void* data_;
 
   CompileType type_;
+
+  using IsImmutableBit = BitField<decltype(flags_), bool, 0, 1>;
+  using IsGuardedBit =
+      BitField<decltype(flags_), bool, IsImmutableBit::kNextBit, 1>;
+  using IsCompressedBit =
+      BitField<decltype(flags_), bool, IsGuardedBit::kNextBit, 1>;
+  // Stores whether a field isn't tagged so that tagged is the default value
+  using IsNonTaggedBit =
+      BitField<decltype(flags_), bool, IsCompressedBit::kNextBit, 1>;
+  using MayContainInnerPointerBit =
+      BitField<decltype(flags_), bool, IsNonTaggedBit::kNextBit, 1>;
+  using HasUntaggedInstanceBit =
+      BitField<decltype(flags_), bool, MayContainInnerPointerBit::kNextBit, 1>;
 
   friend class SlotCache;
 };

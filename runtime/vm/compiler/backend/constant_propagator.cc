@@ -780,10 +780,6 @@ void ConstantPropagator::VisitCCall(CCallInstr* instr) {
   SetValue(instr, non_constant_);
 }
 
-void ConstantPropagator::VisitRawStoreField(RawStoreFieldInstr* instr) {
-  // Nothing to do.
-}
-
 void ConstantPropagator::VisitDebugStepCheck(DebugStepCheckInstr* instr) {
   // Nothing to do.
 }

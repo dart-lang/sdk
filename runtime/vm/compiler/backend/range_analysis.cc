@@ -2861,53 +2861,12 @@ void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
       Definition::InferRange(analysis, range);
       break;
 
-    case Slot::Kind::kReceivePort_send_port:
-    case Slot::Kind::kReceivePort_handler:
-    case Slot::Kind::kLinkedHashBase_index:
-    case Slot::Kind::kImmutableLinkedHashBase_index:
-    case Slot::Kind::kLinkedHashBase_data:
-    case Slot::Kind::kImmutableLinkedHashBase_data:
-    case Slot::Kind::kGrowableObjectArray_data:
-    case Slot::Kind::kContext_parent:
     case Slot::Kind::kTypeArguments:
-    case Slot::Kind::kArray_type_arguments:
-    case Slot::Kind::kClosure_context:
-    case Slot::Kind::kClosure_delayed_type_arguments:
-    case Slot::Kind::kClosure_function:
-    case Slot::Kind::kClosure_function_type_arguments:
-    case Slot::Kind::kClosure_instantiator_type_arguments:
-    case Slot::Kind::kFinalizer_callback:
-    case Slot::Kind::kFinalizer_type_arguments:
-    case Slot::Kind::kFinalizerBase_all_entries:
-    case Slot::Kind::kFinalizerBase_detachments:
-    case Slot::Kind::kFinalizerBase_entries_collected:
-    case Slot::Kind::kFinalizerEntry_detach:
-    case Slot::Kind::kFinalizerEntry_finalizer:
-    case Slot::Kind::kFinalizerEntry_next:
-    case Slot::Kind::kFinalizerEntry_token:
-    case Slot::Kind::kFinalizerEntry_value:
-    case Slot::Kind::kNativeFinalizer_callback:
-    case Slot::Kind::kFunction_data:
-    case Slot::Kind::kFunction_signature:
-    case Slot::Kind::kFunctionType_named_parameter_names:
-    case Slot::Kind::kFunctionType_parameter_types:
-    case Slot::Kind::kFunctionType_type_parameters:
-    case Slot::Kind::kInstance_native_fields_array:
-    case Slot::Kind::kSuspendState_function_data:
-    case Slot::Kind::kSuspendState_then_callback:
-    case Slot::Kind::kSuspendState_error_callback:
-    case Slot::Kind::kTypedDataView_typed_data:
     case Slot::Kind::kTypeArgumentsIndex:
-    case Slot::Kind::kTypeParameters_names:
-    case Slot::Kind::kTypeParameters_flags:
-    case Slot::Kind::kTypeParameters_bounds:
-    case Slot::Kind::kTypeParameters_defaults:
-    case Slot::Kind::kUnhandledException_exception:
-    case Slot::Kind::kUnhandledException_stacktrace:
-    case Slot::Kind::kWeakProperty_key:
-    case Slot::Kind::kWeakProperty_value:
-    case Slot::Kind::kWeakReference_target:
-    case Slot::Kind::kWeakReference_type_arguments:
+#define NATIVE_SLOT_CASE(ClassName, __, FieldName, ___, ____)                  \
+  case Slot::Kind::k##ClassName##_##FieldName:
+      NOT_INT_NATIVE_SLOTS_LIST(NATIVE_SLOT_CASE)
+#undef NATIVE_SLOT_CASE
       // Not an integer valued field.
       UNREACHABLE();
       break;
@@ -2917,20 +2876,11 @@ void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
       UNREACHABLE();
       break;
 
-#define UNBOXED_NATIVE_NONADDRESS_SLOT_CASE(Class, Untagged, Field, Rep,       \
-                                            IsFinal)                           \
+#define UNBOXED_NATIVE_SLOT_CASE(Class, __, Field, ___, ____)                  \
   case Slot::Kind::k##Class##_##Field:
-      UNBOXED_NATIVE_NONADDRESS_SLOTS_LIST(UNBOXED_NATIVE_NONADDRESS_SLOT_CASE)
-#undef UNBOXED_NATIVE_NONADDRESS_SLOT_CASE
+      UNBOXED_NATIVE_SLOTS_LIST(UNBOXED_NATIVE_SLOT_CASE)
+#undef UNBOXED_NATIVE_SLOT_CASE
       *range = Range::Full(slot().representation());
-      break;
-
-#define UNBOXED_NATIVE_ADDRESS_SLOT_CASE(Class, Untagged, Field, MayMove,      \
-                                         IsFinal)                              \
-  case Slot::Kind::k##Class##_##Field:
-      UNBOXED_NATIVE_ADDRESS_SLOTS_LIST(UNBOXED_NATIVE_ADDRESS_SLOT_CASE)
-#undef UNBOXED_NATIVE_ADDRESS_SLOT_CASE
-      UNREACHABLE();
       break;
 
     case Slot::Kind::kClosure_hash:

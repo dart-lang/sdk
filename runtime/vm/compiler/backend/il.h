@@ -436,7 +436,6 @@ struct InstrAttrs {
   M(ClosureCall, _)                                                            \
   M(FfiCall, _)                                                                \
   M(CCall, kNoGC)                                                              \
-  M(RawStoreField, kNoGC)                                                      \
   M(InstanceCall, _)                                                           \
   M(PolymorphicInstanceCall, _)                                                \
   M(DispatchTableCall, _)                                                      \
@@ -2808,6 +2807,13 @@ class PhiInstr : public VariadicDefinition {
   }
 
   virtual Representation representation() const { return representation_; }
+
+  virtual bool MayCreateUnsafeUntaggedPointer() const {
+    // Unsafe untagged pointers should never escape the basic block in which
+    // they are defined, so they should never be the input to a Phi node.
+    // (This is checked in the FlowGraphChecker.)
+    return false;
+  }
 
   virtual void set_representation(Representation r) { representation_ = r; }
 
@@ -6200,45 +6206,6 @@ class CCallInstr : public VariadicDefinition {
   DISALLOW_COPY_AND_ASSIGN(CCallInstr);
 };
 
-// Populates the untagged base + offset outside the heap with a tagged value.
-//
-// The store must be outside of the heap, does not emit a store barrier.
-// For stores in the heap, use StoreIndexedInstr, which emits store barriers.
-//
-// Does not have a dual RawLoadFieldInstr, because for loads we do not have to
-// distinguish between loading from within the heap or outside the heap.
-// Use FlowGraphBuilder::RawLoadField.
-class RawStoreFieldInstr : public TemplateInstruction<2, NoThrow> {
- public:
-  RawStoreFieldInstr(Value* base, Value* value, int32_t offset)
-      : offset_(offset) {
-    SetInputAt(kBase, base);
-    SetInputAt(kValue, value);
-  }
-
-  enum { kBase = 0, kValue = 1 };
-
-  DECLARE_INSTRUCTION(RawStoreField)
-
-  virtual Representation RequiredInputRepresentation(intptr_t idx) const;
-  virtual bool ComputeCanDeoptimize() const { return false; }
-  virtual bool HasUnknownSideEffects() const { return false; }
-
-  virtual bool CanEliminate(const BlockEntryInstr* block) const {
-    return false;
-  }
-
-#define FIELD_LIST(F) F(const int32_t, offset_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(RawStoreFieldInstr,
-                                          TemplateInstruction,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(RawStoreFieldInstr);
-};
-
 class DebugStepCheckInstr : public TemplateInstruction<0, NoThrow> {
  public:
   DebugStepCheckInstr(const InstructionSource& source,
@@ -6403,6 +6370,10 @@ class StoreFieldInstr : public TemplateInstruction<2, NoThrow> {
   bool is_initialization() const { return is_initialization_; }
 
   bool ShouldEmitStoreBarrier() const {
+    if (slot().has_untagged_instance()) {
+      // The instance is not a Dart object, so not traversed by the GC.
+      return false;
+    }
     if (slot().representation() != kTagged) {
       // The target field is native and unboxed, so not traversed by the GC.
       return false;
@@ -8125,6 +8096,11 @@ class LoadFieldInstr : public TemplateLoadField<1> {
     // We only convert from may to cannot, never the other direction.
     ASSERT(value == InnerPointerAccess::kCannotBeInnerPointer);
     loads_inner_pointer_ = value;
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT_EQUAL(idx, 0);
+    return slot_.has_untagged_instance() ? kUntagged : kTagged;
   }
 
   virtual Representation representation() const;

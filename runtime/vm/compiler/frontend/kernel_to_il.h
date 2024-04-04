@@ -395,14 +395,6 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
       ZoneGrowableArray<LocalVariable*>* definitions,
       const GrowableArray<Representation>& representations);
 
-  // Loads a tagged value from an untagged base + offset from outside the heap.
-  Fragment RawLoadField(int32_t offset);
-
-  // Populates the untagged base + offset outside the heap with a tagged value.
-  //
-  // The store must be outside of the heap, does not emit a store barrier.
-  Fragment RawStoreField(int32_t offset);
-
   // Wrap the current exception and stacktrace in an unhandled exception.
   Fragment UnhandledException();
 

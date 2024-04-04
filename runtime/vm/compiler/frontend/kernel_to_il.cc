@@ -1297,8 +1297,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       break;
     case MethodRecognizer::kRecord_fieldNames:
       body += LoadObjectStore();
-      body += RawLoadField(
-          compiler::target::ObjectStore::record_field_names_offset());
+      body += LoadNativeField(Slot::ObjectStore_record_field_names());
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
       body += LoadNativeField(Slot::Record_shape());
       body += IntConstant(compiler::target::RecordShape::kFieldNamesIndexShift);
@@ -1770,7 +1769,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += Constant(Bool::False());
 #else
       body += LoadServiceExtensionStream();
-      body += RawLoadField(compiler::target::StreamInfo::enabled_offset());
+      body += LoadNativeField(Slot::StreamInfo_enabled());
       // StreamInfo::enabled_ is a std::atomic<intptr_t>. This is effectively
       // relaxed order access, which is acceptable for this use case.
       body += IntToBool();
@@ -1918,13 +1917,13 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
     case MethodRecognizer::kFinalizerBase_getIsolateFinalizers:
       ASSERT_EQUAL(function.NumParameters(), 0);
       body += LoadIsolate();
-      body += RawLoadField(compiler::target::Isolate::finalizers_offset());
+      body += LoadNativeField(Slot::Isolate_finalizers());
       break;
     case MethodRecognizer::kFinalizerBase_setIsolateFinalizers:
       ASSERT_EQUAL(function.NumParameters(), 1);
       body += LoadIsolate();
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
-      body += RawStoreField(compiler::target::Isolate::finalizers_offset());
+      body += StoreNativeField(Slot::Isolate_finalizers());
       body += NullConstant();
       break;
     case MethodRecognizer::kFinalizerBase_exchangeEntriesCollectedWithNull:
@@ -4648,22 +4647,6 @@ Fragment FlowGraphBuilder::LoadIndexedTypedDataUnboxed(
   return fragment;
 }
 
-Fragment FlowGraphBuilder::RawLoadField(int32_t offset) {
-  Fragment code;
-  code += UnboxedIntConstant(offset, kUnboxedIntPtr);
-  code += LoadIndexed(kArrayCid, /*index_scale=*/1, /*index_unboxed=*/true);
-  return code;
-}
-
-Fragment FlowGraphBuilder::RawStoreField(int32_t offset) {
-  Fragment code;
-  Value* value = Pop();
-  Value* base = Pop();
-  auto* instr = new (Z) RawStoreFieldInstr(base, value, offset);
-  code <<= instr;
-  return code;
-}
-
 Fragment FlowGraphBuilder::UnhandledException() {
   const auto class_table = thread_->isolate_group()->class_table();
   ASSERT(class_table->HasValidClassAt(kUnhandledExceptionCid));
@@ -4711,29 +4694,28 @@ Fragment FlowGraphBuilder::LoadThread() {
 Fragment FlowGraphBuilder::LoadIsolate() {
   Fragment body;
   body += LoadThread();
-  body += LoadUntagged(compiler::target::Thread::isolate_offset());
+  body += LoadNativeField(Slot::Thread_isolate());
   return body;
 }
 
 Fragment FlowGraphBuilder::LoadIsolateGroup() {
   Fragment body;
   body += LoadThread();
-  body += LoadUntagged(compiler::target::Thread::isolate_group_offset());
+  body += LoadNativeField(Slot::Thread_isolate_group());
   return body;
 }
 
 Fragment FlowGraphBuilder::LoadObjectStore() {
   Fragment body;
   body += LoadIsolateGroup();
-  body += LoadUntagged(compiler::target::IsolateGroup::object_store_offset());
+  body += LoadNativeField(Slot::IsolateGroup_object_store());
   return body;
 }
 
 Fragment FlowGraphBuilder::LoadServiceExtensionStream() {
   Fragment body;
   body += LoadThread();
-  body +=
-      LoadUntagged(compiler::target::Thread::service_extension_stream_offset());
+  body += LoadNativeField(Slot::Thread_service_extension_stream());
   return body;
 }
 
@@ -5276,7 +5258,7 @@ Fragment FlowGraphBuilder::FfiConvertPrimitiveToDart(
   } else if (marshaller.IsHandle(arg_index)) {
     // The top of the stack is a Dart_Handle, so retrieve the tagged pointer
     // out of it.
-    body += RawLoadField(compiler::target::LocalHandle::ptr_offset());
+    body += LoadNativeField(Slot::LocalHandle_ptr());
   } else if (marshaller.IsVoid(arg_index)) {
     // Ignore whatever value was being returned and return null.
     ASSERT_EQUAL(arg_index, compiler::ffi::kResultIndex);
@@ -5320,7 +5302,7 @@ Fragment FlowGraphBuilder::FfiConvertPrimitiveToNative(
 
     // Get a reference to the top handle scope.
     body += LoadThread();
-    body += LoadUntagged(compiler::target::Thread::api_top_scope_offset());
+    body += LoadNativeField(Slot::Thread_api_top_scope());
     arg_reps->Add(kUntagged);
 
     // Allocate a new handle in the top handle scope.
@@ -5331,7 +5313,8 @@ Fragment FlowGraphBuilder::FfiConvertPrimitiveToNative(
     // Store the object address into the handle.
     body += LoadLocal(handle);
     body += LoadLocal(object);
-    body += RawStoreField(compiler::target::LocalHandle::ptr_offset());
+    body += StoreNativeField(Slot::LocalHandle_ptr(),
+                             StoreFieldInstr::Kind::kInitializing);
 
     body += DropTempsPreserveTop(1);  // Drop object.
   } else if (marshaller.IsVoid(arg_index)) {
@@ -5694,7 +5677,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfSyncFfiCallback(
     body += LoadThread();
     body +=
         LoadUntagged(compiler::target::Thread::unboxed_runtime_arg_offset());
-    body += RawLoadField(compiler::target::PersistentHandle::ptr_offset());
+    body += LoadNativeField(Slot::PersistentHandle_ptr());
     closure = MakeTemporary();
   }
 

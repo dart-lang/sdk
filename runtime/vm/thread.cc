@@ -73,8 +73,16 @@ Thread::Thread(bool is_vm_isolate)
           TargetCPUFeatures::double_truncate_round_supported() ? 1 : 0),
       tsan_utils_(DO_IF_TSAN(new TsanUtils()) DO_IF_NOT_TSAN(nullptr)),
       task_kind_(kUnknownTask),
+#if defined(SUPPORT_TIMELINE)
+      dart_stream_(ASSERT_NOTNULL(Timeline::GetDartStream())),
+#else
       dart_stream_(nullptr),
+#endif
+#if !defined(PRODUCT)
+      service_extension_stream_(ASSERT_NOTNULL(&Service::extension_stream)),
+#else
       service_extension_stream_(nullptr),
+#endif
       thread_lock_(),
       api_reusable_scope_(nullptr),
       no_callback_scope_depth_(0),
@@ -98,14 +106,6 @@ Thread::Thread(bool is_vm_isolate)
               next_(nullptr) {
 #endif
 
-#if defined(SUPPORT_TIMELINE)
-  dart_stream_ = Timeline::GetDartStream();
-  ASSERT(dart_stream_ != nullptr);
-#endif
-#ifndef PRODUCT
-  service_extension_stream_ = &Service::extension_stream;
-  ASSERT(service_extension_stream_ != nullptr);
-#endif
 #define DEFAULT_INIT(type_name, member_name, init_expr, default_init_value)    \
   member_name = default_init_value;
   CACHED_CONSTANTS_LIST(DEFAULT_INIT)

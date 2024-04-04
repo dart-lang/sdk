@@ -472,6 +472,17 @@ Fragment BaseFlowGraphBuilder::LoadNativeField(
   return Fragment(load);
 }
 
+Fragment BaseFlowGraphBuilder::LoadNativeField(const Slot& native_field,
+                                               bool calls_initializer) {
+  const InnerPointerAccess loads_inner_pointer =
+      native_field.representation() == kUntagged
+          ? (native_field.may_contain_inner_pointer()
+                 ? InnerPointerAccess::kMayBeInnerPointer
+                 : InnerPointerAccess::kCannotBeInnerPointer)
+          : InnerPointerAccess::kNotUntagged;
+  return LoadNativeField(native_field, loads_inner_pointer, calls_initializer);
+}
+
 Fragment BaseFlowGraphBuilder::LoadLocal(LocalVariable* variable) {
   ASSERT(!variable->is_captured());
   LoadLocalInstr* load = new (Z) LoadLocalInstr(*variable, InstructionSource());

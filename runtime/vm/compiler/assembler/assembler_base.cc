@@ -32,7 +32,7 @@ AssemblerBase::~AssemblerBase() {}
 void AssemblerBase::LoadFromSlot(Register dst,
                                  Register base,
                                  const Slot& slot) {
-  if (slot.is_unboxed()) {
+  if (!slot.is_tagged()) {
     // The result cannot be a floating point or SIMD value.
     ASSERT(slot.representation() == kUntagged ||
            RepresentationUtils::IsUnboxedInteger(slot.representation()));
@@ -41,7 +41,15 @@ void AssemblerBase::LoadFromSlot(Register dst,
     ASSERT(RepresentationUtils::ValueSize(slot.representation()) <=
            compiler::target::kWordSize);
     auto const sz = RepresentationUtils::OperandSize(slot.representation());
-    LoadFieldFromOffset(dst, base, slot.offset_in_bytes(), sz);
+    if (slot.has_untagged_instance()) {
+      LoadFromOffset(dst, base, slot.offset_in_bytes(), sz);
+    } else {
+      LoadFieldFromOffset(dst, base, slot.offset_in_bytes(), sz);
+    }
+  } else if (slot.has_untagged_instance()) {
+    // Non-Dart objects do not contain compressed pointers.
+    ASSERT(!slot.is_compressed());
+    LoadFromOffset(dst, base, slot.offset_in_bytes());
   } else if (!slot.is_guarded_field() && slot.type().ToCid() == kSmiCid) {
     if (slot.is_compressed()) {
       LoadCompressedSmiFieldFromOffset(dst, base, slot.offset_in_bytes());
@@ -60,10 +68,11 @@ void AssemblerBase::LoadFromSlot(Register dst,
 void AssemblerBase::StoreToSlot(Register src,
                                 Register base,
                                 const Slot& slot,
-                                MemoryOrder memory_order) {
+                                MemoryOrder memory_order,
+                                Register scratch) {
   auto const can_be_smi =
       slot.type().CanBeSmi() ? kValueCanBeSmi : kValueIsNotSmi;
-  StoreToSlot(src, base, slot, can_be_smi, memory_order);
+  StoreToSlot(src, base, slot, can_be_smi, memory_order, scratch);
 }
 
 void AssemblerBase::StoreToSlot(Register src,
@@ -72,7 +81,7 @@ void AssemblerBase::StoreToSlot(Register src,
                                 CanBeSmi can_be_smi,
                                 MemoryOrder memory_order,
                                 Register scratch) {
-  if (slot.is_unboxed()) {
+  if (!slot.is_tagged() || slot.has_untagged_instance()) {
     // Same as the no barrier case.
     StoreToSlotNoBarrier(src, base, slot, memory_order);
   } else if (slot.is_compressed()) {
@@ -88,7 +97,7 @@ void AssemblerBase::StoreToSlotNoBarrier(Register src,
                                          Register base,
                                          const Slot& slot,
                                          MemoryOrder memory_order) {
-  if (slot.is_unboxed()) {
+  if (!slot.is_tagged()) {
     // The stored value cannot be a floating point or SIMD value.
     ASSERT(slot.representation() == kUntagged ||
            RepresentationUtils::IsUnboxedInteger(slot.representation()));
@@ -97,7 +106,15 @@ void AssemblerBase::StoreToSlotNoBarrier(Register src,
     ASSERT(RepresentationUtils::ValueSize(slot.representation()) <=
            compiler::target::kWordSize);
     auto const sz = RepresentationUtils::OperandSize(slot.representation());
-    StoreFieldToOffset(src, base, slot.offset_in_bytes(), sz);
+    if (slot.has_untagged_instance()) {
+      StoreToOffset(src, base, slot.offset_in_bytes(), sz);
+    } else {
+      StoreFieldToOffset(src, base, slot.offset_in_bytes(), sz);
+    }
+  } else if (slot.has_untagged_instance()) {
+    // Non-Dart objects do not contain compressed pointers.
+    ASSERT(!slot.is_compressed());
+    StoreToOffset(src, base, slot.offset_in_bytes());
   } else if (slot.is_compressed()) {
     StoreCompressedIntoObjectOffsetNoBarrier(base, slot.offset_in_bytes(), src,
                                              memory_order);
