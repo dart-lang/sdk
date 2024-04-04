@@ -63,3 +63,10 @@ cron.nightly_builder(
     channels = ["try"],
     properties = [chrome, no_android],
 )
+
+cron.nightly_builder(
+    "ddc-hostasserts-linux-d8",
+    category = "ddc|h",
+    channels = ["try"],
+    properties = [no_android],
+)
