@@ -1,3 +1,8 @@
+# 4.1.0
+- Internal change: removed static method `DevToolsUtils.initializeAnalytics`
+and prepared DDS for using `unified_analytics` through the Dart Tooling Daemon.
+- Internal change: removed `analytics` parameter from the DevTools server `defaultHandler` method.
+
 # 4.0.0
 - Updated DDS protocol to version 2.0.
 - Added `readyToResume` and `requireUserPermissionToResume` RPCs.

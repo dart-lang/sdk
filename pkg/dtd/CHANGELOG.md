@@ -1,3 +1,6 @@
+## 2.2.0
+- Added new response types `Success`, `StringResponse`, `BoolResponse`, and `StringListResponse`.
+
 ## 2.1.0
 - Added `getProjectRoots` API.
 - Expose constant values from `dtd.dart`.

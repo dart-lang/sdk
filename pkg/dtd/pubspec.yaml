@@ -1,5 +1,5 @@
 name: dtd
-version: 2.1.0
+version: 2.2.0
 description: A package for communicating with the Dart Tooling Daemon.
 repository: https://github.com/dart-lang/sdk/tree/main/pkg/dtd
 
@@ -9,6 +9,7 @@ environment:
 dependencies:
   json_rpc_2: ^3.0.2
   stream_channel: ^2.1.2
+  unified_analytics: ^6.0.0
   web_socket_channel: ^2.4.0
 
 # We use 'any' version constraints here as we get our package versions from

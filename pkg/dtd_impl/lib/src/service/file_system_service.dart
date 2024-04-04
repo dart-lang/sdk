@@ -10,7 +10,7 @@ import 'package:dtd_impl/src/constants.dart';
 import 'package:json_rpc_2/json_rpc_2.dart';
 import 'package:dtd/dtd.dart';
 
-import 'dtd_client.dart';
+import '../dtd_client.dart';
 
 class FileSystemService {
   FileSystemService({required this.secret, required this.unrestrictedMode});

@@ -43,7 +43,6 @@ FutureOr<Handler> defaultHandler({
   DartDevelopmentServiceImpl? dds,
   required String buildDir,
   ClientManager? clientManager,
-  Analytics? analytics,
   Handler? notFoundHandler,
   DTDConnectionInfo? dtd,
 }) {
@@ -149,7 +148,9 @@ FutureOr<Handler> defaultHandler({
       extensionsManager: ExtensionsManager(buildDir: buildDir),
       deeplinkManager: DeeplinkManager(),
       dtd: dtd,
-      analytics: analytics ?? NoOpAnalytics(),
+      // TODO(https://github.com/flutter/devtools/issues/7496): remove this
+      // parameter when bringing in the breaking change from devtools_shared.
+      analytics: NoOpAnalytics(),
     );
   }
 
