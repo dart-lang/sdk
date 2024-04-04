@@ -649,6 +649,13 @@ class DevCompilerConfiguration extends CompilerConfiguration {
 
   @override
   String computeCompilerPath() {
+    if (_enableHostAsserts && _useSdk) {
+      // When [_useSdk] is true, ddc is compiled into a snapshot that was
+      // built without assertions enabled. The VM cannot make such snapshot run
+      // with assertions later. These two flags could be used together if we
+      // also build sdk snapshots with assertions enabled.
+      throw "--host-asserts and --use-sdk cannot be used together";
+    }
     // DDC is a Dart program and not an executable itself, so the command to
     // spawn as a subprocess is a Dart VM.
     // Internally the [DevCompilerCompilationCommand] will prepend the snapshot
@@ -734,12 +741,14 @@ class DevCompilerConfiguration extends CompilerConfiguration {
       args.add("$summary=$package");
     }
 
-    var compilerPath = _useSdk
+    var compilerPath = _useSdk && !_enableHostAsserts
         ? '${_configuration.buildDirectory}/dart-sdk/bin/snapshots/dartdevc.dart.snapshot'
         : Repository.uri.resolve('pkg/dev_compiler/bin/dartdevc.dart').path;
     var command = DevCompilerCompilationCommand(outputFile,
         bootstrapDependencies(), computeCompilerPath(), args, environment,
-        compilerPath: compilerPath, alwaysCompile: false);
+        compilerPath: compilerPath,
+        alwaysCompile: false,
+        enableHostAsserts: _enableHostAsserts);
     if (_configuration.rr) {
       return RRCommand(command);
     }
@@ -784,11 +793,16 @@ class DevCompilerConfiguration extends CompilerConfiguration {
       var pkgJsDir = Uri.directory(_configuration.buildDirectory)
           .resolve('$buildOptionsDir/pkg/ddc');
       var sdkJsPath = 'dart_sdk.js';
+      // Approximate the renaming done to identifiers in `pathToJSIdentifier()`
+      // from pkg/dev_compiler/lib/src/compiler/js_names.dart to handle the
+      // invalid library names from test files encountered so far.
       var libraryName = inputUri.path
           .substring(repositoryUri.path.length)
-          .replaceAll("/", "__")
-          .replaceAll("-", "_")
-          .replaceAll(".dart", "");
+          .replaceAll('/', '__')
+          .replaceAll('-', '_')
+          .replaceAll('.dart', '')
+          .replaceAllMapped(RegExp(r'[^A-Za-z_$0-9]'),
+              (Match m) => '\$${m[0]!.codeUnits.join('')}');
       var testPackageLoadStatements = [
         for (var package in testPackages) 'load("$pkgJsDir/$package.js");'
       ].join('\n');

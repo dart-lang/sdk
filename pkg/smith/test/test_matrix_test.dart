@@ -19,6 +19,9 @@ void main() {
               "enable-asserts": true
             },
           },
+          "ddc-hostasserts-linux-d8": {
+            "options": {"host-asserts": true, "use-sdk": false}
+          },
         },
         "builder_configurations": [],
       });
@@ -33,6 +36,11 @@ void main() {
           equals(Configuration("x64-ddc-vm-linux", Architecture.x64,
               Compiler.ddc, Mode.release, Runtime.vm, System.linux,
               enableAsserts: true)));
+      expect(
+          testMatrix.configurations[2],
+          equals(Configuration("ddc-hostasserts-linux-d8", Architecture.x64,
+              Compiler.ddc, Mode.release, Runtime.d8, System.linux,
+              enableHostAsserts: true)));
     });
 
     test("error if expanded configuration names collide", () {

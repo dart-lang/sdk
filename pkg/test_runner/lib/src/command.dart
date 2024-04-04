@@ -328,6 +328,8 @@ class Dart2jsCompilationCommand extends CompilationCommand {
 class DevCompilerCompilationCommand extends CompilationCommand {
   final String compilerPath;
 
+  final bool enableHostAsserts;
+
   DevCompilerCompilationCommand(
       String outputFile,
       List<Uri> bootstrapDependencies,
@@ -336,6 +338,7 @@ class DevCompilerCompilationCommand extends CompilationCommand {
       Map<String, String> environmentOverrides,
       {required this.compilerPath,
       required bool alwaysCompile,
+      required this.enableHostAsserts,
       String? workingDirectory,
       int index = 0})
       : super("ddc", outputFile, bootstrapDependencies, executable, arguments,
@@ -350,6 +353,7 @@ class DevCompilerCompilationCommand extends CompilationCommand {
           executable, arguments, environmentOverrides,
           compilerPath: compilerPath,
           alwaysCompile: _alwaysCompile,
+          enableHostAsserts: enableHostAsserts,
           workingDirectory: workingDirectory,
           index: index);
 
@@ -364,6 +368,7 @@ class DevCompilerCompilationCommand extends CompilationCommand {
   @override
   List<String> get batchArguments {
     return <String>[
+      if (enableHostAsserts) '--enable-asserts',
       compilerPath,
       ...super.batchArguments,
     ];
@@ -372,6 +377,7 @@ class DevCompilerCompilationCommand extends CompilationCommand {
   @override
   List<String> get nonBatchArguments {
     return <String>[
+      if (enableHostAsserts) '--enable-asserts',
       compilerPath,
       ...super.nonBatchArguments,
     ];
