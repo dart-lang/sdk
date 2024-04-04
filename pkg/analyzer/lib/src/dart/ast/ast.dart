@@ -19,6 +19,7 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/to_source_visitor.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
+import 'package:analyzer/src/dart/resolver/body_inference_context.dart';
 import 'package:analyzer/src/dart/resolver/typed_literal_resolver.dart';
 import 'package:analyzer/src/fasta/token_utils.dart' as util show findPrevious;
 import 'package:analyzer/src/generated/resolver.dart';
@@ -7747,6 +7748,10 @@ sealed class FunctionBodyImpl extends AstNodeImpl implements FunctionBody {
   /// declared within this function body or any enclosing function body, or
   /// `null` if resolution hasn't yet been performed.
   LocalVariableInfo? localVariableInfo;
+
+  /// The [BodyInferenceContext] that was used during type inference of this
+  /// function body, or `null` if resolution hasn't yet been performed.
+  BodyInferenceContext? bodyContext;
 
   @override
   bool get isAsynchronous => false;
