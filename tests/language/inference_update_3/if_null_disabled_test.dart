@@ -20,10 +20,10 @@ Object? contextUnknown<T>(T x) => x;
 Object? contextIterable<T>(Iterable<T> x) => x;
 
 main() {
-  // - An if-null expression `E` of the form `e1 ?? e2` with context type `K` is
+  // - An if-null expression `e` of the form `e1 ?? e2` with context type K is
   //   analyzed as follows:
   //
-  //   - Let `T1` be the type of `e1` inferred with context type `K?`.
+  //   - Let T1 be the type of `e1` inferred with context type K?.
   {
     // Check the context type of `e1`:
     // - Where the context is established using a function call argument.
@@ -31,7 +31,8 @@ main() {
     context<num>((contextType(1)..expectStaticType<Exactly<num?>>()) ?? 2);
 
     // - Where the context is established using local variable promotion.
-    var o = 0 as Object?;
+    Object? o;
+    o = 0 as Object?;
     if (o is num?) {
       o = (contextType(1)..expectStaticType<Exactly<num?>>()) ?? 2;
     }
@@ -41,8 +42,8 @@ main() {
     }
   }
 
-  //   - Let `T2` be the type of `e2` inferred with context type `J`, where:
-  //     - If `K` is `_`, `J = T1`.
+  //   - Let T2 be the type of `e2` inferred with context type J, where:
+  //     - If K is `_`, J = T1.
   {
     // Check the context type of `e2`.
     var string = '';
@@ -54,7 +55,7 @@ main() {
         (contextType('')..expectStaticType<Exactly<String?>>()));
   }
 
-  //     - Otherwise, `J = K`.
+  //     - Otherwise, J = K.
   {
     var intQuestion = null as int?;
     context<num?>(
@@ -63,64 +64,125 @@ main() {
         intQuestion ?? (contextType(2)..expectStaticType<Exactly<num>>()));
   }
 
-  //   - Let `T` be `UP(NonNull(T1), T2)`.
-  //   - Let `S` be the greatest closure of `K`.
-  //   - If `T <: S`, then the type of `E` is `T`.
+  //   - Let T be UP(NonNull(T1), T2).
+  //   - Let S be the greatest closure of K.
+  //   - If T <: S, then the type of `e` is T.
+  //     (Testing this case here. Otherwise continued below.)
   {
-    // K=Object, T1=int?, and T2=double, therefore T=num and S=Object, so T <:
-    // S, and hence the type of E is num.
+    // This example has:
+    // - K = Object
+    // - T1 = int?
+    // - T2 = double
+    // Which implies:
+    // - T = num
+    // - S = Object
+    // We have:
+    // - T <: S
+    // Therefore the type of `e` is T = num.
     var intQuestion = null as int?;
     var d = 2.0;
     context<Object>((intQuestion ?? d)..expectStaticType<Exactly<num>>());
 
-    // K=Iterable<_>, T1=Iterable<int>?, and T2=Iterable<double>, therefore
-    // T=Iterable<num> and S=Iterable<Object?>, so T <: S, and hence the type of
-    // E is Iterable<num>.
+    // This example has:
+    // - K = Iterable<_>
+    // - T1 = Iterable<int>?
+    // - T2 = Iterable<double>
+    // Which implies:
+    // - T = Iterable<num>
+    // - S = Iterable<Object?>
+    // We have:
+    // - T <: S
+    // Therefore the type of `e` is T = Iterable<num>.
     var iterableIntQuestion = null as Iterable<int>?;
     var iterableDouble = <double>[] as Iterable<double>;
     contextIterable((iterableIntQuestion ?? iterableDouble)
       ..expectStaticType<Exactly<Iterable<num>>>());
   }
 
-  //   - Otherwise, if `NonNull(T1) <: S` and `T2 <: S`, then the type of `E` is
-  //     `S` if `inference-update-3` is enabled, else the type of `E` is `T`.
+  //   - Otherwise, if NonNull(T1) <: S and T2 <: S, and `inference-update-3` is
+  //     enabled, then the type of `e` is S.
   {
-    // K=Iterable<num>, T1=Iterable<int>?, and T2=List<num>, therefore T=Object
-    // and S=Iterable<num>, so T is not <: S, but NonNull(T1) <: S and T2 <: S,
-    // hence the type of E is Object.
+    // This example has:
+    // - K = Iterable<num>
+    // - T1 = Iterable<int>?
+    // - T2 = List<num>
+    // Which implies:
+    // - T = Object
+    // - S = Iterable<num>
+    // We have:
+    // - T <!: S
+    // - NonNull(T1) <: S
+    // - T2 <: S
+    // However, inference-update-3 is not enabled.
+    // Therefore the type of `e` is T = Object.
     var iterableIntQuestion = null as Iterable<int>?;
     var listNum = <num>[];
-    var o = [0] as Object?;
+    Object? o;
+    o = [0] as Object?;
     if (o is Iterable<num>) {
       // We avoid having a compile-time error because `o` can be demoted.
       o = (iterableIntQuestion ?? listNum)..expectStaticType<Exactly<Object>>();
     }
   }
 
-  //   - Otherwise, the type of `E` is `T`.
+  //   - Otherwise, the type of `e` is T.
   {
     var intQuestion = null as int?;
     var d = 2.0;
-    var o = 0 as Object?;
+    Object? o;
     var doubleQuestion = null as double?;
+    o = 0 as Object?;
     if (o is int?) {
-      // K=int?, T1=int?, and T2=double, therefore T=num and S=int?, so T is not
-      // <: S. NonNull(T1) <: S, but T2 is not <: S. Hence the type of E is num.
+      // This example has:
+      // - K = int?
+      // - T1 = int?
+      // - T2 = double
+      // Which implies:
+      // - T = num
+      // - S = int?
+      // We have:
+      // - T <!: S
+      // - NonNull(T1) <: S
+      // - T2 <!: S
+      // The fact that T2 <!: S precludes using S as static type.
+      // Therefore the type of `e` is T = num.
       // We avoid having a compile-time error because `o` can be demoted.
       o = (intQuestion ?? d)..expectStaticType<Exactly<num>>();
     }
     o = 0 as Object?;
     if (o is int?) {
-      // K=int?, T1=double?, and T2=int?, therefore T=num? and S=int?, so T is
-      // not <: S. T2 <: S, but NonNull(T1) is not <: S. Hence the type of E is
-      // num?.
+      // This example has:
+      // - K = int?
+      // - T1 = double?
+      // - T2 = int?
+      // Which implies:
+      // - T = num?
+      // - S = int?
+      // We have:
+      // - T <!: S
+      // - NonNull(T1) <!: S
+      // - T2 <: S
+      // The fact that NonNull(T1) <!: S precludes using S as static type.
+      // Therefore the type of `e` is T = num?.
       // We avoid having a compile-time error because `o` can be demoted.
       o = (doubleQuestion ?? intQuestion)..expectStaticType<Exactly<num?>>();
     }
     o = '' as Object?;
     if (o is String?) {
-      // K=String?, T1=int?, and T2=double, therefore T=num and S=String?, so
-      // none of T, NonNull(T1), nor T2 are <: S. Hence the type of E is num.
+      // This example has:
+      // - K = String?
+      // - T1 = int?
+      // - T2 = double
+      // Which implies:
+      // - T = num
+      // - S = String?
+      // We have:
+      // - T <!: S
+      // - NonNull(T1) <!: S
+      // - T2 <!: S
+      // The fact that NonNull(T1) <!: S and T2 <!: S precludes using S as
+      // static type.
+      // Therefore the type of `e` is T = num.
       // We avoid having a compile-time error because `o` can be demoted.
       o = (intQuestion ?? d)..expectStaticType<Exactly<num>>();
     }
