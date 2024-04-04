@@ -471,15 +471,14 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   void checkForBodyMayCompleteNormally({
-    required FunctionBody body,
+    required FunctionBodyImpl body,
     required SyntacticEntity errorNode,
   }) {
     if (!flowAnalysis.flow!.isReachable) {
       return;
     }
 
-    // TODO(scheglov): encapsulate
-    var bodyContext = BodyInferenceContext.of(body);
+    var bodyContext = body.bodyContext;
     if (bodyContext == null) {
       return;
     }
@@ -1841,7 +1840,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  DartType visitBlockFunctionBody(BlockFunctionBody node,
+  DartType visitBlockFunctionBody(covariant BlockFunctionBodyImpl node,
       {DartType? imposedType}) {
     var oldBodyContext = _bodyContext;
     try {
@@ -2299,7 +2298,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  DartType visitExpressionFunctionBody(ExpressionFunctionBody node,
+  DartType visitExpressionFunctionBody(
+      covariant ExpressionFunctionBodyImpl node,
       {DartType? imposedType}) {
     if (resolveOnlyCommentInFunctionBody) {
       return imposedType ?? typeProvider.dynamicType;
@@ -2452,7 +2452,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitFunctionDeclaration(FunctionDeclaration node) {
+  void visitFunctionDeclaration(covariant FunctionDeclarationImpl node) {
     bool isLocal = node.parent is FunctionDeclarationStatement;
 
     if (isLocal) {

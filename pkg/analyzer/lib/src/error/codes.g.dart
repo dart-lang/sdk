@@ -6934,6 +6934,14 @@ class WarningCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  Parameters:
+  ///  0: the name of the argument
+  static const WarningCode NON_CONST_ARGUMENT_FOR_CONST_PARAMETER = WarningCode(
+    'NON_CONST_ARGUMENT_FOR_CONST_PARAMETER',
+    "Argument '{0}' must be a constant.",
+    correctionMessage: "Try replacing the argument with a constant.",
+  );
+
   ///  Generates a warning for non-const instance creation using a constructor
   ///  annotated with `@literal`.
   ///

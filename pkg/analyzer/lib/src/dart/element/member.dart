@@ -610,6 +610,9 @@ abstract class Member implements Element {
   bool get hasLiteral => _declaration.hasLiteral;
 
   @override
+  bool get hasMustBeConst => _declaration.hasMustBeConst;
+
+  @override
   bool get hasMustBeOverridden => _declaration.hasMustBeOverridden;
 
   @override

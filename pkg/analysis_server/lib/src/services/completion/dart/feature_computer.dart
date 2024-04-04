@@ -13,16 +13,15 @@ import 'package:analysis_server/src/protocol_server.dart' as protocol
 import 'package:analysis_server/src/services/completion/dart/relevance_tables.g.dart';
 import 'package:analysis_server/src/utilities/extensions/element.dart';
 import 'package:analysis_server/src/utilities/extensions/numeric.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
-import 'package:analyzer/src/dart/resolver/body_inference_context.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -624,12 +623,12 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
   DartType? visitExpressionFunctionBody(ExpressionFunctionBody node) {
     if (range.endEnd(node.functionDefinition, node).contains(offset)) {
       var parent = node.parent;
-      if (parent is MethodDeclaration) {
-        return BodyInferenceContext.of(parent.body)?.contextType;
-      } else if (parent is FunctionExpression) {
+      if (parent is MethodDeclarationImpl) {
+        return parent.body.bodyContext?.contextType;
+      } else if (parent is FunctionExpressionImpl) {
         var grandparent = parent.parent;
         if (grandparent is FunctionDeclaration) {
-          return BodyInferenceContext.of(parent.body)?.contextType;
+          return parent.body.bodyContext?.contextType;
         }
         return _visitParent(parent);
       }
@@ -990,9 +989,9 @@ parent3: ${node.parent?.parent?.parent}
   @override
   DartType? visitReturnStatement(ReturnStatement node) {
     if (node.returnKeyword.end < offset) {
-      var functionBody = node.thisOrAncestorOfType<FunctionBody>();
+      var functionBody = node.thisOrAncestorOfType<FunctionBodyImpl>();
       if (functionBody != null) {
-        return BodyInferenceContext.of(functionBody)?.contextType;
+        return functionBody.bodyContext?.contextType;
       }
     }
     return null;
@@ -1105,9 +1104,9 @@ parent3: ${node.parent?.parent?.parent}
   @override
   DartType? visitYieldStatement(YieldStatement node) {
     if (range.endStart(node.yieldKeyword, node.semicolon).contains(offset)) {
-      var functionBody = node.thisOrAncestorOfType<FunctionBody>();
+      var functionBody = node.thisOrAncestorOfType<FunctionBodyImpl>();
       if (functionBody != null) {
-        return BodyInferenceContext.of(functionBody)?.contextType;
+        return functionBody.bodyContext?.contextType;
       }
     }
     return null;

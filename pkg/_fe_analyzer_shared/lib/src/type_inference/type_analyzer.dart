@@ -529,9 +529,9 @@ mixin TypeAnalyzer<
   /// [schema] is the type schema which should be used for type inference.
   ///
   /// Stack effect: pushes (Expression).
-  Type analyzeExpression(Expression node, TypeSchema? schema) {
+  Type analyzeExpression(Expression node, TypeSchema schema) {
     // Stack: ()
-    if (schema == null || operations.typeSchemaIsDynamic(schema)) {
+    if (operations.typeSchemaIsDynamic(schema)) {
       schema = operations.unknownType;
     }
     ExpressionTypeAnalysisResult<Type> result =

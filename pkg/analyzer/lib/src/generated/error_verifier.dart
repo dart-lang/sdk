@@ -34,6 +34,7 @@ import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/error/const_argument_verifier.dart';
 import 'package:analyzer/src/error/constructor_fields_verifier.dart';
 import 'package:analyzer/src/error/correct_override.dart';
 import 'package:analyzer/src/error/duplicate_definition_verifier.dart';
@@ -241,6 +242,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   final LibraryVerificationContext libraryVerificationContext;
   final RequiredParametersVerifier _requiredParametersVerifier;
+  final ConstArgumentsVerifier _constArgumentsVerifier;
   final DuplicateDefinitionVerifier _duplicateDefinitionVerifier;
   final UseResultVerifier _checkUseVerifier;
   late final TypeArgumentsVerifier _typeArgumentsVerifier;
@@ -260,6 +262,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             _UninstantiatedBoundChecker(errorReporter),
         _checkUseVerifier = UseResultVerifier(errorReporter),
         _requiredParametersVerifier = RequiredParametersVerifier(errorReporter),
+        _constArgumentsVerifier = ConstArgumentsVerifier(errorReporter),
         _duplicateDefinitionVerifier = DuplicateDefinitionVerifier(
           _inheritanceManager,
           _currentLibrary,
@@ -353,6 +356,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForDeadNullCoalesce(node.readType as TypeImpl, node.rightHandSide);
     }
     _checkForAssignmentToFinal(lhs);
+
+    _constArgumentsVerifier.visitAssignmentExpression(node);
     super.visitAssignmentExpression(node);
   }
 
@@ -386,6 +391,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
 
     checkForUseOfVoidResult(node.leftOperand);
+    _constArgumentsVerifier.visitBinaryExpression(node);
 
     super.visitBinaryExpression(node);
   }
@@ -918,6 +924,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _typeArgumentsVerifier.checkFunctionExpressionInvocation(node);
     }
     _requiredParametersVerifier.visitFunctionExpressionInvocation(node);
+    _constArgumentsVerifier.visitFunctionExpressionInvocation(node);
     _checkUseVerifier.checkFunctionExpressionInvocation(node);
     super.visitFunctionExpressionInvocation(node);
   }
@@ -1017,6 +1024,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForInvalidGenerativeConstructorReference(constructorName);
       _checkForConstOrNewWithMixin(node, namedType, type);
       _requiredParametersVerifier.visitInstanceCreationExpression(node);
+      _constArgumentsVerifier.visitInstanceCreationExpression(node);
       if (node.isConst) {
         _checkForConstWithNonConst(node);
         _checkForConstWithUndefinedConstructor(
@@ -1110,6 +1118,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
     _typeArgumentsVerifier.checkMethodInvocation(node);
     _requiredParametersVerifier.visitMethodInvocation(node);
+    _constArgumentsVerifier.visitMethodInvocation(node);
     _checkUseVerifier.checkMethodInvocation(node);
     super.visitMethodInvocation(node);
   }

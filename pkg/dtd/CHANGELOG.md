@@ -1,5 +1,6 @@
 ## 2.2.0
 - Added new response types `Success`, `StringResponse`, `BoolResponse`, and `StringListResponse`.
+- Added  contributing guide (`CONTRIBUTING.md`).
 
 ## 2.1.0
 - Added `getProjectRoots` API.

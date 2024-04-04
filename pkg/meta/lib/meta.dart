@@ -216,6 +216,56 @@ const _IsTestGroup isTestGroup = _IsTestGroup();
 ///   constructor is not a compile-time constant.
 const _Literal literal = _Literal();
 
+/// Used to annotate a parameter which should be constant.
+///
+/// The Dart type system does not allow distinguishing values of constant
+/// expressions from other values of the same type, so a function cannot
+/// ask to have only constant values as arguments.
+/// This annotation marks a parameter as requiring a constant expression as
+/// argument. The analyzer can warn, or err if so configured, if a non-constant
+/// expression is used as argument.
+///
+/// The annotation can be applied to any parameter, but if it is applied to a
+/// parameter of an instance member, subclasses overriding the member will not
+/// inherit the annotation. If the subclass member also wants a constant
+/// argument, it must annotate its own parameter as well.
+///
+/// Notice that if an annotatated instance member overrides a superclass member
+/// where the same parameter is not annotated with this annotation, then a user
+/// can cast to the superclass and invoke with a non-constant argument without
+/// any warnings.
+///
+/// An example use could be the arguments to functions annotated with
+/// [ResourceIdentifier], as only constant arguments can be made available
+/// to the post-compile steps.
+///
+/// ```dart
+/// import 'package:meta/meta.dart' show mustBeConst;
+///
+/// void main() {
+///   f();
+///   A().i = 3;
+/// }
+///
+/// const v = 3;
+///
+/// int f() => g(v);
+///
+/// int g(@mustBeConst int value) => value + 1;
+///
+/// class A {
+///   int? _i;
+///
+///   int? get i => _i;
+///
+///   set i(@mustBeConst int? value) {
+///     _i = value;
+///   }
+/// }
+/// ```
+@experimental
+const _MustBeConst mustBeConst = _MustBeConst();
+
 /// Used to annotate an instance member `m` declared on a class or mixin `C`.
 /// Indicates that every subclass of `C`, concrete or abstract, must directly
 /// override `m`.
@@ -453,33 +503,6 @@ class Immutable {
   const Immutable([this.reason = '']);
 }
 
-/// Annotate a static method for collection.
-///
-/// During compilation, all calls to static methods annotated with
-/// [ResourceIdentifier] are stored with the calling arguments, as far as they
-/// can be resolved at compile time. This information is then made available to
-/// post-compile steps.
-@experimental
-class ResourceIdentifier {
-  /// An identifier which can be used when retrieving the stored calls.
-  ///
-  /// This could, for example, be the name of the package which places and
-  /// retrieves the annotation. Allowed types are bool, int, double, and String.
-  final Object? metadata;
-
-  /// Initialize a newly created [ResourceIdentifier] instance
-  /// to be used as an annotation with the given [metadata] identifier.
-  const ResourceIdentifier([this.metadata])
-      : assert(
-          metadata == null ||
-              metadata is bool ||
-              metadata is int ||
-              metadata is double ||
-              metadata is String,
-          'Valid metadata types are bool, int, double, and String.',
-        );
-}
-
 /// Used to annotate a named parameter `p` in a method or function `f`.
 ///
 /// See [required] for more details.
@@ -506,6 +529,37 @@ class Required {
 
   /// Initialize a newly created instance to have the given [reason].
   const Required([this.reason = '']);
+}
+
+/// Annotates a static method as referencing a native resource.
+///
+/// Applies to static functions, top-level functions, or extension methods.
+///
+/// During compilation, all statically resolved calls to an annotated function
+/// are registered, and information about the annotated functions, the calls,
+/// and their arguments, is then made available to post-compile steps.
+@experimental
+class ResourceIdentifier {
+  /// Information which is stored together with the function call.
+  ///
+  /// This could, for example, be the name of the package containing the
+  /// function annotated with this annotation. Allowed types are [bool], [int],
+  /// [double], and [String].
+  final Object? metadata;
+
+  /// Creates a [ResourceIdentifier] instance.
+  ///
+  /// This annotation can be placed as an annotation on functions whose
+  /// statically resolved calls should be registered together with the optional
+  /// [metadata] information.
+  const ResourceIdentifier([this.metadata])
+      : assert(
+          metadata == null ||
+              metadata is bool ||
+              metadata is num ||
+              metadata is String,
+          'Valid metadata types are bool, int, double, and String.',
+        );
 }
 
 /// See [useResult] for more details.
@@ -563,6 +617,7 @@ class _DoNotStore {
 }
 
 @Target({
+  TargetKind.constructor,
   TargetKind.function,
   TargetKind.getter,
   TargetKind.method,
@@ -596,6 +651,14 @@ class _IsTestGroup {
 
 class _Literal {
   const _Literal();
+}
+
+@Target({
+  TargetKind.parameter,
+  TargetKind.extensionType,
+})
+class _MustBeConst {
+  const _MustBeConst();
 }
 
 @Target({

@@ -617,6 +617,9 @@ abstract class Element implements AnalysisTarget {
   /// Whether the element has an annotation of the form `@literal`.
   bool get hasLiteral;
 
+  /// Whether the element has an annotation of the form `@mustBeConst`.
+  bool get hasMustBeConst;
+
   /// Whether the element has an annotation of the form `@mustBeOverridden`.
   bool get hasMustBeOverridden;
 
@@ -871,6 +874,10 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
 
   /// Whether the annotation marks the associated constructor as being literal.
   bool get isLiteral;
+
+  /// Whether the annotation marks the associated returned element as
+  /// requiring a constant argument.
+  bool get isMustBeConst;
 
   /// Whether the annotation marks the associated member as requiring
   /// subclasses to override this member.
