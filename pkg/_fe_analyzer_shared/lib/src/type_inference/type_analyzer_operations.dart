@@ -34,8 +34,11 @@ enum TypeDeclarationKind {
 
 /// Callback API used by the shared type analyzer to query and manipulate the
 /// client's representation of variables and types.
-abstract interface class TypeAnalyzerOperations<Variable extends Object,
-        Type extends Object, TypeSchema extends Object>
+abstract interface class TypeAnalyzerOperations<
+        Variable extends Object,
+        Type extends Object,
+        TypeSchema extends Object,
+        InferableParameter extends Object>
     implements FlowAnalysisOperations<Variable, Type> {
   /// Returns the type `double`.
   Type get doubleType;
@@ -195,6 +198,17 @@ abstract interface class TypeAnalyzerOperations<Variable extends Object,
   /// [elementTypeSchema].
   TypeSchema mapTypeSchema(
       {required TypeSchema keyTypeSchema, required TypeSchema valueTypeSchema});
+
+  /// If [type] is a parameter type that is of a kind used in type inference,
+  /// returns the corresponding parameter.
+  ///
+  /// In the example below the appearance of `X` in the return type of `foo` is
+  /// a parameter type of a kind used in type inference. When passed into
+  /// [matchInferableParameter] it will yield the parameter `X` defined by
+  /// `foo`.
+  ///
+  ///   X foo<X>(bool c, X x1, X x2) => c ? x1 : x2;
+  InferableParameter? matchInferableParameter(Type type);
 
   /// If [type] is a subtype of the type `Iterable<T>?` for some `T`, returns
   /// the type `T`.  Otherwise returns `null`.

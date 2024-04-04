@@ -85,22 +85,20 @@ class TypeConstraintGatherer {
     // If `P` is a type variable `X` in `L`, then the match holds:
     //   Under constraint `_ <: X <: Q`.
     var P_nullability = _typeSystemOperations.getNullabilitySuffix(P);
-    if (_typeSystemOperations.isTypeParameterType(P) &&
-        P_nullability == NullabilitySuffix.none &&
-        _typeParameters.contains(P.element)) {
-      _addUpper(P.element as TypeParameterElement, Q,
-          nodeForTesting: nodeForTesting);
+    if (_typeSystemOperations.matchInferableParameter(P) case var P_element?
+        when P_nullability == NullabilitySuffix.none &&
+            _typeParameters.contains(P_element)) {
+      _addUpper(P_element, Q, nodeForTesting: nodeForTesting);
       return true;
     }
 
     // If `Q` is a type variable `X` in `L`, then the match holds:
     //   Under constraint `P <: X <: _`.
     var Q_nullability = _typeSystemOperations.getNullabilitySuffix(Q);
-    if (_typeSystemOperations.isTypeParameterType(Q) &&
-        Q_nullability == NullabilitySuffix.none &&
-        _typeParameters.contains(Q.element)) {
-      _addLower(Q.element as TypeParameterElement, P,
-          nodeForTesting: nodeForTesting);
+    if (_typeSystemOperations.matchInferableParameter(Q) case var Q_element?
+        when Q_nullability == NullabilitySuffix.none &&
+            _typeParameters.contains(Q_element)) {
+      _addLower(Q_element, P, nodeForTesting: nodeForTesting);
       return true;
     }
 

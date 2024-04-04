@@ -140,8 +140,8 @@ class GenericInferrer {
   void constrainArgument(
       DartType argumentType, DartType parameterType, String parameterName,
       {InterfaceElement? genericClass, required AstNode? nodeForTesting}) {
-    var origin =
-        TypeConstraintFromArgument<DartType, DartType, PromotableElement>(
+    var origin = TypeConstraintFromArgument<DartType, DartType,
+        PromotableElement, TypeParameterElement>(
       argumentType: argumentType,
       parameterType: parameterType,
       parameterName: parameterName,
@@ -177,8 +177,11 @@ class GenericInferrer {
   void constrainGenericFunctionInContext(
       FunctionType fnType, DartType contextType,
       {required AstNode? nodeForTesting}) {
-    var origin = TypeConstraintFromFunctionContext<DartType, DartType,
-        PromotableElement>(functionType: fnType, contextType: contextType);
+    var origin = TypeConstraintFromFunctionContext<
+        DartType,
+        DartType,
+        PromotableElement,
+        TypeParameterElement>(functionType: fnType, contextType: contextType);
 
     // Since we're trying to infer the instantiation, we want to ignore type
     // formals as we check the parameters and return type.
@@ -196,9 +199,9 @@ class GenericInferrer {
   /// is a subtype of the [contextType].
   void constrainReturnType(DartType declaredType, DartType contextType,
       {required AstNode? nodeForTesting}) {
-    var origin =
-        TypeConstraintFromReturnType<DartType, DartType, PromotableElement>(
-            declaredType: declaredType, contextType: contextType);
+    var origin = TypeConstraintFromReturnType<DartType, DartType,
+            PromotableElement, TypeParameterElement>(
+        declaredType: declaredType, contextType: contextType);
     _tryMatchSubtypeOf(declaredType, contextType, origin,
         covariant: true, nodeForTesting: nodeForTesting);
   }
@@ -519,11 +522,11 @@ class GenericInferrer {
     var intro = "Tried to infer '$inferredStr' for '${typeParam.name}'"
         " which doesn't work:";
 
-    var constraintsByOrigin =
-        <TypeConstraintOrigin<DartType, DartType, PromotableElement>,
-            List<
-                MergedTypeConstraint<DartType, DartType, TypeParameterElement,
-                    PromotableElement>>>{};
+    var constraintsByOrigin = <TypeConstraintOrigin<DartType, DartType,
+            PromotableElement, TypeParameterElement>,
+        List<
+            MergedTypeConstraint<DartType, DartType, TypeParameterElement,
+                PromotableElement>>>{};
     for (var c in constraints) {
       constraintsByOrigin.putIfAbsent(c.origin, () => []).add(c);
     }
@@ -686,9 +689,14 @@ class GenericInferrer {
   /// The return value indicates whether the match was successful.  If it was
   /// unsuccessful, any constraints that were accumulated during the match
   /// attempt have been rewound (see [_rewindConstraints]).
-  bool _tryMatchSubtypeOf(DartType t1, DartType t2,
-      TypeConstraintOrigin<DartType, DartType, PromotableElement> origin,
-      {required bool covariant, required AstNode? nodeForTesting}) {
+  bool _tryMatchSubtypeOf(
+      DartType t1,
+      DartType t2,
+      TypeConstraintOrigin<DartType, DartType, PromotableElement,
+              TypeParameterElement>
+          origin,
+      {required bool covariant,
+      required AstNode? nodeForTesting}) {
     var gatherer = TypeConstraintGatherer(
         typeSystem: _typeSystem,
         typeParameters: _typeParameters,
@@ -720,11 +728,11 @@ class GenericInferrer {
                   PromotableElement>>
           constraints,
       TypeSystemOperations typeSystemOperations) {
-    List<List<String>> lineParts =
-        Set<TypeConstraintOrigin<DartType, DartType, PromotableElement>>.from(
-                constraints.map((c) => c.origin))
-            .map((o) => o.formatError(typeSystemOperations))
-            .toList();
+    List<List<String>> lineParts = Set<
+            TypeConstraintOrigin<DartType, DartType, PromotableElement,
+                TypeParameterElement>>.from(constraints.map((c) => c.origin))
+        .map((o) => o.formatError(typeSystemOperations))
+        .toList();
 
     int prefixMax = lineParts.map((p) => p[0].length).fold(0, math.max);
 

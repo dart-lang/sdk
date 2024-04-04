@@ -469,7 +469,9 @@ class FlowAnalysisResult {
 
 /// CFE-specific implementation of [FlowAnalysisOperations].
 class OperationsCfe
-    implements TypeAnalyzerOperations<VariableDeclaration, DartType, DartType> {
+    implements
+        TypeAnalyzerOperations<VariableDeclaration, DartType, DartType,
+            StructuralParameter> {
   final TypeEnvironment typeEnvironment;
 
   final Nullability nullability;
@@ -1037,6 +1039,15 @@ class OperationsCfe
   @override
   bool isNonNullable(DartType typeSchema) {
     return typeSchema.nullability == Nullability.nonNullable;
+  }
+
+  @override
+  StructuralParameter? matchInferableParameter(DartType type) {
+    if (type is StructuralParameterType) {
+      return type.parameter;
+    } else {
+      return null;
+    }
   }
 }
 

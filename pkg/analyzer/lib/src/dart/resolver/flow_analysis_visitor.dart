@@ -379,7 +379,9 @@ class FlowAnalysisHelper {
 }
 
 class TypeSystemOperations
-    implements TypeAnalyzerOperations<PromotableElement, DartType, DartType> {
+    implements
+        TypeAnalyzerOperations<PromotableElement, DartType, DartType,
+            TypeParameterElement> {
   final bool strictCasts;
   final TypeSystemImpl typeSystem;
 
@@ -636,6 +638,15 @@ class TypeSystemOperations
   DartType? matchFutureOr(DartType type) {
     if (type is InterfaceType && type.isDartAsyncFutureOr) {
       return type.typeArguments[0];
+    } else {
+      return null;
+    }
+  }
+
+  @override
+  TypeParameterElement? matchInferableParameter(DartType type) {
+    if (type is TypeParameterType) {
+      return type.element;
     } else {
       return null;
     }

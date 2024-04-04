@@ -2611,7 +2611,9 @@ class MapPatternEntry extends Node implements MapPatternElement {
 }
 
 class MiniAstOperations
-    implements TypeAnalyzerOperations<Var, Type, TypeSchema> {
+    implements
+        TypeAnalyzerOperations<Var, Type, TypeSchema,
+            PromotedTypeVariableType> {
   static const Map<String, bool> _coreExhaustiveness = const {
     '()': true,
     '(int, int?)': false,
@@ -3248,6 +3250,12 @@ class MiniAstOperations
           return StarType(type);
         }
     }
+  }
+
+  @override
+  PromotedTypeVariableType? matchInferableParameter(Type type) {
+    // TODO(cstefantsova): Add support for type parameter objects in Mini AST.
+    return null;
   }
 }
 
@@ -5369,7 +5377,7 @@ class _MiniAstErrors
 class _MiniAstTypeAnalyzer
     with
         TypeAnalyzer<Node, Statement, Expression, Var, Type, Pattern, void,
-            TypeSchema> {
+            TypeSchema, PromotedTypeVariableType> {
   final Harness _harness;
 
   @override

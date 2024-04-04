@@ -38,8 +38,8 @@ typedef GeneratedTypeConstraint = shared.GeneratedTypeConstraint<DartType,
 typedef MergedTypeConstraint = shared.MergedTypeConstraint<DartType, DartType,
     StructuralParameter, VariableDeclaration>;
 
-typedef UnknownTypeConstraintOrigin = shared
-    .UnknownTypeConstraintOrigin<DartType, DartType, VariableDeclaration>;
+typedef UnknownTypeConstraintOrigin = shared.UnknownTypeConstraintOrigin<
+    DartType, DartType, VariableDeclaration, StructuralParameter>;
 
 /// Given a [FunctionType], gets the type of the named parameter with the given
 /// [name], or `dynamic` if there is no parameter with the given name.
