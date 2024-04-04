@@ -5735,8 +5735,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       //
       Expression equalsNull =
           createEqualsNull(read, fileOffset: node.testOffset);
-      ConditionalExpression conditional = new ConditionalExpression(equalsNull,
-          write, new NullLiteral()..fileOffset = node.testOffset, inferredType)
+      ConditionalExpression conditional = new ConditionalExpression(
+          equalsNull,
+          write,
+          new NullLiteral()..fileOffset = node.testOffset,
+          isNonNullableByDefault
+              ? inferredType.withDeclaredNullability(Nullability.nullable)
+              : inferredType)
         ..fileOffset = node.testOffset;
       inner = conditional;
     } else {
