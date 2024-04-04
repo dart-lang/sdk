@@ -736,6 +736,7 @@ final _builtInNonLintMultiProducers = {
   ],
   CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT: [
     ImportLibrary.forType,
+    DataDriven.new,
   ],
   CompileTimeErrorCode.NOT_A_TYPE: [
     ImportLibrary.forType,
