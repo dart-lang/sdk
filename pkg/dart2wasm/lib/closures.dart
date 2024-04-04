@@ -1253,7 +1253,7 @@ class CaptureFinder extends RecursiveVisitor {
     super.visitTypeParameterType(node);
   }
 
-  void _visitLambda(FunctionNode node) {
+  void _visitLambda(FunctionNode node, [VariableDeclaration? variable]) {
     List<w.ValueType> inputs = [
       w.RefType.struct(nullable: false),
       ...List.filled(node.typeParameters.length, closures.typeType),
@@ -1264,8 +1264,14 @@ class CaptureFinder extends RecursiveVisitor {
     ];
     List<w.ValueType> outputs = [translator.translateType(node.returnType)];
     w.FunctionType type = m.types.defineFunction(inputs, outputs);
-    final function =
-        m.functions.define(type, "$member closure at ${node.location}");
+    final String? functionNodeName = variable?.name;
+    final String functionName;
+    if (functionNodeName == null) {
+      functionName = "$member closure at ${node.location}";
+    } else {
+      functionName = "$member closure $functionNodeName at ${node.location}";
+    }
+    final function = m.functions.define(type, functionName);
     closures.lambdas[node] = Lambda(node, function);
 
     functionIsSyncStarOrAsync.add(node.asyncMarker == AsyncMarker.SyncStar ||
@@ -1283,7 +1289,7 @@ class CaptureFinder extends RecursiveVisitor {
   void visitFunctionDeclaration(FunctionDeclaration node) {
     // Variable is in outer scope
     node.variable.accept(this);
-    _visitLambda(node.function);
+    _visitLambda(node.function, node.variable);
   }
 }
 
