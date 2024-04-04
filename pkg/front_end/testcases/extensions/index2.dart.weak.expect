@@ -54,11 +54,11 @@ static method implicit() → dynamic {
   self::expect("1", self::Extension|[]<core::int, core::String>(map1, 1));
   self::expect("2", let final self::MapLike<core::int, core::String> #t10 = map1 in let final core::int #t11 = 1 in let final core::String #t12 = "2" in let final void #t13 = self::Extension|[]=<core::int, core::String>(#t10, #t11, #t12) in #t12);
   self::expect("2", self::Extension|[]<core::int, core::String>(map1, 1));
-  let final self::MapLike<core::int, core::String> #t14 = map1 in let final core::int #t15 = 1 in self::Extension|[]<core::int, core::String>(#t14, #t15) == null ?{core::String} self::Extension|[]=<core::int, core::String>(#t14, #t15, "3") : null;
+  let final self::MapLike<core::int, core::String> #t14 = map1 in let final core::int #t15 = 1 in self::Extension|[]<core::int, core::String>(#t14, #t15) == null ?{core::String?} self::Extension|[]=<core::int, core::String>(#t14, #t15, "3") : null;
   self::expect("2", self::Extension|[]<core::int, core::String>(map1, 1));
   self::expect("2", let final self::MapLike<core::int, core::String> #t16 = map1 in let final core::int #t17 = 1 in let final core::String? #t18 = self::Extension|[]<core::int, core::String>(#t16, #t17) in #t18 == null ?{core::String} let final core::String #t19 = "4" in let final void #t20 = self::Extension|[]=<core::int, core::String>(#t16, #t17, #t19) in #t19 : #t18{core::String});
   self::expect("2", self::Extension|[]<core::int, core::String>(map1, 1));
-  let final self::MapLike<core::int, core::String> #t21 = map1 in let final core::int #t22 = 2 in self::Extension|[]<core::int, core::String>(#t21, #t22) == null ?{core::String} self::Extension|[]=<core::int, core::String>(#t21, #t22, "2") : null;
+  let final self::MapLike<core::int, core::String> #t21 = map1 in let final core::int #t22 = 2 in self::Extension|[]<core::int, core::String>(#t21, #t22) == null ?{core::String?} self::Extension|[]=<core::int, core::String>(#t21, #t22, "2") : null;
   self::expect("2", self::Extension|[]<core::int, core::String>(map1, 2));
   self::expect("3", let final self::MapLike<core::int, core::String> #t23 = map1 in let final core::int #t24 = 3 in let final core::String? #t25 = self::Extension|[]<core::int, core::String>(#t23, #t24) in #t25 == null ?{core::String} let final core::String #t26 = "3" in let final void #t27 = self::Extension|[]=<core::int, core::String>(#t23, #t24, #t26) in #t26 : #t25{core::String});
   self::expect("3", self::Extension|[]<core::int, core::String>(map1, 3));

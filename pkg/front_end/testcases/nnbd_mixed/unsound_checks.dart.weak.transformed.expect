@@ -391,12 +391,12 @@ static method extensionIfNullOptIn1ForEffect(core::int i) → dynamic {
 static method extensionIfNullOptIn2(core::int i) → dynamic
   return let final uns::OptInClass1 #t48 = new uns::OptInClass1::•() in let final core::int #t49 = i in let final core::int #t50 = uns::OptInExtension|[](#t48, #t49) in #t50 == null ?{core::int} let final core::int #t51 = 42 in let final void #t52 = uns::OptInExtension|[]=(#t48, #t49, #t51) in #t51 : #t50;
 static method extensionIfNullOptIn2ForEffect(core::int i) → dynamic {
-  let final uns::OptInClass1 #t53 = new uns::OptInClass1::•() in let final core::int #t54 = i in uns::OptInExtension|[](#t53, #t54) == null ?{core::int} uns::OptInExtension|[]=(#t53, #t54, 42) : null;
+  let final uns::OptInClass1 #t53 = new uns::OptInClass1::•() in let final core::int #t54 = i in uns::OptInExtension|[](#t53, #t54) == null ?{core::int?} uns::OptInExtension|[]=(#t53, #t54, 42) : null;
 }
 static method ifNullIndexSetOptIn(core::int i) → dynamic
   return let final uns::OptInClass2 #t55 = new uns::OptInClass2::•() in let final core::int #t56 = i in let final core::int #t57 = #t55.{uns::OptInClass2::[]}(#t56){(core::int) → core::int} in #t57 == null ?{core::int} let final core::int #t58 = 42 in let final void #t59 = #t55.{uns::OptInClass2::[]=}(#t56, #t58){(core::int, core::int) → void} in #t58 : #t57;
 static method ifNullIndexSetOptInForEffect(core::int i) → dynamic {
-  let final uns::OptInClass2 #t60 = new uns::OptInClass2::•() in let final core::int #t61 = i in #t60.{uns::OptInClass2::[]}(#t61){(core::int) → core::int} == null ?{core::int} #t60.{uns::OptInClass2::[]=}(#t61, 42){(core::int, core::int) → void} : null;
+  let final uns::OptInClass2 #t60 = new uns::OptInClass2::•() in let final core::int #t61 = i in #t60.{uns::OptInClass2::[]}(#t61){(core::int) → core::int} == null ?{core::int?} #t60.{uns::OptInClass2::[]=}(#t61, 42){(core::int, core::int) → void} : null;
 }
 static method ifNullPropertySetOptIn(core::int i) → dynamic
   return let final uns::OptInClass3 #t62 = new uns::OptInClass3::•(i) in let final core::int #t63 = #t62.{uns::OptInClass3::field}{core::int} in #t63 == null ?{core::int} #t62.{uns::OptInClass3::field} = 42 : #t63;
@@ -442,7 +442,7 @@ static method unnecessaryIfNull(() → core::int f, () → core::int g) → dyna
   return let final core::int #t71 = f(){() → core::int} in #t71 == null ?{core::int} g(){() → core::int} : #t71;
 }
 static method unnecessaryIfNullAssign(core::List<core::int> x, () → core::int f) → dynamic {
-  let final core::List<core::int> #t72 = x in let final core::int #t73 = 0 in #t72.{core::List::[]}(#t73){(core::int) → core::int} == null ?{core::int} #t72.{core::List::[]=}(#t73, f(){() → core::int}){(core::int, core::int) → void} : null;
+  let final core::List<core::int> #t72 = x in let final core::int #t73 = 0 in #t72.{core::List::[]}(#t73){(core::int) → core::int} == null ?{core::int?} #t72.{core::List::[]=}(#t73, f(){() → core::int}){(core::int, core::int) → void} : null;
 }
 static method unnecessaryNullAwareAccess(() → core::int f) → dynamic {
   let final core::int #t74 = f(){() → core::int} in #t74 == null ?{core::int?} null : #t74.{core::int::gcd}(0){(core::int) → core::int};
