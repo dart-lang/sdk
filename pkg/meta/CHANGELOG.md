@@ -1,11 +1,13 @@
-## 1.14.0-wip
+## 1.14.0
 
 - Introduce `TargetKind.constructor`, to indicate that an annotation is valid on
-  any constructor.
+  any constructor declaration.
 - Introduce `TargetKind.directive`, to indicate that an annotation is valid on
   any directive.
+- Introduce `TargetKind.enumValue`, to indicate that an annotation is valid on
+  any enum value declaration.
 - Introduce `TargetKind.typeParamteer`, to indicate that an annotation is valid
-  on any type parameter.
+  on any type parameter declaration.
 - Introduce `@doNotSubmit` to annotate members that should not be submitted to
   source control, typically because they are intended to be used ephemerally
   during development.

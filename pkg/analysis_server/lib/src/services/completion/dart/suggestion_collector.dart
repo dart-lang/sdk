@@ -13,10 +13,17 @@ class SuggestionCollector {
   /// requested, used to compute the relevance of the suggestions.
   String? completionLocation;
 
-  /// Initialize a newly created collector to collect candidate suggestions.
+  /// Whether the list of candidate suggestions is potentially incomplete.
+  ///
+  /// This should be set to `true` anytime a completion pass fails to generate
+  /// suggestions, whether because the budget has been exceeded or because of an
+  /// exception being thrown.
+  bool isIncomplete = false;
+
+  /// Initializes a newly created collector to collect candidate suggestions.
   SuggestionCollector();
 
-  /// Add the candidate [suggestion] to the list of suggestions.
+  /// Adds the candidate [suggestion] to the list of suggestions.
   void addSuggestion(CandidateSuggestion suggestion) {
     // TODO(brianwilkerson): This potentially needs to handle shadowed names.
     suggestions.add(suggestion);

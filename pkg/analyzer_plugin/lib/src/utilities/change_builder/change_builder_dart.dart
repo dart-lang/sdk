@@ -1424,6 +1424,41 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   List<Uri> get requiredImports => librariesToImport.keys.toList();
 
   @override
+  void addCaseClauseAtEndInsertion(
+    void Function(DartEditBuilder builder) buildEdit, {
+    required Token switchKeyword,
+    required Token rightParenthesis,
+    required Token leftBracket,
+    required Token rightBracket,
+  }) {
+    var blockStart = resolvedUnit.lineInfo.getLocation(leftBracket.offset);
+    var blockEnd = resolvedUnit.lineInfo.getLocation(rightBracket.offset);
+    var isBlockSingleLine = blockStart.lineNumber == blockEnd.lineNumber;
+    int offset;
+    if (isBlockSingleLine) {
+      offset = leftBracket.isSynthetic ? rightParenthesis.end : leftBracket.end;
+    } else {
+      offset = resolvedUnit.lineInfo.getOffsetOfLine(blockEnd.lineNumber - 1);
+    }
+
+    addInsertion(offset, (builder) {
+      if (leftBracket.isSynthetic) {
+        builder.write(' {');
+      }
+      if (isBlockSingleLine) {
+        builder.writeln();
+      }
+      buildEdit(builder);
+      if (isBlockSingleLine) {
+        builder.write(_linePrefix(switchKeyword.offset));
+      }
+      if (rightBracket.isSynthetic) {
+        builder.write('}');
+      }
+    });
+  }
+
+  @override
   void addFieldInsertion(
     CompilationUnitMember compilationUnitMember,
     void Function(DartEditBuilder builder) buildEdit,
@@ -1455,6 +1490,20 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       super.addInsertion(
           offset, (builder) => buildEdit(builder as DartEditBuilder),
           insertBeforeExisting: insertBeforeExisting);
+
+  @override
+  void addMethodInsertion(
+    CompilationUnitMember compilationUnitMember,
+    void Function(DartEditBuilder builder) buildEdit,
+  ) =>
+      _addCompilationUnitMemberInsertion(
+        compilationUnitMember,
+        buildEdit,
+        lastMemberFilter: (member) =>
+            member is FieldDeclaration ||
+            member is ConstructorDeclaration ||
+            member is MethodDeclaration,
+      );
 
   @override
   void addReplacement(SourceRange range,
@@ -1686,9 +1735,9 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     void Function(DartEditBuilder builder) buildEdit, {
     required bool Function(ClassMember existingMember) lastMemberFilter,
   }) {
-    var preparer = _InsertionPreparer(compilationUnitMember);
+    var preparer =
+        _InsertionPreparer(compilationUnitMember, resolvedUnit.lineInfo);
     var offset = preparer.insertionLocation(
-      resolvedUnit.lineInfo,
       lastMemberFilter: lastMemberFilter,
     );
     if (offset == null) {
@@ -2201,6 +2250,32 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     return element.library == resolvedUnit.libraryElement;
   }
 
+  // TODO(srawlins): Move this to a shared extension in new plugin package when
+  // this code is moved to new plugin package.
+  bool _isEol(int c) {
+    return c == 0x0D || c == 0x0A;
+  }
+
+  // TODO(srawlins): Move this to a shared extension in new plugin package when
+  // this code is moved to new plugin package.
+  bool _isSpace(int c) => c == 0x20 || c == 0x09;
+
+  /// Returns the whitespace prefix of the line which contains the given
+  /// [offset].
+  String _linePrefix(int offset) {
+    var lineStartOffset = resolvedUnit.lineInfo.getOffsetOfLine(
+        resolvedUnit.lineInfo.getLocation(offset).lineNumber - 1);
+    resolvedUnit.content;
+    var length = resolvedUnit.content.length;
+    var whitespaceEndOffset = lineStartOffset;
+    while (whitespaceEndOffset < length) {
+      var c = resolvedUnit.content.codeUnitAt(whitespaceEndOffset);
+      if (_isEol(c) || !_isSpace(c)) break;
+      whitespaceEndOffset++;
+    }
+    return resolvedUnit.content.substring(lineStartOffset, whitespaceEndOffset);
+  }
+
   /// Create an edit to replace the return type of the innermost function
   /// containing the given [node] with the type `Future`. The [typeProvider] is
   /// used to check the current return type, because if it is already `Future`
@@ -2292,9 +2367,10 @@ class _EnclosingElementFinder {
 /// like a class or mixin.
 class _InsertionPreparer {
   final CompilationUnitMember _declaration;
+  final LineInfo _lineInfo;
   late final ClassMember? _targetMember;
 
-  _InsertionPreparer(this._declaration);
+  _InsertionPreparer(this._declaration, this._lineInfo);
 
   /// Returns the offset of where a new member should be inserted, as a new
   /// member of [_declaration].
@@ -2303,9 +2379,7 @@ class _InsertionPreparer {
   /// [lastMemberFilter]. If no existing member matches, then the offset is at
   /// the beginning of [_declaration], just after it's opening brace.
   int? insertionLocation(
-    LineInfo lineInfo, {
-    required bool Function(ClassMember existingMember) lastMemberFilter,
-  }) {
+      {required bool Function(ClassMember existingMember) lastMemberFilter}) {
     var members = _declaration.members;
     if (members == null) {
       assert(
@@ -2355,6 +2429,14 @@ class _InsertionPreparer {
   /// determines the target member that the insertion follows.
   void writeSuffix(DartEditBuilder builder) {
     if (_targetMember == null && (_declaration.members?.isNotEmpty ?? false)) {
+      builder.writeln();
+      return;
+    }
+
+    var offsetLine = _lineInfo.getLocation(_declaration.offset).lineNumber;
+    var endLine = _lineInfo.getLocation(_declaration.end).lineNumber;
+    var declarationIsSingleLine = endLine == offsetLine;
+    if (declarationIsSingleLine) {
       builder.writeln();
     }
   }

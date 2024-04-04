@@ -365,13 +365,17 @@ class RunCommand extends DartdevCommand {
           residentCompilerInfoFile.parent.createSync();
         }
 
-        // TODO(#49694) handle the case when executable is a kernel file
-        executable = await generateKernel(
-          executable,
-          residentCompilerInfoFile,
-          args,
-          createCompileJitJson,
-        );
+        final executableFile = File(executable.executable);
+        if (!await isFileKernelFile(executableFile) &&
+            !await isFileAppJitSnapshot(executableFile) &&
+            !await isFileAotSnapshot(executableFile)) {
+          executable = await generateKernel(
+            executable,
+            residentCompilerInfoFile,
+            args,
+            createCompileJitJson,
+          );
+        }
       } on FrontendCompilerException catch (e) {
         log.stderr(
             '${ansi.yellow}Failed to build ${executable.executable}:${ansi.none}');

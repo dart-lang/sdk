@@ -122,26 +122,19 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
         .where((e) => e.name.lexeme == 'debugFillProperties')
         .singleOrNull;
     if (debugFillProperties == null) {
-      var location = utils.prepareNewMethodLocation(classDeclaration);
-      if (location == null) {
-        return;
-      }
-
-      final insertOffset = location.offset;
       await builder.addDartFileEdit(file, (builder) {
-        builder.addInsertion(utils.getLineNext(insertOffset), (builder) {
-          final declPrefix =
-              utils.getLinePrefix(classDeclaration.offset) + utils.oneIndent;
-          final bodyPrefix = declPrefix + utils.oneIndent;
+        builder.addMethodInsertion(classDeclaration, (builder) {
+          final declPrefix = utils.oneIndent;
+          final bodyPrefix = utils.twoIndents;
 
-          builder.writeln('$declPrefix@override');
+          builder.writeln('@override');
           builder.writeln(
               '${declPrefix}void debugFillProperties(DiagnosticPropertiesBuilder properties) {');
           builder
               .writeln('${bodyPrefix}super.debugFillProperties(properties);');
           writePropertyReference(builder,
               prefix: bodyPrefix, builderName: 'properties');
-          builder.writeln('$declPrefix}');
+          builder.write('$declPrefix}');
         });
       });
       return;

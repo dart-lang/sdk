@@ -115,12 +115,14 @@ class DartCompletionManager {
       );
     }
 
+    var collector = SuggestionCollector();
     try {
-      await performance.runAsync(
+      performance.run(
         'InScopeCompletionPass',
-        (performance) async {
+        (performance) {
           _runFirstPass(
             request: request,
+            collector: collector,
             builder: builder,
             suggestOverrides: enableOverrideContributor,
             suggestUris: enableUriContributor,
@@ -144,17 +146,21 @@ class DartCompletionManager {
       throw AbortCompletion();
     }
 
+    if (notImportedSuggestions != null && collector.isIncomplete) {
+      notImportedSuggestions.isIncomplete = true;
+    }
+
     return builder.suggestions.toList();
   }
 
   // Run the first pass of the code completion algorithm.
   void _runFirstPass({
     required DartCompletionRequest request,
+    required SuggestionCollector collector,
     required SuggestionBuilder builder,
     required bool suggestOverrides,
     required bool suggestUris,
   }) {
-    var collector = SuggestionCollector();
     var selection = request.unit.select(offset: request.offset, length: 0);
     if (selection == null) {
       throw AbortCompletion();

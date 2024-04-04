@@ -5020,6 +5020,63 @@ void foo(prefix0.X x) {}
 ''');
   }
 
+  test_libraryCycle_class_constructor_add() async {
+    // Checks https://github.com/dart-lang/sdk/issues/55362
+    newFile('$testPackageLibPath/a.dart', r'''
+import 'append.dart';
+
+// Just to make it a library cycle.
+import 'test.dart';
+
+@DeclareInType('  A();')
+class A {}
+''');
+
+    var library = await buildLibrary(r'''
+import 'append.dart';
+import 'a.dart';
+
+@DeclareInType('  B();')
+class B {}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false
+      ..withReferences = true;
+    checkElementText(library, r'''
+library
+  reference: self
+  imports
+    package:test/append.dart
+    package:test/a.dart
+  definingUnit
+    reference: self
+    classes
+      class B @71
+        reference: self::@class::B
+        augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::B
+        augmented
+  augmentationImports
+    package:test/test.macro.dart
+      reference: self::@augmentation::package:test/test.macro.dart
+      macroGeneratedCode
+---
+library augment 'package:test/test.dart';
+
+augment class B {
+  B();
+}
+---
+      definingUnit
+        reference: self::@augmentation::package:test/test.macro.dart
+        classes
+          augment class B @57
+            reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::B
+            augmentationTarget: self::@class::B
+''');
+  }
+
   test_unit_function_add() async {
     var library = await buildLibrary(r'''
 import 'append.dart';

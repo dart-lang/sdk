@@ -91,11 +91,10 @@ class EventsPrinter {
               var params =
                   event.params as DartTextDocumentContentDidChangeParams;
               sink.withIndent(() {
-                sink.writeIndentedLine(() {
-                  sink.write('uri: ');
-                  sink.write(params.uri);
-                });
+                _writelnUri(params.uri, name: 'uri');
               });
+            default:
+              throw UnimplementedError('${event.method}');
           }
         default:
           throw UnimplementedError('${event.runtimeType}');
@@ -110,6 +109,23 @@ class EventsPrinter {
       }
       final file = resourceProvider.getFile(path);
       sink.write(file.posixPath);
+    });
+  }
+
+  void _writelnUri(Uri uri, {String? name}) {
+    sink.writeIndentedLine(() {
+      if (name != null) {
+        sink.write('$name: ');
+      }
+
+      if (uri.isScheme('file') || uri.isScheme('dart-macro+file')) {
+        final fileUri = uri.replace(scheme: 'file');
+        final path = resourceProvider.pathContext.fromUri(fileUri);
+        final file = resourceProvider.getFile(path);
+        uri = uri.replace(path: file.posixPath);
+      }
+
+      sink.write(uri);
     });
   }
 }
