@@ -480,7 +480,9 @@ class LibraryBuilder {
     }
 
     while (true) {
-      final results = await macroApplier.executeTypesPhase();
+      final results = await macroApplier.executeTypesPhase(
+        library: element,
+      );
 
       // No more applications to execute.
       if (results == null) {
