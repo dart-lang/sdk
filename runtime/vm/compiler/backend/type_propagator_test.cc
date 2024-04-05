@@ -534,11 +534,6 @@ ISOLATE_UNIT_TEST_CASE(TypePropagator_RegressFlutter76919) {
 // is non-nullable with sound null safety.
 // Regression test for https://github.com/dart-lang/sdk/issues/47119.
 ISOLATE_UNIT_TEST_CASE(TypePropagator_NonNullableLoadStaticField) {
-  if (!IsolateGroup::Current()->null_safety()) {
-    // This test requires sound null safety.
-    return;
-  }
-
   const char* kScript = R"(
     const y = 0xDEADBEEF;
     final int x = int.parse('0xFEEDFEED');

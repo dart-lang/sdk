@@ -1544,6 +1544,7 @@ void IsolateGroup::FlagsInitialize(Dart_IsolateFlags* api_flags) {
 #undef INIT_FROM_FLAG
   api_flags->is_service_isolate = false;
   api_flags->is_kernel_isolate = false;
+  api_flags->null_safety = true;
 }
 
 void IsolateGroup::FlagsCopyTo(Dart_IsolateFlags* api_flags) {
@@ -1554,6 +1555,7 @@ void IsolateGroup::FlagsCopyTo(Dart_IsolateFlags* api_flags) {
 #undef INIT_FROM_FIELD
   api_flags->is_service_isolate = false;
   api_flags->is_kernel_isolate = false;
+  api_flags->null_safety = true;
 }
 
 void IsolateGroup::FlagsCopyFrom(const Dart_IsolateFlags& api_flags) {
@@ -1578,7 +1580,7 @@ void IsolateGroup::FlagsCopyFrom(const Dart_IsolateFlags& api_flags) {
   BOOL_ISOLATE_GROUP_FLAG_LIST(SET_FROM_FLAG)
   // Needs to be called manually, otherwise we don't set the null_safety_set
   // bit.
-  set_null_safety(api_flags.null_safety);
+  set_null_safety(true);
 #undef FLAG_FOR_NONPRODUCT
 #undef FLAG_FOR_PRECOMPILER
 #undef FLAG_FOR_PRODUCT
@@ -1595,6 +1597,7 @@ void Isolate::FlagsInitialize(Dart_IsolateFlags* api_flags) {
 #undef INIT_FROM_FLAG
   api_flags->is_service_isolate = false;
   api_flags->is_kernel_isolate = false;
+  api_flags->null_safety = true;
 }
 
 void Isolate::FlagsCopyTo(Dart_IsolateFlags* api_flags) const {
@@ -1607,6 +1610,7 @@ void Isolate::FlagsCopyTo(Dart_IsolateFlags* api_flags) const {
 #undef INIT_FROM_FIELD
   api_flags->is_service_isolate = false;
   api_flags->is_kernel_isolate = false;
+  api_flags->null_safety = true;
 }
 
 void Isolate::FlagsCopyFrom(const Dart_IsolateFlags& api_flags) {

@@ -514,7 +514,6 @@ gen_snapshot_action("generate_snapshot_bin") {
     isolate_snapshot_instructions,
   ]
   args = [
-    "--sound-null-safety",
     "--deterministic",
     "--snapshot_kind=core",
     "--vm_snapshot_data=" + rebase_path(vm_snapshot_data, root_build_dir),

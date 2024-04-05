@@ -3812,41 +3812,7 @@ DART_EXPORT void Dart_SetDartLibrarySourcesKernel(
     const intptr_t platform_kernel_size);
 
 /**
- * Detect the null safety opt-in status.
- *
- * When running from source, it is based on the opt-in status of `script_uri`.
- * When running from a kernel buffer, it is based on the mode used when
- *   generating `kernel_buffer`.
- * When running from an appJIT or AOT snapshot, it is based on the mode used
- *   when generating `snapshot_data`.
- *
- * \param script_uri Uri of the script that contains the source code
- *
- * \param package_config Uri of the package configuration file (either in format
- *   of .packages or .dart_tool/package_config.json) for the null safety
- *   detection to resolve package imports against. If this parameter is not
- *   passed the package resolution of the parent isolate should be used.
- *
- * \param original_working_directory current working directory when the VM
- *   process was launched, this is used to correctly resolve the path specified
- *   for package_config.
- *
- * \param snapshot_data Buffer containing the snapshot data of the
- *   isolate or NULL if no snapshot is provided. If provided, the buffers must
- *   remain valid until the isolate shuts down.
- *
- * \param snapshot_instructions Buffer containing the snapshot instructions of
- *   the isolate or NULL if no snapshot is provided. If provided, the buffers
- *   must remain valid until the isolate shuts down.
- *
- * \param kernel_buffer A buffer which contains a kernel/DIL program. Must
- *   remain valid until isolate shutdown.
- *
- * \param kernel_buffer_size The size of `kernel_buffer`.
- *
- * \return Returns true if the null safety is opted in by the input being
- *   run `script_uri`, `snapshot_data` or `kernel_buffer`.
- *
+ * Always return true as the VM only supports strong null safety.
  */
 DART_EXPORT bool Dart_DetectNullSafety(const char* script_uri,
                                        const char* package_config,
