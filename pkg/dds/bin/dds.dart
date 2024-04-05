@@ -5,51 +5,8 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:args/args.dart';
 import 'package:dds/dds.dart';
-
-abstract class DartDevelopmentServiceOptions {
-  static const vmServiceUriOption = 'vm-service-uri';
-  static const bindAddressOption = 'bind-address';
-  static const bindPortOption = 'bind-port';
-  static const disableServiceAuthCodesFlag = 'disable-service-auth-codes';
-  static const serveDevToolsFlag = 'serve-devtools';
-  static const enableServicePortFallbackFlag = 'enable-service-port-fallback';
-
-  static ArgParser createArgParser() {
-    return ArgParser()
-      ..addOption(
-        vmServiceUriOption,
-        help: 'The VM service URI DDS will connect to.',
-        valueHelp: 'uri',
-        mandatory: true,
-      )
-      ..addOption(bindAddressOption,
-          help: 'The address DDS should bind to.',
-          valueHelp: 'address',
-          defaultsTo: 'localhost')
-      ..addOption(
-        bindPortOption,
-        help: 'The port DDS should be served on.',
-        valueHelp: 'port',
-        defaultsTo: '0',
-      )
-      ..addFlag(
-        disableServiceAuthCodesFlag,
-        help: 'Disables authentication codes.',
-      )
-      ..addFlag(
-        serveDevToolsFlag,
-        help: 'If provided, DDS will serve DevTools.',
-      )
-      ..addFlag(
-        enableServicePortFallbackFlag,
-        help: 'Bind to a random port if DDS fails to bind to the provided '
-            'port.',
-      )
-      ..addFlag('help', negatable: false);
-  }
-}
+import 'package:dds/src/arg_parser.dart';
 
 Uri _getDevToolsAssetPath() {
   final dartPath = Uri.parse(Platform.resolvedExecutable);
@@ -71,7 +28,9 @@ Uri _getDevToolsAssetPath() {
 }
 
 Future<void> main(List<String> args) async {
-  final argParser = DartDevelopmentServiceOptions.createArgParser();
+  final argParser = DartDevelopmentServiceOptions.createArgParser(
+    includeHelp: true,
+  );
   final argResults = argParser.parse(args);
   if (args.isEmpty || argResults.wasParsed('help')) {
     print('''
@@ -164,5 +123,6 @@ void writeErrorResponse(Object e, StackTrace st) {
     'state': 'error',
     'error': '$e',
     'stacktrace': '$st',
+    if (e is DartDevelopmentServiceException) 'ddsExceptionDetails': e.toJson(),
   }));
 }
