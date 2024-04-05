@@ -92,6 +92,8 @@ advantage of these improvements, set your package's
   [dart.dev/go/pub-security-advisories][pub-security-advisories].
 - `path`-dependencies inside `git`-dependencies are now resolved relative to the git
   repo.
+- All `dart pub` commands can now be run from any subdirectory of a project. Pub
+  will find the first parent directory with a `pubspec.yaml` and operate relative it.
 - New command `dart pub unpack` that downloads a package from pub.dev and
   extracts it to a subfolder of the current directory.
 
