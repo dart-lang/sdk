@@ -49,7 +49,7 @@ declare_args() {
 # ........dds.dart.snapshot
 # ........dart_tooling_daemon.dart.snapshot
 # ........frontend_server_aot.dart.snapshot (AOT snapshot, if not on ia32)
-# ........frontend_server.dart.snapshot (JIT snapshot only on ia32)
+# ........frontend_server.dart.snapshot
 # ........gen_kernel_aot.dart.snapshot (if not on ia32)
 # ........kernel-service.dart.snapshot
 # ........kernel_worker.dart.snapshot
@@ -121,21 +121,14 @@ _platform_sdk_snapshots = [
     "../utils/dtd:dtd",
   ],
   [
-    "dds",
-    "../utils/dds:dds",
+    "frontend_server",
+    "../utils/kernel-service:frontend_server",
   ],
 ]
-if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
-  _platform_sdk_snapshots += [ [
-        "frontend_server_aot",
-        "../utils/kernel-service:frontend_server_aot",
-      ] ]
-} else {
-  _platform_sdk_snapshots += [ [
-        "frontend_server",
-        "../utils/kernel-service:frontend_server",
-      ] ]
-}
+_platform_sdk_snapshots += [ [
+      "dds",
+      "../utils/dds:dds",
+    ] ]
 if (dart_snapshot_kind == "app-jit") {
   _platform_sdk_snapshots += [ [
         "kernel-service",
@@ -404,6 +397,17 @@ group("copy_full_sdk_scripts") {
   }
 }
 
+# This target puts the frontend_server AOT snapshot into bin/snapshots
+copy("copy_frontend_server_aot_snapshot") {
+  visibility = [
+    ":copy_full_sdk_snapshots",
+    ":copy_platform_sdk_snapshots",
+  ]
+  deps = [ "../utils/kernel-service:frontend_server_aot" ]
+  sources = [ "$root_out_dir/frontend_server_aot.dart.snapshot" ]
+  outputs = [ "$root_out_dir/$dart_sdk_output/bin/snapshots/frontend_server_aot.dart.snapshot" ]
+}
+
 # This loop generates "copy" targets that put AppJIT snapshots into
 # bin/snapshots
 foreach(snapshot, _full_sdk_snapshots) {
@@ -411,8 +415,7 @@ foreach(snapshot, _full_sdk_snapshots) {
 
   # The frontend_server is output to root_out_dir so that it doesn't conflict
   # with the flutter snapshot by the same name under root_gen_dir.
-  if (snapshot[0] == "frontend_server" ||
-      snapshot[0] == "frontend_server_aot") {
+  if (snapshot[0] == "frontend_server") {
     root = root_out_dir
   }
   copy("copy_${snapshot[0]}_snapshot") {
@@ -435,6 +438,9 @@ group("copy_platform_sdk_snapshots") {
   foreach(snapshot, _platform_sdk_snapshots) {
     public_deps += [ ":copy_${snapshot[0]}_snapshot" ]
   }
+  if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
+    public_deps += [ ":copy_frontend_server_aot_snapshot" ]
+  }
 }
 
 # This is the main rule for copying snapshots from _full_sdk_snapshots to
@@ -444,6 +450,9 @@ group("copy_full_sdk_snapshots") {
   public_deps = []
   foreach(snapshot, _full_sdk_snapshots) {
     public_deps += [ ":copy_${snapshot[0]}_snapshot" ]
+  }
+  if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
+    public_deps += [ ":copy_frontend_server_aot_snapshot" ]
   }
 }
 
