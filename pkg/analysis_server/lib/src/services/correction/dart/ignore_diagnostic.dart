@@ -4,90 +4,18 @@
 
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/ignore_comments/ignore_info.dart';
 import 'package:analyzer/src/workspace/blaze.dart';
+import 'package:analyzer_plugin/src/utilities/extensions/resolved_unit_result.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:yaml/yaml.dart';
 import 'package:yaml_edit/yaml_edit.dart' show YamlEditor;
 
-abstract class AbstractIgnoreDiagnostic extends ResolvedCorrectionProducer {
-  AnalysisError get error => diagnostic as AnalysisError;
-
-  @override
-  List<Object>? get fixArguments => [_code];
-
-  String get _code => error.errorCode.name.toLowerCase();
-
-  Future<void> _computeEdit(
-    ChangeBuilder builder,
-    InsertionLocation insertDesc,
-    RegExp existingIgnorePattern,
-    String ignoreCommentType,
-  ) async {
-    final lineInfo = unit.lineInfo;
-
-    await builder.addDartFileEdit(file, (builder) {
-      final offset = insertDesc.offset;
-
-      // Work out the offset of the start of the line so we can insert the new
-      // line there.
-      final location = lineInfo.getLocation(offset);
-      final zeroBasedLineNumber = location.lineNumber - 1;
-      final lineOffset = lineInfo.getOffsetOfLine(zeroBasedLineNumber);
-
-      if (zeroBasedLineNumber > 0) {
-        final previousLineOffset =
-            lineInfo.getOffsetOfLine(zeroBasedLineNumber - 1);
-
-        // If the line above already has an ignore comment, we need to append to
-        // it like "ignore: foo, bar".
-        final previousLineText = utils
-            .getText(previousLineOffset, lineOffset - previousLineOffset)
-            .trimRight();
-        if (previousLineText.trim().startsWith(existingIgnorePattern)) {
-          final offset = previousLineOffset + previousLineText.length;
-          builder.addSimpleInsertion(offset, ', $_code');
-          return;
-        }
-      }
-
-      final indent = utils.getLinePrefix(offset);
-      final prefix = insertDesc.prefix;
-      final comment = '// $ignoreCommentType: $_code';
-      final suffix = insertDesc.suffix;
-      builder.addSimpleInsertion(
-          lineOffset, '$prefix$indent$comment$eol$suffix');
-    });
-  }
-
-  /// Returns `true` if any of the following is `true`:
-  /// - [error.code] is present in the `cannot-ignore` list.
-  /// - [error.code] is already ignored in the `errors` list.
-  bool _isCodeUnignorable() {
-    var cannotIgnore =
-        analysisOptions.unignorableNames.contains(error.errorCode.name);
-
-    if (cannotIgnore) {
-      return true;
-    }
-
-    // This will prevent showing a `fix` when the `error` is already ignored in
-    // `analysis_options.yaml`.
-    //
-    // Note: both `ignore` and `false` severity are set to `null` when parsed.
-    //       See `ErrorConfig` in `pkg/analyzer/source/error_processor.dart`.
-    var explicitlyIgnored = analysisOptions.errorProcessors.any((element) =>
-        element.severity == null && element.code == error.errorCode.name);
-
-    return explicitlyIgnored;
-  }
-}
-
-class IgnoreDiagnosticInAnalysisOptionsFile extends AbstractIgnoreDiagnostic {
+class IgnoreDiagnosticInAnalysisOptionsFile extends _BaseIgnoreDiagnostic {
   @override
   FixKind get fixKind => DartFixKind.IGNORE_ERROR_ANALYSIS_FILE;
 
@@ -101,7 +29,7 @@ class IgnoreDiagnosticInAnalysisOptionsFile extends AbstractIgnoreDiagnostic {
       return;
     }
 
-    if (_isCodeUnignorable()) return;
+    if (_isCodeUnignorable) return;
 
     final analysisOptionsFile = analysisOptions.file;
 
@@ -144,12 +72,12 @@ class IgnoreDiagnosticInAnalysisOptionsFile extends AbstractIgnoreDiagnostic {
       try {
         editor.update(path, value);
       } on YamlException {
-        // If the `analysis_options.yaml` does not have a valid format,
-        // a `YamlException` is thrown (e.g. a label without a value).
-        // In such case, do not suggest a fix.
+        // If the `analysis_options.yaml` does not have a valid format, a
+        // `YamlException` is thrown (e.g. a label without a value). In such
+        // case, do not suggest a fix.
         //
-        // TODO(osaxma): check if the `analysis_options.yaml` is a valid
-        //  before calling the builder to avoid unnecessary processing.
+        // TODO(osaxma): check if the `analysis_options.yaml` is a valid before
+        // calling the builder to avoid unnecessary processing.
         return;
       }
 
@@ -168,40 +96,155 @@ class IgnoreDiagnosticInAnalysisOptionsFile extends AbstractIgnoreDiagnostic {
   }
 }
 
-class IgnoreDiagnosticInFile extends AbstractIgnoreDiagnostic {
+class IgnoreDiagnosticInFile extends _DartIgnoreDiagnostic {
+  @override
+  String get commentPrefix => 'ignore_for_file';
+
   @override
   FixKind get fixKind => DartFixKind.IGNORE_ERROR_FILE;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    if (_isCodeUnignorable()) return;
+    if (_isCodeUnignorable) return;
 
-    final insertDesc = utils.getInsertionLocationIgnoreForFile();
-    await _computeEdit(
-      builder,
-      insertDesc,
-      IgnoreInfo.ignoreForFileMatcher,
-      'ignore_for_file',
-    );
+    await builder.addDartFileEdit(file, (builder) {
+      var source = unitResult.content;
+
+      // Look for the last blank line in any leading comments (to insert after
+      // all header comments but not after any "comment-attached" code). If an
+      // existing `ignore_for_file` comment is found while looking, then insert
+      // after that.
+
+      var lineCount = unitResult.lineInfo.lineCount;
+      if (lineCount == 1) {
+        insertAt(builder, 0, insertEmptyLineAfter: true);
+        return;
+      }
+
+      int? lastBlankLineOffset;
+      late int lineStart;
+      for (var lineNumber = 0; lineNumber < lineCount - 1; lineNumber++) {
+        lineStart = unitResult.lineInfo.getOffsetOfLine(lineNumber);
+        var nextLineStart = unitResult.lineInfo.getOffsetOfLine(lineNumber + 1);
+        var line = source.substring(lineStart, nextLineStart).trim();
+
+        if (line.startsWith('// $commentPrefix:')) {
+          // Found an existing ignore; insert at the end of this line.
+          builder.addSimpleInsertion(nextLineStart - eol.length, ', $_code');
+          return;
+        }
+
+        if (line.isEmpty) {
+          // Track last blank line, as we will insert there.
+          lastBlankLineOffset = lineStart;
+          continue;
+        }
+
+        if (line.startsWith('#!') || line.startsWith('//')) {
+          // Skip comment/hash-bang.
+          continue;
+        }
+
+        // We found some code.
+        break;
+      }
+
+      if (lastBlankLineOffset != null) {
+        // If we found a blank line, insert right after that.
+        insertAt(builder, lastBlankLineOffset, insertEmptyLineBefore: true);
+      } else {
+        // Otherwise, insert right before the first line of code.
+        insertAt(builder, lineStart, insertEmptyLineAfter: true);
+      }
+    });
   }
 }
 
-class IgnoreDiagnosticOnLine extends AbstractIgnoreDiagnostic {
+class IgnoreDiagnosticOnLine extends _DartIgnoreDiagnostic {
+  @override
+  String get commentPrefix => 'ignore';
+
   @override
   FixKind get fixKind => DartFixKind.IGNORE_ERROR_LINE;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    if (_isCodeUnignorable()) return;
+    if (_isCodeUnignorable) return;
 
-    final diagnostic = this.diagnostic!; // Enforced by _isCodeUnignorable
-    final insertDesc = InsertionLocation(
-        prefix: '', offset: diagnostic.problemMessage.offset, suffix: '');
-    await _computeEdit(
-      builder,
-      insertDesc,
-      IgnoreInfo.ignoreMatcher,
-      'ignore',
-    );
+    await builder.addDartFileEdit(file, (builder) {
+      var offset = error.problemMessage.offset;
+      var lineNumber = unitResult.lineInfo.getLocation(offset).lineNumber - 1;
+
+      if (lineNumber == 0) {
+        // The error is on the first line; no chance of a previous line already
+        // containing an ignore comment.
+        insertAt(builder, 0);
+        return;
+      }
+
+      var previousLineStart =
+          unitResult.lineInfo.getOffsetOfLine(lineNumber - 1);
+      var lineStart = unitResult.lineInfo.getOffsetOfLine(lineNumber);
+      var line =
+          unitResult.content.substring(previousLineStart, lineStart).trim();
+
+      if (line.startsWith(IgnoreInfo.ignoreMatcher)) {
+        builder.addSimpleInsertion(lineStart - eol.length, ', $_code');
+      } else {
+        insertAt(builder, lineStart);
+      }
+    });
+  }
+}
+
+abstract class _BaseIgnoreDiagnostic extends ResolvedCorrectionProducer {
+  AnalysisError get error => diagnostic as AnalysisError;
+
+  @override
+  List<Object>? get fixArguments => [_code];
+
+  String get _code => error.errorCode.name.toLowerCase();
+
+  /// Returns `true` if any of the following is `true`:
+  /// - `error.code` is present in the `cannot-ignore` list.
+  /// - `error.code` is already ignored in the `errors` list.
+  bool get _isCodeUnignorable {
+    var cannotIgnore =
+        analysisOptions.unignorableNames.contains(error.errorCode.name);
+
+    if (cannotIgnore) {
+      return true;
+    }
+
+    // This will prevent showing a `fix` when the `error` is already ignored in
+    // `analysis_options.yaml`.
+    //
+    // Note: both `ignore` and `false` severity are set to `null` when parsed.
+    //       See `ErrorConfig` in `pkg/analyzer/source/error_processor.dart`.
+    return analysisOptions.errorProcessors.any((element) =>
+        element.severity == null && element.code == error.errorCode.name);
+  }
+}
+
+abstract class _DartIgnoreDiagnostic extends _BaseIgnoreDiagnostic {
+  /// The ignore-comment prefix (either 'ignore' or 'ignore_for_file').
+  String get commentPrefix;
+
+  /// Inserts a properly indented ignore-comment at [offset].
+  ///
+  /// Additionally, [eol] is inserted before the comment if
+  /// [insertEmptyLineBefore], and [eol] is inserted after the comment if
+  /// [insertEmptyLineAfter].
+  void insertAt(
+    DartFileEditBuilder builder,
+    int offset, {
+    bool insertEmptyLineBefore = false,
+    bool insertEmptyLineAfter = false,
+  }) {
+    var prefix = insertEmptyLineBefore ? eol : '';
+    var indent = unitResult.linePrefix(offset);
+    final comment = '// $commentPrefix: $_code';
+    final suffix = insertEmptyLineAfter ? eol : '';
+    builder.addSimpleInsertion(offset, '$prefix$indent$comment$eol$suffix');
   }
 }

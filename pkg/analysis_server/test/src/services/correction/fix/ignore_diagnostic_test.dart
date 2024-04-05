@@ -10,9 +10,9 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(IgnoreDiagnosticAnaylsisOptionFileTest);
     defineReflectiveTests(IgnoreDiagnosticLineTest);
     defineReflectiveTests(IgnoreDiagnosticFileTest);
-    defineReflectiveTests(IgnoreDiagnosticAnaylsisOptionFileTest);
   });
 }
 
@@ -297,6 +297,11 @@ void f() {
 ''');
   }
 
+  Future<void> test_noHeader_oneLine() async {
+    await resolveTestCode('var _a = 1;');
+    await assertHasFix('// ignore_for_file: unused_element\n\nvar _a = 1;');
+  }
+
   Future<void> test_unignorable() async {
     createAnalysisOptionsFile(
       experiments: experiments,
@@ -389,5 +394,20 @@ void f() {
   var a = 1;
 }
 ''');
+  }
+
+  Future<void> test_unusedCode_firstLine() async {
+    await resolveTestCode('''
+var _a = 1;
+''');
+    await assertHasFix('''
+// ignore: unused_element
+var _a = 1;
+''');
+  }
+
+  Future<void> test_unusedCode_oneLine() async {
+    await resolveTestCode('var _a = 1;');
+    await assertHasFix('// ignore: unused_element\nvar _a = 1;');
   }
 }
