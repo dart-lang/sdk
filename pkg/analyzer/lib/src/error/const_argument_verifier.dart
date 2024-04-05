@@ -12,8 +12,8 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
 
-/// Checks if the arguments for a parameter label as `@mustBeConst` are actually
-///  constant.
+/// Checks if the arguments for a parameter annotated with `@mustBeConst` are
+/// actually constant.
 class ConstArgumentsVerifier extends SimpleAstVisitor<void> {
   final ErrorReporter _errorReporter;
 
@@ -84,12 +84,29 @@ class ConstArgumentsVerifier extends SimpleAstVisitor<void> {
     );
   }
 
+  @override
+  void visitRedirectingConstructorInvocation(
+      RedirectingConstructorInvocation node) {
+    _check(
+      arguments: node.argumentList.arguments,
+      errorNode: node.constructorName ?? node.thisKeyword,
+    );
+  }
+
+  @override
+  void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+    _check(
+      arguments: node.argumentList.arguments,
+      errorNode: node.constructorName ?? node.superKeyword,
+    );
+  }
+
   void _check({
     required List<Expression> arguments,
     required SyntacticEntity errorNode,
   }) {
-    for (final argument in arguments) {
-      final parameter = argument.staticParameterElement;
+    for (var argument in arguments) {
+      var parameter = argument.staticParameterElement;
       if (parameter != null && parameter.hasMustBeConst) {
         Expression resolvedArgument;
         if (parameter.isNamed) {
@@ -98,7 +115,7 @@ class ConstArgumentsVerifier extends SimpleAstVisitor<void> {
           resolvedArgument = argument;
         }
         if (resolvedArgument is Identifier) {
-          final staticElement = resolvedArgument.staticElement;
+          var staticElement = resolvedArgument.staticElement;
           if (staticElement != null &&
               staticElement.nonSynthetic is ConstVariableElement) {
             return;

@@ -96,7 +96,6 @@ import 'conflicting_type_variable_and_container_test.dart'
     as conflicting_type_variable_and_container;
 import 'conflicting_type_variable_and_member_test.dart'
     as conflicting_type_variable_and_member;
-import 'const_argument_test.dart' as const_argument_test;
 import 'const_constructor_field_type_mismatch_test.dart'
     as const_constructor_field_type_mismatch;
 import 'const_constructor_param_type_mismatch_test.dart'
@@ -588,6 +587,8 @@ import 'non_bool_condition_test.dart' as non_bool_condition;
 import 'non_bool_expression_test.dart' as non_bool_expression;
 import 'non_bool_negation_expression_test.dart' as non_bool_negation_expression;
 import 'non_bool_operand_test.dart' as non_bool_operand;
+import 'non_const_argument_for_const_parameter_test.dart'
+    as non_const_argument_for_const_parameter;
 import 'non_const_call_to_literal_constructor_test.dart'
     as non_const_call_to_literal_constructor;
 import 'non_const_generative_enum_constructor_test.dart'
@@ -968,7 +969,6 @@ main() {
     conflicting_static_and_instance.main();
     conflicting_type_variable_and_container.main();
     conflicting_type_variable_and_member.main();
-    const_argument_test.main();
     const_constructor_field_type_mismatch.main();
     const_constructor_param_type_mismatch.main();
     const_constructor_with_field_initialized_by_non_const.main();
@@ -1282,6 +1282,7 @@ main() {
     non_bool_expression.main();
     non_bool_negation_expression.main();
     non_bool_operand.main();
+    non_const_argument_for_const_parameter.main();
     non_const_call_to_literal_constructor.main();
     non_const_generative_enum_constructor.main();
     non_const_map_as_expression_statement.main();
