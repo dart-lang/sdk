@@ -682,11 +682,13 @@ Future<Map<String, List<int>>> createModules(
     Target target,
     Target originalTarget,
     String sdkSummary,
-    {required bool trackNeededDillLibraries}) async {
+    {required bool trackNeededDillLibraries,
+    required Uri checkoutRoot}) async {
   final Uri base = Uri.parse("org-dartlang-test:///");
   final Uri sdkSummaryUri = base.resolve(sdkSummary);
 
-  TestMemoryFileSystem fs = new TestMemoryFileSystem(base);
+  TestMemoryFileSystem fs =
+      new TestMemoryFileSystem(base, holePunchBase: checkoutRoot);
   fs.entityForUri(sdkSummaryUri).writeAsBytesSync(sdkSummaryData);
 
   // Setup all sources
@@ -1097,7 +1099,11 @@ class NewWorldTest {
   });
 
   Future<Result<TestData>> newWorldTest() async {
-    final Uri sdkRoot = computePlatformBinariesLocation(forceBuildDir: true);
+    final Uri platformBinariesRoot =
+        computePlatformBinariesLocation(forceBuildDir: true);
+
+    // This is somewhat of a hack but will do for now.
+    final Uri checkoutRoot = data.loadedFrom.resolve("../../../../");
 
     TestTargetFlags targetFlags = new TestTargetFlags(
         forceLateLoweringsForTesting:
@@ -1129,12 +1135,12 @@ class NewWorldTest {
     final Uri base = Uri.parse("org-dartlang-test:///");
     final Uri sdkSummaryUri = base.resolve(sdkSummary);
     final Uri initializeFrom = base.resolve("initializeFrom.dill");
-    Uri platformUri = sdkRoot.resolve(sdkSummary);
+    Uri platformUri = platformBinariesRoot.resolve(sdkSummary);
     final List<int> sdkSummaryData =
         await new File.fromUri(platformUri).readAsBytes();
 
     List<int>? newestWholeComponentData;
-    MemoryFileSystem? fs;
+    TestMemoryFileSystem? fs;
     Map<String, String?>? sourceFiles;
     CompilerOptions? options;
     TestIncrementalCompiler? compiler;
@@ -1146,7 +1152,7 @@ class NewWorldTest {
     if (modules != null) {
       moduleData = await createModules(
           modules!, sdkSummaryData, target, originalTarget, sdkSummary,
-          trackNeededDillLibraries: false);
+          checkoutRoot: checkoutRoot, trackNeededDillLibraries: false);
       sdk = newestWholeComponent = new Component();
       new BinaryBuilder(sdkSummaryData,
               filename: null, disableLazyReading: false)
@@ -1193,7 +1199,7 @@ class NewWorldTest {
       }
 
       if (!world.updateWorldType) {
-        fs = new TestMemoryFileSystem(base);
+        fs = new TestMemoryFileSystem(base, holePunchBase: checkoutRoot);
       }
       fs!.entityForUri(sdkSummaryUri).writeAsBytesSync(sdkSummaryData);
       bool expectInitializeFromDill = false;
@@ -2395,6 +2401,10 @@ String componentToStringSdkFiltered(Component component) {
     if (lib.importUri.isScheme("dart")) {
       dartUris.add(lib.importUri);
     } else {
+      if (lib.fileUri.isScheme("holePunch")) {
+        // Skip this.
+        continue;
+      }
       c.libraries.add(lib);
     }
   }
@@ -2791,10 +2801,23 @@ void doSimulateTransformer(Component c) {
 }
 
 class TestMemoryFileSystem extends MemoryFileSystem {
-  TestMemoryFileSystem(Uri currentDirectory) : super(currentDirectory);
+  Uri holePunchBase;
+
+  TestMemoryFileSystem(Uri currentDirectory, {required this.holePunchBase})
+      : super(currentDirectory);
 
   @override
   MemoryFileSystemEntity entityForUri(Uri uri) {
+    if (uri.isScheme("holePunch")) {
+      // "Copy" the file into the memory file system.
+      Uri holePunchResolved = holePunchBase.resolve(uri.path);
+      File f = new File.fromUri(holePunchResolved);
+      MemoryFileSystemEntity entity = super.entityForUri(uri);
+      if (f.existsSync()) {
+        entity.writeAsBytesSync(f.readAsBytesSync());
+      }
+      return entity;
+    }
     // Try to "sanitize" the uri as a real file system does, namely
     // "a/b.dart" and "a//b.dart" returns the same file.
     if (uri.pathSegments.contains("")) {

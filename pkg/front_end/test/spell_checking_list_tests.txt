@@ -390,6 +390,7 @@ hi
 hints
 hits
 hkt
+hole
 home
 hoo
 hook
@@ -625,6 +626,7 @@ proxy
 pseudocode
 pt
 pubspec
+punch
 pv
 px
 py
