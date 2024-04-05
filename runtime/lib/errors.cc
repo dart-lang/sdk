@@ -85,12 +85,16 @@ DEFINE_NATIVE_ENTRY(AssertionError_throwNew, 0, 3) {
   auto& condition_text = String::Handle();
   // Extract the assertion condition text (if source is available).
   intptr_t from_line = -1, from_column = -1;
-  if (script.GetTokenLocation(assertion_start, &from_line, &from_column)) {
-    // Extract the assertion condition text (if source is available).
-    intptr_t to_line, to_column;
-    script.GetTokenLocation(assertion_end, &to_line, &to_column);
-    condition_text =
-        script.GetSnippet(from_line, from_column, to_line, to_column);
+  String& url = String::Handle();
+  if (!script.IsNull()) {
+    if (script.GetTokenLocation(assertion_start, &from_line, &from_column)) {
+      // Extract the assertion condition text (if source is available).
+      intptr_t to_line, to_column;
+      script.GetTokenLocation(assertion_end, &to_line, &to_column);
+      condition_text =
+          script.GetSnippet(from_line, from_column, to_line, to_column);
+    }
+    url = script.url();
   }
   if (condition_text.IsNull()) {
     condition_text = Symbols::OptimizedOut().ptr();
@@ -98,7 +102,7 @@ DEFINE_NATIVE_ENTRY(AssertionError_throwNew, 0, 3) {
   args.SetAt(0, condition_text);
 
   // Initialize location arguments starting at position 1.
-  args.SetAt(1, String::Handle(script.url()));
+  args.SetAt(1, url);
   args.SetAt(2, Smi::Handle(Smi::New(from_line)));
   args.SetAt(3, Smi::Handle(Smi::New(from_column)));
   args.SetAt(4, message);
