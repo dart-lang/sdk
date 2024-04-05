@@ -147,7 +147,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 116;
+  UInt32 formatVersion = 117;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -242,7 +242,7 @@ type Name {
 }
 
 type Library {
-  Byte flags (isSynthetic, isNonNullableByDefault, nnbdModeBit1, nnbdModeBit2, isUnsupported);
+  Byte flags (isSynthetic, isLegacy, nnbdModeBit1, nnbdModeBit2, isUnsupported);
   UInt languageVersionMajor;
   UInt languageVersionMinor;
   CanonicalNameReference canonicalName;
@@ -401,7 +401,7 @@ type Field extends Member {
   FileOffset fileEndOffset;
   UInt flags (isFinal, isConst, isStatic, isCovariantByDeclaration,
                 isCovariantByClass, isLate, isExtensionMember,
-                isNonNullableByDefault, isInternalImplementation,
+                isLegacy, isInternalImplementation,
                 isEnumElement, isExtensionTypeMember);
   Name name;
   List<Expression> annotations;
@@ -416,7 +416,7 @@ type Constructor extends Member {
   FileOffset startFileOffset; // Offset of the start of the constructor including any annotations.
   FileOffset fileOffset; // Offset of the constructor name.
   FileOffset fileEndOffset;
-  Byte flags (isConst, isExternal, isSynthetic, isNonNullableByDefault);
+  Byte flags (isConst, isExternal, isSynthetic, isLegacy);
   Name name;
   List<Expression> annotations;
   FunctionNode function;
@@ -456,7 +456,7 @@ type Procedure extends Member {
   Byte kind; // Index into the ProcedureKind enum above.
   Byte stubKind; // Index into the ProcedureStubKind enum above.
   UInt flags (isStatic, isAbstract, isExternal, isConst,
-              isExtensionMember, isNonNullableByDefault, isSynthetic,
+              isExtensionMember, isLegacy, isSynthetic,
               isInternalImplementation, isExtensionTypeMember,
               hasWeakTearoffReferencePragma, IsLoweredLateField);
   Name name;
@@ -990,7 +990,7 @@ type FileUriExpression extends Expression {
 type IsExpression extends Expression {
   Byte tag = 37;
   FileOffset fileOffset;
-  Byte flags (isForNonNullableByDefault);
+  Byte flags (isLegacy);
   Expression operand;
   DartType type;
 }

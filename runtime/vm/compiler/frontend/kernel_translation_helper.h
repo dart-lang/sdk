@@ -494,7 +494,7 @@ class FieldHelper {
     kIsGenericCovariantImpl = 1 << 4,
     kIsLate = 1 << 5,
     kExtensionMember = 1 << 6,
-    kNonNullableByDefault = 1 << 7,
+    kLegacy = 1 << 7,
     kInternalImplementation = 1 << 8,
     kEnumElement = 1 << 9,
     kExtensionTypeMember = 1 << 10,
@@ -594,7 +594,7 @@ class ProcedureHelper {
     kExternal = 1 << 2,
     kConst = 1 << 3,  // Only for external const factories.
     kExtensionMember = 1 << 4,
-    kIsNonNullableByDefault = 1 << 5,
+    kIsLegacy = 1 << 5,
     kSyntheticProcedure = 1 << 6,
     kInternalImplementation = 1 << 7,
     kExtensionTypeMember = 1 << 8,
@@ -848,7 +848,7 @@ class LibraryHelper {
 
   enum Flag {
     kSynthetic = 1 << 0,
-    kIsNonNullableByDefault = 1 << 1,
+    kIsLegacy = 1 << 1,
     kNonNullableByDefaultCompiledModeBit1 = 1 << 2,
     kNonNullableByDefaultCompiledModeBit2 = 1 << 3,
     kUnsupported = 1 << 4,
@@ -867,14 +867,12 @@ class LibraryHelper {
   void SetJustRead(Field field) { next_read_ = field + 1; }
 
   bool IsSynthetic() const { return (flags_ & kSynthetic) != 0; }
-  bool IsNonNullableByDefault() const {
-    return (flags_ & kIsNonNullableByDefault) != 0;
-  }
+  bool IsNonNullableByDefault() const { return (flags_ & kIsLegacy) == 0; }
   NNBDCompiledMode GetNonNullableByDefaultCompiledMode() const {
     bool bit1 = (flags_ & kNonNullableByDefaultCompiledModeBit1) != 0;
     bool bit2 = (flags_ & kNonNullableByDefaultCompiledModeBit2) != 0;
-    if (!bit1 && !bit2) return NNBDCompiledMode::kWeak;
-    if (bit1 && !bit2) return NNBDCompiledMode::kStrong;
+    if (!bit1 && !bit2) return NNBDCompiledMode::kStrong;
+    if (bit1 && !bit2) return NNBDCompiledMode::kWeak;
     if (bit1 && bit2) return NNBDCompiledMode::kAgnostic;
     if (!bit1 && bit2) return NNBDCompiledMode::kInvalid;
     UNREACHABLE();

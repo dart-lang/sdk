@@ -258,7 +258,7 @@ class CompilerOptions {
 
   /// Whether nnbd weak, strong or agnostic mode is used if experiment
   /// 'non-nullable' is enabled.
-  NnbdMode nnbdMode = NnbdMode.Weak;
+  NnbdMode nnbdMode = NnbdMode.Strong;
 
   /// Whether to emit a warning when a ReachabilityError is thrown to ensure
   /// soundness in mixed mode.

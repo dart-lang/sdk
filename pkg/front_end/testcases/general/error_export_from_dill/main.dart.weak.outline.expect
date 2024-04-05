@@ -114,7 +114,7 @@ export "dart:core";
 export "org-dartlang-testcase:///main_lib2.dart";
 export "org-dartlang-testcase:///main_lib3.dart";
 
-static const field dynamic _exports# = #C1 /*isLegacy*/;
+static const field dynamic _exports# = #C1;
 
 library;
 import self as self3;

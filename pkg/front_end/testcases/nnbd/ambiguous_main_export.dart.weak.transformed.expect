@@ -19,7 +19,7 @@ import "dart:core" as core;
 export "org-dartlang-testcase:///ambiguous_main_export_lib1.dart";
 export "org-dartlang-testcase:///ambiguous_main_export_lib2.dart";
 
-static const field dynamic _exports# = #C1 /*isLegacy*/;
+static const field dynamic _exports# = #C1;
 
 library;
 import self as self3;

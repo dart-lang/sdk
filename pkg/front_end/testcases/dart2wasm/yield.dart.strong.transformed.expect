@@ -35,7 +35,7 @@ static method asyncMethod(asy::Stream<core::int> stream) → asy::Stream<core::i
             #controller.{asy::StreamController::add}(1){(core::Object?) → void};
             if(#controller.{asy::StreamController::isPaused}{core::bool}) {
               :async_temporary_0 = await(#paused = asy::Completer::•<void>()).{asy::Completer::future}{asy::Future<void>};
-              :async_temporary_0 as{ForLegacy} dynamic;
+              :async_temporary_0 as dynamic;
             }
             if(#controller.{asy::StreamController::hasListener}{core::bool}) {
             }
@@ -46,7 +46,7 @@ static method asyncMethod(asy::Stream<core::int> stream) → asy::Stream<core::i
             #controller.{asy::StreamController::add}(2){(core::Object?) → void};
             if(#controller.{asy::StreamController::isPaused}{core::bool}) {
               :async_temporary_1 = await(#paused = asy::Completer::•<void>()).{asy::Completer::future}{asy::Future<void>};
-              :async_temporary_1 as{ForLegacy} dynamic;
+              :async_temporary_1 as dynamic;
             }
             if(#controller.{asy::StreamController::hasListener}{core::bool}) {
             }

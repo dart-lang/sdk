@@ -25,7 +25,7 @@ class D extends self::C implements self::I {
   synthetic constructor •() → self::D
     ;
   forwarding-stub method f(covariant-by-declaration self::A a) → void
-    return super.{self::C::f}(a as{ForLegacy} self::B);
+    return super.{self::C::f}(a as self::B);
 }
 static method main() → void
   ;

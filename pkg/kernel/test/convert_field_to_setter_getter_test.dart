@@ -186,7 +186,8 @@ void verifyTargets(Procedure libProcedure, Procedure lib2Procedure,
 
 List<int> serialize(Library lib1, Library lib2) {
   Component component = new Component(libraries: [lib1, lib2])
-    ..setMainMethodAndMode(null, false, NonNullableByDefaultCompiledMode.Weak);
+    ..setMainMethodAndMode(
+        null, false, NonNullableByDefaultCompiledMode.Strong);
   ByteSink sink = new ByteSink();
   new BinaryPrinter(sink).writeComponentFile(component);
   return sink.builder.takeBytes();

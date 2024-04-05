@@ -1553,8 +1553,8 @@ class FastaCompilerConfiguration extends CompilerConfiguration {
       ...options,
       ..._configuration.sharedOptions,
       ..._experimentsArgument(_configuration, testFile),
-      if (_configuration.configuration.nnbdMode == NnbdMode.strong) ...[
-        "--nnbd-strong"
+      if (_configuration.configuration.nnbdMode == NnbdMode.weak) ...[
+        "--nnbd-weak"
       ]
     ];
     for (var argument in args) {

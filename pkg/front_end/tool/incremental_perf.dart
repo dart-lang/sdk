@@ -50,6 +50,7 @@ import 'package:front_end/src/api_prototype/front_end.dart';
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart';
 import 'package:front_end/src/api_prototype/memory_file_system.dart';
 import 'package:front_end/src/api_prototype/standard_file_system.dart';
+import 'package:front_end/src/base/nnbd_mode.dart';
 import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/fasta/uri_translator.dart';
 
@@ -107,6 +108,7 @@ Future benchmark(
     ..fileSystem = overlayFs
     ..onDiagnostic = onDiagnosticMessageHandler()
     ..target = createTarget(isFlutter: isFlutter)
+    ..nnbdMode = NnbdMode.Weak
     ..environmentDefines = const {};
   if (sdkSummary != null) {
     compilerOptions.sdkSummary = _resolveOverlayUri(sdkSummary);

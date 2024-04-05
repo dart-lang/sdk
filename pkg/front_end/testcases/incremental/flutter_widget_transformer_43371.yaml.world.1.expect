@@ -8,7 +8,7 @@ library from "package:flutter/src/widgets/framework.dart" as fra {
   }
   abstract class Widget extends fra::Bar implements wid::_HasCreationLocation /*hasConstConstructor*/  {
     final field dart.core::Object? key;
-    final field wid::_Location? _location /*isLegacy*/;
+    final field wid::_Location? _location;
     const constructor •({dart.core::Object? key = #C1, wid::_Location? $creationLocationd_0dea112b090073317d4 = #C1}) → fra::Widget
       : fra::Widget::key = key, super fra::Bar::•(), fra::Widget::_location = $creationLocationd_0dea112b090073317d4
       ;

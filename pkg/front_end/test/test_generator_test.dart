@@ -2,11 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io' show exitCode, File, stdout;
+import 'dart:io' show File, stdout;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart';
 import 'package:front_end/src/api_prototype/memory_file_system.dart';
+import 'package:front_end/src/base/nnbd_mode.dart';
 import 'package:front_end/src/compute_platform_binaries_location.dart';
 import 'package:front_end/src/fasta/kernel/utils.dart';
 import 'package:front_end/src/fasta/messages.dart';
@@ -57,7 +58,7 @@ Future<void> main() async {
       print(source);
       print("----");
     }
-    exitCode = 1;
+    throw "Errors found!";
   }
   if (!hasNewline) print("");
 }
@@ -135,6 +136,7 @@ class TestCompiler {
     fs.entityForUri(sdkSummary).writeAsBytesSync(sdkSummaryData);
 
     CompilerOptions options = helper.getOptions();
+    options.nnbdMode = NnbdMode.Weak;
     options.fileSystem = fs;
     options.sdkRoot = null;
     options.sdkSummary = sdkSummary;

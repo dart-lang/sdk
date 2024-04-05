@@ -9,6 +9,7 @@ import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:front_end/src/api_prototype/kernel_generator.dart';
 import 'package:front_end/src/api_prototype/language_version.dart';
+import 'package:front_end/src/base/nnbd_mode.dart';
 import 'package:front_end/src/compute_platform_binaries_location.dart';
 import 'package:kernel/ast.dart';
 
@@ -62,6 +63,7 @@ Future<void> test(
     required Version versionImpliesOptIn,
     required Version versionOptsInAllowed}) async {
   CompilerOptions options = new CompilerOptions();
+  options.nnbdMode = NnbdMode.Weak;
   if (enableNonNullableByDefault) {
     // Pretend non-nullable is on by default.
     options.defaultExperimentFlagsForTesting = {
