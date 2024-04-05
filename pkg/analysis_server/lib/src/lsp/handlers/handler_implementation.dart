@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/lsp_protocol/protocol.dart'
     hide TypeHierarchyItem, Element;
+import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
@@ -39,7 +40,7 @@ class ImplementationHandler
       'requireResolvedUnit',
       (_) async => path.mapResult(requireResolvedUnit),
     );
-    final offset = await unit.mapResult((unit) => toOffset(unit.lineInfo, pos));
+    final offset = unit.mapResultSync((unit) => toOffset(unit.lineInfo, pos));
     return await performance.runAsync(
         '_getImplementations',
         (performance) async => offset.mapResult((offset) =>

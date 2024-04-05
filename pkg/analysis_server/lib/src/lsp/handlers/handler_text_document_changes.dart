@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
+import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 import 'package:analysis_server/src/lsp/source_edits.dart';
@@ -33,11 +34,10 @@ class TextDocumentChangeHandler
     }
 
     final path = pathOfDoc(doc);
-    return path.mapResult((path) => _changeFile(path, params));
+    return path.mapResultSync((path) => _changeFile(path, params));
   }
 
-  FutureOr<ErrorOr<void>> _changeFile(
-      String path, DidChangeTextDocumentParams params) {
+  ErrorOr<void> _changeFile(String path, DidChangeTextDocumentParams params) {
     String? oldContents;
     if (server.resourceProvider.hasOverlay(path)) {
       oldContents = server.resourceProvider.getFile(path).readAsStringSync();
@@ -53,7 +53,7 @@ class TextDocumentChangeHandler
     final newContents = applyAndConvertEditsToServer(
         oldContents, params.contentChanges,
         failureIsCritical: true);
-    return newContents.mapResult((result) {
+    return newContents.mapResultSync((result) {
       server.documentVersions[path] = params.textDocument;
       server.onOverlayUpdated(path, result.edits, newContent: result.content);
       return success(null);

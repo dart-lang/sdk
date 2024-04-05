@@ -69,6 +69,13 @@ class DriverEventsPrinter {
             'isPart': result.isPart,
           });
 
+          if (configuration.errorsConfiguration.withContentPredicate(result)) {
+            sink.writelnWithIndent('content');
+            sink.writeln('---');
+            sink.write(result.content);
+            sink.writeln('---');
+          }
+
           sink.writeElements('errors', result.errors, _writeAnalysisError);
         });
       default:
@@ -295,7 +302,12 @@ class DriverEventsPrinter {
 class DriverEventsPrinterConfiguration {
   var libraryConfiguration = ResolvedLibraryResultPrinterConfiguration();
   var unitElementConfiguration = UnitElementPrinterConfiguration();
+  var errorsConfiguration = ErrorsResultPrinterConfiguration();
   var withStreamResolvedUnitResults = true;
+}
+
+class ErrorsResultPrinterConfiguration {
+  bool Function(FileResult) withContentPredicate = (_) => false;
 }
 
 /// The result of `getCachedResolvedUnit`.
@@ -588,7 +600,7 @@ class ResolvedUnitResultPrinterConfiguration {
   Map<String, DartType> Function(ResolvedUnitResult) typesSelector = (_) => {};
   List<VariableElement> Function(ResolvedUnitResult) variableTypesSelector =
       (_) => [];
-  bool Function(ResolvedUnitResult) withContentPredicate = (_) => false;
+  bool Function(FileResult) withContentPredicate = (_) => false;
 }
 
 /// The event of received an object into the `results` stream.

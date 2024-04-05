@@ -5,6 +5,7 @@
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/domains/analysis/occurrences.dart';
 import 'package:analysis_server/src/domains/analysis/occurrences_dart.dart';
+import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
@@ -33,11 +34,11 @@ class DocumentHighlightsHandler extends SharedMessageHandler<
     final pos = params.position;
     final path = pathOfDoc(params.textDocument);
     final unit = await path.mapResult(requireResolvedUnit);
-    final offset = await unit.mapResult((unit) => toOffset(unit.lineInfo, pos));
+    final offset = unit.mapResultSync((unit) => toOffset(unit.lineInfo, pos));
 
-    return offset.mapResult((requestedOffset) {
+    return (unit, offset).mapResults((unit, requestedOffset) async {
       final collector = OccurrencesCollectorImpl();
-      addDartOccurrences(collector, unit.result.unit);
+      addDartOccurrences(collector, unit.unit);
 
       /// Checks whether an Occurrence offset/length spans the requested
       /// offset.
@@ -55,7 +56,7 @@ class DocumentHighlightsHandler extends SharedMessageHandler<
               (offset) => spansRequestedPosition(offset, occurrence.length)))
           .toList();
       if (occurrences.isNotEmpty) {
-        return success(toHighlights(unit.result.lineInfo, occurrences));
+        return success(toHighlights(unit.lineInfo, occurrences));
       }
 
       // No matches.

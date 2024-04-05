@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/protocol_server.dart' as server
     show SourceEdit;
@@ -47,10 +48,10 @@ ErrorOr<({String content, List<plugin.SourceEdit> edits})>
         final offsetEnd = toOffset(lines, change.range.end,
             failureIsCritical: failureIsCritical);
         if (offsetStart.isError) {
-          return ErrorOr.error(offsetStart.error);
+          return failure(offsetStart);
         }
         if (offsetEnd.isError) {
-          return ErrorOr.error(offsetEnd.error);
+          return failure(offsetEnd);
         }
         newContent = newContent.replaceRange(
             offsetStart.result, offsetEnd.result, change.text);
@@ -68,7 +69,7 @@ ErrorOr<({String content, List<plugin.SourceEdit> edits})>
     );
     // If any change fails, immediately return the error.
     if (result != null && result.isError) {
-      return ErrorOr.error(result.error);
+      return failure(result);
     }
   }
   return ErrorOr.success((content: newContent, edits: serverEdits));

@@ -6,6 +6,7 @@ import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/computer/computer_signature.dart';
 import 'package:analysis_server/src/computer/computer_type_arguments_signature.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
+import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
@@ -51,17 +52,17 @@ class SignatureHelpHandler
     final pos = params.position;
     final path = pathOfDoc(params.textDocument);
     final unit = await path.mapResult(requireResolvedUnit);
-    final offset = await unit.mapResult((unit) => toOffset(unit.lineInfo, pos));
+    final offset = unit.mapResultSync((unit) => toOffset(unit.lineInfo, pos));
 
-    return offset.mapResult((offset) {
+    return (unit, offset).mapResultsSync((unit, offset) {
       final formats = clientCapabilities.signatureHelpDocumentationFormats;
-      final dartDocInfo = server.getDartdocDirectiveInfoFor(unit.result);
+      final dartDocInfo = server.getDartdocDirectiveInfoFor(unit);
 
       // First check if we're in a type args list and if so build some
       // signature help for that.
       final typeArgsSignature = _tryGetTypeArgsSignatureHelp(
         dartDocInfo,
-        unit.result.unit,
+        unit.unit,
         offset,
         autoTriggered,
         formats,
@@ -72,7 +73,7 @@ class SignatureHelpHandler
 
       final computer = DartUnitSignatureComputer(
         dartDocInfo,
-        unit.result.unit,
+        unit.unit,
         offset,
         documentationPreference:
             server.lspClientConfiguration.global.preferredDocumentation,

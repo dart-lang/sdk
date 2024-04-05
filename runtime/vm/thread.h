@@ -1285,8 +1285,8 @@ class Thread : public ThreadState {
 
   uword true_end_ = 0;
   TaskKind task_kind_;
-  TimelineStream* dart_stream_;
-  StreamInfo* service_extension_stream_;
+  TimelineStream* const dart_stream_;
+  StreamInfo* const service_extension_stream_;
   mutable Monitor thread_lock_;
   ApiLocalScope* api_reusable_scope_;
   int32_t no_callback_scope_depth_;

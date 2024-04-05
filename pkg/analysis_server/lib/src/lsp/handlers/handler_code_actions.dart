@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
+import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/code_actions/abstract_code_actions_producer.dart';
 import 'package:analysis_server/src/lsp/handlers/code_actions/analysis_options.dart';
 import 'package:analysis_server/src/lsp/handlers/code_actions/dart.dart';
@@ -39,209 +40,214 @@ class CodeActionHandler
 
     var textDocument = params.textDocument;
     final path = pathOfDoc(textDocument);
-    if (path.isError) {
-      return failure(path);
-    }
-    final unitPath = path.result;
-    if (!server.isAnalyzed(unitPath) || !isEditableDocument(textDocument.uri)) {
-      return success(const []);
-    }
+    // TODO(dantup): Break this up, it's hundreds of lines.
+    return path.mapResult((unitPath) async {
+      if (!server.isAnalyzed(unitPath) ||
+          !isEditableDocument(textDocument.uri)) {
+        return success(const []);
+      }
 
-    final capabilities = server.lspClientCapabilities;
-    if (capabilities == null) {
-      // This should not happen unless a client misbehaves.
-      return serverNotInitializedError;
-    }
+      final capabilities = server.lspClientCapabilities;
+      if (capabilities == null) {
+        // This should not happen unless a client misbehaves.
+        return serverNotInitializedError;
+      }
 
-    final supportsLiterals = capabilities.literalCodeActions;
-    final supportedKinds = capabilities.codeActionKinds;
+      final supportsLiterals = capabilities.literalCodeActions;
+      final supportedKinds = capabilities.codeActionKinds;
 
-    /// Whether a fix of kind [kind] should be included in the results.
-    ///
-    /// Unlike [shouldIncludeAnyOfKind], this function is called with a more
-    /// specific action kind and answers the question "Should we include this
-    /// specific fix kind?".
-    bool shouldIncludeKind(CodeActionKind? kind) {
-      /// Checks whether the kind matches the [wanted] kind.
+      /// Whether a fix of kind [kind] should be included in the results.
       ///
-      /// If `wanted` is `refactor.foo` then:
-      ///  - refactor.foo - included
-      ///  - refactor.foobar - not included
-      ///  - refactor.foo.bar - included
-      bool isMatch(CodeActionKind wanted) =>
-          kind == wanted || kind.toString().startsWith('$wanted.');
+      /// Unlike [shouldIncludeAnyOfKind], this function is called with a more
+      /// specific action kind and answers the question "Should we include this
+      /// specific fix kind?".
+      bool shouldIncludeKind(CodeActionKind? kind) {
+        /// Checks whether the kind matches the [wanted] kind.
+        ///
+        /// If `wanted` is `refactor.foo` then:
+        ///  - refactor.foo - included
+        ///  - refactor.foobar - not included
+        ///  - refactor.foo.bar - included
+        bool isMatch(CodeActionKind wanted) =>
+            kind == wanted || kind.toString().startsWith('$wanted.');
 
-      // If the client wants only a specific set, use only that filter.
-      final only = params.context.only;
-      if (only != null) {
-        return only.any(isMatch);
+        // If the client wants only a specific set, use only that filter.
+        final only = params.context.only;
+        if (only != null) {
+          return only.any(isMatch);
+        }
+
+        // Otherwise, filter out anything not supported by the client (if they
+        // advertised that they provided the kinds).
+        if (supportsLiterals && !supportedKinds.any(isMatch)) {
+          return false;
+        }
+
+        return true;
       }
 
-      // Otherwise, filter out anything not supported by the client (if they
-      // advertised that they provided the kinds).
-      if (supportsLiterals && !supportedKinds.any(isMatch)) {
-        return false;
-      }
-
-      return true;
-    }
-
-    /// Whether any fixes of kind [kind] should be included in the results.
-    ///
-    /// Unlike [shouldIncludeKind], this function is called with a more general
-    /// action kind and answers the question "Should we include any actions of
-    /// kind CodeActionKind.Source?".
-    bool shouldIncludeAnyOfKind(CodeActionKind? kind) {
-      /// Checks whether the kind matches the [wanted] kind.
+      /// Whether any fixes of kind [kind] should be included in the results.
       ///
-      /// If `kind` is `refactor.foo` then for these `wanted` values:
-      ///  - wanted=refactor.foo - true
-      ///  - wanted=refactor.foo.bar - true
-      ///  - wanted=refactor - false
-      ///  - wanted=refactor.bar - false
-      bool isMatch(CodeActionKind wanted) =>
-          kind == wanted || wanted.toString().startsWith('$kind.');
+      /// Unlike [shouldIncludeKind], this function is called with a more general
+      /// action kind and answers the question "Should we include any actions of
+      /// kind CodeActionKind.Source?".
+      bool shouldIncludeAnyOfKind(CodeActionKind? kind) {
+        /// Checks whether the kind matches the [wanted] kind.
+        ///
+        /// If `kind` is `refactor.foo` then for these `wanted` values:
+        ///  - wanted=refactor.foo - true
+        ///  - wanted=refactor.foo.bar - true
+        ///  - wanted=refactor - false
+        ///  - wanted=refactor.bar - false
+        bool isMatch(CodeActionKind wanted) =>
+            kind == wanted || wanted.toString().startsWith('$kind.');
 
-      final only = params.context.only;
-      if (only != null) {
-        return only.any(isMatch);
+        final only = params.context.only;
+        if (only != null) {
+          return only.any(isMatch);
+        }
+
+        return true;
       }
 
-      return true;
-    }
+      final pathContext = server.resourceProvider.pathContext;
+      final docIdentifier = server.getVersionedDocumentIdentifier(unitPath);
 
-    final pathContext = server.resourceProvider.pathContext;
-    final docIdentifier = server.getVersionedDocumentIdentifier(unitPath);
+      final library = await requireResolvedLibrary(unitPath);
+      final libraryResult = library.resultOrNull;
+      final unit = libraryResult?.unitWithPath(unitPath);
 
-    final library = await requireResolvedLibrary(unitPath);
-    final libraryResult = library.resultOrNull;
-    final unit = libraryResult?.unitWithPath(unitPath);
+      // For non-Dart files we don't have a unit and must get the best LineInfo we
+      // can for current content.
+      final lineInfo = unit?.lineInfo ?? server.getLineInfo(unitPath);
+      if (lineInfo == null) {
+        return success([]);
+      }
 
-    // For non-Dart files we don't have a unit and must get the best LineInfo we
-    // can for current content.
-    final lineInfo = unit?.lineInfo ?? server.getLineInfo(unitPath);
-    if (lineInfo == null) {
-      return success([]);
-    }
+      final startOffset = toOffset(lineInfo, params.range.start);
+      final endOffset = toOffset(lineInfo, params.range.end);
+      if (startOffset.isError || endOffset.isError) {
+        return success([]);
+      }
 
-    final startOffset = toOffset(lineInfo, params.range.start);
-    final endOffset = toOffset(lineInfo, params.range.end);
-    if (startOffset.isError || endOffset.isError) {
-      return success([]);
-    }
+      return (startOffset, endOffset)
+          .mapResults((startOffset, endOffset) async {
+        final offset = startOffset;
+        final length = endOffset - startOffset;
 
-    final startOffsetResult = startOffset.result;
-    final endOffsetResult = endOffset.result;
+        final isDart = file_paths.isDart(pathContext, unitPath);
+        final isPubspec = file_paths.isPubspecYaml(pathContext, unitPath);
+        final isAnalysisOptions =
+            file_paths.isAnalysisOptionsYaml(pathContext, unitPath);
+        final includeSourceActions =
+            shouldIncludeAnyOfKind(CodeActionKind.Source);
+        final includeQuickFixes =
+            shouldIncludeAnyOfKind(CodeActionKind.QuickFix);
+        final includeRefactors =
+            shouldIncludeAnyOfKind(CodeActionKind.Refactor);
 
-    final offset = startOffsetResult;
-    final length = endOffsetResult - startOffsetResult;
+        Future<AnalysisOptions> getOptions() async {
+          if (unit != null) return unit.analysisOptions;
+          var session = await server.getAnalysisSession(unitPath);
+          var fileResult = session?.getFile(unitPath);
+          if (fileResult is FileResult) return fileResult.analysisOptions;
+          // Default to empty options.
+          return AnalysisOptionsImpl();
+        }
 
-    final isDart = file_paths.isDart(pathContext, unitPath);
-    final isPubspec = file_paths.isPubspecYaml(pathContext, unitPath);
-    final isAnalysisOptions =
-        file_paths.isAnalysisOptionsYaml(pathContext, unitPath);
-    final includeSourceActions = shouldIncludeAnyOfKind(CodeActionKind.Source);
-    final includeQuickFixes = shouldIncludeAnyOfKind(CodeActionKind.QuickFix);
-    final includeRefactors = shouldIncludeAnyOfKind(CodeActionKind.Refactor);
+        var analysisOptions = await getOptions();
 
-    Future<AnalysisOptions> getOptions() async {
-      if (unit != null) return unit.analysisOptions;
-      var session = await server.getAnalysisSession(unitPath);
-      var fileResult = session?.getFile(unitPath);
-      if (fileResult is FileResult) return fileResult.analysisOptions;
-      // Default to empty options.
-      return AnalysisOptionsImpl();
-    }
+        final actionComputers = [
+          if (isDart && libraryResult != null && unit != null)
+            DartCodeActionsProducer(
+              server,
+              unit.file,
+              lineInfo,
+              docIdentifier,
+              range: params.range,
+              offset: offset,
+              length: length,
+              libraryResult,
+              unit,
+              shouldIncludeKind: shouldIncludeKind,
+              capabilities: capabilities,
+              triggerKind: params.context.triggerKind,
+              analysisOptions: analysisOptions,
+            ),
+          if (isPubspec)
+            PubspecCodeActionsProducer(
+              server,
+              // TODO(pq): can we do better?
+              server.resourceProvider.getFile(unitPath),
+              lineInfo,
+              offset: offset,
+              length: length,
+              shouldIncludeKind: shouldIncludeKind,
+              capabilities: capabilities,
+              analysisOptions: analysisOptions,
+            ),
+          if (isAnalysisOptions)
+            AnalysisOptionsCodeActionsProducer(
+              server,
+              // TODO(pq): can we do better?
+              server.resourceProvider.getFile(unitPath),
+              lineInfo,
+              offset: offset,
+              length: length,
+              shouldIncludeKind: shouldIncludeKind,
+              capabilities: capabilities,
+              analysisOptions: analysisOptions,
+            ),
+          PluginCodeActionsProducer(
+            server,
+            // TODO(pq): can we do better?
+            server.resourceProvider.getFile(unitPath),
+            lineInfo,
+            offset: offset,
+            length: length,
+            shouldIncludeKind: shouldIncludeKind,
+            capabilities: capabilities,
+            analysisOptions: analysisOptions,
+          ),
+        ];
+        final sorter = _CodeActionSorter(params.range, shouldIncludeKind);
 
-    var analysisOptions = await getOptions();
+        final allActions = <Either2<CodeAction, Command>>[
+          // Like-kinded actions are grouped (and prioritized) together
+          // regardless of which producer they came from.
 
-    final actionComputers = [
-      if (isDart && libraryResult != null && unit != null)
-        DartCodeActionsProducer(
-          server,
-          unit.file,
-          lineInfo,
-          docIdentifier,
-          range: params.range,
-          offset: offset,
-          length: length,
-          libraryResult,
-          unit,
-          shouldIncludeKind: shouldIncludeKind,
-          capabilities: capabilities,
-          triggerKind: params.context.triggerKind,
-          analysisOptions: analysisOptions,
-        ),
-      if (isPubspec)
-        PubspecCodeActionsProducer(
-          server,
-          // TODO(pq): can we do better?
-          server.resourceProvider.getFile(unitPath),
-          lineInfo,
-          offset: offset,
-          length: length,
-          shouldIncludeKind: shouldIncludeKind,
-          capabilities: capabilities,
-          analysisOptions: analysisOptions,
-        ),
-      if (isAnalysisOptions)
-        AnalysisOptionsCodeActionsProducer(
-          server,
-          // TODO(pq): can we do better?
-          server.resourceProvider.getFile(unitPath),
-          lineInfo,
-          offset: offset,
-          length: length,
-          shouldIncludeKind: shouldIncludeKind,
-          capabilities: capabilities,
-          analysisOptions: analysisOptions,
-        ),
-      PluginCodeActionsProducer(
-        server,
-        // TODO(pq): can we do better?
-        server.resourceProvider.getFile(unitPath),
-        lineInfo,
-        offset: offset,
-        length: length,
-        shouldIncludeKind: shouldIncludeKind,
-        capabilities: capabilities,
-        analysisOptions: analysisOptions,
-      ),
-    ];
-    final sorter = _CodeActionSorter(params.range, shouldIncludeKind);
+          // Source.
+          if (includeSourceActions)
+            for (final computer in actionComputers)
+              ...await performance.runAsync('${computer.name}.getSourceActions',
+                  (_) => computer.getSourceActions()),
 
-    final allActions = <Either2<CodeAction, Command>>[
-      // Like-kinded actions are grouped (and prioritized) together
-      // regardless of which producer they came from.
+          // Fixes.
+          if (includeQuickFixes)
+            ...sorter.sort([
+              for (final computer in actionComputers)
+                ...await performance.runAsync('${computer.name}.getFixActions',
+                    (_) => computer.getFixActions()),
+            ]),
 
-      // Source.
-      if (includeSourceActions)
-        for (final computer in actionComputers)
-          ...await performance.runAsync('${computer.name}.getSourceActions',
-              (_) => computer.getSourceActions()),
+          // Refactors  (Assists + Refactors).
+          if (includeRefactors)
+            ...sorter.sort([
+              for (final computer in actionComputers)
+                ...await performance.runAsync(
+                    '${computer.name}.getAssistActions',
+                    (_) => computer.getAssistActions()),
+            ]),
+          if (includeRefactors)
+            for (final computer in actionComputers)
+              ...await performance.runAsync(
+                  '${computer.name}.getRefactorActions',
+                  (_) => computer.getRefactorActions()),
+        ];
 
-      // Fixes.
-      if (includeQuickFixes)
-        ...sorter.sort([
-          for (final computer in actionComputers)
-            ...await performance.runAsync('${computer.name}.getFixActions',
-                (_) => computer.getFixActions()),
-        ]),
-
-      // Refactors  (Assists + Refactors).
-      if (includeRefactors)
-        ...sorter.sort([
-          for (final computer in actionComputers)
-            ...await performance.runAsync('${computer.name}.getAssistActions',
-                (_) => computer.getAssistActions()),
-        ]),
-      if (includeRefactors)
-        for (final computer in actionComputers)
-          ...await performance.runAsync('${computer.name}.getRefactorActions',
-              (_) => computer.getRefactorActions()),
-    ];
-
-    return success(allActions);
+        return success(allActions);
+      });
+    });
   }
 }
 

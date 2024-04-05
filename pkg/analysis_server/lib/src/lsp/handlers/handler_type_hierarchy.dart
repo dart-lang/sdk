@@ -8,6 +8,7 @@ import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/computer/computer_lazy_type_hierarchy.dart'
     as type_hierarchy;
+import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
@@ -59,16 +60,15 @@ class PrepareTypeHierarchyHandler extends SharedMessageHandler<
     final pos = params.position;
     final path = pathOfDoc(params.textDocument);
     final unit = await path.mapResult(requireResolvedUnit);
-    final offset = await unit.mapResult((unit) => toOffset(unit.lineInfo, pos));
-    return offset.mapResult((offset) {
-      final computer =
-          type_hierarchy.DartLazyTypeHierarchyComputer(unit.result);
+    final offset = unit.mapResultSync((unit) => toOffset(unit.lineInfo, pos));
+    return (unit, offset).mapResultsSync((unit, offset) {
+      final computer = type_hierarchy.DartLazyTypeHierarchyComputer(unit);
       final target = computer.findTarget(offset);
       if (target == null) {
         return success(null);
       }
 
-      final item = toLspItem(target, unit.result.lineInfo);
+      final item = toLspItem(target, unit.lineInfo);
       return success([item]);
     });
   }
@@ -113,19 +113,22 @@ class TypeHierarchySubtypesHandler extends SharedMessageHandler<
     final data = item.data;
     final path = pathOfUri(item.uri);
     final unit = await path.mapResult(requireResolvedUnit);
-    final computer = type_hierarchy.DartLazyTypeHierarchyComputer(unit.result);
 
-    if (data == null) {
-      return error(
-        ErrorCodes.InvalidParams,
-        'TypeHierarchyItem is missing the data field',
-      );
-    }
+    return unit.mapResult((unit) async {
+      final computer = type_hierarchy.DartLazyTypeHierarchyComputer(unit);
 
-    final location = ElementLocationImpl.con2(data.ref);
-    final calls = await computer.findSubtypes(location, server.searchEngine);
-    final results = calls != null ? _convertItems(unit.result, calls) : null;
-    return success(results);
+      if (data == null) {
+        return error(
+          ErrorCodes.InvalidParams,
+          'TypeHierarchyItem is missing the data field',
+        );
+      }
+
+      final location = ElementLocationImpl.con2(data.ref);
+      final calls = await computer.findSubtypes(location, server.searchEngine);
+      final results = calls != null ? _convertItems(unit, calls) : null;
+      return success(results);
+    });
   }
 }
 
@@ -149,20 +152,23 @@ class TypeHierarchySupertypesHandler extends SharedMessageHandler<
     final data = item.data;
     final path = pathOfUri(item.uri);
     final unit = await path.mapResult(requireResolvedUnit);
-    final computer = type_hierarchy.DartLazyTypeHierarchyComputer(unit.result);
 
-    if (data == null) {
-      return error(
-        ErrorCodes.InvalidParams,
-        'TypeHierarchyItem is missing the data field',
-      );
-    }
+    return unit.mapResult((unit) async {
+      final computer = type_hierarchy.DartLazyTypeHierarchyComputer(unit);
 
-    final location = ElementLocationImpl.con2(data.ref);
-    final anchor = _toServerAnchor(data);
-    final calls = await computer.findSupertypes(location, anchor: anchor);
-    final results = calls != null ? _convertItems(unit.result, calls) : null;
-    return success(results);
+      if (data == null) {
+        return error(
+          ErrorCodes.InvalidParams,
+          'TypeHierarchyItem is missing the data field',
+        );
+      }
+
+      final location = ElementLocationImpl.con2(data.ref);
+      final anchor = _toServerAnchor(data);
+      final calls = await computer.findSupertypes(location, anchor: anchor);
+      final results = calls != null ? _convertItems(unit, calls) : null;
+      return success(results);
+    });
   }
 
   /// Reads the anchor from [data] (if available) and converts it to a server

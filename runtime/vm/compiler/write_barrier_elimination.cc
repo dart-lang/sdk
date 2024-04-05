@@ -363,15 +363,23 @@ bool WriteBarrierElimination::SlotEligibleForWBE(const Slot& slot) {
     case Slot::Kind::kRecordField:       // Instance
       return true;
 
-#define FOR_EACH_NATIVE_SLOT(class, underlying_type, field, __, ___)           \
+#define TAGGED_NATIVE_DART_SLOT_CASE(class, underlying_type, field, __, ___)   \
   case Slot::Kind::k##class##_##field:                                         \
     return std::is_base_of<UntaggedInstance, underlying_type>::value ||        \
            std::is_base_of<UntaggedContext, underlying_type>::value ||         \
            std::is_base_of<UntaggedUnhandledException,                         \
                            underlying_type>::value;
 
-      NATIVE_SLOTS_LIST(FOR_EACH_NATIVE_SLOT)
-#undef FOR_EACH_NATIVE_SLOT
+      TAGGED_NATIVE_DART_SLOTS_LIST(TAGGED_NATIVE_DART_SLOT_CASE)
+#undef TAGGED_NATIVE_DART_SLOT_CASE
+
+#define OTHER_NATIVE_SLOT_CASE(class, __, field, ___, ____)                    \
+  case Slot::Kind::k##class##_##field:
+      // No store barrier needed for non-tagged fields or fields of
+      // non-Dart objects.
+      NOT_TAGGED_NATIVE_DART_SLOTS_LIST(OTHER_NATIVE_SLOT_CASE)
+#undef OTHER_NATIVE_SLOT_CASE
+      return true;
 
     default:
       return false;

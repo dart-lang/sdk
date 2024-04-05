@@ -187,6 +187,8 @@ void FlowGraphChecker::VisitInstructions(BlockEntryInstr* block) {
       // Initial definitions are partially linked into graph.
       ASSERT1(def->next() == nullptr, def);
       ASSERT1(def->previous() == entry, def);
+      // No initial definition should contain an unsafe untagged pointer.
+      ASSERT1(!def->MayCreateUnsafeUntaggedPointer(), def);
       // Skip common constants as checking them could be slow.
       if (IsCommonConstant(def)) continue;
       // Visit the initial definition as instruction.
@@ -460,7 +462,10 @@ void FlowGraphChecker::VisitDefUse(Definition* def,
     // We assume that all uses of a GC-movable untagged pointer are within the
     // same basic block as the definition.
     ASSERT2(def->GetBlock() == instruction->GetBlock(), def, instruction);
-    // Untagged pointers should not be returned from functions or FFI callbacks.
+    // Unsafe untagged pointers should not be used as inputs to Phi nodes in
+    // the same basic block.
+    ASSERT2(!instruction->IsPhi(), def, instruction);
+    // Unsafe untagged pointers should not be returned.
     ASSERT2(!instruction->IsReturnBase(), def, instruction);
     // Make sure no instruction between the definition and the use (including
     // the use) can trigger GC.

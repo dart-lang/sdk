@@ -998,9 +998,7 @@ class LspAnalysisServer extends AnalysisServer {
     MessageInfo messageInfo,
   ) async {
     final result = await messageHandler.handleMessage(message, messageInfo);
-    if (result.isError) {
-      sendErrorResponse(message, result.error);
-    }
+    result.ifError((error) => sendErrorResponse(message, error));
   }
 
   Future<void> _handleRequestMessage(
@@ -1008,15 +1006,14 @@ class LspAnalysisServer extends AnalysisServer {
     MessageInfo messageInfo,
   ) async {
     final result = await messageHandler.handleMessage(message, messageInfo);
-    if (result.isError) {
-      sendErrorResponse(message, result.error);
-    } else {
-      sendResponse(ResponseMessage(
+    result.ifError((error) => sendErrorResponse(message, error));
+    result.ifResult(
+      (result) => sendResponse(ResponseMessage(
         id: message.id,
-        result: result.result,
+        result: result,
         jsonrpc: jsonRpcVersion,
-      ));
-    }
+      )),
+    );
   }
 
   /// Checks whether [file] is in a project that can resolve 'package:flutter'

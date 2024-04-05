@@ -46,15 +46,15 @@ class Indexable<ReadType, WriteType> {
   operator []=(int index, WriteType value) {}
 }
 
-// - An if-null assignment `E` of the form `e1 ??= e2` with context type `K` is
+// - An if-null assignment `e` of the form `e1 ??= e2` with context type K is
 //   analyzed as follows:
 //
-//   - Let `T1` be the read type of `e1`. This is the static type that `e1`
-//     would have as an expression with a context type schema of `_`.
-//   - Let `T2` be the type of `e2` inferred with context type `J`, where:
-//     - If the lvalue is a local variable, `J` is the current (possibly
-//       promoted) type of the variable.
-//     - Otherwise, `J` is the write type `e1`. This is the type schema that the
+//   - Let T1 be the read type of `e1`. This is the static type that `e1` would
+//     have as an expression with a context type schema of `_`.
+//   - Let T2 be the type of `e2` inferred with context type J, where:
+//     - If the lvalue is a local variable, J is the current (possibly promoted)
+//       type of the variable.
+//     - Otherwise, J is the write type `e1`. This is the type schema that the
 //       setter associated with `e1` imposes on its single argument (or, for the
 //       case of indexed assignment, the type schema that `operator[]=` imposes
 //       on its second argument).
@@ -75,24 +75,33 @@ class Test2 extends Indexable<String?, String?> {
   }
 }
 
-//   - Let `J'` be the unpromoted write type of `e1`, defined as follows:
-//     - If `e1` is a local variable, `J'` is the declared (unpromoted) type of
+//   - Let J' be the unpromoted write type of `e1`, defined as follows:
+//     - If `e1` is a local variable, J' is the declared (unpromoted) type of
 //       `e1`.
-//     - Otherwise `J' = J`.
-//   - Let `T2'` be the coerced type of `e2`, defined as follows:
-//     - If `T2` is a subtype of `J'`, then `T2' = T2` (no coercion is needed).
-//     - Otherwise, if `T2` can be coerced to a some other type which *is* a
-//       subtype of `J'`, then apply that coercion and let `T2'` be the type
+//     - Otherwise J' = J.
+//   - Let T2' be the coerced type of `e2`, defined as follows:
+//     - If T2 is a subtype of J', then T2' = T2 (no coercion is needed).
+//     - Otherwise, if T2 can be coerced to a some other type which *is* a
+//       subtype of J', then apply that coercion and let T2' be the type
 //       resulting from the coercion.
 //     - Otherwise, it is a compile-time error.
-//   - Let `T` be `UP(NonNull(T1), T2')`.
-//   - Let `S` be the greatest closure of `K`.
-//   - If `T <: S`, then the type of `E` is `T`.
+//   - Let T be UP(NonNull(T1), T2').
+//   - Let S be the greatest closure of K.
+//   - If T <: S, then the type of `e` is T.
+//     (Testing this case here. Otherwise continued below.)
 class Test3 extends Indexable<int?, Object?> {
   Test3() : super(null);
   test() {
-    // K=Object, T1=int?, and T2'=double, therefore T=num and S=Object, so T <:
-    // S, and hence the type of E is num.
+    // This example has:
+    // - K = Object
+    // - T1 = int?
+    // - T2' = double
+    // Which implies:
+    // - T = num
+    // - S = Object
+    // We have:
+    // - T <: S
+    // Therefore the type of `e` is T = num.
     var d = 2.0;
     context<Object>((this[0] ??= d)..expectStaticType<Exactly<num>>());
   }
@@ -101,9 +110,16 @@ class Test3 extends Indexable<int?, Object?> {
 class Test4 extends Indexable<Iterable<int>?, Object?> {
   Test4() : super(null);
   test() {
-    // K=Iterable<_>, T1=Iterable<int>?, and T2'=Iterable<double>, therefore
-    // T=Iterable<num> and S=Iterable<Object?>, so T <: S, and hence the type of
-    // E is Iterable<num>.
+    // This example has:
+    // - K = Iterable<_>
+    // - T1 = Iterable<int>?
+    // - T2' = Iterable<double>
+    // Which implies:
+    // - T = Iterable<num>
+    // - S = Iterable<Object?>
+    // We have:
+    // - T <: S
+    // Therefore the type of `e` is T = Iterable<num>.
     var iterableDouble = <double>[] as Iterable<double>;
     contextIterable((this[0] ??= iterableDouble)
       ..expectStaticType<Exactly<Iterable<num>>>());
@@ -113,23 +129,39 @@ class Test4 extends Indexable<Iterable<int>?, Object?> {
 class Test5 extends Indexable<Function?, Function?> {
   Test5() : super(null);
   test() {
-    // K=Function, T1=Function?, and T2'=int Function() (coerced from
-    // T2=CallableClass<int>), therefore T=Function and S=Function, so T <: S,
-    // and hence the type of E is Function.
+    // This example has:
+    // - K = Function
+    // - T1 = Function?
+    // - T2' = int Function()
+    //    (coerced from T2=CallableClass<int>)
+    // Which implies:
+    // - T = Function
+    // - S = Function
+    // We have:
+    // - T <: S
+    // Therefore the type of `e` is T = Function.
     var callableClassInt = CallableClass<int>();
     context<Function>(
         (this[0] ??= callableClassInt)..expectStaticType<Exactly<Function>>());
   }
 }
 
-//   - Otherwise, if `NonNull(T1) <: S` and `T2' <: S`, then the type of `E` is
-//     `S`.
+//   - Otherwise, if NonNull(T1) <: S and T2' <: S, then the type of `e` is S.
 class Test6 extends Indexable<C1<int>?, Object?> {
   Test6() : super(null);
   test() {
-    // K=B1<_>, T1=C1<int>?, and T2'=C2<double>, therefore T=A and
-    // S=B1<Object?>, so T is not <: S, but NonNull(T1) <: S and T2' <: S, hence
-    // the type of E is B1<Object?>.
+    // This example has:
+    // - K = B1<_>
+    // - T1 = C1<int>?
+    // - T2' = C2<double>
+    // Which implies:
+    // - T = A
+    // - S = B1<Object?>
+    // We have:
+    // - T <!: S
+    // - NonNull(T1) <: S
+    // - T2' <: S
+    // Therefore the type of `e` is S = B1<Object?>.
     var c2Double = C2<double>();
     contextB1((this[0] ??= c2Double)..expectStaticType<Exactly<B1<Object?>>>());
   }
@@ -138,9 +170,18 @@ class Test6 extends Indexable<C1<int>?, Object?> {
 class Test7 extends Indexable<C1<int>?, Object?> {
   Test7() : super(null);
   test() {
-    // K=B1<Object>, T1=C1<int>?, and T2'=C2<double>, therefore T=A and
-    // S=B1<Object>, so T is not <: S, but NonNull(T1) <: S and T2' <: S, hence
-    // the type of E is B1<Object>.
+    // This example has:
+    // - K = B1<Object>
+    // - T1 = C1<int>?
+    // - T2' = C2<double>
+    // Which implies:
+    // - T = A
+    // - S = B1<Object>
+    // We have:
+    // - T <!: S
+    // - NonNull(T1) <: S
+    // - T2' <: S
+    // Therefore the type of `e` is S = B1<Object>.
     var c2Double = C2<double>();
     contextB1<Object>(
         (this[0] ??= c2Double)..expectStaticType<Exactly<B1<Object>>>());
@@ -150,9 +191,18 @@ class Test7 extends Indexable<C1<int>?, Object?> {
 class Test8 extends Indexable<Iterable<int>?, Object?> {
   Test8() : super(null);
   test() {
-    // K=Iterable<num>, T1=Iterable<int>?, and T2'=List<num>, therefore T=Object
-    // and S=Iterable<num>, so T is not <: S, but NonNull(T1) <: S and T2' <: S,
-    // hence the type of E is Iterable<num>.
+    // This example has:
+    // - K = Iterable<num>
+    // - T1 = Iterable<int>?
+    // - T2' = List<num>
+    // Which implies:
+    // - T = Object
+    // - S = Iterable<num>
+    // We have:
+    // - T <!: S
+    // - NonNull(T1) <: S
+    // - T2' <: S
+    // Therefore the type of `e` is S = Iterable<num>.
     var listNum = <num>[];
     context<Iterable<num>>(
         (this[0] ??= listNum)..expectStaticType<Exactly<Iterable<num>>>());
@@ -162,26 +212,46 @@ class Test8 extends Indexable<Iterable<int>?, Object?> {
 class Test9 extends Indexable<C1<int> Function()?, Function?> {
   Test9() : super(null);
   test() {
-    // K=B1<int> Function(), T1=C1<int> Function()?, and T2'=C2<int> Function()
-    // (coerced from T2=CallableClass<C2<int>>), therefore T=A Function() and
-    // S=B1<int> Function(), so T is not <: S, but NonNull(T1) <: S and T2' <:
-    // S, hence the type of E is B1<int> Function().
+    // This example has:
+    // - K = B1<int> Function()
+    // - T1 = C1<int> Function()?
+    // - T2' = C2<int> Function()
+    //    (coerced from T2=CallableClass<C2<int>>)
+    // Which implies:
+    // - T = A Function()
+    // - S = B1<int> Function()
+    // We have:
+    // - T <!: S
+    // - NonNull(T1) <: S
+    // - T2' <: S
+    // Therefore the type of `e` is S = B1<int> Function().
     var callableClassC2Int = CallableClass<C2<int>>();
     context<B1<int> Function()>((this[0] ??= callableClassC2Int)
       ..expectStaticType<Exactly<B1<int> Function()>>());
   }
 }
 
-//   - Otherwise, the type of `E` is `T`.
+//   - Otherwise, the type of `e` is T.
 class Test10 extends Indexable<int?, Object?> {
   Test10() : super(null);
   test() {
     var d = 2.0;
-    var o = 0 as Object?;
+    Object? o;
+    o = 0 as Object?;
     if (o is int?) {
-      // K=int?, T1=int?, and T2'=double, therefore T=num and S=int?, so T is
-      // not <: S. NonNull(T1) <: S, but T2' is not <: S. Hence the type of E is
-      // num.
+      // This example has:
+      // - K = int?
+      // - T1 = int?
+      // - T2' = double
+      // Which implies:
+      // - T = num
+      // - S = int?
+      // We have:
+      // - T <!: S
+      // - NonNull(T1) <: S
+      // - T2' <!: S
+      // The fact that T2' <!: S precludes using S as static type.
+      // Therefore the type of `e` is T = num.
       // We avoid having a compile-time error because `o` can be demoted.
       o = (this[0] ??= d)..expectStaticType<Exactly<num>>();
     }
@@ -192,11 +262,22 @@ class Test11 extends Indexable<double?, Object?> {
   Test11() : super(null);
   test() {
     var intQuestion = null as int?;
-    var o = 0 as Object?;
+    Object? o;
+    o = 0 as Object?;
     if (o is int?) {
-      // K=int?, T1=double?, and T2'=int?, therefore T=num? and S=int?, so T is
-      // not <: S. T2' <: S, but NonNull(T1) is not <: S. Hence the type of E is
-      // num?.
+      // This example has:
+      // - K = int?
+      // - T1 = double?
+      // - T2' = int?
+      // Which implies:
+      // - T = num?
+      // - S = int?
+      // We have:
+      // - T <!: S
+      // - NonNull(T1) <!: S
+      // - T2' <: S
+      // The fact that NonNull(T1) <!: S precludes using S as static type.
+      // Therefore the type of `e` is T = num?.
       // We avoid having a compile-time error because `o` can be demoted.
       o = (this[0] ??= intQuestion)..expectStaticType<Exactly<num?>>();
     }
@@ -207,10 +288,23 @@ class Test12 extends Indexable<int?, Object?> {
   Test12() : super(null);
   test() {
     var d = 2.0;
-    var o = '' as Object?;
+    Object? o;
+    o = '' as Object?;
     if (o is String?) {
-      // K=String?, T1=int?, and T2'=double, therefore T=num and S=String?, so
-      // none of T, NonNull(T1), nor T2' are <: S. Hence the type of E is num.
+      // This example has:
+      // - K = String?
+      // - T1 = int?
+      // - T2' = double
+      // Which implies:
+      // - T = num
+      // - S = String?
+      // We have:
+      // - T <!: S
+      // - NonNull(T1) <!: S
+      // - T2' <!: S
+      // The fact that NonNull(T1) <!: S and T2' <!: S precludes using S as
+      // static type.
+      // Therefore the type of `e` is T = num.
       // We avoid having a compile-time error because `o` can be demoted.
       o = (this[0] ??= d)..expectStaticType<Exactly<num>>();
     }
@@ -221,12 +315,23 @@ class Test13 extends Indexable<C1<int> Function()?, Function?> {
   Test13() : super(null);
   test() {
     var callableClassC2Int = CallableClass<C2<int>>();
-    var o = (() => C1<int>()) as Object?;
+    Object? o;
+    o = (() => C1<int>()) as Object?;
     if (o is C1<int> Function()) {
-      // K=C1<int> Function(), T1=C1<int> Function()?, and T2'=C2<int>
-      // Function() (coerced from T2=CallableClass<C2<int>>), therefore T=A
-      // Function() and S=C1<int> Function(), so T is not <: S. NonNull(T1) <:
-      // S, but T2' is not <: S. Hence the type of E is A Function().
+      // This example has:
+      // - K = C1<int> Function()
+      // - T1 = C1<int> Function()?
+      // - T2' = C2<int> Function()
+      //    (coerced from T2=CallableClass<C2<int>>)
+      // Which implies:
+      // - T = A Function()
+      // - S = C1<int> Function()
+      // We have:
+      // - T <!: S
+      // - NonNull(T1) <: S
+      // - T2' <!: S
+      // The fact that T2' <!: S precludes using S as static type.
+      // Therefore the type of `e` is T = A Function().
       // We avoid having a compile-time error because `o` can be demoted.
       o = (this[0] ??= callableClassC2Int)
         ..expectStaticType<Exactly<A Function()>>();
@@ -238,12 +343,23 @@ class Test14 extends Indexable<C1<int> Function()?, Function?> {
   Test14() : super(null);
   test() {
     var callableClassC2Int = CallableClass<C2<int>>();
-    var o = (() => C2<int>()) as Object?;
+    Object? o;
+    o = (() => C2<int>()) as Object?;
     if (o is C2<int> Function()) {
-      // K=C2<int> Function(), T1=C1<int> Function()?, and T2'=C2<int>
-      // Function() (coerced from T2=CallableClass<C2<int>>), therefore T=A
-      // Function() and S=C2<int> Function(), so T is not <: S. T2' <: S, but
-      // NonNull(T1) is not <: S. Hence the type of E is A Function().
+      // This example has:
+      // - K = C2<int> Function()
+      // - T1 = C1<int> Function()?
+      // - T2' = C2<int> Function()
+      //    (coerced from T2=CallableClass<C2<int>>)
+      // Which implies:
+      // - T = A Function()
+      // - S = C2<int> Function()
+      // We have:
+      // - T <!: S
+      // - NonNull(T1) <!: S
+      // - T2' <: S
+      // The fact that NonNull(T1) <!: S precludes using S as static type.
+      // Therefore the type of `e` is T = A Function().
       // We avoid having a compile-time error because `o` can be demoted.
       o = (this[0] ??= callableClassC2Int)
         ..expectStaticType<Exactly<A Function()>>();
@@ -255,12 +371,23 @@ class Test15 extends Indexable<C1<int> Function()?, Function?> {
   Test15() : super(null);
   test() {
     var callableClassC2Int = CallableClass<C2<int>>();
-    var o = 0 as Object?;
+    Object? o;
+    o = 0 as Object?;
     if (o is int) {
-      // K=int, T1=C1<int> Function()?, and T2'=C2<int> Function() (coerced from
-      // T2=CallableClass<C2<int>>), therefore T=A Function() and S=int, so T is
-      // not <: S. T2' <: S, but NonNull(T1) is not <: S. Hence the type of E is
-      // A Function().
+      // This example has:
+      // - K = int
+      // - T1 = C1<int> Function()?
+      // - T2' = C2<int> Function()
+      //    (coerced from T2=CallableClass<C2<int>>)
+      // Which implies:
+      // - T = A Function()
+      // - S = int
+      // We have:
+      // - T <!: S
+      // - NonNull(T1) <!: S
+      // - T2' <: S
+      // The fact that NonNull(T1) <!: S precludes using S as static type.
+      // Therefore the type of `e` is T = A Function().
       // We avoid having a compile-time error because `o` can be demoted.
       o = (this[0] ??= callableClassC2Int)
         ..expectStaticType<Exactly<A Function()>>();

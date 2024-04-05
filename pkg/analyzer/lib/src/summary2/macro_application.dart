@@ -388,8 +388,12 @@ class LibraryMacroApplier {
     return results;
   }
 
-  Future<List<macro.MacroExecutionResult>?> executeTypesPhase() async {
-    final application = _nextForTypesPhase();
+  Future<List<macro.MacroExecutionResult>?> executeTypesPhase({
+    required LibraryElementImpl library,
+  }) async {
+    final application = _nextForTypesPhase(
+      library: library,
+    );
     if (application == null) {
       return null;
     }
@@ -762,8 +766,14 @@ class LibraryMacroApplier {
     return null;
   }
 
-  _MacroApplication? _nextForTypesPhase() {
+  _MacroApplication? _nextForTypesPhase({
+    required LibraryElementImpl library,
+  }) {
     for (final application in _applications.reversed) {
+      final applicationElement = application.target.element;
+      if (applicationElement.library != library) {
+        continue;
+      }
       if (application.phasesToExecute.remove(macro.Phase.types)) {
         return application;
       }

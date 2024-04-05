@@ -5,6 +5,7 @@
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/computer/computer_selection_ranges.dart'
     hide SelectionRange;
+import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
@@ -35,9 +36,9 @@ class SelectionRangeHandler
     return path.mapResult((path) async {
       final unit = await requireUnresolvedUnit(path);
       final positions = params.positions;
-      final offsets = await unit.mapResult((unit) =>
-          ErrorOr.all(positions.map((pos) => toOffset(unit.lineInfo, pos))));
-      final allRanges = await offsets.mapResult(
+      final offsets = unit.mapResultSync((unit) =>
+          positions.map((pos) => toOffset(unit.lineInfo, pos)).errorOrResults);
+      final allRanges = offsets.mapResultSync(
           (offsets) => success(_getSelectionRangesForOffsets(offsets, unit)));
 
       return allRanges;

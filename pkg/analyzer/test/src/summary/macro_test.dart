@@ -13424,6 +13424,58 @@ elementFactory
     }
   }
 
+  test_libraryCycle_class_add() async {
+    // Checks https://github.com/dart-lang/sdk/issues/55360
+    newFile('$testPackageLibPath/a.dart', r'''
+import 'append.dart';
+
+// Just to make it a library cycle.
+import 'test.dart';
+
+@DeclareType('X', 'class X {}')
+class A {}
+''');
+
+    var library = await buildLibrary(r'''
+import 'append.dart';
+import 'a.dart';
+
+@DeclareType('X', 'class X {}')
+class B {}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false
+      ..withReferences = true;
+    checkElementText(library, r'''
+library
+  reference: self
+  imports
+    package:test/append.dart
+    package:test/a.dart
+  definingUnit
+    reference: self
+    classes
+      class B @78
+        reference: self::@class::B
+  augmentationImports
+    package:test/test.macro.dart
+      reference: self::@augmentation::package:test/test.macro.dart
+      macroGeneratedCode
+---
+library augment 'package:test/test.dart';
+
+class X {}
+---
+      definingUnit
+        reference: self::@augmentation::package:test/test.macro.dart
+        classes
+          class X @49
+            reference: self::@augmentation::package:test/test.macro.dart::@class::X
+''');
+  }
+
   test_macroGeneratedFile_changeLibrary_noMacroApplication_restore() async {
     if (!keepLinkingLibraries) return;
     useEmptyByteStore();

@@ -14,7 +14,11 @@
 
 namespace dart {
 
-extern const char* pointer_prefix;
+#ifdef DART_TARGET_OS_WINDOWS
+const char* pointer_prefix = "0x";
+#else
+const char* pointer_prefix = "";
+#endif
 
 static constexpr intptr_t kMemoryTestLength = 1024;
 static constexpr uint8_t kUnInitialized = 0xFE;

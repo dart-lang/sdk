@@ -6,6 +6,7 @@ import 'package:analysis_server/lsp_protocol/protocol.dart' hide MessageType;
 import 'package:analysis_server/src/analysis_server.dart' show MessageType;
 import 'package:analysis_server/src/lsp/client_configuration.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
+import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
@@ -39,10 +40,10 @@ class PrepareRenameHandler extends LspMessageHandler<TextDocumentPositionParams,
     final pos = params.position;
     final path = pathOfDoc(params.textDocument);
     final unit = await path.mapResult(requireResolvedUnit);
-    final offset = await unit.mapResult((unit) => toOffset(unit.lineInfo, pos));
+    final offset = unit.mapResultSync((unit) => toOffset(unit.lineInfo, pos));
 
-    return offset.mapResult((offset) async {
-      final node = NodeLocator(offset).searchWithin(unit.result.unit);
+    return (unit, offset).mapResults((unit, offset) async {
+      final node = NodeLocator(offset).searchWithin(unit.unit);
       final element = server.getElementOfNode(node);
       if (node == null || element == null) {
         return success(null);
@@ -55,7 +56,7 @@ class PrepareRenameHandler extends LspMessageHandler<TextDocumentPositionParams,
       }
 
       final refactoring = RenameRefactoring.create(
-          server.refactoringWorkspace, unit.result, refactorDetails.element);
+          server.refactoringWorkspace, unit, refactorDetails.element);
       if (refactoring == null) {
         return success(null);
       }
@@ -69,7 +70,7 @@ class PrepareRenameHandler extends LspMessageHandler<TextDocumentPositionParams,
 
       return success(TextDocumentPrepareRenameResult.t1(PlaceholderAndRange(
         range: toRange(
-          unit.result.lineInfo,
+          unit.lineInfo,
           // If the offset is set to -1 it means there is no location for the
           // old name. However since we must provide a range for LSP, we'll use
           // a 0-character span at the originally requested location to ensure
@@ -118,7 +119,7 @@ class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?>
     // the version the server had at the time of receiving the request is valid
     // and then use it to verify the document hadn't changed again before we
     // send the edits.
-    final docIdentifier = await path.mapResult((path) => success(
+    final docIdentifier = path.mapResultSync((path) => success(
         textDocument is OptionalVersionedTextDocumentIdentifier
             ? textDocument
             : textDocument is VersionedTextDocumentIdentifier
@@ -127,10 +128,11 @@ class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?>
                 : server.getVersionedDocumentIdentifier(path)));
 
     final unit = await path.mapResult(requireResolvedUnit);
-    final offset = await unit.mapResult((unit) => toOffset(unit.lineInfo, pos));
+    final offset = unit.mapResultSync((unit) => toOffset(unit.lineInfo, pos));
 
-    return offset.mapResult((offset) async {
-      final node = NodeLocator(offset).searchWithin(unit.result.unit);
+    return (path, docIdentifier, unit, offset)
+        .mapResults((path, docIdentifier, unit, offset) async {
+      final node = NodeLocator(offset).searchWithin(unit.unit);
       final element = server.getElementOfNode(node);
       if (node == null || element == null) {
         return success(null);
@@ -143,7 +145,7 @@ class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?>
       }
 
       final refactoring = RenameRefactoring.create(
-          server.refactoringWorkspace, unit.result, refactorDetails.element);
+          server.refactoringWorkspace, unit, refactorDetails.element);
       if (refactoring == null) {
         return success(null);
       }
@@ -220,7 +222,7 @@ class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?>
 
       // Before we send anything back, ensure the original file didn't change
       // while we were computing changes.
-      if (fileHasBeenModified(path.result, docIdentifier.result.version)) {
+      if (fileHasBeenModified(path, docIdentifier.version)) {
         return fileModifiedError;
       }
 

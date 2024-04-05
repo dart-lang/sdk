@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
+import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/simple_edit_handler.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/progress.dart';
@@ -42,7 +43,7 @@ class OrganizeImportsCommandHandler extends SimpleEditCommandHandler {
       return error(ErrorCodes.RequestCancelled, 'Request was cancelled');
     }
 
-    return result.mapResult((result) {
+    return result.mapResult((result) async {
       final code = result.content;
       final unit = result.unit;
 
@@ -65,7 +66,7 @@ class OrganizeImportsCommandHandler extends SimpleEditCommandHandler {
         return success(null);
       }
 
-      return sendSourceEditsToClient(docIdentifier, unit, edits);
+      return await sendSourceEditsToClient(docIdentifier, unit, edits);
     });
   }
 }

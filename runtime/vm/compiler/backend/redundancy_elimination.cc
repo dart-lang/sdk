@@ -2217,8 +2217,8 @@ class LoadOptimizer : public ValueObject {
               const intptr_t pos = alloc->InputForSlot(*slot);
               if (pos != -1) {
                 forward_def = alloc->InputAt(pos)->definition();
-              } else if (slot->is_unboxed()) {
-                // Unboxed fields that are not provided as an input should not
+              } else if (!slot->is_tagged()) {
+                // Fields that do not contain tagged values should not
                 // have a tagged null value forwarded for them, similar to
                 // payloads of typed data arrays.
                 continue;

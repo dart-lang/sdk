@@ -8,6 +8,7 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
+import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_states.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart' as lsp;
 import 'package:analyzer/dart/analysis/session.dart';
@@ -88,8 +89,8 @@ class LspOverLegacyHandler extends LegacyHandler {
 
     final lspResponse = ResponseMessage(
       id: message.id,
-      error: result.isError ? result.error : null,
-      result: !result.isError ? result.result : null,
+      error: result.errorOrNull,
+      result: result.resultOrNull,
       jsonrpc: jsonRpcVersion,
     );
 

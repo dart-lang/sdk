@@ -162,7 +162,6 @@ class CompilerPass {
 
   static void RunInliningPipeline(PipelineMode mode, CompilerPassState* state);
 
-  static void RunForceOptimizedInliningPipeline(CompilerPassState* state);
   // RunPipeline(WithPasses) may have the side effect of changing the FlowGraph
   // stored in the CompilerPassState. However, existing callers may depend on
   // the old invariant that the FlowGraph stored in the CompilerPassState was
@@ -176,13 +175,6 @@ class CompilerPass {
   static FlowGraph* RunPipelineWithPasses(
       CompilerPassState* state,
       std::initializer_list<CompilerPass::Id> passes);
-
-  // Pipeline which is used for "force-optimized" functions.
-  //
-  // Must not include speculative or inter-procedural optimizations.
-  DART_WARN_UNUSED_RESULT
-  static FlowGraph* RunForceOptimizedPipeline(PipelineMode mode,
-                                              CompilerPassState* state);
 
  protected:
   // This function executes the pass. If it returns true then

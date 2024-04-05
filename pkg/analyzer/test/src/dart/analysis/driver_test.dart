@@ -947,6 +947,233 @@ class B2 {}
 ''');
   }
 
+  test_changeFile_macroImpl_macroGenerated_ifPriority() async {
+    if (!configureWithCommonMacros()) {
+      return;
+    }
+
+    File addMacroFile(String className) {
+      return newFile('$testPackageLibPath/a.dart', '''
+import 'package:macros/macros.dart';
+
+macro class MyMacro implements ClassTypesMacro {
+  const MyMacro();
+
+  buildTypesForClass(clazz, builder) {
+    builder.declareType(
+      '$className',
+      DeclarationCode.fromString('class $className {}'),
+    );
+  }
+}
+''');
+    }
+
+    // The macro declares `A1`.
+    final a = addMacroFile('A1');
+
+    final b = newFile('$testPackageLibPath/b.dart', r'''
+import 'a.dart';
+
+@MyMacro()
+class B {}
+''');
+
+    final driver = driverFor(testFile);
+    final collector = DriverEventCollector(driver);
+
+    // Subscribe for errors in `b`.
+    driver.addFile2(b);
+
+    // As if the user opened `b.macro.dart` in the editor.
+    driver.priorityFiles2 = [b.macroForLibrary!];
+
+    // Discard results so far.
+    await collector.nextStatusIdle();
+    collector.take();
+
+    // Declares `A2` instead of `A1`.
+    addMacroFile('A2');
+    driver.changeFile2(a);
+    await collector.nextStatusIdle();
+
+    // There are no cached errors for `MyMacro` with `A2`.
+    // So, we analyze the whole library.
+    // We produce both the library, and its macro-generated file.
+    // Note, the macro-generated file has `A2`.
+    configuration.withMacroFileContent();
+    await assertEventsText(collector, r'''
+[status] working
+[operation] analyzeFile
+  file: /home/test/lib/b.dart
+  library: /home/test/lib/b.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/b.dart
+    uri: package:test/b.dart
+    flags: exists isLibrary
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/b.macro.dart
+    uri: package:test/b.macro.dart
+    flags: exists isAugmentation isMacroAugmentation
+    content
+---
+library augment 'package:test/b.dart';
+
+class A2 {}
+---
+[status] idle
+''');
+
+    // Declares again `A1`, was `A2`.
+    addMacroFile('A1');
+    driver.changeFile2(a);
+    await collector.nextStatusIdle();
+
+    // The macro-generated file is priority, so we need the resolved unit.
+    // We analyze the whole library.
+    // Note, the macro-generated file has `A1`.
+    configuration.withMacroFileContent();
+    await assertEventsText(collector, r'''
+[status] working
+[operation] analyzeFile
+  file: /home/test/lib/b.dart
+  library: /home/test/lib/b.dart
+[stream]
+  ResolvedUnitResult #2
+    path: /home/test/lib/b.dart
+    uri: package:test/b.dart
+    flags: exists isLibrary
+[stream]
+  ResolvedUnitResult #3
+    path: /home/test/lib/b.macro.dart
+    uri: package:test/b.macro.dart
+    flags: exists isAugmentation isMacroAugmentation
+    content
+---
+library augment 'package:test/b.dart';
+
+class A1 {}
+---
+[status] idle
+''');
+  }
+
+  test_changeFile_macroImpl_macroGenerated_notPriority() async {
+    if (!configureWithCommonMacros()) {
+      return;
+    }
+
+    File addMacroFile(String className) {
+      return newFile('$testPackageLibPath/a.dart', '''
+import 'package:macros/macros.dart';
+
+macro class MyMacro implements ClassTypesMacro {
+  const MyMacro();
+
+  buildTypesForClass(clazz, builder) {
+    builder.declareType(
+      '$className',
+      DeclarationCode.fromString('class $className {}'),
+    );
+  }
+}
+''');
+    }
+
+    // The macro declares `A1`.
+    final a = addMacroFile('A1');
+
+    final b = newFile('$testPackageLibPath/b.dart', r'''
+import 'a.dart';
+
+@MyMacro()
+class B {}
+''');
+
+    final driver = driverFor(testFile);
+    final collector = DriverEventCollector(driver);
+
+    // Subscribe for errors in `b`.
+    driver.addFile2(b);
+
+    // Discard results so far.
+    await collector.nextStatusIdle();
+    collector.take();
+
+    // Declares `A2` instead of `A1`.
+    addMacroFile('A2');
+    driver.changeFile2(a);
+    await collector.nextStatusIdle();
+
+    // There are no cached errors for `MyMacro` with `A2`.
+    // So, we analyze the whole library.
+    // We produce both the library, and its macro-generated file.
+    // Note, the macro-generated file has `A2`.
+    configuration.withMacroFileContent();
+    await assertEventsText(collector, r'''
+[status] working
+[operation] analyzeFile
+  file: /home/test/lib/b.dart
+  library: /home/test/lib/b.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/b.dart
+    uri: package:test/b.dart
+    flags: exists isLibrary
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/b.macro.dart
+    uri: package:test/b.macro.dart
+    flags: exists isAugmentation isMacroAugmentation
+    content
+---
+library augment 'package:test/b.dart';
+
+class A2 {}
+---
+[status] idle
+''');
+
+    // Declares again `A1`, was `A2`.
+    addMacroFile('A1');
+    driver.changeFile2(a);
+    await collector.nextStatusIdle();
+
+    // There are cached errors for `MyMacro` with `A1`.
+    // So, we don't have to analyze anything, we can produce from bytes.
+    // We produce both the library, and its macro-generated file.
+    // Note, the macro-generated file has `A1`.
+    configuration.withMacroFileContent();
+    await assertEventsText(collector, r'''
+[status] working
+[operation] getErrorsFromBytes
+  file: /home/test/lib/b.dart
+  library: /home/test/lib/b.dart
+[stream]
+  ErrorsResult #2
+    path: /home/test/lib/b.dart
+    uri: package:test/b.dart
+    flags: isLibrary
+[operation] getErrorsFromBytes
+  file: /home/test/lib/b.macro.dart
+  library: /home/test/lib/b.dart
+[stream]
+  ErrorsResult #3
+    path: /home/test/lib/b.macro.dart
+    uri: package:test/b.macro.dart
+    flags: isAugmentation isMacroAugmentation
+    content
+---
+library augment 'package:test/b.dart';
+
+class A1 {}
+---
+[status] idle
+''');
+  }
+
   test_changeFile_notAbsolutePath() async {
     final driver = driverFor(testFile);
     expect(() {
@@ -1679,6 +1906,12 @@ class A {}
     path: /home/test/lib/a.macro.dart
     uri: package:test/a.macro.dart
     flags: isAugmentation isMacroAugmentation
+    content
+---
+library augment 'package:test/a.dart';
+
+class B {}
+---
 [stream]
   ResolvedUnitResult #2
     path: /home/test/lib/a.macro.dart
@@ -5934,6 +6167,9 @@ extension on AnalysisDriver {
 
 extension on DriverEventsPrinterConfiguration {
   void withMacroFileContent() {
+    errorsConfiguration.withContentPredicate = (result) {
+      return result.isMacroAugmentation;
+    };
     libraryConfiguration.unitConfiguration.withContentPredicate = (result) {
       return result.isMacroAugmentation;
     };

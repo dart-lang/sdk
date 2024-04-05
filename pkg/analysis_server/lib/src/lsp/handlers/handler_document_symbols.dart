@@ -5,6 +5,7 @@
 import 'package:analysis_server/lsp_protocol/protocol.dart' hide Outline;
 import 'package:analysis_server/src/computer/computer_outline.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
+import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
@@ -38,7 +39,7 @@ class DocumentSymbolHandler extends SharedMessageHandler<DocumentSymbolParams,
 
     final path = pathOfDoc(params.textDocument);
     final unit = await path.mapResult(requireResolvedUnit);
-    return unit.mapResult(
+    return unit.mapResultSync(
         (unit) => _getSymbols(clientCapabilities, path.result, unit));
   }
 

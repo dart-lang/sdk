@@ -4,9 +4,11 @@
 
 import 'dart:async';
 
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/computer/computer_call_hierarchy.dart'
     as call_hierarchy;
+import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
@@ -14,8 +16,6 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source_range.dart';
-import 'package:language_server_protocol/protocol_generated.dart';
-import 'package:language_server_protocol/protocol_special.dart';
 
 typedef StaticOptions
     = Either3<bool, CallHierarchyOptions, CallHierarchyRegistrationOptions>;
@@ -195,17 +195,17 @@ class PrepareCallHierarchyHandler extends SharedMessageHandler<
     final pos = params.position;
     final path = pathOfDoc(params.textDocument);
     final unit = await path.mapResult(requireResolvedUnit);
-    final offset = await unit.mapResult((unit) => toOffset(unit.lineInfo, pos));
-    return offset.mapResult((offset) {
+    final offset = unit.mapResultSync((unit) => toOffset(unit.lineInfo, pos));
+    return (unit, offset).mapResults((unit, offset) async {
       final supportedSymbolKinds = clientCapabilities.documentSymbolKinds;
-      final computer = call_hierarchy.DartCallHierarchyComputer(unit.result);
+      final computer = call_hierarchy.DartCallHierarchyComputer(unit);
       final target = computer.findTarget(offset);
       if (target == null) {
         return success(null);
       }
 
-      return _convertTarget(
-        unit.result.session,
+      return await _convertTarget(
+        unit.session,
         target,
         supportedSymbolKinds,
       );
@@ -268,31 +268,33 @@ abstract class _AbstractCallHierarchyCallsHandler<P, R, C>
 
     final path = pathOfUri(item.uri);
     final unit = await path.mapResult(requireResolvedUnit);
-    final supportedSymbolKinds = clientCapabilities.documentSymbolKinds;
-    final computer = call_hierarchy.DartCallHierarchyComputer(unit.result);
+    return unit.mapResult((unit) async {
+      final supportedSymbolKinds = clientCapabilities.documentSymbolKinds;
+      final computer = call_hierarchy.DartCallHierarchyComputer(unit);
 
-    // Convert the clients item back to one in the servers format so that we
-    // can use it to get incoming/outgoing calls.
-    final target = toServerItem(
-      item,
-      unit.result.lineInfo,
-      supportedSymbolKinds: supportedSymbolKinds,
-    );
-
-    if (target == null) {
-      return error(
-        ErrorCodes.ContentModified,
-        'Content was modified since Call Hierarchy node was produced',
+      // Convert the clients item back to one in the servers format so that we
+      // can use it to get incoming/outgoing calls.
+      final target = toServerItem(
+        item,
+        unit.lineInfo,
+        supportedSymbolKinds: supportedSymbolKinds,
       );
-    }
 
-    final calls = await getCalls(computer, target);
-    final results = _convertCalls(
-      unit.result,
-      calls,
-      supportedSymbolKinds,
-    );
-    return success(results);
+      if (target == null) {
+        return error(
+          ErrorCodes.ContentModified,
+          'Content was modified since Call Hierarchy node was produced',
+        );
+      }
+
+      final calls = await getCalls(computer, target);
+      final results = _convertCalls(
+        unit,
+        calls,
+        supportedSymbolKinds,
+      );
+      return success(results);
+    });
   }
 
   /// Converts a server [call_hierarchy.CallHierarchyCalls] to the appropriate
@@ -410,18 +412,17 @@ mixin _CallHierarchyUtils on HandlerHelperMixin<AnalysisServer> {
   }) {
     final nameRange = toSourceRange(lineInfo, item.selectionRange);
     final codeRange = toSourceRange(lineInfo, item.range);
-    if (nameRange.isError || codeRange.isError) {
-      return null;
-    }
 
-    return call_hierarchy.CallHierarchyItem(
-      displayName: item.name,
-      containerName: item.detail,
-      kind: fromSymbolKind(item.kind),
-      file: uriConverter.fromClientUri(item.uri),
-      nameRange: nameRange.result,
-      codeRange: codeRange.result,
-    );
+    return (nameRange, codeRange).mapResultsSync((nameRange, codeRange) {
+      return success(call_hierarchy.CallHierarchyItem(
+        displayName: item.name,
+        containerName: item.detail,
+        kind: fromSymbolKind(item.kind),
+        file: uriConverter.fromClientUri(item.uri),
+        nameRange: nameRange,
+        codeRange: codeRange,
+      ));
+    }).resultOrNull;
   }
 
   /// Converts a server [call_hierarchy.CallHierarchyKind] to a [SymbolKind]

@@ -1929,26 +1929,57 @@ class AnalysisDriver {
     final kind = file.kind;
     final library = kind.library ?? kind.asLibrary;
 
-    // Prepare the signature and key.
-    final signature = _getResolvedUnitSignature(library, file);
-    final key = _getResolvedUnitKey(signature);
+    // Errors are based on elements, so load them.
+    await libraryContext.load(
+      targetLibrary: library,
+      performance: OperationPerformanceImpl('<root>'),
+    );
 
-    // Don't produce errors if the signature is the same.
-    if (_lastProducedSignatures[path] == signature) {
-      _fileTracker.fileWasAnalyzed(path);
+    // Check if we have cached errors for all library files.
+    List<(FileState, String, Uint8List)>? forAllFiles = [];
+    for (final file in library.files) {
+      // If the file is priority, we need the resolved unit.
+      // So, the cached errors is not enough.
+      if (priorityFiles.contains(file.path)) {
+        forAllFiles = null;
+        break;
+      }
+
+      final signature = _getResolvedUnitSignature(library, file);
+      final key = _getResolvedUnitKey(signature);
+
+      final bytes = _byteStore.get(key);
+      if (bytes == null) {
+        forAllFiles = null;
+        break;
+      }
+
+      // Will not be `null` here.
+      forAllFiles?.add((file, signature, bytes));
+    }
+
+    // If we have results for all library files, produce them.
+    if (forAllFiles != null) {
+      for (final (file, signature, bytes) in forAllFiles) {
+        // We have the result for this file.
+        _fileTracker.fileWasAnalyzed(file.path);
+
+        // Don't produce the result if the signature is the same.
+        if (_lastProducedSignatures[file.path] == signature) {
+          continue;
+        }
+
+        // Produce the result from bytes.
+        final result = _createErrorsResultFromBytes(file, library, bytes);
+        _lastProducedSignatures[file.path] = signature;
+        _errorsRequestedFiles.completeAll(file.path, result);
+        _scheduler.eventsController.add(result);
+      }
+      // We produced all results for the library.
       return;
     }
 
-    final bytes = _byteStore.get(key);
-    if (bytes != null) {
-      var result = _createErrorsResultFromBytes(file, library, bytes);
-      _fileTracker.fileWasAnalyzed(path);
-      _lastProducedSignatures[path] = signature;
-      _scheduler.eventsController.add(result);
-      return;
-    }
-
-    // Analyze, will produce a result into the stream.
+    // Analyze, will produce results into the stream.
     await _analyzeFile(path);
   }
 

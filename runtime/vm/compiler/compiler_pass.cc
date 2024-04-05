@@ -297,49 +297,6 @@ void CompilerPass::RunInliningPipeline(PipelineMode mode,
   INVOKE_PASS(TryOptimizePatterns);
 }
 
-void CompilerPass::RunForceOptimizedInliningPipeline(
-    CompilerPassState* pass_state) {
-  INVOKE_PASS(TypePropagation);
-  INVOKE_PASS(Canonicalize);
-  INVOKE_PASS(ConstantPropagation);
-}
-
-// Keep in sync with TestPipeline::RunForcedOptimizedAfterSSAPasses.
-FlowGraph* CompilerPass::RunForceOptimizedPipeline(
-    PipelineMode mode,
-    CompilerPassState* pass_state) {
-  INVOKE_PASS(ComputeSSA);
-  INVOKE_PASS(SetOuterInliningId);
-  INVOKE_PASS(TypePropagation);
-  INVOKE_PASS(Canonicalize);
-  INVOKE_PASS(BranchSimplify);
-  INVOKE_PASS(IfConvert);
-  INVOKE_PASS(ConstantPropagation);
-  INVOKE_PASS(TypePropagation);
-  INVOKE_PASS(WidenSmiToInt32);
-  INVOKE_PASS(SelectRepresentations_Final);
-  INVOKE_PASS(CSE);
-  INVOKE_PASS(TypePropagation);
-  INVOKE_PASS(RangeAnalysis);
-  INVOKE_PASS(TryCatchOptimization);
-  INVOKE_PASS(EliminateEnvironments);
-  INVOKE_PASS(EliminateDeadPhis);
-  // Currently DCE assumes that EliminateEnvironments has already been run,
-  // so it should not be lifted earlier than that pass.
-  INVOKE_PASS(DCE);
-  INVOKE_PASS(Canonicalize);
-  INVOKE_PASS_AOT(DelayAllocations);
-  INVOKE_PASS(EliminateStackOverflowChecks);
-  INVOKE_PASS(EliminateWriteBarriers);
-  // This must be done after all other possible intra-block code motion.
-  INVOKE_PASS(LoweringAfterCodeMotionDisabled);
-  INVOKE_PASS(FinalizeGraph);
-  INVOKE_PASS(ReorderBlocks);
-  INVOKE_PASS(AllocateRegisters);
-  INVOKE_PASS(TestILSerialization);  // Must be last.
-  return pass_state->flow_graph();
-}
-
 FlowGraph* CompilerPass::RunPipeline(PipelineMode mode,
                                      CompilerPassState* pass_state) {
   INVOKE_PASS(ComputeSSA);

@@ -1063,7 +1063,8 @@ class AssemblerBase : public StackResource {
   void StoreToSlot(Register src,
                    Register base,
                    const Slot& slot,
-                   MemoryOrder memory_order = kRelaxedNonAtomic);
+                   MemoryOrder memory_order = kRelaxedNonAtomic,
+                   Register scratch = TMP);
 
   // Truncates upper bits.
   virtual void LoadInt32FromBoxOrSmi(Register result, Register value) = 0;
