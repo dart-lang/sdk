@@ -23,6 +23,7 @@ import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer_plugin/src/utilities/extensions/resolved_unit_result.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 /// Returns the [SourceRange] to find conflicting locals in.
@@ -344,11 +345,12 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
 
   _SourcePart _createSourcePart(SourceRange range) {
     var source = _methodUtils.getRangeText(range);
-    var prefix = getLinePrefix(source);
+
+    var prefix = resolveResult.linePrefix(range.offset);
     var result = _SourcePart(range.offset, source, prefix);
-    // remember parameters and variables occurrences
+    // Remember parameters and variables occurrences.
     _methodUnit.accept(_VariablesVisitor(_methodElement!, range, result));
-    // done
+    // Done.
     return result;
   }
 

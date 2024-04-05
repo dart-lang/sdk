@@ -339,20 +339,6 @@ String getLibrarySourceUri(
   return what.toString();
 }
 
-/// Returns the line prefix from the given source, i.e. basically just a
-/// whitespace prefix of the given [String].
-String getLinePrefix(String line) {
-  var index = 0;
-  while (index < line.length) {
-    var c = line.codeUnitAt(index);
-    if (!isWhitespace(c)) {
-      break;
-    }
-    index++;
-  }
-  return line.substring(0, index);
-}
-
 /// Return the [LocalVariableElement] if given [node] is a reference to a local
 /// variable, or `null` in the other case.
 LocalVariableElement? getLocalVariableElement(SimpleIdentifier node) {
@@ -573,62 +559,6 @@ final class CorrectionUtils {
 
   /// Returns the [AstNode] that encloses the given offset.
   AstNode? findNode(int offset) => NodeLocator(offset).searchWithin(unit);
-
-  /// Returns a description of the place in which to insert an `ignore_for_file`
-  /// comment.
-  ///
-  /// When an existing `ignore_for_file` comment is found, this returns the
-  /// start of the following line, although calling code may choose to fold
-  /// into the previous line.
-  InsertionLocation getInsertionLocationIgnoreForFile() {
-    var offset = 0;
-    var insertEmptyLineBefore = false;
-    var insertEmptyLineAfter = false;
-    var source = _buffer;
-
-    // Look for the last blank line in any leading comments (to insert after all
-    // header comments but not after any comment "attached" code). If an
-    // existing ignore_for_file comment is found while looking, then insert
-    // after that.
-
-    int? lastBlankLineOffset;
-    var insertOffset = 0;
-    while (offset < source.length - 1) {
-      var nextLineOffset = getLineNext(offset);
-      var line = source.substring(offset, nextLineOffset).trim();
-
-      if (line.startsWith('// ignore_for_file:')) {
-        // Found existing ignore, insert after this.
-        insertOffset = nextLineOffset;
-        break;
-      } else if (line.isEmpty) {
-        // Track last blank line, as we will insert there.
-        lastBlankLineOffset = offset;
-        offset = nextLineOffset;
-      } else if (line.startsWith('#!') || line.startsWith('//')) {
-        // Skip comment/hash-bang.
-        offset = nextLineOffset;
-      } else {
-        // We found some code.
-        // If we found a blank line, insert it after that.
-        if (lastBlankLineOffset != null) {
-          insertOffset = lastBlankLineOffset;
-          insertEmptyLineBefore = true;
-        } else {
-          // Otherwise, insert it before the first line of code.
-          insertOffset = offset;
-          insertEmptyLineAfter = true;
-        }
-        break;
-      }
-    }
-
-    return InsertionLocation(
-      prefix: insertEmptyLineBefore ? endOfLine : '',
-      offset: insertOffset,
-      suffix: insertEmptyLineAfter ? endOfLine : '',
-    );
-  }
 
   /// Skips whitespace characters and single EOL on the right from [index].
   ///

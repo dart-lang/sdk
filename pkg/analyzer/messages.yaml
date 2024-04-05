@@ -24089,7 +24089,7 @@ WarningCode:
     comment: |-
       Parameters:
       0: the name of the member
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -24895,13 +24895,13 @@ WarningCode:
     comment: |-
       Parameters:
       0: the name of the argument
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
       The analyzer produces this diagnostic when a parameter is
-      annotated with the `@mustBeConst` annotation and the
-      corresponding argument is not a constant expression.
+      annotated with the [`mustBeConst`][meta-mustBeConst] annotation and
+      the corresponding argument is not a constant expression.
 
       #### Example
 

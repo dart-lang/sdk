@@ -19,6 +19,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide Element, ElementKind;
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/src/utilities/charcodes.dart';
+import 'package:analyzer_plugin/src/utilities/extensions/resolved_unit_result.dart';
 import 'package:analyzer_plugin/src/utilities/library.dart';
 import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -1450,7 +1451,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       }
       buildEdit(builder);
       if (isBlockSingleLine) {
-        builder.write(_linePrefix(switchKeyword.offset));
+        builder.write(resolvedUnit.linePrefix(switchKeyword.offset));
       }
       if (rightBracket.isSynthetic) {
         builder.write('}');
@@ -2248,32 +2249,6 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   /// Return `true` if the [element] is defined in the target library.
   bool _isDefinedLocally(Element element) {
     return element.library == resolvedUnit.libraryElement;
-  }
-
-  // TODO(srawlins): Move this to a shared extension in new plugin package when
-  // this code is moved to new plugin package.
-  bool _isEol(int c) {
-    return c == 0x0D || c == 0x0A;
-  }
-
-  // TODO(srawlins): Move this to a shared extension in new plugin package when
-  // this code is moved to new plugin package.
-  bool _isSpace(int c) => c == 0x20 || c == 0x09;
-
-  /// Returns the whitespace prefix of the line which contains the given
-  /// [offset].
-  String _linePrefix(int offset) {
-    var lineStartOffset = resolvedUnit.lineInfo.getOffsetOfLine(
-        resolvedUnit.lineInfo.getLocation(offset).lineNumber - 1);
-    resolvedUnit.content;
-    var length = resolvedUnit.content.length;
-    var whitespaceEndOffset = lineStartOffset;
-    while (whitespaceEndOffset < length) {
-      var c = resolvedUnit.content.codeUnitAt(whitespaceEndOffset);
-      if (_isEol(c) || !_isSpace(c)) break;
-      whitespaceEndOffset++;
-    }
-    return resolvedUnit.content.substring(lineStartOffset, whitespaceEndOffset);
   }
 
   /// Create an edit to replace the return type of the innermost function

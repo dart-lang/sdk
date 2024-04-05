@@ -33,10 +33,12 @@ that might work in unexpected ways.
 [IEEE 754]: https://en.wikipedia.org/wiki/IEEE_754
 [irrefutable pattern]: https://dart.dev/resources/glossary#irrefutable-pattern
 [meta-doNotStore]: https://pub.dev/documentation/meta/latest/meta/doNotStore-constant.html
+[meta-doNotSubmit]: https://pub.dev/documentation/meta/latest/meta/doNotSubmit-constant.html
 [meta-factory]: https://pub.dev/documentation/meta/latest/meta/factory-constant.html
 [meta-immutable]: https://pub.dev/documentation/meta/latest/meta/immutable-constant.html
 [meta-internal]: https://pub.dev/documentation/meta/latest/meta/internal-constant.html
 [meta-literal]: https://pub.dev/documentation/meta/latest/meta/literal-constant.html
+[meta-mustBeConst]: https://pub.dev/documentation/meta/latest/meta/mustBeConst-constant.html
 [meta-mustCallSuper]: https://pub.dev/documentation/meta/latest/meta/mustCallSuper-constant.html
 [meta-optionalTypeArgs]: https://pub.dev/documentation/meta/latest/meta/optionalTypeArgs-constant.html
 [meta-sealed]: https://pub.dev/documentation/meta/latest/meta/sealed-constant.html
@@ -15012,8 +15014,8 @@ _Argument '{0}' must be a constant._
 #### Description
 
 The analyzer produces this diagnostic when a parameter is
-annotated with the `@mustBeConst` annotation and the
-corresponding argument is not a constant expression.
+annotated with the [`mustBeConst`][meta-mustBeConst] annotation and
+the corresponding argument is not a constant expression.
 
 #### Example
 
