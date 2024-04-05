@@ -24,7 +24,7 @@ static method cascadedNullAwarePropertyAccess(self::C? c) → void {
 static method cascadedInvocation(self::C c) → void {
   c.{self::C::_field}{core::Object?} as () → core::int;
   let final self::C #t4 = c in block {
-    (#t4.{self::C::_field}{core::Object?} as{ForLegacy,Unchecked} () → core::int)(){() → core::int}.{core::int::toString}(){() → core::String};
+    (#t4.{self::C::_field}{core::Object?} as{Unchecked} () → core::int)(){() → core::int}.{core::int::toString}(){() → core::String};
   } =>#t4;
 }
 static method main() → dynamic {}

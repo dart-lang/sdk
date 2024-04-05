@@ -63,7 +63,7 @@ static method test(js_::JSAny /* erasure=dart.core::Object */ any) → void {
   !(any == null) && js_::JSAnyUtilityExtension|instanceOfString(any, "Object");
   any == null || js_::JSAnyUtilityExtension|instanceOfString(any, "Object");
   !(any == null) && js_::JSAnyUtilityExtension|instanceOfString(any, "Array");
-  !(any == null) && js_::JSAnyUtilityExtension|instanceof(any, js_2::JSObjectUnsafeUtilExtension|callMethodVarArgs<js_::JSFunction /* erasure=dart._interceptors::JavaScriptFunction */>(js_2::JSObjectUnsafeUtilExtension|[](js_::globalContext, "Object") as{ForLegacy} js_::JSObject /* erasure=dart._interceptors::JSObject */, js_::StringToJSString|get#toJS("getPrototypeOf"), <js_::JSAny? /* erasure=dart.core::Object? */>[js_2::JSObjectUnsafeUtilExtension|[](js_::globalContext, "Int8Array") as{ForLegacy} js_::JSObject /* erasure=dart._interceptors::JSObject */]));
+  !(any == null) && js_::JSAnyUtilityExtension|instanceof(any, js_2::JSObjectUnsafeUtilExtension|callMethodVarArgs<js_::JSFunction /* erasure=dart._interceptors::JavaScriptFunction */>(js_2::JSObjectUnsafeUtilExtension|[](js_::globalContext, "Object") as js_::JSObject /* erasure=dart._interceptors::JSObject */, js_::StringToJSString|get#toJS("getPrototypeOf"), <js_::JSAny? /* erasure=dart.core::Object? */>[js_2::JSObjectUnsafeUtilExtension|[](js_::globalContext, "Int8Array") as js_::JSObject /* erasure=dart._interceptors::JSObject */]));
   !(any == null) && js_::JSAnyUtilityExtension|instanceOfString(any, "library1.CustomJSAny");
   !(any == null) && js_::JSAnyUtilityExtension|instanceOfString(any, "library1.CustomJSObject");
   !(any == null) && js_::JSAnyUtilityExtension|instanceOfString(any, "library1.CustomTypedArray");

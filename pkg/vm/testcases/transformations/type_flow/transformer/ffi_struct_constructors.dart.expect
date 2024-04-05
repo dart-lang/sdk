@@ -59,10 +59,10 @@ final class Struct12 extends ffi::Struct {
 }
 
 [@vm.inferred-type.metadata=dart.ffi::Pointer]
-static final field ffi::Pointer<ffi::NativeFunction<(self::Struct3) → ffi::Int32>> _#ffiCallback0 = [@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_createNativeCallableIsolateLocal<ffi::NativeFunction<(self::Struct3) → ffi::Int32>>(ffi::_nativeCallbackFunction<(self::Struct3) → ffi::Int32>(#C15, 0), null, false)/*isLegacy*/;
+static final field ffi::Pointer<ffi::NativeFunction<(self::Struct3) → ffi::Int32>> _#ffiCallback0 = [@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_createNativeCallableIsolateLocal<ffi::NativeFunction<(self::Struct3) → ffi::Int32>>(ffi::_nativeCallbackFunction<(self::Struct3) → ffi::Int32>(#C15, 0), null, false);
 
 [@vm.inferred-type.metadata=dart.ffi::Pointer]
-static final field ffi::Pointer<ffi::NativeFunction<() → self::Struct7>> _#ffiCallback1 = [@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_createNativeCallableIsolateLocal<ffi::NativeFunction<() → self::Struct7>>(ffi::_nativeCallbackFunction<() → self::Struct7>(#C16, null), null, false)/*isLegacy*/;
+static final field ffi::Pointer<ffi::NativeFunction<() → self::Struct7>> _#ffiCallback1 = [@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_createNativeCallableIsolateLocal<ffi::NativeFunction<() → self::Struct7>>(ffi::_nativeCallbackFunction<() → self::Struct7>(#C16, null), null, false);
 static method main() → void {
   self::testLookupFunctionReturn();
   self::testLookupFunctionArgument();

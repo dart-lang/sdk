@@ -87,7 +87,6 @@ void main() async {
   var result = await Process.run(Platform.resolvedExecutable, [
     compilePath,
     "--target=dartdevc",
-    "--nnbd-strong",
     "--platform=${ddcOutlinePath}",
     "-o=${dillPath}",
     testClassesPath

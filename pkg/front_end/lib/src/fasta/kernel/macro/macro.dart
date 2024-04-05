@@ -1033,13 +1033,11 @@ class MacroApplications {
               enableNonNullable: true,
               enableTripleShift: true,
               forAugmentationLibrary: true));
-      component.uriToSource[augmentationFileUri] = new Source(
-          scannerResult.lineStarts,
-          source.codeUnits,
-          augmentationImportUri,
-          augmentationFileUri);
+      _sourceLoader.target.addSourceInformation(augmentationImportUri,
+          augmentationFileUri, scannerResult.lineStarts, source.codeUnits);
       for (Uri intermediateAugmentationUri in intermediateAugmentationUris) {
-        component.uriToSource.remove(intermediateAugmentationUri);
+        _sourceLoader.target
+            .removeSourceInformation(intermediateAugmentationUri);
       }
     }
 

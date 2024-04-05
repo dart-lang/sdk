@@ -85,7 +85,7 @@ abstract class UBI extends core::Object {
 
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:5]
   [@vm.unboxing-info.metadata=()->i]
-  abstract get /*isLegacy*/ value() → core::int?;
+  abstract get value() → core::int?;
 }
 class UBIA extends core::Object implements self::UBI {
 

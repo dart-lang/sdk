@@ -19,7 +19,7 @@ class C extends self::A implements self::I {
     : super self::A::•()
     ;
   forwarding-stub method m(covariant-by-declaration core::num n) → void
-    return super.{self::A::m}(n as{ForLegacy} core::int);
+    return super.{self::A::m}(n as core::int);
 }
 static method main() → void {
   self::throws(() → void => (new self::C::•() as dynamic){dynamic}.m(1.1));

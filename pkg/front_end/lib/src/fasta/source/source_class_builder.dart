@@ -294,7 +294,19 @@ class SourceClassBuilder extends ClassBuilderImpl
     // TODO(ahe): If `cls.supertype` is null, and this isn't Object, report a
     // compile-time error.
     cls.isAbstract = isAbstract;
-    cls.isMacro = isMacro;
+    if (!cls.isMacro) {
+      // TODO(jensj): cls / actualCls is not the same --- so for instance it sets
+      // macro on the "parent" class depending on whatever it processes last of
+      // "non-parent" classes.
+      // This means that when a macro class has an augmentation which is not a
+      // macro class the macro class will be marked as no longer a macro class
+      // and at least via the incremental compiler subsequent applications of it
+      // will fail.
+      // Now it's *only* set if it's not already a macro, i.e. once it's a macro
+      // it stays a macro which seems reasonable although I don't know what the
+      // actual rules are.
+      cls.isMacro = isMacro;
+    }
     cls.isMixinClass = isMixinClass;
     cls.isSealed = isSealed;
     cls.isBase = isBase;

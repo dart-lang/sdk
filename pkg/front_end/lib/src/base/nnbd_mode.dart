@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 enum NnbdMode {
-  Weak,
   Strong,
+  Weak,
   Agnostic,
 }

@@ -274,6 +274,15 @@ class KernelTarget extends TargetImplementation {
     }
   }
 
+  void removeSourceInformation(Uri fileUri) {
+    uriToSource.remove(fileUri);
+    if (_hasAddedSources) {
+      // The sources have already been added to the component in [link] so we
+      // have to remove source directly here to create a consistent component.
+      component?.uriToSource.remove(fileUri);
+    }
+  }
+
   /// Return list of same size as input with possibly translated uris.
   List<Uri> setEntryPoints(List<Uri> entryPoints) {
     List<Uri> result = <Uri>[];
@@ -695,6 +704,9 @@ class KernelTarget extends TargetImplementation {
   /// `dillTarget.loader.component`.
   Component link(List<Library> libraries, {CanonicalName? nameRoot}) {
     libraries.addAll(dillTarget.loader.libraries);
+
+    // Copy source data from the map in [CompilerContext] into a new map that is
+    // put on the component.
 
     Map<Uri, Source> uriToSource = new Map<Uri, Source>();
     void copySource(Uri uri, Source source) {

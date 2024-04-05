@@ -16,18 +16,18 @@ static method runBench([typ::Uint8List? data = #C1]) → void async /* emittedVa
   typ::Uint8List? :async_temporary_1;
   if(data == null) {
     :async_temporary_0 = await self::getBinaryTestProto();
-    :async_temporary_1 = data = :async_temporary_0 as{ForLegacy} dynamic;
+    :async_temporary_1 = data = :async_temporary_0 as dynamic;
   }
   else {
     :async_temporary_1 = null;
   }
-  :async_temporary_1 as{ForLegacy} dynamic;
+  :async_temporary_1 as dynamic;
   core::print(data{typ::Uint8List});
 }
 static method main() → void async /* emittedValueType= void */ {
   typ::Uint8List :async_temporary_0;
   :async_temporary_0 = await self::getBinaryTestProto();
-  typ::Uint8List data = :async_temporary_0 as{ForLegacy} dynamic;
+  typ::Uint8List data = :async_temporary_0 as dynamic;
   core::print("File successfully read, contents: ${data}");
   self::runBench(data);
 }

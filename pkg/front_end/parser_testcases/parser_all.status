@@ -2,33 +2,3 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-tests/co19/src/LanguageFeatures/Augmentation-libraries/applying_augmentation_library_A02_t01_lib: Crash
-tests/co19/src/LanguageFeatures/Augmentation-libraries/applying_augmentation_library_A02_t02_lib1: Crash
-tests/co19/src/LanguageFeatures/Augmentation-libraries/applying_augmentation_library_A02_t02_lib2: Crash
-tests/co19/src/LanguageFeatures/Augmentation-libraries/applying_augmentation_library_A03_t01_lib: Crash
-tests/co19/src/LanguageFeatures/Augmentation-libraries/applying_augmentation_library_A03_t02_lib: Crash
-tests/co19/src/LanguageFeatures/Augmentation-libraries/applying_augmentation_library_A04_t01_lib: Crash
-tests/co19/src/LanguageFeatures/Augmentation-libraries/applying_augmentation_library_A04_t02_lib: Crash
-tests/co19/src/LanguageFeatures/Augmentation-libraries/augmenting_types_A01_t01_lib1: Crash
-tests/co19/src/LanguageFeatures/Augmentation-libraries/augmenting_types_A01_t01_lib2: Crash
-tests/co19/src/LanguageFeatures/Augmentation-libraries/augmenting_types_A01_t02_lib1: Crash
-tests/co19/src/LanguageFeatures/Augmentation-libraries/augmenting_types_A01_t02_lib2: Crash
-tests/co19/src/LanguageFeatures/Augmentation-libraries/augmenting_types_A05_t01_lib: Crash
-tests/co19/src/LanguageFeatures/Augmentation-libraries/augmenting_types_A05_t02_lib: Crash
-tests/co19/src/LanguageFeatures/Augmentation-libraries/augmenting_types_A05_t03_lib: Crash
-tests/co19/src/LanguageFeatures/Augmentation-libraries/augmenting_types_A05_t04_lib: Crash
-tests/co19/src/LanguageFeatures/Augmentation-libraries/defining_augmentation_A03_t01_lib: Crash
-tests/co19/src/LanguageFeatures/Augmentation-libraries/defining_augmentation_A03_t02_lib1: Crash
-tests/co19/src/LanguageFeatures/Augmentation-libraries/defining_augmentation_A03_t02_lib2: Crash
-tests/co19/src/LanguageFeatures/Augmentation-libraries/defining_augmentation_A04_t01_lib: Crash
-tests/co19/src/LanguageFeatures/Augmentation-libraries/defining_augmentation_A04_t02_lib: Crash
-tests/co19/src/LanguageFeatures/Augmentation-libraries/defining_augmentation_A05_t01: Crash
-tests/co19/src/LanguageFeatures/Augmentation-libraries/defining_augmentation_A05_t02: Crash
-tests/co19/src/LanguageFeatures/Augmentation-libraries/defining_augmentation_A05_t02_lib: Crash
-tests/co19/src/LanguageFeatures/Augmentation-libraries/merge_order_A01_t01_lib1: Crash
-tests/co19/src/LanguageFeatures/Augmentation-libraries/merge_order_A01_t01_lib2: Crash
-tests/co19/src/LanguageFeatures/Augmentation-libraries/merge_order_A01_t01_lib3: Crash
-tests/co19/src/LanguageFeatures/Augmentation-libraries/merge_order_A01_t02_lib1: Crash
-tests/co19/src/LanguageFeatures/Augmentation-libraries/merge_order_A01_t02_lib2: Crash
-tests/co19/src/LanguageFeatures/Augmentation-libraries/merge_order_A01_t02_lib3: Crash
-

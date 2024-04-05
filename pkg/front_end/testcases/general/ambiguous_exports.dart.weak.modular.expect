@@ -12,7 +12,7 @@ import "dart:core" as core;
 export "org-dartlang-testcase:///hello.dart" show main;
 export "org-dartlang-testcase:///map.dart" show main;
 
-static const field dynamic _exports# = #C1 /*isLegacy*/;
+static const field dynamic _exports# = #C1;
 
 library;
 import self as self2;

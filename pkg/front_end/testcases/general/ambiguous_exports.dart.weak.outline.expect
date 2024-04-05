@@ -11,7 +11,7 @@ import self as self;
 export "org-dartlang-testcase:///hello.dart" show main;
 export "org-dartlang-testcase:///map.dart" show main;
 
-static const field dynamic _exports# = "{\"main\":\"'main' is exported from both 'pkg/front_end/testcases/general/hello.dart' and 'pkg/front_end/testcases/general/map.dart'.\"}" /*isLegacy*/;
+static const field dynamic _exports# = "{\"main\":\"'main' is exported from both 'pkg/front_end/testcases/general/hello.dart' and 'pkg/front_end/testcases/general/map.dart'.\"}";
 
 library;
 import self as self2;

@@ -250,7 +250,7 @@ abstract class Annotatable extends TreeNode {
 //                      LIBRARIES and CLASSES
 // ------------------------------------------------------------------------
 
-enum NonNullableByDefaultCompiledMode { Weak, Strong, Agnostic, Invalid }
+enum NonNullableByDefaultCompiledMode { Strong, Weak, Agnostic, Invalid }
 
 class Library extends NamedNode
     implements Annotatable, Comparable<Library>, FileUriNode {
@@ -273,7 +273,7 @@ class Library extends NamedNode
   }
 
   static const int SyntheticFlag = 1 << 0;
-  static const int NonNullableByDefaultFlag = 1 << 1;
+  static const int LegacyFlag = 1 << 1;
   static const int NonNullableByDefaultModeBit1 = 1 << 2;
   static const int NonNullableByDefaultModeBit2 = 1 << 3;
   static const int IsUnsupportedFlag = 1 << 4;
@@ -287,18 +287,16 @@ class Library extends NamedNode
     flags = value ? (flags | SyntheticFlag) : (flags & ~SyntheticFlag);
   }
 
-  bool get isNonNullableByDefault => (flags & NonNullableByDefaultFlag) != 0;
+  bool get isNonNullableByDefault => (flags & LegacyFlag) == 0;
   void set isNonNullableByDefault(bool value) {
-    flags = value
-        ? (flags | NonNullableByDefaultFlag)
-        : (flags & ~NonNullableByDefaultFlag);
+    flags = value ? (flags & ~LegacyFlag) : (flags | LegacyFlag);
   }
 
   NonNullableByDefaultCompiledMode get nonNullableByDefaultCompiledMode {
     bool bit1 = (flags & NonNullableByDefaultModeBit1) != 0;
     bool bit2 = (flags & NonNullableByDefaultModeBit2) != 0;
-    if (!bit1 && !bit2) return NonNullableByDefaultCompiledMode.Weak;
-    if (bit1 && !bit2) return NonNullableByDefaultCompiledMode.Strong;
+    if (!bit1 && !bit2) return NonNullableByDefaultCompiledMode.Strong;
+    if (bit1 && !bit2) return NonNullableByDefaultCompiledMode.Weak;
     if (bit1 && bit2) return NonNullableByDefaultCompiledMode.Agnostic;
     if (!bit1 && bit2) return NonNullableByDefaultCompiledMode.Invalid;
     throw new StateError("Unused bit-pattern for compilation mode");
@@ -307,11 +305,11 @@ class Library extends NamedNode
   void set nonNullableByDefaultCompiledMode(
       NonNullableByDefaultCompiledMode mode) {
     switch (mode) {
-      case NonNullableByDefaultCompiledMode.Weak:
+      case NonNullableByDefaultCompiledMode.Strong:
         flags = (flags & ~NonNullableByDefaultModeBit1) &
             ~NonNullableByDefaultModeBit2;
         break;
-      case NonNullableByDefaultCompiledMode.Strong:
+      case NonNullableByDefaultCompiledMode.Weak:
         flags = (flags | NonNullableByDefaultModeBit1) &
             ~NonNullableByDefaultModeBit2;
         break;
@@ -2405,7 +2403,7 @@ class Field extends Member {
   static const int FlagCovariantByClass = 1 << 4;
   static const int FlagLate = 1 << 5;
   static const int FlagExtensionMember = 1 << 6;
-  static const int FlagNonNullableByDefault = 1 << 7;
+  static const int FlagLegacy = 1 << 7;
   static const int FlagInternalImplementation = 1 << 8;
   static const int FlagEnumElement = 1 << 9;
   static const int FlagExtensionTypeMember = 1 << 10;
@@ -2515,12 +2513,10 @@ class Field extends Member {
   bool get isExternal => false;
 
   @override
-  bool get isNonNullableByDefault => flags & FlagNonNullableByDefault != 0;
+  bool get isNonNullableByDefault => flags & FlagLegacy == 0;
 
   void set isNonNullableByDefault(bool value) {
-    flags = value
-        ? (flags | FlagNonNullableByDefault)
-        : (flags & ~FlagNonNullableByDefault);
+    flags = value ? (flags & ~FlagLegacy) : (flags | FlagLegacy);
   }
 
   @override
@@ -2637,7 +2633,7 @@ class Constructor extends Member {
   static const int FlagConst = 1 << 0; // Must match serialized bit positions.
   static const int FlagExternal = 1 << 1;
   static const int FlagSynthetic = 1 << 2;
-  static const int FlagNonNullableByDefault = 1 << 3;
+  static const int FlagLegacy = 1 << 3;
 
   @override
   bool get isConst => flags & FlagConst != 0;
@@ -2677,12 +2673,10 @@ class Constructor extends Member {
   bool get isExtensionTypeMember => false;
 
   @override
-  bool get isNonNullableByDefault => flags & FlagNonNullableByDefault != 0;
+  bool get isNonNullableByDefault => flags & FlagLegacy == 0;
 
   void set isNonNullableByDefault(bool value) {
-    flags = value
-        ? (flags | FlagNonNullableByDefault)
-        : (flags & ~FlagNonNullableByDefault);
+    flags = value ? (flags & ~FlagLegacy) : (flags | FlagLegacy);
   }
 
   @override
@@ -3087,7 +3081,7 @@ class Procedure extends Member implements GenericFunction {
   static const int FlagExternal = 1 << 2;
   static const int FlagConst = 1 << 3; // Only for external const factories.
   static const int FlagExtensionMember = 1 << 4;
-  static const int FlagNonNullableByDefault = 1 << 5;
+  static const int FlagLegacy = 1 << 5;
   static const int FlagSynthetic = 1 << 6;
   static const int FlagInternalImplementation = 1 << 7;
   static const int FlagExtensionTypeMember = 1 << 8;
@@ -3212,12 +3206,10 @@ class Procedure extends Member implements GenericFunction {
   bool get isFactory => kind == ProcedureKind.Factory;
 
   @override
-  bool get isNonNullableByDefault => flags & FlagNonNullableByDefault != 0;
+  bool get isNonNullableByDefault => flags & FlagLegacy == 0;
 
   void set isNonNullableByDefault(bool value) {
-    flags = value
-        ? (flags | FlagNonNullableByDefault)
-        : (flags & ~FlagNonNullableByDefault);
+    flags = value ? (flags & ~FlagLegacy) : (flags | FlagLegacy);
   }
 
   Member? get concreteForwardingStubTarget =>
@@ -7501,19 +7493,16 @@ class IsExpression extends Expression {
   }
 
   // Must match serialized bit positions.
-  static const int FlagForNonNullableByDefault = 1 << 0;
+  static const int FlagForLegacy = 1 << 0;
 
   /// If `true`, this test take the nullability of [type] into account.
   ///
   /// This is the case for is-tests written in libraries that are opted in to
   /// the non nullable by default feature.
-  bool get isForNonNullableByDefault =>
-      flags & FlagForNonNullableByDefault != 0;
+  bool get isForNonNullableByDefault => flags & FlagForLegacy == 0;
 
   void set isForNonNullableByDefault(bool value) {
-    flags = value
-        ? (flags | FlagForNonNullableByDefault)
-        : (flags & ~FlagForNonNullableByDefault);
+    flags = value ? (flags & ~FlagForLegacy) : (flags | FlagForLegacy);
   }
 
   @override
@@ -7583,7 +7572,7 @@ class AsExpression extends Expression {
   static const int FlagTypeError = 1 << 0;
   static const int FlagCovarianceCheck = 1 << 1;
   static const int FlagForDynamic = 1 << 2;
-  static const int FlagForNonNullableByDefault = 1 << 3;
+  static const int FlagForLegacy = 1 << 3;
   static const int FlagUnchecked = 1 << 4;
 
   /// If `true`, this test is an implicit down cast.
@@ -7633,13 +7622,10 @@ class AsExpression extends Expression {
   ///
   /// This is the case for is-tests written in libraries that are opted in to
   /// the non nullable by default feature.
-  bool get isForNonNullableByDefault =>
-      flags & FlagForNonNullableByDefault != 0;
+  bool get isForNonNullableByDefault => flags & FlagForLegacy == 0;
 
   void set isForNonNullableByDefault(bool value) {
-    flags = value
-        ? (flags | FlagForNonNullableByDefault)
-        : (flags & ~FlagForNonNullableByDefault);
+    flags = value ? (flags & ~FlagForLegacy) : (flags | FlagForLegacy);
   }
 
   /// If `true`, this test is added to show the known static type of the
@@ -14661,7 +14647,7 @@ class Component extends TreeNode {
   Reference? get mainMethodName => _mainMethodName;
   NonNullableByDefaultCompiledMode? _mode;
   NonNullableByDefaultCompiledMode get mode {
-    return _mode ?? NonNullableByDefaultCompiledMode.Weak;
+    return _mode ?? NonNullableByDefaultCompiledMode.Strong;
   }
 
   NonNullableByDefaultCompiledMode? get modeRaw => _mode;

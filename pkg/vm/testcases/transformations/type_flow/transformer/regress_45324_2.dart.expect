@@ -18,7 +18,7 @@ class Z extends core::Object {
     ;
 
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:3]
-  abstract get /*isLegacy*/ appName() → core::String?;
+  abstract get appName() → core::String?;
 }
 class X extends self::Base implements self::Z {
   synthetic constructor •() → self::X

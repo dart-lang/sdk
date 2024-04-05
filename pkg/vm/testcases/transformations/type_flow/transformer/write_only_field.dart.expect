@@ -16,7 +16,7 @@ class C extends core::Object {
     ;
 
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1]
-  set /*isLegacy*/ instanceField(synthesized self::B? value) → void;
+  set instanceField(synthesized self::B? value) → void;
 }
 static method main() → void {
   null;

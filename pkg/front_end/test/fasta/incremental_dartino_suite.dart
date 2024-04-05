@@ -5,47 +5,34 @@
 library fasta.test.incremental_test;
 
 import "dart:convert" show JsonEncoder;
-
 import "dart:io" show File;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
-import 'package:front_end/src/api_prototype/experimental_flags.dart';
-
-import "package:kernel/ast.dart" show Component;
-
-import "package:testing/testing.dart"
-    show Chain, ChainContext, Result, Step, TestDescription;
-
-import "package:testing/src/log.dart" show splitLines;
-
-import "package:yaml/yaml.dart" show YamlMap, loadYamlNode;
-
 import "package:front_end/src/api_prototype/compiler_options.dart"
     show CompilerOptions, DiagnosticMessage;
-
+import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import "package:front_end/src/api_prototype/incremental_kernel_generator.dart"
     show IncrementalKernelGenerator;
-
 import "package:front_end/src/api_prototype/memory_file_system.dart"
     show MemoryFileSystem;
-
 import "package:front_end/src/api_prototype/terminal_color_support.dart"
     show printDiagnosticMessage;
-
-import 'package:front_end/src/compute_platform_binaries_location.dart'
-    show computePlatformBinariesLocation;
-
+import 'package:front_end/src/base/nnbd_mode.dart' show NnbdMode;
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
-
+import 'package:front_end/src/compute_platform_binaries_location.dart'
+    show computePlatformBinariesLocation;
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
-
 import 'package:front_end/src/fasta/incremental_compiler.dart'
     show IncrementalCompiler;
+import "package:kernel/ast.dart" show Component;
+import "package:testing/src/log.dart" show splitLines;
+import "package:testing/testing.dart"
+    show Chain, ChainContext, Result, Step, TestDescription;
+import "package:yaml/yaml.dart" show YamlMap, loadYamlNode;
 
 import "incremental_expectations.dart"
     show IncrementalExpectation, extractJsonExpectations;
-
 import "incremental_source_files.dart" show expandDiff, expandUpdates;
 import "suite_utils.dart";
 
@@ -231,6 +218,7 @@ Future<Context> createContext(
     ..fileSystem = fs
     ..sdkSummary = sdkSummary
     ..explicitExperimentalFlags = {ExperimentalFlag.nonNullable: false}
+    ..nnbdMode = NnbdMode.Weak
     ..onDiagnostic = (DiagnosticMessage message) {
       printDiagnosticMessage(message, print);
       if (message.severity == Severity.error) {

@@ -19,7 +19,7 @@ class Class extends core::Object implements lib::Interface {
     ;
 
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5]
-  set /*isLegacy*/ field2(synthesized core::int? value) → void;
+  set field2(synthesized core::int? value) → void;
 }
 static method method([@vm.inferred-arg-type.metadata=#lib::Class] lib::Interface i) → void {
   [@vm.direct-call.metadata=#lib::Class.field2] [@vm.inferred-type.metadata=!? (skip check)] i.{lib::Interface::field2} = [@vm.direct-call.metadata=#lib::Class.field1] [@vm.inferred-type.metadata=dart.core::Null? (value: null)] i.{lib::Interface::field1}{core::int?};
@@ -35,14 +35,14 @@ import "dart:core" as core;
 abstract class Interface extends core::Object {
 
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:2]
-  abstract get /*isLegacy*/ field1() → core::int?;
+  abstract get field1() → core::int?;
 
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5]
-  abstract set /*isLegacy*/ field2(synthesized core::int? value) → void;
+  abstract set field2(synthesized core::int? value) → void;
 
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]
-  abstract get /*isLegacy*/ field3() → core::int?;
+  abstract get field3() → core::int?;
 
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]
-  abstract set /*isLegacy*/ field3(synthesized core::int? value) → void;
+  abstract set field3(synthesized core::int? value) → void;
 }

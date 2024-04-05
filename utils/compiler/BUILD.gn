@@ -102,6 +102,7 @@ compile_platform("compile_dart2js_platform_unsound") {
     "--target=dart2js",
     "--no-defines",
     "dart:core",
+    "--nnbd-weak",
   ]
 }
 compile_platform("compile_dart2js_platform") {
@@ -118,7 +119,6 @@ compile_platform("compile_dart2js_platform") {
     "--target=dart2js",
     "--no-defines",
     "dart:core",
-    "--nnbd-strong",
   ]
 }
 compile_platform("compile_dart2js_server_platform_unsound") {
@@ -135,6 +135,7 @@ compile_platform("compile_dart2js_server_platform_unsound") {
     "--target=dart2js_server",
     "--no-defines",
     "dart:core",
+    "--nnbd-weak",
   ]
 }
 compile_platform("compile_dart2js_server_platform") {
@@ -151,6 +152,5 @@ compile_platform("compile_dart2js_server_platform") {
     "--target=dart2js_server",
     "--no-defines",
     "dart:core",
-    "--nnbd-strong",
   ]
 }

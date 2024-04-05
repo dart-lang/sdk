@@ -1130,8 +1130,8 @@ enum class NNBDMode {
 // The NNBDCompiledMode reflects the mode in which constants of the library were
 // compiled by CFE.
 enum class NNBDCompiledMode {
-  kWeak = 0,
-  kStrong = 1,
+  kStrong = 0,
+  kWeak = 1,
   kAgnostic = 2,
   kInvalid = 3,
 };
