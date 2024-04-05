@@ -5,8 +5,12 @@
 import 'dart:isolate';
 
 import 'package:dartdev/dartdev.dart';
+import 'package:pub/src/http.dart';
 
 /// The entry point for dartdev.
 Future<void> main(List<String> args, SendPort? port) async {
   await runDartdev(args, port);
+  // TODO(https://github.com/dart-lang/pub/issues/4209). Handle this in a more
+  // structured way.
+  globalHttpClient.close();
 }

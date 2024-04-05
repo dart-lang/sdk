@@ -1266,6 +1266,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
     _requiredParametersVerifier.visitRedirectingConstructorInvocation(node);
+    _constArgumentsVerifier.visitRedirectingConstructorInvocation(node);
     _isInConstructorInitializer = true;
     try {
       super.visitRedirectingConstructorInvocation(node);
@@ -1347,6 +1348,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       node,
       enclosingConstructor: _enclosingExecutable.element.ifTypeOrNull(),
     );
+    _constArgumentsVerifier.visitSuperConstructorInvocation(node);
     _isInConstructorInitializer = true;
     try {
       _checkForExtensionTypeConstructorWithSuperInvocation(node);

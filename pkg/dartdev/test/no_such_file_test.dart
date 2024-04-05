@@ -33,4 +33,14 @@ void main() {
     expect(result.stdout, isEmpty);
     expect(result.exitCode, 254);
   });
+
+  test('Will not try to run file named the same as command', () async {
+    p.file('pub', 'main() => print("All your base are belong to us")');
+    // Regression test for https://github.com/dart-lang/sdk/issues/43785
+    final result = await p.run(['pub']);
+    expect(result.stderr, isNotEmpty);
+    expect(result.stderr, contains('Missing subcommand'));
+    expect(result.stdout, isEmpty);
+    expect(result.exitCode, 64);
+  });
 }

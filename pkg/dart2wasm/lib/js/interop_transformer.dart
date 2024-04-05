@@ -56,7 +56,6 @@ class InteropTransformer extends Transformer {
 
   @override
   Library visitLibrary(Library lib) {
-    _interopSpecializerFactory.enterLibrary(lib);
     _methodCollector.enterLibrary(lib);
     _staticTypeContext.enterLibrary(lib);
     lib.transformChildren(this);

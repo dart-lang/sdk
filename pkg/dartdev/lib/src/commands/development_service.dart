@@ -5,19 +5,18 @@
 import 'dart:async';
 
 import 'package:args/args.dart';
-import 'package:dtd_impl/dart_tooling_daemon.dart' as dtd
-    show DartToolingDaemonOptions;
+import 'package:dds/src/arg_parser.dart';
 
 import '../core.dart';
 import '../sdk.dart';
 import '../utils.dart';
 
-class ToolingDaemonCommand extends DartdevCommand {
-  static const String commandName = 'tooling-daemon';
+class DevelopmentServiceCommand extends DartdevCommand {
+  static const String commandName = 'development-service';
 
-  static const String commandDescription = "Start Dart's tooling daemon.";
+  static const String commandDescription = "Start Dart's development service.";
 
-  ToolingDaemonCommand({bool verbose = false})
+  DevelopmentServiceCommand({bool verbose = false})
       : super(
           commandName,
           commandDescription,
@@ -27,7 +26,7 @@ class ToolingDaemonCommand extends DartdevCommand {
 
   @override
   ArgParser createArgParser() {
-    return dtd.DartToolingDaemonOptions.createArgParser(
+    return DartDevelopmentServiceOptions.createArgParser(
       usageLineLength: dartdevUsageLineLength,
     );
   }
@@ -39,7 +38,7 @@ class ToolingDaemonCommand extends DartdevCommand {
     // the args for spawnUri.
     final args = [...argResults!.arguments];
     return await runFromSnapshot(
-      snapshot: sdk.dtdSnapshot,
+      snapshot: sdk.ddsSnapshot,
       args: args,
       verbose: verbose,
     );
