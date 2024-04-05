@@ -49,14 +49,33 @@ std::unique_ptr<char*[], void (*)(char*[])>
 intptr_t DartDevIsolate::DartDevRunner::argc_ = 0;
 
 bool DartDevIsolate::ShouldParseCommand(const char* script_uri) {
-  // If script_uri is not a file path or of a known URI scheme, we can assume
-  // that this is a DartDev command.
-  return (!File::ExistsUri(nullptr, script_uri) &&
-          (strncmp(script_uri, "http://", 7) != 0) &&
-          (strncmp(script_uri, "https://", 8) != 0) &&
-          (strncmp(script_uri, "file://", 7) != 0) &&
-          (strncmp(script_uri, "package:", 8) != 0) &&
-          (strncmp(script_uri, "google3://", 10) != 0));
+  // If script_uri is a known DartDev command, we should not try to run it.
+  //
+  // Otherwise if script_uri is not a file path or of a known URI scheme, we
+  // assume this is a mistyped DartDev command.
+  //
+  // This should be kept in sync with the commands in
+  // `pkg/dartdev/lib/dartdev.dart`.
+  return (
+      (strcmp(script_uri, "analyze") == 0) ||
+      (strcmp(script_uri, "compilation-server") == 0) ||
+      (strcmp(script_uri, "build") == 0) ||
+      (strcmp(script_uri, "compile") == 0) ||
+      (strcmp(script_uri, "create") == 0) ||
+      (strcmp(script_uri, "devtools") == 0) ||
+      (strcmp(script_uri, "doc") == 0) || (strcmp(script_uri, "fix") == 0) ||
+      (strcmp(script_uri, "format") == 0) ||
+      (strcmp(script_uri, "info") == 0) || (strcmp(script_uri, "pub") == 0) ||
+      (strcmp(script_uri, "run") == 0) || (strcmp(script_uri, "test") == 0) ||
+      (strcmp(script_uri, "info") == 0) ||
+      (strcmp(script_uri, "language-server") == 0) ||
+      (strcmp(script_uri, "tooling-daemon") == 0) ||
+      (!File::ExistsUri(nullptr, script_uri) &&
+       (strncmp(script_uri, "http://", 7) != 0) &&
+       (strncmp(script_uri, "https://", 8) != 0) &&
+       (strncmp(script_uri, "file://", 7) != 0) &&
+       (strncmp(script_uri, "package:", 8) != 0) &&
+       (strncmp(script_uri, "google3://", 10) != 0)));
 }
 
 Utils::CStringUniquePtr DartDevIsolate::TryResolveArtifactPath(

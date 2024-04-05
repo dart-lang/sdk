@@ -91,6 +91,8 @@ class DartdevRunner extends CommandRunner<int> {
         _unifiedAnalytics = analyticsOverride,
         _isAnalyticsTest = isAnalyticsTest,
         super('dart', '$dartdevDescription.') {
+    // The list of commands should be kept in sync with
+    // `DartDevIsolate::ShouldParseCommand` in `runtime/bin/dartdev_isolate.cc`.
     addCommand(AnalyzeCommand(verbose: verbose));
     addCommand(CompilationServerCommand(verbose: verbose));
     final nativeAssetsExperimentEnabled =
