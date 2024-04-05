@@ -164,6 +164,14 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
       visitUriBasedDirective(node);
 
   @override
+  R? visitAugmentedExpression(AugmentedExpression node) =>
+      visitExpression(node);
+
+  @override
+  R? visitAugmentedInvocation(AugmentedInvocation node) =>
+      visitExpression(node);
+
+  @override
   R? visitAwaitExpression(AwaitExpression node) => visitExpression(node);
 
   @override
@@ -853,6 +861,18 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitAugmentationImportDirective(AugmentationImportDirective node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R? visitAugmentedExpression(AugmentedExpression node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R? visitAugmentedInvocation(AugmentedInvocation node) {
     node.visitChildren(this);
     return null;
   }
@@ -1879,6 +1899,12 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   R? visitAugmentationImportDirective(AugmentationImportDirective node) => null;
 
   @override
+  R? visitAugmentedExpression(AugmentedExpression node) => null;
+
+  @override
+  R? visitAugmentedInvocation(AugmentedInvocation node) => null;
+
+  @override
   R? visitAwaitExpression(AwaitExpression node) => null;
 
   @override
@@ -2426,6 +2452,12 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
   @override
   R? visitAugmentationImportDirective(AugmentationImportDirective node) =>
       _throw(node);
+
+  @override
+  R? visitAugmentedExpression(AugmentedExpression node) => _throw(node);
+
+  @override
+  R? visitAugmentedInvocation(AugmentedInvocation node) => _throw(node);
 
   @override
   R? visitAwaitExpression(AwaitExpression node) => _throw(node);
@@ -3038,6 +3070,22 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   T? visitAugmentationImportDirective(AugmentationImportDirective node) {
     stopwatch.start();
     T? result = _baseVisitor.visitAugmentationImportDirective(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T? visitAugmentedExpression(AugmentedExpression node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitAugmentedExpression(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T? visitAugmentedInvocation(AugmentedInvocation node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitAugmentedInvocation(node);
     stopwatch.stop();
     return result;
   }
@@ -4393,6 +4441,12 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
   @override
   R? visitAugmentationImportDirective(AugmentationImportDirective node) =>
       visitNode(node);
+
+  @override
+  R? visitAugmentedExpression(AugmentedExpression node) => visitNode(node);
+
+  @override
+  R? visitAugmentedInvocation(AugmentedInvocation node) => visitNode(node);
 
   @override
   R? visitAwaitExpression(AwaitExpression node) => visitNode(node);

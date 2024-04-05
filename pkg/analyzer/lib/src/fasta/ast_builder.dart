@@ -156,6 +156,8 @@ class AstBuilder extends StackListener {
 
   final LineInfo _lineInfo;
 
+  Token? _enclosingDeclarationAugmentToken;
+
   AstBuilder(ErrorReporter? errorReporter, this.fileUri, this.isFullAst,
       this._featureSet, this._lineInfo,
       [Uri? uri])
@@ -362,6 +364,33 @@ class AstBuilder extends StackListener {
   }
 
   @override
+  void beginFields(
+    DeclarationKind declarationKind,
+    Token? abstractToken,
+    Token? augmentToken,
+    Token? externalToken,
+    Token? staticToken,
+    Token? covariantToken,
+    Token? lateToken,
+    Token? varFinalOrConst,
+    Token lastConsumed,
+  ) {
+    _enclosingDeclarationAugmentToken = augmentToken;
+
+    super.beginFields(
+      declarationKind,
+      abstractToken,
+      augmentToken,
+      externalToken,
+      staticToken,
+      covariantToken,
+      lateToken,
+      varFinalOrConst,
+      lastConsumed,
+    );
+  }
+
+  @override
   void beginFormalParameter(Token token, MemberKind kind, Token? requiredToken,
       Token? covariantToken, Token? varFinalOrConst) {
     push(_Modifiers()
@@ -411,6 +440,7 @@ class AstBuilder extends StackListener {
     if (augmentToken != null) {
       assert(augmentToken.isModifier);
       modifiers.augmentKeyword = augmentToken;
+      _enclosingDeclarationAugmentToken = augmentToken;
     }
     if (externalToken != null) {
       assert(externalToken.isModifier);
@@ -554,6 +584,7 @@ class AstBuilder extends StackListener {
   @override
   void beginTopLevelMethod(
       Token lastConsumed, Token? augmentToken, Token? externalToken) {
+    _enclosingDeclarationAugmentToken = augmentToken;
     push(_Modifiers()
       ..augmentKeyword = augmentToken
       ..externalKeyword = externalToken);
@@ -823,20 +854,29 @@ class AstBuilder extends StackListener {
   void doInvocation(
       TypeArgumentListImpl? typeArguments, MethodInvocationImpl arguments) {
     var receiver = pop() as ExpressionImpl;
-    if (receiver is SimpleIdentifierImpl) {
-      arguments.methodName = receiver;
-      if (typeArguments != null) {
-        arguments.typeArguments = typeArguments;
-      }
-      push(arguments);
-    } else {
-      push(
-        FunctionExpressionInvocationImpl(
-          function: receiver,
-          typeArguments: typeArguments,
-          argumentList: arguments.argumentList,
-        ),
-      );
+    switch (receiver) {
+      case AugmentedExpressionImpl():
+        push(
+          AugmentedInvocationImpl(
+            augmentedKeyword: receiver.augmentedKeyword,
+            typeArguments: typeArguments,
+            arguments: arguments.argumentList,
+          ),
+        );
+      case SimpleIdentifierImpl():
+        arguments.methodName = receiver;
+        if (typeArguments != null) {
+          arguments.typeArguments = typeArguments;
+        }
+        push(arguments);
+      default:
+        push(
+          FunctionExpressionInvocationImpl(
+            function: receiver,
+            typeArguments: typeArguments,
+            argumentList: arguments.argumentList,
+          ),
+        );
     }
   }
 
@@ -1151,6 +1191,7 @@ class AstBuilder extends StackListener {
         endToken: endToken,
       ),
     );
+    _enclosingDeclarationAugmentToken = null;
   }
 
   @override
@@ -1247,6 +1288,7 @@ class AstBuilder extends StackListener {
         semicolon: semicolon,
       ),
     );
+    _enclosingDeclarationAugmentToken = null;
   }
 
   @override
@@ -1318,6 +1360,7 @@ class AstBuilder extends StackListener {
         body: body,
       ),
     );
+    _enclosingDeclarationAugmentToken = null;
   }
 
   @override
@@ -1346,6 +1389,8 @@ class AstBuilder extends StackListener {
   @override
   void endCompilationUnit(int count, Token endToken) {
     debugEvent("CompilationUnit");
+
+    assert(_enclosingDeclarationAugmentToken == null);
 
     var beginToken = pop() as Token;
     checkEmpty(endToken.charOffset);
@@ -3348,6 +3393,7 @@ class AstBuilder extends StackListener {
         semicolon: semicolon,
       ),
     );
+    _enclosingDeclarationAugmentToken = null;
   }
 
   @override
@@ -3385,6 +3431,7 @@ class AstBuilder extends StackListener {
         ),
       ),
     );
+    _enclosingDeclarationAugmentToken = null;
   }
 
   @override
@@ -4375,6 +4422,17 @@ class AstBuilder extends StackListener {
     if (context.inSymbol) {
       push(token);
       return;
+    }
+
+    if (_enclosingDeclarationAugmentToken != null) {
+      if (token.lexeme == 'augmented') {
+        push(
+          AugmentedExpressionImpl(
+            augmentedKeyword: token,
+          ),
+        );
+        return;
+      }
     }
 
     final identifier = SimpleIdentifierImpl(token);
