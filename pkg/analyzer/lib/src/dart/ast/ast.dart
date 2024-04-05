@@ -1227,6 +1227,10 @@ abstract class AstVisitor<R> {
 
   R? visitAugmentationImportDirective(AugmentationImportDirective node);
 
+  R? visitAugmentedExpression(AugmentedExpression node);
+
+  R? visitAugmentedInvocation(AugmentedInvocation node);
+
   R? visitAwaitExpression(AwaitExpression node);
 
   R? visitBinaryExpression(BinaryExpression node);
@@ -1620,6 +1624,166 @@ final class AugmentationImportDirectiveImpl extends UriBasedDirectiveImpl
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     return visitor.visitAugmentationImportDirective(this);
+  }
+}
+
+/// The augmented expression.
+///
+/// It is created only inside an augmentation.
+/// The exact meaning depends on what is augmented, and where it is used.
+///
+/// Augmenting getters: `augmented` invokes the getter and evaluates to the
+/// return value.
+/// The [element] is the augmented getter.
+/// The [staticType] is the return type of the getter.
+///
+/// Augmenting setters: `augmented` must be followed by an `=`, and will
+/// directly invoke the augmented setter.
+/// The [element] is the augmented setter.
+/// The [staticType] is meaningless, and set to `null`.
+///
+/// Augmenting fields: `augmented` can only be used in an initializer
+/// expression, and refers to the original field's initializer expression.
+/// The [element] is the augmented field.
+/// The [staticType] is the type of the field.
+///
+/// Augmenting binary operators: `augmented` must be the LHS, and followed by
+/// the argument, e.g. `augmented + 1`.
+/// The [element] is the augmented [MethodElement].
+/// The [staticType] is the type of `this`.
+///
+/// Augmenting index operators: `augmented` must be the index target,
+/// e.g. `augmented[0]`.
+/// The [element] is the augmented [MethodElement].
+/// The [staticType] is the type of `this`.
+///
+/// Augmenting prefix operators: `augmented` must be the target, e.g.
+/// `~augmented`.
+/// The [element] is the augmented [MethodElement].
+/// The [staticType] is the type of `this`.
+abstract final class AugmentedExpression implements Expression {
+  /// The 'augmented' keyword.
+  Token get augmentedKeyword;
+
+  /// The referenced augmented element: getter, setter, variable.
+  Element? get element;
+}
+
+final class AugmentedExpressionImpl extends ExpressionImpl
+    implements AugmentedExpression {
+  @override
+  final Token augmentedKeyword;
+
+  @override
+  Element? element;
+
+  AugmentedExpressionImpl({
+    required this.augmentedKeyword,
+  });
+
+  @override
+  Token get beginToken => augmentedKeyword;
+
+  @override
+  Token get endToken => augmentedKeyword;
+
+  @override
+  bool get isAssignable => true;
+
+  @override
+  Precedence get precedence => Precedence.primary;
+
+  @override
+  ChildEntities get _childEntities =>
+      ChildEntities()..addToken('augmentedKeyword', augmentedKeyword);
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitAugmentedExpression(this);
+
+  @override
+  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
+    resolver.visitAugmentedExpression(this);
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    // There are no children to visit.
+  }
+}
+
+/// Invocation of the augmented function, constructor, or method.
+///
+///    augmentedInvocation ::=
+///        'augmented' [TypeArgumentList]? [ArgumentList]
+abstract final class AugmentedInvocation implements Expression {
+  /// The list of value arguments.
+  ArgumentList get arguments;
+
+  /// The 'augmented' keyword.
+  Token get augmentedKeyword;
+
+  /// The referenced augmented element: function, constructor, or method.
+  ExecutableElement? get element;
+
+  /// The list of type arguments.
+  ///
+  /// In valid code cannot be provided for augmented constructor invocation.
+  TypeArgumentList? get typeArguments;
+}
+
+final class AugmentedInvocationImpl extends ExpressionImpl
+    implements AugmentedInvocation {
+  @override
+  final Token augmentedKeyword;
+
+  @override
+  ExecutableElement? element;
+
+  @override
+  final TypeArgumentListImpl? typeArguments;
+
+  @override
+  final ArgumentListImpl arguments;
+
+  AugmentedInvocationImpl({
+    required this.augmentedKeyword,
+    required this.typeArguments,
+    required this.arguments,
+  }) {
+    _becomeParentOf(typeArguments);
+    _becomeParentOf(arguments);
+  }
+
+  @override
+  Token get beginToken => augmentedKeyword;
+
+  @override
+  Token get endToken => arguments.endToken;
+
+  @override
+  Precedence get precedence => Precedence.postfix;
+
+  @override
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('augmentedKeyword', augmentedKeyword)
+    ..addNode('typeArguments', typeArguments)
+    ..addNode('arguments', arguments);
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    return visitor.visitAugmentedInvocation(this);
+  }
+
+  @override
+  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
+    // TODO(scheglov): implement
+    throw UnimplementedError();
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    typeArguments?.accept(visitor);
+    arguments.accept(visitor);
   }
 }
 

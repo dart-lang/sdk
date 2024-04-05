@@ -176,6 +176,20 @@ class AstComparator implements AstVisitor<bool> {
   }
 
   @override
+  bool visitAugmentedExpression(AugmentedExpression node) {
+    final other = _other as AugmentedExpression;
+    return isEqualTokens(node.augmentedKeyword, other.augmentedKeyword);
+  }
+
+  @override
+  bool visitAugmentedInvocation(AugmentedInvocation node) {
+    final other = _other as AugmentedInvocation;
+    return isEqualTokens(node.augmentedKeyword, other.augmentedKeyword) &&
+        isEqualNodes(node.typeArguments, other.typeArguments) &&
+        isEqualNodes(node.arguments, other.arguments);
+  }
+
+  @override
   bool visitAwaitExpression(AwaitExpression node) {
     AwaitExpression other = _other as AwaitExpression;
     return isEqualTokens(node.awaitKeyword, other.awaitKeyword) &&

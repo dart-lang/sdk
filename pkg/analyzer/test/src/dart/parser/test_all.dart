@@ -6,6 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'augmentation_import_directive_test.dart'
     as augmentation_import_directive;
+import 'augmented_expression_test.dart' as augmented_expression;
 import 'class_test.dart' as class_;
 import 'doc_comment_test.dart' as doc_comment;
 import 'enum_test.dart' as enum_;
@@ -22,6 +23,7 @@ import 'variable_declaration_statement_test.dart'
 main() {
   defineReflectiveSuite(() {
     augmentation_import_directive.main();
+    augmented_expression.main();
     class_.main();
     doc_comment.main();
     enum_.main();

@@ -90,6 +90,18 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitAugmentedExpression(AugmentedExpression node) {
+    sink.write('augmented');
+  }
+
+  @override
+  void visitAugmentedInvocation(AugmentedInvocation node) {
+    _visitToken(node.augmentedKeyword);
+    _visitNode(node.typeArguments);
+    _visitNode(node.arguments);
+  }
+
+  @override
   void visitAwaitExpression(AwaitExpression node) {
     sink.write('await ');
     _visitNode(node.expression);
