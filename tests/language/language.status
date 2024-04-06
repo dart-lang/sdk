@@ -43,7 +43,6 @@ void/*: Skip # https://github.com/dart-lang/sdk/issues/34015
 class/large_class_declaration_test: Slow, Pass
 
 [ $mode == product ]
-assert/assert_test: SkipByDesign # Requires checked mode.
 generic/generic_test: SkipByDesign # Requires checked mode.
 map/literal4_test: SkipByDesign # Requires checked mode.
 parameter/named_type_test/01: SkipByDesign # Requires checked mode.

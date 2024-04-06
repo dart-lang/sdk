@@ -7,24 +7,23 @@ import 'dart:io';
 
 import 'package:dds/dds.dart';
 import 'package:dds/src/arg_parser.dart';
-import 'package:dds/src/bazel_uri_converter.dart';
-
-import 'package:path/path.dart' as path;
 
 Uri _getDevToolsAssetPath() {
-  final dartDir = File(Platform.resolvedExecutable).parent.path;
+  final dartPath = Uri.parse(Platform.resolvedExecutable);
+  final dartDir = [
+    '', // Include leading '/'
+    ...dartPath.pathSegments.sublist(
+      0,
+      dartPath.pathSegments.length - 1,
+    ),
+  ].join('/');
   final fullSdk = dartDir.endsWith('bin');
   return Uri.parse(
-    fullSdk
-        ? path.absolute(
-            dartDir,
-            'resources',
-            'devtools',
-          )
-        : path.absolute(
-            dartDir,
-            'devtools',
-          ),
+    [
+      dartDir,
+      if (fullSdk) 'resources',
+      'devtools',
+    ].join('/'),
   );
 }
 
@@ -90,9 +89,6 @@ ${argParser.usage}
   final enableServicePortFallback =
       argResults[DartDevelopmentServiceOptions.enableServicePortFallbackFlag];
 
-  final google3WorkspaceRoot =
-      argResults[DartDevelopmentServiceOptions.google3WorkspaceRootOption];
-
   try {
     final dds = await DartDevelopmentService.startDartDevelopmentService(
       remoteVmServiceUri,
@@ -106,9 +102,6 @@ ${argParser.usage}
             )
           : null,
       enableServicePortFallback: enableServicePortFallback,
-      uriConverter: google3WorkspaceRoot != null
-          ? BazelUriConverter(google3WorkspaceRoot).uriToPath
-          : null,
     );
     final dtdInfo = dds.hostedDartToolingDaemon;
     stderr.write(json.encode({

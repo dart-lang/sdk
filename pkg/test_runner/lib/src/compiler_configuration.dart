@@ -820,7 +820,7 @@ class DevCompilerConfiguration extends CompilerConfiguration {
         $testPackageLoadStatements
         load("$outputFile");
 
-        let sdk = dart_library.import("dart_sdk");
+        let sdk = dart_library.import("dart_sdk", "$appName");
         sdk.dart.weakNullSafetyWarnings($weakNullSafetyWarnings);
         sdk.dart.weakNullSafetyErrors($weakNullSafetyErrors);
         sdk.dart.nonNullAsserts($nonNullAsserts);

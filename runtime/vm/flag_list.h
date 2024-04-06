@@ -106,7 +106,7 @@ constexpr bool FLAG_support_il_printer = false;
   R(dump_megamorphic_stats, false, bool, false,                                \
     "Dump megamorphic cache statistics")                                       \
   R(dump_symbol_stats, false, bool, false, "Dump symbol table statistics")     \
-  R(enable_asserts, false, bool, false, "Enable assert statements.")           \
+  P(enable_asserts, bool, false, "Enable assert statements.")                  \
   P(inline_alloc, bool, true, "Whether to use inline allocation fast paths.")  \
   R(null_assertions, false, bool, false,                                       \
     "Enable null assertions for parameters.")                                  \

@@ -70,6 +70,10 @@ void main(List<String> args) async {
         help: 'Run with assertions on non-nullable values returned from native '
             'APIs.',
         negatable: true)
+      ..addFlag('interop-null-assertions',
+        help: 'Run with assertions on non-nullable values returned from '
+            'non-static JavaScript interop APIs.',
+        defaultsTo: false)
     ..addFlag('weak-null-safety-errors',
         help: 'Treat weak null safety warnings as errors.', defaultsTo: false)
     ..addFlag('ddc-modules',
@@ -140,6 +144,7 @@ void main(List<String> args) async {
   var nativeNonNullAsserts = options.wasParsed('native-null-assertions')
       ? options['native-null-assertions'] as bool
       : soundNullSafety;
+  var jsInteropNonNullAsserts = options['interop-null-assertions'] as bool;
   var weakNullSafetyErrors = options['weak-null-safety-errors'] as bool;
   var ddcModules = options['ddc-modules'] as bool;
   var canaryFeatures = options['canary'] as bool;
@@ -337,6 +342,7 @@ void main(List<String> args) async {
     sdk.dart.weakNullSafetyErrors($weakNullSafetyErrors);
     sdk.dart.nonNullAsserts($nonNullAsserts);
     sdk.dart.nativeNonNullAsserts($nativeNonNullAsserts);
+    sdk.dart.jsInteropNonNullAsserts($jsInteropNonNullAsserts);
     sdk._debugger.registerDevtoolsFormatter();
     app.$libname.main([]);
   });
@@ -351,12 +357,13 @@ void main(List<String> args) async {
 <script src="$sdkJsPath/dart_sdk.js"></script>
 $ddcModuleScriptTags
 <script>
-let sdk = dart_library.import("dart_sdk");
+let sdk = dart_library.import("dart_sdk", "$appname");
 sdk.dart.weakNullSafetyWarnings(
     !($weakNullSafetyErrors || $soundNullSafety));
 sdk.dart.weakNullSafetyErrors($weakNullSafetyErrors);
 sdk.dart.nonNullAsserts($nonNullAsserts);
 sdk.dart.nativeNonNullAsserts($nativeNonNullAsserts);
+sdk.dart.jsInteropNonNullAsserts($jsInteropNonNullAsserts);
 
 dart_library.start("$appname", "$uuid", "$basename", "$libname", false);
 </script>
@@ -398,6 +405,7 @@ try {
   sdk.dart.weakNullSafetyErrors($weakNullSafetyErrors);
   sdk.dart.nonNullAsserts($nonNullAsserts);
   sdk.dart.nativeNonNullAsserts($nativeNonNullAsserts);
+  sdk.dart.jsInteropNonNullAsserts($jsInteropNonNullAsserts);
   sdk._isolate_helper.startRootIsolate(main, []);
 } catch(e) {
   if (!source_maps) {
@@ -421,7 +429,7 @@ load("$ddcPath/lib/js/ddc/ddc_module_loader.js");
 load("$sdkJsPath/dart_sdk.js");
 $ddcModuleScriptTags
 
-let sdk = dart_library.import('dart_sdk');
+let sdk = dart_library.import("dart_sdk", "$appname");
 // Create a self reference for JS interop tests that set fields on self.
 sdk.dart.global.self = sdk.dart.global;
 sdk.dart.weakNullSafetyWarnings(
@@ -429,6 +437,7 @@ sdk.dart.weakNullSafetyWarnings(
 sdk.dart.weakNullSafetyErrors($weakNullSafetyErrors);
 sdk.dart.nonNullAsserts($nonNullAsserts);
 sdk.dart.nativeNonNullAsserts($nativeNonNullAsserts);
+sdk.dart.jsInteropNonNullAsserts($jsInteropNonNullAsserts);
 
 // Invoke main through the d8 preamble to ensure the code is running
 // within the fake event loop.

@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:args/args.dart';
 import 'package:dds/src/arg_parser.dart';
 
 import '../core.dart';
@@ -21,10 +22,12 @@ class DevelopmentServiceCommand extends DartdevCommand {
           commandDescription,
           verbose,
           hidden: !verbose,
-        ) {
-    DartDevelopmentServiceOptions.populateArgParser(
-      argParser: argParser,
-      verbose: verbose,
+        );
+
+  @override
+  ArgParser createArgParser() {
+    return DartDevelopmentServiceOptions.createArgParser(
+      usageLineLength: dartdevUsageLineLength,
     );
   }
 
