@@ -61,9 +61,6 @@ enum LogicalOperator { kAnd, kOr };
 
 class Program {
  public:
-  static NNBDCompiledMode DetectNullSafety(const uint8_t* buffer,
-                                           intptr_t buffer_length);
-
   // Read a kernel Program from the given Reader. Note the returned Program
   // can potentially contain several "sub programs", though the library count
   // etc will reference the last "sub program" only.

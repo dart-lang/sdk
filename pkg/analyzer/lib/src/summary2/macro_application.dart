@@ -90,7 +90,8 @@ class LibraryMacroApplier {
   /// 1. inner before outer
   /// 2. right to left
   /// 3. source order
-  final List<_MacroApplication> _applications = [];
+  final Map<LibraryElementImpl, List<_MacroApplication>> _libraryApplications =
+      Map.identity();
 
   /// The applications that currently run the declarations phase.
   final List<_MacroApplication> _declarationsPhaseRunning = [];
@@ -520,7 +521,7 @@ class LibraryMacroApplier {
         phasesToExecute: phasesToExecute,
       );
 
-      _applications.add(application);
+      _libraryApplications.add(libraryElement, application);
     }
   }
 
@@ -733,14 +734,17 @@ class LibraryMacroApplier {
     required LibraryElementImpl library,
     required Element? targetElement,
   }) {
-    for (final application in _applications.reversed) {
-      final applicationElement = application.target.element;
-      if (applicationElement.library != library) {
-        continue;
-      }
+    final applications = _libraryApplications[library];
+    if (applications == null) {
+      return null;
+    }
+
+    for (var i = applications.length - 1; i >= 0; i--) {
+      final application = applications[i];
       if (targetElement != null) {
-        if (applicationElement != targetElement &&
-            applicationElement.enclosingElement != targetElement) {
+        final applicationElement = application.target.element;
+        if (!identical(applicationElement, targetElement) &&
+            !identical(applicationElement.enclosingElement, targetElement)) {
           continue;
         }
       }
@@ -748,15 +752,21 @@ class LibraryMacroApplier {
         return application;
       }
     }
+
     return null;
   }
 
   _MacroApplication? _nextForDefinitionsPhase({
     required LibraryElementImpl library,
   }) {
-    for (final application in _applications.reversed) {
-      final applicationElement = application.target.element;
-      if (applicationElement.library != library) {
+    final applications = _libraryApplications[library];
+    if (applications == null) {
+      return null;
+    }
+
+    for (var i = applications.length - 1; i >= 0; i--) {
+      final application = applications[i];
+      if (!identical(application.target.library, library)) {
         continue;
       }
       if (application.phasesToExecute.remove(macro.Phase.definitions)) {
@@ -769,9 +779,14 @@ class LibraryMacroApplier {
   _MacroApplication? _nextForTypesPhase({
     required LibraryElementImpl library,
   }) {
-    for (final application in _applications.reversed) {
-      final applicationElement = application.target.element;
-      if (applicationElement.library != library) {
+    final applications = _libraryApplications[library];
+    if (applications == null) {
+      return null;
+    }
+
+    for (var i = applications.length - 1; i >= 0; i--) {
+      final application = applications[i];
+      if (!identical(application.target.library, library)) {
         continue;
       }
       if (application.phasesToExecute.remove(macro.Phase.types)) {

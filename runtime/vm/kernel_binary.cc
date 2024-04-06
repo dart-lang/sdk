@@ -85,14 +85,6 @@ bool IsValidSdkHash(const uint8_t* sdk_hash) {
   return true;
 }
 
-NNBDCompiledMode Program::DetectNullSafety(const uint8_t* buffer,
-                                           intptr_t buffer_length) {
-  Reader reader(buffer, buffer_length);
-  std::unique_ptr<Program> program = Program::ReadFrom(&reader, nullptr);
-  if (program == nullptr) return NNBDCompiledMode::kInvalid;
-  return program->compilation_mode_;
-}
-
 std::unique_ptr<Program> Program::ReadFrom(Reader* reader, const char** error) {
   if (reader->size() < 70) {
     // A kernel file (v43) currently contains at least the following:

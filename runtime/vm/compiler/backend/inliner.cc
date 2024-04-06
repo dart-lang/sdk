@@ -111,7 +111,7 @@ static bool IsSmiValue(Value* val, intptr_t* int_val) {
 }
 
 static bool IsCompilingForSoundNullSafety() {
-  return dart::Thread::Current()->isolate_group()->null_safety();
+  return true;
 }
 
 // Test if a call is recursive by looking in the deoptimization environment.

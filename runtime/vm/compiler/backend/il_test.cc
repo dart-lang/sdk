@@ -934,8 +934,6 @@ FlowGraph* SetupFfiFlowgraph(TestPipeline* pipeline,
 // Additionally test that register allocation is done correctly by clobbering
 // all volatile registers in the native function being called.
 ISOLATE_UNIT_TEST_CASE(IRTest_FfiCallInstrLeafDoesntSpill) {
-  SetFlagScope<bool> sfs(&FLAG_sound_null_safety, true);
-
   const char* kScript = R"(
     import 'dart:ffi';
 

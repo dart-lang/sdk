@@ -1,5 +1,9 @@
 ## 3.5.0
 
+### Dart Runtime
+- The Dart VM only executes sound null safe code, running of unsound null
+  safe code using the option `--no-sound-null-safety` has been removed.
+
 ## 3.4.0
 
 ### Language

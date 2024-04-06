@@ -3069,8 +3069,7 @@ static TypeArgumentsPtr TypeArgumentsForElementType(
 DART_EXPORT Dart_Handle Dart_NewListOf(Dart_CoreType_Id element_type_id,
                                        intptr_t length) {
   DARTSCOPE(Thread::Current());
-  if (T->isolate_group()->null_safety() &&
-      element_type_id != Dart_CoreType_Dynamic) {
+  if (element_type_id != Dart_CoreType_Dynamic) {
     return Api::NewError(
         "Cannot use legacy types with --sound-null-safety enabled. "
         "Use Dart_NewListOfType or Dart_NewListOfTypeFilled instead.");
@@ -5602,13 +5601,9 @@ DART_EXPORT Dart_Handle Dart_GetType(Dart_Handle library,
                                      Dart_Handle class_name,
                                      intptr_t number_of_type_arguments,
                                      Dart_Handle* type_arguments) {
-  if (IsolateGroup::Current()->null_safety()) {
-    return Api::NewError(
-        "Cannot use legacy types with --sound-null-safety enabled. "
-        "Use Dart_GetNullableType or Dart_GetNonNullableType instead.");
-  }
-  return GetTypeCommon(library, class_name, number_of_type_arguments,
-                       type_arguments, Nullability::kLegacy);
+  return Api::NewError(
+      "Cannot use legacy types with --sound-null-safety enabled. "
+      "Use Dart_GetNullableType or Dart_GetNonNullableType instead.");
 }
 
 DART_EXPORT Dart_Handle Dart_GetNullableType(Dart_Handle library,
@@ -6113,30 +6108,7 @@ DART_EXPORT bool Dart_DetectNullSafety(const char* script_uri,
                                        const uint8_t* snapshot_instructions,
                                        const uint8_t* kernel_buffer,
                                        intptr_t kernel_buffer_size) {
-  // If we have a snapshot then try to figure out the mode by
-  // sniffing the feature string in the snapshot.
-  if (snapshot_data != nullptr) {
-    // Read the snapshot and check for null safety option.
-    const Snapshot* snapshot = Snapshot::SetupFromBuffer(snapshot_data);
-    if (!Snapshot::IsAgnosticToNullSafety(snapshot->kind())) {
-      return SnapshotHeaderReader::NullSafetyFromSnapshot(snapshot);
-    }
-  }
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  // If kernel_buffer is specified, it could be a self contained
-  // kernel file or the kernel file of the application,
-  // figure out the null safety mode by sniffing the kernel file.
-  if (kernel_buffer != nullptr) {
-    const auto null_safety =
-        kernel::Program::DetectNullSafety(kernel_buffer, kernel_buffer_size);
-    if (null_safety != NNBDCompiledMode::kInvalid) {
-      return null_safety == NNBDCompiledMode::kStrong;
-    }
-  }
-#endif
-
-  return FLAG_sound_null_safety;
+  return true;
 }
 
 // --- Service support ---

@@ -71,7 +71,7 @@ class IlTestPrinter : public AllStatic {
     AttributesSerializer(&writer).WriteDescriptors();
     writer.CloseObject();
     writer.OpenObject("flags");
-    writer.PrintPropertyBool("nnbd", IsolateGroup::Current()->null_safety());
+    writer.PrintPropertyBool("nnbd", true);
     writer.CloseObject();
     writer.CloseObject();
     THR_Print("%s\n", writer.ToCString());

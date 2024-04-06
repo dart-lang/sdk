@@ -69,10 +69,6 @@ class KernelIsolate : public AllStatic {
       Dart_KernelCompilationVerbosityLevel verbosity =
           Dart_KernelCompilationVerbosityLevel_All);
 
-  static bool DetectNullSafety(const char* script_uri,
-                               const char* package_config,
-                               const char* original_working_directory);
-
   static Dart_KernelCompilationResult AcceptCompilation();
   static Dart_KernelCompilationResult RejectCompilation();
   static Dart_KernelCompilationResult UpdateInMemorySources(

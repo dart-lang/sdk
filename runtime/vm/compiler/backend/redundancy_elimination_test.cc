@@ -1337,11 +1337,6 @@ main() {
       kMatchAndMoveFunctionEntry,
       kMatchAndMoveCheckStackOverflow,
   }));
-  if (!FLAG_sound_null_safety) {
-    RELEASE_ASSERT(cursor.TryMatch({
-        kMatchAndMoveCheckClass,
-    }));
-  }
   RELEASE_ASSERT(cursor.TryMatch({
       kMatchAndMoveUnbox,
       kMatchAndMoveBinaryDoubleOp,
@@ -1986,10 +1981,6 @@ ISOLATE_UNIT_TEST_CASE(LICM_Deopt_Regress51220) {
 // Verifies that deoptimization at the hoisted GuardFieldClass
 // doesn't result in the infinite re-optimization loop.
 ISOLATE_UNIT_TEST_CASE(LICM_Deopt_Regress50245) {
-  if (!FLAG_sound_null_safety) {
-    return;
-  }
-
   const char* kScript = R"(
     class A {
       List<int> foo;

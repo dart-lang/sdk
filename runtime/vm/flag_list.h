@@ -250,8 +250,6 @@ constexpr bool FLAG_support_il_printer = false;
   P(verify_entry_points, bool, false,                                          \
     "Throw API error on invalid member access through native API. See "        \
     "entry_point_pragma.md")                                                   \
-  P(sound_null_safety, bool, true,                                             \
-    "Respect the nullability of types at runtime.")                            \
   C(branch_coverage, false, false, bool, false, "Enable branch coverage")
 
 #endif  // RUNTIME_VM_FLAG_LIST_H_

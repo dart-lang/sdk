@@ -866,9 +866,7 @@ class KernelCompilationRequest : public ValueObject {
 
     Dart_CObject sound_null_safety;
     sound_null_safety.type = Dart_CObject_kBool;
-    sound_null_safety.value.as_bool = (isolate_group != nullptr)
-                                          ? isolate_group->null_safety()
-                                          : FLAG_sound_null_safety;
+    sound_null_safety.value.as_bool = true;
 
     intptr_t num_experimental_flags = experimental_flags->length();
     Dart_CObject** experimental_flags_array =

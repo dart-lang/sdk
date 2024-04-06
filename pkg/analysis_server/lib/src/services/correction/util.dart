@@ -15,7 +15,6 @@ import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source.dart';
@@ -192,23 +191,6 @@ List<SourceRange> getCommentRanges(CompilationUnit unit) {
     token = token.next!;
   }
   return ranges;
-}
-
-String getDefaultValueCode(DartType type) {
-  if (type.isDartCoreBool) {
-    return 'false';
-  }
-  if (type.isDartCoreInt) {
-    return '0';
-  }
-  if (type.isDartCoreDouble) {
-    return '0.0';
-  }
-  if (type.isDartCoreString) {
-    return "''";
-  }
-  // no better guess
-  return 'null';
 }
 
 /// Return all [LocalElement]s defined in the given [node].

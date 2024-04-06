@@ -1084,22 +1084,6 @@ char* Dart::FeaturesString(IsolateGroup* isolate_group,
 #endif
   }
 
-  if (!Snapshot::IsAgnosticToNullSafety(kind)) {
-    if (isolate_group != nullptr) {
-      if (isolate_group->null_safety()) {
-        buffer.AddString(" null-safety");
-      } else {
-        buffer.AddString(" no-null-safety");
-      }
-    } else {
-      if (FLAG_sound_null_safety) {
-        buffer.AddString(" null-safety");
-      } else {
-        buffer.AddString(" no-null-safety");
-      }
-    }
-  }
-
 #undef ADD_ISOLATE_FLAG
 #undef ADD_D
 #undef ADD_C
