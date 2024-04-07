@@ -17,14 +17,10 @@ import 'package:reload_test/frontend_server_controller.dart';
 import 'package:reload_test/hot_reload_memory_filesystem.dart';
 import 'package:reload_test/test_helpers.dart';
 
-enum RuntimePlatforms {
-  chrome('chrome'),
-  d8('d8'),
-  vm('vm');
+// Set an arbitrary cap on generations.
+final globalMaxGenerations = 100;
 
-  const RuntimePlatforms(this.text);
-  final String text;
-}
+final testTimeoutSeconds = 10;
 
 final argParser = ArgParser()
   ..addOption('runtime',
@@ -65,6 +61,7 @@ Future<void> main(List<String> args) async {
   final buildRootUri = fe.computePlatformBinariesLocation(forceBuildDir: true);
   // We can use the outline instead of the full SDK dill here.
   final ddcPlatformDillUri = buildRootUri.resolve('ddc_outline.dill');
+  final vmPlatformDillUri = buildRootUri.resolve('vm_platform_strong.dill');
 
   final sdkRoot = Platform.script.resolve('../../../');
   final packageConfigUri = sdkRoot.resolve('.dart_tool/package_config.json');
@@ -88,6 +85,7 @@ Future<void> main(List<String> args) async {
 
   // Contains files emitted from Frontend Server compiles and recompiles.
   final frontendServerEmittedFilesDirUri = generatedCodeUri.resolve('.fes/');
+  Directory.fromUri(frontendServerEmittedFilesDirUri).createSync();
   final outputDillUri = frontendServerEmittedFilesDirUri.resolve('output.dill');
   final outputIncrementalDillUri =
       frontendServerEmittedFilesDirUri.resolve('output_incremental.dill');
@@ -100,24 +98,44 @@ Future<void> main(List<String> args) async {
       filesystemRootUri, snapshotEntrypointUri, fe_shared.isWindows);
   final snapshotEntrypointWithScheme =
       '$filesystemScheme:///$snapshotEntrypointLibraryName';
-  final ddcPlatformDillFromSdkRoot =
-      fe_shared.relativizeUri(sdkRoot, ddcPlatformDillUri, fe_shared.isWindows);
-  final ddcArgs = [
-    '--dartdevc-module-format=ddc',
+
+  _print('Initializing the Frontend Server.');
+  HotReloadFrontendServerController controller;
+  final commonArgs = [
     '--incremental',
     '--filesystem-root=${snapshotUri.toFilePath()}',
     '--filesystem-scheme=$filesystemScheme',
     '--output-dill=${outputDillUri.toFilePath()}',
     '--output-incremental-dill=${outputIncrementalDillUri.toFilePath()}',
     '--packages=${packageConfigUri.toFilePath()}',
-    '--platform=$ddcPlatformDillFromSdkRoot',
     '--sdk-root=${sdkRoot.toFilePath()}',
-    '--target=dartdevc',
     '--verbosity=${verbose ? 'all' : 'info'}',
   ];
-
-  _print('Initializing the Frontend Server.');
-  var controller = HotReloadFrontendServerController(ddcArgs);
+  switch (runtimePlatform) {
+    case RuntimePlatforms.d8:
+      final ddcPlatformDillFromSdkRoot = fe_shared.relativizeUri(
+          sdkRoot, ddcPlatformDillUri, fe_shared.isWindows);
+      final fesArgs = [
+        ...commonArgs,
+        '--dartdevc-module-format=ddc',
+        '--platform=$ddcPlatformDillFromSdkRoot',
+        '--target=dartdevc',
+      ];
+      controller = HotReloadFrontendServerController(fesArgs);
+      break;
+    case RuntimePlatforms.chrome:
+      throw Exception('Unsupported platform: $runtimePlatform');
+    case RuntimePlatforms.vm:
+      final vmPlatformDillFromSdkRoot = fe_shared.relativizeUri(
+          sdkRoot, vmPlatformDillUri, fe_shared.isWindows);
+      final fesArgs = [
+        ...commonArgs,
+        '--platform=$vmPlatformDillFromSdkRoot',
+        '--target=vm',
+      ];
+      controller = HotReloadFrontendServerController(fesArgs);
+      break;
+  }
   controller.start();
 
   Future<void> shutdown() async {
@@ -130,6 +148,7 @@ Future<void> main(List<String> args) async {
   }
 
   final testOutcomes = <TestResultOutcome>[];
+  final validTestSourceName = RegExp(r'.*[a-zA-Z0-9]+.[0-9]+.dart');
   for (var testDir in Directory.fromUri(allTestsUri).listSync()) {
     if (testDir is! Directory) {
       if (testDir is File) {
@@ -157,16 +176,25 @@ Future<void> main(List<String> args) async {
 
     var filesystem = HotReloadMemoryFilesystem(tempUri);
 
-    var maxGenerations = 0;
     // Count the number of generations for this test.
     //
     // Assumes all files are named like '$name.$integer.dart', where 0 is the
     // first generation.
     //
     // TODO(markzipan): Account for subdirectories.
+    var maxGenerations = 0;
+    var testConfig = ReloadTestConfiguration();
     for (var file in testDir.listSync()) {
       if (file is File) {
-        if (file.path.endsWith('.dart')) {
+        final fileName = file.uri.pathSegments.last;
+        // Process config files.
+        if (fileName == 'config.json') {
+          testConfig = ReloadTestConfiguration.fromJsonFile(file.uri);
+        } else if (fileName.endsWith('.dart')) {
+          if (!validTestSourceName.hasMatch(fileName)) {
+            throw Exception('Invalid test source file name: $fileName\n'
+                'Valid names look like "file_name.10.dart".');
+          }
           var strippedName =
               file.path.substring(0, file.path.length - '.dart'.length);
           var parts = strippedName.split('.');
@@ -174,6 +202,17 @@ Future<void> main(List<String> args) async {
           maxGenerations = max(maxGenerations, generationId);
         }
       }
+    }
+    if (maxGenerations > globalMaxGenerations) {
+      throw Exception('Too many generations specified in test '
+          '(requested: $maxGenerations, max: $globalMaxGenerations).');
+    }
+
+    // Skip this test directory if this platform is excluded.
+    if (testConfig.excludedPlaforms.contains(runtimePlatform)) {
+      _print('Skipping test on platform: ${runtimePlatform.text}',
+          label: testName);
+      continue;
     }
 
     // TODO(markzipan): replace this with a test-configurable main entrypoint.
@@ -248,26 +287,40 @@ Future<void> main(List<String> args) async {
           '$outputDirectoryPath',
           label: testName);
 
-      // Update the memory filesystem with the newly-created JS files
-      _print(
-          'Loading generation $currentGeneration files '
-          'into the memory filesystem.',
-          label: testName);
-      final codeFile = File('$outputDirectoryPath.sources');
-      final manifestFile = File('$outputDirectoryPath.json');
-      final sourcemapFile = File('$outputDirectoryPath.map');
-      filesystem.update(
-        codeFile,
-        manifestFile,
-        sourcemapFile,
-        generation: '$currentGeneration',
-      );
+      if (runtimePlatform.emitsJS) {
+        // Update the memory filesystem with the newly-created JS files
+        _print(
+            'Loading generation $currentGeneration files '
+            'into the memory filesystem.',
+            label: testName);
+        final codeFile = File('$outputDirectoryPath.sources');
+        final manifestFile = File('$outputDirectoryPath.json');
+        final sourcemapFile = File('$outputDirectoryPath.map');
+        filesystem.update(
+          codeFile,
+          manifestFile,
+          sourcemapFile,
+          generation: '$currentGeneration',
+        );
 
-      // Write JS files and sourcemaps to their respective generation.
-      _print('Writing generation $currentGeneration assets.', label: testName);
-      _debugPrint('Writing JS assets to ${tempUri.toFilePath()}',
-          label: testName);
-      filesystem.writeToDisk(tempUri, generation: '$currentGeneration');
+        // Write JS files and sourcemaps to their respective generation.
+        _print('Writing generation $currentGeneration assets.',
+            label: testName);
+        _debugPrint('Writing JS assets to ${tempUri.toFilePath()}',
+            label: testName);
+        filesystem.writeToDisk(tempUri, generation: '$currentGeneration');
+      } else {
+        final dillOutputDir =
+            Directory.fromUri(tempUri.resolve('generation$currentGeneration'));
+        dillOutputDir.createSync();
+        final dillOutputUri = dillOutputDir.uri.resolve('$testName.dill');
+        File(outputDirectoryPath).copySync(dillOutputUri.toFilePath());
+        // Write dills their respective generation.
+        _print('Writing generation $currentGeneration assets.',
+            label: testName);
+        _debugPrint('Writing dill to ${dillOutputUri.toFilePath()}',
+            label: testName);
+      }
       currentGeneration++;
     }
 
@@ -305,7 +358,44 @@ Future<void> main(List<String> args) async {
         break;
       case RuntimePlatforms.chrome:
       case RuntimePlatforms.vm:
-        throw Exception('Unsupported platform: $runtimePlatform');
+        final firstGenerationDillUri =
+            tempUri.resolve('generation0/$testName.dill');
+        // Start the VM at generation 0.
+        final vmArgs = [
+          '--enable-vm-service=0', // 0 avoids port collisions.
+          '--disable-service-auth-codes',
+          '--disable-dart-dev',
+          firstGenerationDillUri.toFilePath(),
+        ];
+        final vm = await Process.start(Platform.executable, vmArgs);
+        _debugPrint(
+            'Starting VM with command: ${Platform.executable} ${vmArgs.join(" ")}',
+            label: testName);
+        vm.stdout
+            .transform(utf8.decoder)
+            .transform(LineSplitter())
+            .listen((String line) {
+          _debugPrint('VM stdout: $line', label: testName);
+          testOutputBuffer.writeln(line);
+        });
+        vm.stderr
+            .transform(utf8.decoder)
+            .transform(LineSplitter())
+            .listen((String err) {
+          _debugPrint('VM stderr: $err', label: testName);
+          testOutputBuffer.writeln(err);
+        });
+        _print('Executing VM test.', label: testName);
+        final vmExitCode = await vm.exitCode
+            .timeout(Duration(seconds: testTimeoutSeconds), onTimeout: () {
+          final timeoutText =
+              'Test timed out after $testTimeoutSeconds seconds.';
+          _print(timeoutText, label: testName);
+          testOutputBuffer.writeln(timeoutText);
+          vm.kill();
+          return 1;
+        });
+        testPassed = vmExitCode == 0;
     }
 
     stopwatch.stop();
