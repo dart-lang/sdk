@@ -169,6 +169,7 @@ class Required {
 }
 
 @Target({
+  TargetKind.constructor,
   TargetKind.field,
   TargetKind.function,
   TargetKind.getter,
