@@ -191,11 +191,16 @@ class LibraryContext {
 
         LinkResult linkResult;
         try {
-          linkResult = await link(
-            elementFactory: elementFactory,
-            performance: OperationPerformanceImpl('link'),
-            inputLibraries: cycle.libraries,
-            macroExecutor: this.macroSupport?.executor,
+          linkResult = await performance.runAsync(
+            'link',
+            (performance) async {
+              return await link(
+                elementFactory: elementFactory,
+                performance: performance,
+                inputLibraries: cycle.libraries,
+                macroExecutor: this.macroSupport?.executor,
+              );
+            },
           );
           librariesLinked += cycle.libraries.length;
         } catch (exception, stackTrace) {
@@ -231,9 +236,14 @@ class LibraryContext {
       if (macroSupport is KernelMacroSupport && macroLibraries.isNotEmpty) {
         var kernelBytes = byteStore.get(cycle.macroKey);
         if (kernelBytes == null) {
-          kernelBytes = await macroSupport.builder.build(
-            fileSystem: _MacroFileSystem(fileSystemState),
-            libraries: macroLibraries,
+          kernelBytes = await performance.runAsync<Uint8List>(
+            'macroCompileKernel',
+            (performance) async {
+              return await macroSupport.builder.build(
+                fileSystem: _MacroFileSystem(fileSystemState),
+                libraries: macroLibraries,
+              );
+            },
           );
           byteStore.putGet(cycle.macroKey, kernelBytes);
           bytesPut += kernelBytes.length;

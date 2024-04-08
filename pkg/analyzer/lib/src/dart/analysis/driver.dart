@@ -1293,6 +1293,21 @@ class AnalysisDriver {
   }
 
   Future<void> _analyzeFile(String path) async {
+    await scheduler.accumulatedPerformance.runAsync(
+      'analyzeFile',
+      (performance) async {
+        await _analyzeFileImpl(
+          path: path,
+          performance: performance,
+        );
+      },
+    );
+  }
+
+  Future<void> _analyzeFileImpl({
+    required String path,
+    required OperationPerformanceImpl performance,
+  }) async {
     // We will produce the result for this file, at least.
     // And for any other files of the same library.
     _fileTracker.fileWasAnalyzed(path);
@@ -1331,9 +1346,14 @@ class AnalysisDriver {
           return;
         }
 
-        await libraryContext.load(
-          targetLibrary: library,
-          performance: OperationPerformanceImpl('<root>'),
+        await performance.runAsync(
+          'libraryContext',
+          (performance) async {
+            await libraryContext.load(
+              targetLibrary: library,
+              performance: performance,
+            );
+          },
         );
 
         for (var import in library.docImports) {
@@ -2244,6 +2264,14 @@ class AnalysisDriverScheduler {
   ///
   /// Don't use outside of Analyzer and Analysis Server.
   SchedulerWorker? outOfBandWorker;
+
+  /// The operations performance accumulated so far.
+  ///
+  /// It is expected that the consumer of this performance operation will
+  /// do analysis operations, take the instance to print and otherwise
+  /// process, and reset this field with a new instance.
+  OperationPerformanceImpl accumulatedPerformance =
+      OperationPerformanceImpl('<scheduler>');
 
   AnalysisDriverScheduler(this._logger, {this.driverWatcher});
 

@@ -218,6 +218,7 @@ class Linker {
       (performance) async {
         await _executeMacroDeclarationsPhase(
           targetElement: null,
+          performance: performance,
         );
       },
     );
@@ -324,12 +325,14 @@ class Linker {
 
   Future<void> _executeMacroDeclarationsPhase({
     required ElementImpl? targetElement,
+    required OperationPerformanceImpl performance,
   }) async {
     while (true) {
       var hasProgress = false;
       for (final library in builders.values) {
         final stepResult = await library.executeMacroDeclarationsPhase(
           targetElement: targetElement,
+          performance: performance,
         );
         switch (stepResult) {
           case MacroDeclarationsPhaseStepResult.nothing:
