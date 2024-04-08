@@ -250,8 +250,16 @@ void MemoryCopyInstr::EmitLoopCopy(FlowGraphCompiler* compiler,
     __ std();
   }
 #if defined(USING_MEMORY_SANITIZER)
-  // The `rep` instruction sets `length_reg` to 0.
+  // For reversed, do the `rep` first. It sets `dest_reg` to the start again.
+  // For forward, do the unpoisining first, before `dest_reg` is modified.
   __ movq(TMP, length_reg);
+  if (mov_size != 1) {
+    // Unpoison takes the length in bytes.
+    __ MulImmediate(TMP, mov_size);
+  }
+  if (!reversed) {
+    __ MsanUnpoison(dest_reg, TMP);
+  }
 #endif
   switch (mov_size) {
     case 1:
@@ -274,8 +282,9 @@ void MemoryCopyInstr::EmitLoopCopy(FlowGraphCompiler* compiler,
   }
 
 #if defined(USING_MEMORY_SANITIZER)
-  __ MulImmediate(TMP, mov_size);
-  __ MsanUnpoison(dest_reg, TMP);
+  if (reversed) {
+    __ MsanUnpoison(dest_reg, TMP);
+  }
 #endif
 }
 

@@ -1331,4 +1331,9 @@ DART_EXPORT int32_t CallTwoPointerIntFunction(int32_t (*fn)(void*, void*),
   return fn(a, b);
 }
 
+DART_EXPORT char TakeString(char* my_string) {
+  std::cout << "TakeString(" << my_string << ")\n";
+  return my_string[4];
+}
+
 }  // namespace dart
