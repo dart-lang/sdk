@@ -5,6 +5,7 @@
 import 'package:_fe_analyzer_shared/src/scanner/errors.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart'
     hide AnalysisOptions;
+import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/source_edits.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
@@ -813,25 +814,27 @@ class BulkFixProcessor {
         }
 
         var formatResult = generateEditsForFormatting(result, null);
-        if (formatResult.isError) {
-          continue;
-        }
-        var edits = formatResult.result ?? [];
-        if (edits.isNotEmpty) {
-          await builder.addDartFileEdit(path, (builder) {
-            for (var edit in edits) {
-              var lineInfo = result.lineInfo;
-              var startOffset =
-                  lineInfo.getOffsetOfLine(edit.range.start.line) +
-                      edit.range.start.character;
-              var endOffset = lineInfo.getOffsetOfLine(edit.range.end.line) +
-                  edit.range.end.character;
-              builder.addSimpleReplacement(
-                  SourceRange(startOffset, endOffset - startOffset),
-                  edit.newText);
-            }
-          });
-        }
+        await formatResult.mapResult((formatResult) async {
+          var edits = formatResult ?? [];
+          if (edits.isNotEmpty) {
+            await builder.addDartFileEdit(path, (builder) {
+              for (var edit in edits) {
+                var lineInfo = result.lineInfo;
+                var startOffset =
+                    lineInfo.getOffsetOfLine(edit.range.start.line) +
+                        edit.range.start.character;
+                var endOffset = lineInfo.getOffsetOfLine(edit.range.end.line) +
+                    edit.range.end.character;
+                builder.addSimpleReplacement(
+                    SourceRange(startOffset, endOffset - startOffset),
+                    edit.newText);
+              }
+            });
+          }
+          // TODO(dantup): Consider an async ifResult to avoid needing to return
+          //  an ErrorOr?
+          return success(null);
+        });
       }
     }
     return BulkFixRequestResult(builder);

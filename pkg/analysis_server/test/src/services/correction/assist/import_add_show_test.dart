@@ -19,6 +19,302 @@ class ImportAddShowTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.IMPORT_ADD_SHOW;
 
+  Future<void> test_extensionBinaryOperator() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+class C {}
+
+extension E on C {
+  C operator +(C c) => this;
+}
+''');
+    await resolveTestCode('''
+import 'lib.dart';
+
+void f(C c) => c + c;
+''');
+    await assertHasAssistAt('import ', '''
+import 'lib.dart' show C, E;
+
+void f(C c) => c + c;
+''');
+  }
+
+  Future<void> test_extensionCallableEnabled() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+class C {}
+
+extension E on C {
+  void call() {}
+}
+''');
+    await resolveTestCode('''
+import 'lib.dart';
+
+void f(C c) => c();
+''');
+    await assertHasAssistAt('import ', '''
+import 'lib.dart' show C, E;
+
+void f(C c) => c();
+''');
+  }
+
+  Future<void> test_extensionGetter() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+class C {}
+
+extension E on C {
+  int get f => 7;
+}
+''');
+    await resolveTestCode('''
+import 'lib.dart';
+
+void f(C c) => c.f;
+''');
+    await assertHasAssistAt('import ', '''
+import 'lib.dart' show C, E;
+
+void f(C c) => c.f;
+''');
+  }
+
+  Future<void> test_extensionGetter_asPropertyAccess() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+abstract class C {
+  C get c;
+}
+
+extension E on C {
+  int get f => 7;
+}
+''');
+    await resolveTestCode('''
+import 'lib.dart';
+
+void f(C c) => c.c.f;
+''');
+    await assertHasAssistAt('import ', '''
+import 'lib.dart' show C, E;
+
+void f(C c) => c.c.f;
+''');
+  }
+
+  Future<void> test_extensionGetter_inObjectPattern() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+class C {}
+
+extension E on C {
+  int get f => 7;
+}
+''');
+    await resolveTestCode('''
+import 'lib.dart';
+
+int f(C c) => switch (c) {
+  C(:var f) => f,
+};
+''');
+    await assertHasAssistAt('import ', '''
+import 'lib.dart' show C, E;
+
+int f(C c) => switch (c) {
+  C(:var f) => f,
+};
+''');
+  }
+
+  Future<void> test_extensionGetter_inVariableDeclarationPattern() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+class C {}
+
+extension E on C {
+  int get f => 7;
+}
+''');
+    await resolveTestCode('''
+import 'lib.dart';
+
+int f(C c) {
+  var C(:f) = c;
+  return f;
+}
+''');
+    await assertHasAssistAt('import ', '''
+import 'lib.dart' show C, E;
+
+int f(C c) {
+  var C(:f) = c;
+  return f;
+}
+''');
+  }
+
+  Future<void> test_extensionIndexOperator() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+class C {}
+
+extension E on C {
+  int operator [](int index) => 7;
+}
+''');
+    await resolveTestCode('''
+import 'lib.dart';
+
+void f(C c) => c[7];
+''');
+    await assertHasAssistAt('import ', '''
+import 'lib.dart' show C, E;
+
+void f(C c) => c[7];
+''');
+  }
+
+  Future<void> test_extensionIndexOperator_assignment() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+class C {}
+
+extension E on C {
+  int operator []=(int index, int value) => 7;
+}
+''');
+    await resolveTestCode('''
+import 'lib.dart';
+
+void f(C c) => c[7] = 6;
+''');
+    await assertHasAssistAt('import ', '''
+import 'lib.dart' show C, E;
+
+void f(C c) => c[7] = 6;
+''');
+  }
+
+  Future<void> test_extensionMethod() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+class C {}
+
+extension E on C {
+  void m() {}
+}
+''');
+    await resolveTestCode('''
+import 'lib.dart';
+
+void f(C c) => c.m();
+''');
+    await assertHasAssistAt('import ', '''
+import 'lib.dart' show C, E;
+
+void f(C c) => c.m();
+''');
+  }
+
+  Future<void> test_extensionMethod_inCascade() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+class C {
+  void m() {}
+}
+
+extension E on C {
+  void n() {}
+}
+''');
+    await resolveTestCode('''
+import 'lib.dart';
+
+void f(C c) => c..m()..n();
+''');
+    await assertHasAssistAt('import ', '''
+import 'lib.dart' show C, E;
+
+void f(C c) => c..m()..n();
+''');
+  }
+
+  Future<void> test_extensionSetter_combo() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+class C {}
+
+extension E on C {
+  int get f => 7;
+  set f(int value) {}
+}
+''');
+    await resolveTestCode('''
+import 'lib.dart';
+
+void f(C c) => c.f += 7;
+''');
+    await assertHasAssistAt('import ', '''
+import 'lib.dart' show C, E;
+
+void f(C c) => c.f += 7;
+''');
+  }
+
+  Future<void> test_extensionSetter_nullAware() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+class C {}
+
+extension E on C {
+  int? get f => 7;
+  set f(int value) {}
+}
+''');
+    await resolveTestCode('''
+import 'lib.dart';
+
+void f(C c) => c.f ??= 7;
+''');
+    await assertHasAssistAt('import ', '''
+import 'lib.dart' show C, E;
+
+void f(C c) => c.f ??= 7;
+''');
+  }
+
+  Future<void> test_extensionSetter_simpleAssignment() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+class C {}
+
+extension E on C {
+  set f(int value) {}
+}
+''');
+    await resolveTestCode('''
+import 'lib.dart';
+
+void f(C c) => c.f = 7;
+''');
+    await assertHasAssistAt('import ', '''
+import 'lib.dart' show C, E;
+
+void f(C c) => c.f = 7;
+''');
+  }
+
+  Future<void> test_extensionUnaryOperator() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+class C {}
+
+extension E on C {
+  int operator ~() => 7;
+}
+''');
+    await resolveTestCode('''
+import 'lib.dart';
+
+void f(C c) => ~c;
+''');
+    await assertHasAssistAt('import ', '''
+import 'lib.dart' show C, E;
+
+void f(C c) => ~c;
+''');
+  }
+
   Future<void> test_hasShow() async {
     await resolveTestCode('''
 import 'dart:math' show pi;
@@ -98,7 +394,23 @@ void f() {
 ''');
   }
 
-  Future<void> test_setterOnDirective() async {
+  Future<void> test_setter() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+set s(int value) {}
+''');
+    await resolveTestCode('''
+import 'lib.dart';
+
+void f() => s = 7;
+''');
+    await assertHasAssistAt('import ', '''
+import 'lib.dart' show s;
+
+void f() => s = 7;
+''');
+  }
+
+  Future<void> test_setter_onDirective() async {
     newFile('$testPackageLibPath/a.dart', r'''
 void set setter(int i) {}
 ''');

@@ -15,6 +15,7 @@ import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/macro.dart';
 import 'package:analyzer/src/summary2/macro_application_error.dart';
 import 'package:analyzer/src/summary2/macro_declarations.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:collection/collection.dart';
@@ -78,8 +79,10 @@ class LibraryMacroApplier {
 
   /// The callback to run declarations phase if the type.
   /// We do it out-of-order when the type is introspected.
-  final Future<void> Function({required ElementImpl? targetElement})
-      runDeclarationsPhase;
+  final Future<void> Function({
+    required ElementImpl? targetElement,
+    required OperationPerformanceImpl performance,
+  }) runDeclarationsPhase;
 
   /// The applications that currently run the declarations phase.
   final List<_MacroApplication> _declarationsPhaseRunning = [];
@@ -90,7 +93,11 @@ class LibraryMacroApplier {
       _elementToIntrospectionCycleException = {};
 
   late final macro.TypePhaseIntrospector _typesPhaseIntrospector =
-      _TypePhaseIntrospector(elementFactory, declarationBuilder);
+      _TypePhaseIntrospector(
+    elementFactory,
+    declarationBuilder,
+    OperationPerformanceImpl('<typesPhaseIntrospector>'),
+  );
 
   LibraryMacroApplier({
     required this.elementFactory,
@@ -263,6 +270,7 @@ class LibraryMacroApplier {
   Future<List<macro.MacroExecutionResult>?> executeDeclarationsPhase({
     required LibraryBuilder libraryBuilder,
     required ElementImpl? targetElement,
+    required OperationPerformanceImpl performance,
   }) async {
     if (targetElement != null) {
       for (var i = 0; i < _declarationsPhaseRunning.length; i++) {
@@ -305,6 +313,7 @@ class LibraryMacroApplier {
         final introspector = _DeclarationPhaseIntrospector(
           elementFactory,
           declarationBuilder,
+          performance,
           this,
           libraryBuilder.element.typeSystem,
         );
@@ -334,6 +343,7 @@ class LibraryMacroApplier {
 
   Future<List<macro.MacroExecutionResult>?> executeDefinitionsPhase({
     required LibraryBuilder libraryBuilder,
+    required OperationPerformanceImpl performance,
   }) async {
     final application = _nextForDefinitionsPhase(
       libraryBuilder: libraryBuilder,
@@ -351,6 +361,7 @@ class LibraryMacroApplier {
         final introspector = _DefinitionPhaseIntrospector(
           elementFactory,
           declarationBuilder,
+          performance,
           this,
           application.target.library.element.typeSystem,
         );
@@ -1024,6 +1035,7 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
   _DeclarationPhaseIntrospector(
     super.elementFactory,
     super.declarationBuilder,
+    super.performance,
     this.applier,
     this.typeSystem,
   );
@@ -1032,6 +1044,8 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
   Future<List<macro.ConstructorDeclaration>> constructorsOf(
     covariant macro.TypeDeclaration type,
   ) async {
+    performance.getDataInt('constructorsOf').increment();
+
     final element = (type as HasElement).element;
     await _runDeclarationsPhase(element);
 
@@ -1072,6 +1086,8 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
   Future<List<macro.MethodDeclaration>> methodsOf(
     macro.TypeDeclaration type,
   ) async {
+    performance.getDataInt('methodsOf').increment();
+
     final element = (type as HasElement).element;
     await _runDeclarationsPhase(element);
 
@@ -1091,6 +1107,7 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
 
   @override
   Future<macro.StaticType> resolve(macro.TypeAnnotationCode typeCode) async {
+    performance.getDataInt('resolve').increment();
     final type = declarationBuilder.resolveType(typeCode);
     return _StaticTypeImpl(typeSystem, type);
   }
@@ -1099,6 +1116,7 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
   Future<macro.TypeDeclaration> typeDeclarationOf(
     macro.Identifier identifier,
   ) async {
+    performance.getDataInt('typeDeclarationOf').increment();
     return declarationBuilder.typeDeclarationOf(identifier);
   }
 
@@ -1137,6 +1155,7 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
     current?.lastIntrospectedElement = element;
     await applier.runDeclarationsPhase(
       targetElement: element,
+      performance: performance,
     );
 
     // We might have detected a cycle for this target element.
@@ -1153,6 +1172,7 @@ class _DefinitionPhaseIntrospector extends _DeclarationPhaseIntrospector
   _DefinitionPhaseIntrospector(
     super.elementFactory,
     super.declarationBuilder,
+    super.performance,
     super.applier,
     super.typeSystem,
   );
@@ -1252,10 +1272,12 @@ class _StaticTypeImpl implements macro.StaticType {
 class _TypePhaseIntrospector implements macro.TypePhaseIntrospector {
   final LinkedElementFactory elementFactory;
   final DeclarationBuilder declarationBuilder;
+  final OperationPerformanceImpl performance;
 
   _TypePhaseIntrospector(
     this.elementFactory,
     this.declarationBuilder,
+    this.performance,
   );
 
   @override

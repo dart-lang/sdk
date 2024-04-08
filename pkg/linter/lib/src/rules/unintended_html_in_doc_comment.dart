@@ -214,7 +214,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
       var tags = _findUnintendedHtmlTags(token.lexeme);
       for (var tag in tags) {
-        rule.reportLintForOffset(tag.offset, tag.length);
+        rule.reportLintForOffset(token.offset + tag.offset, tag.length);
       }
     }
   }
@@ -233,7 +233,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       // If the tag is in a code span or is an autolink, we won't report it.
       if (!codeSpanOrAutoLink.any((match) =>
           match.start <= htmlTag.start && htmlTag.end <= match.end)) {
-        matches.add(_UnintendedTag(htmlTag.start, htmlTag.end));
+        matches.add(_UnintendedTag(htmlTag.start, htmlTag.end - htmlTag.start));
       }
     }
     return matches;

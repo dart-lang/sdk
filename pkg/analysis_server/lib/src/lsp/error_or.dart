@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:meta/meta.dart';
 
 ErrorOr<R> cancelled<R>() =>
     error(ErrorCodes.RequestCancelled, 'Request was cancelled');
@@ -25,8 +26,8 @@ class ErrorOr<T> extends Either2<ResponseError, T> {
 
   /// Returns the error or throws if object is not an error. Check [isError]
   /// before accessing [error].
+  @visibleForTesting
   ResponseError get error {
-    // TODO(dantup): Make this @visibleForTesting.
     return map(
       (error) => error,
       (_) => throw StateError('Value is not an error'),
@@ -56,8 +57,8 @@ class ErrorOr<T> extends Either2<ResponseError, T> {
   /// Returns the result or throws if this object is an error. Check [isError]
   /// before accessing [result]. It is valid for this to return null is the
   /// object does not represent an error but the resulting value was null.
+  @visibleForTesting
   T get result {
-    // TODO(dantup): Make this @visibleForTesting.
     return map(
       (_) => throw StateError('Value is not a result'),
       (result) => result,
@@ -104,6 +105,13 @@ class ErrorOr<T> extends Either2<ResponseError, T> {
 }
 
 extension ErrorOrRecord2Extension<T1, T2> on (ErrorOr<T1>, ErrorOr<T2>) {
+  void ifResults(void Function(T1, T2) f) {
+    if ($1.isError || $2.isError) {
+      return;
+    }
+    f($1.result, $2.result);
+  }
+
   /// If all parts of the record are results, maps them through [f], otherwise
   /// returns a new error object representing the first error.
   Future<ErrorOr<R>> mapResults<R>(
@@ -134,6 +142,13 @@ extension ErrorOrRecord3Extension<T1, T2, T3> on (
   ErrorOr<T2>,
   ErrorOr<T3>
 ) {
+  void ifResults(void Function(T1, T2, T3) f) {
+    if ($1.isError || $2.isError || $3.isError) {
+      return;
+    }
+    f($1.result, $2.result, $3.result);
+  }
+
   /// If all parts of the record are results, maps them through [f], otherwise
   /// returns a new error object representing the first error.
   Future<ErrorOr<R>> mapResults<R>(
@@ -171,6 +186,13 @@ extension ErrorOrRecord4Extension<T1, T2, T3, T4> on (
   ErrorOr<T3>,
   ErrorOr<T4>
 ) {
+  void ifResults(void Function(T1, T2, T3, T4) f) {
+    if ($1.isError || $2.isError || $3.isError || $4.isError) {
+      return;
+    }
+    f($1.result, $2.result, $3.result, $4.result);
+  }
+
   /// If all parts of the record are results, maps them through [f], otherwise
   /// returns a new error object representing the first error.
   Future<ErrorOr<R>> mapResults<R>(

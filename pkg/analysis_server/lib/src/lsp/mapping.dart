@@ -1428,17 +1428,9 @@ ErrorOr<server.SourceRange> toSourceRange(
   // the tokens are computed using initially.
   final start = toOffset(lineInfo, range.start);
   final end = toOffset(lineInfo, range.end);
-  if (start.isError) {
-    return failure(start);
-  }
-  if (end.isError) {
-    return failure(end);
-  }
 
-  final startOffset = start.result;
-  final endOffset = end.result;
-
-  return success(server.SourceRange(startOffset, endOffset - startOffset));
+  return (start, end).mapResultsSync(
+      (start, end) => success(server.SourceRange(start, end - start)));
 }
 
 ErrorOr<server.SourceRange?> toSourceRangeNullable(

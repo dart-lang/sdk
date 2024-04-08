@@ -169,6 +169,7 @@ class Required {
 }
 
 @Target({
+  TargetKind.constructor,
   TargetKind.field,
   TargetKind.function,
   TargetKind.getter,
@@ -315,7 +316,10 @@ class TargetKind {
   final String name;
 
   static const classType = TargetKind._('classes', 'classType');
+  static const constructor = TargetKind._('constructors', 'constructor');
+  static const directive = TargetKind._('directives', 'directive');
   static const enumType = TargetKind._('enums', 'enumType');
+  static const enumValue = TargetKind._('enum values', 'enumValue');
   static const extension = TargetKind._('extensions', 'extension');
   static const extensionType = TargetKind._('extension types', 'extensionType');
   static const field = TargetKind._('fields', 'field');
@@ -331,10 +335,14 @@ class TargetKind {
   static const type =
       TargetKind._('types (classes, enums, mixins, or typedefs)', 'type');
   static const typedefType = TargetKind._('typedefs', 'typedefType');
+  static const typeParameter = TargetKind._('type parameters', 'typeParameter');
 
   static const values = [
     classType,
+    constructor,
+    directive,
     enumType,
+    enumValue,
     extension,
     extensionType,
     field,
@@ -348,6 +356,7 @@ class TargetKind {
     topLevelVariable,
     type,
     typedefType,
+    typeParameter,
   ];
 
   @override

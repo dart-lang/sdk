@@ -43,8 +43,8 @@ class ReferencesHandler
     final offset = unit.mapResultSync((unit) => toOffset(unit.lineInfo, pos));
     return await message.performance.runAsync(
         '_getReferences',
-        (performance) async => offset.mapResult((offset) => _getReferences(
-            unit.result, offset, params, unit.result, performance)));
+        (performance) async => (unit, offset).mapResults((unit, offset) =>
+            _getReferences(unit, offset, params, performance)));
   }
 
   List<Location> _getDeclarations(ParsedUnitResult result, int offset) {
@@ -66,7 +66,6 @@ class ReferencesHandler
       ResolvedUnitResult result,
       int offset,
       ReferenceParams params,
-      ResolvedUnitResult unit,
       OperationPerformanceImpl performance) async {
     var node = NodeLocator(offset).searchWithin(result.unit);
     node = _getReferenceTargetNode(node);
@@ -76,7 +75,7 @@ class ReferencesHandler
     }
 
     final computer = ElementReferencesComputer(server.searchEngine);
-    final session = element.session ?? unit.session;
+    final session = element.session ?? result.session;
     final results = await performance.runAsync(
         'computer.compute',
         (childPerformance) =>
@@ -103,7 +102,7 @@ class ReferencesHandler
     if (params.context.includeDeclaration == true) {
       // Also include the definition for the symbol at this location.
       referenceResults.addAll(performance.run(
-          '_getDeclarations', (_) => _getDeclarations(unit, offset)));
+          '_getDeclarations', (_) => _getDeclarations(result, offset)));
     }
 
     return success(referenceResults);

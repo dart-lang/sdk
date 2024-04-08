@@ -280,6 +280,7 @@ class IsolateManager {
         );
       }
     }
+    await _determineRequireUserPermissionToResumeFromFlags();
     _initialized = true;
   }
 
@@ -383,14 +384,10 @@ class IsolateManager {
     DartDevelopmentServiceClient client,
     json_rpc.Parameters parameters,
   ) async {
-    int pauseTypeMask = 0;
-    if (parameters['onPauseStart'].asBoolOr(false)) {
-      pauseTypeMask |= PauseTypeMasks.pauseOnStartMask;
-    }
-    if (parameters['onPauseExit'].asBoolOr(false)) {
-      pauseTypeMask |= PauseTypeMasks.pauseOnExitMask;
-    }
-    _requireUserPermissionToResumeMask = pauseTypeMask;
+    _setRequireUserPermissionToResume(
+      onPauseStart: parameters['onPauseStart'].asBoolOr(false),
+      onPauseExit: parameters['onPauseExit'].asBoolOr(false),
+    );
 
     // Check if isolates have been waiting for a user resume and resume any
     // isolates that no longer need to wait for a user resume.
@@ -413,6 +410,51 @@ class IsolateManager {
       'onPauseStart': flagFromMask(PauseTypeMasks.pauseOnStartMask),
       'onPauseExit': flagFromMask(PauseTypeMasks.pauseOnExitMask),
     };
+  }
+
+  Future<void> _determineRequireUserPermissionToResumeFromFlags() async {
+    try {
+      final result = await dds.vmServiceClient.sendRequest('getFlagList')
+          as Map<String, dynamic>;
+      final flagList = FlagList.parse(result);
+      final flags = flagList!.flags!;
+
+      bool? pauseOnStartValue;
+      bool? pauseOnExitValue;
+      for (final flag in flags) {
+        if (flag.name == 'pause_isolates_on_start') {
+          pauseOnStartValue = flag.valueAsString == 'true';
+        }
+        if (flag.name == 'pause_isolates_on_exit') {
+          pauseOnExitValue = flag.valueAsString == 'true';
+        }
+        if (pauseOnStartValue != null && pauseOnExitValue != null) {
+          break;
+        }
+      }
+
+      _setRequireUserPermissionToResume(
+        onPauseStart: pauseOnStartValue ?? false,
+        onPauseExit: pauseOnExitValue ?? false,
+      );
+    } catch (_) {
+      // Swallow any errors. Otherwise, this will cause initialization to
+      // silently fail.
+    }
+  }
+
+  void _setRequireUserPermissionToResume({
+    required bool onPauseStart,
+    required bool onPauseExit,
+  }) {
+    int pauseTypeMask = 0;
+    if (onPauseStart) {
+      pauseTypeMask |= PauseTypeMasks.pauseOnStartMask;
+    }
+    if (onPauseExit) {
+      pauseTypeMask |= PauseTypeMasks.pauseOnExitMask;
+    }
+    _requireUserPermissionToResumeMask = pauseTypeMask;
   }
 
   Future<Map<String, dynamic>> getCachedCpuSamples(

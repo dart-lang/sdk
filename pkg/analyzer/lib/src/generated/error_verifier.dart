@@ -1025,6 +1025,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForConstOrNewWithMixin(node, namedType, type);
       _requiredParametersVerifier.visitInstanceCreationExpression(node);
       _constArgumentsVerifier.visitInstanceCreationExpression(node);
+      _checkUseVerifier.checkInstanceCreationExpression(node);
       if (node.isConst) {
         _checkForConstWithNonConst(node);
         _checkForConstWithUndefinedConstructor(

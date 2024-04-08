@@ -13,6 +13,10 @@
   Use `ExtensionOnClause? get onClause` instead.
   Extension augmentations are not allowed to have `onClause`.
 * Deprecated `OnClause`, use `MixinOnClause` instead.
+* Support new meta annotation: `@doNotSubmit`.
+* Support new meta annotation: `@mustBeConst`.
+* Support new meta TargetKinds: `constructor`, `directive`, `enumValue`, and
+  `typeParameter`.
 
 ## 6.4.1
 * Patch for crash in ffi_verifier.

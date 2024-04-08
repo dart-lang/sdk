@@ -11,6 +11,7 @@ abstract class DartDevelopmentServiceOptions {
   static const disableServiceAuthCodesFlag = 'disable-service-auth-codes';
   static const serveDevToolsFlag = 'serve-devtools';
   static const enableServicePortFallbackFlag = 'enable-service-port-fallback';
+  static const cachedUserTagsOption = 'cached-user-tags';
 
   static ArgParser createArgParser({
     int? usageLineLength,
@@ -45,6 +46,12 @@ abstract class DartDevelopmentServiceOptions {
         enableServicePortFallbackFlag,
         help: 'Bind to a random port if DDS fails to bind to the provided '
             'port.',
+      )
+      ..addMultiOption(
+        cachedUserTagsOption,
+        help: 'A set of UserTag names used to determine which CPU samples are '
+            'cached by DDS.',
+        defaultsTo: <String>[],
       );
     if (includeHelp) {
       args.addFlag('help', negatable: false);

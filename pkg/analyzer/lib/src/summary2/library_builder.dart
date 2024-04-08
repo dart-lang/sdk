@@ -419,6 +419,7 @@ class LibraryBuilder with MacroApplicationsContainer {
   /// declarations phase macro applications for them.
   Future<MacroDeclarationsPhaseStepResult> executeMacroDeclarationsPhase({
     required ElementImpl? targetElement,
+    required OperationPerformanceImpl performance,
   }) async {
     final macroApplier = linker.macroApplier;
     if (macroApplier == null) {
@@ -428,6 +429,7 @@ class LibraryBuilder with MacroApplicationsContainer {
     final results = await macroApplier.executeDeclarationsPhase(
       libraryBuilder: this,
       targetElement: targetElement,
+      performance: performance,
     );
 
     // No more applications to execute.
@@ -458,8 +460,14 @@ class LibraryBuilder with MacroApplicationsContainer {
     }
 
     while (true) {
-      final results = await macroApplier.executeDefinitionsPhase(
-        libraryBuilder: this,
+      final results = await performance.runAsync(
+        'executeDefinitionsPhase',
+        (performance) async {
+          return await macroApplier.executeDefinitionsPhase(
+            libraryBuilder: this,
+            performance: performance,
+          );
+        },
       );
 
       // No more applications to execute.
@@ -467,7 +475,16 @@ class LibraryBuilder with MacroApplicationsContainer {
         return;
       }
 
-      await _addMacroResults(macroApplier, results, buildTypes: true);
+      await performance.runAsync(
+        'addMacroResults',
+        (performance) async {
+          await _addMacroResults(
+            macroApplier,
+            results,
+            buildTypes: true,
+          );
+        },
+      );
     }
   }
 
