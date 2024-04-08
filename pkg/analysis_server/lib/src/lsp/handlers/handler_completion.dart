@@ -133,121 +133,116 @@ class CompletionHandler
 
     // Map the offset, propagating the previous failure if we didn't have a
     // valid LineInfo.
-    final offsetResult = !lineInfo.isError
-        ? toOffset(lineInfo.result, pos)
-        : failure<int>(lineInfo);
+    final offset =
+        lineInfo.mapResultSync((lineInfo) => toOffset(lineInfo, pos));
 
-    if (offsetResult.isError) {
-      return failure(offsetResult);
-    }
-    final offset = offsetResult.result;
+    return await (path, lineInfo, offset)
+        .mapResults((path, lineInfo, offset) async {
+      final fileExtension = pathContext.extension(path);
+      final maxResults =
+          server.lspClientConfiguration.forResource(path).maxCompletionItems;
+      CompletionPerformance? completionPerformance;
+      Future<ErrorOr<_CompletionResults>>? serverResultsFuture;
+      if (fileExtension == '.dart') {
+        unit.ifResult((unit) {
+          var performance = message.performance;
+          serverResultsFuture = performance.runAsync(
+            'request',
+            (performance) async {
+              final thisPerformance = CompletionPerformance(
+                performance: performance,
+                path: unit.path,
+                requestLatency: requestLatency,
+                content: unit.content,
+                offset: offset,
+              );
+              completionPerformance = thisPerformance;
+              server.recentPerformance.completion.add(thisPerformance);
 
-    Future<ErrorOr<_CompletionResults>>? serverResultsFuture;
-    final fileExtension = pathContext.extension(path.result);
-
-    final maxResults = server.lspClientConfiguration
-        .forResource(path.result)
-        .maxCompletionItems;
-
-    CompletionPerformance? completionPerformance;
-    if (fileExtension == '.dart' && !unit.isError) {
-      final result = unit.result;
-      var performance = message.performance;
-      serverResultsFuture = performance.runAsync(
-        'request',
-        (performance) async {
-          final thisPerformance = CompletionPerformance(
-            performance: performance,
-            path: result.path,
-            requestLatency: requestLatency,
-            content: result.content,
-            offset: offset,
+              // `await` required for `performance.runAsync` to count time.
+              return await _getServerDartItems(
+                clientCapabilities,
+                unit,
+                thisPerformance,
+                performance,
+                offset,
+                triggerCharacter,
+                token,
+              );
+            },
           );
-          completionPerformance = thisPerformance;
-          server.recentPerformance.completion.add(thisPerformance);
-
-          // `await` required for `performance.runAsync` to count time.
-          return await _getServerDartItems(
+        });
+      } else if (fileExtension == '.yaml') {
+        YamlCompletionGenerator? generator;
+        if (file_paths.isAnalysisOptionsYaml(pathContext, path)) {
+          generator = AnalysisOptionsGenerator(server.resourceProvider);
+        } else if (file_paths.isFixDataYaml(pathContext, path)) {
+          generator = FixDataGenerator(server.resourceProvider);
+        } else if (file_paths.isPubspecYaml(pathContext, path)) {
+          generator = PubspecGenerator(
+              server.resourceProvider, server.pubPackageService);
+        }
+        if (generator != null) {
+          serverResultsFuture = _getServerYamlItems(
+            generator,
             clientCapabilities,
-            unit.result,
-            thisPerformance,
-            performance,
+            path,
+            lineInfo,
             offset,
-            triggerCharacter,
             token,
           );
-        },
-      );
-    } else if (fileExtension == '.yaml') {
-      YamlCompletionGenerator? generator;
-      if (file_paths.isAnalysisOptionsYaml(pathContext, path.result)) {
-        generator = AnalysisOptionsGenerator(server.resourceProvider);
-      } else if (file_paths.isFixDataYaml(pathContext, path.result)) {
-        generator = FixDataGenerator(server.resourceProvider);
-      } else if (file_paths.isPubspecYaml(pathContext, path.result)) {
-        generator =
-            PubspecGenerator(server.resourceProvider, server.pubPackageService);
+        }
       }
-      if (generator != null) {
-        serverResultsFuture = _getServerYamlItems(
-          generator,
-          clientCapabilities,
-          path.result,
-          lineInfo.result,
-          offset,
-          token,
-        );
-      }
-    }
 
-    serverResultsFuture ??= Future.value(success(_CompletionResults.empty()));
+      final pluginResultsFuture =
+          _getPluginResults(clientCapabilities, lineInfo, path, offset);
 
-    final pluginResultsFuture = _getPluginResults(
-        clientCapabilities, lineInfo.result, path.result, offset);
+      final serverResults =
+          (await serverResultsFuture) ?? success(_CompletionResults.empty());
+      final pluginResults = await pluginResultsFuture;
 
-    final serverResults = await serverResultsFuture;
-    final pluginResults = await pluginResultsFuture;
+      return (serverResults, pluginResults)
+          .mapResultsSync((serverResults, pluginResults) {
+        // Add in fuzzy scores for completion items.
+        final pluginResultItems = pluginResults.items.map((item) =>
+            (item: item, score: serverResults.fuzzy.completionItemScore(item)));
 
-    if (serverResults.isError) return failure(serverResults);
-    if (pluginResults.isError) return failure(pluginResults);
+        final untruncatedRankedItems =
+            serverResults.rankedItems.followedBy(pluginResultItems).toList();
+        final unrankedItems = serverResults.unrankedItems;
 
-    final serverResult = serverResults.result;
-    // Add in fuzzy scores for completion items.
-    final pluginResultItems = pluginResults.result.items.map((item) =>
-        (item: item, score: serverResult.fuzzy.completionItemScore(item)));
+        // Truncate ranked items allowing for all unranked items.
+        final maxRankedItems = math.max(maxResults - unrankedItems.length, 0);
+        final truncatedRankedItems =
+            untruncatedRankedItems.length <= maxRankedItems
+                ? untruncatedRankedItems
+                : _truncateResults(
+                    untruncatedRankedItems,
+                    serverResults.targetPrefix,
+                    maxRankedItems,
+                  );
 
-    final untruncatedRankedItems =
-        serverResult.rankedItems.followedBy(pluginResultItems).toList();
-    final unrankedItems = serverResult.unrankedItems;
+        final truncatedItems = truncatedRankedItems
+            .map((item) => item.item)
+            .followedBy(unrankedItems)
+            .toList();
 
-    // Truncate ranked items allowing for all unranked items.
-    final maxRankedItems = math.max(maxResults - unrankedItems.length, 0);
-    final truncatedRankedItems = untruncatedRankedItems.length <= maxRankedItems
-        ? untruncatedRankedItems
-        : _truncateResults(
-            untruncatedRankedItems,
-            serverResult.targetPrefix,
-            maxRankedItems,
-          );
+        // If we're tracing performance (only Dart), record the number of results
+        // after truncation.
+        completionPerformance?.transmittedSuggestionCount =
+            truncatedItems.length;
 
-    final truncatedItems = truncatedRankedItems
-        .map((item) => item.item)
-        .followedBy(unrankedItems)
-        .toList();
-
-    // If we're tracing performance (only Dart), record the number of results
-    // after truncation.
-    completionPerformance?.transmittedSuggestionCount = truncatedItems.length;
-
-    return success(CompletionList(
-      // If any set of the results is incomplete, the whole batch must be
-      // marked as such.
-      isIncomplete: serverResult.isIncomplete ||
-          pluginResults.result.isIncomplete ||
-          truncatedRankedItems.length != untruncatedRankedItems.length,
-      items: truncatedItems,
-      itemDefaults: serverResult.defaults,
-    ));
+        return success(CompletionList(
+          // If any set of the results is incomplete, the whole batch must be
+          // marked as such.
+          isIncomplete: serverResults.isIncomplete ||
+              pluginResults.isIncomplete ||
+              truncatedRankedItems.length != untruncatedRankedItems.length,
+          items: truncatedItems,
+          itemDefaults: serverResults.defaults,
+        ));
+      });
+    });
   }
 
   /// Computes all supported defaults for completion items based on

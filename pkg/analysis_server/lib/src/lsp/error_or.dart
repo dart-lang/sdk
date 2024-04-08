@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:meta/meta.dart';
 
 ErrorOr<R> cancelled<R>() =>
     error(ErrorCodes.RequestCancelled, 'Request was cancelled');
@@ -25,8 +26,8 @@ class ErrorOr<T> extends Either2<ResponseError, T> {
 
   /// Returns the error or throws if object is not an error. Check [isError]
   /// before accessing [error].
+  @visibleForTesting
   ResponseError get error {
-    // TODO(dantup): Make this @visibleForTesting.
     return map(
       (error) => error,
       (_) => throw StateError('Value is not an error'),
@@ -56,8 +57,8 @@ class ErrorOr<T> extends Either2<ResponseError, T> {
   /// Returns the result or throws if this object is an error. Check [isError]
   /// before accessing [result]. It is valid for this to return null is the
   /// object does not represent an error but the resulting value was null.
+  @visibleForTesting
   T get result {
-    // TODO(dantup): Make this @visibleForTesting.
     return map(
       (_) => throw StateError('Value is not a result'),
       (result) => result,
