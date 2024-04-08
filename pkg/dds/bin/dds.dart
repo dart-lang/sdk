@@ -89,6 +89,9 @@ ${argParser.usage}
   final enableServicePortFallback =
       argResults[DartDevelopmentServiceOptions.enableServicePortFallbackFlag];
 
+  final cachedUserTags =
+      argResults[DartDevelopmentServiceOptions.cachedUserTagsOption];
+
   try {
     final dds = await DartDevelopmentService.startDartDevelopmentService(
       remoteVmServiceUri,
@@ -102,6 +105,7 @@ ${argParser.usage}
             )
           : null,
       enableServicePortFallback: enableServicePortFallback,
+      cachedUserTags: cachedUserTags,
     );
     final dtdInfo = dds.hostedDartToolingDaemon;
     stderr.write(json.encode({
