@@ -22,6 +22,7 @@ void fooBar() {
 final test = <IsolateTest>[
   // Remove required approvals via name change.
   (VmService service, IsolateRef isolateRef) async {
+    service.requireUserPermissionToResume(onPauseStart: false);
     final isolateId = isolateRef.id!;
 
     // Create two clients with the same name.

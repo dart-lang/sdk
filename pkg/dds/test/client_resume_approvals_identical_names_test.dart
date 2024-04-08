@@ -19,6 +19,7 @@ void fooBar() {
 final test = <IsolateTest>[
   // Multiple clients, same client names.
   (VmService service, IsolateRef isolateRef) async {
+    service.requireUserPermissionToResume(onPauseStart: false);
     // ignore: unused_local_variable
     final client1 = await createClient(
       service: service,
