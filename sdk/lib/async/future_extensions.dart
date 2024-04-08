@@ -530,7 +530,7 @@ class ParallelWaitError<V, E> extends Error {
   /// If [errorCount] is provided, and it's greater than one,
   /// the number is reported in the [toString].
   ParallelWaitError(this.values, this.errors,
-      {int? errorCount, AsyncError? defaultError})
+      {@Since("3.4") int? errorCount, @Since("3.4") AsyncError? defaultError})
       : _defaultError = defaultError,
         _errorCount = errorCount;
 
