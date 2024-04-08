@@ -578,6 +578,68 @@ int x = 0;
     ]);
   }
 
+  void test_constructor_constructor() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta_meta.dart';
+
+@Target({TargetKind.constructor})
+class A {
+  const A();
+}
+
+class C {
+  @A() C();
+}
+''');
+  }
+
+  void test_constructor_method() async {
+    await assertErrorsInCode('''
+import 'package:meta/meta_meta.dart';
+
+@Target({TargetKind.constructor})
+class A {
+  const A();
+}
+
+class C {
+  @A() void m() {}
+}
+''', [
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 112, 1),
+    ]);
+  }
+
+  void test_directive_class() async {
+    await assertErrorsInCode('''
+import 'package:meta/meta_meta.dart';
+
+@Target({TargetKind.directive})
+class A {
+  const A();
+}
+
+@A()
+class C {}
+''', [
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 98, 1),
+    ]);
+  }
+
+  void test_directive_directive() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta_meta.dart';
+
+@A()
+import 'dart:core';
+
+@Target({TargetKind.directive})
+class A {
+  const A();
+}
+''');
+  }
+
   void test_enumType_class() async {
     await assertErrorsInCode('''
 import 'package:meta/meta_meta.dart';
@@ -606,6 +668,38 @@ class A {
 @A()
 enum E {a, b}
 ''');
+  }
+
+  void test_enumValue_enumValue() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta_meta.dart';
+
+@Target({TargetKind.enumValue})
+class A {
+  const A();
+}
+
+enum E {
+  @A() one, two;
+}
+''');
+  }
+
+  void test_enumValue_field() async {
+    await assertErrorsInCode('''
+import 'package:meta/meta_meta.dart';
+
+@Target({TargetKind.enumValue})
+class A {
+  const A();
+}
+
+class C {
+  @A() int f = 7;
+}
+''', [
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 110, 1),
+    ]);
   }
 
   void test_extension_class() async {
@@ -1201,6 +1295,34 @@ class A {
 
 @A()
 typedef F = void Function(int);
+''');
+  }
+
+  void test_typeParameter_parameter() async {
+    await assertErrorsInCode('''
+import 'package:meta/meta_meta.dart';
+
+@Target({TargetKind.typeParameter})
+class A {
+  const A();
+}
+
+void f(@A() p) {}
+''', [
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 109, 1),
+    ]);
+  }
+
+  void test_typeParameter_typeParameter() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta_meta.dart';
+
+@Target({TargetKind.typeParameter})
+class A {
+  const A();
+}
+
+class C<@A() T> {}
 ''');
   }
 }
