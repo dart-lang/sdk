@@ -218,7 +218,7 @@ void Page::VisitRememberedCards(ObjectPointerVisitor* visitor) {
 
   ArrayPtr obj =
       static_cast<ArrayPtr>(UntaggedObject::FromAddr(object_start()));
-  ASSERT(obj->IsArray());
+  ASSERT(obj->IsArray() || obj->IsImmutableArray());
   ASSERT(obj->untag()->IsCardRemembered());
   CompressedObjectPtr* obj_from = obj->untag()->from();
   CompressedObjectPtr* obj_to =
