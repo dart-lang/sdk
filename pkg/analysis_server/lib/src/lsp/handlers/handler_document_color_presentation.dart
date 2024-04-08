@@ -131,59 +131,58 @@ class DocumentColorPresentationHandler extends SharedMessageHandler<
     final editStart = toOffset(unit.lineInfo, params.range.start);
     final editEnd = toOffset(unit.lineInfo, params.range.end);
 
-    if (editStart.isError) return failure(editStart);
-    if (editEnd.isError) return failure(editEnd);
+    return (editStart, editEnd).mapResults((editStart, editEnd) async {
+      final editRange = SourceRange(editStart, editEnd - editStart);
 
-    final editRange =
-        SourceRange(editStart.result, editEnd.result - editStart.result);
+      final sessionHelper = AnalysisSessionHelper(unit.session);
+      final colorType =
+          await sessionHelper.getClass(Flutter.widgetsUri, 'Color');
+      if (colorType == null) {
+        // If we can't find the class (perhaps because this isn't a Flutter
+        // project) we will not include any results. In theory the client should
+        // not be calling this request in that case.
+        return success([]);
+      }
 
-    final sessionHelper = AnalysisSessionHelper(unit.session);
-    final colorType = await sessionHelper.getClass(Flutter.widgetsUri, 'Color');
-    if (colorType == null) {
-      // If we can't find the class (perhaps because this isn't a Flutter
-      // project) we will not include any results. In theory the client should
-      // not be calling this request in that case.
-      return success([]);
-    }
+      final requiresConstKeyword =
+          _willRequireConstKeyword(editRange.offset, unit);
+      final colorValue = _colorValueForComponents(alpha, red, green, blue);
+      final colorValueHex =
+          '0x${colorValue.toRadixString(16).toUpperCase().padLeft(8, '0')}';
 
-    final requiresConstKeyword =
-        _willRequireConstKeyword(editRange.offset, unit);
-    final colorValue = _colorValueForComponents(alpha, red, green, blue);
-    final colorValueHex =
-        '0x${colorValue.toRadixString(16).toUpperCase().padLeft(8, '0')}';
+      final colorFromARGB = await _createColorPresentation(
+        unit: unit,
+        editRange: editRange,
+        colorType: colorType,
+        label: 'Color.fromARGB($alpha, $red, $green, $blue)',
+        invocationString: '.fromARGB($alpha, $red, $green, $blue)',
+        includeConstKeyword: requiresConstKeyword,
+      );
 
-    final colorFromARGB = await _createColorPresentation(
-      unit: unit,
-      editRange: editRange,
-      colorType: colorType,
-      label: 'Color.fromARGB($alpha, $red, $green, $blue)',
-      invocationString: '.fromARGB($alpha, $red, $green, $blue)',
-      includeConstKeyword: requiresConstKeyword,
-    );
+      final colorFromRGBO = await _createColorPresentation(
+        unit: unit,
+        editRange: editRange,
+        colorType: colorType,
+        label: 'Color.fromRGBO($red, $green, $blue, $opacity)',
+        invocationString: '.fromRGBO($red, $green, $blue, $opacity)',
+        includeConstKeyword: requiresConstKeyword,
+      );
 
-    final colorFromRGBO = await _createColorPresentation(
-      unit: unit,
-      editRange: editRange,
-      colorType: colorType,
-      label: 'Color.fromRGBO($red, $green, $blue, $opacity)',
-      invocationString: '.fromRGBO($red, $green, $blue, $opacity)',
-      includeConstKeyword: requiresConstKeyword,
-    );
+      final colorDefault = await _createColorPresentation(
+        unit: unit,
+        editRange: editRange,
+        colorType: colorType,
+        label: 'Color($colorValueHex)',
+        invocationString: '($colorValueHex)',
+        includeConstKeyword: requiresConstKeyword,
+      );
 
-    final colorDefault = await _createColorPresentation(
-      unit: unit,
-      editRange: editRange,
-      colorType: colorType,
-      label: 'Color($colorValueHex)',
-      invocationString: '($colorValueHex)',
-      includeConstKeyword: requiresConstKeyword,
-    );
-
-    return success([
-      colorFromARGB,
-      colorFromRGBO,
-      colorDefault,
-    ]);
+      return success([
+        colorFromARGB,
+        colorFromRGBO,
+        colorDefault,
+      ]);
+    });
   }
 
   /// Checks whether a `const` keyword is required in front of inserted

@@ -104,6 +104,13 @@ class ErrorOr<T> extends Either2<ResponseError, T> {
 }
 
 extension ErrorOrRecord2Extension<T1, T2> on (ErrorOr<T1>, ErrorOr<T2>) {
+  void ifResults(void Function(T1, T2) f) {
+    if ($1.isError || $2.isError) {
+      return;
+    }
+    f($1.result, $2.result);
+  }
+
   /// If all parts of the record are results, maps them through [f], otherwise
   /// returns a new error object representing the first error.
   Future<ErrorOr<R>> mapResults<R>(
@@ -134,6 +141,13 @@ extension ErrorOrRecord3Extension<T1, T2, T3> on (
   ErrorOr<T2>,
   ErrorOr<T3>
 ) {
+  void ifResults(void Function(T1, T2, T3) f) {
+    if ($1.isError || $2.isError || $3.isError) {
+      return;
+    }
+    f($1.result, $2.result, $3.result);
+  }
+
   /// If all parts of the record are results, maps them through [f], otherwise
   /// returns a new error object representing the first error.
   Future<ErrorOr<R>> mapResults<R>(
@@ -171,6 +185,13 @@ extension ErrorOrRecord4Extension<T1, T2, T3, T4> on (
   ErrorOr<T3>,
   ErrorOr<T4>
 ) {
+  void ifResults(void Function(T1, T2, T3, T4) f) {
+    if ($1.isError || $2.isError || $3.isError || $4.isError) {
+      return;
+    }
+    f($1.result, $2.result, $3.result, $4.result);
+  }
+
   /// If all parts of the record are results, maps them through [f], otherwise
   /// returns a new error object representing the first error.
   Future<ErrorOr<R>> mapResults<R>(

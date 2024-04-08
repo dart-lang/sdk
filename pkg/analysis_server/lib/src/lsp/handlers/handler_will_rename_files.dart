@@ -36,7 +36,6 @@ class WillRenameFilesHandler
 
     for (final file in params.files) {
       final oldPath = pathOfUri(Uri.tryParse(file.oldUri));
-
       if (oldPath.isError) {
         return failure(oldPath);
       }
@@ -46,7 +45,9 @@ class WillRenameFilesHandler
         return failure(newPath);
       }
 
-      pathMapping[oldPath.result] = newPath.result;
+      (oldPath, newPath).ifResults((oldPath, newPath) {
+        pathMapping[oldPath] = newPath;
+      });
     }
     return _renameFiles(pathMapping, token);
   }

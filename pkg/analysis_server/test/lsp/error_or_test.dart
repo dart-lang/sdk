@@ -22,6 +22,22 @@ final errorY = error(ErrorCodes.ParseError, 'y');
 
 @reflectiveTest
 class ErrorOrRecord2ExtensionTest {
+  test_ifResults_error() {
+    var called = false;
+    (success(1), errorX).ifResults((_, __) => called = true);
+    expect(called, isFalse);
+  }
+
+  test_ifResults_result() {
+    var called = false;
+    (success(1), success(2)).ifResults((a, b) {
+      expect(a, 1);
+      expect(b, 2);
+      called = true;
+    });
+    expect(called, isTrue);
+  }
+
   test_mapResults_error() async {
     var result = await (success(1), errorX).mapResults((a, b) async {
       throw 'function should not be called';
@@ -57,6 +73,23 @@ class ErrorOrRecord2ExtensionTest {
 
 @reflectiveTest
 class ErrorOrRecord3ExtensionTest {
+  test_ifResults_error() {
+    var called = false;
+    (success(1), success(1), errorX).ifResults((_, __, ___) => called = true);
+    expect(called, isFalse);
+  }
+
+  test_ifResults_result() {
+    var called = false;
+    (success(1), success(2), success(3)).ifResults((a, b, c) {
+      expect(a, 1);
+      expect(b, 2);
+      expect(c, 3);
+      called = true;
+    });
+    expect(called, isTrue);
+  }
+
   test_mapResults_error() async {
     var result =
         await (success(1), success(2), errorX).mapResults((a, b, c) async {
@@ -96,6 +129,25 @@ class ErrorOrRecord3ExtensionTest {
 
 @reflectiveTest
 class ErrorOrRecord4ExtensionTest {
+  test_ifResults_error() {
+    var called = false;
+    (success(1), success(1), success(1), errorX)
+        .ifResults((_, __, ___, ____) => called = true);
+    expect(called, isFalse);
+  }
+
+  test_ifResults_result() {
+    var called = false;
+    (success(1), success(2), success(3), success(4)).ifResults((a, b, c, d) {
+      expect(a, 1);
+      expect(b, 2);
+      expect(c, 3);
+      expect(d, 4);
+      called = true;
+    });
+    expect(called, isTrue);
+  }
+
   test_mapResults_error() async {
     var result = await (success(1), success(2), success(3), errorX)
         .mapResults((a, b, c, d) async {

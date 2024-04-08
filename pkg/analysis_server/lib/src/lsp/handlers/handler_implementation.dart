@@ -43,8 +43,8 @@ class ImplementationHandler
     final offset = unit.mapResultSync((unit) => toOffset(unit.lineInfo, pos));
     return await performance.runAsync(
         '_getImplementations',
-        (performance) async => offset.mapResult((offset) =>
-            _getImplementations(unit.result, offset, token, performance)));
+        (performance) async => (unit, offset).mapResults((unit, offset) =>
+            _getImplementations(unit, offset, token, performance)));
   }
 
   Future<ErrorOr<List<Location>>> _getImplementations(

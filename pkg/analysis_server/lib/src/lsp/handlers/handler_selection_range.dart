@@ -35,13 +35,15 @@ class SelectionRangeHandler
     final path = pathOfDoc(params.textDocument);
     return path.mapResult((path) async {
       final unit = await requireUnresolvedUnit(path);
-      final positions = params.positions;
-      final offsets = unit.mapResultSync((unit) =>
-          positions.map((pos) => toOffset(unit.lineInfo, pos)).errorOrResults);
-      final allRanges = offsets.mapResultSync(
-          (offsets) => success(_getSelectionRangesForOffsets(offsets, unit)));
+      return unit.mapResultSync((unit) {
+        final positions = params.positions;
+        final offsets =
+            positions.map((pos) => toOffset(unit.lineInfo, pos)).errorOrResults;
+        final allRanges = offsets.mapResultSync(
+            (offsets) => success(_getSelectionRangesForOffsets(offsets, unit)));
 
-      return allRanges;
+        return allRanges;
+      });
     });
   }
 
@@ -71,9 +73,9 @@ class SelectionRangeHandler
   }
 
   List<SelectionRange> _getSelectionRangesForOffsets(
-      List<int> offsets, ErrorOr<ParsedUnitResult> unit) {
+      List<int> offsets, ParsedUnitResult result) {
     return offsets
-        .map((offset) => _getSelectionRangesForOffset(unit.result.unit, offset))
+        .map((offset) => _getSelectionRangesForOffset(result.unit, offset))
         .toList();
   }
 }
