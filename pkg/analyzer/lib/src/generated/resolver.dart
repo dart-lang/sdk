@@ -56,7 +56,6 @@ import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
 import 'package:analyzer/src/dart/resolver/lexical_lookup.dart';
 import 'package:analyzer/src/dart/resolver/list_pattern_resolver.dart';
-import 'package:analyzer/src/dart/resolver/method_invocation_resolver.dart';
 import 'package:analyzer/src/dart/resolver/postfix_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/prefix_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/prefixed_identifier_resolver.dart';
@@ -2858,10 +2857,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     }
 
     node.typeArguments?.accept(this);
-    elementResolver.visitMethodInvocation(node,
+    var functionRewrite = elementResolver.visitMethodInvocation(node,
         whyNotPromotedList: whyNotPromotedList, contextType: contextType);
 
-    var functionRewrite = MethodInvocationResolver.getRewriteResult(node);
     if (functionRewrite != null) {
       _resolveRewrittenFunctionExpressionInvocation(
           functionRewrite, whyNotPromotedList,

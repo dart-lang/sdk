@@ -267,11 +267,11 @@ class ElementResolver {
     _resolveAnnotations(node.metadata);
   }
 
-  void visitMethodInvocation(MethodInvocation node,
+  FunctionExpressionInvocation? visitMethodInvocation(MethodInvocation node,
       {List<WhyNotPromotedGetter>? whyNotPromotedList,
       required DartType contextType}) {
     whyNotPromotedList ??= [];
-    _methodInvocationResolver.resolve(
+    return _methodInvocationResolver.resolve(
         node as MethodInvocationImpl, whyNotPromotedList,
         contextType: contextType);
   }
