@@ -679,13 +679,14 @@ class _WasmTransformer extends Transformer {
 
   @override
   TreeNode visitFunctionNode(FunctionNode functionNode) {
+    final previousEnclosing = _enclosingIsAsyncStar;
     if (functionNode.dartAsyncMarker == AsyncMarker.AsyncStar) {
       _enclosingIsAsyncStar = true;
       functionNode = _lowerAsyncStar(functionNode) as FunctionNode;
-      _enclosingIsAsyncStar = false;
+      _enclosingIsAsyncStar = previousEnclosing;
       return super.visitFunctionNode(functionNode);
     } else {
-      bool previousEnclosing = _enclosingIsAsyncStar;
+      _enclosingIsAsyncStar = false;
       TreeNode result = super.visitFunctionNode(functionNode);
       _enclosingIsAsyncStar = previousEnclosing;
       return result;

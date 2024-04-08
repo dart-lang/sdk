@@ -199,7 +199,7 @@ class ImplicitEnumNodes {
   });
 }
 
-class LibraryBuilder {
+class LibraryBuilder with MacroApplicationsContainer {
   static const _enableMacroCodeOptimizer = false;
 
   final Linker linker;
@@ -426,7 +426,7 @@ class LibraryBuilder {
     }
 
     final results = await macroApplier.executeDeclarationsPhase(
-      library: element,
+      libraryBuilder: this,
       targetElement: targetElement,
     );
 
@@ -459,7 +459,7 @@ class LibraryBuilder {
 
     while (true) {
       final results = await macroApplier.executeDefinitionsPhase(
-        library: element,
+        libraryBuilder: this,
       );
 
       // No more applications to execute.
@@ -481,7 +481,7 @@ class LibraryBuilder {
 
     while (true) {
       final results = await macroApplier.executeTypesPhase(
-        library: element,
+        libraryBuilder: this,
       );
 
       // No more applications to execute.
@@ -497,7 +497,7 @@ class LibraryBuilder {
   Future<void> fillMacroApplier(LibraryMacroApplier macroApplier) async {
     for (final linkingUnit in units) {
       await macroApplier.add(
-        libraryElement: element,
+        libraryBuilder: this,
         container: element,
         unit: linkingUnit.node,
       );
@@ -844,7 +844,7 @@ class LibraryBuilder {
 
     // Append applications from the partial augmentation.
     await macroApplier.add(
-      libraryElement: element,
+      libraryBuilder: this,
       container: augmentation,
       unit: macroLinkingUnit.node,
     );
