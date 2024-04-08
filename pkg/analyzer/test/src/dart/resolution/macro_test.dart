@@ -744,7 +744,7 @@ ResolvedLibraryResult #0
       flags: exists isAugmentation isMacroAugmentation
       content
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/diagnostic.dart' as prefix0;
 
@@ -1022,7 +1022,7 @@ ResolvedLibraryResult #0
       flags: exists isAugmentation isMacroAugmentation
       content
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 augment class A {
   NotType foo() {}
@@ -1093,7 +1093,7 @@ ResolvedLibraryResult #0
       flags: exists isAugmentation isMacroAugmentation
       content
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'dart:core' as prefix0;
 

@@ -1390,7 +1390,7 @@ MethodInvocation
 
   test_class_explicitThis_inAugmentation_augmentationDeclares() async {
     final a = newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment class A {
   void foo() {}
@@ -1431,7 +1431,7 @@ MethodInvocation
 
   test_class_explicitThis_inDeclaration_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment class A {
   void foo() {}
@@ -1470,7 +1470,7 @@ MethodInvocation
 
   test_class_implicitStatic_inDeclaration_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment class A {
   static void foo() {}
@@ -1505,7 +1505,7 @@ MethodInvocation
 
   test_class_implicitThis_inDeclaration_augmentationAugments() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment class A {
   augment void foo() {}
@@ -1540,7 +1540,7 @@ MethodInvocation
 
   test_class_implicitThis_inDeclaration_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment class A {
   void foo() {}
@@ -3235,7 +3235,7 @@ MethodInvocation
 
   test_hasReceiver_className_augmentationAugments() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment class A {
   augment static void foo() {}
@@ -3275,7 +3275,7 @@ MethodInvocation
 
   test_hasReceiver_className_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment class A {
   static void foo() {}
@@ -4115,7 +4115,7 @@ FunctionExpressionInvocation
 
   test_hasReceiver_interfaceType_class_augmentationAugments() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment class A {
   augment void foo() {}
@@ -4155,7 +4155,7 @@ MethodInvocation
 
   test_hasReceiver_interfaceType_class_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment class A {
   void foo() {}
@@ -4494,7 +4494,7 @@ MethodInvocation
 
   test_hasReceiver_interfaceType_mixin_augmentationAugments() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment mixin A {
   augment void foo() {}
@@ -4534,7 +4534,7 @@ MethodInvocation
 
   test_hasReceiver_interfaceType_mixin_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment mixin A {
   void foo() {}
@@ -5141,7 +5141,7 @@ class B extends A {}
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
-library augment 'a.dart';
+augment library 'a.dart';
 
 augment class B {
   void bar() {
@@ -5181,7 +5181,7 @@ class A {
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
-library augment 'a.dart';
+augment library 'a.dart';
 
 augment class B {
   void bar() {
@@ -6123,7 +6123,7 @@ MethodInvocation
 
   test_mixin_explicitThis_inDeclaration_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment mixin A {
   void foo() {}
@@ -6162,7 +6162,7 @@ MethodInvocation
 
   test_mixin_implicitThis_inDeclaration_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment mixin A {
   void foo() {}

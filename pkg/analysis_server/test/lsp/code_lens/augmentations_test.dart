@@ -105,7 +105,7 @@ abstract class AbstractAugmentationCodeLensTest
 
   void setAugmentationContent(String content) {
     augmentationCode = TestCode.parse('''
-library augment 'main.dart';
+augment library 'main.dart';
 
 $content
 ''');

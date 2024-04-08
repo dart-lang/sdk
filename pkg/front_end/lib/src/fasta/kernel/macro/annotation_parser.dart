@@ -805,13 +805,13 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void beginLibraryAugmentation(Token libraryKeyword, Token augmentKeyword) {
+  void beginLibraryAugmentation(Token augmentKeyword, Token libraryKeyword) {
     _unexpected();
   }
 
   @override
   void endLibraryAugmentation(
-      Token libraryKeyword, Token augmentKeyword, Token semicolon) {
+      Token augmentKeyword, Token libraryKeyword, Token semicolon) {
     _unexpected();
   }
 

@@ -844,7 +844,7 @@ C f() => C.named(); //
   Future<void>
       test_constructorInvocation_referenceFromAugmentation_default() async {
     var file = newFile('$testPackageLibPath/a.dart', '''
-library augment 'test.dart';
+augment library 'test.dart';
 
 augment class C {
   void m() {
@@ -873,7 +873,7 @@ class C {
   Future<void>
       test_constructorInvocation_referenceFromAugmentation_named() async {
     var file = newFile('$testPackageLibPath/a.dart', '''
-library augment 'test.dart';
+augment library 'test.dart';
 
 augment class C {
   void m() {
@@ -1414,7 +1414,7 @@ void f(C c) {
 
   Future<void> test_methodInvocation_referenceFromAugmentation() async {
     var file = newFile('$testPackageLibPath/a.dart', '''
-library augment 'test.dart';
+augment library 'test.dart';
 
 augment class C {
   void m(C c) {

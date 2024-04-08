@@ -247,6 +247,21 @@ class ModifierContext {
     return token;
   }
 
+  /// Parse modifiers for library directives.
+  Token parseLibraryDirectiveModifiers(Token token, Token keyword) {
+    token = _parseModifiers(token);
+    reportTopLevelModifierError(constToken, keyword);
+    reportTopLevelModifierError(externalToken, keyword);
+    reportExtraneousModifier(abstractToken);
+    reportExtraneousModifier(covariantToken);
+    reportExtraneousModifier(finalToken);
+    reportExtraneousModifier(lateToken);
+    reportExtraneousModifier(requiredToken);
+    reportExtraneousModifier(staticToken);
+    reportExtraneousModifier(varToken);
+    return token;
+  }
+
   /// Parse modifiers after the `factory` token.
   Token parseModifiersAfterFactory(Token token) {
     _afterFactory = true;

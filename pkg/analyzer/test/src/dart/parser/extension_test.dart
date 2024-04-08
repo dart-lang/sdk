@@ -17,7 +17,7 @@ main() {
 class ExtensionDeclarationParserTest extends ParserDiagnosticsTest {
   test_augment() {
     final parseResult = parseStringWithErrors(r'''
-library augment 'a.dart';
+augment library 'a.dart';
 
 augment extension E {}
 ''');
@@ -36,7 +36,7 @@ ExtensionDeclaration
 
   test_augment_generic() {
     final parseResult = parseStringWithErrors(r'''
-library augment 'a.dart';
+augment library 'a.dart';
 
 augment extension E<T> {}
 ''');
@@ -61,7 +61,7 @@ ExtensionDeclaration
 
   test_augment_hasOnClause() {
     final parseResult = parseStringWithErrors(r'''
-library augment 'a.dart';
+augment library 'a.dart';
 
 augment extension E on int {}
 ''');

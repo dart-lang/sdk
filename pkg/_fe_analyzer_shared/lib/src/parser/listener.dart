@@ -1077,13 +1077,13 @@ class Listener implements UnescapeErrorListener {
     logEvent("LabeledStatement");
   }
 
-  void beginLibraryAugmentation(Token libraryKeyword, Token augmentKeyword) {}
+  void beginLibraryAugmentation(Token augmentKeyword, Token libraryKeyword) {}
 
   /// Handle the end of a library augmentation directive.  Substructures:
   /// - metadata
   /// - uri
   void endLibraryAugmentation(
-      Token libraryKeyword, Token augmentKeyword, Token semicolon) {
+      Token augmentKeyword, Token libraryKeyword, Token semicolon) {
     logEvent("LibraryAugmentation");
   }
 

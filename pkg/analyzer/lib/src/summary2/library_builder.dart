@@ -893,7 +893,7 @@ class LibraryBuilder with MacroApplicationsContainer {
 
         final augmentation = LibraryAugmentationElementImpl(
           augmentationTarget: augmentationTarget,
-          nameOffset: importedAugmentation.unlinked.libraryKeywordOffset,
+          nameOffset: importedAugmentation.unlinked.augmentKeywordOffset,
         );
         augmentation.definingCompilationUnit = unitElement;
         augmentation.reference = unitElement.reference!;

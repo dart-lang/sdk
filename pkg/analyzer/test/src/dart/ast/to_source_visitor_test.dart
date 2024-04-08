@@ -2239,10 +2239,10 @@ void f() {
 
   void test_visitLibraryAugmentationDirective() {
     var findNode = _parseStringToFindNode(r'''
-library augment 'a.dart';
+augment library 'a.dart';
 ''');
     _assertSource(
-      "library augment 'a.dart';",
+      "augment library 'a.dart';",
       findNode.libraryAugmentation('library'),
     );
   }

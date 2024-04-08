@@ -17,7 +17,7 @@ main() {
 class SimpleIdentifierResolutionTest extends PubPackageResolutionTest {
   test_augment_topLevel_function_with_function() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 
 augment void foo() {}
 ''');
@@ -43,7 +43,7 @@ SimpleIdentifier
 
   test_augment_topLevel_getter_with_getter() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 
 augment int get foo => 1;
 ''');
@@ -69,7 +69,7 @@ SimpleIdentifier
 
   test_augment_topLevel_setter_with_setter() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 
 augment set foo(int _) {}
 ''');
@@ -107,7 +107,7 @@ AssignmentExpression
 
   test_augment_topLevel_variable_with_getter() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 
 augment int get foo() => 1;
 ''');
@@ -133,7 +133,7 @@ SimpleIdentifier
 
   test_augment_topLevel_variable_with_variable() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 
 augment int foo = 1;
 ''');
@@ -349,7 +349,7 @@ int Function() foo(A? a) {
 
   test_inClass_inDeclaration_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment class A {
   int get foo => 0;
@@ -630,7 +630,7 @@ SimpleIdentifier
 
   test_inMixin_inDeclaration_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment mixin A {
   int get foo => 0;

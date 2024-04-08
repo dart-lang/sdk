@@ -16,7 +16,7 @@ main() {
 class TopLevelFunctionParserTest extends ParserDiagnosticsTest {
   test_function_augment() {
     final parseResult = parseStringWithErrors(r'''
-library augment 'a.dart';
+augment library 'a.dart';
 augment void foo() {}
 ''');
     parseResult.assertNoErrors();
@@ -41,7 +41,7 @@ FunctionDeclaration
 
   test_getter_augment() {
     final parseResult = parseStringWithErrors(r'''
-library augment 'a.dart';
+augment library 'a.dart';
 augment int get foo => 0;
 ''');
     parseResult.assertNoErrors();
@@ -65,7 +65,7 @@ FunctionDeclaration
 
   test_setter_augment() {
     final parseResult = parseStringWithErrors(r'''
-library augment 'a.dart';
+augment library 'a.dart';
 augment set foo(int _) {}
 ''');
     parseResult.assertNoErrors();

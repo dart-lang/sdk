@@ -8,31 +8,26 @@ import '../../diagnostics/parser_diagnostics.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(EnumDeclarationParserTest);
+    defineReflectiveTests(LibraryAugmentationDirectiveParserTest);
   });
 }
 
 @reflectiveTest
-class EnumDeclarationParserTest extends ParserDiagnosticsTest {
-  test_augment() {
+class LibraryAugmentationDirectiveParserTest extends ParserDiagnosticsTest {
+  test_it() {
     final parseResult = parseStringWithErrors(r'''
 augment library 'a.dart';
-
-augment enum E {bar}
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.singleEnumDeclaration;
+    final node = parseResult.findNode.singleLibraryAugmentationDirective;
     assertParsedNodeText(node, r'''
-EnumDeclaration
+LibraryAugmentationDirective
   augmentKeyword: augment
-  enumKeyword: enum
-  name: E
-  leftBracket: {
-  constants
-    EnumConstantDeclaration
-      name: bar
-  rightBracket: }
+  libraryKeyword: library
+  uri: SimpleStringLiteral
+    literal: 'a.dart'
+  semicolon: ;
 ''');
   }
 }

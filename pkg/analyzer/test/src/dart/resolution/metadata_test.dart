@@ -46,7 +46,7 @@ int 42
 
   test_location_augmentationImportDirective() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 ''');
 
     await assertNoErrorsInCode(r'''
@@ -213,7 +213,7 @@ class A {
 ''');
 
     var b = newFile('$testPackageLibPath/b.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 import 'a.dart' as prefix;
 
 @prefix.A(42)
@@ -269,7 +269,7 @@ const foo = 42;
 
     var a = newFile('$testPackageLibPath/a.dart', r'''
 @foo
-library augment 'test.dart';
+augment library 'test.dart';
 ''');
 
     await resolveFile2(a);

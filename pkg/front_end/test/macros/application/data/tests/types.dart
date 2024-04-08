@@ -10,7 +10,7 @@ Types Order:
  topLevelFunction4:FunctionTypesMacro1.new()
  topLevelFunction5:FunctionTypesMacro1.new()
 Types:
-library augment 'org-dartlang-test:///a/b/c/main.dart';
+augment library 'org-dartlang-test:///a/b/c/main.dart';
 
 import 'dart:core' as prefix0;
 import 'package:macro/macro.dart' as prefix1;

@@ -56,7 +56,7 @@ class Foo {}
 ''');
 
     final content = TestCode.parse('''
-library augment a.dart;
+augment library a.dart;
 
 augment class Foo {
   void a(String b) {
@@ -119,7 +119,7 @@ class Foo {
 ''');
 
     final content = TestCode.parse('''
-library augment 'a.dart';
+augment library 'a.dart';
 augment class Foo {
   augment ^String get a => 'test2';
 }
@@ -146,7 +146,7 @@ class Foo {
 ''');
 
     final content = TestCode.parse('''
-library augment 'a.dart';
+augment library 'a.dart';
 augment class Foo {
   augment Foo(^);
 }
@@ -277,7 +277,7 @@ class Foo {
 ''');
 
     final content = TestCode.parse('''
-library augment a.dart;
+augment library a.dart;
 
 augment class Foo {
   augment void f() {
@@ -337,7 +337,7 @@ mixin Foo {
 ''');
 
     final content = TestCode.parse('''
-library augment a.dart;
+augment library a.dart;
 
 augment mixin Foo {
   augment void a(String b) {
@@ -471,7 +471,7 @@ void a(String b) {}
 ''');
 
     final content = TestCode.parse('''
-library augment 'a.dart';
+augment library 'a.dart';
 augment void a(String b) {
   print((1 ^+ 2) * 3);
 }

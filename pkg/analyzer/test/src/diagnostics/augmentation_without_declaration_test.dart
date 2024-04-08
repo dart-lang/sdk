@@ -21,7 +21,7 @@ import augment 'test.dart';
 ''');
 
     await assertErrorsInCode(r'''
-library augment 'a.dart';
+augment library 'a.dart';
 
 augment class A {}
 ''', [
@@ -37,7 +37,7 @@ class A {}
 ''');
 
     await assertErrorsInCode(r'''
-library augment 'a.dart';
+augment library 'a.dart';
 
 augment class A {
   augment A.named();
@@ -55,7 +55,7 @@ class A {}
 ''');
 
     await assertErrorsInCode(r'''
-library augment 'a.dart';
+augment library 'a.dart';
 
 augment class A {
   augment int foo = 0;
@@ -73,7 +73,7 @@ class A {}
 ''');
 
     await assertErrorsInCode(r'''
-library augment 'a.dart';
+augment library 'a.dart';
 
 augment class A {
   augment int get foo => 0;
@@ -91,7 +91,7 @@ class A {}
 ''');
 
     await assertErrorsInCode(r'''
-library augment 'a.dart';
+augment library 'a.dart';
 
 augment class A {
   augment void foo() {}
@@ -111,7 +111,7 @@ class A {
 ''');
 
     await assertNoErrorsInCode(r'''
-library augment 'a.dart';
+augment library 'a.dart';
 
 augment class A {
   augment void foo() {}
@@ -127,7 +127,7 @@ class A {}
 ''');
 
     await assertErrorsInCode(r'''
-library augment 'a.dart';
+augment library 'a.dart';
 
 augment class A {
   augment set foo(int _) {}
@@ -143,7 +143,7 @@ import augment 'test.dart';
 ''');
 
     await assertErrorsInCode(r'''
-library augment 'a.dart';
+augment library 'a.dart';
 
 augment mixin A {}
 ''', [
@@ -157,7 +157,7 @@ import augment 'test.dart';
 ''');
 
     await assertErrorsInCode(r'''
-library augment 'a.dart';
+augment library 'a.dart';
 
 augment void foo() {}
 ''', [
@@ -173,7 +173,7 @@ void foo() {}
 ''');
 
     await assertNoErrorsInCode(r'''
-library augment 'a.dart';
+augment library 'a.dart';
 
 augment void foo() {}
 ''');
@@ -185,7 +185,7 @@ import augment 'test.dart';
 ''');
 
     await assertErrorsInCode(r'''
-library augment 'a.dart';
+augment library 'a.dart';
 
 augment int get foo => 0;
 ''', [
@@ -199,7 +199,7 @@ import augment 'test.dart';
 ''');
 
     await assertErrorsInCode(r'''
-library augment 'a.dart';
+augment library 'a.dart';
 
 augment set foo(int _) {}
 ''', [
@@ -213,7 +213,7 @@ import augment 'test.dart';
 ''');
 
     await assertErrorsInCode(r'''
-library augment 'a.dart';
+augment library 'a.dart';
 
 augment int foo = 0;
 ''', [

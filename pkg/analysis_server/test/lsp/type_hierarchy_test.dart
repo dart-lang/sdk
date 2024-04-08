@@ -184,7 +184,7 @@ class MyCl^ass1 {}
 [!class /*[1*/C/*1]*/ {}!]
 ''';
     final augmentation = '''
-library augment 'main.dart';
+augment library 'main.dart';
 
 augment class C extends MyClass1 {}
 ''';
@@ -342,7 +342,7 @@ import augment 'other.dart';
 class C^s {}
 ''';
     final augmentation = '''
-library augment 'main.dart';
+augment library 'main.dart';
 
 augment class Cs extends MyClass1 {}
 ''';

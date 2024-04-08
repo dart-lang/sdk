@@ -232,7 +232,7 @@ class A {
 ''');
 
     await assertNoDiagnostics(r'''
-library augment 'a.dart';
+augment library 'a.dart';
 
 augment class A {
   augment A.Aa();
@@ -251,7 +251,7 @@ class A {
 ''');
 
     await assertNoDiagnostics(r'''
-library augment 'a.dart';
+augment library 'a.dart';
 
 augment class A {
   augment int Xx = 2;
@@ -267,7 +267,7 @@ void Ff() { }
 ''');
 
     await assertNoDiagnostics(r'''
-library augment 'a.dart';
+augment library 'a.dart';
 
 augment void Ff() { }
 ''');
@@ -281,7 +281,7 @@ void f({String? Ss}) { }
 ''');
 
     await assertNoDiagnostics(r'''
-library augment 'a.dart';
+augment library 'a.dart';
 
 augment void f({String? Ss}) { }
 ''');
@@ -295,7 +295,7 @@ void f(String? Ss, [int? Xx]) { }
 ''');
 
     await assertDiagnostics(r'''
-library augment 'a.dart';
+augment library 'a.dart';
 
 augment void f(String? Ss, [int? Xx]) { }
 ''', [
@@ -314,7 +314,7 @@ class A {
 ''');
 
     await assertNoDiagnostics(r'''
-library augment 'a.dart';
+augment library 'a.dart';
 
 augment class A {
   augment int get Gg => 2;
@@ -332,7 +332,7 @@ class A {
 ''');
 
     await assertNoDiagnostics(r'''
-library augment 'a.dart';
+augment library 'a.dart';
 
 augment class A {
   augment void Mm() { }
@@ -350,7 +350,7 @@ class A {
 ''');
 
     await assertNoDiagnostics(r'''
-library augment 'a.dart';
+augment library 'a.dart';
 
 augment class A {
   augment void m({String? Ss}) { }
@@ -368,7 +368,7 @@ class A {
 ''');
 
     await assertDiagnostics(r'''
-library augment 'a.dart';
+augment library 'a.dart';
 
 augment class A {
   augment void m(String? Ss, [int? Xx]) { }
@@ -390,7 +390,7 @@ int Xx = 1;
 ''');
 
     await assertNoDiagnostics(r'''
-library augment 'a.dart';
+augment library 'a.dart';
 
 augment int Xx = 2;
 ''');

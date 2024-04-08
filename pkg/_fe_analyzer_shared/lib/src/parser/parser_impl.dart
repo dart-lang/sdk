@@ -772,12 +772,10 @@ class Parser {
           context.parseTopLevelKeywordModifiers(modifierStart, keyword);
           return parsePartOrPartOf(keyword, directiveState);
         } else if (identical(value, 'library')) {
-          context.parseTopLevelKeywordModifiers(modifierStart, keyword);
           directiveState?.checkLibrary(this, keyword);
-          final Token tokenAfterKeyword = keyword.next!;
-          if (tokenAfterKeyword.isIdentifier &&
-              tokenAfterKeyword.lexeme == 'augment') {
-            return parseLibraryAugmentation(keyword, tokenAfterKeyword);
+          context.parseLibraryDirectiveModifiers(modifierStart, keyword);
+          if (context.augmentToken case final augmentKeyword?) {
+            return parseLibraryAugmentation(augmentKeyword, keyword);
           } else {
             return parseLibraryName(keyword);
           }
@@ -841,18 +839,18 @@ class Parser {
 
   /// ```
   /// libraryAugmentationDirective:
-  ///   'library' 'augment' uri ';'
+  ///   'augment' 'library' uri ';'
   /// ;
   /// ```
-  Token parseLibraryAugmentation(Token libraryKeyword, Token augmentKeyword) {
-    assert(optional('library', libraryKeyword));
+  Token parseLibraryAugmentation(Token augmentKeyword, Token libraryKeyword) {
     assert(optional('augment', augmentKeyword));
+    assert(optional('library', libraryKeyword));
     listener.beginUncategorizedTopLevelDeclaration(libraryKeyword);
-    listener.beginLibraryAugmentation(libraryKeyword, augmentKeyword);
-    Token start = augmentKeyword;
+    listener.beginLibraryAugmentation(augmentKeyword, libraryKeyword);
+    Token start = libraryKeyword;
     Token token = ensureLiteralString(start);
     Token semicolon = ensureSemicolon(token);
-    listener.endLibraryAugmentation(libraryKeyword, augmentKeyword, semicolon);
+    listener.endLibraryAugmentation(augmentKeyword, libraryKeyword, semicolon);
     return semicolon;
   }
 

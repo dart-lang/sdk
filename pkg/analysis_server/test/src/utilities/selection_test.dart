@@ -817,7 +817,7 @@ nodesInRange
   @FailingTest(reason: 'The parser fails')
   Future<void> test_libraryAugmentationDirective_metadata() async {
     await assertMetadata(postfix: '''
-library augment '';
+augment library '';
 ''');
   }
 

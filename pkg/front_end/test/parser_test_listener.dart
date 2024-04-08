@@ -1538,23 +1538,23 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void beginLibraryAugmentation(Token libraryKeyword, Token augmentKeyword) {
-    seen(libraryKeyword);
+  void beginLibraryAugmentation(Token augmentKeyword, Token libraryKeyword) {
     seen(augmentKeyword);
-    doPrint('beginLibraryAugmentation(' '$libraryKeyword, ' '$augmentKeyword)');
+    seen(libraryKeyword);
+    doPrint('beginLibraryAugmentation(' '$augmentKeyword, ' '$libraryKeyword)');
     indent++;
   }
 
   @override
   void endLibraryAugmentation(
-      Token libraryKeyword, Token augmentKeyword, Token semicolon) {
+      Token augmentKeyword, Token libraryKeyword, Token semicolon) {
     indent--;
-    seen(libraryKeyword);
     seen(augmentKeyword);
+    seen(libraryKeyword);
     seen(semicolon);
     doPrint('endLibraryAugmentation('
-        '$libraryKeyword, '
         '$augmentKeyword, '
+        '$libraryKeyword, '
         '$semicolon)');
   }
 

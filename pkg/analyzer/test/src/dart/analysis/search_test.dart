@@ -819,7 +819,7 @@ self::@class::C::@method::main
 
   test_searchReferences_class_constructor_declaredInAugmentation() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 
 augment class A {
   A.named();

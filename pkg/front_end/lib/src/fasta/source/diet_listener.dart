@@ -444,7 +444,7 @@ class DietListener extends StackListenerImpl {
 
   @override
   void endLibraryAugmentation(
-      Token libraryKeyword, Token augmentKeyword, Token semicolon) {
+      Token augmentKeyword, Token libraryKeyword, Token semicolon) {
     debugEvent("endLibraryAugmentation");
     assert(checkState(libraryKeyword, [
       /* metadata */ ValueKinds.TokenOrNull,

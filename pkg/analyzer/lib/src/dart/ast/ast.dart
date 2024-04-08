@@ -10631,10 +10631,10 @@ abstract final class LibraryAugmentationDirective implements UriBasedDirective {
 final class LibraryAugmentationDirectiveImpl extends UriBasedDirectiveImpl
     implements LibraryAugmentationDirective {
   @override
-  final Token libraryKeyword;
+  final Token augmentKeyword;
 
   @override
-  final Token augmentKeyword;
+  final Token libraryKeyword;
 
   @override
   final Token semicolon;
@@ -10642,8 +10642,8 @@ final class LibraryAugmentationDirectiveImpl extends UriBasedDirectiveImpl
   LibraryAugmentationDirectiveImpl({
     required super.comment,
     required super.metadata,
-    required this.libraryKeyword,
     required this.augmentKeyword,
+    required this.libraryKeyword,
     required super.uri,
     required this.semicolon,
   });
@@ -10652,12 +10652,12 @@ final class LibraryAugmentationDirectiveImpl extends UriBasedDirectiveImpl
   Token get endToken => semicolon;
 
   @override
-  Token get firstTokenAfterCommentAndMetadata => libraryKeyword;
+  Token get firstTokenAfterCommentAndMetadata => augmentKeyword;
 
   @override
   ChildEntities get _childEntities => super._childEntities
-    ..addToken('libraryKeyword', libraryKeyword)
     ..addToken('augmentKeyword', augmentKeyword)
+    ..addToken('libraryKeyword', libraryKeyword)
     ..addNode('uri', uri)
     ..addToken('semicolon', semicolon);
 
