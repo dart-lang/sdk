@@ -240,7 +240,6 @@ augment class A {
 ''');
   }
 
-  @FailingTest(reason: 'Null check operator used on a null value')
   test_augmentedField() async {
     newFile('$testPackageLibPath/a.dart', r'''
 import augment 'test.dart';
@@ -379,9 +378,6 @@ augment class A {
     ]);
   }
 
-  @FailingTest(
-      reason:
-          "CompileTimeErrorCode.DUPLICATE_DEFINITION [39, 2, The name 'Xx' is already defined.]")
   test_augmentedTopLevelVariable() async {
     newFile('$testPackageLibPath/a.dart', r'''
 import augment 'test.dart';

@@ -176,6 +176,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
+    if (node.isAugmentation) return;
+
     if (!node.isConst) {
       checkIdentifier(node.name);
     }

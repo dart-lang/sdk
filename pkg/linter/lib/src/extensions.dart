@@ -34,8 +34,8 @@ extension AstNodeExtension on AstNode {
       FunctionExpression() => self.parent?.isAugmentation ?? false,
       MethodDeclaration() => self.augmentKeyword != null,
       MixinDeclaration() => self.augmentKeyword != null,
-      // TODO(pq): unimplemented
-      // VariableDeclaration() => self.augmentKeyword != null,
+      VariableDeclaration(declaredElement: var element) =>
+        element is PropertyInducingElement && element.isAugmentation,
       _ => false
     };
   }
