@@ -52,6 +52,7 @@ patterns/exhaustiveness/unsound_cast_3_2: semiFuzzFailureOnForceRebuildBodies # 
 nnbd_mixed/exhaustiveness: semiFuzzFailureOnForceRebuildBodies # can't split because of sealed class.
 patterns/extension_access: semiFuzzFailureOnForceRebuildBodies # private extension method.
 patterns/extension_tear_off: semiFuzzFailureOnForceRebuildBodies # private extension method.
+patterns/issue55310: semiFuzzFailureOnForceRebuildBodies # can't split because of sealed class.
 patterns/pattern_matching: semiFuzzFailureOnForceRebuildBodies # can't split because of sealed class.
 inference_update_2/call_invocation_with_hoisting: semiFuzzFailureOnForceRebuildBodies # privacy
 inference_update_2/cascaded_field_promotion: semiFuzzFailureOnForceRebuildBodies # privacy

@@ -66,6 +66,7 @@ patterns/exhaustiveness/unsound_cast_3_2: semiFuzzFailureOnForceRebuildBodies # 
 patterns/extension_access: semiFuzzFailureOnForceRebuildBodies # private extension method.
 patterns/extension_tear_off: semiFuzzFailureOnForceRebuildBodies # private extension method.
 patterns/issue51009: semiFuzzFailureOnForceRebuildBodies # private extension method.
+patterns/issue55310: semiFuzzFailureOnForceRebuildBodies # can't split because of sealed class.
 patterns/pattern_matching: semiFuzzFailureOnForceRebuildBodies # can't split because of sealed class.
 patterns/private_names_in_object_patterns: semiFuzzFailureOnForceRebuildBodies # can't match on private field in split out library.
 records/issue51940: semiFuzzFailureOnForceRebuildBodies # can't split because of sealed class.
