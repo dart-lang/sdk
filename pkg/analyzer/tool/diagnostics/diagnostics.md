@@ -29,9 +29,11 @@ doesn't conform to the language specification or
 that might work in unexpected ways.
 
 [bottom type]: https://dart.dev/null-safety/understanding-null-safety#top-and-bottom
+[debugPrint]: https://api.flutter.dev/flutter/foundation/debugPrint.html
 [ffi]: https://dart.dev/guides/libraries/c-interop
 [IEEE 754]: https://en.wikipedia.org/wiki/IEEE_754
 [irrefutable pattern]: https://dart.dev/resources/glossary#irrefutable-pattern
+[kDebugMode]: https://api.flutter.dev/flutter/foundation/kDebugMode-constant.html
 [meta-doNotStore]: https://pub.dev/documentation/meta/latest/meta/doNotStore-constant.html
 [meta-doNotSubmit]: https://pub.dev/documentation/meta/latest/meta/doNotSubmit-constant.html
 [meta-factory]: https://pub.dev/documentation/meta/latest/meta/factory-constant.html
@@ -46,6 +48,7 @@ that might work in unexpected ways.
 [meta-UseResult]: https://pub.dev/documentation/meta/latest/meta/UseResult-class.html
 [meta-visibleForOverriding]: https://pub.dev/documentation/meta/latest/meta/visibleForOverriding-constant.html
 [meta-visibleForTesting]: https://pub.dev/documentation/meta/latest/meta/visibleForTesting-constant.html
+[package-logging]: https://pub.dev/packages/logging
 [refutable pattern]: https://dart.dev/resources/glossary#refutable-pattern
 
 ### abi_specific_integer_invalid
