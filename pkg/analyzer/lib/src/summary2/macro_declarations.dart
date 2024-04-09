@@ -90,6 +90,7 @@ final class ConstructorMetadataAnnotationImpl extends macro
 class DeclarationBuilder {
   final ast.AstNode? Function(Element?) nodeOfElement;
 
+  final _VoidIdentifierImpl _voidIdentifier = _VoidIdentifierImpl();
   final Map<Element, IdentifierImpl> _identifierMap = Map.identity();
 
   late final DeclarationBuilderFromNode fromNode =
@@ -1126,8 +1127,6 @@ class DeclarationBuilderFromElement {
 class DeclarationBuilderFromNode {
   final DeclarationBuilder builder;
 
-  final Map<ast.NamedType, IdentifierImpl> _namedTypeMap = Map.identity();
-
   final Map<Element, LibraryImpl> _libraryMap = Map.identity();
 
   DeclarationBuilderFromNode(this.builder);
@@ -1819,10 +1818,19 @@ class DeclarationBuilderFromNode {
 
   macro.IdentifierImpl _namedTypeIdentifier(ast.NamedType node) {
     if (node.importPrefix == null && node.name2.lexeme == 'void') {
-      return _namedTypeMap[node] ??= _VoidIdentifierImpl();
+      return builder._voidIdentifier;
     }
 
-    return _namedTypeMap[node] ??= _NamedTypeIdentifierImpl(
+    final element = node.element;
+    if (element != null) {
+      return builder._identifierMap[element] ??= IdentifierImplFromElement(
+        id: macro.RemoteInstance.uniqueId,
+        name: node.name2.lexeme,
+        element: element,
+      );
+    }
+
+    return _NamedTypeIdentifierImpl(
       id: macro.RemoteInstance.uniqueId,
       name: node.name2.lexeme,
       node: node,
