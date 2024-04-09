@@ -55,11 +55,21 @@ abstract class AbstractAugmentationCodeLensTest
 
   /// Expects a CodeLens in [sourceUri] at [sourceRange] with the title
   /// [codeLensTitle] that navigates to [targetRange] in [targetUri].
-  Future<void> expectNavigationCodeLens() async {
+  Future<void> expectNavigationCodeLens({
+    Uri? sourceUri,
+    Range? sourceRange,
+    Uri? targetUri,
+    Range? targetRange,
+  }) async {
+    sourceUri ??= this.sourceUri;
+    sourceRange ??= this.sourceRange;
+    targetUri ??= this.targetUri;
+    targetRange ??= this.targetRange;
+
     var documentCodeLenses = (await getCodeLens(sourceUri)) ?? [];
     var matchingCodeLenses = documentCodeLenses.where((codeLens) =>
         codeLens.command?.title == codeLensTitle &&
-        codeLens.range.containsPosition(sourceRange.start));
+        codeLens.range.containsPosition(sourceRange!.start));
 
     if (matchingCodeLenses.isEmpty) {
       var debugText = documentCodeLenses
@@ -305,6 +315,58 @@ class AugmentationCodeLensTest extends AbstractAugmentationCodeLensTest {
 
   @override
   Uri get targetUri => mainFileAugmentationUri;
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/55408')
+  test_available_class_augmentationOf_augmentationOf_declarationInAugmentationFile() async {
+    setLibraryContent(r'');
+    setAugmentationContent(r'''
+class A {}
+augment class /*[0*/A/*0]*/ {}
+augment class /*[1*/A/*1]*/ {}
+''');
+
+    await initialize();
+    await expectNavigationCodeLens(
+      sourceUri: mainFileAugmentationUri,
+      sourceRange: augmentationCode.ranges[0].range,
+      targetUri: mainFileAugmentationUri,
+      targetRange: augmentationCode.ranges[1].range,
+    );
+  }
+
+  test_available_class_augmentationOf_augmentationOf_declarationInLibraryFile() async {
+    setLibraryContent(r'''
+class A {}
+''');
+    setAugmentationContent(r'''
+augment class /*[0*/A/*0]*/ {}
+augment class /*[1*/A/*1]*/ {}
+''');
+
+    await initialize();
+    await expectNavigationCodeLens(
+      sourceUri: mainFileAugmentationUri,
+      sourceRange: augmentationCode.ranges[0].range,
+      targetUri: mainFileAugmentationUri,
+      targetRange: augmentationCode.ranges[1].range,
+    );
+  }
+
+  test_available_class_augmentationOf_declarationInAugmentationFile() async {
+    setLibraryContent('');
+    setAugmentationContent(r'''
+class /*[0*/A/*0]*/ {}
+augment class /*[1*/A/*1]*/ {}
+''');
+
+    await initialize();
+    await expectNavigationCodeLens(
+      sourceUri: mainFileAugmentationUri,
+      sourceRange: augmentationCode.ranges[0].range,
+      targetUri: mainFileAugmentationUri,
+      targetRange: augmentationCode.ranges[1].range,
+    );
+  }
 }
 
 /// Run all tests from [AbstractAugmentationCodeLensTest] looking for
@@ -330,4 +392,57 @@ class AugmentedCodeLensTest extends AbstractAugmentationCodeLensTest {
 
   @override
   Uri get targetUri => mainFileUri;
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/55408')
+  test_available_class_augmentationOf_augmentationOf_declarationInAugmentationFile() async {
+    setLibraryContent(r'');
+    setAugmentationContent(r'''
+class A {}
+augment class /*[0*/A/*0]*/ {}
+augment class /*[1*/A/*1]*/ {}
+''');
+
+    await initialize();
+    await expectNavigationCodeLens(
+      sourceUri: mainFileAugmentationUri,
+      sourceRange: augmentationCode.ranges[1].range,
+      targetUri: mainFileAugmentationUri,
+      targetRange: augmentationCode.ranges[0].range,
+    );
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/55408')
+  test_available_class_augmentationOf_augmentationOf_declarationInLibraryFile() async {
+    setLibraryContent(r'''
+class A {}
+''');
+    setAugmentationContent(r'''
+augment class /*[0*/A/*0]*/ {}
+augment class /*[1*/A/*1]*/ {}
+''');
+
+    await initialize();
+    await expectNavigationCodeLens(
+      sourceUri: mainFileAugmentationUri,
+      sourceRange: augmentationCode.ranges[1].range,
+      targetUri: mainFileAugmentationUri,
+      targetRange: augmentationCode.ranges[0].range,
+    );
+  }
+
+  test_available_class_augmentationOf_declarationInAugmentationFile() async {
+    setLibraryContent('');
+    setAugmentationContent(r'''
+class /*[0*/A/*0]*/ {}
+augment class /*[1*/A/*1]*/ {}
+''');
+
+    await initialize();
+    await expectNavigationCodeLens(
+      sourceUri: mainFileAugmentationUri,
+      sourceRange: augmentationCode.ranges[1].range,
+      targetUri: mainFileAugmentationUri,
+      targetRange: augmentationCode.ranges[0].range,
+    );
+  }
 }
