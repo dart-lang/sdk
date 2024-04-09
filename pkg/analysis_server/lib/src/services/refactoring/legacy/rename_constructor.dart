@@ -108,7 +108,7 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
   ) async {
     var builder = ChangeBuilder(session: sessionHelper.session);
     await builder.addDartFileEdit(resolvedUnit.path, (builder) {
-      builder.addConstructorInsertion(container, buildEdit);
+      builder.insertConstructor(container, buildEdit);
     });
     var fileEdit = builder.sourceChange.getFileEdit(resolvedUnit.path);
     if (fileEdit == null) {

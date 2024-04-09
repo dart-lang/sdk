@@ -92,7 +92,7 @@ class _CreateConstructor extends ResolvedCorrectionProducer {
     var requiredNamedParameters =
         _constructor.parameters.where((parameter) => parameter.isRequiredNamed);
     await builder.addDartFileEdit(file, (builder) {
-      builder.addConstructorInsertion(_targetClass, (builder) {
+      builder.insertConstructor(_targetClass, (builder) {
         // TODO(srawlins): Replace this block with `writeConstructorDeclaration`
         // and `parameterWriter`.
         void writeParameters(bool isDefinition) {
@@ -173,7 +173,7 @@ class _CreateConstructor extends ResolvedCorrectionProducer {
     var requiredNamedParameters =
         _constructor.parameters.where((parameter) => parameter.isRequiredNamed);
     await builder.addDartFileEdit(file, (builder) {
-      builder.addConstructorInsertion(_targetClass, (builder) {
+      builder.insertConstructor(_targetClass, (builder) {
         // TODO(srawlins): Replace this block with `writeConstructorDeclaration`
         // and `parameterWriter`.
         void writeParameter(ParameterElement parameter) {

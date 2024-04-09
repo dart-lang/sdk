@@ -212,7 +212,7 @@ class CreateGetter extends CreateFieldOrGetter {
     // Build method source.
     var targetFile = targetSource.fullName;
     await builder.addDartFileEdit(targetFile, (builder) {
-      builder.addGetterInsertion(
+      builder.insertGetter(
         targetNode,
         (builder) {
           builder.writeGetterDeclaration(_getterName,

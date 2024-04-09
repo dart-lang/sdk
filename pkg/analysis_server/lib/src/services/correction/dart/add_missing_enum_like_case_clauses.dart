@@ -39,7 +39,7 @@ class AddMissingEnumLikeCaseClauses extends ResolvedCorrectionProducer {
       await builder.addDartFileEdit(file, (builder) {
         // TODO(brianwilkerson): Consider inserting the names in order into the
         //  switch statement.
-        builder.addCaseClauseAtEndInsertion(
+        builder.insertCaseClauseAtEnd(
             switchKeyword: node.switchKeyword,
             rightParenthesis: node.rightParenthesis,
             leftBracket: node.leftBracket,
