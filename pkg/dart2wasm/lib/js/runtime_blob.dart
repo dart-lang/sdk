@@ -149,12 +149,12 @@ const jsRuntimeBlobPart5 = r'''
         "substring": (s, a, b) => s.substring(a, b),
     };
 
-    dartInstance = await WebAssembly.instantiate(await modulePromise, {
+    const wasmInstance = await WebAssembly.instantiate(await modulePromise, {
         ...baseImports,
         ...(await importObjectPromise),
         "wasm:js-string": jsStringPolyfill,
     });
-
+    dartInstance = wasmInstance.instance;
     return dartInstance;
 }
 
