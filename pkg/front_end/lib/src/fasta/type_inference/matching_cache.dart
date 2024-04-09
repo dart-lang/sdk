@@ -845,7 +845,7 @@ class PromotedCacheableExpression
   final AccessKey accessKey;
 
   PromotedCacheableExpression(this._expression, this._promotedType)
-      : accessKey = new PromotedAccessKey(_expression.cacheKey, _promotedType);
+      : accessKey = new PromotedAccessKey(_expression.accessKey, _promotedType);
 
   @override
   CacheKey get cacheKey => _expression.cacheKey;
