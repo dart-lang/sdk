@@ -72,11 +72,6 @@ class AddKeyToConstructors extends ResolvedCorrectionProducer {
   /// The lint is on the name of the class when there are no constructors.
   Future<void> _computeClassDeclaration(
       ChangeBuilder builder, ClassDeclaration node) async {
-    var targetLocation = utils.prepareNewConstructorLocation(
-        unitResult.session, node, unitResult.file);
-    if (targetLocation == null) {
-      return;
-    }
     var keyType = await _getKeyType();
     if (keyType == null) {
       return;
@@ -89,8 +84,9 @@ class AddKeyToConstructors extends ResolvedCorrectionProducer {
 
     var canBeConst = _canBeConst(node, constructors);
     await builder.addDartFileEdit(file, (builder) {
-      builder.addInsertion(targetLocation.offset, (builder) {
-        builder.write(targetLocation.prefix);
+      builder.addConstructorInsertion(node, (builder) {
+        // TODO(srawlins): Replace this block with `writeConstructorDeclaration`
+        // and `parameterWriter`.
         if (canBeConst) {
           builder.write('const ');
         }
@@ -102,13 +98,12 @@ class AddKeyToConstructors extends ResolvedCorrectionProducer {
           builder.writeType(keyType);
           builder.write(' key}) : super(key: key);');
         }
-        builder.write(targetLocation.suffix);
       });
     });
   }
 
-  /// The lint is on a constructor when that constructor doesn't have a `key`
-  /// parameter.
+  /// The lint is reported on a constructor when that constructor doesn't have a
+  /// `key` parameter.
   Future<void> _computeConstructorDeclaration(
       ChangeBuilder builder, ConstructorDeclaration node) async {
     var keyType = await _getKeyType();

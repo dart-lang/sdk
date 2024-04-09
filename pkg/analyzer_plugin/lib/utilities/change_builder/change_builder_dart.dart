@@ -53,13 +53,15 @@ abstract class DartEditBuilder implements EditBuilder {
       DartType? superclass,
       String? superclassGroupName});
 
-  /// Write the code for a constructor declaration in the class with the given
-  /// [className]. If [isConst] is `true`, then the constructor will be marked
-  /// as being a `const` constructor. If a [constructorName] is provided, then
-  /// the constructor will have the given name. If both a constructor name and
-  /// a [constructorNameGroupName] is provided, then the name of the constructor
+  /// Writes the code for a constructor declaration in the class with the given
+  /// [className].
+  ///
+  /// If [isConst] is `true`, then the constructor will be marked as being a
+  /// `const` constructor. If a [constructorName] is provided, then the
+  /// constructor will have the given name. If both a constructor name and a
+  /// [constructorNameGroupName] is provided, then the name of the constructor
   /// will be included in the linked edit group with that name. If a
-  /// [parameterWriter] is provided then it is used to write the constructor
+  /// [parameterWriter] is provided, then it is used to write the constructor
   /// parameters (enclosing parenthesis are written for you). Otherwise, if an
   /// [argumentList] is provided then the constructor will have parameters that
   /// match the given arguments. If no argument list is given, but a list of
@@ -332,6 +334,16 @@ abstract class DartFileEditBuilder implements FileEditBuilder {
     required Token leftBracket,
     required Token rightBracket,
   });
+
+  /// Adds an insertion for a constructor.
+  ///
+  /// The constructor is inserted after the last existing field or constructor,
+  /// or if the `sort_constructors_first` lint rule is enabled, after the last
+  /// existing constructor.
+  void addConstructorInsertion(
+    CompilationUnitMember compilationUnitMember,
+    void Function(DartEditBuilder builder) buildEdit,
+  );
 
   /// Adds an insertion for a field.
   ///
