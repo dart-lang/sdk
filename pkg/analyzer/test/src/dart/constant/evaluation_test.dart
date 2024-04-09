@@ -4277,6 +4277,26 @@ String a
 ''');
   }
 
+  test_visitPropertyAccess_constant_extensionType_prefixed() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+extension type const E(int it) {
+  static const v = 42;
+}
+''');
+
+    await assertNoErrorsInCode('''
+import 'a.dart' as prefix;
+
+const x = prefix.E.v;
+''');
+
+    final result = _topLevelVar('x');
+    assertDartObjectText(result, '''
+int 42
+  variable: self::@variable::x
+''');
+  }
+
   test_visitPropertyAccess_length_extension() async {
     await assertErrorsInCode('''
 extension ExtObject on Object {
