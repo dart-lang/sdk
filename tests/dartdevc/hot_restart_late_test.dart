@@ -37,10 +37,10 @@ main() {
 
   // Count the number of reset fields triggered by a call to `Expect.throws`
   // after every hot restart. This value is used as an offset in expectations
-  // below. (Update the expectation below if the number changes.)
+  // below.
   Expect.throws(() => throw 'foo');
   var expectThrowsResetFieldCount = dart.resetFields.length;
-  Expect.equals(0, expectThrowsResetFieldCount);
+  Expect.equals(1, expectThrowsResetFieldCount);
 
   dart.hotRestart();
 

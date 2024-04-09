@@ -6,7 +6,6 @@
 // VMOptions=--optimization-counter-threshold=20
 
 import "package:expect/expect.dart";
-import "package:expect/variations.dart" show enabledAsserts;
 import "package:async_helper/async_helper.dart";
 import "dart:async";
 
@@ -134,7 +133,7 @@ main() {
       return throwsErr(f());
     });
 
-    if (enabledAsserts) {
+    if (assertStatementsEnabled) {
       test("assert before await", () {
         f(v) async {
           assert(v == 87);
@@ -177,6 +176,7 @@ main() {
         return new Future.value(42); // Not awaited.
       }
 
+      ;
       return f().then((v) {
         expect(v, equals(42)); // And not a Future with value 42.
       });
@@ -233,8 +233,8 @@ main() {
       });
     });
 
-    if (enabledAsserts) {
-      test("await for w/ await, assert", () {
+    if (assertStatementsEnabled) {
+      test("await for w/ await, asseert", () {
         f(Stream<int> s) async {
           int i = 0;
           await for (int v in s) {
@@ -1912,7 +1912,7 @@ main() {
       return expect42(f());
     });
 
-    if (!enabledAsserts) return;
+    if (!assertStatementsEnabled) return;
 
     test("inside assert, true", () { //                      //# 03: ok
       f() async { //                                         //# 03: continued

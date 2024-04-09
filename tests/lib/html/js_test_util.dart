@@ -8,7 +8,7 @@ import 'dart:html';
 import 'dart:indexed_db' show IdbFactory, KeyRange;
 import 'dart:js';
 
-import 'package:expect/minitest.dart'; // ignore: deprecated_member_use_from_same_package
+import 'package:expect/minitest.dart';
 
 injectJs() {
   final script = new ScriptElement();

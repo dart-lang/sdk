@@ -5,7 +5,7 @@
 import 'dart:js_interop';
 
 import 'package:async_helper/async_helper.dart';
-import 'package:expect/minitest.dart'; // ignore: deprecated_member_use_from_same_package
+import 'package:expect/minitest.dart';
 
 extension type Module(JSObject o) implements JSObject {
   external String testModuleFunction();

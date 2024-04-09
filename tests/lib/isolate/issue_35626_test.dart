@@ -21,9 +21,7 @@ void sendSetOfEnums(SendPort port) {
 }
 
 void main() async {
-  Set<MyEnum> localSet = Set()
-    ..add(MyEnum.foo)
-    ..add(MyEnum.bar);
+  Set<MyEnum> localSet = Set()..add(MyEnum.foo)..add(MyEnum.bar);
   localSet.lookup(MyEnum.foo);
 
   final port = ReceivePort();
@@ -32,6 +30,6 @@ void main() async {
 
   print(localSet);
   print(remoteSet);
-  Expect.setEquals({MyEnum.bar}, localSet.intersection(remoteSet));
-  Expect.setEquals({MyEnum.bar}, remoteSet.intersection(localSet));
+  Expect.setEquals([MyEnum.bar], localSet.intersection(remoteSet));
+  Expect.setEquals([MyEnum.bar], remoteSet.intersection(localSet));
 }

@@ -2,20 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// This library contains an `Expect` class with static methods that can be used
+/// This library contains an Expect class with static methods that can be used
 /// for simple unit-tests.
 ///
-/// The library is deliberately written to use as few and simple language
-/// features as reasonable to perform the tests.
-/// This ensures that it can be used to test as many language features as
-/// possible.
-///
-/// Error reporting as allowed to use more features, under the assumption
-/// that it will either work as desired, or break in some other way.
-/// As long as the *success path* is simple, a successful test can be trusted.
-///
-/// NOTICE: This library is written to be usable by pre-2.12 language versions,
-/// so it can be used to test non-sound-nullsafety implementations.
+/// This library is deliberately simple and uses very few language features.
+/// This makes it safer to use for writing the language test suite.
 library expect;
 
 /// Whether the program is running without sound null safety.
@@ -32,22 +23,15 @@ bool get hasSoundNullSafety => !hasUnsoundNullSafety;
 /// the expect() function in the unit test library instead for
 /// test assertions.
 class Expect {
-  /// A slice of a string for inclusion in error messages.
+  /// Return a slice of a string.
   ///
-  /// The [start] and [end] represents a slice of a string which
-  /// has failed a test. For example, it's a part of a string
-  /// which is not equal to an expected string value.
-  ///
-  /// The [length] limits the length of the representation of the slice,
-  /// to avoid a long difference being shown in its entirety.
-  ///
-  /// The slice will contain at least some part of the substring from [start]
-  /// to the lower of [end] and `start + length`.
+  /// The slice will contain at least the substring from [start] to the lower of
+  /// [end] and `start + length`.
   /// If the result is no more than `length - 10` characters long,
   /// context may be added by extending the range of the slice, by decreasing
   /// [start] and increasing [end], up to at most length characters.
   /// If the start or end of the slice are not matching the start or end of
-  /// the string, ellipses (`"..."`) are added before or after the slice.
+  /// the string, ellipses are added before or after the slice.
   /// Characters other than printable ASCII are escaped.
   static String _truncateString(String string, int start, int end, int length) {
     if (end - start > length) {
@@ -68,11 +52,8 @@ class Expect {
     return buf.toString();
   }
 
-  /// The [string] with non printable-ASCII characters escaped.
-  ///
-  /// Any character of [string] which is not ASCII or an ASCII control character
-  /// is represented as either `"\xXX"` or `"\uXXXX"` hex escapes.
-  /// Backslashes are escaped as `"\\"`.
+  /// Return the string with characters that are not printable ASCII characters
+  /// escaped as either "\xXX" codes or "\uXXXX" codes.
   static String _escapeString(String string) {
     StringBuffer buf = StringBuffer();
     _escapeSubstring(buf, string, 0, string.length);
@@ -81,55 +62,33 @@ class Expect {
 
   static _escapeSubstring(StringBuffer buf, String string, int start, int end) {
     const hexDigits = "0123456789ABCDEF";
-    const backslash = 0x5c;
-    int chunkStart = start; // No escapes since this point.
     for (int i = start; i < end; i++) {
       int code = string.codeUnitAt(i);
-      if (0x20 <= code && code < 0x7F && code != backslash) {
-        continue;
-      }
-      if (i > chunkStart) {
-        buf.write(string.substring(chunkStart, i));
-      }
-      if (code == backslash) {
-        buf.write(r"\\");
-      } else if (code < 0x100) {
-        if (code == 0x09) {
-          buf.write(r"\t");
-        } else if (code == 0x0a) {
-          buf.write(r"\n");
-        } else if (code == 0x0d) {
-          buf.write(r"\r");
-        } else if (code == 0x5c) {
+      if (0x20 <= code && code < 0x7F) {
+        if (code == 0x5C) {
           buf.write(r"\\");
         } else {
-          buf.write(r"\x");
-          buf.write(hexDigits[code >> 4]);
-          buf.write(hexDigits[code & 15]);
+          buf.writeCharCode(code);
         }
+      } else if (code < 0x100) {
+        buf.write(r"\x");
+        buf.write(hexDigits[code >> 4]);
+        buf.write(hexDigits[code & 15]);
       } else {
         buf.write(r"\u{");
         buf.write(code.toRadixString(16).toUpperCase());
         buf.write(r"}");
       }
-      chunkStart = i + 1;
-    }
-    if (chunkStart < end) {
-      buf.write(string.substring(chunkStart, end));
     }
   }
 
-  /// A string representing the difference between two strings.
+  /// Find the difference between two strings.
   ///
-  /// The two strings have already been checked as not being equal (`==`).
-  ///
-  /// This function finds the first point where the two strings differ,
-  /// and returns a text describing the difference.
+  /// This finds the first point where two strings differ, and returns
+  /// a text describing the difference.
   ///
   /// For small strings (length less than 20) nothing is done, and "" is
-  /// returned, representing that the entire string can be used to display
-  /// the difference.
-  /// Small strings can be compared visually, but for longer strings
+  /// returned. Small strings can be compared visually, but for longer strings
   /// only a slice containing the first difference will be shown.
   static String _stringDifference(String expected, String actual) {
     if (expected.length < 20 && actual.length < 20) return "";
@@ -142,89 +101,74 @@ class Expect {
           i++;
         }
         int end = i;
-        var truncatedExpected = _truncateString(expected, start, end, 20);
-        var truncatedActual = _truncateString(actual, start, end, 20);
-        return "at index $start: Expected <$truncatedExpected>, "
-            "Found: <$truncatedActual>";
+        var truncExpected = _truncateString(expected, start, end, 20);
+        var truncActual = _truncateString(actual, start, end, 20);
+        return "at index $start: Expected <$truncExpected>, "
+            "Found: <$truncActual>";
       }
     }
     return "";
   }
 
-  /// Checks that the expected and actual values are equal (using `==`).
+  /// Checks whether the expected and actual values are equal (using `==`).
   static void equals(dynamic expected, dynamic actual, [String reason = ""]) {
     if (expected == actual) return;
-    _failNotEqual(expected, actual, "equals", reason);
-  }
-
-  /// Reports two values not equal.
-  ///
-  /// Used by, for example, `Expect.equals` and `Expect.deepEquals`.
-  static void _failNotEqual(
-      dynamic expected, dynamic actual, String test, String reason) {
     String msg = _getMessage(reason);
     if (expected is String && actual is String) {
       String stringDifference = _stringDifference(expected, actual);
       if (stringDifference.isNotEmpty) {
-        _fail("Expect.$test($stringDifference$msg) fails.");
+        _fail("Expect.equals($stringDifference$msg) fails.");
       }
-      _fail("Expect.$test(expected: <${_escapeString(expected)}>"
+      _fail("Expect.equals(expected: <${_escapeString(expected)}>"
           ", actual: <${_escapeString(actual)}>$msg) fails.");
     }
-    _fail("Expect.$test(expected: <$expected>, actual: <$actual>$msg) fails.");
+    _fail("Expect.equals(expected: <$expected>, actual: <$actual>$msg) fails.");
   }
 
-  /// Checks that the actual value is a `bool` and its value is `true`.
+  /// Checks whether the actual value is a bool and its value is true.
   static void isTrue(dynamic actual, [String reason = ""]) {
     if (_identical(actual, true)) return;
     String msg = _getMessage(reason);
     _fail("Expect.isTrue($actual$msg) fails.");
   }
 
-  /// Checks that the actual value is a `bool` and its value is `false`.
+  /// Checks whether the actual value is a bool and its value is false.
   static void isFalse(dynamic actual, [String reason = ""]) {
     if (_identical(actual, false)) return;
     String msg = _getMessage(reason);
     _fail("Expect.isFalse($actual$msg) fails.");
   }
 
-  /// Checks that [actual] is null.
+  /// Checks whether [actual] is null.
   static void isNull(dynamic actual, [String reason = ""]) {
     if (null == actual) return;
     String msg = _getMessage(reason);
     _fail("Expect.isNull(actual: <$actual>$msg) fails.");
   }
 
-  /// Checks that [actual] is not null.
+  /// Checks whether [actual] is not null.
   static void isNotNull(dynamic actual, [String reason = ""]) {
     if (null != actual) return;
     String msg = _getMessage(reason);
-    _fail("Expect.isNotNull(actual: null$msg) fails.");
+    _fail("Expect.isNotNull(actual: <$actual>$msg) fails.");
   }
 
-  /// Checks that the [Iterable] [actual] is empty.
+  /// Checks whether the Iterable [actual] is empty.
   static void isEmpty(Iterable actual, [String reason = ""]) {
     if (actual.isEmpty) return;
     String msg = _getMessage(reason);
-    var sample = actual.take(4).toList();
-    var sampleString = sample.length < 4
-        ? sample.join(", ")
-        : "${sample.take(3).join(", ")}, ...";
-    _fail("Expect.isEmpty(actual: <$sampleString>$msg): Is not empty.");
+    _fail("Expect.isEmpty(actual: <$actual>$msg) fails.");
   }
 
-  /// Checks that the [Iterable] [actual] is not empty.
+  /// Checks whether the Iterable [actual] is not empty.
   static void isNotEmpty(Iterable actual, [String reason = ""]) {
-    if (!actual.isEmpty) return; // ignore: prefer_is_not_empty
+    if (actual.isNotEmpty) return;
     String msg = _getMessage(reason);
-    _fail("Expect.isNotEmpty(actual: <${Error.safeToString(actual)}>$msg): "
-        "Is empty.");
+    _fail("Expect.isNotEmpty(actual: <$actual>$msg) fails.");
   }
 
-  /// Checks that the expected and actual values are identical
+  /// Checks whether the expected and actual values are identical
   /// (using `identical`).
-  // TODO(lrn): Rename to `same`, to match package:test, and to not
-  // shadow `identical` from `dart:core`. (And `allIdentical` to `allSame`.)
   static void identical(dynamic expected, dynamic actual,
       [String reason = ""]) {
     if (_identical(expected, actual)) return;
@@ -248,7 +192,7 @@ class Expect {
   ///
   /// Uses `[]` for objects that are only identical to themselves.
   static List<List<int>> _findEquivalences(List<dynamic> objects) {
-    var equivalences = List<List<int>>.generate(objects.length, (_) => <int>[]);
+    var equivalences = List<List<int>>.generate(objects.length, (_) => []);
     for (int i = 0; i < objects.length; i++) {
       if (equivalences[i].isNotEmpty) continue;
       var o = objects[i];
@@ -290,16 +234,10 @@ class Expect {
 
   static void allIdentical(List<dynamic> objects, [String reason = ""]) {
     if (objects.length <= 1) return;
-    bool allIdentical = true;
-    var firstObject = objects[0];
-    for (var i = 1; i < objects.length; i++) {
-      if (!_identical(firstObject, objects[i])) {
-        allIdentical = false;
-      }
-    }
-    if (allIdentical) return;
     String msg = _getMessage(reason);
     var equivalences = _findEquivalences(objects);
+    var first = equivalences[0];
+    if (first.isNotEmpty && first.length == objects.length) return;
     var buffer = StringBuffer("Expect.allIdentical([");
     _writeEquivalences(objects, equivalences, buffer);
     buffer
@@ -309,7 +247,7 @@ class Expect {
     _fail(buffer.toString());
   }
 
-  /// Checks that the expected and actual values are *not* identical
+  /// Checks whether the expected and actual values are *not* identical
   /// (using `identical`).
   static void notIdentical(var unexpected, var actual, [String reason = ""]) {
     if (!_identical(unexpected, actual)) return;
@@ -319,20 +257,17 @@ class Expect {
 
   /// Checks that no two [objects] are `identical`.
   static void allDistinct(List<dynamic> objects, [String reason = ""]) {
-    if (objects.length <= 1) return;
-    bool allDistinct = true;
-    for (var i = 0; i < objects.length; i++) {
-      var earlierObject = objects[i];
-      for (var j = i + 1; j < objects.length; j++) {
-        if (_identical(earlierObject, objects[j])) {
-          allDistinct = false;
-        }
-      }
-    }
-    if (allDistinct) return;
     String msg = _getMessage(reason);
     var equivalences = _findEquivalences(objects);
 
+    bool hasEquivalence = false;
+    for (int i = 0; i < equivalences.length; i++) {
+      if (equivalences[i].isNotEmpty) {
+        hasEquivalence = true;
+        break;
+      }
+    }
+    if (!hasEquivalence) return;
     var buffer = StringBuffer("Expect.allDistinct([");
     _writeEquivalences(objects, equivalences, buffer);
     buffer
@@ -350,11 +285,7 @@ class Expect {
     _fail("Expect.fail('$msg')");
   }
 
-  /// Checks that two numbers are relatively close.
-  ///
-  /// Intended for `double` computations with some tolerance in the result.
-  ///
-  /// Fails if the difference between expected and actual is greater than the
+  /// Failure if the difference between expected and actual is greater than the
   /// given tolerance. If no tolerance is given, tolerance is assumed to be the
   /// value 4 significant digits smaller than the value given for expected.
   static void approxEquals(num expected, num actual,
@@ -362,8 +293,7 @@ class Expect {
     if (tolerance < 0) {
       tolerance = (expected / 1e4).abs();
     }
-    // Note: Use success if `<=` rather than failing on `>`
-    // so the test fails on NaNs.
+    // Note: use !( <= ) rather than > so we fail on NaNs
     if ((expected - actual).abs() <= tolerance) return;
 
     String msg = _getMessage(reason);
@@ -378,26 +308,22 @@ class Expect {
         "fails.");
   }
 
-  /// Checks that all elements in [expected] and [actual] are pairwise equal.
-  ///
+  /// Checks that all elements in [expected] and [actual] are equal `==`.
   /// This is different than the typical check for identity equality `identical`
-  /// used by the standard list implementation.
+  /// used by the standard list implementation.  It should also produce nicer
+  /// error messages than just calling `Expect.equals(expected, actual)`.
   static void listEquals(List expected, List actual, [String reason = ""]) {
-    // Check elements before length.
-    // It may show *which* element has been added or is missing.
+    String msg = _getMessage(reason);
     int n = (expected.length < actual.length) ? expected.length : actual.length;
     for (int i = 0; i < n; i++) {
-      var expectedValue = expected[i];
-      var actualValue = actual[i];
-      if (expectedValue != actualValue) {
-        var indexReason =
-            reason.isEmpty ? "at index $i" : "$reason, at index $i";
-        _failNotEqual(expectedValue, actualValue, "listEquals", indexReason);
+      if (expected[i] != actual[i]) {
+        _fail('Expect.listEquals(at index $i, '
+            'expected: <${expected[i]}>, actual: <${actual[i]}>$msg) fails');
       }
     }
-    // Check that the lengths agree as well.
+    // We check on length at the end in order to provide better error
+    // messages when an unexpected item is inserted in a list.
     if (expected.length != actual.length) {
-      String msg = _getMessage(reason);
       _fail('Expect.listEquals(list length, '
           'expected: <${expected.length}>, actual: <${actual.length}>$msg) '
           'fails: Next element <'
@@ -405,32 +331,23 @@ class Expect {
     }
   }
 
-  /// Checks that all [expected] and [actual] have the same set entries.
-  ///
-  /// Check that the maps have the same keys, using the semantics of
-  /// [Map.containsKey] to determine what "same" means. For
-  /// each key, checks that their values are equal using `==`.
+  /// Checks that all [expected] and [actual] have the same set of keys (using
+  /// the semantics of [Map.containsKey] to determine what "same" means. For
+  /// each key, checks that the values in both maps are equal using `==`.
   static void mapEquals(Map expected, Map actual, [String reason = ""]) {
     String msg = _getMessage(reason);
 
     // Make sure all of the values are present in both, and they match.
-    var expectedKeys = expected.keys.toList();
-    for (var i = 0; i < expectedKeys.length; i++) {
-      var key = expectedKeys[i];
+    for (final key in expected.keys) {
       if (!actual.containsKey(key)) {
         _fail('Expect.mapEquals(missing expected key: <$key>$msg) fails');
       }
 
-      var expectedValue = expected[key];
-      var actualValue = actual[key];
-      if (expectedValue == actualValue) continue;
-      _failNotEqual(expectedValue, actualValue, "mapEquals", "map[$key]");
+      Expect.equals(expected[key], actual[key]);
     }
 
     // Make sure the actual map doesn't have any extra keys.
-    var actualKeys = actual.keys.toList();
-    for (var i = 0; i < actualKeys.length; i++) {
-      var key = actualKeys[i];
+    for (final key in actual.keys) {
       if (!expected.containsKey(key)) {
         _fail('Expect.mapEquals(unexpected key: <$key>$msg) fails');
       }
@@ -447,7 +364,6 @@ class Expect {
     String defaultMessage =
         'Expect.stringEquals(expected: <$expected>", <$actual>$msg) fails';
 
-    // TODO(sound-null-safety): Remove.
     if ((expected as dynamic) == null || (actual as dynamic) == null) {
       _fail(defaultMessage);
     }
@@ -517,207 +433,128 @@ class Expect {
     _fail("$defaultMessage$diff");
   }
 
-  /// Checks that the [haystack] string contains a given substring [needle].
+  /// Checks that [haystack] contains a given substring [needle].
   ///
   /// For example, this succeeds:
-  /// ```dart
-  /// Expect.contains("a", "abcdefg");
-  /// ```
-  static void contains(String expectedSubstring, String actual,
-      [String reason = ""]) {
-    if (actual.contains(expectedSubstring)) return;
-    var msg = _getMessage(reason);
-    _fail("Expect.contains('${_escapeString(expectedSubstring)}',"
-        " '${_escapeString(actual)}'$msg) fails");
-  }
-
-  /// Checks that the [actual] string contains any of the [expectedSubstrings].
   ///
-  /// For example, this succeeds since it contains at least one of the
-  /// expected substrings:
-  /// ```dart
-  /// Expect.containsAny(["a", "e", "h"], "abcdefg");
-  /// ```
-  static void containsAny(List<String> expectedSubstrings, String actual,
-      [String reason = ""]) {
-    for (var i = 0; i < expectedSubstrings.length; i++) {
-      if (actual.contains(expectedSubstrings[i])) return;
+  ///     Expect.contains("a", "abcdefg");
+  static void contains(String needle, String haystack) {
+    if (!haystack.contains(needle)) {
+      _fail("String '$needle' not found within '$haystack'");
     }
-    var msg = _getMessage(reason);
-    _fail("Expect.containsAny(..., '${_escapeString(actual)}$msg): None of "
-        "'${expectedSubstrings.join("', '")}' found");
   }
 
-  /// Checks that [actual] contains the list of [expectedSubstrings] in order.
+  /// Checks that [haystack] contains one of the given substrings [needles].
   ///
   /// For example, this succeeds:
-  /// ```dart
-  /// Expect.containsInOrder(["a", "c", "e"], "abcdefg");
-  /// ```
-  static void containsInOrder(List<String> expectedSubstrings, String actual,
-      [String reason = ""]) {
+  ///
+  ///     Expect.containsOneOf(["a", "h"], "abcdefg");
+  static void containsOneOf(Iterable<String> needles, String haystack) {
+    if (!needles.any((s) => haystack.contains(s))) {
+      _fail("None of the strings '$needles' found within '$haystack'");
+    }
+  }
+
+  /// Checks that [actual] contains a given list of [substrings] in order.
+  ///
+  /// For example, this succeeds:
+  ///
+  ///     Expect.stringContainsInOrder("abcdefg", ["a", "c", "e"]);
+  static void stringContainsInOrder(String actual, List<String> substrings) {
     var start = 0;
-    for (var i = 0; i < expectedSubstrings.length; i++) {
-      var s = expectedSubstrings[i];
-      var position = actual.indexOf(s, start);
-      if (position < 0) {
-        var msg = _getMessage(reason);
-        _fail("Expect.containsInOrder(..., '${_escapeString(actual)}'"
-            "$msg): Did not find '${_escapeString(s)}' in the expected order: "
-            "'${expectedSubstrings.map(_escapeString).join("', '")}'");
+    for (var s in substrings) {
+      start = actual.indexOf(s, start);
+      if (start < 0) {
+        _fail("String '$actual' did not contain '$s' in the expected order: "
+            "${substrings.map((s) => "'$s'").join(", ")}");
       }
     }
   }
 
-  /// Checks that [actual] contains the same elements as [expected].
-  ///
-  /// Intended to be used with sets, which has efficient [Set.contains],
-  /// but can be used with any collection. The test behaves as if the
-  /// collection was converted to a set.
-  ///
-  /// Should not be used with a lazy iterable, since it calls
-  /// [Iterable.contains] repeatedly. Efficiency aside, if separate iterations
-  /// can provide different results, the outcome of this test is unspecified.
-  /// Should not be used with collections that contain the same value more than
-  /// once.
-  /// This is *not* an "unordered equality", which would consider `["a", "a"]`
-  /// and `["a"]` different. This check would accept those inputs, as if
-  /// calling `.toSet()` on the values first.
-  ///
-  /// Checks that the elements of [expected] are all in [actual],
-  /// according to [actual.contains], and vice versa.
-  /// Assumes that the sets use the same equality,
-  /// which should be `==`-equality.
+  /// Checks that every element of [expected] is also in [actual], and that
+  /// every element of [actual] is also in [expected].
   static void setEquals(Iterable expected, Iterable actual,
       [String reason = ""]) {
-    final List<dynamic> missingElements = [];
-    final List<dynamic> extraElements = [];
-    final List<dynamic> expectedElements = expected.toList();
-    final List<dynamic> actualElements = actual.toList();
-    for (var i = 0; i < expectedElements.length; i++) {
-      var expectedElement = expectedElements[i];
-      if (!actual.contains(expectedElement)) {
-        missingElements.add(expectedElement);
-      }
-    }
-    for (var i = 0; i < actualElements.length; i++) {
-      var actualElement = actualElements[i];
-      if (!expected.contains(actualElement)) {
-        extraElements.add(actualElement);
-      }
-    }
-    if (missingElements.isEmpty && extraElements.isEmpty) return;
+    final missingSet = Set.from(expected);
+    missingSet.removeAll(actual);
+    final extraSet = Set.from(actual);
+    extraSet.removeAll(expected);
+
+    if (extraSet.isEmpty && missingSet.isEmpty) return;
     String msg = _getMessage(reason);
 
     StringBuffer sb = StringBuffer("Expect.setEquals($msg) fails");
     // Report any missing items.
-    if (missingElements.isNotEmpty) {
-      sb.write('\nMissing expected elements: ');
-      for (final val in missingElements) {
-        sb.write('$val ');
-      }
+    if (missingSet.isNotEmpty) {
+      sb.write('\nExpected collection does not contain: ');
+    }
+
+    for (final val in missingSet) {
+      sb.write('$val ');
     }
 
     // Report any extra items.
-    if (extraElements.isNotEmpty) {
-      sb.write('\nUnexpected elements: ');
-      for (final val in extraElements) {
-        sb.write('$val ');
-      }
+    if (extraSet.isNotEmpty) {
+      sb.write('\nExpected collection should not contain: ');
     }
 
+    for (final val in extraSet) {
+      sb.write('$val ');
+    }
     _fail(sb.toString());
   }
 
   /// Checks that [expected] is equivalent to [actual].
   ///
-  /// If the objects are both `Set`s, `Iterable`s, or `Map`s,
-  /// check that they have the same structure:
-  /// * For sets: Same elements, based on [Set.contains]. Not recursive.
-  /// * For maps: Same keys, based on [Map.containsKey], and with
-  ///   recursively deep-equal for the values of each key.
-  /// * For other, non-set, iterables: Same length and elements that
-  ///   are pair-wise deep-equal.
-  ///
-  /// Assumes expected and actual maps and sets use the same equality.
+  /// If the objects are iterables or maps, recurses into them.
   static void deepEquals(dynamic expected, dynamic actual) {
-    _deepEquals(expected, actual, []);
-  }
-
-  static String _pathString(List<Object> path) => "[${path.join("][")}]";
-
-  /// Recursive implementation of [deepEquals].
-  ///
-  /// The [path] contains a mutable list of the map keys or list indices
-  /// traversed so far.
-  static void _deepEquals(dynamic expected, dynamic actual, List<Object> path) {
     // Early exit check for equality.
     if (expected == actual) return;
 
-    if (expected is Set && actual is Set) {
-      var expectedElements = expected.toList();
-      var actualElements = actual.toList();
-      for (var i = 0; i < expectedElements.length; i++) {
-        var value = expectedElements[i];
-        if (!actual.contains(value)) {
-          _fail("Expect.deepEquals(${_pathString(path)}), "
-              "missing value: <$value>");
-        }
-      }
-      for (var value in actualElements) {
-        if (!expected.contains(value)) {
-          _fail("Expect.deepEquals(${_pathString(path)}), "
-              "unexpected value: <$value>");
-        }
-      }
+    if (expected is String && actual is String) {
+      stringEquals(expected, actual);
     } else if (expected is Iterable && actual is Iterable) {
-      var expectedElements = expected.toList();
-      var actualElements = actual.toList();
-      var expectedLength = expectedElements.length;
-      var actualLength = actualElements.length;
-      var minLength =
+      var expectedLength = expected.length;
+      var actualLength = actual.length;
+
+      var length =
           expectedLength < actualLength ? expectedLength : actualLength;
-      for (var i = 0; i < minLength; i++) {
-        var expectedElement = expectedElements[i];
-        var actualElement = actualElements[i];
-        path.add(i);
-        _deepEquals(expectedElement, actualElement, path);
-        path.removeLast();
+      for (var i = 0; i < length; i++) {
+        deepEquals(expected.elementAt(i), actual.elementAt(i));
       }
+
+      // We check on length at the end in order to provide better error
+      // messages when an unexpected item is inserted in a list.
       if (expectedLength != actualLength) {
-        var nextElement = (expectedLength > actualLength
-            ? expectedElements
-            : actualElements)[minLength];
-        _fail("Expect.deepEquals(${_pathString(path)}.length, "
-            "expected: <$expectedLength>, actual: <$actualLength>) "
-            "fails: Next element <$nextElement>");
+        var nextElement =
+            (expectedLength > length ? expected : actual).elementAt(length);
+        _fail('Expect.deepEquals(list length, '
+            'expected: <$expectedLength>, actual: <$actualLength>) '
+            'fails: Next element <$nextElement>');
       }
     } else if (expected is Map && actual is Map) {
-      var expectedKeys = expected.keys.toList();
-      var actualKeys = actual.keys.toList();
-      // Make sure all of the keys are present in both, and match values.
-      for (var i = 0; i < expectedKeys.length; i++) {
-        var key = expectedKeys[i];
+      // Make sure all of the values are present in both and match.
+      for (final key in expected.keys) {
         if (!actual.containsKey(key)) {
-          _fail("Expect.deepEquals(${_pathString(path)}), "
-              "missing map key: <$key>");
+          _fail('Expect.deepEquals(missing expected key: <$key>) fails');
         }
-        path.add(key);
-        _deepEquals(expected[key], actual[key], path);
-        path.removeLast();
+
+        Expect.deepEquals(expected[key], actual[key]);
       }
-      for (var key in actualKeys) {
+
+      // Make sure the actual map doesn't have any extra keys.
+      for (final key in actual.keys) {
         if (!expected.containsKey(key)) {
-          _fail("Expect.deepEquals(${_pathString(path)}), "
-              "unexpected map key: <$key>");
+          _fail('Expect.deepEquals(unexpected key: <$key>) fails');
         }
       }
     } else {
-      _failNotEqual(expected, actual, "deepEquals", _pathString(path));
+      _fail("Expect.deepEquals(expected: <$expected>, actual: <$actual>) "
+          "fails.");
     }
   }
 
-  static bool _defaultCheck(dynamic _) => true;
+  static bool _defaultCheck([dynamic _]) => true;
 
   /// Verifies that [computation] throws a [T].
   ///
@@ -742,7 +579,14 @@ class Expect {
   /// that exception cannot be caught and accepted by [Expect.throws].
   /// The test is still considered failing.
   static T throws<T extends Object>(void Function() computation,
-      [bool Function(T error)? check, String reason = ""]) {
+      [bool Function(T error)? check, String? reason]) {
+    // TODO(vsm): Make check and reason nullable or change call sites.
+    // Existing tests pass null to set a reason and/or pass them through
+    // via helpers.
+    // TODO(rnystrom): Using the strange form below instead of "??=" to avoid
+    // warnings of unnecessary null checks when analyzed as NNBD code.
+    reason ??= "";
+    String msg = reason.isEmpty ? "" : "($reason)";
     if ((computation as dynamic) == null) {
       // Only throws from executing the function body should count as throwing.
       // The failure to even call `f` should throw outside the try/catch.
@@ -751,11 +595,10 @@ class Expect {
     try {
       computation();
     } catch (e, s) {
-      // A test failure doesn't count as throwing, and can't be expected.
+      // A test failure doesn't count as throwing.
       if (e is ExpectException) rethrow;
-      if (e is T && (check == null || check(e))) return e;
+      if (e is T && (check ?? _defaultCheck)(e)) return e;
       // Throws something unexpected.
-      String msg = _getMessage(reason);
       String type = "";
       if (T != dynamic && T != Object) {
         type = "<$T>";
@@ -763,7 +606,7 @@ class Expect {
       _fail("Expect.throws$type$msg: "
           "Unexpected '${Error.safeToString(e)}'\n$s");
     }
-    _fail('Expect.throws${_getMessage(reason)} fails: Did not throw');
+    _fail('Expect.throws$msg fails: Did not throw');
   }
 
   /// Calls [computation] and checks that it throws an [E] when [condition] is
@@ -776,44 +619,52 @@ class Expect {
   /// returning `null`, and fails if anything is thrown.
   static E? throwsWhen<E extends Object>(
       bool condition, void Function() computation,
-      [String reason = ""]) {
-    if (condition) return throws<E>(computation, _defaultCheck, reason);
+      [String? reason]) {
+    if (condition) return throws<E>(computation, null, reason);
     computation();
     return null;
   }
 
   static ArgumentError throwsArgumentError(void Function() f,
-          [String reason = ""]) =>
+          [String reason = "ArgumentError"]) =>
       Expect.throws<ArgumentError>(f, _defaultCheck, reason);
 
   static AssertionError throwsAssertionError(void Function() f,
-          [String reason = ""]) =>
+          [String reason = "AssertionError"]) =>
       Expect.throws<AssertionError>(f, _defaultCheck, reason);
 
   static FormatException throwsFormatException(void Function() f,
-          [String reason = ""]) =>
+          [String reason = "FormatException"]) =>
       Expect.throws<FormatException>(f, _defaultCheck, reason);
 
   static NoSuchMethodError throwsNoSuchMethodError(void Function() f,
-          [String reason = ""]) =>
+          [String reason = "NoSuchMethodError"]) =>
       Expect.throws<NoSuchMethodError>(f, _defaultCheck, reason);
 
-  static RangeError throwsRangeError(void Function() f, [String reason = ""]) =>
+  static Error throwsReachabilityError(void Function() f,
+          [String reason = "ReachabilityError"]) =>
+      Expect.throws<Error>(f,
+          (error) => error.toString().startsWith('ReachabilityError'), reason);
+
+  static RangeError throwsRangeError(void Function() f,
+          [String reason = "RangeError"]) =>
       Expect.throws<RangeError>(f, _defaultCheck, reason);
 
-  static StateError throwsStateError(void Function() f, [String reason = ""]) =>
+  static StateError throwsStateError(void Function() f,
+          [String reason = "StateError"]) =>
       Expect.throws<StateError>(f, _defaultCheck, reason);
 
-  static TypeError throwsTypeError(void Function() f, [String reason = ""]) =>
+  static TypeError throwsTypeError(void Function() f,
+          [String reason = "TypeError"]) =>
       Expect.throws<TypeError>(f, _defaultCheck, reason);
 
-  /// Checks that [f] throws a [TypeError] if and only if [condition] is `true`.
+  /// Checks that [f] throws a [TypeError] if an only if [condition] is `true`.
   static TypeError? throwsTypeErrorWhen(bool condition, void Function() f,
-          [String reason = ""]) =>
+          [String? reason]) =>
       Expect.throwsWhen<TypeError>(condition, f, reason);
 
   static UnsupportedError throwsUnsupportedError(void Function() f,
-          [String reason = ""]) =>
+          [String reason = "UnsupportedError"]) =>
       Expect.throws<UnsupportedError>(f, _defaultCheck, reason);
 
   /// Reports that there is an error in the test itself and not the code under
@@ -841,33 +692,23 @@ class Expect {
         "on ${Error.safeToString(object)}");
   }
 
-  /// Asserts that `Sub` is a subtype of `Super` at compile time and run time.
-  ///
-  /// The upper bound on [Sub] means that it must *statically* be a subtype
-  /// of [Super]. Soundness should guarantee that it is also true at runtime.
-  ///
-  /// This is more of an assertion than a test.
-  // TODO(lrn): Remove this method, or make it only do runtime checks.
-  // It doesn't fit the `Expect` class.
-  // Make `static_type_helper.dart` or a `Chk` class a member of the `expect`
-  // package for use in checking *static* type properties.
+  /// Checks that `Sub` is a subtype of `Super` at compile time and run time.
   static void subtype<Sub extends Super, Super>() {
-    if ((<Sub>[] as dynamic) is List<Super>) return;
-    _fail("Expect.subtype<$Sub, $Super>: $Sub is not a subtype of $Super");
+    _subtypeAtRuntime<Sub, Super>();
   }
 
-  /// Checks that `Sub` is a subtype of `Super` at runtime.
+  /// Checks that `Sub` is a subtype of `Super` at run time.
   ///
   /// This is similar to [subtype] but without the `Sub extends Super` generic
   /// constraint, so a compiler is less likely to optimize away the `is` check
   /// because the types appear to be unrelated.
-  static void runtimeSubtype<Sub, Super>() {
-    if (<Sub>[] is List<Super>) return;
-    _fail("Expect.runtimeSubtype<$Sub, $Super>: "
-        "$Sub is not a subtype of $Super");
+  static void _subtypeAtRuntime<Sub, Super>() {
+    if (<Sub>[] is! List<Super>) {
+      _fail("Expect.subtype<$Sub, $Super>: $Sub is not a subtype of $Super");
+    }
   }
 
-  /// Checks that `Sub` is not a subtype of `Super` at runtime.
+  /// Checks that `Sub` is not a subtype of `Super` at run time.
   static void notSubtype<Sub, Super>() {
     if (<Sub>[] is List<Super>) {
       _fail("Expect.notSubtype<$Sub, $Super>: $Sub is a subtype of $Super");
@@ -875,7 +716,7 @@ class Expect {
   }
 
   static String _getMessage(String reason) =>
-      reason.isEmpty ? "" : ", '$reason'";
+      (reason.isEmpty) ? "" : ", '$reason'";
 
   static Never _fail(String message) {
     throw ExpectException(message);
@@ -914,3 +755,27 @@ class ExpectException {
   /// Initial value for _getTestName.
   static String _kEmptyString() => "";
 }
+
+/// Is true iff type assertions are enabled.
+// TODO(rnystrom): Remove this once all tests are no longer using it.
+final bool typeAssertionsEnabled = (() {
+  try {
+    dynamic i = 42;
+    String s = i; // ignore: unused_local_variable
+  } on TypeError {
+    return true;
+  }
+  return false;
+})();
+
+/// Is true iff `assert` statements are enabled.
+final bool assertStatementsEnabled = (() {
+  bool result = false;
+  assert(result = true);
+  return result;
+})();
+
+/// Is true iff checked mode is enabled.
+// TODO(rnystrom): Remove this once all tests are no longer using it.
+final bool checkedModeEnabled =
+    typeAssertionsEnabled && assertStatementsEnabled;

@@ -5,7 +5,7 @@
 // Basic tests for the WeakReference and Finalizer API for the web backends.
 // Does not trigger garbage collection to heavily test the functionality.
 
-import 'package:expect/minitest.dart'; // ignore: deprecated_member_use_from_same_package
+import 'package:expect/minitest.dart';
 
 class Foo {
   int close() {

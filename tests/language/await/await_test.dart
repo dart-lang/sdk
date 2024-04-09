@@ -5,7 +5,6 @@
 // VMOptions=---optimization-counter-threshold=10
 
 import 'package:expect/expect.dart';
-import 'package:expect/variations.dart' show enabledAsserts;
 import 'package:async_helper/async_helper.dart';
 
 import 'dart:async';
@@ -126,7 +125,7 @@ asserts() async {
     bool success = true;
     try {
       assert(await func(false), await (func("message")));
-      if (enabledAsserts) Expect.fail("Didn't throw");
+      if (assertStatementsEnabled) Expect.fail("Didn't throw");
     } on AssertionError catch (e) {
       Expect.equals("message", e.message);
     }

@@ -26,8 +26,8 @@ void testIterableApi() {
   Expect.equals(wrapped.every((_) => true), original.every((_) => true));
   Expect.equals(wrapped.every((_) => false), original.every((_) => false));
 
-  Expect.listEquals(wrapped.expand((x) => [x, x]).toList(),
-      original.expand((x) => [x, x]).toList());
+  Expect.setEquals(
+      wrapped.expand((x) => [x, x]), original.expand((x) => [x, x]));
 
   Expect.equals(wrapped.first, original.first);
 
@@ -61,8 +61,7 @@ void testIterableApi() {
 
   Expect.equals(wrapped.length, original.length);
 
-  Expect.setEquals(
-      wrapped.map((x) => "[$x]").toSet(), original.map((x) => "[$x]").toSet());
+  Expect.setEquals(wrapped.map((x) => "[$x]"), original.map((x) => "[$x]"));
 
   Expect.equals(
       wrapped.reduce((x, y) => x + y), original.reduce((x, y) => x + y));
@@ -78,21 +77,21 @@ void testIterableApi() {
     wrapped.singleWhere((_) => false);
   }, "singleWhere false");
 
-  Expect.setEquals(wrapped.skip(0).toSet(), original.skip(0).toSet());
-  Expect.setEquals(wrapped.skip(1).toSet(), original.skip(1).toSet());
+  Expect.setEquals(wrapped.skip(0), original.skip(0));
+  Expect.setEquals(wrapped.skip(1), original.skip(1));
 
-  Expect.setEquals(wrapped.skipWhile((_) => true).toSet(),
-      original.skipWhile((_) => true).toSet());
-  Expect.setEquals(wrapped.skipWhile((_) => false).toSet(),
-      original.skipWhile((_) => false).toSet());
+  Expect.setEquals(
+      wrapped.skipWhile((_) => true), original.skipWhile((_) => true));
+  Expect.setEquals(
+      wrapped.skipWhile((_) => false), original.skipWhile((_) => false));
 
-  Expect.setEquals(wrapped.take(0).toSet(), original.take(0).toSet());
-  Expect.setEquals(wrapped.take(1).toSet(), original.take(1).toSet());
+  Expect.setEquals(wrapped.take(0), original.take(0));
+  Expect.setEquals(wrapped.take(1), original.take(1));
 
-  Expect.setEquals(wrapped.takeWhile((_) => true).toSet(),
-      original.takeWhile((_) => true).toSet());
-  Expect.setEquals(wrapped.takeWhile((_) => false).toSet(),
-      original.takeWhile((_) => false).toSet());
+  Expect.setEquals(
+      wrapped.takeWhile((_) => true), original.takeWhile((_) => true));
+  Expect.setEquals(
+      wrapped.takeWhile((_) => false), original.takeWhile((_) => false));
 
   var toListResult = wrapped.toList();
   Expect.listEquals(original.toList(), toListResult);
@@ -112,10 +111,8 @@ void testIterableApi() {
   Expect.setEquals(copy, wrapped);
   Expect.setEquals(copy, original);
 
-  Expect.setEquals(
-      wrapped.where((_) => true).toSet(), original.where((_) => true).toSet());
-  Expect.setEquals(wrapped.where((_) => false).toSet(),
-      original.where((_) => false).toSet());
+  Expect.setEquals(wrapped.where((_) => true), original.where((_) => true));
+  Expect.setEquals(wrapped.where((_) => false), original.where((_) => false));
 }
 
 void testUnmodifiableSetApi() {

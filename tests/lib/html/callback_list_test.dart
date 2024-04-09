@@ -7,7 +7,7 @@ library callback_list_test;
 import 'dart:html';
 import 'dart:async';
 
-import 'package:expect/minitest.dart'; // ignore: deprecated_member_use_from_same_package
+import 'package:expect/minitest.dart';
 
 var callbackDone = false;
 bool isCallbackDone() => callbackDone;

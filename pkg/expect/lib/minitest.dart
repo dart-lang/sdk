@@ -21,13 +21,13 @@
 ///
 /// Eventually, it would be good to refactor those tests to use the expect
 /// package directly and remove this.
-@Deprecated("Use the 'Expect' class directly")
-library expect.minitest;
+library;
 
 import 'dart:async';
 
 import 'package:expect/expect.dart';
 
+typedef _Action = dynamic Function();
 typedef _ExpectationFunction = void Function(dynamic actual);
 
 final List<_Group> _groups = [_Group()];
@@ -39,34 +39,34 @@ final Object isTrue = _Expectation(Expect.isTrue);
 
 final Object returnsNormally = _Expectation((actual) {
   try {
-    (actual as dynamic Function())();
+    (actual as _Action)();
   } catch (error) {
     Expect.fail("Expected function to return normally, but threw:\n$error");
   }
 });
 
 final Object throws = _Expectation((actual) {
-  Expect.throws(actual as dynamic Function());
+  Expect.throws(actual as _Action);
 });
 
 final Object throwsArgumentError = _Expectation((actual) {
-  Expect.throws<ArgumentError>(actual as dynamic Function());
+  Expect.throws(actual as _Action, (error) => error is ArgumentError);
 });
 
 final Object throwsNoSuchMethodError = _Expectation((actual) {
-  Expect.throws<NoSuchMethodError>(actual as dynamic Function());
+  Expect.throws(actual as _Action, (error) => error is NoSuchMethodError);
 });
 
 final Object throwsRangeError = _Expectation((actual) {
-  Expect.throws<RangeError>(actual as dynamic Function());
+  Expect.throws(actual as _Action, (error) => error is RangeError);
 });
 
 final Object throwsStateError = _Expectation((actual) {
-  Expect.throws<StateError>(actual as dynamic Function());
+  Expect.throws(actual as _Action, (error) => error is StateError);
 });
 
 final Object throwsUnsupportedError = _Expectation((actual) {
-  Expect.throws<UnsupportedError>(actual as dynamic Function());
+  Expect.throws(actual as _Action, (error) => error is UnsupportedError);
 });
 
 /// The test runner should call this once after running a test file.
@@ -149,8 +149,7 @@ Object notEquals(dynamic value) => _Expectation((actual) {
     });
 
 Object unorderedEquals(dynamic value) => _Expectation((actual) {
-      Expect.setEquals(
-          (value as Iterable).toSet(), (actual as Iterable).toSet());
+      Expect.setEquals(value as Iterable, actual as Iterable);
     });
 
 Object predicate(bool Function(dynamic value) fn, [String description = ""]) =>
@@ -197,8 +196,8 @@ _defaultAction() {}
 ///
 /// There is also an implicit top level group.
 class _Group {
-  dynamic Function() setUpFunction = _defaultAction;
-  dynamic Function() tearDownFunction = _defaultAction;
+  _Action setUpFunction = _defaultAction;
+  _Action tearDownFunction = _defaultAction;
 }
 
 /// A wrapper around an expectation function.
