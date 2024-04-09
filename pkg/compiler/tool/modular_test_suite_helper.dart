@@ -18,6 +18,8 @@ import 'package:modular_test/src/io_pipeline.dart';
 import 'package:modular_test/src/pipeline.dart';
 import 'package:modular_test/src/runner.dart';
 import 'package:modular_test/src/suite.dart';
+import 'package:modular_test/src/steps/macro_precompile_aot.dart';
+import 'package:modular_test/src/steps/util.dart';
 
 String packageConfigJsonPath = ".dart_tool/package_config.json";
 Uri sdkRoot = Platform.script.resolve("../../../");
@@ -130,13 +132,17 @@ abstract class CFEStep extends IOModularStep {
       '${toUri(module, outputData)}',
       ...(transitiveDependencies
           .expand((m) => ['--input-summary', '${toUri(m, inputData)}'])),
+      ...transitiveDependencies
+          .where((m) => m.macroConstructors.isNotEmpty)
+          .expand((m) =>
+              ['--precompiled-macro', '${precompiledMacroArg(m, toUri)};']),
       ...(sources.expand((String uri) => ['--source', uri])),
       ...(flags.expand((String flag) => ['--enable-experiment', flag])),
     ];
 
-    var result =
-        await _runProcess(Platform.resolvedExecutable, args, root.toFilePath());
-    _checkExitCode(result, this, module);
+    var result = await runProcess(
+        Platform.resolvedExecutable, args, root.toFilePath(), _options.verbose);
+    checkExitCode(result, this, module, _options.verbose);
   }
 
   List<String> get stepArguments;
@@ -160,7 +166,8 @@ class OutlineDillCompilationStep extends CFEStep {
   bool get needsSources => true;
 
   @override
-  List<DataId> get dependencyDataNeeded => const [dillSummaryId];
+  List<DataId> get dependencyDataNeeded =>
+      const [dillSummaryId, precompiledMacroId];
 
   @override
   List<DataId> get moduleDataNeeded => const [];
@@ -187,7 +194,8 @@ class FullDillCompilationStep extends CFEStep {
   bool get needsSources => true;
 
   @override
-  List<DataId> get dependencyDataNeeded => const [dillSummaryId];
+  List<DataId> get dependencyDataNeeded =>
+      const [dillSummaryId, precompiledMacroId];
 
   @override
   List<DataId> get moduleDataNeeded => const [];
@@ -245,10 +253,10 @@ class ConcatenateDillsStep extends IOModularStep {
       '${Flags.stage}=cfe',
       '--out=${toUri(module, fullDillId)}',
     ];
-    var result =
-        await _runProcess(Platform.resolvedExecutable, args, root.toFilePath());
+    var result = await runProcess(
+        Platform.resolvedExecutable, args, root.toFilePath(), _options.verbose);
 
-    _checkExitCode(result, this, module);
+    checkExitCode(result, this, module, _options.verbose);
   }
 
   @override
@@ -297,10 +305,10 @@ class ComputeClosedWorldStep extends IOModularStep {
       '${Flags.closedWorldUri}=${toUri(module, closedWorldId)}',
       '${Flags.stage}=closed-world',
     ];
-    var result =
-        await _runProcess(Platform.resolvedExecutable, args, root.toFilePath());
+    var result = await runProcess(
+        Platform.resolvedExecutable, args, root.toFilePath(), _options.verbose);
 
-    _checkExitCode(result, this, module);
+    checkExitCode(result, this, module, _options.verbose);
   }
 
   @override
@@ -345,10 +353,10 @@ class GlobalAnalysisStep extends IOModularStep {
       '${Flags.globalInferenceUri}=${toUri(module, globalDataId)}',
       '${Flags.stage}=global-inference',
     ];
-    var result =
-        await _runProcess(Platform.resolvedExecutable, args, root.toFilePath());
+    var result = await runProcess(
+        Platform.resolvedExecutable, args, root.toFilePath(), _options.verbose);
 
-    _checkExitCode(result, this, module);
+    checkExitCode(result, this, module, _options.verbose);
   }
 
   @override
@@ -402,10 +410,10 @@ class Dart2jsCodegenStep extends IOModularStep {
       '${Flags.codegenShards}=${codeId.dataId.shards}',
       '${Flags.stage}=codegen',
     ];
-    var result =
-        await _runProcess(Platform.resolvedExecutable, args, root.toFilePath());
+    var result = await runProcess(
+        Platform.resolvedExecutable, args, root.toFilePath(), _options.verbose);
 
-    _checkExitCode(result, this, module);
+    checkExitCode(result, this, module, _options.verbose);
   }
 
   @override
@@ -454,10 +462,10 @@ class Dart2jsEmissionStep extends IOModularStep {
       '${Flags.stage}=emit-js',
       '--out=${toUri(module, jsId)}',
     ];
-    var result =
-        await _runProcess(Platform.resolvedExecutable, args, root.toFilePath());
+    var result = await runProcess(
+        Platform.resolvedExecutable, args, root.toFilePath(), _options.verbose);
 
-    _checkExitCode(result, this, module);
+    checkExitCode(result, this, module, _options.verbose);
   }
 
   @override
@@ -512,10 +520,10 @@ class Dart2jsDumpInfoStep extends IOModularStep {
       '${Flags.stage}=dump-info',
       '--out=${toUri(module, jsId)}',
     ];
-    var result =
-        await _runProcess(Platform.resolvedExecutable, args, root.toFilePath());
+    var result = await runProcess(
+        Platform.resolvedExecutable, args, root.toFilePath(), _options.verbose);
 
-    _checkExitCode(result, this, module);
+    checkExitCode(result, this, module, _options.verbose);
   }
 
   @override
@@ -551,10 +559,10 @@ class RunD8 extends IOModularStep {
           .toFilePath(),
       root.resolveUri(toUri(module, jsId)).toFilePath(),
     ];
-    var result = await _runProcess(
-        sdkRoot.resolve(_d8executable).toFilePath(), d8Args, root.toFilePath());
+    var result = await runProcess(sdkRoot.resolve(_d8executable).toFilePath(),
+        d8Args, root.toFilePath(), _options.verbose);
 
-    _checkExitCode(result, this, module);
+    checkExitCode(result, this, module, _options.verbose);
 
     await File.fromUri(root.resolveUri(toUri(module, txtId)))
         .writeAsString(result.stdout);
@@ -564,26 +572,6 @@ class RunD8 extends IOModularStep {
   void notifyCached(Module module) {
     if (_options.verbose) print("\ncached step: d8 on $module");
   }
-}
-
-void _checkExitCode(ProcessResult result, IOModularStep step, Module module) {
-  if (result.exitCode != 0 || _options.verbose) {
-    stdout.write(result.stdout);
-    stderr.write(result.stderr);
-  }
-  if (result.exitCode != 0) {
-    throw "${step.runtimeType} failed on $module:\n\n"
-        "stdout:\n${result.stdout}\n\n"
-        "stderr:\n${result.stderr}";
-  }
-}
-
-Future<ProcessResult> _runProcess(
-    String command, List<String> arguments, String workingDirectory) {
-  if (_options.verbose) {
-    print('command:\n$command ${arguments.join(' ')} from $workingDirectory');
-  }
-  return Process.run(command, arguments, workingDirectory: workingDirectory);
 }
 
 String get _d8executable {

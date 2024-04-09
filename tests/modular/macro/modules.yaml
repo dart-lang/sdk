@@ -1,0 +1,19 @@
+# Copyright (c) 2024, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+#
+# Tests running precompiled macros from dependent modules.
+dependencies:
+  main: [add_function]
+  add_function: [macros]
+  macros: [_macros]
+macros:
+  add_function:
+    dev-dart-app:/add_function.dart:
+      AddFunction:
+        - ""
+flags:
+  - macros
+packages:
+  macros: ../../../pkg/macros/lib
+  _macros: ../../../pkg/_macros/lib

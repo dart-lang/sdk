@@ -1,0 +1,79 @@
+# Copyright (c) 2024, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Incremental compiler scenario coped from the tests in
+# tests/language/macros/error/
+# where a macro error from a previous entry shouldn't "infect" a new scenario.
+
+type: newworld
+worlds:
+  - entry: error_one.dart
+    errors: true
+    printErrorsInExpect: true
+    experiments: macros
+    sources:
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "macros",
+              "rootUri": "holePunch:pkg/macros",
+              "packageUri": "lib/",
+              "languageVersion": "3.4"
+            },
+            {
+              "name": "_macros",
+              "rootUri": "holePunch:pkg/_macros",
+              "packageUri": "lib/",
+              "languageVersion": "3.4"
+            },
+            {
+              "name": "meta",
+              "rootUri": "holePunch:pkg/meta",
+              "packageUri": "lib/"
+            }
+          ]
+        }
+      error_one.dart: |
+        import 'cycle.dart';
+        @AnyMacro()
+        class A {}
+        int get someValue => 0;
+      cycle.dart: |
+        import 'package:macros/macros.dart';
+        import 'error_one.dart';
+
+        macro class AnyMacro implements ClassDeclarationsMacro {
+          const AnyMacro();
+
+          Future<void> buildDeclarationsForClass(
+              ClassDeclaration clazz, MemberDeclarationBuilder builder) async {}
+        }
+
+        int get someOtherValue => someValue;
+    expectedLibraryCount: 4
+  - entry: error_two.dart
+    errors: true
+    printErrorsInExpect: true
+    worldType: updated
+    expectInitializeFromDill: false
+    experiments: macros
+    sources:
+      error_two.dart: |
+        @Hello()
+        library;
+        import 'hello.dart';
+      hello.dart: |
+        import 'package:macros/macros.dart';
+        macro class Hello implements ClassTypesMacro {
+          const Hello();
+
+          @override
+          Future<void> buildTypesForClass(
+              ClassDeclaration clazz, ClassTypeBuilder builder) async {
+          }
+        }
+    expectedLibraryCount: 4
+    advancedInvalidation: noDirectlyInvalidated

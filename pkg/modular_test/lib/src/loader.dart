@@ -60,7 +60,7 @@ Future<ModularTest> loadTest(Uri uri) async {
         }
         var relativeUri = Uri.parse(fileName);
         var isMain = moduleName == 'main';
-        var module = Module(moduleName, [], testUri, [relativeUri],
+        var module = Module(moduleName, [], testUri, [relativeUri], {},
             mainSource: isMain ? relativeUri : null,
             isMain: isMain,
             packageBase: Uri.parse('.'));
@@ -87,7 +87,7 @@ Future<ModularTest> loadTest(Uri uri) async {
         return _moduleConflict(moduleName, modules[moduleName]!, testUri);
       }
       var sources = await _listModuleSources(entryUri);
-      modules[moduleName] = Module(moduleName, [], testUri, sources,
+      modules[moduleName] = Module(moduleName, [], testUri, sources, {},
           packageBase: Uri.parse('$moduleName/'));
     }
   }
@@ -109,6 +109,7 @@ Future<ModularTest> loadTest(Uri uri) async {
   await _addModulePerPackage(spec.packages, testUri, modules);
   _attachDependencies(spec.dependencies, modules);
   _attachDependencies(defaultTestSpecification.dependencies, modules);
+  _attachMacros(spec.macros, modules);
   _addSdkDependencies(modules, sdkModule);
   _detectCyclesAndRemoveUnreachable(modules, mainModule);
   var sortedModules = modules.values.toList()
@@ -154,6 +155,20 @@ void _attachDependencies(
   });
 }
 
+void _attachMacros(Map<String, Map<String, Map<String, List<String>>>> macros,
+    Map<String, Module> modules) {
+  macros.forEach((name, macroConstructors) {
+    final module = modules[name];
+    if (module == null) {
+      _invalidTest("declared macros for a nonexistent module named '$name'");
+    }
+    if (module.macroConstructors.isNotEmpty) {
+      _invalidTest("Module macros have already been declared on $name.");
+    }
+    module.macroConstructors.addAll(macroConstructors);
+  });
+}
+
 /// Make every module depend on the sdk module.
 void _addSdkDependencies(Map<String, Module> modules, Module sdkModule) {
   for (var module in modules.values) {
@@ -177,7 +192,8 @@ Future<void> _addModulePerPackage(Map<String, String> packages, Uri configRoot,
       // TODO(sigmund): validate that we don't use a different alias for a
       // module that is part of the test (package name and module name should
       // match).
-      modules[packageName] = Module(packageName, [], packageRootUri, sources,
+      modules[packageName] = Module(
+          packageName, [], packageRootUri, sources, {},
           isPackage: true, packageBase: Uri.parse('lib/'), isShared: true);
     }
   }
@@ -205,7 +221,7 @@ Future<Module> _createSdkModule(Uri root) async {
     }
   }
   sources.sort((a, b) => a.path.compareTo(b.path));
-  return Module('sdk', [], root, sources, isSdk: true, isShared: true);
+  return Module('sdk', [], root, sources, {}, isSdk: true, isShared: true);
 }
 
 /// Trim the set of modules, and detect cycles while we are at it.

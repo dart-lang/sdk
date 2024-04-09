@@ -1550,7 +1550,7 @@ severity: $severity
     /// [ClassBuilder]s for the macro classes.
     Map<Uri, List<ClassBuilder>> macroLibraries = {};
 
-    for (LibraryBuilder libraryBuilder in libraryBuilders) {
+    for (SourceLibraryBuilder libraryBuilder in sourceLibraryBuilders) {
       Iterator<ClassBuilder> iterator =
           libraryBuilder.localMembersIteratorOfType();
       while (iterator.moveNext()) {
