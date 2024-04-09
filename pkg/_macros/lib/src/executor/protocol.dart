@@ -601,6 +601,7 @@ final class ClientDeclarationPhaseIntrospector
   static final _enumValuesCache = Expando<Future<List<EnumValueDeclaration>>>();
   static final _fieldsCache = Expando<Future<List<FieldDeclaration>>>();
   static final _methodsCache = Expando<Future<List<MethodDeclaration>>>();
+  static final _typeDeclarationCache = Expando<TypeDeclaration>();
 
   ClientDeclarationPhaseIntrospector(super._sendRequest,
       {required super.remoteInstance, required super.serializationZoneId});
@@ -690,10 +691,15 @@ final class ClientDeclarationPhaseIntrospector
 
   @override
   Future<TypeDeclaration> typeDeclarationOf(IdentifierImpl identifier) async {
-    DeclarationOfRequest request = DeclarationOfRequest(
+    if (_typeDeclarationCache[identifier] case final result?) {
+      return result;
+    }
+
+    final request = DeclarationOfRequest(
         identifier, MessageType.typeDeclarationOfRequest, remoteInstance,
         serializationZoneId: serializationZoneId);
-    return _handleResponse<TypeDeclaration>(await _sendRequest(request));
+    return _typeDeclarationCache[identifier] =
+        _handleResponse<TypeDeclaration>(await _sendRequest(request));
   }
 }
 
@@ -757,14 +763,6 @@ final class ClientDefinitionPhaseIntrospector
         serializationZoneId: serializationZoneId);
     return _handleResponse<DeclarationList>(await _sendRequest(request))
         .declarations;
-  }
-
-  @override
-  Future<TypeDeclaration> typeDeclarationOf(IdentifierImpl identifier) async {
-    DeclarationOfRequest request = DeclarationOfRequest(
-        identifier, MessageType.typeDeclarationOfRequest, remoteInstance,
-        serializationZoneId: serializationZoneId);
-    return _handleResponse<TypeDeclaration>(await _sendRequest(request));
   }
 }
 
