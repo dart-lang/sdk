@@ -116,6 +116,7 @@ Future<ProcessResult> generateKernelHelper({
   List<String> extraGenKernelOptions = const [],
   String? nativeAssets,
   String? resourcesFile,
+  bool enableAsserts = false,
   bool fromDill = false,
   bool aot = false,
   bool embedSources = false,
@@ -132,6 +133,7 @@ Future<ProcessResult> generateKernelHelper({
     if (aot) '--aot',
     if (!embedSources) '--no-embed-sources',
     if (!linkPlatform) '--no-link-platform',
+    if (enableAsserts) '--enable-asserts',
     ...defines.map((d) => '-D$d'),
     if (packages != null) '--packages=$packages',
     if (nativeAssets != null) '--native-assets=$nativeAssets',
@@ -147,6 +149,7 @@ Future<ProcessResult> generateAotSnapshotHelper(
     String kernelFile,
     String snapshotFile,
     String? debugFile,
+    bool enableAsserts,
     List<String> extraGenSnapshotOptions) {
   return Process.run(genSnapshot, [
     '--snapshot-kind=app-aot-elf',
@@ -154,6 +157,7 @@ Future<ProcessResult> generateAotSnapshotHelper(
     if (debugFile != null) '--save-debugging-info=$debugFile',
     if (debugFile != null) '--dwarf-stack-traces',
     if (debugFile != null) '--strip',
+    if (enableAsserts) '--enable-asserts',
     ...extraGenSnapshotOptions,
     kernelFile
   ]);
