@@ -733,12 +733,6 @@ void RangeBoundary::PrintTo(BaseTextBuffer* f) const {
                 reinterpret_cast<Definition*>(value_)->ssa_temp_index());
       if (offset_ != 0) f->Printf("%+" Pd64 "", offset_);
       break;
-    case kNegativeInfinity:
-      f->AddString("-inf");
-      break;
-    case kPositiveInfinity:
-      f->AddString("+inf");
-      break;
     case kConstant:
       f->Printf("%" Pd64 "", value_);
       break;
