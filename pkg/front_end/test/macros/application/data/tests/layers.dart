@@ -12,7 +12,7 @@ import 'package:macro/macro2.dart';
 @Macro2()
 /*class: Class:
 declarations:
-library augment 'org-dartlang-test:///a/b/c/main.dart';
+augment library 'org-dartlang-test:///a/b/c/main.dart';
 
 augment class Class {
   hasMacro() => true;

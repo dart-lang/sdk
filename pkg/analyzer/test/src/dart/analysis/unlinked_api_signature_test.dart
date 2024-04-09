@@ -280,13 +280,13 @@ class A {
 
   test_class_field_augment_add() {
     _assertNotSameSignature(r'''
-library augment 'test.dart';
+augment library 'test.dart';
 
 augment class A {
   int foo = 42;
 }
 ''', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 
 augment class A {
   augment int foo = 42;
@@ -296,13 +296,13 @@ augment class A {
 
   test_class_field_augment_remove() {
     _assertNotSameSignature(r'''
-library augment 'test.dart';
+augment library 'test.dart';
 
 augment class A {
   augment int foo = 42;
 }
 ''', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 
 augment class A {
   int foo = 42;

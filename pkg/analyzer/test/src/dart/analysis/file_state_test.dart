@@ -661,12 +661,12 @@ import augment 'b.dart';
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'a.dart';
+augment library 'a.dart';
 import augment 'c.dart';
 ''');
 
     final c = newFile('$testPackageLibPath/c.dart', r'''
-library augment 'b.dart';
+augment library 'b.dart';
 ''');
 
     fileStateFor(c);
@@ -718,12 +718,12 @@ elementFactory
 
   test_newFile_augmentation_augmentationExists_hasImport_disconnected() async {
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'a.dart';
+augment library 'a.dart';
 import augment 'c.dart';
 ''');
 
     final c = newFile('$testPackageLibPath/c.dart', r'''
-library augment 'b.dart';
+augment library 'b.dart';
 ''');
 
     fileStateFor(c);
@@ -776,11 +776,11 @@ import augment 'b.dart';
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'a.dart';
+augment library 'a.dart';
 ''');
 
     final c = newFile('$testPackageLibPath/c.dart', r'''
-library augment 'b.dart';
+augment library 'b.dart';
 ''');
 
     fileStateFor(c);
@@ -834,7 +834,7 @@ import augment 'b.dart';
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'b.dart';
+augment library 'b.dart';
 import augment 'b.dart';
 ''');
 
@@ -881,12 +881,12 @@ import augment 'b.dart';
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'a.dart';
+augment library 'a.dart';
 import augment 'c.dart';
 ''');
 
     newFile('$testPackageLibPath/c.dart', r'''
-library augment 'b.dart';
+augment library 'b.dart';
 import augment 'b.dart';
 ''');
 
@@ -941,7 +941,7 @@ elementFactory
 
   test_newFile_augmentation_invalidRelativeUri() async {
     final a = newFile('$testPackageLibPath/a.dart', r'''
-library augment 'da:';
+augment library 'da:';
 ''');
 
     fileStateFor(a);
@@ -967,7 +967,7 @@ import augment 'b.dart';
 ''');
 
     final b = newFile('$testPackageLibPath/b.dart', r'''
-library augment 'a.dart';
+augment library 'a.dart';
 ''');
 
     fileStateFor(b);
@@ -1008,7 +1008,7 @@ elementFactory
     final a = newFile('$testPackageLibPath/a.dart', '');
 
     final b = newFile('$testPackageLibPath/b.dart', r'''
-library augment 'a.dart';
+augment library 'a.dart';
 ''');
 
     fileStateFor(b);
@@ -1075,7 +1075,7 @@ elementFactory
 
   test_newFile_augmentation_noRelativeUri() async {
     final a = newFile('$testPackageLibPath/a.dart', r'''
-library augment ':net';
+augment library ':net';
 ''');
 
     fileStateFor(a);
@@ -1096,7 +1096,7 @@ elementFactory
 
   test_newFile_augmentation_noRelativeUriStr() async {
     final a = newFile('$testPackageLibPath/a.dart', r'''
-library augment '${'foo.dart'}';
+augment library '${'foo.dart'}';
 ''');
 
     fileStateFor(a);
@@ -1117,7 +1117,7 @@ elementFactory
 
   test_newFile_augmentation_noSource() async {
     final a = newFile('$testPackageLibPath/a.dart', r'''
-library augment 'foo:bar';
+augment library 'foo:bar';
 ''');
 
     fileStateFor(a);
@@ -1138,7 +1138,7 @@ elementFactory
 
   test_newFile_augmentation_targetNotExists() async {
     final b = newFile('$testPackageLibPath/b.dart', r'''
-library augment 'a.dart';
+augment library 'a.dart';
 ''');
 
     fileStateFor(b);
@@ -1182,7 +1182,7 @@ import augment 'c.dart';
 ''');
 
     newFile('$testPackageLibPath/c.dart', r'''
-library augment 'a.dart';
+augment library 'a.dart';
 ''');
 
     final aState = fileStateFor(a);
@@ -1588,7 +1588,7 @@ elementFactory
     newFile('$testPackageLibPath/a.dart', '');
 
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'c.dart';
+augment library 'c.dart';
 import 'a.dart';
 ''');
 
@@ -1651,12 +1651,12 @@ elementFactory
     newFile('$testPackageLibPath/a.dart', '');
 
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'c.dart';
+augment library 'c.dart';
 import 'a.dart';
 ''');
 
     newFile('$testPackageLibPath/c.dart', r'''
-library augment 'd.dart';
+augment library 'd.dart';
 import augment 'b.dart';
 ''');
 
@@ -1860,7 +1860,7 @@ elementFactory
 
   test_newFile_library_exports_augmentation() async {
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'a.dart';
+augment library 'a.dart';
 ''');
 
     final c = newFile('$testPackageLibPath/c.dart', r'''
@@ -2264,7 +2264,7 @@ elementFactory
 
   test_newFile_library_imports_augmentation() async {
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'a.dart';
+augment library 'a.dart';
 ''');
 
     final c = newFile('$testPackageLibPath/c.dart', r'''
@@ -4280,7 +4280,7 @@ elementFactory
 
   test_refresh_augmentation_renameClass() {
     final a = newFile('$testPackageLibPath/a.dart', r'''
-library augment 'b.dart';
+augment library 'b.dart';
 class A {}
 ''');
 
@@ -4322,7 +4322,7 @@ elementFactory
 ''');
 
     newFile(a.path, r'''
-library augment 'b.dart';
+augment library 'b.dart';
 class A2 {}
 ''');
     fileStateFor(a).refresh();
@@ -4368,7 +4368,7 @@ import augment 'b.dart';
 ''');
 
     final b = newFile('$testPackageLibPath/b.dart', r'''
-library augment 'a.dart';
+augment library 'a.dart';
 ''');
 
     final aState = fileStateFor(a);
@@ -4485,7 +4485,7 @@ import augment 'b.dart';
 ''');
 
     final b = newFile('$testPackageLibPath/b.dart', r'''
-library augment 'a.dart';
+augment library 'a.dart';
 ''');
 
     final aState = fileStateFor(a);
@@ -4641,7 +4641,7 @@ import augment 'b.dart';
 ''');
 
     final b = newFile('$testPackageLibPath/b.dart', r'''
-library augment 'a.dart';
+augment library 'a.dart';
 ''');
 
     final aState = fileStateFor(a);
@@ -4785,7 +4785,7 @@ class A {}
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'c.dart';
+augment library 'c.dart';
 import 'a.dart';
 ''');
 
@@ -5145,7 +5145,7 @@ elementFactory
 ''');
 
     newFile(b.path, r'''
-library augment 'a.dart';
+augment library 'a.dart';
 ''');
 
     // We will discover the target by URI.

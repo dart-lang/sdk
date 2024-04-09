@@ -30,7 +30,7 @@ class A {
 ''');
 
     await assertNoDiagnostics(r'''
-library augment 'a.dart';
+augment library 'a.dart';
 
 augment class A {
   augment Future<Null>? f;
@@ -46,7 +46,7 @@ Future<Null>? f() => null;
 ''');
 
     await assertNoDiagnostics(r'''
-library augment 'a.dart';
+augment library 'a.dart';
 
 augment Future<Null>? f() => null;
 ''');
@@ -62,7 +62,7 @@ class A {
 ''');
 
     await assertNoDiagnostics(r'''
-library augment 'a.dart';
+augment library 'a.dart';
 
 augment class A {
   augment Future<Null>? get v => null;
@@ -80,7 +80,7 @@ class A {
 ''');
 
     await assertNoDiagnostics(r'''
-library augment 'a.dart';
+augment library 'a.dart';
 
 augment class A {
   augment Future<Null>? f() => null;
@@ -96,7 +96,7 @@ Future<Null>? get v => null;
 ''');
 
     await assertNoDiagnostics(r'''
-library augment 'a.dart';
+augment library 'a.dart';
 
 augment Future<Null>? get v => null;
 ''');
@@ -114,7 +114,7 @@ Future<Null>? v;
 ''');
 
     await assertNoDiagnostics(r'''
-library augment 'a.dart';
+augment library 'a.dart';
 
 augment Future<Null>? v;
 ''');

@@ -1305,23 +1305,6 @@ MethodDeclaration
 ''');
   }
 
-  void test_library_augment() {
-    var parseResult = parseStringWithErrors(r'''
-library augment 'a.dart';
-''');
-    parseResult.assertNoErrors();
-
-    var node = parseResult.findNode.libraryAugmentation('library');
-    assertParsedNodeText(node, r'''
-LibraryAugmentationDirective
-  libraryKeyword: library
-  augmentKeyword: augment
-  uri: SimpleStringLiteral
-    literal: 'a.dart'
-  semicolon: ;
-''');
-  }
-
   void test_library_with_name() {
     var parseResult = parseStringWithErrors(r'''
 library name.and.dots;

@@ -270,7 +270,7 @@ class [!A!] {
 
   Future<void> test_directive_augmentLibrary() async {
     await verifyDirective(
-      source: "library augment 'destin^ation.dart';",
+      source: "augment library 'destin^ation.dart';",
       destination: "import augment 'source.dart';",
     );
   }
@@ -290,7 +290,7 @@ class [!A!] {
   Future<void> test_directive_importAugment() async {
     await verifyDirective(
       source: "import augment 'destin^ation.dart';",
-      destination: "library augment 'source.dart';",
+      destination: "augment library 'source.dart';",
     );
   }
 

@@ -25,7 +25,7 @@ class a { }
 ''');
 
     await assertNoDiagnostics(r'''
-library augment 'a.dart';
+augment library 'a.dart';
 
 augment class a { }
 ''');
@@ -45,7 +45,7 @@ enum e {
 ''');
 
     await assertNoDiagnostics(r'''
-library augment 'a.dart';
+augment library 'a.dart';
 
 augment enum e {
   augment b;
@@ -61,7 +61,7 @@ extension type et(int i) { }
 ''');
 
     await assertNoDiagnostics(r'''
-library augment 'a.dart';
+augment library 'a.dart';
 
 augment extension type et(int i) { }
 ''');
@@ -75,7 +75,7 @@ mixin m { }
 ''');
 
     await assertNoDiagnostics(r'''
-library augment 'a.dart';
+augment library 'a.dart';
 
 augment mixin m { }
 ''');

@@ -8,7 +8,7 @@ Declarations Order:
 Definition Order:
  Class.create:CreateMethodMacro.new()
 Definitions:
-library augment 'org-dartlang-test:///a/b/c/main.dart';
+augment library 'org-dartlang-test:///a/b/c/main.dart';
 
 import 'org-dartlang-test:///a/b/c/main.dart' as prefix0;
 
@@ -22,7 +22,7 @@ import 'package:macro/cascade.dart';
 @CreateMacro()
 /*class: Class:
 declarations:
-library augment 'org-dartlang-test:///a/b/c/main.dart';
+augment library 'org-dartlang-test:///a/b/c/main.dart';
 
 import 'package:macro/cascade.dart' as prefix0;
 import 'org-dartlang-test:///a/b/c/main.dart' as prefix1;

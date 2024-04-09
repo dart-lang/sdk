@@ -411,7 +411,7 @@ class AstBuilder extends StackListener {
   void beginIsOperatorType(Token asOperator) {}
 
   @override
-  void beginLibraryAugmentation(Token libraryKeyword, Token augmentKeyword) {}
+  void beginLibraryAugmentation(Token augmentKeyword, Token libraryKeyword) {}
 
   @override
   void beginLiteralString(Token literalString) {
@@ -2366,10 +2366,10 @@ class AstBuilder extends StackListener {
 
   @override
   void endLibraryAugmentation(
-      Token libraryKeyword, Token augmentKeyword, Token semicolon) {
+      Token augmentKeyword, Token libraryKeyword, Token semicolon) {
     final uri = pop() as StringLiteralImpl;
     final metadata = pop() as List<AnnotationImpl>?;
-    final comment = _findComment(metadata, libraryKeyword);
+    final comment = _findComment(metadata, augmentKeyword);
     directives.add(
       LibraryAugmentationDirectiveImpl(
         comment: comment,

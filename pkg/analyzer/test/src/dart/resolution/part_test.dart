@@ -144,7 +144,7 @@ PartDirective
 
   test_withSource_notPart_augmentation() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 ''');
 
     await assertErrorsInCode(r'''

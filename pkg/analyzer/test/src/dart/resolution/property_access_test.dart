@@ -208,7 +208,7 @@ int Function() foo() {
 
   test_inClass_explicitThis_inDeclaration_augmentationAugments() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment class A {
   augment int get foo => 0;
@@ -243,7 +243,7 @@ PropertyAccess
 
   test_inClass_explicitThis_inDeclaration_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment class A {
   int get foo => 0;
@@ -278,7 +278,7 @@ PropertyAccess
 
   test_inClass_explicitThis_inDeclaration_augmentationDeclares_method() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment class A {
   void foo() {}
@@ -926,7 +926,7 @@ CascadeExpression
 
   test_ofClass_augmentationAugments() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment class A {
   augment int get foo => 0;
@@ -966,7 +966,7 @@ PropertyAccess
 
   test_ofClass_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment class A {
   int get foo => 0;
@@ -1575,7 +1575,7 @@ AssignmentExpression
 
   test_ofMixin_augmentationAugments() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment mixin A {
   augment int get foo => 0;
@@ -1615,7 +1615,7 @@ PropertyAccess
 
   test_ofMixin_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment mixin A {
   int get foo => 0;

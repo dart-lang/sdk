@@ -17,7 +17,7 @@ main() {
 class ExtensionTypeDeclarationParserTest extends ParserDiagnosticsTest {
   test_augment() {
     final parseResult = parseStringWithErrors(r'''
-library augment 'a.dart';
+augment library 'a.dart';
 
 augment extension type A(int it) {}
 ''');

@@ -16,7 +16,7 @@ main() {
 class TopLevelVariableParserTest extends ParserDiagnosticsTest {
   test_augment() {
     final parseResult = parseStringWithErrors(r'''
-library augment 'a.dart';
+augment library 'a.dart';
 augment final foo = 0;
 ''');
     parseResult.assertNoErrors();

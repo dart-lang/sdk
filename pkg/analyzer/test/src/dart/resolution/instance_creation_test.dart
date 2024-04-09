@@ -121,7 +121,7 @@ InstanceCreationExpression
 
   test_class_generic_constructor_named_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment class A<T2> {
   A.named(T2 value);
@@ -174,7 +174,7 @@ InstanceCreationExpression
 
   test_class_generic_constructor_unnamed_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment class A<T2> {
   A(T2 value);
@@ -379,7 +379,7 @@ InstanceCreationExpression
 
   test_class_notGeneric_constructor_named_augmentationAugments() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment class A {
   augment A.named();
@@ -420,7 +420,7 @@ InstanceCreationExpression
 
   test_class_notGeneric_constructor_named_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment class A {
   A.named();
@@ -459,7 +459,7 @@ InstanceCreationExpression
 
   test_class_notGeneric_constructor_unnamed_augmentationAugments() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment class A {
   augment A();
@@ -495,7 +495,7 @@ InstanceCreationExpression
 
   test_class_notGeneric_constructor_unnamed_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment class A {
   A();
@@ -1250,7 +1250,7 @@ class A<T> {}
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'a.dart'
+augment library 'a.dart'
 
 augment class A<T2> {
   A.named(T2 value);
@@ -1314,7 +1314,7 @@ class A<T> {
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'a.dart'
+augment library 'a.dart'
 
 augment class A<T2> {
   A(T2 value);
@@ -1414,7 +1414,7 @@ class A {}
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'a.dart'
+augment library 'a.dart'
 
 augment class A {
   A.named();
@@ -1464,7 +1464,7 @@ class A {
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'a.dart'
+augment library 'a.dart'
 
 augment class A {
   A();
@@ -1849,7 +1849,7 @@ InstanceCreationExpression
 
   test_typeAlias_generic_class_generic_constructor_named_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment class A<T2> {
   A.named(T2 value);
@@ -1904,7 +1904,7 @@ InstanceCreationExpression
 
   test_typeAlias_generic_class_generic_constructor_unnamed_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment class A<T2> {
   A(T2 value);
@@ -2210,7 +2210,7 @@ InstanceCreationExpression
 
   test_typeAlias_notGeneric_class_notGeneric_constructor_named_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment class A {
   A.named();
@@ -2251,7 +2251,7 @@ InstanceCreationExpression
 
   test_typeAlias_notGeneric_class_notGeneric_constructor_unnamed_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment class A {
   A();

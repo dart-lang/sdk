@@ -84,7 +84,7 @@ class A2 {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 augment class A1 {
   A1.named12();
@@ -198,7 +198,7 @@ class A2 {
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 augment class A2 {
   A2.named22();
@@ -227,7 +227,7 @@ class A2 {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 augment class A1 {
   int f12 = 0;
@@ -336,7 +336,7 @@ class A2 {
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 augment class A2 {
   int f22 = 0;
@@ -365,7 +365,7 @@ class A2 {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 augment class A1 {
   void f12() {}
@@ -542,7 +542,7 @@ class A2 {
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 augment class A2 {
   void f22() {}
@@ -567,7 +567,7 @@ class A {
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 augment class A {
   void introspected_A_foo();
@@ -593,7 +593,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 class A1 {}
 void f1() {}
@@ -621,7 +621,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 class A2 {}
 class A1 {}
@@ -651,7 +651,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 class A1 {}
 class A2 {}
@@ -677,7 +677,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 class A2 {}
 class A1 {}
@@ -705,7 +705,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 class A1 {}
 class A2 {}
@@ -730,7 +730,7 @@ enum X {
 
     configuration.forOrder();
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 class A2 {}
 class A3 {}
@@ -759,7 +759,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 class A2 {}
 class A1 {}
@@ -787,7 +787,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 class A2 {}
 class A1 {}
@@ -815,7 +815,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 class A2 {}
 class A1 {}
@@ -843,7 +843,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 class A2 {}
 class A1 {}
@@ -873,7 +873,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 class A1 {}
 class A2 {}
@@ -899,7 +899,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 class A2 {}
 class A1 {}
@@ -927,7 +927,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 class A1 {}
 class A2 {}
@@ -1317,7 +1317,7 @@ class B extends A {
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'dart:core' as prefix0;
 
@@ -1338,7 +1338,7 @@ class A {
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'dart:core' as prefix0;
 
@@ -1357,7 +1357,7 @@ foo() {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'dart:core' as prefix0;
 
@@ -1374,7 +1374,7 @@ void foo(Function() a) {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'dart:core' as prefix0;
 
@@ -1397,7 +1397,7 @@ class B extends A {
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'dart:core' as prefix0;
 
@@ -1422,7 +1422,7 @@ class B extends A {
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'dart:core' as prefix0;
 
@@ -1447,7 +1447,7 @@ class B extends A {
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'dart:core' as prefix0;
 
@@ -1468,7 +1468,7 @@ class A {
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'dart:core' as prefix0;
 
@@ -1489,7 +1489,7 @@ class A {
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'dart:core' as prefix0;
 
@@ -1514,7 +1514,7 @@ class B extends A {
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'dart:core' as prefix0;
 
@@ -1535,7 +1535,7 @@ class A {
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'dart:core' as prefix0;
 
@@ -1556,7 +1556,7 @@ class A {
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'dart:core' as prefix0;
 
@@ -1577,7 +1577,7 @@ class A {
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'dart:core' as prefix0;
 
@@ -1602,7 +1602,7 @@ class A {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 class B {}
 ''');
@@ -1622,7 +1622,7 @@ class X {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -1650,7 +1650,7 @@ class X {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -1683,7 +1683,7 @@ class X {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -1717,7 +1717,7 @@ class X {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 augment class X {
   void doReference(dynamic a) {
@@ -1743,7 +1743,7 @@ class X {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -1776,7 +1776,7 @@ class X {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -1807,7 +1807,7 @@ class A {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -1841,7 +1841,7 @@ class X {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 augment class X {
   void doReference(dynamic a) {
@@ -1867,7 +1867,7 @@ class X {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -1900,7 +1900,7 @@ class X {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -1934,7 +1934,7 @@ class X {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 augment class X {
   void doReference(dynamic a) {
@@ -1960,7 +1960,7 @@ class X {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -1993,7 +1993,7 @@ class X {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -2019,7 +2019,7 @@ class X {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -2045,7 +2045,7 @@ class X {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -2066,7 +2066,7 @@ void foo(int a);
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'dart:core' as prefix0;
 
@@ -2090,7 +2090,7 @@ class X {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -2116,7 +2116,7 @@ class X {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -2137,7 +2137,7 @@ void foo<T>();
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 augment void foo<T>() {
   T;
@@ -2159,7 +2159,7 @@ class A {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -2190,7 +2190,7 @@ class A {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -2216,7 +2216,7 @@ class A {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -2247,7 +2247,7 @@ class A {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -2273,7 +2273,7 @@ class A {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -2299,7 +2299,7 @@ class A {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -2322,7 +2322,7 @@ class A {
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'dart:core' as prefix0;
 
@@ -2345,7 +2345,7 @@ class A {
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'dart:core' as prefix0;
 
@@ -2396,7 +2396,7 @@ library
       reference: self::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -2516,7 +2516,7 @@ library
       reference: self::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 augment class A {
   A.named(this.f);
@@ -2570,7 +2570,7 @@ library
       reference: self::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 augment class A {
   A.named(int a);
@@ -2623,7 +2623,7 @@ library
       reference: self::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 augment class A {
   A(int a);
@@ -2678,7 +2678,7 @@ library
       reference: self::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 augment class A {
   int foo = 0;
@@ -2741,7 +2741,7 @@ library
       reference: self::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 augment class A {
   int get foo => 0;
@@ -2795,7 +2795,7 @@ library
       reference: self::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 augment class A {
   int foo(double a) => 0;
@@ -2850,7 +2850,7 @@ library
       reference: self::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 augment class A {
   set foo(int a) {}
@@ -2901,7 +2901,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -2959,7 +2959,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -3018,7 +3018,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -3080,7 +3080,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -3142,7 +3142,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -3207,7 +3207,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -3269,7 +3269,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -3329,7 +3329,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -3376,7 +3376,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -3442,7 +3442,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -3498,7 +3498,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -3577,7 +3577,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -3690,7 +3690,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -3755,7 +3755,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -3818,7 +3818,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -3886,7 +3886,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -3957,7 +3957,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -4052,7 +4052,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -4122,7 +4122,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -4189,7 +4189,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -4262,7 +4262,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -4320,7 +4320,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -4378,7 +4378,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -4443,7 +4443,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -4507,7 +4507,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -4571,7 +4571,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -4637,7 +4637,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -4729,7 +4729,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -4805,7 +4805,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -4873,7 +4873,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -4955,7 +4955,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 import 'package:test/b.dart' as prefix1;
@@ -5002,7 +5002,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -5062,7 +5062,7 @@ library
       reference: self::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 augment class B {
   B();
@@ -5106,7 +5106,7 @@ library
       reference: self::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 void foo() {}
 ---
@@ -5154,7 +5154,7 @@ library
       reference: self::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 final x = 42;
 ---
@@ -5231,7 +5231,7 @@ library
       reference: self::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -5303,7 +5303,7 @@ library
       reference: self::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 import 'dart:core' as prefix1;
@@ -5393,7 +5393,7 @@ library
       reference: self::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 import 'dart:core' as prefix1;
@@ -5471,7 +5471,7 @@ library
       reference: self::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 import 'dart:core' as prefix1;
@@ -5542,7 +5542,7 @@ library
       reference: self::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 import 'dart:core' as prefix1;
@@ -7694,7 +7694,7 @@ library
       reference: self::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/json_serializable.dart' as prefix0;
 import 'dart:core' as prefix1;
@@ -7765,7 +7765,7 @@ class A {
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'dart:core' as prefix0;
 
@@ -8041,7 +8041,7 @@ class A {
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'a.dart';
+augment library 'a.dart';
 
 augment class A {
   final int bar = 0;
@@ -8118,7 +8118,7 @@ class A {}
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'a.dart';
+augment library 'a.dart';
 
 @b
 augment class A {}
@@ -8522,7 +8522,7 @@ class A {
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'a.dart';
+augment library 'a.dart';
 
 augment class A {
   void bar() {}
@@ -9247,7 +9247,7 @@ mixin A {}
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'a.dart';
+augment library 'a.dart';
 
 @b
 augment mixin A {}
@@ -12491,7 +12491,7 @@ library
       reference: self::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 class MyClass {}
 ---
@@ -12525,7 +12525,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 class MyClass {}
 ---
@@ -12559,7 +12559,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 class MyClass {}
 ---
@@ -12593,7 +12593,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 class MyClass {}
 ---
@@ -12634,7 +12634,7 @@ library
       reference: self::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 class B {}
 ---
@@ -12821,7 +12821,7 @@ library
       reference: self::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 class MyClass {}
 ---
@@ -12887,7 +12887,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -12967,7 +12967,7 @@ files
       id: file_3
       content
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -13061,7 +13061,7 @@ files
       id: file_3
       content
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -13150,7 +13150,7 @@ files
       id: file_3
       content
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -13251,7 +13251,7 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -13312,7 +13312,7 @@ files
       id: file_2
       content
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -13385,7 +13385,7 @@ files
       id: file_2
       content
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 import 'package:test/a.dart' as prefix0;
 
@@ -13464,7 +13464,7 @@ library
       reference: self::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 class X {}
 ---
@@ -13488,7 +13488,7 @@ class A {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 class B {}
 ''');
@@ -13722,7 +13722,7 @@ class A {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 class B {}
 ''');
@@ -13873,7 +13873,7 @@ elementFactory
     // Check that it has `class B2 {}`, as requested.
     result2 as LibraryElementResultImpl;
     _assertMacroCode(result2.element as LibraryElementImpl, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 class B2 {}
 ''');
@@ -13891,7 +13891,7 @@ class A {}
 ''');
 
     _assertMacroCode(library, r'''
-library augment 'package:test/test.dart';
+augment library 'package:test/test.dart';
 
 class B {}
 ''');

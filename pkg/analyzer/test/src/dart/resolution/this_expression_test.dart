@@ -16,7 +16,7 @@ main() {
 class ThisExpressionResolutionTest extends PubPackageResolutionTest {
   test_class_inAugmentation() async {
     final a = newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 
 augment class A {
   void f() {
@@ -46,7 +46,7 @@ ThisExpression
 
   test_mixin_inAugmentation() async {
     final a = newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 
 augment mixin M {
   void f() {

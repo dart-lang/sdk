@@ -1391,20 +1391,20 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void beginLibraryAugmentation(Token libraryKeyword, Token augmentKeyword) {
+  void beginLibraryAugmentation(Token augmentKeyword, Token libraryKeyword) {
     LibraryAugmentationBegin data = new LibraryAugmentationBegin(
         ParserAstType.BEGIN,
-        libraryKeyword: libraryKeyword,
-        augmentKeyword: augmentKeyword);
+        augmentKeyword: augmentKeyword,
+        libraryKeyword: libraryKeyword);
     seen(data);
   }
 
   @override
   void endLibraryAugmentation(
-      Token libraryKeyword, Token augmentKeyword, Token semicolon) {
+      Token augmentKeyword, Token libraryKeyword, Token semicolon) {
     LibraryAugmentationEnd data = new LibraryAugmentationEnd(ParserAstType.END,
-        libraryKeyword: libraryKeyword,
         augmentKeyword: augmentKeyword,
+        libraryKeyword: libraryKeyword,
         semicolon: semicolon);
     seen(data);
   }
@@ -5529,35 +5529,35 @@ class LabeledStatementEnd extends ParserAstNode {
 }
 
 class LibraryAugmentationBegin extends ParserAstNode {
-  final Token libraryKeyword;
   final Token augmentKeyword;
+  final Token libraryKeyword;
 
   LibraryAugmentationBegin(ParserAstType type,
-      {required this.libraryKeyword, required this.augmentKeyword})
+      {required this.augmentKeyword, required this.libraryKeyword})
       : super("LibraryAugmentation", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
-        "libraryKeyword": libraryKeyword,
         "augmentKeyword": augmentKeyword,
+        "libraryKeyword": libraryKeyword,
       };
 }
 
 class LibraryAugmentationEnd extends ParserAstNode {
-  final Token libraryKeyword;
   final Token augmentKeyword;
+  final Token libraryKeyword;
   final Token semicolon;
 
   LibraryAugmentationEnd(ParserAstType type,
-      {required this.libraryKeyword,
-      required this.augmentKeyword,
+      {required this.augmentKeyword,
+      required this.libraryKeyword,
       required this.semicolon})
       : super("LibraryAugmentation", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
-        "libraryKeyword": libraryKeyword,
         "augmentKeyword": augmentKeyword,
+        "libraryKeyword": libraryKeyword,
         "semicolon": semicolon,
       };
 }

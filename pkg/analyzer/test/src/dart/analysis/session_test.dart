@@ -281,7 +281,7 @@ class B {}
 
   test_getLibraryByUri_notLibrary_augmentation() async {
     newFile(testFile.path, r'''
-library augment 'a.dart';
+augment library 'a.dart';
 ''');
 
     final session = contextFor(testFile).currentSession;
@@ -426,7 +426,7 @@ part 'c.dart';
 
   test_getParsedLibrary_notLibrary_augmentation() async {
     newFile(testFile.path, r'''
-library augment 'a.dart';
+augment library 'a.dart';
 ''');
 
     final session = contextFor(testFile).currentSession;
@@ -688,7 +688,7 @@ part 'c.dart';
 
   test_getResolvedLibrary_notLibrary_augmentation() async {
     newFile(testFile.path, r'''
-library augment of 'a.dart';
+augment library of 'a.dart';
 ''');
 
     final session = contextFor(testFile).currentSession;
@@ -766,7 +766,7 @@ class B {}
 
   test_getUnitElement_augmentationKnown_inLibrary() async {
     final a = newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 class A {}
 class B {}
 ''');
@@ -788,7 +788,7 @@ unitElementResult
 
   test_getUnitElement_augmentationKnown_notInLibrary() async {
     final a = newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 class A {}
 class B {}
 ''');

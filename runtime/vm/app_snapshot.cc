@@ -1430,6 +1430,10 @@ class CanonicalSetDeserializationCluster : public DeserializationCluster {
         static_cast<typename SetType::ArrayPtr>(d->Allocate(instance_size));
     Deserializer::InitializeHeader(table, SetType::Storage::ArrayCid,
                                    instance_size);
+    if ((SetType::Storage::ArrayCid == kArrayCid) &&
+        Array::UseCardMarkingForAllocation(length)) {
+      table->untag()->SetCardRememberedBitUnsynchronized();
+    }
     InitTypeArgsOrNext(table);
     table->untag()->length_ = Smi::New(length);
     for (intptr_t i = 0; i < SetType::kFirstKeyIndex; i++) {
@@ -6488,6 +6492,9 @@ class ArrayDeserializationCluster
       const intptr_t length = d.ReadUnsigned();
       Deserializer::InitializeHeader(array, cid, Array::InstanceSize(length),
                                      stamp_canonical);
+      if (Array::UseCardMarkingForAllocation(length)) {
+        array->untag()->SetCardRememberedBitUnsynchronized();
+      }
       array->untag()->type_arguments_ =
           static_cast<TypeArgumentsPtr>(d.ReadRef());
       array->untag()->length_ = Smi::New(length);

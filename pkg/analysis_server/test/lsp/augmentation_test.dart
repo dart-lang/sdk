@@ -241,7 +241,7 @@ augment class A {
   Future<void> verifyGoToAugmentation(String content) async {
     // Build an augmentation library for mainFileUri.
     var code = TestCode.parse('''
-library augment '$mainFileUri';
+augment library '$mainFileUri';
 
 $content
 ''');
@@ -263,7 +263,7 @@ $content
   Future<void> verifyNoAugmentation(String content) async {
     // Build an augmentation library for mainFileUri.
     var code = TestCode.parse('''
-library augment '$mainFileUri';
+augment library '$mainFileUri';
 
 $content
 ''');

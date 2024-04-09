@@ -185,7 +185,7 @@ void f() {
 ''');
 
     final otherCode = TestCode.parse('''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class Foo {
   [!Foo.named(){}!]
 }
@@ -499,7 +499,7 @@ void f() {
 ''');
 
     final otherCode = TestCode.parse('''
-library augment 'test.dart';
+augment library 'test.dart';
 
 augment class Foo {
   [!void myMethod() {}!]
@@ -1089,7 +1089,7 @@ class Foo {
 ''');
 
     final otherCode = TestCode.parse('''
-library augment 'test.dart';
+augment library 'test.dart';
 
 augment class Foo {
   [!void f() {
@@ -1318,7 +1318,7 @@ void ba^r() {
 ''');
 
     final otherCode = TestCode.parse('''
-library augment 'test.dart';
+augment library 'test.dart';
 
 augment class Foo {
   [!Foo.named() {
@@ -1571,7 +1571,7 @@ void ba^r() {
 ''');
 
     final otherCode = TestCode.parse('''
-library augment 'test.dart';
+augment library 'test.dart';
 
 augment class Foo {
   [!void myMethod() {

@@ -1617,7 +1617,7 @@ AssignmentExpression
 
   test_prefixedIdentifier_ofClass_getterAugmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment class A {
   int get foo => 0;
@@ -1667,7 +1667,7 @@ AssignmentExpression
 
   test_prefixedIdentifier_ofClass_setterAugmentationAugments() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment class A {
   augment set foo(int _) {}
@@ -1716,7 +1716,7 @@ AssignmentExpression
 
   test_prefixedIdentifier_ofClass_setterAugmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment class A {
   set foo(int _) {}
@@ -1763,7 +1763,7 @@ AssignmentExpression
 
   test_prefixedIdentifier_ofClassName_getterAugmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment class A {
   static int get foo => 0;
@@ -1813,7 +1813,7 @@ AssignmentExpression
 
   test_prefixedIdentifier_ofClassName_setterAugmentationAugments() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment class A {
   augment static set foo(int _) {}
@@ -1862,7 +1862,7 @@ AssignmentExpression
 
   test_prefixedIdentifier_ofClassName_setterAugmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment class A {
   static set foo(int _) {}
@@ -2436,7 +2436,7 @@ AssignmentExpression
 
   test_propertyAccess_ofClass_setterAugmentationAugments() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment class A {
   augment set foo(int _) {}
@@ -2488,7 +2488,7 @@ AssignmentExpression
 
   test_propertyAccess_ofClass_setterAugmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart'
+augment library 'test.dart'
 
 augment class A {
   set foo(int _) {}

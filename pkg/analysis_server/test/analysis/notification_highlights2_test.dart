@@ -184,7 +184,7 @@ class C {
 
   Future<void> test_BUILT_IN_augment_onLibrary() async {
     addTestFile('''
-library augment 'a.dart';
+augment library 'a.dart';
 ''');
     await prepareHighlights();
     assertHasRegion(HighlightRegionType.BUILT_IN, 'library');

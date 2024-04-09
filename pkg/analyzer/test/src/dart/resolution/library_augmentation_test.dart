@@ -23,7 +23,7 @@ import augment 'b.dart';
 ''');
 
     final b = newFile('$testPackageLibPath/b.dart', r'''
-library augment 'a.dart';
+augment library 'a.dart';
 ''');
 
     newFile('$testPackageLibPath/c.dart', '');
@@ -34,8 +34,8 @@ library augment 'a.dart';
     final node = findNode.libraryAugmentation('a.dart');
     assertResolvedNodeText(node, r'''
 LibraryAugmentationDirective
-  libraryKeyword: library
   augmentKeyword: augment
+  libraryKeyword: library
   uri: SimpleStringLiteral
     literal: 'a.dart'
   semicolon: ;
@@ -45,7 +45,7 @@ LibraryAugmentationDirective
 
   test_hasFile_doesNotExist() async {
     await assertErrorsInCode(r'''
-library augment 'a.dart';
+augment library 'a.dart';
 ''', [
       error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 16, 8),
     ]);
@@ -53,8 +53,8 @@ library augment 'a.dart';
     final node = findNode.singleLibraryAugmentationDirective;
     assertResolvedNodeText(node, r'''
 LibraryAugmentationDirective
-  libraryKeyword: library
   augmentKeyword: augment
+  libraryKeyword: library
   uri: SimpleStringLiteral
     literal: 'a.dart'
   semicolon: ;
@@ -68,14 +68,14 @@ import augment 'test.dart';
 ''');
 
     await assertNoErrorsInCode(r'''
-library augment 'a.dart';
+augment library 'a.dart';
 ''');
 
     final node = findNode.singleLibraryAugmentationDirective;
     assertResolvedNodeText(node, r'''
 LibraryAugmentationDirective
-  libraryKeyword: library
   augmentKeyword: augment
+  libraryKeyword: library
   uri: SimpleStringLiteral
     literal: 'a.dart'
   semicolon: ;
@@ -87,7 +87,7 @@ LibraryAugmentationDirective
     newFile('$testPackageLibPath/a.dart', '');
 
     await assertErrorsInCode(r'''
-library augment 'a.dart';
+augment library 'a.dart';
 ''', [
       error(CompileTimeErrorCode.AUGMENTATION_WITHOUT_IMPORT, 16, 8),
     ]);
@@ -95,8 +95,8 @@ library augment 'a.dart';
     final node = findNode.singleLibraryAugmentationDirective;
     assertResolvedNodeText(node, r'''
 LibraryAugmentationDirective
-  libraryKeyword: library
   augmentKeyword: augment
+  libraryKeyword: library
   uri: SimpleStringLiteral
     literal: 'a.dart'
   semicolon: ;
@@ -106,11 +106,11 @@ LibraryAugmentationDirective
 
   test_hasFile_notLibrary_augmentation() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'b.dart';
+augment library 'b.dart';
 ''');
 
     await assertErrorsInCode(r'''
-library augment 'a.dart';
+augment library 'a.dart';
 ''', [
       error(CompileTimeErrorCode.AUGMENTATION_WITHOUT_LIBRARY, 16, 8),
     ]);
@@ -118,8 +118,8 @@ library augment 'a.dart';
     final node = findNode.singleLibraryAugmentationDirective;
     assertResolvedNodeText(node, r'''
 LibraryAugmentationDirective
-  libraryKeyword: library
   augmentKeyword: augment
+  libraryKeyword: library
   uri: SimpleStringLiteral
     literal: 'a.dart'
   semicolon: ;
@@ -133,7 +133,7 @@ part of 'b.dart';
 ''');
 
     await assertErrorsInCode(r'''
-library augment 'a.dart';
+augment library 'a.dart';
 ''', [
       error(CompileTimeErrorCode.AUGMENTATION_WITHOUT_LIBRARY, 16, 8),
     ]);
@@ -141,8 +141,8 @@ library augment 'a.dart';
     final node = findNode.singleLibraryAugmentationDirective;
     assertResolvedNodeText(node, r'''
 LibraryAugmentationDirective
-  libraryKeyword: library
   augmentKeyword: augment
+  libraryKeyword: library
   uri: SimpleStringLiteral
     literal: 'a.dart'
   semicolon: ;
@@ -152,7 +152,7 @@ LibraryAugmentationDirective
 
   test_noRelativeUriStr() async {
     await assertErrorsInCode(r'''
-library augment '${'foo.dart'}';
+augment library '${'foo.dart'}';
 ''', [
       error(CompileTimeErrorCode.AUGMENTATION_WITHOUT_LIBRARY, 16, 15),
     ]);
@@ -160,8 +160,8 @@ library augment '${'foo.dart'}';
     final node = findNode.singleLibraryAugmentationDirective;
     assertResolvedNodeText(node, r'''
 LibraryAugmentationDirective
-  libraryKeyword: library
   augmentKeyword: augment
+  libraryKeyword: library
   uri: StringInterpolation
     elements
       InterpolationString
@@ -190,7 +190,7 @@ math.Random get foo => throw 0;
 ''');
 
     final b = newFile('$testPackageLibPath/b.dart', r'''
-library augment 'a.dart';
+augment library 'a.dart';
 import 'dart:math' as math;
 math.Random get bar => throw 0;
 ''');
@@ -242,7 +242,7 @@ math.Random get foo => throw 0;
 ''');
 
     final b = newFile('$testPackageLibPath/b.dart', r'''
-library augment 'a.dart';
+augment library 'a.dart';
 math.Random get bar => throw 0;
 ''');
 
@@ -292,7 +292,7 @@ A foo() => throw 0;
 ''');
 
     final b = newFile('$testPackageLibPath/b.dart', r'''
-library augment 'a.dart';
+augment library 'a.dart';
 class A {}
 A bar() => throw 0;
 ''');
@@ -334,7 +334,7 @@ A foo() => throw 0;
 ''');
 
     final b = newFile('$testPackageLibPath/b.dart', r'''
-library augment 'a.dart';
+augment library 'a.dart';
 A bar() => throw 0;
 ''');
 

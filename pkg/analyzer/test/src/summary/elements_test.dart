@@ -51,7 +51,7 @@ class ClassAugmentationKeepLinkingTest extends ElementsBaseTest
 mixin ClassAugmentationMixin on ElementsBaseTest {
   test_add_augment() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 
 class A {
   void foo() {}
@@ -106,7 +106,7 @@ library
 
   test_augmentation_constField_hasConstConstructor() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class A {
   static const int foo = 0;
 }
@@ -156,7 +156,7 @@ library
 
   test_augmentation_constField_noConstConstructor() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class A {
   static const int foo = 0;
 }
@@ -204,7 +204,7 @@ library
 
   test_augmentation_finalField_hasConstConstructor() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class A {
   final int foo = 0;
 }
@@ -254,7 +254,7 @@ library
 
   test_augmentation_finalField_noConstConstructor() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class A {
   final int foo = 0;
 }
@@ -298,36 +298,36 @@ library
 
   test_augmentationTarget() async {
     newFile('$testPackageLibPath/a1.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 import augment 'a11.dart';
 import augment 'a12.dart';
 augment class A {}
 ''');
 
     newFile('$testPackageLibPath/a11.dart', r'''
-library augment 'a1.dart';
+augment library 'a1.dart';
 augment class A {}
 ''');
 
     newFile('$testPackageLibPath/a12.dart', r'''
-library augment 'a1.dart';
+augment library 'a1.dart';
 augment class A {}
 ''');
 
     newFile('$testPackageLibPath/a2.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 import augment 'a21.dart';
 import augment 'a22.dart';
 augment class A {}
 ''');
 
     newFile('$testPackageLibPath/a21.dart', r'''
-library augment 'a2.dart';
+augment library 'a2.dart';
 augment class A {}
 ''');
 
     newFile('$testPackageLibPath/a22.dart', r'''
-library augment 'a2.dart';
+augment library 'a2.dart';
 augment class A {}
 ''');
 
@@ -391,13 +391,13 @@ library
 
   test_augmentationTarget_no2() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 import augment 'b.dart';
 augment class A {}
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'a.dart';
+augment library 'a.dart';
 augment class A {}
 ''');
 
@@ -431,7 +431,7 @@ library
 
   test_augmented_constructors_add_named() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class A {
   A.named();
 }
@@ -466,7 +466,7 @@ library
 
   test_augmented_constructors_add_named_generic() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class A<T2> {
   A.named(T2 a);
 }
@@ -512,7 +512,7 @@ library
 
   test_augmented_constructors_add_named_hasUnnamed() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class A {
   A.named();
 }
@@ -552,7 +552,7 @@ library
 
   test_augmented_constructors_add_unnamed() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class A {
   A();
 }
@@ -585,7 +585,7 @@ library
 
   test_augmented_constructors_add_unnamed_hasNamed() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class A {
   A();
 }
@@ -625,7 +625,7 @@ library
 
   test_augmented_constructors_add_useFieldFormal() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class A {
   A.named(this.f);
 }
@@ -676,7 +676,7 @@ library
 
   test_augmented_constructors_add_useFieldInitializer() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class A {
   const A.named() : f = 0;
 }
@@ -733,7 +733,7 @@ library
 
   test_augmented_field_augment_field() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class A {
   augment int foo = 1;
 }
@@ -800,14 +800,14 @@ library
 
   test_augmented_field_augment_field2() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class A {
   augment int foo = 1;
 }
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class A {
   augment int foo = 2;
 }
@@ -888,14 +888,14 @@ library
 
   test_augmented_field_augment_field_afterGetter() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class A {
   augment int get foo => 1;
 }
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class A {
   augment int foo = 2;
 }
@@ -976,14 +976,14 @@ library
 
   test_augmented_field_augment_field_afterSetter() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class A {
   augment set foo(int _) {}
 }
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class A {
   augment int foo = 2;
 }
@@ -1067,7 +1067,7 @@ library
 
   test_augmented_field_augment_field_differentTypes() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class A {
   augment double foo = 1.2;
 }
@@ -1136,7 +1136,7 @@ library
   /// so we need a way to handle it.
   test_augmented_field_augment_getter() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class A {
   augment int foo = 1;
 }
@@ -1193,7 +1193,7 @@ library
 
   test_augmented_fields_add() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class A {
   int foo2 = 0;
 }
@@ -1275,7 +1275,7 @@ library
 
   test_augmented_fields_add_generic() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class A<T2> {
   T2 foo2;
 }
@@ -1367,7 +1367,7 @@ library
 
   test_augmented_fields_add_useFieldFormal() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class A {
   final int foo;
 }
@@ -1416,7 +1416,7 @@ library
 
   test_augmented_fields_add_useFieldInitializer() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class A {
   final int foo;
 }
@@ -1471,7 +1471,7 @@ library
 
   test_augmented_getters_add() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class A {
   int get foo2 => 0;
 }
@@ -1533,7 +1533,7 @@ library
 
   test_augmented_getters_add_generic() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class A<T2> {
   T2 get foo2;
 }
@@ -1605,7 +1605,7 @@ library
 
   test_augmented_getters_augment_field() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class A {
   augment int get foo => 0;
 }
@@ -1672,14 +1672,14 @@ library
 
   test_augmented_getters_augment_field2() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class A {
   augment int get foo => 0;
 }
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class A {
   augment int get foo => 0;
 }
@@ -1760,7 +1760,7 @@ library
 
   test_augmented_getters_augment_getter() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class A {
   augment int get foo1 => 0;
 }
@@ -1828,7 +1828,7 @@ library
 
   test_augmented_getters_augment_getter2_oneLib_oneTop() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class A {
   augment int get foo => 0;
   augment int get foo => 0;
@@ -1905,14 +1905,14 @@ library
 
   test_augmented_getters_augment_getter2_twoLib() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class A {
   augment int get foo => 0;
 }
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class A {
   augment int get foo => 0;
 }
@@ -1983,7 +1983,7 @@ library
 
   test_augmented_getters_augment_nothing() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class A {
   augment int get foo => 0;
 }
@@ -2023,7 +2023,7 @@ library
 
   test_augmented_interfaces() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class A implements I2 {}
 class I2 {}
 ''');
@@ -2069,14 +2069,14 @@ library
 
   test_augmented_interfaces_chain() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 import augment 'b.dart';
 augment class A implements I2 {}
 class I2 {}
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'a.dart';
+augment library 'a.dart';
 augment class A implements I3 {}
 class I3 {}
 ''');
@@ -2135,7 +2135,7 @@ library
 
   test_augmented_interfaces_generic() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class A<T2> implements I2<T2> {}
 class I2<E> {}
 ''');
@@ -2190,7 +2190,7 @@ library
 
   test_augmented_interfaces_generic_mismatch() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class A<T2, T3> implements I2<T2> {}
 class I2<E> {}
 ''');
@@ -2246,7 +2246,7 @@ library
 
   test_augmented_methods() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class A {
   void bar() {}
 }
@@ -2290,7 +2290,7 @@ library
 
   test_augmented_methods_add_withDefaultValue() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class A {
   void foo([int x = 42]) {}
 }
@@ -2335,7 +2335,7 @@ library
 
   test_augmented_methods_augment() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class A {
   augment void foo1() {}
 }
@@ -2384,7 +2384,7 @@ library
 
   test_augmented_methods_augment2_oneLib_oneTop() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class A {
   augment void foo() {}
   augment void foo() {}
@@ -2445,7 +2445,7 @@ library
 
   test_augmented_methods_augment2_oneLib_twoTop() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class A {
   augment void foo() {}
 }
@@ -2513,7 +2513,7 @@ library
 
   test_augmented_methods_augment2_twoLib() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 import augment 'b.dart';
 augment class A {
   augment void foo() {}
@@ -2521,7 +2521,7 @@ augment class A {
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'a.dart';
+augment library 'a.dart';
 augment class A {
   augment void foo() {}
 }
@@ -2578,7 +2578,7 @@ library
 
   test_augmented_methods_generic() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class A<T2> {
   T2 bar() => throw 0;
 }
@@ -2630,7 +2630,7 @@ library
 
   test_augmented_methods_generic_augment() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class A<T2> {
   augment T2 foo() => throw 0;
 }
@@ -2683,7 +2683,7 @@ library
 
   test_augmented_mixins() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class A with M2 {}
 mixin M2 {}
 ''');
@@ -2732,13 +2732,13 @@ library
 
   test_augmented_mixins_inferredTypeArguments() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class A<T2> with M2 {}
 mixin M2<U2> on M1<U2> {}
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class A<T3> with M3 {}
 mixin M3<U3> on M2<U3> {}
 ''');
@@ -2829,7 +2829,7 @@ library
 
   test_augmented_setters_add() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class A {
   set foo2(int _) {}
 }
@@ -2897,7 +2897,7 @@ library
 
   test_augmented_setters_augment_field() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class A {
   augment set foo(int _) {}
 }
@@ -2967,7 +2967,7 @@ library
 
   test_augmented_setters_augment_nothing() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class A {
   augment set foo(int _) {}
 }
@@ -3010,7 +3010,7 @@ library
 
   test_augmented_setters_augment_setter() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class A {
   augment set foo1(int _) {}
 }
@@ -3087,14 +3087,14 @@ library
 
   test_constructors_augment2() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class A {
   augment A.named();
 }
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class A {
   augment A.named();
 }
@@ -3150,7 +3150,7 @@ library
 
   test_constructors_augment_named() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class A {
   augment A.named();
 }
@@ -3193,7 +3193,7 @@ library
 
   test_constructors_augment_unnamed() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class A {
   augment A();
 }
@@ -3238,7 +3238,7 @@ class A {
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class B {
   foo(a) => 0;
 }
@@ -3291,7 +3291,7 @@ class A {
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 import 'a.dart';
 augment class B implements A {}
 ''');
@@ -3346,7 +3346,7 @@ mixin A {
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 import 'a.dart';
 augment class B with A {}
 ''');
@@ -3401,7 +3401,7 @@ class A {
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class B {
   augment foo(a) => 0;
 }
@@ -3458,7 +3458,7 @@ library
 
   test_modifiers_abstract() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment abstract class A {}
 ''');
 
@@ -3489,7 +3489,7 @@ library
 
   test_modifiers_base() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment base class A {}
 ''');
 
@@ -3520,7 +3520,7 @@ library
 
   test_modifiers_final() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment final class A {}
 ''');
 
@@ -3551,7 +3551,7 @@ library
 
   test_modifiers_interface() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment interface class A {}
 ''');
 
@@ -3582,7 +3582,7 @@ library
 
   test_modifiers_macro() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment macro class A {}
 ''');
 
@@ -3613,7 +3613,7 @@ library
 
   test_modifiers_mixin() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment mixin class A {}
 ''');
 
@@ -3644,7 +3644,7 @@ library
 
   test_modifiers_sealed() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment sealed class A {}
 ''');
 
@@ -3730,7 +3730,7 @@ library
 
   test_notSimplyBounded_self() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class A<T extends A> {}
 ''');
 
@@ -3769,7 +3769,7 @@ library
 
   test_supertype_fromAugmentation() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class B<T2> extends A<T2> {}
 ''');
 
@@ -3817,13 +3817,13 @@ library
 
   test_supertype_fromAugmentation2() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class C extends A {}
 ''');
 
     // `extends B` should be ignored, we already have `extends A`
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class C extends B {}
 ''');
 
@@ -3871,7 +3871,7 @@ library
 
   test_typeParameters_defaultType() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class A<T extends B> {}
 ''');
 
@@ -4029,12 +4029,12 @@ library
 
   test_augmentation_augmentationImports_augmentation() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 import augment 'b.dart';
 class A {}
 ''');
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'a.dart';
+augment library 'a.dart';
 class B {}
 ''');
     final library = await buildLibrary(r'''
@@ -4067,7 +4067,7 @@ library
 
   test_augmentation_class_constructor_superConstructor_generic_named() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 class B extends A<int> {
   B() : super.named(0);
 }
@@ -4109,7 +4109,7 @@ library
 
   test_augmentation_class_constructor_superConstructor_notGeneric_named() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 class B extends A {
   B() : super.named();
 }
@@ -4143,7 +4143,7 @@ library
 
   test_augmentation_class_constructor_superConstructor_notGeneric_unnamed_explicit() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 class B extends A {
   B() : super();
 }
@@ -4175,7 +4175,7 @@ library
     // C's type parameter T is not simply bounded because its bound, F, expands
     // to `dynamic F(C)`, which refers to C.
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 class C<T extends F> {}
 ''');
     var library = await buildLibrary('''
@@ -4209,7 +4209,7 @@ library
 
   test_augmentation_class_notSimplyBounded_self() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 class C<T extends C> {}
 ''');
     var library = await buildLibrary('''
@@ -4240,7 +4240,7 @@ class A {
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 import 'a.dart';
 void f({int x = A.a}) {}
 ''');
@@ -4287,7 +4287,7 @@ class A {
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 import 'a.dart' as prefix;
 void f({int x = prefix.A.a}) {}
 ''');
@@ -4336,7 +4336,7 @@ library
   test_augmentation_documented() async {
     newFile('$testPackageLibPath/a.dart', r'''
 /// My documentation.
-library augment 'test.dart';
+augment library 'test.dart';
 ''');
     final library = await buildLibrary(r'''
 import augment 'a.dart';
@@ -4357,7 +4357,7 @@ final a = 0;
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 import 'a.dart';
 const b = a;
 ''');
@@ -4397,7 +4397,7 @@ class A {
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 import 'a.dart';
 const b = A.a;
 ''');
@@ -4445,7 +4445,7 @@ class A {
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 import 'a.dart';
 const a = A();
 ''');
@@ -4492,7 +4492,7 @@ class A {
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 import 'a.dart' as prefix;
 const b = prefix.A.a;
 ''');
@@ -4547,7 +4547,7 @@ class A {
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 import 'a.dart' as prefix;
 
 @prefix.A()
@@ -4597,7 +4597,7 @@ class A {}
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 import 'a.dart' as prefix;
 prefix.A f() {}
 ''');
@@ -4626,7 +4626,7 @@ final a = 0;
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 import 'a.dart';
 final b = a;
 ''');
@@ -4659,7 +4659,7 @@ class A {}
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 import 'a.dart';
 A f() {}
 ''');
@@ -4694,7 +4694,7 @@ class A {}
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 A f() {}
 ''');
 
@@ -4725,11 +4725,11 @@ library
 
   test_augmentation_libraryExports_library() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 export 'dart:async';
 ''');
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 export 'dart:collection';
 export 'dart:math';
 ''');
@@ -4758,11 +4758,11 @@ library
 
   test_augmentation_libraryImports_library() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 import 'dart:async';
 ''');
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 import 'dart:collection';
 import 'dart:math';
 ''');
@@ -4791,7 +4791,7 @@ library
 
   test_augmentation_topScope_augmentation() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 class A {}
 A f() {}
 ''');
@@ -4823,7 +4823,7 @@ library
 
   test_augmentation_topScope_library() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 A f() {}
 ''');
 
@@ -27838,7 +27838,7 @@ library
 
   test_exportScope_augmentation_class() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment class A {}
 class B {}
 ''');
@@ -27888,11 +27888,11 @@ class B2 {}
 class C {}
 ''');
     newFile('$testPackageLibPath/d.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 export 'a.dart';
 ''');
     newFile('$testPackageLibPath/e.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 export 'b.dart';
 export 'c.dart';
 ''');
@@ -27942,7 +27942,7 @@ class A3 {}
 class A4 {}
 ''');
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 export 'a.dart' hide A2, A4;
 ''');
     var library = await buildLibrary(r'''
@@ -27982,7 +27982,7 @@ class A2 {}
 class A3 {}
 ''');
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 export 'a.dart' show A1, A3;
 ''');
     var library = await buildLibrary(r'''
@@ -28017,7 +28017,7 @@ library
 
   test_exportScope_augmentation_mixin() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment mixin A {}
 mixin B {}
 ''');
@@ -28057,12 +28057,12 @@ library
 
   test_exportScope_augmentation_nested_class() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 import augment 'b.dart';
 class A {}
 ''');
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'a.dart';
+augment library 'a.dart';
 class B {}
 ''');
     var library = await buildLibrary(r'''
@@ -28110,12 +28110,12 @@ class A {}
 class B {}
 ''');
     newFile('$testPackageLibPath/c.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 import augment 'd.dart';
 export 'a.dart';
 ''');
     newFile('$testPackageLibPath/d.dart', r'''
-library augment 'c.dart';
+augment library 'c.dart';
 export 'b.dart';
 ''');
     var library = await buildLibrary(r'''
@@ -28153,7 +28153,7 @@ library
 
   test_exportScope_augmentation_variable() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 int a = 0;
 ''');
     var library = await buildLibrary(r'''
@@ -28189,7 +28189,7 @@ library
 
   test_exportScope_augmentation_variable_const() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 const a = 0;
 ''');
     var library = await buildLibrary(r'''
@@ -33110,7 +33110,7 @@ library
 
   test_library_augmentationImports_augmentation() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 class A {}
 ''');
     final library = await buildLibrary(r'''
@@ -33140,16 +33140,16 @@ library
 
   test_library_augmentationImports_depthFirst() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 import augment 'b.dart';
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'a.dart';
+augment library 'a.dart';
 ''');
 
     newFile('$testPackageLibPath/c.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 ''');
 
     final library = await buildLibrary(r'''
@@ -33351,7 +33351,7 @@ library
 
   test_library_exports_withRelativeUri_notLibrary_augmentation() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 ''');
     final library = await buildLibrary(r'''
 export 'a.dart';
@@ -33464,7 +33464,7 @@ library
 
   test_library_imports_withRelativeUri_notLibrary_augmentation() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 ''');
     final library = await buildLibrary(r'''
 import 'a.dart';
@@ -33963,7 +33963,7 @@ library
 
   test_metadata_augmentation_class() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 @deprecated
 class A {}
 ''');
@@ -33994,7 +33994,7 @@ library
   test_metadata_augmentation_directive() async {
     newFile('$testPackageLibPath/a.dart', r'''
 @deprecated
-library augment 'test.dart';
+augment library 'test.dart';
 ''');
     var library = await buildLibrary(r'''
 import augment 'a.dart';
@@ -34018,7 +34018,7 @@ library
 
   test_metadata_augmentation_exportLibrary() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 @deprecated
 export 'dart:math';
 ''');
@@ -34046,10 +34046,10 @@ library
 
   test_metadata_augmentation_importAugmentation() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'b.dart';
+augment library 'b.dart';
 ''');
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 @deprecated
 import augment 'a.dart';
 ''');
@@ -34078,7 +34078,7 @@ library
 
   test_metadata_augmentation_importLibrary() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 @deprecated
 import 'dart:math';
 ''');
@@ -34107,7 +34107,7 @@ library
   test_metadata_augmentation_libraryAugmentation() async {
     newFile('$testPackageLibPath/a.dart', r'''
 @deprecated
-library augment 'test.dart';
+augment library 'test.dart';
 ''');
     final library = await buildLibrary('''
 import augment 'a.dart';
@@ -36706,7 +36706,7 @@ library
 
   test_metadata_library_importAugmentation_augmentation() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 ''');
     var library = await buildLibrary('''
 @deprecated
@@ -49482,36 +49482,36 @@ class FunctionAugmentationKeepLinkingTest extends ElementsBaseTest
 mixin FunctionAugmentationMixin on ElementsBaseTest {
   test_function_augmentationTarget() async {
     newFile('$testPackageLibPath/a1.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 import augment 'a11.dart';
 import augment 'a12.dart';
 augment void foo() {}
 ''');
 
     newFile('$testPackageLibPath/a11.dart', r'''
-library augment 'a1.dart';
+augment library 'a1.dart';
 augment void foo() {}
 ''');
 
     newFile('$testPackageLibPath/a12.dart', r'''
-library augment 'a1.dart';
+augment library 'a1.dart';
 augment void foo() {}
 ''');
 
     newFile('$testPackageLibPath/a2.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 import augment 'a21.dart';
 import augment 'a22.dart';
 augment void foo() {}
 ''');
 
     newFile('$testPackageLibPath/a21.dart', r'''
-library augment 'a2.dart';
+augment library 'a2.dart';
 augment void foo() {}
 ''');
 
     newFile('$testPackageLibPath/a22.dart', r'''
-library augment 'a2.dart';
+augment library 'a2.dart';
 augment void foo() {}
 ''');
 
@@ -49577,7 +49577,7 @@ library
 
   test_function_augments_function() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment void foo() {}
 ''');
 
@@ -49610,7 +49610,7 @@ library
 
   test_function_augments_function2() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 void foo() {}
 augment void foo() {}
 ''');
@@ -49642,7 +49642,7 @@ library
 
   test_getter_augments_class() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment int get foo => 0;
 ''');
 
@@ -49678,7 +49678,7 @@ library
 
   test_getter_augments_getter() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment int get foo => 0;
 ''');
 
@@ -49722,7 +49722,7 @@ library
 
   test_getter_augments_nothing() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment int get foo => 0;
 ''');
 
@@ -49752,7 +49752,7 @@ library
 
   test_getter_augments_setter() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment int get foo => 0;
 ''');
 
@@ -49798,7 +49798,7 @@ library
 
   test_getter_augments_topVariable() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment int get foo => 0;
 ''');
 
@@ -49853,7 +49853,7 @@ library
 
   test_setter_augments_getter() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment set foo(int _) {}
 ''');
 
@@ -49899,7 +49899,7 @@ library
 
   test_setter_augments_nothing() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment set foo(int _) {}
 ''');
 
@@ -49932,7 +49932,7 @@ library
 
   test_setter_augments_setter() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment set foo(int _) {}
 ''');
 
@@ -49982,7 +49982,7 @@ library
 
   test_setter_augments_topVariable() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment set foo(int _) {}
 ''');
 
@@ -50120,13 +50120,13 @@ library
 
   test_augmentationTarget() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 import augment 'b.dart';
 augment mixin A {}
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'a.dart';
+augment library 'a.dart';
 augment mixin A {}
 ''');
 
@@ -50164,13 +50164,13 @@ library
 
   test_augmentationTarget_no2() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 import augment 'b.dart';
 augment mixin A {}
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'a.dart';
+augment library 'a.dart';
 augment mixin A {}
 ''');
 
@@ -50204,7 +50204,7 @@ library
 
   test_augmented_field_augment_field() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment mixin A {
   augment int foo = 1;
 }
@@ -50271,14 +50271,14 @@ library
 
   test_augmented_field_augment_field2() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment mixin A {
   augment int foo = 1;
 }
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment mixin A {
   augment int foo = 2;
 }
@@ -50359,14 +50359,14 @@ library
 
   test_augmented_field_augment_field_afterGetter() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment mixin A {
   augment int get foo => 1;
 }
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment mixin A {
   augment int foo = 2;
 }
@@ -50447,14 +50447,14 @@ library
 
   test_augmented_field_augment_field_afterSetter() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment mixin A {
   augment set foo(int _) {}
 }
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment mixin A {
   augment int foo = 2;
 }
@@ -50538,7 +50538,7 @@ library
 
   test_augmented_field_augment_field_differentTypes() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment mixin A {
   augment double foo = 1.2;
 }
@@ -50607,7 +50607,7 @@ library
   /// so we need a way to handle it.
   test_augmented_field_augment_getter() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment mixin A {
   augment int foo = 1;
 }
@@ -50664,7 +50664,7 @@ library
 
   test_augmented_fields_add() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment mixin A {
   int foo2 = 0;
 }
@@ -50746,7 +50746,7 @@ library
 
   test_augmented_fields_add_generic() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment mixin A<T2> {
   T2 foo2;
 }
@@ -50838,7 +50838,7 @@ library
 
   test_augmented_getters_add() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment mixin A {
   int get foo2 => 0;
 }
@@ -50900,7 +50900,7 @@ library
 
   test_augmented_getters_add_generic() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment mixin A<T2> {
   T2 get foo2;
 }
@@ -50972,7 +50972,7 @@ library
 
   test_augmented_getters_augment_field() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment mixin A {
   augment int get foo => 0;
 }
@@ -51039,14 +51039,14 @@ library
 
   test_augmented_getters_augment_field2() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment mixin A {
   augment int get foo => 0;
 }
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment mixin A {
   augment int get foo => 0;
 }
@@ -51127,7 +51127,7 @@ library
 
   test_augmented_getters_augment_getter() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment mixin A {
   augment int get foo1 => 0;
 }
@@ -51195,14 +51195,14 @@ library
 
   test_augmented_getters_augment_getter2() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment mixin A {
   augment int get foo => 0;
 }
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment mixin A {
   augment int get foo => 0;
 }
@@ -51273,7 +51273,7 @@ library
 
   test_augmented_interfaces() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment mixin A implements I2 {}
 class I2 {}
 ''');
@@ -51321,14 +51321,14 @@ library
 
   test_augmented_interfaces_chain() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 import augment 'b.dart';
 augment mixin A implements I2 {}
 class I2 {}
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'a.dart';
+augment library 'a.dart';
 augment mixin A implements I3 {}
 class I3 {}
 ''');
@@ -51390,7 +51390,7 @@ library
 
   test_augmented_methods() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment mixin A {
   void bar() {}
 }
@@ -51434,7 +51434,7 @@ library
 
   test_augmented_methods_augment() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment mixin A {
   augment void foo1() {}
 }
@@ -51483,7 +51483,7 @@ library
 
   test_augmented_methods_augment2() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 import augment 'b.dart';
 augment mixin A {
   augment void foo() {}
@@ -51491,7 +51491,7 @@ augment mixin A {
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'a.dart';
+augment library 'a.dart';
 augment mixin A {
   augment void foo() {}
 }
@@ -51548,7 +51548,7 @@ library
 
   test_augmented_methods_generic() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment mixin A<T2> {
   T2 bar() => throw 0;
 }
@@ -51600,7 +51600,7 @@ library
 
   test_augmented_methods_generic_augment() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment mixin A<T2> {
   augment T2 foo() => throw 0;
 }
@@ -51653,7 +51653,7 @@ library
 
   test_augmented_setters_add() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment mixin A {
   set foo2(int _) {}
 }
@@ -51721,7 +51721,7 @@ library
 
   test_augmented_setters_augment_field() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment mixin A {
   augment set foo(int _) {}
 }
@@ -51791,7 +51791,7 @@ library
 
   test_augmented_setters_augment_setter() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment mixin A {
   augment set foo1(int _) {}
 }
@@ -51868,7 +51868,7 @@ library
 
   test_augmented_superclassConstraints() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment mixin A on B2 {}
 class B2 {}
 ''');
@@ -51912,14 +51912,14 @@ library
 
   test_augmented_superclassConstraints_chain() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 import augment 'b.dart';
 augment mixin A on I2 {}
 class I2 {}
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'a.dart';
+augment library 'a.dart';
 augment mixin A on I3 {}
 class I3 {}
 ''');
@@ -51977,7 +51977,7 @@ library
 
   test_augmented_superclassConstraints_fromAugmentation() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment mixin A on B {}
 class B {}
 ''');
@@ -52013,7 +52013,7 @@ library
 
   test_augmented_superclassConstraints_generic() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment mixin A<T2> on I2<T2> {}
 class I2<E> {}
 ''');
@@ -52072,7 +52072,7 @@ class A {
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment mixin B {
   foo(a) => 0;
 }
@@ -52123,7 +52123,7 @@ class A {
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 import 'a.dart';
 augment mixin B implements A {}
 ''');
@@ -52178,7 +52178,7 @@ class A {
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 import 'a.dart';
 augment mixin B on A {}
 ''');
@@ -52229,7 +52229,7 @@ class A {
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment mixin B {
   augment foo(a) => 0;
 }
@@ -52284,7 +52284,7 @@ library
 
   test_modifiers_base() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment base mixin A {}
 ''');
 
@@ -52369,7 +52369,7 @@ library
 
   test_notSimplyBounded_self() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment mixin A<T extends A> {}
 ''');
 
@@ -52424,7 +52424,7 @@ class TopLevelVariableAugmentationKeepLinkingTest extends ElementsBaseTest
 mixin TopLevelVariableAugmentationMixin on ElementsBaseTest {
   test_function_augments_function() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 augment int foo = 1;
 ''');
 

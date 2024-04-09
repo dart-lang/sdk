@@ -338,14 +338,14 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginLibraryAugmentation(Token libraryKeyword, Token augmentKeyword) {
-    listener?.beginLibraryAugmentation(libraryKeyword, augmentKeyword);
+  void beginLibraryAugmentation(Token augmentKeyword, Token libraryKeyword) {
+    listener?.beginLibraryAugmentation(augmentKeyword, libraryKeyword);
   }
 
   @override
   void endLibraryAugmentation(
-      Token libraryKeyword, Token augmentKeyword, Token semicolon) {
-    listener?.endLibraryAugmentation(libraryKeyword, augmentKeyword, semicolon);
+      Token augmentKeyword, Token libraryKeyword, Token semicolon) {
+    listener?.endLibraryAugmentation(augmentKeyword, libraryKeyword, semicolon);
   }
 
   @override

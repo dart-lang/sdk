@@ -215,10 +215,10 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseLibraryAugmentation(Token libraryKeyword, Token augmentKeyword) {
-    doPrint('parseLibraryAugmentation(' '$libraryKeyword, ' '$augmentKeyword)');
+  Token parseLibraryAugmentation(Token augmentKeyword, Token libraryKeyword) {
+    doPrint('parseLibraryAugmentation(' '$augmentKeyword, ' '$libraryKeyword)');
     indent++;
-    var result = super.parseLibraryAugmentation(libraryKeyword, augmentKeyword);
+    var result = super.parseLibraryAugmentation(augmentKeyword, libraryKeyword);
     indent--;
     return result;
   }

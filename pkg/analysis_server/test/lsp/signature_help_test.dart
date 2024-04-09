@@ -169,7 +169,7 @@ void bar() {
 
     var augmentationFilePath = join(projectFolderPath, 'lib', 'a.dart');
     final augmentationCode = '''
-library augment 'main.dart';
+augment library 'main.dart';
 
 augment class Foo {
   /// My method.

@@ -21,7 +21,7 @@ import augment 'b.dart';
 ''');
 
     final b = newFile('$testPackageLibPath/b.dart', r'''
-library augment 'a.dart';
+augment library 'a.dart';
 import 'c.dart';
 ''');
 
@@ -51,7 +51,7 @@ import augment 'b.dart';
 ''');
 
     final b = newFile('$testPackageLibPath/b.dart', r'''
-library augment 'a.dart';
+augment library 'a.dart';
 import 'c.dart';
 ''');
 
@@ -79,7 +79,7 @@ import augment 'b.dart';
 ''');
 
     final b = newFile('$testPackageLibPath/b.dart', r'''
-library augment 'a.dart';
+augment library 'a.dart';
 import ':net';
 ''');
 
@@ -107,7 +107,7 @@ import augment 'b.dart';
 ''');
 
     final b = newFile('$testPackageLibPath/b.dart', r'''
-library augment 'a.dart';
+augment library 'a.dart';
 import '${'foo'}.dart';
 ''');
 
@@ -145,7 +145,7 @@ import augment 'b.dart';
 ''');
 
     final b = newFile('$testPackageLibPath/b.dart', r'''
-library augment 'a.dart';
+augment library 'a.dart';
 import 'foo:bar';
 ''');
 
@@ -173,12 +173,12 @@ import augment 'b.dart';
 ''');
 
     final b = newFile('$testPackageLibPath/b.dart', r'''
-library augment 'a.dart';
+augment library 'a.dart';
 import 'c.dart';
 ''');
 
     newFile('$testPackageLibPath/c.dart', r'''
-library augment 'b.dart';
+augment library 'b.dart';
 ''');
 
     await resolveFile2(b);
@@ -205,7 +205,7 @@ import augment 'b.dart';
 ''');
 
     final b = newFile('$testPackageLibPath/b.dart', r'''
-library augment 'a.dart';
+augment library 'a.dart';
 import 'c.dart';
 ''');
 
@@ -237,7 +237,7 @@ import augment 'b.dart';
 ''');
 
     final b = newFile('$testPackageLibPath/b.dart', r'''
-library augment 'a.dart';
+augment library 'a.dart';
 import 'c.dart';
 ''');
 
@@ -938,7 +938,7 @@ ImportDirective
 
   test_inLibrary_notLibrary_augmentation() async {
     newFile('$testPackageLibPath/a.dart', r'''
-library augment 'test.dart';
+augment library 'test.dart';
 ''');
 
     await assertErrorsInCode(r'''
