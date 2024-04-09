@@ -12,6 +12,7 @@ environment:
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dependencies:
   args: any
+  macros: any
   package_config: any
   yaml: any
 

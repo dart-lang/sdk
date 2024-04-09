@@ -9,8 +9,10 @@ import 'package:package_config/package_config.dart';
 import 'find_sdk_root.dart';
 import 'suite.dart';
 
-Future<void> writePackageConfig(
-    Module module, Set<Module> transitiveDependencies, Uri root) async {
+/// Writes a package config under [root] and returns the [Uri] pointing to it.
+Future<Uri> writePackageConfig(
+    Module module, Set<Module> transitiveDependencies, Uri root,
+    {bool useRealPaths = false}) async {
   const packageConfigJsonPath = ".dart_tool/package_config.json";
   var sdkRoot = await findRoot();
   Uri packageConfigUri = sdkRoot.resolve(packageConfigJsonPath);
@@ -39,24 +41,27 @@ Future<void> writePackageConfig(
     if (dependency.isPackage) {
       // rootUri should be ignored for dependent modules, so we pass in a
       // bogus value.
-      var rootUri = Uri.parse('unused$unusedNum');
-      unusedNum++;
+      var rootUri =
+          useRealPaths ? dependency.rootUri : Uri.parse('unused${unusedNum++}');
 
       var dependentPackage = packageConfig[dependency.name];
       var packageJson = dependentPackage == null
-          ? _packageConfigEntry(dependency.name, rootUri)
+          ? _packageConfigEntry(dependency.name, rootUri,
+              packageRoot: dependency.packageBase)
           : _packageConfigEntry(dependentPackage.name, rootUri,
+              packageRoot: dependency.packageBase,
               version: dependentPackage.languageVersion);
       packagesJson.add(packageJson);
     }
   }
 
-  await File.fromUri(root.resolve(packageConfigJsonPath))
-      .create(recursive: true);
-  await File.fromUri(root.resolve(packageConfigJsonPath)).writeAsString('{'
+  var packageConfigFile = File.fromUri(root.resolve(packageConfigJsonPath));
+  await packageConfigFile.create(recursive: true);
+  await packageConfigFile.writeAsString('{'
       '  "configVersion": ${packageConfig.version},'
       '  "packages": [ ${packagesJson.join(',')} ]'
       '}');
+  return packageConfigFile.uri;
 }
 
 String _packageConfigEntry(String name, Uri root,

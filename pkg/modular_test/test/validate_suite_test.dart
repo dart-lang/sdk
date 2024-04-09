@@ -10,23 +10,23 @@ import 'package:modular_test/src/suite.dart';
 
 main() {
   test('module test is not empty', () {
-    var m = Module("a", [], Uri.parse("app:/"), []);
+    var m = Module("a", [], Uri.parse("app:/"), [], {});
     expect(() => ModularTest([], m, []), throwsA(TypeMatcher<ArgumentError>()));
   });
 
   test('package must depend on package', () {
     var m1a = Module("a", const [], Uri.parse("app:/"),
-        [Uri.parse("a1.dart"), Uri.parse("a2.dart")],
+        [Uri.parse("a1.dart"), Uri.parse("a2.dart")], {},
         isPackage: false);
     var m1b = Module("a", const [], Uri.parse("app:/"),
-        [Uri.parse("a1.dart"), Uri.parse("a2.dart")],
+        [Uri.parse("a1.dart"), Uri.parse("a2.dart")], {},
         isPackage: true);
 
     var m2a = Module("b", [m1a], Uri.parse("app:/"),
-        [Uri.parse("b/b1.dart"), Uri.parse("b/b2.dart")],
+        [Uri.parse("b/b1.dart"), Uri.parse("b/b2.dart")], {},
         isPackage: true);
     var m2b = Module("b", [m1b], Uri.parse("app:/"),
-        [Uri.parse("b/b1.dart"), Uri.parse("b/b2.dart")],
+        [Uri.parse("b/b1.dart"), Uri.parse("b/b2.dart")], {},
         isPackage: true);
     expect(() => ModularTest([m1a, m2a], m2a, []),
         throwsA(TypeMatcher<InvalidModularTestError>()));
@@ -35,17 +35,17 @@ main() {
 
   test('shared module must depend on shared modules', () {
     var m1a = Module("a", const [], Uri.parse("app:/"),
-        [Uri.parse("a1.dart"), Uri.parse("a2.dart")],
+        [Uri.parse("a1.dart"), Uri.parse("a2.dart")], {},
         isShared: false);
     var m1b = Module("a", const [], Uri.parse("app:/"),
-        [Uri.parse("a1.dart"), Uri.parse("a2.dart")],
+        [Uri.parse("a1.dart"), Uri.parse("a2.dart")], {},
         isShared: true);
 
     var m2a = Module("b", [m1a], Uri.parse("app:/"),
-        [Uri.parse("b/b1.dart"), Uri.parse("b/b2.dart")],
+        [Uri.parse("b/b1.dart"), Uri.parse("b/b2.dart")], {},
         isShared: true);
     var m2b = Module("b", [m1b], Uri.parse("app:/"),
-        [Uri.parse("b/b1.dart"), Uri.parse("b/b2.dart")],
+        [Uri.parse("b/b1.dart"), Uri.parse("b/b2.dart")], {},
         isShared: true);
     expect(() => ModularTest([m1a, m2a], m2a, []),
         throwsA(TypeMatcher<InvalidModularTestError>()));
@@ -54,17 +54,17 @@ main() {
 
   test('sdk module must not have dependencies', () {
     var m1a = Module("a", const [], Uri.parse("app:/"),
-        [Uri.parse("a1.dart"), Uri.parse("a2.dart")],
+        [Uri.parse("a1.dart"), Uri.parse("a2.dart")], {},
         isSdk: false);
     var m1b = Module("a", const [], Uri.parse("app:/"),
-        [Uri.parse("a1.dart"), Uri.parse("a2.dart")],
+        [Uri.parse("a1.dart"), Uri.parse("a2.dart")], {},
         isSdk: true);
 
     var m2a = Module("b", [m1a], Uri.parse("app:/"),
-        [Uri.parse("b/b1.dart"), Uri.parse("b/b2.dart")],
+        [Uri.parse("b/b1.dart"), Uri.parse("b/b2.dart")], {},
         isSdk: true);
     var m2b = Module("b", [m1b], Uri.parse("app:/"),
-        [Uri.parse("b/b1.dart"), Uri.parse("b/b2.dart")],
+        [Uri.parse("b/b1.dart"), Uri.parse("b/b2.dart")], {},
         isSdk: true);
     expect(() => ModularTest([m1a, m2a], m2a, []),
         throwsA(TypeMatcher<InvalidModularTestError>()));
@@ -74,7 +74,7 @@ main() {
 
   test('sdk module cannot be package module', () {
     var m = Module("a", const [], Uri.parse("app:/"),
-        [Uri.parse("a1.dart"), Uri.parse("a2.dart")],
+        [Uri.parse("a1.dart"), Uri.parse("a2.dart")], {},
         isSdk: true);
     expect(ModularTest([m], m, []), isNotNull);
 

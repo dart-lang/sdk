@@ -136,6 +136,9 @@ class SourceOnlyStep implements IOModularStep {
 
   @override
   void notifyCached(Module module) {}
+
+  @override
+  bool shouldExecute(Module module) => true;
 }
 
 class ModuleDataStep implements IOModularStep {
@@ -172,6 +175,9 @@ class ModuleDataStep implements IOModularStep {
 
   @override
   void notifyCached(Module module) {}
+
+  @override
+  bool shouldExecute(Module module) => true;
 }
 
 class TwoOutputStep implements IOModularStep {
@@ -214,6 +220,9 @@ class TwoOutputStep implements IOModularStep {
 
   @override
   void notifyCached(Module module) {}
+
+  @override
+  bool shouldExecute(Module module) => true;
 }
 
 class LinkStep implements IOModularStep {
@@ -255,6 +264,9 @@ class LinkStep implements IOModularStep {
 
   @override
   void notifyCached(Module module) {}
+
+  @override
+  bool shouldExecute(Module module) => true;
 }
 
 class MainOnlyStep implements IOModularStep {
@@ -296,6 +308,9 @@ class MainOnlyStep implements IOModularStep {
 
   @override
   void notifyCached(Module module) {}
+
+  @override
+  bool shouldExecute(Module module) => true;
 }
 
 Future<String?> _readHelper(Module module, Uri root, DataId dataId,

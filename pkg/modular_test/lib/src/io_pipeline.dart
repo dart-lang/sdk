@@ -26,6 +26,10 @@ abstract class IOModularStep extends ModularStep {
   /// should be stored under `root.resolveUri(toUri(module, resultKind))`.
   Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
       List<String> flags);
+
+  /// Whether this step should apply to [module]. Most steps apply to all
+  /// modules, but not all.
+  bool shouldExecute(Module module) => true;
 }
 
 class IOPipeline extends Pipeline<IOModularStep> {
@@ -100,6 +104,9 @@ class IOPipeline extends Pipeline<IOModularStep> {
   @override
   Future<void> runStep(IOModularStep step, Module module,
       Map<Module, Set<DataId>> visibleData, List<String> flags) async {
+    // Skip it if we aren't expected to run.
+    if (!step.shouldExecute(module)) return;
+
     final resultsFolderUri = _resultsFolderUri!;
     if (cacheSharedModules && module.isShared) {
       // If all expected outputs are already available, skip the step.
@@ -127,8 +134,18 @@ class IOPipeline extends Pipeline<IOModularStep> {
       for (var dataId in visibleData[module]!) {
         var assetUri = resultsFolderUri
             .resolve(_toFileName(module, dataId, configSpecific: true));
-        await File.fromUri(assetUri).copy(
-            stepFolder.uri.resolve(_toFileName(module, dataId)).toFilePath());
+        var originalFile = File.fromUri(assetUri);
+        // Some steps don't actually have an output, if they implement
+        // shouldExecute.
+        if (!(await originalFile.exists())) continue;
+        var newPath =
+            stepFolder.uri.resolve(_toFileName(module, dataId)).toFilePath();
+        await originalFile.copy(newPath);
+        // If the input was executable, ensure it still is.
+        var originalMode = (await originalFile.stat()).modeString();
+        if (originalMode.contains('x')) {
+          await Process.run('chmod', [originalMode, newPath]);
+        }
       }
     }
     if (step.needsSources) {
@@ -148,11 +165,18 @@ class IOPipeline extends Pipeline<IOModularStep> {
           File.fromUri(stepFolder.uri.resolve(_toFileName(module, dataId)));
       if (!await outputFile.exists()) {
         throw StateError(
-            "Step '${step.runtimeType}' didn't produce an output file");
+            "Step '${step.runtimeType}' on module '${module.name}' didn't "
+            "produce an output file");
       }
-      await outputFile.copy(resultsFolderUri
+      var newPath = resultsFolderUri
           .resolve(_toFileName(module, dataId, configSpecific: true))
-          .toFilePath());
+          .toFilePath();
+      await outputFile.copy(newPath);
+      // If the output was executable, ensure it still is.
+      var originalMode = (await outputFile.stat()).modeString();
+      if (originalMode.contains('x')) {
+        await Process.run('chmod', [originalMode, newPath]);
+      }
     }
     await stepFolder.delete(recursive: true);
   }
