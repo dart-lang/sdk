@@ -15,7 +15,8 @@ a corresponding release on pub for each version of this package.
 
 The version of the `_macros` dependency in its pubspec must be updated to match
 the new version of this package, and the pubspec version and changelog should be
-updated.
+updated. The changelog should have the same information as the associated
+versions of this package.
 
 These changes to the `macros` package should be landed in the same CL as the
 changes to this package, and it should be immediately published when the CL is

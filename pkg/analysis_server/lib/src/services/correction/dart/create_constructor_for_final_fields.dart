@@ -4,7 +4,6 @@
 
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/utilities/extensions/object.dart';
 import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/analysis/features.dart';
@@ -44,87 +43,55 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
       return;
     }
 
-    final containerDeclaration = fieldDeclaration.parent;
-    switch (containerDeclaration) {
+    final container = fieldDeclaration.parent;
+    if (container is! NamedCompilationUnitMember) {
+      return;
+    }
+
+    InterfaceType? superType;
+    _FixContext fixContext;
+    switch (container) {
       case ClassDeclaration():
-        await _classDeclaration(
+        superType = container.declaredElement?.supertype;
+        if (superType == null) {
+          return;
+        }
+        fixContext = _FixContext(
           builder: builder,
-          classDeclaration: containerDeclaration,
+          containerName: container.name.lexeme,
+          superType: superType,
+          variableLists: container.members.interestingVariableLists,
         );
       case EnumDeclaration():
-        await _enumDeclaration(
+        superType = container.declaredElement?.supertype;
+        if (superType == null) {
+          return;
+        }
+        fixContext = _FixContext(
           builder: builder,
-          enumDeclaration: containerDeclaration,
+          containerName: container.name.lexeme,
+          superType: superType,
+          variableLists: container.members.interestingVariableLists,
         );
+      case _:
+        return;
     }
-  }
-
-  Future<void> _classDeclaration({
-    required ChangeBuilder builder,
-    required ClassDeclaration classDeclaration,
-  }) async {
-    var className = classDeclaration.name.lexeme;
-    var superType = classDeclaration.declaredElement?.supertype;
-    if (superType == null) {
-      return;
-    }
-
-    final variableLists = _interestingVariableLists(
-      classDeclaration.members,
-    );
-
-    // prepare location for a new constructor
-    var targetLocation = utils.prepareNewConstructorLocation(
-        unitResult.session, classDeclaration, unitResult.file);
-    if (targetLocation == null) {
-      return;
-    }
-
-    final fixContext = _FixContext(
-      builder: builder,
-      containerName: className,
-      superType: superType,
-      location: targetLocation,
-      variableLists: variableLists,
-    );
 
     if (Flutter.isExactlyStatelessWidgetType(superType) ||
         Flutter.isExactlyStatefulWidgetType(superType)) {
-      await _forFlutterClass(fixContext);
+      await _forFlutterWidget(
+          fixContext: fixContext, classDeclaration: container);
     } else {
-      await _notFlutter(
+      await _notFlutterWidget(
         fixContext: fixContext,
-        isConst: false,
+        containerDeclaration: container,
+        isConst: container is EnumDeclaration,
       );
     }
   }
 
-  Future<void> _enumDeclaration({
-    required ChangeBuilder builder,
-    required EnumDeclaration enumDeclaration,
-  }) async {
-    final enumName = enumDeclaration.name.lexeme;
-    final variableLists = _interestingVariableLists(
-      enumDeclaration.members,
-    );
-
-    final targetLocation =
-        utils.prepareEnumNewConstructorLocation(enumDeclaration);
-
-    await _notFlutter(
-      fixContext: _FixContext(
-        builder: builder,
-        containerName: enumName,
-        superType: null,
-        location: targetLocation,
-        variableLists: variableLists,
-      ),
-      isConst: true,
-    );
-  }
-
   List<_Field>? _fieldsToWrite(
-    List<VariableDeclarationList> variableLists,
+    Iterable<VariableDeclarationList> variableLists,
   ) {
     final result = <_Field>[];
     for (var variableList in variableLists) {
@@ -158,26 +125,32 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
     return result;
   }
 
-  Future<void> _forFlutterClass(_FixContext fixContext) async {
+  Future<void> _forFlutterWidget({
+    required _FixContext fixContext,
+    required NamedCompilationUnitMember classDeclaration,
+  }) async {
     if (unit.featureSet.isEnabled(Feature.super_parameters)) {
-      await _forFlutterWithSuperParameters(fixContext);
+      await _forFlutterWithSuperParameters(
+          fixContext: fixContext, classDeclaration: classDeclaration);
     } else {
-      await _forFlutterWithoutSuperParameters(fixContext);
+      await _forFlutterWithoutSuperParameters(
+          fixContext: fixContext, classDeclaration: classDeclaration);
     }
   }
 
-  Future<void> _forFlutterWithoutSuperParameters(
-    _FixContext fixContext,
-  ) async {
+  Future<void> _forFlutterWithoutSuperParameters({
+    required _FixContext fixContext,
+    required NamedCompilationUnitMember classDeclaration,
+  }) async {
     final keyClass = await sessionHelper.getClass(Flutter.widgetsUri, 'Key');
     if (keyClass == null) {
       return;
     }
 
-    final location = fixContext.location;
     await fixContext.builder.addDartFileEdit(file, (builder) {
-      builder.addInsertion(location.offset, (builder) {
-        builder.write(location.prefix);
+      builder.addConstructorInsertion(classDeclaration, (builder) {
+        // TODO(srawlins): Replace this block with `writeConstructorDeclaration`
+        // and `parameterWriter`.
         builder.write('const ');
         builder.write(fixContext.containerName);
         builder.write('({');
@@ -195,18 +168,18 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
         );
 
         builder.write('}) : super(key: key);');
-        builder.write(location.suffix);
       });
     });
   }
 
-  Future<void> _forFlutterWithSuperParameters(
-    _FixContext fixContext,
-  ) async {
+  Future<void> _forFlutterWithSuperParameters({
+    required _FixContext fixContext,
+    required NamedCompilationUnitMember classDeclaration,
+  }) async {
     await fixContext.builder.addDartFileEdit(file, (builder) {
-      final location = fixContext.location;
-      builder.addInsertion(location.offset, (builder) {
-        builder.write(location.prefix);
+      builder.addConstructorInsertion(classDeclaration, (builder) {
+        // TODO(srawlins): Replace this block with `writeConstructorDeclaration`
+        // and `parameterWriter`.
         builder.write('const ');
         builder.write(fixContext.containerName);
         builder.write('({');
@@ -218,47 +191,22 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
         );
 
         builder.write('});');
-        builder.write(location.suffix);
       });
     });
   }
 
-  Future<void> _notFlutter({
-    required _FixContext fixContext,
-    required bool isConst,
-  }) async {
-    final fields = _fieldsToWrite(fixContext.variableLists);
-    if (fields == null) {
-      return;
-    }
-
-    switch (_style) {
-      case _Style.requiredNamed:
-        await _notFlutterNamed(
-          fixContext: fixContext,
-          isConst: isConst,
-          fields: fields,
-        );
-      case _Style.requiredPositional:
-        await _notFlutterRequiredPositional(
-          fixContext: fixContext,
-          isConst: isConst,
-          fields: fields,
-        );
-    }
-  }
-
   Future<void> _notFlutterNamed({
     required _FixContext fixContext,
+    required NamedCompilationUnitMember containerDeclaration,
     required bool isConst,
     required List<_Field> fields,
   }) async {
     final fieldsForInitializers = <_Field>[];
 
-    final location = fixContext.location;
     await fixContext.builder.addDartFileEdit(file, (builder) {
-      builder.addInsertion(location.offset, (builder) {
-        builder.write(location.prefix);
+      builder.addConstructorInsertion(containerDeclaration, (builder) {
+        // TODO(srawlins): Replace this block with `writeConstructorDeclaration`
+        // and `parameterWriter`.
         if (isConst) {
           builder.write('const ');
         }
@@ -307,20 +255,20 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
         }
 
         builder.write(';');
-        builder.write(location.suffix);
       });
     });
   }
 
   Future<void> _notFlutterRequiredPositional({
     required _FixContext fixContext,
+    required NamedCompilationUnitMember containerDeclaration,
     required bool isConst,
     required List<_Field> fields,
   }) async {
-    final location = fixContext.location;
     await fixContext.builder.addDartFileEdit(file, (builder) {
-      builder.addInsertion(location.offset, (builder) {
-        builder.write(location.prefix);
+      builder.addConstructorInsertion(containerDeclaration, (builder) {
+        // TODO(srawlins): Replace this block with `writeConstructorDeclaration`
+        // and `parameterWriter`.
         if (isConst) {
           builder.write('const ');
         }
@@ -336,14 +284,41 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
           hasWritten = true;
         }
         builder.write(');');
-        builder.write(location.suffix);
       });
     });
   }
 
+  Future<void> _notFlutterWidget({
+    required _FixContext fixContext,
+    required NamedCompilationUnitMember containerDeclaration,
+    required bool isConst,
+  }) async {
+    final fields = _fieldsToWrite(fixContext.variableLists);
+    if (fields == null) {
+      return;
+    }
+
+    switch (_style) {
+      case _Style.requiredNamed:
+        await _notFlutterNamed(
+          fixContext: fixContext,
+          containerDeclaration: containerDeclaration,
+          isConst: isConst,
+          fields: fields,
+        );
+      case _Style.requiredPositional:
+        await _notFlutterRequiredPositional(
+          fixContext: fixContext,
+          containerDeclaration: containerDeclaration,
+          isConst: isConst,
+          fields: fields,
+        );
+    }
+  }
+
   void _writeFlutterParameters({
     required DartEditBuilder builder,
-    required List<VariableDeclarationList> variableLists,
+    required Iterable<VariableDeclarationList> variableLists,
   }) {
     final fields = _fieldsToWrite(variableLists);
     if (fields == null) {
@@ -362,16 +337,6 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
       builder.write('this.');
       builder.write(field.fieldName);
     }
-  }
-
-  static List<VariableDeclarationList> _interestingVariableLists(
-    List<ClassMember> members,
-  ) {
-    return members
-        .whereType<FieldDeclaration>()
-        .map((e) => e.fields)
-        .where((e) => e.isFinal && !e.isLate)
-        .toList();
   }
 }
 
@@ -412,20 +377,18 @@ class _Field {
 class _FixContext {
   final ChangeBuilder builder;
   final String containerName;
-  final InterfaceType? superType;
-  final InsertionLocation location;
-  final List<VariableDeclarationList> variableLists;
+  final InterfaceType superType;
+  final Iterable<VariableDeclarationList> variableLists;
 
   _FixContext({
     required this.builder,
     required this.containerName,
     required this.superType,
-    required this.location,
     required this.variableLists,
   });
 
   List<ParameterElement>? get superNamed {
-    final superConstructor = superType?.constructors.singleOrNull;
+    final superConstructor = superType.constructors.singleOrNull;
     if (superConstructor != null) {
       final superAll = superConstructor.parameters;
       final superNamed = superAll.where((e) => e.isNamed).toList();
@@ -448,4 +411,12 @@ enum _Style {
   const _Style({
     required this.fixKind,
   });
+}
+
+extension on List<ClassMember> {
+  Iterable<VariableDeclarationList> get interestingVariableLists =>
+      whereType<FieldDeclaration>()
+          .map((e) => e.fields)
+          .where((e) => e.isFinal && !e.isLate)
+          .toList();
 }

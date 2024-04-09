@@ -7,23 +7,24 @@ import 'dart:io';
 
 import 'package:dds/dds.dart';
 import 'package:dds/src/arg_parser.dart';
+import 'package:dds/src/bazel_uri_converter.dart';
+
+import 'package:path/path.dart' as path;
 
 Uri _getDevToolsAssetPath() {
-  final dartPath = Uri.parse(Platform.resolvedExecutable);
-  final dartDir = [
-    '', // Include leading '/'
-    ...dartPath.pathSegments.sublist(
-      0,
-      dartPath.pathSegments.length - 1,
-    ),
-  ].join('/');
+  final dartDir = File(Platform.resolvedExecutable).parent.path;
   final fullSdk = dartDir.endsWith('bin');
-  return Uri.parse(
-    [
-      dartDir,
-      if (fullSdk) 'resources',
-      'devtools',
-    ].join('/'),
+  return Uri.file(
+    fullSdk
+        ? path.absolute(
+            dartDir,
+            'resources',
+            'devtools',
+          )
+        : path.absolute(
+            dartDir,
+            'devtools',
+          ),
   );
 }
 
@@ -88,9 +89,10 @@ ${argParser.usage}
   }
   final enableServicePortFallback =
       argResults[DartDevelopmentServiceOptions.enableServicePortFallbackFlag];
-
   final cachedUserTags =
       argResults[DartDevelopmentServiceOptions.cachedUserTagsOption];
+  final google3WorkspaceRoot =
+      argResults[DartDevelopmentServiceOptions.google3WorkspaceRootOption];
 
   try {
     final dds = await DartDevelopmentService.startDartDevelopmentService(
@@ -106,6 +108,9 @@ ${argParser.usage}
           : null,
       enableServicePortFallback: enableServicePortFallback,
       cachedUserTags: cachedUserTags,
+      uriConverter: google3WorkspaceRoot != null
+          ? BazelUriConverter(google3WorkspaceRoot).uriToPath
+          : null,
     );
     final dtdInfo = dds.hostedDartToolingDaemon;
     stderr.write(json.encode({

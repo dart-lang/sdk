@@ -410,8 +410,12 @@ class CompileNativeCommand extends CompileSubcommandCommand {
         help: defineOption.help,
         abbr: defineOption.abbr,
         valueHelp: defineOption.valueHelp,
-      );
-    argParser
+      )
+      ..addFlag(
+        'enable-asserts',
+        negatable: false,
+        help: 'Enable assert statements.',
+      )
       ..addOption(
         packagesOption.flag,
         abbr: packagesOption.abbr,
@@ -510,6 +514,7 @@ Remove debugging information from the output and save it separately to the speci
         defines: args.multiOption(defineOption.flag),
         packages: args.option('packages'),
         enableExperiment: args.enabledExperiments.join(','),
+        enableAsserts: args.flag('enable-asserts'),
         soundNullSafety: args.flag('sound-null-safety'),
         debugFile: args.option('save-debugging-info'),
         verbose: verbose,

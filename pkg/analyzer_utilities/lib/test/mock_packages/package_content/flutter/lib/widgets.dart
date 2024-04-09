@@ -9,6 +9,7 @@ export 'src/widgets/container.dart';
 export 'src/widgets/framework.dart';
 export 'src/widgets/gesture_detector.dart';
 export 'src/widgets/icon.dart';
+export 'src/widgets/navigator.dart';
 export 'src/widgets/placeholder.dart';
 export 'src/widgets/text.dart';
 export 'src/widgets/ticker_provider.dart';

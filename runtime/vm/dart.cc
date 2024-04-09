@@ -1030,9 +1030,14 @@ char* Dart::FeaturesString(IsolateGroup* isolate_group,
 
     ADD_FLAG(tsan, kTargetUsesThreadSanitizer)
 
-    // Enabling assertions affects deopt ids.
-    ADD_ISOLATE_GROUP_FLAG(asserts, enable_asserts, FLAG_enable_asserts);
     if (kind == Snapshot::kFullJIT) {
+      // Enabling assertions affects deopt ids.
+      //
+      // This flag is only used at compile time for AOT, so it's only relevant
+      // when running JIT snapshots. We can omit this flag for AOT snapshots so
+      // feature verification won't fail if --enable-snapshots isn't provided
+      // at runtime.
+      ADD_ISOLATE_GROUP_FLAG(asserts, enable_asserts, FLAG_enable_asserts);
       ADD_ISOLATE_GROUP_FLAG(use_field_guards, use_field_guards,
                              FLAG_use_field_guards);
       ADD_ISOLATE_GROUP_FLAG(use_osr, use_osr, FLAG_use_osr);

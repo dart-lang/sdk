@@ -67,7 +67,7 @@ their correct version using
 ```
 
 Then checkout the Dart version we want. If the commit is available in the Dart
-checkout from `<src>/third_party/dart` then one may
+checkout from `<src>/flutter/third_party/dart` then one may
 
 ```
 <src> % vim flutter/DEPS
@@ -80,13 +80,13 @@ checkout from `<src>/third_party/dart` then one may
 but for local development one may just
 
 ```
-<src> % cd third_party/dart
-<src>/third_party/dart % git checkout ...
+<src> % cd flutter/third_party/dart
+<src>/flutter/third_party/dart % git checkout ...
 ```
 
 Now we have to make some modification to ensure that the build of the platform
 file doesn't use the downloaded prebuilt SDK but the one in
-`<src>/third_party/dart`, we do that by applying the following patch:
+`<src>/flutter/third_party/dart`, we do that by applying the following patch:
 
 ```
 <src>/flutter % git diff
@@ -133,7 +133,7 @@ Build the normal Dart SDK in the same version as used in Flutter engine via
 `tools/build.py -mrelease create_sdk`
 
 NOTE: You can (after syncing dependencies with `gclient sync -D`) make
-`<src>/third_party/dart` a symlink to the normal Dart SDK you work on. That
+`<src>/flutter/third_party/dart` a symlink to the normal Dart SDK you work on. That
 avoids the need to keep the two in sync.
 
 ## Building a Flutter app (e.g. Wonderous)

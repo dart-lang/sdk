@@ -376,6 +376,12 @@ abstract final class double extends num {
 }
 
 class Duration implements Comparable<Duration> {
+  const Duration({int days = 0,
+      int hours = 0,
+      int minutes = 0,
+      int seconds = 0,
+      int milliseconds = 0,
+      int microseconds = 0});
   int compareTo(Duration other) => 0;
 }
 

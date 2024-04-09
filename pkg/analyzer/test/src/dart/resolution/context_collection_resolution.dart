@@ -27,6 +27,7 @@ import 'package:analyzer/src/workspace/basic.dart';
 import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:analyzer/src/workspace/gn.dart';
 import 'package:analyzer/src/workspace/pub.dart';
+import 'package:analyzer_utilities/test/mock_packages/mock_packages.dart';
 import 'package:linter/src/rules.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
@@ -312,7 +313,8 @@ abstract class ContextResolutionTest
   }
 }
 
-class PubPackageResolutionTest extends ContextResolutionTest {
+class PubPackageResolutionTest extends ContextResolutionTest
+    with MockPackagesMixin {
   AnalysisOptionsImpl get analysisOptions {
     return contextFor(testFile).getAnalysisOptionsForFile(testFile)
         as AnalysisOptionsImpl;
@@ -327,7 +329,7 @@ class PubPackageResolutionTest extends ContextResolutionTest {
     ];
   }
 
-  /// The path that is not in [workspaceRootPath], contains external packages.
+  @override
   String get packagesRootPath => '/packages';
 
   @override
@@ -441,6 +443,7 @@ class PubPackageResolutionTest extends ContextResolutionTest {
     String? languageVersion,
     bool angularMeta = false,
     bool ffi = false,
+    bool flutter = false,
     bool js = false,
     bool meta = false,
     MacrosEnvironment? macrosEnvironment,
@@ -469,6 +472,16 @@ class PubPackageResolutionTest extends ContextResolutionTest {
       config.add(name: 'ffi', rootPath: ffiPath);
     }
 
+    if (flutter) {
+      var uiPath = '/packages/ui';
+      addUI();
+      config.add(name: 'ui', rootPath: uiPath);
+
+      var flutterPath = '/packages/flutter';
+      addFlutter();
+      config.add(name: 'flutter', rootPath: flutterPath);
+    }
+
     if (js) {
       var jsPath = '/packages/js';
       MockPackages.addJsPackageFiles(
@@ -477,7 +490,7 @@ class PubPackageResolutionTest extends ContextResolutionTest {
       config.add(name: 'js', rootPath: jsPath);
     }
 
-    if (meta) {
+    if (meta || flutter) {
       var metaPath = '/packages/meta';
       MockPackages.addMetaPackageFiles(
         getFolder(metaPath),

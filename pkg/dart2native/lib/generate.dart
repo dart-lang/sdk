@@ -71,6 +71,7 @@ Future<void> generateNative({
   String? nativeAssets,
   String? resourcesFile,
   String enableExperiment = '',
+  bool enableAsserts = false,
   bool soundNullSafety = true,
   bool verbose = false,
   String verbosity = 'all',
@@ -115,6 +116,7 @@ Future<void> generateNative({
       packages: packages,
       defines: defines,
       fromDill: await isKernelFile(sourcePath),
+      enableAsserts: enableAsserts,
       enableExperiment: enableExperiment,
       targetOS: targetOS,
       extraGenKernelOptions: [
@@ -144,6 +146,7 @@ Future<void> generateNative({
       kernelFile,
       snapshotFile,
       debugPath,
+      enableAsserts,
       extraAotOptions,
     );
 
