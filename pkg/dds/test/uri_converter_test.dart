@@ -84,7 +84,7 @@ void main() {
       Uri serviceUri = remoteVmServiceUri;
       dds = await DartDevelopmentService.startDartDevelopmentService(
         remoteVmServiceUri,
-        uriConverter: BazelUriConverter('/workspace/root/').uriToPath,
+        uriConverter: BazelUriConverter('/workspace/root').uriToPath,
       );
       serviceUri = dds!.wsUri!;
       expect(dds!.isRunning, true);
