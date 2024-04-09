@@ -291,7 +291,9 @@ void main() {
 
   // Matches contain the names of named captures
   match = RegExp(r"(?<fst>.)|(?<snd>.)", unicode: true).firstMatch("abcd")!;
-  Expect.setEquals(["fst", "snd"], match.groupNames);
+  Expect.isTrue(match.groupNames.contains("fst"));
+  Expect.isTrue(match.groupNames.contains("snd"));
+  Expect.listEquals(["fst", "snd"], match.groupNames.toList());
 
   // Backslash as ID_Start and ID_Continue (v8:5868).
   assertThrows(() => RegExp("(?<\\>.)")); // '\' misclassified as ID_Start.

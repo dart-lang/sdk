@@ -4,7 +4,7 @@
 
 import 'dart:html' as dom;
 
-import 'package:expect/minitest.dart';
+import 'package:expect/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 
 // Defined in dom.Window.
 get navigator => "Dummy";

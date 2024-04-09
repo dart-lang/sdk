@@ -50,6 +50,15 @@
 // reference of variations when it becomes available in the SDK wiki.
 library;
 
+/// Whether `assert`s are enabled.
+// TODO: If information can be made available as a constant, use that.
+// (For example if we introduce a compilation-environment entry for it.)
+final bool enabledAsserts = (() {
+  bool result = false;
+  assert(result = true);
+  return result;
+})();
+
 /// Whether the program is running without sound null safety.
 const bool unsoundNullSafety = <Null>[] is List<Object>;
 

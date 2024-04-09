@@ -7,6 +7,7 @@
 
 import 'dart:async';
 import 'package:expect/expect.dart';
+import 'package:expect/variations.dart' show checkedImplicitDowncasts;
 
 // Some useful values.
 dynamic nullValue = null;
@@ -29,7 +30,7 @@ dynamic nullableDoubleFuture = new Future<double?>.value(doubleValue);
 dynamic nullableObjectFuture = new Future<Object?>.value(objectValue);
 
 main() {
-  if (typeAssertionsEnabled) {
+  if (checkedImplicitDowncasts) {
     // Type annotation allows correct values.
     FutureOr<num> variable;
     variable = intValue;
@@ -40,7 +41,7 @@ main() {
     variable = doubleFuture;
 
     // Disallows invalid values.
-    // These are all valid down-casts that fail at runtime.
+    // These are all statically valid down-casts that fail at runtime.
     Expect.throws(() => variable = nullValue);
     Expect.throws(() => variable = objectValue);
     Expect.throws(() => variable = nullFuture);
@@ -68,7 +69,7 @@ main() {
     nullableVariable = nullableDoubleFuture;
 
     // Disallows invalid values.
-    // These are all valid down-casts that fail at runtime.
+    // These are all statically valid down-casts that fail at runtime.
     Expect.throws(() => nullableVariable = nullableObjectFuture);
     Expect.throws(() => nullableVariable = objectValue);
     Expect.throws(() => nullableVariable = objectFuture);
@@ -83,7 +84,7 @@ main() {
     fun(doubleFuture);
 
     // Disallows invalid values.
-    // These are all valid down-casts that fail at runtime.
+    // These are all statically valid down-casts that fail at runtime.
     Expect.throws(() => fun(nullValue));
     Expect.throws(() => fun(objectValue));
     Expect.throws(() => fun(nullFuture));
@@ -111,7 +112,7 @@ main() {
     nullableFun(nullableDoubleFuture);
 
     // Disallows invalid values.
-    // These are all valid down-casts that fail at runtime.
+    // These are all statically valid down-casts that fail at runtime.
     Expect.throws(() => nullableFun(nullableObjectFuture));
     Expect.throws(() => nullableFun(objectValue));
     Expect.throws(() => nullableFun(objectFuture));
@@ -209,7 +210,7 @@ main() {
     doubleFuture as FutureOr<num>;
 
     // Disallows invalid values.
-    // These are all valid down-casts that fail at runtime.
+    // These are all statically valid down-casts that fail at runtime.
     Expect.throws(() => nullValue as FutureOr<num>);
     Expect.throws(() => objectValue as FutureOr<num>);
     Expect.throws(() => nullFuture as FutureOr<num>);
@@ -236,7 +237,7 @@ main() {
     nullableDoubleFuture as FutureOr<num?>;
 
     // Disallows invalid values.
-    // These are all valid down-casts that fail at runtime.
+    // These are all statically valid down-casts that fail at runtime.
     Expect.throws(() => nullableObjectFuture as FutureOr<num?>);
     Expect.throws(() => objectValue as FutureOr<num?>);
     Expect.throws(() => objectFuture as FutureOr<num?>);

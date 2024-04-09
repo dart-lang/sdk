@@ -6,7 +6,7 @@ library CssTest;
 
 import 'dart:html';
 
-import 'package:expect/minitest.dart';
+import 'package:expect/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 
 main() {
   group('supportsPointConversions', () {
