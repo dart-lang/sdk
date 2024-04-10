@@ -1654,9 +1654,21 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
 
   @override
   void insertConstructor(
-    CompilationUnitMember compilationUnitMember,
+    CompilationUnitMember container,
     void Function(DartEditBuilder builder) buildEdit,
   ) {
+    if (container is! ClassDeclaration &&
+        container is! EnumDeclaration &&
+        container is! ExtensionTypeDeclaration) {
+      // Can only add constructors to class, enum, and extension type
+      // declarations.
+      throw ArgumentError.value(
+        container,
+        'container',
+        'Argument must be a CompilationUnitMember which can have constructor '
+            'declarations.',
+      );
+    }
     final sortConstructorsFirst = resolvedUnit.session.analysisContext
         .getAnalysisOptionsForFile(resolvedUnit.file)
         .codeStyleOptions
@@ -1666,7 +1678,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
         : (member) =>
             member is ConstructorDeclaration || member is FieldDeclaration;
     _addCompilationUnitMemberInsertion(
-      compilationUnitMember,
+      container,
       buildEdit,
       lastMemberFilter: lastMemberFilter,
     );
