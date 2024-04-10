@@ -3975,8 +3975,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 // TODO(paulberry): migrate the responsibility for all scope resolution into
 // this visitor.
 class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
-  static const _nameScopeProperty = 'nameScope';
-
   /// The element for the library containing the compilation unit being visited.
   final LibraryElementImpl definingLibrary;
 
@@ -4048,7 +4046,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   }
 
   @override
-  void visitBlock(Block node) {
+  void visitBlock(covariant BlockImpl node) {
     _withDeclaredLocals(node, node.statements, () {
       super.visitBlock(node);
     });
@@ -4092,7 +4090,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   }
 
   @override
-  void visitClassDeclaration(ClassDeclaration node) {
+  void visitClassDeclaration(covariant ClassDeclarationImpl node) {
     Scope outerScope = nameScope;
     try {
       ClassElement element = node.declaredElement!;
@@ -4102,7 +4100,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
         nameScope,
         element.typeParameters,
       );
-      _setNodeNameScope(node, nameScope);
+      node.nameScope = nameScope;
       visitClassDeclarationInScope(node);
 
       nameScope = InterfaceScope(nameScope, element);
@@ -4120,13 +4118,13 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     node.nativeClause?.accept(this);
   }
 
-  void visitClassMembersInScope(ClassDeclaration node) {
+  void visitClassMembersInScope(ClassDeclarationImpl node) {
     visitDocumentationComment(node.documentationComment);
     node.members.accept(this);
   }
 
   @override
-  void visitClassTypeAlias(ClassTypeAlias node) {
+  void visitClassTypeAlias(covariant ClassTypeAliasImpl node) {
     node.metadata.accept(this);
     Scope outerScope = nameScope;
     try {
@@ -4141,7 +4139,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     }
   }
 
-  void visitClassTypeAliasInScope(ClassTypeAlias node) {
+  void visitClassTypeAliasInScope(ClassTypeAliasImpl node) {
     // Note: we don't visit metadata because it's not inside the class type
     // alias's type parameter scope.  It was already visited in
     // [visitClassTypeAlias].
@@ -4153,14 +4151,14 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   }
 
   @override
-  void visitCompilationUnit(CompilationUnit node) {
-    _setNodeNameScope(node, nameScope);
+  void visitCompilationUnit(covariant CompilationUnitImpl node) {
+    node.nameScope = nameScope;
     super.visitCompilationUnit(node);
   }
 
   @override
-  void visitConstructorDeclaration(ConstructorDeclaration node) {
-    (node.body as FunctionBodyImpl).localVariableInfo = _localVariableInfo;
+  void visitConstructorDeclaration(covariant ConstructorDeclarationImpl node) {
+    node.body.localVariableInfo = _localVariableInfo;
     Scope outerScope = nameScope;
     try {
       ConstructorElement element = node.declaredElement!;
@@ -4205,7 +4203,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
   /// Visits a documentation comment with a [DocImportScope] that encloses the
   /// current [nameScope].
-  void visitDocumentationComment(Comment? node) {
+  void visitDocumentationComment(CommentImpl? node) {
     if (node == null) return;
 
     Scope outerScope = nameScope;
@@ -4214,7 +4212,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       _docImportScope.innerScope = nameScope;
       nameScope = _docImportScope;
 
-      _setNodeNameScope(node, nameScope);
+      node.nameScope = nameScope;
       node.accept(this);
     } finally {
       nameScope = outerScope;
@@ -4239,7 +4237,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   }
 
   @override
-  void visitEnumDeclaration(EnumDeclaration node) {
+  void visitEnumDeclaration(covariant EnumDeclarationImpl node) {
     Scope outerScope = nameScope;
     try {
       final element = node.declaredElement!;
@@ -4249,7 +4247,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
         nameScope,
         element.typeParameters,
       );
-      _setNodeNameScope(node, nameScope);
+      node.nameScope = nameScope;
       visitEnumDeclarationInScope(node);
 
       nameScope = InterfaceScope(nameScope, element);
@@ -4265,20 +4263,20 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     node.implementsClause?.accept(this);
   }
 
-  void visitEnumMembersInScope(EnumDeclaration node) {
+  void visitEnumMembersInScope(covariant EnumDeclarationImpl node) {
     visitDocumentationComment(node.documentationComment);
     node.constants.accept(this);
     node.members.accept(this);
   }
 
   @override
-  void visitExpressionFunctionBody(ExpressionFunctionBody node) {
-    _setNodeNameScope(node, nameScope);
+  void visitExpressionFunctionBody(covariant ExpressionFunctionBodyImpl node) {
+    node.nameScope = nameScope;
     super.visitExpressionFunctionBody(node);
   }
 
   @override
-  void visitExtensionDeclaration(ExtensionDeclaration node) {
+  void visitExtensionDeclaration(covariant ExtensionDeclarationImpl node) {
     Scope outerScope = nameScope;
     try {
       ExtensionElement element = node.declaredElement!;
@@ -4288,7 +4286,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
         nameScope,
         element.typeParameters,
       );
-      _setNodeNameScope(node, nameScope);
+      node.nameScope = nameScope;
       visitExtensionDeclarationInScope(node);
 
       nameScope = ExtensionScope(nameScope, element);
@@ -4303,7 +4301,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     node.onClause?.accept(this);
   }
 
-  void visitExtensionMembersInScope(ExtensionDeclaration node) {
+  void visitExtensionMembersInScope(ExtensionDeclarationImpl node) {
     visitDocumentationComment(node.documentationComment);
     node.members.accept(this);
   }
@@ -4321,7 +4319,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
         nameScope,
         element.typeParameters,
       );
-      _setNodeNameScope(node, nameScope);
+      node.nameScope = nameScope;
       node.typeParameters?.accept(this);
       node.representation.accept(this);
       node.implementsClause?.accept(this);
@@ -4362,11 +4360,11 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   }
 
   @override
-  void visitForElement(ForElement node) {
+  void visitForElement(covariant ForElementImpl node) {
     Scope outerNameScope = nameScope;
     try {
       nameScope = LocalScope(nameScope);
-      _setNodeNameScope(node, nameScope);
+      node.nameScope = nameScope;
       visitForElementInScope(node);
     } finally {
       nameScope = outerNameScope;
@@ -4412,13 +4410,13 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   }
 
   @override
-  void visitForStatement(ForStatement node) {
+  void visitForStatement(covariant ForStatementImpl node) {
     Scope outerNameScope = nameScope;
     ImplicitLabelScope outerImplicitScope = _implicitLabelScope;
     try {
       nameScope = LocalScope(nameScope);
       _implicitLabelScope = _implicitLabelScope.nest(node);
-      _setNodeNameScope(node, nameScope);
+      node.nameScope = nameScope;
       visitForStatementInScope(node);
     } finally {
       nameScope = outerNameScope;
@@ -4437,9 +4435,8 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   }
 
   @override
-  void visitFunctionDeclaration(FunctionDeclaration node) {
-    (node.functionExpression.body as FunctionBodyImpl).localVariableInfo =
-        _localVariableInfo;
+  void visitFunctionDeclaration(covariant FunctionDeclarationImpl node) {
+    node.functionExpression.body.localVariableInfo = _localVariableInfo;
     var outerClosure = _enclosingClosure;
     Scope outerScope = nameScope;
     try {
@@ -4452,7 +4449,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
         nameScope,
         element.typeParameters,
       );
-      _setNodeNameScope(node, nameScope);
+      node.nameScope = nameScope;
       visitFunctionDeclarationInScope(node);
     } finally {
       nameScope = outerScope;
@@ -4477,7 +4474,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
         _enclosingClosure = node.declaredElement;
       }
       var parent = node.parent;
-      if (parent is FunctionDeclaration) {
+      if (parent is FunctionDeclarationImpl) {
         // We have already created a function scope and don't need to do so again.
         super.visitFunctionExpression(node);
         visitDocumentationComment(parent.documentationComment);
@@ -4497,7 +4494,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   }
 
   @override
-  void visitFunctionTypeAlias(FunctionTypeAlias node) {
+  void visitFunctionTypeAlias(covariant FunctionTypeAliasImpl node) {
     node.metadata.accept(this);
     Scope outerScope = nameScope;
     try {
@@ -4509,7 +4506,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     }
   }
 
-  void visitFunctionTypeAliasInScope(FunctionTypeAlias node) {
+  void visitFunctionTypeAliasInScope(covariant FunctionTypeAliasImpl node) {
     // Note: we don't visit metadata because it's not inside the function type
     // alias's type parameter scope.  It was already visited in
     // [visitFunctionTypeAlias].
@@ -4522,7 +4519,8 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   }
 
   @override
-  void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
+  void visitFunctionTypedFormalParameter(
+      covariant FunctionTypedFormalParameterImpl node) {
     node.metadata.accept(this);
     Scope outerScope = nameScope;
     try {
@@ -4538,7 +4536,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   }
 
   void visitFunctionTypedFormalParameterInScope(
-      FunctionTypedFormalParameter node) {
+      FunctionTypedFormalParameterImpl node) {
     // Note: we don't visit metadata because it's not inside the function typed
     // formal parameter's type parameter scope.  It was already visited in
     // [visitFunctionTypedFormalParameter].
@@ -4549,7 +4547,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   }
 
   @override
-  void visitGenericFunctionType(GenericFunctionType node) {
+  void visitGenericFunctionType(covariant GenericFunctionTypeImpl node) {
     var type = node.type;
     if (type == null) {
       // The function type hasn't been resolved yet, so we can't create a scope
@@ -4560,10 +4558,9 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
     Scope outerScope = nameScope;
     try {
-      GenericFunctionTypeElement element =
-          (node as GenericFunctionTypeImpl).declaredElement!;
+      GenericFunctionTypeElement element = node.declaredElement!;
       nameScope = TypeParameterScope(nameScope, element.typeParameters);
-      _setNodeNameScope(node, nameScope);
+      node.nameScope = nameScope;
       super.visitGenericFunctionType(node);
     } finally {
       nameScope = outerScope;
@@ -4571,13 +4568,13 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   }
 
   @override
-  void visitGenericTypeAlias(GenericTypeAlias node) {
+  void visitGenericTypeAlias(covariant GenericTypeAliasImpl node) {
     node.metadata.accept(this);
     Scope outerScope = nameScope;
     try {
       var element = node.declaredElement as TypeAliasElement;
       nameScope = TypeParameterScope(nameScope, element.typeParameters);
-      _setNodeNameScope(node, nameScope);
+      node.nameScope = nameScope;
       visitGenericTypeAliasInScope(node);
 
       var aliasedElement = element.aliasedElement;
@@ -4641,8 +4638,8 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   }
 
   @override
-  void visitMethodDeclaration(MethodDeclaration node) {
-    (node.body as FunctionBodyImpl).localVariableInfo = _localVariableInfo;
+  void visitMethodDeclaration(covariant MethodDeclarationImpl node) {
+    node.body.localVariableInfo = _localVariableInfo;
     node.metadata.accept(this);
     Scope outerScope = nameScope;
     try {
@@ -4651,14 +4648,14 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
         nameScope,
         element.typeParameters,
       );
-      _setNodeNameScope(node, nameScope);
+      node.nameScope = nameScope;
       visitMethodDeclarationInScope(node);
     } finally {
       nameScope = outerScope;
     }
   }
 
-  void visitMethodDeclarationInScope(MethodDeclaration node) {
+  void visitMethodDeclarationInScope(MethodDeclarationImpl node) {
     // Note: we don't visit metadata because it's not inside the method's type
     // parameter scope.  It was already visited in [visitMethodDeclaration].
     node.returnType?.accept(this);
@@ -4685,14 +4682,14 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   }
 
   @override
-  void visitMixinDeclaration(MixinDeclaration node) {
+  void visitMixinDeclaration(covariant MixinDeclarationImpl node) {
     Scope outerScope = nameScope;
     try {
       final element = node.declaredElement!;
       node.metadata.accept(this);
 
       nameScope = TypeParameterScope(nameScope, element.typeParameters);
-      _setNodeNameScope(node, nameScope);
+      node.nameScope = nameScope;
       visitMixinDeclarationInScope(node);
 
       nameScope = InterfaceScope(nameScope, element);
@@ -4708,7 +4705,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     node.implementsClause?.accept(this);
   }
 
-  void visitMixinMembersInScope(MixinDeclaration node) {
+  void visitMixinMembersInScope(MixinDeclarationImpl node) {
     visitDocumentationComment(node.documentationComment);
     node.members.accept(this);
   }
@@ -4802,7 +4799,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   ///
   /// @param node the statement to be visited
   void visitStatementInScope(Statement? node) {
-    if (node is Block) {
+    if (node is BlockImpl) {
       // Don't create a scope around a block because the block will create it's
       // own scope.
       visitBlock(node);
@@ -4823,7 +4820,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
     for (var case_ in node.cases) {
       _withNameScope(() {
-        _setNodeNameScope(case_, nameScope);
+        case_.nameScope = nameScope;
         var guardedPattern = case_.guardedPattern;
         var variables = guardedPattern.variables;
         for (var variable in variables.values) {
@@ -4993,7 +4990,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   }
 
   void _withDeclaredLocals(
-    AstNode node,
+    AstNodeWithNameScopeMixin node,
     List<Statement> statements,
     void Function() f,
   ) {
@@ -5003,7 +5000,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       BlockScope.elementsInStatements(statements).forEach(enclosedScope.add);
 
       nameScope = enclosedScope;
-      _setNodeNameScope(node, nameScope);
+      node.nameScope = nameScope;
 
       f();
     } finally {
@@ -5027,14 +5024,8 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   /// Not every node has the scope set, for example we set the scopes for
   /// blocks, but statements don't have separate scopes. The compilation unit
   /// has the library scope.
-  static Scope? getNodeNameScope(AstNode node) {
-    return node.getProperty(_nameScopeProperty);
-  }
-
-  /// Set the [Scope] to use while resolving inside the [node].
-  static void _setNodeNameScope(AstNode node, Scope scope) {
-    node.setProperty(_nameScopeProperty, scope);
-  }
+  static Scope? getNodeNameScope(AstNode node) =>
+      node is AstNodeWithNameScopeMixin ? node.nameScope : null;
 }
 
 /// Tracker for whether a `switch` statement has `default` or is on an

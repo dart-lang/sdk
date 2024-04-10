@@ -1106,8 +1106,11 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         b.ref_null(w.HeapType.none);
       }
       final Location? location = node.location;
+      final stringClass = translator.options.jsCompatibility
+          ? translator.jsStringClass
+          : translator.stringBaseClass;
       final w.RefType stringRefType =
-          translator.classInfo[translator.stringBaseClass]!.nullableType;
+          translator.classInfo[stringClass]!.nullableType;
       if (location != null) {
         translator.constants.instantiateConstant(
           function,

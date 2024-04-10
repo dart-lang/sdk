@@ -1197,6 +1197,13 @@ sealed class AstNodeImpl implements AstNode {
   }
 }
 
+/// Mixin for any [AstNodeImpl] that can potentially introduce a new scope.
+base mixin AstNodeWithNameScopeMixin on AstNodeImpl {
+  /// The [Scope] that was used while resolving `this`, or `null` if resolution
+  /// has not been performed yet.
+  Scope? nameScope;
+}
+
 /// An object that can be used to visit an AST structure.
 ///
 /// Clients may not extend, implement or mix-in this class. There are classes
@@ -2036,7 +2043,9 @@ final class BlockFunctionBodyImpl extends FunctionBodyImpl
   }
 }
 
-final class BlockImpl extends StatementImpl implements Block {
+final class BlockImpl extends StatementImpl
+    with AstNodeWithNameScopeMixin
+    implements Block {
   @override
   final Token leftBracket;
 
@@ -2799,6 +2808,7 @@ abstract final class ClassDeclaration implements NamedCompilationUnitMember {
 }
 
 final class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
+    with AstNodeWithNameScopeMixin
     implements ClassDeclaration {
   @override
   final Token? augmentKeyword;
@@ -3247,7 +3257,9 @@ abstract final class Comment implements AstNode {
   List<Token> get tokens;
 }
 
-final class CommentImpl extends AstNodeImpl implements Comment {
+final class CommentImpl extends AstNodeImpl
+    with AstNodeWithNameScopeMixin
+    implements Comment {
   @override
   final List<Token> tokens;
 
@@ -3483,7 +3495,9 @@ abstract final class CompilationUnit implements AstNode {
   List<AstNode> get sortedDirectivesAndDeclarations;
 }
 
-final class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
+final class CompilationUnitImpl extends AstNodeImpl
+    with AstNodeWithNameScopeMixin
+    implements CompilationUnit {
   @override
   Token beginToken;
 
@@ -5598,6 +5612,7 @@ abstract final class EnumDeclaration implements NamedCompilationUnitMember {
 }
 
 final class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
+    with AstNodeWithNameScopeMixin
     implements EnumDeclaration {
   @override
   final Token? augmentKeyword;
@@ -5874,6 +5889,7 @@ abstract final class ExpressionFunctionBody implements FunctionBody {
 }
 
 final class ExpressionFunctionBodyImpl extends FunctionBodyImpl
+    with AstNodeWithNameScopeMixin
     implements ExpressionFunctionBody {
   @override
   final Token? keyword;
@@ -6229,6 +6245,7 @@ abstract final class ExtensionDeclaration implements CompilationUnitMember {
 }
 
 final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
+    with AstNodeWithNameScopeMixin
     implements ExtensionDeclaration {
   @override
   final Token? augmentKeyword;
@@ -6552,6 +6569,7 @@ abstract final class ExtensionTypeDeclaration
 }
 
 final class ExtensionTypeDeclarationImpl extends NamedCompilationUnitMemberImpl
+    with AstNodeWithNameScopeMixin
     implements ExtensionTypeDeclaration {
   @override
   final Token? augmentKeyword;
@@ -7203,7 +7221,9 @@ abstract final class ForElement implements CollectionElement {
   Token get rightParenthesis;
 }
 
-final class ForElementImpl extends CollectionElementImpl implements ForElement {
+final class ForElementImpl extends CollectionElementImpl
+    with AstNodeWithNameScopeMixin
+    implements ForElement {
   @override
   final Token? awaitKeyword;
 
@@ -7800,7 +7820,9 @@ abstract final class ForStatement implements Statement {
   Token get rightParenthesis;
 }
 
-final class ForStatementImpl extends StatementImpl implements ForStatement {
+final class ForStatementImpl extends StatementImpl
+    with AstNodeWithNameScopeMixin
+    implements ForStatement {
   @override
   final Token? awaitKeyword;
 
@@ -7988,6 +8010,7 @@ abstract final class FunctionDeclaration implements NamedCompilationUnitMember {
 }
 
 final class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
+    with AstNodeWithNameScopeMixin
     implements FunctionDeclaration {
   @override
   final Token? augmentKeyword;
@@ -8694,6 +8717,7 @@ abstract final class GenericFunctionType implements TypeAnnotation {
 }
 
 final class GenericFunctionTypeImpl extends TypeAnnotationImpl
+    with AstNodeWithNameScopeMixin
     implements GenericFunctionType {
   TypeAnnotationImpl? _returnType;
 
@@ -8800,6 +8824,7 @@ abstract final class GenericTypeAlias implements TypeAlias {
 }
 
 final class GenericTypeAliasImpl extends TypeAliasImpl
+    with AstNodeWithNameScopeMixin
     implements GenericTypeAlias {
   TypeAnnotationImpl _type;
 
@@ -11487,6 +11512,7 @@ abstract final class MethodDeclaration implements ClassMember {
 }
 
 final class MethodDeclarationImpl extends ClassMemberImpl
+    with AstNodeWithNameScopeMixin
     implements MethodDeclaration {
   @override
   final Token? augmentKeyword;
@@ -11842,6 +11868,7 @@ abstract final class MixinDeclaration implements NamedCompilationUnitMember {
 }
 
 final class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
+    with AstNodeWithNameScopeMixin
     implements MixinDeclaration {
   @override
   final Token? augmentKeyword;
@@ -16468,6 +16495,7 @@ abstract final class SwitchExpressionCase implements AstNode {
 }
 
 final class SwitchExpressionCaseImpl extends AstNodeImpl
+    with AstNodeWithNameScopeMixin
     implements SwitchExpressionCase {
   @override
   final GuardedPatternImpl guardedPattern;
@@ -16627,7 +16655,9 @@ sealed class SwitchMember implements AstNode {
   NodeList<Statement> get statements;
 }
 
-sealed class SwitchMemberImpl extends AstNodeImpl implements SwitchMember {
+sealed class SwitchMemberImpl extends AstNodeImpl
+    with AstNodeWithNameScopeMixin
+    implements SwitchMember {
   final NodeListImpl<LabelImpl> _labels = NodeListImpl._();
 
   @override

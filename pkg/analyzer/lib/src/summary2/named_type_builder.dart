@@ -20,7 +20,8 @@ import 'package:analyzer/src/utilities/extensions/collection.dart';
 /// The type builder for a [NamedType].
 class NamedTypeBuilder extends TypeBuilder {
   // TODO(scheglov): Replace with `DartType` in `TypeAliasElementImpl`.
-  static const _aliasedTypeKey = '_aliasedType';
+  static final _aliasedTypeExpando = Expando<DartType>();
+
   static DynamicTypeImpl get _dynamicType => DynamicTypeImpl.instance;
 
   /// The linker that contains this type.
@@ -255,7 +256,7 @@ class NamedTypeBuilder extends TypeBuilder {
     }
 
     // Break a possible recursion.
-    var existing = typedefNode.getProperty(_aliasedTypeKey) as DartType?;
+    var existing = _aliasedTypeExpando[typedefNode];
     if (existing != null) {
       return existing;
     } else {
@@ -303,7 +304,7 @@ class NamedTypeBuilder extends TypeBuilder {
   }
 
   static void _setAliasedType(AstNode node, DartType type) {
-    node.setProperty(_aliasedTypeKey, type);
+    _aliasedTypeExpando[node] = type;
   }
 
   static List<TypeParameterElement> _typeParameters(TypeParameterList? node) {

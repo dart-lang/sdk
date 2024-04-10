@@ -439,17 +439,57 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
 
     List<Constant> elements =
         (constant.fieldValues.values.single as ListConstant).entries;
-    bool lazy = false;
+    final tooLargeForArrayNewFixed = elements.length > maxArrayNewFixedLength;
+    bool lazy = tooLargeForArrayNewFixed;
     for (Constant element in elements) {
       lazy |= ensureConstant(element)?.isLazy ?? false;
     }
 
     return createConstant(constant, w.RefType.def(arrayType, nullable: false),
         lazy: lazy, (function, b) {
-      for (Constant element in elements) {
-        constants.instantiateConstant(function, b, element, elementType);
+      if (tooLargeForArrayNewFixed) {
+        // We will initialize the array with one of the elements (using
+        // `array.new`) and update the fields.
+        //
+        // For the initial element pick the one that occurs the most to save
+        // some work when the array has duplicates.
+        final Map<Constant, int> occurrences = {};
+        for (final element in elements) {
+          occurrences.update(element, (i) => i + 1, ifAbsent: () => 1);
+        }
+
+        var initialElement = elements[0];
+        var initialElementOccurrences = 1;
+        for (final entry in occurrences.entries) {
+          if (entry.value > initialElementOccurrences) {
+            initialElementOccurrences = entry.value;
+            initialElement = entry.key;
+          }
+        }
+
+        w.Local arrayLocal =
+            function!.addLocal(w.RefType.def(arrayType, nullable: false));
+        constants.instantiateConstant(function, b, initialElement, elementType);
+        b.i32_const(elements.length);
+        b.array_new(arrayType);
+        b.local_set(arrayLocal);
+        for (int i = 0; i < elements.length; i++) {
+          final element = elements[i];
+          if (element == initialElement) {
+            continue;
+          }
+          b.local_get(arrayLocal);
+          b.i32_const(i);
+          constants.instantiateConstant(function, b, element, elementType);
+          b.array_set(arrayType);
+        }
+        b.local_get(arrayLocal);
+      } else {
+        for (Constant element in elements) {
+          constants.instantiateConstant(function, b, element, elementType);
+        }
+        b.array_new_fixed(arrayType, elements.length);
       }
-      b.array_new_fixed(arrayType, elements.length);
     });
   }
 
