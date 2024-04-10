@@ -1277,6 +1277,45 @@ extension PartExtension on PartEnd {
   }
 }
 
+extension PartOfExtension on PartOfEnd {
+  String? getPartOfUriString() {
+    StringBuffer sb = new StringBuffer();
+    bool foundOne = false;
+    for (ParserAstNode child in children!) {
+      if (child is LiteralStringEnd) {
+        LiteralStringBegin uri = child.children!.single as LiteralStringBegin;
+        sb.write(unescapeString(
+            uri.token.lexeme, uri.token, const UnescapeErrorListenerDummy()));
+        foundOne = true;
+      }
+    }
+    if (!foundOne) return null;
+    return sb.toString();
+  }
+
+  List<String> getPartOfIdentifiers() {
+    List<String> result = [];
+    for (ParserAstNode child in children!) {
+      if (child is IdentifierHandle) {
+        result.add(child.token.lexeme);
+      }
+    }
+    return result;
+  }
+}
+
+extension LibraryNameExtension on LibraryNameEnd {
+  List<String> getNameIdentifiers() {
+    List<String> result = [];
+    for (ParserAstNode child in children!) {
+      if (child is IdentifierHandle) {
+        result.add(child.token.lexeme);
+      }
+    }
+    return result;
+  }
+}
+
 class UnescapeErrorListenerDummy implements UnescapeErrorListener {
   const UnescapeErrorListenerDummy();
 
