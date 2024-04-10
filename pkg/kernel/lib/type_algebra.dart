@@ -1927,14 +1927,14 @@ abstract class NullabilityAwareTypeVariableEliminatorBase
     return type.accept1(this, Variance.covariant) ?? type;
   }
 
-  DartType getTypeParameterReplacement(int variance) {
+  DartType getTypeParameterReplacement(Variance variance) {
     bool isCovariant = variance == Variance.covariant;
     return _isLeastClosure && isCovariant || (!_isLeastClosure && !isCovariant)
         ? bottomType
         : topType;
   }
 
-  DartType getFunctionReplacement(int variance) {
+  DartType getFunctionReplacement(Variance variance) {
     bool isCovariant = variance == Variance.covariant;
     return _isLeastClosure && isCovariant || (!_isLeastClosure && !isCovariant)
         ? bottomType
@@ -1942,7 +1942,7 @@ abstract class NullabilityAwareTypeVariableEliminatorBase
   }
 
   @override
-  DartType? visitFunctionType(FunctionType node, int variance) {
+  DartType? visitFunctionType(FunctionType node, Variance variance) {
     // - if `S` is
     //   `T Function<X0 extends B0, ...., Xk extends Bk>(T0 x0, ...., Tn xn,
     //       [Tn+1 xn+1, ..., Tm xm])`
@@ -1962,7 +1962,7 @@ abstract class NullabilityAwareTypeVariableEliminatorBase
   }
 
   @override
-  DartType? visitTypeParameterType(TypeParameterType node, int variance) {
+  DartType? visitTypeParameterType(TypeParameterType node, Variance variance) {
     if (isNominalVariableToEliminate(node.parameter)) {
       return getTypeParameterReplacement(variance);
     }
@@ -1970,13 +1970,13 @@ abstract class NullabilityAwareTypeVariableEliminatorBase
   }
 
   @override
-  DartType? visitIntersectionType(IntersectionType node, int variance) {
+  DartType? visitIntersectionType(IntersectionType node, Variance variance) {
     return visitTypeParameterType(node.left, variance);
   }
 
   @override
   DartType? visitStructuralParameterType(
-      StructuralParameterType node, int variance) {
+      StructuralParameterType node, Variance variance) {
     if (isStructuralVariableToEliminate(node.parameter)) {
       return getTypeParameterReplacement(variance);
     }
@@ -2056,7 +2056,7 @@ class NullabilityAwareFreeTypeVariableEliminator
             topFunctionType: topFunctionType);
 
   @override
-  DartType? visitFunctionType(FunctionType node, int variance) {
+  DartType? visitFunctionType(FunctionType node, Variance variance) {
     if (node.typeParameters.isNotEmpty) {
       _boundVariables.addAll(node.typeParameters);
       DartType? result = super.visitFunctionType(node, variance);

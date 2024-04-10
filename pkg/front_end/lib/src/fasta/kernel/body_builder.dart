@@ -8845,7 +8845,7 @@ class BodyBuilder extends StackListenerImpl
       if (!libraryFeatures.variance.isEnabled) {
         reportVarianceModifierNotEnabled(variance);
       }
-      variable.variance = Variance.fromString(variance.lexeme);
+      variable.variance = new Variance.fromKeywordString(variance.lexeme);
     }
   }
 

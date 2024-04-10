@@ -6,7 +6,7 @@ import 'package:_fe_analyzer_shared/src/type_inference/nullability_suffix.dart'
     show NullabilitySuffix;
 
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
-    show TypeDeclarationKind;
+    as shared show TypeDeclarationKind, TypeDeclarationMatchResult, Variance;
 
 import 'package:kernel/ast.dart';
 
@@ -276,59 +276,6 @@ class TypeConstraintGatherer {
 
   /// Whether the [subtype] interface is a subtype of the [supertype] interface
   /// with respect to variance.
-  ///
-  /// [constrainSupertype] is used in [_isNullabilityAwareSubtypeMatch] to
-  /// check if the type parameters to constrain occur in the [supertype];
-  /// otherwise they occur in the [subtype].
-  bool _isNullabilityAwareInterfaceSubtypeMatch(
-      InterfaceType subtype, InterfaceType supertype,
-      {required bool constrainSupertype,
-      required TreeNode? treeNodeForTesting}) {
-    List<DartType>? matchingSupertypeOfSubtypeArguments =
-        getTypeArgumentsAsInstanceOf(subtype, supertype.classNode);
-    if (matchingSupertypeOfSubtypeArguments == null) return false;
-    for (int i = 0; i < supertype.classNode.typeParameters.length; i++) {
-      int parameterVariance = supertype.classNode.typeParameters[i].variance;
-      if (parameterVariance == Variance.contravariant) {
-        if (!_isNullabilityAwareSubtypeMatch(
-          supertype.typeArguments[i],
-          matchingSupertypeOfSubtypeArguments[i],
-          constrainSupertype: !constrainSupertype,
-          treeNodeForTesting: treeNodeForTesting,
-        )) {
-          return false;
-        }
-      } else if (parameterVariance == Variance.invariant) {
-        if (!_isNullabilityAwareSubtypeMatch(
-              supertype.typeArguments[i],
-              matchingSupertypeOfSubtypeArguments[i],
-              constrainSupertype: !constrainSupertype,
-              treeNodeForTesting: treeNodeForTesting,
-            ) ||
-            !_isNullabilityAwareSubtypeMatch(
-              matchingSupertypeOfSubtypeArguments[i],
-              supertype.typeArguments[i],
-              constrainSupertype: constrainSupertype,
-              treeNodeForTesting: treeNodeForTesting,
-            )) {
-          return false;
-        }
-      } else {
-        if (!_isNullabilityAwareSubtypeMatch(
-          matchingSupertypeOfSubtypeArguments[i],
-          supertype.typeArguments[i],
-          constrainSupertype: constrainSupertype,
-          treeNodeForTesting: treeNodeForTesting,
-        )) {
-          return false;
-        }
-      }
-    }
-    return true;
-  }
-
-  /// Whether the [subtype] interface is a subtype of the [supertype] interface
-  /// with respect to variance.
   bool _isNullabilityObliviousInterfaceSubtypeMatch(
       InterfaceType subtype, InterfaceType supertype,
       {required TreeNode? treeNodeForTesting}) {
@@ -357,14 +304,15 @@ class TypeConstraintGatherer {
     if (matchingSupertypeOfSubtypeArguments == null) return false;
     for (int i = 0; i < supertype.classNode.typeParameters.length; i++) {
       // Generate constraints and subtype match with respect to variance.
-      int parameterVariance = supertype.classNode.typeParameters[i].variance;
-      if (parameterVariance == Variance.contravariant) {
+      shared.Variance parameterVariance =
+          supertype.classNode.typeParameters[i].variance;
+      if (parameterVariance == shared.Variance.contravariant) {
         if (!_isNullabilityObliviousSubtypeMatch(
             supertype.typeArguments[i], matchingSupertypeOfSubtypeArguments[i],
             treeNodeForTesting: treeNodeForTesting)) {
           return false;
         }
-      } else if (parameterVariance == Variance.invariant) {
+      } else if (parameterVariance == shared.Variance.invariant) {
         if (!_isNullabilityObliviousSubtypeMatch(supertype.typeArguments[i],
                 matchingSupertypeOfSubtypeArguments[i],
                 treeNodeForTesting: treeNodeForTesting) ||
@@ -717,73 +665,97 @@ class TypeConstraintGatherer {
       _protoConstraints.length = baseConstraintCount;
     }
 
-    // If P is C<M0, ..., Mk> and Q is C<N0, ..., Nk>, then the match holds
-    // under constraints C0 + ... + Ck:
-    //
-    // If Mi is a subtype match for Ni with respect to L under constraints Ci.
-    TypeDeclarationKind? pTypeDeclarationKind =
-        typeOperations.getTypeDeclarationKind(p);
-    TypeDeclarationKind? qTypeDeclarationKind =
-        typeOperations.getTypeDeclarationKind(q);
-    if (pTypeDeclarationKind == TypeDeclarationKind.interfaceDeclaration &&
-        qTypeDeclarationKind == TypeDeclarationKind.interfaceDeclaration) {
-      if ((p as InterfaceType).classNode == (q as InterfaceType).classNode) {
-        assert(p.typeArguments.length == q.typeArguments.length);
+    switch ((
+      typeOperations.matchTypeDeclarationType(p),
+      typeOperations.matchTypeDeclarationType(q)
+    )) {
+      // If P is C<M0, ..., Mk> and Q is C<N0, ..., Nk>, then the match holds
+      // under constraints C0 + ... + Ck:
+      //
+      // If Mi is a subtype match for Ni with respect to L under constraints Ci.
+      case (
+            shared.TypeDeclarationMatchResult(
+              typeDeclarationKind: shared.TypeDeclarationKind pDeclarationKind,
+              typeDeclaration: TypeDeclaration pDeclarationObject,
+              typeDeclarationType: TypeDeclarationType _,
+              typeArguments: List<DartType> pTypeArguments
+            ),
+            shared.TypeDeclarationMatchResult(
+              typeDeclarationKind: shared.TypeDeclarationKind qDeclarationKind,
+              typeDeclaration: TypeDeclaration qDeclarationObject,
+              typeDeclarationType: TypeDeclarationType _,
+              typeArguments: List<DartType> qTypeArguments
+            )
+          )
+          when pDeclarationKind == qDeclarationKind &&
+              pDeclarationObject == qDeclarationObject:
+        assert(pTypeArguments.length == qTypeArguments.length);
 
         final int baseConstraintCount = _protoConstraints.length;
         bool isMatch = true;
-        for (int i = 0; isMatch && i < p.typeArguments.length; ++i) {
-          isMatch = _isNullabilityAwareInterfaceSubtypeMatch(p, q,
-              constrainSupertype: constrainSupertype,
-              treeNodeForTesting: treeNodeForTesting);
+        for (int i = 0; isMatch && i < pTypeArguments.length; ++i) {
+          shared.Variance variance =
+              typeOperations.getTypeParameterVariance(pDeclarationObject, i);
+          if (variance == shared.Variance.covariant ||
+              variance == shared.Variance.invariant) {
+            isMatch = isMatch &&
+                _isNullabilityAwareSubtypeMatch(
+                    pTypeArguments[i], qTypeArguments[i],
+                    constrainSupertype: constrainSupertype,
+                    treeNodeForTesting: treeNodeForTesting);
+          }
+          if (variance == shared.Variance.contravariant ||
+              variance == shared.Variance.invariant) {
+            isMatch = isMatch &&
+                _isNullabilityAwareSubtypeMatch(
+                    qTypeArguments[i], pTypeArguments[i],
+                    constrainSupertype: !constrainSupertype,
+                    treeNodeForTesting: treeNodeForTesting);
+          }
         }
         if (isMatch) return true;
         _protoConstraints.length = baseConstraintCount;
-      }
-    } else if (pTypeDeclarationKind ==
-            TypeDeclarationKind.extensionTypeDeclaration &&
-        qTypeDeclarationKind == TypeDeclarationKind.extensionTypeDeclaration) {
-      if ((p as ExtensionType).extensionTypeDeclaration ==
-          (q as ExtensionType).extensionTypeDeclaration) {
-        assert(p.typeArguments.length == q.typeArguments.length);
 
-        final int baseConstraintCount = _protoConstraints.length;
-        bool isMatch = true;
-        for (int i = 0; isMatch && i < p.typeArguments.length; ++i) {
-          isMatch = isMatch &&
-              _isNullabilityAwareSubtypeMatch(
-                  p.typeArguments[i], q.typeArguments[i],
-                  constrainSupertype: constrainSupertype,
-                  treeNodeForTesting: treeNodeForTesting);
+      // If P is C0<M0, ..., Mk> and Q is C1<N0, ..., Nj> then the match holds
+      // with respect to L under constraints C:
+      //
+      // If C1<B0, ..., Bj> is a superinterface of C0<M0, ..., Mk> and C1<B0,
+      // ..., Bj> is a subtype match for C1<N0, ..., Nj> with respect to L under
+      // constraints C.
+      case (
+          shared.TypeDeclarationMatchResult(
+            typeDeclarationKind: shared.TypeDeclarationKind _,
+            typeDeclaration: TypeDeclaration _,
+            typeDeclarationType: TypeDeclarationType pTypeDeclarationType,
+            typeArguments: List<DartType> _
+          ),
+          shared.TypeDeclarationMatchResult(
+            typeDeclarationKind: shared.TypeDeclarationKind _,
+            typeDeclaration: TypeDeclaration qDeclarationObject,
+            typeDeclarationType: TypeDeclarationType _,
+            typeArguments: List<DartType> qTypeArguments
+          )
+        ):
+        final List<DartType>? sArguments = getTypeArgumentsAsInstanceOf(
+            pTypeDeclarationType, qDeclarationObject);
+        if (sArguments != null) {
+          assert(sArguments.length == qTypeArguments.length);
+
+          final int baseConstraintCount = _protoConstraints.length;
+          bool isMatch = true;
+          for (int i = 0; isMatch && i < sArguments.length; ++i) {
+            isMatch = isMatch &&
+                _isNullabilityAwareSubtypeMatch(
+                    sArguments[i], qTypeArguments[i],
+                    constrainSupertype: constrainSupertype,
+                    treeNodeForTesting: treeNodeForTesting);
+          }
+          if (isMatch) return true;
+          _protoConstraints.length = baseConstraintCount;
         }
-        if (isMatch) return true;
-        _protoConstraints.length = baseConstraintCount;
-      }
-    }
 
-    // If P is C0<M0, ..., Mk> and Q is C1<N0, ..., Nj> then the match holds
-    // with respect to L under constraints C:
-    //
-    // If C1<B0, ..., Bj> is a superinterface of C0<M0, ..., Mk> and C1<B0, ...,
-    // Bj> is a subtype match for C1<N0, ..., Nj> with respect to L under
-    // constraints C.
-    if (pTypeDeclarationKind != null && qTypeDeclarationKind != null) {
-      final List<DartType>? sArguments = getTypeArgumentsAsInstanceOf(
-          p as TypeDeclarationType, (q as TypeDeclarationType).typeDeclaration);
-      if (sArguments != null) {
-        assert(sArguments.length == q.typeArguments.length);
-
-        final int baseConstraintCount = _protoConstraints.length;
-        bool isMatch = true;
-        for (int i = 0; isMatch && i < sArguments.length; ++i) {
-          isMatch = isMatch &&
-              _isNullabilityAwareSubtypeMatch(sArguments[i], q.typeArguments[i],
-                  constrainSupertype: constrainSupertype,
-                  treeNodeForTesting: treeNodeForTesting);
-        }
-        if (isMatch) return true;
-        _protoConstraints.length = baseConstraintCount;
-      }
+      case (_, _):
+      // Do nothing.
     }
 
     // If Q is Function then the match holds under no constraints:

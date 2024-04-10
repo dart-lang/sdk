@@ -11,7 +11,7 @@ import 'package:front_end/src/fasta/source/source_member_builder.dart';
 import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
 import 'package:front_end/src/testing/id_testing_utils.dart';
-import 'package:kernel/ast.dart' hide Variance, MapLiteralEntry;
+import 'package:kernel/ast.dart' hide MapLiteralEntry;
 
 Future<void> main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(

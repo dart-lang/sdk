@@ -18,6 +18,7 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart' show TypeSystemImpl;
@@ -381,7 +382,7 @@ class FlowAnalysisHelper {
 class TypeSystemOperations
     implements
         TypeAnalyzerOperations<PromotableElement, DartType, DartType,
-            TypeParameterElement> {
+            TypeParameterElement, InterfaceType, InterfaceElement> {
   final bool strictCasts;
   final TypeSystemImpl typeSystem;
 
@@ -477,6 +478,14 @@ class TypeSystemOperations
     } else {
       return null;
     }
+  }
+
+  @override
+  Variance getTypeParameterVariance(
+      InterfaceElement typeDeclaration, int parameterIndex) {
+    return (typeDeclaration.typeParameters[parameterIndex]
+            as TypeParameterElementImpl)
+        .variance;
   }
 
   @override
@@ -696,6 +705,27 @@ class TypeSystemOperations
     var streamElement = typeSystem.typeProvider.streamElement;
     var listType = type.asInstanceOf(streamElement);
     return listType?.typeArguments[0];
+  }
+
+  @override
+  TypeDeclarationMatchResult? matchTypeDeclarationType(DartType type) {
+    if (isInterfaceType(type)) {
+      InterfaceType interfaceType = type as InterfaceType;
+      return TypeDeclarationMatchResult(
+          typeDeclarationKind: TypeDeclarationKind.interfaceDeclaration,
+          typeDeclarationType: interfaceType,
+          typeDeclaration: interfaceType.element,
+          typeArguments: interfaceType.typeArguments);
+    } else if (isExtensionType(type)) {
+      InterfaceType interfaceType = type as InterfaceType;
+      return TypeDeclarationMatchResult(
+          typeDeclarationKind: TypeDeclarationKind.extensionTypeDeclaration,
+          typeDeclarationType: interfaceType,
+          typeDeclaration: interfaceType.element,
+          typeArguments: interfaceType.typeArguments);
+    } else {
+      return null;
+    }
   }
 
   @override

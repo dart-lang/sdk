@@ -19,16 +19,12 @@ import 'package:_fe_analyzer_shared/src/parser/quote.dart' show unescapeString;
 import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart'
     show FixedNullableList, NullValues, ParserRecovery;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
+import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
+    show Variance;
 import 'package:_fe_analyzer_shared/src/util/link.dart';
 import 'package:_fe_analyzer_shared/src/util/value_kind.dart';
 import 'package:kernel/ast.dart'
-    show
-        AsyncMarker,
-        InvalidType,
-        Nullability,
-        ProcedureKind,
-        TreeNode,
-        Variance;
+    show AsyncMarker, InvalidType, Nullability, ProcedureKind, TreeNode;
 
 import '../../api_prototype/experimental_flags.dart';
 import '../../api_prototype/lowering_predicates.dart';
@@ -3669,7 +3665,8 @@ class OutlineBuilder extends StackListenerImpl {
         if (!libraryFeatures.variance.isEnabled) {
           reportVarianceModifierNotEnabled(variance);
         }
-        typeParameters[index].variance = Variance.fromString(variance.lexeme);
+        typeParameters[index].variance =
+            new Variance.fromKeywordString(variance.lexeme);
       }
     }
   }

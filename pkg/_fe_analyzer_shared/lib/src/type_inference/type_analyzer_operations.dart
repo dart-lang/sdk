@@ -32,13 +32,179 @@ enum TypeDeclarationKind {
   extensionTypeDeclaration,
 }
 
+/// The variance of a type parameter `X` in a type `T`.
+enum Variance {
+  /// Used when `X` does not occur free in `T`.
+  unrelated(keyword: ''),
+
+  /// Used when `X` occurs free in `T`, and `U <: V` implies `[U/X]T <: [V/X]T`.
+  covariant(keyword: 'out'),
+
+  /// Used when `X` occurs free in `T`, and `U <: V` implies `[V/X]T <: [U/X]T`.
+  contravariant(keyword: 'in'),
+
+  /// Used when there exists a pair `U` and `V` such that `U <: V`, but
+  /// `[U/X]T` and `[V/X]T` are incomparable.
+  invariant(keyword: 'inout');
+
+  final String keyword;
+
+  const Variance({required this.keyword});
+
+  /// Return the variance associated with the string representation of variance.
+  factory Variance.fromKeywordString(String keywordString) {
+    Variance? result;
+    if (keywordString == "in") {
+      result = contravariant;
+    } else if (keywordString == "inout") {
+      result = invariant;
+    } else if (keywordString == "out") {
+      result = covariant;
+    } else if (keywordString == "unrelated") {
+      result = unrelated;
+    }
+    if (result != null) {
+      assert(result.keyword == keywordString);
+      return result;
+    } else {
+      throw new ArgumentError(
+          'Invalid keyword string for variance: $keywordString');
+    }
+  }
+
+  /// Return the variance with the given [encoding].
+  factory Variance.fromEncoding(int encoding) => values[encoding];
+
+  /// Return `true` if this represents the case when `X` occurs free in `T`, and
+  /// `U <: V` implies `[V/X]T <: [U/X]T`.
+  bool get isContravariant => this == contravariant;
+
+  /// Return `true` if this represents the case when `X` occurs free in `T`, and
+  /// `U <: V` implies `[U/X]T <: [V/X]T`.
+  bool get isCovariant => this == covariant;
+
+  /// Return `true` if this represents the case when there exists a pair `U` and
+  /// `V` such that `U <: V`, but `[U/X]T` and `[V/X]T` are incomparable.
+  bool get isInvariant => this == invariant;
+
+  /// Return `true` if this represents the case when `X` does not occur free in
+  /// `T`.
+  bool get isUnrelated => this == unrelated;
+
+  /// Combines variances of `X` in `T` and `Y` in `S` into variance of `X` in
+  /// `[Y/T]S`.
+  ///
+  /// Consider the following examples:
+  ///
+  /// * variance of `X` in `Function(X)` is contravariant, variance of `Y`
+  /// in `List<Y>` is covariant, so variance of `X` in `List<Function(X)>` is
+  /// contravariant;
+  ///
+  /// * variance of `X` in `List<X>` is covariant, variance of `Y` in
+  /// `Function(Y)` is contravariant, so variance of `X` in
+  /// `Function(List<X>)` is contravariant;
+  ///
+  /// * variance of `X` in `Function(X)` is contravariant, variance of `Y` in
+  /// `Function(Y)` is contravariant, so variance of `X` in
+  /// `Function(Function(X))` is covariant;
+  ///
+  /// * let the following be declared:
+  ///
+  ///     typedef F<Z> = Function();
+  ///
+  /// then variance of `X` in `F<X>` is unrelated, variance of `Y` in
+  /// `List<Y>` is covariant, so variance of `X` in `List<F<X>>` is
+  /// unrelated;
+  ///
+  /// * let the following be declared:
+  ///
+  ///     typedef G<Z> = Z Function(Z);
+  ///
+  /// then variance of `X` in `List<X>` is covariant, variance of `Y` in
+  /// `G<Y>` is invariant, so variance of `X` in `G<List<X>>` is invariant.
+  Variance combine(Variance other) {
+    if (isUnrelated || other.isUnrelated) return unrelated;
+    if (isInvariant || other.isInvariant) return invariant;
+    return this == other ? covariant : contravariant;
+  }
+
+  /// Returns true if this variance is greater than (above) or equal to the
+  /// [other] variance in the partial order induced by the variance lattice.
+  ///
+  ///       unrelated
+  /// covariant   contravariant
+  ///       invariant
+  bool greaterThanOrEqual(Variance other) {
+    if (isUnrelated) {
+      return true;
+    } else if (isCovariant) {
+      return other.isCovariant || other.isInvariant;
+    } else if (isContravariant) {
+      return other.isContravariant || other.isInvariant;
+    } else {
+      assert(isInvariant);
+      return other.isInvariant;
+    }
+  }
+
+  /// Variance values form a lattice where unrelated is the top, invariant
+  /// is the bottom, and covariant and contravariant are incomparable.
+  /// [meet] calculates the meet of two elements of such lattice.  It can be
+  /// used, for example, to calculate the variance of a typedef type parameter
+  /// if it's encountered on the RHS of the typedef multiple times.
+  ///
+  ///       unrelated
+  /// covariant   contravariant
+  ///       invariant
+  Variance meet(Variance other) {
+    return new Variance.fromEncoding(index | other.index);
+  }
+}
+
+/// Describes constituents of a type derived from a declaration.
+///
+/// If a type is derived from a declaration, as described in the documentation
+/// for [TypeDeclarationKind], objects of [TypeDeclarationMatchResult] describe
+/// its components that can be used for the further analysis of the type in the
+/// algorithms related to type inference.
+class TypeDeclarationMatchResult<TypeDeclarationType extends Object,
+    TypeDeclaration extends Object, Type extends Object> {
+  /// The kind of type declaration the matched type is of.
+  final TypeDeclarationKind typeDeclarationKind;
+
+  /// A more specific subtype of [Type] describing the matched type.
+  ///
+  /// This is client-specific is needed to avoid unnecessary downcasts.
+  final TypeDeclarationType typeDeclarationType;
+
+  /// The type declaration that the matched type is derived from.
+  ///
+  /// The type declaration is defined in the documentation for
+  /// [TypeDeclarationKind] and is a client-specific object representing a
+  /// class, an enum, a mixin, or an extension type.
+  final TypeDeclaration typeDeclaration;
+
+  /// Type arguments instantiating [typeDeclaration] to the matched type.
+  ///
+  /// If [typeDeclaration] is not generic, [typeArguments] is an empty list.
+  final List<Type> typeArguments;
+
+  TypeDeclarationMatchResult(
+      {required this.typeDeclarationKind,
+      required this.typeDeclarationType,
+      required this.typeDeclaration,
+      required this.typeArguments});
+}
+
 /// Callback API used by the shared type analyzer to query and manipulate the
 /// client's representation of variables and types.
 abstract interface class TypeAnalyzerOperations<
         Variable extends Object,
         Type extends Object,
         TypeSchema extends Object,
-        InferableParameter extends Object>
+        InferableParameter extends Object,
+        TypeDeclarationType extends Object,
+        TypeDeclaration extends Object>
     implements FlowAnalysisOperations<Variable, Type> {
   /// Returns the type `double`.
   Type get doubleType;
@@ -96,6 +262,11 @@ abstract interface class TypeAnalyzerOperations<
   /// extension type declarations, `T` and `S` are types.
   TypeDeclarationKind? getTypeDeclarationKind(Type type);
 
+  /// Returns variance for of the type parameter at index [parameterIndex] in
+  /// [typeDeclaration].
+  Variance getTypeParameterVariance(
+      TypeDeclaration typeDeclaration, int parameterIndex);
+
   /// If at top level [typeSchema] describes a type that was introduced by a
   /// class, mixin, enum, or extension type, returns a [TypeDeclarationKind]
   /// indicating what kind of thing it was introduced by. Otherwise, returns
@@ -134,6 +305,14 @@ abstract interface class TypeAnalyzerOperations<
 
   /// Returns `true` if [type] is `F`, `F?`, or `F*` for some function type `F`.
   bool isFunctionType(Type type);
+
+  /// If [type] was introduced by a class, mixin, enum, or extension type,
+  /// returns an object of [TypeDeclarationMatchResult] describing the
+  /// constituents of the matched type.
+  ///
+  /// If [type] isn't introduced by a class, mixin, enum, or extension type,
+  /// returns null.
+  TypeDeclarationMatchResult? matchTypeDeclarationType(Type type);
 
   /// If [type] takes the form `FutureOr<T>`, `FutureOr<T>?`, or `FutureOr<T>*`
   /// for some `T`, returns the type `T`. Otherwise returns `null`.

@@ -5,6 +5,8 @@
 import 'dart:collection';
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
+    show Variance;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -30,7 +32,6 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/element/well_bounded.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
-import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -5538,7 +5539,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           var fields = node.fields;
           var fieldElement = fields.variables.first.declaredElement!;
           var fieldName = fields.variables.first.name;
-          Variance fieldVariance = Variance(typeParameter, fieldElement.type);
+          Variance fieldVariance =
+              typeParameter.computeVarianceInType(fieldElement.type);
 
           _checkForWrongVariancePosition(
               fieldVariance, typeParameter, fieldName);
@@ -5574,7 +5576,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             continue;
           }
           var methodTypeParameterVariance = Variance.invariant.combine(
-            Variance(typeParameter, methodTypeParameter.bound!.typeOrThrow),
+            typeParameter
+                .computeVarianceInType(methodTypeParameter.bound!.typeOrThrow),
           );
           _checkForWrongVariancePosition(
               methodTypeParameterVariance, typeParameter, methodTypeParameter);
@@ -5589,7 +5592,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             continue;
           }
           var methodParameterVariance = Variance.contravariant.combine(
-            Variance(typeParameter, methodParameterElement.type),
+            typeParameter.computeVarianceInType(methodParameterElement.type),
           );
           _checkForWrongVariancePosition(
               methodParameterVariance, typeParameter, methodParameter);
@@ -5599,7 +5602,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       var returnType = method.returnType;
       if (returnType != null) {
         var methodReturnTypeVariance =
-            Variance(typeParameter, returnType.typeOrThrow);
+            typeParameter.computeVarianceInType(returnType.typeOrThrow);
         _checkForWrongVariancePosition(
             methodReturnTypeVariance, typeParameter, returnType);
       }
@@ -5610,11 +5613,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     void checkOne(DartType? superInterface) {
       if (superInterface != null) {
         for (var typeParameter in _enclosingClass!.typeParameters) {
-          var superVariance = Variance(typeParameter, superInterface);
           // TODO(kallentu): : Clean up TypeParameterElementImpl casting once
           // variance is added to the interface.
           var typeParameterElementImpl =
               typeParameter as TypeParameterElementImpl;
+          var superVariance =
+              typeParameterElementImpl.computeVarianceInType(superInterface);
           // Let `D` be a class or mixin declaration, let `S` be a direct
           // superinterface of `D`, and let `X` be a type parameter declared by
           // `D`.
@@ -5633,8 +5637,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
                     .WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
                 arguments: [
                   typeParameter.name,
-                  typeParameterElementImpl.variance.toKeywordString(),
-                  superVariance.toKeywordString(),
+                  typeParameterElementImpl.variance.keyword,
+                  superVariance.keyword,
                   superInterface,
                 ],
               );
@@ -5684,9 +5688,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         length: errorTarget.length,
         errorCode: CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_POSITION,
         arguments: [
-          typeParameterImpl.variance.toKeywordString(),
+          typeParameterImpl.variance.keyword,
           typeParameterImpl.name,
-          variance.toKeywordString()
+          variance.keyword
         ],
       );
     }

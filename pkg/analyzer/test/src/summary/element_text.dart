@@ -1419,7 +1419,7 @@ class _ElementWriter {
     e as TypeParameterElementImpl;
 
     _sink.writeIndentedLine(() {
-      _sink.write('${e.variance} ');
+      _sink.write('${e.variance.name} ');
       _writeName(e);
     });
 

@@ -59,8 +59,13 @@ class GenericInferrer {
   final Map<
       TypeParameterElement,
       List<
-          MergedTypeConstraint<DartType, DartType, TypeParameterElement,
-              PromotableElement>>> _constraints = {};
+          MergedTypeConstraint<
+              DartType,
+              DartType,
+              TypeParameterElement,
+              PromotableElement,
+              InterfaceType,
+              InterfaceElement>>> _constraints = {};
 
   /// The list of type parameters being inferred.
   final List<TypeParameterElement> _typeFormals;
@@ -140,8 +145,13 @@ class GenericInferrer {
   void constrainArgument(
       DartType argumentType, DartType parameterType, String parameterName,
       {InterfaceElement? genericClass, required AstNode? nodeForTesting}) {
-    var origin = TypeConstraintFromArgument<DartType, DartType,
-        PromotableElement, TypeParameterElement>(
+    var origin = TypeConstraintFromArgument<
+        DartType,
+        DartType,
+        PromotableElement,
+        TypeParameterElement,
+        InterfaceType,
+        InterfaceElement>(
       argumentType: argumentType,
       parameterType: parameterType,
       parameterName: parameterName,
@@ -181,7 +191,9 @@ class GenericInferrer {
         DartType,
         DartType,
         PromotableElement,
-        TypeParameterElement>(functionType: fnType, contextType: contextType);
+        TypeParameterElement,
+        InterfaceType,
+        InterfaceElement>(functionType: fnType, contextType: contextType);
 
     // Since we're trying to infer the instantiation, we want to ignore type
     // formals as we check the parameters and return type.
@@ -199,9 +211,13 @@ class GenericInferrer {
   /// is a subtype of the [contextType].
   void constrainReturnType(DartType declaredType, DartType contextType,
       {required AstNode? nodeForTesting}) {
-    var origin = TypeConstraintFromReturnType<DartType, DartType,
-            PromotableElement, TypeParameterElement>(
-        declaredType: declaredType, contextType: contextType);
+    var origin = TypeConstraintFromReturnType<
+        DartType,
+        DartType,
+        PromotableElement,
+        TypeParameterElement,
+        InterfaceType,
+        InterfaceElement>(declaredType: declaredType, contextType: contextType);
     _tryMatchSubtypeOf(declaredType, contextType, origin,
         covariant: true, nodeForTesting: nodeForTesting);
   }
@@ -229,8 +245,13 @@ class GenericInferrer {
           var parameterBound =
               Substitution.fromPairs(_typeFormals, inferredTypes)
                   .substituteType(parameterBoundRaw);
-          var extendsConstraint = MergedTypeConstraint<DartType, DartType,
-              TypeParameterElement, PromotableElement>.fromExtends(
+          var extendsConstraint = MergedTypeConstraint<
+              DartType,
+              DartType,
+              TypeParameterElement,
+              PromotableElement,
+              InterfaceType,
+              InterfaceElement>.fromExtends(
             typeParameterName: parameter.name,
             boundType: parameterBoundRaw,
             extendsType: parameterBound,
@@ -395,7 +416,7 @@ class GenericInferrer {
   DartType _chooseTypeFromConstraints(
       Iterable<
               MergedTypeConstraint<DartType, DartType, TypeParameterElement,
-                  PromotableElement>>
+                  PromotableElement, InterfaceType, InterfaceElement>>
           constraints,
       {bool toKnownType = false,
       required bool isContravariant}) {
@@ -465,11 +486,16 @@ class GenericInferrer {
       // variance is added to the interface.
       var typeParam = _typeFormals[i] as TypeParameterElementImpl;
       MergedTypeConstraint<DartType, DartType, TypeParameterElement,
-          PromotableElement>? extendsClause;
+          PromotableElement, InterfaceType, InterfaceElement>? extendsClause;
       var bound = typeParam.bound;
       if (bound != null) {
-        extendsClause = MergedTypeConstraint<DartType, DartType,
-            TypeParameterElement, PromotableElement>.fromExtends(
+        extendsClause = MergedTypeConstraint<
+            DartType,
+            DartType,
+            TypeParameterElement,
+            PromotableElement,
+            InterfaceType,
+            InterfaceElement>.fromExtends(
           typeParameterName: typeParam.name,
           boundType: bound,
           extendsType: Substitution.fromPairs(_typeFormals, inferredTypes)
@@ -516,31 +542,40 @@ class GenericInferrer {
       DartType inferred,
       Iterable<
               MergedTypeConstraint<DartType, DartType, TypeParameterElement,
-                  PromotableElement>>
+                  PromotableElement, InterfaceType, InterfaceElement>>
           constraints) {
     var inferredStr = inferred.getDisplayString();
     var intro = "Tried to infer '$inferredStr' for '${typeParam.name}'"
         " which doesn't work:";
 
-    var constraintsByOrigin = <TypeConstraintOrigin<DartType, DartType,
-            PromotableElement, TypeParameterElement>,
+    var constraintsByOrigin = <TypeConstraintOrigin<
+            DartType,
+            DartType,
+            PromotableElement,
+            TypeParameterElement,
+            InterfaceType,
+            InterfaceElement>,
         List<
             MergedTypeConstraint<DartType, DartType, TypeParameterElement,
-                PromotableElement>>>{};
+                PromotableElement, InterfaceType, InterfaceElement>>>{};
     for (var c in constraints) {
       constraintsByOrigin.putIfAbsent(c.origin, () => []).add(c);
     }
 
     // Only report unique constraint origins.
     Iterable<
-        MergedTypeConstraint<DartType, DartType, TypeParameterElement,
-            PromotableElement>> isSatisfied(bool expected) =>
-        constraintsByOrigin.values
-            .where((l) =>
-                l.every(
-                    (c) => c.isSatisfiedBy(inferred, _typeSystemOperations)) ==
-                expected)
-            .flattenedToList2;
+        MergedTypeConstraint<
+            DartType,
+            DartType,
+            TypeParameterElement,
+            PromotableElement,
+            InterfaceType,
+            InterfaceElement>> isSatisfied(bool expected) => constraintsByOrigin
+        .values
+        .where((l) =>
+            l.every((c) => c.isSatisfiedBy(inferred, _typeSystemOperations)) ==
+            expected)
+        .flattenedToList2;
 
     String unsatisfied =
         _formatConstraints(isSatisfied(false), _typeSystemOperations);
@@ -559,10 +594,10 @@ class GenericInferrer {
   DartType _inferTypeParameterFromAll(
       List<
               MergedTypeConstraint<DartType, DartType, TypeParameterElement,
-                  PromotableElement>>
+                  PromotableElement, InterfaceType, InterfaceElement>>
           constraints,
       MergedTypeConstraint<DartType, DartType, TypeParameterElement,
-              PromotableElement>?
+              PromotableElement, InterfaceType, InterfaceElement>?
           extendsClause,
       {required bool isContravariant}) {
     if (extendsClause != null) {
@@ -577,10 +612,10 @@ class GenericInferrer {
   DartType _inferTypeParameterFromContext(
       Iterable<
               MergedTypeConstraint<DartType, DartType, TypeParameterElement,
-                  PromotableElement>>
+                  PromotableElement, InterfaceType, InterfaceElement>>
           constraints,
       MergedTypeConstraint<DartType, DartType, TypeParameterElement,
-              PromotableElement>?
+              PromotableElement, InterfaceType, InterfaceElement>?
           extendsClause,
       {required bool isContravariant}) {
     DartType t = _chooseTypeFromConstraints(constraints,
@@ -693,7 +728,7 @@ class GenericInferrer {
       DartType t1,
       DartType t2,
       TypeConstraintOrigin<DartType, DartType, PromotableElement,
-              TypeParameterElement>
+              TypeParameterElement, InterfaceType, InterfaceElement>
           origin,
       {required bool covariant,
       required AstNode? nodeForTesting}) {
@@ -725,12 +760,17 @@ class GenericInferrer {
   static String _formatConstraints(
       Iterable<
               MergedTypeConstraint<DartType, DartType, TypeParameterElement,
-                  PromotableElement>>
+                  PromotableElement, InterfaceType, InterfaceElement>>
           constraints,
       TypeSystemOperations typeSystemOperations) {
     List<List<String>> lineParts = Set<
-            TypeConstraintOrigin<DartType, DartType, PromotableElement,
-                TypeParameterElement>>.from(constraints.map((c) => c.origin))
+            TypeConstraintOrigin<
+                DartType,
+                DartType,
+                PromotableElement,
+                TypeParameterElement,
+                InterfaceType,
+                InterfaceElement>>.from(constraints.map((c) => c.origin))
         .map((o) => o.formatError(typeSystemOperations))
         .toList();
 

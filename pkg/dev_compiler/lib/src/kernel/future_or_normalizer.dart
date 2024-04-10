@@ -32,7 +32,7 @@ class FutureOrNormalizer extends ReplacementVisitor {
       type.accept1(this, Variance.unrelated) ?? type;
 
   @override
-  DartType? visitFutureOrType(FutureOrType futureOr, int variance) {
+  DartType? visitFutureOrType(FutureOrType futureOr, Variance variance) {
     var normalizedTypeArg = futureOr.typeArgument.accept1(this, variance);
     var typeArgument = normalizedTypeArg ?? futureOr.typeArgument;
     switch (typeArgument) {

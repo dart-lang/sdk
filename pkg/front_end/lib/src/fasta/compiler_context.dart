@@ -44,9 +44,6 @@ class CompilerContext {
   /// programs.
   final Map<Uri, Source> uriToSource = <Uri, Source>{};
 
-  // TODO(ahe): Remove this.
-  final List<Object> errors = <Object>[];
-
   final List<Uri> dependencies = <Uri>[];
 
   FileSystem get fileSystem => options.fileSystem;
@@ -77,12 +74,6 @@ class CompilerContext {
   /// Format [message] as a text string that can be included in generated code.
   PlainAndColorizedString format(LocatedMessage message, Severity severity) {
     return command_line_reporting.format(message, severity);
-  }
-
-  // TODO(ahe): Remove this.
-  void logError(Object message, Severity severity) {
-    errors.add(message);
-    errors.add(severity);
   }
 
   static void recordDependency(Uri uri) {
@@ -138,7 +129,6 @@ class CompilerContext {
 
   void clear() {
     clearStringCanonicalizationCache();
-    errors.clear();
     dependencies.clear();
   }
 }

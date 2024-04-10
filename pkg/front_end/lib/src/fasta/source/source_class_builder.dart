@@ -998,20 +998,21 @@ class SourceClassBuilder extends ClassBuilderImpl
     Message? message;
     for (int i = 0; i < typeVariables!.length; ++i) {
       NominalVariableBuilder typeVariableBuilder = typeVariables![i];
-      int variance = computeTypeVariableBuilderVariance(
-          typeVariableBuilder, supertype, libraryBuilder);
-      if (!Variance.greaterThanOrEqual(variance, typeVariables![i].variance)) {
+      Variance variance = computeTypeVariableBuilderVariance(
+              typeVariableBuilder, supertype, libraryBuilder)
+          .variance!;
+      if (!variance.greaterThanOrEqual(typeVariables![i].variance)) {
         if (typeVariables![i].parameter.isLegacyCovariant) {
           message = templateInvalidTypeVariableInSupertype.withArguments(
               typeVariables![i].name,
-              Variance.keywordString(variance),
+              variance.keyword,
               supertype.typeName!.name);
         } else {
           message =
               templateInvalidTypeVariableInSupertypeWithVariance.withArguments(
-                  Variance.keywordString(typeVariables![i].variance),
+                  typeVariables![i].variance.keyword,
                   typeVariables![i].name,
-                  Variance.keywordString(variance),
+                  variance.keyword,
                   supertype.typeName!.name);
         }
         libraryBuilder.addProblem(message, charOffset, noLength, fileUri);
@@ -1036,7 +1037,7 @@ class SourceClassBuilder extends ClassBuilderImpl
   void checkVarianceInField(SourceFieldBuilder fieldBuilder,
       TypeEnvironment typeEnvironment, List<TypeParameter> typeParameters) {
     for (TypeParameter typeParameter in typeParameters) {
-      int fieldVariance =
+      Variance fieldVariance =
           computeVariance(typeParameter, fieldBuilder.fieldType);
       if (fieldBuilder.isClassInstanceMember) {
         reportVariancePositionIfInvalid(fieldVariance, typeParameter,
@@ -1045,7 +1046,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       if (fieldBuilder.isClassInstanceMember &&
           fieldBuilder.isAssignable &&
           !fieldBuilder.isCovariantByDeclaration) {
-        fieldVariance = Variance.combine(Variance.contravariant, fieldVariance);
+        fieldVariance = Variance.contravariant.combine(fieldVariance);
         reportVariancePositionIfInvalid(fieldVariance, typeParameter,
             fieldBuilder.fileUri, fieldBuilder.charOffset);
       }
@@ -1064,8 +1065,8 @@ class SourceClassBuilder extends ClassBuilderImpl
 
     for (TypeParameter functionParameter in functionTypeParameters) {
       for (TypeParameter typeParameter in typeParameters) {
-        int typeVariance = Variance.combine(Variance.invariant,
-            computeVariance(typeParameter, functionParameter.bound));
+        Variance typeVariance = Variance.invariant
+            .combine(computeVariance(typeParameter, functionParameter.bound));
         reportVariancePositionIfInvalid(
             typeVariance, typeParameter, fileUri, functionParameter.fileOffset);
       }
@@ -1073,8 +1074,8 @@ class SourceClassBuilder extends ClassBuilderImpl
     for (VariableDeclaration formal in positionalParameters) {
       if (!formal.isCovariantByDeclaration) {
         for (TypeParameter typeParameter in typeParameters) {
-          int formalVariance = Variance.combine(Variance.contravariant,
-              computeVariance(typeParameter, formal.type));
+          Variance formalVariance = Variance.contravariant
+              .combine(computeVariance(typeParameter, formal.type));
           reportVariancePositionIfInvalid(
               formalVariance, typeParameter, fileUri, formal.fileOffset);
         }
@@ -1082,37 +1083,37 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
     for (VariableDeclaration named in namedParameters) {
       for (TypeParameter typeParameter in typeParameters) {
-        int namedVariance = Variance.combine(
-            Variance.contravariant, computeVariance(typeParameter, named.type));
+        Variance namedVariance = Variance.contravariant
+            .combine(computeVariance(typeParameter, named.type));
         reportVariancePositionIfInvalid(
             namedVariance, typeParameter, fileUri, named.fileOffset);
       }
     }
 
     for (TypeParameter typeParameter in typeParameters) {
-      int returnTypeVariance = computeVariance(typeParameter, returnType);
+      Variance returnTypeVariance = computeVariance(typeParameter, returnType);
       reportVariancePositionIfInvalid(returnTypeVariance, typeParameter,
           fileUri, procedure.function.fileOffset,
           isReturnType: true);
     }
   }
 
-  void reportVariancePositionIfInvalid(
-      int variance, TypeParameter typeParameter, Uri fileUri, int fileOffset,
+  void reportVariancePositionIfInvalid(Variance variance,
+      TypeParameter typeParameter, Uri fileUri, int fileOffset,
       {bool isReturnType = false}) {
     SourceLibraryBuilder library = this.libraryBuilder;
     if (!typeParameter.isLegacyCovariant &&
-        !Variance.greaterThanOrEqual(variance, typeParameter.variance)) {
+        !variance.greaterThanOrEqual(typeParameter.variance)) {
       Message message;
       if (isReturnType) {
         message = templateInvalidTypeVariableVariancePositionInReturnType
-            .withArguments(Variance.keywordString(typeParameter.variance),
-                typeParameter.name!, Variance.keywordString(variance));
+            .withArguments(typeParameter.variance.keyword, typeParameter.name!,
+                variance.keyword);
       } else {
         message = templateInvalidTypeVariableVariancePosition.withArguments(
-            Variance.keywordString(typeParameter.variance),
+            typeParameter.variance.keyword,
             typeParameter.name!,
-            Variance.keywordString(variance));
+            variance.keyword);
       }
       library.reportTypeArgumentIssue(message, fileUri, fileOffset,
           typeParameter: typeParameter);

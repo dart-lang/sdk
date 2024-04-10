@@ -28,7 +28,7 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     hide MapPatternEntry, RecordPatternField;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
-    as shared;
+    as shared show RecordType;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
     hide RecordType;
 import 'package:_fe_analyzer_shared/src/type_inference/variable_bindings.dart';
@@ -2612,8 +2612,8 @@ class MapPatternEntry extends Node implements MapPatternElement {
 
 class MiniAstOperations
     implements
-        TypeAnalyzerOperations<Var, Type, TypeSchema,
-            PromotedTypeVariableType> {
+        TypeAnalyzerOperations<Var, Type, TypeSchema, PromotedTypeVariableType,
+            Type, String> {
   static const Map<String, bool> _coreExhaustiveness = const {
     '()': true,
     '(int, int?)': false,
@@ -2908,6 +2908,29 @@ class MiniAstOperations
   @override
   bool isFunctionType(Type type) {
     return withNullabilitySuffix(type, NullabilitySuffix.none) is FunctionType;
+  }
+
+  @override
+  TypeDeclarationMatchResult? matchTypeDeclarationType(Type type) {
+    if (isInterfaceType(type)) {
+      PrimaryType underlyingType =
+          withNullabilitySuffix(type, NullabilitySuffix.none) as PrimaryType;
+      return new TypeDeclarationMatchResult(
+          typeDeclarationKind: TypeDeclarationKind.interfaceDeclaration,
+          typeDeclaration: underlyingType.type,
+          typeDeclarationType: type,
+          typeArguments: underlyingType.args);
+    } else if (isExtensionType(type)) {
+      PrimaryType underlyingType =
+          withNullabilitySuffix(type, NullabilitySuffix.none) as PrimaryType;
+      return new TypeDeclarationMatchResult(
+          typeDeclarationKind: TypeDeclarationKind.extensionTypeDeclaration,
+          typeDeclaration: underlyingType.type,
+          typeDeclarationType: type,
+          typeArguments: underlyingType.args);
+    } else {
+      return null;
+    }
   }
 
   @override
@@ -3261,6 +3284,13 @@ class MiniAstOperations
   @override
   Type futureType(Type argumentType) {
     return PrimaryType('Future', args: [argumentType]);
+  }
+
+  @override
+  Variance getTypeParameterVariance(
+      String typeDeclaration, int parameterIndex) {
+    // TODO(cstefantsova): Support variance of type parameters in Mini AST.
+    return Variance.covariant;
   }
 }
 
@@ -5382,7 +5412,7 @@ class _MiniAstErrors
 class _MiniAstTypeAnalyzer
     with
         TypeAnalyzer<Node, Statement, Expression, Var, Type, Pattern, void,
-            TypeSchema, PromotedTypeVariableType> {
+            TypeSchema, PromotedTypeVariableType, Type, String> {
   final Harness _harness;
 
   @override

@@ -103,7 +103,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             Pattern,
             InvalidExpression,
             DartType,
-            StructuralParameter>,
+            StructuralParameter,
+            TypeDeclarationType,
+            TypeDeclaration>,
         StackChecker
     implements
         ExpressionVisitor1<ExpressionInferenceResult, DartType>,
