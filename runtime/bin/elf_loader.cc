@@ -289,6 +289,8 @@ bool LoadedElf::Load() {
   CHECK(ReadSectionStringTable());
   CHECK(ReadSections());
 
+  mappable_.reset();
+
   return true;
 }
 

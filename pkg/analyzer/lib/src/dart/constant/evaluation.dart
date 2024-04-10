@@ -1641,6 +1641,12 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   Constant? _evaluatePropertyAccess(DartObjectImpl targetResult,
       SimpleIdentifier identifier, AstNode errorNode) {
     var propertyElement = identifier.staticElement;
+    if (propertyElement is PropertyAccessorElement &&
+        propertyElement.isGetter &&
+        propertyElement.isStatic) {
+      return null;
+    }
+
     var propertyContainer = propertyElement?.enclosingElement;
     switch (propertyContainer) {
       case ExtensionElement():

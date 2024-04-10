@@ -30,10 +30,12 @@ extension AstNodeExtension on AstNode {
     return switch (self) {
       ClassDeclaration() => self.augmentKeyword != null,
       ConstructorDeclaration() => self.augmentKeyword != null,
+      FieldDeclaration() => self.augmentKeyword != null,
       FunctionDeclarationImpl() => self.augmentKeyword != null,
       FunctionExpression() => self.parent?.isAugmentation ?? false,
       MethodDeclaration() => self.augmentKeyword != null,
       MixinDeclaration() => self.augmentKeyword != null,
+      TopLevelVariableDeclaration() => self.augmentKeyword != null,
       VariableDeclaration(declaredElement: var element) =>
         element is PropertyInducingElement && element.isAugmentation,
       _ => false

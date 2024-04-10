@@ -17,9 +17,6 @@ class PreferVoidToNullTest extends LintRuleTest {
   @override
   String get lintRule => 'prefer_void_to_null';
 
-  @FailingTest(
-      issue: 'https://github.com/dart-lang/linter/issues/4890',
-      reason: 'Null check operator used on a null value')
   test_augmentedField() async {
     newFile('$testPackageLibPath/a.dart', r'''
 import augment 'test.dart';
@@ -102,10 +99,6 @@ augment Future<Null>? get v => null;
 ''');
   }
 
-  @FailingTest(
-      issue: 'https://github.com/dart-lang/linter/issues/4890',
-      reason:
-          "CompileTimeErrorCode.DUPLICATE_DEFINITION [49, 1, The name 'v' is already defined.]")
   test_augmentedTopLevelVariable() async {
     newFile('$testPackageLibPath/a.dart', r'''
 import augment 'test.dart';

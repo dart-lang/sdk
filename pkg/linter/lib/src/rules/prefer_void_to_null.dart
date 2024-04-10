@@ -154,9 +154,11 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     if (parent != null) {
-      AstNode? member = parent.thisOrAncestorOfType<ClassMember>();
-      member ??= parent.thisOrAncestorOfType<NamedCompilationUnitMember>();
-      if (member?.isAugmentation ?? false) return;
+      AstNode? declaration = parent.thisOrAncestorOfType<ClassMember>();
+      declaration ??= parent.thisOrAncestorOfType<NamedCompilationUnitMember>();
+      declaration ??=
+          parent.thisOrAncestorOfType<TopLevelVariableDeclaration>();
+      if (declaration?.isAugmentation ?? false) return;
     }
 
     rule.reportLintForToken(node.name2);

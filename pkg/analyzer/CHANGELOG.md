@@ -17,6 +17,7 @@
 * Support new meta annotation: `@mustBeConst`.
 * Support new meta TargetKinds: `constructor`, `directive`, `enumValue`, and
   `typeParameter`.
+* Fix for accessing constants from extension type, when import prefixed.
 
 ## 6.4.1
 * Patch for crash in ffi_verifier.
