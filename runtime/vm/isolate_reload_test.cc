@@ -6454,6 +6454,79 @@ TEST_CASE(IsolateReload_KeepPragma1) {
                               Symbols::vm_prefer_inline()));
 }
 
+TEST_CASE(IsolateReload_EnumWithSet) {
+  const char* kScript =
+      "enum Enum1 {\n"
+      "  member1({Enum2.member1, Enum2.member2}),\n"
+      "  member2({Enum2.member2}),\n"
+      "  member3({Enum2.member1}),\n"
+      "  member4({Enum2.member2, Enum2.member1}),\n"
+      "  member5({Enum2.member1}),\n"
+      "  member6({Enum2.member1});\n"
+      "  const Enum1(this.set);\n"
+      "  final Set<Enum2> set;\n"
+      "}\n"
+      "enum Enum2 { member1, member2; }\n"
+      "var retained;\n"
+      "main() {\n"
+      "  retained = Enum1.member4;\n"
+      "  return 'ok';\n"
+      "}\n";
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("ok", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "enum Enum2 { member1, member2; }\n"
+      "enum Enum1 {\n"
+      "  member1({Enum2.member1, Enum2.member2}),\n"
+      "  member2({Enum2.member2}),\n"
+      "  member3({Enum2.member1}),\n"
+      "  member4({Enum2.member2, Enum2.member1}),\n"
+      "  member5({Enum2.member1}),\n"
+      "  member6({Enum2.member1});\n"
+      "  const Enum1(this.set);\n"
+      "  final Set<Enum2> set;\n"
+      "}\n"
+      "var retained;\n"
+      "foo(e) {\n"
+      "  return switch (e as Enum1) {\n"
+      "    Enum1.member1 => \"a\",\n"
+      "    Enum1.member2 => \"b\",\n"
+      "    Enum1.member3 => \"c\",\n"
+      "    Enum1.member4 => \"d\",\n"
+      "    Enum1.member5 => \"e\",\n"
+      "    Enum1.member6 => \"f\",\n"
+      "  };\n"
+      "}\n"
+      "main() {\n"
+      "  return foo(retained);\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+
+  {
+    // Reset the cache to make kernel constant reading happen again and perform
+    // fresh canonicalization, in particular the constants used by the switch
+    // statement. Something about the reproduction in
+    // https://github.com/dart-lang/sdk/issues/55350 causes this happen,
+    // possibly something about the library dependency graph keeps the
+    // equivalent enum use in a something with a separate kernel program info
+    // such that execution after reload already has an empty cache.
+    TransitionNativeToVM transition(thread);
+    Library& libb = Library::Handle(Library::RawCast(Api::UnwrapHandle(lib)));
+    KernelProgramInfo& info =
+        KernelProgramInfo::Handle(libb.kernel_program_info());
+    Array& constants = Array::Handle(info.constants());
+    for (intptr_t i = 0; i < constants.Length(); i++) {
+      constants.SetAt(i, Object::sentinel());
+    }
+  }
+
+  EXPECT_STREQ("d", SimpleInvokeStr(lib, "main"));
+}
+
 TEST_CASE(IsolateReload_KeepPragma2) {
   // Old version of closure function bar() has a pragma.
   const char* kScript =

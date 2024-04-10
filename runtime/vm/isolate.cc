@@ -898,6 +898,25 @@ void IsolateGroup::RehashConstants(Become* become) {
   Instance& old_value = Instance::Handle(zone);
   Instance& new_value = Instance::Handle(zone);
   Instance& deleted = Instance::Handle(zone);
+
+  if (become != nullptr) {
+    for (intptr_t cid = kInstanceCid; cid < num_cids; cid++) {
+      Array* old_constants = old_constant_tables[cid];
+      if (old_constants == nullptr) continue;
+
+      cls = class_table()->At(cid);
+      CanonicalInstancesSet set(zone, old_constants->ptr());
+      CanonicalInstancesSet::Iterator it(&set);
+      while (it.MoveNext()) {
+        constant ^= set.GetKey(it.Current());
+        ASSERT(!constant.IsNull());
+        ASSERT(!constant.InVMIsolateHeap());
+        constant.ClearCanonical();
+      }
+      set.Release();
+    }
+  }
+
   for (intptr_t cid = kInstanceCid; cid < num_cids; cid++) {
     Array* old_constants = old_constant_tables[cid];
     if (old_constants == nullptr) continue;
@@ -954,12 +973,18 @@ void IsolateGroup::RehashConstants(Become* become) {
       }
     } else {
       while (it.MoveNext()) {
-        constant ^= set.GetKey(it.Current());
-        ASSERT(!constant.IsNull());
-        // Shape changes lose the canonical bit because they may result/ in
-        // merging constants. E.g., [x1, y1], [x1, y2] -> [x1].
-        DEBUG_ASSERT(constant.IsCanonical() || HasAttemptedReload());
-        cls.InsertCanonicalConstant(zone, constant);
+        old_value ^= set.GetKey(it.Current());
+        ASSERT(!old_value.IsNull());
+
+        if (become == nullptr) {
+          ASSERT(old_value.IsCanonical());
+          cls.InsertCanonicalConstant(zone, old_value);
+        } else {
+          new_value = old_value.Canonicalize(thread);
+          if (old_value.ptr() != new_value.ptr()) {
+            become->Add(old_value, new_value);
+          }
+        }
       }
     }
     set.Release();

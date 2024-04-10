@@ -20517,7 +20517,7 @@ void Instance::CanonicalizeFieldsLocked(Thread* thread) const {
     // Iterate over all fields, canonicalize numbers and strings, expect all
     // other instances to be canonical otherwise report error (return false).
     Zone* zone = thread->zone();
-    Instance& obj = Instance::Handle(zone);
+    Object& obj = Object::Handle(zone);
     const intptr_t instance_size = SizeFromClass();
     ASSERT(instance_size != 0);
     const auto unboxed_fields_bitmap =
@@ -20527,9 +20527,13 @@ void Instance::CanonicalizeFieldsLocked(Thread* thread) const {
       if (unboxed_fields_bitmap.Get(offset / kCompressedWordSize)) {
         continue;
       }
-      obj ^= this->FieldAddrAtOffset(offset)->Decompress(untag()->heap_base());
-      obj = obj.CanonicalizeLocked(thread);
-      this->SetFieldAtOffset(offset, obj);
+      obj = this->FieldAddrAtOffset(offset)->Decompress(untag()->heap_base());
+      if (obj.IsInstance()) {
+        obj = Instance::Cast(obj).CanonicalizeLocked(thread);
+        this->SetFieldAtOffset(offset, obj);
+      } else {
+        ASSERT(obj.IsNull() || obj.IsSentinel());
+      }
     }
   } else {
 #if defined(DEBUG) && !defined(DART_COMPRESSED_POINTERS)
@@ -25219,6 +25223,7 @@ ArrayPtr Array::MakeFixedLength(const GrowableObjectArray& growable_array,
 }
 
 void Array::CanonicalizeFieldsLocked(Thread* thread) const {
+  ASSERT(IsImmutable());
   intptr_t len = Length();
   if (len > 0) {
     Zone* zone = thread->zone();
@@ -25477,9 +25482,8 @@ void LinkedHashBase::CanonicalizeFieldsLocked(Thread* thread) const {
   data_array ^= data_array.CanonicalizeLocked(thread);
   set_data(data_array);
 
-  // The index should not be set yet. It is populated lazily on first read.
-  const auto& index_td = TypedData::Handle(zone, index());
-  ASSERT(index_td.IsNull());
+  // Ignoring index. It will be initially null, created on first use, and
+  // possibly non-null here if we are rehashing.
 }
 
 ConstMapPtr ConstMap::NewDefault(Heap::Space space) {
