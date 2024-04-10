@@ -61,7 +61,7 @@ class AddMissingSwitchCases extends ResolvedCorrectionProducer {
     final singleIndent = utils.oneIndent;
 
     await builder.addDartFileEdit(file, (builder) {
-      builder.addCaseClauseAtEndInsertion(
+      builder.insertCaseClauseAtEnd(
           switchKeyword: node.switchKeyword,
           rightParenthesis: node.rightParenthesis,
           leftBracket: node.leftBracket,
@@ -86,7 +86,7 @@ class AddMissingSwitchCases extends ResolvedCorrectionProducer {
     final singleIndent = utils.oneIndent;
 
     await builder.addDartFileEdit(file, (builder) {
-      builder.addCaseClauseAtEndInsertion(
+      builder.insertCaseClauseAtEnd(
           switchKeyword: node.switchKeyword,
           rightParenthesis: node.rightParenthesis,
           leftBracket: node.leftBracket,

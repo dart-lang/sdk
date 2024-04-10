@@ -4,19 +4,17 @@
 
 import 'dart:io';
 
-/// The EOL character to be used for source code in tests.
-final platformEol = Platform.isWindows ? '\r\n' : '\n';
-
-/// Normalizes content to use platform-specific newlines to ensure that
-/// when running on Windows \r\n is used even though source files are checked
-/// out using \n.
+/// Normalizes content to use platform-specific newlines.
+///
+/// This ensures that when running on Windows, '\r\n' is used, even though
+/// source files are checked out using '\n'.
 String normalizeNewlinesForPlatform(String input) {
-  // Skip normalising for other platforms, as the gitattributes for the SDK
-  // will ensure all files are \n.
+  // Skip normalising for other platforms, as the 'gitattributes' for the Dart
+  // SDK ensures all files are '\n'.
   if (!Platform.isWindows) {
     return input;
   }
 
-  final newlinePattern = RegExp(r'\r?\n'); // either \r\n or \n
-  return input.replaceAll(newlinePattern, platformEol);
+  var newlinePattern = RegExp(r'\r?\n'); // Either '\r\n' or '\n'.
+  return input.replaceAll(newlinePattern, Platform.lineTerminator);
 }

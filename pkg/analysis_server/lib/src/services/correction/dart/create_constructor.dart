@@ -167,7 +167,7 @@ class CreateConstructor extends ResolvedCorrectionProducer {
     var targetSource = targetElement.source;
     var targetFile = targetSource.fullName;
     await builder.addDartFileEdit(targetFile, (builder) {
-      builder.addConstructorInsertion(targetNode, (builder) {
+      builder.insertConstructor(targetNode, (builder) {
         builder.writeConstructorDeclaration(targetElement.name,
             argumentList: instanceCreation.argumentList);
       });
@@ -185,7 +185,7 @@ class CreateConstructor extends ResolvedCorrectionProducer {
   }) async {
     var targetFile = resolvedUnit.file.path;
     await builder.addDartFileEdit(targetFile, (builder) {
-      builder.addConstructorInsertion(unitMember, (builder) {
+      builder.insertConstructor(unitMember, (builder) {
         builder.writeConstructorDeclaration(unitMember.name.lexeme,
             isConst: isConst,
             argumentList: argumentList,

@@ -148,7 +148,7 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
     }
 
     await fixContext.builder.addDartFileEdit(file, (builder) {
-      builder.addConstructorInsertion(classDeclaration, (builder) {
+      builder.insertConstructor(classDeclaration, (builder) {
         // TODO(srawlins): Replace this block with `writeConstructorDeclaration`
         // and `parameterWriter`.
         builder.write('const ');
@@ -177,7 +177,7 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
     required NamedCompilationUnitMember classDeclaration,
   }) async {
     await fixContext.builder.addDartFileEdit(file, (builder) {
-      builder.addConstructorInsertion(classDeclaration, (builder) {
+      builder.insertConstructor(classDeclaration, (builder) {
         // TODO(srawlins): Replace this block with `writeConstructorDeclaration`
         // and `parameterWriter`.
         builder.write('const ');
@@ -204,7 +204,7 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
     final fieldsForInitializers = <_Field>[];
 
     await fixContext.builder.addDartFileEdit(file, (builder) {
-      builder.addConstructorInsertion(containerDeclaration, (builder) {
+      builder.insertConstructor(containerDeclaration, (builder) {
         // TODO(srawlins): Replace this block with `writeConstructorDeclaration`
         // and `parameterWriter`.
         if (isConst) {
@@ -266,7 +266,7 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
     required List<_Field> fields,
   }) async {
     await fixContext.builder.addDartFileEdit(file, (builder) {
-      builder.addConstructorInsertion(containerDeclaration, (builder) {
+      builder.insertConstructor(containerDeclaration, (builder) {
         // TODO(srawlins): Replace this block with `writeConstructorDeclaration`
         // and `parameterWriter`.
         if (isConst) {

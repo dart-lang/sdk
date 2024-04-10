@@ -1412,106 +1412,12 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   List<Uri> get requiredImports => librariesToImport.keys.toList();
 
   @override
-  void addCaseClauseAtEndInsertion(
-    void Function(DartEditBuilder builder) buildEdit, {
-    required Token switchKeyword,
-    required Token rightParenthesis,
-    required Token leftBracket,
-    required Token rightBracket,
-  }) {
-    var blockStart = resolvedUnit.lineInfo.getLocation(leftBracket.offset);
-    var blockEnd = resolvedUnit.lineInfo.getLocation(rightBracket.offset);
-    var isBlockSingleLine = blockStart.lineNumber == blockEnd.lineNumber;
-    int offset;
-    if (isBlockSingleLine) {
-      offset = leftBracket.isSynthetic ? rightParenthesis.end : leftBracket.end;
-    } else {
-      offset = resolvedUnit.lineInfo.getOffsetOfLine(blockEnd.lineNumber - 1);
-    }
-
-    addInsertion(offset, (builder) {
-      if (leftBracket.isSynthetic) {
-        builder.write(' {');
-      }
-      if (isBlockSingleLine) {
-        builder.writeln();
-      }
-      buildEdit(builder);
-      if (isBlockSingleLine) {
-        builder.write(resolvedUnit.linePrefix(switchKeyword.offset));
-      }
-      if (rightBracket.isSynthetic) {
-        builder.write('}');
-      }
-    });
-  }
-
-  @override
-  void addConstructorInsertion(
-    CompilationUnitMember compilationUnitMember,
-    void Function(DartEditBuilder builder) buildEdit,
-  ) {
-    final sortConstructorsFirst = resolvedUnit.session.analysisContext
-        .getAnalysisOptionsForFile(resolvedUnit.file)
-        .codeStyleOptions
-        .sortConstructorsFirst;
-    var lastMemberFilter = sortConstructorsFirst
-        ? (member) => member is ConstructorDeclaration
-        : (member) =>
-            member is ConstructorDeclaration || member is FieldDeclaration;
-    _addCompilationUnitMemberInsertion(
-      compilationUnitMember,
-      buildEdit,
-      lastMemberFilter: lastMemberFilter,
-    );
-  }
-
-  @override
-  void addFieldInsertion(
-    CompilationUnitMember compilationUnitMember,
-    void Function(DartEditBuilder builder) buildEdit,
-  ) =>
-      _addCompilationUnitMemberInsertion(
-        compilationUnitMember,
-        buildEdit,
-        lastMemberFilter: (member) => member is FieldDeclaration,
-      );
-
-  @override
-  void addGetterInsertion(
-    CompilationUnitMember compilationUnitMember,
-    void Function(DartEditBuilder builder) buildEdit,
-  ) =>
-      _addCompilationUnitMemberInsertion(
-        compilationUnitMember,
-        buildEdit,
-        lastMemberFilter: (member) =>
-            member is FieldDeclaration ||
-            member is ConstructorDeclaration ||
-            member is MethodDeclaration && member.isGetter,
-      );
-
-  @override
   void addInsertion(
           int offset, void Function(DartEditBuilder builder) buildEdit,
           {bool insertBeforeExisting = false}) =>
       super.addInsertion(
           offset, (builder) => buildEdit(builder as DartEditBuilder),
           insertBeforeExisting: insertBeforeExisting);
-
-  @override
-  void addMethodInsertion(
-    CompilationUnitMember compilationUnitMember,
-    void Function(DartEditBuilder builder) buildEdit,
-  ) =>
-      _addCompilationUnitMemberInsertion(
-        compilationUnitMember,
-        buildEdit,
-        lastMemberFilter: (member) =>
-            member is FieldDeclaration ||
-            member is ConstructorDeclaration ||
-            member is MethodDeclaration,
-      );
 
   @override
   void addReplacement(SourceRange range,
@@ -1710,6 +1616,100 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
 
     return false;
   }
+
+  @override
+  void insertCaseClauseAtEnd(
+    void Function(DartEditBuilder builder) buildEdit, {
+    required Token switchKeyword,
+    required Token rightParenthesis,
+    required Token leftBracket,
+    required Token rightBracket,
+  }) {
+    var blockStart = resolvedUnit.lineInfo.getLocation(leftBracket.offset);
+    var blockEnd = resolvedUnit.lineInfo.getLocation(rightBracket.offset);
+    var isBlockSingleLine = blockStart.lineNumber == blockEnd.lineNumber;
+    int offset;
+    if (isBlockSingleLine) {
+      offset = leftBracket.isSynthetic ? rightParenthesis.end : leftBracket.end;
+    } else {
+      offset = resolvedUnit.lineInfo.getOffsetOfLine(blockEnd.lineNumber - 1);
+    }
+
+    addInsertion(offset, (builder) {
+      if (leftBracket.isSynthetic) {
+        builder.write(' {');
+      }
+      if (isBlockSingleLine) {
+        builder.writeln();
+      }
+      buildEdit(builder);
+      if (isBlockSingleLine) {
+        builder.write(resolvedUnit.linePrefix(switchKeyword.offset));
+      }
+      if (rightBracket.isSynthetic) {
+        builder.write('}');
+      }
+    });
+  }
+
+  @override
+  void insertConstructor(
+    CompilationUnitMember compilationUnitMember,
+    void Function(DartEditBuilder builder) buildEdit,
+  ) {
+    final sortConstructorsFirst = resolvedUnit.session.analysisContext
+        .getAnalysisOptionsForFile(resolvedUnit.file)
+        .codeStyleOptions
+        .sortConstructorsFirst;
+    var lastMemberFilter = sortConstructorsFirst
+        ? (member) => member is ConstructorDeclaration
+        : (member) =>
+            member is ConstructorDeclaration || member is FieldDeclaration;
+    _addCompilationUnitMemberInsertion(
+      compilationUnitMember,
+      buildEdit,
+      lastMemberFilter: lastMemberFilter,
+    );
+  }
+
+  @override
+  void insertField(
+    CompilationUnitMember compilationUnitMember,
+    void Function(DartEditBuilder builder) buildEdit,
+  ) =>
+      _addCompilationUnitMemberInsertion(
+        compilationUnitMember,
+        buildEdit,
+        lastMemberFilter: (member) => member is FieldDeclaration,
+      );
+
+  @override
+  void insertGetter(
+    CompilationUnitMember compilationUnitMember,
+    void Function(DartEditBuilder builder) buildEdit,
+  ) =>
+      _addCompilationUnitMemberInsertion(
+        compilationUnitMember,
+        buildEdit,
+        lastMemberFilter: (member) =>
+            member is FieldDeclaration ||
+            member is ConstructorDeclaration ||
+            member is MethodDeclaration && member.isGetter,
+      );
+
+  @override
+  void insertMethod(
+    CompilationUnitMember compilationUnitMember,
+    void Function(DartEditBuilder builder) buildEdit,
+  ) =>
+      _addCompilationUnitMemberInsertion(
+        compilationUnitMember,
+        buildEdit,
+        lastMemberFilter: (member) =>
+            member is FieldDeclaration ||
+            member is ConstructorDeclaration ||
+            member is MethodDeclaration,
+      );
 
   @override
   void replaceTypeWithFuture(

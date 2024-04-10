@@ -84,7 +84,7 @@ class AddKeyToConstructors extends ResolvedCorrectionProducer {
 
     var canBeConst = _canBeConst(node, constructors);
     await builder.addDartFileEdit(file, (builder) {
-      builder.addConstructorInsertion(node, (builder) {
+      builder.insertConstructor(node, (builder) {
         // TODO(srawlins): Replace this block with `writeConstructorDeclaration`
         // and `parameterWriter`.
         if (canBeConst) {

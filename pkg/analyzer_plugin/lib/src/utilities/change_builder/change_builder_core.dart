@@ -398,7 +398,7 @@ class EditBuilderImpl implements EditBuilder {
 
   /// The end-of-line marker used in the file being edited, or `null` if the
   /// default marker should be used.
-  String? _eol;
+  final String? _eol;
 
   /// The buffer in which the content of the edit is being composed.
   final StringBuffer _buffer = StringBuffer();
@@ -411,9 +411,8 @@ class EditBuilderImpl implements EditBuilder {
 
   /// Initialize a newly created builder to build a source edit.
   EditBuilderImpl(this.fileEditBuilder, this.offset, this.length,
-      {this.description}) {
-    _eol = fileEditBuilder.changeBuilder.eol;
-  }
+      {this.description})
+      : _eol = fileEditBuilder.changeBuilder.eol;
 
   /// Create and return an edit representing the replacement of a region of the
   /// file with the accumulated text.

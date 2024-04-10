@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io';
 import 'dart:math';
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
@@ -521,7 +522,7 @@ final class CorrectionUtils {
       : unit = result.unit,
         _buffer = result.content;
 
-  /// Returns the EOL to use for this [CompilationUnit].
+  /// The EOL sequence to use for this [CompilationUnit].
   String get endOfLine {
     var endOfLine = _endOfLine;
     if (endOfLine != null) {
@@ -530,9 +531,13 @@ final class CorrectionUtils {
 
     if (_buffer.contains('\r\n')) {
       return _endOfLine = '\r\n';
-    } else {
+    }
+
+    if (_buffer.contains('\n')) {
       return _endOfLine = '\n';
     }
+
+    return Platform.lineTerminator;
   }
 
   String get oneIndent => _oneIndent;

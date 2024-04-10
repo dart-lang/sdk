@@ -188,7 +188,7 @@ class CreateMethod extends ResolvedCorrectionProducer {
       if (targetNode == null) {
         return;
       }
-      builder.addMethodInsertion(targetNode, (builder) {
+      builder.insertMethod(targetNode, (builder) {
         // Maybe 'static'.
         if (staticModifier) {
           builder.write('static ');

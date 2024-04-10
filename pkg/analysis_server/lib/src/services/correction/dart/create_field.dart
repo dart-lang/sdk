@@ -82,7 +82,7 @@ class CreateField extends CreateFieldOrGetter {
     var targetSource = targetElement.source;
     var targetFile = targetSource.fullName;
     await builder.addDartFileEdit(targetFile, (builder) {
-      builder.addFieldInsertion(targetNode, (builder) {
+      builder.insertField(targetNode, (builder) {
         builder.writeFieldDeclaration(_fieldName,
             isStatic: staticModifier,
             nameGroupName: 'NAME',
@@ -104,7 +104,7 @@ class CreateField extends CreateFieldOrGetter {
     // Add proposal.
     await builder.addDartFileEdit(file, (builder) {
       var fieldType = parameter.type?.type;
-      builder.addFieldInsertion(targetClassNode, (builder) {
+      builder.insertField(targetClassNode, (builder) {
         builder.writeFieldDeclaration(_fieldName,
             nameGroupName: 'NAME', type: fieldType, typeGroupName: 'TYPE');
       });

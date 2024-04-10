@@ -123,7 +123,7 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
         .singleOrNull;
     if (debugFillProperties == null) {
       await builder.addDartFileEdit(file, (builder) {
-        builder.addMethodInsertion(classDeclaration, (builder) {
+        builder.insertMethod(classDeclaration, (builder) {
           final declPrefix = utils.oneIndent;
           final bodyPrefix = utils.twoIndents;
 
