@@ -107,9 +107,7 @@ namespace dart {
   V(AssertSubtype)                                                             \
   V(AssertAssignable)                                                          \
   V(TypeIsTopTypeForSubtyping)                                                 \
-  V(TypeIsTopTypeForSubtypingNullSafe)                                         \
   V(NullIsAssignableToType)                                                    \
-  V(NullIsAssignableToTypeNullSafe)                                            \
   V(Subtype1TestCache)                                                         \
   V(Subtype2TestCache)                                                         \
   V(Subtype3TestCache)                                                         \

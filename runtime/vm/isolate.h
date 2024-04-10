@@ -469,10 +469,6 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
         NullSafetyBit::update(null_safety, isolate_group_flags_);
   }
 
-  bool use_strict_null_safety_checks() const {
-    return null_safety() || FLAG_strict_null_safety_checks;
-  }
-
   bool should_load_vmservice() const {
     return ShouldLoadVmServiceBit::decode(isolate_group_flags_);
   }

@@ -197,8 +197,6 @@ Fragment PrologueBuilder::BuildParameterHandling() {
     copy_args_prologue.current = next_missing;
 
   } else if (num_opt_named_params > 0) {
-    const bool check_required_params =
-        IsolateGroup::Current()->use_strict_null_safety_checks();
     const intptr_t first_name_offset =
         compiler::target::ArgumentsDescriptor::first_named_entry_offset() -
         compiler::target::Array::data_offset();
@@ -265,8 +263,7 @@ Fragment PrologueBuilder::BuildParameterHandling() {
         good += Drop();
       }
 
-      const bool required = check_required_params &&
-                            function_.IsRequiredAt(opt_param_position[i]);
+      const bool required = function_.IsRequiredAt(opt_param_position[i]);
 
       if (required) {
         copy_args_prologue += good;

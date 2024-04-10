@@ -1659,9 +1659,6 @@ ISOLATE_UNIT_TEST_CASE(TTS_Future) {
   THR_Print("            Testing Future<int Function()?>\n");
   THR_Print("********************************************************\n\n");
 
-  const bool strict_null_safety =
-      thread->isolate_group()->use_strict_null_safety_checks();
-
   // And here, obj is an object of type Future<int Function()?>.
   //
   // True positive from TTS:
@@ -1705,15 +1702,6 @@ ISOLATE_UNIT_TEST_CASE(TTS_Future) {
   RunTTSTest(type_future_t, {obj_futurenullablefunction,
                              tav_nullable_function_int_nullary, tav_null});
 
-  if (!strict_null_safety) {
-    RunTTSTest(type_future_object,
-               {obj_futurenullablefunction, tav_null, tav_null});
-    RunTTSTest(type_future_function,
-               {obj_futurenullablefunction, tav_null, tav_null});
-    RunTTSTest(type_future_t,
-               {obj_futurenullablefunction, tav_object, tav_null});
-  }
-
   // False negative from TTS (caught by runtime or STC):
   //   obj as Future<int Function()?> : No specialization.
   //   obj as Future<int Function()*> : No specialization.
@@ -1739,16 +1727,6 @@ ISOLATE_UNIT_TEST_CASE(TTS_Future) {
   RunTTSTest(type_future_t,
              FalseNegative({obj_futurenullablefunction,
                             tav_legacy_function_int_nullary, tav_null}));
-
-  if (!strict_null_safety) {
-    RunTTSTest(type_future_function_int_nullary,
-               FalseNegative({obj_futurenullablefunction, tav_null, tav_null}));
-    RunTTSTest(type_future_t, FalseNegative({obj_futurenullablefunction,
-                                             tav_function, tav_null}));
-    RunTTSTest(type_future_t,
-               FalseNegative({obj_futurenullablefunction,
-                              tav_function_int_nullary, tav_null}));
-  }
 
   // Errors:
   //   obj as Future<_Closure?> : Type arg is not a supertype
@@ -1784,20 +1762,18 @@ ISOLATE_UNIT_TEST_CASE(TTS_Future) {
   RunTTSTest(type_future_t,
              Failure({obj_futurenullablefunction, tav_closure, tav_null}));
 
-  if (strict_null_safety) {
-    RunTTSTest(type_future_function_int_nullary,
-               Failure({obj_futurenullablefunction, tav_null, tav_null}));
-    RunTTSTest(type_future_object,
-               Failure({obj_futurenullablefunction, tav_null, tav_null}));
-    RunTTSTest(type_future_function,
-               Failure({obj_futurenullablefunction, tav_null, tav_null}));
-    RunTTSTest(type_future_t,
-               Failure({obj_futurenullablefunction, tav_object, tav_null}));
-    RunTTSTest(type_future_t,
-               Failure({obj_futurenullablefunction, tav_function, tav_null}));
-    RunTTSTest(type_future_t, Failure({obj_futurenullablefunction,
-                                       tav_function_int_nullary, tav_null}));
-  }
+  RunTTSTest(type_future_function_int_nullary,
+             Failure({obj_futurenullablefunction, tav_null, tav_null}));
+  RunTTSTest(type_future_object,
+             Failure({obj_futurenullablefunction, tav_null, tav_null}));
+  RunTTSTest(type_future_function,
+             Failure({obj_futurenullablefunction, tav_null, tav_null}));
+  RunTTSTest(type_future_t,
+             Failure({obj_futurenullablefunction, tav_object, tav_null}));
+  RunTTSTest(type_future_t,
+             Failure({obj_futurenullablefunction, tav_function, tav_null}));
+  RunTTSTest(type_future_t, Failure({obj_futurenullablefunction,
+                                     tav_function_int_nullary, tav_null}));
 }
 
 ISOLATE_UNIT_TEST_CASE(TTS_Regress40964) {
@@ -1953,10 +1929,9 @@ ISOLATE_UNIT_TEST_CASE(TTS_Object) {
       Type::Handle(IsolateGroup::Current()->object_store()->object_type());
   const auto& tav_null = Object::null_type_arguments();
 
-  // Object* is a top type, so its TTS won't specialize at all. Object is not,
+  // Non-nullable Object is not a top type,
   // so its TTS specializes the first time it is invoked.
-  const bool should_specialize =
-      IsolateGroup::Current()->use_strict_null_safety_checks();
+  const bool should_specialize = true;
   auto make_test_case = [&](const Instance& instance) -> TTSTestCase {
       return {instance, tav_null, tav_null};
   };
@@ -2136,22 +2111,14 @@ ISOLATE_UNIT_TEST_CASE(TTS_Partial) {
   state.InvokeExistingStub({obj_b_never, tav_null, tav_d});
   state.InvokeExistingStub({obj_b_null, tav_null, tav_nullable_c});
   state.InvokeExistingStub({obj_b_null, tav_null, tav_legacy_c});
-  if (IsolateGroup::Current()->use_strict_null_safety_checks()) {
-    state.InvokeExistingStub(Failure({obj_b_null, tav_null, tav_c}));
-  } else {
-    state.InvokeExistingStub({obj_b_null, tav_null, tav_c});
-  }
+  state.InvokeExistingStub(Failure({obj_b_null, tav_null, tav_c}));
 
   state.InvokeExistingStub({obj_b_e, tav_null, tav_nullable_object});
   state.InvokeExistingStub({obj_b_e_nullable, tav_null, tav_nullable_object});
   state.InvokeExistingStub({obj_b_e, tav_null, tav_legacy_object});
   state.InvokeExistingStub({obj_b_e_nullable, tav_null, tav_legacy_object});
   state.InvokeExistingStub({obj_b_e, tav_null, tav_object});
-  if (IsolateGroup::Current()->use_strict_null_safety_checks()) {
-    state.InvokeExistingStub(Failure({obj_b_e_nullable, tav_null, tav_object}));
-  } else {
-    state.InvokeExistingStub({obj_b_e_nullable, tav_null, tav_object});
-  }
+  state.InvokeExistingStub(Failure({obj_b_e_nullable, tav_null, tav_object}));
 }
 
 ISOLATE_UNIT_TEST_CASE(TTS_Partial_Incremental) {

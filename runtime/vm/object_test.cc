@@ -7464,12 +7464,7 @@ ISOLATE_UNIT_TEST_CASE(ClosureType_SubtypeOfFunctionType) {
   EXPECT_SUBTYPE(closure_type_legacy, function_type_nonnullable);
   EXPECT_SUBTYPE(closure_type_nullable, function_type_nullable);
   EXPECT_SUBTYPE(closure_type_nullable, function_type_legacy);
-  // Nullable types are not a subtype of non-nullable types in strict mode.
-  if (IsolateGroup::Current()->use_strict_null_safety_checks()) {
-    EXPECT_NOT_SUBTYPE(closure_type_nullable, function_type_nonnullable);
-  } else {
-    EXPECT_SUBTYPE(closure_type_nullable, function_type_nonnullable);
-  }
+  EXPECT_NOT_SUBTYPE(closure_type_nullable, function_type_nonnullable);
 
   const auto& async_lib = Library::Handle(Library::AsyncLibrary());
   const auto& future_or_class =
@@ -7502,13 +7497,8 @@ ISOLATE_UNIT_TEST_CASE(ClosureType_SubtypeOfFunctionType) {
   EXPECT_SUBTYPE(closure_type_legacy, future_or_function_type_nonnullable);
   EXPECT_SUBTYPE(closure_type_nullable, future_or_function_type_nullable);
   EXPECT_SUBTYPE(closure_type_nullable, future_or_function_type_legacy);
-  // Nullable types are not a subtype of non-nullable types in strict mode.
-  if (IsolateGroup::Current()->use_strict_null_safety_checks()) {
-    EXPECT_NOT_SUBTYPE(closure_type_nullable,
-                       future_or_function_type_nonnullable);
-  } else {
-    EXPECT_SUBTYPE(closure_type_nullable, future_or_function_type_nonnullable);
-  }
+  EXPECT_NOT_SUBTYPE(closure_type_nullable,
+                     future_or_function_type_nonnullable);
 }
 
 ISOLATE_UNIT_TEST_CASE(FunctionType_IsSubtypeOfNonNullableObject) {
@@ -7526,11 +7516,7 @@ ISOLATE_UNIT_TEST_CASE(FunctionType_IsSubtypeOfNonNullableObject) {
   FinalizeAndCanonicalize(&type_nullable_function_int_nullary);
 
   EXPECT_SUBTYPE(type_function_int_nullary, type_object);
-  if (IsolateGroup::Current()->use_strict_null_safety_checks()) {
-    EXPECT_NOT_SUBTYPE(type_nullable_function_int_nullary, type_object);
-  } else {
-    EXPECT_SUBTYPE(type_nullable_function_int_nullary, type_object);
-  }
+  EXPECT_NOT_SUBTYPE(type_nullable_function_int_nullary, type_object);
 }
 
 #undef EXPECT_NOT_SUBTYPE

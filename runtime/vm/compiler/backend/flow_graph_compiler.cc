@@ -2901,8 +2901,7 @@ void FlowGraphCompiler::GenerateCallerChecksForAssertAssignable(
 
   if (dst_type.IsObjectType()) {
     // Special case: non-nullable Object.
-    ASSERT(dst_type.IsNonNullable() &&
-           isolate_group()->use_strict_null_safety_checks());
+    ASSERT(dst_type.IsNonNullable());
     __ CompareObject(TypeTestABI::kInstanceReg, Object::null_object());
     __ BranchIf(NOT_EQUAL, done);
     // Fall back to type testing stub in caller to throw the exception.
@@ -2924,8 +2923,7 @@ void FlowGraphCompiler::GenerateCallerChecksForAssertAssignable(
     // Special case: Instantiate the type parameter on the caller side, invoking
     // the TTS of the corresponding type parameter in the caller.
     const TypeParameter& type_param = TypeParameter::Cast(dst_type);
-    if (isolate_group()->use_strict_null_safety_checks() &&
-        !type_param.IsNonNullable()) {
+    if (!type_param.IsNonNullable()) {
       // If the type parameter is nullable when running in strong mode, we need
       // to handle null before calling the TTS because the type parameter may be
       // instantiated with a non-nullable type, where the TTS rejects null.

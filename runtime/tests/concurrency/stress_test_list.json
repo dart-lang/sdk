@@ -180,7 +180,6 @@
   "../vm/dart/slow_path_shared_stub_test.dart",
   "../vm/dart/stack_overflow_shared_test.dart",
   "../vm/dart/stacktrace_mixin_application_test.dart",
-  "../vm/dart/strict_null_safety_checks_in_weak_mode_test.dart",
   "../vm/dart/string_equals_test.dart",
   "../vm/dart/string_intern_test.dart",
   "../vm/dart/switchable_call_monomorphic_regression_42517_test.dart",

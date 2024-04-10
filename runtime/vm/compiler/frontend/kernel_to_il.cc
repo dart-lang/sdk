@@ -2966,9 +2966,6 @@ Fragment FlowGraphBuilder::TestClosureFunctionNamedParameterRequired(
     const ClosureCallInfo& info,
     Fragment set,
     Fragment not_set) {
-  // Required named arguments only exist if null_safety is enabled.
-  if (!IG->use_strict_null_safety_checks()) return not_set;
-
   Fragment check_required;
   // We calculate the index to dereference in the parameter names array.
   check_required += LoadLocal(info.vars->current_param_index);
@@ -3140,10 +3137,6 @@ Fragment FlowGraphBuilder::BuildClosureCallNamedArgumentsCheck(
   // When no named arguments are provided, we just need to check for possible
   // required named arguments.
   if (info.descriptor.NamedCount() == 0) {
-    // No work to do if there are no possible required named parameters.
-    if (!IG->use_strict_null_safety_checks()) {
-      return Fragment();
-    }
     // If the below changes, we can no longer assume that flag slots existing
     // means there are required parameters.
     static_assert(compiler::target::kNumParameterFlags == 1,
