@@ -6776,6 +6776,9 @@ class TypeAliasElementImpl extends _ExistingElementImpl
     _aliasedType = rawType;
   }
 
+  /// The aliased type, might be `null` if not yet linked.
+  DartType? get aliasedTypeRaw => _aliasedType;
+
   @override
   String get displayName => name;
 

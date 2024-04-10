@@ -19,9 +19,6 @@ import 'package:analyzer/src/utilities/extensions/collection.dart';
 
 /// The type builder for a [NamedType].
 class NamedTypeBuilder extends TypeBuilder {
-  // TODO(scheglov): Replace with `DartType` in `TypeAliasElementImpl`.
-  static final _aliasedTypeExpando = Expando<DartType>();
-
   static DynamicTypeImpl get _dynamicType => DynamicTypeImpl.instance;
 
   /// The linker that contains this type.
@@ -256,11 +253,11 @@ class NamedTypeBuilder extends TypeBuilder {
     }
 
     // Break a possible recursion.
-    var existing = _aliasedTypeExpando[typedefNode];
+    var existing = element.aliasedTypeRaw;
     if (existing != null) {
       return existing;
     } else {
-      _setAliasedType(typedefNode, _dynamicType);
+      element.aliasedType = _dynamicType;
     }
 
     if (typedefNode is FunctionTypeAlias) {
@@ -270,12 +267,12 @@ class NamedTypeBuilder extends TypeBuilder {
         parameterList: typedefNode.parameters,
         hasQuestion: false,
       );
-      _setAliasedType(typedefNode, result);
+      element.aliasedType = result;
       return result;
     } else if (typedefNode is GenericTypeAlias) {
       var aliasedTypeNode = typedefNode.type;
       var aliasedType = _buildAliasedType(aliasedTypeNode);
-      _setAliasedType(typedefNode, aliasedType);
+      element.aliasedType = aliasedType;
       return aliasedType;
     } else {
       throw StateError('(${element.runtimeType}) $element');
@@ -301,10 +298,6 @@ class NamedTypeBuilder extends TypeBuilder {
 
   static List<DartType> _listOfDynamic(int length) {
     return List<DartType>.filled(length, _dynamicType);
-  }
-
-  static void _setAliasedType(AstNode node, DartType type) {
-    _aliasedTypeExpando[node] = type;
   }
 
   static List<TypeParameterElement> _typeParameters(TypeParameterList? node) {
