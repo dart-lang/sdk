@@ -13379,7 +13379,7 @@ final class PatternAssignmentImpl extends ExpressionImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitPatternAssignment(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType? contextType) {
+  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
     resolver.visitPatternAssignment(this);
   }
 
