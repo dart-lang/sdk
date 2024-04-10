@@ -141,7 +141,6 @@
   "../vm/dart/regress_48522_test.dart",
   "../vm/dart/regress_48764_il_test.dart",
   "../vm/dart/regress_48948_test.dart",
-  "../vm/dart/regress_49279_test.dart",
   "../vm/dart/regress_49372_test.dart",
   "../vm/dart/regress_49424_test.dart",
   "../vm/dart/regress_49672_test.dart",
