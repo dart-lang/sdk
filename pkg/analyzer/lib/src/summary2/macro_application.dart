@@ -267,6 +267,14 @@ class LibraryMacroApplier {
     );
   }
 
+  void disposeMacroApplications({
+    required LibraryBuilder libraryBuilder,
+  }) {
+    for (final application in libraryBuilder._applications) {
+      macroExecutor.disposeMacro(application.instance);
+    }
+  }
+
   Future<List<macro.MacroExecutionResult>?> executeDeclarationsPhase({
     required LibraryBuilder libraryBuilder,
     required ElementImpl? targetElement,

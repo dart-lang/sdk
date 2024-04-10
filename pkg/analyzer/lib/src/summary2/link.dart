@@ -257,6 +257,8 @@ class Linker {
         );
       },
     );
+
+    _disposeMacroApplications();
   }
 
   void _collectMixinSuperInvokedNames() {
@@ -320,6 +322,12 @@ class Linker {
   void _detachNodes() {
     for (var builder in builders.values) {
       detachElementsFromNodes(builder.element);
+    }
+  }
+
+  void _disposeMacroApplications() {
+    for (final library in builders.values) {
+      library.disposeMacroApplications();
     }
   }
 
