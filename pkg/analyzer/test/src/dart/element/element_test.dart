@@ -2216,6 +2216,67 @@ class TypeParameterTypeImplTest extends AbstractTypeSystemTest {
 
 @reflectiveTest
 class UniqueLocationTest extends PubPackageResolutionTest {
+  test_ambiguous_augmentation_class() async {
+    await resolveTestCode('''
+class A {}
+augment class A {} // 1
+augment class A {} // 2
+''');
+    expect(
+        findNode
+            .classDeclaration('augment class A {} // 1')
+            .declaredElement!
+            .location,
+        isNot(
+          findNode
+              .classDeclaration('augment class A {} // 2')
+              .declaredElement!
+              .location,
+        ));
+  }
+
+  test_ambiguous_augmentation_classMember() async {
+    await resolveTestCode('''
+class A {
+  void f() {}
+}
+augment class A {
+  augment void f() {} // 1
+  augment void f() {} // 2
+}
+''');
+    expect(
+        findNode
+            .methodDeclaration('augment void f() {} // 1')
+            .declaredElement!
+            .location,
+        isNot(
+          findNode
+              .methodDeclaration('augment void f() {} // 2')
+              .declaredElement!
+              .location,
+        ));
+  }
+
+  test_ambiguous_augmentation_topLevel() async {
+    await resolveTestCode('''
+void f() {}
+augment void f() {} // 1
+augment void f() {} // 2
+''');
+    expect(
+        findNode
+            .functionDeclaration('augment void f() {} // 1')
+            .declaredElement!
+            .location,
+        isNot(
+          findNode
+              .functionDeclaration('augment void f() {} // 2')
+              .declaredElement!
+              .location,
+        ));
+  }
+
   test_ambiguous_closure_in_executable() async {
     await resolveTestCode('''
 void f() => [() => 0, () => 1];
