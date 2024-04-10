@@ -12268,17 +12268,6 @@ bool Field::NeedsSetter() const {
     return true;
   }
 
-  // Setter is needed to make null assertions.
-  if (FLAG_null_assertions) {
-    Thread* thread = Thread::Current();
-    IsolateGroup* isolate_group = thread->isolate_group();
-    if (!isolate_group->null_safety() && isolate_group->asserts()) {
-      if (AbstractType::Handle(thread->zone(), type()).NeedsNullAssertion()) {
-        return true;
-      }
-    }
-  }
-
   // Otherwise, setters for static fields can be omitted
   // and fields can be accessed directly.
   return false;
@@ -21710,20 +21699,6 @@ AbstractTypePtr AbstractType::UnwrapFutureOr() const {
     type_arg = type_args.TypeAt(0);
   }
   return type_arg.ptr();
-}
-
-bool AbstractType::NeedsNullAssertion() const {
-  if (!IsNonNullable()) {
-    return false;
-  }
-  if (IsTypeParameter()) {
-    return AbstractType::Handle(TypeParameter::Cast(*this).bound())
-        .NeedsNullAssertion();
-  }
-  if (IsFutureOrType()) {
-    return AbstractType::Handle(UnwrapFutureOr()).NeedsNullAssertion();
-  }
-  return true;
 }
 
 bool AbstractType::IsSubtypeOf(

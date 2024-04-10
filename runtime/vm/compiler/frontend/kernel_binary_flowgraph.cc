@@ -838,7 +838,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(
   // The RawParameter variables should be set to null to avoid retaining more
   // objects than necessary during GC.
   const Fragment body =
-      ClearRawParameters(dart_function) + B->BuildNullAssertions() +
+      ClearRawParameters(dart_function) +
       InitSuspendableFunction(dart_function, emitted_value_type) +
       BuildFunctionBody(dart_function, first_parameter, is_constructor);
 

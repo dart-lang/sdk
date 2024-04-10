@@ -40,12 +40,6 @@ class _AssertionError extends Error implements AssertionError {
     _doThrowNew(assertionStart, assertionEnd, message);
   }
 
-  @pragma("vm:entry-point", "call")
-  @pragma('vm:never-inline')
-  static _throwNewNullAssertion(String name, int line, int column) {
-    _doThrowNewSource('$name != null', line, column, null);
-  }
-
   @pragma("vm:external-name", "AssertionError_throwNew")
   external static _doThrowNew(
       int assertionStart, int assertionEnd, Object? message);

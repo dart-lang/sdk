@@ -437,16 +437,6 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
                                Fragment* implicit_checks,
                                Fragment* implicit_redefinitions);
 
-  // Returns true if null assertion is needed for
-  // a parameter of given type.
-  bool NeedsNullAssertion(const AbstractType& type);
-
-  // Builds null assertion for the given parameter.
-  Fragment NullAssertion(LocalVariable* variable);
-
-  // Builds null assertions for all parameters (if needed).
-  Fragment BuildNullAssertions();
-
   // Builds flow graph for noSuchMethod forwarder.
   //
   // If throw_no_such_method_error is set to true, an
@@ -641,13 +631,6 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   // Returns the function _PrependTypeArguments from dart:_internal. If the
   // cached version is null, retrieves it and updates the cache.
   const Function& PrependTypeArgumentsFunction();
-
-  // Cached _AssertionError._throwNewNullAssertion.
-  Function& throw_new_null_assertion_;
-
-  // Returns the function _AssertionError._throwNewNullAssertion. If the
-  // cached version is null, retrieves it and updates the cache.
-  const Function& ThrowNewNullAssertionFunction();
 
   friend class BreakableBlock;
   friend class CatchBlock;
