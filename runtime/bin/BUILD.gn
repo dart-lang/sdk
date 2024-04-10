@@ -170,12 +170,16 @@ template("build_gen_snapshot") {
   if (defined(invoker.extra_deps)) {
     extra_deps += invoker.extra_deps
   }
-  executable(target_name) {
+
+  source_set(target_name + "_set") {
     configs += [
                  "..:dart_config",
                  "..:dart_precompiler_config",
                ] + extra_configs
-    deps = extra_deps
+
+    if (is_fuchsia) {
+      deps = [ "$fuchsia_sdk/pkg/fdio" ]
+    }
 
     defines = [ "EXCLUDE_CFE_AND_KERNEL_PLATFORM" ]
 
@@ -207,6 +211,15 @@ template("build_gen_snapshot") {
       "..",
       "//third_party",
     ]
+  }
+
+  executable(target_name) {
+    configs += [
+                 "..:dart_config",
+                 "..:dart_precompiler_config",
+               ] + extra_configs
+
+    deps = [ ":${target_name}_set" ] + extra_deps
 
     if (is_mac) {
       frameworks = [
@@ -719,7 +732,8 @@ template("dart_executable") {
   if (defined(invoker.target_type)) {
     target_type = invoker.target_type
   }
-  target(target_type, target_name) {
+
+  source_set(target_name + "_set") {
     configs += [
                  "..:dart_arch_config",
                  "..:dart_config",
@@ -730,29 +744,22 @@ template("dart_executable") {
     } else {
       configs += [ "..:dart_maybe_product_config" ]
     }
-
     deps = [
       ":crashpad",
       "//third_party/boringssl",
       "//third_party/zlib",
     ]
-    if (use_product_mode) {
-      deps += [ ":standalone_dart_io_product" ]
-    } else {
-      deps += [ ":standalone_dart_io" ]
+    if (is_fuchsia) {
+      deps += [ "$fuchsia_sdk/pkg/fdio" ]
     }
-    deps += extra_deps
-
     defines = extra_defines
     if (exclude_kernel_service) {
       defines += [ "EXCLUDE_CFE_AND_KERNEL_PLATFORM" ]
     }
-
     include_dirs = [
       "..",
       "//third_party",
     ]
-
     sources = [
                 "dart_embedder_api_impl.cc",
                 "error_exit.cc",
@@ -766,6 +773,26 @@ template("dart_executable") {
                 "vmservice_impl.cc",
                 "vmservice_impl.h",
               ] + extra_sources
+  }
+
+  target(target_type, target_name) {
+    configs += [
+                 "..:dart_arch_config",
+                 "..:dart_config",
+                 "..:dart_os_config",
+               ] + extra_configs
+    if (use_product_mode) {
+      configs += [ "..:dart_product_config" ]
+    } else {
+      configs += [ "..:dart_maybe_product_config" ]
+    }
+
+    deps = [ ":${target_name}_set" ] + extra_deps
+    if (use_product_mode) {
+      deps += [ ":standalone_dart_io_product" ]
+    } else {
+      deps += [ ":standalone_dart_io" ]
+    }
 
     configs += [ ":export_api_symbols" ]
 
