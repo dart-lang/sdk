@@ -11,13 +11,14 @@ import 'dart:io'
 import 'package:_fe_analyzer_shared/src/util/relativize.dart'
     show isWindows, relativizeUri;
 import 'package:front_end/src/api_prototype/compiler_options.dart'
-    show CompilerOptions;
+    show CompilerOptions, DiagnosticMessage;
+import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart';
 import 'package:front_end/src/api_prototype/kernel_generator.dart';
 import 'package:front_end/src/base/command_line_options.dart';
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
 import 'package:front_end/src/fasta/codes/fasta_codes.dart'
-    show LocatedMessage, codeInternalProblemVerificationError;
+    show codeInternalProblemVerificationError;
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 import 'package:front_end/src/fasta/get_dependencies.dart' show getDependencies;
 import 'package:front_end/src/fasta/incremental_compiler.dart'
@@ -30,7 +31,7 @@ import 'package:front_end/src/kernel_generator_impl.dart'
     show generateKernelInternal;
 import 'package:front_end/src/linux_and_intel_specific_perf.dart';
 import 'package:kernel/kernel.dart'
-    show CanonicalName, Component, Library, RecursiveVisitor, Source;
+    show Component, Library, RecursiveVisitor, Source;
 import 'package:kernel/src/types.dart' show Types;
 import 'package:kernel/target/targets.dart' show Target, TargetFlags, getTarget;
 import 'package:kernel/verifier.dart';
@@ -207,6 +208,12 @@ class BatchCompiler {
 
   bool hadVerifyError = false;
 
+  IncrementalCompiler? _incrementalCompiler;
+
+  List<DiagnosticMessage> _errors = [];
+
+  void Function(DiagnosticMessage)? _originalOnDiagnostic;
+
   BatchCompiler(this.lines);
 
   Future<void> run() async {
@@ -222,6 +229,7 @@ class BatchCompiler {
         stderr.writeln("Unhandled exception:\n  $e");
         stderr.writeln(trace);
         stdout.writeln(">>> TEST CRASH");
+        _incrementalCompiler = null;
       }
       await stdout.flush();
       stderr.writeln(">>> EOF STDERR");
@@ -246,43 +254,72 @@ class BatchCompiler {
         batchCompileImpl);
   }
 
-  Future<bool> batchCompileImpl(CompilerContext c) async {
-    ProcessedOptions options = c.options;
+  void _onDiagnostic(DiagnosticMessage message) {
+    _errors.add(message);
+    if (_originalOnDiagnostic != null) {
+      _originalOnDiagnostic!(message);
+    }
+  }
+
+  Future<bool> batchCompileImpl(CompilerContext context) async {
+    _errors.clear();
+    ProcessedOptions options = context.options;
+    bool createNewCompiler = false;
+    if (_incrementalCompiler == null ||
+        !_incrementalCompiler!.context.options.equivalent(options)) {
+      createNewCompiler = true;
+    }
+
     if (platformComponent == null ||
         platformUri != options.sdkSummary ||
         hadVerifyError) {
+      createNewCompiler = true;
       platformUri = options.sdkSummary;
       platformComponent = await options.loadSdkSummary(null);
       if (platformComponent == null) {
         throw "platformComponent is null";
       }
       hadVerifyError = false;
-    } else {
-      options.sdkSummaryComponent = platformComponent!;
     }
+
+    if (createNewCompiler) {
+      platformComponent!.adoptChildren();
+      _incrementalCompiler =
+          new IncrementalCompiler.fromComponent(context, platformComponent);
+    }
+
+    ProcessedOptions incrementalCompilerOptions =
+        _incrementalCompiler!.context.options;
+    if (!identical(incrementalCompilerOptions.inputs, options.inputs)) {
+      // Invalidating the packages uri causes it to recalculate which packages
+      // file to use which is what we want.
+      _incrementalCompiler!.invalidate(incrementalCompilerOptions.packagesUri);
+      incrementalCompilerOptions.inputs.clear();
+      incrementalCompilerOptions.inputs.addAll(options.inputs);
+    }
+
+    _originalOnDiagnostic = options.rawOptionsForTesting.onDiagnostic ??
+        options.defaultDiagnosticMessageHandler;
+    incrementalCompilerOptions.rawOptionsForTesting.onDiagnostic =
+        _onDiagnostic;
+
+    // This is a weird one, but apparently this is how it's done.
+    incrementalCompilerOptions.reportNullSafetyCompilationModeInfo();
+
     assert(options.omitPlatform,
         "Platform must be omitted for the batch compiler.");
     assert(!options.hasAdditionalDills,
         "Additional dills are not supported for the batch compiler.");
-    CompilerResult compilerResult = await generateKernelInternal();
-    await _emitComponent(c, compilerResult.component!,
+    IncrementalCompilerResult compilerResult =
+        await _incrementalCompiler!.computeDelta(fullComponent: true);
+    await _emitComponent(options, compilerResult.component,
         message: "Wrote component to ");
-    CanonicalName root = platformComponent!.root;
-    for (Library library in platformComponent!.libraries) {
-      library.parent = platformComponent;
-      CanonicalName? name = library.reference.canonicalName;
-      if (name != null && name.parent != root) {
-        root.adoptChild(name);
+    for (DiagnosticMessage error in _errors) {
+      if (error.codeName == codeInternalProblemVerificationError.name) {
+        hadVerifyError = true;
       }
     }
-    for (Object error in c.errors) {
-      if (error is LocatedMessage) {
-        if (error.messageObject.code == codeInternalProblemVerificationError) {
-          hadVerifyError = true;
-        }
-      }
-    }
-    return c.errors.isEmpty;
+    return _errors.isEmpty;
   }
 }
 
@@ -307,7 +344,7 @@ Future<void> outline(List<String> arguments, {Benchmarker? benchmarker}) async {
       CompilerResult compilerResult = await generateKernelInternal(
           buildSummary: true, benchmarker: benchmarker);
       Component component = compilerResult.component!;
-      await _emitComponent(c, component,
+      await _emitComponent(c.options, component,
           benchmarker: benchmarker, message: "Wrote outline to ");
     });
   });
@@ -323,7 +360,7 @@ Future<Uri> compile(List<String> arguments, {Benchmarker? benchmarker}) async {
       CompilerResult compilerResult =
           await generateKernelInternal(benchmarker: benchmarker);
       Component component = compilerResult.component!;
-      Uri uri = await _emitComponent(c, component,
+      Uri uri = await _emitComponent(c.options, component,
           benchmarker: benchmarker, message: "Wrote component to ");
       _benchmarkAstVisitor(component, benchmarker);
       return uri;
@@ -345,10 +382,10 @@ Future<Uri?> deps(List<String> arguments) async {
 }
 
 /// Writes the [component] to the URI specified in the compiler options.
-Future<Uri> _emitComponent(CompilerContext c, Component component,
+Future<Uri> _emitComponent(ProcessedOptions options, Component component,
     {Benchmarker? benchmarker, required String message}) async {
-  Uri uri = c.options.output!;
-  if (c.options.omitPlatform) {
+  Uri uri = options.output!;
+  if (options.omitPlatform) {
     benchmarker?.enterPhase(BenchmarkPhases.omitPlatform);
     component.computeCanonicalNames();
     Component userCode = new Component(
@@ -366,7 +403,7 @@ Future<Uri> _emitComponent(CompilerContext c, Component component,
   if (uri.isScheme("file")) {
     benchmarker?.enterPhase(BenchmarkPhases.writeComponent);
     await writeComponentToFile(component, uri);
-    c.options.ticker.logMs("${message}${uri.toFilePath()}");
+    options.ticker.logMs("${message}${uri.toFilePath()}");
   }
   return uri;
 }
