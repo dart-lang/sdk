@@ -7636,6 +7636,100 @@ class MacroExampleTest extends MacroElementsBaseTest {
   @override
   bool get keepLinkingLibraries => true;
 
+  test_autoToString() async {
+    _addExampleMacro('auto_to_string.dart');
+
+    final library = await buildLibrary(r'''
+import 'auto_to_string.dart';
+
+@AutoToString()
+class A {
+  final int foo;
+  final int bar;
+  A(this.foo, this.bar);
+}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withReferences = true
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  reference: self
+  imports
+    package:test/auto_to_string.dart
+  definingUnit
+    reference: self
+    classes
+      class A @53
+        reference: self::@class::A
+        augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+        fields
+          final foo @69
+            reference: self::@class::A::@field::foo
+            type: int
+          final bar @86
+            reference: self::@class::A::@field::bar
+            type: int
+        accessors
+          synthetic get foo @-1
+            reference: self::@class::A::@getter::foo
+            returnType: int
+          synthetic get bar @-1
+            reference: self::@class::A::@getter::bar
+            returnType: int
+        augmented
+          fields
+            self::@class::A::@field::bar
+            self::@class::A::@field::foo
+          accessors
+            self::@class::A::@getter::bar
+            self::@class::A::@getter::foo
+          methods
+            self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::toString
+  augmentationImports
+    package:test/test.macro.dart
+      reference: self::@augmentation::package:test/test.macro.dart
+      macroGeneratedCode
+---
+augment library 'package:test/test.dart';
+
+import 'dart:core' as prefix0;
+
+augment class A {
+  @prefix0.override
+  prefix0.String toString();
+  augment prefix0.String toString() {
+    // You can add breakpoints here!
+    return """
+A {
+  foo: ${this.foo}
+  bar: ${this.bar}
+}""";
+  }
+}
+---
+      imports
+        dart:core as prefix0 @65
+      definingUnit
+        reference: self::@augmentation::package:test/test.macro.dart
+        classes
+          augment class A @89
+            reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+            augmentationTarget: self::@class::A
+            methods
+              abstract toString @130
+                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@method::toString
+                returnType: String
+                augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::toString
+              augment toString @167
+                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::toString
+                returnType: String
+                augmentationTarget: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@method::toString
+''');
+  }
+
   test_jsonSerializable() async {
     _addExampleMacro('json_key.dart');
     _addExampleMacro('json_serializable.dart');

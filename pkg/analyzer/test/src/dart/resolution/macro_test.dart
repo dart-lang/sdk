@@ -1136,14 +1136,11 @@ class X {}
     var testFile = newFile('$testPackageLibPath/test.dart', r'''
 import 'auto_to_string.dart';
 
+@AutoToString()
 class User {
   final String name;
   final int age;
   User(this.name, this.age);
-
-  @override
-  @AutoToString()
-  String toString();
 }
 ''');
     await assertErrorsInFile2(testFile, []);

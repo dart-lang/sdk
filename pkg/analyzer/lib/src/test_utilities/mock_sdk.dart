@@ -694,6 +694,20 @@ class UnsupportedError {
 }
 
 class Uri {
+  factory Uri({
+    String? scheme,
+    String? userInfo,
+    String? host,
+    int? port,
+    String? path,
+    Iterable<String>? pathSegments,
+    String? query,
+    Map<String, dynamic /*String?|Iterable<String>*/ >? queryParameters,
+    String? fragment,
+  }) {
+    throw 0;
+  }
+
   static List<int> parseIPv6Address(String host, [int start = 0, int? end]) {
     throw 0;
   }
