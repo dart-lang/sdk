@@ -68,7 +68,9 @@ class _LegacyErasure extends ReplacementVisitor {
   }
 
   @override
-  DartType visitNeverType(NeverType node, int variance) => const NullType();
+  DartType visitNeverType(NeverType node, Variance variance) {
+    return const NullType();
+  }
 }
 
 /// Returns `true` if a member declared in [declaringClass] inherited or

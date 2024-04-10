@@ -2754,12 +2754,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     writeModifier(node.isCovariantByClass, 'covariant-by-class');
     writeAnnotationList(node.annotations, separateLines: false);
     if (node.variance != Variance.covariant) {
-      writeWord(const <String>[
-        "unrelated",
-        "covariant",
-        "contravariant",
-        "invariant"
-      ][node.variance]);
+      writeWord(node.variance.name);
     }
     writeWord(getTypeParameterName(node));
     writeSpaced('extends');
@@ -2773,12 +2768,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
   @override
   void visitStructuralParameter(StructuralParameter node) {
     if (node.variance != Variance.covariant) {
-      writeWord(const <String>[
-        "unrelated",
-        "covariant",
-        "contravariant",
-        "invariant"
-      ][node.variance]);
+      writeWord(node.variance.name);
     }
     writeWord(getStructuralParameterName(node));
     writeSpaced('extends');

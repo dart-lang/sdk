@@ -71,9 +71,6 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
   List<NominalVariableBuilder>? get typeVariables => _typeVariables;
 
   @override
-  int varianceAt(int index) => typeVariables![index].parameter.variance;
-
-  @override
   bool get fromDill => false;
 
   @override

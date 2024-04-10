@@ -24,8 +24,6 @@ abstract class TypeAliasBuilder implements TypeDeclarationBuilder {
 
   List<NominalVariableBuilder>? get typeVariables;
 
-  int varianceAt(int index);
-
   bool get fromDill => false;
 
   DartType buildThisType();

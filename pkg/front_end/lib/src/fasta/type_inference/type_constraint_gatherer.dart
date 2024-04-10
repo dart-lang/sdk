@@ -304,14 +304,15 @@ class TypeConstraintGatherer {
     if (matchingSupertypeOfSubtypeArguments == null) return false;
     for (int i = 0; i < supertype.classNode.typeParameters.length; i++) {
       // Generate constraints and subtype match with respect to variance.
-      int parameterVariance = supertype.classNode.typeParameters[i].variance;
-      if (parameterVariance == Variance.contravariant) {
+      shared.Variance parameterVariance =
+          supertype.classNode.typeParameters[i].variance;
+      if (parameterVariance == shared.Variance.contravariant) {
         if (!_isNullabilityObliviousSubtypeMatch(
             supertype.typeArguments[i], matchingSupertypeOfSubtypeArguments[i],
             treeNodeForTesting: treeNodeForTesting)) {
           return false;
         }
-      } else if (parameterVariance == Variance.invariant) {
+      } else if (parameterVariance == shared.Variance.invariant) {
         if (!_isNullabilityObliviousSubtypeMatch(supertype.typeArguments[i],
                 matchingSupertypeOfSubtypeArguments[i],
                 treeNodeForTesting: treeNodeForTesting) ||

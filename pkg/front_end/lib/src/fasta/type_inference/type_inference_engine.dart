@@ -39,12 +39,12 @@ import 'type_schema_environment.dart'
 /// Visitor to check whether a given type mentions any of a class's type
 /// parameters in a non-covariant fashion.
 class IncludesTypeParametersNonCovariantly implements DartTypeVisitor<bool> {
-  int _variance;
+  Variance _variance;
 
   final List<TypeParameter> _typeParametersToSearchFor;
 
   IncludesTypeParametersNonCovariantly(this._typeParametersToSearchFor,
-      {required int initialVariance})
+      {required Variance initialVariance})
       : _variance = initialVariance;
 
   @override
@@ -74,12 +74,12 @@ class IncludesTypeParametersNonCovariantly implements DartTypeVisitor<bool> {
   @override
   bool visitFunctionType(FunctionType node) {
     if (node.returnType.accept(this)) return true;
-    int oldVariance = _variance;
+    Variance oldVariance = _variance;
     _variance = Variance.invariant;
     for (StructuralParameter parameter in node.typeParameters) {
       if (parameter.bound.accept(this)) return true;
     }
-    _variance = Variance.combine(Variance.contravariant, oldVariance);
+    _variance = Variance.contravariant.combine(oldVariance);
     for (DartType parameter in node.positionalParameters) {
       if (parameter.accept(this)) return true;
     }
@@ -103,10 +103,10 @@ class IncludesTypeParametersNonCovariantly implements DartTypeVisitor<bool> {
 
   @override
   bool visitInterfaceType(InterfaceType node) {
-    int oldVariance = _variance;
+    Variance oldVariance = _variance;
     for (int i = 0; i < node.typeArguments.length; i++) {
-      _variance = Variance.combine(
-          node.classNode.typeParameters[i].variance, oldVariance);
+      _variance =
+          node.classNode.typeParameters[i].variance.combine(oldVariance);
       if (node.typeArguments[i].accept(this)) return true;
     }
     _variance = oldVariance;
@@ -125,7 +125,7 @@ class IncludesTypeParametersNonCovariantly implements DartTypeVisitor<bool> {
 
   @override
   bool visitTypeParameterType(TypeParameterType node) {
-    return !Variance.greaterThanOrEqual(_variance, node.parameter.variance) &&
+    return !_variance.greaterThanOrEqual(node.parameter.variance) &&
         _typeParametersToSearchFor.contains(node.parameter);
   }
 
@@ -1095,24 +1095,9 @@ class OperationsCfe
   }
 
   @override
-  shared.Variance getTypeParameterVariance(
+  Variance getTypeParameterVariance(
       TypeDeclaration typeDeclaration, int parameterIndex) {
-    TypeParameter typeParameter =
-        typeDeclaration.typeParameters[parameterIndex];
-    int variance = typeParameter.variance;
-    switch (variance) {
-      case Variance.covariant:
-        return shared.Variance.covariant;
-      case Variance.contravariant:
-        return shared.Variance.contravariant;
-      case Variance.invariant:
-        return shared.Variance.invariant;
-      case Variance.unrelated:
-        return shared.Variance.unrelated;
-      default:
-        throw new UnsupportedError("Unsupported variance value '${variance}' "
-            "of type parameter '${typeParameter}'.");
-    }
+    return typeDeclaration.typeParameters[parameterIndex].variance;
   }
 }
 

@@ -28,7 +28,7 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     hide MapPatternEntry, RecordPatternField;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
-    as shared;
+    as shared show RecordType;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
     hide RecordType;
 import 'package:_fe_analyzer_shared/src/type_inference/variable_bindings.dart';
@@ -3287,10 +3287,10 @@ class MiniAstOperations
   }
 
   @override
-  shared.Variance getTypeParameterVariance(
+  Variance getTypeParameterVariance(
       String typeDeclaration, int parameterIndex) {
     // TODO(cstefantsova): Support variance of type parameters in Mini AST.
-    return shared.Variance.covariant;
+    return Variance.covariant;
   }
 }
 

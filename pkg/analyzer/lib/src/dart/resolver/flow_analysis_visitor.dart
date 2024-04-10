@@ -22,8 +22,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart' show TypeSystemImpl;
-import 'package:analyzer/src/dart/resolver/variance.dart' as analyzer
-    show Variance;
 import 'package:analyzer/src/generated/variable_type_provider.dart';
 
 export 'package:_fe_analyzer_shared/src/type_inference/nullability_suffix.dart'
@@ -483,23 +481,11 @@ class TypeSystemOperations
   }
 
   @override
-  shared.Variance getTypeParameterVariance(
+  Variance getTypeParameterVariance(
       InterfaceElement typeDeclaration, int parameterIndex) {
-    var variance = (typeDeclaration.typeParameters[parameterIndex]
+    return (typeDeclaration.typeParameters[parameterIndex]
             as TypeParameterElementImpl)
         .variance;
-    switch (variance) {
-      case analyzer.Variance.covariant:
-        return shared.Variance.covariant;
-      case analyzer.Variance.contravariant:
-        return shared.Variance.contravariant;
-      case analyzer.Variance.invariant:
-        return shared.Variance.invariant;
-      case analyzer.Variance.unrelated:
-        return shared.Variance.unrelated;
-      default:
-        throw StateError('Unexpected Variance value: "$variance".');
-    }
   }
 
   @override

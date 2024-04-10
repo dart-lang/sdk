@@ -4,6 +4,8 @@
 
 import 'package:_fe_analyzer_shared/src/type_inference/type_constraint.dart'
     as shared;
+import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
+    as shared;
 
 import 'package:kernel/ast.dart';
 
@@ -248,7 +250,8 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
         inferredTypes[i] = _inferTypeParameterFromAll(
             previouslyInferredTypes?[i], constraint, extendsConstraint,
             isNonNullableByDefault: isNonNullableByDefault,
-            isContravariant: typeParam.variance == Variance.contravariant,
+            isContravariant:
+                typeParam.variance == shared.Variance.contravariant,
             isLegacyCovariant: typeParam.isLegacyCovariant,
             operations: operations);
       }

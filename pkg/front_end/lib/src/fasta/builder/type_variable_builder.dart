@@ -40,7 +40,7 @@ sealed class TypeVariableBuilderBase extends TypeDeclarationBuilderImpl
       {this.bound,
       this.defaultType,
       required this.kind,
-      int? variableVariance,
+      Variance? variableVariance,
       List<MetadataBuilder>? metadata})
       : super(metadata, 0, name, compilationUnit, charOffset);
 
@@ -66,9 +66,9 @@ sealed class TypeVariableBuilderBase extends TypeDeclarationBuilderImpl
   @override
   TypeVariableBuilderBase get origin => actualOrigin ?? this;
 
-  int get variance;
+  Variance get variance;
 
-  void set variance(int value);
+  void set variance(Variance value);
 
   bool get hasUnsetParameterBound;
 
@@ -192,12 +192,14 @@ class NominalVariableBuilder extends TypeVariableBuilderBase {
       String name, Builder? compilationUnit, int charOffset, Uri? fileUri,
       {TypeBuilder? bound,
       required TypeVariableKind kind,
-      int? variableVariance,
+      Variance? variableVariance,
       List<MetadataBuilder>? metadata})
       : actualParameter =
             new TypeParameter(name == noNameSentinel ? null : name, null)
               ..fileOffset = charOffset
               ..variance = variableVariance,
+        _varianceCalculationValue = new VarianceCalculationValue.fromVariance(
+            variableVariance ?? Variance.covariant),
         super(name, compilationUnit, charOffset, fileUri,
             bound: bound,
             kind: kind,
@@ -219,6 +221,8 @@ class NominalVariableBuilder extends TypeVariableBuilderBase {
       : actualParameter = parameter,
         // TODO(johnniwinther): Do we need to support synthesized type
         //  parameters from kernel?
+        _varianceCalculationValue =
+            new VarianceCalculationValue.fromVariance(parameter.variance),
         super(parameter.name ?? "", null, parameter.fileOffset, null,
             kind: TypeVariableKind.fromKernel,
             bound: loader?.computeTypeBuilder(parameter.bound),
@@ -238,11 +242,33 @@ class NominalVariableBuilder extends TypeVariableBuilderBase {
     augmentation.actualOrigin = this;
   }
 
-  @override
-  int get variance => parameter.variance;
+  VarianceCalculationValue? _varianceCalculationValue;
+
+  VarianceCalculationValue? get varianceCalculationValue {
+    return _varianceCalculationValue;
+  }
+
+  void set varianceCalculationValue(VarianceCalculationValue? value) {
+    _varianceCalculationValue = value;
+    if (value != null && value.isCalculated) {
+      parameter.variance = value.variance!;
+    } else {
+      parameter.variance = null;
+    }
+  }
 
   @override
-  void set variance(int value) {
+  Variance get variance {
+    assert(_varianceCalculationValue?.variance == parameter.variance);
+    VarianceCalculationValue varianceCalculationValue =
+        _varianceCalculationValue!;
+    return varianceCalculationValue.variance!;
+  }
+
+  @override
+  void set variance(Variance value) {
+    _varianceCalculationValue =
+        new VarianceCalculationValue.fromVariance(value);
     parameter.variance = value;
   }
 
@@ -554,7 +580,7 @@ class StructuralVariableBuilder extends TypeVariableBuilderBase {
   StructuralVariableBuilder(
       String name, Builder? compilationUnit, int charOffset, Uri? fileUri,
       {TypeBuilder? bound,
-      int? variableVariance,
+      Variance? variableVariance,
       List<MetadataBuilder>? metadata})
       : actualParameter =
             new StructuralParameter(name == noNameSentinel ? null : name, null)
@@ -580,10 +606,10 @@ class StructuralVariableBuilder extends TypeVariableBuilderBase {
   String get debugName => "StructuralVariableBuilder";
 
   @override
-  int get variance => parameter.variance;
+  Variance get variance => parameter.variance;
 
   @override
-  void set variance(int value) {
+  void set variance(Variance value) {
     parameter.variance = value;
   }
 

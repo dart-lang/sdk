@@ -23,6 +23,7 @@ import 'package:kernel/reference_from_index.dart'
 import 'package:kernel/src/bounds_checks.dart'
     show
         TypeArgumentIssue,
+        VarianceCalculationValue,
         findTypeArgumentIssues,
         findTypeArgumentIssuesForInvocation,
         getGenericTypeName,
@@ -77,8 +78,7 @@ import '../kernel/type_algorithms.dart'
         findUnaliasedGenericFunctionTypes,
         getInboundReferenceIssuesInType,
         getNonSimplicityIssuesForDeclaration,
-        getNonSimplicityIssuesForTypeVariables,
-        pendingVariance;
+        getNonSimplicityIssuesForTypeVariables;
 import '../kernel/utils.dart'
     show
         compareProcedures,
@@ -3505,7 +3505,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int charOffset) {
     if (typeVariables != null) {
       for (NominalVariableBuilder typeVariable in typeVariables) {
-        typeVariable.variance = pendingVariance;
+        typeVariable.varianceCalculationValue =
+            VarianceCalculationValue.pending;
       }
     }
     Typedef? referenceFrom = indexedLibrary?.lookupTypedef(name);
@@ -4279,7 +4280,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           for (NominalVariableBuilder typeParameter
               in declaration.typeVariables!) {
             typeParameter.variance = computeTypeVariableBuilderVariance(
-                typeParameter, declaration.type, this);
+                    typeParameter, declaration.type, this)
+                .variance!;
             ++count;
           }
         }

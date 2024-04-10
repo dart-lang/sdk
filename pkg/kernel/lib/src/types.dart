@@ -396,7 +396,7 @@ class Types with StandardBounds {
     }
     IsSubtypeOf result = const IsSubtypeOf.always();
     for (int i = 0; i < s.length; i++) {
-      int variance = p[i].variance;
+      Variance variance = p[i].variance;
       if (variance == Variance.contravariant) {
         result = result.and(performNullabilityAwareSubtypeCheck(t[i], s[i]));
         if (!result.isSubtypeWhenIgnoringNullabilities()) {

@@ -15,19 +15,19 @@ class _ConstCanonicalTypeVisitor extends ReplacementVisitor {
       {required this.isNonNullableByDefault});
 
   @override
-  DartType? visitDynamicType(DynamicType node, int variance) {
+  DartType? visitDynamicType(DynamicType node, Variance variance) {
     // CONST_CANONICAL_TYPE(T) = T if T is dynamic, void, Null
     return null;
   }
 
   @override
-  DartType? visitVoidType(VoidType node, int variance) {
+  DartType? visitVoidType(VoidType node, Variance variance) {
     // CONST_CANONICAL_TYPE(T) = T if T is dynamic, void, Null
     return null;
   }
 
   @override
-  DartType? visitNullType(NullType node, int variance) {
+  DartType? visitNullType(NullType node, Variance variance) {
     // CONST_CANONICAL_TYPE(T) = T if T is dynamic, void, Null
     return null;
   }
