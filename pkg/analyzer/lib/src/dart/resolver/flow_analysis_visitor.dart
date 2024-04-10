@@ -18,9 +18,12 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart' show TypeSystemImpl;
+import 'package:analyzer/src/dart/resolver/variance.dart' as analyzer
+    show Variance;
 import 'package:analyzer/src/generated/variable_type_provider.dart';
 
 export 'package:_fe_analyzer_shared/src/type_inference/nullability_suffix.dart'
@@ -381,7 +384,7 @@ class FlowAnalysisHelper {
 class TypeSystemOperations
     implements
         TypeAnalyzerOperations<PromotableElement, DartType, DartType,
-            TypeParameterElement> {
+            TypeParameterElement, InterfaceType, InterfaceElement> {
   final bool strictCasts;
   final TypeSystemImpl typeSystem;
 
@@ -476,6 +479,26 @@ class TypeSystemOperations
       return TypeDeclarationKind.extensionTypeDeclaration;
     } else {
       return null;
+    }
+  }
+
+  @override
+  shared.Variance getTypeParameterVariance(
+      InterfaceElement typeDeclaration, int parameterIndex) {
+    var variance = (typeDeclaration.typeParameters[parameterIndex]
+            as TypeParameterElementImpl)
+        .variance;
+    switch (variance) {
+      case analyzer.Variance.covariant:
+        return shared.Variance.covariant;
+      case analyzer.Variance.contravariant:
+        return shared.Variance.contravariant;
+      case analyzer.Variance.invariant:
+        return shared.Variance.invariant;
+      case analyzer.Variance.unrelated:
+        return shared.Variance.unrelated;
+      default:
+        throw StateError('Unexpected Variance value: "$variance".');
     }
   }
 
@@ -696,6 +719,27 @@ class TypeSystemOperations
     var streamElement = typeSystem.typeProvider.streamElement;
     var listType = type.asInstanceOf(streamElement);
     return listType?.typeArguments[0];
+  }
+
+  @override
+  TypeDeclarationMatchResult? matchTypeDeclarationType(DartType type) {
+    if (isInterfaceType(type)) {
+      InterfaceType interfaceType = type as InterfaceType;
+      return TypeDeclarationMatchResult(
+          typeDeclarationKind: TypeDeclarationKind.interfaceDeclaration,
+          typeDeclarationType: interfaceType,
+          typeDeclaration: interfaceType.element,
+          typeArguments: interfaceType.typeArguments);
+    } else if (isExtensionType(type)) {
+      InterfaceType interfaceType = type as InterfaceType;
+      return TypeDeclarationMatchResult(
+          typeDeclarationKind: TypeDeclarationKind.extensionTypeDeclaration,
+          typeDeclarationType: interfaceType,
+          typeDeclaration: interfaceType.element,
+          typeArguments: interfaceType.typeArguments);
+    } else {
+      return null;
+    }
   }
 
   @override

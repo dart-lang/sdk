@@ -35,11 +35,21 @@ import 'type_schema_elimination.dart' show greatestClosure, leastClosure;
 typedef GeneratedTypeConstraint = shared.GeneratedTypeConstraint<DartType,
     DartType, StructuralParameter, VariableDeclaration>;
 
-typedef MergedTypeConstraint = shared.MergedTypeConstraint<DartType, DartType,
-    StructuralParameter, VariableDeclaration>;
+typedef MergedTypeConstraint = shared.MergedTypeConstraint<
+    DartType,
+    DartType,
+    StructuralParameter,
+    VariableDeclaration,
+    TypeDeclarationType,
+    TypeDeclaration>;
 
 typedef UnknownTypeConstraintOrigin = shared.UnknownTypeConstraintOrigin<
-    DartType, DartType, VariableDeclaration, StructuralParameter>;
+    DartType,
+    DartType,
+    VariableDeclaration,
+    StructuralParameter,
+    TypeDeclarationType,
+    TypeDeclaration>;
 
 /// Given a [FunctionType], gets the type of the named parameter with the given
 /// [name], or `dynamic` if there is no parameter with the given name.

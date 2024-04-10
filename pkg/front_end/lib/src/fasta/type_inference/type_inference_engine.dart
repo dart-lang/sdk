@@ -8,7 +8,7 @@ import 'package:_fe_analyzer_shared/src/type_inference/nullability_suffix.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
     as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
-    hide RecordType;
+    hide RecordType, Variance;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClassHierarchyBase;
@@ -471,7 +471,7 @@ class FlowAnalysisResult {
 class OperationsCfe
     implements
         TypeAnalyzerOperations<VariableDeclaration, DartType, DartType,
-            StructuralParameter> {
+            StructuralParameter, TypeDeclarationType, TypeDeclaration> {
   final TypeEnvironment typeEnvironment;
 
   /// The semantic value of  the omitted nullability for the library.
@@ -1067,6 +1067,52 @@ class OperationsCfe
   InterfaceType futureType(DartType argumentType) {
     return new InterfaceType(typeEnvironment.coreTypes.futureClass,
         omittedNullabilityValue, <DartType>[argumentType]);
+  }
+
+  @override
+  TypeDeclarationMatchResult? matchTypeDeclarationType(DartType type) {
+    if (type is TypeDeclarationType) {
+      switch (type) {
+        case InterfaceType(:List<DartType> typeArguments, :Class classNode):
+          return new TypeDeclarationMatchResult(
+              typeDeclarationKind: TypeDeclarationKind.interfaceDeclaration,
+              typeDeclaration: classNode,
+              typeDeclarationType: type,
+              typeArguments: typeArguments);
+        case ExtensionType(
+            :List<DartType> typeArguments,
+            :ExtensionTypeDeclaration extensionTypeDeclaration
+          ):
+          return new TypeDeclarationMatchResult(
+              typeDeclarationKind: TypeDeclarationKind.extensionTypeDeclaration,
+              typeDeclaration: extensionTypeDeclaration,
+              typeDeclarationType: type,
+              typeArguments: typeArguments);
+      }
+    } else {
+      return null;
+    }
+  }
+
+  @override
+  shared.Variance getTypeParameterVariance(
+      TypeDeclaration typeDeclaration, int parameterIndex) {
+    TypeParameter typeParameter =
+        typeDeclaration.typeParameters[parameterIndex];
+    int variance = typeParameter.variance;
+    switch (variance) {
+      case Variance.covariant:
+        return shared.Variance.covariant;
+      case Variance.contravariant:
+        return shared.Variance.contravariant;
+      case Variance.invariant:
+        return shared.Variance.invariant;
+      case Variance.unrelated:
+        return shared.Variance.unrelated;
+      default:
+        throw new UnsupportedError("Unsupported variance value '${variance}' "
+            "of type parameter '${typeParameter}'.");
+    }
   }
 }
 

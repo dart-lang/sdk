@@ -32,13 +32,66 @@ enum TypeDeclarationKind {
   extensionTypeDeclaration,
 }
 
+/// The variance of a type parameter `X` in a type `T`.
+enum Variance {
+  /// Used when `X` does not occur free in `T`.
+  unrelated,
+
+  /// Used when `X` occurs free in `T`, and `U <: V` implies `[U/X]T <: [V/X]T`.
+  covariant,
+
+  /// Used when `X` occurs free in `T`, and `U <: V` implies `[V/X]T <: [U/X]T`.
+  contravariant,
+
+  /// Used when there exists a pair `U` and `V` such that `U <: V`, but
+  /// `[U/X]T` and `[V/X]T` are incomparable.
+  invariant;
+}
+
+/// Describes constituents of a type derived from a declaration.
+///
+/// If a type is derived from a declaration, as described in the documentation
+/// for [TypeDeclarationKind], objects of [TypeDeclarationMatchResult] describe
+/// its components that can be used for the further analysis of the type in the
+/// algorithms related to type inference.
+class TypeDeclarationMatchResult<TypeDeclarationType extends Object,
+    TypeDeclaration extends Object, Type extends Object> {
+  /// The kind of type declaration the matched type is of.
+  final TypeDeclarationKind typeDeclarationKind;
+
+  /// A more specific subtype of [Type] describing the matched type.
+  ///
+  /// This is client-specific is needed to avoid unnecessary downcasts.
+  final TypeDeclarationType typeDeclarationType;
+
+  /// The type declaration that the matched type is derived from.
+  ///
+  /// The type declaration is defined in the documentation for
+  /// [TypeDeclarationKind] and is a client-specific object representing a
+  /// class, an enum, a mixin, or an extension type.
+  final TypeDeclaration typeDeclaration;
+
+  /// Type arguments instantiating [typeDeclaration] to the matched type.
+  ///
+  /// If [typeDeclaration] is not generic, [typeArguments] is an empty list.
+  final List<Type> typeArguments;
+
+  TypeDeclarationMatchResult(
+      {required this.typeDeclarationKind,
+      required this.typeDeclarationType,
+      required this.typeDeclaration,
+      required this.typeArguments});
+}
+
 /// Callback API used by the shared type analyzer to query and manipulate the
 /// client's representation of variables and types.
 abstract interface class TypeAnalyzerOperations<
         Variable extends Object,
         Type extends Object,
         TypeSchema extends Object,
-        InferableParameter extends Object>
+        InferableParameter extends Object,
+        TypeDeclarationType extends Object,
+        TypeDeclaration extends Object>
     implements FlowAnalysisOperations<Variable, Type> {
   /// Returns the type `double`.
   Type get doubleType;
@@ -96,6 +149,11 @@ abstract interface class TypeAnalyzerOperations<
   /// extension type declarations, `T` and `S` are types.
   TypeDeclarationKind? getTypeDeclarationKind(Type type);
 
+  /// Returns variance for of the type parameter at index [parameterIndex] in
+  /// [typeDeclaration].
+  Variance getTypeParameterVariance(
+      TypeDeclaration typeDeclaration, int parameterIndex);
+
   /// If at top level [typeSchema] describes a type that was introduced by a
   /// class, mixin, enum, or extension type, returns a [TypeDeclarationKind]
   /// indicating what kind of thing it was introduced by. Otherwise, returns
@@ -134,6 +192,14 @@ abstract interface class TypeAnalyzerOperations<
 
   /// Returns `true` if [type] is `F`, `F?`, or `F*` for some function type `F`.
   bool isFunctionType(Type type);
+
+  /// If [type] was introduced by a class, mixin, enum, or extension type,
+  /// returns an object of [TypeDeclarationMatchResult] describing the
+  /// constituents of the matched type.
+  ///
+  /// If [type] isn't introduced by a class, mixin, enum, or extension type,
+  /// returns null.
+  TypeDeclarationMatchResult? matchTypeDeclarationType(Type type);
 
   /// If [type] takes the form `FutureOr<T>`, `FutureOr<T>?`, or `FutureOr<T>*`
   /// for some `T`, returns the type `T`. Otherwise returns `null`.

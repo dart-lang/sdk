@@ -35,8 +35,13 @@ class GeneratedTypeConstraint<Type extends Object, TypeSchema extends Object,
 }
 
 /// A constraint on a type parameter that we're inferring.
-class MergedTypeConstraint<Type extends Object, TypeSchema extends Object,
-    TypeParameter extends Object, Variable extends Object> {
+class MergedTypeConstraint<
+    Type extends Object,
+    TypeSchema extends Object,
+    TypeParameter extends Object,
+    Variable extends Object,
+    TypeDeclarationType extends Object,
+    TypeDeclaration extends Object> {
   /// The lower bound of the type being constrained.  This bound must be a
   /// subtype of the type being constrained. In other words, lowerBound <: T.
   ///
@@ -83,7 +88,8 @@ class MergedTypeConstraint<Type extends Object, TypeSchema extends Object,
   TypeSchema upper;
 
   /// Where this constraint comes from, used for error messages.
-  TypeConstraintOrigin<Type, TypeSchema, Variable, TypeParameter> origin;
+  TypeConstraintOrigin<Type, TypeSchema, Variable, TypeParameter,
+      TypeDeclarationType, TypeDeclaration> origin;
 
   MergedTypeConstraint(
       {required this.lower, required this.upper, required this.origin});
@@ -92,7 +98,8 @@ class MergedTypeConstraint<Type extends Object, TypeSchema extends Object,
       {required String typeParameterName,
       required Type boundType,
       required Type extendsType,
-      required TypeAnalyzerOperations<Variable, Type, TypeSchema, TypeParameter>
+      required TypeAnalyzerOperations<Variable, Type, TypeSchema, TypeParameter,
+              TypeDeclarationType, TypeDeclaration>
           typeAnalyzerOperations})
       : this(
             origin: new TypeConstraintFromExtendsClause(
@@ -103,12 +110,14 @@ class MergedTypeConstraint<Type extends Object, TypeSchema extends Object,
             upper: typeAnalyzerOperations.typeToSchema(extendsType),
             lower: typeAnalyzerOperations.unknownType);
 
-  MergedTypeConstraint<Type, TypeSchema, TypeParameter, Variable> clone() {
+  MergedTypeConstraint<Type, TypeSchema, TypeParameter, Variable,
+      TypeDeclarationType, TypeDeclaration> clone() {
     return new MergedTypeConstraint(lower: lower, upper: upper, origin: origin);
   }
 
   bool isEmpty(
-      TypeAnalyzerOperations<Variable, Type, TypeSchema, TypeParameter>
+      TypeAnalyzerOperations<Variable, Type, TypeSchema, TypeParameter,
+              TypeDeclarationType, TypeDeclaration>
           typeAnalyzerOperations) {
     return typeAnalyzerOperations.isUnknownType(lower) &&
         typeAnalyzerOperations.isUnknownType(upper);
@@ -116,7 +125,8 @@ class MergedTypeConstraint<Type extends Object, TypeSchema extends Object,
 
   bool isSatisfiedBy(
       Type type,
-      TypeAnalyzerOperations<Variable, Type, TypeSchema, TypeParameter>
+      TypeAnalyzerOperations<Variable, Type, TypeSchema, TypeParameter,
+              TypeDeclarationType, TypeDeclaration>
           typeAnalyzerOperations) {
     return typeAnalyzerOperations.typeIsSubtypeOfTypeSchema(type, upper) &&
         typeAnalyzerOperations.typeSchemaIsSubtypeOfType(lower, type);
@@ -125,7 +135,8 @@ class MergedTypeConstraint<Type extends Object, TypeSchema extends Object,
   void mergeIn(
       GeneratedTypeConstraint<Type, TypeSchema, TypeParameter, Variable>
           generatedTypeConstraint,
-      TypeAnalyzerOperations<Variable, Type, TypeSchema, TypeParameter>
+      TypeAnalyzerOperations<Variable, Type, TypeSchema, TypeParameter,
+              TypeDeclarationType, TypeDeclaration>
           typeAnalyzerOperations) {
     if (generatedTypeConstraint.isUpper) {
       mergeInTypeSchemaUpper(
@@ -138,14 +149,16 @@ class MergedTypeConstraint<Type extends Object, TypeSchema extends Object,
 
   void mergeInTypeSchemaUpper(
       TypeSchema constraint,
-      TypeAnalyzerOperations<Variable, Type, TypeSchema, TypeParameter>
+      TypeAnalyzerOperations<Variable, Type, TypeSchema, TypeParameter,
+              TypeDeclarationType, TypeDeclaration>
           typeAnalyzerOperations) {
     upper = typeAnalyzerOperations.typeSchemaGlb(upper, constraint);
   }
 
   void mergeInTypeSchemaLower(
       TypeSchema constraint,
-      TypeAnalyzerOperations<Variable, Type, TypeSchema, TypeParameter>
+      TypeAnalyzerOperations<Variable, Type, TypeSchema, TypeParameter,
+              TypeDeclarationType, TypeDeclaration>
           typeAnalyzerOperations) {
     lower = typeAnalyzerOperations.typeSchemaLub(lower, constraint);
   }
@@ -163,11 +176,14 @@ abstract class TypeConstraintOrigin<
     Type extends Object,
     TypeSchema extends Object,
     Variable extends Object,
-    TypeParameter extends Object> {
+    TypeParameter extends Object,
+    TypeDeclarationType extends Object,
+    TypeDeclaration extends Object> {
   const TypeConstraintOrigin();
 
   List<String> formatError(
-      TypeAnalyzerOperations<Variable, Type, TypeSchema, TypeParameter>
+      TypeAnalyzerOperations<Variable, Type, TypeSchema, TypeParameter,
+              TypeDeclarationType, TypeDeclaration>
           typeAnalyzerOperations);
 }
 
@@ -175,23 +191,31 @@ class UnknownTypeConstraintOrigin<
         Type extends Object,
         TypeSchema extends Object,
         Variable extends Object,
-        InferableParameter extends Object>
-    extends TypeConstraintOrigin<Type, TypeSchema, Variable,
-        InferableParameter> {
+        InferableParameter extends Object,
+        TypeDeclarationType extends Object,
+        TypeDeclaration extends Object>
+    extends TypeConstraintOrigin<Type, TypeSchema, Variable, InferableParameter,
+        TypeDeclarationType, TypeDeclaration> {
   const UnknownTypeConstraintOrigin();
 
   @override
   List<String> formatError(
-      TypeAnalyzerOperations<Variable, Type, TypeSchema, InferableParameter>
+      TypeAnalyzerOperations<Variable, Type, TypeSchema, InferableParameter,
+              TypeDeclarationType, TypeDeclaration>
           typeAnalyzerOperations) {
     return <String>[];
   }
 }
 
-class TypeConstraintFromArgument<Type extends Object, TypeSchema extends Object,
-        Variable extends Object, InferableParameter extends Object>
-    extends TypeConstraintOrigin<Type, TypeSchema, Variable,
-        InferableParameter> {
+class TypeConstraintFromArgument<
+        Type extends Object,
+        TypeSchema extends Object,
+        Variable extends Object,
+        InferableParameter extends Object,
+        TypeDeclarationType extends Object,
+        TypeDeclaration extends Object>
+    extends TypeConstraintOrigin<Type, TypeSchema, Variable, InferableParameter,
+        TypeDeclarationType, TypeDeclaration> {
   final Type argumentType;
   final Type parameterType;
   final String parameterName;
@@ -207,7 +231,8 @@ class TypeConstraintFromArgument<Type extends Object, TypeSchema extends Object,
 
   @override
   List<String> formatError(
-      TypeAnalyzerOperations<Variable, Type, TypeSchema, InferableParameter>
+      TypeAnalyzerOperations<Variable, Type, TypeSchema, InferableParameter,
+              TypeDeclarationType, TypeDeclaration>
           typeAnalyzerOperations) {
     // TODO(cstefantsova): we should highlight the span. That would be more
     // useful.  However in summary code it doesn't look like the AST node with
@@ -238,9 +263,11 @@ class TypeConstraintFromExtendsClause<
         Type extends Object,
         TypeSchema extends Object,
         Variable extends Object,
-        InferableParameter extends Object>
-    extends TypeConstraintOrigin<Type, TypeSchema, Variable,
-        InferableParameter> {
+        InferableParameter extends Object,
+        TypeDeclarationType extends Object,
+        TypeDeclaration extends Object>
+    extends TypeConstraintOrigin<Type, TypeSchema, Variable, InferableParameter,
+        TypeDeclarationType, TypeDeclaration> {
   /// Name of the type parameter with the extends clause.
   final String typeParameterName;
 
@@ -263,7 +290,8 @@ class TypeConstraintFromExtendsClause<
 
   @override
   List<String> formatError(
-      TypeAnalyzerOperations<Variable, Type, TypeSchema, InferableParameter>
+      TypeAnalyzerOperations<Variable, Type, TypeSchema, InferableParameter,
+              TypeDeclarationType, TypeDeclaration>
           typeAnalyzerOperations) {
     String boundStr = typeAnalyzerOperations.getDisplayString(boundType);
     String extendsStr = typeAnalyzerOperations.getDisplayString(extendsType);
@@ -278,9 +306,11 @@ class TypeConstraintFromFunctionContext<
         Type extends Object,
         TypeSchema extends Object,
         Variable extends Object,
-        InferableParameter extends Object>
-    extends TypeConstraintOrigin<Type, TypeSchema, Variable,
-        InferableParameter> {
+        InferableParameter extends Object,
+        TypeDeclarationType extends Object,
+        TypeDeclaration extends Object>
+    extends TypeConstraintOrigin<Type, TypeSchema, Variable, InferableParameter,
+        TypeDeclarationType, TypeDeclaration> {
   final Type contextType;
   final Type functionType;
 
@@ -289,7 +319,8 @@ class TypeConstraintFromFunctionContext<
 
   @override
   List<String> formatError(
-      TypeAnalyzerOperations<Variable, Type, TypeSchema, InferableParameter>
+      TypeAnalyzerOperations<Variable, Type, TypeSchema, InferableParameter,
+              TypeDeclarationType, TypeDeclaration>
           typeAnalyzerOperations) {
     return [
       "Function type",
@@ -304,9 +335,11 @@ class TypeConstraintFromReturnType<
         Type extends Object,
         TypeSchema extends Object,
         Variable extends Object,
-        InferableParameter extends Object>
-    extends TypeConstraintOrigin<Type, TypeSchema, Variable,
-        InferableParameter> {
+        InferableParameter extends Object,
+        TypeDeclarationType extends Object,
+        TypeDeclaration extends Object>
+    extends TypeConstraintOrigin<Type, TypeSchema, Variable, InferableParameter,
+        TypeDeclarationType, TypeDeclaration> {
   final Type contextType;
   final Type declaredType;
 
@@ -315,7 +348,8 @@ class TypeConstraintFromReturnType<
 
   @override
   List<String> formatError(
-      TypeAnalyzerOperations<Variable, Type, TypeSchema, InferableParameter>
+      TypeAnalyzerOperations<Variable, Type, TypeSchema, InferableParameter,
+              TypeDeclarationType, TypeDeclaration>
           typeAnalyzerOperations) {
     return [
       "Return type",
