@@ -182,7 +182,7 @@ vars = {
   "sync_http_rev": "b849559fedc7c5d19a68950f255b6edde6eec6ef",
   "tar_rev": "6150a0c88d9bd17e3e961593a9a7a9564866e8b4",
   "term_glyph_rev": "2ad48ce95b6e6d001251d55b15719ee113caf802",
-  "test_rev": "14d820f079b55428b472bda36ceb17af87588229",
+  "test_rev": "c7a76b08c11afb27fdb61d65b5fc757e4274928c",
   "test_descriptor_rev": "b61cfb4479fafd78eb9d365cc2f7cdb43c2aed34",
   "test_process_rev": "94ee46d76f89ebb7d73cef3e23bab288b1e43b50",
   "test_reflective_loader_rev": "d7167a2375d8a0c02c12b960c059a115a777f238",
