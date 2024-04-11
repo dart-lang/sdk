@@ -75,7 +75,27 @@ void f() {
     );
   }
 
-  Future<void> test_field() async {
+  Future<void> test_field_decalaration_getterSetter() async {
+    final content = '''
+class MyClass {
+  String field^ = '';
+}
+
+void f() {
+  MyClass()./*[0*/field/*0]*/ = '';
+  print(MyClass()./*[1*/field/*1]*/);
+  
+  var myInstance = MyClass();
+  myInstance./*[2*/field/*2]*/ = '';
+  print(myInstance./*[3*/field/*3]*/);
+  myInstance./*[4*/field/*4]*/ += myInstance./*[5*/field/*5]*/;
+}
+''';
+
+    await _checkRanges(content);
+  }
+
+  Future<void> test_field_decalaration_initializingFormal() async {
     // References on the field should find both the initializing formal and the
     // reference to the getter.
     final content = '''
@@ -130,6 +150,48 @@ foo^() {
     final content = '''
 foo^<T>() {
   [!foo!]();
+}
+''';
+
+    await _checkRanges(content);
+  }
+
+  Future<void> test_getter_decalaration_getterSetter() async {
+    final content = '''
+class MyClass {
+  String get field^ => '';
+  set field(String _) {}
+}
+
+void f() {
+  MyClass()./*[0*/field/*0]*/ = '';
+  print(MyClass()./*[1*/field/*1]*/);
+  
+  var myInstance = MyClass();
+  myInstance./*[2*/field/*2]*/ = '';
+  print(myInstance./*[3*/field/*3]*/);
+  myInstance./*[4*/field/*4]*/ += myInstance./*[5*/field/*5]*/;
+}
+''';
+
+    await _checkRanges(content);
+  }
+
+  Future<void> test_getter_invocation_getterSetter() async {
+    final content = '''
+class MyClass {
+  String get field => '';
+  set field(String _) {}
+}
+
+void f() {
+  MyClass()./*[0*/field/*0]*/ = '';
+  print(MyClass()./*[1*/fi^eld/*1]*/);
+  
+  var myInstance = MyClass();
+  myInstance./*[2*/field/*2]*/ = '';
+  print(myInstance./*[3*/field/*3]*/);
+  myInstance./*[4*/field/*4]*/ += myInstance./*[5*/field/*5]*/;
 }
 ''';
 
@@ -223,6 +285,48 @@ int f(Object o) {
       return [!i!];
   }
   return 0;
+}
+''';
+
+    await _checkRanges(content);
+  }
+
+  Future<void> test_setter_decalaration_getterSetter() async {
+    final content = '''
+class MyClass {
+  String get field => '';
+  set fie^ld(String _) {}
+}
+
+void f() {
+  MyClass()./*[0*/field/*0]*/ = '';
+  print(MyClass()./*[1*/field/*1]*/);
+  
+  var myInstance = MyClass();
+  myInstance./*[2*/field/*2]*/ = '';
+  print(myInstance./*[3*/field/*3]*/);
+  myInstance./*[4*/field/*4]*/ += myInstance./*[5*/field/*5]*/;
+}
+''';
+
+    await _checkRanges(content);
+  }
+
+  Future<void> test_setter_invocation_getterSetter() async {
+    final content = '''
+class MyClass {
+  String get field => '';
+  set field(String _) {}
+}
+
+void f() {
+  MyClass()./*[0*/fie^ld/*0]*/ = '';
+  print(MyClass()./*[1*/field/*1]*/);
+  
+  var myInstance = MyClass();
+  myInstance./*[2*/field/*2]*/ = '';
+  print(myInstance./*[3*/field/*3]*/);
+  myInstance./*[4*/field/*4]*/ += myInstance./*[5*/field/*5]*/;
 }
 ''';
 

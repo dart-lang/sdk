@@ -17,7 +17,6 @@ import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -783,37 +782,6 @@ final class CorrectionUtils {
   String invertCondition(Expression expression) =>
       _invertCondition0(expression)._source;
 
-  InsertionLocation prepareEnumNewConstructorLocation(
-    EnumDeclaration enumDeclaration,
-  ) {
-    var targetMember = enumDeclaration.members
-        .where((e) => e is FieldDeclaration || e is ConstructorDeclaration)
-        .lastOrNull;
-    if (targetMember != null) {
-      return InsertionLocation(
-        prefix: endOfLine + endOfLine + oneIndent,
-        offset: targetMember.end,
-        suffix: '',
-      );
-    }
-
-    var semicolon = enumDeclaration.semicolon;
-    if (semicolon != null) {
-      return InsertionLocation(
-        prefix: endOfLine + endOfLine + oneIndent,
-        offset: semicolon.end,
-        suffix: '',
-      );
-    }
-
-    var lastConstant = enumDeclaration.constants.last;
-    return InsertionLocation(
-      prefix: ';$endOfLine$endOfLine$oneIndent',
-      offset: lastConstant.end,
-      suffix: '',
-    );
-  }
-
   InsertionLocation? prepareNewClassMemberLocation(
       CompilationUnitMember declaration,
       bool Function(ClassMember existingMember) shouldSkip) {
@@ -847,21 +815,6 @@ final class CorrectionUtils {
       offset: _getLeftBracket(declaration)!.end,
       suffix: suffix,
     );
-  }
-
-  InsertionLocation? prepareNewConstructorLocation(
-      AnalysisSession session, ClassDeclaration classDeclaration, File file) {
-    final sortConstructorsFirst = session.analysisContext
-        .getAnalysisOptionsForFile(file)
-        .codeStyleOptions
-        .sortConstructorsFirst;
-    // If sort_constructors_first is enabled, don't skip over the fields.
-    final shouldSkip = sortConstructorsFirst
-        ? (member) => member is ConstructorDeclaration
-        : (member) =>
-            member is FieldDeclaration || member is ConstructorDeclaration;
-
-    return prepareNewClassMemberLocation(classDeclaration, shouldSkip);
   }
 
   /// Returns the source with indentation changed from [oldIndent] to

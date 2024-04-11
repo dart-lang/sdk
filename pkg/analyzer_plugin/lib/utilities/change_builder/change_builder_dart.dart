@@ -411,8 +411,11 @@ abstract class DartFileEditBuilder implements FileEditBuilder {
   /// The constructor is inserted after the last existing field or constructor,
   /// or if the `sort_constructors_first` lint rule is enabled, after the last
   /// existing constructor.
+  ///
+  /// Throws an exception if [container] is not a [CompilationUnitMember] which
+  /// can have constructor declarations.
   void insertConstructor(
-    CompilationUnitMember compilationUnitMember,
+    CompilationUnitMember container,
     void Function(DartEditBuilder builder) buildEdit,
   );
 

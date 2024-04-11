@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart' hide Element;
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
@@ -13,6 +13,7 @@ import 'package:analysis_server/src/services/search/search_engine.dart'
     show SearchMatch;
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
@@ -69,7 +70,12 @@ class ReferencesHandler
       OperationPerformanceImpl performance) async {
     var node = NodeLocator(offset).searchWithin(result.unit);
     node = _getReferenceTargetNode(node);
-    var element = server.getElementOfNode(node);
+
+    var element = switch (server.getElementOfNode(node)) {
+      PropertyAccessorElement(:var variable2?) => variable2,
+      (var element) => element,
+    };
+
     if (element == null) {
       return success(null);
     }

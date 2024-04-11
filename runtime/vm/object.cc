@@ -9466,7 +9466,6 @@ bool Function::AreValidArguments(const ArgumentsDescriptor& args_desc,
   }
   // Verify that all argument names are valid parameter names.
   Thread* thread = Thread::Current();
-  auto isolate_group = thread->isolate_group();
   Zone* zone = thread->zone();
   String& argument_name = String::Handle(zone);
   String& parameter_name = String::Handle(zone);
@@ -9496,33 +9495,31 @@ bool Function::AreValidArguments(const ArgumentsDescriptor& args_desc,
       return false;
     }
   }
-  if (isolate_group->use_strict_null_safety_checks()) {
-    // Verify that all required named parameters are filled.
-    for (intptr_t j = num_parameters - NumOptionalNamedParameters();
-         j < num_parameters; j++) {
-      if (IsRequiredAt(j)) {
-        parameter_name = ParameterNameAt(j);
-        ASSERT(parameter_name.IsSymbol());
-        bool found = false;
-        for (intptr_t i = 0; i < num_named_arguments; i++) {
-          argument_name = args_desc.NameAt(i);
-          ASSERT(argument_name.IsSymbol());
-          if (argument_name.Equals(parameter_name)) {
-            found = true;
-            break;
-          }
+  // Verify that all required named parameters are filled.
+  for (intptr_t j = num_parameters - NumOptionalNamedParameters();
+       j < num_parameters; j++) {
+    if (IsRequiredAt(j)) {
+      parameter_name = ParameterNameAt(j);
+      ASSERT(parameter_name.IsSymbol());
+      bool found = false;
+      for (intptr_t i = 0; i < num_named_arguments; i++) {
+        argument_name = args_desc.NameAt(i);
+        ASSERT(argument_name.IsSymbol());
+        if (argument_name.Equals(parameter_name)) {
+          found = true;
+          break;
         }
-        if (!found) {
-          if (error_message != nullptr) {
-            const intptr_t kMessageBufferSize = 64;
-            char message_buffer[kMessageBufferSize];
-            Utils::SNPrint(message_buffer, kMessageBufferSize,
-                           "missing required named parameter '%s'",
-                           parameter_name.ToCString());
-            *error_message = String::New(message_buffer);
-          }
-          return false;
+      }
+      if (!found) {
+        if (error_message != nullptr) {
+          const intptr_t kMessageBufferSize = 64;
+          char message_buffer[kMessageBufferSize];
+          Utils::SNPrint(message_buffer, kMessageBufferSize,
+                         "missing required named parameter '%s'",
+                         parameter_name.ToCString());
+          *error_message = String::New(message_buffer);
         }
+        return false;
       }
     }
   }
@@ -10243,7 +10240,6 @@ bool FunctionType::IsSubtypeOf(
   }
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  auto isolate_group = thread->isolate_group();
   FunctionTypeMapping scope(zone, &function_type_equivalence, *this, other);
 
   // Check the type parameters and bounds of generic functions.
@@ -10309,32 +10305,30 @@ bool FunctionType::IsSubtypeOf(
       return false;
     }
   }
-  if (isolate_group->use_strict_null_safety_checks()) {
-    // Check that for each required named parameter in this function, there's a
-    // corresponding required named parameter in the other function.
-    String& param_name = other_param_name;
-    for (intptr_t j = num_params - num_opt_named_params; j < num_params; j++) {
-      if (IsRequiredAt(j)) {
-        param_name = ParameterNameAt(j);
-        ASSERT(param_name.IsSymbol());
-        bool found = false;
-        for (intptr_t i = other_num_fixed_params; i < other_num_params; i++) {
-          ASSERT(String::Handle(zone, other.ParameterNameAt(i)).IsSymbol());
-          if (other.ParameterNameAt(i) == param_name.ptr()) {
-            found = true;
-            if (!other.IsRequiredAt(i)) {
-              TRACE_TYPE_CHECKS_VERBOSE(
-                  "   - result: false (mismatch in required named "
-                  "parameters)\n");
-              return false;
-            }
+  // Check that for each required named parameter in this function, there's a
+  // corresponding required named parameter in the other function.
+  String& param_name = other_param_name;
+  for (intptr_t j = num_params - num_opt_named_params; j < num_params; j++) {
+    if (IsRequiredAt(j)) {
+      param_name = ParameterNameAt(j);
+      ASSERT(param_name.IsSymbol());
+      bool found = false;
+      for (intptr_t i = other_num_fixed_params; i < other_num_params; i++) {
+        ASSERT(String::Handle(zone, other.ParameterNameAt(i)).IsSymbol());
+        if (other.ParameterNameAt(i) == param_name.ptr()) {
+          found = true;
+          if (!other.IsRequiredAt(i)) {
+            TRACE_TYPE_CHECKS_VERBOSE(
+                "   - result: false (mismatch in required named "
+                "parameters)\n");
+            return false;
           }
         }
-        if (!found) {
-          TRACE_TYPE_CHECKS_VERBOSE(
-              "   - result: false (required named parameter not found)\n");
-          return false;
-        }
+      }
+      if (!found) {
+        TRACE_TYPE_CHECKS_VERBOSE(
+            "   - result: false (required named parameter not found)\n");
+        return false;
       }
     }
   }
@@ -12266,17 +12260,6 @@ bool Field::NeedsSetter() const {
   // Instance non-final fields always need a setter.
   if (!is_static()) {
     return true;
-  }
-
-  // Setter is needed to make null assertions.
-  if (FLAG_null_assertions) {
-    Thread* thread = Thread::Current();
-    IsolateGroup* isolate_group = thread->isolate_group();
-    if (!isolate_group->null_safety() && isolate_group->asserts()) {
-      if (AbstractType::Handle(thread->zone(), type()).NeedsNullAssertion()) {
-        return true;
-      }
-    }
   }
 
   // Otherwise, setters for static fields can be omitted
@@ -20517,7 +20500,7 @@ void Instance::CanonicalizeFieldsLocked(Thread* thread) const {
     // Iterate over all fields, canonicalize numbers and strings, expect all
     // other instances to be canonical otherwise report error (return false).
     Zone* zone = thread->zone();
-    Instance& obj = Instance::Handle(zone);
+    Object& obj = Object::Handle(zone);
     const intptr_t instance_size = SizeFromClass();
     ASSERT(instance_size != 0);
     const auto unboxed_fields_bitmap =
@@ -20527,9 +20510,13 @@ void Instance::CanonicalizeFieldsLocked(Thread* thread) const {
       if (unboxed_fields_bitmap.Get(offset / kCompressedWordSize)) {
         continue;
       }
-      obj ^= this->FieldAddrAtOffset(offset)->Decompress(untag()->heap_base());
-      obj = obj.CanonicalizeLocked(thread);
-      this->SetFieldAtOffset(offset, obj);
+      obj = this->FieldAddrAtOffset(offset)->Decompress(untag()->heap_base());
+      if (obj.IsInstance()) {
+        obj = Instance::Cast(obj).CanonicalizeLocked(thread);
+        this->SetFieldAtOffset(offset, obj);
+      } else {
+        ASSERT(obj.IsNull() || obj.IsSentinel());
+      }
     }
   } else {
 #if defined(DEBUG) && !defined(DART_COMPRESSED_POINTERS)
@@ -20736,10 +20723,6 @@ bool Instance::IsAssignableTo(
     const TypeArguments& other_instantiator_type_arguments,
     const TypeArguments& other_function_type_arguments) const {
   ASSERT(!other.IsDynamicType());
-  // In weak mode type casts, whether in legacy or opted-in libraries, the null
-  // instance is detected and handled in inlined code and therefore cannot be
-  // encountered here as a Dart null receiver.
-  ASSERT(IsolateGroup::Current()->use_strict_null_safety_checks() || !IsNull());
   // In strong mode, compute NNBD_SUBTYPE(runtimeType, other).
   // In weak mode, compute LEGACY_SUBTYPE(runtimeType, other).
   return RuntimeTypeIsSubtypeOf(other, other_instantiator_type_arguments,
@@ -20781,13 +20764,6 @@ bool Instance::NullIsInstanceOf(
 // Must be kept in sync with GenerateNullIsAssignableToType in
 // stub_code_compiler.cc if any changes are made.
 bool Instance::NullIsAssignableTo(const AbstractType& other) {
-  Thread* thread = Thread::Current();
-  auto isolate_group = thread->isolate_group();
-
-  // In weak mode, Null is a bottom type (according to LEGACY_SUBTYPE).
-  if (!isolate_group->use_strict_null_safety_checks()) {
-    return true;
-  }
   // "Left Null" rule: null is assignable when destination type is either
   // legacy or nullable. Otherwise it is not assignable or we cannot tell
   // without instantiating type parameter.
@@ -20795,8 +20771,7 @@ bool Instance::NullIsAssignableTo(const AbstractType& other) {
     return true;
   }
   if (other.IsFutureOrType()) {
-    return NullIsAssignableTo(
-        AbstractType::Handle(thread->zone(), other.UnwrapFutureOr()));
+    return NullIsAssignableTo(AbstractType::Handle(other.UnwrapFutureOr()));
   }
   // Since the TAVs are not available, for non-nullable type parameters
   // this returns a conservative approximation of "not assignable" .
@@ -20829,11 +20804,6 @@ bool Instance::RuntimeTypeIsSubtypeOf(
     return true;
   }
   Thread* thread = Thread::Current();
-  auto isolate_group = thread->isolate_group();
-  // In weak testing mode, Null type is a subtype of any type.
-  if (IsNull() && !isolate_group->use_strict_null_safety_checks()) {
-    return true;
-  }
   Zone* zone = thread->zone();
   const Class& cls = Class::Handle(zone, clazz());
   if (cls.IsClosureClass()) {
@@ -20928,7 +20898,6 @@ bool Instance::RuntimeTypeIsSubtypeOf(
     }
   }
   if (IsNull()) {
-    ASSERT(isolate_group->use_strict_null_safety_checks());
     if (instantiated_other.IsNullType()) {
       return true;
     }
@@ -21335,8 +21304,7 @@ bool AbstractType::IsNullabilityEquivalent(Thread* thread,
   Nullability this_type_nullability = nullability();
   Nullability other_type_nullability = other_type.nullability();
   if (kind == TypeEquality::kInSubtypeTest) {
-    if (thread->isolate_group()->use_strict_null_safety_checks() &&
-        this_type_nullability == Nullability::kNullable &&
+    if (this_type_nullability == Nullability::kNullable &&
         other_type_nullability == Nullability::kNonNullable) {
       return false;
     }
@@ -21557,10 +21525,7 @@ bool AbstractType::IsTopTypeForSubtyping() const {
     return true;
   }
   if (cid == kInstanceCid) {  // Object type.
-    // NNBD weak mode uses LEGACY_SUBTYPE for assignability / 'as' tests,
-    // and non-nullable Object is a top type according to LEGACY_SUBTYPE.
-    return !IsNonNullable() ||
-           !IsolateGroup::Current()->use_strict_null_safety_checks();
+    return !IsNonNullable();
   }
   if (cid == kFutureOrCid) {
     // FutureOr<T> where T is a top type behaves as a top type.
@@ -21708,20 +21673,6 @@ AbstractTypePtr AbstractType::UnwrapFutureOr() const {
   return type_arg.ptr();
 }
 
-bool AbstractType::NeedsNullAssertion() const {
-  if (!IsNonNullable()) {
-    return false;
-  }
-  if (IsTypeParameter()) {
-    return AbstractType::Handle(TypeParameter::Cast(*this).bound())
-        .NeedsNullAssertion();
-  }
-  if (IsFutureOrType()) {
-    return AbstractType::Handle(UnwrapFutureOr()).NeedsNullAssertion();
-  }
-  return true;
-}
-
 bool AbstractType::IsSubtypeOf(
     const AbstractType& other,
     Heap::Space space,
@@ -21763,7 +21714,6 @@ bool AbstractType::IsSubtypeOf(
     return result;
   }
   Thread* thread = Thread::Current();
-  auto isolate_group = thread->isolate_group();
   Zone* zone = thread->zone();
   // Type parameters cannot be handled by Class::IsSubtypeOf().
   // When comparing two uninstantiated function types, one returning type
@@ -21815,16 +21765,14 @@ bool AbstractType::IsSubtypeOf(
     // Any type that can be the type of a closure is a subtype of Function or
     // non-nullable Object.
     if (other.IsObjectType() || other.IsDartFunctionType()) {
-      const bool result = !isolate_group->use_strict_null_safety_checks() ||
-                          !IsNullable() || !other.IsNonNullable();
+      const bool result = !IsNullable() || !other.IsNonNullable();
       TRACE_TYPE_CHECKS_VERBOSE("   - result: %s (function vs non-function)\n",
                                 (result ? "true" : "false"));
       return result;
     }
     if (other.IsFunctionType()) {
       // Check for two function types.
-      if (isolate_group->use_strict_null_safety_checks() && IsNullable() &&
-          other.IsNonNullable()) {
+      if (IsNullable() && other.IsNonNullable()) {
         TRACE_TYPE_CHECKS_VERBOSE(
             "   - result: false (function nullability)\n");
         return false;
@@ -21854,16 +21802,14 @@ bool AbstractType::IsSubtypeOf(
   // Record types cannot be handled by Class::IsSubtypeOf().
   if (IsRecordType()) {
     if (other.IsObjectType() || other.IsDartRecordType()) {
-      const bool result = !isolate_group->use_strict_null_safety_checks() ||
-                          !IsNullable() || !other.IsNonNullable();
+      const bool result = !IsNullable() || !other.IsNonNullable();
       TRACE_TYPE_CHECKS_VERBOSE("   - result: %s (record vs non-record)\n",
                                 (result ? "true" : "false"));
       return result;
     }
     if (other.IsRecordType()) {
       // Check for two record types.
-      if (isolate_group->use_strict_null_safety_checks() && IsNullable() &&
-          other.IsNonNullable()) {
+      if (IsNullable() && other.IsNonNullable()) {
         TRACE_TYPE_CHECKS_VERBOSE("   - result: false (record nullability)\n");
         return false;
       }
@@ -25219,6 +25165,7 @@ ArrayPtr Array::MakeFixedLength(const GrowableObjectArray& growable_array,
 }
 
 void Array::CanonicalizeFieldsLocked(Thread* thread) const {
+  ASSERT(IsImmutable());
   intptr_t len = Length();
   if (len > 0) {
     Zone* zone = thread->zone();
@@ -25477,9 +25424,8 @@ void LinkedHashBase::CanonicalizeFieldsLocked(Thread* thread) const {
   data_array ^= data_array.CanonicalizeLocked(thread);
   set_data(data_array);
 
-  // The index should not be set yet. It is populated lazily on first read.
-  const auto& index_td = TypedData::Handle(zone, index());
-  ASSERT(index_td.IsNull());
+  // Ignoring index. It will be initially null, created on first use, and
+  // possibly non-null here if we are rehashing.
 }
 
 ConstMapPtr ConstMap::NewDefault(Heap::Space space) {

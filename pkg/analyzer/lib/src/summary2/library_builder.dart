@@ -411,6 +411,17 @@ class LibraryBuilder with MacroApplicationsContainer {
     _declaredReferences[name] = reference;
   }
 
+  void disposeMacroApplications() {
+    final macroApplier = linker.macroApplier;
+    if (macroApplier == null) {
+      return;
+    }
+
+    macroApplier.disposeMacroApplications(
+      libraryBuilder: this,
+    );
+  }
+
   /// Completes with `true` if a macro application was run in this library.
   ///
   /// Completes with `false` if there are no macro applications to run, either

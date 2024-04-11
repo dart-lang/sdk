@@ -7,7 +7,7 @@ import os
 import sys
 
 def main(args):
-    for file in os.listdir(args[0]):
+    for file in sorted(os.listdir(args[0])):
         if file.endswith('.cpp') or file.endswith('.h'):
             print(file)
 

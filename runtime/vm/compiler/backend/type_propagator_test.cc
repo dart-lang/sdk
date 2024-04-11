@@ -634,11 +634,10 @@ ISOLATE_UNIT_TEST_CASE(TypePropagator_RedefineCanBeSentinelWithCannotBe) {
   {
     BlockBuilder builder(H.flow_graph(), b3);
     v7 = builder.AddDefinition(new RedefinitionInstr(new Value(v3)));
-    CompileType int_type = CompileType::FromAbstractType(
-        Type::Handle(Type::IntType()),
-        /*can_be_null=*/
-        !IsolateGroup::Current()->use_strict_null_safety_checks(),
-        /*can_be_sentinel=*/false);
+    CompileType int_type =
+        CompileType::FromAbstractType(Type::Handle(Type::IntType()),
+                                      /*can_be_null=*/true,
+                                      /*can_be_sentinel=*/false);
     v7->AsRedefinition()->set_constrained_type(new CompileType(int_type));
     builder.AddInstruction(new GotoInstr(b4, S.GetNextDeoptId()));
   }

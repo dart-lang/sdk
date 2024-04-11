@@ -108,11 +108,8 @@ constexpr bool FLAG_support_il_printer = false;
   R(dump_symbol_stats, false, bool, false, "Dump symbol table statistics")     \
   P(enable_asserts, bool, false, "Enable assert statements.")                  \
   P(inline_alloc, bool, true, "Whether to use inline allocation fast paths.")  \
-  R(null_assertions, false, bool, false,                                       \
-    "Enable null assertions for parameters.")                                  \
-  R(strict_null_safety_checks, false, bool, false,                             \
-    "Enable strict type checks for non-nullable types and required "           \
-    "parameters.")                                                             \
+  R(null_assertions, false, bool, false, "Obsolete, ignored.")                 \
+  R(strict_null_safety_checks, false, bool, false, "Obsolete, ignored.")       \
   P(enable_mirrors, bool, true,                                                \
     "Disable to make importing dart:mirrors an error.")                        \
   P(enable_ffi, bool, true, "Disable to make importing dart:ffi an error.")    \

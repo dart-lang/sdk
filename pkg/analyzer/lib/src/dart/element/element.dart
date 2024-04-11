@@ -2321,7 +2321,15 @@ abstract class ElementImpl implements Element {
 
   /// Return an identifier that uniquely identifies this element among the
   /// children of this element's parent.
-  String get identifier => name!;
+  String get identifier {
+    var identifier = name!;
+
+    if (_includeNameOffsetInIdentifier) {
+      identifier += "@$nameOffset";
+    }
+
+    return considerCanonicalizeString(identifier);
+  }
 
   bool get isNonFunctionTypeAliasesEnabled {
     return library!.featureSet.isEnabled(Feature.nonfunction_type_aliases);
@@ -2416,6 +2424,16 @@ abstract class ElementImpl implements Element {
   @override
   Source? get source {
     return enclosingElement?.source;
+  }
+
+  /// Whether to include the [nameOffset] in [identifier] to disambiguiate
+  /// elements that might otherwise have the same identifier.
+  bool get _includeNameOffsetInIdentifier {
+    var element = this;
+    if (element is AugmentableElement) {
+      return element.isAugmentation;
+    }
+    return false;
   }
 
   @override
@@ -3199,16 +3217,6 @@ class FunctionElementImpl extends ExecutableElementImpl
   ExecutableElement get declaration => this;
 
   @override
-  String get identifier {
-    String identifier = super.identifier;
-    Element? enclosing = enclosingElement;
-    if (enclosing is ExecutableElement || enclosing is VariableElement) {
-      identifier += "@$nameOffset";
-    }
-    return considerCanonicalizeString(identifier);
-  }
-
-  @override
   bool get isDartCoreIdentical {
     return isStatic && name == 'identical' && library.isDartCore;
   }
@@ -3220,6 +3228,13 @@ class FunctionElementImpl extends ExecutableElementImpl
 
   @override
   ElementKind get kind => ElementKind.FUNCTION;
+
+  @override
+  bool get _includeNameOffsetInIdentifier {
+    return super._includeNameOffsetInIdentifier ||
+        enclosingElement is ExecutableElement ||
+        enclosingElement is VariableElement;
+  }
 
   @override
   T? accept<T>(ElementVisitor<T> visitor) => visitor.visitFunctionElement(this);
@@ -6760,6 +6775,9 @@ class TypeAliasElementImpl extends _ExistingElementImpl
   set aliasedType(DartType rawType) {
     _aliasedType = rawType;
   }
+
+  /// The aliased type, might be `null` if not yet linked.
+  DartType? get aliasedTypeRaw => _aliasedType;
 
   @override
   String get displayName => name;

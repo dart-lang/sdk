@@ -316,7 +316,6 @@ class AugmentationCodeLensTest extends AbstractAugmentationCodeLensTest {
   @override
   Uri get targetUri => mainFileAugmentationUri;
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/55408')
   test_available_class_augmentationOf_augmentationOf_declarationInAugmentationFile() async {
     setLibraryContent(r'');
     setAugmentationContent(r'''
@@ -393,7 +392,6 @@ class AugmentedCodeLensTest extends AbstractAugmentationCodeLensTest {
   @override
   Uri get targetUri => mainFileUri;
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/55408')
   test_available_class_augmentationOf_augmentationOf_declarationInAugmentationFile() async {
     setLibraryContent(r'');
     setAugmentationContent(r'''
@@ -411,7 +409,6 @@ augment class /*[1*/A/*1]*/ {}
     );
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/55408')
   test_available_class_augmentationOf_augmentationOf_declarationInLibraryFile() async {
     setLibraryContent(r'''
 class A {}

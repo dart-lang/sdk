@@ -9234,10 +9234,6 @@ class AbstractType : public Instance {
   // Returns unmodified type if this type is not a 'FutureOr' type.
   AbstractTypePtr UnwrapFutureOr() const;
 
-  // Returns true if parameter of this type might need a
-  // null assertion (if null assertions are enabled).
-  bool NeedsNullAssertion() const;
-
   // Returns true if catching this type will catch all exceptions.
   // Exception objects are guaranteed to be non-nullable, so
   // non-nullable Object is also a catch-all type.
