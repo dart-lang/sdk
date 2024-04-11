@@ -44,14 +44,16 @@ class DateTime {
       {bool isUtc = false})
       : this._withValue(microsecondsSinceEpoch, isUtc: isUtc);
 
+  static const _sentinelMs = -_maxMillisecondsSinceEpoch - 1;
+
   @patch
   DateTime._internal(int year, int month, int day, int hour, int minute,
       int second, int millisecond, int microsecond, bool isUtc)
       : this.isUtc = checkNotNullable(isUtc, "isUtc"),
         this._value = _brokenDownDateToValue(year, month, day, hour, minute,
                 second, millisecond, microsecond, isUtc) ??
-            -1 {
-    if (_value == -1) throw new ArgumentError();
+            _sentinelMs {
+    if (_value == _sentinelMs) throw new ArgumentError();
   }
 
   static int _validateMilliseconds(int millisecondsSinceEpoch) =>
