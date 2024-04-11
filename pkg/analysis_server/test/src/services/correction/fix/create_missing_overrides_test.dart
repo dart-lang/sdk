@@ -355,83 +355,6 @@ class B implements A {
 ''');
   }
 
-  Future<void> test_method() async {
-    await resolveTestCode('''
-abstract class A {
-  void m1();
-  int m2();
-  String m3(int p1, double p2, Map<int, List<String>> p3);
-  String m4(p1, p2);
-  String m5(p1, [int p2 = 2, int p3, p4 = 4]);
-  String m6(p1, {int p2 = 2, int p3, p4 = 4});
-}
-
-class B extends A {
-}
-''');
-    var expectedCode = '''
-abstract class A {
-  void m1();
-  int m2();
-  String m3(int p1, double p2, Map<int, List<String>> p3);
-  String m4(p1, p2);
-  String m5(p1, [int p2 = 2, int p3, p4 = 4]);
-  String m6(p1, {int p2 = 2, int p3, p4 = 4});
-}
-
-class B extends A {
-  @override
-  void m1() {
-    // TODO: implement m1
-  }
-
-  @override
-  int m2() {
-    // TODO: implement m2
-    throw UnimplementedError();
-  }
-
-  @override
-  String m3(int p1, double p2, Map<int, List<String>> p3) {
-    // TODO: implement m3
-    throw UnimplementedError();
-  }
-
-  @override
-  String m4(p1, p2) {
-    // TODO: implement m4
-    throw UnimplementedError();
-  }
-
-  @override
-  String m5(p1, [int p2 = 2, int p3, p4 = 4]) {
-    // TODO: implement m5
-    throw UnimplementedError();
-  }
-
-  @override
-  String m6(p1, {int p2 = 2, int p3, p4 = 4}) {
-    // TODO: implement m6
-    throw UnimplementedError();
-  }
-}
-''';
-    await assertHasFix(expectedCode);
-    {
-      // end position should be on "m1", not on "m2", "m3", etc.
-      var endPosition = change.selection!;
-      expect(endPosition.file, testFile.path);
-      var endOffset = endPosition.offset;
-      var endString = expectedCode.substring(endOffset, endOffset + 25);
-      expect(endString, contains('m1'));
-      expect(endString, isNot(contains('m2')));
-      expect(endString, isNot(contains('m3')));
-      expect(endString, isNot(contains('m4')));
-      expect(endString, isNot(contains('m5')));
-      expect(endString, isNot(contains('m6')));
-    }
-  }
-
   Future<void> test_method_emptyClassBody() async {
     await resolveTestCode('''
 abstract class A {
@@ -593,6 +516,48 @@ class X implements B<bool> {
 ''');
   }
 
+  Future<void> test_method_multiple() async {
+    await resolveTestCode('''
+abstract class A {
+  void m1();
+  int m2();
+}
+
+class B extends A {
+}
+''');
+    var expectedCode = '''
+abstract class A {
+  void m1();
+  int m2();
+}
+
+class B extends A {
+  @override
+  void m1() {
+    // TODO: implement m1
+  }
+
+  @override
+  int m2() {
+    // TODO: implement m2
+    throw UnimplementedError();
+  }
+}
+''';
+    await assertHasFix(expectedCode);
+
+    // The selection should be on "m1", not on "m2".
+    var selection = change.selection!;
+    expect(selection.file, testFile.path);
+    expect(
+      expectedCode.substring(selection.offset),
+      startsWith('''
+@override
+  void m1'''),
+    );
+  }
+
   Future<void> test_method_namedParameter() async {
     await resolveTestCode('''
 abstract class A {
@@ -620,6 +585,35 @@ class B extends A {
     expect(change.linkedEditGroups, hasLength(1));
   }
 
+  Future<void> test_method_namedParameters() async {
+    await resolveTestCode('''
+abstract class A {
+  String m(p1, {int p2 = 2, int p3, p4 = 4});
+}
+
+class B extends A {
+}
+''');
+    var expectedCode = '''
+abstract class A {
+  String m(p1, {int p2 = 2, int p3, p4 = 4});
+}
+
+class B extends A {
+  @override
+  String m(p1, {int p2 = 2, int p3, p4 = 4}) {
+    // TODO: implement m
+    throw UnimplementedError();
+  }
+}
+''';
+    await assertHasFix(expectedCode);
+
+    var selection = change.selection!;
+    expect(selection.file, testFile.path);
+    expect(expectedCode.substring(selection.offset), startsWith('throw'));
+  }
+
   Future<void> test_method_notEmptyClassBody() async {
     await resolveTestCode('''
 abstract class A {
@@ -644,6 +638,35 @@ class B extends A {
   }
 }
 ''');
+  }
+
+  Future<void> test_method_optionalParameters() async {
+    await resolveTestCode('''
+abstract class A {
+  String m(p1, [int p2 = 2, int p3, p4 = 4]);
+}
+
+class B extends A {
+}
+''');
+    var expectedCode = '''
+abstract class A {
+  String m(p1, [int p2 = 2, int p3, p4 = 4]);
+}
+
+class B extends A {
+  @override
+  String m(p1, [int p2 = 2, int p3, p4 = 4]) {
+    // TODO: implement m
+    throw UnimplementedError();
+  }
+}
+''';
+    await assertHasFix(expectedCode);
+
+    var selection = change.selection!;
+    expect(selection.file, testFile.path);
+    expect(expectedCode.substring(selection.offset), startsWith('throw'));
   }
 
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/43667')

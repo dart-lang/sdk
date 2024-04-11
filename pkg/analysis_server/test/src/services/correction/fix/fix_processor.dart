@@ -318,7 +318,7 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
         allowFixAllFixes: allowFixAllFixes);
     change = fix.change;
 
-    // apply to "file"
+    // Apply to file.
     var fileEdits = change.edits;
     expect(fileEdits, hasLength(1));
 

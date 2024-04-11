@@ -7,7 +7,6 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart' show Position;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -24,15 +23,15 @@ class CreateMethod extends ResolvedCorrectionProducer {
   @override
   bool canBeAppliedToFile;
 
-  /// Initialize a newly created instance that will create either an equals
-  /// (operator =) or `hashCode` method based on the existing other half of the
-  /// pair.
-  CreateMethod.equalsOrHashCode()
-      : _kind = _MethodKind.equalsOrHashCode,
+  /// Initializes a newly created instance that will create either an equality
+  /// (`operator ==`) method or `hashCode` getter based on the existing other
+  /// half of the pair.
+  CreateMethod.equalityOrHashCode()
+      : _kind = _MethodKind.equalityOrHashCode,
         canBeAppliedInBulk = false,
         canBeAppliedToFile = true;
 
-  /// Initialize a newly created instance that will create a method based on an
+  /// Initializes a newly created instance that will create a method based on an
   /// invocation of an undefined method.
   CreateMethod.method()
       : _kind = _MethodKind.method,
@@ -49,59 +48,48 @@ class CreateMethod extends ResolvedCorrectionProducer {
   FixKind get multiFixKind => DartFixKind.CREATE_METHOD_MULTI;
 
   @override
-  Future<void> compute(ChangeBuilder builder) async {
-    if (_kind == _MethodKind.equalsOrHashCode) {
-      await createEqualsOrHashCode(builder);
-    } else if (_kind == _MethodKind.method) {
-      await createMethod(builder);
-    }
-  }
+  Future<void> compute(ChangeBuilder builder) async => switch (_kind) {
+        _MethodKind.equalityOrHashCode => _createEqualsOrHashCode(builder),
+        _MethodKind.method => _createMethod(builder),
+      };
 
-  Future<void> createEqualsOrHashCode(ChangeBuilder builder) async {
-    final memberDecl = node.thisOrAncestorOfType<ClassMember>();
+  Future<void> _createEqualsOrHashCode(ChangeBuilder builder) async {
+    var memberDecl = node.thisOrAncestorOfType<ClassMember>();
     if (memberDecl == null) {
       return;
     }
-    final classDecl = memberDecl.thisOrAncestorOfType<ClassDeclaration>();
-    if (classDecl != null) {
-      final classElement = classDecl.declaredElement!;
-
-      var missingEquals = memberDecl is FieldDeclaration ||
-          (memberDecl as MethodDeclaration).name.lexeme == 'hashCode';
-      ExecutableElement? element;
-      if (missingEquals) {
-        _memberName = '==';
-        element = classElement.lookUpInheritedMethod(
-            _memberName, classElement.library);
-      } else {
-        _memberName = 'hashCode';
-        element = classElement.lookUpInheritedConcreteGetter(
-            _memberName, classElement.library);
-      }
-      if (element == null) {
-        return;
-      }
-
-      final location =
-          utils.prepareNewClassMemberLocation(classDecl, (_) => true);
-      if (location == null) {
-        return;
-      }
-
-      final element_final = element;
-      await builder.addDartFileEdit(file, (fileBuilder) {
-        fileBuilder.addInsertion(location.offset, (builder) {
-          builder.write(location.prefix);
-          builder.writeOverride(element_final, invokeSuper: true);
-          builder.write(location.suffix);
-        });
-      });
-
-      builder.setSelection(Position(file, location.offset));
+    // TODO(srawlins): Shouldn't this be available on enums and mixins as well?
+    var classDecl = memberDecl.thisOrAncestorOfType<ClassDeclaration>();
+    if (classDecl == null) {
+      return;
     }
+
+    var classElement = classDecl.declaredElement!;
+    var missingEquals = memberDecl is FieldDeclaration ||
+        (memberDecl as MethodDeclaration).name.lexeme == 'hashCode';
+
+    await builder.addDartFileEdit(file, (fileBuilder) {
+      fileBuilder.insertIntoUnitMember(classDecl, (builder) {
+        ExecutableElement? element;
+        if (missingEquals) {
+          _memberName = '==';
+          element = classElement.lookUpInheritedMethod(
+              _memberName, classElement.library);
+        } else {
+          _memberName = 'hashCode';
+          element = classElement.lookUpInheritedConcreteGetter(
+              _memberName, classElement.library);
+        }
+        if (element == null) {
+          return;
+        }
+
+        builder.writeOverride(element, invokeSuper: true);
+      });
+    });
   }
 
-  Future<void> createMethod(ChangeBuilder builder) async {
+  Future<void> _createMethod(ChangeBuilder builder) async {
     if (node is! SimpleIdentifier || node.parent is! MethodInvocation) {
       return;
     }
@@ -217,6 +205,6 @@ class CreateMethod extends ResolvedCorrectionProducer {
 
 /// A representation of the kind of element that should be suggested.
 enum _MethodKind {
-  equalsOrHashCode,
+  equalityOrHashCode,
   method,
 }

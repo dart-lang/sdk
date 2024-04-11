@@ -180,14 +180,19 @@ abstract class DartEditBuilder implements EditBuilder {
       String? nameGroupName,
       Iterable<DartType>? superclassConstraints});
 
-  /// Append a placeholder for an override of the specified inherited [element].
-  /// If provided, write a string value suitable for display (e.g., in a
+  /// Appends a placeholder for an override of the specified inherited
+  /// [element].
+  ///
+  /// If provided, writes a string value suitable for display (e.g., in a
   /// completion popup) in the given [displayTextBuffer]. If [invokeSuper] is
   /// `true`, then the corresponding `super.name()` will be added in the body.
+  /// If [setSelection] is `true`, then the cursor will be placed in the body
+  /// of the override.
   void writeOverride(
     ExecutableElement element, {
     StringBuffer? displayTextBuffer,
     bool invokeSuper = false,
+    bool setSelection = true,
   });
 
   /// Write the code for a single parameter with the given [name].
@@ -437,6 +442,23 @@ abstract class DartFileEditBuilder implements FileEditBuilder {
     CompilationUnitMember compilationUnitMember,
     void Function(DartEditBuilder builder) buildEdit,
   );
+
+  /// Adds an insertion into a [CompilationUnitMember].
+  ///
+  /// The new member is inserted at an offset determined by [lastMemberFilter].
+  ///
+  /// If [lastMemberFilter] is omitted, the new member is inserted after all
+  /// existing members.
+  ///
+  /// Otherwise, the offset is just after the last member of
+  /// [compilationUnitMember] that matches [lastMemberFilter]. If no existing
+  /// member matches, then the offset is at the beginning of
+  /// [compilationUnitMember], just after it's opening brace.
+  void insertIntoUnitMember(
+    CompilationUnitMember compilationUnitMember,
+    void Function(DartEditBuilder builder) buildEdit, {
+    bool Function(ClassMember existingMember)? lastMemberFilter,
+  });
 
   /// Adds an insertion for a method.
   ///

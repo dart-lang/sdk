@@ -389,7 +389,7 @@ final _builtInLintProducers = <String, List<ProducerGenerator>>{
     ConvertToFlutterStyleTodo.new,
   ],
   LintNames.hash_and_equals: [
-    CreateMethod.equalsOrHashCode,
+    CreateMethod.equalityOrHashCode,
   ],
   LintNames.implicit_call_tearoffs: [
     AddExplicitCall.new,
