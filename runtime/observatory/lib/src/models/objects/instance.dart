@@ -137,6 +137,12 @@ enum InstanceKind {
   /// An instance of Finalizer
   finalizer,
 
+  /// An instance of NativeFinalizer
+  nativeFinalizer,
+
+  /// An instance of FinalizerEntry
+  finalizerEntry,
+
   /// An instance of WeakReference
   weakReference,
 
@@ -285,6 +291,12 @@ abstract class InstanceRef extends ObjectRef {
   /// Provided for instance kinds:
   ///   Closure
   ContextRef? get closureContext;
+
+  /// [optional] The receiver associated with a tear-off Closure instance.
+  ///
+  /// Provided for instance kinds:
+  ///   Closure
+  InstanceRef? get closureReceiver;
 }
 
 abstract class Instance extends Object implements InstanceRef {
@@ -460,6 +472,24 @@ abstract class Instance extends Object implements InstanceRef {
   /// Provided for instance kinds:
   ///   RegExp
   InstanceRef? get twoByteBytecode;
+
+  /// [optional] The callback associated with a Finalizer instance.
+  ///
+  /// Provided for instance kinds:
+  ///   Finalizer
+  InstanceRef? get callback;
+
+  /// [optional] The callback associated with a Finalizer instance.
+  ///
+  /// Provided for instance kinds:
+  ///   Finalizer
+  ///   NativeFinalizer
+  InstanceRef? get allEntries;
+
+  /// Provided for instance kinds:
+  ///   FinalizerEntry
+  InstanceRef? get detach;
+  InstanceRef? get token;
 }
 
 abstract class BoundField {
