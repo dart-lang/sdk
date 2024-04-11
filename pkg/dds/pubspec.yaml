@@ -24,13 +24,13 @@ dependencies:
   path: ^1.8.0
   shelf_proxy: ^1.0.0
   shelf_static: ^1.0.0
-  shelf_web_socket: ^1.0.0
+  shelf_web_socket: '>=1.0.0 <3.0.0'
   shelf: ^1.0.0
   sse: ^4.0.0
   stack_trace: ^1.10.0
   stream_channel: ^2.0.0
   vm_service: ^14.0.0
-  web_socket_channel: ^2.0.0
+  web_socket_channel: '>=2.0.0 <4.0.0'
 
 # We use 'any' version constraints here as we get our package versions from
 # the dart-lang/sdk repo's DEPS file. Note that this is a special case; the

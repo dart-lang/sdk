@@ -1,3 +1,6 @@
+## 2.2.1
+- Indicate compatibility with `package:web_socket_channel` 2.x and 3.x.
+
 ## 2.2.0
 - Added new response types `Success`, `StringResponse`, `BoolResponse`, and `StringListResponse`.
 - Added  contributing guide (`CONTRIBUTING.md`).
