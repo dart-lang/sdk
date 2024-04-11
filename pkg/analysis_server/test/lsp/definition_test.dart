@@ -372,6 +372,70 @@ foo(Object pair) {
     await testContents(contents);
   }
 
+  Future<void> test_locationLink_class() async {
+    setLocationLinkSupport();
+
+    final code = TestCode.parse('''
+final a = /*[0*/MyCl^ass/*0]*/();
+
+/*[1*/class /*[2*/MyClass/*2]*/ {}/*1]*/
+''');
+
+    await initialize();
+    await openFile(mainFileUri, code.code);
+    final res =
+        await getDefinitionAsLocationLinks(mainFileUri, code.position.position);
+
+    expect(res, hasLength(1));
+    var loc = res.single;
+    expect(loc.originSelectionRange, equals(code.ranges[0].range));
+    expect(loc.targetRange, equals(code.ranges[1].range));
+    expect(loc.targetSelectionRange, equals(code.ranges[2].range));
+  }
+
+  Future<void> test_locationLink_extensionType_primaryConstructor() async {
+    setLocationLinkSupport();
+
+    final code = TestCode.parse('''
+final a = /*[0*/MyExtens^ionType/*0]*/(1);
+
+/*[1*/extension type /*[2*/MyExtensionType/*2]*/(int a) implements int {}/*1]*/
+''');
+
+    await initialize();
+    await openFile(mainFileUri, code.code);
+    final res =
+        await getDefinitionAsLocationLinks(mainFileUri, code.position.position);
+
+    expect(res, hasLength(1));
+    var loc = res.single;
+    expect(loc.originSelectionRange, equals(code.ranges[0].range));
+    expect(loc.targetRange, equals(code.ranges[1].range));
+    expect(loc.targetSelectionRange, equals(code.ranges[2].range));
+  }
+
+  Future<void>
+      test_locationLink_extensionType_primaryConstructor_named() async {
+    setLocationLinkSupport();
+
+    final code = TestCode.parse('''
+final a = MyExtensionType./*[0*/na^med/*0]*/(1);
+
+/*[1*/extension type MyExtensionType./*[2*/named/*2]*/(int a) implements int {}/*1]*/
+''');
+
+    await initialize();
+    await openFile(mainFileUri, code.code);
+    final res =
+        await getDefinitionAsLocationLinks(mainFileUri, code.position.position);
+
+    expect(res, hasLength(1));
+    var loc = res.single;
+    expect(loc.originSelectionRange, equals(code.ranges[0].range));
+    expect(loc.targetRange, equals(code.ranges[1].range));
+    expect(loc.targetSelectionRange, equals(code.ranges[2].range));
+  }
+
   Future<void> test_locationLink_field() async {
     setLocationLinkSupport();
 

@@ -182,6 +182,15 @@ class DefinitionHandler extends LspMessageHandler<TextDocumentPositionParams,
       codeElement = codeElement.variable2!;
     }
 
+    // For extension types, the primary constructor has a range that covers only
+    // the parameters / representation type but we want the whole declaration
+    // for the code range because otherwise previews will just show `(int a)`
+    // which is not what the user expects.
+    if (codeElement.enclosingElement case ExtensionTypeElement enclosingElement
+        when enclosingElement.primaryConstructor == codeElement) {
+      codeElement = enclosingElement;
+    }
+
     // Read the main codeOffset from the element. This may include doc comments
     // but will give the correct end position.
     int? codeOffset, codeLength;
