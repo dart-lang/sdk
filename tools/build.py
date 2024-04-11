@@ -312,10 +312,11 @@ def Main():
 
     exit_code = Build(configs, env, options)
 
+    endtime = time.time()
+
     StopRBE(env)
 
     if exit_code == 0:
-        endtime = time.time()
         print("The build took %.3f seconds" % (endtime - starttime))
     return exit_code
 
