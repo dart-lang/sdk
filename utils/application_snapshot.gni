@@ -27,6 +27,12 @@ declare_args() {
 #  training_args (required):
 #    Arguments to pass to the Dart application for the training run.
 #
+#  training_deps (optional):
+#    Deps needed for the training run.
+#
+#  training_inputs (optional):
+#    Inputs needed for the training run.
+#
 #  vm_args (optional):
 #    Additional arguments to the Dart VM.
 #
@@ -57,6 +63,14 @@ template("application_snapshot") {
   }
   main_dart = invoker.main_dart
   training_args = invoker.training_args
+  training_deps = []
+  if (defined(invoker.training_deps)) {
+    training_deps += invoker.training_deps
+  }
+  training_inputs = []
+  if (defined(invoker.training_inputs)) {
+    training_inputs += invoker.training_inputs
+  }
   name = target_name
   if (defined(invoker.name)) {
     name = invoker.name
@@ -149,18 +163,20 @@ template("application_snapshot") {
 
       assert(snapshot_vm_args != "", "Ignoring unused argument")
       assert(training_args != "", "Ignoring unused argument")
+      assert(training_inputs != "", "Ignoring unused argument")
+      assert(training_deps != "", "Ignoring unused argument")
     }
   } else {
     dart_action(target_name) {
       if (defined(invoker.pool)) {
         pool = invoker.pool
       }
-      deps = extra_deps + [ ":${target_name}_dill" ]
+      deps = extra_deps + [ ":${target_name}_dill" ] + training_deps
       depfile = "$output.d"
 
       script = "$target_gen_dir/$name.dart.dill"
 
-      inputs = extra_inputs
+      inputs = extra_inputs + training_inputs
 
       outputs = [ output ]
 
