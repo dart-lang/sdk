@@ -195,12 +195,14 @@ Future<int> runCompiler(ArgResults options, String usage) async {
 
   final String? nativeAssetsPath = options['native-assets'];
   final String? resourcesFilePath = options['resources-file'];
-  if ((options.rest.length != 1) || (platformKernel == null)) {
+  final bool splitOutputByPackages = options['split-output-by-packages'];
+  final String? input = options.rest.singleOrNull;
+  if ((input == null && (nativeAssetsPath == null || splitOutputByPackages)) ||
+      (platformKernel == null)) {
     print(usage);
     return badUsageExitCode;
   }
 
-  final String input = options.rest.single;
   final String outputFileName = options['output'] ?? "$input.dill";
   final String? packages = options['packages'];
   final String targetName = options['target'];
@@ -217,7 +219,6 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final bool enableAsserts = options['enable-asserts'];
   final bool soundNullSafety = options['sound-null-safety'];
   final bool useProtobufTreeShakerV2 = options['protobuf-tree-shaker-v2'];
-  final bool splitOutputByPackages = options['split-output-by-packages'];
   final String? manifestFilename = options['manifest'];
   final String? dataDir = options['component-name'] ?? options['data-dir'];
   final bool? supportMirrors = options['support-mirrors'];
@@ -278,9 +279,12 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final Uri? resourcesFileUri =
       resourcesFilePath == null ? null : resolveInputUri(resourcesFilePath);
 
-  Uri mainUri = resolveInputUri(input);
-  if (packagesUri != null) {
-    mainUri = await convertToPackageUri(fileSystem, mainUri, packagesUri);
+  Uri? mainUri;
+  if (input != null) {
+    mainUri = resolveInputUri(input);
+    if (packagesUri != null) {
+      mainUri = await convertToPackageUri(fileSystem, mainUri, packagesUri);
+    }
   }
 
   final List<Uri> additionalSources = sources.map(resolveInputUri).toList();
@@ -370,7 +374,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
 
   if (splitOutputByPackages) {
     await writeOutputSplitByPackages(
-      mainUri,
+      mainUri!,
       compilerOptions,
       results,
       outputFileName,

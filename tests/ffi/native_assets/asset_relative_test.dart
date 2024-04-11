@@ -47,6 +47,7 @@ Future<void> selfInvokes() async {
   await invokeSelf(
     selfSourceUri: selfSourceUri,
     runtime: Runtime.jit,
+    kernelCombine: KernelCombine.concatenation,
     relativePath: RelativePath.same,
     arguments: [runTestsArg],
   );
@@ -59,6 +60,8 @@ Future<void> selfInvokes() async {
   await invokeSelf(
     selfSourceUri: selfSourceUri,
     runtime: Runtime.aot,
+    // TODO(https://dartbug.com/55377): Support concatenation in AOT.
+    // kernelCombine: KernelCombine.concatenation,
     relativePath: RelativePath.up,
     arguments: [runTestsArg],
   );
@@ -75,6 +78,7 @@ Future<void> invokeSelf({
   required Uri selfSourceUri,
   required List<String> arguments,
   Runtime runtime = Runtime.jit,
+  KernelCombine kernelCombine = KernelCombine.source,
   RelativePath relativePath = RelativePath.same,
 }) async {
   await withTempDir((Uri tempUri) async {
@@ -111,6 +115,7 @@ Future<void> invokeSelf({
       dartProgramUri: selfSourceUri,
       nativeAssetsYaml: nativeAssetsYaml,
       runtime: runtime,
+      kernelCombine: kernelCombine,
       runArguments: arguments,
     );
     print([selfSourceUri.toFilePath(), runtime.name, relativePath.name, 'done']
