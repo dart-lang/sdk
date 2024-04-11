@@ -124,6 +124,18 @@ extension BlockExtension on Block {
 }
 
 extension ClassElementExtension on ClassElement {
+  /// Get all fields, including merged augmentations.
+  List<FieldElement> get allFields => augmented?.fields ?? fields;
+
+  /// Get all interfaces, including merged augmentations.
+  List<InterfaceType> get allInterfaces => augmented?.interfaces ?? interfaces;
+
+  /// Get all methods, including merged augmentations.
+  List<MethodElement> get allMethods => augmented?.methods ?? methods;
+
+  /// Get all mixins, including merged augmentations.
+  List<InterfaceType> get allMixins => augmented?.mixins ?? mixins;
+
   bool get hasSubclassInDefiningCompilationUnit {
     var compilationUnit = library.definingCompilationUnit;
     for (var cls in compilationUnit.classes) {
