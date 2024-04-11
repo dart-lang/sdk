@@ -814,10 +814,10 @@ abstract class A {
   void m(Iterable<({int a, int b})> r);
 }
 
-class B extends A {$0
+class B extends A {
   @override
   void m(${1|Iterable<({int a\, int b})>,Object|} ${2:r}) {
-    // TODO: implement m
+    // TODO: implement m$0
   }
 }
 ''';

@@ -83,7 +83,12 @@ ${argParser.usage}
 
   final serveDevTools =
       argResults[DartDevelopmentServiceOptions.serveDevToolsFlag];
+  final devToolsServerAddressStr =
+      argResults[DartDevelopmentServiceOptions.devToolsServerAddressOption];
   Uri? devToolsBuildDirectory;
+  final devToolsServerAddress = devToolsServerAddressStr == null
+      ? null
+      : Uri.parse(devToolsServerAddressStr);
   if (serveDevTools) {
     devToolsBuildDirectory = _getDevToolsAssetPath();
   }
@@ -104,6 +109,7 @@ ${argParser.usage}
           ? DevToolsConfiguration(
               enable: serveDevTools,
               customBuildDirectoryPath: devToolsBuildDirectory,
+              devToolsServerAddress: devToolsServerAddress,
             )
           : null,
       enableServicePortFallback: enableServicePortFallback,

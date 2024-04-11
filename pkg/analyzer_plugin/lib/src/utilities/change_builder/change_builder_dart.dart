@@ -383,8 +383,9 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     StringBuffer? displayTextBuffer,
     String? returnTypeGroupName,
     bool invokeSuper = false,
+    bool setSelection = true,
   }) {
-    void withCarbonCopyBuffer(Function() f) {
+    void withCarbonCopyBuffer(void Function() f) {
       _carbonCopyBuffer = displayTextBuffer;
       try {
         f();
@@ -392,6 +393,9 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
         _carbonCopyBuffer = null;
       }
     }
+
+    void selectAllIfSetSelection(void Function() writer) =>
+        setSelection ? selectAll(writer) : writer();
 
     var prefix = getIndent(1);
     var prefix2 = getIndent(2);
@@ -403,7 +407,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     var isOperator = isMethod && (element as MethodElement).isOperator;
     var memberName = element.displayName;
 
-    // @override
+    // `@override` annotation.
     writeln('@override');
     write(prefix);
 
@@ -412,7 +416,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       write(prefix);
     }
 
-    // return type
+    // Return type.
     var returnType = element.returnType;
     if (!isSetter) {
       var typeWritten = writeType(returnType,
@@ -432,90 +436,75 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       write(' ');
     }
 
-    // name
+    // Name.
     withCarbonCopyBuffer(() {
       write(memberName);
     });
 
-    // parameters + body
+    // Parameters and body.
     if (isGetter) {
       if (invokeSuper) {
         write(' => ');
-        selectAll(() {
-          write('super.');
-          write(memberName);
-        });
+        selectAllIfSetSelection(() => write('super.$memberName'));
         writeln(';');
       } else {
         write(' => ');
-        selectAll(() {
-          write('throw UnimplementedError()');
-        });
+        selectAllIfSetSelection(() => write('throw UnimplementedError()'));
         write(';');
       }
       displayTextBuffer?.write(' => …');
-    } else {
-      var parameters = element.parameters;
-      withCarbonCopyBuffer(() {
-        writeTypeParameters(element.type.typeFormals,
-            methodBeingCopied: element);
-        writeParameters(parameters, methodBeingCopied: element);
-      });
-      writeln(' {');
+      return;
+    }
 
-      // TO-DO
-      write(prefix2);
-      write('// TODO: implement $memberName');
+    // Method.
+    var parameters = element.parameters;
+    withCarbonCopyBuffer(() {
+      writeTypeParameters(element.type.typeFormals, methodBeingCopied: element);
+      writeParameters(parameters, methodBeingCopied: element);
+    });
+    writeln(' {');
 
-      if (isSetter) {
-        if (invokeSuper) {
-          writeln();
-          write(prefix2);
-          selectAll(() {
-            write('super.');
-            write(memberName);
-            write(' = ');
-            write(parameters[0].name);
-            write(';');
-          });
-          writeln();
-        } else {
-          selectHere();
-          writeln();
-        }
-      } else if (returnType is VoidType) {
-        if (invokeSuper) {
-          writeln();
-          write(prefix2);
-          selectAll(() {
-            write('super');
-            _writeSuperMemberInvocation(element, memberName, parameters);
-          });
-          writeln();
-        } else {
-          selectHere();
-          writeln();
-        }
-      } else {
+    // TO-DO comment.
+    write(prefix2);
+    write('// TODO: implement $memberName');
+
+    if (isSetter) {
+      if (invokeSuper) {
         writeln();
         write(prefix2);
-        if (invokeSuper) {
-          selectAll(() {
-            write('return super');
-            _writeSuperMemberInvocation(element, memberName, parameters);
-          });
-        } else {
-          selectAll(() {
-            write('throw UnimplementedError();');
-          });
-        }
-        writeln();
+        selectAllIfSetSelection(
+            () => write('super.$memberName = ${parameters[0].name};'));
+      } else {
+        if (setSelection) selectHere();
       }
-      // close method
-      write(prefix);
-      write('}');
-      displayTextBuffer?.write(' { … }');
+    } else if (returnType is VoidType) {
+      if (invokeSuper) {
+        writeln();
+        write(prefix2);
+        selectAllIfSetSelection(() {
+          write('super');
+          _writeSuperMemberInvocation(element, memberName, parameters);
+        });
+      } else {
+        if (setSelection) selectHere();
+      }
+    } else {
+      writeln();
+      write(prefix2);
+      if (invokeSuper) {
+        selectAllIfSetSelection(() {
+          write('return super');
+          _writeSuperMemberInvocation(element, memberName, parameters);
+        });
+      } else {
+        selectAllIfSetSelection(() => write('throw UnimplementedError();'));
+      }
     }
+    writeln();
+    // Close method.
+    write(prefix);
+    write('}');
+    displayTextBuffer?.write(' { … }');
   }
 
   @override
@@ -720,8 +709,8 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
         write(' ');
       }
     }
-    // TODO(brianwilkerson): The name of the setter is unlikely to be a good name
-    //  for the parameter. We need to find a better name to produce here.
+    // TODO(brianwilkerson): The name of the setter is unlikely to be a good
+    // name for the parameter. We need to find a better name to produce here.
     write(name);
     write(') ');
     if (bodyWriter == null) {
@@ -1052,7 +1041,8 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     if (suggestions.isNotEmpty) {
       return suggestions;
     }
-    // TODO(brianwilkerson): Verify that the name below is not in the set of used names.
+    // TODO(brianwilkerson): Verify that the name below is not in the set of
+    // used names.
     return <String>['param$index'];
   }
 
@@ -1677,7 +1667,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
         ? (member) => member is ConstructorDeclaration
         : (member) =>
             member is ConstructorDeclaration || member is FieldDeclaration;
-    _addCompilationUnitMemberInsertion(
+    insertIntoUnitMember(
       container,
       buildEdit,
       lastMemberFilter: lastMemberFilter,
@@ -1689,7 +1679,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     CompilationUnitMember compilationUnitMember,
     void Function(DartEditBuilder builder) buildEdit,
   ) =>
-      _addCompilationUnitMemberInsertion(
+      insertIntoUnitMember(
         compilationUnitMember,
         buildEdit,
         lastMemberFilter: (member) => member is FieldDeclaration,
@@ -1700,7 +1690,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     CompilationUnitMember compilationUnitMember,
     void Function(DartEditBuilder builder) buildEdit,
   ) =>
-      _addCompilationUnitMemberInsertion(
+      insertIntoUnitMember(
         compilationUnitMember,
         buildEdit,
         lastMemberFilter: (member) =>
@@ -1710,11 +1700,37 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       );
 
   @override
+  void insertIntoUnitMember(
+    CompilationUnitMember compilationUnitMember,
+    void Function(DartEditBuilder builder) buildEdit, {
+    bool Function(ClassMember existingMember)? lastMemberFilter,
+  }) {
+    var preparer =
+        _InsertionPreparer(compilationUnitMember, resolvedUnit.lineInfo);
+    var offset = preparer.insertionLocation(
+      lastMemberFilter: lastMemberFilter,
+    );
+    if (offset == null) {
+      return;
+    }
+
+    addInsertion(
+      offset,
+      insertBeforeExisting: false,
+      (builder) {
+        preparer.writePrefix(builder);
+        buildEdit(builder);
+        preparer.writeSuffix(builder);
+      },
+    );
+  }
+
+  @override
   void insertMethod(
     CompilationUnitMember compilationUnitMember,
     void Function(DartEditBuilder builder) buildEdit,
   ) =>
-      _addCompilationUnitMemberInsertion(
+      insertIntoUnitMember(
         compilationUnitMember,
         buildEdit,
         lastMemberFilter: (member) =>
@@ -1740,39 +1756,6 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
         builder.write('void');
       }
     });
-  }
-
-  /// Adds an insertion into a [CompilationUnitMember].
-  ///
-  /// The new member is inserted at an offset determined by [lastMemberFilter].
-  ///
-  /// The offset is just after the last member of [compilationUnitMember] that
-  /// matches [lastMemberFilter]. If no existing member matches, then the offset
-  /// is at the beginning of [compilationUnitMember], just after it's opening
-  /// brace.
-  void _addCompilationUnitMemberInsertion(
-    CompilationUnitMember compilationUnitMember,
-    void Function(DartEditBuilder builder) buildEdit, {
-    required bool Function(ClassMember existingMember) lastMemberFilter,
-  }) {
-    var preparer =
-        _InsertionPreparer(compilationUnitMember, resolvedUnit.lineInfo);
-    var offset = preparer.insertionLocation(
-      lastMemberFilter: lastMemberFilter,
-    );
-    if (offset == null) {
-      return;
-    }
-
-    addInsertion(
-      offset,
-      insertBeforeExisting: false,
-      (builder) {
-        preparer.writePrefix(builder);
-        buildEdit(builder);
-        preparer.writeSuffix(builder);
-      },
-    );
   }
 
   /// Adds edits ensure that all the [imports] are imported into the library.
@@ -2392,12 +2375,17 @@ class _InsertionPreparer {
   /// Returns the offset of where a new member should be inserted, as a new
   /// member of [_declaration].
   ///
-  /// The offset is just after the last member of [_declaration] that matches
-  /// [lastMemberFilter]. If no existing member matches, then the offset is at
-  /// the beginning of [_declaration], just after it's opening brace.
+  /// If [lastMemberFilter] is omitted, the offset is just after all existing
+  /// members.
+  ///
+  /// Otherwise, the offset is just after the last member of [_declaration] that
+  /// matches [lastMemberFilter]. If no existing member matches, then the offset
+  /// is at the beginning of [_declaration], just after it's opening brace.
   int? insertionLocation(
-      {required bool Function(ClassMember existingMember) lastMemberFilter}) {
-    var targetMember = _members.lastWhereOrNull(lastMemberFilter);
+      {required bool Function(ClassMember existingMember)? lastMemberFilter}) {
+    var targetMember = lastMemberFilter == null
+        ? _members.lastOrNull
+        : _members.lastWhereOrNull(lastMemberFilter);
     _foundTargetMember = targetMember != null;
     if (targetMember != null) {
       // After the last target member.
@@ -2417,12 +2405,16 @@ class _InsertionPreparer {
     }
 
     // At the beginning of the class.
-    // TODO(srawlins): The left bracket location can be synthetic. If so, we
-    // should perhaps write opening and closing brackets around the inserted
-    // text.
     var leftBracket = _declaration.leftBracket;
     if (leftBracket == null) {
       return null;
+    }
+    if (leftBracket.isSynthetic) {
+      var previousToken = leftBracket.previous;
+      if (previousToken == null) {
+        return null;
+      }
+      return previousToken.end;
     }
     return leftBracket.end;
   }
@@ -2433,6 +2425,9 @@ class _InsertionPreparer {
   /// This method can only be invoked after [insertionLocation], which first
   /// determines the target member that the insertion follows.
   void writePrefix(DartEditBuilder builder) {
+    if (_declaration.leftBracket?.isSynthetic ?? false) {
+      builder.write(' {');
+    }
     var declaration = _declaration;
     if (declaration is EnumDeclaration && declaration.semicolon == null) {
       builder.write(';');
@@ -2483,6 +2478,17 @@ class _InsertionPreparer {
     var declarationIsSingleLine = endLine == offsetLine;
     if (declarationIsSingleLine) {
       builder.writeln();
+    }
+    var rightBracket = _declaration.rightBracket;
+    if (rightBracket == null) {
+      return;
+    }
+    if (rightBracket.isSynthetic) {
+      var next = rightBracket.next!;
+      if (next.type != TokenType.CLOSE_CURLY_BRACKET) {
+        builder.writeln();
+        builder.write('}');
+      }
     }
   }
 }
@@ -2585,6 +2591,20 @@ extension on CompilationUnitMember {
       ExtensionDeclaration() => self.members,
       ExtensionTypeDeclaration() => self.members,
       MixinDeclaration() => self.members,
+      _ => null,
+    };
+  }
+
+  /// The right bracket of a [CompilationUnitMember] with a known right bracket,
+  /// and `null` otherwise.
+  Token? get rightBracket {
+    var self = this;
+    return switch (self) {
+      ClassDeclaration() => self.rightBracket,
+      EnumDeclaration() => self.rightBracket,
+      ExtensionDeclaration() => self.rightBracket,
+      ExtensionTypeDeclaration() => self.rightBracket,
+      MixinDeclaration() => self.rightBracket,
       _ => null,
     };
   }

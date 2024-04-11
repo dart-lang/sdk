@@ -15,6 +15,7 @@ abstract class DartDevelopmentServiceOptions {
   static const serveDevToolsFlag = 'serve-devtools';
   static const enableServicePortFallbackFlag = 'enable-service-port-fallback';
   static const cachedUserTagsOption = 'cached-user-tags';
+  static const devToolsServerAddressOption = 'devtools-server-address';
   static const google3WorkspaceRootOption = 'google3-workspace-root';
 
   static ArgParser createArgParser({
@@ -59,7 +60,13 @@ abstract class DartDevelopmentServiceOptions {
       )
       ..addFlag(
         serveDevToolsFlag,
-        help: 'If provided, DDS will serve DevTools.',
+        help: 'If provided, DDS will serve DevTools. If not specified, '
+            '"--$devToolsServerAddressOption" is ignored.',
+      )
+      ..addOption(
+        devToolsServerAddressOption,
+        help: 'Redirect to an existing DevTools server. Ignored if '
+            '"--$serveDevToolsFlag" is not specified.',
       )
       ..addFlag(
         enableServicePortFallbackFlag,

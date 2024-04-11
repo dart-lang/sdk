@@ -114,6 +114,11 @@ stderr     : ${result.stderr}''';
   }
 }
 
+enum KernelCombine {
+  source,
+  concatenation,
+}
+
 enum Runtime {
   aot,
   appjit,
@@ -150,13 +155,44 @@ Future<void> createDillFile({
   required Uri dartProgramUri,
   required Uri nativeAssetsUri,
   required Runtime runtime,
-}) =>
-    runGenKernel(
-      runtime: runtime,
-      outputUri: outputUri,
-      inputUri: dartProgramUri,
-      nativeAssetsUri: nativeAssetsUri,
-    );
+  required KernelCombine kernelCombine,
+}) async {
+  switch (kernelCombine) {
+    case KernelCombine.source:
+      await runGenKernel(
+        runtime: runtime,
+        outputUri: outputUri,
+        inputUri: dartProgramUri,
+        nativeAssetsUri: nativeAssetsUri,
+      );
+    case KernelCombine.concatenation:
+      final programDillUri = tempUri.resolve('program.dill');
+      final nativeAssetsDillUri = tempUri.resolve('native_assets.dill');
+      await Future.wait([
+        runGenKernel(
+          runtime: runtime,
+          outputUri: programDillUri,
+          inputUri: dartProgramUri,
+        ),
+        runGenKernel(
+          runtime: runtime,
+          outputUri: nativeAssetsDillUri,
+          nativeAssetsUri: nativeAssetsUri,
+        ),
+      ]);
+      final programKernelBytes =
+          await File.fromUri(programDillUri).readAsBytes();
+      final nativeAssetKernelBytes =
+          await File.fromUri(nativeAssetsDillUri).readAsBytes();
+      await File.fromUri(outputUri).writeAsBytes(
+        [
+          ...programKernelBytes,
+          ...nativeAssetKernelBytes,
+        ],
+        flush: true,
+      );
+  }
+}
 
 Future<void> runGenSnapshot({
   required Uri dillUri,
@@ -242,6 +278,7 @@ Future<void> compileAndRun({
   required Uri dartProgramUri,
   required String nativeAssetsYaml,
   required Runtime runtime,
+  required KernelCombine kernelCombine,
   required List<String> runArguments,
 }) async {
   final nativeAssetsUri = tempUri.resolve('native_assets.yaml');
@@ -254,6 +291,7 @@ Future<void> compileAndRun({
     dartProgramUri: dartProgramUri,
     nativeAssetsUri: nativeAssetsUri,
     runtime: runtime,
+    kernelCombine: kernelCombine,
   );
 
   switch (runtime) {
@@ -311,6 +349,7 @@ Future<void> invokeSelf({
   required List<String> arguments,
   required String nativeAssetsYaml,
   Runtime runtime = Runtime.jit,
+  KernelCombine kernelCombine = KernelCombine.source,
 }) async {
   await withTempDir((Uri tempUri) async {
     await compileAndRun(
@@ -318,6 +357,7 @@ Future<void> invokeSelf({
       dartProgramUri: selfSourceUri,
       nativeAssetsYaml: nativeAssetsYaml,
       runtime: runtime,
+      kernelCombine: kernelCombine,
       runArguments: arguments,
     );
     print([selfSourceUri.toFilePath(), runtime.name, 'done'].join(' '));

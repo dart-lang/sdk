@@ -234,11 +234,11 @@ class Args<T extends TypeExpr> {
 
   int _computeHashCode() {
     int hash = 1231;
-    for (var v in values) {
-      hash = combineHashes(hash, v.hashCode);
+    for (var i = 0; i < values.length; i++) {
+      hash = combineHashes(hash, values[i].hashCode);
     }
-    for (var n in names) {
-      hash = combineHashes(hash, n.hashCode);
+    for (var i = 0; i < names.length; i++) {
+      hash = combineHashes(hash, names[i].hashCode);
     }
     return hash;
   }
