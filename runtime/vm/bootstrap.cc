@@ -5,6 +5,7 @@
 #include "vm/bootstrap.h"
 
 #include <memory>
+#include <utility>
 
 #include "include/dart_api.h"
 
@@ -108,22 +109,10 @@ static void Finish(Thread* thread) {
   cls.EnsureIsFinalized(thread);
 }
 
-static ErrorPtr BootstrapFromKernel(Thread* thread,
-                                    const uint8_t* kernel_buffer,
-                                    intptr_t kernel_buffer_size) {
+static ErrorPtr BootstrapFromKernelSingleProgram(
+    Thread* thread,
+    std::unique_ptr<kernel::Program> program) {
   Zone* zone = thread->zone();
-  const char* error = nullptr;
-  std::unique_ptr<kernel::Program> program = kernel::Program::ReadFromBuffer(
-      kernel_buffer, kernel_buffer_size, &error);
-  if (program == nullptr) {
-    const intptr_t kMessageBufferSize = 512;
-    char message_buffer[kMessageBufferSize];
-    Utils::SNPrint(message_buffer, kMessageBufferSize,
-                   "Can't load Kernel binary: %s.", error);
-    const String& msg = String::Handle(String::New(message_buffer, Heap::kOld));
-    return ApiError::New(msg, Heap::kOld);
-  }
-
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     kernel::KernelLoader loader(program.get(), /*uri_to_source_table=*/nullptr);
@@ -165,6 +154,66 @@ static ErrorPtr BootstrapFromKernel(Thread* thread,
   // Either class finalization failed or we caught a compile-time error.
   // In both cases sticky error would be set.
   return Thread::Current()->StealStickyError();
+}
+
+static ErrorPtr BootstrapFromKernel(Thread* thread,
+                                    const uint8_t* kernel_buffer,
+                                    intptr_t kernel_buffer_size) {
+  Zone* zone = thread->zone();
+  const char* error = nullptr;
+  std::unique_ptr<kernel::Program> program = kernel::Program::ReadFromBuffer(
+      kernel_buffer, kernel_buffer_size, &error);
+  if (program == nullptr) {
+    const intptr_t kMessageBufferSize = 512;
+    char message_buffer[kMessageBufferSize];
+    Utils::SNPrint(message_buffer, kMessageBufferSize,
+                   "Can't load Kernel binary: %s.", error);
+    const String& msg = String::Handle(String::New(message_buffer, Heap::kOld));
+    return ApiError::New(msg, Heap::kOld);
+  }
+
+  if (program->is_single_program()) {
+    return BootstrapFromKernelSingleProgram(thread, std::move(program));
+  }
+
+  GrowableArray<intptr_t> subprogram_file_starts;
+  {
+    kernel::Reader reader(program->binary());
+    kernel::KernelLoader::index_programs(&reader, &subprogram_file_starts);
+  }
+  intptr_t subprogram_count = subprogram_file_starts.length() - 1;
+
+  // Create "fake programs" for each sub-program.
+  auto& load_result = Error::Handle(zone);
+  for (intptr_t i = 0; i < subprogram_count; i++) {
+    intptr_t subprogram_start = subprogram_file_starts.At(i);
+    intptr_t subprogram_end = subprogram_file_starts.At(i + 1);
+    const auto& component = TypedDataBase::Handle(
+        program->binary().ViewFromTo(subprogram_start, subprogram_end));
+    kernel::Reader reader(component);
+    const char* error = nullptr;
+    std::unique_ptr<kernel::Program> subprogram =
+        kernel::Program::ReadFrom(&reader, &error);
+    if (subprogram == nullptr) {
+      FATAL("Failed to load kernel file: %s", error);
+    }
+    ASSERT(subprogram->is_single_program());
+    if (i == 0) {
+      // The first subprogram must be the main Dart program.
+      load_result ^=
+          BootstrapFromKernelSingleProgram(thread, std::move(subprogram));
+    } else {
+      // Restrictions on the subsequent programs: Must contain only
+      // contain dummy libraries with VM recognized classes (or classes kept
+      // fully intact by tree-shaking).
+      // Currently only used for concatenating native assets mappings.
+      kernel::KernelLoader loader(subprogram.get(),
+                                  /*uri_to_source_table=*/nullptr);
+      load_result ^= loader.LoadProgram(false);
+    }
+    if (load_result.IsError()) return load_result.ptr();
+  }
+  return Error::null();
 }
 
 ErrorPtr Bootstrap::DoBootstrapping(const uint8_t* kernel_buffer,

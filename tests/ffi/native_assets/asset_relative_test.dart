@@ -60,8 +60,7 @@ Future<void> selfInvokes() async {
   await invokeSelf(
     selfSourceUri: selfSourceUri,
     runtime: Runtime.aot,
-    // TODO(https://dartbug.com/55377): Support concatenation in AOT.
-    // kernelCombine: KernelCombine.concatenation,
+    kernelCombine: KernelCombine.concatenation,
     relativePath: RelativePath.up,
     arguments: [runTestsArg],
   );
