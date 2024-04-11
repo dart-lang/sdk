@@ -74,7 +74,8 @@ Component transformComponent(
       .visitComponent(component);
 
   Stopwatch? rtaStopWatch;
-  RapidTypeAnalysis? rta;
+  List<Class>? allocatedClasses;
+
   if (useRapidTypeAnalysis) {
     // Rapid type analysis (RTA) is used to quickly calculate
     // the set of allocated classes to make the subsequent
@@ -83,8 +84,9 @@ Component transformComponent(
     final protobufHandlerRta = treeShakeProtobufs
         ? ProtobufHandler.forComponent(component, coreTypes)
         : null;
-    rta = RapidTypeAnalysis(component, coreTypes, target, hierarchy,
-        libraryIndex, protobufHandlerRta);
+    allocatedClasses = RapidTypeAnalysis(component, coreTypes, target,
+            hierarchy, libraryIndex, protobufHandlerRta)
+        .run();
     rtaStopWatch.stop();
   }
 
@@ -113,7 +115,7 @@ Component transformComponent(
   }
 
   if (useRapidTypeAnalysis) {
-    for (Class c in rta!.allocatedClasses) {
+    for (Class c in allocatedClasses!) {
       typeFlowAnalysis.addAllocatedClass(c);
     }
   }
@@ -128,36 +130,29 @@ Component transformComponent(
 
   final transformsStopWatch = new Stopwatch()..start();
 
-  final treeShaker = new TreeShaker(
-      component, typeFlowAnalysis, coreTypes, hierarchy,
-      treeShakeWriteOnlyFields: treeShakeWriteOnlyFields);
-  treeShaker.transformComponent(component);
+  final fieldMorpher = new TreeShaker(
+          component, typeFlowAnalysis, coreTypes, hierarchy,
+          treeShakeWriteOnlyFields: treeShakeWriteOnlyFields)
+      .transformComponent(component);
 
   final closureIdMetadata = ClosureIdMetadataRepository();
 
-  new TFADevirtualization(component, typeFlowAnalysis, hierarchy,
-          treeShaker.fieldMorpher, closureIdMetadata)
+  new TFADevirtualization(component, typeFlowAnalysis, hierarchy, fieldMorpher,
+          closureIdMetadata)
       .visitComponent(component);
 
   final tableSelectorAssigner = new TableSelectorAssigner(component);
 
   if (treeShakeSignatures) {
-    final signatureShaker =
-        new SignatureShaker(typeFlowAnalysis, tableSelectorAssigner);
-    signatureShaker.transformComponent(component);
+    new SignatureShaker(typeFlowAnalysis, tableSelectorAssigner)
+        .transformComponent(component);
   }
 
   final unboxingInfo = new UnboxingInfoManager(typeFlowAnalysis)
     ..analyzeComponent(component, typeFlowAnalysis, tableSelectorAssigner);
 
-  new AnnotateKernel(
-          component,
-          typeFlowAnalysis,
-          hierarchy,
-          treeShaker.fieldMorpher,
-          tableSelectorAssigner,
-          unboxingInfo,
-          closureIdMetadata)
+  new AnnotateKernel(component, typeFlowAnalysis, hierarchy, fieldMorpher,
+          tableSelectorAssigner, unboxingInfo, closureIdMetadata)
       .visitComponent(component);
 
   transformsStopWatch.stop();
@@ -835,9 +830,11 @@ class TreeShaker {
     _pass2 = new _TreeShakerPass2(this);
   }
 
-  transformComponent(Component component) {
+  FieldMorpher transformComponent(Component component) {
     _pass1.transformComponent(component);
     _pass2.transformComponent(component);
+
+    return fieldMorpher.._shaker = null;
   }
 
   bool isLibraryUsed(Library l) => _usedLibraries.contains(l);
@@ -1013,13 +1010,16 @@ class TreeShaker {
 }
 
 class FieldMorpher {
-  final TreeShaker shaker;
+  // Nullable so that it can be detached from the [TreeShaker].
+  TreeShaker? _shaker;
   final Set<Member> _extraMembersWithReachableBody = <Member>{};
   final Map<Field, Member> _gettersForRemovedFields = <Field, Member>{};
   final Map<Field, Member> _settersForRemovedFields = <Field, Member>{};
   final Map<Member, Field> _removedFields = <Member, Field>{};
 
-  FieldMorpher(this.shaker);
+  TreeShaker get shaker => _shaker!;
+
+  FieldMorpher(this._shaker);
 
   Member _createAccessorForRemovedField(Field field, bool isSetter) {
     assert(!field.isStatic);
