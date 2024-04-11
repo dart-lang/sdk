@@ -16,7 +16,7 @@ dependencies:
   dds_service_extensions: ^2.0.0
   dap: ^1.2.0
   extension_discovery: ^2.0.0
-  devtools_shared: ^8.0.1
+  devtools_shared: ^9.0.1
   http_multi_server: ^3.0.0
   json_rpc_2: ^3.0.0
   meta: ^1.1.8
@@ -29,9 +29,6 @@ dependencies:
   sse: ^4.0.0
   stack_trace: ^1.10.0
   stream_channel: ^2.0.0
-  # TODO(https://github.com/flutter/devtools/issues/7496): remove this dep
-  # when making the breaking change to devtools_shared.
-  unified_analytics: ^6.0.0
   vm_service: ^14.0.0
   web_socket_channel: ^2.0.0
 

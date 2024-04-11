@@ -9,6 +9,7 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:devtools_shared/devtools_extensions_io.dart';
 import 'package:devtools_shared/devtools_server.dart' show DTDConnectionInfo;
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
 import 'package:meta/meta.dart';
@@ -373,6 +374,7 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
           uri: _hostedDartToolingDaemon?.uri,
           secret: _hostedDartToolingDaemon?.secret
         ),
+        devtoolsExtensionsManager: ExtensionsManager(),
       ) as FutureOr<Response> Function(Request);
     }
 

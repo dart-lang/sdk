@@ -5,6 +5,9 @@ and prepared DDS for using `unified_analytics` through the Dart Tooling Daemon.
 - Updated `README.md` and added  contributing guide (`CONTRIBUTING.md`).
 - Updated `package:dds_service_extensions` constraint to ^2.0.0.
 - Determine default `requireUserPermissionToResume` values from the `pause_isolates_on_start` and `pause_isolates_on_exit` flags.
+- Updated the `devtools_shared` dependency to version `^9.0.1`.
+- Remove the `package:unified_analytics` dependency.
+- Serve DevTools extensions from their absolute location.
 
 # 4.0.0
 - Updated DDS protocol to version 2.0.
