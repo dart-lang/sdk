@@ -42,7 +42,8 @@ import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:analyzer/src/utilities/extensions/analysis_session.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
-import 'package:analyzer/src/workspace/pub.dart';
+import 'package:analyzer/src/workspace/blaze.dart';
+import 'package:analyzer/src/workspace/gn.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show SourceFileEdit;
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
@@ -354,12 +355,28 @@ class BulkFixProcessor {
     var details = <BulkFix>[];
     for (var context in contexts) {
       var workspace = context.contextRoot.workspace;
-      if (workspace is! PackageConfigWorkspace) {
+      if (workspace is GnWorkspace || workspace is BlazeWorkspace) {
         continue;
       }
-      var pathContext = context.contextRoot.resourceProvider.pathContext;
+      // Find the pubspec file
+      var rootFolder = context.contextRoot.root;
+      var pubspecFile = rootFolder.getChild('pubspec.yaml') as File;
+      if (!pubspecFile.exists) {
+        continue;
+      }
+      var packages = <String>{};
+      var devPackages = <String>{};
 
-      var packageToDeps = <PubPackage, _PubspecDeps>{};
+      var pathContext = context.contextRoot.resourceProvider.pathContext;
+      final libPath = rootFolder.getChild('lib').path;
+      final binPath = rootFolder.getChild('bin').path;
+
+      bool isPublic(String path) {
+        if (path.startsWith(libPath) || path.startsWith(binPath)) {
+          return true;
+        }
+        return false;
+      }
 
       for (var path in context.contextRoot.analyzedFiles()) {
         if (!file_paths.isDart(pathContext, path) ||
@@ -367,14 +384,8 @@ class BulkFixProcessor {
             file_paths.isMacroGenerated(path)) {
           continue;
         }
-        var package = workspace.findPackageFor(path);
-        if (package is! PubPackage) {
-          continue;
-        }
-        var pubspecDeps =
-            packageToDeps.putIfAbsent(package, () => _PubspecDeps());
-
         // Get the list of imports used in the files.
+
         var result = context.currentSession.getParsedLibrary(path);
         if (result is! ParsedLibraryResult) {
           return PubspecFixRequestResult(fixes, details);
@@ -387,32 +398,28 @@ class BulkFixProcessor {
                 (directive is ImportDirective) ? directive.uri.stringValue : '';
             if (uri!.startsWith('package:')) {
               final name = Uri.parse(uri).pathSegments.first;
-              if (package.isInTestDirectory(unit.file)) {
-                pubspecDeps.devPackages.add(name);
+              if (isPublic(path)) {
+                packages.add(name);
               } else {
-                pubspecDeps.packages.add(name);
+                devPackages.add(name);
               }
             }
           }
         }
       }
 
-      // Iterate over packages in the workspace, compute changes to pubspec.
-      for (var package in packageToDeps.keys) {
-        var pubspecDeps = packageToDeps[package]!;
-        var pubspecFile = package.pubspecFile;
-        var result = await _runPubspecValidatorAndFixGenerator(
-            FileSource(pubspecFile),
-            pubspecDeps.packages,
-            pubspecDeps.devPackages,
-            context.contextRoot.resourceProvider);
-        if (result.isNotEmpty) {
-          for (var fix in result) {
-            fixes.addAll(fix.change.edits);
-          }
-          details.add(BulkFix(pubspecFile.path,
-              [BulkFixDetail(PubspecWarningCode.MISSING_DEPENDENCY.name, 1)]));
+      // Compute changes to pubspec.
+      var result = await _runPubspecValidatorAndFixGenerator(
+          FileSource(pubspecFile),
+          packages,
+          devPackages,
+          context.contextRoot.resourceProvider);
+      if (result.isNotEmpty) {
+        for (var fix in result) {
+          fixes.addAll(fix.change.edits);
         }
+        details.add(BulkFix(pubspecFile.path,
+            [BulkFixDetail(PubspecWarningCode.MISSING_DEPENDENCY.name, 1)]));
       }
     }
     return PubspecFixRequestResult(fixes, details);
@@ -1055,11 +1062,6 @@ class PubspecFixRequestResult {
   final List<BulkFix> details;
 
   PubspecFixRequestResult(this.edits, this.details);
-}
-
-class _PubspecDeps {
-  final Set<String> packages = <String>{};
-  final Set<String> devPackages = <String>{};
 }
 
 extension on int {
