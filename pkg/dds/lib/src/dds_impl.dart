@@ -361,21 +361,28 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
   Handler _httpHandler() {
     final notFoundHandler = proxyHandler(remoteVmServiceUri);
 
-    // If DDS is serving DevTools, install the DevTools handlers and forward
-    // any unhandled HTTP requests to the VM service.
     if (_devToolsConfiguration?.enable ?? false) {
-      final String buildDir =
-          _devToolsConfiguration!.customBuildDirectoryPath.toFilePath();
-      return defaultHandler(
-        dds: this,
-        buildDir: buildDir,
-        notFoundHandler: notFoundHandler,
-        dtd: (
-          uri: _hostedDartToolingDaemon?.uri,
-          secret: _hostedDartToolingDaemon?.secret
-        ),
-        devtoolsExtensionsManager: ExtensionsManager(),
-      ) as FutureOr<Response> Function(Request);
+      final existingDevToolsAddress =
+          _devToolsConfiguration!.devToolsServerAddress;
+      if (existingDevToolsAddress == null) {
+        // If DDS is serving DevTools, install the DevTools handlers and
+        // forward any unhandled HTTP requests to the VM service.
+        final String buildDir =
+            _devToolsConfiguration!.customBuildDirectoryPath.toFilePath();
+        return defaultHandler(
+          dds: this,
+          buildDir: buildDir,
+          notFoundHandler: notFoundHandler,
+          dtd: (
+            uri: _hostedDartToolingDaemon?.uri,
+            secret: _hostedDartToolingDaemon?.secret
+          ),
+          devtoolsExtensionsManager: ExtensionsManager(),
+        ) as FutureOr<Response> Function(Request);
+      }
+      // Otherwise, set the DevTools URI to point to the externally hosted
+      // DevTools instance.
+      _devToolsUri = existingDevToolsAddress;
     }
 
     // Otherwise, DevTools may be served externally, or not at all.
@@ -488,7 +495,8 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
 
   @override
   void setExternalDevToolsUri(Uri uri) {
-    if (_devToolsConfiguration?.enable ?? false) {
+    if ((_devToolsConfiguration?.enable ?? false) &&
+        _devToolsConfiguration?.devToolsServerAddress != null) {
       throw StateError('A hosted DevTools instance is already being served.');
     }
     _devToolsUri = uri;

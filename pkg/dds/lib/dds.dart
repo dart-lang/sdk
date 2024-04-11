@@ -242,9 +242,11 @@ class ExistingDartDevelopmentServiceException
 class DevToolsConfiguration {
   const DevToolsConfiguration({
     required this.customBuildDirectoryPath,
+    this.devToolsServerAddress,
     this.enable = false,
   });
 
   final bool enable;
+  final Uri? devToolsServerAddress;
   final Uri customBuildDirectoryPath;
 }
