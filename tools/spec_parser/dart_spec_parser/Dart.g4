@@ -4,6 +4,8 @@
 
 // CHANGES:
 //
+// v0.43 Support updated augmented `extensionDeclaration`.
+//
 // v0.42 Add missing `enumEntry` update for augmentations.
 //
 // v0.41 Include support for augmentation libraries.
@@ -465,8 +467,12 @@ extensionTypeMemberDeclaration
     ;
 
 extensionDeclaration
-    :    AUGMENT? EXTENSION typeIdentifierNotType? typeParameters? ON type
-         LBRACE (metadata extensionMemberDeclaration)* RBRACE
+    :    EXTENSION typeIdentifierNotType? typeParameters? ON type extensionBody
+    |    AUGMENT EXTENSION typeIdentifierNotType typeParameters? extensionBody
+    ;
+
+extensionBody
+    :    LBRACE (metadata extensionMemberDeclaration)* RBRACE
     ;
 
 // TODO: We might want to make this more strict.
