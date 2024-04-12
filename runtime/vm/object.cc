@@ -9158,7 +9158,7 @@ bool Function::RecognizedKindForceOptimize() const {
     FALL_THROUGH;                                                              \
   case MethodRecognizer::k##clazz##ArrayViewGetIndexed:                        \
     FALL_THROUGH;
-      DART_CLASS_LIST_TYPED_DATA(TYPED_DATA_GET_INDEXED_CASES);
+      DART_CLASS_LIST_TYPED_DATA(TYPED_DATA_GET_INDEXED_CASES)
 #undef TYPED_DATA_GET_INDEXED_CASES
     case MethodRecognizer::kCopyRangeFromUint8ListToOneByteString:
     case MethodRecognizer::kFinalizerBase_getIsolateFinalizers:

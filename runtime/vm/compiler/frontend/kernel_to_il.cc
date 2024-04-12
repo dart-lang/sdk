@@ -967,7 +967,7 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     FALL_THROUGH;                                                              \
   case MethodRecognizer::k##clazz##ArrayViewGetIndexed:                        \
     FALL_THROUGH;
-    DART_CLASS_LIST_TYPED_DATA(TYPED_DATA_GET_INDEXED_CASES);
+    DART_CLASS_LIST_TYPED_DATA(TYPED_DATA_GET_INDEXED_CASES)
 #undef TYPED_DATA_GET_INDEXED_CASES
     case MethodRecognizer::kObjectArrayGetIndexed:
     case MethodRecognizer::kGrowableArrayGetIndexed:
@@ -1202,7 +1202,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
     FALL_THROUGH;                                                              \
   case MethodRecognizer::k##clazz##ArrayViewGetIndexed:                        \
     FALL_THROUGH;
-    DART_CLASS_LIST_TYPED_DATA(TYPED_DATA_GET_INDEXED_CASES);
+    DART_CLASS_LIST_TYPED_DATA(TYPED_DATA_GET_INDEXED_CASES)
 #undef TYPED_DATA_GET_INDEXED_CASES
     case MethodRecognizer::kObjectArrayGetIndexed:
     case MethodRecognizer::kGrowableArrayGetIndexed: {
