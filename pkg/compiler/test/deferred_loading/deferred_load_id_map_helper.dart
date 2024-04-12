@@ -42,7 +42,7 @@ Future<void> runTest(String testGroup, List<String> options,
     await runCompiler(
         memorySourceFiles: sourceFiles,
         options: [
-          '--stage=cfe',
+          '${Flags.stage}=cfe',
           '--out=$cfeFilename',
           ...options,
         ],
@@ -55,6 +55,7 @@ Future<void> runTest(String testGroup, List<String> options,
         memorySourceFiles: dillInputFiles,
         outputProvider: resultCollector,
         options: [
+          '${Flags.stage}=deferred-load-ids',
           '${Flags.deferredLoadIdMapUri}=$resultFilename',
           '--input-dill=memory:$cfeFilename',
           ...options,
