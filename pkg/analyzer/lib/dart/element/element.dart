@@ -132,6 +132,9 @@ abstract class AugmentedInstanceElement {
   /// [MethodElement]s are appended.
   List<MethodElement> get methods;
 
+  /// The type of `this` expression.
+  DartType get thisType;
+
   /// Returns the field from [fields] that has the given [name].
   FieldElement? getField(String name);
 
@@ -202,6 +205,9 @@ abstract class AugmentedInterfaceElement implements AugmentedInstanceElement {
   /// This is a union of mixins applied by the class declaration and all its
   /// augmentations.
   List<InterfaceType> get mixins;
+
+  @override
+  InterfaceType get thisType;
 
   /// The unnamed constructor from [constructors].
   ConstructorElement? get unnamedConstructor;
@@ -1538,11 +1544,7 @@ abstract class InstanceElement
 
   /// The type of `this` expression.
   ///
-  /// For a class like `class MyClass<T, U> {}` the returned type is equivalent
-  /// to the type `MyClass<T, U>`. So, the type arguments are the types of the
-  /// type parameters, and either `none` or `star` is used for the nullability
-  /// suffix is used, depending on the nullability status of the declaring
-  /// library.
+  /// Same as `augmented.thisType`.
   DartType get thisType;
 }
 
