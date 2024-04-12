@@ -785,8 +785,10 @@ class LibraryAnalyzer {
           containerErrorReporter: containerErrorReporter,
         );
       } else if (directive is LibraryDirectiveImpl) {
-        directive.element = containerElement;
-        libraryNameNode = directive.name2;
+        if (containerElement is LibraryElementImpl) {
+          directive.element = containerElement;
+          libraryNameNode = directive.name2;
+        }
       } else if (directive is PartDirectiveImpl) {
         if (containerKind is LibraryFileKind &&
             containerElement is LibraryElementImpl) {

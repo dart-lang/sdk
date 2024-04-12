@@ -1049,9 +1049,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   @override
-  void visitLibraryDirective(LibraryDirective node) {
-    var element = node.element as LibraryElementImpl;
-    _reportMacroDiagnostics(element);
+  void visitLibraryDirective(covariant LibraryDirectiveImpl node) {
+    if (node.element case final element?) {
+      _reportMacroDiagnostics(element);
+    }
 
     super.visitLibraryDirective(node);
   }
