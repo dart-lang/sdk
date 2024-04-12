@@ -4647,9 +4647,6 @@ Fragment StreamingFlowGraphBuilder::BuildAssertStatement(
   const Class& klass =
       Class::ZoneHandle(Z, Library::LookupCoreClass(Symbols::AssertionError()));
   ASSERT(!klass.IsNull());
-  const Function& target = Function::ZoneHandle(
-      Z, klass.LookupStaticFunctionAllowPrivate(Symbols::ThrowNew()));
-  ASSERT(!target.IsNull());
 
   // Build equivalent of `throw _AssertionError._throwNew(start, end, message)`
   // expression. We build throw (even through _throwNew already throws) because
@@ -4657,19 +4654,60 @@ Fragment StreamingFlowGraphBuilder::BuildAssertStatement(
   // terminate with explicit control flow instructions (Branch, Goto, Return
   // or Throw).
   Fragment otherwise_fragment(otherwise);
-  otherwise_fragment += IntConstant(condition_start_offset.Pos());
-  otherwise_fragment += IntConstant(condition_end_offset.Pos());
-  Tag tag = ReadTag();  // read (first part of) message.
-  if (tag == kSomething) {
-    otherwise_fragment += BuildExpression();  // read (rest of) message.
-  } else {
-    otherwise_fragment += Constant(Instance::ZoneHandle(Z));  // null.
-  }
+  if (CompilerState::Current().is_aot()) {
+    // When in AOT, figure out start line, end line, line fragment needed for
+    // the message now, because it won't be available at runtime.
+    const Function& target = Function::ZoneHandle(
+        Z, klass.LookupStaticFunctionAllowPrivate(Symbols::ThrowNewSource()));
+    ASSERT(!target.IsNull());
 
-  // Note: condition_start_offset points to the first token after the opening
-  // paren, not the beginning of 'assert'.
-  otherwise_fragment +=
-      StaticCall(condition_start_offset, target, 3, ICData::kStatic);
+    auto& script = Script::ZoneHandle(Z, Script());
+
+    auto& condition_text = String::ZoneHandle(Z);
+    intptr_t from_line = -1, from_column = -1;
+    if (script.GetTokenLocation(condition_start_offset, &from_line,
+                                &from_column)) {
+      // Extract the assertion condition text (if source is available).
+      intptr_t to_line, to_column;
+      script.GetTokenLocation(condition_end_offset, &to_line, &to_column);
+      condition_text =
+          script.GetSnippet(from_line, from_column, to_line, to_column);
+      condition_text = Symbols::New(thread(), condition_text);
+    } else {
+      condition_text = Symbols::OptimizedOut().ptr();
+    }
+
+    otherwise_fragment += Constant(condition_text);
+    otherwise_fragment += Constant(String::ZoneHandle(Z, script.url()));
+    otherwise_fragment += IntConstant(from_line);    // line
+    otherwise_fragment += IntConstant(from_column);  // pos
+    Tag tag = ReadTag();  // read (first part of) message.
+    if (tag == kSomething) {
+      otherwise_fragment += BuildExpression();  // read (rest of) message.
+    } else {
+      otherwise_fragment += Constant(Instance::ZoneHandle(Z));  // null.
+    }
+    otherwise_fragment +=
+        StaticCall(condition_start_offset, target, 5, ICData::kStatic);
+  } else {
+    const Function& target = Function::ZoneHandle(
+        Z, klass.LookupStaticFunctionAllowPrivate(Symbols::ThrowNew()));
+    ASSERT(!target.IsNull());
+
+    otherwise_fragment += IntConstant(condition_start_offset.Pos());
+    otherwise_fragment += IntConstant(condition_end_offset.Pos());
+    Tag tag = ReadTag();  // read (first part of) message.
+    if (tag == kSomething) {
+      otherwise_fragment += BuildExpression();  // read (rest of) message.
+    } else {
+      otherwise_fragment += Constant(Instance::ZoneHandle(Z));  // null.
+    }
+
+    // Note: condition_start_offset points to the first token after the opening
+    // paren, not the beginning of 'assert'.
+    otherwise_fragment +=
+        StaticCall(condition_start_offset, target, 3, ICData::kStatic);
+  }
   otherwise_fragment += ThrowException(TokenPosition::kNoSource);
   otherwise_fragment += Drop();
 

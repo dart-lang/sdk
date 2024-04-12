@@ -146,7 +146,7 @@ namespace dart {
   V(DateTime_timeZoneName, 1)                                                  \
   V(DateTime_timeZoneOffsetInSeconds, 1)                                       \
   V(AssertionError_throwNew, 3)                                                \
-  V(AssertionError_throwNewSource, 4)                                          \
+  V(AssertionError_throwNewSource, 5)                                          \
   V(Error_throwWithStackTrace, 2)                                              \
   V(StackTrace_current, 0)                                                     \
   V(TypeError_throwNew, 4)                                                     \
