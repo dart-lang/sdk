@@ -9,7 +9,7 @@ import 'package:_fe_analyzer_shared/src/base/syntactic_entity.dart';
 import 'package:analysis_server/src/protocol_server.dart'
     show convertElementToElementKind, ElementKind;
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
-import 'package:analysis_server/src/utilities/flutter.dart';
+import 'package:analysis_server/src/utilities/extensions/flutter.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -303,8 +303,8 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   void visitArgumentList(ArgumentList node) {
     var context = _argumentListContext(node);
     var parent = node.parent;
-    var inWidgetConstructor = parent is InstanceCreationExpression &&
-        Flutter.isWidgetType(parent.staticType);
+    var inWidgetConstructor =
+        parent is InstanceCreationExpression && parent.staticType.isWidgetType;
     for (var argument in node.arguments) {
       var realArgument = argument;
       var argumentKind = 'unnamed';

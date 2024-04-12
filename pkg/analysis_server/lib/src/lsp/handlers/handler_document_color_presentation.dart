@@ -6,7 +6,6 @@ import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
-import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -135,8 +134,7 @@ class DocumentColorPresentationHandler extends SharedMessageHandler<
       final editRange = SourceRange(editStart, editEnd - editStart);
 
       final sessionHelper = AnalysisSessionHelper(unit.session);
-      final colorType =
-          await sessionHelper.getClass(Flutter.widgetsUri, 'Color');
+      final colorType = await sessionHelper.getFlutterClass('Color');
       if (colorType == null) {
         // If we can't find the class (perhaps because this isn't a Flutter
         // project) we will not include any results. In theory the client should

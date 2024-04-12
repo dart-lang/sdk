@@ -14,8 +14,8 @@ import 'package:analysis_server/src/services/completion/dart/uri_helper.dart';
 import 'package:analysis_server/src/services/completion/dart/visibility_tracker.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server/src/utilities/extensions/completion_request.dart';
+import 'package:analysis_server/src/utilities/extensions/flutter.dart';
 import 'package:analysis_server/src/utilities/extensions/object.dart';
-import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
@@ -345,7 +345,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
             appendComma = true;
           }
         } else if (parent is InstanceCreationExpression &&
-            Flutter.isWidgetCreation(parent)) {
+            parent.isWidgetCreation) {
           appendComma = true;
         }
         int? replacementLength;

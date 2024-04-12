@@ -4,7 +4,7 @@
 
 import 'dart:io' as io;
 
-import 'package:analysis_server/src/utilities/flutter.dart';
+import 'package:analysis_server/src/utilities/extensions/flutter.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -135,7 +135,7 @@ class FlutterDataCollector extends RecursiveAstVisitor<void> {
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     var previousParentWidget = parentWidget;
-    if (Flutter.isWidgetCreation(node)) {
+    if (node.isWidgetCreation) {
       var element = node.constructorName.staticElement;
       if (element == null) {
         throw StateError(

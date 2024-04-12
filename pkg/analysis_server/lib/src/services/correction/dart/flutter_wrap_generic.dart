@@ -4,7 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
-import 'package:analysis_server/src/utilities/flutter.dart';
+import 'package:analysis_server/src/utilities/extensions/flutter.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -19,9 +19,8 @@ class FlutterWrapGeneric extends ResolvedCorrectionProducer {
     if (node is! ListLiteral) {
       return;
     }
-    if ((node as ListLiteral).elements.any((CollectionElement exp) =>
-        !(exp is InstanceCreationExpression &&
-            Flutter.isWidgetCreation(exp)))) {
+    if ((node as ListLiteral).elements.any((CollectionElement element) =>
+        !(element is InstanceCreationExpression && element.isWidgetCreation))) {
       return;
     }
     var literalSrc = utils.getNodeText(node);

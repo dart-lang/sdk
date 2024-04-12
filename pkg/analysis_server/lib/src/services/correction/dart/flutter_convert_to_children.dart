@@ -4,7 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
-import 'package:analysis_server/src/utilities/flutter.dart';
+import 'package:analysis_server/src/utilities/extensions/flutter.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -27,7 +27,7 @@ class FlutterConvertToChildren extends ResolvedCorrectionProducer {
           parent2 is NamedExpression &&
           node.name == 'child' &&
           node.staticElement != null &&
-          Flutter.isWidgetExpression(parent2.expression)) {
+          parent2.expression.isWidgetExpression) {
         namedExp = parent2;
       } else {
         return;

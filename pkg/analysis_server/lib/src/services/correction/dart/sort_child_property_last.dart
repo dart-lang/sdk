@@ -5,7 +5,7 @@
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analysis_server/src/utilities/flutter.dart';
+import 'package:analysis_server/src/utilities/extensions/flutter.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -39,7 +39,7 @@ class SortChildPropertyLast extends ResolvedCorrectionProducer {
 
     var creationExpression = childProp.parent?.parent;
     if (creationExpression is! InstanceCreationExpression ||
-        !Flutter.isWidgetCreation(creationExpression)) {
+        !creationExpression.isWidgetCreation) {
       return;
     }
 
@@ -96,7 +96,7 @@ class SortChildPropertyLast extends ResolvedCorrectionProducer {
         return node;
       }
     }
-    return Flutter.findNamedExpression(node, 'child') ??
-        Flutter.findNamedExpression(node, 'children');
+    return node.findArgumentNamed('child') ??
+        node.findArgumentNamed('children');
   }
 }

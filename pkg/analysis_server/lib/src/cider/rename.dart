@@ -9,7 +9,7 @@ import 'package:analysis_server/src/services/refactoring/legacy/naming_conventio
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/utilities/change_builder.dart';
-import 'package:analysis_server/src/utilities/flutter.dart';
+import 'package:analysis_server/src/utilities/extensions/flutter.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/line_info.dart';
@@ -81,9 +81,9 @@ class CanRenameResponse {
   }
 
   FlutterWidgetState? _findFlutterStateClass(Element element, String newName) {
-    if (Flutter.isStatefulWidgetDeclaration(element)) {
+    if (element is ClassElement && element.isStatefulWidgetDeclaration) {
       var oldStateName = '${element.displayName}State';
-      var library = element.library!;
+      var library = element.library;
       var state =
           library.getClass(oldStateName) ?? library.getClass('_$oldStateName');
       if (state != null) {

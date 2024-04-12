@@ -16,7 +16,7 @@ import 'package:analysis_server/src/services/completion/dart/feature_computer.da
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server/src/utilities/extensions/element.dart';
-import 'package:analysis_server/src/utilities/flutter.dart';
+import 'package:analysis_server/src/utilities/extensions/flutter.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -776,7 +776,7 @@ class SuggestionBuilder {
     var enclosingElement = method.enclosingElement;
     if (method.name == 'setState' &&
         enclosingElement is ClassElement &&
-        Flutter.isExactState(enclosingElement)) {
+        enclosingElement.isExactState) {
       // TODO(brianwilkerson): Make this more efficient by creating the correct
       //  suggestion in the first place.
       // Find the line indentation.
@@ -844,11 +844,11 @@ class SuggestionBuilder {
     var selectionOffset = completion.length;
 
     // Optionally add Flutter child widget details.
-    // TODO(pq): revisit this special casing; likely it can be generalized away
+    // TODO(pq): revisit this special casing; likely it can be generalized away.
     var element = parameter.enclosingElement;
-    // If appendColon is false, default values should never be appended.
+    // If `appendColon` is false, default values should never be appended.
     if (element is ConstructorElement && appendColon) {
-      if (Flutter.isWidget(element.enclosingElement.augmented.declaration)) {
+      if (element.enclosingElement.augmented.declaration.isWidget) {
         var analysisOptions = request.analysisSession.analysisContext
             .getAnalysisOptionsForFile(
                 request.resourceProvider.getFile(request.path));

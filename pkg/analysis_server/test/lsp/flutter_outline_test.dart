@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
-import 'package:analysis_server/src/utilities/flutter.dart';
+import 'package:analysis_server/src/utilities/extensions/flutter.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
@@ -95,8 +95,8 @@ Widget build(BuildContext context) => Icon(Icons.alarm);
 
     // Find the path to our mock 'package:flutter/widgets.dart'.
     var driver = server.getAnalysisDriver(mainFilePath)!;
-    var widgetsFilePath = driver.currentSession.uriConverter
-        .uriToPath(Uri.parse(Flutter.widgetsUri))!;
+    var widgetsFilePath =
+        driver.currentSession.uriConverter.uriToPath(Uri.parse(widgetsUri))!;
     var widgetsFileUri = Uri.file(widgetsFilePath);
 
     // We have to provide content to open a file so just read it.

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/utilities/flutter.dart';
+import 'package:analysis_server/src/utilities/extensions/flutter.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -55,7 +55,7 @@ class ColorComputer {
     String? memberName,
     int? index,
   }) {
-    if (!Flutter.isColor(expression.staticType)) return false;
+    if (!expression.staticType.isColor) return false;
 
     target ??= expression;
 
@@ -80,7 +80,7 @@ class ColorComputer {
   /// because they are not const) but are simple well-known dart:ui/Flutter
   /// color constructors that we can manually parse.
   bool tryAddKnownColorConstructor(InstanceCreationExpression expression) {
-    if (!Flutter.isColor(expression.staticType)) return false;
+    if (!expression.staticType.isColor) return false;
 
     final constructor = expression.constructorName;
     final staticElement = constructor.staticElement;
