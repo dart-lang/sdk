@@ -38,6 +38,12 @@ class MissingDependencyValidator {
   /// The listener to record the errors.
   final RecordingErrorListener recorder;
 
+  /// A set of names of special packages that should not be added as
+  /// dependencies in the `pubspec.yaml` file. For example, the flutter_gen
+  /// codegen package is specified in a special `flutter` section of the
+  /// `pubspec.yaml` file and not as part of the `dependencies` section.
+  final Set noDepsPackages = <String>{'flutter_gen'};
+
   MissingDependencyValidator(this.contents, this.source, this.provider)
       : recorder = RecordingErrorListener() {
     reporter = ErrorReporter(recorder, source);
@@ -79,6 +85,10 @@ class MissingDependencyValidator {
     // Ensure that the package itself is not listed as a dependency.
     usedDeps.remove(packageName);
     usedDevDeps.remove(packageName);
+    for (var package in noDepsPackages) {
+      usedDeps.remove(package);
+      usedDevDeps.remove(package);
+    }
 
     var availableDeps = [
       if (dependencies.isNotEmpty)
