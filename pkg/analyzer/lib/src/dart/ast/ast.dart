@@ -1036,11 +1036,13 @@ abstract final class AstNode implements SyntacticEntity {
 
   /// Returns the value of the property with the given [name], or `null` if this
   /// node doesn't have a property with the given name.
+  @Deprecated('Use Expando instead')
   E? getProperty<E>(String name);
 
   /// Set the value of the property with the given [name] to the given [value].
   ///
   /// If the value is `null`, the property is removed.
+  @Deprecated('Use Expando instead')
   void setProperty(String name, Object? value);
 
   /// Returns either this node or the most immediate ancestor of this node for
@@ -1139,11 +1141,13 @@ sealed class AstNodeImpl implements AstNode {
   Token? findPrevious(Token target) =>
       util.findPrevious(beginToken, target) ?? parent?.findPrevious(target);
 
+  @Deprecated('Use Expando instead')
   @override
   E? getProperty<E>(String name) {
     return _propertyMap?[name] as E?;
   }
 
+  @Deprecated('Use Expando instead')
   @override
   void setProperty(String name, Object? value) {
     if (value == null) {

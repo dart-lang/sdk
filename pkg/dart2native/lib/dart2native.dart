@@ -107,7 +107,7 @@ Future<ProcessResult> markExecutable(String outputFile) {
 /// to static functions annotated with `@ResourceIdentifier` will be collected.
 Future<ProcessResult> generateKernelHelper({
   required String dartaotruntime,
-  required String sourceFile,
+  String? sourceFile,
   required String kernelFile,
   String? packages,
   List<String> defines = const [],
@@ -140,7 +140,7 @@ Future<ProcessResult> generateKernelHelper({
     if (resourcesFile != null) '--resources-file=$resourcesFile',
     '--output=$kernelFile',
     ...extraGenKernelOptions,
-    sourceFile,
+    if (sourceFile != null) sourceFile,
   ];
   return Process.run(dartaotruntime, args);
 }
