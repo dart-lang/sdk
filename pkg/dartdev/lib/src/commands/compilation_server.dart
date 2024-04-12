@@ -145,10 +145,10 @@ Note that this command name and usage could change as we evolve the resident fro
       return 0;
     }
 
-    final residentCompilerInfoFileContents =
-        residentCompilerInfoFile.readAsStringSync();
-    final address = getAddress(residentCompilerInfoFileContents);
-    final port = getPortNumber(residentCompilerInfoFileContents);
+    final residentCompilerInfo =
+        ResidentCompilerInfo.fromFile(residentCompilerInfoFile);
+    final address = residentCompilerInfo.address;
+    final port = residentCompilerInfo.port;
     // There is nothing actionable the user can do in response to an error
     // occurring when shutting down. So, we call
     // [shutDownOrForgetResidentFrontendCompiler] here to ensure that when such
