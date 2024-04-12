@@ -10225,8 +10225,10 @@ class MacroIntrospectNodeTest extends MacroElementsBaseTest {
     await _assertIntrospectText(r'''
 import 'append.dart';
 
+class A {}
+
 @Introspect()
-@AppendInterfaceA()
+@AppendInterface('{{package:test/test.dart@A}}')
 class X {}
 ''', r'''
 class X
@@ -10239,8 +10241,10 @@ class X
     await _assertIntrospectText(r'''
 import 'append.dart';
 
+mixin A {}
+
 @Introspect()
-@AppendMixinA()
+@AppendMixin('{{package:test/test.dart@A}}')
 class X {}
 ''', r'''
 class X
@@ -11797,8 +11801,10 @@ mixin B
     await _assertIntrospectText(r'''
 import 'append.dart';
 
+class A {}
+
 @Introspect()
-@AppendInterfaceA()
+@AppendInterface('{{package:test/test.dart@A}}')
 mixin X {}
 ''', r'''
 mixin X

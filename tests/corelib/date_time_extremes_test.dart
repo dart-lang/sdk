@@ -94,6 +94,10 @@ void testExtremes() {
   dt = new DateTime.fromMillisecondsSinceEpoch(-_MAX_MILLISECONDS, isUtc: true);
   Expect.throws(() => new DateTime.utc(
       dt.year, dt.month, dt.day, dt.hour, dt.minute, 0, 0, -1));
+
+  // Regression test for https://dartbug.com/55438
+  dt = DateTime.utc(1969, 12, 31, 23, 59, 59, 999, 999);
+  Expect.equals(-1, dt.microsecondsSinceEpoch);
 }
 
 void main() {

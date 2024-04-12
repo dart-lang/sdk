@@ -33,43 +33,43 @@ Future<List<Object>> resolveIdentifiers(
   return result;
 }
 
-Future<NamedTypeAnnotationCode> _codeA(TypePhaseIntrospector builder) async {
-  return NamedTypeAnnotationCode(
-    // ignore:deprecated_member_use
-    name: await builder.resolveIdentifier(
-      Uri.parse('package:test/append.dart'),
-      'A',
-    ),
-  );
-}
+/*macro*/ class AppendInterface implements ClassTypesMacro, MixinTypesMacro {
+  final String code;
 
-class A {}
-
-/*macro*/ class AppendInterfaceA implements ClassTypesMacro, MixinTypesMacro {
-  const AppendInterfaceA();
+  const AppendInterface(this.code);
 
   @override
   buildTypesForClass(clazz, builder) async {
-    builder.appendInterfaces([
-      await _codeA(builder),
-    ]);
+    await _append(builder);
   }
 
   @override
   buildTypesForMixin(clazz, builder) async {
+    await _append(builder);
+  }
+
+  Future<void> _append(InterfaceTypesBuilder builder) async {
+    final parts = await resolveIdentifiers(builder, code);
     builder.appendInterfaces([
-      await _codeA(builder),
+      RawTypeAnnotationCode.fromParts(parts),
     ]);
   }
 }
 
-/*macro*/ class AppendMixinA implements ClassTypesMacro {
-  const AppendMixinA();
+/*macro*/ class AppendMixin implements ClassTypesMacro {
+  final String code;
+
+  const AppendMixin(this.code);
 
   @override
   buildTypesForClass(clazz, builder) async {
+    await _append(builder);
+  }
+
+  Future<void> _append(MixinTypesBuilder builder) async {
+    final parts = await resolveIdentifiers(builder, code);
     builder.appendMixins([
-      await _codeA(builder),
+      RawTypeAnnotationCode.fromParts(parts),
     ]);
   }
 }

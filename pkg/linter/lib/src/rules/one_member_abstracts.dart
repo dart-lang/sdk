@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../extensions.dart';
 
 const _desc =
     r'Avoid defining a one-member abstract class when a simple function will do.';
@@ -66,26 +67,24 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    var declaredElement = node.declaredElement;
-    if (declaredElement == null) {
-      return;
-    }
-    if (declaredElement.interfaces.isNotEmpty) {
-      return;
-    }
-    if (declaredElement.mixins.isNotEmpty) {
-      return;
-    }
-    if (node.abstractKeyword != null &&
-        node.extendsClause == null &&
-        node.members.length == 1) {
-      var member = node.members.first;
-      if (member is MethodDeclaration &&
-          member.isAbstract &&
-          !member.isGetter &&
-          !member.isSetter) {
-        rule.reportLintForToken(node.name, arguments: [member.name.lexeme]);
-      }
+    if (node.abstractKeyword == null) return;
+    if (node.extendsClause != null) return;
+
+    if (node.isAugmentation) return;
+
+    var element = node.declaredElement;
+    if (element == null) return;
+
+    if (element.allInterfaces.isNotEmpty) return;
+    if (element.allMixins.isNotEmpty) return;
+    if (element.allFields.isNotEmpty) return;
+
+    var methods = element.allMethods;
+    if (methods.length != 1) return;
+
+    var method = methods.first;
+    if (method.isAbstract) {
+      rule.reportLintForToken(node.name, arguments: [method.name]);
     }
   }
 }
