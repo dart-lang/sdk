@@ -65,6 +65,14 @@ extension ElementAnnotationExtensions on ElementAnnotation {
 }
 
 extension ElementExtension on Element {
+  /// If this element is an augmentation, returns the declaration.
+  Element get augmentedDeclaration {
+    if (this case InstanceElement self) {
+      return self.augmented.declaration;
+    }
+    return this;
+  }
+
   /// Return `true` if this element, the enclosing class (if there is one), or
   /// the enclosing library, has been annotated with the `@doNotStore`
   /// annotation.

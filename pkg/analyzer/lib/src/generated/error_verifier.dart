@@ -24,6 +24,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/class_hierarchy.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/non_covariant_type_parameter_position.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -5334,8 +5335,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (element == null || element is TypeParameterElement) {
       return;
     }
+
     var enclosingElement = element.enclosingElement;
-    if (identical(enclosingElement, _enclosingClass)) {
+    if (enclosingElement == null) {
+      return;
+    }
+
+    if (identical(enclosingElement.augmentedDeclaration, _enclosingClass)) {
       return;
     }
     if (enclosingElement is! InterfaceElement) {
