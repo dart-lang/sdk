@@ -6,7 +6,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
@@ -23,7 +22,7 @@ class ClassHierarchy {
   }
 
   void remove(InterfaceElementImpl element) {
-    assert(!element.isAugmentation);
+    assert(element.augmentationTarget == null);
     element.resetCachedAllSupertypes();
     _map.remove(element);
   }
@@ -40,7 +39,7 @@ class ClassHierarchy {
   }
 
   _Hierarchy _getHierarchy(InterfaceElementImpl element) {
-    final augmented = element.augmentedOfDeclaration;
+    final augmented = element.augmented;
 
     var hierarchy = _map[element];
     if (hierarchy != null) {

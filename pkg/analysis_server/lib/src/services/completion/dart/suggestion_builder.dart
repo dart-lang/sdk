@@ -421,10 +421,7 @@ class SuggestionBuilder {
     // prepending a prefix.
     assert(!hasClassName || prefix == null);
 
-    var enclosingClass = constructor.enclosingElement.augmented?.declaration;
-    if (enclosingClass == null) {
-      return;
-    }
+    var enclosingClass = constructor.enclosingElement.augmented.declaration;
 
     var className = enclosingClass.name;
     if (className.isEmpty) {
@@ -851,7 +848,7 @@ class SuggestionBuilder {
     var element = parameter.enclosingElement;
     // If appendColon is false, default values should never be appended.
     if (element is ConstructorElement && appendColon) {
-      if (Flutter.isWidget(element.enclosingElement.augmented?.declaration)) {
+      if (Flutter.isWidget(element.enclosingElement.augmented.declaration)) {
         var analysisOptions = request.analysisSession.analysisContext
             .getAnalysisOptionsForFile(
                 request.resourceProvider.getFile(request.path));

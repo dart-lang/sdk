@@ -142,7 +142,7 @@ class TypesBuilder {
       node.implementsClause?.interfaces,
     );
 
-    if (element.isAugmentation) {
+    if (element.augmentationTarget != null) {
       _updatedAugmented(node.withClause, element);
     } else {
       _toInferMixins[element] = _ToInferMixins(element, node.withClause);
@@ -234,7 +234,7 @@ class TypesBuilder {
     InstanceElementImpl augmentation,
   ) {
     var augmented = augmentation.augmented;
-    if (augmented is AugmentedInstanceElementImpl?) {
+    if (augmented is AugmentedInstanceElementImpl) {
       return augmented;
     }
 
@@ -346,7 +346,7 @@ class TypesBuilder {
       node.implementsClause?.interfaces,
     );
 
-    if (element.isAugmentation) {
+    if (element.augmentationTarget != null) {
       _updatedAugmented(null, element);
     } else {
       if (element.augmentation != null) {
@@ -771,7 +771,7 @@ class _ToInferMixins {
   final List<_ToInferMixinsAugmentation> augmentations = [];
 
   _ToInferMixins(this.element, this.withClause) {
-    assert(!element.isAugmentation);
+    assert(element.augmentationTarget == null);
   }
 }
 

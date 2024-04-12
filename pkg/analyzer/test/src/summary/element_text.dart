@@ -136,22 +136,13 @@ class _ElementWriter {
   void _validateAugmentedInstanceElement(InstanceElementImpl e) {
     final augmented = e.augmented;
 
-    // Find the end of the augmentations chain.
-    // It will be a declaration in valid code.
     InstanceElementImpl? endOfAugmentations = e;
-    while (endOfAugmentations != null && endOfAugmentations.isAugmentation) {
+    while (endOfAugmentations != null) {
+      expect(endOfAugmentations.augmented, same(augmented));
       endOfAugmentations = endOfAugmentations.augmentationTarget;
     }
 
-    // If does not end with a declaration.
-    if (endOfAugmentations == null) {
-      expect(augmented, isNull);
-      return;
-    }
-
-    // ...otherwise we must have the augmented data.
-    expect(augmented, isNotNull);
-    expect(augmented, same(endOfAugmentations.augmented));
+    // TODO(scheglov): check `thisType`
   }
 
   void _writeAugmentation(ElementImpl e) {
@@ -193,7 +184,7 @@ class _ElementWriter {
       return;
     }
 
-    if (e.isAugmentation) {
+    if (e.augmentationTarget != null) {
       return;
     }
 
@@ -206,9 +197,6 @@ class _ElementWriter {
     }
 
     final augmented = e.augmented;
-    if (augmented == null) {
-      return;
-    }
 
     void writeFields() {
       final sorted = augmented.fields.sortedBy((e) => e.name);

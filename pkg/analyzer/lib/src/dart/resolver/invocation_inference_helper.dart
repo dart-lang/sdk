@@ -87,9 +87,6 @@ class InvocationInferenceHelper {
     var typeElement = typeName.element;
     if (typeElement is InterfaceElement) {
       var augmented = typeElement.augmented;
-      if (augmented == null) {
-        return null;
-      }
       typeParameters = typeElement.typeParameters;
       var constructorIdentifier = constructorName.name;
       if (constructorIdentifier == null) {

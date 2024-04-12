@@ -668,7 +668,7 @@ class PropertyElementResolver with ScopeHelpers {
       typeReference = _resolver.typeProvider.typeType.element;
     }
 
-    final augmented = typeReference.augmentedOfDeclaration;
+    final augmented = typeReference.augmented;
 
     ExecutableElement? readElement;
     ExecutableElement? readElementRecovery;

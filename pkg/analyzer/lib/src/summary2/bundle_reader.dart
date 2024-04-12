@@ -147,11 +147,10 @@ class ClassElementLinkedData extends ElementLinkedData<ClassElementImpl> {
     element.supertype = reader._readOptionalInterfaceType();
     element.mixins = reader._readInterfaceTypeList();
     element.interfaces = reader._readInterfaceTypeList();
+    element.augmentationTarget = reader.readElement() as ClassElementImpl?;
     element.augmentation = reader.readElement() as ClassElementImpl?;
 
-    if (element.isAugmentation) {
-      element.augmentationTarget = reader.readElement() as ClassElementImpl?;
-    } else {
+    if (element.augmentationTarget == null) {
       if (reader.readBool()) {
         final augmented = AugmentedClassElementImpl(element);
         element.augmentedInternal = augmented;
@@ -1859,11 +1858,10 @@ class MixinElementLinkedData extends ElementLinkedData<MixinElementImpl> {
     _readTypeParameters(reader, element.typeParameters);
     element.superclassConstraints = reader._readInterfaceTypeList();
     element.interfaces = reader._readInterfaceTypeList();
+    element.augmentationTarget = reader.readElement() as MixinElementImpl?;
     element.augmentation = reader.readElement() as MixinElementImpl?;
 
-    if (element.isAugmentation) {
-      element.augmentationTarget = reader.readElement() as MixinElementImpl?;
-    } else {
+    if (element.augmentationTarget == null) {
       if (reader.readBool()) {
         final augmented = AugmentedMixinElementImpl(element);
         element.augmentedInternal = augmented;
@@ -1967,7 +1965,7 @@ class ResolutionReader {
     if (memberFlags == Tag.MemberWithTypeArguments) {
       var enclosing = element.enclosingElement as InstanceElement;
 
-      var declaration = enclosing.augmented!.declaration;
+      var declaration = enclosing.augmented.declaration;
       var declarationTypeParameters = declaration.typeParameters;
 
       var augmentationSubstitution = Substitution.empty;

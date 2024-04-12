@@ -1112,7 +1112,7 @@ extension ElementExtension on Element {
         // This object can only be guarded by async gaps with a mounted
         // check on the State.
         return enclosingElement.augmented
-            ?.lookUpGetter(name: 'mounted', library: enclosingElement.library);
+            .lookUpGetter(name: 'mounted', library: enclosingElement.library);
       }
     }
 
@@ -1124,7 +1124,7 @@ extension ElementExtension on Element {
         ?.element;
     if (buildContextElement is InterfaceElement) {
       return buildContextElement.augmented
-          ?.lookUpGetter(name: 'mounted', library: buildContextElement.library);
+          .lookUpGetter(name: 'mounted', library: buildContextElement.library);
     }
 
     return null;

@@ -206,19 +206,19 @@ class TypeHierarchyComputerHelper {
       var mixinElement = mixin.element;
       if (pivotKind == ElementKind.METHOD) {
         result = mixinElement.augmented
-            ?.lookUpMethod(name: pivotName, library: pivotLibrary);
+            .lookUpMethod(name: pivotName, library: pivotLibrary);
       } else if (pivotKind == ElementKind.GETTER) {
         result = mixinElement.augmented
-            ?.lookUpGetter(name: pivotName, library: pivotLibrary);
+            .lookUpGetter(name: pivotName, library: pivotLibrary);
       } else if (pivotKind == ElementKind.SETTER) {
         result = mixinElement.augmented
-            ?.lookUpSetter(name: pivotName, library: pivotLibrary);
+            .lookUpSetter(name: pivotName, library: pivotLibrary);
       } else if (pivotKind == ElementKind.FIELD) {
         result = mixinElement.augmented
-            ?.lookUpGetter(name: pivotName, library: pivotLibrary);
+            .lookUpGetter(name: pivotName, library: pivotLibrary);
         if (result == null && !pivotFieldFinal) {
           result = mixinElement.augmented
-              ?.lookUpSetter(name: pivotName, library: pivotLibrary);
+              .lookUpSetter(name: pivotName, library: pivotLibrary);
         }
       }
       if (result == pivotElement) {

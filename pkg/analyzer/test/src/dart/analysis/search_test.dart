@@ -841,7 +841,7 @@ void f() {
 ''');
 
     final A = findElement.class_('A');
-    final element = A.augmented!.constructors.single;
+    final element = A.augmented.constructors.single;
     expect(element.name, 'named');
 
     await assertElementReferencesText(element, r'''

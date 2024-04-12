@@ -317,7 +317,7 @@ class LibraryBuilder with MacroApplicationsContainer {
     for (final classElement in element.topLevelElements) {
       if (classElement is! ClassElementImpl) continue;
       if (classElement.isMixinApplication) continue;
-      if (classElement.isAugmentation) continue;
+      if (classElement.augmentationTarget != null) continue;
       if (hasConstructor(classElement)) continue;
 
       final constructor = ConstructorElementImpl('', -1)..isSynthetic = true;
@@ -683,11 +683,9 @@ class LibraryBuilder with MacroApplicationsContainer {
       if (classElement is! ClassElementImpl) continue;
       if (classElement.isMixinApplication) continue;
       if (classElement.isAugmentation) continue;
-      if (classElement.augmented case var augmented?) {
-        var hasConst = augmented.constructors.any((e) => e.isConst);
-        if (hasConst) {
-          withConstConstructors.add(classElement);
-        }
+      var hasConst = classElement.augmented.constructors.any((e) => e.isConst);
+      if (hasConst) {
+        withConstConstructors.add(classElement);
       }
     }
 
@@ -705,9 +703,7 @@ class LibraryBuilder with MacroApplicationsContainer {
     for (final class_ in element.topLevelElements) {
       if (class_ is! ClassElementImpl) continue;
       if (class_.isMixinApplication) continue;
-
       final augmented = class_.augmented;
-      if (augmented == null) continue;
 
       for (final constructor in class_.constructors) {
         for (final parameter in constructor.parameters) {
@@ -751,15 +747,15 @@ class LibraryBuilder with MacroApplicationsContainer {
     for (final interface in element.topLevelElements) {
       switch (interface) {
         case ClassElementImpl():
-          if (interface.isAugmentation) continue;
+          if (interface.augmentationTarget != null) continue;
           if (interface.isDartCoreObject) continue;
           if (interface.supertype == null) {
             shouldResetClassHierarchies = true;
             interface.supertype = objectType;
           }
         case MixinElementImpl():
-          if (interface.isAugmentation) continue;
-          final augmented = interface.augmented!;
+          if (interface.augmentationTarget != null) continue;
+          final augmented = interface.augmented;
           if (augmented.superclassConstraints.isEmpty) {
             shouldResetClassHierarchies = true;
             interface.superclassConstraints = [objectType];

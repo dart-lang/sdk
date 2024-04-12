@@ -180,10 +180,9 @@ class BundleWriter {
       _resolutionSink.writeType(element.supertype);
       _resolutionSink._writeTypeList(element.mixins);
       _resolutionSink._writeTypeList(element.interfaces);
+      _resolutionSink.writeElement(element.augmentationTarget);
       _resolutionSink.writeElement(element.augmentation);
-      if (element.isAugmentation) {
-        _resolutionSink.writeElement(element.augmentationTarget);
-      } else {
+      if (element.augmentationTarget == null) {
         _resolutionSink.writeIfType<AugmentedClassElementImpl>(
           element.augmented,
           (augmented) {
@@ -510,10 +509,9 @@ class BundleWriter {
     _writeTypeParameters(element.typeParameters, () {
       _resolutionSink._writeTypeList(element.superclassConstraints);
       _resolutionSink._writeTypeList(element.interfaces);
+      _resolutionSink.writeElement(element.augmentationTarget);
       _resolutionSink.writeElement(element.augmentation);
-      if (element.isAugmentation) {
-        _resolutionSink.writeElement(element.augmentationTarget);
-      } else {
+      if (element.augmentationTarget == null) {
         _resolutionSink.writeIfType<AugmentedMixinElementImpl>(
           element.augmented,
           (augmented) {

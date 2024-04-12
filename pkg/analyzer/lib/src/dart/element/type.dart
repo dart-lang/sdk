@@ -475,7 +475,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     required this.nullabilitySuffix,
     super.alias,
   }) {
-    if (element.isAugmentation) {
+    if (element.augmentationTarget != null) {
       throw ArgumentError(
         'InterfaceType(s) can only be created for declarations',
       );
@@ -757,9 +757,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   ConstructorElement? lookUpConstructor(
       String? constructorName, LibraryElement library) {
     var augmented = element.augmented;
-    if (augmented == null) {
-      return null;
-    }
 
     // prepare base ConstructorElement
     ConstructorElement? constructorElement;

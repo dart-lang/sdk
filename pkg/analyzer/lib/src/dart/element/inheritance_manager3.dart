@@ -465,7 +465,7 @@ class InheritanceManager3 {
   }
 
   Interface _getInterfaceClass(InterfaceElement element) {
-    final augmented = element.augmentedOfDeclaration;
+    final augmented = element.augmented;
 
     var namedCandidates = <Name, List<ExecutableElement>>{};
     var superImplemented = <Map<Name, ExecutableElement>>[];
@@ -653,7 +653,7 @@ class InheritanceManager3 {
   /// We handle "has an extension type member" and "has a non-extension type
   /// member" portions, considering redeclaration and conflicts.
   Interface _getInterfaceExtensionType(ExtensionTypeElement element) {
-    final augmented = element.augmentedOfDeclaration;
+    final augmented = element.augmented;
 
     // Add instance members implemented by the element itself.
     final declared = <Name, ExecutableElement>{};
@@ -827,7 +827,7 @@ class InheritanceManager3 {
   }
 
   Interface _getInterfaceMixin(MixinElement element) {
-    final augmented = element.augmentedOfDeclaration;
+    final augmented = element.augmented;
 
     var superCandidates = <Name, List<ExecutableElement>>{};
     for (var constraint in augmented.superclassConstraints) {

@@ -133,7 +133,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       }
     });
 
-    if (element.isAugmentation) {
+    if (element.augmentationTarget != null) {
       switch (_libraryBuilder.getAugmentedBuilder(name)) {
         case AugmentedClassDeclarationBuilder builder:
           builder.augment(element);
@@ -1010,7 +1010,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       }
     });
 
-    if (element.isAugmentation) {
+    if (element.augmentationTarget != null) {
       switch (_libraryBuilder.getAugmentedBuilder(name)) {
         case AugmentedMixinDeclarationBuilder builder:
           builder.augment(element);

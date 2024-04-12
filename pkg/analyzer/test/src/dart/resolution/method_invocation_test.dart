@@ -5197,7 +5197,7 @@ augment class B {
 MethodInvocation
   target: SuperExpression
     superKeyword: super
-    staticType: InvalidType
+    staticType: B
   operator: .
   methodName: SimpleIdentifier
     token: foo
