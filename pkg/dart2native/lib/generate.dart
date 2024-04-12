@@ -78,7 +78,7 @@ Future<void> generateNative({
   List<String> extraOptions = const [],
 }) async {
   final tempDir = Directory.systemTemp.createTempSync();
-  final kernelFile = path.join(tempDir.path, 'kernel.dill');
+  final programKernelFile = path.join(tempDir.path, 'program.dill');
 
   final sourcePath = _normalize(sourceFile)!;
   final sourceWithoutDartOrDill = sourcePath.replaceFirst(
@@ -112,7 +112,7 @@ Future<void> generateNative({
     final kernelResult = await generateKernelHelper(
       dartaotruntime: dartaotruntime,
       sourceFile: sourcePath,
-      kernelFile: kernelFile,
+      kernelFile: programKernelFile,
       packages: packages,
       defines: defines,
       fromDill: await isKernelFile(sourcePath),
@@ -124,13 +124,52 @@ Future<void> generateNative({
         '--verbosity=$verbosity',
         '--${soundNullSafety ? '' : 'no-'}sound-null-safety',
       ],
-      nativeAssets: nativeAssets,
       resourcesFile: resourcesFile,
       aot: true,
     );
     await _forwardOutput(kernelResult);
     if (kernelResult.exitCode != 0) {
       throw StateError('Generating AOT kernel dill failed!');
+    }
+    String kernelFile;
+    if (nativeAssets == null) {
+      kernelFile = programKernelFile;
+    } else {
+      // TODO(dacoharkes): This method will need to be split in two parts. Then
+      // the link hooks can be run in between those two parts.
+      final nativeAssetsDillFile =
+          path.join(tempDir.path, 'native_assets.dill');
+      final kernelResult = await generateKernelHelper(
+        dartaotruntime: dartaotruntime,
+        kernelFile: nativeAssetsDillFile,
+        packages: packages,
+        defines: defines,
+        enableAsserts: enableAsserts,
+        enableExperiment: enableExperiment,
+        targetOS: targetOS,
+        extraGenKernelOptions: [
+          '--invocation-modes=compile',
+          '--verbosity=$verbosity',
+          '--${soundNullSafety ? '' : 'no-'}sound-null-safety',
+        ],
+        nativeAssets: nativeAssets,
+        aot: true,
+      );
+      await _forwardOutput(kernelResult);
+      if (kernelResult.exitCode != 0) {
+        throw StateError('Generating AOT kernel dill failed!');
+      }
+      kernelFile = path.join(tempDir.path, 'kernel.dill');
+      final programKernelBytes = await File(programKernelFile).readAsBytes();
+      final nativeAssetKernelBytes =
+          await File(nativeAssetsDillFile).readAsBytes();
+      await File(kernelFile).writeAsBytes(
+        [
+          ...programKernelBytes,
+          ...nativeAssetKernelBytes,
+        ],
+        flush: true,
+      );
     }
 
     final extraAotOptions = <String>[
