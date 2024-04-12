@@ -65,7 +65,7 @@ class CreateField extends CreateFieldOrGetter {
     if (targetElement.library.isInSdk) {
       return;
     }
-    // Prepare target ClassDeclaration.
+    // Prepare target `ClassDeclaration`.
     var targetDeclarationResult =
         await sessionHelper.getElementDeclaration(targetElement);
     if (targetDeclarationResult == null) {
@@ -75,7 +75,9 @@ class CreateField extends CreateFieldOrGetter {
     if (targetNode is! CompilationUnitMember) {
       return;
     }
-    if (!(targetNode is ClassDeclaration || targetNode is MixinDeclaration)) {
+    if (!(targetNode is ClassDeclaration ||
+        targetNode is EnumDeclaration ||
+        targetNode is MixinDeclaration)) {
       return;
     }
     // Build field source.
@@ -83,19 +85,29 @@ class CreateField extends CreateFieldOrGetter {
     var targetFile = targetSource.fullName;
     await builder.addDartFileEdit(targetFile, (builder) {
       builder.insertField(targetNode, (builder) {
-        builder.writeFieldDeclaration(_fieldName,
-            isStatic: staticModifier,
-            nameGroupName: 'NAME',
-            type: fieldType,
-            typeGroupName: 'TYPE');
+        builder.writeFieldDeclaration(
+          _fieldName,
+          isFinal: targetNode is EnumDeclaration,
+          isStatic: staticModifier,
+          nameGroupName: 'NAME',
+          type: fieldType,
+          typeGroupName: 'TYPE',
+        );
       });
     });
   }
 
   Future<void> _proposeFromFieldFormalParameter(
       ChangeBuilder builder, FieldFormalParameter parameter) async {
-    var targetClassNode = parameter.thisOrAncestorOfType<ClassDeclaration>();
-    if (targetClassNode == null) {
+    var constructor = parameter.thisOrAncestorOfType<ConstructorDeclaration>();
+    if (constructor == null) {
+      return;
+    }
+    var container = constructor.thisOrAncestorOfType<CompilationUnitMember>();
+    if (container == null) {
+      return;
+    }
+    if (container is! ClassDeclaration && container is! EnumDeclaration) {
       return;
     }
 
@@ -103,10 +115,14 @@ class CreateField extends CreateFieldOrGetter {
 
     // Add proposal.
     await builder.addDartFileEdit(file, (builder) {
-      var fieldType = parameter.type?.type;
-      builder.insertField(targetClassNode, (builder) {
-        builder.writeFieldDeclaration(_fieldName,
-            nameGroupName: 'NAME', type: fieldType, typeGroupName: 'TYPE');
+      builder.insertField(container, (builder) {
+        builder.writeFieldDeclaration(
+          _fieldName,
+          isFinal: constructor.constKeyword != null,
+          nameGroupName: 'NAME',
+          type: parameter.declaredElement?.type,
+          typeGroupName: 'TYPE',
+        );
       });
     });
   }
@@ -117,22 +133,18 @@ class CreateField extends CreateFieldOrGetter {
       return;
     }
     _fieldName = nameNode.name;
-    // prepare target Expression
-    Expression? target;
-    {
-      var nameParent = nameNode.parent;
-      if (nameParent is PrefixedIdentifier) {
-        target = nameParent.prefix;
-      } else if (nameParent is PropertyAccess) {
-        target = nameParent.realTarget;
-      }
-    }
-    // prepare target ClassElement
+    // Prepare target `Expression`.
+    var target = switch (nameNode.parent) {
+      PrefixedIdentifier(:var prefix) => prefix,
+      PropertyAccess(:var realTarget) => realTarget,
+      _ => null,
+    };
+    // Prepare target `ClassElement`.
     var staticModifier = false;
     InterfaceElement? targetClassElement;
     if (target != null) {
       targetClassElement = getTargetInterfaceElement(target);
-      // maybe static
+      // Maybe static.
       if (target is Identifier) {
         var targetIdentifier = target;
         var targetElement = targetIdentifier.staticElement;
@@ -147,6 +159,14 @@ class CreateField extends CreateFieldOrGetter {
     }
 
     var fieldTypeNode = climbPropertyAccess(nameNode);
+    var fieldTypeParent = fieldTypeNode.parent;
+    if (targetClassElement is EnumElement &&
+        fieldTypeParent is AssignmentExpression &&
+        fieldTypeNode == fieldTypeParent.leftHandSide) {
+      // Any field on an enum must be final; creating a final field does not
+      // make sense when seen in an assignment expression.
+      return;
+    }
     var fieldType = inferUndefinedExpressionType(fieldTypeNode);
 
     await _addDeclaration(

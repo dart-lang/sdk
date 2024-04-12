@@ -99,6 +99,32 @@ class B implements A {
     });
   }
 
+  Future<void> test_field_inEnum() async {
+    await resolveTestCode('''
+abstract class A {
+  int get foo;
+  set foo(int value);
+}
+
+enum E implements A {
+  one, two;
+}
+''');
+    await assertHasFix('''
+abstract class A {
+  int get foo;
+  set foo(int value);
+}
+
+enum E implements A {
+  one, two;
+
+  @override
+  final int foo;
+}
+''');
+  }
+
   Future<void> test_field_untyped() async {
     await resolveTestCode('''
 class A {
@@ -511,6 +537,62 @@ class X implements B<bool> {
   bool? foo(int a) {
     // TODO: implement foo
     throw UnimplementedError();
+  }
+}
+''');
+  }
+
+  Future<void> test_method_inEnum() async {
+    await resolveTestCode('''
+abstract class A {
+  void foo();
+}
+
+enum E implements A {
+  one, two;
+}
+''');
+    await assertHasFix('''
+abstract class A {
+  void foo();
+}
+
+enum E implements A {
+  one, two;
+
+  @override
+  void foo() {
+    // TODO: implement foo
+  }
+}
+''');
+  }
+
+  Future<void> test_method_inEnumWithMembers() async {
+    await resolveTestCode('''
+abstract class A {
+  void foo();
+}
+
+enum E implements A {
+  one, two;
+
+  void bar() {}
+}
+''');
+    await assertHasFix('''
+abstract class A {
+  void foo();
+}
+
+enum E implements A {
+  one, two;
+
+  void bar() {}
+
+  @override
+  void foo() {
+    // TODO: implement foo
   }
 }
 ''');
