@@ -68,6 +68,29 @@ void cleanupResidentServerInfo(File serverInfoFile) {
   }
 }
 
+/// First, attempts to shut down the Resident Frontend Compiler associated with
+/// [infoFile]. If successful, [infoFile] is deleted. If any error occurs
+/// preventing shutdown, the error is ignored and [infoFile] is deleted, making
+/// the compiler be forgetten. The forgotten compiler will shut itself down a
+/// certain period of inactivity (see the inactivityTimeout parameter of
+/// residentListenAndCompile in
+/// pkg/frontend_server/lib/src/resident_frontend_server.dart).
+Future<void> shutDownOrForgetResidentFrontendCompiler(File infoFile) async {
+  try {
+    // As explained in the doc comment above, this function ignores errors. So,
+    // we ignore the return value of [sendAndReceiveResponse].
+    await sendAndReceiveResponse(
+      residentServerShutdownCommand,
+      infoFile,
+    );
+  } on FileSystemException catch (_) {
+    // As explained in the doc comment above, this function ignores errors. We
+    // only catch [FileSystemException]s because [sendAndReceiveResponse] cannot
+    // throw any other type of error.
+  }
+  cleanupResidentServerInfo(infoFile);
+}
+
 Future<bool> isFileKernelFile(final File file) async {
   final bytes = await file.openRead(0, 4).expand((i) => i).toList();
   if (bytes.length < 4) {
@@ -151,10 +174,10 @@ Future<bool> isFileAotSnapshot(final File file) async {
 // TODO: when frontend_server is migrated to null safe Dart, everything
 // below this comment can be removed and imported from resident_frontend_server
 
-/// Sends a compilation [request] to the Resident Frontend Compiler, returning
-/// it's json response.
+/// Sends a compilation [request] to the Resident Frontend Compiler associated
+/// with [serverInfoFile], and returns the compiler's JSON response.
 ///
-/// Throws a [FileSystemException] if there is no server running.
+/// Throws a [FileSystemException] if [serverInfoFile] cannot be accessed.
 Future<Map<String, dynamic>> sendAndReceiveResponse(
   String request,
   File serverInfoFile,

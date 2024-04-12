@@ -853,7 +853,7 @@ void residentRun() {
   late TestProject serverInfoDirectory, p;
   late String serverInfoFile;
 
-  setUpAll(() async {
+  setUp(() async {
     serverInfoDirectory = project(mainSrc: 'void main() {}');
     serverInfoFile = path.join(serverInfoDirectory.dirPath, 'info');
     final result = await serverInfoDirectory.run([
@@ -873,7 +873,7 @@ void residentRun() {
         isNotEmpty);
   });
 
-  tearDownAll(() async {
+  tearDown(() async {
     try {
       await sendAndReceiveResponse(
         residentServerShutdownCommand,
@@ -968,6 +968,40 @@ void residentRun() {
     );
     expect(result.stderr, isEmpty);
     expect(kernelCache, isNotNull);
+  });
+
+  test('when a connection to a running resident compiler cannot be established',
+      () async {
+    // When this occurs, the user should be informed that the resident frontend
+    // compiler will be restarted, and compilation will be retried.
+    p = project(mainSrc: 'void main() {}');
+    // Create a [testServerInfoFile] that contains an invalid port to guarantee
+    // that a connection will not be established.
+    final testServerInfoFile = File(path.join(p.dirPath, 'info'));
+    testServerInfoFile.createSync();
+    testServerInfoFile.writeAsStringSync('address:127.0.0.1 port:-12 ');
+    final result = await p.run([
+      'run',
+      '--resident',
+      '--$residentCompilerInfoFileOption=${testServerInfoFile.path}',
+      p.relativeFilePath,
+    ]);
+
+    expect(result.exitCode, 0);
+    expect(result.stdout, contains(residentFrontendCompilerPrefix));
+    expect(
+      result.stderr,
+      'Error: A connection to the Resident Frontend Compiler could not be '
+      'established. Restarting the Resident Frontend Compiler and retrying '
+      'compilation.\n',
+    );
+    expect(testServerInfoFile.existsSync(), true);
+
+    await p.run([
+      'compilation-server',
+      'shutdown',
+      '--$residentCompilerInfoFileOption=${testServerInfoFile.path}',
+    ]);
   });
 
   test('Handles experiments', () async {

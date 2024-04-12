@@ -123,8 +123,9 @@ String _cachedKernelPath(String executable, String packageRoot) {
   );
 }
 
-/// Ensures that the Resident Frontend Compiler is running, starting it if
-/// necessary. Throws a [FrontendCompilerException] if starting the server
+/// Ensures that a Resident Frontend Compiler associated with [serverInfoFile]
+/// will be running at the point when the future returned by this function
+/// completes. Throws a [FrontendCompilerException] if starting the server
 /// fails.
 Future<void> ensureCompilationServerIsRunning(
   File serverInfoFile,
