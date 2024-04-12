@@ -3,6 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 import("../executable_suffix.gni")
+import("../toolchain/rbe.gni")
 
 # This file defines templates for running and compiling Dart code during
 # Dart's build.
@@ -82,10 +83,22 @@ template("_compiled_action") {
 
     # The "compiled_action" argument to gn_run_binary.py indicates that
     # it will exit with a non-zero status when the target program does.
-    args = [
-             "compiled_action",
-             rebase_path(host_executable, root_build_dir),
-           ] + invoker.args
+    args = [ "compiled_action" ]
+
+    if (use_rbe && (target_os == rbe_os ||
+                    (target_os == "android" && rbe_os == "linux")) &&
+        target_cpu == rbe_cpu) {
+      args += [
+                "/usr/bin/python3",
+                rebase_path("//build/rbe/rewrapper_dart.py", root_build_dir),
+              ] + rewrapper_args +
+              [
+                "--exec_strategy=" + rbe_expensive_exec_strategy,
+                "--",
+              ]
+    }
+
+    args += [ rebase_path(host_executable, root_build_dir) ] + invoker.args
   }
 }
 
@@ -122,10 +135,22 @@ template("_prebuilt_tool_action") {
       inputs += [ invoker.packages ]
     }
 
-    args = [
-             "compiled_action",
-             rebase_path(invoker.binary, root_build_dir),
-           ] + vm_args
+    args = [ "compiled_action" ]
+
+    if (use_rbe && (target_os == rbe_os ||
+                    (target_os == "android" && rbe_os == "linux")) &&
+        target_cpu == rbe_cpu) {
+      args += [
+                "/usr/bin/python3",
+                rebase_path("//build/rbe/rewrapper_dart.py", root_build_dir),
+              ] + rewrapper_args +
+              [
+                "--exec_strategy=" + rbe_expensive_exec_strategy,
+                "--",
+              ]
+    }
+
+    args += [ rebase_path(invoker.binary, root_build_dir) ] + vm_args
     if (defined(invoker.packages)) {
       args += [ "--packages=" + rebase_path(invoker.packages, root_build_dir) ]
     }

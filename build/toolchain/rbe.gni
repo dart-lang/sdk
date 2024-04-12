@@ -17,9 +17,12 @@ declare_args() {
   # Set to the docker image to use in the RBE.
   rbe_image = "docker://gcr.io/cloud-marketplace/google/debian11@sha256:69e2789c9f3d28c6a0f13b25062c240ee7772be1f5e6d41bb4680b63eae6b304"
 
-  rbe_exec_root = rebase_path("//")
+  # Do expensive RBE compilations both locally and remotely, whatever is faster.
+  rbe_expensive_exec_strategy = "racing"
 
-  rbe_dir = rebase_path("//buildtools/reclient")
+  rbe_exec_root = rebase_path("//", root_build_dir)
+
+  rbe_dir = rebase_path("//buildtools/reclient", root_build_dir)
 }
 
 declare_args() {
