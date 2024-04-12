@@ -125,6 +125,11 @@ enum Runtime {
   jit,
 }
 
+enum AotCompile {
+  assembly,
+  elf,
+}
+
 Future<void> runGenKernel({
   required Runtime runtime,
   required Uri outputUri,
@@ -195,18 +200,69 @@ Future<void> createDillFile({
 }
 
 Future<void> runGenSnapshot({
+  required Uri tempUri,
   required Uri dillUri,
   required Uri outputUri,
-}) =>
-    runProcess(
-      executable: genSnapshotUri.toFilePath(),
-      arguments: [
-        '--snapshot-kind=app-aot-elf',
-        '--elf=${outputUri.toFilePath()}',
-        '--strip',
-        dillUri.toFilePath(),
-      ],
-    );
+  required AotCompile aotCompile,
+}) async {
+  switch (aotCompile) {
+    case AotCompile.elf:
+      await runProcess(
+        executable: genSnapshotUri.toFilePath(),
+        arguments: [
+          '--snapshot-kind=app-aot-elf',
+          '--elf=${outputUri.toFilePath()}',
+          '--strip',
+          dillUri.toFilePath(),
+        ],
+      );
+    case AotCompile.assembly:
+      if (!(Platform.isLinux || Platform.isMacOS)) {
+        // Windows doesn't support assembly snapshots.
+        throw UnsupportedError('Not yet implemented for MSVC');
+      }
+      final assemblyUri = tempUri.resolve('out.S');
+      await runProcess(
+        executable: genSnapshotUri.toFilePath(),
+        arguments: [
+          '--snapshot-kind=app-aot-assembly',
+          '--assembly=${assemblyUri.toFilePath()}',
+          dillUri.toFilePath(),
+        ],
+      );
+      if (!await File.fromUri(assemblyUri).exists()) {
+        throw Error();
+      }
+
+      // Executables and arguments taken from
+      // pkg/test_runner/lib/src/compiler_configuration.dart
+      // `computeAssembleCommand`.
+      if (Platform.isMacOS) {
+        await runProcess(
+          executable: 'clang',
+          arguments: [
+            '-Wl,-undefined,error',
+            '-Wl,-no_compact_unwind',
+            '-dynamiclib',
+            '-o',
+            outputUri.toFilePath(),
+            assemblyUri.toFilePath(),
+          ],
+        );
+      } else if (Platform.isLinux) {
+        await runProcess(
+          executable: 'gcc',
+          arguments: [
+            '-shared',
+            '-Wl,--no-undefined',
+            '-o',
+            outputUri.toFilePath(),
+            assemblyUri.toFilePath(),
+          ],
+        );
+      }
+  }
+}
 
 Future<void> runDart({
   required Uri scriptUri,
@@ -279,6 +335,7 @@ Future<void> compileAndRun({
   required String nativeAssetsYaml,
   required Runtime runtime,
   required KernelCombine kernelCombine,
+  AotCompile aotCompile = AotCompile.elf,
   required List<String> runArguments,
 }) async {
   final nativeAssetsUri = tempUri.resolve('native_assets.yaml');
@@ -297,7 +354,12 @@ Future<void> compileAndRun({
   switch (runtime) {
     case Runtime.aot:
       final snapshotUri = tempUri.resolve('out.snapshot');
-      await runGenSnapshot(dillUri: outDillUri, outputUri: snapshotUri);
+      await runGenSnapshot(
+        tempUri: tempUri,
+        dillUri: outDillUri,
+        outputUri: snapshotUri,
+        aotCompile: aotCompile,
+      );
       await runDartAotRuntime(
           aotSnapshotUri: snapshotUri, arguments: runArguments);
     case Runtime.appjit:
@@ -350,6 +412,7 @@ Future<void> invokeSelf({
   required String nativeAssetsYaml,
   Runtime runtime = Runtime.jit,
   KernelCombine kernelCombine = KernelCombine.source,
+  AotCompile aotCompile = AotCompile.elf,
 }) async {
   await withTempDir((Uri tempUri) async {
     await compileAndRun(
@@ -358,6 +421,7 @@ Future<void> invokeSelf({
       nativeAssetsYaml: nativeAssetsYaml,
       runtime: runtime,
       kernelCombine: kernelCombine,
+      aotCompile: aotCompile,
       runArguments: arguments,
     );
     print([selfSourceUri.toFilePath(), runtime.name, 'done'].join(' '));

@@ -61,6 +61,9 @@ Future<void> selfInvokes() async {
     selfSourceUri: selfSourceUri,
     runtime: Runtime.aot,
     kernelCombine: KernelCombine.concatenation,
+    aotCompile: (Platform.isLinux || Platform.isMacOS)
+        ? AotCompile.assembly
+        : AotCompile.elf,
     relativePath: RelativePath.up,
     arguments: [runTestsArg],
   );
@@ -78,6 +81,7 @@ Future<void> invokeSelf({
   required List<String> arguments,
   Runtime runtime = Runtime.jit,
   KernelCombine kernelCombine = KernelCombine.source,
+  AotCompile aotCompile = AotCompile.elf,
   RelativePath relativePath = RelativePath.same,
 }) async {
   await withTempDir((Uri tempUri) async {
@@ -115,10 +119,17 @@ Future<void> invokeSelf({
       nativeAssetsYaml: nativeAssetsYaml,
       runtime: runtime,
       kernelCombine: kernelCombine,
+      aotCompile: aotCompile,
       runArguments: arguments,
     );
-    print([selfSourceUri.toFilePath(), runtime.name, relativePath.name, 'done']
-        .join(' '));
+    print([
+      selfSourceUri.toFilePath(),
+      runtime.name,
+      kernelCombine.name,
+      if (runtime == Runtime.aot) aotCompile.name,
+      relativePath.name,
+      'done',
+    ].join(' '));
   });
 }
 
