@@ -782,41 +782,6 @@ final class CorrectionUtils {
   String invertCondition(Expression expression) =>
       _invertCondition0(expression)._source;
 
-  InsertionLocation? prepareNewClassMemberLocation(
-      CompilationUnitMember declaration,
-      bool Function(ClassMember existingMember) shouldSkip) {
-    // Find the last target member.
-    ClassMember? targetMember;
-    var members = _getMembers(declaration);
-    if (members == null) {
-      return null;
-    }
-    for (var member in members) {
-      if (shouldSkip(member)) {
-        targetMember = member;
-      } else {
-        break;
-      }
-    }
-    // After the last target member.
-    if (targetMember != null) {
-      return InsertionLocation(
-        prefix: endOfLine + endOfLine + oneIndent,
-        offset: targetMember.end,
-        suffix: '',
-      );
-    }
-    // At the beginning of the class.
-    var suffix = members.isNotEmpty || _isClassWithEmptyBody(declaration)
-        ? endOfLine
-        : '';
-    return InsertionLocation(
-      prefix: endOfLine + oneIndent,
-      offset: _getLeftBracket(declaration)!.end,
-      suffix: suffix,
-    );
-  }
-
   /// Returns the source with indentation changed from [oldIndent] to
   /// [newIndent], keeping indentation of lines relative to each other.
   ///
@@ -917,7 +882,7 @@ final class CorrectionUtils {
 
   /// Returns a description of the place in which to insert a new directive or a
   /// top-level declaration at the top of the file.
-  InsertionLocation _getInsertionLocationTop() {
+  _InsertionLocation _getInsertionLocationTop() {
     // skip leading line comments
     var offset = 0;
     var insertEmptyLineBefore = false;
@@ -962,50 +927,11 @@ final class CorrectionUtils {
     if (insertLine.trim().isNotEmpty) {
       insertEmptyLineAfter = true;
     }
-    return InsertionLocation(
+    return _InsertionLocation(
       prefix: insertEmptyLineBefore ? endOfLine : '',
       offset: offset,
       suffix: insertEmptyLineAfter ? endOfLine : '',
     );
-  }
-
-  Token? _getLeftBracket(CompilationUnitMember declaration) {
-    if (declaration is ClassDeclaration) {
-      return declaration.leftBracket;
-    } else if (declaration is ExtensionDeclaration) {
-      return declaration.leftBracket;
-    } else if (declaration is MixinDeclaration) {
-      return declaration.leftBracket;
-    } else if (declaration is ExtensionTypeDeclaration) {
-      return declaration.leftBracket;
-    }
-    return null;
-  }
-
-  List<ClassMember>? _getMembers(CompilationUnitMember declaration) {
-    if (declaration is ClassDeclaration) {
-      return declaration.members;
-    } else if (declaration is ExtensionDeclaration) {
-      return declaration.members;
-    } else if (declaration is MixinDeclaration) {
-      return declaration.members;
-    } else if (declaration is ExtensionTypeDeclaration) {
-      return declaration.members;
-    }
-    return null;
-  }
-
-  Token? _getRightBracket(CompilationUnitMember declaration) {
-    if (declaration is ClassDeclaration) {
-      return declaration.rightBracket;
-    } else if (declaration is ExtensionDeclaration) {
-      return declaration.rightBracket;
-    } else if (declaration is MixinDeclaration) {
-      return declaration.rightBracket;
-    } else if (declaration is ExtensionTypeDeclaration) {
-      return declaration.rightBracket;
-    }
-    return null;
   }
 
   /// @return the [InvertedCondition] for the given logical expression.
@@ -1076,13 +1002,6 @@ final class CorrectionUtils {
     return _InvertedCondition._simple(getNodeText(expression));
   }
 
-  /// Return `true` if the given class, mixin, enum or extension [declaration]
-  /// has open '{' and close '}' on the same line, e.g. `class X {}`.
-  bool _isClassWithEmptyBody(CompilationUnitMember declaration) {
-    return getLineThis(_getLeftBracket(declaration)!.offset) ==
-        getLineThis(_getRightBracket(declaration)!.offset);
-  }
-
   /// Returns whether [range] contains only whitespace or comments.
   bool _isJustWhitespaceOrComment(SourceRange range) {
     var trimmedText = getRangeText(range).trim();
@@ -1134,19 +1053,6 @@ final class CorrectionUtils {
     }
     return 0;
   }
-}
-
-/// Describes where to insert new text.
-class InsertionLocation {
-  final String prefix;
-  final int offset;
-  final String suffix;
-
-  InsertionLocation({
-    required this.prefix,
-    required this.offset,
-    required this.suffix,
-  });
 }
 
 /// Utilities to work with [Token]s.
@@ -1228,6 +1134,19 @@ class _ImportDirectiveInfo {
   final int end;
 
   _ImportDirectiveInfo(this.uri, this.offset, this.end);
+}
+
+/// Describes where to insert new text.
+class _InsertionLocation {
+  final String prefix;
+  final int offset;
+  final String suffix;
+
+  _InsertionLocation({
+    required this.prefix,
+    required this.offset,
+    required this.suffix,
+  });
 }
 
 /// A container with a source and its precedence.
