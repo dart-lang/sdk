@@ -2683,15 +2683,6 @@ class MiniAstOperations
     'List<int>': Type('List<int>'),
   };
 
-  static final Map<String, bool> _coreAreStructurallyEqualResults = {
-    'Object == FutureOr<Object>': false,
-    'double == num': false,
-    'int == Object': false,
-    'int == num': false,
-    'num == int': false,
-    'List<int> == int': false,
-  };
-
   @override
   late final Type objectQuestionType = Type('Object?');
 
@@ -2732,9 +2723,6 @@ class MiniAstOperations
   Map<String, Map<String, String>> _promotionExceptions = {};
 
   Map<String, Type> _normalizeResults = Map.of(_coreNormalizeResults);
-
-  Map<String, bool> _areStructurallyEqualResults =
-      Map.of(_coreAreStructurallyEqualResults);
 
   final TypeSystem _typeSystem = TypeSystem();
 
@@ -2790,13 +2778,7 @@ class MiniAstOperations
   }
 
   @override
-  bool areStructurallyEqual(Type type1, Type type2) {
-    if ('$type1' == '$type2') {
-      return true;
-    }
-    var query = '$type1 == $type2';
-    return _areStructurallyEqualResults[query] ?? fail('Unknown query: $query');
-  }
+  bool areStructurallyEqual(Type type1, Type type2) => '$type1' == '$type2';
 
   @override
   shared.RecordType<Type>? asRecordType(Type type) {
