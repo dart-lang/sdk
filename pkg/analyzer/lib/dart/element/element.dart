@@ -242,7 +242,7 @@ abstract class ClassElement implements InterfaceElement {
 
   @experimental
   @override
-  AugmentedClassElement? get augmented;
+  AugmentedClassElement get augmented;
 
   /// Whether the class or its superclass declares a non-final instance field.
   bool get hasNonFinalField;
@@ -1203,7 +1203,7 @@ abstract class EnumElement implements InterfaceElement {
 
   @experimental
   @override
-  AugmentedEnumElement? get augmented;
+  AugmentedEnumElement get augmented;
 }
 
 /// An element representing an executable object, including functions, methods,
@@ -1299,7 +1299,7 @@ abstract class ExtensionElement implements InstanceElement {
 
   @experimental
   @override
-  AugmentedExtensionElement? get augmented;
+  AugmentedExtensionElement get augmented;
 
   /// The type that is extended by this extension.
   DartType get extendedType;
@@ -1340,7 +1340,7 @@ abstract class ExtensionTypeElement implements InterfaceElement {
 
   @experimental
   @override
-  AugmentedExtensionTypeElement? get augmented;
+  AugmentedExtensionTypeElement get augmented;
 
   /// The primary constructor of this extension.
   ConstructorElement get primaryConstructor;
@@ -1517,14 +1517,10 @@ abstract class InstanceElement
 
   /// The result of merging augmentations.
   ///
-  /// Returns `null` if this element is an augmentation and there is no base
-  /// element from which a merge can be performed.
-  ///
-  /// If a non-null instance is returned it will include the members of
-  /// the base element and its augmentations as specified by the merge
-  /// operations.
+  /// It includes the members of the base element and its augmentations as
+  /// specified by the merge operations.
   @experimental
-  AugmentedInstanceElement? get augmented;
+  AugmentedInstanceElement get augmented;
 
   @override
   CompilationUnitElement get enclosingElement;
@@ -1564,7 +1560,7 @@ abstract class InterfaceElement implements InstanceElement {
 
   @experimental
   @override
-  AugmentedInterfaceElement? get augmented;
+  AugmentedInterfaceElement get augmented;
 
   /// The declared constructors.
   ///
@@ -2098,7 +2094,7 @@ abstract class MixinElement implements InterfaceElement {
 
   @experimental
   @override
-  AugmentedMixinElement? get augmented;
+  AugmentedMixinElement get augmented;
 
   /// Whether the mixin is a base mixin.
   ///

@@ -281,13 +281,15 @@ class ClassElementImpl extends ClassOrMixinElementImpl
   }
 
   @override
-  MaybeAugmentedClassElementMixin? get augmented {
+  MaybeAugmentedClassElementMixin get augmented {
     if (isAugmentation) {
-      return augmentationTarget?.augmented;
-    } else {
-      linkedData?.read(this);
-      return augmentedInternal;
+      if (augmentationTarget case final augmentationTarget?) {
+        return augmentationTarget.augmented;
+      }
     }
+
+    linkedData?.read(this);
+    return augmentedInternal;
   }
 
   @override
@@ -1120,9 +1122,8 @@ class ConstructorElementImpl extends ExecutableElementImpl
       return result as InterfaceType;
     }
 
-    final augmentedDeclaration = enclosingElement.augmented?.declaration;
-    result = augmentedDeclaration?.thisType;
-    result ??= InvalidTypeImpl.instance;
+    final augmentedDeclaration = enclosingElement.augmented.declaration;
+    result = augmentedDeclaration.thisType;
     return _returnType = result as InterfaceType;
   }
 
@@ -2695,13 +2696,15 @@ class EnumElementImpl extends InterfaceElementImpl
   EnumElementImpl(super.name, super.offset);
 
   @override
-  MaybeAugmentedEnumElementMixin? get augmented {
+  MaybeAugmentedEnumElementMixin get augmented {
     if (isAugmentation) {
-      return augmentationTarget?.augmented;
-    } else {
-      linkedData?.read(this);
-      return augmentedInternal;
+      if (augmentationTarget case final augmentationTarget?) {
+        return augmentationTarget.augmented;
+      }
     }
+
+    linkedData?.read(this);
+    return augmentedInternal;
   }
 
   List<FieldElementImpl> get constants {
@@ -2934,13 +2937,15 @@ class ExtensionElementImpl extends InstanceElementImpl
   ExtensionElementImpl(super.name, super.nameOffset);
 
   @override
-  MaybeAugmentedExtensionElementMixin? get augmented {
+  MaybeAugmentedExtensionElementMixin get augmented {
     if (isAugmentation) {
-      return augmentationTarget?.augmented;
-    } else {
-      linkedData?.read(this);
-      return augmentedInternal;
+      if (augmentationTarget case final augmentationTarget?) {
+        return augmentationTarget.augmented;
+      }
     }
+
+    linkedData?.read(this);
+    return augmentedInternal;
   }
 
   @override
@@ -3058,13 +3063,15 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
   ExtensionTypeElementImpl(super.name, super.nameOffset);
 
   @override
-  MaybeAugmentedExtensionTypeElementMixin? get augmented {
+  MaybeAugmentedExtensionTypeElementMixin get augmented {
     if (isAugmentation) {
-      return augmentationTarget?.augmented;
-    } else {
-      linkedData?.read(this);
-      return augmentedInternal;
+      if (augmentationTarget case final augmentationTarget?) {
+        return augmentationTarget.augmented;
+      }
     }
+
+    linkedData?.read(this);
+    return augmentedInternal;
   }
 
   @override
@@ -3519,7 +3526,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   InterfaceElementImpl? get augmentationTarget;
 
   @override
-  AugmentedInterfaceElement? get augmented;
+  AugmentedInterfaceElement get augmented;
 
   @override
   List<Element> get children => [
@@ -5097,7 +5104,7 @@ mixin MaybeAugmentedInstanceElementMixin implements AugmentedInstanceElement {
         return;
       }
       for (InterfaceType mixin in augmented.mixins.reversed) {
-        getter = mixin.element.augmented?.getGetter(name);
+        getter = mixin.element.augmented.getGetter(name);
         if (getter != null) {
           yield getter;
         }
@@ -5129,7 +5136,7 @@ mixin MaybeAugmentedInstanceElementMixin implements AugmentedInstanceElement {
         return;
       }
       for (InterfaceType mixin in augmented.mixins.reversed) {
-        method = mixin.element.augmented?.getMethod(name);
+        method = mixin.element.augmented.getMethod(name);
         if (method != null) {
           yield method;
         }
@@ -5162,7 +5169,7 @@ mixin MaybeAugmentedInstanceElementMixin implements AugmentedInstanceElement {
         return;
       }
       for (InterfaceType mixin in augmented.mixins.reversed) {
-        setter = mixin.element.augmented?.getSetter(name);
+        setter = mixin.element.augmented.getSetter(name);
         if (setter != null) {
           yield setter;
         }
@@ -5290,13 +5297,15 @@ class MixinElementImpl extends ClassOrMixinElementImpl
   MixinElementImpl(super.name, super.offset);
 
   @override
-  MaybeAugmentedMixinElementMixin? get augmented {
+  MaybeAugmentedMixinElementMixin get augmented {
     if (isAugmentation) {
-      return augmentationTarget?.augmented;
-    } else {
-      linkedData?.read(this);
-      return augmentedInternal;
+      if (augmentationTarget case final augmentationTarget?) {
+        return augmentationTarget.augmented;
+      }
     }
+
+    linkedData?.read(this);
+    return augmentedInternal;
   }
 
   @override

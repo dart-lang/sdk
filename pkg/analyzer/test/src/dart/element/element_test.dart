@@ -1648,7 +1648,7 @@ class A {
 ''');
     var classA = library.getClass('A')!;
     var getter = classA.accessors[0];
-    expect(classA.augmented?.lookUpGetter(name: 'g', library: library),
+    expect(classA.augmented.lookUpGetter(name: 'g', library: library),
         same(getter));
   }
 
@@ -1666,8 +1666,8 @@ import augment 'a.dart';
 class A {}
 ''');
     var classA = library.getClass('A')!;
-    var getter = classA.augmented!.accessors[0];
-    expect(classA.augmented?.lookUpGetter(name: 'g', library: library),
+    var getter = classA.augmented.accessors[0];
+    expect(classA.augmented.lookUpGetter(name: 'g', library: library),
         same(getter));
   }
 
@@ -1681,7 +1681,7 @@ class B extends A {}
     var classA = library.getClass('A')!;
     var getter = classA.accessors[0];
     var classB = library.getClass('B')!;
-    expect(classB.augmented?.lookUpGetter(name: 'g', library: library),
+    expect(classB.augmented.lookUpGetter(name: 'g', library: library),
         same(getter));
   }
 
@@ -1700,9 +1700,9 @@ class A {}
 class B extends A {}
 ''');
     var classA = library.getClass('A')!;
-    var getter = classA.augmented!.accessors[0];
+    var getter = classA.augmented.accessors[0];
     var classB = library.getClass('B')!;
-    expect(classB.augmented?.lookUpGetter(name: 'g', library: library),
+    expect(classB.augmented.lookUpGetter(name: 'g', library: library),
         same(getter));
   }
 
@@ -1716,7 +1716,7 @@ class B with A {}
     var mixinA = library.getMixin('A')!;
     var getter = mixinA.accessors[0];
     var classB = library.getClass('B')!;
-    expect(classB.augmented?.lookUpGetter(name: 'g', library: library),
+    expect(classB.augmented.lookUpGetter(name: 'g', library: library),
         same(getter));
   }
 
@@ -1725,7 +1725,7 @@ class B with A {}
 class A {}
 ''');
     var classA = library.getClass('A')!;
-    expect(classA.augmented?.lookUpGetter(name: 'g', library: library), isNull);
+    expect(classA.augmented.lookUpGetter(name: 'g', library: library), isNull);
   }
 
   test_lookUpGetter_undeclared_recursive() async {
@@ -1734,7 +1734,7 @@ class A extends B {}
 class B extends A {}
 ''');
     var classA = library.getClass('A')!;
-    expect(classA.augmented?.lookUpGetter(name: 'g', library: library), isNull);
+    expect(classA.augmented.lookUpGetter(name: 'g', library: library), isNull);
   }
 
   test_lookUpMethod_declared() async {
@@ -1745,7 +1745,7 @@ class A {
 ''');
     var classA = library.getClass('A')!;
     var method = classA.methods[0];
-    expect(classA.augmented?.lookUpMethod(name: 'm', library: library),
+    expect(classA.augmented.lookUpMethod(name: 'm', library: library),
         same(method));
   }
 
@@ -1763,8 +1763,8 @@ import augment 'a.dart';
 class A {}
 ''');
     var classA = library.getClass('A')!;
-    var method = classA.augmented!.methods[0];
-    expect(classA.augmented?.lookUpMethod(name: 'm', library: library),
+    var method = classA.augmented.methods[0];
+    expect(classA.augmented.lookUpMethod(name: 'm', library: library),
         same(method));
   }
 
@@ -1778,7 +1778,7 @@ class B extends A {}
     var classA = library.getClass('A')!;
     var method = classA.methods[0];
     var classB = library.getClass('B')!;
-    expect(classB.augmented?.lookUpMethod(name: 'm', library: library),
+    expect(classB.augmented.lookUpMethod(name: 'm', library: library),
         same(method));
   }
 
@@ -1797,9 +1797,9 @@ class A {}
 class B extends A {}
 ''');
     var classA = library.getClass('A')!;
-    var method = classA.augmented!.methods[0];
+    var method = classA.augmented.methods[0];
     var classB = library.getClass('B')!;
-    expect(classB.augmented?.lookUpMethod(name: 'm', library: library),
+    expect(classB.augmented.lookUpMethod(name: 'm', library: library),
         same(method));
   }
 
@@ -1813,7 +1813,7 @@ class B with A {}
     var mixinA = library.getMixin('A')!;
     var method = mixinA.methods[0];
     var classB = library.getClass('B')!;
-    expect(classB.augmented?.lookUpMethod(name: 'm', library: library),
+    expect(classB.augmented.lookUpMethod(name: 'm', library: library),
         same(method));
   }
 
@@ -1822,7 +1822,7 @@ class B with A {}
 class A {}
 ''');
     var classA = library.getClass('A')!;
-    expect(classA.augmented?.lookUpMethod(name: 'm', library: library), isNull);
+    expect(classA.augmented.lookUpMethod(name: 'm', library: library), isNull);
   }
 
   test_lookUpMethod_undeclared_recursive() async {
@@ -1831,7 +1831,7 @@ class A extends B {}
 class B extends A {}
 ''');
     var classA = library.getClass('A')!;
-    expect(classA.augmented?.lookUpMethod(name: 'm', library: library), isNull);
+    expect(classA.augmented.lookUpMethod(name: 'm', library: library), isNull);
   }
 
   test_lookUpSetter_declared() async {
@@ -1842,7 +1842,7 @@ class A {
 ''');
     var classA = library.getClass('A')!;
     var setter = classA.accessors[0];
-    expect(classA.augmented?.lookUpSetter(name: 's', library: library),
+    expect(classA.augmented.lookUpSetter(name: 's', library: library),
         same(setter));
   }
 
@@ -1860,8 +1860,8 @@ import augment 'a.dart';
 class A {}
 ''');
     var classA = library.getClass('A')!;
-    var setter = classA.augmented!.accessors[0];
-    expect(classA.augmented?.lookUpSetter(name: 's', library: library),
+    var setter = classA.augmented.accessors[0];
+    expect(classA.augmented.lookUpSetter(name: 's', library: library),
         same(setter));
   }
 
@@ -1875,7 +1875,7 @@ class B extends A {}
     var classA = library.getClass('A')!;
     var setter = classA.accessors[0];
     var classB = library.getClass('B')!;
-    expect(classB.augmented?.lookUpSetter(name: 's', library: library),
+    expect(classB.augmented.lookUpSetter(name: 's', library: library),
         same(setter));
   }
 
@@ -1894,9 +1894,9 @@ class A {}
 class B extends A {}
 ''');
     var classA = library.getClass('A')!;
-    var setter = classA.augmented!.accessors[0];
+    var setter = classA.augmented.accessors[0];
     var classB = library.getClass('B')!;
-    expect(classB.augmented?.lookUpSetter(name: 's', library: library),
+    expect(classB.augmented.lookUpSetter(name: 's', library: library),
         same(setter));
   }
 
@@ -1910,7 +1910,7 @@ class B with A {}
     var mixinA = library.getMixin('A')!;
     var setter = mixinA.accessors[0];
     var classB = library.getClass('B')!;
-    expect(classB.augmented?.lookUpSetter(name: 's', library: library),
+    expect(classB.augmented.lookUpSetter(name: 's', library: library),
         same(setter));
   }
 
@@ -1919,7 +1919,7 @@ class B with A {}
 class A {}
 ''');
     var classA = library.getClass('A')!;
-    expect(classA.augmented?.lookUpSetter(name: 's', library: library), isNull);
+    expect(classA.augmented.lookUpSetter(name: 's', library: library), isNull);
   }
 
   test_lookUpSetter_undeclared_recursive() async {
@@ -1928,7 +1928,7 @@ class A extends B {}
 class B extends A {}
 ''');
     var classA = library.getClass('A')!;
-    expect(classA.augmented?.lookUpSetter(name: 's', library: library), isNull);
+    expect(classA.augmented.lookUpSetter(name: 's', library: library), isNull);
   }
 }
 

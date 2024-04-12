@@ -140,7 +140,7 @@ class DeclarationHelper {
   void addConstructorNamesForElement({
     required InterfaceElement element,
   }) {
-    var constructors = element.augmented?.constructors ?? element.constructors;
+    var constructors = element.augmented.constructors;
     for (var constructor in constructors) {
       _suggestConstructor(
         constructor,
@@ -445,11 +445,8 @@ class DeclarationHelper {
   void addPossibleRedirectionsInLibrary(
       ConstructorElement redirectingConstructor, LibraryElement library) {
     var classElement =
-        redirectingConstructor.enclosingElement.augmented?.declaration;
-    var classType = classElement?.thisType;
-    if (classType == null) {
-      return;
-    }
+        redirectingConstructor.enclosingElement.augmented.declaration;
+    var classType = classElement.thisType;
     var typeSystem = library.typeSystem;
     for (var unit in library.units) {
       for (var classElement in unit.classes) {
@@ -482,27 +479,30 @@ class DeclarationHelper {
       case EnumElement():
         var augmented = element.augmented;
         _addStaticMembers(
-            accessors: augmented?.accessors ?? element.accessors,
-            constructors: augmented?.constructors ?? element.constructors,
-            containingElement: element,
-            fields: augmented?.fields ?? element.fields,
-            methods: augmented?.methods ?? element.methods);
+          accessors: augmented.accessors,
+          constructors: augmented.constructors,
+          containingElement: element,
+          fields: augmented.fields,
+          methods: augmented.methods,
+        );
       case ExtensionElement():
         var augmented = element.augmented;
         _addStaticMembers(
-            accessors: augmented?.accessors ?? element.accessors,
-            constructors: const [],
-            containingElement: element,
-            fields: augmented?.fields ?? element.fields,
-            methods: augmented?.methods ?? element.methods);
+          accessors: augmented.accessors,
+          constructors: const [],
+          containingElement: element,
+          fields: augmented.fields,
+          methods: augmented.methods,
+        );
       case InterfaceElement():
         var augmented = element.augmented;
         _addStaticMembers(
-            accessors: augmented?.accessors ?? element.accessors,
-            constructors: augmented?.constructors ?? element.constructors,
-            containingElement: element,
-            fields: augmented?.fields ?? element.fields,
-            methods: augmented?.methods ?? element.methods);
+          accessors: augmented.accessors,
+          constructors: augmented.constructors,
+          containingElement: element,
+          fields: augmented.fields,
+          methods: augmented.methods,
+        );
     }
   }
 
@@ -949,22 +949,19 @@ class DeclarationHelper {
   void _addMembersOfEnclosingInstance(InstanceElement element) {
     var augmented = element.augmented;
 
-    var accessors = augmented?.accessors ?? element.accessors;
-    for (var accessor in accessors) {
+    for (var accessor in augmented.accessors) {
       if (!accessor.isSynthetic && (!mustBeStatic || accessor.isStatic)) {
         _suggestProperty(accessor, element);
       }
     }
 
-    var fields = augmented?.fields ?? element.fields;
-    for (var field in fields) {
+    for (var field in augmented.fields) {
       if (!field.isSynthetic && (!mustBeStatic || field.isStatic)) {
         _suggestField(field, element);
       }
     }
 
-    var methods = augmented?.methods ?? element.methods;
-    for (var method in methods) {
+    for (var method in augmented.methods) {
       if (!mustBeStatic || method.isStatic) {
         _suggestMethod(method, element);
       }
@@ -1217,11 +1214,10 @@ class DeclarationHelper {
         collector.addSuggestion(suggestion);
       }
       if (!mustBeType) {
-        if (element.augmented case var augmented?) {
-          _suggestStaticFields(augmented.fields, importData);
-          _suggestConstructors(augmented.constructors, importData,
-              allowNonFactory: !element.isAbstract);
-        }
+        var augmented = element.augmented;
+        _suggestStaticFields(augmented.fields, importData);
+        _suggestConstructors(augmented.constructors, importData,
+            allowNonFactory: !element.isAbstract);
       }
     }
   }
@@ -1285,11 +1281,10 @@ class DeclarationHelper {
       var suggestion = EnumSuggestion(importData: importData, element: element);
       collector.addSuggestion(suggestion);
       if (!mustBeType) {
-        if (element.augmented case var augmented?) {
-          _suggestStaticFields(augmented.fields, importData);
-          _suggestConstructors(augmented.constructors, importData,
-              allowNonFactory: false);
-        }
+        var augmented = element.augmented;
+        _suggestStaticFields(augmented.fields, importData);
+        _suggestConstructors(augmented.constructors, importData,
+            allowNonFactory: false);
       }
     }
   }
@@ -1305,9 +1300,8 @@ class DeclarationHelper {
           ExtensionSuggestion(importData: importData, element: element);
       collector.addSuggestion(suggestion);
       if (!mustBeType) {
-        if (element.augmented case var augmented?) {
-          _suggestStaticFields(augmented.fields, importData);
-        }
+        var augmented = element.augmented;
+        _suggestStaticFields(augmented.fields, importData);
       }
     }
   }
@@ -1324,10 +1318,9 @@ class DeclarationHelper {
           ExtensionTypeSuggestion(importData: importData, element: element);
       collector.addSuggestion(suggestion);
       if (!mustBeType) {
-        if (element.augmented case var augmented?) {
-          _suggestStaticFields(augmented.fields, importData);
-          _suggestConstructors(augmented.constructors, importData);
-        }
+        var augmented = element.augmented;
+        _suggestStaticFields(augmented.fields, importData);
+        _suggestConstructors(augmented.constructors, importData);
       }
     }
   }
@@ -1403,9 +1396,8 @@ class DeclarationHelper {
           MixinSuggestion(importData: importData, element: element);
       collector.addSuggestion(suggestion);
       if (!mustBeType) {
-        if (element.augmented case var augmented?) {
-          _suggestStaticFields(augmented.fields, importData);
-        }
+        var augmented = element.augmented;
+        _suggestStaticFields(augmented.fields, importData);
       }
     }
   }

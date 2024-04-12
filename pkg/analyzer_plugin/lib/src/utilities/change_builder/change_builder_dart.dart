@@ -198,7 +198,13 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       typeRequired = false;
     }
     if (type != null) {
-      writeType(type, groupName: typeGroupName, required: true);
+      // `writeType` will write `var` for `dynamic`, which we cannot use after
+      // `final`.
+      if (isFinal && type is DynamicType) {
+        write(Keyword.DYNAMIC.lexeme);
+      } else {
+        writeType(type, groupName: typeGroupName, required: !isFinal);
+      }
       write(' ');
     } else if (typeRequired) {
       write(Keyword.VAR.lexeme);
@@ -721,11 +727,13 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   }
 
   @override
-  bool writeType(DartType? type,
-      {bool addSupertypeProposals = false,
-      String? groupName,
-      ExecutableElement? methodBeingCopied,
-      bool required = false}) {
+  bool writeType(
+    DartType? type, {
+    bool addSupertypeProposals = false,
+    String? groupName,
+    ExecutableElement? methodBeingCopied,
+    bool required = false,
+  }) {
     var wroteType = false;
     if (type != null && type is! DynamicType) {
       if (groupName != null) {

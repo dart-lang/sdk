@@ -6,6 +6,7 @@ import 'package:analysis_server/src/services/correction/dart/abstract_producer.d
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/utilities/strings.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/error/inheritance_override.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -22,13 +23,17 @@ class CreateMissingOverrides extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final targetClass = node;
-    if (targetClass is! ClassDeclaration) {
+    final targetDeclaration = node;
+    if (targetDeclaration is! NamedCompilationUnitMember) {
+      return;
+    }
+    if (targetDeclaration is! ClassDeclaration &&
+        targetDeclaration is! EnumDeclaration) {
       return;
     }
     var signatures = [
-      ...InheritanceOverrideVerifier.missingOverrides(targetClass),
-      ...InheritanceOverrideVerifier.missingMustBeOverridden(targetClass)
+      ...InheritanceOverrideVerifier.missingOverrides(targetDeclaration),
+      ...InheritanceOverrideVerifier.missingMustBeOverridden(targetDeclaration)
     ];
     // Sort by name, getters before setters.
     signatures.sort((ExecutableElement a, ExecutableElement b) {
@@ -45,7 +50,7 @@ class CreateMissingOverrides extends ResolvedCorrectionProducer {
 
     var prefix = utils.oneIndent;
     await builder.addDartFileEdit(file, (builder) {
-      builder.insertIntoUnitMember(targetClass, (builder) {
+      builder.insertIntoUnitMember(targetDeclaration, (builder) {
         // Separator management.
         var numOfMembersWritten = 0;
         void addSeparatorBetweenDeclarations() {
@@ -80,6 +85,10 @@ class CreateMissingOverrides extends ResolvedCorrectionProducer {
               builder.write(eol);
               // Add field.
               builder.write(prefix);
+              if (targetDeclaration is EnumDeclaration) {
+                builder.write(Keyword.FINAL.lexeme);
+                builder.write(' ');
+              }
               builder.writeType(element.returnType, required: true);
               builder.write(' ');
               builder.write(element.name);

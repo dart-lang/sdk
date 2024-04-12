@@ -430,10 +430,6 @@ class AstRewriter {
     required InterfaceElement classElement,
   }) {
     var augmented = classElement.augmented;
-    if (augmented == null) {
-      return node;
-    }
-
     var constructorElement = augmented.getNamedConstructor(
       constructorIdentifier.name,
     );
@@ -600,12 +596,8 @@ class AstRewriter {
     required SimpleIdentifierImpl constructorIdentifier,
     required InterfaceElement classElement,
   }) {
-    var augmented = classElement.augmented;
-    if (augmented == null) {
-      return node;
-    }
-
     var name = constructorIdentifier.name;
+    var augmented = classElement.augmented;
     var constructorElement = augmented.getNamedConstructor(name);
     if (constructorElement == null) {
       return node;

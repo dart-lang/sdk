@@ -1110,31 +1110,41 @@ class AliasedSet : public ZoneAllocated {
       } else if (UseIsARedefinition(use) &&
                  AnyUseCreatesAlias(instr->Cast<Definition>())) {
         return true;
-      } else if ((instr->IsStoreField() &&
-                  (use->use_index() != StoreFieldInstr::kInstancePos))) {
-        ASSERT(use->use_index() == StoreFieldInstr::kValuePos);
-        // If we store this value into an object that is not aliased itself
-        // and we never load again then the store does not create an alias.
+      } else if (instr->IsStoreField()) {
         StoreFieldInstr* store = instr->AsStoreField();
-        Definition* instance =
-            store->instance()->definition()->OriginalDefinition();
-        if (Place::IsAllocation(instance) &&
-            !instance->Identity().IsAliased()) {
-          bool is_load, is_store;
-          Place store_place(instr, &is_load, &is_store);
 
-          if (!HasLoadsFromPlace(instance, &store_place)) {
-            // No loads found that match this store. If it is yet unknown if
-            // the object is not aliased then optimistically assume this but
-            // add it to the worklist to check its uses transitively.
-            if (instance->Identity().IsUnknown()) {
-              instance->SetIdentity(AliasIdentity::NotAliased());
-              aliasing_worklist_.Add(instance);
-            }
-            continue;
-          }
+        if (store->slot().kind() == Slot::Kind::kTypedDataView_typed_data) {
+          // Initialization of TypedDataView.typed_data field creates
+          // aliasing between the view and original typed data,
+          // as the same data can now be accessed via both typed data
+          // view and the original typed data.
+          return true;
         }
-        return true;
+
+        if (use->use_index() != StoreFieldInstr::kInstancePos) {
+          ASSERT(use->use_index() == StoreFieldInstr::kValuePos);
+          // If we store this value into an object that is not aliased itself
+          // and we never load again then the store does not create an alias.
+          Definition* instance =
+              store->instance()->definition()->OriginalDefinition();
+          if (Place::IsAllocation(instance) &&
+              !instance->Identity().IsAliased()) {
+            bool is_load, is_store;
+            Place store_place(instr, &is_load, &is_store);
+
+            if (!HasLoadsFromPlace(instance, &store_place)) {
+              // No loads found that match this store. If it is yet unknown if
+              // the object is not aliased then optimistically assume this but
+              // add it to the worklist to check its uses transitively.
+              if (instance->Identity().IsUnknown()) {
+                instance->SetIdentity(AliasIdentity::NotAliased());
+                aliasing_worklist_.Add(instance);
+              }
+              continue;
+            }
+          }
+          return true;
+        }
       } else if (auto* const alloc = instr->AsAllocation()) {
         // Treat inputs to an allocation instruction exactly as if they were
         // manually stored using a StoreField instruction.

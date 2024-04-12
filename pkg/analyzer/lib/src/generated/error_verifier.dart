@@ -452,13 +452,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         element: element,
       );
 
-      final augmented = element.augmented;
-      if (augmented == null) {
-        return;
-      }
-
       _isInNativeClass = node.nativeClause != null;
 
+      final augmented = element.augmented;
       final declarationElement = augmented.declaration;
       _enclosingClass = declarationElement;
 
@@ -643,9 +639,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       var element = node.declaredElement as EnumElementImpl;
 
       final augmented = element.augmented;
-      if (augmented == null) {
-        return;
-      }
       _enclosingClass = element;
       _duplicateDefinitionVerifier.checkEnum(node);
 
@@ -730,10 +723,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     try {
       final element = node.declaredElement!;
       final augmented = element.augmented;
-      if (augmented == null) {
-        return;
-      }
-
       final declarationElement = augmented.declaration;
       _enclosingClass = declarationElement;
 
@@ -1137,10 +1126,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       );
 
       final augmented = element.augmented;
-      if (augmented == null) {
-        return;
-      }
-
       final declarationElement = augmented.declaration;
       _enclosingClass = declarationElement;
 
@@ -3314,10 +3299,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   ) {
     if (container is InterfaceElementImpl) {
       var augmented = container.augmented;
-      if (augmented == null) {
-        return;
-      }
-
       for (var constructor in augmented.constructors) {
         if (constructor.isGenerative && !constructor.isSynthetic) {
           return;

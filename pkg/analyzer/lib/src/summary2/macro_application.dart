@@ -132,7 +132,7 @@ class LibraryMacroApplier {
       switch (declaration) {
         case ast.ClassDeclarationImpl():
           final element = declaration.declaredElement!;
-          final declarationElement = element.augmented?.declaration ?? element;
+          final declarationElement = element.augmented.declaration;
           await _addClassLike(
             libraryBuilder: libraryBuilder,
             container: container,
@@ -144,7 +144,7 @@ class LibraryMacroApplier {
           );
         case ast.ClassTypeAliasImpl():
           final element = declaration.declaredElement!;
-          final declarationElement = element.augmented?.declaration ?? element;
+          final declarationElement = element.augmented.declaration;
           await _addClassLike(
             libraryBuilder: libraryBuilder,
             container: container,
@@ -156,7 +156,7 @@ class LibraryMacroApplier {
           );
         case ast.EnumDeclarationImpl():
           final element = declaration.declaredElement!;
-          final declarationElement = element.augmented?.declaration ?? element;
+          final declarationElement = element.augmented.declaration;
           await _addClassLike(
             libraryBuilder: libraryBuilder,
             container: container,
@@ -178,7 +178,7 @@ class LibraryMacroApplier {
           }
         case ast.ExtensionDeclarationImpl():
           final element = declaration.declaredElement!;
-          final declarationElement = element.augmented?.declaration ?? element;
+          final declarationElement = element.augmented.declaration;
           await _addClassLike(
             libraryBuilder: libraryBuilder,
             container: container,
@@ -190,7 +190,7 @@ class LibraryMacroApplier {
           );
         case ast.ExtensionTypeDeclarationImpl():
           final element = declaration.declaredElement!;
-          final declarationElement = element.augmented?.declaration ?? element;
+          final declarationElement = element.augmented.declaration;
           await _addClassLike(
             libraryBuilder: libraryBuilder,
             container: container,
@@ -223,7 +223,7 @@ class LibraryMacroApplier {
           );
         case ast.MixinDeclarationImpl():
           final element = declaration.declaredElement!;
-          final declarationElement = element.augmented?.declaration ?? element;
+          final declarationElement = element.augmented.declaration;
           await _addClassLike(
             libraryBuilder: libraryBuilder,
             container: container,
@@ -1057,7 +1057,7 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
     final element = (type as HasElement).element;
     await _runDeclarationsPhase(element);
 
-    if (element case InterfaceElement(:final augmented?)) {
+    if (element case InterfaceElement(:final augmented)) {
       return augmented.constructors
           .map((e) => e.declaration as ConstructorElementImpl)
           .map(declarationBuilder.declarationOfElement)
@@ -1078,7 +1078,7 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
     final element = (type as HasElement).element;
     await _runDeclarationsPhase(element);
 
-    if (element case InstanceElement(:final augmented?)) {
+    if (element case InstanceElement(:final augmented)) {
       return augmented.fields
           .whereNot((e) => e.isSynthetic)
           .map((e) => e.declaration as FieldElementImpl)
@@ -1099,7 +1099,7 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
     final element = (type as HasElement).element;
     await _runDeclarationsPhase(element);
 
-    if (element case InstanceElement(:final augmented?)) {
+    if (element case InstanceElement(:final augmented)) {
       return [
         ...augmented.accessors.whereNot((e) => e.isSynthetic),
         ...augmented.methods,

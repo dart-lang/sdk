@@ -124,13 +124,14 @@ class InheritanceOverrideVerifier {
   /// Returns [Element] members that are in the interface of the
   /// given class with `@mustBeOverridden`, but don't have implementations.
   static List<ExecutableElement> missingMustBeOverridden(
-      ClassDeclaration node) {
+      NamedCompilationUnitMember node) {
     return _missingMustBeOverridden[node.name] ?? const [];
   }
 
   /// Returns [ExecutableElement] members that are in the interface of the
   /// given class, but don't have concrete implementations.
-  static List<ExecutableElement> missingOverrides(ClassDeclaration node) {
+  static List<ExecutableElement> missingOverrides(
+      NamedCompilationUnitMember node) {
     return _missingOverrides[node.name] ?? const [];
   }
 }

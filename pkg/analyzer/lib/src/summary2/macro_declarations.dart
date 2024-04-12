@@ -1325,7 +1325,7 @@ class DeclarationBuilderFromNode {
   ) {
     final element = node.declaredElement!;
 
-    final declarationElement = element.augmented!.declaration;
+    final declarationElement = element.augmented.declaration;
     final declarationNode = builder.nodeOfElement(declarationElement)
         as ast.ExtensionDeclarationImpl;
 
@@ -2450,7 +2450,7 @@ extension on Element {
   /// the augmentation chain.
   InstanceElement get enclosingInstanceElement {
     final enclosing = enclosingElement as InstanceElement;
-    return enclosing.augmented!.declaration;
+    return enclosing.augmented.declaration;
   }
 }
 

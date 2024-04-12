@@ -9,7 +9,6 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
@@ -323,7 +322,7 @@ class MethodInvocationResolver with ScopeHelpers {
   /// given [propertyName], return the element that represents the property.
   Element? _resolveElement(
       InterfaceElement classElement, SimpleIdentifier propertyName) {
-    final augmented = classElement.augmentedOfDeclaration;
+    final augmented = classElement.augmented;
     // TODO(scheglov): Replace with class hierarchy.
     String name = propertyName.name;
     Element? element;
@@ -657,12 +656,6 @@ class MethodInvocationResolver with ScopeHelpers {
     }
 
     var augmented = enclosingClass!.augmented;
-    if (augmented == null) {
-      _setInvalidTypeResolution(node,
-          whyNotPromotedList: whyNotPromotedList, contextType: contextType);
-      return null;
-    }
-
     var target = _inheritance.getMember2(
       augmented.declaration,
       _currentName!,

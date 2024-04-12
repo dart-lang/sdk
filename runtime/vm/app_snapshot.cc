@@ -1051,10 +1051,6 @@ class ClassSerializationCluster : public SerializationCluster {
       s->UnexpectedObject(cls, "Class with illegal cid");
     }
     s->WriteCid(class_id);
-    if (s->kind() == Snapshot::kFullCore &&
-        RequireCanonicalTypeErasureOfConstants(cls)) {
-      s->UnexpectedObject(cls, "Class with non mode agnostic constants");
-    }
     if (s->kind() != Snapshot::kFullAOT) {
       s->Write<uint32_t>(cls->untag()->kernel_offset_);
     }
@@ -1079,20 +1075,6 @@ class ClassSerializationCluster : public SerializationCluster {
 
   GrowableArray<ClassPtr> predefined_;
   GrowableArray<ClassPtr> objects_;
-
-  bool RequireCanonicalTypeErasureOfConstants(ClassPtr cls) {
-    // Do not generate a core snapshot containing constants that would require
-    // a canonical erasure of their types if loaded in an isolate running in
-    // unsound nullability mode.
-    if (cls->untag()->host_type_arguments_field_offset_in_words_ ==
-            Class::kNoTypeArguments ||
-        cls->untag()->constants() == Array::null()) {
-      return false;
-    }
-    Zone* zone = Thread::Current()->zone();
-    const Class& clazz = Class::Handle(zone, cls);
-    return clazz.RequireCanonicalTypeErasureOfConstants(zone);
-  }
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
 

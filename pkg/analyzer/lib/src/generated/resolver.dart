@@ -2074,7 +2074,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     covariant ConstructorFieldInitializerImpl node,
   ) {
     final augmented = enclosingClass!.augmented;
-    if (augmented == null) return;
 
     //
     // We visit the expression, but do not visit the field name because it needs
@@ -3718,11 +3717,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var enclosingClass = this.enclosingClass;
     if (enclosingClass != null) {
       final augmented = enclosingClass.augmented;
-      if (augmented != null) {
-        _thisType = augmented.declaration.thisType;
-      } else {
-        _thisType = InvalidTypeImpl.instance;
-      }
+      _thisType = augmented.declaration.thisType;
     } else {
       var enclosingExtension = this.enclosingExtension;
       if (enclosingExtension != null) {

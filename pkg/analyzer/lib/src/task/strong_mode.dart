@@ -6,7 +6,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
@@ -324,7 +323,7 @@ class InstanceMemberInferrer {
       // Ensure that all of instance members in the supertypes have had types
       // inferred for them.
       //
-      final augmented = classElement.augmentedOfDeclaration;
+      final augmented = classElement.augmented;
       _inferType(classElement.supertype);
       augmented.mixins.forEach(_inferType);
       augmented.interfaces.forEach(_inferType);

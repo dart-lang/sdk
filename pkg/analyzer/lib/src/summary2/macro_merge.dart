@@ -310,8 +310,6 @@ class MacroUpdateConstantsForOptimizedCode {
       if (element.isAugmentation) continue;
 
       var augmented = element.augmented;
-      if (augmented == null) continue;
-
       var hasConst = augmented.constructors.any((e) => e.isConst);
       if (hasConst) {
         _namesOfConstClasses.add(element.name);

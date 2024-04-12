@@ -253,9 +253,7 @@ class DuplicateDefinitionVerifier {
     ExtensionTypeDeclaration node,
     ExtensionTypeElement element,
   ) {
-    final declarationElement = element.augmented?.declaration;
-    if (declarationElement == null) return;
-
+    final declarationElement = element.augmented.declaration;
     final primaryConstructorName = element.constructors.first.name;
     final representationGetter = element.representation.getter!;
     _getElementContext(declarationElement)
@@ -396,9 +394,7 @@ class DuplicateDefinitionVerifier {
 
   /// Check that there are no members with the same name.
   void _checkClassMembers(InterfaceElement element, List<ClassMember> members) {
-    final declarationElement = element.augmented?.declaration;
-    if (declarationElement == null) return;
-
+    final declarationElement = element.augmented.declaration;
     final elementContext = _getElementContext(declarationElement);
     final constructorNames = elementContext.constructorNames;
     final instanceGetters = elementContext.instanceGetters;
