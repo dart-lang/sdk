@@ -1426,12 +1426,6 @@ class ActiveClass {
     return member->IsFactory();
   }
 
-  bool RequireConstCanonicalTypeErasure(bool null_safety) const {
-    return klass != nullptr && !null_safety &&
-           Library::Handle(klass->library()).nnbd_compiled_mode() ==
-               NNBDCompiledMode::kAgnostic;
-  }
-
   intptr_t MemberTypeParameterCount(Zone* zone);
 
   intptr_t ClassNumTypeArguments() {
@@ -1550,7 +1544,6 @@ class TypeTranslator {
                  ConstantReader* constant_reader,
                  ActiveClass* active_class,
                  bool finalize = false,
-                 bool apply_canonical_type_erasure = false,
                  bool in_constant_context = false);
 
   AbstractType& BuildType();
@@ -1641,7 +1634,6 @@ class TypeTranslator {
   Zone* zone_;
   AbstractType& result_;
   bool finalize_;
-  const bool apply_canonical_type_erasure_;
   const bool in_constant_context_;
 
   friend class ScopeBuilder;

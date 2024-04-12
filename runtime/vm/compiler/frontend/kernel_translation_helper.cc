@@ -3291,7 +3291,6 @@ TypeTranslator::TypeTranslator(KernelReaderHelper* helper,
                                ConstantReader* constant_reader,
                                ActiveClass* active_class,
                                bool finalize,
-                               bool apply_canonical_type_erasure,
                                bool in_constant_context)
     : helper_(helper),
       constant_reader_(constant_reader),
@@ -3303,7 +3302,6 @@ TypeTranslator::TypeTranslator(KernelReaderHelper* helper,
       zone_(translation_helper_.zone()),
       result_(AbstractType::Handle(translation_helper_.zone())),
       finalize_(finalize),
-      apply_canonical_type_erasure_(apply_canonical_type_erasure),
       in_constant_context_(in_constant_context) {}
 
 AbstractType& TypeTranslator::BuildType() {
@@ -3337,10 +3335,6 @@ void TypeTranslator::BuildTypeInternal() {
       break;
     case kNeverType: {
       Nullability nullability = helper_->ReadNullability();
-      if (apply_canonical_type_erasure_ &&
-          nullability != Nullability::kNullable) {
-        nullability = Nullability::kLegacy;
-      }
       result_ = Type::Handle(Z, IG->object_store()->never_type())
                     .ToNullability(nullability, Heap::kOld);
       break;
@@ -3387,10 +3381,6 @@ void TypeTranslator::BuildInterfaceType(bool simple) {
   //   => We therefore ignore errors in `A` or `B`.
 
   Nullability nullability = helper_->ReadNullability();
-  if (apply_canonical_type_erasure_ && nullability != Nullability::kNullable) {
-    nullability = Nullability::kLegacy;
-  }
-
   NameIndex klass_name =
       helper_->ReadCanonicalNameReference();  // read klass_name.
 
@@ -3423,9 +3413,6 @@ void TypeTranslator::BuildInterfaceType(bool simple) {
 
 void TypeTranslator::BuildFutureOrType() {
   Nullability nullability = helper_->ReadNullability();
-  if (apply_canonical_type_erasure_ && nullability != Nullability::kNullable) {
-    nullability = Nullability::kLegacy;
-  }
 
   const TypeArguments& type_arguments =
       TypeArguments::Handle(Z, TypeArguments::New(1));
@@ -3448,9 +3435,6 @@ void TypeTranslator::BuildFunctionType(bool simple) {
           ? active_class_->enclosing->NumTypeArguments()
           : 0;
   Nullability nullability = helper_->ReadNullability();
-  if (apply_canonical_type_erasure_ && nullability != Nullability::kNullable) {
-    nullability = Nullability::kLegacy;
-  }
   FunctionType& signature = FunctionType::ZoneHandle(
       Z, FunctionType::New(num_enclosing_type_arguments, nullability));
 
@@ -3539,10 +3523,6 @@ void TypeTranslator::BuildFunctionType(bool simple) {
 
 void TypeTranslator::BuildRecordType() {
   Nullability nullability = helper_->ReadNullability();
-  if (apply_canonical_type_erasure_ && nullability != Nullability::kNullable) {
-    nullability = Nullability::kLegacy;
-  }
-
   const intptr_t positional_count = helper_->ReadListLength();
   intptr_t named_count = 0;
   {
@@ -3600,10 +3580,6 @@ void TypeTranslator::BuildRecordType() {
 
 void TypeTranslator::BuildTypeParameterType() {
   Nullability nullability = helper_->ReadNullability();
-  if (apply_canonical_type_erasure_ && nullability != Nullability::kNullable) {
-    nullability = Nullability::kLegacy;
-  }
-
   intptr_t parameter_index = helper_->ReadUInt();  // read parameter index.
 
   // If the type is from a constant, the parameter index isn't offset by the

@@ -1221,31 +1221,6 @@ void main() {}
         reason: 'File not found: $outFile');
   });
 
-  test('Compile kernel with unsound null safety', () async {
-    final p = project(mainSrc: '''
-void main() {}
-''');
-    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
-    final outFile = path.canonicalize(path.join(p.dirPath, 'mydill'));
-
-    final result = await p.run(
-      [
-        'compile',
-        'kernel',
-        '--no-sound-null-safety',
-        '-o',
-        outFile,
-        inFile,
-      ],
-    );
-
-    expect(result.stdout, contains(unsoundNullSafetyMessage));
-    expect(result.stdout, contains(unsoundNullSafetyWarning));
-    expect(result.exitCode, 0);
-    expect(File(outFile).existsSync(), true,
-        reason: 'File not found: $outFile');
-  });
-
   test('Compile kernel with --sound-null-safety', () async {
     final p = project(mainSrc: '''void main() {
       print((<int?>[] is List<int>) ? 'oh no' : 'sound');
@@ -1265,31 +1240,6 @@ void main() {}
     );
 
     expect(result.stderr, isNot(contains(soundNullSafetyMessage)));
-    expect(result.exitCode, 0);
-    expect(File(outFile).existsSync(), true,
-        reason: 'File not found: $outFile');
-  });
-
-  test('Compile kernel with --no-sound-null-safety', () async {
-    final p = project(mainSrc: '''void main() {
-      print((<int?>[] is List<int>) ? 'unsound' : 'oh no');
-    }''');
-    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
-    final outFile = path.canonicalize(path.join(p.dirPath, 'mydill'));
-
-    final result = await p.run(
-      [
-        'compile',
-        'kernel',
-        '--no-sound-null-safety',
-        '-o',
-        outFile,
-        inFile,
-      ],
-    );
-
-    expect(result.stderr, isNot(contains(soundNullSafetyMessage)));
-    expect(result.stdout, contains(unsoundNullSafetyWarning));
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,
         reason: 'File not found: $outFile');

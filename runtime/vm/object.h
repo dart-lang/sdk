@@ -1693,8 +1693,6 @@ class Class : public Object {
   InstancePtr InsertCanonicalConstant(Zone* zone,
                                       const Instance& constant) const;
 
-  bool RequireCanonicalTypeErasureOfConstants(Zone* zone) const;
-
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(UntaggedClass));
   }
@@ -8609,11 +8607,6 @@ class TypeArguments : public Instance {
     return IsDynamicTypes(true, 0, len);
   }
 
-  // Return true if this vector contains a non-nullable type.
-  bool RequireConstCanonicalTypeErasure(Zone* zone,
-                                        intptr_t from_index,
-                                        intptr_t len) const;
-
   TypeArgumentsPtr Prepend(Zone* zone,
                            const TypeArguments& other,
                            intptr_t other_length,
@@ -9061,7 +9054,6 @@ class AbstractType : public Instance {
       const Instance& other,
       TypeEquality kind,
       FunctionTypeMapping* function_type_equivalence = nullptr) const;
-  virtual bool RequireConstCanonicalTypeErasure(Zone* zone) const;
 
   // Instantiate this type using the given type argument vectors.
   //
@@ -9357,7 +9349,6 @@ class Type : public AbstractType {
       const Instance& other,
       TypeEquality kind,
       FunctionTypeMapping* function_type_equivalence = nullptr) const;
-  virtual bool RequireConstCanonicalTypeErasure(Zone* zone) const;
 
   // Return true if this type can be used as the declaration type of cls after
   // canonicalization (passed-in cls must match type_class()).
@@ -9500,7 +9491,6 @@ class FunctionType : public AbstractType {
       const Instance& other,
       TypeEquality kind,
       FunctionTypeMapping* function_type_equivalence = nullptr) const;
-  virtual bool RequireConstCanonicalTypeErasure(Zone* zone) const;
 
   virtual AbstractTypePtr InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
@@ -9803,9 +9793,6 @@ class TypeParameter : public AbstractType {
       const Instance& other,
       TypeEquality kind,
       FunctionTypeMapping* function_type_equivalence = nullptr) const;
-  virtual bool RequireConstCanonicalTypeErasure(Zone* zone) const {
-    return IsNonNullable();
-  }
   virtual AbstractTypePtr InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       const TypeArguments& function_type_arguments,
@@ -11321,7 +11308,6 @@ class RecordType : public AbstractType {
       const Instance& other,
       TypeEquality kind,
       FunctionTypeMapping* function_type_equivalence = nullptr) const;
-  virtual bool RequireConstCanonicalTypeErasure(Zone* zone) const;
 
   virtual AbstractTypePtr InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,

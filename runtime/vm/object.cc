@@ -6558,31 +6558,6 @@ InstancePtr Class::InsertCanonicalConstant(Zone* zone,
   return canonical_value.ptr();
 }
 
-bool Class::RequireCanonicalTypeErasureOfConstants(Zone* zone) const {
-  const intptr_t num_type_params = NumTypeParameters();
-  const intptr_t num_type_args = NumTypeArguments();
-  const intptr_t from_index = num_type_args - num_type_params;
-  Instance& constant = Instance::Handle(zone);
-  TypeArguments& type_arguments = TypeArguments::Handle(zone);
-  CanonicalInstancesSet set(zone, constants());
-  CanonicalInstancesSet::Iterator it(&set);
-  bool result = false;
-  while (it.MoveNext()) {
-    constant ^= set.GetKey(it.Current());
-    ASSERT(!constant.IsNull());
-    ASSERT(!constant.IsTypeArguments());
-    ASSERT(!constant.IsType());
-    type_arguments = constant.GetTypeArguments();
-    if (type_arguments.RequireConstCanonicalTypeErasure(zone, from_index,
-                                                        num_type_params)) {
-      result = true;
-      break;
-    }
-  }
-  set.Release();
-  return result;
-}
-
 // Scoped mapping FunctionType -> FunctionType.
 // Used for tracking and updating nested generic function types
 // and their type parameters.
@@ -7032,25 +7007,6 @@ bool TypeArguments::IsSubvectorEquivalent(
     }
   }
   return true;
-}
-
-bool TypeArguments::RequireConstCanonicalTypeErasure(Zone* zone,
-                                                     intptr_t from_index,
-                                                     intptr_t len) const {
-  if (IsNull()) return false;
-  ASSERT(Length() >= (from_index + len));
-  AbstractType& type = AbstractType::Handle(zone);
-  for (intptr_t i = 0; i < len; i++) {
-    type = TypeAt(from_index + i);
-    if (type.IsNonNullable() ||
-        (type.IsNullable() && type.RequireConstCanonicalTypeErasure(zone))) {
-      // It is not possible for a legacy type to have non-nullable type
-      // arguments or for a legacy function type to have non-nullable type in
-      // its signature.
-      return true;
-    }
-  }
-  return false;
 }
 
 bool TypeArguments::IsDynamicTypes(bool raw_instantiated,
@@ -21326,15 +21282,6 @@ bool AbstractType::IsNullabilityEquivalent(Thread* thread,
   return true;
 }
 
-bool AbstractType::RequireConstCanonicalTypeErasure(Zone* zone) const {
-  // All subclasses should implement this appropriately, so the only value that
-  // should reach this implementation should be the null value.
-  ASSERT(IsNull());
-  // AbstractType is an abstract class.
-  UNREACHABLE();
-  return false;
-}
-
 AbstractTypePtr AbstractType::InstantiateFrom(
     const TypeArguments& instantiator_type_arguments,
     const TypeArguments& function_type_arguments,
@@ -22305,20 +22252,6 @@ bool FunctionType::IsEquivalent(
   return true;
 }
 
-bool Type::RequireConstCanonicalTypeErasure(Zone* zone) const {
-  if (IsNonNullable()) {
-    return true;
-  }
-  if (IsLegacy()) {
-    // It is not possible for a legacy type parameter to have a non-nullable
-    // bound or non-nullable default argument.
-    return false;
-  }
-  const auto& type_args = TypeArguments::Handle(zone, this->arguments());
-  return type_args.RequireConstCanonicalTypeErasure(zone, 0,
-                                                    type_args.Length());
-}
-
 bool Type::IsDeclarationTypeOf(const Class& cls) const {
   ASSERT(type_class() == cls.ptr());
   if (cls.IsNullClass()) {
@@ -22613,44 +22546,6 @@ const char* Type::ToCString() const {
   class_name = name.IsNull() ? "<null>" : name.ToCString();
   const char* suffix = NullabilitySuffix(kInternalName);
   return OS::SCreate(zone, "Type: %s%s%s", class_name, args_cstr, suffix);
-}
-
-bool FunctionType::RequireConstCanonicalTypeErasure(Zone* zone) const {
-  if (IsNonNullable()) {
-    return true;
-  }
-  if (IsLegacy()) {
-    // It is not possible for a function type to have a non-nullable type in
-    // its signature.
-    return false;
-  }
-  const intptr_t num_type_params = NumTypeParameters();
-  if (num_type_params > 0) {
-    const TypeParameters& type_params =
-        TypeParameters::Handle(type_parameters());
-    TypeArguments& type_args = TypeArguments::Handle();
-    type_args = type_params.bounds();
-    if (type_args.RequireConstCanonicalTypeErasure(zone, 0, num_type_params)) {
-      return true;
-    }
-    type_args = type_params.defaults();
-    if (type_args.RequireConstCanonicalTypeErasure(zone, 0, num_type_params)) {
-      return true;
-    }
-  }
-  AbstractType& type = AbstractType::Handle(zone);
-  type = result_type();
-  if (type.RequireConstCanonicalTypeErasure(zone)) {
-    return true;
-  }
-  const intptr_t num_params = NumParameters();
-  for (intptr_t i = 0; i < num_params; i++) {
-    type = ParameterTypeAt(i);
-    if (type.RequireConstCanonicalTypeErasure(zone)) {
-      return true;
-    }
-  }
-  return false;
 }
 
 AbstractTypePtr FunctionType::Canonicalize(Thread* thread) const {
@@ -27679,24 +27574,6 @@ uword RecordType::ComputeHash() const {
   result = FinalizeHash(result, kHashBits);
   SetHash(result);
   return result;
-}
-
-bool RecordType::RequireConstCanonicalTypeErasure(Zone* zone) const {
-  if (IsNonNullable()) {
-    return true;
-  }
-  if (IsLegacy()) {
-    return false;
-  }
-  AbstractType& type = AbstractType::Handle();
-  const intptr_t num_fields = NumFields();
-  for (intptr_t i = 0; i < num_fields; ++i) {
-    type = FieldTypeAt(i);
-    if (type.RequireConstCanonicalTypeErasure(zone)) {
-      return true;
-    }
-  }
-  return false;
 }
 
 AbstractTypePtr RecordType::Canonicalize(Thread* thread) const {
