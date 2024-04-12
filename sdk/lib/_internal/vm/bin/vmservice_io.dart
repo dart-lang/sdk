@@ -96,25 +96,15 @@ class _DebuggingSession {
     bool disableServiceAuthCodes,
     bool enableDevTools,
   ) async {
-    final dartPath = Uri.parse(Platform.resolvedExecutable);
-    final dartDir = [
-      '', // Include leading '/'
-      ...dartPath.pathSegments.sublist(
-        0,
-        dartPath.pathSegments.length - 1,
-      ),
-    ].join('/');
-
+    final dartDir = File(Platform.resolvedExecutable).parent.path;
     final fullSdk = dartDir.endsWith('bin');
     final snapshotName = [
       dartDir,
       fullSdk ? 'snapshots' : 'gen',
       'dds.dart.snapshot',
-    ].join('/');
-    final execName = dartPath.toString();
-
+    ].join(Platform.pathSeparator);
     _process = await Process.start(
-      execName,
+      Platform.resolvedExecutable,
       [
         snapshotName,
         '--vm-service-uri=${server!.serverAddress!}',
