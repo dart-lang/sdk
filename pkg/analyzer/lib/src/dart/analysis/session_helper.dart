@@ -18,7 +18,7 @@ class AnalysisSessionHelper {
 
   AnalysisSessionHelper(this.session);
 
-  /// Return the [ClassElement] with the given [className] that is exported
+  /// Returns the [ClassElement] with the given [className] that is exported
   /// from the library with the given [libraryUri], or `null` if the library
   /// does not export a class with such name.
   Future<ClassElement?> getClass(String libraryUri, String className) async {
@@ -54,6 +54,12 @@ class AnalysisSessionHelper {
     }
     return null;
   }
+
+  /// Returns the [ClassElement] with the given [className] that is exported
+  /// from the Flutter widgets library, or `null` if the library does not export
+  /// a class with such name.
+  Future<ClassElement?> getFlutterClass(String className) =>
+      getClass('package:flutter/widgets.dart', className);
 
   /// Return the [MixinElement] with the given [name] that is exported
   /// from the library with the given [libraryUri], or `null` if the library

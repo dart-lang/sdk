@@ -135,14 +135,14 @@ class _ElementWriter {
 
   void _validateAugmentedInstanceElement(InstanceElementImpl e) {
     final augmented = e.augmented;
+    final thisType = e.thisType;
 
-    InstanceElementImpl? endOfAugmentations = e;
-    while (endOfAugmentations != null) {
-      expect(endOfAugmentations.augmented, same(augmented));
-      endOfAugmentations = endOfAugmentations.augmentationTarget;
+    InstanceElementImpl? current = e;
+    while (current != null) {
+      expect(current.augmented, same(augmented));
+      expect(current.thisType, same(thisType));
+      current = current.augmentationTarget;
     }
-
-    // TODO(scheglov): check `thisType`
   }
 
   void _writeAugmentation(ElementImpl e) {

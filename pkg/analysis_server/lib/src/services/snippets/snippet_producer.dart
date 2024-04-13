@@ -5,7 +5,7 @@
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/snippets/dart_snippet_request.dart';
 import 'package:analysis_server/src/services/snippets/snippet.dart';
-import 'package:analysis_server/src/utilities/flutter.dart';
+import 'package:analysis_server/src/utilities/extensions/flutter.dart';
 import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -72,7 +72,7 @@ abstract class FlutterSnippetProducer extends DartSnippetProducer {
   FlutterSnippetProducer(super.request, {required super.elementImportCache});
 
   Future<ClassElement?> getClass(String name) async {
-    final class_ = await sessionHelper.getClass(Flutter.widgetsUri, name);
+    final class_ = await sessionHelper.getFlutterClass(name);
     if (class_ != null) {
       requiredElementImports.add(class_);
     }
@@ -80,7 +80,7 @@ abstract class FlutterSnippetProducer extends DartSnippetProducer {
   }
 
   Future<MixinElement?> getMixin(String name) async {
-    final mixin = await sessionHelper.getMixin(Flutter.widgetsUri, name);
+    final mixin = await sessionHelper.getMixin(widgetsUri, name);
     if (mixin != null) {
       requiredElementImports.add(mixin);
     }

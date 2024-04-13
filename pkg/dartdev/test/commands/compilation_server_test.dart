@@ -39,6 +39,30 @@ void main() {
       expect(File(serverInfoFile).existsSync(), false);
     });
 
+    test(
+        'when a compiler cannot receive a shutdown request due to a connection error',
+        () async {
+      // When this occurs, the info file associated with the running compiler
+      // should be deleted, and the shutdown command should appear to have
+      // succeeded, because there's nothing actionable the user can do to fix
+      // the connection error.
+      p = project(mainSrc: 'void main() {}');
+      // Create a [serverInfoFile] with an invalid port to guarantee that a
+      // connection will not be established.
+      final serverInfoFile = path.join(p.dirPath, 'info');
+      File(serverInfoFile).writeAsStringSync('address:127.0.0.1 port:-12 ');
+      final result = await p.run([
+        'compilation-server',
+        'shutdown',
+        '--$residentCompilerInfoFileOption=$serverInfoFile',
+      ]);
+
+      expect(result.stdout, matches(compilationServerShutdownRegExp));
+      expect(result.stderr, isEmpty);
+      expect(result.exitCode, 0);
+      expect(File(serverInfoFile).existsSync(), false);
+    });
+
     test('run and shutdown', () async {
       p = project(mainSrc: 'void main() {}');
       final serverInfoFile = path.join(p.dirPath, 'info');

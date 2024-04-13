@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/collections.dart';
-import 'package:analysis_server/src/utilities/flutter.dart';
+import 'package:analysis_server/src/utilities/extensions/flutter.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -482,14 +482,14 @@ class _FunctionBodyOutlinesVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    if (outlineComputer.withBasicFlutter && Flutter.isWidgetCreation(node)) {
+    if (outlineComputer.withBasicFlutter && node.isWidgetCreation) {
       var children = <Outline>[];
       node.argumentList
           .accept(_FunctionBodyOutlinesVisitor(outlineComputer, children));
 
       // The method `getWidgetPresentationText` should not return `null` when
       // `isWidgetCreation` returns `true`.
-      var text = Flutter.getWidgetPresentationText(node) ?? '<unknown>';
+      var text = node.widgetPresentationText ?? '<unknown>';
       var element = Element(ElementKind.CONSTRUCTOR_INVOCATION, text, 0,
           location: outlineComputer._getLocationOffsetLength(node.offset, 0));
 

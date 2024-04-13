@@ -144,23 +144,21 @@ Note that this command name and usage could change as we evolve the resident fro
       log.stdout('No resident frontend compiler instance running.');
       return 0;
     }
-    final serverInfo = await residentCompilerInfoFile.readAsString();
-    final serverResponse = await sendAndReceiveResponse(
-      residentServerShutdownCommand,
-      residentCompilerInfoFile,
-    );
 
-    cleanupResidentServerInfo(residentCompilerInfoFile);
-    if (serverResponse.containsKey(responseErrorString)) {
-      log.stderr(serverResponse[responseErrorString]);
-      return DartdevCommand.errorExitCode;
-    } else {
-      final address = getAddress(serverInfo);
-      final port = getPortNumber(serverInfo);
-      log.stdout(
-        'The Resident Frontend Compiler instance at ${address.host}:$port was successfully shutdown.',
-      );
-    }
+    final residentCompilerInfo =
+        ResidentCompilerInfo.fromFile(residentCompilerInfoFile);
+    final address = residentCompilerInfo.address;
+    final port = residentCompilerInfo.port;
+    // There is nothing actionable the user can do in response to an error
+    // occurring when shutting down. So, we call
+    // [shutDownOrForgetResidentFrontendCompiler] here to ensure that when such
+    // an error occurs, we don't report it to the user and instead just forget
+    // about the compiler that couldn't be shut down.
+    await shutDownOrForgetResidentFrontendCompiler(residentCompilerInfoFile);
+    log.stdout(
+      'The Resident Frontend Compiler instance at ${address.host}:$port was '
+      'successfully shutdown.',
+    );
     return 0;
   }
 }

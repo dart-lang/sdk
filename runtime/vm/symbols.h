@@ -243,6 +243,7 @@ class ObjectPointerVisitor;
   V(SwitchExpr, ":switch_expr")                                                \
   V(Symbol, "Symbol")                                                          \
   V(ThrowNew, "_throwNew")                                                     \
+  V(ThrowNewSource, "_throwNewSource")                                         \
   V(ThrowNewInvocation, "_throwNewInvocation")                                 \
   V(TopLevel, "::")                                                            \
   V(TransferableTypedData, "TransferableTypedData")                            \

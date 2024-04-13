@@ -51,13 +51,40 @@ File? getResidentCompilerInfoFileConsideringArgs(final ArgResults args) {
 
 final String packageConfigName = p.join('.dart_tool', 'package_config.json');
 
-/// Get the port number the Resident Frontend Compiler is listening on.
-int getPortNumber(String serverInfo) =>
-    int.parse(serverInfo.substring(serverInfo.lastIndexOf(':') + 1));
+final class ResidentCompilerInfo {
+  final InternetAddress _address;
+  final int _port;
 
-/// Get the address that the Resident Frontend Compiler is listening from.
-InternetAddress getAddress(String serverInfo) => InternetAddress(
-    serverInfo.substring(serverInfo.indexOf(':') + 1, serverInfo.indexOf(' ')));
+  /// The address that the Resident Frontend Compiler associated with this
+  /// object is listening from.
+  InternetAddress get address => _address;
+
+  /// The port number that the Resident Frontend Compiler associated with this
+  /// object is listening on.
+  int get port => _port;
+
+  /// Extracts the value associated with a key from [entries], where [entries]
+  /// is a [String] with the format '$key1:$value1 $key2:$value2 $key3:$value3 ...'.
+  static String _extractValueAssociatedWithKey(String entries, String key) =>
+      RegExp('$key:' r'(\S+)(\s|$)').allMatches(entries).first[1]!;
+
+  static ResidentCompilerInfo fromFile(File file) {
+    final fileContents = file.readAsStringSync();
+
+    return ResidentCompilerInfo._(
+      address: InternetAddress(
+        _extractValueAssociatedWithKey(fileContents, 'address'),
+      ),
+      port: int.parse(_extractValueAssociatedWithKey(fileContents, 'port')),
+    );
+  }
+
+  ResidentCompilerInfo._({
+    required int port,
+    required InternetAddress address,
+  })  : _port = port,
+        _address = address;
+}
 
 /// Removes the [serverInfoFile].
 void cleanupResidentServerInfo(File serverInfoFile) {
@@ -66,6 +93,29 @@ void cleanupResidentServerInfo(File serverInfoFile) {
       serverInfoFile.deleteSync();
     } catch (_) {}
   }
+}
+
+/// First, attempts to shut down the Resident Frontend Compiler associated with
+/// [infoFile]. If successful, [infoFile] is deleted. If any error occurs
+/// preventing shutdown, the error is ignored and [infoFile] is deleted, making
+/// the compiler be forgetten. The forgotten compiler will shut itself down a
+/// certain period of inactivity (see the inactivityTimeout parameter of
+/// residentListenAndCompile in
+/// pkg/frontend_server/lib/src/resident_frontend_server.dart).
+Future<void> shutDownOrForgetResidentFrontendCompiler(File infoFile) async {
+  try {
+    // As explained in the doc comment above, this function ignores errors. So,
+    // we ignore the return value of [sendAndReceiveResponse].
+    await sendAndReceiveResponse(
+      residentServerShutdownCommand,
+      infoFile,
+    );
+  } on FileSystemException catch (_) {
+    // As explained in the doc comment above, this function ignores errors. We
+    // only catch [FileSystemException]s because [sendAndReceiveResponse] cannot
+    // throw any other type of error.
+  }
+  cleanupResidentServerInfo(infoFile);
 }
 
 Future<bool> isFileKernelFile(final File file) async {
@@ -151,20 +201,22 @@ Future<bool> isFileAotSnapshot(final File file) async {
 // TODO: when frontend_server is migrated to null safe Dart, everything
 // below this comment can be removed and imported from resident_frontend_server
 
-/// Sends a compilation [request] to the Resident Frontend Compiler, returning
-/// it's json response.
+/// Sends a compilation [request] to the Resident Frontend Compiler associated
+/// with [serverInfoFile], and returns the compiler's JSON response.
 ///
-/// Throws a [FileSystemException] if there is no server running.
+/// Throws a [FileSystemException] if [serverInfoFile] cannot be accessed.
 Future<Map<String, dynamic>> sendAndReceiveResponse(
   String request,
   File serverInfoFile,
 ) async {
   Socket? client;
   Map<String, dynamic> jsonResponse;
-  final contents = serverInfoFile.readAsStringSync();
+  final residentCompilerInfo = ResidentCompilerInfo.fromFile(serverInfoFile);
   try {
-    client =
-        await Socket.connect(getAddress(contents), getPortNumber(contents));
+    client = await Socket.connect(
+      residentCompilerInfo.address,
+      residentCompilerInfo.port,
+    );
     client.write(request);
     final data = String.fromCharCodes(await client.first);
     jsonResponse = jsonDecode(data);

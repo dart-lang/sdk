@@ -294,6 +294,69 @@ class RunCommand extends DartdevCommand {
   String get invocation =>
       '${super.invocation} [<dart-file|package-target> [args]]';
 
+  /// Attempts to compile [executable] to a kernel file using the Resident
+  /// Frontend Compiler associated with [residentCompilerInfoFile]. If
+  /// [shouldRetryOnFrontendCompilerException] is true, when a
+  /// [FrontendCompilerException] is encountered during compilation, the
+  /// Resident Frontend Compiler will be restarted, and compilation will be
+  /// retried. This method returns the compiled kernel file if compilation
+  /// succeeds, otherwise it returns null.
+  static Future<DartExecutableWithPackageConfig?>
+      _compileToKernelUsingResidentCompiler({
+    required DartExecutableWithPackageConfig executable,
+    required File residentCompilerInfoFile,
+    required ArgResults args,
+    required bool shouldRetryOnFrontendCompilerException,
+  }) async {
+    final executableFile = File(executable.executable);
+    assert(!await isFileKernelFile(executableFile) &&
+        !await isFileAppJitSnapshot(executableFile) &&
+        !await isFileAotSnapshot(executableFile));
+
+    try {
+      return await generateKernel(
+        executable,
+        residentCompilerInfoFile,
+        args,
+        createCompileJitJson,
+      );
+    } on FrontendCompilerException catch (e) {
+      if (e.issue == CompilationIssue.serverError) {
+        if (shouldRetryOnFrontendCompilerException) {
+          log.stderr(
+            'Error: A connection to the Resident Frontend Compiler could '
+            'not be established. Restarting the Resident Frontend Compiler '
+            'and retrying compilation.',
+          );
+          await shutDownOrForgetResidentFrontendCompiler(
+            residentCompilerInfoFile,
+          );
+          return _compileToKernelUsingResidentCompiler(
+            executable: executable,
+            residentCompilerInfoFile: residentCompilerInfoFile,
+            args: args,
+            shouldRetryOnFrontendCompilerException: false,
+          );
+        } else {
+          log.stderr(
+            'Error: A connection to the Resident Frontend Compiler could '
+            "not be established. Please re-run 'dart run --resident' and a "
+            'new compiler will automatically be started in its place.',
+          );
+          await shutDownOrForgetResidentFrontendCompiler(
+            residentCompilerInfoFile,
+          );
+          return null;
+        }
+      } else {
+        log.stderr(
+            '${ansi.yellow}Failed to build ${executable.executable}:${ansi.none}');
+        log.stderr(e.message);
+        return null;
+      }
+    }
+  }
+
   @override
   FutureOr<int> run() async {
     final args = argResults!;
@@ -359,39 +422,26 @@ class RunCommand extends DartdevCommand {
         return errorExitCode;
       }
 
-      try {
-        // Ensure the parent directory exists.
-        if (!residentCompilerInfoFile.parent.existsSync()) {
-          residentCompilerInfoFile.parent.createSync();
-        }
+      // Ensure the parent directory exists.
+      if (!residentCompilerInfoFile.parent.existsSync()) {
+        residentCompilerInfoFile.parent.createSync();
+      }
 
-        final executableFile = File(executable.executable);
-        if (!await isFileKernelFile(executableFile) &&
-            !await isFileAppJitSnapshot(executableFile) &&
-            !await isFileAotSnapshot(executableFile)) {
-          executable = await generateKernel(
-            executable,
-            residentCompilerInfoFile,
-            args,
-            createCompileJitJson,
-          );
+      final executableFile = File(executable.executable);
+      if (!await isFileKernelFile(executableFile) &&
+          !await isFileAppJitSnapshot(executableFile) &&
+          !await isFileAotSnapshot(executableFile)) {
+        final compiledKernelFile = await _compileToKernelUsingResidentCompiler(
+          executable: executable,
+          residentCompilerInfoFile: residentCompilerInfoFile,
+          args: args,
+          shouldRetryOnFrontendCompilerException: true,
+        );
+        if (compiledKernelFile == null) {
+          return errorExitCode;
+        } else {
+          executable = compiledKernelFile;
         }
-      } on FrontendCompilerException catch (e) {
-        log.stderr(
-            '${ansi.yellow}Failed to build ${executable.executable}:${ansi.none}');
-        log.stderr(e.message);
-        if (e.issue == CompilationIssue.serverError) {
-          try {
-            await sendAndReceiveResponse(
-              residentServerShutdownCommand,
-              residentCompilerInfoFile,
-            );
-          } catch (_) {
-          } finally {
-            cleanupResidentServerInfo(residentCompilerInfoFile);
-          }
-        }
-        return errorExitCode;
       }
     }
 

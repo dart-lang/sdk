@@ -29,7 +29,7 @@ import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/server/error_notifier.dart';
 import 'package:analysis_server/src/server/performance.dart';
 import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manager.dart';
-import 'package:analysis_server/src/utilities/flutter.dart';
+import 'package:analysis_server/src/utilities/extensions/flutter.dart';
 import 'package:analysis_server/src/utilities/process.dart';
 import 'package:analyzer/dart/analysis/context_locator.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -1016,13 +1016,13 @@ class LspAnalysisServer extends AnalysisServer {
     );
   }
 
-  /// Checks whether [file] is in a project that can resolve 'package:flutter'
-  /// libraries.
+  /// Returns whether [filePath] is in a project that can resolve
+  /// 'package:flutter' libraries.
   bool _isInFlutterProject(String filePath) =>
       getAnalysisDriver(filePath)
           ?.currentSession
           .uriConverter
-          .uriToPath(Uri.parse(Flutter.widgetsUri)) !=
+          .uriToPath(Uri.parse(widgetsUri)) !=
       null;
 
   void _notifyPluginsOverlayChanged(

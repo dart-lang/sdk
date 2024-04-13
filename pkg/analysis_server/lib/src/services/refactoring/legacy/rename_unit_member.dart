@@ -11,7 +11,7 @@ import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart
 import 'package:analysis_server/src/services/refactoring/legacy/rename.dart';
 import 'package:analysis_server/src/services/search/element_visitors.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
-import 'package:analysis_server/src/utilities/flutter.dart';
+import 'package:analysis_server/src/utilities/extensions/flutter.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart' show Identifier;
 import 'package:analyzer/dart/element/element.dart';
@@ -152,9 +152,10 @@ class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
   }
 
   void _findFlutterStateClass() {
-    if (Flutter.isStatefulWidgetDeclaration(element)) {
+    final element = this.element;
+    if (element is ClassElement && element.isStatefulWidgetDeclaration) {
       var oldStateName = '${oldName}State';
-      var library = element.library!;
+      var library = element.library;
       _flutterWidgetState =
           library.getClass(oldStateName) ?? library.getClass('_$oldStateName');
     }

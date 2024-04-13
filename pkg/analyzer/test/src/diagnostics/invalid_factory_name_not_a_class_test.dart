@@ -36,11 +36,55 @@ class A {
     ]);
   }
 
+  test_notEnclosingClassName_inAugmentation() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'b.dart';
+
+class A {}
+''');
+
+    final b = newFile('$testPackageLibPath/b.dart', r'''
+augment library 'a.dart';
+
+augment class A {
+  factory B() => throw 0;
+}
+''');
+
+    await resolveFile2(b);
+    assertErrorsInResult([
+      error(CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS, 55, 1),
+    ]);
+  }
+
   test_valid() async {
     await assertNoErrorsInCode(r'''
 class A {
   factory A() => throw 0;
 }
 ''');
+  }
+
+  test_valid_inAugmentation() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'b.dart';
+
+class A {}
+
+class B implements A {
+  const B();
+}
+''');
+
+    final b = newFile('$testPackageLibPath/b.dart', r'''
+augment library 'a.dart';
+
+augment class A {
+  const factory A() = B;
+}
+''');
+
+    await resolveFile2(b);
+    assertNoErrorsInResult();
   }
 }

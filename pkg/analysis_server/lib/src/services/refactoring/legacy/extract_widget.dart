@@ -10,7 +10,7 @@ import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring_internal.dart';
 import 'package:analysis_server/src/services/search/element_visitors.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
-import 'package:analysis_server/src/utilities/flutter.dart';
+import 'package:analysis_server/src/utilities/extensions/flutter.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -183,9 +183,9 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
     _enclosingClassNode = node?.thisOrAncestorOfType<ClassDeclaration>();
     _enclosingClassElement = _enclosingClassNode?.declaredElement;
 
-    // new MyWidget(...)
-    var newExpression = Flutter.identifyNewExpression(node);
-    if (Flutter.isWidgetCreation(newExpression)) {
+    // `new MyWidget(...)`
+    var newExpression = node.findInstanceCreationExpression;
+    if (newExpression?.isWidgetCreation ?? false) {
       _expression = newExpression;
       return RefactoringStatus();
     }
@@ -203,7 +203,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
       if (statements.isNotEmpty) {
         var lastStatement = statements.last;
         if (lastStatement is ReturnStatement &&
-            Flutter.isWidgetExpression(lastStatement.expression)) {
+            lastStatement.expression.isWidgetExpression) {
           _statements = statements;
           _statementsRange = range.startEnd(statements.first, statements.last);
           return RefactoringStatus();
@@ -221,7 +221,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
       }
       if (node is MethodDeclaration) {
         var returnType = node.returnType?.type;
-        if (Flutter.isWidgetType(returnType)) {
+        if (returnType.isWidgetType) {
           _method = node;
           return RefactoringStatus();
         }
@@ -238,11 +238,9 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
     var result = RefactoringStatus();
 
     Future<ClassElement?> getClass(String name) async {
-      var element = await sessionHelper.getClass(Flutter.widgetsUri, name);
+      var element = await sessionHelper.getFlutterClass(name);
       if (element == null) {
-        result.addFatalError(
-          "Unable to find '$name' in ${Flutter.widgetsUri}",
-        );
+        result.addFatalError("Unable to find '$name' in $widgetsUri");
       }
       return element;
     }

@@ -189,7 +189,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
 
     var element = hasRead ? result.readElement : result.writeElement;
 
-    var enclosingClass = _resolver.enclosingClass;
+    var enclosingClass = _resolver.enclosingClass?.augmented.declaration;
     if (_isFactoryConstructorReturnType(node) &&
         !identical(element, enclosingClass)) {
       errorReporter.atNode(

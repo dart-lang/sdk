@@ -10,12 +10,26 @@ import 'package:test/test.dart';
 import 'utils.dart';
 
 void main() {
-  TestProject testProject;
+  late TestProject testProject;
   late File testExecutableFile;
 
   setUpAll(() async {
     testProject = project(mainSrc: 'void main() {}');
     testExecutableFile = File(path.join(testProject.dirPath, 'exe'));
+  });
+
+  group('ResidentCompilerInfo.fromFile', () {
+    test('correctly parses resident compiler info files', () async {
+      final testInfoFile = File(path.join(
+        testProject.dirPath,
+        'resident_compiler_info.txt',
+      ));
+      testInfoFile.writeAsStringSync('address:127.0.0.1 port:45678');
+
+      final testInfo = ResidentCompilerInfo.fromFile(testInfoFile);
+      expect(testInfo.address.address, '127.0.0.1');
+      expect(testInfo.port, 45678);
+    });
   });
 
   group('isFileKernelFile', () {
