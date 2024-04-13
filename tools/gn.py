@@ -294,6 +294,10 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash,
 
     gn_args['use_rbe'] = args.rbe
 
+    if args.rbe_expensive_exec_strategy:
+        gn_args[
+            'rbe_expensive_exec_strategy'] = args.rbe_expensive_exec_strategy
+
     # Code coverage requires -O0 to be set.
     if enable_code_coverage:
         gn_args['dart_debug_optimization_level'] = 0
@@ -427,6 +431,10 @@ def AddCommonGnOptionArgs(parser):
     parser.set_defaults(rbe=os.environ.get('RBE') == '1' or \
                             os.environ.get('DART_RBE') == '1' or \
                             os.environ.get('RBE_cfg') != None)
+    parser.add_argument('--rbe-expensive-exec-strategy',
+                        default=os.environ.get('RBE_exec_strategy'),
+                        help='Strategy for expensive RBE compilations',
+                        type=str)
 
     # Disable git hashes when remote compiling to ensure cache hits of the final
     # output artifacts when nothing has changed.

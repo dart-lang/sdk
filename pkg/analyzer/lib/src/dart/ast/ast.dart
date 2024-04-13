@@ -10701,6 +10701,9 @@ final class LibraryAugmentationDirectiveImpl extends UriBasedDirectiveImpl
 ///    libraryDirective ::=
 ///        [Annotation] 'library' [LibraryIdentifier]? ';'
 abstract final class LibraryDirective implements Directive {
+  @override
+  LibraryElement? get element;
+
   /// The token representing the `library` keyword.
   Token get libraryKeyword;
 
@@ -10733,6 +10736,11 @@ final class LibraryDirectiveImpl extends DirectiveImpl
     required this.semicolon,
   }) : _name = name {
     _becomeParentOf(_name);
+  }
+
+  @override
+  LibraryElementImpl? get element {
+    return super.element as LibraryElementImpl?;
   }
 
   @override
