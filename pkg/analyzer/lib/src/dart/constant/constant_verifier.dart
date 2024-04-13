@@ -752,9 +752,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     return _currentLibrary.typeSystem.runtimeTypeMatch(obj, type);
   }
 
-  /// Validate that if the passed arguments are constant expressions.
-  ///
-  /// @param argumentList the argument list to evaluate
+  /// Validates that the arguments in [argumentList] are constant expressions.
   void _validateConstantArguments(ArgumentList argumentList) {
     for (Expression argument in argumentList.arguments) {
       Expression realArgument =
@@ -765,7 +763,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   }
 
   /// Validates that the expressions of the initializers of the given constant
-  /// [constructor] are all compile time constants.
+  /// [constructor] are constant expressions.
   void _validateConstructorInitializers(ConstructorDeclaration constructor) {
     NodeList<ConstructorInitializer> initializers = constructor.initializers;
     for (ConstructorInitializer initializer in initializers) {
@@ -785,10 +783,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /// Validate that the default value associated with each of the parameters in
-  /// the given list is a compile time constant.
-  ///
-  /// @param parameters the list of parameters to be validated
+  /// Validates that the default value associated with each of the parameters in
+  /// [parameters] is a constant expression.
   void _validateDefaultValues(FormalParameterList? parameters) {
     if (parameters == null) {
       return;
@@ -1072,21 +1068,34 @@ class _ConstLiteralVerifier {
       );
       return false;
     } else if (element is IfElement) {
-      var conditionValue =
+      var conditionConstant =
           verifier._evaluateAndReportError(element.expression, errorCode);
-      if (conditionValue is! DartObjectImpl) {
+      if (conditionConstant is! DartObjectImpl) {
         return false;
       }
-      var conditionBool = conditionValue.toBoolValue();
 
       // The errors have already been reported.
-      if (conditionBool == null) return false;
+      if (!conditionConstant.isBool) return false;
+
+      var conditionValue = conditionConstant.toBoolValue();
 
       var thenValid = true;
       var elseValid = true;
       var thenElement = element.thenElement;
       var elseElement = element.elseElement;
-      if (conditionBool) {
+
+      if (conditionValue == null) {
+        thenValid = _reportNotPotentialConstants(thenElement);
+        if (elseElement != null) {
+          elseValid = _reportNotPotentialConstants(elseElement);
+        }
+        return thenValid && elseValid;
+      }
+
+      // Only validate the relevant branch as per `conditionValue`. This
+      // avoids issues like duplicate values showing up in a const set, when
+      // they occur in each branch, like `{if (x) ...[1] else [1, 2]}`.
+      if (conditionValue) {
         thenValid = verify(thenElement);
         if (elseElement != null) {
           elseValid = _reportNotPotentialConstants(elseElement);
