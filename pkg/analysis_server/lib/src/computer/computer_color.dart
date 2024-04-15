@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/constant/value.dart' show GenericState;
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
@@ -41,6 +42,10 @@ class ColorComputer {
   List<ColorReference> compute() {
     final visitor = _ColorBuilder(this);
     resolvedUnit.unit.accept(visitor);
+    assert(
+      _colors.length == _colors.map((color) => color.offset).toSet().length,
+      'Every color reference should have a unique offset',
+    );
     return _colors;
   }
 
@@ -352,6 +357,13 @@ class _ColorBuilder extends RecursiveAstVisitor<void> {
     }
 
     super.visitPropertyAccess(node);
+  }
+
+  @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    computer.tryAddColor(node);
+
+    super.visitSimpleIdentifier(node);
   }
 }
 

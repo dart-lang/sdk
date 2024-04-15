@@ -185,26 +185,34 @@ class DocumentColorPresentationHandler extends SharedMessageHandler<
 
   /// Checks whether a `const` keyword is required in front of inserted
   /// constructor calls to preserve existing semantics.
+  ///
+  /// `const` should be inserted if the existing expression is constant but
+  /// we are not already in a constant context.
   bool _willRequireConstKeyword(int offset, ResolvedUnitResult unit) {
-    // We should insert `const` if the existing expression is constant, but
-    // we are not already in a constant context.
     var node = NodeLocator2(offset).searchWithin(unit.unit);
-
-    if (node is! SimpleIdentifier) {
+    if (node is! Expression) {
       return false;
     }
 
-    final parent = node.parent;
-    final staticElement = parent is PrefixedIdentifier
-        ? parent.staticElement
-        : node.staticElement;
-    final target = staticElement is PropertyAccessorElement
-        ? staticElement.variable2
-        : staticElement;
+    // `const` is unnecessary if we're in a constant context.
+    if (node.inConstantContext) {
+      return false;
+    }
 
-    final existingIsConst = target is ConstVariableElement;
-    final isInConstantContext = node.inConstantContext;
+    if (node is InstanceCreationExpression) {
+      return node.isConst;
+    } else if (node is SimpleIdentifier) {
+      var parent = node.parent;
+      var staticElement = parent is PrefixedIdentifier
+          ? parent.staticElement
+          : node.staticElement;
+      var target = staticElement is PropertyAccessorElement
+          ? staticElement.variable2
+          : staticElement;
 
-    return existingIsConst && !isInConstantContext;
+      return target is ConstVariableElement;
+    } else {
+      return false;
+    }
   }
 }

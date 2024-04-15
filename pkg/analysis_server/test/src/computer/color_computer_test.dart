@@ -38,12 +38,21 @@ class ColorComputerTest extends AbstractContextTest {
     'Color.fromARGB(255, 0, 0, 255)': 0xFF0000FF,
     'Color.fromRGBO(0, 0, 255, 1)': 0xFF0000FF,
     'Color.fromRGBO(0, 0, 255, 1.0)': 0xFF0000FF,
+    // dart:ui Colors with const keyword
+    'const Color(0xFF0000FF)': 0xFF0000FF,
+    'const Color.fromARGB(255, 0, 0, 255)': 0xFF0000FF,
+    'const Color.fromRGBO(0, 0, 255, 1)': 0xFF0000FF,
+    'const Color.fromRGBO(0, 0, 255, 1.0)': 0xFF0000FF,
     // Flutter Painting
     'ColorSwatch(0xFF89ABCD, {})': 0xFF89ABCD,
+    // Flutter Painting with const keyword
+    'const ColorSwatch(0xFF89ABCD, {})': 0xFF89ABCD,
     // Flutter Material
     'Colors.red': 0xFFFF0000,
     'Colors.redAccent': 0xFFFFAA00,
     'MaterialAccentColor(0xFF89ABCD, {})': 0xFF89ABCD,
+    // Flutter Material with const keyword
+    'const MaterialAccentColor(0xFF89ABCD, {})': 0xFF89ABCD,
     // Flutter Cupertino
     'CupertinoColors.black': 0xFF000000,
     'CupertinoColors.systemBlue': 0xFF0000FF,
@@ -98,12 +107,14 @@ class ColorComputerTest extends AbstractContextTest {
   Future<void> checkAllColors(String code, {bool onlyConst = false}) async {
     // Combine the flat and nested colours into the same format.
     final allColorCodes = <String, Map<String?, int>>{
-      ...colorCodesConst.map((key, value) => MapEntry(key, {key: value})),
-      if (!onlyConst)
-        ...colorCodesNonConst.map((key, value) => MapEntry(key, {key: value})),
+      ...{
+        ...colorCodesConst,
+        if (!onlyConst) ...colorCodesNonConst,
+      }.map((key, value) => MapEntry(key, {key: value})),
       ...colorCodesNested,
     };
 
+    // Build the expected regions and colour codes that should be computed.
     for (final entry in allColorCodes.entries) {
       final colorDartCode = entry.key;
       final expectedColorValues = entry.value.map(
@@ -250,6 +261,30 @@ class MyTheme {
         'MyTheme.staticMaterialRedAccent': 0xFFFFAA00,
         'theme.instanceWhite': 0xFFFFFFFF,
         'theme.instanceMaterialRedAccent': 0xFFFFAA00,
+      },
+      otherCode: otherCode,
+    );
+  }
+
+  Future<void> test_customConst_initializer() async {
+    const testCode = '''
+import 'other_file.dart';
+
+void f() {
+  final a1 = myThemeWhite;
+  final a2 = myThemeMaterialRedAccent;
+}
+''';
+
+    const otherCode = '''
+const myThemeWhite = Colors.white;
+const myThemeMaterialRedAccent = Colors.redAccent;
+''';
+    await expectColors(
+      testCode,
+      {
+        'myThemeWhite': 0xFFFFFFFF,
+        'myThemeMaterialRedAccent': 0xFFFFAA00,
       },
       otherCode: otherCode,
     );
