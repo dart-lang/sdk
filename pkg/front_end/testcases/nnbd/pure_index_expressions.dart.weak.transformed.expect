@@ -76,8 +76,8 @@ class Class extends core::Object {
     late final self::Class self;
     if(self::b)
       self = this;
-    let final core::int #t55 = i in self::Extension|[](#t55, this) == null ?{self::Class} self::Extension|[]=(#t55, this, this) : null;
-    let final core::int #t56 = i in let final self::Class #t57 = self in self::Extension|[](#t56, #t57) == null ?{self::Class} self::Extension|[]=(#t56, #t57, self) : null;
+    let final core::int #t55 = i in self::Extension|[](#t55, this) == null ?{self::Class?} self::Extension|[]=(#t55, this, this) : null;
+    let final core::int #t56 = i in let final self::Class #t57 = self in self::Extension|[](#t56, #t57) == null ?{self::Class?} self::Extension|[]=(#t56, #t57, self) : null;
     self::Extension|[]=(i, this, this);
     self::Extension|[]=(i, self, self);
     self::Extension|[](i, this);
@@ -108,8 +108,8 @@ class Subclass extends self::Class {
     late final self::Class self;
     if(self::b)
       self = this;
-    super.{self::Class::[]}(this) == null ?{self::Class} super.{self::Class::[]=}(this, this) : null;
-    let final self::Class #t81 = self in super.{self::Class::[]}(#t81) == null ?{self::Class} super.{self::Class::[]=}(#t81, self) : null;
+    super.{self::Class::[]}(this) == null ?{self::Class?} super.{self::Class::[]=}(this, this) : null;
+    let final self::Class #t81 = self in super.{self::Class::[]}(#t81) == null ?{self::Class?} super.{self::Class::[]=}(#t81, self) : null;
     super.{self::Class::[]=}(this, this);
     super.{self::Class::[]=}(self, self);
     super.{self::Class::[]}(this);
@@ -169,8 +169,8 @@ class Class2 extends core::Object {
     late final self::Class2 self;
     if(self::b)
       self = this;
-    self::Extension2|[](this, this) == null ?{self::Class2} self::Extension2|[]=(this, this, this) : null;
-    let final self::Class2 #t120 = self in let final self::Class2 #t121 = self in self::Extension2|[](#t120, #t121) == null ?{self::Class2} self::Extension2|[]=(#t120, #t121, self) : null;
+    self::Extension2|[](this, this) == null ?{self::Class2?} self::Extension2|[]=(this, this, this) : null;
+    let final self::Class2 #t120 = self in let final self::Class2 #t121 = self in self::Extension2|[](#t120, #t121) == null ?{self::Class2?} self::Extension2|[]=(#t120, #t121, self) : null;
     self::Extension2|[]=(this, this, this);
     self::Extension2|[]=(self, self, self);
     self::Extension2|[](this, this);

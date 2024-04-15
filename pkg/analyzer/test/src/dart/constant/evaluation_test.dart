@@ -4881,7 +4881,7 @@ const a = bool.fromEnvironment('dart.library.js_util');
 ''');
   }
 
-  test_bool_fromEnvironment_dartLibraryJsUtil_ifStatement_list() async {
+  test_bool_fromEnvironment_dartLibraryJsUtil_ifElement_list() async {
     await assertNoErrorsInCode('''
 const a = bool.fromEnvironment('dart.library.js_util');
 const x = [3, if (a) ...[1] else ...[1, 2], 4];
@@ -4893,7 +4893,7 @@ const x = [3, if (a) ...[1] else ...[1, 2], 4];
 ''');
   }
 
-  test_bool_fromEnvironment_dartLibraryJsUtil_ifStatement_list_eqeq_known() async {
+  test_bool_fromEnvironment_dartLibraryJsUtil_ifElement_list_eqeq_known() async {
     await assertNoErrorsInCode('''
 const a = bool.fromEnvironment('dart.library.js_util');
 const b = [3, if (a) ...[1] else ...[1, 2], 4];
@@ -4912,7 +4912,7 @@ const right = b == [3, 1, 2, 4];
 ''');
   }
 
-  test_bool_fromEnvironment_dartLibraryJsUtil_ifStatement_list_eqeq_unknown() async {
+  test_bool_fromEnvironment_dartLibraryJsUtil_ifElement_list_eqeq_unknown() async {
     await assertNoErrorsInCode('''
 const a = bool.fromEnvironment('dart.library.js_util');
 const b = [3, if (a) ...[1] else ...[1, 2], 4];
@@ -4931,7 +4931,7 @@ const right = b == [3, if (a) ...[1] else ...[1, 2], 4];
 ''');
   }
 
-  test_bool_fromEnvironment_dartLibraryJsUtil_ifStatement_map() async {
+  test_bool_fromEnvironment_dartLibraryJsUtil_ifElement_map() async {
     await assertNoErrorsInCode('''
 const a = bool.fromEnvironment('dart.library.js_util');
 const x = {3:'3', if (a) 1:'1' else 2:'2', 4:'4'};
@@ -4943,7 +4943,7 @@ const x = {3:'3', if (a) 1:'1' else 2:'2', 4:'4'};
 ''');
   }
 
-  test_bool_fromEnvironment_dartLibraryJsUtil_ifStatement_map_eqeq_known() async {
+  test_bool_fromEnvironment_dartLibraryJsUtil_ifElement_map_eqeq_known() async {
     await assertNoErrorsInCode('''
 const a = bool.fromEnvironment('dart.library.js_util');
 const b = {3:'3', if (a) 1:'1' else 2:'2', 4:'4'};
@@ -4962,7 +4962,7 @@ const right = b == {3:'3', 2:'2', 4:'4'};
 ''');
   }
 
-  test_bool_fromEnvironment_dartLibraryJsUtil_ifStatement_map_eqeq_unknown() async {
+  test_bool_fromEnvironment_dartLibraryJsUtil_ifElement_map_eqeq_unknown() async {
     await assertNoErrorsInCode('''
 const a = bool.fromEnvironment('dart.library.js_util');
 const b = {3:'3', if (a) 1:'1' else 2:'2', 4:'4'};
@@ -4981,7 +4981,21 @@ const right = b == {3:'3', if (a) 1:'1' else 2:'2', 4:'4'};
 ''');
   }
 
-  test_bool_fromEnvironment_dartLibraryJsUtil_ifStatement_set() async {
+  test_bool_fromEnvironment_dartLibraryJsUtil_ifElement_nonConstant() async {
+    await assertErrorsInCode('''
+const a = bool.fromEnvironment('dart.library.js_util');
+var b = 7;
+var x = const A([if (a) b]);
+
+class A {
+  const A(List<int> p);
+}
+''', [
+      error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 91, 1),
+    ]);
+  }
+
+  test_bool_fromEnvironment_dartLibraryJsUtil_ifElement_set() async {
     await assertNoErrorsInCode('''
 const a = bool.fromEnvironment('dart.library.js_util');
 const x = {3, if (a) ...[1] else ...[1, 2], 4};
@@ -4993,7 +5007,7 @@ const x = {3, if (a) ...[1] else ...[1, 2], 4};
 ''');
   }
 
-  test_bool_fromEnvironment_dartLibraryJsUtil_ifStatement_set_eqeq_known() async {
+  test_bool_fromEnvironment_dartLibraryJsUtil_ifElement_set_eqeq_known() async {
     await assertNoErrorsInCode('''
 const a = bool.fromEnvironment('dart.library.js_util');
 const b = {3, if (a) ...[1] else ...[1, 2], 4};
@@ -5012,7 +5026,7 @@ const right = b == {3, 1, 4};
 ''');
   }
 
-  test_bool_fromEnvironment_dartLibraryJsUtil_ifStatement_set_eqeq_unknown() async {
+  test_bool_fromEnvironment_dartLibraryJsUtil_ifElement_set_eqeq_unknown() async {
     await assertNoErrorsInCode('''
 const a = bool.fromEnvironment('dart.library.js_util');
 const b = {3, if (a) ...[1] else ...[1, 2], 4};
@@ -5029,6 +5043,20 @@ const right = b == {3, if (a) ...[1] else ...[1, 2], 4};
 <unknown> bool
   variable: self::@variable::right
 ''');
+  }
+
+  test_bool_fromEnvironment_dartLibraryJsUtil_ifElementElse_nonConstant() async {
+    await assertErrorsInCode('''
+const a = bool.fromEnvironment('dart.library.js_util');
+var b = 7;
+var x = const A([if (a) 3 else b]);
+
+class A {
+  const A(List<int> p);
+}
+''', [
+      error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 98, 1),
+    ]);
   }
 
   test_bool_hasEnvironment() async {

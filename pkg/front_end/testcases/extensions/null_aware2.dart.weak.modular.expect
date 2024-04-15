@@ -57,9 +57,9 @@ static method test2(self::Class? c) → dynamic {
   self::expect(42, let final self::Class? #t31 = c in #t31 == null ?{core::int?} null : let final core::int? #t32 = self::Extension|get#property(#t31) in #t32 == null ?{core::int} let final core::int #t33 = 42 in let final void #t34 = self::Extension|set#property(#t31, #t33) in #t33 : #t32{core::int});
   self::expect(42, let final self::Class? #t35 = c in #t35 == null ?{core::int?} null : let final core::int? #t36 = self::Extension|get#property(#t35) in #t36 == null ?{core::int} let final core::int #t37 = 87 in let final void #t38 = self::Extension|set#property(#t35, #t37) in #t37 : #t36{core::int});
   self::expect(null, let final self::Class? #t39 = c in #t39 == null ?{Null} null : let final has-declared-initializer Null #t40 = null in let final void #t41 = self::Extension|set#property(#t39{self::Class}, #t40) in #t40);
-  let final self::Class? #t42 = c in #t42 == null ?{core::int?} null : self::Extension|get#property(#t42) == null ?{core::int} self::Extension|set#property(#t42, 42) : null;
+  let final self::Class? #t42 = c in #t42 == null ?{core::int?} null : self::Extension|get#property(#t42) == null ?{core::int?} self::Extension|set#property(#t42, 42) : null;
   self::expect(42, let final self::Class? #t43 = c in #t43 == null ?{core::int?} null : self::Extension|get#property(#t43{self::Class}));
-  let final self::Class? #t44 = c in #t44 == null ?{core::int?} null : self::Extension|get#property(#t44) == null ?{core::int} self::Extension|set#property(#t44, 87) : null;
+  let final self::Class? #t44 = c in #t44 == null ?{core::int?} null : self::Extension|get#property(#t44) == null ?{core::int?} self::Extension|set#property(#t44, 87) : null;
   self::expect(42, let final self::Class? #t45 = c in #t45 == null ?{core::int?} null : self::Extension|get#property(#t45{self::Class}));
   let final self::Class? #t46 = c in #t46 == null ?{void} null : self::Extension|set#property(#t46{self::Class}, null);
   self::expect(null, let final self::Class? #t47 = c in #t47 == null ?{core::int?} null : self::Extension|get#property(#t47{self::Class}));

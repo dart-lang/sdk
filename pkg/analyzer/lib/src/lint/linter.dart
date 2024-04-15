@@ -209,11 +209,11 @@ abstract class LinterContext {
 
   TypeSystem get typeSystem;
 
-  /// Returns `true` if it would be valid for the given [expression] to have
-  /// a keyword of `const`.
+  /// Returns whether it would be valid for the given [expression] to have
+  /// a `const` keyword.
   ///
-  /// The [expression] is expected to be a node within one of the compilation
-  /// units in [allUnits].
+  /// The [expression] must be a node within one of the compilation units in
+  /// [allUnits].
   ///
   /// Note that this method can cause constant evaluation to occur, which can be
   /// computationally expensive.
@@ -465,7 +465,7 @@ class LinterContextImpl implements LinterContext {
     }
   }
 
-  /// Return `true` if [ConstantVerifier] reports an error for the [node].
+  /// Returns whether [ConstantVerifier] reports an error for the [node].
   bool _hasConstantVerifierError(AstNode node) {
     var unitElement = currentUnit.unit.declaredElement!;
     var libraryElement = unitElement.library as LibraryElementImpl;

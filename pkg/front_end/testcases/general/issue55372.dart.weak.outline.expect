@@ -1,0 +1,31 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  field core::double? foo1;
+  field core::String? foo2;
+  field core::int foo3;
+  synthetic constructor •() → self::A
+    ;
+  operator []=(core::bool key, core::String? value) → void
+    ;
+  operator [](core::bool key) → core::String?
+    ;
+}
+class B extends self::A {
+  synthetic constructor •() → self::B
+    ;
+  method test() → dynamic
+    ;
+}
+extension E on dynamic {
+  operator []= = self::E|[]=;
+  operator [] = self::E|[];
+}
+static extension-member method E|[]=(lowered final dynamic #this, core::String key, core::int? value) → void
+  ;
+static extension-member method E|[](lowered final dynamic #this, core::String key) → core::int?
+  ;
+static method main() → dynamic
+  ;
