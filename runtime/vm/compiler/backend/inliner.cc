@@ -110,10 +110,6 @@ static bool IsSmiValue(Value* val, intptr_t* int_val) {
   return false;
 }
 
-static bool IsCompilingForSoundNullSafety() {
-  return true;
-}
-
 // Test if a call is recursive by looking in the deoptimization environment.
 static bool IsCallRecursive(const Function& function, Definition* call) {
   Environment* env = call->env();
@@ -2767,16 +2763,6 @@ static intptr_t PrepareInlineIndexedOp(FlowGraph* flow_graph,
       new (Z) Value(*array), Slot::GetLengthFieldForArrayCid(array_cid),
       call->source());
   *cursor = flow_graph->AppendTo(*cursor, length, nullptr, FlowGraph::kValue);
-  if (CompilerState::Current().is_aot() && !IsCompilingForSoundNullSafety()) {
-    // Add a null-check in case the index argument is known to be compatible
-    // but possibly nullable. By inserting the null-check, we can allow the
-    // unbox instruction later inserted to be non-speculative.
-    auto* const null_check = new (Z) CheckNullInstr(
-        new (Z) Value(*index), Symbols::Index(), call->deopt_id(),
-        call->source(), CheckNullInstr::kArgumentError);
-    *cursor = flow_graph->AppendTo(*cursor, null_check, call->env(),
-                                   FlowGraph::kEffect);
-  }
   *index = flow_graph->CreateCheckBound(length, *index, call->deopt_id());
   *cursor =
       flow_graph->AppendTo(*cursor, *index, call->env(), FlowGraph::kValue);
@@ -2947,15 +2933,6 @@ static bool InlineSetIndexed(FlowGraph* flow_graph,
   // Check if store barrier is needed. Byte arrays don't need a store barrier.
   StoreBarrierType needs_store_barrier =
       is_typed_data_store ? kNoStoreBarrier : kEmitStoreBarrier;
-
-  // We know that the incomming type matches, but we still need to handle the
-  // null check.
-  if (is_typed_data_store && !IsCompilingForSoundNullSafety()) {
-    String& name = String::ZoneHandle(Z, target.name());
-    Instruction* check = new (Z) CheckNullInstr(
-        new (Z) Value(stored_value), name, call->deopt_id(), call->source());
-    *last = flow_graph->AppendTo(*last, check, call->env(), FlowGraph::kEffect);
-  }
 
   if (rep == kUnboxedFloat) {
     stored_value = new (Z)

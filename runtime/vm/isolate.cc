@@ -1603,9 +1603,6 @@ void IsolateGroup::FlagsCopyFrom(const Dart_IsolateFlags& api_flags) {
                       api_flags.isolate_flag, isolate_group_flags_));
 
   BOOL_ISOLATE_GROUP_FLAG_LIST(SET_FROM_FLAG)
-  // Needs to be called manually, otherwise we don't set the null_safety_set
-  // bit.
-  set_null_safety(true);
 #undef FLAG_FOR_NONPRODUCT
 #undef FLAG_FOR_PRECOMPILER
 #undef FLAG_FOR_PRODUCT

@@ -147,7 +147,6 @@ ObjectPtr DartEntry::InvokeCode(const Code& code,
 
   ASSERT(!code.IsNull());
   ASSERT(thread->no_callback_scope_depth() == 0);
-  ASSERT(!thread->isolate_group()->null_safety_not_set());
 
   DartEntryScope dart_entry_scope(thread);
 

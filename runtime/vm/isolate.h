@@ -129,19 +129,11 @@ typedef FixedCache<intptr_t, ExceptionHandlerInfo, 16> HandlerInfoCache;
 // Fixed cache for catch entry state lookup.
 typedef FixedCache<intptr_t, CatchEntryMovesRefPtr, 16> CatchEntryMovesCache;
 
-// List of Isolate flags with corresponding members of Dart_IsolateFlags and
-// corresponding global command line flags.
-#define BOOL_ISOLATE_FLAG_LIST(V) BOOL_ISOLATE_FLAG_LIST_DEFAULT_GETTER(V)
-
-#define BOOL_ISOLATE_GROUP_FLAG_LIST(V)                                        \
-  BOOL_ISOLATE_GROUP_FLAG_LIST_DEFAULT_GETTER(V)                               \
-  BOOL_ISOLATE_GROUP_FLAG_LIST_CUSTOM_GETTER(V)
-
-// List of Isolate flags with default getters.
+// List of Isolate group flags.
 //
 //     V(when, name, bit-name, Dart_IsolateFlags-name, command-line-flag-name)
 //
-#define BOOL_ISOLATE_GROUP_FLAG_LIST_DEFAULT_GETTER(V)                         \
+#define BOOL_ISOLATE_GROUP_FLAG_LIST(V)                                        \
   V(PRECOMPILER, obfuscate, Obfuscate, obfuscate, false)                       \
   V(NONPRODUCT, asserts, EnableAsserts, enable_asserts, FLAG_enable_asserts)   \
   V(NONPRODUCT, use_field_guards, UseFieldGuards, use_field_guards,            \
@@ -154,18 +146,13 @@ typedef FixedCache<intptr_t, CatchEntryMovesRefPtr, 16> CatchEntryMovesCache;
   V(NONPRODUCT, branch_coverage, BranchCoverage, branch_coverage,              \
     FLAG_branch_coverage)
 
-#define BOOL_ISOLATE_FLAG_LIST_DEFAULT_GETTER(V)                               \
+// List of Isolate flags with corresponding members of Dart_IsolateFlags and
+// corresponding global command line flags.
+#define BOOL_ISOLATE_FLAG_LIST(V)                                              \
   V(NONPRODUCT, is_system_isolate, IsSystemIsolate, is_system_isolate, false)  \
   V(NONPRODUCT, is_service_isolate, IsServiceIsolate, is_service_isolate,      \
     false)                                                                     \
   V(NONPRODUCT, is_kernel_isolate, IsKernelIsolate, is_kernel_isolate, false)
-
-// List of Isolate flags with custom getters named #name().
-//
-//     V(when, name, bit-name, Dart_IsolateFlags-name, default_value)
-//
-#define BOOL_ISOLATE_GROUP_FLAG_LIST_CUSTOM_GETTER(V)                          \
-  V(PRODUCT, null_safety, NullSafety, null_safety, false)
 
 // Represents the information used for spawning the first isolate within an
 // isolate group. All isolates within a group will refer to this
@@ -448,26 +435,11 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
     return FLAG_FOR_##when(bitname##Bit::decode(isolate_group_flags_),         \
                            flag_name);                                         \
   }
-  BOOL_ISOLATE_GROUP_FLAG_LIST_DEFAULT_GETTER(DECLARE_GETTER)
+  BOOL_ISOLATE_GROUP_FLAG_LIST(DECLARE_GETTER)
 #undef FLAG_FOR_NONPRODUCT
 #undef FLAG_FOR_PRECOMPILER
 #undef FLAG_FOR_PRODUCT
 #undef DECLARE_GETTER
-
-  bool null_safety_not_set() const {
-    return !NullSafetySetBit::decode(isolate_group_flags_);
-  }
-
-  bool null_safety() const {
-    ASSERT(!null_safety_not_set());
-    return NullSafetyBit::decode(isolate_group_flags_);
-  }
-
-  void set_null_safety(bool null_safety) {
-    isolate_group_flags_ = NullSafetySetBit::update(true, isolate_group_flags_);
-    isolate_group_flags_ =
-        NullSafetyBit::update(null_safety, isolate_group_flags_);
-  }
 
   bool should_load_vmservice() const {
     return ShouldLoadVmServiceBit::decode(isolate_group_flags_);
@@ -785,10 +757,8 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   V(AllClassesFinalized)                                                       \
   V(EnableAsserts)                                                             \
   V(HasAttemptedReload)                                                        \
-  V(NullSafety)                                                                \
   V(RemappingCids)                                                             \
   V(ShouldLoadVmService)                                                       \
-  V(NullSafetySet)                                                             \
   V(Obfuscate)                                                                 \
   V(UseFieldGuards)                                                            \
   V(UseOsr)                                                                    \
@@ -1399,7 +1369,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   bool name() const {                                                          \
     return FLAG_FOR_##when(LoadIsolateFlagsBit<bitname##Bit>(), flag_name);    \
   }
-  BOOL_ISOLATE_FLAG_LIST_DEFAULT_GETTER(DECLARE_GETTER)
+  BOOL_ISOLATE_FLAG_LIST(DECLARE_GETTER)
 #undef FLAG_FOR_NONPRODUCT
 #undef FLAG_FOR_PRECOMPILER
 #undef FLAG_FOR_PRODUCT

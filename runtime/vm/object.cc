@@ -3088,10 +3088,6 @@ ClassPtr Class::Mixin() const {
   return ptr();
 }
 
-NNBDMode Class::nnbd_mode() const {
-  return Library::Handle(library()).nnbd_mode();
-}
-
 bool Class::IsInFullSnapshot() const {
   NoSafepointScope no_safepoint;
   return UntaggedLibrary::InFullSnapshotBit::decode(
@@ -6744,10 +6740,9 @@ void TypeParameters::Print(Thread* thread,
     }
     if (FLAG_show_internal_names || !AllDynamicBounds()) {
       type = BoundAt(i);
-      // Do not print default bound or non-nullable Object bound in weak mode.
-      if (!type.IsNull() &&
-          (FLAG_show_internal_names || !type.IsObjectType() ||
-           (thread->isolate_group()->null_safety() && type.IsNonNullable()))) {
+      // Do not print default bound.
+      if (!type.IsNull() && (FLAG_show_internal_names || !type.IsObjectType() ||
+                             type.IsNonNullable())) {
         printer->AddString(" extends ");
         type.PrintName(name_visibility, printer);
         if (FLAG_show_internal_names && !AllDynamicDefaults()) {
@@ -10594,12 +10589,7 @@ FunctionPtr Function::ImplicitClosureFunction() const {
   // Set closure function's result type.
   AbstractType& result_type = AbstractType::Handle(zone);
   if (IsConstructor()) {
-    const Nullability result_nullability =
-        (nnbd_mode() == NNBDMode::kOptedInLib) ? Nullability::kNonNullable
-                                               : Nullability::kLegacy;
     result_type = cls.DeclarationType();
-    result_type =
-        Type::Cast(result_type).ToNullability(result_nullability, Heap::kOld);
   } else {
     result_type = this->result_type();
   }
@@ -10661,18 +10651,15 @@ FunctionPtr Function::ImplicitClosureFunction() const {
   closure_function.InheritKernelOffsetFrom(*this);
 
   if (!is_static() && !IsConstructor()) {
-    // Change covariant parameter types to either Object? for an opted-in
-    // implicit closure or to Object* for a legacy implicit closure.
+    // Change covariant parameter types to Object?.
     BitVector is_covariant(zone, NumParameters());
     BitVector is_generic_covariant_impl(zone, NumParameters());
     kernel::ReadParameterCovariance(*this, &is_covariant,
                                     &is_generic_covariant_impl);
 
-    Type& object_type = Type::Handle(zone, Type::ObjectType());
     ObjectStore* object_store = IsolateGroup::Current()->object_store();
-    object_type = nnbd_mode() == NNBDMode::kOptedInLib
-                      ? object_store->nullable_object_type()
-                      : object_store->legacy_object_type();
+    const auto& object_type =
+        Type::Handle(zone, object_store->nullable_object_type());
     ASSERT(object_type.IsCanonical());
     for (intptr_t i = kClosure; i < num_params; ++i) {
       const intptr_t original_param_index = num_implicit_params - kClosure + i;
@@ -14336,7 +14323,6 @@ LibraryPtr Library::NewLibraryHelper(const String& url, bool import_core_lib) {
   result.set_ffi_native_resolver(nullptr);
   result.set_flags(0);
   result.set_is_in_fullsnapshot(false);
-  result.set_is_nnbd(false);
   // This logic is also in the DAP debug adapter in DDS to avoid needing
   // to call setLibraryDebuggable for every library for every isolate.
   // If these defaults change, the same should be done there in
@@ -21113,11 +21099,6 @@ bool AbstractType::IsStrictlyNonNullable() const {
 
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-
-  // In weak mode null can be assigned to any type.
-  if (!thread->isolate_group()->null_safety()) {
-    return false;
-  }
 
   if (IsTypeParameter()) {
     const auto& bound =
