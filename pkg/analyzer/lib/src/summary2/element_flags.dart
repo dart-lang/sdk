@@ -96,6 +96,27 @@ class EnumElementFlags {
   }
 }
 
+class ExtensionElementFlags {
+  static const int _isAugmentation = 1 << 0;
+
+  static void read(
+    SummaryDataReader reader,
+    ExtensionElementImpl element,
+  ) {
+    var byte = reader.readByte();
+    element.isAugmentation = (byte & _isAugmentation) != 0;
+  }
+
+  static void write(
+    BufferedSink sink,
+    ExtensionElementImpl element,
+  ) {
+    var result = 0;
+    result |= element.isAugmentation ? _isAugmentation : 0;
+    sink.writeByte(result);
+  }
+}
+
 class ExtensionTypeElementFlags {
   static const int _hasRepresentationSelfReference = 1 << 0;
   static const int _hasImplementsSelfReference = 1 << 1;

@@ -143,7 +143,7 @@ class TypesBuilder {
     );
 
     if (element.augmentationTarget != null) {
-      _updatedAugmented(node.withClause, element);
+      _updatedAugmented(element, withClause: node.withClause);
     } else {
       _toInferMixins[element] = _ToInferMixins(element, node.withClause);
     }
@@ -233,26 +233,40 @@ class TypesBuilder {
   AugmentedInstanceElementImpl? _ensureAugmented(
     InstanceElementImpl augmentation,
   ) {
-    var augmented = augmentation.augmented;
-    if (augmented is AugmentedInstanceElementImpl) {
-      return augmented;
+    var maybeAugmented = augmentation.augmented;
+    if (maybeAugmented is AugmentedInstanceElementImpl) {
+      return maybeAugmented;
     }
 
-    final declaration = augmented.declaration;
+    var declaration = maybeAugmented.declaration;
+
+    AugmentedInstanceElementImpl augmented;
     switch (declaration) {
       case ClassElementImpl():
-        final augmented = AugmentedClassElementImpl(declaration);
-        declaration.augmentedInternal = augmented;
-        augmented.mixins.addAll(declaration.mixins);
-        augmented.interfaces.addAll(declaration.interfaces);
-        augmented.fields.addAll(declaration.fields.notAugmented);
-        augmented.constructors.addAll(declaration.constructors.notAugmented);
-        augmented.accessors.addAll(declaration.accessors.notAugmented);
-        augmented.methods.addAll(declaration.methods.notAugmented);
-        return augmented;
+        var result = AugmentedClassElementImpl(declaration);
+        declaration.augmentedInternal = augmented = result;
+      case ExtensionElementImpl():
+        maybeAugmented as NotAugmentedExtensionElementImpl;
+        var result = AugmentedExtensionElementImpl(declaration);
+        result.extendedType = maybeAugmented.extendedType;
+        declaration.augmentedInternal = augmented = result;
       default:
         return null;
     }
+
+    augmented.fields.addAll(declaration.fields.notAugmented);
+    augmented.accessors.addAll(declaration.accessors.notAugmented);
+    augmented.methods.addAll(declaration.methods.notAugmented);
+
+    if (augmented is AugmentedInterfaceElementImpl) {
+      if (declaration is InterfaceElementImpl) {
+        augmented.mixins.addAll(declaration.mixins);
+        augmented.interfaces.addAll(declaration.interfaces);
+        augmented.constructors.addAll(declaration.constructors.notAugmented);
+      }
+    }
+
+    return augmented;
   }
 
   void _enumDeclaration(EnumDeclaration node) {
@@ -271,10 +285,13 @@ class TypesBuilder {
 
   void _extensionDeclaration(ExtensionDeclaration node) {
     var element = node.declaredElement as ExtensionElementImpl;
-    if (node.onClause case var onClause?) {
-      element.extendedType = onClause.extendedType.typeOrThrow;
+    if (element.augmentationTarget == null) {
+      if (node.onClause case var onClause?) {
+        var extendedType = onClause.extendedType.typeOrThrow;
+        element.augmented.extendedType = extendedType;
+      }
     } else {
-      element.extendedType = InvalidTypeImpl.instance;
+      _updatedAugmented(element);
     }
   }
 
@@ -347,7 +364,7 @@ class TypesBuilder {
     );
 
     if (element.augmentationTarget != null) {
-      _updatedAugmented(null, element);
+      _updatedAugmented(element);
     } else {
       if (element.augmentation != null) {
         final augmented = AugmentedMixinElementImpl(element);
@@ -395,8 +412,11 @@ class TypesBuilder {
         .toFixedList();
   }
 
-  void _updatedAugmented(WithClause? withClause, InstanceElementImpl element) {
-    final augmented = _ensureAugmented(element);
+  void _updatedAugmented(
+    InstanceElementImpl augmentation, {
+    WithClause? withClause,
+  }) {
+    final augmented = _ensureAugmented(augmentation);
     if (augmented == null) {
       return;
     }
@@ -404,27 +424,27 @@ class TypesBuilder {
     final declaration = augmented.declaration;
     final declarationTypeParameters = declaration.typeParameters;
 
-    final elementTypeParameters = element.typeParameters;
-    if (elementTypeParameters.length != declarationTypeParameters.length) {
+    final augmentationTypeParameters = augmentation.typeParameters;
+    if (augmentationTypeParameters.length != declarationTypeParameters.length) {
       return;
     }
 
     final toDeclaration = Substitution.fromPairs(
-      elementTypeParameters,
+      augmentationTypeParameters,
       declarationTypeParameters.instantiateNone(),
     );
 
     final fromDeclaration = Substitution.fromPairs(
       declarationTypeParameters,
-      elementTypeParameters.instantiateNone(),
+      augmentationTypeParameters.instantiateNone(),
     );
 
-    if (element is InterfaceElementImpl && withClause != null) {
+    if (augmentation is InterfaceElementImpl && withClause != null) {
       final toInferMixins = _toInferMixins[declaration];
       if (toInferMixins != null) {
         toInferMixins.augmentations.add(
           _ToInferMixinsAugmentation(
-            element: element,
+            element: augmentation,
             withClause: withClause,
             toDeclaration: toDeclaration,
             fromDeclaration: fromDeclaration,
@@ -433,11 +453,11 @@ class TypesBuilder {
       }
     }
 
-    if (element is InterfaceElementImpl &&
-        augmented is AugmentedInterfaceElementImpl &&
-        declaration is InterfaceElementImpl) {
+    if (augmentation is InterfaceElementImpl &&
+        declaration is InterfaceElementImpl &&
+        augmented is AugmentedInterfaceElementImpl) {
       if (declaration.supertype == null) {
-        final elementSuperType = element.supertype;
+        final elementSuperType = augmentation.supertype;
         if (elementSuperType != null) {
           final superType = toDeclaration.mapInterfaceType(elementSuperType);
           declaration.supertype = superType;
@@ -445,12 +465,12 @@ class TypesBuilder {
       }
 
       augmented.interfaces.addAll(
-        toDeclaration.mapInterfaceTypes(element.interfaces),
+        toDeclaration.mapInterfaceTypes(augmentation.interfaces),
       );
 
       augmented.constructors = [
         ...augmented.constructors.notAugmented,
-        ...element.constructors.notAugmented.map((element) {
+        ...augmentation.constructors.notAugmented.map((element) {
           if (toDeclaration.map.isEmpty) {
             return element;
           }
@@ -463,15 +483,16 @@ class TypesBuilder {
       ];
     }
 
-    if (element is MixinElementImpl && augmented is AugmentedMixinElementImpl) {
+    if (augmentation is MixinElementImpl &&
+        augmented is AugmentedMixinElementImpl) {
       augmented.superclassConstraints.addAll(
-        toDeclaration.mapInterfaceTypes(element.superclassConstraints),
+        toDeclaration.mapInterfaceTypes(augmentation.superclassConstraints),
       );
     }
 
     augmented.fields = [
       ...augmented.fields.notAugmented,
-      ...element.fields.notAugmented.map((element) {
+      ...augmentation.fields.notAugmented.map((element) {
         if (toDeclaration.map.isEmpty) {
           return element;
         }
@@ -481,7 +502,7 @@ class TypesBuilder {
 
     augmented.accessors = [
       ...augmented.accessors.notAugmented,
-      ...element.accessors.notAugmented.map((element) {
+      ...augmentation.accessors.notAugmented.map((element) {
         if (toDeclaration.map.isEmpty) {
           return element;
         }
@@ -492,7 +513,7 @@ class TypesBuilder {
 
     augmented.methods = [
       ...augmented.methods.notAugmented,
-      ...element.methods.notAugmented.map((element) {
+      ...augmentation.methods.notAugmented.map((element) {
         if (toDeclaration.map.isEmpty) {
           return element;
         }

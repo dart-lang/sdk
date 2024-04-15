@@ -187,7 +187,7 @@ mixin ElementsTypesMixin {
     List<MethodElementImpl> methods = const [],
   }) {
     var element = ExtensionElementImpl(name, 0);
-    element.extendedType = extendedType;
+    element.augmented.extendedType = extendedType;
     element.isAugmentation = isAugmentation;
     element.enclosingElement = testLibrary.definingCompilationUnit;
     element.typeParameters = typeParameters;

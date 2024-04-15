@@ -440,6 +440,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var nameOffset = nameToken?.offset ?? -1;
 
     var element = ExtensionElementImpl(name, nameOffset);
+    element.isAugmentation = node.augmentKeyword != null;
     element.metadata = _buildAnnotations(node.metadata);
     _setCodeRange(element, node);
     _setDocumentation(element, node);
@@ -475,6 +476,29 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     }
 
     node.onClause?.accept(this);
+
+    if (name != null) {
+      _libraryBuilder.updateAugmentationTarget(name, element, (target) {
+        if (element.isAugmentation) {
+          target.augmentation = element;
+          element.augmentationTarget = target;
+        }
+      });
+
+      if (element.augmentationTarget != null) {
+        var builder = _libraryBuilder.getAugmentedBuilder(name);
+        if (builder is AugmentedExtensionDeclarationBuilder) {
+          builder.augment(element);
+        }
+      } else {
+        _libraryBuilder.putAugmentedBuilder(
+          name,
+          AugmentedExtensionDeclarationBuilder(
+            declaration: element,
+          ),
+        );
+      }
+    }
   }
 
   @override
