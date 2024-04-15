@@ -1051,6 +1051,20 @@ extension E on int {
     ]);
   }
 
+  test_instanceMethod_reachable_toJson() async {
+    await assertNoDiagnostics(r'''
+import 'dart:convert';
+
+void main() async {
+  jsonEncode([C()]);
+}
+
+class C {
+  List<Object> toJson() => ['c'];
+}
+''');
+  }
+
   test_instanceMethod_unreachable_inExtensionType() async {
     await assertDiagnostics(r'''
 void main() {
