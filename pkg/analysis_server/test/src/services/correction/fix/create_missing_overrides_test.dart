@@ -634,9 +634,9 @@ class B extends A {
     expect(selection.file, testFile.path);
     expect(
       expectedCode.substring(selection.offset),
-      startsWith('''
+      startsWith(normalizeSource('''
 @override
-  void m1'''),
+  void m1''')),
     );
   }
 
@@ -676,7 +676,7 @@ abstract class A {
 class B extends A {
 }
 ''');
-    var expectedCode = '''
+    var expectedCode = normalizeSource('''
 abstract class A {
   String m(p1, {int p2 = 2, int p3, p4 = 4});
 }
@@ -688,7 +688,7 @@ class B extends A {
     throw UnimplementedError();
   }
 }
-''';
+''');
     await assertHasFix(expectedCode);
 
     var selection = change.selection!;
@@ -731,7 +731,7 @@ abstract class A {
 class B extends A {
 }
 ''');
-    var expectedCode = '''
+    var expectedCode = normalizeSource('''
 abstract class A {
   String m(p1, [int p2 = 2, int p3, p4 = 4]);
 }
@@ -743,7 +743,7 @@ class B extends A {
     throw UnimplementedError();
   }
 }
-''';
+''');
     await assertHasFix(expectedCode);
 
     var selection = change.selection!;
