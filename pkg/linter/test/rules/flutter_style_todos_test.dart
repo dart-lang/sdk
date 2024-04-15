@@ -47,20 +47,20 @@ class FlutterStyleTodosTest extends LintRuleTest {
     );
   }
 
-  test_badUsername1() async {
-    await assertDiagnostics(
-      r'// TODO(#12357): bla',
-      [
-        lint(0, 20),
-      ],
-    );
-  }
-
-  test_badUsername2() async {
+  test_badUsername_comma() async {
     await assertDiagnostics(
       r'// TODO(user1,user2): bla',
       [
         lint(0, 25),
+      ],
+    );
+  }
+
+  test_badUsername_extraSymbols() async {
+    await assertDiagnostics(
+      r'// TODO(#12357): bla',
+      [
+        lint(0, 20),
       ],
     );
   }
@@ -135,6 +135,10 @@ class FlutterStyleTodosTest extends LintRuleTest {
         lint(0, 12),
       ],
     );
+  }
+
+  test_properFormat_dottedUsername() async {
+    await assertNoDiagnostics(r'// TODO(user.name): bla');
   }
 
   test_properFormat_hyphenatedUsername() async {
