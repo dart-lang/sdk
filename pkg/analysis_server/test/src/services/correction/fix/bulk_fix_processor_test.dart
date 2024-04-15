@@ -149,9 +149,6 @@ void bad() {
 
 @reflectiveTest
 class PubspecFixTest extends BulkFixProcessorTest {
-  @FailingTest(
-      reason: 'TODO(keertip: Fix issue with deletes where the entry to'
-          'be removed is in between entries.')
   Future<void> test_delete_change() async {
     var content = '''
 name: test

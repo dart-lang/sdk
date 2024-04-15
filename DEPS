@@ -144,8 +144,8 @@ vars = {
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
   "dart_style_rev": "a6ad7693555a9add6f98ad6fd94de80d35c89415", # disable tools/rev_sdk_deps.dart
-  "dartdoc_rev": "ba77660df8ab4988b50b8021f2a2a615ac54a5bb",
-  "ecosystem_rev": "95fed184e5093d2e566161147a1dddbd56fef9a0",
+  "dartdoc_rev": "f339b094b123a18c88f277fd997a590a9431973c",
+  "ecosystem_rev": "9fabe464ea1d8408774de74d2ac759c1f90ae480",
   "file_rev": "f858c6fe9d1b0167b944aa62dd9b4321036b5238",
   "fixnum_rev": "dec16eb715f70f2fe0ed509da2e118354bea21d8",
   "flute_rev": "a531c96a8b43d015c6bfbbfe3ab54867b0763b8b",
@@ -191,7 +191,7 @@ vars = {
   "usage_rev": "09cab899c2759c2e1c84ab49098f58beab3c149f",
   "vector_math_rev": "43f2a77bb0be812b027a68a11792d563713b42a1",
   "watcher_rev": "1bd2f20d0d924c8422aa2b9afdb165bff4f053c0",
-  "web_rev": "3d1b4cbaaf7517cf4f86c8cf8ebe31c67040e08a",
+  "web_rev": "9d8c802d13b785b1a5b201c4a43605d640841c98",
   "web_socket_channel_rev": "ced3a37193f89d5ee95792f342eeb15d3d55d8c1",
   "webdev_rev": "7d0d2d46bf4249e73298ddafa4f323f8609d08da",
   "webdriver_rev": "c80e01e6ce121e55c31e33a31e5d3950023e6bc9",

@@ -202,13 +202,14 @@ class PubspecFixGenerator {
         // Go through entries and remove each one.
         for (var dep in removeDevDeps) {
           MapEntry<dynamic, YamlNode>? currentEntry, nextEntry, prevEntry;
-          for (var entry in section.nodes.entries) {
+          var length = section.nodes.entries.length;
+          for (int i = 0; i < length; i++) {
+            var entry = section.nodes.entries.elementAt(i);
             if (entry.key.value == dep) {
               currentEntry = entry;
-              continue;
-            }
-            if (currentEntry != null) {
-              nextEntry = entry;
+              if (i + 1 < length) {
+                nextEntry = section.nodes.entries.elementAt(i + 1);
+              }
               break;
             }
             prevEntry = entry;
@@ -240,7 +241,17 @@ class PubspecFixGenerator {
             var endOffset = nextEntry == null
                 ? currentEntry.value.span.end.offset
                 : (nextEntry.key as YamlNode).span.start.offset;
-
+            // If entry in the middle of two other entries that are not to be
+            // removed, delete the line.
+            if (prevEntry != null &&
+                nextEntry != null &&
+                !removeDevDeps.contains(prevEntry.key.value) &&
+                !removeDevDeps.contains(nextEntry.key.value)) {
+              var line = (currentEntry.key as YamlNode).span.start.line;
+              startOffset = lineInfo.lineStarts[line];
+              var nextLine = (nextEntry.key as YamlNode).span.start.line;
+              endOffset = lineInfo.lineStarts[nextLine];
+            }
             if (edit == null) {
               edit = _Range(startOffset, endOffset);
             } else if (edit.endOffset > startOffset) {

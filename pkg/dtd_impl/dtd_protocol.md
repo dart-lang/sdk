@@ -743,7 +743,9 @@ the different service methods.
 
 Response for communicating a list of URIs.
 
-Used by `FileSystem.listDirectoryContents`.
+The returned uris will be `file://` Uris.
+
+Used by `FileSystem.listDirectoryContents`, and `FileSystem.getProjectRoots`.
 
 ```json
 {
@@ -771,6 +773,8 @@ Used by `FileSystem.readFileAsString`
 #### `IDEWorkspaceRoots`
 
 Response for communicating workspace roots.
+
+The returned uris will be `file://` Uris.
 
 Used by `FileSystem.getIDEWorkspaceRoots`
 

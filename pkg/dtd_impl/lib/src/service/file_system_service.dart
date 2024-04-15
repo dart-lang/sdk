@@ -9,6 +9,7 @@ import 'package:collection/collection.dart';
 import 'package:dtd_impl/src/constants.dart';
 import 'package:json_rpc_2/json_rpc_2.dart';
 import 'package:dtd/dtd.dart';
+import 'package:path/path.dart' as path;
 
 import '../dtd_client.dart';
 
@@ -61,8 +62,11 @@ class FileSystemService {
   void _ensureIDEWorkspaceRootsContainUri(Uri uri) {
     // If in unrestricted mode, no need to do these checks.
     if (unrestrictedMode) return;
-
-    if (_ideWorkspaceRoots.any((root) => uri.path.startsWith(root.path))) {
+    if (_ideWorkspaceRoots.any(
+      (root) =>
+          path.isWithin(root.path, uri.path) ||
+          path.equals(root.path, uri.path),
+    )) {
       return;
     }
 
@@ -81,7 +85,7 @@ class FileSystemService {
     }
     final newRoots = <Uri>[];
     for (final root in parameters['roots'].asList.cast<String>()) {
-      final rootUri = Uri.parse(root);
+      final rootUri = Uri.parse(path.normalize(root));
       if (rootUri.scheme != 'file') {
         throw RpcErrorCodes.buildRpcException(
           RpcErrorCodes.kExpectsUriParamWithFileScheme,
@@ -163,7 +167,7 @@ class FileSystemService {
 
   Uri _extractUri(Parameters parameters) {
     final uriString = parameters['uri'].asString;
-    final uri = Uri.parse(uriString);
+    final uri = Uri.parse(path.normalize(uriString));
     if (uri.scheme != 'file') {
       throw RpcErrorCodes.buildRpcException(
         RpcErrorCodes.kExpectsUriParamWithFileScheme,

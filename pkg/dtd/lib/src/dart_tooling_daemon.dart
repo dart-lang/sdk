@@ -256,6 +256,8 @@ class DartToolingDaemon {
   ///
   /// If [uri] does not have a file scheme, then an [RpcException] with
   /// [RpcErrorCodes.kExpectsUriParamWithFileScheme] is thrown.
+  ///
+  /// The returned uris will be `file://` Uris.
   Future<UriList> listDirectoryContents(Uri uri) async {
     final result = await call(
       kFileSystemServiceName,
@@ -293,6 +295,8 @@ class DartToolingDaemon {
   }
 
   /// Gets the IDE workspace roots for the FileSystem service.
+  ///
+  /// The returned uris will be `file://` Uris.
   Future<IDEWorkspaceRoots> getIDEWorkspaceRoots() async {
     final result = await call(
       kFileSystemServiceName,
@@ -310,6 +314,8 @@ class DartToolingDaemon {
   ///
   /// [depth] is the maximum depth that each IDE workspace root directory tree
   /// will be searched for project roots.
+  ///
+  /// The returned uris will be `file://` Uris.
   Future<UriList> getProjectRoots({
     int depth = defaultGetProjectRootsDepth,
   }) async {
