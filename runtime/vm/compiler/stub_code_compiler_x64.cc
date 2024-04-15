@@ -1096,6 +1096,8 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   if (kind == kLazyDeoptFromReturn) {
     __ pushq(RBX);  // Preserve result, it will be GC-d here.
   } else if (kind == kLazyDeoptFromThrow) {
+    // Preserve CODE_REG for one more runtime call.
+    __ pushq(CODE_REG);
     __ pushq(RBX);  // Preserve exception.
     __ pushq(RDX);  // Preserve stacktrace.
   }
@@ -1110,6 +1112,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   } else if (kind == kLazyDeoptFromThrow) {
     __ popq(RDX);  // Restore stacktrace.
     __ popq(RAX);  // Restore exception.
+    __ popq(CODE_REG);
   }
   __ LeaveStubFrame();
 
@@ -1117,6 +1120,18 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   __ addq(RSP, RBX);  // Remove materialization arguments.
   __ pushq(RCX);      // Push return address.
   // The caller is responsible for emitting the return instruction.
+
+  if (kind == kLazyDeoptFromThrow) {
+    // Unoptimized frame is now ready to accept the exception. Rethrow it to
+    // find the right handler.
+    __ EnterStubFrame();
+    __ pushq(Immediate(target::ToRawSmi(0)));  // Space for the result.
+    __ pushq(RAX);                             // Exception
+    __ pushq(RDX);                             // Stacktrace
+    __ pushq(Immediate(target::ToRawSmi(1)));  // Bypass debugger.
+    __ CallRuntime(kReThrowRuntimeEntry, 3);
+    __ LeaveStubFrame();
+  }
 }
 
 // RAX: result, must be preserved

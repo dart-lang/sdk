@@ -730,7 +730,8 @@ DART_NORETURN
 static void ThrowExceptionHelper(Thread* thread,
                                  const Instance& incoming_exception,
                                  const Instance& existing_stacktrace,
-                                 const bool is_rethrow) {
+                                 const bool is_rethrow,
+                                 const bool bypass_debugger) {
   // SuspendLongJumpScope during Dart entry ensures that if a longjmp base is
   // available, it is the innermost error handler. If one is available, so
   // should jump there instead.
@@ -739,12 +740,14 @@ static void ThrowExceptionHelper(Thread* thread,
   auto object_store = thread->isolate_group()->object_store();
   Isolate* isolate = thread->isolate();
 #if !defined(PRODUCT)
-  // Do not notify debugger on stack overflow and out of memory exceptions.
-  // The VM would crash when the debugger calls back into the VM to
-  // get values of variables.
-  if (incoming_exception.ptr() != object_store->out_of_memory() &&
-      incoming_exception.ptr() != object_store->stack_overflow()) {
-    isolate->debugger()->PauseException(incoming_exception);
+  if (!bypass_debugger) {
+    // Do not notify debugger on stack overflow and out of memory exceptions.
+    // The VM would crash when the debugger calls back into the VM to
+    // get values of variables.
+    if (incoming_exception.ptr() != object_store->out_of_memory() &&
+        incoming_exception.ptr() != object_store->stack_overflow()) {
+      isolate->debugger()->PauseException(incoming_exception);
+    }
   }
 #endif
   bool use_preallocated_stacktrace = false;
@@ -975,21 +978,25 @@ void Exceptions::CreateAndThrowTypeError(TokenPosition location,
 void Exceptions::Throw(Thread* thread, const Instance& exception) {
   // Null object is a valid exception object.
   ThrowExceptionHelper(thread, exception, StackTrace::Handle(thread->zone()),
-                       false);
+                       /*is_rethrow=*/false,
+                       /*bypass_debugger=*/false);
 }
 
 void Exceptions::ReThrow(Thread* thread,
                          const Instance& exception,
-                         const Instance& stacktrace) {
+                         const Instance& stacktrace,
+                         bool bypass_debugger /* = false */) {
   // Null object is a valid exception object.
-  ThrowExceptionHelper(thread, exception, stacktrace, true);
+  ThrowExceptionHelper(thread, exception, stacktrace, /*is_rethrow=*/true,
+                       bypass_debugger);
 }
 
 void Exceptions::ThrowWithStackTrace(Thread* thread,
                                      const Instance& exception,
                                      const Instance& stacktrace) {
   // Null object is a valid exception object.
-  ThrowExceptionHelper(thread, exception, stacktrace, false);
+  ThrowExceptionHelper(thread, exception, stacktrace, /*is_rethrow=*/false,
+                       /*bypass_debugger=*/false);
 }
 
 void Exceptions::PropagateError(const Error& error) {

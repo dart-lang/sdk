@@ -777,6 +777,8 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   if (kind == kLazyDeoptFromReturn) {
     __ pushl(EBX);  // Preserve result, it will be GC-d here.
   } else if (kind == kLazyDeoptFromThrow) {
+    // Preserve CODE_REG for one more runtime call.
+    __ pushl(CODE_REG);
     __ pushl(EBX);  // Preserve exception, it will be GC-d here.
     __ pushl(ECX);  // Preserve stacktrace, it will be GC-d here.
   }
@@ -789,8 +791,9 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   if (kind == kLazyDeoptFromReturn) {
     __ popl(EAX);  // Restore result.
   } else if (kind == kLazyDeoptFromThrow) {
-    __ popl(EDX);  // Restore exception.
-    __ popl(EAX);  // Restore stacktrace.
+    __ popl(EDX);  // Restore stacktrace.
+    __ popl(EAX);  // Restore exception.
+    __ popl(CODE_REG);
   }
   __ LeaveStubFrame();
 
@@ -798,6 +801,19 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   __ addl(ESP, EBX);  // Remove materialization arguments.
   __ pushl(ECX);      // Push return address.
   // The caller is responsible for emitting the return instruction.
+
+  if (kind == kLazyDeoptFromThrow) {
+    // Unoptimized frame is now ready to accept the exception. Rethrow it to
+    // find the right handler. Ask rethrow machinery to bypass debugger it
+    // was already notified about this exception.
+    __ EnterStubFrame();
+    __ pushl(Immediate(target::ToRawSmi(0)));  // Space for the result.
+    __ pushl(EAX);                             // Exception
+    __ pushl(EDX);                             // Stacktrace
+    __ pushl(Immediate(target::ToRawSmi(1)));  // Bypass debugger.
+    __ CallRuntime(kReThrowRuntimeEntry, 3);
+    __ LeaveStubFrame();
+  }
 }
 
 // EAX: result, must be preserved

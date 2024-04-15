@@ -45,6 +45,8 @@ class PendingDeopts {
                                  bool* clear_deopt);
 
  private:
+  PendingLazyDeopt* FindPendingDeoptRecord(uword fp);
+
   MallocGrowableArray<PendingLazyDeopt>* pending_deopts_;
 };
 

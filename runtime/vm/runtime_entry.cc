@@ -1474,11 +1474,13 @@ DEFINE_RUNTIME_ENTRY(Throw, 1) {
   Exceptions::Throw(thread, exception);
 }
 
-DEFINE_RUNTIME_ENTRY(ReThrow, 2) {
+DEFINE_RUNTIME_ENTRY(ReThrow, 3) {
   const Instance& exception = Instance::CheckedHandle(zone, arguments.ArgAt(0));
   const Instance& stacktrace =
       Instance::CheckedHandle(zone, arguments.ArgAt(1));
-  Exceptions::ReThrow(thread, exception, stacktrace);
+  const Smi& bypass_debugger = Smi::CheckedHandle(zone, arguments.ArgAt(2));
+  Exceptions::ReThrow(thread, exception, stacktrace,
+                      bypass_debugger.Value() != 0);
 }
 
 // Patches static call in optimized code with the target's entry point.

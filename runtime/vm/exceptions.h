@@ -31,7 +31,8 @@ class Exceptions : AllStatic {
   DART_NORETURN static void Throw(Thread* thread, const Instance& exception);
   DART_NORETURN static void ReThrow(Thread* thread,
                                     const Instance& exception,
-                                    const Instance& stacktrace);
+                                    const Instance& stacktrace,
+                                    bool bypass_debugger = false);
   DART_NORETURN static void ThrowWithStackTrace(Thread* thread,
                                                 const Instance& exception,
                                                 const Instance& stacktrace);
