@@ -1099,6 +1099,13 @@ class OperationsCfe
       TypeDeclaration typeDeclaration, int parameterIndex) {
     return typeDeclaration.typeParameters[parameterIndex].variance;
   }
+
+  @override
+  bool isDartCoreFunction(DartType type) {
+    return omittedNullabilityValue == Nullability.nonNullable
+        ? (type == typeEnvironment.coreTypes.functionNonNullableRawType)
+        : (type == typeEnvironment.coreTypes.functionLegacyRawType);
+  }
 }
 
 /// Type inference results used for testing.

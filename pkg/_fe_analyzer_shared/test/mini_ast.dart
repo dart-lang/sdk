@@ -2927,6 +2927,11 @@ class MiniAstOperations
   }
 
   @override
+  bool isDartCoreFunction(Type type) {
+    return type is PrimaryType && type.name == 'Function' && type.args.isEmpty;
+  }
+
+  @override
   bool isError(Type type) =>
       type is PrimaryType && type.name == 'error' && type.args.isEmpty;
 
