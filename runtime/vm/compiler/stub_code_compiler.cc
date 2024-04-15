@@ -215,7 +215,8 @@ void StubCodeCompiler::GenerateReThrowStub() {
   __ PushObject(NullObject());  // Make room for (unused) result.
   __ PushRegistersInOrder(
       {ReThrowABI::kExceptionReg, ReThrowABI::kStackTraceReg});
-  __ CallRuntime(kReThrowRuntimeEntry, /*argument_count=*/2);
+  __ PushImmediate(Smi::RawValue(0));  // Do not bypass debugger.
+  __ CallRuntime(kReThrowRuntimeEntry, /*argument_count=*/3);
   __ Breakpoint();
 }
 
@@ -2490,7 +2491,8 @@ void StubCodeCompiler::GenerateAsyncExceptionHandlerStub() {
   __ EnterStubFrame();
   __ PushObject(NullObject());  // Make room for (unused) result.
   __ PushRegistersInOrder({kExceptionObjectReg, kStackTraceObjectReg});
-  __ CallRuntime(kReThrowRuntimeEntry, /*argument_count=*/2);
+  __ PushImmediate(Smi::RawValue(0));  // Do not bypass debugger.
+  __ CallRuntime(kReThrowRuntimeEntry, /*argument_count=*/3);
   __ Breakpoint();
 }
 
