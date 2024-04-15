@@ -192,13 +192,13 @@ static method test(self::Class c, self::Class? cn) → dynamic {
   self::expect(8.{core::int::unary-}(){() → core::int}, let final self::Class #t101 = c in let final core::int #t102 = 8.{core::int::unary-}(){() → core::int} in let final void #t103 = self::Extension|set#setterWithClosure(#t101, #t102) in #t102);
   self::expect(8, let final self::Class? #t104 = cn in #t104 == null ?{core::int?} null : #t104{self::Class}.{self::Class::field}{core::int});
   c.{self::Class::nullableField} = null;
-  let final self::Class #t105 = c in self::Extension|get#simpleNullableSetter(#t105) == null ?{core::int} self::Extension|set#simpleNullableSetter(#t105, 1) : null;
+  let final self::Class #t105 = c in self::Extension|get#simpleNullableSetter(#t105) == null ?{core::int?} self::Extension|set#simpleNullableSetter(#t105, 1) : null;
   self::expect(1, c.{self::Class::nullableField}{core::int?});
   self::expect(1, let final self::Class #t106 = c in let final core::int? #t107 = self::Extension|get#simpleNullableSetter(#t106) in #t107 == null ?{core::int} let final core::int #t108 = 2 in let final void #t109 = self::Extension|set#simpleNullableSetter(#t106, #t108) in #t108 : #t107{core::int});
   c.{self::Class::nullableField} = null;
   self::expect(2, let final self::Class #t110 = c in let final core::int? #t111 = self::Extension|get#simpleNullableSetter(#t110) in #t111 == null ?{core::int} let final core::int #t112 = 2 in let final void #t113 = self::Extension|set#simpleNullableSetter(#t110, #t112) in #t112 : #t111{core::int});
   let final self::Class? #t114 = cn in #t114 == null ?{Null} null : #t114{self::Class}.{self::Class::nullableField} = null;
-  let final self::Class? #t115 = cn in #t115 == null ?{core::int?} null : self::Extension|get#simpleNullableSetter(#t115) == null ?{core::int} self::Extension|set#simpleNullableSetter(#t115, 1) : null;
+  let final self::Class? #t115 = cn in #t115 == null ?{core::int?} null : self::Extension|get#simpleNullableSetter(#t115) == null ?{core::int?} self::Extension|set#simpleNullableSetter(#t115, 1) : null;
   self::expect(1, let final self::Class? #t116 = cn in #t116 == null ?{core::int?} null : #t116{self::Class}.{self::Class::nullableField}{core::int?});
   self::expect(1, let final self::Class? #t117 = cn in #t117 == null ?{core::int?} null : let final core::int? #t118 = self::Extension|get#simpleNullableSetter(#t117) in #t118 == null ?{core::int} let final core::int #t119 = 2 in let final void #t120 = self::Extension|set#simpleNullableSetter(#t117, #t119) in #t119 : #t118{core::int});
   let final self::Class? #t121 = cn in #t121 == null ?{Null} null : #t121{self::Class}.{self::Class::nullableField} = null;

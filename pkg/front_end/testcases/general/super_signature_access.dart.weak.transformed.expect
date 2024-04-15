@@ -196,7 +196,7 @@ class Subclass1 extends self::Class1 {
   }
   operator []=(covariant-by-declaration core::int a, covariant-by-declaration core::int b) → void {
     core::num c = a;
-    let final core::int #t4 = a in super.{self::Class1::[]}(#t4) == null ?{core::num} super.{self::Class1::[]=}(#t4, c) : null;
+    let final core::int #t4 = a in super.{self::Class1::[]}(#t4) == null ?{core::num?} super.{self::Class1::[]=}(#t4, c) : null;
     let final self::Class1 #t5 = new self::Class1::•() in let final core::int #t6 = b in #t5.{self::Class1::[]}(#t6){(core::int) → core::num?} == null ?{core::num?} #t5.{self::Class1::[]=}(#t6, invalid-expression "pkg/front_end/testcases/general/super_signature_access.dart:71:21: Error: A value of type 'num' can't be assigned to a variable of type 'int'.
     Class1()[b] ??= c; // Error.
                     ^" in c as{TypeError} core::int){(core::int, core::int) → void} : null;
@@ -262,7 +262,7 @@ abstract class Mixin extends self::Class /*isMixinDeclaration*/  {
 abstract class Mixin1 extends self::Class1 /*isMixinDeclaration*/  {
   operator []=(covariant-by-declaration core::int a, covariant-by-declaration core::int b) → void {
     core::num c = a;
-    let final core::int #t10 = a in super.{self::Class1::[]}(#t10) == null ?{core::num} super.{self::Class1::[]=}(#t10, invalid-expression "pkg/front_end/testcases/general/super_signature_access.dart:111:18: Error: A value of type 'num' can't be assigned to a variable of type 'int'.
+    let final core::int #t10 = a in super.{self::Class1::[]}(#t10) == null ?{core::num?} super.{self::Class1::[]=}(#t10, invalid-expression "pkg/front_end/testcases/general/super_signature_access.dart:111:18: Error: A value of type 'num' can't be assigned to a variable of type 'int'.
     super[a] ??= c; // Error.
                  ^" in c as{TypeError} core::int) : null;
     let final self::Class1 #t11 = new self::Class1::•() in let final core::int #t12 = b in #t11.{self::Class1::[]}(#t12){(core::int) → core::num?} == null ?{core::num?} #t11.{self::Class1::[]=}(#t12, invalid-expression "pkg/front_end/testcases/general/super_signature_access.dart:112:21: Error: A value of type 'num' can't be assigned to a variable of type 'int'.

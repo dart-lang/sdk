@@ -5238,8 +5238,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       //
       Expression equalsNull =
           createEqualsNull(read, fileOffset: node.fileOffset);
-      ConditionalExpression conditional = new ConditionalExpression(equalsNull,
-          write, new NullLiteral()..fileOffset = node.fileOffset, inferredType)
+      ConditionalExpression conditional = new ConditionalExpression(
+          equalsNull,
+          write,
+          new NullLiteral()..fileOffset = node.fileOffset,
+          computeNullable(inferredType))
         ..fileOffset = node.fileOffset;
       replacement =
           new Let(receiverVariable, conditional..fileOffset = node.fileOffset)
@@ -5741,9 +5744,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           equalsNull,
           write,
           new NullLiteral()..fileOffset = node.testOffset,
-          isNonNullableByDefault
-              ? inferredType.withDeclaredNullability(Nullability.nullable)
-              : inferredType)
+          computeNullable(inferredType))
         ..fileOffset = node.testOffset;
       inner = conditional;
     } else {
@@ -5903,8 +5904,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       assert(valueVariable == null);
       Expression equalsNull =
           createEqualsNull(read, fileOffset: node.testOffset);
-      replacement = new ConditionalExpression(equalsNull, write,
-          new NullLiteral()..fileOffset = node.testOffset, inferredType)
+      replacement = new ConditionalExpression(
+          equalsNull,
+          write,
+          new NullLiteral()..fileOffset = node.testOffset,
+          computeNullable(inferredType))
         ..fileOffset = node.testOffset;
     } else {
       // Encode `o[a] ??= b` as:
@@ -6063,8 +6067,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       assert(valueVariable == null);
       Expression equalsNull =
           createEqualsNull(read, fileOffset: node.testOffset);
-      replacement = new ConditionalExpression(equalsNull, write,
-          new NullLiteral()..fileOffset = node.testOffset, inferredType)
+      replacement = new ConditionalExpression(
+          equalsNull,
+          write,
+          new NullLiteral()..fileOffset = node.testOffset,
+          computeNullable(inferredType))
         ..fileOffset = node.testOffset;
     } else {
       // Encode `Extension(o)[a] ??= b` as:
@@ -7735,8 +7742,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
       Expression readEqualsNull =
           createEqualsNull(read, fileOffset: node.readOffset);
-      replacement = new ConditionalExpression(readEqualsNull, write,
-          new NullLiteral()..fileOffset = node.writeOffset, inferredType)
+      replacement = new ConditionalExpression(
+          readEqualsNull,
+          write,
+          new NullLiteral()..fileOffset = node.writeOffset,
+          computeNullable(inferredType))
         ..fileOffset = node.writeOffset;
     } else {
       // Encode `receiver?.name ??= value` as:

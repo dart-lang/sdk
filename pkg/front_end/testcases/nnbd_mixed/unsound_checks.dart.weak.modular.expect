@@ -335,7 +335,7 @@ class OptInClass4 extends uns::OptInSuperClass4 {
   method method(core::int i) → dynamic
     return let final core::int #t35 = i in let final core::int #t36 = super.{uns::OptInSuperClass4::[]}(#t35) in #t36 == null ?{core::int} let final core::int #t37 = 42 in let final void #t38 = super.{uns::OptInSuperClass4::[]=}(#t35, #t37) in #t37 : #t36;
   method methodForEffect(core::int i) → dynamic {
-    let final core::int #t39 = i in super.{uns::OptInSuperClass4::[]}(#t39) == null ?{core::int} super.{uns::OptInSuperClass4::[]=}(#t39, 42) : null;
+    let final core::int #t39 = i in super.{uns::OptInSuperClass4::[]}(#t39) == null ?{core::int?} super.{uns::OptInSuperClass4::[]=}(#t39, 42) : null;
   }
 }
 class OptInClass5 extends core::Object {
@@ -386,7 +386,7 @@ static extension-member method OptInExtension|[]=(lowered final uns::OptInClass1
 static method extensionIfNullOptIn1(core::int i) → dynamic
   return let final uns::OptInClass1 #t41 = new uns::OptInClass1::•() in let final core::int #t42 = i in let final core::int #t43 = uns::OptInExtension|[](#t41, #t42) in #t43 == null ?{core::int} let final core::int #t44 = 42 in let final void #t45 = uns::OptInExtension|[]=(#t41, #t42, #t44) in #t44 : #t43;
 static method extensionIfNullOptIn1ForEffect(core::int i) → dynamic {
-  let final uns::OptInClass1 #t46 = new uns::OptInClass1::•() in let final core::int #t47 = i in uns::OptInExtension|[](#t46, #t47) == null ?{core::int} uns::OptInExtension|[]=(#t46, #t47, 42) : null;
+  let final uns::OptInClass1 #t46 = new uns::OptInClass1::•() in let final core::int #t47 = i in uns::OptInExtension|[](#t46, #t47) == null ?{core::int?} uns::OptInExtension|[]=(#t46, #t47, 42) : null;
 }
 static method extensionIfNullOptIn2(core::int i) → dynamic
   return let final uns::OptInClass1 #t48 = new uns::OptInClass1::•() in let final core::int #t49 = i in let final core::int #t50 = uns::OptInExtension|[](#t48, #t49) in #t50 == null ?{core::int} let final core::int #t51 = 42 in let final void #t52 = uns::OptInExtension|[]=(#t48, #t49, #t51) in #t51 : #t50;
@@ -401,7 +401,7 @@ static method ifNullIndexSetOptInForEffect(core::int i) → dynamic {
 static method ifNullPropertySetOptIn(core::int i) → dynamic
   return let final uns::OptInClass3 #t62 = new uns::OptInClass3::•(i) in let final core::int #t63 = #t62.{uns::OptInClass3::field}{core::int} in #t63 == null ?{core::int} #t62.{uns::OptInClass3::field} = 42 : #t63;
 static method ifNullPropertySetOptInForEffect(core::int i) → dynamic {
-  let final uns::OptInClass3 #t64 = new uns::OptInClass3::•(i) in #t64.{uns::OptInClass3::field}{core::int} == null ?{core::int} #t64.{uns::OptInClass3::field} = 42 : null;
+  let final uns::OptInClass3 #t64 = new uns::OptInClass3::•(i) in #t64.{uns::OptInClass3::field}{core::int} == null ?{core::int?} #t64.{uns::OptInClass3::field} = 42 : null;
 }
 static method ifNullSetOptIn(core::int i) → dynamic
   return let final core::int #t65 = i in #t65 == null ?{core::int} i = 42 : #t65;
@@ -419,7 +419,7 @@ static method nullAwareIfNullSetOptIn(core::int i) → dynamic {
 }
 static method nullAwareIfNullSetOptInForEffect(core::int i) → dynamic {
   uns::OptInClass5? o = new uns::OptInClass5::•(i) as uns::OptInClass5?;
-  let final uns::OptInClass5? #t68 = o in #t68 == null ?{core::int?} null : #t68.{uns::OptInClass5::field}{core::int} == null ?{core::int} #t68.{uns::OptInClass5::field} = 42 : null;
+  let final uns::OptInClass5? #t68 = o in #t68 == null ?{core::int?} null : #t68.{uns::OptInClass5::field}{core::int} == null ?{core::int?} #t68.{uns::OptInClass5::field} = 42 : null;
 }
 static method isTestOptIn(core::int i) → dynamic
   return i is core::int;
