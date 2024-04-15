@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:ffi';
 import 'dart:io';
 
 import 'c_types.dart';
@@ -1049,8 +1050,9 @@ ${headerCommon(copyrightYear: copyrightYear, generatorPath: generatorPath)}
 
 import 'dart:ffi';
 
-import "package:expect/expect.dart";
-import "package:ffi/ffi.dart";
+import 'package:expect/expect.dart';
+// ignore: unused_import
+import 'package:ffi/ffi.dart';
 
 
 import 'dylib_utils.dart';
@@ -1139,8 +1141,9 @@ ${headerCommon(copyrightYear: copyrightYear, generatorPath: generatorPath)}
 
 import 'dart:ffi';
 
-import "package:expect/expect.dart";
-import "package:ffi/ffi.dart";
+import 'package:expect/expect.dart';
+// ignore: unused_import
+import 'package:ffi/ffi.dart';
 
 
 import 'callback_tests_utils.dart';
@@ -1217,8 +1220,9 @@ ${headerCommon(copyrightYear: 2023, generatorPath: generatorPath)}
 import 'dart:async';
 import 'dart:ffi';
 
-import "package:expect/expect.dart";
-import "package:ffi/ffi.dart";
+import 'package:expect/expect.dart';
+// ignore: unused_import
+import 'package:ffi/ffi.dart';
 
 
 import 'async_callback_tests_utils.dart';
@@ -1284,12 +1288,27 @@ Future<void> writeC() async {
   buffer.write(footerC);
 
   await File(ccPath).writeAsString(buffer.toString());
-  await runProcess("clang-format", ["-i", ccPath]);
+  await runProcess(clangFormatPath, ["-i", ccPath]);
 }
 
-final ccPath = Platform.script
-    .resolve("../../../runtime/bin/ffi_test/ffi_test_functions_generated.cc")
+final sdkRoot = Platform.script.resolve("../../../");
+
+final ccPath = sdkRoot
+    .resolve("runtime/bin/ffi_test/ffi_test_functions_generated.cc")
     .toFilePath();
+
+final clangFormatPath = sdkRoot
+    .resolve(
+        'buildtools/${buildToolsSubdir[Abi.current()]!}/clang/bin/clang-format')
+    .toFilePath();
+
+const buildToolsSubdir = {
+  Abi.linuxArm64: 'linux-arm64',
+  Abi.linuxX64: 'linux-x64',
+  Abi.macosArm64: 'mac-arm64',
+  Abi.macosX64: 'mac-x64',
+  Abi.windowsX64: 'win-x64',
+};
 
 void printUsage() {
   print("""
