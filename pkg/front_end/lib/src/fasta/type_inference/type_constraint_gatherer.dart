@@ -623,8 +623,7 @@ class TypeConstraintGatherer {
     }
 
     // If P is Never then the match holds under no constraints.
-    if (typeOperations.isNever(p) &&
-        typeOperations.getNullabilitySuffix(p) == NullabilitySuffix.none) {
+    if (typeOperations.isNever(p)) {
       return true;
     }
 
@@ -761,7 +760,7 @@ class TypeConstraintGatherer {
     // If Q is Function then the match holds under no constraints:
     //
     // If P is a function type.
-    if (q == _environment.coreTypes.functionNonNullableRawType &&
+    if (typeOperations.isDartCoreFunction(q) &&
         typeOperations.isFunctionType(p)) {
       return true;
     }

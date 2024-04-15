@@ -333,7 +333,7 @@ class TypeConstraintGatherer {
 
     // If `Q` is `Function` then the match holds under no constraints:
     //   If `P` is a function type.
-    if (Q_nullability == NullabilitySuffix.none && Q.isDartCoreFunction) {
+    if (_typeSystemOperations.isDartCoreFunction(Q)) {
       if (_typeSystemOperations.isFunctionType(P)) {
         return true;
       }

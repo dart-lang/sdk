@@ -131,7 +131,7 @@ final class JSStringImpl implements String {
         return split(from).join(to);
       }
     } else if (from is js.JSSyntaxRegExp) {
-      return _replaceJS(js.regExpGetGlobalNative(from), to);
+      return _replaceJS(js.regExpGetGlobalNative(from), _escapeReplacement(to));
     } else {
       int startIndex = 0;
       StringBuffer result = StringBuffer();
@@ -236,7 +236,7 @@ final class JSStringImpl implements String {
     }
     if (from is js.JSSyntaxRegExp) {
       return startIndex == 0
-          ? _replaceJS(js.regExpGetNative(from), to)
+          ? _replaceJS(js.regExpGetNative(from), _escapeReplacement(to))
           : _replaceFirstRE(from, to, startIndex);
     }
     Iterator<Match> matches = from.allMatches(this, startIndex).iterator;
@@ -441,74 +441,66 @@ final class JSStringImpl implements String {
     return index;
   }
 
-  // dart2wasm can't use JavaScript trim directly,
-  // because JavaScript does not trim
-  // the NEXT LINE (NEL) character (0x85).
+  // We can't use JS `trim` as we need to return the argument if it doesn't
+  // have any whitespace to trim. JS `trim` also doesn't handle NEL.
   @override
   String trim() {
-    // Start by doing JS trim. Then check if it leaves a NEL at
-    // either end of the string.
-    final result =
-        JSStringImpl(js.JS<WasmExternRef?>('s => s.trim()', toExternRef));
-    final resultLength = result.length;
-    if (resultLength == 0) return result;
-    int firstCode = result._codeUnitAtUnchecked(0);
-    int startIndex = 0;
-    if (firstCode == nelCodeUnit) {
-      startIndex = _skipLeadingWhitespace(result, 1);
-      if (startIndex == resultLength) return "";
+    final len = this.length;
+    final first = firstNonWhitespace();
+    if (len == first) {
+      // String contains only whitespaces.
+      return "";
     }
-
-    int endIndex = resultLength;
-    // We know that there is at least one character that is non-whitespace.
-    // Therefore we don't need to verify that endIndex > startIndex.
-    int lastCode = result.codeUnitAt(endIndex - 1);
-    if (lastCode == nelCodeUnit) {
-      endIndex = _skipTrailingWhitespace(result, endIndex - 1);
+    final last = lastNonWhitespace() + 1;
+    if (first == 0 && last == len) {
+      // Returns this string since it does not have leading or trailing
+      // whitespaces.
+      return this;
     }
-    if (startIndex == 0 && endIndex == resultLength) return result;
-    return substring(startIndex, endIndex);
+    return JSStringImpl(_jsSubstring(toExternRef, first, last));
   }
 
-  // dart2wasm can't use JavaScript trimLeft directly because it does not trim
-  // the NEXT LINE character (0x85).
+  // Same as `trim`, we can't use JS `trimLeft`.
   @override
   String trimLeft() {
-    // Start by doing JS trim. Then check if it leaves a NEL at
-    // the beginning of the string.
-    int startIndex = 0;
-    final result =
-        JSStringImpl(js.JS<WasmExternRef?>('s => s.trimLeft()', toExternRef));
-    final resultLength = result.length;
-    if (resultLength == 0) return result;
-    int firstCode = result._codeUnitAtUnchecked(0);
-    if (firstCode == nelCodeUnit) {
-      startIndex = _skipLeadingWhitespace(result, 1);
+    final len = length;
+    int first = 0;
+    for (; first < len; first++) {
+      if (!_isWhitespace(codeUnitAt(first))) {
+        break;
+      }
     }
-    if (startIndex == 0) return result;
-    if (startIndex == resultLength) return "";
-    return result.substring(startIndex);
+    if (len == first) {
+      // String contains only whitespaces.
+      return "";
+    }
+    if (first == 0) {
+      // Returns this string since it does not have leading or trailing
+      // whitespaces.
+      return this;
+    }
+    return JSStringImpl(_jsSubstring(toExternRef, first, len));
   }
 
-  // dart2wasm can't use JavaScript trimRight directly because it does not trim
-  // the NEXT LINE character (0x85).
+  // Same as `trim`, we can't use JS `trimRight`.
   @override
   String trimRight() {
-    // Start by doing JS trim. Then check if it leaves a NEL at the end of the
-    // string.
-    final result =
-        JSStringImpl(js.JS<WasmExternRef?>('s => s.trimRight()', toExternRef));
-    final resultLength = result.length;
-    int endIndex = resultLength;
-    if (endIndex == 0) return result;
-    int lastCode = result.codeUnitAt(endIndex - 1);
-    if (lastCode == nelCodeUnit) {
-      endIndex = _skipTrailingWhitespace(result, endIndex - 1);
+    final len = length;
+    int last = len - 1;
+    for (; last >= 0; last--) {
+      if (!_isWhitespace(codeUnitAt(last))) {
+        break;
+      }
     }
-
-    if (endIndex == resultLength) return result;
-    if (endIndex == 0) return "";
-    return result.substring(0, endIndex);
+    if (last == -1) {
+      // String contains only whitespaces.
+      return "";
+    }
+    if (last == (len - 1)) {
+      // Returns this string since it does not have trailing whitespaces.
+      return this;
+    }
+    return JSStringImpl(_jsSubstring(toExternRef, 0, last + 1));
   }
 
   @override
@@ -700,6 +692,14 @@ final class JSStringImpl implements String {
 String _matchString(Match match) => match[0]!;
 
 String _stringIdentity(String string) => string;
+
+String _escapeReplacement(String replacement) {
+  // The JavaScript `String.prototype.replace` method recognizes replacement
+  // patterns in the replacement string. Dart does not have that behavior, so
+  // the replacement patterns need to be escaped.
+  return JSStringImpl(js.JS<WasmExternRef>(
+      r'(s) => s.replace(/\$/g, "$$$$")', replacement.toJS.toExternRef));
+}
 
 @pragma("wasm:export", "\$jsStringToJSStringImpl")
 JSStringImpl _jsStringToJSStringImpl(WasmExternRef? string) =>

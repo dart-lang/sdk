@@ -318,6 +318,10 @@ abstract interface class TypeAnalyzerOperations<
   /// for some `T`, returns the type `T`. Otherwise returns `null`.
   Type? matchFutureOr(Type type);
 
+  /// Returns `true` if [type] is `Function` from `dart:core`. The method
+  /// returns `false` for `Object?` and `Object*`.
+  bool isDartCoreFunction(Type type);
+
   /// Returns `true` if [type] is `E<T1, ..., Tn>`, `E<T1, ..., Tn>?`, or
   /// `E<T1, ..., Tn>*` for some extension type declaration E, some
   /// non-negative n, and some types T1, ..., Tn.

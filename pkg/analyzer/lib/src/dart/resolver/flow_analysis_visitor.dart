@@ -514,6 +514,12 @@ class TypeSystemOperations
   }
 
   @override
+  bool isDartCoreFunction(DartType type) {
+    return getNullabilitySuffix(type) == NullabilitySuffix.none &&
+        type.isDartCoreFunction;
+  }
+
+  @override
   bool isDynamic(DartType type) => type is DynamicType;
 
   @override
