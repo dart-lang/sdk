@@ -25,7 +25,7 @@ class SortCombinators extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var node = this.node;
+    final node = this.node;
 
     NodeList<SimpleIdentifier> names;
     if (node is ShowCombinator) {

@@ -149,10 +149,10 @@ class ImportLibrary extends MultiCorrectionProducer {
 
   @override
   String? nameOfType(AstNode node) {
-    final parent = node.parent;
+    var parent = node.parent;
     switch (node) {
       case NamedType():
-        final importPrefix = node.importPrefix;
+        var importPrefix = node.importPrefix;
         if (parent is ConstructorName && importPrefix != null) {
           return importPrefix.name.lexeme;
         }

@@ -30,7 +30,7 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
 
   FieldDeclaration? get _errorFieldDeclaration {
     if (node is VariableDeclaration) {
-      final fieldDeclaration = node.parent?.parent;
+      var fieldDeclaration = node.parent?.parent;
       return fieldDeclaration?.ifTypeOrNull();
     }
     return null;
@@ -38,12 +38,12 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final fieldDeclaration = _errorFieldDeclaration;
+    var fieldDeclaration = _errorFieldDeclaration;
     if (fieldDeclaration == null) {
       return;
     }
 
-    final container = fieldDeclaration.parent;
+    var container = fieldDeclaration.parent;
     if (container is! NamedCompilationUnitMember) {
       return;
     }
@@ -93,20 +93,20 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
   List<_Field>? _fieldsToWrite(
     Iterable<VariableDeclarationList> variableLists,
   ) {
-    final result = <_Field>[];
+    var result = <_Field>[];
     for (var variableList in variableLists) {
-      final type = variableList.type?.type;
-      final hasNonNullableType =
+      var type = variableList.type?.type;
+      var hasNonNullableType =
           type != null && typeSystem.isPotentiallyNonNullable(type);
 
-      for (final field in variableList.variables) {
-        final typeAnnotation = variableList.type;
+      for (var field in variableList.variables) {
+        var typeAnnotation = variableList.type;
         if (typeAnnotation == null) {
           return null;
         }
         if (field.initializer == null) {
-          final fieldName = field.name.lexeme;
-          final namedFormalParameterName =
+          var fieldName = field.name.lexeme;
+          var namedFormalParameterName =
               _Field.computeNamedFormalParameterName(fieldName);
           if (namedFormalParameterName == null) {
             return null;
@@ -142,7 +142,7 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
     required _FixContext fixContext,
     required NamedCompilationUnitMember classDeclaration,
   }) async {
-    final keyClass = await sessionHelper.getFlutterClass('Key');
+    var keyClass = await sessionHelper.getFlutterClass('Key');
     if (keyClass == null) {
       return;
     }
@@ -201,7 +201,7 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
     required bool isConst,
     required List<_Field> fields,
   }) async {
-    final fieldsForInitializers = <_Field>[];
+    var fieldsForInitializers = <_Field>[];
 
     await fixContext.builder.addDartFileEdit(file, (builder) {
       builder.insertConstructor(containerDeclaration, (builder) {
@@ -213,9 +213,9 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
         builder.write(fixContext.containerName);
         builder.write('({');
         var hasWritten = false;
-        final superNamed = fixContext.superNamed;
+        var superNamed = fixContext.superNamed;
         if (superNamed != null) {
-          for (final formalParameter in superNamed) {
+          for (var formalParameter in superNamed) {
             if (hasWritten) {
               builder.write(', ');
             }
@@ -227,7 +227,7 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
             hasWritten = true;
           }
         }
-        for (final field in fields) {
+        for (var field in fields) {
           if (hasWritten) {
             builder.write(', ');
           }
@@ -248,7 +248,7 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
         builder.write('})');
 
         if (fieldsForInitializers.isNotEmpty) {
-          final code = fieldsForInitializers.map((field) {
+          var code = fieldsForInitializers.map((field) {
             return '${field.fieldName} = ${field.namedFormalParameterName}';
           }).join(', ');
           builder.write(' : $code');
@@ -275,7 +275,7 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
         builder.write(fixContext.containerName);
         builder.write('(');
         var hasWritten = false;
-        for (final field in fields) {
+        for (var field in fields) {
           if (hasWritten) {
             builder.write(', ');
           }
@@ -293,7 +293,7 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
     required NamedCompilationUnitMember containerDeclaration,
     required bool isConst,
   }) async {
-    final fields = _fieldsToWrite(fixContext.variableLists);
+    var fields = _fieldsToWrite(fixContext.variableLists);
     if (fields == null) {
       return;
     }
@@ -320,16 +320,16 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
     required DartEditBuilder builder,
     required Iterable<VariableDeclarationList> variableLists,
   }) {
-    final fields = _fieldsToWrite(variableLists);
+    var fields = _fieldsToWrite(variableLists);
     if (fields == null) {
       return;
     }
 
-    final childrenLast = fields.stablePartition(
+    var childrenLast = fields.stablePartition(
       (field) => !field.isChild,
     );
 
-    for (final field in childrenLast) {
+    for (var field in childrenLast) {
       builder.write(', ');
       if (field.hasNonNullableType) {
         builder.write('required ');
@@ -388,10 +388,10 @@ class _FixContext {
   });
 
   List<ParameterElement>? get superNamed {
-    final superConstructor = superType.constructors.singleOrNull;
+    var superConstructor = superType.constructors.singleOrNull;
     if (superConstructor != null) {
-      final superAll = superConstructor.parameters;
-      final superNamed = superAll.where((e) => e.isNamed).toList();
+      var superAll = superConstructor.parameters;
+      var superNamed = superAll.where((e) => e.isNamed).toList();
       return superNamed.length == superAll.length ? superNamed : null;
     }
     return null;

@@ -80,7 +80,7 @@ class UpdateSdkConstraints extends ResolvedCorrectionProducer {
       return;
     }
 
-    final newText_final = newText;
+    var newText_final = newText;
     await builder.addYamlFileEdit(pubspecFile.path, (builder) {
       builder.addSimpleReplacement(SourceRange(offset, length), newText_final);
     });

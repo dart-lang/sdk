@@ -33,19 +33,19 @@ ErrorOr<({String content, List<plugin.SourceEdit> edits})>
   bool failureIsCritical = false,
 }) {
   var newContent = oldContent;
-  final serverEdits = <server.SourceEdit>[];
+  var serverEdits = <server.SourceEdit>[];
 
   for (var change in changes) {
     // Change is a union that may/may not include a range. If no range
     // is provided (t2 of the union) the whole document should be replaced.
-    final result = change.map(
+    var result = change.map(
       // TextDocumentContentChangeEvent1
       // {range, text}
       (change) {
-        final lines = LineInfo.fromContent(newContent);
-        final offsetStart = toOffset(lines, change.range.start,
+        var lines = LineInfo.fromContent(newContent);
+        var offsetStart = toOffset(lines, change.range.start,
             failureIsCritical: failureIsCritical);
-        final offsetEnd = toOffset(lines, change.range.end,
+        var offsetEnd = toOffset(lines, change.range.end,
             failureIsCritical: failureIsCritical);
         if (offsetStart.isError) {
           return failure(offsetStart);
@@ -82,9 +82,9 @@ ErrorOr<List<TextEdit>?> generateEditsForFormatting(
   int? lineLength, {
   Range? range,
 }) {
-  final unformattedSource = result.content;
+  var unformattedSource = result.content;
 
-  final code = SourceCode(unformattedSource);
+  var code = SourceCode(unformattedSource);
   SourceCode formattedResult;
   try {
     // Create a new formatter on every request because it may contain state that
@@ -98,7 +98,7 @@ ErrorOr<List<TextEdit>?> generateEditsForFormatting(
     // we may wish to change this to return an error for that case).
     return success(null);
   }
-  final formattedSource = formattedResult.text;
+  var formattedSource = formattedResult.text;
 
   if (formattedSource == unformattedSource) {
     return success(null);
@@ -109,7 +109,7 @@ ErrorOr<List<TextEdit>?> generateEditsForFormatting(
 
 List<TextEdit> generateFullEdit(
     LineInfo lineInfo, String unformattedSource, String formattedSource) {
-  final end = lineInfo.getLocation(unformattedSource.length);
+  var end = lineInfo.getLocation(unformattedSource.length);
   return [
     TextEdit(
       range:
@@ -132,28 +132,27 @@ ErrorOr<List<TextEdit>> generateMinimalEdits(
   String formatted, {
   Range? range,
 }) {
-  final unformatted = result.content;
-  final lineInfo = result.lineInfo;
-  final rangeStart =
+  var unformatted = result.content;
+  var lineInfo = result.lineInfo;
+  var rangeStart =
       range != null ? toOffset(lineInfo, range.start) : success(null);
-  final rangeEnd =
-      range != null ? toOffset(lineInfo, range.end) : success(null);
+  var rangeEnd = range != null ? toOffset(lineInfo, range.end) : success(null);
 
   return (rangeStart, rangeEnd).mapResultsSync((rangeStart, rangeEnd) {
     // It shouldn't be the case that we can't parse the code but if it happens
     // fall back to a full replacement rather than fail.
-    final parsedFormatted = _parse(formatted, result.unit.featureSet);
-    final parsedUnformatted = _parse(unformatted, result.unit.featureSet);
+    var parsedFormatted = _parse(formatted, result.unit.featureSet);
+    var parsedUnformatted = _parse(unformatted, result.unit.featureSet);
     if (parsedFormatted == null || parsedUnformatted == null) {
       return success(generateFullEdit(lineInfo, unformatted, formatted));
     }
 
-    final unformattedTokens = _iterateAllTokens(parsedUnformatted).iterator;
-    final formattedTokens = _iterateAllTokens(parsedFormatted).iterator;
+    var unformattedTokens = _iterateAllTokens(parsedUnformatted).iterator;
+    var formattedTokens = _iterateAllTokens(parsedFormatted).iterator;
 
     var unformattedOffset = 0;
     var formattedOffset = 0;
-    final edits = <TextEdit>[];
+    var edits = <TextEdit>[];
 
     /// Helper for comparing whitespace and appending an edit.
     void addEditFor(
@@ -162,9 +161,9 @@ ErrorOr<List<TextEdit>> generateMinimalEdits(
       int formattedStart,
       int formattedEnd,
     ) {
-      final unformattedWhitespace =
+      var unformattedWhitespace =
           unformatted.substring(unformattedStart, unformattedEnd);
-      final formattedWhitespace =
+      var formattedWhitespace =
           formatted.substring(formattedStart, formattedEnd);
 
       if (rangeStart != null && rangeEnd != null) {
@@ -189,8 +188,8 @@ ErrorOr<List<TextEdit>> generateMinimalEdits(
             formattedWhitespace.contains('\n') &&
             !unformattedWhitespace.endsWith('\n')) {
           // Find the offsets of the character after the last newlines.
-          final unformattedOffset = unformattedWhitespace.lastIndexOf('\n') + 1;
-          final formattedOffset = formattedWhitespace.lastIndexOf('\n') + 1;
+          var unformattedOffset = unformattedWhitespace.lastIndexOf('\n') + 1;
+          var formattedOffset = formattedWhitespace.lastIndexOf('\n') + 1;
           // Call us again for the leading part
           addEditFor(
             unformattedStart,

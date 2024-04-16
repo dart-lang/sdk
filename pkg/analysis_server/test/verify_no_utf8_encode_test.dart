@@ -22,19 +22,19 @@ void main() {
 }
 
 void buildTests({required String packagePath}) {
-  final provider = PhysicalResourceProvider.INSTANCE;
-  final pathContext = provider.pathContext;
-  final pkgRootPath = pathContext.normalize(packageRoot);
+  var provider = PhysicalResourceProvider.INSTANCE;
+  var pathContext = provider.pathContext;
+  var pkgRootPath = pathContext.normalize(packageRoot);
 
-  final libFolder = provider
+  var libFolder = provider
       .getFolder(pkgRootPath)
       .getChildAssumingFolder(packagePath)
       .getChildAssumingFolder('lib');
 
-  for (final file in libFolder.allFiles) {
+  for (var file in libFolder.allFiles) {
     if (file_paths.isDart(pathContext, file.path)) {
       test(file.path, () {
-        final content = file.readAsStringSync();
+        var content = file.readAsStringSync();
         if (content.contains('utf8.encode(')) {
           fail('Should not use `utf8.encode` before SDK 3.1');
         }
@@ -45,12 +45,12 @@ void buildTests({required String packagePath}) {
 
 extension on Folder {
   Iterable<File> get allFiles sync* {
-    final queue = Queue<Folder>();
+    var queue = Queue<Folder>();
     queue.add(this);
     while (queue.isNotEmpty) {
-      final current = queue.removeFirst();
-      final children = current.getChildren();
-      for (final child in children) {
+      var current = queue.removeFirst();
+      var children = current.getChildren();
+      for (var child in children) {
         if (child is File) {
           yield child;
         } else if (child is Folder) {

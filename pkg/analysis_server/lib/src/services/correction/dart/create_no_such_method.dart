@@ -14,7 +14,7 @@ class CreateNoSuchMethod extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final targetClass = node;
+    var targetClass = node;
     if (targetClass is! ClassDeclaration) {
       return;
     }

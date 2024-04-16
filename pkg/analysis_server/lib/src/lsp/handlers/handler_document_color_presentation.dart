@@ -41,8 +41,8 @@ class DocumentColorPresentationHandler extends SharedMessageHandler<
       return success([]);
     }
 
-    final path = pathOfDoc(params.textDocument);
-    final unit = await path.mapResult(requireResolvedUnit);
+    var path = pathOfDoc(params.textDocument);
+    var unit = await path.mapResult(requireResolvedUnit);
     return unit.mapResult((unit) => _getPresentations(params, unit));
   }
 
@@ -71,7 +71,7 @@ class DocumentColorPresentationHandler extends SharedMessageHandler<
     required String invocationString,
     required bool includeConstKeyword,
   }) async {
-    final builder = ChangeBuilder(session: unit.session);
+    var builder = ChangeBuilder(session: unit.session);
     await builder.addDartFileEdit(unit.path, (builder) {
       builder.addReplacement(editRange, (builder) {
         if (includeConstKeyword) {
@@ -85,16 +85,16 @@ class DocumentColorPresentationHandler extends SharedMessageHandler<
     // We can only apply changes to the same file, so filter any change from the
     // builder to only include this file, otherwise we may corrupt the users
     // source (although hopefully we don't produce edits for other files).
-    final editsForThisFile = builder.sourceChange.edits
+    var editsForThisFile = builder.sourceChange.edits
         .where((edit) => edit.file == unit.path)
         .expand((edit) => edit.edits)
         .toList();
 
     // LSP requires that we separate the main edit (changing the color code)
     // from anything else (imports).
-    final mainEdit =
+    var mainEdit =
         editsForThisFile.singleWhere((edit) => edit.offset == editRange.offset);
-    final otherEdits =
+    var otherEdits =
         editsForThisFile.where((edit) => edit.offset != editRange.offset);
 
     return ColorPresentation(
@@ -114,27 +114,27 @@ class DocumentColorPresentationHandler extends SharedMessageHandler<
     // If this file is outside of analysis roots, we cannot build edits for it
     // so return null to signal to the client that it should not try to modify
     // the source.
-    final analysisContext = unit.session.analysisContext;
+    var analysisContext = unit.session.analysisContext;
     if (!analysisContext.contextRoot.isAnalyzed(unit.path)) {
       return success([]);
     }
 
     // The values in LSP are decimals 0-1 so should be scaled up to 255 that
     // we use internally (except for opacity is which 0-1).
-    final alpha = (params.color.alpha * 255).toInt();
-    final red = (params.color.red * 255).toInt();
-    final green = (params.color.green * 255).toInt();
-    final blue = (params.color.blue * 255).toInt();
-    final opacity = params.color.alpha;
+    var alpha = (params.color.alpha * 255).toInt();
+    var red = (params.color.red * 255).toInt();
+    var green = (params.color.green * 255).toInt();
+    var blue = (params.color.blue * 255).toInt();
+    var opacity = params.color.alpha;
 
-    final editStart = toOffset(unit.lineInfo, params.range.start);
-    final editEnd = toOffset(unit.lineInfo, params.range.end);
+    var editStart = toOffset(unit.lineInfo, params.range.start);
+    var editEnd = toOffset(unit.lineInfo, params.range.end);
 
     return (editStart, editEnd).mapResults((editStart, editEnd) async {
-      final editRange = SourceRange(editStart, editEnd - editStart);
+      var editRange = SourceRange(editStart, editEnd - editStart);
 
-      final sessionHelper = AnalysisSessionHelper(unit.session);
-      final colorType = await sessionHelper.getFlutterClass('Color');
+      var sessionHelper = AnalysisSessionHelper(unit.session);
+      var colorType = await sessionHelper.getFlutterClass('Color');
       if (colorType == null) {
         // If we can't find the class (perhaps because this isn't a Flutter
         // project) we will not include any results. In theory the client should
@@ -142,13 +142,13 @@ class DocumentColorPresentationHandler extends SharedMessageHandler<
         return success([]);
       }
 
-      final requiresConstKeyword =
+      var requiresConstKeyword =
           _willRequireConstKeyword(editRange.offset, unit);
-      final colorValue = _colorValueForComponents(alpha, red, green, blue);
-      final colorValueHex =
+      var colorValue = _colorValueForComponents(alpha, red, green, blue);
+      var colorValueHex =
           '0x${colorValue.toRadixString(16).toUpperCase().padLeft(8, '0')}';
 
-      final colorFromARGB = await _createColorPresentation(
+      var colorFromARGB = await _createColorPresentation(
         unit: unit,
         editRange: editRange,
         colorType: colorType,
@@ -157,7 +157,7 @@ class DocumentColorPresentationHandler extends SharedMessageHandler<
         includeConstKeyword: requiresConstKeyword,
       );
 
-      final colorFromRGBO = await _createColorPresentation(
+      var colorFromRGBO = await _createColorPresentation(
         unit: unit,
         editRange: editRange,
         colorType: colorType,
@@ -166,7 +166,7 @@ class DocumentColorPresentationHandler extends SharedMessageHandler<
         includeConstKeyword: requiresConstKeyword,
       );
 
-      final colorDefault = await _createColorPresentation(
+      var colorDefault = await _createColorPresentation(
         unit: unit,
         editRange: editRange,
         colorType: colorType,

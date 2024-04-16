@@ -468,8 +468,8 @@ class _ExpectedEvent {
   /// doesn't match the expected.
   void matches(Event actual) {
     expect(actual.eventName, eventName);
-    final actualData = actual.eventData;
-    final expectedData = eventData;
+    var actualData = actual.eventData;
+    var expectedData = eventData;
     if (expectedData != null) {
       for (var expectedKey in expectedData.keys) {
         var actualValue = actualData[expectedKey];

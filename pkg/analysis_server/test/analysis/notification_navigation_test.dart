@@ -465,7 +465,7 @@ void f() {
 
   Future<void>
       test_class_constructor_annotationConstructor_importPrefix() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 class A {
   const A();
   const A.named();
@@ -1421,7 +1421,7 @@ library my.lib;
 
   Future<void>
       test_libraryAugmentation_topLevelFunction_annotationConstructor_importPrefix() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 class A {
   const A();
 }
@@ -1476,9 +1476,8 @@ void g() {
   }
 
   Future<void> test_navigation_dart_example_api() async {
-    final exampleLinkPath = 'examples/api/lib/test_file.dart';
-    final exampleApiFile =
-        convertPath(join(workspaceRootPath, exampleLinkPath));
+    var exampleLinkPath = 'examples/api/lib/test_file.dart';
+    var exampleApiFile = convertPath(join(workspaceRootPath, exampleLinkPath));
     newFile(exampleApiFile, '/// Test');
     addTestFile('''
 /// Dartdoc comment
@@ -1495,11 +1494,11 @@ const int foo = 0;
   }
 
   Future<void> test_navigation_dart_example_api_multiple() async {
-    final exampleLinkPath0 = 'examples/api/lib/test_file.0.dart';
-    final exampleLinkPath1 = 'examples/api/lib/test_file.1.dart';
-    final exampleApiFile0 =
+    var exampleLinkPath0 = 'examples/api/lib/test_file.0.dart';
+    var exampleLinkPath1 = 'examples/api/lib/test_file.1.dart';
+    var exampleApiFile0 =
         convertPath(join(workspaceRootPath, exampleLinkPath0));
-    final exampleApiFile1 =
+    var exampleApiFile1 =
         convertPath(join(workspaceRootPath, exampleLinkPath1));
     newFile(exampleApiFile0, '/// Test 0');
     newFile(exampleApiFile1, '/// Test 1');

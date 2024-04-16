@@ -73,7 +73,7 @@ class MoveFileRefactoringImpl extends RefactoringImpl
         }
       }
 
-      final drivers = refactoringWorkspace.driversContaining(oldFile);
+      var drivers = refactoringWorkspace.driversContaining(oldFile);
       if (drivers.length != 1) {
         return RefactoringStatus.fatal(
             '$oldFile does not belong to an analysis root.');
@@ -110,18 +110,17 @@ class MoveFileRefactoringImpl extends RefactoringImpl
     // we have a complete flat list, and a way to quickly map target files to
     // their new paths when rewriting imports.
     var resolvedMapping = <String, String>{};
-    for (final MapEntry(key: oldPath, value: newPath)
-        in _renameMapping.entries) {
+    for (var MapEntry(key: oldPath, value: newPath) in _renameMapping.entries) {
       if (newPath == null) {
         throw StateError('Rename mapping contains oldPath without newPath');
       }
-      final resource = resourceProvider.getResource(oldPath);
+      var resource = resourceProvider.getResource(oldPath);
       _resolveMapping(resolvedMapping, resource, newPath);
     }
 
     try {
       // Next, collect all source references that might need updating.
-      for (final MapEntry(key: oldPath, value: newPath)
+      for (var MapEntry(key: oldPath, value: newPath)
           in resolvedMapping.entries) {
         await _collectSourceReferences(referencesToUpdate, oldPath, newPath);
 
@@ -133,7 +132,7 @@ class MoveFileRefactoringImpl extends RefactoringImpl
       // Group references by the files, so we can make edits to each file in a
       // single change builder.
       Map<String, Set<_FileReference>> referencesByFile = {};
-      for (final reference in referencesToUpdate) {
+      for (var reference in referencesToUpdate) {
         referencesByFile
             .putIfAbsent(reference.sourceFile, () => {})
             .add(reference);
@@ -141,16 +140,16 @@ class MoveFileRefactoringImpl extends RefactoringImpl
 
       // For each file, produce edits to update any URIs that are different when
       // taking into account that both files might have been moved.
-      for (final MapEntry(key: sourceFile, value: references)
+      for (var MapEntry(key: sourceFile, value: references)
           in referencesByFile.entries) {
         if (references.isEmpty) continue;
         await changeBuilder.addDartFileEdit(sourceFile, (builder) {
-          for (final reference in references) {
-            final targetFile = reference.targetFile;
-            final newSource = resolvedMapping[sourceFile] ?? sourceFile;
-            final newTarget = resolvedMapping[targetFile] ?? targetFile;
+          for (var reference in references) {
+            var targetFile = reference.targetFile;
+            var newSource = resolvedMapping[sourceFile] ?? sourceFile;
+            var newTarget = resolvedMapping[targetFile] ?? targetFile;
 
-            final (:startQuote, :endQuote, unquotedValue: uriValue) =
+            var (:startQuote, :endQuote, unquotedValue: uriValue) =
                 _extractQuotes(reference.quotedUriValue);
 
             var newUri = _computeNewUri(
@@ -306,14 +305,14 @@ class MoveFileRefactoringImpl extends RefactoringImpl
 
   ({String startQuote, String endQuote, String unquotedValue}) _extractQuotes(
       String quotedValue) {
-    final quote = analyzeQuote(quotedValue);
+    var quote = analyzeQuote(quotedValue);
 
-    final startIndex = firstQuoteLength(quotedValue, quote);
-    final endIndex = quotedValue.length - lastQuoteLength(quote);
+    var startIndex = firstQuoteLength(quotedValue, quote);
+    var endIndex = quotedValue.length - lastQuoteLength(quote);
 
-    final startQuote = quotedValue.substring(0, startIndex);
-    final endQuote = quotedValue.substring(endIndex);
-    final unquotedValue = quotedValue.substring(startIndex, endIndex);
+    var startQuote = quotedValue.substring(0, startIndex);
+    var endQuote = quotedValue.substring(endIndex);
+    var unquotedValue = quotedValue.substring(startIndex, endIndex);
 
     return (
       startQuote: startQuote,
@@ -332,7 +331,7 @@ class MoveFileRefactoringImpl extends RefactoringImpl
   /// Gets the string for the URI in a directive, or `null` if it's not a
   /// directive with a URI.
   SimpleStringLiteral? _getDirectiveUri(Directive directive) {
-    final uri = directive is PartOfDirective
+    var uri = directive is PartOfDirective
         ? directive.uri
         : directive is UriBasedDirective
             ? directive.uri
@@ -373,7 +372,7 @@ class MoveFileRefactoringImpl extends RefactoringImpl
     if (resource is File) {
       resolvedMapping[resource.path] = newPath;
     } else if (resource is Folder) {
-      for (final child in resource.getChildren()) {
+      for (var child in resource.getChildren()) {
         _resolveMapping(
           resolvedMapping,
           child,

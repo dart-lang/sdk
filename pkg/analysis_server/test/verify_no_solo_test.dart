@@ -23,7 +23,7 @@ void main() {
     buildTests(
       packagePath: 'analyzer',
       analysisContextPredicate: (analysisContext) {
-        final root = analysisContext.contextRoot.root;
+        var root = analysisContext.contextRoot.root;
         if (root.endsWithNames(['macro', 'single'])) {
           return false;
         }
@@ -55,7 +55,7 @@ void buildTests({
     resourceProvider: provider,
   );
 
-  final singleAnalysisContext = collection.contexts
+  var singleAnalysisContext = collection.contexts
       .where(analysisContextPredicate ?? (_) => true)
       .toList()
       .singleOrNull;

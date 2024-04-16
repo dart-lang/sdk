@@ -67,13 +67,13 @@ class LspOverLegacyRequestTest extends AbstractLspOverLegacyTest {
     await standardAnalysisSetup();
     await analysisFinished;
 
-    final edits = await formatDocument(testFileUri);
-    final formattedContents = applyTextEdits(content, edits!);
+    var edits = await formatDocument(testFileUri);
+    var formattedContents = applyTextEdits(content, edits!);
     expect(formattedContents.trimRight(), equals(expectedContent));
   }
 
   Future<void> test_hover() async {
-    final code = TestCode.parse('''
+    var code = TestCode.parse('''
 /// This is my class.
 class [!A^aa!] {}
 ''');
@@ -82,7 +82,7 @@ class [!A^aa!] {}
     await standardAnalysisSetup();
     await analysisFinished;
 
-    final result = await getHover(testFileUri, code.position.position);
+    var result = await getHover(testFileUri, code.position.position);
 
     expect(result!.range, code.range.range);
     expectMarkdown(
@@ -105,7 +105,7 @@ This is my class.
   /// in a way that is not abstracted by (or affected by refactors to) helper
   /// methods to ensure this never changes in a way that will affect clients.
   Future<void> test_hover_rawProtocol() async {
-    final code = TestCode.parse('''
+    var code = TestCode.parse('''
 /// This is my class.
 class [!A^aa!] {}
 ''');
@@ -123,7 +123,7 @@ This is my class.''';
     await standardAnalysisSetup();
     await analysisFinished;
 
-    final response = await server.send('lsp.handle', {
+    var response = await server.send('lsp.handle', {
       'lspMessage': {
         'jsonrpc': '2.0',
         'id': '12345',

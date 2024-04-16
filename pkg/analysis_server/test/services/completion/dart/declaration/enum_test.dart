@@ -528,7 +528,7 @@ void f() {
 
   void _configureWithMyEnum() {
     printerConfiguration.filter = (suggestion) {
-      final completion = suggestion.completion;
+      var completion = suggestion.completion;
       return completion.contains('MyEnum') || completion.contains('foo0');
     };
   }

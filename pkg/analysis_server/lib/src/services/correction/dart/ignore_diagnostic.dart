@@ -31,7 +31,7 @@ class IgnoreDiagnosticInAnalysisOptionsFile extends _BaseIgnoreDiagnostic {
 
     if (_isCodeUnignorable) return;
 
-    final analysisOptionsFile = analysisOptions.file;
+    var analysisOptionsFile = analysisOptions.file;
 
     // TODO(osaxma): should an `analysis_options.yaml` be created when
     //               it doesn't exists?
@@ -39,16 +39,16 @@ class IgnoreDiagnosticInAnalysisOptionsFile extends _BaseIgnoreDiagnostic {
       return;
     }
 
-    final content = _safelyReadFile(analysisOptionsFile);
+    var content = _safelyReadFile(analysisOptionsFile);
     if (content == null) {
       return;
     }
 
     await builder.addYamlFileEdit(analysisOptionsFile.path, (builder) {
-      final editor = YamlEditor(content);
-      final options = loadYamlNode(content);
-      final List<String> path;
-      final Object value;
+      var editor = YamlEditor(content);
+      var options = loadYamlNode(content);
+      List<String> path;
+      Object value;
       if (options is! YamlMap) {
         path = [];
         value = {
@@ -57,7 +57,7 @@ class IgnoreDiagnosticInAnalysisOptionsFile extends _BaseIgnoreDiagnostic {
           }
         };
       } else {
-        final analyzerMap = options['analyzer'];
+        var analyzerMap = options['analyzer'];
         if (analyzerMap is! YamlMap || !analyzerMap.containsKey('errors')) {
           path = ['analyzer'];
           value = {
@@ -243,8 +243,8 @@ abstract class _DartIgnoreDiagnostic extends _BaseIgnoreDiagnostic {
   }) {
     var prefix = insertEmptyLineBefore ? eol : '';
     var indent = unitResult.linePrefix(offset);
-    final comment = '// $commentPrefix: $_code';
-    final suffix = insertEmptyLineAfter ? eol : '';
+    var comment = '// $commentPrefix: $_code';
+    var suffix = insertEmptyLineAfter ? eol : '';
     builder.addSimpleInsertion(offset, '$prefix$indent$comment$eol$suffix');
   }
 }

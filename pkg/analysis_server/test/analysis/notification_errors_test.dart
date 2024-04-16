@@ -153,13 +153,13 @@ analyzer:
     // Although errors are not generated for dotfolders, their contents should
     // still be analyzed so that code that references them (for example
     // flutter_gen) should still be updated.
-    final configPath =
+    var configPath =
         join(testPackageRootPath, '.dart_tool/package_config.json');
-    final generatedProject = join(testPackageRootPath, '.dart_tool/foo');
-    final generatedFile = join(generatedProject, 'lib', 'foo.dart');
+    var generatedProject = join(testPackageRootPath, '.dart_tool/foo');
+    var generatedFile = join(generatedProject, 'lib', 'foo.dart');
 
     // Add the generated project into package_config.json.
-    final config = PackageConfigFileBuilder();
+    var config = PackageConfigFileBuilder();
     config.add(name: 'foo', rootPath: generatedProject);
     newFile(configPath, config.toContent(toUriStr: toUriStr));
 

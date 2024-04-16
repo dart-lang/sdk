@@ -654,14 +654,14 @@ class DeclarationHelper {
     required RecordType type,
     required Set<String> excludedFields,
   }) {
-    for (final (index, field) in type.positionalFields.indexed) {
+    for (var (index, field) in type.positionalFields.indexed) {
       _suggestRecordField(
         field: field,
         name: '\$${index + 1}',
       );
     }
 
-    for (final field in type.namedFields) {
+    for (var field in type.namedFields) {
       if (!excludedFields.contains(field.name)) {
         _suggestRecordField(
           field: field,
@@ -1531,7 +1531,7 @@ class DeclarationHelper {
         (mustBeConstant && !element.isConst)) {
       return;
     }
-    final contextType = request.contextType;
+    var contextType = request.contextType;
     if (contextType != null &&
         request.libraryElement.typeSystem
             .isSubtypeOf(element.type, contextType)) {

@@ -26,16 +26,16 @@ abstract class AbstractSemanticTokensHandler<T>
   AbstractSemanticTokensHandler(super.server);
 
   List<List<HighlightRegion>> getPluginResults(String path) {
-    final notificationManager = server.notificationManager;
+    var notificationManager = server.notificationManager;
     return notificationManager.highlights.getResults(path);
   }
 
   Future<List<SemanticTokenInfo>> getServerResult(
       String path, SourceRange? range) async {
-    final result = await server.getResolvedUnit(path);
-    final unit = result?.unit;
+    var result = await server.getResolvedUnit(path);
+    var unit = result?.unit;
     if (unit != null) {
-      final computer = DartUnitHighlightsComputer(unit, range: range);
+      var computer = DartUnitHighlightsComputer(unit, range: range);
       return computer.computeSemanticTokens();
     }
     return [];
@@ -55,10 +55,10 @@ abstract class AbstractSemanticTokensHandler<T>
   Future<ErrorOr<SemanticTokens?>> _handleImpl(
       TextDocumentIdentifier textDocument, CancellationToken token,
       {Range? range}) async {
-    final path = pathOfDoc(textDocument);
+    var path = pathOfDoc(textDocument);
 
     return path.mapResult((path) async {
-      final lineInfo = server.getLineInfo(path);
+      var lineInfo = server.getLineInfo(path);
       // If there is no lineInfo, the request cannot be translated from LSP
       // line/col to server offset/length.
       if (lineInfo == null) {
@@ -66,14 +66,14 @@ abstract class AbstractSemanticTokensHandler<T>
       }
 
       return toSourceRangeNullable(lineInfo, range).mapResult((range) async {
-        final serverTokens = await getServerResult(path, range);
-        final pluginHighlightRegions = getPluginResults(path).flattenedToList2;
+        var serverTokens = await getServerResult(path, range);
+        var pluginHighlightRegions = getPluginResults(path).flattenedToList2;
 
         if (token.isCancellationRequested) {
           return cancelled();
         }
 
-        final encoder = SemanticTokenEncoder();
+        var encoder = SemanticTokenEncoder();
         Iterable<SemanticTokenInfo> pluginTokens =
             encoder.convertHighlightToTokens(pluginHighlightRegions);
 
@@ -86,8 +86,8 @@ abstract class AbstractSemanticTokensHandler<T>
         // could be used if any clients take it up (VS Code does not).
         // - clientCapabilities?.multilineTokenSupport
         // - clientCapabilities?.overlappingTokenSupport
-        final allowMultilineTokens = false;
-        final allowOverlappingTokens = false;
+        var allowMultilineTokens = false;
+        var allowOverlappingTokens = false;
 
         // Some of the translation operations and the final encoding require
         // the tokens to be sorted. Do it once here to avoid each method needing
@@ -108,7 +108,7 @@ abstract class AbstractSemanticTokensHandler<T>
           tokens = _filter(tokens, range);
         }
 
-        final semanticTokens = encoder.encodeTokens(tokens.toList(), lineInfo);
+        var semanticTokens = encoder.encodeTokens(tokens.toList(), lineInfo);
 
         return success(semanticTokens);
       });

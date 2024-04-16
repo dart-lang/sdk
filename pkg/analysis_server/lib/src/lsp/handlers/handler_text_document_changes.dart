@@ -26,14 +26,14 @@ class TextDocumentChangeHandler
   @override
   FutureOr<ErrorOr<void>> handle(DidChangeTextDocumentParams params,
       MessageInfo message, CancellationToken token) {
-    final doc = params.textDocument;
+    var doc = params.textDocument;
     // Editors should never try to change our macro files, but just in case
     // we get these requests, ignore them.
     if (!isEditableDocument(doc.uri)) {
       return success(null);
     }
 
-    final path = pathOfDoc(doc);
+    var path = pathOfDoc(doc);
     return path.mapResultSync((path) => _changeFile(path, params));
   }
 
@@ -50,7 +50,7 @@ class TextDocumentChangeHandler
         'Unable to edit document because the file was not previously opened: $path',
       );
     }
-    final newContents = applyAndConvertEditsToServer(
+    var newContents = applyAndConvertEditsToServer(
         oldContents, params.contentChanges,
         failureIsCritical: true);
     return newContents.mapResultSync((result) {
@@ -75,8 +75,8 @@ class TextDocumentCloseHandler
   @override
   FutureOr<ErrorOr<void>> handle(DidCloseTextDocumentParams params,
       MessageInfo message, CancellationToken token) {
-    final doc = params.textDocument;
-    final path = pathOfDoc(doc);
+    var doc = params.textDocument;
+    var path = pathOfDoc(doc);
     return path.mapResult((path) async {
       if (isEditableDocument(doc.uri)) {
         // It's critical overlays are processed synchronously because other
@@ -109,8 +109,8 @@ class TextDocumentOpenHandler
   @override
   FutureOr<ErrorOr<void>> handle(DidOpenTextDocumentParams params,
       MessageInfo message, CancellationToken token) {
-    final doc = params.textDocument;
-    final path = pathOfDocItem(doc);
+    var doc = params.textDocument;
+    var path = pathOfDocItem(doc);
     return path.mapResult((path) async {
       if (isEditableDocument(doc.uri)) {
         // We don't get a OptionalVersionedTextDocumentIdentifier with a didOpen but we

@@ -21,7 +21,7 @@ class MakeFieldPublic extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final declaration = node;
+    var declaration = node;
     if (declaration is! MethodDeclaration) {
       return;
     }

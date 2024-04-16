@@ -2117,11 +2117,11 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       collector.completionLocation = 'PatternField_pattern';
       keywordHelper.addKeyword(Keyword.DYNAMIC);
       _forExpression(node);
-      final targetField = node.fields.skipWhile((field) {
+      var targetField = node.fields.skipWhile((field) {
         return field.end < offset;
       }).firstOrNull;
       if (targetField != null) {
-        final nameNode = targetField.name;
+        var nameNode = targetField.name;
         if (nameNode != null && offset <= nameNode.colon.offset) {
           declarationHelper(mustBeNonVoid: true).addGetters(
             type: node.matchedValueTypeOrThrow,
@@ -2259,7 +2259,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitSetOrMapLiteral(SetOrMapLiteral node) {
-    var offset = this.offset;
+    final offset = this.offset;
     if (offset >= node.leftBracket.end && offset <= node.rightBracket.offset) {
       collector.completionLocation = 'SetOrMapLiteral_element';
       _forCollectionElement(node, node.elements);
@@ -3519,7 +3519,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
           .toSet();
     }
 
-    for (final field in contextType.namedFields) {
+    for (var field in contextType.namedFields) {
       if (!includedNames.contains(field.name)) {
         var score = state.matcher.score(field.name);
         if (score != -1) {
@@ -3895,7 +3895,7 @@ extension on Element? {
     } else if (self is ExecutableElement) {
       return self.parameters;
     } else if (self is VariableElement) {
-      final type = self.type;
+      var type = self.type;
       if (type is FunctionType) {
         return type.parameters;
       }
@@ -3950,7 +3950,7 @@ extension on FormalParameter {
       return true;
     }
     if (name.isSynthetic) {
-      final next = name.next;
+      var next = name.next;
       if (next != null && next.isKeyword) {
         return true;
       }
@@ -3981,10 +3981,10 @@ extension on GuardedPattern {
     if (whenClause != null) {
       return true;
     }
-    var pattern = this.pattern;
+    final pattern = this.pattern;
     if (pattern is DeclaredVariablePattern) {
       if (pattern.name.lexeme == 'when') {
-        final type = pattern.type;
+        var type = pattern.type;
         if (type is NamedType && type.typeArguments == null) {
           return true;
         }
@@ -4021,7 +4021,7 @@ extension on Statement {
 extension on SyntacticEntity? {
   /// Return `true` if the receiver covers the [offset].
   bool coversOffset(int offset) {
-    final self = this;
+    var self = this;
     return self != null && self.offset <= offset && self.end >= offset;
   }
 }

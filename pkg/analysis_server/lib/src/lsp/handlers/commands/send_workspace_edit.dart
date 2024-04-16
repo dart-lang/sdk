@@ -37,7 +37,7 @@ class SendWorkspaceEditCommandHandler extends SimpleEditCommandHandler {
       ));
     }
 
-    final workspaceEdit =
+    var workspaceEdit =
         WorkspaceEdit.fromJson(parameters['edit'] as Map<String, Object?>);
 
     return await sendWorkspaceEditToClient(workspaceEdit);

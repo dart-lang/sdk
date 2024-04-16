@@ -25,8 +25,8 @@ class CreateConstructor extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var node = this.node;
-    final argumentList = node.parent is ArgumentList ? node.parent : node;
+    final node = this.node;
+    var argumentList = node.parent is ArgumentList ? node.parent : node;
     if (argumentList is ArgumentList) {
       var instanceCreation = argumentList.parent;
       if (instanceCreation is InstanceCreationExpression) {

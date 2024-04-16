@@ -186,7 +186,7 @@ class FixProcessor extends BaseProcessor {
 
     return _bulkFixableErrorCodes.putIfAbsent(errorCode, () {
       if (errorCode is LintCode) {
-        final producers = FixProcessor.lintProducerMap[errorCode.name];
+        var producers = FixProcessor.lintProducerMap[errorCode.name];
         if (hasBulkFixProducers(producers)) {
           return true;
         }
@@ -194,7 +194,7 @@ class FixProcessor extends BaseProcessor {
         return FixProcessor.lintMultiProducerMap.containsKey(errorCode.name);
       }
 
-      final producers = FixProcessor.nonLintProducerMap[errorCode];
+      var producers = FixProcessor.nonLintProducerMap[errorCode];
       if (hasBulkFixProducers(producers)) {
         return true;
       }

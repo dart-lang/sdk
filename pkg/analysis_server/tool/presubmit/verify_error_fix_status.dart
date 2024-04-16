@@ -189,7 +189,7 @@ extension on ErrorCode {
   /// Whether this [errorCode] is likely to have a fix associated with
   /// it.
   bool get hasFix {
-    final self = this;
+    var self = this;
     if (self is LintCode) {
       var lintName = self.name;
       return FixProcessor.lintProducerMap.containsKey(lintName) ||

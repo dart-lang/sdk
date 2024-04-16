@@ -249,8 +249,8 @@ error.errorCode: ${error.errorCode}
       return errorFixesList;
     }
 
-    final analysisOptions = fileResult.analysisOptions;
-    final errors = validatePubspec(
+    var analysisOptions = fileResult.analysisOptions;
+    var errors = validatePubspec(
       contents: node,
       source: pubspecFile.createSource(),
       provider: resourceProvider,

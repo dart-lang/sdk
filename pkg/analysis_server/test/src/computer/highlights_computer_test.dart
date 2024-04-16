@@ -111,7 +111,7 @@ void f() {
     bool hasErrors = false,
   }) async {
     this.content = content;
-    final file = newFile(sourcePath, content);
+    var file = newFile(sourcePath, content);
     var result = await getResolvedUnit(file);
 
     if (hasErrors) {

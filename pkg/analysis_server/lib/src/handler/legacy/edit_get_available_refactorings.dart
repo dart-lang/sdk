@@ -37,7 +37,7 @@ class EditGetAvailableRefactoringsHandler extends LegacyHandler {
     // add refactoring kinds
     var kinds = <RefactoringKind>[];
     // Check nodes.
-    final searchEngine = server.searchEngine;
+    var searchEngine = server.searchEngine;
     {
       var resolvedUnit = await server.getResolvedUnit(file);
       if (resolvedUnit != null) {
@@ -64,7 +64,7 @@ class EditGetAvailableRefactoringsHandler extends LegacyHandler {
       var node = NodeLocator(offset).searchWithin(resolvedUnit.unit);
       var element = server.getElementOfNode(node);
       if (element != null) {
-        final refactoringWorkspace = server.refactoringWorkspace;
+        var refactoringWorkspace = server.refactoringWorkspace;
         // try CONVERT_METHOD_TO_GETTER
         if (element is ExecutableElement) {
           if (ConvertMethodToGetterRefactoring(

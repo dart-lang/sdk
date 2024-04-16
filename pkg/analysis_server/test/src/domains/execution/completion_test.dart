@@ -55,7 +55,7 @@ class RuntimeCompletionComputerTest extends AbstractContextTest {
     expect(codeOffset, isNonNegative);
     code = code.replaceAll('^', '');
 
-    final contextFile = getFile(contextFilePath);
+    var contextFile = getFile(contextFilePath);
     var computer = RuntimeCompletionComputer(
       overlayResourceProvider,
       driverFor(contextFile),

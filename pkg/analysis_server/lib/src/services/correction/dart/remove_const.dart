@@ -32,7 +32,7 @@ class RemoveUnnecessaryConst extends _RemoveConst {
 abstract class _RemoveConst extends ParsedCorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final expression = node;
+    var expression = node;
 
     Token? constToken;
     if (expression is InstanceCreationExpression) {
@@ -46,7 +46,7 @@ abstract class _RemoveConst extends ParsedCorrectionProducer {
       return;
     }
 
-    final constToken_final = constToken;
+    var constToken_final = constToken;
     await builder.addDartFileEdit(file, (builder) {
       builder.addDeletion(
         range.startStart(

@@ -65,8 +65,8 @@ class SocketServerTest {
   }
 
   static SocketServer _createSocketServer(MockServerChannel channel) {
-    final errorNotifier = ErrorNotifier();
-    final server = SocketServer(
+    var errorNotifier = ErrorNotifier();
+    var server = SocketServer(
         AnalysisServerOptions(),
         DartSdkManager(''),
         CrashReportingAttachmentsBuilder.empty,

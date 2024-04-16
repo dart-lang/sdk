@@ -32,10 +32,10 @@ class HoverHandler
       return success(null);
     }
 
-    final pos = params.position;
-    final path = pathOfDoc(params.textDocument);
-    final unit = await path.mapResult(requireResolvedUnit);
-    final offset = unit.mapResultSync((unit) => toOffset(unit.lineInfo, pos));
+    var pos = params.position;
+    var path = pathOfDoc(params.textDocument);
+    var unit = await path.mapResult(requireResolvedUnit);
+    var offset = unit.mapResultSync((unit) => toOffset(unit.lineInfo, pos));
     return (unit, offset).mapResultsSync(_getHover);
   }
 
@@ -50,13 +50,13 @@ class HoverHandler
       return null;
     }
 
-    final content = StringBuffer();
+    var content = StringBuffer();
     const divider = '---';
 
     // Description + Types.
-    final elementDescription = hover.elementDescription;
-    final staticType = hover.staticType;
-    final isDeprecated = hover.isDeprecated ?? false;
+    var elementDescription = hover.elementDescription;
+    var staticType = hover.staticType;
+    var isDeprecated = hover.isDeprecated ?? false;
     if (elementDescription != null) {
       content.writeln('```dart');
       if (isDeprecated) {
@@ -73,7 +73,7 @@ class HoverHandler
     }
 
     // Source library.
-    final containingLibraryName = hover.containingLibraryName;
+    var containingLibraryName = hover.containingLibraryName;
     if (containingLibraryName != null && containingLibraryName.isNotEmpty) {
       content
         ..writeln('*$containingLibraryName*')
@@ -88,7 +88,7 @@ class HoverHandler
       content.writeln(cleanDartdoc(hover.dartdoc));
     }
 
-    final formats = server.lspClientCapabilities?.hoverContentFormats;
+    var formats = server.lspClientCapabilities?.hoverContentFormats;
     return Hover(
       contents:
           asMarkupContentOrString(formats, content.toString().trimRight()),
@@ -97,15 +97,15 @@ class HoverHandler
   }
 
   ErrorOr<Hover?> _getHover(ResolvedUnitResult unit, int offset) {
-    final compilationUnit = unit.unit;
-    final computer = DartUnitHoverComputer(
+    var compilationUnit = unit.unit;
+    var computer = DartUnitHoverComputer(
       server.getDartdocDirectiveInfoFor(unit),
       compilationUnit,
       offset,
       documentationPreference:
           server.lspClientConfiguration.global.preferredDocumentation,
     );
-    final hover = computer.compute();
+    var hover = computer.compute();
     return success(toHover(unit.lineInfo, hover));
   }
 }

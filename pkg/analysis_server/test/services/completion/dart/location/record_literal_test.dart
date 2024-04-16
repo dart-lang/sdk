@@ -21,7 +21,7 @@ class RecordLiteralFieldsTest extends AbstractCompletionDriverTest {
 
     printerConfiguration = printer.Configuration(
       filter: (suggestion) {
-        final completion = suggestion.completion;
+        var completion = suggestion.completion;
         return ['foo0', 'bar0'].any(completion.startsWith);
       },
     );

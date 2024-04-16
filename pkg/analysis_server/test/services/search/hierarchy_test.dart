@@ -234,10 +234,10 @@ class D extends B {
 }
 ''');
 
-    final methodB = findElement.method('_test', of: 'B');
-    final methodD = findElement.method('_test', of: 'D');
+    var methodB = findElement.method('_test', of: 'B');
+    var methodD = findElement.method('_test', of: 'D');
 
-    final members = await getHierarchyMembers(searchEngine, methodB);
+    var members = await getHierarchyMembers(searchEngine, methodB);
     expect(members, unorderedEquals([methodB, methodD]));
   }
 
@@ -268,12 +268,12 @@ class D extends B {
 }
 ''');
 
-    final methodA = findElement.method('_test', of: 'A');
-    final methodB = findElement.method('_test', of: 'B');
-    final methodC = findElement.method('_test', of: 'C');
-    final methodD = findElement.method('_test', of: 'D');
+    var methodA = findElement.method('_test', of: 'A');
+    var methodB = findElement.method('_test', of: 'B');
+    var methodC = findElement.method('_test', of: 'C');
+    var methodD = findElement.method('_test', of: 'D');
 
-    final members = await getHierarchyMembers(searchEngine, methodB);
+    var members = await getHierarchyMembers(searchEngine, methodB);
     expect(
       members,
       unorderedEquals([methodA, methodB, methodC, methodD]),

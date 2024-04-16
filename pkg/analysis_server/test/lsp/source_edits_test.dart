@@ -284,7 +284,7 @@ Insert "\n" at 1:12
     end = end.trim();
     expected = expected.trim();
     await parseTestCode(start);
-    final edits = generateMinimalEdits(testParsedResult, end);
+    var edits = generateMinimalEdits(testParsedResult, end);
     expect(edits.toText().trim(), expected);
     expect(applyTextEdits(start, edits.result), end);
   }

@@ -52,7 +52,7 @@ extension RangeFactoryExtensions on RangeFactory {
           trailingComment(lineInfo, node.endToken, returnComma: true);
       return startEnd(leading, trailing.token);
     }
-    final index = list.indexOf(node);
+    var index = list.indexOf(node);
     if (index < 0) {
       throw ArgumentError('The node must be in the list.');
     }
@@ -123,7 +123,7 @@ extension RangeFactoryExtensions on RangeFactory {
     var beginToken = node.beginToken;
     // If the node is the first thing in the unit, leading comments are treated
     // as headers and should never be included in the range.
-    final isFirstItem = beginToken == node.root.beginToken;
+    var isFirstItem = beginToken == node.root.beginToken;
 
     var thisLeadingComment =
         isFirstItem ? beginToken : _leadingComment(lineInfo, beginToken);

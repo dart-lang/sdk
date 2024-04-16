@@ -31,14 +31,14 @@ class CompletionDomainHandlerGetSuggestionDetails2Test
     String expected, {
     bool printIfFailed = true,
   }) {
-    final buffer = StringBuffer();
+    var buffer = StringBuffer();
     _SuggestionDetailsPrinter(
       resourceProvider: resourceProvider,
       fileDisplayMap: {testFile: 'testFile'},
       buffer: buffer,
       result: result,
     ).writeResult();
-    final actual = buffer.toString();
+    var actual = buffer.toString();
 
     if (actual != expected) {
       if (printIfFailed) {
@@ -231,7 +231,7 @@ class CompletionDomainHandlerGetSuggestions2Test
     extends PubPackageAnalysisServerTest {
   printer.Configuration printerConfiguration = printer.Configuration(
     filter: (suggestion) {
-      final completion = suggestion.completion;
+      var completion = suggestion.completion;
       if (completion.startsWith('A0')) {
         return suggestion.isClass;
       }
@@ -248,13 +248,13 @@ class CompletionDomainHandlerGetSuggestions2Test
     String expected, {
     bool printIfFailed = true,
   }) {
-    final buffer = StringBuffer();
+    var buffer = StringBuffer();
     printer.CompletionResponsePrinter(
       buffer: buffer,
       configuration: printerConfiguration,
       response: response,
     ).writeResponse();
-    final actual = buffer.toString();
+    var actual = buffer.toString();
 
     if (actual != expected) {
       if (printIfFailed) {
@@ -2249,7 +2249,7 @@ class _SuggestionDetailsPrinter {
   void _writeChange(SourceChange change) {
     _writelnWithIndent('change');
     _withIndent(() {
-      for (final fileEdit in change.edits) {
+      for (var fileEdit in change.edits) {
         _writeSourceFileEdit(fileEdit);
       }
     });
@@ -2264,17 +2264,17 @@ class _SuggestionDetailsPrinter {
     _writelnWithIndent('offset: ${edit.offset}');
     _writelnWithIndent('length: ${edit.length}');
 
-    final replacementStr = edit.replacement.replaceAll('\n', r'\n');
+    var replacementStr = edit.replacement.replaceAll('\n', r'\n');
     _writelnWithIndent('replacement: $replacementStr');
   }
 
   void _writeSourceFileEdit(SourceFileEdit fileEdit) {
-    final file = resourceProvider.getFile(fileEdit.file);
-    final fileStr = fileDisplayMap[file] ?? fail('No display name: $file');
+    var file = resourceProvider.getFile(fileEdit.file);
+    var fileStr = fileDisplayMap[file] ?? fail('No display name: $file');
     _writelnWithIndent(fileStr);
 
     _withIndent(() {
-      for (final edit in fileEdit.edits) {
+      for (var edit in fileEdit.edits) {
         _writeSourceEdit(edit);
       }
     });

@@ -61,7 +61,7 @@ class SearchEngineImplTest extends PubPackageResolutionTest {
   }
 
   Future<void> test_membersOfSubtypes_classByClass_hasMembers() async {
-    final a = newFile('$testPackageLibPath/a.dart', '''
+    var a = newFile('$testPackageLibPath/a.dart', '''
 class A {
   void a() {}
   void b() {}
@@ -125,7 +125,7 @@ enum E with M {
   }
 
   Future<void> test_membersOfSubtypes_noMembers() async {
-    final a = newFile('$testPackageLibPath/a.dart', '''
+    var a = newFile('$testPackageLibPath/a.dart', '''
 class A {
   void a() {}
   void b() {}
@@ -146,7 +146,7 @@ class B extends A {}
   }
 
   Future<void> test_membersOfSubtypes_noSubtypes() async {
-    final a = newFile('$testPackageLibPath/a.dart', '''
+    var a = newFile('$testPackageLibPath/a.dart', '''
 class A {
   void a() {}
   void b() {}
@@ -169,7 +169,7 @@ class B {
   }
 
   Future<void> test_membersOfSubtypes_private() async {
-    final a = newFile('$testPackageLibPath/a.dart', '''
+    var a = newFile('$testPackageLibPath/a.dart', '''
 class A {
   void a() {}
   void _b() {}
@@ -220,7 +220,7 @@ class C implements B {}
   Future<void> test_searchAllSubtypes_acrossDrivers() async {
     var aaaRootPath = _configureForPackage_aaa();
 
-    final a = newFile('$aaaRootPath/lib/a.dart', '''
+    var a = newFile('$aaaRootPath/lib/a.dart', '''
 class T {}
 class A extends T {}
 ''');
@@ -501,15 +501,15 @@ enum E {
   }
 
   Future<void> test_searchReferences_extensionType() async {
-    final code = '''
+    var code = '''
 extension type A(int it) {}
 
 void f(A a) {}
 ''';
     await resolveTestCode(code);
 
-    final element = findElement.extensionType('A');
-    final matches = await searchEngine.searchReferences(element);
+    var element = findElement.extensionType('A');
+    var matches = await searchEngine.searchReferences(element);
     expect(
       matches,
       unorderedEquals([

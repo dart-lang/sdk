@@ -18,10 +18,10 @@ void main() {
 @reflectiveTest
 class DocumentLinkTest extends AbstractLspAnalysisServerTest {
   Future<void> test_exampleLink() async {
-    final exampleFolderPath = join(projectFolderPath, 'examples', 'api');
-    final exampleFileUri = Uri.file(join(exampleFolderPath, 'foo.dart'));
+    var exampleFolderPath = join(projectFolderPath, 'examples', 'api');
+    var exampleFileUri = Uri.file(join(exampleFolderPath, 'foo.dart'));
 
-    final code = TestCode.parse('''
+    var code = TestCode.parse('''
 /// {@tool dartpad}
 /// ** See code in [!examples/api/foo.dart!] **
 /// {@end-tool}
@@ -32,9 +32,9 @@ class A {}
     newFile(mainFilePath, code.code);
 
     await initialize();
-    final links = await getDocumentLinks(mainFileUri);
+    var links = await getDocumentLinks(mainFileUri);
 
-    final link = links!.single;
+    var link = links!.single;
     expect(link.range, code.range.range);
     expect(link.target, exampleFileUri);
   }

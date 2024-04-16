@@ -102,7 +102,7 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
     required SourceReference reference,
     required ClassDeclaration classDeclaration,
   }) {
-    final className = classDeclaration.name.lexeme;
+    var className = classDeclaration.name.lexeme;
     _replaceInReferenceFile(
       reference: reference,
       range: range.endLength(classDeclaration.leftBracket, 0),
@@ -114,8 +114,8 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
     required SourceReference reference,
     required ConstructorDeclaration constructor,
   }) {
-    final initializers = constructor.initializers;
-    if (initializers.lastOrNull case final last?) {
+    var initializers = constructor.initializers;
+    if (initializers.lastOrNull case var last?) {
       _replaceInReferenceFile(
         reference: reference,
         range: range.endLength(last, 0),

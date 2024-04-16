@@ -23,7 +23,7 @@ class CreateMissingOverrides extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final targetDeclaration = node;
+    var targetDeclaration = node;
     if (targetDeclaration is! NamedCompilationUnitMember) {
       return;
     }

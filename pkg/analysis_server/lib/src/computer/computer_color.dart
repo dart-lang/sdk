@@ -40,7 +40,7 @@ class ColorComputer {
   ///
   /// This method should only be called once for any instance of this class.
   List<ColorReference> compute() {
-    final visitor = _ColorBuilder(this);
+    var visitor = _ColorBuilder(this);
     resolvedUnit.unit.accept(visitor);
     assert(
       _colors.length == _colors.map((color) => color.offset).toSet().length,
@@ -65,7 +65,7 @@ class ColorComputer {
     target ??= expression;
 
     // Try to evaluate the constant target.
-    final colorConstResult = _linterContext.evaluateConstant(target);
+    var colorConstResult = _linterContext.evaluateConstant(target);
     var colorConst = colorConstResult.value;
     if (colorConstResult.errors.isNotEmpty || colorConst == null) return false;
 
@@ -87,12 +87,12 @@ class ColorComputer {
   bool tryAddKnownColorConstructor(InstanceCreationExpression expression) {
     if (!expression.staticType.isColor) return false;
 
-    final constructor = expression.constructorName;
-    final staticElement = constructor.staticElement;
-    final classElement = staticElement?.enclosingElement;
-    final className = classElement?.name;
-    final constructorName = constructor.name?.name;
-    final constructorArgs = expression.argumentList.arguments
+    var constructor = expression.constructorName;
+    var staticElement = constructor.staticElement;
+    var classElement = staticElement?.enclosingElement;
+    var className = classElement?.name;
+    var constructorName = constructor.name?.name;
+    var constructorArgs = expression.argumentList.arguments
         .map((e) => e is Literal ? e : null)
         .toList();
 
@@ -115,10 +115,10 @@ class ColorComputer {
   /// [value] encoded as 0xAARRGGBB as in the dart:ui Color class.
   ColorInformation _colorInformationForColorValue(int value) {
     // Extract color information according to dart:ui Color values.
-    final alpha = (0xff000000 & value) >> 24;
-    final red = (0x00ff0000 & value) >> 16;
-    final blue = (0x000000ff & value) >> 0;
-    final green = (0x0000ff00 & value) >> 8;
+    var alpha = (0xff000000 & value) >> 24;
+    var red = (0x00ff0000 & value) >> 16;
+    var blue = (0x000000ff & value) >> 0;
+    var green = (0x0000ff00 & value) >> 8;
 
     return ColorInformation(alpha, red, green, blue);
   }
@@ -144,37 +144,37 @@ class ColorComputer {
   /// Extracts the color value from dart:ui Color constructor args.
   int? _getDartUiColorValue(String? name, List<Literal?> args) {
     if (name == null && args.length == 1) {
-      final arg0 = args[0];
+      var arg0 = args[0];
       return arg0 is IntegerLiteral ? arg0.value : null;
     } else if (name == 'fromARGB' && args.length == 4) {
-      final arg0 = args[0];
-      final arg1 = args[1];
-      final arg2 = args[2];
-      final arg3 = args[3];
+      var arg0 = args[0];
+      var arg1 = args[1];
+      var arg2 = args[2];
+      var arg3 = args[3];
 
-      final alpha = arg0 is IntegerLiteral ? arg0.value : null;
-      final red = arg1 is IntegerLiteral ? arg1.value : null;
-      final green = arg2 is IntegerLiteral ? arg2.value : null;
-      final blue = arg3 is IntegerLiteral ? arg3.value : null;
+      var alpha = arg0 is IntegerLiteral ? arg0.value : null;
+      var red = arg1 is IntegerLiteral ? arg1.value : null;
+      var green = arg2 is IntegerLiteral ? arg2.value : null;
+      var blue = arg3 is IntegerLiteral ? arg3.value : null;
 
       return alpha != null && red != null && green != null && blue != null
           ? _colorValueForComponents(alpha, red, green, blue)
           : null;
     } else if (name == 'fromRGBO' && args.length == 4) {
-      final arg0 = args[0];
-      final arg1 = args[1];
-      final arg2 = args[2];
-      final arg3 = args[3];
+      var arg0 = args[0];
+      var arg1 = args[1];
+      var arg2 = args[2];
+      var arg3 = args[3];
 
-      final red = arg0 is IntegerLiteral ? arg0.value : null;
-      final green = arg1 is IntegerLiteral ? arg1.value : null;
-      final blue = arg2 is IntegerLiteral ? arg2.value : null;
-      final opacity = arg3 is IntegerLiteral
+      var red = arg0 is IntegerLiteral ? arg0.value : null;
+      var green = arg1 is IntegerLiteral ? arg1.value : null;
+      var blue = arg2 is IntegerLiteral ? arg2.value : null;
+      var opacity = arg3 is IntegerLiteral
           ? arg3.value
           : arg3 is DoubleLiteral
               ? arg3.value
               : null;
-      final alpha = opacity != null ? (opacity * 255).toInt() : null;
+      var alpha = opacity != null ? (opacity * 255).toInt() : null;
 
       return alpha != null && red != null && green != null && blue != null
           ? _colorValueForComponents(alpha, red, green, blue)
@@ -193,7 +193,7 @@ class ColorComputer {
   /// Extracts the color value from Flutter ColorSwatch constructor args.
   int? _getFlutterSwatchColorValue(String? name, List<Literal?> args) {
     if (name == null && args.isNotEmpty) {
-      final arg0 = args[0];
+      var arg0 = args[0];
       return arg0 is IntegerLiteral ? arg0.value : null;
     } else {
       return null;
@@ -205,7 +205,7 @@ class ColorComputer {
   /// Well-known getters like `shade500` will be mapped onto the swatch value
   /// with a matching index.
   DartObject? _getMember(DartObject target, String memberName) {
-    final colorValue = target.getFieldFromHierarchy(memberName);
+    var colorValue = target.getFieldFromHierarchy(memberName);
     if (colorValue != null) {
       return colorValue;
     }
@@ -213,7 +213,7 @@ class ColorComputer {
     // If we didn't get a value but it's a getter we know how to read from a
     // swatch, try that.
     if (memberName.startsWith('shade')) {
-      final shadeNumber = int.tryParse(memberName.substring(5));
+      var shadeNumber = int.tryParse(memberName.substring(5));
       if (shadeNumber != null) {
         return _getSwatchValue(target, shadeNumber);
       }
@@ -224,10 +224,10 @@ class ColorComputer {
 
   /// Extracts a specific shade index from a Flutter SwatchColor.
   DartObject? _getSwatchValue(DartObject target, int swatchValue) {
-    final swatch = target.getFieldFromHierarchy('_swatch')?.toMapValue();
+    var swatch = target.getFieldFromHierarchy('_swatch')?.toMapValue();
     if (swatch == null) return null;
 
-    final key = swatch.keys.firstWhereOrNull(
+    var key = swatch.keys.firstWhereOrNull(
       (key) => key?.toIntValue() == swatchValue,
     );
     if (key == null) return null;
@@ -261,7 +261,7 @@ class ColorComputer {
     if (colorValue == null) return false;
 
     // Build color information from the Color value.
-    final color = _colorInformationForColorValue(colorValue);
+    var color = _colorInformationForColorValue(colorValue);
 
     // Record the color against the original entire expression.
     _colors.add(ColorReference(expression.offset, expression.length, color));
@@ -297,8 +297,8 @@ class _ColorBuilder extends RecursiveAstVisitor<void> {
   @override
   void visitIndexExpression(IndexExpression node) {
     // Colors.redAccent[500].
-    final index = node.index;
-    final indexValue = index is IntegerLiteral ? index.value : null;
+    var index = node.index;
+    var indexValue = index is IntegerLiteral ? index.value : null;
     if (indexValue != null) {
       if (computer.tryAddColor(
         node,

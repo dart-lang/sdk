@@ -59,7 +59,7 @@ mixin TreeWriter {
     try {
       if (value is DirectiveUri) {
         if (value is DirectiveUriWithSource) {
-          final sourceStr = _toString(value.source);
+          var sourceStr = _toString(value.source);
           return 'DirectiveUriWithSource (source=$sourceStr)';
         }
         return value.toString();

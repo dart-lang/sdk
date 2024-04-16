@@ -39,7 +39,7 @@ class RemoveArgument extends ResolvedCorrectionProducer {
     }
 
     await builder.addDartFileEdit(file, (builder) {
-      final sourceRange = range.nodeInListWithComments(
+      var sourceRange = range.nodeInListWithComments(
           unitResult.lineInfo, argumentList.arguments, arg);
       builder.addDeletion(sourceRange);
     });

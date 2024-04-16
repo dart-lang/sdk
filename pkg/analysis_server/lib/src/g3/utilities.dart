@@ -20,7 +20,7 @@ import 'package:dart_style/dart_style.dart';
 /// Return a formatted string if successful, throws a [FormatterException] if
 /// unable to format. Takes a string as input.
 String format(String content) {
-  final code = SourceCode(content);
+  var code = SourceCode(content);
   var formatter = DartFormatter();
   SourceCode formattedResult;
   formattedResult = formatter.formatSource(code);

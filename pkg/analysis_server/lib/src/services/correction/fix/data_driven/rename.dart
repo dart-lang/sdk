@@ -26,8 +26,8 @@ class Rename extends Change<_Data> {
   void apply(DartFileEditBuilder builder, DataDrivenFix fix, _Data data) {
     var nameToken = data.nameToken;
     if (fix.element.isConstructor) {
-      final node = data.node;
-      final parent = node.parent;
+      var node = data.node;
+      var parent = node.parent;
       if (node is ConstructorName) {
         if (nameToken != null && newName.isEmpty) {
           // The constructor was renamed from a named constructor to an unnamed
@@ -84,7 +84,7 @@ class Rename extends Change<_Data> {
     } else if (node is MethodDeclaration) {
       return _Data(node, node.name);
     } else if (node is NamedType) {
-      final parent = node.parent;
+      var parent = node.parent;
       if (fix.element.kind == ElementKind.constructorKind &&
           parent is ConstructorName) {
         return _Data(parent, parent.name?.token);

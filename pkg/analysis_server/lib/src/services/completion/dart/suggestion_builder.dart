@@ -614,7 +614,7 @@ class SuggestionBuilder {
 
   /// Add a suggestion for the `call` method defined on functions.
   void suggestFunctionCall() {
-    final element = protocol.Element(protocol.ElementKind.METHOD,
+    var element = protocol.Element(protocol.ElementKind.METHOD,
         FunctionElement.CALL_METHOD_NAME, protocol.Element.makeFlags(),
         parameters: '()', returnType: 'void');
     _addSuggestion(
@@ -908,14 +908,14 @@ class SuggestionBuilder {
       {required bool appendColon,
       required bool appendComma,
       int? replacementLength}) {
-    final name = field.name;
-    final type = field.type.getDisplayString();
+    var name = field.name;
+    var type = field.type.getDisplayString();
 
     var completion = name;
     if (appendColon) {
       completion += ': ';
     }
-    final selectionOffset = completion.length;
+    var selectionOffset = completion.length;
 
     if (appendComma) {
       completion += ',';
@@ -1042,15 +1042,15 @@ class SuggestionBuilder {
     required RecordTypeField field,
     required String name,
   }) {
-    final type = field.type;
-    final featureComputer = request.featureComputer;
-    final contextType =
+    var type = field.type;
+    var featureComputer = request.featureComputer;
+    var contextType =
         featureComputer.contextTypeFeature(request.contextType, type);
-    final relevance = _computeRelevance(
+    var relevance = _computeRelevance(
       contextType: contextType,
     );
 
-    final returnType = field.type.getDisplayString();
+    var returnType = field.type.getDisplayString();
 
     _addSuggestion(
       CompletionSuggestion(
@@ -1738,7 +1738,7 @@ class _CompletionSuggestionBuilderImpl implements CompletionSuggestionBuilder {
 
   @override
   CompletionSuggestion build() {
-    final element = suggestionBuilder._createElementCompletionData(orgElement);
+    var element = suggestionBuilder._createElementCompletionData(orgElement);
     return DartCompletionSuggestion(
       kind,
       relevance,

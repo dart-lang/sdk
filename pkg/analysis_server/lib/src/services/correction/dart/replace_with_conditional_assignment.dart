@@ -34,7 +34,7 @@ class ReplaceWithConditionalAssignment extends ResolvedCorrectionProducer {
 
     var thenStatement = _uniqueStatement(ifStatement.thenStatement);
     if (thenStatement is ExpressionStatement) {
-      final expression = thenStatement.expression.unParenthesized;
+      var expression = thenStatement.expression.unParenthesized;
       if (expression is AssignmentExpression) {
         await builder.addDartFileEdit(file, (builder) {
           builder.addReplacement(range.node(ifStatement), (builder) {

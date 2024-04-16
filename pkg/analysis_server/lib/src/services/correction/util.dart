@@ -212,10 +212,10 @@ String getElementQualifiedName(Element element) {
     return '${element.enclosingElement!.displayName}.${element.displayName}';
   } else if (kind == ElementKind.LIBRARY) {
     // Libraries may not have names, so use a path relative to the context root.
-    final session = element.session!;
-    final pathContext = session.resourceProvider.pathContext;
-    final rootPath = session.analysisContext.contextRoot.root.path;
-    final library = element as LibraryElement;
+    var session = element.session!;
+    var pathContext = session.resourceProvider.pathContext;
+    var rootPath = session.analysisContext.contextRoot.root.path;
+    var library = element as LibraryElement;
 
     return pathContext.relative(library.source.fullName, from: rootPath);
   } else {
@@ -689,12 +689,12 @@ final class CorrectionUtils {
     AstNode node, {
     bool withLeadingComments = false,
   }) {
-    final firstToken = withLeadingComments
+    var firstToken = withLeadingComments
         ? node.beginToken.precedingComments ?? node.beginToken
         : node.beginToken;
-    final offset = firstToken.offset;
-    final end = node.endToken.end;
-    final length = end - offset;
+    var offset = firstToken.offset;
+    var end = node.endToken.end;
+    var length = end - offset;
     return getText(offset, length);
   }
 
@@ -718,15 +718,15 @@ final class CorrectionUtils {
   /// Splits [text] into lines, and removes one level of indent from each line.
   /// Lines that don't start with indentation are left as is.
   String indentLeft(String text) {
-    final buffer = StringBuffer();
-    final indent = oneIndent;
-    final eol = endOfLine;
-    final lines = text.split(eol);
-    for (final line in lines) {
+    var buffer = StringBuffer();
+    var indent = oneIndent;
+    var eol = endOfLine;
+    var lines = text.split(eol);
+    for (var line in lines) {
       if (buffer.isNotEmpty) {
         buffer.write(eol);
       }
-      final String updatedLine;
+      String updatedLine;
       if (line.startsWith(indent)) {
         updatedLine = line.substring(indent.length);
       } else {
@@ -739,11 +739,11 @@ final class CorrectionUtils {
 
   /// Adds [level] indents to each line.
   String indentRight(String text, {int level = 1}) {
-    final buffer = StringBuffer();
-    final indent = _oneIndent * level;
-    final eol = endOfLine;
-    final lines = text.split(eol);
-    for (final line in lines) {
+    var buffer = StringBuffer();
+    var indent = _oneIndent * level;
+    var eol = endOfLine;
+    var lines = text.split(eol);
+    for (var line in lines) {
       if (buffer.isNotEmpty) {
         buffer.write(eol);
       }
@@ -1192,7 +1192,7 @@ class _LocalElementsCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    final element = node.declaredElement;
+    var element = node.declaredElement;
     if (element is LocalVariableElement) {
       elements.add(element);
     }

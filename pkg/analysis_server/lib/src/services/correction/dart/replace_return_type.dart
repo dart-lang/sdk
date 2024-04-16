@@ -25,7 +25,7 @@ class ReplaceReturnType extends ResolvedCorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     final node = this.node;
     if (node is Expression) {
-      final typeSystem = libraryElement.typeSystem;
+      var typeSystem = libraryElement.typeSystem;
 
       var newType = node.staticType;
 

@@ -47,7 +47,7 @@ abstract class PubspecFixTest with ResourceProviderMixin {
     var pubspecFile = newFile('/home/test/pubspec.yaml', content);
     var node = loadYamlNode(content);
     this.node = node;
-    final errors = pubspec_validator.validatePubspec(
+    var errors = pubspec_validator.validatePubspec(
         source: pubspecFile.createSource(),
         contents: node,
         provider: resourceProvider);

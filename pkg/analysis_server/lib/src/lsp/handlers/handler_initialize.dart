@@ -31,17 +31,17 @@ class InitializeMessageHandler
       params.initializationOptions,
     );
 
-    final workspacePaths = <String>[];
-    final workspaceFolders = params.workspaceFolders;
-    final rootUri = params.rootUri;
-    final rootPath = params.rootPath;
+    var workspacePaths = <String>[];
+    var workspaceFolders = params.workspaceFolders;
+    var rootUri = params.rootUri;
+    var rootPath = params.rootPath;
     // The onlyAnalyzeProjectsWithOpenFiles flag allows opening huge folders
     // without setting them as analysis roots. Instead, analysis roots will be
     // based only on the open files.
     if (!server.onlyAnalyzeProjectsWithOpenFiles) {
       if (workspaceFolders != null) {
         for (var wf in workspaceFolders) {
-          final uri = wf.uri;
+          var uri = wf.uri;
           // Only file URIs are supported, but there's no way to signal this to
           // the LSP client (and certainly not before initialization).
           if (uri.isScheme('file')) {
@@ -63,7 +63,7 @@ class InitializeMessageHandler
       workspacePaths,
     );
 
-    final capabilities = server.capabilitiesComputer
+    var capabilities = server.capabilitiesComputer
         .computeServerCapabilities(server.lspClientCapabilities!);
     server.capabilities = capabilities;
 

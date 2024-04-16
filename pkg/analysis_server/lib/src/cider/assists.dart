@@ -42,8 +42,8 @@ class CiderAssistsComputer {
           offset,
           length,
         );
-        final processor = AssistProcessor(context);
-        final assists = await processor.compute();
+        var processor = AssistProcessor(context);
+        var assists = await processor.compute();
         assists.sort(Assist.compareAssists);
         result.addAll(assists);
       } on InconsistentAnalysisException {

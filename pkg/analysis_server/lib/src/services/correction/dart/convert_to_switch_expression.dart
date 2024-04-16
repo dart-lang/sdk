@@ -32,11 +32,11 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final switchStatement = node;
+    var switchStatement = node;
     if (switchStatement is! SwitchStatement) return;
 
     ThrowStatement? followingThrow;
-    final expression = switchStatement.expression;
+    var expression = switchStatement.expression;
     if (!isEffectivelyExhaustive(switchStatement, expression.typeOrThrow)) {
       followingThrow = switchStatement.followingThrow;
       if (followingThrow == null) {
@@ -245,7 +245,7 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
       }
 
       if (followingThrow != null) {
-        final throwText = utils.getNodeText(followingThrow.expression);
+        var throwText = utils.getNodeText(followingThrow.expression);
         _insertLinesBefore(
           builder: builder,
           nextLineOffset: node.rightBracket.offset,
@@ -287,7 +287,7 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
     DartFileEditBuilder builder,
     List<Statement> statements,
   ) {
-    final range = utils.getLinesRangeStatements(statements);
+    var range = utils.getLinesRangeStatements(statements);
     builder.addDeletion(range);
   }
 
@@ -415,16 +415,16 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
     required String text,
     required _Indentation indentation,
   }) {
-    final insertOffset = utils.getLineContentStart(nextLineOffset);
-    final nextLinePrefix = utils.getLinePrefix(nextLineOffset);
+    var insertOffset = utils.getLineContentStart(nextLineOffset);
+    var nextLinePrefix = utils.getLinePrefix(nextLineOffset);
 
     switch (indentation) {
       case _IndentationFullFirstRightAll():
-        final indentedText = utils.indentRight(
+        var indentedText = utils.indentRight(
           nextLinePrefix + text,
           level: indentation.level,
         );
-        final withEol = '$indentedText$eol';
+        var withEol = '$indentedText$eol';
         builder.addSimpleInsertion(insertOffset, withEol);
     }
   }

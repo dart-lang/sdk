@@ -336,7 +336,7 @@ class TransformSetParser {
     bool required = true,
   }) {
     var entries = <_SingleKeyEntry<T>>[];
-    for (final entry in map.nodes.entries) {
+    for (var entry in map.nodes.entries) {
       Object? keyNode = entry.key;
       Object? valueNode = entry.value;
       if (keyNode is YamlScalar && valueNode is YamlNode) {
@@ -370,7 +370,7 @@ class TransformSetParser {
     }
 
     var firstKey = firstEntry.key;
-    for (final entry in entries.skip(1)) {
+    for (var entry in entries.skip(1)) {
       _reportError(
         TransformSetErrorCode.conflictingKey,
         entry.keyNode,
@@ -546,7 +546,7 @@ class TransformSetParser {
       map: node,
       translators: {
         const {_indexKey}: (key, value) {
-          final index = _translateInteger(
+          var index = _translateInteger(
             value,
             ErrorContext(key: _indexKey, parentNode: node),
           );
@@ -555,7 +555,7 @@ class TransformSetParser {
           }
         },
         const {_nameKey}: (key, value) {
-          final name = _translateString(
+          var name = _translateString(
             value,
             ErrorContext(key: _nameKey, parentNode: node),
           );
@@ -747,7 +747,7 @@ class TransformSetParser {
       var uris = _translateList(urisNode,
           ErrorContext(key: _urisKey, parentNode: node), _translateUri);
 
-      final elementPair = _singleKey(
+      var elementPair = _singleKey(
         map: node,
         translators: {
           {
@@ -774,16 +774,16 @@ class TransformSetParser {
         // The error has already been reported.
         return null;
       }
-      final elementKey = elementPair.key;
-      final elementName = _translateString(
+      var elementKey = elementPair.key;
+      var elementName = _translateString(
           elementPair.value, ErrorContext(key: elementKey, parentNode: node));
       if (elementName == null) {
         // The error has already been reported.
         return null;
       }
-      final components = [elementName];
+      var components = [elementName];
       var isStatic = false;
-      final staticNode = node.valueAt(_staticKey);
+      var staticNode = node.valueAt(_staticKey);
       if (_containerKeyMap.containsKey(elementKey)) {
         var validContainerKeys = _containerKeyMap[elementKey]!;
         var containerName = _singleKey(
@@ -934,7 +934,7 @@ class TransformSetParser {
   /// Translate the [node] into a remove-parameter modification.
   void _translateRemoveParameterChange(YamlMap node) {
     _reportUnsupportedKeys(node, const {_indexKey, _kindKey, _nameKey});
-    final reference = _singleKey(
+    var reference = _singleKey(
       map: node,
       translators: {
         {_indexKey}: (key, value) {
@@ -1123,7 +1123,7 @@ class TransformSetParser {
       transformVariableScope = _translateTemplateVariables(
           node.valueAt(_variablesKey),
           ErrorContext(key: _variablesKey, parentNode: node));
-      final selector = _singleKey(
+      var selector = _singleKey(
         map: node,
         errorNode: context.parentNode,
         translators: {

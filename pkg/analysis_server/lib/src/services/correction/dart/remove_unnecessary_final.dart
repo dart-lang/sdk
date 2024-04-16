@@ -25,7 +25,7 @@ class RemoveUnnecessaryFinal extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var node = this.node;
+    final node = this.node;
     Token? keyword;
     if (node is FieldFormalParameter) {
       keyword = node.keyword;

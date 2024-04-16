@@ -40,7 +40,7 @@ class CreateClass extends ResolvedCorrectionProducer {
       requiresConstConstructor = true;
     }
     if (targetNode is NamedType) {
-      final importPrefix = targetNode.importPrefix;
+      var importPrefix = targetNode.importPrefix;
       if (importPrefix != null) {
         prefixElement = importPrefix.element;
         if (prefixElement == null) {
@@ -109,7 +109,7 @@ class CreateClass extends ResolvedCorrectionProducer {
       return;
     }
 
-    final className2 = className;
+    var className2 = className;
     await builder.addDartFileEdit(filePath, (builder) {
       builder.addInsertion(offset, (builder) {
         builder.write(prefix);
@@ -137,7 +137,7 @@ class CreateClass extends ResolvedCorrectionProducer {
   }
 
   static bool _requiresConstConstructor(AstNode node) {
-    final parent = node.parent;
+    var parent = node.parent;
     // TODO(scheglov): remove after NamedType refactoring.
     if (node is SimpleIdentifier && parent is NamedType) {
       return _requiresConstConstructor(parent);

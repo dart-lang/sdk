@@ -75,7 +75,7 @@ class RequestData {
 
   /// Return a future that will complete when a response is received.
   Future<Response> get respondedTo {
-    final response = _response;
+    var response = _response;
     if (response != null) {
       return Future.value(response);
     }

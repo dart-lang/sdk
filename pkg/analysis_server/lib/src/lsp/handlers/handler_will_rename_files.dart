@@ -32,15 +32,15 @@ class WillRenameFilesHandler
   @override
   Future<ErrorOr<WorkspaceEdit?>> handle(RenameFilesParams params,
       MessageInfo message, CancellationToken token) async {
-    final pathMapping = <String, String>{};
+    var pathMapping = <String, String>{};
 
-    for (final file in params.files) {
-      final oldPath = pathOfUri(Uri.tryParse(file.oldUri));
+    for (var file in params.files) {
+      var oldPath = pathOfUri(Uri.tryParse(file.oldUri));
       if (oldPath.isError) {
         return failure(oldPath);
       }
 
-      final newPath = pathOfUri(Uri.tryParse(file.newUri));
+      var newPath = pathOfUri(Uri.tryParse(file.newUri));
       if (newPath.isError) {
         return failure(newPath);
       }
@@ -58,15 +58,15 @@ class WillRenameFilesHandler
     // know about at the start (or in the case of LSP-over-Legacy that we even
     // have version numbers for). To ensure we never produce inconsistent edits,
     // capture all sessions at the start and ensure they are all consistent at the end.
-    final sessions = await server.currentSessions;
+    var sessions = await server.currentSessions;
 
-    final refactoring = MoveFileRefactoringImpl.multi(
+    var refactoring = MoveFileRefactoringImpl.multi(
         server.resourceProvider, server.refactoringWorkspace, renames)
       ..cancellationToken = token;
 
     // If we're unable to update imports for a rename, we should silently do
     // nothing rather than interrupt the users file rename with an error.
-    final results = await refactoring.checkAllConditions();
+    var results = await refactoring.checkAllConditions();
     if (token.isCancellationRequested) {
       return cancelled();
     }
@@ -75,7 +75,7 @@ class WillRenameFilesHandler
       return success(null);
     }
 
-    final change = await refactoring.createChange();
+    var change = await refactoring.createChange();
     if (delayDuringComputeForTests != null) {
       await delayDuringComputeForTests;
     }
@@ -86,7 +86,7 @@ class WillRenameFilesHandler
 
     server.checkConsistency(sessions);
 
-    final edit = createWorkspaceEdit(server, change);
+    var edit = createWorkspaceEdit(server, change);
     return success(edit);
   }
 }

@@ -57,7 +57,7 @@ class LspMetaModelCleaner {
 
   /// Cleans an entire [LspMetaModel].
   LspMetaModel cleanModel(LspMetaModel model) {
-    final types = cleanTypes(model.types);
+    var types = cleanTypes(model.types);
     return LspMetaModel(
       types: types,
       methods: model.methods.where(_includeEntityInOutput).toList(),
@@ -80,7 +80,7 @@ class LspMetaModelCleaner {
     // unnecessarily complicated.
     if (type is ArrayType) {
       // TODO(dantup): Consider removing this, it's not adding much.
-      final elementType = type.elementType;
+      var elementType = type.elementType;
       if (elementType is TypeReference && elementType.name == 'MarkedString') {
         return false;
       }
@@ -143,8 +143,8 @@ class LspMetaModelCleaner {
   }
 
   Field _cleanField(String parentName, Field field) {
-    final improvedType = _getImprovedType(parentName, field.name);
-    final type = improvedType ?? field.type;
+    var improvedType = _getImprovedType(parentName, field.name);
+    var type = improvedType ?? field.type;
 
     return Field(
       name: field.name,
@@ -247,8 +247,8 @@ class LspMetaModelCleaner {
     } else if (uniqueTypes.every(isLiteralType)) {
       return LiteralUnionType(uniqueTypes.cast<LiteralType>());
     } else if (uniqueTypes.any(isNullType)) {
-      final remainingTypes = uniqueTypes.whereNot(isNullType).toList();
-      final nonNullType = remainingTypes.length == 1
+      var remainingTypes = uniqueTypes.whereNot(isNullType).toList();
+      var nonNullType = remainingTypes.length == 1
           ? remainingTypes.single
           : UnionType(remainingTypes);
       return NullableType(nonNullType);
@@ -283,9 +283,9 @@ class LspMetaModelCleaner {
       },
     };
 
-    final interface = improvedTypeMappings[interfaceName];
+    var interface = improvedTypeMappings[interfaceName];
 
-    final improvedTypeName = interface != null ? interface[fieldName] : null;
+    var improvedTypeName = interface != null ? interface[fieldName] : null;
 
     return improvedTypeName != null
         ? improvedTypeName.endsWith('[]')
@@ -377,7 +377,7 @@ class LspMetaModelCleaner {
     if (source.runtimeType != dest.runtimeType) {
       throw 'Cannot merge ${source.runtimeType} into ${dest.runtimeType}';
     }
-    final comment = dest.comment ?? source.comment;
+    var comment = dest.comment ?? source.comment;
     if (source is LspEnum && dest is LspEnum) {
       return LspEnum(
         name: dest.name,
@@ -399,16 +399,16 @@ class LspMetaModelCleaner {
   }
 
   List<LspEntity> _mergeTypes(List<LspEntity> types) {
-    final typesByName = {
+    var typesByName = {
       for (final type in types) type.name: type,
     };
     assert(types.length == typesByName.length);
-    final typeNames = typesByName.keys.toList();
-    for (final typeName in typeNames) {
-      final targetName = _getMergeTarget(typeName);
+    var typeNames = typesByName.keys.toList();
+    for (var typeName in typeNames) {
+      var targetName = _getMergeTarget(typeName);
       if (targetName != null) {
-        final type = typesByName[typeName]!;
-        final target = typesByName[targetName]!;
+        var type = typesByName[typeName]!;
+        var target = typesByName[targetName]!;
         typesByName[targetName] = _merge(type, target);
         typesByName.remove(typeName);
       }
@@ -436,8 +436,8 @@ class LspMetaModelCleaner {
       'URI': 'LSPUri',
     };
 
-    for (final type in types) {
-      final newName = renames[type.name];
+    for (var type in types) {
+      var newName = renames[type.name];
       if (newName == null) {
         yield type;
         continue;

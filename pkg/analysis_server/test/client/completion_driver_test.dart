@@ -99,13 +99,13 @@ abstract class AbstractCompletionDriverTest
   /// Asserts that the [response] has the [expected] textual dump produced
   /// using [printerConfiguration].
   void assertResponse(String expected, {String where = ''}) {
-    final buffer = StringBuffer();
+    var buffer = StringBuffer();
     printer.CompletionResponsePrinter(
       buffer: buffer,
       configuration: printerConfiguration,
       response: response,
     ).writeResponse();
-    final actual = buffer.toString();
+    var actual = buffer.toString();
 
     if (actual != expected) {
       if (where.isEmpty) {
@@ -264,7 +264,7 @@ name: test
     String? file,
     String? libraryUri,
   }) {
-    final matches = suggestionsWith(
+    var matches = suggestionsWith(
         completion: completion,
         element: element,
         kind: kind,

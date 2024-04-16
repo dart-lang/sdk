@@ -262,7 +262,7 @@ class BulkFixProcessor {
         'getResolvedLibrary',
         (_) => context.currentSession.getResolvedContainingLibrary(path),
       );
-      final unit = library?.unitWithPath(path);
+      var unit = library?.unitWithPath(path);
       if (!isCancelled && library != null && unit != null) {
         await _fixErrorsInLibraryUnit(unit, library,
             autoTriggered: autoTriggered);
@@ -372,9 +372,9 @@ class BulkFixProcessor {
           continue;
         }
 
-        final libPath =
+        var libPath =
             resourceProvider.getFolder(package.root).getChild('lib').path;
-        final binPath =
+        var binPath =
             resourceProvider.getFolder(package.root).getChild('bin').path;
 
         bool isPublic(String path, PubPackage package) {
@@ -399,7 +399,7 @@ class BulkFixProcessor {
             var uri =
                 (directive is ImportDirective) ? directive.uri.stringValue : '';
             if (uri!.startsWith('package:')) {
-              final name = Uri.parse(uri).pathSegments.first;
+              var name = Uri.parse(uri).pathSegments.first;
               if (isPublic(path, package)) {
                 pubspecDeps.packages.add(name);
               } else {
@@ -513,12 +513,12 @@ class BulkFixProcessor {
           break;
         }
         if (result is ParsedLibraryResult) {
-          final allUnits = result.units
+          var allUnits = result.units
               .map((parsedUnit) =>
                   LinterContextUnit(parsedUnit.content, parsedUnit.unit))
               .toList();
           var errorListener = RecordingErrorListener();
-          for (final linterUnit in allUnits) {
+          for (var linterUnit in allUnits) {
             var errorReporter = ErrorReporter(
               errorListener,
               StringSource(linterUnit.content, null),
@@ -860,20 +860,20 @@ class BulkFixProcessor {
 
   /// Returns whether [path] has any errors that might be fixable.
   Future<bool> _hasFixableErrors(AnalysisContext context, String path) async {
-    final errorsResult = await context.currentSession.getErrors(path);
+    var errorsResult = await context.currentSession.getErrors(path);
     if (errorsResult is! ErrorsResult) {
       return false;
     }
 
-    final analysisOptions = errorsResult.session.analysisContext
+    var analysisOptions = errorsResult.session.analysisContext
         .getAnalysisOptionsForFile(errorsResult.file);
-    final filteredErrors = _filterErrors(analysisOptions, errorsResult.errors);
+    var filteredErrors = _filterErrors(analysisOptions, errorsResult.errors);
     return filteredErrors.any(_isFixableError);
   }
 
   /// Returns whether [error] is something that might be fixable.
   bool _isFixableError(AnalysisError error) {
-    final errorCode = error.errorCode;
+    var errorCode = error.errorCode;
 
     // Special cases that can be bulk fixed by this class but not by
     // FixProcessor.
@@ -1015,7 +1015,7 @@ class IterativeBulkFixProcessor {
   }) async {
     return performance.runAsync('IterativeBulkFixProcessor.fixErrorsForFile',
         (performance) async {
-      final changes = <SourceFileEdit>[];
+      var changes = <SourceFileEdit>[];
       _passesWithEdits = 0;
 
       for (var i = 0; i < maxPasses; i++) {
@@ -1047,7 +1047,7 @@ class IterativeBulkFixProcessor {
         // Also apply them to the overlay provider so the next iteration can
         // use them.
         await performance.runAsync('Apply edits from pass $i', (_) async {
-          for (final fileEdit in change.edits) {
+          for (var fileEdit in change.edits) {
             applyTemporaryOverlayEdits(fileEdit);
           }
           await applyOverlays();

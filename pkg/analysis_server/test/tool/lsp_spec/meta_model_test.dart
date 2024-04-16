@@ -17,7 +17,7 @@ void main() {
       recordTypes(getCustomClasses());
     });
     test('reads an interface', () {
-      final input = {
+      var input = {
         'structures': [
           {
             'name': 'SomeOptions',
@@ -36,16 +36,16 @@ void main() {
           },
         ],
       };
-      final output = readModel(input);
+      var output = readModel(input);
       expect(output, hasLength(1));
       expect(output[0], const TypeMatcher<Interface>());
-      final interface = output[0] as Interface;
+      var interface = output[0] as Interface;
       expect(interface.name, equals('SomeOptions'));
       expect(interface.comment, equals('Some options.'));
       expect(interface.baseTypes, hasLength(0));
       expect(interface.members, hasLength(1));
       expect(interface.members[0], const TypeMatcher<Field>());
-      final field = interface.members[0] as Field;
+      var field = interface.members[0] as Field;
       expect(field.name, equals('options'));
       expect(field.comment, equals('''Options used by something.'''));
       expect(field.allowsNull, isFalse);
@@ -54,7 +54,7 @@ void main() {
     });
 
     test('reads an interface with a field with an inline/unnamed type', () {
-      final input = {
+      var input = {
         'structures': [
           {
             'name': 'Capabilities',
@@ -80,7 +80,7 @@ void main() {
           },
         ],
       };
-      final output = readModel(input);
+      var output = readModel(input);
       // Length is two because we'll fabricate the type of textDoc.
       expect(output, hasLength(2));
 
@@ -109,7 +109,7 @@ void main() {
     });
 
     test('reads an interface with multiple fields', () {
-      final input = {
+      var input = {
         'structures': [
           {
             'name': 'SomeOptions',
@@ -128,21 +128,21 @@ void main() {
           },
         ],
       };
-      final output = readModel(input);
+      var output = readModel(input);
       expect(output, hasLength(1));
       expect(output[0], const TypeMatcher<Interface>());
-      final interface = output[0] as Interface;
+      var interface = output[0] as Interface;
       expect(interface.members, hasLength(2));
       for (var i in [0, 1]) {
         expect(interface.members[i], const TypeMatcher<Field>());
-        final field = interface.members[i] as Field;
+        var field = interface.members[i] as Field;
         expect(field.name, equals('options$i'));
         expect(field.comment, equals('''Options$i used by something.'''));
       }
     });
 
     test('reads an interface with a map into a MapType', () {
-      final input = {
+      var input = {
         'structures': [
           {
             'name': 'WorkspaceEdit',
@@ -162,12 +162,12 @@ void main() {
           },
         ],
       };
-      final output = readModel(input);
+      var output = readModel(input);
       expect(output, hasLength(1));
       expect(output[0], const TypeMatcher<Interface>());
-      final interface = output[0] as Interface;
+      var interface = output[0] as Interface;
       expect(interface.members, hasLength(1));
-      final field = interface.members.first as Field;
+      var field = interface.members.first as Field;
       expect(field, const TypeMatcher<Field>());
       expect(field.name, equals('changes'));
       expect(field.type,
@@ -175,7 +175,7 @@ void main() {
     });
 
     test('flags nullable undefined values', () {
-      final input = {
+      var input = {
         'structures': [
           {
             'name': 'A',
@@ -214,13 +214,13 @@ void main() {
           },
         ],
       };
-      final output = readModel(input);
-      final interface = output[0] as Interface;
+      var output = readModel(input);
+      var interface = output[0] as Interface;
       expect(interface.members, hasLength(4));
       for (var m in interface.members) {
         expect(m, const TypeMatcher<Field>());
       }
-      final canBeBoth = interface.members[0] as Field,
+      var canBeBoth = interface.members[0] as Field,
           canBeNeither = interface.members[1] as Field,
           canBeNull = interface.members[2] as Field,
           canBeUndefined = interface.members[3] as Field;
@@ -235,7 +235,7 @@ void main() {
     });
 
     test('formats comments correctly', () {
-      final input = {
+      var input = {
         'structures': [
           {
             'name': 'A',
@@ -256,8 +256,8 @@ Sometimes after a blank line we'll have a note.
           },
         ],
       };
-      final output = readModel(input);
-      final interface = output[0] as Interface;
+      var output = readModel(input);
+      var interface = output[0] as Interface;
       expect(interface.comment, equals('''
 Describes the what this class in lots of words that wrap onto multiple lines that will need re-wrapping to format nicely when converted into Dart.
 
@@ -274,7 +274,7 @@ Sometimes after a blank line we'll have a note.
     });
 
     test('reads a type alias', () {
-      final input = {
+      var input = {
         'typeAliases': [
           {
             'name': 'DocumentSelector',
@@ -285,16 +285,16 @@ Sometimes after a blank line we'll have a note.
           },
         ],
       };
-      final output = readModel(input);
+      var output = readModel(input);
       expect(output, hasLength(1));
       expect(output[0], const TypeMatcher<TypeAlias>());
-      final typeAlias = output[0] as TypeAlias;
+      var typeAlias = output[0] as TypeAlias;
       expect(typeAlias.name, equals('DocumentSelector'));
       expect(typeAlias.baseType, isArrayOf(isSimpleType('DocumentFilter')));
     });
 
     test('reads a type alias that is a union of unnamed types', () {
-      final input = {
+      var input = {
         'typeAliases': [
           {
             'name': 'NameOrLength',
@@ -328,37 +328,37 @@ Sometimes after a blank line we'll have a note.
           },
         ],
       };
-      final output = readModel(input);
+      var output = readModel(input);
       expect(output, hasLength(3));
 
       // Results should be the two inline interfaces followed by the type alias.
 
       expect(output[0], const TypeMatcher<Interface>());
-      final interface1 = output[0] as Interface;
+      var interface1 = output[0] as Interface;
       expect(interface1.name, equals('NameOrLength1'));
       expect(interface1.members, hasLength(1));
       expect(interface1.members[0].name, equals('name'));
 
       expect(output[1], const TypeMatcher<Interface>());
-      final interface2 = output[1] as Interface;
+      var interface2 = output[1] as Interface;
       expect(interface2.name, equals('NameOrLength2'));
       expect(interface2.members, hasLength(1));
       expect(interface2.members[0].name, equals('length'));
 
       expect(output[2], const TypeMatcher<TypeAlias>());
-      final typeAlias = output[2] as TypeAlias;
+      var typeAlias = output[2] as TypeAlias;
       expect(typeAlias.name, equals('NameOrLength'));
       expect(typeAlias.baseType, const TypeMatcher<UnionType>());
 
       // The type alias should be a union of the two types above.
-      final union = typeAlias.baseType as UnionType;
+      var union = typeAlias.baseType as UnionType;
       expect(union.types, hasLength(2));
       expect(union.types[0], isSimpleType(interface1.name));
       expect(union.types[1], isSimpleType(interface2.name));
     });
 
     test('reads a namespace of constants', () {
-      final input = {
+      var input = {
         'enumerations': [
           {
             'name': 'ResourceOperationKind',
@@ -385,16 +385,16 @@ Sometimes after a blank line we'll have a note.
           },
         ]
       };
-      final output = readModel(input);
+      var output = readModel(input);
       expect(output, hasLength(1));
 
       expect(output[0], const TypeMatcher<LspEnum>());
-      final namespace = output[0] as LspEnum;
+      var namespace = output[0] as LspEnum;
       expect(namespace.members, hasLength(3));
       for (var m in namespace.members) {
         expect(m, const TypeMatcher<Constant>());
       }
-      final create = namespace.members[0] as Constant,
+      var create = namespace.members[0] as Constant,
           delete = namespace.members[1] as Constant,
           rename = namespace.members[2] as Constant;
       expect(create.name, equals('Create'));
@@ -412,7 +412,7 @@ Sometimes after a blank line we'll have a note.
     });
 
     test('reads a tuple in an array', () {
-      final input = {
+      var input = {
         'structures': [
           {
             'name': 'SomeInformation',
@@ -437,23 +437,23 @@ Sometimes after a blank line we'll have a note.
           },
         ],
       };
-      final output = readModel(input);
+      var output = readModel(input);
       expect(output, hasLength(1));
       expect(output[0], const TypeMatcher<Interface>());
-      final interface = output[0] as Interface;
+      var interface = output[0] as Interface;
       expect(interface.members, hasLength(1));
-      final field = interface.members.first as Field;
+      var field = interface.members.first as Field;
       expect(field, const TypeMatcher<Field>());
       expect(field.name, equals('label'));
       expect(field.type, const TypeMatcher<UnionType>());
-      final union = field.type as UnionType;
+      var union = field.type as UnionType;
       expect(union.types, hasLength(2));
       expect(union.types[0], isArrayOf(isSimpleType('number')));
       expect(union.types[1], isSimpleType('string'));
     });
 
     test('reads an union including LSPAny into a single type', () {
-      final input = {
+      var input = {
         'structures': [
           {
             'name': 'SomeInformation',
@@ -472,19 +472,19 @@ Sometimes after a blank line we'll have a note.
           },
         ],
       };
-      final output = readModel(input);
+      var output = readModel(input);
       expect(output, hasLength(1));
       expect(output[0], const TypeMatcher<Interface>());
-      final interface = output[0] as Interface;
+      var interface = output[0] as Interface;
       expect(interface.members, hasLength(1));
-      final field = interface.members.first as Field;
+      var field = interface.members.first as Field;
       expect(field, const TypeMatcher<Field>());
       expect(field.name, equals('label'));
       expect(field.type, isSimpleType('LSPAny'));
     });
 
     test('reads literal string values', () {
-      final input = {
+      var input = {
         'structures': [
           {
             'name': 'MyType',
@@ -497,14 +497,14 @@ Sometimes after a blank line we'll have a note.
           },
         ],
       };
-      final output = readModel(input);
+      var output = readModel(input);
       expect(output, hasLength(1));
       expect(output[0], const TypeMatcher<Interface>());
-      final interface = output[0] as Interface;
+      var interface = output[0] as Interface;
       expect(interface.name, equals('MyType'));
       expect(interface.members, hasLength(1));
       expect(interface.members[0], const TypeMatcher<Field>());
-      final field = interface.members[0] as Field;
+      var field = interface.members[0] as Field;
       expect(field.name, equals('kind'));
       expect(field.allowsNull, isFalse);
       expect(field.allowsUndefined, isFalse);
@@ -512,7 +512,7 @@ Sometimes after a blank line we'll have a note.
     });
 
     test('reads literal union values', () {
-      final input = {
+      var input = {
         'structures': [
           {
             'name': 'MyType',
@@ -531,19 +531,19 @@ Sometimes after a blank line we'll have a note.
           },
         ],
       };
-      final output = readModel(input);
+      var output = readModel(input);
       expect(output, hasLength(1));
       expect(output[0], const TypeMatcher<Interface>());
-      final interface = output[0] as Interface;
+      var interface = output[0] as Interface;
       expect(interface.name, equals('MyType'));
       expect(interface.members, hasLength(1));
       expect(interface.members[0], const TypeMatcher<Field>());
-      final field = interface.members[0] as Field;
+      var field = interface.members[0] as Field;
       expect(field.name, equals('kind'));
       expect(field.allowsNull, isFalse);
       expect(field.allowsUndefined, isFalse);
       expect(field.type, const TypeMatcher<LiteralUnionType>());
-      final union = field.type as LiteralUnionType;
+      var union = field.type as LiteralUnionType;
       expect(union.types, hasLength(2));
       expect(union.types[0], isLiteralOf(isSimpleType('string'), "'one'"));
       expect(union.types[1], isLiteralOf(isSimpleType('string'), "'two'"));

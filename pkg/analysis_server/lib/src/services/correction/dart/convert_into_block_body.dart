@@ -58,7 +58,7 @@ class ConvertIntoBlockBody extends ResolvedCorrectionProducer {
   }
 
   Future<void> _computeMissingBody(ChangeBuilder builder) async {
-    final body = getEnclosingFunctionBody();
+    var body = getEnclosingFunctionBody();
     if (body == null || body.isGenerator) return;
 
     List<String>? codeLines;
@@ -93,7 +93,7 @@ class ConvertIntoBlockBody extends ResolvedCorrectionProducer {
   }
 
   Future<void> _computeSetLiteral(ChangeBuilder builder) async {
-    var node = this.node;
+    final node = this.node;
     if (node is! SetOrMapLiteral || !node.isSet) return;
     var parent = node.parent;
     if (parent is! ExpressionFunctionBody) return;

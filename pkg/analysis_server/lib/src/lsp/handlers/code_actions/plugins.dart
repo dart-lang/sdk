@@ -38,8 +38,8 @@ class PluginCodeActionsProducer extends AbstractCodeActionsProducer {
       return [];
     }
 
-    final requestParams = plugin.EditGetAssistsParams(path, offset, length);
-    final responses = await _sendPluginRequest(requestParams);
+    var requestParams = plugin.EditGetAssistsParams(path, offset, length);
+    var responses = await _sendPluginRequest(requestParams);
 
     return responses
         .map((response) => plugin.EditGetAssistsResult.fromResponse(response))
@@ -55,8 +55,8 @@ class PluginCodeActionsProducer extends AbstractCodeActionsProducer {
       return [];
     }
 
-    final requestParams = plugin.EditGetFixesParams(path, offset);
-    final responses = await _sendPluginRequest(requestParams);
+    var requestParams = plugin.EditGetFixesParams(path, offset);
+    var responses = await _sendPluginRequest(requestParams);
 
     return responses
         .map((response) => plugin.EditGetFixesResult.fromResponse(response))
@@ -80,7 +80,7 @@ class PluginCodeActionsProducer extends AbstractCodeActionsProducer {
 
   Iterable<CodeActionWithPriority> _convertFixes(
       plugin.AnalysisErrorFixes fixes) {
-    final diagnostic = pluginToDiagnostic(
+    var diagnostic = pluginToDiagnostic(
       server.uriConverter,
       (_) => lineInfo,
       fixes.error,

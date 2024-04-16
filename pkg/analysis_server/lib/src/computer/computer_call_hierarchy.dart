@@ -106,8 +106,8 @@ class CallHierarchyItem {
         codeRange = _codeRangeForElement(element),
         file = element.source!.fullName,
         kind = CallHierarchyKind.forElement(element) {
-    final enclosingElement = element.enclosingElement;
-    final container =
+    var enclosingElement = element.enclosingElement;
+    var container =
         enclosingElement != null ? _getContainer(enclosingElement) : null;
     containerName = container != null ? _getDisplayName(container) : null;
   }
@@ -116,7 +116,7 @@ class CallHierarchyItem {
   static SourceRange _codeRangeForElement(Element element) {
     // For synthetic items (like implicit constructors), use the nonSynthetic
     // element for the location.
-    final elementImpl = element.nonSynthetic as ElementImpl;
+    var elementImpl = element.nonSynthetic as ElementImpl;
 
     // Non-synthetic elements should always have code locations.
     return SourceRange(elementImpl.codeOffset!, elementImpl.codeLength!);
@@ -197,7 +197,7 @@ class DartCallHierarchyComputer {
     SearchEngine searchEngine,
   ) async {
     assert(target.file == _result.path);
-    final node = _findTargetNode(target.nameRange.offset);
+    var node = _findTargetNode(target.nameRange.offset);
     var element = _getElementOfNode(node);
     if (element == null || !_isMatchingElement(element, target)) {
       return [];
@@ -207,7 +207,7 @@ class DartCallHierarchyComputer {
     // `constructor`, because we need to locate them using an `offset`, which
     // implicit constructors do not have.
     // Here, we map them back to the synthetic constructor element.
-    final isImplicitConstructor = element is InterfaceElement &&
+    var isImplicitConstructor = element is InterfaceElement &&
         target.kind == CallHierarchyKind.constructor;
     if (isImplicitConstructor) {
       element = element.unnamedConstructor;
@@ -218,29 +218,29 @@ class DartCallHierarchyComputer {
       return [];
     }
 
-    final computer = ElementReferencesComputer(searchEngine);
-    final references = await computer.compute(element, false);
+    var computer = ElementReferencesComputer(searchEngine);
+    var references = await computer.compute(element, false);
 
     // Group results by their container, since we only want to return a single
     // entry for a body, with a set of ranges within.
-    final resultsByContainer = <Element, CallHierarchyCalls>{};
+    var resultsByContainer = <Element, CallHierarchyCalls>{};
     // We may need to fetch parsed results for the other files, reuse them
     // across calls.
-    final parsedUnits = <String, SomeParsedUnitResult?>{};
-    for (final reference in references) {
-      final container = _getContainer(reference.element);
+    var parsedUnits = <String, SomeParsedUnitResult?>{};
+    for (var reference in references) {
+      var container = _getContainer(reference.element);
       if (container == null) {
         continue;
       }
 
       // Create an item for a container the first time we see it.
-      final containerCalls = resultsByContainer.putIfAbsent(
+      var containerCalls = resultsByContainer.putIfAbsent(
         container,
         () => CallHierarchyCalls(CallHierarchyItem.forElement(container)),
       );
 
       // Add this match to the containers results.
-      final range = _rangeForSearchMatch(reference, parsedUnits);
+      var range = _rangeForSearchMatch(reference, parsedUnits);
       containerCalls.ranges.add(range);
     }
 
@@ -256,8 +256,8 @@ class DartCallHierarchyComputer {
     CallHierarchyItem target,
   ) async {
     assert(target.file == _result.path);
-    final node = _findTargetNode(target.nameRange.offset);
-    final element = _getElementOfNode(node);
+    var node = _findTargetNode(target.nameRange.offset);
+    var element = _getElementOfNode(node);
     if (node == null ||
         element == null ||
         !_isMatchingElement(element, target)) {
@@ -271,26 +271,26 @@ class DartCallHierarchyComputer {
       return [];
     }
 
-    final referenceNodes = <AstNode>{};
+    var referenceNodes = <AstNode>{};
     node.accept(_OutboundCallVisitor(node, referenceNodes.add));
 
     // Group results by their target, since we only want to return a single
     // entry for each target, with a set of ranges that call it.
-    final resultsByTarget = <Element, CallHierarchyCalls>{};
-    for (final referenceNode in referenceNodes) {
-      final target = _getElementOfNode(referenceNode);
+    var resultsByTarget = <Element, CallHierarchyCalls>{};
+    for (var referenceNode in referenceNodes) {
+      var target = _getElementOfNode(referenceNode);
       if (target == null) {
         continue;
       }
 
       // Create an item for a target the first time we see it.
-      final calls = resultsByTarget.putIfAbsent(
+      var calls = resultsByTarget.putIfAbsent(
         target,
         () => CallHierarchyCalls(CallHierarchyItem.forElement(target)),
       );
 
       // Add this call to the targets results.
-      final range = _rangeForNode(referenceNode);
+      var range = _rangeForNode(referenceNode);
       calls.ranges.add(range);
     }
 
@@ -302,8 +302,8 @@ class DartCallHierarchyComputer {
   /// If [offset] is an invocation, returns information about the [Element] it
   /// refers to.
   CallHierarchyItem? findTarget(int offset) {
-    final node = _findTargetNode(offset);
-    final element = _getElementOfNode(node);
+    var node = _findTargetNode(offset);
+    var element = _getElementOfNode(node);
 
     // We only return targets that are executable elements.
     return element is ExecutableElement
@@ -325,15 +325,15 @@ class DartCallHierarchyComputer {
     // constructor for unnamed constructor (since we use the constructors name
     // as the target).
     if (node is NamedType) {
-      final parent = node.parent;
+      var parent = node.parent;
       if (parent is ConstructorName) {
-        final name = parent.name;
+        var name = parent.name;
         if (name != null && offset < name.offset) {
           return null;
         }
       }
     } else if (node is ConstructorDeclaration) {
-      final name = node.name;
+      var name = node.name;
       if (name != null && offset < name.offset) {
         return null;
       }
@@ -349,7 +349,7 @@ class DartCallHierarchyComputer {
     if (node == null) {
       return null;
     }
-    final parent = node.parent;
+    var parent = node.parent;
 
     // ElementLocator returns the class for default constructor calls and null
     // for constructor names.
@@ -361,7 +361,7 @@ class DartCallHierarchyComputer {
       node = node.propertyName;
     }
 
-    final element = ElementLocator.locate(node);
+    var element = ElementLocator.locate(node);
 
     // Don't consider synthetic getter/setter for a field to be executable
     // since they don't contain any executable code.
@@ -418,16 +418,16 @@ class DartCallHierarchyComputer {
   ) {
     var offset = match.sourceRange.offset;
     var length = match.sourceRange.length;
-    final file = match.file;
-    final result = parsedUnits.putIfAbsent(
+    var file = match.file;
+    var result = parsedUnits.putIfAbsent(
       file,
       () => _result.session.getParsedUnit(file),
     );
 
     if (result is ParsedUnitResult) {
-      final node = NodeLocator(offset).searchWithin(result.unit);
+      var node = NodeLocator(offset).searchWithin(result.unit);
       if (node != null && !node.isSynthetic) {
-        final parent = node.parent;
+        var parent = node.parent;
         // Handle named constructors which have their `.` included in the
         // search index range, but we just want to highlight the name.
         if (node is SimpleIdentifier && parent is MethodInvocation) {

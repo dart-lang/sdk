@@ -96,7 +96,7 @@ class RefactoringManager {
       CancellationToken cancellationToken) {
     // prepare for processing the request
     this.request = request;
-    final result = this.result = EditGetRefactoringResult(
+    var result = this.result = EditGetRefactoringResult(
         EMPTY_PROBLEM_LIST, EMPTY_PROBLEM_LIST, EMPTY_PROBLEM_LIST);
 
     // process the request
@@ -140,7 +140,7 @@ class RefactoringManager {
         throw 'A simulated refactoring exception - final.';
       }
       // validation and create change
-      final refactoring = this.refactoring!;
+      var refactoring = this.refactoring!;
       finalStatus = await refactoring.checkFinalConditions();
       _checkForReset_afterFinalConditions();
       if (_hasFatalError) {
@@ -273,14 +273,14 @@ class RefactoringManager {
         var node = NodeLocator(offset).searchWithin(resolvedUnit.unit);
         var element = server.getElementOfNode(node);
         if (node is RepresentationDeclaration) {
-          final extensionType = node.parent;
+          var extensionType = node.parent;
           if (extensionType is ExtensionTypeDeclaration &&
               extensionType.name.end == offset) {
             element = extensionType.declaredElement;
           }
         }
         if (node != null && element != null) {
-          final renameElement =
+          var renameElement =
               RenameRefactoring.getElementToRename(node, element);
           if (renameElement != null) {
             // do create the refactoring
@@ -326,7 +326,7 @@ class RefactoringManager {
     initStatus = await refactoring.checkInitialConditions();
     _checkForReset_afterInitialConditions();
     if (refactoring is ExtractLocalRefactoring) {
-      final feedback = this.feedback as ExtractLocalVariableFeedback;
+      var feedback = this.feedback as ExtractLocalVariableFeedback;
       feedback.names = refactoring.names;
       feedback.offsets = refactoring.offsets;
       feedback.lengths = refactoring.lengths;
@@ -335,7 +335,7 @@ class RefactoringManager {
       feedback.coveringExpressionLengths =
           refactoring.coveringExpressionLengths;
     } else if (refactoring is ExtractMethodRefactoring) {
-      final feedback = this.feedback as ExtractMethodFeedback;
+      var feedback = this.feedback as ExtractMethodFeedback;
       feedback.canCreateGetter = refactoring.canCreateGetter;
       feedback.returnType = refactoring.returnType;
       feedback.names = refactoring.names;
@@ -354,7 +354,7 @@ class RefactoringManager {
             className: refactoring.className);
       }
     } else if (refactoring is RenameRefactoring) {
-      final feedback = this.feedback as RenameFeedback;
+      var feedback = this.feedback as RenameFeedback;
       feedback.elementKindName = refactoring.elementKindName;
       feedback.oldName = refactoring.oldName;
     }

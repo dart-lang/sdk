@@ -301,7 +301,7 @@ class CollectReportPage extends DiagnosticPage {
 
   Future<String> _collectAllData() async {
     Map<String, dynamic> collectedData = {};
-    var server = this.server;
+    final server = this.server;
 
     // General data.
     collectedData['currentTime'] = DateTime.now().millisecondsSinceEpoch;

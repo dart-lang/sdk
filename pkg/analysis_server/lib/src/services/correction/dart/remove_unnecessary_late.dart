@@ -24,7 +24,7 @@ class RemoveUnnecessaryLate extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final declarationList = node;
+    var declarationList = node;
     if (declarationList is! VariableDeclarationList) {
       return;
     }
@@ -36,7 +36,7 @@ class RemoveUnnecessaryLate extends ResolvedCorrectionProducer {
       return;
     }
 
-    final lateToken = declarationList.lateKeyword;
+    var lateToken = declarationList.lateKeyword;
     if (lateToken == null) {
       return;
     }

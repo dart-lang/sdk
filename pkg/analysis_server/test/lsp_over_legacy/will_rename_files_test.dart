@@ -24,18 +24,18 @@ class WillRenameFilesTest extends LspOverLegacyTest {
   /// Test that sending a (legacy) cancellation request can cancel this LSP
   /// request.
   Future<void> test_cancellation() async {
-    final testFileNewPath = join(testPackageLibPath, 'test_new.dart');
+    var testFileNewPath = join(testPackageLibPath, 'test_new.dart');
 
     await addOverlay(testFilePath, 'original');
     // Don't await, need to send cancellation.
-    final editFuture = onWillRename([
+    var editFuture = onWillRename([
       FileRename(
         oldUri: toUri(testFilePath).toString(),
         newUri: toUri(testFileNewPath).toString(),
       ),
     ]);
 
-    final cancelRequest =
+    var cancelRequest =
         createLegacyRequest(ServerCancelRequestParams(lastSentLegacyRequestId));
     await handleRequest(cancelRequest);
 
@@ -44,17 +44,17 @@ class WillRenameFilesTest extends LspOverLegacyTest {
   }
 
   Future<void> test_inconsistentAnalysis() async {
-    final testFileNewPath = join(testPackageLibPath, 'test_new.dart');
+    var testFileNewPath = join(testPackageLibPath, 'test_new.dart');
 
     // Use a Completer to control when the refactor finishes computing so that
     // we can ensure the overlay modification had time to be applied and trigger
     // creation of new sessions.
-    final completer = Completer<void>();
+    var completer = Completer<void>();
     WillRenameFilesHandler.delayDuringComputeForTests = completer.future;
     try {
       await addOverlay(testFilePath, 'original');
       // Don't await, need to send modification.
-      final editFuture = onWillRename([
+      var editFuture = onWillRename([
         FileRename(
           oldUri: toUri(testFilePath).toString(),
           newUri: toUri(testFileNewPath).toString(),
@@ -80,14 +80,14 @@ class WillRenameFilesTest extends LspOverLegacyTest {
   /// Test moving multiple items at once. Both files reference each other
   /// by way of `part`/`part of`.
   Future<void> test_multiple() async {
-    final testFileNewPath = join(testPackageLibPath, 'dest1', 'test.dart');
-    final otherFilePath = join(testPackageLibPath, 'other', 'other.dart');
-    final otherFileNewPath = join(testPackageLibPath, 'dest2', 'other.dart');
+    var testFileNewPath = join(testPackageLibPath, 'dest1', 'test.dart');
+    var otherFilePath = join(testPackageLibPath, 'other', 'other.dart');
+    var otherFileNewPath = join(testPackageLibPath, 'dest2', 'other.dart');
 
-    final mainContent = "part 'other/other.dart';";
-    final otherContent = "part of '../test.dart';";
+    var mainContent = "part 'other/other.dart';";
+    var otherContent = "part of '../test.dart';";
 
-    final expectedContent = '''
+    var expectedContent = '''
 >>>>>>>>>> lib/other/other.dart
 part of '../dest1/test.dart';<<<<<<<<<<
 >>>>>>>>>> lib/test.dart
@@ -98,7 +98,7 @@ part '../dest2/other.dart';<<<<<<<<<<
     newFile(otherFilePath, otherContent);
     await pumpEventQueue(times: 5000);
 
-    final edit = await onWillRename([
+    var edit = await onWillRename([
       FileRename(
         oldUri: toUri(testFilePath).toString(),
         newUri: toUri(testFileNewPath).toString(),
@@ -113,20 +113,20 @@ part '../dest2/other.dart';<<<<<<<<<<
   }
 
   Future<void> test_single() async {
-    final otherFilePath = join(testPackageLibPath, 'other.dart');
-    final otherFileNewPath = join(testPackageLibPath, 'other_new.dart');
+    var otherFilePath = join(testPackageLibPath, 'other.dart');
+    var otherFileNewPath = join(testPackageLibPath, 'other_new.dart');
 
-    final mainContent = '''
+    var mainContent = '''
 import 'other.dart';
 
 final a = A();
 ''';
 
-    final otherContent = '''
+    var otherContent = '''
 class A {}
 ''';
 
-    final expectedContent = '''
+    var expectedContent = '''
 >>>>>>>>>> lib/test.dart
 import 'other_new.dart';
 
@@ -137,7 +137,7 @@ final a = A();
     newFile(otherFilePath, otherContent);
     await pumpEventQueue(times: 5000);
 
-    final edit = await onWillRename([
+    var edit = await onWillRename([
       FileRename(
         oldUri: toUri(otherFilePath).toString(),
         newUri: toUri(otherFileNewPath).toString(),

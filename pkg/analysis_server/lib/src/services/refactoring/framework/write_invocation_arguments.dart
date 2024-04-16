@@ -21,19 +21,19 @@ Future<WriteArgumentsStatus> writeArguments({
   required ArgumentList argumentList,
   required ChangeBuilder builder,
 }) async {
-  final utils = CorrectionUtils(resolvedUnit);
+  var utils = CorrectionUtils(resolvedUnit);
 
-  final positionArguments = argumentList.positional;
-  final namedArguments = argumentList.namedMap;
+  var positionArguments = argumentList.positional;
+  var namedArguments = argumentList.namedMap;
 
-  final newArguments = <_Argument>[];
-  for (final update in formalParameterUpdates) {
+  var newArguments = <_Argument>[];
+  for (var update in formalParameterUpdates) {
     switch (update) {
-      case FormalParameterUpdateExisting(:final reference):
+      case FormalParameterUpdateExisting(:var reference):
         switch (reference) {
           case NamedFormalParameterReference():
-            final name = reference.name;
-            final argument = namedArguments.remove(name);
+            var name = reference.name;
+            var argument = namedArguments.remove(name);
             if (argument == null) {
               continue;
             }
@@ -52,7 +52,7 @@ Future<WriteArgumentsStatus> writeArguments({
               );
             }
           case PositionalFormalParameterReference():
-            final argument = positionArguments.elementAtOrNull(reference.index);
+            var argument = positionArguments.elementAtOrNull(reference.index);
             if (argument == null) {
               return WriteArgumentsStatusFailure();
             }
@@ -102,15 +102,15 @@ Future<WriteArgumentsStatus> writeArguments({
   await builder.addDartFileEdit(resolvedUnit.path, (builder) {
     builder.addReplacement(range.node(argumentList), (builder) {
       builder.write('(');
-      for (final argument in newArguments) {
+      for (var argument in newArguments) {
         switch (argument) {
           case _ArgumentAddName():
-            final text = utils.getNodeText(argument.argument);
+            var text = utils.getNodeText(argument.argument);
             builder.write(argument.name);
             builder.write(': ');
             builder.write(text);
           case _ArgumentAsIs():
-            final text = utils.getNodeText(argument.argument);
+            var text = utils.getNodeText(argument.argument);
             builder.write(text);
           case _ArgumentNewNamed():
             builder.write(argument.name);
@@ -119,8 +119,8 @@ Future<WriteArgumentsStatus> writeArguments({
           case _ArgumentNewPositional():
             builder.write(argument.valueCode);
           case _ArgumentRemoveName():
-            final expression = argument.namedExpression.expression;
-            final text = utils.getNodeText(expression);
+            var expression = argument.namedExpression.expression;
+            var text = utils.getNodeText(expression);
             builder.write(text);
         }
         if (argument != newArguments.last) {
@@ -292,15 +292,15 @@ final class _ArgumentRemoveName extends _Argument {
 
 extension on ArgumentList {
   bool get hasTrailingComma {
-    final last = arguments.lastOrNull;
-    final nextToken = last?.endToken.next;
+    var last = arguments.lastOrNull;
+    var nextToken = last?.endToken.next;
     return nextToken != null && nextToken.type == TokenType.COMMA;
   }
 
   Map<String, NamedExpression> get namedMap {
     return Map.fromEntries(
       arguments.whereType<NamedExpression>().map((namedExpression) {
-        final name = namedExpression.name.label.name;
+        var name = namedExpression.name.label.name;
         return MapEntry(name, namedExpression);
       }),
     );

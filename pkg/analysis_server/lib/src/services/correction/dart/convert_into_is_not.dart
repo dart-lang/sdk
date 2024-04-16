@@ -71,7 +71,7 @@ class ConvertIntoIsNot extends ResolvedCorrectionProducer {
       return;
     }
 
-    final isExpression_final = isExpression;
+    var isExpression_final = isExpression;
     await builder.addDartFileEdit(file, (builder) {
       if (getExpressionParentPrecedence(prefExpression) >=
           Precedence.relational) {

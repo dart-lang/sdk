@@ -50,7 +50,7 @@ class ReplaceNullWithClosure extends ResolvedCorrectionProducer {
       return;
     }
 
-    final nodeToFix_final = nodeToFix;
+    var nodeToFix_final = nodeToFix;
     await builder.addDartFileEdit(file, (builder) {
       builder.addReplacement(range.node(nodeToFix_final), (builder) {
         builder.writeParameters(parameters);

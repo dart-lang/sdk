@@ -2258,8 +2258,8 @@ class _AnalysisDomainTest extends PubPackageAnalysisServerTest {
   final List<(String, Object)> notifications = [];
 
   void assertNotificationsText(String expected) {
-    final buffer = StringBuffer();
-    final sink = TreeStringSink(sink: buffer, indent: '');
+    var buffer = StringBuffer();
+    var sink = TreeStringSink(sink: buffer, indent: '');
     _NotificationPrinter(
       configuration: configuration,
       resourceProvider: resourceProvider,
@@ -2267,7 +2267,7 @@ class _AnalysisDomainTest extends PubPackageAnalysisServerTest {
     ).writeNotifications(notifications);
     notifications.clear();
 
-    final actual = buffer.toString();
+    var actual = buffer.toString();
     if (actual != expected) {
       print('-------- Actual --------');
       print('$actual------------------------');
@@ -2307,7 +2307,7 @@ class _NotificationPrinter {
   });
 
   void writeNotifications(List<(String, Object)> notifications) {
-    for (final entry in notifications) {
+    for (var entry in notifications) {
       _writeNotification(entry.$1, entry.$2);
     }
   }
@@ -2317,7 +2317,7 @@ class _NotificationPrinter {
       if (name != null) {
         sink.write('$name: ');
       }
-      final file = resourceProvider.getFile(path);
+      var file = resourceProvider.getFile(path);
       sink.write(file.posixPath);
     });
   }
@@ -2325,7 +2325,7 @@ class _NotificationPrinter {
   void _writeNotification(String event, Object notification) {
     switch (notification) {
       case AnalysisFlushResultsParams():
-        final files = notification.files.sorted();
+        var files = notification.files.sorted();
         sink.writeElements('AnalysisFlush', files, _writelnFile);
       case AnalysisErrorsParams():
         sink.writelnWithIndent('AnalysisErrors');

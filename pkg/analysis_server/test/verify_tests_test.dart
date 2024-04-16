@@ -26,7 +26,7 @@ class _VerifyTests extends VerifyTests {
 
   @override
   bool isOkAsAdditionalTestAllImport(Folder folder, String uri) {
-    final pathContext = folder.provider.pathContext;
+    var pathContext = folder.provider.pathContext;
 
     if (folder.path == pathContext.join(testDirPath, 'lsp') &&
         uri == '../src/lsp/lsp_packet_transformer_test.dart') {

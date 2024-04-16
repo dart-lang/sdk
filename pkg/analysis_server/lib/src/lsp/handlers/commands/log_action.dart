@@ -20,7 +20,7 @@ class LogActionCommandHandler
       Map<String, Object?> parameters,
       ProgressReporter progress,
       CancellationToken cancellationToken) async {
-    final action = parameters['action'] as String;
+    var action = parameters['action'] as String;
     // Actions are recorded the same as commands.
     server.analyticsManager.executedCommand(action);
 

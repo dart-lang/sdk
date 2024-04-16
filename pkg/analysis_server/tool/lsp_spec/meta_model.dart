@@ -142,7 +142,7 @@ mixin LiteralValueMixin {
   String _asLiteral(String value) {
     if (num.tryParse(value) == null) {
       // Add quotes around strings.
-      final prefix = value.contains(r'$') ? 'r' : '';
+      var prefix = value.contains(r'$') ? 'r' : '';
       return "$prefix'$value'";
     } else {
       return value;
@@ -282,7 +282,7 @@ class TypeReference extends TypeBase {
   @override
   String get dartType {
     // Resolve any renames when asked for our type.
-    final resolvedType = resolveTypeAlias(this, onlyRenames: true);
+    var resolvedType = resolveTypeAlias(this, onlyRenames: true);
     if (resolvedType != this) {
       return resolvedType.dartType;
     }
@@ -304,14 +304,14 @@ class TypeReference extends TypeBase {
       'MarkedString': 'String'
     };
 
-    final typeName = mapping[name] ?? name;
+    var typeName = mapping[name] ?? name;
     return typeName;
   }
 
   @override
   String get typeArgsString {
     // Resolve any renames when asked for our type.
-    final resolvedType = resolveTypeAlias(this, onlyRenames: true);
+    var resolvedType = resolveTypeAlias(this, onlyRenames: true);
     if (resolvedType != this) {
       return resolvedType.typeArgsString;
     }
@@ -345,7 +345,7 @@ class UnionType extends TypeBase {
 
   @override
   String get typeArgsString {
-    final typeArgs = types.map((t) => t.dartTypeWithTypeArgs).join(', ');
+    var typeArgs = types.map((t) => t.dartTypeWithTypeArgs).join(', ');
     return '<$typeArgs>';
   }
 }

@@ -86,7 +86,7 @@ class _CiderDartFixContextImpl extends DartFixContext {
     var result = <LibraryElement, Element>{};
     var files = _fileResolver.getFilesWithTopLevelDeclarations(name);
     for (var file in files) {
-      final kind = file.kind;
+      var kind = file.kind;
       if (kind is LibraryFileKind) {
         var libraryElement = await _fileResolver.getLibraryByUri2(
           uriStr: file.uriStr,

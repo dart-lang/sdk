@@ -198,8 +198,8 @@ class Driver implements ServerStarter {
     }
 
     // Use sdkConfig to optionally override legacy analytics settings.
-    final analyticsId = sdkConfig.analyticsId ?? 'UA-26406144-29';
-    final forceAnalyticsEnabled = sdkConfig.analyticsForceEnabled == true;
+    var analyticsId = sdkConfig.analyticsId ?? 'UA-26406144-29';
+    var forceAnalyticsEnabled = sdkConfig.analyticsForceEnabled == true;
     var analytics = telemetry.createAnalyticsInstance(
       analyticsId,
       'analysis-server',
@@ -214,8 +214,8 @@ class Driver implements ServerStarter {
       analytics.setSessionValue('cd1', analysisServerOptions.clientVersion);
     }
 
-    final defaultSdkPath = _getSdkPath(results);
-    final dartSdkManager = DartSdkManager(defaultSdkPath);
+    var defaultSdkPath = _getSdkPath(results);
+    var dartSdkManager = DartSdkManager(defaultSdkPath);
 
     // TODO(brianwilkerson): It would be nice to avoid creating an SDK that
     // can't be re-used, but the SDK is needed to create a package map provider
@@ -251,8 +251,8 @@ class Driver implements ServerStarter {
     // Crash reporting
 
     // Use sdkConfig to optionally override analytics settings.
-    final crashProductId = sdkConfig.crashReportingId ?? 'Dart_analysis_server';
-    final crashReportSender =
+    var crashProductId = sdkConfig.crashReportingId ?? 'Dart_analysis_server';
+    var crashReportSender =
         CrashReportSender.prod(crashProductId, shouldSendCallback);
 
     if (telemetry.showAnalyticsUI) {
@@ -304,7 +304,7 @@ class Driver implements ServerStarter {
     var errorNotifier = ErrorNotifier();
     allInstrumentationServices
         .add(CrashReportingInstrumentation(crashReportSender));
-    final instrumentationService =
+    var instrumentationService =
         MulticastInstrumentationService(allInstrumentationServices);
     this.instrumentationService = instrumentationService;
 
@@ -320,7 +320,7 @@ class Driver implements ServerStarter {
     AnalysisEngine.instance.instrumentationService = instrumentationService;
 
     int? diagnosticServerPort;
-    final portValue =
+    var portValue =
         (results[DIAGNOSTIC_PORT] ?? results[DIAGNOSTIC_PORT_ALIAS]) as String?;
     if (portValue != null) {
       try {
@@ -408,7 +408,7 @@ class Driver implements ServerStarter {
     //
     // Create the sockets and start listening for requests.
     //
-    final socketServer = SocketServer(
+    var socketServer = SocketServer(
         analysisServerOptions,
         dartSdkManager,
         crashReportingAttachmentsBuilder,
@@ -511,7 +511,7 @@ class Driver implements ServerStarter {
 
     var diagnosticServer = _DiagnosticServerImpl();
 
-    final socketServer = LspSocketServer(
+    var socketServer = LspSocketServer(
         analysisServerOptions,
         diagnosticServer,
         analyticsManager,
@@ -693,7 +693,7 @@ class Driver implements ServerStarter {
 
   /// Read the UUID from disk, generating and storing a new one if necessary.
   String _readUuid(InstrumentationService service) {
-    final instrumentationLocation =
+    var instrumentationLocation =
         PhysicalResourceProvider.INSTANCE.getStateLocation('.instrumentation');
     if (instrumentationLocation == null) {
       return _generateUuidString();

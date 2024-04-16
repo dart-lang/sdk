@@ -14,7 +14,7 @@ class AddExtensionOverride extends MultiCorrectionProducer {
   Future<List<ResolvedCorrectionProducer>> get producers async {
     final node = this.node;
     if (node is! SimpleIdentifier) return const [];
-    final parent = node.parent;
+    var parent = node.parent;
     if (parent is! PropertyAccess) return const [];
     var target = parent.target;
     if (target == null) return const [];

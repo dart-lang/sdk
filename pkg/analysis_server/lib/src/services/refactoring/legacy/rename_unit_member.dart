@@ -72,8 +72,8 @@ class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
   @override
   Future<RefactoringStatus> checkFinalConditions() async {
     var status = await validateRenameTopLevel(searchEngine, element, newName);
-    final flutterWidgetState = _flutterWidgetState;
-    final flutterWidgetStateNewName = _flutterWidgetStateNewName;
+    var flutterWidgetState = _flutterWidgetState;
+    var flutterWidgetStateNewName = _flutterWidgetStateNewName;
     if (flutterWidgetState != null && flutterWidgetStateNewName != null) {
       _updateFlutterWidgetStateName();
       status.addStatus(
@@ -139,7 +139,7 @@ class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
     }
 
     // If a StatefulWidget is being renamed, rename also its State.
-    final flutterWidgetState = _flutterWidgetState;
+    var flutterWidgetState = _flutterWidgetState;
     if (flutterWidgetState != null) {
       _updateFlutterWidgetStateName();
       await RenameProcessor(
@@ -162,7 +162,7 @@ class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
   }
 
   void _updateFlutterWidgetStateName() {
-    final flutterWidgetState = _flutterWidgetState;
+    var flutterWidgetState = _flutterWidgetState;
     if (flutterWidgetState != null) {
       var flutterWidgetStateNewName = '${newName}State';
       // If the State was private, ensure that it stays private.

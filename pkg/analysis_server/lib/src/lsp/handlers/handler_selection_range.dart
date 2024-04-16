@@ -32,14 +32,14 @@ class SelectionRangeHandler
       return success(null);
     }
 
-    final path = pathOfDoc(params.textDocument);
+    var path = pathOfDoc(params.textDocument);
     return path.mapResult((path) async {
-      final unit = await requireUnresolvedUnit(path);
+      var unit = await requireUnresolvedUnit(path);
       return unit.mapResultSync((unit) {
-        final positions = params.positions;
-        final offsets =
+        var positions = params.positions;
+        var offsets =
             positions.map((pos) => toOffset(unit.lineInfo, pos)).errorOrResults;
-        final allRanges = offsets.mapResultSync(
+        var allRanges = offsets.mapResultSync(
             (offsets) => success(_getSelectionRangesForOffsets(offsets, unit)));
 
         return allRanges;
@@ -49,14 +49,14 @@ class SelectionRangeHandler
 
   SelectionRange _getSelectionRangesForOffset(
       CompilationUnit unit, int offset) {
-    final lineInfo = unit.lineInfo;
-    final computer = DartSelectionRangeComputer(unit, offset);
-    final ranges = computer.compute();
+    var lineInfo = unit.lineInfo;
+    var computer = DartSelectionRangeComputer(unit, offset);
+    var ranges = computer.compute();
     // Loop through the items starting at the end (the outermost range), using
     // each item as the parent for the next item.
     SelectionRange? last;
     for (var i = ranges.length - 1; i >= 0; i--) {
-      final range = ranges[i];
+      var range = ranges[i];
       last = SelectionRange(
         range: toRange(lineInfo, range.offset, range.length),
         parent: last,

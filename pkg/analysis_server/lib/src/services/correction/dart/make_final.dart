@@ -26,7 +26,7 @@ class MakeFinal extends ResolvedCorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     final node = this.node;
-    final parent = node.parent;
+    var parent = node.parent;
 
     if (node is DeclaredIdentifier && parent is ForEachPartsWithDeclaration) {
       await builder.addDartFileEdit(file, (builder) {
@@ -42,16 +42,16 @@ class MakeFinal extends ResolvedCorrectionProducer {
 
     if (node is SimpleFormalParameter) {
       await builder.addDartFileEdit(file, (builder) {
-        final keyword = node.keyword;
+        var keyword = node.keyword;
         if (keyword != null && keyword.keyword == Keyword.VAR) {
           builder.addSimpleReplacement(range.token(keyword), 'final');
         } else {
-          final type = node.type;
+          var type = node.type;
           if (type != null) {
             builder.addSimpleInsertion(type.offset, 'final ');
             return;
           }
-          final identifier = node.name;
+          var identifier = node.name;
           if (identifier != null) {
             builder.addSimpleInsertion(identifier.offset, 'final ');
           } else {
@@ -97,7 +97,7 @@ class MakeFinal extends ResolvedCorrectionProducer {
       return;
     }
 
-    final list = _getVariableDeclarationList(node);
+    var list = _getVariableDeclarationList(node);
     if (list != null && list.variables.length == 1) {
       await builder.addDartFileEdit(file, (builder) {
         var keyword = list.keyword;
@@ -118,7 +118,7 @@ class MakeFinal extends ResolvedCorrectionProducer {
       return node;
     }
 
-    final parent = node.parent;
+    var parent = node.parent;
     if (node is VariableDeclaration && parent is VariableDeclarationList) {
       return parent;
     }
@@ -127,7 +127,7 @@ class MakeFinal extends ResolvedCorrectionProducer {
       return parent;
     }
 
-    final parent2 = parent?.parent;
+    var parent2 = parent?.parent;
     if (parent is NamedType && parent2 is VariableDeclarationList) {
       return parent2;
     }
@@ -138,7 +138,7 @@ class MakeFinal extends ResolvedCorrectionProducer {
 
 extension on AstNode {
   AstNode? get forEachPartsParent {
-    var parent = this.parent;
+    final parent = this.parent;
     return parent is ForEachPartsWithPattern ? parent : parent?.parent;
   }
 }

@@ -28,12 +28,12 @@ class SwitchStatementTest extends DartSnippetProducerTest {
   String get prefix => SwitchStatement.prefix;
 
   Future<void> test_switch() async {
-    final code = TestCode.parse(r'''
+    var code = TestCode.parse(r'''
 void f() {
   sw^
 }
 ''');
-    final snippet = await expectValidSnippet(code);
+    var snippet = await expectValidSnippet(code);
     expect(snippet.prefix, prefix);
     expect(snippet.label, label);
     expect(snippet.change.edits, hasLength(1));
@@ -74,14 +74,14 @@ void f() {
   }
 
   Future<void> test_switch_indentedInsideBlock() async {
-    final code = TestCode.parse(r'''
+    var code = TestCode.parse(r'''
 void f() {
   if (true) {
     sw^
   }
 }
 ''');
-    final snippet = await expectValidSnippet(code);
+    var snippet = await expectValidSnippet(code);
     expect(snippet.prefix, prefix);
     expect(snippet.label, label);
     expect(snippet.change.edits, hasLength(1));

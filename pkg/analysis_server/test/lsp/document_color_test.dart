@@ -249,7 +249,7 @@ const white = [!Colors.white!];
     newFile(pubspecFilePath, simplePubspecContent);
     await initialize();
 
-    final colors = await getColorPresentation(
+    var colors = await getColorPresentation(
       pubspecFileUri,
       startOfDocRange,
       Color(alpha: 1, red: 1, green: 1, blue: 1),
@@ -286,7 +286,7 @@ const white = [!Color(0xFFFFFFFF)!];
     // Verify that the region in the test actually matches a region that we
     // would product a range for when computing colours, otherwise the test
     // might verify something different to what the user would actually see.
-    final colors = await getDocumentColors(testFileUri);
+    var colors = await getDocumentColors(testFileUri);
     expect(
       colors.map((color) => color.range),
       contains(colorRange),
@@ -294,7 +294,7 @@ const white = [!Color(0xFFFFFFFF)!];
           'would be computed by server',
     );
 
-    final colorPresentations = await getColorPresentation(
+    var colorPresentations = await getColorPresentation(
       testFileUri,
       colorRange,
       select,
@@ -311,7 +311,7 @@ const white = [!Color(0xFFFFFFFF)!];
     bool withConst = false,
   }) {
     colorCode ??= (withConst ? 'const $label' : label);
-    final edit = TextEdit(range: colorRange, newText: colorCode);
+    var edit = TextEdit(range: colorRange, newText: colorCode);
     return ColorPresentation(
       label: label,
       textEdit: edit,
@@ -332,24 +332,24 @@ class DocumentColorTest extends AbstractLspAnalysisServerTest {
     newFile(pubspecFilePath, simplePubspecContent);
     await initialize();
 
-    final colors = await getDocumentColors(pubspecFileUri);
+    var colors = await getDocumentColors(pubspecFileUri);
     expect(colors, isEmpty);
   }
 
   Future<void> test_simpleColor() async {
-    final content = '''
+    var content = '''
 import 'package:flutter/material.dart';
 
 const red = [!Colors.red!];
 ''';
-    final code = TestCode.parse(content);
+    var code = TestCode.parse(content);
     newFile(mainFilePath, code.code);
     await initialize();
 
-    final colors = await getDocumentColors(mainFileUri);
+    var colors = await getDocumentColors(mainFileUri);
     expect(colors, hasLength(1));
 
-    final color = colors[0];
+    var color = colors[0];
     expect(color.range, code.range.range);
     expect(color.color.alpha, equals(1));
     expect(color.color.red, equals(1));

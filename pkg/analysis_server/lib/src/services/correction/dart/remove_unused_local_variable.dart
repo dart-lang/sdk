@@ -38,7 +38,7 @@ class RemoveUnusedLocalVariable extends ResolvedCorrectionProducer {
     }
 
     await builder.addDartFileEdit(file, (builder) {
-      for (final command in _commands) {
+      for (var command in _commands) {
         command.execute(builder);
       }
     });
@@ -47,12 +47,12 @@ class RemoveUnusedLocalVariable extends ResolvedCorrectionProducer {
   bool _deleteDeclaration() {
     switch (node) {
       case VariableDeclaration():
-        final declarationList = node.parent;
+        var declarationList = node.parent;
         if (declarationList is VariableDeclarationList) {
-          final declarationStatement = declarationList.parent;
+          var declarationStatement = declarationList.parent;
           if (declarationStatement is VariableDeclarationStatement) {
             if (declarationList.variables.length == 1) {
-              final initializer = declarationList.variables.first.initializer;
+              var initializer = declarationList.variables.first.initializer;
               if (initializer is MethodInvocation) {
                 _commands.add(_DeleteSourceRangeCommand(
                     sourceRange: SourceRange(declarationStatement.offset,
@@ -103,9 +103,9 @@ class RemoveUnusedLocalVariable extends ResolvedCorrectionProducer {
   bool _deleteDeclarationInContainerPattern({
     required DeclaredVariablePattern declaredVariable,
   }) {
-    final String replacement;
-    if (declaredVariable.type case final typeNode?) {
-      final typeStr = utils.getNodeText(typeNode);
+    String replacement;
+    if (declaredVariable.type case var typeNode?) {
+      var typeStr = utils.getNodeText(typeNode);
       replacement = '$typeStr _';
     } else {
       replacement = '_';
@@ -123,8 +123,8 @@ class RemoveUnusedLocalVariable extends ResolvedCorrectionProducer {
     required DeclaredVariablePattern declaredVariable,
     required LogicalAndPattern logicalAnd,
   }) {
-    if (declaredVariable.type case final typeNode?) {
-      final typeStr = utils.getNodeText(typeNode);
+    if (declaredVariable.type case var typeNode?) {
+      var typeStr = utils.getNodeText(typeNode);
       _commands.add(
         _ReplaceSourceRangeCommand(
           sourceRange: range.node(declaredVariable),
@@ -159,17 +159,17 @@ class RemoveUnusedLocalVariable extends ResolvedCorrectionProducer {
   }) {
     switch (patternField.parent) {
       case ObjectPatternImpl objectPattern:
-        final nameNode = patternField.name;
+        var nameNode = patternField.name;
         if (nameNode == null) {
           return false;
         }
 
-        final fields = objectPattern.fields;
+        var fields = objectPattern.fields;
         // Remove completely `var A(:notUsed) = x;`
         if (fields.length == 1) {
-          final patternDeclaration = objectPattern.parent;
+          var patternDeclaration = objectPattern.parent;
           if (patternDeclaration is PatternVariableDeclaration) {
-            final patternStatement = patternDeclaration.parent;
+            var patternStatement = patternDeclaration.parent;
             if (patternStatement is PatternVariableDeclarationStatement) {
               _commands.add(
                 _DeleteStatementCommand(
@@ -183,7 +183,7 @@ class RemoveUnusedLocalVariable extends ResolvedCorrectionProducer {
         }
         // If matching, the explicit type is used.
         if (declaredVariable.type != null) {
-          final patternContext = objectPattern.patternContext;
+          var patternContext = objectPattern.patternContext;
           if (patternContext is GuardedPattern) {
             if (nameNode.name == null) {
               _commands.add(
@@ -210,7 +210,7 @@ class RemoveUnusedLocalVariable extends ResolvedCorrectionProducer {
         );
         return true;
       case RecordPattern():
-        final nameNode = patternField.name;
+        var nameNode = patternField.name;
         if (nameNode != null && nameNode.name == null) {
           _commands.add(
             _AddExplicitFieldNameCommand(
@@ -232,29 +232,29 @@ class RemoveUnusedLocalVariable extends ResolvedCorrectionProducer {
   }
 
   bool _deleteReferences() {
-    final element = _localVariableElement();
+    var element = _localVariableElement();
     if (element is! LocalVariableElement) {
       return false;
     }
 
     final node = this.node;
-    final functionBody = node.thisOrAncestorOfType<FunctionBody>();
+    var functionBody = node.thisOrAncestorOfType<FunctionBody>();
     if (functionBody == null) {
       return false;
     }
 
-    final references = findLocalElementReferences(functionBody, element);
+    var references = findLocalElementReferences(functionBody, element);
 
-    final deletedRanges = <SourceRange>[];
+    var deletedRanges = <SourceRange>[];
 
-    for (final reference in references) {
-      final referenceRange = _referenceRangeToDelete(reference);
+    for (var reference in references) {
+      var referenceRange = _referenceRangeToDelete(reference);
       if (referenceRange == null) {
         return false;
       }
 
       var isCovered = false;
-      for (final other in deletedRanges) {
+      for (var other in deletedRanges) {
         if (other.covers(referenceRange)) {
           isCovered = true;
           break;
@@ -302,7 +302,7 @@ class RemoveUnusedLocalVariable extends ResolvedCorrectionProducer {
   }
 
   SourceRange? _referenceRangeToDelete(AstNode reference) {
-    final parent = reference.parent;
+    var parent = reference.parent;
     if (parent is AssignmentExpression) {
       if (parent.leftHandSide == reference) {
         return _forAssignmentExpression(parent);
@@ -345,7 +345,7 @@ class _DeleteNodeInListCommand<T extends AstNode> extends _Command {
 
   @override
   void execute(DartFileEditBuilder builder) {
-    final sourceRange = range.nodeInList(nodes, node);
+    var sourceRange = range.nodeInList(nodes, node);
     builder.addDeletion(sourceRange);
   }
 }
@@ -374,8 +374,8 @@ class _DeleteStatementCommand extends _Command {
 
   @override
   void execute(DartFileEditBuilder builder) {
-    final statementRange = range.node(statement);
-    final linesRange = utils.getLinesRange(statementRange);
+    var statementRange = range.node(statement);
+    var linesRange = utils.getLinesRange(statementRange);
     builder.addDeletion(linesRange);
   }
 }
@@ -389,7 +389,7 @@ class _MakeItWildcardCommand extends _Command {
 
   @override
   void execute(DartFileEditBuilder builder) {
-    final nameRange = range.token(declaredVariable.name);
+    var nameRange = range.token(declaredVariable.name);
     builder.addSimpleReplacement(nameRange, '_');
   }
 }

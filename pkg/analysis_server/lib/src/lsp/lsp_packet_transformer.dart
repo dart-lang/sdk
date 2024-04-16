@@ -37,7 +37,7 @@ class LspPacketTransformer extends StreamTransformerBase<List<int>, String> {
   @override
   Stream<String> bind(Stream<List<int>> stream) {
     LspHeaders? headersState;
-    final buffer = <int>[];
+    var buffer = <int>[];
     var controller = MoreTypedStreamController<String,
         _LspPacketTransformerListenData, _LspPacketTransformerPauseData>(
       onListen: (controller) {
@@ -89,7 +89,7 @@ class LspPacketTransformer extends StreamTransformerBase<List<int>, String> {
   }
 
   static String? _extractEncoding(String? header) {
-    final charset = header
+    var charset = header
         ?.split(';')
         .map((s) => s.trim().toLowerCase())
         .firstWhereOrNull((s) => s.startsWith('charset='));
@@ -100,14 +100,14 @@ class LspPacketTransformer extends StreamTransformerBase<List<int>, String> {
   /// Decodes [buffer] into a String and returns the 'Content-Length' header value.
   static LspHeaders _parseHeaders(List<int> buffer) {
     // Headers are specified as always ASCII in LSP.
-    final asString = ascii.decode(buffer);
-    final headers = asString.split('\r\n');
-    final lengthHeader =
+    var asString = ascii.decode(buffer);
+    var headers = asString.split('\r\n');
+    var lengthHeader =
         headers.firstWhere((h) => h.startsWith('Content-Length'));
-    final length = lengthHeader.split(':').last.trim();
-    final contentTypeHeader =
+    var length = lengthHeader.split(':').last.trim();
+    var contentTypeHeader =
         headers.firstWhereOrNull((h) => h.startsWith('Content-Type'));
-    final encoding = _extractEncoding(contentTypeHeader);
+    var encoding = _extractEncoding(contentTypeHeader);
     return LspHeaders(asString, int.parse(length), encoding);
   }
 }

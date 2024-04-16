@@ -132,7 +132,7 @@ Future<void> main(List<String> args) async {
   // Try to let it get done...
   await Future.delayed(const Duration(seconds: 2));
 
-  final Duration everyDuration = Duration(milliseconds: everyMs);
+  Duration everyDuration = Duration(milliseconds: everyMs);
   while (true) {
     await send(
         p,
@@ -282,11 +282,11 @@ void listenToStdout(List<int> event) {
 Future<void> send(Process p, Map<String, dynamic> json) async {
   // Mostly copied from
   // pkg/analysis_server/lib/src/lsp/channel/lsp_byte_stream_channel.dart
-  final jsonEncodedBody = jsonEncode(json);
-  final utf8EncodedBody = utf8.encode(jsonEncodedBody);
-  final header = 'Content-Length: ${utf8EncodedBody.length}\r\n'
+  var jsonEncodedBody = jsonEncode(json);
+  var utf8EncodedBody = utf8.encode(jsonEncodedBody);
+  var header = 'Content-Length: ${utf8EncodedBody.length}\r\n'
       'Content-Type: application/vscode-jsonrpc; charset=utf-8\r\n\r\n';
-  final asciiEncodedHeader = ascii.encode(header);
+  var asciiEncodedHeader = ascii.encode(header);
 
   dynamic possibleId = json['id'];
   if (possibleId is int && possibleId > largestIdSeen) {

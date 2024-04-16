@@ -29,10 +29,10 @@ class RemoveLate extends ResolvedCorrectionProducer {
       // The `late` token does not belong any node, so when we look for a
       // node that covers it, we find the enclosing `Block`. So, we iterate
       // over statements to find the actual declaration statement.
-      for (final statement in node.statements) {
+      for (var statement in node.statements) {
         if (statement is PatternVariableDeclarationStatement) {
-          final beginToken = statement.beginToken;
-          final lateKeyword = beginToken.previous;
+          var beginToken = statement.beginToken;
+          var lateKeyword = beginToken.previous;
           if (lateKeyword != null &&
               lateKeyword.keyword == Keyword.LATE &&
               lateKeyword.offset == selectionOffset &&
@@ -51,7 +51,7 @@ class RemoveLate extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final location = _lateKeywordLocation;
+    var location = _lateKeywordLocation;
     if (location != null) {
       await builder.addDartFileEdit(file, (builder) {
         builder.addDeletion(

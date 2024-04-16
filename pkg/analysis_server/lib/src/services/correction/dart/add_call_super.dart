@@ -29,7 +29,7 @@ class AddCallSuper extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final methodDeclaration = node;
+    var methodDeclaration = node;
     if (methodDeclaration is! MethodDeclaration) return;
     var classElement = methodDeclaration
         .thisOrAncestorOfType<ClassDeclaration>()

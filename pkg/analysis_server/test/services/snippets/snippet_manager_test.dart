@@ -24,56 +24,56 @@ void main() {
 class SnippetManagerTest extends AbstractSingleUnitTest {
   Future<void> test_filter_match() async {
     await resolveTestCode('');
-    final request = DartSnippetRequest(
+    var request = DartSnippetRequest(
       unit: testAnalysisResult,
       offset: 0,
     );
 
-    final manager = _TestDartSnippetManager({
+    var manager = _TestDartSnippetManager({
       SnippetContext.atTopLevel: [_ValidSnippetProducer.newInstance],
     });
-    final results =
+    var results =
         await manager.computeSnippets(request, filter: (String s) => true);
     expect(results, isNotEmpty);
   }
 
   Future<void> test_filter_noMatch() async {
     await resolveTestCode('');
-    final request = DartSnippetRequest(
+    var request = DartSnippetRequest(
       unit: testAnalysisResult,
       offset: 0,
     );
 
-    final manager = _TestDartSnippetManager({
+    var manager = _TestDartSnippetManager({
       SnippetContext.atTopLevel: [_ValidSnippetProducer.newInstance],
     });
-    final results =
+    var results =
         await manager.computeSnippets(request, filter: (String s) => false);
     expect(results, isEmpty);
   }
 
   Future<void> test_notValidProducers() async {
     await resolveTestCode('');
-    final request = DartSnippetRequest(
+    var request = DartSnippetRequest(
       unit: testAnalysisResult,
       offset: 0,
     );
 
-    final manager = _TestDartSnippetManager({
+    var manager = _TestDartSnippetManager({
       SnippetContext.atTopLevel: [_NotValidSnippetProducer.newInstance],
     });
-    final results = await manager.computeSnippets(request);
+    var results = await manager.computeSnippets(request);
     expect(results, isEmpty);
   }
 
   Future<void> test_onlyCreatesForContext() async {
     await resolveTestCode('');
-    final request = DartSnippetRequest(
+    var request = DartSnippetRequest(
       unit: testAnalysisResult,
       offset: 0,
     );
 
-    final manager = _TestDartSnippetManager({
+    var manager = _TestDartSnippetManager({
       SnippetContext.atTopLevel: [_ValidSnippetProducer.newInstance],
       SnippetContext.inClass: [
         (
@@ -83,23 +83,23 @@ class SnippetManagerTest extends AbstractSingleUnitTest {
             throw 'Tried to create producer for wrong context',
       ]
     });
-    final results = await manager.computeSnippets(request);
+    var results = await manager.computeSnippets(request);
     expect(results, hasLength(1));
   }
 
   Future<void> test_validProducers() async {
     await resolveTestCode('');
-    final request = DartSnippetRequest(
+    var request = DartSnippetRequest(
       unit: testAnalysisResult,
       offset: 0,
     );
 
-    final manager = _TestDartSnippetManager({
+    var manager = _TestDartSnippetManager({
       SnippetContext.atTopLevel: [_ValidSnippetProducer.newInstance],
     });
-    final results = await manager.computeSnippets(request);
+    var results = await manager.computeSnippets(request);
     expect(results, hasLength(1));
-    final snippet = results.single;
+    var snippet = results.single;
     expect(snippet.prefix, 'mysnip');
     expect(snippet.label, 'My Test Snippet');
   }

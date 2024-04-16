@@ -55,7 +55,7 @@ abstract class AbstractTypeHierarchyTest extends AbstractSingleUnitTest {
 
   Future<TypeHierarchyItem?> findTarget() async {
     expect(code, isNotNull, reason: 'addTestSource should be called first');
-    final result = await getResolvedUnit(testFile);
+    var result = await getResolvedUnit(testFile);
     return DartLazyTypeHierarchyComputer(result)
         .findTarget(code.position.offset);
   }
@@ -94,8 +94,8 @@ class TypeHierarchyComputerFindSubtypesTest extends AbstractTypeHierarchyTest {
 
   Future<List<TypeHierarchyItem>?> findSubtypes(
       TypeHierarchyItem target) async {
-    final file = getFile(target.file);
-    final result = await getResolvedUnit(file);
+    var file = getFile(target.file);
+    var result = await getResolvedUnit(file);
     return DartLazyTypeHierarchyComputer(result)
         .findSubtypes(target.location, searchEngine);
   }
@@ -109,14 +109,14 @@ class TypeHierarchyComputerFindSubtypesTest extends AbstractTypeHierarchyTest {
   }
 
   Future<void> test_class_generic() async {
-    final content = '''
+    var content = '''
 class My^Class1<T1, T2> {}
 /*[0*/class /*[1*/MyClass2/*1]*/<T1> implements MyClass1<T1, String> {}/*0]*/
     ''';
 
     addTestSource(content);
-    final target = await findTarget();
-    final subtypes = await findSubtypes(target!);
+    var target = await findTarget();
+    var subtypes = await findSubtypes(target!);
     expect(subtypes, [
       _isRelatedItem(
         'MyClass2<T1>',
@@ -129,14 +129,14 @@ class My^Class1<T1, T2> {}
   }
 
   Future<void> test_class_interfaces() async {
-    final content = '''
+    var content = '''
 class ^MyClass1 {}
 /*[0*/class /*[1*/MyClass2/*1]*/ implements MyClass1 {}/*0]*/
     ''';
 
     addTestSource(content);
-    final target = await findTarget();
-    final subtypes = await findSubtypes(target!);
+    var target = await findTarget();
+    var subtypes = await findSubtypes(target!);
     expect(subtypes, [
       _isRelatedItem(
         'MyClass2',
@@ -149,15 +149,15 @@ class ^MyClass1 {}
   }
 
   Future<void> test_class_mixins() async {
-    final content = '''
+    var content = '''
 /*[0*/class /*[1*/MyClass1/*1]*/ with MyMixin1 {}/*0]*/
 /*[2*/class /*[3*/MyClass2/*3]*/ with MyMixin1 {}/*2]*/
 mixin MyMi^xin1 {}
     ''';
 
     addTestSource(content);
-    final target = await findTarget();
-    final subtypes = await findSubtypes(target!);
+    var target = await findTarget();
+    var subtypes = await findSubtypes(target!);
     expect(subtypes, [
       _isRelatedItem(
         'MyClass1',
@@ -177,14 +177,14 @@ mixin MyMi^xin1 {}
   }
 
   Future<void> test_class_superclass() async {
-    final content = '''
+    var content = '''
 class ^MyClass1 {}
 /*[0*/class /*[1*/MyClass2/*1]*/ extends MyClass1 {}/*0]*/
     ''';
 
     addTestSource(content);
-    final target = await findTarget();
-    final subtypes = await findSubtypes(target!);
+    var target = await findTarget();
+    var subtypes = await findSubtypes(target!);
     expect(subtypes, [
       _isRelatedItem(
         'MyClass2',
@@ -197,7 +197,7 @@ class ^MyClass1 {}
   }
 
   Future<void> test_enum_interfaces() async {
-    final content = '''
+    var content = '''
 /*[0*/enum /*[1*/MyEnum1/*1]*/ implements MyClass1 {
   one,
 }/*0]*/
@@ -205,8 +205,8 @@ class MyCla^ss1 {}
     ''';
 
     addTestSource(content);
-    final target = await findTarget();
-    final subtypes = await findSubtypes(target!);
+    var target = await findTarget();
+    var subtypes = await findSubtypes(target!);
     expect(subtypes, [
       _isRelatedItem(
         'MyEnum1',
@@ -219,7 +219,7 @@ class MyCla^ss1 {}
   }
 
   Future<void> test_enum_mixins() async {
-    final content = '''
+    var content = '''
 /*[0*/enum /*[1*/MyEnum1/*1]*/ with MyMixin1 {
   one,
 }/*0]*/
@@ -227,8 +227,8 @@ mixin MyMi^xin1 {}
     ''';
 
     addTestSource(content);
-    final target = await findTarget();
-    final subtypes = await findSubtypes(target!);
+    var target = await findTarget();
+    var subtypes = await findSubtypes(target!);
     expect(subtypes, [
       _isRelatedItem(
         'MyEnum1',
@@ -241,14 +241,14 @@ mixin MyMi^xin1 {}
   }
 
   Future<void> test_mixin_interfaces() async {
-    final content = '''
+    var content = '''
 /*[0*/mixin /*[1*/MyMixin1/*1]*/ implements MyClass1 {}/*0]*/
 class MyCl^ass1 {}
     ''';
 
     addTestSource(content);
-    final target = await findTarget();
-    final subtypes = await findSubtypes(target!);
+    var target = await findTarget();
+    var subtypes = await findSubtypes(target!);
     expect(subtypes, [
       _isRelatedItem(
         'MyMixin1',
@@ -261,14 +261,14 @@ class MyCl^ass1 {}
   }
 
   Future<void> test_mixin_superclassConstraints() async {
-    final content = '''
+    var content = '''
 /*[0*/mixin /*[1*/MyMixin1/*1]*/ on MyClass1 {}/*0]*/
 class MyCl^ass1 {}
     ''';
 
     addTestSource(content);
-    final target = await findTarget();
-    final subtypes = await findSubtypes(target!);
+    var target = await findTarget();
+    var subtypes = await findSubtypes(target!);
     expect(subtypes, [
       _isRelatedItem(
         'MyMixin1',
@@ -286,9 +286,9 @@ class TypeHierarchyComputerFindSupertypesTest
     extends AbstractTypeHierarchyTest {
   Future<List<TypeHierarchyItem>?> findSupertypes(
       TypeHierarchyItem target) async {
-    final file = getFile(target.file);
-    final result = await getResolvedUnit(file);
-    final anchor = target is TypeHierarchyRelatedItem ? target.anchor : null;
+    var file = getFile(target.file);
+    var result = await getResolvedUnit(file);
+    var anchor = target is TypeHierarchyRelatedItem ? target.anchor : null;
     return DartLazyTypeHierarchyComputer(result)
         .findSupertypes(target.location, anchor: anchor);
   }
@@ -296,18 +296,18 @@ class TypeHierarchyComputerFindSupertypesTest
   /// Test that if the file is modified between fetching a target and it's
   /// sub/supertypes it can still be located (by name).
   Future<void> test_class_afterModification() async {
-    final content = '''
+    var content = '''
 /*[0*/class /*[1*/MyClass1/*1]*/ {}/*0]*/
 class ^MyClass2 extends MyClass1 {}
     ''';
 
     addTestSource(content);
-    final target = await findTarget();
+    var target = await findTarget();
 
     // Update the content so that offsets have changed since we got `target`.
     addTestSource('// extra\n$content');
 
-    final supertypes = await findSupertypes(target!);
+    var supertypes = await findSupertypes(target!);
     expect(supertypes, [
       _isRelatedItem(
         'MyClass1',
@@ -320,14 +320,14 @@ class ^MyClass2 extends MyClass1 {}
   }
 
   Future<void> test_class_generic() async {
-    final content = '''
+    var content = '''
 /*[0*/class /*[1*/MyClass1/*1]*/<T1, T2> {}/*0]*/
 class ^MyClass2<T1> implements MyClass1<T1, String> {}
     ''';
 
     addTestSource(content);
-    final target = await findTarget();
-    final supertypes = await findSupertypes(target!);
+    var target = await findTarget();
+    var supertypes = await findSupertypes(target!);
     expect(supertypes, [
       _isObject,
       _isRelatedItem(
@@ -342,7 +342,7 @@ class ^MyClass2<T1> implements MyClass1<T1, String> {}
 
   /// Ensure that type arguments flow across multiple levels of the tree.
   Future<void> test_class_generic_typeArgsFlow() async {
-    final content = '''
+    var content = '''
 class A<T1, T2> {}
 class B<T1, T2> extends A<T1, T2> {}
 class C<T1> extends B<T1, String> {}
@@ -357,7 +357,7 @@ class ^E extends D {}
     var target = await findTarget();
     while (target != null) {
       names.add(target.displayName);
-      final supertypes = await findSupertypes(target);
+      var supertypes = await findSupertypes(target);
       target = (supertypes != null && supertypes.isNotEmpty)
           ? supertypes.single
           : null;
@@ -375,14 +375,14 @@ class ^E extends D {}
   }
 
   Future<void> test_class_interfaces() async {
-    final content = '''
+    var content = '''
 /*[0*/class /*[1*/MyClass1/*1]*/ {}/*0]*/
 class ^MyClass2 implements MyClass1 {}
     ''';
 
     addTestSource(content);
-    final target = await findTarget();
-    final supertypes = await findSupertypes(target!);
+    var target = await findTarget();
+    var supertypes = await findSupertypes(target!);
     expect(supertypes, [
       _isObject,
       _isRelatedItem(
@@ -396,15 +396,15 @@ class ^MyClass2 implements MyClass1 {}
   }
 
   Future<void> test_class_mixins() async {
-    final content = '''
+    var content = '''
 /*[0*/mixin /*[1*/MyMixin1/*1]*/ {}/*0]*/
 /*[2*/mixin /*[3*/MyMixin2/*3]*/ {}/*2]*/
 class ^MyClass1 with MyMixin1, MyMixin2 {}
     ''';
 
     addTestSource(content);
-    final target = await findTarget();
-    final supertypes = await findSupertypes(target!);
+    var target = await findTarget();
+    var supertypes = await findSupertypes(target!);
     expect(supertypes, [
       _isObject,
       _isRelatedItem(
@@ -425,14 +425,14 @@ class ^MyClass1 with MyMixin1, MyMixin2 {}
   }
 
   Future<void> test_class_superclass() async {
-    final content = '''
+    var content = '''
 /*[0*/class /*[1*/MyClass1/*1]*/ {}/*0]*/
 class ^MyClass2 extends MyClass1 {}
     ''';
 
     addTestSource(content);
-    final target = await findTarget();
-    final supertypes = await findSupertypes(target!);
+    var target = await findTarget();
+    var supertypes = await findSupertypes(target!);
     expect(supertypes, [
       _isRelatedItem(
         'MyClass1',
@@ -445,14 +445,14 @@ class ^MyClass2 extends MyClass1 {}
   }
 
   Future<void> test_enum_interfaces() async {
-    final content = '''
+    var content = '''
 enum MyEn^um1 implements MyClass1 { one }
 /*[0*/class /*[1*/MyClass1/*1]*/ {}/*0]*/
     ''';
 
     addTestSource(content);
-    final target = await findTarget();
-    final supertypes = await findSupertypes(target!);
+    var target = await findTarget();
+    var supertypes = await findSupertypes(target!);
     expect(supertypes, [
       _isEnum,
       _isRelatedItem(
@@ -466,14 +466,14 @@ enum MyEn^um1 implements MyClass1 { one }
   }
 
   Future<void> test_enum_mixins() async {
-    final content = '''
+    var content = '''
 enum MyEn^um1 with MyMixin1 { one }
 /*[0*/mixin /*[1*/MyMixin1/*1]*/ {}/*0]*/
     ''';
 
     addTestSource(content);
-    final target = await findTarget();
-    final supertypes = await findSupertypes(target!);
+    var target = await findTarget();
+    var supertypes = await findSupertypes(target!);
     expect(supertypes, [
       _isEnum,
       _isRelatedItem(
@@ -487,14 +487,14 @@ enum MyEn^um1 with MyMixin1 { one }
   }
 
   Future<void> test_mixin_interfaces() async {
-    final content = '''
+    var content = '''
 /*[0*/class /*[1*/MyClass1/*1]*/ {}/*0]*/
 mixin MyMix^in2 implements MyClass1 {}
     ''';
 
     addTestSource(content);
-    final target = await findTarget();
-    final supertypes = await findSupertypes(target!);
+    var target = await findTarget();
+    var supertypes = await findSupertypes(target!);
     expect(supertypes, [
       _isObject,
       _isRelatedItem(
@@ -508,14 +508,14 @@ mixin MyMix^in2 implements MyClass1 {}
   }
 
   Future<void> test_mixin_superclassConstraints() async {
-    final content = '''
+    var content = '''
 /*[0*/class /*[1*/MyClass1/*1]*/ {}/*0]*/
 mixin MyMix^in2 on MyClass1 {}
     ''';
 
     addTestSource(content);
-    final target = await findTarget();
-    final supertypes = await findSupertypes(target!);
+    var target = await findTarget();
+    var supertypes = await findSupertypes(target!);
     expect(supertypes, [
       _isRelatedItem(
         'MyClass1',
@@ -535,12 +535,12 @@ class TypeHierarchyComputerFindTargetTest extends AbstractTypeHierarchyTest {
   }
 
   Future<void> expectTarget(Matcher matcher) async {
-    final target = await findTarget();
+    var target = await findTarget();
     expect(target, matcher);
   }
 
   Future<void> test_class_body() async {
-    final content = '''
+    var content = '''
 /*[0*/class /*[1*/MyClass1/*1]*/ {
   int? a^;
 }/*0]*/
@@ -558,7 +558,7 @@ class TypeHierarchyComputerFindTargetTest extends AbstractTypeHierarchyTest {
   }
 
   Future<void> test_class_generic() async {
-    final content = '''
+    var content = '''
 /*[0*/class /*[1*/MyCl^ass1/*1]*/<T1, T2> {}/*0]*/
     ''';
 
@@ -574,7 +574,7 @@ class TypeHierarchyComputerFindTargetTest extends AbstractTypeHierarchyTest {
   }
 
   Future<void> test_class_keyword() async {
-    final content = '''
+    var content = '''
 /*[0*/cla^ss /*[1*/MyClass1/*1]*/ {
 }/*0]*/
     ''';
@@ -591,7 +591,7 @@ class TypeHierarchyComputerFindTargetTest extends AbstractTypeHierarchyTest {
   }
 
   Future<void> test_class_name() async {
-    final content = '''
+    var content = '''
 /*[0*/class /*[1*/MyCla^ss1/*1]*/ {
 }/*0]*/
     ''';
@@ -608,7 +608,7 @@ class TypeHierarchyComputerFindTargetTest extends AbstractTypeHierarchyTest {
   }
 
   Future<void> test_enum_body() async {
-    final content = '''
+    var content = '''
 /*[0*/enum /*[1*/MyEnum1/*1]*/ {
 ^  v
 }/*0]*/
@@ -626,7 +626,7 @@ class TypeHierarchyComputerFindTargetTest extends AbstractTypeHierarchyTest {
   }
 
   Future<void> test_enum_keyword() async {
-    final content = '''
+    var content = '''
 /*[0*/en^um /*[1*/MyEnum1/*1]*/ {
   v
 }/*0]*/
@@ -644,7 +644,7 @@ class TypeHierarchyComputerFindTargetTest extends AbstractTypeHierarchyTest {
   }
 
   Future<void> test_enumName() async {
-    final content = '''
+    var content = '''
 /*[0*/enum /*[1*/MyEn^um1/*1]*/ {
   v
 }/*0]*/
@@ -662,7 +662,7 @@ class TypeHierarchyComputerFindTargetTest extends AbstractTypeHierarchyTest {
   }
 
   Future<void> test_invalid_topLevel_nonClass() async {
-    final content = '''
+    var content = '''
 int? a^;
 ''';
 
@@ -671,7 +671,7 @@ int? a^;
   }
 
   Future<void> test_invalid_topLevel_whitespace() async {
-    final content = '''
+    var content = '''
 int? a;
 ^
 int? b;
@@ -682,7 +682,7 @@ int? b;
   }
 
   Future<void> test_mixin_body() async {
-    final content = '''
+    var content = '''
 /*[0*/mixin /*[1*/MyMixin1/*1]*/ {
   ^
 }/*0]*/
@@ -700,7 +700,7 @@ int? b;
   }
 
   Future<void> test_mixin_keyword() async {
-    final content = '''
+    var content = '''
 /*[0*/mi^xin /*[1*/MyMixin1/*1]*/ {
 }/*0]*/
     ''';
@@ -717,7 +717,7 @@ int? b;
   }
 
   Future<void> test_mixinName() async {
-    final content = '''
+    var content = '''
 /*[0*/mixin /*[1*/MyMix^in1/*1]*/ {
 }/*0]*/
     ''';
@@ -735,7 +735,7 @@ int? b;
 
   /// Ensure invocations directly on a type with type args retain those args.
   Future<void> test_typeReference_generic() async {
-    final content = '''
+    var content = '''
 /*[0*/class /*[1*/MyClass1/*1]*/<T1, T2> {}/*0]*/
 MyCl^ass1<String, String>? a;
     ''';

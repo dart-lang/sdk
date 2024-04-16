@@ -89,7 +89,7 @@ Future? f;
     newFile(mainFilePath, '');
     await initialize();
 
-    final request = makeRequest(
+    var request = makeRequest(
       Method.textDocument_codeAction,
       _RawParams('''
       {
@@ -112,8 +112,8 @@ Future? f;
       }
 '''),
     );
-    final resp = await sendRequestToServer(request);
-    final error = resp.error!;
+    var resp = await sendRequestToServer(request);
+    var error = resp.error!;
     expect(error.code, equals(ErrorCodes.InvalidParams));
     expect(
         error.message,
@@ -157,7 +157,7 @@ import '[!dart:async!]';
 Future? f;
 ''';
 
-    final action = await expectAction(
+    var action = await expectAction(
       content,
       kind: CodeActionKind('refactor.add.showCombinator'),
       title: "Add explicit 'show' combinator",
@@ -170,7 +170,7 @@ Future? f;
   Future<void> test_macroGenerated() async {
     setDartTextDocumentContentProviderSupport();
     var macroFilePath = join(projectFolderPath, 'lib', 'test.macro.dart');
-    final code = TestCode.parse('''
+    var code = TestCode.parse('''
 int f() {
   ret^urn 0;
 }
@@ -178,7 +178,7 @@ int f() {
     newFile(macroFilePath, code.code);
     await initialize();
 
-    final codeActions = await getCodeActions(
+    var codeActions = await getCodeActions(
         uriConverter.toClientUri(macroFilePath),
         position: code.position.position);
     expect(codeActions, isEmpty);
@@ -190,7 +190,7 @@ int f() {
     newFile(pubspecFilePath, simplePubspecContent);
     await initialize();
 
-    final codeActions =
+    var codeActions =
         await getCodeActions(pubspecFileUri, range: startOfDocRange);
     expect(codeActions, isEmpty);
   }
@@ -205,7 +205,7 @@ int f() {
 bar
 ''';
 
-    final pluginResult = plugin.EditGetAssistsResult([
+    var pluginResult = plugin.EditGetAssistsResult([
       plugin.PrioritizedSourceChange(
         0,
         plugin.SourceChange(
@@ -237,10 +237,10 @@ bar
     if (!AnalysisServer.supportsPlugins) return;
     // Produces a server assist of "Convert to single quoted string" (with a
     // priority of 30).
-    final code = TestCode.parse('import "[!dart:async!]";');
+    var code = TestCode.parse('import "[!dart:async!]";');
 
     // Provide two plugin results that should sort either side of the server assist.
-    final pluginResult = plugin.EditGetAssistsResult([
+    var pluginResult = plugin.EditGetAssistsResult([
       plugin.PrioritizedSourceChange(10, plugin.SourceChange('Low')),
       plugin.PrioritizedSourceChange(100, plugin.SourceChange('High')),
     ]);
@@ -252,9 +252,9 @@ bar
     newFile(mainFilePath, code.code);
     await initialize();
 
-    final codeActions =
+    var codeActions =
         await getCodeActions(mainFileUri, range: code.range.range);
-    final codeActionTitles = codeActions.map((action) =>
+    var codeActionTitles = codeActions.map((action) =>
         action.map((command) => command.title, (action) => action.title));
 
     expect(
@@ -358,7 +358,7 @@ build() {
 ''';
 
     setSnippetTextEditSupport();
-    final verifier = await verifyActionEdits(
+    var verifier = await verifyActionEdits(
       content,
       expectedContent,
       kind: CodeActionKind('refactor.flutter.wrap.generic'),
@@ -367,7 +367,7 @@ build() {
 
     // Also ensure there was a single edit that was correctly marked
     // as a SnippetTextEdit.
-    final textEdits = extractTextDocumentEdits(verifier.edit.documentChanges!)
+    var textEdits = extractTextDocumentEdits(verifier.edit.documentChanges!)
         .expand((tde) => tde.edits)
         .map((edit) => edit.map(
               (e) => throw 'Expected SnippetTextEdit, got AnnotatedTextEdit',
@@ -399,23 +399,23 @@ build() {
 }
 ''';
 
-    final assist = await expectAction(
+    var assist = await expectAction(
       content,
       kind: CodeActionKind('refactor.flutter.wrap.generic'),
       title: 'Wrap with widget...',
     );
 
     // Extract just TextDocumentEdits, create/rename/delete are not relevant.
-    final edit = assist.edit!;
-    final textDocumentEdits = extractTextDocumentEdits(edit.documentChanges!);
-    final textEdits = textDocumentEdits
+    var edit = assist.edit!;
+    var textDocumentEdits = extractTextDocumentEdits(edit.documentChanges!);
+    var textEdits = textDocumentEdits
         .expand((tde) => tde.edits)
         .map((edit) => edit.map((e) => e, (e) => e, (e) => e))
         .toList();
 
     // Ensure the edit does _not_ have a format of Snippet, nor does it include
     // any $ characters that would indicate snippet text.
-    for (final edit in textEdits) {
+    for (var edit in textEdits) {
       expect(edit, isNot(TypeMatcher<SnippetTextEdit>()));
       expect(edit.newText, isNot(contains(r'$')));
     }
@@ -425,7 +425,7 @@ build() {
     setDocumentChangesSupport();
     setSupportedCodeActionKinds([CodeActionKind.Refactor]);
 
-    final code = TestCode.parse('''
+    var code = TestCode.parse('''
 import 'package:flutter/widgets.dart';
 
 build() => Contai^ner(child: Container());
@@ -434,9 +434,9 @@ build() => Contai^ner(child: Container());
     newFile(mainFilePath, code.code);
     await initialize();
 
-    final codeActions =
+    var codeActions =
         await getCodeActions(mainFileUri, position: code.position.position);
-    final names = codeActions.map(
+    var names = codeActions.map(
       (e) => e.map((command) => command.title, (action) => action.title),
     );
 
@@ -468,7 +468,7 @@ void f() {
 ''';
 
     setSnippetTextEditSupport();
-    final verifier = await verifyActionEdits(
+    var verifier = await verifyActionEdits(
       content,
       expectedContent,
       kind: CodeActionKind('refactor.surround.if'),
@@ -477,7 +477,7 @@ void f() {
 
     // Also ensure there was a single edit that was correctly marked
     // as a SnippetTextEdit.
-    final textEdits = extractTextDocumentEdits(verifier.edit.documentChanges!)
+    var textEdits = extractTextDocumentEdits(verifier.edit.documentChanges!)
         .expand((tde) => tde.edits)
         .map((edit) => edit.map(
               (e) => throw 'Expected SnippetTextEdit, got AnnotatedTextEdit',
