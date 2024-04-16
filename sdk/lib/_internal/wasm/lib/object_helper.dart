@@ -5,5 +5,5 @@
 library dart._object_helper;
 
 // Access hidden identity hash code field.
-external int getHash(Object obj);
-external void setHash(Object obj, int hash);
+external int getIdentityHashField(Object obj);
+external void setIdentityHashField(Object obj, int hash);
