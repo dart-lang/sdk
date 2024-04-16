@@ -130,7 +130,7 @@ class TypeArgumentsVerifier {
       bound = substitution.substituteType(bound);
 
       if (!_typeSystem.isSubtypeOf(typeArgument, bound)) {
-        final errorTarget = typeArgumentNodes?[i] ?? node.name;
+        var errorTarget = typeArgumentNodes?[i] ?? node.name;
         _errorReporter.atOffset(
           offset: errorTarget.offset,
           length: errorTarget.length,
@@ -262,15 +262,15 @@ class TypeArgumentsVerifier {
   /// Verify that the type arguments in the given [namedType] are all within
   /// their bounds.
   void _checkForTypeArgumentNotMatchingBounds(NamedType namedType) {
-    final type = namedType.type;
+    var type = namedType.type;
     if (type == null) {
       return;
     }
 
-    final List<TypeParameterElement> typeParameters;
-    final String elementName;
-    final List<DartType> typeArguments;
-    final alias = type.alias;
+    List<TypeParameterElement> typeParameters;
+    String elementName;
+    List<DartType> typeArguments;
+    var alias = type.alias;
     if (alias != null) {
       elementName = alias.element.name;
       typeParameters = alias.element.typeParameters;
@@ -289,7 +289,7 @@ class TypeArgumentsVerifier {
 
     // Check for regular-bounded.
     List<_TypeArgumentIssue>? issues;
-    final substitution = Substitution.fromPairs(typeParameters, typeArguments);
+    var substitution = Substitution.fromPairs(typeParameters, typeArguments);
     for (var i = 0; i < typeArguments.length; i++) {
       var typeParameter = typeParameters[i];
       var typeArgument = typeArguments[i];
@@ -327,7 +327,7 @@ class TypeArgumentsVerifier {
     List<DiagnosticMessage>? buildContextMessages({
       List<DartType>? invertedTypeArguments,
     }) {
-      final messages = <DiagnosticMessage>[];
+      var messages = <DiagnosticMessage>[];
 
       void addMessage(String message) {
         messages.add(
@@ -383,9 +383,9 @@ class TypeArgumentsVerifier {
     }
 
     // Prepare type arguments for checking for super-bounded.
-    final invertedType = _typeSystem.replaceTopAndBottom(type);
-    final List<DartType> invertedTypeArguments;
-    final invertedAlias = invertedType.alias;
+    var invertedType = _typeSystem.replaceTopAndBottom(type);
+    List<DartType> invertedTypeArguments;
+    var invertedAlias = invertedType.alias;
     if (invertedAlias != null) {
       invertedTypeArguments = invertedAlias.typeArguments;
     } else if (invertedType is InterfaceType) {
@@ -395,7 +395,7 @@ class TypeArgumentsVerifier {
     }
 
     // Check for super-bounded.
-    final invertedSubstitution = Substitution.fromPairs(
+    var invertedSubstitution = Substitution.fromPairs(
       typeParameters,
       invertedTypeArguments,
     );

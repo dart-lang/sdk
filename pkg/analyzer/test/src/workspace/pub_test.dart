@@ -152,7 +152,7 @@ class PackageBuildPackageUriResolverTest with ResourceProviderMixin {
 
   Uri addPackageSource(String path, String uriStr, {bool create = true}) {
     Uri uri = Uri.parse(uriStr);
-    final file = create
+    var file = create
         ? newFile(path, '')
         : resourceProvider.getResource(convertPath(path)) as File;
     packageUriResolver.add(uri, file);
@@ -168,7 +168,7 @@ class PackageBuildPackageUriResolverTest with ResourceProviderMixin {
     _addResources([
       '/workspace/.dart_tool/build/generated/project/lib/generated_file.dart',
     ]);
-    final Uri sourceUri = addPackageSource('/workspace/lib/generated_file.dart',
+    Uri sourceUri = addPackageSource('/workspace/lib/generated_file.dart',
         'package:project/generated_file.dart',
         create: false);
     _assertResolveUri(sourceUri,
@@ -195,7 +195,7 @@ class PackageBuildPackageUriResolverTest with ResourceProviderMixin {
     _addResources([
       '/workspace/.dart_tool/build/generated/project/lib/source_file.dart',
     ]);
-    final Uri sourceUri = addPackageSource(
+    Uri sourceUri = addPackageSource(
         '/workspace/lib/source_file.dart', 'package:project/source_file.dart');
     _assertResolveUri(sourceUri, '/workspace/lib/source_file.dart');
   }
@@ -204,7 +204,7 @@ class PackageBuildPackageUriResolverTest with ResourceProviderMixin {
     _addResources([
       '/workspace/.dart_tool/build/generated',
     ]);
-    final Uri sourceUri = addPackageSource(
+    Uri sourceUri = addPackageSource(
         '/workspace/lib/doesNotExist.dart', 'package:project/doesNotExist.dart',
         create: false);
     _assertResolveUri(sourceUri, '/workspace/lib/doesNotExist.dart',
@@ -255,7 +255,7 @@ class PackageConfigWorkspaceTest with ResourceProviderMixin {
     PackageConfigWorkspace workspace =
         _createWorkspace('/workspace', ['project']);
 
-    final libFile = newFile(
+    var libFile = newFile(
         '/workspace/.dart_tool/build/generated/project/lib/file.dart', '');
     expect(
         workspace.builtFile(convertPath('lib/file.dart'), 'project'), libFile);
@@ -266,7 +266,7 @@ class PackageConfigWorkspaceTest with ResourceProviderMixin {
     PackageConfigWorkspace workspace =
         _createWorkspace('/workspace', ['project', 'foo']);
 
-    final libFile =
+    var libFile =
         newFile('/workspace/.dart_tool/build/generated/foo/lib/file.dart', '');
     expect(workspace.builtFile(convertPath('lib/file.dart'), 'foo'), libFile);
   }
@@ -403,7 +403,7 @@ class PackageConfigWorkspaceTest with ResourceProviderMixin {
     PackageConfigWorkspace workspace =
         _createWorkspace('/workspace', ['project']);
 
-    final binFile = newFile('/workspace/bin/file.dart', '');
+    var binFile = newFile('/workspace/bin/file.dart', '');
     expect(
         workspace.findFile(convertPath('/workspace/bin/file.dart')), binFile);
   }
@@ -414,7 +414,7 @@ class PackageConfigWorkspaceTest with ResourceProviderMixin {
     PackageConfigWorkspace workspace =
         _createWorkspace('/workspace', ['project']);
 
-    final binFile = newFile(
+    var binFile = newFile(
         '/workspace/.dart_tool/build/generated/project/bin/file.dart', '');
     expect(
         workspace.findFile(convertPath('/workspace/bin/file.dart')), binFile);
@@ -426,7 +426,7 @@ class PackageConfigWorkspaceTest with ResourceProviderMixin {
     PackageConfigWorkspace workspace =
         _createWorkspace('/workspace', ['project']);
 
-    final libFile = newFile(
+    var libFile = newFile(
         '/workspace/.dart_tool/build/generated/project/lib/file.dart', '');
     expect(
         workspace.findFile(convertPath('/workspace/lib/file.dart')), libFile);
@@ -437,7 +437,7 @@ class PackageConfigWorkspaceTest with ResourceProviderMixin {
     PackageConfigWorkspace workspace =
         _createWorkspace('/workspace', ['project']);
 
-    final testFile = newFile('/workspace/test/file.dart', '');
+    var testFile = newFile('/workspace/test/file.dart', '');
     expect(
         workspace.findFile(convertPath('/workspace/test/file.dart')), testFile);
   }
@@ -448,7 +448,7 @@ class PackageConfigWorkspaceTest with ResourceProviderMixin {
     PackageConfigWorkspace workspace =
         _createWorkspace('/workspace', ['project']);
 
-    final testFile = newFile(
+    var testFile = newFile(
         '/workspace/.dart_tool/build/generated/project/test/file.dart', '');
     expect(
         workspace.findFile(convertPath('/workspace/test/file.dart')), testFile);
@@ -459,7 +459,7 @@ class PackageConfigWorkspaceTest with ResourceProviderMixin {
     PackageConfigWorkspace workspace =
         _createWorkspace('/workspace', ['project']);
 
-    final webFile = newFile('/workspace/web/file.dart', '');
+    var webFile = newFile('/workspace/web/file.dart', '');
     expect(
         workspace.findFile(convertPath('/workspace/web/file.dart')), webFile);
   }
@@ -470,7 +470,7 @@ class PackageConfigWorkspaceTest with ResourceProviderMixin {
     PackageConfigWorkspace workspace =
         _createWorkspace('/workspace', ['project']);
 
-    final webFile = newFile(
+    var webFile = newFile(
         '/workspace/.dart_tool/build/generated/project/web/file.dart', '');
     expect(
         workspace.findFile(convertPath('/workspace/web/file.dart')), webFile);
@@ -576,7 +576,7 @@ class PubPackageTest extends WorkspacePackageTest {
       Packages.empty,
       convertPath(myPackageRootPath),
     )!;
-    final fakeFile = getFile('$myPackageLibPath/fake.dart');
+    var fakeFile = getFile('$myPackageLibPath/fake.dart');
     myPackage = myWorkspace.findPackageFor(fakeFile.path)!;
   }
 

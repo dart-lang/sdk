@@ -178,9 +178,9 @@ class FileTracker {
       }
 
       // Add files that directly import the changed file.
-      for (final addedPath in addedFiles) {
-        final addedFile = _fsState.getFileForPath(addedPath);
-        final addedKind = addedFile.kind;
+      for (var addedPath in addedFiles) {
+        var addedFile = _fsState.getFileForPath(addedPath);
+        var addedKind = addedFile.kind;
         if (addedKind is LibraryOrAugmentationFileKind) {
           if (addedKind.importsFile(file)) {
             pendingImportFiles.add(addedPath);

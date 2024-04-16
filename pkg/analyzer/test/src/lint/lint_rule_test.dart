@@ -20,8 +20,8 @@ main() {
   group('lint rule', () {
     group('error code reporting', () {
       test('reportLintForToken (custom)', () {
-        final rule = TestRule();
-        final reporter =
+        var rule = TestRule();
+        var reporter =
             CollectingReporter(GatheringErrorListener(), _MockSource('mock'));
         rule.reporter = reporter;
 
@@ -30,8 +30,8 @@ main() {
         expect(reporter.code, customCode);
       });
       test('reportLintForToken (default)', () {
-        final rule = TestRule();
-        final reporter =
+        var rule = TestRule();
+        var reporter =
             CollectingReporter(GatheringErrorListener(), _MockSource('mock'));
         rule.reporter = reporter;
 
@@ -39,24 +39,24 @@ main() {
         expect(reporter.code, rule.lintCode);
       });
       test('reportLint (custom)', () {
-        final rule = TestRule();
-        final reporter =
+        var rule = TestRule();
+        var reporter =
             CollectingReporter(GatheringErrorListener(), _MockSource('mock'));
         rule.reporter = reporter;
 
-        final node = EmptyStatementImpl(
+        var node = EmptyStatementImpl(
           semicolon: SimpleToken(TokenType.SEMICOLON, 0),
         );
         rule.reportLint(node, errorCode: customCode);
         expect(reporter.code, customCode);
       });
       test('reportLint (default)', () {
-        final rule = TestRule();
-        final reporter =
+        var rule = TestRule();
+        var reporter =
             CollectingReporter(GatheringErrorListener(), _MockSource('mock'));
         rule.reporter = reporter;
 
-        final node = EmptyStatementImpl(
+        var node = EmptyStatementImpl(
           semicolon: SimpleToken(TokenType.SEMICOLON, 0),
         );
         rule.reportLint(node);

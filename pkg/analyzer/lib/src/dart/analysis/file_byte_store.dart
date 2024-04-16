@@ -114,7 +114,7 @@ class EvictingFileByteStore implements ByteStore {
     for (FileSystemEntity resource in resources) {
       if (resource is File) {
         try {
-          final FileStat fileStat = resource.statSync();
+          FileStat fileStat = resource.statSync();
           // Make sure that the file was not deleted out from under us (a return
           // value of FileSystemEntityType.notFound).
           if (fileStat.type == FileSystemEntityType.file) {
@@ -187,7 +187,7 @@ class FileByteStore implements ByteStore {
 
     _writeInProgress[key] = bytes;
 
-    final wrappedBytes = _validator.wrapData(bytes);
+    var wrappedBytes = _validator.wrapData(bytes);
 
     // We don't wait for the write and rename to complete.
     _pool.execute(() async {

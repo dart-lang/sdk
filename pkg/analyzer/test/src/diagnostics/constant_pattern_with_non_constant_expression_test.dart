@@ -563,7 +563,7 @@ void f(Object? x) {
       error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 33, 3),
     ]);
 
-    final node = findNode.singleGuardedPattern;
+    var node = findNode.singleGuardedPattern;
     assertResolvedNodeText(node, r'''
 GuardedPattern
   pattern: ConstantPattern

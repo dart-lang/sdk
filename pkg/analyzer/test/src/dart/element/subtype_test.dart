@@ -77,12 +77,12 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
   }
 
   test_extensionType_implementsNotNullable() {
-    final element = extensionType(
+    var element = extensionType(
       'A',
       representationType: intNone,
       interfaces: [intNone],
     );
-    final type = interfaceTypeNone(element);
+    var type = interfaceTypeNone(element);
 
     isSubtype(type, objectQuestion);
     isSubtype(type, objectNone);
@@ -92,8 +92,8 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
   }
 
   test_extensionType_noImplementedInterfaces() {
-    final element = extensionType('A', representationType: intNone);
-    final type = interfaceTypeNone(element);
+    var element = extensionType('A', representationType: intNone);
+    var type = interfaceTypeNone(element);
 
     isSubtype(type, objectQuestion);
     isNotSubtype(type, objectNone);
@@ -101,24 +101,24 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
   }
 
   test_extensionType_superinterfaces() {
-    final A = class_(name: 'A');
-    final B = class_(name: 'B');
+    var A = class_(name: 'A');
+    var B = class_(name: 'B');
 
-    final element = extensionType(
+    var element = extensionType(
       'X',
       representationType: intNone,
       interfaces: [
         interfaceTypeNone(A),
       ],
     );
-    final type = interfaceTypeNone(element);
+    var type = interfaceTypeNone(element);
 
     isSubtype(type, interfaceTypeNone(A));
     isNotSubtype(type, interfaceTypeNone(B));
   }
 
   test_extensionType_typeArguments() {
-    final A = extensionType(
+    var A = extensionType(
       'A',
       representationType: intNone,
       typeParameters: [
@@ -126,17 +126,17 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
       ],
     );
 
-    final A_object = interfaceTypeNone(
+    var A_object = interfaceTypeNone(
       A,
       typeArguments: [objectNone],
     );
 
-    final A_int = interfaceTypeNone(
+    var A_int = interfaceTypeNone(
       A,
       typeArguments: [intNone],
     );
 
-    final A_num = interfaceTypeNone(
+    var A_num = interfaceTypeNone(
       A,
       typeArguments: [numNone],
     );
@@ -2689,10 +2689,10 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
   }
 
   test_interfaceType_class_augmented_interfaces() {
-    final A = class_(name: 'A');
-    final I = class_(name: 'I');
+    var A = class_(name: 'A');
+    var I = class_(name: 'I');
 
-    final A1 = class_(
+    var A1 = class_(
       name: 'A',
       isAugmentation: true,
       interfaces: [
@@ -2701,18 +2701,18 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
     );
     A.addAugmentations([A1]);
 
-    final A_none = interfaceTypeNone(A);
-    final I_none = interfaceTypeNone(I);
+    var A_none = interfaceTypeNone(A);
+    var I_none = interfaceTypeNone(I);
 
     isSubtype(A_none, I_none, strT0: 'A', strT1: 'I');
     isNotSubtype(I_none, A_none, strT0: 'I', strT1: 'A');
   }
 
   test_interfaceType_class_augmented_mixins() {
-    final A = class_(name: 'A');
-    final M = mixin_(name: 'M');
+    var A = class_(name: 'A');
+    var M = mixin_(name: 'M');
 
-    final A1 = class_(
+    var A1 = class_(
       name: 'A',
       isAugmentation: true,
       mixins: [
@@ -2721,8 +2721,8 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
     );
     A.addAugmentations([A1]);
 
-    final A_none = interfaceTypeNone(A);
-    final M_none = interfaceTypeNone(M);
+    var A_none = interfaceTypeNone(A);
+    var M_none = interfaceTypeNone(M);
 
     isSubtype(A_none, M_none, strT0: 'A', strT1: 'M');
     isNotSubtype(M_none, A_none, strT0: 'M', strT1: 'A');
@@ -2786,10 +2786,10 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
   }
 
   test_interfaceType_mixin_augmented_interfaces() {
-    final M = mixin_(name: 'M');
-    final I = class_(name: 'I');
+    var M = mixin_(name: 'M');
+    var I = class_(name: 'I');
 
-    final M1 = mixin_(
+    var M1 = mixin_(
       name: 'M1',
       isAugmentation: true,
       interfaces: [
@@ -2798,18 +2798,18 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
     );
     M.addAugmentations([M1]);
 
-    final M_none = interfaceTypeNone(M);
-    final I_none = interfaceTypeNone(I);
+    var M_none = interfaceTypeNone(M);
+    var I_none = interfaceTypeNone(I);
 
     isSubtype(M_none, I_none, strT0: 'M', strT1: 'I');
     isNotSubtype(I_none, M_none, strT0: 'I', strT1: 'M');
   }
 
   test_interfaceType_mixin_augmented_superclassConstraints() {
-    final M = mixin_(name: 'M');
-    final C = class_(name: 'C');
+    var M = mixin_(name: 'M');
+    var C = class_(name: 'C');
 
-    final M1 = mixin_(
+    var M1 = mixin_(
       name: 'M1',
       isAugmentation: true,
       constraints: [
@@ -2818,8 +2818,8 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
     );
     M.addAugmentations([M1]);
 
-    final M_none = interfaceTypeNone(M);
-    final C_none = interfaceTypeNone(C);
+    var M_none = interfaceTypeNone(M);
+    var C_none = interfaceTypeNone(C);
 
     isSubtype(M_none, C_none, strT0: 'M', strT1: 'C');
     isNotSubtype(C_none, M_none, strT0: 'C', strT1: 'M');
@@ -5477,7 +5477,7 @@ class SubtypingCompoundTest extends _SubtypingTestBase {
       objectNone,
     ];
 
-    for (final formOfNull in equivalents) {
+    for (var formOfNull in equivalents) {
       _checkGroups(
         formOfNull,
         equivalents: equivalents,

@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class ThisExpressionResolutionTest extends PubPackageResolutionTest {
   test_class_inAugmentation() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 augment library 'test.dart';
 
 augment class A {
@@ -35,7 +35,7 @@ class A {}
 
     nodeTextConfiguration.withInterfaceTypeElements = true;
 
-    final node = findNode.singleThisExpression;
+    var node = findNode.singleThisExpression;
     assertResolvedNodeText(node, r'''
 ThisExpression
   thisKeyword: this
@@ -45,7 +45,7 @@ ThisExpression
   }
 
   test_mixin_inAugmentation() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 augment library 'test.dart';
 
 augment mixin M {
@@ -66,7 +66,7 @@ mixin M {}
 
     nodeTextConfiguration.withInterfaceTypeElements = true;
 
-    final node = findNode.singleThisExpression;
+    var node = findNode.singleThisExpression;
     assertResolvedNodeText(node, r'''
 ThisExpression
   thisKeyword: this

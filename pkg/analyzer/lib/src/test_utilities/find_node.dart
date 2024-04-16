@@ -238,7 +238,7 @@ class FindNode {
   }
 
   BindPatternVariableElement bindPatternVariableElement(String search) {
-    final node = declaredVariablePattern(search);
+    var node = declaredVariablePattern(search);
     return node.declaredElement!;
   }
 
@@ -433,7 +433,7 @@ class FindNode {
   FormalParameterList formalParameterList(String search) {
     // If the search starts with `(` then NodeLocator will locate the definition
     // before it, so offset the search to within the parameter list.
-    final locateOffset = search.startsWith('(') ? 1 : 0;
+    var locateOffset = search.startsWith('(') ? 1 : 0;
     return _node(search, (n) => n is FormalParameterList,
         locateOffset: locateOffset);
   }
@@ -924,7 +924,7 @@ class FindNode {
   /// If [unit] has exactly one node of type [T], returns it.
   /// Otherwise, throws.
   T _single<T extends AstNode>() {
-    final visitor = _TypedNodeVisitor<T>();
+    var visitor = _TypedNodeVisitor<T>();
     unit.accept(visitor);
     return visitor.nodes.single;
   }

@@ -44,8 +44,8 @@ class ExtensionTypeErasure extends ReplacementVisitor {
 
   @override
   DartType? visitInterfaceType(covariant InterfaceTypeImpl type) {
-    if (type.representationType case final representationType?) {
-      final erased = representationType.accept(this) ?? representationType;
+    if (type.representationType case var representationType?) {
+      var erased = representationType.accept(this) ?? representationType;
       erased as TypeImpl;
       // If the extension type is nullable, apply it to the erased.
       if (type.nullabilitySuffix == NullabilitySuffix.question) {
@@ -143,8 +143,8 @@ class TypeSystemImpl implements TypeSystem {
     right = right.extensionTypeErasure;
 
     // If one is `Null`, then the other must be nullable.
-    final leftIsNullable = isPotentiallyNullable(left);
-    final rightIsNullable = isPotentiallyNullable(right);
+    var leftIsNullable = isPotentiallyNullable(left);
+    var rightIsNullable = isPotentiallyNullable(right);
     if (left.isDartCoreNull) {
       return rightIsNullable;
     } else if (right.isDartCoreNull) {
@@ -171,22 +171,22 @@ class TypeSystemImpl implements TypeSystem {
     // FutureOr<T> = T || Future<T>
     // So, we attempt to match both to the right.
     if (left.isDartAsyncFutureOr) {
-      final base = futureOrBase(left);
-      final future = typeProvider.futureType(base);
+      var base = futureOrBase(left);
+      var future = typeProvider.futureType(base);
       return canBeSubtypeOf(base, right) || canBeSubtypeOf(future, right);
     }
 
     // FutureOr<T> = T || Future<T>
     // So, we attempt to match both to the left.
     if (right.isDartAsyncFutureOr) {
-      final base = futureOrBase(right);
-      final future = typeProvider.futureType(base);
+      var base = futureOrBase(right);
+      var future = typeProvider.futureType(base);
       return canBeSubtypeOf(left, base) || canBeSubtypeOf(left, future);
     }
 
     if (left is InterfaceTypeImpl && right is InterfaceTypeImpl) {
-      final leftElement = left.element;
-      final rightElement = right.element;
+      var leftElement = left.element;
+      var rightElement = right.element;
 
       // Can happen in JavaScript.
       if (left.isDartCoreInt && right.isDartCoreDouble ||
@@ -196,8 +196,8 @@ class TypeSystemImpl implements TypeSystem {
 
       bool canBeSubtypeOfInterfaces(InterfaceType left, InterfaceType right) {
         assert(left.element == right.element);
-        final leftArguments = left.typeArguments;
-        final rightArguments = right.typeArguments;
+        var leftArguments = left.typeArguments;
+        var rightArguments = right.typeArguments;
         assert(leftArguments.length == rightArguments.length);
         for (var i = 0; i < leftArguments.length; i++) {
           if (!canBeSubtypeOf(leftArguments[i], rightArguments[i])) {
@@ -209,8 +209,8 @@ class TypeSystemImpl implements TypeSystem {
 
       // If the left is enum, we know types of all its instances.
       if (leftElement is EnumElementImpl) {
-        for (final constant in leftElement.constants) {
-          final constantType = constant.type;
+        for (var constant in leftElement.constants) {
+          var constantType = constant.type;
           if (isSubtypeOf(constantType, right)) {
             return true;
           }
@@ -224,10 +224,10 @@ class TypeSystemImpl implements TypeSystem {
 
       if (leftElement is ClassElementImpl) {
         // If we know all subtypes, only they can implement the right.
-        final allSubtypes = leftElement.allSubtypes;
+        var allSubtypes = leftElement.allSubtypes;
         if (allSubtypes != null) {
-          for (final candidate in [left, ...allSubtypes]) {
-            final asRight = candidate.asInstanceOf(rightElement);
+          for (var candidate in [left, ...allSubtypes]) {
+            var asRight = candidate.asInstanceOf(rightElement);
             if (asRight != null) {
               if (_canBeEqualArguments(asRight, right)) {
                 return true;
@@ -240,10 +240,10 @@ class TypeSystemImpl implements TypeSystem {
 
       if (rightElement is ClassElementImpl) {
         // If we know all subtypes, only they can implement the left.
-        final allSubtypes = rightElement.allSubtypes;
+        var allSubtypes = rightElement.allSubtypes;
         if (allSubtypes != null) {
-          for (final candidate in [right, ...allSubtypes]) {
-            final asLeft = candidate.asInstanceOf(leftElement);
+          for (var candidate in [right, ...allSubtypes]) {
+            var asLeft = candidate.asInstanceOf(leftElement);
             if (asLeft != null) {
               if (canBeSubtypeOfInterfaces(left, asLeft)) {
                 return true;
@@ -278,8 +278,8 @@ class TypeSystemImpl implements TypeSystem {
         return false;
       }
       for (var i = 0; i < left.positionalFields.length; i++) {
-        final leftField = left.positionalFields[i];
-        final rightField = right.positionalFields[i];
+        var leftField = left.positionalFields[i];
+        var rightField = right.positionalFields[i];
         if (!canBeSubtypeOf(leftField.type, rightField.type)) {
           return false;
         }
@@ -289,8 +289,8 @@ class TypeSystemImpl implements TypeSystem {
         return false;
       }
       for (var i = 0; i < left.namedFields.length; i++) {
-        final leftField = left.namedFields[i];
-        final rightField = right.namedFields[i];
+        var leftField = left.namedFields[i];
+        var rightField = right.namedFields[i];
         if (leftField.name != rightField.name) {
           return false;
         }
@@ -378,18 +378,18 @@ class TypeSystemImpl implements TypeSystem {
     }
 
     // if T is S? then flatten(T) = flatten(S)?
-    final nullabilitySuffix = T.nullabilitySuffix;
+    var nullabilitySuffix = T.nullabilitySuffix;
     if (nullabilitySuffix != NullabilitySuffix.none) {
-      final S = (T as TypeImpl).withNullability(NullabilitySuffix.none);
+      var S = (T as TypeImpl).withNullability(NullabilitySuffix.none);
       return (flatten(S) as TypeImpl).withNullability(nullabilitySuffix);
     }
 
     // If T is X & S for some type variable X and type S then:
     if (T is TypeParameterTypeImpl) {
-      final S = T.promotedBound;
+      var S = T.promotedBound;
       if (S != null) {
         // * if S has future type U then flatten(T) = flatten(U)
-        final futureType = this.futureType(S);
+        var futureType = this.futureType(S);
         if (futureType != null) {
           return flatten(futureType);
         }
@@ -405,10 +405,10 @@ class TypeSystemImpl implements TypeSystem {
 
     // If T has future type Future<S> or FutureOr<S> then flatten(T) = S
     // If T has future type Future<S>? or FutureOr<S>? then flatten(T) = S?
-    final futureType = this.futureType(T);
+    var futureType = this.futureType(T);
     if (futureType is InterfaceType) {
       if (futureType.isDartAsyncFuture || futureType.isDartAsyncFutureOr) {
-        final S = futureType.typeArguments[0] as TypeImpl;
+        var S = futureType.typeArguments[0] as TypeImpl;
         if (futureType.nullabilitySuffix == NullabilitySuffix.question) {
           return S.withNullability(NullabilitySuffix.question);
         }
@@ -439,7 +439,7 @@ class TypeSystemImpl implements TypeSystem {
   DartType? futureType(DartType T) {
     // T implements S, and there is a U such that S is Future<U>
     if (T.nullabilitySuffix != NullabilitySuffix.question) {
-      final result = T.asInstanceOf(typeProvider.futureElement);
+      var result = T.asInstanceOf(typeProvider.futureElement);
       if (result != null) {
         return result;
       }
@@ -490,7 +490,7 @@ class TypeSystemImpl implements TypeSystem {
     if (mixinElement is MixinElement) {
       candidates = mixinElement.superclassConstraints;
     } else {
-      final supertype = mixinElement.supertype;
+      var supertype = mixinElement.supertype;
       if (supertype == null) {
         return const [];
       }
@@ -658,8 +658,8 @@ class TypeSystemImpl implements TypeSystem {
     required InterfaceElement element,
     required NullabilitySuffix nullabilitySuffix,
   }) {
-    final typeParameters = element.typeParameters;
-    final typeArguments = _defaultTypeArguments(typeParameters);
+    var typeParameters = element.typeParameters;
+    var typeArguments = _defaultTypeArguments(typeParameters);
     return element.instantiate(
       typeArguments: typeArguments,
       nullabilitySuffix: nullabilitySuffix,
@@ -726,8 +726,8 @@ class TypeSystemImpl implements TypeSystem {
     required TypeAliasElement element,
     required NullabilitySuffix nullabilitySuffix,
   }) {
-    final typeParameters = element.typeParameters;
-    final typeArguments = _defaultTypeArguments(typeParameters);
+    var typeParameters = element.typeParameters;
+    var typeArguments = _defaultTypeArguments(typeParameters);
     return element.instantiate(
       typeArguments: typeArguments,
       nullabilitySuffix: nullabilitySuffix,
@@ -821,7 +821,7 @@ class TypeSystemImpl implements TypeSystem {
       if (type.isDartCoreNull) {
         return true;
       }
-      final element = type.element;
+      var element = type.element;
       if (element is EnumElement) {
         return true;
       }
@@ -836,17 +836,17 @@ class TypeSystemImpl implements TypeSystem {
       }
       return false;
     } else if (type is TypeParameterTypeImpl) {
-      final promotedBound = type.promotedBound;
+      var promotedBound = type.promotedBound;
       if (promotedBound != null && isAlwaysExhaustive(promotedBound)) {
         return true;
       }
-      final bound = type.element.bound;
+      var bound = type.element.bound;
       if (bound != null && isAlwaysExhaustive(bound)) {
         return true;
       }
       return false;
     } else if (type is RecordType) {
-      for (final field in type.fields) {
+      for (var field in type.fields) {
         if (!isAlwaysExhaustive(field.type)) {
           return false;
         }
@@ -1681,19 +1681,19 @@ class TypeSystemImpl implements TypeSystem {
   @override
   DartType resolveToBound(DartType type) {
     if (type is TypeParameterTypeImpl) {
-      final promotedBound = type.promotedBound;
+      var promotedBound = type.promotedBound;
       if (promotedBound != null) {
         return resolveToBound(promotedBound);
       }
 
-      final bound = type.element.bound;
+      var bound = type.element.bound;
       if (bound == null) {
         return objectQuestion;
       }
 
-      final resolved = resolveToBound(bound) as TypeImpl;
+      var resolved = resolveToBound(bound) as TypeImpl;
 
-      final newNullabilitySuffix = uniteNullabilities(
+      var newNullabilitySuffix = uniteNullabilities(
         uniteNullabilities(
           type.nullabilitySuffix,
           bound.nullabilitySuffix,
@@ -1817,12 +1817,12 @@ class TypeSystemImpl implements TypeSystem {
   /// same element.
   bool _canBeEqualArguments(InterfaceType left, InterfaceType right) {
     assert(left.element == right.element);
-    final leftArguments = left.typeArguments;
-    final rightArguments = right.typeArguments;
+    var leftArguments = left.typeArguments;
+    var rightArguments = right.typeArguments;
     assert(leftArguments.length == rightArguments.length);
     for (var i = 0; i < leftArguments.length; i++) {
-      final leftArgument = leftArguments[i];
-      final rightArgument = rightArguments[i];
+      var leftArgument = leftArguments[i];
+      var rightArgument = rightArguments[i];
       if (!_canBeEqualTo(leftArgument, rightArgument)) {
         return false;
       }
@@ -1873,17 +1873,17 @@ class TypeSystemImpl implements TypeSystem {
     }
 
     if (T is TypeParameterTypeImpl) {
-      final bound = T.element.bound;
+      var bound = T.element.bound;
       if (bound != null) {
-        final result = _futureTypeOfBounded(bound);
+        var result = _futureTypeOfBounded(bound);
         if (result != null) {
           return result;
         }
       }
 
-      final promotedBound = T.promotedBound;
+      var promotedBound = T.promotedBound;
       if (promotedBound != null) {
-        final result = _futureTypeOfBounded(promotedBound);
+        var result = _futureTypeOfBounded(promotedBound);
         if (result != null) {
           return result;
         }

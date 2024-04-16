@@ -16,14 +16,14 @@ main() {
 @reflectiveTest
 class ExtensionDeclarationParserTest extends ParserDiagnosticsTest {
   test_augment() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 augment library 'a.dart';
 
 augment extension E {}
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.singleExtensionDeclaration;
+    var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionDeclaration
   augmentKeyword: augment
@@ -35,14 +35,14 @@ ExtensionDeclaration
   }
 
   test_augment_generic() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 augment library 'a.dart';
 
 augment extension E<T> {}
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.singleExtensionDeclaration;
+    var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionDeclaration
   augmentKeyword: augment
@@ -60,7 +60,7 @@ ExtensionDeclaration
   }
 
   test_augment_hasOnClause() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 augment library 'a.dart';
 
 augment extension E on int {}
@@ -69,7 +69,7 @@ augment extension E on int {}
       error(ParserErrorCode.EXTENSION_AUGMENTATION_HAS_ON_CLAUSE, 47, 2),
     ]);
 
-    final node = parseResult.findNode.singleExtensionDeclaration;
+    var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
 ExtensionDeclaration
   augmentKeyword: augment

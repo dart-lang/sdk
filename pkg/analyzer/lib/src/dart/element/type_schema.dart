@@ -96,12 +96,12 @@ class UnknownInferredType extends TypeImpl {
     }
 
     if (type is RecordType) {
-      for (final field in type.positionalFields) {
+      for (var field in type.positionalFields) {
         if (isUnknown(field.type)) {
           return true;
         }
       }
-      for (final field in type.namedFields) {
+      for (var field in type.namedFields) {
         if (isUnknown(field.type)) {
           return true;
         }

@@ -20,7 +20,7 @@ class LibraryDirectiveResolutionTest extends PubPackageResolutionTest {
 import augment 'b.dart';
 ''');
 
-    final b = newFile('$testPackageLibPath/b.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
 augment library 'a.dart';
 library;
 ''');
@@ -30,7 +30,7 @@ library;
       error(ParserErrorCode.MULTIPLE_LIBRARY_DIRECTIVES, 26, 7),
     ]);
 
-    final node = findNode.singleLibraryDirective;
+    var node = findNode.singleLibraryDirective;
     assertResolvedNodeText(node, r'''
 LibraryDirective
   libraryKeyword: library
@@ -44,7 +44,7 @@ LibraryDirective
 library foo.bar;
 ''');
 
-    final node = findNode.singleLibraryDirective;
+    var node = findNode.singleLibraryDirective;
     assertResolvedNodeText(node, r'''
 LibraryDirective
   libraryKeyword: library
@@ -70,7 +70,7 @@ LibraryDirective
 library;
 ''');
 
-    final node = findNode.singleLibraryDirective;
+    var node = findNode.singleLibraryDirective;
     assertResolvedNodeText(node, r'''
 LibraryDirective
   libraryKeyword: library

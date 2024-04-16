@@ -321,7 +321,7 @@ class _Collector {
   }
 
   void _recordLiteral(RecordLiteral node) {
-    for (final field in node.fields) {
+    for (var field in node.fields) {
       collect(field);
     }
   }

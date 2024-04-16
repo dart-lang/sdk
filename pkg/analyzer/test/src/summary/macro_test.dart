@@ -1231,7 +1231,7 @@ foo: String aaabbbccc
     required String expected,
     bool hasErrors = false,
   }) async {
-    final dumpCode = fields.keys.map((name) {
+    var dumpCode = fields.keys.map((name) {
       return "$name: \${$name.runtimeType} \$$name\\\\n";
     }).join();
 
@@ -1255,7 +1255,7 @@ ${fields.entries.map((e) => '  final ${e.value} ${e.key};').join('\n')}
 }
 ''');
 
-    final library = await buildLibrary('''
+    var library = await buildLibrary('''
 import 'arguments_text.dart';
 
 @ArgumentsTextMacro$argumentsCode
@@ -1272,11 +1272,11 @@ class A {}
         failWithLibraryText(library);
       }
 
-      final x = library.topLevelElements
+      var x = library.topLevelElements
           .whereType<ConstTopLevelVariableElementImpl>()
           .single;
       expect(x.name, 'x');
-      final actual = (x.constantInitializer as SimpleStringLiteral).value;
+      var actual = (x.constantInitializer as SimpleStringLiteral).value;
       if (actual != expected) {
         print('-------- Actual --------');
         print('$actual------------------------');
@@ -1613,7 +1613,7 @@ class B {}
 class A {}
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'code_generation.dart';
 import 'a.dart';
 
@@ -1641,7 +1641,7 @@ class A {
 }
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'code_generation.dart';
 import 'a.dart';
 
@@ -1674,7 +1674,7 @@ class A {
 }
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'code_generation.dart';
 import 'a.dart';
 
@@ -1702,7 +1702,7 @@ class A {
 }
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'code_generation.dart';
 import 'a.dart';
 
@@ -1734,7 +1734,7 @@ class A {
 }
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'code_generation.dart';
 import 'a.dart';
 
@@ -1767,7 +1767,7 @@ class A {
 }
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'code_generation.dart';
 import 'a.dart';
 
@@ -1798,7 +1798,7 @@ part of 'a.dart';
 class B {}
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'code_generation.dart';
 import 'a.dart';
 
@@ -1826,7 +1826,7 @@ class A {
 }
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'code_generation.dart';
 import 'a.dart';
 
@@ -1858,7 +1858,7 @@ class A {
 }
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'code_generation.dart';
 import 'a.dart';
 
@@ -1891,7 +1891,7 @@ class A {
 }
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'code_generation.dart';
 import 'a.dart';
 
@@ -1919,7 +1919,7 @@ class A {
 }
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'code_generation.dart';
 import 'a.dart';
 
@@ -1951,7 +1951,7 @@ class A {
 }
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'code_generation.dart';
 import 'a.dart';
 
@@ -1984,7 +1984,7 @@ class A {
 }
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'code_generation.dart';
 import 'a.dart';
 
@@ -2010,7 +2010,7 @@ augment class X {
 extension A on int {}
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'code_generation.dart';
 import 'a.dart';
 
@@ -2036,7 +2036,7 @@ augment class X {
 extension type A(int it) {}
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'code_generation.dart';
 import 'a.dart';
 
@@ -2058,7 +2058,7 @@ augment class X {
   }
 
   test_resolveIdentifier_formalParameter() async {
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'code_generation.dart';
 
 @ReferenceFirstFormalParameter()
@@ -2081,7 +2081,7 @@ augment void foo(prefix0.int a, ) {
 typedef void A();
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'code_generation.dart';
 import 'a.dart';
 
@@ -2107,7 +2107,7 @@ augment class X {
 typedef A = int;
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'code_generation.dart';
 import 'a.dart';
 
@@ -2129,7 +2129,7 @@ augment class X {
   }
 
   test_resolveIdentifier_typeParameter() async {
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'code_generation.dart';
 
 @ReferenceFirstTypeParameter()
@@ -2150,7 +2150,7 @@ augment void foo<T>() {
 void foo() {}
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'code_generation.dart';
 import 'a.dart';
 
@@ -2181,7 +2181,7 @@ part of 'a.dart';
 void foo() {}
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'code_generation.dart';
 import 'a.dart';
 
@@ -2207,7 +2207,7 @@ augment class A {
 int get foo => 0;
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'code_generation.dart';
 import 'a.dart';
 
@@ -2238,7 +2238,7 @@ part of 'a.dart';
 int get foo => 0;
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'code_generation.dart';
 import 'a.dart';
 
@@ -2264,7 +2264,7 @@ augment class A {
 set foo(int value) {}
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'code_generation.dart';
 import 'a.dart';
 
@@ -2290,7 +2290,7 @@ augment class A {
 var foo = 0;
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'code_generation.dart';
 import 'a.dart';
 
@@ -5610,7 +5610,7 @@ abstract class MacroElementsBaseTest extends ElementsBaseTest {
     // It is useful to see where, so include stack traces.
     configuration.withMacroStackTraces = true;
 
-    final text = getLibraryText(
+    var text = getLibraryText(
       library: library,
       configuration: configuration,
     );
@@ -5636,7 +5636,7 @@ abstract class MacroElementsBaseTest extends ElementsBaseTest {
 
   /// Adds `a.dart` with the content from `single/` directory.
   void _addSingleMacro(String fileName) {
-    final code = _getMacroCode('single/$fileName');
+    var code = _getMacroCode('single/$fileName');
     newFile('$testPackageLibPath/a.dart', code);
   }
 
@@ -5650,11 +5650,11 @@ abstract class MacroElementsBaseTest extends ElementsBaseTest {
       failWithLibraryText(library);
     }
 
-    final generated = _getMacroGeneratedCode(library);
+    var generated = _getMacroGeneratedCode(library);
 
-    final regExp = RegExp(r'=> r"""(.+)""";', dotAll: true);
-    final match = regExp.firstMatch(generated);
-    final actual = match?.group(1);
+    var regExp = RegExp(r'=> r"""(.+)""";', dotAll: true);
+    var match = regExp.firstMatch(generated);
+    var actual = match?.group(1);
 
     if (actual == null) {
       print('-------- Generated --------');
@@ -5695,7 +5695,7 @@ void _starter() {}
 
   /// Verifies the code of the macro generated augmentation.
   void _assertMacroCode(LibraryElementImpl library, String expected) {
-    final actual = _getMacroGeneratedCode(library);
+    var actual = _getMacroGeneratedCode(library);
     if (actual != expected) {
       print('-------- Actual --------');
       print('$actual------------------------');
@@ -5734,7 +5734,7 @@ macro class MyMacro implements ClassTypesMacro {
 }
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'a.dart';
 
 @MyMacro()
@@ -5783,7 +5783,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 @TargetClassOrMixinMacro()
@@ -5816,7 +5816,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 @TargetClassOrMixinMacro()
 library;
 
@@ -5851,7 +5851,7 @@ class A {
 }
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 import 'a.dart';
 
@@ -5892,7 +5892,7 @@ library
 const a = 0;
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 import 'a.dart';
 
@@ -5930,7 +5930,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 @ReportAtTargetDeclaration()
@@ -5964,7 +5964,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 class A {
@@ -6000,7 +6000,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 class A {
@@ -6043,7 +6043,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 class A {
@@ -6082,7 +6082,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 @ReportAtTargetDeclaration()
@@ -6118,7 +6118,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 @ReportAtFirstMethod()
@@ -6156,7 +6156,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 @ReportAtTypeAnnotation([
@@ -6193,7 +6193,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 class A {
@@ -6239,7 +6239,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 @ReportAtTypeAnnotation([
@@ -6286,7 +6286,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 @ReportAtTypeAnnotation([
@@ -6331,7 +6331,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 @ReportAtTypeAnnotation([
@@ -6369,7 +6369,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 @ReportAtTypeAnnotation([
@@ -6410,7 +6410,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 @ReportAtTypeAnnotation([
@@ -6451,7 +6451,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 @ReportAtTypeAnnotation([
@@ -6491,7 +6491,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 @ReportAtTypeAnnotation([
@@ -6529,7 +6529,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 class A {
@@ -6575,7 +6575,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 @ReportAtTypeAnnotation([
@@ -6618,7 +6618,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 @ReportAtTypeAnnotation([
@@ -6656,7 +6656,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 class A {
@@ -6698,7 +6698,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 @ReportAtTypeAnnotation([
@@ -6740,7 +6740,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 @ReportAtTypeAnnotation([
@@ -6778,7 +6778,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 typedef A = List<int>;
@@ -6822,7 +6822,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 class A {
@@ -6871,7 +6871,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 class A {
@@ -6913,7 +6913,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 @ReportAtTypeAnnotation([
@@ -6954,7 +6954,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 class A {
@@ -7003,7 +7003,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 class A {
@@ -7052,7 +7052,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 @ReportAtTypeAnnotation([
@@ -7090,7 +7090,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 @ReportWithContextMessages()
@@ -7141,7 +7141,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 @ReportWithoutTargetError()
@@ -7174,7 +7174,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 @ReportWithoutTargetInfo()
@@ -7207,7 +7207,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 @ReportWithoutTargetWarning()
@@ -7240,7 +7240,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 @ThrowExceptionDeclarationsPhase()
@@ -7281,7 +7281,7 @@ My declarations phase
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 class A {
@@ -7324,7 +7324,7 @@ My declarations phase
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 class A {
@@ -7379,7 +7379,7 @@ My declarations phase
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 class A {
@@ -7425,7 +7425,7 @@ My declarations phase
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 @ThrowExceptionDefinitionsPhase()
@@ -7466,7 +7466,7 @@ My definitions phase
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 @MacroWithArguments()
@@ -7540,7 +7540,7 @@ library
       _getMacroCode('diagnostic.dart'),
     );
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'diagnostic.dart';
 
 @ThrowExceptionTypesPhase()
@@ -7639,7 +7639,7 @@ class MacroExampleTest extends MacroElementsBaseTest {
   test_autoToString() async {
     _addExampleMacro('auto_to_string.dart');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'auto_to_string.dart';
 
 @AutoToString()
@@ -7734,7 +7734,7 @@ A {
     _addExampleMacro('json_key.dart');
     _addExampleMacro('json_serializable.dart');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'json_serializable.dart';
 
 @JsonSerializable()
@@ -7849,7 +7849,7 @@ json['bar'] = this.bar;
   test_observable() async {
     _addExampleMacro('observable.dart');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'observable.dart';
 
 class A {
@@ -7874,7 +7874,7 @@ augment class A {
   }
 
   void _addExampleMacro(String fileName) {
-    final code = _getMacroCode('example/$fileName');
+    var code = _getMacroCode('example/$fileName');
     newFile('$testPackageLibPath/$fileName', code);
   }
 }
@@ -10201,7 +10201,7 @@ $code
       _getMacroCode('introspect.dart'),
     );
 
-    final library = await buildLibrary('''
+    var library = await buildLibrary('''
 import 'introspect.dart';
 $code
 
@@ -12279,7 +12279,7 @@ class MacroStaticTypeTest extends MacroElementsBaseTest {
       ('({int a,})', '({int a, int b})', false),
     };
 
-    for (final testCase in testCases) {
+    for (var testCase in testCases) {
       await disposeAnalysisContextCollection();
       await _assertIsExactly(
         firstTypeCode: testCase.$1,
@@ -12292,7 +12292,7 @@ class MacroStaticTypeTest extends MacroElementsBaseTest {
   /// Verify what happens when we use `RawTypeAnnotationCode`.
   /// We don't see it, because it disappears after the types phase.
   test_isExactly_class_asRawCode_same() async {
-    final library = await buildLibrary('''
+    var library = await buildLibrary('''
 import 'append.dart';
 import 'static_type.dart';
 
@@ -12303,7 +12303,7 @@ class X {
 }
 ''');
 
-    final generated = _getMacroGeneratedCode(library);
+    var generated = _getMacroGeneratedCode(library);
     _assertIsExactlyValue(generated, true);
   }
 
@@ -12377,7 +12377,7 @@ mixin A {}
   }
 
   test_isExactly_omittedType_notSame() async {
-    final library = await buildLibrary('''
+    var library = await buildLibrary('''
 import 'static_type.dart';
 
 class A {
@@ -12390,12 +12390,12 @@ class B extends A {
 }
 ''');
 
-    final generated = _getMacroGeneratedCode(library);
+    var generated = _getMacroGeneratedCode(library);
     _assertIsExactlyValue(generated, false);
   }
 
   test_isExactly_omittedType_same() async {
-    final library = await buildLibrary('''
+    var library = await buildLibrary('''
 import 'static_type.dart';
 
 class A {
@@ -12408,31 +12408,31 @@ class B extends A {
 }
 ''');
 
-    final generated = _getMacroGeneratedCode(library);
+    var generated = _getMacroGeneratedCode(library);
     _assertIsExactlyValue(generated, true);
   }
 
   test_isExactly_typeParameter_notSame() async {
-    final library = await buildLibrary('''
+    var library = await buildLibrary('''
 import 'static_type.dart';
 
 @IsExactly()
 void foo<T, U>(T a, U b) {}
 ''');
 
-    final generated = _getMacroGeneratedCode(library);
+    var generated = _getMacroGeneratedCode(library);
     _assertIsExactlyValue(generated, false);
   }
 
   test_isExactly_typeParameter_same() async {
-    final library = await buildLibrary('''
+    var library = await buildLibrary('''
 import 'static_type.dart';
 
 @IsExactly()
 void foo<T>(T a, T b) {}
 ''');
 
-    final generated = _getMacroGeneratedCode(library);
+    var generated = _getMacroGeneratedCode(library);
     _assertIsExactlyValue(generated, true);
   }
 
@@ -12471,7 +12471,7 @@ void foo<T>(T a, T b) {}
       ('({int a,})', '({int b,})', false),
     };
 
-    for (final testCase in testCases) {
+    for (var testCase in testCases) {
       await disposeAnalysisContextCollection();
       await _assertIsSubtype(
         firstTypeCode: testCase.$1,
@@ -12487,7 +12487,7 @@ void foo<T>(T a, T b) {}
     required bool isExactly,
     String additionalDeclarations = '',
   }) async {
-    final library = await buildLibrary('''
+    var library = await buildLibrary('''
 import 'static_type.dart';
 
 $additionalDeclarations
@@ -12496,8 +12496,8 @@ $additionalDeclarations
 void foo($firstTypeCode a, $secondTypeCode b) {}
 ''');
 
-    final generated = _getMacroGeneratedCode(library);
-    final expected = _isExactlyExpected(isExactly);
+    var generated = _getMacroGeneratedCode(library);
+    var expected = _isExactlyExpected(isExactly);
     if (!generated.contains(expected)) {
       fail(
         '`$firstTypeCode` isExactly `$secondTypeCode`'
@@ -12507,7 +12507,7 @@ void foo($firstTypeCode a, $secondTypeCode b) {}
   }
 
   void _assertIsExactlyValue(String generated, bool isExactly) {
-    final expected = _isExactlyExpected(isExactly);
+    var expected = _isExactlyExpected(isExactly);
     expect(generated, contains(expected));
   }
 
@@ -12517,7 +12517,7 @@ void foo($firstTypeCode a, $secondTypeCode b) {}
     required bool isSubtype,
     String additionalDeclarations = '',
   }) async {
-    final library = await buildLibrary('''
+    var library = await buildLibrary('''
 import 'static_type.dart';
 
 $additionalDeclarations
@@ -12526,8 +12526,8 @@ $additionalDeclarations
 void foo($firstTypeCode a, $secondTypeCode b) {}
 ''');
 
-    final generated = _getMacroGeneratedCode(library);
-    final expected = _isSubtypeExpected(isSubtype);
+    var generated = _getMacroGeneratedCode(library);
+    var expected = _isSubtypeExpected(isSubtype);
     if (!generated.contains(expected)) {
       fail(
         '`$firstTypeCode` isSubtype `$secondTypeCode`'
@@ -12553,7 +12553,7 @@ abstract class MacroTypesTest extends MacroElementsBaseTest {
 
   @override
   Future<void> tearDown() async {
-    for (final directory in _ioDirectoriesToDelete) {
+    for (var directory in _ioDirectoriesToDelete) {
       try {
         directory.deleteSync(
           recursive: true,
@@ -12781,7 +12781,7 @@ macro class MyMacro implements ClassTypesMacro {
     // Compile the macro to executable.
     io.File macroExecutable;
     {
-      final macroMainContent = macro.bootstrapMacroIsolate(
+      var macroMainContent = macro.bootstrapMacroIsolate(
         {
           'package:test/a.dart': {
             'MyMacro': ['']
@@ -12790,18 +12790,18 @@ macro class MyMacro implements ClassTypesMacro {
         macro.SerializationMode.byteData,
       );
 
-      final tempCompileDirectory =
+      var tempCompileDirectory =
           io.Directory.systemTemp.createTempSync('dartAnalyzerMacro');
       _ioDirectoriesToDelete.add(tempCompileDirectory);
 
-      final fileSystem = PhysicalResourceProvider.INSTANCE;
-      final compileRoot = fileSystem.getFolder(tempCompileDirectory.path);
+      var fileSystem = PhysicalResourceProvider.INSTANCE;
+      var compileRoot = fileSystem.getFolder(tempCompileDirectory.path);
 
-      final testRoot = compileRoot.getChildAssumingFolder('test');
+      var testRoot = compileRoot.getChildAssumingFolder('test');
       testRoot.newFile('lib/a.dart').writeAsStringSync(macroCode);
 
-      final testBin = testRoot.getChildAssumingFolder('bin');
-      final testMain = testBin.newFile('main.dart');
+      var testBin = testRoot.getChildAssumingFolder('bin');
+      var testMain = testBin.newFile('main.dart');
       testMain.writeAsStringSync(macroMainContent);
 
       MacrosEnvironment.instance.privateMacrosFolder.copyTo(compileRoot);
@@ -12832,19 +12832,19 @@ macro class MyMacro implements ClassTypesMacro {
 }
 ''');
 
-      final process = await io.Process.start(
+      var process = await io.Process.start(
         io.Platform.executable,
         ['compile', 'exe', '--enable-experiment=macros', testMain.path],
       );
 
-      final exitCode = await process.exitCode;
+      var exitCode = await process.exitCode;
       if (exitCode == 255 || exitCode == 64) {
         markTestSkipped('Skip because cannot compile.');
         return;
       }
       expect(exitCode, isZero);
 
-      final executable = testBin.getChildAssumingFile('main.exe');
+      var executable = testBin.getChildAssumingFile('main.exe');
       expect(executable.exists, isTrue);
 
       // Convert to io.File
@@ -12853,14 +12853,14 @@ macro class MyMacro implements ClassTypesMacro {
 
     // Build the summary for `a.dart`, with the macro.
     // We always have summaries for libraries with macro executable.
-    final Uint8List aBundleBytes;
+    Uint8List aBundleBytes;
     {
-      final a = newFile('$testPackageLibPath/a.dart', macroCode);
+      var a = newFile('$testPackageLibPath/a.dart', macroCode);
 
       // Disable compilation to kernel.
       macroSupport = ExecutableMacroSupport();
 
-      final analysisDriver = driverFor(a);
+      var analysisDriver = driverFor(a);
       aBundleBytes = await analysisDriver.buildPackageBundle(
         uriList: [
           Uri.parse('package:_macros/src/api.dart'),
@@ -12880,7 +12880,7 @@ macro class MyMacro implements ClassTypesMacro {
     {
       sdkSummaryFile = await writeSdkSummary();
 
-      final aBundleFile = getFile('/home/summaries/a.sum');
+      var aBundleFile = getFile('/home/summaries/a.sum');
       aBundleFile.writeAsBytesSync(aBundleBytes);
       librarySummaryFiles = [aBundleFile];
     }
@@ -14219,7 +14219,7 @@ class _MacroDiagnosticsCollector extends GeneralizingElementVisitor<void> {
 
   @override
   void visitElement(Element element) {
-    if (element case final MacroTargetElement element) {
+    if (element case MacroTargetElement element) {
       diagnostics.addAll(element.macroDiagnostics);
     }
 
@@ -14229,7 +14229,7 @@ class _MacroDiagnosticsCollector extends GeneralizingElementVisitor<void> {
 
 extension on LibraryElement {
   List<AnalyzerMacroDiagnostic> get allMacroDiagnostics {
-    final collector = _MacroDiagnosticsCollector();
+    var collector = _MacroDiagnosticsCollector();
     accept(collector);
     return collector.diagnostics;
   }
@@ -14237,7 +14237,7 @@ extension on LibraryElement {
 
 extension on Folder {
   File newFile(String relPath) {
-    final file = getChildAssumingFile(relPath);
+    var file = getChildAssumingFile(relPath);
     file.parent.create();
     return file;
   }

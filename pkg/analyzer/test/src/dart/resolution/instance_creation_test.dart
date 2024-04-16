@@ -76,7 +76,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.singleInstanceCreationExpression;
+    var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -540,7 +540,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.singleInstanceCreationExpression;
+    var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -578,7 +578,7 @@ void f() {
 
 ''');
 
-    final node = findNode.singleInstanceCreationExpression;
+    var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -611,7 +611,7 @@ void f() {
       error(CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR, 31, 10),
     ]);
 
-    final node = findNode.singleInstanceCreationExpression;
+    var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   keyword: new
@@ -975,7 +975,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.singleInstanceCreationExpression;
+    var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -1011,7 +1011,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.singleInstanceCreationExpression;
+    var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -1045,7 +1045,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.singleInstanceCreationExpression;
+    var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -1080,7 +1080,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.singleInstanceCreationExpression;
+    var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -1112,7 +1112,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.singleInstanceCreationExpression;
+    var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -1149,7 +1149,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.singleInstanceCreationExpression;
+    var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -1181,7 +1181,7 @@ void f() {
       error(CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR, 48, 5),
     ]);
 
-    final node = findNode.singleInstanceCreationExpression;
+    var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   keyword: new
@@ -1220,7 +1220,7 @@ void f() {
       error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 48, 6),
     ]);
 
-    final node = findNode.singleInstanceCreationExpression;
+    var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   keyword: new
@@ -1376,7 +1376,7 @@ void f() {
 
 ''');
 
-    final node = findNode.singleInstanceCreationExpression;
+    var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -1515,7 +1515,7 @@ void f() {
 
 ''');
 
-    final node = findNode.singleInstanceCreationExpression;
+    var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -1575,7 +1575,7 @@ void f() {
 
 ''');
 
-    final node = findNode.singleInstanceCreationExpression;
+    var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -1628,7 +1628,7 @@ void f() {
 
 ''');
 
-    final node = findNode.singleInstanceCreationExpression;
+    var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -1669,7 +1669,7 @@ void f() {
       error(CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR, 54, 3),
     ]);
 
-    final node = findNode.singleInstanceCreationExpression;
+    var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   keyword: new
@@ -1712,7 +1712,7 @@ void f() {
       error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 55, 3),
     ]);
 
-    final node = findNode.singleInstanceCreationExpression;
+    var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   keyword: new
@@ -2406,7 +2406,7 @@ void f() {
       error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 17, 10),
     ]);
 
-    final node = findNode.singleInstanceCreationExpression;
+    var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   keyword: new
@@ -2438,7 +2438,7 @@ void f() {
       error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 17, 16),
     ]);
 
-    final node = findNode.singleInstanceCreationExpression;
+    var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   keyword: new
@@ -2474,7 +2474,7 @@ void f() {
       error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 17, 14),
     ]);
 
-    final node = findNode.singleInstanceCreationExpression;
+    var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   keyword: new

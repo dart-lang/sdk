@@ -11,7 +11,7 @@ import 'package:yaml/yaml.dart';
 
 /// Validates the value of the optional `flutter` field.
 void flutterValidator(PubspecValidationContext ctx) {
-  final contents = ctx.contents;
+  var contents = ctx.contents;
   if (contents is! YamlMap) return;
   var flutterField = contents.nodes[PubspecField.FLUTTER_FIELD];
   if (flutterField == null) return;

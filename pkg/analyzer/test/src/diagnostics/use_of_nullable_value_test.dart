@@ -1071,7 +1071,7 @@ m() {
           20, 6),
     ]);
 
-    final node = findNode.simple('isEven');
+    var node = findNode.simple('isEven');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: isEven

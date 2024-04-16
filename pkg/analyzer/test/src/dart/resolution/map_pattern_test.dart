@@ -26,7 +26,7 @@ void f(x) {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 47, 1),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
   leftBracket: {
@@ -62,7 +62,7 @@ void f(x) {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 44, 1),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
   leftBracket: {
@@ -95,7 +95,7 @@ void f(x) {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 57, 1),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
   typeArguments: TypeArgumentList
@@ -137,7 +137,7 @@ void f(Map<int, String> x) {
 ''', [
       error(CompileTimeErrorCode.EMPTY_MAP_PATTERN, 42, 2),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
   leftBracket: {
@@ -155,7 +155,7 @@ void f(Map<int, String> x) {
 ''', [
       error(CompileTimeErrorCode.REST_ELEMENT_IN_MAP_PATTERN, 43, 3),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
   leftBracket: {
@@ -185,7 +185,7 @@ void f(Map<int, String> x) {
 ''', [
       error(CompileTimeErrorCode.REST_ELEMENT_IN_MAP_PATTERN, 50, 3),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
   leftBracket: {
@@ -216,7 +216,7 @@ void f(Map<int, String> x) {
       error(CompileTimeErrorCode.REST_ELEMENT_IN_MAP_PATTERN, 43, 3),
       error(CompileTimeErrorCode.REST_ELEMENT_IN_MAP_PATTERN, 55, 3),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
   leftBracket: {
@@ -249,7 +249,7 @@ void f(Map<int, String> x) {
       error(CompileTimeErrorCode.REST_ELEMENT_IN_MAP_PATTERN, 50, 11),
       error(WarningCode.UNUSED_LOCAL_VARIABLE, 57, 4),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
   leftBracket: {
@@ -285,7 +285,7 @@ void f(Map<int, String> x) {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 50, 1),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
   leftBracket: {
@@ -315,7 +315,7 @@ void f(Map<bool, num> x) {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 62, 1),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
   typeArguments: TypeArgumentList
@@ -355,7 +355,7 @@ void f(Object x) {
   if (x case {true: 0}) {}
 }
 ''');
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
   leftBracket: {
@@ -384,7 +384,7 @@ void f(Object x) {
 ''', [
       error(CompileTimeErrorCode.EMPTY_MAP_PATTERN, 32, 2),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
   leftBracket: {
@@ -402,7 +402,7 @@ void f(Object x) {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 43, 1),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
   leftBracket: {
@@ -435,7 +435,7 @@ void f(Object x) {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 43, 1),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
   leftBracket: {
@@ -463,7 +463,7 @@ void f(Object x) {
   if (x case <bool, int>{true: 0}) {}
 }
 ''');
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
   typeArguments: TypeArgumentList
@@ -504,7 +504,7 @@ void f(Object x) {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 54, 1),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
   typeArguments: TypeArgumentList
@@ -546,7 +546,7 @@ void f(x, bool Function() a) {
 ''', [
       error(CompileTimeErrorCode.NON_CONSTANT_MAP_PATTERN_KEY, 45, 3),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
   leftBracket: {
@@ -583,7 +583,7 @@ void f(Map<bool, int> x) {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 40, 1),
     ]);
-    final node = findNode.singlePatternVariableDeclaration;
+    var node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclaration
   keyword: var
@@ -622,7 +622,7 @@ T g<T>() => throw 0;
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 35, 1),
     ]);
-    final node = findNode.singlePatternVariableDeclaration;
+    var node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclaration
   keyword: var
@@ -681,7 +681,7 @@ T g<T>() => throw 0;
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 28, 1),
     ]);
-    final node = findNode.singlePatternVariableDeclaration;
+    var node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclaration
   keyword: var

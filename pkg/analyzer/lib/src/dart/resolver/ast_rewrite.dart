@@ -44,8 +44,8 @@ class AstRewriter {
       // Either `new` or `const` has been specified.
       return node;
     }
-    final typeNode = node.constructorName.type;
-    final importPrefix = typeNode.importPrefix;
+    var typeNode = node.constructorName.type;
+    var importPrefix = typeNode.importPrefix;
     if (importPrefix == null) {
       var element = nameScope.lookup(typeNode.name2.lexeme).getter;
       if (element is FunctionElement ||
@@ -64,10 +64,10 @@ class AstRewriter {
         );
       }
     } else {
-      final prefixName = importPrefix.name.lexeme;
-      final prefixElement = nameScope.lookup(prefixName).getter;
+      var prefixName = importPrefix.name.lexeme;
+      var prefixElement = nameScope.lookup(prefixName).getter;
       if (prefixElement is PrefixElement) {
-        final prefixedName = typeNode.name2.lexeme;
+        var prefixedName = typeNode.name2.lexeme;
         var element = prefixElement.scope.lookup(prefixedName).getter;
         if (element is FunctionElement) {
           return _toMethodInvocationOfFunctionReference(
@@ -123,7 +123,7 @@ class AstRewriter {
   /// Possibly rewrites [node] as an [ExtensionOverride] or as an
   /// [InstanceCreationExpression].
   AstNode methodInvocation(Scope nameScope, MethodInvocationImpl node) {
-    final methodName = node.methodName;
+    var methodName = node.methodName;
     if (methodName.isSynthetic) {
       // This isn't a constructor invocation because the method name is
       // synthetic.
@@ -282,7 +282,7 @@ class AstRewriter {
     var prefix = node.prefix;
     var prefixElement = nameScope.lookup(prefix.name).getter;
     if (parent is ConstantPattern && prefixElement is PrefixElement) {
-      final element = prefixElement.scope.lookup(node.identifier.name).getter;
+      var element = prefixElement.scope.lookup(node.identifier.name).getter;
       if (element is TypeDefiningElement) {
         return _toPatternTypeLiteral(parent, node);
       }
@@ -412,9 +412,9 @@ class AstRewriter {
   }
 
   AstNode simpleIdentifier(Scope nameScope, SimpleIdentifierImpl node) {
-    final parent = node.parent;
+    var parent = node.parent;
     if (parent is ConstantPattern) {
-      final element = nameScope.lookup(node.name).getter;
+      var element = nameScope.lookup(node.name).getter;
       if (element is TypeDefiningElement) {
         return _toPatternTypeLiteral(parent, node);
       }
@@ -689,7 +689,7 @@ class AstRewriter {
     ConstantPattern parent,
     IdentifierImpl node,
   ) {
-    final result = TypeLiteralImpl(
+    var result = TypeLiteralImpl(
       typeName: node.toNamedType(
         typeArguments: null,
         question: null,

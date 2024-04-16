@@ -155,7 +155,7 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
   Future<void> dispose({
     bool forTesting = false,
   }) async {
-    for (final analysisContext in contexts) {
+    for (var analysisContext in contexts) {
       await analysisContext.driver.dispose2();
     }
     await macroSupport.dispose();

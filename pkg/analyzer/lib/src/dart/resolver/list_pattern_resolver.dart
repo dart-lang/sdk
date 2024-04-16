@@ -30,7 +30,7 @@ class ListPatternResolver {
       }
     }
 
-    final result = resolverVisitor.analyzeListPattern(context, node,
+    var result = resolverVisitor.analyzeListPattern(context, node,
         elementType: typeArguments?.arguments.first.typeOrThrow,
         elements: node.elements);
     node.requiredType = result.requiredType;

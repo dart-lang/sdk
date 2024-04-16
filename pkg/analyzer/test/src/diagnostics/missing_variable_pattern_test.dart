@@ -27,7 +27,7 @@ void f(int x) {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 61, 1),
     ]);
 
-    final node1 = findNode.caseClause('case final a').guardedPattern;
+    var node1 = findNode.caseClause('case final a').guardedPattern;
     assertResolvedNodeText(node1, r'''
 GuardedPattern
   pattern: DeclaredVariablePattern
@@ -38,7 +38,7 @@ GuardedPattern
     matchedValueType: int
 ''');
 
-    final node2 = findNode.caseClause('case final b').guardedPattern;
+    var node2 = findNode.caseClause('case final b').guardedPattern;
     assertResolvedNodeText(node2, r'''
 GuardedPattern
   pattern: DeclaredVariablePattern
@@ -61,7 +61,7 @@ void f(int x) {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 60, 1),
     ]);
 
-    final node1 = findNode.caseClause('case final a').guardedPattern;
+    var node1 = findNode.caseClause('case final a').guardedPattern;
     assertResolvedNodeText(node1, r'''
 GuardedPattern
   pattern: DeclaredVariablePattern
@@ -72,7 +72,7 @@ GuardedPattern
     matchedValueType: int
 ''');
 
-    final node2 = findNode.caseClause('case final b').guardedPattern;
+    var node2 = findNode.caseClause('case final b').guardedPattern;
     assertResolvedNodeText(node2, r'''
 GuardedPattern
   pattern: DeclaredVariablePattern
@@ -94,7 +94,7 @@ void f(int x) {
       error(WarningCode.DEAD_CODE, 37, 10),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 46, 1),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 LogicalOrPattern
   leftOperand: DeclaredVariablePattern
@@ -123,7 +123,7 @@ void f(int x) {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 40, 1),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 51, 1),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 LogicalOrPattern
   leftOperand: LogicalAndPattern
@@ -160,7 +160,7 @@ void f(num x) {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 39, 1),
       error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 44, 1),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 LogicalOrPattern
   leftOperand: DeclaredVariablePattern
@@ -192,7 +192,7 @@ void f(int x) {
       error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 29, 1),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 40, 1),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 LogicalOrPattern
   leftOperand: ConstantPattern
@@ -221,7 +221,7 @@ void f(num x) {
       error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 44, 1),
       error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 49, 1),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 LogicalOrPattern
   leftOperand: LogicalOrPattern
@@ -262,7 +262,7 @@ void f(num x) {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 54, 1),
       error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 59, 1),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 LogicalOrPattern
   leftOperand: LogicalOrPattern
@@ -310,7 +310,7 @@ void f(int x) {
       error(WarningCode.DEAD_CODE, 48, 10),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 57, 1),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 LogicalOrPattern
   leftOperand: LogicalOrPattern
@@ -349,7 +349,7 @@ void f(num x) {
       error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 44, 1),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 59, 1),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 LogicalOrPattern
   leftOperand: LogicalOrPattern
@@ -395,7 +395,7 @@ void f(num x) {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 44, 1),
       error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 49, 1),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 LogicalOrPattern
   leftOperand: LogicalOrPattern
@@ -437,7 +437,7 @@ void f(int x) {
       error(WarningCode.DEAD_CODE, 42, 10),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 51, 1),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 LogicalOrPattern
   leftOperand: LogicalOrPattern
@@ -474,7 +474,7 @@ void f(int x) {
       error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 29, 6),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 45, 1),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 LogicalOrPattern
   leftOperand: LogicalOrPattern
@@ -514,7 +514,7 @@ void f(int x) {
       error(WarningCode.DEAD_CODE, 48, 10),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 57, 1),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 LogicalOrPattern
   leftOperand: DeclaredVariablePattern
@@ -548,7 +548,7 @@ void f(num x) {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 50, 1),
       error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 55, 1),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 LogicalOrPattern
   leftOperand: DeclaredVariablePattern
@@ -583,7 +583,7 @@ void f(int x) {
       error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 40, 1),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 51, 1),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 LogicalOrPattern
   leftOperand: ConstantPattern
@@ -618,7 +618,7 @@ void f(int x) {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 76, 1),
     ]);
 
-    final node1 = findNode.switchPatternCase('case /*1*/').guardedPattern;
+    var node1 = findNode.switchPatternCase('case /*1*/').guardedPattern;
     assertResolvedNodeText(node1, r'''
 GuardedPattern
   pattern: DeclaredVariablePattern
@@ -629,7 +629,7 @@ GuardedPattern
     matchedValueType: int
 ''');
 
-    final node2 = findNode.switchPatternCase('case /*2*/').guardedPattern;
+    var node2 = findNode.switchPatternCase('case /*2*/').guardedPattern;
     assertResolvedNodeText(node2, r'''
 GuardedPattern
   pattern: DeclaredVariablePattern

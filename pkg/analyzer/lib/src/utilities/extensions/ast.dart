@@ -104,7 +104,7 @@ extension AstNodeExtension on AstNode {
 
 extension AstNodeNullableExtension on AstNode? {
   List<ClassMember> get classMembers {
-    final self = this;
+    var self = this;
     return switch (self) {
       ClassDeclaration() => self.members,
       EnumDeclaration() => self.members,

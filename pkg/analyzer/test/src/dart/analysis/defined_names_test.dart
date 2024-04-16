@@ -93,7 +93,7 @@ mixin M {}
     String code, {
     FeatureSet? featureSet,
   }) {
-    final parseResult = parseString(
+    var parseResult = parseString(
       content: code,
       featureSet: featureSet ?? FeatureSets.latestWithExperiments,
     );

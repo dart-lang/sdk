@@ -202,12 +202,12 @@ mixin ElementsTypesMixin {
     List<TypeParameterElement> typeParameters = const [],
     List<InterfaceType> interfaces = const [],
   }) {
-    final element = ExtensionTypeElementImpl(name, -1);
+    var element = ExtensionTypeElementImpl(name, -1);
     element.enclosingElement = testLibrary.definingCompilationUnit;
     element.typeParameters = typeParameters;
     element.interfaces = interfaces;
 
-    final field = FieldElementImpl(representationName, -1);
+    var field = FieldElementImpl(representationName, -1);
     field.type = representationType;
     element.fields = [field];
 
@@ -634,11 +634,11 @@ extension ClassElementImplExtension on ClassElementImpl {
   void addAugmentations(List<ClassElementImpl> augmentations) {
     expect(this.augmented, TypeMatcher<NotAugmentedClassElementImpl>());
 
-    final augmented = AugmentedClassElementImpl(this);
+    var augmented = AugmentedClassElementImpl(this);
     augmentedInternal = augmented;
 
     var augmentationTarget = this;
-    for (final augmentation in augmentations) {
+    for (var augmentation in augmentations) {
       expect(augmentation.isAugmentation, isTrue);
       augmentationTarget.augmentation = augmentation;
       augmentation.augmentationTarget = augmentationTarget;
@@ -656,11 +656,11 @@ extension MixinElementImplExtension on MixinElementImpl {
   void addAugmentations(List<MixinElementImpl> augmentations) {
     expect(this.augmented, TypeMatcher<NotAugmentedMixinElementImpl>());
 
-    final augmented = AugmentedMixinElementImpl(this);
+    var augmented = AugmentedMixinElementImpl(this);
     augmentedInternal = augmented;
 
     var augmentationTarget = this;
-    for (final augmentation in augmentations) {
+    for (var augmentation in augmentations) {
       expect(augmentation.isAugmentation, isTrue);
       augmentationTarget.augmentation = augmentation;
       augmentation.augmentationTarget = augmentationTarget;

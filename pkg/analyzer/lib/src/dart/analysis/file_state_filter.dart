@@ -138,7 +138,7 @@ class _PubFilter implements FileStateFilter {
 
 extension on PSDependencyList? {
   List<String> get names {
-    final self = this;
+    var self = this;
     if (self == null) {
       return const [];
     } else {

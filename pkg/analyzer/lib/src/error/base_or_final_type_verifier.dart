@@ -33,7 +33,7 @@ class BaseOrFinalTypeVerifier {
   /// [CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY].
   void checkElement(
       ClassOrMixinElementImpl element, ImplementsClause? implementsClause) {
-    final supertype = element.supertype;
+    var supertype = element.supertype;
     if (supertype != null && _checkSupertypes([supertype], element)) {
       return;
     }
@@ -57,9 +57,9 @@ class BaseOrFinalTypeVerifier {
       List<NamedType> interfaces, ClassOrMixinElementImpl subElement,
       {bool areImplementedInterfaces = false}) {
     for (NamedType interface in interfaces) {
-      final interfaceType = interface.type;
+      var interfaceType = interface.type;
       if (interfaceType is InterfaceType) {
-        final interfaceElement = interfaceType.element;
+        var interfaceElement = interfaceType.element;
         if (interfaceElement is ClassOrMixinElementImpl) {
           // Return early if an error has been reported to prevent reporting
           // multiple errors on one element.
@@ -77,8 +77,8 @@ class BaseOrFinalTypeVerifier {
   /// a supertype in [supertypes].
   bool _checkSupertypes(
       List<InterfaceType> supertypes, ClassOrMixinElementImpl subElement) {
-    for (final supertype in supertypes) {
-      final supertypeElement = supertype.element;
+    for (var supertype in supertypes) {
+      var supertypeElement = supertype.element;
       if (supertypeElement is ClassOrMixinElementImpl) {
         // Return early if an error has been reported to prevent reporting
         // multiple errors on one element.
@@ -100,7 +100,7 @@ class BaseOrFinalTypeVerifier {
     }
 
     ClassOrMixinElementImpl? baseOrFinalSuperElement;
-    final supertype = element.supertype;
+    var supertype = element.supertype;
     if (supertype != null) {
       baseOrFinalSuperElement ??=
           _getExplicitlyBaseOrFinalElementFromSuperTypes([supertype]);
@@ -123,8 +123,8 @@ class BaseOrFinalTypeVerifier {
   ClassOrMixinElementImpl? _getExplicitlyBaseOrFinalElementFromSuperTypes(
       List<InterfaceType> supertypes) {
     ClassOrMixinElementImpl? baseOrFinalElement;
-    for (final supertype in supertypes) {
-      final supertypeElement = supertype.element;
+    for (var supertype in supertypes) {
+      var supertypeElement = supertype.element;
       if (supertypeElement is ClassOrMixinElementImpl) {
         baseOrFinalElement = _getExplicitlyBaseOrFinalElement(supertypeElement);
         if (baseOrFinalElement != null) {
@@ -185,7 +185,7 @@ class BaseOrFinalTypeVerifier {
       // The context message links to the explicitly declared 'base' or 'final'
       // super element and is only added onto the error if 'base' or 'final' is
       // an induced modifier of the direct super element.
-      final contextMessages = <DiagnosticMessage>[
+      var contextMessages = <DiagnosticMessage>[
         DiagnosticMessageImpl(
           filePath: baseOrFinalSuperElement.source.fullName,
           length: baseOrFinalSuperElement.nameLength,
@@ -203,7 +203,7 @@ class BaseOrFinalTypeVerifier {
           superElement.isSealed &&
           baseOrFinalSuperElement.library != element.library) {
         if (baseOrFinalSuperElement.isBase) {
-          final errorCode = baseOrFinalSuperElement is MixinElement
+          var errorCode = baseOrFinalSuperElement is MixinElement
               ? CompileTimeErrorCode.BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY
               : CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY;
           _errorReporter.atNode(
@@ -237,7 +237,7 @@ class BaseOrFinalTypeVerifier {
               return false;
             }
           }
-          final errorCode = element is MixinElement
+          var errorCode = element is MixinElement
               ? CompileTimeErrorCode.MIXIN_SUBTYPE_OF_FINAL_IS_NOT_BASE
               : CompileTimeErrorCode
                   .SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED;
@@ -252,7 +252,7 @@ class BaseOrFinalTypeVerifier {
           );
           return true;
         } else if (baseOrFinalSuperElement.isBase) {
-          final errorCode = element is MixinElement
+          var errorCode = element is MixinElement
               ? CompileTimeErrorCode.MIXIN_SUBTYPE_OF_BASE_IS_NOT_BASE
               : CompileTimeErrorCode
                   .SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED;

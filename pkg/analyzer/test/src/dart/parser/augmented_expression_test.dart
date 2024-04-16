@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class AugmentedExpressionParserTest extends ParserDiagnosticsTest {
   test_class_constructor() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 augment library 'test.dart';
 
 augment class A {
@@ -26,7 +26,7 @@ augment class A {
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.singleBlock;
+    var node = parseResult.findNode.singleBlock;
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
@@ -46,7 +46,7 @@ Block
   }
 
   test_class_field() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 augment library 'test.dart';
 
 augment class A {
@@ -55,7 +55,7 @@ augment class A {
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.singleBinaryExpression;
+    var node = parseResult.findNode.singleBinaryExpression;
     assertParsedNodeText(node, r'''
 BinaryExpression
   leftOperand: AugmentedExpression
@@ -67,7 +67,7 @@ BinaryExpression
   }
 
   test_class_getter() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 augment library 'test.dart';
 
 augment class A {
@@ -78,7 +78,7 @@ augment class A {
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.singleBlock;
+    var node = parseResult.findNode.singleBlock;
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
@@ -93,7 +93,7 @@ Block
   }
 
   test_class_method() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 augment library 'test.dart';
 
 augment class A {
@@ -104,7 +104,7 @@ augment class A {
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.singleBlock;
+    var node = parseResult.findNode.singleBlock;
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
@@ -130,7 +130,7 @@ Block
   }
 
   test_class_operatorBinary() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 augment library 'test.dart';
 
 augment class A {
@@ -141,7 +141,7 @@ augment class A {
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.singleBlock;
+    var node = parseResult.findNode.singleBlock;
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
@@ -160,7 +160,7 @@ Block
   }
 
   test_class_operatorIndexRead() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 augment library 'test.dart';
 
 augment class A {
@@ -171,7 +171,7 @@ augment class A {
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.singleBlock;
+    var node = parseResult.findNode.singleBlock;
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
@@ -191,7 +191,7 @@ Block
   }
 
   test_class_operatorIndexWrite() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 augment library 'test.dart';
 
 augment class A {
@@ -202,7 +202,7 @@ augment class A {
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.singleBlock;
+    var node = parseResult.findNode.singleBlock;
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
@@ -225,7 +225,7 @@ Block
   }
 
   test_class_operatorPrefix() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 augment library 'test.dart';
 
 augment class A {
@@ -236,7 +236,7 @@ augment class A {
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.singleBlock;
+    var node = parseResult.findNode.singleBlock;
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
@@ -253,7 +253,7 @@ Block
   }
 
   test_class_setter() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 augment library 'test.dart';
 
 augment class A {
@@ -264,7 +264,7 @@ augment class A {
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.singleBlock;
+    var node = parseResult.findNode.singleBlock;
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
@@ -282,7 +282,7 @@ Block
   }
 
   test_enum_getter() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 augment library 'test.dart';
 
 augment enum A {
@@ -295,7 +295,7 @@ augment enum A {
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.singleBlock;
+    var node = parseResult.findNode.singleBlock;
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
@@ -310,7 +310,7 @@ Block
   }
 
   test_enum_method() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 augment library 'test.dart';
 
 augment enum A {
@@ -323,7 +323,7 @@ augment enum A {
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.singleBlock;
+    var node = parseResult.findNode.singleBlock;
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
@@ -349,7 +349,7 @@ Block
   }
 
   test_enum_setter() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 augment library 'test.dart';
 
 augment enum A {
@@ -362,7 +362,7 @@ augment enum A {
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.singleBlock;
+    var node = parseResult.findNode.singleBlock;
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
@@ -380,7 +380,7 @@ Block
   }
 
   test_extension_getter() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 augment library 'test.dart';
 
 augment extension A {
@@ -391,7 +391,7 @@ augment extension A {
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.singleBlock;
+    var node = parseResult.findNode.singleBlock;
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
@@ -406,7 +406,7 @@ Block
   }
 
   test_extension_method() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 augment library 'test.dart';
 
 augment extension A {
@@ -417,7 +417,7 @@ augment extension A {
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.singleBlock;
+    var node = parseResult.findNode.singleBlock;
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
@@ -443,7 +443,7 @@ Block
   }
 
   test_extension_setter() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 augment library 'test.dart';
 
 augment extension A {
@@ -454,7 +454,7 @@ augment extension A {
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.singleBlock;
+    var node = parseResult.findNode.singleBlock;
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
@@ -472,7 +472,7 @@ Block
   }
 
   test_extensionType_getter() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 augment library 'test.dart';
 
 augment extension type A(int it) {
@@ -483,7 +483,7 @@ augment extension type A(int it) {
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.singleBlock;
+    var node = parseResult.findNode.singleBlock;
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
@@ -498,7 +498,7 @@ Block
   }
 
   test_extensionType_method() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 augment library 'test.dart';
 
 augment extension type A(int it) {
@@ -509,7 +509,7 @@ augment extension type A(int it) {
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.singleBlock;
+    var node = parseResult.findNode.singleBlock;
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
@@ -535,7 +535,7 @@ Block
   }
 
   test_extensionType_setter() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 augment library 'test.dart';
 
 augment extension type A(int it) {
@@ -546,7 +546,7 @@ augment extension type A(int it) {
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.singleBlock;
+    var node = parseResult.findNode.singleBlock;
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
@@ -564,7 +564,7 @@ Block
   }
 
   test_mixin_field() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 augment library 'test.dart';
 
 augment mixin A {
@@ -573,7 +573,7 @@ augment mixin A {
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.singleBinaryExpression;
+    var node = parseResult.findNode.singleBinaryExpression;
     assertParsedNodeText(node, r'''
 BinaryExpression
   leftOperand: AugmentedExpression
@@ -585,7 +585,7 @@ BinaryExpression
   }
 
   test_mixin_getter() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 augment library 'test.dart';
 
 augment mixin A {
@@ -596,7 +596,7 @@ augment mixin A {
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.singleBlock;
+    var node = parseResult.findNode.singleBlock;
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
@@ -611,7 +611,7 @@ Block
   }
 
   test_mixin_method() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 augment library 'test.dart';
 
 augment mixin A {
@@ -622,7 +622,7 @@ augment mixin A {
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.singleBlock;
+    var node = parseResult.findNode.singleBlock;
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
@@ -648,7 +648,7 @@ Block
   }
 
   test_mixin_setter() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 augment library 'test.dart';
 
 augment mixin A {
@@ -659,7 +659,7 @@ augment mixin A {
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.singleBlock;
+    var node = parseResult.findNode.singleBlock;
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
@@ -677,7 +677,7 @@ Block
   }
 
   test_topLevel_function() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 augment library 'test.dart';
 
 augment void foo<T>(T a) {
@@ -686,7 +686,7 @@ augment void foo<T>(T a) {
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.singleBlock;
+    var node = parseResult.findNode.singleBlock;
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
@@ -712,7 +712,7 @@ Block
   }
 
   test_topLevel_getter() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 augment library 'test.dart';
 
 augment int get foo {
@@ -721,7 +721,7 @@ augment int get foo {
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.singleBlock;
+    var node = parseResult.findNode.singleBlock;
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
@@ -736,7 +736,7 @@ Block
   }
 
   test_topLevel_setter() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 augment library 'test.dart';
 
 augment set foo(int _) {
@@ -745,7 +745,7 @@ augment set foo(int _) {
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.singleBlock;
+    var node = parseResult.findNode.singleBlock;
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
@@ -763,14 +763,14 @@ Block
   }
 
   test_topLevel_variable() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 augment library 'test.dart';
 
 augment int foo = augmented + 1;
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.singleBinaryExpression;
+    var node = parseResult.findNode.singleBinaryExpression;
     assertParsedNodeText(node, r'''
 BinaryExpression
   leftOperand: AugmentedExpression

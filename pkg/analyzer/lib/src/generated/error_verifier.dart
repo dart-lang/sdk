@@ -446,7 +446,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   @override
   void visitClassDeclaration(covariant ClassDeclarationImpl node) {
     try {
-      final element = node.declaredElement!;
+      var element = node.declaredElement!;
 
       _checkAugmentations(
         augmentKeyword: node.augmentKeyword,
@@ -455,8 +455,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
       _isInNativeClass = node.nativeClause != null;
 
-      final augmented = element.augmented;
-      final declarationElement = augmented.declaration;
+      var augmented = element.augmented;
+      var declarationElement = augmented.declaration;
       _enclosingClass = declarationElement;
 
       List<ClassMember> members = node.members;
@@ -614,7 +614,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitDefaultFormalParameter(DefaultFormalParameter node) {
-    final defaultValue = node.defaultValue;
+    var defaultValue = node.defaultValue;
     if (defaultValue != null) {
       checkForAssignableExpressionAtType(
         defaultValue,
@@ -639,7 +639,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     try {
       var element = node.declaredElement as EnumElementImpl;
 
-      final augmented = element.augmented;
+      var augmented = element.augmented;
       _enclosingClass = element;
       _duplicateDefinitionVerifier.checkEnum(node);
 
@@ -708,7 +708,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       errorReporter: errorReporter,
     ).checkExtension(element);
 
-    final name = node.name;
+    var name = node.name;
     if (name != null) {
       _checkForBuiltInIdentifierAsName(
           name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_EXTENSION_NAME);
@@ -722,9 +722,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     covariant ExtensionTypeDeclarationImpl node,
   ) {
     try {
-      final element = node.declaredElement!;
-      final augmented = element.augmented;
-      final declarationElement = augmented.declaration;
+      var element = node.declaredElement!;
+      var augmented = element.augmented;
+      var declarationElement = augmented.declaration;
       _enclosingClass = declarationElement;
 
       _checkForBuiltInIdentifierAsName(node.name,
@@ -752,7 +752,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForExtensionTypeWithAbstractMember(node);
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
 
-      final interface = _inheritanceManager.getInterface(element);
+      var interface = _inheritanceManager.getInterface(element);
       GetterSetterTypesVerifier(
         typeSystem: typeSystem,
         errorReporter: errorReporter,
@@ -787,7 +787,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForLateFinalFieldWithConstConstructor(node);
       _checkForNonFinalFieldInEnum(node);
 
-      for (final field in fields.variables) {
+      for (var field in fields.variables) {
         var element = field.declaredElement;
         element as FieldElementImpl;
         _checkAugmentations(
@@ -1050,7 +1050,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitLibraryDirective(covariant LibraryDirectiveImpl node) {
-    if (node.element case final element?) {
+    if (node.element case var element?) {
       _reportMacroDiagnostics(element);
     }
 
@@ -1067,7 +1067,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitMethodDeclaration(covariant MethodDeclarationImpl node) {
-    final element = node.declaredElement!;
+    var element = node.declaredElement!;
     _withEnclosingExecutable(element, () {
       var returnType = node.returnType;
       if (node.isSetter) {
@@ -1120,15 +1120,15 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void visitMixinDeclaration(covariant MixinDeclarationImpl node) {
     // TODO(scheglov): Verify for all mixin errors.
     try {
-      final element = node.declaredElement!;
+      var element = node.declaredElement!;
 
       _checkAugmentations(
         augmentKeyword: node.augmentKeyword,
         element: element,
       );
 
-      final augmented = element.augmented;
-      final declarationElement = augmented.declaration;
+      var augmented = element.augmented;
+      var declarationElement = augmented.declaration;
       _enclosingClass = declarationElement;
 
       List<ClassMember> members = node.members;
@@ -1494,7 +1494,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    final nameToken = node.name;
+    var nameToken = node.name;
     var initializerNode = node.initializer;
     // do checks
     _checkForAbstractOrExternalVariableInitializer(node);
@@ -1676,7 +1676,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             mixinName, CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS)) {
           problemReported = true;
         } else {
-          final mixinElement = mixinType.element;
+          var mixinElement = mixinType.element;
           if (_checkForExtendsOrImplementsDeferredClass(
               mixinName, CompileTimeErrorCode.MIXIN_DEFERRED_CLASS)) {
             problemReported = true;
@@ -1900,8 +1900,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   void _checkForAwaitOfIncompatibleType(AwaitExpression node) {
-    final expression = node.expression;
-    final expressionType = expression.typeOrThrow;
+    var expression = node.expression;
+    var expressionType = expression.typeOrThrow;
     if (typeSystem.isIncompatibleWithAwait(expressionType)) {
       errorReporter.atToken(
         node.awaitKeyword,
@@ -1946,7 +1946,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     if (withClause != null) {
       for (NamedType mixin in withClause.mixinTypes) {
-        final type = mixin.type;
+        var type = mixin.type;
         if (type != null && type.isDartCoreFunction) {
           errorReporter.atNode(
             mixin,
@@ -1966,13 +1966,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       ImplementsClause? implementsClause) {
     if (implementsClause == null) return;
     for (NamedType interface in implementsClause.interfaces) {
-      final interfaceType = interface.type;
+      var interfaceType = interface.type;
       if (interfaceType is InterfaceType) {
-        final implementedInterfaces = [
+        var implementedInterfaces = [
           interfaceType,
           ...interfaceType.element.allSupertypes,
         ].map((e) => e.element).toList();
-        for (final interfaceElement in implementedInterfaces) {
+        for (var interfaceElement in implementedInterfaces) {
           if (interfaceElement is ClassOrMixinElementImpl &&
               interfaceElement.isBase &&
               interfaceElement.library != _currentLibrary &&
@@ -2024,9 +2024,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void _checkForClassUsedAsMixin(WithClause? withClause) {
     if (withClause != null) {
       for (NamedType withMixin in withClause.mixinTypes) {
-        final withType = withMixin.type;
+        var withType = withMixin.type;
         if (withType is InterfaceType) {
-          final withElement = withType.element;
+          var withElement = withType.element;
           if (withElement is ClassElementImpl &&
               !withElement.isMixinClass &&
               withElement.library.featureSet
@@ -2050,22 +2050,22 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// [CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD], and
   /// [CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD].
   void _checkForConflictingClassMembers() {
-    final enclosingClass = _enclosingClass;
+    var enclosingClass = _enclosingClass;
     if (enclosingClass == null) {
       return;
     }
 
     Uri libraryUri = _currentLibrary.source.uri;
-    final conflictingDeclaredNames = <String>{};
+    var conflictingDeclaredNames = <String>{};
 
     // method declared in the enclosing class vs. inherited getter/setter
     for (MethodElement method in enclosingClass.methods) {
       String name = method.name;
 
       // find inherited property accessors
-      final getter = _inheritanceManager.getInherited2(
+      var getter = _inheritanceManager.getInherited2(
           enclosingClass, Name(libraryUri, name));
-      final setter = _inheritanceManager.getInherited2(
+      var setter = _inheritanceManager.getInherited2(
           enclosingClass, Name(libraryUri, '$name='));
 
       if (method.isStatic) {
@@ -2160,16 +2160,16 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
 
     // Inherited method and setter with the same name.
-    final inherited = _inheritanceManager.getInheritedMap2(enclosingClass);
-    for (final entry in inherited.entries) {
-      final method = entry.value;
+    var inherited = _inheritanceManager.getInheritedMap2(enclosingClass);
+    for (var entry in inherited.entries) {
+      var method = entry.value;
       if (method is MethodElement) {
-        final methodName = entry.key;
+        var methodName = entry.key;
         if (conflictingDeclaredNames.contains(methodName.name)) {
           continue;
         }
-        final setterName = methodName.forSetter;
-        final setter = inherited[setterName];
+        var setterName = methodName.forSetter;
+        var setter = inherited[setterName];
         if (setter is PropertyAccessorElement) {
           errorReporter.atElement(
             enclosingClass,
@@ -2538,7 +2538,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return false;
     }
 
-    final element = constructor.declaredElement;
+    var element = constructor.declaredElement;
     if (element == null) {
       return false;
     }
@@ -2548,16 +2548,16 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return false;
     }
 
-    final invokedSuper = element.superConstructor;
+    var invokedSuper = element.superConstructor;
     if (invokedSuper == null || invokedSuper.isConst) {
       return false;
     }
 
     // Often there is an explicit `super()` invocation, report on it.
-    final superInvocation = constructor.initializers
+    var superInvocation = constructor.initializers
         .whereType<SuperConstructorInvocation>()
         .firstOrNull;
-    final errorNode = superInvocation ?? constructor.returnType;
+    var errorNode = superInvocation ?? constructor.returnType;
 
     errorReporter.atNode(
       errorNode,
@@ -2580,7 +2580,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
     // check if there is non-final field
-    final classElement = constructorElement.enclosingElement;
+    var classElement = constructorElement.enclosingElement;
     if (classElement is! ClassElement || !classElement.hasNonFinalField) {
       return;
     }
@@ -2627,7 +2627,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       InstanceCreationExpression expression,
       NamedType namedType,
       InterfaceType type) {
-    final element = type.element;
+    var element = type.element;
     if (element is ClassElement && element.isAbstract) {
       var element = expression.constructorName.staticElement;
       if (element != null && !element.isFactory) {
@@ -3085,7 +3085,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    for (final field in node.fields.variables) {
+    for (var field in node.fields.variables) {
       errorReporter.atToken(
         field.name,
         CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_INSTANCE_FIELD,
@@ -3096,12 +3096,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void _checkForExtensionTypeImplementsDeferred(
     ExtensionTypeDeclarationImpl node,
   ) {
-    final clause = node.implementsClause;
+    var clause = node.implementsClause;
     if (clause == null) {
       return;
     }
 
-    for (final type in clause.interfaces) {
+    for (var type in clause.interfaces) {
       _checkForExtendsOrImplementsDeferredClass(
         type,
         CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS,
@@ -3126,8 +3126,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     required ExtensionTypeElement element,
   }) {
     void report(String memberName, List<ExecutableElement> candidates) {
-      final contextMessages = candidates.map<DiagnosticMessage>((executable) {
-        final container = executable.enclosingElement as InterfaceElement;
+      var contextMessages = candidates.map<DiagnosticMessage>((executable) {
+        var container = executable.enclosingElement as InterfaceElement;
         return DiagnosticMessageImpl(
           filePath: executable.source.fullName,
           offset: executable.nameOffset,
@@ -3144,8 +3144,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       );
     }
 
-    final interface = _inheritanceManager.getInterface(element);
-    for (final conflict in interface.conflicts) {
+    var interface = _inheritanceManager.getInterface(element);
+    for (var conflict in interface.conflicts) {
       switch (conflict) {
         case CandidatesConflict _:
           report(conflict.name.name, conflict.candidates);
@@ -3176,7 +3176,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     ExtensionTypeDeclarationImpl node,
     ExtensionTypeElementImpl element,
   ) {
-    final representationType = element.representation.type;
+    var representationType = element.representation.type;
     if (typeSystem.isBottom(representationType)) {
       errorReporter.atNode(
         node.representation.fieldType,
@@ -3188,7 +3188,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void _checkForExtensionTypeWithAbstractMember(
     ExtensionTypeDeclarationImpl node,
   ) {
-    for (final member in node.members) {
+    for (var member in node.members) {
       if (member is MethodDeclarationImpl && !member.isStatic) {
         if (member.isAbstract) {
           errorReporter.atNode(
@@ -3331,9 +3331,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     MixinOnClause? onClause,
   ) {
     if (superclass != null) {
-      final type = superclass.type;
+      var type = superclass.type;
       if (type is InterfaceType) {
-        final element = type.element;
+        var element = type.element;
         if (element is ClassElementImpl &&
             element.isFinal &&
             !element.isSealed &&
@@ -3349,13 +3349,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
     if (implementsClause != null) {
       for (NamedType namedType in implementsClause.interfaces) {
-        final type = namedType.type;
+        var type = namedType.type;
         if (type is InterfaceType) {
-          final implementedInterfaces = [
+          var implementedInterfaces = [
             type,
             ...type.element.allSupertypes,
           ].map((e) => e.element).toList();
-          for (final element in implementedInterfaces) {
+          for (var element in implementedInterfaces) {
             if (element is ClassElement &&
                 element.isFinal &&
                 !element.isSealed &&
@@ -3383,9 +3383,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
     if (onClause != null) {
       for (NamedType namedType in onClause.superclassConstraints) {
-        final type = namedType.type;
+        var type = namedType.type;
         if (type is InterfaceType) {
-          final element = type.element;
+          var element = type.element;
           if (element is ClassElement &&
               element.isFinal &&
               !element.isSealed &&
@@ -3546,9 +3546,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void _checkForInterfaceClassOrMixinSuperclassOutsideOfLibrary(
       NamedType? superclass, WithClause? withClause) {
     if (superclass != null) {
-      final superclassType = superclass.type;
+      var superclassType = superclass.type;
       if (superclassType is InterfaceType) {
-        final superclassElement = superclassType.element;
+        var superclassElement = superclassType.element;
         if (superclassElement is ClassElementImpl &&
             superclassElement.isInterface &&
             !superclassElement.isSealed &&
@@ -3822,7 +3822,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    final parameterList = functionDeclaration.functionExpression.parameters;
+    var parameterList = functionDeclaration.functionExpression.parameters;
     if (parameterList == null) {
       return;
     }
@@ -3995,7 +3995,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       List<ClassMember> members,
       NamedType? superclass,
       WithClause? withClause) {
-    final element = node.declaredElement;
+    var element = node.declaredElement;
     if (element is ClassElementImpl && element.isMixinClass) {
       // Check that the class does not have a constructor.
       for (ClassMember member in members) {
@@ -4276,7 +4276,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
     DartType type = namedType.typeOrThrow;
     if (type is InterfaceType) {
-      final element = type.element;
+      var element = type.element;
       if (element is EnumElement || element is MixinElement) {
         // We have already reported the error.
         return;
@@ -4318,7 +4318,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (superType == null) {
       return;
     }
-    final superElement = superType.element;
+    var superElement = superType.element;
     // try to find default generative super constructor
     var superUnnamedConstructor = superElement.unnamedConstructor;
     if (superUnnamedConstructor != null) {
@@ -4361,7 +4361,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       // subclass has only factory constructors.
       return false;
     }
-    final superElement = superType.element;
+    var superElement = superType.element;
     if (superElement.constructors.isEmpty) {
       // Exclude empty constructor set, which indicates other errors occurred.
       return false;
@@ -4427,16 +4427,16 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     ExtensionTypeDeclaration node,
     ExtensionTypeElement element,
   ) {
-    final typeParameters = node.typeParameters?.typeParameters;
+    var typeParameters = node.typeParameters?.typeParameters;
     if (typeParameters == null) {
       return;
     }
 
-    final representationType = element.representation.type;
+    var representationType = element.representation.type;
 
-    for (final typeParameterNode in typeParameters) {
-      final typeParameterElement = typeParameterNode.declaredElement!;
-      final nonCovariant = representationType.accept(
+    for (var typeParameterNode in typeParameters) {
+      var typeParameterElement = typeParameterNode.declaredElement!;
+      var nonCovariant = representationType.accept(
         NonCovariantTypeParameterPositionVisitor(
           [typeParameterElement],
           initialVariance: Variance.covariant,
@@ -4661,11 +4661,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   ///   - Otherwise (the current behavior of -n)
   void _checkForOutOfRange(IntegerLiteral node) {
     String lexeme = node.literal.lexeme;
-    final bool isNegated = (node as IntegerLiteralImpl).immediatelyNegated;
-    final List<Object> extraErrorArgs = [];
+    bool isNegated = (node as IntegerLiteralImpl).immediatelyNegated;
+    List<Object> extraErrorArgs = [];
 
-    final bool treatedAsDouble = node.staticType == _typeProvider.doubleType;
-    final bool valid = treatedAsDouble
+    bool treatedAsDouble = node.staticType == _typeProvider.doubleType;
+    bool valid = treatedAsDouble
         ? IntegerLiteralImpl.isValidAsDouble(lexeme)
         : IntegerLiteralImpl.isValidAsInteger(lexeme, isNegated);
 
@@ -4912,9 +4912,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       MixinOnClause? onClause) {
     void reportErrorsForSealedClassesAndMixins(List<NamedType> namedTypes) {
       for (NamedType namedType in namedTypes) {
-        final type = namedType.type;
+        var type = namedType.type;
         if (type is InterfaceType) {
-          final element = type.element;
+          var element = type.element;
           if (element is ClassElement &&
               element.isSealed &&
               element.library != _currentLibrary) {
@@ -5065,7 +5065,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
         TypeParameter? current = parameter;
         for (var step = 0; current != null; step++) {
-          final boundNode = current.bound;
+          var boundNode = current.bound;
           if (boundNode is NamedType) {
             var boundType = boundNode.typeOrThrow;
             boundType = boundType.extensionTypeErasure;
@@ -5147,7 +5147,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (superType == null) {
       return;
     }
-    final superElement = superType.element;
+    var superElement = superType.element;
 
     if (superElement.constructors
         .every((constructor) => constructor.isFactory)) {
@@ -5287,7 +5287,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
     } else if (targetType == null) {
       if (target is Identifier) {
-        final targetElement = target.staticElement;
+        var targetElement = target.staticElement;
         if (targetElement is InterfaceElement ||
             targetElement is ExtensionElement ||
             targetElement is TypeAliasElement) {
@@ -5450,8 +5450,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
     int numParameters = parameterList.parameters.length;
     // prepare operator name
-    final nameToken = declaration.name;
-    final name = nameToken.lexeme;
+    var nameToken = declaration.name;
+    var name = nameToken.lexeme;
     // check for exact number of parameters
     int expected = -1;
     if ("[]=" == name) {
@@ -5647,7 +5647,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     _enclosingClass!.interfaces.forEach(checkOne);
     _enclosingClass!.mixins.forEach(checkOne);
 
-    final enclosingClass = _enclosingClass;
+    var enclosingClass = _enclosingClass;
     if (enclosingClass is MixinElement) {
       enclosingClass.superclassConstraints.forEach(checkOne);
     }
@@ -5835,7 +5835,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (parameter is DefaultFormalParameter) {
         if (parameter.isRequiredNamed) {
           if (parameter.defaultValue != null) {
-            final errorTarget = _parameterName(parameter) ?? parameter;
+            var errorTarget = _parameterName(parameter) ?? parameter;
             errorReporter.atOffset(
               offset: errorTarget.offset,
               length: errorTarget.length,
@@ -5848,8 +5848,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           if (!parameterElement.hasDefaultValue) {
             var type = parameterElement.type;
             if (typeSystem.isPotentiallyNonNullable(type)) {
-              final parameterName = _parameterName(parameter);
-              final errorTarget = parameterName ?? parameter;
+              var parameterName = _parameterName(parameter);
+              var errorTarget = parameterName ?? parameter;
 
               List<Object> arguments = const [];
               ErrorCode errorCode;
@@ -5907,7 +5907,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (library == null) {
       return '';
     }
-    final imports = _currentLibrary.libraryImports;
+    var imports = _currentLibrary.libraryImports;
     int count = imports.length;
     for (int i = 0; i < count; i++) {
       if (identical(imports[i].importedLibrary, library)) {
@@ -6109,8 +6109,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     for (FormalParameter parameter in parameters) {
       parameter = parameter.notDefault;
       if (parameter is FieldFormalParameter) {
-        final element =
-            parameter.declaredElement as FieldFormalParameterElement;
+        var element = parameter.declaredElement as FieldFormalParameterElement;
         fields.remove(element.field);
       }
     }
@@ -6236,7 +6235,7 @@ class _MacroDiagnosticsReporter {
   void report() {
     _reportApplicationFromSameLibraryCycle();
 
-    for (final diagnostic in element.macroDiagnostics) {
+    for (var diagnostic in element.macroDiagnostics) {
       switch (diagnostic) {
         case ArgumentMacroDiagnostic():
           _reportArgument(diagnostic);
@@ -6253,10 +6252,10 @@ class _MacroDiagnosticsReporter {
   }
 
   DiagnosticMessage _convertMessage(MacroDiagnosticMessage object) {
-    final target = object.target;
+    var target = object.target;
     switch (target) {
       case ApplicationMacroDiagnosticTarget():
-        final node = element.annotationAst(target.annotationIndex);
+        var node = element.annotationAst(target.annotationIndex);
         return DiagnosticMessageImpl(
           filePath: element.source!.fullName,
           length: node.length,
@@ -6265,7 +6264,7 @@ class _MacroDiagnosticsReporter {
           url: null,
         );
       case ElementMacroDiagnosticTarget():
-        final element = target.element;
+        var element = target.element;
         return DiagnosticMessageImpl(
           filePath: element.source!.fullName,
           length: element.nameLength,
@@ -6315,16 +6314,16 @@ class _MacroDiagnosticsReporter {
   }
 
   void _reportCustom(MacroDiagnostic diagnostic) {
-    final errorCode = switch (diagnostic.severity) {
+    var errorCode = switch (diagnostic.severity) {
       macro.Severity.info => HintCode.MACRO_INFO,
       macro.Severity.warning => WarningCode.MACRO_WARNING,
       macro.Severity.error => CompileTimeErrorCode.MACRO_ERROR,
     };
 
-    final contextMessages =
+    var contextMessages =
         diagnostic.contextMessages.map(_convertMessage).toList();
 
-    final target = diagnostic.message.target;
+    var target = diagnostic.message.target;
     switch (target) {
       case ApplicationMacroDiagnosticTarget():
         var node = element.annotationAst(target.annotationIndex);

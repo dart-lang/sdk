@@ -27,7 +27,7 @@ void f(Object? x) {
 void g() {}
 ''');
 
-    final node = findNode.singleSwitchExpression;
+    var node = findNode.singleSwitchExpression;
     assertResolvedNodeText(node, r'''
 SwitchExpression
   switchKeyword: switch
@@ -78,7 +78,7 @@ final a = switch (0) {};
       error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_EXPRESSION, 10, 6),
     ]);
 
-    final node = findNode.singleSwitchExpression;
+    var node = findNode.singleSwitchExpression;
     assertResolvedNodeText(node, r'''
 SwitchExpression
   switchKeyword: switch
@@ -106,7 +106,7 @@ class A {
 }
 ''');
 
-    final node = findNode.switchExpression('switch');
+    var node = findNode.switchExpression('switch');
     assertResolvedNodeText(node, r'''
 SwitchExpression
   switchKeyword: switch
@@ -152,7 +152,7 @@ void f(void x) {
       error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 27, 1),
     ]);
 
-    final node = findNode.singleSwitchExpression;
+    var node = findNode.singleSwitchExpression;
     assertResolvedNodeText(node, r'''
 SwitchExpression
   switchKeyword: switch
@@ -188,7 +188,7 @@ final b = switch (a) {
 };
 ''');
 
-    final node = findNode.singleSwitchExpression;
+    var node = findNode.singleSwitchExpression;
     assertResolvedNodeText(node, r'''
 SwitchExpression
   switchKeyword: switch
@@ -254,7 +254,7 @@ void f(Object? x, int Function() a) {
 }
 ''');
 
-    final node = findNode.switchExpressionCase('_');
+    var node = findNode.switchExpressionCase('_');
     assertResolvedNodeText(node, r'''
 SwitchExpressionCase
   guardedPattern: GuardedPattern
@@ -290,7 +290,7 @@ class A {
 }
 ''');
 
-    final node = findNode.switchExpressionCase('=> 0');
+    var node = findNode.switchExpressionCase('=> 0');
     assertResolvedNodeText(node, r'''
 SwitchExpressionCase
   guardedPattern: GuardedPattern
@@ -325,7 +325,7 @@ void f(Object? x, bool Function() a) {
 }
 ''');
 
-    final node = findNode.switchExpressionCase('=> true');
+    var node = findNode.switchExpressionCase('=> true');
     assertResolvedNodeText(node, r'''
 SwitchExpressionCase
   guardedPattern: GuardedPattern
@@ -363,7 +363,7 @@ void f(int Function() a) {
 }
 ''');
 
-    final node = findNode.switchExpression('switch');
+    var node = findNode.switchExpression('switch');
     assertResolvedNodeText(node, r'''
 SwitchExpression
   switchKeyword: switch
@@ -406,7 +406,7 @@ void f(Object? x) {
 }
 ''');
 
-    final node = findNode.switchExpression('switch');
+    var node = findNode.switchExpression('switch');
     assertResolvedNodeText(node, r'''
 SwitchExpression
   switchKeyword: switch
@@ -453,7 +453,7 @@ void f(Object? x) {
 }
 ''');
 
-    final node = findNode.switchExpression('switch');
+    var node = findNode.switchExpression('switch');
     assertResolvedNodeText(node, r'''
 SwitchExpression
   switchKeyword: switch
@@ -502,7 +502,7 @@ void f(Object? x) {
       error(WarningCode.DEAD_CODE, 52, 8),
     ]);
 
-    final node = findNode.switchExpression('switch');
+    var node = findNode.switchExpression('switch');
     assertResolvedNodeText(node, r'''
 SwitchExpression
   switchKeyword: switch
@@ -580,7 +580,7 @@ void f(Object? x) {
           contextMessages: [message(testFile, 58, 1)]),
     ]);
 
-    final node = findNode.switchExpression('switch');
+    var node = findNode.switchExpression('switch');
     assertResolvedNodeText(node, r'''
 SwitchExpression
   switchKeyword: switch
@@ -663,7 +663,7 @@ void f(Object? x) {
       error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 72, 1),
     ]);
 
-    final node = findNode.switchExpression('switch');
+    var node = findNode.switchExpression('switch');
     assertResolvedNodeText(node, r'''
 SwitchExpression
   switchKeyword: switch

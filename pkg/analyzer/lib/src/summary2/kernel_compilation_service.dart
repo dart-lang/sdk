@@ -31,23 +31,23 @@ class KernelCompilationService {
   ///
   /// Must be invoked with the [_lock] acquired.
   static Future<_FrontEndServerInstance> get _instance async {
-    final instance = _currentInstance;
+    var instance = _currentInstance;
     if (instance != null) {
       return instance;
     }
 
-    final sdkPaths = _computeSdkPaths();
+    var sdkPaths = _computeSdkPaths();
 
-    final socketCompleter = Completer<io.Socket>();
-    final serverSocket = await _loopbackServerSocket();
+    var socketCompleter = Completer<io.Socket>();
+    var serverSocket = await _loopbackServerSocket();
     serverSocket.listen((socket) async {
       socketCompleter.complete(socket);
     });
 
-    final host = serverSocket.address.address;
-    final addressStr = '$host:${serverSocket.port}';
+    var host = serverSocket.address.address;
+    var addressStr = '$host:${serverSocket.port}';
 
-    final io.Process process;
+    io.Process process;
     if (io.File(sdkPaths.frontEndAotSnapshot).existsSync()) {
       process = await io.Process.start(sdkPaths.aotRuntime, [
         sdkPaths.frontEndAotSnapshot,
@@ -68,12 +68,12 @@ class KernelCompilationService {
       _currentInstance = null;
     });
 
-    final socket = await socketCompleter.future;
-    final requestChannel = RequestChannel(socket);
+    var socket = await socketCompleter.future;
+    var requestChannel = RequestChannel(socket);
 
     // Put the platform dill.
-    final platformDillPath = sdkPaths.platformDill;
-    final platformDillBytes = io.File(platformDillPath).readAsBytesSync();
+    var platformDillPath = sdkPaths.platformDill;
+    var platformDillBytes = io.File(platformDillPath).readAsBytesSync();
     await requestChannel.sendRequest<void>('dill.put', {
       'uri': 'dill:vm',
       'bytes': platformDillBytes,
@@ -98,12 +98,12 @@ class KernelCompilationService {
     _disposeDelayTimer = null;
 
     return _lock.synchronized(() async {
-      final instance = await _instance;
-      final requestChannel = instance.requestChannel;
+      var instance = await _instance;
+      var requestChannel = instance.requestChannel;
 
       MacroFileEntry uriStrToFile(Object? uriStr) {
-        final uri = uriCache.parse(uriStr as String);
-        final path = fileSystem.pathContext.fromUri(uri);
+        var uri = uriCache.parse(uriStr as String);
+        var path = fileSystem.pathContext.fromUri(uri);
         return fileSystem.getFile(path);
       }
 
@@ -112,7 +112,7 @@ class KernelCompilationService {
         return uriStrToFile(uriStr).exists;
       });
       requestChannel.add('file.readAsBytes', (uriStr) async {
-        final content = uriStrToFile(uriStr).content;
+        var content = uriStrToFile(uriStr).content;
         return const Utf8Encoder().convert(content);
       });
       requestChannel.add('file.readAsStringSync', (uriStr) async {
@@ -130,7 +130,7 @@ class KernelCompilationService {
   /// Stops the running `frontend_server` process.
   static Future<void> dispose() {
     return _lock.synchronized(() async {
-      final instance = _currentInstance;
+      var instance = _currentInstance;
       if (instance != null) {
         _currentInstance = null;
         // We don't expect any answer, the process will stop.
@@ -156,13 +156,13 @@ class KernelCompilationService {
 
   static _SdkPaths _computeSdkPaths() {
     // Check for google3.
-    final runFiles = io.Platform.environment['TEST_SRCDIR'];
+    var runFiles = io.Platform.environment['TEST_SRCDIR'];
     if (runFiles != null) {
-      final aotRuntimePath = io.Platform.environment['AOT_RUNTIME_PATH']!;
-      final frontServerPath = io.Platform.environment['FRONTEND_SERVER_PATH']!;
-      final frontendServerAotSnapshotPath =
+      var aotRuntimePath = io.Platform.environment['AOT_RUNTIME_PATH']!;
+      var frontServerPath = io.Platform.environment['FRONTEND_SERVER_PATH']!;
+      var frontendServerAotSnapshotPath =
           io.Platform.environment['FRONTEND_SERVER_AOT_SNAPSHOT_PATH']!;
-      final platformDillPath = io.Platform.environment['PLATFORM_DILL_PATH']!;
+      var platformDillPath = io.Platform.environment['PLATFORM_DILL_PATH']!;
       return _SdkPaths(
         aotRuntime: package_path.join(runFiles, aotRuntimePath),
         frontEndSnapshot: package_path.join(runFiles, frontServerPath),
@@ -172,13 +172,13 @@ class KernelCompilationService {
       );
     }
 
-    final executablePath = io.Platform.resolvedExecutable;
+    var executablePath = io.Platform.resolvedExecutable;
     var binPath = package_path.dirname(executablePath);
     var sdkPath = package_path.dirname(binPath);
 
     // By some reason `tools/test.py` uses `xcodebuild/ReleaseARM64/dart`
     // instead of `xcodebuild/ReleaseARM64/dart-sdk/bin/dart`.
-    final realBin = package_path.join(binPath, 'dart-sdk', 'bin');
+    var realBin = package_path.join(binPath, 'dart-sdk', 'bin');
     if (io.Directory(realBin).existsSync()) {
       binPath = realBin;
       sdkPath = package_path.dirname(binPath);
@@ -223,15 +223,15 @@ class _Lock {
   Future<void>? _last;
 
   Future<T> synchronized<T>(FutureOr<T> Function() f) async {
-    final previous = _last;
-    final completer = Completer<void>.sync();
+    var previous = _last;
+    var completer = Completer<void>.sync();
     _last = completer.future;
     try {
       if (previous != null) {
         await previous;
       }
 
-      final result = f();
+      var result = f();
       if (result is Future) {
         return await result;
       } else {

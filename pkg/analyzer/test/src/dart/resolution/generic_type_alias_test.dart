@@ -244,7 +244,7 @@ G<int>? g;
 typedef G<T> = T Function(double);
 ''');
 
-    final node = findNode.namedType('G<int>');
+    var node = findNode.namedType('G<int>');
     assertResolvedNodeText(node, r'''
 NamedType
   name: G

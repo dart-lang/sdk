@@ -354,7 +354,7 @@ class PathToObjectTest extends AbstractTypeSystemTest {
   }
 
   int _toElement(InterfaceElement element) {
-    final type = interfaceTypeNone(element);
+    var type = interfaceTypeNone(element);
     return _toType(type);
   }
 
@@ -377,7 +377,7 @@ class SuperinterfaceSetTest extends AbstractTypeSystemTest {
     //  D
     //
 
-    final classA = class_(name: 'A');
+    var classA = class_(name: 'A');
     var instA = interfaceTypeNone(classA);
 
     var BT = typeParameter('T');
@@ -445,7 +445,7 @@ class SuperinterfaceSetTest extends AbstractTypeSystemTest {
     //  D
     //
 
-    final classA = class_(name: 'A');
+    var classA = class_(name: 'A');
     var instA = interfaceTypeNone(classA);
 
     var classB = class_(

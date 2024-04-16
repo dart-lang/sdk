@@ -131,7 +131,7 @@ class A {
       error(CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION, 28, 5),
     ]);
 
-    final node = findNode.singlePrefixExpression;
+    var node = findNode.singlePrefixExpression;
     assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: !
@@ -152,7 +152,7 @@ void f(int x) {
       error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 24, 1),
     ]);
 
-    final node = findNode.prefix('++ ++ x');
+    var node = findNode.prefix('++ ++ x');
     assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: ++
@@ -188,7 +188,7 @@ void f(A a) {
       error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 28, 2),
     ]);
 
-    final node = findNode.prefix('++a');
+    var node = findNode.prefix('++a');
     assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: ++
@@ -328,7 +328,7 @@ void f() {
       error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 15, 1),
     ]);
 
-    final node = findNode.prefix('++x');
+    var node = findNode.prefix('++x');
     assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: ++
@@ -352,7 +352,7 @@ void f(dynamic a) {
 }
 ''');
 
-    final node = findNode.singlePrefixExpression;
+    var node = findNode.singlePrefixExpression;
     assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: -
@@ -563,7 +563,7 @@ void f(A a) {
 }
 ''');
 
-    final node = findNode.singlePrefixExpression;
+    var node = findNode.singlePrefixExpression;
     assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: ++
@@ -1004,7 +1004,7 @@ class A {
       error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 29, 5),
     ]);
 
-    final node = findNode.singlePrefixExpression;
+    var node = findNode.singlePrefixExpression;
     assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: ++

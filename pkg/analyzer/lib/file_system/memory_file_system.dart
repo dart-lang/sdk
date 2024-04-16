@@ -622,8 +622,8 @@ abstract class _MemoryResource implements Resource {
   /// watcher.
   @override
   ResourceWatcher watch() {
-    final streamController = StreamController<WatchEvent>.broadcast();
-    final ready = Completer<void>();
+    var streamController = StreamController<WatchEvent>.broadcast();
+    var ready = Completer<void>();
 
     /// A helper that sets up the watcher that may be called synchronously
     /// or delayed, depending on the value of
@@ -644,7 +644,7 @@ abstract class _MemoryResource implements Resource {
       }
     }
 
-    final delayWatcherInitialization = provider.delayWatcherInitialization;
+    var delayWatcherInitialization = provider.delayWatcherInitialization;
     if (delayWatcherInitialization != null) {
       // Wrap this inside onListen so that (like the real watcher) it will only
       // fire after a listener is attached.

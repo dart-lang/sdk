@@ -23,7 +23,7 @@ class B implements A, A {}
       error(CompileTimeErrorCode.IMPLEMENTS_REPEATED, 33, 1),
     ]);
 
-    final node = findNode.singleImplementsClause;
+    var node = findNode.singleImplementsClause;
     assertResolvedNodeText(node, r'''
 ImplementsClause
   implementsKeyword: implements
@@ -48,7 +48,7 @@ class C implements A, B {}
       error(CompileTimeErrorCode.IMPLEMENTS_REPEATED, 48, 1),
     ]);
 
-    final node = findNode.singleImplementsClause;
+    var node = findNode.singleImplementsClause;
     assertResolvedNodeText(node, r'''
 ImplementsClause
   implementsKeyword: implements
@@ -86,7 +86,7 @@ enum E implements A, A {
       error(CompileTimeErrorCode.IMPLEMENTS_REPEATED, 32, 1),
     ]);
 
-    final node = findNode.singleImplementsClause;
+    var node = findNode.singleImplementsClause;
     assertResolvedNodeText(node, r'''
 ImplementsClause
   implementsKeyword: implements
@@ -113,7 +113,7 @@ enum E implements A, B {
       error(CompileTimeErrorCode.IMPLEMENTS_REPEATED, 47, 1),
     ]);
 
-    final node = findNode.singleImplementsClause;
+    var node = findNode.singleImplementsClause;
     assertResolvedNodeText(node, r'''
 ImplementsClause
   implementsKeyword: implements
@@ -150,7 +150,7 @@ extension type A(int it) implements int, int {}
       error(CompileTimeErrorCode.IMPLEMENTS_REPEATED, 41, 3),
     ]);
 
-    final node = findNode.singleImplementsClause;
+    var node = findNode.singleImplementsClause;
     assertResolvedNodeText(node, r'''
 ImplementsClause
   implementsKeyword: implements
@@ -174,7 +174,7 @@ extension type B(int it) implements int, A {}
       error(CompileTimeErrorCode.IMPLEMENTS_REPEATED, 58, 1),
     ]);
 
-    final node = findNode.singleImplementsClause;
+    var node = findNode.singleImplementsClause;
     assertResolvedNodeText(node, r'''
 ImplementsClause
   implementsKeyword: implements

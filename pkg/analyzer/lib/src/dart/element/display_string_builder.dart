@@ -245,13 +245,13 @@ class ElementDisplayStringBuilder {
   }
 
   void writeRecordType(RecordType type) {
-    final positionalFields = type.positionalFields;
-    final namedFields = type.namedFields;
-    final fieldCount = positionalFields.length + namedFields.length;
+    var positionalFields = type.positionalFields;
+    var namedFields = type.namedFields;
+    var fieldCount = positionalFields.length + namedFields.length;
     _write('(');
 
     var index = 0;
-    for (final field in positionalFields) {
+    for (var field in positionalFields) {
       _writeType(field.type);
       if (index++ < fieldCount - 1) {
         _write(', ');
@@ -260,7 +260,7 @@ class ElementDisplayStringBuilder {
 
     if (namedFields.isNotEmpty) {
       _write('{');
-      for (final field in namedFields) {
+      for (var field in namedFields) {
         _writeType(field.type);
         _write(' ');
         _write(field.name);
@@ -313,9 +313,9 @@ class ElementDisplayStringBuilder {
   }
 
   void writeTypeParameterType(TypeParameterTypeImpl type) {
-    final promotedBound = type.promotedBound;
+    var promotedBound = type.promotedBound;
     if (promotedBound != null) {
-      final hasSuffix = type.nullabilitySuffix != NullabilitySuffix.none;
+      var hasSuffix = type.nullabilitySuffix != NullabilitySuffix.none;
       if (hasSuffix) {
         _write('(');
       }

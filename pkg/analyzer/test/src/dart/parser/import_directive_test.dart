@@ -16,12 +16,12 @@ main() {
 @reflectiveTest
 class ImportDirectiveParserTest extends ParserDiagnosticsTest {
   test_it() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 import 'a.dart';
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.singleImportDirective;
+    var node = parseResult.findNode.singleImportDirective;
     assertParsedNodeText(node, r'''
 ImportDirective
   importKeyword: import
@@ -32,14 +32,14 @@ ImportDirective
   }
 
   test_noSemicolon() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 import 'a.dart'
 ''');
     parseResult.assertErrors([
       error(ParserErrorCode.EXPECTED_TOKEN, 7, 8),
     ]);
 
-    final node = parseResult.findNode.singleImportDirective;
+    var node = parseResult.findNode.singleImportDirective;
     assertParsedNodeText(node, r'''
 ImportDirective
   importKeyword: import
@@ -50,14 +50,14 @@ ImportDirective
   }
 
   test_noUri_hasSemicolon() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 import ;
 ''');
     parseResult.assertErrors([
       error(ParserErrorCode.EXPECTED_STRING_LITERAL, 7, 1),
     ]);
 
-    final node = parseResult.findNode.singleImportDirective;
+    var node = parseResult.findNode.singleImportDirective;
     assertParsedNodeText(node, r'''
 ImportDirective
   importKeyword: import
@@ -68,7 +68,7 @@ ImportDirective
   }
 
   test_noUri_noSemicolon() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 import
 ''');
     parseResult.assertErrors([
@@ -76,7 +76,7 @@ import
       error(ParserErrorCode.EXPECTED_STRING_LITERAL, 7, 0),
     ]);
 
-    final node = parseResult.findNode.singleImportDirective;
+    var node = parseResult.findNode.singleImportDirective;
     assertParsedNodeText(node, r'''
 ImportDirective
   importKeyword: import

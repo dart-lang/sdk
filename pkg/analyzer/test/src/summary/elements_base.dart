@@ -26,12 +26,12 @@ abstract class ElementsBaseTest extends PubPackageResolutionTest {
   }
 
   Future<LibraryElementImpl> buildLibrary(String text) async {
-    final file = newFile(testFile.path, text);
-    final analysisContext = contextFor(file);
-    final analysisSession = analysisContext.currentSession;
+    var file = newFile(testFile.path, text);
+    var analysisContext = contextFor(file);
+    var analysisSession = analysisContext.currentSession;
 
-    final uriStr = 'package:test/test.dart';
-    final libraryResult = await analysisSession.getLibraryByUri(uriStr);
+    var uriStr = 'package:test/test.dart';
+    var libraryResult = await analysisSession.getLibraryByUri(uriStr);
 
     if (keepLinkingLibraries) {
       return libraryResult.element;
@@ -44,7 +44,7 @@ abstract class ElementsBaseTest extends PubPackageResolutionTest {
   }
 
   void checkElementText(LibraryElementImpl library, String expected) {
-    final actual = getLibraryText(
+    var actual = getLibraryText(
       library: library,
       configuration: configuration,
     );
@@ -57,9 +57,9 @@ abstract class ElementsBaseTest extends PubPackageResolutionTest {
   }
 
   Future<LibraryElementImpl> testContextLibrary(String uriStr) async {
-    final analysisContext = contextFor(testFile);
-    final analysisSession = analysisContext.currentSession;
-    final libraryResult = await analysisSession.getLibraryByUri(uriStr);
+    var analysisContext = contextFor(testFile);
+    var analysisSession = analysisContext.currentSession;
+    var libraryResult = await analysisSession.getLibraryByUri(uriStr);
     return libraryResult.element;
   }
 }

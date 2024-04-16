@@ -71,7 +71,7 @@ void f(e) {
   }
 
   test_classInstance_implements() async {
-    final List<ExpectedError> expectedErrors;
+    List<ExpectedError> expectedErrors;
     switch (_variant) {
       case _Variants.nullSafe:
         expectedErrors = [

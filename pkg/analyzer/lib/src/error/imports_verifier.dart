@@ -119,7 +119,7 @@ class GatherUsedImportedElementsVisitor extends RecursiveAstVisitor<void> {
     Element? element,
   ) {
     if (element is MultiplyDefinedElement) {
-      for (final component in element.conflictingElements) {
+      for (var component in element.conflictingElements) {
         _recordPrefixedElement(importPrefix, component);
         return;
       }
@@ -132,9 +132,9 @@ class GatherUsedImportedElementsVisitor extends RecursiveAstVisitor<void> {
     }
 
     if (importPrefix != null) {
-      final prefixElement = importPrefix.element;
+      var prefixElement = importPrefix.element;
       if (prefixElement is PrefixElement) {
-        final map = usedElements.prefixMap[prefixElement] ??= [];
+        var map = usedElements.prefixMap[prefixElement] ??= [];
         if (element != null) {
           map.add(element);
         }
@@ -297,8 +297,8 @@ class ImportsVerifier {
       _duplicateShownNamesMap = {};
 
   void addImports(CompilationUnit node) {
-    final importsWithLibraries = <_NamespaceDirective>[];
-    final exportsWithLibraries = <_NamespaceDirective>[];
+    var importsWithLibraries = <_NamespaceDirective>[];
+    var exportsWithLibraries = <_NamespaceDirective>[];
     for (var directive in node.directives) {
       if (directive is ImportDirectiveImpl) {
         var libraryElement = directive.element?.importedLibrary;
@@ -620,7 +620,7 @@ class ImportsVerifier {
   void _addShownNames(ImportDirective importDirective) {
     List<SimpleIdentifier> identifiers = <SimpleIdentifier>[];
     _unusedShownNamesMap[importDirective] = identifiers;
-    for (final combinator in importDirective.combinators) {
+    for (var combinator in importDirective.combinators) {
       if (combinator is ShowCombinator) {
         for (SimpleIdentifier name in combinator.shownNames) {
           if (name.staticElement != null) {
@@ -642,7 +642,7 @@ class ImportsVerifier {
       });
       var currentDirective = directives[0];
       for (var i = 1; i < directives.length; i++) {
-        final nextDirective = directives[i];
+        var nextDirective = directives[i];
         if (currentDirective.libraryUriStr == nextDirective.libraryUriStr &&
             ImportDirectiveImpl.areSyntacticallyIdenticalExceptUri(
               currentDirective.node,
@@ -756,26 +756,26 @@ class _UnnecessaryImportsVerifier {
   ) {
     assert(_usedElementSets.isEmpty);
 
-    final allUsedElements = <Element>{};
-    for (final usedElements in usedImportedElementsList) {
+    var allUsedElements = <Element>{};
+    for (var usedElements in usedImportedElementsList) {
       allUsedElements.addAll(usedElements.elements);
       allUsedElements.addAll(usedElements.usedExtensions);
-      for (final elements in usedElements.prefixMap.values) {
+      for (var elements in usedElements.prefixMap.values) {
         allUsedElements.addAll(elements);
       }
     }
 
-    for (final importDirective in _usedImports) {
-      final importElement = importDirective.element;
+    for (var importDirective in _usedImports) {
+      var importElement = importDirective.element;
       if (importElement == null) continue;
 
-      final importedLibrary = importElement.importedLibrary;
+      var importedLibrary = importElement.importedLibrary;
       if (importedLibrary == null) continue;
 
-      final combinators = importElement.combinators.build();
-      for (final exportedReference in importedLibrary.exportedReferences) {
-        final reference = exportedReference.reference;
-        final element = reference.element;
+      var combinators = importElement.combinators.build();
+      for (var exportedReference in importedLibrary.exportedReferences) {
+        var reference = exportedReference.reference;
+        var element = reference.element;
         if (combinators.allows(reference.name) && element != null) {
           if (allUsedElements.contains(element)) {
             if (!importedLibrary.isFromDeprecatedExport(exportedReference)) {

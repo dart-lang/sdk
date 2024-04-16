@@ -30,11 +30,11 @@ abstract class AbstractLinterContextTest extends PubPackageResolutionTest {
     await resolveTestCode(content);
     var contextUnit = LinterContextUnit(result.content, result.unit);
 
-    final libraryElement = result.libraryElement;
-    final analysisContext = libraryElement.session.analysisContext;
-    final libraryPath = libraryElement.source.fullName;
-    final workspace = analysisContext.contextRoot.workspace;
-    final workspacePackage = workspace.findPackageFor(libraryPath);
+    var libraryElement = result.libraryElement;
+    var analysisContext = libraryElement.session.analysisContext;
+    var libraryPath = libraryElement.source.fullName;
+    var workspace = analysisContext.contextRoot.workspace;
+    var workspacePackage = workspace.findPackageFor(libraryPath);
 
     context = LinterContextImpl(
       [contextUnit],
@@ -605,14 +605,14 @@ class C { }
 ''');
 
     expect(context.package, TypeMatcher<PubPackage>());
-    final pubPackage = context.package as PubPackage;
-    final pubspec = pubPackage.pubspec!;
+    var pubPackage = context.package as PubPackage;
+    var pubspec = pubPackage.pubspec!;
 
-    final argsDep = pubspec.dependencies!
+    var argsDep = pubspec.dependencies!
         .singleWhere((element) => element.name!.text == 'args');
     expect(argsDep.version!.value.text, '>=0.12.1 <2.0.0');
 
-    final charCodeDep = pubspec.dependencies!
+    var charCodeDep = pubspec.dependencies!
         .singleWhere((element) => element.name!.text == 'charcode');
     expect(charCodeDep.version!.value.text, '^1.1.0');
   }

@@ -27,7 +27,7 @@ class BasicWorkspace extends SimpleWorkspace {
 
   @override
   WorkspacePackage? findPackageFor(String filePath) {
-    final Folder folder = provider.getFolder(filePath);
+    Folder folder = provider.getFolder(filePath);
     if (provider.pathContext.isWithin(root, folder.path)) {
       return theOnlyPackage;
     } else {

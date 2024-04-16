@@ -9,20 +9,20 @@ import 'package:collection/collection.dart';
 import '../../../test/util/tree_string_sink.dart';
 
 String formatSizeInBytes(int value) {
-  final buffer = StringBuffer();
+  var buffer = StringBuffer();
   buffer.write('$value');
 
-  final kb = value ~/ 1024;
+  var kb = value ~/ 1024;
   if (kb.abs() > 0) {
     buffer.write(' = $kb KB');
   }
 
-  final mb = kb / 1024;
+  var mb = kb / 1024;
   if (mb.abs() >= 1.0) {
     buffer.write(' = ${mb.toStringAsFixed(1)} MB');
   }
 
-  final gb = mb / 1024;
+  var gb = mb / 1024;
   if (gb.abs() >= 1.0) {
     buffer.write(' = ${gb.toStringAsFixed(2)} GB');
   }
@@ -37,15 +37,15 @@ void _writeDisplayText(
 ) {
   switch (result) {
     case BenchmarkResultBytes():
-      final sizeStr = formatSizeInBytes(result.value);
+      var sizeStr = formatSizeInBytes(result.value);
       sink.writelnWithIndent('${result.name}: $sizeStr');
       if (base is BenchmarkResultBytes) {
-        final diff = result.value - base.value;
+        var diff = result.value - base.value;
         if (diff != 0) {
           sink.withIndent(() {
-            final diffStr = formatSizeInBytes(diff);
-            final diffPercent = 100 * diff / base.value;
-            final diffPercentStr = diffPercent.toStringAsFixed(2);
+            var diffStr = formatSizeInBytes(diff);
+            var diffPercent = 100 * diff / base.value;
+            var diffPercentStr = diffPercent.toStringAsFixed(2);
             sink.writelnWithIndent('change: $diffPercentStr% $diffStr');
           });
         }
@@ -53,8 +53,8 @@ void _writeDisplayText(
     case BenchmarkResultCompound():
       sink.writelnWithIndent(result.name);
       sink.withIndent(() {
-        for (final child in result.children) {
-          final childBase = base
+        for (var child in result.children) {
+          var childBase = base
               .ifTypeOrNull<BenchmarkResultCompound>()
               ?.children
               .firstWhereOrNull((e) => e.name == child.name);
@@ -64,11 +64,11 @@ void _writeDisplayText(
     case BenchmarkResultCount():
       sink.writelnWithIndent('${result.name}: ${result.value}');
       if (base is BenchmarkResultCount) {
-        final diff = result.value - base.value;
+        var diff = result.value - base.value;
         if (diff != 0) {
           sink.withIndent(() {
-            final diffPercent = 100 * diff / base.value;
-            final diffPercentStr = diffPercent.toStringAsFixed(2);
+            var diffPercent = 100 * diff / base.value;
+            var diffPercentStr = diffPercent.toStringAsFixed(2);
             sink.writelnWithIndent('change: $diffPercentStr% $diff');
           });
         }
@@ -85,7 +85,7 @@ void _writeXmlText(TreeStringSink sink, BenchmarkResult result) {
     case BenchmarkResultCompound():
       sink.writelnWithIndent("<compound name='${result.name}'>");
       sink.withIndent(() {
-        for (final child in result.children) {
+        for (var child in result.children) {
           _writeXmlText(sink, child);
         }
       });
@@ -105,27 +105,27 @@ sealed class BenchmarkResult {
   });
 
   String get asXmlText {
-    final buffer = StringBuffer();
-    final sink = TreeStringSink(sink: buffer, indent: '');
+    var buffer = StringBuffer();
+    var sink = TreeStringSink(sink: buffer, indent: '');
     _writeXmlText(sink, this);
     return buffer.toString();
   }
 
   String asDisplayText(BenchmarkResult? base) {
-    final buffer = StringBuffer();
-    final sink = TreeStringSink(sink: buffer, indent: '');
+    var buffer = StringBuffer();
+    var sink = TreeStringSink(sink: buffer, indent: '');
     _writeDisplayText(sink, this, base);
     return buffer.toString();
   }
 
   static BenchmarkResult fromXmlText(String text) {
-    final parser = ManifestParser.general(text, uri: Uri.parse(''));
-    final tagResult = parser.parseXmlTag();
+    var parser = ManifestParser.general(text, uri: Uri.parse(''));
+    var tagResult = parser.parseXmlTag();
     return _fromXml(tagResult.element!);
   }
 
   static BenchmarkResult _fromXml(XmlElement element) {
-    final name = element.attributes['name']!.value;
+    var name = element.attributes['name']!.value;
     switch (element.name) {
       case 'compound':
         return BenchmarkResultCompound(

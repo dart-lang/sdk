@@ -43,7 +43,7 @@ import augment 'b.dart';
 class A {}
 ''');
 
-    final b = newFile('$testPackageLibPath/b.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
 augment library 'a.dart';
 
 augment class A {
@@ -76,7 +76,7 @@ class B implements A {
 }
 ''');
 
-    final b = newFile('$testPackageLibPath/b.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
 augment library 'a.dart';
 
 augment class A {

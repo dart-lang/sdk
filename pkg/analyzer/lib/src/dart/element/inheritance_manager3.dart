@@ -465,13 +465,13 @@ class InheritanceManager3 {
   }
 
   Interface _getInterfaceClass(InterfaceElement element) {
-    final augmented = element.augmented;
+    var augmented = element.augmented;
 
     var namedCandidates = <Name, List<ExecutableElement>>{};
     var superImplemented = <Map<Name, ExecutableElement>>[];
     var implemented = <Name, ExecutableElement>{};
 
-    final InterfaceType? superType = element.supertype;
+    InterfaceType? superType = element.supertype;
 
     Interface? superTypeInterface;
     if (superType != null) {
@@ -653,18 +653,18 @@ class InheritanceManager3 {
   /// We handle "has an extension type member" and "has a non-extension type
   /// member" portions, considering redeclaration and conflicts.
   Interface _getInterfaceExtensionType(ExtensionTypeElement element) {
-    final augmented = element.augmented;
+    var augmented = element.augmented;
 
     // Add instance members implemented by the element itself.
-    final declared = <Name, ExecutableElement>{};
+    var declared = <Name, ExecutableElement>{};
     _addImplemented(declared, element, augmented);
 
     // Prepare precluded names.
-    final precludedNames = <Name>{};
-    final precludedMethods = <Name>{};
-    final precludedSetters = <Name>{};
-    for (final entry in declared.entries) {
-      final name = entry.key;
+    var precludedNames = <Name>{};
+    var precludedMethods = <Name>{};
+    var precludedSetters = <Name>{};
+    for (var entry in declared.entries) {
+      var name = entry.key;
       precludedNames.add(name);
       switch (entry.value) {
         case MethodElement():
@@ -675,16 +675,16 @@ class InheritanceManager3 {
     }
 
     // These declared members take precedence over "inherited" ones.
-    final implemented = Map.of(declared);
+    var implemented = Map.of(declared);
 
     // Prepare candidates for inheritance.
-    final extensionCandidates = <Name, _ExtensionTypeCandidates>{};
-    final notExtensionCandidates = <Name, _ExtensionTypeCandidates>{};
-    for (final interface in augmented.interfaces) {
-      final substitution = Substitution.fromInterfaceType(interface);
-      for (final entry in getInterface(interface.element).map.entries) {
-        final name = entry.key;
-        final executable = ExecutableMember.from2(entry.value, substitution);
+    var extensionCandidates = <Name, _ExtensionTypeCandidates>{};
+    var notExtensionCandidates = <Name, _ExtensionTypeCandidates>{};
+    for (var interface in augmented.interfaces) {
+      var substitution = Substitution.fromInterfaceType(interface);
+      for (var entry in getInterface(interface.element).map.entries) {
+        var name = entry.key;
+        var executable = ExecutableMember.from2(entry.value, substitution);
         if (executable.isExtensionTypeMember) {
           (extensionCandidates[name] ??= _ExtensionTypeCandidates(name))
               .add(executable);
@@ -695,16 +695,16 @@ class InheritanceManager3 {
       }
     }
 
-    final redeclared = <Name, List<ExecutableElement>>{};
-    final conflicts = <Conflict>[];
+    var redeclared = <Name, List<ExecutableElement>>{};
+    var conflicts = <Conflict>[];
 
     // Add extension type members.
-    for (final entry in extensionCandidates.entries) {
-      final name = entry.key;
-      final candidates = entry.value;
+    for (var entry in extensionCandidates.entries) {
+      var name = entry.key;
+      var candidates = entry.value;
       (redeclared[name] ??= []).addAll(candidates.all);
 
-      final notPrecluded = candidates.notPrecluded(
+      var notPrecluded = candidates.notPrecluded(
         precludedNames: precludedNames,
         precludedMethods: precludedMethods,
         precludedSetters: precludedSetters,
@@ -716,9 +716,9 @@ class InheritanceManager3 {
       }
 
       // If not precluded, can have either non-extension, or extension.
-      final nonExtensionSignatures = notExtensionCandidates[name];
+      var nonExtensionSignatures = notExtensionCandidates[name];
       if (nonExtensionSignatures != null) {
-        final notExtensionNotPrecluded = nonExtensionSignatures.notPrecluded(
+        var notExtensionNotPrecluded = nonExtensionSignatures.notPrecluded(
           precludedNames: precludedNames,
           precludedMethods: precludedMethods,
           precludedSetters: precludedSetters,
@@ -737,7 +737,7 @@ class InheritanceManager3 {
 
       // The inherited member must be unique.
       ExecutableElement? uniqueElement;
-      for (final candidate in notPrecluded) {
+      for (var candidate in notPrecluded) {
         if (uniqueElement == null) {
           uniqueElement = candidate;
         } else if (uniqueElement.declaration != candidate.declaration) {
@@ -760,12 +760,12 @@ class InheritanceManager3 {
     }
 
     // Add non-extension type members.
-    for (final entry in notExtensionCandidates.entries) {
-      final name = entry.key;
-      final candidates = entry.value;
+    for (var entry in notExtensionCandidates.entries) {
+      var name = entry.key;
+      var candidates = entry.value;
       (redeclared[name] ??= []).addAll(candidates.all);
 
-      final notPrecluded = candidates.notPrecluded(
+      var notPrecluded = candidates.notPrecluded(
         precludedNames: precludedNames,
         precludedMethods: precludedMethods,
         precludedSetters: precludedSetters,
@@ -782,7 +782,7 @@ class InheritanceManager3 {
         continue;
       }
 
-      final combinedSignature = combineSignatures(
+      var combinedSignature = combineSignatures(
         targetClass: element,
         candidates: notPrecluded,
         doTopMerge: true,
@@ -803,10 +803,10 @@ class InheritanceManager3 {
     }
 
     // Ensure unique overridden elements.
-    final uniqueRedeclared = <Name, List<ExecutableElement>>{};
-    for (final entry in redeclared.entries) {
-      final name = entry.key;
-      final elements = entry.value;
+    var uniqueRedeclared = <Name, List<ExecutableElement>>{};
+    for (var entry in redeclared.entries) {
+      var name = entry.key;
+      var elements = entry.value;
       if (elements.length == 1) {
         uniqueRedeclared[name] = elements;
       } else {
@@ -827,7 +827,7 @@ class InheritanceManager3 {
   }
 
   Interface _getInterfaceMixin(MixinElement element) {
-    final augmented = element.augmented;
+    var augmented = element.augmented;
 
     var superCandidates = <Name, List<ExecutableElement>>{};
     for (var constraint in augmented.superclassConstraints) {
@@ -1185,7 +1185,7 @@ class Name {
 
   Name get forGetter {
     if (name.endsWith('=')) {
-      final getterName = name.substring(0, name.length - 1);
+      var getterName = name.substring(0, name.length - 1);
       return Name(libraryUri, getterName);
     } else {
       return this;

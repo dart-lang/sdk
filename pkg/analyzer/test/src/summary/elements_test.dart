@@ -4126,7 +4126,7 @@ class A {}
 augment library 'a.dart';
 class B {}
 ''');
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import augment 'a.dart';
 class C {}
 ''');
@@ -4334,7 +4334,7 @@ import 'a.dart';
 void f({int x = A.a}) {}
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import augment 'b.dart';
 ''');
 
@@ -4381,7 +4381,7 @@ import 'a.dart' as prefix;
 void f({int x = prefix.A.a}) {}
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import augment 'b.dart';
 ''');
 
@@ -4427,7 +4427,7 @@ library
 /// My documentation.
 augment library 'test.dart';
 ''');
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import augment 'a.dart';
 ''');
     checkElementText(library, r'''
@@ -4451,7 +4451,7 @@ import 'a.dart';
 const b = a;
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import augment 'b.dart';
 ''');
 
@@ -4491,7 +4491,7 @@ import 'a.dart';
 const b = A.a;
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import augment 'b.dart';
 ''');
 
@@ -4539,7 +4539,7 @@ import 'a.dart';
 const a = A();
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import augment 'b.dart';
 ''');
 
@@ -4586,7 +4586,7 @@ import 'a.dart' as prefix;
 const b = prefix.A.a;
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import augment 'b.dart';
 ''');
 
@@ -4643,7 +4643,7 @@ import 'a.dart' as prefix;
 void f() {}
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import augment 'b.dart';
 ''');
 
@@ -4691,7 +4691,7 @@ import 'a.dart' as prefix;
 prefix.A f() {}
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import augment 'b.dart';
 ''');
 
@@ -4720,7 +4720,7 @@ import 'a.dart';
 final b = a;
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import augment 'b.dart';
 ''');
 
@@ -4753,7 +4753,7 @@ import 'a.dart';
 A f() {}
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import augment 'b.dart';
 A f() {}
 ''');
@@ -4787,7 +4787,7 @@ augment library 'test.dart';
 A f() {}
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import augment 'b.dart';
 import 'a.dart';
 A f() {}
@@ -4822,7 +4822,7 @@ augment library 'test.dart';
 export 'dart:collection';
 export 'dart:math';
 ''');
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'dart:io';
 import augment 'a.dart';
 import augment 'b.dart';
@@ -4855,7 +4855,7 @@ augment library 'test.dart';
 import 'dart:collection';
 import 'dart:math';
 ''');
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'dart:io';
 import augment 'a.dart';
 import augment 'b.dart';
@@ -4885,7 +4885,7 @@ class A {}
 A f() {}
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import augment 'a.dart';
 A f() {}
 ''');
@@ -4916,7 +4916,7 @@ augment library 'test.dart';
 A f() {}
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import augment 'a.dart';
 class A {}
 A f() {}
@@ -27512,7 +27512,7 @@ library
   exportNamespace
     A: package:test/foo_html.dart::@class::A
 ''');
-    final export = library.libraryExports[0];
+    var export = library.libraryExports[0];
     expect(export.exportedLibrary!.source.shortName, 'foo_html.dart');
   }
 
@@ -27757,7 +27757,7 @@ library
 export 'foo.dart';
 ''');
 
-    final uri = library.libraryExports[0].uri as DirectiveUriWithLibrary;
+    var uri = library.libraryExports[0].uri as DirectiveUriWithLibrary;
     expect(uri.relativeUriString, 'foo.dart');
   }
 
@@ -30690,7 +30690,7 @@ library
     addSource('$testPackageLibPath/a.dart', 'library a; class C {}');
     var library = await buildLibrary('import "a.dart" as a; a.C c;');
 
-    final prefixElement = library.libraryImports[0].prefix!.element;
+    var prefixElement = library.libraryImports[0].prefix!.element;
     expect(prefixElement.nameOffset, 19);
 
     checkElementText(library, r'''
@@ -30790,7 +30790,7 @@ import "dart:math" show e, pi;
 import 'foo.dart';
 ''');
 
-    final uri = library.libraryImports[0].uri as DirectiveUriWithLibrary;
+    var uri = library.libraryImports[0].uri as DirectiveUriWithLibrary;
     expect(uri.relativeUriString, 'foo.dart');
   }
 
@@ -32154,7 +32154,7 @@ library
     // This test should verify that we correctly record inferred types,
     // when the type is defined in a part of an SDK library. So, test that
     // the type is actually in a part.
-    final streamElement = (p.type as InterfaceType).element;
+    var streamElement = (p.type as InterfaceType).element;
     expect(streamElement.source, isNot(streamElement.library.source));
   }
 
@@ -33202,7 +33202,7 @@ library
 augment library 'test.dart';
 class A {}
 ''');
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import augment 'a.dart';
 class B {}
 ''');
@@ -33222,8 +33222,8 @@ library
               synthetic @-1
 ''');
 
-    final import_0 = library.augmentationImports[0];
-    final augmentation = import_0.importedAugmentation!;
+    var import_0 = library.augmentationImports[0];
+    var augmentation = import_0.importedAugmentation!;
     expect(augmentation.enclosingElement, same(library));
   }
 
@@ -33241,7 +33241,7 @@ augment library 'a.dart';
 augment library 'test.dart';
 ''');
 
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import augment 'a.dart';
 import augment 'c.dart';
 ''');
@@ -33264,13 +33264,13 @@ library
       definingUnit
 ''');
 
-    final import_0 = library.augmentationImports[0];
-    final augmentation = import_0.importedAugmentation!;
+    var import_0 = library.augmentationImports[0];
+    var augmentation = import_0.importedAugmentation!;
     expect(augmentation.enclosingElement, same(library));
   }
 
   test_library_augmentationImports_noRelativeUriStr() async {
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import augment '${'foo'}.dart';
 ''');
     checkElementText(library, r'''
@@ -33282,7 +33282,7 @@ library
   }
 
   test_library_augmentationImports_withRelativeUri_emptyUriSelf() async {
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import augment '';
 ''');
     checkElementText(library, r'''
@@ -33294,7 +33294,7 @@ library
   }
 
   test_library_augmentationImports_withRelativeUri_noSource() async {
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import augment 'foo:bar';
 ''');
     checkElementText(library, r'''
@@ -33309,7 +33309,7 @@ library
     newFile('$testPackageLibPath/a.dart', r'''
 library my.lib;
 ''');
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import augment 'a.dart';
 ''');
     checkElementText(library, r'''
@@ -33324,7 +33324,7 @@ library
     newFile('$testPackageLibPath/a.dart', r'''
 part of other.lib;
 ''');
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import augment 'a.dart';
 ''');
     checkElementText(library, r'''
@@ -33336,7 +33336,7 @@ library
   }
 
   test_library_augmentationImports_withRelativeUri_notExists() async {
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import augment 'a.dart';
 ''');
     checkElementText(library, r'''
@@ -33348,7 +33348,7 @@ library
   }
 
   test_library_augmentationImports_withRelativeUriString() async {
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import augment ':';
 ''');
     checkElementText(library, r'''
@@ -33391,7 +33391,7 @@ library
   }
 
   test_library_exports_noRelativeUriStr() async {
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 export '${'foo'}.dart';
 ''');
     checkElementText(library, r'''
@@ -33403,7 +33403,7 @@ library
   }
 
   test_library_exports_withRelativeUri_emptyUriSelf() async {
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 export '';
 ''');
     checkElementText(library, r'''
@@ -33415,7 +33415,7 @@ library
   }
 
   test_library_exports_withRelativeUri_noSource() async {
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 export 'foo:bar';
 ''');
     checkElementText(library, r'''
@@ -33427,7 +33427,7 @@ library
   }
 
   test_library_exports_withRelativeUri_notExists() async {
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 export 'a.dart';
 ''');
     checkElementText(library, r'''
@@ -33442,7 +33442,7 @@ library
     newFile('$testPackageLibPath/a.dart', r'''
 augment library 'test.dart';
 ''');
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 export 'a.dart';
 ''');
     checkElementText(library, r'''
@@ -33457,7 +33457,7 @@ library
     newFile('$testPackageLibPath/a.dart', r'''
 part of other.lib;
 ''');
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 export 'a.dart';
 ''');
     checkElementText(library, r'''
@@ -33469,7 +33469,7 @@ library
   }
 
   test_library_exports_withRelativeUriString() async {
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 export ':';
 ''');
     checkElementText(library, r'''
@@ -33481,7 +33481,7 @@ library
   }
 
   test_library_imports_noRelativeUriStr() async {
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import '${'foo'}.dart';
 ''');
     checkElementText(library, r'''
@@ -33493,19 +33493,19 @@ library
   }
 
   test_library_imports_prefix_importedLibraries() async {
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'dart:async' as p1;
 import 'dart:collection' as p2;
 import 'dart:math' as p1;
 ''');
-    final p1 = library.prefixes.singleWhere((prefix) => prefix.name == 'p1');
-    final import_async = library.libraryImports[0];
-    final import_math = library.libraryImports[2];
+    var p1 = library.prefixes.singleWhere((prefix) => prefix.name == 'p1');
+    var import_async = library.libraryImports[0];
+    var import_math = library.libraryImports[2];
     expect(p1.imports, unorderedEquals([import_async, import_math]));
   }
 
   test_library_imports_syntheticDartCore() async {
-    final library = await buildLibrary('');
+    var library = await buildLibrary('');
     configuration.withSyntheticDartCoreImport = true;
     checkElementText(library, r'''
 library
@@ -33516,7 +33516,7 @@ library
   }
 
   test_library_imports_withRelativeUri_emptyUriSelf() async {
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import '';
 ''');
     checkElementText(library, r'''
@@ -33528,7 +33528,7 @@ library
   }
 
   test_library_imports_withRelativeUri_noSource() async {
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'foo:bar';
 ''');
     checkElementText(library, r'''
@@ -33540,7 +33540,7 @@ library
   }
 
   test_library_imports_withRelativeUri_notExists() async {
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'a.dart';
 ''');
     checkElementText(library, r'''
@@ -33555,7 +33555,7 @@ library
     newFile('$testPackageLibPath/a.dart', r'''
 augment library 'test.dart';
 ''');
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'a.dart';
 ''');
     checkElementText(library, r'''
@@ -33570,7 +33570,7 @@ library
     newFile('$testPackageLibPath/a.dart', r'''
 part of other.lib;
 ''');
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'a.dart';
 ''');
     checkElementText(library, r'''
@@ -33582,7 +33582,7 @@ library
   }
 
   test_library_imports_withRelativeUriString() async {
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import ':';
 ''');
     checkElementText(library, r'''
@@ -33630,7 +33630,7 @@ library
   }
 
   test_library_parts_noRelativeUriStr() async {
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 part '${'foo'}.dart';
 ''');
     checkElementText(library, r'''
@@ -33646,7 +33646,7 @@ library
 part of my.lib;
 class B {}
 ''');
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 library my.lib;
 part 'a.dart';
 class A {}
@@ -33674,7 +33674,7 @@ library
 part of 'test.dart';
 class B {}
 ''');
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 part 'a.dart';
 class A {}
 ''');
@@ -33695,7 +33695,7 @@ library
   }
 
   test_library_parts_withRelativeUri_noSource() async {
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 part 'foo:bar';
 ''');
     checkElementText(library, r'''
@@ -33707,7 +33707,7 @@ library
   }
 
   test_library_parts_withRelativeUri_notPart_emptyUriSelf() async {
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 part '';
 ''');
     checkElementText(library, r'''
@@ -33720,7 +33720,7 @@ library
 
   test_library_parts_withRelativeUri_notPart_library() async {
     newFile('$testPackageLibPath/a.dart', '');
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 part 'a.dart';
 ''');
     checkElementText(library, r'''
@@ -33732,7 +33732,7 @@ library
   }
 
   test_library_parts_withRelativeUri_notPart_notExists() async {
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 part 'a.dart';
 ''');
     checkElementText(library, r'''
@@ -33744,7 +33744,7 @@ library
   }
 
   test_library_parts_withRelativeUriString() async {
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 part ':';
 ''');
     checkElementText(library, r'''
@@ -33756,12 +33756,12 @@ library
   }
 
   test_library_prefixes() async {
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 import 'dart:async' as p1;
 import 'dart:collection' as p2;
 import 'dart:math' as p1;
 ''');
-    final prefixNames = library.prefixes.map((e) => e.name).toList();
+    var prefixNames = library.prefixes.map((e) => e.name).toList();
     expect(prefixNames, unorderedEquals(['p1', 'p2']));
   }
 
@@ -34198,7 +34198,7 @@ library
 @deprecated
 augment library 'test.dart';
 ''');
-    final library = await buildLibrary('''
+    var library = await buildLibrary('''
 import augment 'a.dart';
 ''');
     checkElementText(library, r'''
@@ -41918,7 +41918,7 @@ library
   }
 
   test_sinceSdkVersion_class_constructor_inherits() async {
-    final library = await _buildDartFooLibrary(r'''
+    var library = await _buildDartFooLibrary(r'''
 import 'dart:_internal';
 
 @Since('2.15')
@@ -41953,7 +41953,7 @@ library
   }
 
   test_sinceSdkVersion_class_field_inherits() async {
-    final library = await _buildDartFooLibrary(r'''
+    var library = await _buildDartFooLibrary(r'''
 import 'dart:_internal';
 
 @Since('2.15')
@@ -41987,7 +41987,7 @@ library
   }
 
   test_sinceSdkVersion_class_getter_inherits() async {
-    final library = await _buildDartFooLibrary(r'''
+    var library = await _buildDartFooLibrary(r'''
 import 'dart:_internal';
 
 @Since('2.15')
@@ -42013,7 +42013,7 @@ library
   }
 
   test_sinceSdkVersion_class_method_inherits() async {
-    final library = await _buildDartFooLibrary(r'''
+    var library = await _buildDartFooLibrary(r'''
 import 'dart:_internal';
 
 @Since('2.15')
@@ -42036,7 +42036,7 @@ library
   }
 
   test_sinceSdkVersion_class_method_max_greater() async {
-    final library = await _buildDartFooLibrary(r'''
+    var library = await _buildDartFooLibrary(r'''
 import 'dart:_internal';
 
 @Since('2.15')
@@ -42060,7 +42060,7 @@ library
   }
 
   test_sinceSdkVersion_class_method_max_less() async {
-    final library = await _buildDartFooLibrary(r'''
+    var library = await _buildDartFooLibrary(r'''
 import 'dart:_internal';
 
 @Since('2.15')
@@ -42084,7 +42084,7 @@ library
   }
 
   test_sinceSdkVersion_class_setter_inherits() async {
-    final library = await _buildDartFooLibrary(r'''
+    var library = await _buildDartFooLibrary(r'''
 import 'dart:_internal';
 
 @Since('2.15')
@@ -42113,7 +42113,7 @@ library
   }
 
   test_sinceSdkVersion_enum_constant() async {
-    final library = await _buildDartFooLibrary(r'''
+    var library = await _buildDartFooLibrary(r'''
 import 'dart:_internal';
 
 enum E {
@@ -42151,7 +42151,7 @@ library
   }
 
   test_sinceSdkVersion_enum_method_inherits() async {
-    final library = await _buildDartFooLibrary(r'''
+    var library = await _buildDartFooLibrary(r'''
 import 'dart:_internal';
 
 @Since('2.15')
@@ -42189,7 +42189,7 @@ library
   }
 
   test_sinceSdkVersion_extension_method_inherits() async {
-    final library = await _buildDartFooLibrary(r'''
+    var library = await _buildDartFooLibrary(r'''
 import 'dart:_internal';
 
 @Since('2.15')
@@ -42213,7 +42213,7 @@ library
   }
 
   test_sinceSdkVersion_mixin_method_inherits() async {
-    final library = await _buildDartFooLibrary(r'''
+    var library = await _buildDartFooLibrary(r'''
 import 'dart:_internal';
 
 @Since('2.15')
@@ -42238,7 +42238,7 @@ library
   }
 
   test_sinceSdkVersion_unit_function() async {
-    final library = await _buildDartFooLibrary(r'''
+    var library = await _buildDartFooLibrary(r'''
 import 'dart:_internal';
 
 @Since('2.15')
@@ -42260,7 +42260,7 @@ library
   }
 
   test_sinceSdkVersion_unit_function_format_extended() async {
-    final library = await _buildDartFooLibrary(r'''
+    var library = await _buildDartFooLibrary(r'''
 import 'dart:_internal';
 
 @Since('2.15.3-dev.7')
@@ -42278,7 +42278,7 @@ library
   }
 
   test_sinceSdkVersion_unit_function_format_full() async {
-    final library = await _buildDartFooLibrary(r'''
+    var library = await _buildDartFooLibrary(r'''
 import 'dart:_internal';
 
 @Since('2.15.3')
@@ -42296,7 +42296,7 @@ library
   }
 
   test_sinceSdkVersion_unit_function_format_invalid() async {
-    final library = await _buildDartFooLibrary(r'''
+    var library = await _buildDartFooLibrary(r'''
 import 'dart:_internal';
 
 @Since('42')
@@ -42313,7 +42313,7 @@ library
   }
 
   test_sinceSdkVersion_unit_function_inherits() async {
-    final library = await _buildDartFooLibrary(r'''
+    var library = await _buildDartFooLibrary(r'''
 @Since('2.15')
 library;
 
@@ -42334,7 +42334,7 @@ library
   }
 
   test_sinceSdkVersion_unit_function_parameters_optionalNamed() async {
-    final library = await _buildDartFooLibrary(r'''
+    var library = await _buildDartFooLibrary(r'''
 import 'dart:_internal';
 
 void f(int p1, {
@@ -42359,7 +42359,7 @@ library
   }
 
   test_sinceSdkVersion_unit_function_parameters_optionalPositional() async {
-    final library = await _buildDartFooLibrary(r'''
+    var library = await _buildDartFooLibrary(r'''
 import 'dart:_internal';
 
 void f(int p1, [
@@ -42384,7 +42384,7 @@ library
   }
 
   test_sinceSdkVersion_unit_typeAlias() async {
-    final library = await _buildDartFooLibrary(r'''
+    var library = await _buildDartFooLibrary(r'''
 import 'dart:_internal';
 
 @Since('2.15')
@@ -42402,7 +42402,7 @@ library
   }
 
   test_sinceSdkVersion_unit_variable() async {
-    final library = await _buildDartFooLibrary(r'''
+    var library = await _buildDartFooLibrary(r'''
 import 'dart:_internal';
 
 @Since('2.15')
@@ -48365,10 +48365,10 @@ library
 
   /// Returns the library for [uriStr] from the context of [testFile].
   Future<LibraryElementImpl> _libraryByUriFromTest(String uriStr) async {
-    final analysisContext = contextFor(testFile);
-    final analysisSession = analysisContext.currentSession;
+    var analysisContext = contextFor(testFile);
+    var analysisSession = analysisContext.currentSession;
 
-    final libraryResult = await analysisSession.getLibraryByUri(uriStr);
+    var libraryResult = await analysisSession.getLibraryByUri(uriStr);
     libraryResult as LibraryElementResult;
     return libraryResult.element as LibraryElementImpl;
   }
@@ -51643,7 +51643,7 @@ class MixinAugmentationKeepLinkingTest extends ElementsBaseTest
 
 mixin MixinAugmentationMixin on ElementsBaseTest {
   test_allSupertypes() async {
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 mixin M {}
 class A with M {}
 ''');
@@ -51672,7 +51672,7 @@ library
   }
 
   test_allSupertypes_hasSuperclassConstraints() async {
-    final library = await buildLibrary(r'''
+    var library = await buildLibrary(r'''
 class A {}
 mixin M on A {}
 class B with M {}

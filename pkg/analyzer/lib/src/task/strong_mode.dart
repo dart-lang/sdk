@@ -323,7 +323,7 @@ class InstanceMemberInferrer {
       // Ensure that all of instance members in the supertypes have had types
       // inferred for them.
       //
-      final augmented = classElement.augmented;
+      var augmented = classElement.augmented;
       _inferType(classElement.supertype);
       augmented.mixins.forEach(_inferType);
       augmented.interfaces.forEach(_inferType);
@@ -332,25 +332,25 @@ class InstanceMemberInferrer {
       //
       // TODO(scheglov): get other members from the container
       currentInterfaceElement = classElement;
-      for (final container in classElement.withAugmentations) {
-        for (final field in classElement.fields) {
+      for (var container in classElement.withAugmentations) {
+        for (var field in classElement.fields) {
           _inferAccessorOrField(
             field: field,
           );
         }
-        for (final accessor in classElement.accessors) {
+        for (var accessor in classElement.accessors) {
           _inferAccessorOrField(
             accessor: accessor,
           );
         }
-        for (final method in container.methods) {
+        for (var method in container.methods) {
           _inferExecutable(method);
         }
         //
         // Infer initializing formal parameter types. This must happen after
         // field types are inferred.
         //
-        for (final constructor in container.constructors) {
+        for (var constructor in container.constructors) {
           _inferConstructor(constructor);
         }
       }
@@ -361,7 +361,7 @@ class InstanceMemberInferrer {
   }
 
   void _inferClasses(List<InterfaceElementImpl> elements) {
-    for (final element in elements) {
+    for (var element in elements) {
       try {
         _inferClass(element);
       } on _CycleException {
@@ -373,15 +373,15 @@ class InstanceMemberInferrer {
 
   void _inferConstructor(ConstructorElement constructor) {
     constructor as ConstructorElementImpl;
-    for (final parameter in constructor.parameters) {
+    for (var parameter in constructor.parameters) {
       if (parameter.hasImplicitType) {
         if (parameter is FieldFormalParameterElementImpl) {
-          final field = parameter.field;
+          var field = parameter.field;
           if (field != null) {
             parameter.type = field.type;
           }
         } else if (parameter is SuperFormalParameterElementImpl) {
-          final superParameter = parameter.superConstructorParameter;
+          var superParameter = parameter.superConstructorParameter;
           if (superParameter != null) {
             parameter.type = superParameter.type;
           } else {
@@ -391,7 +391,7 @@ class InstanceMemberInferrer {
       }
     }
 
-    final classElement = constructor.enclosingElement;
+    var classElement = constructor.enclosingElement;
     if (classElement is ClassElementImpl && classElement.isMixinApplication) {
       _inferMixinApplicationConstructor(classElement, constructor);
     }
@@ -483,8 +483,8 @@ class InstanceMemberInferrer {
   }
 
   void _inferExtensionTypes(List<ExtensionTypeElementImpl> extensionTypes) {
-    for (final extensionType in extensionTypes) {
-      for (final constructor in extensionType.constructors) {
+    for (var extensionType in extensionTypes) {
+      for (var constructor in extensionType.constructors) {
         _inferConstructor(constructor);
       }
     }
@@ -561,7 +561,7 @@ class InstanceMemberInferrer {
   /// interface [type].
   void _inferType(InterfaceType? type) {
     if (type != null) {
-      final element = type.element as InterfaceElementImpl;
+      var element = type.element as InterfaceElementImpl;
       _inferClass(element);
     }
   }
@@ -624,9 +624,9 @@ class InstanceMemberInferrer {
       return;
     }
 
-    final supertype = classElement.supertype;
-    final interfaces = classElement.interfaces;
-    final mixins = classElement.mixins;
+    var supertype = classElement.supertype;
+    var interfaces = classElement.interfaces;
+    var mixins = classElement.mixins;
 
     if (mixins.any((type) => type.element.isFinal)) {
       // A sealed declaration is considered 'final' if it has a direct

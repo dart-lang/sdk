@@ -27,7 +27,7 @@ void f() {
 T a<T>() => throw '';
 ''');
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -55,7 +55,7 @@ void f() {
 T a<T>() => throw '';
 ''');
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -85,7 +85,7 @@ T a<T>() => throw '';
       error(WarningCode.UNUSED_LOCAL_VARIABLE, 34, 1),
     ]);
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -112,7 +112,7 @@ T a<T>() => throw '';
       error(WarningCode.UNUSED_LOCAL_VARIABLE, 34, 1),
     ]);
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -148,7 +148,7 @@ void f() {
 T a<T>() => throw '';
 ''');
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -175,7 +175,7 @@ T a<T>() => throw '';
       error(WarningCode.UNUSED_LOCAL_VARIABLE, 22, 1),
     ]);
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -202,7 +202,7 @@ T a<T>() => throw '';
       error(WarningCode.UNUSED_LOCAL_VARIABLE, 22, 1),
     ]);
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -241,7 +241,7 @@ void f() {
 T a<T>() => throw '';
 ''');
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -269,7 +269,7 @@ void f() {
 T a<T>() => throw '';
 ''');
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier

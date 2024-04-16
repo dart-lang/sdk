@@ -121,20 +121,20 @@ class IgnoreInfo {
   /// comments in the given YAML file.
   IgnoreInfo.forYaml(String content, this.lineInfo) {
     Iterable<DiagnosticName> diagnosticNamesInMatch(RegExpMatch match) {
-      final ignored = match.namedGroup('ignored')!;
-      final offset = match.start;
+      var ignored = match.namedGroup('ignored')!;
+      var offset = match.start;
       return _trimmedCommaSeparatedMatcher
           .allMatches(ignored)
           .map((m) => DiagnosticName(m[0]!, offset + m.start));
     }
 
-    for (final match in yamlIgnoreForFileMatcher.allMatches(content)) {
+    for (var match in yamlIgnoreForFileMatcher.allMatches(content)) {
       _ignoredForFile.addAll(diagnosticNamesInMatch(match));
     }
-    for (final match in yamlIgnoreMatcher.allMatches(content)) {
-      final lineNumber = lineInfo.getLocation(match.start).lineNumber;
-      final beforeComment = match.namedGroup('before')!;
-      final nextLine = beforeComment.trim().isEmpty;
+    for (var match in yamlIgnoreMatcher.allMatches(content)) {
+      var lineNumber = lineInfo.getLocation(match.start).lineNumber;
+      var beforeComment = match.namedGroup('before')!;
+      var nextLine = beforeComment.trim().isEmpty;
       _ignoredOnLine
           .putIfAbsent(nextLine ? lineNumber + 1 : lineNumber, () => [])
           .addAll(diagnosticNamesInMatch(match));
@@ -160,7 +160,7 @@ class IgnoreInfo {
   }
 
   bool ignored(AnalysisError error) {
-    final line = lineInfo.getLocation(error.offset).lineNumber;
+    var line = lineInfo.getLocation(error.offset).lineNumber;
     return ignoredAt(error.errorCode, line);
   }
 

@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class ClassDeclarationParserTest extends ParserDiagnosticsTest {
   test_augment_constructor_named() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 augment library 'a.dart';
 augment class A {
   augment A.named();
@@ -24,7 +24,7 @@ augment class A {
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.singleClassDeclaration;
+    var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
 ClassDeclaration
   augmentKeyword: augment
@@ -48,7 +48,7 @@ ClassDeclaration
   }
 
   test_constructor_external_fieldFormalParameter_optionalPositional() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 class A {
   final int f;
   external A([this.f = 0]);
@@ -59,7 +59,7 @@ class A {
           ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_FIELD_INITIALIZERS, 39, 4),
     ]);
 
-    final node = parseResult.findNode.singleConstructorDeclaration;
+    var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
 ConstructorDeclaration
   externalKeyword: external
@@ -84,7 +84,7 @@ ConstructorDeclaration
   }
 
   test_constructor_external_fieldFormalParameter_requiredPositional() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 class A {
   final int f;
   external A(this.f);
@@ -95,7 +95,7 @@ class A {
           ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_FIELD_INITIALIZERS, 38, 4),
     ]);
 
-    final node = parseResult.findNode.singleConstructorDeclaration;
+    var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
 ConstructorDeclaration
   externalKeyword: external
@@ -114,7 +114,7 @@ ConstructorDeclaration
   }
 
   test_constructor_external_fieldInitializer() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 class A {
   final int f;
   external A() : f = 0;
@@ -124,7 +124,7 @@ class A {
       error(ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_INITIALIZER, 40, 1),
     ]);
 
-    final node = parseResult.findNode.singleConstructorDeclaration;
+    var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
 ConstructorDeclaration
   externalKeyword: external

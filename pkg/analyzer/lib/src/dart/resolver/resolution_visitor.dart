@@ -121,7 +121,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var unitSource = unitElement.source;
     var errorReporter = ErrorReporter(errorListener, unitSource);
 
-    final typeSystemOperations = TypeSystemOperations(
+    var typeSystemOperations = TypeSystemOperations(
       unitElement.library.typeSystem,
       strictCasts: strictCasts,
     );
@@ -134,7 +134,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       typeSystemOperations: typeSystemOperations,
     );
 
-    final recordTypeResolver = RecordTypeAnnotationResolver(
+    var recordTypeResolver = RecordTypeAnnotationResolver(
       typeProvider: typeProvider,
       errorReporter: errorReporter,
     );
@@ -209,7 +209,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void visitAugmentationImportDirective(
     covariant AugmentationImportDirectiveImpl node,
   ) {
-    final element = node.element;
+    var element = node.element;
     if (element is AugmentationImportElementImpl) {
       _setOrCreateMetadataElements(element, node.metadata);
     }
@@ -420,7 +420,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       covariant DeclaredVariablePatternImpl node) {
     node.type?.accept(this);
 
-    final name = node.name.lexeme;
+    var name = node.name.lexeme;
     var element = BindPatternVariableElementImpl(
       node,
       name,
@@ -590,7 +590,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void visitExtensionTypeDeclaration(
     covariant ExtensionTypeDeclarationImpl node,
   ) {
-    final element = _elementWalker!.getExtensionType();
+    var element = _elementWalker!.getExtensionType();
     node.declaredElement = element;
     _namedTypeResolver.enclosingClass = element;
 
@@ -1010,7 +1010,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void visitLibraryAugmentationDirective(
     covariant LibraryAugmentationDirectiveImpl node,
   ) {
-    final element = node.element;
+    var element = node.element;
     if (element is LibraryOrAugmentationElementImpl) {
       _setOrCreateMetadataElements(element, node.metadata);
     }
@@ -1253,7 +1253,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitSimpleIdentifier(covariant SimpleIdentifierImpl node) {
-    final newNode = _astRewriter.simpleIdentifier(_nameScope, node);
+    var newNode = _astRewriter.simpleIdentifier(_nameScope, node);
     if (newNode != node) {
       return newNode.accept(this);
     }
@@ -1665,15 +1665,15 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       return;
     }
 
-    final type = namedType.typeOrThrow;
+    var type = namedType.typeOrThrow;
 
-    final enclosingElement = _namedTypeResolver.enclosingClass;
+    var enclosingElement = _namedTypeResolver.enclosingClass;
     if (enclosingElement is ExtensionTypeElementImpl) {
       _verifyExtensionElementImplements(enclosingElement, namedType, type);
       return;
     }
 
-    final element = type.element;
+    var element = type.element;
     switch (element) {
       case ClassElement():
         return;
@@ -1716,9 +1716,9 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       return;
     }
 
-    final firstToken = namedType.importPrefix?.name ?? namedType.name2;
-    final offset = firstToken.offset;
-    final length = namedType.name2.end - offset;
+    var firstToken = namedType.importPrefix?.name ?? namedType.name2;
+    var offset = firstToken.offset;
+    var length = namedType.name2.end - offset;
     _errorReporter.atOffset(
       offset: offset,
       length: length,
@@ -1792,7 +1792,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     NamedTypeImpl node,
     DartType type,
   ) {
-    final typeSystem = _libraryElement.typeSystem;
+    var typeSystem = _libraryElement.typeSystem;
 
     if (!typeSystem.isValidExtensionTypeSuperinterface(type)) {
       _errorReporter.atNode(
@@ -1803,14 +1803,14 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       return;
     }
 
-    final declaredRepresentation = declaredElement.representation.type;
+    var declaredRepresentation = declaredElement.representation.type;
     if (typeSystem.isSubtypeOf(declaredRepresentation, type)) {
       return;
     }
 
     // When `type` is an extension type.
     if (type is InterfaceTypeImpl) {
-      final implementedRepresentation = type.representationType;
+      var implementedRepresentation = type.representationType;
       if (implementedRepresentation != null) {
         if (!typeSystem.isSubtypeOf(
           declaredRepresentation,

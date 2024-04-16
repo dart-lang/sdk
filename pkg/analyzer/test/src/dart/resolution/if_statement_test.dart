@@ -23,7 +23,7 @@ void f(x) {
 }
 ''');
 
-    final node = findNode.ifStatement('if');
+    var node = findNode.ifStatement('if');
     assertResolvedNodeText(node, r'''
 IfStatement
   ifKeyword: if
@@ -56,7 +56,7 @@ void f(Object? x) {
 }
 ''');
 
-    final node = findNode.ifStatement('if');
+    var node = findNode.ifStatement('if');
     assertResolvedNodeText(node, r'''
 IfStatement
   ifKeyword: if
@@ -135,7 +135,7 @@ void f(Object? x) {
       error(WarningCode.DEAD_CODE, 45, 8),
     ]);
 
-    final node = findNode.ifStatement('if');
+    var node = findNode.ifStatement('if');
     assertResolvedNodeText(node, r'''
 IfStatement
   ifKeyword: if
@@ -217,7 +217,7 @@ void f(Object? x) {
           CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_LOGICAL_OR, 53, 1),
     ]);
 
-    final node = findNode.ifStatement('if');
+    var node = findNode.ifStatement('if');
     assertResolvedNodeText(node, r'''
 IfStatement
   ifKeyword: if
@@ -298,7 +298,7 @@ void f(Object? x) {
           CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_LOGICAL_OR, 50, 1),
     ]);
 
-    final node = findNode.ifStatement('if');
+    var node = findNode.ifStatement('if');
     assertResolvedNodeText(node, r'''
 IfStatement
   ifKeyword: if
@@ -378,7 +378,7 @@ void f(Object? x) {
       error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 47, 1),
     ]);
 
-    final node = findNode.ifStatement('if');
+    var node = findNode.ifStatement('if');
     assertResolvedNodeText(node, r'''
 IfStatement
   ifKeyword: if
@@ -455,7 +455,7 @@ void f(Object? x) {
       error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 51, 1),
     ]);
 
-    final node = findNode.ifStatement('if');
+    var node = findNode.ifStatement('if');
     assertResolvedNodeText(node, r'''
 IfStatement
   ifKeyword: if
@@ -534,7 +534,7 @@ void f(Object? x) {
 }
 ''');
 
-    final node = findNode.ifStatement('if');
+    var node = findNode.ifStatement('if');
     assertResolvedNodeText(node, r'''
 IfStatement
   ifKeyword: if
@@ -619,7 +619,7 @@ void f(Object? x) {
       error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 42, 1),
     ]);
 
-    final node = findNode.ifStatement('if');
+    var node = findNode.ifStatement('if');
     assertResolvedNodeText(node, r'''
 IfStatement
   ifKeyword: if
@@ -701,7 +701,7 @@ void f(Object? x) {
       error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 47, 1),
     ]);
 
-    final node = findNode.ifStatement('if');
+    var node = findNode.ifStatement('if');
     assertResolvedNodeText(node, r'''
 IfStatement
   ifKeyword: if
@@ -778,7 +778,7 @@ void f(Object? x) {
       error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 33, 1),
     ]);
 
-    final node = findNode.ifStatement('if');
+    var node = findNode.ifStatement('if');
     assertResolvedNodeText(node, r'''
 IfStatement
   ifKeyword: if
@@ -871,7 +871,7 @@ void f(Object? x) {
           contextMessages: [message(testFile, 51, 1)]),
     ]);
 
-    final node = findNode.ifStatement('if');
+    var node = findNode.ifStatement('if');
     assertResolvedNodeText(node, r'''
 IfStatement
   ifKeyword: if
@@ -961,7 +961,7 @@ void f(Object? x) {
       error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 56, 1),
     ]);
 
-    final node = findNode.singleIfStatement;
+    var node = findNode.singleIfStatement;
     assertResolvedNodeText(node, r'''
 IfStatement
   ifKeyword: if
@@ -1035,7 +1035,7 @@ void f(Object? x) {
       error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 75, 1),
     ]);
 
-    final node = findNode.ifStatement('if');
+    var node = findNode.ifStatement('if');
     assertResolvedNodeText(node, r'''
 IfStatement
   ifKeyword: if
@@ -1108,7 +1108,7 @@ class A {
       error(CompileTimeErrorCode.NON_BOOL_CONDITION, 31, 5),
     ]);
 
-    final node = findNode.singleIfStatement;
+    var node = findNode.singleIfStatement;
     assertResolvedNodeText(node, r'''
 IfStatement
   ifKeyword: if
@@ -1134,7 +1134,7 @@ class A {
 }
 ''');
 
-    final node = findNode.ifStatement('if');
+    var node = findNode.ifStatement('if');
     assertResolvedNodeText(node, r'''
 IfStatement
   ifKeyword: if
@@ -1174,7 +1174,7 @@ void f(bool Function() a) {
 }
 ''');
 
-    final node = findNode.ifStatement('if');
+    var node = findNode.ifStatement('if');
     assertResolvedNodeText(node, r'''
 IfStatement
   ifKeyword: if
@@ -1204,7 +1204,7 @@ void f(int Function() a) {
 }
 ''');
 
-    final node = findNode.ifStatement('if');
+    var node = findNode.ifStatement('if');
     assertResolvedNodeText(node, r'''
 IfStatement
   ifKeyword: if
@@ -1242,7 +1242,7 @@ void f(x, bool Function() a) {
 }
 ''');
 
-    final node = findNode.ifStatement('if');
+    var node = findNode.ifStatement('if');
     assertResolvedNodeText(node, r'''
 IfStatement
   ifKeyword: if
@@ -1286,7 +1286,7 @@ void f(x) {
 }
 ''');
 
-    final node = findNode.ifStatement('if');
+    var node = findNode.ifStatement('if');
     assertResolvedNodeText(node, r'''
 IfStatement
   ifKeyword: if

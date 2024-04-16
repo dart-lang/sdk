@@ -37,7 +37,7 @@ augment class A {
 }
 ''');
 
-    final node = findNode.singleConstructorFieldInitializer;
+    var node = findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
 ConstructorFieldInitializer
   fieldName: SimpleIdentifier
@@ -59,7 +59,7 @@ class A {
 }
 ''');
 
-    final node = findNode.singleConstructorFieldInitializer;
+    var node = findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
 ConstructorFieldInitializer
   fieldName: SimpleIdentifier
@@ -82,7 +82,7 @@ class A {
 }
 ''');
 
-    final node = findNode.singleConstructorFieldInitializer;
+    var node = findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
 ConstructorFieldInitializer
   fieldName: SimpleIdentifier
@@ -140,7 +140,7 @@ class A {
 }
 ''');
 
-    final node = findNode.singleConstructorFieldInitializer;
+    var node = findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
 ConstructorFieldInitializer
   fieldName: SimpleIdentifier
@@ -198,7 +198,7 @@ const a = 0;
           1),
     ]);
 
-    final node = findNode.singleConstructorFieldInitializer;
+    var node = findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
 ConstructorFieldInitializer
   fieldName: SimpleIdentifier
@@ -224,7 +224,7 @@ class X {}
       error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 24, 5),
     ]);
 
-    final node = findNode.singleConstructorFieldInitializer;
+    var node = findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
 ConstructorFieldInitializer
   fieldName: SimpleIdentifier
@@ -250,7 +250,7 @@ const a = 0;
       error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 18, 5),
     ]);
 
-    final node = findNode.singleConstructorFieldInitializer;
+    var node = findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
 ConstructorFieldInitializer
   fieldName: SimpleIdentifier
@@ -277,7 +277,7 @@ const a = 0;
       error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 44, 5),
     ]);
 
-    final node = findNode.singleConstructorFieldInitializer;
+    var node = findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
 ConstructorFieldInitializer
   fieldName: SimpleIdentifier
@@ -303,7 +303,7 @@ const a = 0;
       error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 18, 5),
     ]);
 
-    final node = findNode.singleConstructorFieldInitializer;
+    var node = findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
 ConstructorFieldInitializer
   fieldName: SimpleIdentifier
@@ -329,7 +329,7 @@ const a = 0;
       error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 18, 5),
     ]);
 
-    final node = findNode.singleConstructorFieldInitializer;
+    var node = findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
 ConstructorFieldInitializer
   fieldName: SimpleIdentifier
@@ -355,7 +355,7 @@ void x() {}
       error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 18, 5),
     ]);
 
-    final node = findNode.singleConstructorFieldInitializer;
+    var node = findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
 ConstructorFieldInitializer
   fieldName: SimpleIdentifier
@@ -381,7 +381,7 @@ var x = 0;
       error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 18, 5),
     ]);
 
-    final node = findNode.singleConstructorFieldInitializer;
+    var node = findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
 ConstructorFieldInitializer
   fieldName: SimpleIdentifier
@@ -406,7 +406,7 @@ const a = 0;
       error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 21, 5),
     ]);
 
-    final node = findNode.singleConstructorFieldInitializer;
+    var node = findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
 ConstructorFieldInitializer
   fieldName: SimpleIdentifier
@@ -431,7 +431,7 @@ const a = 0;
       error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 18, 5),
     ]);
 
-    final node = findNode.singleConstructorFieldInitializer;
+    var node = findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
 ConstructorFieldInitializer
   fieldName: SimpleIdentifier

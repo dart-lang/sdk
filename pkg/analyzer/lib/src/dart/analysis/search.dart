@@ -176,7 +176,7 @@ class FindDeclarations {
       });
     }
 
-    final entries = [
+    var entries = [
       ...ownedFiles.addedFiles.entries,
       if (!onlyAnalyzed) ...ownedFiles.knownFiles.entries,
     ];
@@ -219,8 +219,8 @@ class ImportElementReferencesVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitNamedType(NamedType node) {
     if (importedElements.contains(node.element)) {
-      final importElementPrefix = importElement.prefix;
-      final importPrefix = node.importPrefix;
+      var importElementPrefix = importElement.prefix;
+      var importPrefix = node.importPrefix;
       if (importElementPrefix == null) {
         if (importPrefix == null) {
           _addResult(node.offset, 0);
@@ -228,8 +228,8 @@ class ImportElementReferencesVisitor extends RecursiveAstVisitor<void> {
       } else {
         if (importPrefix != null &&
             importPrefix.element == importElementPrefix.element) {
-          final offset = importPrefix.offset;
-          final end = importPrefix.period.end;
+          var offset = importPrefix.offset;
+          var end = importPrefix.period.end;
           _addResult(offset, end - offset);
         }
       }
@@ -438,7 +438,7 @@ class Search {
 
     await _driver.discoverAvailableFiles();
 
-    final List<SubtypeResult> results = [];
+    List<SubtypeResult> results = [];
 
     // Note, this is a defensive copy.
     var files = _driver.fsState.getFilesSubtypingName(name)?.toList();
@@ -545,10 +545,10 @@ class Search {
     if (name.startsWith('_')) {
       String libraryPath = element.library!.source.fullName;
       if (searchedFiles.add(libraryPath, this)) {
-        final libraryFile = _driver.fsState.getFileForPath(libraryPath);
-        final libraryKind = libraryFile.kind;
+        var libraryFile = _driver.fsState.getFileForPath(libraryPath);
+        var libraryKind = libraryFile.kind;
         if (libraryKind is LibraryFileKind) {
-          for (final file in libraryKind.files) {
+          for (var file in libraryKind.files) {
             if (file == elementFile || file.referencedNames.contains(name)) {
               files.add(file);
             }
@@ -621,8 +621,8 @@ class Search {
       CompilationUnitElement element) async {
     String path = element.source.fullName;
 
-    final file = _driver.resourceProvider.getFile(path);
-    final fileState = _driver.fsState.getExisting(file);
+    var file = _driver.resourceProvider.getFile(path);
+    var fileState = _driver.fsState.getExisting(file);
 
     // If the file is not known, then it is not referenced.
     if (fileState == null) {
@@ -631,7 +631,7 @@ class Search {
 
     // Check files that reference the given file.
     List<SearchResult> results = <SearchResult>[];
-    for (final reference in fileState.referencingFiles) {
+    for (var reference in fileState.referencingFiles) {
       await _addResultsInFile(
         results,
         element,
@@ -880,8 +880,8 @@ class SearchedFiles {
   final Map<Uri, Search> uriOwners = {};
 
   bool add(String path, Search search) {
-    final fsState = search._driver.fsState;
-    final fileState = fsState.getExistingFromPath(path);
+    var fsState = search._driver.fsState;
+    var fileState = fsState.getExistingFromPath(path);
     if (fileState == null) {
       return false;
     }
@@ -1246,10 +1246,10 @@ class _FindDeclarations {
         var uri = entry.key;
         var analysisDriver = entry.value;
 
-        final libraryElement = await performance.runAsync(
+        var libraryElement = await performance.runAsync(
           'getLibraryByUri',
           (performance) async {
-            final result = await analysisDriver.getLibraryByUri('$uri');
+            var result = await analysisDriver.getLibraryByUri('$uri');
             if (result is LibraryElementResultImpl) {
               return result.element as LibraryElementImpl;
             }
@@ -1550,7 +1550,7 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitImportPrefixReference(ImportPrefixReference node) {
-    final element = node.element;
+    var element = node.element;
     if (elements.contains(element)) {
       _addResult(node.name, SearchResultKind.REFERENCE);
     }
@@ -1558,7 +1558,7 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitNamedType(NamedType node) {
-    final element = node.element;
+    var element = node.element;
     if (elements.contains(element)) {
       _addResult(node.name2, SearchResultKind.REFERENCE);
     }

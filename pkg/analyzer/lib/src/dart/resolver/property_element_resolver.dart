@@ -228,7 +228,7 @@ class PropertyElementResolver with ScopeHelpers {
       );
     }
 
-    final scopeLookupResult = node.scopeLookupResult!;
+    var scopeLookupResult = node.scopeLookupResult!;
     reportDeprecatedExportUse(
       scopeLookupResult: scopeLookupResult,
       nameToken: node.token,
@@ -243,14 +243,14 @@ class PropertyElementResolver with ScopeHelpers {
       var readLookup = LexicalLookup.resolveGetter(scopeLookupResult) ??
           _resolver.thisLookupGetter(node);
 
-      final callFunctionType = readLookup?.callFunctionType;
+      var callFunctionType = readLookup?.callFunctionType;
       if (callFunctionType != null) {
         return PropertyElementResolverResult(
           functionTypeCallType: callFunctionType,
         );
       }
 
-      final recordField = readLookup?.recordField;
+      var recordField = readLookup?.recordField;
       if (recordField != null) {
         return PropertyElementResolverResult(
           recordField: recordField,
@@ -668,7 +668,7 @@ class PropertyElementResolver with ScopeHelpers {
       typeReference = _resolver.typeProvider.typeType.element;
     }
 
-    final augmented = typeReference.augmented;
+    var augmented = typeReference.augmented;
 
     ExecutableElement? readElement;
     ExecutableElement? readElementRecovery;
@@ -891,7 +891,7 @@ class PropertyElementResolver with ScopeHelpers {
     var readElement = result.getter;
     var writeElement = result.setter;
 
-    final contextType = hasRead
+    var contextType = hasRead
         ? readElement.firstParameterType
         : writeElement.firstParameterType;
 

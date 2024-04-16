@@ -126,7 +126,7 @@ main() {
   }
 
   void test_binary_expression_statement() {
-    final unit = parseCompilationUnit('D? foo(X? x) { X ?? x2; }');
+    var unit = parseCompilationUnit('D? foo(X? x) { X ?? x2; }');
     var funct = unit.declarations[0] as FunctionDeclaration;
     var body = funct.functionExpression.body as BlockFunctionBody;
     var statement = body.block.statements[0] as ExpressionStatement;

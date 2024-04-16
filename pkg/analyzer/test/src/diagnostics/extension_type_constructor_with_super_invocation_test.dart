@@ -28,7 +28,7 @@ extension type E(int it) {
           5),
     ]);
 
-    final node = findNode.singleSuperConstructorInvocation;
+    var node = findNode.singleSuperConstructorInvocation;
     assertResolvedNodeText(node, r'''
 SuperConstructorInvocation
   superKeyword: super
@@ -56,7 +56,7 @@ extension type E(int it) {
           5),
     ]);
 
-    final node = findNode.singleSuperConstructorInvocation;
+    var node = findNode.singleSuperConstructorInvocation;
     assertResolvedNodeText(node, r'''
 SuperConstructorInvocation
   superKeyword: super

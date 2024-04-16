@@ -130,10 +130,10 @@ class NodeTextExpectationsCollector {
       return;
     }
 
-    final traceLines = '${StackTrace.current}'.split('\n');
-    for (final assertMethod in assertMethods) {
+    var traceLines = '${StackTrace.current}'.split('\n');
+    for (var assertMethod in assertMethods) {
       for (var traceIndex = 0; traceIndex < traceLines.length; traceIndex++) {
-        final traceLine = traceLines[traceIndex];
+        var traceLine = traceLines[traceIndex];
         if (!traceLine.contains(' ${assertMethod.stackTracePattern} ')) {
           continue;
         }
@@ -143,21 +143,21 @@ class NodeTextExpectationsCollector {
         if (traceLines[invocationTraceIndex] == '<asynchronous suspension>') {
           invocationTraceIndex++;
         }
-        final invocationTraceLine = traceLines[invocationTraceIndex];
+        var invocationTraceLine = traceLines[invocationTraceIndex];
 
         // Parse the invocation stack trace line.
-        final locationMatch = RegExp(
+        var locationMatch = RegExp(
           r'(file://.+_test.dart):(\d+):',
         ).firstMatch(invocationTraceLine);
         if (locationMatch == null) {
           fail('Cannot parse: $invocationTraceLine');
         }
 
-        final path = Uri.parse(locationMatch.group(1)!).toFilePath();
-        final line = int.parse(locationMatch.group(2)!);
-        final file = _getFile(path);
+        var path = Uri.parse(locationMatch.group(1)!).toFilePath();
+        var line = int.parse(locationMatch.group(2)!);
+        var file = _getFile(path);
 
-        final invocation = file.findInvocation(
+        var invocation = file.findInvocation(
           invocationLine: line,
         );
         if (invocation == null) {
@@ -171,8 +171,8 @@ class NodeTextExpectationsCollector {
           );
         }
 
-        final argumentList = invocation.argumentList;
-        final argument = assertMethod.argument.get(argumentList);
+        var argumentList = invocation.argumentList;
+        var argument = assertMethod.argument.get(argumentList);
         if (argument is! SimpleStringLiteral) {
           fail('Not a literal: ${argument.runtimeType}');
         }
@@ -192,7 +192,7 @@ class NodeTextExpectationsCollector {
   }
 
   static void apply() {
-    for (final file in _files.values) {
+    for (var file in _files.values) {
       file.applyReplacements();
     }
     _files.clear();
@@ -267,15 +267,15 @@ class _File {
   final List<_Replacement> replacements = [];
 
   factory _File(String path) {
-    final content = io.File(path).readAsStringSync();
+    var content = io.File(path).readAsStringSync();
 
-    final collection = AnalysisContextCollection(
+    var collection = AnalysisContextCollection(
       resourceProvider: PhysicalResourceProvider.INSTANCE,
       includedPaths: [path],
     );
-    final analysisContext = collection.contextFor(path);
-    final analysisSession = analysisContext.currentSession;
-    final parseResult = analysisSession.getParsedUnit(path);
+    var analysisContext = collection.contextFor(path);
+    var analysisSession = analysisContext.currentSession;
+    var parseResult = analysisSession.getParsedUnit(path);
     parseResult as ParsedUnitResult;
 
     return _File._(
@@ -295,7 +295,7 @@ class _File {
 
   void addReplacement(_Replacement replacement) {
     // Check if there is the same replacement.
-    for (final existing in replacements) {
+    for (var existing in replacements) {
       if (existing.offset == replacement.offset) {
         // Sanity check.
         if (existing.end != replacement.end) {
@@ -324,7 +324,7 @@ class _File {
   void applyReplacements() {
     replacements.sort((a, b) => b.offset - a.offset);
     var newCode = content;
-    for (final replacement in replacements) {
+    for (var replacement in replacements) {
       newCode = newCode.substring(0, replacement.offset) +
           replacement.text +
           newCode.substring(replacement.end);
@@ -335,7 +335,7 @@ class _File {
   MethodInvocation? findInvocation({
     required int invocationLine,
   }) {
-    final visitor = _InvocationVisitor(
+    var visitor = _InvocationVisitor(
       lineInfo: lineInfo,
       requestedLine: invocationLine,
     );
@@ -360,7 +360,7 @@ class _InvocationVisitor extends RecursiveAstVisitor<void> {
       return;
     }
 
-    final nodeLine = lineInfo.getLocation(node.offset).lineNumber;
+    var nodeLine = lineInfo.getLocation(node.offset).lineNumber;
     if (nodeLine == requestedLine) {
       result = node;
     }

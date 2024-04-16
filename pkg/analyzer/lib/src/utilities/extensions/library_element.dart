@@ -20,18 +20,18 @@ extension _ElementExtension on Element {
   /// Locates an [Element] by its [ElementLocation] assuming this element
   /// is a match up to [thisIndex].
   Element? _locateElement(ElementLocation location, int thisIndex) {
-    final components = location.components;
+    var components = location.components;
     IndexError.check(thisIndex, components.length, indexable: components);
 
-    final nextIndex = thisIndex + 1;
+    var nextIndex = thisIndex + 1;
     if (nextIndex == components.length) {
       // This element matches the last component so return it.
       return this;
     }
 
     // Search for a matching child.
-    final identifier = components[nextIndex];
-    for (final child in children) {
+    var identifier = components[nextIndex];
+    for (var child in children) {
       if ((child as ElementImpl).identifier == identifier) {
         return child._locateElement(location, nextIndex);
       }

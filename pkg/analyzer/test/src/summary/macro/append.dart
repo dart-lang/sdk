@@ -9,19 +9,19 @@ Future<List<Object>> resolveIdentifiers(
   TypePhaseIntrospector introspector,
   String withIdentifiers,
 ) async {
-  final result = <Object>[];
+  var result = <Object>[];
   var lastMatchEnd = 0;
 
   void addStringPart(int end) {
-    final str = withIdentifiers.substring(lastMatchEnd, end);
+    var str = withIdentifiers.substring(lastMatchEnd, end);
     result.add(str);
   }
 
-  final pattern = RegExp(r'\{\{(.+?)@(\w+?)\}\}');
-  for (final match in pattern.allMatches(withIdentifiers)) {
+  var pattern = RegExp(r'\{\{(.+?)@(\w+?)\}\}');
+  for (var match in pattern.allMatches(withIdentifiers)) {
     addStringPart(match.start);
     // ignore: deprecated_member_use
-    final identifier = await introspector.resolveIdentifier(
+    var identifier = await introspector.resolveIdentifier(
       Uri.parse(match.group(1)!),
       match.group(2)!,
     );
@@ -49,7 +49,7 @@ Future<List<Object>> resolveIdentifiers(
   }
 
   Future<void> _append(InterfaceTypesBuilder builder) async {
-    final parts = await resolveIdentifiers(builder, code);
+    var parts = await resolveIdentifiers(builder, code);
     builder.appendInterfaces([
       RawTypeAnnotationCode.fromParts(parts),
     ]);
@@ -67,7 +67,7 @@ Future<List<Object>> resolveIdentifiers(
   }
 
   Future<void> _append(MixinTypesBuilder builder) async {
-    final parts = await resolveIdentifiers(builder, code);
+    var parts = await resolveIdentifiers(builder, code);
     builder.appendMixins([
       RawTypeAnnotationCode.fromParts(parts),
     ]);
@@ -113,7 +113,7 @@ Future<List<Object>> resolveIdentifiers(
   }
 
   Future<void> _declare(DeclarationBuilder builder) async {
-    final parts = await resolveIdentifiers(builder, code);
+    var parts = await resolveIdentifiers(builder, code);
     builder.declareInLibrary(
       DeclarationCode.fromParts(parts),
     );
@@ -151,7 +151,7 @@ Future<List<Object>> resolveIdentifiers(
   }
 
   Future<void> _declare(MemberDeclarationBuilder builder) async {
-    final parts = await resolveIdentifiers(builder, code);
+    var parts = await resolveIdentifiers(builder, code);
     builder.declareInType(
       DeclarationCode.fromParts(parts),
     );

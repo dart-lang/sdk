@@ -125,7 +125,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
   @override
   DartType resolveInvocation({required FunctionType? rawType}) {
     var typeArgumentList = _typeArguments;
-    final originalType = rawType;
+    var originalType = rawType;
 
     List<DartType>? typeArgumentTypes;
     GenericInferrer? inferrer;

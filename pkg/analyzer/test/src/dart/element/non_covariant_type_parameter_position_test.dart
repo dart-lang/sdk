@@ -32,12 +32,12 @@ class NonCovariantTypeParameterPositionVisitorTest
   }
 
   void expectNonCovariant(DartType type) {
-    final actual = _compute(type);
+    var actual = _compute(type);
     expect(actual, isTrue);
   }
 
   void expectNotNonCovariant(DartType type) {
-    final actual = _compute(type);
+    var actual = _compute(type);
     expect(actual, isFalse);
   }
 
@@ -83,7 +83,7 @@ class NonCovariantTypeParameterPositionVisitorTest
     );
 
     // Not the `T` for which we check.
-    final T2 = typeParameter('T');
+    var T2 = typeParameter('T');
     expectNotNonCovariant(
       functionTypeNone(
         returnType: voidNone,
@@ -155,7 +155,7 @@ class NonCovariantTypeParameterPositionVisitorTest
   test_typeParameter() {
     expectNotNonCovariant(T);
 
-    final U = typeParameter('U');
+    var U = typeParameter('U');
     expectNotNonCovariant(typeParameterTypeNone(U));
   }
 

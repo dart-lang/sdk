@@ -25,7 +25,7 @@ void f() {
       error(WarningCode.UNUSED_ELEMENT, 15, 1),
     ]);
 
-    final node = findNode.singleFunctionDeclarationStatement;
+    var node = findNode.singleFunctionDeclarationStatement;
     assertResolvedNodeText(node, r'''
 FunctionDeclarationStatement
   functionDeclaration: FunctionDeclaration
@@ -88,7 +88,7 @@ void f() {
       error(WarningCode.UNUSED_ELEMENT, 18, 1),
     ]);
 
-    final node = findNode.singleFunctionDeclarationStatement;
+    var node = findNode.singleFunctionDeclarationStatement;
     assertResolvedNodeText(node, r'''
 FunctionDeclarationStatement
   functionDeclaration: FunctionDeclaration
@@ -169,7 +169,7 @@ void f() {
       error(WarningCode.UNUSED_ELEMENT, 18, 1),
     ]);
 
-    final node = findNode.singleFunctionDeclarationStatement;
+    var node = findNode.singleFunctionDeclarationStatement;
     assertResolvedNodeText(node, r'''
 FunctionDeclarationStatement
   functionDeclaration: FunctionDeclaration
@@ -224,7 +224,7 @@ void f() {
       error(WarningCode.UNUSED_ELEMENT, 18, 1),
     ]);
 
-    final node = findNode.singleFunctionDeclarationStatement;
+    var node = findNode.singleFunctionDeclarationStatement;
     assertResolvedNodeText(node, r'''
 FunctionDeclarationStatement
   functionDeclaration: FunctionDeclaration
@@ -279,7 +279,7 @@ void f() {
       error(WarningCode.UNUSED_ELEMENT, 18, 1),
     ]);
 
-    final node = findNode.singleFunctionDeclarationStatement;
+    var node = findNode.singleFunctionDeclarationStatement;
     assertResolvedNodeText(node, r'''
 FunctionDeclarationStatement
   functionDeclaration: FunctionDeclaration
@@ -335,7 +335,7 @@ void f() {
       error(WarningCode.UNUSED_ELEMENT, 18, 1),
     ]);
 
-    final node = findNode.singleFunctionDeclarationStatement;
+    var node = findNode.singleFunctionDeclarationStatement;
     assertResolvedNodeText(node, r'''
 FunctionDeclarationStatement
   functionDeclaration: FunctionDeclaration
@@ -384,7 +384,7 @@ void f() {
       error(WarningCode.UNUSED_ELEMENT, 13, 1),
     ]);
 
-    final node = findNode.singleFunctionDeclarationStatement;
+    var node = findNode.singleFunctionDeclarationStatement;
     assertResolvedNodeText(node, r'''
 FunctionDeclarationStatement
   functionDeclaration: FunctionDeclaration
@@ -414,7 +414,7 @@ void f() {
       error(WarningCode.UNUSED_ELEMENT, 13, 1),
     ]);
 
-    final node = findNode.singleFunctionDeclarationStatement;
+    var node = findNode.singleFunctionDeclarationStatement;
     assertResolvedNodeText(node, r'''
 FunctionDeclarationStatement
   functionDeclaration: FunctionDeclaration

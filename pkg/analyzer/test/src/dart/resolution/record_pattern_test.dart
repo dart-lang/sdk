@@ -24,7 +24,7 @@ void f(x) {
   }
 }
 ''');
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
   leftParenthesis: (
@@ -44,7 +44,7 @@ void f(x) {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 46, 1),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
   leftParenthesis: (
@@ -76,7 +76,7 @@ void f(x) {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 41, 1),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
   leftParenthesis: (
@@ -103,7 +103,7 @@ void f(Object? x) {
   }
 }
 ''');
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
   leftParenthesis: (
@@ -121,7 +121,7 @@ void f(Object? x) {
   }
 }
 ''');
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
   leftParenthesis: (
@@ -152,7 +152,7 @@ void f(Object? x) {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 54, 1),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
   leftParenthesis: (
@@ -187,7 +187,7 @@ void f(Object? x) {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 54, 1),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
   leftParenthesis: (
@@ -217,7 +217,7 @@ void f(Object? x) {
   }
 }
 ''');
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
   leftParenthesis: (
@@ -245,7 +245,7 @@ void f(Object? x) {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 49, 1),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
   leftParenthesis: (
@@ -277,7 +277,7 @@ void f(Object? x) {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 49, 1),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
   leftParenthesis: (
@@ -308,7 +308,7 @@ void f(() x) {
       error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 39, 10),
       error(WarningCode.UNUSED_LOCAL_VARIABLE, 47, 1),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
   leftParenthesis: (
@@ -342,7 +342,7 @@ void f(() x) {
       error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 39, 9),
       error(WarningCode.UNUSED_LOCAL_VARIABLE, 46, 1),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
   leftParenthesis: (
@@ -374,7 +374,7 @@ void f(({int b}) x) {
       error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 46, 9),
       error(WarningCode.UNUSED_LOCAL_VARIABLE, 53, 1),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
   leftParenthesis: (
@@ -406,7 +406,7 @@ void f(({int a, int b}) x) {
       error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 53, 9),
       error(WarningCode.UNUSED_LOCAL_VARIABLE, 60, 1),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
   leftParenthesis: (
@@ -439,7 +439,7 @@ void f(() x) {
       error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 39, 8),
       error(WarningCode.UNUSED_LOCAL_VARIABLE, 44, 1),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
   leftParenthesis: (
@@ -469,7 +469,7 @@ void f((int, String) x) {
       error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 50, 8),
       error(WarningCode.UNUSED_LOCAL_VARIABLE, 55, 1),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
   leftParenthesis: (
@@ -499,7 +499,7 @@ void f(() x) {
 ''', [
       error(WarningCode.DEAD_CODE, 60, 7),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
   leftParenthesis: (
@@ -521,7 +521,7 @@ void f((int, double, {String foo}) x) {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 81, 1),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 88, 1),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
   leftParenthesis: (
@@ -570,7 +570,7 @@ void f(({int foo}) x) {
       error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 48, 12),
       error(WarningCode.UNUSED_LOCAL_VARIABLE, 58, 1),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
   leftParenthesis: (
@@ -602,7 +602,7 @@ void f(({int foo}) x) {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 58, 1),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
   leftParenthesis: (
@@ -635,7 +635,7 @@ void f(({int foo}) x) {
       error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 48, 5),
       error(CompileTimeErrorCode.MISSING_NAMED_PATTERN_FIELD_NAME, 49, 3),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
   leftParenthesis: (
@@ -665,7 +665,7 @@ void f(({int foo}) x) {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 55, 3),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
   leftParenthesis: (
@@ -696,7 +696,7 @@ void f(({int? foo}) x) {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 56, 3),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
   leftParenthesis: (
@@ -734,7 +734,7 @@ void f(({int? foo}) x) {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 56, 3),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
   leftParenthesis: (
@@ -768,7 +768,7 @@ void f(({int? foo}) x) {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 56, 3),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
   leftParenthesis: (
@@ -802,7 +802,7 @@ void f((int,) x) {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 48, 1),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
   leftParenthesis: (
@@ -829,7 +829,7 @@ void f((int, String) x) {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 33, 1),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 36, 1),
     ]);
-    final node = findNode.singlePatternVariableDeclaration;
+    var node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclaration
   keyword: var
@@ -872,7 +872,7 @@ void f() {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 22, 1),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 32, 1),
     ]);
-    final node = findNode.singlePatternVariableDeclaration;
+    var node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclaration
   keyword: var

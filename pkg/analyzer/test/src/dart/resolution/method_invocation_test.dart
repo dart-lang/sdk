@@ -31,7 +31,7 @@ void g(Object a) {}
       error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 29, 5),
     ]);
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -100,7 +100,7 @@ void f(A a) {
 }
 ''');
 
-    final node = findNode.singleCascadeExpression;
+    var node = findNode.singleCascadeExpression;
     assertResolvedNodeText(node, r'''
 CascadeExpression
   target: SimpleIdentifier
@@ -1389,7 +1389,7 @@ MethodInvocation
   }
 
   test_class_explicitThis_inAugmentation_augmentationDeclares() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 augment library 'test.dart'
 
 augment class A {
@@ -1410,7 +1410,7 @@ class A {}
 
     await resolveFile2(a);
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: ThisExpression
@@ -1449,7 +1449,7 @@ class A {
 }
 ''');
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: ThisExpression
@@ -1488,7 +1488,7 @@ class A {
 }
 ''');
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -1523,7 +1523,7 @@ class A {
 }
 ''');
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -1558,7 +1558,7 @@ class A {
 }
 ''');
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -3113,7 +3113,7 @@ extension type A(int it) {
 }
 ''');
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: ThisExpression
@@ -3143,7 +3143,7 @@ extension type A(int it) {
 }
 ''');
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -3253,7 +3253,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
@@ -3291,7 +3291,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
@@ -3435,7 +3435,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
@@ -4133,7 +4133,7 @@ void f(A a) {
 }
 ''');
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
@@ -4171,7 +4171,7 @@ void f(A a) {
 }
 ''');
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
@@ -4269,7 +4269,7 @@ void f(A a) {
 }
 ''');
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
@@ -4300,7 +4300,7 @@ void f(A a) {
 }
 ''');
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
@@ -4334,7 +4334,7 @@ void f(A? a) {
           67, 3),
     ]);
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
@@ -4365,7 +4365,7 @@ void f(A? a) {
 }
 ''');
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
@@ -4400,7 +4400,7 @@ void f(X x) {
 }
 ''');
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
@@ -4437,7 +4437,7 @@ void f(X x) {
       error(CompileTimeErrorCode.UNDEFINED_METHOD, 109, 3),
     ]);
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
@@ -4472,7 +4472,7 @@ void f(X x) {
 }
 ''');
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
@@ -4512,7 +4512,7 @@ void f(A a) {
 }
 ''');
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
@@ -4550,7 +4550,7 @@ void f(A a) {
 }
 ''');
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
@@ -4579,7 +4579,7 @@ Object f(Object? x) {
 }
 ''');
 
-    final node = findNode.methodInvocation('toString()');
+    var node = findNode.methodInvocation('toString()');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SwitchExpression
@@ -4967,7 +4967,7 @@ void f((int, String) r) {
 }
 ''');
 
-    final node = findNode.methodInvocation('r.foo(0)');
+    var node = findNode.methodInvocation('r.foo(0)');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
@@ -5003,7 +5003,7 @@ void f((int, String)? r) {
 }
 ''');
 
-    final node = findNode.methodInvocation('r.foo(0)');
+    var node = findNode.methodInvocation('r.foo(0)');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
@@ -5042,7 +5042,7 @@ void f((int, String)? r) {
           86, 3),
     ]);
 
-    final node = findNode.methodInvocation('r.foo(0)');
+    var node = findNode.methodInvocation('r.foo(0)');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
@@ -5508,7 +5508,7 @@ class A {
       error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 45, 3),
     ]);
 
-    final node = findNode.functionExpressionInvocation('foo(0)');
+    var node = findNode.functionExpressionInvocation('foo(0)');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: SimpleIdentifier
@@ -5540,7 +5540,7 @@ class A {
 }
 ''');
 
-    final node = findNode.functionExpressionInvocation('foo(0)');
+    var node = findNode.functionExpressionInvocation('foo(0)');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: SimpleIdentifier
@@ -5572,7 +5572,7 @@ class A {
 }
 ''');
 
-    final node = findNode.functionExpressionInvocation('foo(0)');
+    var node = findNode.functionExpressionInvocation('foo(0)');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: SimpleIdentifier
@@ -5600,7 +5600,7 @@ void f(foo) {
 }
 ''');
 
-    final node = findNode.functionExpressionInvocation('foo(0)');
+    var node = findNode.functionExpressionInvocation('foo(0)');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: SimpleIdentifier
@@ -5634,7 +5634,7 @@ void f() {
       error(CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT, 60, 1),
     ]);
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -5684,7 +5684,7 @@ void f() {
       error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 29, 3),
     ]);
 
-    final node = findNode.functionExpressionInvocation('foo(0)');
+    var node = findNode.functionExpressionInvocation('foo(0)');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: SimpleIdentifier
@@ -5714,7 +5714,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.functionExpressionInvocation('foo(0)');
+    var node = findNode.functionExpressionInvocation('foo(0)');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: SimpleIdentifier
@@ -5810,7 +5810,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -5839,7 +5839,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -6141,7 +6141,7 @@ mixin A {
 }
 ''');
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: ThisExpression
@@ -6180,7 +6180,7 @@ mixin A {
 }
 ''');
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -6352,7 +6352,7 @@ extension E on int Function() {
 }
 ''');
 
-    final node = findNode.methodInvocation('call()');
+    var node = findNode.methodInvocation('call()');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -6376,7 +6376,7 @@ extension E<T extends int Function()> on T {
 }
 ''');
 
-    final node = findNode.methodInvocation('call()');
+    var node = findNode.methodInvocation('call()');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier

@@ -25,7 +25,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.singleWhileStatement;
+    var node = findNode.singleWhileStatement;
     assertResolvedNodeText(node, r'''
 WhileStatement
   whileKeyword: while
@@ -53,7 +53,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.singleLabeledStatement;
+    var node = findNode.singleLabeledStatement;
     assertResolvedNodeText(node, r'''
 LabeledStatement
   labels
@@ -95,7 +95,7 @@ void f() {
       error(CompileTimeErrorCode.LABEL_UNDEFINED, 38, 1),
     ]);
 
-    final node = findNode.singleWhileStatement;
+    var node = findNode.singleWhileStatement;
     assertResolvedNodeText(node, r'''
 WhileStatement
   whileKeyword: while
@@ -130,7 +130,7 @@ class A {
       error(CompileTimeErrorCode.NON_BOOL_CONDITION, 34, 5),
     ]);
 
-    final node = findNode.singleWhileStatement;
+    var node = findNode.singleWhileStatement;
     assertResolvedNodeText(node, r'''
 WhileStatement
   whileKeyword: while
@@ -154,7 +154,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.singleWhileStatement;
+    var node = findNode.singleWhileStatement;
     assertResolvedNodeText(node, r'''
 WhileStatement
   whileKeyword: while
@@ -182,7 +182,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.singleLabeledStatement;
+    var node = findNode.singleLabeledStatement;
     assertResolvedNodeText(node, r'''
 LabeledStatement
   labels
@@ -224,7 +224,7 @@ void f() {
       error(CompileTimeErrorCode.LABEL_UNDEFINED, 41, 1),
     ]);
 
-    final node = findNode.singleWhileStatement;
+    var node = findNode.singleWhileStatement;
     assertResolvedNodeText(node, r'''
 WhileStatement
   whileKeyword: while

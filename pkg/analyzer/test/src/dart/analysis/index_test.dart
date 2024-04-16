@@ -60,7 +60,7 @@ class B extends A {
 class C extends A {}
 ''');
 
-    final element = findElement.unnamedConstructor('A');
+    var element = findElement.unnamedConstructor('A');
     assertElementIndexText(element, r'''
 42 6:3 |B| IS_INVOKED_BY qualified
 49 7:3 |B.named| IS_INVOKED_BY qualified
@@ -93,7 +93,7 @@ class C3 implements B1 {}
 class C4 implements B2 {}
 class M extends Object with A {}
 ''');
-    final element = findElement.class_('A');
+    var element = findElement.class_('A');
     assertElementIndexText(element, r'''
 17 2:7 |B1| IS_ANCESTOR_OF
 28 2:18 |A| IS_EXTENDED_BY
@@ -119,7 +119,7 @@ class C1 = Object with A;
 class C2 = Object with B;
 ''');
 
-    final elementA = findElement.class_('A');
+    var elementA = findElement.class_('A');
     assertElementIndexText(elementA, r'''
 17 2:7 |B| IS_ANCESTOR_OF
 27 2:17 |A| IS_EXTENDED_BY
@@ -130,7 +130,7 @@ class C2 = Object with B;
 64 4:7 |C2| IS_ANCESTOR_OF
 ''');
 
-    final elementB = findElement.class_('B');
+    var elementB = findElement.class_('B');
     assertElementIndexText(elementB, r'''
 64 4:7 |C2| IS_ANCESTOR_OF
 81 4:24 |B| IS_MIXED_IN_BY
@@ -149,7 +149,7 @@ mixin M3 implements A {}
 mixin M4 implements B {}
 mixin M5 on M2 {}
 ''');
-    final element = findElement.class_('A');
+    var element = findElement.class_('A');
     assertElementIndexText(element, r'''
 17 2:7 |B| IS_ANCESTOR_OF
 27 2:17 |A| IS_EXTENDED_BY
@@ -171,7 +171,7 @@ mixin M5 on M2 {}
 class A {} // 1
 mixin M on A {} // 2
 ''');
-    final element = findElement.class_('A');
+    var element = findElement.class_('A');
     assertElementIndexText(element, r'''
 22 2:7 |M| IS_ANCESTOR_OF
 27 2:12 |A| CONSTRAINS
@@ -187,7 +187,7 @@ class A {}
 import 'lib.dart' as p;
 class B extends p.A {} // 2
 ''');
-    final element = importFindLib().class_('A');
+    var element = importFindLib().class_('A');
     assertElementIndexText(element, r'''
 30 2:7 |B| IS_ANCESTOR_OF
 42 2:19 |A| IS_EXTENDED_BY qualified
@@ -200,8 +200,8 @@ Prefixes: p
     await _indexTestUnit('''
 class A {}
 ''');
-    final elementA = findElement.class_('A');
-    final elementObject = elementA.supertype!.element;
+    var elementA = findElement.class_('A');
+    var elementObject = elementA.supertype!.element;
     assertElementIndexText(elementObject, r'''
 6 1:7 |A| IS_ANCESTOR_OF
 6 1:7 || IS_EXTENDED_BY qualified
@@ -214,7 +214,7 @@ class A<T> {}
 typedef B = A<int>;
 class C extends B {}
 ''');
-    final element = findElement.typeAlias('B');
+    var element = findElement.typeAlias('B');
     assertElementIndexText(element, r'''
 50 3:17 |B| IS_EXTENDED_BY
 50 3:17 |B| IS_REFERENCED_BY
@@ -227,7 +227,7 @@ class A {}
 class B {}
 class C = A with B;
 ''');
-    final element = findElement.class_('A');
+    var element = findElement.class_('A');
     assertElementIndexText(element, r'''
 28 3:7 |C| IS_ANCESTOR_OF
 32 3:11 |A| IS_EXTENDED_BY
@@ -244,7 +244,7 @@ import 'lib.dart' as p;
 class B {}
 class C = p.A with B;
 ''');
-    final element = importFindLib().class_('A');
+    var element = importFindLib().class_('A');
     assertElementIndexText(element, r'''
 41 3:7 |C| IS_ANCESTOR_OF
 47 3:13 |A| IS_EXTENDED_BY qualified
@@ -258,7 +258,7 @@ Prefixes: p
 class A {} // 1
 class B implements A {} // 2
 ''');
-    final element = findElement.class_('A');
+    var element = findElement.class_('A');
     assertElementIndexText(element, r'''
 22 2:7 |B| IS_ANCESTOR_OF
 35 2:20 |A| IS_IMPLEMENTED_BY
@@ -274,7 +274,7 @@ class A {}
 import 'lib.dart' as p;
 class B implements p.A {} // 2
 ''');
-    final element = importFindLib().class_('A');
+    var element = importFindLib().class_('A');
     assertElementIndexText(element, r'''
 30 2:7 |B| IS_ANCESTOR_OF
 45 2:22 |A| IS_IMPLEMENTED_BY qualified
@@ -289,7 +289,7 @@ class A<T> {}
 typedef B = A<int>;
 class C implements B {}
 ''');
-    final element = findElement.typeAlias('B');
+    var element = findElement.typeAlias('B');
     assertElementIndexText(element, r'''
 53 3:20 |B| IS_IMPLEMENTED_BY
 53 3:20 |B| IS_REFERENCED_BY
@@ -302,7 +302,7 @@ class A {} // 1
 class B {} // 2
 class C = Object with A implements B; // 3
 ''');
-    final element = findElement.class_('B');
+    var element = findElement.class_('B');
     assertElementIndexText(element, r'''
 38 3:7 |C| IS_ANCESTOR_OF
 67 3:36 |B| IS_IMPLEMENTED_BY
@@ -317,7 +317,7 @@ enum E implements A { // 2
   v;
 }
 ''');
-    final element = findElement.class_('A');
+    var element = findElement.class_('A');
     assertElementIndexText(element, r'''
 21 2:6 |E| IS_ANCESTOR_OF
 34 2:19 |A| IS_IMPLEMENTED_BY
@@ -330,7 +330,7 @@ enum E implements A { // 2
 class A {}
 extension type B(A it) implements A {}
 ''');
-    final element = findElement.class_('A');
+    var element = findElement.class_('A');
     assertElementIndexText(element, r'''
 26 2:16 |B| IS_ANCESTOR_OF
 28 2:18 |A| IS_REFERENCED_BY
@@ -344,7 +344,7 @@ extension type B(A it) implements A {}
 extension type A(int it) {}
 extension type B(int it) implements A {}
 ''');
-    final element = findElement.extensionType('A');
+    var element = findElement.extensionType('A');
     assertElementIndexText(element, r'''
 43 2:16 |B| IS_ANCESTOR_OF
 64 2:37 |A| IS_IMPLEMENTED_BY
@@ -357,7 +357,7 @@ extension type B(int it) implements A {}
 class A {} // 1
 mixin M implements A {} // 2
 ''');
-    final element = findElement.class_('A');
+    var element = findElement.class_('A');
     assertElementIndexText(element, r'''
 22 2:7 |M| IS_ANCESTOR_OF
 35 2:20 |A| IS_IMPLEMENTED_BY
@@ -377,7 +377,7 @@ void f() {
   pref.foo(); // q
   foo(); // nq
 }''');
-    final element = importFindLib().topFunction('foo');
+    var element = importFindLib().topFunction('foo');
     assertElementIndexText(element, r'''
 64 4:8 |foo| IS_INVOKED_BY qualified
 78 5:3 |foo| IS_INVOKED_BY
@@ -393,7 +393,7 @@ void f() {
 }
 ''');
     LibraryElement mathLib = findElement.import('dart:math').importedLibrary!;
-    final element = mathLib.loadLibraryFunction;
+    var element = mathLib.loadLibraryFunction;
     assertElementIndexText(element, r'''
 55 3:8 |loadLibrary| IS_INVOKED_BY qualified
 82 4:8 |loadLibrary| IS_INVOKED_BY qualified
@@ -409,7 +409,7 @@ class A {
     foo(); // nq
   }
 }''');
-    final element = findElement.method('foo');
+    var element = findElement.method('foo');
     assertElementIndexText(element, r'''
 43 4:10 |foo| IS_INVOKED_BY qualified
 59 5:5 |foo| IS_INVOKED_BY
@@ -430,7 +430,7 @@ void f(E e) {
   e.foo(); // q2
 }
 ''');
-    final element = findElement.method('foo');
+    var element = findElement.method('foo');
     assertElementIndexText(element, r'''
 54 5:10 |foo| IS_INVOKED_BY qualified
 71 6:5 |foo| IS_INVOKED_BY
@@ -447,7 +447,7 @@ extension type A(int it) {
     foo();
   }
 }''');
-    final element = findElement.method('foo');
+    var element = findElement.method('foo');
     assertElementIndexText(element, r'''
 65 4:10 |foo| IS_INVOKED_BY qualified
 76 5:5 |foo| IS_INVOKED_BY
@@ -464,7 +464,7 @@ void f() {
   0.foo();
 }
 ''');
-    final element = findElement.method('foo');
+    var element = findElement.method('foo');
     assertElementIndexText(element, r'''
 55 6:5 |foo| IS_INVOKED_BY qualified
 ''');
@@ -480,7 +480,7 @@ void f() {
   E.foo();
 }
 ''');
-    final element = findElement.method('foo');
+    var element = findElement.method('foo');
     assertElementIndexText(element, r'''
 62 6:5 |foo| IS_INVOKED_BY qualified
 ''');
@@ -523,7 +523,7 @@ void f() {
   a.foo();
 }
 ''');
-    final element = findElement.method('foo');
+    var element = findElement.method('foo');
     assertElementIndexText(element, r'''
 57 6:5 |foo| IS_INVOKED_BY qualified
 ''');
@@ -541,7 +541,7 @@ void f(A a) {
   a++;
 }
 ''');
-    final element = findElement.method('+');
+    var element = findElement.method('+');
     assertElementIndexText(element, r'''
 65 5:11 |+| IS_INVOKED_BY qualified
 75 6:5 |+=| IS_INVOKED_BY qualified
@@ -561,12 +561,12 @@ void f(A a) {
   a[1] = 42;
 }
 ''');
-    final readElement = findElement.method('[]');
+    var readElement = findElement.method('[]');
     assertElementIndexText(readElement, r'''
 85 6:10 |[| IS_INVOKED_BY qualified
 ''');
 
-    final writeElement = findElement.method('[]=');
+    var writeElement = findElement.method('[]=');
     assertElementIndexText(writeElement, r'''
 94 7:4 |[| IS_INVOKED_BY qualified
 ''');
@@ -581,7 +581,7 @@ void f(A a) {
   print(~a);
 }
 ''');
-    final element = findElement.method('~');
+    var element = findElement.method('~');
     assertElementIndexText(element, r'''
 60 5:9 |~| IS_INVOKED_BY qualified
 ''');
@@ -600,7 +600,7 @@ void f(E e) {
   e++;
 }
 ''');
-    final element = findElement.method('+');
+    var element = findElement.method('+');
     assertElementIndexText(element, r'''
 64 6:5 |+| IS_INVOKED_BY qualified
 73 7:5 |+=| IS_INVOKED_BY qualified
@@ -621,12 +621,12 @@ void f(E e) {
   e[1] = 42;
 }
 ''');
-    final readElement = findElement.method('[]');
+    var readElement = findElement.method('[]');
     assertElementIndexText(readElement, r'''
 108 7:4 |[| IS_INVOKED_BY qualified
 ''');
 
-    final writeElement = findElement.method('[]=');
+    var writeElement = findElement.method('[]=');
     assertElementIndexText(writeElement, r'''
 116 8:4 |[| IS_INVOKED_BY qualified
 ''');
@@ -642,7 +642,7 @@ void f(E e) {
   ~e;
 }
 ''');
-    final element = findElement.method('~');
+    var element = findElement.method('~');
     assertElementIndexText(element, r'''
 57 6:3 |~| IS_INVOKED_BY qualified
 ''');
@@ -654,7 +654,7 @@ class A<T> {}
 typedef B = A<int>;
 class C extends Object with B {}
 ''');
-    final element = findElement.typeAlias('B');
+    var element = findElement.typeAlias('B');
     assertElementIndexText(element, r'''
 62 3:29 |B| IS_MIXED_IN_BY
 62 3:29 |B| IS_REFERENCED_BY
@@ -666,7 +666,7 @@ class C extends Object with B {}
 class A {} // 1
 class B extends Object with A {} // 2
 ''');
-    final element = findElement.class_('A');
+    var element = findElement.class_('A');
     assertElementIndexText(element, r'''
 22 2:7 |B| IS_ANCESTOR_OF
 44 2:29 |A| IS_MIXED_IN_BY
@@ -682,7 +682,7 @@ class A {}
 import 'lib.dart' as p;
 class B extends Object with p.A {} // 2
 ''');
-    final element = importFindLib().class_('A');
+    var element = importFindLib().class_('A');
     assertElementIndexText(element, r'''
 30 2:7 |B| IS_ANCESTOR_OF
 54 2:31 |A| IS_MIXED_IN_BY qualified
@@ -696,7 +696,7 @@ Prefixes: p
 mixin A {} // 1
 class B extends Object with A {} // 2
 ''');
-    final element = findElement.mixin('A');
+    var element = findElement.mixin('A');
     assertElementIndexText(element, r'''
 22 2:7 |B| IS_ANCESTOR_OF
 44 2:29 |A| IS_MIXED_IN_BY
@@ -709,7 +709,7 @@ class B extends Object with A {} // 2
 class A {} // 1
 class B = Object with A; // 2
 ''');
-    final element = findElement.class_('A');
+    var element = findElement.class_('A');
     assertElementIndexText(element, r'''
 22 2:7 |B| IS_ANCESTOR_OF
 38 2:23 |A| IS_MIXED_IN_BY
@@ -722,7 +722,7 @@ class B = Object with A; // 2
 mixin A {} // 1
 class B = Object with A; // 2
 ''');
-    final element = findElement.mixin('A');
+    var element = findElement.mixin('A');
     assertElementIndexText(element, r'''
 22 2:7 |B| IS_ANCESTOR_OF
 38 2:23 |A| IS_MIXED_IN_BY
@@ -737,7 +737,7 @@ enum E with M { // 2
   v
 }
 ''');
-    final element = findElement.mixin('M');
+    var element = findElement.mixin('M');
     assertElementIndexText(element, r'''
 21 2:6 |E| IS_ANCESTOR_OF
 28 2:13 |M| IS_MIXED_IN_BY
@@ -754,7 +754,7 @@ class A {
     field(); // nq
   }
 }''');
-    final element = findElement.getter('field');
+    var element = findElement.getter('field');
     assertElementIndexText(element, r'''
 45 4:10 |field| IS_REFERENCED_BY qualified
 63 5:5 |field| IS_REFERENCED_BY
@@ -788,7 +788,7 @@ class A {
   int get foo => 0;
 }
 ''');
-    final element = findElement.getter('foo');
+    var element = findElement.getter('foo');
     assertElementIndexText(element, r'''
 35 2:16 |foo| IS_REFERENCED_BY qualified
 62 3:16 || IS_REFERENCED_BY qualified
@@ -806,7 +806,7 @@ class A {
   void foo() {}
 }
 ''');
-    final element = findElement.method('foo');
+    var element = findElement.method('foo');
     assertElementIndexText(element, r'''
 35 2:16 |foo| IS_REFERENCED_BY qualified
 62 3:16 || IS_REFERENCED_BY qualified
@@ -825,7 +825,7 @@ void f(A p) {
   print(A.field); // 3
 }
 ''');
-    final element = findElement.class_('A');
+    var element = findElement.class_('A');
     assertElementIndexText(element, r'''
 39 4:8 |A| IS_REFERENCED_BY
 48 5:3 |A| IS_REFERENCED_BY
@@ -844,7 +844,7 @@ void f(MyEnum p) {
   MyEnum.a;
 }
 ''');
-    final element = findElement.enum_('MyEnum');
+    var element = findElement.enum_('MyEnum');
     assertElementIndexText(element, r'''
 24 3:8 |MyEnum| IS_REFERENCED_BY
 38 4:3 |MyEnum| IS_REFERENCED_BY
@@ -858,7 +858,7 @@ class A<T> {}
 
 extension E on A<int> {}
 ''');
-    final element = findElement.class_('A');
+    var element = findElement.class_('A');
     assertElementIndexText(element, r'''
 30 3:16 |A| IS_REFERENCED_BY
 ''');
@@ -870,7 +870,7 @@ class A {}
 void f() {
   A(); // invalid code, but still a reference
 }''');
-    final element = findElement.class_('A');
+    var element = findElement.class_('A');
     assertElementIndexText(element, r'''
 24 3:3 |A| IS_REFERENCED_BY
 ''');
@@ -885,7 +885,7 @@ class A<T> {
 @A<A>()
 void f() {}
 ''');
-    final element = findElement.class_('A');
+    var element = findElement.class_('A');
     assertElementIndexText(element, r'''
 21 2:9 |A| IS_REFERENCED_BY
 30 5:2 |A| IS_REFERENCED_BY
@@ -899,7 +899,7 @@ class A {}
 
 void f(({int foo, A bar}) r) {}
 ''');
-    final element = findElement.class_('A');
+    var element = findElement.class_('A');
     assertElementIndexText(element, r'''
 30 3:19 |A| IS_REFERENCED_BY
 ''');
@@ -911,7 +911,7 @@ class A {}
 
 void f((int, A) r) {}
 ''');
-    final element = findElement.class_('A');
+    var element = findElement.class_('A');
     assertElementIndexText(element, r'''
 25 3:14 |A| IS_REFERENCED_BY
 ''');
@@ -923,7 +923,7 @@ class A<T> {}
 
 typedef B = A<int>;
 ''');
-    final elementA = findElement.class_('A');
+    var elementA = findElement.class_('A');
     assertElementIndexText(elementA, r'''
 27 3:13 |A| IS_REFERENCED_BY
 ''');
@@ -942,7 +942,7 @@ import 'lib.dart' as p;
 void f() {
   p.A(); // invalid code, but still a reference
 }''');
-    final element = importFindLib().class_('A');
+    var element = importFindLib().class_('A');
     assertElementIndexText(element, r'''
 39 3:5 |A| IS_REFERENCED_BY qualified
 Prefixes: p
@@ -957,7 +957,7 @@ void g() {
   f<A>();
 }
 ''');
-    final element = findElement.class_('A');
+    var element = findElement.class_('A');
     assertElementIndexText(element, r'''
 41 4:5 |A| IS_REFERENCED_BY
 ''');
@@ -971,7 +971,7 @@ void f(B p) {
   B v;
 }
 ''');
-    final element = findElement.class_('B');
+    var element = findElement.class_('B');
     assertElementIndexText(element, r'''
 43 3:8 |B| IS_REFERENCED_BY
 52 4:3 |B| IS_REFERENCED_BY
@@ -988,7 +988,7 @@ import 'lib.dart';
 /// An [A].
 void f(A a) {}
 ''');
-    final element = findElement.function('f').parameters[0].type.element!;
+    var element = findElement.function('f').parameters[0].type.element!;
     assertElementIndexText(element, r'''
 28 3:9 |A| IS_REFERENCED_BY
 39 4:8 |A| IS_REFERENCED_BY
@@ -1006,7 +1006,7 @@ import 'lib.dart' as p;
 /// A [p.A] and [A].
 void f(p.A a) {}
 ''');
-    final element = findElement.function('f').parameters[0].type.element!;
+    var element = findElement.function('f').parameters[0].type.element!;
     assertElementIndexText(element, r'''
 53 4:10 |A| IS_REFERENCED_BY qualified
 61 4:18 |A| IS_REFERENCED_BY
@@ -1025,7 +1025,7 @@ import 'lib.dart' as p;
 /// A [p.A].
 void f(p.A a) {}
 ''');
-    final element = findElement.function('f').parameters[0].type.element!;
+    var element = findElement.function('f').parameters[0].type.element!;
     assertElementIndexText(element, r'''
 34 3:10 |A| IS_REFERENCED_BY qualified
 47 4:10 |A| IS_REFERENCED_BY qualified
@@ -1040,8 +1040,7 @@ library lib;
     await _indexTestUnit('''
 export 'lib.dart';
 ''');
-    final element =
-        findElement.export('package:test/lib.dart').exportedLibrary!;
+    var element = findElement.export('package:test/lib.dart').exportedLibrary!;
     assertElementIndexText(element, r'''
 7 1:8 |'lib.dart'| IS_REFERENCED_BY qualified
 ''');
@@ -1054,8 +1053,7 @@ library lib;
     await _indexTestUnit('''
 import 'lib.dart';
 ''');
-    final element =
-        findElement.import('package:test/lib.dart').importedLibrary!;
+    var element = findElement.import('package:test/lib.dart').importedLibrary!;
     assertElementIndexText(element, r'''
 7 1:8 |'lib.dart'| IS_REFERENCED_BY qualified
 ''');
@@ -1067,7 +1065,7 @@ import 'lib.dart';
 library my_lib;
 part 'my_unit.dart';
 ''');
-    final element = findElement.part('package:test/my_unit.dart');
+    var element = findElement.part('package:test/my_unit.dart');
     assertElementIndexText(element, r'''
 21 2:6 |'my_unit.dart'| IS_REFERENCED_BY qualified
 ''');
@@ -1101,7 +1099,7 @@ void f() {
   A.foo; // 6
 }
 ''');
-    final element = findElement.constructor('foo');
+    var element = findElement.constructor('foo');
     assertElementIndexText(element, r'''
 10 1:11 |.foo| IS_REFERENCED_BY qualified
 57 4:17 |.foo| IS_INVOKED_BY qualified
@@ -1137,12 +1135,12 @@ class A {
   A.bar();
 }
 ''');
-    final constructor = findElement.unnamedConstructor('A');
+    var constructor = findElement.unnamedConstructor('A');
     assertElementIndexText(constructor, r'''
 51 3:17 || IS_INVOKED_BY qualified
 ''');
 
-    final constructor_bar = findElement.constructor('bar');
+    var constructor_bar = findElement.constructor('bar');
     assertElementIndexText(constructor_bar, r'''
 22 2:13 |.bar| IS_INVOKED_BY qualified
 ''');
@@ -1164,7 +1162,7 @@ void f() {
   A.new; // 6
 }
 ''');
-    final element = findElement.unnamedConstructor('A');
+    var element = findElement.unnamedConstructor('A');
     assertElementIndexText(element, r'''
 10 1:11 || IS_REFERENCED_BY qualified
 51 4:19 || IS_INVOKED_BY qualified
@@ -1191,7 +1189,7 @@ void f() {
   A.new; // 6
 }
 ''');
-    final element = findElement.unnamedConstructor('A');
+    var element = findElement.unnamedConstructor('A');
     assertElementIndexText(element, r'''
 10 1:11 || IS_REFERENCED_BY qualified
 55 4:19 || IS_INVOKED_BY qualified
@@ -1215,7 +1213,7 @@ void f() {
   A.new; // 5
 }
 ''');
-    final element = findElement.unnamedConstructor('A');
+    var element = findElement.unnamedConstructor('A');
     assertElementIndexText(element, r'''
 10 1:11 || IS_REFERENCED_BY qualified
 58 4:14 || IS_INVOKED_BY qualified
@@ -1241,13 +1239,13 @@ void f() {
   new C.named(); // C2
 }
 ''');
-    final constructor = findElement.unnamedConstructor('A');
+    var constructor = findElement.unnamedConstructor('A');
     assertElementIndexText(constructor, r'''
 118 9:8 || IS_INVOKED_BY qualified
 158 11:8 || IS_INVOKED_BY qualified
 ''');
 
-    final constructor_named = findElement.constructor('named', of: 'A');
+    var constructor_named = findElement.constructor('named', of: 'A');
     assertElementIndexText(constructor_named, r'''
 135 10:8 |.named| IS_INVOKED_BY qualified
 175 12:8 |.named| IS_INVOKED_BY qualified
@@ -1276,7 +1274,7 @@ enum E {
   E.bar() : this.foo(); // 3
 }
 ''');
-    final element = findElement.constructor('foo');
+    var element = findElement.constructor('foo');
     assertElementIndexText(element, r'''
 10 1:11 |.foo| IS_REFERENCED_BY qualified
 30 3:4 |.foo| IS_INVOKED_BY qualified
@@ -1295,7 +1293,7 @@ enum E {
   E.other() : this(); // 5
 }
 ''');
-    final element = findElement.unnamedConstructor('E');
+    var element = findElement.unnamedConstructor('E');
     assertElementIndexText(element, r'''
 10 1:11 || IS_REFERENCED_BY qualified
 27 3:5 || IS_INVOKED_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified
@@ -1316,7 +1314,7 @@ enum E {
   E.other() : this(); // 5
 }
 ''');
-    final element = findElement.unnamedConstructor('E');
+    var element = findElement.unnamedConstructor('E');
     assertElementIndexText(element, r'''
 10 1:11 || IS_REFERENCED_BY qualified
 27 3:5 || IS_INVOKED_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified
@@ -1335,7 +1333,7 @@ enum E {
   v3.new(); // 4
 }
 ''');
-    final element = findElement.unnamedConstructor('E');
+    var element = findElement.unnamedConstructor('E');
     assertElementIndexText(element, r'''
 10 1:11 || IS_REFERENCED_BY qualified
 27 3:5 || IS_INVOKED_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified
@@ -1355,7 +1353,7 @@ void f() {
   A.foo;
 }
 ''');
-    final element = findElement.constructor('foo');
+    var element = findElement.constructor('foo');
     assertElementIndexText(element, r'''
 10 1:11 |.foo| IS_REFERENCED_BY qualified
 63 3:17 |.foo| IS_INVOKED_BY qualified
@@ -1375,7 +1373,7 @@ void f() {
   A.new;
 }
 ''');
-    final element = findElement.unnamedConstructor('A');
+    var element = findElement.unnamedConstructor('A');
     assertElementIndexText(element, r'''
 10 1:11 || IS_REFERENCED_BY qualified
 55 3:17 || IS_INVOKED_BY qualified
@@ -1396,7 +1394,7 @@ void f() {
   A.foo;
 }
 ''');
-    final element = findElement.constructor('foo');
+    var element = findElement.constructor('foo');
     assertElementIndexText(element, r'''
 10 1:11 |.foo| IS_REFERENCED_BY qualified
 77 4:17 |.foo| IS_INVOKED_BY qualified
@@ -1417,7 +1415,7 @@ void f() {
   A.new;
 }
 ''');
-    final element = findElement.unnamedConstructor('A');
+    var element = findElement.unnamedConstructor('A');
     assertElementIndexText(element, r'''
 10 1:11 || IS_REFERENCED_BY qualified
 75 4:17 || IS_INVOKED_BY qualified
@@ -1446,7 +1444,7 @@ void f(E e) {
   f(E.c);
 }
 ''');
-    final element = findElement.function('f').parameters[0].type.element!;
+    var element = findElement.function('f').parameters[0].type.element!;
     assertElementIndexText(element, r'''
 27 3:8 |E| IS_REFERENCED_BY
 38 4:5 |E| IS_REFERENCED_BY
@@ -1467,7 +1465,7 @@ void f(p.E e) {
   f(E.c);
 }
 ''');
-    final element = findElement.function('f').parameters[0].type.element!;
+    var element = findElement.function('f').parameters[0].type.element!;
     assertElementIndexText(element, r'''
 53 4:10 |E| IS_REFERENCED_BY qualified
 64 5:5 |E| IS_REFERENCED_BY
@@ -1489,7 +1487,7 @@ void f(p.E e) {
   f(q.E.c);
 }
 ''');
-    final element = findElement.function('f').parameters[0].type.element!;
+    var element = findElement.function('f').parameters[0].type.element!;
     assertElementIndexText(element, r'''
 58 4:10 |E| IS_REFERENCED_BY qualified
 71 5:7 |E| IS_REFERENCED_BY qualified
@@ -1510,7 +1508,7 @@ void f(p.E e) {
   f(p.E.c);
 }
 ''');
-    final element = findElement.function('f').parameters[0].type.element!;
+    var element = findElement.function('f').parameters[0].type.element!;
     assertElementIndexText(element, r'''
 34 3:10 |E| IS_REFERENCED_BY qualified
 47 4:7 |E| IS_REFERENCED_BY qualified
@@ -1528,7 +1526,7 @@ void f() {
   E(0).foo();
 }
 ''');
-    final element = findElement.extension_('E');
+    var element = findElement.extension_('E');
     assertElementIndexText(element, r'''
 53 6:3 |E| IS_REFERENCED_BY
 ''');
@@ -1544,7 +1542,7 @@ void f() {
   E(0).foo();
 }
 ''');
-    final element = findElement.extension_('E');
+    var element = findElement.extension_('E');
     assertElementIndexText(element, r'''
 53 6:3 |E| IS_REFERENCED_BY
 ''');
@@ -1562,7 +1560,7 @@ void f(A p) {
   A.field;
 }
 ''');
-    final element = findElement.extensionType('A');
+    var element = findElement.extensionType('A');
     assertElementIndexText(element, r'''
 56 4:8 |A| IS_REFERENCED_BY
 65 5:3 |A| IS_REFERENCED_BY
@@ -1588,9 +1586,9 @@ void f(A a) {
   new A(field: 4);
 }
 ''');
-    final field = findElement.field('field');
-    final getter = field.getter!;
-    final setter = field.setter!;
+    var field = findElement.field('field');
+    var getter = field.getter!;
+    var setter = field.setter!;
 
     assertElementIndexText(field, r'''
 33 3:11 |field| IS_WRITTEN_BY qualified
@@ -1623,9 +1621,9 @@ class A {
 ''');
     // aaa
     {
-      final field = findElement.field('aaa');
-      final getter = field.getter!;
-      final setter = field.setter!;
+      var field = findElement.field('aaa');
+      var getter = field.getter!;
+      var setter = field.setter!;
       assertElementIndexText(field, r'''
 41 4:10 |aaa| IS_WRITTEN_BY qualified
 ''');
@@ -1638,9 +1636,9 @@ class A {
     }
     // bbb
     {
-      final field = findElement.field('bbb');
-      final getter = field.getter!;
-      final setter = field.setter!;
+      var field = findElement.field('bbb');
+      var getter = field.getter!;
+      var setter = field.setter!;
       assertElementIndexText(field, r'''
 51 4:20 |bbb| IS_WRITTEN_BY qualified
 ''');
@@ -1660,7 +1658,7 @@ class A {
   int get f => 0;
 }
 ''');
-    final element = findElement.field('f');
+    var element = findElement.field('f');
     assertElementIndexText(element, r'''
 18 2:9 |f| IS_WRITTEN_BY qualified
 ''');
@@ -1674,7 +1672,7 @@ class A {
   set f(_) {}
 }
 ''');
-    final element = findElement.field('f');
+    var element = findElement.field('f');
     assertElementIndexText(element, r'''
 18 2:9 |f| IS_WRITTEN_BY qualified
 ''');
@@ -1687,7 +1685,7 @@ class A {
   set f(_) {}
 }
 ''');
-    final element = findElement.field('f');
+    var element = findElement.field('f');
     assertElementIndexText(element, r'''
 18 2:9 |f| IS_WRITTEN_BY qualified
 ''');
@@ -1710,9 +1708,9 @@ void f(E e) {
   E(field: 4);
 }
 ''');
-    final field = findElement.field('field');
-    final getter = field.getter!;
-    final setter = field.setter!;
+    var field = findElement.field('field');
+    var getter = field.getter!;
+    var setter = field.setter!;
 
     assertElementIndexText(field, r'''
 62 4:11 |field| IS_WRITTEN_BY qualified
@@ -1769,7 +1767,7 @@ enum E {
   int get f => 0;
 }
 ''');
-    final element = findElement.field('f');
+    var element = findElement.field('f');
     assertElementIndexText(element, r'''
 22 3:9 |f| IS_WRITTEN_BY qualified
 ''');
@@ -1784,7 +1782,7 @@ enum E {
   set f(_) {}
 }
 ''');
-    final element = findElement.field('f');
+    var element = findElement.field('f');
     assertElementIndexText(element, r'''
 22 3:9 |f| IS_WRITTEN_BY qualified
 ''');
@@ -1798,7 +1796,7 @@ enum E {
   set f(_) {}
 }
 ''');
-    final element = findElement.field('f');
+    var element = findElement.field('f');
     assertElementIndexText(element, r'''
 22 3:9 |f| IS_WRITTEN_BY qualified
 ''');
@@ -1818,9 +1816,9 @@ void f() {
   A.field;
 }
 ''');
-    final field = findElement.field('field');
-    final getter = field.getter!;
-    final setter = field.setter!;
+    var field = findElement.field('field');
+    var getter = field.getter!;
+    var setter = field.setter!;
 
     assertElementIndexText(getter, r'''
 83 5:5 |field| IS_REFERENCED_BY
@@ -1841,7 +1839,7 @@ void f() {
   print(foo());
 }
 ''');
-    final element = findElement.topFunction('foo');
+    var element = findElement.topFunction('foo');
     assertElementIndexText(element, r'''
 28 3:9 |foo| IS_REFERENCED_BY
 42 4:9 |foo| IS_INVOKED_BY
@@ -1876,7 +1874,7 @@ typedef A();
 void f(A p) {
 }
 ''');
-    final element = findElement.typeAlias('A');
+    var element = findElement.typeAlias('A');
     assertElementIndexText(element, r'''
 20 2:8 |A| IS_REFERENCED_BY
 ''');
@@ -1895,7 +1893,7 @@ int f() => p.A.f;
 
 class B extends p.A {}
 ''');
-    final element = findElement.class_('B').supertype!.element;
+    var element = findElement.class_('B').supertype!.element;
     assertElementIndexText(element, r'''
 38 3:14 |A| IS_REFERENCED_BY qualified
 50 5:7 |B| IS_ANCESTOR_OF
@@ -1916,7 +1914,7 @@ class A {}
 /// [A] text
 var myVariable = null;
 ''');
-    final element = findElement.class_('A');
+    var element = findElement.class_('A');
     assertElementIndexText(element, r'''
 16 2:6 |A| IS_REFERENCED_BY
 ''');
@@ -1931,7 +1929,7 @@ class A {
     print(method); // nq
   }
 }''');
-    final element = findElement.method('method');
+    var element = findElement.method('method');
     assertElementIndexText(element, r'''
 52 4:16 |method| IS_REFERENCED_BY qualified
 76 5:11 |method| IS_REFERENCED_BY
@@ -1952,7 +1950,7 @@ void f(E e) {
   e.foo; // q2
 }
 ''');
-    final element = findElement.method('foo');
+    var element = findElement.method('foo');
     assertElementIndexText(element, r'''
 54 5:10 |foo| IS_REFERENCED_BY qualified
 69 6:5 |foo| IS_REFERENCED_BY
@@ -1973,7 +1971,7 @@ void f() => p.A.m();
 
 class B extends p.A {}
 ''');
-    final element = findElement.class_('B').supertype!.element;
+    var element = findElement.class_('B').supertype!.element;
     assertElementIndexText(element, r'''
 39 3:15 |A| IS_REFERENCED_BY qualified
 53 5:7 |B| IS_ANCESTOR_OF
@@ -2007,7 +2005,7 @@ void f() {
   foo(p: 1);
 }
 ''');
-    final element = findElement.parameter('p');
+    var element = findElement.parameter('p');
     assertElementIndexText(element, r'''
 33 3:7 |p| IS_REFERENCED_BY qualified
 ''');
@@ -2063,7 +2061,7 @@ class B extends A {
   B({required super.a}); // ref
 }
 ''');
-    final element = findElement.unnamedConstructor('A').parameter('a');
+    var element = findElement.unnamedConstructor('A').parameter('a');
     assertElementIndexText(element, r'''
 75 5:21 |a| IS_REFERENCED_BY qualified
 ''');
@@ -2078,7 +2076,7 @@ class B extends A {
   B(super.a); // ref
 }
 ''');
-    final element = findElement.unnamedConstructor('A').parameter('a');
+    var element = findElement.unnamedConstructor('A').parameter('a');
     assertElementIndexText(element, r'''
 54 5:11 |a| IS_REFERENCED_BY qualified
 ''');
@@ -2094,7 +2092,7 @@ void f() {
   A(test: 0);
 }
 ''');
-    final element = findElement.parameter('test');
+    var element = findElement.parameter('test');
     assertElementIndexText(element, r'''
 47 6:5 |test| IS_REFERENCED_BY qualified
 ''');
@@ -2110,7 +2108,7 @@ void f(A<int> a) {
   a.foo(test: 0);
 }
 ''');
-    final element = findElement.parameter('test');
+    var element = findElement.parameter('test');
     assertElementIndexText(element, r'''
 68 6:9 |test| IS_REFERENCED_BY qualified
 ''');
@@ -2124,7 +2122,7 @@ void() {
   foo(test: 0);
 }
 ''');
-    final element = findElement.parameter('test');
+    var element = findElement.parameter('test');
     assertElementIndexText(element, r'''
 41 4:7 |test| IS_REFERENCED_BY qualified
 ''');
@@ -2138,7 +2136,7 @@ void() {
   foo(1, test: 0, 2);
 }
 ''');
-    final element = findElement.parameter('test');
+    var element = findElement.parameter('test');
     assertElementIndexText(element, r'''
 58 4:10 |test| IS_REFERENCED_BY qualified
 ''');
@@ -2153,7 +2151,7 @@ void f() {
   foo(1); // 2
 }
 ''');
-    final element = findElement.parameter('p');
+    var element = findElement.parameter('p');
     assertElementIndexText(element, r'''
 40 5:7 || IS_REFERENCED_BY qualified
 ''');
@@ -2167,7 +2165,7 @@ void() {
   foo(test: 0);
 }
 ''');
-    final element = findElement.parameter('test');
+    var element = findElement.parameter('test');
     assertElementIndexText(element, r'''
 49 4:7 |test| IS_REFERENCED_BY qualified
 ''');
@@ -2185,8 +2183,8 @@ void f() {
   0.foo = 0;
 }
 ''');
-    final getter = findElement.getter('foo');
-    final setter = findElement.setter('foo');
+    var getter = findElement.getter('foo');
+    var setter = findElement.setter('foo');
 
     assertElementIndexText(getter, r'''
 84 7:5 |foo| IS_REFERENCED_BY qualified
@@ -2209,8 +2207,8 @@ void f() {
   0.foo = 0;
 }
 ''');
-    final getter = findElement.getter('foo');
-    final setter = findElement.setter('foo');
+    var getter = findElement.getter('foo');
+    var setter = findElement.setter('foo');
 
     assertElementIndexText(getter, r'''
 98 7:5 |foo| IS_REFERENCED_BY qualified
@@ -2273,7 +2271,7 @@ void f(int i) => p.A.f = i;
 
 class B extends p.A {}
 ''');
-    final element = findElement.class_('B').supertype!.element;
+    var element = findElement.class_('B').supertype!.element;
     assertElementIndexText(element, r'''
 44 3:20 |A| IS_REFERENCED_BY qualified
 60 5:7 |B| IS_ANCESTOR_OF
@@ -2295,7 +2293,7 @@ var t = A;
 
 class B extends p.A {}
 ''');
-    final element = findElement.class_('B').supertype!.element;
+    var element = findElement.class_('B').supertype!.element;
     assertElementIndexText(element, r'''
 52 4:9 |A| IS_REFERENCED_BY
 62 6:7 |B| IS_ANCESTOR_OF
@@ -2316,7 +2314,7 @@ var t = p.A;
 
 class B extends p.A {}
 ''');
-    final element = findElement.class_('B').supertype!.element;
+    var element = findElement.class_('B').supertype!.element;
     assertElementIndexText(element, r'''
 35 3:11 |A| IS_REFERENCED_BY qualified
 45 5:7 |B| IS_ANCESTOR_OF
@@ -2378,7 +2376,7 @@ void set V(_) {}
     await _indexTestUnit('''
 import 'lib.dart' show V;
 ''');
-    final element = importFindLib().topVar('V');
+    var element = importFindLib().topVar('V');
     assertElementIndexText(element, r'''
 23 1:24 |V| IS_REFERENCED_BY qualified
 ''');
@@ -2391,7 +2389,7 @@ void set V(_) {}
     await _indexTestUnit('''
 import 'lib.dart' show V;
 ''');
-    final element = importFindLib().topVar('V');
+    var element = importFindLib().topVar('V');
     assertElementIndexText(element, r'''
 23 1:24 |V| IS_REFERENCED_BY qualified
 ''');
@@ -2414,7 +2412,7 @@ void f(B p) {
   B.method(); // 4
 }
 ''');
-    final element = findElement.typeAlias('B');
+    var element = findElement.typeAlias('B');
     assertElementIndexText(element, r'''
 94 8:8 |B| IS_REFERENCED_BY
 103 9:3 |B| IS_REFERENCED_BY
@@ -2430,7 +2428,7 @@ void f(B p) {
 class A {}
 A myVariable = null;
 ''');
-    final element = findElement.class_('A');
+    var element = findElement.class_('A');
     assertElementIndexText(element, r'''
 11 2:1 |A| IS_REFERENCED_BY
 ''');
@@ -2444,7 +2442,7 @@ class A {
   A.bar() : field = 5;
 }
 ''');
-    final element = findElement.field('field');
+    var element = findElement.field('field');
     assertElementIndexText(element, r'''
 37 3:15 |field| IS_WRITTEN_BY qualified
 58 4:13 |field| IS_WRITTEN_BY qualified
@@ -2728,10 +2726,10 @@ void f() {
   }
 
   String _getRelationsText(Element element) {
-    final lineInfo = result.lineInfo;
-    final elementId = _findElementId(element);
+    var lineInfo = result.lineInfo;
+    var elementId = _findElementId(element);
 
-    final relations = <_Relation>[];
+    var relations = <_Relation>[];
     for (var i = 0; i < index.usedElementOffsets.length; i++) {
       if (index.usedElements[i] == elementId) {
         relations.add(
@@ -2745,8 +2743,8 @@ void f() {
       }
     }
 
-    final sortedRelations = relations.sorted((a, b) {
-      final byOffset = a.offset - b.offset;
+    var sortedRelations = relations.sorted((a, b) {
+      var byOffset = a.offset - b.offset;
       if (byOffset != 0) {
         return byOffset;
       }
@@ -2757,7 +2755,7 @@ void f() {
     var lastOffset = -1;
     var lastLength = -1;
     IndexRelationKind? lastKind;
-    for (final relation in sortedRelations) {
+    for (var relation in sortedRelations) {
       if (relation.offset == lastOffset &&
           relation.length == lastLength &&
           relation.kind == lastKind) {
@@ -2768,12 +2766,12 @@ void f() {
       lastKind = relation.kind;
     }
 
-    final buffer = StringBuffer();
-    for (final relation in sortedRelations) {
-      final offset = relation.offset;
-      final length = relation.length;
-      final location = lineInfo.getLocation(offset);
-      final snippet = result.content.substring(offset, offset + length);
+    var buffer = StringBuffer();
+    for (var relation in sortedRelations) {
+      var offset = relation.offset;
+      var length = relation.length;
+      var location = lineInfo.getLocation(offset);
+      var snippet = result.content.substring(offset, offset + length);
       buffer.write(offset);
       buffer.write(' ');
       buffer.write(location.lineNumber);
@@ -2789,12 +2787,12 @@ void f() {
       buffer.writeln();
     }
 
-    final prefixString = index.elementImportPrefixes[elementId];
+    var prefixString = index.elementImportPrefixes[elementId];
     // If the only access is unprefixed, omit the line
     if (prefixString.isNotEmpty) {
       // Otherwise, use some marker text for unprefixed so it's clearer in the
       // output than an empty string.
-      final prefixes = prefixString
+      var prefixes = prefixString
           .split(',')
           .map((prefix) => prefix.isEmpty ? '(unprefixed)' : prefix)
           .join(',');

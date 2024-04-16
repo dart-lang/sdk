@@ -16,12 +16,12 @@ main() {
 @reflectiveTest
 class AugmentationImportDirectiveParserTest extends ParserDiagnosticsTest {
   test_it() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 import augment 'a.dart';
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.singleAugmentationImportDirective;
+    var node = parseResult.findNode.singleAugmentationImportDirective;
     assertParsedNodeText(node, r'''
 AugmentationImportDirective
   importKeyword: import
@@ -33,14 +33,14 @@ AugmentationImportDirective
   }
 
   test_noSemicolon() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 import augment 'a.dart'
 ''');
     parseResult.assertErrors([
       error(ParserErrorCode.EXPECTED_TOKEN, 15, 8),
     ]);
 
-    final node = parseResult.findNode.singleAugmentationImportDirective;
+    var node = parseResult.findNode.singleAugmentationImportDirective;
     assertParsedNodeText(node, r'''
 AugmentationImportDirective
   importKeyword: import
@@ -52,14 +52,14 @@ AugmentationImportDirective
   }
 
   test_noUri_hasSemicolon() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 import augment ;
 ''');
     parseResult.assertErrors([
       error(ParserErrorCode.EXPECTED_STRING_LITERAL, 15, 1),
     ]);
 
-    final node = parseResult.findNode.singleAugmentationImportDirective;
+    var node = parseResult.findNode.singleAugmentationImportDirective;
     assertParsedNodeText(node, r'''
 AugmentationImportDirective
   importKeyword: import
@@ -71,7 +71,7 @@ AugmentationImportDirective
   }
 
   test_noUri_noSemicolon() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 import augment
 ''');
     parseResult.assertErrors([
@@ -79,7 +79,7 @@ import augment
       error(ParserErrorCode.EXPECTED_STRING_LITERAL, 15, 0),
     ]);
 
-    final node = parseResult.findNode.singleAugmentationImportDirective;
+    var node = parseResult.findNode.singleAugmentationImportDirective;
     assertParsedNodeText(node, r'''
 AugmentationImportDirective
   importKeyword: import

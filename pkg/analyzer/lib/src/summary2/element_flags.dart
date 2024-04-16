@@ -279,7 +279,7 @@ class MethodElementFlags {
   static const int _isSynthetic = 1 << 9;
 
   static void read(SummaryDataReader reader, MethodElementImpl element) {
-    final bits = reader.readUInt30();
+    var bits = reader.readUInt30();
     element.hasImplicitReturnType = (bits & _hasImplicitReturnType) != 0;
     element.invokesSuperSelf = (bits & _invokesSuperSelf) != 0;
     element.isAbstract = (bits & _isAbstract) != 0;

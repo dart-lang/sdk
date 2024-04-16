@@ -24,7 +24,7 @@ void f(List<int> x) {
       error(CompileTimeErrorCode.DUPLICATE_REST_ELEMENT_IN_PATTERN, 41, 3,
           contextMessages: [message(testFile, 36, 3)]),
     ]);
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ListPattern
   leftBracket: [

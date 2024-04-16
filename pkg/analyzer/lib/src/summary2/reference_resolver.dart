@@ -359,19 +359,19 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   @override
   void visitNamedType(covariant NamedTypeImpl node) {
     Element? element;
-    final importPrefix = node.importPrefix;
+    var importPrefix = node.importPrefix;
     if (importPrefix != null) {
-      final prefixToken = importPrefix.name;
-      final prefixName = prefixToken.lexeme;
-      final prefixElement = scope.lookup(prefixName).getter;
+      var prefixToken = importPrefix.name;
+      var prefixName = prefixToken.lexeme;
+      var prefixElement = scope.lookup(prefixName).getter;
       importPrefix.element = prefixElement;
 
       if (prefixElement is PrefixElement) {
-        final name = node.name2.lexeme;
+        var name = node.name2.lexeme;
         element = prefixElement.scope.lookup(name).getter;
       }
     } else {
-      final name = node.name2.lexeme;
+      var name = node.name2.lexeme;
 
       if (name == 'void') {
         node.type = VoidTypeImpl.instance;
@@ -410,7 +410,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     node.positionalFields.accept(this);
     node.namedFields?.accept(this);
 
-    final builder = RecordTypeBuilder.of(_typeSystem, node);
+    var builder = RecordTypeBuilder.of(_typeSystem, node);
     node.type = builder;
     nodesToBuildType.addTypeBuilder(builder);
   }

@@ -92,8 +92,8 @@ class LinkedElementFactory {
     );
     // Check if elements of libraries are ready.
     // This is the case when we have just linked them.
-    for (final uri in libraries) {
-      final element = rootReference['$uri']?.element;
+    for (var uri in libraries) {
+      var element = rootReference['$uri']?.element;
       if (element is LibraryElementImpl) {
         _setMacroExecutorForLibrary(element);
       }
@@ -208,12 +208,12 @@ class LinkedElementFactory {
     }
 
     if (reference.isLibrary) {
-      final uri = uriCache.parse(reference.name);
+      var uri = uriCache.parse(reference.name);
       return createLibraryElementForReading(uri);
     }
 
-    final parentRef = reference.parentNotContainer;
-    final parentElement = elementOfReference(parentRef);
+    var parentRef = reference.parentNotContainer;
+    var parentElement = elementOfReference(parentRef);
 
     // Only classes delay creating children.
     if (parentElement is ClassElementImpl) {
@@ -260,10 +260,10 @@ class LinkedElementFactory {
   /// any session level caches.
   void removeLibraries(Set<Uri> uriSet) {
     addToLogRing('[removeLibraries][uriSet: $uriSet][${StackTrace.current}]');
-    for (final uri in uriSet) {
+    for (var uri in uriSet) {
       _libraryReaders.remove(uri);
       macroSupport?.removeLibrary(uri);
-      final libraryReference = rootReference.removeChild('$uri');
+      var libraryReference = rootReference.removeChild('$uri');
       _disposeLibrary(libraryReference?.element);
     }
 
@@ -321,8 +321,8 @@ class LinkedElementFactory {
   }
 
   void _setMacroExecutorForLibrary(LibraryElementImpl element) {
-    final uri = element.source.uri;
-    final macroExecutor = macroSupport?.forLibrary(uri);
+    var uri = element.source.uri;
+    var macroExecutor = macroSupport?.forLibrary(uri);
     element.bundleMacroExecutor = macroExecutor;
   }
 }

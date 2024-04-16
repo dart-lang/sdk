@@ -25,7 +25,7 @@ void f(x) {
 }
 ''');
 
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
   expression: PrefixedIdentifier
@@ -55,7 +55,7 @@ void f(x) {
 }
 ''');
 
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
   const: const
@@ -80,7 +80,7 @@ void f(x) {
   if (x case 0) {}
 }
 ''');
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
   expression: IntegerLiteral
@@ -99,7 +99,7 @@ void f(double x) {
   }
 }
 ''');
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
   expression: IntegerLiteral
@@ -115,7 +115,7 @@ void f(x) {
   if (x case const [0]) {}
 }
 ''');
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
   const: const
@@ -137,7 +137,7 @@ void f(x) {
   if (x case const {0: 1}) {}
 }
 ''');
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
   const: const
@@ -174,7 +174,7 @@ void f(x) {
 }
 ''');
 
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
   expression: PropertyAccess
@@ -213,7 +213,7 @@ void f(x) {
 }
 ''');
 
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
   expression: PrefixedIdentifier
@@ -238,7 +238,7 @@ void f(x) {
   if (x case const {0, 1}) {}
 }
 ''');
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
   const: const
@@ -266,7 +266,7 @@ void f(x) {
   if (x case foo) {}
 }
 ''');
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
   expression: SimpleIdentifier
@@ -283,7 +283,7 @@ void f(Object? x) {
   if (x case int) {}
 }
 ''');
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
   expression: TypeLiteral
@@ -302,7 +302,7 @@ void f(Object? x) {
   if (x case [0, int]) {}
 }
 ''');
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ListPattern
   leftBracket: [
@@ -334,7 +334,7 @@ void f(Object? x) {
   if (x case A) {}
 }
 ''');
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
   expression: TypeLiteral
@@ -356,7 +356,7 @@ void f(Object? x) {
   if (x case math.Random) {}
 }
 ''');
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
   expression: TypeLiteral
@@ -386,7 +386,7 @@ void f(Object? x) {
 }
 ''');
 
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
   expression: TypeLiteral
@@ -410,7 +410,7 @@ void f(x) {
   if (x case 0) {}
 }
 ''');
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
   expression: IntegerLiteral
@@ -429,7 +429,7 @@ void f(x) {
   }
 }
 ''');
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
   expression: IntegerLiteral

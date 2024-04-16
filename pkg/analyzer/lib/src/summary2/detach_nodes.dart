@@ -33,10 +33,10 @@ class _Visitor extends GeneralizingElementVisitor<void> {
       var initializers = element.constantInitializers.toFixedList();
       initializers.forEach(_detachNode);
 
-      for (final initializer in initializers) {
+      for (var initializer in initializers) {
         if (initializer is! ConstructorInitializerImpl) continue;
         switch (initializer) {
-          case AssertInitializerImpl(:final condition, :final message):
+          case AssertInitializerImpl(:var condition, :var message):
             var conditionReplacement = replaceNotSerializableNode(condition);
             initializer.condition = conditionReplacement;
 
@@ -44,12 +44,12 @@ class _Visitor extends GeneralizingElementVisitor<void> {
               var messageReplacement = replaceNotSerializableNode(message);
               initializer.message = messageReplacement;
             }
-          case ConstructorFieldInitializerImpl(:final expression):
+          case ConstructorFieldInitializerImpl(:var expression):
             var replacement = replaceNotSerializableNode(expression);
             initializer.expression = replacement;
-          case RedirectingConstructorInvocationImpl(:final argumentList):
+          case RedirectingConstructorInvocationImpl(:var argumentList):
             _sanitizeArguments(argumentList.arguments);
-          case SuperConstructorInvocationImpl(:final argumentList):
+          case SuperConstructorInvocationImpl(:var argumentList):
             _sanitizeArguments(argumentList.arguments);
         }
       }
@@ -61,8 +61,8 @@ class _Visitor extends GeneralizingElementVisitor<void> {
 
   @override
   void visitElement(Element element) {
-    for (final annotation in element.metadata) {
-      final ast = (annotation as ElementAnnotationImpl).annotationAst;
+    for (var annotation in element.metadata) {
+      var ast = (annotation as ElementAnnotationImpl).annotationAst;
       _detachNode(ast);
       _sanitizeArguments(ast.arguments?.arguments);
     }

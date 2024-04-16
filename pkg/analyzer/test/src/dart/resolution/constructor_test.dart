@@ -29,7 +29,7 @@ B<int> b = B(0);
 
     nodeTextConfiguration.withRedirectedConstructors = true;
 
-    final node = findNode.constructorName('B(0)');
+    var node = findNode.constructorName('B(0)');
     assertResolvedNodeText(node, r'''
 ConstructorName
   type: NamedType
@@ -57,7 +57,7 @@ class B {
 }
 ''');
 
-    final node = findNode.constructorDeclaration('B(');
+    var node = findNode.constructorDeclaration('B(');
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
   returnType: SimpleIdentifier
@@ -102,7 +102,7 @@ class B {
 }
 ''');
 
-    final node = findNode.constructorDeclaration('factory B');
+    var node = findNode.constructorDeclaration('factory B');
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
   factoryKeyword: factory
@@ -143,7 +143,7 @@ class B<U> {
 }
 ''');
 
-    final node = findNode.constructorDeclaration('factory B');
+    var node = findNode.constructorDeclaration('factory B');
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
   factoryKeyword: factory
@@ -198,7 +198,7 @@ class B {
       error(CompileTimeErrorCode.REDIRECT_TO_MISSING_CONSTRUCTOR, 59, 7),
     ]);
 
-    final node = findNode.constructorDeclaration('factory B');
+    var node = findNode.constructorDeclaration('factory B');
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
   factoryKeyword: factory
@@ -239,7 +239,7 @@ class B {
 }
 ''');
 
-    final node = findNode.constructorDeclaration('factory B');
+    var node = findNode.constructorDeclaration('factory B');
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
   factoryKeyword: factory
@@ -277,7 +277,7 @@ class B<U> {
 }
 ''');
 
-    final node = findNode.constructorDeclaration('factory B');
+    var node = findNode.constructorDeclaration('factory B');
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
   factoryKeyword: factory
@@ -327,7 +327,7 @@ class B {
       error(CompileTimeErrorCode.REDIRECT_TO_MISSING_CONSTRUCTOR, 71, 1),
     ]);
 
-    final node = findNode.constructorDeclaration('factory B');
+    var node = findNode.constructorDeclaration('factory B');
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
   factoryKeyword: factory

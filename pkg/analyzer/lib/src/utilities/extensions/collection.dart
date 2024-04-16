@@ -10,7 +10,7 @@ extension IterableExtension<E> on Iterable<E> {
   /// Note, elements must be unique.
   Map<E, int> get asElementToIndexMap {
     return {
-      for (final (index, element) in indexed) element: index,
+      for (var (index, element) in indexed) element: index,
     };
   }
 
@@ -36,14 +36,14 @@ extension IterableIterableExtension<T> on Iterable<Iterable<T>> {
   /// `package:collection`.
   List<T> get flattenedToList2 {
     return [
-      for (final elements in this) ...elements,
+      for (var elements in this) ...elements,
     ];
   }
 
   /// Elements of each iterable in this iterable.
   Set<T> get flattenedToSet2 {
     return {
-      for (final elements in this) ...elements,
+      for (var elements in this) ...elements,
     };
   }
 }
@@ -91,7 +91,7 @@ extension ListExtension<E> on List<E> {
   }
 
   E? nextOrNull(E element) {
-    final index = indexOf(element);
+    var index = indexOf(element);
     if (index >= 0 && index < length - 1) {
       return this[index + 1];
     } else {

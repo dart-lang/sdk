@@ -39,7 +39,7 @@ class ClassHierarchy {
   }
 
   _Hierarchy _getHierarchy(InterfaceElementImpl element) {
-    final augmented = element.augmented;
+    var augmented = element.augmented;
 
     var hierarchy = _map[element];
     if (hierarchy != null) {

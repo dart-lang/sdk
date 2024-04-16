@@ -495,7 +495,7 @@ class ErrorClassInfo {
 
   /// Generates the code to compute the severity of errors of this class.
   String get severityCode {
-    var severity = this.severity;
+    final severity = this.severity;
     if (severity == null) {
       return '$typeCode.severity';
     } else {
@@ -615,7 +615,7 @@ abstract class ErrorCodeInfo {
     out.writeln('$className(');
     out.writeln("'${sharedName ?? errorCode}',");
     var maxWidth = 80 - 8 /* indentation */ - 2 /* quotes */ - 1 /* comma */;
-    final placeholderToIndexMap = computePlaceholderToIndexMap();
+    var placeholderToIndexMap = computePlaceholderToIndexMap();
     var messageAsCode = convertTemplate(placeholderToIndexMap, problemMessage);
     var messageLines = _splitText(messageAsCode,
         maxWidth: maxWidth, firstLineWidth: maxWidth + 4);
@@ -643,7 +643,7 @@ abstract class ErrorCodeInfo {
   /// Generates doc comments for this error code.
   String toAnalyzerComments({String indent = ''}) {
     var out = StringBuffer();
-    var comment = this.comment;
+    final comment = this.comment;
     if (comment != null) {
       for (var line in comment.split('\n')) {
         out.writeln('$indent/// ${line.isEmpty ? '' : ' '}$line');

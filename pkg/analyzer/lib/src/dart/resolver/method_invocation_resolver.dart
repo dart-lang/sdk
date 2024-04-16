@@ -322,7 +322,7 @@ class MethodInvocationResolver with ScopeHelpers {
   /// given [propertyName], return the element that represents the property.
   Element? _resolveElement(
       InterfaceElement classElement, SimpleIdentifier propertyName) {
-    final augmented = classElement.augmented;
+    var augmented = classElement.augmented;
     // TODO(scheglov): Replace with class hierarchy.
     String name = propertyName.name;
     Element? element;
@@ -519,7 +519,7 @@ class MethodInvocationResolver with ScopeHelpers {
       String name,
       List<WhyNotPromotedGetter> whyNotPromotedList,
       {required DartType contextType}) {
-    final scopeLookupResult = nameNode.scopeLookupResult!;
+    var scopeLookupResult = nameNode.scopeLookupResult!;
     reportDeprecatedExportUseGetter(
       scopeLookupResult: scopeLookupResult,
       nameToken: nameNode.token,
@@ -558,7 +558,7 @@ class MethodInvocationResolver with ScopeHelpers {
       return null;
     }
 
-    final receiverType = _resolver.thisType;
+    var receiverType = _resolver.thisType;
     if (receiverType == null) {
       _reportUndefinedFunction(
         node,
@@ -607,7 +607,7 @@ class MethodInvocationResolver with ScopeHelpers {
       }
     }
 
-    final scopeLookupResult = prefix.scope.lookup(name);
+    var scopeLookupResult = prefix.scope.lookup(name);
     reportDeprecatedExportUseGetter(
       scopeLookupResult: scopeLookupResult,
       nameToken: nameNode.token,
@@ -720,7 +720,7 @@ class MethodInvocationResolver with ScopeHelpers {
       nameErrorEntity: nameNode,
     );
 
-    final callFunctionType = result.callFunctionType;
+    var callFunctionType = result.callFunctionType;
     if (callFunctionType != null) {
       assert(name == FunctionElement.CALL_METHOD_NAME);
       _setResolution(node, callFunctionType, whyNotPromotedList,
@@ -743,7 +743,7 @@ class MethodInvocationResolver with ScopeHelpers {
       return null;
     }
 
-    final recordField = result.recordField;
+    var recordField = result.recordField;
     if (recordField != null) {
       return _rewriteAsFunctionExpressionInvocation(node, recordField.type);
     }

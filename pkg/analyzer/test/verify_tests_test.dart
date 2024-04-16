@@ -16,7 +16,7 @@ main() {
   var testDirPath = provider.pathContext.join(pathToAnalyze, 'test');
   _VerifyTests(testDirPath).build(
     analysisContextPredicate: (analysisContext) {
-      final root = analysisContext.contextRoot.root;
+      var root = analysisContext.contextRoot.root;
       if (root.endsWithNames(['macro', 'single'])) {
         return false;
       }

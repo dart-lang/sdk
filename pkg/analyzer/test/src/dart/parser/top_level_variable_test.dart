@@ -15,13 +15,13 @@ main() {
 @reflectiveTest
 class TopLevelVariableParserTest extends ParserDiagnosticsTest {
   test_augment() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 augment library 'a.dart';
 augment final foo = 0;
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.singleTopLevelVariableDeclaration;
+    var node = parseResult.findNode.singleTopLevelVariableDeclaration;
     assertParsedNodeText(node, r'''
 TopLevelVariableDeclaration
   augmentKeyword: augment
@@ -38,12 +38,12 @@ TopLevelVariableDeclaration
   }
 
   test_external() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 external int foo;
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.singleTopLevelVariableDeclaration;
+    var node = parseResult.findNode.singleTopLevelVariableDeclaration;
     assertParsedNodeText(node, r'''
 TopLevelVariableDeclaration
   externalKeyword: external

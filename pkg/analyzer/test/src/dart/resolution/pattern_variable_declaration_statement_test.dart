@@ -24,7 +24,7 @@ void f() {
   a;
 }
 ''');
-    final node = findNode.singlePatternVariableDeclarationStatement;
+    var node = findNode.singlePatternVariableDeclarationStatement;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclarationStatement
   declaration: PatternVariableDeclaration
@@ -58,7 +58,7 @@ void f() {
   a;
 }
 ''');
-    final node = findNode.singlePatternVariableDeclarationStatement;
+    var node = findNode.singlePatternVariableDeclarationStatement;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclarationStatement
   declaration: PatternVariableDeclaration
@@ -91,7 +91,7 @@ class A {}
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 18, 1),
     ]);
-    final node = findNode.singlePatternVariableDeclarationStatement;
+    var node = findNode.singlePatternVariableDeclarationStatement;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclarationStatement
   declaration: PatternVariableDeclaration
@@ -129,7 +129,7 @@ void f() {
   a;
 }
 ''');
-    final node = findNode.singlePatternVariableDeclarationStatement;
+    var node = findNode.singlePatternVariableDeclarationStatement;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclarationStatement
   declaration: PatternVariableDeclaration
@@ -166,7 +166,7 @@ T g<T>() => throw 0;
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 22, 1),
     ]);
-    final node = findNode.singlePatternVariableDeclarationStatement;
+    var node = findNode.singlePatternVariableDeclarationStatement;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclarationStatement
   declaration: PatternVariableDeclaration
@@ -209,7 +209,7 @@ void f() {
   a;
 }
 ''');
-    final node = findNode.singlePatternVariableDeclarationStatement;
+    var node = findNode.singlePatternVariableDeclarationStatement;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclarationStatement
   declaration: PatternVariableDeclaration
@@ -241,7 +241,7 @@ void f((int, String) x) {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 33, 1),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 36, 1),
     ]);
-    final node = findNode.singlePatternVariableDeclarationStatement;
+    var node = findNode.singlePatternVariableDeclarationStatement;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclarationStatement
   declaration: PatternVariableDeclaration
@@ -285,7 +285,7 @@ T g<T>(T a) => throw 0;
 ''', [
       error(WarningCode.UNUSED_LOCAL_VARIABLE, 18, 1),
     ]);
-    final node = findNode.singlePatternVariableDeclarationStatement;
+    var node = findNode.singlePatternVariableDeclarationStatement;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclarationStatement
   declaration: PatternVariableDeclaration

@@ -15,12 +15,12 @@ main() {
 @reflectiveTest
 class LibraryAugmentationDirectiveParserTest extends ParserDiagnosticsTest {
   test_it() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 augment library 'a.dart';
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.singleLibraryAugmentationDirective;
+    var node = parseResult.findNode.singleLibraryAugmentationDirective;
     assertParsedNodeText(node, r'''
 LibraryAugmentationDirective
   augmentKeyword: augment

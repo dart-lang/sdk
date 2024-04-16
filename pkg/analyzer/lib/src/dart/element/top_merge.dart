@@ -276,17 +276,17 @@ class TopMergeHelper {
   }
 
   RecordType _recordTypes(RecordType T1, RecordType T2) {
-    final positional1 = T1.positionalFields;
-    final positional2 = T2.positionalFields;
+    var positional1 = T1.positionalFields;
+    var positional2 = T2.positionalFields;
     if (positional1.length != positional1.length) {
       throw _TopMergeStateError(T1, T2, 'Different number of position fields');
     }
 
-    final positionalFields = <RecordTypePositionalFieldImpl>[];
+    var positionalFields = <RecordTypePositionalFieldImpl>[];
     for (var i = 0; i < positional1.length; i++) {
-      final field1 = positional1[i];
-      final field2 = positional2[i];
-      final type = topMerge(field1.type, field2.type);
+      var field1 = positional1[i];
+      var field2 = positional2[i];
+      var type = topMerge(field1.type, field2.type);
       positionalFields.add(
         RecordTypePositionalFieldImpl(
           type: type,
@@ -294,20 +294,20 @@ class TopMergeHelper {
       );
     }
 
-    final named1 = T1.namedFields;
-    final named2 = T2.namedFields;
+    var named1 = T1.namedFields;
+    var named2 = T2.namedFields;
     if (named1.length != named2.length) {
       throw _TopMergeStateError(T1, T2, 'Different number of named fields');
     }
 
-    final namedFields = <RecordTypeNamedFieldImpl>[];
+    var namedFields = <RecordTypeNamedFieldImpl>[];
     for (var i = 0; i < named1.length; i++) {
-      final field1 = named1[i];
-      final field2 = named2[i];
+      var field1 = named1[i];
+      var field2 = named2[i];
       if (field1.name != field2.name) {
         throw _TopMergeStateError(T1, T2, 'Different named field names');
       }
-      final type = topMerge(field1.type, field2.type);
+      var type = topMerge(field1.type, field2.type);
       namedFields.add(
         RecordTypeNamedFieldImpl(
           name: field1.name,
