@@ -86,6 +86,7 @@ library meta;
 
 import 'meta_meta.dart';
 
+@Deprecated("Use a return type of 'Never' instead")
 const _AlwaysThrows alwaysThrows = _AlwaysThrows();
 
 @Deprecated('Use the `covariant` modifier instead')
@@ -109,7 +110,8 @@ const _IsTestGroup isTestGroup = _IsTestGroup();
 
 const _Literal literal = _Literal();
 
-const mustBeConst = _MustBeConst();
+@experimental
+const _MustBeConst mustBeConst = _MustBeConst();
 
 const _MustBeOverridden mustBeOverridden = _MustBeOverridden();
 
@@ -145,27 +147,24 @@ class Immutable {
   const Immutable([this.reason = '']);
 }
 
-@Target({
-  TargetKind.getter,
-  TargetKind.setter,
-  TargetKind.method,
-})
-class _Redeclare {
-  const _Redeclare();
-}
-
-@Target({
-  TargetKind.classType,
-  TargetKind.mixinType,
-})
-class _Reopen {
-  const _Reopen();
-}
-
 class Required {
   final String reason;
 
   const Required([this.reason = '']);
+}
+
+@experimental
+class ResourceIdentifier {
+  final Object? metadata;
+
+  const ResourceIdentifier([this.metadata])
+      : assert(
+          metadata == null ||
+              metadata is bool ||
+              metadata is num ||
+              metadata is String,
+          'Valid metadata types are bool, int, double, and String.',
+        );
 }
 
 @Target({
@@ -195,14 +194,6 @@ class _Checked {
 }
 
 @Target({
-  TargetKind.parameter,
-  TargetKind.typedefType,
-})
-class _MustBeConst {
-  const _MustBeConst();
-}
-
-@Target({
   TargetKind.classType,
   TargetKind.function,
   TargetKind.getter,
@@ -213,6 +204,15 @@ class _DoNotStore {
   const _DoNotStore();
 }
 
+@Target({
+  TargetKind.constructor,
+  TargetKind.function,
+  TargetKind.getter,
+  TargetKind.method,
+  TargetKind.parameter,
+  TargetKind.setter,
+  TargetKind.topLevelVariable,
+})
 class _DoNotSubmit {
   const _DoNotSubmit();
 }
@@ -239,6 +239,14 @@ class _IsTestGroup {
 
 class _Literal {
   const _Literal();
+}
+
+@Target({
+  TargetKind.parameter,
+  TargetKind.extensionType,
+})
+class _MustBeConst {
+  const _MustBeConst();
 }
 
 @Target({
@@ -282,10 +290,28 @@ class _Protected {
   const _Protected();
 }
 
+@Target({
+  TargetKind.getter,
+  TargetKind.setter,
+  TargetKind.method,
+})
+class _Redeclare {
+  const _Redeclare();
+}
+
+@Target({
+  TargetKind.classType,
+  TargetKind.mixinType,
+})
+class _Reopen {
+  const _Reopen();
+}
+
 class _Sealed {
   const _Sealed();
 }
 
+@Deprecated('No longer has meaning')
 class _Virtual {
   const _Virtual();
 }

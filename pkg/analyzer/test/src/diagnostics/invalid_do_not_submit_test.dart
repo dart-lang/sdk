@@ -252,7 +252,9 @@ void b() {
 }
 ''');
 
-    await assertErrorsInFile2(a, []);
+    await assertErrorsInFile2(a, [
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 35, 11),
+    ]);
     await assertErrorsInFile2(b, []);
   }
 
