@@ -4160,12 +4160,11 @@ final class _Int8ArrayView extends _TypedListView
       _TypedList buffer, int offsetInBytes, int length);
 
   // Method(s) implementing the List interface.
+  @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
-  int operator [](int index) {
-    index = _typedDataIndexCheck(this, index, length);
-    return _typedData
-        ._getInt8(offsetInBytes + (index * Int8List.bytesPerElement));
-  }
+  @pragma("vm:idempotent")
+  @pragma("vm:exact-result-type", "dart:core#_Smi")
+  external int operator [](int index);
 
   @pragma("vm:prefer-inline")
   void operator []=(int index, int value) {
@@ -4206,12 +4205,11 @@ final class _Uint8ArrayView extends _TypedListView
       _TypedList buffer, int offsetInBytes, int length);
 
   // Method(s) implementing the List interface.
+  @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
-  int operator [](int index) {
-    index = _typedDataIndexCheck(this, index, length);
-    return _typedData
-        ._getUint8(offsetInBytes + (index * Uint8List.bytesPerElement));
-  }
+  @pragma("vm:idempotent")
+  @pragma("vm:exact-result-type", "dart:core#_Smi")
+  external int operator [](int index);
 
   @pragma("vm:prefer-inline")
   void operator []=(int index, int value) {
@@ -4255,12 +4253,11 @@ final class _Uint8ClampedArrayView extends _TypedListView
       _TypedList buffer, int offsetInBytes, int length);
 
   // Method(s) implementing the List interface.
+  @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
-  int operator [](int index) {
-    index = _typedDataIndexCheck(this, index, length);
-    return _typedData
-        ._getUint8(offsetInBytes + (index * Uint8List.bytesPerElement));
-  }
+  @pragma("vm:idempotent")
+  @pragma("vm:exact-result-type", "dart:core#_Smi")
+  external int operator [](int index);
 
   @pragma("vm:prefer-inline")
   void operator []=(int index, int value) {
@@ -4307,12 +4304,11 @@ final class _Int16ArrayView extends _TypedListView
       _TypedList buffer, int offsetInBytes, int length);
 
   // Method(s) implementing the List interface.
+  @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
-  int operator [](int index) {
-    index = _typedDataIndexCheck(this, index, length);
-    return _typedData
-        ._getInt16(offsetInBytes + (index * Int16List.bytesPerElement));
-  }
+  @pragma("vm:idempotent")
+  @pragma("vm:exact-result-type", "dart:core#_Smi")
+  external int operator [](int index);
 
   @pragma("vm:prefer-inline")
   void operator []=(int index, int value) {
@@ -4367,12 +4363,11 @@ final class _Uint16ArrayView extends _TypedListView
       _TypedList buffer, int offsetInBytes, int length);
 
   // Method(s) implementing the List interface.
+  @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
-  int operator [](int index) {
-    index = _typedDataIndexCheck(this, index, length);
-    return _typedData
-        ._getUint16(offsetInBytes + (index * Uint16List.bytesPerElement));
-  }
+  @pragma("vm:idempotent")
+  @pragma("vm:exact-result-type", "dart:core#_Smi")
+  external int operator [](int index);
 
   @pragma("vm:prefer-inline")
   void operator []=(int index, int value) {
@@ -4427,12 +4422,10 @@ final class _Int32ArrayView extends _TypedListView
       _TypedList buffer, int offsetInBytes, int length);
 
   // Method(s) implementing the List interface.
+  @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
-  int operator [](int index) {
-    index = _typedDataIndexCheck(this, index, length);
-    return _typedData
-        ._getInt32(offsetInBytes + (index * Int32List.bytesPerElement));
-  }
+  @pragma("vm:idempotent")
+  external int operator [](int index);
 
   @pragma("vm:prefer-inline")
   void operator []=(int index, int value) {
@@ -4473,12 +4466,10 @@ final class _Uint32ArrayView extends _TypedListView
       _TypedList buffer, int offsetInBytes, int length);
 
   // Method(s) implementing the List interface.
+  @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
-  int operator [](int index) {
-    index = _typedDataIndexCheck(this, index, length);
-    return _typedData
-        ._getUint32(offsetInBytes + (index * Uint32List.bytesPerElement));
-  }
+  @pragma("vm:idempotent")
+  external int operator [](int index);
 
   @pragma("vm:prefer-inline")
   void operator []=(int index, int value) {
@@ -4519,12 +4510,10 @@ final class _Int64ArrayView extends _TypedListView
       _TypedList buffer, int offsetInBytes, int length);
 
   // Method(s) implementing the List interface.
+  @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
-  int operator [](int index) {
-    index = _typedDataIndexCheck(this, index, length);
-    return _typedData
-        ._getInt64(offsetInBytes + (index * Int64List.bytesPerElement));
-  }
+  @pragma("vm:idempotent")
+  external int operator [](int index);
 
   @pragma("vm:prefer-inline")
   void operator []=(int index, int value) {
@@ -4565,12 +4554,10 @@ final class _Uint64ArrayView extends _TypedListView
       _TypedList buffer, int offsetInBytes, int length);
 
   // Method(s) implementing the List interface.
+  @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
-  int operator [](int index) {
-    index = _typedDataIndexCheck(this, index, length);
-    return _typedData
-        ._getUint64(offsetInBytes + (index * Uint64List.bytesPerElement));
-  }
+  @pragma("vm:idempotent")
+  external int operator [](int index);
 
   @pragma("vm:prefer-inline")
   void operator []=(int index, int value) {
@@ -4611,12 +4598,11 @@ final class _Float32ArrayView extends _TypedListView
       _TypedList buffer, int offsetInBytes, int length);
 
   // Method(s) implementing the List interface.
+  @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
-  double operator [](int index) {
-    index = _typedDataIndexCheck(this, index, length);
-    return _typedData
-        ._getFloat32(offsetInBytes + (index * Float32List.bytesPerElement));
-  }
+  @pragma("vm:idempotent")
+  @pragma("vm:exact-result-type", "dart:core#_Double")
+  external double operator [](int index);
 
   @pragma("vm:prefer-inline")
   void operator []=(int index, double value) {
@@ -4657,12 +4643,11 @@ final class _Float64ArrayView extends _TypedListView
       _TypedList buffer, int offsetInBytes, int length);
 
   // Method(s) implementing the List interface.
+  @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
-  double operator [](int index) {
-    index = _typedDataIndexCheck(this, index, length);
-    return _typedData
-        ._getFloat64(offsetInBytes + (index * Float64List.bytesPerElement));
-  }
+  @pragma("vm:idempotent")
+  @pragma("vm:exact-result-type", "dart:core#_Double")
+  external double operator [](int index);
 
   @pragma("vm:prefer-inline")
   void operator []=(int index, double value) {
@@ -4703,11 +4688,11 @@ final class _Float32x4ArrayView extends _TypedListView
       _TypedList buffer, int offsetInBytes, int length);
 
   // Method(s) implementing the List interface.
-  Float32x4 operator [](int index) {
-    index = _typedDataIndexCheck(this, index, length);
-    return _typedData
-        ._getFloat32x4(offsetInBytes + (index * Float32x4List.bytesPerElement));
-  }
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  @pragma("vm:idempotent")
+  @pragma("vm:exact-result-type", _Float32x4)
+  external Float32x4 operator [](int index);
 
   void operator []=(int index, Float32x4 value) {
     index = _typedDataIndexCheck(this, index, length);
@@ -4747,11 +4732,11 @@ final class _Int32x4ArrayView extends _TypedListView
       _TypedList buffer, int offsetInBytes, int length);
 
   // Method(s) implementing the List interface.
-  Int32x4 operator [](int index) {
-    index = _typedDataIndexCheck(this, index, length);
-    return _typedData
-        ._getInt32x4(offsetInBytes + (index * Int32x4List.bytesPerElement));
-  }
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  @pragma("vm:idempotent")
+  @pragma("vm:exact-result-type", _Int32x4)
+  external Int32x4 operator [](int index);
 
   void operator []=(int index, Int32x4 value) {
     index = _typedDataIndexCheck(this, index, length);
@@ -4791,11 +4776,11 @@ final class _Float64x2ArrayView extends _TypedListView
       _TypedList buffer, int offsetInBytes, int length);
 
   // Method(s) implementing the List interface.
-  Float64x2 operator [](int index) {
-    index = _typedDataIndexCheck(this, index, length);
-    return _typedData
-        ._getFloat64x2(offsetInBytes + (index * Float64x2List.bytesPerElement));
-  }
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  @pragma("vm:idempotent")
+  @pragma("vm:exact-result-type", _Float64x2)
+  external Float64x2 operator [](int index);
 
   void operator []=(int index, Float64x2 value) {
     index = _typedDataIndexCheck(this, index, length);

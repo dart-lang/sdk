@@ -59,17 +59,18 @@ const simpleArgPrintingProgram = r'''
 ///
 /// The output will contain stack traces include both the supplied file, package
 /// and dart URIs.
-String stderrPrintingProgram(Uri fileUri, Uri packageUri, Uri dartUri) {
+String stackPrintingProgram(
+    String outputKind, Uri fileUri, Uri packageUri, Uri dartUri) {
   return '''
   import 'dart:io';
   import '$packageUri';
 
   void main(List<String> args) async {
-    stderr.writeln('Start');
-    stderr.writeln('#0      main ($fileUri:1:2)');
-    stderr.writeln('#1      main2 ($packageUri:3:4)');
-    stderr.writeln('#2      main3 ($dartUri:5:6)');
-    stderr.write('End');
+    $outputKind.writeln('Start');
+    $outputKind.writeln('#0      main ($fileUri:1:2)');
+    $outputKind.writeln('#1      main2 ($packageUri:3:4)');
+    $outputKind.writeln('#2      main3 ($dartUri:5:6)');
+    $outputKind.write('End');
     await Future.delayed(const Duration(seconds: 1));
   }
 ''';

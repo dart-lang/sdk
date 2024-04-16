@@ -2648,11 +2648,18 @@ void FlowGraph::ExtractNonInternalTypedDataPayload(Instruction* instr,
   auto const type_cid = array->Type()->ToCid();
   // For external PointerBase objects, the payload should have already been
   // extracted during canonicalization.
-  ASSERT(!IsExternalPayloadClassId(cid) || !IsExternalPayloadClassId(type_cid));
-  // Don't extract if the array is an internal typed data object.
-  if (IsTypedDataClassId(type_cid)) return;
-  ExtractUntaggedPayload(instr, array, Slot::PointerBase_data(),
-                         InnerPointerAccess::kMayBeInnerPointer);
+  ASSERT(!IsExternalPayloadClassId(cid) && !IsExternalPayloadClassId(type_cid));
+  // Extract payload for typed data view instructions even if array is
+  // an internal typed data (could happen in the unreachable code),
+  // as code generation handles direct accesses only for internal typed data.
+  //
+  // For internal typed data instructions (which are also used for
+  // non-internal typed data arrays), don't extract payload if the array is
+  // an internal typed data object.
+  if (IsTypedDataViewClassId(cid) || !IsTypedDataClassId(type_cid)) {
+    ExtractUntaggedPayload(instr, array, Slot::PointerBase_data(),
+                           InnerPointerAccess::kMayBeInnerPointer);
+  }
 }
 
 void FlowGraph::ExtractNonInternalTypedDataPayloads() {

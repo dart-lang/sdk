@@ -104,105 +104,23 @@ intptr_t MethodRecognizer::MethodKindToReceiverCid(Kind kind) {
     case kGrowableArraySetIndexedUnchecked:
       return kGrowableObjectArrayCid;
 
-    case kFloat32ArrayGetIndexed:
-    case kFloat32ArraySetIndexed:
-      return kTypedDataFloat32ArrayCid;
+#define TYPED_DATA_GET_SET_INDEXED_CASES(clazz)                                \
+  case k##clazz##ArrayGetIndexed:                                              \
+  case k##clazz##ArraySetIndexed:                                              \
+    return kTypedData##clazz##ArrayCid;                                        \
+  case kExternal##clazz##ArrayGetIndexed:                                      \
+    return kExternalTypedData##clazz##ArrayCid;                                \
+  case k##clazz##ArrayViewGetIndexed:                                          \
+    return kTypedData##clazz##ArrayViewCid;
 
-    case kExternalFloat32ArrayGetIndexed:
-      return kExternalTypedDataFloat32ArrayCid;
+      DART_CLASS_LIST_TYPED_DATA(TYPED_DATA_GET_SET_INDEXED_CASES);
+#undef TYPED_DATA_GET_SET_INDEXED_CASES
 
-    case kFloat64ArrayGetIndexed:
-    case kFloat64ArraySetIndexed:
-      return kTypedDataFloat64ArrayCid;
-
-    case kExternalFloat64ArrayGetIndexed:
-      return kExternalTypedDataFloat64ArrayCid;
-
-    case kInt8ArrayGetIndexed:
-    case kInt8ArraySetIndexed:
-      return kTypedDataInt8ArrayCid;
-
-    case kExternalInt8ArrayGetIndexed:
-      return kExternalTypedDataInt8ArrayCid;
-
-    case kUint8ArrayGetIndexed:
-    case kUint8ArraySetIndexed:
-      return kTypedDataUint8ArrayCid;
-
-    case kUint8ClampedArrayGetIndexed:
-    case kUint8ClampedArraySetIndexed:
-      return kTypedDataUint8ClampedArrayCid;
-
-    case kExternalUint8ArrayGetIndexed:
     case kExternalUint8ArraySetIndexed:
       return kExternalTypedDataUint8ArrayCid;
 
-    case kExternalUint8ClampedArrayGetIndexed:
     case kExternalUint8ClampedArraySetIndexed:
       return kExternalTypedDataUint8ClampedArrayCid;
-
-    case kInt16ArrayGetIndexed:
-    case kInt16ArraySetIndexed:
-      return kTypedDataInt16ArrayCid;
-
-    case kExternalInt16ArrayGetIndexed:
-      return kExternalTypedDataInt16ArrayCid;
-
-    case kUint16ArrayGetIndexed:
-    case kUint16ArraySetIndexed:
-      return kTypedDataUint16ArrayCid;
-
-    case kExternalUint16ArrayGetIndexed:
-      return kExternalTypedDataUint16ArrayCid;
-
-    case kInt32ArrayGetIndexed:
-    case kInt32ArraySetIndexed:
-      return kTypedDataInt32ArrayCid;
-
-    case kExternalInt32ArrayGetIndexed:
-      return kExternalTypedDataInt32ArrayCid;
-
-    case kUint32ArrayGetIndexed:
-    case kUint32ArraySetIndexed:
-      return kTypedDataUint32ArrayCid;
-
-    case kExternalUint32ArrayGetIndexed:
-      return kExternalTypedDataUint32ArrayCid;
-
-    case kInt64ArrayGetIndexed:
-    case kInt64ArraySetIndexed:
-      return kTypedDataInt64ArrayCid;
-
-    case kExternalInt64ArrayGetIndexed:
-      return kExternalTypedDataInt64ArrayCid;
-
-    case kUint64ArrayGetIndexed:
-    case kUint64ArraySetIndexed:
-      return kTypedDataUint64ArrayCid;
-
-    case kExternalUint64ArrayGetIndexed:
-      return kExternalTypedDataUint64ArrayCid;
-
-    case kFloat32x4ArrayGetIndexed:
-    case kFloat32x4ArraySetIndexed:
-      return kTypedDataFloat32x4ArrayCid;
-
-    case kExternalFloat32x4ArrayGetIndexed:
-      return kExternalTypedDataFloat32x4ArrayCid;
-
-    case kInt32x4ArrayGetIndexed:
-    case kInt32x4ArraySetIndexed:
-      return kTypedDataInt32x4ArrayCid;
-
-    case kExternalInt32x4ArrayGetIndexed:
-      return kExternalTypedDataInt32x4ArrayCid;
-
-    case kFloat64x2ArrayGetIndexed:
-    case kFloat64x2ArraySetIndexed:
-      return kTypedDataFloat64x2ArrayCid;
-
-    case kExternalFloat64x2ArrayGetIndexed:
-      return kExternalTypedDataFloat64x2ArrayCid;
 
     default:
       break;

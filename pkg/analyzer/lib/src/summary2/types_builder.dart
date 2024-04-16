@@ -250,6 +250,9 @@ class TypesBuilder {
         var result = AugmentedExtensionElementImpl(declaration);
         result.extendedType = maybeAugmented.extendedType;
         declaration.augmentedInternal = augmented = result;
+      case MixinElementImpl():
+        var result = AugmentedMixinElementImpl(declaration);
+        declaration.augmentedInternal = augmented = result;
       default:
         return null;
     }
@@ -263,6 +266,14 @@ class TypesBuilder {
         augmented.mixins.addAll(declaration.mixins);
         augmented.interfaces.addAll(declaration.interfaces);
         augmented.constructors.addAll(declaration.constructors.notAugmented);
+      }
+    }
+
+    if (augmented is AugmentedMixinElementImpl) {
+      if (declaration is MixinElementImpl) {
+        augmented.superclassConstraints.addAll(
+          declaration.superclassConstraints,
+        );
       }
     }
 
@@ -365,16 +376,6 @@ class TypesBuilder {
 
     if (element.augmentationTarget != null) {
       _updatedAugmented(element);
-    } else {
-      if (element.augmentation != null) {
-        final augmented = AugmentedMixinElementImpl(element);
-        element.augmentedInternal = augmented;
-        augmented.superclassConstraints.addAll(element.superclassConstraints);
-        augmented.interfaces.addAll(element.interfaces);
-        augmented.fields.addAll(element.fields.notAugmented);
-        augmented.accessors.addAll(element.accessors.notAugmented);
-        augmented.methods.addAll(element.methods.notAugmented);
-      }
     }
   }
 
@@ -416,6 +417,7 @@ class TypesBuilder {
     InstanceElementImpl augmentation, {
     WithClause? withClause,
   }) {
+    assert(augmentation.augmentationTarget != null);
     final augmented = _ensureAugmented(augmentation);
     if (augmented == null) {
       return;

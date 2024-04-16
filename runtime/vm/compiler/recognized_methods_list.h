@@ -19,33 +19,47 @@ namespace dart {
   V(_GrowableList, [], GrowableArrayGetIndexed, 0x78d7e092)                    \
   V(_Int8List, [], Int8ArrayGetIndexed, 0x23133682)                            \
   V(_ExternalInt8Array, [], ExternalInt8ArrayGetIndexed, 0x23133682)           \
+  V(_Int8ArrayView, [], Int8ArrayViewGetIndexed, 0x23133682)                   \
   V(_Uint8List, [], Uint8ArrayGetIndexed, 0x23133682)                          \
   V(_ExternalUint8Array, [], ExternalUint8ArrayGetIndexed, 0x23133682)         \
+  V(_Uint8ArrayView, [], Uint8ArrayViewGetIndexed, 0x23133682)                 \
   V(_Uint8ClampedList, [], Uint8ClampedArrayGetIndexed, 0x23133682)            \
   V(_ExternalUint8ClampedArray, [], ExternalUint8ClampedArrayGetIndexed,       \
     0x23133682)                                                                \
+  V(_Uint8ClampedArrayView, [], Uint8ClampedArrayViewGetIndexed, 0x23133682)   \
   V(_Int16List, [], Int16ArrayGetIndexed, 0x23133682)                          \
   V(_ExternalInt16Array, [], ExternalInt16ArrayGetIndexed, 0x23133682)         \
+  V(_Int16ArrayView, [], Int16ArrayViewGetIndexed, 0x23133682)                 \
   V(_Uint16List, [], Uint16ArrayGetIndexed, 0x23133682)                        \
   V(_ExternalUint16Array, [], ExternalUint16ArrayGetIndexed, 0x23133682)       \
+  V(_Uint16ArrayView, [], Uint16ArrayViewGetIndexed, 0x23133682)               \
   V(_Int32List, [], Int32ArrayGetIndexed, 0x231332c1)                          \
   V(_ExternalInt32Array, [], ExternalInt32ArrayGetIndexed, 0x231332c1)         \
+  V(_Int32ArrayView, [], Int32ArrayViewGetIndexed, 0x231332c1)                 \
   V(_Uint32List, [], Uint32ArrayGetIndexed, 0x231332c1)                        \
   V(_ExternalUint32Array, [], ExternalUint32ArrayGetIndexed, 0x231332c1)       \
+  V(_Uint32ArrayView, [], Uint32ArrayViewGetIndexed, 0x231332c1)               \
   V(_Int64List, [], Int64ArrayGetIndexed, 0x231332c1)                          \
   V(_ExternalInt64Array, [], ExternalInt64ArrayGetIndexed, 0x231332c1)         \
+  V(_Int64ArrayView, [], Int64ArrayViewGetIndexed, 0x231332c1)                 \
   V(_Uint64List, [], Uint64ArrayGetIndexed, 0x231332c1)                        \
   V(_ExternalUint64Array, [], ExternalUint64ArrayGetIndexed, 0x231332c1)       \
+  V(_Uint64ArrayView, [], Uint64ArrayViewGetIndexed, 0x231332c1)               \
   V(_Float32List, [], Float32ArrayGetIndexed, 0x07764e5c)                      \
   V(_ExternalFloat32Array, [], ExternalFloat32ArrayGetIndexed, 0x07764e5c)     \
+  V(_Float32ArrayView, [], Float32ArrayViewGetIndexed, 0x07764e5c)             \
   V(_Float64List, [], Float64ArrayGetIndexed, 0x07764e5c)                      \
   V(_ExternalFloat64Array, [], ExternalFloat64ArrayGetIndexed, 0x07764e5c)     \
+  V(_Float64ArrayView, [], Float64ArrayViewGetIndexed, 0x07764e5c)             \
   V(_Float32x4List, [], Float32x4ArrayGetIndexed, 0xb0e90a43)                  \
   V(_ExternalFloat32x4Array, [], ExternalFloat32x4ArrayGetIndexed, 0xb0e90a43) \
+  V(_Float32x4ArrayView, [], Float32x4ArrayViewGetIndexed, 0xb0e90a43)         \
   V(_Float64x2List, [], Float64x2ArrayGetIndexed, 0x5fc75359)                  \
   V(_ExternalFloat64x2Array, [], ExternalFloat64x2ArrayGetIndexed, 0x5fc75359) \
+  V(_Float64x2ArrayView, [], Float64x2ArrayViewGetIndexed, 0x5fc75359)         \
   V(_Int32x4List, [], Int32x4ArrayGetIndexed, 0x4959642b)                      \
   V(_ExternalInt32x4Array, [], ExternalInt32x4ArrayGetIndexed, 0x4959642b)     \
+  V(_Int32x4ArrayView, [], Int32x4ArrayViewGetIndexed, 0x4959642b)             \
   V(_List, ., ObjectArrayAllocate, 0x4c802222)                                 \
   V(_List, []=, ObjectArraySetIndexed, 0x3a23c6fa)                             \
   V(_GrowableList, ._withData, GrowableArrayAllocateWithData, 0x192ac0e1)      \

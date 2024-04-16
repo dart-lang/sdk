@@ -85,14 +85,16 @@ class _Flutter {
 
   bool hasWidgetAsAscendant(InterfaceElement? element,
       [Set<InterfaceElement>? alreadySeen]) {
+    if (element == null) return false;
+
+    if (isExactly(element, _nameWidget, _uriFramework)) return true;
+
     alreadySeen ??= {};
-    if (element == null || !alreadySeen.add(element)) {
-      return false;
-    }
-    if (isExactly(element, _nameWidget, _uriFramework)) {
-      return true;
-    }
-    return hasWidgetAsAscendant(element.supertype?.element, alreadySeen);
+    if (!alreadySeen.add(element)) return false;
+
+    var type =
+        element.isAugmentation ? element.augmented.thisType : element.supertype;
+    return hasWidgetAsAscendant(type?.element, alreadySeen);
   }
 
   bool isBuildContext(DartType? type, {bool skipNullable = false}) {

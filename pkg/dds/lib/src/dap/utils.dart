@@ -25,10 +25,56 @@ bool isResolvableUri(Uri uri) {
 /// Attempts to parse a line as a stack frame in order to read path/line/col
 /// information.
 ///
+/// Frames that do not look like real Dart stack frames (such as including path
+/// or URIs that look like real Dart libraries) will be filtered out but it
+/// should not be assumed that if a [stack.Frame] is returned that the input
+/// was necessarily a stack frame or that calling `toString` will return the
+/// original input text.
+stack.Frame? parseDartStackFrame(String line) {
+  final frame = _parseStackFrame(line);
+  final uri = frame?.uri;
+  return uri != null && _isDartUri(uri) ? frame : null;
+}
+
+/// Checks whether [uri] is a possible Dart URI that should be mapped to try
+/// and attach location metadata to an output event.
+///
+/// This is a performance optimization to avoid calling the VM's
+/// `lookupResolvedUris` method for output events that are probably not
+/// stack frames.
+bool _isDartUri(Uri uri) {
+  // Stack frame parsing captures a lot of things that aren't real URIs, often
+  // with no scheme or empty paths.
+  if (!uri.hasScheme || uri.hasEmptyPath) {
+    return false;
+  }
+
+  // Anything starting with dart: is potential
+  // - dart:io
+  if (uri.isScheme('dart')) {
+    return true;
+  }
+
+  // Only accept package: and file: URIs if they end with .dart.
+  // - package:foo/foo.dart
+  // - file:///c:/foo/bar.dart
+  if (uri.isScheme('package') ||
+      uri.isScheme('file') ||
+      uri.scheme.endsWith('+file')) {
+    return uri.path.endsWith('.dart');
+  }
+
+  // Some other scheme we didn't recognize and likely cannot parse.
+  return false;
+}
+
+/// Attempts to parse a line as a stack frame in order to read path/line/col
+/// information.
+///
 /// It should not be assumed that if a [stack.Frame] is returned that the input
 /// was necessarily a stack frame or that calling `toString` will return the
 /// original input text.
-stack.Frame? parseStackFrame(String line) {
+stack.Frame? _parseStackFrame(String line) {
   // Because we split on \n, on Windows there may be trailing \r which prevents
   // package:stack_trace from parsing correctly.
   line = line.trim();

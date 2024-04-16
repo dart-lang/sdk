@@ -52,6 +52,52 @@ void f() {
 ''');
   }
 
+  test_throw_usedAsANamedArgument() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  try {} catch (e) {
+    g(p: throw e);
+  }
+}
+
+void g({int? p}) {}
+''');
+  }
+
+  test_throw_usedAsAnArgument() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  try {} catch (e) {
+    print(throw e);
+  }
+}
+''');
+  }
+
+  test_throw_usedAsAnExpression() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  try {} catch (e) {
+    1 == 2 ? e.toString() : throw e;
+  }
+}
+''');
+  }
+
+  test_throw_usedAsASwitchExpressionCase() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  try {} catch (e) {
+    var x = switch(e) {
+      'a' => 1,
+      'b' => 2,
+      _ => throw e,
+    };
+  }
+}
+''');
+  }
+
   test_throwDifferentError() async {
     await assertNoDiagnostics(r'''
 void f() {
@@ -69,26 +115,6 @@ void f() {
 void f() {
   try {} catch (e) {
     throw Exception();
-  }
-}
-''');
-  }
-
-  test_throwUsedAsAnExpression1() async {
-    await assertNoDiagnostics(r'''
-void f() {
-  try {} catch (e) {
-    1 == 2 ? e.toString() : throw e;
-  }
-}
-''');
-  }
-
-  test_throwUsedAsAnExpression2() async {
-    await assertNoDiagnostics(r'''
-void f() {
-  try {} catch (e) {
-    print(throw e);
   }
 }
 ''');

@@ -1,3 +1,6 @@
+# 4.2.0
+- [DAP] All `OutputEvent`s are now scanned for stack frames to attach `source` metadata to. The [parseStackFrames] parameter for `sendOutput` is ignored and deprecated.
+
 # 4.1.0
 - Internal change: removed static method `DevToolsUtils.initializeAnalytics`
 and prepared DDS for using `unified_analytics` through the Dart Tooling Daemon.

@@ -20,6 +20,30 @@ class UseKeyInWidgetConstructorsTest extends LintRuleTest {
   @override
   String get lintRule => 'use_key_in_widget_constructors';
 
+  test_augmentedConstructor_noKey() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+import 'package:flutter/widgets.dart';
+
+class W extends StatelessWidget {
+  W();
+
+  @override
+  Widget build(BuildContext context) => Container();
+}
+''');
+
+    await assertNoDiagnostics(r'''
+augment library 'a.dart';
+
+import 'package:flutter/widgets.dart';
+
+augment class W {
+  augment const W();
+}
+''');
+  }
+
   test_constNamedConstructor_missingKey() async {
     await assertDiagnostics(r'''
 import 'package:flutter/widgets.dart';
@@ -29,6 +53,57 @@ abstract class MyWidget extends StatelessWidget {
 }
 ''', [
       lint(107, 5),
+    ]);
+  }
+
+  test_constructorInAugmentedClass() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+import 'package:flutter/widgets.dart';
+
+class W extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) => Container();
+}
+''');
+
+    await assertDiagnostics(r'''
+augment library 'a.dart';
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
+
+augment class W { }
+
+augment class W {
+  const W({Key? key});
+}
+''', [
+      lint(156, 1),
+    ]);
+  }
+
+  test_constructorInAugmentedClass_noKeyParam() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+import 'package:flutter/widgets.dart';
+
+class W extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) => Container();
+}
+''');
+
+    await assertDiagnostics(r'''
+augment library 'a.dart';
+
+import 'package:flutter/widgets.dart';
+
+augment class W {
+  const W();
+}
+''', [
+      lint(93, 1),
     ]);
   }
 
@@ -51,6 +126,29 @@ import 'package:flutter/widgets.dart';
 class MyWidget extends StatelessWidget {
   MyWidget({super.key});
   factory MyWidget.fact() => MyWidget();
+  @override
+  Widget build(BuildContext context) => Container();
+}
+''');
+  }
+
+  test_keyUse_inAugmentedConstructor() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
+
+augment class W {
+  const W({Key? key}) : super(key: key);
+}
+''');
+
+    await assertNoDiagnostics(r'''
+import augment 'a.dart';
+import 'package:flutter/widgets.dart';
+
+class W extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container();
 }
