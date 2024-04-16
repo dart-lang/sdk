@@ -20,4 +20,8 @@ void main() {
   Expect.throwsTypeError(() => getInt as int Function());
 
   Expect.throwsTypeError(() => [1, 2, null] as List<int>);
+
+  Expect.throwsTypeError(() => null as String);
+
+  Expect.throwsTypeError(() => null as Object);
 }
