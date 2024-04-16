@@ -25,8 +25,13 @@ sealed class CandidateSuggestion {
 
   CandidateSuggestion({required this.score}) : assert(score >= 0);
 
-  /// Return the text to be inserted by the completion suggestion.
+  /// The text to be inserted by the completion suggestion.
   String get completion;
+
+  @override
+  String toString() {
+    return completion;
+  }
 }
 
 /// The information about a candidate suggestion based on a class.
@@ -257,7 +262,12 @@ sealed class ImportableSuggestion extends CandidateSuggestion {
 
   ImportableSuggestion({required this.importData, required super.score});
 
-  String get completionPrefix => prefix == null ? '' : '$prefix.';
+  /// The text to add before the name of the element when it is being imported
+  /// using an import prefix.
+  String get completionPrefix {
+    var prefixName = prefix;
+    return prefixName == null ? '' : '$prefixName.';
+  }
 
   /// The URI of the library from which the suggested element would be imported.
   String? get libraryUriStr => importData?.libraryUriStr;
