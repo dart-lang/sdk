@@ -1,12 +1,12 @@
-## 3.3.4
+## 3.3.4 - 2024-04-17
 
 This is a patch release that:
 
 - Fixes an issue with JS interop in dart2wasm where JS interop methods that used
   the enclosing library's `@JS` annotation were actually using the invocation's
-  enclosing library's `@JS` annotation. (issue [#55359])
+  enclosing library's `@JS` annotation. (issue [#55430]).
 
-[#55359]: https://github.com/dart-lang/sdk/issues/55359
+[#55430]: https://github.com/dart-lang/sdk/issues/55430
 
 ## 3.3.3 - 2024-03-27
 
