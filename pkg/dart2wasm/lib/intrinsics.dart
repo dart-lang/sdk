@@ -732,14 +732,14 @@ class Intrinsifier {
     // dart:_object_helper static functions.
     if (node.target.enclosingLibrary.name == 'dart._object_helper') {
       switch (name) {
-        case "getHash":
+        case "getIdentityHashField":
           Expression arg = node.arguments.positional[0];
           w.ValueType objectType = translator.objectInfo.nonNullableType;
           codeGen.wrap(arg, objectType);
           b.struct_get(translator.objectInfo.struct, FieldIndex.identityHash);
           b.i64_extend_i32_u();
           return w.NumType.i64;
-        case "setHash":
+        case "setIdentityHashField":
           Expression arg = node.arguments.positional[0];
           Expression hash = node.arguments.positional[1];
           w.ValueType objectType = translator.objectInfo.nonNullableType;

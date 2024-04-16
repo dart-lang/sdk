@@ -1835,12 +1835,6 @@ CompileTimeErrorCode:
         const E();
       }
       ```
-  NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY:
-    sharedName: COLLECTION_ELEMENT_FROM_DEFERRED_LIBRARY
-    problemMessage: "Constant values from a deferred library can't be used as keys in a 'const' map literal."
-    correctionMessage: "Try removing the keyword 'const' from the map literal or removing the keyword 'deferred' from the import."
-    hasPublishedDocs: true
-    comment: No parameters.
   NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY:
     sharedName: COLLECTION_ELEMENT_FROM_DEFERRED_LIBRARY
     problemMessage: "Constant values from a deferred library can't be used as values in a 'const' list literal."
@@ -1904,6 +1898,23 @@ CompileTimeErrorCode:
       ```dart
       var l = const [0];
       ```
+  NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY:
+    sharedName: COLLECTION_ELEMENT_FROM_DEFERRED_LIBRARY
+    problemMessage: "Constant values from a deferred library can't be used as keys in a 'const' map literal."
+    correctionMessage: "Try removing the keyword 'const' from the map literal or removing the keyword 'deferred' from the import."
+    hasPublishedDocs: true
+    comment: No parameters.
+  NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY:
+    sharedName: COLLECTION_ELEMENT_FROM_DEFERRED_LIBRARY
+    problemMessage: "Constant values from a deferred library can't be used as values in a 'const' map literal."
+    correctionMessage: "Try removing the keyword 'const' from the map literal or removing the keyword 'deferred' from the import."
+    hasPublishedDocs: true
+    comment: No parameters.
+  NON_CONSTANT_RECORD_FIELD_FROM_DEFERRED_LIBRARY:
+    problemMessage: "Constant values from a deferred library can't be used as fields in a 'const' record literal."
+    correctionMessage: "Try removing the keyword 'const' from the record literal or removing the keyword 'deferred' from the import."
+    hasPublishedDocs: false
+    comment: No parameters.
   PATTERN_CONSTANT_FROM_DEFERRED_LIBRARY:
     problemMessage: Constant values from a deferred library can't be used in patterns.
     correctionMessage: Try removing the keyword 'deferred' from the import.
@@ -1995,12 +2006,6 @@ CompileTimeErrorCode:
     sharedName: COLLECTION_ELEMENT_FROM_DEFERRED_LIBRARY
     problemMessage: "Constant values from a deferred library can't be used as values in a 'const' set literal."
     correctionMessage: "Try removing the keyword 'const' from the set literal or removing the keyword 'deferred' from the import."
-    hasPublishedDocs: true
-    comment: No parameters.
-  NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY:
-    sharedName: COLLECTION_ELEMENT_FROM_DEFERRED_LIBRARY
-    problemMessage: "Constant values from a deferred library can't be used as values in a 'const' map literal."
-    correctionMessage: "Try removing the keyword 'const' from the map literal or removing the keyword 'deferred' from the import."
     hasPublishedDocs: true
     comment: No parameters.
   CONCRETE_CLASS_HAS_ENUM_SUPERINTERFACE:
@@ -11529,6 +11534,11 @@ CompileTimeErrorCode:
       var a = 'a';
       var m = {0: a};
       ```
+  NON_CONSTANT_RECORD_FIELD:
+    problemMessage: The fields in a const record literal must be constants.
+    correctionMessage: "Try removing the keyword 'const' from the record literal."
+    hasPublishedDocs: false
+    comment: No parameters.
   NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION:
     problemMessage: The relational pattern expression must be a constant.
     correctionMessage: Try using a constant instead.

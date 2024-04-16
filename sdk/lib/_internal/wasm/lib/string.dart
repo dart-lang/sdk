@@ -96,10 +96,10 @@ abstract final class StringBase extends WasmStringBase {
   static const int _maxUnsignedSmiBits = 63;
 
   int get hashCode {
-    int hash = getHash(this);
+    int hash = getIdentityHashField(this);
     if (hash != 0) return hash;
     hash = _computeHashCode();
-    setHash(this, hash);
+    setIdentityHashField(this, hash);
     return hash;
   }
 

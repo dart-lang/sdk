@@ -1241,6 +1241,12 @@ CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY:
   status: needsFix
   notes: |-
     Remove the `deferred` keyword from the import.
+CompileTimeErrorCode.NON_CONSTANT_RECORD_FIELD:
+  status: noFix
+CompileTimeErrorCode.NON_CONSTANT_RECORD_FIELD_FROM_DEFERRED_LIBRARY:
+  status: needsFix
+  notes: |-
+    Remove the `deferred` keyword from the import.
 CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION:
   status: hasFix
   notes: |-

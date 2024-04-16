@@ -2702,6 +2702,15 @@ Record({int f1, int f2})
 ''');
   }
 
+  test_visitRecordLiteral_namedField_final() async {
+    await assertErrorsInCode(r'''
+final bar = '';
+({String bar, }) foo() => const (bar: bar, );
+''', [
+      error(CompileTimeErrorCode.NON_CONSTANT_RECORD_FIELD, 54, 3),
+    ]);
+  }
+
   test_visitRecordLiteral_objectField_generic() async {
     await assertNoErrorsInCode(r'''
 class A<T> {
@@ -2735,6 +2744,15 @@ Record(int, int, int)
     $3: int 7
   variable: self::@variable::x
 ''');
+  }
+
+  test_visitRecordLiteral_positionalField_final() async {
+    await assertErrorsInCode(r'''
+final bar = '';
+(String, ) foo() => const (bar, );
+''', [
+      error(CompileTimeErrorCode.NON_CONSTANT_RECORD_FIELD, 43, 3),
+    ]);
   }
 
   test_visitRecordLiteral_withoutEnvironment() async {
@@ -4881,18 +4899,6 @@ const a = bool.fromEnvironment('dart.library.js_util');
 ''');
   }
 
-  test_bool_fromEnvironment_dartLibraryJsUtil_ifElement_list() async {
-    await assertNoErrorsInCode('''
-const a = bool.fromEnvironment('dart.library.js_util');
-const x = [3, if (a) ...[1] else ...[1, 2], 4];
-''');
-    final result = _topLevelVar('x');
-    assertDartObjectText(result, '''
-<unknown> List<int>
-  variable: self::@variable::x
-''');
-  }
-
   test_bool_fromEnvironment_dartLibraryJsUtil_ifElement_list_eqeq_known() async {
     await assertNoErrorsInCode('''
 const a = bool.fromEnvironment('dart.library.js_util');
@@ -5056,6 +5062,32 @@ class A {
 }
 ''', [
       error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 98, 1),
+    ]);
+  }
+
+  test_bool_fromEnvironment_dartLibraryJsUtil_ifStatement_list() async {
+    await assertNoErrorsInCode('''
+const a = bool.fromEnvironment('dart.library.js_util');
+const x = [3, if (a) ...[1] else ...[1, 2], 4];
+''');
+    final result = _topLevelVar('x');
+    assertDartObjectText(result, '''
+<unknown> List<int>
+  variable: self::@variable::x
+''');
+  }
+
+  test_bool_fromEnvironment_dartLibraryJsUtil_recordField_nonConstant() async {
+    await assertErrorsInCode('''
+const a = bool.fromEnvironment('dart.library.js_util');
+var b = 7;
+var x = const A((b, ));
+
+class A {
+  const A((int, ) p);
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_CONSTANT, 84, 1),
     ]);
   }
 
@@ -5304,6 +5336,20 @@ void main() {
       // TODO(kallentu): Fix [InvalidConstant.genericError] to handle
       // NamedExpressions.
       error(CompileTimeErrorCode.INVALID_CONSTANT, 148, 4),
+    ]);
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/55467')
+  test_listLiteral_expression_nonConstant() async {
+    await assertErrorsInCode('''
+var b = 7;
+var x = const A([b]);
+
+class A {
+  const A(List<int> p);
+}
+''', [
+      error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 28, 1),
     ]);
   }
 

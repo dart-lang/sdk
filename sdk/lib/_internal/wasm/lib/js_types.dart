@@ -16,6 +16,7 @@ library dart._js_types;
 import 'dart:_error_utils';
 import 'dart:_internal';
 import 'dart:_js_helper' as js;
+import 'dart:_object_helper';
 import 'dart:_string_helper';
 import 'dart:_wasm';
 import 'dart:collection';
