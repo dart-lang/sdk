@@ -17,6 +17,51 @@ class AnnotateOverridesTest extends LintRuleTest {
   @override
   String get lintRule => 'annotate_overrides';
 
+  test_augmentationClass_methodWithoutAnnotation() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+
+class A {
+  void a() {}
+}
+
+class B extends A { }
+''');
+
+    await assertDiagnostics(r'''
+augment library 'a.dart';
+
+augment class B {
+  void a() {}
+}
+''', [
+      lint(52, 1),
+    ]);
+  }
+
+  test_augmentationMethodWithAnnotation() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+
+class A {
+  void a() {}
+}
+
+class B extends A {
+  @override
+  void a() {}
+}
+''');
+
+    await assertNoDiagnostics(r'''
+augment library 'a.dart';
+
+augment class B {
+  augment void a() {}
+}
+''');
+  }
+
   test_class_fieldWithAnnotation() async {
     await assertNoDiagnostics(r'''
 class A {
