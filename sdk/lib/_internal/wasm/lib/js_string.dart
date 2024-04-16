@@ -441,66 +441,74 @@ final class JSStringImpl implements String {
     return index;
   }
 
-  // We can't use JS `trim` as we need to return the argument if it doesn't
-  // have any whitespace to trim. JS `trim` also doesn't handle NEL.
+  // dart2wasm can't use JavaScript trim directly,
+  // because JavaScript does not trim
+  // the NEXT LINE (NEL) character (0x85).
   @override
   String trim() {
-    final len = this.length;
-    final first = firstNonWhitespace();
-    if (len == first) {
-      // String contains only whitespaces.
-      return "";
+    // Start by doing JS trim. Then check if it leaves a NEL at
+    // either end of the string.
+    final result =
+        JSStringImpl(js.JS<WasmExternRef?>('s => s.trim()', toExternRef));
+    final resultLength = result.length;
+    if (resultLength == 0) return result;
+    int firstCode = result._codeUnitAtUnchecked(0);
+    int startIndex = 0;
+    if (firstCode == nelCodeUnit) {
+      startIndex = _skipLeadingWhitespace(result, 1);
+      if (startIndex == resultLength) return "";
     }
-    final last = lastNonWhitespace() + 1;
-    if (first == 0 && last == len) {
-      // Returns this string since it does not have leading or trailing
-      // whitespaces.
-      return this;
+
+    int endIndex = resultLength;
+    // We know that there is at least one character that is non-whitespace.
+    // Therefore we don't need to verify that endIndex > startIndex.
+    int lastCode = result.codeUnitAt(endIndex - 1);
+    if (lastCode == nelCodeUnit) {
+      endIndex = _skipTrailingWhitespace(result, endIndex - 1);
     }
-    return JSStringImpl(_jsSubstring(toExternRef, first, last));
+    if (startIndex == 0 && endIndex == resultLength) return result;
+    return substring(startIndex, endIndex);
   }
 
-  // Same as `trim`, we can't use JS `trimLeft`.
+  // dart2wasm can't use JavaScript trimLeft directly because it does not trim
+  // the NEXT LINE character (0x85).
   @override
   String trimLeft() {
-    final len = length;
-    int first = 0;
-    for (; first < len; first++) {
-      if (!_isWhitespace(codeUnitAt(first))) {
-        break;
-      }
+    // Start by doing JS trim. Then check if it leaves a NEL at
+    // the beginning of the string.
+    int startIndex = 0;
+    final result =
+        JSStringImpl(js.JS<WasmExternRef?>('s => s.trimLeft()', toExternRef));
+    final resultLength = result.length;
+    if (resultLength == 0) return result;
+    int firstCode = result._codeUnitAtUnchecked(0);
+    if (firstCode == nelCodeUnit) {
+      startIndex = _skipLeadingWhitespace(result, 1);
     }
-    if (len == first) {
-      // String contains only whitespaces.
-      return "";
-    }
-    if (first == 0) {
-      // Returns this string since it does not have leading or trailing
-      // whitespaces.
-      return this;
-    }
-    return JSStringImpl(_jsSubstring(toExternRef, first, len));
+    if (startIndex == 0) return result;
+    if (startIndex == resultLength) return "";
+    return result.substring(startIndex);
   }
 
-  // Same as `trim`, we can't use JS `trimRight`.
+  // dart2wasm can't use JavaScript trimRight directly because it does not trim
+  // the NEXT LINE character (0x85).
   @override
   String trimRight() {
-    final len = length;
-    int last = len - 1;
-    for (; last >= 0; last--) {
-      if (!_isWhitespace(codeUnitAt(last))) {
-        break;
-      }
+    // Start by doing JS trim. Then check if it leaves a NEL at the end of the
+    // string.
+    final result =
+        JSStringImpl(js.JS<WasmExternRef?>('s => s.trimRight()', toExternRef));
+    final resultLength = result.length;
+    int endIndex = resultLength;
+    if (endIndex == 0) return result;
+    int lastCode = result.codeUnitAt(endIndex - 1);
+    if (lastCode == nelCodeUnit) {
+      endIndex = _skipTrailingWhitespace(result, endIndex - 1);
     }
-    if (last == -1) {
-      // String contains only whitespaces.
-      return "";
-    }
-    if (last == (len - 1)) {
-      // Returns this string since it does not have trailing whitespaces.
-      return this;
-    }
-    return JSStringImpl(_jsSubstring(toExternRef, 0, last + 1));
+
+    if (endIndex == resultLength) return result;
+    if (endIndex == 0) return "";
+    return result.substring(0, endIndex);
   }
 
   @override
