@@ -126,6 +126,9 @@ extension BlockExtension on Block {
 }
 
 extension ClassElementExtension on ClassElement {
+  /// Get all constructors, including merged augmentations.
+  List<ConstructorElement> get allConstructors => augmented.constructors;
+
   /// Get all fields, including merged augmentations.
   List<FieldElement> get allFields => augmented.fields;
 
