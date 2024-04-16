@@ -20,6 +20,56 @@ class AnnotateRedeclaresTest extends LintRuleTest {
   @override
   String get lintRule => 'annotate_redeclares';
 
+  test_augmentationClass_method() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+
+class A {
+  void m() {}
+}
+''');
+
+    await assertDiagnostics(r'''
+augment library 'a.dart';
+
+extension type E(A a) implements A {
+  void m() {}
+}
+''', [
+      lint(71, 1),
+    ]);
+  }
+
+  @FailingTest(
+    reason:
+        "CompileTimeErrorCode.AUGMENTATION_WITHOUT_DECLARATION [61, 7, The declaration being augmented doesn't exist.]",
+    issue: 'https://github.com/dart-lang/linter/issues/4927',
+  )
+  test_augmentationMethodWithAnnotation() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+
+import 'package:meta/meta.dart';
+
+class A {
+  void m() {}
+}
+
+extension type E(A a) implements A {
+  @redeclare
+  void m() {}
+}
+''');
+
+    await assertNoDiagnostics(r'''
+augment library 'a.dart';
+
+augment extension type E(A a) {
+  augment void m() { }
+}
+''');
+  }
+
   test_method() async {
     await assertDiagnostics(r'''
 class A {
