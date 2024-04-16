@@ -60,10 +60,14 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   /// The helper used to suggest keywords.
   late final KeywordHelper keywordHelper = KeywordHelper(
-      collector: collector, featureSet: featureSet, offset: offset);
+      state: state,
+      collector: collector,
+      featureSet: featureSet,
+      offset: offset);
 
   /// The helper used to suggest labels.
-  late final LabelHelper labelHelper = LabelHelper(collector: collector);
+  late final LabelHelper labelHelper =
+      LabelHelper(state: state, collector: collector);
 
   /// The helper used to suggest declarations that are in scope.
   DeclarationHelper? _declarationHelper;
@@ -193,6 +197,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       request: state.request,
       collector: collector,
       offset: offset,
+      state: state,
       mustBeAssignable: mustBeAssignable,
       mustBeConstant: mustBeConstant,
       mustBeExtendable: mustBeExtensible,
@@ -314,9 +319,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
             }
             var includeTrailingComma =
                 argument == null || !argument.isFollowedByComma;
-            collector.addSuggestion(ClosureSuggestion(
-                functionType: parameterType,
-                includeTrailingComma: includeTrailingComma));
+            _addClosureSuggestion(parameterType, includeTrailingComma);
           }
         }
         // Suggest the names of all named parameters that are not already in the
@@ -354,11 +357,16 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
           appendComma = false;
         }
         for (var parameter in availableNamedParameters) {
-          collector.addSuggestion(NamedArgumentSuggestion(
+          var score = state.matcher.score(parameter.displayName);
+          if (score != -1) {
+            collector.addSuggestion(NamedArgumentSuggestion(
               parameter: parameter,
               appendColon: true,
               appendComma: appendComma,
-              replacementLength: replacementLength));
+              replacementLength: replacementLength,
+              score: score,
+            ));
+          }
         }
       } else if (parent is Expression) {
         _forExpression(parent, mustBeNonVoid: true);
@@ -1815,10 +1823,14 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
               var parameter = parameters[i];
               if (parameter.isNamed) {
                 if (!usedNames.contains(parameter.name)) {
-                  collector.addSuggestion(NamedArgumentSuggestion(
-                      parameter: parameter,
-                      appendColon: appendColon,
-                      appendComma: false));
+                  var score = state.matcher.score(parameter.displayName);
+                  if (score != -1) {
+                    collector.addSuggestion(NamedArgumentSuggestion(
+                        parameter: parameter,
+                        score: score,
+                        appendColon: appendColon,
+                        appendComma: false));
+                  }
                 }
               }
             }
@@ -1837,10 +1849,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       var parameterType = node.staticParameterElement?.type;
       if (parameterType is FunctionType) {
         var includeTrailingComma = !node.isFollowedByComma;
-        collector.addSuggestion(ClosureSuggestion(
-          functionType: parameterType,
-          includeTrailingComma: includeTrailingComma,
-        ));
+        _addClosureSuggestion(parameterType, includeTrailingComma);
       }
     }
   }
@@ -2316,7 +2325,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         case Configuration():
         case PartOfDirective():
         case UriBasedDirective():
-          UriHelper(state.request, collector).addSuggestions(node);
+          UriHelper(request: state.request, collector: collector, state: state)
+              .addSuggestions(node);
           return;
       }
     }
@@ -2787,10 +2797,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       _forExpression(node, mustBeNonVoid: true);
       var variableType = node.declaredElement?.type;
       if (variableType is FunctionType) {
-        collector.addSuggestion(ClosureSuggestion(
-          functionType: variableType,
-          includeTrailingComma: false,
-        ));
+        _addClosureSuggestion(variableType, false);
       }
     }
   }
@@ -2875,6 +2882,20 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     } else if (node.semicolon.isSynthetic || offset <= node.semicolon.end) {
       collector.completionLocation = 'YieldStatement_expression';
       _forExpression(node);
+    }
+  }
+
+  /// Adds a suggestion for a closure.
+  void _addClosureSuggestion(
+      FunctionType parameterType, bool includeTrailingComma) {
+    // TODO(keertip): compute the completion string to find the score.
+    var score = 0.0;
+    if (score != -1) {
+      collector.addSuggestion(ClosureSuggestion(
+        functionType: parameterType,
+        includeTrailingComma: includeTrailingComma,
+        score: score,
+      ));
     }
   }
 
@@ -3500,20 +3521,25 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
     for (final field in contextType.namedFields) {
       if (!includedNames.contains(field.name)) {
-        if (isNewField) {
-          collector.addSuggestion(
-            RecordLiteralNamedFieldSuggestion.newField(
-              field: field,
-              appendComma: displaced.type != TokenType.COMMA &&
-                  displaced.type != TokenType.CLOSE_PAREN,
-            ),
-          );
-        } else {
-          collector.addSuggestion(
-            RecordLiteralNamedFieldSuggestion.onlyName(
-              field: field,
-            ),
-          );
+        var score = state.matcher.score(field.name);
+        if (score != -1) {
+          if (isNewField) {
+            collector.addSuggestion(
+              RecordLiteralNamedFieldSuggestion.newField(
+                field: field,
+                score: score,
+                appendComma: displaced.type != TokenType.COMMA &&
+                    displaced.type != TokenType.CLOSE_PAREN,
+              ),
+            );
+          } else {
+            collector.addSuggestion(
+              RecordLiteralNamedFieldSuggestion.onlyName(
+                field: field,
+                score: score,
+              ),
+            );
+          }
         }
       }
     }

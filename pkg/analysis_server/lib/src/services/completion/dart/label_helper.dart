@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/completion/dart/candidate_suggestion.dart';
+import 'package:analysis_server/src/services/completion/dart/completion_state.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_collector.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 
@@ -12,8 +13,11 @@ class LabelHelper {
   /// The suggestion collector to which suggestions will be added.
   final SuggestionCollector collector;
 
+  /// The state used to compute the candidate suggestions.
+  final CompletionState state;
+
   /// Initialize a newly created helper to add suggestions to the [collector].
-  LabelHelper({required this.collector});
+  LabelHelper({required this.collector, required this.state});
 
   /// Add the labels that are visible at the `break` or `continue` [statement].
   void addLabels(Statement statement) {
@@ -38,8 +42,11 @@ class LabelHelper {
 
   void _visitLabels(NodeList<Label> labels) {
     for (var label in labels) {
-      var suggestion = LabelSuggestion(label: label);
-      collector.addSuggestion(suggestion);
+      var score = state.matcher.score(label.label.name);
+      if (score != -1) {
+        var suggestion = LabelSuggestion(label: label, score: score);
+        collector.addSuggestion(suggestion);
+      }
     }
   }
 }

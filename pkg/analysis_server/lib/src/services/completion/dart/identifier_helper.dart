@@ -66,7 +66,11 @@ class IdentifierHelper {
         }
       }
     }
-    collector.addSuggestion(IdentifierSuggestion(identifier: candidateName));
+    var score = state.matcher.score(candidateName);
+    if (score != -1) {
+      collector.addSuggestion(
+          IdentifierSuggestion(identifier: candidateName, score: score));
+    }
   }
 
   /// Adds any suggestions for a variable with the given [type].
@@ -79,7 +83,11 @@ class IdentifierHelper {
   /// Adds a suggestion for the [name] (unless the name is `null` or empty).
   void _createNameSuggestion(String name) {
     if (name.isNotEmpty) {
-      collector.addSuggestion(IdentifierSuggestion(identifier: name));
+      var score = state.matcher.score(name);
+      if (score != -1) {
+        collector.addSuggestion(
+            IdentifierSuggestion(identifier: name, score: score));
+      }
     }
   }
 }

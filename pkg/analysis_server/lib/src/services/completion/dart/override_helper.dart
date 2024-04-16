@@ -42,14 +42,20 @@ class OverrideHelper {
       // Gracefully degrade if the overridden element has not been resolved.
       if (element != null) {
         var invokeSuper = interface.isSuperImplemented(name);
-        collector.addSuggestion(
-          OverrideSuggestion(
-            element: element,
-            shouldInvokeSuper: invokeSuper,
-            skipAt: skipAt,
-            replacementRange: replacementRange,
-          ),
-        );
+        // TODO(keertip): Use both "override" and the name of the overridden
+        //  member to compute the score.
+        var score = 0.0;
+        if (score != -1) {
+          collector.addSuggestion(
+            OverrideSuggestion(
+              element: element,
+              shouldInvokeSuper: invokeSuper,
+              skipAt: skipAt,
+              replacementRange: replacementRange,
+              score: score,
+            ),
+          );
+        }
       }
     }
   }

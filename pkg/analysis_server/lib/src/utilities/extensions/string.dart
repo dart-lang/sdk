@@ -76,6 +76,18 @@ extension StringExtension on String {
     return buffer.toString();
   }
 
+  /// Returns the string after removing the '^' in the string, if present,
+  /// along with the index of the caret, or null if not present.
+  (String, int?) get withoutCaret {
+    var caretIndex = indexOf('^');
+    if (caretIndex < 0) {
+      return (this, null);
+    } else {
+      var rawText = substring(0, caretIndex) + substring(caretIndex + 1);
+      return (rawText, caretIndex);
+    }
+  }
+
   /// Return a version of this string in which the first character is upper case
   /// and all remaining characters are lower case.
   String get _capitalized {
