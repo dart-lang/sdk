@@ -5791,6 +5791,13 @@ class NotAugmentedClassElementImpl extends NotAugmentedInterfaceElementImpl
 
   @override
   ClassElementImpl get declaration => element;
+
+  @override
+  AugmentedClassElementImpl toAugmented() {
+    var augmented = AugmentedClassElementImpl(declaration);
+    declaration.augmentedInternal = augmented;
+    return augmented;
+  }
 }
 
 class NotAugmentedEnumElementImpl extends NotAugmentedInterfaceElementImpl
@@ -5802,6 +5809,13 @@ class NotAugmentedEnumElementImpl extends NotAugmentedInterfaceElementImpl
 
   @override
   EnumElementImpl get declaration => element;
+
+  @override
+  AugmentedEnumElementImpl toAugmented() {
+    var augmented = AugmentedEnumElementImpl(declaration);
+    declaration.augmentedInternal = augmented;
+    return augmented;
+  }
 }
 
 class NotAugmentedExtensionElementImpl extends NotAugmentedInstanceElementImpl
@@ -5813,6 +5827,14 @@ class NotAugmentedExtensionElementImpl extends NotAugmentedInstanceElementImpl
 
   @override
   ExtensionElementImpl get declaration => element;
+
+  @override
+  AugmentedExtensionElementImpl toAugmented() {
+    var augmented = AugmentedExtensionElementImpl(declaration);
+    augmented.extendedType = extendedType;
+    declaration.augmentedInternal = augmented;
+    return augmented;
+  }
 }
 
 class NotAugmentedExtensionTypeElementImpl
@@ -5825,6 +5847,13 @@ class NotAugmentedExtensionTypeElementImpl
 
   @override
   ExtensionTypeElementImpl get declaration => element;
+
+  @override
+  AugmentedExtensionTypeElementImpl toAugmented() {
+    var augmented = AugmentedExtensionTypeElementImpl(declaration);
+    declaration.augmentedInternal = augmented;
+    return augmented;
+  }
 }
 
 abstract class NotAugmentedInstanceElementImpl
@@ -5850,6 +5879,9 @@ abstract class NotAugmentedInstanceElementImpl
   List<MethodElement> get methods {
     return element.methods;
   }
+
+  /// Returns the empty augmented version, without members.
+  AugmentedInstanceElementImpl toAugmented();
 }
 
 abstract class NotAugmentedInterfaceElementImpl
@@ -5900,6 +5932,13 @@ class NotAugmentedMixinElementImpl extends NotAugmentedInterfaceElementImpl
   @override
   List<InterfaceType> get superclassConstraints {
     return element.superclassConstraints;
+  }
+
+  @override
+  AugmentedMixinElementImpl toAugmented() {
+    var augmented = AugmentedMixinElementImpl(declaration);
+    declaration.augmentedInternal = augmented;
+    return augmented;
   }
 }
 

@@ -238,24 +238,9 @@ class TypesBuilder {
       return maybeAugmented;
     }
 
+    maybeAugmented as NotAugmentedInstanceElementImpl;
     var declaration = maybeAugmented.declaration;
-
-    AugmentedInstanceElementImpl augmented;
-    switch (declaration) {
-      case ClassElementImpl():
-        var result = AugmentedClassElementImpl(declaration);
-        declaration.augmentedInternal = augmented = result;
-      case ExtensionElementImpl():
-        maybeAugmented as NotAugmentedExtensionElementImpl;
-        var result = AugmentedExtensionElementImpl(declaration);
-        result.extendedType = maybeAugmented.extendedType;
-        declaration.augmentedInternal = augmented = result;
-      case MixinElementImpl():
-        var result = AugmentedMixinElementImpl(declaration);
-        declaration.augmentedInternal = augmented = result;
-      default:
-        return null;
-    }
+    var augmented = maybeAugmented.toAugmented();
 
     augmented.fields.addAll(declaration.fields.notAugmented);
     augmented.accessors.addAll(declaration.accessors.notAugmented);
