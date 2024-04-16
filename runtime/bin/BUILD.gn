@@ -947,7 +947,7 @@ executable("abstract_socket_test") {
   include_dirs = [ ".." ]
 }
 
-executable("run_vm_tests") {
+source_set("run_vm_tests_set") {
   if (target_os == "fuchsia") {
     testonly = true
   }
@@ -964,25 +964,23 @@ executable("run_vm_tests") {
   }
 
   deps = [
-    ":crashpad",
-    ":dart_kernel_platform_cc",
-    ":dart_snapshot_cc",
-    ":standalone_dart_io",
-    "..:libdart_precompiler_testing",
     "../vm:libprotozero",  # for timeline_test
     "//third_party/boringssl",  # for secure_socket_utils_test
-    "//third_party/zlib",
   ]
+
+  if (is_fuchsia) {
+    deps += [
+      "$fuchsia_sdk/pkg/fdio",
+      "$fuchsia_sdk/pkg/trace-engine",
+    ]
+  }
+
   include_dirs = [
     "..",
     "$target_gen_dir",
     "//third_party",
   ]
   defines = [ "TESTING" ]
-
-  if (is_fuchsia) {
-    deps += [ "$fuchsia_sdk/pkg/trace-engine" ]
-  }
 
   # The VM sources are already included in libdart, so we just want to add in
   # the tests here.
@@ -1007,8 +1005,36 @@ executable("run_vm_tests") {
               "vmservice_impl.h",
             ] + builtin_impl_tests + vm_tests + compiler_tests + heap_tests +
             io_impl_tests
+}
 
-  configs += [ ":export_api_symbols" ]
+executable("run_vm_tests") {
+  if (target_os == "fuchsia") {
+    testonly = true
+  }
+
+  configs += [
+    "..:dart_arch_config",
+    "..:dart_config",
+    "..:dart_os_config",
+    "..:dart_maybe_product_config",
+    ":export_api_symbols",
+  ]
+
+  if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
+    configs += [ "..:dart_precompiler_config" ]
+  }
+
+  deps = [
+    ":crashpad",
+    ":dart_kernel_platform_cc",
+    ":dart_snapshot_cc",
+    ":run_vm_tests_set",
+    ":standalone_dart_io",
+    "..:libdart_precompiler_testing",
+    "../vm:libprotozero",  # for timeline_test
+    "//third_party/boringssl",  # for secure_socket_utils_test
+    "//third_party/zlib",
+  ]
 
   if (is_win) {
     libs = [
