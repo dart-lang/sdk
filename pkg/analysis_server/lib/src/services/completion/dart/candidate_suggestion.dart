@@ -21,6 +21,10 @@ import 'package:analyzer/source/source_range.dart';
 /// A [SuggestionBuilder] will be used to convert a candidate into a concrete
 /// suggestion based on the wire protocol being used.
 sealed class CandidateSuggestion {
+  final double score;
+
+  CandidateSuggestion({required this.score}) : assert(score >= 0);
+
   /// Return the text to be inserted by the completion suggestion.
   String get completion;
 }
@@ -31,7 +35,8 @@ final class ClassSuggestion extends ImportableSuggestion {
   final ClassElement element;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
-  ClassSuggestion({required super.importData, required this.element});
+  ClassSuggestion(
+      {required super.importData, required this.element, required super.score});
 
   @override
   String get completion => '$completionPrefix${element.name}';
@@ -51,7 +56,9 @@ final class ClosureSuggestion extends CandidateSuggestion {
   /// If [includeTrailingComma] is `true`, then the replacement will include a
   /// trailing comma.
   ClosureSuggestion(
-      {required this.functionType, required this.includeTrailingComma});
+      {required this.functionType,
+      required this.includeTrailingComma,
+      required super.score});
 
   @override
   // TODO(brianwilkerson): Fix this.
@@ -89,6 +96,7 @@ final class ConstructorSuggestion extends ImportableSuggestion {
     required this.isTearOff,
     required this.isRedirect,
     required this.suggestUnnamedAsNew,
+    required super.score,
   }) : assert((isTearOff ? 1 : 0) | (isRedirect ? 1 : 0) < 2);
 
   @override
@@ -109,7 +117,8 @@ final class EnumConstantSuggestion extends ImportableSuggestion {
   EnumConstantSuggestion(
       {required super.importData,
       required this.element,
-      this.includeEnumName = true});
+      this.includeEnumName = true,
+      required super.score});
 
   @override
   String get completion {
@@ -128,7 +137,8 @@ final class EnumSuggestion extends ImportableSuggestion {
   final EnumElement element;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
-  EnumSuggestion({required super.importData, required this.element});
+  EnumSuggestion(
+      {required super.importData, required this.element, required super.score});
 
   @override
   String get completion => '$completionPrefix${element.name}';
@@ -144,7 +154,7 @@ sealed class ExecutableSuggestion extends CandidateSuggestion {
 
   /// Initialize a newly created suggestion to use the given [kind] of
   /// suggestion.
-  ExecutableSuggestion({required this.kind})
+  ExecutableSuggestion({required this.kind, required super.score})
       : assert(kind == CompletionSuggestionKind.IDENTIFIER ||
             kind == CompletionSuggestionKind.INVOCATION);
 }
@@ -155,7 +165,8 @@ final class ExtensionSuggestion extends ImportableSuggestion {
   final ExtensionElement element;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
-  ExtensionSuggestion({required super.importData, required this.element});
+  ExtensionSuggestion(
+      {required super.importData, required this.element, required super.score});
 
   @override
   String get completion => '$completionPrefix${element.name!}';
@@ -167,7 +178,8 @@ final class ExtensionTypeSuggestion extends ImportableSuggestion {
   final ExtensionTypeElement element;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
-  ExtensionTypeSuggestion({required super.importData, required this.element});
+  ExtensionTypeSuggestion(
+      {required super.importData, required this.element, required super.score});
 
   @override
   String get completion => '$completionPrefix${element.name}';
@@ -183,7 +195,10 @@ final class FieldSuggestion extends CandidateSuggestion {
   final ClassElement? referencingClass;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
-  FieldSuggestion({required this.element, required this.referencingClass});
+  FieldSuggestion(
+      {required this.element,
+      required this.referencingClass,
+      required super.score});
 
   @override
   String get completion => element.name;
@@ -202,6 +217,7 @@ final class FormalParameterSuggestion extends CandidateSuggestion {
   FormalParameterSuggestion({
     required this.element,
     required this.distance,
+    required super.score,
   });
 
   @override
@@ -213,7 +229,7 @@ final class FormalParameterSuggestion extends CandidateSuggestion {
 final class FunctionCall extends CandidateSuggestion {
   /// Initialize a newly created candidate suggestion to suggest the method
   /// `call` defined on the class `Function`.
-  FunctionCall();
+  FunctionCall({required super.score});
 
   @override
   String get completion => 'call()';
@@ -227,7 +243,7 @@ final class IdentifierSuggestion extends CandidateSuggestion {
 
   /// Initialize a newly created candidate suggestion to suggest the
   /// [identifier].
-  IdentifierSuggestion({required this.identifier});
+  IdentifierSuggestion({required this.identifier, required super.score});
 
   @override
   String get completion => identifier;
@@ -239,7 +255,7 @@ sealed class ImportableSuggestion extends CandidateSuggestion {
   /// Information about the import used to make this suggestion visible.
   final ImportData? importData;
 
-  ImportableSuggestion({required this.importData});
+  ImportableSuggestion({required this.importData, required super.score});
 
   String get completionPrefix => prefix == null ? '' : '$prefix.';
 
@@ -272,6 +288,7 @@ final class ImportPrefixSuggestion extends CandidateSuggestion {
   ImportPrefixSuggestion({
     required this.libraryElement,
     required this.prefixElement,
+    required super.score,
   });
 
   @override
@@ -302,6 +319,7 @@ final class KeywordSuggestion extends CandidateSuggestion {
   factory KeywordSuggestion.fromKeyword({
     required Keyword keyword,
     required String? annotatedText,
+    required double score,
   }) {
     var completion = keyword.lexeme;
     var selectionOffset = completion.length;
@@ -315,6 +333,7 @@ final class KeywordSuggestion extends CandidateSuggestion {
     return KeywordSuggestion._(
       completion: completion,
       selectionOffset: selectionOffset,
+      score: score,
     );
   }
 
@@ -323,17 +342,21 @@ final class KeywordSuggestion extends CandidateSuggestion {
   /// be used as the selection offset. If the text doesn't contain a caret, then
   /// the insert text will be the annotated text and the selection offset will
   /// be at the end of the text.
-  factory KeywordSuggestion.fromText(String annotatedText) {
+  factory KeywordSuggestion.fromText(String annotatedText,
+      {required double score}) {
     var (rawText, caretIndex) = annotatedText.withoutCaret;
     return KeywordSuggestion._(
       completion: rawText,
       selectionOffset: caretIndex ?? rawText.length,
+      score: score,
     );
   }
 
   /// Initialize a newly created candidate suggestion to suggest a keyword.
   KeywordSuggestion._(
-      {required this.completion, required this.selectionOffset});
+      {required this.completion,
+      required this.selectionOffset,
+      required super.score});
 }
 
 /// The information about a candidate suggestion based on a label.
@@ -342,7 +365,7 @@ final class LabelSuggestion extends CandidateSuggestion {
   final Label label;
 
   /// Initialize a newly created candidate suggestion to suggest the [label].
-  LabelSuggestion({required this.label});
+  LabelSuggestion({required this.label, required super.score});
 
   @override
   String get completion => label.label.name;
@@ -355,6 +378,7 @@ final class LoadLibraryFunctionSuggestion extends ExecutableSuggestion {
   LoadLibraryFunctionSuggestion({
     required super.kind,
     required this.element,
+    required super.score,
   });
 
   @override
@@ -367,7 +391,8 @@ final class LocalFunctionSuggestion extends ExecutableSuggestion {
   final FunctionElement element;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
-  LocalFunctionSuggestion({required super.kind, required this.element});
+  LocalFunctionSuggestion(
+      {required super.kind, required this.element, required super.score});
 
   @override
   String get completion => element.name;
@@ -383,7 +408,8 @@ final class LocalVariableSuggestion extends CandidateSuggestion {
   final int distance;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
-  LocalVariableSuggestion({required this.element, required this.distance});
+  LocalVariableSuggestion(
+      {required this.element, required this.distance, required super.score});
 
   @override
   String get completion => element.name;
@@ -400,7 +426,8 @@ final class MethodSuggestion extends ExecutableSuggestion {
   MethodSuggestion(
       {required super.kind,
       required this.element,
-      required this.referencingClass});
+      required this.referencingClass,
+      required super.score});
 
   @override
   String get completion => element.name;
@@ -412,7 +439,8 @@ final class MixinSuggestion extends ImportableSuggestion {
   final MixinElement element;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
-  MixinSuggestion({required super.importData, required this.element});
+  MixinSuggestion(
+      {required super.importData, required this.element, required super.score});
 
   @override
   String get completion => '$completionPrefix${element.name}';
@@ -437,7 +465,8 @@ final class NamedArgumentSuggestion extends CandidateSuggestion {
       {required this.parameter,
       required this.appendColon,
       required this.appendComma,
-      this.replacementLength});
+      this.replacementLength,
+      required super.score});
 
   @override
   String get completion =>
@@ -450,7 +479,7 @@ final class NameSuggestion extends CandidateSuggestion {
   final String name;
 
   /// Initialize a newly created candidate suggestion to suggest the [name].
-  NameSuggestion({required this.name});
+  NameSuggestion({required this.name, required super.score});
 
   @override
   String get completion => name;
@@ -479,6 +508,7 @@ final class OverrideSuggestion extends CandidateSuggestion {
     required this.shouldInvokeSuper,
     required this.skipAt,
     required this.replacementRange,
+    required super.score,
   });
 
   @override
@@ -496,7 +526,9 @@ final class PropertyAccessSuggestion extends CandidateSuggestion {
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
   PropertyAccessSuggestion(
-      {required this.element, required this.referencingClass});
+      {required this.element,
+      required this.referencingClass,
+      required super.score});
 
   @override
   String get completion => element.name;
@@ -513,7 +545,8 @@ final class RecordFieldSuggestion extends CandidateSuggestion {
 
   /// Initialize a newly created candidate suggestion to suggest the [field] by
   /// inserting the [name].
-  RecordFieldSuggestion({required this.field, required this.name});
+  RecordFieldSuggestion(
+      {required this.field, required this.name, required super.score});
 
   @override
   String get completion => name;
@@ -529,10 +562,12 @@ final class RecordLiteralNamedFieldSuggestion extends CandidateSuggestion {
   RecordLiteralNamedFieldSuggestion.newField({
     required this.field,
     required this.appendComma,
+    required super.score,
   }) : appendColon = true;
 
   RecordLiteralNamedFieldSuggestion.onlyName({
     required this.field,
+    required super.score,
   })  : appendColon = false,
         appendComma = false;
 
@@ -548,7 +583,8 @@ final class StaticFieldSuggestion extends ImportableSuggestion {
   final FieldElement element;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
-  StaticFieldSuggestion({required super.importData, required this.element});
+  StaticFieldSuggestion(
+      {required super.importData, required this.element, required super.score});
 
   @override
   String get completion {
@@ -564,7 +600,7 @@ final class SuperParameterSuggestion extends CandidateSuggestion {
   final ParameterElement element;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
-  SuperParameterSuggestion({required this.element});
+  SuperParameterSuggestion({required this.element, required super.score});
 
   @override
   String get completion => element.name;
@@ -583,7 +619,10 @@ final class TopLevelFunctionSuggestion extends ImportableSuggestion {
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
   TopLevelFunctionSuggestion(
-      {required super.importData, required this.element, required this.kind})
+      {required super.importData,
+      required this.element,
+      required this.kind,
+      required super.score})
       : assert(kind == CompletionSuggestionKind.IDENTIFIER ||
             kind == CompletionSuggestionKind.INVOCATION);
 
@@ -599,7 +638,7 @@ final class TopLevelPropertyAccessSuggestion extends ImportableSuggestion {
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
   TopLevelPropertyAccessSuggestion(
-      {required super.importData, required this.element});
+      {required super.importData, required this.element, required super.score});
 
   @override
   String get completion => '$completionPrefix${element.name}';
@@ -612,7 +651,7 @@ final class TopLevelVariableSuggestion extends ImportableSuggestion {
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
   TopLevelVariableSuggestion(
-      {required super.importData, required this.element});
+      {required super.importData, required this.element, required super.score});
 
   @override
   String get completion => '$completionPrefix${element.name}';
@@ -624,7 +663,8 @@ final class TypeAliasSuggestion extends ImportableSuggestion {
   final TypeAliasElement element;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
-  TypeAliasSuggestion({required super.importData, required this.element});
+  TypeAliasSuggestion(
+      {required super.importData, required this.element, required super.score});
 
   @override
   String get completion => '$completionPrefix${element.name}';
@@ -636,7 +676,7 @@ final class TypeParameterSuggestion extends CandidateSuggestion {
   final TypeParameterElement element;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
-  TypeParameterSuggestion({required this.element});
+  TypeParameterSuggestion({required this.element, required super.score});
 
   @override
   String get completion => element.name;
@@ -648,6 +688,7 @@ final class UriSuggestion extends CandidateSuggestion {
 
   UriSuggestion({
     required this.uriStr,
+    required super.score,
   });
 
   @override

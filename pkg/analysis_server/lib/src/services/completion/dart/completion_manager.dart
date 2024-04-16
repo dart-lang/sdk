@@ -32,6 +32,8 @@ import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/generated/source.dart' show SourceFactory;
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
+import 'package:analyzer/src/utilities/completion_matcher.dart';
+import 'package:analyzer/src/utilities/fuzzy_matcher.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 
@@ -165,7 +167,10 @@ class DartCompletionManager {
     if (selection == null) {
       throw AbortCompletion();
     }
-    var state = CompletionState(request, selection, budget);
+    var matcher = request.targetPrefix.isEmpty
+        ? NoPrefixMatcher()
+        : FuzzyMatcher(request.targetPrefix);
+    var state = CompletionState(request, selection, budget, matcher);
     var pass = InScopeCompletionPass(
       state: state,
       collector: collector,

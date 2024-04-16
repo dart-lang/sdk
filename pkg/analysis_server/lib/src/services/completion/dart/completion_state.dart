@@ -8,6 +8,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/utilities/completion_matcher.dart';
 
 /// The information used to compute the suggestions for a completion request.
 class CompletionState {
@@ -23,8 +24,11 @@ class CompletionState {
   /// suggestions.
   final CompletionBudget budget;
 
+  /// The matcher used to compute the score of a completion suggestion.
+  final CompletionMatcher matcher;
+
   /// Initialize a newly created completion state.
-  CompletionState(this.request, this.selection, this.budget)
+  CompletionState(this.request, this.selection, this.budget, this.matcher)
       : assert(selection.length == 0);
 
   /// The type of value required by the context in which completion was

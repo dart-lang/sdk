@@ -1,3 +1,7 @@
+## 0.1.3
+
+- Validate parts in `Code.fromParts()`.
+
 ## 0.1.2
 
 - Add caching for `typeDeclarationOf` results.

@@ -5,8 +5,10 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
+import '../extensions.dart';
 
 const _desc = r'Prefer const with constant constructors.';
 
@@ -84,25 +86,42 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
+    if (node.isConst) return;
     if (node.constructorName.type.isDeferred) return;
 
     var element = node.constructorName.staticElement;
     if (element == null) return;
+    if (!element.isConst) return;
 
-    if (element.isConst && !node.isConst) {
-      // Handled by analyzer hint.
-      if (element.hasLiteral) return;
+    // Handled by an analyzer warning.
+    if (element.hasLiteral) return;
 
-      var enclosingElement = element.enclosingElement;
-      if (enclosingElement is ClassElement &&
-          enclosingElement.isDartCoreObject) {
-        // Skip lint for `new Object()`, because it can be used for Id creation.
-        return;
+    var enclosingElement = element.enclosingElement;
+    if (enclosingElement is ClassElement && enclosingElement.isDartCoreObject) {
+      // Skip lint for `new Object()`, because it can be used for ID creation.
+      return;
+    }
+
+    if (enclosingElement.typeParameters.isNotEmpty &&
+        node.constructorName.type.typeArguments == null) {
+      var approximateContextType = node.approximateContextType;
+      var contextTypeAsInstanceOfEnclosing =
+          approximateContextType?.asInstanceOf(enclosingElement);
+      if (contextTypeAsInstanceOfEnclosing != null) {
+        if (contextTypeAsInstanceOfEnclosing.typeArguments
+            .any((e) => e is TypeParameterType)) {
+          // The context type has type parameters, which may be substituted via
+          // upward inference from the static type of `node`. Changing `node`
+          // from non-const to const will affect inference to change its own
+          // type arguments to `Never`, which affects that upward inference.
+          // See https://github.com/dart-lang/linter/issues/4531.
+          return;
+        }
       }
+    }
 
-      if (context.canBeConst(node)) {
-        rule.reportLint(node);
-      }
+    if (context.canBeConst(node)) {
+      rule.reportLint(node);
     }
   }
 }

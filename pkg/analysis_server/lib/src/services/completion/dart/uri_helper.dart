@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/completion/dart/candidate_suggestion.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
+import 'package:analysis_server/src/services/completion/dart/completion_state.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_collector.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -20,7 +21,11 @@ class UriHelper {
   /// The suggestion collector to which suggestions will be added.
   final SuggestionCollector collector;
 
-  UriHelper(this.request, this.collector);
+  /// The state used to compute the candidate suggestions.
+  final CompletionState state;
+
+  UriHelper(
+      {required this.request, required this.collector, required this.state});
 
   void addSuggestions(StringLiteral uri) {
     if (uri is! SimpleStringLiteral) {
@@ -211,10 +216,14 @@ class UriHelper {
   }
 
   void _suggestUri(String uriStr) {
-    collector.addSuggestion(
-      UriSuggestion(
-        uriStr: uriStr,
-      ),
-    );
+    var score = state.matcher.score(uriStr);
+    if (score != -1) {
+      collector.addSuggestion(
+        UriSuggestion(
+          uriStr: uriStr,
+          score: score,
+        ),
+      );
+    }
   }
 }
