@@ -2672,6 +2672,15 @@ int 6
 ''');
   }
 
+  test_visitRecordLiteral_inConstructorInitializer() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  final bool b;
+  const A(r) : b = r is (int, ) ? true : true;
+}
+''');
+  }
+
   test_visitRecordLiteral_mixedTypes() async {
     await assertNoErrorsInCode(r'''
 const x = (0, f1: 10, f2: 2.3);
