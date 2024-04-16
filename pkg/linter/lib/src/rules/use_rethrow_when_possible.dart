@@ -68,7 +68,11 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitThrowExpression(ThrowExpression node) {
-    if (node.parent is Expression || node.parent is ArgumentList) return;
+    if (node.parent is Expression ||
+        node.parent is ArgumentList ||
+        node.parent is SwitchExpressionCase) {
+      return;
+    }
 
     var element = node.expression.canonicalElement;
     if (element != null) {
