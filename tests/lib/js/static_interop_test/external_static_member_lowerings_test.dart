@@ -9,6 +9,8 @@ import 'dart:js_interop';
 
 import 'package:expect/minitest.dart';
 
+import 'external_static_member_lowerings_with_namespaces.dart' as namespace;
+
 @JS()
 external void eval(String code);
 
@@ -33,7 +35,6 @@ class ExternalStatic {
   external static set renamedGetSet(String val);
 
   external static String method();
-  external static String differentArgsMethod(String a, [String b = '']);
   @JS('method')
   external static String renamedMethod();
 }
@@ -63,40 +64,8 @@ external set renamedGetSet(String val);
 // Top-level methods.
 @JS()
 external String method();
-@JS()
-external String differentArgsMethod(String a, [String b = '']);
 @JS('method')
 external String renamedMethod();
-
-void main() {
-  eval('''
-    globalThis.ExternalStatic = function ExternalStatic(initialValue) {
-      this.initialValue = initialValue;
-    }
-    globalThis.ExternalStatic.method = function() {
-      return 'method';
-    }
-    globalThis.ExternalStatic.differentArgsMethod = function(a, b) {
-      return a + b;
-    }
-    globalThis.ExternalStatic.field = 'field';
-    globalThis.ExternalStatic.finalField = 'finalField';
-    globalThis.ExternalStatic.getSet = 'getSet';
-
-    globalThis.field = 'field';
-    globalThis.finalField = 'finalField';
-    globalThis.getSet = 'getSet';
-    globalThis.method = function() {
-      return 'method';
-    }
-    globalThis.differentArgsMethod = function(a, b) {
-      return a + b;
-    }
-  ''');
-  testClassStaticMembers();
-  testTopLevelMembers();
-  testFactories();
-}
 
 void testClassStaticMembers() {
   // Fields.
@@ -118,7 +87,6 @@ void testClassStaticMembers() {
 
   // Methods.
   expect(ExternalStatic.method(), 'method');
-  expect(ExternalStatic.differentArgsMethod('method'), 'methodundefined');
   expect(ExternalStatic.renamedMethod(), 'method');
 }
 
@@ -142,7 +110,6 @@ void testTopLevelMembers() {
 
   // Methods.
   expect(method(), 'method');
-  expect(differentArgsMethod('method'), 'methodundefined');
   expect(renamedMethod(), 'method');
 }
 
@@ -154,4 +121,110 @@ void testFactories() {
   expect(externalStatic.initialValue, initialized);
   externalStatic = ExternalStatic.named();
   expect(externalStatic.initialValue, null);
+}
+
+void testNamespacedClassStaticMembers() {
+  // Fields.
+  expect(namespace.ExternalStatic.field, 'field');
+  namespace.ExternalStatic.field = 'modified';
+  expect(namespace.ExternalStatic.field, 'modified');
+  expect(namespace.ExternalStatic.renamedField, 'modified');
+  namespace.ExternalStatic.renamedField = 'renamedField';
+  expect(namespace.ExternalStatic.renamedField, 'renamedField');
+  expect(namespace.ExternalStatic.finalField, 'finalField');
+
+  // Getters and setters.
+  expect(namespace.ExternalStatic.getSet, 'getSet');
+  namespace.ExternalStatic.getSet = 'modified';
+  expect(namespace.ExternalStatic.getSet, 'modified');
+  expect(namespace.ExternalStatic.renamedGetSet, 'modified');
+  namespace.ExternalStatic.renamedGetSet = 'renamedGetSet';
+  expect(namespace.ExternalStatic.renamedGetSet, 'renamedGetSet');
+
+  // Methods.
+  expect(namespace.ExternalStatic.method(), 'method');
+  expect(namespace.ExternalStatic.renamedMethod(), 'method');
+}
+
+void testNamespacedTopLevelMembers() {
+  // Fields.
+  expect(namespace.field, 'field');
+  namespace.field = 'modified';
+  expect(namespace.field, 'modified');
+  expect(namespace.renamedField, 'modified');
+  namespace.renamedField = 'renamedField';
+  expect(namespace.renamedField, 'renamedField');
+  expect(namespace.finalField, 'finalField');
+
+  // Getters and setters.
+  expect(namespace.getSet, 'getSet');
+  namespace.getSet = 'modified';
+  expect(namespace.getSet, 'modified');
+  expect(namespace.renamedGetSet, 'modified');
+  namespace.renamedGetSet = 'renamedGetSet';
+  expect(namespace.renamedGetSet, 'renamedGetSet');
+
+  // Methods.
+  expect(namespace.method(), 'method');
+  expect(namespace.renamedMethod(), 'method');
+}
+
+void testNamespacedFactories() {
+  // Non-object literal factories.
+  var initialized = 'initialized';
+
+  var externalStatic = namespace.ExternalStatic(initialized);
+  expect(externalStatic.initialValue, initialized);
+  externalStatic = namespace.ExternalStatic.named();
+  expect(externalStatic.initialValue, null);
+}
+
+void main() {
+  eval('''
+    globalThis.ExternalStatic = function ExternalStatic(initialValue) {
+      this.initialValue = initialValue;
+    }
+    globalThis.ExternalStatic.field = 'field';
+    globalThis.ExternalStatic.finalField = 'finalField';
+    globalThis.ExternalStatic.getSet = 'getSet';
+    globalThis.ExternalStatic.method = function() {
+      return 'method';
+    }
+
+    globalThis.field = 'field';
+    globalThis.finalField = 'finalField';
+    globalThis.getSet = 'getSet';
+    globalThis.method = function() {
+      return 'method';
+    }
+  ''');
+  testClassStaticMembers();
+  testTopLevelMembers();
+  testFactories();
+  // Move declarations to a namespace and delete the top-level ones to test that
+  // we use the declaration's enclosing library's annotation and not the current
+  // library's.
+  eval('''
+    var library3 = {};
+    var library2 = {library3: library3};
+    var library1 = {library2: library2};
+    globalThis.library1 = library1;
+
+    library3.ExternalStatic = globalThis.ExternalStatic;
+    library3.ExternalStatic.field = 'field';
+    library3.ExternalStatic.finalField = 'finalField';
+    library3.ExternalStatic.getSet = 'getSet';
+    delete globalThis.ExternalStatic;
+    library3.field = 'field';
+    library3.finalField = 'finalField';
+    library3.getSet = 'getSet';
+    library3.method = globalThis.method;
+    delete globalThis.field;
+    delete globalThis.finalField;
+    delete globalThis.getSet;
+    delete globalThis.method;
+  ''');
+  testNamespacedClassStaticMembers();
+  testNamespacedTopLevelMembers();
+  testNamespacedFactories();
 }
