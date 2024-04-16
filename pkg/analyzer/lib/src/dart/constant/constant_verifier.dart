@@ -256,7 +256,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (node.isConst) {
-      NamedType namedType = node.constructorName.type;
+      var namedType = node.constructorName.type;
       _checkForConstWithTypeParameters(
           namedType, CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS);
 
@@ -299,13 +299,13 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     super.visitListLiteral(node);
     if (node.isConst) {
       var nodeType = node.staticType as InterfaceType;
-      DartType elementType = nodeType.typeArguments[0];
+      var elementType = nodeType.typeArguments[0];
       var verifier = _ConstLiteralVerifier(
         this,
         errorCode: CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT,
         listElementType: elementType,
       );
-      for (CollectionElement element in node.elements) {
+      for (var element in node.elements) {
         verifier.verify(element);
       }
     }
@@ -315,7 +315,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   void visitMapPattern(MapPattern node) {
     node.typeArguments?.accept(this);
 
-    final featureSet = _currentLibrary.featureSet;
+    var featureSet = _currentLibrary.featureSet;
     var uniqueKeys = HashMap<DartObjectImpl, Expression>(
       hashCode: (_) => 0,
       equals: (a, b) {
@@ -368,6 +368,20 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitRecordLiteral(RecordLiteral node) {
+    super.visitRecordLiteral(node);
+
+    if (node.isConst) {
+      for (var field in node.fields) {
+        _evaluateAndReportError(
+          field,
+          CompileTimeErrorCode.NON_CONSTANT_RECORD_FIELD,
+        );
+      }
+    }
+  }
+
+  @override
   void visitRelationalPattern(RelationalPattern node) {
     super.visitRelationalPattern(node);
 
@@ -403,7 +417,6 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         var nodeType = node.staticType as InterfaceType;
         var keyType = nodeType.typeArguments[0];
         var valueType = nodeType.typeArguments[1];
-        bool reportEqualKeys = true;
         var config = _MapVerifierConfig(
           keyType: keyType,
           valueType: valueType,
@@ -413,16 +426,12 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           errorCode: CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT,
           mapConfig: config,
         );
-        for (CollectionElement entry in node.elements) {
+        for (var entry in node.elements) {
           verifier.verify(entry);
         }
-        if (reportEqualKeys) {
-          for (var duplicateEntry in config.duplicateKeys.entries) {
-            _errorReporter.reportError(_diagnosticFactory.equalKeysInConstMap(
-                _errorReporter.source,
-                duplicateEntry.key,
-                duplicateEntry.value));
-          }
+        for (var duplicateEntry in config.duplicateKeys.entries) {
+          _errorReporter.reportError(_diagnosticFactory.equalKeysInConstMap(
+              _errorReporter.source, duplicateEntry.key, duplicateEntry.value));
         }
       }
     }
@@ -689,6 +698,10 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
             errorCode,
             CompileTimeErrorCode
                 .NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY) ||
+        identical(
+            errorCode,
+            CompileTimeErrorCode
+                .NON_CONSTANT_RECORD_FIELD_FROM_DEFERRED_LIBRARY) ||
         identical(
             errorCode,
             CompileTimeErrorCode
@@ -1131,7 +1144,7 @@ class _ConstLiteralVerifier {
     );
   }
 
-  /// Return `true` if the [node] is a potential constant.
+  /// Returns whether the [node] is a potential constant.
   bool _reportNotPotentialConstants(AstNode node) {
     var notPotentiallyConstants = getNotPotentiallyConstants(
       node,

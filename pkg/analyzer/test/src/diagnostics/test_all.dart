@@ -614,6 +614,9 @@ import 'non_constant_map_pattern_key_test.dart' as non_constant_map_pattern_key;
 import 'non_constant_map_value_from_deferred_library_test.dart'
     as non_constant_map_value_from_deferred_library;
 import 'non_constant_map_value_test.dart' as non_constant_map_value;
+import 'non_constant_record_field_from_deferred_library_test.dart'
+    as non_constant_record_field_from_deferred_library;
+import 'non_constant_record_field_test.dart' as non_constant_record_field;
 import 'non_constant_relational_pattern_expression_test.dart'
     as non_constant_relational_pattern_expression;
 import 'non_constant_set_element_test.dart' as non_constant_set_element;
@@ -1287,19 +1290,21 @@ main() {
     non_const_generative_enum_constructor.main();
     non_const_map_as_expression_statement.main();
     non_constant_annotation_constructor.main();
-    non_constant_list_element.main();
     non_constant_case_expression_from_deferred_library.main();
     non_constant_case_expression.main();
     non_constant_default_value_from_deferred_library.main();
     non_constant_default_value.main();
     non_constant_list_element_from_deferred_library.main();
+    non_constant_list_element.main();
+    non_constant_map_element.main();
+    non_constant_map_key_from_deferred_library.main();
     non_constant_map_key.main();
     non_constant_map_pattern_key.main();
-    non_constant_map_key_from_deferred_library.main();
-    non_constant_map_element.main();
-    non_constant_map_value.main();
-    non_constant_relational_pattern_expression.main();
     non_constant_map_value_from_deferred_library.main();
+    non_constant_map_value.main();
+    non_constant_record_field_from_deferred_library.main();
+    non_constant_record_field.main();
+    non_constant_relational_pattern_expression.main();
     non_constant_set_element.main();
     non_constant_type_argument.main();
     non_covariant_type_parameter_position_in_representation_type.main();

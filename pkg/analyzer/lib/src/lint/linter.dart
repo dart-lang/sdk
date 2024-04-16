@@ -885,6 +885,7 @@ class _ConstantAnalysisErrorListener extends AnalysisErrorListener {
         case CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT:
         case CompileTimeErrorCode.NON_CONSTANT_MAP_KEY:
         case CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE:
+        case CompileTimeErrorCode.NON_CONSTANT_RECORD_FIELD:
         case CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT:
           hasConstError = true;
       }

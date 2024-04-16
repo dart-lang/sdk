@@ -3780,6 +3780,26 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  No parameters.
+  static const CompileTimeErrorCode NON_CONSTANT_RECORD_FIELD =
+      CompileTimeErrorCode(
+    'NON_CONSTANT_RECORD_FIELD',
+    "The fields in a const record literal must be constants.",
+    correctionMessage:
+        "Try removing the keyword 'const' from the record literal.",
+  );
+
+  ///  No parameters.
+  static const CompileTimeErrorCode
+      NON_CONSTANT_RECORD_FIELD_FROM_DEFERRED_LIBRARY = CompileTimeErrorCode(
+    'NON_CONSTANT_RECORD_FIELD_FROM_DEFERRED_LIBRARY',
+    "Constant values from a deferred library can't be used as fields in a "
+        "'const' record literal.",
+    correctionMessage:
+        "Try removing the keyword 'const' from the record literal or removing "
+        "the keyword 'deferred' from the import.",
+  );
+
+  ///  No parameters.
   static const CompileTimeErrorCode NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION =
       CompileTimeErrorCode(
     'NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION',

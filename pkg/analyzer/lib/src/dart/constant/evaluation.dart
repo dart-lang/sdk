@@ -1721,8 +1721,8 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
         switch (evaluationResult) {
           case null:
             // The constant value isn't computed yet, or there is an error while
-            // computing. We will mark it and determine whether or not to continue
-            // the evaluation upstream.
+            // computing. We will mark it and determine whether or not to
+            // continue the evaluation upstream.
             return InvalidConstant.genericError(errorNode, isUnresolved: true);
           case DartObjectImpl():
             if (identifier == null) {
@@ -1856,6 +1856,9 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
             return CompileTimeErrorCode
                 .NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY;
           }
+        } else if (current is RecordLiteral) {
+          return CompileTimeErrorCode
+              .NON_CONSTANT_RECORD_FIELD_FROM_DEFERRED_LIBRARY;
         } else if (current is SetOrMapLiteral) {
           return CompileTimeErrorCode.SET_ELEMENT_FROM_DEFERRED_LIBRARY;
         } else if (current is SpreadElement) {
