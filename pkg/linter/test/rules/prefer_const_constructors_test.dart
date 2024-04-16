@@ -93,6 +93,36 @@ var a = A<String>();
     ]);
   }
 
+  test_canBeConst_implicitTypeArgument() async {
+    await assertNoDiagnostics(r'''
+class A<T, U> {
+  const A();
+}
+A<T, int> f<T>() => A();
+''');
+  }
+
+  test_canBeConst_implicitTypeArgument_downwardInference() async {
+    await assertDiagnostics(r'''
+class A<T> {
+  const A();
+}
+A<int> f() => A();
+''', [
+      lint(42, 3),
+    ]);
+  }
+
+  test_canBeConst_implicitTypeArgument_inConditional() async {
+    await assertNoDiagnostics(r'''
+class A<T, U> {
+  const A();
+}
+class B<T, U> extends A<T, U> {}
+A<T, int> f<T>(bool b) => b ? A() : B();
+''');
+  }
+
   test_canBeConst_intLiteralArgument() async {
     await assertDiagnostics(r'''
 class A {
