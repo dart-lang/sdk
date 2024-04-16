@@ -1414,10 +1414,6 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// Sends an OutputEvent (without a newline, since calls to this method
   /// may be using buffered data that is not split cleanly on newlines).
   ///
-  /// If [parseStackFrames] is set, it controls whether to look for stack traces
-  /// and extract file/line information to add to the metadata of the event. If
-  /// it is `null` then parsing will occur only if [category] is `"stderr"`.
-  ///
   /// To ensure output is sent to the client in the correct order even if
   /// processing stack frames requires async calls, this function will insert
   /// output events into a queue and only send them when previous calls have
@@ -1426,6 +1422,8 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     String category,
     String message, {
     int? variablesReference,
+    @Deprecated(
+        'parseStackFrames has no effect, stack frames are always parsed')
     bool? parseStackFrames,
   }) async {
     // Reserve our place in the queue be inserting a future that we can complete
@@ -1439,7 +1437,6 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
         category,
         message,
         variablesReference: variablesReference,
-        parseStackFrames: parseStackFrames,
       );
 
       // Chain our sends onto the end of the previous one, and complete our Future
@@ -2149,41 +2146,39 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     String category,
     String message, {
     int? variablesReference,
-    bool? parseStackFrames,
   }) async {
-    parseStackFrames ??= category == 'stderr';
-    try {
-      if (parseStackFrames) {
-        return await _buildErrorOutputEvents(category, message);
-      } else {
-        return [
-          OutputEventBody(
-            category: category,
-            output: message,
-            variablesReference: variablesReference,
-          )
-        ];
+    if (variablesReference != null) {
+      return [
+        OutputEventBody(
+          category: category,
+          output: message,
+          variablesReference: variablesReference,
+        )
+      ];
+    } else {
+      try {
+        return await _buildOutputEventsWithSourceReferences(category, message);
+      } catch (e, s) {
+        // Since callers of [sendOutput] may not await it, don't allow unhandled
+        // errors (for example if the VM Service quits while we were trying to
+        // map URIs), just log and return the event without metadata.
+        logger?.call('Failed to build OutputEvent: $e, $s');
+        return [OutputEventBody(category: category, output: message)];
       }
-    } catch (e, s) {
-      // Since callers of [sendOutput] may not await it, don't allow unhandled
-      // errors (for example if the VM Service quits while we were trying to
-      // map URIs), just log and return the event without metadata.
-      logger?.call('Failed to build OutputEvent: $e, $s');
-      return [OutputEventBody(category: category, output: message)];
     }
   }
 
-  /// Builds OutputEvents for errors.
+  /// Builds OutputEvents with source references if they contain stack frames.
   ///
   /// If a stack trace can be parsed from [message], file/line information will
   /// be included in the metadata of the event.
-  Future<List<OutputEventBody>> _buildErrorOutputEvents(
+  Future<List<OutputEventBody>> _buildOutputEventsWithSourceReferences(
       String category, String message) async {
     final events = <OutputEventBody>[];
 
     // Extract all the URIs so we can send a batch request for resolving them.
     final lines = message.split('\n');
-    final frames = lines.map(parseStackFrame).toList();
+    final frames = lines.map(parseDartStackFrame).toList();
     final uris = frames.nonNulls.map((f) => f.uri).toList();
 
     // We need an Isolate to resolve package URIs. Since we don't know what

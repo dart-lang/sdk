@@ -155,122 +155,128 @@ main() {
       ], eagerError: true);
     });
 
-    test('sends output events in the correct order', () async {
-      // Output events that have their URIs mapped will be processed slowly due
-      // the async requests for resolving the package URI. This should not cause
-      // them to appear out-of-order with other lines that do not require this
-      // work.
-      //
-      // Use a sample program that prints output to stderr that includes:
-      // - non stack frame lines
-      // - stack frames with file:// URIs
-      // - stack frames with package URIs (that need asynchronously resolving)
-      // - stack frames with dart URIs (that need asynchronously resolving)
-      final fileUri = Uri.file(dap.createTestFile('').path);
-      final (packageUri, _) = await dap.createFooPackage();
-      final dartUri = Uri.parse('dart:isolate-patch/isolate_patch.dart');
-      final testFile = dap.createTestFile(
-        stderrPrintingProgram(fileUri, packageUri, dartUri),
-      );
+    for (final outputKind in ['stdout', 'stderr']) {
+      test('sends $outputKind output events in the correct order', () async {
+        // Output events that have their URIs mapped will be processed slowly due
+        // the async requests for resolving the package URI. This should not cause
+        // them to appear out-of-order with other lines that do not require this
+        // work.
+        //
+        // Use a sample program that prints output to stderr that includes:
+        // - non stack frame lines
+        // - stack frames with file:// URIs
+        // - stack frames with package URIs (that need asynchronously resolving)
+        // - stack frames with dart URIs (that need asynchronously resolving)
+        final fileUri = Uri.file(dap.createTestFile('').path);
+        final (packageUri, _) = await dap.createFooPackage();
+        final dartUri = Uri.parse('dart:isolate-patch/isolate_patch.dart');
+        final testFile = dap.createTestFile(
+          stackPrintingProgram(outputKind, fileUri, packageUri, dartUri),
+        );
 
-      var outputEvents = await dap.client.collectOutput(
-        launch: () => dap.client.launch(testFile.path),
-      );
-      outputEvents = outputEvents.where((e) => e.category == 'stderr').toList();
+        var outputEvents = await dap.client.collectOutput(
+          launch: () => dap.client.launch(testFile.path),
+        );
+        outputEvents =
+            outputEvents.where((e) => e.category == outputKind).toList();
 
-      // Verify the order of the stderr output events.
-      final output = outputEvents
-          .map((e) => e.output.trim())
-          .where((output) => output.isNotEmpty)
-          .join('\n');
-      expectLines(output, [
-        'Start',
-        '#0      main ($fileUri:1:2)',
-        '#1      main2 ($packageUri:3:4)',
-        '#2      main3 ($dartUri:5:6)',
-        'End',
-      ]);
+        // Verify the order of the stderr output events.
+        final output = outputEvents
+            .map((e) => e.output.trim())
+            .where((output) => output.isNotEmpty)
+            .join('\n');
+        expectLines(output, [
+          'Start',
+          '#0      main ($fileUri:1:2)',
+          '#1      main2 ($packageUri:3:4)',
+          '#2      main3 ($dartUri:5:6)',
+          'End',
+        ]);
 
-      // As a sanity check, verify we did actually do the async path mapping and
-      // got both frames with paths in our test folder.
-      final stackFramesWithPaths = outputEvents.where((e) =>
-          e.source?.path != null &&
-          path.isWithin(dap.testDir.path, e.source!.path!));
-      expect(
-        stackFramesWithPaths,
-        hasLength(2),
-        reason: 'Expected two frames within path ${dap.testDir.path}',
-      );
-    });
+        // As a sanity check, verify we did actually do the async path mapping and
+        // got both frames with paths in our test folder.
+        final stackFramesWithPaths = outputEvents.where((e) =>
+            e.source?.path != null &&
+            path.isWithin(dap.testDir.path, e.source!.path!));
+        expect(
+          stackFramesWithPaths,
+          hasLength(2),
+          reason: 'Expected two frames within path ${dap.testDir.path}',
+        );
+      });
 
-    test(
-        'fades stack frames that are not part of our project when allowAnsiColorOutput=true',
-        () async {
-      // Use a sample program that prints output to stderr that includes:
-      // - non stack frame lines
-      // - stack frames with file:// URIs
-      // - stack frames with package URIs (that need asynchronously resolving)
-      // - stack frames with dart URIs (that need asynchronously resolving)
-      final fileUri = Uri.file(dap.createTestFile('').path);
-      final (packageUri, _) = await dap.createFooPackage();
-      final dartUri = Uri.parse('dart:isolate-patch/isolate_patch.dart');
-      final testFile = dap.createTestFile(
-        stderrPrintingProgram(fileUri, packageUri, dartUri),
-      );
+      test(
+          'fades $outputKind stack frames that are not part of our project when allowAnsiColorOutput=true',
+          () async {
+        // Use a sample program that prints output to stderr that includes:
+        // - non stack frame lines
+        // - stack frames with file:// URIs
+        // - stack frames with package URIs (that need asynchronously resolving)
+        // - stack frames with dart URIs (that need asynchronously resolving)
+        final fileUri = Uri.file(dap.createTestFile('').path);
+        final (packageUri, _) = await dap.createFooPackage();
+        final dartUri = Uri.parse('dart:isolate-patch/isolate_patch.dart');
+        final testFile = dap.createTestFile(
+          stackPrintingProgram(outputKind, fileUri, packageUri, dartUri),
+        );
 
-      var outputEvents = await dap.client.collectOutput(
-        launch: () => dap.client.launch(testFile.path,
-            allowAnsiColorOutput: true,
-            // Include package:foo as being user-code, to ensure it's not faded.
-            additionalProjectPaths: [
-              path.join(dap.testPackagesDir.path, 'foo'),
-            ]),
-      );
-      outputEvents = outputEvents.where((e) => e.category == 'stderr').toList();
+        var outputEvents = await dap.client.collectOutput(
+          launch: () => dap.client.launch(testFile.path,
+              allowAnsiColorOutput: true,
+              // Include package:foo as being user-code, to ensure it's not faded.
+              additionalProjectPaths: [
+                path.join(dap.testPackagesDir.path, 'foo'),
+              ]),
+        );
+        outputEvents =
+            outputEvents.where((e) => e.category == outputKind).toList();
 
-      // Verify the order of the stderr output events.
-      final output = outputEvents
-          .map((e) => e.output.trim())
-          .where((output) => output.isNotEmpty)
-          .join('\n');
-      expectLines(output, [
-        'Start',
-        '#0      main ($fileUri:1:2)',
-        '#1      main2 ($packageUri:3:4)',
-        '\u001B[2m#2      main3 ($dartUri:5:6)\u001B[0m',
-        'End',
-      ]);
-    });
+        // Verify the order of the stderr output events.
+        final output = outputEvents
+            .map((e) => e.output.trim())
+            .where((output) => output.isNotEmpty)
+            .join('\n');
+        expectLines(output, [
+          'Start',
+          '#0      main ($fileUri:1:2)',
+          '#1      main2 ($packageUri:3:4)',
+          '\u001B[2m#2      main3 ($dartUri:5:6)\u001B[0m',
+          'End',
+        ]);
+      });
 
-    test('includes correct Source.name for SDK and package sources', () async {
-      // Use a sample program that prints output to stderr that includes:
-      // - non stack frame lines
-      // - stack frames with file:// URIs
-      // - stack frames with package URIs (that need asynchronously resolving)
-      // - stack frames with dart URIs (that need asynchronously resolving)
-      final fileUri = Uri.file(dap.createTestFile('').path);
-      final (packageUri, _) = await dap.createFooPackage();
-      final dartUri = Uri.parse('dart:isolate-patch/isolate_patch.dart');
-      final testFile = dap.createTestFile(
-        stderrPrintingProgram(fileUri, packageUri, dartUri),
-      );
+      test(
+          'includes correct Source.name for SDK and package sources in $outputKind output',
+          () async {
+        // Use a sample program that prints output to stderr that includes:
+        // - non stack frame lines
+        // - stack frames with file:// URIs
+        // - stack frames with package URIs (that need asynchronously resolving)
+        // - stack frames with dart URIs (that need asynchronously resolving)
+        final fileUri = Uri.file(dap.createTestFile('').path);
+        final (packageUri, _) = await dap.createFooPackage();
+        final dartUri = Uri.parse('dart:isolate-patch/isolate_patch.dart');
+        final testFile = dap.createTestFile(
+          stackPrintingProgram(outputKind, fileUri, packageUri, dartUri),
+        );
 
-      final outputEvents = await dap.client.collectOutput(file: testFile);
-      final outputSourceNames = outputEvents
-          .where((e) => e.category == 'stderr')
-          .map((output) => output.source?.name)
-          .where((sourceName) => (sourceName?.isNotEmpty ?? false))
-          .toList();
+        final outputEvents = await dap.client.collectOutput(file: testFile);
+        final outputSourceNames = outputEvents
+            .where((e) => e.category == outputKind)
+            .map((output) => output.source?.name)
+            .where((sourceName) => (sourceName?.isNotEmpty ?? false))
+            .toList();
 
-      expect(
-        outputSourceNames,
-        [
-          fileUri.toFilePath(),
-          packageUri.toString(),
-          dartUri.toString(),
-        ],
-      );
-    });
+        expect(
+          outputSourceNames,
+          [
+            fileUri.toFilePath(),
+            packageUri.toString(),
+            dartUri.toString(),
+          ],
+        );
+      });
+    }
 
     group('progress notifications', () {
       /// Helper to verify [events] are the expected start/update/end events
