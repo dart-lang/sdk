@@ -608,7 +608,7 @@ abstract class A {
 class B extends A {
 }
 ''');
-    var expectedCode = '''
+    var expectedCode = normalizeSource('''
 abstract class A {
   void m1();
   int m2();
@@ -626,7 +626,7 @@ class B extends A {
     throw UnimplementedError();
   }
 }
-''';
+''');
     await assertHasFix(expectedCode);
 
     // The selection should be on "m1", not on "m2".
