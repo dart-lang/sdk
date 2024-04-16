@@ -71,7 +71,7 @@ vars = {
   # self-service update these by following the go/dart-engprod/browsers.md
   # instructions. d8, the V8 shell, is always checked out.
   "checkout_javascript_engines": False,
-  "d8_tag": "version:12.3.150",
+  "d8_tag": "version:12.5.216",
   "jsshell_tag": "version:122.0",
   "jsc_tag": "version:274355",
 
