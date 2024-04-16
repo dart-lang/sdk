@@ -93,7 +93,10 @@ abstract class AugmentedEnumElement implements AugmentedInterfaceElement {
 /// The result of applying augmentations to an [ExtensionElement].
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class AugmentedExtensionElement implements AugmentedInstanceElement {}
+abstract class AugmentedExtensionElement implements AugmentedInstanceElement {
+  /// The type that is extended by this extension.
+  DartType get extendedType;
+}
 
 /// The result of applying augmentations to an [ExtensionTypeElement].
 ///

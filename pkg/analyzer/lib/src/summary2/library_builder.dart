@@ -58,6 +58,25 @@ class AugmentedClassDeclarationBuilder
   }
 }
 
+class AugmentedExtensionDeclarationBuilder
+    extends AugmentedInstanceDeclarationBuilder {
+  final ExtensionElementImpl declaration;
+
+  AugmentedExtensionDeclarationBuilder({
+    required this.declaration,
+  }) {
+    addFields(declaration.fields);
+    addAccessors(declaration.accessors);
+    addMethods(declaration.methods);
+  }
+
+  void augment(ExtensionElementImpl element) {
+    addFields(element.fields);
+    addAccessors(element.accessors);
+    addMethods(element.methods);
+  }
+}
+
 abstract class AugmentedInstanceDeclarationBuilder {
   final Map<String, FieldElementImpl> fields = {};
   final Map<String, ConstructorElementImpl> constructors = {};

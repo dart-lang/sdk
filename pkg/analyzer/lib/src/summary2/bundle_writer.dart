@@ -328,11 +328,24 @@ class BundleWriter {
 
     _writeReference(element);
     _sink.writeBool(element.name != null);
+    ExtensionElementFlags.write(_sink, element);
 
     _resolutionSink._writeAnnotationList(element.metadata);
 
     _writeTypeParameters(element.typeParameters, () {
-      _resolutionSink.writeType(element.extendedType);
+      _resolutionSink.writeElement(element.augmentationTarget);
+      _resolutionSink.writeElement(element.augmentation);
+      if (element.augmentationTarget == null) {
+        _resolutionSink.writeType(element.augmented.extendedType);
+        _resolutionSink.writeIfType<AugmentedExtensionElementImpl>(
+          element.augmented,
+          (augmented) {
+            _resolutionSink._writeElementList(augmented.fields);
+            _resolutionSink._writeElementList(augmented.accessors);
+            _resolutionSink._writeElementList(augmented.methods);
+          },
+        );
+      }
 
       _writeList(
         element.accessors.where((e) => !e.isSynthetic).toList(),

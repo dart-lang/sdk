@@ -134,13 +134,14 @@ class _ElementWriter {
   }
 
   void _validateAugmentedInstanceElement(InstanceElementImpl e) {
-    final augmented = e.augmented;
-    final thisType = e.thisType;
-
     InstanceElementImpl? current = e;
     while (current != null) {
-      expect(current.augmented, same(augmented));
-      expect(current.thisType, same(thisType));
+      expect(current.augmented, same(e.augmented));
+      expect(current.thisType, same(e.thisType));
+      if (e is ExtensionElementImpl) {
+        current as ExtensionElementImpl;
+        expect(current.extendedType, same(e.extendedType));
+      }
       current = current.augmentationTarget;
     }
   }
@@ -179,11 +180,6 @@ class _ElementWriter {
   }
 
   void _writeAugmented(InstanceElementImpl e) {
-    // TODO(scheglov): enable for other types
-    if (!(e is ClassElementImpl || e is MixinElementImpl)) {
-      return;
-    }
-
     if (e.augmentationTarget != null) {
       return;
     }
@@ -234,6 +230,10 @@ class _ElementWriter {
           writeConstructors();
           writeAccessors();
           writeMethods();
+        case AugmentedExtensionElement():
+          writeFields();
+          writeAccessors();
+          writeMethods();
         case AugmentedMixinElement():
           _elementPrinter.writeTypeList(
             'superclassConstraints',
@@ -243,8 +243,10 @@ class _ElementWriter {
           writeFields();
           writeAccessors();
           writeMethods();
+        default:
+          // TODO(scheglov): Add other types and properties
+          throw UnimplementedError('${e.runtimeType}');
       }
-      // TODO(scheglov): Add other types and properties
     });
   }
 
@@ -458,6 +460,7 @@ class _ElementWriter {
 
   void _writeExtensionElement(ExtensionElementImpl e) {
     _sink.writeIndentedLine(() {
+      _sink.writeIf(e.isAugmentation, 'augment ');
       _writeName(e);
     });
 
@@ -468,14 +471,17 @@ class _ElementWriter {
       _writeSinceSdkVersion(e);
       _writeCodeRange(e);
       _writeTypeParameterElements(e.typeParameters);
-      _writeType('extendedType', e.extendedType);
+      if (e.augmentationTarget == null) {
+        _writeType('extendedType', e.extendedType);
+      }
       _writeMacroDiagnostics(e);
-    });
-
-    _sink.withIndent(() {
+      _writeAugmentationTarget(e);
+      _writeAugmentation(e);
       _writeElements('fields', e.fields, _writePropertyInducingElement);
       _writeElements('accessors', e.accessors, _writePropertyAccessorElement);
       _writeMethods(e.methods);
+      _validateAugmentedInstanceElement(e);
+      _writeAugmented(e);
     });
 
     _assertNonSyntheticElementSelf(e);

@@ -377,7 +377,20 @@ class ExtensionElementLinkedData
       unitElement: element.enclosingElement,
     );
     _readTypeParameters(reader, element.typeParameters);
-    element.extendedType = reader.readRequiredType();
+    element.augmentationTarget = reader.readElement() as ExtensionElementImpl?;
+    element.augmentation = reader.readElement() as ExtensionElementImpl?;
+    if (element.augmentationTarget == null) {
+      var extendedType = reader.readRequiredType();
+      if (reader.readBool()) {
+        var augmented = AugmentedExtensionElementImpl(element);
+        element.augmentedInternal = augmented;
+        augmented.fields = reader.readElementList();
+        augmented.accessors = reader.readElementList();
+        augmented.methods = reader.readElementList();
+      }
+      element.augmented.extendedType = extendedType;
+    }
+
     applyConstantOffsets?.perform();
   }
 }
@@ -1048,6 +1061,7 @@ class LibraryReader {
         offset: resolutionOffset,
       ),
     );
+    ExtensionElementFlags.read(_reader, element);
 
     element.typeParameters = _readTypeParameters();
 

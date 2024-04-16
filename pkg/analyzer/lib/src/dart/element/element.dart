@@ -2928,9 +2928,6 @@ class ExtensionElementImpl extends InstanceElementImpl
   late MaybeAugmentedExtensionElementMixin augmentedInternal =
       NotAugmentedExtensionElementImpl(this);
 
-  /// The type being extended.
-  DartType? _extendedType;
-
   /// Initialize a newly created extension element to have the given [name] at
   /// the given [offset] in the file that contains the declaration of this
   /// element.
@@ -2962,12 +2959,7 @@ class ExtensionElementImpl extends InstanceElementImpl
 
   @override
   DartType get extendedType {
-    linkedData?.read(this);
-    return _extendedType!;
-  }
-
-  set extendedType(DartType extendedType) {
-    _extendedType = extendedType;
+    return augmented.extendedType;
   }
 
   @override
@@ -4968,10 +4960,13 @@ mixin MaybeAugmentedEnumElementMixin on MaybeAugmentedInterfaceElementMixin
 mixin MaybeAugmentedExtensionElementMixin on MaybeAugmentedInstanceElementMixin
     implements AugmentedExtensionElement {
   @override
+  DartType extendedType = InvalidTypeImpl.instance;
+
+  @override
   ExtensionElementImpl get declaration;
 
   @override
-  DartType get thisType => declaration.extendedType;
+  DartType get thisType => extendedType;
 }
 
 mixin MaybeAugmentedExtensionTypeElementMixin

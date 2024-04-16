@@ -22,6 +22,8 @@ main() {
     defineReflectiveTests(ElementsFromBytesTest);
     defineReflectiveTests(ClassAugmentationKeepLinkingTest);
     defineReflectiveTests(ClassAugmentationFromBytesTest);
+    defineReflectiveTests(ExtensionAugmentationKeepLinkingTest);
+    defineReflectiveTests(ExtensionAugmentationFromBytesTest);
     defineReflectiveTests(ExtensionTypeKeepLinkingTest);
     defineReflectiveTests(ExtensionTypeFromBytesTest);
     defineReflectiveTests(FunctionAugmentationKeepLinkingTest);
@@ -48369,6 +48371,1505 @@ library
     final libraryResult = await analysisSession.getLibraryByUri(uriStr);
     libraryResult as LibraryElementResult;
     return libraryResult.element as LibraryElementImpl;
+  }
+}
+
+@reflectiveTest
+class ExtensionAugmentationFromBytesTest extends ElementsBaseTest
+    with ExtensionAugmentationMixin {
+  @override
+  bool get keepLinkingLibraries => false;
+}
+
+@reflectiveTest
+class ExtensionAugmentationKeepLinkingTest extends ElementsBaseTest
+    with ExtensionAugmentationMixin {
+  @override
+  bool get keepLinkingLibraries => true;
+}
+
+mixin ExtensionAugmentationMixin on ElementsBaseTest {
+  test_augmentationTarget() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+import augment 'b.dart';
+augment extension A {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+augment library 'a.dart';
+augment extension A {}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+extension A on int {}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensions
+      A @35
+        extendedType: int
+        augmentation: self::@augmentation::package:test/a.dart::@extensionAugmentation::A
+        augmented
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        extensions
+          augment A @72
+            augmentationTarget: self::@extension::A
+            augmentation: self::@augmentation::package:test/b.dart::@extensionAugmentation::A
+      augmentationImports
+        package:test/b.dart
+          definingUnit
+            extensions
+              augment A @44
+                augmentationTarget: self::@augmentation::package:test/a.dart::@extensionAugmentation::A
+''');
+  }
+
+  test_augmentationTarget_no2() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+import augment 'b.dart';
+augment extension A {
+  void foo1() {}
+}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+augment library 'a.dart';
+augment extension A {
+  void foo2() {}
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        extensions
+          augment A @72
+            extendedType: InvalidType
+            augmentationTarget: <null>
+            augmentation: self::@augmentation::package:test/b.dart::@extensionAugmentation::A
+            methods
+              foo1 @83
+                returnType: void
+            augmented
+              methods
+                self::@augmentation::package:test/a.dart::@extensionAugmentation::A::@method::foo1
+                self::@augmentation::package:test/b.dart::@extensionAugmentation::A::@method::foo2
+      augmentationImports
+        package:test/b.dart
+          definingUnit
+            extensions
+              augment A @44
+                augmentationTarget: self::@augmentation::package:test/a.dart::@extensionAugmentation::A
+                methods
+                  foo2 @55
+                    returnType: void
+''');
+  }
+
+  test_augmented_field_augment_field() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment extension A {
+  augment static int foo = 1;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+extension A on int {
+  static int foo = 0;
+}
+''');
+
+    configuration.withPropertyLinking = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensions
+      A @35
+        extendedType: int
+        augmentation: self::@augmentation::package:test/a.dart::@extensionAugmentation::A
+        fields
+          static foo @59
+            type: int
+            shouldUseTypeForInitializerInference: true
+            id: field_0
+            getter: getter_0
+            setter: setter_0
+            augmentation: self::@augmentation::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
+        accessors
+          synthetic static get foo @-1
+            returnType: int
+            id: getter_0
+            variable: field_0
+          synthetic static set foo= @-1
+            parameters
+              requiredPositional _foo @-1
+                type: int
+            returnType: void
+            id: setter_0
+            variable: field_0
+        augmented
+          fields
+            self::@augmentation::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
+          accessors
+            self::@extension::A::@getter::foo
+            self::@extension::A::@setter::foo
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        extensions
+          augment A @47
+            augmentationTarget: self::@extension::A
+            fields
+              augment static foo @72
+                type: int
+                shouldUseTypeForInitializerInference: true
+                id: field_1
+                augmentationTarget: self::@extension::A::@field::foo
+''');
+  }
+
+  test_augmented_field_augment_field2() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment extension A {
+  augment static int foo = 1;
+}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+augment library 'test.dart';
+augment extension A {
+  augment static int foo = 2;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+import augment 'b.dart';
+extension A on int {
+  static int foo = 0;
+}
+''');
+
+    configuration.withPropertyLinking = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensions
+      A @60
+        extendedType: int
+        augmentation: self::@augmentation::package:test/a.dart::@extensionAugmentation::A
+        fields
+          static foo @84
+            type: int
+            shouldUseTypeForInitializerInference: true
+            id: field_0
+            getter: getter_0
+            setter: setter_0
+            augmentation: self::@augmentation::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
+        accessors
+          synthetic static get foo @-1
+            returnType: int
+            id: getter_0
+            variable: field_0
+          synthetic static set foo= @-1
+            parameters
+              requiredPositional _foo @-1
+                type: int
+            returnType: void
+            id: setter_0
+            variable: field_0
+        augmented
+          fields
+            self::@augmentation::package:test/b.dart::@extensionAugmentation::A::@fieldAugmentation::foo
+          accessors
+            self::@extension::A::@getter::foo
+            self::@extension::A::@setter::foo
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        extensions
+          augment A @47
+            augmentationTarget: self::@extension::A
+            augmentation: self::@augmentation::package:test/b.dart::@extensionAugmentation::A
+            fields
+              augment static foo @72
+                type: int
+                shouldUseTypeForInitializerInference: true
+                id: field_1
+                augmentationTarget: self::@extension::A::@field::foo
+                augmentation: self::@augmentation::package:test/b.dart::@extensionAugmentation::A::@fieldAugmentation::foo
+    package:test/b.dart
+      definingUnit
+        extensions
+          augment A @47
+            augmentationTarget: self::@augmentation::package:test/a.dart::@extensionAugmentation::A
+            fields
+              augment static foo @72
+                type: int
+                shouldUseTypeForInitializerInference: true
+                id: field_2
+                augmentationTarget: self::@augmentation::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
+''');
+  }
+
+  test_augmented_field_augment_field_afterGetter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment extension A {
+  augment static int get foo => 1;
+}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+augment library 'test.dart';
+augment extension A {
+  augment static int foo = 2;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+import augment 'b.dart';
+extension A on int {
+  static int foo = 0;
+}
+''');
+
+    configuration.withPropertyLinking = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensions
+      A @60
+        extendedType: int
+        augmentation: self::@augmentation::package:test/a.dart::@extensionAugmentation::A
+        fields
+          static foo @84
+            type: int
+            shouldUseTypeForInitializerInference: true
+            id: field_0
+            getter: getter_0
+            setter: setter_0
+            augmentation: self::@augmentation::package:test/b.dart::@extensionAugmentation::A::@fieldAugmentation::foo
+        accessors
+          synthetic static get foo @-1
+            returnType: int
+            id: getter_0
+            variable: field_0
+            augmentation: self::@augmentation::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
+          synthetic static set foo= @-1
+            parameters
+              requiredPositional _foo @-1
+                type: int
+            returnType: void
+            id: setter_0
+            variable: field_0
+        augmented
+          fields
+            self::@augmentation::package:test/b.dart::@extensionAugmentation::A::@fieldAugmentation::foo
+          accessors
+            self::@augmentation::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
+            self::@extension::A::@setter::foo
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        extensions
+          augment A @47
+            augmentationTarget: self::@extension::A
+            augmentation: self::@augmentation::package:test/b.dart::@extensionAugmentation::A
+            accessors
+              augment static get foo @76
+                returnType: int
+                id: getter_1
+                variable: field_0
+                augmentationTarget: self::@extension::A::@getter::foo
+    package:test/b.dart
+      definingUnit
+        extensions
+          augment A @47
+            augmentationTarget: self::@augmentation::package:test/a.dart::@extensionAugmentation::A
+            fields
+              augment static foo @72
+                type: int
+                shouldUseTypeForInitializerInference: true
+                id: field_1
+                augmentationTarget: self::@extension::A::@field::foo
+''');
+  }
+
+  test_augmented_field_augment_field_afterSetter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment extension A {
+  augment static set foo(int _) {}
+}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+augment library 'test.dart';
+augment extension A {
+  augment static int foo = 2;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+import augment 'b.dart';
+extension A on int {
+  static int foo = 0;
+}
+''');
+
+    configuration.withPropertyLinking = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensions
+      A @60
+        extendedType: int
+        augmentation: self::@augmentation::package:test/a.dart::@extensionAugmentation::A
+        fields
+          static foo @84
+            type: int
+            shouldUseTypeForInitializerInference: true
+            id: field_0
+            getter: getter_0
+            setter: setter_0
+            augmentation: self::@augmentation::package:test/b.dart::@extensionAugmentation::A::@fieldAugmentation::foo
+        accessors
+          synthetic static get foo @-1
+            returnType: int
+            id: getter_0
+            variable: field_0
+          synthetic static set foo= @-1
+            parameters
+              requiredPositional _foo @-1
+                type: int
+            returnType: void
+            id: setter_0
+            variable: field_0
+            augmentation: self::@augmentation::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo
+        augmented
+          fields
+            self::@augmentation::package:test/b.dart::@extensionAugmentation::A::@fieldAugmentation::foo
+          accessors
+            self::@extension::A::@getter::foo
+            self::@augmentation::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        extensions
+          augment A @47
+            augmentationTarget: self::@extension::A
+            augmentation: self::@augmentation::package:test/b.dart::@extensionAugmentation::A
+            accessors
+              augment static set foo= @72
+                parameters
+                  requiredPositional _ @80
+                    type: int
+                returnType: void
+                id: setter_1
+                variable: field_0
+                augmentationTarget: self::@extension::A::@setter::foo
+    package:test/b.dart
+      definingUnit
+        extensions
+          augment A @47
+            augmentationTarget: self::@augmentation::package:test/a.dart::@extensionAugmentation::A
+            fields
+              augment static foo @72
+                type: int
+                shouldUseTypeForInitializerInference: true
+                id: field_1
+                augmentationTarget: self::@extension::A::@field::foo
+''');
+  }
+
+  test_augmented_field_augment_field_differentTypes() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment extension A {
+  augment static double foo = 1.2;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+extension A on int {
+  static int foo = 0;
+}
+''');
+
+    configuration.withPropertyLinking = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensions
+      A @35
+        extendedType: int
+        augmentation: self::@augmentation::package:test/a.dart::@extensionAugmentation::A
+        fields
+          static foo @59
+            type: int
+            shouldUseTypeForInitializerInference: true
+            id: field_0
+            getter: getter_0
+            setter: setter_0
+            augmentation: self::@augmentation::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
+        accessors
+          synthetic static get foo @-1
+            returnType: int
+            id: getter_0
+            variable: field_0
+          synthetic static set foo= @-1
+            parameters
+              requiredPositional _foo @-1
+                type: int
+            returnType: void
+            id: setter_0
+            variable: field_0
+        augmented
+          fields
+            self::@augmentation::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
+          accessors
+            self::@extension::A::@getter::foo
+            self::@extension::A::@setter::foo
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        extensions
+          augment A @47
+            augmentationTarget: self::@extension::A
+            fields
+              augment static foo @75
+                type: double
+                shouldUseTypeForInitializerInference: true
+                id: field_1
+                augmentationTarget: self::@extension::A::@field::foo
+''');
+  }
+
+  /// This is not allowed by the specification, but allowed syntactically,
+  /// so we need a way to handle it.
+  test_augmented_field_augment_getter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment extension A {
+  augment static int foo = 1;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+extension A on int {
+  static int get foo => 0;
+}
+''');
+
+    configuration.withPropertyLinking = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensions
+      A @35
+        extendedType: int
+        augmentation: self::@augmentation::package:test/a.dart::@extensionAugmentation::A
+        fields
+          synthetic static foo @-1
+            type: int
+            id: field_0
+            getter: getter_0
+            augmentation: self::@augmentation::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
+        accessors
+          static get foo @63
+            returnType: int
+            id: getter_0
+            variable: field_0
+        augmented
+          fields
+            self::@augmentation::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
+          accessors
+            self::@extension::A::@getter::foo
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        extensions
+          augment A @47
+            augmentationTarget: self::@extension::A
+            fields
+              augment static foo @72
+                type: int
+                shouldUseTypeForInitializerInference: true
+                id: field_1
+                augmentationTarget: self::@extension::A::@field::foo
+''');
+  }
+
+  test_augmented_fields_add() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment extension A {
+  static int foo2 = 0;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+extension A on int {
+  static int foo1 = 0;
+}
+''');
+
+    configuration.withPropertyLinking = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensions
+      A @35
+        extendedType: int
+        augmentation: self::@augmentation::package:test/a.dart::@extensionAugmentation::A
+        fields
+          static foo1 @59
+            type: int
+            shouldUseTypeForInitializerInference: true
+            id: field_0
+            getter: getter_0
+            setter: setter_0
+        accessors
+          synthetic static get foo1 @-1
+            returnType: int
+            id: getter_0
+            variable: field_0
+          synthetic static set foo1= @-1
+            parameters
+              requiredPositional _foo1 @-1
+                type: int
+            returnType: void
+            id: setter_0
+            variable: field_0
+        augmented
+          fields
+            self::@extension::A::@field::foo1
+            self::@augmentation::package:test/a.dart::@extensionAugmentation::A::@field::foo2
+          accessors
+            self::@extension::A::@getter::foo1
+            self::@extension::A::@setter::foo1
+            self::@augmentation::package:test/a.dart::@extensionAugmentation::A::@getter::foo2
+            self::@augmentation::package:test/a.dart::@extensionAugmentation::A::@setter::foo2
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        extensions
+          augment A @47
+            augmentationTarget: self::@extension::A
+            fields
+              static foo2 @64
+                type: int
+                shouldUseTypeForInitializerInference: true
+                id: field_1
+                getter: getter_1
+                setter: setter_1
+            accessors
+              synthetic static get foo2 @-1
+                returnType: int
+                id: getter_1
+                variable: field_1
+              synthetic static set foo2= @-1
+                parameters
+                  requiredPositional _foo2 @-1
+                    type: int
+                returnType: void
+                id: setter_1
+                variable: field_1
+''');
+  }
+
+  test_augmented_getters_add() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment extension A {
+  int get foo2 => 0;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+extension A on int {
+  int get foo1 => 0;
+}
+''');
+
+    configuration.withPropertyLinking = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensions
+      A @35
+        extendedType: int
+        augmentation: self::@augmentation::package:test/a.dart::@extensionAugmentation::A
+        fields
+          synthetic foo1 @-1
+            type: int
+            id: field_0
+            getter: getter_0
+        accessors
+          get foo1 @56
+            returnType: int
+            id: getter_0
+            variable: field_0
+        augmented
+          fields
+            self::@extension::A::@field::foo1
+            self::@augmentation::package:test/a.dart::@extensionAugmentation::A::@field::foo2
+          accessors
+            self::@extension::A::@getter::foo1
+            self::@augmentation::package:test/a.dart::@extensionAugmentation::A::@getter::foo2
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        extensions
+          augment A @47
+            augmentationTarget: self::@extension::A
+            fields
+              synthetic foo2 @-1
+                type: int
+                id: field_1
+                getter: getter_1
+            accessors
+              get foo2 @61
+                returnType: int
+                id: getter_1
+                variable: field_1
+''');
+  }
+
+  test_augmented_getters_add_generic() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment extension A<T2> {
+  T2 get foo2;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+extension A<T1> on int {
+  T1 get foo1;
+}
+''');
+
+    configuration.withPropertyLinking = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensions
+      A @35
+        typeParameters
+          covariant T1 @37
+            defaultType: dynamic
+        extendedType: int
+        augmentation: self::@augmentation::package:test/a.dart::@extensionAugmentation::A
+        fields
+          synthetic foo1 @-1
+            type: T1
+            id: field_0
+            getter: getter_0
+        accessors
+          abstract get foo1 @59
+            returnType: T1
+            id: getter_0
+            variable: field_0
+        augmented
+          fields
+            self::@extension::A::@field::foo1
+            FieldMember
+              base: self::@augmentation::package:test/a.dart::@extensionAugmentation::A::@field::foo2
+              augmentationSubstitution: {T2: T1}
+          accessors
+            self::@extension::A::@getter::foo1
+            PropertyAccessorMember
+              base: self::@augmentation::package:test/a.dart::@extensionAugmentation::A::@getter::foo2
+              augmentationSubstitution: {T2: T1}
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        extensions
+          augment A @47
+            typeParameters
+              covariant T2 @49
+                defaultType: dynamic
+            augmentationTarget: self::@extension::A
+            fields
+              synthetic foo2 @-1
+                type: T2
+                id: field_1
+                getter: getter_1
+            accessors
+              abstract get foo2 @64
+                returnType: T2
+                id: getter_1
+                variable: field_1
+''');
+  }
+
+  test_augmented_getters_augment_field() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment extension A {
+  augment static int get foo => 0;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+extension A on int {
+  static int foo = 0;
+}
+''');
+
+    configuration.withPropertyLinking = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensions
+      A @35
+        extendedType: int
+        augmentation: self::@augmentation::package:test/a.dart::@extensionAugmentation::A
+        fields
+          static foo @59
+            type: int
+            shouldUseTypeForInitializerInference: true
+            id: field_0
+            getter: getter_0
+            setter: setter_0
+        accessors
+          synthetic static get foo @-1
+            returnType: int
+            id: getter_0
+            variable: field_0
+            augmentation: self::@augmentation::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
+          synthetic static set foo= @-1
+            parameters
+              requiredPositional _foo @-1
+                type: int
+            returnType: void
+            id: setter_0
+            variable: field_0
+        augmented
+          fields
+            self::@extension::A::@field::foo
+          accessors
+            self::@augmentation::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
+            self::@extension::A::@setter::foo
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        extensions
+          augment A @47
+            augmentationTarget: self::@extension::A
+            accessors
+              augment static get foo @76
+                returnType: int
+                id: getter_1
+                variable: field_0
+                augmentationTarget: self::@extension::A::@getter::foo
+''');
+  }
+
+  test_augmented_getters_augment_field2() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment extension A {
+  augment static int get foo => 0;
+}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+augment library 'test.dart';
+augment extension A {
+  augment static int get foo => 0;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+import augment 'b.dart';
+extension A on int {
+  static int foo = 0;
+}
+''');
+
+    configuration.withPropertyLinking = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensions
+      A @60
+        extendedType: int
+        augmentation: self::@augmentation::package:test/a.dart::@extensionAugmentation::A
+        fields
+          static foo @84
+            type: int
+            shouldUseTypeForInitializerInference: true
+            id: field_0
+            getter: getter_0
+            setter: setter_0
+        accessors
+          synthetic static get foo @-1
+            returnType: int
+            id: getter_0
+            variable: field_0
+            augmentation: self::@augmentation::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
+          synthetic static set foo= @-1
+            parameters
+              requiredPositional _foo @-1
+                type: int
+            returnType: void
+            id: setter_0
+            variable: field_0
+        augmented
+          fields
+            self::@extension::A::@field::foo
+          accessors
+            self::@augmentation::package:test/b.dart::@extensionAugmentation::A::@getterAugmentation::foo
+            self::@extension::A::@setter::foo
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        extensions
+          augment A @47
+            augmentationTarget: self::@extension::A
+            augmentation: self::@augmentation::package:test/b.dart::@extensionAugmentation::A
+            accessors
+              augment static get foo @76
+                returnType: int
+                id: getter_1
+                variable: field_0
+                augmentationTarget: self::@extension::A::@getter::foo
+                augmentation: self::@augmentation::package:test/b.dart::@extensionAugmentation::A::@getterAugmentation::foo
+    package:test/b.dart
+      definingUnit
+        extensions
+          augment A @47
+            augmentationTarget: self::@augmentation::package:test/a.dart::@extensionAugmentation::A
+            accessors
+              augment static get foo @76
+                returnType: int
+                id: getter_2
+                variable: field_0
+                augmentationTarget: self::@augmentation::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
+''');
+  }
+
+  test_augmented_getters_augment_getter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment extension A {
+  augment int get foo1 => 0;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+extension A on int {
+  int get foo1 => 0;
+  int get foo2 => 0;
+}
+''');
+
+    configuration.withPropertyLinking = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensions
+      A @35
+        extendedType: int
+        augmentation: self::@augmentation::package:test/a.dart::@extensionAugmentation::A
+        fields
+          synthetic foo1 @-1
+            type: int
+            id: field_0
+            getter: getter_0
+          synthetic foo2 @-1
+            type: int
+            id: field_1
+            getter: getter_1
+        accessors
+          get foo1 @56
+            returnType: int
+            id: getter_0
+            variable: field_0
+            augmentation: self::@augmentation::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo1
+          get foo2 @77
+            returnType: int
+            id: getter_1
+            variable: field_1
+        augmented
+          fields
+            self::@extension::A::@field::foo1
+            self::@extension::A::@field::foo2
+          accessors
+            self::@augmentation::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo1
+            self::@extension::A::@getter::foo2
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        extensions
+          augment A @47
+            augmentationTarget: self::@extension::A
+            accessors
+              augment get foo1 @69
+                returnType: int
+                id: getter_2
+                variable: field_0
+                augmentationTarget: self::@extension::A::@getter::foo1
+''');
+  }
+
+  test_augmented_getters_augment_getter2() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment extension A {
+  augment int get foo => 0;
+}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+augment library 'test.dart';
+augment extension A {
+  augment int get foo => 0;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+import augment 'b.dart';
+extension A on int {
+  int get foo => 0;
+}
+''');
+
+    configuration.withPropertyLinking = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensions
+      A @60
+        extendedType: int
+        augmentation: self::@augmentation::package:test/a.dart::@extensionAugmentation::A
+        fields
+          synthetic foo @-1
+            type: int
+            id: field_0
+            getter: getter_0
+        accessors
+          get foo @81
+            returnType: int
+            id: getter_0
+            variable: field_0
+            augmentation: self::@augmentation::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
+        augmented
+          fields
+            self::@extension::A::@field::foo
+          accessors
+            self::@augmentation::package:test/b.dart::@extensionAugmentation::A::@getterAugmentation::foo
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        extensions
+          augment A @47
+            augmentationTarget: self::@extension::A
+            augmentation: self::@augmentation::package:test/b.dart::@extensionAugmentation::A
+            accessors
+              augment get foo @69
+                returnType: int
+                id: getter_1
+                variable: field_0
+                augmentationTarget: self::@extension::A::@getter::foo
+                augmentation: self::@augmentation::package:test/b.dart::@extensionAugmentation::A::@getterAugmentation::foo
+    package:test/b.dart
+      definingUnit
+        extensions
+          augment A @47
+            augmentationTarget: self::@augmentation::package:test/a.dart::@extensionAugmentation::A
+            accessors
+              augment get foo @69
+                returnType: int
+                id: getter_2
+                variable: field_0
+                augmentationTarget: self::@augmentation::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
+''');
+  }
+
+  test_augmented_methods() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment extension A {
+  void bar() {}
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+extension A on int {
+  void foo() {}
+}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensions
+      A @35
+        extendedType: int
+        augmentation: self::@augmentation::package:test/a.dart::@extensionAugmentation::A
+        methods
+          foo @53
+            returnType: void
+        augmented
+          methods
+            self::@augmentation::package:test/a.dart::@extensionAugmentation::A::@method::bar
+            self::@extension::A::@method::foo
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        extensions
+          augment A @47
+            augmentationTarget: self::@extension::A
+            methods
+              bar @58
+                returnType: void
+''');
+  }
+
+  test_augmented_methods_augment() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment extension A {
+  augment void foo1() {}
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+extension A on int {
+  void foo1() {}
+  void foo2() {}
+}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensions
+      A @35
+        extendedType: int
+        augmentation: self::@augmentation::package:test/a.dart::@extensionAugmentation::A
+        methods
+          foo1 @53
+            returnType: void
+            augmentation: self::@augmentation::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo1
+          foo2 @70
+            returnType: void
+        augmented
+          methods
+            self::@augmentation::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo1
+            self::@extension::A::@method::foo2
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        extensions
+          augment A @47
+            augmentationTarget: self::@extension::A
+            methods
+              augment foo1 @66
+                returnType: void
+                augmentationTarget: self::@extension::A::@method::foo1
+''');
+  }
+
+  test_augmented_methods_augment2() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+import augment 'b.dart';
+augment extension A {
+  augment void foo() {}
+}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+augment library 'a.dart';
+augment extension A {
+  augment void foo() {}
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+extension A on int {
+  void foo() {}
+}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensions
+      A @35
+        extendedType: int
+        augmentation: self::@augmentation::package:test/a.dart::@extensionAugmentation::A
+        methods
+          foo @53
+            returnType: void
+            augmentation: self::@augmentation::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
+        augmented
+          methods
+            self::@augmentation::package:test/b.dart::@extensionAugmentation::A::@methodAugmentation::foo
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        extensions
+          augment A @72
+            augmentationTarget: self::@extension::A
+            augmentation: self::@augmentation::package:test/b.dart::@extensionAugmentation::A
+            methods
+              augment foo @91
+                returnType: void
+                augmentationTarget: self::@extension::A::@method::foo
+                augmentation: self::@augmentation::package:test/b.dart::@extensionAugmentation::A::@methodAugmentation::foo
+      augmentationImports
+        package:test/b.dart
+          definingUnit
+            extensions
+              augment A @44
+                augmentationTarget: self::@augmentation::package:test/a.dart::@extensionAugmentation::A
+                methods
+                  augment foo @63
+                    returnType: void
+                    augmentationTarget: self::@augmentation::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
+''');
+  }
+
+  test_augmented_methods_generic() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment extension A<T2> {
+  T2 bar() => throw 0;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+extension A<T> on int {
+  T foo() => throw 0;
+}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensions
+      A @35
+        typeParameters
+          covariant T @37
+            defaultType: dynamic
+        extendedType: int
+        augmentation: self::@augmentation::package:test/a.dart::@extensionAugmentation::A
+        methods
+          foo @53
+            returnType: T
+        augmented
+          methods
+            MethodMember
+              base: self::@augmentation::package:test/a.dart::@extensionAugmentation::A::@method::bar
+              augmentationSubstitution: {T2: T}
+            self::@extension::A::@method::foo
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        extensions
+          augment A @47
+            typeParameters
+              covariant T2 @49
+                defaultType: dynamic
+            augmentationTarget: self::@extension::A
+            methods
+              bar @60
+                returnType: T2
+''');
+  }
+
+  test_augmented_methods_generic_augment() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment extension A<T2> {
+  augment T2 foo() => throw 0;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+extension A<T> on int {
+  T foo() => throw 0;
+}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensions
+      A @35
+        typeParameters
+          covariant T @37
+            defaultType: dynamic
+        extendedType: int
+        augmentation: self::@augmentation::package:test/a.dart::@extensionAugmentation::A
+        methods
+          foo @53
+            returnType: T
+            augmentation: self::@augmentation::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
+        augmented
+          methods
+            MethodMember
+              base: self::@augmentation::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
+              augmentationSubstitution: {T2: T}
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        extensions
+          augment A @47
+            typeParameters
+              covariant T2 @49
+                defaultType: dynamic
+            augmentationTarget: self::@extension::A
+            methods
+              augment foo @68
+                returnType: T2
+                augmentationTarget: self::@extension::A::@method::foo
+''');
+  }
+
+  test_augmented_setters_add() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment extension A {
+  set foo2(int _) {}
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+extension A on int {
+  set foo1(int _) {}
+}
+''');
+
+    configuration.withPropertyLinking = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensions
+      A @35
+        extendedType: int
+        augmentation: self::@augmentation::package:test/a.dart::@extensionAugmentation::A
+        fields
+          synthetic foo1 @-1
+            type: int
+            id: field_0
+            setter: setter_0
+        accessors
+          set foo1= @52
+            parameters
+              requiredPositional _ @61
+                type: int
+            returnType: void
+            id: setter_0
+            variable: field_0
+        augmented
+          fields
+            self::@extension::A::@field::foo1
+            self::@augmentation::package:test/a.dart::@extensionAugmentation::A::@field::foo2
+          accessors
+            self::@extension::A::@setter::foo1
+            self::@augmentation::package:test/a.dart::@extensionAugmentation::A::@setter::foo2
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        extensions
+          augment A @47
+            augmentationTarget: self::@extension::A
+            fields
+              synthetic foo2 @-1
+                type: int
+                id: field_1
+                setter: setter_1
+            accessors
+              set foo2= @57
+                parameters
+                  requiredPositional _ @66
+                    type: int
+                returnType: void
+                id: setter_1
+                variable: field_1
+''');
+  }
+
+  test_augmented_setters_augment_field() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment extension A {
+  augment static set foo(int _) {}
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+extension A on int {
+  static int foo = 0;
+}
+''');
+
+    configuration.withPropertyLinking = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensions
+      A @35
+        extendedType: int
+        augmentation: self::@augmentation::package:test/a.dart::@extensionAugmentation::A
+        fields
+          static foo @59
+            type: int
+            shouldUseTypeForInitializerInference: true
+            id: field_0
+            getter: getter_0
+            setter: setter_0
+        accessors
+          synthetic static get foo @-1
+            returnType: int
+            id: getter_0
+            variable: field_0
+          synthetic static set foo= @-1
+            parameters
+              requiredPositional _foo @-1
+                type: int
+            returnType: void
+            id: setter_0
+            variable: field_0
+            augmentation: self::@augmentation::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo
+        augmented
+          fields
+            self::@extension::A::@field::foo
+          accessors
+            self::@extension::A::@getter::foo
+            self::@augmentation::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        extensions
+          augment A @47
+            augmentationTarget: self::@extension::A
+            accessors
+              augment static set foo= @72
+                parameters
+                  requiredPositional _ @80
+                    type: int
+                returnType: void
+                id: setter_1
+                variable: field_0
+                augmentationTarget: self::@extension::A::@setter::foo
+''');
+  }
+
+  test_augmented_setters_augment_setter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment extension A {
+  augment set foo1(int _) {}
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+extension A on int {
+  set foo1(int _) {}
+  set foo2(int _) {}
+}
+''');
+
+    configuration.withPropertyLinking = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensions
+      A @35
+        extendedType: int
+        augmentation: self::@augmentation::package:test/a.dart::@extensionAugmentation::A
+        fields
+          synthetic foo1 @-1
+            type: int
+            id: field_0
+            setter: setter_0
+          synthetic foo2 @-1
+            type: int
+            id: field_1
+            setter: setter_1
+        accessors
+          set foo1= @52
+            parameters
+              requiredPositional _ @61
+                type: int
+            returnType: void
+            id: setter_0
+            variable: field_0
+            augmentation: self::@augmentation::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo1
+          set foo2= @73
+            parameters
+              requiredPositional _ @82
+                type: int
+            returnType: void
+            id: setter_1
+            variable: field_1
+        augmented
+          fields
+            self::@extension::A::@field::foo1
+            self::@extension::A::@field::foo2
+          accessors
+            self::@augmentation::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo1
+            self::@extension::A::@setter::foo2
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        extensions
+          augment A @47
+            augmentationTarget: self::@extension::A
+            accessors
+              augment set foo1= @65
+                parameters
+                  requiredPositional _ @74
+                    type: int
+                returnType: void
+                id: setter_2
+                variable: field_0
+                augmentationTarget: self::@extension::A::@setter::foo1
+''');
   }
 }
 
