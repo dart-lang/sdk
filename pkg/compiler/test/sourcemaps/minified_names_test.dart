@@ -149,8 +149,8 @@ checkExpectation(MinifiedNameTest test, bool minified) async {
 ///
 /// Note: some errors can span multiple lines.
 String? _extractError(String stdout) {
-  var firstStackFrame = stdout.indexOf('\n    at');
-  if (firstStackFrame == -1) return null;
-  var errorMarker = stdout.indexOf('^') + 1;
-  return stdout.substring(errorMarker, firstStackFrame).trim();
+  var start = stdout.indexOf(': ');
+  if (start == -1) return null;
+  var end = stdout.indexOf('throw e;');
+  return stdout.substring(start + 2, end).trim();
 }

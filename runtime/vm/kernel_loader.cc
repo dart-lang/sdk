@@ -810,7 +810,12 @@ LibraryPtr KernelLoader::LoadLibrary(intptr_t index) {
 
   if (library.Loaded()) return library.ptr();
 
-  library.set_is_nnbd(library_helper.IsNonNullableByDefault());
+  if (!library_helper.IsNonNullableByDefault()) {
+    H.ReportError(
+        "Library '%s' was compiled without sound null safety (in weak mode) "
+        "and it cannot be used at runtime",
+        String::Handle(library.url()).ToCString());
+  }
   const NNBDCompiledMode mode =
       library_helper.GetNonNullableByDefaultCompiledMode();
   if (mode == NNBDCompiledMode::kInvalid) {
@@ -822,11 +827,9 @@ LibraryPtr KernelLoader::LoadLibrary(intptr_t index) {
   if (mode == NNBDCompiledMode::kWeak) {
     H.ReportError(
         "Library '%s' was compiled without sound null safety (in weak mode) "
-        "and it "
-        "cannot be used with --sound-null-safety at runtime",
+        "and it cannot be used at runtime",
         String::Handle(library.url()).ToCString());
   }
-  library.set_nnbd_compiled_mode(mode);
 
   library_kernel_data_ = helper_.reader_.ViewFromTo(
       library_kernel_offset_, library_kernel_offset_ + library_size);
@@ -1058,9 +1061,8 @@ void KernelLoader::FinishTopLevelClassLoading(
     field.SetFieldType(type);
     ReadInferredType(field, field_offset + library_kernel_offset_);
     CheckForInitializer(field);
-    // In NNBD libraries, static fields with initializers are
-    // implicitly late.
-    if (field.has_initializer() && library.is_nnbd()) {
+    // Static fields with initializers are implicitly late.
+    if (field.has_initializer()) {
       field.set_is_late(true);
     }
     field_helper.SetJustRead(FieldHelper::kType);
@@ -1466,10 +1468,8 @@ void KernelLoader::FinishClassLoading(const Class& klass,
       field.set_is_extension_type_member(is_extension_type_member);
       ReadInferredType(field, field_offset + library_kernel_offset_);
       CheckForInitializer(field);
-      // In NNBD libraries, static fields with initializers are
-      // implicitly late.
-      if (field_helper.IsStatic() && field.has_initializer() &&
-          library.is_nnbd()) {
+      // Static fields with initializers are implicitly late.
+      if (field_helper.IsStatic() && field.has_initializer()) {
         field.set_is_late(true);
       }
       field_helper.ReadUntilExcluding(FieldHelper::kInitializer);

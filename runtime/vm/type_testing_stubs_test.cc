@@ -989,9 +989,7 @@ ISOLATE_UNIT_TEST_CASE(TTS_SubtypeRangeCheck) {
     type_base_int =
         type_base_int.ToNullability(Nullability::kNonNullable, Heap::kNew);
     FinalizeAndCanonicalize(&type_base_int);
-    if (IsolateGroup::Current()->null_safety()) {
-      RunTTSTest(type_base_int, Failure({obj_base_null, tav_null, tav_null}));
-    }
+    RunTTSTest(type_base_int, Failure({obj_base_null, tav_null, tav_null}));
     RunTTSTest(type_base_int, {obj_base_never, tav_null, tav_null});
   }
 
@@ -1044,11 +1042,9 @@ ISOLATE_UNIT_TEST_CASE(TTS_SubtypeRangeCheck) {
 
   // obj as Object (with null safety)
   auto isolate_group = IsolateGroup::Current();
-  if (isolate_group->null_safety()) {
-    auto& type_non_nullable_object =
-        Type::Handle(isolate_group->object_store()->non_nullable_object_type());
-    RunTTSTest(type_non_nullable_object, {obj_a, tav_null, tav_null});
-  }
+  auto& type_non_nullable_object =
+      Type::Handle(isolate_group->object_store()->non_nullable_object_type());
+  RunTTSTest(type_non_nullable_object, {obj_a, tav_null, tav_null});
 }
 
 ISOLATE_UNIT_TEST_CASE(TTS_GenericSubtypeRangeCheck) {

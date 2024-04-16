@@ -1081,14 +1081,6 @@ void UnboxFieldIfSupported(const dart::Field& field,
     return;
   }
 
-  // In JIT mode we can unbox fields which are guaranteed to be non-nullable
-  // based on their static type. We can only rely on this information
-  // when running in sound null safety. AOT instead uses TFA results, see
-  // |KernelLoader::ReadInferredType|.
-  if (!dart::Thread::Current()->isolate_group()->null_safety()) {
-    return;
-  }
-
   classid_t cid = kIllegalCid;
   if (type.IsDoubleType()) {
     if (FlowGraphCompiler::SupportsUnboxedDoubles()) {

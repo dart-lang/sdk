@@ -1119,14 +1119,6 @@ enum class TypeEquality {
   kInSubtypeTest = 2,
 };
 
-// The NNBDMode reflects the opted-in status of libraries.
-// Note that the weak or strong checking mode is not reflected in NNBDMode.
-enum class NNBDMode {
-  // Status of the library:
-  kLegacyLib = 0,   // Library is legacy.
-  kOptedInLib = 1,  // Library is opted-in.
-};
-
 // The NNBDCompiledMode reflects the mode in which constants of the library were
 // compiled by CFE.
 enum class NNBDCompiledMode {
@@ -1270,9 +1262,6 @@ class Class : public Object {
   // The mixin for this class if one exists. Otherwise, returns a raw pointer
   // to this class.
   ClassPtr Mixin() const;
-
-  // The NNBD mode of the library declaring this class.
-  NNBDMode nnbd_mode() const;
 
   bool IsInFullSnapshot() const;
 
@@ -3070,11 +3059,6 @@ class Function : public Object {
   KernelProgramInfoPtr KernelProgramInfo() const;
 #endif
   ObjectPtr RawOwner() const { return untag()->owner(); }
-
-  // The NNBD mode of the library declaring this function.
-  // TODO(alexmarkov): nnbd_mode() doesn't work for mixins.
-  // It should be either removed or fixed.
-  NNBDMode nnbd_mode() const { return Class::Handle(Owner()).nnbd_mode(); }
 
   RegExpPtr regexp() const;
   intptr_t string_specialization_cid() const;
@@ -5254,26 +5238,6 @@ class Library : public Object {
   void set_is_in_fullsnapshot(bool value) const {
     set_flags(
         UntaggedLibrary::InFullSnapshotBit::update(value, untag()->flags_));
-  }
-
-  bool is_nnbd() const {
-    return UntaggedLibrary::NnbdBit::decode(untag()->flags_);
-  }
-  void set_is_nnbd(bool value) const {
-    set_flags(UntaggedLibrary::NnbdBit::update(value, untag()->flags_));
-  }
-
-  NNBDMode nnbd_mode() const {
-    return is_nnbd() ? NNBDMode::kOptedInLib : NNBDMode::kLegacyLib;
-  }
-
-  NNBDCompiledMode nnbd_compiled_mode() const {
-    return static_cast<NNBDCompiledMode>(
-        UntaggedLibrary::NnbdCompiledModeBits::decode(untag()->flags_));
-  }
-  void set_nnbd_compiled_mode(NNBDCompiledMode value) const {
-    set_flags(UntaggedLibrary::NnbdCompiledModeBits::update(
-        static_cast<uint8_t>(value), untag()->flags_));
   }
 
   StringPtr PrivateName(const String& name) const;
