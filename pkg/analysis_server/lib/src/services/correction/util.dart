@@ -6,13 +6,10 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
-import 'package:analysis_server/src/protocol_server.dart'
-    show doSourceChange_addElementEdit;
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server/src/utilities/strings.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -24,124 +21,9 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart'
-    show SourceChange, SourceEdit;
 import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:path/path.dart' as path;
-
-/// Adds edits to the given [change] that ensure that all the [libraries] are
-/// imported into the given [targetLibrary].
-Future<void> addLibraryImports(AnalysisSession session, SourceChange change,
-    LibraryElement targetLibrary, Set<Source> libraries) async {
-  var libraryPath = targetLibrary.source.fullName;
-
-  var resolveResult = await session.getResolvedUnit(libraryPath);
-  if (resolveResult is! ResolvedUnitResult) {
-    return;
-  }
-
-  var libUtils = CorrectionUtils(resolveResult);
-  var eol = libUtils.endOfLine;
-  // Prepare information about existing imports.
-  LibraryDirective? libraryDirective;
-  var importDirectives = <_ImportDirectiveInfo>[];
-  var directives = <NamespaceDirective>[];
-  for (var directive in libUtils.unit.directives) {
-    if (directive is LibraryDirective) {
-      libraryDirective = directive;
-    } else if (directive is NamespaceDirective) {
-      directives.add(directive);
-      if (directive is ImportDirective) {
-        var uriStr = directive.uri.stringValue;
-        if (uriStr != null) {
-          importDirectives.add(
-            _ImportDirectiveInfo(uriStr, directive.offset, directive.end),
-          );
-        }
-      }
-    }
-  }
-
-  // Prepare all URIs to import.
-  var uriList = libraries
-      .map((library) => getLibrarySourceUri(
-          session.resourceProvider.pathContext, targetLibrary, library.uri))
-      .toList();
-  uriList.sort((a, b) => a.compareTo(b));
-
-  var analysisOptions =
-      session.analysisContext.getAnalysisOptionsForFile(resolveResult.file);
-  var quote =
-      analysisOptions.codeStyleOptions.preferredQuoteForUris(directives);
-
-  // Insert imports: between existing imports.
-  if (importDirectives.isNotEmpty) {
-    var isFirstPackage = true;
-    for (var importUri in uriList) {
-      var inserted = false;
-      var isPackage = importUri.startsWith('package:');
-      var isAfterDart = false;
-      for (var existingImport in importDirectives) {
-        if (existingImport.uri.startsWith('dart:')) {
-          isAfterDart = true;
-        }
-        if (existingImport.uri.startsWith('package:')) {
-          isFirstPackage = false;
-        }
-        if (importUri.compareTo(existingImport.uri) < 0) {
-          var importCode = 'import $quote$importUri$quote;$eol';
-          doSourceChange_addElementEdit(change, targetLibrary,
-              SourceEdit(existingImport.offset, 0, importCode));
-          inserted = true;
-          break;
-        }
-      }
-      if (!inserted) {
-        var importCode = '${eol}import $quote$importUri$quote;';
-        if (isPackage && isFirstPackage && isAfterDart) {
-          importCode = eol + importCode;
-        }
-        doSourceChange_addElementEdit(change, targetLibrary,
-            SourceEdit(importDirectives.last.end, 0, importCode));
-      }
-      if (isPackage) {
-        isFirstPackage = false;
-      }
-    }
-    return;
-  }
-
-  // Insert imports: after the library directive.
-  if (libraryDirective != null) {
-    var prefix = eol + eol;
-    for (var importUri in uriList) {
-      var importCode = '${prefix}import $quote$importUri$quote;';
-      prefix = eol;
-      doSourceChange_addElementEdit(change, targetLibrary,
-          SourceEdit(libraryDirective.end, 0, importCode));
-    }
-    return;
-  }
-
-  // If still at the beginning of the file, skip shebang and line comments.
-  {
-    var desc = libUtils._getInsertionLocationTop();
-    var offset = desc.offset;
-    for (var i = 0; i < uriList.length; i++) {
-      var importUri = uriList[i];
-      var importCode = 'import $quote$importUri$quote;$eol';
-      if (i == 0) {
-        importCode = desc.prefix + importCode;
-      }
-      if (i == uriList.length - 1) {
-        importCode = importCode + desc.suffix;
-      }
-      doSourceChange_addElementEdit(
-          change, targetLibrary, SourceEdit(offset, 0, importCode));
-    }
-  }
-}
 
 /// Climbs up [PrefixedIdentifier] and [PropertyAccess] nodes that include
 /// [node].
@@ -880,61 +762,7 @@ final class CorrectionUtils {
         selection, range.node(node));
   }
 
-  /// Returns a description of the place in which to insert a new directive or a
-  /// top-level declaration at the top of the file.
-  _InsertionLocation _getInsertionLocationTop() {
-    // skip leading line comments
-    var offset = 0;
-    var insertEmptyLineBefore = false;
-    var insertEmptyLineAfter = false;
-    var source = _buffer;
-    // skip hash-bang
-    if (offset < source.length - 2) {
-      var linePrefix = getText(offset, 2);
-      if (linePrefix == '#!') {
-        insertEmptyLineBefore = true;
-        offset = getLineNext(offset);
-        // skip empty lines to first line comment
-        var emptyOffset = offset;
-        while (emptyOffset < source.length - 2) {
-          var nextLineOffset = getLineNext(emptyOffset);
-          var line = source.substring(emptyOffset, nextLineOffset);
-          if (line.trim().isEmpty) {
-            emptyOffset = nextLineOffset;
-            continue;
-          } else if (line.startsWith('//')) {
-            offset = emptyOffset;
-            break;
-          } else {
-            break;
-          }
-        }
-      }
-    }
-    // skip line comments
-    while (offset < source.length - 2) {
-      var linePrefix = getText(offset, 2);
-      if (linePrefix == '//') {
-        insertEmptyLineBefore = true;
-        offset = getLineNext(offset);
-      } else {
-        break;
-      }
-    }
-    // determine if empty line is required after
-    var nextLineOffset = getLineNext(offset);
-    var insertLine = source.substring(offset, nextLineOffset);
-    if (insertLine.trim().isNotEmpty) {
-      insertEmptyLineAfter = true;
-    }
-    return _InsertionLocation(
-      prefix: insertEmptyLineBefore ? endOfLine : '',
-      offset: offset,
-      suffix: insertEmptyLineAfter ? endOfLine : '',
-    );
-  }
-
-  /// @return the [InvertedCondition] for the given logical expression.
+  /// Returns the [_InvertedCondition] for the given logical expression.
   _InvertedCondition _invertCondition0(Expression expression) {
     if (expression is BooleanLiteral) {
       if (expression.value) {
@@ -1126,27 +954,6 @@ class _ElementReferenceCollector extends RecursiveAstVisitor<void> {
       references.add(node);
     }
   }
-}
-
-class _ImportDirectiveInfo {
-  final String uri;
-  final int offset;
-  final int end;
-
-  _ImportDirectiveInfo(this.uri, this.offset, this.end);
-}
-
-/// Describes where to insert new text.
-class _InsertionLocation {
-  final String prefix;
-  final int offset;
-  final String suffix;
-
-  _InsertionLocation({
-    required this.prefix,
-    required this.offset,
-    required this.suffix,
-  });
 }
 
 /// A container with a source and its precedence.

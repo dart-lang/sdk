@@ -35,7 +35,7 @@ abstract class CodeStyleOptions {
   /// whenever possible.
   bool get useRelativeUris;
 
-  /// Return the preferred quote based on the enabled lints, otherwise based
+  /// Returns the preferred quote based on the enabled lints, otherwise based
   /// on the most common quote, otherwise a single quote.
-  String preferredQuoteForUris(List<NamespaceDirective> directives);
+  String preferredQuoteForUris(Iterable<NamespaceDirective> directives);
 }
