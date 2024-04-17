@@ -38,8 +38,11 @@ class Parser {
           featureSet,
           lineInfo,
         ) {
-    fastaParser = fasta.Parser(astBuilder,
-        allowPatterns: featureSet.isEnabled(Feature.patterns));
+    fastaParser = fasta.Parser(
+      astBuilder,
+      allowPatterns: featureSet.isEnabled(Feature.patterns),
+      enableFeatureMacros: featureSet.isEnabled(Feature.macros),
+    );
     astBuilder.parser = fastaParser;
     astBuilder.allowNativeClause = allowNativeClause;
   }

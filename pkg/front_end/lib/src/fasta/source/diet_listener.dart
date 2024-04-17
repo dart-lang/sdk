@@ -1132,7 +1132,7 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
-  void handleEnumElement(Token beginKeyword) {
+  void handleEnumElement(Token beginKeyword, Token? augmentToken) {
     debugEvent("EnumElement");
   }
 

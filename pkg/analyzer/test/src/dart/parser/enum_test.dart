@@ -14,11 +14,13 @@ main() {
 
 @reflectiveTest
 class EnumDeclarationParserTest extends ParserDiagnosticsTest {
-  test_augment() {
+  test_augment_constant_add() {
     var parseResult = parseStringWithErrors(r'''
 augment library 'a.dart';
 
-augment enum E {bar}
+augment enum E {
+  v
+}
 ''');
     parseResult.assertNoErrors();
 
@@ -31,7 +33,138 @@ EnumDeclaration
   leftBracket: {
   constants
     EnumConstantDeclaration
-      name: bar
+      name: v
+  rightBracket: }
+''');
+  }
+
+  test_augment_constant_augment_withConstructor() {
+    var parseResult = parseStringWithErrors(r'''
+augment library 'a.dart';
+
+augment enum E {
+  augment v.foo()
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleEnumDeclaration;
+    assertParsedNodeText(node, r'''
+EnumDeclaration
+  augmentKeyword: augment
+  enumKeyword: enum
+  name: E
+  leftBracket: {
+  constants
+    EnumConstantDeclaration
+      augmentKeyword: augment
+      name: v
+      arguments: EnumConstantArguments
+        constructorSelector: ConstructorSelector
+          period: .
+          name: SimpleIdentifier
+            token: foo
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+  rightBracket: }
+''');
+  }
+
+  test_augment_noConstants_semicolon_method() {
+    var parseResult = parseStringWithErrors(r'''
+augment library 'a.dart';
+
+augment enum E {;
+  void foo() {}
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleEnumDeclaration;
+    assertParsedNodeText(node, r'''
+EnumDeclaration
+  augmentKeyword: augment
+  enumKeyword: enum
+  name: E
+  leftBracket: {
+  semicolon: ;
+  members
+    MethodDeclaration
+      returnType: NamedType
+        name: void
+      name: foo
+      parameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  rightBracket: }
+''');
+  }
+
+  test_declaration_empty() {
+    var parseResult = parseStringWithErrors(r'''
+enum E {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleEnumDeclaration;
+    assertParsedNodeText(node, r'''
+EnumDeclaration
+  enumKeyword: enum
+  name: E
+  leftBracket: {
+  rightBracket: }
+''');
+  }
+
+  test_declaration_noConstants_semicolon() {
+    var parseResult = parseStringWithErrors(r'''
+enum E {;}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleEnumDeclaration;
+    assertParsedNodeText(node, r'''
+EnumDeclaration
+  enumKeyword: enum
+  name: E
+  leftBracket: {
+  semicolon: ;
+  rightBracket: }
+''');
+  }
+
+  test_declaration_noConstants_semicolon_method() {
+    var parseResult = parseStringWithErrors(r'''
+enum E {;
+  void foo() {}
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleEnumDeclaration;
+    assertParsedNodeText(node, r'''
+EnumDeclaration
+  enumKeyword: enum
+  name: E
+  leftBracket: {
+  semicolon: ;
+  members
+    MethodDeclaration
+      returnType: NamedType
+        name: void
+      name: foo
+      parameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
   rightBracket: }
 ''');
   }

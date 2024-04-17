@@ -2929,7 +2929,7 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void handleEnumElement(Token beginToken) {
+  void handleEnumElement(Token beginToken, Token? augmentToken) {
     debugEvent("handleEnumElement");
     assert(checkState(beginToken, [
       /* argumentsBeginToken */ ValueKinds.ArgumentsTokenOrNull,

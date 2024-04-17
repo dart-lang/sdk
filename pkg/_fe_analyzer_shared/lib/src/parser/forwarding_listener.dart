@@ -769,8 +769,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleEnumElement(Token beginToken) {
-    listener?.handleEnumElement(beginToken);
+  void handleEnumElement(Token beginToken, Token? augmentToken) {
+    listener?.handleEnumElement(beginToken, augmentToken);
   }
 
   @override

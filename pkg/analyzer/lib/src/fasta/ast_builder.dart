@@ -4062,7 +4062,7 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void handleEnumElement(Token beginToken) {
+  void handleEnumElement(Token beginToken, Token? augmentToken) {
     debugEvent("EnumElement");
     var tmpArguments = pop() as MethodInvocationImpl?;
     var tmpConstructor = pop() as ConstructorNameImpl?;
@@ -4103,6 +4103,7 @@ class AstBuilder extends StackListener {
       constant = EnumConstantDeclarationImpl(
         comment: constant.documentationComment,
         metadata: constant.metadata,
+        augmentKeyword: augmentToken,
         name: constant.name,
         arguments: EnumConstantArgumentsImpl(
           typeArguments: typeArguments,
@@ -4449,6 +4450,7 @@ class AstBuilder extends StackListener {
         EnumConstantDeclarationImpl(
           comment: comment,
           metadata: metadata,
+          augmentKeyword: null,
           name: token,
           arguments: null,
         ),

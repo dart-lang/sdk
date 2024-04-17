@@ -338,9 +338,15 @@ class Parser {
   /// [parsePrimaryPattern] and [parsePattern].
   bool isLastPatternAllowedInsideUnaryPattern = false;
 
-  Parser(this.listener,
-      {this.useImplicitCreationExpression = true, this.allowPatterns = false})
-      : assert(listener != null); // ignore:unnecessary_null_comparison
+  /// Indicates whether the macros feature is enabled.
+  final bool enableFeatureMacros;
+
+  Parser(
+    this.listener, {
+    this.useImplicitCreationExpression = true,
+    this.allowPatterns = false,
+    this.enableFeatureMacros = false,
+  }) : assert(listener != null); // ignore:unnecessary_null_comparison
 
   /// Executes [callback]; however if `this` is the `TestParser` (from
   /// `pkg/front_end/test/parser_test_parser.dart`) then no output is printed
@@ -2368,7 +2374,7 @@ class Parser {
         Token next = token.next!;
         if (optional('}', next) || optional(';', next)) {
           token = next;
-          if (elementCount == 0) {
+          if (elementCount == 0 && !enableFeatureMacros) {
             reportRecoverableError(token, codes.messageEnumDeclarationEmpty);
           }
           break;
@@ -2566,6 +2572,13 @@ class Parser {
   Token parseEnumElement(Token token) {
     Token beginToken = token;
     token = parseMetadataStar(token);
+
+    Token? augmentToken;
+    if (optional('augment', token.next!)) {
+      augmentToken = token.next!;
+      token = token.next!;
+    }
+
     token = ensureIdentifier(token, IdentifierContext.enumValueDeclaration);
     bool hasTypeArgumentsOrDot = false;
     {
@@ -2600,7 +2613,7 @@ class Parser {
     } else {
       listener.handleNoArguments(token);
     }
-    listener.handleEnumElement(beginToken);
+    listener.handleEnumElement(beginToken, augmentToken);
     return token;
   }
 

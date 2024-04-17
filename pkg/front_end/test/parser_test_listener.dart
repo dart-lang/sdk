@@ -590,9 +590,10 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void handleEnumElement(Token beginToken) {
+  void handleEnumElement(Token beginToken, Token? augmentToken) {
     seen(beginToken);
-    doPrint('handleEnumElement(' '$beginToken)');
+    seen(augmentToken);
+    doPrint('handleEnumElement(' '$beginToken, ' '$augmentToken)');
   }
 
   @override
