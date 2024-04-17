@@ -151,7 +151,7 @@ vars = {
   "flute_rev": "a531c96a8b43d015c6bfbbfe3ab54867b0763b8b",
   "glob_rev": "25ee2c20a3c7b93f4096036939a59e40916a3890",
   "html_rev": "5b99b43f71da0c6b0f962244c7f5dfa8ca970fef",
-  "http_rev": "b7477b1e1bc5c8f850299b7abcc58d08ddea9e4a",
+  "http_rev": "34d7087ed2361dbe68faae6af8e7874fb805311d",
   "http_multi_server_rev": "6ce0a137aa20cc12b883a386bb7c0ae677cb3429",
   "http_parser_rev": "8ffcaec6fedfac5274cfa57e133d47d499bdabc0",
   "intl_rev": "5d65e3808ce40e6282e40881492607df4e35669f",
