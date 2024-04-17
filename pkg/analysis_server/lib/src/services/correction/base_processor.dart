@@ -40,7 +40,7 @@ abstract class BaseProcessor {
         utils = CorrectionUtils(resolvedResult);
 
   AstNode? findSelectedNode() {
-    final locator = NodeLocator(selectionOffset, selectionEnd);
+    var locator = NodeLocator(selectionOffset, selectionEnd);
     return locator.searchWithin(resolvedResult.unit);
   }
 }

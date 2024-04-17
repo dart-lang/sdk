@@ -141,7 +141,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
   Future<SourceChange> createChange() {
     var change = SourceChange(refactoringName);
     // prepare occurrences
-    late final List<SourceRange> occurrences;
+    late List<SourceRange> occurrences;
     if (extractAll) {
       occurrences = this.occurrences;
     } else {

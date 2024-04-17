@@ -23,7 +23,7 @@ void f((int, String) r) {
 }
 ''');
 
-    final node = findNode.recordLiteral('(f1');
+    var node = findNode.recordLiteral('(f1');
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
@@ -58,7 +58,7 @@ void f((int, String) r) {
 }
 ''');
 
-    final node = findNode.recordLiteral('(r');
+    var node = findNode.recordLiteral('(r');
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
@@ -86,7 +86,7 @@ void f<T>((List<T>, List<T>) x) {}
 test(dynamic d) => f((d, d));
 ''');
 
-    final node = findNode.recordLiteral('(d,');
+    var node = findNode.recordLiteral('(d,');
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
@@ -114,7 +114,7 @@ final a = A();
 final ({void Function() f1}) x = (f1: a);
 ''');
 
-    final node = findNode.recordLiteral('(f1');
+    var node = findNode.recordLiteral('(f1');
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
@@ -148,7 +148,7 @@ final a = A();
 final (void Function(), ) x = (a, );
 ''');
 
-    final node = findNode.recordLiteral('(a');
+    var node = findNode.recordLiteral('(a');
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
@@ -171,7 +171,7 @@ final dynamic a = 0;
 final ({int f1}) x = (f1: a);
 ''');
 
-    final node = findNode.recordLiteral('(f1');
+    var node = findNode.recordLiteral('(f1');
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
@@ -198,7 +198,7 @@ final dynamic a = 0;
 final (int, ) x = (a, );
 ''');
 
-    final node = findNode.recordLiteral('(a');
+    var node = findNode.recordLiteral('(a');
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
@@ -221,7 +221,7 @@ f(Object o) {
 }
 ''');
 
-    final node = findNode.recordLiteral("('',");
+    var node = findNode.recordLiteral("('',");
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
@@ -246,7 +246,7 @@ final (A1, A2, A3, {A4 f1, A5 f2}) x = (g(), f1: g(), g(), f2: g(), g());
 T g<T>() => throw 0;
 ''');
 
-    final node = findNode.recordLiteral('(g(),');
+    var node = findNode.recordLiteral('(g(),');
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
@@ -341,7 +341,7 @@ f(Object o) {
 T g<T>() => throw 0;
 ''');
 
-    final node = findNode.recordLiteral('(f1:');
+    var node = findNode.recordLiteral('(f1:');
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
@@ -381,7 +381,7 @@ f(Object o) {
 T g<T>() => throw 0;
 ''');
 
-    final node = findNode.recordLiteral('(g(),');
+    var node = findNode.recordLiteral('(g(),');
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
@@ -433,7 +433,7 @@ f(Object o) {
 T g<T>() => throw 0;
 ''');
 
-    final node = findNode.recordLiteral('(g(),');
+    var node = findNode.recordLiteral('(g(),');
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
@@ -462,7 +462,7 @@ final ({int f1, String f2}) x = (f1: g(), f2: g());
 T g<T>() => throw 0;
 ''');
 
-    final node = findNode.recordLiteral('(f1:');
+    var node = findNode.recordLiteral('(f1:');
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
@@ -517,7 +517,7 @@ final ({int f1, String f2}) x = (f2: g(), f1: g());
 T g<T>() => throw 0;
 ''');
 
-    final node = findNode.recordLiteral('(f2:');
+    var node = findNode.recordLiteral('(f2:');
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
@@ -576,7 +576,7 @@ f(Object o) {
 T g<T>() => throw 0;
 ''');
 
-    final node = findNode.recordLiteral('(f1:');
+    var node = findNode.recordLiteral('(f1:');
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
@@ -616,7 +616,7 @@ f(Object o) {
 T g<T>() => throw 0;
 ''');
 
-    final node = findNode.recordLiteral('(f1:');
+    var node = findNode.recordLiteral('(f1:');
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
@@ -670,7 +670,7 @@ final dynamic a = 0;
 final ({Object? f1}) x = (f1: a);
 ''');
 
-    final node = findNode.recordLiteral('(f1');
+    var node = findNode.recordLiteral('(f1');
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
@@ -697,7 +697,7 @@ final dynamic a = 0;
 final (Object?, ) x = (a, );
 ''');
 
-    final node = findNode.recordLiteral('(a');
+    var node = findNode.recordLiteral('(a');
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
@@ -718,7 +718,7 @@ final Object x = (g(), g());
 T g<T>() => throw 0;
 ''');
 
-    final node = findNode.recordLiteral('(g(),');
+    var node = findNode.recordLiteral('(g(),');
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
@@ -759,7 +759,7 @@ final (int, String) x = (g(), g());
 T g<T>() => throw 0;
 ''');
 
-    final node = findNode.recordLiteral('(g(),');
+    var node = findNode.recordLiteral('(g(),');
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
@@ -804,7 +804,7 @@ f(Object o) {
 T g<T>() => throw 0;
 ''');
 
-    final node = findNode.recordLiteral('(g(),');
+    var node = findNode.recordLiteral('(g(),');
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
@@ -837,7 +837,7 @@ f(Object o) {
 T g<T>() => throw 0;
 ''');
 
-    final node = findNode.recordLiteral('(g(),');
+    var node = findNode.recordLiteral('(g(),');
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
@@ -878,7 +878,7 @@ void f<T>((T, T) x) {}
 test(dynamic d) => f((d, d));
 ''');
 
-    final node = findNode.recordLiteral('(d,');
+    var node = findNode.recordLiteral('(d,');
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
@@ -902,7 +902,7 @@ RecordLiteral
 final x = (0);
 ''');
 
-    final node = findNode.singleVariableDeclaration;
+    var node = findNode.singleVariableDeclaration;
     assertResolvedNodeText(node, r'''
 VariableDeclaration
   name: x
@@ -928,7 +928,7 @@ final x = const (0);
           1),
     ]);
 
-    final node = findNode.singleVariableDeclaration;
+    var node = findNode.singleVariableDeclaration;
     assertResolvedNodeText(node, r'''
 VariableDeclaration
   name: x
@@ -952,7 +952,7 @@ final x = (0,);
       error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 26, 1),
     ]);
 
-    final node = findNode.singleVariableDeclaration;
+    var node = findNode.singleVariableDeclaration;
     assertResolvedNodeText(node, r'''
 VariableDeclaration
   name: x
@@ -976,7 +976,7 @@ final x = (0, 1);
       error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 26, 1),
     ]);
 
-    final node = findNode.singleVariableDeclaration;
+    var node = findNode.singleVariableDeclaration;
     assertResolvedNodeText(node, r'''
 VariableDeclaration
   name: x
@@ -1000,7 +1000,7 @@ final x = ();
       error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 26, 1),
     ]);
 
-    final node = findNode.singleVariableDeclaration;
+    var node = findNode.singleVariableDeclaration;
     assertResolvedNodeText(node, r'''
 VariableDeclaration
   name: x
@@ -1022,7 +1022,7 @@ VariableDeclaration
 final x = ();
 ''');
 
-    final node = findNode.recordLiteral('()');
+    var node = findNode.recordLiteral('()');
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
@@ -1036,7 +1036,7 @@ RecordLiteral
 final x = (0, f1: 1, 2, f2: 3, 4);
 ''');
 
-    final node = findNode.recordLiteral('(0,');
+    var node = findNode.recordLiteral('(0,');
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
@@ -1080,7 +1080,7 @@ RecordLiteral
 final x = (f1: 0, f2: true);
 ''');
 
-    final node = findNode.recordLiteral('(f1:');
+    var node = findNode.recordLiteral('(f1:');
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
@@ -1115,7 +1115,7 @@ RecordLiteral
 final x = (0, true);
 ''');
 
-    final node = findNode.recordLiteral('(0,');
+    var node = findNode.recordLiteral('(0,');
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
@@ -1140,7 +1140,7 @@ g() => (f(),);
       error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 21, 3),
     ]);
 
-    final node = findNode.recordLiteral('(f(),');
+    var node = findNode.recordLiteral('(f(),');
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (

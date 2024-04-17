@@ -74,7 +74,7 @@ class ServerTest extends AbstractLspAnalysisServerTest {
   /// rebuild loop.
   /// https://github.com/Dart-Code/Dart-Code/issues/4280
   Future<void> test_analysisRoot_doesNotExist() async {
-    final notExistingPath = convertPath('/does/not/exist');
+    var notExistingPath = convertPath('/does/not/exist');
     resourceProvider.emitPathNotFoundExceptionsForPaths.add(notExistingPath);
     await initialize(workspaceFolders: [pathContext.toUri(notExistingPath)]);
 
@@ -95,7 +95,7 @@ class ServerTest extends AbstractLspAnalysisServerTest {
   Future<void> test_analysisRoot_existsAndDoesNotExist() async {
     failTestOnErrorDiagnostic = false;
 
-    final notExistingPath = convertPath('/does/not/exist');
+    var notExistingPath = convertPath('/does/not/exist');
     resourceProvider.emitPathNotFoundExceptionsForPaths.add(notExistingPath);
 
     newFile(mainFilePath, 'NotAClass a;');
@@ -141,8 +141,8 @@ class ServerTest extends AbstractLspAnalysisServerTest {
       getHover(mainFileUri, startOfDocPos),
       completes,
     );
-    final performanceItems = server.recentPerformance.requests.items;
-    final hoverItems = performanceItems.where(
+    var performanceItems = server.recentPerformance.requests.items;
+    var hoverItems = performanceItems.where(
         (item) => item.operation == Method.textDocument_hover.toString());
     expect(hoverItems, hasLength(1));
   }
@@ -157,7 +157,7 @@ class ServerTest extends AbstractLspAnalysisServerTest {
     await openFile(mainFileUri, '');
     // Attempt to make an illegal modification to the file. This indicates the
     // client and server are out of sync and we expect the server to shut down.
-    final error = await expectErrorNotification(() async {
+    var error = await expectErrorNotification(() async {
       await changeFile(222, mainFileUri, [
         TextDocumentContentChangeEvent.t1(TextDocumentContentChangeEvent1(
             range: Range(
@@ -175,7 +175,7 @@ class ServerTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_path_doesNotExist() async {
-    final missingFileUri = toUri(join(projectFolderPath, 'missing.dart'));
+    var missingFileUri = toUri(join(projectFolderPath, 'missing.dart'));
     await initialize();
     await expectLater(
       getHover(missingFileUri, startOfDocPos),
@@ -206,7 +206,7 @@ class ServerTest extends AbstractLspAnalysisServerTest {
     }
     // This code deliberately does not use pathContext because we're testing a
     // without a drive letter, but pathContext.toUri() would include one.
-    final missingDriveLetterFileUri = Uri.parse('file:///foo/bar.dart');
+    var missingDriveLetterFileUri = Uri.parse('file:///foo/bar.dart');
     await initialize();
     await expectLater(
       getHover(missingDriveLetterFileUri, startOfDocPos),
@@ -217,7 +217,7 @@ class ServerTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_path_notFileScheme() async {
-    final relativeFileUri = Uri(scheme: 'foo', path: '/a/b.dart');
+    var relativeFileUri = Uri(scheme: 'foo', path: '/a/b.dart');
     await initialize();
     await expectLater(
       getHover(relativeFileUri, startOfDocPos),
@@ -228,7 +228,7 @@ class ServerTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_path_relative() async {
-    final relativeFileUri = pathContext.toUri('a/b.dart');
+    var relativeFileUri = pathContext.toUri('a/b.dart');
     await initialize();
     await expectLater(
       getHover(relativeFileUri, startOfDocPos),
@@ -249,22 +249,22 @@ class ServerTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_shutdown_initialized() async {
     await initialize();
-    final response = await sendShutdown();
+    var response = await sendShutdown();
     expect(response, isNull);
   }
 
   Future<void> test_shutdown_uninitialized() async {
-    final response = await sendShutdown();
+    var response = await sendShutdown();
     expect(response, isNull);
   }
 
   Future<void> test_unknownNotifications_logError() async {
     await initialize();
 
-    final notification =
+    var notification =
         makeNotification(Method.fromJson(r'some/randomNotification'), null);
 
-    final notificationParams = await expectErrorNotification(
+    var notificationParams = await expectErrorNotification(
       () => channel.sendNotificationToServer(notification),
     );
     expect(notificationParams, isNotNull);
@@ -276,14 +276,14 @@ class ServerTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_unknownOptionalNotifications_silentlyDropped() async {
     await initialize();
-    final notification =
+    var notification =
         makeNotification(Method.fromJson(r'$/randomNotification'), null);
-    final firstError = errorNotificationsFromServer.first;
+    var firstError = errorNotificationsFromServer.first;
     channel.sendNotificationToServer(notification);
 
     // Wait up to 1sec to ensure no error/log notifications were sent back.
     var didTimeout = false;
-    final notificationFromServer =
+    var notificationFromServer =
         await firstError.then<NotificationMessage?>((error) => error).timeout(
       const Duration(seconds: 1),
       onTimeout: () {
@@ -298,8 +298,8 @@ class ServerTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_unknownOptionalRequest_rejected() async {
     await initialize();
-    final request = makeRequest(Method.fromJson(r'$/randomRequest'), null);
-    final response = await channel.sendRequestToServer(request);
+    var request = makeRequest(Method.fromJson(r'$/randomRequest'), null);
+    var response = await channel.sendRequestToServer(request);
     expect(response.id, equals(request.id));
     expect(response.error, isNotNull);
     expect(response.error!.code, equals(ErrorCodes.MethodNotFound));
@@ -308,8 +308,8 @@ class ServerTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_unknownRequest_rejected() async {
     await initialize();
-    final request = makeRequest(Method.fromJson('randomRequest'), null);
-    final response = await channel.sendRequestToServer(request);
+    var request = makeRequest(Method.fromJson('randomRequest'), null);
+    var response = await channel.sendRequestToServer(request);
     expect(response.id, equals(request.id));
     expect(response.error, isNotNull);
     expect(response.error!.code, equals(ErrorCodes.MethodNotFound));

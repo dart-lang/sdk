@@ -193,14 +193,14 @@ mixin Bar5 implements Foo {}
   }
 
   test_withinPart_language219() async {
-    final lib = newFile('$testPackageLibPath/a.dart', r'''
+    var lib = newFile('$testPackageLibPath/a.dart', r'''
 // @dart = 2.19
 import 'package:meta/meta.dart';
 part 'b.dart';
 @sealed class Foo {}
 ''');
 
-    final part = newFile('$testPackageLibPath/b.dart', r'''
+    var part = newFile('$testPackageLibPath/b.dart', r'''
 // @dart = 2.19
 part of 'a.dart';
 class Bar1 extends Foo {}

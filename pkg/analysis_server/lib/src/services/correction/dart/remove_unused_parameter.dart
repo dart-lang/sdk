@@ -53,7 +53,7 @@ class RemoveUnusedParameter extends ResolvedCorrectionProducer {
 
     var parameters = parameterList.parameters;
     var index = parameters.indexOf(parameter);
-    final parameter_final = parameter;
+    var parameter_final = parameter;
     await builder.addDartFileEdit(file, (builder) {
       if (index == 0) {
         // Remove the first parameter in the list.

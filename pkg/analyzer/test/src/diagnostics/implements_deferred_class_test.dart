@@ -28,7 +28,7 @@ class B implements a.A {}
       error(CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS, 67, 3),
     ]);
 
-    final node = findNode.singleImplementsClause;
+    var node = findNode.singleImplementsClause;
     assertResolvedNodeText(node, r'''
 ImplementsClause
   implementsKeyword: implements
@@ -58,7 +58,7 @@ class C implements a.B {}
       error(CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS, 67, 3),
     ]);
 
-    final node = findNode.singleImplementsClause;
+    var node = findNode.singleImplementsClause;
     assertResolvedNodeText(node, r'''
 ImplementsClause
   implementsKeyword: implements
@@ -90,7 +90,7 @@ class C = B with M implements a.A;
       error(CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS, 100, 3),
     ]);
 
-    final node = findNode.singleImplementsClause;
+    var node = findNode.singleImplementsClause;
     assertResolvedNodeText(node, r'''
 ImplementsClause
   implementsKeyword: implements
@@ -118,7 +118,7 @@ extension type B(a.A it) implements a.A {}
       error(CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS, 67, 3),
     ]);
 
-    final node = findNode.singleImplementsClause;
+    var node = findNode.singleImplementsClause;
     assertResolvedNodeText(node, r'''
 ImplementsClause
   implementsKeyword: implements
@@ -146,7 +146,7 @@ extension type B(int it) implements a.A {}
       error(CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS, 67, 3),
     ]);
 
-    final node = findNode.singleImplementsClause;
+    var node = findNode.singleImplementsClause;
     assertResolvedNodeText(node, r'''
 ImplementsClause
   implementsKeyword: implements
@@ -170,7 +170,7 @@ mixin M implements math.Random {}
       error(CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS, 56, 11),
     ]);
 
-    final node = findNode.singleImplementsClause;
+    var node = findNode.singleImplementsClause;
     assertResolvedNodeText(node, r'''
 ImplementsClause
   implementsKeyword: implements

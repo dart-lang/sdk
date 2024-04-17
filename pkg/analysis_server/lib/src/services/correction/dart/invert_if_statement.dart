@@ -15,7 +15,7 @@ class InvertIfStatement extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final ifStatement = node;
+    var ifStatement = node;
     if (ifStatement is! IfStatement) {
       return;
     }
@@ -25,17 +25,17 @@ class InvertIfStatement extends ResolvedCorrectionProducer {
     }
 
     // The only sane case is when both are blocks.
-    final thenStatement = ifStatement.thenStatement;
-    final elseStatement = ifStatement.elseStatement;
+    var thenStatement = ifStatement.thenStatement;
+    var elseStatement = ifStatement.elseStatement;
     if (thenStatement is! Block || elseStatement is! Block) {
       return;
     }
 
-    final condition = ifStatement.expression;
-    final invertedCondition = utils.invertCondition(condition);
+    var condition = ifStatement.expression;
+    var invertedCondition = utils.invertCondition(condition);
 
-    final thenCode = utils.getNodeText(thenStatement);
-    final elseCode = utils.getNodeText(elseStatement);
+    var thenCode = utils.getNodeText(thenStatement);
+    var elseCode = utils.getNodeText(elseStatement);
 
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleReplacement(range.node(condition), invertedCondition);

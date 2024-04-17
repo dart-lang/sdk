@@ -209,8 +209,8 @@ void f() {
   }
 
   Future<void> test_importUri_configurations() async {
-    final ioFile = newFile('$testPackageLibPath/io.dart', '');
-    final htmlFile = newFile('$testPackageLibPath/html.dart', '');
+    var ioFile = newFile('$testPackageLibPath/io.dart', '');
+    var htmlFile = newFile('$testPackageLibPath/html.dart', '');
     addTestFile('''
 import 'foo.dart'
   if (dart.library.io) 'io.dart'
@@ -337,7 +337,7 @@ void f(A a) {
   }
 
   Future<void> test_partDirective() async {
-    final partFile = newFile(
+    var partFile = newFile(
       '$testPackageLibPath/a.dart',
       '''
 part of 'test.dart';
@@ -356,7 +356,7 @@ part 'a.dart';
   }
 
   Future<void> test_partOfDirective_named() async {
-    final partOfFile = newFile(
+    var partOfFile = newFile(
       '$testPackageLibPath/a.dart',
       '''
 library foo;
@@ -376,7 +376,7 @@ part of foo;
   }
 
   Future<void> test_partOfDirective_uri() async {
-    final partOfFile = newFile(
+    var partOfFile = newFile(
       '$testPackageLibPath/a.dart',
       '''
 part 'test.dart';

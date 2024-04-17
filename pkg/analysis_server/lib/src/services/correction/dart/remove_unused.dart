@@ -29,7 +29,7 @@ class RemoveUnusedElement extends _RemoveUnused {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final sourceRanges = <SourceRange>[];
+    var sourceRanges = <SourceRange>[];
 
     final node = this.node;
 
@@ -47,10 +47,10 @@ class RemoveUnusedElement extends _RemoveUnused {
         node is FunctionTypeAlias ||
         node is MethodDeclaration ||
         node is VariableDeclaration) {
-      final element = node is Declaration
+      var element = node is Declaration
           ? node.declaredElement!
           : (node as NamedCompilationUnitMember).declaredElement!;
-      final references = _findAllReferences(unit, element);
+      var references = _findAllReferences(unit, element);
       // TODO(pq): consider filtering for references that are limited to within the class.
       if (references.isEmpty) {
         var parent = node.parent;
@@ -82,7 +82,7 @@ class RemoveUnusedElement extends _RemoveUnused {
     required ChangeBuilder builder,
     required ConstructorDeclaration node,
   }) async {
-    final NodeList<ClassMember> members;
+    NodeList<ClassMember> members;
     switch (node.parent) {
       case ClassDeclaration classDeclaration:
         members = classDeclaration.members;
@@ -92,7 +92,7 @@ class RemoveUnusedElement extends _RemoveUnused {
         return;
     }
 
-    final nodeRange = range.nodeInList(members, node);
+    var nodeRange = range.nodeInList(members, node);
 
     await builder.addDartFileEdit(file, (builder) {
       builder.addDeletion(nodeRange);
@@ -114,24 +114,24 @@ class RemoveUnusedField extends _RemoveUnused {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final declaration = node;
+    var declaration = node;
     if (declaration is! VariableDeclaration) {
       return;
     }
 
-    final element = declaration.declaredElement;
+    var element = declaration.declaredElement;
     if (element is! FieldElement) {
       return;
     }
 
-    final sourceRanges = <SourceRange>[];
-    final references = [
+    var sourceRanges = <SourceRange>[];
+    var references = [
       node,
       ..._findAllReferences(unit, element),
     ];
     for (var reference in references) {
       // TODO(pq): consider scoping this to parent or parent.parent.
-      final referenceNode = reference.thisOrAncestorMatching((node) =>
+      var referenceNode = reference.thisOrAncestorMatching((node) =>
           node is VariableDeclaration ||
           node is ExpressionStatement ||
           node is ConstructorFieldInitializer ||
@@ -159,7 +159,7 @@ class RemoveUnusedField extends _RemoveUnused {
       sourceRanges.add(sourceRange);
     }
 
-    final uniqueSourceRanges = _uniqueSourceRanges(sourceRanges);
+    var uniqueSourceRanges = _uniqueSourceRanges(sourceRanges);
     await builder.addDartFileEdit(file, (builder) {
       for (var sourceRange in uniqueSourceRanges) {
         builder.addDeletion(sourceRange);
@@ -170,7 +170,7 @@ class RemoveUnusedField extends _RemoveUnused {
   SourceRange _forConstructorFieldInitializer(
     ConstructorFieldInitializer node,
   ) {
-    final constructor = node.parent as ConstructorDeclaration;
+    var constructor = node.parent as ConstructorDeclaration;
     if (constructor.initializers.length == 1) {
       return range.endEnd(constructor.parameters, node);
     } else {
@@ -253,7 +253,7 @@ class _ElementReferenceCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitFieldFormalParameter(FieldFormalParameter node) {
-    final declaredElement = node.declaredElement;
+    var declaredElement = node.declaredElement;
     if (declaredElement is FieldFormalParameterElement) {
       if (declaredElement.field == element) {
         references.add(node);
@@ -274,7 +274,7 @@ class _ElementReferenceCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    final staticElement = node.writeOrReadElement;
+    var staticElement = node.writeOrReadElement;
     if (staticElement == element) {
       references.add(node);
     } else if (staticElement is PropertyAccessorElement) {

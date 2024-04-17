@@ -88,8 +88,8 @@ class RemoveComparison extends ResolvedCorrectionProducer {
 
   Future<void> _ifElement(IfElement node, ChangeBuilder builder) async {
     Future<void> replaceWithElement(CollectionElement element) async {
-      final text = _textWithLeadingComments(element);
-      final unIndented = utils.indentLeft(text);
+      var text = _textWithLeadingComments(element);
+      var unIndented = utils.indentLeft(text);
       await builder.addDartFileEdit(file, (builder) {
         builder.addSimpleReplacement(range.node(node), unIndented);
       });
@@ -98,14 +98,14 @@ class RemoveComparison extends ResolvedCorrectionProducer {
     if (_conditionIsTrue) {
       await replaceWithElement(node.thenElement);
     } else if (_conditionIsFalse) {
-      final elseElement = node.elseElement;
+      var elseElement = node.elseElement;
       if (elseElement != null) {
         await replaceWithElement(elseElement);
       } else {
-        final elements = node.parent.containerElements;
+        var elements = node.parent.containerElements;
         if (elements != null) {
           await builder.addDartFileEdit(file, (builder) {
-            final nodeRange = range.nodeInList(elements, node);
+            var nodeRange = range.nodeInList(elements, node);
             builder.addDeletion(nodeRange);
           });
         }
@@ -115,7 +115,7 @@ class RemoveComparison extends ResolvedCorrectionProducer {
 
   Future<void> _ifStatement(IfStatement node, ChangeBuilder builder) async {
     Future<void> replaceWithBlock(Block replacement) async {
-      final text = utils.getRangeText(
+      var text = utils.getRangeText(
         utils.getLinesRange(
           range.endStart(
             replacement.leftBracket,
@@ -123,7 +123,7 @@ class RemoveComparison extends ResolvedCorrectionProducer {
           ),
         ),
       );
-      final unIndented = utils.indentLeft(text);
+      var unIndented = utils.indentLeft(text);
       await builder.addDartFileEdit(file, (builder) {
         builder.addSimpleReplacement(
           utils.getLinesRangeStatements([node]),
@@ -133,15 +133,15 @@ class RemoveComparison extends ResolvedCorrectionProducer {
     }
 
     Future<void> replaceWithStatement(Statement replacement) async {
-      final text = _textWithLeadingComments(replacement);
-      final unIndented = utils.indentLeft(text);
+      var text = _textWithLeadingComments(replacement);
+      var unIndented = utils.indentLeft(text);
       await builder.addDartFileEdit(file, (builder) {
         builder.addSimpleReplacement(range.node(node), unIndented);
       });
     }
 
-    final thenStatement = node.thenStatement;
-    final elseStatement = node.elseStatement;
+    var thenStatement = node.thenStatement;
+    var elseStatement = node.elseStatement;
     if (_conditionIsTrue) {
       if (thenStatement case Block thenBlock) {
         await replaceWithBlock(thenBlock);
@@ -156,9 +156,9 @@ class RemoveComparison extends ResolvedCorrectionProducer {
           await replaceWithStatement(elseStatement);
         }
       } else {
-        if (node.parent case final Block block) {
-          final statement = block.statements;
-          final nodeRange = range.nodeInList(statement, node);
+        if (node.parent case Block block) {
+          var statement = block.statements;
+          var nodeRange = range.nodeInList(statement, node);
           await builder.addDartFileEdit(file, (builder) {
             builder.addDeletion(nodeRange);
           });
@@ -189,7 +189,7 @@ class RemoveComparison extends ResolvedCorrectionProducer {
 
 extension on AstNode? {
   NodeList<AstNode>? get containerElements {
-    final self = this;
+    var self = this;
     if (self is ListLiteral) {
       return self.elements;
     } else if (self is SetOrMapLiteral) {

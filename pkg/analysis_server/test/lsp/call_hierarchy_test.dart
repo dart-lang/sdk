@@ -39,11 +39,11 @@ class IncomingCallHierarchyTest extends AbstractLspAnalysisServerTest {
 
     await initialize();
 
-    final prepareResult = await prepareCallHierarchy(
+    var prepareResult = await prepareCallHierarchy(
       mainFileUri,
       mainCode.position.position,
     );
-    final result = await callHierarchyIncoming(prepareResult!.single);
+    var result = await callHierarchyIncoming(prepareResult!.single);
 
     expect(result!, unorderedEquals(expectedResults));
   }
@@ -56,13 +56,13 @@ class IncomingCallHierarchyTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_constructor() async {
-    final code = TestCode.parse('''
+    var code = TestCode.parse('''
 class Foo {
   Fo^o();
 }
 ''');
 
-    final otherCode = TestCode.parse('''
+    var otherCode = TestCode.parse('''
 import 'main.dart';
 
 class Bar {
@@ -95,11 +95,11 @@ class Bar {
   }
 
   Future<void> test_function() async {
-    final code = TestCode.parse('''
+    var code = TestCode.parse('''
 void fo^o() {}
 ''');
 
-    final otherCode = TestCode.parse('''
+    var otherCode = TestCode.parse('''
 import 'main.dart';
 
 final x = foo();
@@ -128,11 +128,11 @@ final x = foo();
   }
 
   Future<void> test_functionInPattern() async {
-    final code = TestCode.parse('''
+    var code = TestCode.parse('''
 bool gr^eater(int x, int y) => x > y;
 ''');
 
-    final otherCode = TestCode.parse('''
+    var otherCode = TestCode.parse('''
 import 'main.dart';
 
 void foo() {
@@ -169,7 +169,7 @@ void foo() {
   }
 
   Future<void> test_implicitConstructor() async {
-    final code = TestCode.parse('''
+    var code = TestCode.parse('''
 import 'other.dart';
 
 void main() {
@@ -177,7 +177,7 @@ void main() {
 }
 ''');
 
-    final otherCode = TestCode.parse('''
+    var otherCode = TestCode.parse('''
 class Foo {}
 ''');
 
@@ -206,13 +206,13 @@ class Foo {}
   }
 
   Future<void> test_method() async {
-    final code = TestCode.parse('''
+    var code = TestCode.parse('''
 class A {
   void fo^o() {}
 }
 ''');
 
-    final otherCode = TestCode.parse('''
+    var otherCode = TestCode.parse('''
 import 'main.dart';
 
 class B {
@@ -247,13 +247,13 @@ class B {
   }
 
   Future<void> test_method_extension() async {
-    final code = TestCode.parse('''
+    var code = TestCode.parse('''
 extension type E1(int a) {
   void foo^() {}
 }
 ''');
 
-    final otherCode = TestCode.parse('''
+    var otherCode = TestCode.parse('''
 import 'main.dart';
 
 extension type E2(E1 a) {
@@ -288,13 +288,13 @@ extension type E2(E1 a) {
   }
 
   Future<void> test_namedConstructor() async {
-    final code = TestCode.parse('''
+    var code = TestCode.parse('''
 class Foo {
   Foo.nam^ed();
 }
 ''');
 
-    final otherCode = TestCode.parse('''
+    var otherCode = TestCode.parse('''
 import 'main.dart';
 
 class Bar {
@@ -348,11 +348,11 @@ class OutgoingCallHierarchyTest extends AbstractLspAnalysisServerTest {
 
     await initialize();
 
-    final prepareResult = await prepareCallHierarchy(
+    var prepareResult = await prepareCallHierarchy(
       mainFileUri,
       mainCode.position.position,
     );
-    final result = await callHierarchyOutgoing(prepareResult!.single);
+    var result = await callHierarchyOutgoing(prepareResult!.single);
 
     expect(result!, unorderedEquals(expectedResults));
   }
@@ -365,7 +365,7 @@ class OutgoingCallHierarchyTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_constructor() async {
-    final code = TestCode.parse('''
+    var code = TestCode.parse('''
 import 'other.dart';
 
 class Foo {
@@ -375,7 +375,7 @@ class Foo {
 }
 ''');
 
-    final otherCode = TestCode.parse('''
+    var otherCode = TestCode.parse('''
 class Bar {
   Bar();
 }
@@ -406,7 +406,7 @@ class Bar {
   }
 
   Future<void> test_function() async {
-    final code = TestCode.parse('''
+    var code = TestCode.parse('''
 import 'other.dart';
 
 void fo^o() {
@@ -414,7 +414,7 @@ void fo^o() {
 }
 ''');
 
-    final otherCode = TestCode.parse('''
+    var otherCode = TestCode.parse('''
 void bar() {}
 ''');
 
@@ -442,7 +442,7 @@ void bar() {}
   }
 
   Future<void> test_functionInPattern() async {
-    final code = TestCode.parse('''
+    var code = TestCode.parse('''
 import 'other.dart';
 
 void fo^o() {
@@ -454,7 +454,7 @@ void fo^o() {
 }
 ''');
 
-    final otherCode = TestCode.parse('''
+    var otherCode = TestCode.parse('''
 bool greater(int x, int y) => x > y;
 ''');
 
@@ -483,7 +483,7 @@ bool greater(int x, int y) => x > y;
   }
 
   Future<void> test_implicitConstructor() async {
-    final code = TestCode.parse('''
+    var code = TestCode.parse('''
 import 'other.dart';
 
 class Foo {
@@ -493,7 +493,7 @@ class Foo {
 }
 ''');
 
-    final otherCode = TestCode.parse('''
+    var otherCode = TestCode.parse('''
 class Bar {}
 ''');
 
@@ -521,7 +521,7 @@ class Bar {}
   }
 
   Future<void> test_method() async {
-    final code = TestCode.parse('''
+    var code = TestCode.parse('''
 import 'other.dart';
 
 class Foo {
@@ -532,7 +532,7 @@ class Foo {
 }
 ''');
 
-    final otherCode = TestCode.parse('''
+    var otherCode = TestCode.parse('''
 class Bar {
   void bar() {}
 }
@@ -562,7 +562,7 @@ class Bar {
   }
 
   Future<void> test_method_extensionType() async {
-    final code = TestCode.parse('''
+    var code = TestCode.parse('''
 import 'other.dart';
 
 extension type E2(E1 a) {
@@ -572,7 +572,7 @@ extension type E2(E1 a) {
 }
 ''');
 
-    final otherCode = TestCode.parse('''
+    var otherCode = TestCode.parse('''
 extension type E1(int a) {
   void foo() {}
 }
@@ -602,7 +602,7 @@ extension type E1(int a) {
   }
 
   Future<void> test_namedConstructor() async {
-    final code = TestCode.parse('''
+    var code = TestCode.parse('''
 import 'other.dart';
 
 class Foo {
@@ -612,7 +612,7 @@ class Foo {
 }
 ''');
 
-    final otherCode = TestCode.parse('''
+    var otherCode = TestCode.parse('''
 class Bar {
   Bar.named();
 }
@@ -650,12 +650,12 @@ class PrepareCallHierarchyTest extends AbstractLspAnalysisServerTest {
   /// Calls textDocument/prepareCallHierarchy at the location of `^` in
   /// [contents] and expects a null result.
   Future<void> expectNullResults(String contents) async {
-    final code = TestCode.parse(contents);
+    var code = TestCode.parse(contents);
 
     newFile(mainFilePath, code.code);
     await initialize();
 
-    final result = await prepareCallHierarchy(
+    var result = await prepareCallHierarchy(
       mainFileUri,
       code.position.position,
     );
@@ -676,7 +676,7 @@ class PrepareCallHierarchyTest extends AbstractLspAnalysisServerTest {
 
     await initialize();
 
-    final results = await prepareCallHierarchy(
+    var results = await prepareCallHierarchy(
       mainFileUri,
       mainCode.position.position,
     );
@@ -706,7 +706,7 @@ class PrepareCallHierarchyTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_constructor() async {
-    final code = TestCode.parse('''
+    var code = TestCode.parse('''
 class Foo {
   [!Fo^o!](String a) {}
 }
@@ -725,7 +725,7 @@ class Foo {
   }
 
   Future<void> test_constructorCall() async {
-    final mainCode = TestCode.parse('''
+    var mainCode = TestCode.parse('''
 import 'other.dart';
 
 main() {
@@ -733,7 +733,7 @@ main() {
 }
 ''');
 
-    final otherCode = TestCode.parse('''
+    var otherCode = TestCode.parse('''
 class Foo {
   [!Foo!]();
 }
@@ -752,7 +752,7 @@ class Foo {
   }
 
   Future<void> test_function() async {
-    final code = TestCode.parse('''
+    var code = TestCode.parse('''
 void myFun^ction() {}
 ''');
 
@@ -769,7 +769,7 @@ void myFun^ction() {}
   }
 
   Future<void> test_functionCall() async {
-    final code = TestCode.parse('''
+    var code = TestCode.parse('''
 import 'other.dart' as f;
 
 main() {
@@ -777,7 +777,7 @@ main() {
 }
 ''');
 
-    final otherCode = TestCode.parse('''
+    var otherCode = TestCode.parse('''
 void myFunction() {}
 ''');
 
@@ -798,7 +798,7 @@ void myFunction() {}
 // Even if a constructor is implicit, we might want to be able to get the
 // incoming calls, so invoking it here should still return an element
 // (the class).
-    final code = TestCode.parse('''
+    var code = TestCode.parse('''
 import 'other.dart';
 
 main() {
@@ -806,7 +806,7 @@ main() {
 }
 ''');
 
-    final otherCode = TestCode.parse('''
+    var otherCode = TestCode.parse('''
 class Foo {}
 ''');
 
@@ -824,7 +824,7 @@ class Foo {}
   }
 
   Future<void> test_method() async {
-    final code = TestCode.parse('''
+    var code = TestCode.parse('''
 class Foo {
   void myMet^hod() {}
 }
@@ -843,7 +843,7 @@ class Foo {
   }
 
   Future<void> test_methodCall() async {
-    final code = TestCode.parse('''
+    var code = TestCode.parse('''
 import 'other.dart';
 
 main() {
@@ -851,7 +851,7 @@ main() {
 }
 ''');
 
-    final otherCode = TestCode.parse('''
+    var otherCode = TestCode.parse('''
 class Foo {
   void myMethod() {}
 }
@@ -871,7 +871,7 @@ class Foo {
   }
 
   Future<void> test_methodCall_extension() async {
-    final code = TestCode.parse('''
+    var code = TestCode.parse('''
 import 'other.dart';
 
 void main() {
@@ -879,7 +879,7 @@ void main() {
 }
 ''');
 
-    final otherCode = TestCode.parse('''
+    var otherCode = TestCode.parse('''
 extension type E1(int a) {
   void f() {}
 }
@@ -899,7 +899,7 @@ extension type E1(int a) {
   }
 
   Future<void> test_namedConstructor() async {
-    final code = TestCode.parse('''
+    var code = TestCode.parse('''
 class Foo {
   Foo.Ba^r(String a) {}
 }
@@ -918,7 +918,7 @@ class Foo {
   }
 
   Future<void> test_namedConstructorCall() async {
-    final code = TestCode.parse('''
+    var code = TestCode.parse('''
 import 'other.dart';
 
 main() {
@@ -926,7 +926,7 @@ main() {
 }
 ''');
 
-    final otherCode = TestCode.parse('''
+    var otherCode = TestCode.parse('''
 class Foo {
   Foo.Bar();
 }

@@ -91,6 +91,10 @@ We use `var` to declare local variables with two exceptions:
 - We use `final` if the local variable shadows a field and is being used to
   allow the type of the field to be promoted.
 
+The reason to prefer `var` over `final` is that the majority of the team felt
+that the benefit of using `var` was slightly greater than the benefit of
+using `final`.
+
 ## Styles we're discussing
 
 This section documents the styles we are currently discussing. The purpose

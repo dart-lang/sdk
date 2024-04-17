@@ -379,7 +379,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     var exp = stmt.expression as InstanceCreationExpression;
     ClassElement elementB = AstFinder.getClass(unit, "B").declaredElement!;
     ClassElement elementA = AstFinder.getClass(unit, "A").declaredElement!;
-    final type = exp.constructorName.type.typeOrThrow as InterfaceType;
+    var type = exp.constructorName.type.typeOrThrow as InterfaceType;
     expect(type.element, elementB);
     _isInstantiationOf(_hasElement(elementB))([
       _isType(elementA.typeParameters[0]
@@ -1282,7 +1282,7 @@ test() {
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 71, 1),
     ]);
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -1424,7 +1424,7 @@ void _mergeSort<T>(T Function(T) list, int compare(T a, T b), T Function(T) targ
       error(WarningCode.UNUSED_ELEMENT, 5, 10),
     ]);
 
-    final node = findNode.singleBlock;
+    var node = findNode.singleBlock;
     assertResolvedNodeText(node, r'''
 Block
   leftBracket: {
@@ -1593,7 +1593,7 @@ void _mergeSort<T>(List<T> list, int compare(T a, T b), List<T> target) {
       error(WarningCode.UNUSED_ELEMENT, 5, 10),
     ]);
 
-    final node = findNode.singleBlock;
+    var node = findNode.singleBlock;
     assertResolvedNodeText(node, r'''
 Block
   leftBracket: {
@@ -1762,7 +1762,7 @@ void _mergeSort<T>(T list, int compare(T a, T b), T target) {
       error(WarningCode.UNUSED_ELEMENT, 5, 10),
     ]);
 
-    final node = findNode.singleBlock;
+    var node = findNode.singleBlock;
     assertResolvedNodeText(node, r'''
 Block
   leftBracket: {
@@ -1929,7 +1929,7 @@ test() {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 61, 1),
     ]);
 
-    final node = findNode.methodInvocation('f(g)');
+    var node = findNode.methodInvocation('f(g)');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -1974,7 +1974,7 @@ num test(Iterable values) => values.fold(values.first as num, max);
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 190, 3),
     ]);
 
-    final node = findNode.methodInvocation('values.fold');
+    var node = findNode.methodInvocation('values.fold');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
@@ -3310,7 +3310,7 @@ void main() {
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 15, 4),
     ]);
 
-    final node = findNode.functionDeclaration('f<T>');
+    var node = findNode.functionDeclaration('f<T>');
     assertResolvedNodeText(node, r'''
 FunctionDeclaration
   returnType: NamedType
@@ -3356,7 +3356,7 @@ FunctionDeclaration
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 27, 4),
     ]);
 
-    final node = findNode.functionDeclaration('f<T');
+    var node = findNode.functionDeclaration('f<T');
     assertResolvedNodeText(node, r'''
 FunctionDeclaration
   returnType: NamedType
@@ -3407,7 +3407,7 @@ FunctionDeclaration
 void g(T f<T>(T x)) {}
 ''');
 
-    final fType = findElement.parameter('f').type;
+    var fType = findElement.parameter('f').type;
     fType as FunctionType;
     assertType(fType, 'T Function<T>(T)');
   }
@@ -3421,7 +3421,7 @@ class C<E> {
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 37, 4),
     ]);
 
-    final node = findNode.methodDeclaration('f<T>');
+    var node = findNode.methodDeclaration('f<T>');
     assertResolvedNodeText(node, r'''
 MethodDeclaration
   modifierKeyword: static
@@ -3872,7 +3872,7 @@ void foo() {
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 75, 4),
     ]);
 
-    final node1 = findNode.methodInvocation('map((e) => e);');
+    var node1 = findNode.methodInvocation('map((e) => e);');
     assertResolvedNodeText(node1, r'''
 MethodInvocation
   target: SimpleIdentifier
@@ -3916,7 +3916,7 @@ MethodInvocation
     dynamic
 ''');
 
-    final node2 = findNode.methodInvocation('map((e) => 3);');
+    var node2 = findNode.methodInvocation('map((e) => 3);');
     assertResolvedNodeText(node2, r'''
 MethodInvocation
   target: SimpleIdentifier
@@ -4044,7 +4044,7 @@ class C<T> {
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 96, 4),
     ]);
 
-    final node1 = findNode.methodInvocation('f<int>(3);');
+    var node1 = findNode.methodInvocation('f<int>(3);');
     assertResolvedNodeText(node1, r'''
 MethodInvocation
   target: InstanceCreationExpression
@@ -4115,7 +4115,7 @@ class C<T> {
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 106, 4),
     ]);
 
-    final node1 = findNode.methodInvocation('f<int>(3);');
+    var node1 = findNode.methodInvocation('f<int>(3);');
     assertResolvedNodeText(node1, r'''
 MethodInvocation
   target: InstanceCreationExpression
@@ -4171,7 +4171,7 @@ MethodInvocation
     int
 ''');
 
-    final node2 = findNode.simple('f;');
+    var node2 = findNode.simple('f;');
     assertResolvedNodeText(node2, r'''
 SimpleIdentifier
   token: f
@@ -4210,7 +4210,7 @@ class D extends C {
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 72, 4),
     ]);
 
-    final node = findNode.methodDeclaration('f<T>(T y)');
+    var node = findNode.methodDeclaration('f<T>(T y)');
     assertResolvedNodeText(node, r'''
 MethodDeclaration
   returnType: NamedType
@@ -4753,7 +4753,7 @@ class C<T> {
       error(CompileTimeErrorCode.COULD_NOT_INFER, 95, 1),
     ]);
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -4797,7 +4797,7 @@ class C<T> {
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 69, 4),
     ]);
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -4828,7 +4828,7 @@ class C<T> {
       error(CompileTimeErrorCode.COULD_NOT_INFER, 65, 1),
     ]);
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -4865,7 +4865,7 @@ class C<T> {
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 37, 4),
     ]);
 
-    final node = findNode.singleMethodInvocation;
+    var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier

@@ -16,8 +16,8 @@ main(List<String> args) async {
   List<String> output = File(filePath).readAsLinesSync();
   int failureCount = 0;
   int index = 0;
-  final int expectedPrefixLength = 'Expected: '.length;
-  final int actualPrefixLength = 'Actual: '.length;
+  int expectedPrefixLength = 'Expected: '.length;
+  int actualPrefixLength = 'Actual: '.length;
   TestResult? currentResult;
   Map<String, List<TestResult>> testsByExpectedAndActual =
       <String, List<TestResult>>{};

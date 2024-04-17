@@ -18,23 +18,23 @@ void main() {
 @reflectiveTest
 class SignatureHelpTest extends LspOverLegacyTest {
   Future<void> test_signatureHelp() async {
-    final content = '''
+    var content = '''
 /// My function.
 void f(String a) {
   f(^);
 }
 ''';
-    final code = TestCode.parse(content);
+    var code = TestCode.parse(content);
     newFile(testFilePath, code.code);
-    final results = await getSignatureHelp(
+    var results = await getSignatureHelp(
       testFileUri,
       code.position.position,
     );
-    final result = results!.signatures.single;
+    var result = results!.signatures.single;
 
     expect(result.label, 'f(String a)');
     expect(result.parameters!.single.label, 'String a');
-    final documentation = result.documentation?.map(
+    var documentation = result.documentation?.map(
       (markup) => markup.value,
       (string) => string,
     );

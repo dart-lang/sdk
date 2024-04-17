@@ -23,7 +23,7 @@ class ReplaceWithIsNan extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var node = this.node;
+    final node = this.node;
     if (node is! BinaryExpression) return;
 
     var needsBang = node.operator.type == TokenType.BANG_EQ;
@@ -34,7 +34,7 @@ class ReplaceWithIsNan extends ResolvedCorrectionProducer {
         rightOperand.identifier.name == 'nan';
 
     var expression = isRightNan ? leftOperand : rightOperand;
-    final needsParentheses = expression is PostfixExpression ||
+    var needsParentheses = expression is PostfixExpression ||
         expression.precedence < Precedence.postfix;
 
     var prefix = '${needsBang ? '!' : ''}${needsParentheses ? '(' : ''}';

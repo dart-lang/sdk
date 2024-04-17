@@ -1427,7 +1427,7 @@ import 'new_folder/file.dart';
   }
 
   Future<Response> _sendAndCancelMoveRequest(String item) async {
-    final responses = await Future.wait([
+    var responses = await Future.wait([
       _sendMoveRequest(item),
       _cancelMoveRequest(),
     ]);

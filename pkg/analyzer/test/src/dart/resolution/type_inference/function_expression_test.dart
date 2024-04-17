@@ -48,7 +48,7 @@ Object? Function() v = () async {
 };
 ''');
 
-    final node = findNode.functionExpression('() async');
+    var node = findNode.functionExpression('() async');
     assertResolvedNodeText(node, r'''
 FunctionExpression
   parameters: FormalParameterList
@@ -106,7 +106,7 @@ T foo<T>() => throw 0;
 Future<int> Function() v = () async => foo();
 ''');
 
-    final node = findNode.functionExpression('() async');
+    var node = findNode.functionExpression('() async');
     assertResolvedNodeText(node, r'''
 FunctionExpression
   parameters: FormalParameterList
@@ -147,7 +147,7 @@ T foo<T>() => throw 0;
 Object Function() v = () async => foo();
 ''');
 
-    final node = findNode.functionExpression('() async');
+    var node = findNode.functionExpression('() async');
     assertResolvedNodeText(node, r'''
 FunctionExpression
   parameters: FormalParameterList
@@ -181,7 +181,7 @@ T foo<T>() => throw 0;
 Object? Function() v = () async => foo();
 ''');
 
-    final node = findNode.functionExpression('() async');
+    var node = findNode.functionExpression('() async');
     assertResolvedNodeText(node, r'''
 FunctionExpression
   parameters: FormalParameterList
@@ -226,7 +226,7 @@ Stream<int> Function() v = () async* {
 };
 ''');
 
-    final node = findNode.functionExpression('() async');
+    var node = findNode.functionExpression('() async');
     assertResolvedNodeText(node, r'''
 FunctionExpression
   parameters: FormalParameterList
@@ -278,7 +278,7 @@ int Function() v = () {
 };
 ''');
 
-    final node = findNode.functionExpression('() {');
+    var node = findNode.functionExpression('() {');
     assertResolvedNodeText(node, r'''
 FunctionExpression
   parameters: FormalParameterList
@@ -335,7 +335,7 @@ T foo<T>() => throw 0;
 int Function() v = () => foo();
 ''');
 
-    final node = findNode.functionExpression('() => foo()');
+    var node = findNode.functionExpression('() => foo()');
     assertResolvedNodeText(node, r'''
 FunctionExpression
   parameters: FormalParameterList
@@ -379,7 +379,7 @@ Iterable<int> Function() v = () sync* {
 };
 ''');
 
-    final node = findNode.functionExpression('() sync*');
+    var node = findNode.functionExpression('() sync*');
     assertResolvedNodeText(node, r'''
 FunctionExpression
   parameters: FormalParameterList
@@ -422,7 +422,7 @@ void f(List<int> items) {
 }
 ''');
 
-    final node = findNode.functionExpression('(item)');
+    var node = findNode.functionExpression('(item)');
     assertResolvedNodeText(node, r'''
 FunctionExpression
   parameters: FormalParameterList
@@ -459,7 +459,7 @@ main() {
 }
 ''');
 
-    final node = findNode.functionExpression('(x) {}');
+    var node = findNode.functionExpression('(x) {}');
     assertResolvedNodeText(node, r'''
 FunctionExpression
   parameters: FormalParameterList
@@ -489,7 +489,7 @@ main() {
 }
 ''');
 
-    final node = findNode.functionExpression('(x) {}');
+    var node = findNode.functionExpression('(x) {}');
     assertResolvedNodeText(node, r'''
 FunctionExpression
   parameters: FormalParameterList
@@ -519,7 +519,7 @@ void f() {
       error(WarningCode.UNUSED_LOCAL_VARIABLE, 19, 1),
     ]);
 
-    final node = findNode.functionExpression('<T>(');
+    var node = findNode.functionExpression('<T>(');
     assertResolvedNodeText(node, r'''
 FunctionExpression
   typeParameters: TypeParameterList
@@ -572,7 +572,7 @@ class A {
 }
 ''');
 
-    final node = findNode.functionExpression('() =>');
+    var node = findNode.functionExpression('() =>');
     assertResolvedNodeText(node, r'''
 FunctionExpression
   parameters: FormalParameterList
@@ -594,7 +594,7 @@ FunctionExpression
 final v = () => 42;
 ''');
 
-    final node = findNode.functionExpression('() =>');
+    var node = findNode.functionExpression('() =>');
     assertResolvedNodeText(node, r'''
 FunctionExpression
   parameters: FormalParameterList

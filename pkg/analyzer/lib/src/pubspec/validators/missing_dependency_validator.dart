@@ -75,13 +75,11 @@ class MissingDependencyValidator {
       return <String, YamlNode>{};
     }
 
-    final dependencies =
-        getDeclaredDependencies(PubspecField.DEPENDENCIES_FIELD);
-    final devDependencies =
+    var dependencies = getDeclaredDependencies(PubspecField.DEPENDENCIES_FIELD);
+    var devDependencies =
         getDeclaredDependencies(PubspecField.DEV_DEPENDENCIES_FIELD);
 
-    final packageName =
-        contents.nodes[PubspecField.NAME_FIELD]?.value.toString();
+    var packageName = contents.nodes[PubspecField.NAME_FIELD]?.value.toString();
     // Ensure that the package itself is not listed as a dependency.
     usedDeps.remove(packageName);
     usedDevDeps.remove(packageName);
@@ -142,7 +140,7 @@ class MissingDependencyValidator {
     List<DiagnosticMessage>? messages,
     Object? data,
   ]) {
-    final span = node.span;
+    var span = node.span;
     reporter.atOffset(
       offset: span.start.offset,
       length: span.length,

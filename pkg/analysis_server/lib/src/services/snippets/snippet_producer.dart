@@ -50,7 +50,7 @@ abstract class DartSnippetProducer extends SnippetProducer {
       .codeStyleOptions;
 
   bool get isInTestDirectory {
-    final path = request.unit.path;
+    var path = request.unit.path;
     return LinterContextImpl.getTestDirectories(
             request.resourceProvider.pathContext)
         .any(path.contains);
@@ -59,7 +59,7 @@ abstract class DartSnippetProducer extends SnippetProducer {
   /// Adds public imports for any elements fetched by [getClass] and [getMixin]
   /// to [builder].
   Future<void> addImports(DartFileEditBuilder builder) async {
-    final dartBuilder = builder as DartFileEditBuilderImpl;
+    var dartBuilder = builder as DartFileEditBuilderImpl;
     await Future.wait(requiredElementImports.map((element) => dartBuilder
         .importElementLibrary(element, resultCache: _elementImportCache)));
   }
@@ -72,7 +72,7 @@ abstract class FlutterSnippetProducer extends DartSnippetProducer {
   FlutterSnippetProducer(super.request, {required super.elementImportCache});
 
   Future<ClassElement?> getClass(String name) async {
-    final class_ = await sessionHelper.getFlutterClass(name);
+    var class_ = await sessionHelper.getFlutterClass(name);
     if (class_ != null) {
       requiredElementImports.add(class_);
     }
@@ -80,7 +80,7 @@ abstract class FlutterSnippetProducer extends DartSnippetProducer {
   }
 
   Future<MixinElement?> getMixin(String name) async {
-    final mixin = await sessionHelper.getMixin(widgetsUri, name);
+    var mixin = await sessionHelper.getMixin(widgetsUri, name);
     if (mixin != null) {
       requiredElementImports.add(mixin);
     }
@@ -120,9 +120,9 @@ mixin FlutterWidgetSnippetProducerMixin on FlutterSnippetProducer {
 
   void writeBuildMethod(DartEditBuilder builder) {
     // Checked by isValid() before this will be called.
-    final classBuildContext = this.classBuildContext!;
-    final classWidget = this.classWidget!;
-    final classPlaceholder = this.classPlaceholder!;
+    var classBuildContext = this.classBuildContext!;
+    var classWidget = this.classWidget!;
+    var classPlaceholder = this.classPlaceholder!;
 
     // Add the build method.
     builder.writeln('  @override');
@@ -161,7 +161,7 @@ mixin FlutterWidgetSnippetProducerMixin on FlutterSnippetProducer {
 
   void writeWidgetConstructor(DartEditBuilder builder) {
     // Checked by isValid() before this will be called.
-    final classKey = this.classKey!;
+    var classKey = this.classKey!;
 
     String keyName;
     DartType? keyType;
@@ -202,7 +202,7 @@ abstract class SnippetProducer {
   Future<bool> isValid() async {
     // File edit builders will not produce edits for files outside of the
     // analysis roots so we should not try to produce any snippets.
-    final analysisContext = request.analysisSession.analysisContext;
+    var analysisContext = request.analysisSession.analysisContext;
     return analysisContext.contextRoot.isAnalyzed(request.filePath);
   }
 }

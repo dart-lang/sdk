@@ -55,7 +55,7 @@ class CiderCompletionComputer {
     void Function(ResolvedForCompletionResultImpl)? testResolvedUnit,
   }) async {
     return _performanceRoot.runAsync('completion', (performance) async {
-      final resolvedUnit = await performance.runAsync(
+      var resolvedUnit = await performance.runAsync(
         'resolution',
         (performance) async {
           return _fileResolver.resolveForCompletion(
@@ -71,8 +71,8 @@ class CiderCompletionComputer {
         testResolvedUnit(resolvedUnit);
       }
 
-      final analysisSession = resolvedUnit.analysisSession;
-      final enclosingNode = resolvedUnit.parsedUnit;
+      var analysisSession = resolvedUnit.analysisSession;
+      var enclosingNode = resolvedUnit.parsedUnit;
 
       var lineInfo = resolvedUnit.lineInfo;
       var offset = lineInfo.getOffsetOfLine(line) + column;

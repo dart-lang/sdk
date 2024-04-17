@@ -36,7 +36,7 @@ f() {
       error(CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR, 40, 1),
     ]);
 
-    final node = findNode.binary('+ 1');
+    var node = findNode.binary('+ 1');
     assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: ExtensionOverride

@@ -303,9 +303,9 @@ final class DocCommentBuilder {
   /// Parses the comment references in [content] which starts at [offset].
   void _parseDocCommentLine(int offset, String content) {
     var index = 0;
-    final end = content.length;
+    var end = content.length;
     while (index < end) {
-      final ch = content.codeUnitAt(index);
+      var ch = content.codeUnitAt(index);
       if (ch == 0x5B /* `[` */) {
         ++index;
         if (index < end && content.codeUnitAt(index) == 0x3A /* `:` */) {
@@ -326,7 +326,7 @@ final class DocCommentBuilder {
               // TODO(brianwilkerson): Handle the case where there's a library
               // URI in the link text.
             } else {
-              final reference = _parseOneCommentReference(
+              var reference = _parseOneCommentReference(
                 content.substring(referenceStart, index),
                 offset + referenceStart,
               );
@@ -338,7 +338,7 @@ final class DocCommentBuilder {
         }
       } else if (ch == 0x60 /* '`' */) {
         // Skip inline code block if there is both starting '`' and ending '`'.
-        final endCodeBlock = content.indexOf('`', index + 1);
+        var endCodeBlock = content.indexOf('`', index + 1);
         if (endCodeBlock != -1 && endCodeBlock < end) {
           index = endCodeBlock;
         }
@@ -904,7 +904,7 @@ final class _BlockDocDirectiveBuilder {
 /// (which consists of a single [Token]).
 abstract class _CharacterSequence {
   factory _CharacterSequence(Token token) {
-    final isFromSingleLineComment = token.lexeme.startsWith('///');
+    var isFromSingleLineComment = token.lexeme.startsWith('///');
     return isFromSingleLineComment
         ? _CharacterSequenceFromSingleLineComment(token)
         : _CharacterSequenceFromMultiLineComment(token);
@@ -935,8 +935,8 @@ class _CharacterSequenceFromMultiLineComment implements _CharacterSequence {
 
   @override
   ({int offset, String content})? next() {
-    final lexeme = _token.lexeme;
-    final tokenOffset = _token.charOffset;
+    var lexeme = _token.lexeme;
+    var tokenOffset = _token.charOffset;
 
     if (_offset == -1) {
       _offset = tokenOffset;
@@ -945,7 +945,7 @@ class _CharacterSequenceFromMultiLineComment implements _CharacterSequence {
         endIndex = lexeme.length;
       }
       _end = tokenOffset + endIndex;
-      final indexInLexeme = _offset - tokenOffset;
+      var indexInLexeme = _offset - tokenOffset;
       return (
         offset: _offset,
         content: lexeme.substring(indexInLexeme, endIndex),
@@ -1001,7 +1001,7 @@ class _CharacterSequenceFromSingleLineComment implements _CharacterSequence {
       assert(_token.lexeme.startsWith('///'));
     } else {
       do {
-        final nextToken = _token.next;
+        var nextToken = _token.next;
         if (nextToken == null) return null;
         _token = nextToken;
         _offset = nextToken.offset;

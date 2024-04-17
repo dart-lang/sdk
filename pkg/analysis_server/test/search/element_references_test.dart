@@ -30,7 +30,7 @@ class ElementReferencesTest extends AbstractSearchDomainTest {
     required ElementKind kind,
     required Map<int, SearchResultKind> resultKinds,
   }) async {
-    final code = TestCode.parse(content);
+    var code = TestCode.parse(content);
     expect(
       resultKinds,
       hasLength(code.ranges.length),
@@ -42,10 +42,10 @@ class ElementReferencesTest extends AbstractSearchDomainTest {
     await findElementReferences(offset: code.position.offset, false);
 
     expect(searchElement!.kind, kind);
-    final expected = resultKinds.entries.map((entry) {
-      final index = entry.key;
-      final kind = entry.value;
-      final range = code.ranges[index].sourceRange;
+    var expected = resultKinds.entries.map((entry) {
+      var index = entry.key;
+      var kind = entry.value;
+      var range = code.ranges[index].sourceRange;
       return {
         'kind': kind,
         'path': testFile.path,
@@ -53,7 +53,7 @@ class ElementReferencesTest extends AbstractSearchDomainTest {
         'length': range.length,
       };
     }).toSet();
-    final actual = results
+    var actual = results
         .map((result) => {
               'kind': result.kind,
               'path': result.location.file,
@@ -1426,7 +1426,7 @@ void f() {
 }
 ''');
     await findElementReferences(search: 'ppp;', false);
-    final searchElement = this.searchElement!;
+    var searchElement = this.searchElement!;
     expect(searchElement.kind, ElementKind.PREFIX);
     expect(searchElement.name, 'ppp');
     expect(searchElement.location!.startLine, 1);

@@ -21,7 +21,7 @@ class ExportDirectiveResolutionTest extends PubPackageResolutionTest {
 import augment 'b.dart';
 ''');
 
-    final b = newFile('$testPackageLibPath/b.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
 augment library 'a.dart';
 export 'c.dart';
 ''');
@@ -31,7 +31,7 @@ export 'c.dart';
     await resolveFile2(b);
     assertNoErrorsInResult();
 
-    final node = findNode.export('c.dart');
+    var node = findNode.export('c.dart');
     assertResolvedNodeText(node, r'''
 ExportDirective
   exportKeyword: export
@@ -49,7 +49,7 @@ ExportDirective
 import augment 'b.dart';
 ''');
 
-    final b = newFile('$testPackageLibPath/b.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
 augment library 'a.dart';
 export 'c.dart';
 ''');
@@ -59,7 +59,7 @@ export 'c.dart';
       error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 33, 8),
     ]);
 
-    final node = findNode.export('c.dart');
+    var node = findNode.export('c.dart');
     assertResolvedNodeText(node, r'''
 ExportDirective
   exportKeyword: export
@@ -77,7 +77,7 @@ ExportDirective
 import augment 'b.dart';
 ''');
 
-    final b = newFile('$testPackageLibPath/b.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
 augment library 'a.dart';
 export ':net';
 ''');
@@ -87,7 +87,7 @@ export ':net';
       error(CompileTimeErrorCode.INVALID_URI, 33, 6),
     ]);
 
-    final node = findNode.export('export');
+    var node = findNode.export('export');
     assertResolvedNodeText(node, r'''
 ExportDirective
   exportKeyword: export
@@ -105,7 +105,7 @@ ExportDirective
 import augment 'b.dart';
 ''');
 
-    final b = newFile('$testPackageLibPath/b.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
 augment library 'a.dart';
 export '${'foo'}.dart';
 ''');
@@ -115,7 +115,7 @@ export '${'foo'}.dart';
       error(CompileTimeErrorCode.URI_WITH_INTERPOLATION, 33, 15),
     ]);
 
-    final node = findNode.export('export');
+    var node = findNode.export('export');
     assertResolvedNodeText(node, r'''
 ExportDirective
   exportKeyword: export
@@ -143,7 +143,7 @@ ExportDirective
 import augment 'b.dart';
 ''');
 
-    final b = newFile('$testPackageLibPath/b.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
 augment library 'a.dart';
 export 'foo:bar';
 ''');
@@ -153,7 +153,7 @@ export 'foo:bar';
       error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 33, 9),
     ]);
 
-    final node = findNode.export('export');
+    var node = findNode.export('export');
     assertResolvedNodeText(node, r'''
 ExportDirective
   exportKeyword: export
@@ -171,7 +171,7 @@ ExportDirective
 import augment 'b.dart';
 ''');
 
-    final b = newFile('$testPackageLibPath/b.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
 augment library 'a.dart';
 export 'c.dart';
 ''');
@@ -185,7 +185,7 @@ augment library 'b.dart';
       error(CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY, 33, 8),
     ]);
 
-    final node = findNode.export('c.dart');
+    var node = findNode.export('c.dart');
     assertResolvedNodeText(node, r'''
 ExportDirective
   exportKeyword: export
@@ -203,7 +203,7 @@ ExportDirective
 import augment 'b.dart';
 ''');
 
-    final b = newFile('$testPackageLibPath/b.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
 augment library 'a.dart';
 export 'c.dart';
 ''');
@@ -217,7 +217,7 @@ part of my.lib;
       error(CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY, 33, 8),
     ]);
 
-    final node = findNode.export('c.dart');
+    var node = findNode.export('c.dart');
     assertResolvedNodeText(node, r'''
 ExportDirective
   exportKeyword: export
@@ -235,7 +235,7 @@ ExportDirective
 import augment 'b.dart';
 ''');
 
-    final b = newFile('$testPackageLibPath/b.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
 augment library 'a.dart';
 export 'c.dart';
 ''');
@@ -249,7 +249,7 @@ part of 'b.dart';
       error(CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY, 33, 8),
     ]);
 
-    final node = findNode.export('c.dart');
+    var node = findNode.export('c.dart');
     assertResolvedNodeText(node, r'''
 ExportDirective
   exportKeyword: export
@@ -267,7 +267,7 @@ ExportDirective
 export 'dart:math' hide Random;
 ''');
 
-    final node = findNode.singleExportDirective;
+    var node = findNode.singleExportDirective;
     assertResolvedNodeText(node, r'''
 ExportDirective
   exportKeyword: export
@@ -295,7 +295,7 @@ export 'dart:math' hide Unresolved;
       error(WarningCode.UNDEFINED_HIDDEN_NAME, 24, 10),
     ]);
 
-    final node = findNode.singleExportDirective;
+    var node = findNode.singleExportDirective;
     assertResolvedNodeText(node, r'''
 ExportDirective
   exportKeyword: export
@@ -321,7 +321,7 @@ ExportDirective
 export 'dart:math' show Random;
 ''');
 
-    final node = findNode.singleExportDirective;
+    var node = findNode.singleExportDirective;
     assertResolvedNodeText(node, r'''
 ExportDirective
   exportKeyword: export
@@ -349,7 +349,7 @@ export 'dart:math' show Unresolved;
       error(WarningCode.UNDEFINED_SHOWN_NAME, 24, 10),
     ]);
 
-    final node = findNode.singleExportDirective;
+    var node = findNode.singleExportDirective;
     assertResolvedNodeText(node, r'''
 ExportDirective
   exportKeyword: export
@@ -386,7 +386,7 @@ export 'a.dart'
   if (dart.library.io) 'a_io.dart';
 ''');
 
-    final node = findNode.export('a.dart');
+    var node = findNode.export('a.dart');
     assertResolvedNodeText(node, r'''
 ExportDirective
   exportKeyword: export
@@ -460,7 +460,7 @@ export 'a.dart'
   if (dart.library.io) 'a_io.dart';
 ''');
 
-    final node = findNode.export('a.dart');
+    var node = findNode.export('a.dart');
     assertResolvedNodeText(node, r'''
 ExportDirective
   exportKeyword: export
@@ -534,7 +534,7 @@ export 'a.dart'
   if (dart.library.io) 'a_io.dart';
 ''');
 
-    final node = findNode.export('a.dart');
+    var node = findNode.export('a.dart');
     assertResolvedNodeText(node, r'''
 ExportDirective
   exportKeyword: export
@@ -599,7 +599,7 @@ ExportDirective
 export 'a.dart';
 ''');
 
-    final node = findNode.export('a.dart');
+    var node = findNode.export('a.dart');
     assertResolvedNodeText(node, r'''
 ExportDirective
   exportKeyword: export
@@ -619,7 +619,7 @@ export 'a.dart';
       error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 8),
     ]);
 
-    final node = findNode.export('a.dart');
+    var node = findNode.export('a.dart');
     assertResolvedNodeText(node, r'''
 ExportDirective
   exportKeyword: export
@@ -644,7 +644,7 @@ ExportDirective
 export 'package:foo/foo.dart';
 ''');
 
-    final node = findNode.export('package:foo');
+    var node = findNode.export('package:foo');
     assertResolvedNodeText(node, r'''
 ExportDirective
   exportKeyword: export
@@ -678,7 +678,7 @@ export ':net';
       error(CompileTimeErrorCode.INVALID_URI, 7, 6),
     ]);
 
-    final node = findNode.export('export');
+    var node = findNode.export('export');
     assertResolvedNodeText(node, r'''
 ExportDirective
   exportKeyword: export
@@ -698,7 +698,7 @@ export '${'foo'}.dart';
       error(CompileTimeErrorCode.URI_WITH_INTERPOLATION, 7, 15),
     ]);
 
-    final node = findNode.export('export');
+    var node = findNode.export('export');
     assertResolvedNodeText(node, r'''
 ExportDirective
   exportKeyword: export
@@ -728,7 +728,7 @@ export 'foo:bar';
       error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 9),
     ]);
 
-    final node = findNode.export('export');
+    var node = findNode.export('export');
     assertResolvedNodeText(node, r'''
 ExportDirective
   exportKeyword: export
@@ -752,7 +752,7 @@ export 'a.dart';
       error(CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY, 7, 8),
     ]);
 
-    final node = findNode.export('a.dart');
+    var node = findNode.export('a.dart');
     assertResolvedNodeText(node, r'''
 ExportDirective
   exportKeyword: export
@@ -776,7 +776,7 @@ export 'a.dart';
       error(CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY, 7, 8),
     ]);
 
-    final node = findNode.export('a.dart');
+    var node = findNode.export('a.dart');
     assertResolvedNodeText(node, r'''
 ExportDirective
   exportKeyword: export
@@ -800,7 +800,7 @@ export 'a.dart';
       error(CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY, 7, 8),
     ]);
 
-    final node = findNode.export('a.dart');
+    var node = findNode.export('a.dart');
     assertResolvedNodeText(node, r'''
 ExportDirective
   exportKeyword: export
@@ -828,7 +828,7 @@ export 'package:foo/foo2.dart';
       error(CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY, 7, 23),
     ]);
 
-    final node = findNode.export('package:foo');
+    var node = findNode.export('package:foo');
     assertResolvedNodeText(node, r'''
 ExportDirective
   exportKeyword: export

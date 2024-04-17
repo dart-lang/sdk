@@ -16,7 +16,7 @@ class Cache<K, V> {
   Cache(this._maxSizeBytes, this._meter);
 
   V? get(K key) {
-    final value = map.remove(key);
+    var value = map.remove(key);
     if (value != null) {
       map[key] = value;
     }

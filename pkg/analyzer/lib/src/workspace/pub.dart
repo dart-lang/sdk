@@ -261,10 +261,10 @@ class PackageConfigWorkspace extends SimpleWorkspace {
     var context = provider.pathContext;
     assert(context.isAbsolute(filePath), 'Not an absolute path: $filePath');
     try {
-      final package = findPackageFor(filePath);
+      var package = findPackageFor(filePath);
       if (package is PubPackage) {
-        final relativePath = context.relative(filePath, from: package.root);
-        final file = builtFile(relativePath, package._name ?? '');
+        var relativePath = context.relative(filePath, from: package.root);
+        var file = builtFile(relativePath, package._name ?? '');
         if (file!.exists) {
           return file;
         }
@@ -367,9 +367,9 @@ class PackageConfigWorkspace extends SimpleWorkspace {
   /// Check if `/home/workspace/third_party/dart/my/pubspec.yaml`
   /// If so, we are in a Blaze workspace, and should not create Pub.
   static bool _isInThirdPartyDart(File pubspec) {
-    final path = pubspec.path;
-    final pathContext = pubspec.provider.pathContext;
-    final pathComponents = pathContext.split(path);
+    var path = pubspec.path;
+    var pathContext = pubspec.provider.pathContext;
+    var pathComponents = pathContext.split(path);
     return pathComponents.length > 4 &&
         pathComponents[pathComponents.length - 3] == 'dart' &&
         pathComponents[pathComponents.length - 4] == 'third_party';

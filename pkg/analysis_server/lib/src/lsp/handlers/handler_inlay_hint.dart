@@ -30,7 +30,7 @@ class InlayHintHandler
       return success([]);
     }
 
-    final path = pathOfDoc(params.textDocument);
+    var path = pathOfDoc(params.textDocument);
 
     // It's particularly important to provide results consistent with the
     // document in the client in this handler to avoid inlay hints "jumping
@@ -50,8 +50,8 @@ class InlayHintHandler
         return success([]);
       }
 
-      final computer = DartInlayHintComputer(pathContext, result);
-      final hints = computer.compute();
+      var computer = DartInlayHintComputer(pathContext, result);
+      var hints = computer.compute();
 
       return success(hints);
     });

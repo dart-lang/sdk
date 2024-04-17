@@ -22,7 +22,7 @@ class ClassStaticMembersWithoutClassNameTest
 
     printerConfiguration = printer.Configuration(
       filter: (suggestion) {
-        final completion = suggestion.completion;
+        var completion = suggestion.completion;
         return completion.contains('foo0');
       },
     );

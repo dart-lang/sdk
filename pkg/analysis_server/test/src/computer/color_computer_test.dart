@@ -106,7 +106,7 @@ class ColorComputerTest extends AbstractContextTest {
   /// tested.
   Future<void> checkAllColors(String code, {bool onlyConst = false}) async {
     // Combine the flat and nested colours into the same format.
-    final allColorCodes = <String, Map<String?, int>>{
+    var allColorCodes = <String, Map<String?, int>>{
       ...{
         ...colorCodesConst,
         if (!onlyConst) ...colorCodesNonConst,
@@ -115,9 +115,9 @@ class ColorComputerTest extends AbstractContextTest {
     };
 
     // Build the expected regions and colour codes that should be computed.
-    for (final entry in allColorCodes.entries) {
-      final colorDartCode = entry.key;
-      final expectedColorValues = entry.value.map(
+    for (var entry in allColorCodes.entries) {
+      var colorDartCode = entry.key;
+      var expectedColorValues = entry.value.map(
         // A null key means we should expect the full code.
         (key, value) => MapEntry(key ?? colorDartCode, value),
       );
@@ -140,16 +140,16 @@ class ColorComputerTest extends AbstractContextTest {
 
     newFile(testPath, dartCode);
     if (otherCode != null) {
-      final otherFile = newFile(otherPath, otherCode);
-      final otherResult = await getResolvedUnit(otherFile);
+      var otherFile = newFile(otherPath, otherCode);
+      var otherResult = await getResolvedUnit(otherFile);
       expectNoErrors(otherResult);
     }
 
-    final result = await getResolvedUnit(testFile);
+    var result = await getResolvedUnit(testFile);
     expectNoErrors(result);
 
     computer = ColorComputer(result, pathContext);
-    final colors = computer.compute();
+    var colors = computer.compute();
 
     expect(
       colors,
@@ -158,16 +158,16 @@ class ColorComputerTest extends AbstractContextTest {
           '$dartCode',
     );
 
-    for (final (i, expectedColor) in expectedColorValues.entries.indexed) {
-      final color = colors[i];
-      final expectedColorCode = expectedColor.key;
-      final expectedColorValue = expectedColor.value;
-      final expectedAlpha = (0xff000000 & expectedColorValue) >> 24;
-      final expectedRed = (0x00ff0000 & expectedColorValue) >> 16;
-      final expectedGreen = (0x0000ff00 & expectedColorValue) >> 8;
-      final expectedBlue = (0x000000ff & expectedColorValue) >> 0;
+    for (var (i, expectedColor) in expectedColorValues.entries.indexed) {
+      var color = colors[i];
+      var expectedColorCode = expectedColor.key;
+      var expectedColorValue = expectedColor.value;
+      var expectedAlpha = (0xff000000 & expectedColorValue) >> 24;
+      var expectedRed = (0x00ff0000 & expectedColorValue) >> 16;
+      var expectedGreen = (0x0000ff00 & expectedColorValue) >> 8;
+      var expectedBlue = (0x000000ff & expectedColorValue) >> 0;
 
-      final regionText =
+      var regionText =
           dartCode.substring(color.offset, color.offset + color.length);
       expect(
         regionText,
@@ -190,7 +190,7 @@ class ColorComputerTest extends AbstractContextTest {
 
   void expectNoErrors(ResolvedUnitResult result) {
     // If the test code has errors, generate a suitable failure to help debug.
-    final errors = result.errors
+    var errors = result.errors
         .where((error) => error.severity == Severity.error)
         .toList();
     if (errors.isNotEmpty) {

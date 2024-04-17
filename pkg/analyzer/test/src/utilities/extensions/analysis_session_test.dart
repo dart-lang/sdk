@@ -47,26 +47,26 @@ class LocateElementTest extends PubPackageResolutionTest {
   }
 
   void test_elementInLibrary() async {
-    final libraryOne = await _createLibrary(testFile, 'class C {}');
-    final libraryTwo = await _createLibrary(testFile2, 'class C {}');
-    final classOne = findClass(libraryOne, 'C');
-    final classTwo = findClass(libraryTwo, 'C');
+    var libraryOne = await _createLibrary(testFile, 'class C {}');
+    var libraryTwo = await _createLibrary(testFile2, 'class C {}');
+    var classOne = findClass(libraryOne, 'C');
+    var classTwo = findClass(libraryTwo, 'C');
 
     expect(await getElement(classOne.location!), classOne);
     expect(await getElement(classTwo.location!), classTwo);
   }
 
   void test_invalid() async {
-    final library =
+    var library =
         await _createLibrary(testFile, 'class C {}', addToSession: false);
-    final class_ = findClass(library, 'C');
+    var class_ = findClass(library, 'C');
 
     expect(await getElement(class_.location!), isNull);
   }
 
   void test_library() async {
-    final libraryOne = await _createLibrary(testFile, 'class C {}');
-    final libraryTwo = await _createLibrary(testFile2, 'class C {}');
+    var libraryOne = await _createLibrary(testFile, 'class C {}');
+    var libraryTwo = await _createLibrary(testFile2, 'class C {}');
 
     expect(await getElement(libraryOne.location!), libraryOne);
     expect(await getElement(libraryTwo.location!), libraryTwo);
@@ -78,9 +78,9 @@ class LocateElementTest extends PubPackageResolutionTest {
     String content, {
     bool addToSession = true,
   }) async {
-    final code = TestCode.parse(content);
+    var code = TestCode.parse(content);
     newFile(file.path, code.code);
-    final library = (await resolveFile(file)).libraryElement;
+    var library = (await resolveFile(file)).libraryElement;
     if (addToSession) {
       session.addLibrary(library);
     }
@@ -96,7 +96,7 @@ class _MockAnalysisSession implements AnalysisSession {
 
   @override
   Future<SomeLibraryElementResult> getLibraryByUri(String uri) async {
-    final library = _libraries[uri];
+    var library = _libraries[uri];
     return library != null
         ? LibraryElementResultImpl(library)
         : CannotResolveUriResult();

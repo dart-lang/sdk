@@ -15,13 +15,13 @@ main() {
 @reflectiveTest
 class TopLevelFunctionParserTest extends ParserDiagnosticsTest {
   test_function_augment() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 augment library 'a.dart';
 augment void foo() {}
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.singleFunctionDeclaration;
+    var node = parseResult.findNode.singleFunctionDeclaration;
     assertParsedNodeText(node, r'''
 FunctionDeclaration
   augmentKeyword: augment
@@ -40,13 +40,13 @@ FunctionDeclaration
   }
 
   test_getter_augment() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 augment library 'a.dart';
 augment int get foo => 0;
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.singleFunctionDeclaration;
+    var node = parseResult.findNode.singleFunctionDeclaration;
     assertParsedNodeText(node, r'''
 FunctionDeclaration
   augmentKeyword: augment
@@ -64,13 +64,13 @@ FunctionDeclaration
   }
 
   test_setter_augment() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 augment library 'a.dart';
 augment set foo(int _) {}
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.singleFunctionDeclaration;
+    var node = parseResult.findNode.singleFunctionDeclaration;
     assertParsedNodeText(node, r'''
 FunctionDeclaration
   augmentKeyword: augment

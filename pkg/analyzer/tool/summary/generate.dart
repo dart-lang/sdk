@@ -38,13 +38,13 @@ main(List<String> args) async {
 }
 
 List<GeneratedContent> getAllTargets(String idlPath) {
-  final GeneratedFile formatTarget = GeneratedFile('format.dart', (_) async {
+  GeneratedFile formatTarget = GeneratedFile('format.dart', (_) async {
     _CodeGenerator codeGenerator = _CodeGenerator(idlPath);
     codeGenerator.generateFormatCode();
     return codeGenerator._outBuffer.toString();
   });
 
-  final GeneratedFile schemaTarget = GeneratedFile('format.fbs', (_) async {
+  GeneratedFile schemaTarget = GeneratedFile('format.fbs', (_) async {
     _CodeGenerator codeGenerator = _CodeGenerator(idlPath);
     codeGenerator.generateFlatBufferSchema();
     return codeGenerator._outBuffer.toString();
@@ -875,7 +875,7 @@ class _FlatBufferSchemaGenerator extends _BaseGenerator {
     // root types.  For now work around this by forcing PackageBundle to be the
     // root type.
     // TODO(paulberry): come up with a better solution.
-    final rootType = _idl.classes['AnalysisDriverResolvedUnit']!;
+    var rootType = _idl.classes['AnalysisDriverResolvedUnit']!;
     out('root_type ${rootType.name};');
     var rootFileIdentifier = rootType.fileIdentifier;
     if (rootFileIdentifier != null) {

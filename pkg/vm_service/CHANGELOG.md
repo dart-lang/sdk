@@ -1,3 +1,6 @@
+## 14.2.1
+- Fixes heap snapshot decoding error (dart-lang/sdk#55475).
+
 ## 14.2.0
 - Update to version `4.15` of the spec.
 - Added `closureReceiver` property to `Instance` and `InstanceRef`.

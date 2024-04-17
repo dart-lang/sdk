@@ -20,7 +20,7 @@ class ImportDirectiveResolutionTest extends PubPackageResolutionTest {
 import augment 'b.dart';
 ''');
 
-    final b = newFile('$testPackageLibPath/b.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
 augment library 'a.dart';
 import 'c.dart';
 ''');
@@ -32,7 +32,7 @@ import 'c.dart';
       error(WarningCode.UNUSED_IMPORT, 33, 8),
     ]);
 
-    final node = findNode.import('c.dart');
+    var node = findNode.import('c.dart');
     assertResolvedNodeText(node, r'''
 ImportDirective
   importKeyword: import
@@ -50,7 +50,7 @@ ImportDirective
 import augment 'b.dart';
 ''');
 
-    final b = newFile('$testPackageLibPath/b.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
 augment library 'a.dart';
 import 'c.dart';
 ''');
@@ -60,7 +60,7 @@ import 'c.dart';
       error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 33, 8),
     ]);
 
-    final node = findNode.import('c.dart');
+    var node = findNode.import('c.dart');
     assertResolvedNodeText(node, r'''
 ImportDirective
   importKeyword: import
@@ -78,7 +78,7 @@ ImportDirective
 import augment 'b.dart';
 ''');
 
-    final b = newFile('$testPackageLibPath/b.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
 augment library 'a.dart';
 import ':net';
 ''');
@@ -88,7 +88,7 @@ import ':net';
       error(CompileTimeErrorCode.INVALID_URI, 33, 6),
     ]);
 
-    final node = findNode.import('import');
+    var node = findNode.import('import');
     assertResolvedNodeText(node, r'''
 ImportDirective
   importKeyword: import
@@ -106,7 +106,7 @@ ImportDirective
 import augment 'b.dart';
 ''');
 
-    final b = newFile('$testPackageLibPath/b.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
 augment library 'a.dart';
 import '${'foo'}.dart';
 ''');
@@ -116,7 +116,7 @@ import '${'foo'}.dart';
       error(CompileTimeErrorCode.URI_WITH_INTERPOLATION, 33, 15),
     ]);
 
-    final node = findNode.import('import');
+    var node = findNode.import('import');
     assertResolvedNodeText(node, r'''
 ImportDirective
   importKeyword: import
@@ -144,7 +144,7 @@ ImportDirective
 import augment 'b.dart';
 ''');
 
-    final b = newFile('$testPackageLibPath/b.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
 augment library 'a.dart';
 import 'foo:bar';
 ''');
@@ -154,7 +154,7 @@ import 'foo:bar';
       error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 33, 9),
     ]);
 
-    final node = findNode.import('import');
+    var node = findNode.import('import');
     assertResolvedNodeText(node, r'''
 ImportDirective
   importKeyword: import
@@ -172,7 +172,7 @@ ImportDirective
 import augment 'b.dart';
 ''');
 
-    final b = newFile('$testPackageLibPath/b.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
 augment library 'a.dart';
 import 'c.dart';
 ''');
@@ -186,7 +186,7 @@ augment library 'b.dart';
       error(CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY, 33, 8),
     ]);
 
-    final node = findNode.import('c.dart');
+    var node = findNode.import('c.dart');
     assertResolvedNodeText(node, r'''
 ImportDirective
   importKeyword: import
@@ -204,7 +204,7 @@ ImportDirective
 import augment 'b.dart';
 ''');
 
-    final b = newFile('$testPackageLibPath/b.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
 augment library 'a.dart';
 import 'c.dart';
 ''');
@@ -218,7 +218,7 @@ part of my.lib;
       error(CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY, 33, 8),
     ]);
 
-    final node = findNode.import('c.dart');
+    var node = findNode.import('c.dart');
     assertResolvedNodeText(node, r'''
 ImportDirective
   importKeyword: import
@@ -236,7 +236,7 @@ ImportDirective
 import augment 'b.dart';
 ''');
 
-    final b = newFile('$testPackageLibPath/b.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
 augment library 'a.dart';
 import 'c.dart';
 ''');
@@ -250,7 +250,7 @@ part of 'b.dart';
       error(CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY, 33, 8),
     ]);
 
-    final node = findNode.import('c.dart');
+    var node = findNode.import('c.dart');
     assertResolvedNodeText(node, r'''
 ImportDirective
   importKeyword: import
@@ -270,7 +270,7 @@ import 'dart:math' hide Random;
       error(WarningCode.UNUSED_IMPORT, 7, 11),
     ]);
 
-    final node = findNode.singleImportDirective;
+    var node = findNode.singleImportDirective;
     assertResolvedNodeText(node, r'''
 ImportDirective
   importKeyword: import
@@ -299,7 +299,7 @@ import 'dart:math' hide Unresolved;
       error(WarningCode.UNDEFINED_HIDDEN_NAME, 24, 10),
     ]);
 
-    final node = findNode.singleImportDirective;
+    var node = findNode.singleImportDirective;
     assertResolvedNodeText(node, r'''
 ImportDirective
   importKeyword: import
@@ -327,7 +327,7 @@ import 'dart:math' show Random;
       error(WarningCode.UNUSED_IMPORT, 7, 11),
     ]);
 
-    final node = findNode.singleImportDirective;
+    var node = findNode.singleImportDirective;
     assertResolvedNodeText(node, r'''
 ImportDirective
   importKeyword: import
@@ -356,7 +356,7 @@ import 'dart:math' show Unresolved;
       error(WarningCode.UNDEFINED_SHOWN_NAME, 24, 10),
     ]);
 
-    final node = findNode.singleImportDirective;
+    var node = findNode.singleImportDirective;
     assertResolvedNodeText(node, r'''
 ImportDirective
   importKeyword: import
@@ -395,7 +395,7 @@ import 'a.dart'
 var a = A();
 ''');
 
-    final node = findNode.unit;
+    var node = findNode.unit;
     assertResolvedNodeText(node, r'''
 CompilationUnit
   directives
@@ -495,7 +495,7 @@ import 'a.dart'
 var a = A();
 ''');
 
-    final node = findNode.unit;
+    var node = findNode.unit;
     assertResolvedNodeText(node, r'''
 CompilationUnit
   directives
@@ -586,7 +586,7 @@ import 'a.dart'
   if (x) ':net';
 ''');
 
-    final node = findNode.configuration('if (');
+    var node = findNode.configuration('if (');
     assertResolvedNodeText(node, r'''
 Configuration
   ifKeyword: if
@@ -614,7 +614,7 @@ import 'a.dart'
   if (x) '${'foo'}.dart';
 ''');
 
-    final node = findNode.configuration('if (');
+    var node = findNode.configuration('if (');
     assertResolvedNodeText(node, r'''
 Configuration
   ifKeyword: if
@@ -652,7 +652,7 @@ import 'a.dart'
   if (x) 'foo:bar';
 ''');
 
-    final node = findNode.configuration('if (');
+    var node = findNode.configuration('if (');
     assertResolvedNodeText(node, r'''
 Configuration
   ifKeyword: if
@@ -680,7 +680,7 @@ import 'a.dart'
   if (x) 'a.dart';
 ''');
 
-    final node = findNode.configuration('if (');
+    var node = findNode.configuration('if (');
     assertResolvedNodeText(node, r'''
 Configuration
   ifKeyword: if
@@ -717,7 +717,7 @@ import 'a.dart'
 var a = A();
 ''');
 
-    final node = findNode.unit;
+    var node = findNode.unit;
     assertResolvedNodeText(node, r'''
 CompilationUnit
   directives
@@ -807,7 +807,7 @@ CompilationUnit
 import 'a.dart';
 ''');
 
-    final node = findNode.import('a.dart');
+    var node = findNode.import('a.dart');
     assertResolvedNodeText(node, r'''
 ImportDirective
   importKeyword: import
@@ -827,7 +827,7 @@ import 'a.dart';
       error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 8),
     ]);
 
-    final node = findNode.import('import');
+    var node = findNode.import('import');
     assertResolvedNodeText(node, r'''
 ImportDirective
   importKeyword: import
@@ -853,7 +853,7 @@ ImportDirective
 import 'package:foo/foo.dart';
 ''');
 
-    final node = findNode.import('package:foo');
+    var node = findNode.import('package:foo');
     assertResolvedNodeText(node, r'''
 ImportDirective
   importKeyword: import
@@ -873,7 +873,7 @@ import ':net';
       error(CompileTimeErrorCode.INVALID_URI, 7, 6),
     ]);
 
-    final node = findNode.import('import');
+    var node = findNode.import('import');
     assertResolvedNodeText(node, r'''
 ImportDirective
   importKeyword: import
@@ -893,7 +893,7 @@ import '${'foo'}.dart';
       error(CompileTimeErrorCode.URI_WITH_INTERPOLATION, 7, 15),
     ]);
 
-    final node = findNode.import('import');
+    var node = findNode.import('import');
     assertResolvedNodeText(node, r'''
 ImportDirective
   importKeyword: import
@@ -923,7 +923,7 @@ import 'foo:bar';
       error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 9),
     ]);
 
-    final node = findNode.import('import');
+    var node = findNode.import('import');
     assertResolvedNodeText(node, r'''
 ImportDirective
   importKeyword: import
@@ -947,7 +947,7 @@ import 'a.dart';
       error(CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY, 7, 8),
     ]);
 
-    final node = findNode.import('a.dart');
+    var node = findNode.import('a.dart');
     assertResolvedNodeText(node, r'''
 ImportDirective
   importKeyword: import
@@ -971,7 +971,7 @@ import 'a.dart';
       error(CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY, 7, 8),
     ]);
 
-    final node = findNode.import('a.dart');
+    var node = findNode.import('a.dart');
     assertResolvedNodeText(node, r'''
 ImportDirective
   importKeyword: import
@@ -995,7 +995,7 @@ import 'a.dart';
       error(CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY, 7, 8),
     ]);
 
-    final node = findNode.import('a.dart');
+    var node = findNode.import('a.dart');
     assertResolvedNodeText(node, r'''
 ImportDirective
   importKeyword: import
@@ -1023,7 +1023,7 @@ import 'package:foo/foo2.dart';
       error(CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY, 7, 23),
     ]);
 
-    final node = findNode.import('package:foo');
+    var node = findNode.import('package:foo');
     assertResolvedNodeText(node, r'''
 ImportDirective
   importKeyword: import

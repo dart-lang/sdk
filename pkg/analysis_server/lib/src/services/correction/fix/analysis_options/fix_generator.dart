@@ -241,7 +241,7 @@ class AnalysisOptionsFixGenerator {
       workspace: _NonDartChangeWorkspace(resourceProvider),
     );
 
-    final deletionRange_final = deletionRange;
+    var deletionRange_final = deletionRange;
     await builder.addYamlFileEdit(file, (builder) {
       builder.addDeletion(deletionRange_final);
     });

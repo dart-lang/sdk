@@ -32,13 +32,13 @@ class FlutterStatefulWidgetWithAnimationController
 
   @override
   Future<Snippet> compute() async {
-    final builder = ChangeBuilder(session: request.analysisSession);
+    var builder = ChangeBuilder(session: request.analysisSession);
 
     // Checked by isValid().
-    final classStatefulWidget = this.classStatefulWidget!;
-    final classState = this.classState!;
-    final classAnimationController = this.classAnimationController!;
-    final classSingleTickerProviderStateMixin =
+    var classStatefulWidget = this.classStatefulWidget!;
+    var classState = this.classState!;
+    var classAnimationController = this.classAnimationController!;
+    var classSingleTickerProviderStateMixin =
         this.classSingleTickerProviderStateMixin!;
 
     await builder.addDartFileEdit(request.filePath, (builder) async {

@@ -135,7 +135,7 @@ class ContextBuilderImpl implements ContextBuilder {
             : _createOptionsMap(
                 contextRoot, sourceFactory, updateAnalysisOptions2, sdk);
 
-    final analysisContext =
+    var analysisContext =
         DriverBasedAnalysisContext(resourceProvider, contextRoot);
     var driver = AnalysisDriver(
       scheduler: scheduler,

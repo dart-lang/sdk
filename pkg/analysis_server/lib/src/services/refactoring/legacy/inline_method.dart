@@ -311,8 +311,8 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     var fatalStatus = RefactoringStatus.fatal(
         'Method declaration or reference must be selected to activate this refactoring.');
 
-    final selectedNode = NodeLocator(offset).searchWithin(resolveResult.unit);
-    final Element? element;
+    var selectedNode = NodeLocator(offset).searchWithin(resolveResult.unit);
+    Element? element;
 
     if (selectedNode is FunctionDeclaration) {
       element = selectedNode.declaredElement;
@@ -366,8 +366,8 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
         'Method declaration or reference must be selected to activate this refactoring.');
 
     // prepare selected SimpleIdentifier
-    final selectedNode = NodeLocator(offset).searchWithin(resolveResult.unit);
-    final Element? element;
+    var selectedNode = NodeLocator(offset).searchWithin(resolveResult.unit);
+    Element? element;
     if (selectedNode is FunctionDeclaration) {
       element = selectedNode.declaredElement;
       isDeclaration = true;
@@ -838,9 +838,9 @@ class _VariablesVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    final nameRange = range.token(node.name);
+    var nameRange = range.token(node.name);
     if (bodyRange.covers(nameRange)) {
-      final declaredElement = node.declaredElement;
+      var declaredElement = node.declaredElement;
       if (declaredElement != null) {
         result.addVariable(declaredElement, nameRange);
       }

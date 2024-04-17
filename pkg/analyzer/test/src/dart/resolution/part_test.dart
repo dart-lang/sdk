@@ -22,7 +22,7 @@ part 'a.dart';
       error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 5, 8),
     ]);
 
-    final node = findNode.part('part');
+    var node = findNode.part('part');
     assertResolvedNodeText(node, r'''
 PartDirective
   partKeyword: part
@@ -41,7 +41,7 @@ part ':net';
       error(CompileTimeErrorCode.INVALID_URI, 5, 6),
     ]);
 
-    final node = findNode.part('part');
+    var node = findNode.part('part');
     assertResolvedNodeText(node, r'''
 PartDirective
   partKeyword: part
@@ -60,7 +60,7 @@ part '${'foo'}.dart';
       error(CompileTimeErrorCode.URI_WITH_INTERPOLATION, 5, 15),
     ]);
 
-    final node = findNode.part('part');
+    var node = findNode.part('part');
     assertResolvedNodeText(node, r'''
 PartDirective
   partKeyword: part
@@ -89,7 +89,7 @@ part 'foo:bar';
       error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 5, 9),
     ]);
 
-    final node = findNode.part('part');
+    var node = findNode.part('part');
     assertResolvedNodeText(node, r'''
 PartDirective
   partKeyword: part

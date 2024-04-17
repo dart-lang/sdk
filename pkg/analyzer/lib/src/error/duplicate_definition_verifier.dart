@@ -253,9 +253,9 @@ class DuplicateDefinitionVerifier {
     ExtensionTypeDeclaration node,
     ExtensionTypeElement element,
   ) {
-    final declarationElement = element.augmented.declaration;
-    final primaryConstructorName = element.constructors.first.name;
-    final representationGetter = element.representation.getter!;
+    var declarationElement = element.augmented.declaration;
+    var primaryConstructorName = element.constructors.first.name;
+    var representationGetter = element.representation.getter!;
     _getElementContext(declarationElement)
       ..constructorNames.add(primaryConstructorName)
       ..instanceGetters[representationGetter.name] = representationGetter;
@@ -340,7 +340,7 @@ class DuplicateDefinitionVerifier {
       for (ClassElement class_ in element.classes) {
         definedGetters[class_.name] = class_;
       }
-      for (final type in element.enums) {
+      for (var type in element.enums) {
         definedGetters[type.name] = type;
       }
       for (FunctionElement function in element.functions) {
@@ -357,7 +357,7 @@ class DuplicateDefinitionVerifier {
       }
     }
 
-    for (final importElement in _currentLibrary.libraryImports) {
+    for (var importElement in _currentLibrary.libraryImports) {
       var prefix = importElement.prefix?.element;
       if (prefix != null) {
         definedGetters[prefix.name] = prefix;
@@ -366,7 +366,7 @@ class DuplicateDefinitionVerifier {
     CompilationUnitElement element = node.declaredElement!;
     if (element != _currentLibrary.definingCompilationUnit) {
       addWithoutChecking(_currentLibrary.definingCompilationUnit);
-      for (final unitElement in _currentLibrary.units) {
+      for (var unitElement in _currentLibrary.units) {
         if (element == unitElement) {
           break;
         }
@@ -394,13 +394,13 @@ class DuplicateDefinitionVerifier {
 
   /// Check that there are no members with the same name.
   void _checkClassMembers(InterfaceElement element, List<ClassMember> members) {
-    final declarationElement = element.augmented.declaration;
-    final elementContext = _getElementContext(declarationElement);
-    final constructorNames = elementContext.constructorNames;
-    final instanceGetters = elementContext.instanceGetters;
-    final instanceSetters = elementContext.instanceSetters;
-    final staticGetters = elementContext.staticGetters;
-    final staticSetters = elementContext.staticSetters;
+    var declarationElement = element.augmented.declaration;
+    var elementContext = _getElementContext(declarationElement);
+    var constructorNames = elementContext.constructorNames;
+    var instanceGetters = elementContext.instanceGetters;
+    var instanceSetters = elementContext.instanceSetters;
+    var staticGetters = elementContext.staticGetters;
+    var staticSetters = elementContext.staticSetters;
 
     for (ClassMember member in members) {
       switch (member) {
@@ -459,7 +459,7 @@ class DuplicateDefinitionVerifier {
       if (member is FieldDeclaration) {
         if (member.isStatic) {
           for (VariableDeclaration field in member.fields.variables) {
-            final identifier = field.name;
+            var identifier = field.name;
             String name = identifier.lexeme;
             if (instanceGetters.containsKey(name) ||
                 instanceSetters.containsKey(name)) {
@@ -474,7 +474,7 @@ class DuplicateDefinitionVerifier {
         }
       } else if (member is MethodDeclaration) {
         if (member.isStatic) {
-          final identifier = member.name;
+          var identifier = member.name;
           String name = identifier.lexeme;
           if (instanceGetters.containsKey(name) ||
               instanceSetters.containsKey(name)) {

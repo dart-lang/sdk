@@ -250,7 +250,7 @@ class FlutterConvertToStatelessWidget extends ResolvedCorrectionProducer {
   static bool _isState(ClassElement widgetClassElement, DartType? type) {
     if (type is! InterfaceType) return false;
 
-    final firstArgument = type.typeArguments.singleOrNull;
+    var firstArgument = type.typeArguments.singleOrNull;
     if (firstArgument is! InterfaceType ||
         firstArgument.element != widgetClassElement) {
       return false;
@@ -386,7 +386,7 @@ class _StateUsageVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     super.visitInstanceCreationExpression(node);
-    final type = node.staticType;
+    var type = node.staticType;
     if (type is! InterfaceType || type.element != stateClassElement) {
       return;
     }

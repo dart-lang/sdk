@@ -158,7 +158,7 @@ class PubspecFixGenerator {
     var builder = ChangeBuilder(
         workspace: _NonDartChangeWorkspace(resourceProvider), eol: endOfLine);
 
-    final data = error.data as MissingDependencyData;
+    var data = error.data as MissingDependencyData;
     var addDeps = data.addDeps;
     var addDevDeps = data.addDevDeps;
     var removeDevDeps = data.removeDevDeps;

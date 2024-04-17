@@ -30,16 +30,16 @@ class SortUnnamedConstructorFirst extends ResolvedCorrectionProducer {
       return;
     }
 
-    final members = clazz.members;
-    final constructors = members.whereType<ConstructorDeclaration>().toList();
+    var members = clazz.members;
+    var constructors = members.whereType<ConstructorDeclaration>().toList();
 
-    final firstConstructor = constructors.firstOrNull;
+    var firstConstructor = constructors.firstOrNull;
     if (firstConstructor == null) {
       return;
     }
 
-    final unnamedConstructor = constructors.firstWhereOrNull((constructor) {
-      final name = constructor.name;
+    var unnamedConstructor = constructors.firstWhereOrNull((constructor) {
+      var name = constructor.name;
       return name == null || name.lexeme == 'new';
     });
 
@@ -49,16 +49,16 @@ class SortUnnamedConstructorFirst extends ResolvedCorrectionProducer {
     }
 
     await builder.addDartFileEdit(file, (builder) {
-      final unnamedIndex = members.indexOf(unnamedConstructor);
-      final moveRange = range.endEnd(
+      var unnamedIndex = members.indexOf(unnamedConstructor);
+      var moveRange = range.endEnd(
         members[unnamedIndex - 1],
         unnamedConstructor,
       );
 
       builder.addDeletion(moveRange);
 
-      final firstIndex = members.indexOf(firstConstructor);
-      final tokenBeforeFirst = firstIndex != 0
+      var firstIndex = members.indexOf(firstConstructor);
+      var tokenBeforeFirst = firstIndex != 0
           ? members[firstIndex - 1].endToken
           : clazz.leftBracket;
       builder.addSimpleInsertion(

@@ -26,14 +26,14 @@ class SelectionRangeComputerTest extends AbstractContextTest {
   }
 
   Future<void> test_arguments() async {
-    final content = TestCode.parse('''
+    var content = TestCode.parse('''
 class Foo {
   Foo({String arg1});
 }
 final foo = Foo(arg1: "^test");
 ''');
 
-    final regions = await _computeSelectionRanges(content);
+    var regions = await _computeSelectionRanges(content);
     _expectRegions(
       regions,
       content,
@@ -55,7 +55,7 @@ import augment 'test.dart';
 class Foo {}
 ''');
 
-    final content = TestCode.parse('''
+    var content = TestCode.parse('''
 augment library a.dart;
 
 augment class Foo {
@@ -65,7 +65,7 @@ augment class Foo {
 }
 ''');
 
-    final regions = await _computeSelectionRanges(content);
+    var regions = await _computeSelectionRanges(content);
     _expectRegions(
       regions,
       content,
@@ -84,20 +84,20 @@ augment class Foo {
   }
 
   Future<void> test_class_definition() async {
-    final content = TestCode.parse('^class Foo<T> {}');
+    var content = TestCode.parse('^class Foo<T> {}');
 
-    final regions = await _computeSelectionRanges(content);
+    var regions = await _computeSelectionRanges(content);
     _expectRegions(regions, content, ['class Foo<T> {}']);
   }
 
   Future<void> test_class_fields() async {
-    final content = TestCode.parse('''
+    var content = TestCode.parse('''
 class Foo<T> {
   ^String a = 'test';
 }
 ''');
 
-    final regions = await _computeSelectionRanges(content);
+    var regions = await _computeSelectionRanges(content);
     _expectRegions(
       regions,
       content,
@@ -118,14 +118,14 @@ class Foo {
 }
 ''');
 
-    final content = TestCode.parse('''
+    var content = TestCode.parse('''
 augment library 'a.dart';
 augment class Foo {
   augment ^String get a => 'test2';
 }
 ''');
 
-    final regions = await _computeSelectionRanges(content);
+    var regions = await _computeSelectionRanges(content);
     _expectRegions(
       regions,
       content,
@@ -145,14 +145,14 @@ class Foo {
 }
 ''');
 
-    final content = TestCode.parse('''
+    var content = TestCode.parse('''
 augment library 'a.dart';
 augment class Foo {
   augment Foo(^);
 }
 ''');
 
-    final regions = await _computeSelectionRanges(content);
+    var regions = await _computeSelectionRanges(content);
     _expectRegions(
       regions,
       content,
@@ -165,14 +165,14 @@ augment class Foo {
   }
 
   Future<void> test_constructorCall() async {
-    final content = TestCode.parse('''
+    var content = TestCode.parse('''
 class Foo {
   Foo(String b);
 }
 final foo = Foo("^test");
 ''');
 
-    final regions = await _computeSelectionRanges(content);
+    var regions = await _computeSelectionRanges(content);
     _expectRegions(
       regions,
       content,
@@ -188,7 +188,7 @@ final foo = Foo("^test");
   }
 
   Future<void> test_extensionType() async {
-    final content = TestCode.parse('''
+    var content = TestCode.parse('''
 extension type E<T>(int it) {
   void void foo() {
     (1 ^+ 2) * 3;
@@ -196,7 +196,7 @@ extension type E<T>(int it) {
 }
 ''');
 
-    final regions = await _computeSelectionRanges(content);
+    var regions = await _computeSelectionRanges(content);
     _expectRegions(
       regions,
       content,
@@ -221,13 +221,13 @@ extension type E<T>(int it) {
   }
 
   Future<void> test_field_recordType() async {
-    final content = TestCode.parse('''
+    var content = TestCode.parse('''
 class C<T> {
   (^int, int) r = (0, 1);
 }
 ''');
 
-    final regions = await _computeSelectionRanges(content);
+    var regions = await _computeSelectionRanges(content);
     _expectRegions(
       regions,
       content,
@@ -242,7 +242,7 @@ class C<T> {
   }
 
   Future<void> test_method() async {
-    final content = TestCode.parse('''
+    var content = TestCode.parse('''
 class Foo<T> {
   void a(String b) {
     print((1 ^+ 2) * 3);
@@ -250,7 +250,7 @@ class Foo<T> {
 }
 ''');
 
-    final regions = await _computeSelectionRanges(content);
+    var regions = await _computeSelectionRanges(content);
     _expectRegions(
       regions,
       content,
@@ -276,7 +276,7 @@ class Foo {
 }
 ''');
 
-    final content = TestCode.parse('''
+    var content = TestCode.parse('''
 augment library a.dart;
 
 augment class Foo {
@@ -286,7 +286,7 @@ augment class Foo {
 }
 ''');
 
-    final regions = await _computeSelectionRanges(content);
+    var regions = await _computeSelectionRanges(content);
     _expectRegions(
       regions,
       content,
@@ -305,13 +305,13 @@ augment class Foo {
   }
 
   Future<void> test_methodLambda() async {
-    final content = TestCode.parse('''
+    var content = TestCode.parse('''
 class Foo<T> {
   void a(String b) => print((1 ^+ 2) * 3);
 }
 ''');
 
-    final regions = await _computeSelectionRanges(content);
+    var regions = await _computeSelectionRanges(content);
     _expectRegions(
       regions,
       content,
@@ -336,7 +336,7 @@ mixin Foo {
 }
 ''');
 
-    final content = TestCode.parse('''
+    var content = TestCode.parse('''
 augment library a.dart;
 
 augment mixin Foo {
@@ -346,7 +346,7 @@ augment mixin Foo {
 }
 ''');
 
-    final regions = await _computeSelectionRanges(content);
+    var regions = await _computeSelectionRanges(content);
     _expectRegions(
       regions,
       content,
@@ -365,14 +365,14 @@ augment mixin Foo {
   }
 
   Future<void> test_pattern_relational() async {
-    final content = TestCode.parse('''
+    var content = TestCode.parse('''
 final a = switch(123) {
   == ^0 => 'zero',
   _ => 'other'
 };
 ''');
 
-    final regions = await _computeSelectionRanges(content);
+    var regions = await _computeSelectionRanges(content);
     _expectRegions(regions, content, [
       '0',
       '== 0',
@@ -397,7 +397,7 @@ final a = switch(123) {
   }
 
   Future<void> test_pattern_types() async {
-    final content = TestCode.parse('''
+    var content = TestCode.parse('''
 final a = switch (Object()) {
   Square(length: v^ar l) => l * l,
   Circle(radius: var r) => math.pi * r * r
@@ -414,7 +414,7 @@ class Circle {
 }
 ''');
 
-    final regions = await _computeSelectionRanges(content);
+    var regions = await _computeSelectionRanges(content);
     _expectRegions(regions, content, [
       'var l',
       'length: var l',
@@ -440,13 +440,13 @@ class Circle {
   }
 
   Future<void> test_topLevelFunction() async {
-    final content = TestCode.parse('''
+    var content = TestCode.parse('''
 void a(String b) {
   print((1 ^+ 2) * 3);
 }
 ''');
 
-    final regions = await _computeSelectionRanges(content);
+    var regions = await _computeSelectionRanges(content);
     _expectRegions(
       regions,
       content,
@@ -470,14 +470,14 @@ import augment 'test.dart';
 void a(String b) {}
 ''');
 
-    final content = TestCode.parse('''
+    var content = TestCode.parse('''
 augment library 'a.dart';
 augment void a(String b) {
   print((1 ^+ 2) * 3);
 }
 ''');
 
-    final regions = await _computeSelectionRanges(content);
+    var regions = await _computeSelectionRanges(content);
     _expectRegions(
       regions,
       content,
@@ -496,13 +496,13 @@ augment void a(String b) {
   }
 
   Future<void> test_topLevelFunction_record() async {
-    final content = TestCode.parse('''
+    var content = TestCode.parse('''
 void f() {
   var r = (x: 3, ^y: 2);
 }
 ''');
 
-    final regions = await _computeSelectionRanges(content);
+    var regions = await _computeSelectionRanges(content);
     _expectRegions(
       regions,
       content,
@@ -522,14 +522,14 @@ void f() {
   }
 
   Future<void> test_whitespace() async {
-    final content = TestCode.parse('^    class Foo {}');
+    var content = TestCode.parse('^    class Foo {}');
 
-    final regions = await _computeSelectionRanges(content);
+    var regions = await _computeSelectionRanges(content);
     expect(regions, isEmpty);
   }
 
   Future<List<SelectionRange>?> _computeSelectionRanges(TestCode code) async {
-    final file = newFile(sourcePath, code.code);
+    var file = newFile(sourcePath, code.code);
     var result = await getResolvedUnit(file);
     var computer =
         DartSelectionRangeComputer(result.unit, code.position.offset);
@@ -539,7 +539,7 @@ void f() {
   /// Checks the text of [regions] against [expected].
   void _expectRegions(
       List<SelectionRange>? regions, TestCode code, List<String> expected) {
-    final actual = regions!
+    var actual = regions!
         .map((region) =>
             code.code.substring(region.offset, region.offset + region.length))
         .toList();

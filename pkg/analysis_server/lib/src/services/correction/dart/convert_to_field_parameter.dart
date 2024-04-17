@@ -53,8 +53,8 @@ class ConvertToFieldParameter extends ResolvedCorrectionProducer {
     }
     var fieldName = parameterInitializer.fieldName.name;
 
-    final context_final = context;
-    final parameterInitializer_final = parameterInitializer;
+    var context_final = context;
+    var parameterInitializer_final = parameterInitializer;
     await builder.addDartFileEdit(file, (builder) {
       // replace parameter
       builder.addSimpleReplacement(

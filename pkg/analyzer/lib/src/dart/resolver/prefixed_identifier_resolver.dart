@@ -28,15 +28,15 @@ class PrefixedIdentifierResolver {
   }) {
     node.prefix.accept(_resolver);
 
-    final prefixElement = node.prefix.staticElement;
+    var prefixElement = node.prefix.staticElement;
     if (prefixElement is! PrefixElement) {
-      final prefixType = node.prefix.staticType;
+      var prefixType = node.prefix.staticType;
       // TODO(scheglov): It would be nice to rewrite all such cases.
       if (prefixType != null) {
-        final prefixTypeResolved =
+        var prefixTypeResolved =
             _resolver.typeSystem.resolveToBound(prefixType);
         if (prefixTypeResolved is RecordType) {
-          final propertyAccess = PropertyAccessImpl(
+          var propertyAccess = PropertyAccessImpl(
             target: node.prefix,
             operator: node.period,
             propertyName: node.identifier,

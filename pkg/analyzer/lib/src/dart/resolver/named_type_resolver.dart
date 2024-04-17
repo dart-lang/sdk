@@ -79,11 +79,11 @@ class NamedTypeResolver with ScopeHelpers {
     rewriteResult = null;
     hasErrorReported = false;
 
-    final importPrefix = node.importPrefix;
+    var importPrefix = node.importPrefix;
     if (importPrefix != null) {
-      final prefixToken = importPrefix.name;
-      final prefixName = prefixToken.lexeme;
-      final prefixElement = nameScope.lookup(prefixName).getter;
+      var prefixToken = importPrefix.name;
+      var prefixName = prefixToken.lexeme;
+      var prefixElement = nameScope.lookup(prefixName).getter;
       importPrefix.element = prefixElement;
 
       if (prefixElement == null) {
@@ -103,8 +103,8 @@ class NamedTypeResolver with ScopeHelpers {
       }
 
       if (prefixElement is PrefixElement) {
-        final nameToken = node.name2;
-        final element = _lookupGetter(prefixElement.scope, nameToken);
+        var nameToken = node.name2;
+        var element = _lookupGetter(prefixElement.scope, nameToken);
         _resolveToElement(node, element, dataForTesting: dataForTesting);
         return;
       }
@@ -121,7 +121,7 @@ class NamedTypeResolver with ScopeHelpers {
         return;
       }
 
-      final element = _lookupGetter(nameScope, node.name2);
+      var element = _lookupGetter(nameScope, node.name2);
       _resolveToElement(node, element, dataForTesting: dataForTesting);
     }
   }
@@ -285,7 +285,7 @@ class NamedTypeResolver with ScopeHelpers {
   }
 
   Element? _lookupGetter(Scope scope, Token nameToken) {
-    final scopeLookupResult = scope.lookup(nameToken.lexeme);
+    var scopeLookupResult = scope.lookup(nameToken.lexeme);
     reportDeprecatedExportUseGetter(
       scopeLookupResult: scopeLookupResult,
       nameToken: nameToken,
@@ -341,7 +341,7 @@ class NamedTypeResolver with ScopeHelpers {
         }
       }
 
-      final namedType = NamedTypeImpl(
+      var namedType = NamedTypeImpl(
         importPrefix: null,
         name2: importPrefix.name,
         typeArguments: null,
@@ -492,7 +492,7 @@ class _ErrorHelper {
     if (constructorName is ConstructorName) {
       var instanceCreation = constructorName.parent;
       if (instanceCreation is InstanceCreationExpression) {
-        final errorRange = _getErrorRange(node, skipImportPrefix: true);
+        var errorRange = _getErrorRange(node, skipImportPrefix: true);
         errorReporter.atOffset(
           offset: errorRange.offset,
           length: errorRange.length,
@@ -513,7 +513,7 @@ class _ErrorHelper {
     }
 
     if (node.name2.lexeme == 'boolean') {
-      final errorRange = _getErrorRange(node, skipImportPrefix: true);
+      var errorRange = _getErrorRange(node, skipImportPrefix: true);
       errorReporter.atOffset(
         offset: errorRange.offset,
         length: errorRange.length,
@@ -524,7 +524,7 @@ class _ErrorHelper {
     }
 
     if (_isTypeInCatchClause(node)) {
-      final errorRange = _getErrorRange(node);
+      var errorRange = _getErrorRange(node);
       errorReporter.atOffset(
         offset: errorRange.offset,
         length: errorRange.length,
@@ -535,7 +535,7 @@ class _ErrorHelper {
     }
 
     if (_isTypeInAsExpression(node)) {
-      final errorRange = _getErrorRange(node);
+      var errorRange = _getErrorRange(node);
       errorReporter.atOffset(
         offset: errorRange.offset,
         length: errorRange.length,
@@ -546,7 +546,7 @@ class _ErrorHelper {
     }
 
     if (_isTypeInIsExpression(node)) {
-      final errorRange = _getErrorRange(node);
+      var errorRange = _getErrorRange(node);
       if (element != null) {
         errorReporter.atOffset(
           offset: errorRange.offset,
@@ -566,7 +566,7 @@ class _ErrorHelper {
     }
 
     if (_isRedirectingConstructor(node)) {
-      final errorRange = _getErrorRange(node);
+      var errorRange = _getErrorRange(node);
       errorReporter.atOffset(
         offset: errorRange.offset,
         length: errorRange.length,
@@ -577,7 +577,7 @@ class _ErrorHelper {
     }
 
     if (_isTypeInTypeArgumentList(node)) {
-      final errorRange = _getErrorRange(node);
+      var errorRange = _getErrorRange(node);
       errorReporter.atOffset(
         offset: errorRange.offset,
         length: errorRange.length,
@@ -614,7 +614,7 @@ class _ErrorHelper {
     }
 
     if (element != null) {
-      final errorRange = _getErrorRange(node);
+      var errorRange = _getErrorRange(node);
       errorReporter.atOffset(
         offset: errorRange.offset,
         length: errorRange.length,
@@ -632,7 +632,7 @@ class _ErrorHelper {
       return;
     }
 
-    final errorRange = _getErrorRange(node);
+    var errorRange = _getErrorRange(node);
     errorReporter.atOffset(
       offset: errorRange.offset,
       length: errorRange.length,
@@ -647,13 +647,13 @@ class _ErrorHelper {
     bool skipImportPrefix = false,
   }) {
     var firstToken = node.name2;
-    final importPrefix = node.importPrefix;
+    var importPrefix = node.importPrefix;
     if (importPrefix != null) {
       if (!skipImportPrefix || importPrefix.element is! PrefixElement) {
         firstToken = importPrefix.name;
       }
     }
-    final end = node.name2.end;
+    var end = node.name2.end;
     return SourceRange(firstToken.offset, end - firstToken.offset);
   }
 

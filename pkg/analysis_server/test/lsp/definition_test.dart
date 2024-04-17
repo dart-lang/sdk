@@ -31,7 +31,7 @@ class DefinitionTest extends AbstractLspAnalysisServerTest {
     ];
 
   Future<void> test_acrossFiles() async {
-    final mainContents = '''
+    var mainContents = '''
     import 'referenced.dart';
 
     void f() {
@@ -39,7 +39,7 @@ class DefinitionTest extends AbstractLspAnalysisServerTest {
     }
     ''';
 
-    final referencedContents = '''
+    var referencedContents = '''
     /// Ensure the function is on a line that
     /// does not exist in the mainContents file
     /// to ensure we're translating offsets to line/col
@@ -52,17 +52,16 @@ class DefinitionTest extends AbstractLspAnalysisServerTest {
     [!foo!]() {}
     ''';
 
-    final referencedFilePath =
-        join(projectFolderPath, 'lib', 'referenced.dart');
-    final referencedFileUri = toUri(referencedFilePath);
+    var referencedFilePath = join(projectFolderPath, 'lib', 'referenced.dart');
+    var referencedFileUri = toUri(referencedFilePath);
 
-    final mainCode = TestCode.parse(mainContents);
-    final referencedCode = TestCode.parse(referencedContents);
+    var mainCode = TestCode.parse(mainContents);
+    var referencedCode = TestCode.parse(referencedContents);
 
     newFile(mainFilePath, mainCode.code);
     newFile(referencedFilePath, referencedCode.code);
     await initialize();
-    final res =
+    var res =
         await getDefinitionAsLocation(mainFileUri, mainCode.position.position);
 
     expect(res, hasLength(1));
@@ -72,7 +71,7 @@ class DefinitionTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_atDeclaration_class() async {
-    final contents = '''
+    var contents = '''
 class [!^A!] {}
     ''';
 
@@ -80,7 +79,7 @@ class [!^A!] {}
   }
 
   Future<void> test_atDeclaration_constructorNamed() async {
-    final contents = '''
+    var contents = '''
 class A {
   A.[!^named!]() {}
 }
@@ -90,7 +89,7 @@ class A {
   }
 
   Future<void> test_atDeclaration_constructorNamed_typeName() async {
-    final contents = '''
+    var contents = '''
 class [!A!] {
   ^A.named() {}
 }
@@ -100,7 +99,7 @@ class [!A!] {
   }
 
   Future<void> test_atDeclaration_defaultConstructor() async {
-    final contents = '''
+    var contents = '''
 class A {
   [!^A!]() {}
 }
@@ -110,7 +109,7 @@ class A {
   }
 
   Future<void> test_atDeclaration_function() async {
-    final contents = '''
+    var contents = '''
 void [!^f!]() {}
     ''';
 
@@ -118,7 +117,7 @@ void [!^f!]() {}
   }
 
   Future<void> test_atDeclaration_method() async {
-    final contents = '''
+    var contents = '''
 class A {
   void [!^f!]() {}
 }
@@ -132,24 +131,24 @@ class A {
     /// returns all navigation regions inside it. This test ensures we filter
     /// out any regions that are in the same target node (the comment) but do
     /// not span the requested offset.
-    final contents = '''
+    var contents = '''
     /// Te^st
     ///
     /// References [String].
     void f() {}
     ''';
-    final code = TestCode.parse(contents);
+    var code = TestCode.parse(contents);
 
     await initialize();
     await openFile(mainFileUri, code.code);
-    final res =
+    var res =
         await getDefinitionAsLocation(mainFileUri, code.position.position);
 
     expect(res, hasLength(0));
   }
 
   Future<void> test_comment_enumMember_qualified() async {
-    final contents = '''
+    var contents = '''
       /// [A.o^ne].
       enum A {
         [!one!],
@@ -160,7 +159,7 @@ class A {
   }
 
   Future<void> test_comment_extensionMember() async {
-    final contents = '''
+    var contents = '''
       /// [myFi^eld]
       extension on String {
         String get [!myField!] => '';
@@ -171,7 +170,7 @@ class A {
   }
 
   Future<void> test_comment_extensionMember_qualified() async {
-    final contents = '''
+    var contents = '''
       /// [StringExtension.myFi^eld]
       extension StringExtension on String {
         String get [!myField!] => '';
@@ -182,7 +181,7 @@ class A {
   }
 
   Future<void> test_comment_instanceMember_qualified() async {
-    final contents = '''
+    var contents = '''
       /// [A.myFi^eld].
       class A {
         final String [!myField!] = '';
@@ -193,7 +192,7 @@ class A {
   }
 
   Future<void> test_comment_instanceMember_qualified_inherited() async {
-    final contents = '''
+    var contents = '''
       class A {
         final String [!myField!] = '';
       }
@@ -205,7 +204,7 @@ class A {
   }
 
   Future<void> test_comment_namedConstructor_qualified() async {
-    final contents = '''
+    var contents = '''
       /// [A.nam^ed].
       class A {
         A.[!named!]();
@@ -216,7 +215,7 @@ class A {
   }
 
   Future<void> test_comment_staticMember_qualified() async {
-    final contents = '''
+    var contents = '''
       /// [A.myStaticFi^eld].
       class A {
         static final String [!myStaticField!] = '';
@@ -227,7 +226,7 @@ class A {
   }
 
   Future<void> test_constructor() async {
-    final contents = '''
+    var contents = '''
 f() {
   final a = A^();
 }
@@ -241,7 +240,7 @@ class A {
   }
 
   Future<void> test_constructorNamed() async {
-    final contents = '''
+    var contents = '''
 f() {
   final a = A.named^();
 }
@@ -255,7 +254,7 @@ class A {
   }
 
   Future<void> test_constructorNamed_typeName() async {
-    final contents = '''
+    var contents = '''
 f() {
   final a = A^.named();
 }
@@ -309,7 +308,7 @@ class [!A!] {
   }
 
   Future<void> test_fieldFormalParam() async {
-    final contents = '''
+    var contents = '''
 class A {
   final String [!a!];
   A(this.^a);
@@ -321,9 +320,9 @@ class A {
 
   Future<void> test_fromPlugins() async {
     if (!AnalysisServer.supportsPlugins) return;
-    final pluginAnalyzedFilePath = join(projectFolderPath, 'lib', 'foo.foo');
-    final pluginAnalyzedFileUri = pathContext.toUri(pluginAnalyzedFilePath);
-    final pluginResult = plugin.AnalysisGetNavigationResult(
+    var pluginAnalyzedFilePath = join(projectFolderPath, 'lib', 'foo.foo');
+    var pluginAnalyzedFileUri = pathContext.toUri(pluginAnalyzedFilePath);
+    var pluginResult = plugin.AnalysisGetNavigationResult(
       [pluginAnalyzedFilePath],
       [NavigationTarget(ElementKind.CLASS, 0, 0, 5, 0, 0)],
       [
@@ -334,7 +333,7 @@ class A {
 
     newFile(pluginAnalyzedFilePath, '');
     await initialize();
-    final res = await getDefinitionAsLocation(
+    var res = await getDefinitionAsLocation(
         pluginAnalyzedFileUri, lsp.Position(line: 0, character: 0));
 
     expect(res, hasLength(1));
@@ -348,7 +347,7 @@ class A {
   }
 
   Future<void> test_function() async {
-    final contents = '''
+    var contents = '''
 [!foo!]() {
   fo^o();
 }
@@ -358,7 +357,7 @@ class A {
   }
 
   Future<void> test_functionInPattern() async {
-    final contents = '''
+    var contents = '''
 bool [!greater!](int x, int y) => x > y;
 
 foo(Object pair) {
@@ -375,7 +374,7 @@ foo(Object pair) {
   Future<void> test_locationLink_class() async {
     setLocationLinkSupport();
 
-    final code = TestCode.parse('''
+    var code = TestCode.parse('''
 final a = /*[0*/MyCl^ass/*0]*/();
 
 /*[1*/class /*[2*/MyClass/*2]*/ {}/*1]*/
@@ -383,7 +382,7 @@ final a = /*[0*/MyCl^ass/*0]*/();
 
     await initialize();
     await openFile(mainFileUri, code.code);
-    final res =
+    var res =
         await getDefinitionAsLocationLinks(mainFileUri, code.position.position);
 
     expect(res, hasLength(1));
@@ -396,7 +395,7 @@ final a = /*[0*/MyCl^ass/*0]*/();
   Future<void> test_locationLink_extensionType_primaryConstructor() async {
     setLocationLinkSupport();
 
-    final code = TestCode.parse('''
+    var code = TestCode.parse('''
 final a = /*[0*/MyExtens^ionType/*0]*/(1);
 
 /*[1*/extension type /*[2*/MyExtensionType/*2]*/(int a) implements int {}/*1]*/
@@ -404,7 +403,7 @@ final a = /*[0*/MyExtens^ionType/*0]*/(1);
 
     await initialize();
     await openFile(mainFileUri, code.code);
-    final res =
+    var res =
         await getDefinitionAsLocationLinks(mainFileUri, code.position.position);
 
     expect(res, hasLength(1));
@@ -418,7 +417,7 @@ final a = /*[0*/MyExtens^ionType/*0]*/(1);
       test_locationLink_extensionType_primaryConstructor_named() async {
     setLocationLinkSupport();
 
-    final code = TestCode.parse('''
+    var code = TestCode.parse('''
 final a = MyExtensionType./*[0*/na^med/*0]*/(1);
 
 /*[1*/extension type MyExtensionType./*[2*/named/*2]*/(int a) implements int {}/*1]*/
@@ -426,7 +425,7 @@ final a = MyExtensionType./*[0*/na^med/*0]*/(1);
 
     await initialize();
     await openFile(mainFileUri, code.code);
-    final res =
+    var res =
         await getDefinitionAsLocationLinks(mainFileUri, code.position.position);
 
     expect(res, hasLength(1));
@@ -439,7 +438,7 @@ final a = MyExtensionType./*[0*/na^med/*0]*/(1);
   Future<void> test_locationLink_field() async {
     setLocationLinkSupport();
 
-    final mainContents = '''
+    var mainContents = '''
     import 'referenced.dart';
 
     void f() {
@@ -447,7 +446,7 @@ final a = MyExtensionType./*[0*/na^med/*0]*/(1);
     }
     ''';
 
-    final referencedContents = '''
+    var referencedContents = '''
     void unrelatedFunction() {}
 
     class Icons {
@@ -459,17 +458,16 @@ final a = MyExtensionType./*[0*/na^med/*0]*/(1);
     void otherUnrelatedFunction() {}
     ''';
 
-    final referencedFilePath =
-        join(projectFolderPath, 'lib', 'referenced.dart');
-    final referencedFileUri = toUri(referencedFilePath);
+    var referencedFilePath = join(projectFolderPath, 'lib', 'referenced.dart');
+    var referencedFileUri = toUri(referencedFilePath);
 
-    final mainCode = TestCode.parse(mainContents);
-    final referencedCode = TestCode.parse(referencedContents);
+    var mainCode = TestCode.parse(mainContents);
+    var referencedCode = TestCode.parse(referencedContents);
 
     newFile(mainFilePath, mainCode.code);
     newFile(referencedFilePath, referencedCode.code);
     await initialize();
-    final res = await getDefinitionAsLocationLinks(
+    var res = await getDefinitionAsLocationLinks(
         mainFileUri, mainCode.position.position);
 
     expect(res, hasLength(1));
@@ -486,7 +484,7 @@ final a = MyExtensionType./*[0*/na^med/*0]*/(1);
   Future<void> test_locationLink_function() async {
     setLocationLinkSupport();
 
-    final mainContents = '''
+    var mainContents = '''
     import 'referenced.dart';
 
     void f() {
@@ -494,7 +492,7 @@ final a = MyExtensionType./*[0*/na^med/*0]*/(1);
     }
     ''';
 
-    final referencedContents = '''
+    var referencedContents = '''
     void unrelatedFunction() {}
 
     /// `targetRange` should not include the dartDoc but should include the full
@@ -506,17 +504,16 @@ final a = MyExtensionType./*[0*/na^med/*0]*/(1);
     void otherUnrelatedFunction() {}
     ''';
 
-    final referencedFilePath =
-        join(projectFolderPath, 'lib', 'referenced.dart');
-    final referencedFileUri = toUri(referencedFilePath);
+    var referencedFilePath = join(projectFolderPath, 'lib', 'referenced.dart');
+    var referencedFileUri = toUri(referencedFilePath);
 
-    final mainCode = TestCode.parse(mainContents);
-    final referencedCode = TestCode.parse(referencedContents);
+    var mainCode = TestCode.parse(mainContents);
+    var referencedCode = TestCode.parse(referencedContents);
 
     newFile(mainFilePath, mainCode.code);
     newFile(referencedFilePath, referencedCode.code);
     await initialize();
-    final res = await getDefinitionAsLocationLinks(
+    var res = await getDefinitionAsLocationLinks(
         mainFileUri, mainCode.position.position);
 
     expect(res, hasLength(1));
@@ -536,7 +533,7 @@ final a = MyExtensionType./*[0*/na^med/*0]*/(1);
     setLocationLinkSupport(); // To verify the full set of ranges.
     setDartTextDocumentContentProviderSupport();
 
-    final code = TestCode.parse('''
+    var code = TestCode.parse('''
 import 'macros.dart';
 
 @DeclareInType('  void foo() { bar(); }')
@@ -583,7 +580,7 @@ class A {
     setLocationLinkSupport(); // To verify the full set of ranges.
     setDartTextDocumentContentProviderSupport();
 
-    final code = TestCode.parse('''
+    var code = TestCode.parse('''
 import 'macros.dart';
 
 f() {
@@ -616,14 +613,14 @@ class A {}
     newFile(pubspecFilePath, simplePubspecContent);
     await initialize();
 
-    final res = await getDefinitionAsLocation(pubspecFileUri, startOfDocPos);
+    var res = await getDefinitionAsLocation(pubspecFileUri, startOfDocPos);
     expect(res, isEmpty);
   }
 
   Future<void> test_part() async {
     setLocationLinkSupport();
 
-    final mainContents = '''
+    var mainContents = '''
     import 'lib.dart';
 
     void f() {
@@ -631,11 +628,11 @@ class A {}
     }
     ''';
 
-    final libContents = '''
+    var libContents = '''
     part 'part.dart';
     ''';
 
-    final partContents = '''
+    var partContents = '''
     part of 'lib.dart';
 
     void unrelatedFunction() {}
@@ -649,19 +646,19 @@ class A {}
     void otherUnrelatedFunction() {}
     ''';
 
-    final libFilePath = join(projectFolderPath, 'lib', 'lib.dart');
-    final partFilePath = join(projectFolderPath, 'lib', 'part.dart');
-    final partFileUri = toUri(partFilePath);
+    var libFilePath = join(projectFolderPath, 'lib', 'lib.dart');
+    var partFilePath = join(projectFolderPath, 'lib', 'part.dart');
+    var partFileUri = toUri(partFilePath);
 
-    final mainCode = TestCode.parse(mainContents);
-    final libCode = TestCode.parse(libContents);
-    final partCode = TestCode.parse(partContents);
+    var mainCode = TestCode.parse(mainContents);
+    var libCode = TestCode.parse(libContents);
+    var partCode = TestCode.parse(partContents);
 
     newFile(mainFilePath, mainCode.code);
     newFile(libFilePath, libCode.code);
     newFile(partFilePath, partCode.code);
     await initialize();
-    final res = await getDefinitionAsLocationLinks(
+    var res = await getDefinitionAsLocationLinks(
         mainFileUri, mainCode.position.position);
 
     expect(res, hasLength(1));
@@ -676,7 +673,7 @@ class A {}
   }
 
   Future<void> test_sameLine() async {
-    final contents = '''
+    var contents = '''
 int plusOne(int [!value!]) => 1 + val^ue;
 ''';
 
@@ -684,7 +681,7 @@ int plusOne(int [!value!]) => 1 + val^ue;
   }
 
   Future<void> test_superFormalParam() async {
-    final contents = '''
+    var contents = '''
 class A {
   A({required int [!a!]});
 }
@@ -697,7 +694,7 @@ class B extends A {
   }
 
   Future<void> test_type() async {
-    final contents = '''
+    var contents = '''
 f() {
   final a = A^;
 }
@@ -709,7 +706,7 @@ class [!A!] {}
   }
 
   Future<void> test_type_generic_end() async {
-    final contents = '''
+    var contents = '''
 f() {
   final a = A^<String>();
 }
@@ -721,19 +718,19 @@ class [!A!]<T> {}
   }
 
   Future<void> test_unopenFile() async {
-    final contents = '''
+    var contents = '''
 [!foo!]() {
   fo^o();
 }
 ''';
-    final code = TestCode.parse(contents);
+    var code = TestCode.parse(contents);
 
     newFile(mainFilePath, code.code);
     await testContents(contents, inOpenFile: false);
   }
 
   Future<void> test_variableInPattern() async {
-    final contents = '''
+    var contents = '''
 foo() {
   var m = <String, int>{};
   const [!str!] = 'h';
@@ -745,7 +742,7 @@ foo() {
   }
 
   Future<void> test_varKeyword() async {
-    final contents = '''
+    var contents = '''
     va^r a = MyClass();
 
     class [!MyClass!] {}
@@ -757,12 +754,12 @@ foo() {
   /// Expects definitions at the location of `^` in [contents] will navigate to
   /// the range in `[!` brackets `!]` in `[contents].
   Future<void> testContents(String contents, {bool inOpenFile = true}) async {
-    final code = TestCode.parse(contents);
+    var code = TestCode.parse(contents);
     await initialize();
     if (inOpenFile) {
       await openFile(mainFileUri, code.code);
     }
-    final res =
+    var res =
         await getDefinitionAsLocation(mainFileUri, code.position.position);
 
     expect(res, hasLength(1));
@@ -778,19 +775,19 @@ foo() {
     required String source,
     String destination = '',
   }) async {
-    final destinationCode = TestCode.parse(destination);
-    final sourceCode = TestCode.parse(source);
+    var destinationCode = TestCode.parse(destination);
+    var sourceCode = TestCode.parse(source);
 
-    final sourceFilePath = join(projectFolderPath, 'lib', 'source.dart');
-    final sourceFileUri = toUri(sourceFilePath);
-    final destinationFilePath =
+    var sourceFilePath = join(projectFolderPath, 'lib', 'source.dart');
+    var sourceFileUri = toUri(sourceFilePath);
+    var destinationFilePath =
         join(projectFolderPath, 'lib', 'destination.dart');
-    final destinationFileUri = toUri(destinationFilePath);
+    var destinationFileUri = toUri(destinationFilePath);
 
     newFile(sourceFilePath, sourceCode.code);
     newFile(destinationFilePath, destinationCode.code);
     await initialize();
-    final res = await getDefinitionAsLocation(
+    var res = await getDefinitionAsLocation(
         sourceFileUri, sourceCode.position.position);
 
     expect(res.single.uri, equals(destinationFileUri));

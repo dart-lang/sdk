@@ -50,8 +50,8 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
 
   void expectRanges(Map<int, FoldingRangeKind?> expected,
       {bool requireAll = true}) {
-    final expectedRanges = expected.entries.map((entry) {
-      final range = code.ranges[entry.key].range;
+    var expectedRanges = expected.entries.map((entry) {
+      var range = code.ranges[entry.key].range;
       return FoldingRange(
         startLine: range.start.line,
         startCharacter: lineFoldingOnly ? null : range.start.character,
@@ -72,7 +72,7 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
       expectRanges(expected, requireAll: false);
 
   Future<void> test_class() async {
-    final content = '''
+    var content = '''
     class MyClass2/*[0*/ {
       // Class content
     }/*0]*/
@@ -85,7 +85,7 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_comments() async {
-    final content = '''
+    var content = '''
     /// This is a comment[/*[0*/
     /// that spans many lines/*0]*/
     class MyClass2 {}
@@ -98,7 +98,7 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_doLoop() async {
-    final content = '''
+    var content = '''
     f/*[0*/(int i) {
       do {/*[1*/
         print('with statements');/*1]*/
@@ -126,7 +126,7 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_enum() async {
-    final content = '''
+    var content = '''
     enum MyEnum {/*[0*/
       one,
       two,
@@ -141,7 +141,7 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_forLoop() async {
-    final content = '''
+    var content = '''
 void f() {
   for (int i = 0; i < 1; i++) /*[0*/{
     ;
@@ -160,8 +160,8 @@ void f() {
   }
 
   Future<void> test_fromPlugins_dartFile() async {
-    final pluginAnalyzedFilePath = join(projectFolderPath, 'lib', 'foo.dart');
-    final pluginAnalyzedUri = pathContext.toUri(pluginAnalyzedFilePath);
+    var pluginAnalyzedFilePath = join(projectFolderPath, 'lib', 'foo.dart');
+    var pluginAnalyzedUri = pathContext.toUri(pluginAnalyzedFilePath);
 
     const content = '''
     // /*[0*/contributed by fake plugin/*0]*/
@@ -171,7 +171,7 @@ void f() {
     }/*1]*/
     ''';
 
-    final pluginResult = plugin.AnalysisFoldingParams(
+    var pluginResult = plugin.AnalysisFoldingParams(
       pluginAnalyzedFilePath,
       [plugin.FoldingRegion(plugin.FoldingKind.DIRECTIVES, 7, 26)],
     );
@@ -189,8 +189,8 @@ void f() {
   }
 
   Future<void> test_fromPlugins_nonDartFile() async {
-    final pluginAnalyzedFilePath = join(projectFolderPath, 'lib', 'foo.sql');
-    final pluginAnalyzedUri = pathContext.toUri(pluginAnalyzedFilePath);
+    var pluginAnalyzedFilePath = join(projectFolderPath, 'lib', 'foo.sql');
+    var pluginAnalyzedUri = pathContext.toUri(pluginAnalyzedFilePath);
 
     const content = '''
       CREATE TABLE foo(
@@ -198,7 +198,7 @@ void f() {
       );
     ''';
 
-    final pluginResult = plugin.AnalysisFoldingParams(
+    var pluginResult = plugin.AnalysisFoldingParams(
       pluginAnalyzedFilePath,
       [plugin.FoldingRegion(plugin.FoldingKind.CLASS_BODY, 33, 15)],
     );
@@ -215,7 +215,7 @@ void f() {
   }
 
   Future<void> test_functionExpression() async {
-    final content = '''
+    var content = '''
 var x = () /*[0*/{
   ;
   ;
@@ -230,7 +230,7 @@ var x = () /*[0*/{
   }
 
   Future<void> test_headersImportsComments() async {
-    final content = '''
+    var content = '''
     // Copyright some year by some people/*[0*/
     // See LICENCE etc./*0]*/
 
@@ -251,7 +251,7 @@ var x = () /*[0*/{
   }
 
   Future<void> test_ifElseElseIf() async {
-    final content = '''
+    var content = '''
     f(int i) {
       if (i == 0) {/*[0*/
         // only
@@ -275,7 +275,7 @@ var x = () /*[0*/{
   }
 
   Future<void> test_nested() async {
-    final content = '''
+    var content = '''
     class MyClass2/*[0*/ {
       void f/*[1*/() {
         void g/*[2*/() {
@@ -295,7 +295,7 @@ var x = () /*[0*/{
 
   Future<void> test_nested_lineFoldingOnly() async {
     lineFoldingOnly = true;
-    final content = '''
+    var content = '''
     class MyClass2 {/*[0*/
       void f() {/*[1*/
         void g() {/*[2*/
@@ -321,7 +321,7 @@ var x = () /*[0*/{
   /// When the client supports columns (not "lineFoldingOnly"), we can end
   /// one range on the same line as the next one starts.
   Future<void> test_overlapLines_columnsSupported() async {
-    final content = '''
+    var content = '''
 void f/*[0*/() {
   //
 }/*0]*/ void g/*[1*/() {
@@ -341,7 +341,7 @@ void f/*[0*/() {
   /// on the previous line.
   Future<void> test_overlapLines_lineFoldingOnly() async {
     lineFoldingOnly = true;
-    final content = '''
+    var content = '''
 void f/*[0*/() {
   ///*0]*/
 } void g/*[1*/() {
@@ -357,7 +357,7 @@ void f/*[0*/() {
   }
 
   Future<void> test_recordLiteral() async {
-    final content = '''
+    var content = '''
     void f() {
       var r = (/*[0*/
         2,
@@ -373,7 +373,7 @@ void f/*[0*/() {
   }
 
   Future<void> test_switchExpression() async {
-    final content = '''
+    var content = '''
 void f(int a) {
   var b = switch (a) {/*[0*/
     1 => '',
@@ -399,7 +399,7 @@ void f(int a) {
   }
 
   Future<void> test_switchPattern() async {
-    final content = '''
+    var content = '''
 void f(int a) {
   switch (a) {/*[0*/
     case 0:/*[1*/
@@ -427,7 +427,7 @@ void f(int a) {
 
   Future<void> test_switchStatement() async {
     failTestOnErrorDiagnostic = false; // Tests cases without breaks.
-    final content = '''
+    var content = '''
 // @dart = 2.19
 
 void f(int a) {
@@ -457,7 +457,7 @@ void f(int a) {
   }
 
   Future<void> test_whileLoop() async {
-    final content = '''
+    var content = '''
     f(int i) {
       while (i == 0) {/*[0*/
         print('with statements');/*0]*/

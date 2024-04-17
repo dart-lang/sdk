@@ -26,7 +26,7 @@ void foo() {
       error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 49, 1),
     ]);
 
-    final node = findNode.namedType('F()');
+    var node = findNode.namedType('F()');
     assertResolvedNodeText(node, r'''
 NamedType
   name: F
@@ -60,7 +60,7 @@ void f() {
       error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 28, 1),
     ]);
 
-    final node = findNode.namedType('A()');
+    var node = findNode.namedType('A()');
     assertResolvedNodeText(node, r'''
 NamedType
   name: A
@@ -79,7 +79,7 @@ void f() {
       error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 28, 1),
     ]);
 
-    final node = findNode.namedType('A<int>()');
+    var node = findNode.namedType('A<int>()');
     assertResolvedNodeText(node, r'''
 NamedType
   name: A

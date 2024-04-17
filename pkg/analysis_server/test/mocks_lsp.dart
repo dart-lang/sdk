@@ -37,7 +37,7 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
     _serverToClient.stream.listen((message) {
       if (message is lsp.NotificationMessage &&
           message.method == lsp.Method.window_showMessage) {
-        final params = message.params;
+        var params = message.params;
         if (params is lsp.ShowMessageParams) {
           if (params.type == lsp.MessageType.Error) {
             shownErrors.add(params);
@@ -159,7 +159,7 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
   /// already been sent to the server.
   Future<lsp.ResponseMessage> waitForResponse(
       lsp.RequestMessage request) async {
-    final response = await _serverToClient.stream.firstWhere((message) =>
+    var response = await _serverToClient.stream.firstWhere((message) =>
         message is lsp.ResponseMessage && message.id == request.id);
 
     return response as lsp.ResponseMessage;

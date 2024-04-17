@@ -259,7 +259,7 @@ class _FieldFinder extends RecursiveAstVisitor<void> {
 
   @override
   void visitFieldFormalParameter(FieldFormalParameter node) {
-    final element = node.declaredElement;
+    var element = node.declaredElement;
     if (element is FieldFormalParameterElement) {
       var field = element.field;
       if (field != null) {

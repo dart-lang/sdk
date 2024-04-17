@@ -206,7 +206,7 @@ class PrefixExpressionResolver {
 
   void _resolve2(PrefixExpressionImpl node) {
     TokenType operator = node.operator.type;
-    final readType = node.readType ?? node.operand.staticType;
+    var readType = node.readType ?? node.operand.staticType;
     if (identical(readType, NeverTypeImpl.instance)) {
       _inferenceHelper.recordStaticType(node, NeverTypeImpl.instance);
     } else {

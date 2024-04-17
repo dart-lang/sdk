@@ -27,18 +27,18 @@ class NonCovariantTypeParameterPositionVisitor implements TypeVisitor<bool> {
       return true;
     }
 
-    final oldVariance = _variance;
+    var oldVariance = _variance;
 
     _variance = Variance.invariant;
-    for (final typeParameter in type.typeFormals) {
-      final bound = typeParameter.bound;
+    for (var typeParameter in type.typeFormals) {
+      var bound = typeParameter.bound;
       if (bound != null && bound.accept(this)) {
         return true;
       }
     }
 
     _variance = oldVariance.combine(Variance.contravariant);
-    for (final formalParameter in type.parameters) {
+    for (var formalParameter in type.parameters) {
       if (formalParameter.type.accept(this)) {
         return true;
       }
@@ -50,7 +50,7 @@ class NonCovariantTypeParameterPositionVisitor implements TypeVisitor<bool> {
 
   @override
   bool visitInterfaceType(InterfaceType type) {
-    for (final typeArgument in type.typeArguments) {
+    for (var typeArgument in type.typeArguments) {
       if (typeArgument.accept(this)) {
         return true;
       }
@@ -66,7 +66,7 @@ class NonCovariantTypeParameterPositionVisitor implements TypeVisitor<bool> {
 
   @override
   bool visitRecordType(RecordType type) {
-    for (final field in type.fields) {
+    for (var field in type.fields) {
       if (field.type.accept(this)) {
         return true;
       }

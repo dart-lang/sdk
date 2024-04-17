@@ -397,9 +397,9 @@ class DartCompletionRequest {
         entity.type == TokenType.STRING &&
         entity.offset < offset &&
         offset < entity.end) {
-      final uriNode = target.containingNode;
+      var uriNode = target.containingNode;
       if (uriNode is SimpleStringLiteral && uriNode.literal == entity) {
-        final directive = uriNode.parent;
+        var directive = uriNode.parent;
         if (directive is UriBasedDirective &&
             directive.uri == uriNode &&
             offset >= uriNode.contentsOffset) {
@@ -410,7 +410,7 @@ class DartCompletionRequest {
 
     // TODO(scheglov): Can we make it better?
     String fromToken(Token token) {
-      final lexeme = token.lexeme;
+      var lexeme = token.lexeme;
       if (offset >= token.offset && offset < token.end) {
         return lexeme.substring(0, offset - token.offset);
       } else if (offset == token.end) {

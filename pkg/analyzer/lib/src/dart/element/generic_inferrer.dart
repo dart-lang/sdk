@@ -686,7 +686,7 @@ class GenericInferrer {
         if (element is VariableElement) {
           // For variable elements, we check their type and possible alias type.
           var type = element.type;
-          final typeElement = type is InterfaceType ? type.element : null;
+          var typeElement = type is InterfaceType ? type.element : null;
           if (typeElement != null && typeElement.hasOptionalTypeArgs) {
             return;
           }

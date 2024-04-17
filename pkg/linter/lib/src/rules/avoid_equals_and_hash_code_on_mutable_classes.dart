@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
+import '../extensions.dart';
 
 const _desc =
     r'Avoid overloading operator == and hashCode on classes not marked `@immutable`.';
@@ -95,24 +96,31 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
+    if (node.isAugmentation) return;
+
     if (node.name.type == TokenType.EQ_EQ || isHashCode(node)) {
-      var classElement = _getClassForMethod(node);
-      if (classElement != null && !_hasImmutableAnnotation(classElement)) {
+      var classElement = node.classElement;
+      if (classElement != null && !classElement.hasImmutableAnnotation) {
         rule.reportLintForToken(node.firstTokenAfterCommentAndMetadata,
             arguments: [node.name.lexeme]);
       }
     }
   }
+}
 
-  ClassElement? _getClassForMethod(MethodDeclaration node) =>
-      // TODO(pq): should this be ClassOrMixinDeclaration ?
-      node.thisOrAncestorOfType<ClassDeclaration>()?.declaredElement;
-
-  bool _hasImmutableAnnotation(ClassElement clazz) {
+extension on ClassElement {
+  bool get hasImmutableAnnotation {
+    // TODO(pq): consider augmentations? https://github.com/dart-lang/linter/issues/4939
     var inheritedAndSelfElements = <InterfaceElement>[
-      ...clazz.allSupertypes.map((t) => t.element),
-      clazz,
+      ...allSupertypes.map((t) => t.element),
+      this,
     ];
     return inheritedAndSelfElements.any((e) => e.hasImmutable);
   }
+}
+
+extension on MethodDeclaration {
+  ClassElement? get classElement =>
+      // TODO(pq): should this be ClassOrMixinDeclaration ?
+      thisOrAncestorOfType<ClassDeclaration>()?.declaredElement;
 }

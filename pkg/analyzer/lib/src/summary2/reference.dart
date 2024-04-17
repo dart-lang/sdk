@@ -48,7 +48,7 @@ class Reference {
   Reference._(this.parent, this.name);
 
   Iterable<Reference> get children {
-    final childrenUnion = _childrenUnion;
+    var childrenUnion = _childrenUnion;
     if (childrenUnion == null) return const [];
     if (childrenUnion is Reference) return [childrenUnion];
     return (childrenUnion as Map<String, Reference>).values;
@@ -101,7 +101,7 @@ class Reference {
   Reference? operator [](String name) {
     name = _rewriteDartUi(name);
 
-    final childrenUnion = _childrenUnion;
+    var childrenUnion = _childrenUnion;
     if (childrenUnion == null) return null;
     if (childrenUnion is Reference) {
       if (childrenUnion.name == name) return childrenUnion;
@@ -119,7 +119,7 @@ class Reference {
   /// existing child is transferred to it and renamed to `0`, then a new child
   /// is added with name `1`. Additional duplicate children get names `2`, etc.
   Reference addChild(String name) {
-    final child = Reference._(null, name);
+    var child = Reference._(null, name);
     addChildReference(name, child);
     return child;
   }
@@ -128,7 +128,7 @@ class Reference {
   void addChildReference(String name, Reference child) {
     child.parent = this;
 
-    final existing = this[name];
+    var existing = this[name];
 
     // If not a duplicate.
     if (existing == null) {
@@ -157,7 +157,7 @@ class Reference {
   Reference getChild(String name) {
     name = _rewriteDartUi(name);
 
-    final childrenUnion = _childrenUnion;
+    var childrenUnion = _childrenUnion;
     if (childrenUnion == null) {
       // 0 -> 1 children.
       return _childrenUnion = Reference._(this, name);
@@ -166,7 +166,7 @@ class Reference {
       if (childrenUnion.name == name) return childrenUnion;
 
       // 1 -> 2 children.
-      final childrenUnionAsMap = _childrenUnion = <String, Reference>{};
+      var childrenUnionAsMap = _childrenUnion = <String, Reference>{};
       childrenUnionAsMap[childrenUnion.name] = childrenUnion;
       return childrenUnionAsMap[name] = Reference._(this, name);
     }
@@ -177,7 +177,7 @@ class Reference {
   Reference? removeChild(String name) {
     name = _rewriteDartUi(name);
 
-    final childrenUnion = _childrenUnion;
+    var childrenUnion = _childrenUnion;
     if (childrenUnion == null) return null;
     if (childrenUnion is Reference) {
       if (childrenUnion.name == name) {
@@ -187,8 +187,8 @@ class Reference {
       }
       return null;
     }
-    final childrenUnionAsMap = childrenUnion as Map<String, Reference>;
-    final result = childrenUnionAsMap.remove(name);
+    var childrenUnionAsMap = childrenUnion as Map<String, Reference>;
+    var result = childrenUnionAsMap.remove(name);
     if (childrenUnionAsMap.length == 1) {
       // 2 -> 1 children.
       _childrenUnion = childrenUnionAsMap.values.single;
@@ -200,7 +200,7 @@ class Reference {
   String toString() => parent == null ? 'root' : '$parent::$name';
 
   void _addChild(String name, Reference child) {
-    final childrenUnion = _childrenUnion;
+    var childrenUnion = _childrenUnion;
     if (childrenUnion == null) {
       // 0 -> 1 children.
       _childrenUnion = child;
@@ -208,7 +208,7 @@ class Reference {
     }
     if (childrenUnion is Reference) {
       // 1 -> 2 children.
-      final childrenUnionAsMap = _childrenUnion = <String, Reference>{};
+      var childrenUnionAsMap = _childrenUnion = <String, Reference>{};
       childrenUnionAsMap[childrenUnion.name] = childrenUnion;
       childrenUnionAsMap[name] = child;
       return;

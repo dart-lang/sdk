@@ -17,6 +17,42 @@ class HashAndEqualsTest extends LintRuleTest {
   @override
   String get lintRule => 'hash_and_equals';
 
+  test_augmentedClass_augmentation() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+
+class A {
+  int get hashCode => 0;
+}
+''');
+
+    await assertNoDiagnostics(r'''
+augment library 'a.dart';
+
+augment class A {
+  bool operator ==(Object other) => false;
+}
+''');
+  }
+
+  test_augmentedClass_augmentation_missingHash() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+
+class A { }
+''');
+
+    await assertDiagnostics(r'''
+augment library 'a.dart';
+
+augment class A {
+  bool operator ==(Object other) => false;
+}
+''', [
+      lint(61, 2),
+    ]);
+  }
+
   test_enum_missingHash() async {
     await assertDiagnostics(r'''
 enum A {

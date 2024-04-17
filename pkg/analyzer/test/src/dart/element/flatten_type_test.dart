@@ -124,12 +124,12 @@ class FlattenTypeTest extends AbstractTypeSystemTest {
   }
 
   test_unknownInferredType() {
-    final type = UnknownInferredType.instance;
+    var type = UnknownInferredType.instance;
     expect(typeSystem.flatten(type), same(type));
   }
 
   void _check(DartType T, String expected) {
-    final result = typeSystem.flatten(T);
+    var result = typeSystem.flatten(T);
     expect(
       result.getDisplayString(),
       expected,
@@ -148,7 +148,7 @@ class FutureTypeTest extends AbstractTypeSystemTest {
   }
 
   test_implements_Future() {
-    final A = class_(name: 'A', interfaces: [
+    var A = class_(name: 'A', interfaces: [
       futureNone(intNone),
     ]);
 
@@ -245,7 +245,7 @@ class FutureTypeTest extends AbstractTypeSystemTest {
   }
 
   void _check(DartType T, String? expected) {
-    final result = typeSystem.futureType(T);
+    var result = typeSystem.futureType(T);
     if (result == null) {
       expect(expected, isNull);
     } else {

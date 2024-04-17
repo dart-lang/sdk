@@ -31,12 +31,12 @@ class RemoveUnnecessaryNew extends _RemoveNew {
 class _RemoveNew extends ParsedCorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final creation = node;
+    var creation = node;
     if (creation is! InstanceCreationExpression) {
       return;
     }
 
-    final newToken = creation.keyword;
+    var newToken = creation.keyword;
     if (newToken == null) {
       return;
     }

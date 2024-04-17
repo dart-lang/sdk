@@ -42,16 +42,16 @@ List<AnalysisError> validatePubspec({
   required ResourceProvider provider,
   AnalysisOptions? analysisOptions,
 }) {
-  final recorder = RecordingErrorListener();
+  var recorder = RecordingErrorListener();
   ErrorReporter reporter = ErrorReporter(recorder, source);
-  final ctx = PubspecValidationContext._(
+  var ctx = PubspecValidationContext._(
     contents: contents,
     source: source,
     reporter: reporter,
     provider: provider,
   );
 
-  for (final validator in _pubspecValidators) {
+  for (var validator in _pubspecValidators) {
     validator(ctx);
   }
   if (analysisOptions != null && analysisOptions.lint) {
@@ -72,8 +72,8 @@ List<AnalysisError> validatePubspec({
       }
     }
   }
-  final lineInfo = LineInfo.fromContent(source.contents.data);
-  final ignoreInfo = IgnoreInfo.forYaml(source.contents.data, lineInfo);
+  var lineInfo = LineInfo.fromContent(source.contents.data);
+  var ignoreInfo = IgnoreInfo.forYaml(source.contents.data, lineInfo);
 
   return recorder.errors.where((error) => !ignoreInfo.ignored(error)).toList();
 }
@@ -161,7 +161,7 @@ final class PubspecValidationContext {
     List<DiagnosticMessage>? messages,
     Object? data,
   ]) {
-    final span = node.span;
+    var span = node.span;
     reporter.atOffset(
       offset: span.start.offset,
       length: span.length,

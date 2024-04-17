@@ -102,6 +102,12 @@ class A<T> {
 ''');
   }
 
+  test_recordType() async {
+    await _assertConst(r'''
+(int, ) x;
+''');
+  }
+
   test_typeParameter_ofClass() async {
     await _assertPotentiallyConst(r'''
 class A<T> {
@@ -128,11 +134,8 @@ void foo<T>() {
 
   test_typeParameter_ofFunctionType() async {
     await _assertPotentiallyConst('''
-class A<U> {
-  const A();
-  void foo() {
-    void Function<X>(X) x;
-  }
+void foo() {
+  void Function<X>(X) x;
 }
 ''');
   }

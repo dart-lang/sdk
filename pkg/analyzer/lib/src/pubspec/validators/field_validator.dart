@@ -15,7 +15,7 @@ const _deprecatedFields = [
 
 /// Validate fields.
 void fieldValidator(PubspecValidationContext ctx) {
-  final contents = ctx.contents;
+  var contents = ctx.contents;
   if (contents is! YamlMap) {
     return;
   }

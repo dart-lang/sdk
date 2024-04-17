@@ -1430,11 +1430,11 @@ class RelevanceMetricsComputer {
   /// If [corpus] is true, treat rootPath as a container of packages, creating
   /// a new context collection for each subdirectory.
   Future<void> compute(String rootPath, {required bool verbose}) async {
-    final collection = AnalysisContextCollection(
+    var collection = AnalysisContextCollection(
       includedPaths: [rootPath],
       resourceProvider: PhysicalResourceProvider.INSTANCE,
     );
-    final collector = RelevanceDataCollector(data);
+    var collector = RelevanceDataCollector(data);
     for (var context in collection.contexts) {
       await _computeInContext(context.contextRoot, collector, verbose: verbose);
     }
@@ -1448,7 +1448,7 @@ class RelevanceMetricsComputer {
       ContextRoot root, RelevanceDataCollector collector,
       {required bool verbose}) async {
     // Create a new collection to avoid consuming large quantities of memory.
-    final collection = AnalysisContextCollection(
+    var collection = AnalysisContextCollection(
       includedPaths: root.includedPaths.toList(),
       excludedPaths: root.excludedPaths.toList(),
       resourceProvider: PhysicalResourceProvider.INSTANCE,

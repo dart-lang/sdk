@@ -132,7 +132,7 @@ class FileSystemState_PubPackageTest extends PubPackageResolutionTest {
   }
 
   FileState fileStateForUriStr(String uriStr) {
-    final uri = Uri.parse(uriStr);
+    var uri = Uri.parse(uriStr);
     return fileStateForUri(uri);
   }
 
@@ -141,10 +141,10 @@ class FileSystemState_PubPackageTest extends PubPackageResolutionTest {
   }
 
   test_libraryCycle() {
-    final a = newFile('$testPackageLibPath/a.dart', '');
-    final b = newFile('$testPackageLibPath/b.dart', '');
-    final c = newFile('$testPackageLibPath/c.dart', '');
-    final d = newFile('$testPackageLibPath/d.dart', '');
+    var a = newFile('$testPackageLibPath/a.dart', '');
+    var b = newFile('$testPackageLibPath/b.dart', '');
+    var c = newFile('$testPackageLibPath/c.dart', '');
+    var d = newFile('$testPackageLibPath/d.dart', '');
 
     fileStateFor(a);
     fileStateFor(b);
@@ -464,7 +464,7 @@ elementFactory
   }
 
   test_libraryCycle_cycle_export() {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 export 'b.dart';
 ''');
 
@@ -546,7 +546,7 @@ elementFactory
   }
 
   test_libraryCycle_cycle_import() {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 import 'b.dart';
 ''');
 
@@ -665,7 +665,7 @@ augment library 'a.dart';
 import augment 'c.dart';
 ''');
 
-    final c = newFile('$testPackageLibPath/c.dart', r'''
+    var c = newFile('$testPackageLibPath/c.dart', r'''
 augment library 'b.dart';
 ''');
 
@@ -722,7 +722,7 @@ augment library 'a.dart';
 import augment 'c.dart';
 ''');
 
-    final c = newFile('$testPackageLibPath/c.dart', r'''
+    var c = newFile('$testPackageLibPath/c.dart', r'''
 augment library 'b.dart';
 ''');
 
@@ -779,7 +779,7 @@ import augment 'b.dart';
 augment library 'a.dart';
 ''');
 
-    final c = newFile('$testPackageLibPath/c.dart', r'''
+    var c = newFile('$testPackageLibPath/c.dart', r'''
 augment library 'b.dart';
 ''');
 
@@ -829,7 +829,7 @@ elementFactory
   }
 
   test_newFile_augmentation_cycle1_augmentSelf() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 import augment 'b.dart';
 ''');
 
@@ -876,7 +876,7 @@ elementFactory
   }
 
   test_newFile_augmentation_cycle2() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 import augment 'b.dart';
 ''');
 
@@ -940,7 +940,7 @@ elementFactory
   }
 
   test_newFile_augmentation_invalidRelativeUri() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 augment library 'da:';
 ''');
 
@@ -966,7 +966,7 @@ elementFactory
 import augment 'b.dart';
 ''');
 
-    final b = newFile('$testPackageLibPath/b.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
 augment library 'a.dart';
 ''');
 
@@ -1005,9 +1005,9 @@ elementFactory
   }
 
   test_newFile_augmentation_libraryExists_noImport() async {
-    final a = newFile('$testPackageLibPath/a.dart', '');
+    var a = newFile('$testPackageLibPath/a.dart', '');
 
-    final b = newFile('$testPackageLibPath/b.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
 augment library 'a.dart';
 ''');
 
@@ -1074,7 +1074,7 @@ elementFactory
   }
 
   test_newFile_augmentation_noRelativeUri() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 augment library ':net';
 ''');
 
@@ -1095,7 +1095,7 @@ elementFactory
   }
 
   test_newFile_augmentation_noRelativeUriStr() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 augment library '${'foo.dart'}';
 ''');
 
@@ -1116,7 +1116,7 @@ elementFactory
   }
 
   test_newFile_augmentation_noSource() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 augment library 'foo:bar';
 ''');
 
@@ -1137,7 +1137,7 @@ elementFactory
   }
 
   test_newFile_augmentation_targetNotExists() async {
-    final b = newFile('$testPackageLibPath/b.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
 augment library 'a.dart';
 ''');
 
@@ -1173,11 +1173,11 @@ elementFactory
   }
 
   test_newFile_augmentation_twoLibraries() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 import augment 'c.dart';
 ''');
 
-    final b = newFile('$testPackageLibPath/b.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
 import augment 'c.dart';
 ''');
 
@@ -1185,7 +1185,7 @@ import augment 'c.dart';
 augment library 'a.dart';
 ''');
 
-    final aState = fileStateFor(a);
+    var aState = fileStateFor(a);
 
     // We use the URI from `library augment` to find the augmentation target.
     assertDriverStateString(testFile, r'''
@@ -1220,7 +1220,7 @@ elementFactory
 ''');
 
     // Reading `b.dart` does not update the augmentation.
-    final bState = fileStateFor(b);
+    var bState = fileStateFor(b);
     assertDriverStateString(testFile, r'''
 files
   /home/test/lib/a.dart
@@ -1500,9 +1500,9 @@ elementFactory
   }
 
   test_newFile_doesNotExist() {
-    final a = getFile('$testPackageLibPath/a.dart');
+    var a = getFile('$testPackageLibPath/a.dart');
 
-    final file = fileStateFor(a);
+    var file = fileStateFor(a);
     expect(file.path, a.path);
     expect(file.uri, Uri.parse('package:test/a.dart'));
     expect(file.content, '');
@@ -1528,7 +1528,7 @@ elementFactory
   }
 
   test_newFile_hasLibraryDirective_hasPartOfDirective() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 library L;
 part of L;
 ''');
@@ -1556,7 +1556,7 @@ elementFactory
   }
 
   test_newFile_library_augmentations_emptyUri() {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 import augment '';
 ''');
 
@@ -1592,7 +1592,7 @@ augment library 'c.dart';
 import 'a.dart';
 ''');
 
-    final c = newFile('$testPackageLibPath/c.dart', r'''
+    var c = newFile('$testPackageLibPath/c.dart', r'''
 import augment 'b.dart';
 ''');
 
@@ -1660,7 +1660,7 @@ augment library 'd.dart';
 import augment 'b.dart';
 ''');
 
-    final d = newFile('$testPackageLibPath/d.dart', r'''
+    var d = newFile('$testPackageLibPath/d.dart', r'''
 import augment 'c.dart';
 ''');
 
@@ -1729,7 +1729,7 @@ elementFactory
   }
 
   test_newFile_library_augmentations_noRelativeUri() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 import augment ':net';
 ''');
 
@@ -1757,7 +1757,7 @@ elementFactory
   }
 
   test_newFile_library_augmentations_noRelativeUriStr() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 import augment '${'foo.dart'}';
 ''');
 
@@ -1785,7 +1785,7 @@ elementFactory
   }
 
   test_newFile_library_augmentations_noSource() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 import augment 'foo:bar';
 ''');
 
@@ -1813,12 +1813,12 @@ elementFactory
   }
 
   test_newFile_library_dartCore() async {
-    final core = fsStateFor(testFile).getFileForUri(
+    var core = fsStateFor(testFile).getFileForUri(
       Uri.parse('dart:core'),
     );
 
-    final coreKind = core.file.kind as LibraryFileKind;
-    for (final import in coreKind.libraryImports) {
+    var coreKind = core.file.kind as LibraryFileKind;
+    for (var import in coreKind.libraryImports) {
       if (import.isSyntheticDartCore) {
         fail('dart:core should not import itself');
       }
@@ -1826,7 +1826,7 @@ elementFactory
   }
 
   test_newFile_library_docImports() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 /// @docImport 'dart:async';
 /// @docImport 'dart:math';
 library;
@@ -1863,7 +1863,7 @@ elementFactory
 augment library 'a.dart';
 ''');
 
-    final c = newFile('$testPackageLibPath/c.dart', r'''
+    var c = newFile('$testPackageLibPath/c.dart', r'''
 export 'b.dart';
 ''');
 
@@ -1913,7 +1913,7 @@ elementFactory
   }
 
   test_newFile_library_exports_dart() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 export 'dart:async';
 export 'dart:math';
 ''');
@@ -1943,7 +1943,7 @@ elementFactory
   }
 
   test_newFile_library_exports_emptyUri() {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 export '';
 ''');
 
@@ -1979,7 +1979,7 @@ elementFactory
     ];
     sdkSummaryFile = await writeSdkSummary();
 
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 export 'dart:async';
 export 'package:foo/foo.dart';
 export 'b.dart';
@@ -2035,7 +2035,7 @@ elementFactory
     ];
     sdkSummaryFile = await writeSdkSummary();
 
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 export 'package:foo/foo2.dart';
 export 'b.dart';
 ''');
@@ -2081,7 +2081,7 @@ elementFactory
   }
 
   test_newFile_library_exports_noRelativeUri() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 export ':net';
 ''');
 
@@ -2109,7 +2109,7 @@ elementFactory
   }
 
   test_newFile_library_exports_noRelativeUriStr() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 export '${'foo.dart'}';
 ''');
 
@@ -2137,7 +2137,7 @@ elementFactory
   }
 
   test_newFile_library_exports_noSource() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 export 'foo:bar';
 ''');
 
@@ -2165,7 +2165,7 @@ elementFactory
   }
 
   test_newFile_library_exports_package() async {
-    final c = newFile('$testPackageLibPath/c.dart', r'''
+    var c = newFile('$testPackageLibPath/c.dart', r'''
 export 'a.dart';
 export 'package:test/b.dart';
 ''');
@@ -2227,7 +2227,7 @@ elementFactory
 part of my.lib;
 ''');
 
-    final b = newFile('$testPackageLibPath/b.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
 export 'a.dart';
 ''');
 
@@ -2267,7 +2267,7 @@ elementFactory
 augment library 'a.dart';
 ''');
 
-    final c = newFile('$testPackageLibPath/c.dart', r'''
+    var c = newFile('$testPackageLibPath/c.dart', r'''
 import 'b.dart';
 ''');
 
@@ -2316,7 +2316,7 @@ elementFactory
   }
 
   test_newFile_library_imports_emptyUri() {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 import '';
 ''');
 
@@ -2344,7 +2344,7 @@ elementFactory
   }
 
   test_newFile_library_imports_library_dart() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 import 'dart:async';
 import 'dart:math';
 ''');
@@ -2373,7 +2373,7 @@ elementFactory
   }
 
   test_newFile_library_imports_library_dart_explicitDartCore() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 import 'dart:core';
 import 'dart:math';
 ''');
@@ -2408,7 +2408,7 @@ elementFactory
     ];
     sdkSummaryFile = await writeSdkSummary();
 
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 import 'dart:async';
 import 'package:foo/foo.dart';
 import 'b.dart';
@@ -2463,7 +2463,7 @@ elementFactory
     ];
     sdkSummaryFile = await writeSdkSummary();
 
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 import 'package:foo/foo2.dart';
 import 'b.dart';
 ''');
@@ -2511,7 +2511,7 @@ elementFactory
     newFile('$testPackageLibPath/a.dart', '');
     newFile('$testPackageLibPath/b.dart', '');
 
-    final c = newFile('$testPackageLibPath/c.dart', r'''
+    var c = newFile('$testPackageLibPath/c.dart', r'''
 import 'a.dart';
 import 'package:test/b.dart';
 ''');
@@ -2570,7 +2570,7 @@ elementFactory
   test_newFile_library_imports_library_package_twice() async {
     newFile('$testPackageLibPath/a.dart', '');
 
-    final b = newFile('$testPackageLibPath/b.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
 import 'a.dart';
 import 'a.dart';
 ''');
@@ -2613,7 +2613,7 @@ elementFactory
   }
 
   test_newFile_library_imports_noRelativeUri() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 import ':net';
 ''');
 
@@ -2640,7 +2640,7 @@ elementFactory
   }
 
   test_newFile_library_imports_noRelativeUriStr() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 import '${'foo.dart'}';
 ''');
 
@@ -2667,7 +2667,7 @@ elementFactory
   }
 
   test_newFile_library_imports_noSource() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 import 'foo:bar';
 ''');
 
@@ -2698,7 +2698,7 @@ elementFactory
 part of my.lib;
 ''');
 
-    final b = newFile('$testPackageLibPath/b.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
 import 'a.dart';
 ''');
 
@@ -2733,7 +2733,7 @@ elementFactory
   }
 
   test_newFile_library_includePart_withoutPartOf() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';
 ''');
 
@@ -2741,7 +2741,7 @@ part 'b.dart';
 // no part of
 ''');
 
-    final aState = fileStateFor(a);
+    var aState = fileStateFor(a);
 
     assertDriverStateString(testFile, r'''
 files
@@ -2813,7 +2813,7 @@ elementFactory
   }
 
   test_newFile_library_parts_emptyUri() {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 part '';
 ''');
 
@@ -2842,7 +2842,7 @@ elementFactory
   }
 
   test_newFile_library_parts_invalidUri_cannotParse() {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 part 'da:';
 ''');
 
@@ -2870,7 +2870,7 @@ elementFactory
   }
 
   test_newFile_library_parts_invalidUri_interpolation() {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 part '${'foo.dart'}';
 ''');
 
@@ -2898,17 +2898,17 @@ elementFactory
   }
 
   test_newFile_library_parts_ofUri_two() {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 part of 'c.dart';
 class A {}
 ''');
 
-    final b = newFile('$testPackageLibPath/b.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
 part of 'c.dart';
 class B {}
 ''');
 
-    final c = newFile('$testPackageLibPath/c.dart', r'''
+    var c = newFile('$testPackageLibPath/c.dart', r'''
 part 'a.dart';
 part 'b.dart';
 ''');
@@ -3040,7 +3040,7 @@ elementFactory
   }
 
   test_newFile_libraryDirective() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 library my;
 ''');
 
@@ -3067,7 +3067,7 @@ elementFactory
   }
 
   test_newFile_noDirectives() async {
-    final a = newFile('$testPackageLibPath/a.dart', '');
+    var a = newFile('$testPackageLibPath/a.dart', '');
 
     fileStateFor(a);
 
@@ -3091,12 +3091,12 @@ elementFactory
   }
 
   test_newFile_partOfName() async {
-    final a = newFile('$testPackageLibPath/nested/a.dart', r'''
+    var a = newFile('$testPackageLibPath/nested/a.dart', r'''
 library my.lib;
 part '../b.dart';
 ''');
 
-    final b = newFile('$testPackageLibPath/b.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
 part of my.lib;
 ''');
 
@@ -3153,12 +3153,12 @@ elementFactory
   }
 
   test_newFile_partOfName_differentName() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 library my.lib;
 part 'b.dart';
 ''');
 
-    final b = newFile('$testPackageLibPath/b.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
 part of other.lib;
 ''');
 
@@ -3230,19 +3230,19 @@ elementFactory
   }
 
   test_newFile_partOfName_discoverSiblingLibrary() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 library my.lib;
 part 'b.dart';
 ''');
 
-    final b = newFile('$testPackageLibPath/b.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
 part of my.lib;
 ''');
 
-    final bState = fileStateFor(b);
+    var bState = fileStateFor(b);
 
     // The library is discovered by looking at sibling files.
-    final bKind = bState.kind as PartOfNameFileKind;
+    var bKind = bState.kind as PartOfNameFileKind;
     expect(bKind.library?.file.resource, a);
 
     assertDriverStateString(testFile, r'''
@@ -3277,12 +3277,12 @@ elementFactory
   }
 
   test_newFile_partOfName_twoLibraries() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 library my.lib;
 part 'c.dart';
 ''');
 
-    final b = newFile('$testPackageLibPath/b.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
 library my.lib;
 part 'c.dart';
 ''');
@@ -3291,7 +3291,7 @@ part 'c.dart';
 part of my.lib;
 ''');
 
-    final aState = fileStateFor(a);
+    var aState = fileStateFor(a);
 
     // When reading `a.dart` we also read `c.dart` part.
     assertDriverStateString(testFile, r'''
@@ -3326,7 +3326,7 @@ elementFactory
 
     // After reading `b.dart` the part has two libraries to choose from.
     // We still keep `a.dart`, because its path is sorted first.
-    final bState = fileStateFor(b);
+    var bState = fileStateFor(b);
     assertDriverStateString(testFile, r'''
 files
   /home/test/lib/a.dart
@@ -3652,13 +3652,13 @@ elementFactory
   }
 
   test_newFile_partOfUri_doesNotExist() async {
-    final a = getFile('$testPackageLibPath/a.dart');
+    var a = getFile('$testPackageLibPath/a.dart');
 
-    final b = newFile('$testPackageLibPath/b.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
 part of 'a.dart';
 ''');
 
-    final bState = fileStateFor(b);
+    var bState = fileStateFor(b);
 
     // The URI in `part of URI` tells us which library to use.
     // However it does not exist, so it does not include the file, so the
@@ -3695,7 +3695,7 @@ part 'b.dart';
 
     // The library file has already been read because of `part of uri`.
     // So, we explicitly refresh it.
-    final aState = fileStateFor(a);
+    var aState = fileStateFor(a);
     aState.refresh();
 
     // Now the part file knows its library.
@@ -3763,11 +3763,11 @@ elementFactory
 part 'b.dart';
 ''');
 
-    final b = newFile('$testPackageLibPath/b.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
 part of 'a.dart';
 ''');
 
-    final bState = fileStateFor(b);
+    var bState = fileStateFor(b);
 
     // We have not read the library file explicitly yet.
     // But it was read because of the `part of` directive.
@@ -3831,9 +3831,9 @@ elementFactory
   }
 
   test_newFile_partOfUri_exists_noPart() async {
-    final a = newFile('$testPackageLibPath/a.dart', '');
+    var a = newFile('$testPackageLibPath/a.dart', '');
 
-    final b = newFile('$testPackageLibPath/b.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
 part of 'a.dart';
 ''');
 
@@ -3870,7 +3870,7 @@ elementFactory
   }
 
   test_newFile_partOfUri_invalid() async {
-    final b = newFile('$testPackageLibPath/b.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
 part of 'da:';
 ''');
 
@@ -3892,7 +3892,7 @@ elementFactory
 
     // Reading a library that includes this part does not change the fact
     // that the URI in the `part of URI` in `b.dart` cannot be resolved.
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';
 ''');
     fileStateFor(a);
@@ -3926,11 +3926,11 @@ elementFactory
   }
 
   test_newFile_partOfUri_twoLibraries() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 part 'c.dart';
 ''');
 
-    final b = newFile('$testPackageLibPath/b.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
 part 'c.dart';
 ''');
 
@@ -3938,7 +3938,7 @@ part 'c.dart';
 part of 'a.dart';
 ''');
 
-    final aState = fileStateFor(a);
+    var aState = fileStateFor(a);
 
     // We set the library while reading `a.dart` file.
     assertDriverStateString(testFile, r'''
@@ -3970,7 +3970,7 @@ elementFactory
 ''');
 
     // Reading `b.dart` does not update the part.
-    final bState = fileStateFor(b);
+    var bState = fileStateFor(b);
     assertDriverStateString(testFile, r'''
 files
   /home/test/lib/a.dart
@@ -4279,12 +4279,12 @@ elementFactory
   }
 
   test_refresh_augmentation_renameClass() {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 augment library 'b.dart';
 class A {}
 ''');
 
-    final b = newFile('$testPackageLibPath/b.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
 import augment 'a.dart';
 ''');
 
@@ -4363,15 +4363,15 @@ elementFactory
   }
 
   test_refresh_augmentation_to_library() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 import augment 'b.dart';
 ''');
 
-    final b = newFile('$testPackageLibPath/b.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
 augment library 'a.dart';
 ''');
 
-    final aState = fileStateFor(a);
+    var aState = fileStateFor(a);
     assertDriverStateString(testFile, r'''
 files
   /home/test/lib/a.dart
@@ -4479,16 +4479,16 @@ elementFactory
   }
 
   test_refresh_augmentation_to_partOfName() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 library my.lib;
 import augment 'b.dart';
 ''');
 
-    final b = newFile('$testPackageLibPath/b.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
 augment library 'a.dart';
 ''');
 
-    final aState = fileStateFor(a);
+    var aState = fileStateFor(a);
 
     assertDriverStateString(testFile, r'''
 files
@@ -4532,7 +4532,7 @@ part of my.lib;
     // But the library does not include this part, so no library.
     //
     // But `a.dart` still uses `b.dart` as an augmentation.
-    final bState = fileStateFor(b);
+    var bState = fileStateFor(b);
     bState.refresh();
     assertDriverStateString(testFile, r'''
 files
@@ -4636,15 +4636,15 @@ elementFactory
   }
 
   test_refresh_augmentation_to_partOfUri() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 import augment 'b.dart';
 ''');
 
-    final b = newFile('$testPackageLibPath/b.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
 augment library 'a.dart';
 ''');
 
-    final aState = fileStateFor(a);
+    var aState = fileStateFor(a);
     assertDriverStateString(testFile, r'''
 files
   /home/test/lib/a.dart
@@ -4683,7 +4683,7 @@ part of 'a.dart';
 
     // Not an augmentation anymore, but a part.
     // But `a.dart` still uses `b.dart` as an augmentation.
-    final bState = fileStateFor(b);
+    var bState = fileStateFor(b);
     bState.refresh();
     assertDriverStateString(testFile, r'''
 files
@@ -4780,7 +4780,7 @@ elementFactory
   }
 
   test_refresh_library_importedBy_augmentation() {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 class A {}
 ''');
 
@@ -4789,7 +4789,7 @@ augment library 'c.dart';
 import 'a.dart';
 ''');
 
-    final c = newFile('$testPackageLibPath/c.dart', r'''
+    var c = newFile('$testPackageLibPath/c.dart', r'''
 import augment 'b.dart';
 ''');
 
@@ -4906,13 +4906,13 @@ part of my;
 part of my;
 ''');
 
-    final c = newFile('$testPackageLibPath/c.dart', r'''
+    var c = newFile('$testPackageLibPath/c.dart', r'''
 library my;
 part 'a.dart';
 part 'b.dart';
 ''');
 
-    final cState = fileStateFor(c);
+    var cState = fileStateFor(c);
 
     // Both part files know the library.
     assertDriverStateString(testFile, r'''
@@ -5010,12 +5010,12 @@ part of 'c.dart';
 part of 'c.dart';
 ''');
 
-    final c = newFile('$testPackageLibPath/c.dart', r'''
+    var c = newFile('$testPackageLibPath/c.dart', r'''
 part 'a.dart';
 part 'b.dart';
 ''');
 
-    final cState = fileStateFor(c);
+    var cState = fileStateFor(c);
 
     // Both part files know the library.
     assertDriverStateString(testFile, r'''
@@ -5100,11 +5100,11 @@ elementFactory
   }
 
   test_refresh_library_to_augmentation() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 import augment 'b.dart';
 ''');
 
-    final b = newFile('$testPackageLibPath/b.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
 library b;
 ''');
 
@@ -5184,13 +5184,13 @@ elementFactory
   }
 
   test_refresh_library_to_partOfName() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 library my.lib;
 part 'b.dart';
 ''');
 
     // No `part of`, so it is a library.
-    final b = newFile('$testPackageLibPath/b.dart', '');
+    var b = newFile('$testPackageLibPath/b.dart', '');
 
     fileStateFor(a);
     assertDriverStateString(testFile, r'''
@@ -5266,11 +5266,11 @@ elementFactory
   }
 
   test_refresh_library_to_partOfName_noLibrary() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 library my;
 ''');
 
-    final aState = fileStateFor(a);
+    var aState = fileStateFor(a);
 
     assertDriverStateString(testFile, r'''
 files
@@ -5313,11 +5313,11 @@ elementFactory
   }
 
   test_refresh_library_to_partOfUri() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';
 ''');
 
-    final b = newFile('$testPackageLibPath/b.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
 library b;
 ''');
 
@@ -5394,17 +5394,17 @@ elementFactory
   }
 
   test_refresh_partOfName_twoLibraries() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 part of my.lib;
 class A1 {}
 ''');
 
-    final b = newFile('$testPackageLibPath/b.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
 library my.lib;
 part 'a.dart';
 ''');
 
-    final c = newFile('$testPackageLibPath/c.dart', r'''
+    var c = newFile('$testPackageLibPath/c.dart', r'''
 library my.lib;
 part 'a.dart';
 ''');
@@ -5545,11 +5545,11 @@ elementFactory
   }
 
   test_refresh_partOfUri_to_library() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';
 ''');
 
-    final b = newFile('$testPackageLibPath/b.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
 part of 'a.dart';
 ''');
 
@@ -5627,16 +5627,16 @@ elementFactory
   }
 
   test_refresh_partOfUri_twoLibraries() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 part of 'b.dart';
 class A1 {}
 ''');
 
-    final b = newFile('$testPackageLibPath/b.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
 part 'a.dart';
 ''');
 
-    final c = newFile('$testPackageLibPath/c.dart', r'''
+    var c = newFile('$testPackageLibPath/c.dart', r'''
 part 'a.dart';
 ''');
 
@@ -6082,7 +6082,7 @@ class A {}
     newFile(path, r'''
 class B {}
 ''');
-    final changeKind = file.refresh();
+    var changeKind = file.refresh();
     expect(changeKind, FileStateRefreshResult.apiChanged);
 
     expect(file.definedTopLevelNames, contains('B'));
@@ -6109,7 +6109,7 @@ class C {
   }
 }
 ''');
-    final changeKind = file.refresh();
+    var changeKind = file.refresh();
     expect(changeKind, FileStateRefreshResult.contentChanged);
 
     expect(file.apiSignature, signature);

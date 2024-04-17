@@ -346,7 +346,7 @@ class DartUnitHoverComputer {
       return null;
     }
 
-    final doc = computeDocumentation(
+    var doc = computeDocumentation(
       dartdocInfo,
       element,
       includeSummary: preference == DocumentationPreference.summary,

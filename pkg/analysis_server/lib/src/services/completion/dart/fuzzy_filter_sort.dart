@@ -14,11 +14,11 @@ List<CompletionSuggestionBuilder> fuzzyFilterSort({
   required String pattern,
   required List<CompletionSuggestionBuilder> suggestions,
 }) {
-  final matchStyle =
+  var matchStyle =
       suggestions.firstOrNull?.kind == CompletionSuggestionKind.IMPORT
           ? MatchStyle.FILENAME
           : MatchStyle.SYMBOL;
-  final matcher = FuzzyMatcher(pattern, matchStyle: matchStyle);
+  var matcher = FuzzyMatcher(pattern, matchStyle: matchStyle);
 
   double score(CompletionSuggestionBuilder suggestion) {
     var textToMatch = suggestion.textToMatch;

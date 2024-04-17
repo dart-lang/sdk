@@ -20,15 +20,15 @@ main() {
 @reflectiveTest
 class LocateElementTest extends PubPackageResolutionTest {
   Future<void> assertLocation(String content) async {
-    final code = TestCode.parse(content);
+    var code = TestCode.parse(content);
     await resolveTestCode(code.code);
 
     // Get the element we'll be searching for from the marker in code.
-    final node = result.unit.nodeCovering(offset: code.position.offset);
-    final expectedElement = ElementLocator.locate(node)!;
+    var node = result.unit.nodeCovering(offset: code.position.offset);
+    var expectedElement = ElementLocator.locate(node)!;
 
     // Verify locating the element using its location finds the same element.
-    final actualElement =
+    var actualElement =
         result.libraryElement.locateElement(expectedElement.location!);
     expect(actualElement, expectedElement);
   }

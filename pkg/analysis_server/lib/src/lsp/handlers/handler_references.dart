@@ -38,10 +38,10 @@ class ReferencesHandler
       return success(const []);
     }
 
-    final pos = params.position;
-    final path = pathOfDoc(params.textDocument);
-    final unit = await path.mapResult(requireResolvedUnit);
-    final offset = unit.mapResultSync((unit) => toOffset(unit.lineInfo, pos));
+    var pos = params.position;
+    var path = pathOfDoc(params.textDocument);
+    var unit = await path.mapResult(requireResolvedUnit);
+    var offset = unit.mapResultSync((unit) => toOffset(unit.lineInfo, pos));
     return await message.performance.runAsync(
         '_getReferences',
         (performance) async => (unit, offset).mapResults((unit, offset) =>
@@ -49,14 +49,14 @@ class ReferencesHandler
   }
 
   List<Location> _getDeclarations(ParsedUnitResult result, int offset) {
-    final collector = NavigationCollectorImpl();
+    var collector = NavigationCollectorImpl();
     computeDartNavigation(
         server.resourceProvider, collector, result, offset, 0);
 
     return convert(collector.targets, (NavigationTarget target) {
-      final targetFilePath = collector.files[target.fileIndex];
-      final targetFileUri = uriConverter.toClientUri(targetFilePath);
-      final lineInfo = server.getLineInfo(targetFilePath);
+      var targetFilePath = collector.files[target.fileIndex];
+      var targetFileUri = uriConverter.toClientUri(targetFilePath);
+      var lineInfo = server.getLineInfo(targetFilePath);
       return lineInfo != null
           ? navigationTargetToLocation(targetFileUri, target, lineInfo)
           : null;
@@ -80,15 +80,15 @@ class ReferencesHandler
       return success(null);
     }
 
-    final computer = ElementReferencesComputer(server.searchEngine);
-    final session = element.session ?? result.session;
-    final results = await performance.runAsync(
+    var computer = ElementReferencesComputer(server.searchEngine);
+    var session = element.session ?? result.session;
+    var results = await performance.runAsync(
         'computer.compute',
         (childPerformance) =>
             computer.compute(element, false, performance: childPerformance));
 
     Location? toLocation(SearchMatch result) {
-      final file = session.getFile(result.file);
+      var file = session.getFile(result.file);
       if (file is! FileResult) {
         return null;
       }
@@ -102,7 +102,7 @@ class ReferencesHandler
       );
     }
 
-    final referenceResults = performance.run(
+    var referenceResults = performance.run(
         'convert', (_) => convert(results, toLocation).nonNulls.toList());
 
     if (params.context.includeDeclaration == true) {

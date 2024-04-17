@@ -57,9 +57,9 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   void visitArgumentList(ArgumentList node) {
     // Check (optional) positional arguments.
     // Named arguments are checked in [NamedExpression].
-    for (final argument in node.arguments) {
+    for (var argument in node.arguments) {
       if (argument is! NamedExpression) {
-        final parameter = argument.staticParameterElement;
+        var parameter = argument.staticParameterElement;
         _checkSinceSdkVersion(parameter, node, errorEntity: argument);
       }
     }
@@ -165,7 +165,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
     SyntacticEntity? errorEntity,
   }) {
     if (element != null) {
-      final sinceSdkVersion = element.sinceSdkVersion;
+      var sinceSdkVersion = element.sinceSdkVersion;
       if (sinceSdkVersion != null) {
         if (!_versionConstraint.requiresAtLeast(sinceSdkVersion)) {
           if (errorEntity == null) {
@@ -227,7 +227,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
         targetType = node.realTarget.staticType;
       }
       if (targetType != null) {
-        final targetElement = targetType.element;
+        var targetElement = targetType.element;
         return targetElement is ClassElement && targetElement.isDartCoreEnum;
       }
       return false;

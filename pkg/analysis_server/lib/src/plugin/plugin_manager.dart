@@ -383,7 +383,7 @@ class PluginManager {
     var plugins = pluginsForContextRoot(contextRoot);
     var responseMap = <PluginInfo, Future<Response>>{};
     for (var plugin in plugins) {
-      final request = plugin.currentSession?.sendRequest(params);
+      var request = plugin.currentSession?.sendRequest(params);
       // Only add an entry to the map if we have sent a request.
       if (request != null) {
         responseMap[plugin] = request;

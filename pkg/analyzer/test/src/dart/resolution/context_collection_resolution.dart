@@ -209,9 +209,9 @@ abstract class ContextResolutionTest
   }
 
   void assertDriverStateString(File file, String expected) {
-    final analysisDriver = driverFor(file);
+    var analysisDriver = driverFor(file);
 
-    final buffer = StringBuffer();
+    var buffer = StringBuffer();
     AnalyzerStatePrinter(
       byteStore: _byteStore,
       unlinkedUnitStore:
@@ -223,7 +223,7 @@ abstract class ContextResolutionTest
       sink: buffer,
       withKeysGetPut: false,
     ).writeAnalysisDriver(analysisDriver.testView!);
-    final actual = buffer.toString();
+    var actual = buffer.toString();
 
     if (actual != expected) {
       print(actual);
@@ -247,7 +247,7 @@ abstract class ContextResolutionTest
   }
 
   Future<void> disposeAnalysisContextCollection() async {
-    final analysisContextCollection = _analysisContextCollection;
+    var analysisContextCollection = _analysisContextCollection;
     if (analysisContextCollection != null) {
       await analysisContextCollection.dispose(
         forTesting: true,
@@ -348,26 +348,26 @@ class PubPackageResolutionTest extends ContextResolutionTest
   Future<File> buildPackageFooSummary({
     required Map<String, String> files,
   }) async {
-    final rootFolder = getFolder('$workspaceRootPath/foo');
+    var rootFolder = getFolder('$workspaceRootPath/foo');
 
     writePackageConfig(
       rootFolder.path,
       PackageConfigFileBuilder()..add(name: 'foo', rootPath: rootFolder.path),
     );
 
-    for (final entry in files.entries) {
+    for (var entry in files.entries) {
       newFile('${rootFolder.path}/${entry.key}', entry.value);
     }
 
-    final targetFile = getFile(rootFolder.path);
-    final analysisDriver = driverFor(targetFile);
-    final bundleBytes = await analysisDriver.buildPackageBundle(
+    var targetFile = getFile(rootFolder.path);
+    var analysisDriver = driverFor(targetFile);
+    var bundleBytes = await analysisDriver.buildPackageBundle(
       uriList: [
         Uri.parse('package:foo/foo.dart'),
       ],
     );
 
-    final bundleFile = getFile('/home/summaries/packages.sum');
+    var bundleFile = getFile('/home/summaries/packages.sum');
     bundleFile.writeAsBytesSync(bundleBytes);
 
     // Delete, so it is not available as a file.
@@ -415,15 +415,15 @@ class PubPackageResolutionTest extends ContextResolutionTest
     String directoryPath,
     PackageConfigFileBuilder config,
   ) {
-    final content = config.toContent(
+    var content = config.toContent(
       toUriStr: toUriStr,
     );
     newPackageConfigJsonFile(directoryPath, content);
   }
 
   Future<File> writeSdkSummary() async {
-    final file = getFile('/home/summaries/sdk.sum');
-    final bytes = await buildSdkSummary(
+    var file = getFile('/home/summaries/sdk.sum');
+    var bytes = await buildSdkSummary(
       resourceProvider: resourceProvider,
       sdkPath: sdkRoot.path,
     );

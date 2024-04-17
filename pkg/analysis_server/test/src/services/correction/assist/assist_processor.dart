@@ -43,7 +43,7 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
   @override
   void addTestSource(String code) {
     code = normalizeSource(code);
-    final eol = code.contains('\r\n') ? '\r\n' : '\n';
+    var eol = code.contains('\r\n') ? '\r\n' : '\n';
     var offset = code.indexOf('/*caret*/');
     if (offset >= 0) {
       var endOffset = offset + '/*caret*/'.length;

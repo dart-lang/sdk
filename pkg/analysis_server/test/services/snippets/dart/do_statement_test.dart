@@ -28,12 +28,12 @@ class DoStatementTest extends DartSnippetProducerTest {
   String get prefix => DoStatement.prefix;
 
   Future<void> test_do() async {
-    final code = TestCode.parse(r'''
+    var code = TestCode.parse(r'''
 void f() {
   do^
 }
 ''');
-    final snippet = await expectValidSnippet(code);
+    var snippet = await expectValidSnippet(code);
     expect(snippet.prefix, prefix);
     expect(snippet.label, label);
     expect(snippet.change.edits, hasLength(1));

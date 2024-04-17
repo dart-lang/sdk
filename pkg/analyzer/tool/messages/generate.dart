@@ -49,14 +49,14 @@ List<GeneratedContent> _analyzerGeneratedFiles() {
   return [
     for (var entry in classesByFile.entries)
       GeneratedFile(entry.key, (String pkgPath) async {
-        final codeGenerator =
+        var codeGenerator =
             _AnalyzerErrorGenerator(entry.value, generatedCodes);
         codeGenerator.generate();
         return codeGenerator.out.toString();
       }),
     GeneratedFile('lib/src/error/error_code_values.g.dart',
         (String pkgPath) async {
-      final codeGenerator = _ErrorCodeValuesGenerator(generatedCodes);
+      var codeGenerator = _ErrorCodeValuesGenerator(generatedCodes);
       codeGenerator.generate();
       return codeGenerator.out.toString();
     }),
@@ -296,7 +296,7 @@ class _SyntacticErrorGenerator {
 
   void printSummary() {
     // Build a map of error message to ParserErrorCode
-    final messageToName = <String, String>{};
+    var messageToName = <String, String>{};
     for (var entry in analyzerMessages['ParserErrorCode']!.entries) {
       String message =
           entry.value.problemMessage.replaceAll(RegExp(r'\{\d+\}'), '');
@@ -321,9 +321,9 @@ class _SyntacticErrorGenerator {
 
     // List the ParserErrorCodes that could easily be auto generated
     // but have not been already.
-    final analyzerToFasta = <String, List<String>>{};
+    var analyzerToFasta = <String, List<String>>{};
     frontEndMessages.forEach((fastaName, entry) {
-      final analyzerName = messageToName[messageFromEntryTemplate(entry)];
+      var analyzerName = messageToName[messageFromEntryTemplate(entry)];
       if (analyzerName != null) {
         analyzerToFasta
             .putIfAbsent(analyzerName, () => <String>[])
@@ -347,7 +347,7 @@ class _SyntacticErrorGenerator {
     }
 
     // List error codes in the parser that have not been translated.
-    final untranslatedFastaErrorCodes = <String>{};
+    var untranslatedFastaErrorCodes = <String>{};
     Token token = scanString(parserSource).tokens;
     while (!token.isEof) {
       if (token.isIdentifier) {
@@ -373,7 +373,7 @@ class _SyntacticErrorGenerator {
     if (untranslatedFastaErrorCodes.isNotEmpty) {
       print('');
       print('The following error codes in the parser are not auto generated:');
-      final sorted = untranslatedFastaErrorCodes.toList()..sort();
+      var sorted = untranslatedFastaErrorCodes.toList()..sort();
       for (String fastaErrorCode in sorted) {
         String analyzerCode = '';
         String problemMessage = '';

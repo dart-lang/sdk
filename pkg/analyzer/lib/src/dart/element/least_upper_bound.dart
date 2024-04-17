@@ -203,7 +203,7 @@ class InterfaceLeastUpperBoundHelper {
   /// structure.
   static int _computeLongestInheritancePathToObject(
       InterfaceType type, Set<InterfaceElement> visitedElements) {
-    final element = type.element;
+    var element = type.element;
     // recursion
     if (visitedElements.contains(element)) {
       return 0;
@@ -394,8 +394,8 @@ class LeastUpperBoundHelper {
     }
 
     // UP(X1 & B1, T2)
-    if (T1 case TypeParameterTypeImpl(promotedBound: final B1?)) {
-      final X1 = T1.withoutPromotedBound;
+    if (T1 case TypeParameterTypeImpl(promotedBound: var B1?)) {
+      var X1 = T1.withoutPromotedBound;
       // T2 if X1 <: T2
       if (_typeSystem.isSubtypeOf(X1, T2)) {
         return T2;
@@ -406,13 +406,13 @@ class LeastUpperBoundHelper {
       }
       // otherwise UP(B1a, T2)
       //   where B1a is the greatest closure of B1 with respect to X1
-      final B1a = _typeSystem.greatestClosure(B1, [X1.element]);
+      var B1a = _typeSystem.greatestClosure(B1, [X1.element]);
       return getLeastUpperBound(B1a, T2);
     }
 
     // UP(T1, X2 & B2)
-    if (T2 case TypeParameterTypeImpl(promotedBound: final B2?)) {
-      final X2 = T2.withoutPromotedBound;
+    if (T2 case TypeParameterTypeImpl(promotedBound: var B2?)) {
+      var X2 = T2.withoutPromotedBound;
       // X2 if T1 <: X2
       if (_typeSystem.isSubtypeOf(T1, X2)) {
         return X2;
@@ -423,7 +423,7 @@ class LeastUpperBoundHelper {
       }
       // otherwise UP(T1, B2a)
       //   where B2a is the greatest closure of B2 with respect to X2
-      final B2a = _typeSystem.greatestClosure(B2, [X2.element]);
+      var B2a = _typeSystem.greatestClosure(B2, [X2.element]);
       return getLeastUpperBound(T1, B2a);
     }
 
@@ -792,23 +792,23 @@ class LeastUpperBoundHelper {
   }
 
   DartType _recordType(RecordTypeImpl T1, RecordTypeImpl T2) {
-    final positional1 = T1.positionalFields;
-    final positional2 = T2.positionalFields;
+    var positional1 = T1.positionalFields;
+    var positional2 = T2.positionalFields;
     if (positional1.length != positional2.length) {
       return _typeSystem.typeProvider.recordType;
     }
 
-    final named1 = T1.namedFields;
-    final named2 = T2.namedFields;
+    var named1 = T1.namedFields;
+    var named2 = T2.namedFields;
     if (named1.length != named2.length) {
       return _typeSystem.typeProvider.recordType;
     }
 
-    final positionalFields = <RecordTypePositionalFieldImpl>[];
+    var positionalFields = <RecordTypePositionalFieldImpl>[];
     for (var i = 0; i < positional1.length; i++) {
-      final field1 = positional1[i];
-      final field2 = positional2[i];
-      final type = getLeastUpperBound(field1.type, field2.type);
+      var field1 = positional1[i];
+      var field2 = positional2[i];
+      var type = getLeastUpperBound(field1.type, field2.type);
       positionalFields.add(
         RecordTypePositionalFieldImpl(
           type: type,
@@ -816,14 +816,14 @@ class LeastUpperBoundHelper {
       );
     }
 
-    final namedFields = <RecordTypeNamedFieldImpl>[];
+    var namedFields = <RecordTypeNamedFieldImpl>[];
     for (var i = 0; i < named1.length; i++) {
-      final field1 = named1[i];
-      final field2 = named2[i];
+      var field1 = named1[i];
+      var field2 = named2[i];
       if (field1.name != field2.name) {
         return _typeSystem.typeProvider.recordType;
       }
-      final type = getLeastUpperBound(field1.type, field2.type);
+      var type = getLeastUpperBound(field1.type, field2.type);
       namedFields.add(
         RecordTypeNamedFieldImpl(
           name: field1.name,

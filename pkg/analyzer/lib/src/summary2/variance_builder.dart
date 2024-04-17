@@ -106,7 +106,7 @@ class VarianceBuilder {
       );
     } else if (type is RecordTypeBuilder) {
       var result = Variance.unrelated;
-      for (final field in type.node.fields) {
+      for (var field in type.node.fields) {
         result = result.meet(
           _compute(variable, field.type.typeOrThrow),
         );

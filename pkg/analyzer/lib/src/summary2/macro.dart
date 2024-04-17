@@ -74,13 +74,13 @@ class ExecutableMacroSupport extends MacroSupport {
     required io.File executable,
     required Set<Uri> libraries,
   }) {
-    final bundleExecutor = ExecutableBundleMacroExecutor(
+    var bundleExecutor = ExecutableBundleMacroExecutor(
       support: this,
       executable: executable,
       libraries: libraries,
     );
 
-    for (final libraryUri in libraries) {
+    for (var libraryUri in libraries) {
       _bundleExecutors[libraryUri] = bundleExecutor;
     }
   }
@@ -116,7 +116,7 @@ class KernelBundleMacroExecutor extends BundleMacroExecutor {
   @override
   void dispose() {
     support.executor.unregisterExecutorFactory(_executorFactoryToken);
-    final kernelUriCached = _kernelUriCached;
+    var kernelUriCached = _kernelUriCached;
     if (kernelUriCached != null) {
       // ignore: avoid_dynamic_calls
       (Isolate.current as dynamic).unregisterKernelBlobUri(kernelUriCached);
@@ -144,13 +144,13 @@ class KernelMacroSupport extends MacroSupport {
     required Uint8List kernelBytes,
     required Set<Uri> libraries,
   }) {
-    final bundleExecutor = KernelBundleMacroExecutor(
+    var bundleExecutor = KernelBundleMacroExecutor(
       support: this,
       kernelBytes: kernelBytes,
       libraries: libraries,
     );
 
-    for (final libraryUri in libraries) {
+    for (var libraryUri in libraries) {
       _bundleExecutors[libraryUri] = bundleExecutor;
     }
   }
@@ -187,18 +187,18 @@ class MacroKernelBuilder {
     required MacroFileSystem fileSystem,
     required List<MacroLibrary> libraries,
   }) async {
-    final macroMainContent = macro.bootstrapMacroIsolate(
+    var macroMainContent = macro.bootstrapMacroIsolate(
       {
-        for (final library in libraries)
+        for (var library in libraries)
           library.uri.toString(): {
-            for (final c in library.classes) c.name: c.constructors
+            for (var c in library.classes) c.name: c.constructors
           },
       },
       macro.SerializationMode.byteData,
     );
 
-    final macroMainPath = '${libraries.first.path}.macro';
-    final overlayFileSystem = _OverlayMacroFileSystem(fileSystem);
+    var macroMainPath = '${libraries.first.path}.macro';
+    var overlayFileSystem = _OverlayMacroFileSystem(fileSystem);
     overlayFileSystem.overlays[macroMainPath] = macroMainContent;
 
     return KernelCompilationService.compile(
@@ -242,7 +242,7 @@ class MacroSupport {
 
   /// Removes and disposes executors for all libraries.
   void removeLibraries() {
-    for (final bundleExecutor in _bundleExecutors.values) {
+    for (var bundleExecutor in _bundleExecutors.values) {
       bundleExecutor.dispose();
     }
     _bundleExecutors.clear();
@@ -250,7 +250,7 @@ class MacroSupport {
 
   /// Removes and disposes the executor for the library.
   void removeLibrary(Uri uri) {
-    final bundleExecutor = _bundleExecutors.remove(uri);
+    var bundleExecutor = _bundleExecutors.remove(uri);
     bundleExecutor?.dispose();
   }
 }
@@ -281,7 +281,7 @@ class _OverlayMacroFileSystem implements MacroFileSystem {
 
   @override
   MacroFileEntry getFile(String path) {
-    final overlayContent = overlays[path];
+    var overlayContent = overlays[path];
     if (overlayContent != null) {
       return _OverlayMacroFileEntry(overlayContent);
     }

@@ -30,7 +30,7 @@ void f() {
           2),
     ]);
 
-    final node = findNode.functionExpressionInvocation('();');
+    var node = findNode.functionExpressionInvocation('();');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: ExtensionOverride

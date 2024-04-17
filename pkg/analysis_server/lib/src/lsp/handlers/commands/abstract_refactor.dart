@@ -48,7 +48,7 @@ abstract class AbstractRefactorCommandHandler extends SimpleEditCommandHandler
   ) async {
     switch (kind) {
       case RefactoringKind.EXTRACT_METHOD:
-        final refactor = ExtractMethodRefactoring(
+        var refactor = ExtractMethodRefactoring(
             server.searchEngine, result, offset, length);
 
         var preferredName = options != null ? options['name'] as String : null;
@@ -67,7 +67,7 @@ abstract class AbstractRefactorCommandHandler extends SimpleEditCommandHandler
         return success(refactor);
 
       case RefactoringKind.EXTRACT_LOCAL_VARIABLE:
-        final refactor = ExtractLocalRefactoring(result, offset, length);
+        var refactor = ExtractLocalRefactoring(result, offset, length);
 
         var preferredName = options != null ? options['name'] as String : null;
         // checkInitialConditions will populate names with suggestions.
@@ -85,7 +85,7 @@ abstract class AbstractRefactorCommandHandler extends SimpleEditCommandHandler
         return success(refactor);
 
       case RefactoringKind.EXTRACT_WIDGET:
-        final refactor = ExtractWidgetRefactoring(
+        var refactor = ExtractWidgetRefactoring(
             server.searchEngine, result, offset, length);
         // Provide a default name for clients that do not have any custom
         // handling.
@@ -98,21 +98,21 @@ abstract class AbstractRefactorCommandHandler extends SimpleEditCommandHandler
         return success(refactor);
 
       case RefactoringKind.INLINE_LOCAL_VARIABLE:
-        final refactor =
+        var refactor =
             InlineLocalRefactoring(server.searchEngine, result, offset);
         return success(refactor);
 
       case RefactoringKind.INLINE_METHOD:
-        final refactor =
+        var refactor =
             InlineMethodRefactoring(server.searchEngine, result, offset);
         return success(refactor);
 
       case RefactoringKind.CONVERT_GETTER_TO_METHOD:
-        final node = NodeLocator(offset).searchWithin(result.unit);
-        final element = server.getElementOfNode(node);
+        var node = NodeLocator(offset).searchWithin(result.unit);
+        var element = server.getElementOfNode(node);
         if (element != null) {
           if (element is PropertyAccessorElement) {
-            final refactor = ConvertGetterToMethodRefactoring(
+            var refactor = ConvertGetterToMethodRefactoring(
                 server.refactoringWorkspace, result.session, element);
             return success(refactor);
           }
@@ -121,11 +121,11 @@ abstract class AbstractRefactorCommandHandler extends SimpleEditCommandHandler
             'Location supplied to $commandName $kind is not longer valid');
 
       case RefactoringKind.CONVERT_METHOD_TO_GETTER:
-        final node = NodeLocator(offset).searchWithin(result.unit);
-        final element = server.getElementOfNode(node);
+        var node = NodeLocator(offset).searchWithin(result.unit);
+        var element = server.getElementOfNode(node);
         if (element != null) {
           if (element is ExecutableElement) {
-            final refactor = ConvertMethodToGetterRefactoring(
+            var refactor = ConvertMethodToGetterRefactoring(
                 server.refactoringWorkspace, result.session, element);
             return success(refactor);
           }
@@ -164,12 +164,12 @@ abstract class AbstractRefactorCommandHandler extends SimpleEditCommandHandler
       ));
     }
 
-    final kind = parameters['kind'] as String;
-    final path = parameters['path'] as String;
-    final docVersion = parameters['docVersion'] as int?;
-    final offset = parameters['offset'] as int;
-    final length = parameters['length'] as int;
-    final options = parameters['options'] as Map<String, Object?>?;
+    var kind = parameters['kind'] as String;
+    var path = parameters['path'] as String;
+    var docVersion = parameters['docVersion'] as int?;
+    var offset = parameters['offset'] as int;
+    var length = parameters['length'] as int;
+    var options = parameters['options'] as Map<String, Object?>?;
 
     return execute(path, kind, offset, length, options, cancellationToken,
         progress, docVersion);

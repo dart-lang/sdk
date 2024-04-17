@@ -253,8 +253,8 @@ Annotation
   element: package:test/a.dart::@class::A::@constructor::new
 ''');
 
-    final localVariable = findElement.class_('B');
-    final annotationOnElement = localVariable.metadata.single;
+    var localVariable = findElement.class_('B');
+    var annotationOnElement = localVariable.metadata.single;
     _assertElementAnnotationValueText(annotationOnElement, '''
 A
   a: int 42
@@ -345,8 +345,8 @@ Annotation
   element: self::@class::A::@constructor::new
 ''');
 
-    final localVariable = findElement.localVar('x');
-    final annotationOnElement = localVariable.metadata.single;
+    var localVariable = findElement.localVar('x');
+    var annotationOnElement = localVariable.metadata.single;
     _assertElementAnnotationValueText(annotationOnElement, '''
 A
   a: int 3
@@ -428,7 +428,7 @@ class A {
 
 ({@A(0) int f1, String f2}) f() => throw 0;
 ''');
-    final node = findNode.annotation('@A');
+    var node = findNode.annotation('@A');
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
@@ -461,7 +461,7 @@ class A {
 
 (int, @A(0) String) f() => throw 0;
 ''');
-    final node = findNode.annotation('@A');
+    var node = findNode.annotation('@A');
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
@@ -561,7 +561,7 @@ A
 void f() {}
 ''');
 
-    final node = findNode.singleAnnotation;
+    var node = findNode.singleAnnotation;
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
@@ -639,7 +639,7 @@ class A {
 void f() {}
 ''');
 
-    final node = findNode.singleAnnotation;
+    var node = findNode.singleAnnotation;
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
@@ -679,7 +679,7 @@ class D {
 void f() {}
 ''');
 
-    final node = findNode.singleAnnotation;
+    var node = findNode.singleAnnotation;
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
@@ -1575,7 +1575,7 @@ import 'a.dart' as prefix;
 void f() {}
 ''');
 
-    final node = findNode.singleAnnotation;
+    var node = findNode.singleAnnotation;
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
@@ -1626,7 +1626,7 @@ import 'a.dart' as prefix;
 void f() {}
 ''');
 
-    final node = findNode.singleAnnotation;
+    var node = findNode.singleAnnotation;
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
@@ -1671,7 +1671,7 @@ import 'a.dart' as prefix;
 void f() {}
 ''');
 
-    final node = findNode.singleAnnotation;
+    var node = findNode.singleAnnotation;
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
@@ -1716,7 +1716,7 @@ import 'a.dart' as prefix;
 void f() {}
 ''');
 
-    final node = findNode.singleAnnotation;
+    var node = findNode.singleAnnotation;
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
@@ -2572,7 +2572,7 @@ A
   }
 
   void _assertAtFoo42() {
-    final node = findNode.annotation('@foo');
+    var node = findNode.annotation('@foo');
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
@@ -2583,7 +2583,7 @@ Annotation
   element: self::@getter::foo
 ''');
 
-    final element = node.elementAnnotation!;
+    var element = node.elementAnnotation!;
     _assertElementAnnotationValueText(element, r'''
 int 42
   variable: self::@variable::foo

@@ -395,7 +395,7 @@ void myMethod() {
   }
 
   Future<List<ClosingLabel>> _computeElements(String sourceContent) async {
-    final file = newFile(sourcePath, sourceContent);
+    var file = newFile(sourcePath, sourceContent);
     var result = await getResolvedUnit(file);
     var computer = DartUnitClosingLabelsComputer(result.lineInfo, result.unit);
     return computer.compute();

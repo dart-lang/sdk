@@ -39,16 +39,16 @@ class PerformRefactorCommandHandler extends AbstractRefactorCommandHandler
     ProgressReporter reporter,
     int? docVersion,
   ) async {
-    final actionName = 'dart.refactor.${kind.toLowerCase()}';
+    var actionName = 'dart.refactor.${kind.toLowerCase()}';
     server.analyticsManager.executedCommand(actionName);
 
-    final result = await requireResolvedUnit(path);
+    var result = await requireResolvedUnit(path);
     if (delayAfterResolveForTests != null) {
       await delayAfterResolveForTests;
     }
 
     return result.mapResult((result) async {
-      final refactoring = await getRefactoring(
+      var refactoring = await getRefactoring(
           RefactoringKind(kind), result, offset, length, options);
       return refactoring.mapResult((refactoring) async {
         // Don't include potential edits in refactorings until there is some UI
@@ -58,12 +58,12 @@ class PerformRefactorCommandHandler extends AbstractRefactorCommandHandler
         // If the token we were given is not cancelable, wrap it with one that
         // is for the rest of this request as a future refactor may need to
         // cancel this request.
-        final cancelableToken = cancellationToken.asCancelable();
+        var cancelableToken = cancellationToken.asCancelable();
         manager.begin(cancelableToken);
 
         try {
           reporter.begin('Refactoring…');
-          final status = await refactoring.checkAllConditions();
+          var status = await refactoring.checkAllConditions();
 
           if (status.hasError) {
             // Show the error to the user but don't fail the request, as the
@@ -77,7 +77,7 @@ class PerformRefactorCommandHandler extends AbstractRefactorCommandHandler
             return error(ErrorCodes.RequestCancelled, 'Request was cancelled');
           }
 
-          final change = await refactoring.createChange();
+          var change = await refactoring.createChange();
 
           if (cancelableToken.isCancellationRequested) {
             return error(ErrorCodes.RequestCancelled, 'Request was cancelled');
@@ -93,7 +93,7 @@ class PerformRefactorCommandHandler extends AbstractRefactorCommandHandler
             return fileModifiedError;
           }
 
-          final edit = createWorkspaceEdit(server, change);
+          var edit = createWorkspaceEdit(server, change);
           return await sendWorkspaceEditToClient(edit);
         } finally {
           manager.end(cancelableToken);

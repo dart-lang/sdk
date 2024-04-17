@@ -79,7 +79,7 @@ void f(dynamic values) {
       error(WarningCode.UNUSED_LOCAL_VARIABLE, 36, 1),
     ]);
 
-    final node = findNode.singleForStatement;
+    var node = findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   forKeyword: for
@@ -155,7 +155,7 @@ abstract class A implements Iterable<int> {
       error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 75, 5),
     ]);
 
-    final node = findNode.singleForStatement;
+    var node = findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   forKeyword: for
@@ -485,7 +485,7 @@ abstract class A implements Iterable<int> {
 ''', [
       error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 76, 5),
     ]);
-    final node = findNode.singleForStatement;
+    var node = findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   forKeyword: for
@@ -652,7 +652,7 @@ abstract class A implements Iterable<int> {
       error(WarningCode.UNUSED_LOCAL_VARIABLE, 71, 1),
       error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 77, 5),
     ]);
-    final node = findNode.singleForStatement;
+    var node = findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   forKeyword: for
@@ -1218,7 +1218,7 @@ void f(bool Function() b) {
 }
 ''');
 
-    final node = findNode.singleForStatement;
+    var node = findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   forKeyword: for
@@ -1254,7 +1254,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.singleForStatement;
+    var node = findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   forKeyword: for
@@ -1302,7 +1302,7 @@ class A {
       error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 35, 5),
     ]);
 
-    final node = findNode.singleForStatement;
+    var node = findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   forKeyword: for
@@ -1335,7 +1335,7 @@ void f((int, bool) x) {
 }
 ''');
 
-    final node = findNode.singleForStatement;
+    var node = findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   forKeyword: for

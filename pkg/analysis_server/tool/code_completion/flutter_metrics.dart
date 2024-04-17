@@ -166,11 +166,11 @@ class FlutterMetricsComputer {
 
   /// Compute the metrics for the file(s) in the [rootPath].
   Future<void> compute(String rootPath) async {
-    final collection = AnalysisContextCollection(
+    var collection = AnalysisContextCollection(
       includedPaths: [rootPath],
       resourceProvider: PhysicalResourceProvider.INSTANCE,
     );
-    final collector = FlutterDataCollector(data);
+    var collector = FlutterDataCollector(data);
     for (var context in collection.contexts) {
       await _computeInContext(context.contextRoot, collector);
     }
@@ -189,7 +189,7 @@ class FlutterMetricsComputer {
   Future<void> _computeInContext(
       ContextRoot root, FlutterDataCollector collector) async {
     // Create a new collection to avoid consuming large quantities of memory.
-    final collection = AnalysisContextCollection(
+    var collection = AnalysisContextCollection(
       includedPaths: root.includedPaths.toList(),
       excludedPaths: root.excludedPaths.toList(),
       resourceProvider: PhysicalResourceProvider.INSTANCE,

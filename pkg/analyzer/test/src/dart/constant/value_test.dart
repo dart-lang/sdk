@@ -498,7 +498,7 @@ class DartObjectImplTest {
   }
 
   void test_getField_record() {
-    final record = _recordValue([
+    var record = _recordValue([
       _intValue(0),
       _intValue(1),
     ], {

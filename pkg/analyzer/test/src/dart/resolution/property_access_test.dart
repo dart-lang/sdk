@@ -28,7 +28,7 @@ void f(A a) {
 }
 ''');
 
-    final node = findNode.singlePropertyAccess;
+    var node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ExtensionOverride
@@ -164,7 +164,7 @@ void f(int Function(String) a) {
 }
 ''');
 
-    final node = findNode.singlePropertyAccess;
+    var node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ParenthesizedExpression
@@ -226,7 +226,7 @@ class A {
 }
 ''');
 
-    final node = findNode.singlePropertyAccess;
+    var node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ThisExpression
@@ -261,7 +261,7 @@ class A {
 }
 ''');
 
-    final node = findNode.singlePropertyAccess;
+    var node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ThisExpression
@@ -296,7 +296,7 @@ class A {
 }
 ''');
 
-    final node = findNode.singlePropertyAccess;
+    var node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ThisExpression
@@ -326,7 +326,7 @@ class B extends A {
 }
 ''');
 
-    final node = findNode.propertyAccess('foo;');
+    var node = findNode.propertyAccess('foo;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SuperExpression
@@ -356,7 +356,7 @@ class B extends A {
 }
 ''');
 
-    final node = findNode.propertyAccess('foo;');
+    var node = findNode.propertyAccess('foo;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SuperExpression
@@ -388,7 +388,7 @@ class B extends A {
       error(CompileTimeErrorCode.UNDEFINED_SUPER_GETTER, 97, 3),
     ]);
 
-    final node = findNode.propertyAccess('foo;');
+    var node = findNode.propertyAccess('foo;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SuperExpression
@@ -414,7 +414,7 @@ class A {
 }
 ''');
 
-    final node = findNode.propertyAccess('foo;');
+    var node = findNode.propertyAccess('foo;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ThisExpression
@@ -440,7 +440,7 @@ class A {
 }
 ''');
 
-    final node = findNode.propertyAccess('foo;');
+    var node = findNode.propertyAccess('foo;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ThisExpression
@@ -468,7 +468,7 @@ class A {
       error(CompileTimeErrorCode.UNDEFINED_SUPER_GETTER, 54, 3),
     ]);
 
-    final node = findNode.propertyAccess('foo;');
+    var node = findNode.propertyAccess('foo;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SuperExpression
@@ -494,7 +494,7 @@ extension type A(int it) {
 }
 ''');
 
-    final node = findNode.singlePropertyAccess;
+    var node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ThisExpression
@@ -524,7 +524,7 @@ extension type X(B it) implements A {
 }
 ''');
 
-    final node = findNode.singlePropertyAccess;
+    var node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ThisExpression
@@ -550,7 +550,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.singlePropertyAccess;
+    var node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: InstanceCreationExpression
@@ -670,7 +670,7 @@ AssignmentExpression
 void f({a = b?.foo}) {}
 ''');
 
-    final node = findNode.singlePropertyAccess;
+    var node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SimpleIdentifier
@@ -691,7 +691,7 @@ PropertyAccess
 typedef void F({a = b?.foo});
 ''');
 
-    final node = findNode.singlePropertyAccess;
+    var node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SimpleIdentifier
@@ -712,7 +712,7 @@ PropertyAccess
 void f({a = b?..foo}) {}
 ''');
 
-    final node = findNode.defaultParameter('a =');
+    var node = findNode.defaultParameter('a =');
     assertResolvedNodeText(node, r'''
 DefaultFormalParameter
   parameter: SimpleFormalParameter
@@ -751,7 +751,7 @@ void f(A? a) {
 }
 ''');
 
-    final node = findNode.singleCascadeExpression;
+    var node = findNode.singleCascadeExpression;
     assertResolvedNodeText(node, r'''
 CascadeExpression
   target: SimpleIdentifier
@@ -789,7 +789,7 @@ main() {
 }
 ''');
 
-    final node = findNode.singleCascadeExpression;
+    var node = findNode.singleCascadeExpression;
     assertResolvedNodeText(node, r'''
 CascadeExpression
   target: InstanceCreationExpression
@@ -836,7 +836,7 @@ main() {
 }
 ''');
 
-    final node = findNode.singleCascadeExpression;
+    var node = findNode.singleCascadeExpression;
     assertResolvedNodeText(node, r'''
 CascadeExpression
   target: InstanceCreationExpression
@@ -891,7 +891,7 @@ main() {
 }
 ''');
 
-    final node = findNode.singleCascadeExpression;
+    var node = findNode.singleCascadeExpression;
     assertResolvedNodeText(node, r'''
 CascadeExpression
   target: PropertyAccess
@@ -944,7 +944,7 @@ void f(A a) {
 }
 ''');
 
-    final node = findNode.singlePropertyAccess;
+    var node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ParenthesizedExpression
@@ -982,7 +982,7 @@ void f(A a) {
 }
 ''');
 
-    final node = findNode.singlePropertyAccess;
+    var node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ParenthesizedExpression
@@ -1009,7 +1009,7 @@ void f(dynamic a) {
 }
 ''');
 
-    final node = findNode.singlePropertyAccess;
+    var node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ParenthesizedExpression
@@ -1036,7 +1036,7 @@ void f(dynamic a) {
 }
 ''');
 
-    final node = findNode.singlePropertyAccess;
+    var node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ParenthesizedExpression
@@ -1063,7 +1063,7 @@ void f(dynamic a) {
 }
 ''');
 
-    final node = findNode.singlePropertyAccess;
+    var node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ParenthesizedExpression
@@ -1090,7 +1090,7 @@ void f(dynamic a) {
 }
 ''');
 
-    final node = findNode.singlePropertyAccess;
+    var node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ParenthesizedExpression
@@ -1122,7 +1122,7 @@ void f(E e) {
 }
 ''');
 
-    final node = findNode.singlePropertyAccess;
+    var node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ParenthesizedExpression
@@ -1157,7 +1157,7 @@ void f(E e) {
 }
 ''');
 
-    final node = findNode.singlePropertyAccess;
+    var node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ParenthesizedExpression
@@ -1232,7 +1232,7 @@ void f((int, String) r) {
 }
 ''');
 
-    final node = findNode.propertyAccess('foo;');
+    var node = findNode.propertyAccess('foo;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SimpleIdentifier
@@ -1259,7 +1259,7 @@ void f((int, String) r) {
 }
 ''');
 
-    final node = findNode.propertyAccess('foo;');
+    var node = findNode.propertyAccess('foo;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SimpleIdentifier
@@ -1290,7 +1290,7 @@ void f(A a) {
 }
 ''');
 
-    final node = findNode.singlePropertyAccess;
+    var node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: InstanceCreationExpression
@@ -1421,7 +1421,7 @@ void f(A a) {
 }
 ''');
 
-    final node = findNode.singlePropertyAccess;
+    var node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ParenthesizedExpression
@@ -1450,7 +1450,7 @@ void f(A a) {
 }
 ''');
 
-    final node = findNode.singlePropertyAccess;
+    var node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ParenthesizedExpression
@@ -1479,7 +1479,7 @@ void f(A a) {
 }
 ''');
 
-    final node = findNode.singlePropertyAccess;
+    var node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ParenthesizedExpression
@@ -1510,7 +1510,7 @@ void f(A a) {
       error(CompileTimeErrorCode.UNDEFINED_GETTER, 49, 3),
     ]);
 
-    final node = findNode.singlePropertyAccess;
+    var node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ParenthesizedExpression
@@ -1541,7 +1541,7 @@ void f(A a) {
 }
 ''');
 
-    final node = findNode.singleAssignmentExpression;
+    var node = findNode.singleAssignmentExpression;
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
@@ -1593,7 +1593,7 @@ void f(A a) {
 }
 ''');
 
-    final node = findNode.singlePropertyAccess;
+    var node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ParenthesizedExpression
@@ -1631,7 +1631,7 @@ void f(A a) {
 }
 ''');
 
-    final node = findNode.singlePropertyAccess;
+    var node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ParenthesizedExpression
@@ -1658,7 +1658,7 @@ void f(({int foo}) r) {
 }
 ''');
 
-    final node = findNode.propertyAccess('foo;');
+    var node = findNode.propertyAccess('foo;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SimpleIdentifier
@@ -1685,7 +1685,7 @@ void f(({int foo}) r) {
 }
 ''');
 
-    final node = findNode.propertyAccess('foo;');
+    var node = findNode.propertyAccess('foo;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SimpleIdentifier
@@ -1714,7 +1714,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.propertyAccess('foo;');
+    var node = findNode.propertyAccess('foo;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SimpleIdentifier
@@ -1737,7 +1737,7 @@ void f(({int foo})? r) {
 }
 ''');
 
-    final node = findNode.propertyAccess('foo;');
+    var node = findNode.propertyAccess('foo;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SimpleIdentifier
@@ -1760,7 +1760,7 @@ void f<T extends ({int foo})>(T r) {
 }
 ''');
 
-    final node = findNode.propertyAccess(r'foo;');
+    var node = findNode.propertyAccess(r'foo;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SimpleIdentifier
@@ -1783,7 +1783,7 @@ void f(({int foo}) r) {
 }
 ''');
 
-    final node = findNode.propertyAccess('hashCode;');
+    var node = findNode.propertyAccess('hashCode;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SimpleIdentifier
@@ -1806,7 +1806,7 @@ void f((int, String) r) {
 }
 ''');
 
-    final node = findNode.propertyAccess(r'$1;');
+    var node = findNode.propertyAccess(r'$1;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SimpleIdentifier
@@ -1833,7 +1833,7 @@ void f((int, String) r) {
 }
 ''');
 
-    final node = findNode.propertyAccess(r'$1;');
+    var node = findNode.propertyAccess(r'$1;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SimpleIdentifier
@@ -1856,7 +1856,7 @@ void f((int, String) r) {
 }
 ''');
 
-    final node = findNode.propertyAccess(r'$2;');
+    var node = findNode.propertyAccess(r'$2;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SimpleIdentifier
@@ -1883,7 +1883,7 @@ void f((int, String) r) {
 }
 ''');
 
-    final node = findNode.propertyAccess(r'$3;');
+    var node = findNode.propertyAccess(r'$3;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SimpleIdentifier
@@ -1908,7 +1908,7 @@ void f((int, String) r) {
       error(CompileTimeErrorCode.UNDEFINED_GETTER, 30, 2),
     ]);
 
-    final node = findNode.propertyAccess(r'$3;');
+    var node = findNode.propertyAccess(r'$3;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SimpleIdentifier
@@ -1933,7 +1933,7 @@ void f((int, String) r) {
       error(CompileTimeErrorCode.UNDEFINED_GETTER, 30, 3),
     ]);
 
-    final node = findNode.propertyAccess(r'$0a;');
+    var node = findNode.propertyAccess(r'$0a;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SimpleIdentifier
@@ -1958,7 +1958,7 @@ void f((int, String) r) {
       error(CompileTimeErrorCode.UNDEFINED_GETTER, 30, 5),
     ]);
 
-    final node = findNode.propertyAccess(r'$zero;');
+    var node = findNode.propertyAccess(r'$zero;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SimpleIdentifier
@@ -1987,7 +1987,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.propertyAccess(r'$1;');
+    var node = findNode.propertyAccess(r'$1;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SimpleIdentifier
@@ -2012,7 +2012,7 @@ void f((int, String) r) {
       error(CompileTimeErrorCode.UNDEFINED_GETTER, 30, 3),
     ]);
 
-    final node = findNode.propertyAccess(r'a$0;');
+    var node = findNode.propertyAccess(r'a$0;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SimpleIdentifier
@@ -2035,7 +2035,7 @@ void f<T extends (int, String)>(T r) {
 }
 ''');
 
-    final node = findNode.propertyAccess(r'$1;');
+    var node = findNode.propertyAccess(r'$1;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SimpleIdentifier
@@ -2060,7 +2060,7 @@ void f(({int foo}) r) {
       error(CompileTimeErrorCode.UNDEFINED_GETTER, 28, 3),
     ]);
 
-    final node = findNode.propertyAccess('bar;');
+    var node = findNode.propertyAccess('bar;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SimpleIdentifier
@@ -2087,7 +2087,7 @@ void f((int foo, String) r) {
       error(CompileTimeErrorCode.UNDEFINED_GETTER, 34, 3),
     ]);
 
-    final node = findNode.propertyAccess('foo;');
+    var node = findNode.propertyAccess('foo;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SimpleIdentifier
@@ -2158,7 +2158,7 @@ class B extends A {
 }
 ''');
 
-    final node = findNode.propertyAccess('super.foo');
+    var node = findNode.propertyAccess('super.foo');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SuperExpression
@@ -2262,7 +2262,7 @@ class A<T extends dynamic> {
 }
 ''');
 
-    final node = findNode.singlePropertyAccess;
+    var node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ParenthesizedExpression
@@ -2294,7 +2294,7 @@ class C<T> {
           37, 3),
     ]);
 
-    final node = findNode.singlePropertyAccess;
+    var node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ParenthesizedExpression
@@ -2339,7 +2339,7 @@ void f() {
       error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 14, 1),
     ]);
 
-    final node = findNode.singlePropertyAccess;
+    var node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ParenthesizedExpression

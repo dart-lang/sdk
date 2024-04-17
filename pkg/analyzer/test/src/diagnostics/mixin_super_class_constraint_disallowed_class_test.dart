@@ -31,7 +31,7 @@ mixin M on Enum {}
           27, 4),
     ]);
 
-    final node = findNode.singleMixinOnClause;
+    var node = findNode.singleMixinOnClause;
     assertResolvedNodeText(node, r'''
 MixinOnClause
   onKeyword: on
@@ -51,7 +51,7 @@ mixin M on int {}
           11, 3),
     ]);
 
-    final node = findNode.singleMixinOnClause;
+    var node = findNode.singleMixinOnClause;
     assertResolvedNodeText(node, r'''
 MixinOnClause
   onKeyword: on

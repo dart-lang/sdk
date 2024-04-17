@@ -8,7 +8,7 @@ import 'package:yaml/yaml.dart';
 
 /// Validate the value of the required `name` field.
 void nameValidator(PubspecValidationContext ctx) {
-  final contents = ctx.contents;
+  var contents = ctx.contents;
   if (contents is! YamlMap) {
     ctx.reporter.atOffset(
       offset: 0,

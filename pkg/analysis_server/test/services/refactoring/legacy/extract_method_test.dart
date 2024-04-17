@@ -3675,7 +3675,7 @@ class _ExtractMethodTest extends RefactoringTest {
   }
 
   void _createRefactoringForStartEndComments() {
-    final eol = testCode.contains('\r\n') ? '\r\n' : '\r';
+    var eol = testCode.contains('\r\n') ? '\r\n' : '\r';
     var offset = findEnd('// start') + eol.length;
     var end = findOffset('// end');
     _createRefactoring(offset, end - offset);

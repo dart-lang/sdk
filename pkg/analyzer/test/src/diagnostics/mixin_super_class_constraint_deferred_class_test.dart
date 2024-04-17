@@ -25,7 +25,7 @@ mixin M on math.Random {}
           48, 11),
     ]);
 
-    final node = findNode.singleMixinOnClause;
+    var node = findNode.singleMixinOnClause;
     assertResolvedNodeText(node, r'''
 MixinOnClause
   onKeyword: on

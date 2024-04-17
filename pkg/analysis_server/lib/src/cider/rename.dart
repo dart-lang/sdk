@@ -219,7 +219,7 @@ class CheckNameResponse {
       var unit = (await canRename._fileResolver.resolve(path: sourcePath)).unit;
       var index = element.library.libraryImports.indexOf(element);
       var node = unit.directives.whereType<ImportDirective>().elementAt(index);
-      final prefixNode = node.prefix;
+      var prefixNode = node.prefix;
       if (newName.isEmpty) {
         // We should not get `prefix == null` because we check in
         // `checkNewName` that the new name is different.

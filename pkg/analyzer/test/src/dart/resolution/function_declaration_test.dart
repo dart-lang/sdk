@@ -27,7 +27,7 @@ Stream<int> f() async* {
       error(CompileTimeErrorCode.RETURN_IN_GENERATOR, 49, 6),
     ]);
 
-    final node = findNode.singleFunctionDeclaration;
+    var node = findNode.singleFunctionDeclaration;
     assertResolvedNodeText(node, r'''
 FunctionDeclaration
   returnType: NamedType
@@ -77,7 +77,7 @@ Stream<int> f() async* => 0;
       error(CompileTimeErrorCode.RETURN_IN_GENERATOR, 45, 2),
     ]);
 
-    final node = findNode.singleFunctionDeclaration;
+    var node = findNode.singleFunctionDeclaration;
     assertResolvedNodeText(node, r'''
 FunctionDeclaration
   returnType: NamedType
@@ -154,7 +154,7 @@ int get foo(double a) => 0;
       error(ParserErrorCode.GETTER_WITH_PARAMETERS, 11, 1),
     ]);
 
-    final node = findNode.singleFunctionDeclaration;
+    var node = findNode.singleFunctionDeclaration;
     assertResolvedNodeText(node, r'''
 FunctionDeclaration
   returnType: NamedType
@@ -198,7 +198,7 @@ Iterable<int> f() sync* {
       error(CompileTimeErrorCode.RETURN_IN_GENERATOR, 28, 6),
     ]);
 
-    final node = findNode.singleFunctionDeclaration;
+    var node = findNode.singleFunctionDeclaration;
     assertResolvedNodeText(node, r'''
 FunctionDeclaration
   returnType: NamedType
@@ -246,7 +246,7 @@ Iterable<int> f() sync* => 0;
       error(CompileTimeErrorCode.RETURN_IN_GENERATOR, 24, 2),
     ]);
 
-    final node = findNode.singleFunctionDeclaration;
+    var node = findNode.singleFunctionDeclaration;
     assertResolvedNodeText(node, r'''
 FunctionDeclaration
   returnType: NamedType

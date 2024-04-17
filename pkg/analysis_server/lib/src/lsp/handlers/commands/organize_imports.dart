@@ -33,19 +33,19 @@ class OrganizeImportsCommandHandler extends SimpleEditCommandHandler {
     // Get the version of the doc before we calculate edits so we can send it back
     // to the client so that they can discard this edit if the document has been
     // modified since.
-    final path = parameters['path'] as String;
-    final docIdentifier = server.getVersionedDocumentIdentifier(path);
-    final autoTriggered = (parameters['autoTriggered'] as bool?) ?? false;
+    var path = parameters['path'] as String;
+    var docIdentifier = server.getVersionedDocumentIdentifier(path);
+    var autoTriggered = (parameters['autoTriggered'] as bool?) ?? false;
 
-    final result = await requireResolvedUnit(path);
+    var result = await requireResolvedUnit(path);
 
     if (cancellationToken.isCancellationRequested) {
       return error(ErrorCodes.RequestCancelled, 'Request was cancelled');
     }
 
     return result.mapResult((result) async {
-      final code = result.content;
-      final unit = result.unit;
+      var code = result.content;
+      var unit = result.unit;
 
       if (hasScanParseErrors(result.errors)) {
         if (autoTriggered) {
@@ -59,8 +59,8 @@ class OrganizeImportsCommandHandler extends SimpleEditCommandHandler {
         ));
       }
 
-      final organizer = ImportOrganizer(code, unit, result.errors);
-      final edits = organizer.organize();
+      var organizer = ImportOrganizer(code, unit, result.errors);
+      var edits = organizer.organize();
 
       if (edits.isEmpty) {
         return success(null);

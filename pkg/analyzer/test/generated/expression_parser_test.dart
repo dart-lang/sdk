@@ -907,7 +907,7 @@ class ExpressionParserTest extends FastaParserTestCase {
   }
 
   void test_parseExpression_sendWithTypeParam_afterIndex() {
-    final unit = parseCompilationUnit('main() { factories[C]<num, int>(); }');
+    var unit = parseCompilationUnit('main() { factories[C]<num, int>(); }');
     expect(unit.declarations, hasLength(1));
     var mainMethod = unit.declarations[0] as FunctionDeclaration;
     var body = mainMethod.functionExpression.body as BlockFunctionBody;
@@ -931,7 +931,7 @@ class ExpressionParserTest extends FastaParserTestCase {
   }
 
   void test_parseExpression_sendWithTypeParam_afterSend() {
-    final unit = parseCompilationUnit('main() { factories(C)<num, int>(); }');
+    var unit = parseCompilationUnit('main() { factories(C)<num, int>(); }');
     expect(unit.declarations, hasLength(1));
     var mainMethod = unit.declarations[0] as FunctionDeclaration;
     var body = mainMethod.functionExpression.body as BlockFunctionBody;

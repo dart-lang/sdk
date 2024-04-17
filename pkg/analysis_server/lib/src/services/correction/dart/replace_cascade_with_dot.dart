@@ -35,7 +35,7 @@ class ReplaceCascadeWithDot extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final cascadeExpression = node;
+    var cascadeExpression = node;
     if (cascadeExpression is! CascadeExpression) {
       return;
     }

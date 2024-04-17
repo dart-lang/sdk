@@ -34,13 +34,13 @@ class ImplementationHandler
       return success(const []);
     }
     var performance = message.performance;
-    final pos = params.position;
-    final path = pathOfDoc(params.textDocument);
-    final unit = await performance.runAsync(
+    var pos = params.position;
+    var path = pathOfDoc(params.textDocument);
+    var unit = await performance.runAsync(
       'requireResolvedUnit',
       (_) async => path.mapResult(requireResolvedUnit),
     );
-    final offset = unit.mapResultSync((unit) => toOffset(unit.lineInfo, pos));
+    var offset = unit.mapResultSync((unit) => toOffset(unit.lineInfo, pos));
     return await performance.runAsync(
         '_getImplementations',
         (performance) async => (unit, offset).mapResults((unit, offset) =>
@@ -52,18 +52,18 @@ class ImplementationHandler
       int offset,
       CancellationToken token,
       OperationPerformanceImpl performance) async {
-    final node = NodeLocator(offset).searchWithin(result.unit);
-    final element = server.getElementOfNode(node);
+    var node = NodeLocator(offset).searchWithin(result.unit);
+    var element = server.getElementOfNode(node);
     if (element == null) {
       return success([]);
     }
 
-    final helper = TypeHierarchyComputerHelper.fromElement(element);
-    final interfaceElement = helper.pivotClass;
+    var helper = TypeHierarchyComputerHelper.fromElement(element);
+    var interfaceElement = helper.pivotClass;
     if (interfaceElement == null) {
       return success([]);
     }
-    final needsMember = helper.findMemberElement(interfaceElement) != null;
+    var needsMember = helper.findMemberElement(interfaceElement) != null;
 
     var allSubtypes = <InterfaceElement>{};
     await performance.runAsync(
@@ -71,7 +71,7 @@ class ImplementationHandler
         (performance) => server.searchEngine
             .appendAllSubtypes(interfaceElement, allSubtypes, performance));
 
-    final locations = performance.run(
+    var locations = performance.run(
         'filter and get location',
         (_) => allSubtypes
             .map((element) {
@@ -85,7 +85,7 @@ class ImplementationHandler
             .nonNulls
             .toSet()
             .map((element) {
-              final unitElement =
+              var unitElement =
                   element.thisOrAncestorOfType<CompilationUnitElement>();
               if (unitElement == null) {
                 return null;

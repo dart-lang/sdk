@@ -172,7 +172,7 @@ class FeatureComputer {
   /// offset is within the given [node], or `null` if the context does not
   /// impose any type.
   DartType? computeContextType(AstNode node, int offset) {
-    final contextType = node.accept(
+    var contextType = node.accept(
       _ContextTypeVisitor(typeProvider, offset),
     );
     if (contextType == null || contextType is DynamicType) {
@@ -456,7 +456,7 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
     if (range
         .endStart(node.leftParenthesis, node.rightParenthesis)
         .contains(offset)) {
-      final parameters = node.functionType?.parameters;
+      var parameters = node.functionType?.parameters;
       if (parameters == null) {
         return null;
       }
@@ -774,7 +774,7 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
   @override
   DartType? visitListLiteral(ListLiteral node) {
     if (range.endStart(node.leftBracket, node.rightBracket).contains(offset)) {
-      final type = node.staticType;
+      var type = node.staticType;
       // TODO(scheglov): https://github.com/dart-lang/sdk/issues/48965
       if (type == null) {
         throw '''
@@ -793,7 +793,7 @@ parent3: ${node.parent?.parent?.parent}
   @override
   DartType? visitListPattern(ListPattern node) {
     if (range.endStart(node.leftBracket, node.rightBracket).contains(offset)) {
-      final type = node.requiredType;
+      var type = node.requiredType;
       if (type == null) {
         throw '''
 No required type.
@@ -871,7 +871,7 @@ parent3: ${node.parent?.parent?.parent}
 
   @override
   DartType? visitParenthesizedExpression(ParenthesizedExpression node) {
-    final type = _visitParent(node);
+    var type = _visitParent(node);
 
     // `RecordType := (^)` without any fields.
     if (type is RecordType) {
@@ -930,7 +930,7 @@ parent3: ${node.parent?.parent?.parent}
 
   @override
   DartType? visitRecordLiteral(RecordLiteral node) {
-    final type = node.parent?.accept(this);
+    var type = node.parent?.accept(this);
     if (type is! RecordType) {
       return null;
     }
@@ -944,14 +944,14 @@ parent3: ${node.parent?.parent?.parent}
       return null;
     }
 
-    for (final argument in node.fields) {
+    for (var argument in node.fields) {
       if (argument is NamedExpression) {
         if (offset <= argument.offset) {
           return typeOfIndexPositionalField();
         }
         if (argument.contains(offset)) {
           if (offset >= argument.name.colon.end) {
-            final name = argument.name.label.name;
+            var name = argument.name.label.name;
             return type.namedField(name)?.type;
           }
           return null;

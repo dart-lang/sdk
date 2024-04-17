@@ -776,7 +776,7 @@ class ParserProxy extends analyzer.Parser {
 
   ClassMember? parseClassMemberOrNull(String className) {
     return _run('ClassOrMixinBody', () {
-      final builder = astBuilder.createFakeClassDeclarationBuilder(className);
+      var builder = astBuilder.createFakeClassDeclarationBuilder(className);
       // TODO(danrubel): disambiguate between class and mixin
       currentToken = fastaParser.parseClassMember(currentToken, className);
       //currentToken = fastaParser.parseMixinMember(currentToken);

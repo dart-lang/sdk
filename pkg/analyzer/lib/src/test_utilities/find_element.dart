@@ -219,10 +219,10 @@ class FindElement extends _FindElementBase {
   CompilationUnitElement part(String targetUri) {
     CompilationUnitElement? result;
 
-    for (final partElement in libraryElement.parts) {
-      final uri = partElement.uri;
+    for (var partElement in libraryElement.parts) {
+      var uri = partElement.uri;
       if (uri is DirectiveUriWithUnit) {
-        final unitElement = uri.unit;
+        var unitElement = uri.unit;
         if ('${unitElement.source.uri}' == targetUri) {
           if (result != null) {
             throw StateError('Not unique: $targetUri');
@@ -258,7 +258,7 @@ class FindElement extends _FindElementBase {
 
     unit.accept(FunctionAstVisitor(
       typeParameter: (node) {
-        final element = node.declaredElement!;
+        var element = node.declaredElement!;
         if (element.name == name) {
           if (result != null) {
             throw StateError('Not unique: $name');
@@ -383,7 +383,7 @@ abstract class _FindElementBase {
   }
 
   ExtensionTypeElement extensionType(String name) {
-    for (final element in unitElement.extensionTypes) {
+    for (var element in unitElement.extensionTypes) {
       if (element.name == name) {
         return element;
       }

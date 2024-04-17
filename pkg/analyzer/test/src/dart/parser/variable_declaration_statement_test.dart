@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class VariableDeclarationStatementParserTest extends ParserDiagnosticsTest {
   test_recovery_propertyAccess_beforeAwait_hasIdentifier() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f(x) async {
   x.foo
   await x.bar();
@@ -27,7 +27,7 @@ void f(x) async {
       error(ParserErrorCode.EXPECTED_TOKEN, 28, 5),
     ]);
 
-    final node = parseResult.findNode.singleBlock;
+    var node = parseResult.findNode.singleBlock;
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
@@ -58,7 +58,7 @@ Block
   }
 
   test_recovery_propertyAccess_beforeAwait_noIdentifier() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f(x) async {
   x.
   await x.foo();
@@ -68,7 +68,7 @@ void f(x) async {
       error(ParserErrorCode.EXPECTED_TOKEN, 31, 1),
     ]);
 
-    final node = parseResult.findNode.singleBlock;
+    var node = parseResult.findNode.singleBlock;
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
@@ -99,7 +99,7 @@ Block
   }
 
   test_recovery_propertyAccess_beforeIdentifier_hasIdentifier() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 void f(x) {
   x.foo
   bar();
@@ -109,7 +109,7 @@ void f(x) {
       error(ParserErrorCode.EXPECTED_TOKEN, 22, 3),
     ]);
 
-    final node = parseResult.findNode.singleBlock;
+    var node = parseResult.findNode.singleBlock;
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {

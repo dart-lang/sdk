@@ -25,7 +25,7 @@ T a<T>() => throw '';
 T b<T>() => throw '';
 ''');
 
-    final node = findNode.singleBinaryExpression;
+    var node = findNode.singleBinaryExpression;
     assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: MethodInvocation
@@ -66,7 +66,7 @@ void f(bool a, bool b) {
 }
 ''');
 
-    final node = findNode.singleBinaryExpression;
+    var node = findNode.singleBinaryExpression;
     assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
@@ -98,7 +98,7 @@ T a<T>() => throw '';
 T b<T>() => throw '';
 ''');
 
-    final node = findNode.singleBinaryExpression;
+    var node = findNode.singleBinaryExpression;
     assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: MethodInvocation
@@ -139,7 +139,7 @@ void f(bool a, bool b) {
 }
 ''');
 
-    final node = findNode.singleBinaryExpression;
+    var node = findNode.singleBinaryExpression;
     assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: SimpleIdentifier

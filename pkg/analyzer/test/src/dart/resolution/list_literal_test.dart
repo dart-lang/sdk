@@ -22,7 +22,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.singleListLiteral;
+    var node = findNode.singleListLiteral;
     assertResolvedNodeText(node, r'''
 ListLiteral
   typeArguments: TypeArgumentList
@@ -48,7 +48,7 @@ void f() {
       error(CompileTimeErrorCode.EXPECTED_ONE_LIST_TYPE_ARGUMENTS, 13, 13),
     ]);
 
-    final node = findNode.singleListLiteral;
+    var node = findNode.singleListLiteral;
     assertResolvedNodeText(node, r'''
 ListLiteral
   typeArguments: TypeArgumentList
@@ -76,7 +76,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.singleListLiteral;
+    var node = findNode.singleListLiteral;
     assertResolvedNodeText(node, r'''
 ListLiteral
   leftBracket: [
@@ -96,7 +96,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.singleListLiteral;
+    var node = findNode.singleListLiteral;
     assertResolvedNodeText(node, r'''
 ListLiteral
   leftBracket: [
@@ -119,7 +119,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.singleListLiteral;
+    var node = findNode.singleListLiteral;
     assertResolvedNodeText(node, r'''
 ListLiteral
   leftBracket: [

@@ -30,7 +30,7 @@ class AddMissingSwitchCases extends ResolvedCorrectionProducer {
       return;
     }
 
-    final patternParts = diagnostic.data;
+    var patternParts = diagnostic.data;
     if (patternParts is! List<MissingPatternPart>) {
       return;
     }
@@ -57,8 +57,8 @@ class AddMissingSwitchCases extends ResolvedCorrectionProducer {
     required SwitchExpression node,
     required List<MissingPatternPart> patternParts,
   }) async {
-    final lineIndent = utils.getLinePrefix(node.offset);
-    final singleIndent = utils.oneIndent;
+    var lineIndent = utils.getLinePrefix(node.offset);
+    var singleIndent = utils.oneIndent;
 
     await builder.addDartFileEdit(file, (builder) {
       builder.insertCaseClauseAtEnd(
@@ -82,8 +82,8 @@ class AddMissingSwitchCases extends ResolvedCorrectionProducer {
     required SwitchStatement node,
     required List<MissingPatternPart> patternParts,
   }) async {
-    final lineIndent = utils.getLinePrefix(node.offset);
-    final singleIndent = utils.oneIndent;
+    var lineIndent = utils.getLinePrefix(node.offset);
+    var singleIndent = utils.oneIndent;
 
     await builder.addDartFileEdit(file, (builder) {
       builder.insertCaseClauseAtEnd(
@@ -108,7 +108,7 @@ class AddMissingSwitchCases extends ResolvedCorrectionProducer {
     DartEditBuilder builder,
     List<MissingPatternPart> parts,
   ) {
-    for (final part in parts) {
+    for (var part in parts) {
       if (part is MissingPatternEnumValuePart) {
         builder.writeReference(part.enumElement);
         builder.write('.');

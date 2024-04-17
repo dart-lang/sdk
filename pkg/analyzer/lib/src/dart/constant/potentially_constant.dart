@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 
 /// Some [ConstructorElement]s can be temporary marked as "const" to check
@@ -35,17 +36,6 @@ bool isConstantTypeExpression(TypeAnnotation node) {
 /// Return `true` if the [node] is a potentially constant type expression.
 bool isPotentiallyConstantTypeExpression(TypeAnnotation node) {
   return _ConstantTypeChecker(potentially: true).check(node);
-}
-
-bool _isConstantNamedType(NamedType node) {
-  final element = node.element;
-  if (element is InterfaceElement || element is TypeAliasElement) {
-    if (node.isDeferred) {
-      return false;
-    }
-    return true;
-  }
-  return false;
 }
 
 bool _isConstantTypeName(Identifier name) {
@@ -331,7 +321,7 @@ class _Collector {
   }
 
   void _recordLiteral(RecordLiteral node) {
-    for (final field in node.fields) {
+    for (var field in node.fields) {
       collect(field);
     }
   }
@@ -405,63 +395,82 @@ class _ConstantTypeChecker {
 
   _ConstantTypeChecker({required this.potentially});
 
-  /// Return `true` if the [node] is a (potentially) constant type expression.
+  /// Returns whether the [node] is a (potentially) constant type expression.
   bool check(TypeAnnotation? node) {
+    if (node == null) {
+      return false;
+    }
     if (potentially &&
         node is NamedType &&
         node.element is TypeParameterElement) {
       return true;
     }
 
-    if (node is NamedType) {
-      if (_isConstantNamedType(node)) {
-        var arguments = node.typeArguments?.arguments;
-        if (arguments != null) {
-          for (var argument in arguments) {
-            if (!check(argument)) {
-              return false;
-            }
-          }
-        }
-        return true;
+    return switch (node) {
+      NamedType() => _checkNamedType(node),
+      GenericFunctionType() => _checkGenericFunctionType(node),
+      RecordTypeAnnotation() => _checkRecordTypeAnnotation(node),
+    };
+  }
+
+  bool _checkGenericFunctionType(GenericFunctionType node) {
+    var returnType = node.returnType;
+    if (returnType != null) {
+      if (!check(returnType)) {
+        return false;
       }
-      var type = node.type;
-      if (type is DynamicTypeImpl || type is NeverType || type is VoidType) {
-        return true;
-      }
-      return false;
     }
 
-    if (node is GenericFunctionType) {
-      var returnType = node.returnType;
-      if (returnType != null) {
-        if (!check(returnType)) {
+    var typeParameters = node.typeParameters?.typeParameters;
+    if (typeParameters != null) {
+      for (var parameter in typeParameters) {
+        var bound = parameter.bound;
+        if (bound != null && !check(bound)) {
           return false;
         }
       }
-
-      var typeParameters = node.typeParameters?.typeParameters;
-      if (typeParameters != null) {
-        for (var parameter in typeParameters) {
-          var bound = parameter.bound;
-          if (bound != null && !check(bound)) {
-            return false;
-          }
-        }
-      }
-
-      var formalParameters = node.parameters.parameters;
-      for (var parameter in formalParameters) {
-        if (parameter is SimpleFormalParameter) {
-          if (!check(parameter.type)) {
-            return false;
-          }
-        }
-      }
-
-      return true;
     }
 
+    var formalParameters = node.parameters.parameters;
+    for (var parameter in formalParameters) {
+      if (parameter is SimpleFormalParameter) {
+        if (!check(parameter.type)) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  bool _checkNamedType(NamedType node) {
+    if (node.isConstantNamedType) {
+      var arguments = node.typeArguments?.arguments;
+      if (arguments != null && arguments.any((argument) => !check(argument))) {
+        return false;
+      }
+      return true;
+    }
+    var type = node.type;
+    if (type is DynamicTypeImpl || type is NeverType || type is VoidType) {
+      return true;
+    }
+    return false;
+  }
+
+  bool _checkRecordTypeAnnotation(RecordTypeAnnotation node) {
+    if (node.fields.any((field) => !check(field.type))) {
+      return false;
+    }
+    return true;
+  }
+}
+
+extension on NamedType {
+  bool get isConstantNamedType {
+    final element = this.element;
+    if (element is InterfaceElement || element is TypeAliasElement) {
+      return !isDeferred;
+    }
     return false;
   }
 }

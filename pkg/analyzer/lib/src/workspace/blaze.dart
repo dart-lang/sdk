@@ -448,7 +448,7 @@ class BlazeWorkspace extends Workspace
     for (var folder in startFolder.withAncestors) {
       var parent = folder.parent;
 
-      final blazeOutFolder = parent.getChildAssumingFolder('blaze-out');
+      var blazeOutFolder = parent.getChildAssumingFolder('blaze-out');
       if (blazeOutFolder.exists) {
         // Found the "out" folder; must be a Blaze workspace.
         String root = parent.path;
@@ -505,7 +505,7 @@ class BlazeWorkspace extends Workspace
   /// If no "bin" folder is found in any of those locations, empty list is
   /// returned.
   static List<String> _findBinFolderPaths(Folder root) {
-    final out = root.getChildAssumingFolder('blaze-out');
+    var out = root.getChildAssumingFolder('blaze-out');
     if (!out.exists) {
       return [];
     }
@@ -543,7 +543,7 @@ class BlazeWorkspace extends Workspace
       return null;
     }
 
-    final pattern = RegExp(r'(^|\s+)_version\s*=\s*"(\d+\.\d+)"');
+    var pattern = RegExp(r'(^|\s+)_version\s*=\s*"(\d+\.\d+)"');
     for (var match in pattern.allMatches(content)) {
       return Version.parse('${match.group(2)}.0');
     }

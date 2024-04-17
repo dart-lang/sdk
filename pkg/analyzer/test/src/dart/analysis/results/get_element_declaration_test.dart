@@ -443,9 +443,9 @@ class GetElementDeclarationParsedTest extends PubPackageResolutionTest
   @override
   Future<ElementDeclarationResult?> getElementDeclaration(
       Element element) async {
-    final path = element.library!.source.fullName;
-    final file = getFile(path);
-    final library = await _getParsedLibrary(file);
+    var path = element.library!.source.fullName;
+    var file = getFile(path);
+    var library = await _getParsedLibrary(file);
     return library.getElementDeclaration(element);
   }
 
@@ -461,9 +461,9 @@ class GetElementDeclarationResolvedTest extends PubPackageResolutionTest
   @override
   Future<ElementDeclarationResult?> getElementDeclaration(
       Element element) async {
-    final path = element.library!.source.fullName;
-    final file = getFile(path);
-    final library = await _getResolvedLibrary(file);
+    var path = element.library!.source.fullName;
+    var file = getFile(path);
+    var library = await _getResolvedLibrary(file);
     return library.getElementDeclaration(element);
   }
 

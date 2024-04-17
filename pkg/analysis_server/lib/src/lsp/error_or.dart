@@ -235,8 +235,8 @@ extension IterableErrorOrExtension<T> on Iterable<ErrorOr<T>> {
   /// items represents an error, that error will be returned. Otherwise, the
   /// list of results will be returned in a success response.
   ErrorOr<List<T>> get errorOrResults {
-    final results = <T>[];
-    for (final item in this) {
+    var results = <T>[];
+    for (var item in this) {
       if (item.isError) {
         return failure(item);
       }

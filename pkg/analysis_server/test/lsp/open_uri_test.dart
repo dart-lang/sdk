@@ -34,9 +34,9 @@ class OpenUriTest extends AbstractLspAnalysisServerTest {
   Future<void> test_openUri() async {
     await initializeWithUriSupport();
 
-    final notificationFuture = openUriNotifications.first;
+    var notificationFuture = openUriNotifications.first;
     unawaited(server.openUriNotificationSender!.call(exampleUri));
-    final notification = await notificationFuture;
+    var notification = await notificationFuture;
 
     expect(notification.uri, exampleUri);
   }

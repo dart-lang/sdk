@@ -129,29 +129,29 @@ class RuntimeTypeEqualityVisitor
       return false;
     }
 
-    final positional1 = T1.positionalFields;
-    final positional2 = T2.positionalFields;
+    var positional1 = T1.positionalFields;
+    var positional2 = T2.positionalFields;
     if (positional1.length != positional2.length) {
       return false;
     }
 
-    final named1 = T1.namedFields;
-    final named2 = T2.namedFields;
+    var named1 = T1.namedFields;
+    var named2 = T2.namedFields;
     if (named1.length != named2.length) {
       return false;
     }
 
     for (var i = 0; i < positional1.length; i++) {
-      final field1 = positional1[i];
-      final field2 = positional2[i];
+      var field1 = positional1[i];
+      var field2 = positional2[i];
       if (!field1.type.acceptWithArgument(this, field2.type)) {
         return false;
       }
     }
 
     for (var i = 0; i < named1.length; i++) {
-      final field1 = named1[i];
-      final field2 = named2[i];
+      var field1 = named1[i];
+      var field2 = named2[i];
       if (field1.name != field2.name) {
         return false;
       }

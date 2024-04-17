@@ -24,7 +24,7 @@ class RenameMethodParameter extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final parameter = node;
+    var parameter = node;
     if (parameter is! FormalParameter) return;
     var paramIdentifier = parameter.name;
     if (paramIdentifier == null) return;

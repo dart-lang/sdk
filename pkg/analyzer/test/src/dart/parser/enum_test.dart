@@ -15,14 +15,14 @@ main() {
 @reflectiveTest
 class EnumDeclarationParserTest extends ParserDiagnosticsTest {
   test_augment() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 augment library 'a.dart';
 
 augment enum E {bar}
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.singleEnumDeclaration;
+    var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
 EnumDeclaration
   augmentKeyword: augment

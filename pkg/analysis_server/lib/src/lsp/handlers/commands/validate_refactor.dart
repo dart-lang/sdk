@@ -32,7 +32,7 @@ class ValidateRefactorCommandHandler extends AbstractRefactorCommandHandler {
     ProgressReporter reporter,
     int? docVersion,
   ) async {
-    final actionName = 'dart.refactor.${kind.toLowerCase()}.validate';
+    var actionName = 'dart.refactor.${kind.toLowerCase()}.validate';
     server.analyticsManager.executedCommand(actionName);
 
     // In order to prevent clients asking users for a method/widget name and
@@ -44,20 +44,20 @@ class ValidateRefactorCommandHandler extends AbstractRefactorCommandHandler {
     // will be no visibility of the reason why the refactor is not available to
     // the user.
 
-    final result = await requireResolvedUnit(path);
+    var result = await requireResolvedUnit(path);
     return result.mapResult((result) async {
-      final refactoring = await getRefactoring(
+      var refactoring = await getRefactoring(
           RefactoringKind(kind), result, offset, length, options);
       return refactoring.mapResult((refactoring) async {
         // If the token we were given is not cancelable, wrap it with one that
         // is for the rest of this request as a future refactor may need to
         // cancel this request.
-        final cancelableToken = cancellationToken.asCancelable();
+        var cancelableToken = cancellationToken.asCancelable();
         manager.begin(cancelableToken);
 
         try {
           reporter.begin('Preparing Refactor…');
-          final status = await refactoring.checkInitialConditions();
+          var status = await refactoring.checkInitialConditions();
 
           if (status.hasError) {
             return success(

@@ -60,8 +60,8 @@ class LibraryCycle {
   final String implSignature;
 
   late final bool declaresMacroClass = () {
-    for (final library in libraries) {
-      for (final file in library.files) {
+    for (var library in libraries) {
+      for (var file in library.files) {
         if (file.unlinked2.macroClasses.isNotEmpty) {
           return true;
         }
@@ -78,7 +78,7 @@ class LibraryCycle {
   /// If a cycle imports a library that declares a macro, then it can have
   /// macro applications, and so macro-generated files.
   late final bool importsMacroClass = () {
-    for (final dependency in directDependencies) {
+    for (var dependency in directDependencies) {
       if (dependency.declaresMacroClass) {
         return true;
       }
@@ -129,13 +129,13 @@ class LibraryCycle {
     if (!mightBeExecutedByMacroClass) {
       mightBeExecutedByMacroClass = true;
       // Mark each file of the cycle.
-      for (final library in libraries) {
-        for (final file in library.files) {
+      for (var library in libraries) {
+        for (var file in library.files) {
           file.mightBeExecutedByMacroClass = true;
         }
       }
       // Recursively mark all dependencies.
-      for (final dependency in directDependencies) {
+      for (var dependency in directDependencies) {
         dependency.markMightBeExecutedByMacroClass();
       }
     }
@@ -159,7 +159,7 @@ class _LibraryNode extends graph.Node<_LibraryNode> {
 
   @override
   List<_LibraryNode> computeDependencies() {
-    final referencedLibraries = {kind, ...kind.augmentations}
+    var referencedLibraries = {kind, ...kind.augmentations}
         .map((container) => [
               ...container.libraryImports
                   .whereType<LibraryImportWithFile>()
@@ -218,7 +218,7 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
     var libraries = <LibraryFileKind>[];
     var libraryUris = <Uri>{};
     for (var node in scc) {
-      final file = node.kind.file;
+      var file = node.kind.file;
       libraries.add(node.kind);
       libraryUris.add(file.uri);
 
@@ -229,7 +229,7 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
       implSignature.addString(file.uriStr);
       implSignature.addString(Platform.version);
 
-      final libraryFiles = node.kind.files;
+      var libraryFiles = node.kind.files;
 
       apiSignature.addInt(libraryFiles.length);
       for (var file in libraryFiles) {

@@ -112,7 +112,7 @@ class RecordLiteralResolver {
             CompileTimeErrorCode.INVALID_FIELD_NAME_PRIVATE,
           );
         } else {
-          final index = RecordTypeExtension.positionalFieldIndex(name);
+          var index = RecordTypeExtension.positionalFieldIndex(name);
           if (index != null) {
             if (index < positionalCount) {
               errorReporter.atNode(
@@ -156,13 +156,13 @@ class RecordLiteralResolver {
   }
 
   void _resolveFields(RecordLiteralImpl node, DartType contextType) {
-    final positionalFields = <RecordTypePositionalFieldImpl>[];
-    final namedFields = <RecordTypeNamedFieldImpl>[];
+    var positionalFields = <RecordTypePositionalFieldImpl>[];
+    var namedFields = <RecordTypeNamedFieldImpl>[];
     var contextTypeAsRecord = _matchContextType(node, contextType);
     var index = 0;
-    for (final field in node.fields) {
+    for (var field in node.fields) {
       if (field is NamedExpressionImpl) {
-        final name = field.name.label.name;
+        var name = field.name.label.name;
         var fieldContextType = contextTypeAsRecord?.namedField(name)!.type ??
             UnknownInferredType.instance;
         namedFields.add(RecordTypeNamedFieldImpl(

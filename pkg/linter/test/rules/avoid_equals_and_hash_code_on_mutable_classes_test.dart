@@ -69,6 +69,44 @@ class A {
     ]);
   }
 
+  test_mutableClass_augmentationMethod() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+
+class A {
+  @override
+  int get hashCode => 0;
+}
+''');
+
+    await assertNoDiagnostics(r'''
+augment library 'a.dart';
+
+augment class A {
+  augment int get hashCode => 0;
+}
+''');
+  }
+
+  test_mutableClass_augmented() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+
+class A {}
+''');
+
+    await assertDiagnostics(r'''
+augment library 'a.dart';
+
+augment class A {
+  @override
+  int get hashCode => 0;
+}
+''', [
+      lint(59, 3),
+    ]);
+  }
+
   test_subtypeOfImmutableClass() async {
     await assertNoDiagnostics(r'''
 import 'package:meta/meta.dart';

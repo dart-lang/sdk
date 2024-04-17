@@ -23,14 +23,14 @@ mixin SignatureHelpMixin on AbstractLspAnalysisServerTest {
     Position? position,
     SignatureHelpContext? context,
   }) async {
-    final code = TestCode.parse(content);
+    var code = TestCode.parse(content);
     fileUri ??= mainFileUri;
     position ??= code.position.position;
 
     await initialize();
     await openFile(fileUri, code.code);
 
-    final res = await getSignatureHelp(fileUri, position, context);
+    var res = await getSignatureHelp(fileUri, position, context);
     expect(res, isNull);
   }
 
@@ -43,7 +43,7 @@ mixin SignatureHelpMixin on AbstractLspAnalysisServerTest {
     SignatureHelpContext? context,
     _FileState state = _FileState.open,
   }) async {
-    final code = TestCode.parse(content);
+    var code = TestCode.parse(content);
     if (state == _FileState.closed) {
       newFile(mainFilePath, code.code);
     }
@@ -53,7 +53,7 @@ mixin SignatureHelpMixin on AbstractLspAnalysisServerTest {
     }
     await initialAnalysis;
 
-    final res =
+    var res =
         (await getSignatureHelp(mainFileUri, code.position.position, context))!;
 
     // TODO(dantup): Update this when there is clarification on how to handle
@@ -61,7 +61,7 @@ mixin SignatureHelpMixin on AbstractLspAnalysisServerTest {
     expect(res.activeParameter, -1);
     expect(res.activeSignature, equals(0));
     expect(res.signatures, hasLength(1));
-    final sig = res.signatures.first;
+    var sig = res.signatures.first;
     expect(sig.label, equals(expectedLabel));
     expect(sig.parameters, equals(expectedParams));
 
@@ -69,13 +69,12 @@ mixin SignatureHelpMixin on AbstractLspAnalysisServerTest {
       // Test the format matches the tests expectation.
       // For clients that don't support MarkupContent it'll be a plain string,
       // but otherwise it'll be a MarkupContent of type PlainText or Markdown.
-      final doc = sig.documentation!;
+      var doc = sig.documentation!;
       if (expectedFormat == null) {
         // Plain string.
         expect(doc.valueEquals(expectedDoc), isTrue);
       } else {
-        final expected =
-            MarkupContent(kind: expectedFormat, value: expectedDoc);
+        var expected = MarkupContent(kind: expectedFormat, value: expectedDoc);
         expect(doc.valueEquals(expected), isTrue);
       }
     }
@@ -90,7 +89,7 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest
     required bool includesSummary,
     required bool includesFull,
   }) {
-    final content = '''
+    var content = '''
 class A {
   /// Summary.
   ///
@@ -117,7 +116,7 @@ final a = A(^);
     required bool includesSummary,
     required bool includesFull,
   }) async {
-    final code = TestCode.parse(content);
+    var code = TestCode.parse(content);
     await provideConfig(
       initialize,
       {
@@ -126,9 +125,9 @@ final a = A(^);
     );
     await openFile(mainFileUri, code.code);
     await initialAnalysis;
-    final signatureHelp =
+    var signatureHelp =
         await getSignatureHelp(mainFileUri, code.position.position);
-    final docs = signatureHelp!.signatures.single.documentation?.map(
+    var docs = signatureHelp!.signatures.single.documentation?.map(
       (markup) => markup.value,
       (string) => string,
     );
@@ -157,7 +156,7 @@ final a = A(^);
   }
 
   Future<void> test_augmentation_method() async {
-    final content = '''
+    var content = '''
 import augment 'a.dart';
 
 class Foo {}
@@ -168,7 +167,7 @@ void bar() {
 ''';
 
     var augmentationFilePath = join(projectFolderPath, 'lib', 'a.dart');
-    final augmentationCode = '''
+    var augmentationCode = '''
 augment library 'main.dart';
 
 augment class Foo {
@@ -177,8 +176,8 @@ augment class Foo {
 }
 ''';
     newFile(augmentationFilePath, augmentationCode);
-    final expectedLabel = 'myMethod(String s)';
-    final expectedDoc = 'My method.';
+    var expectedLabel = 'myMethod(String s)';
+    var expectedDoc = 'My method.';
 
     await _expectSignature(
       content,
@@ -193,7 +192,7 @@ augment class Foo {
   Future<void> test_dartDocMacro() async {
     setSignatureHelpContentFormat(null);
 
-    final content = '''
+    var content = '''
 /// {@template template_name}
 /// This is shared content.
 /// {@endtemplate}
@@ -204,8 +203,8 @@ foo(String s, int i) {
   foo(^);
 }
 ''';
-    final expectedLabel = 'foo(String s, int i)';
-    final expectedDoc = 'This is shared content.';
+    var expectedLabel = 'foo(String s, int i)';
+    var expectedDoc = 'This is shared content.';
 
     await _expectSignature(
       content,
@@ -234,7 +233,7 @@ foo(String s, int i) {
       assertArgsDocumentation(null, includesSummary: true, includesFull: true);
 
   Future<void> test_error_methodInvocation_importPrefix() async {
-    final content = '''
+    var content = '''
 import 'dart:async' as prefix;
 
 void f() {
@@ -247,7 +246,7 @@ void f() {
   }
 
   Future<void> test_extensionType() async {
-    final content = '''
+    var content = '''
 class A {
   void f(int a) {}
 }
@@ -273,14 +272,14 @@ void f() {
   }
 
   Future<void> test_formats_markdown() async {
-    final content = '''
+    var content = '''
 /// Does foo.
 foo(String s, int i) {
   foo(^);
 }
 ''';
-    final expectedLabel = 'foo(String s, int i)';
-    final expectedDoc = 'Does foo.';
+    var expectedLabel = 'foo(String s, int i)';
+    var expectedDoc = 'Does foo.';
 
     await _expectSignature(
       content,
@@ -296,14 +295,14 @@ foo(String s, int i) {
   Future<void> test_formats_notSupported() async {
     setSignatureHelpContentFormat(null);
 
-    final content = '''
+    var content = '''
 /// Does foo.
 foo(String s, int i) {
   foo(^);
 }
 ''';
-    final expectedLabel = 'foo(String s, int i)';
-    final expectedDoc = 'Does foo.';
+    var expectedLabel = 'foo(String s, int i)';
+    var expectedDoc = 'Does foo.';
 
     await _expectSignature(
       content,
@@ -320,14 +319,14 @@ foo(String s, int i) {
   Future<void> test_formats_plainTextOnly() async {
     setSignatureHelpContentFormat([MarkupKind.PlainText]);
 
-    final content = '''
+    var content = '''
 /// Does foo.
 foo(String s, int i) {
   foo(^);
 }
 ''';
-    final expectedLabel = 'foo(String s, int i)';
-    final expectedDoc = 'Does foo.';
+    var expectedLabel = 'foo(String s, int i)';
+    var expectedDoc = 'Does foo.';
 
     await _expectSignature(
       content,
@@ -344,14 +343,14 @@ foo(String s, int i) {
   Future<void> test_formats_plainTextPreferred() async {
     setSignatureHelpContentFormat([MarkupKind.PlainText, MarkupKind.Markdown]);
 
-    final content = '''
+    var content = '''
 /// Does foo.
 foo(String s, int i) {
   foo(^);
 }
 ''';
-    final expectedLabel = 'foo(String s, int i)';
-    final expectedDoc = 'Does foo.';
+    var expectedLabel = 'foo(String s, int i)';
+    var expectedDoc = 'Does foo.';
 
     // We say we prefer PlainText as a client, but since we only really
     // support Markdown and the client supports it, we expect the server
@@ -371,14 +370,14 @@ foo(String s, int i) {
   Future<void> test_manualTrigger_invalidLocation() async {
     // If the user invokes signature help, we should show it even if it's a
     // location where we wouldn't automatically trigger (for example in a string).
-    final content = '''
+    var content = '''
 /// Does foo.
 foo(String s, int i) {
   foo('this is a (^test');
 }
 ''';
-    final expectedLabel = 'foo(String s, int i)';
-    final expectedDoc = 'Does foo.';
+    var expectedLabel = 'foo(String s, int i)';
+    var expectedDoc = 'Does foo.';
 
     await _expectSignature(
         content,
@@ -395,7 +394,7 @@ foo(String s, int i) {
   }
 
   Future<void> test_noDefaultConstructor() async {
-    final content = '''
+    var content = '''
 class A {
   A._();
 }
@@ -415,15 +414,15 @@ final a = A(^);
   }
 
   Future<void> test_params_multipleNamed() async {
-    final content = '''
+    var content = '''
 /// Does foo.
 foo(String s, {bool b = true, bool a}) {
   foo(^);
 }
 ''';
 
-    final expectedLabel = 'foo(String s, {bool b = true, bool a})';
-    final expectedDoc = 'Does foo.';
+    var expectedLabel = 'foo(String s, {bool b = true, bool a})';
+    var expectedDoc = 'Does foo.';
 
     await _expectSignature(
       content,
@@ -438,15 +437,15 @@ foo(String s, {bool b = true, bool a}) {
   }
 
   Future<void> test_params_multipleNamed_retrigger() async {
-    final content = '''
+    var content = '''
 /// Does foo.
 foo(String s, {bool b = true, bool a}) {
   foo('s',^);
 }
 ''';
 
-    final expectedLabel = 'foo(String s, {bool b = true, bool a})';
-    final expectedDoc = 'Does foo.';
+    var expectedLabel = 'foo(String s, {bool b = true, bool a})';
+    var expectedDoc = 'Does foo.';
 
     await _expectSignature(
       content,
@@ -461,15 +460,15 @@ foo(String s, {bool b = true, bool a}) {
   }
 
   Future<void> test_params_multipleOptional() async {
-    final content = '''
+    var content = '''
 /// Does foo.
 foo(String s, [bool b = true, bool a]) {
   foo(^);
 }
 ''';
 
-    final expectedLabel = 'foo(String s, [bool b = true, bool a])';
-    final expectedDoc = 'Does foo.';
+    var expectedLabel = 'foo(String s, [bool b = true, bool a])';
+    var expectedDoc = 'Does foo.';
 
     await _expectSignature(
       content,
@@ -484,15 +483,15 @@ foo(String s, [bool b = true, bool a]) {
   }
 
   Future<void> test_params_named() async {
-    final content = '''
+    var content = '''
 /// Does foo.
 foo(String s, {bool b = true}) {
   foo(^);
 }
 ''';
 
-    final expectedLabel = 'foo(String s, {bool b = true})';
-    final expectedDoc = 'Does foo.';
+    var expectedLabel = 'foo(String s, {bool b = true})';
+    var expectedDoc = 'Does foo.';
 
     await _expectSignature(
       content,
@@ -506,15 +505,15 @@ foo(String s, {bool b = true}) {
   }
 
   Future<void> test_params_optional() async {
-    final content = '''
+    var content = '''
 /// Does foo.
 foo(String s, [bool b = true]) {
   foo(^);
 }
 ''';
 
-    final expectedLabel = 'foo(String s, [bool b = true])';
-    final expectedDoc = 'Does foo.';
+    var expectedLabel = 'foo(String s, [bool b = true])';
+    var expectedDoc = 'Does foo.';
 
     await _expectSignature(
       content,
@@ -528,15 +527,15 @@ foo(String s, [bool b = true]) {
   }
 
   Future<void> test_params_recordType() async {
-    final content = '''
+    var content = '''
 /// Does something.
 void f((String, int) r) {
   f(^);
 }
 ''';
 
-    final expectedLabel = 'f((String, int) r)';
-    final expectedDoc = 'Does something.';
+    var expectedLabel = 'f((String, int) r)';
+    var expectedDoc = 'Does something.';
 
     await _expectSignature(
       content,
@@ -550,15 +549,15 @@ void f((String, int) r) {
 
   Future<void> test_params_requiredNamed() async {
     // This test requires support for the "required" keyword.
-    final content = '''
+    var content = '''
 /// Does foo.
 foo(String s, {bool? b = true, required bool a}) {
   foo(^);
 }
 ''';
 
-    final expectedLabel = 'foo(String s, {bool? b = true, required bool a})';
-    final expectedDoc = 'Does foo.';
+    var expectedLabel = 'foo(String s, {bool? b = true, required bool a})';
+    var expectedDoc = 'Does foo.';
 
     await _expectSignature(
       content,
@@ -573,14 +572,14 @@ foo(String s, {bool? b = true, required bool a}) {
   }
 
   Future<void> test_simple() async {
-    final content = '''
+    var content = '''
 /// Does foo.
 foo(String s, int i) {
   foo(^);
 }
 ''';
-    final expectedLabel = 'foo(String s, int i)';
-    final expectedDoc = 'Does foo.';
+    var expectedLabel = 'foo(String s, int i)';
+    var expectedDoc = 'Does foo.';
 
     await _expectSignature(
       content,
@@ -596,7 +595,7 @@ foo(String s, int i) {
   Future<void> test_triggerCharacter_invalidLocation() async {
     // The client will automatically trigger when the user types ( so we need to
     // ignore it when we're not in a suitable location.
-    final content = '''
+    var content = '''
 /// Does foo.
 foo(String s, int i) {
   foo('this is a (^test');
@@ -614,14 +613,14 @@ foo(String s, int i) {
   }
 
   Future<void> test_triggerCharacter_validLocation() async {
-    final content = '''
+    var content = '''
 /// Does foo.
 foo(String s, int i) {
   foo(^
 }
 ''';
-    final expectedLabel = 'foo(String s, int i)';
-    final expectedDoc = 'Does foo.';
+    var expectedLabel = 'foo(String s, int i)';
+    var expectedDoc = 'Does foo.';
 
     await _expectSignature(
         content,
@@ -654,7 +653,7 @@ foo(String s, int i) {
       assertArgsDocumentation(null, includesSummary: true, includesFull: true);
 
   Future<void> test_typeParams_class() async {
-    final content = '''
+    var content = '''
 /// My Foo.
 class Foo<T1, T2 extends String> {}
 
@@ -676,7 +675,7 @@ class Bar extends Foo<^> {}
   }
 
   Future<void> test_typeParams_function() async {
-    final content = '''
+    var content = '''
 /// My Foo.
 void foo<T1, T2 extends String>() {
   foo<^>();
@@ -698,7 +697,7 @@ void foo<T1, T2 extends String>() {
   }
 
   Future<void> test_typeParams_method() async {
-    final content = '''
+    var content = '''
 class Foo {
   /// My Foo.
   void foo<T1, T2 extends String>() {
@@ -722,14 +721,14 @@ class Foo {
   }
 
   Future<void> test_unopenFile() async {
-    final content = '''
+    var content = '''
 /// Does foo.
 foo(String s, int i) {
   foo(^);
 }
 ''';
-    final expectedLabel = 'foo(String s, int i)';
-    final expectedDoc = 'Does foo.';
+    var expectedLabel = 'foo(String s, int i)';
+    var expectedDoc = 'Does foo.';
 
     await _expectSignature(
       content,

@@ -24,7 +24,7 @@ enum E {
 }
 ''');
 
-    final node = findNode.listLiteral('[]');
+    var node = findNode.listLiteral('[]');
     assertResolvedNodeText(node, r'''
 ListLiteral
   leftBracket: [
@@ -42,7 +42,7 @@ enum E {
 }
 ''');
 
-    final node = findNode.genericFunctionType('Function');
+    var node = findNode.genericFunctionType('Function');
     assertResolvedNodeText(node, r'''
 GenericFunctionType
   returnType: NamedType
@@ -79,7 +79,7 @@ enum E<T> {
 }
 ''');
 
-    final node = findNode.enumConstantDeclaration('v.');
+    var node = findNode.enumConstantDeclaration('v.');
     assertResolvedNodeText(node, r'''
 EnumConstantDeclaration
   name: v
@@ -115,7 +115,7 @@ enum E<T> {
 }
 ''');
 
-    final node = findNode.enumConstantDeclaration('v(');
+    var node = findNode.enumConstantDeclaration('v(');
     assertResolvedNodeText(node, r'''
 EnumConstantDeclaration
   name: v
@@ -145,7 +145,7 @@ enum E<T> {
 }
 ''');
 
-    final node = findNode.enumConstantDeclaration('v<');
+    var node = findNode.enumConstantDeclaration('v<');
     assertResolvedNodeText(node, r'''
 EnumConstantDeclaration
   name: v
@@ -189,7 +189,7 @@ enum E {
 }
 ''');
 
-    final node = findNode.enumConstantDeclaration('v.');
+    var node = findNode.enumConstantDeclaration('v.');
     assertResolvedNodeText(node, r'''
 EnumConstantDeclaration
   name: v
@@ -221,7 +221,7 @@ enum E {
 }
 ''');
 
-    final node = findNode.enumConstantDeclaration('v(');
+    var node = findNode.enumConstantDeclaration('v(');
     assertResolvedNodeText(node, r'''
 EnumConstantDeclaration
   name: v
@@ -246,7 +246,7 @@ enum E {
 }
 ''');
 
-    final node = findNode.enumConstantDeclaration('v\n');
+    var node = findNode.enumConstantDeclaration('v\n');
     assertResolvedNodeText(node, r'''
 EnumConstantDeclaration
   name: v
@@ -265,7 +265,7 @@ enum E {
       error(CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_NAMED, 13, 5),
     ]);
 
-    final node = findNode.enumConstantDeclaration('v.');
+    var node = findNode.enumConstantDeclaration('v.');
     assertResolvedNodeText(node, r'''
 EnumConstantDeclaration
   name: v
@@ -299,7 +299,7 @@ enum E {
       error(CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_UNNAMED, 11, 1),
     ]);
 
-    final node = findNode.enumConstantDeclaration('v(');
+    var node = findNode.enumConstantDeclaration('v(');
     assertResolvedNodeText(node, r'''
 EnumConstantDeclaration
   name: v
@@ -325,7 +325,7 @@ enum E {
 }
 ''');
 
-    final node = findNode.fieldDeclaration('foo =');
+    var node = findNode.fieldDeclaration('foo =');
     assertResolvedNodeText(node, r'''
 FieldDeclaration
   fields: VariableDeclarationList
@@ -351,7 +351,7 @@ enum E<T> {
 }
 ''');
 
-    final node = findNode.methodDeclaration('get foo');
+    var node = findNode.methodDeclaration('get foo');
     assertResolvedNodeText(node, r'''
 MethodDeclaration
   returnType: NamedType
@@ -394,7 +394,7 @@ enum E implements I {
 }
 ''');
 
-    final node = findNode.implementsClause('implements');
+    var node = findNode.implementsClause('implements');
     assertResolvedNodeText(node, r'''
 ImplementsClause
   implementsKeyword: implements
@@ -427,7 +427,7 @@ enum E<T> {
 }
 ''');
 
-    final node = findNode.singleMethodDeclaration;
+    var node = findNode.singleMethodDeclaration;
     assertResolvedNodeText(node, r'''
 MethodDeclaration
   returnType: NamedType
@@ -480,7 +480,7 @@ enum E {
 }
 ''');
 
-    final node = findNode.methodDeclaration('toString()');
+    var node = findNode.methodDeclaration('toString()');
     assertResolvedNodeText(node, r'''
 MethodDeclaration
   returnType: NamedType
@@ -509,7 +509,7 @@ enum E with M {
 }
 ''');
 
-    final node = findNode.withClause('with M');
+    var node = findNode.withClause('with M');
     assertResolvedNodeText(node, r'''
 WithClause
   withKeyword: with
@@ -530,7 +530,7 @@ enum E with M1<int>, M2 {
 }
 ''');
 
-    final node = findNode.withClause('with');
+    var node = findNode.withClause('with');
     assertResolvedNodeText(node, r'''
 WithClause
   withKeyword: with
@@ -562,7 +562,7 @@ enum E<T> {
 }
 ''');
 
-    final node = findNode.methodDeclaration('set foo');
+    var node = findNode.methodDeclaration('set foo');
     assertResolvedNodeText(node, r'''
 MethodDeclaration
   propertyKeyword: set
@@ -596,7 +596,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.singlePropertyAccess;
+    var node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: PrefixedIdentifier

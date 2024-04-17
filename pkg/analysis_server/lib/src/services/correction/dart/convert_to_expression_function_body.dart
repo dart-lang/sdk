@@ -93,7 +93,7 @@ class ConvertToExpressionFunctionBody extends ResolvedCorrectionProducer {
       return;
     }
 
-    final returnExpression_final = returnExpression;
+    var returnExpression_final = returnExpression;
     await builder.addDartFileEdit(file, (builder) {
       builder.addReplacement(range.node(body), (builder) {
         if (body.isAsynchronous) {

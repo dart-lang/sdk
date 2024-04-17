@@ -455,7 +455,7 @@ class AnnotationVerifier {
           }
         }
       } else if (parent.declaredElement != null) {
-        final declaredElement = parent.declaredElement!;
+        var declaredElement = parent.declaredElement!;
         if (element.isVisibleForOverriding &&
             (!declaredElement.isInstanceMember ||
                 declaredElement.enclosingElement is ExtensionTypeElement)) {
@@ -485,7 +485,7 @@ class AnnotationVerifier {
       );
     }
 
-    final AstNode? containedDeclaration;
+    AstNode? containedDeclaration;
     switch (node.parent) {
       case ConstructorDeclaration constructorDeclaration:
         containedDeclaration = constructorDeclaration;
@@ -500,7 +500,7 @@ class AnnotationVerifier {
         return;
     }
 
-    final InterfaceElement? declaredElement;
+    InterfaceElement? declaredElement;
     switch (containedDeclaration.parent) {
       case ClassDeclaration classDeclaration:
         declaredElement = classDeclaration.declaredElement;
@@ -518,7 +518,7 @@ class AnnotationVerifier {
       return;
     }
 
-    for (final annotation in declaredElement.metadata) {
+    for (var annotation in declaredElement.metadata) {
       if (annotation.isVisibleForTemplate) {
         return;
       }

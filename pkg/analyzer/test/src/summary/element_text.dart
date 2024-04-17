@@ -22,17 +22,17 @@ String getLibraryText({
   required LibraryElementImpl library,
   required ElementTextConfiguration configuration,
 }) {
-  final buffer = StringBuffer();
-  final sink = TreeStringSink(
+  var buffer = StringBuffer();
+  var sink = TreeStringSink(
     sink: buffer,
     indent: '',
   );
-  final elementPrinter = ElementPrinter(
+  var elementPrinter = ElementPrinter(
     sink: sink,
     configuration: ElementPrinterConfiguration(),
     selfUriStr: '${library.source.uri}',
   );
-  final writer = _ElementWriter(
+  var writer = _ElementWriter(
     sink: sink,
     elementPrinter: elementPrinter,
     configuration: configuration,
@@ -147,7 +147,7 @@ class _ElementWriter {
   }
 
   void _writeAugmentation(ElementImpl e) {
-    if (e case AugmentableElement(:final augmentation?)) {
+    if (e case AugmentableElement(:var augmentation?)) {
       _elementPrinter.writeNamedElement('augmentation', augmentation);
     }
   }
@@ -157,7 +157,7 @@ class _ElementWriter {
   }
 
   void _writeAugmentationImportElement(AugmentationImportElement e) {
-    final uri = e.uri;
+    var uri = e.uri;
     _sink.writeIndentedLine(() {
       _writeDirectiveUri(e.uri);
     });
@@ -192,10 +192,10 @@ class _ElementWriter {
       }
     }
 
-    final augmented = e.augmented;
+    var augmented = e.augmented;
 
     void writeFields() {
-      final sorted = augmented.fields.sortedBy((e) => e.name);
+      var sorted = augmented.fields.sortedBy((e) => e.name);
       _elementPrinter.writeElementList('fields', sorted);
     }
 
@@ -204,19 +204,19 @@ class _ElementWriter {
         return;
       }
       if (augmented is AugmentedInterfaceElementImpl) {
-        final sorted = augmented.constructors.sortedBy((e) => e.name);
+        var sorted = augmented.constructors.sortedBy((e) => e.name);
         expect(sorted, isNotEmpty);
         _elementPrinter.writeElementList('constructors', sorted);
       }
     }
 
     void writeAccessors() {
-      final sorted = augmented.accessors.sortedBy((e) => e.name);
+      var sorted = augmented.accessors.sortedBy((e) => e.name);
       _elementPrinter.writeElementList('accessors', sorted);
     }
 
     void writeMethods() {
-      final sorted = augmented.methods.sortedBy((e) => e.name);
+      var sorted = augmented.methods.sortedBy((e) => e.name);
       _elementPrinter.writeElementList('methods', sorted);
     }
 
@@ -334,7 +334,7 @@ class _ElementWriter {
 
       var superConstructor = e.superConstructor;
       if (superConstructor != null) {
-        final enclosingElement = superConstructor.enclosingElement;
+        var enclosingElement = superConstructor.enclosingElement;
         if (enclosingElement is ClassElement &&
             !enclosingElement.isDartCoreObject) {
           _elementPrinter.writeNamedElement(
@@ -420,10 +420,10 @@ class _ElementWriter {
   }
 
   void _writeExportedReferences(LibraryElementImpl e) {
-    final exportedReferences = e.exportedReferences.toList();
+    var exportedReferences = e.exportedReferences.toList();
     exportedReferences.sortBy((e) => e.reference.toString());
 
-    for (final exported in exportedReferences) {
+    for (var exported in exportedReferences) {
       _sink.writeIndentedLine(() {
         if (exported is ExportedReferenceDeclared) {
           _sink.write('declared ');
@@ -451,9 +451,9 @@ class _ElementWriter {
   }
 
   void _writeExportNamespace(LibraryElement e) {
-    final map = e.exportNamespace.definedNames;
-    final sortedEntries = map.entries.sortedBy((entry) => entry.key);
-    for (final entry in sortedEntries) {
+    var map = e.exportNamespace.definedNames;
+    var sortedEntries = map.entries.sortedBy((entry) => entry.key);
+    for (var entry in sortedEntries) {
       _elementPrinter.writeNamedElement(entry.key, entry.value);
     }
   }
@@ -507,7 +507,7 @@ class _ElementWriter {
 
     _sink.writelnWithIndent('fieldNameNonPromotabilityInfo');
     _sink.withIndent(() {
-      for (final entry in info.entries) {
+      for (var entry in info.entries) {
         _sink.writelnWithIndent(entry.key);
         _sink.withIndent(() {
           _elementPrinter.writeElementList(
@@ -629,7 +629,7 @@ class _ElementWriter {
       _writeAugmentation(e);
 
       if (!e.isAugmentation) {
-        final supertype = e.supertype;
+        var supertype = e.supertype;
         if (supertype != null &&
             (supertype.element.name != 'Object' || e.mixins.isNotEmpty)) {
           _writeType('supertype', supertype);
@@ -654,7 +654,7 @@ class _ElementWriter {
       _elementPrinter.writeTypeList('interfaces', e.interfaces);
 
       if (configuration.withAllSupertypes) {
-        final sorted = e.allSupertypes.sortedBy((t) => t.element.name);
+        var sorted = e.allSupertypes.sortedBy((t) => t.element.name);
         _elementPrinter.writeTypeList('allSupertypes', sorted);
       }
 
@@ -679,11 +679,11 @@ class _ElementWriter {
 
   void _writeLibraryAugmentations(LibraryElementImpl e) {
     if (configuration.withLibraryAugmentations) {
-      final augmentations = e.augmentations;
+      var augmentations = e.augmentations;
       if (augmentations.isNotEmpty) {
         _sink.writelnWithIndent('augmentations');
         _sink.withIndent(() {
-          for (final element in augmentations) {
+          for (var element in augmentations) {
             _sink.writeIndent();
             _elementPrinter.writeElement(element);
           }
@@ -696,7 +696,7 @@ class _ElementWriter {
     _writeReference(e);
 
     if (e is LibraryAugmentationElementImpl) {
-      if (e.macroGenerated case final macroGenerated?) {
+      if (e.macroGenerated case var macroGenerated?) {
         _sink.writelnWithIndent('macroGeneratedCode');
         _sink.writeln('---');
         _sink.write(macroGenerated.code);
@@ -804,12 +804,12 @@ class _ElementWriter {
     void writeMessage(MacroDiagnosticMessage object) {
       // Write the message.
       if (!printMessagePatterns(object.message)) {
-        final message = object.message;
+        var message = object.message;
         const stackTraceText = '#0';
-        final stackTraceIndex = message.indexOf(stackTraceText);
+        var stackTraceIndex = message.indexOf(stackTraceText);
         if (stackTraceIndex >= 0) {
-          final end = stackTraceIndex + stackTraceText.length;
-          final withoutStackTrace = message.substring(0, end);
+          var end = stackTraceIndex + stackTraceText.length;
+          var withoutStackTrace = message.substring(0, end);
           if (configuration.withMacroStackTraces) {
             _sink.writelnWithIndent('message:\n$message');
           } else {
@@ -820,7 +820,7 @@ class _ElementWriter {
         }
       }
       // Write the target.
-      final target = object.target;
+      var target = object.target;
       switch (target) {
         case ApplicationMacroDiagnosticTarget():
           _sink.writelnWithIndent('target: ApplicationMacroDiagnosticTarget');
@@ -854,7 +854,7 @@ class _ElementWriter {
       }
     }
 
-    if (e case final MacroTargetElement macroTarget) {
+    if (e case MacroTargetElement macroTarget) {
       _sink.writeElements(
         'macroDiagnostics',
         macroTarget.macroDiagnostics,
@@ -1026,7 +1026,7 @@ class _ElementWriter {
   }
 
   void _writeName(Element e) {
-    final String name;
+    String name;
     switch (e) {
       case ExtensionElement(name: null):
         name = '<null>';
@@ -1136,7 +1136,7 @@ class _ElementWriter {
   }
 
   void _writePartElement(PartElement e) {
-    final uri = e.uri;
+    var uri = e.uri;
     _sink.writeIndentedLine(() {
       _writeDirectiveUri(e.uri);
     });
@@ -1192,7 +1192,7 @@ class _ElementWriter {
     void writeLinking() {
       if (configuration.withPropertyLinking) {
         _sink.writelnWithIndent('id: ${_idMap[e]}');
-        if (e.variable2 case final variable?) {
+        if (e.variable2 case var variable?) {
           _sink.writelnWithIndent('variable: ${_idMap[variable]}');
         } else {
           _sink.writelnWithIndent('variable: <null>');
@@ -1257,12 +1257,12 @@ class _ElementWriter {
       if (configuration.withPropertyLinking) {
         _sink.writelnWithIndent('id: ${_idMap[e]}');
 
-        final getter = e.getter;
+        var getter = e.getter;
         if (getter != null) {
           _sink.writelnWithIndent('getter: ${_idMap[getter]}');
         }
 
-        final setter = e.setter;
+        var setter = e.setter;
         if (setter != null) {
           _sink.writelnWithIndent('setter: ${_idMap[setter]}');
         }
@@ -1292,7 +1292,7 @@ class _ElementWriter {
       return;
     }
 
-    if (e.reference case final reference?) {
+    if (e.reference case var reference?) {
       _sink.writeIndentedLine(() {
         _sink.write('reference: ');
         _elementPrinter.writeReference(reference);
@@ -1319,7 +1319,7 @@ class _ElementWriter {
   }
 
   void _writeSinceSdkVersion(Element e) {
-    final sinceSdkVersion = e.sinceSdkVersion;
+    var sinceSdkVersion = e.sinceSdkVersion;
     if (sinceSdkVersion != null) {
       _sink.writelnWithIndent('sinceSdkVersion: $sinceSdkVersion');
     }

@@ -29,8 +29,8 @@ class DocumentLinkHandler
       return success(const []);
     }
 
-    final path = pathOfDoc(params.textDocument);
-    final parsedUnit = await path.mapResult(requireUnresolvedUnit);
+    var path = pathOfDoc(params.textDocument);
+    var parsedUnit = await path.mapResult(requireUnresolvedUnit);
 
     return parsedUnit.mapResult((unit) async {
       /// Helper to convert using LineInfo.
@@ -38,8 +38,8 @@ class DocumentLinkHandler
         return _convert(link, unit.lineInfo);
       }
 
-      final visitor = DartDocumentLinkVisitor(server.resourceProvider, unit);
-      final links = visitor.findLinks(unit.unit);
+      var visitor = DartDocumentLinkVisitor(server.resourceProvider, unit);
+      var links = visitor.findLinks(unit.unit);
 
       return success(links.map(convert).toList());
     });

@@ -58,7 +58,7 @@ class CiderFileContent implements FileContent {
 
   @override
   String get content {
-    final contentWithDigest = _getContent();
+    var contentWithDigest = _getContent();
 
     if (contentWithDigest.digestStr != digestStr) {
       throw StateError('File was changed, but not invalidated: $path');
@@ -76,13 +76,13 @@ class CiderFileContent implements FileContent {
   _ContentWithDigest _getContent() {
     String content;
     try {
-      final file = strategy.resourceProvider.getFile(path);
+      var file = strategy.resourceProvider.getFile(path);
       content = file.readAsStringSync();
     } catch (_) {
       content = '';
     }
 
-    final digestStr = strategy.getFileDigest(path);
+    var digestStr = strategy.getFileDigest(path);
     return _ContentWithDigest(
       content: content,
       digestStr: digestStr,
@@ -105,7 +105,7 @@ class CiderFileContentStrategy implements FileContentStrategy {
 
   @override
   CiderFileContent get(String path) {
-    final digestStr = getFileDigest(path);
+    var digestStr = getFileDigest(path);
     return CiderFileContent(
       strategy: this,
       path: path,
@@ -227,13 +227,13 @@ class FileResolver {
     cachedResults.clear();
 
     // Remove the specified files and files that transitively depend on it.
-    final removedFiles = <FileState>{};
-    for (final path in paths) {
+    var removedFiles = <FileState>{};
+    for (var path in paths) {
       fsState!.changeFile(path, removedFiles);
     }
 
     // Schedule disposing references to cached unlinked data.
-    for (final removedFile in removedFiles) {
+    for (var removedFile in removedFiles) {
       removedCacheKeys.add(removedFile.unlinkedKey);
     }
 
@@ -321,15 +321,15 @@ class FileResolver {
         performance: performance!,
       );
       var file = fileContext.file;
-      final kind = file.kind.library ?? file.kind.asLibrary;
+      var kind = file.kind.library ?? file.kind.asLibrary;
 
-      final errorsSignatureBuilder = ApiSignature();
+      var errorsSignatureBuilder = ApiSignature();
       errorsSignatureBuilder.addString(kind.libraryCycle.apiSignature);
       errorsSignatureBuilder.addString(file.contentHash);
-      final errorsKey = '${errorsSignatureBuilder.toHex()}.errors';
+      var errorsKey = '${errorsSignatureBuilder.toHex()}.errors';
 
-      final List<AnalysisError> errors;
-      final bytes = _errorResultsCache.get(errorsKey);
+      List<AnalysisError> errors;
+      var bytes = _errorResultsCache.get(errorsKey);
       if (bytes != null) {
         var data = CiderUnitErrors.fromBuffer(bytes);
         errors = data.errors.map((error) {
@@ -418,7 +418,7 @@ class FileResolver {
     );
     var file = fileContext.file;
 
-    final kind = file.kind;
+    var kind = file.kind;
     if (kind is! LibraryFileKind) {
       throw ArgumentError('$uri is not a library.');
     }
@@ -439,7 +439,7 @@ class FileResolver {
     var file = fsState!.getFileForPath(path);
 
     // TODO(scheglov): Casts are unsafe.
-    final kind = file.kind as LibraryFileKind;
+    var kind = file.kind as LibraryFileKind;
     return kind.libraryCycle.apiSignature;
   }
 
@@ -474,7 +474,7 @@ class FileResolver {
       performance: performance,
     );
     var file = fileContext.file;
-    final libraryKind = file.kind.library ?? file.kind.asLibrary;
+    var libraryKind = file.kind.library ?? file.kind.asLibrary;
 
     // Load the library, link if necessary.
     await libraryContext!.load(
@@ -484,7 +484,7 @@ class FileResolver {
 
     // Unload libraries, but don't release the linked data.
     // If we are the only consumer of it, we will lose it.
-    final linkedKeysToRelease = libraryContext!.unloadAll();
+    var linkedKeysToRelease = libraryContext!.unloadAll();
 
     // Load the library again, the reference count is `>= 2`.
     await libraryContext!.load(
@@ -534,8 +534,8 @@ class FileResolver {
       );
       var file = fileContext.file;
 
-      final libraryKind = file.kind.library ?? file.kind.asLibrary;
-      final libraryFile = libraryKind.file;
+      var libraryKind = file.kind.library ?? file.kind.asLibrary;
+      var libraryFile = libraryKind.file;
 
       var libraryResult = await resolveLibrary2(
         path: libraryFile.path,
@@ -565,15 +565,15 @@ class FileResolver {
     performance ??= OperationPerformanceImpl('<default>');
 
     return logger.runAsync('Resolve $path', () async {
-      final fileContext = getFileContext(
+      var fileContext = getFileContext(
         path: path,
         performance: performance!,
       );
-      final file = fileContext.file;
-      final libraryKind = file.kind.library ?? file.kind.asLibrary;
+      var file = fileContext.file;
+      var libraryKind = file.kind.library ?? file.kind.asLibrary;
 
-      final lineOffset = file.lineInfo.getOffsetOfLine(completionLine);
-      final completionOffset = lineOffset + completionColumn;
+      var lineOffset = file.lineInfo.getOffsetOfLine(completionLine);
+      var completionOffset = lineOffset + completionColumn;
 
       await performance.runAsync('libraryContext', (performance) async {
         await libraryContext!.load(
@@ -582,11 +582,11 @@ class FileResolver {
         );
       });
 
-      final unitElement = libraryContext!.computeUnitElement(libraryKind, file);
+      var unitElement = libraryContext!.computeUnitElement(libraryKind, file);
 
       return logger.run('Compute analysis results', () {
-        final elementFactory = libraryContext!.elementFactory;
-        final analysisSession = elementFactory.analysisSession;
+        var elementFactory = libraryContext!.elementFactory;
+        var analysisSession = elementFactory.analysisSession;
 
         var libraryElement = elementFactory.libraryOfUri2(libraryKind.file.uri);
 
@@ -604,7 +604,7 @@ class FileResolver {
           typeSystemOperations: typeSystemOperations,
         );
 
-        final analysisResult = performance!.run('analyze', (performance) {
+        var analysisResult = performance!.run('analyze', (performance) {
           return libraryAnalyzer.analyzeForCompletion(
             file: file,
             offset: completionOffset,
@@ -648,7 +648,7 @@ class FileResolver {
         performance: performance!,
       );
       var file = fileContext.file;
-      final libraryKind = file.kind.library ?? file.kind.asLibrary;
+      var libraryKind = file.kind.library ?? file.kind.asLibrary;
 
       await performance.runAsync('libraryContext', (performance) async {
         await libraryContext!.load(

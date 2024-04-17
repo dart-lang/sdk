@@ -109,7 +109,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
   }
 
   void _reportDeprecatedExportUse(SimpleIdentifierImpl node) {
-    final scopeLookupResult = node.scopeLookupResult;
+    var scopeLookupResult = node.scopeLookupResult;
     if (scopeLookupResult != null) {
       reportDeprecatedExportUseGetter(
         scopeLookupResult: scopeLookupResult,
@@ -171,16 +171,16 @@ class SimpleIdentifierResolver with ScopeHelpers {
       hasWrite: hasWrite,
     );
 
-    final callFunctionType = result.functionTypeCallType;
+    var callFunctionType = result.functionTypeCallType;
     if (callFunctionType != null) {
-      final staticType = _resolver.inferenceHelper
+      var staticType = _resolver.inferenceHelper
           .inferTearOff(node, node, callFunctionType, contextType: contextType);
       _inferenceHelper.recordStaticType(node, staticType);
       _currentAlreadyResolved = true;
       return null;
     }
 
-    final recordField = result.recordField;
+    var recordField = result.recordField;
     if (recordField != null) {
       _inferenceHelper.recordStaticType(node, recordField.type);
       _currentAlreadyResolved = true;

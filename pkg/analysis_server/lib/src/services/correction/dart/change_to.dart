@@ -274,7 +274,7 @@ class ChangeTo extends ResolvedCorrectionProducer {
   }
 
   Future<void> _proposeSuperFormalParameter(ChangeBuilder builder) async {
-    final superParameter = node;
+    var superParameter = node;
     if (superParameter is! SuperFormalParameter) return;
 
     var constructorDeclaration =

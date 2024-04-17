@@ -114,7 +114,7 @@ class SubtypeHelper {
       }
       // Extension types require explicit `Object` implementation.
       if (T0 is InterfaceTypeImpl && T0.element is ExtensionTypeElement) {
-        for (final interface in T0.interfaces) {
+        for (var interface in T0.interfaces) {
           if (isSubtypeOf(interface, T1_)) {
             return true;
           }
@@ -475,29 +475,29 @@ class SubtypeHelper {
 
   /// Check that [subType] is a subtype of [superType].
   bool _isRecordSubtypeOf(RecordType subType, RecordType superType) {
-    final subPositional = subType.positionalFields;
-    final superPositional = superType.positionalFields;
+    var subPositional = subType.positionalFields;
+    var superPositional = superType.positionalFields;
     if (subPositional.length != superPositional.length) {
       return false;
     }
 
-    final subNamed = subType.namedFields;
-    final superNamed = superType.namedFields;
+    var subNamed = subType.namedFields;
+    var superNamed = superType.namedFields;
     if (subNamed.length != superNamed.length) {
       return false;
     }
 
     for (var i = 0; i < subPositional.length; i++) {
-      final subField = subPositional[i];
-      final superField = superPositional[i];
+      var subField = subPositional[i];
+      var superField = superPositional[i];
       if (!isSubtypeOf(subField.type, superField.type)) {
         return false;
       }
     }
 
     for (var i = 0; i < subNamed.length; i++) {
-      final subField = subNamed[i];
-      final superField = superNamed[i];
+      var subField = subNamed[i];
+      var superField = superNamed[i];
       if (subField.name != superField.name) {
         return false;
       }

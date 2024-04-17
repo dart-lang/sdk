@@ -35,7 +35,7 @@ class AddConst extends ResolvedCorrectionProducer {
     if (targetNode is ConstructorDeclaration) {
       var node_final = targetNode;
       await builder.addDartFileEdit(file, (builder) {
-        final offset = node_final.firstTokenAfterCommentAndMetadata.offset;
+        var offset = node_final.firstTokenAfterCommentAndMetadata.offset;
         builder.addSimpleInsertion(offset, 'const ');
       });
       return;
@@ -63,7 +63,7 @@ class AddConst extends ResolvedCorrectionProducer {
           getLinterContext(resourceProvider.pathContext).canBeConst(expression);
       if (canBeConst) {
         await builder.addDartFileEdit(file, (builder) {
-          final offset = expression.offset;
+          var offset = expression.offset;
           builder.addSimpleInsertion(offset, 'const ');
         });
       } else if (expression is TypeLiteral) {

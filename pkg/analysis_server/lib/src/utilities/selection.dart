@@ -414,7 +414,7 @@ class _ChildrenFinder extends SimpleAstVisitor<void> {
   bool _fromList(List<AstNode> elements) {
     var first = elements.length;
     for (; first > 0; first--) {
-      final element = elements[first - 1];
+      var element = elements[first - 1];
       if (element.end <= range.offset) {
         break;
       }
@@ -422,7 +422,7 @@ class _ChildrenFinder extends SimpleAstVisitor<void> {
 
     var last = first;
     for (; last < elements.length; last++) {
-      final element = elements[last];
+      var element = elements[last];
       if (element.offset >= range.end) {
         break;
       }

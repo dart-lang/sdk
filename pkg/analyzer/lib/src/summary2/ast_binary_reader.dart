@@ -925,7 +925,7 @@ class AstBinaryReader {
   }
 
   NullLiteral _readNullLiteral() {
-    final node = NullLiteralImpl(
+    var node = NullLiteralImpl(
       literal: Tokens.null_(),
     );
     _readExpressionResolution(node);
@@ -1049,13 +1049,13 @@ class AstBinaryReader {
   }
 
   RecordTypeAnnotationImpl _readRecordTypeAnnotation() {
-    final flags = _readByte();
-    final positionalFields =
+    var flags = _readByte();
+    var positionalFields =
         _readNodeList<RecordTypeAnnotationPositionalFieldImpl>();
-    final namedFields =
+    var namedFields =
         _readOptionalNode() as RecordTypeAnnotationNamedFieldsImpl?;
 
-    final node = RecordTypeAnnotationImpl(
+    var node = RecordTypeAnnotationImpl(
       leftParenthesis: Tokens.openParenthesis(),
       positionalFields: positionalFields,
       namedFields: namedFields,
@@ -1067,11 +1067,11 @@ class AstBinaryReader {
   }
 
   RecordTypeAnnotationNamedFieldImpl _readRecordTypeAnnotationNamedField() {
-    final metadata = _readNodeList<AnnotationImpl>();
-    final type = readNode() as TypeAnnotationImpl;
+    var metadata = _readNodeList<AnnotationImpl>();
+    var type = readNode() as TypeAnnotationImpl;
 
-    final lexeme = _reader.readStringReference();
-    final name = TokenFactory.tokenFromString(lexeme);
+    var lexeme = _reader.readStringReference();
+    var name = TokenFactory.tokenFromString(lexeme);
 
     return RecordTypeAnnotationNamedFieldImpl(
       metadata: metadata,
@@ -1081,7 +1081,7 @@ class AstBinaryReader {
   }
 
   RecordTypeAnnotationNamedFieldsImpl _readRecordTypeAnnotationNamedFields() {
-    final fields = _readNodeList<RecordTypeAnnotationNamedFieldImpl>();
+    var fields = _readNodeList<RecordTypeAnnotationNamedFieldImpl>();
     return RecordTypeAnnotationNamedFieldsImpl(
       leftBracket: Tokens.openCurlyBracket(),
       fields: fields,
@@ -1091,11 +1091,11 @@ class AstBinaryReader {
 
   RecordTypeAnnotationPositionalFieldImpl
       _readRecordTypeAnnotationPositionalField() {
-    final metadata = _readNodeList<AnnotationImpl>();
-    final type = readNode() as TypeAnnotationImpl;
+    var metadata = _readNodeList<AnnotationImpl>();
+    var type = readNode() as TypeAnnotationImpl;
 
-    final name = _reader.readOptionalObject((reader) {
-      final lexeme = reader.readStringReference();
+    var name = _reader.readOptionalObject((reader) {
+      var lexeme = reader.readStringReference();
       return TokenFactory.tokenFromString(lexeme);
     });
 

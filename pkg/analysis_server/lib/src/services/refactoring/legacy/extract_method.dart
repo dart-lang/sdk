@@ -329,7 +329,7 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
       {
         var returnExpressionSource = _getMethodBodySource();
         // closure
-        final selectionFunctionExpression = _selectionFunctionExpression;
+        var selectionFunctionExpression = _selectionFunctionExpression;
         if (selectionFunctionExpression != null) {
           var returnTypeCode = _getExpectedClosureReturnTypeCode();
           declarationSource =
@@ -662,7 +662,7 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
     // apply replacements
     source = SourceEdit.applySequence(source, replaceEdits);
     // change indentation
-    final selectionFunctionExpression = _selectionFunctionExpression;
+    var selectionFunctionExpression = _selectionFunctionExpression;
     if (selectionFunctionExpression != null) {
       var baseNode =
           selectionFunctionExpression.thisOrAncestorOfType<Statement>();
@@ -673,7 +673,7 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
         source = source.trim();
       }
     }
-    final selectionStatements = _selectionStatements;
+    var selectionStatements = _selectionStatements;
     if (selectionStatements != null) {
       var selectionIndent = _utils.getNodePrefix(selectionStatements[0]);
       var targetIndent = '${_utils.getNodePrefix(_parentMember!)}  ';
@@ -742,12 +742,12 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
     );
 
     // single expression
-    final selectionExpression = _selectionExpression;
+    var selectionExpression = _selectionExpression;
     if (selectionExpression != null) {
       _returnType = selectionExpression.typeOrThrow;
     }
     // verify that none or all execution flows end with a "return"
-    final selectionStatements = _selectionStatements;
+    var selectionStatements = _selectionStatements;
     if (selectionStatements != null) {
       var hasReturn = selectionStatements.any(_mayEndWithReturnStatement);
       if (hasReturn && !ExitDetector.exits(selectionStatements.last)) {
@@ -795,7 +795,7 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
 
   Future<void> _initializeReturnType() async {
     var typeProvider = _resolveResult.typeProvider;
-    final returnTypeObj = _returnType;
+    var returnTypeObj = _returnType;
     if (_selectionFunctionExpression != null) {
       _variableType = '';
       returnType = '';
@@ -876,7 +876,7 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
 
   void _prepareNames() {
     names.clear();
-    final selectionExpression = _selectionExpression;
+    var selectionExpression = _selectionExpression;
     if (selectionExpression != null) {
       names.addAll(getVariableNameSuggestionsForExpression(
           selectionExpression.typeOrThrow, selectionExpression, _excludedNames,
@@ -1394,7 +1394,7 @@ class _InitializeParametersVisitor extends GeneralizingAstVisitor<void> {
   visitVariableDeclaration(VariableDeclaration node) {
     var nodeRange = range.node(node);
     if (ref._selectionRange.covers(nodeRange)) {
-      final element = node.declaredElement!;
+      var element = node.declaredElement!;
 
       // remember, if assigned and used after selection
       if (ref._isUsedAfterSelection(element)) {
@@ -1408,7 +1408,7 @@ class _InitializeParametersVisitor extends GeneralizingAstVisitor<void> {
         // declared local elements
         var range = ref._visibleRangeMap[element as LocalElement];
         if (range != null) {
-          final name = node.name.lexeme;
+          var name = node.name.lexeme;
           var ranges = ref._localNames.putIfAbsent(name, () => <SourceRange>[]);
           ranges.add(range);
         }
@@ -1660,15 +1660,15 @@ extension on LibraryElement {
     required Set<Source> librariesToImport,
     required RecordType type,
   }) {
-    final buffer = StringBuffer();
+    var buffer = StringBuffer();
 
-    final positionalFields = type.positionalFields;
-    final namedFields = type.namedFields;
-    final fieldCount = positionalFields.length + namedFields.length;
+    var positionalFields = type.positionalFields;
+    var namedFields = type.namedFields;
+    var fieldCount = positionalFields.length + namedFields.length;
     buffer.write('(');
 
     var index = 0;
-    for (final field in positionalFields) {
+    for (var field in positionalFields) {
       buffer.write(
         getTypeSource(field.type, librariesToImport),
       );
@@ -1679,7 +1679,7 @@ extension on LibraryElement {
 
     if (namedFields.isNotEmpty) {
       buffer.write('{');
-      for (final field in namedFields) {
+      for (var field in namedFields) {
         buffer.write(
           getTypeSource(field.type, librariesToImport),
         );

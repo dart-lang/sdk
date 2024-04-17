@@ -24,7 +24,7 @@ f() {
 }
 ''');
 
-    final node = findNode.methodInvocation('foo(');
+    var node = findNode.methodInvocation('foo(');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -65,7 +65,7 @@ f() {
       error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 54, 3),
     ]);
 
-    final node = findNode.methodInvocation('foo(');
+    var node = findNode.methodInvocation('foo(');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -110,7 +110,7 @@ f() {
           39, 1),
     ]);
 
-    final node = findNode.methodInvocation('foo(');
+    var node = findNode.methodInvocation('foo(');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -145,7 +145,7 @@ f() {
       error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 44, 1),
     ]);
 
-    final node = findNode.methodInvocation('foo(');
+    var node = findNode.methodInvocation('foo(');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -190,7 +190,7 @@ f() {
       error(CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER, 44, 1),
     ]);
 
-    final node = findNode.methodInvocation('foo(');
+    var node = findNode.methodInvocation('foo(');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier

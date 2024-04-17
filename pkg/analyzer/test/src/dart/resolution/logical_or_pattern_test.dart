@@ -20,7 +20,7 @@ void f(x) {
   if (x case int _ || double _) {}
 }
 ''');
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 LogicalOrPattern
   leftOperand: WildcardPattern
@@ -51,7 +51,7 @@ void f(x) {
   }
 }
 ''');
-    final node = findNode.singleGuardedPattern.pattern;
+    var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 LogicalOrPattern
   leftOperand: WildcardPattern

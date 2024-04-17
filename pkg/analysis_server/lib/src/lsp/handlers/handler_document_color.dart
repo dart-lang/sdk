@@ -38,8 +38,8 @@ class DocumentColorHandler
       return success([]);
     }
 
-    final path = pathOfDoc(params.textDocument);
-    final unit = await path.mapResult(requireResolvedUnit);
+    var path = pathOfDoc(params.textDocument);
+    var unit = await path.mapResult(requireResolvedUnit);
     return unit.mapResultSync((unit) => _getColors(unit));
   }
 
@@ -58,8 +58,8 @@ class DocumentColorHandler
       );
     }
 
-    final computer = ColorComputer(unit, pathContext);
-    final colors = computer.compute();
+    var computer = ColorComputer(unit, pathContext);
+    var colors = computer.compute();
     return success(colors.map(toColorInformation).toList());
   }
 }

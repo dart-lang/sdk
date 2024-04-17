@@ -186,7 +186,7 @@ class ConstantEvaluationEngine {
           constant.source,
         );
         var constantVisitor = ConstantVisitor(this, library, errorReporter);
-        final result = evaluateAndFormatErrorsInConstructorCall(
+        var result = evaluateAndFormatErrorsInConstructorCall(
             library,
             constNode,
             element.returnType.typeArguments,
@@ -359,16 +359,16 @@ class ConstantEvaluationEngine {
     // If we found an evaluation exception, report a context message linking to
     // where the exception was found.
     if (result.isRuntimeException) {
-      final formattedMessage =
+      var formattedMessage =
           formatList(result.errorCode.problemMessage, result.arguments);
-      final contextMessage = DiagnosticMessageImpl(
+      var contextMessage = DiagnosticMessageImpl(
         filePath: library.source.fullName,
         length: result.length,
         message: "The exception is '$formattedMessage' and occurs here.",
         offset: result.offset,
         url: null,
       );
-      final errorNode = configuration.errorNode(node);
+      var errorNode = configuration.errorNode(node);
       result = InvalidConstant.forEntity(
           errorNode, CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
           contextMessages: [...result.contextMessages, contextMessage]);
@@ -827,7 +827,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       }
     }
 
-    final constructorElement = node.constructorName.staticElement?.declaration
+    var constructorElement = node.constructorName.staticElement?.declaration
         .ifTypeOrNull<ConstructorElementImpl>();
     if (constructorElement == null) {
       return InvalidConstant.forEntity(
@@ -2519,9 +2519,9 @@ class _InstanceCreationEvaluator {
       return error;
     }
 
-    var definingType = this.definingType;
-    if (definingType.element case final ExtensionTypeElement element) {
-      final representation = _fieldMap[element.representation.name];
+    final definingType = this.definingType;
+    if (definingType.element case ExtensionTypeElement element) {
+      var representation = _fieldMap[element.representation.name];
       if (representation != null) {
         return representation;
       }

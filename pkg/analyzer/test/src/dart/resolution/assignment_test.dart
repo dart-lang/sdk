@@ -28,7 +28,7 @@ g(int a) {
 }
 ''');
 
-    final node = findNode.assignment('+= f()');
+    var node = findNode.assignment('+= f()');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
@@ -66,7 +66,7 @@ g(List<int> a) {
 }
 ''');
 
-    final node = findNode.assignment('+= f()');
+    var node = findNode.assignment('+= f()');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: IndexExpression
@@ -121,7 +121,7 @@ g(num a) {
 }
 ''');
 
-    final node = findNode.assignment('+= f()');
+    var node = findNode.assignment('+= f()');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
@@ -162,7 +162,7 @@ g(num a, bool b) {
 }
 ''');
 
-    final node = findNode.assignment('+=');
+    var node = findNode.assignment('+=');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
@@ -217,7 +217,7 @@ void f(dynamic a) {
 }
 ''');
 
-    final node = findNode.singleAssignmentExpression;
+    var node = findNode.singleAssignmentExpression;
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
@@ -245,7 +245,7 @@ void f(dynamic a) {
 }
 ''');
 
-    final node = findNode.singleAssignmentExpression;
+    var node = findNode.singleAssignmentExpression;
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PrefixedIdentifier
@@ -281,7 +281,7 @@ void f(dynamic a) {
 }
 ''');
 
-    final node = findNode.singleAssignmentExpression;
+    var node = findNode.singleAssignmentExpression;
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
@@ -361,7 +361,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.assignment('= 0');
+    var node = findNode.assignment('= 0');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PrefixedIdentifier
@@ -437,7 +437,7 @@ void f(dynamic a) {
 }
 ''');
 
-    final node = findNode.singleAssignmentExpression;
+    var node = findNode.singleAssignmentExpression;
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: IndexExpression
@@ -865,7 +865,7 @@ void f() {
       error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 13, 1),
     ]);
 
-    final node = findNode.singleAssignmentExpression;
+    var node = findNode.singleAssignmentExpression;
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: IndexExpression
@@ -907,7 +907,7 @@ class A {
       error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 27, 5),
     ]);
 
-    final node = findNode.singleAssignmentExpression;
+    var node = findNode.singleAssignmentExpression;
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: SuperExpression
@@ -1417,7 +1417,7 @@ g(int? a) {
 }
 ''');
 
-    final node = findNode.assignment('??= f()');
+    var node = findNode.assignment('??= f()');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
@@ -1636,7 +1636,7 @@ void f(A a) {
       error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 56, 3),
     ]);
 
-    final node = findNode.singleAssignmentExpression;
+    var node = findNode.singleAssignmentExpression;
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PrefixedIdentifier
@@ -1685,7 +1685,7 @@ void f(A a) {
 }
 ''');
 
-    final node = findNode.singleAssignmentExpression;
+    var node = findNode.singleAssignmentExpression;
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PrefixedIdentifier
@@ -1732,7 +1732,7 @@ void f(A a) {
 }
 ''');
 
-    final node = findNode.singleAssignmentExpression;
+    var node = findNode.singleAssignmentExpression;
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PrefixedIdentifier
@@ -1782,7 +1782,7 @@ void f() {
       error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 53, 3),
     ]);
 
-    final node = findNode.singleAssignmentExpression;
+    var node = findNode.singleAssignmentExpression;
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PrefixedIdentifier
@@ -1831,7 +1831,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.singleAssignmentExpression;
+    var node = findNode.singleAssignmentExpression;
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PrefixedIdentifier
@@ -1878,7 +1878,7 @@ void f() {
 }
 ''');
 
-    final node = findNode.singleAssignmentExpression;
+    var node = findNode.singleAssignmentExpression;
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PrefixedIdentifier
@@ -2454,7 +2454,7 @@ void f(A a) {
 }
 ''');
 
-    final node = findNode.singleAssignmentExpression;
+    var node = findNode.singleAssignmentExpression;
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
@@ -2504,7 +2504,7 @@ void f(A a) {
 }
 ''');
 
-    final node = findNode.singleAssignmentExpression;
+    var node = findNode.singleAssignmentExpression;
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
@@ -2550,7 +2550,7 @@ void f(({int bar}) r) {
       error(CompileTimeErrorCode.UNDEFINED_SETTER, 28, 3),
     ]);
 
-    final node = findNode.assignment('+= 0');
+    var node = findNode.assignment('+= 0');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
@@ -2591,7 +2591,7 @@ void f(({int bar}) r) {
       error(CompileTimeErrorCode.UNDEFINED_SETTER, 28, 3),
     ]);
 
-    final node = findNode.assignment('= 0');
+    var node = findNode.assignment('= 0');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
@@ -2636,7 +2636,7 @@ void f(({int bar}) r) {
       error(CompileTimeErrorCode.UNDEFINED_GETTER, 80, 3),
     ]);
 
-    final node = findNode.assignment('+= 0');
+    var node = findNode.assignment('+= 0');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
@@ -2679,7 +2679,7 @@ void f(({int bar}) r) {
 }
 ''');
 
-    final node = findNode.assignment('= 0');
+    var node = findNode.assignment('= 0');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
@@ -2724,7 +2724,7 @@ void f(({int bar}) r) {
       error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 80, 3),
     ]);
 
-    final node = findNode.assignment('+= 0');
+    var node = findNode.assignment('+= 0');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
@@ -2769,7 +2769,7 @@ void f(({int bar}) r) {
       error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 80, 3),
     ]);
 
-    final node = findNode.assignment('= 0');
+    var node = findNode.assignment('= 0');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
@@ -2813,7 +2813,7 @@ void f(({int bar}) r) {
 }
 ''');
 
-    final node = findNode.assignment('+= 0');
+    var node = findNode.assignment('+= 0');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
@@ -2857,7 +2857,7 @@ void f(({int bar}) r) {
 }
 ''');
 
-    final node = findNode.assignment('= 0');
+    var node = findNode.assignment('= 0');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
@@ -2898,7 +2898,7 @@ void f(({int foo, String bar}) r) {
       error(CompileTimeErrorCode.UNDEFINED_SETTER, 40, 3),
     ]);
 
-    final node = findNode.assignment('+= 0');
+    var node = findNode.assignment('+= 0');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
@@ -2939,7 +2939,7 @@ void f(({int foo, String bar}) r) {
       error(CompileTimeErrorCode.UNDEFINED_SETTER, 40, 3),
     ]);
 
-    final node = findNode.assignment('= 0');
+    var node = findNode.assignment('= 0');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
@@ -2984,7 +2984,7 @@ void f(({int foo, String bar}) r) {
       error(CompileTimeErrorCode.UNDEFINED_SETTER, 104, 3),
     ]);
 
-    final node = findNode.assignment('+= 0');
+    var node = findNode.assignment('+= 0');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
@@ -3029,7 +3029,7 @@ void f(({int foo, String bar}) r) {
       error(CompileTimeErrorCode.UNDEFINED_SETTER, 104, 3),
     ]);
 
-    final node = findNode.assignment('= 0');
+    var node = findNode.assignment('= 0');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
@@ -3074,7 +3074,7 @@ void f(({int foo, String bar}) r) {
       error(CompileTimeErrorCode.UNDEFINED_SETTER, 104, 3),
     ]);
 
-    final node = findNode.assignment('+= 0');
+    var node = findNode.assignment('+= 0');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
@@ -3119,7 +3119,7 @@ void f(({int foo, String bar}) r) {
       error(CompileTimeErrorCode.UNDEFINED_SETTER, 104, 3),
     ]);
 
-    final node = findNode.assignment('= 0');
+    var node = findNode.assignment('= 0');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
@@ -3165,7 +3165,7 @@ void f(({int foo, String bar}) r) {
       error(CompileTimeErrorCode.UNDEFINED_SETTER, 124, 3),
     ]);
 
-    final node = findNode.assignment('+= 0');
+    var node = findNode.assignment('+= 0');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
@@ -3211,7 +3211,7 @@ void f(({int foo, String bar}) r) {
       error(CompileTimeErrorCode.UNDEFINED_SETTER, 124, 3),
     ]);
 
-    final node = findNode.assignment('= 0');
+    var node = findNode.assignment('= 0');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
@@ -3253,7 +3253,7 @@ void f((int, String) r) {
       error(CompileTimeErrorCode.UNDEFINED_SETTER, 30, 2),
     ]);
 
-    final node = findNode.assignment('+= 0');
+    var node = findNode.assignment('+= 0');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
@@ -3294,7 +3294,7 @@ void f((int, String) r) {
       error(CompileTimeErrorCode.UNDEFINED_SETTER, 30, 2),
     ]);
 
-    final node = findNode.assignment('= 0');
+    var node = findNode.assignment('= 0');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
@@ -3339,7 +3339,7 @@ void f((int, String) r) {
       error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 83, 2),
     ]);
 
-    final node = findNode.assignment('+= 0');
+    var node = findNode.assignment('+= 0');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
@@ -3384,7 +3384,7 @@ void f((int, String) r) {
       error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 83, 2),
     ]);
 
-    final node = findNode.assignment('= 0');
+    var node = findNode.assignment('= 0');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
@@ -3425,7 +3425,7 @@ void f((int, String) r) {
       error(CompileTimeErrorCode.UNDEFINED_SETTER, 30, 2),
     ]);
 
-    final node = findNode.assignment('+= 0');
+    var node = findNode.assignment('+= 0');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
@@ -3466,7 +3466,7 @@ void f((int, String) r) {
       error(CompileTimeErrorCode.UNDEFINED_SETTER, 30, 2),
     ]);
 
-    final node = findNode.assignment('= 0');
+    var node = findNode.assignment('= 0');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
@@ -3511,7 +3511,7 @@ void f((int, String) r) {
       error(CompileTimeErrorCode.UNDEFINED_SETTER, 83, 2),
     ]);
 
-    final node = findNode.assignment('+= 0');
+    var node = findNode.assignment('+= 0');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
@@ -3556,7 +3556,7 @@ void f((int, String) r) {
       error(CompileTimeErrorCode.UNDEFINED_SETTER, 83, 2),
     ]);
 
-    final node = findNode.assignment('= 0');
+    var node = findNode.assignment('= 0');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
@@ -3766,7 +3766,7 @@ class A {
       error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 39, 5),
     ]);
 
-    final node = findNode.singleAssignmentExpression;
+    var node = findNode.singleAssignmentExpression;
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier

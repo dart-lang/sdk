@@ -348,7 +348,7 @@ dependencies:
   }
 
   void test_packageVersion() async {
-    final json = r'''
+    var json = r'''
     {
       "packages": [
         {

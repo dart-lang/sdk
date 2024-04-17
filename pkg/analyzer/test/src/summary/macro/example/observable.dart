@@ -13,7 +13,7 @@ import 'package:macros/macros.dart';
   @override
   Future<void> buildDeclarationsForField(
       FieldDeclaration field, MemberDeclarationBuilder builder) async {
-    final name = field.identifier.name;
+    var name = field.identifier.name;
     if (!name.startsWith('_')) {
       throw ArgumentError(
           '@observable can only annotate private fields, and it will create '

@@ -89,7 +89,7 @@ class FunctionExpressionInvocationResolver {
           CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
         );
       }
-      final type = result.isGetterInvalid
+      var type = result.isGetterInvalid
           ? InvalidTypeImpl.instance
           : DynamicTypeImpl.instance;
       _unresolved(node, type, whyNotPromotedList, contextType: contextType);

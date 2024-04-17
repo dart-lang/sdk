@@ -393,7 +393,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       super.visitFieldDeclaration(node);
       for (var field in node.fields.variables) {
         ExecutableElement? getOverriddenPropertyAccessor() {
-          final element = field.declaredElement;
+          var element = field.declaredElement;
           if (element is PropertyAccessorElement || element is FieldElement) {
             Name name = Name(_currentLibrary.source.uri, element!.name);
             Element enclosingElement = element.enclosingElement!;
@@ -413,7 +413,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           return null;
         }
 
-        final overriddenElement = getOverriddenPropertyAccessor();
+        var overriddenElement = getOverriddenPropertyAccessor();
         if (overriddenElement != null &&
             _hasNonVirtualAnnotation(overriddenElement)) {
           // Overridden members are always inside classes or mixins, which are
@@ -901,12 +901,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       // This case is covered by the ErrorVerifier.
       return;
     }
-    final expressions = node.isSet
+    var expressions = node.isSet
         ? node.elements.whereType<Expression>()
         : node.elements.whereType<MapLiteralEntry>().map((entry) => entry.key);
-    final alreadySeen = <DartObject>{};
-    for (final expression in expressions) {
-      final constEvaluation = _linterContext.evaluateConstant(expression);
+    var alreadySeen = <DartObject>{};
+    for (var expression in expressions) {
+      var constEvaluation = _linterContext.evaluateConstant(expression);
       if (constEvaluation.errors.isEmpty) {
         var value = constEvaluation.value;
         if (value != null && !alreadySeen.add(value)) {
@@ -1048,7 +1048,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     // TODO(srawlins): Perhaps replace this with a getter on Element, like
     // `Element.hasOrInheritsSealed`?
     for (InterfaceType supertype in element.allSupertypes) {
-      final superclass = supertype.element;
+      var superclass = supertype.element;
       if (superclass.hasSealed) {
         if (!currentPackageContains(superclass)) {
           if (element is MixinElement &&
@@ -1368,28 +1368,28 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _checkRequiredParameter(FormalParameterList node) {
-    final requiredParameters =
+    var requiredParameters =
         node.parameters.where((p) => p.declaredElement?.hasRequired == true);
-    final nonNamedParamsWithRequired =
+    var nonNamedParamsWithRequired =
         requiredParameters.where((p) => p.isPositional);
-    final namedParamsWithRequiredAndDefault = requiredParameters
+    var namedParamsWithRequiredAndDefault = requiredParameters
         .where((p) => p.isNamed)
         .where((p) => p.declaredElement!.defaultValueCode != null);
-    for (final param in nonNamedParamsWithRequired.where((p) => p.isOptional)) {
+    for (var param in nonNamedParamsWithRequired.where((p) => p.isOptional)) {
       _errorReporter.atNode(
         param,
         WarningCode.INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM,
         arguments: [_formalParameterNameOrEmpty(param)],
       );
     }
-    for (final param in nonNamedParamsWithRequired.where((p) => p.isRequired)) {
+    for (var param in nonNamedParamsWithRequired.where((p) => p.isRequired)) {
       _errorReporter.atNode(
         param,
         WarningCode.INVALID_REQUIRED_POSITIONAL_PARAM,
         arguments: [_formalParameterNameOrEmpty(param)],
       );
     }
-    for (final param in namedParamsWithRequiredAndDefault) {
+    for (var param in namedParamsWithRequiredAndDefault) {
       _errorReporter.atNode(
         param,
         WarningCode.INVALID_REQUIRED_NAMED_PARAM,
@@ -1697,7 +1697,7 @@ class _InvalidAccessVerifier {
   void verifyNamedType(NamedType node) {
     var element = node.element;
 
-    final parent = node.parent;
+    var parent = node.parent;
     if (parent is ConstructorName) {
       element = parent.staticElement;
     }
@@ -1970,7 +1970,7 @@ class _InvalidAccessVerifier {
         return true;
       }
     }
-    final enclosingElement = element.enclosingElement;
+    var enclosingElement = element.enclosingElement;
     if (_hasVisibleForTemplate(enclosingElement)) {
       return true;
     }
@@ -1987,7 +1987,7 @@ class _InvalidAccessVerifier {
         return true;
       }
     }
-    final enclosingElement = element.enclosingElement;
+    var enclosingElement = element.enclosingElement;
     if (enclosingElement != null &&
         _hasVisibleOutsideTemplate(enclosingElement)) {
       return true;
@@ -2063,7 +2063,7 @@ extension on Expression {
   // TODO(srawlins): This will return the wrong answer for `prefixed.double.nan`
   // and for `import 'foo.dart' as double; double.nan`.
   bool get isDoubleNan {
-    final self = this;
+    var self = this;
     return self is PrefixedIdentifier &&
         self.prefix.name == 'double' &&
         self.identifier.name == 'nan';

@@ -21,7 +21,7 @@ class AugmentationImportDirectiveResolutionTest
 import augment 'b.dart';
 ''');
 
-    final b = newFile('$testPackageLibPath/b.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
 augment library 'a.dart';
 import augment 'c.dart';
 ''');
@@ -33,7 +33,7 @@ augment library 'b.dart';
     await resolveFile2(b);
     assertNoErrorsInResult();
 
-    final node = findNode.augmentationImportDirective('c.dart');
+    var node = findNode.augmentationImportDirective('c.dart');
     assertResolvedNodeText(node, r'''
 AugmentationImportDirective
   importKeyword: import
@@ -52,7 +52,7 @@ AugmentationImportDirective
 import augment 'b.dart';
 ''');
 
-    final b = newFile('$testPackageLibPath/b.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
 augment library 'a.dart';
 import augment 'c.dart';
 import augment 'c.dart' /*2*/;
@@ -67,7 +67,7 @@ augment library 'b.dart';
       error(CompileTimeErrorCode.DUPLICATE_AUGMENTATION_IMPORT, 66, 8),
     ]);
 
-    final node = findNode.augmentationImportDirective('/*2*/');
+    var node = findNode.augmentationImportDirective('/*2*/');
     assertResolvedNodeText(node, r'''
 AugmentationImportDirective
   importKeyword: import
@@ -86,7 +86,7 @@ AugmentationImportDirective
 import augment 'b.dart';
 ''');
 
-    final b = newFile('$testPackageLibPath/b.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
 augment library 'a.dart';
 import augment 'c.dart';
 ''');
@@ -98,7 +98,7 @@ import augment 'c.dart';
       error(CompileTimeErrorCode.IMPORT_OF_NOT_AUGMENTATION, 41, 8),
     ]);
 
-    final node = findNode.augmentationImportDirective('c.dart');
+    var node = findNode.augmentationImportDirective('c.dart');
     assertResolvedNodeText(node, r'''
 AugmentationImportDirective
   importKeyword: import
@@ -117,7 +117,7 @@ AugmentationImportDirective
 import augment 'b.dart';
 ''');
 
-    final b = newFile('$testPackageLibPath/b.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
 augment library 'a.dart';
 import augment ':net';
 ''');
@@ -127,7 +127,7 @@ import augment ':net';
       error(CompileTimeErrorCode.INVALID_URI, 41, 6),
     ]);
 
-    final node = findNode.augmentationImportDirective(':net');
+    var node = findNode.augmentationImportDirective(':net');
     assertResolvedNodeText(node, r'''
 AugmentationImportDirective
   importKeyword: import
@@ -146,7 +146,7 @@ AugmentationImportDirective
 import augment 'b.dart';
 ''');
 
-    final b = newFile('$testPackageLibPath/b.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
 augment library 'a.dart';
 import augment '${'foo'}.dart';
 ''');
@@ -156,7 +156,7 @@ import augment '${'foo'}.dart';
       error(CompileTimeErrorCode.URI_WITH_INTERPOLATION, 41, 15),
     ]);
 
-    final node = findNode.augmentationImportDirective('foo');
+    var node = findNode.augmentationImportDirective('foo');
     assertResolvedNodeText(node, r'''
 AugmentationImportDirective
   importKeyword: import
@@ -185,7 +185,7 @@ AugmentationImportDirective
 import augment 'b.dart';
 ''');
 
-    final b = newFile('$testPackageLibPath/b.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
 augment library 'a.dart';
 import augment 'foo:bar';
 ''');
@@ -195,7 +195,7 @@ import augment 'foo:bar';
       error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 41, 9),
     ]);
 
-    final node = findNode.augmentationImportDirective('foo:bar');
+    var node = findNode.augmentationImportDirective('foo:bar');
     assertResolvedNodeText(node, r'''
 AugmentationImportDirective
   importKeyword: import
@@ -218,7 +218,7 @@ augment library 'test.dart';
 import augment 'a.dart';
 ''');
 
-    final node = findNode.augmentationImportDirective('a.dart');
+    var node = findNode.augmentationImportDirective('a.dart');
     assertResolvedNodeText(node, r'''
 AugmentationImportDirective
   importKeyword: import
@@ -244,7 +244,7 @@ import augment /*2*/ 'a.dart';
       error(CompileTimeErrorCode.DUPLICATE_AUGMENTATION_IMPORT, 46, 8),
     ]);
 
-    final node = findNode.augmentationImportDirective('/*2*/');
+    var node = findNode.augmentationImportDirective('/*2*/');
     assertResolvedNodeText(node, r'''
 AugmentationImportDirective
   importKeyword: import
@@ -265,7 +265,7 @@ import augment 'a.dart';
       error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 15, 8),
     ]);
 
-    final node = findNode.augmentationImportDirective('a.dart');
+    var node = findNode.augmentationImportDirective('a.dart');
     assertResolvedNodeText(node, r'''
 AugmentationImportDirective
   importKeyword: import
@@ -288,7 +288,7 @@ import augment 'a.dart';
       error(CompileTimeErrorCode.IMPORT_OF_NOT_AUGMENTATION, 15, 8),
     ]);
 
-    final node = findNode.augmentationImportDirective('a.dart');
+    var node = findNode.augmentationImportDirective('a.dart');
     assertResolvedNodeText(node, r'''
 AugmentationImportDirective
   importKeyword: import
@@ -309,7 +309,7 @@ import augment ':net';
       error(CompileTimeErrorCode.INVALID_URI, 15, 6),
     ]);
 
-    final node = findNode.augmentationImportDirective(':net');
+    var node = findNode.augmentationImportDirective(':net');
     assertResolvedNodeText(node, r'''
 AugmentationImportDirective
   importKeyword: import
@@ -330,7 +330,7 @@ import augment '${'foo'}.dart';
       error(CompileTimeErrorCode.URI_WITH_INTERPOLATION, 15, 15),
     ]);
 
-    final node = findNode.augmentationImportDirective('foo');
+    var node = findNode.augmentationImportDirective('foo');
     assertResolvedNodeText(node, r'''
 AugmentationImportDirective
   importKeyword: import
@@ -361,7 +361,7 @@ import augment 'foo:bar';
       error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 15, 9),
     ]);
 
-    final node = findNode.augmentationImportDirective('foo:bar');
+    var node = findNode.augmentationImportDirective('foo:bar');
     assertResolvedNodeText(node, r'''
 AugmentationImportDirective
   importKeyword: import
@@ -386,7 +386,7 @@ import augment 'a.dart';
       error(CompileTimeErrorCode.IMPORT_OF_NOT_AUGMENTATION, 15, 8),
     ]);
 
-    final node = findNode.augmentationImportDirective('a.dart');
+    var node = findNode.augmentationImportDirective('a.dart');
     assertResolvedNodeText(node, r'''
 AugmentationImportDirective
   importKeyword: import
@@ -411,7 +411,7 @@ import augment 'a.dart';
       error(CompileTimeErrorCode.IMPORT_OF_NOT_AUGMENTATION, 15, 8),
     ]);
 
-    final node = findNode.augmentationImportDirective('a.dart');
+    var node = findNode.augmentationImportDirective('a.dart');
     assertResolvedNodeText(node, r'''
 AugmentationImportDirective
   importKeyword: import

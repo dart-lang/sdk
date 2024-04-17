@@ -27,24 +27,24 @@ class FoldingHandler
   @override
   Future<ErrorOr<List<FoldingRange>>> handle(FoldingRangeParams params,
       MessageInfo message, CancellationToken token) async {
-    final clientCapabilities = server.lspClientCapabilities;
+    var clientCapabilities = server.lspClientCapabilities;
     if (clientCapabilities == null) {
       // This should not happen unless a client misbehaves.
       return serverNotInitializedError;
     }
 
-    final lineFoldingOnly = clientCapabilities.lineFoldingOnly;
-    final path = pathOfDoc(params.textDocument);
+    var lineFoldingOnly = clientCapabilities.lineFoldingOnly;
+    var path = pathOfDoc(params.textDocument);
 
     return path.mapResult((path) async {
-      final partialResults = <List<FoldingRegion>>[];
+      var partialResults = <List<FoldingRegion>>[];
       LineInfo? lineInfo;
 
-      final unit = await server.getParsedUnit(path);
+      var unit = await server.getParsedUnit(path);
       if (unit != null) {
         lineInfo = unit.lineInfo;
 
-        final regions = DartUnitFoldingComputer(lineInfo, unit.unit).compute();
+        var regions = DartUnitFoldingComputer(lineInfo, unit.unit).compute();
         partialResults.insert(0, regions);
       }
 
@@ -58,18 +58,18 @@ class FoldingHandler
         return success(const []);
       }
 
-      final notificationManager = server.notificationManager;
-      final pluginResults = notificationManager.folding.getResults(path);
+      var notificationManager = server.notificationManager;
+      var pluginResults = notificationManager.folding.getResults(path);
       partialResults.addAll(pluginResults);
 
-      final regions =
+      var regions =
           notificationManager.merger.mergeFoldingRegions(partialResults);
 
       // Ensure sorted by offset for when looking for overlapping ranges in
       // line mode below.
       regions.sort((r1, r2) => r1.offset.compareTo(r2.offset));
 
-      final foldingRanges = regions
+      var foldingRanges = regions
           .map((region) =>
               _toFoldingRange(lineInfo!, region, lineOnly: lineFoldingOnly))
           .toList();
@@ -98,12 +98,12 @@ class FoldingHandler
     // Loop over items except last (`-1`). We can skip the last item because
     // it has no next item.
     for (var i = 0; i < foldingRanges.length - 1; i++) {
-      final range = foldingRanges[i];
-      final next = foldingRanges[i + 1];
+      var range = foldingRanges[i];
+      var next = foldingRanges[i + 1];
       // If this item runs into the next but does not completely enclose it...
       if (range.endLine >= next.startLine && range.endLine <= next.endLine) {
         // Truncate it to end on the line before.
-        final newEndLine = next.startLine - 1;
+        var newEndLine = next.startLine - 1;
 
         // If it no longer needs to be a folding range at all, remove it.
         if (newEndLine <= range.startLine) {
@@ -123,7 +123,7 @@ class FoldingHandler
 
   FoldingRange _toFoldingRange(LineInfo lineInfo, FoldingRegion region,
       {required bool lineOnly}) {
-    final range = toRange(lineInfo, region.offset, region.length);
+    var range = toRange(lineInfo, region.offset, region.length);
     return FoldingRange(
       startLine: range.start.line,
       startCharacter: lineOnly ? null : range.start.character,

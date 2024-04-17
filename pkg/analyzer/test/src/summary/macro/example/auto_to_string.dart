@@ -18,8 +18,8 @@ final _dartCore = Uri(scheme: 'dart', path: 'core');
       ClassDeclaration clazz, MemberDeclarationBuilder builder) async {
     // Give an error if the user wrote their own `toString`, there isn't
     // anything sensible for us to do in this case.
-    final methods = await builder.methodsOf(clazz);
-    final existingToString =
+    var methods = await builder.methodsOf(clazz);
+    var existingToString =
         methods.where((m) => m.identifier.name == 'toString').firstOrNull;
     if (existingToString != null) {
       throw DiagnosticException(Diagnostic(
@@ -29,7 +29,7 @@ final _dartCore = Uri(scheme: 'dart', path: 'core');
           Severity.error));
     }
 
-    final [override, string] = await Future.wait([
+    var [override, string] = await Future.wait([
       // ignore: deprecated_member_use
       builder.resolveIdentifier(_dartCore, 'override'),
       // ignore: deprecated_member_use
@@ -43,15 +43,15 @@ final _dartCore = Uri(scheme: 'dart', path: 'core');
   Future<void> buildDefinitionForClass(
       ClassDeclaration clazz, TypeDefinitionBuilder builder) async {
     // Find the method we want to augment (toString), and get a builder for it.
-    final methods = await builder.methodsOf(clazz);
-    final toString = methods.firstWhere((m) => m.identifier.name == 'toString');
-    final toStringBuilder = await builder.buildMethod(toString.identifier);
+    var methods = await builder.methodsOf(clazz);
+    var toString = methods.firstWhere((m) => m.identifier.name == 'toString');
+    var toStringBuilder = await builder.buildMethod(toString.identifier);
 
     // Finally, we generate the toString based on the field names.
     //
     // Note that we don't surface getters, only true fields. Pure getters would
     // appear in the methods list.
-    final fields = await builder.fieldsOf(clazz);
+    var fields = await builder.fieldsOf(clazz);
     toStringBuilder.augment(FunctionBodyCode.fromParts([
       '{\n',
       '    // You can add breakpoints here!\n',
@@ -69,7 +69,7 @@ final _dartCore = Uri(scheme: 'dart', path: 'core');
 
 extension<T> on Iterable<T> {
   T? get firstOrNull {
-    var iterator = this.iterator;
+    final iterator = this.iterator;
     if (iterator.moveNext()) return iterator.current;
     return null;
   }

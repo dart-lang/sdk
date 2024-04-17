@@ -245,8 +245,8 @@ class _PropertyInducingElementTypeInference
     _inferring.add(this);
     _status = _InferenceStatus.beingInferred;
 
-    final enclosingElement = _element.enclosingElement;
-    final enclosingInterfaceElement = enclosingElement
+    var enclosingElement = _element.enclosingElement;
+    var enclosingInterfaceElement = enclosingElement
         .ifTypeOrNull<InterfaceElement>()
         ?.augmented
         .declaration;

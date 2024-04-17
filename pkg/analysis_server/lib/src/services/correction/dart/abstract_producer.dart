@@ -193,14 +193,14 @@ class CorrectionProducerContext<UnitResult extends ParsedUnitResult> {
     int selectionOffset = -1,
     int selectionLength = 0,
   }) {
-    final selection = resolvedResult.unit.select(
+    var selection = resolvedResult.unit.select(
       offset: selectionOffset,
       length: selectionLength,
     );
     var node = selection?.coveringNode;
     node ??= resolvedResult.unit;
 
-    final token = _tokenAt(node, selectionOffset) ?? node.beginToken;
+    var token = _tokenAt(node, selectionOffset) ?? node.beginToken;
 
     return CorrectionProducerContext._(
       unitResult: resolvedResult,
@@ -229,7 +229,7 @@ class CorrectionProducerContext<UnitResult extends ParsedUnitResult> {
     var node = locator.searchWithin(resolvedResult.unit);
     node ??= resolvedResult.unit;
 
-    final token = _tokenAt(node, selectionOffset) ?? node.beginToken;
+    var token = _tokenAt(node, selectionOffset) ?? node.beginToken;
 
     return CorrectionProducerContext._(
       unitResult: resolvedResult,
@@ -245,7 +245,7 @@ class CorrectionProducerContext<UnitResult extends ParsedUnitResult> {
   }
 
   static Token? _tokenAt(AstNode node, int offset) {
-    for (final entity in node.childEntities) {
+    for (var entity in node.childEntities) {
       if (entity is AstNode) {
         if (entity.offset <= offset && offset <= entity.end) {
           return _tokenAt(entity, offset);
@@ -308,7 +308,7 @@ abstract class ResolvedCorrectionProducer
       return true;
     }
     // field initializer cannot reference "this"
-    final fieldDeclaration = node.thisOrAncestorOfType<FieldDeclaration>();
+    var fieldDeclaration = node.thisOrAncestorOfType<FieldDeclaration>();
     if (fieldDeclaration != null) {
       return fieldDeclaration.isStatic || !fieldDeclaration.fields.isLate;
     }

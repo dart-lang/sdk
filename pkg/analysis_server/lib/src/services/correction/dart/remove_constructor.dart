@@ -17,22 +17,22 @@ class RemoveConstructor extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final container = _findContainer();
+    var container = _findContainer();
     if (container == null) {
       return;
     }
 
-    final constructor = _findConstructor();
+    var constructor = _findConstructor();
     if (constructor == null) {
       return;
     }
 
-    final previous = container.members.lastWhereOrNull(
+    var previous = container.members.lastWhereOrNull(
       (e) => e.end < constructor.offset,
     );
 
     await builder.addDartFileEdit(file, (builder) {
-      final constructorRange = range.endEnd(
+      var constructorRange = range.endEnd(
         previous?.endToken ?? container.leftBracket,
         constructor.endToken,
       );
@@ -46,7 +46,7 @@ class RemoveConstructor extends ResolvedCorrectionProducer {
       return null;
     }
 
-    for (final constructor in invalidNodes) {
+    for (var constructor in invalidNodes) {
       if (constructor is ConstructorDeclaration) {
         if (range.node(constructor).contains(errorOffset)) {
           return constructor;

@@ -88,10 +88,10 @@ class LspClientConfiguration {
   /// that would affect analysis results.
   bool affectsAnalysisResults(LspGlobalClientConfiguration otherConfig) {
     // Check whether `TODO` settings have changed.
-    final oldFlag = _globalSettings.showAllTodos;
-    final newFlag = otherConfig.showAllTodos;
-    final oldTypes = _globalSettings.showTodoTypes;
-    final newTypes = otherConfig.showTodoTypes;
+    var oldFlag = _globalSettings.showAllTodos;
+    var newFlag = otherConfig.showAllTodos;
+    var oldTypes = _globalSettings.showTodoTypes;
+    var newTypes = otherConfig.showTodoTypes;
     return newFlag != oldFlag ||
         !const SetEquality().equals(oldTypes, newTypes);
   }
@@ -99,8 +99,8 @@ class LspClientConfiguration {
   /// Returns whether or not the provided new configuration changes any values
   /// that would require analysis roots to be updated.
   bool affectsAnalysisRoots(LspGlobalClientConfiguration otherConfig) {
-    final oldExclusions = _globalSettings.analysisExcludedFolders;
-    final newExclusions = otherConfig.analysisExcludedFolders;
+    var oldExclusions = _globalSettings.analysisExcludedFolders;
+    var newExclusions = otherConfig.analysisExcludedFolders;
     return !const ListEquality().equals(oldExclusions, newExclusions);
   }
 
@@ -112,7 +112,7 @@ class LspClientConfiguration {
   ///
   /// If no specific config is available, returns [global].
   LspResourceClientConfiguration forResource(String resourcePath) {
-    final workspaceFolder = _getWorkspaceFolderPath(resourcePath);
+    var workspaceFolder = _getWorkspaceFolderPath(resourcePath);
 
     if (workspaceFolder == null) {
       return _globalSettings;
@@ -142,7 +142,7 @@ class LspClientConfiguration {
 
   /// Gets the path for the WorkspaceFolder closest to [resourcePath].
   String? _getWorkspaceFolderPath(String resourcePath) {
-    final candidates = _resourceSettings.keys
+    var candidates = _resourceSettings.keys
         .where((wfPath) =>
             wfPath == _normaliseFolderPath(resourcePath) ||
             pathContext.isWithin(wfPath, resourcePath))
@@ -170,7 +170,7 @@ class LspGlobalClientConfiguration extends LspResourceClientConfiguration {
   List<String> get analysisExcludedFolders {
     // This setting is documented as a string array, but because editors are
     // unlikely to provide validation, support single strings for convenience.
-    final value = _settings['analysisExcludedFolders'];
+    var value = _settings['analysisExcludedFolders'];
     if (value is String) {
       return [value];
     } else if (value is List && value.every((s) => s is String)) {
@@ -206,7 +206,7 @@ class LspGlobalClientConfiguration extends LspResourceClientConfiguration {
   /// If the user has not expressed a preference, defaults to
   /// [DocumentationPreference.full].
   DocumentationPreference get preferredDocumentation {
-    final value = _settings['documentation'];
+    var value = _settings['documentation'];
     return switch (value) {
       'none' => DocumentationPreference.none,
       'summary' => DocumentationPreference.summary,

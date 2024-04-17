@@ -21,7 +21,7 @@ import 'package:collection/collection.dart';
 /// Returns a [List] of fixed length with given types.
 List<DartType> fixedTypeList(DartType e1, [DartType? e2]) {
   if (e2 != null) {
-    final result = List<DartType>.filled(2, e1);
+    var result = List<DartType>.filled(2, e1);
     result[1] = e2;
     return result;
   } else {
@@ -657,8 +657,8 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   /// The instantiated representation type, if [element] is an extension type.
   DartType? get representationType {
     if (element case ExtensionTypeElement element) {
-      final substitution = Substitution.fromInterfaceType(this);
-      final representationType = element.representation.type;
+      var substitution = Substitution.fromInterfaceType(this);
+      var representationType = element.representation.type;
       return substitution.substituteType(representationType);
     }
     return null;
@@ -680,7 +680,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   List<InterfaceType> get superclassConstraints {
     final element = this.element;
     if (element is MixinElement) {
-      final constraints = element.superclassConstraints;
+      var constraints = element.superclassConstraints;
       return _instantiateSuperTypes(constraints);
     } else {
       return [];
@@ -806,7 +806,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
 
     if (recoveryStatic) {
-      final element = this.element as InterfaceElementImpl;
+      var element = this.element as InterfaceElementImpl;
       return element.lookupStaticGetter(name, library);
     }
 
@@ -845,7 +845,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
 
     if (recoveryStatic) {
-      final element = this.element as InterfaceElementImpl;
+      var element = this.element as InterfaceElementImpl;
       return element.lookupStaticMethod(name, library);
     }
 
@@ -884,7 +884,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
 
     if (recoveryStatic) {
-      final element = this.element as InterfaceElementImpl;
+      var element = this.element as InterfaceElementImpl;
       return element.lookupStaticSetter(name, library);
     }
 
@@ -919,8 +919,8 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       substitution = Substitution.fromInterfaceType(this);
     }
 
-    final List<InterfaceTypeImpl> results = [];
-    for (final definedType in definedTypes) {
+    List<InterfaceTypeImpl> results = [];
+    for (var definedType in definedTypes) {
       var result = substitution != null
           ? substitution.substituteType(definedType)
           : definedType;
@@ -1093,11 +1093,10 @@ class RecordTypeImpl extends TypeImpl implements RecordType {
   }) {
     return RecordTypeImpl(
       positionalFields: [
-        for (final type in positional)
-          RecordTypePositionalFieldImpl(type: type),
+        for (var type in positional) RecordTypePositionalFieldImpl(type: type),
       ],
       namedFields: [
-        for (final entry in named.entries)
+        for (var entry in named.entries)
           RecordTypeNamedFieldImpl(name: entry.key, type: entry.value),
       ],
       nullabilitySuffix: nullabilitySuffix,
@@ -1137,27 +1136,27 @@ class RecordTypeImpl extends TypeImpl implements RecordType {
       return false;
     }
 
-    final thisPositional = positionalFields;
-    final otherPositional = other.positionalFields;
+    var thisPositional = positionalFields;
+    var otherPositional = other.positionalFields;
     if (thisPositional.length != otherPositional.length) {
       return false;
     }
     for (var i = 0; i < thisPositional.length; i++) {
-      final thisField = thisPositional[i];
-      final otherField = otherPositional[i];
+      var thisField = thisPositional[i];
+      var otherField = otherPositional[i];
       if (thisField.type != otherField.type) {
         return false;
       }
     }
 
-    final thisNamed = namedFields;
-    final otherNamed = other.namedFields;
+    var thisNamed = namedFields;
+    var otherNamed = other.namedFields;
     if (thisNamed.length != otherNamed.length) {
       return false;
     }
     for (var i = 0; i < thisNamed.length; i++) {
-      final thisField = thisNamed[i];
-      final otherField = otherNamed[i];
+      var thisField = thisNamed[i];
+      var otherField = otherNamed[i];
       if (thisField.name != otherField.name ||
           thisField.type != otherField.type) {
         return false;
@@ -1203,8 +1202,8 @@ class RecordTypeImpl extends TypeImpl implements RecordType {
   ) {
     var isSorted = true;
     String? lastName;
-    for (final field in fields) {
-      final name = field.name;
+    for (var field in fields) {
+      var name = field.name;
       if (lastName != null && lastName.compareTo(name) > 0) {
         isSorted = false;
         break;

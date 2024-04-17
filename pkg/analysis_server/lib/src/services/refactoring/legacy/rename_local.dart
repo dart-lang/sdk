@@ -174,7 +174,7 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
         if (declaredElement is BindPatternVariableElementImpl) {
           // If a variable is used to resolve a named field with an implicit
           // name, we need to make the field name explicit.
-          final fieldName = declaredElement.node.fieldNameWithImplicitName;
+          var fieldName = declaredElement.node.fieldNameWithImplicitName;
           if (fieldName != null) {
             processor.replace(
               referenceElement: element,

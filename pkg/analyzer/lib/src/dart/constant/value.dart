@@ -235,7 +235,7 @@ class DartObjectImpl implements DartObject, Constant {
 
   /// Initialize a newly created object to have the given [type] and [state].
   DartObjectImpl._(this._typeSystem, this.type, this.state, {this.variable}) {
-    if (state case final GenericState state) {
+    if (state case GenericState state) {
       state._object = this;
     }
   }
@@ -1371,7 +1371,7 @@ class FunctionState extends InstanceState {
     if (element != other.element) {
       return false;
     }
-    var typeArguments = this.typeArguments;
+    final typeArguments = this.typeArguments;
     var otherTypeArguments = other.typeArguments;
     if (typeArguments == null || otherTypeArguments == null) {
       return typeArguments == null && otherTypeArguments == null;
@@ -1411,7 +1411,7 @@ class FunctionState extends InstanceState {
       if (_viaTypeAlias != rightOperand._viaTypeAlias) {
         return BoolState.FALSE_STATE;
       }
-      var typeArguments = this.typeArguments;
+      final typeArguments = this.typeArguments;
       var otherTypeArguments = rightOperand.typeArguments;
       if (typeArguments == null || otherTypeArguments == null) {
         return BoolState.from(
@@ -1507,23 +1507,23 @@ class GenericState extends InstanceState {
 
   @override
   bool hasPrimitiveEquality(FeatureSet featureSet) {
-    final type = _object.type;
+    var type = _object.type;
     if (type is InterfaceType) {
       bool isFromDartCoreObject(ExecutableElement? element) {
-        final enclosing = element?.enclosingElement;
+        var enclosing = element?.enclosingElement;
         return enclosing is ClassElement && enclosing.isDartCoreObject;
       }
 
-      final element = type.element;
-      final library = element.library;
+      var element = type.element;
+      var library = element.library;
 
-      final eqEq = type.lookUpMethod2('==', library, concrete: true);
+      var eqEq = type.lookUpMethod2('==', library, concrete: true);
       if (!isFromDartCoreObject(eqEq)) {
         return false;
       }
 
       if (featureSet.isEnabled(Feature.patterns)) {
-        final hash = type.lookUpGetter2('hashCode', library, concrete: true);
+        var hash = type.lookUpGetter2('hashCode', library, concrete: true);
         if (!isFromDartCoreObject(hash)) {
           return false;
         }
@@ -2473,8 +2473,8 @@ class InvalidConstant implements Constant {
   /// Creates a generic error depending on the [node] provided.
   factory InvalidConstant.genericError(AstNode node,
       {bool isUnresolved = false}) {
-    final parent = node.parent;
-    final parent2 = parent?.parent;
+    var parent = node.parent;
+    var parent2 = parent?.parent;
     if (parent is ArgumentList &&
         parent2 is InstanceCreationExpression &&
         parent2.isConst) {
@@ -2821,7 +2821,7 @@ class RecordState extends InstanceState {
 
   /// Returns the value of the field with the given [name].
   DartObject? getField(String name) {
-    final index = RecordTypeExtension.positionalFieldIndex(name);
+    var index = RecordTypeExtension.positionalFieldIndex(name);
     if (index != null && index < positionalFields.length) {
       return positionalFields[index];
     } else {

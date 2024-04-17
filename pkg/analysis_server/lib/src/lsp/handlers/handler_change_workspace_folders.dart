@@ -32,8 +32,8 @@ class ChangeWorkspaceFoldersHandler
       return success(null);
     }
 
-    final added = _convertWorkspaceFolders(params.event.added);
-    final removed = _convertWorkspaceFolders(params.event.removed);
+    var added = _convertWorkspaceFolders(params.event.added);
+    var removed = _convertWorkspaceFolders(params.event.removed);
 
     server.analyticsManager
         .changedWorkspaceFolders(added: added, removed: removed);

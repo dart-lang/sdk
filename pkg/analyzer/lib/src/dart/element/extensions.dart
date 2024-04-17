@@ -17,7 +17,7 @@ extension DartTypeExtension on DartType {
 
 extension ElementAnnotationExtensions on ElementAnnotation {
   static final Map<String, TargetKind> _targetKindsByName = {
-    for (final kind in TargetKind.values) kind.name: kind,
+    for (var kind in TargetKind.values) kind.name: kind,
   };
 
   /// Return the target kinds defined for this [ElementAnnotation].
@@ -121,14 +121,14 @@ extension ElementExtension on Element {
 extension ExecutableElementExtension on ExecutableElement {
   /// Whether the enclosing element is the class `Object`.
   bool get isObjectMember {
-    final enclosing = enclosingElement;
+    var enclosing = enclosingElement;
     return enclosing is ClassElement && enclosing.isDartCoreObject;
   }
 }
 
 extension ExecutableElementExtensionQuestion on ExecutableElement? {
   DartType? get firstParameterType {
-    final self = this;
+    var self = this;
     if (self is MethodElement) {
       return self.parameters.firstOrNull?.type;
     }
@@ -176,7 +176,7 @@ extension RecordTypeExtension on RecordType {
   }
 
   RecordTypeNamedField? namedField(String name) {
-    for (final field in namedFields) {
+    for (var field in namedFields) {
       if (field.name == name) {
         return field;
       }
@@ -185,7 +185,7 @@ extension RecordTypeExtension on RecordType {
   }
 
   RecordTypePositionalField? positionalField(String name) {
-    final index = positionalFieldIndex(name);
+    var index = positionalFieldIndex(name);
     if (index != null && index < positionalFields.length) {
       return positionalFields[index];
     }
@@ -195,11 +195,11 @@ extension RecordTypeExtension on RecordType {
   /// Attempt to parse `$1`, `$2`, etc.
   static int? positionalFieldIndex(String name) {
     if (_positionalName.hasMatch(name)) {
-      final positionString = name.substring(1);
+      var positionString = name.substring(1);
       // Use `tryParse` instead of `parse`
       // even though the numeral matches the pattern `[1-9]\d*`,
       // to reject numerals too big to fit in an `int`.
-      final position = int.tryParse(positionString);
+      var position = int.tryParse(positionString);
       if (position != null) return position - 1;
     }
     return null;

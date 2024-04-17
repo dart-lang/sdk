@@ -75,10 +75,10 @@ class TypeBoundedHelper {
   TypeBoundedResult _isRegularBounded(DartType type) {
     List<TypeArgumentIssue>? issues;
 
-    final String elementName;
-    final List<TypeParameterElement> typeParameters;
-    final List<DartType> typeArguments;
-    final alias = type.alias;
+    String elementName;
+    List<TypeParameterElement> typeParameters;
+    List<DartType> typeArguments;
+    var alias = type.alias;
     if (alias != null) {
       elementName = alias.element.name;
       typeParameters = alias.element.typeParameters;
@@ -91,7 +91,7 @@ class TypeBoundedHelper {
       return const RegularBoundedTypeResult._();
     }
 
-    final substitution = Substitution.fromPairs(typeParameters, typeArguments);
+    var substitution = Substitution.fromPairs(typeParameters, typeArguments);
     for (var i = 0; i < typeParameters.length; i++) {
       var typeParameter = typeParameters[i];
       var typeArgument = typeArguments[i];
@@ -122,7 +122,7 @@ class TypeBoundedHelper {
   }
 
   TypeBoundedResult _isSuperBounded(DartType type) {
-    final invertedType = typeSystem.replaceTopAndBottom(type);
+    var invertedType = typeSystem.replaceTopAndBottom(type);
     var result = _isRegularBounded(invertedType);
     if (result is RegularBoundedTypeResult) {
       return const SuperBoundedTypeResult._();

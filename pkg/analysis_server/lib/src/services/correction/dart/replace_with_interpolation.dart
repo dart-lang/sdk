@@ -50,7 +50,7 @@ class ReplaceWithInterpolation extends ResolvedCorrectionProducer {
     //
     // Build the edit.
     //
-    final binary_final = binary;
+    var binary_final = binary;
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleReplacement(range.node(binary_final), interpolation);
     });

@@ -72,7 +72,7 @@ class DartLinter implements AnalysisErrorListener {
 
   Future<Iterable<AnalysisErrorInfo>> lintFiles(List<File> files) async {
     List<AnalysisErrorInfo> errors = [];
-    final lintDriver = LintDriver(options, _resourceProvider);
+    var lintDriver = LintDriver(options, _resourceProvider);
     errors.addAll(await lintDriver.analyze(files.where((f) => isDartFile(f))));
     numSourcesAnalyzed = lintDriver.numSourcesAnalyzed;
     files.where((f) => isPubspecFile(f)).forEach((path) {
@@ -321,7 +321,7 @@ class LinterContextImpl implements LinterContext {
   bool canBeConstConstructor(covariant ConstructorDeclarationImpl node) {
     var element = node.declaredElement!;
 
-    final classElement = element.enclosingElement;
+    var classElement = element.enclosingElement;
     if (classElement is ClassElement && classElement.hasNonFinalField) {
       return false;
     }
@@ -493,7 +493,7 @@ class LinterContextImpl implements LinterContext {
   }
 
   static List<String> getTestDirectories(p.Context pathContext) {
-    final separator = pathContext.separator;
+    var separator = pathContext.separator;
     return [
       '${separator}test$separator',
       '${separator}integration_test$separator',

@@ -25,7 +25,7 @@ mixin M on dynamic {}
           7),
     ]);
 
-    final node = findNode.singleMixinOnClause;
+    var node = findNode.singleMixinOnClause;
     assertResolvedNodeText(node, r'''
 MixinOnClause
   onKeyword: on
@@ -46,7 +46,7 @@ mixin M on E {}
           1),
     ]);
 
-    final node = findNode.singleMixinOnClause;
+    var node = findNode.singleMixinOnClause;
     assertResolvedNodeText(node, r'''
 MixinOnClause
   onKeyword: on
@@ -67,7 +67,7 @@ mixin M on A {}
           1),
     ]);
 
-    final node = findNode.singleMixinOnClause;
+    var node = findNode.singleMixinOnClause;
     assertResolvedNodeText(node, r'''
 MixinOnClause
   onKeyword: on
@@ -87,7 +87,7 @@ mixin M on Never {}
           5),
     ]);
 
-    final node = findNode.singleMixinOnClause;
+    var node = findNode.singleMixinOnClause;
     assertResolvedNodeText(node, r'''
 MixinOnClause
   onKeyword: on
@@ -108,7 +108,7 @@ mixin M on void {}
           4),
     ]);
 
-    final node = findNode.singleMixinOnClause;
+    var node = findNode.singleMixinOnClause;
     assertResolvedNodeText(node, r'''
 MixinOnClause
   onKeyword: on

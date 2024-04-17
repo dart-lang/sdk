@@ -30,7 +30,7 @@ class SignatureHelpHandler
       return success(null);
     }
 
-    final clientCapabilities = server.lspClientCapabilities;
+    var clientCapabilities = server.lspClientCapabilities;
     if (clientCapabilities == null) {
       // This should not happen unless a client misbehaves.
       return serverNotInitializedError;
@@ -42,25 +42,25 @@ class SignatureHelpHandler
     // whenever the user types a `(` that might not be the start of an argument
     // list, as the client does not have any context and will always send the
     // request.
-    final autoTriggered = params.context?.triggerKind ==
+    var autoTriggered = params.context?.triggerKind ==
             SignatureHelpTriggerKind.TriggerCharacter &&
         // Retriggers can be ignored (treated as manual invocations) as it's
         // fine to always generate results if the signature help is already
         // visible on the client (it will just update, it doesn't pop up new UI).
         params.context?.isRetrigger == false;
 
-    final pos = params.position;
-    final path = pathOfDoc(params.textDocument);
-    final unit = await path.mapResult(requireResolvedUnit);
-    final offset = unit.mapResultSync((unit) => toOffset(unit.lineInfo, pos));
+    var pos = params.position;
+    var path = pathOfDoc(params.textDocument);
+    var unit = await path.mapResult(requireResolvedUnit);
+    var offset = unit.mapResultSync((unit) => toOffset(unit.lineInfo, pos));
 
     return (unit, offset).mapResultsSync((unit, offset) {
-      final formats = clientCapabilities.signatureHelpDocumentationFormats;
-      final dartDocInfo = server.getDartdocDirectiveInfoFor(unit);
+      var formats = clientCapabilities.signatureHelpDocumentationFormats;
+      var dartDocInfo = server.getDartdocDirectiveInfoFor(unit);
 
       // First check if we're in a type args list and if so build some
       // signature help for that.
-      final typeArgsSignature = _tryGetTypeArgsSignatureHelp(
+      var typeArgsSignature = _tryGetTypeArgsSignatureHelp(
         dartDocInfo,
         unit.unit,
         offset,
@@ -71,7 +71,7 @@ class SignatureHelpHandler
         return success(typeArgsSignature);
       }
 
-      final computer = DartUnitSignatureComputer(
+      var computer = DartUnitSignatureComputer(
         dartDocInfo,
         unit.unit,
         offset,
@@ -81,7 +81,7 @@ class SignatureHelpHandler
       if (!computer.offsetIsValid) {
         return success(null); // No error, just no valid hover.
       }
-      final signature = computer.compute();
+      var signature = computer.compute();
       if (signature == null) {
         return success(null); // No error, just no valid hover.
       }
@@ -110,7 +110,7 @@ class SignatureHelpHandler
     bool autoTriggered,
     Set<MarkupKind>? formats,
   ) {
-    final typeArgsComputer = DartTypeArgumentsSignatureComputer(
+    var typeArgsComputer = DartTypeArgumentsSignatureComputer(
         dartDocInfo, unit, offset, formats,
         documentationPreference:
             server.lspClientConfiguration.global.preferredDocumentation);
@@ -118,7 +118,7 @@ class SignatureHelpHandler
       return null;
     }
 
-    final typeSignature = typeArgsComputer.compute();
+    var typeSignature = typeArgsComputer.compute();
     if (typeSignature == null) {
       return null;
     }

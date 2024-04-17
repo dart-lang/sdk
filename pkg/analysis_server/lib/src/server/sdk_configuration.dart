@@ -30,9 +30,9 @@ class SdkConfiguration {
   /// is not found.
   SdkConfiguration.readFromSdk() {
     // <dart-sdk>/config/settings.json:
-    final sdkDir =
+    var sdkDir =
         Directory(path.dirname(path.dirname(Platform.resolvedExecutable)));
-    final configFile = File(path.join(sdkDir.path, 'config', 'settings.json'));
+    var configFile = File(path.join(sdkDir.path, 'config', 'settings.json'));
 
     if (configFile.existsSync()) {
       _readFromFile(configFile);

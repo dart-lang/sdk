@@ -35,8 +35,8 @@ class CorrectionUtilsTest extends AbstractSingleUnitTest {
     // Use strings as-is, because tests are explicit and cover both kinds of eols.
     useLineEndingsForPlatform = false;
     await parseTestCode(source);
-    final util = CorrectionUtils(testParsedResult);
-    final actual = util.replaceSourceIndent(
+    var util = CorrectionUtils(testParsedResult);
+    var actual = util.replaceSourceIndent(
       testCode,
       indentOld,
       indentNew,

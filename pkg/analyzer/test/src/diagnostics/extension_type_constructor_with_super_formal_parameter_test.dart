@@ -29,7 +29,7 @@ extension type E(int it) {
           5),
     ]);
 
-    final node = findNode.singleFormalParameterList;
+    var node = findNode.singleFormalParameterList;
     assertResolvedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
@@ -67,7 +67,7 @@ extension type E(int it) {
           5),
     ]);
 
-    final node = findNode.singleFormalParameterList;
+    var node = findNode.singleFormalParameterList;
     assertResolvedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (

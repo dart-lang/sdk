@@ -92,7 +92,7 @@ class LibraryContext {
     LibraryFileKind library,
     FileState unit,
   ) {
-    final kind = unit.kind;
+    var kind = unit.kind;
 
     String unitContainerName;
     if (library == kind.library) {
@@ -118,7 +118,7 @@ class LibraryContext {
   ///
   /// Returns the keys of the artifacts that are no longer used.
   Set<String> dispose() {
-    final keys = unloadAll();
+    var keys = unloadAll();
     elementFactory.dispose();
     return keys;
   }
@@ -221,7 +221,7 @@ class LibraryContext {
         // TODO(scheglov): Take / clear parsed units in files.
         bytesGet += linkedBytes.length;
         librariesLoaded += cycle.libraries.length;
-        final bundleReader = BundleReader(
+        var bundleReader = BundleReader(
           elementFactory: elementFactory,
           unitsInformativeBytes: unitsInformativeBytes,
           resolutionBytes: linkedBytes,
@@ -285,7 +285,7 @@ class LibraryContext {
     );
 
     loadedBundles.removeWhere((cycle) {
-      final cycleFiles = cycle.libraries.map((e) => e.file);
+      var cycleFiles = cycle.libraries.map((e) => e.file);
       if (cycleFiles.any(removed.contains)) {
         removedKeys.add(cycle.linkedKey);
         return true;
@@ -298,10 +298,10 @@ class LibraryContext {
   ///
   /// Returns the keys of the artifacts that are no longer used.
   Set<String> unloadAll() {
-    final keySet = <String>{};
-    final uriSet = <Uri>{};
+    var keySet = <String>{};
+    var uriSet = <Uri>{};
 
-    for (final cycle in loadedBundles) {
+    for (var cycle in loadedBundles) {
       keySet.add(cycle.linkedKey);
       uriSet.addAll(cycle.libraries.map((e) => e.file.uri));
     }
@@ -314,10 +314,10 @@ class LibraryContext {
 
   /// Create files with macro generated augmentation libraries.
   void _addMacroAugmentations(LibraryCycle cycle, BundleReader bundleReader) {
-    for (final libraryReader in bundleReader.libraryMap.values) {
-      final macroGeneratedCode = libraryReader.macroGeneratedCode;
+    for (var libraryReader in bundleReader.libraryMap.values) {
+      var macroGeneratedCode = libraryReader.macroGeneratedCode;
       if (macroGeneratedCode != null) {
-        for (final libraryKind in cycle.libraries) {
+        for (var libraryKind in cycle.libraries) {
           if (libraryKind.file.uri == libraryReader.uri) {
             libraryKind.addMacroAugmentation(
               macroGeneratedCode,
@@ -375,8 +375,8 @@ class LibraryContextTestData {
   });
 
   LibraryCycleTestData forCycle(LibraryCycle cycle) {
-    final files = cycle.libraries.map((library) {
-      final file = library.file;
+    var files = cycle.libraries.map((library) {
+      var file = library.file;
       return fileSystemTestData.forFile(file.resource, file.uri);
     }).toList();
     files.sortBy((fileData) => fileData.file.path);
@@ -413,7 +413,7 @@ class _MacroFileSystem implements MacroFileSystem {
 
   @override
   MacroFileEntry getFile(String path) {
-    final fileState = fileSystemState.getExistingFromPath(path);
+    var fileState = fileSystemState.getExistingFromPath(path);
     if (fileState != null) {
       return _MacroFileEntry(
         content: fileState.content,
@@ -421,7 +421,7 @@ class _MacroFileSystem implements MacroFileSystem {
       );
     }
 
-    final fileContent = fileSystemState.fileContentStrategy.get(path);
+    var fileContent = fileSystemState.fileContentStrategy.get(path);
     return _MacroFileEntry(
       content: fileContent.content,
       exists: fileContent.exists,

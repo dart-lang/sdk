@@ -118,7 +118,7 @@ ClassDeclaration
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.classDeclaration('class A');
+    var node = parseResult.findNode.classDeclaration('class A');
     assertParsedNodeText(
         node,
         r'''
@@ -149,7 +149,7 @@ abstract class A {}
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.classDeclaration('class A');
+    var node = parseResult.findNode.classDeclaration('class A');
     assertParsedNodeText(
         node,
         r'''
@@ -199,7 +199,7 @@ abstract class A {}
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.classDeclaration('class A');
+    var node = parseResult.findNode.classDeclaration('class A');
     assertParsedNodeText(
         node,
         r'''
@@ -311,7 +311,7 @@ class C extends (int, int) {}
       error(ParserErrorCode.EXPECTED_NAMED_TYPE_EXTENDS, 16, 10),
     ]);
 
-    final node = parseResult.findNode.classDeclaration('class C');
+    var node = parseResult.findNode.classDeclaration('class C');
     assertParsedNodeText(
         node,
         r'''
@@ -373,7 +373,7 @@ class C implements A, (int, int), B {}
       error(ParserErrorCode.EXPECTED_NAMED_TYPE_IMPLEMENTS, 22, 10),
     ]);
 
-    final node = parseResult.findNode.classDeclaration('class C');
+    var node = parseResult.findNode.classDeclaration('class C');
     assertParsedNodeText(
         node,
         r'''
@@ -549,7 +549,7 @@ class C with A, (int, int), B {}
       error(ParserErrorCode.EXPECTED_NAMED_TYPE_WITH, 16, 10),
     ]);
 
-    final node = parseResult.findNode.classDeclaration('class C');
+    var node = parseResult.findNode.classDeclaration('class C');
     assertParsedNodeText(node, r'''
 ClassDeclaration
   classKeyword: class
@@ -714,7 +714,7 @@ mixin M {}
       error(ParserErrorCode.EXPECTED_NAMED_TYPE_IMPLEMENTS, 38, 10),
     ]);
 
-    final node = parseResult.findNode.classTypeAlias('class C');
+    var node = parseResult.findNode.classTypeAlias('class C');
     assertParsedNodeText(
         node,
         r'''
@@ -807,7 +807,7 @@ class C = Object with A, (int, int), B;
       error(ParserErrorCode.EXPECTED_NAMED_TYPE_WITH, 25, 10),
     ]);
 
-    final node = parseResult.findNode.classTypeAlias('class C');
+    var node = parseResult.findNode.classTypeAlias('class C');
     assertParsedNodeText(
         node,
         r'''
@@ -1257,7 +1257,7 @@ extension E on (int, int) {}
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.extensionDeclaration('extension E');
+    var node = parseResult.findNode.extensionDeclaration('extension E');
     assertParsedNodeText(
         node,
         r'''
@@ -1348,7 +1348,7 @@ base mixin M {}
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.mixinDeclaration('mixin M');
+    var node = parseResult.findNode.mixinDeclaration('mixin M');
     assertParsedNodeText(node, r'''
 MixinDeclaration
   documentationComment: Comment
@@ -1370,7 +1370,7 @@ final mixin M {}
       error(ParserErrorCode.FINAL_MIXIN, 0, 5),
     ]);
 
-    final node = parseResult.findNode.mixinDeclaration('mixin M');
+    var node = parseResult.findNode.mixinDeclaration('mixin M');
     assertParsedNodeText(node, r'''
 MixinDeclaration
   mixinKeyword: mixin
@@ -1389,7 +1389,7 @@ mixin M on C implements A, (int, int), B {}
       error(ParserErrorCode.EXPECTED_NAMED_TYPE_IMPLEMENTS, 38, 10),
     ]);
 
-    final node = parseResult.findNode.mixinDeclaration('mixin M');
+    var node = parseResult.findNode.mixinDeclaration('mixin M');
     assertParsedNodeText(
         node,
         r'''
@@ -1422,7 +1422,7 @@ interface mixin M {}
       error(ParserErrorCode.INTERFACE_MIXIN, 0, 9),
     ]);
 
-    final node = parseResult.findNode.mixinDeclaration('mixin M');
+    var node = parseResult.findNode.mixinDeclaration('mixin M');
     assertParsedNodeText(node, r'''
 MixinDeclaration
   mixinKeyword: mixin
@@ -1440,7 +1440,7 @@ mixin M on A, (int, int), B {}
       error(ParserErrorCode.EXPECTED_NAMED_TYPE_ON, 14, 10),
     ]);
 
-    final node = parseResult.findNode.mixinDeclaration('mixin M');
+    var node = parseResult.findNode.mixinDeclaration('mixin M');
     assertParsedNodeText(
         node,
         r'''
@@ -1468,7 +1468,7 @@ sealed mixin M {}
       error(ParserErrorCode.SEALED_MIXIN, 0, 6),
     ]);
 
-    final node = parseResult.findNode.mixinDeclaration('mixin M');
+    var node = parseResult.findNode.mixinDeclaration('mixin M');
     assertParsedNodeText(node, r'''
 MixinDeclaration
   mixinKeyword: mixin

@@ -29,7 +29,7 @@ Future<void> main(List<String> args) async {
   }
 
   var rootPath = result.rest[0];
-  final targets = <Directory>[];
+  var targets = <Directory>[];
   if (Directory(rootPath).existsSync()) {
     targets.add(Directory(rootPath));
   } else {
@@ -53,7 +53,7 @@ final _Sdk _sdk = _Sdk._instance;
 /// Given a data structure which is a Map of String to dynamic values, returns
 /// the same structure (`Map<String, dynamic>`) with the correct runtime types.
 Map<String, dynamic> _castStringKeyedMap(dynamic untyped) {
-  final Map<dynamic, dynamic> map = untyped! as Map<dynamic, dynamic>;
+  Map<dynamic, dynamic> map = untyped! as Map<dynamic, dynamic>;
   return map.cast<String, dynamic>();
 }
 
@@ -204,7 +204,7 @@ class _AnalysisServerClient {
 
   Future<AnalysisUpdateContentResult> addOverlay(
       String file, String content) async {
-    final response = await _sendCommand(
+    var response = await _sendCommand(
       'analysis.updateContent',
       params: {
         'files': {
@@ -212,7 +212,7 @@ class _AnalysisServerClient {
         }
       },
     );
-    final result = response['result'] as Map<String, dynamic>;
+    var result = response['result'] as Map<String, dynamic>;
 
     return AnalysisUpdateContentResult.fromJson(
       ResponseDecoder(null),
@@ -226,7 +226,7 @@ class _AnalysisServerClient {
   }
 
   Future<AnalysisUpdateContentResult> removeOverlay(String file) async {
-    final response = await _sendCommand(
+    var response = await _sendCommand(
       'analysis.updateContent',
       params: {
         'files': {
@@ -234,7 +234,7 @@ class _AnalysisServerClient {
         }
       },
     );
-    final result = response['result'] as Map<String, dynamic>;
+    var result = response['result'] as Map<String, dynamic>;
 
     return AnalysisUpdateContentResult.fromJson(
       ResponseDecoder(null),
@@ -246,16 +246,16 @@ class _AnalysisServerClient {
   /// Requests a completion for [file] at [offset].
   Future<_SuggestionsData> requestCompletion(
       String file, int offset, int maxResults) async {
-    final response = await _sendCommand('completion.getSuggestions2', params: {
+    var response = await _sendCommand('completion.getSuggestions2', params: {
       'file': file,
       'offset': offset,
       'maxResults': maxResults,
     });
-    final result = response['result'] as Map<String, dynamic>;
-    final metadata = _requestMetadata[response['id']]!;
+    var result = response['result'] as Map<String, dynamic>;
+    var metadata = _requestMetadata[response['id']]!;
 
-    final deserializeStopwatch = Stopwatch()..start();
-    final suggestionsResult = CompletionGetSuggestions2Result.fromJson(
+    var deserializeStopwatch = Stopwatch()..start();
+    var suggestionsResult = CompletionGetSuggestions2Result.fromJson(
       ResponseDecoder(null),
       'result',
       result,
@@ -280,7 +280,7 @@ class _AnalysisServerClient {
   }
 
   Future<void> start({bool setAnalysisRoots = true}) async {
-    final process = await _startDartProcess(_sdk, [
+    var process = await _startDartProcess(_sdk, [
       _sdk.analysisServerSnapshot,
       '--${Driver.SUPPRESS_ANALYTICS_FLAG}',
       '--${Driver.CLIENT_ID}=completion-metrics-client',
@@ -298,16 +298,16 @@ class _AnalysisServerClient {
         // If `server.error` reported an error, that has been logged by
         // `_handleServerError`.
 
-        final error = StateError('The analysis server crashed unexpectedly');
+        var error = StateError('The analysis server crashed unexpectedly');
 
-        final analysisFinished = _analysisFinished;
+        var analysisFinished = _analysisFinished;
         if (analysisFinished != null && !analysisFinished.isCompleted) {
           // Complete this completer in order to unstick the process.
           analysisFinished.completeError(error);
         }
 
         // Complete these completers in order to unstick the process.
-        for (final completer in _requestCompleters.values) {
+        for (var completer in _requestCompleters.values) {
           completer.completeError(error);
         }
 
@@ -315,12 +315,12 @@ class _AnalysisServerClient {
       }
     }));
 
-    final errorStream = process.stderr
+    var errorStream = process.stderr
         .transform<String>(utf8.decoder)
         .transform<String>(const LineSplitter());
     errorStream.listen(logger.stderr);
 
-    final inStream = process.stdout
+    var inStream = process.stdout
         .transform<String>(utf8.decoder)
         .transform<String>(const LineSplitter());
     inStream.listen(_handleServerResponse);
@@ -337,14 +337,14 @@ class _AnalysisServerClient {
     //
     // The call to `absolute.resolveSymbolicLinksSync()` canonicalizes the path
     // to be passed to the analysis server.
-    final analysisRootPaths = [
+    var analysisRootPaths = [
       for (final root in analysisRoots)
         _trimEnd(
             root.absolute.resolveSymbolicLinksSync(), path.context.separator),
     ];
 
     onAnalyzing.listen((isAnalyzing) {
-      final analysisFinished = _analysisFinished;
+      var analysisFinished = _analysisFinished;
       if (isAnalyzing && (analysisFinished?.isCompleted ?? true)) {
         // Start a new completer, to be completed when we receive the
         // corresponding analysis complete event.
@@ -365,7 +365,7 @@ class _AnalysisServerClient {
   }
 
   void _handleServerError(Map<String, dynamic>? error) {
-    final err = error!;
+    var err = error!;
     // Fields are 'isFatal', 'message', and 'stackTrace'.
     logger.stderr('Error from the analysis server: ${err['message']}');
     if (err['stackTrace'] != null) {
@@ -378,27 +378,27 @@ class _AnalysisServerClient {
 
     var responseTime = DateTime.now().millisecondsSinceEpoch;
 
-    final decodeStopwatch = Stopwatch()..start();
-    final dynamic response = json.decode(line);
+    var decodeStopwatch = Stopwatch()..start();
+    dynamic response = json.decode(line);
     decodeStopwatch.stop();
     var decodeDuration = decodeStopwatch.elapsedMilliseconds;
 
     if (response is Map<String, dynamic>) {
       if (response['event'] != null) {
-        final event = response['event'] as String;
-        final dynamic params = response['params'];
+        var event = response['event'] as String;
+        dynamic params = response['params'];
 
         if (params is Map<String, dynamic>) {
           _streamController(event).add(_castStringKeyedMap(params));
         }
       } else if (response['id'] != null) {
-        final id = response['id'];
-        final metadata = _requestMetadata[id]!;
+        var id = response['id'];
+        var metadata = _requestMetadata[id]!;
         metadata.responseMilliseconds = responseTime;
         metadata.decodeDuration = decodeDuration;
 
         if (response['error'] != null) {
-          final error = _castStringKeyedMap(response['error']);
+          var error = _castStringKeyedMap(response['error']);
           _requestCompleters
               .remove(id)
               ?.completeError(_RequestError.parse(error));
@@ -411,8 +411,8 @@ class _AnalysisServerClient {
 
   Future<Map<String, dynamic>> _sendCommand(String method,
       {Map<String, dynamic>? params}) {
-    final String id = (++_id).toString();
-    final String message = json.encode({
+    String id = (++_id).toString();
+    String message = json.encode({
       'id': id,
       'method': method,
       'params': params,
@@ -460,7 +460,7 @@ class _CompletionClientMetricsComputer extends CompletionMetricsComputer {
     ExpectedCompletion expectedCompletion,
   ) async {
     if (options.overlay != OverlayMode.none) {
-      final overlayContent = CompletionMetricsComputer.getOverlayContent(
+      var overlayContent = CompletionMetricsComputer.getOverlayContent(
         resolvedUnitResult.content,
         expectedCompletion,
         options.overlay,

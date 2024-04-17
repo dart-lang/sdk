@@ -58,7 +58,7 @@ class ConvertIntoIsNotEmpty extends ResolvedCorrectionProducer {
       return;
     }
 
-    final isEmptyIdentifier_final = isEmptyIdentifier;
+    var isEmptyIdentifier_final = isEmptyIdentifier;
     await builder.addDartFileEdit(file, (builder) {
       builder.addDeletion(
           range.startStart(prefixExpression, prefixExpression.operand));

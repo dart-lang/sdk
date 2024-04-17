@@ -46,7 +46,7 @@ void main() {
 @reflectiveTest
 class ConstructorDeclarationTest extends ParserDiagnosticsTest {
   void test_firstTokenAfterCommentAndMetadata_all_inverted() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 class A {
   factory const external A();
 }
@@ -56,55 +56,55 @@ class A {
       error(ParserErrorCode.MODIFIER_OUT_OF_ORDER, 26, 8),
     ]);
 
-    final node = parseResult.findNode.constructor('A()');
+    var node = parseResult.findNode.constructor('A()');
     expect(node.firstTokenAfterCommentAndMetadata, node.factoryKeyword);
   }
 
   void test_firstTokenAfterCommentAndMetadata_all_normal() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 class A {
   external const factory A();
 }
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.constructor('A()');
+    var node = parseResult.findNode.constructor('A()');
     expect(node.firstTokenAfterCommentAndMetadata, node.externalKeyword);
   }
 
   void test_firstTokenAfterCommentAndMetadata_constOnly() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 class A {
   const A();
 }
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.constructor('A()');
+    var node = parseResult.findNode.constructor('A()');
     expect(node.firstTokenAfterCommentAndMetadata, node.constKeyword);
   }
 
   void test_firstTokenAfterCommentAndMetadata_externalOnly() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 class A {
   external A();
 }
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.constructor('A()');
+    var node = parseResult.findNode.constructor('A()');
     expect(node.firstTokenAfterCommentAndMetadata, node.externalKeyword);
   }
 
   void test_firstTokenAfterCommentAndMetadata_factoryOnly() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 class A {
   factory A() => throw 0;
 }
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.constructor('A()');
+    var node = parseResult.findNode.constructor('A()');
     expect(node.firstTokenAfterCommentAndMetadata, node.factoryKeyword);
   }
 }
@@ -546,10 +546,10 @@ class C extends B {
 @reflectiveTest
 class HideClauseImplTest extends ParserDiagnosticsTest {
   void test_endToken_invalidClass() {
-    final parseResult = parseStringWithErrors('''
+    var parseResult = parseStringWithErrors('''
 import 'dart:core' hide int Function();
 ''');
-    final node = parseResult.findNode.import('import');
+    var node = parseResult.findNode.import('import');
     expect(node.combinators[0].endToken, isNotNull);
   }
 }
@@ -557,11 +557,11 @@ import 'dart:core' hide int Function();
 @reflectiveTest
 class ImplementsClauseImplTest extends ParserDiagnosticsTest {
   void test_endToken_invalidClass() {
-    final parseResult = parseStringWithErrors('''
+    var parseResult = parseStringWithErrors('''
 class A implements C Function() {}
 class C {}
 ''');
-    final node = parseResult.findNode.classDeclaration('A');
+    var node = parseResult.findNode.classDeclaration('A');
     expect(node.implementsClause!.endToken, isNotNull);
   }
 }
@@ -682,42 +682,42 @@ void f() {
   }
 
   void test_isNullAware_cascade_false() {
-    final findNode = _parseStringToFindNode('''
+    var findNode = _parseStringToFindNode('''
 void f() {
   a..[0];
 }
 ''');
-    final expression = findNode.index('[0]');
+    var expression = findNode.index('[0]');
     expect(expression.isNullAware, isFalse);
   }
 
   void test_isNullAware_cascade_true() {
-    final findNode = _parseStringToFindNode('''
+    var findNode = _parseStringToFindNode('''
 void f() {
   a?..[0];
 }
 ''');
-    final expression = findNode.index('[0]');
+    var expression = findNode.index('[0]');
     expect(expression.isNullAware, isTrue);
   }
 
   void test_isNullAware_false() {
-    final findNode = _parseStringToFindNode('''
+    var findNode = _parseStringToFindNode('''
 void f() {
   a[0];
 }
 ''');
-    final expression = findNode.index('[0]');
+    var expression = findNode.index('[0]');
     expect(expression.isNullAware, isFalse);
   }
 
   void test_isNullAware_true() {
-    final findNode = _parseStringToFindNode('''
+    var findNode = _parseStringToFindNode('''
 void f() {
   a?[0];
 }
 ''');
-    final expression = findNode.index('[0]');
+    var expression = findNode.index('[0]');
     expect(expression.isNullAware, isTrue);
   }
 }
@@ -879,62 +879,62 @@ class InterpolationStringTest extends ParserTestCase {
 @reflectiveTest
 class MethodDeclarationTest extends ParserDiagnosticsTest {
   void test_firstTokenAfterCommentAndMetadata_external() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 class A {
   external void foo();
 }
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.methodDeclaration('foo()');
+    var node = parseResult.findNode.methodDeclaration('foo()');
     expect(node.firstTokenAfterCommentAndMetadata, node.externalKeyword);
   }
 
   void test_firstTokenAfterCommentAndMetadata_external_getter() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 class A {
   external get foo;
 }
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.methodDeclaration('get foo');
+    var node = parseResult.findNode.methodDeclaration('get foo');
     expect(node.firstTokenAfterCommentAndMetadata, node.externalKeyword);
   }
 
   void test_firstTokenAfterCommentAndMetadata_external_operator() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 class A {
   external operator +(int other);
 }
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.methodDeclaration('external operator');
+    var node = parseResult.findNode.methodDeclaration('external operator');
     expect(node.firstTokenAfterCommentAndMetadata, node.externalKeyword);
   }
 
   void test_firstTokenAfterCommentAndMetadata_getter() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 class A {
   get foo => 0;
 }
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.methodDeclaration('get foo');
+    var node = parseResult.findNode.methodDeclaration('get foo');
     expect(node.firstTokenAfterCommentAndMetadata, node.propertyKeyword);
   }
 
   void test_firstTokenAfterCommentAndMetadata_operator() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 class A {
   operator +(int other) => 0;
 }
 ''');
     parseResult.assertNoErrors();
 
-    final node = parseResult.findNode.methodDeclaration('operator');
+    var node = parseResult.findNode.methodDeclaration('operator');
     expect(node.firstTokenAfterCommentAndMetadata, node.operatorKeyword);
   }
 }
@@ -942,42 +942,42 @@ class A {
 @reflectiveTest
 class MethodInvocationTest extends _AstTest {
   void test_isNullAware_cascade() {
-    final findNode = _parseStringToFindNode('''
+    var findNode = _parseStringToFindNode('''
 void f() {
   a..foo();
 }
 ''');
-    final invocation = findNode.methodInvocation('foo');
+    var invocation = findNode.methodInvocation('foo');
     expect(invocation.isNullAware, isFalse);
   }
 
   void test_isNullAware_cascade_true() {
-    final findNode = _parseStringToFindNode('''
+    var findNode = _parseStringToFindNode('''
 void f() {
   a?..foo();
 }
 ''');
-    final invocation = findNode.methodInvocation('foo');
+    var invocation = findNode.methodInvocation('foo');
     expect(invocation.isNullAware, isTrue);
   }
 
   void test_isNullAware_regularInvocation() {
-    final findNode = _parseStringToFindNode('''
+    var findNode = _parseStringToFindNode('''
 void f() {
   a.foo();
 }
 ''');
-    final invocation = findNode.methodInvocation('foo');
+    var invocation = findNode.methodInvocation('foo');
     expect(invocation.isNullAware, isFalse);
   }
 
   void test_isNullAware_true() {
-    final findNode = _parseStringToFindNode('''
+    var findNode = _parseStringToFindNode('''
 void f() {
   a?.foo();
 }
 ''');
-    final invocation = findNode.methodInvocation('foo');
+    var invocation = findNode.methodInvocation('foo');
     expect(invocation.isNullAware, isTrue);
   }
 }
@@ -985,83 +985,83 @@ void f() {
 @reflectiveTest
 class NodeListTest extends ParserDiagnosticsTest {
   void test_getBeginToken_empty() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 final x = f();
 ''');
     parseResult.assertNoErrors();
 
-    final argumentList = parseResult.findNode.argumentList('()');
-    final nodeList = argumentList.arguments;
+    var argumentList = parseResult.findNode.argumentList('()');
+    var nodeList = argumentList.arguments;
     expect(nodeList.beginToken, isNull);
   }
 
   void test_getBeginToken_nonEmpty() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 final x = f(0, 1);
 ''');
     parseResult.assertNoErrors();
 
-    final argumentList = parseResult.findNode.argumentList('(0');
-    final nodeList = argumentList.arguments;
-    final first = nodeList[0];
+    var argumentList = parseResult.findNode.argumentList('(0');
+    var nodeList = argumentList.arguments;
+    var first = nodeList[0];
     expect(nodeList.beginToken, same(first.beginToken));
   }
 
   void test_getEndToken_empty() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 final x = f();
 ''');
     parseResult.assertNoErrors();
 
-    final argumentList = parseResult.findNode.argumentList('()');
-    final nodeList = argumentList.arguments;
+    var argumentList = parseResult.findNode.argumentList('()');
+    var nodeList = argumentList.arguments;
     expect(nodeList.endToken, isNull);
   }
 
   void test_getEndToken_nonEmpty() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 final x = f(0, 1);
 ''');
     parseResult.assertNoErrors();
 
-    final argumentList = parseResult.findNode.argumentList('(0');
-    final nodeList = argumentList.arguments;
-    final last = nodeList[nodeList.length - 1];
+    var argumentList = parseResult.findNode.argumentList('(0');
+    var nodeList = argumentList.arguments;
+    var last = nodeList[nodeList.length - 1];
     expect(nodeList.endToken, same(last.endToken));
   }
 
   void test_indexOf() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 final x = f(0, 1, 2);
 final y = 42;
 ''');
     parseResult.assertNoErrors();
 
-    final argumentList = parseResult.findNode.argumentList('(0');
-    final nodeList = argumentList.arguments;
+    var argumentList = parseResult.findNode.argumentList('(0');
+    var nodeList = argumentList.arguments;
 
-    final first = nodeList[0];
-    final second = nodeList[1];
-    final third = nodeList[2];
+    var first = nodeList[0];
+    var second = nodeList[1];
+    var third = nodeList[2];
 
     expect(nodeList, hasLength(3));
     expect(nodeList.indexOf(first), 0);
     expect(nodeList.indexOf(second), 1);
     expect(nodeList.indexOf(third), 2);
 
-    final notInList = parseResult.findNode.integerLiteral('42');
+    var notInList = parseResult.findNode.integerLiteral('42');
     expect(nodeList.indexOf(notInList), -1);
   }
 
   void test_set_negative() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 final x = f(0);
 final y = 42;
 ''');
     parseResult.assertNoErrors();
 
-    final argumentList = parseResult.findNode.argumentList('(0');
-    final nodeList = argumentList.arguments;
+    var argumentList = parseResult.findNode.argumentList('(0');
+    var nodeList = argumentList.arguments;
 
     try {
       nodeList[-1] = nodeList.first;
@@ -1072,14 +1072,14 @@ final y = 42;
   }
 
   void test_set_tooBig() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 final x = f(0);
 final y = 42;
 ''');
     parseResult.assertNoErrors();
 
-    final argumentList = parseResult.findNode.argumentList('(0');
-    final nodeList = argumentList.arguments;
+    var argumentList = parseResult.findNode.argumentList('(0');
+    var nodeList = argumentList.arguments;
     try {
       nodeList[1] = nodeList.first;
       fail("Expected IndexOutOfBoundsException");
@@ -1105,11 +1105,11 @@ void f(int i) {}
 @reflectiveTest
 class OnClauseImplTest extends ParserDiagnosticsTest {
   void test_endToken_invalidClass() {
-    final parseResult = parseStringWithErrors('''
+    var parseResult = parseStringWithErrors('''
 mixin M on C Function() {}
 class C {}
 ''');
-    final node = parseResult.findNode.mixinDeclaration('M');
+    var node = parseResult.findNode.mixinDeclaration('M');
     expect(node.onClause!.endToken, isNotNull);
   }
 }
@@ -1205,42 +1205,42 @@ E f() => g;
 @reflectiveTest
 class PropertyAccessTest extends _AstTest {
   void test_isNullAware_cascade() {
-    final findNode = _parseStringToFindNode('''
+    var findNode = _parseStringToFindNode('''
 void f() {
   a..foo;
 }
 ''');
-    final invocation = findNode.propertyAccess('foo');
+    var invocation = findNode.propertyAccess('foo');
     expect(invocation.isNullAware, isFalse);
   }
 
   void test_isNullAware_cascade_true() {
-    final findNode = _parseStringToFindNode('''
+    var findNode = _parseStringToFindNode('''
 void f() {
   a?..foo;
 }
 ''');
-    final invocation = findNode.propertyAccess('foo');
+    var invocation = findNode.propertyAccess('foo');
     expect(invocation.isNullAware, isTrue);
   }
 
   void test_isNullAware_regularPropertyAccess() {
-    final findNode = _parseStringToFindNode('''
+    var findNode = _parseStringToFindNode('''
 void f() {
   (a).foo;
 }
 ''');
-    final invocation = findNode.propertyAccess('foo');
+    var invocation = findNode.propertyAccess('foo');
     expect(invocation.isNullAware, isFalse);
   }
 
   void test_isNullAware_true() {
-    final findNode = _parseStringToFindNode('''
+    var findNode = _parseStringToFindNode('''
 void f() {
   a?.foo;
 }
 ''');
-    final invocation = findNode.propertyAccess('foo');
+    var invocation = findNode.propertyAccess('foo');
     expect(invocation.isNullAware, isTrue);
   }
 }
@@ -1248,10 +1248,10 @@ void f() {
 @reflectiveTest
 class ShowClauseImplTest extends ParserDiagnosticsTest {
   void test_endToken_invalidClass() {
-    final parseResult = parseStringWithErrors('''
+    var parseResult = parseStringWithErrors('''
 import 'dart:core' show int Function();
 ''');
-    final node = parseResult.findNode.import('import');
+    var node = parseResult.findNode.import('import');
     expect(node.combinators[0].endToken, isNotNull);
   }
 }
@@ -1278,7 +1278,7 @@ class SimpleIdentifierTest extends _AstTest {
   }
 
   void test_inGetterContext_constructorFieldInitializer() {
-    final initializer = _parseStringToNode<ConstructorFieldInitializer>('''
+    var initializer = _parseStringToNode<ConstructorFieldInitializer>('''
 class A {
   A() : ^f = 0;
 }
@@ -1288,24 +1288,24 @@ class A {
   }
 
   void test_inGetterContext_forEachLoop() {
-    final parseResult = parseStringWithErrors('''
+    var parseResult = parseStringWithErrors('''
 void f() {
   for (v in [0]) {}
 }
 ''');
-    final identifier = parseResult.findNode.simple('v in');
+    var identifier = parseResult.findNode.simple('v in');
     expect(identifier.inGetterContext(), isFalse);
   }
 
   void test_inReferenceContext() {
-    final parseResult = parseStringWithErrors('''
+    var parseResult = parseStringWithErrors('''
 void f() {
   foo(id: 0);
 }
 final v = f(0, 1, 2);
 class C {}
 ''');
-    final identifier = parseResult.findNode.simple('id:');
+    var identifier = parseResult.findNode.simple('id:');
     expect(identifier.inGetterContext(), isFalse);
     expect(identifier.inSetterContext(), isFalse);
   }
@@ -1334,92 +1334,92 @@ class C {}
   }
 
   void test_inSetterContext_forEachLoop() {
-    final parseResult = parseStringWithErrors('''
+    var parseResult = parseStringWithErrors('''
 void f() {
   for (v in [0]) {}
 }
 ''');
-    final identifier = parseResult.findNode.simple('v in');
+    var identifier = parseResult.findNode.simple('v in');
     expect(identifier.inSetterContext(), isTrue);
   }
 
   void test_isQualified_inConstructorName() {
-    final constructor = _parseStringToNode<ConstructorName>(r'''
+    var constructor = _parseStringToNode<ConstructorName>(r'''
 final x = List<String>.^foo();
 ''');
-    final name = constructor.name!;
+    var name = constructor.name!;
     expect(name.isQualified, isTrue);
   }
 
   void test_isQualified_inMethodInvocation_noTarget() {
-    final findNode = _parseStringToFindNode('''
+    var findNode = _parseStringToFindNode('''
 void f() {
   foo(0);
 }
 ''');
-    final invocation = findNode.methodInvocation('foo');
-    final identifier = invocation.methodName;
+    var invocation = findNode.methodInvocation('foo');
+    var identifier = invocation.methodName;
     expect(identifier.isQualified, isFalse);
   }
 
   void test_isQualified_inMethodInvocation_withTarget() {
-    final findNode = _parseStringToFindNode('''
+    var findNode = _parseStringToFindNode('''
 void f() {
   a.foo();
 }
 ''');
-    final invocation = findNode.methodInvocation('foo');
-    final identifier = invocation.methodName;
+    var invocation = findNode.methodInvocation('foo');
+    var identifier = invocation.methodName;
     expect(identifier.isQualified, isTrue);
   }
 
   void test_isQualified_inPrefixedIdentifier_name() {
-    final findNode = _parseStringToFindNode('''
+    var findNode = _parseStringToFindNode('''
 void f() {
   prefix.foo;
 }
 ''');
-    final identifier = findNode.simple('foo');
+    var identifier = findNode.simple('foo');
     expect(identifier.isQualified, isTrue);
   }
 
   void test_isQualified_inPrefixedIdentifier_prefix() {
-    final findNode = _parseStringToFindNode('''
+    var findNode = _parseStringToFindNode('''
 void f() {
   prefix.foo;
 }
 ''');
-    final identifier = findNode.simple('prefix');
+    var identifier = findNode.simple('prefix');
     expect(identifier.isQualified, isFalse);
   }
 
   void test_isQualified_inPropertyAccess_name() {
-    final findNode = _parseStringToFindNode('''
+    var findNode = _parseStringToFindNode('''
 void f() {
   prefix?.foo;
 }
 ''');
-    final identifier = findNode.simple('foo');
+    var identifier = findNode.simple('foo');
     expect(identifier.isQualified, isTrue);
   }
 
   void test_isQualified_inPropertyAccess_target() {
-    final findNode = _parseStringToFindNode('''
+    var findNode = _parseStringToFindNode('''
 void f() {
   prefix?.foo;
 }
 ''');
-    final identifier = findNode.simple('prefix');
+    var identifier = findNode.simple('prefix');
     expect(identifier.isQualified, isFalse);
   }
 
   void test_isQualified_inReturnStatement() {
-    final findNode = _parseStringToFindNode('''
+    var findNode = _parseStringToFindNode('''
 void f() {
   return test;
 }
 ''');
-    final identifier = findNode.simple('test');
+    var identifier = findNode.simple('test');
     expect(identifier.isQualified, isFalse);
   }
 
@@ -1462,7 +1462,7 @@ void f() {
       throw UnimplementedError();
     }
 
-    final findNode = _parseStringToFindNode('''
+    var findNode = _parseStringToFindNode('''
 void f() {
   $code;
 }
@@ -1490,11 +1490,11 @@ void f() {
 class SimpleStringLiteralTest extends ParserDiagnosticsTest {
   void test_contentsEnd() {
     void assertContentsEnd(String code, int expected) {
-      final parseResult = parseStringWithErrors('''
+      var parseResult = parseStringWithErrors('''
 final v = $code;
 ''');
       parseResult.assertNoErrors();
-      final node = parseResult.findNode.simpleStringLiteral(code);
+      var node = parseResult.findNode.simpleStringLiteral(code);
       expect(node.contentsEnd - node.offset, expected);
     }
 
@@ -1519,11 +1519,11 @@ final v = $code;
 
   void test_contentsOffset() {
     void assertContentsOffset(String code, int expected) {
-      final parseResult = parseStringWithErrors('''
+      var parseResult = parseStringWithErrors('''
 final v = $code;
 ''');
       parseResult.assertNoErrors();
-      final node = parseResult.findNode.simpleStringLiteral(code);
+      var node = parseResult.findNode.simpleStringLiteral(code);
       expect(node.contentsOffset - node.offset, expected);
     }
 
@@ -1548,11 +1548,11 @@ final v = $code;
 
   void test_isMultiline() {
     void assertIsMultiline(String code, bool expected) {
-      final parseResult = parseStringWithErrors('''
+      var parseResult = parseStringWithErrors('''
 final v = $code;
 ''');
       parseResult.assertNoErrors();
-      final node = parseResult.findNode.simpleStringLiteral(code);
+      var node = parseResult.findNode.simpleStringLiteral(code);
       expect(node.isMultiline, expected);
     }
 
@@ -1571,11 +1571,11 @@ final v = $code;
 
   void test_isRaw() {
     void assertIsRaw(String code, bool expected) {
-      final parseResult = parseStringWithErrors('''
+      var parseResult = parseStringWithErrors('''
 final v = $code;
 ''');
       parseResult.assertNoErrors();
-      final node = parseResult.findNode.simpleStringLiteral(code);
+      var node = parseResult.findNode.simpleStringLiteral(code);
       expect(node.isRaw, expected);
     }
 
@@ -1594,11 +1594,11 @@ final v = $code;
 
   void test_isSingleQuoted() {
     void assertIsSingleQuoted(String code, bool expected) {
-      final parseResult = parseStringWithErrors('''
+      var parseResult = parseStringWithErrors('''
 final v = $code;
 ''');
       parseResult.assertNoErrors();
-      final node = parseResult.findNode.simpleStringLiteral(code);
+      var node = parseResult.findNode.simpleStringLiteral(code);
       expect(node.isSingleQuoted, expected);
     }
 
@@ -1619,18 +1619,18 @@ final v = $code;
 @reflectiveTest
 class SpreadElementTest extends _AstTest {
   void test_notNullAwareSpread() {
-    final findNode = _parseStringToFindNode('''
+    var findNode = _parseStringToFindNode('''
 final x = [...foo];
 ''');
-    final spread = findNode.spreadElement('...foo');
+    var spread = findNode.spreadElement('...foo');
     expect(spread.isNullAware, isFalse);
   }
 
   void test_nullAwareSpread() {
-    final findNode = _parseStringToFindNode('''
+    var findNode = _parseStringToFindNode('''
 final x = [...?foo];
 ''');
-    final spread = findNode.spreadElement('...?foo');
+    var spread = findNode.spreadElement('...?foo');
     expect(spread.isNullAware, isTrue);
   }
 }
@@ -1639,61 +1639,61 @@ final x = [...?foo];
 class StringInterpolationTest extends ParserDiagnosticsTest {
   void test_contentsOffsetEnd() {
     {
-      final parseResult = parseStringWithErrors(r'''
+      var parseResult = parseStringWithErrors(r'''
 final v = 'a${bb}ccc';
 ''');
       parseResult.assertNoErrors();
-      final node = parseResult.findNode.stringInterpolation('ccc');
+      var node = parseResult.findNode.stringInterpolation('ccc');
       expect(node.contentsOffset, 11);
       expect(node.contentsEnd, 20);
     }
 
     {
-      final parseResult = parseStringWithErrors(r"""
+      var parseResult = parseStringWithErrors(r"""
 final v = '''a${bb}ccc''';
 """);
       parseResult.assertNoErrors();
-      final node = parseResult.findNode.stringInterpolation('ccc');
+      var node = parseResult.findNode.stringInterpolation('ccc');
       expect(node.contentsOffset, 13);
       expect(node.contentsEnd, 22);
     }
 
     {
-      final parseResult = parseStringWithErrors(r'''
+      var parseResult = parseStringWithErrors(r'''
 final v = """a${bb}ccc""";
 ''');
       parseResult.assertNoErrors();
-      final node = parseResult.findNode.stringInterpolation('ccc');
+      var node = parseResult.findNode.stringInterpolation('ccc');
       expect(node.contentsOffset, 13);
       expect(node.contentsEnd, 22);
     }
 
     {
-      final parseResult = parseStringWithErrors(r'''
+      var parseResult = parseStringWithErrors(r'''
 final v = r'a${bb}ccc';
 ''');
       parseResult.assertNoErrors();
-      final node = parseResult.findNode.simpleStringLiteral('ccc');
+      var node = parseResult.findNode.simpleStringLiteral('ccc');
       expect(node.contentsOffset, 12);
       expect(node.contentsEnd, 21);
     }
 
     {
-      final parseResult = parseStringWithErrors(r"""
+      var parseResult = parseStringWithErrors(r"""
 final v = r'''a${bb}ccc''';
 """);
       parseResult.assertNoErrors();
-      final node = parseResult.findNode.simpleStringLiteral('ccc');
+      var node = parseResult.findNode.simpleStringLiteral('ccc');
       expect(node.contentsOffset, 14);
       expect(node.contentsEnd, 23);
     }
 
     {
-      final parseResult = parseStringWithErrors(r'''
+      var parseResult = parseStringWithErrors(r'''
 final v = r"""a${bb}ccc""";
 ''');
       parseResult.assertNoErrors();
-      final node = parseResult.findNode.simpleStringLiteral('ccc');
+      var node = parseResult.findNode.simpleStringLiteral('ccc');
       expect(node.contentsOffset, 14);
       expect(node.contentsEnd, 23);
     }
@@ -1701,91 +1701,91 @@ final v = r"""a${bb}ccc""";
 
   void test_isMultiline() {
     {
-      final parseResult = parseStringWithErrors(r'''
+      var parseResult = parseStringWithErrors(r'''
 final v = 'a${bb}ccc';
 ''');
       parseResult.assertNoErrors();
-      final node = parseResult.findNode.stringInterpolation('ccc');
+      var node = parseResult.findNode.stringInterpolation('ccc');
       expect(node.isMultiline, isFalse);
     }
 
     {
-      final parseResult = parseStringWithErrors(r'''
+      var parseResult = parseStringWithErrors(r'''
 final v = "a${bb}ccc";
 ''');
       parseResult.assertNoErrors();
-      final node = parseResult.findNode.stringInterpolation('ccc');
+      var node = parseResult.findNode.stringInterpolation('ccc');
       expect(node.isMultiline, isFalse);
     }
 
     {
-      final parseResult = parseStringWithErrors(r"""
+      var parseResult = parseStringWithErrors(r"""
 final v = '''a${bb}ccc''';
 """);
       parseResult.assertNoErrors();
-      final node = parseResult.findNode.stringInterpolation('ccc');
+      var node = parseResult.findNode.stringInterpolation('ccc');
       expect(node.isMultiline, isTrue);
     }
 
     {
-      final parseResult = parseStringWithErrors(r'''
+      var parseResult = parseStringWithErrors(r'''
 final v = """a${bb}ccc""";
 ''');
       parseResult.assertNoErrors();
-      final node = parseResult.findNode.stringInterpolation('ccc');
+      var node = parseResult.findNode.stringInterpolation('ccc');
       expect(node.isMultiline, isTrue);
     }
   }
 
   void test_isRaw() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 final v = 'a${bb}ccc';
 ''');
     parseResult.assertNoErrors();
-    final node = parseResult.findNode.stringInterpolation('ccc');
+    var node = parseResult.findNode.stringInterpolation('ccc');
     expect(node.isRaw, isFalse);
   }
 
   void test_isSingleQuoted() {
     {
-      final parseResult = parseStringWithErrors(r'''
+      var parseResult = parseStringWithErrors(r'''
 final v = 'a${bb}ccc';
 ''');
       parseResult.assertNoErrors();
-      final node = parseResult.findNode.stringInterpolation('ccc');
+      var node = parseResult.findNode.stringInterpolation('ccc');
       expect(node.isSingleQuoted, isTrue);
     }
 
     {
-      final parseResult = parseStringWithErrors(r"""
+      var parseResult = parseStringWithErrors(r"""
 final v = '''a${bb}ccc''';
 """);
       parseResult.assertNoErrors();
-      final node = parseResult.findNode.stringInterpolation('ccc');
+      var node = parseResult.findNode.stringInterpolation('ccc');
       expect(node.isSingleQuoted, isTrue);
     }
 
     {
-      final parseResult = parseStringWithErrors(r'''
+      var parseResult = parseStringWithErrors(r'''
 final v = "a${bb}ccc";
 ''');
       parseResult.assertNoErrors();
-      final node = parseResult.findNode.stringInterpolation('ccc');
+      var node = parseResult.findNode.stringInterpolation('ccc');
       expect(node.isSingleQuoted, isFalse);
     }
 
     {
-      final parseResult = parseStringWithErrors(r'''
+      var parseResult = parseStringWithErrors(r'''
 final v = """a${bb}ccc""";
 ''');
       parseResult.assertNoErrors();
-      final node = parseResult.findNode.stringInterpolation('ccc');
+      var node = parseResult.findNode.stringInterpolation('ccc');
       expect(node.isSingleQuoted, isFalse);
     }
   }
 
   void test_this_followedByDollar() {
-    final parseResult = parseStringWithErrors(r'''
+    var parseResult = parseStringWithErrors(r'''
 class C {
   void m(int foo) {
     '$this$foo';
@@ -1861,11 +1861,11 @@ var a = 0;
 @reflectiveTest
 class WithClauseImplTest extends ParserDiagnosticsTest {
   void test_endToken_invalidClass() {
-    final parseResult = parseStringWithErrors('''
+    var parseResult = parseStringWithErrors('''
 class A with C Function() {}
 class C {}
 ''');
-    final node = parseResult.findNode.classDeclaration('A');
+    var node = parseResult.findNode.classDeclaration('A');
     expect(node.withClause!.endToken, isNotNull);
   }
 }

@@ -56,13 +56,13 @@ class SurveyManager {
   Future<void> checkForSurveys() async {
     try {
       // Ensure we can prompt the user and open web pages.
-      final prompt = _server.userPromptSender;
-      final uriOpener = _server.openUriNotificationSender;
+      var prompt = _server.userPromptSender;
+      var uriOpener = _server.openUriNotificationSender;
       if (prompt == null || uriOpener == null) return;
 
       // Find the first survey to show.
-      final surveys = await _analytics.fetchAvailableSurveys();
-      final survey = surveys.firstOrNull;
+      var surveys = await _analytics.fetchAvailableSurveys();
+      var survey = surveys.firstOrNull;
       if (survey == null) return;
 
       // If we were shutdown during the above async request, skip any further
@@ -72,17 +72,17 @@ class SurveyManager {
 
       // Create a map of buttons by text because we only get the button text
       // back and we need the button to read the URL and record the interaction.
-      final buttonMap = {
-        for (final button in survey.buttonList) button.buttonText: button,
+      var buttonMap = {
+        for (var button in survey.buttonList) button.buttonText: button,
       };
 
       _analytics.surveyShown(survey);
-      final clickedButtonText = await prompt(
+      var clickedButtonText = await prompt(
         MessageType.info,
         survey.description,
         buttonMap.keys.toList(),
       );
-      final clickedButton = buttonMap[clickedButtonText];
+      var clickedButton = buttonMap[clickedButtonText];
       if (clickedButton == null) return;
 
       // Record that ths survey was interacted with so it's not shown again.
@@ -90,7 +90,7 @@ class SurveyManager {
 
       // If this button had a URL, open it. If not, it was probably a dismiss
       // or snooze button.
-      final url = clickedButton.url;
+      var url = clickedButton.url;
       if (url != null) {
         await uriOpener(Uri.parse(url));
       }

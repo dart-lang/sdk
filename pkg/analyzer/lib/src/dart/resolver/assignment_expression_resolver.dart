@@ -64,7 +64,7 @@ class AssignmentExpressionResolver {
         atDynamicTarget: leftResolution.atDynamicTarget,
       );
       {
-        final recordField = leftResolution.recordField;
+        var recordField = leftResolution.recordField;
         if (recordField != null) {
           node.readType = recordField.type;
         }

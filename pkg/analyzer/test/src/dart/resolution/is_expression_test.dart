@@ -26,7 +26,7 @@ class A<T> {
       error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 30, 5),
     ]);
 
-    final node = findNode.singleIsExpression;
+    var node = findNode.singleIsExpression;
     assertResolvedNodeText(node, r'''
 IsExpression
   expression: SuperExpression
@@ -90,7 +90,7 @@ void f(Object? a) {
 }
 ''');
 
-    final node = findNode.singleIsExpression;
+    var node = findNode.singleIsExpression;
     assertResolvedNodeText(node, r'''
 IsExpression
   expression: SimpleIdentifier
@@ -113,7 +113,7 @@ void f(Object? a) {
 }
 ''');
 
-    final node = findNode.singleIsExpression;
+    var node = findNode.singleIsExpression;
     assertResolvedNodeText(node, r'''
 IsExpression
   expression: SimpleIdentifier

@@ -112,7 +112,7 @@ void f() {
   }
 
   Future<void> test_BUILT_IN_augment_onClass() async {
-    final testCode = TestCode.parse(r'''
+    var testCode = TestCode.parse(r'''
 augment class A {}
 ''');
     addTestFile(testCode.code);
@@ -724,7 +724,7 @@ class A {
   }
 
   Future<void> test_class_macroKeyword() async {
-    final testCode = TestCode.parse(r'''
+    var testCode = TestCode.parse(r'''
 macro class A {}
 ''');
     addTestFile(testCode.code);
@@ -1246,7 +1246,7 @@ void f() {
   }
 
   Future<void> test_extension_augment() async {
-    final testCode = TestCode.parse(r'''
+    var testCode = TestCode.parse(r'''
 augment extension E {}
 ''');
     addTestFile(testCode.code);
@@ -1259,7 +1259,7 @@ augment extension E {}
   }
 
   Future<void> test_extension_augment_hasOnClause() async {
-    final testCode = TestCode.parse(r'''
+    var testCode = TestCode.parse(r'''
 augment extension E on int {}
 ''');
     addTestFile(testCode.code);
@@ -1274,7 +1274,7 @@ augment extension E on int {}
   }
 
   Future<void> test_extensionType() async {
-    final testCode = TestCode.parse(r'''
+    var testCode = TestCode.parse(r'''
 extension type const A<T>.named(int it) implements num {}
 ''');
     addTestFile(testCode.code);
@@ -1459,7 +1459,7 @@ class A {
   }
 
   Future<void> test_instanceCreation_class() async {
-    final testCode = TestCode.parse(r'''
+    var testCode = TestCode.parse(r'''
 class A {
   A.named(int it);
 }
@@ -1477,7 +1477,7 @@ void f() {
   }
 
   Future<void> test_instanceCreation_extensionType() async {
-    final testCode = TestCode.parse(r'''
+    var testCode = TestCode.parse(r'''
 extension type A.named(T it) {}
 void f() {
   [!A.named(0)!];
@@ -1868,7 +1868,7 @@ void g() {
   }
 
   Future<void> test_namedType_extensionType() async {
-    final testCode = TestCode.parse(r'''
+    var testCode = TestCode.parse(r'''
 extension type A<T>(T it) {}
 void f([!A<int>!] a) {}
 ''');
@@ -1989,7 +1989,7 @@ void f(Object o) {
   }
 
   Future<void> test_propertyAccess_extensionTypeName() async {
-    final testCode = TestCode.parse(r'''
+    var testCode = TestCode.parse(r'''
 extension type A.named(T it) {
   static const V = 0;
 }
@@ -2046,7 +2046,7 @@ void f((int, {int field1}) record) {
   }
 
   Future<void> test_recordTypeLiteral_named() async {
-    final code = '(0, f1: 1, f2: 2)';
+    var code = '(0, f1: 1, f2: 2)';
     addTestFile('''
 final r = $code;
 ''');

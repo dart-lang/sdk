@@ -109,7 +109,7 @@ class ConvertAddAllToSpread extends ResolvedCorrectionProducer {
     }
     elementText ??= '...${utils.getNodeText(argument)}';
 
-    final elementText_final = elementText;
+    var elementText_final = elementText;
     await builder.addDartFileEdit(file, (builder) {
       if (targetList.elements.isNotEmpty) {
         // ['a']..addAll(['b', 'c']);

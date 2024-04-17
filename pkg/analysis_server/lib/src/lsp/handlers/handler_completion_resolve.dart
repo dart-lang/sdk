@@ -37,7 +37,7 @@ class CompletionResolveHandler
     MessageInfo message,
     CancellationToken token,
   ) async {
-    final resolutionInfo = params.data;
+    var resolutionInfo = params.data;
 
     if (resolutionInfo is DartCompletionResolutionInfo) {
       return resolveDartCompletion(params, resolutionInfo, token);
@@ -53,17 +53,17 @@ class CompletionResolveHandler
     DartCompletionResolutionInfo data,
     CancellationToken token,
   ) async {
-    final clientCapabilities = server.lspClientCapabilities;
+    var clientCapabilities = server.lspClientCapabilities;
     if (clientCapabilities == null) {
       // This should not happen unless a client misbehaves.
       return error(ErrorCodes.ServerNotInitialized,
           'Requests not before server is initialized');
     }
 
-    final file = data.file;
-    final importUris = data.importUris.map(Uri.parse).toList();
-    final elementLocationReference = data.ref;
-    final elementLocation = elementLocationReference != null
+    var file = data.file;
+    var importUris = data.importUris.map(Uri.parse).toList();
+    var elementLocationReference = data.ref;
+    var elementLocation = elementLocationReference != null
         ? ElementLocationImpl.con2(elementLocationReference)
         : null;
 
@@ -72,7 +72,7 @@ class CompletionResolveHandler
     _latestCompletionItem = item;
     while (item == _latestCompletionItem && timer.elapsed < timeout) {
       try {
-        final session = await server.getAnalysisSession(file);
+        var session = await server.getAnalysisSession(file);
 
         // We shouldn't not get a driver/session, but if we did perhaps the file
         // was removed from the analysis set so assume the request is no longer
@@ -81,7 +81,7 @@ class CompletionResolveHandler
           return cancelled();
         }
 
-        final result = await session.getResolvedUnit(file);
+        var result = await session.getResolvedUnit(file);
         if (result is! ResolvedUnitResult) {
           return cancelled();
         }
@@ -90,9 +90,9 @@ class CompletionResolveHandler
           return cancelled();
         }
 
-        final builder = ChangeBuilder(session: session);
+        var builder = ChangeBuilder(session: session);
         await builder.addDartFileEdit(file, (builder) {
-          for (final uri in importUris) {
+          for (var uri in importUris) {
             builder.importLibraryElement(uri);
           }
         });
@@ -101,17 +101,17 @@ class CompletionResolveHandler
           return cancelled();
         }
 
-        final changes = builder.sourceChange;
-        final thisFilesChanges =
+        var changes = builder.sourceChange;
+        var thisFilesChanges =
             changes.edits.where((e) => e.file == file).toList();
-        final otherFilesChanges =
+        var otherFilesChanges =
             changes.edits.where((e) => e.file != file).toList();
 
         // If this completion involves editing other files, we'll need to build
         // a command that the client will call to apply those edits later.
         Command? command;
         if (otherFilesChanges.isNotEmpty) {
-          final workspaceEdit =
+          var workspaceEdit =
               createPlainWorkspaceEdit(server, otherFilesChanges);
           command = Command(
               title: 'Add import',
@@ -123,13 +123,13 @@ class CompletionResolveHandler
 
         // Look up documentation if we can get an element for this item.
         Either2<MarkupContent, String>? documentation;
-        final element = elementLocation != null
+        var element = elementLocation != null
             ? await session.locateElement(elementLocation)
             : null;
         if (element != null) {
-          final formats = clientCapabilities.completionDocumentationFormats;
-          final dartDocInfo = server.getDartdocDirectiveInfoForSession(session);
-          final dartDoc = DartUnitHoverComputer.computePreferredDocumentation(
+          var formats = clientCapabilities.completionDocumentationFormats;
+          var dartDocInfo = server.getDartdocDirectiveInfoForSession(session);
+          var dartDoc = DartUnitHoverComputer.computePreferredDocumentation(
               dartDocInfo,
               element,
               server.lspClientConfiguration.global.preferredDocumentation);
@@ -142,8 +142,8 @@ class CompletionResolveHandler
         String? detail = item.detail;
         if (changes.edits.isNotEmpty && importUris.isNotEmpty) {
           if (importUris.length == 1) {
-            final libraryUri = importUris.first;
-            final autoImportDisplayUriString = getCompletionDisplayUriString(
+            var libraryUri = importUris.first;
+            var autoImportDisplayUriString = getCompletionDisplayUriString(
               uriConverter: server.uriConverter,
               pathContext: server.pathContext,
               elementLibraryUri: libraryUri,
@@ -200,14 +200,14 @@ class CompletionResolveHandler
   ) async {
     // Fetch details for this package. This may come from the cache or trigger
     // a real web request to the Pub API.
-    final packageDetails =
+    var packageDetails =
         await server.pubPackageService.packageDetails(data.packageName);
 
     if (token.isCancellationRequested) {
       return cancelled();
     }
 
-    final description = packageDetails?.description;
+    var description = packageDetails?.description;
     return success(CompletionItem(
       label: item.label,
       kind: item.kind,

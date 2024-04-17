@@ -50,7 +50,7 @@ void f(int x) {
       error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 23, 2),
     ]);
 
-    final node = findNode.postfix('++;');
+    var node = findNode.postfix('++;');
     assertResolvedNodeText(node, r'''
 PostfixExpression
   operand: PostfixExpression
@@ -86,7 +86,7 @@ void f(A a) {
       error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 29, 2),
     ]);
 
-    final node = findNode.postfix('++;');
+    var node = findNode.postfix('++;');
     assertResolvedNodeText(node, r'''
 PostfixExpression
   operand: SimpleIdentifier
@@ -110,7 +110,7 @@ void f(dynamic x) {
 }
 ''');
 
-    final node = findNode.singlePostfixExpression;
+    var node = findNode.singlePostfixExpression;
     assertResolvedNodeText(node, r'''
 PostfixExpression
   operand: SimpleIdentifier
@@ -136,7 +136,7 @@ void f(int x) {
       error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 21, 2),
     ]);
 
-    final node = findNode.prefix('++x');
+    var node = findNode.prefix('++x');
     assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: ++
@@ -368,7 +368,7 @@ void f(A a) {
 }
 ''');
 
-    final node = findNode.singlePostfixExpression;
+    var node = findNode.singlePostfixExpression;
     assertResolvedNodeText(node, r'''
 PostfixExpression
   operand: PrefixedIdentifier
@@ -821,7 +821,7 @@ class A {
       error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 32, 2),
     ]);
 
-    final node = findNode.singlePostfixExpression;
+    var node = findNode.singlePostfixExpression;
     assertResolvedNodeText(node, r'''
 PostfixExpression
   operand: SuperExpression
@@ -891,7 +891,7 @@ void f() {
       error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 13, 1),
     ]);
 
-    final node = findNode.singlePostfixExpression;
+    var node = findNode.singlePostfixExpression;
     assertResolvedNodeText(node, r'''
 PostfixExpression
   operand: SimpleIdentifier
@@ -989,7 +989,7 @@ void f(A? x) {
 }
 ''');
 
-    final node = findNode.postfix('x!');
+    var node = findNode.postfix('x!');
     assertResolvedNodeText(node, r'''
 PostfixExpression
   operand: SimpleIdentifier
@@ -1121,7 +1121,7 @@ void f(A? x) {
 }
 ''');
 
-    final node = findNode.postfix('x!');
+    var node = findNode.postfix('x!');
     assertResolvedNodeText(node, r'''
 PostfixExpression
   operand: SimpleIdentifier

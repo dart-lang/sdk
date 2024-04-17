@@ -18,7 +18,7 @@ import 'dart:io';
 
 void main(List<String> args) async {
   try {
-    final results = <Map<String, dynamic>>[];
+    var results = <Map<String, dynamic>>[];
     for (int i = 0; i < countRuns; ++i) {
       results.addAll(await runBenchmarks(warm: true));
       results.addAll(await runBenchmarks(warm: false));
@@ -28,7 +28,7 @@ void main(List<String> args) async {
       print('Analyzer benchmark uploads only run on Windows');
       exit(1);
     }
-    final targetResults = [
+    var targetResults = [
       for (final result in results)
         {
           'cpu': 'Windows VM',
@@ -46,8 +46,8 @@ void main(List<String> args) async {
 const countRuns = 2;
 
 Future<List<Map<String, dynamic>>> runBenchmarks({required bool warm}) async {
-  final temperature = warm ? 'warm' : 'cold';
-  final benchmarkResults = await Process.run(Platform.resolvedExecutable, [
+  var temperature = warm ? 'warm' : 'cold';
+  var benchmarkResults = await Process.run(Platform.resolvedExecutable, [
     'pkg/analysis_server/benchmark/benchmarks.dart',
     'run',
     if (warm) 'analysis-server' else 'analysis-server-cold',
@@ -58,7 +58,7 @@ Future<List<Map<String, dynamic>>> runBenchmarks({required bool warm}) async {
   if (benchmarkResults.exitCode != 0) {
     throw 'Failed to run $temperature benchmarks';
   }
-  final result = jsonDecode(LineSplitter()
+  var result = jsonDecode(LineSplitter()
       .convert(benchmarkResults.stdout as String)
       .where((line) => line.startsWith('{"benchmark":'))
       .single);
@@ -93,29 +93,29 @@ Future<List<Map<String, dynamic>>> runBenchmarks({required bool warm}) async {
 Future<void> uploadResults(List<Map<String, dynamic>> results) async {
   // Create JSON results in the desired format
   // Write results file to cloud storage.
-  final tempDir =
+  var tempDir =
       await Directory.systemTemp.createTemp('analysis-server-benchmarks');
   try {
-    final resultsJson = jsonEncode(results);
-    final resultsFile = File.fromUri(tempDir.uri.resolve('results.json'));
+    var resultsJson = jsonEncode(results);
+    var resultsFile = File.fromUri(tempDir.uri.resolve('results.json'));
     resultsFile.writeAsStringSync(resultsJson, flush: true);
 
-    final taskId = Platform.environment['SWARMING_TASK_ID'] ?? 'test_task_id';
+    var taskId = Platform.environment['SWARMING_TASK_ID'] ?? 'test_task_id';
     if (taskId == 'test_task_id') {
       print('Benchmark_uploader requires SWARMING_TASK_ID in the environment.');
     }
-    final cloudStoragePath =
+    var cloudStoragePath =
         'gs://dart-test-results/benchmarks/$taskId/results.json';
-    final args = [
+    var args = [
       'third_party/gsutil/gsutil',
       'cp',
       resultsFile.path,
       cloudStoragePath
     ];
-    final python = 'python3.exe';
+    var python = 'python3.exe';
     print('Running $python ${args.join(' ')}');
-    final commandResult = await Process.run(python, args);
-    final exitCode = commandResult.exitCode;
+    var commandResult = await Process.run(python, args);
+    var exitCode = commandResult.exitCode;
     print(commandResult.stdout);
     print(commandResult.stderr);
     print('exit code: $exitCode');

@@ -27,7 +27,7 @@ class ReplaceWithWildcard extends ResolvedCorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     final node = this.node;
     if (node is WildcardPattern) {
-      final defaultKeyword = node.name;
+      var defaultKeyword = node.name;
       if (defaultKeyword.keyword == Keyword.DEFAULT) {
         await builder.addDartFileEdit(file, (builder) {
           builder.addSimpleReplacement(range.token(defaultKeyword), '_');

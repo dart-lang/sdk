@@ -58,7 +58,7 @@ class B extends A {}
   }
 
   test_class_extends_outside_viaLanguage219AndCore() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 // @dart=2.19
 import 'dart:collection';
 abstract class A implements LinkedListEntry<Never> {}
@@ -109,7 +109,7 @@ class B implements A {}
   }
 
   test_class_implements_outside_viaLanguage219AndCore() async {
-    final a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 // @dart=2.19
 import 'dart:collection';
 abstract class A implements LinkedListEntry<Never> {}

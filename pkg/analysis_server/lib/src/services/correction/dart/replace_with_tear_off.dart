@@ -56,17 +56,17 @@ class ReplaceWithTearOff extends ResolvedCorrectionProducer {
       }
     }
 
-    final body = ancestor.body;
+    var body = ancestor.body;
     if (body is ExpressionFunctionBody) {
-      final expression = body.expression;
+      var expression = body.expression;
       await addFixOfExpression(expression.unParenthesized);
     } else if (body is BlockFunctionBody) {
-      final statement = body.block.statements.first;
+      var statement = body.block.statements.first;
       if (statement is ExpressionStatement) {
-        final expression = statement.expression;
+        var expression = statement.expression;
         await addFixOfExpression(expression.unParenthesized);
       } else if (statement is ReturnStatement) {
-        final expression = statement.expression;
+        var expression = statement.expression;
         await addFixOfExpression(expression?.unParenthesized);
       }
     }

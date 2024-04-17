@@ -102,7 +102,7 @@ Future<Set<ClassMemberElement>> getHierarchyMembers(
   if (enclosingElement is InterfaceElement) {
     var name = member.displayName;
 
-    final superElementsToSearch = enclosingElement.allSupertypes
+    var superElementsToSearch = enclosingElement.allSupertypes
         .map((superType) => superType.element)
         .where((interface) {
       return member.isPublic || interface.library == member.library;

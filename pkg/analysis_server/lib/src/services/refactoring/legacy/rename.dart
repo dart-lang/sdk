@@ -58,7 +58,7 @@ class RenameProcessor {
     required int length,
     required String code,
   }) {
-    final edit = SourceEdit(offset, length, code);
+    var edit = SourceEdit(offset, length, code);
     doSourceChange_addElementEdit(change, referenceElement, edit);
   }
 }

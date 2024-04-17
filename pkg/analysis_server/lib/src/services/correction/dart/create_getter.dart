@@ -30,7 +30,7 @@ abstract class CreateFieldOrGetter extends ResolvedCorrectionProducer {
     final node = this.node;
 
     if (node is DeclaredVariablePatternImpl) {
-      final fieldName = node.fieldNameWithImplicitName;
+      var fieldName = node.fieldNameWithImplicitName;
       if (fieldName != null) {
         await _patternFieldName(
           builder: builder,
@@ -55,22 +55,22 @@ abstract class CreateFieldOrGetter extends ResolvedCorrectionProducer {
     required ChangeBuilder builder,
     required PatternFieldName fieldName,
   }) async {
-    final patternField = node.parent;
+    var patternField = node.parent;
     if (patternField is! PatternField) {
       return;
     }
 
-    final effectiveName = patternField.effectiveName;
+    var effectiveName = patternField.effectiveName;
     if (effectiveName == null) {
       return;
     }
 
-    final objectPattern = patternField.parent;
+    var objectPattern = patternField.parent;
     if (objectPattern is! ObjectPattern) {
       return;
     }
 
-    final matchedType = objectPattern.type.typeOrThrow;
+    var matchedType = objectPattern.type.typeOrThrow;
     if (matchedType is! InterfaceType) {
       return;
     }

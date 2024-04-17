@@ -36,10 +36,10 @@ class CodeActionHandler
   @override
   Future<ErrorOr<TextDocumentCodeActionResult>> handle(CodeActionParams params,
       MessageInfo message, CancellationToken token) async {
-    final performance = message.performance;
+    var performance = message.performance;
 
     var textDocument = params.textDocument;
-    final path = pathOfDoc(textDocument);
+    var path = pathOfDoc(textDocument);
     // TODO(dantup): Break this up, it's hundreds of lines.
     return path.mapResult((unitPath) async {
       if (!server.isAnalyzed(unitPath) ||
@@ -47,14 +47,14 @@ class CodeActionHandler
         return success(const []);
       }
 
-      final capabilities = server.lspClientCapabilities;
+      var capabilities = server.lspClientCapabilities;
       if (capabilities == null) {
         // This should not happen unless a client misbehaves.
         return serverNotInitializedError;
       }
 
-      final supportsLiterals = capabilities.literalCodeActions;
-      final supportedKinds = capabilities.codeActionKinds;
+      var supportsLiterals = capabilities.literalCodeActions;
+      var supportedKinds = capabilities.codeActionKinds;
 
       /// Whether a fix of kind [kind] should be included in the results.
       ///
@@ -72,7 +72,7 @@ class CodeActionHandler
             kind == wanted || kind.toString().startsWith('$wanted.');
 
         // If the client wants only a specific set, use only that filter.
-        final only = params.context.only;
+        var only = params.context.only;
         if (only != null) {
           return only.any(isMatch);
         }
@@ -102,7 +102,7 @@ class CodeActionHandler
         bool isMatch(CodeActionKind wanted) =>
             kind == wanted || wanted.toString().startsWith('$kind.');
 
-        final only = params.context.only;
+        var only = params.context.only;
         if (only != null) {
           return only.any(isMatch);
         }
@@ -110,41 +110,39 @@ class CodeActionHandler
         return true;
       }
 
-      final pathContext = server.resourceProvider.pathContext;
-      final docIdentifier = server.getVersionedDocumentIdentifier(unitPath);
+      var pathContext = server.resourceProvider.pathContext;
+      var docIdentifier = server.getVersionedDocumentIdentifier(unitPath);
 
-      final library = await requireResolvedLibrary(unitPath);
-      final libraryResult = library.resultOrNull;
-      final unit = libraryResult?.unitWithPath(unitPath);
+      var library = await requireResolvedLibrary(unitPath);
+      var libraryResult = library.resultOrNull;
+      var unit = libraryResult?.unitWithPath(unitPath);
 
       // For non-Dart files we don't have a unit and must get the best LineInfo we
       // can for current content.
-      final lineInfo = unit?.lineInfo ?? server.getLineInfo(unitPath);
+      var lineInfo = unit?.lineInfo ?? server.getLineInfo(unitPath);
       if (lineInfo == null) {
         return success([]);
       }
 
-      final startOffset = toOffset(lineInfo, params.range.start);
-      final endOffset = toOffset(lineInfo, params.range.end);
+      var startOffset = toOffset(lineInfo, params.range.start);
+      var endOffset = toOffset(lineInfo, params.range.end);
       if (startOffset.isError || endOffset.isError) {
         return success([]);
       }
 
       return (startOffset, endOffset)
           .mapResults((startOffset, endOffset) async {
-        final offset = startOffset;
-        final length = endOffset - startOffset;
+        var offset = startOffset;
+        var length = endOffset - startOffset;
 
-        final isDart = file_paths.isDart(pathContext, unitPath);
-        final isPubspec = file_paths.isPubspecYaml(pathContext, unitPath);
-        final isAnalysisOptions =
+        var isDart = file_paths.isDart(pathContext, unitPath);
+        var isPubspec = file_paths.isPubspecYaml(pathContext, unitPath);
+        var isAnalysisOptions =
             file_paths.isAnalysisOptionsYaml(pathContext, unitPath);
-        final includeSourceActions =
+        var includeSourceActions =
             shouldIncludeAnyOfKind(CodeActionKind.Source);
-        final includeQuickFixes =
-            shouldIncludeAnyOfKind(CodeActionKind.QuickFix);
-        final includeRefactors =
-            shouldIncludeAnyOfKind(CodeActionKind.Refactor);
+        var includeQuickFixes = shouldIncludeAnyOfKind(CodeActionKind.QuickFix);
+        var includeRefactors = shouldIncludeAnyOfKind(CodeActionKind.Refactor);
 
         Future<AnalysisOptions> getOptions() async {
           if (unit != null) return unit.analysisOptions;
@@ -157,7 +155,7 @@ class CodeActionHandler
 
         var analysisOptions = await getOptions();
 
-        final actionComputers = [
+        var actionComputers = [
           if (isDart && libraryResult != null && unit != null)
             DartCodeActionsProducer(
               server,
@@ -210,22 +208,22 @@ class CodeActionHandler
             analysisOptions: analysisOptions,
           ),
         ];
-        final sorter = _CodeActionSorter(params.range, shouldIncludeKind);
+        var sorter = _CodeActionSorter(params.range, shouldIncludeKind);
 
-        final allActions = <Either2<CodeAction, Command>>[
+        var allActions = <Either2<CodeAction, Command>>[
           // Like-kinded actions are grouped (and prioritized) together
           // regardless of which producer they came from.
 
           // Source.
           if (includeSourceActions)
-            for (final computer in actionComputers)
+            for (var computer in actionComputers)
               ...await performance.runAsync('${computer.name}.getSourceActions',
                   (_) => computer.getSourceActions()),
 
           // Fixes.
           if (includeQuickFixes)
             ...sorter.sort([
-              for (final computer in actionComputers)
+              for (var computer in actionComputers)
                 ...await performance.runAsync('${computer.name}.getFixActions',
                     (_) => computer.getFixActions()),
             ]),
@@ -233,13 +231,13 @@ class CodeActionHandler
           // Refactors  (Assists + Refactors).
           if (includeRefactors)
             ...sorter.sort([
-              for (final computer in actionComputers)
+              for (var computer in actionComputers)
                 ...await performance.runAsync(
                     '${computer.name}.getAssistActions',
                     (_) => computer.getAssistActions()),
             ]),
           if (includeRefactors)
-            for (final computer in actionComputers)
+            for (var computer in actionComputers)
               ...await performance.runAsync(
                   '${computer.name}.getRefactorActions',
                   (_) => computer.getRefactorActions()),
@@ -291,11 +289,11 @@ class _CodeActionSorter {
 
   List<Either2<CodeAction, Command>> sort(
       List<CodeActionWithPriority> actions) {
-    final dedupedActions = _dedupeActions(actions, range.start);
+    var dedupedActions = _dedupeActions(actions, range.start);
 
     // Add each index so we can do a stable sort on priority.
-    final dedupedActionsWithIndex = dedupedActions.indexed.map((item) {
-      final (index, action) = item;
+    var dedupedActionsWithIndex = dedupedActions.indexed.map((item) {
+      var (index, action) = item;
       return (action: action.action, priority: action.priority, index: index);
     }).toList();
     dedupedActionsWithIndex.sort(_compareCodeActions);
@@ -310,7 +308,7 @@ class _CodeActionSorter {
   int Function(CodeAction a, CodeAction b) _codeActionColumnDistanceComparer(
       Position pos) {
     Position posOf(CodeAction action) {
-      final diagnostics = action.diagnostics;
+      var diagnostics = action.diagnostics;
       return diagnostics != null && diagnostics.isNotEmpty
           ? diagnostics.first.range.start
           : pos;
@@ -360,10 +358,10 @@ class _CodeActionSorter {
   /// chosen.
   List<CodeActionWithPriority> _dedupeActions(
       Iterable<CodeActionWithPriority> actions, Position position) {
-    final groups = groupBy(
+    var groups = groupBy(
         actions, (CodeActionWithPriority action) => action.action.title);
     return groups.entries.map((entry) {
-      final actions = entry.value;
+      var actions = entry.value;
 
       // If there's only one in the group, just return it.
       if (actions.length == 1) {
@@ -371,13 +369,13 @@ class _CodeActionSorter {
       }
 
       // Otherwise, find the action nearest to the caret.
-      final comparer = _codeActionColumnDistanceComparer(position);
+      var comparer = _codeActionColumnDistanceComparer(position);
       actions.sort((a, b) => comparer(a.action, b.action));
-      final first = actions.first.action;
-      final priority = actions.first.priority;
+      var first = actions.first.action;
+      var priority = actions.first.priority;
 
       // Get any actions with the same fix (edit/command) for merging diagnostics.
-      final others = actions.skip(1).where(
+      var others = actions.skip(1).where(
             (other) =>
                 // Compare either edits or commands based on which the selected action has.
                 first.edit != null
@@ -396,7 +394,7 @@ class _CodeActionSorter {
           // Merge diagnostics from all of the matching CodeActions.
           diagnostics: [
             ...?first.diagnostics,
-            for (final other in others) ...?other.action.diagnostics,
+            for (var other in others) ...?other.action.diagnostics,
           ],
           edit: first.edit,
           command: first.command,

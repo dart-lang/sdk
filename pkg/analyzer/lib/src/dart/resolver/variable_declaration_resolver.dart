@@ -47,7 +47,7 @@ class VariableDeclarationResolver {
       _resolver.flowAnalysis.flow?.lateInitializer_begin(node);
     }
 
-    final contextType = element is! PropertyInducingElementImpl ||
+    var contextType = element is! PropertyInducingElementImpl ||
             element.shouldUseTypeForInitializerInference
         ? element.type
         : UnknownInferredType.instance;

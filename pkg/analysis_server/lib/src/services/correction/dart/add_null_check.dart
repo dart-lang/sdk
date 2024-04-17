@@ -179,7 +179,7 @@ class AddNullCheck extends ResolvedCorrectionProducer {
       return;
     }
 
-    final target_final = target;
+    var target_final = target;
     var needsParentheses = target.precedence < Precedence.postfix;
     await builder.addDartFileEdit(file, (builder) {
       if (needsParentheses) {

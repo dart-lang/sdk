@@ -24,7 +24,7 @@ class C {
 }
 ''');
 
-    final node = findNode.singleRedirectingConstructorInvocation;
+    var node = findNode.singleRedirectingConstructorInvocation;
     assertResolvedNodeText(node, r'''
 RedirectingConstructorInvocation
   thisKeyword: this
@@ -55,7 +55,7 @@ class C {
           13),
     ]);
 
-    final node = findNode.singleRedirectingConstructorInvocation;
+    var node = findNode.singleRedirectingConstructorInvocation;
     assertResolvedNodeText(node, r'''
 RedirectingConstructorInvocation
   thisKeyword: this
@@ -84,7 +84,7 @@ class C {
 }
 ''');
 
-    final node = findNode.singleRedirectingConstructorInvocation;
+    var node = findNode.singleRedirectingConstructorInvocation;
     assertResolvedNodeText(node, r'''
 RedirectingConstructorInvocation
   thisKeyword: this
@@ -111,7 +111,7 @@ class C {
           7),
     ]);
 
-    final node = findNode.singleRedirectingConstructorInvocation;
+    var node = findNode.singleRedirectingConstructorInvocation;
     assertResolvedNodeText(node, r'''
 RedirectingConstructorInvocation
   thisKeyword: this

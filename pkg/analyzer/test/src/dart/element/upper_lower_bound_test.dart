@@ -1853,24 +1853,24 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
     );
 
     {
-      final T = typeParameter('T', bound: numNone);
-      final U = typeParameter('U', bound: numNone);
-      final T1 = functionTypeNone(
+      var T = typeParameter('T', bound: numNone);
+      var U = typeParameter('U', bound: numNone);
+      var T1 = functionTypeNone(
         returnType: typeParameterTypeNone(T),
         typeFormals: [T],
       );
-      final T2 = functionTypeNone(
+      var T2 = functionTypeNone(
         returnType: typeParameterTypeNone(U),
         typeFormals: [U],
       );
       {
-        final result = typeSystem.leastUpperBound(T1, T2);
-        final resultStr = typeString(result);
+        var result = typeSystem.leastUpperBound(T1, T2);
+        var resultStr = typeString(result);
         expect(resultStr, 'T Function<T extends num>()');
       }
       {
-        final result = typeSystem.leastUpperBound(T2, T1);
-        final resultStr = typeString(result);
+        var result = typeSystem.leastUpperBound(T2, T1);
+        var resultStr = typeString(result);
         expect(resultStr, 'U Function<U extends num>()');
       }
     }
@@ -2451,7 +2451,7 @@ class UpperBoundTest extends _BoundsTestBase {
     // extension type B(Object?) implements A {}
     // extension type C(Object?) implements A {}
 
-    final A_none = interfaceTypeNone(
+    var A_none = interfaceTypeNone(
       extensionType(
         'A',
         representationType: objectQuestion,
@@ -2523,7 +2523,7 @@ class UpperBoundTest extends _BoundsTestBase {
   }
 
   void test_extensionType_withTypeParameters_objectNone() {
-    final T = typeParameter('T');
+    var T = typeParameter('T');
 
     _checkLeastUpperBound(
       interfaceTypeNone(
@@ -2549,11 +2549,11 @@ class UpperBoundTest extends _BoundsTestBase {
   }
 
   void test_extensionType_withTypeParameters_withInterfaces() {
-    final T = typeParameter('T');
-    final T1 = typeParameter('T1', bound: stringNone);
-    final T2 = typeParameter('T2', bound: intNone);
+    var T = typeParameter('T');
+    var T1 = typeParameter('T1', bound: stringNone);
+    var T2 = typeParameter('T2', bound: intNone);
 
-    final E = extensionType(
+    var E = extensionType(
       'E',
       typeParameters: [T],
       representationType: typeParameterTypeNone(T),

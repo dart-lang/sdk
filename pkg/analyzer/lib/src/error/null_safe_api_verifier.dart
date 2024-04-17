@@ -25,11 +25,11 @@ class NullSafeApiVerifier {
   /// Reports an error if the expression creates a `Future<T>.value` with a non-
   /// nullable value `T` and an argument that is effectively `null`.
   void instanceCreation(InstanceCreationExpression expression) {
-    final constructor = expression.constructorName.staticElement;
+    var constructor = expression.constructorName.staticElement;
     if (constructor == null) return;
 
-    final type = constructor.returnType;
-    final isFutureValue = type.isDartAsyncFuture && constructor.name == 'value';
+    var type = constructor.returnType;
+    var isFutureValue = type.isDartAsyncFuture && constructor.name == 'value';
 
     if (isFutureValue) {
       _checkTypes(expression, 'Future.value', type.typeArguments.single,
@@ -40,10 +40,10 @@ class NullSafeApiVerifier {
   /// Reports an error if `Completer<T>.complete` is invoked with a non-nullable
   /// `T` and an argument that is effectively `null`.
   void methodInvocation(MethodInvocation node) {
-    final targetType = node.realTarget?.staticType;
+    var targetType = node.realTarget?.staticType;
     if (targetType is! InterfaceType) return;
 
-    final targetClass = targetType.element;
+    var targetClass = targetType.element;
 
     if (targetClass.library.isDartAsync == true &&
         targetClass.name == 'Completer' &&
@@ -60,13 +60,12 @@ class NullSafeApiVerifier {
     // expect a non-nullable type in the first place.
     if (args.arguments.length > 1 || !_typeSystem.isNonNullable(type)) return;
 
-    final argument = args.arguments.isEmpty ? null : args.arguments.single;
-    final argumentType = argument?.staticType;
+    var argument = args.arguments.isEmpty ? null : args.arguments.single;
+    var argumentType = argument?.staticType;
     // Skip if the type is not currently resolved.
     if (argument != null && argumentType == null) return;
 
-    final argumentIsNull =
-        argument == null || _typeSystem.isNull(argumentType!);
+    var argumentIsNull = argument == null || _typeSystem.isNull(argumentType!);
 
     if (argumentIsNull) {
       _errorReporter.atNode(

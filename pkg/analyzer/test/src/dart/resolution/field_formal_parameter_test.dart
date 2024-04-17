@@ -22,7 +22,7 @@ class A {
 }
 ''');
 
-    final node = findNode.singleFieldFormalParameter;
+    var node = findNode.singleFieldFormalParameter;
     assertResolvedNodeText(node, r'''
 FieldFormalParameter
   type: NamedType
@@ -58,7 +58,7 @@ class A {
 }
 ''');
 
-    final node = findNode.singleFieldFormalParameter;
+    var node = findNode.singleFieldFormalParameter;
     assertResolvedNodeText(node, r'''
 FieldFormalParameter
   type: NamedType
@@ -99,7 +99,7 @@ class A<V> {
 }
 ''');
 
-    final node = findNode.singleFieldFormalParameter;
+    var node = findNode.singleFieldFormalParameter;
     assertResolvedNodeText(node, r'''
 FieldFormalParameter
   type: NamedType
@@ -151,7 +151,7 @@ class A {
 }
 ''');
 
-    final node = findNode.singleFieldFormalParameter;
+    var node = findNode.singleFieldFormalParameter;
     assertResolvedNodeText(node, r'''
 FieldFormalParameter
   thisKeyword: this
@@ -170,7 +170,7 @@ class A {
 }
 ''');
 
-    final node = findNode.singleFieldFormalParameter;
+    var node = findNode.singleFieldFormalParameter;
     assertResolvedNodeText(node, r'''
 FieldFormalParameter
   type: NamedType
@@ -194,7 +194,7 @@ enum E {
 }
 ''');
 
-    final node = findNode.fieldFormalParameter('this.f');
+    var node = findNode.fieldFormalParameter('this.f');
     assertResolvedNodeText(node, r'''
 FieldFormalParameter
   thisKeyword: this
