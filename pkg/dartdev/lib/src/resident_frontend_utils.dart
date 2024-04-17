@@ -52,8 +52,13 @@ File? getResidentCompilerInfoFileConsideringArgs(final ArgResults args) {
 final String packageConfigName = p.join('.dart_tool', 'package_config.json');
 
 final class ResidentCompilerInfo {
+  final String? _sdkHash;
   final InternetAddress _address;
   final int _port;
+
+  /// The SDK hash that kernel files compiled using the Resident Frontend
+  /// Compiler associated with this object will be stamped with.
+  String? get sdkHash => _sdkHash;
 
   /// The address that the Resident Frontend Compiler associated with this
   /// object is listening from.
@@ -72,6 +77,9 @@ final class ResidentCompilerInfo {
     final fileContents = file.readAsStringSync();
 
     return ResidentCompilerInfo._(
+      sdkHash: fileContents.contains('sdkHash:')
+          ? _extractValueAssociatedWithKey(fileContents, 'sdkHash')
+          : null,
       address: InternetAddress(
         _extractValueAssociatedWithKey(fileContents, 'address'),
       ),
@@ -80,9 +88,11 @@ final class ResidentCompilerInfo {
   }
 
   ResidentCompilerInfo._({
+    required String? sdkHash,
     required int port,
     required InternetAddress address,
-  })  : _port = port,
+  })  : _sdkHash = sdkHash,
+        _port = port,
         _address = address;
 }
 

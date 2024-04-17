@@ -22,6 +22,7 @@ dependencies:
   dtd_impl: any
   front_end: any
   http: any
+  kernel: any
   logging: any
   meta: any
   native_assets_builder: any
