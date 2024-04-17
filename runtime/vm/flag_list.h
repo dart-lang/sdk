@@ -108,8 +108,6 @@ constexpr bool FLAG_support_il_printer = false;
   R(dump_symbol_stats, false, bool, false, "Dump symbol table statistics")     \
   P(enable_asserts, bool, false, "Enable assert statements.")                  \
   P(inline_alloc, bool, true, "Whether to use inline allocation fast paths.")  \
-  R(null_assertions, false, bool, false, "Obsolete, ignored.")                 \
-  R(strict_null_safety_checks, false, bool, false, "Obsolete, ignored.")       \
   P(enable_mirrors, bool, true,                                                \
     "Disable to make importing dart:mirrors an error.")                        \
   P(enable_ffi, bool, true, "Disable to make importing dart:ffi an error.")    \
@@ -125,7 +123,6 @@ constexpr bool FLAG_support_il_printer = false;
   P(idle_duration_micros, int, kMaxInt32,                                      \
     "Allow idle tasks to run for this long.")                                  \
   P(interpret_irregexp, bool, false, "Use irregexp bytecode interpreter")      \
-  P(lazy_async_stacks, bool, true, "Obsolete, ignored.")                       \
   P(link_natives_lazily, bool, false, "Link native calls lazily")              \
   R(log_marker_tasks, false, bool, false,                                      \
     "Log debugging information for old gen GC marking tasks.")                 \
