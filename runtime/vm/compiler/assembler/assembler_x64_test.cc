@@ -5586,9 +5586,9 @@ ASSEMBLER_TEST_RUN(TestSetCC4, test) {
 ASSEMBLER_TEST_GENERATE(TestRepMovsBytes, assembler) {
   __ pushq(RSI);
   __ pushq(RDI);
-  __ pushq(CallingConventions::kArg1Reg);     // from.
-  __ pushq(CallingConventions::kArg2Reg);     // to.
-  __ pushq(CallingConventions::kArg3Reg);     // count.
+  __ pushq(CallingConventions::kArg1Reg);             // from.
+  __ pushq(CallingConventions::kArg2Reg);             // to.
+  __ pushq(CallingConventions::kArg3Reg);             // count.
   __ movq(RSI, Address(RSP, 2 * target::kWordSize));  // from.
   __ movq(RDI, Address(RSP, 1 * target::kWordSize));  // to.
   __ movq(RCX, Address(RSP, 0 * target::kWordSize));  // count.

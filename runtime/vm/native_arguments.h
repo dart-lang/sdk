@@ -225,10 +225,10 @@ class NativeArguments {
     return num_hidden_args;
   }
 
-  Thread* thread_;      // Current thread pointer.
-  intptr_t argc_tag_;   // Encodes argument count and invoked native call type.
-  ObjectPtr* argv_;     // Pointer to an array of arguments to runtime call.
-  ObjectPtr* retval_;   // Pointer to the return value area.
+  Thread* thread_;     // Current thread pointer.
+  intptr_t argc_tag_;  // Encodes argument count and invoked native call type.
+  ObjectPtr* argv_;    // Pointer to an array of arguments to runtime call.
+  ObjectPtr* retval_;  // Pointer to the return value area.
 };
 
 }  // namespace dart

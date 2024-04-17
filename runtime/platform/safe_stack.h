@@ -24,7 +24,8 @@
 #endif
 
 #if defined(USING_SHADOW_CALL_STACK)
-#define NO_SANITIZE_SHADOW_CALL_STACK __attribute__((no_sanitize("shadow-call-stack")))
+#define NO_SANITIZE_SHADOW_CALL_STACK                                          \
+  __attribute__((no_sanitize("shadow-call-stack")))
 #else
 #define NO_SANITIZE_SHADOW_CALL_STACK
 #endif

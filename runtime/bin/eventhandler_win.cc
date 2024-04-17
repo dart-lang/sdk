@@ -130,8 +130,7 @@ Handle::Handle(intptr_t handle)
       read_thread_finished_(false),
       flags_(0) {}
 
-Handle::~Handle() {
-}
+Handle::~Handle() {}
 
 bool Handle::CreateCompletionPort(HANDLE completion_port) {
   ASSERT(completion_port_ == INVALID_HANDLE_VALUE);

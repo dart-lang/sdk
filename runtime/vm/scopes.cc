@@ -12,7 +12,6 @@
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
 
-
 namespace dart {
 
 DEFINE_FLAG(bool,
@@ -143,7 +142,7 @@ VariableIndex LocalScope::AllocateVariables(const Function& function,
   ASSERT(num_parameters >= 0);
   // Parameters must be listed first and must all appear in the top scope.
   ASSERT(num_parameters <= num_variables());
-  int pos = 0;                              // Current variable position.
+  int pos = 0;  // Current variable position.
   VariableIndex next_index =
       first_parameter_index;  // Current free frame index.
 

@@ -54,7 +54,7 @@ class ClassVisitor : public ValueObject {
   virtual bool IsFunctionVisitor() const { return false; }
   const FunctionVisitor* AsFunctionVisitor() const {
     return const_cast<FunctionVisitor*>(
-      const_cast<ClassVisitor*>(this)->AsFunctionVisitor());
+        const_cast<ClassVisitor*>(this)->AsFunctionVisitor());
   }
   FunctionVisitor* AsFunctionVisitor() {
     if (!IsFunctionVisitor()) return nullptr;
@@ -64,7 +64,7 @@ class ClassVisitor : public ValueObject {
   virtual bool IsCodeVisitor() const { return false; }
   const CodeVisitor* AsCodeVisitor() const {
     return const_cast<CodeVisitor*>(
-      const_cast<ClassVisitor*>(this)->AsCodeVisitor());
+        const_cast<ClassVisitor*>(this)->AsCodeVisitor());
   }
   CodeVisitor* AsCodeVisitor() {
     if (!IsCodeVisitor()) return nullptr;

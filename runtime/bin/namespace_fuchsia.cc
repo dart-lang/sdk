@@ -21,8 +21,7 @@ namespace dart {
 namespace bin {
 
 NamespaceImpl::NamespaceImpl(fdio_ns_t* fdio_ns)
-      : fdio_ns_(fdio_ns),
-        cwd_(strdup("/")) {
+    : fdio_ns_(fdio_ns), cwd_(strdup("/")) {
   rootfd_ = fdio_ns_opendir(fdio_ns);
   if (rootfd_ < 0) {
     FATAL("Failed to open file descriptor for namespace: errno=%d: %s", errno,

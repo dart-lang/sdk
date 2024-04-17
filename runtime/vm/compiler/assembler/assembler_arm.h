@@ -893,9 +893,7 @@ class Assembler : public AssemblerBase {
     ASSERT((shift >= 0) && (shift < kBitsPerInt32));
     Lsl(rd, rn, Operand(shift));
   }
-  void LslImmediate(Register rd, int32_t shift) {
-    LslImmediate(rd, rd, shift);
-  }
+  void LslImmediate(Register rd, int32_t shift) { LslImmediate(rd, rd, shift); }
   void LslRegister(Register dst, Register shift) override {
     Lsl(dst, dst, shift);
   }

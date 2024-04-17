@@ -1060,13 +1060,13 @@ void ARMDecoder::DecodeType6(Instr* instr) {
       }
     }
   } else if (instr->IsVFPMultipleLoadStore()) {
-    if (instr->HasL()) {    // vldm
+    if (instr->HasL()) {         // vldm
       if (instr->Bit(8) != 0) {  // vldmd
         Format(instr, "vldmd'cond'pu 'rn'w, 'dlist");
       } else {  // vldms
         Format(instr, "vldms'cond'pu 'rn'w, 'slist");
       }
-    } else {                // vstm
+    } else {                     // vstm
       if (instr->Bit(8) != 0) {  // vstmd
         Format(instr, "vstmd'cond'pu 'rn'w, 'dlist");
       } else {  // vstms

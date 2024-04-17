@@ -642,7 +642,7 @@ void ProgramVisitor::NormalizeAndDedupCompressedStackMaps(Thread* thread) {
   class NormalizeAndDedupCompressedStackMapsVisitor
       : public CodeVisitor,
         public Deduper<CompressedStackMaps,
-                        PointerSetKeyValueTrait<const CompressedStackMaps>> {
+                       PointerSetKeyValueTrait<const CompressedStackMaps>> {
    public:
     NormalizeAndDedupCompressedStackMapsVisitor(Zone* zone,
                                                 IsolateGroup* isolate_group)
@@ -800,8 +800,7 @@ class TypedDataDeduper : public Deduper<TypedData, TypedDataKeyValueTrait> {
 };
 
 void ProgramVisitor::DedupDeoptEntries(Thread* thread) {
-  class DedupDeoptEntriesVisitor : public CodeVisitor,
-                                   public TypedDataDeduper {
+  class DedupDeoptEntriesVisitor : public CodeVisitor, public TypedDataDeduper {
    public:
     explicit DedupDeoptEntriesVisitor(Zone* zone)
         : TypedDataDeduper(zone),

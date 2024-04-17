@@ -320,9 +320,9 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_index) {
       ASSERT(!list_class.IsNull());
       ASSERT(list_class.is_finalized());
       // Build type from the raw bytes (needs temporary translator).
-      TypeTranslator type_translator(
-          &reader, this, active_class_, /* finalize = */ true,
-          /* in_constant_context = */ true);
+      TypeTranslator type_translator(&reader, this, active_class_,
+                                     /* finalize = */ true,
+                                     /* in_constant_context = */ true);
       auto& type_arguments =
           TypeArguments::Handle(Z, TypeArguments::New(1, Heap::kOld));
       AbstractType& type = type_translator.BuildType();
@@ -354,9 +354,9 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_index) {
       ASSERT(map_class.is_finalized());
 
       // Build types from the raw bytes (needs temporary translator).
-      TypeTranslator type_translator(
-          &reader, this, active_class_, /* finalize = */ true,
-          /* in_constant_context = */ true);
+      TypeTranslator type_translator(&reader, this, active_class_,
+                                     /* finalize = */ true,
+                                     /* in_constant_context = */ true);
       auto& type_arguments =
           TypeArguments::Handle(Z, TypeArguments::New(2, Heap::kOld));
       AbstractType& type = type_translator.BuildType();
@@ -445,9 +445,9 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_index) {
       ASSERT(set_class.is_finalized());
 
       // Build types from the raw bytes (needs temporary translator).
-      TypeTranslator type_translator(
-          &reader, this, active_class_, /* finalize = */ true,
-          /* in_constant_context = */ true);
+      TypeTranslator type_translator(&reader, this, active_class_,
+                                     /* finalize = */ true,
+                                     /* in_constant_context = */ true);
       auto& type_arguments =
           TypeArguments::Handle(Z, TypeArguments::New(1, Heap::kOld));
       AbstractType& type = type_translator.BuildType();
@@ -499,9 +499,9 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_index) {
       ASSERT(klass.is_enum_class() || klass.is_const());
       instance = Instance::New(klass, Heap::kOld);
       // Build type from the raw bytes (needs temporary translator).
-      TypeTranslator type_translator(
-          &reader, this, active_class_, /* finalize = */ true,
-          /* in_constant_context = */ true);
+      TypeTranslator type_translator(&reader, this, active_class_,
+                                     /* finalize = */ true,
+                                     /* in_constant_context = */ true);
       const intptr_t number_of_type_arguments = reader.ReadUInt();
       if (klass.NumTypeArguments() > 0) {
         auto& type_arguments = TypeArguments::Handle(
@@ -540,9 +540,9 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_index) {
       ASSERT(!constant.IsNull());
 
       // Build type from the raw bytes (needs temporary translator).
-      TypeTranslator type_translator(
-          &reader, this, active_class_, /* finalize = */ true,
-          /* in_constant_context = */ true);
+      TypeTranslator type_translator(&reader, this, active_class_,
+                                     /* finalize = */ true,
+                                     /* in_constant_context = */ true);
       const intptr_t number_of_type_arguments = reader.ReadUInt();
       ASSERT(number_of_type_arguments > 0);
       auto& type_arguments = TypeArguments::Handle(

@@ -319,13 +319,9 @@ class Range : public ZoneAllocated {
   const RangeBoundary& min() const { return min_; }
   const RangeBoundary& max() const { return max_; }
 
-  void set_min(const RangeBoundary& value) {
-    min_ = value;
-  }
+  void set_min(const RangeBoundary& value) { min_ = value; }
 
-  void set_max(const RangeBoundary& value) {
-    max_ = value;
-  }
+  void set_max(const RangeBoundary& value) { max_ = value; }
 
   static RangeBoundary ConstantMinSmi(const Range* range) {
     return ConstantMin(range, RangeBoundary::kRangeBoundarySmi);

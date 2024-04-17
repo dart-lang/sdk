@@ -10,8 +10,8 @@
 #include <mach/mach.h>       // NOLINT
 #include <mach/mach_time.h>  // NOLINT
 #include <netdb.h>           // NOLINT
-#include <sys/time.h>  // NOLINT
-#include <time.h>      // NOLINT
+#include <sys/time.h>        // NOLINT
+#include <time.h>            // NOLINT
 
 #include "bin/utils.h"
 #include "platform/assert.h"

@@ -92,7 +92,9 @@ bool IsNotTemporaryScopedHandle(const Object& obj) {
 #endif
 
 #define DO(clazz)                                                              \
-  bool Is##clazz##Handle(const Object& obj) { return obj.Is##clazz(); }
+  bool Is##clazz##Handle(const Object& obj) {                                  \
+    return obj.Is##clazz();                                                    \
+  }
 CLASS_LIST_FOR_HANDLES(DO)
 #undef DO
 
@@ -634,13 +636,17 @@ const word MegamorphicCache::kSpreadFactor =
 #define DEFINE_CONSTANT(Class, Name) const word Class::Name = Class##_##Name;
 
 #define DEFINE_ARRAY_SIZEOF(clazz, name, ElementOffset)                        \
-  word clazz::name() { return 0; }                                             \
+  word clazz::name() {                                                         \
+    return 0;                                                                  \
+  }                                                                            \
   word clazz::name(intptr_t length) {                                          \
     return RoundedAllocationSize(clazz::ElementOffset(length));                \
   }
 
 #define DEFINE_PAYLOAD_SIZEOF(clazz, name, header)                             \
-  word clazz::name() { return 0; }                                             \
+  word clazz::name() {                                                         \
+    return 0;                                                                  \
+  }                                                                            \
   word clazz::name(word payload_size) {                                        \
     return RoundedAllocationSize(clazz::header() + payload_size);              \
   }
@@ -648,7 +654,9 @@ const word MegamorphicCache::kSpreadFactor =
 #if defined(TARGET_ARCH_IA32)
 
 #define DEFINE_FIELD(clazz, name)                                              \
-  word clazz::name() { return clazz##_##name; }
+  word clazz::name() {                                                         \
+    return clazz##_##name;                                                     \
+  }
 
 #define DEFINE_ARRAY(clazz, name)                                              \
   word clazz::name(intptr_t index) {                                           \
@@ -656,7 +664,9 @@ const word MegamorphicCache::kSpreadFactor =
   }
 
 #define DEFINE_SIZEOF(clazz, name, what)                                       \
-  word clazz::name() { return clazz##_##name; }
+  word clazz::name() {                                                         \
+    return clazz##_##name;                                                     \
+  }
 
 #define DEFINE_RANGE(Class, Getter, Type, First, Last, Filter)                 \
   word Class::Getter(Type index) {                                             \
@@ -739,7 +749,9 @@ JIT_OFFSETS_LIST(DEFINE_JIT_FIELD,
 // definitions using DART_PRECOMPILER.
 
 #define DEFINE_AOT_FIELD(clazz, name)                                          \
-  word clazz::name() { return AOT_##clazz##_##name; }
+  word clazz::name() {                                                         \
+    return AOT_##clazz##_##name;                                               \
+  }
 
 #define DEFINE_AOT_ARRAY(clazz, name)                                          \
   word clazz::name(intptr_t index) {                                           \
@@ -748,7 +760,9 @@ JIT_OFFSETS_LIST(DEFINE_JIT_FIELD,
   }
 
 #define DEFINE_AOT_SIZEOF(clazz, name, what)                                   \
-  word clazz::name() { return AOT_##clazz##_##name; }
+  word clazz::name() {                                                         \
+    return AOT_##clazz##_##name;                                               \
+  }
 
 #define DEFINE_AOT_RANGE(Class, Getter, Type, First, Last, Filter)             \
   word Class::Getter(Type index) {                                             \

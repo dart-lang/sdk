@@ -404,7 +404,9 @@ bool WillAllocateNewOrRememberedContext(intptr_t num_context_variables);
 bool WillAllocateNewOrRememberedArray(intptr_t length);
 
 #define FINAL_CLASS()                                                          \
-  static word NextFieldOffset() { return -kWordSize; }
+  static word NextFieldOffset() {                                              \
+    return -kWordSize;                                                         \
+  }
 
 //
 // Target specific offsets and constants.

@@ -955,6 +955,7 @@ intptr_t ImageWriter::AlignWithBreakInstructions(intptr_t alignment,
        remaining -= compiler::target::kWordSize) {
     bytes_written += WriteTargetWord(kBreakInstructionFiller);
   }
+  // clang-format off
 #if defined(TARGET_ARCH_ARM)
   // All instructions are 4 bytes long on ARM architectures, so on 32-bit ARM
   // there won't be any padding.
@@ -973,6 +974,7 @@ intptr_t ImageWriter::AlignWithBreakInstructions(intptr_t alignment,
 #else
 #error Unexpected architecture.
 #endif
+  // clang-format on
   ASSERT_EQUAL(bytes_written, Utils::RoundUp(offset, alignment) - offset);
   return bytes_written;
 }

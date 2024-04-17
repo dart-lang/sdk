@@ -5124,29 +5124,31 @@ bool Class::InjectCIDFields() const {
   Smi& value = Smi::Handle(zone);
   String& field_name = String::Handle(zone);
 
+  // clang-format off
   static const struct {
     const char* const field_name;
     const intptr_t cid;
   } cid_fields[] = {
 #define CLASS_LIST_WITH_NULL(V)                                                \
-  V(Null)                                                                      \
-  CLASS_LIST_NO_OBJECT(V)
-#define ADD_SET_FIELD(clazz) {"cid" #clazz, k##clazz##Cid},
-      CLASS_LIST_WITH_NULL(ADD_SET_FIELD)
+    V(Null)                                                                    \
+    CLASS_LIST_NO_OBJECT(V)
+#define ADD_SET_FIELD(clazz)                                                   \
+    {"cid" #clazz, k##clazz##Cid},
+    CLASS_LIST_WITH_NULL(ADD_SET_FIELD)
 #undef ADD_SET_FIELD
 #undef CLASS_LIST_WITH_NULL
 #define ADD_SET_FIELD(clazz)                                                   \
-  {"cid" #clazz, kTypedData##clazz##Cid},                                      \
-      {"cid" #clazz "View", kTypedData##clazz##ViewCid},                       \
-      {"cidExternal" #clazz, kExternalTypedData##clazz##Cid},                  \
-      {"cidUnmodifiable" #clazz "View",                                        \
-       kUnmodifiableTypedData##clazz##ViewCid},
-          CLASS_LIST_TYPED_DATA(ADD_SET_FIELD)
+    {"cid" #clazz, kTypedData##clazz##Cid},                                    \
+    {"cid" #clazz "View", kTypedData##clazz##ViewCid},                         \
+    {"cidExternal" #clazz, kExternalTypedData##clazz##Cid},                    \
+    {"cidUnmodifiable" #clazz "View", kUnmodifiableTypedData##clazz##ViewCid}, \
+    CLASS_LIST_TYPED_DATA(ADD_SET_FIELD)
 #undef ADD_SET_FIELD
-      // Used in const hashing to determine whether we're dealing with a
-      // user-defined const. See lib/_internal/vm/lib/compact_hash.dart.
-      {"numPredefinedCids", kNumPredefinedCids},
+    // Used in const hashing to determine whether we're dealing with a
+    // user-defined const. See lib/_internal/vm/lib/compact_hash.dart.
+    {"numPredefinedCids", kNumPredefinedCids},
   };
+  // clang-format on
 
   const AbstractType& field_type = Type::Handle(zone, Type::IntType());
   for (size_t i = 0; i < ARRAY_SIZE(cid_fields); i++) {
@@ -25598,7 +25600,7 @@ const intptr_t
         16,  // kTypedDataFloat32x4ArrayCid.
         16,  // kTypedDataInt32x4ArrayCid.
         16,  // kTypedDataFloat64x2ArrayCid,
-};
+    };
 
 bool TypedData::CanonicalizeEquals(const Instance& other) const {
   if (this->ptr() == other.ptr()) {

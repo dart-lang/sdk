@@ -781,7 +781,8 @@ bool Heap::VerifyGC(const char* msg, MarkExpectation mark_expectation) {
 
 void Heap::PrintSizes() const {
   OS::PrintErr(
-      "New space (%" Pd "k of %" Pd "k) "
+      "New space (%" Pd "k of %" Pd
+      "k) "
       "Old space (%" Pd "k of %" Pd "k)\n",
       (UsedInWords(kNew) / KBInWords), (CapacityInWords(kNew) / KBInWords),
       (UsedInWords(kOld) / KBInWords), (CapacityInWords(kOld) / KBInWords));

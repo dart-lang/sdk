@@ -69,7 +69,9 @@ static constexpr intptr_t kLinearInitValue = -1;
     ASSERT(name##_ != kLinearInitValue);                                       \
     return name##_;                                                            \
   }                                                                            \
-  bool name##_is_set() const { return name##_ != kLinearInitValue; }           \
+  bool name##_is_set() const {                                                 \
+    return name##_ != kLinearInitValue;                                        \
+  }                                                                            \
   void set_##name(intptr_t value) {                                            \
     ASSERT(value != kLinearInitValue);                                         \
     ASSERT_EQUAL(name##_, kLinearInitValue);                                   \
@@ -87,7 +89,9 @@ static constexpr intptr_t kLinearInitValue = -1;
   V(BitsContainer)                                                             \
   V(TextSection) V(DataSection) V(BssSection) V(PseudoSection) V(SectionTable)
 #define DEFINE_TYPE_CHECK_FOR(Type)                                            \
-  bool Is##Type() const { return true; }
+  bool Is##Type() const {                                                      \
+    return true;                                                               \
+  }
 
 #define DECLARE_SECTION_TYPE_CLASS(Type) class Type;
 FOR_EACH_SECTION_TYPE(DECLARE_SECTION_TYPE_CLASS)
@@ -1154,7 +1158,7 @@ Elf::Elf(Zone* zone, BaseWriteStream* stream, Type type, Dwarf* dwarf)
       unwrapped_stream_(stream),
       type_(type),
       dwarf_(dwarf),
-      section_table_(new (zone) SectionTable(zone)) {
+      section_table_(new(zone) SectionTable(zone)) {
   // Separate debugging information should always have a Dwarf object.
   ASSERT(type_ == Type::Snapshot || dwarf_ != nullptr);
   // Assumed by various offset logic in this file.
@@ -1414,7 +1418,7 @@ void Elf::FinalizeEhFrame() {
 #if defined(DART_TARGET_OS_WINDOWS) &&                                         \
     (defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64))
   // Append Windows unwinding instructions to the end of .text section.
-  {
+  {  // NOLINT
     auto* const unwinding_instructions_frame = new (zone_) TextSection(type_);
     ZoneWriteStream stream(
         zone(),
@@ -1488,8 +1492,8 @@ void Elf::FinalizeEhFrame() {
       dwarf_stream.u4(stream.Position() - cie_start);
       // Start address as a PC relative reference.
       dwarf_stream.RelativeSymbolOffset<int32_t>(portion.label);
-      dwarf_stream.u4(portion.size);           // Size.
-      dwarf_stream.u1(0);                      // Augmentation Data length.
+      dwarf_stream.u4(portion.size);  // Size.
+      dwarf_stream.u1(0);             // Augmentation Data length.
 
       // Caller FP at FP+kSavedCallerPcSlotFromFp*kWordSize,
       // where FP is CFA - kCallerSpSlotFromFp*kWordSize.

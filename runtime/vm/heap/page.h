@@ -176,20 +176,14 @@ class Page {
   void VisitRememberedCards(ObjectPointerVisitor* visitor);
   void ResetProgressBar();
 
-  Thread* owner() const {
-    return owner_;
-  }
+  Thread* owner() const { return owner_; }
 
   // Remember the limit to which objects have been copied.
-  void RecordSurvivors() {
-    survivor_end_ = object_end();
-  }
+  void RecordSurvivors() { survivor_end_ = object_end(); }
 
   // Move survivor end to the end of the to_ space, making all surviving
   // objects candidates for promotion next time.
-  void EarlyTenure() {
-    survivor_end_ = end_;
-  }
+  void EarlyTenure() { survivor_end_ = end_; }
 
   uword promo_candidate_words() const {
     return (survivor_end_ - object_start()) / kWordSize;
@@ -250,12 +244,8 @@ class Page {
     top_ -= size;
   }
 
-  bool IsSurvivor(uword raw_addr) const {
-    return raw_addr < survivor_end_;
-  }
-  bool IsResolved() const {
-    return top_ == resolved_top_;
-  }
+  bool IsSurvivor(uword raw_addr) const { return raw_addr < survivor_end_; }
+  bool IsResolved() const { return top_ == resolved_top_; }
 
  private:
   void RememberCard(uword slot) {

@@ -501,9 +501,7 @@ class Reader : public ValueObject {
   friend class AlternativeReadingScope;
 
   Reader(const uint8_t* buffer, intptr_t size)
-      : thread_(nullptr),
-        raw_buffer_(buffer),
-        size_(size) {}
+      : thread_(nullptr), raw_buffer_(buffer), size_(size) {}
 
   void Init() {
     ASSERT(typed_data_->IsExternalOrExternalView());

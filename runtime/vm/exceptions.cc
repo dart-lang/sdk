@@ -355,7 +355,7 @@ class ExceptionHandlerFinder : public StackResource {
   Thread* thread_;
   Code* code_;
   bool handler_pc_set_;
-  intptr_t pc_;             // Current pc in the handler frame.
+  intptr_t pc_;  // Current pc in the handler frame.
 
   const CatchEntryMoves* catch_entry_moves_ = nullptr;
   CatchEntryMovesCache* catch_entry_moves_cache_ = nullptr;
@@ -627,11 +627,12 @@ static void JumpToExceptionHandler(Thread* thread,
 }
 
 NO_SANITIZE_SAFE_STACK  // This function manipulates the safestack pointer.
-void Exceptions::JumpToFrame(Thread* thread,
-                             uword program_counter,
-                             uword stack_pointer,
-                             uword frame_pointer,
-                             bool clear_deopt_at_target) {
+    void
+    Exceptions::JumpToFrame(Thread* thread,
+                            uword program_counter,
+                            uword stack_pointer,
+                            uword frame_pointer,
+                            bool clear_deopt_at_target) {
   ASSERT(thread->execution_state() == Thread::kThreadInVM);
   const uword fp_for_clearing =
       (clear_deopt_at_target ? frame_pointer + 1 : frame_pointer);

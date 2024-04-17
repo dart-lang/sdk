@@ -77,8 +77,7 @@ FreeList::FreeList() : mutex_() {
   Reset();
 }
 
-FreeList::~FreeList() {
-}
+FreeList::~FreeList() {}
 
 uword FreeList::TryAllocate(intptr_t size, bool is_protected) {
   MutexLocker ml(&mutex_);

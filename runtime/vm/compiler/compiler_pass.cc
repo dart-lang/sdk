@@ -30,7 +30,9 @@
    public:                                                                     \
     CompilerPass_##Name() : CompilerPass(k##Name, #Name) {}                    \
                                                                                \
-    static bool Register() { return true; }                                    \
+    static bool Register() {                                                   \
+      return true;                                                             \
+    }                                                                          \
                                                                                \
    protected:                                                                  \
     virtual bool DoBody(CompilerPassState* state) const {                      \
@@ -534,9 +536,7 @@ COMPILER_PASS(AllocateRegistersForGraphIntrinsic, {
   allocator.AllocateRegisters();
 });
 
-COMPILER_PASS(ReorderBlocks, {
-  BlockScheduler::ReorderBlocks(flow_graph);
-});
+COMPILER_PASS(ReorderBlocks, { BlockScheduler::ReorderBlocks(flow_graph); });
 
 COMPILER_PASS(EliminateWriteBarriers, { EliminateWriteBarriers(flow_graph); });
 

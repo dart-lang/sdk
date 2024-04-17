@@ -129,7 +129,6 @@ intptr_t Socket::CreateBindDatagram(const RawAddr& addr,
     return -1;
   }
 
-
   if (reuseAddress) {
     int optval = 1;
     VOID_NO_RETRY_EXPECTED(

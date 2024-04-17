@@ -344,8 +344,9 @@ intptr_t ZLibDeflateFilter::Processed(uint8_t* buffer,
   stream_.avail_out = length;
   stream_.next_out = buffer;
   bool error = false;
-  switch (
-      deflate(&stream_, end ? Z_FINISH : flush ? Z_SYNC_FLUSH : Z_NO_FLUSH)) {
+  switch (deflate(&stream_, end     ? Z_FINISH
+                            : flush ? Z_SYNC_FLUSH
+                                    : Z_NO_FLUSH)) {
     case Z_STREAM_END:
     case Z_BUF_ERROR:
     case Z_OK: {
@@ -409,8 +410,9 @@ intptr_t ZLibInflateFilter::Processed(uint8_t* buffer,
   stream_.next_out = buffer;
   bool error = false;
   int v;
-  switch (v = inflate(&stream_,
-                      end ? Z_FINISH : flush ? Z_SYNC_FLUSH : Z_NO_FLUSH)) {
+  switch (v = inflate(&stream_, end     ? Z_FINISH
+                                : flush ? Z_SYNC_FLUSH
+                                        : Z_NO_FLUSH)) {
     case Z_STREAM_END:
     case Z_BUF_ERROR:
     case Z_OK: {

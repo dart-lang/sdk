@@ -205,18 +205,12 @@ class StackZone : public StackResource {
 #else
   // Compute the total size of this zone. This includes wasted space that is
   // due to internal fragmentation in the segments.
-  uintptr_t SizeInBytes() const {
-    return zone_.SizeInBytes();
-  }
+  uintptr_t SizeInBytes() const { return zone_.SizeInBytes(); }
 
   // Computes the used space in the zone.
-  intptr_t CapacityInBytes() const {
-    return zone_.CapacityInBytes();
-  }
+  intptr_t CapacityInBytes() const { return zone_.CapacityInBytes(); }
 
-  Zone* GetZone() {
-    return &zone_;
-  }
+  Zone* GetZone() { return &zone_; }
 #endif  // defined(DART_USE_ABSL)
 
  private:

@@ -828,7 +828,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
   if (FLAG_gc_during_reload) {
     // We force the GC to compact, which is more likely to discover untracked
     // pointers (and other issues, like incorrect class table).
-    heap->CollectAllGarbage(GCReason::kDebugging, /*compact=*/ true);
+    heap->CollectAllGarbage(GCReason::kDebugging, /*compact=*/true);
   }
 
   // Clone the class table.
@@ -840,7 +840,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
   if (FLAG_gc_during_reload) {
     // We force the GC to compact, which is more likely to discover untracked
     // pointers (and other issues, like incorrect class table).
-    heap->CollectAllGarbage(GCReason::kDebugging, /*compact=*/ true);
+    heap->CollectAllGarbage(GCReason::kDebugging, /*compact=*/true);
   }
 
   // We synchronously load the hot-reload kernel diff (which includes changed
@@ -869,7 +869,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
     if (FLAG_gc_during_reload) {
       // We force the GC to compact, which is more likely to discover untracked
       // pointers (and other issues, like incorrect class table).
-      heap->CollectAllGarbage(GCReason::kDebugging, /*compact=*/ true);
+      heap->CollectAllGarbage(GCReason::kDebugging, /*compact=*/true);
     }
 
     // If we use the CFE and performed a compilation, we need to notify that
@@ -902,7 +902,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
         if (FLAG_gc_during_reload) {
           // We force the GC to compact, which is more likely to discover
           // untracked pointers (and other issues, like incorrect class table).
-          heap->CollectAllGarbage(GCReason::kDebugging, /*compact=*/ true);
+          heap->CollectAllGarbage(GCReason::kDebugging, /*compact=*/true);
         }
         const intptr_t count = locator.count();
         if (count > 0) {
@@ -940,7 +940,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
         if (FLAG_gc_during_reload) {
           // We force the GC to compact, which is more likely to discover
           // untracked pointers (and other issues, like incorrect class table).
-          heap->CollectAllGarbage(GCReason::kDebugging, /*compact=*/ true);
+          heap->CollectAllGarbage(GCReason::kDebugging, /*compact=*/true);
         }
       }
       if (FLAG_identity_reload) {
@@ -1575,7 +1575,6 @@ void ProgramReloadContext::CheckpointLibraries() {
   // Reset the root library to null.
   object_store()->set_root_library(Library::Handle());
 }
-
 
 void ProgramReloadContext::RollbackLibraries() {
   TIR_Print("---- ROLLING BACK LIBRARY CHANGES\n");

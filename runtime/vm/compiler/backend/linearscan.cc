@@ -3226,7 +3226,6 @@ void FlowGraphAllocator::CollectRepresentations() {
   }
 }
 
-
 void FlowGraphAllocator::RemoveFrameIfNotNeeded() {
   // Intrinsic functions are naturally frameless.
   if (intrinsic_mode_) {

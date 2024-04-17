@@ -385,11 +385,10 @@ void SimulatorDebugger::PrintBacktrace() {
     } else {
       OS::PrintErr("pc=0x%" Px " fp=0x%" Px " sp=0x%" Px " %s frame",
                    frame->pc(), frame->fp(), frame->sp(),
-                   frame->IsEntryFrame()
-                       ? "entry"
-                       : frame->IsExitFrame()
-                             ? "exit"
-                             : frame->IsStubFrame() ? "stub" : "invalid");
+                   frame->IsEntryFrame()  ? "entry"
+                   : frame->IsExitFrame() ? "exit"
+                   : frame->IsStubFrame() ? "stub"
+                                          : "invalid");
 #if defined(DART_PRECOMPILED_RUNTIME)
       intptr_t offset;
       auto const symbol_name = ImageName(vm_instructions, isolate_instructions,
@@ -1720,7 +1719,7 @@ void Simulator::DoRedirectedCall(Instr* instr) {
       const int64_t res =
           InvokeLeafRuntime(target, r0, r1, r2, r3, r4, r5, r6, r7);
       ClobberVolatileRegisters();
-      set_register(instr, R0, res);      // Set returned result from function.
+      set_register(instr, R0, res);  // Set returned result from function.
     } else if (redirection->call_kind() == kLeafFloatRuntimeCall) {
       ASSERT((0 <= redirection->argument_count()) &&
              (redirection->argument_count() <= 8));

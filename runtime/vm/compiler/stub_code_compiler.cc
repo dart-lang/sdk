@@ -462,11 +462,11 @@ void StubCodeCompiler::GenerateInstantiateTypeArgumentsStub() {
 #endif
   __ PushRegistersInOrder({
 #if defined(DART_ASSEMBLER_HAS_NULL_REG)
-    NULL_REG,
+      NULL_REG,
 #endif
-        InstantiationABI::kUninstantiatedTypeArgumentsReg,
-        InstantiationABI::kInstantiatorTypeArgumentsReg,
-        InstantiationABI::kFunctionTypeArgumentsReg,
+      InstantiationABI::kUninstantiatedTypeArgumentsReg,
+      InstantiationABI::kInstantiatorTypeArgumentsReg,
+      InstantiationABI::kFunctionTypeArgumentsReg,
   });
   __ CallRuntime(kInstantiateTypeArgumentsRuntimeEntry, 3);
   __ Drop(3);  // Drop 2 type vectors, and uninstantiated type.

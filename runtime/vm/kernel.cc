@@ -15,7 +15,6 @@
 #include "vm/parser.h"  // For Parser::kParameter* constants.
 #include "vm/stack_frame.h"
 
-
 namespace dart {
 namespace kernel {
 

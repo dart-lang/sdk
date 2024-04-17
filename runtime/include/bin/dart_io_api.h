@@ -5,7 +5,7 @@
 #ifndef RUNTIME_INCLUDE_BIN_DART_IO_API_H_
 #define RUNTIME_INCLUDE_BIN_DART_IO_API_H_
 
-#include "dart_tools_api.h"
+#include "../dart_tools_api.h"
 
 namespace dart {
 namespace bin {

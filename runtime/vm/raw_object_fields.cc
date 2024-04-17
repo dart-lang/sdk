@@ -251,8 +251,7 @@ namespace dart {
   F(Function, positional_parameter_names_)                                     \
   F(Function, unoptimized_code_)
 
-#define JIT_NON_PRODUCT_CLASSES_AND_FIELDS(F)                                  \
-  F(Script, constant_coverage_)
+#define JIT_NON_PRODUCT_CLASSES_AND_FIELDS(F) F(Script, constant_coverage_)
 
 #define NON_PRODUCT_CLASSES_AND_FIELDS(F)                                      \
   F(Class, user_name_)                                                         \
@@ -289,30 +288,31 @@ bool is_compressed_pointer() {
 }
 
 void OffsetsTable::Init() {
-  static const OffsetsTable::OffsetsTableEntry table[] {
+  static const OffsetsTable::OffsetsTableEntry table[]{
 #define DEFINE_OFFSETS_TABLE_ENTRY(class_name, field_name)                     \
   {class_name::kClassId, #field_name,                                          \
    is_compressed_pointer<decltype(Untagged##class_name::field_name)>(),        \
    OFFSET_OF(Untagged##class_name, field_name)},
 
-    COMMON_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
+      COMMON_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
 #if !defined(PRODUCT)
-  NON_PRODUCT_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
+          NON_PRODUCT_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
 #endif
 
 #if !defined(HASH_IN_OBJECT_HEADER)
-  NON_HEADER_HASH_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
+              NON_HEADER_HASH_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
 #endif
 
 #if defined(DART_PRECOMPILED_RUNTIME)
-  AOT_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
+                  AOT_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
 #if !defined(PRODUCT)
-  AOT_NON_PRODUCT_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
+                      AOT_NON_PRODUCT_CLASSES_AND_FIELDS(
+                          DEFINE_OFFSETS_TABLE_ENTRY)
 #endif
 #else
-  JIT_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
+          JIT_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
 #if !defined(PRODUCT)
-  JIT_NON_PRODUCT_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
+              JIT_NON_PRODUCT_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
 #endif
 #endif
 
@@ -320,7 +320,7 @@ void OffsetsTable::Init() {
   };
 
   for (const OffsetsTableEntry& entry : table) {
-  field_offsets_table.Add(entry);
+    field_offsets_table.Add(entry);
   }
 }
 

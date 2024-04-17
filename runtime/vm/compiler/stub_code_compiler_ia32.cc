@@ -105,7 +105,7 @@ void StubCodeCompiler::GenerateCallToRuntimeStub() {
   }
 
   // Pass NativeArguments structure by value and call runtime.
-  __ movl(Address(ESP, thread_offset), THR);  // Set thread in NativeArgs.
+  __ movl(Address(ESP, thread_offset), THR);    // Set thread in NativeArgs.
   __ movl(Address(ESP, argc_tag_offset), EDX);  // Set argc in NativeArguments.
   // Compute argv.
   __ leal(EAX,
@@ -544,9 +544,9 @@ void StubCodeCompiler::GenerateCallBootstrapNativeStub() {
 void StubCodeCompiler::GenerateCallStaticFunctionStub() {
   __ EnterStubFrame();
   __ pushl(ARGS_DESC_REG);  // Preserve arguments descriptor array.
-  __ pushl(Immediate(0));  // Setup space on stack for return value.
+  __ pushl(Immediate(0));   // Setup space on stack for return value.
   __ CallRuntime(kPatchStaticCallRuntimeEntry, 0);
-  __ popl(EAX);  // Get Code object result.
+  __ popl(EAX);            // Get Code object result.
   __ popl(ARGS_DESC_REG);  // Restore arguments descriptor array.
   // Remove the stub frame as we are about to jump to the dart function.
   __ LeaveFrame();
@@ -564,9 +564,9 @@ void StubCodeCompiler::GenerateFixCallersTargetStub() {
   // This was a static call.
   __ EnterStubFrame();
   __ pushl(ARGS_DESC_REG);  // Preserve arguments descriptor array.
-  __ pushl(Immediate(0));  // Setup space on stack for return value.
+  __ pushl(Immediate(0));   // Setup space on stack for return value.
   __ CallRuntime(kFixCallersTargetRuntimeEntry, 0);
-  __ popl(EAX);  // Get Code object.
+  __ popl(EAX);            // Get Code object.
   __ popl(ARGS_DESC_REG);  // Restore arguments descriptor array.
   __ movl(EAX, FieldAddress(EAX, target::Code::entry_point_offset()));
   __ LeaveFrame();
@@ -1545,8 +1545,8 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
 
     // Get card table.
     __ Bind(&remember_card);
-    __ movl(EAX, EDX);                              // Object.
-    __ andl(EAX, Immediate(target::kPageMask));     // Page.
+    __ movl(EAX, EDX);                           // Object.
+    __ andl(EAX, Immediate(target::kPageMask));  // Page.
     __ cmpl(Address(EAX, target::Page::card_table_offset()), Immediate(0));
     __ j(EQUAL, &remember_card_slow, Assembler::kNearJump);
 
@@ -2065,8 +2065,8 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStubForEntryKind(
   // calling into the runtime.
   __ EnterStubFrame();
   __ pushl(ARGS_DESC_REG);  // Preserve arguments descriptor array.
-  __ pushl(ECX);           // Preserve IC data object.
-  __ pushl(Immediate(0));  // Result slot.
+  __ pushl(ECX);            // Preserve IC data object.
+  __ pushl(Immediate(0));   // Result slot.
   // Push call arguments.
   for (intptr_t i = 0; i < num_args; i++) {
     __ movl(EBX, Address(EAX, -target::kWordSize * i));
@@ -2078,8 +2078,8 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStubForEntryKind(
   for (intptr_t i = 0; i < num_args + 1; i++) {
     __ popl(EAX);
   }
-  __ popl(FUNCTION_REG);  // Pop returned function object into EAX.
-  __ popl(ECX);  // Restore IC data array.
+  __ popl(FUNCTION_REG);   // Pop returned function object into EAX.
+  __ popl(ECX);            // Restore IC data array.
   __ popl(ARGS_DESC_REG);  // Restore arguments descriptor array.
   __ LeaveFrame();
   Label call_target_function;
@@ -2843,7 +2843,7 @@ void StubCodeCompiler::GenerateOptimizeFunctionStub() {
   __ pushl(Immediate(0));  // Setup space on stack for return value.
   __ pushl(EBX);
   __ CallRuntime(kOptimizeInvokedFunctionRuntimeEntry, 1);
-  __ popl(EAX);  // Discard argument.
+  __ popl(EAX);            // Discard argument.
   __ popl(FUNCTION_REG);   // Get Function object
   __ popl(ARGS_DESC_REG);  // Restore argument descriptor.
   __ LeaveFrame();
