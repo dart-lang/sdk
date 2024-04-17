@@ -204,13 +204,20 @@ class DefinitionHandler extends LspMessageHandler<TextDocumentPositionParams,
     }
 
     // Read the declaration so we can get the offset after the doc comments.
-    // TODO(dantup): Skip this for parts (getParsedLibrary will throw), but find
-    // a better solution.
     var declaration = await _parsedDeclaration(codeElement);
     var node = declaration?.node;
+
     if (node is VariableDeclaration) {
-      node = node.parent;
+      // For variables, expand to the variable declaration list if this is the
+      // only variable so that the target range can include keywords/type.
+      // Don't do this when there are multiple becaues it may include other
+      // variables in the range.
+      var parent = node.parent;
+      if (parent is VariableDeclarationList && parent.variables.length == 1) {
+        node = node.parent;
+      }
     }
+
     if (node is AnnotatedNode) {
       var offsetAfterDocs = node.firstTokenAfterCommentAndMetadata.offset;
 
