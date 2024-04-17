@@ -372,6 +372,12 @@ class Duration implements Comparable<Duration> {
   /// earlier time.
   bool get isNegative => _duration < 0;
 
+  /// Whether this [Duration] is positive.
+  ///
+  /// A positive [Duration] represents the difference from an earlier time to a
+  /// later time.
+  bool get isPositive => _duration > 0;
+
   /// Creates a new [Duration] representing the absolute length of this
   /// [Duration].
   ///

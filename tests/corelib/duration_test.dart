@@ -293,6 +293,10 @@ main() {
   d2 = const Duration(hours: -1);
   Expect.isFalse(d1.isNegative);
   Expect.isTrue(d2.isNegative);
+  
+  Expect.isTrue(d1.isPositive);
+  Expect.isFalse(d2.isPositive);
+
   Expect.equals(d1, d1.abs());
   Expect.equals(d1, d2.abs());
 
