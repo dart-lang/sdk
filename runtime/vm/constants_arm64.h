@@ -584,9 +584,14 @@ class CallingConventions {
   // https://developer.apple.com/documentation/xcode/writing_arm64_code_for_apple_platforms
   static constexpr AlignmentStrategy kArgumentStackAlignment =
       kAlignedToValueSize;
+  //  Varargs are aligned to wordsize.
+  static constexpr AlignmentStrategy kArgumentStackAlignmentVarArgs =
+      kAlignedToWordSize;
 #else
   static constexpr AlignmentStrategy kArgumentStackAlignment =
       kAlignedToWordSize;
+  static constexpr AlignmentStrategy kArgumentStackAlignmentVarArgs =
+      kArgumentStackAlignment;
 #endif
 
   // How fields in compounds are aligned.

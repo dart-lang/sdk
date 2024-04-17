@@ -718,6 +718,8 @@ class CallingConventions {
   // How stack arguments are aligned.
   static constexpr AlignmentStrategy kArgumentStackAlignment =
       kAlignedToWordSizeAndValueSize;
+  static constexpr AlignmentStrategy kArgumentStackAlignmentVarArgs =
+      kArgumentStackAlignment;
 
   // How fields in compounds are aligned.
 #if defined(DART_TARGET_OS_MACOS_IOS)

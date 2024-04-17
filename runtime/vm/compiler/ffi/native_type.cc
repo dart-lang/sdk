@@ -152,7 +152,10 @@ intptr_t NativePrimitiveType::SizeInBytes() const {
 }
 
 intptr_t NativePrimitiveType::AlignmentInBytesStack(bool is_vararg) const {
-  switch (CallingConventions::kArgumentStackAlignment) {
+  const auto alignment =
+      is_vararg ? CallingConventions::kArgumentStackAlignmentVarArgs
+                : CallingConventions::kArgumentStackAlignment;
+  switch (alignment) {
     case kAlignedToWordSize:
       // The default is to align stack arguments to word size.
       return compiler::target::kWordSize;

@@ -43,6 +43,7 @@ void main() {
     testVariadicAt1DoubleInt64Int32Struct20BytesHomogeneou();
     testVariadicAt5Doublex5();
     testVariadicAt1Int64x7Struct12BytesHomogeneousInt32();
+    testVariadicAt1Struct12BytesHomogeneousInt32Int32x4();
   }
 }
 
@@ -768,4 +769,38 @@ void testVariadicAt1Int64x7Struct12BytesHomogeneousInt32() {
   Expect.equals(5, result);
 
   calloc.free(a7Pointer);
+}
+
+final variadicAt1Struct12BytesHomogeneousInt32Int32x4 =
+    ffiTestFunctions.lookupFunction<
+        Int32 Function(Struct12BytesHomogeneousInt32,
+            VarArgs<(Int32, Int32, Int32, Int32)>),
+        int Function(Struct12BytesHomogeneousInt32, int, int, int,
+            int)>("VariadicAt1Struct12BytesHomogeneousInt32Int32x4");
+
+/// Variadic arguments test on macos_arm64.
+void testVariadicAt1Struct12BytesHomogeneousInt32Int32x4() {
+  final a0Pointer = calloc<Struct12BytesHomogeneousInt32>();
+  final Struct12BytesHomogeneousInt32 a0 = a0Pointer.ref;
+  int a1;
+  int a2;
+  int a3;
+  int a4;
+
+  a0.a0 = -1;
+  a0.a1 = 2;
+  a0.a2 = -3;
+  a1 = 4;
+  a2 = -5;
+  a3 = 6;
+  a4 = -7;
+
+  final result =
+      variadicAt1Struct12BytesHomogeneousInt32Int32x4(a0, a1, a2, a3, a4);
+
+  print("result = $result");
+
+  Expect.equals(-4, result);
+
+  calloc.free(a0Pointer);
 }
