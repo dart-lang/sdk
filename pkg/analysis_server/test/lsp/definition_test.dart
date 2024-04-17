@@ -32,25 +32,25 @@ class DefinitionTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_acrossFiles() async {
     var mainContents = '''
-    import 'referenced.dart';
+import 'referenced.dart';
 
-    void f() {
-      fo^o();
-    }
-    ''';
+void f() {
+  fo^o();
+}
+''';
 
     var referencedContents = '''
-    /// Ensure the function is on a line that
-    /// does not exist in the mainContents file
-    /// to ensure we're translating offsets to line/col
-    /// using the correct file's LineInfo
-    /// ...
-    /// ...
-    /// ...
-    /// ...
-    /// ...
-    [!foo!]() {}
-    ''';
+/// Ensure the function is on a line that
+/// does not exist in the mainContents file
+/// to ensure we're translating offsets to line/col
+/// using the correct file's LineInfo
+/// ...
+/// ...
+/// ...
+/// ...
+/// ...
+[!foo!]() {}
+''';
 
     var referencedFilePath = join(projectFolderPath, 'lib', 'referenced.dart');
     var referencedFileUri = toUri(referencedFilePath);
@@ -73,7 +73,7 @@ class DefinitionTest extends AbstractLspAnalysisServerTest {
   Future<void> test_atDeclaration_class() async {
     var contents = '''
 class [!^A!] {}
-    ''';
+''';
 
     await testContents(contents);
   }
@@ -83,7 +83,7 @@ class [!^A!] {}
 class A {
   A.[!^named!]() {}
 }
-    ''';
+''';
 
     await testContents(contents);
   }
@@ -93,7 +93,7 @@ class A {
 class [!A!] {
   ^A.named() {}
 }
-    ''';
+''';
 
     await testContents(contents);
   }
@@ -103,7 +103,7 @@ class [!A!] {
 class A {
   [!^A!]() {}
 }
-    ''';
+''';
 
     await testContents(contents);
   }
@@ -111,7 +111,7 @@ class A {
   Future<void> test_atDeclaration_function() async {
     var contents = '''
 void [!^f!]() {}
-    ''';
+''';
 
     await testContents(contents);
   }
@@ -121,7 +121,7 @@ void [!^f!]() {}
 class A {
   void [!^f!]() {}
 }
-    ''';
+''';
 
     await testContents(contents);
   }
@@ -132,11 +132,11 @@ class A {
     /// out any regions that are in the same target node (the comment) but do
     /// not span the requested offset.
     var contents = '''
-    /// Te^st
-    ///
-    /// References [String].
-    void f() {}
-    ''';
+/// Te^st
+///
+/// References [String].
+void f() {}
+''';
     var code = TestCode.parse(contents);
 
     await initialize();
@@ -149,78 +149,78 @@ class A {
 
   Future<void> test_comment_enumMember_qualified() async {
     var contents = '''
-      /// [A.o^ne].
-      enum A {
-        [!one!],
-      }
-    ''';
+/// [A.o^ne].
+enum A {
+  [!one!],
+}
+''';
 
     await testContents(contents);
   }
 
   Future<void> test_comment_extensionMember() async {
     var contents = '''
-      /// [myFi^eld]
-      extension on String {
-        String get [!myField!] => '';
-      }
-    ''';
+/// [myFi^eld]
+extension on String {
+  String get [!myField!] => '';
+}
+''';
 
     await testContents(contents);
   }
 
   Future<void> test_comment_extensionMember_qualified() async {
     var contents = '''
-      /// [StringExtension.myFi^eld]
-      extension StringExtension on String {
-        String get [!myField!] => '';
-      }
-    ''';
+/// [StringExtension.myFi^eld]
+extension StringExtension on String {
+  String get [!myField!] => '';
+}
+''';
 
     await testContents(contents);
   }
 
   Future<void> test_comment_instanceMember_qualified() async {
     var contents = '''
-      /// [A.myFi^eld].
-      class A {
-        final String [!myField!] = '';
-      }
-    ''';
+/// [A.myFi^eld].
+class A {
+  final String [!myField!] = '';
+}
+''';
 
     await testContents(contents);
   }
 
   Future<void> test_comment_instanceMember_qualified_inherited() async {
     var contents = '''
-      class A {
-        final String [!myField!] = '';
-      }
-      /// [B.myFi^eld].
-      class B extends A {}
-    ''';
+class A {
+  final String [!myField!] = '';
+}
+/// [B.myFi^eld].
+class B extends A {}
+''';
 
     await testContents(contents);
   }
 
   Future<void> test_comment_namedConstructor_qualified() async {
     var contents = '''
-      /// [A.nam^ed].
-      class A {
-        A.[!named!]();
-      }
-    ''';
+/// [A.nam^ed].
+class A {
+  A.[!named!]();
+}
+''';
 
     await testContents(contents);
   }
 
   Future<void> test_comment_staticMember_qualified() async {
     var contents = '''
-      /// [A.myStaticFi^eld].
-      class A {
-        static final String [!myStaticField!] = '';
-      }
-    ''';
+/// [A.myStaticFi^eld].
+class A {
+  static final String [!myStaticField!] = '';
+}
+''';
 
     await testContents(contents);
   }
@@ -439,24 +439,24 @@ final a = MyExtensionType./*[0*/na^med/*0]*/(1);
     setLocationLinkSupport();
 
     var mainContents = '''
-    import 'referenced.dart';
+import 'referenced.dart';
 
-    void f() {
-      Icons().[!ad^d!];
-    }
-    ''';
+void f() {
+  Icons().[!ad^d!];
+}
+''';
 
     var referencedContents = '''
-    void unrelatedFunction() {}
+void unrelatedFunction() {}
 
-    class Icons {
-      /// `targetRange` should not include the dartDoc but should include the
-      /// full field body. `targetSelectionRange` will be just the name.
-      [!String add = "Test"!];
-    }
+class Icons {
+  /// `targetRange` should not include the dartDoc but should include the
+  /// full field body. `targetSelectionRange` will be just the name.
+  [!String add = "Test"!];
+}
 
-    void otherUnrelatedFunction() {}
-    ''';
+void otherUnrelatedFunction() {}
+''';
 
     var referencedFilePath = join(projectFolderPath, 'lib', 'referenced.dart');
     var referencedFileUri = toUri(referencedFilePath);
@@ -485,24 +485,24 @@ final a = MyExtensionType./*[0*/na^med/*0]*/(1);
     setLocationLinkSupport();
 
     var mainContents = '''
-    import 'referenced.dart';
+import 'referenced.dart';
 
-    void f() {
-      [!fo^o!]();
-    }
-    ''';
+void f() {
+  [!fo^o!]();
+}
+''';
 
     var referencedContents = '''
-    void unrelatedFunction() {}
+void unrelatedFunction() {}
 
-    /// `targetRange` should not include the dartDoc but should include the full
-    /// function body. `targetSelectionRange` will be just the name.
-    [!void foo() {
-      // Contents of function
-    }!]
+/// `targetRange` should not include the dartDoc but should include the full
+/// function body. `targetSelectionRange` will be just the name.
+[!void foo() {
+  // Contents of function
+}!]
 
-    void otherUnrelatedFunction() {}
-    ''';
+void otherUnrelatedFunction() {}
+''';
 
     var referencedFilePath = join(projectFolderPath, 'lib', 'referenced.dart');
     var referencedFileUri = toUri(referencedFilePath);
@@ -525,6 +525,60 @@ final a = MyExtensionType./*[0*/na^med/*0]*/(1);
       loc.targetSelectionRange,
       equals(rangeOfString(referencedCode, 'foo')),
     );
+  }
+
+  /// Verify that for a variable declaration list with multiple variables,
+  /// we use only this variables range so that other variables are not visible
+  /// in the preview.
+  Future<void> test_locationLink_variableDeclaration_multiple() async {
+    setLocationLinkSupport();
+
+    var code = TestCode.parse('''
+var y=1, /*[0*//*[1*/x/*1]*/ = "Test"/*0]*/;
+
+void f() {
+  /*[2*/x/*2]*/^;
+}
+''');
+
+    newFile(mainFilePath, code.code);
+    await initialize();
+    var res =
+        await getDefinitionAsLocationLinks(mainFileUri, code.position.position);
+
+    expect(res, hasLength(1));
+    var loc = res.single;
+    expect(loc.targetUri, mainFileUri);
+    expect(loc.targetRange, code.ranges[0].range);
+    expect(loc.targetSelectionRange, code.ranges[1].range);
+    expect(loc.originSelectionRange, code.ranges[2].range);
+  }
+
+  /// Verify that for a variable declaration list with only a single variable,
+  /// we expand the range to the variable declaration list so that the keyword
+  /// or type show up in the preview.
+  Future<void> test_locationLink_variableDeclaration_single() async {
+    setLocationLinkSupport();
+
+    var code = TestCode.parse('''
+/*[0*/var /*[1*/x/*1]*/ = "Test"/*0]*/;
+
+void f() {
+  /*[2*/x/*2]*/^;
+}
+''');
+
+    newFile(mainFilePath, code.code);
+    await initialize();
+    var res =
+        await getDefinitionAsLocationLinks(mainFileUri, code.position.position);
+
+    expect(res, hasLength(1));
+    var loc = res.single;
+    expect(loc.targetUri, mainFileUri);
+    expect(loc.targetRange, code.ranges[0].range);
+    expect(loc.targetSelectionRange, code.ranges[1].range);
+    expect(loc.originSelectionRange, code.ranges[2].range);
   }
 
   Future<void> test_macro_macroGeneratedFileToUserFile() async {
@@ -621,30 +675,30 @@ class A {}
     setLocationLinkSupport();
 
     var mainContents = '''
-    import 'lib.dart';
+import 'lib.dart';
 
-    void f() {
-      Icons().[!ad^d!];
-    }
-    ''';
+void f() {
+  Icons().[!ad^d!];
+}
+''';
 
     var libContents = '''
-    part 'part.dart';
-    ''';
+part 'part.dart';
+''';
 
     var partContents = '''
-    part of 'lib.dart';
+part of 'lib.dart';
 
-    void unrelatedFunction() {}
+void unrelatedFunction() {}
 
-    class Icons {
-      /// `targetRange` should not include the dartDoc but should include the full
-      /// function body. `targetSelectionRange` will be just the name.
-      [!String add = "Test"!];
-    }
+class Icons {
+  /// `targetRange` should not include the dartDoc but should include the full
+  /// function body. `targetSelectionRange` will be just the name.
+  [!String add = "Test"!];
+}
 
-    void otherUnrelatedFunction() {}
-    ''';
+void otherUnrelatedFunction() {}
+''';
 
     var libFilePath = join(projectFolderPath, 'lib', 'lib.dart');
     var partFilePath = join(projectFolderPath, 'lib', 'part.dart');
@@ -743,10 +797,10 @@ foo() {
 
   Future<void> test_varKeyword() async {
     var contents = '''
-    va^r a = MyClass();
+va^r a = MyClass();
 
-    class [!MyClass!] {}
-    ''';
+class [!MyClass!] {}
+''';
 
     await testContents(contents);
   }

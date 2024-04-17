@@ -22997,6 +22997,38 @@ DART_EXPORT int64_t VariadicAt1Int64x7Struct12BytesHomogeneousInt32(int64_t a0,
 }
 
 // Used for testing structs and unions by value.
+// Variadic arguments test on macos_arm64.
+DART_EXPORT int32_t VariadicAt1Struct12BytesHomogeneousInt32Int32x4(
+    Struct12BytesHomogeneousInt32 a0,
+    ...) {
+  va_list var_args;
+  va_start(var_args, a0);
+  int32_t a1 = va_arg(var_args, int32_t);
+  int32_t a2 = va_arg(var_args, int32_t);
+  int32_t a3 = va_arg(var_args, int32_t);
+  int32_t a4 = va_arg(var_args, int32_t);
+  va_end(var_args);
+
+  std::cout << "VariadicAt1Struct12BytesHomogeneousInt32Int32x4" << "(("
+            << a0.a0 << ", " << a0.a1 << ", " << a0.a2 << "), " << a1 << ", "
+            << a2 << ", " << a3 << ", " << a4 << ")" << "\n";
+
+  int32_t result = 0;
+
+  result += a0.a0;
+  result += a0.a1;
+  result += a0.a2;
+  result += a1;
+  result += a2;
+  result += a3;
+  result += a4;
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing structs and unions by value.
 // Single variadic argument.
 DART_EXPORT intptr_t TestVariadicAt1Int64x2(
     // NOLINTNEXTLINE(whitespace/parens)
@@ -23891,6 +23923,52 @@ DART_EXPORT intptr_t TestVariadicAt1Int64x7Struct12BytesHomogeneousInt32(
   a0 = 84;
 
   result = f(a0, a1, a2, a3, a4, a5, a6, a7);
+
+  CHECK_EQ(0, result);
+
+  return 0;
+}
+
+// Used for testing structs and unions by value.
+// Variadic arguments test on macos_arm64.
+DART_EXPORT intptr_t TestVariadicAt1Struct12BytesHomogeneousInt32Int32x4(
+    // NOLINTNEXTLINE(whitespace/parens)
+    int32_t (*f)(Struct12BytesHomogeneousInt32 a0, ...)) {
+  Struct12BytesHomogeneousInt32 a0 = {};
+  int32_t a1;
+  int32_t a2;
+  int32_t a3;
+  int32_t a4;
+
+  a0.a0 = -1;
+  a0.a1 = 2;
+  a0.a2 = -3;
+  a1 = 4;
+  a2 = -5;
+  a3 = 6;
+  a4 = -7;
+
+  std::cout << "Calling TestVariadicAt1Struct12BytesHomogeneousInt32Int32x4("
+            << "((" << a0.a0 << ", " << a0.a1 << ", " << a0.a2 << "), " << a1
+            << ", " << a2 << ", " << a3 << ", " << a4 << ")" << ")\n";
+
+  int32_t result = f(a0, a1, a2, a3, a4);
+
+  std::cout << "result = " << result << "\n";
+
+  CHECK_EQ(-4, result);
+
+  // Pass argument that will make the Dart callback throw.
+  a0.a0 = 42;
+
+  result = f(a0, a1, a2, a3, a4);
+
+  CHECK_EQ(0, result);
+
+  // Pass argument that will make the Dart callback return null.
+  a0.a0 = 84;
+
+  result = f(a0, a1, a2, a3, a4);
 
   CHECK_EQ(0, result);
 

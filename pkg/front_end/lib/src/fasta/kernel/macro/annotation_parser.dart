@@ -1758,7 +1758,7 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void handleEnumElement(Token beginToken) {
+  void handleEnumElement(Token beginToken, Token? augmentToken) {
     _unexpected();
   }
 

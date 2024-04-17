@@ -523,9 +523,9 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void handleEnumElement(Token beginToken) {
-    EnumElementHandle data =
-        new EnumElementHandle(ParserAstType.HANDLE, beginToken: beginToken);
+  void handleEnumElement(Token beginToken, Token? augmentToken) {
+    EnumElementHandle data = new EnumElementHandle(ParserAstType.HANDLE,
+        beginToken: beginToken, augmentToken: augmentToken);
     seen(data);
   }
 
@@ -3994,13 +3994,16 @@ class EnumHeaderHandle extends ParserAstNode {
 
 class EnumElementHandle extends ParserAstNode {
   final Token beginToken;
+  final Token? augmentToken;
 
-  EnumElementHandle(ParserAstType type, {required this.beginToken})
+  EnumElementHandle(ParserAstType type,
+      {required this.beginToken, this.augmentToken})
       : super("EnumElement", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
         "beginToken": beginToken,
+        "augmentToken": augmentToken,
       };
 }
 

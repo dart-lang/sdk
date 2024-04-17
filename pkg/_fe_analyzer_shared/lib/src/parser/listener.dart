@@ -403,7 +403,7 @@ class Listener implements UnescapeErrorListener {
   /// Handle the enum element. Substructures:
   /// - Metadata
   /// - Enum value (identifier)
-  void handleEnumElement(Token beginToken) {
+  void handleEnumElement(Token beginToken, Token? augmentToken) {
     logEvent("EnumElement");
   }
 

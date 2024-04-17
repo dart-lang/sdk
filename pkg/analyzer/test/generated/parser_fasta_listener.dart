@@ -1399,9 +1399,9 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void handleEnumElement(Token beginToken) {
+  void handleEnumElement(Token beginToken, Token? augmentToken) {
     expectIn('Enum');
-    super.handleEnumElement(beginToken);
+    super.handleEnumElement(beginToken, augmentToken);
   }
 
   @override

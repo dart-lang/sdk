@@ -417,7 +417,7 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
-  void handleEnumElement(Token beginToken) {
+  void handleEnumElement(Token beginToken, Token? augmentToken) {
     debugEvent("EnumElement");
     pop(); // Arguments.
     pop(); // Type arguments.

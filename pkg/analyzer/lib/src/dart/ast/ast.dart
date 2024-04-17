@@ -5509,6 +5509,10 @@ abstract final class EnumConstantDeclaration implements Declaration {
   /// doesn't provide any explicit arguments.
   EnumConstantArguments? get arguments;
 
+  /// The `augment` keyword, or `null` if the keyword was absent.
+  @experimental
+  Token? get augmentKeyword;
+
   /// The constructor that is invoked by this enum constant, or `null` if the
   /// AST structure hasn't been resolved, or if the constructor couldn't be
   /// resolved.
@@ -5523,6 +5527,9 @@ abstract final class EnumConstantDeclaration implements Declaration {
 
 final class EnumConstantDeclarationImpl extends DeclarationImpl
     implements EnumConstantDeclaration {
+  @override
+  final Token? augmentKeyword;
+
   @override
   final Token name;
 
@@ -5542,6 +5549,7 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
   EnumConstantDeclarationImpl({
     required super.comment,
     required super.metadata,
+    required this.augmentKeyword,
     required this.name,
     required this.arguments,
   }) {
@@ -5552,10 +5560,11 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
   Token get endToken => arguments?.endToken ?? name;
 
   @override
-  Token get firstTokenAfterCommentAndMetadata => name;
+  Token get firstTokenAfterCommentAndMetadata => augmentKeyword ?? name;
 
   @override
   ChildEntities get _childEntities => super._childEntities
+    ..addToken('augmentKeyword', augmentKeyword)
     ..addToken('name', name)
     ..addNode('arguments', arguments);
 
