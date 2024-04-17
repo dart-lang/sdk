@@ -1,0 +1,25 @@
+# Copyright (c) 2024, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Reproduce a leak.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    noFullComponent: true
+    sources:
+      main.dart: |
+        extension type const _Foo._(int _foo) {
+          _Foo operator +(_Foo other) => throw "hello";
+        }
+    expectedLibraryCount: 1
+
+  - entry: main.dart
+    worldType: updated
+    expectInitializeFromDill: false
+    noFullComponent: true
+    invalidate:
+      - main.dart
+    expectedLibraryCount: 1
+    advancedInvalidation: bodiesOnly

@@ -39,6 +39,7 @@ class ClassMembersBuilder implements ClassHierarchyMembers {
     _delayedChecks.clear();
     _delayedTypeComputations.clear();
     _delayedMemberComputations.clear();
+    extensionTypeDeclarationNodes.clear();
   }
 
   void registerDelayedTypeComputation(DelayedTypeComputation computation) {
