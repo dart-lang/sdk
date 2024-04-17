@@ -83,15 +83,18 @@ class ConstructorElementFlags {
 
 class EnumElementFlags {
   static const int _isSimplyBounded = 1 << 0;
+  static const int _isAugmentation = 1 << 1;
 
   static void read(SummaryDataReader reader, EnumElementImpl element) {
     var byte = reader.readByte();
     element.isSimplyBounded = (byte & _isSimplyBounded) != 0;
+    element.isAugmentation = (byte & _isAugmentation) != 0;
   }
 
   static void write(BufferedSink sink, EnumElementImpl element) {
     var result = 0;
     result |= element.isSimplyBounded ? _isSimplyBounded : 0;
+    result |= element.isAugmentation ? _isAugmentation : 0;
     sink.writeByte(result);
   }
 }

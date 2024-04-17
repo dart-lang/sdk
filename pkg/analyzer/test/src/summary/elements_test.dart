@@ -22,6 +22,8 @@ main() {
     defineReflectiveTests(ElementsFromBytesTest);
     defineReflectiveTests(ClassAugmentationKeepLinkingTest);
     defineReflectiveTests(ClassAugmentationFromBytesTest);
+    defineReflectiveTests(EnumAugmentationKeepLinkingTest);
+    defineReflectiveTests(EnumAugmentationFromBytesTest);
     defineReflectiveTests(ExtensionAugmentationKeepLinkingTest);
     defineReflectiveTests(ExtensionAugmentationFromBytesTest);
     defineReflectiveTests(ExtensionTypeKeepLinkingTest);
@@ -48371,6 +48373,4473 @@ library
     var libraryResult = await analysisSession.getLibraryByUri(uriStr);
     libraryResult as LibraryElementResult;
     return libraryResult.element as LibraryElementImpl;
+  }
+}
+
+@reflectiveTest
+class EnumAugmentationFromBytesTest extends ElementsBaseTest
+    with EnumAugmentationMixin {
+  @override
+  bool get keepLinkingLibraries => false;
+}
+
+@reflectiveTest
+class EnumAugmentationKeepLinkingTest extends ElementsBaseTest
+    with EnumAugmentationMixin {
+  @override
+  bool get keepLinkingLibraries => true;
+}
+
+mixin EnumAugmentationMixin on ElementsBaseTest {
+  test_add_augment() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+
+enum A {
+  v;
+  void foo() {}
+}
+
+augment enum A {;
+  void bar() {}
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+''');
+
+    configuration
+      ..withConstantInitializers = false
+      ..withReferences = true;
+    checkElementText(library, r'''
+library
+  reference: self
+  definingUnit
+    reference: self
+  augmentationImports
+    package:test/a.dart
+      reference: self::@augmentation::package:test/a.dart
+      definingUnit
+        reference: self::@augmentation::package:test/a.dart
+        enums
+          enum A @35
+            reference: self::@augmentation::package:test/a.dart::@enum::A
+            augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+            supertype: Enum
+            fields
+              static const enumConstant v @41
+                reference: self::@augmentation::package:test/a.dart::@enum::A::@field::v
+                type: A
+                shouldUseTypeForInitializerInference: false
+              synthetic static const values @-1
+                reference: self::@augmentation::package:test/a.dart::@enum::A::@field::values
+                type: List<A>
+            constructors
+              synthetic const @-1
+                reference: self::@augmentation::package:test/a.dart::@enum::A::@constructor::new
+            accessors
+              synthetic static get v @-1
+                reference: self::@augmentation::package:test/a.dart::@enum::A::@getter::v
+                returnType: A
+              synthetic static get values @-1
+                reference: self::@augmentation::package:test/a.dart::@enum::A::@getter::values
+                returnType: List<A>
+            methods
+              foo @51
+                reference: self::@augmentation::package:test/a.dart::@enum::A::@method::foo
+                returnType: void
+            augmented
+              fields
+                self::@augmentation::package:test/a.dart::@enum::A::@field::v
+                self::@augmentation::package:test/a.dart::@enum::A::@field::values
+              constructors
+                self::@augmentation::package:test/a.dart::@enum::A::@constructor::new
+              accessors
+                self::@augmentation::package:test/a.dart::@enum::A::@getter::v
+                self::@augmentation::package:test/a.dart::@enum::A::@getter::values
+              methods
+                self::@augmentation::package:test/a.dart::@enumAugmentation::A::@method::bar
+                self::@augmentation::package:test/a.dart::@enum::A::@method::foo
+          augment enum A @76
+            reference: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+            augmentationTarget: self::@augmentation::package:test/a.dart::@enum::A
+            methods
+              bar @88
+                reference: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@method::bar
+                returnType: void
+''');
+  }
+
+  test_augmentationTarget() async {
+    newFile('$testPackageLibPath/a1.dart', r'''
+augment library 'test.dart';
+import augment 'a11.dart';
+import augment 'a12.dart';
+augment enum A {}
+''');
+
+    newFile('$testPackageLibPath/a11.dart', r'''
+augment library 'a1.dart';
+augment enum A {}
+''');
+
+    newFile('$testPackageLibPath/a12.dart', r'''
+augment library 'a1.dart';
+augment enum A {}
+''');
+
+    newFile('$testPackageLibPath/a2.dart', r'''
+augment library 'test.dart';
+import augment 'a21.dart';
+import augment 'a22.dart';
+augment enum A {}
+''');
+
+    newFile('$testPackageLibPath/a21.dart', r'''
+augment library 'a2.dart';
+augment enum A {}
+''');
+
+    newFile('$testPackageLibPath/a22.dart', r'''
+augment library 'a2.dart';
+augment enum A {}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a1.dart';
+import augment 'a2.dart';
+enum A {
+  v
+}
+''');
+
+    configuration.withConstantInitializers = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum A @57
+        augmentation: self::@augmentation::package:test/a1.dart::@enumAugmentation::A
+        supertype: Enum
+        fields
+          static const enumConstant v @63
+            type: A
+            shouldUseTypeForInitializerInference: false
+          synthetic static const values @-1
+            type: List<A>
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get v @-1
+            returnType: A
+          synthetic static get values @-1
+            returnType: List<A>
+        augmented
+          fields
+            self::@enum::A::@field::v
+            self::@enum::A::@field::values
+          constructors
+            self::@enum::A::@constructor::new
+          accessors
+            self::@enum::A::@getter::v
+            self::@enum::A::@getter::values
+  augmentationImports
+    package:test/a1.dart
+      definingUnit
+        enums
+          augment enum A @96
+            augmentationTarget: self::@enum::A
+            augmentation: self::@augmentation::package:test/a11.dart::@enumAugmentation::A
+      augmentationImports
+        package:test/a11.dart
+          definingUnit
+            enums
+              augment enum A @40
+                augmentationTarget: self::@augmentation::package:test/a1.dart::@enumAugmentation::A
+                augmentation: self::@augmentation::package:test/a12.dart::@enumAugmentation::A
+        package:test/a12.dart
+          definingUnit
+            enums
+              augment enum A @40
+                augmentationTarget: self::@augmentation::package:test/a11.dart::@enumAugmentation::A
+                augmentation: self::@augmentation::package:test/a2.dart::@enumAugmentation::A
+    package:test/a2.dart
+      definingUnit
+        enums
+          augment enum A @96
+            augmentationTarget: self::@augmentation::package:test/a12.dart::@enumAugmentation::A
+            augmentation: self::@augmentation::package:test/a21.dart::@enumAugmentation::A
+      augmentationImports
+        package:test/a21.dart
+          definingUnit
+            enums
+              augment enum A @40
+                augmentationTarget: self::@augmentation::package:test/a2.dart::@enumAugmentation::A
+                augmentation: self::@augmentation::package:test/a22.dart::@enumAugmentation::A
+        package:test/a22.dart
+          definingUnit
+            enums
+              augment enum A @40
+                augmentationTarget: self::@augmentation::package:test/a21.dart::@enumAugmentation::A
+''');
+  }
+
+  test_augmentationTarget_augmentationThenDeclaration() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+
+augment enum A {;
+  void foo1() {}
+}
+
+enum A {
+  v;
+  void foo2() {}
+}
+
+augment enum A {;
+  void foo3() {}
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+''');
+
+    configuration
+      ..withConstantInitializers = false
+      ..withReferences = true;
+    checkElementText(library, r'''
+library
+  reference: self
+  definingUnit
+    reference: self
+  augmentationImports
+    package:test/a.dart
+      reference: self::@augmentation::package:test/a.dart
+      definingUnit
+        reference: self::@augmentation::package:test/a.dart
+        enums
+          augment enum A @43
+            reference: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@def::0
+            augmentationTarget: <null>
+            fields
+              synthetic static const values @-1
+                reference: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@def::0::@field::values
+                type: List<A>
+            constructors
+              synthetic const @-1
+                reference: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@def::0::@constructor::new
+            accessors
+              synthetic static get values @-1
+                reference: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@def::0::@getter::values
+                returnType: List<A>
+            methods
+              foo1 @55
+                reference: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@def::0::@method::foo1
+                returnType: void
+          enum A @73
+            reference: self::@augmentation::package:test/a.dart::@enum::A
+            augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@def::1
+            supertype: Enum
+            fields
+              static const enumConstant v @79
+                reference: self::@augmentation::package:test/a.dart::@enum::A::@field::v
+                type: A
+                shouldUseTypeForInitializerInference: false
+              synthetic static const values @-1
+                reference: self::@augmentation::package:test/a.dart::@enum::A::@field::values
+                type: List<A>
+            constructors
+              synthetic const @-1
+                reference: self::@augmentation::package:test/a.dart::@enum::A::@constructor::new
+            accessors
+              synthetic static get v @-1
+                reference: self::@augmentation::package:test/a.dart::@enum::A::@getter::v
+                returnType: A
+              synthetic static get values @-1
+                reference: self::@augmentation::package:test/a.dart::@enum::A::@getter::values
+                returnType: List<A>
+            methods
+              foo2 @89
+                reference: self::@augmentation::package:test/a.dart::@enum::A::@method::foo2
+                returnType: void
+            augmented
+              fields
+                self::@augmentation::package:test/a.dart::@enum::A::@field::v
+                self::@augmentation::package:test/a.dart::@enum::A::@field::values
+              constructors
+                self::@augmentation::package:test/a.dart::@enum::A::@constructor::new
+              accessors
+                self::@augmentation::package:test/a.dart::@enum::A::@getter::v
+                self::@augmentation::package:test/a.dart::@enum::A::@getter::values
+              methods
+                self::@augmentation::package:test/a.dart::@enum::A::@method::foo2
+                self::@augmentation::package:test/a.dart::@enumAugmentation::A::@def::1::@method::foo3
+          augment enum A @115
+            reference: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@def::1
+            augmentationTarget: self::@augmentation::package:test/a.dart::@enum::A
+            methods
+              foo3 @127
+                reference: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@def::1::@method::foo3
+                returnType: void
+''');
+  }
+
+  test_augmentationTarget_no2() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+import augment 'b.dart';
+augment enum A {;
+  void foo1() {}
+}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+augment library 'a.dart';
+augment enum A {;
+  void foo2() {}
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        enums
+          augment enum A @67
+            augmentationTarget: <null>
+            augmentation: self::@augmentation::package:test/b.dart::@enumAugmentation::A
+            fields
+              synthetic static const values @-1
+                type: List<A>
+                constantInitializer
+                  ListLiteral
+                    leftBracket: [ @0
+                    rightBracket: ] @0
+                    staticType: List<A>
+            constructors
+              synthetic const @-1
+            accessors
+              synthetic static get values @-1
+                returnType: List<A>
+            methods
+              foo1 @79
+                returnType: void
+            augmented
+              fields
+                self::@augmentation::package:test/a.dart::@enumAugmentation::A::@field::values
+              constructors
+                self::@augmentation::package:test/a.dart::@enumAugmentation::A::@constructor::new
+              accessors
+                self::@augmentation::package:test/a.dart::@enumAugmentation::A::@getter::values
+              methods
+                self::@augmentation::package:test/a.dart::@enumAugmentation::A::@method::foo1
+                self::@augmentation::package:test/b.dart::@enumAugmentation::A::@method::foo2
+      augmentationImports
+        package:test/b.dart
+          definingUnit
+            enums
+              augment enum A @39
+                augmentationTarget: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+                methods
+                  foo2 @51
+                    returnType: void
+''');
+  }
+
+  test_augmented_constructors_add_named() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment enum A {;
+  const A.named();
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+enum A {
+  v.named();
+}
+''');
+
+    configuration.withConstantInitializers = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum A @30
+        augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+        supertype: Enum
+        fields
+          static const enumConstant v @36
+            type: A
+            shouldUseTypeForInitializerInference: false
+          synthetic static const values @-1
+            type: List<A>
+        accessors
+          synthetic static get v @-1
+            returnType: A
+          synthetic static get values @-1
+            returnType: List<A>
+        augmented
+          fields
+            self::@enum::A::@field::v
+            self::@enum::A::@field::values
+          constructors
+            self::@augmentation::package:test/a.dart::@enumAugmentation::A::@constructor::named
+          accessors
+            self::@enum::A::@getter::v
+            self::@enum::A::@getter::values
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        enums
+          augment enum A @42
+            augmentationTarget: self::@enum::A
+            constructors
+              const named @57
+                periodOffset: 56
+                nameEnd: 62
+''');
+  }
+
+  test_augmented_constructors_add_named_generic() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment enum A<T2> {;
+  const A.named(T2 a);
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+enum A<T1> {
+  v<int>.named()
+}
+''');
+
+    configuration.withConstantInitializers = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum A @30
+        typeParameters
+          covariant T1 @32
+            defaultType: dynamic
+        augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+        supertype: Enum
+        fields
+          static const enumConstant v @40
+            type: A<int>
+            shouldUseTypeForInitializerInference: false
+          synthetic static const values @-1
+            type: List<A<dynamic>>
+        accessors
+          synthetic static get v @-1
+            returnType: A<int>
+          synthetic static get values @-1
+            returnType: List<A<dynamic>>
+        augmented
+          fields
+            self::@enum::A::@field::v
+            self::@enum::A::@field::values
+          constructors
+            ConstructorMember
+              base: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@constructor::named
+              augmentationSubstitution: {T2: T1}
+          accessors
+            self::@enum::A::@getter::v
+            self::@enum::A::@getter::values
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        enums
+          augment enum A @42
+            typeParameters
+              covariant T2 @44
+                defaultType: dynamic
+            augmentationTarget: self::@enum::A
+            constructors
+              const named @61
+                periodOffset: 60
+                nameEnd: 66
+                parameters
+                  requiredPositional a @70
+                    type: T2
+''');
+  }
+
+  test_augmented_constructors_add_named_hasUnnamed() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment enum A {;
+  const A.named();
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+enum A {
+  v;
+  const A();
+}
+''');
+
+    configuration.withConstantInitializers = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum A @30
+        augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+        supertype: Enum
+        fields
+          static const enumConstant v @36
+            type: A
+            shouldUseTypeForInitializerInference: false
+          synthetic static const values @-1
+            type: List<A>
+        constructors
+          const @47
+        accessors
+          synthetic static get v @-1
+            returnType: A
+          synthetic static get values @-1
+            returnType: List<A>
+        augmented
+          fields
+            self::@enum::A::@field::v
+            self::@enum::A::@field::values
+          constructors
+            self::@enum::A::@constructor::new
+            self::@augmentation::package:test/a.dart::@enumAugmentation::A::@constructor::named
+          accessors
+            self::@enum::A::@getter::v
+            self::@enum::A::@getter::values
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        enums
+          augment enum A @42
+            augmentationTarget: self::@enum::A
+            constructors
+              const named @57
+                periodOffset: 56
+                nameEnd: 62
+''');
+  }
+
+  test_augmented_constructors_add_unnamed() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment enum A {;
+  const A();
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+enum A {
+  v;
+}
+''');
+
+    configuration.withConstantInitializers = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum A @30
+        augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+        supertype: Enum
+        fields
+          static const enumConstant v @36
+            type: A
+            shouldUseTypeForInitializerInference: false
+          synthetic static const values @-1
+            type: List<A>
+        accessors
+          synthetic static get v @-1
+            returnType: A
+          synthetic static get values @-1
+            returnType: List<A>
+        augmented
+          fields
+            self::@enum::A::@field::v
+            self::@enum::A::@field::values
+          constructors
+            self::@augmentation::package:test/a.dart::@enumAugmentation::A::@constructor::new
+          accessors
+            self::@enum::A::@getter::v
+            self::@enum::A::@getter::values
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        enums
+          augment enum A @42
+            augmentationTarget: self::@enum::A
+            constructors
+              const @55
+''');
+  }
+
+  test_augmented_constructors_add_unnamed_hasNamed() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment enum A {;
+  const A();
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+enum A {
+  v;
+  const A.named();
+}
+''');
+
+    configuration.withConstantInitializers = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum A @30
+        augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+        supertype: Enum
+        fields
+          static const enumConstant v @36
+            type: A
+            shouldUseTypeForInitializerInference: false
+          synthetic static const values @-1
+            type: List<A>
+        constructors
+          const named @49
+            periodOffset: 48
+            nameEnd: 54
+        accessors
+          synthetic static get v @-1
+            returnType: A
+          synthetic static get values @-1
+            returnType: List<A>
+        augmented
+          fields
+            self::@enum::A::@field::v
+            self::@enum::A::@field::values
+          constructors
+            self::@augmentation::package:test/a.dart::@enumAugmentation::A::@constructor::new
+            self::@enum::A::@constructor::named
+          accessors
+            self::@enum::A::@getter::v
+            self::@enum::A::@getter::values
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        enums
+          augment enum A @42
+            augmentationTarget: self::@enum::A
+            constructors
+              const @55
+''');
+  }
+
+  test_augmented_constructors_add_useFieldFormal() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment enum A {;
+  const A.named(this.f);
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+enum A {
+  v(0);
+  final int f;
+}
+''');
+
+    configuration.withConstantInitializers = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum A @30
+        augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+        supertype: Enum
+        fields
+          static const enumConstant v @36
+            type: A
+            shouldUseTypeForInitializerInference: false
+          synthetic static const values @-1
+            type: List<A>
+          final f @54
+            type: int
+        accessors
+          synthetic static get v @-1
+            returnType: A
+          synthetic static get values @-1
+            returnType: List<A>
+          synthetic get f @-1
+            returnType: int
+        augmented
+          fields
+            self::@enum::A::@field::f
+            self::@enum::A::@field::v
+            self::@enum::A::@field::values
+          constructors
+            self::@augmentation::package:test/a.dart::@enumAugmentation::A::@constructor::named
+          accessors
+            self::@enum::A::@getter::f
+            self::@enum::A::@getter::v
+            self::@enum::A::@getter::values
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        enums
+          augment enum A @42
+            augmentationTarget: self::@enum::A
+            constructors
+              const named @57
+                periodOffset: 56
+                nameEnd: 62
+                parameters
+                  requiredPositional final this.f @68
+                    type: int
+                    field: self::@enum::A::@field::f
+''');
+  }
+
+  test_augmented_constructors_add_useFieldInitializer() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment enum A {;
+  const A.named() : f = 0;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+enum A {
+  v;
+  final int f;
+}
+''');
+
+    configuration.withConstantInitializers = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum A @30
+        augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+        supertype: Enum
+        fields
+          static const enumConstant v @36
+            type: A
+            shouldUseTypeForInitializerInference: false
+          synthetic static const values @-1
+            type: List<A>
+          final f @51
+            type: int
+        accessors
+          synthetic static get v @-1
+            returnType: A
+          synthetic static get values @-1
+            returnType: List<A>
+          synthetic get f @-1
+            returnType: int
+        augmented
+          fields
+            self::@enum::A::@field::f
+            self::@enum::A::@field::v
+            self::@enum::A::@field::values
+          constructors
+            self::@augmentation::package:test/a.dart::@enumAugmentation::A::@constructor::named
+          accessors
+            self::@enum::A::@getter::f
+            self::@enum::A::@getter::v
+            self::@enum::A::@getter::values
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        enums
+          augment enum A @42
+            augmentationTarget: self::@enum::A
+            constructors
+              const named @57
+                periodOffset: 56
+                nameEnd: 62
+                constantInitializers
+                  ConstructorFieldInitializer
+                    fieldName: SimpleIdentifier
+                      token: f @67
+                      staticElement: self::@enum::A::@field::f
+                      staticType: null
+                    equals: = @69
+                    expression: IntegerLiteral
+                      literal: 0 @71
+                      staticType: int
+''');
+  }
+
+  test_augmented_field_augment_field() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment enum A {;
+  augment final int foo = 1;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+enum A {
+  v;
+  final int foo = 0;
+}
+''');
+
+    configuration
+      ..withConstantInitializers = false
+      ..withPropertyLinking = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum A @30
+        augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+        supertype: Enum
+        fields
+          static const enumConstant v @36
+            type: A
+            shouldUseTypeForInitializerInference: false
+            id: field_0
+            getter: getter_0
+          synthetic static const values @-1
+            type: List<A>
+            id: field_1
+            getter: getter_1
+          final foo @51
+            type: int
+            shouldUseTypeForInitializerInference: true
+            id: field_2
+            getter: getter_2
+            augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get v @-1
+            returnType: A
+            id: getter_0
+            variable: field_0
+          synthetic static get values @-1
+            returnType: List<A>
+            id: getter_1
+            variable: field_1
+          synthetic get foo @-1
+            returnType: int
+            id: getter_2
+            variable: field_2
+        augmented
+          fields
+            self::@augmentation::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
+            self::@enum::A::@field::v
+            self::@enum::A::@field::values
+          constructors
+            self::@enum::A::@constructor::new
+          accessors
+            self::@enum::A::@getter::foo
+            self::@enum::A::@getter::v
+            self::@enum::A::@getter::values
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        enums
+          augment enum A @42
+            augmentationTarget: self::@enum::A
+            fields
+              augment final foo @67
+                type: int
+                shouldUseTypeForInitializerInference: true
+                id: field_3
+                augmentationTarget: self::@enum::A::@field::foo
+''');
+  }
+
+  test_augmented_field_augment_field2() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment enum A {;
+  augment final int foo = 1;
+}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+augment library 'test.dart';
+augment enum A {;
+  augment final int foo = 2;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+import augment 'b.dart';
+enum A {
+  v;
+  final int foo = 0;
+}
+''');
+
+    configuration
+      ..withConstantInitializers = false
+      ..withPropertyLinking = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum A @55
+        augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+        supertype: Enum
+        fields
+          static const enumConstant v @61
+            type: A
+            shouldUseTypeForInitializerInference: false
+            id: field_0
+            getter: getter_0
+          synthetic static const values @-1
+            type: List<A>
+            id: field_1
+            getter: getter_1
+          final foo @76
+            type: int
+            shouldUseTypeForInitializerInference: true
+            id: field_2
+            getter: getter_2
+            augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get v @-1
+            returnType: A
+            id: getter_0
+            variable: field_0
+          synthetic static get values @-1
+            returnType: List<A>
+            id: getter_1
+            variable: field_1
+          synthetic get foo @-1
+            returnType: int
+            id: getter_2
+            variable: field_2
+        augmented
+          fields
+            self::@augmentation::package:test/b.dart::@enumAugmentation::A::@fieldAugmentation::foo
+            self::@enum::A::@field::v
+            self::@enum::A::@field::values
+          constructors
+            self::@enum::A::@constructor::new
+          accessors
+            self::@enum::A::@getter::foo
+            self::@enum::A::@getter::v
+            self::@enum::A::@getter::values
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        enums
+          augment enum A @42
+            augmentationTarget: self::@enum::A
+            augmentation: self::@augmentation::package:test/b.dart::@enumAugmentation::A
+            fields
+              augment final foo @67
+                type: int
+                shouldUseTypeForInitializerInference: true
+                id: field_3
+                augmentationTarget: self::@enum::A::@field::foo
+                augmentation: self::@augmentation::package:test/b.dart::@enumAugmentation::A::@fieldAugmentation::foo
+    package:test/b.dart
+      definingUnit
+        enums
+          augment enum A @42
+            augmentationTarget: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+            fields
+              augment final foo @67
+                type: int
+                shouldUseTypeForInitializerInference: true
+                id: field_4
+                augmentationTarget: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
+''');
+  }
+
+  test_augmented_field_augment_field_afterGetter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment enum A {;
+  augment int get foo => 1;
+}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+augment library 'test.dart';
+augment enum A {;
+  augment final int foo = 2;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+import augment 'b.dart';
+enum A {
+  v;
+  final int foo = 0;
+}
+''');
+
+    configuration
+      ..withConstantInitializers = false
+      ..withPropertyLinking = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum A @55
+        augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+        supertype: Enum
+        fields
+          static const enumConstant v @61
+            type: A
+            shouldUseTypeForInitializerInference: false
+            id: field_0
+            getter: getter_0
+          synthetic static const values @-1
+            type: List<A>
+            id: field_1
+            getter: getter_1
+          final foo @76
+            type: int
+            shouldUseTypeForInitializerInference: true
+            id: field_2
+            getter: getter_2
+            augmentation: self::@augmentation::package:test/b.dart::@enumAugmentation::A::@fieldAugmentation::foo
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get v @-1
+            returnType: A
+            id: getter_0
+            variable: field_0
+          synthetic static get values @-1
+            returnType: List<A>
+            id: getter_1
+            variable: field_1
+          synthetic get foo @-1
+            returnType: int
+            id: getter_2
+            variable: field_2
+            augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
+        augmented
+          fields
+            self::@augmentation::package:test/b.dart::@enumAugmentation::A::@fieldAugmentation::foo
+            self::@enum::A::@field::v
+            self::@enum::A::@field::values
+          constructors
+            self::@enum::A::@constructor::new
+          accessors
+            self::@augmentation::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
+            self::@enum::A::@getter::v
+            self::@enum::A::@getter::values
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        enums
+          augment enum A @42
+            augmentationTarget: self::@enum::A
+            augmentation: self::@augmentation::package:test/b.dart::@enumAugmentation::A
+            accessors
+              augment get foo @65
+                returnType: int
+                id: getter_3
+                variable: field_2
+                augmentationTarget: self::@enum::A::@getter::foo
+    package:test/b.dart
+      definingUnit
+        enums
+          augment enum A @42
+            augmentationTarget: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+            fields
+              augment final foo @67
+                type: int
+                shouldUseTypeForInitializerInference: true
+                id: field_3
+                augmentationTarget: self::@enum::A::@field::foo
+''');
+  }
+
+  test_augmented_field_augment_field_afterSetter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment enum A {;
+  augment set foo(int _) {}
+}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+augment library 'test.dart';
+augment enum A {;
+  augment final int foo = 2;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+import augment 'b.dart';
+enum A {
+  v;
+  final int foo = 0;
+}
+''');
+
+    configuration
+      ..withConstantInitializers = false
+      ..withPropertyLinking = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum A @55
+        augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+        supertype: Enum
+        fields
+          static const enumConstant v @61
+            type: A
+            shouldUseTypeForInitializerInference: false
+            id: field_0
+            getter: getter_0
+          synthetic static const values @-1
+            type: List<A>
+            id: field_1
+            getter: getter_1
+          final foo @76
+            type: int
+            shouldUseTypeForInitializerInference: true
+            id: field_2
+            getter: getter_2
+            augmentation: self::@augmentation::package:test/b.dart::@enumAugmentation::A::@fieldAugmentation::foo
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get v @-1
+            returnType: A
+            id: getter_0
+            variable: field_0
+          synthetic static get values @-1
+            returnType: List<A>
+            id: getter_1
+            variable: field_1
+          synthetic get foo @-1
+            returnType: int
+            id: getter_2
+            variable: field_2
+        augmented
+          fields
+            self::@augmentation::package:test/b.dart::@enumAugmentation::A::@fieldAugmentation::foo
+            self::@enum::A::@field::v
+            self::@enum::A::@field::values
+          constructors
+            self::@enum::A::@constructor::new
+          accessors
+            self::@enum::A::@getter::foo
+            self::@augmentation::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo
+            self::@enum::A::@getter::v
+            self::@enum::A::@getter::values
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        enums
+          augment enum A @42
+            augmentationTarget: self::@enum::A
+            augmentation: self::@augmentation::package:test/b.dart::@enumAugmentation::A
+            accessors
+              augment set foo= @61
+                parameters
+                  requiredPositional _ @69
+                    type: int
+                returnType: void
+                id: setter_0
+                variable: <null>
+                augmentationTarget: <null>
+    package:test/b.dart
+      definingUnit
+        enums
+          augment enum A @42
+            augmentationTarget: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+            fields
+              augment final foo @67
+                type: int
+                shouldUseTypeForInitializerInference: true
+                id: field_3
+                augmentationTarget: self::@enum::A::@field::foo
+''');
+  }
+
+  test_augmented_field_augment_field_differentTypes() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment enum A {;
+  augment final double foo = 1.2;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+enum A {
+  v;
+  final int foo = 0;
+}
+''');
+
+    configuration
+      ..withConstantInitializers = false
+      ..withPropertyLinking = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum A @30
+        augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+        supertype: Enum
+        fields
+          static const enumConstant v @36
+            type: A
+            shouldUseTypeForInitializerInference: false
+            id: field_0
+            getter: getter_0
+          synthetic static const values @-1
+            type: List<A>
+            id: field_1
+            getter: getter_1
+          final foo @51
+            type: int
+            shouldUseTypeForInitializerInference: true
+            id: field_2
+            getter: getter_2
+            augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get v @-1
+            returnType: A
+            id: getter_0
+            variable: field_0
+          synthetic static get values @-1
+            returnType: List<A>
+            id: getter_1
+            variable: field_1
+          synthetic get foo @-1
+            returnType: int
+            id: getter_2
+            variable: field_2
+        augmented
+          fields
+            self::@augmentation::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
+            self::@enum::A::@field::v
+            self::@enum::A::@field::values
+          constructors
+            self::@enum::A::@constructor::new
+          accessors
+            self::@enum::A::@getter::foo
+            self::@enum::A::@getter::v
+            self::@enum::A::@getter::values
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        enums
+          augment enum A @42
+            augmentationTarget: self::@enum::A
+            fields
+              augment final foo @70
+                type: double
+                shouldUseTypeForInitializerInference: true
+                id: field_3
+                augmentationTarget: self::@enum::A::@field::foo
+''');
+  }
+
+  /// This is not allowed by the specification, but allowed syntactically,
+  /// so we need a way to handle it.
+  test_augmented_field_augment_getter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment enum A {;
+  augment final int foo = 1;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+enum A {
+  v;
+  int get foo => 0;
+}
+''');
+
+    configuration
+      ..withConstantInitializers = false
+      ..withPropertyLinking = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum A @30
+        augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+        supertype: Enum
+        fields
+          static const enumConstant v @36
+            type: A
+            shouldUseTypeForInitializerInference: false
+            id: field_0
+            getter: getter_0
+          synthetic static const values @-1
+            type: List<A>
+            id: field_1
+            getter: getter_1
+          synthetic foo @-1
+            type: int
+            id: field_2
+            getter: getter_2
+            augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get v @-1
+            returnType: A
+            id: getter_0
+            variable: field_0
+          synthetic static get values @-1
+            returnType: List<A>
+            id: getter_1
+            variable: field_1
+          get foo @49
+            returnType: int
+            id: getter_2
+            variable: field_2
+        augmented
+          fields
+            self::@augmentation::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
+            self::@enum::A::@field::v
+            self::@enum::A::@field::values
+          constructors
+            self::@enum::A::@constructor::new
+          accessors
+            self::@enum::A::@getter::foo
+            self::@enum::A::@getter::v
+            self::@enum::A::@getter::values
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        enums
+          augment enum A @42
+            augmentationTarget: self::@enum::A
+            fields
+              augment final foo @67
+                type: int
+                shouldUseTypeForInitializerInference: true
+                id: field_3
+                augmentationTarget: self::@enum::A::@field::foo
+''');
+  }
+
+  test_augmented_fields_add() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment enum A {;
+  final int foo2 = 0;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+enum A {
+  v;
+  final int foo1 = 0;
+}
+''');
+
+    configuration
+      ..withConstantInitializers = false
+      ..withPropertyLinking = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum A @30
+        augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+        supertype: Enum
+        fields
+          static const enumConstant v @36
+            type: A
+            shouldUseTypeForInitializerInference: false
+            id: field_0
+            getter: getter_0
+          synthetic static const values @-1
+            type: List<A>
+            id: field_1
+            getter: getter_1
+          final foo1 @51
+            type: int
+            shouldUseTypeForInitializerInference: true
+            id: field_2
+            getter: getter_2
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get v @-1
+            returnType: A
+            id: getter_0
+            variable: field_0
+          synthetic static get values @-1
+            returnType: List<A>
+            id: getter_1
+            variable: field_1
+          synthetic get foo1 @-1
+            returnType: int
+            id: getter_2
+            variable: field_2
+        augmented
+          fields
+            self::@enum::A::@field::foo1
+            self::@augmentation::package:test/a.dart::@enumAugmentation::A::@field::foo2
+            self::@enum::A::@field::v
+            self::@enum::A::@field::values
+          constructors
+            self::@enum::A::@constructor::new
+          accessors
+            self::@enum::A::@getter::foo1
+            self::@augmentation::package:test/a.dart::@enumAugmentation::A::@getter::foo2
+            self::@enum::A::@getter::v
+            self::@enum::A::@getter::values
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        enums
+          augment enum A @42
+            augmentationTarget: self::@enum::A
+            fields
+              final foo2 @59
+                type: int
+                shouldUseTypeForInitializerInference: true
+                id: field_3
+                getter: getter_3
+            accessors
+              synthetic get foo2 @-1
+                returnType: int
+                id: getter_3
+                variable: field_3
+''');
+  }
+
+  test_augmented_fields_add_generic() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment enum A<T2> {;
+  final T2 foo2;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+enum A<T1> {
+  v<int>();
+  final T1 foo1;
+}
+''');
+
+    configuration
+      ..withConstantInitializers = false
+      ..withPropertyLinking = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum A @30
+        typeParameters
+          covariant T1 @32
+            defaultType: dynamic
+        augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+        supertype: Enum
+        fields
+          static const enumConstant v @40
+            type: A<int>
+            shouldUseTypeForInitializerInference: false
+            id: field_0
+            getter: getter_0
+          synthetic static const values @-1
+            type: List<A<dynamic>>
+            id: field_1
+            getter: getter_1
+          final foo1 @61
+            type: T1
+            id: field_2
+            getter: getter_2
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get v @-1
+            returnType: A<int>
+            id: getter_0
+            variable: field_0
+          synthetic static get values @-1
+            returnType: List<A<dynamic>>
+            id: getter_1
+            variable: field_1
+          synthetic get foo1 @-1
+            returnType: T1
+            id: getter_2
+            variable: field_2
+        augmented
+          fields
+            self::@enum::A::@field::foo1
+            FieldMember
+              base: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@field::foo2
+              augmentationSubstitution: {T2: T1}
+            self::@enum::A::@field::v
+            self::@enum::A::@field::values
+          constructors
+            self::@enum::A::@constructor::new
+          accessors
+            self::@enum::A::@getter::foo1
+            PropertyAccessorMember
+              base: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@getter::foo2
+              augmentationSubstitution: {T2: T1}
+            self::@enum::A::@getter::v
+            self::@enum::A::@getter::values
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        enums
+          augment enum A @42
+            typeParameters
+              covariant T2 @44
+                defaultType: dynamic
+            augmentationTarget: self::@enum::A
+            fields
+              final foo2 @62
+                type: T2
+                id: field_3
+                getter: getter_3
+            accessors
+              synthetic get foo2 @-1
+                returnType: T2
+                id: getter_3
+                variable: field_3
+''');
+  }
+
+  test_augmented_fields_add_useFieldFormal() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment enum A {;
+  final int foo;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+enum A {
+  v(0);
+  const A(this.foo);
+}
+''');
+
+    configuration.withConstantInitializers = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum A @30
+        augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+        supertype: Enum
+        fields
+          static const enumConstant v @36
+            type: A
+            shouldUseTypeForInitializerInference: false
+          synthetic static const values @-1
+            type: List<A>
+        constructors
+          const @50
+            parameters
+              requiredPositional final this.foo @57
+                type: int
+                field: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@field::foo
+        accessors
+          synthetic static get v @-1
+            returnType: A
+          synthetic static get values @-1
+            returnType: List<A>
+        augmented
+          fields
+            self::@augmentation::package:test/a.dart::@enumAugmentation::A::@field::foo
+            self::@enum::A::@field::v
+            self::@enum::A::@field::values
+          constructors
+            self::@enum::A::@constructor::new
+          accessors
+            self::@augmentation::package:test/a.dart::@enumAugmentation::A::@getter::foo
+            self::@enum::A::@getter::v
+            self::@enum::A::@getter::values
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        enums
+          augment enum A @42
+            augmentationTarget: self::@enum::A
+            fields
+              final foo @59
+                type: int
+            accessors
+              synthetic get foo @-1
+                returnType: int
+''');
+  }
+
+  test_augmented_fields_add_useFieldInitializer() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment enum A {;
+  final int foo;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+enum A {
+  v;
+  const A() : foo = 0;
+}
+''');
+
+    configuration.withConstantInitializers = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum A @30
+        augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+        supertype: Enum
+        fields
+          static const enumConstant v @36
+            type: A
+            shouldUseTypeForInitializerInference: false
+          synthetic static const values @-1
+            type: List<A>
+        constructors
+          const @47
+            constantInitializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: foo @53
+                  staticElement: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@field::foo
+                  staticType: null
+                equals: = @57
+                expression: IntegerLiteral
+                  literal: 0 @59
+                  staticType: int
+        accessors
+          synthetic static get v @-1
+            returnType: A
+          synthetic static get values @-1
+            returnType: List<A>
+        augmented
+          fields
+            self::@augmentation::package:test/a.dart::@enumAugmentation::A::@field::foo
+            self::@enum::A::@field::v
+            self::@enum::A::@field::values
+          constructors
+            self::@enum::A::@constructor::new
+          accessors
+            self::@augmentation::package:test/a.dart::@enumAugmentation::A::@getter::foo
+            self::@enum::A::@getter::v
+            self::@enum::A::@getter::values
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        enums
+          augment enum A @42
+            augmentationTarget: self::@enum::A
+            fields
+              final foo @59
+                type: int
+            accessors
+              synthetic get foo @-1
+                returnType: int
+''');
+  }
+
+  test_augmented_getters_add() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment enum A {;
+  int get foo2 => 0;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+enum A {
+  v;
+  int get foo1 => 0;
+}
+''');
+
+    configuration
+      ..withConstantInitializers = false
+      ..withPropertyLinking = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum A @30
+        augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+        supertype: Enum
+        fields
+          static const enumConstant v @36
+            type: A
+            shouldUseTypeForInitializerInference: false
+            id: field_0
+            getter: getter_0
+          synthetic static const values @-1
+            type: List<A>
+            id: field_1
+            getter: getter_1
+          synthetic foo1 @-1
+            type: int
+            id: field_2
+            getter: getter_2
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get v @-1
+            returnType: A
+            id: getter_0
+            variable: field_0
+          synthetic static get values @-1
+            returnType: List<A>
+            id: getter_1
+            variable: field_1
+          get foo1 @49
+            returnType: int
+            id: getter_2
+            variable: field_2
+        augmented
+          fields
+            self::@enum::A::@field::foo1
+            self::@augmentation::package:test/a.dart::@enumAugmentation::A::@field::foo2
+            self::@enum::A::@field::v
+            self::@enum::A::@field::values
+          constructors
+            self::@enum::A::@constructor::new
+          accessors
+            self::@enum::A::@getter::foo1
+            self::@augmentation::package:test/a.dart::@enumAugmentation::A::@getter::foo2
+            self::@enum::A::@getter::v
+            self::@enum::A::@getter::values
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        enums
+          augment enum A @42
+            augmentationTarget: self::@enum::A
+            fields
+              synthetic foo2 @-1
+                type: int
+                id: field_3
+                getter: getter_3
+            accessors
+              get foo2 @57
+                returnType: int
+                id: getter_3
+                variable: field_3
+''');
+  }
+
+  test_augmented_getters_add_generic() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment enum A<T2> {;
+  T2 get foo2;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+enum A<T1> {
+  v<int>();
+  T1 get foo1;
+}
+''');
+
+    configuration
+      ..withConstantInitializers = false
+      ..withPropertyLinking = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum A @30
+        typeParameters
+          covariant T1 @32
+            defaultType: dynamic
+        augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+        supertype: Enum
+        fields
+          static const enumConstant v @40
+            type: A<int>
+            shouldUseTypeForInitializerInference: false
+            id: field_0
+            getter: getter_0
+          synthetic static const values @-1
+            type: List<A<dynamic>>
+            id: field_1
+            getter: getter_1
+          synthetic foo1 @-1
+            type: T1
+            id: field_2
+            getter: getter_2
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get v @-1
+            returnType: A<int>
+            id: getter_0
+            variable: field_0
+          synthetic static get values @-1
+            returnType: List<A<dynamic>>
+            id: getter_1
+            variable: field_1
+          abstract get foo1 @59
+            returnType: T1
+            id: getter_2
+            variable: field_2
+        augmented
+          fields
+            self::@enum::A::@field::foo1
+            FieldMember
+              base: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@field::foo2
+              augmentationSubstitution: {T2: T1}
+            self::@enum::A::@field::v
+            self::@enum::A::@field::values
+          constructors
+            self::@enum::A::@constructor::new
+          accessors
+            self::@enum::A::@getter::foo1
+            PropertyAccessorMember
+              base: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@getter::foo2
+              augmentationSubstitution: {T2: T1}
+            self::@enum::A::@getter::v
+            self::@enum::A::@getter::values
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        enums
+          augment enum A @42
+            typeParameters
+              covariant T2 @44
+                defaultType: dynamic
+            augmentationTarget: self::@enum::A
+            fields
+              synthetic foo2 @-1
+                type: T2
+                id: field_3
+                getter: getter_3
+            accessors
+              abstract get foo2 @60
+                returnType: T2
+                id: getter_3
+                variable: field_3
+''');
+  }
+
+  test_augmented_getters_augment_field() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment enum A {;
+  augment int get foo => 0;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+enum A {
+  v;
+  final int foo = 0;
+}
+''');
+
+    configuration
+      ..withConstantInitializers = false
+      ..withPropertyLinking = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum A @30
+        augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+        supertype: Enum
+        fields
+          static const enumConstant v @36
+            type: A
+            shouldUseTypeForInitializerInference: false
+            id: field_0
+            getter: getter_0
+          synthetic static const values @-1
+            type: List<A>
+            id: field_1
+            getter: getter_1
+          final foo @51
+            type: int
+            shouldUseTypeForInitializerInference: true
+            id: field_2
+            getter: getter_2
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get v @-1
+            returnType: A
+            id: getter_0
+            variable: field_0
+          synthetic static get values @-1
+            returnType: List<A>
+            id: getter_1
+            variable: field_1
+          synthetic get foo @-1
+            returnType: int
+            id: getter_2
+            variable: field_2
+            augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
+        augmented
+          fields
+            self::@enum::A::@field::foo
+            self::@enum::A::@field::v
+            self::@enum::A::@field::values
+          constructors
+            self::@enum::A::@constructor::new
+          accessors
+            self::@augmentation::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
+            self::@enum::A::@getter::v
+            self::@enum::A::@getter::values
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        enums
+          augment enum A @42
+            augmentationTarget: self::@enum::A
+            accessors
+              augment get foo @65
+                returnType: int
+                id: getter_3
+                variable: field_2
+                augmentationTarget: self::@enum::A::@getter::foo
+''');
+  }
+
+  test_augmented_getters_augment_field2() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment enum A {;
+  augment int get foo => 0;
+}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+augment library 'test.dart';
+augment enum A {;
+  augment int get foo => 0;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+import augment 'b.dart';
+enum A {
+  v;
+  final int foo = 0;
+}
+''');
+
+    configuration
+      ..withConstantInitializers = false
+      ..withPropertyLinking = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum A @55
+        augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+        supertype: Enum
+        fields
+          static const enumConstant v @61
+            type: A
+            shouldUseTypeForInitializerInference: false
+            id: field_0
+            getter: getter_0
+          synthetic static const values @-1
+            type: List<A>
+            id: field_1
+            getter: getter_1
+          final foo @76
+            type: int
+            shouldUseTypeForInitializerInference: true
+            id: field_2
+            getter: getter_2
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get v @-1
+            returnType: A
+            id: getter_0
+            variable: field_0
+          synthetic static get values @-1
+            returnType: List<A>
+            id: getter_1
+            variable: field_1
+          synthetic get foo @-1
+            returnType: int
+            id: getter_2
+            variable: field_2
+            augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
+        augmented
+          fields
+            self::@enum::A::@field::foo
+            self::@enum::A::@field::v
+            self::@enum::A::@field::values
+          constructors
+            self::@enum::A::@constructor::new
+          accessors
+            self::@augmentation::package:test/b.dart::@enumAugmentation::A::@getterAugmentation::foo
+            self::@enum::A::@getter::v
+            self::@enum::A::@getter::values
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        enums
+          augment enum A @42
+            augmentationTarget: self::@enum::A
+            augmentation: self::@augmentation::package:test/b.dart::@enumAugmentation::A
+            accessors
+              augment get foo @65
+                returnType: int
+                id: getter_3
+                variable: field_2
+                augmentationTarget: self::@enum::A::@getter::foo
+                augmentation: self::@augmentation::package:test/b.dart::@enumAugmentation::A::@getterAugmentation::foo
+    package:test/b.dart
+      definingUnit
+        enums
+          augment enum A @42
+            augmentationTarget: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+            accessors
+              augment get foo @65
+                returnType: int
+                id: getter_4
+                variable: field_2
+                augmentationTarget: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
+''');
+  }
+
+  test_augmented_getters_augment_getter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment enum A {;
+  augment int get foo1 => 0;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+enum A {
+  v;
+  int get foo1 => 0;
+  int get foo2 => 0;
+}
+''');
+
+    configuration
+      ..withConstantInitializers = false
+      ..withPropertyLinking = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum A @30
+        augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+        supertype: Enum
+        fields
+          static const enumConstant v @36
+            type: A
+            shouldUseTypeForInitializerInference: false
+            id: field_0
+            getter: getter_0
+          synthetic static const values @-1
+            type: List<A>
+            id: field_1
+            getter: getter_1
+          synthetic foo1 @-1
+            type: int
+            id: field_2
+            getter: getter_2
+          synthetic foo2 @-1
+            type: int
+            id: field_3
+            getter: getter_3
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get v @-1
+            returnType: A
+            id: getter_0
+            variable: field_0
+          synthetic static get values @-1
+            returnType: List<A>
+            id: getter_1
+            variable: field_1
+          get foo1 @49
+            returnType: int
+            id: getter_2
+            variable: field_2
+            augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo1
+          get foo2 @70
+            returnType: int
+            id: getter_3
+            variable: field_3
+        augmented
+          fields
+            self::@enum::A::@field::foo1
+            self::@enum::A::@field::foo2
+            self::@enum::A::@field::v
+            self::@enum::A::@field::values
+          constructors
+            self::@enum::A::@constructor::new
+          accessors
+            self::@augmentation::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo1
+            self::@enum::A::@getter::foo2
+            self::@enum::A::@getter::v
+            self::@enum::A::@getter::values
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        enums
+          augment enum A @42
+            augmentationTarget: self::@enum::A
+            accessors
+              augment get foo1 @65
+                returnType: int
+                id: getter_4
+                variable: field_2
+                augmentationTarget: self::@enum::A::@getter::foo1
+''');
+  }
+
+  test_augmented_getters_augment_getter2_oneLib_oneTop() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment enum A {;
+  augment int get foo => 0;
+  augment int get foo => 0;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+enum A {
+  v;
+  int get foo => 0;
+}
+''');
+
+    configuration
+      ..withConstantInitializers = false
+      ..withReferences = true
+      ..withPropertyLinking = true;
+    checkElementText(library, r'''
+library
+  reference: self
+  definingUnit
+    reference: self
+    enums
+      enum A @30
+        reference: self::@enum::A
+        augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+        supertype: Enum
+        fields
+          static const enumConstant v @36
+            reference: self::@enum::A::@field::v
+            type: A
+            shouldUseTypeForInitializerInference: false
+            id: field_0
+            getter: getter_0
+          synthetic static const values @-1
+            reference: self::@enum::A::@field::values
+            type: List<A>
+            id: field_1
+            getter: getter_1
+          synthetic foo @-1
+            reference: self::@enum::A::@field::foo
+            type: int
+            id: field_2
+            getter: getter_2
+        constructors
+          synthetic const @-1
+            reference: self::@enum::A::@constructor::new
+        accessors
+          synthetic static get v @-1
+            reference: self::@enum::A::@getter::v
+            returnType: A
+            id: getter_0
+            variable: field_0
+          synthetic static get values @-1
+            reference: self::@enum::A::@getter::values
+            returnType: List<A>
+            id: getter_1
+            variable: field_1
+          get foo @49
+            reference: self::@enum::A::@getter::foo
+            returnType: int
+            id: getter_2
+            variable: field_2
+            augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo::@def::0
+        augmented
+          fields
+            self::@enum::A::@field::foo
+            self::@enum::A::@field::v
+            self::@enum::A::@field::values
+          constructors
+            self::@enum::A::@constructor::new
+          accessors
+            self::@augmentation::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo::@def::1
+            self::@enum::A::@getter::v
+            self::@enum::A::@getter::values
+  augmentationImports
+    package:test/a.dart
+      reference: self::@augmentation::package:test/a.dart
+      definingUnit
+        reference: self::@augmentation::package:test/a.dart
+        enums
+          augment enum A @42
+            reference: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+            augmentationTarget: self::@enum::A
+            accessors
+              augment get foo @65
+                reference: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo::@def::0
+                returnType: int
+                id: getter_3
+                variable: field_2
+                augmentationTarget: self::@enum::A::@getter::foo
+                augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo::@def::1
+              augment get foo @93
+                reference: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo::@def::1
+                returnType: int
+                id: getter_4
+                variable: field_2
+                augmentationTarget: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo::@def::0
+''');
+  }
+
+  test_augmented_getters_augment_getter2_twoLib() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment enum A {;
+  augment int get foo => 0;
+}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+augment library 'test.dart';
+augment enum A {;
+  augment int get foo => 0;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+import augment 'b.dart';
+enum A {
+  v;
+  int get foo => 0;
+}
+''');
+
+    configuration
+      ..withConstantInitializers = false
+      ..withPropertyLinking = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum A @55
+        augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+        supertype: Enum
+        fields
+          static const enumConstant v @61
+            type: A
+            shouldUseTypeForInitializerInference: false
+            id: field_0
+            getter: getter_0
+          synthetic static const values @-1
+            type: List<A>
+            id: field_1
+            getter: getter_1
+          synthetic foo @-1
+            type: int
+            id: field_2
+            getter: getter_2
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get v @-1
+            returnType: A
+            id: getter_0
+            variable: field_0
+          synthetic static get values @-1
+            returnType: List<A>
+            id: getter_1
+            variable: field_1
+          get foo @74
+            returnType: int
+            id: getter_2
+            variable: field_2
+            augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
+        augmented
+          fields
+            self::@enum::A::@field::foo
+            self::@enum::A::@field::v
+            self::@enum::A::@field::values
+          constructors
+            self::@enum::A::@constructor::new
+          accessors
+            self::@augmentation::package:test/b.dart::@enumAugmentation::A::@getterAugmentation::foo
+            self::@enum::A::@getter::v
+            self::@enum::A::@getter::values
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        enums
+          augment enum A @42
+            augmentationTarget: self::@enum::A
+            augmentation: self::@augmentation::package:test/b.dart::@enumAugmentation::A
+            accessors
+              augment get foo @65
+                returnType: int
+                id: getter_3
+                variable: field_2
+                augmentationTarget: self::@enum::A::@getter::foo
+                augmentation: self::@augmentation::package:test/b.dart::@enumAugmentation::A::@getterAugmentation::foo
+    package:test/b.dart
+      definingUnit
+        enums
+          augment enum A @42
+            augmentationTarget: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+            accessors
+              augment get foo @65
+                returnType: int
+                id: getter_4
+                variable: field_2
+                augmentationTarget: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
+''');
+  }
+
+  test_augmented_getters_augment_nothing() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment enum A {;
+  augment int get foo => 0;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+enum A {
+  v
+}
+''');
+
+    configuration
+      ..withConstantInitializers = false
+      ..withConstructors = false
+      ..withPropertyLinking = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum A @30
+        augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+        supertype: Enum
+        fields
+          static const enumConstant v @36
+            type: A
+            shouldUseTypeForInitializerInference: false
+            id: field_0
+            getter: getter_0
+          synthetic static const values @-1
+            type: List<A>
+            id: field_1
+            getter: getter_1
+        accessors
+          synthetic static get v @-1
+            returnType: A
+            id: getter_0
+            variable: field_0
+          synthetic static get values @-1
+            returnType: List<A>
+            id: getter_1
+            variable: field_1
+        augmented
+          fields
+            self::@enum::A::@field::v
+            self::@enum::A::@field::values
+          accessors
+            self::@augmentation::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
+            self::@enum::A::@getter::v
+            self::@enum::A::@getter::values
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        enums
+          augment enum A @42
+            augmentationTarget: self::@enum::A
+            accessors
+              augment get foo @65
+                returnType: int
+                id: getter_2
+                variable: <null>
+                augmentationTarget: <null>
+''');
+  }
+
+  test_augmented_interfaces() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment enum A implements I2 {}
+class I2 {}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+enum A implements I1 {
+  v
+}
+class I1 {}
+''');
+
+    configuration.withConstantInitializers = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class I1 @60
+        constructors
+          synthetic @-1
+    enums
+      enum A @30
+        augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+        supertype: Enum
+        interfaces
+          I1
+        fields
+          static const enumConstant v @50
+            type: A
+            shouldUseTypeForInitializerInference: false
+          synthetic static const values @-1
+            type: List<A>
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get v @-1
+            returnType: A
+          synthetic static get values @-1
+            returnType: List<A>
+        augmented
+          interfaces
+            I1
+            I2
+          fields
+            self::@enum::A::@field::v
+            self::@enum::A::@field::values
+          constructors
+            self::@enum::A::@constructor::new
+          accessors
+            self::@enum::A::@getter::v
+            self::@enum::A::@getter::values
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          class I2 @67
+            constructors
+              synthetic @-1
+        enums
+          augment enum A @42
+            augmentationTarget: self::@enum::A
+            interfaces
+              I2
+''');
+  }
+
+  test_augmented_interfaces_chain() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+import augment 'b.dart';
+augment enum A implements I2 {}
+class I2 {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+augment library 'a.dart';
+augment enum A implements I3 {}
+class I3 {}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+enum A implements I1 {
+  v
+}
+class I1 {}
+''');
+
+    configuration.withConstantInitializers = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class I1 @60
+        constructors
+          synthetic @-1
+    enums
+      enum A @30
+        augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+        supertype: Enum
+        interfaces
+          I1
+        fields
+          static const enumConstant v @50
+            type: A
+            shouldUseTypeForInitializerInference: false
+          synthetic static const values @-1
+            type: List<A>
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get v @-1
+            returnType: A
+          synthetic static get values @-1
+            returnType: List<A>
+        augmented
+          interfaces
+            I1
+            I2
+            I3
+          fields
+            self::@enum::A::@field::v
+            self::@enum::A::@field::values
+          constructors
+            self::@enum::A::@constructor::new
+          accessors
+            self::@enum::A::@getter::v
+            self::@enum::A::@getter::values
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          class I2 @92
+            constructors
+              synthetic @-1
+        enums
+          augment enum A @67
+            augmentationTarget: self::@enum::A
+            augmentation: self::@augmentation::package:test/b.dart::@enumAugmentation::A
+            interfaces
+              I2
+      augmentationImports
+        package:test/b.dart
+          definingUnit
+            classes
+              class I3 @64
+                constructors
+                  synthetic @-1
+            enums
+              augment enum A @39
+                augmentationTarget: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+                interfaces
+                  I3
+''');
+  }
+
+  test_augmented_interfaces_generic() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment enum A<T2> implements I2<T2> {}
+class I2<E> {}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+enum A<T> implements I1 {
+  v<int>()
+}
+class I1 {}
+''');
+
+    configuration.withConstantInitializers = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class I1 @70
+        constructors
+          synthetic @-1
+    enums
+      enum A @30
+        typeParameters
+          covariant T @32
+            defaultType: dynamic
+        augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+        supertype: Enum
+        interfaces
+          I1
+        fields
+          static const enumConstant v @53
+            type: A<int>
+            shouldUseTypeForInitializerInference: false
+          synthetic static const values @-1
+            type: List<A<dynamic>>
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get v @-1
+            returnType: A<int>
+          synthetic static get values @-1
+            returnType: List<A<dynamic>>
+        augmented
+          interfaces
+            I1
+            I2<T>
+          fields
+            self::@enum::A::@field::v
+            self::@enum::A::@field::values
+          constructors
+            self::@enum::A::@constructor::new
+          accessors
+            self::@enum::A::@getter::v
+            self::@enum::A::@getter::values
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          class I2 @75
+            typeParameters
+              covariant E @78
+                defaultType: dynamic
+            constructors
+              synthetic @-1
+        enums
+          augment enum A @42
+            typeParameters
+              covariant T2 @44
+                defaultType: dynamic
+            augmentationTarget: self::@enum::A
+            interfaces
+              I2<T2>
+''');
+  }
+
+  test_augmented_interfaces_generic_mismatch() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment enum A<T2, T3> implements I2<T2> {}
+class I2<E> {}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+enum A<T> implements I1 {
+  v
+}
+class I1 {}
+''');
+
+    configuration.withConstantInitializers = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class I1 @63
+        constructors
+          synthetic @-1
+    enums
+      enum A @30
+        typeParameters
+          covariant T @32
+            defaultType: dynamic
+        augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+        supertype: Enum
+        interfaces
+          I1
+        fields
+          static const enumConstant v @53
+            type: A<dynamic>
+            shouldUseTypeForInitializerInference: false
+          synthetic static const values @-1
+            type: List<A<dynamic>>
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get v @-1
+            returnType: A<dynamic>
+          synthetic static get values @-1
+            returnType: List<A<dynamic>>
+        augmented
+          interfaces
+            I1
+          fields
+            self::@enum::A::@field::v
+            self::@enum::A::@field::values
+          constructors
+            self::@enum::A::@constructor::new
+          accessors
+            self::@enum::A::@getter::v
+            self::@enum::A::@getter::values
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          class I2 @79
+            typeParameters
+              covariant E @82
+                defaultType: dynamic
+            constructors
+              synthetic @-1
+        enums
+          augment enum A @42
+            typeParameters
+              covariant T2 @44
+                defaultType: dynamic
+              covariant T3 @48
+                defaultType: dynamic
+            augmentationTarget: self::@enum::A
+            interfaces
+              I2<T2>
+''');
+  }
+
+  test_augmented_methods() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment enum A {;
+  void bar() {}
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+enum A {
+  v;
+  void foo() {}
+}
+''');
+
+    configuration.withConstantInitializers = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum A @30
+        augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+        supertype: Enum
+        fields
+          static const enumConstant v @36
+            type: A
+            shouldUseTypeForInitializerInference: false
+          synthetic static const values @-1
+            type: List<A>
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get v @-1
+            returnType: A
+          synthetic static get values @-1
+            returnType: List<A>
+        methods
+          foo @46
+            returnType: void
+        augmented
+          fields
+            self::@enum::A::@field::v
+            self::@enum::A::@field::values
+          constructors
+            self::@enum::A::@constructor::new
+          accessors
+            self::@enum::A::@getter::v
+            self::@enum::A::@getter::values
+          methods
+            self::@augmentation::package:test/a.dart::@enumAugmentation::A::@method::bar
+            self::@enum::A::@method::foo
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        enums
+          augment enum A @42
+            augmentationTarget: self::@enum::A
+            methods
+              bar @54
+                returnType: void
+''');
+  }
+
+  test_augmented_methods_add_withDefaultValue() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment enum A {;
+  void foo([int x = 42]) {}
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+enum A {
+  v
+}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum A @30
+        augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+        supertype: Enum
+        fields
+          static const enumConstant v @36
+            type: A
+            shouldUseTypeForInitializerInference: false
+            constantInitializer
+              InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: A @-1
+                    element: self::@enum::A
+                    type: A
+                  staticElement: self::@enum::A::@constructor::new
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticType: A
+          synthetic static const values @-1
+            type: List<A>
+            constantInitializer
+              ListLiteral
+                leftBracket: [ @0
+                elements
+                  SimpleIdentifier
+                    token: v @-1
+                    staticElement: self::@enum::A::@getter::v
+                    staticType: A
+                rightBracket: ] @0
+                staticType: List<A>
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get v @-1
+            returnType: A
+          synthetic static get values @-1
+            returnType: List<A>
+        augmented
+          fields
+            self::@enum::A::@field::v
+            self::@enum::A::@field::values
+          constructors
+            self::@enum::A::@constructor::new
+          accessors
+            self::@enum::A::@getter::v
+            self::@enum::A::@getter::values
+          methods
+            self::@augmentation::package:test/a.dart::@enumAugmentation::A::@method::foo
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        enums
+          augment enum A @42
+            augmentationTarget: self::@enum::A
+            methods
+              foo @54
+                parameters
+                  optionalPositional default x @63
+                    type: int
+                    constantInitializer
+                      IntegerLiteral
+                        literal: 42 @67
+                        staticType: int
+                returnType: void
+''');
+  }
+
+  test_augmented_methods_augment() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment enum A {;
+  augment void foo1() {}
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+enum A {
+  v;
+  void foo1() {}
+  void foo2() {}
+}
+''');
+
+    configuration.withConstantInitializers = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum A @30
+        augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+        supertype: Enum
+        fields
+          static const enumConstant v @36
+            type: A
+            shouldUseTypeForInitializerInference: false
+          synthetic static const values @-1
+            type: List<A>
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get v @-1
+            returnType: A
+          synthetic static get values @-1
+            returnType: List<A>
+        methods
+          foo1 @46
+            returnType: void
+            augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo1
+          foo2 @63
+            returnType: void
+        augmented
+          fields
+            self::@enum::A::@field::v
+            self::@enum::A::@field::values
+          constructors
+            self::@enum::A::@constructor::new
+          accessors
+            self::@enum::A::@getter::v
+            self::@enum::A::@getter::values
+          methods
+            self::@augmentation::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo1
+            self::@enum::A::@method::foo2
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        enums
+          augment enum A @42
+            augmentationTarget: self::@enum::A
+            methods
+              augment foo1 @62
+                returnType: void
+                augmentationTarget: self::@enum::A::@method::foo1
+''');
+  }
+
+  test_augmented_methods_augment2_oneLib_oneTop() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment enum A {;
+  augment void foo() {}
+  augment void foo() {}
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+enum A {
+  v;
+  void foo() {}
+}
+''');
+
+    configuration
+      ..withConstantInitializers = false
+      ..withReferences = true;
+    checkElementText(library, r'''
+library
+  reference: self
+  definingUnit
+    reference: self
+    enums
+      enum A @30
+        reference: self::@enum::A
+        augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+        supertype: Enum
+        fields
+          static const enumConstant v @36
+            reference: self::@enum::A::@field::v
+            type: A
+            shouldUseTypeForInitializerInference: false
+          synthetic static const values @-1
+            reference: self::@enum::A::@field::values
+            type: List<A>
+        constructors
+          synthetic const @-1
+            reference: self::@enum::A::@constructor::new
+        accessors
+          synthetic static get v @-1
+            reference: self::@enum::A::@getter::v
+            returnType: A
+          synthetic static get values @-1
+            reference: self::@enum::A::@getter::values
+            returnType: List<A>
+        methods
+          foo @46
+            reference: self::@enum::A::@method::foo
+            returnType: void
+            augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo::@def::0
+        augmented
+          fields
+            self::@enum::A::@field::v
+            self::@enum::A::@field::values
+          constructors
+            self::@enum::A::@constructor::new
+          accessors
+            self::@enum::A::@getter::v
+            self::@enum::A::@getter::values
+          methods
+            self::@augmentation::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo::@def::1
+  augmentationImports
+    package:test/a.dart
+      reference: self::@augmentation::package:test/a.dart
+      definingUnit
+        reference: self::@augmentation::package:test/a.dart
+        enums
+          augment enum A @42
+            reference: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+            augmentationTarget: self::@enum::A
+            methods
+              augment foo @62
+                reference: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo::@def::0
+                returnType: void
+                augmentationTarget: self::@enum::A::@method::foo
+                augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo::@def::1
+              augment foo @86
+                reference: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo::@def::1
+                returnType: void
+                augmentationTarget: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo::@def::0
+''');
+  }
+
+  test_augmented_methods_augment2_oneLib_twoTop() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment enum A {;
+  augment void foo() {}
+}
+augment enum A {;
+  augment void foo() {}
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+enum A {
+  v;
+  void foo() {}
+}
+''');
+
+    configuration
+      ..withConstantInitializers = false
+      ..withReferences = true;
+    checkElementText(library, r'''
+library
+  reference: self
+  definingUnit
+    reference: self
+    enums
+      enum A @30
+        reference: self::@enum::A
+        augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@def::0
+        supertype: Enum
+        fields
+          static const enumConstant v @36
+            reference: self::@enum::A::@field::v
+            type: A
+            shouldUseTypeForInitializerInference: false
+          synthetic static const values @-1
+            reference: self::@enum::A::@field::values
+            type: List<A>
+        constructors
+          synthetic const @-1
+            reference: self::@enum::A::@constructor::new
+        accessors
+          synthetic static get v @-1
+            reference: self::@enum::A::@getter::v
+            returnType: A
+          synthetic static get values @-1
+            reference: self::@enum::A::@getter::values
+            returnType: List<A>
+        methods
+          foo @46
+            reference: self::@enum::A::@method::foo
+            returnType: void
+            augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@def::0::@methodAugmentation::foo
+        augmented
+          fields
+            self::@enum::A::@field::v
+            self::@enum::A::@field::values
+          constructors
+            self::@enum::A::@constructor::new
+          accessors
+            self::@enum::A::@getter::v
+            self::@enum::A::@getter::values
+          methods
+            self::@augmentation::package:test/a.dart::@enumAugmentation::A::@def::1::@methodAugmentation::foo
+  augmentationImports
+    package:test/a.dart
+      reference: self::@augmentation::package:test/a.dart
+      definingUnit
+        reference: self::@augmentation::package:test/a.dart
+        enums
+          augment enum A @42
+            reference: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@def::0
+            augmentationTarget: self::@enum::A
+            augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@def::1
+            methods
+              augment foo @62
+                reference: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@def::0::@methodAugmentation::foo
+                returnType: void
+                augmentationTarget: self::@enum::A::@method::foo
+                augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@def::1::@methodAugmentation::foo
+          augment enum A @86
+            reference: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@def::1
+            augmentationTarget: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@def::0
+            methods
+              augment foo @106
+                reference: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@def::1::@methodAugmentation::foo
+                returnType: void
+                augmentationTarget: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@def::0::@methodAugmentation::foo
+''');
+  }
+
+  test_augmented_methods_augment2_twoLib() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+import augment 'b.dart';
+augment enum A {;
+  augment void foo() {}
+}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+augment library 'a.dart';
+augment enum A {;
+  augment void foo() {}
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+enum A {
+  v;
+  void foo() {}
+}
+''');
+
+    configuration.withConstantInitializers = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum A @30
+        augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+        supertype: Enum
+        fields
+          static const enumConstant v @36
+            type: A
+            shouldUseTypeForInitializerInference: false
+          synthetic static const values @-1
+            type: List<A>
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get v @-1
+            returnType: A
+          synthetic static get values @-1
+            returnType: List<A>
+        methods
+          foo @46
+            returnType: void
+            augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo
+        augmented
+          fields
+            self::@enum::A::@field::v
+            self::@enum::A::@field::values
+          constructors
+            self::@enum::A::@constructor::new
+          accessors
+            self::@enum::A::@getter::v
+            self::@enum::A::@getter::values
+          methods
+            self::@augmentation::package:test/b.dart::@enumAugmentation::A::@methodAugmentation::foo
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        enums
+          augment enum A @67
+            augmentationTarget: self::@enum::A
+            augmentation: self::@augmentation::package:test/b.dart::@enumAugmentation::A
+            methods
+              augment foo @87
+                returnType: void
+                augmentationTarget: self::@enum::A::@method::foo
+                augmentation: self::@augmentation::package:test/b.dart::@enumAugmentation::A::@methodAugmentation::foo
+      augmentationImports
+        package:test/b.dart
+          definingUnit
+            enums
+              augment enum A @39
+                augmentationTarget: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+                methods
+                  augment foo @59
+                    returnType: void
+                    augmentationTarget: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo
+''');
+  }
+
+  test_augmented_methods_generic() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment enum A<T2> {;
+  T2 bar() => throw 0;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+enum A<T> {
+  v<int>();
+  T foo() => throw 0;
+}
+''');
+
+    configuration.withConstantInitializers = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum A @30
+        typeParameters
+          covariant T @32
+            defaultType: dynamic
+        augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+        supertype: Enum
+        fields
+          static const enumConstant v @39
+            type: A<int>
+            shouldUseTypeForInitializerInference: false
+          synthetic static const values @-1
+            type: List<A<dynamic>>
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get v @-1
+            returnType: A<int>
+          synthetic static get values @-1
+            returnType: List<A<dynamic>>
+        methods
+          foo @53
+            returnType: T
+        augmented
+          fields
+            self::@enum::A::@field::v
+            self::@enum::A::@field::values
+          constructors
+            self::@enum::A::@constructor::new
+          accessors
+            self::@enum::A::@getter::v
+            self::@enum::A::@getter::values
+          methods
+            MethodMember
+              base: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@method::bar
+              augmentationSubstitution: {T2: T}
+            self::@enum::A::@method::foo
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        enums
+          augment enum A @42
+            typeParameters
+              covariant T2 @44
+                defaultType: dynamic
+            augmentationTarget: self::@enum::A
+            methods
+              bar @56
+                returnType: T2
+''');
+  }
+
+  test_augmented_methods_generic_augment() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment enum A<T2> {;
+  augment T2 foo() => throw 0;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+enum A<T> {
+  v<int>();
+  T foo() => throw 0;
+}
+''');
+
+    configuration.withConstantInitializers = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum A @30
+        typeParameters
+          covariant T @32
+            defaultType: dynamic
+        augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+        supertype: Enum
+        fields
+          static const enumConstant v @39
+            type: A<int>
+            shouldUseTypeForInitializerInference: false
+          synthetic static const values @-1
+            type: List<A<dynamic>>
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get v @-1
+            returnType: A<int>
+          synthetic static get values @-1
+            returnType: List<A<dynamic>>
+        methods
+          foo @53
+            returnType: T
+            augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo
+        augmented
+          fields
+            self::@enum::A::@field::v
+            self::@enum::A::@field::values
+          constructors
+            self::@enum::A::@constructor::new
+          accessors
+            self::@enum::A::@getter::v
+            self::@enum::A::@getter::values
+          methods
+            MethodMember
+              base: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo
+              augmentationSubstitution: {T2: T}
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        enums
+          augment enum A @42
+            typeParameters
+              covariant T2 @44
+                defaultType: dynamic
+            augmentationTarget: self::@enum::A
+            methods
+              augment foo @64
+                returnType: T2
+                augmentationTarget: self::@enum::A::@method::foo
+''');
+  }
+
+  test_augmented_mixins() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment enum A with M2 {}
+mixin M2 {}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+enum A with M1 {
+  v
+}
+mixin M1 {}
+''');
+
+    configuration.withConstantInitializers = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum A @30
+        augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+        supertype: Enum
+        mixins
+          M1
+        fields
+          static const enumConstant v @44
+            type: A
+            shouldUseTypeForInitializerInference: false
+          synthetic static const values @-1
+            type: List<A>
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get v @-1
+            returnType: A
+          synthetic static get values @-1
+            returnType: List<A>
+        augmented
+          mixins
+            M1
+            M2
+          fields
+            self::@enum::A::@field::v
+            self::@enum::A::@field::values
+          constructors
+            self::@enum::A::@constructor::new
+          accessors
+            self::@enum::A::@getter::v
+            self::@enum::A::@getter::values
+    mixins
+      mixin M1 @54
+        superclassConstraints
+          Object
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        enums
+          augment enum A @42
+            augmentationTarget: self::@enum::A
+            mixins
+              M2
+        mixins
+          mixin M2 @61
+            superclassConstraints
+              Object
+''');
+  }
+
+  test_augmented_mixins_inferredTypeArguments() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment enum A<T2> with M2 {}
+mixin M2<U2> on M1<U2> {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+augment library 'test.dart';
+augment enum A<T3> with M3 {}
+mixin M3<U3> on M2<U3> {}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+import augment 'b.dart';
+enum A<T1> with M1<T1> {
+  v<int>()
+}
+mixin M1<U1> {}
+''');
+
+    configuration.withConstantInitializers = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum A @55
+        typeParameters
+          covariant T1 @57
+            defaultType: dynamic
+        augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+        supertype: Enum
+        mixins
+          M1<T1>
+        fields
+          static const enumConstant v @77
+            type: A<int>
+            shouldUseTypeForInitializerInference: false
+          synthetic static const values @-1
+            type: List<A<dynamic>>
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get v @-1
+            returnType: A<int>
+          synthetic static get values @-1
+            returnType: List<A<dynamic>>
+        augmented
+          mixins
+            M1<T1>
+            M2<T1>
+            M3<T1>
+          fields
+            self::@enum::A::@field::v
+            self::@enum::A::@field::values
+          constructors
+            self::@enum::A::@constructor::new
+          accessors
+            self::@enum::A::@getter::v
+            self::@enum::A::@getter::values
+    mixins
+      mixin M1 @94
+        typeParameters
+          covariant U1 @97
+            defaultType: dynamic
+        superclassConstraints
+          Object
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        enums
+          augment enum A @42
+            typeParameters
+              covariant T2 @44
+                defaultType: dynamic
+            augmentationTarget: self::@enum::A
+            augmentation: self::@augmentation::package:test/b.dart::@enumAugmentation::A
+            mixins
+              M2<T2>
+        mixins
+          mixin M2 @65
+            typeParameters
+              covariant U2 @68
+                defaultType: dynamic
+            superclassConstraints
+              M1<U2>
+    package:test/b.dart
+      definingUnit
+        enums
+          augment enum A @42
+            typeParameters
+              covariant T3 @44
+                defaultType: dynamic
+            augmentationTarget: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+            mixins
+              M3<T3>
+        mixins
+          mixin M3 @65
+            typeParameters
+              covariant U3 @68
+                defaultType: dynamic
+            superclassConstraints
+              M2<U3>
+''');
+  }
+
+  test_augmented_setters_add() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment enum A {;
+  set foo2(int _) {}
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+enum A {
+  v;
+  set foo1(int _) {}
+}
+''');
+
+    configuration
+      ..withConstantInitializers = false
+      ..withPropertyLinking = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum A @30
+        augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+        supertype: Enum
+        fields
+          static const enumConstant v @36
+            type: A
+            shouldUseTypeForInitializerInference: false
+            id: field_0
+            getter: getter_0
+          synthetic static const values @-1
+            type: List<A>
+            id: field_1
+            getter: getter_1
+          synthetic foo1 @-1
+            type: int
+            id: field_2
+            setter: setter_0
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get v @-1
+            returnType: A
+            id: getter_0
+            variable: field_0
+          synthetic static get values @-1
+            returnType: List<A>
+            id: getter_1
+            variable: field_1
+          set foo1= @45
+            parameters
+              requiredPositional _ @54
+                type: int
+            returnType: void
+            id: setter_0
+            variable: field_2
+        augmented
+          fields
+            self::@enum::A::@field::foo1
+            self::@augmentation::package:test/a.dart::@enumAugmentation::A::@field::foo2
+            self::@enum::A::@field::v
+            self::@enum::A::@field::values
+          constructors
+            self::@enum::A::@constructor::new
+          accessors
+            self::@enum::A::@setter::foo1
+            self::@augmentation::package:test/a.dart::@enumAugmentation::A::@setter::foo2
+            self::@enum::A::@getter::v
+            self::@enum::A::@getter::values
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        enums
+          augment enum A @42
+            augmentationTarget: self::@enum::A
+            fields
+              synthetic foo2 @-1
+                type: int
+                id: field_3
+                setter: setter_1
+            accessors
+              set foo2= @53
+                parameters
+                  requiredPositional _ @62
+                    type: int
+                returnType: void
+                id: setter_1
+                variable: field_3
+''');
+  }
+
+  test_augmented_setters_augment_field() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment enum A {;
+  augment set foo(int _) {}
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+enum A {
+  v;
+  final int foo = 0;
+}
+''');
+
+    configuration
+      ..withConstantInitializers = false
+      ..withPropertyLinking = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum A @30
+        augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+        supertype: Enum
+        fields
+          static const enumConstant v @36
+            type: A
+            shouldUseTypeForInitializerInference: false
+            id: field_0
+            getter: getter_0
+          synthetic static const values @-1
+            type: List<A>
+            id: field_1
+            getter: getter_1
+          final foo @51
+            type: int
+            shouldUseTypeForInitializerInference: true
+            id: field_2
+            getter: getter_2
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get v @-1
+            returnType: A
+            id: getter_0
+            variable: field_0
+          synthetic static get values @-1
+            returnType: List<A>
+            id: getter_1
+            variable: field_1
+          synthetic get foo @-1
+            returnType: int
+            id: getter_2
+            variable: field_2
+        augmented
+          fields
+            self::@enum::A::@field::foo
+            self::@enum::A::@field::v
+            self::@enum::A::@field::values
+          constructors
+            self::@enum::A::@constructor::new
+          accessors
+            self::@enum::A::@getter::foo
+            self::@augmentation::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo
+            self::@enum::A::@getter::v
+            self::@enum::A::@getter::values
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        enums
+          augment enum A @42
+            augmentationTarget: self::@enum::A
+            accessors
+              augment set foo= @61
+                parameters
+                  requiredPositional _ @69
+                    type: int
+                returnType: void
+                id: setter_0
+                variable: <null>
+                augmentationTarget: <null>
+''');
+  }
+
+  test_augmented_setters_augment_nothing() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment enum A {;
+  augment set foo(int _) {}
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+enum A {
+  v
+}
+''');
+
+    configuration
+      ..withConstantInitializers = false
+      ..withPropertyLinking = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum A @30
+        augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+        supertype: Enum
+        fields
+          static const enumConstant v @36
+            type: A
+            shouldUseTypeForInitializerInference: false
+            id: field_0
+            getter: getter_0
+          synthetic static const values @-1
+            type: List<A>
+            id: field_1
+            getter: getter_1
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get v @-1
+            returnType: A
+            id: getter_0
+            variable: field_0
+          synthetic static get values @-1
+            returnType: List<A>
+            id: getter_1
+            variable: field_1
+        augmented
+          fields
+            self::@enum::A::@field::v
+            self::@enum::A::@field::values
+          constructors
+            self::@enum::A::@constructor::new
+          accessors
+            self::@augmentation::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo
+            self::@enum::A::@getter::v
+            self::@enum::A::@getter::values
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        enums
+          augment enum A @42
+            augmentationTarget: self::@enum::A
+            accessors
+              augment set foo= @61
+                parameters
+                  requiredPositional _ @69
+                    type: int
+                returnType: void
+                id: setter_0
+                variable: <null>
+                augmentationTarget: <null>
+''');
+  }
+
+  test_augmented_setters_augment_setter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment enum A {;
+  augment set foo1(int _) {}
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+enum A {
+  v;
+  set foo1(int _) {}
+  set foo2(int _) {}
+}
+''');
+
+    configuration
+      ..withConstantInitializers = false
+      ..withPropertyLinking = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum A @30
+        augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+        supertype: Enum
+        fields
+          static const enumConstant v @36
+            type: A
+            shouldUseTypeForInitializerInference: false
+            id: field_0
+            getter: getter_0
+          synthetic static const values @-1
+            type: List<A>
+            id: field_1
+            getter: getter_1
+          synthetic foo1 @-1
+            type: int
+            id: field_2
+            setter: setter_0
+          synthetic foo2 @-1
+            type: int
+            id: field_3
+            setter: setter_1
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get v @-1
+            returnType: A
+            id: getter_0
+            variable: field_0
+          synthetic static get values @-1
+            returnType: List<A>
+            id: getter_1
+            variable: field_1
+          set foo1= @45
+            parameters
+              requiredPositional _ @54
+                type: int
+            returnType: void
+            id: setter_0
+            variable: field_2
+            augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo1
+          set foo2= @66
+            parameters
+              requiredPositional _ @75
+                type: int
+            returnType: void
+            id: setter_1
+            variable: field_3
+        augmented
+          fields
+            self::@enum::A::@field::foo1
+            self::@enum::A::@field::foo2
+            self::@enum::A::@field::v
+            self::@enum::A::@field::values
+          constructors
+            self::@enum::A::@constructor::new
+          accessors
+            self::@augmentation::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo1
+            self::@enum::A::@setter::foo2
+            self::@enum::A::@getter::v
+            self::@enum::A::@getter::values
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        enums
+          augment enum A @42
+            augmentationTarget: self::@enum::A
+            accessors
+              augment set foo1= @61
+                parameters
+                  requiredPositional _ @70
+                    type: int
+                returnType: void
+                id: setter_2
+                variable: field_2
+                augmentationTarget: self::@enum::A::@setter::foo1
+''');
+  }
+
+  test_constructors_augment2() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment enum A {;
+  augment const A.named();
+}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+augment library 'test.dart';
+augment enum A {;
+  augment const A.named();
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+import augment 'b.dart';
+enum A {
+  v.named();
+  const A.named();
+}
+''');
+
+    configuration.withConstantInitializers = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum A @55
+        augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+        supertype: Enum
+        fields
+          static const enumConstant v @61
+            type: A
+            shouldUseTypeForInitializerInference: false
+          synthetic static const values @-1
+            type: List<A>
+        constructors
+          const named @82
+            periodOffset: 81
+            nameEnd: 87
+            augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::named
+        accessors
+          synthetic static get v @-1
+            returnType: A
+          synthetic static get values @-1
+            returnType: List<A>
+        augmented
+          fields
+            self::@enum::A::@field::v
+            self::@enum::A::@field::values
+          constructors
+            self::@augmentation::package:test/b.dart::@enumAugmentation::A::@constructorAugmentation::named
+          accessors
+            self::@enum::A::@getter::v
+            self::@enum::A::@getter::values
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        enums
+          augment enum A @42
+            augmentationTarget: self::@enum::A
+            augmentation: self::@augmentation::package:test/b.dart::@enumAugmentation::A
+            constructors
+              augment const named @65
+                periodOffset: 64
+                nameEnd: 70
+                augmentationTarget: self::@enum::A::@constructor::named
+                augmentation: self::@augmentation::package:test/b.dart::@enumAugmentation::A::@constructorAugmentation::named
+    package:test/b.dart
+      definingUnit
+        enums
+          augment enum A @42
+            augmentationTarget: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+            constructors
+              augment const named @65
+                periodOffset: 64
+                nameEnd: 70
+                augmentationTarget: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::named
+''');
+  }
+
+  test_constructors_augment_named() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment enum A {;
+  augment const A.named();
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+enum A {
+  v.named();
+  const A.named();
+}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum A @30
+        augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+        supertype: Enum
+        fields
+          static const enumConstant v @36
+            type: A
+            shouldUseTypeForInitializerInference: false
+            constantInitializer
+              InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: A @-1
+                    element: self::@enum::A
+                    type: A
+                  period: . @0
+                  name: SimpleIdentifier
+                    token: named @-1
+                    staticElement: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::named
+                    staticType: null
+                  staticElement: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::named
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticType: A
+          synthetic static const values @-1
+            type: List<A>
+            constantInitializer
+              ListLiteral
+                leftBracket: [ @0
+                elements
+                  SimpleIdentifier
+                    token: v @-1
+                    staticElement: self::@enum::A::@getter::v
+                    staticType: A
+                rightBracket: ] @0
+                staticType: List<A>
+        constructors
+          const named @57
+            periodOffset: 56
+            nameEnd: 62
+            augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::named
+        accessors
+          synthetic static get v @-1
+            returnType: A
+          synthetic static get values @-1
+            returnType: List<A>
+        augmented
+          fields
+            self::@enum::A::@field::v
+            self::@enum::A::@field::values
+          constructors
+            self::@augmentation::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::named
+          accessors
+            self::@enum::A::@getter::v
+            self::@enum::A::@getter::values
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        enums
+          augment enum A @42
+            augmentationTarget: self::@enum::A
+            constructors
+              augment const named @65
+                periodOffset: 64
+                nameEnd: 70
+                augmentationTarget: self::@enum::A::@constructor::named
+''');
+  }
+
+  test_constructors_augment_unnamed() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment enum A {;
+  augment const A();
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+enum A {
+  v;
+  const A();
+}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum A @30
+        augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+        supertype: Enum
+        fields
+          static const enumConstant v @36
+            type: A
+            shouldUseTypeForInitializerInference: false
+            constantInitializer
+              InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: A @-1
+                    element: self::@enum::A
+                    type: A
+                  staticElement: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::new
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticType: A
+          synthetic static const values @-1
+            type: List<A>
+            constantInitializer
+              ListLiteral
+                leftBracket: [ @0
+                elements
+                  SimpleIdentifier
+                    token: v @-1
+                    staticElement: self::@enum::A::@getter::v
+                    staticType: A
+                rightBracket: ] @0
+                staticType: List<A>
+        constructors
+          const @47
+            augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::new
+        accessors
+          synthetic static get v @-1
+            returnType: A
+          synthetic static get values @-1
+            returnType: List<A>
+        augmented
+          fields
+            self::@enum::A::@field::v
+            self::@enum::A::@field::values
+          constructors
+            self::@augmentation::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::new
+          accessors
+            self::@enum::A::@getter::v
+            self::@enum::A::@getter::values
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        enums
+          augment enum A @42
+            augmentationTarget: self::@enum::A
+            constructors
+              augment const @63
+                augmentationTarget: self::@enum::A::@constructor::new
+''');
+  }
+
+  test_inferTypes_method_ofAugment() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+abstract class A {
+  int foo(String a);
+}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+augment library 'test.dart';
+augment enum B {;
+  foo(a) => 0;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import 'a.dart';
+import augment 'b.dart';
+
+enum B implements A {
+  v
+}
+''');
+
+    configuration.withConstantInitializers = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/a.dart
+  definingUnit
+    enums
+      enum B @48
+        augmentation: self::@augmentation::package:test/b.dart::@enumAugmentation::B
+        supertype: Enum
+        interfaces
+          A
+        fields
+          static const enumConstant v @67
+            type: B
+            shouldUseTypeForInitializerInference: false
+          synthetic static const values @-1
+            type: List<B>
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get v @-1
+            returnType: B
+          synthetic static get values @-1
+            returnType: List<B>
+        augmented
+          interfaces
+            A
+          fields
+            self::@enum::B::@field::v
+            self::@enum::B::@field::values
+          constructors
+            self::@enum::B::@constructor::new
+          accessors
+            self::@enum::B::@getter::v
+            self::@enum::B::@getter::values
+          methods
+            self::@augmentation::package:test/b.dart::@enumAugmentation::B::@method::foo
+  augmentationImports
+    package:test/b.dart
+      definingUnit
+        enums
+          augment enum B @42
+            augmentationTarget: self::@enum::B
+            methods
+              foo @49
+                parameters
+                  requiredPositional a @53
+                    type: String
+                returnType: int
+''');
+  }
+
+  test_inferTypes_method_usingAugmentation_interface() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  int foo(String a) => 0;
+}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+augment library 'test.dart';
+import 'a.dart';
+augment enum B implements A {}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'b.dart';
+
+enum B {
+  v;
+  foo(a) => 0;
+}
+''');
+
+    configuration.withConstantInitializers = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum B @31
+        augmentation: self::@augmentation::package:test/b.dart::@enumAugmentation::B
+        supertype: Enum
+        fields
+          static const enumConstant v @37
+            type: B
+            shouldUseTypeForInitializerInference: false
+          synthetic static const values @-1
+            type: List<B>
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get v @-1
+            returnType: B
+          synthetic static get values @-1
+            returnType: List<B>
+        methods
+          foo @42
+            parameters
+              requiredPositional a @46
+                type: String
+            returnType: int
+        augmented
+          interfaces
+            A
+          fields
+            self::@enum::B::@field::v
+            self::@enum::B::@field::values
+          constructors
+            self::@enum::B::@constructor::new
+          accessors
+            self::@enum::B::@getter::v
+            self::@enum::B::@getter::values
+          methods
+            self::@enum::B::@method::foo
+  augmentationImports
+    package:test/b.dart
+      imports
+        package:test/a.dart
+      definingUnit
+        enums
+          augment enum B @59
+            augmentationTarget: self::@enum::B
+            interfaces
+              A
+''');
+  }
+
+  test_inferTypes_method_usingAugmentation_mixin() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+mixin A {
+  int foo(String a) => 0;
+}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+augment library 'test.dart';
+import 'a.dart';
+augment enum B with A {}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'b.dart';
+
+enum B {
+  v;
+  foo(a) => 0;
+}
+''');
+
+    configuration.withConstantInitializers = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum B @31
+        augmentation: self::@augmentation::package:test/b.dart::@enumAugmentation::B
+        supertype: Enum
+        fields
+          static const enumConstant v @37
+            type: B
+            shouldUseTypeForInitializerInference: false
+          synthetic static const values @-1
+            type: List<B>
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get v @-1
+            returnType: B
+          synthetic static get values @-1
+            returnType: List<B>
+        methods
+          foo @42
+            parameters
+              requiredPositional a @46
+                type: String
+            returnType: int
+        augmented
+          mixins
+            A
+          fields
+            self::@enum::B::@field::v
+            self::@enum::B::@field::values
+          constructors
+            self::@enum::B::@constructor::new
+          accessors
+            self::@enum::B::@getter::v
+            self::@enum::B::@getter::values
+          methods
+            self::@enum::B::@method::foo
+  augmentationImports
+    package:test/b.dart
+      imports
+        package:test/a.dart
+      definingUnit
+        enums
+          augment enum B @59
+            augmentationTarget: self::@enum::B
+            mixins
+              A
+''');
+  }
+
+  test_typeParameters_defaultType() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment enum A<T extends B> {}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+enum A<T extends B> {
+  v
+}
+class B {}
+''');
+
+    configuration.withConstantInitializers = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class B @59
+        constructors
+          synthetic @-1
+    enums
+      enum A @30
+        typeParameters
+          covariant T @32
+            bound: B
+            defaultType: B
+        augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+        supertype: Enum
+        fields
+          static const enumConstant v @49
+            type: A<B>
+            shouldUseTypeForInitializerInference: false
+          synthetic static const values @-1
+            type: List<A<B>>
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get v @-1
+            returnType: A<B>
+          synthetic static get values @-1
+            returnType: List<A<B>>
+        augmented
+          fields
+            self::@enum::A::@field::v
+            self::@enum::A::@field::values
+          constructors
+            self::@enum::A::@constructor::new
+          accessors
+            self::@enum::A::@getter::v
+            self::@enum::A::@getter::values
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        enums
+          augment enum A @42
+            typeParameters
+              covariant T @44
+                bound: B
+                defaultType: B
+            augmentationTarget: self::@enum::A
+''');
   }
 }
 

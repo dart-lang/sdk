@@ -280,6 +280,21 @@ class BundleWriter {
       _resolutionSink.writeType(element.supertype);
       _resolutionSink._writeTypeList(element.mixins);
       _resolutionSink._writeTypeList(element.interfaces);
+      _resolutionSink.writeElement(element.augmentationTarget);
+      _resolutionSink.writeElement(element.augmentation);
+      if (element.augmentationTarget == null) {
+        _resolutionSink.writeIfType<AugmentedEnumElementImpl>(
+          element.augmented,
+          (augmented) {
+            _resolutionSink._writeTypeList(augmented.mixins);
+            _resolutionSink._writeTypeList(augmented.interfaces);
+            _resolutionSink._writeElementList(augmented.fields);
+            _resolutionSink._writeElementList(augmented.constructors);
+            _resolutionSink._writeElementList(augmented.accessors);
+            _resolutionSink._writeElementList(augmented.methods);
+          },
+        );
+      }
 
       _writeList(
         element.fields.where((e) {

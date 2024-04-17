@@ -198,7 +198,6 @@ augment class A {
     await expectNavigationCodeLens();
   }
 
-  @failingTest // "augment enum" is currently an error?
   test_available_enum() async {
     setLibraryContent(r'''
 enum [!A!] {

@@ -124,6 +124,12 @@ class Linker {
     }
   }
 
+  void _buildEnumSyntheticConstructors() {
+    for (var library in builders.values) {
+      library.buildEnumSyntheticConstructors();
+    }
+  }
+
   void _buildExportScopes() {
     for (var library in builders.values) {
       library.buildInitialExportScope();
@@ -224,6 +230,7 @@ class Linker {
     );
 
     _buildClassSyntheticConstructors();
+    _buildEnumSyntheticConstructors();
     _replaceConstFieldsIfNoConstConstructor();
     _resolveConstructorFieldFormals();
     _buildEnumChildren();
