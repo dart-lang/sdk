@@ -13,8 +13,21 @@ import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/rename_unit_member.dart';
 import 'package:analysis_server/src/utilities/extensions/string.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+
+AstNode? _tweakLocatedNode(AstNode? node, int offset) {
+  if (node is RepresentationDeclaration) {
+    var extensionTypeDeclaration = node.parent;
+    if (extensionTypeDeclaration is ExtensionTypeDeclaration) {
+      if (extensionTypeDeclaration.name.end == offset) {
+        node = extensionTypeDeclaration;
+      }
+    }
+  }
+  return node;
+}
 
 typedef StaticOptions = Either2<bool, RenameOptions>;
 
@@ -44,6 +57,7 @@ class PrepareRenameHandler extends LspMessageHandler<TextDocumentPositionParams,
 
     return (unit, offset).mapResults((unit, offset) async {
       var node = NodeLocator(offset).searchWithin(unit.unit);
+      node = _tweakLocatedNode(node, offset);
       var element = server.getElementOfNode(node);
       if (node == null || element == null) {
         return success(null);
@@ -132,6 +146,7 @@ class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?>
     return (path, docIdentifier, unit, offset)
         .mapResults((path, docIdentifier, unit, offset) async {
       var node = NodeLocator(offset).searchWithin(unit.unit);
+      node = _tweakLocatedNode(node, offset);
       var element = server.getElementOfNode(node);
       if (node == null || element == null) {
         return success(null);

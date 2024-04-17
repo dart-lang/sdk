@@ -92,6 +92,30 @@ final a = MyEnum.[!o^ne!];
     return _test_prepare(content, 'one');
   }
 
+  Future<void> test_prepare_extensionType_onName_begin() async {
+    const content = '''
+extension type [!^MyType!](int it) {}
+''';
+
+    return _test_prepare(content, 'MyType');
+  }
+
+  Future<void> test_prepare_extensionType_onName_end() async {
+    const content = '''
+extension type [!MyType^!](int it) {}
+''';
+
+    return _test_prepare(content, 'MyType');
+  }
+
+  Future<void> test_prepare_extensionType_onName_inside() async {
+    const content = '''
+extension type [!My^Type!](int it) {}
+''';
+
+    return _test_prepare(content, 'MyType');
+  }
+
   Future<void> test_prepare_function_startOfParameterList() {
     const content = '''
 void [!aaaa!]^() {}
@@ -511,6 +535,45 @@ enum MyEnum { newOne }
 final a = MyEnum.newOne;
 ''';
     return _test_rename_withDocumentChanges(content, 'newOne', expectedContent);
+  }
+
+  Future<void> test_rename_extensionType_onName_begin() {
+    const content = '''
+extension type ^MyType(int it) {}
+void f(MyType x) {}
+''';
+    const expectedContent = '''
+extension type MyNewType(int it) {}
+void f(MyNewType x) {}
+''';
+    return _test_rename_withDocumentChanges(
+        content, 'MyNewType', expectedContent);
+  }
+
+  Future<void> test_rename_extensionType_onName_end() {
+    const content = '''
+extension type MyType^(int it) {}
+void f(MyType x) {}
+''';
+    const expectedContent = '''
+extension type MyNewType(int it) {}
+void f(MyNewType x) {}
+''';
+    return _test_rename_withDocumentChanges(
+        content, 'MyNewType', expectedContent);
+  }
+
+  Future<void> test_rename_extensionType_onName_inside() {
+    const content = '''
+extension type My^Type(int it) {}
+void f(MyType x) {}
+''';
+    const expectedContent = '''
+extension type MyNewType(int it) {}
+void f(MyNewType x) {}
+''';
+    return _test_rename_withDocumentChanges(
+        content, 'MyNewType', expectedContent);
   }
 
   Future<void> test_rename_forEachElement_blockBody() {
