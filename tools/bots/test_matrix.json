@@ -728,10 +728,8 @@
             "-ncfe-weak-${system}",
             "co19",
             "corelib",
-            "ffi",
             "language",
-            "lib",
-            "service"
+            "lib"
           ],
           "fileset": "front-end",
           "shards": 2
