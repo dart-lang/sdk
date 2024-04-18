@@ -949,18 +949,17 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "IntegerDivisionByZeroException.",
   );
 
-  ///  16.12.2 Const: An expression of one of the forms !e, e1 && e2 or e1 || e2,
-  ///  where e, e1 and e2 are constant expressions that evaluate to a boolean
-  ///  value.
+  ///  See https://spec.dart.dev/DartLangSpecDraft.pdf#constants, "Constants",
+  ///  for text about "An expression of the form !e1", "An expression of the form
+  ///  e1 && e2", and "An expression of the form e1 || e2".
   static const CompileTimeErrorCode CONST_EVAL_TYPE_BOOL = CompileTimeErrorCode(
     'CONST_EVAL_TYPE_BOOL',
     "In constant expressions, operands of this operator must be of type "
         "'bool'.",
   );
 
-  ///  16.12.2 Const: An expression of one of the forms !e, e1 && e2 or e1 || e2,
-  ///  where e, e1 and e2 are constant expressions that evaluate to a boolean
-  ///  value.
+  ///  See https://spec.dart.dev/DartLangSpecDraft.pdf#constants, "Constants",
+  ///  for text about "An expression of the form e1 & e2".
   static const CompileTimeErrorCode CONST_EVAL_TYPE_BOOL_INT =
       CompileTimeErrorCode(
     'CONST_EVAL_TYPE_BOOL_INT',
@@ -968,9 +967,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "or 'int'.",
   );
 
-  ///  16.12.2 Const: An expression of one of the forms e1 == e2 or e1 != e2 where
-  ///  e1 and e2 are constant expressions that evaluate to a numeric, string or
-  ///  boolean value or to null.
+  ///  See https://spec.dart.dev/DartLangSpecDraft.pdf#constants, "Constants",
+  ///  for text about "A literal string".
   static const CompileTimeErrorCode CONST_EVAL_TYPE_BOOL_NUM_STRING =
       CompileTimeErrorCode(
     'CONST_EVAL_TYPE_BOOL_NUM_STRING',
@@ -978,21 +976,28 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "'bool', 'num', 'String' or 'null'.",
   );
 
-  ///  16.12.2 Const: An expression of one of the forms ~e, e1 ^ e2, e1 & e2,
-  ///  e1 | e2, e1 >> e2 or e1 << e2, where e, e1 and e2 are constant expressions
-  ///  that evaluate to an integer value or to null.
+  ///  See https://spec.dart.dev/DartLangSpecDraft.pdf#constants, "Constants",
+  ///  for text about "An expression of the form ~e1", "An expression of one of
+  ///  the forms e1 >> e2".
   static const CompileTimeErrorCode CONST_EVAL_TYPE_INT = CompileTimeErrorCode(
     'CONST_EVAL_TYPE_INT',
     "In constant expressions, operands of this operator must be of type 'int'.",
   );
 
-  ///  16.12.2 Const: An expression of one of the forms e, e1 + e2, e1 - e2, e1
-  ///  e2, e1 / e2, e1 ~/ e2, e1 > e2, e1 < e2, e1 >= e2, e1 <= e2 or e1 % e2,
-  ///  where e, e1 and e2 are constant expressions that evaluate to a numeric
-  ///  value or to null.
+  ///  See https://spec.dart.dev/DartLangSpecDraft.pdf#constants, "Constants",
+  ///  for text about "An expression of the form e1 - e2".
   static const CompileTimeErrorCode CONST_EVAL_TYPE_NUM = CompileTimeErrorCode(
     'CONST_EVAL_TYPE_NUM',
     "In constant expressions, operands of this operator must be of type 'num'.",
+  );
+
+  ///  See https://spec.dart.dev/DartLangSpecDraft.pdf#constants, "Constants",
+  ///  for text about "An expression of the form e1 + e2".
+  static const CompileTimeErrorCode CONST_EVAL_TYPE_NUM_STRING =
+      CompileTimeErrorCode(
+    'CONST_EVAL_TYPE_NUM_STRING',
+    "In constant expressions, operands of this operator must be of type 'num' "
+        "or 'String'.",
   );
 
   ///  No parameters.
