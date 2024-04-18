@@ -5,6 +5,8 @@
 import 'dart:_internal' show patch, unsafeCast;
 import 'dart:_js_helper' show isJSUndefined, JS;
 import 'dart:_wasm';
+import 'dart:js_interop' hide JS;
+import 'dart:js_interop' as js_interop;
 import 'dart:ffi' show Pointer, Struct, Union;
 
 void _checkValidWeakTarget(Object object) {
@@ -49,62 +51,107 @@ class Expando<T> {
   }
 }
 
+@js_interop.JS('WeakRef')
+external JSFunction? _jsWeakRefFunction;
+final bool _supportsWeakRef = _jsWeakRefFunction != null;
+
+@js_interop.JS('WeakRef')
+extension type _JSWeakRef._(JSObject _) implements JSObject {
+  external _JSWeakRef(ExternalDartReference target);
+  external ExternalDartReference? deref();
+}
+
 @patch
 class WeakReference<T extends Object> {
   @patch
-  factory WeakReference(T object) {
-    return _WeakReferenceWrapper<T>(object);
+  factory WeakReference(T target) {
+    if (_supportsWeakRef) {
+      _checkValidWeakTarget(target);
+      return _WeakReferenceWrapper<T>(target);
+    }
+    // The polyfill does not validate [target]. This lets the tests distinguish
+    // whether we run in polyfill mode or not (this behavior is mirrored from
+    // what dart2js does).
+    return _WeakReferencePolyfill<T>(target);
   }
 }
 
 class _WeakReferenceWrapper<T extends Object> implements WeakReference<T> {
-  WasmExternRef? _jsWeakRef;
+  final _JSWeakRef _jsWeakRef;
+  _WeakReferenceWrapper(T target)
+      : _jsWeakRef = _JSWeakRef(target.toExternalReference);
+  T? get target => _jsWeakRef.deref()?.toDartObject as T?;
+}
 
-  _WeakReferenceWrapper(T object) {
-    _checkValidWeakTarget(object);
-    _jsWeakRef = JS<WasmExternRef?>("o => new WeakRef(o)", object as Object);
-  }
+class _WeakReferencePolyfill<T extends Object> implements WeakReference<T> {
+  final T target;
+  _WeakReferencePolyfill(this.target);
+}
 
-  T? get target {
-    final result = JS<WasmExternRef?>("r => r.deref()", _jsWeakRef);
-    // Coerce to null if JavaScript returns undefined.
-    if (isJSUndefined(result)) return null;
-    return unsafeCast(result.internalize()?.toObject());
-  }
+@js_interop.JS('FinalizationRegistry')
+external JSFunction? _jsFinalizationRegistry;
+final bool _supportsFinalizationRegistry = _jsFinalizationRegistry != null;
+
+@js_interop.JS('FinalizationRegistry')
+extension type _JSFinalizationRegistry._(JSObject _) implements JSObject {
+  external _JSFinalizationRegistry(JSFunction callback);
+  @js_interop.JS('register')
+  external void registerWithDetach(ExternalDartReference value,
+      ExternalDartReference peer, ExternalDartReference? detach);
+  external void register(
+      ExternalDartReference value, ExternalDartReference peer);
+  external void unregister(ExternalDartReference detach);
 }
 
 @patch
 class Finalizer<T> {
   @patch
   factory Finalizer(void Function(T) object) {
-    return _FinalizationRegistryWrapper<T>(object);
+    return _supportsFinalizationRegistry
+        ? _FinalizationRegistryWrapper<T>(object)
+        : _FinalizationRegistryPolyfill<T>(object);
+  }
+}
+
+class _FinalizationRegistryPolyfill<T> implements Finalizer<T> {
+  _FinalizationRegistryPolyfill(void Function(T) callback);
+
+  void attach(Object value, T peer, {Object? detach}) {
+    // The polyfill does not validate [value] & [detach]. This lets the tests
+    // distinguish whether we run in polyfill mode or not (this behavior is
+    // mirrored from what dart2js does).
+  }
+
+  void detach(Object detach) {
+    // The polyfill does not validate [detach]. This lets the tests distinguish
+    // whether we run in polyfill mode or not (this behavior is mirrored from
+    // what dart2js does).
   }
 }
 
 class _FinalizationRegistryWrapper<T> implements Finalizer<T> {
-  WasmExternRef? _jsFinalizationRegistry;
+  final _JSFinalizationRegistry _jsFinalizationRegistry;
 
-  _FinalizationRegistryWrapper(void Function(T) callback) {
-    // TODO(joshualitt): Use `allowInterop` instead of explicit trampoline.
-    _jsFinalizationRegistry = JS<WasmExternRef?>(
-        r"""c => new FinalizationRegistry(
-            o => dartInstance.exports.$invokeCallback1(c, o))""",
-        (dynamic o) => callback(unsafeCast(o)));
-  }
+  _FinalizationRegistryWrapper(void Function(T) callback)
+      : _jsFinalizationRegistry =
+            _JSFinalizationRegistry(((ExternalDartReference peer) {
+          callback(peer.toDartObject as T);
+        }).toJS);
 
-  void attach(Object value, T token, {Object? detach}) {
+  void attach(Object value, T peer, {Object? detach}) {
     _checkValidWeakTarget(value);
     if (detach != null) {
       _checkValidWeakTarget(detach);
-      JS<void>("(r, v, t, d) => r.register(v, t, d)", _jsFinalizationRegistry,
-          value, token as Object, detach);
+      _jsFinalizationRegistry.registerWithDetach(value.toExternalReference,
+          (peer as Object).toExternalReference, detach.toExternalReference);
     } else {
-      JS<void>("(r, v, t) => r.register(v, t)", _jsFinalizationRegistry, value,
-          token as Object);
+      _jsFinalizationRegistry.register(
+          value.toExternalReference, (peer as Object).toExternalReference);
     }
   }
 
-  void detach(Object detachToken) {
-    JS<void>("(r, d) => r.unregister(d)", _jsFinalizationRegistry, detachToken);
+  void detach(Object detach) {
+    _checkValidWeakTarget(detach);
+    _jsFinalizationRegistry.unregister(detach.toExternalReference);
   }
 }

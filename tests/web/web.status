@@ -5,7 +5,6 @@
 [ $compiler != dart2js ]
 dummy_compiler_test: SkipByDesign # Issue 30773. Test should be migrated as a unit test of dart2js, is only intended to test self-hosting.
 internal/deferred_url_test: SkipByDesign # test specific for the dart2js runtime
-weak_reference_polyfill_test: SkipByDesign # test specific for the dart2js runtime
 
 [ $compiler == dart2wasm ]
 (?!wasm)*: SkipByDesign
@@ -16,6 +15,7 @@ wasm/*: SkipByDesign
 [ $compiler == ddc ]
 async_stacktrace_test: Skip # Issue 53555
 native/*: Skip # dart2js tests for native keyword
+wasm_js_shared/weak_reference_polyfill_test: SkipByDesign # Test specific for the dart2js/dart2wasm runtime
 
 [ $runtime == jsshell ]
 deferred/load_in_correct_order_test: SkipByDesign # jsshell preamble does not support this test.
@@ -52,7 +52,6 @@ internal/object_members_test: SkipByDesign # Uses eval for interop
 js_interop_non_null_asserts_disabled_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js_interop_non_null_asserts_enabled_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 regress/issue/49129_test: SkipByDesign # Uses eval for interop
-
 
 [ $compiler == dart2js && !$host_asserts ]
 deferred/many_parts/many_parts_test: Slow, Pass # Large stress test by design
