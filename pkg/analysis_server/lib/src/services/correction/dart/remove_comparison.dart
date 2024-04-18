@@ -86,10 +86,33 @@ class RemoveComparison extends ResolvedCorrectionProducer {
     }
   }
 
+  /// Splits [text] into lines, and removes one level of indent from each line.
+  ///
+  /// Lines that don't start with indentation are left as is.
+  String indentLeft(String text) {
+    var buffer = StringBuffer();
+    var indent = utils.oneIndent;
+    var eol = utils.endOfLine;
+    var lines = text.split(eol);
+    for (var line in lines) {
+      if (buffer.isNotEmpty) {
+        buffer.write(eol);
+      }
+      String updatedLine;
+      if (line.startsWith(indent)) {
+        updatedLine = line.substring(indent.length);
+      } else {
+        updatedLine = line;
+      }
+      buffer.write(updatedLine);
+    }
+    return buffer.toString();
+  }
+
   Future<void> _ifElement(IfElement node, ChangeBuilder builder) async {
     Future<void> replaceWithElement(CollectionElement element) async {
       var text = _textWithLeadingComments(element);
-      var unIndented = utils.indentLeft(text);
+      var unIndented = indentLeft(text);
       await builder.addDartFileEdit(file, (builder) {
         builder.addSimpleReplacement(range.node(node), unIndented);
       });
@@ -123,7 +146,7 @@ class RemoveComparison extends ResolvedCorrectionProducer {
           ),
         ),
       );
-      var unIndented = utils.indentLeft(text);
+      var unIndented = indentLeft(text);
       await builder.addDartFileEdit(file, (builder) {
         builder.addSimpleReplacement(
           utils.getLinesRangeStatements([node]),
@@ -134,7 +157,7 @@ class RemoveComparison extends ResolvedCorrectionProducer {
 
     Future<void> replaceWithStatement(Statement replacement) async {
       var text = _textWithLeadingComments(replacement);
-      var unIndented = utils.indentLeft(text);
+      var unIndented = indentLeft(text);
       await builder.addDartFileEdit(file, (builder) {
         builder.addSimpleReplacement(range.node(node), unIndented);
       });

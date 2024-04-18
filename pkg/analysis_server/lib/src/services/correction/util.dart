@@ -393,14 +393,14 @@ final class CorrectionUtils {
 
   static const String _twoIndents = _oneIndent + _oneIndent;
 
-  final CompilationUnit unit;
+  final CompilationUnit _unit;
 
   final String _buffer;
 
   String? _endOfLine;
 
   CorrectionUtils(ParsedUnitResult result)
-      : unit = result.unit,
+      : _unit = result.unit,
         _buffer = result.content;
 
   /// The EOL sequence to use for this [CompilationUnit].
@@ -426,7 +426,7 @@ final class CorrectionUtils {
   String get twoIndents => _twoIndents;
 
   /// Returns the [AstNode] that encloses the given offset.
-  AstNode? findNode(int offset) => NodeLocator(offset).searchWithin(unit);
+  AstNode? findNode(int offset) => NodeLocator(offset).searchWithin(_unit);
 
   /// Skips whitespace characters and single EOL on the right from [index].
   ///
@@ -524,7 +524,7 @@ final class CorrectionUtils {
     // end
     var endOffset = sourceRange.end;
     var afterEndLineOffset = endOffset;
-    var lineInfo = unit.lineInfo;
+    var lineInfo = _unit.lineInfo;
     var lineStart = lineInfo
         .getOffsetOfLine(lineInfo.getLocation(startLineOffset).lineNumber - 1);
     if (lineStart == startLineOffset) {
@@ -597,43 +597,6 @@ final class CorrectionUtils {
     return _buffer.substring(offset, offset + length);
   }
 
-  /// Splits [text] into lines, and removes one level of indent from each line.
-  /// Lines that don't start with indentation are left as is.
-  String indentLeft(String text) {
-    var buffer = StringBuffer();
-    var indent = oneIndent;
-    var eol = endOfLine;
-    var lines = text.split(eol);
-    for (var line in lines) {
-      if (buffer.isNotEmpty) {
-        buffer.write(eol);
-      }
-      String updatedLine;
-      if (line.startsWith(indent)) {
-        updatedLine = line.substring(indent.length);
-      } else {
-        updatedLine = line;
-      }
-      buffer.write(updatedLine);
-    }
-    return buffer.toString();
-  }
-
-  /// Adds [level] indents to each line.
-  String indentRight(String text, {int level = 1}) {
-    var buffer = StringBuffer();
-    var indent = _oneIndent * level;
-    var eol = endOfLine;
-    var lines = text.split(eol);
-    for (var line in lines) {
-      if (buffer.isNotEmpty) {
-        buffer.write(eol);
-      }
-      buffer.write('$indent$line');
-    }
-    return buffer.toString();
-  }
-
   /// Indents given source left or right.
   String indentSourceLeftRight(String source, {bool indentLeft = true}) {
     var sb = StringBuffer();
@@ -682,7 +645,7 @@ final class CorrectionUtils {
     // prepare STRING token ranges
     var lineRanges = <SourceRange>[];
     {
-      var tokens = TokenUtils.getTokens(source, unit.featureSet);
+      var tokens = TokenUtils.getTokens(source, _unit.featureSet);
       for (var token in tokens) {
         if (token.type == TokenType.STRING) {
           lineRanges.add(range.token(token));
@@ -838,7 +801,7 @@ final class CorrectionUtils {
       return true;
     }
     // may be comment
-    return TokenUtils.getTokens(trimmedText, unit.featureSet).isEmpty;
+    return TokenUtils.getTokens(trimmedText, _unit.featureSet).isEmpty;
   }
 
   /// Return `true` if [selection] covers [range] and there are any
