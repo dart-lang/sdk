@@ -17,6 +17,24 @@ class PreferGenericFunctionTypeAliasesTest extends LintRuleTest {
   @override
   String get lintRule => 'prefer_generic_function_type_aliases';
 
+  @FailingTest(reason: '''
+    ParserErrorCode.EXTRANEOUS_MODIFIER [27, 7, Can't have modifier 'augment' here.]
+    CompileTimeErrorCode.DUPLICATE_DEFINITION [48, 1, The name 'F' is already defined.]
+''', issue: 'https://github.com/dart-lang/linter/issues/4942')
+  test_augmentedTypeAlias() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+
+typedef void F();
+''');
+
+    await assertNoDiagnostics(r'''
+augment library 'a.dart';
+
+augment typedef void F();
+''');
+  }
+
   test_classicTypedef() async {
     await assertDiagnostics(r'''
 typedef void F();
