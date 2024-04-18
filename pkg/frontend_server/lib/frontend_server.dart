@@ -32,12 +32,12 @@ import 'package:kernel/kernel.dart'
     show Component, loadComponentSourceFromBytes;
 import 'package:kernel/target/targets.dart' show targets, TargetFlags;
 import 'package:package_config/package_config.dart';
-import 'package:usage/uuid/uuid.dart';
 import 'package:vm/incremental_compiler.dart' show IncrementalCompiler;
 import 'package:vm/kernel_front_end.dart';
 import 'package:vm/target_os.dart'; // For possible --target-os values.
 
 import 'src/javascript_bundle.dart';
+import 'src/uuid.dart';
 
 ArgParser argParser = new ArgParser(allowTrailingOptions: true)
   ..addFlag('train',
@@ -492,7 +492,7 @@ class FrontendCompiler implements CompilerInterface {
     _assumeInitializeFromDillUpToDate =
         _options['assume-initialize-from-dill-up-to-date'] ?? false;
     _printIncrementalDependencies = _options['print-incremental-dependencies'];
-    final String boundaryKey = new Uuid().generateV4();
+    final String boundaryKey = generateV4UUID();
     _outputStream.writeln('result $boundaryKey');
     final Uri sdkRoot = _ensureFolderPath(options['sdk-root']);
     final String platformKernelDill =
@@ -945,7 +945,7 @@ class FrontendCompiler implements CompilerInterface {
 
   @override
   Future<void> recompileDelta({String? entryPoint}) async {
-    final String boundaryKey = new Uuid().generateV4();
+    final String boundaryKey = generateV4UUID();
     _outputStream.writeln('result $boundaryKey');
     await invalidateIfInitializingFromDill();
     if (entryPoint != null) {
@@ -998,7 +998,7 @@ class FrontendCompiler implements CompilerInterface {
       int offset,
       String? scriptUri,
       bool isStatic) async {
-    final String boundaryKey = new Uuid().generateV4();
+    final String boundaryKey = generateV4UUID();
     _outputStream.writeln('result $boundaryKey');
     Procedure? procedure = await _generator.compileExpression(
         expression,
@@ -1054,7 +1054,7 @@ class FrontendCompiler implements CompilerInterface {
       return;
     }
 
-    final String boundaryKey = new Uuid().generateV4();
+    final String boundaryKey = generateV4UUID();
     _outputStream.writeln('result $boundaryKey');
 
     _processedOptions.ticker
@@ -1101,7 +1101,7 @@ class FrontendCompiler implements CompilerInterface {
 
   @override
   void reportError(String msg) {
-    final String boundaryKey = new Uuid().generateV4();
+    final String boundaryKey = generateV4UUID();
     _outputStream.writeln('result $boundaryKey');
     _outputStream.writeln(msg);
     _outputStream.writeln(boundaryKey);
@@ -1205,7 +1205,7 @@ class FrontendCompiler implements CompilerInterface {
 
   @override
   Future<void> rejectLastDelta() async {
-    final String boundaryKey = new Uuid().generateV4();
+    final String boundaryKey = generateV4UUID();
     _outputStream.writeln('result $boundaryKey');
     await _generator.reject();
     _outputStream.writeln(boundaryKey);
