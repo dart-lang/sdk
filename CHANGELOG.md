@@ -183,6 +183,58 @@ advantage of these improvements, set your package's
 [devtools-2-32-0]: https://docs.flutter.dev/tools/devtools/release-notes/release-notes-2.32.0
 [devtools-2-33-0]: https://docs.flutter.dev/tools/devtools/release-notes/release-notes-2.33.0
 
+## 3.3.4 - 2024-04-17
+
+This is a patch release that:
+
+- Fixes an issue with JS interop in dart2wasm where JS interop methods that used
+  the enclosing library's `@JS` annotation were actually using the invocation's
+  enclosing library's `@JS` annotation. (issue [#55430]).
+
+[#55430]: https://github.com/dart-lang/sdk/issues/55430
+
+## 3.3.3 - 2024-03-27
+
+This is a patch release that:
+
+- Fixes an issue where dart vm crashed when running on pre-SSE41 older CPUs on Windows (issue [#55211][]).
+
+[#55211]: https://github.com/dart-lang/sdk/issues/55211
+
+## 3.3.2 - 2024-03-20
+
+This is a patch release that:
+
+- Fixes an issue in the CFE that placed some structural parameter references out
+  of their context in the code restored from dill files, causing crashes in the
+  incremental compiler whenever it restored a typedef from dill such that the
+  typedef contained a generic function type on its right-hand side (issue
+  [#55158][]).
+- Fixes an issue in the CFE that prevented redirecting factories from being
+  resolved in initializers of extension types (issue [#55194][]).
+- Fixes an issues with VM's implementation of `DateTime.timeZoneName`
+  on Windows, which was checking whether current date is in the summer or
+  standard time rather than checking if the given moment is in the summer or
+  standard time (issue [#55240][]).
+
+[#55158]: https://github.com/dart-lang/sdk/issues/55158
+[#55194]: https://github.com/dart-lang/sdk/issues/55194
+[#55240]: https://github.com/dart-lang/sdk/issues/55240
+
+## 3.3.1 - 2024-03-06
+
+This is a patch release that:
+
+- Fixes an issue in dart2js where object literal constructors in interop
+  extension types would fail to compile without an `@JS` annotation on the
+  library (issue [#55057][]).
+- Disallows certain types involving extension types from being used as the
+  operand of an `await` expression, unless the extension type itself implements
+  `Future` (issue [#55095][]).
+
+[#55057]: https://github.com/dart-lang/sdk/issues/55057
+[#55095]: https://github.com/dart-lang/sdk/issues/55095
+
 ## 3.3.0
 
 ### Language
