@@ -133,7 +133,9 @@ void declareCompilerOptions(ArgParser args) {
   args.addFlag('enable-asserts',
       help: 'Whether asserts will be enabled.', defaultsTo: false);
   args.addFlag('sound-null-safety',
-      help: 'Respect the nullability of types at runtime.', defaultsTo: true);
+      help: 'Respect the nullability of types at runtime.',
+      defaultsTo: true,
+      hide: true);
   args.addFlag('split-output-by-packages',
       help:
           'Split resulting kernel file into multiple files (one per package).',
@@ -230,6 +232,11 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final List<String> sources = options['source'];
 
   if (!parseCommandLineDefines(options['define'], environmentDefines, usage)) {
+    return badUsageExitCode;
+  }
+
+  if (!soundNullSafety) {
+    print('Error: --no-sound-null-safety is not supported.');
     return badUsageExitCode;
   }
 
