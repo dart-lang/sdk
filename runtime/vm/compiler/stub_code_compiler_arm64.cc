@@ -1254,8 +1254,8 @@ static void GenerateNoSuchMethodDispatcherBody(Assembler* assembler) {
   __ add(TMP, FP, Operand(R2, LSL, target::kWordSizeLog2 - 1));  // R2 is Smi.
   __ LoadFromOffset(R6, TMP,
                     target::frame_layout.param_end_from_fp * target::kWordSize);
-  __ Push(ZR);  // Result slot.
-  __ Push(R6);  // Receiver.
+  __ Push(ZR);             // Result slot.
+  __ Push(R6);             // Receiver.
   __ Push(IC_DATA_REG);    // ICData/MegamorphicCache.
   __ Push(ARGS_DESC_REG);  // Arguments descriptor.
 
@@ -1897,8 +1897,7 @@ void StubCodeCompiler::GenerateWriteBarrierWrappersStub() {
 COMPILE_ASSERT(kWriteBarrierObjectReg == R1);
 COMPILE_ASSERT(kWriteBarrierValueReg == R0);
 COMPILE_ASSERT(kWriteBarrierSlotReg == R25);
-static void GenerateWriteBarrierStubHelper(Assembler* assembler,
-                                           bool cards) {
+static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
   RegisterSet spill_set((1 << R2) | (1 << R3) | (1 << R4), 0);
 
   Label skip_marking;
@@ -2402,7 +2401,7 @@ static void EmitFastSmiOp(Assembler* assembler,
   switch (kind) {
     case Token::kADD: {
       __ adds(R0, R1, Operand(R0), kObjectBytes);  // Add.
-      __ b(not_smi_or_overflow, VS);  // Branch if overflow.
+      __ b(not_smi_or_overflow, VS);               // Branch if overflow.
       break;
     }
     case Token::kLT: {
@@ -2636,7 +2635,7 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
   // Preserve IC data object and arguments descriptor array and
   // setup space on stack for result (target code object).
   __ Push(ARGS_DESC_REG);  // Preserve arguments descriptor array.
-  __ Push(R5);  // Preserve IC Data.
+  __ Push(R5);             // Preserve IC Data.
   if (save_entry_point) {
     __ SmiTag(R8);
     __ Push(R8);
@@ -2660,7 +2659,7 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
     __ Pop(R8);
     __ SmiUntag(R8);
   }
-  __ Pop(R5);  // Restore IC Data.
+  __ Pop(R5);             // Restore IC Data.
   __ Pop(ARGS_DESC_REG);  // Restore arguments descriptor array.
   __ RestoreCodePointer();
   __ LeaveStubFrame();
@@ -3238,7 +3237,7 @@ void StubCodeCompiler::GenerateOptimizeFunctionStub() {
   __ Push(ZR);
   __ Push(R6);
   __ CallRuntime(kOptimizeInvokedFunctionRuntimeEntry, 1);
-  __ Pop(R0);  // Discard argument.
+  __ Pop(R0);             // Discard argument.
   __ Pop(FUNCTION_REG);   // Get Function object
   __ Pop(ARGS_DESC_REG);  // Restore argument descriptor.
   __ LoadCompressedFieldFromOffset(CODE_REG, FUNCTION_REG,

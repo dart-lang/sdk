@@ -1522,7 +1522,9 @@ class CInstr {
   class name {                                                                 \
    public:                                                                     \
     constexpr explicit name(storage_t encoding) : encoding_(encoding) {}       \
-    constexpr storage_t encoding() const { return encoding_; }                 \
+    constexpr storage_t encoding() const {                                     \
+      return encoding_;                                                        \
+    }                                                                          \
     constexpr bool operator==(const name& other) const {                       \
       return encoding_ == other.encoding_;                                     \
     }                                                                          \
@@ -1543,14 +1545,18 @@ class CInstr {
     constexpr /* implicit */ name##Set(name element)                           \
         : encoding_(1u << element.encoding()) {}                               \
     constexpr explicit name##Set(storage_t encoding) : encoding_(encoding) {}  \
-    constexpr static name##Set Empty() { return name##Set(0); }                \
+    constexpr static name##Set Empty() {                                       \
+      return name##Set(0);                                                     \
+    }                                                                          \
     constexpr bool Includes(const name r) const {                              \
       return (encoding_ & (1 << r.encoding())) != 0;                           \
     }                                                                          \
     constexpr bool IncludesAll(const name##Set other) const {                  \
       return (encoding_ & other.encoding_) == other.encoding_;                 \
     }                                                                          \
-    constexpr bool IsEmpty() const { return encoding_ == 0; }                  \
+    constexpr bool IsEmpty() const {                                           \
+      return encoding_ == 0;                                                   \
+    }                                                                          \
     constexpr bool operator==(const name##Set& other) const {                  \
       return encoding_ == other.encoding_;                                     \
     }                                                                          \

@@ -2023,7 +2023,6 @@ LeafRuntimeScope::~LeafRuntimeScope() {
   __ LeaveFrame();
 }
 
-
 #if defined(TARGET_USES_THREAD_SANITIZER)
 void Assembler::TsanLoadAcquire(Address addr) {
   LeafRuntimeScope rt(this, /*frame_size=*/0, /*preserve_registers=*/true);

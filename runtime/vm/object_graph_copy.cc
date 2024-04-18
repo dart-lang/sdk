@@ -1728,12 +1728,12 @@ class ObjectCopy : public Base {
 
 #define COPY_TO(clazz) case kTypedData##clazz##Cid:
 
-      CLASS_LIST_TYPED_DATA(COPY_TO) {
-        typename Types::TypedData casted_from = Types::CastTypedData(from);
-        typename Types::TypedData casted_to = Types::CastTypedData(to);
-        CopyTypedData(casted_from, casted_to);
-        return;
-      }
+        CLASS_LIST_TYPED_DATA(COPY_TO) {
+          typename Types::TypedData casted_from = Types::CastTypedData(from);
+          typename Types::TypedData casted_to = Types::CastTypedData(to);
+          CopyTypedData(casted_from, casted_to);
+          return;
+        }
 #undef COPY_TO
 
       case kByteDataViewCid:
@@ -2095,14 +2095,16 @@ class ObjectCopy : public Base {
     Base::EnqueueWeakReference(from);
   }
 
+  // clang-format off
 #define DEFINE_UNSUPPORTED(clazz)                                              \
   void Copy##clazz(typename Types::clazz from, typename Types::clazz to) {     \
-    FATAL("Objects of type " #clazz " should not occur in object graphs");     \
+      FATAL("Objects of type " #clazz " should not occur in object graphs");   \
   }
 
   FOR_UNSUPPORTED_CLASSES(DEFINE_UNSUPPORTED)
 
 #undef DEFINE_UNSUPPORTED
+  // clang-format on
 
   UntaggedObject* UntagObject(typename Types::Object obj) {
     return Types::GetObjectPtr(obj).Decompress(Base::heap_base_).untag();

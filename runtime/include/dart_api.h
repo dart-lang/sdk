@@ -556,7 +556,6 @@ Dart_NewFinalizableHandle(Dart_Handle object,
 DART_EXPORT void Dart_DeleteFinalizableHandle(Dart_FinalizableHandle object,
                                               Dart_Handle strong_ref_to_object);
 
-
 /*
  * ==========================
  * Initialization and Globals
@@ -1278,8 +1277,7 @@ DART_EXPORT void Dart_KillIsolate(Dart_Isolate isolate);
  */
 DART_EXPORT void Dart_NotifyIdle(int64_t deadline);
 
-typedef void (*Dart_HeapSamplingReportCallback)(void* context,
-                                                void* data);
+typedef void (*Dart_HeapSamplingReportCallback)(void* context, void* data);
 
 typedef void* (*Dart_HeapSamplingCreateCallback)(
     Dart_Isolate isolate,

@@ -99,8 +99,8 @@ struct CodeRangeUnwindingRecord {
 
 #pragma pack(pop)
 
-#elif (defined(DART_TARGET_OS_WINDOWS) || defined(DART_HOST_OS_WINDOWS)) &&    \
-    defined(TARGET_ARCH_ARM64)
+#elif defined(TARGET_ARCH_ARM64) &&                                            \
+    (defined(DART_TARGET_OS_WINDOWS) || defined(DART_HOST_OS_WINDOWS))
 
 #pragma pack(push, 1)
 

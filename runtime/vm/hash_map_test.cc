@@ -160,9 +160,9 @@ TEST_CASE(DirectChainedHashMapIterator) {
   IntptrPair p3(3, 3);
   IntptrPair p4(4, 4);
   IntptrPair p5(5, 5);
-  DirectChainedHashMap<NumbersKeyValueTrait<IntptrPair> > map;
+  DirectChainedHashMap<NumbersKeyValueTrait<IntptrPair>> map;
   EXPECT(map.IsEmpty());
-  DirectChainedHashMap<NumbersKeyValueTrait<IntptrPair> >::Iterator it =
+  DirectChainedHashMap<NumbersKeyValueTrait<IntptrPair>>::Iterator it =
       map.GetIterator();
   EXPECT(it.Next() == nullptr);
   it.Reset();

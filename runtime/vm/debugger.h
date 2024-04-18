@@ -313,9 +313,7 @@ class ActivationFrame : public ZoneAllocated {
   // when the frame below (callee) completes.
   const Closure& closure() const { return closure_; }
 
-  const Function& function() const {
-    return function_;
-  }
+  const Function& function() const { return function_; }
   const Code& code() const {
     ASSERT(!code_.IsNull());
     return code_;

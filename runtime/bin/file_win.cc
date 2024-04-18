@@ -9,16 +9,18 @@
 #include <memory>
 #include <utility>
 
-#include <Shlwapi.h>  // NOLINT
-#include <fcntl.h>     // NOLINT
-#include <io.h>        // NOLINT
-#include <pathcch.h>   // NOLINT
-#include <winioctl.h>  // NOLINT
-#undef StrDup          // defined in Shlwapi.h as StrDupW
-#include <stdio.h>     // NOLINT
-#include <string.h>    // NOLINT
-#include <sys/stat.h>  // NOLINT
+// clang-format off
+#include <Shlwapi.h>    // NOLINT
+#include <fcntl.h>      // NOLINT
+#include <io.h>         // NOLINT
+#include <pathcch.h>    // NOLINT
+#include <winioctl.h>   // NOLINT
+#undef StrDup           // defined in Shlwapi.h as StrDupW
+#include <stdio.h>      // NOLINT
+#include <string.h>     // NOLINT
+#include <sys/stat.h>   // NOLINT
 #include <sys/utime.h>  // NOLINT
+// clang-format on
 
 #include "bin/builtin.h"
 #include "bin/crypto.h"
@@ -744,7 +746,7 @@ static void FreeUUID(wchar_t* ptr) {
   RpcStringFreeW(&ptr);
 }
 
-static std::unique_ptr<wchar_t, decltype(FreeUUID) *> GenerateUUIDString() {
+static std::unique_ptr<wchar_t, decltype(FreeUUID)*> GenerateUUIDString() {
   UUID uuid;
   RPC_STATUS status = UuidCreateSequential(&uuid);
   if ((status != RPC_S_OK) && (status != RPC_S_UUID_LOCAL_ONLY)) {

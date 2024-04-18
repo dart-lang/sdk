@@ -63,12 +63,12 @@ void AsmIntrinsifier::Integer_shl(Assembler* assembler, Label* normal_ir_body) {
   // high bits = (((1 << R0) - 1) << (32 - R0)) & R1) >> (32 - R0)
   // lo bits = R1 << R0
   __ LoadImmediate(R8, 1);
-  __ mov(R8, Operand(R8, LSL, R0));        // R8 <- 1 << R0
-  __ sub(R8, R8, Operand(1));              // R8 <- R8 - 1
-  __ rsb(R3, R0, Operand(32));             // R3 <- 32 - R0
-  __ mov(R8, Operand(R8, LSL, R3));        // R8 <- R8 << R3
-  __ and_(R8, R1, Operand(R8));            // R8 <- R8 & R1
-  __ mov(R8, Operand(R8, LSR, R3));        // R8 <- R8 >> R3
+  __ mov(R8, Operand(R8, LSL, R0));  // R8 <- 1 << R0
+  __ sub(R8, R8, Operand(1));        // R8 <- R8 - 1
+  __ rsb(R3, R0, Operand(32));       // R3 <- 32 - R0
+  __ mov(R8, Operand(R8, LSL, R3));  // R8 <- R8 << R3
+  __ and_(R8, R1, Operand(R8));      // R8 <- R8 & R1
+  __ mov(R8, Operand(R8, LSR, R3));  // R8 <- R8 >> R3
   // Now R8 has the bits that fall off of R1 on a left shift.
   __ mov(R1, Operand(R1, LSL, R0));  // R1 gets the low bits.
 

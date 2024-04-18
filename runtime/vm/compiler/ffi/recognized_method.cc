@@ -89,7 +89,7 @@ classid_t RecognizedMethodTypeArgCid(MethodRecognizer::Kind kind) {
 #define AS_EXTERNAL_TYPED_DATA(type)                                           \
   case MethodRecognizer::kFfiAsExternalTypedData##type:                        \
     return kFfi##type##Cid;
-    CLASS_LIST_FFI_NUMERIC_FIXED_SIZE(AS_EXTERNAL_TYPED_DATA)
+      CLASS_LIST_FFI_NUMERIC_FIXED_SIZE(AS_EXTERNAL_TYPED_DATA)
 #undef AS_EXTERNAL_TYPED_DATA
     default:
       UNREACHABLE();

@@ -530,7 +530,7 @@ class IntKeyRawPointerValueTrait {
 };
 
 template <typename V>
-class IntMap : public DirectChainedHashMap<IntKeyRawPointerValueTrait<V> > {
+class IntMap : public DirectChainedHashMap<IntKeyRawPointerValueTrait<V>> {
  public:
   IntMap() : DirectChainedHashMap<IntKeyRawPointerValueTrait<V>>() {}
   explicit IntMap(Zone* zone)
@@ -542,12 +542,12 @@ class IntMap : public DirectChainedHashMap<IntKeyRawPointerValueTrait<V> > {
 
   inline void Insert(const Key& key, const Value& value) {
     Pair pair(key, value);
-    DirectChainedHashMap<IntKeyRawPointerValueTrait<V> >::Insert(pair);
+    DirectChainedHashMap<IntKeyRawPointerValueTrait<V>>::Insert(pair);
   }
 
   inline V Lookup(const Key& key) const {
     Pair* pair =
-        DirectChainedHashMap<IntKeyRawPointerValueTrait<V> >::Lookup(key);
+        DirectChainedHashMap<IntKeyRawPointerValueTrait<V>>::Lookup(key);
     if (pair == nullptr) {
       return V();
     } else {
@@ -556,7 +556,7 @@ class IntMap : public DirectChainedHashMap<IntKeyRawPointerValueTrait<V> > {
   }
 
   inline Pair* LookupPair(const Key& key) const {
-    return DirectChainedHashMap<IntKeyRawPointerValueTrait<V> >::Lookup(key);
+    return DirectChainedHashMap<IntKeyRawPointerValueTrait<V>>::Lookup(key);
   }
 
  private:

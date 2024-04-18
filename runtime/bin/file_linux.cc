@@ -266,8 +266,8 @@ File* File::Open(Namespace* namespc, const char* name, FileOpenMode mode) {
 }
 
 Utils::CStringUniquePtr File::UriToPath(const char* uri) {
-  const char* path = (strlen(uri) >= 8 && strncmp(uri, "file:///", 8) == 0)
-      ? uri + 7 : uri;
+  const char* path =
+      (strlen(uri) >= 8 && strncmp(uri, "file:///", 8) == 0) ? uri + 7 : uri;
   UriDecoder uri_decoder(path);
   if (uri_decoder.decoded() == nullptr) {
     errno = EINVAL;

@@ -548,9 +548,7 @@ class ImageWriter : public ValueObject {
 #endif
     uint8_t flags;
 
-    bool is_object() const {
-      return IsObjectField::decode(flags);
-    }
+    bool is_object() const { return IsObjectField::decode(flags); }
     bool is_original_object() const {
       return IsOriginalObjectField::decode(flags);
     }

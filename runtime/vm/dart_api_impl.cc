@@ -6067,9 +6067,9 @@ Dart_CompileToKernel(const char* script_uri,
       nullptr, verbosity);
   if (incremental_compile) {
     Dart_KernelCompilationResult ack_result =
-        result.status == Dart_KernelCompilationStatus_Ok ?
-            KernelIsolate::AcceptCompilation():
-            KernelIsolate::RejectCompilation();
+        result.status == Dart_KernelCompilationStatus_Ok
+            ? KernelIsolate::AcceptCompilation()
+            : KernelIsolate::RejectCompilation();
     if (ack_result.status != Dart_KernelCompilationStatus_Ok) {
       FATAL(
           "An error occurred in the CFE while acking the most recent"

@@ -18,6 +18,8 @@ import 'avoid_empty_else_test.dart' as avoid_empty_else;
 import 'avoid_equals_and_hash_code_on_mutable_classes_test.dart'
     as avoid_equals_and_hash_code_on_mutable_classes;
 import 'avoid_escaping_inner_quotes_test.dart' as avoid_escaping_inner_quotes;
+import 'avoid_field_initializers_in_non_const_classes_test.dart'
+    as avoid_field_initializers_in_non_const_classes;
 import 'avoid_final_parameters_test.dart' as avoid_final_parameters;
 import 'avoid_function_literals_in_foreach_calls_test.dart'
     as avoid_function_literals_in_foreach_calls;
@@ -276,6 +278,7 @@ void main() {
   avoid_empty_else.main();
   avoid_equals_and_hash_code_on_mutable_classes.main();
   avoid_escaping_inner_quotes.main();
+  avoid_field_initializers_in_non_const_classes.main();
   avoid_final_parameters.main();
   avoid_function_literals_in_foreach_calls.main();
   avoid_init_to_null.main();

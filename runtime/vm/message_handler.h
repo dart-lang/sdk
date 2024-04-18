@@ -256,7 +256,7 @@ class MessageHandler {
   bool paused_for_messages_;
   PortSet<PortSetEntry>
       ports_;  // Only accessed by [PortMap], protected by [PortMap]s lock.
-  intptr_t paused_;      // The number of pause messages received.
+  intptr_t paused_;  // The number of pause messages received.
 #if !defined(PRODUCT)
   bool should_pause_on_start_;
   bool should_pause_on_exit_;

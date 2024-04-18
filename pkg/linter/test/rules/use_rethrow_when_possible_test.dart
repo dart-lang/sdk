@@ -52,18 +52,6 @@ void f() {
 ''');
   }
 
-  test_throw_usedAsANamedArgument() async {
-    await assertNoDiagnostics(r'''
-void f() {
-  try {} catch (e) {
-    g(p: throw e);
-  }
-}
-
-void g({int? p}) {}
-''');
-  }
-
   test_throw_usedAsAnArgument() async {
     await assertNoDiagnostics(r'''
 void f() {
@@ -95,6 +83,30 @@ void f() {
     };
   }
 }
+''');
+  }
+
+  test_throw_usedInAssignment() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  try {} catch (e) {
+    var x = throw e;
+  }
+}
+
+void g({int? p}) {}
+''');
+  }
+
+  test_throw_usedInIfElement() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  try {} catch (e) {
+    [if (true) throw e];
+  }
+}
+
+void g({int? p}) {}
 ''');
   }
 

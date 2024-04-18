@@ -1929,7 +1929,7 @@ ISOLATE_UNIT_TEST_CASE(TTS_Object) {
   // so its TTS specializes the first time it is invoked.
   const bool should_specialize = true;
   auto make_test_case = [&](const Instance& instance) -> TTSTestCase {
-      return {instance, tav_null, tav_null};
+    return {instance, tav_null, tav_null};
   };
 
   // Test on some easy-to-make instances.

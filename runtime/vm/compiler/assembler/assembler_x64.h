@@ -730,9 +730,7 @@ class Assembler : public AssemblerBase {
 
   // Sets the return address to [value] as if there was a call.
   // On X64 pushes [value].
-  void SetReturnAddress(Register value) {
-    PushRegister(value);
-  }
+  void SetReturnAddress(Register value) { PushRegister(value); }
 
   void CompareRegisters(Register a, Register b);
   void CompareObjectRegisters(Register a, Register b) { OBJ(cmp)(a, b); }
@@ -784,9 +782,7 @@ class Assembler : public AssemblerBase {
                     OperandSize width = kEightBytes) {
     AddImmediate(reg, Immediate(value), width);
   }
-  void AddRegisters(Register dest, Register src) {
-    addq(dest, src);
-  }
+  void AddRegisters(Register dest, Register src) { addq(dest, src); }
   // [dest] = [src] << [scale] + [value].
   void AddScaled(Register dest,
                  Register src,
@@ -800,9 +796,7 @@ class Assembler : public AssemblerBase {
                     const Immediate& imm,
                     OperandSize width = kEightBytes);
   void SubImmediate(const Address& address, const Immediate& imm);
-  void SubRegisters(Register dest, Register src) {
-    subq(dest, src);
-  }
+  void SubRegisters(Register dest, Register src) { subq(dest, src); }
 
   void Drop(intptr_t stack_elements, Register tmp = TMP);
 
@@ -1037,9 +1031,7 @@ class Assembler : public AssemblerBase {
     jmp(label, distance);
   }
   // Unconditional jump to a given address in register.
-  void Jump(Register target) {
-    jmp(target);
-  }
+  void Jump(Register target) { jmp(target); }
   // Unconditional jump to a given address in memory.
   void Jump(const Address& address) { jmp(address); }
 

@@ -1830,7 +1830,6 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
   }
 }
 
-
 const ICData* FlowGraphCompiler::GetOrAddInstanceCallICData(
     intptr_t deopt_id,
     const String& target_name,

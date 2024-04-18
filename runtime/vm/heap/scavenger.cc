@@ -345,12 +345,8 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
     }
   }
 
-  Page* head() const {
-    return head_;
-  }
-  Page* tail() const {
-    return tail_;
-  }
+  Page* head() const { return head_; }
+  Page* tail() const { return tail_; }
 
   static bool ForwardOrSetNullIfCollected(ObjectPtr parent,
                                           CompressedObjectPtr* ptr_address);

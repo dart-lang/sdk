@@ -17,6 +17,7 @@ import 'dart:typed_data' show Uint8List;
 
 import 'package:args/args.dart';
 import 'package:front_end/src/api_unstable/vm.dart';
+import 'package:kernel/binary/tag.dart' show expectedSdkHash;
 
 import '../frontend_server.dart';
 
@@ -461,8 +462,21 @@ Future<StreamSubscription<Socket>?> residentListenAndCompile(
       throw new StateError('A server is already running.');
     }
     server = await ServerSocket.bind(address, port);
+    // There are particular aspects of the info file format that must be
+    // preserved to ensure backwards compatibility with the original versions
+    // of the utilities for parsing this file.
+    //
+    // The aspects of the info file format that must be preserved are:
+    // 1. The file must begin with 'address:$address '. Note that $address IS
+    //    NOT preceded by a space and IS followed by a space.
+    // 2. The file must end with 'port:$port'. Note that $port IS NOT preceded
+    //    by a space. $port may be followed by zero or more whitespace
+    //    characters.
     serverInfoFile.writeAsStringSync(
-        'address:${server.address.address} port:${server.port}');
+      'address:${server.address.address} '
+      'sdkHash:${expectedSdkHash} '
+      'port:${server.port} ',
+    );
   } on StateError catch (e) {
     print('Error: $e\n');
     return null;

@@ -4277,7 +4277,7 @@ Fragment StreamingFlowGraphBuilder::BuildRecordFieldGet(TokenPosition* p,
 
 Fragment StreamingFlowGraphBuilder::BuildFunctionExpression() {
   const intptr_t offset = ReaderOffset() - 1;  // Include the tag.
-  ReadPosition();  // read position.
+  ReadPosition();                              // read position.
   return BuildFunctionNode(offset);
 }
 

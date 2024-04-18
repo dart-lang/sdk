@@ -50,9 +50,7 @@ struct RelocatorTestHelper {
     FLAG_lower_pc_relative_call_distance = -128;
     FLAG_upper_pc_relative_call_distance = 128;
   }
-  ~RelocatorTestHelper() {
-    FLAG_precompiled_mode = false;
-  }
+  ~RelocatorTestHelper() { FLAG_precompiled_mode = false; }
 
   void CreateInstructions(std::initializer_list<intptr_t> sizes) {
     for (auto size : sizes) {

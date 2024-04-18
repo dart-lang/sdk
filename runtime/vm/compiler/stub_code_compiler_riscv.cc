@@ -1709,8 +1709,7 @@ void StubCodeCompiler::GenerateWriteBarrierWrappersStub() {
 COMPILE_ASSERT(kWriteBarrierObjectReg == A0);
 COMPILE_ASSERT(kWriteBarrierValueReg == A1);
 COMPILE_ASSERT(kWriteBarrierSlotReg == A6);
-static void GenerateWriteBarrierStubHelper(Assembler* assembler,
-                                           bool cards) {
+static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
   RegisterSet spill_set((1 << T2) | (1 << T3) | (1 << T4), 0);
 
   Label skip_marking;

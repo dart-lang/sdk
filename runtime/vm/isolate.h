@@ -488,18 +488,14 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   // Class table for the program loaded into this isolate group.
   //
   // This table is modified by kernel loading.
-  ClassTable* class_table() const {
-    return class_table_;
-  }
+  ClassTable* class_table() const { return class_table_; }
 
   // Class table used for heap walks by GC visitors. Usually it
   // is the same table as one in |class_table_|, except when in the
   // middle of the reload.
   //
   // See comment for |ClassTable| class for more details.
-  ClassTable* heap_walk_class_table() const {
-    return heap_walk_class_table_;
-  }
+  ClassTable* heap_walk_class_table() const { return heap_walk_class_table_; }
 
   void CloneClassTableForReload();
   void RestoreOriginalClassTable();

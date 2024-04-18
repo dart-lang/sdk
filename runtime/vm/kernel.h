@@ -73,7 +73,8 @@ class Program {
                                                  intptr_t buffer_length,
                                                  const char** error = nullptr);
   static std::unique_ptr<Program> ReadFromTypedData(
-      const ExternalTypedData& typed_data, const char** error = nullptr);
+      const ExternalTypedData& typed_data,
+      const char** error = nullptr);
 
   bool is_single_program() { return single_program_; }
   NameIndex main_method() { return main_method_reference_; }

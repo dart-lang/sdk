@@ -8,15 +8,66 @@ import '../rule_test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ConstantIdentifierNamesRecordsTest);
-    defineReflectiveTests(ConstantIdentifierNamesPatternsTest);
+    defineReflectiveTests(ConstantIdentifierNamesTest);
   });
 }
 
 @reflectiveTest
-class ConstantIdentifierNamesPatternsTest extends LintRuleTest {
+class ConstantIdentifierNamesTest extends LintRuleTest {
   @override
   String get lintRule => 'constant_identifier_names';
+
+  @FailingTest(
+    reason: 'error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 40, 1),',
+    issue: 'https://github.com/dart-lang/linter/issues/4933',
+  )
+  test_augmentationEnum() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+
+enum E {
+  a;
+}
+''');
+
+    await assertDiagnostics(r'''
+augment library 'a.dart';
+
+augment enum E {
+  X;
+}
+''', [
+      lint(34, 1),
+    ]);
+  }
+
+  test_augmentationTopLevelVariable() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+''');
+
+    await assertDiagnostics(r'''
+augment library 'a.dart';
+
+const PI = 3.14;
+''', [
+      lint(33, 2),
+    ]);
+  }
+
+  test_augmentedTopLevelVariable() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+
+const PI = 3.14;
+''');
+
+    await assertNoDiagnostics(r'''
+augment library 'a.dart';
+
+augment const PI = 3.1415;
+''');
+  }
 
   test_destructuredConstField() async {
     await assertDiagnostics(r'''
@@ -85,12 +136,6 @@ f(A a) {
 }
 ''');
   }
-}
-
-@reflectiveTest
-class ConstantIdentifierNamesRecordsTest extends LintRuleTest {
-  @override
-  String get lintRule => 'constant_identifier_names';
 
   test_recordFieldDestructured() async {
     await assertDiagnostics(r'''

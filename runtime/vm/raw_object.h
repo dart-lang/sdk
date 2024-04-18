@@ -939,8 +939,12 @@ inline intptr_t ObjectPtr::GetClassId() const {
   }                                                                            \
                                                                                \
  protected:                                                                    \
-  type* array_name() { OPEN_ARRAY_START(type, type); }                         \
-  type const* array_name() const { OPEN_ARRAY_START(type, type); }             \
+  type* array_name() {                                                         \
+    OPEN_ARRAY_START(type, type);                                              \
+  }                                                                            \
+  type const* array_name() const {                                             \
+    OPEN_ARRAY_START(type, type);                                              \
+  }                                                                            \
   VISIT_TO_PAYLOAD_END(type)
 
 #define COMPRESSED_VARIABLE_POINTER_FIELDS(type, accessor_name, array_name)    \
@@ -1579,9 +1583,9 @@ class UntaggedField : public UntaggedObject {
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   friend class CidRewriteVisitor;
-  friend class GuardFieldClassInstr;     // For sizeof(guarded_cid_/...)
-  friend class LoadFieldInstr;           // For sizeof(guarded_cid_/...)
-  friend class StoreFieldInstr;          // For sizeof(guarded_cid_/...)
+  friend class GuardFieldClassInstr;  // For sizeof(guarded_cid_/...)
+  friend class LoadFieldInstr;        // For sizeof(guarded_cid_/...)
+  friend class StoreFieldInstr;       // For sizeof(guarded_cid_/...)
 };
 
 class alignas(8) UntaggedScript : public UntaggedObject {

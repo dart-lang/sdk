@@ -459,7 +459,6 @@ class Thread : public ThreadState {
     return OFFSET_OF(Thread, safepoint_state_);
   }
 
-
   // Tag state is maintained on transitions.
   enum {
     // Always true in generated state.

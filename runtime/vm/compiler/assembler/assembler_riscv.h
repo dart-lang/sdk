@@ -1017,9 +1017,7 @@ class Assembler : public MicroAssembler {
   void Call(const Code& code) { JumpAndLink(code); }
 
   void CallCFunction(Address target) { Call(target); }
-  void CallCFunction(Register target) {
-    Call(target);
-  }
+  void CallCFunction(Register target) { Call(target); }
 
   void AddImmediate(Register dest, intx_t imm) {
     AddImmediate(dest, dest, imm);
@@ -1043,9 +1041,7 @@ class Assembler : public MicroAssembler {
     }
   }
   void AddShifted(Register dest, Register base, Register index, intx_t shift);
-  void SubRegisters(Register dest, Register src) {
-    sub(dest, dest, src);
-  }
+  void SubRegisters(Register dest, Register src) { sub(dest, dest, src); }
 
   // Macros accepting a pp Register argument may attempt to load values from
   // the object pool when possible. Unless you are sure that the untagged object
@@ -1080,16 +1076,12 @@ class Assembler : public MicroAssembler {
                    Register rn,
                    intx_t imm,
                    OperandSize sz = kWordBytes);
-  void OrImmediate(Register rd, intx_t imm) {
-    OrImmediate(rd, rd, imm);
-  }
+  void OrImmediate(Register rd, intx_t imm) { OrImmediate(rd, rd, imm); }
   void XorImmediate(Register rd,
                     Register rn,
                     intx_t imm,
                     OperandSize sz = kWordBytes);
-  void LslImmediate(Register rd, int32_t shift) {
-    slli(rd, rd, shift);
-  }
+  void LslImmediate(Register rd, int32_t shift) { slli(rd, rd, shift); }
   void LslRegister(Register dst, Register shift) override {
     sll(dst, dst, shift);
   }
@@ -1148,9 +1140,7 @@ class Assembler : public MicroAssembler {
   void StoreUnboxedDouble(FpuRegister src, Register base, int32_t offset) {
     StoreDToOffset(src, base, offset);
   }
-  void MoveUnboxedDouble(FpuRegister dst, FpuRegister src) {
-    fmvd(dst, src);
-  }
+  void MoveUnboxedDouble(FpuRegister dst, FpuRegister src) { fmvd(dst, src); }
 
   void LoadUnboxedSimd128(FpuRegister dst, Register base, int32_t offset) {
     // No single register SIMD on RISC-V.
@@ -1280,9 +1270,7 @@ class Assembler : public MicroAssembler {
 
   // Sets the return address to [value] as if there was a call.
   // On RISC-V sets RA.
-  void SetReturnAddress(Register value) {
-    mv(RA, value);
-  }
+  void SetReturnAddress(Register value) { mv(RA, value); }
 
   // Emit code to transition between generated mode and native mode.
   //

@@ -27,8 +27,8 @@ TEST_CASE(Read) {
 
 TEST_CASE(OpenUri_RelativeFilename) {
   const char* kFilename = bin::test::GetFileName("runtime/bin/file_test.cc");
-  char* encoded = reinterpret_cast<char*>(bin::DartUtils::ScopedCString(
-      strlen(kFilename) * 3 + 1));
+  char* encoded = reinterpret_cast<char*>(
+      bin::DartUtils::ScopedCString(strlen(kFilename) * 3 + 1));
   char* t = encoded;
   // percent-encode all characters 'c'
   for (const char* p = kFilename; *p != '\0'; p++) {
@@ -58,8 +58,8 @@ TEST_CASE(OpenUri_AbsoluteFilename) {
   const char* kFilename =
       bin::File::GetCanonicalPath(nullptr, kRelativeFilename);
   EXPECT_NOTNULL(kFilename);
-  char* encoded = reinterpret_cast<char*>(bin::DartUtils::ScopedCString(
-      strlen(kFilename) * 3 + 1));
+  char* encoded = reinterpret_cast<char*>(
+      bin::DartUtils::ScopedCString(strlen(kFilename) * 3 + 1));
   char* t = encoded;
   // percent-encode all characters 'c'
   for (const char* p = kFilename; *p != '\0'; p++) {
@@ -99,8 +99,8 @@ TEST_CASE(OpenUri_ValidUri) {
   EXPECT_NOTNULL(kAbsoluteFilename);
   const char* kFilename = Concat("file:///", kAbsoluteFilename);
 
-  char* encoded = reinterpret_cast<char*>(bin::DartUtils::ScopedCString(
-      strlen(kFilename) * 3 + 1));
+  char* encoded = reinterpret_cast<char*>(
+      bin::DartUtils::ScopedCString(strlen(kFilename) * 3 + 1));
   char* t = encoded;
   // percent-encode all characters 'c'
   for (const char* p = kFilename; *p != '\0'; p++) {
@@ -141,8 +141,8 @@ TEST_CASE(OpenUri_UriWithSpaces) {
   EXPECT_NOTNULL(kAbsoluteFilename);
   const char* kFilename = Concat("file:///", kAbsoluteFilename);
 
-  char* encoded = reinterpret_cast<char*>(bin::DartUtils::ScopedCString(
-      strlen(kFilename) * 3 + 1));
+  char* encoded = reinterpret_cast<char*>(
+      bin::DartUtils::ScopedCString(strlen(kFilename) * 3 + 1));
   char* t = encoded;
   // percent-encode all spaces
   for (const char* p = kFilename; *p != '\0'; p++) {
@@ -170,8 +170,8 @@ TEST_CASE(OpenUri_UriWithSpaces) {
 
 TEST_CASE(OpenUri_InvalidUriPercentEncoding) {
   const char* kFilename = bin::test::GetFileName("runtime/bin/file_test.cc");
-  char* encoded = reinterpret_cast<char*>(bin::DartUtils::ScopedCString(
-      strlen(kFilename) * 3 + 1));
+  char* encoded = reinterpret_cast<char*>(
+      bin::DartUtils::ScopedCString(strlen(kFilename) * 3 + 1));
   char* t = encoded;
   // percent-encode all characters 'c'
   for (const char* p = kFilename; *p != '\0'; p++) {
@@ -190,8 +190,8 @@ TEST_CASE(OpenUri_InvalidUriPercentEncoding) {
 
 TEST_CASE(OpenUri_TruncatedUriPercentEncoding) {
   const char* kFilename = bin::test::GetFileName("runtime/bin/file_test.cc");
-  char* encoded = reinterpret_cast<char*>(bin::DartUtils::ScopedCString(
-      strlen(kFilename) * 3 + 1));
+  char* encoded = reinterpret_cast<char*>(
+      bin::DartUtils::ScopedCString(strlen(kFilename) * 3 + 1));
   char* t = encoded;
   // percent-encode all characters 'c'
   for (const char* p = kFilename; *p != '\0'; p++) {

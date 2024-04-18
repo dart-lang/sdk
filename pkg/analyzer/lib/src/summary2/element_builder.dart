@@ -239,6 +239,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var nameOffset = nameNode.offset;
 
     var element = EnumElementImpl(name, nameOffset);
+    element.isAugmentation = node.augmentKeyword != null;
     element.metadata = _buildAnnotations(node.metadata);
     _setCodeRange(element, node);
     _setDocumentation(element, node);
@@ -248,6 +249,13 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     var reference = _enclosingContext.addEnum(name, element);
     _libraryBuilder.declare(name, reference);
+
+    _libraryBuilder.updateAugmentationTarget(name, element, (target) {
+      if (element.isAugmentation) {
+        target.augmentation = element;
+        element.augmentationTarget = target;
+      }
+    });
 
     var holder = _EnclosingContext(
       reference,
@@ -330,10 +338,8 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     }
 
     // Build the 'values' field.
-    ConstFieldElementImpl valuesField;
-    NamedTypeImpl valuesTypeNode;
-    {
-      valuesField = ConstFieldElementImpl('values', -1)
+    if (element.augmentationTarget == null) {
+      var valuesField = ConstFieldElementImpl('values', -1)
         ..isConst = true
         ..isStatic = true
         ..isSynthetic = true;
@@ -351,7 +357,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         equals: Tokens.eq(),
         initializer: initializer,
       );
-      valuesTypeNode = NamedTypeImpl(
+      var valuesTypeNode = NamedTypeImpl(
         importPrefix: null,
         name2: StringToken(TokenType.STRING, 'List', -1),
         typeArguments: TypeArgumentListImpl(
@@ -379,6 +385,14 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       _linker.elementNodes[valuesField] = variableDeclaration;
 
       holder.addNonSyntheticField(valuesField);
+
+      _libraryBuilder.implicitEnumNodes.add(
+        ImplicitEnumNodes(
+          element: element,
+          valuesTypeNode: valuesTypeNode,
+          valuesField: valuesField,
+        ),
+      );
     }
 
     node.withClause?.accept(this);
@@ -389,35 +403,25 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       _visitPropertyFirst<FieldDeclaration>(node.members);
     });
 
-    var needsImplicitConstructor = !holder.constructors.any(
-      (e) => e.name.isEmpty || e.isGenerative,
-    );
-
-    if (needsImplicitConstructor) {
-      holder.addConstructor(
-        ConstructorElementImpl('', -1)
-          ..isConst = true
-          ..isSynthetic = true,
-      );
-    }
-
-    _libraryBuilder.implicitEnumNodes.add(
-      ImplicitEnumNodes(
-        element: element,
-        valuesTypeNode: valuesTypeNode,
-        valuesField: valuesField,
-      ),
-    );
-
     element.accessors = holder.propertyAccessors;
     element.constructors = holder.constructors;
     element.fields = holder.fields;
     element.methods = holder.methods;
     element.typeParameters = holder.typeParameters;
 
-    // TODO(scheglov): We cannot do this anymore.
-    // Not for class augmentations, not for classes.
-    _resolveConstructorFieldFormals(element);
+    if (element.augmentationTarget != null) {
+      var builder = _libraryBuilder.getAugmentedBuilder(name);
+      if (builder is AugmentedEnumDeclarationBuilder) {
+        builder.augment(element);
+      }
+    } else {
+      _libraryBuilder.putAugmentedBuilder(
+        name,
+        AugmentedEnumDeclarationBuilder(
+          declaration: element,
+        ),
+      );
+    }
   }
 
   @override

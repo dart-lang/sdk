@@ -268,15 +268,15 @@ class TypesBuilder {
   void _enumDeclaration(EnumDeclaration node) {
     var element = node.declaredElement as EnumElementImpl;
 
-    element.mixins = _toInterfaceTypeList(
-      node.withClause?.mixinTypes,
-    );
-
     element.interfaces = _toInterfaceTypeList(
       node.implementsClause?.interfaces,
     );
 
-    _toInferMixins[element] = _ToInferMixins(element, node.withClause);
+    if (element.augmentationTarget != null) {
+      _updatedAugmented(element, withClause: node.withClause);
+    } else {
+      _toInferMixins[element] = _ToInferMixins(element, node.withClause);
+    }
   }
 
   void _extensionDeclaration(ExtensionDeclaration node) {
@@ -687,9 +687,7 @@ class _MixinsInference {
   void perform() {
     for (var declaration in _declarations.values) {
       var element = declaration.element;
-      if (element is ClassElementImpl) {
-        element.mixinInferenceCallback = _callbackWhenRecursion;
-      }
+      element.mixinInferenceCallback = _callbackWhenRecursion;
     }
 
     for (var declaration in _declarations.values) {

@@ -1528,9 +1528,7 @@ class Assembler : public AssemblerBase {
     }
   }
   void vmov(VRegister vd, VRegister vn) { vorr(vd, vn, vn); }
-  void mvn_(Register rd, Register rm) {
-    orn(rd, ZR, Operand(rm));
-  }
+  void mvn_(Register rd, Register rm) { orn(rd, ZR, Operand(rm)); }
   void mvnw(Register rd, Register rm) { ornw(rd, ZR, Operand(rm)); }
   void neg(Register rd, Register rm) { sub(rd, ZR, Operand(rm)); }
   void negs(Register rd, Register rm, OperandSize sz = kEightBytes) {
@@ -1755,9 +1753,7 @@ class Assembler : public AssemblerBase {
   void Call(const Code& code) { BranchLink(code); }
 
   // Clobbers LR.
-  void CallCFunction(Address target) {
-    Call(target);
-  }
+  void CallCFunction(Address target) { Call(target); }
   void CallCFunction(Register target) {
 #define __ this->
     CLOBBERS_LR({ blr(target); });
@@ -1838,9 +1834,7 @@ class Assembler : public AssemblerBase {
                    Register rn,
                    int64_t imm,
                    OperandSize sz = kEightBytes);
-  void OrImmediate(Register rd, int64_t imm) {
-    OrImmediate(rd, rd, imm);
-  }
+  void OrImmediate(Register rd, int64_t imm) { OrImmediate(rd, rd, imm); }
   void XorImmediate(Register rd,
                     Register rn,
                     int64_t imm,
@@ -2023,9 +2017,7 @@ class Assembler : public AssemblerBase {
     LoadImmediate(TMP, immediate);
     Push(TMP);
   }
-  void PushImmediate(Immediate immediate) {
-    PushImmediate(immediate.value());
-  }
+  void PushImmediate(Immediate immediate) { PushImmediate(immediate.value()); }
   void CompareObject(Register reg, const Object& object);
 
   void ExtractClassIdFromTags(Register result, Register tags);

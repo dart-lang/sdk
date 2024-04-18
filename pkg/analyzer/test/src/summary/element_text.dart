@@ -230,6 +230,13 @@ class _ElementWriter {
           writeConstructors();
           writeAccessors();
           writeMethods();
+        case AugmentedEnumElement():
+          _elementPrinter.writeTypeList('mixins', augmented.mixins);
+          _elementPrinter.writeTypeList('interfaces', augmented.interfaces);
+          writeFields();
+          writeConstructors();
+          writeAccessors();
+          writeMethods();
         case AugmentedExtensionElement():
           writeFields();
           writeAccessors();

@@ -17,6 +17,79 @@ class AvoidClassesWithOnlyStaticMembers extends LintRuleTest {
   @override
   String get lintRule => 'avoid_classes_with_only_static_members';
 
+  test_augmentationClass_nonStaticField() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+import augment 'b.dart';
+
+class A {
+  static int f = 1;
+}
+''');
+
+    // The added field should prevent a lint above.
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+augment library 'a.dart';
+
+augment class A { 
+  int a = 1;
+}
+''');
+
+    result = await resolveFile(a.path);
+    await assertNoDiagnosticsIn(errors);
+
+    result = await resolveFile(b.path);
+    await assertNoDiagnosticsIn(errors);
+  }
+
+  test_augmentationClass_staticField() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+import augment 'b.dart';
+
+class A {}
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+augment library 'a.dart';
+
+augment class A { 
+  static int f = 1;
+}
+''');
+
+    result = await resolveFile(a.path);
+    await assertDiagnosticsIn(errors, [
+      lint(26, 10),
+    ]);
+
+    result = await resolveFile(b.path);
+    await assertNoDiagnosticsIn(errors);
+  }
+
+  test_augmentationClass_staticMethod() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+import augment 'b.dart';
+
+class A {}
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+augment library 'a.dart';
+
+augment class A { 
+  static void m() {}
+}
+''');
+
+    result = await resolveFile(a.path);
+    await assertDiagnosticsIn(errors, [
+      lint(26, 10),
+    ]);
+
+    result = await resolveFile(b.path);
+    await assertNoDiagnosticsIn(errors);
+  }
+
   test_basicClass() async {
     await assertDiagnostics(r'''
 class C {

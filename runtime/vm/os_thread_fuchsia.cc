@@ -240,17 +240,14 @@ uword OSThread::GetCurrentSafestackPointer() {
   uword result;
 #if defined(HOST_ARCH_X64)
 #define _loadfsword(index) "movq  %%fs:" STRINGIFY(index) ", %0"
-  asm volatile(
-    _loadfsword(ZX_TLS_UNSAFE_SP_OFFSET)
-    : "=r"(result)  // outputs
+  asm volatile(_loadfsword(ZX_TLS_UNSAFE_SP_OFFSET)
+               : "=r"(result)  // outputs
   );
 #undef _loadfsword
 #elif defined(HOST_ARCH_ARM64)
 #define _loadword(index) "ldr %0, [%0, " STRINGIFY(index) "]"
-  asm volatile(
-    "mrs %0, TPIDR_EL0;\n"
-    _loadword(ZX_TLS_UNSAFE_SP_OFFSET)
-    : "=r"(result)  // outputs
+  asm volatile("mrs %0, TPIDR_EL0;\n" _loadword(ZX_TLS_UNSAFE_SP_OFFSET)
+               : "=r"(result)  // outputs
   );
 #else
 #error "Architecture not supported"
@@ -264,23 +261,20 @@ void OSThread::SetCurrentSafestackPointer(uword ssp) {
 #if defined(HOST_ARCH_X64)
 #define str(s) #s
 #define _storefsword(index) "movq %0, %%fs:" str(index)
-  asm volatile(
-    _storefsword(ZX_TLS_UNSAFE_SP_OFFSET)
-    : // outputs.
-    : "r"(ssp)  // inputs.
-    :  // clobbered.
+  asm volatile(_storefsword(ZX_TLS_UNSAFE_SP_OFFSET)
+               :           // outputs.
+               : "r"(ssp)  // inputs.
+               :           // clobbered.
   );
 #undef _storefsword
 #undef str
 #elif defined(HOST_ARCH_ARM64)
 #define _storeword(index) "str %1, [%0, " STRINGIFY(index) "]"
   uword tmp;
-  asm volatile(
-    "mrs %0, TPIDR_EL0;\n"
-    _storeword(ZX_TLS_UNSAFE_SP_OFFSET)
-    : "=r"(tmp) // outputs.
-    : "r"(ssp)  // inputs.
-    :  // clobbered.
+  asm volatile("mrs %0, TPIDR_EL0;\n" _storeword(ZX_TLS_UNSAFE_SP_OFFSET)
+               : "=r"(tmp)  // outputs.
+               : "r"(ssp)   // inputs.
+               :            // clobbered.
   );
 #else
 #error "Architecture not supported"

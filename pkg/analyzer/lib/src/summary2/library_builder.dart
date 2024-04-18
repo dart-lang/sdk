@@ -58,6 +58,27 @@ class AugmentedClassDeclarationBuilder
   }
 }
 
+class AugmentedEnumDeclarationBuilder
+    extends AugmentedInstanceDeclarationBuilder {
+  final EnumElementImpl declaration;
+
+  AugmentedEnumDeclarationBuilder({
+    required this.declaration,
+  }) {
+    addFields(declaration.fields);
+    addConstructors(declaration.constructors);
+    addAccessors(declaration.accessors);
+    addMethods(declaration.methods);
+  }
+
+  void augment(EnumElementImpl element) {
+    addFields(element.fields);
+    addConstructors(element.constructors);
+    addAccessors(element.accessors);
+    addMethods(element.methods);
+  }
+}
+
 class AugmentedExtensionDeclarationBuilder
     extends AugmentedInstanceDeclarationBuilder {
   final ExtensionElementImpl declaration;
@@ -392,6 +413,40 @@ class LibraryBuilder with MacroApplicationsContainer {
     }
   }
 
+  void buildEnumSyntheticConstructors() {
+    bool hasConstructor(EnumElementImpl element) {
+      for (var constructor in element.augmented.constructors) {
+        if (constructor.isGenerative || constructor.name == '') {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    for (var enumElement in element.topLevelElements) {
+      if (enumElement is! EnumElementImpl) continue;
+      if (enumElement.augmentationTarget != null) continue;
+      if (hasConstructor(enumElement)) continue;
+
+      var constructor = ConstructorElementImpl('', -1)
+        ..isConst = true
+        ..isSynthetic = true;
+      var containerRef = enumElement.reference!.getChild('@constructor');
+      var reference = containerRef.getChild('new');
+      reference.element = constructor;
+      constructor.reference = reference;
+
+      enumElement.constructors = [
+        ...enumElement.constructors,
+        constructor,
+      ].toFixedList();
+
+      if (enumElement.augmented case AugmentedEnumElementImpl augmented) {
+        augmented.constructors = enumElement.constructors;
+      }
+    }
+  }
+
   void buildInitialExportScope() {
     exportScope = ExportScope();
     _declaredReferences.forEach((name, reference) {
@@ -719,12 +774,17 @@ class LibraryBuilder with MacroApplicationsContainer {
   }
 
   void resolveConstructorFieldFormals() {
-    for (var class_ in element.topLevelElements) {
-      if (class_ is! ClassElementImpl) continue;
-      if (class_.isMixinApplication) continue;
-      var augmented = class_.augmented;
+    for (var interface in element.topLevelElements) {
+      if (interface is! InterfaceElementImpl) {
+        continue;
+      }
 
-      for (var constructor in class_.constructors) {
+      if (interface is ClassElementImpl && interface.isMixinApplication) {
+        continue;
+      }
+
+      var augmented = interface.augmented;
+      for (var constructor in interface.constructors) {
         for (var parameter in constructor.parameters) {
           if (parameter is FieldFormalParameterElementImpl) {
             parameter.field = augmented.getField(parameter.name);

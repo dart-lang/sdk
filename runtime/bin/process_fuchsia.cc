@@ -624,14 +624,14 @@ class ProcessStarter {
     }
 
     fdio_spawn_action_t* actions;
-    const intptr_t actions_count = BuildSpawnActions(
-        namespc_->namespc()->fdio_ns(), &actions);
+    const intptr_t actions_count =
+        BuildSpawnActions(namespc_->namespc()->fdio_ns(), &actions);
     if (actions_count < 0) {
       zx_handle_close(vmo);
       close(exit_pipe_fds[0]);
       close(exit_pipe_fds[1]);
-      *os_error_message_ = DartUtils::ScopedCopyCString(
-          "Failed to build spawn actions array.");
+      *os_error_message_ =
+          DartUtils::ScopedCopyCString("Failed to build spawn actions array.");
       return ZX_ERR_IO;
     }
 
@@ -703,7 +703,8 @@ class ProcessStarter {
     *os_error_message_ = message;
   }
 
-  zx_status_t AddPipe(int target_fd, int* local_fd,
+  zx_status_t AddPipe(int target_fd,
+                      int* local_fd,
                       fdio_spawn_action_t* action) {
     zx_status_t status = fdio_pipe_half(local_fd, &action->h.handle);
     if (status != ZX_OK) return status;
@@ -763,16 +764,19 @@ class ProcessStarter {
       }
       return -1;
     }
+    // clang-format off
     actions[3] = {
       .action = FDIO_SPAWN_ACTION_SET_NAME,
       .name = {
         .data = program_arguments_[0],
       },
     };
+    // clang-format on
 
     // Then fill in the namespace actions.
     if (ns != nullptr) {
       for (size_t i = 0; i < flat_ns->count; i++) {
+        // clang-format off
         actions[fixed_actions_cnt + i] = {
           .action = FDIO_SPAWN_ACTION_ADD_NS_ENTRY,
           .ns = {
@@ -780,6 +784,7 @@ class ProcessStarter {
             .handle = flat_ns->handle[i],
           },
         };
+        // clang-format on
         flat_ns->handle[i] = ZX_HANDLE_INVALID;
       }
       fdio_ns_free_flat_ns(flat_ns);

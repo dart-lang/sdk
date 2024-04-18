@@ -194,8 +194,7 @@ void DeoptContext::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 }
 
 intptr_t DeoptContext::DestStackAdjustment() const {
-  return dest_frame_size_ - kDartFrameFixedSize - num_args_
-         - 1  // For fp.
+  return dest_frame_size_ - kDartFrameFixedSize - num_args_ - 1  // For fp.
          - kParamEndSlotFromFp;
 }
 
@@ -1029,7 +1028,7 @@ DeoptInfoBuilder::DeoptInfoBuilder(Zone* zone,
       instructions_(),
       num_args_(num_args),
       assembler_(assembler),
-      trie_root_(new (zone) TrieNode()),
+      trie_root_(new(zone) TrieNode()),
       current_info_number_(0),
       frame_start_(-1),
       materializations_() {}
@@ -1347,7 +1346,6 @@ void DeoptTable::GetEntry(const Array& table,
   *reason ^= table.At(i + 2);
 }
 
-
 intptr_t DeoptInfo::FrameSize(const TypedData& packed) {
   NoSafepointScope no_safepoint;
   typedef ReadStream::Raw<sizeof(intptr_t), intptr_t> Reader;
@@ -1355,7 +1353,6 @@ intptr_t DeoptInfo::FrameSize(const TypedData& packed) {
                          packed.LengthInBytes());
   return Reader::Read(&read_stream);
 }
-
 
 intptr_t DeoptInfo::NumMaterializations(
     const GrowableArray<DeoptInstr*>& unpacked) {
@@ -1365,7 +1362,6 @@ intptr_t DeoptInfo::NumMaterializations(
   }
   return num;
 }
-
 
 void DeoptInfo::UnpackInto(const Array& table,
                            const TypedData& packed,
@@ -1398,7 +1394,6 @@ void DeoptInfo::UnpackInto(const Array& table,
   }
 }
 
-
 void DeoptInfo::Unpack(const Array& table,
                        const TypedData& packed,
                        GrowableArray<DeoptInstr*>* unpacked) {
@@ -1410,7 +1405,6 @@ void DeoptInfo::Unpack(const Array& table,
 
   unpacked->Reverse();
 }
-
 
 const char* DeoptInfo::ToCString(const Array& deopt_table,
                                  const TypedData& packed) {
@@ -1437,7 +1431,6 @@ const char* DeoptInfo::ToCString(const Array& deopt_table,
   return buffer;
 #undef FORMAT
 }
-
 
 // Returns a bool so it can be asserted.
 bool DeoptInfo::VerifyDecompression(const GrowableArray<DeoptInstr*>& original,

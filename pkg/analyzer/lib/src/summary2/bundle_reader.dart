@@ -351,6 +351,20 @@ class EnumElementLinkedData extends ElementLinkedData<EnumElementImpl> {
     element.supertype = reader._readOptionalInterfaceType();
     element.mixins = reader._readInterfaceTypeList();
     element.interfaces = reader._readInterfaceTypeList();
+    element.augmentationTarget = reader.readElement() as EnumElementImpl?;
+    element.augmentation = reader.readElement() as EnumElementImpl?;
+    if (element.augmentationTarget == null) {
+      if (reader.readBool()) {
+        var augmented = AugmentedEnumElementImpl(element);
+        element.augmentedInternal = augmented;
+        augmented.mixins = reader._readInterfaceTypeList();
+        augmented.interfaces = reader._readInterfaceTypeList();
+        augmented.fields = reader.readElementList();
+        augmented.constructors = reader.readElementList();
+        augmented.accessors = reader.readElementList();
+        augmented.methods = reader.readElementList();
+      }
+    }
     applyConstantOffsets?.perform();
   }
 }

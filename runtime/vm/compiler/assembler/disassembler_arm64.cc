@@ -247,7 +247,9 @@ void ARM64Decoder::PrintMemOperand(Instr* instr) {
         Print("]!");
         break;
       }
-      default: { Print("???"); }
+      default: {
+        Print("???");
+      }
     }
   }
 }

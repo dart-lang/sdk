@@ -1628,7 +1628,7 @@ static void TryAllocateString(Assembler* assembler,
     __ movq(RDI, length_reg);
   }
   Label pop_and_fail, not_zero_length;
-  __ pushq(RDI);                          // Preserve length.
+  __ pushq(RDI);  // Preserve length.
   if (cid == kOneByteStringCid) {
     // Untag length.
     __ SmiUntag(RDI);

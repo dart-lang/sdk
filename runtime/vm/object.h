@@ -288,7 +288,9 @@ extern "C" void DFLRT_ExitSafepoint(NativeArguments __unusable_);
     ASSERT(ptr() != null());                                                   \
     return const_cast<Untagged##object*>(ptr()->untag());                      \
   }                                                                            \
-  static intptr_t NextFieldOffset() { return -kWordSize; }                     \
+  static intptr_t NextFieldOffset() {                                          \
+    return -kWordSize;                                                         \
+  }                                                                            \
   SNAPSHOT_SUPPORT(rettype)                                                    \
   friend class Object;                                                         \
   friend class StackFrame;                                                     \
@@ -1051,7 +1053,9 @@ class Object {
   }
 #else
 #define PRECOMPILER_WSR_FIELD_DECLARATION(Type, Name)                          \
-  Type##Ptr Name() const { return untag()->Name(); }                           \
+  Type##Ptr Name() const {                                                     \
+    return untag()->Name();                                                    \
+  }                                                                            \
   void set_##Name(const Type& value) const;
 #endif
 
@@ -1578,9 +1582,7 @@ class Class : public Object {
   }
 
   // Check if this class represents the 'Record' class.
-  bool IsRecordClass() const {
-    return id() == kRecordCid;
-  }
+  bool IsRecordClass() const { return id() == kRecordCid; }
 
   static bool IsInFullSnapshot(ClassPtr cls) {
     NoSafepointScope no_safepoint;
@@ -3173,9 +3175,7 @@ class Function : public Object {
 
   static intptr_t code_offset() { return OFFSET_OF(UntaggedFunction, code_); }
 
-  uword entry_point() const {
-    return EntryPointOf(ptr());
-  }
+  uword entry_point() const { return EntryPointOf(ptr()); }
   static uword EntryPointOf(const FunctionPtr function) {
     return function->untag()->entry_point_;
   }
@@ -3449,9 +3449,7 @@ class Function : public Object {
 
 #if !defined(PRODUCT) &&                                                       \
     (defined(DART_PRECOMPILER) || defined(DART_PRECOMPILED_RUNTIME))
-  int32_t line() const {
-    return untag()->token_pos_.Serialize();
-  }
+  int32_t line() const { return untag()->token_pos_.Serialize(); }
 
   void set_line(int32_t line) const {
     StoreNonPointer(&untag()->token_pos_, TokenPosition::Deserialize(line));
@@ -4684,9 +4682,7 @@ class Field : public Object {
 
   const char* GuardedPropertiesAsCString() const;
 
-  bool is_unboxed() const {
-    return UnboxedBit::decode(kind_bits());
-  }
+  bool is_unboxed() const { return UnboxedBit::decode(kind_bits()); }
 
   // Field unboxing decisions are based either on static types (JIT) or
   // inferred types (AOT). See the callers of this function.
@@ -12588,15 +12584,11 @@ class SuspendState : public Instance {
 
   intptr_t frame_size() const { return untag()->frame_size_; }
 
-  InstancePtr function_data() const {
-    return untag()->function_data();
-  }
+  InstancePtr function_data() const { return untag()->function_data(); }
 
   ClosurePtr then_callback() const { return untag()->then_callback(); }
 
-  ClosurePtr error_callback() const {
-    return untag()->error_callback();
-  }
+  ClosurePtr error_callback() const { return untag()->error_callback(); }
 
   // Returns Code object corresponding to the suspended function.
   CodePtr GetCodeObject() const;

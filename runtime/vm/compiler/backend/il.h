@@ -570,13 +570,21 @@ FOR_EACH_ABSTRACT_INSTRUCTION(FORWARD_DECLARATION)
 #undef FORWARD_DECLARATION
 
 #define DEFINE_INSTRUCTION_TYPE_CHECK(type)                                    \
-  virtual type##Instr* As##type() { return this; }                             \
-  virtual const type##Instr* As##type() const { return this; }                 \
-  virtual const char* DebugName() const { return #type; }
+  virtual type##Instr* As##type() {                                            \
+    return this;                                                               \
+  }                                                                            \
+  virtual const type##Instr* As##type() const {                                \
+    return this;                                                               \
+  }                                                                            \
+  virtual const char* DebugName() const {                                      \
+    return #type;                                                              \
+  }
 
 // Functions required in all concrete instruction classes.
 #define DECLARE_INSTRUCTION_NO_BACKEND(type)                                   \
-  virtual Tag tag() const { return k##type; }                                  \
+  virtual Tag tag() const {                                                    \
+    return k##type;                                                            \
+  }                                                                            \
   virtual void Accept(InstructionVisitor* visitor);                            \
   DEFINE_INSTRUCTION_TYPE_CHECK(type)
 
@@ -5853,7 +5861,7 @@ class DropTempsInstr : public Definition {
 class MakeTempInstr : public TemplateDefinition<0, NoThrow, Pure> {
  public:
   explicit MakeTempInstr(Zone* zone)
-      : null_(new (zone) ConstantInstr(Object::ZoneHandle())) {
+      : null_(new(zone) ConstantInstr(Object::ZoneHandle())) {
     // Note: We put ConstantInstr inside MakeTemp to simplify code generation:
     // having ConstantInstr allows us to use Location::Constant(null_) as an
     // output location for this instruction.

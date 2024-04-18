@@ -358,11 +358,10 @@ void SimulatorDebugger::PrintBacktrace() {
     } else {
       OS::PrintErr("pc=0x%" Px " fp=0x%" Px " sp=0x%" Px " %s frame",
                    frame->pc(), frame->fp(), frame->sp(),
-                   frame->IsEntryFrame()
-                       ? "entry"
-                       : frame->IsExitFrame()
-                             ? "exit"
-                             : frame->IsStubFrame() ? "stub" : "invalid");
+                   frame->IsEntryFrame()  ? "entry"
+                   : frame->IsExitFrame() ? "exit"
+                   : frame->IsStubFrame() ? "stub"
+                                          : "invalid");
 #if defined(DART_PRECOMPILED_RUNTIME)
       intptr_t offset;
       auto const symbol_name = ImageName(vm_instructions, isolate_instructions,
@@ -1441,7 +1440,7 @@ void Simulator::SupervisorCall(Instr* instr) {
               reinterpret_cast<SimulatorLeafRuntimeCall>(external);
           r0 = InvokeLeafRuntime(target, r0, r1, r2, r3, r4);
           ClobberVolatileRegisters();
-          set_register(R0, r0);       // Set returned result from function.
+          set_register(R0, r0);  // Set returned result from function.
         } else if (redirection->call_kind() == kLeafFloatRuntimeCall) {
           ASSERT((0 <= redirection->argument_count()) &&
                  (redirection->argument_count() <= 2));
@@ -3587,14 +3586,14 @@ int64_t Simulator::Call(int32_t entry,
   double d14_val = 0.0;
   double d15_val = 0.0;
 
-    d8_val = get_dregister(D8);
-    d9_val = get_dregister(D9);
-    d10_val = get_dregister(D10);
-    d11_val = get_dregister(D11);
-    d12_val = get_dregister(D12);
-    d13_val = get_dregister(D13);
-    d14_val = get_dregister(D14);
-    d15_val = get_dregister(D15);
+  d8_val = get_dregister(D8);
+  d9_val = get_dregister(D9);
+  d10_val = get_dregister(D10);
+  d11_val = get_dregister(D11);
+  d12_val = get_dregister(D12);
+  d13_val = get_dregister(D13);
+  d14_val = get_dregister(D14);
+  d15_val = get_dregister(D15);
 
   // Setup the callee-saved registers with a known value. To be able to check
   // that they are preserved properly across dart execution.
@@ -3611,15 +3610,15 @@ int64_t Simulator::Call(int32_t entry,
   set_register(R11, callee_saved_value);
 
   double callee_saved_dvalue = 0.0;
-    callee_saved_dvalue = static_cast<double>(icount_);
-    set_dregister(D8, callee_saved_dvalue);
-    set_dregister(D9, callee_saved_dvalue);
-    set_dregister(D10, callee_saved_dvalue);
-    set_dregister(D11, callee_saved_dvalue);
-    set_dregister(D12, callee_saved_dvalue);
-    set_dregister(D13, callee_saved_dvalue);
-    set_dregister(D14, callee_saved_dvalue);
-    set_dregister(D15, callee_saved_dvalue);
+  callee_saved_dvalue = static_cast<double>(icount_);
+  set_dregister(D8, callee_saved_dvalue);
+  set_dregister(D9, callee_saved_dvalue);
+  set_dregister(D10, callee_saved_dvalue);
+  set_dregister(D11, callee_saved_dvalue);
+  set_dregister(D12, callee_saved_dvalue);
+  set_dregister(D13, callee_saved_dvalue);
+  set_dregister(D14, callee_saved_dvalue);
+  set_dregister(D15, callee_saved_dvalue);
 
   // Start the simulation
   Execute();
@@ -3636,14 +3635,14 @@ int64_t Simulator::Call(int32_t entry,
   ASSERT(callee_saved_value == get_register(R10));
   ASSERT(callee_saved_value == get_register(R11));
 
-    ASSERT(callee_saved_dvalue == get_dregister(D8));
-    ASSERT(callee_saved_dvalue == get_dregister(D9));
-    ASSERT(callee_saved_dvalue == get_dregister(D10));
-    ASSERT(callee_saved_dvalue == get_dregister(D11));
-    ASSERT(callee_saved_dvalue == get_dregister(D12));
-    ASSERT(callee_saved_dvalue == get_dregister(D13));
-    ASSERT(callee_saved_dvalue == get_dregister(D14));
-    ASSERT(callee_saved_dvalue == get_dregister(D15));
+  ASSERT(callee_saved_dvalue == get_dregister(D8));
+  ASSERT(callee_saved_dvalue == get_dregister(D9));
+  ASSERT(callee_saved_dvalue == get_dregister(D10));
+  ASSERT(callee_saved_dvalue == get_dregister(D11));
+  ASSERT(callee_saved_dvalue == get_dregister(D12));
+  ASSERT(callee_saved_dvalue == get_dregister(D13));
+  ASSERT(callee_saved_dvalue == get_dregister(D14));
+  ASSERT(callee_saved_dvalue == get_dregister(D15));
 
   // Restore callee-saved registers with the original value.
   set_register(R4, r4_val);
@@ -3657,14 +3656,14 @@ int64_t Simulator::Call(int32_t entry,
   set_register(R10, r10_val);
   set_register(R11, r11_val);
 
-    set_dregister(D8, d8_val);
-    set_dregister(D9, d9_val);
-    set_dregister(D10, d10_val);
-    set_dregister(D11, d11_val);
-    set_dregister(D12, d12_val);
-    set_dregister(D13, d13_val);
-    set_dregister(D14, d14_val);
-    set_dregister(D15, d15_val);
+  set_dregister(D8, d8_val);
+  set_dregister(D9, d9_val);
+  set_dregister(D10, d10_val);
+  set_dregister(D11, d11_val);
+  set_dregister(D12, d12_val);
+  set_dregister(D13, d13_val);
+  set_dregister(D14, d14_val);
+  set_dregister(D15, d15_val);
 
   // Restore the SP register and return R1:R0.
   set_register(SP, sp_before_call);
