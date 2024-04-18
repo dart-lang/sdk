@@ -187,13 +187,14 @@ class _ExceptionHandlerStack {
   /// Current exception handler stack. A CFG block generated when this is not
   /// empty should have a Wasm `try` instruction wrapping the block.
   ///
-  /// A `catch` block will jump to the last handler, which then jumps to the
-  /// next if the exception type test fails.
+  /// A `catch` block will jump to the next handler on the stack (the last
+  /// handler in the list), which then jumps to the next if the exception type
+  /// test fails.
   ///
-  /// Because the CFG blocks for [Catch] blocks and finalizers will have Wasm
-  /// `try` blocks for the parent handlers, we can use a Wasm `throw`
-  /// instruction (instead of jumping to the parent handler) in [Catch] blocks
-  /// and finalizers for rethrowing.
+  /// Because CFG blocks for [Catch] blocks and finalizers will have Wasm `try`
+  /// blocks for the parent handlers, we can use a Wasm `throw` instruction
+  /// (instead of jumping to the parent handler) in [Catch] blocks and
+  /// finalizers for rethrowing.
   final List<_ExceptionHandler> _handlers = [];
 
   /// Maps Wasm `try` blocks to number of handlers in [_handlers] that they
@@ -273,10 +274,8 @@ class _ExceptionHandlerStack {
   ///
   /// Call this right before terminating a CFG block.
   void terminateTryBlocks() {
-    int handlerIdx = _handlers.length - 1;
-    while (_tryBlockNumHandlers.isNotEmpty) {
-      int nCoveredHandlers = _tryBlockNumHandlers.removeLast();
-
+    int nextHandlerIdx = _handlers.length - 1;
+    for (final int nCoveredHandlers in _tryBlockNumHandlers.reversed) {
       codeGen.b.catch_(codeGen.translator.exceptionTag);
 
       final stackTraceLocal = codeGen
@@ -287,17 +286,13 @@ class _ExceptionHandlerStack {
           codeGen.addLocal(codeGen.translator.topInfo.nonNullableType);
       codeGen.b.local_set(exceptionLocal);
 
-      final nextHandler = _handlers[handlerIdx];
-
-      while (nCoveredHandlers != 0) {
-        final handler = _handlers[handlerIdx];
-        handlerIdx -= 1;
+      for (int i = 0; i < nCoveredHandlers; i += 1) {
+        final handler = _handlers[nextHandlerIdx - i];
         if (handler is Finalizer) {
           handler.setContinuationRethrow(
               () => codeGen.b.local_get(exceptionLocal),
               () => codeGen.b.local_get(stackTraceLocal));
         }
-        nCoveredHandlers -= 1;
       }
 
       // Set the untyped "current exception" variable. Catch blocks will do the
@@ -307,10 +302,14 @@ class _ExceptionHandlerStack {
       codeGen._setCurrentExceptionStackTrace(
           () => codeGen.b.local_get(stackTraceLocal));
 
-      codeGen.jumpToTarget(nextHandler.target);
+      codeGen.jumpToTarget(_handlers[nextHandlerIdx].target);
 
       codeGen.b.end(); // end catch
+
+      nextHandlerIdx -= nCoveredHandlers;
     }
+
+    _tryBlockNumHandlers.clear();
   }
 }
 
