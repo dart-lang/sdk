@@ -671,7 +671,7 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
       _parentMember = getEnclosingClassOrUnitMember(selectedNode);
       // single expression selected
       if (selectedNodes.length == 1) {
-        if (!_utils.selectionIncludesNonWhitespaceOutsideNode(
+        if (!_selectionIncludesNonWhitespaceOutsideNode(
             _selectionRange, selectedNode)) {
           if (selectedNode is Expression) {
             _selectionExpression = selectedNode;
@@ -987,6 +987,18 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
     return analyzer.status.isOK;
   }
 
+  /// Returns whether [range] contains only whitespace or comments.
+  bool _isJustWhitespaceOrComment(SourceRange range) {
+    var trimmedText = _utils.getRangeText(range).trim();
+    // May be whitespace.
+    if (trimmedText.isEmpty) {
+      return true;
+    }
+    // May be comment.
+    return TokenUtils.getTokens(trimmedText, _resolveResult.unit.featureSet)
+        .isEmpty;
+  }
+
   bool _isParameterNameConflictWithBody(RefactoringMethodParameter parameter) {
     var id = parameter.id;
     var name = parameter.name;
@@ -1039,6 +1051,31 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
       offsets.add(occurrence.range.offset);
       lengths.add(occurrence.range.length);
     }
+  }
+
+  /// Returns whether [selection] covers [node] and there are any
+  /// non-whitespace tokens between [selection] and [node]'s `offset` and `end`
+  /// respectively.
+  bool _selectionIncludesNonWhitespaceOutsideNode(
+      SourceRange selection, AstNode node) {
+    var sourceRange = range.node(node);
+
+    // Selection should cover range.
+    if (!selection.covers(sourceRange)) {
+      return false;
+    }
+    // Non-whitespace between selection start and range start.
+    if (!_isJustWhitespaceOrComment(
+        range.startOffsetEndOffset(selection.offset, sourceRange.offset))) {
+      return true;
+    }
+    // Non-whitespace after range.
+    if (!_isJustWhitespaceOrComment(
+        range.startOffsetEndOffset(sourceRange.end, selection.end))) {
+      return true;
+    }
+    // Only whitespace in selection around range.
+    return false;
   }
 
   /// Checks if the given [expression] is reasonable to extract as a getter.

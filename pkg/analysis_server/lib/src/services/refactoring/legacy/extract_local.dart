@@ -513,7 +513,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     String? selectionSource;
     final singleExpression = this.singleExpression;
     if (singleExpression != null) {
-      var tokens = TokenUtils.getNodeTokens(singleExpression);
+      var tokens = singleExpression.tokens;
       selectionSource = _encodeExpressionTokens(singleExpression, tokens);
     }
     // visit function
@@ -586,8 +586,7 @@ class _OccurrencesVisitor extends GeneralizingAstVisitor<void> {
   }
 
   void _tryToFindOccurrence(Expression node) {
-    var nodeTokens = TokenUtils.getNodeTokens(node);
-    var nodeSource = ref._encodeExpressionTokens(node, nodeTokens);
+    var nodeSource = ref._encodeExpressionTokens(node, node.tokens);
     if (nodeSource == selectionSource) {
       _addOccurrence(range.node(node));
     }

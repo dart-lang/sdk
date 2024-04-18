@@ -515,25 +515,24 @@ final class CorrectionUtils {
   /// possible) to cover whole lines.
   SourceRange getLinesRange(SourceRange sourceRange,
       {bool skipLeadingEmptyLines = false}) {
-    // start
+    // Calculate the start:
     var startOffset = sourceRange.offset;
     var startLineOffset = getLineContentStart(startOffset);
     if (skipLeadingEmptyLines) {
       startLineOffset = _skipEmptyLinesLeft(startLineOffset);
     }
-    // end
+    // Calculate the end:
     var endOffset = sourceRange.end;
     var afterEndLineOffset = endOffset;
     var lineInfo = _unit.lineInfo;
     var lineStart = lineInfo
         .getOffsetOfLine(lineInfo.getLocation(startLineOffset).lineNumber - 1);
     if (lineStart == startLineOffset) {
-      // Only consume line ends after the end of the range if there is nothing
-      // else on the line containing the beginning of the range. Otherwise this
-      // will end up incorrectly merging two line.
+      // Only consume line endings after the end of the range if there is
+      // nothing else on the line containing the beginning of the range.
+      // Otherwise this will end up incorrectly merging two line.
       afterEndLineOffset = getLineContentEnd(endOffset);
     }
-    // range
     return range.startOffsetEndOffset(startLineOffset, afterEndLineOffset);
   }
 
@@ -588,14 +587,11 @@ final class CorrectionUtils {
   }
 
   /// Returns the text of the given range in the unit.
-  String getRangeText(SourceRange range) {
-    return getText(range.offset, range.length);
-  }
+  String getRangeText(SourceRange range) => getText(range.offset, range.length);
 
   /// Returns the text of the given range in the unit.
-  String getText(int offset, int length) {
-    return _buffer.substring(offset, offset + length);
-  }
+  String getText(int offset, int length) =>
+      _buffer.substring(offset, offset + length);
 
   /// Indents given source left or right.
   String indentSourceLeftRight(String source, {bool indentLeft = true}) {
@@ -622,7 +618,7 @@ final class CorrectionUtils {
     return sb.toString();
   }
 
-  /// Return the source of the inverted condition for the given logical
+  /// Returns the source of the inverted condition for the given logical
   /// expression.
   String invertCondition(Expression expression) =>
       _invertCondition0(expression)._source;
@@ -642,7 +638,7 @@ final class CorrectionUtils {
   /// lines).
   String replaceSourceIndent(String source, String oldIndent, String newIndent,
       {bool includeLeading = false, bool ensureTrailingNewline = false}) {
-    // prepare STRING token ranges
+    // Prepare token ranges.
     var lineRanges = <SourceRange>[];
     {
       var tokens = TokenUtils.getTokens(source, _unit.featureSet);
@@ -652,7 +648,7 @@ final class CorrectionUtils {
         }
       }
     }
-    // re-indent lines
+    // Re-indent lines.
     var sb = StringBuffer();
     var eol = endOfLine;
     var lines = source.split(eol);
@@ -661,16 +657,16 @@ final class CorrectionUtils {
       var line = lines[i];
       // Exit early if this is the last line and it's already empty, to avoid
       // inserting any whitespace or appending an additional newline if
-      // [ensureTrailingNewline].
+      // `ensureTrailingNewline`.
       if (i == lines.length - 1 && isEmpty(line)) {
         break;
       }
-      // Don't replace whitespace on first line unless [includeLeading].
+      // Don't replace whitespace on first line unless `includeLeading`.
       var doReplaceWhitespace = i != 0 || includeLeading;
-      // Don't add eol to last line unless [ensureTrailingNewline].
+      // Don't add eol to last line unless `ensureTrailingNewline`.
       var doAppendEol = i != lines.length - 1 || ensureTrailingNewline;
 
-      // check if "offset" is in one of the String ranges
+      // Check if "offset" is in one of the ranges.
       var inString = false;
       for (var lineRange in lineRanges) {
         if (lineOffset > lineRange.offset && lineOffset < lineRange.end) {
@@ -681,11 +677,11 @@ final class CorrectionUtils {
         }
       }
       lineOffset += line.length + eol.length;
-      // update line indent
+      // Update line indent.
       if (!inString && doReplaceWhitespace) {
         line = '$newIndent${removeStart(line, oldIndent)}';
       }
-      // append line
+      // Append line.
       sb.write(line);
       if (doAppendEol) {
         sb.write(eol);
@@ -715,14 +711,6 @@ final class CorrectionUtils {
     return replaceSourceIndent(oldSource, oldIndent, newIndent,
         includeLeading: includeLeading,
         ensureTrailingNewline: ensureTrailingNewline);
-  }
-
-  /// Return `true` if [selection] covers [node] and there are any
-  /// non-whitespace tokens between [selection] and [node] start/end.
-  bool selectionIncludesNonWhitespaceOutsideNode(
-      SourceRange selection, AstNode node) {
-    return _selectionIncludesNonWhitespaceOutsideRange(
-        selection, range.node(node));
   }
 
   /// Returns the [_InvertedCondition] for the given logical expression.
@@ -793,39 +781,6 @@ final class CorrectionUtils {
     return _InvertedCondition._simple(getNodeText(expression));
   }
 
-  /// Returns whether [range] contains only whitespace or comments.
-  bool _isJustWhitespaceOrComment(SourceRange range) {
-    var trimmedText = getRangeText(range).trim();
-    // may be whitespace
-    if (trimmedText.isEmpty) {
-      return true;
-    }
-    // may be comment
-    return TokenUtils.getTokens(trimmedText, _unit.featureSet).isEmpty;
-  }
-
-  /// Return `true` if [selection] covers [range] and there are any
-  /// non-whitespace tokens between [selection] and [range] start/end.
-  bool _selectionIncludesNonWhitespaceOutsideRange(
-      SourceRange selection, SourceRange sourceRange) {
-    // selection should cover range
-    if (!selection.covers(sourceRange)) {
-      return false;
-    }
-    // non-whitespace between selection start and range start
-    if (!_isJustWhitespaceOrComment(
-        range.startOffsetEndOffset(selection.offset, sourceRange.offset))) {
-      return true;
-    }
-    // non-whitespace after range
-    if (!_isJustWhitespaceOrComment(
-        range.startOffsetEndOffset(sourceRange.end, selection.end))) {
-      return true;
-    }
-    // only whitespace in selection around range
-    return false;
-  }
-
   /// Skip spaces, tabs and EOLs on the left from [index].
   ///
   /// If [index] is the start of a method, then in the most cases return the end
@@ -848,19 +803,10 @@ final class CorrectionUtils {
 
 /// Utilities to work with [Token]s.
 class TokenUtils {
-  static List<Token> getNodeTokens(AstNode node) {
-    var result = <Token>[];
-    for (var token = node.beginToken;; token = token.next!) {
-      result.add(token);
-      if (token == node.endToken) {
-        break;
-      }
-    }
-    return result;
-  }
-
-  /// Return the tokens of the given Dart source, not `null`, may be empty if no
-  /// tokens or some exception happens.
+  /// Returns the tokens of the given Dart source, [s].
+  ///
+  /// The returned list may be empty if there are no tokens, or some exception
+  /// is caught.
   static List<Token> getTokens(String s, FeatureSet featureSet) {
     try {
       var tokens = <Token>[];
