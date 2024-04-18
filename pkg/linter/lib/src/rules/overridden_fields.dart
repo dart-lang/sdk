@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:collection/collection.dart' show IterableExtension;
 
 import '../analyzer.dart';
+import '../extensions.dart';
 
 const _desc = r"Don't override fields.";
 
@@ -128,9 +129,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
-    if (node.isStatic) {
-      return;
-    }
+    if (node.isAugmentation) return;
+    if (node.isStatic) return;
 
     for (var variable in node.fields.variables) {
       var declaredField = variable.declaredElement;
