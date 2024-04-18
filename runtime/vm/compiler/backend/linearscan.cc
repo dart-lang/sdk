@@ -2787,6 +2787,23 @@ bool LiveRange::Contains(intptr_t pos) const {
   return false;
 }
 
+bool FlowGraphAllocator::IsLiveAfterCatchEntry(
+    CatchBlockEntryInstr* catch_entry,
+    ParameterInstr* param) {
+  ASSERT(param->GetBlock() == catch_entry);
+  auto* raw_exception_var = catch_entry->raw_exception_var();
+  if (raw_exception_var != nullptr &&
+      param->env_index() == flow_graph_.EnvIndex(raw_exception_var)) {
+    return true;
+  }
+  auto* raw_stacktrace_var = catch_entry->raw_stacktrace_var();
+  if (raw_stacktrace_var != nullptr &&
+      param->env_index() == flow_graph_.EnvIndex(raw_stacktrace_var)) {
+    return true;
+  }
+  return false;
+}
+
 void FlowGraphAllocator::AssignSafepoints(Definition* defn, LiveRange* range) {
   for (intptr_t i = safepoints_.length() - 1; i >= 0; i--) {
     Instruction* safepoint_instr = safepoints_[i];
@@ -2796,7 +2813,18 @@ void FlowGraphAllocator::AssignSafepoints(Definition* defn, LiveRange* range) {
       // definition's liverange.
       continue;
     }
-
+    // Exception and stack trace parameters of CatchBlockEntry are live
+    // only after catch block entry. Their spill slots should not be scanned
+    // if GC occurs during a safepoint with a catch block entry PC
+    // (before control is transferred to the catch entry).
+    if (auto* catch_entry = safepoint_instr->AsCatchBlockEntry()) {
+      if (auto* param = defn->AsParameter()) {
+        if ((param->GetBlock() == catch_entry) &&
+            IsLiveAfterCatchEntry(catch_entry, param)) {
+          continue;
+        }
+      }
+    }
     const intptr_t pos = GetLifetimePosition(safepoint_instr);
     if (range->End() <= pos) break;
 

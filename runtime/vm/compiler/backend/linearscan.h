@@ -163,6 +163,10 @@ class FlowGraphAllocator : public ValueObject {
 
   intptr_t NumberOfRegisters() const { return number_of_registers_; }
 
+  // Test if [param] is live only after [catch_entry].
+  bool IsLiveAfterCatchEntry(CatchBlockEntryInstr* catch_entry,
+                             ParameterInstr* param);
+
   // Find all safepoints that are covered by this live range.
   void AssignSafepoints(Definition* defn, LiveRange* range);
 
