@@ -13220,9 +13220,7 @@ class Element extends Node
    * Called by the DOM when this element has been inserted into the live
    * document.
    *
-   * More information can be found in the
-   * [Custom Elements](http://w3c.github.io/webcomponents/spec/custom/#dfn-attached-callback)
-   * draft specification.
+   * Warning: This API is part of multiple custom element APIs that are no [longer supported](https://github.com/dart-lang/sdk/issues/49536).
    */
   void attached() {
     // For the deprecation period, call the old callback.
@@ -13233,8 +13231,7 @@ class Element extends Node
    * Called by the DOM when this element has been removed from the live
    * document.
    *
-   * More information can be found in the
-   * [Custom Elements](http://w3c.github.io/webcomponents/spec/custom/#dfn-detached-callback)
+   * Warning: This API is part of multiple custom element APIs that are no [longer supported](https://github.com/dart-lang/sdk/issues/49536).
    * draft specification.
    */
   void detached() {
@@ -40617,9 +40614,7 @@ class _WrappedEvent implements Event {
    *
    * ## Other resources
    *
-   * * [Shadow DOM extensions to
-   *   Event](http://w3c.github.io/webcomponents/spec/shadow/#extensions-to-event)
-   *   from W3C.
+   * * [Shadow trees](https://dom.spec.whatwg.org/#shadow-trees)
    */
   // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#extensions-to-event
   List<Node> get path => wrapped.path as List<Node>;
