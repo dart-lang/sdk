@@ -187,13 +187,14 @@ class _ExceptionHandlerStack {
   /// Current exception handler stack. A CFG block generated when this is not
   /// empty should have a Wasm `try` instruction wrapping the block.
   ///
-  /// A `catch` block will jump to the last handler, which then jumps to the
-  /// next if the exception type test fails.
+  /// A `catch` block will jump to the next handler on the stack (the last
+  /// handler in the list), which then jumps to the next if the exception type
+  /// test fails.
   ///
-  /// Because the CFG blocks for [Catch] blocks and finalizers will have Wasm
-  /// `try` blocks for the parent handlers, we can use a Wasm `throw`
-  /// instruction (instead of jumping to the parent handler) in [Catch] blocks
-  /// and finalizers for rethrowing.
+  /// Because CFG blocks for [Catch] blocks and finalizers will have Wasm `try`
+  /// blocks for the parent handlers, we can use a Wasm `throw` instruction
+  /// (instead of jumping to the parent handler) in [Catch] blocks and
+  /// finalizers for rethrowing.
   final List<_ExceptionHandler> _handlers = [];
 
   /// Maps Wasm `try` blocks to number of handlers in [_handlers] that they
@@ -273,44 +274,73 @@ class _ExceptionHandlerStack {
   ///
   /// Call this right before terminating a CFG block.
   void terminateTryBlocks() {
-    int handlerIdx = _handlers.length - 1;
-    while (_tryBlockNumHandlers.isNotEmpty) {
-      int nCoveredHandlers = _tryBlockNumHandlers.removeLast();
-
-      codeGen.b.catch_(codeGen.translator.exceptionTag);
-
+    int nextHandlerIdx = _handlers.length - 1;
+    for (final int nCoveredHandlers in _tryBlockNumHandlers.reversed) {
       final stackTraceLocal = codeGen
           .addLocal(codeGen.translator.stackTraceInfo.repr.nonNullableType);
-      codeGen.b.local_set(stackTraceLocal);
 
       final exceptionLocal =
           codeGen.addLocal(codeGen.translator.topInfo.nonNullableType);
-      codeGen.b.local_set(exceptionLocal);
 
-      final nextHandler = _handlers[handlerIdx];
-
-      while (nCoveredHandlers != 0) {
-        final handler = _handlers[handlerIdx];
-        handlerIdx -= 1;
-        if (handler is Finalizer) {
-          handler.setContinuationRethrow(
-              () => codeGen.b.local_get(exceptionLocal),
-              () => codeGen.b.local_get(stackTraceLocal));
+      void generateCatchBody() {
+        // Set continuations of finalizers that can be reached by this `catch`
+        // (or `catch_all`) as "rethrow".
+        for (int i = 0; i < nCoveredHandlers; i += 1) {
+          final handler = _handlers[nextHandlerIdx - i];
+          if (handler is Finalizer) {
+            handler.setContinuationRethrow(
+                () => codeGen.b.local_get(exceptionLocal),
+                () => codeGen.b.local_get(stackTraceLocal));
+          }
         }
-        nCoveredHandlers -= 1;
+
+        // Set the untyped "current exception" variable. Catch blocks will do the
+        // type tests as necessary using this variable and set their exception
+        // and stack trace locals.
+        codeGen._setCurrentException(() => codeGen.b.local_get(exceptionLocal));
+        codeGen._setCurrentExceptionStackTrace(
+            () => codeGen.b.local_get(stackTraceLocal));
+
+        codeGen.jumpToTarget(_handlers[nextHandlerIdx].target);
       }
 
-      // Set the untyped "current exception" variable. Catch blocks will do the
-      // type tests as necessary using this variable and set their exception
-      // and stack trace locals.
-      codeGen._setCurrentException(() => codeGen.b.local_get(exceptionLocal));
-      codeGen._setCurrentExceptionStackTrace(
-          () => codeGen.b.local_get(stackTraceLocal));
+      codeGen.b.catch_(codeGen.translator.exceptionTag);
+      codeGen.b.local_set(stackTraceLocal);
+      codeGen.b.local_set(exceptionLocal);
 
-      codeGen.jumpToTarget(nextHandler.target);
+      generateCatchBody();
+
+      // Generate a `catch_all` to catch JS exceptions if any of the covered
+      // handlers can catch JS exceptions.
+      bool canHandleJSExceptions = false;
+      for (int handlerIdx = nextHandlerIdx;
+          handlerIdx > nextHandlerIdx - nCoveredHandlers;
+          handlerIdx -= 1) {
+        final handler = _handlers[handlerIdx];
+        canHandleJSExceptions |= handler.canHandleJSExceptions;
+      }
+
+      if (canHandleJSExceptions) {
+        codeGen.b.catch_all();
+
+        // We can't inspect the thrown object in a `catch_all` and get a stack
+        // trace, so we just attach the current stack trace.
+        codeGen.call(codeGen.translator.stackTraceCurrent.reference);
+        codeGen.b.local_set(stackTraceLocal);
+
+        // We create a generic JavaScript error.
+        codeGen.call(codeGen.translator.javaScriptErrorFactory.reference);
+        codeGen.b.local_set(exceptionLocal);
+
+        generateCatchBody();
+      }
 
       codeGen.b.end(); // end catch
+
+      nextHandlerIdx -= nCoveredHandlers;
     }
+
+    _tryBlockNumHandlers.clear();
   }
 }
 
@@ -324,19 +354,27 @@ abstract class _ExceptionHandler {
   final StateTarget target;
 
   _ExceptionHandler(this.target);
+
+  bool get canHandleJSExceptions;
 }
 
 class Catcher extends _ExceptionHandler {
   final List<VariableDeclaration> _exceptionVars = [];
   final List<VariableDeclaration> _stackTraceVars = [];
   final AsyncCodeGenerator codeGen;
+  bool _canHandleJSExceptions = false;
 
   Catcher.fromTryCatch(this.codeGen, TryCatch node, super.target) {
     for (Catch catch_ in node.catches) {
       _exceptionVars.add(catch_.exception!);
       _stackTraceVars.add(catch_.stackTrace!);
+      _canHandleJSExceptions |=
+          guardCanMatchJSException(codeGen.translator, catch_.guard);
     }
   }
+
+  @override
+  bool get canHandleJSExceptions => _canHandleJSExceptions;
 
   void setException(void Function() pushException) {
     for (final exceptionVar in _exceptionVars) {
@@ -373,6 +411,9 @@ class Finalizer extends _ExceptionHandler {
             (node.parent as Block).statements[1] as VariableDeclaration,
         _stackTraceVar =
             (node.parent as Block).statements[2] as VariableDeclaration;
+
+  @override
+  bool get canHandleJSExceptions => true;
 
   void setContinuationFallthrough() {
     codeGen._setVariable(_continuationVar, () {

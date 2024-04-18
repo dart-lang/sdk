@@ -147,6 +147,7 @@ final Set<String> excludedFiles = Set<String>.from([
   'runtime/bin/io_service_no_ssl.h',
   'runtime/bin/utils_win.h',
   'runtime/vm/compiler/backend/locations_helpers_arm.h',
+  'runtime/vm/compiler/ffi/unit_test_custom_zone.cc',
 ]);
 
 final defineSets = [
