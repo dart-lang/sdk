@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -12,7 +13,7 @@ import '../analyzer.dart';
 const _desc = r'Avoid async functions that return void.';
 
 const _details = r'''
-**DO** mark async functions as returning Future<void>.
+**DO** mark async functions as returning `Future<void>`.
 
 When declaring an async method or function which does not return a value,
 declare that it returns `Future<void>` and not just `void`.
@@ -45,9 +46,12 @@ void main() async {
 ''';
 
 class AvoidVoidAsync extends LintRule {
-  static const LintCode code = LintCode('avoid_void_async',
-      "The return type should be '{0}' when nothing is returned from an '{1}' function.",
-      correctionMessage: 'Try changing the return type.');
+  static const LintCode code = LintCode(
+    'avoid_void_async',
+    "An 'async' function should have a 'Future' return type when it doesn't "
+        'return a value.',
+    correctionMessage: 'Try changing the return type.',
+  );
 
   AvoidVoidAsync()
       : super(
@@ -75,33 +79,34 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
-    var arguments = _arguments(node.declaredElement);
-    if (arguments != null &&
-        _isVoid(node.returnType) &&
-        node.name.lexeme != 'main') {
-      rule.reportLintForToken(node.name, arguments: arguments);
-    }
+    if (node.name.lexeme == 'main') return;
+    _check(
+      declaredElement: node.declaredElement,
+      returnType: node.returnType,
+      errorNode: node.name,
+    );
   }
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    var arguments = _arguments(node.declaredElement);
-    if (arguments != null && _isVoid(node.returnType)) {
-      rule.reportLintForToken(node.name, arguments: arguments);
-    }
+    _check(
+      declaredElement: node.declaredElement,
+      returnType: node.returnType,
+      errorNode: node.name,
+    );
   }
 
-  List<String>? _arguments(ExecutableElement? element) {
-    if (element == null) {
-      return null;
-    } else if (element.isAsynchronous) {
-      return ['Future', 'async'];
-    } else if (element.isGenerator) {
-      return ['Stream', 'async*'];
+  void _check({
+    required ExecutableElement? declaredElement,
+    required TypeAnnotation? returnType,
+    required Token errorNode,
+  }) {
+    if (declaredElement == null) return;
+    if (declaredElement.isGenerator) return;
+    if (!declaredElement.isAsynchronous) return;
+    if (returnType == null) return;
+    if (returnType.type is VoidType) {
+      rule.reportLintForToken(errorNode);
     }
-    return null;
   }
-
-  bool _isVoid(TypeAnnotation? typeAnnotation) =>
-      typeAnnotation?.type is VoidType;
 }

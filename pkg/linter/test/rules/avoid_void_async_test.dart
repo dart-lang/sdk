@@ -17,28 +17,119 @@ class AvoidVoidAsyncTest extends LintRuleTest {
   @override
   String get lintRule => 'avoid_void_async';
 
-  test_asyncStar() async {
-    await assertNoDiagnostics(r'''
-Stream<void> f() async* {}
-''');
-  }
-
-  test_futureVoidReturnType_arrow() async {
+  test_function_async_futureVoidReturnType_arrow() async {
     await assertNoDiagnostics(r'''
 Future<void> f() async => null;
 ''');
   }
 
-  test_futureVoidReturnType_block() async {
+  test_function_async_futureVoidReturnType_block() async {
     await assertNoDiagnostics(r'''
 Future<void> c() async {}
 ''');
   }
 
-  test_getter() async {
+  test_function_async_voidReturnType_arrow() async {
+    await assertDiagnostics(r'''
+void f() async => null;
+''', [
+      lint(5, 1),
+    ]);
+  }
+
+  test_function_async_voidReturnType_block() async {
+    await assertDiagnostics(r'''
+void f() async {}
+''', [
+      lint(5, 1),
+    ]);
+  }
+
+  test_function_asyncStar() async {
     await assertNoDiagnostics(r'''
-void get f => null;
+Stream<void> f() async* {}
 ''');
+  }
+
+  test_function_notAsync_arrow_topLevel() async {
+    await assertNoDiagnostics(r'''
+void e() => null;
+''');
+  }
+
+  test_function_notAsync_voidReturnType() async {
+    await assertNoDiagnostics(r'''
+void f() {}
+''');
+  }
+
+  test_function_syncStar() async {
+    await assertNoDiagnostics(r'''
+Iterable<void> f() sync* {}
+''');
+  }
+
+  test_functionExpression_async_arrow() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  () async => null;
+}
+''');
+  }
+
+  test_functionExpression_async_block() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  () async {};
+}
+''');
+  }
+
+  test_functionExpression_notAsync_arrow() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  () => null;
+}
+''');
+  }
+
+  test_functionExpression_notAsync_body() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  () {};
+}
+''');
+  }
+
+  test_functionLocal_async_arrow() async {
+    await assertDiagnostics(r'''
+void f() {
+  void g() async => null;
+}
+''', [
+      error(WarningCode.UNUSED_ELEMENT, 18, 1),
+      lint(18, 1),
+    ]);
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/4941')
+  test_functionLocal_main_async_arrow() async {
+    await assertDiagnostics(r'''
+void f() {
+  void main() async => null;
+}
+''', [
+      error(WarningCode.UNUSED_ELEMENT, 18, 4),
+      lint(18, 4),
+    ]);
+  }
+
+  test_getter_async() async {
+    await assertDiagnostics(r'''
+void get l async => null;
+''', [
+      lint(9, 1),
+    ]);
   }
 
   test_getter_async_voidReturnType() async {
@@ -49,41 +140,22 @@ void get f async => null;
     ]);
   }
 
-  test_implicitReturnType_arrow() async {
+  test_getter_notAsync() async {
     await assertNoDiagnostics(r'''
-void f() {
-  () async => null;
+void get f => null;
+''');
+  }
+
+  test_main_async() async {
+    await assertNoDiagnostics(r'''
+Future<void> f() async { }
+void main() async {
+  await f();
 }
 ''');
   }
 
-  test_implicitReturnType_block() async {
-    await assertNoDiagnostics(r'''
-void f() {
-  () async {};
-}
-''');
-  }
-
-  test_instanceGetter() async {
-    await assertDiagnostics(r'''
-class Foo {
-  void get l async => null;
-}
-''', [
-      lint(23, 1),
-    ]);
-  }
-
-  test_instanceGetter_notAsync() async {
-    await assertNoDiagnostics(r'''
-class Foo {
-  void get k => null;
-}
-''');
-  }
-
-  test_instanceMethod_arrow() async {
+  test_method_async_arrow() async {
     await assertDiagnostics(r'''
 class Foo {
   void d() async => null;
@@ -93,15 +165,7 @@ class Foo {
     ]);
   }
 
-  test_instanceMethod_asyncStar() async {
-    await assertNoDiagnostics(r'''
-class Foo {
-  Stream<void> f() async* {}
-}
-''');
-  }
-
-  test_instanceMethod_block() async {
+  test_method_async_block() async {
     await assertDiagnostics(r'''
 class Foo {
   void f() async {}
@@ -111,7 +175,7 @@ class Foo {
     ]);
   }
 
-  test_instanceMethod_futureVoidReturnType_arrow() async {
+  test_method_async_futureVoidReturnType_arrow() async {
     await assertNoDiagnostics(r'''
 class Foo {
   Future<void> f() async => null;
@@ -119,7 +183,7 @@ class Foo {
 ''');
   }
 
-  test_instanceMethod_futureVoidReturnType_block() async {
+  test_method_async_futureVoidReturnType_block() async {
     await assertNoDiagnostics(r'''
 class Foo {
   Future<void> f() async {}
@@ -127,7 +191,25 @@ class Foo {
 ''');
   }
 
-  test_instanceMethod_notAsync_arrow() async {
+  test_method_asyncStar() async {
+    await assertNoDiagnostics(r'''
+class Foo {
+  Stream<void> f() async* {}
+}
+''');
+  }
+
+  test_method_main_async_arrow() async {
+    await assertDiagnostics(r'''
+class Foo {
+  void main() async => null;
+}
+''', [
+      lint(19, 4),
+    ]);
+  }
+
+  test_method_notAsync_arrow() async {
     await assertNoDiagnostics(r'''
 class Foo {
   void e() => null;
@@ -135,7 +217,7 @@ class Foo {
 ''');
   }
 
-  test_instanceMethod_notAsync_block() async {
+  test_method_notAsync_block() async {
     await assertNoDiagnostics(r'''
 class Foo {
   void f() {}
@@ -143,7 +225,7 @@ class Foo {
 ''');
   }
 
-  test_instanceMethod_syncStar() async {
+  test_method_syncStar() async {
     await assertNoDiagnostics(r'''
 class Foo {
   Iterable<void> f() sync* {}
@@ -151,7 +233,7 @@ class Foo {
 ''');
   }
 
-  test_instanceOperator() async {
+  test_operator_async() async {
     await assertDiagnostics(r'''
 class Foo {
   void operator |(_) async => null;
@@ -161,48 +243,11 @@ class Foo {
     ]);
   }
 
-  test_instanceOperator_notAsync() async {
+  test_operator_notAsync() async {
     await assertNoDiagnostics(r'''
 class Foo {
   void operator &(_) => null;
 }
-''');
-  }
-
-  test_main() async {
-    await assertNoDiagnostics(r'''
-Future<void> f() async { }
-void main() async {
-  await f();
-}
-''');
-  }
-
-  test_notAsync_arrow() async {
-    await assertNoDiagnostics(r'''
-void f() {
-  () => null;
-}
-''');
-  }
-
-  test_notAsync_arrow_topLevel() async {
-    await assertNoDiagnostics(r'''
-void e() => null;
-''');
-  }
-
-  test_notAsync_body() async {
-    await assertNoDiagnostics(r'''
-void f() {
-  () {};
-}
-''');
-  }
-
-  test_notAsync_voidReturnType() async {
-    await assertNoDiagnostics(r'''
-void f() {}
 ''');
   }
 
@@ -218,38 +263,6 @@ set f(_) => null;
 ''');
   }
 
-  test_staticMethod() async {
-    await assertDiagnostics(r'''
-class Foo {
-  static void f() async {}
-}
-''', [
-      lint(26, 1),
-    ]);
-  }
-
-  test_staticMethod_futureVoidReturnType() async {
-    await assertNoDiagnostics(r'''
-class Foo {
-  static Future<void> f() async {}
-}
-''');
-  }
-
-  test_staticMethod_notAsync() async {
-    await assertNoDiagnostics(r'''
-class Foo {
-  static void f() {}
-}
-''');
-  }
-
-  test_syncStar() async {
-    await assertNoDiagnostics(r'''
-Iterable<void> f() sync* {}
-''');
-  }
-
   test_typedef_futureVoidReturnType() async {
     await assertNoDiagnostics(r'''
 typedef Future<void> F(int x);
@@ -260,21 +273,5 @@ typedef Future<void> F(int x);
     await assertNoDiagnostics(r'''
 typedef void F(int x);
 ''');
-  }
-
-  test_voidReturnType_arrow() async {
-    await assertDiagnostics(r'''
-void f() async => null;
-''', [
-      lint(5, 1),
-    ]);
-  }
-
-  test_voidReturnType_block() async {
-    await assertDiagnostics(r'''
-void f() async {}
-''', [
-      lint(5, 1),
-    ]);
   }
 }
