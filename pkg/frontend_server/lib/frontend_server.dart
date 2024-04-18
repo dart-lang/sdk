@@ -183,7 +183,9 @@ ArgParser argParser = new ArgParser(allowTrailingOptions: true)
   ..addFlag('enable-asserts',
       help: 'Whether asserts will be enabled.', defaultsTo: false)
   ..addFlag('sound-null-safety',
-      help: 'Respect the nullability of types at runtime.', defaultsTo: true)
+      help: 'Respect the nullability of types at runtime.',
+      defaultsTo: true,
+      hide: true)
   ..addMultiOption('enable-experiment',
       help: 'Comma separated list of experimental features, e.g. set-literals.',
       hide: true)
@@ -497,6 +499,10 @@ class FrontendCompiler implements CompilerInterface {
         options['platform'] ?? 'platform_strong.dill';
     final String? packagesOption = _options['packages'];
     final bool soundNullSafety = _options['sound-null-safety'];
+    if (!soundNullSafety) {
+      print('Error: --no-sound-null-safety is not supported.');
+      return false;
+    }
     final CompilerOptions compilerOptions = new CompilerOptions()
       ..sdkRoot = sdkRoot
       ..fileSystem = _fileSystem

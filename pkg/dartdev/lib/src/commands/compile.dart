@@ -220,7 +220,9 @@ class CompileKernelSnapshotCommand extends CompileSubcommandCommand {
     }
 
     final bool soundNullSafety = args.flag('sound-null-safety');
-    if (!soundNullSafety && !shouldAllowNoSoundNullSafety()) {
+    if (!soundNullSafety) {
+      log.stdout(
+          'Error: the flag --no-sound-null-safety is not supported in Dart 3.');
       return compileErrorExitCode;
     }
 
@@ -339,10 +341,9 @@ class CompileJitSnapshotCommand extends CompileSubcommandCommand {
 
     final bool soundNullSafety = args.flag('sound-null-safety');
     if (!soundNullSafety) {
-      if (!shouldAllowNoSoundNullSafety()) {
-        return compileErrorExitCode;
-      }
-      buildArgs.add('--no-sound-null-safety');
+      log.stdout(
+          'Error: the flag --no-sound-null-safety is not supported in Dart 3.');
+      return compileErrorExitCode;
     }
 
     final String? packages = args.option(packagesOption.flag);
@@ -469,7 +470,9 @@ Remove debugging information from the output and save it separately to the speci
       return genericErrorExitCode;
     }
 
-    if (!args.flag('sound-null-safety') && !shouldAllowNoSoundNullSafety()) {
+    if (!args.flag('sound-null-safety')) {
+      log.stdout(
+          'Error: the flag --no-sound-null-safety is not supported in Dart 3.');
       return compileErrorExitCode;
     }
 
@@ -882,23 +885,6 @@ For example: dart compile $name -Da=1,b=2 main.dart''',
                 '''Get package locations from the specified file instead of .dart_tool/package_config.json.
 <path> can be relative or absolute.
 For example: dart compile $name --packages=/tmp/pkgs.json main.dart''');
-
-  bool shouldAllowNoSoundNullSafety() {
-    // We need to maintain support for generating AOT snapshots and kernel
-    // files with no-sound-null-safety internal Flutter aplications are
-    // fully null-safe.
-    //
-    // See https://github.com/dart-lang/sdk/issues/51513 for context.
-    if (name == CompileNativeCommand.aotSnapshotCmdName ||
-        name == CompileKernelSnapshotCommand.commandName) {
-      log.stdout(
-          'Warning: the flag --no-sound-null-safety is deprecated and pending removal.');
-      return true;
-    }
-    log.stdout(
-        'Error: the flag --no-sound-null-safety is not supported in Dart 3.');
-    return false;
-  }
 }
 
 class CompileCommand extends DartdevCommand {
