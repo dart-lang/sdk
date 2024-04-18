@@ -141,11 +141,6 @@ class IOPipeline extends Pipeline<IOModularStep> {
         var newPath =
             stepFolder.uri.resolve(_toFileName(module, dataId)).toFilePath();
         await originalFile.copy(newPath);
-        // If the input was executable, ensure it still is.
-        var originalMode = (await originalFile.stat()).modeString();
-        if (originalMode.contains('x')) {
-          await Process.run('chmod', [originalMode, newPath]);
-        }
       }
     }
     if (step.needsSources) {
@@ -172,11 +167,6 @@ class IOPipeline extends Pipeline<IOModularStep> {
           .resolve(_toFileName(module, dataId, configSpecific: true))
           .toFilePath();
       await outputFile.copy(newPath);
-      // If the output was executable, ensure it still is.
-      var originalMode = (await outputFile.stat()).modeString();
-      if (originalMode.contains('x')) {
-        await Process.run('chmod', [originalMode, newPath]);
-      }
     }
     await stepFolder.delete(recursive: true);
   }
