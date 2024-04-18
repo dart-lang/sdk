@@ -325,17 +325,21 @@ class Place : public ValueObject {
   //    - for places that depend on an instance X.f, X.@offs, X[i], X[C]
   //      we drop X if X is not an allocation because in this case X does not
   //      possess an identity obtaining aliases *.f, *.@offs, *[i] and *[C]
-  //      respectively;
+  //      respectively; also drop instance of X[i] for typed data view
+  //      allocations as they may alias other indexed accesses.
   //    - for non-constant indexed places X[i] we drop information about the
   //      index obtaining alias X[*].
   //    - we drop information about representation, but keep element size
   //      if any.
   //
   Place ToAlias() const {
+    Definition* alias_instance = nullptr;
+    if (DependsOnInstance() && IsAllocation(instance()) &&
+        ((kind() != kIndexed) || !IsTypedDataViewAllocation(instance()))) {
+      alias_instance = instance();
+    }
     return Place(RepresentationBits::update(kNoRepresentation, flags_),
-                 (DependsOnInstance() && IsAllocation(instance())) ? instance()
-                                                                   : nullptr,
-                 (kind() == kIndexed) ? 0 : raw_selector_);
+                 alias_instance, (kind() == kIndexed) ? 0 : raw_selector_);
   }
 
   bool DependsOnInstance() const {
@@ -514,6 +518,17 @@ class Place : public ValueObject {
     return (defn != nullptr) && (defn->IsAllocation() ||
                                  (defn->IsStaticCall() &&
                                   defn->AsStaticCall()->IsRecognizedFactory()));
+  }
+
+  static bool IsTypedDataViewAllocation(Definition* defn) {
+    if (defn != nullptr) {
+      if (auto* alloc = defn->AsAllocateObject()) {
+        auto const cid = alloc->cls().id();
+        return IsTypedDataViewClassId(cid) ||
+               IsUnmodifiableTypedDataViewClassId(cid);
+      }
+    }
+    return false;
   }
 
  private:
