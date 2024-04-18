@@ -4023,13 +4023,10 @@ Condition DoubleTestOpInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
       __ comisd(value, temp_fpu);
       // If it's NaN, it's not negative.
       __ j(PARITY_EVEN, is_negated ? labels.true_label : labels.false_label);
-      __ j(NOT_EQUAL, &not_zero, compiler::Assembler::kNearJump);
-      // Check for negative zero by looking at the sign bit.
+      // Looking at the sign bit also takes care of signed zero.
       __ movmskpd(temp, value);
-      __ xorl(temp, compiler::Immediate(1));
-      __ cmpl(temp, compiler::Immediate(1));
-      __ Bind(&not_zero);
-      return is_negated ? ABOVE_EQUAL : BELOW;
+      __ testl(temp, compiler::Immediate(1));
+      return is_negated ? EQUAL : NOT_EQUAL;
     }
     default:
       UNREACHABLE();
