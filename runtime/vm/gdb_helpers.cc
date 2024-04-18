@@ -3,22 +3,54 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "lib/stacktrace.h"
+#include "vm/compiler/assembler/disassembler.h"
 #include "vm/heap/safepoint.h"
 #include "vm/object.h"
+#include "vm/os_thread.h"
 #include "vm/stack_frame.h"
 
 namespace dart {
 
 #if !defined(PRODUCT)
 
-DART_EXPORT
-void _printObjectPtr(ObjectPtr object) {
-  OS::PrintErr("%s\n", Object::Handle(object).ToCString());
+#if defined(__GNUC__)
+// Older toolchains don't know about "retain"
+#pragma GCC diagnostic ignored "-Wattributes"
+#define GDB_HELPER extern "C" __attribute__((used, retain))
+#else
+#define GDB_HELPER extern "C"
+#endif
+
+GDB_HELPER
+void* _currentThread() {
+  return OSThread::CurrentVMThread();
 }
 
-DART_EXPORT
-Object* _handle(ObjectPtr object) {
-  return &Object::Handle(object);
+GDB_HELPER
+void _printObjectPtr(uword object) {
+  OS::PrintErr("%s\n",
+               Object::Handle(static_cast<ObjectPtr>(object)).ToCString());
+}
+
+GDB_HELPER
+Object* _handle(uword object) {
+  return &Object::Handle(static_cast<ObjectPtr>(object));
+}
+
+GDB_HELPER
+void _disassemble(uword pc) {
+  Code& code = Code::Handle(Code::FindCodeUnsafe(pc));
+  if (code.IsNull()) {
+    OS::PrintErr("No code found\n");
+  } else {
+    Object& owner = Object::Handle(code.owner());
+    if (owner.IsFunction()) {
+      Disassembler::DisassembleCode(Function::Cast(owner), code,
+                                    code.is_optimized());
+    } else {
+      Disassembler::DisassembleStub(code.Name(), code);
+    }
+  }
 }
 
 // An utility method for convenient printing of dart stack traces when
@@ -26,7 +58,7 @@ Object* _handle(ObjectPtr object) {
 // valid exit frame information. It will not work when a breakpoint is
 // set in dart code and control is got inside 'gdb' without going through
 // the runtime or native transition stub.
-DART_EXPORT
+GDB_HELPER
 void _printDartStackTrace() {
   const StackTrace& stacktrace = GetCurrentStackTrace(0);
   OS::PrintErr("=== Current Trace:\n%s===\n", stacktrace.ToCString());
@@ -34,14 +66,16 @@ void _printDartStackTrace() {
 
 // Like _printDartStackTrace, but works in a NoSafepointScope. Use it if you're
 // in the middle of a GC or interested in stub frames.
-DART_EXPORT
+GDB_HELPER
 void _printStackTrace() {
   StackFrame::DumpCurrentTrace();
 }
 
 // Like _printDartStackTrace, but works when stopped in generated code.
-// Must be called with the current fp, sp, and pc.
-DART_EXPORT
+// Must be called with the current fp, sp, and pc. I.e.,
+//
+// (gdb) print _printGeneratedStackTrace($rbp, $rsp, $rip)
+GDB_HELPER
 void _printGeneratedStackTrace(uword fp, uword sp, uword pc) {
   StackFrameIterator frames(fp, sp, pc, ValidationPolicy::kDontValidateFrames,
                             Thread::Current(),
@@ -77,7 +111,7 @@ class PrintObjectPointersVisitor : public ObjectPointerVisitor {
 #endif
 };
 
-DART_EXPORT
+GDB_HELPER
 void _printStackTraceWithLocals() {
   PrintObjectPointersVisitor visitor;
   StackFrameIterator frames(ValidationPolicy::kDontValidateFrames,
