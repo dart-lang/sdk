@@ -1240,24 +1240,10 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     // Rethrow if all the catch blocks fall through
     b.rethrow_(try_);
 
-    bool guardCanMatchJSException(DartType guard) {
-      if (guard is DynamicType) {
-        return true;
-      }
-      if (guard is InterfaceType) {
-        return translator.hierarchy
-            .isSubInterfaceOf(translator.javaScriptErrorClass, guard.classNode);
-      }
-      if (guard is TypeParameterType) {
-        return guardCanMatchJSException(guard.bound);
-      }
-      return false;
-    }
-
     // If we have a catches that are generic enough to catch a JavaScript
     // error, we need to put that into a catch_all block.
-    final Iterable<Catch> catchAllCatches =
-        node.catches.where((c) => guardCanMatchJSException(c.guard));
+    final Iterable<Catch> catchAllCatches = node.catches
+        .where((c) => guardCanMatchJSException(translator, c.guard));
 
     if (catchAllCatches.isNotEmpty) {
       // This catches any objects that aren't dart exceptions, such as
@@ -3941,4 +3927,18 @@ extension MacroAssembler on w.InstructionsBuilder {
     struct_get(
         translator.closureLayouter.closureBaseStruct, FieldIndex.closureVtable);
   }
+}
+
+bool guardCanMatchJSException(Translator translator, DartType guard) {
+  if (guard is DynamicType) {
+    return true;
+  }
+  if (guard is InterfaceType) {
+    return translator.hierarchy
+        .isSubInterfaceOf(translator.javaScriptErrorClass, guard.classNode);
+  }
+  if (guard is TypeParameterType) {
+    return guardCanMatchJSException(translator, guard.bound);
+  }
+  return false;
 }
