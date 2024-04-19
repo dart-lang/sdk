@@ -673,7 +673,6 @@ class FrontendCompiler implements CompilerInterface {
         _kernelBinaryFilename,
         filterExternal: importDill != null || options['minimal-kernel'],
         incrementalSerializer: incrementalSerializer,
-        aot: options['aot'],
       );
 
       _outputStream.writeln(boundaryKey);
@@ -828,18 +827,9 @@ class FrontendCompiler implements CompilerInterface {
     String filename, {
     bool filterExternal = false,
     IncrementalSerializer? incrementalSerializer,
-    bool aot = false,
   }) async {
     final Component component = results.component!;
     final Library? nativeAssetsLibrary = results.nativeAssetsLibrary;
-
-    if (aot && nativeAssetsLibrary != null) {
-      // If Dart component in AOT, write the vm:native-assets library _inside_
-      // the Dart component.
-      // TODO(https://dartbug.com/50152): Support AOT dill concatenation.
-      component.libraries.add(nativeAssetsLibrary);
-      nativeAssetsLibrary.parent = component;
-    }
 
     final IOSink sink = new File(filename).openWrite();
 
@@ -861,7 +851,7 @@ class FrontendCompiler implements CompilerInterface {
 
     printer.writeComponentFile(component);
 
-    if (nativeAssetsLibrary != null && !aot) {
+    if (nativeAssetsLibrary != null) {
       final BinaryPrinter printer = new BinaryPrinter(sink);
       printer.writeComponentFile(new Component(
         libraries: [nativeAssetsLibrary],
