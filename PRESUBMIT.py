@@ -329,6 +329,57 @@ def _CheckClangTidy(input_api, output_api):
     ]
 
 
+def _CheckClangFormat(input_api, output_api):
+    """Run clang-format on VM changes."""
+
+    # Only run clang-format on linux x64.
+    if platform.system() != 'Linux' or platform.machine() != 'x86_64':
+        return []
+
+    # Run only for modified .cc or .h files, except for DEPS changes.
+    files = []
+    is_deps = False
+    for f in input_api.AffectedFiles():
+        path = f.LocalPath()
+        if path == 'DEPS' and any(
+                map(lambda content: 'clang' in content[1],
+                    f.ChangedContents())):
+            is_deps = True
+            break
+        if is_cpp_file(path) and os.path.isfile(path):
+            files.append(path)
+
+    if is_deps:
+        find_args = [
+            'find',
+            'runtime/',
+            '-iname',
+            '*.h',
+            '-o',
+            '-iname',
+            '*.cc',
+        ]
+        files = subprocess.check_output(find_args, text=True).split()
+
+    if not files:
+        return []
+
+    args = [
+        'buildtools/linux-x64/clang/bin/clang-format',
+        '--dry-run',
+        '--Werror',
+    ]
+    args.extend(files)
+    stdout = input_api.subprocess.check_output(args).strip()
+    if not stdout:
+        return []
+
+    return [
+        output_api.PresubmitError('The `clang-format` revealed issues:',
+                                  long_text=stdout)
+    ]
+
+
 def _CheckAnalyzerFiles(input_api, output_api):
     """Run analyzer checks on source files."""
 
@@ -469,6 +520,7 @@ def _CommonChecks(input_api, output_api):
     results.extend(_CheckStatusFiles(input_api, output_api))
     results.extend(_CheckLayering(input_api, output_api))
     results.extend(_CheckClangTidy(input_api, output_api))
+    results.extend(_CheckClangFormat(input_api, output_api))
     results.extend(_CheckTestMatrixValid(input_api, output_api))
     results.extend(
         input_api.canned_checks.CheckPatchFormatted(input_api, output_api))
