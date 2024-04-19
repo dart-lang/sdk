@@ -214,7 +214,6 @@ augment enum [!A!] {
     await expectNavigationCodeLens();
   }
 
-  @failingTest // "augment enum" is currently an error?
   test_available_enum_member() async {
     setLibraryContent(r'''
 enum A {

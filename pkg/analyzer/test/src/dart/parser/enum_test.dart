@@ -38,6 +38,31 @@ EnumDeclaration
 ''');
   }
 
+  test_augment_constant_augment_noConstructor() {
+    var parseResult = parseStringWithErrors(r'''
+augment library 'a.dart';
+
+augment enum E {
+  augment v
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleEnumDeclaration;
+    assertParsedNodeText(node, r'''
+EnumDeclaration
+  augmentKeyword: augment
+  enumKeyword: enum
+  name: E
+  leftBracket: {
+  constants
+    EnumConstantDeclaration
+      augmentKeyword: augment
+      name: v
+  rightBracket: }
+''');
+  }
+
   test_augment_constant_augment_withConstructor() {
     var parseResult = parseStringWithErrors(r'''
 augment library 'a.dart';

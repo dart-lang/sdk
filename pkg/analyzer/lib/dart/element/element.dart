@@ -86,6 +86,9 @@ abstract class AugmentedClassElement implements AugmentedInterfaceElement {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class AugmentedEnumElement implements AugmentedInterfaceElement {
+  /// The enum constants declared in this element.
+  List<FieldElement> get constants;
+
   @override
   EnumElement get declaration;
 }

@@ -18,6 +18,7 @@ import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/util/comment.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
+import 'package:collection/collection.dart';
 
 class ElementBuilder extends ThrowingAstVisitor<void> {
   final LibraryBuilder _libraryBuilder;
@@ -266,13 +267,15 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     // Build fields for all enum constants.
     var constants = node.constants;
-    var valuesElements = <ExpressionImpl>[];
+    var valuesElements = <SimpleIdentifierImpl>[];
+    var valuesNames = <String>{};
     for (var i = 0; i < constants.length; ++i) {
       var constant = constants[i];
       var name = constant.name.lexeme;
       var field = ConstFieldElementImpl(name, constant.name.offset)
         ..hasImplicitType = true
         ..hasInitializer = true
+        ..isAugmentation = constant.augmentKeyword != null
         ..isConst = true
         ..isEnumConstant = true
         ..isStatic = true;
@@ -336,6 +339,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
           StringToken(TokenType.STRING, name, -1),
         ),
       );
+      valuesNames.add(name);
     }
 
     // Build the 'values' field.
@@ -387,13 +391,34 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
       holder.addNonSyntheticField(valuesField);
 
-      _libraryBuilder.implicitEnumNodes.add(
-        ImplicitEnumNodes(
-          element: element,
-          valuesTypeNode: valuesTypeNode,
-          valuesField: valuesField,
-        ),
+      _libraryBuilder.implicitEnumNodes[element] = ImplicitEnumNodes(
+        element: element,
+        valuesTypeNode: valuesTypeNode,
+        valuesNode: variableDeclaration,
+        valuesElement: valuesField,
+        valuesNames: valuesNames,
+        valuesInitializer: initializer,
       );
+    } else {
+      var declaration = element.augmented.declaration;
+      var implicitNodes = _libraryBuilder.implicitEnumNodes[declaration];
+      if (implicitNodes != null) {
+        var mergedValuesElements = [
+          ...implicitNodes.valuesInitializer.elements,
+          for (var value in valuesElements)
+            if (implicitNodes.valuesNames.add(value.name)) value,
+        ];
+        var initializer = ListLiteralImpl(
+          constKeyword: null,
+          typeArguments: null,
+          leftBracket: Tokens.openSquareBracket(),
+          elements: mergedValuesElements,
+          rightBracket: Tokens.closeSquareBracket(),
+        );
+        implicitNodes.valuesElement.constantInitializer = initializer;
+        implicitNodes.valuesNode.initializer = initializer;
+        implicitNodes.valuesInitializer = initializer;
+      }
     }
 
     node.withClause?.accept(this);

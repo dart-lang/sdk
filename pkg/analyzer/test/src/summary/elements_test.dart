@@ -48453,6 +48453,8 @@ library
               fields
                 self::@augmentation::package:test/a.dart::@enum::A::@field::v
                 self::@augmentation::package:test/a.dart::@enum::A::@field::values
+              constants
+                self::@augmentation::package:test/a.dart::@enum::A::@field::v
               constructors
                 self::@augmentation::package:test/a.dart::@enum::A::@constructor::new
               accessors
@@ -48539,6 +48541,8 @@ library
           fields
             self::@enum::A::@field::v
             self::@enum::A::@field::values
+          constants
+            self::@enum::A::@field::v
           constructors
             self::@enum::A::@constructor::new
           accessors
@@ -48669,6 +48673,8 @@ library
               fields
                 self::@augmentation::package:test/a.dart::@enum::A::@field::v
                 self::@augmentation::package:test/a.dart::@enum::A::@field::values
+              constants
+                self::@augmentation::package:test/a.dart::@enum::A::@field::v
               constructors
                 self::@augmentation::package:test/a.dart::@enum::A::@constructor::new
               accessors
@@ -48755,6 +48761,812 @@ library
 ''');
   }
 
+  test_augmented_constants_add() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment enum A {
+  v2
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+enum A {
+  v1
+}
+''');
+
+    configuration
+      ..withPropertyLinking = true
+      ..withReferences = true;
+    checkElementText(library, r'''
+library
+  reference: self
+  definingUnit
+    reference: self
+    enums
+      enum A @30
+        reference: self::@enum::A
+        augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+        supertype: Enum
+        fields
+          static const enumConstant v1 @36
+            reference: self::@enum::A::@field::v1
+            type: A
+            shouldUseTypeForInitializerInference: false
+            constantInitializer
+              InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: A @-1
+                    element: self::@enum::A
+                    type: A
+                  staticElement: self::@enum::A::@constructor::new
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticType: A
+            id: field_0
+            getter: getter_0
+          synthetic static const values @-1
+            reference: self::@enum::A::@field::values
+            type: List<A>
+            constantInitializer
+              ListLiteral
+                leftBracket: [ @0
+                elements
+                  SimpleIdentifier
+                    token: v1 @-1
+                    staticElement: self::@enum::A::@getter::v1
+                    staticType: A
+                  SimpleIdentifier
+                    token: v2 @-1
+                    staticElement: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@getter::v2
+                    staticType: A
+                rightBracket: ] @0
+                staticType: List<A>
+            id: field_1
+            getter: getter_1
+        constructors
+          synthetic const @-1
+            reference: self::@enum::A::@constructor::new
+        accessors
+          synthetic static get v1 @-1
+            reference: self::@enum::A::@getter::v1
+            returnType: A
+            id: getter_0
+            variable: field_0
+          synthetic static get values @-1
+            reference: self::@enum::A::@getter::values
+            returnType: List<A>
+            id: getter_1
+            variable: field_1
+        augmented
+          fields
+            self::@enum::A::@field::v1
+            self::@augmentation::package:test/a.dart::@enumAugmentation::A::@field::v2
+            self::@enum::A::@field::values
+          constants
+            self::@enum::A::@field::v1
+            self::@augmentation::package:test/a.dart::@enumAugmentation::A::@field::v2
+          constructors
+            self::@enum::A::@constructor::new
+          accessors
+            self::@enum::A::@getter::v1
+            self::@augmentation::package:test/a.dart::@enumAugmentation::A::@getter::v2
+            self::@enum::A::@getter::values
+  augmentationImports
+    package:test/a.dart
+      reference: self::@augmentation::package:test/a.dart
+      definingUnit
+        reference: self::@augmentation::package:test/a.dart
+        enums
+          augment enum A @42
+            reference: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+            augmentationTarget: self::@enum::A
+            fields
+              static const enumConstant v2 @48
+                reference: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@field::v2
+                type: A
+                shouldUseTypeForInitializerInference: false
+                constantInitializer
+                  InstanceCreationExpression
+                    constructorName: ConstructorName
+                      type: NamedType
+                        name: A @-1
+                        element: self::@enum::A
+                        type: A
+                      staticElement: self::@enum::A::@constructor::new
+                    argumentList: ArgumentList
+                      leftParenthesis: ( @0
+                      rightParenthesis: ) @0
+                    staticType: A
+                id: field_2
+                getter: getter_2
+            accessors
+              synthetic static get v2 @-1
+                reference: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@getter::v2
+                returnType: A
+                id: getter_2
+                variable: field_2
+''');
+  }
+
+  test_augmented_constants_add2() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment enum A {
+  v2
+}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+augment library 'test.dart';
+augment enum A {
+  v3
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+import augment 'b.dart';
+enum A {
+  v1
+}
+''');
+
+    configuration
+      ..withPropertyLinking = true
+      ..withReferences = true;
+    checkElementText(library, r'''
+library
+  reference: self
+  definingUnit
+    reference: self
+    enums
+      enum A @55
+        reference: self::@enum::A
+        augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+        supertype: Enum
+        fields
+          static const enumConstant v1 @61
+            reference: self::@enum::A::@field::v1
+            type: A
+            shouldUseTypeForInitializerInference: false
+            constantInitializer
+              InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: A @-1
+                    element: self::@enum::A
+                    type: A
+                  staticElement: self::@enum::A::@constructor::new
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticType: A
+            id: field_0
+            getter: getter_0
+          synthetic static const values @-1
+            reference: self::@enum::A::@field::values
+            type: List<A>
+            constantInitializer
+              ListLiteral
+                leftBracket: [ @0
+                elements
+                  SimpleIdentifier
+                    token: v1 @-1
+                    staticElement: self::@enum::A::@getter::v1
+                    staticType: A
+                  SimpleIdentifier
+                    token: v2 @-1
+                    staticElement: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@getter::v2
+                    staticType: A
+                  SimpleIdentifier
+                    token: v3 @-1
+                    staticElement: self::@augmentation::package:test/b.dart::@enumAugmentation::A::@getter::v3
+                    staticType: A
+                rightBracket: ] @0
+                staticType: List<A>
+            id: field_1
+            getter: getter_1
+        constructors
+          synthetic const @-1
+            reference: self::@enum::A::@constructor::new
+        accessors
+          synthetic static get v1 @-1
+            reference: self::@enum::A::@getter::v1
+            returnType: A
+            id: getter_0
+            variable: field_0
+          synthetic static get values @-1
+            reference: self::@enum::A::@getter::values
+            returnType: List<A>
+            id: getter_1
+            variable: field_1
+        augmented
+          fields
+            self::@enum::A::@field::v1
+            self::@augmentation::package:test/a.dart::@enumAugmentation::A::@field::v2
+            self::@augmentation::package:test/b.dart::@enumAugmentation::A::@field::v3
+            self::@enum::A::@field::values
+          constants
+            self::@enum::A::@field::v1
+            self::@augmentation::package:test/a.dart::@enumAugmentation::A::@field::v2
+            self::@augmentation::package:test/b.dart::@enumAugmentation::A::@field::v3
+          constructors
+            self::@enum::A::@constructor::new
+          accessors
+            self::@enum::A::@getter::v1
+            self::@augmentation::package:test/a.dart::@enumAugmentation::A::@getter::v2
+            self::@augmentation::package:test/b.dart::@enumAugmentation::A::@getter::v3
+            self::@enum::A::@getter::values
+  augmentationImports
+    package:test/a.dart
+      reference: self::@augmentation::package:test/a.dart
+      definingUnit
+        reference: self::@augmentation::package:test/a.dart
+        enums
+          augment enum A @42
+            reference: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+            augmentationTarget: self::@enum::A
+            augmentation: self::@augmentation::package:test/b.dart::@enumAugmentation::A
+            fields
+              static const enumConstant v2 @48
+                reference: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@field::v2
+                type: A
+                shouldUseTypeForInitializerInference: false
+                constantInitializer
+                  InstanceCreationExpression
+                    constructorName: ConstructorName
+                      type: NamedType
+                        name: A @-1
+                        element: self::@enum::A
+                        type: A
+                      staticElement: self::@enum::A::@constructor::new
+                    argumentList: ArgumentList
+                      leftParenthesis: ( @0
+                      rightParenthesis: ) @0
+                    staticType: A
+                id: field_2
+                getter: getter_2
+            accessors
+              synthetic static get v2 @-1
+                reference: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@getter::v2
+                returnType: A
+                id: getter_2
+                variable: field_2
+    package:test/b.dart
+      reference: self::@augmentation::package:test/b.dart
+      definingUnit
+        reference: self::@augmentation::package:test/b.dart
+        enums
+          augment enum A @42
+            reference: self::@augmentation::package:test/b.dart::@enumAugmentation::A
+            augmentationTarget: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+            fields
+              static const enumConstant v3 @48
+                reference: self::@augmentation::package:test/b.dart::@enumAugmentation::A::@field::v3
+                type: A
+                shouldUseTypeForInitializerInference: false
+                constantInitializer
+                  InstanceCreationExpression
+                    constructorName: ConstructorName
+                      type: NamedType
+                        name: A @-1
+                        element: self::@enum::A
+                        type: A
+                      staticElement: self::@enum::A::@constructor::new
+                    argumentList: ArgumentList
+                      leftParenthesis: ( @0
+                      rightParenthesis: ) @0
+                    staticType: A
+                id: field_3
+                getter: getter_3
+            accessors
+              synthetic static get v3 @-1
+                reference: self::@augmentation::package:test/b.dart::@enumAugmentation::A::@getter::v3
+                returnType: A
+                id: getter_3
+                variable: field_3
+''');
+  }
+
+  test_augmented_constants_add_augment() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment enum A {
+  v2,
+  augment v2
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+enum A {
+  v1
+}
+''');
+
+    configuration
+      ..withPropertyLinking = true
+      ..withReferences = true;
+    checkElementText(library, r'''
+library
+  reference: self
+  definingUnit
+    reference: self
+    enums
+      enum A @30
+        reference: self::@enum::A
+        augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+        supertype: Enum
+        fields
+          static const enumConstant v1 @36
+            reference: self::@enum::A::@field::v1
+            type: A
+            shouldUseTypeForInitializerInference: false
+            constantInitializer
+              InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: A @-1
+                    element: self::@enum::A
+                    type: A
+                  staticElement: self::@enum::A::@constructor::new
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticType: A
+            id: field_0
+            getter: getter_0
+          synthetic static const values @-1
+            reference: self::@enum::A::@field::values
+            type: List<A>
+            constantInitializer
+              ListLiteral
+                leftBracket: [ @0
+                elements
+                  SimpleIdentifier
+                    token: v1 @-1
+                    staticElement: self::@enum::A::@getter::v1
+                    staticType: A
+                  SimpleIdentifier
+                    token: v2 @-1
+                    staticElement: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@getter::v2
+                    staticType: A
+                rightBracket: ] @0
+                staticType: List<A>
+            id: field_1
+            getter: getter_1
+        constructors
+          synthetic const @-1
+            reference: self::@enum::A::@constructor::new
+        accessors
+          synthetic static get v1 @-1
+            reference: self::@enum::A::@getter::v1
+            returnType: A
+            id: getter_0
+            variable: field_0
+          synthetic static get values @-1
+            reference: self::@enum::A::@getter::values
+            returnType: List<A>
+            id: getter_1
+            variable: field_1
+        augmented
+          fields
+            self::@enum::A::@field::v1
+            self::@augmentation::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v2
+            self::@enum::A::@field::values
+          constants
+            self::@enum::A::@field::v1
+            self::@augmentation::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v2
+          constructors
+            self::@enum::A::@constructor::new
+          accessors
+            self::@enum::A::@getter::v1
+            self::@augmentation::package:test/a.dart::@enumAugmentation::A::@getter::v2
+            self::@enum::A::@getter::values
+  augmentationImports
+    package:test/a.dart
+      reference: self::@augmentation::package:test/a.dart
+      definingUnit
+        reference: self::@augmentation::package:test/a.dart
+        enums
+          augment enum A @42
+            reference: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+            augmentationTarget: self::@enum::A
+            fields
+              static const enumConstant v2 @48
+                reference: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@field::v2
+                type: A
+                shouldUseTypeForInitializerInference: false
+                constantInitializer
+                  InstanceCreationExpression
+                    constructorName: ConstructorName
+                      type: NamedType
+                        name: A @-1
+                        element: self::@enum::A
+                        type: A
+                      staticElement: self::@enum::A::@constructor::new
+                    argumentList: ArgumentList
+                      leftParenthesis: ( @0
+                      rightParenthesis: ) @0
+                    staticType: A
+                id: field_2
+                getter: getter_2
+                augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v2
+              augment static const enumConstant v2 @62
+                reference: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v2
+                type: A
+                shouldUseTypeForInitializerInference: false
+                constantInitializer
+                  InstanceCreationExpression
+                    constructorName: ConstructorName
+                      type: NamedType
+                        name: A @-1
+                        element: self::@enum::A
+                        type: A
+                      staticElement: self::@enum::A::@constructor::new
+                    argumentList: ArgumentList
+                      leftParenthesis: ( @0
+                      rightParenthesis: ) @0
+                    staticType: A
+                id: field_3
+                augmentationTarget: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@field::v2
+            accessors
+              synthetic static get v2 @-1
+                reference: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@getter::v2
+                returnType: A
+                id: getter_2
+                variable: field_2
+''');
+  }
+
+  test_augmented_constants_augment() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment enum A {
+  augment v2
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+enum A {
+  v1, v2, v3
+}
+''');
+
+    configuration
+      ..withPropertyLinking = true
+      ..withReferences = true;
+    checkElementText(library, r'''
+library
+  reference: self
+  definingUnit
+    reference: self
+    enums
+      enum A @30
+        reference: self::@enum::A
+        augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+        supertype: Enum
+        fields
+          static const enumConstant v1 @36
+            reference: self::@enum::A::@field::v1
+            type: A
+            shouldUseTypeForInitializerInference: false
+            constantInitializer
+              InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: A @-1
+                    element: self::@enum::A
+                    type: A
+                  staticElement: self::@enum::A::@constructor::new
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticType: A
+            id: field_0
+            getter: getter_0
+          static const enumConstant v2 @40
+            reference: self::@enum::A::@field::v2
+            type: A
+            shouldUseTypeForInitializerInference: false
+            constantInitializer
+              InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: A @-1
+                    element: self::@enum::A
+                    type: A
+                  staticElement: self::@enum::A::@constructor::new
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticType: A
+            id: field_1
+            getter: getter_1
+            augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v2
+          static const enumConstant v3 @44
+            reference: self::@enum::A::@field::v3
+            type: A
+            shouldUseTypeForInitializerInference: false
+            constantInitializer
+              InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: A @-1
+                    element: self::@enum::A
+                    type: A
+                  staticElement: self::@enum::A::@constructor::new
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticType: A
+            id: field_2
+            getter: getter_2
+          synthetic static const values @-1
+            reference: self::@enum::A::@field::values
+            type: List<A>
+            constantInitializer
+              ListLiteral
+                leftBracket: [ @0
+                elements
+                  SimpleIdentifier
+                    token: v1 @-1
+                    staticElement: self::@enum::A::@getter::v1
+                    staticType: A
+                  SimpleIdentifier
+                    token: v2 @-1
+                    staticElement: self::@enum::A::@getter::v2
+                    staticType: A
+                  SimpleIdentifier
+                    token: v3 @-1
+                    staticElement: self::@enum::A::@getter::v3
+                    staticType: A
+                rightBracket: ] @0
+                staticType: List<A>
+            id: field_3
+            getter: getter_3
+        constructors
+          synthetic const @-1
+            reference: self::@enum::A::@constructor::new
+        accessors
+          synthetic static get v1 @-1
+            reference: self::@enum::A::@getter::v1
+            returnType: A
+            id: getter_0
+            variable: field_0
+          synthetic static get v2 @-1
+            reference: self::@enum::A::@getter::v2
+            returnType: A
+            id: getter_1
+            variable: field_1
+          synthetic static get v3 @-1
+            reference: self::@enum::A::@getter::v3
+            returnType: A
+            id: getter_2
+            variable: field_2
+          synthetic static get values @-1
+            reference: self::@enum::A::@getter::values
+            returnType: List<A>
+            id: getter_3
+            variable: field_3
+        augmented
+          fields
+            self::@enum::A::@field::v1
+            self::@augmentation::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v2
+            self::@enum::A::@field::v3
+            self::@enum::A::@field::values
+          constants
+            self::@enum::A::@field::v1
+            self::@augmentation::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v2
+            self::@enum::A::@field::v3
+          constructors
+            self::@enum::A::@constructor::new
+          accessors
+            self::@enum::A::@getter::v1
+            self::@enum::A::@getter::v2
+            self::@enum::A::@getter::v3
+            self::@enum::A::@getter::values
+  augmentationImports
+    package:test/a.dart
+      reference: self::@augmentation::package:test/a.dart
+      definingUnit
+        reference: self::@augmentation::package:test/a.dart
+        enums
+          augment enum A @42
+            reference: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+            augmentationTarget: self::@enum::A
+            fields
+              augment static const enumConstant v2 @56
+                reference: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v2
+                type: A
+                shouldUseTypeForInitializerInference: false
+                constantInitializer
+                  InstanceCreationExpression
+                    constructorName: ConstructorName
+                      type: NamedType
+                        name: A @-1
+                        element: self::@enum::A
+                        type: A
+                      staticElement: self::@enum::A::@constructor::new
+                    argumentList: ArgumentList
+                      leftParenthesis: ( @0
+                      rightParenthesis: ) @0
+                    staticType: A
+                id: field_4
+                augmentationTarget: self::@enum::A::@field::v2
+''');
+  }
+
+  test_augmented_constants_augment_withArguments() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment enum A {
+  augment v1(3)
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+enum A {
+  v1(1), v2(2);
+  const A(int value);
+}
+''');
+
+    configuration
+      ..withPropertyLinking = true
+      ..withReferences = true;
+    checkElementText(library, r'''
+library
+  reference: self
+  definingUnit
+    reference: self
+    enums
+      enum A @30
+        reference: self::@enum::A
+        augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+        supertype: Enum
+        fields
+          static const enumConstant v1 @36
+            reference: self::@enum::A::@field::v1
+            type: A
+            shouldUseTypeForInitializerInference: false
+            constantInitializer
+              InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: A @-1
+                    element: self::@enum::A
+                    type: A
+                  staticElement: self::@enum::A::@constructor::new
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  arguments
+                    IntegerLiteral
+                      literal: 1 @39
+                      staticType: int
+                  rightParenthesis: ) @0
+                staticType: A
+            id: field_0
+            getter: getter_0
+            augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v1
+          static const enumConstant v2 @43
+            reference: self::@enum::A::@field::v2
+            type: A
+            shouldUseTypeForInitializerInference: false
+            constantInitializer
+              InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: A @-1
+                    element: self::@enum::A
+                    type: A
+                  staticElement: self::@enum::A::@constructor::new
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  arguments
+                    IntegerLiteral
+                      literal: 2 @46
+                      staticType: int
+                  rightParenthesis: ) @0
+                staticType: A
+            id: field_1
+            getter: getter_1
+          synthetic static const values @-1
+            reference: self::@enum::A::@field::values
+            type: List<A>
+            constantInitializer
+              ListLiteral
+                leftBracket: [ @0
+                elements
+                  SimpleIdentifier
+                    token: v1 @-1
+                    staticElement: self::@enum::A::@getter::v1
+                    staticType: A
+                  SimpleIdentifier
+                    token: v2 @-1
+                    staticElement: self::@enum::A::@getter::v2
+                    staticType: A
+                rightBracket: ] @0
+                staticType: List<A>
+            id: field_2
+            getter: getter_2
+        constructors
+          const @58
+            reference: self::@enum::A::@constructor::new
+            parameters
+              requiredPositional value @64
+                type: int
+        accessors
+          synthetic static get v1 @-1
+            reference: self::@enum::A::@getter::v1
+            returnType: A
+            id: getter_0
+            variable: field_0
+          synthetic static get v2 @-1
+            reference: self::@enum::A::@getter::v2
+            returnType: A
+            id: getter_1
+            variable: field_1
+          synthetic static get values @-1
+            reference: self::@enum::A::@getter::values
+            returnType: List<A>
+            id: getter_2
+            variable: field_2
+        augmented
+          fields
+            self::@augmentation::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v1
+            self::@enum::A::@field::v2
+            self::@enum::A::@field::values
+          constants
+            self::@augmentation::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v1
+            self::@enum::A::@field::v2
+          constructors
+            self::@enum::A::@constructor::new
+          accessors
+            self::@enum::A::@getter::v1
+            self::@enum::A::@getter::v2
+            self::@enum::A::@getter::values
+  augmentationImports
+    package:test/a.dart
+      reference: self::@augmentation::package:test/a.dart
+      definingUnit
+        reference: self::@augmentation::package:test/a.dart
+        enums
+          augment enum A @42
+            reference: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+            augmentationTarget: self::@enum::A
+            fields
+              augment static const enumConstant v1 @56
+                reference: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v1
+                type: A
+                shouldUseTypeForInitializerInference: false
+                constantInitializer
+                  InstanceCreationExpression
+                    constructorName: ConstructorName
+                      type: NamedType
+                        name: A @-1
+                        element: self::@enum::A
+                        type: A
+                      staticElement: self::@enum::A::@constructor::new
+                    argumentList: ArgumentList
+                      leftParenthesis: ( @0
+                      arguments
+                        IntegerLiteral
+                          literal: 3 @59
+                          staticType: int
+                      rightParenthesis: ) @0
+                    staticType: A
+                id: field_3
+                augmentationTarget: self::@enum::A::@field::v1
+''');
+  }
+
   test_augmented_constructors_add_named() async {
     newFile('$testPackageLibPath/a.dart', r'''
 augment library 'test.dart';
@@ -48793,6 +49605,8 @@ library
           fields
             self::@enum::A::@field::v
             self::@enum::A::@field::values
+          constants
+            self::@enum::A::@field::v
           constructors
             self::@augmentation::package:test/a.dart::@enumAugmentation::A::@constructor::named
           accessors
@@ -48852,6 +49666,8 @@ library
           fields
             self::@enum::A::@field::v
             self::@enum::A::@field::values
+          constants
+            self::@enum::A::@field::v
           constructors
             ConstructorMember
               base: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@constructor::named
@@ -48919,6 +49735,8 @@ library
           fields
             self::@enum::A::@field::v
             self::@enum::A::@field::values
+          constants
+            self::@enum::A::@field::v
           constructors
             self::@enum::A::@constructor::new
             self::@augmentation::package:test/a.dart::@enumAugmentation::A::@constructor::named
@@ -48976,6 +49794,8 @@ library
           fields
             self::@enum::A::@field::v
             self::@enum::A::@field::values
+          constants
+            self::@enum::A::@field::v
           constructors
             self::@augmentation::package:test/a.dart::@enumAugmentation::A::@constructor::new
           accessors
@@ -49035,6 +49855,8 @@ library
           fields
             self::@enum::A::@field::v
             self::@enum::A::@field::values
+          constants
+            self::@enum::A::@field::v
           constructors
             self::@augmentation::package:test/a.dart::@enumAugmentation::A::@constructor::new
             self::@enum::A::@constructor::named
@@ -49096,6 +49918,8 @@ library
             self::@enum::A::@field::f
             self::@enum::A::@field::v
             self::@enum::A::@field::values
+          constants
+            self::@enum::A::@field::v
           constructors
             self::@augmentation::package:test/a.dart::@enumAugmentation::A::@constructor::named
           accessors
@@ -49163,6 +49987,8 @@ library
             self::@enum::A::@field::f
             self::@enum::A::@field::v
             self::@enum::A::@field::values
+          constants
+            self::@enum::A::@field::v
           constructors
             self::@augmentation::package:test/a.dart::@enumAugmentation::A::@constructor::named
           accessors
@@ -49254,6 +50080,8 @@ library
             self::@augmentation::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
             self::@enum::A::@field::v
             self::@enum::A::@field::values
+          constants
+            self::@enum::A::@field::v
           constructors
             self::@enum::A::@constructor::new
           accessors
@@ -49345,6 +50173,8 @@ library
             self::@augmentation::package:test/b.dart::@enumAugmentation::A::@fieldAugmentation::foo
             self::@enum::A::@field::v
             self::@enum::A::@field::values
+          constants
+            self::@enum::A::@field::v
           constructors
             self::@enum::A::@constructor::new
           accessors
@@ -49450,6 +50280,8 @@ library
             self::@augmentation::package:test/b.dart::@enumAugmentation::A::@fieldAugmentation::foo
             self::@enum::A::@field::v
             self::@enum::A::@field::values
+          constants
+            self::@enum::A::@field::v
           constructors
             self::@enum::A::@constructor::new
           accessors
@@ -49553,6 +50385,8 @@ library
             self::@augmentation::package:test/b.dart::@enumAugmentation::A::@fieldAugmentation::foo
             self::@enum::A::@field::v
             self::@enum::A::@field::values
+          constants
+            self::@enum::A::@field::v
           constructors
             self::@enum::A::@constructor::new
           accessors
@@ -49652,6 +50486,8 @@ library
             self::@augmentation::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
             self::@enum::A::@field::v
             self::@enum::A::@field::values
+          constants
+            self::@enum::A::@field::v
           constructors
             self::@enum::A::@constructor::new
           accessors
@@ -49736,6 +50572,8 @@ library
             self::@augmentation::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
             self::@enum::A::@field::v
             self::@enum::A::@field::values
+          constants
+            self::@enum::A::@field::v
           constructors
             self::@enum::A::@constructor::new
           accessors
@@ -49819,6 +50657,8 @@ library
             self::@augmentation::package:test/a.dart::@enumAugmentation::A::@field::foo2
             self::@enum::A::@field::v
             self::@enum::A::@field::values
+          constants
+            self::@enum::A::@field::v
           constructors
             self::@enum::A::@constructor::new
           accessors
@@ -49912,6 +50752,8 @@ library
               augmentationSubstitution: {T2: T1}
             self::@enum::A::@field::v
             self::@enum::A::@field::values
+          constants
+            self::@enum::A::@field::v
           constructors
             self::@enum::A::@constructor::new
           accessors
@@ -49989,6 +50831,8 @@ library
             self::@augmentation::package:test/a.dart::@enumAugmentation::A::@field::foo
             self::@enum::A::@field::v
             self::@enum::A::@field::values
+          constants
+            self::@enum::A::@field::v
           constructors
             self::@enum::A::@constructor::new
           accessors
@@ -50062,6 +50906,8 @@ library
             self::@augmentation::package:test/a.dart::@enumAugmentation::A::@field::foo
             self::@enum::A::@field::v
             self::@enum::A::@field::values
+          constants
+            self::@enum::A::@field::v
           constructors
             self::@enum::A::@constructor::new
           accessors
@@ -50144,6 +50990,8 @@ library
             self::@augmentation::package:test/a.dart::@enumAugmentation::A::@field::foo2
             self::@enum::A::@field::v
             self::@enum::A::@field::values
+          constants
+            self::@enum::A::@field::v
           constructors
             self::@enum::A::@constructor::new
           accessors
@@ -50236,6 +51084,8 @@ library
               augmentationSubstitution: {T2: T1}
             self::@enum::A::@field::v
             self::@enum::A::@field::values
+          constants
+            self::@enum::A::@field::v
           constructors
             self::@enum::A::@constructor::new
           accessors
@@ -50329,6 +51179,8 @@ library
             self::@enum::A::@field::foo
             self::@enum::A::@field::v
             self::@enum::A::@field::values
+          constants
+            self::@enum::A::@field::v
           constructors
             self::@enum::A::@constructor::new
           accessors
@@ -50420,6 +51272,8 @@ library
             self::@enum::A::@field::foo
             self::@enum::A::@field::v
             self::@enum::A::@field::values
+          constants
+            self::@enum::A::@field::v
           constructors
             self::@enum::A::@constructor::new
           accessors
@@ -50525,6 +51379,8 @@ library
             self::@enum::A::@field::foo2
             self::@enum::A::@field::v
             self::@enum::A::@field::values
+          constants
+            self::@enum::A::@field::v
           constructors
             self::@enum::A::@constructor::new
           accessors
@@ -50620,6 +51476,8 @@ library
             self::@enum::A::@field::foo
             self::@enum::A::@field::v
             self::@enum::A::@field::values
+          constants
+            self::@enum::A::@field::v
           constructors
             self::@enum::A::@constructor::new
           accessors
@@ -50721,6 +51579,8 @@ library
             self::@enum::A::@field::foo
             self::@enum::A::@field::v
             self::@enum::A::@field::values
+          constants
+            self::@enum::A::@field::v
           constructors
             self::@enum::A::@constructor::new
           accessors
@@ -50804,6 +51664,8 @@ library
           fields
             self::@enum::A::@field::v
             self::@enum::A::@field::values
+          constants
+            self::@enum::A::@field::v
           accessors
             self::@augmentation::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
             self::@enum::A::@getter::v
@@ -50872,6 +51734,8 @@ library
           fields
             self::@enum::A::@field::v
             self::@enum::A::@field::values
+          constants
+            self::@enum::A::@field::v
           constructors
             self::@enum::A::@constructor::new
           accessors
@@ -50949,6 +51813,8 @@ library
           fields
             self::@enum::A::@field::v
             self::@enum::A::@field::values
+          constants
+            self::@enum::A::@field::v
           constructors
             self::@enum::A::@constructor::new
           accessors
@@ -51034,6 +51900,8 @@ library
           fields
             self::@enum::A::@field::v
             self::@enum::A::@field::values
+          constants
+            self::@enum::A::@field::v
           constructors
             self::@enum::A::@constructor::new
           accessors
@@ -51111,6 +51979,8 @@ library
           fields
             self::@enum::A::@field::v
             self::@enum::A::@field::values
+          constants
+            self::@enum::A::@field::v
           constructors
             self::@enum::A::@constructor::new
           accessors
@@ -51183,6 +52053,8 @@ library
           fields
             self::@enum::A::@field::v
             self::@enum::A::@field::values
+          constants
+            self::@enum::A::@field::v
           constructors
             self::@enum::A::@constructor::new
           accessors
@@ -51264,6 +52136,8 @@ library
           fields
             self::@enum::A::@field::v
             self::@enum::A::@field::values
+          constants
+            self::@enum::A::@field::v
           constructors
             self::@enum::A::@constructor::new
           accessors
@@ -51338,6 +52212,8 @@ library
           fields
             self::@enum::A::@field::v
             self::@enum::A::@field::values
+          constants
+            self::@enum::A::@field::v
           constructors
             self::@enum::A::@constructor::new
           accessors
@@ -51416,6 +52292,8 @@ library
           fields
             self::@enum::A::@field::v
             self::@enum::A::@field::values
+          constants
+            self::@enum::A::@field::v
           constructors
             self::@enum::A::@constructor::new
           accessors
@@ -51504,6 +52382,8 @@ library
           fields
             self::@enum::A::@field::v
             self::@enum::A::@field::values
+          constants
+            self::@enum::A::@field::v
           constructors
             self::@enum::A::@constructor::new
           accessors
@@ -51591,6 +52471,8 @@ library
           fields
             self::@enum::A::@field::v
             self::@enum::A::@field::values
+          constants
+            self::@enum::A::@field::v
           constructors
             self::@enum::A::@constructor::new
           accessors
@@ -51670,6 +52552,8 @@ library
           fields
             self::@enum::A::@field::v
             self::@enum::A::@field::values
+          constants
+            self::@enum::A::@field::v
           constructors
             self::@enum::A::@constructor::new
           accessors
@@ -51743,6 +52627,8 @@ library
           fields
             self::@enum::A::@field::v
             self::@enum::A::@field::values
+          constants
+            self::@enum::A::@field::v
           constructors
             self::@enum::A::@constructor::new
           accessors
@@ -51813,6 +52699,8 @@ library
           fields
             self::@enum::A::@field::v
             self::@enum::A::@field::values
+          constants
+            self::@enum::A::@field::v
           constructors
             self::@enum::A::@constructor::new
           accessors
@@ -51893,6 +52781,8 @@ library
           fields
             self::@enum::A::@field::v
             self::@enum::A::@field::values
+          constants
+            self::@enum::A::@field::v
           constructors
             self::@enum::A::@constructor::new
           accessors
@@ -52008,6 +52898,8 @@ library
             self::@augmentation::package:test/a.dart::@enumAugmentation::A::@field::foo2
             self::@enum::A::@field::v
             self::@enum::A::@field::values
+          constants
+            self::@enum::A::@field::v
           constructors
             self::@enum::A::@constructor::new
           accessors
@@ -52098,6 +52990,8 @@ library
             self::@enum::A::@field::foo
             self::@enum::A::@field::v
             self::@enum::A::@field::values
+          constants
+            self::@enum::A::@field::v
           constructors
             self::@enum::A::@constructor::new
           accessors
@@ -52173,6 +53067,8 @@ library
           fields
             self::@enum::A::@field::v
             self::@enum::A::@field::values
+          constants
+            self::@enum::A::@field::v
           constructors
             self::@enum::A::@constructor::new
           accessors
@@ -52274,6 +53170,8 @@ library
             self::@enum::A::@field::foo2
             self::@enum::A::@field::v
             self::@enum::A::@field::values
+          constants
+            self::@enum::A::@field::v
           constructors
             self::@enum::A::@constructor::new
           accessors
@@ -52351,6 +53249,8 @@ library
           fields
             self::@enum::A::@field::v
             self::@enum::A::@field::values
+          constants
+            self::@enum::A::@field::v
           constructors
             self::@augmentation::package:test/b.dart::@enumAugmentation::A::@constructorAugmentation::named
           accessors
@@ -52452,6 +53352,8 @@ library
           fields
             self::@enum::A::@field::v
             self::@enum::A::@field::values
+          constants
+            self::@enum::A::@field::v
           constructors
             self::@augmentation::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::named
           accessors
@@ -52534,6 +53436,8 @@ library
           fields
             self::@enum::A::@field::v
             self::@enum::A::@field::values
+          constants
+            self::@enum::A::@field::v
           constructors
             self::@augmentation::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::new
           accessors
@@ -52605,6 +53509,8 @@ library
           fields
             self::@enum::B::@field::v
             self::@enum::B::@field::values
+          constants
+            self::@enum::B::@field::v
           constructors
             self::@enum::B::@constructor::new
           accessors
@@ -52682,6 +53588,8 @@ library
           fields
             self::@enum::B::@field::v
             self::@enum::B::@field::values
+          constants
+            self::@enum::B::@field::v
           constructors
             self::@enum::B::@constructor::new
           accessors
@@ -52757,6 +53665,8 @@ library
           fields
             self::@enum::B::@field::v
             self::@enum::B::@field::values
+          constants
+            self::@enum::B::@field::v
           constructors
             self::@enum::B::@constructor::new
           accessors
@@ -52824,6 +53734,8 @@ library
           fields
             self::@enum::A::@field::v
             self::@enum::A::@field::values
+          constants
+            self::@enum::A::@field::v
           constructors
             self::@enum::A::@constructor::new
           accessors
