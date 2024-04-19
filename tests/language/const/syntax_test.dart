@@ -77,7 +77,7 @@ class Point {
 const P0 = const Point(0, 0);
 const P1 = const Point(0, 0) + 1;
 //         ^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_TYPE_NUM
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_TYPE_NUM_STRING
 //                           ^
 // [cfe] Constant evaluation error:
 const P2 = new Point(0, 0);

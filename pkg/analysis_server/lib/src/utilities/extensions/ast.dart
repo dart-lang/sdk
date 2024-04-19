@@ -162,6 +162,18 @@ extension AstNodeExtension on AstNode {
 
   bool get inWhileLoop => thisOrAncestorOfType<WhileStatement>() != null;
 
+  /// The [Token]s contained within `this`.
+  List<Token> get tokens {
+    var result = <Token>[];
+    for (var token = beginToken;; token = token.next!) {
+      result.add(token);
+      if (token == endToken) {
+        break;
+      }
+    }
+    return result;
+  }
+
   /// Return this node and all its parents.
   Iterable<AstNode> get withParents sync* {
     var current = this;

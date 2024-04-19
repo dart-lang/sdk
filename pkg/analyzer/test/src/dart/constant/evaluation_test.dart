@@ -3482,6 +3482,20 @@ double 5.5
 ''');
   }
 
+  test_visitBinaryExpression_add_instance_String() async {
+    await assertErrorsInCode('''
+class C {
+  const C();
+  String operator +(String other) => other;
+}
+
+const c = C() + 1;
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_TYPE_NUM_STRING, 80, 7),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 86, 1),
+    ]);
+  }
+
   test_visitBinaryExpression_add_int_int() async {
     await assertNoErrorsInCode('''
 const c = 2 + 3;

@@ -1589,7 +1589,7 @@ abstract class InstanceState {
   /// Return the name of the type of this value.
   String get typeName;
 
-  /// Return the result of invoking the '+' operator on this object with the
+  /// Returns the result of invoking the '+' operator on this object with the
   /// [rightOperand].
   ///
   /// Throws an [EvaluationException] if the operator is not appropriate for an
@@ -1598,35 +1598,46 @@ abstract class InstanceState {
     if (this is StringState && rightOperand is StringState) {
       return concatenate(rightOperand);
     }
-    assertNumOrNull(this);
-    assertNumOrNull(rightOperand);
+    assertNumStringOrNull(this);
+    assertNumStringOrNull(rightOperand);
     throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
-  /// Throw an exception if the given [state] does not represent a boolean value.
+  /// Throws an exception if the given [state] does not represent a `bool`
+  /// value.
   void assertBool(InstanceState? state) {
     if (state is! BoolState) {
       throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL);
     }
   }
 
-  /// Throw an exception if the given [state] does not represent an integer or
-  /// null value.
+  /// Throws an exception if the given [state] does not represent an `int` or
+  /// `null` value.
   void assertIntOrNull(InstanceState state) {
     if (!(state is IntState || state is NullState)) {
       throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_TYPE_INT);
     }
   }
 
-  /// Throw an exception if the given [state] does not represent a boolean,
-  /// numeric, string or null value.
+  /// Throws an exception if the given [state] does not represent a `num` or
+  /// `null` value.
   void assertNumOrNull(InstanceState state) {
     if (!(state is NumState || state is NullState)) {
       throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_TYPE_NUM);
     }
   }
 
-  /// Throw an exception if the given [state] does not represent a String value.
+  /// Throws an exception if the given [state] does not represent a `num`,
+  /// `String`, or `null` value.
+  void assertNumStringOrNull(InstanceState state) {
+    if (!(state is NumState || state is StringState || state is NullState)) {
+      throw EvaluationException(
+          CompileTimeErrorCode.CONST_EVAL_TYPE_NUM_STRING);
+    }
+  }
+
+  /// Throws an exception if the given [state] does not represent a `String`
+  /// value.
   void assertString(InstanceState state) {
     if (state is! StringState) {
       throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_TYPE_STRING);

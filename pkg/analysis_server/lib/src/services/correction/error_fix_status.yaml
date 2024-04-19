@@ -44,10 +44,10 @@
 #   issue created for it.
 #
 # Stats:
-# -  18 "needsEvaluation"
-# - 362 "needsFix"
-# - 366 "hasFix"
-# - 490 "noFix"
+# -  40 "needsEvaluation"
+# - 387 "needsFix"
+# - 370 "hasFix"
+# - 509 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
   status: noFix
@@ -433,6 +433,8 @@ CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING:
 CompileTimeErrorCode.CONST_EVAL_TYPE_INT:
   status: noFix
 CompileTimeErrorCode.CONST_EVAL_TYPE_NUM:
+  status: noFix
+CompileTimeErrorCode.CONST_EVAL_TYPE_NUM_STRING:
   status: noFix
 CompileTimeErrorCode.CONST_EVAL_TYPE_STRING:
   status: noFix

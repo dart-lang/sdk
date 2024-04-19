@@ -270,6 +270,21 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
     return deletion;
   }
 
+  /// Adds [level] indents to each line.
+  String indentRight(String text, {int level = 1}) {
+    var buffer = StringBuffer();
+    var indent = utils.oneIndent * level;
+    var eol = utils.endOfLine;
+    var lines = text.split(eol);
+    for (var line in lines) {
+      if (buffer.isNotEmpty) {
+        buffer.write(eol);
+      }
+      buffer.write('$indent$line');
+    }
+    return buffer.toString();
+  }
+
   bool isEffectivelyExhaustive(SwitchStatement node, DartType? expressionType) {
     if (expressionType == null) return false;
     if ((typeSystem as TypeSystemImpl).isAlwaysExhaustive(expressionType)) {
@@ -420,7 +435,7 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
 
     switch (indentation) {
       case _IndentationFullFirstRightAll():
-        var indentedText = utils.indentRight(
+        var indentedText = indentRight(
           nextLinePrefix + text,
           level: indentation.level,
         );

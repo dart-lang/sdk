@@ -2740,34 +2740,35 @@ CompileTimeErrorCode:
   CONST_EVAL_TYPE_BOOL:
     problemMessage: "In constant expressions, operands of this operator must be of type 'bool'."
     comment: |-
-      16.12.2 Const: An expression of one of the forms !e, e1 && e2 or e1 || e2,
-      where e, e1 and e2 are constant expressions that evaluate to a boolean
-      value.
+      See https://spec.dart.dev/DartLangSpecDraft.pdf#constants, "Constants",
+      for text about "An expression of the form !e1", "An expression of the form
+      e1 && e2", and "An expression of the form e1 || e2".
   CONST_EVAL_TYPE_BOOL_INT:
     problemMessage: "In constant expressions, operands of this operator must be of type 'bool' or 'int'."
     comment: |-
-      16.12.2 Const: An expression of one of the forms !e, e1 && e2 or e1 || e2,
-      where e, e1 and e2 are constant expressions that evaluate to a boolean
-      value.
+      See https://spec.dart.dev/DartLangSpecDraft.pdf#constants, "Constants",
+      for text about "An expression of the form e1 & e2".
   CONST_EVAL_TYPE_BOOL_NUM_STRING:
     problemMessage: "In constant expressions, operands of this operator must be of type 'bool', 'num', 'String' or 'null'."
     comment: |-
-      16.12.2 Const: An expression of one of the forms e1 == e2 or e1 != e2 where
-      e1 and e2 are constant expressions that evaluate to a numeric, string or
-      boolean value or to null.
+      See https://spec.dart.dev/DartLangSpecDraft.pdf#constants, "Constants",
+      for text about "A literal string".
   CONST_EVAL_TYPE_INT:
     problemMessage: "In constant expressions, operands of this operator must be of type 'int'."
     comment: |-
-      16.12.2 Const: An expression of one of the forms ~e, e1 ^ e2, e1 & e2,
-      e1 | e2, e1 >> e2 or e1 << e2, where e, e1 and e2 are constant expressions
-      that evaluate to an integer value or to null.
+      See https://spec.dart.dev/DartLangSpecDraft.pdf#constants, "Constants",
+      for text about "An expression of the form ~e1", "An expression of one of
+      the forms e1 >> e2".
   CONST_EVAL_TYPE_NUM:
     problemMessage: "In constant expressions, operands of this operator must be of type 'num'."
     comment: |-
-      16.12.2 Const: An expression of one of the forms e, e1 + e2, e1 - e2, e1
-      e2, e1 / e2, e1 ~/ e2, e1 > e2, e1 < e2, e1 >= e2, e1 <= e2 or e1 % e2,
-      where e, e1 and e2 are constant expressions that evaluate to a numeric
-      value or to null.
+      See https://spec.dart.dev/DartLangSpecDraft.pdf#constants, "Constants",
+      for text about "An expression of the form e1 - e2".
+  CONST_EVAL_TYPE_NUM_STRING:
+    problemMessage: "In constant expressions, operands of this operator must be of type 'num' or 'String'."
+    comment: |-
+      See https://spec.dart.dev/DartLangSpecDraft.pdf#constants, "Constants",
+      for text about "An expression of the form e1 + e2".
   CONST_EVAL_TYPE_STRING:
     problemMessage: "In constant expressions, operands of this operator must be of type 'String'."
     comment: No parameters.

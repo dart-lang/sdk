@@ -18263,6 +18263,36 @@ CodePtr Code::FindCode(uword pc, int64_t timestamp) {
   return visitor.result();
 }
 
+CodePtr Code::FindCodeUnsafe(uword pc) {
+  class FindCodeUnsafeVisitor : public ObjectVisitor {
+   public:
+    explicit FindCodeUnsafeVisitor(uword pc) : pc_(pc), result_(Code::null()) {}
+
+    void VisitObject(ObjectPtr obj) {
+      if (obj->IsCode()) {
+        CodePtr code = static_cast<CodePtr>(obj);
+        if (Code::ContainsInstructionAt(code, pc_)) {
+          result_ = code;
+        }
+      }
+    }
+
+    CodePtr result() { return result_; }
+
+   private:
+    uword pc_;
+    CodePtr result_;
+  };
+
+  IsolateGroup* group = IsolateGroup::Current();
+  PageSpace* old_space = group->heap()->old_space();
+  old_space->MakeIterable();
+  FindCodeUnsafeVisitor visitor(pc);
+  old_space->VisitObjectsUnsafe(&visitor);
+  Dart::vm_isolate_group()->heap()->old_space()->VisitObjectsUnsafe(&visitor);
+  return visitor.result();
+}
+
 TokenPosition Code::GetTokenIndexOfPC(uword pc) const {
   uword pc_offset = pc - PayloadStart();
   const PcDescriptors& descriptors = PcDescriptors::Handle(pc_descriptors());

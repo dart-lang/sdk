@@ -497,7 +497,7 @@ class PageSpace {
   friend class ConcurrentSweeperTask;
   friend class GCCompactor;
   friend class CompactorTask;
-  friend void DumpStackFrame(intptr_t frame_index, uword pc, uword fp);
+  friend class Code;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(PageSpace);
 };

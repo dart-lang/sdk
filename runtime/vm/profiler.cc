@@ -106,31 +106,8 @@ void DumpStackFrame(intptr_t frame_index, uword pc, uword fp) {
       (thread->execution_state() != Thread::kThreadInNative) &&
       (thread->execution_state() != Thread::kThreadInVM);
   if (symbolize_jit_code) {
-    IsolateGroup* group = thread->isolate_group();
-    class FindCodeVisitor : public ObjectVisitor {
-     public:
-      explicit FindCodeVisitor(uword pc, Code& result)
-          : pc_(pc), result_(result) {}
-      void VisitObject(ObjectPtr obj) {
-        if (obj->IsCode()) {
-          CodePtr code = static_cast<CodePtr>(obj);
-          if (Code::ContainsInstructionAt(code, pc_)) {
-            result_ = code;
-          }
-        }
-      }
-
-     private:
-      uword pc_;
-      Code& result_;
-    };
-    PageSpace* old_space = group->heap()->old_space();
-    old_space->MakeIterable();
     Code result;
-    result = Code::null();
-    FindCodeVisitor visitor(lookup_pc, result);
-    old_space->VisitObjectsUnsafe(&visitor);
-    Dart::vm_isolate_group()->heap()->old_space()->VisitObjectsUnsafe(&visitor);
+    result = Code::FindCodeUnsafe(lookup_pc);
     if (!result.IsNull()) {
       DumpStackFrame(
           pc, fp,

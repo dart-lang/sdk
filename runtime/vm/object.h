@@ -7156,6 +7156,7 @@ class Code : public Object {
 
 #endif
   static CodePtr FindCode(uword pc, int64_t timestamp);
+  static CodePtr FindCodeUnsafe(uword pc);
 
   int32_t GetPointerOffsetAt(int index) const {
     NoSafepointScope no_safepoint;
