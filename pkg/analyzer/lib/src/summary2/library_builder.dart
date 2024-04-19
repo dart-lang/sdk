@@ -50,12 +50,18 @@ class DefiningLinkingUnit extends LinkingUnit {
 class ImplicitEnumNodes {
   final EnumElementImpl element;
   final ast.NamedTypeImpl valuesTypeNode;
-  final ConstFieldElementImpl valuesField;
+  final ast.VariableDeclarationImpl valuesNode;
+  final ConstFieldElementImpl valuesElement;
+  final Set<String> valuesNames;
+  ast.ListLiteralImpl valuesInitializer;
 
   ImplicitEnumNodes({
     required this.element,
     required this.valuesTypeNode,
-    required this.valuesField,
+    required this.valuesNode,
+    required this.valuesElement,
+    required this.valuesNames,
+    required this.valuesInitializer,
   });
 }
 
@@ -69,7 +75,8 @@ class LibraryBuilder with MacroApplicationsContainer {
   final LibraryElementImpl element;
   final List<LinkingUnit> units;
 
-  final List<ImplicitEnumNodes> implicitEnumNodes = [];
+  final Map<EnumElementImpl, ImplicitEnumNodes> implicitEnumNodes =
+      Map.identity();
 
   /// The top-level elements that can be augmented.
   final Map<String, AugmentedInstanceDeclarationBuilder> _augmentedBuilders =
@@ -219,7 +226,7 @@ class LibraryBuilder with MacroApplicationsContainer {
 
   void buildEnumChildren() {
     var typeProvider = element.typeProvider;
-    for (var enum_ in implicitEnumNodes) {
+    for (var enum_ in implicitEnumNodes.values) {
       enum_.element.supertype =
           typeProvider.enumType ?? typeProvider.objectType;
       var valuesType = typeProvider.listType(
@@ -229,7 +236,7 @@ class LibraryBuilder with MacroApplicationsContainer {
         ),
       );
       enum_.valuesTypeNode.type = valuesType;
-      enum_.valuesField.type = valuesType;
+      enum_.valuesElement.type = valuesType;
     }
   }
 

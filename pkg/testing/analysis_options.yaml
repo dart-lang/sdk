@@ -2,6 +2,8 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+include: package:lints/recommended.yaml
+
 analyzer:
   errors:
     # Allow having TODOs in the code
@@ -9,18 +11,8 @@ analyzer:
 
 linter:
   rules:
-    - collection_methods_unrelated_type
-    - curly_braces_in_flow_control_structures
-    - prefer_adjacent_string_concatenation
-    - unawaited_futures
-    - avoid_void_async
-    - recursive_getters
-    - avoid_empty_else
-    - empty_statements
-    - valid_regexps
-    - package_api_docs
-    - lines_longer_than_80_chars
-    - unrelated_type_equality_checks
-    - annotate_overrides
     - always_declare_return_types
-    # - always_specify_types
+    - avoid_void_async
+    - lines_longer_than_80_chars
+    - package_api_docs
+    - unawaited_futures

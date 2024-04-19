@@ -4446,11 +4446,19 @@ class AstBuilder extends StackListener {
     } else if (context == IdentifierContext.enumValueDeclaration) {
       var metadata = pop() as List<AnnotationImpl>?;
       var comment = _findComment(metadata, token);
+
+      Token? augmentKeyword;
+      if (token.previous case var previous?) {
+        if (optional('augment', previous)) {
+          augmentKeyword = previous;
+        }
+      }
+
       push(
         EnumConstantDeclarationImpl(
           comment: comment,
           metadata: metadata,
-          augmentKeyword: null,
+          augmentKeyword: augmentKeyword,
           name: token,
           arguments: null,
         ),

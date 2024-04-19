@@ -234,6 +234,10 @@ class _ElementWriter {
           _elementPrinter.writeTypeList('mixins', augmented.mixins);
           _elementPrinter.writeTypeList('interfaces', augmented.interfaces);
           writeFields();
+          _elementPrinter.writeElementList(
+            'constants',
+            augmented.constants.sortedBy((e) => e.name),
+          );
           writeConstructors();
           writeAccessors();
           writeMethods();

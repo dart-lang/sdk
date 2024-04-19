@@ -4954,6 +4954,11 @@ mixin MaybeAugmentedClassElementMixin on MaybeAugmentedInterfaceElementMixin
 mixin MaybeAugmentedEnumElementMixin on MaybeAugmentedInterfaceElementMixin
     implements AugmentedEnumElement {
   @override
+  List<FieldElement> get constants {
+    return fields.where((field) => field.isEnumConstant).toList();
+  }
+
+  @override
   EnumElementImpl get declaration;
 }
 
