@@ -51,6 +51,9 @@ class ObjectDataSource implements DataSource {
   int readInt() => _read();
 
   @override
+  int readUint32() => _read();
+
+  @override
   E readAtOffset<E>(int offset, E reader()) {
     final indexBefore = _index;
     _index = offset;
