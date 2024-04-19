@@ -2599,9 +2599,18 @@ class UntaggedLoadingUnit : public UntaggedObject {
   VISIT_FROM(parent)
   COMPRESSED_POINTER_FIELD(ArrayPtr, base_objects)
   VISIT_TO(base_objects)
-  int32_t id_;
-  bool load_outstanding_;
-  bool loaded_;
+  const uint8_t* instructions_image_;
+  AtomicBitFieldContainer<intptr_t> packed_fields_;
+
+  enum LoadState : int8_t {
+    kNotLoaded = 0,  // Ensure this is the default state when zero-initialized.
+    kLoadOutstanding,
+    kLoaded,
+  };
+
+  using LoadStateBits = BitField<decltype(packed_fields_), LoadState, 0, 2>;
+  using IdBits =
+      BitField<decltype(packed_fields_), intptr_t, LoadStateBits::kNextBit>;
 };
 
 class UntaggedError : public UntaggedObject {

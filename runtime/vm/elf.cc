@@ -1827,34 +1827,34 @@ void Elf::GenerateBuildId() {
   ASSERT(section_table_->Find(kBuildIdNoteName) == nullptr);
   uint32_t hashes[kBuildIdSegmentNamesLength];
   // Currently, we construct the build ID out of data from two different
-  // sections: the .text section and the .rodata section. We only create
-  // a build ID when we have all four sections and when we have the actual
-  // bytes from those sections.
+  // sections: the .text section and the .rodata section.
   //
   // TODO(dartbug.com/43274): Generate build IDs for separate debugging
   // information for assembly snapshots.
-  //
-  // TODO(dartbug.com/43516): Generate build IDs for snapshots with deferred
-  // sections.
   auto* const text_section = section_table_->Find(kTextName);
   if (text_section == nullptr) return;
   ASSERT(text_section->IsTextSection());
   auto* const text_bits = text_section->AsBitsContainer();
   auto* const data_section = section_table_->Find(kDataName);
-  if (data_section == nullptr) return;
-  ASSERT(data_section->IsDataSection());
-  auto* const data_bits = data_section->AsBitsContainer();
-  // Now try to find
+  ASSERT(data_section == nullptr || data_section->IsDataSection());
+  // Hash each component by first hashing the associated text section and, if
+  // there's not one, hashing the associated data section (if any).
+  //
+  // Any component of the build ID which does not have an associated section
+  // in the result is kept as 0.
+  bool has_any_text = false;
   for (intptr_t i = 0; i < kBuildIdSegmentNamesLength; i++) {
     auto* const name = kBuildIdSegmentNames[i];
     hashes[i] = text_bits->Hash(name);
-    if (hashes[i] == 0) {
-      hashes[i] = data_bits->Hash(name);
+    if (hashes[i] != 0) {
+      has_any_text = true;
+    } else if (data_section != nullptr) {
+      hashes[i] = data_section->AsBitsContainer()->Hash(name);
     }
-    // The symbol wasn't found in either section or there were no bytes
-    // associated with the symbol.
-    if (hashes[i] == 0) return;
   }
+  // If none of the sections in the hash were text sections, then we don't need
+  // a build ID, as it is only used to symbolicize non-symbolic stack traces.
+  if (!has_any_text) return;
   auto const description_bytes = reinterpret_cast<uint8_t*>(hashes);
   const size_t description_length = sizeof(hashes);
   // Now that we have the description field contents, create the section.

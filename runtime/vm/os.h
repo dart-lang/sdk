@@ -120,15 +120,26 @@ class OS {
 
   DART_NORETURN static void Exit(int code);
 
+  // Retrieves the DSO base for the given instructions image.
+  static const uint8_t* GetAppDSOBase(const uint8_t* snapshot_instructions);
+  static uword GetAppDSOBase(uword snapshot_instructions) {
+    return reinterpret_cast<uword>(
+        GetAppDSOBase(reinterpret_cast<const uint8_t*>(snapshot_instructions)));
+  }
+
   struct BuildId {
     intptr_t len;
     const uint8_t* data;
   };
 
-  // Retrieves the build ID information for the current application isolate.
+  // Retrieves the build ID information for the given instructions image.
   // If found, returns a BuildId with the length of the build ID and a pointer
   // to its contents, otherwise returns a BuildId with contents {0, nullptr}.
   static BuildId GetAppBuildId(const uint8_t* snapshot_instructions);
+  static BuildId GetAppBuildId(uword snapshot_instructions) {
+    return GetAppBuildId(
+        reinterpret_cast<const uint8_t*>(snapshot_instructions));
+  }
 };
 
 }  // namespace dart

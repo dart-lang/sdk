@@ -126,6 +126,7 @@ if (isD8) {
   var zeroTimerQueue = [];
 
   function addTimer(f, ms) {
+    ms = Math.max(0, ms);
     var id = timerIdCounter++;
     // A callback can be scheduled at most once.
     console.assert(f.$timerId === undefined);
@@ -284,6 +285,7 @@ if (isD8) {
   }
 
   function addInterval(f, ms) {
+    ms = Math.max(0, ms);
     var id = timerIdCounter++;
     function repeat() {
       // Reactivate with the same id.

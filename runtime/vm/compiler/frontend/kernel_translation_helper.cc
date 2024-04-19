@@ -2007,14 +2007,13 @@ void LoadingUnitsMetadataHelper::ReadMetadata(intptr_t node_offset) {
 
   for (int i = 0; i < unit_count; i++) {
     intptr_t id = helper_->ReadUInt();
-    unit = LoadingUnit::New();
-    unit.set_id(id);
 
     intptr_t parent_id = helper_->ReadUInt();
     RELEASE_ASSERT(parent_id < id);
     parent ^= loading_units.At(parent_id);
     RELEASE_ASSERT(parent.IsNull() == (parent_id == 0));
-    unit.set_parent(parent);
+
+    unit = LoadingUnit::New(id, parent);
 
     intptr_t library_count = helper_->ReadUInt();
     uris = Array::New(library_count);

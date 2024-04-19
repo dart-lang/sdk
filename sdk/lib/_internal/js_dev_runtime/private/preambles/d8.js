@@ -82,6 +82,7 @@ if (typeof global != "undefined") self = global;  // Node.js.
   var zeroTimerQueue = [];
 
   function addTimer(f, ms) {
+    ms = Math.max(0, ms);
     var id = timerIdCounter++;
     f.$timerId = id;
     timerIds[id] = f;
@@ -235,6 +236,7 @@ if (typeof global != "undefined") self = global;  // Node.js.
   }
 
   function addInterval(f, ms) {
+    ms = Math.max(0, ms);
     var id = timerIdCounter++;
     function repeat() {
       // Reactivate with the same id.

@@ -20,3 +20,6 @@ const String isolateSymbolName = '_kDartIsolateSnapshotInstructions';
 
 // The dynamic symbol name for the isolate data section.
 const String isolateDataSymbolName = '_kDartIsolateSnapshotData';
+
+// The ID for the root loading unit.
+const int rootLoadingUnitId = 1;
