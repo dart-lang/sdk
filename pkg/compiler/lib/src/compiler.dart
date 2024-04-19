@@ -626,10 +626,7 @@ class Compiler {
 
   bool get shouldStopAfterCodegen => stage.shouldWriteCodegen;
 
-  // Only use deferred reads for the linker phase as most deferred entities will
-  // not be needed. In other phases we use most of this data so it's not worth
-  // deferring.
-  bool get useDeferredSourceReads => stage == CompilerStage.jsEmitter;
+  bool get useDeferredSourceReads => stage.shouldUseDeferredSourceReads;
 
   Future<void> runSequentialPhases() async {
     // Load kernel.

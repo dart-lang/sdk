@@ -101,6 +101,12 @@ enum CompilerStage {
   bool get shouldWriteGlobalInference => this == CompilerStage.globalInference;
   bool get shouldWriteCodegen => this == CompilerStage.codegenSharded;
 
+  // Only use deferred reads for the linker and dump info phase as most deferred
+  // entities will not be needed. In other phases we use most of this data so
+  // it's not worth deferring.
+  bool get shouldUseDeferredSourceReads =>
+      this == CompilerStage.jsEmitter || this == CompilerStage.dumpInfo;
+
   String get toFlag => _stageFlag;
 
   static String get validFlagValuesString {

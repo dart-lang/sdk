@@ -19,7 +19,8 @@ abstract class IndexedSink<E extends Object> {
 
 const int _dataInPlaceIndicator = 0;
 const int _nullIndicator = 1;
-const int _indicatorOffset = 2;
+const int _nonCompactOffsetIndicator = 2;
+const int _indicatorOffset = 3;
 
 /// Facilitates indexed reads and writes for [IndexedSource] and [IndexedSink].
 ///
@@ -95,6 +96,13 @@ class SerializationIndices {
   }
 }
 
+/// We use one bit to represent that an offset is local to the same data file.
+const int _numLocalityBits = 1;
+
+/// We can only compactly represent offsets up to the max supported by the
+/// [BinaryDataSink] minus the number of bits used to represent offset locality.
+const int _maxCompactOffset = BinaryDataSink.maxIntValue >> _numLocalityBits;
+
 // Real offsets are the offsets into the file the data is written in.
 // Local offsets are real offsets with an extra indicator bit set to 1.
 // Global offsets are offsets into the address space of all files with an
@@ -147,7 +155,13 @@ class UnorderedIndexedSink<E extends Object> implements IndexedSink<E> {
       _cache[value] = _realToLocalOffset(sink.length);
       writeValue(value);
     } else {
-      sink.writeInt(offset + _indicatorOffset);
+      final writtenOffset = offset + _indicatorOffset;
+      if (writtenOffset >= _maxCompactOffset) {
+        sink.writeInt(_nonCompactOffsetIndicator);
+        sink.writeUint32(offset);
+      } else {
+        sink.writeInt(writtenOffset);
+      }
     }
   }
 }
@@ -209,7 +223,12 @@ class UnorderedIndexedSource<E extends Object> implements IndexedSource<E> {
     } else if (markerOrOffset == _nullIndicator) {
       return null;
     } else {
-      final offset = markerOrOffset - _indicatorOffset;
+      int offset;
+      if (markerOrOffset == _nonCompactOffsetIndicator) {
+        offset = source.readUint32();
+      } else {
+        offset = markerOrOffset - _indicatorOffset;
+      }
       bool isLocal = _isLocalOffset(offset);
       final globalOffset =
           isLocal ? _localToGlobalOffset(offset, source) : offset;

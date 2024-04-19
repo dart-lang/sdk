@@ -2711,7 +2711,7 @@
           "name": "unit tests",
           "arguments": [
             "-nanalyzer-unittest-asserts-${mode}-${system}",
-            "pkg/(analyzer|analysis_server|analyzer_cli|analyzer_plugin|server_plugin)"
+            "pkg/(analyzer|analysis_server|analysis_server_plugin|analyzer_cli|analyzer_plugin)"
           ],
           "shards": 9,
           "fileset": "analyzer_unit_tests"
@@ -2983,7 +2983,7 @@
           "name": "package unit tests and macro build tests",
           "arguments": [
             "-nunittest-asserts-${mode}-${system}-${arch}",
-            "pkg/pkg/(?!(analyzer*|analysis_server|compiler|dev_compiler|js_runtime|front_end|kernel|frontend_server|nnbd_migration|dartdev/test/native_assets|server_plugin|vm_service)/)",
+            "pkg/pkg/(?!(analyzer*|analysis_server|analysis_server_plugin|compiler|dev_compiler|js_runtime|front_end|kernel|frontend_server|nnbd_migration|dartdev/test/native_assets|vm_service)/)",
             "macro_build"
           ],
           "shards": 3,
@@ -3104,7 +3104,7 @@
           "name": "package unit tests",
           "arguments": [
             "-nunittest-asserts-${mode}-${system}-${arch}",
-            "pkg/pkg/(?!(analyzer*|analysis_server|compiler|dev_compiler|js_runtime|front_end|kernel|frontend_server|nnbd_migration|dartdev/test/native_assets|server_plugin|vm_service)/)"
+            "pkg/pkg/(?!(analyzer*|analysis_server|analysis_server_plugin|compiler|dev_compiler|js_runtime|front_end|kernel|frontend_server|nnbd_migration|dartdev/test/native_assets|vm_service)/)"
           ]
         }
       ]
