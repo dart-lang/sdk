@@ -100,6 +100,9 @@ ArgParser argParser = new ArgParser(allowTrailingOptions: true)
       defaultsTo: const <String>[])
   ..addOption('native-assets',
       help: 'Provide the native-assets mapping for @Native external functions.')
+  ..addFlag('native-assets-only',
+      help: "Only compile the native-assets mapping. "
+          "Don't compile the dart program.")
   ..addOption('target',
       help: 'Target model that determines what core libraries are available',
       allowed: <String>[
@@ -287,6 +290,14 @@ abstract class CompilerInterface {
   /// Returns [true] if compilation was successful and produced no errors.
   Future<bool> compile(
     String entryPoint,
+    ArgResults options, {
+    IncrementalCompiler? generator,
+  });
+
+  /// Compiles the native_assets.yaml into a dill file.
+  ///
+  /// Returns [true] if compilation was successful and produced no errors.
+  Future<bool> compileNativeAssetsOnly(
     ArgResults options, {
     IncrementalCompiler? generator,
   });
@@ -480,7 +491,9 @@ class FrontendCompiler implements CompilerInterface {
     _additionalSources =
         (options['source'] as List<String>).map(resolveInputUri).toList();
     final String? nativeAssets = options['native-assets'] as String?;
-    _nativeAssets = nativeAssets != null ? resolveInputUri(nativeAssets) : null;
+    if (_nativeAssets == null && nativeAssets != null) {
+      _nativeAssets = resolveInputUri(nativeAssets);
+    }
     _kernelBinaryFilenameFull = _options['output-dill'] ?? '$entryPoint.dill';
     _kernelBinaryFilenameIncremental = _options['output-incremental-dill'] ??
         (_options['output-dill'] != null
@@ -695,6 +708,55 @@ class FrontendCompiler implements CompilerInterface {
   }
 
   @override
+  Future<bool> compileNativeAssetsOnly(
+    ArgResults options, {
+    IncrementalCompiler? generator,
+  }) async {
+    _fileSystem = createFrontEndFileSystem(
+      options['filesystem-scheme'],
+      options['filesystem-root'],
+      allowHttp: options['enable-http-uris'],
+    );
+    _options = options;
+    final String? nativeAssets = options['native-assets'] as String?;
+    if (_nativeAssets == null && nativeAssets != null) {
+      _nativeAssets = resolveInputUri(nativeAssets);
+    }
+    if (_nativeAssets == null) {
+      print(
+        'Error: When --native-assets-only is specified it is required to'
+        ' specify --native-assets option that points to physical file system'
+        ' location of a source native_assets.yaml file.',
+      );
+      return false;
+    }
+    if (_options['output-dill'] == null) {
+      print(
+        'Error: When --native-assets-only is specified it is required to'
+        ' specify --output-dill option that points to physical file system'
+        ' location of a target dill file.',
+      );
+      return false;
+    }
+    _kernelBinaryFilename = _options['output-dill'];
+    final CompilerOptions compilerOptions = new CompilerOptions();
+    _compilerOptions = compilerOptions;
+
+    final String boundaryKey = generateV4UUID();
+    _outputStream.writeln('result $boundaryKey');
+    await _compileNativeAssets();
+    await writeDillFileNativeAssets(
+      _nativeAssetsLibrary!,
+      _kernelBinaryFilename,
+    );
+    _outputStream.writeln(boundaryKey);
+    _outputStream.writeln('+${await asFileUri(_fileSystem, _nativeAssets!)}');
+    _outputStream
+        .writeln('$boundaryKey $_kernelBinaryFilename ${errors.length}');
+    return true;
+  }
+
+  @override
   Future<bool> setNativeAssets(String nativeAssets) async {
     _nativeAssetsLibrary = null; // Purge compiled cache.
     _nativeAssets = resolveInputUri(nativeAssets);
@@ -873,6 +935,19 @@ class FrontendCompiler implements CompilerInterface {
           : _options['data-dir'];
       await createFarManifest(output, dataDir, manifestFilename);
     }
+  }
+
+  Future<void> writeDillFileNativeAssets(
+    Library nativeAssetsLibrary,
+    String filename,
+  ) async {
+    final IOSink sink = new File(filename).openWrite();
+    final BinaryPrinter printer = new BinaryPrinter(sink);
+    printer.writeComponentFile(new Component(
+      libraries: [nativeAssetsLibrary],
+      mode: nativeAssetsLibrary.nonNullableByDefaultCompiledMode,
+    ));
+    await sink.close();
   }
 
   Future<void> invalidateIfInitializingFromDill() async {
@@ -1297,6 +1372,7 @@ StreamSubscription<String> listenAndCompile(CompilerInterface compiler,
         const String COMPILE_INSTRUCTION_SPACE = 'compile ';
         const String RECOMPILE_INSTRUCTION_SPACE = 'recompile ';
         const String NATIVE_ASSETS_INSTRUCTION_SPACE = 'native-assets ';
+        const String NATIVE_ASSETS_ONLY_INSTRUCTION = 'native-assets-only';
         const String COMPILE_EXPRESSION_INSTRUCTION_SPACE =
             'compile-expression ';
         const String COMPILE_EXPRESSION_TO_JS_INSTRUCTION_SPACE =
@@ -1305,6 +1381,8 @@ StreamSubscription<String> listenAndCompile(CompilerInterface compiler,
           final String entryPoint =
               string.substring(COMPILE_INSTRUCTION_SPACE.length);
           await compiler.compile(entryPoint, options, generator: generator);
+        } else if (string == NATIVE_ASSETS_ONLY_INSTRUCTION) {
+          await compiler.compileNativeAssetsOnly(options, generator: generator);
         } else if (string.startsWith(RECOMPILE_INSTRUCTION_SPACE)) {
           // 'recompile [<entryPoint>] <boundarykey>'
           //   where <boundarykey> can't have spaces
