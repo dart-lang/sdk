@@ -1867,11 +1867,20 @@ class PCOffset {
   /// Whether the architecture was being simulated, when available.
   final bool? usingSimulator;
 
+  /// The build ID of the corresponding instructions section, when available.
+  final String? buildId;
+
+  /// The loading unit ID of the corresponding instructions section, when
+  /// available.
+  final int? unitId;
+
   PCOffset(this.offset, this.section,
       {this.os,
       this.architecture,
       this.compressedPointers,
-      this.usingSimulator});
+      this.usingSimulator,
+      this.buildId,
+      this.unitId});
 
   /// The virtual address for this [PCOffset] in [dwarf].
   int virtualAddressIn(Dwarf dwarf) => dwarf.virtualAddressOf(this);
@@ -1898,23 +1907,25 @@ class PCOffset {
       os == other.os &&
       architecture == other.architecture &&
       compressedPointers == other.compressedPointers &&
-      usingSimulator == other.usingSimulator;
+      usingSimulator == other.usingSimulator &&
+      buildId == other.buildId &&
+      unitId == other.unitId;
 
   @override
   String toString() {
     final buffer = StringBuffer();
     buffer
       ..write('PCOffset(')
-      ..write(section)
+      ..write(section.name)
       ..write(', 0x')
       ..write(offset.toRadixString(16));
     if (os != null) {
       buffer
-        ..write(', ')
+        ..write(', os: ')
         ..write(os!);
     }
     if (architecture != null) {
-      buffer.write(', ');
+      buffer.write(', architecture: ');
       if (usingSimulator ?? false) {
         buffer.write('SIM');
       }
@@ -1922,6 +1933,17 @@ class PCOffset {
       if (compressedPointers ?? false) {
         buffer.write('C');
       }
+    }
+    if (buildId != null) {
+      buffer
+        ..write(", buildId: '")
+        ..write(buildId)
+        ..write("'");
+    }
+    if (unitId != null) {
+      buffer
+        ..write(', unitId: ')
+        ..write(unitId!);
     }
     buffer.write(')');
     return buffer.toString();

@@ -7914,7 +7914,7 @@ class LoadingUnit : public Object {
   COMPILE_ASSERT(kIllegalId == WeakTable::kNoValue);
   static constexpr intptr_t kRootId = 1;
 
-  static LoadingUnitPtr New();
+  static LoadingUnitPtr New(intptr_t id, const LoadingUnit& parent);
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(UntaggedLoadingUnit));
@@ -7923,26 +7923,64 @@ class LoadingUnit : public Object {
   static intptr_t LoadingUnitOf(const Function& function);
   static intptr_t LoadingUnitOf(const Code& code);
 
-  LoadingUnitPtr parent() const;
-  void set_parent(const LoadingUnit& value) const;
+  LoadingUnitPtr parent() const { return untag()->parent(); }
 
-  ArrayPtr base_objects() const;
+  ArrayPtr base_objects() const { return untag()->base_objects(); }
   void set_base_objects(const Array& value) const;
 
-  intptr_t id() const { return untag()->id_; }
-  void set_id(intptr_t id) const { StoreNonPointer(&untag()->id_, id); }
+  intptr_t id() const {
+    return untag()->packed_fields_.Read<UntaggedLoadingUnit::IdBits>();
+  }
 
   // True once the VM deserializes this unit's snapshot.
-  bool loaded() const { return untag()->loaded_; }
+  bool loaded() const {
+    return untag()->packed_fields_.Read<UntaggedLoadingUnit::LoadStateBits>() ==
+           UntaggedLoadingUnit::kLoaded;
+  }
+  // value is whether the load succeeded or not.
   void set_loaded(bool value) const {
-    StoreNonPointer(&untag()->loaded_, value);
+    ASSERT(load_outstanding());
+    auto const expected =
+        value ? UntaggedLoadingUnit::kLoaded : UntaggedLoadingUnit::kNotLoaded;
+    auto const got = untag()
+                         ->packed_fields_
+                         .UpdateConditional<UntaggedLoadingUnit::LoadStateBits>(
+                             expected, UntaggedLoadingUnit::kLoadOutstanding);
+    // Check that we're in the expected state afterwards.
+    ASSERT_EQUAL(got, expected);
   }
 
   // True once the VM invokes the embedder's deferred load callback until the
   // embedder calls Dart_DeferredLoadComplete[Error].
-  bool load_outstanding() const { return untag()->load_outstanding_; }
-  void set_load_outstanding(bool value) const {
-    StoreNonPointer(&untag()->load_outstanding_, value);
+  bool load_outstanding() const {
+    return untag()->packed_fields_.Read<UntaggedLoadingUnit::LoadStateBits>() ==
+           UntaggedLoadingUnit::kLoadOutstanding;
+  }
+  void set_load_outstanding() const {
+    auto const previous = UntaggedLoadingUnit::kNotLoaded;
+    ASSERT_EQUAL(
+        untag()->packed_fields_.Read<UntaggedLoadingUnit::LoadStateBits>(),
+        previous);
+    auto const expected = UntaggedLoadingUnit::kLoadOutstanding;
+    auto const got = untag()
+                         ->packed_fields_
+                         .UpdateConditional<UntaggedLoadingUnit::LoadStateBits>(
+                             expected, previous);
+    // Check that we're in the expected state afterwards.
+    ASSERT_EQUAL(got, expected);
+  }
+
+  const uint8_t* instructions_image() const {
+    // The instructions image should only be accessed if the load succeeded.
+    ASSERT(loaded());
+    return untag()->instructions_image_;
+  }
+  void set_instructions_image(const uint8_t* value) const {
+    ASSERT(load_outstanding());
+    StoreNonPointer(&untag()->instructions_image_, value);
+  }
+  bool has_instructions_image() const {
+    return loaded() && instructions_image() != nullptr;
   }
 
   ObjectPtr IssueLoad() const;

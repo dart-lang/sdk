@@ -1410,7 +1410,7 @@ static constexpr dart::compiler::target::word SuspendState_HeaderSize = 0x38;
 static constexpr dart::compiler::target::word String_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word SubtypeTestCache_InstanceSize =
     0x18;
-static constexpr dart::compiler::target::word LoadingUnit_InstanceSize = 0x20;
+static constexpr dart::compiler::target::word LoadingUnit_InstanceSize = 0x28;
 static constexpr dart::compiler::target::word
     TransferableTypedData_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word Type_InstanceSize = 0x30;
@@ -2829,7 +2829,7 @@ static constexpr dart::compiler::target::word SuspendState_HeaderSize = 0x38;
 static constexpr dart::compiler::target::word String_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word SubtypeTestCache_InstanceSize =
     0x18;
-static constexpr dart::compiler::target::word LoadingUnit_InstanceSize = 0x20;
+static constexpr dart::compiler::target::word LoadingUnit_InstanceSize = 0x28;
 static constexpr dart::compiler::target::word
     TransferableTypedData_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word Type_InstanceSize = 0x30;
@@ -3539,7 +3539,7 @@ static constexpr dart::compiler::target::word SuspendState_HeaderSize = 0x30;
 static constexpr dart::compiler::target::word String_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word SubtypeTestCache_InstanceSize =
     0x18;
-static constexpr dart::compiler::target::word LoadingUnit_InstanceSize = 0x18;
+static constexpr dart::compiler::target::word LoadingUnit_InstanceSize = 0x20;
 static constexpr dart::compiler::target::word
     TransferableTypedData_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word Type_InstanceSize = 0x28;
@@ -4251,7 +4251,7 @@ static constexpr dart::compiler::target::word SuspendState_HeaderSize = 0x30;
 static constexpr dart::compiler::target::word String_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word SubtypeTestCache_InstanceSize =
     0x18;
-static constexpr dart::compiler::target::word LoadingUnit_InstanceSize = 0x18;
+static constexpr dart::compiler::target::word LoadingUnit_InstanceSize = 0x20;
 static constexpr dart::compiler::target::word
     TransferableTypedData_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word Type_InstanceSize = 0x28;
@@ -5671,7 +5671,7 @@ static constexpr dart::compiler::target::word SuspendState_HeaderSize = 0x38;
 static constexpr dart::compiler::target::word String_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word SubtypeTestCache_InstanceSize =
     0x18;
-static constexpr dart::compiler::target::word LoadingUnit_InstanceSize = 0x20;
+static constexpr dart::compiler::target::word LoadingUnit_InstanceSize = 0x28;
 static constexpr dart::compiler::target::word
     TransferableTypedData_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word Type_InstanceSize = 0x30;
@@ -7073,7 +7073,7 @@ static constexpr dart::compiler::target::word SuspendState_HeaderSize = 0x38;
 static constexpr dart::compiler::target::word String_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word SubtypeTestCache_InstanceSize =
     0x18;
-static constexpr dart::compiler::target::word LoadingUnit_InstanceSize = 0x20;
+static constexpr dart::compiler::target::word LoadingUnit_InstanceSize = 0x28;
 static constexpr dart::compiler::target::word
     TransferableTypedData_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word Type_InstanceSize = 0x30;
@@ -8476,7 +8476,7 @@ static constexpr dart::compiler::target::word SuspendState_HeaderSize = 0x38;
 static constexpr dart::compiler::target::word String_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word SubtypeTestCache_InstanceSize =
     0x18;
-static constexpr dart::compiler::target::word LoadingUnit_InstanceSize = 0x20;
+static constexpr dart::compiler::target::word LoadingUnit_InstanceSize = 0x28;
 static constexpr dart::compiler::target::word
     TransferableTypedData_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word Type_InstanceSize = 0x30;
@@ -9178,7 +9178,7 @@ static constexpr dart::compiler::target::word SuspendState_HeaderSize = 0x30;
 static constexpr dart::compiler::target::word String_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word SubtypeTestCache_InstanceSize =
     0x18;
-static constexpr dart::compiler::target::word LoadingUnit_InstanceSize = 0x18;
+static constexpr dart::compiler::target::word LoadingUnit_InstanceSize = 0x20;
 static constexpr dart::compiler::target::word
     TransferableTypedData_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word Type_InstanceSize = 0x28;
@@ -9882,7 +9882,7 @@ static constexpr dart::compiler::target::word SuspendState_HeaderSize = 0x30;
 static constexpr dart::compiler::target::word String_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word SubtypeTestCache_InstanceSize =
     0x18;
-static constexpr dart::compiler::target::word LoadingUnit_InstanceSize = 0x18;
+static constexpr dart::compiler::target::word LoadingUnit_InstanceSize = 0x20;
 static constexpr dart::compiler::target::word
     TransferableTypedData_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word Type_InstanceSize = 0x28;
@@ -11286,7 +11286,7 @@ static constexpr dart::compiler::target::word SuspendState_HeaderSize = 0x38;
 static constexpr dart::compiler::target::word String_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word SubtypeTestCache_InstanceSize =
     0x18;
-static constexpr dart::compiler::target::word LoadingUnit_InstanceSize = 0x20;
+static constexpr dart::compiler::target::word LoadingUnit_InstanceSize = 0x28;
 static constexpr dart::compiler::target::word
     TransferableTypedData_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word Type_InstanceSize = 0x30;
@@ -12854,7 +12854,7 @@ static constexpr dart::compiler::target::word AOT_String_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word AOT_LoadingUnit_InstanceSize =
-    0x20;
+    0x28;
 static constexpr dart::compiler::target::word
     AOT_TransferableTypedData_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word AOT_Type_InstanceSize = 0x30;
@@ -13650,7 +13650,7 @@ static constexpr dart::compiler::target::word AOT_String_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word AOT_LoadingUnit_InstanceSize =
-    0x20;
+    0x28;
 static constexpr dart::compiler::target::word
     AOT_TransferableTypedData_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word AOT_Type_InstanceSize = 0x30;
@@ -14440,7 +14440,7 @@ static constexpr dart::compiler::target::word AOT_String_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word AOT_LoadingUnit_InstanceSize =
-    0x18;
+    0x20;
 static constexpr dart::compiler::target::word
     AOT_TransferableTypedData_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word AOT_Type_InstanceSize = 0x28;
@@ -15232,7 +15232,7 @@ static constexpr dart::compiler::target::word AOT_String_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word AOT_LoadingUnit_InstanceSize =
-    0x18;
+    0x20;
 static constexpr dart::compiler::target::word
     AOT_TransferableTypedData_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word AOT_Type_InstanceSize = 0x28;
@@ -16809,7 +16809,7 @@ static constexpr dart::compiler::target::word AOT_String_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word AOT_LoadingUnit_InstanceSize =
-    0x20;
+    0x28;
 static constexpr dart::compiler::target::word
     AOT_TransferableTypedData_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word AOT_Type_InstanceSize = 0x30;
@@ -18366,7 +18366,7 @@ static constexpr dart::compiler::target::word AOT_String_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word AOT_LoadingUnit_InstanceSize =
-    0x20;
+    0x28;
 static constexpr dart::compiler::target::word
     AOT_TransferableTypedData_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word AOT_Type_InstanceSize = 0x30;
@@ -19153,7 +19153,7 @@ static constexpr dart::compiler::target::word AOT_String_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word AOT_LoadingUnit_InstanceSize =
-    0x20;
+    0x28;
 static constexpr dart::compiler::target::word
     AOT_TransferableTypedData_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word AOT_Type_InstanceSize = 0x30;
@@ -19934,7 +19934,7 @@ static constexpr dart::compiler::target::word AOT_String_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word AOT_LoadingUnit_InstanceSize =
-    0x18;
+    0x20;
 static constexpr dart::compiler::target::word
     AOT_TransferableTypedData_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word AOT_Type_InstanceSize = 0x28;
@@ -20717,7 +20717,7 @@ static constexpr dart::compiler::target::word AOT_String_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word AOT_LoadingUnit_InstanceSize =
-    0x18;
+    0x20;
 static constexpr dart::compiler::target::word
     AOT_TransferableTypedData_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word AOT_Type_InstanceSize = 0x28;
@@ -22276,7 +22276,7 @@ static constexpr dart::compiler::target::word AOT_String_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word AOT_LoadingUnit_InstanceSize =
-    0x20;
+    0x28;
 static constexpr dart::compiler::target::word
     AOT_TransferableTypedData_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word AOT_Type_InstanceSize = 0x30;

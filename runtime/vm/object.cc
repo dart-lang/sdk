@@ -19731,23 +19731,18 @@ const char* SubtypeTestCache::ToCString() const {
   return buffer.buffer();
 }
 
-LoadingUnitPtr LoadingUnit::New() {
+LoadingUnitPtr LoadingUnit::New(intptr_t id, const LoadingUnit& parent) {
   ASSERT(Object::loadingunit_class() != Class::null());
   // LoadingUnit objects are long living objects, allocate them in the
   // old generation.
-  return Object::Allocate<LoadingUnit>(Heap::kOld);
+  auto result = Object::Allocate<LoadingUnit>(Heap::kOld);
+  NoSafepointScope scope;
+  ASSERT(Utils::IsInt(UntaggedLoadingUnit::IdBits::bitsize(), id));
+  result->untag()->packed_fields_.Update<UntaggedLoadingUnit::IdBits>(id);
+  result->untag()->set_parent(parent.ptr());
+  return result;
 }
 
-LoadingUnitPtr LoadingUnit::parent() const {
-  return untag()->parent();
-}
-void LoadingUnit::set_parent(const LoadingUnit& value) const {
-  untag()->set_parent(value.ptr());
-}
-
-ArrayPtr LoadingUnit::base_objects() const {
-  return untag()->base_objects();
-}
 void LoadingUnit::set_base_objects(const Array& value) const {
   untag()->set_base_objects(value.ptr());
 }
@@ -19757,18 +19752,13 @@ const char* LoadingUnit::ToCString() const {
 }
 
 ObjectPtr LoadingUnit::IssueLoad() const {
-  ASSERT(!loaded());
-  ASSERT(!load_outstanding());
-  set_load_outstanding(true);
+  set_load_outstanding();
   return Isolate::Current()->CallDeferredLoadHandler(id());
 }
 
 ObjectPtr LoadingUnit::CompleteLoad(const String& error_message,
                                     bool transient_error) const {
-  ASSERT(!loaded());
-  ASSERT(load_outstanding());
   set_loaded(error_message.IsNull());
-  set_load_outstanding(false);
 
   const Library& lib = Library::Handle(Library::CoreLibrary());
   const String& sel = String::Handle(String::New("_completeLoads"));
@@ -26177,41 +26167,74 @@ StackTracePtr StackTrace::New(const Array& code_array,
 }
 
 #if defined(DART_PRECOMPILED_RUNTIME)
+static bool TryPrintNonSymbolicStackFrameBodyRelative(
+    BaseTextBuffer* buffer,
+    uword call_addr,
+    uword instructions,
+    bool vm,
+    LoadingUnit* unit = nullptr) {
+  const Image image(reinterpret_cast<const uint8_t*>(instructions));
+  if (!image.contains(call_addr)) return false;
+  if (unit != nullptr) {
+    ASSERT(!unit->IsNull());
+    // Add the unit ID to the stack frame, so the correct loading unit
+    // information from the header can be checked.
+    buffer->Printf(" unit %" Pd "", unit->id());
+  }
+  auto const offset = call_addr - instructions;
+  // Only print the relocated address of the call when we know the saved
+  // debugging information (if any) will have the same relocated address.
+  // Also only print 'virt' fields for isolate addresses.
+  if (!vm && image.compiled_to_elf()) {
+    const uword relocated_section_start =
+        image.instructions_relocated_address();
+    buffer->Printf(" virt %" Pp "", relocated_section_start + offset);
+  }
+  const char* symbol = vm ? kVmSnapshotInstructionsAsmSymbol
+                          : kIsolateSnapshotInstructionsAsmSymbol;
+  buffer->Printf(" %s+0x%" Px "\n", symbol, offset);
+  return true;
+}
+
 // Prints the best representation(s) for the call address.
 static void PrintNonSymbolicStackFrameBody(BaseTextBuffer* buffer,
                                            uword call_addr,
                                            uword isolate_instructions,
-                                           uword vm_instructions) {
-  const Image vm_image(reinterpret_cast<const void*>(vm_instructions));
-  const Image isolate_image(
-      reinterpret_cast<const void*>(isolate_instructions));
-
-  if (isolate_image.contains(call_addr)) {
-    auto const symbol_name = kIsolateSnapshotInstructionsAsmSymbol;
-    auto const offset = call_addr - isolate_instructions;
-    // Only print the relocated address of the call when we know the saved
-    // debugging information (if any) will have the same relocated address.
-    if (isolate_image.compiled_to_elf()) {
-      const uword relocated_section_start =
-          isolate_image.instructions_relocated_address();
-      buffer->Printf(" virt %" Pp "", relocated_section_start + offset);
-    }
-    buffer->Printf(" %s+0x%" Px "", symbol_name, offset);
-  } else if (vm_image.contains(call_addr)) {
-    auto const offset = call_addr - vm_instructions;
-    // We currently don't print 'virt' entries for vm addresses, even if
-    // they were compiled to ELF, as we should never encounter these in
-    // non-symbolic stack traces (since stub addresses are stripped).
-    //
-    // In case they leak due to code issues elsewhere, we still print them as
-    // <vm symbol>+<offset>, just to distinguish from other cases.
-    buffer->Printf(" %s+0x%" Px "", kVmSnapshotInstructionsAsmSymbol, offset);
-  } else {
-    // This case should never happen, since these are not addresses within the
-    // VM or app isolate instructions sections, so make it easy to notice.
-    buffer->Printf(" <invalid Dart instruction address>");
+                                           uword vm_instructions,
+                                           const Array& loading_units,
+                                           LoadingUnit* unit) {
+  if (TryPrintNonSymbolicStackFrameBodyRelative(buffer, call_addr,
+                                                vm_instructions,
+                                                /*vm=*/true)) {
+    return;
   }
-  buffer->Printf("\n");
+
+  if (!loading_units.IsNull()) {
+    // All non-VM stack frames should include the loading unit id.
+    const intptr_t unit_count = loading_units.Length();
+    for (intptr_t i = LoadingUnit::kRootId; i < unit_count; i++) {
+      *unit ^= loading_units.At(i);
+      if (!unit->has_instructions_image()) continue;
+      auto const instructions =
+          reinterpret_cast<uword>(unit->instructions_image());
+      if (TryPrintNonSymbolicStackFrameBodyRelative(buffer, call_addr,
+                                                    instructions,
+                                                    /*vm=*/false, unit)) {
+        return;
+      }
+    }
+  } else {
+    if (TryPrintNonSymbolicStackFrameBodyRelative(buffer, call_addr,
+                                                  isolate_instructions,
+                                                  /*vm=*/false)) {
+      return;
+    }
+  }
+
+  // The stack trace printer should never end up here, since these are not
+  // addresses within a loading unit or the VM or app isolate instructions
+  // sections. Thus, make it easy to notice when looking at the stack trace.
+  buffer->Printf(" <invalid Dart instruction address>\n");
 }
 #endif
 
@@ -26282,6 +26305,33 @@ static bool IsVisibleAsFutureListener(const Function& function) {
   return false;
 }
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+static void WriteImageBuildId(BaseTextBuffer* buffer,
+                              const char* prefix,
+                              uword image_address) {
+  const auto& build_id = OS::GetAppBuildId(image_address);
+  if (build_id.data != nullptr) {
+    ASSERT(build_id.len > 0);
+    buffer->AddString(prefix);
+    buffer->AddString("'");
+    for (intptr_t i = 0; i < build_id.len; i++) {
+      buffer->Printf("%2.2x", build_id.data[i]);
+    }
+    buffer->AddString("'");
+  }
+}
+
+void WriteStackTraceHeaderLoadingUnitEntry(BaseTextBuffer* buffer,
+                                           intptr_t id,
+                                           uword dso_base,
+                                           uword instructions) {
+  buffer->Printf("loading_unit: %" Pd "", id);
+  WriteImageBuildId(buffer, ", build_id: ", instructions);
+  buffer->Printf(", dso_base: %" Px ", instructions: %" Px "\n", dso_base,
+                 instructions);
+}
+#endif
+
 const char* StackTrace::ToCString() const {
   auto const T = Thread::Current();
   auto const zone = T->zone();
@@ -26290,6 +26340,13 @@ const char* StackTrace::ToCString() const {
   auto& function = Function::Handle(zone);
   auto& code_object = Object::Handle(zone);
   auto& code = Code::Handle(zone);
+
+#if defined(DART_PRECOMPILED_RUNTIME)
+  const Array& loading_units =
+      Array::Handle(T->isolate_group()->object_store()->loading_units());
+  auto* const unit =
+      loading_units.IsNull() ? nullptr : &LoadingUnit::Handle(zone);
+#endif
 
   NoSafepointScope no_allocation;
   GrowableArray<const Function*> inlined_functions;
@@ -26307,17 +26364,18 @@ const char* StackTrace::ToCString() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
   auto const isolate_instructions = reinterpret_cast<uword>(
       T->isolate_group()->source()->snapshot_instructions);
+#if defined(DEBUG)
+  if (!loading_units.IsNull()) {
+    *unit ^= loading_units.At(LoadingUnit::kRootId);
+    ASSERT(!unit->IsNull());
+    ASSERT(unit->has_instructions_image());
+    ASSERT(reinterpret_cast<uword>(unit->instructions_image()) ==
+           isolate_instructions);
+  }
+#endif
   auto const vm_instructions = reinterpret_cast<uword>(
       Dart::vm_isolate_group()->source()->snapshot_instructions);
   if (FLAG_dwarf_stack_traces_mode) {
-    const Image isolate_instructions_image(
-        reinterpret_cast<const void*>(isolate_instructions));
-    const Image vm_instructions_image(
-        reinterpret_cast<const void*>(vm_instructions));
-    auto const isolate_relocated_address =
-        isolate_instructions_image.instructions_relocated_address();
-    auto const vm_relocated_address =
-        vm_instructions_image.instructions_relocated_address();
     // This prologue imitates Android's debuggerd to make it possible to paste
     // the stack trace into ndk-stack.
     buffer.Printf(
@@ -26338,22 +26396,26 @@ const char* StackTrace::ToCString() const {
     buffer.Printf("os: %s arch: %s comp: %s sim: %s\n",
                   kHostOperatingSystemName, kTargetArchitectureName,
                   kCompressedPointers, kUsingSimulator);
-    const OS::BuildId& build_id =
-        OS::GetAppBuildId(T->isolate_group()->source()->snapshot_instructions);
-    if (build_id.data != nullptr) {
-      ASSERT(build_id.len > 0);
-      buffer.Printf("build_id: '");
-      for (intptr_t i = 0; i < build_id.len; i++) {
-        buffer.Printf("%2.2x", build_id.data[i]);
+    WriteImageBuildId(&buffer, "build_id: ", isolate_instructions);
+    buffer.AddString("\n");
+    if (!loading_units.IsNull()) {
+      const intptr_t unit_count = loading_units.Length();
+      for (intptr_t i = LoadingUnit::kRootId; i < unit_count; i++) {
+        *unit ^= loading_units.At(i);
+        if (!unit->has_instructions_image()) continue;
+        const uword instructions =
+            reinterpret_cast<uword>(unit->instructions_image());
+        const uword dso_base = OS::GetAppDSOBase(instructions);
+        WriteStackTraceHeaderLoadingUnitEntry(&buffer, i, dso_base,
+                                              instructions);
       }
-      buffer.Printf("'\n");
     }
     // Print the dso_base of the VM and isolate_instructions. We print both here
     // as the VM and isolate may be loaded from different snapshot images.
-    buffer.Printf("isolate_dso_base: %" Px "",
-                  isolate_instructions - isolate_relocated_address);
-    buffer.Printf(", vm_dso_base: %" Px "\n",
-                  vm_instructions - vm_relocated_address);
+    const uword isolate_dso_base = OS::GetAppDSOBase(isolate_instructions);
+    buffer.Printf("isolate_dso_base: %" Px "", isolate_dso_base);
+    const uword vm_dso_base = OS::GetAppDSOBase(vm_instructions);
+    buffer.Printf(", vm_dso_base: %" Px "\n", vm_dso_base);
     buffer.Printf("isolate_instructions: %" Px "", isolate_instructions);
     buffer.Printf(", vm_instructions: %" Px "\n", vm_instructions);
   }
@@ -26427,7 +26489,7 @@ const char* StackTrace::ToCString() const {
         // prints call addresses instead of return addresses.
         buffer.Printf("    #%02" Pd " abs %" Pp "", frame_index, call_addr);
         PrintNonSymbolicStackFrameBody(&buffer, call_addr, isolate_instructions,
-                                       vm_instructions);
+                                       vm_instructions, loading_units, unit);
         frame_index++;
         continue;
       }
@@ -26439,7 +26501,7 @@ const char* StackTrace::ToCString() const {
         // non-symbolic stack traces.
         PrintSymbolicStackFrameIndex(&buffer, frame_index);
         PrintNonSymbolicStackFrameBody(&buffer, call_addr, isolate_instructions,
-                                       vm_instructions);
+                                       vm_instructions, loading_units, unit);
         frame_index++;
         continue;
       }

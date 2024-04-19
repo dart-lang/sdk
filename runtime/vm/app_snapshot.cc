@@ -4280,7 +4280,8 @@ class LoadingUnitSerializationCluster : public SerializationCluster {
       LoadingUnitPtr unit = objects_[i];
       AutoTraceObject(unit);
       WriteCompressedField(unit, parent);
-      s->Write<int32_t>(unit->untag()->id_);
+      s->Write<intptr_t>(
+          unit->untag()->packed_fields_.Read<UntaggedLoadingUnit::IdBits>());
     }
   }
 
@@ -4308,9 +4309,11 @@ class LoadingUnitDeserializationCluster : public DeserializationCluster {
                                      LoadingUnit::InstanceSize());
       unit->untag()->parent_ = static_cast<LoadingUnitPtr>(d.ReadRef());
       unit->untag()->base_objects_ = Array::null();
-      unit->untag()->id_ = d.Read<int32_t>();
-      unit->untag()->loaded_ = false;
-      unit->untag()->load_outstanding_ = false;
+      unit->untag()->instructions_image_ = nullptr;
+      unit->untag()->packed_fields_ =
+          UntaggedLoadingUnit::LoadStateBits::encode(
+              UntaggedLoadingUnit::kNotLoaded) |
+          UntaggedLoadingUnit::IdBits::encode(d.Read<intptr_t>());
     }
   }
 };
@@ -9961,6 +9964,20 @@ ApiErrorPtr FullSnapshotReader::ReadProgramSnapshot() {
   ProgramDeserializationRoots roots(thread_->isolate_group()->object_store());
   deserializer.Deserialize(&roots);
 
+  if (Snapshot::IncludesCode(kind_)) {
+    const auto& units = Array::Handle(
+        thread_->isolate_group()->object_store()->loading_units());
+    if (!units.IsNull()) {
+      const auto& unit = LoadingUnit::Handle(
+          LoadingUnit::RawCast(units.At(LoadingUnit::kRootId)));
+      // Unlike other units, we don't explicitly load the root loading unit,
+      // so we mark it as loaded here, setting the instructions image as well.
+      unit.set_load_outstanding();
+      unit.set_instructions_image(instructions_image_);
+      unit.set_loaded(true);
+    }
+  }
+
   InitializeBSS();
 
   return ApiError::null();
@@ -10001,6 +10018,7 @@ ApiErrorPtr FullSnapshotReader::ReadUnitSnapshot(const LoadingUnit& unit) {
     ASSERT(instructions_image_ != nullptr);
     thread_->isolate_group()->SetupImagePage(instructions_image_,
                                              /* is_executable */ true);
+    unit.set_instructions_image(instructions_image_);
   }
 
   UnitDeserializationRoots roots(unit);

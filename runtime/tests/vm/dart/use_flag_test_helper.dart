@@ -53,6 +53,15 @@ final dartPrecompiledRuntime = path.join(
     buildDir, 'dart_precompiled_runtime' + (Platform.isWindows ? '.exe' : ''));
 final checkedInDartVM = path.join('tools', 'sdks', 'dart-sdk', 'bin',
     'dart' + (Platform.isWindows ? '.exe' : ''));
+// Lazily initialize 'lipo' so that tests that don't use it on platforms
+// that don't have it don't fail.
+late final lipo = () {
+  final path = "/usr/bin/lipo";
+  if (File(path).existsSync()) {
+    return path;
+  }
+  throw 'Could not find lipo binary at $path';
+}();
 
 final isSimulator = path.basename(buildDir).contains('SIM');
 

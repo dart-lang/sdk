@@ -497,7 +497,7 @@ static void StreamingCloseCallback(void* callback_data) {
 
 static File* OpenLoadingUnitManifest() {
   File* manifest_file = OpenFile(loading_unit_manifest_filename);
-  if (!manifest_file->Print("{ \"loadingUnits\": [\n")) {
+  if (!manifest_file->Print("{ \"loadingUnits\": [\n ")) {
     PrintErrAndExit("Error: Unable to write file: %s\n\n",
                     loading_unit_manifest_filename);
   }
@@ -506,14 +506,19 @@ static File* OpenLoadingUnitManifest() {
 
 static void WriteLoadingUnitManifest(File* manifest_file,
                                      intptr_t id,
-                                     const char* path) {
+                                     const char* path,
+                                     const char* debug_path = nullptr) {
   TextBuffer line(128);
   if (id != 1) {
-    line.AddString(",\n");
+    line.AddString(",\n ");
   }
-  line.Printf("{ \"id\": %" Pd ", \"path\": \"", id);
+  line.Printf("{\n  \"id\": %" Pd ",\n  \"path\": \"", id);
   line.AddEscapedString(path);
-  line.AddString("\", \"libraries\": [\n");
+  if (debug_path != nullptr) {
+    line.Printf("\",\n  \"debugPath\": \"");
+    line.AddEscapedString(debug_path);
+  }
+  line.AddString("\",\n  \"libraries\": [\n   ");
   Dart_Handle uris = Dart_LoadingUnitLibraryUris(id);
   CHECK_RESULT(uris);
   intptr_t length;
@@ -522,21 +527,21 @@ static void WriteLoadingUnitManifest(File* manifest_file,
     const char* uri;
     CHECK_RESULT(Dart_StringToCString(Dart_ListGetAt(uris, i), &uri));
     if (i != 0) {
-      line.AddString(",\n");
+      line.AddString(",\n   ");
     }
     line.AddString("\"");
     line.AddEscapedString(uri);
     line.AddString("\"");
   }
-  line.AddString("]}");
-  if (!manifest_file->Print("%s\n", line.buffer())) {
+  line.AddString("\n  ]}");
+  if (!manifest_file->Print("%s", line.buffer())) {
     PrintErrAndExit("Error: Unable to write file: %s\n\n",
                     loading_unit_manifest_filename);
   }
 }
 
 static void CloseLoadingUnitManifest(File* manifest_file) {
-  if (!manifest_file->Print("] }\n")) {
+  if (!manifest_file->Print("]}\n")) {
     PrintErrAndExit("Error: Unable to write file: %s\n\n",
                     loading_unit_manifest_filename);
   }
@@ -556,19 +561,20 @@ static void NextLoadingUnit(void* callback_data,
   File* file = OpenFile(filename);
   *write_callback_data = file;
 
+  char* debug_filename = nullptr;
   if (debugging_info_filename != nullptr) {
-    char* debug_filename =
+    debug_filename =
         loading_unit_id == 1
             ? Utils::StrDup(debugging_info_filename)
             : Utils::SCreate("%s-%" Pd ".part.so", debugging_info_filename,
                              loading_unit_id);
     File* debug_file = OpenFile(debug_filename);
     *write_debug_callback_data = debug_file;
-    free(debug_filename);
   }
 
   WriteLoadingUnitManifest(reinterpret_cast<File*>(callback_data),
-                           loading_unit_id, filename);
+                           loading_unit_id, filename, debug_filename);
+  free(debug_filename);
 
   free(filename);
 }

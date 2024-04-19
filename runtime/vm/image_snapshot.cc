@@ -82,13 +82,7 @@ uword* Image::bss() const {
 uword Image::instructions_relocated_address() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
   ASSERT(extra_info_ != nullptr);
-  // For assembly snapshots, we need to retrieve this from the initialized BSS.
-  const uword address =
-      compiled_to_elf() ? extra_info_->instructions_relocated_address_
-                        : bss()[BSS::RelocationIndex(
-                              BSS::Relocation::InstructionsRelocatedAddress)];
-  ASSERT(address != kNoRelocatedAddress);
-  return address;
+  return extra_info_->instructions_relocated_address_;
 #else
   return kNoRelocatedAddress;
 #endif

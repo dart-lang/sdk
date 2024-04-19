@@ -1,10 +1,10 @@
 name: native_stack_traces
-version: 0.5.6
+version: 0.5.7
 description: Utilities for working with non-symbolic stack traces.
 repository: https://github.com/dart-lang/sdk/tree/main/pkg/native_stack_traces
 
 environment:
-  sdk: '>=2.17.0 <3.0.0'
+  sdk: '>=3.0.0 <4.0.0'
 
 executables:
   decode:
