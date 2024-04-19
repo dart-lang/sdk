@@ -986,8 +986,13 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       expression.accept(this);
     } else if (expression is AssignmentExpression) {
       var leftHandSide = expression.leftHandSide;
-      if (leftHandSide is SimpleIdentifier && offset <= leftHandSide.end) {
-        _forStatement(node);
+      if (offset <= leftHandSide.end) {
+        switch (leftHandSide) {
+          case PrefixedIdentifier():
+            leftHandSide.accept(this);
+          case SimpleIdentifier():
+            _forStatement(node);
+        }
       }
     } else if (expression is CascadeExpression) {
       if (offset <= expression.target.end) {

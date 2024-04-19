@@ -2458,17 +2458,20 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         redirectingInitializerCount == 0 &&
         superInitializerCount == 1 &&
         superInitializer != declaration.initializers.last) {
-      var superNamedType = enclosingClass.supertype!.element.displayName;
-      var constructorStrName = superNamedType;
-      var constructorName = superInitializer.constructorName;
-      if (constructorName != null) {
-        constructorStrName += '.${constructorName.name}';
+      var superType = enclosingClass.supertype;
+      if (superType != null) {
+        var superNamedType = superType.element.displayName;
+        var constructorStrName = superNamedType;
+        var constructorName = superInitializer.constructorName;
+        if (constructorName != null) {
+          constructorStrName += '.${constructorName.name}';
+        }
+        errorReporter.atToken(
+          superInitializer.superKeyword,
+          CompileTimeErrorCode.SUPER_INVOCATION_NOT_LAST,
+          arguments: [constructorStrName],
+        );
       }
-      errorReporter.atToken(
-        superInitializer.superKeyword,
-        CompileTimeErrorCode.SUPER_INVOCATION_NOT_LAST,
-        arguments: [constructorStrName],
-      );
     }
   }
 

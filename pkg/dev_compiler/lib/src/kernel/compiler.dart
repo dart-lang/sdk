@@ -1265,19 +1265,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     _classEmittingExtends = c;
 
     // Unroll mixins.
-    if (shouldDefer(supertype)) {
-      var originalSupertype = supertype;
-      deferredSupertypes.add(() => runtimeStatement('setBaseClass(#, #)', [
-            getBaseClass(mixinApplications.length),
-            emitDeferredClassRef(originalSupertype),
-          ]));
-      // Refers to 'supertype' without type parameters. We remove these from
-      // the 'extends' clause for generics for cyclic dependencies and append
-      // them later with 'setBaseClass'.
-      supertype =
-          _coreTypes.rawType(supertype.classNode, _currentLibrary!.nonNullable);
-    }
-    var baseClass = emitClassRef(supertype);
+    var baseClass = shouldDefer(supertype)
+        ? emitDeferredClassRef(supertype)
+        : emitClassRef(supertype);
 
     // TODO(jmesserly): we need to unroll kernel mixins because the synthetic
     // classes lack required synthetic members, such as constructors.
