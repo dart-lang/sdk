@@ -64,6 +64,14 @@ if (isD8) {
   delete performance.measure;
 }
 
+var args =  (isD8 || isJSC) ? arguments : scriptArgs;
+var dartArgs = [];
+const argsSplit = args.indexOf("--");
+if (argsSplit != -1) {
+  dartArgs = args.slice(argsSplit + 1);
+  args = args.slice(0, argsSplit);
+}
+
 // d8's `setTimeout` doesn't work as expected (it doesn't wait before calling
 // the callback), and d8 also doesn't have `setInterval` and `queueMicrotask`.
 // So we define our own event loop with these functions.
@@ -347,6 +355,9 @@ if (isD8) {
   self.clearInterval = cancelTimer;
   self.queueMicrotask = addTask;
 
+  self.location = {}
+  self.location.href = 'file://' + args[wasmArg];
+
   // Signals `Stopwatch._initTicker` to use `Date.now` to get ticks instead of
   // `performance.now`, as it's not available in d8.
   self.dartUseDateNowForTicks = true;
@@ -356,14 +367,6 @@ if (isD8) {
 // unfortunately d8 does not return a failed error code if an unhandled
 // exception occurs asynchronously in an ES module.
 const main = async () => {
-    var args =  (isD8 || isJSC) ? arguments : scriptArgs;
-    var dartArgs = [];
-    const argsSplit = args.indexOf("--");
-    if (argsSplit != -1) {
-        dartArgs = args.slice(argsSplit + 1);
-        args = args.slice(0, argsSplit);
-    }
-
     const dart2wasm = await import(args[jsRuntimeArg]);
 
     /// Returns whether the `js-string` built-in is supported.
