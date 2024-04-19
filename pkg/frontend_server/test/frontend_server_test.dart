@@ -3328,6 +3328,12 @@ class FrontendServer {
         .codeUnits);
   }
 
+  /// Compiles the native assets in isolation.
+  void compileNativeAssetsOnly() {
+    outputParser.expectSources = true;
+    inputStreamController.add('native-assets-only\n'.codeUnits);
+  }
+
   /// Sets the native assets yaml [uri].
   void setNativeAssets({required Uri uri}) {
     outputParser.expectSources = true;

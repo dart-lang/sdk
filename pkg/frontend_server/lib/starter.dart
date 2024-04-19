@@ -97,6 +97,14 @@ Future<int> starter(
     canaryFeatures: options['dartdevc-canary'],
   );
 
+  if (options['native-assets-only']) {
+    final bool compileResult = await compiler.compileNativeAssetsOnly(
+      options,
+      generator: generator,
+    );
+    return compileResult ? 0 : 254;
+  }
+
   if (options.rest.isNotEmpty) {
     return await compiler.compile(options.rest[0], options,
             generator: generator)
