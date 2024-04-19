@@ -185,6 +185,7 @@ dart.try_builder(
     bucket = "try.shared",
     caches = no_caches,
     execution_timeout = 10 * time.minute,
+    on_cq = True,
     properties = {
         "$depot_tools/presubmit": {
             "runhooks": True,
