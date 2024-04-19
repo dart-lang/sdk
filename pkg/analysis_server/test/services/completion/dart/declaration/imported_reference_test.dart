@@ -5237,18 +5237,18 @@ suggestions
     kind: field
   _e0
     kind: getter
-  _g0
-    kind: getter
   _s0
     kind: setter
   b0
     kind: field
   d0
     kind: getter
-  f0
-    kind: getter
   s1
     kind: setter
+  _g0
+    kind: getter
+  f0
+    kind: getter
   _n0
     kind: methodInvocation
   m0
@@ -5814,18 +5814,18 @@ suggestions
     kind: field
   _e0
     kind: getter
-  _g0
-    kind: getter
   _s0
     kind: setter
   b0
     kind: field
   d0
     kind: getter
-  f0
-    kind: getter
   s0
     kind: setter
+  _g0
+    kind: getter
+  f0
+    kind: getter
   _n0
     kind: methodInvocation
   m0
