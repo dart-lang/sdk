@@ -917,10 +917,10 @@ class BoundsCheckGeneralizer {
     }
   }
 
-  typedef Definition* (BoundsCheckGeneralizer::*PhiBoundFunc)(PhiInstr*,
-                                                              LoopInfo*,
-                                                              InductionVar*,
-                                                              Instruction*);
+  typedef Definition* (BoundsCheckGeneralizer::* PhiBoundFunc)(PhiInstr*,
+                                                               LoopInfo*,
+                                                               InductionVar*,
+                                                               Instruction*);
 
   // Construct symbolic lower bound for a value at the given point.
   Definition* ConstructLowerBound(Definition* value, Instruction* point) {

@@ -142,7 +142,7 @@ void NativeEntry::BootstrapNativeCallWrapper(Dart_NativeArguments args,
     // A return of Object::sentinel means the return value has already
     // been set.
     ObjectPtr return_value_unsafe = reinterpret_cast<BootstrapNativeFunction>(
-        func)(thread, zone.GetZone(), arguments);
+        reinterpret_cast<void*>(func))(thread, zone.GetZone(), arguments);
     if (return_value_unsafe != Object::sentinel().ptr()) {
       ASSERT(return_value_unsafe->IsDartInstance());
       arguments->SetReturnUnsafe(return_value_unsafe);
