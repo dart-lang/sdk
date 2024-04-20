@@ -76,7 +76,7 @@ vars = {
   "jsc_tag": "version:274355",
 
   # https://chrome-infra-packages.appspot.com/p/fuchsia/third_party/clang
-  "clang_version": "git_revision:b1d2e8510b58893e58558ffdf3f8ba29c1e25e5a",
+  "clang_version": "git_revision:0f61051f541a5b8cfce25c84262dfdbadb9ca688",
 
   # https://chrome-infra-packages.appspot.com/p/gn/gn
   "gn_version": "git_revision:155c53952ec2dc324b0438ce5b9bd4a286577d25",
@@ -192,7 +192,7 @@ vars = {
   "vector_math_rev": "43f2a77bb0be812b027a68a11792d563713b42a1",
   "watcher_rev": "1bd2f20d0d924c8422aa2b9afdb165bff4f053c0",
   "web_rev": "9d8c802d13b785b1a5b201c4a43605d640841c98",
-  "web_socket_channel_rev": "ced3a37193f89d5ee95792f342eeb15d3d55d8c1",
+  "web_socket_channel_rev": "b612fc2caa9f4c3c8947b4ffbb274bce33c54a04",
   "webdev_rev": "3a10b76f3937fb9b50e7971fb15f82b65dfe05ef",
   "webdriver_rev": "c80e01e6ce121e55c31e33a31e5d3950023e6bc9",
   "webkit_inspection_protocol_rev": "153fea4fe5ac45bebf0c2e76bb3d76b0f1fcdaae",

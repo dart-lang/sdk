@@ -16,15 +16,15 @@ namespace dart {
 
 // Helper macros for declaring and defining native entries.
 #define REGISTER_NATIVE_ENTRY(name, count)                                     \
-  {"" #name, BootstrapNatives::DN_##name, count},
+  {"" #name, reinterpret_cast<void*>(BootstrapNatives::DN_##name), count},
 
 // List all native functions implemented in the vm or core bootstrap dart
 // libraries so that we can resolve the native function to it's entry
 // point.
 static const struct NativeEntries {
-  const char* name_;
-  BootstrapNativeFunction function_;
-  int argument_count_;
+  const char* const name_;
+  void* const function_;
+  const int argument_count_;
 } BootStrapEntries[] = {BOOTSTRAP_NATIVE_LIST(REGISTER_NATIVE_ENTRY)
 #if !defined(DART_PRECOMPILED_RUNTIME)
                             MIRRORS_BOOTSTRAP_NATIVE_LIST(REGISTER_NATIVE_ENTRY)
@@ -35,8 +35,8 @@ static const struct NativeEntries {
   {"" #name, reinterpret_cast<void*>(BootstrapNatives::FN_##name)},
 
 static const struct FfiNativeEntries {
-  const char* name_;
-  void* function_;
+  const char* const name_;
+  void* const function_;
 } BootStrapFfiEntries[] = {
     BOOTSTRAP_FFI_NATIVE_LIST(REGISTER_FFI_NATIVE_ENTRY)};
 

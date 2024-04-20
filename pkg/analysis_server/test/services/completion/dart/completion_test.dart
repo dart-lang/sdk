@@ -10070,9 +10070,9 @@ void f(B b, C c) {
 ''');
     assertResponse(r'''
 suggestions
-  fieldA
-    kind: field
   fieldC
+    kind: field
+  fieldA
     kind: field
 ''');
   }
@@ -10392,9 +10392,9 @@ class B extends A {
 ''');
     assertResponse(r'''
 suggestions
-  fa
-    kind: field
   fb
+    kind: field
+  fa
     kind: field
   ma
     kind: methodInvocation

@@ -8,6 +8,7 @@ import 'package:analysis_server/src/services/completion/dart/declaration_helper.
 import 'package:analysis_server/src/services/completion/dart/identifier_helper.dart';
 import 'package:analysis_server/src/services/completion/dart/keyword_helper.dart';
 import 'package:analysis_server/src/services/completion/dart/label_helper.dart';
+import 'package:analysis_server/src/services/completion/dart/not_imported_completion_pass.dart';
 import 'package:analysis_server/src/services/completion/dart/override_helper.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_collector.dart';
 import 'package:analysis_server/src/services/completion/dart/uri_helper.dart';
@@ -92,6 +93,12 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   /// The feature set that applies to the library for which completions are
   /// being computed.
   FeatureSet get featureSet => state.libraryElement.featureSet;
+
+  /// The operation that should be executed in the [NotImportedCompletionPass].
+  ///
+  /// The list will be empty if the pass does not need to be run.
+  List<NotImportedOperation> get notImportedOperations =>
+      _declarationHelper?.notImportedOperations ?? [];
 
   /// The offset at which completion was requested.
   int get offset => state.selection.offset;

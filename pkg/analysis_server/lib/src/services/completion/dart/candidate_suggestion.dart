@@ -195,14 +195,14 @@ final class FieldSuggestion extends CandidateSuggestion {
   /// The element on which the suggestion is based.
   final FieldElement element;
 
-  /// The class from which the field is being referenced, or `null` if the class
-  /// is not being referenced from within a class.
-  final ClassElement? referencingClass;
+  /// The element defined by the declaration in which the suggestion is to be
+  /// applied, or `null` if the completion is in a static context.
+  final InterfaceElement? referencingInterface;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
   FieldSuggestion(
       {required this.element,
-      required this.referencingClass,
+      required this.referencingInterface,
       required super.score});
 
   @override
@@ -430,13 +430,15 @@ final class MethodSuggestion extends ExecutableSuggestion {
   /// The element on which the suggestion is based.
   final MethodElement element;
 
-  final ClassElement? referencingClass;
+  /// The element defined by the declaration in which the suggestion is to be
+  /// applied, or `null` if the completion is in a static context.
+  final InterfaceElement? referencingInterface;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
   MethodSuggestion(
       {required super.kind,
       required this.element,
-      required this.referencingClass,
+      required this.referencingInterface,
       required super.score});
 
   @override
@@ -532,12 +534,14 @@ final class PropertyAccessSuggestion extends CandidateSuggestion {
   /// The element on which the suggestion is based.
   final PropertyAccessorElement element;
 
-  final ClassElement? referencingClass;
+  /// The element defined by the declaration in which the suggestion is to be
+  /// applied, or `null` if the completion is in a static context.
+  final InterfaceElement? referencingInterface;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
   PropertyAccessSuggestion(
       {required this.element,
-      required this.referencingClass,
+      required this.referencingInterface,
       required super.score});
 
   @override
@@ -770,7 +774,7 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
         } else {
           suggestField(fieldElement,
               inheritanceDistance: _inheritanceDistance(
-                  suggestion.referencingClass,
+                  suggestion.referencingInterface,
                   suggestion.element.enclosingElement));
         }
       case FormalParameterSuggestion():
@@ -814,7 +818,8 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
           suggestion.element,
           kind: kind,
           inheritanceDistance: _inheritanceDistance(
-              suggestion.referencingClass, suggestion.element.enclosingElement),
+              suggestion.referencingInterface,
+              suggestion.element.enclosingElement),
         );
       case MixinSuggestion():
         libraryUriStr = suggestion.libraryUriStr;
@@ -836,7 +841,7 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
         );
       case PropertyAccessSuggestion():
         var inheritanceDistance = 0.0;
-        var referencingClass = suggestion.referencingClass;
+        var referencingClass = suggestion.referencingInterface;
         var declaringClass = suggestion.element.enclosingElement;
         if (referencingClass != null && declaringClass is InterfaceElement) {
           inheritanceDistance = request.featureComputer
@@ -895,7 +900,7 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
   /// Returns the inheritance distance from the [referencingClass] to the
   /// [declaringClass].
   double _inheritanceDistance(
-      ClassElement? referencingClass, Element? declaringClass) {
+      InterfaceElement? referencingClass, Element? declaringClass) {
     var distance = 0.0;
     if (referencingClass != null && declaringClass is InterfaceElement) {
       distance = request.featureComputer
