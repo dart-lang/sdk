@@ -9,12 +9,12 @@ import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(SuperInExtensionTest);
+    defineReflectiveTests(SuperInExtensionTypeTest);
   });
 }
 
 @reflectiveTest
-class SuperInExtensionTest extends PubPackageResolutionTest {
+class SuperInExtensionTypeTest extends PubPackageResolutionTest {
   test_binaryOperator() async {
     await assertErrorsInCode('''
 extension type A(int it) {

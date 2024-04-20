@@ -400,8 +400,7 @@ void f(Object? x) {
   Future<void> test_objectPattern_declarationStatement_multi_first() async {
     await resolveTestCode(r'''
 void f(A a) {
-  var A(:foo, :bar) = a;
-  bar;
+  var A(:foo, bar: int()) = a;
 }
 
 class A {
@@ -411,8 +410,7 @@ class A {
 ''');
     await assertHasFix(r'''
 void f(A a) {
-  var A(:bar) = a;
-  bar;
+  var A(bar: int()) = a;
 }
 
 class A {
@@ -425,8 +423,7 @@ class A {
   Future<void> test_objectPattern_declarationStatement_multi_last() async {
     await resolveTestCode(r'''
 void f(A a) {
-  var A(:foo, :bar) = a;
-  foo;
+  var A(foo: int(), :bar) = a;
 }
 
 class A {
@@ -436,8 +433,7 @@ class A {
 ''');
     await assertHasFix(r'''
 void f(A a) {
-  var A(:foo) = a;
-  foo;
+  var A(foo: int()) = a;
 }
 
 class A {
@@ -572,14 +568,12 @@ void f(Object? x) {
   Future<void> test_recordPattern_named_declaration() async {
     await resolveTestCode(r'''
 void f(({int foo, int bar}) x) {
-  var (:foo, :bar) = x;
-  bar;
+  var (:foo, bar: int()) = x;
 }
 ''');
     await assertHasFix(r'''
 void f(({int foo, int bar}) x) {
-  var (foo: _, :bar) = x;
-  bar;
+  var (foo: _, bar: int()) = x;
 }
 ''');
   }
@@ -600,14 +594,12 @@ void f(Object? x) {
   Future<void> test_recordPattern_positional_declaration() async {
     await resolveTestCode(r'''
 void f(Object? x) {
-  var (foo, bar) = (0, 1);
-  bar;
+  var (foo, int()) = (0, 1);
 }
 ''');
     await assertHasFix(r'''
 void f(Object? x) {
-  var (_, bar) = (0, 1);
-  bar;
+  var (_, int()) = (0, 1);
 }
 ''');
   }
