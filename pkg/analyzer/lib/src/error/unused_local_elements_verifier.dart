@@ -485,6 +485,10 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   /// The URI of the library being verified.
   final Uri _libraryUri;
 
+  /// The current set of pattern variable elements, used to track whether _all_
+  /// within a [PatternVariableDeclaration] are used.
+  List<BindPatternVariableElement>? _patternVariableElements;
+
   /// Create a new instance of the [UnusedLocalElementsVerifier].
   UnusedLocalElementsVerifier(this._errorListener, this._usedElements,
       this._inheritanceManager, LibraryElement library)
@@ -526,7 +530,12 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   ) {
     var declaredElement = node.declaredElement!;
     if (!declaredElement.isDuplicate) {
-      _visitLocalVariableElement(declaredElement);
+      var patternVariableElements = _patternVariableElements;
+      if (patternVariableElements != null) {
+        patternVariableElements.add(declaredElement);
+      } else {
+        _visitLocalVariableElement(declaredElement);
+      }
     }
 
     super.visitDeclaredVariablePattern(node);
@@ -635,6 +644,35 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
     _visitClassElement(declaredElement);
 
     super.visitMixinDeclaration(node);
+  }
+
+  @override
+  void visitPatternVariableDeclaration(PatternVariableDeclaration node) {
+    var outerPatternVariableElements = _patternVariableElements;
+    var patternVariableElements = _patternVariableElements = [];
+    try {
+      super.visitPatternVariableDeclaration(node);
+      var elementsToReport = <BindPatternVariableElement>[];
+      for (var element in patternVariableElements) {
+        var isUsed = _usedElements.elements.contains(element);
+        // Don't report any of the declared variables as unused, if any of them
+        // are used. This allows for a consistent set of patterns to be used,
+        // in a case where some declared variables are used, and some are just
+        // present to help match, for example, a record shape, or a list, etc.
+        if (isUsed) {
+          return;
+        }
+        if (!_isNamedUnderscore(element)) {
+          elementsToReport.add(element);
+        }
+      }
+      for (var element in elementsToReport) {
+        _reportErrorForElement(
+            WarningCode.UNUSED_LOCAL_VARIABLE, element, [element.displayName]);
+      }
+    } finally {
+      _patternVariableElements = outerPatternVariableElements;
+    }
   }
 
   @override
