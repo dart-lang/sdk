@@ -177,101 +177,119 @@ class NullSafetyDeadCodeVerifier {
   /// the current dead code interval.
   void flowEnd(AstNode node) {
     var firstDeadNode = _firstDeadNode;
-    if (firstDeadNode != null) {
-      if (!_containsFirstDeadNode(node)) {
-        return;
-      }
-
-      if (node is SwitchMember && node == firstDeadNode) {
-        _errorReporter.atToken(
-          node.keyword,
-          WarningCode.DEAD_CODE,
-        );
-        _firstDeadNode = null;
-        return;
-      }
-
-      var parent = firstDeadNode.parent;
-      if (parent is Assertion && identical(firstDeadNode, parent.message)) {
-        // Don't report "dead code" for the message part of an assert statement,
-        // because this causes nuisance warnings for redundant `!= null`
-        // asserts.
-      } else {
-        var offset = firstDeadNode.offset;
-        // We know that [node] is the first dead node, or contains it.
-        // So, technically the code interval ends at the end of [node].
-        // But we trim it to the last statement for presentation purposes.
-        if (node != firstDeadNode) {
-          if (node is FunctionDeclaration) {
-            node = node.functionExpression.body;
-          }
-          if (node is FunctionExpression) {
-            node = node.body;
-          }
-          if (node is MethodDeclaration) {
-            node = node.body;
-          }
-          if (node is BlockFunctionBody) {
-            node = node.block;
-          }
-          if (node is Block && node.statements.isNotEmpty) {
-            node = node.statements.last;
-          }
-          if (node is SwitchMember && node.statements.isNotEmpty) {
-            node = node.statements.last;
-          }
-        } else if (parent is BinaryExpression && node == parent.rightOperand) {
-          offset = parent.operator.offset;
-        }
-        if (parent is DoStatement) {
-          var doOffset = parent.doKeyword.offset;
-          var doEnd = parent.doKeyword.end;
-          var whileOffset = parent.whileKeyword.offset;
-          var whileEnd = parent.semicolon.end;
-          var body = parent.body;
-          if (body is Block) {
-            doEnd = body.leftBracket.end;
-            whileOffset = body.rightBracket.offset;
-          }
-          _errorReporter.atOffset(
-            offset: doOffset,
-            length: doEnd - doOffset,
-            errorCode: WarningCode.DEAD_CODE,
-          );
-          _errorReporter.atOffset(
-            offset: whileOffset,
-            length: whileEnd - whileOffset,
-            errorCode: WarningCode.DEAD_CODE,
-          );
-          offset = parent.semicolon.next!.offset;
-          if (parent.hasBreakStatement) {
-            offset = node.end;
-          }
-        } else if (parent is ForParts) {
-          node = parent.updaters.last;
-        } else if (parent is ForStatement) {
-          _reportForUpdaters(parent);
-        } else if (parent is Block) {
-          var grandParent = parent.parent;
-          if (grandParent is ForStatement) {
-            _reportForUpdaters(grandParent);
-          }
-        } else if (parent is LogicalOrPattern && node == parent.rightOperand) {
-          offset = parent.operator.offset;
-        }
-
-        var length = node.end - offset;
-        if (length > 0) {
-          _errorReporter.atOffset(
-            offset: offset,
-            length: length,
-            errorCode: WarningCode.DEAD_CODE,
-          );
-        }
-      }
-
-      _firstDeadNode = null;
+    if (firstDeadNode == null) {
+      return;
     }
+
+    if (!_containsFirstDeadNode(node)) {
+      return;
+    }
+
+    if (node is SwitchMember && node == firstDeadNode) {
+      _errorReporter.atToken(
+        node.keyword,
+        WarningCode.DEAD_CODE,
+      );
+      _firstDeadNode = null;
+      return;
+    }
+
+    var parent = firstDeadNode.parent;
+    if (parent is Assertion && identical(firstDeadNode, parent.message)) {
+      // Don't report "dead code" for the message part of an assert statement,
+      // because this causes nuisance warnings for redundant `!= null`
+      // asserts.
+    } else if (parent is ConstructorDeclaration &&
+        firstDeadNode is EmptyFunctionBody) {
+      // Don't report "dead code" for an unreachable, but syntacically required,
+      // semicolon that follows one or more constructor initializers.
+    } else if (parent is ConstructorDeclaration &&
+        firstDeadNode is BlockFunctionBody &&
+        firstDeadNode.block.statements.isEmpty) {
+      // Don't report "dead code" for an unreachable, but empty block body that
+      // follows one or more constructor initializers.
+    } else {
+      var offset = firstDeadNode.offset;
+      // We know that [node] is the first dead node, or contains it.
+      // So, technically the code interval ends at the end of [node].
+      // But we trim it to the last statement for presentation purposes.
+      if (node != firstDeadNode) {
+        if (node is FunctionDeclaration) {
+          node = node.functionExpression.body;
+        }
+        if (node is FunctionExpression) {
+          node = node.body;
+        }
+        if (node is MethodDeclaration) {
+          node = node.body;
+        }
+        if (node is BlockFunctionBody) {
+          node = node.block;
+        }
+        if (node is Block && node.statements.isNotEmpty) {
+          node = node.statements.last;
+        }
+        if (node is SwitchMember && node.statements.isNotEmpty) {
+          node = node.statements.last;
+        }
+      } else if (parent is BinaryExpression && node == parent.rightOperand) {
+        offset = parent.operator.offset;
+      }
+      if (parent is ConstructorInitializer) {
+        _errorReporter.atOffset(
+          offset: parent.offset,
+          length: parent.end - parent.offset,
+          errorCode: WarningCode.DEAD_CODE,
+        );
+        offset = node.end;
+      } else if (parent is DoStatement) {
+        var doOffset = parent.doKeyword.offset;
+        var doEnd = parent.doKeyword.end;
+        var whileOffset = parent.whileKeyword.offset;
+        var whileEnd = parent.semicolon.end;
+        var body = parent.body;
+        if (body is Block) {
+          doEnd = body.leftBracket.end;
+          whileOffset = body.rightBracket.offset;
+        }
+        _errorReporter.atOffset(
+          offset: doOffset,
+          length: doEnd - doOffset,
+          errorCode: WarningCode.DEAD_CODE,
+        );
+        _errorReporter.atOffset(
+          offset: whileOffset,
+          length: whileEnd - whileOffset,
+          errorCode: WarningCode.DEAD_CODE,
+        );
+        offset = parent.semicolon.next!.offset;
+        if (parent.hasBreakStatement) {
+          offset = node.end;
+        }
+      } else if (parent is ForParts) {
+        node = parent.updaters.last;
+      } else if (parent is ForStatement) {
+        _reportForUpdaters(parent);
+      } else if (parent is Block) {
+        var grandParent = parent.parent;
+        if (grandParent is ForStatement) {
+          _reportForUpdaters(grandParent);
+        }
+      } else if (parent is LogicalOrPattern && node == parent.rightOperand) {
+        offset = parent.operator.offset;
+      }
+
+      var length = node.end - offset;
+      if (length > 0) {
+        _errorReporter.atOffset(
+          offset: offset,
+          length: length,
+          errorCode: WarningCode.DEAD_CODE,
+        );
+      }
+    }
+
+    _firstDeadNode = null;
   }
 
   void tryStatementEnter(TryStatement node) {
