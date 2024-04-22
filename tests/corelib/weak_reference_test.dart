@@ -41,10 +41,18 @@ Future testWeakReferenceWeakness() async {
     foo = null;
   }
   asyncStart();
-  while (weakReference.target != null) {
+  // According to the WeakReference specification:
+  //
+  // There are no guarantees that a weak reference will ever be cleared
+  // even if all references to its target are weak references.
+  //
+  // Wait a few iterations and give up if target is not cleared.
+  const int numIterations = 10;
+  int i = 0;
+  for (; weakReference.target != null && i < numIterations; ++i) {
     produceGarbage();
     await Future.delayed(const Duration(milliseconds: 10));
   }
-  Expect.isNull(weakReference.target);
+  Expect.isTrue(i == numIterations || weakReference.target == null);
   asyncEnd();
 }
