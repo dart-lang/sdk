@@ -78,13 +78,16 @@ class CallSpecializer : public FlowGraphVisitor {
   // Find a better place for them.
   virtual void VisitLoadCodeUnits(LoadCodeUnitsInstr* instr);
 
+  struct ExactnessInfo {
+    const bool is_exact;
+    bool emit_exactness_guard;
+  };
+
  protected:
   Thread* thread() const { return flow_graph_->thread(); }
   IsolateGroup* isolate_group() const { return flow_graph_->isolate_group(); }
   Zone* zone() const { return flow_graph_->zone(); }
   const Function& function() const { return flow_graph_->function(); }
-
-  bool TryReplaceWithIndexedOp(InstanceCallInstr* call);
 
   bool TryReplaceWithBinaryOp(InstanceCallInstr* call, Token::Kind op_kind);
   bool TryReplaceWithUnaryOp(InstanceCallInstr* call, Token::Kind op_kind);
@@ -182,6 +185,32 @@ class CallSpecializer : public FlowGraphVisitor {
   static bool SpecializeTestCidsForNumericTypes(
       ZoneGrowableArray<intptr_t>* results,
       const AbstractType& type);
+
+  static bool TryReplaceInstanceCallWithInline(
+      FlowGraph* flow_graph,
+      ForwardInstructionIterator* iterator,
+      InstanceCallInstr* call,
+      SpeculativeInliningPolicy* policy);
+
+  static bool TryReplaceStaticCallWithInline(
+      FlowGraph* flow_graph,
+      ForwardInstructionIterator* iterator,
+      StaticCallInstr* call,
+      SpeculativeInliningPolicy* policy);
+
+  static bool TryInlineRecognizedMethod(FlowGraph* flow_graph,
+                                        intptr_t receiver_cid,
+                                        const Function& target,
+                                        Definition* call,
+                                        Definition* receiver,
+                                        const InstructionSource& source,
+                                        const ICData* ic_data,
+                                        GraphEntryInstr* graph_entry,
+                                        FunctionEntryInstr** entry,
+                                        Instruction** last,
+                                        Definition** result,
+                                        SpeculativeInliningPolicy* policy,
+                                        ExactnessInfo* exactness = nullptr);
 
   FlowGraph* flow_graph_;
 };

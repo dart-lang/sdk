@@ -8,9 +8,12 @@
 #include "vm/compiler/backend/inliner.h"
 #include "vm/compiler/cha.h"
 #include "vm/compiler/compiler_state.h"
+#include "vm/compiler/compiler_timings.h"
 #include "vm/cpu.h"
 
 namespace dart {
+
+DECLARE_FLAG(bool, enable_simd_inline);
 
 // Quick access to the current isolate and zone.
 #define IG (isolate_group())
@@ -267,14 +270,6 @@ void CallSpecializer::AddCheckNull(Value* to_check,
     InsertBefore(insert_before, check_null, deopt_environment,
                  FlowGraph::kEffect);
   }
-}
-
-bool CallSpecializer::TryReplaceWithIndexedOp(InstanceCallInstr* call) {
-  if (call->Targets().IsMonomorphic()) {
-    return FlowGraphInliner::TryReplaceInstanceCallWithInline(
-        flow_graph_, current_iterator(), call, speculative_policy_);
-  }
-  return false;
 }
 
 // Return true if d is a string of length one (a constant or result from
@@ -1026,8 +1021,8 @@ bool CallSpecializer::TryInlineInstanceMethod(InstanceCallInstr* call) {
     }
   }
 
-  return FlowGraphInliner::TryReplaceInstanceCallWithInline(
-      flow_graph_, current_iterator(), call, speculative_policy_);
+  return TryReplaceInstanceCallWithInline(flow_graph_, current_iterator(), call,
+                                          speculative_policy_);
 }
 
 // If type tests specified by 'ic_data' do not depend on type arguments,
@@ -1284,8 +1279,8 @@ void CallSpecializer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
 }
 
 void CallSpecializer::VisitStaticCall(StaticCallInstr* call) {
-  if (FlowGraphInliner::TryReplaceStaticCallWithInline(
-          flow_graph_, current_iterator(), call, speculative_policy_)) {
+  if (TryReplaceStaticCallWithInline(flow_graph_, current_iterator(), call,
+                                     speculative_policy_)) {
     return;
   }
 
@@ -1694,6 +1689,1790 @@ void TypedDataSpecializer::AppendStoreIndexed(TemplateDartCall<0>* call,
 
 void CallSpecializer::ReplaceInstanceCallsWithDispatchTableCalls() {
   // Only implemented for AOT.
+}
+
+// Test and obtain Smi value.
+static bool IsSmiValue(Value* val, intptr_t* int_val) {
+  if (val->BindsToConstant() && val->BoundConstant().IsSmi()) {
+    *int_val = Smi::Cast(val->BoundConstant()).Value();
+    return true;
+  }
+  return false;
+}
+
+// Helper to get result type from call (or nullptr otherwise).
+static CompileType* ResultType(Definition* call) {
+  if (auto static_call = call->AsStaticCall()) {
+    return static_call->result_type();
+  } else if (auto instance_call = call->AsInstanceCall()) {
+    return instance_call->result_type();
+  }
+  return nullptr;
+}
+
+// Quick access to the current one.
+#undef Z
+#define Z (flow_graph->zone())
+
+static bool InlineTypedDataIndexCheck(FlowGraph* flow_graph,
+                                      Instruction* call,
+                                      Definition* receiver,
+                                      GraphEntryInstr* graph_entry,
+                                      FunctionEntryInstr** entry,
+                                      Instruction** last,
+                                      Definition** result,
+                                      const String& symbol) {
+  *entry =
+      new (Z) FunctionEntryInstr(graph_entry, flow_graph->allocate_block_id(),
+                                 call->GetBlock()->try_index(), DeoptId::kNone);
+  (*entry)->InheritDeoptTarget(Z, call);
+  Instruction* cursor = *entry;
+
+  Definition* index = call->ArgumentAt(1);
+  Definition* length = call->ArgumentAt(2);
+
+  if (CompilerState::Current().is_aot()) {
+    // Add a null-check in case the index argument is known to be compatible
+    // but possibly nullable. We don't need to do the same for length
+    // because all callers in typed_data_patch.dart retrieve the length
+    // from the typed data object.
+    auto* const null_check =
+        new (Z) CheckNullInstr(new (Z) Value(index), symbol, call->deopt_id(),
+                               call->source(), CheckNullInstr::kArgumentError);
+    cursor = flow_graph->AppendTo(cursor, null_check, call->env(),
+                                  FlowGraph::kEffect);
+  }
+  index = flow_graph->CreateCheckBound(length, index, call->deopt_id());
+  cursor = flow_graph->AppendTo(cursor, index, call->env(), FlowGraph::kValue);
+
+  *last = cursor;
+  *result = index;
+  return true;
+}
+
+static intptr_t PrepareInlineIndexedOp(FlowGraph* flow_graph,
+                                       Instruction* call,
+                                       intptr_t array_cid,
+                                       Definition** array,
+                                       Definition** index,
+                                       Instruction** cursor) {
+  // Insert array length load and bounds check.
+  LoadFieldInstr* length = new (Z) LoadFieldInstr(
+      new (Z) Value(*array), Slot::GetLengthFieldForArrayCid(array_cid),
+      call->source());
+  *cursor = flow_graph->AppendTo(*cursor, length, nullptr, FlowGraph::kValue);
+  *index = flow_graph->CreateCheckBound(length, *index, call->deopt_id());
+  *cursor =
+      flow_graph->AppendTo(*cursor, *index, call->env(), FlowGraph::kValue);
+
+  if (array_cid == kGrowableObjectArrayCid) {
+    // Insert data elements load.
+    LoadFieldInstr* elements = new (Z)
+        LoadFieldInstr(new (Z) Value(*array), Slot::GrowableObjectArray_data(),
+                       call->source());
+    *cursor =
+        flow_graph->AppendTo(*cursor, elements, nullptr, FlowGraph::kValue);
+    // Load from the data from backing store which is a fixed-length array.
+    *array = elements;
+    array_cid = kArrayCid;
+  } else if (IsExternalTypedDataClassId(array_cid)) {
+    auto* const elements = new (Z) LoadFieldInstr(
+        new (Z) Value(*array), Slot::PointerBase_data(),
+        InnerPointerAccess::kCannotBeInnerPointer, call->source());
+    *cursor =
+        flow_graph->AppendTo(*cursor, elements, nullptr, FlowGraph::kValue);
+    *array = elements;
+  }
+  return array_cid;
+}
+
+static bool InlineGetIndexed(FlowGraph* flow_graph,
+                             bool can_speculate,
+                             bool is_dynamic_call,
+                             MethodRecognizer::Kind kind,
+                             Definition* call,
+                             Definition* receiver,
+                             GraphEntryInstr* graph_entry,
+                             FunctionEntryInstr** entry,
+                             Instruction** last,
+                             Definition** result) {
+  intptr_t array_cid = MethodRecognizer::MethodKindToReceiverCid(kind);
+
+  Definition* array = receiver;
+  Definition* index = call->ArgumentAt(1);
+
+  if (!can_speculate && is_dynamic_call && !index->Type()->IsInt()) {
+    return false;
+  }
+
+  *entry =
+      new (Z) FunctionEntryInstr(graph_entry, flow_graph->allocate_block_id(),
+                                 call->GetBlock()->try_index(), DeoptId::kNone);
+  (*entry)->InheritDeoptTarget(Z, call);
+  *last = *entry;
+
+  array_cid =
+      PrepareInlineIndexedOp(flow_graph, call, array_cid, &array, &index, last);
+
+  // Array load and return.
+  intptr_t index_scale = compiler::target::Instance::ElementSizeFor(array_cid);
+  *result = new (Z) LoadIndexedInstr(
+      new (Z) Value(array), new (Z) Value(index),
+      /*index_unboxed=*/false, index_scale, array_cid, kAlignedAccess,
+      call->deopt_id(), call->source(), ResultType(call));
+  *last = flow_graph->AppendTo(*last, *result, call->env(), FlowGraph::kValue);
+
+  if (LoadIndexedInstr::ReturnRepresentation(array_cid) == kUnboxedFloat) {
+    *result =
+        new (Z) FloatToDoubleInstr(new (Z) Value(*result), call->deopt_id());
+    *last =
+        flow_graph->AppendTo(*last, *result, call->env(), FlowGraph::kValue);
+  }
+
+  return true;
+}
+
+static bool InlineSetIndexed(FlowGraph* flow_graph,
+                             MethodRecognizer::Kind kind,
+                             const Function& target,
+                             Instruction* call,
+                             Definition* receiver,
+                             const InstructionSource& source,
+                             CallSpecializer::ExactnessInfo* exactness,
+                             GraphEntryInstr* graph_entry,
+                             FunctionEntryInstr** entry,
+                             Instruction** last,
+                             Definition** result) {
+  intptr_t array_cid = MethodRecognizer::MethodKindToReceiverCid(kind);
+  auto const rep = StoreIndexedInstr::ValueRepresentation(array_cid);
+
+  Definition* array = receiver;
+  Definition* index = call->ArgumentAt(1);
+  Definition* stored_value = call->ArgumentAt(2);
+
+  *entry =
+      new (Z) FunctionEntryInstr(graph_entry, flow_graph->allocate_block_id(),
+                                 call->GetBlock()->try_index(), DeoptId::kNone);
+  (*entry)->InheritDeoptTarget(Z, call);
+  *last = *entry;
+
+  bool is_unchecked_call = false;
+  if (StaticCallInstr* static_call = call->AsStaticCall()) {
+    is_unchecked_call =
+        static_call->entry_kind() == Code::EntryKind::kUnchecked;
+  } else if (InstanceCallInstr* instance_call = call->AsInstanceCall()) {
+    is_unchecked_call =
+        instance_call->entry_kind() == Code::EntryKind::kUnchecked;
+  } else if (PolymorphicInstanceCallInstr* instance_call =
+                 call->AsPolymorphicInstanceCall()) {
+    is_unchecked_call =
+        instance_call->entry_kind() == Code::EntryKind::kUnchecked;
+  }
+
+  if (!is_unchecked_call &&
+      (kind != MethodRecognizer::kObjectArraySetIndexedUnchecked &&
+       kind != MethodRecognizer::kGrowableArraySetIndexedUnchecked)) {
+    // Only type check for the value. A type check for the index is not
+    // needed here because we insert a deoptimizing smi-check for the case
+    // the index is not a smi.
+    const AbstractType& value_type =
+        AbstractType::ZoneHandle(Z, target.ParameterTypeAt(2));
+    Definition* type_args = nullptr;
+    if (rep == kTagged) {
+      const Class& instantiator_class = Class::Handle(Z, target.Owner());
+      LoadFieldInstr* load_type_args =
+          new (Z) LoadFieldInstr(new (Z) Value(array),
+                                 Slot::GetTypeArgumentsSlotFor(
+                                     flow_graph->thread(), instantiator_class),
+                                 call->source());
+      *last = flow_graph->AppendTo(*last, load_type_args, call->env(),
+                                   FlowGraph::kValue);
+      type_args = load_type_args;
+    } else if (!RepresentationUtils::IsUnboxed(rep)) {
+      UNREACHABLE();
+    } else {
+      type_args = flow_graph->constant_null();
+      ASSERT(value_type.IsInstantiated());
+#if defined(DEBUG)
+      if (rep == kUnboxedFloat || rep == kUnboxedDouble) {
+        ASSERT(value_type.IsDoubleType());
+      } else if (rep == kUnboxedFloat32x4) {
+        ASSERT(value_type.IsFloat32x4Type());
+      } else if (rep == kUnboxedInt32x4) {
+        ASSERT(value_type.IsInt32x4Type());
+      } else if (rep == kUnboxedFloat64x2) {
+        ASSERT(value_type.IsFloat64x2Type());
+      } else {
+        ASSERT(RepresentationUtils::IsUnboxedInteger(rep));
+        ASSERT(value_type.IsIntType());
+      }
+#endif
+    }
+
+    if (exactness != nullptr && exactness->is_exact) {
+      exactness->emit_exactness_guard = true;
+    } else {
+      auto const function_type_args = flow_graph->constant_null();
+      auto const dst_type = flow_graph->GetConstant(value_type);
+      AssertAssignableInstr* assert_value = new (Z) AssertAssignableInstr(
+          source, new (Z) Value(stored_value), new (Z) Value(dst_type),
+          new (Z) Value(type_args), new (Z) Value(function_type_args),
+          Symbols::Value(), call->deopt_id());
+      *last = flow_graph->AppendSpeculativeTo(*last, assert_value, call->env(),
+                                              FlowGraph::kValue);
+    }
+  }
+
+  array_cid =
+      PrepareInlineIndexedOp(flow_graph, call, array_cid, &array, &index, last);
+
+  const bool is_typed_data_store = IsTypedDataBaseClassId(array_cid);
+
+  // Check if store barrier is needed. Byte arrays don't need a store barrier.
+  StoreBarrierType needs_store_barrier =
+      is_typed_data_store ? kNoStoreBarrier : kEmitStoreBarrier;
+
+  if (rep == kUnboxedFloat) {
+    stored_value = new (Z)
+        DoubleToFloatInstr(new (Z) Value(stored_value), call->deopt_id());
+    *last = flow_graph->AppendTo(*last, stored_value, call->env(),
+                                 FlowGraph::kValue);
+  } else if (RepresentationUtils::IsUnboxedInteger(rep)) {
+    // Insert explicit unboxing instructions with truncation to avoid relying
+    // on [SelectRepresentations] which doesn't mark them as truncating.
+    stored_value =
+        UnboxInstr::Create(rep, new (Z) Value(stored_value), call->deopt_id(),
+                           Instruction::kNotSpeculative);
+    *last = flow_graph->AppendTo(*last, stored_value, call->env(),
+                                 FlowGraph::kValue);
+  }
+
+  const intptr_t index_scale =
+      compiler::target::Instance::ElementSizeFor(array_cid);
+  auto* const store = new (Z) StoreIndexedInstr(
+      new (Z) Value(array), new (Z) Value(index), new (Z) Value(stored_value),
+      needs_store_barrier, /*index_unboxed=*/false, index_scale, array_cid,
+      kAlignedAccess, call->deopt_id(), call->source());
+  *last = flow_graph->AppendTo(*last, store, call->env(), FlowGraph::kEffect);
+  // We need a return value to replace uses of the original definition. However,
+  // the final instruction is a use of 'void operator[]=()', so we use null.
+  *result = flow_graph->constant_null();
+  return true;
+}
+
+static bool InlineDoubleOp(FlowGraph* flow_graph,
+                           Token::Kind op_kind,
+                           Instruction* call,
+                           Definition* receiver,
+                           GraphEntryInstr* graph_entry,
+                           FunctionEntryInstr** entry,
+                           Instruction** last,
+                           Definition** result) {
+  if (!CanUnboxDouble()) {
+    return false;
+  }
+  Definition* left = receiver;
+  Definition* right = call->ArgumentAt(1);
+
+  *entry =
+      new (Z) FunctionEntryInstr(graph_entry, flow_graph->allocate_block_id(),
+                                 call->GetBlock()->try_index(), DeoptId::kNone);
+  (*entry)->InheritDeoptTarget(Z, call);
+  // Arguments are checked. No need for class check.
+  BinaryDoubleOpInstr* double_bin_op = new (Z)
+      BinaryDoubleOpInstr(op_kind, new (Z) Value(left), new (Z) Value(right),
+                          call->deopt_id(), call->source());
+  flow_graph->AppendTo(*entry, double_bin_op, call->env(), FlowGraph::kValue);
+  *last = double_bin_op;
+  *result = double_bin_op->AsDefinition();
+
+  return true;
+}
+
+static bool InlineDoubleTestOp(FlowGraph* flow_graph,
+                               Instruction* call,
+                               Definition* receiver,
+                               MethodRecognizer::Kind kind,
+                               GraphEntryInstr* graph_entry,
+                               FunctionEntryInstr** entry,
+                               Instruction** last,
+                               Definition** result) {
+  if (!CanUnboxDouble()) {
+    return false;
+  }
+
+  *entry =
+      new (Z) FunctionEntryInstr(graph_entry, flow_graph->allocate_block_id(),
+                                 call->GetBlock()->try_index(), DeoptId::kNone);
+  (*entry)->InheritDeoptTarget(Z, call);
+  // Arguments are checked. No need for class check.
+
+  DoubleTestOpInstr* double_test_op = new (Z) DoubleTestOpInstr(
+      kind, new (Z) Value(receiver), call->deopt_id(), call->source());
+  flow_graph->AppendTo(*entry, double_test_op, call->env(), FlowGraph::kValue);
+  *last = double_test_op;
+  *result = double_test_op->AsDefinition();
+
+  return true;
+}
+
+static bool InlineGrowableArraySetter(FlowGraph* flow_graph,
+                                      const Slot& field,
+                                      StoreBarrierType store_barrier_type,
+                                      Instruction* call,
+                                      Definition* receiver,
+                                      GraphEntryInstr* graph_entry,
+                                      FunctionEntryInstr** entry,
+                                      Instruction** last,
+                                      Definition** result) {
+  Definition* array = receiver;
+  Definition* value = call->ArgumentAt(1);
+
+  *entry =
+      new (Z) FunctionEntryInstr(graph_entry, flow_graph->allocate_block_id(),
+                                 call->GetBlock()->try_index(), DeoptId::kNone);
+  (*entry)->InheritDeoptTarget(Z, call);
+
+  // This is an internal method, no need to check argument types.
+  StoreFieldInstr* store =
+      new (Z) StoreFieldInstr(field, new (Z) Value(array), new (Z) Value(value),
+                              store_barrier_type, call->source());
+  flow_graph->AppendTo(*entry, store, call->env(), FlowGraph::kEffect);
+  *last = store;
+  // We need a return value to replace uses of the original definition. However,
+  // the last instruction is a field setter, which returns void, so we use null.
+  *result = flow_graph->constant_null();
+
+  return true;
+}
+
+static bool InlineLoadClassId(FlowGraph* flow_graph,
+                              Instruction* call,
+                              GraphEntryInstr* graph_entry,
+                              FunctionEntryInstr** entry,
+                              Instruction** last,
+                              Definition** result) {
+  *entry =
+      new (Z) FunctionEntryInstr(graph_entry, flow_graph->allocate_block_id(),
+                                 call->GetBlock()->try_index(), DeoptId::kNone);
+  (*entry)->InheritDeoptTarget(Z, call);
+  auto load_cid =
+      new (Z) LoadClassIdInstr(call->ArgumentValueAt(0)->CopyWithType(Z));
+  flow_graph->InsertBefore(call, load_cid, nullptr, FlowGraph::kValue);
+  *last = load_cid;
+  *result = load_cid->AsDefinition();
+  return true;
+}
+
+// Returns the LoadIndexedInstr.
+static Definition* PrepareInlineStringIndexOp(FlowGraph* flow_graph,
+                                              Instruction* call,
+                                              intptr_t cid,
+                                              Definition* str,
+                                              Definition* index,
+                                              Instruction* cursor) {
+  LoadFieldInstr* length = new (Z) LoadFieldInstr(
+      new (Z) Value(str), Slot::GetLengthFieldForArrayCid(cid), str->source());
+  cursor = flow_graph->AppendTo(cursor, length, nullptr, FlowGraph::kValue);
+
+  // Bounds check.
+  if (CompilerState::Current().is_aot()) {
+    // Add a null-check in case the index argument is known to be compatible
+    // but possibly nullable. By inserting the null-check, we can allow the
+    // unbox instruction later inserted to be non-speculative.
+    auto* const null_check = new (Z)
+        CheckNullInstr(new (Z) Value(index), Symbols::Index(), call->deopt_id(),
+                       call->source(), CheckNullInstr::kArgumentError);
+    cursor = flow_graph->AppendTo(cursor, null_check, call->env(),
+                                  FlowGraph::kEffect);
+  }
+  index = flow_graph->CreateCheckBound(length, index, call->deopt_id());
+  cursor = flow_graph->AppendTo(cursor, index, call->env(), FlowGraph::kValue);
+
+  LoadIndexedInstr* load_indexed = new (Z) LoadIndexedInstr(
+      new (Z) Value(str), new (Z) Value(index), /*index_unboxed=*/false,
+      compiler::target::Instance::ElementSizeFor(cid), cid, kAlignedAccess,
+      call->deopt_id(), call->source());
+  cursor =
+      flow_graph->AppendTo(cursor, load_indexed, nullptr, FlowGraph::kValue);
+
+  auto box = BoxInstr::Create(kUnboxedIntPtr, new Value(load_indexed));
+  cursor = flow_graph->AppendTo(cursor, box, nullptr, FlowGraph::kValue);
+
+  ASSERT(box == cursor);
+  return box;
+}
+
+static bool InlineStringBaseCharAt(FlowGraph* flow_graph,
+                                   Instruction* call,
+                                   Definition* receiver,
+                                   intptr_t cid,
+                                   GraphEntryInstr* graph_entry,
+                                   FunctionEntryInstr** entry,
+                                   Instruction** last,
+                                   Definition** result) {
+  if (cid != kOneByteStringCid) {
+    return false;
+  }
+  Definition* str = receiver;
+  Definition* index = call->ArgumentAt(1);
+
+  *entry =
+      new (Z) FunctionEntryInstr(graph_entry, flow_graph->allocate_block_id(),
+                                 call->GetBlock()->try_index(), DeoptId::kNone);
+  (*entry)->InheritDeoptTarget(Z, call);
+
+  *last = PrepareInlineStringIndexOp(flow_graph, call, cid, str, index, *entry);
+
+  OneByteStringFromCharCodeInstr* char_at = new (Z)
+      OneByteStringFromCharCodeInstr(new (Z) Value((*last)->AsDefinition()));
+
+  flow_graph->AppendTo(*last, char_at, nullptr, FlowGraph::kValue);
+  *last = char_at;
+  *result = char_at->AsDefinition();
+
+  return true;
+}
+
+static bool InlineStringBaseCodeUnitAt(FlowGraph* flow_graph,
+                                       Instruction* call,
+                                       Definition* receiver,
+                                       intptr_t cid,
+                                       GraphEntryInstr* graph_entry,
+                                       FunctionEntryInstr** entry,
+                                       Instruction** last,
+                                       Definition** result) {
+  if (cid == kDynamicCid) {
+    ASSERT(call->IsStaticCall());
+    return false;
+  } else if ((cid != kOneByteStringCid) && (cid != kTwoByteStringCid)) {
+    return false;
+  }
+  Definition* str = receiver;
+  Definition* index = call->ArgumentAt(1);
+
+  *entry =
+      new (Z) FunctionEntryInstr(graph_entry, flow_graph->allocate_block_id(),
+                                 call->GetBlock()->try_index(), DeoptId::kNone);
+  (*entry)->InheritDeoptTarget(Z, call);
+
+  *last = PrepareInlineStringIndexOp(flow_graph, call, cid, str, index, *entry);
+  *result = (*last)->AsDefinition();
+
+  return true;
+}
+
+// Only used for monomorphic calls.
+bool CallSpecializer::TryReplaceInstanceCallWithInline(
+    FlowGraph* flow_graph,
+    ForwardInstructionIterator* iterator,
+    InstanceCallInstr* call,
+    SpeculativeInliningPolicy* policy) {
+  const CallTargets& targets = call->Targets();
+  ASSERT(targets.IsMonomorphic());
+  const intptr_t receiver_cid = targets.MonomorphicReceiverCid();
+  const Function& target = targets.FirstTarget();
+  const auto exactness = targets.MonomorphicExactness();
+  ExactnessInfo exactness_info{exactness.IsExact(), false};
+
+  FunctionEntryInstr* entry = nullptr;
+  Instruction* last = nullptr;
+  Definition* result = nullptr;
+  if (CallSpecializer::TryInlineRecognizedMethod(
+          flow_graph, receiver_cid, target, call,
+          call->Receiver()->definition(), call->source(), call->ic_data(),
+          /*graph_entry=*/nullptr, &entry, &last, &result, policy,
+          &exactness_info)) {
+    // The empty Object constructor is the only case where the inlined body is
+    // empty and there is no result.
+    ASSERT((last != nullptr && result != nullptr) ||
+           (target.recognized_kind() == MethodRecognizer::kObjectConstructor));
+    // Determine if inlining instance methods needs a check.
+    // StringBase.codeUnitAt is monomorphic but its implementation is selected
+    // based on the receiver cid.
+    FlowGraph::ToCheck check = FlowGraph::ToCheck::kNoCheck;
+    if (target.is_polymorphic_target() ||
+        (target.recognized_kind() == MethodRecognizer::kStringBaseCodeUnitAt)) {
+      check = FlowGraph::ToCheck::kCheckCid;
+    } else {
+      check = flow_graph->CheckForInstanceCall(call, target.kind());
+    }
+
+    // Insert receiver class or null check if needed.
+    switch (check) {
+      case FlowGraph::ToCheck::kCheckCid: {
+        Instruction* check_class = flow_graph->CreateCheckClass(
+            call->Receiver()->definition(), targets, call->deopt_id(),
+            call->source());
+        flow_graph->InsertBefore(call, check_class, call->env(),
+                                 FlowGraph::kEffect);
+        break;
+      }
+      case FlowGraph::ToCheck::kCheckNull: {
+        Instruction* check_null = new (Z) CheckNullInstr(
+            call->Receiver()->CopyWithType(Z), call->function_name(),
+            call->deopt_id(), call->source());
+        flow_graph->InsertBefore(call, check_null, call->env(),
+                                 FlowGraph::kEffect);
+        break;
+      }
+      case FlowGraph::ToCheck::kNoCheck:
+        break;
+    }
+
+    if (exactness_info.emit_exactness_guard && exactness.IsTriviallyExact()) {
+      flow_graph->AddExactnessGuard(call, receiver_cid);
+    }
+
+    ASSERT(!call->HasMoveArguments());
+
+    // Replace all uses of this definition with the result.
+    if (call->HasUses()) {
+      ASSERT(result != nullptr && result->HasSSATemp());
+      call->ReplaceUsesWith(result);
+    }
+    // Finally insert the sequence other definition in place of this one in the
+    // graph.
+    if (entry->next() != nullptr) {
+      call->previous()->LinkTo(entry->next());
+    }
+    entry->UnuseAllInputs();  // Entry block is not in the graph.
+    if (last != nullptr) {
+      ASSERT(call->GetBlock() == last->GetBlock());
+      last->LinkTo(call);
+    }
+    // Remove through the iterator.
+    ASSERT(iterator->Current() == call);
+    iterator->RemoveCurrentFromGraph();
+    call->set_previous(nullptr);
+    call->set_next(nullptr);
+    return true;
+  }
+  return false;
+}
+
+bool CallSpecializer::TryReplaceStaticCallWithInline(
+    FlowGraph* flow_graph,
+    ForwardInstructionIterator* iterator,
+    StaticCallInstr* call,
+    SpeculativeInliningPolicy* policy) {
+  FunctionEntryInstr* entry = nullptr;
+  Instruction* last = nullptr;
+  Definition* result = nullptr;
+  Definition* receiver = nullptr;
+  intptr_t receiver_cid = kIllegalCid;
+  if (!call->function().is_static()) {
+    receiver = call->Receiver()->definition();
+    receiver_cid = call->Receiver()->Type()->ToCid();
+  }
+  if (CallSpecializer::TryInlineRecognizedMethod(
+          flow_graph, receiver_cid, call->function(), call, receiver,
+          call->source(), call->ic_data(), /*graph_entry=*/nullptr, &entry,
+          &last, &result, policy)) {
+    // The empty Object constructor is the only case where the inlined body is
+    // empty and there is no result.
+    ASSERT((last != nullptr && result != nullptr) ||
+           (call->function().recognized_kind() ==
+            MethodRecognizer::kObjectConstructor));
+    ASSERT(!call->HasMoveArguments());
+    // Replace all uses of this definition with the result.
+    if (call->HasUses()) {
+      ASSERT(result->HasSSATemp());
+      call->ReplaceUsesWith(result);
+    }
+    // Finally insert the sequence other definition in place of this one in the
+    // graph.
+    if (entry != nullptr) {
+      if (entry->next() != nullptr) {
+        call->previous()->LinkTo(entry->next());
+      }
+      entry->UnuseAllInputs();  // Entry block is not in the graph.
+      if (last != nullptr) {
+        BlockEntryInstr* link = call->GetBlock();
+        BlockEntryInstr* exit = last->GetBlock();
+        if (link != exit) {
+          // Dominance relation and SSA are updated incrementally when
+          // conditionals are inserted. But succ/pred and ordering needs
+          // to be redone. TODO(ajcbik): do this incrementally too.
+          for (intptr_t i = 0, n = link->dominated_blocks().length(); i < n;
+               ++i) {
+            exit->AddDominatedBlock(link->dominated_blocks()[i]);
+          }
+          link->ClearDominatedBlocks();
+          for (intptr_t i = 0, n = entry->dominated_blocks().length(); i < n;
+               ++i) {
+            link->AddDominatedBlock(entry->dominated_blocks()[i]);
+          }
+          Instruction* scan = exit;
+          while (scan->next() != nullptr) {
+            scan = scan->next();
+          }
+          scan->LinkTo(call);
+          flow_graph->DiscoverBlocks();
+        } else {
+          last->LinkTo(call);
+        }
+      }
+    }
+    // Remove through the iterator.
+    if (iterator != nullptr) {
+      ASSERT(iterator->Current() == call);
+      iterator->RemoveCurrentFromGraph();
+    } else {
+      call->RemoveFromGraph();
+    }
+    return true;
+  }
+  return false;
+}
+
+static bool CheckMask(Definition* definition, intptr_t* mask_ptr) {
+  if (!definition->IsConstant()) return false;
+  ConstantInstr* constant_instruction = definition->AsConstant();
+  const Object& constant_mask = constant_instruction->value();
+  if (!constant_mask.IsSmi()) return false;
+  const intptr_t mask = Smi::Cast(constant_mask).Value();
+  if ((mask < 0) || (mask > 255)) {
+    return false;  // Not a valid mask.
+  }
+  *mask_ptr = mask;
+  return true;
+}
+
+class SimdLowering : public ValueObject {
+ public:
+  SimdLowering(FlowGraph* flow_graph,
+               Instruction* call,
+               GraphEntryInstr* graph_entry,
+               FunctionEntryInstr** entry,
+               Instruction** last,
+               Definition** result)
+      : flow_graph_(flow_graph),
+        call_(call),
+        graph_entry_(graph_entry),
+        entry_(entry),
+        last_(last),
+        result_(result) {
+    *entry_ = new (zone())
+        FunctionEntryInstr(graph_entry_, flow_graph_->allocate_block_id(),
+                           call_->GetBlock()->try_index(), call_->deopt_id());
+    *last = *entry_;
+  }
+
+  bool TryInline(MethodRecognizer::Kind kind) {
+    switch (kind) {
+      // ==== Int32x4 ====
+      case MethodRecognizer::kInt32x4FromInts:
+        UnboxScalar(0, kUnboxedInt32, 4);
+        UnboxScalar(1, kUnboxedInt32, 4);
+        UnboxScalar(2, kUnboxedInt32, 4);
+        UnboxScalar(3, kUnboxedInt32, 4);
+        Gather(4);
+        BoxVector(kUnboxedInt32, 4);
+        return true;
+      case MethodRecognizer::kInt32x4FromBools:
+        UnboxBool(0, 4);
+        UnboxBool(1, 4);
+        UnboxBool(2, 4);
+        UnboxBool(3, 4);
+        Gather(4);
+        BoxVector(kUnboxedInt32, 4);
+        return true;
+      case MethodRecognizer::kInt32x4GetFlagX:
+        UnboxVector(0, kUnboxedInt32, kMintCid, 4);
+        IntToBool();
+        Return(0);
+        return true;
+      case MethodRecognizer::kInt32x4GetFlagY:
+        UnboxVector(0, kUnboxedInt32, kMintCid, 4);
+        IntToBool();
+        Return(1);
+        return true;
+      case MethodRecognizer::kInt32x4GetFlagZ:
+        UnboxVector(0, kUnboxedInt32, kMintCid, 4);
+        IntToBool();
+        Return(2);
+        return true;
+      case MethodRecognizer::kInt32x4GetFlagW:
+        UnboxVector(0, kUnboxedInt32, kMintCid, 4);
+        IntToBool();
+        Return(3);
+        return true;
+      case MethodRecognizer::kInt32x4WithFlagX:
+        UnboxVector(0, kUnboxedInt32, kMintCid, 4);
+        UnboxBool(1, 4);
+        With(0);
+        BoxVector(kUnboxedInt32, 4);
+        return true;
+      case MethodRecognizer::kInt32x4WithFlagY:
+        UnboxVector(0, kUnboxedInt32, kMintCid, 4);
+        UnboxBool(1, 4);
+        With(1);
+        BoxVector(kUnboxedInt32, 4);
+        return true;
+      case MethodRecognizer::kInt32x4WithFlagZ:
+        UnboxVector(0, kUnboxedInt32, kMintCid, 4);
+        UnboxBool(1, 4);
+        With(2);
+        BoxVector(kUnboxedInt32, 4);
+        return true;
+      case MethodRecognizer::kInt32x4WithFlagW:
+        UnboxVector(0, kUnboxedInt32, kMintCid, 4);
+        UnboxBool(1, 4);
+        With(3);
+        BoxVector(kUnboxedInt32, 4);
+        return true;
+      case MethodRecognizer::kInt32x4Shuffle: {
+        Definition* mask_definition =
+            call_->ArgumentAt(call_->ArgumentCount() - 1);
+        intptr_t mask = 0;
+        if (!CheckMask(mask_definition, &mask)) {
+          return false;
+        }
+        UnboxVector(0, kUnboxedInt32, kMintCid, 4);
+        Shuffle(mask);
+        BoxVector(kUnboxedInt32, 4);
+        return true;
+      }
+      case MethodRecognizer::kInt32x4ShuffleMix: {
+        Definition* mask_definition =
+            call_->ArgumentAt(call_->ArgumentCount() - 1);
+        intptr_t mask = 0;
+        if (!CheckMask(mask_definition, &mask)) {
+          return false;
+        }
+        UnboxVector(0, kUnboxedInt32, kMintCid, 4);
+        UnboxVector(1, kUnboxedInt32, kMintCid, 4);
+        ShuffleMix(mask);
+        BoxVector(kUnboxedInt32, 4);
+        return true;
+      }
+      case MethodRecognizer::kInt32x4GetSignMask:
+      case MethodRecognizer::kInt32x4Select:
+        // TODO(riscv)
+        return false;
+
+      // ==== Float32x4 ====
+      case MethodRecognizer::kFloat32x4Abs:
+        Float32x4Unary(Token::kABS);
+        return true;
+      case MethodRecognizer::kFloat32x4Negate:
+        Float32x4Unary(Token::kNEGATE);
+        return true;
+      case MethodRecognizer::kFloat32x4Sqrt:
+        Float32x4Unary(Token::kSQRT);
+        return true;
+      case MethodRecognizer::kFloat32x4Reciprocal:
+        Float32x4Unary(Token::kRECIPROCAL);
+        return true;
+      case MethodRecognizer::kFloat32x4ReciprocalSqrt:
+        Float32x4Unary(Token::kRECIPROCAL_SQRT);
+        return true;
+      case MethodRecognizer::kFloat32x4GetSignMask:
+        // TODO(riscv)
+        return false;
+      case MethodRecognizer::kFloat32x4Equal:
+        Float32x4Compare(Token::kEQ);
+        return true;
+      case MethodRecognizer::kFloat32x4GreaterThan:
+        Float32x4Compare(Token::kGT);
+        return true;
+      case MethodRecognizer::kFloat32x4GreaterThanOrEqual:
+        Float32x4Compare(Token::kGTE);
+        return true;
+      case MethodRecognizer::kFloat32x4LessThan:
+        Float32x4Compare(Token::kLT);
+        return true;
+      case MethodRecognizer::kFloat32x4LessThanOrEqual:
+        Float32x4Compare(Token::kLTE);
+        return true;
+      case MethodRecognizer::kFloat32x4Add:
+        Float32x4Binary(Token::kADD);
+        return true;
+      case MethodRecognizer::kFloat32x4Sub:
+        Float32x4Binary(Token::kSUB);
+        return true;
+      case MethodRecognizer::kFloat32x4Mul:
+        Float32x4Binary(Token::kMUL);
+        return true;
+      case MethodRecognizer::kFloat32x4Div:
+        Float32x4Binary(Token::kDIV);
+        return true;
+      case MethodRecognizer::kFloat32x4Min:
+        Float32x4Binary(Token::kMIN);
+        return true;
+      case MethodRecognizer::kFloat32x4Max:
+        Float32x4Binary(Token::kMAX);
+        return true;
+      case MethodRecognizer::kFloat32x4Scale:
+        UnboxVector(0, kUnboxedFloat, kDoubleCid, 4);
+        UnboxScalar(1, kUnboxedFloat, 4);
+        BinaryDoubleOp(Token::kMUL, kUnboxedFloat, 4);
+        BoxVector(kUnboxedFloat, 4);
+        return true;
+      case MethodRecognizer::kFloat32x4Splat:
+        UnboxScalar(0, kUnboxedFloat, 4);
+        Splat(4);
+        BoxVector(kUnboxedFloat, 4);
+        return true;
+      case MethodRecognizer::kFloat32x4WithX:
+        UnboxVector(0, kUnboxedFloat, kDoubleCid, 4);
+        UnboxScalar(1, kUnboxedFloat, 4);
+        With(0);
+        BoxVector(kUnboxedFloat, 4);
+        return true;
+      case MethodRecognizer::kFloat32x4WithY:
+        UnboxVector(0, kUnboxedFloat, kDoubleCid, 4);
+        UnboxScalar(1, kUnboxedFloat, 4);
+        With(1);
+        BoxVector(kUnboxedFloat, 4);
+        return true;
+      case MethodRecognizer::kFloat32x4WithZ:
+        UnboxVector(0, kUnboxedFloat, kDoubleCid, 4);
+        UnboxScalar(1, kUnboxedFloat, 4);
+        With(2);
+        BoxVector(kUnboxedFloat, 4);
+        return true;
+      case MethodRecognizer::kFloat32x4WithW:
+        UnboxVector(0, kUnboxedFloat, kDoubleCid, 4);
+        UnboxScalar(1, kUnboxedFloat, 4);
+        With(3);
+        BoxVector(kUnboxedFloat, 4);
+        return true;
+      case MethodRecognizer::kFloat32x4Zero:
+        UnboxDoubleZero(kUnboxedFloat, 4);
+        BoxVector(kUnboxedFloat, 4);
+        return true;
+      case MethodRecognizer::kFloat32x4FromDoubles:
+        UnboxScalar(0, kUnboxedFloat, 4);
+        UnboxScalar(1, kUnboxedFloat, 4);
+        UnboxScalar(2, kUnboxedFloat, 4);
+        UnboxScalar(3, kUnboxedFloat, 4);
+        Gather(4);
+        BoxVector(kUnboxedFloat, 4);
+        return true;
+      case MethodRecognizer::kFloat32x4GetX:
+        UnboxVector(0, kUnboxedFloat, kDoubleCid, 4);
+        BoxScalar(0, kUnboxedFloat);
+        return true;
+      case MethodRecognizer::kFloat32x4GetY:
+        UnboxVector(0, kUnboxedFloat, kDoubleCid, 4);
+        BoxScalar(1, kUnboxedFloat);
+        return true;
+      case MethodRecognizer::kFloat32x4GetZ:
+        UnboxVector(0, kUnboxedFloat, kDoubleCid, 4);
+        BoxScalar(2, kUnboxedFloat);
+        return true;
+      case MethodRecognizer::kFloat32x4GetW:
+        UnboxVector(0, kUnboxedFloat, kDoubleCid, 4);
+        BoxScalar(3, kUnboxedFloat);
+        return true;
+      case MethodRecognizer::kFloat32x4Shuffle: {
+        Definition* mask_definition =
+            call_->ArgumentAt(call_->ArgumentCount() - 1);
+        intptr_t mask = 0;
+        if (!CheckMask(mask_definition, &mask)) {
+          return false;
+        }
+        UnboxVector(0, kUnboxedFloat, kDoubleCid, 4);
+        Shuffle(mask);
+        BoxVector(kUnboxedFloat, 4);
+        return true;
+      }
+      case MethodRecognizer::kFloat32x4ShuffleMix: {
+        Definition* mask_definition =
+            call_->ArgumentAt(call_->ArgumentCount() - 1);
+        intptr_t mask = 0;
+        if (!CheckMask(mask_definition, &mask)) {
+          return false;
+        }
+        UnboxVector(0, kUnboxedFloat, kDoubleCid, 4);
+        UnboxVector(1, kUnboxedFloat, kDoubleCid, 4);
+        ShuffleMix(mask);
+        BoxVector(kUnboxedFloat, 4);
+        return true;
+      }
+
+      // ==== Float64x2 ====
+      case MethodRecognizer::kFloat64x2Abs:
+        Float64x2Unary(Token::kABS);
+        return true;
+      case MethodRecognizer::kFloat64x2Negate:
+        Float64x2Unary(Token::kNEGATE);
+        return true;
+      case MethodRecognizer::kFloat64x2Sqrt:
+        Float64x2Unary(Token::kSQRT);
+        return true;
+      case MethodRecognizer::kFloat64x2Add:
+        Float64x2Binary(Token::kADD);
+        return true;
+      case MethodRecognizer::kFloat64x2Sub:
+        Float64x2Binary(Token::kSUB);
+        return true;
+      case MethodRecognizer::kFloat64x2Mul:
+        Float64x2Binary(Token::kMUL);
+        return true;
+      case MethodRecognizer::kFloat64x2Div:
+        Float64x2Binary(Token::kDIV);
+        return true;
+      case MethodRecognizer::kFloat64x2Min:
+        Float64x2Binary(Token::kMIN);
+        return true;
+      case MethodRecognizer::kFloat64x2Max:
+        Float64x2Binary(Token::kMAX);
+        return true;
+      case MethodRecognizer::kFloat64x2Scale:
+        UnboxVector(0, kUnboxedDouble, kDoubleCid, 2);
+        UnboxScalar(1, kUnboxedDouble, 2);
+        BinaryDoubleOp(Token::kMUL, kUnboxedDouble, 2);
+        BoxVector(kUnboxedDouble, 2);
+        return true;
+      case MethodRecognizer::kFloat64x2Splat:
+        UnboxScalar(0, kUnboxedDouble, 2);
+        Splat(2);
+        BoxVector(kUnboxedDouble, 2);
+        return true;
+      case MethodRecognizer::kFloat64x2WithX:
+        UnboxVector(0, kUnboxedDouble, kDoubleCid, 2);
+        UnboxScalar(1, kUnboxedDouble, 2);
+        With(0);
+        BoxVector(kUnboxedDouble, 2);
+        return true;
+      case MethodRecognizer::kFloat64x2WithY:
+        UnboxVector(0, kUnboxedDouble, kDoubleCid, 2);
+        UnboxScalar(1, kUnboxedDouble, 2);
+        With(1);
+        BoxVector(kUnboxedDouble, 2);
+        return true;
+      case MethodRecognizer::kFloat64x2Zero:
+        UnboxDoubleZero(kUnboxedDouble, 2);
+        BoxVector(kUnboxedDouble, 2);
+        return true;
+      case MethodRecognizer::kFloat64x2FromDoubles:
+        UnboxScalar(0, kUnboxedDouble, 2);
+        UnboxScalar(1, kUnboxedDouble, 2);
+        Gather(2);
+        BoxVector(kUnboxedDouble, 2);
+        return true;
+      case MethodRecognizer::kFloat64x2GetX:
+        UnboxVector(0, kUnboxedDouble, kDoubleCid, 2);
+        BoxScalar(0, kUnboxedDouble);
+        return true;
+      case MethodRecognizer::kFloat64x2GetY:
+        UnboxVector(0, kUnboxedDouble, kDoubleCid, 2);
+        BoxScalar(1, kUnboxedDouble);
+        return true;
+
+      // Mixed
+      case MethodRecognizer::kFloat32x4ToFloat64x2: {
+        UnboxVector(0, kUnboxedFloat, kDoubleCid, 4, 1);
+        Float32x4ToFloat64x2();
+        BoxVector(kUnboxedDouble, 2);
+        return true;
+      }
+      case MethodRecognizer::kFloat64x2ToFloat32x4: {
+        UnboxVector(0, kUnboxedDouble, kDoubleCid, 2, 1);
+        Float64x2ToFloat32x4();
+        BoxVector(kUnboxedFloat, 4);
+        return true;
+      }
+      case MethodRecognizer::kInt32x4ToFloat32x4:
+        UnboxVector(0, kUnboxedInt32, kMintCid, 4, 1);
+        Int32x4ToFloat32x4();
+        BoxVector(kUnboxedFloat, 4);
+        return true;
+      case MethodRecognizer::kFloat32x4ToInt32x4:
+        UnboxVector(0, kUnboxedFloat, kDoubleCid, 4, 1);
+        Float32x4ToInt32x4();
+        BoxVector(kUnboxedInt32, 4);
+        return true;
+      default:
+        return false;
+    }
+  }
+
+ private:
+  void Float32x4Unary(Token::Kind op) {
+    UnboxVector(0, kUnboxedFloat, kDoubleCid, 4);
+    UnaryDoubleOp(op, kUnboxedFloat, 4);
+    BoxVector(kUnboxedFloat, 4);
+  }
+  void Float32x4Binary(Token::Kind op) {
+    UnboxVector(0, kUnboxedFloat, kDoubleCid, 4);
+    UnboxVector(1, kUnboxedFloat, kDoubleCid, 4);
+    BinaryDoubleOp(op, kUnboxedFloat, 4);
+    BoxVector(kUnboxedFloat, 4);
+  }
+  void Float32x4Compare(Token::Kind op) {
+    UnboxVector(0, kUnboxedFloat, kDoubleCid, 4);
+    UnboxVector(1, kUnboxedFloat, kDoubleCid, 4);
+    FloatCompare(op);
+    BoxVector(kUnboxedInt32, 4);
+  }
+  void Float64x2Unary(Token::Kind op) {
+    UnboxVector(0, kUnboxedDouble, kDoubleCid, 2);
+    UnaryDoubleOp(op, kUnboxedDouble, 2);
+    BoxVector(kUnboxedDouble, 2);
+  }
+  void Float64x2Binary(Token::Kind op) {
+    UnboxVector(0, kUnboxedDouble, kDoubleCid, 2);
+    UnboxVector(1, kUnboxedDouble, kDoubleCid, 2);
+    BinaryDoubleOp(op, kUnboxedDouble, 2);
+    BoxVector(kUnboxedDouble, 2);
+  }
+
+  void UnboxVector(intptr_t i,
+                   Representation rep,
+                   intptr_t cid,
+                   intptr_t n,
+                   intptr_t type_args = 0) {
+    Definition* arg = call_->ArgumentAt(i + type_args);
+    if (CompilerState::Current().is_aot()) {
+      // Add null-checks in case of the arguments are known to be compatible
+      // but they are possibly nullable.
+      // By inserting the null-check, we can allow the unbox instruction later
+      // inserted to be non-speculative.
+      arg = AddDefinition(new (zone()) CheckNullInstr(
+          new (zone()) Value(arg), Symbols::SecondArg(), call_->deopt_id(),
+          call_->source(), CheckNullInstr::kArgumentError));
+    }
+    for (intptr_t lane = 0; lane < n; lane++) {
+      in_[i][lane] = AddDefinition(
+          new (zone()) UnboxLaneInstr(new (zone()) Value(arg), lane, rep, cid));
+    }
+  }
+
+  void UnboxScalar(intptr_t i,
+                   Representation rep,
+                   intptr_t n,
+                   intptr_t type_args = 0) {
+    Definition* arg = call_->ArgumentAt(i + type_args);
+    if (CompilerState::Current().is_aot()) {
+      // Add null-checks in case of the arguments are known to be compatible
+      // but they are possibly nullable.
+      // By inserting the null-check, we can allow the unbox instruction later
+      // inserted to be non-speculative.
+      arg = AddDefinition(new (zone()) CheckNullInstr(
+          new (zone()) Value(arg), Symbols::SecondArg(), call_->deopt_id(),
+          call_->source(), CheckNullInstr::kArgumentError));
+    }
+    Definition* unbox = AddDefinition(
+        UnboxInstr::Create(rep, new (zone()) Value(arg), DeoptId::kNone,
+                           Instruction::kNotSpeculative));
+    for (intptr_t lane = 0; lane < n; lane++) {
+      in_[i][lane] = unbox;
+    }
+  }
+
+  void UnboxBool(intptr_t i, intptr_t n) {
+    Definition* unbox = AddDefinition(new (zone()) BoolToIntInstr(
+        call_->ArgumentValueAt(i)->CopyWithType(zone())));
+    for (intptr_t lane = 0; lane < n; lane++) {
+      in_[i][lane] = unbox;
+    }
+  }
+
+  void UnboxDoubleZero(Representation rep, intptr_t n) {
+    Definition* zero = flow_graph_->GetConstant(
+        Double::ZoneHandle(Double::NewCanonical(0.0)), rep);
+    for (intptr_t lane = 0; lane < n; lane++) {
+      op_[lane] = zero;
+    }
+  }
+
+  void UnaryDoubleOp(Token::Kind op, Representation rep, intptr_t n) {
+    for (intptr_t lane = 0; lane < n; lane++) {
+      op_[lane] = AddDefinition(new (zone()) UnaryDoubleOpInstr(
+          op, new (zone()) Value(in_[0][lane]), call_->deopt_id(),
+          Instruction::kNotSpeculative, rep));
+    }
+  }
+
+  void BinaryDoubleOp(Token::Kind op, Representation rep, intptr_t n) {
+    for (intptr_t lane = 0; lane < n; lane++) {
+      op_[lane] = AddDefinition(new (zone()) BinaryDoubleOpInstr(
+          op, new (zone()) Value(in_[0][lane]),
+          new (zone()) Value(in_[1][lane]), call_->deopt_id(), call_->source(),
+          Instruction::kNotSpeculative, rep));
+    }
+  }
+
+  void FloatCompare(Token::Kind op) {
+    for (intptr_t lane = 0; lane < 4; lane++) {
+      op_[lane] = AddDefinition(
+          new (zone()) FloatCompareInstr(op, new (zone()) Value(in_[0][lane]),
+                                         new (zone()) Value(in_[1][lane])));
+    }
+  }
+
+  void With(intptr_t i) {
+    for (intptr_t lane = 0; lane < 4; lane++) {
+      op_[lane] = in_[0][lane];
+    }
+    op_[i] = in_[1][0];
+  }
+  void Splat(intptr_t n) {
+    for (intptr_t lane = 0; lane < n; lane++) {
+      op_[lane] = in_[0][0];
+    }
+  }
+  void Gather(intptr_t n) {
+    for (intptr_t lane = 0; lane < n; lane++) {
+      op_[lane] = in_[lane][0];
+    }
+  }
+  void Shuffle(intptr_t mask) {
+    op_[0] = in_[0][(mask >> 0) & 3];
+    op_[1] = in_[0][(mask >> 2) & 3];
+    op_[2] = in_[0][(mask >> 4) & 3];
+    op_[3] = in_[0][(mask >> 6) & 3];
+  }
+  void ShuffleMix(intptr_t mask) {
+    op_[0] = in_[0][(mask >> 0) & 3];
+    op_[1] = in_[0][(mask >> 2) & 3];
+    op_[2] = in_[1][(mask >> 4) & 3];
+    op_[3] = in_[1][(mask >> 6) & 3];
+  }
+  void Float32x4ToFloat64x2() {
+    for (intptr_t lane = 0; lane < 2; lane++) {
+      op_[lane] = AddDefinition(new (zone()) FloatToDoubleInstr(
+          new (zone()) Value(in_[0][lane]), DeoptId::kNone));
+    }
+  }
+  void Float64x2ToFloat32x4() {
+    for (intptr_t lane = 0; lane < 2; lane++) {
+      op_[lane] = AddDefinition(new (zone()) DoubleToFloatInstr(
+          new (zone()) Value(in_[0][lane]), DeoptId::kNone));
+    }
+    Definition* zero = flow_graph_->GetConstant(
+        Double::ZoneHandle(Double::NewCanonical(0.0)), kUnboxedFloat);
+    op_[2] = zero;
+    op_[3] = zero;
+  }
+  void Int32x4ToFloat32x4() {
+    for (intptr_t lane = 0; lane < 4; lane++) {
+      op_[lane] = AddDefinition(new (zone()) BitCastInstr(
+          kUnboxedInt32, kUnboxedFloat, new (zone()) Value(in_[0][lane])));
+    }
+  }
+  void Float32x4ToInt32x4() {
+    for (intptr_t lane = 0; lane < 4; lane++) {
+      op_[lane] = AddDefinition(new (zone()) BitCastInstr(
+          kUnboxedFloat, kUnboxedInt32, new (zone()) Value(in_[0][lane])));
+    }
+  }
+  void IntToBool() {
+    for (intptr_t lane = 0; lane < 4; lane++) {
+      op_[lane] = AddDefinition(
+          new (zone()) IntToBoolInstr(new (zone()) Value(in_[0][lane])));
+    }
+  }
+
+  void BoxVector(Representation rep, intptr_t n) {
+    Definition* box;
+    if (n == 2) {
+      box = new (zone()) BoxLanesInstr(rep, new (zone()) Value(op_[0]),
+                                       new (zone()) Value(op_[1]));
+    } else {
+      ASSERT(n == 4);
+      box = new (zone()) BoxLanesInstr(
+          rep, new (zone()) Value(op_[0]), new (zone()) Value(op_[1]),
+          new (zone()) Value(op_[2]), new (zone()) Value(op_[3]));
+    }
+    Done(AddDefinition(box));
+  }
+
+  void BoxScalar(intptr_t lane, Representation rep) {
+    Definition* box = BoxInstr::Create(rep, new (zone()) Value(in_[0][lane]));
+    Done(AddDefinition(box));
+  }
+
+  void Return(intptr_t lane) { Done(op_[lane]); }
+
+  void Done(Definition* result) {
+    // InheritDeoptTarget also inherits environment (which may add 'entry' into
+    // env_use_list()), so InheritDeoptTarget should be done only after decided
+    // to inline.
+    (*entry_)->InheritDeoptTarget(zone(), call_);
+    *result_ = result;
+  }
+
+  Definition* AddDefinition(Definition* def) {
+    *last_ = flow_graph_->AppendTo(
+        *last_, def, call_->deopt_id() != DeoptId::kNone ? call_->env() : NULL,
+        FlowGraph::kValue);
+    return def;
+  }
+  Zone* zone() { return flow_graph_->zone(); }
+
+  FlowGraph* flow_graph_;
+  Instruction* call_;
+  GraphEntryInstr* graph_entry_;
+  FunctionEntryInstr** entry_;
+  Instruction** last_;
+  Definition** result_;
+
+  // First index is the argment number, second index is the lane number.
+  Definition* in_[4][4];
+  // Index is the lane number.
+  Definition* op_[4];
+};
+
+static bool InlineSimdOp(FlowGraph* flow_graph,
+                         bool is_dynamic_call,
+                         Instruction* call,
+                         Definition* receiver,
+                         MethodRecognizer::Kind kind,
+                         GraphEntryInstr* graph_entry,
+                         FunctionEntryInstr** entry,
+                         Instruction** last,
+                         Definition** result) {
+  if (is_dynamic_call && call->ArgumentCount() > 1) {
+    // Issue(dartbug.com/37737): Dynamic invocation forwarders have the
+    // same recognized kind as the method they are forwarding to.
+    // That causes us to inline the recognized method and not the
+    // dyn: forwarder itself.
+    // This is only safe if all arguments are checked in the flow graph we
+    // build.
+    // For double/int arguments speculative unboxing instructions should ensure
+    // to bailout in AOT (or deoptimize in JIT) if the incoming values are not
+    // correct. Though for user-implementable types, like
+    // operator+(Float32x4 other), this is not safe and we therefore bailout.
+    return false;
+  }
+
+  if (!FLAG_enable_simd_inline) {
+    return false;
+  }
+
+  if (!FlowGraphCompiler::SupportsUnboxedSimd128()) {
+#if defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
+    SimdLowering lowering(flow_graph, call, graph_entry, entry, last, result);
+    return lowering.TryInline(kind);
+#else
+    return false;
+#endif
+  }
+
+  *entry =
+      new (Z) FunctionEntryInstr(graph_entry, flow_graph->allocate_block_id(),
+                                 call->GetBlock()->try_index(), DeoptId::kNone);
+  Instruction* cursor = *entry;
+  switch (kind) {
+    case MethodRecognizer::kInt32x4Shuffle:
+    case MethodRecognizer::kInt32x4ShuffleMix:
+    case MethodRecognizer::kFloat32x4Shuffle:
+    case MethodRecognizer::kFloat32x4ShuffleMix: {
+      Definition* mask_definition = call->ArgumentAt(call->ArgumentCount() - 1);
+      intptr_t mask = 0;
+      if (!CheckMask(mask_definition, &mask)) {
+        return false;
+      }
+      *last = SimdOpInstr::CreateFromCall(Z, kind, receiver, call, mask);
+      break;
+    }
+
+    case MethodRecognizer::kFloat32x4WithX:
+    case MethodRecognizer::kFloat32x4WithY:
+    case MethodRecognizer::kFloat32x4WithZ:
+    case MethodRecognizer::kFloat32x4WithW:
+    case MethodRecognizer::kFloat32x4Scale: {
+      Definition* left = receiver;
+      Definition* right = call->ArgumentAt(1);
+      // Note: left and right values are swapped when handed to the instruction,
+      // this is done so that the double value is loaded into the output
+      // register and can be destroyed.
+      // TODO(dartbug.com/31035) this swapping is only needed because register
+      // allocator has SameAsFirstInput policy and not SameAsNthInput(n).
+      *last = SimdOpInstr::Create(kind, new (Z) Value(right),
+                                  new (Z) Value(left), call->deopt_id());
+      break;
+    }
+
+    case MethodRecognizer::kFloat32x4Zero:
+    case MethodRecognizer::kFloat32x4ToFloat64x2:
+    case MethodRecognizer::kFloat64x2ToFloat32x4:
+    case MethodRecognizer::kFloat32x4ToInt32x4:
+    case MethodRecognizer::kInt32x4ToFloat32x4:
+    case MethodRecognizer::kFloat64x2Zero:
+      *last = SimdOpInstr::CreateFromFactoryCall(Z, kind, call);
+      break;
+    case MethodRecognizer::kFloat32x4Mul:
+    case MethodRecognizer::kFloat32x4Div:
+    case MethodRecognizer::kFloat32x4Add:
+    case MethodRecognizer::kFloat32x4Sub:
+    case MethodRecognizer::kFloat64x2Mul:
+    case MethodRecognizer::kFloat64x2Div:
+    case MethodRecognizer::kFloat64x2Add:
+    case MethodRecognizer::kFloat64x2Sub:
+      *last = SimdOpInstr::CreateFromCall(Z, kind, receiver, call);
+      if (CompilerState::Current().is_aot()) {
+        // Add null-checks in case of the arguments are known to be compatible
+        // but they are possibly nullable.
+        // By inserting the null-check, we can allow the unbox instruction later
+        // inserted to be non-speculative.
+        CheckNullInstr* check1 =
+            new (Z) CheckNullInstr(new (Z) Value(receiver), Symbols::FirstArg(),
+                                   call->deopt_id(), call->source());
+
+        CheckNullInstr* check2 = new (Z) CheckNullInstr(
+            new (Z) Value(call->ArgumentAt(1)), Symbols::SecondArg(),
+            call->deopt_id(), call->source(), CheckNullInstr::kArgumentError);
+
+        (*last)->SetInputAt(0, new (Z) Value(check1));
+        (*last)->SetInputAt(1, new (Z) Value(check2));
+
+        flow_graph->InsertBefore(call, check1, call->env(), FlowGraph::kValue);
+        flow_graph->InsertBefore(call, check2, call->env(), FlowGraph::kValue);
+      }
+      break;
+    default:
+      *last = SimdOpInstr::CreateFromCall(Z, kind, receiver, call);
+      break;
+  }
+  // InheritDeoptTarget also inherits environment (which may add 'entry' into
+  // env_use_list()), so InheritDeoptTarget should be done only after decided
+  // to inline.
+  (*entry)->InheritDeoptTarget(Z, call);
+  flow_graph->AppendTo(
+      cursor, *last, call->deopt_id() != DeoptId::kNone ? call->env() : nullptr,
+      FlowGraph::kValue);
+  *result = (*last)->AsDefinition();
+  return true;
+}
+
+static Instruction* InlineMul(FlowGraph* flow_graph,
+                              Instruction* cursor,
+                              Definition* x,
+                              Definition* y) {
+  BinaryInt64OpInstr* mul = new (Z)
+      BinaryInt64OpInstr(Token::kMUL, new (Z) Value(x), new (Z) Value(y),
+                         DeoptId::kNone, Instruction::kNotSpeculative);
+  return flow_graph->AppendTo(cursor, mul, nullptr, FlowGraph::kValue);
+}
+
+static bool InlineMathIntPow(FlowGraph* flow_graph,
+                             Instruction* call,
+                             GraphEntryInstr* graph_entry,
+                             FunctionEntryInstr** entry,
+                             Instruction** last,
+                             Definition** result) {
+  // Invoking the _intPow(x, y) implies that both:
+  // (1) x, y are int
+  // (2) y >= 0.
+  // Thus, try to inline some very obvious cases.
+  // TODO(ajcbik): useful to generalize?
+  intptr_t val = 0;
+  Value* x = call->ArgumentValueAt(0);
+  Value* y = call->ArgumentValueAt(1);
+  // Use x^0 == 1, x^1 == x, and x^c == x * .. * x for small c.
+  const intptr_t small_exponent = 5;
+  if (IsSmiValue(y, &val)) {
+    if (val == 0) {
+      *last = flow_graph->GetConstant(Smi::ZoneHandle(Smi::New(1)));
+      *result = (*last)->AsDefinition();
+      return true;
+    } else if (val == 1) {
+      *last = x->definition();
+      *result = (*last)->AsDefinition();
+      return true;
+    } else if (1 < val && val <= small_exponent) {
+      // Lazily construct entry only in this case.
+      *entry = new (Z)
+          FunctionEntryInstr(graph_entry, flow_graph->allocate_block_id(),
+                             call->GetBlock()->try_index(), DeoptId::kNone);
+      (*entry)->InheritDeoptTarget(Z, call);
+      Definition* x_def = x->definition();
+      Definition* square =
+          InlineMul(flow_graph, *entry, x_def, x_def)->AsDefinition();
+      *last = square;
+      *result = square;
+      switch (val) {
+        case 2:
+          return true;
+        case 3:
+          *last = InlineMul(flow_graph, *last, x_def, square);
+          *result = (*last)->AsDefinition();
+          return true;
+        case 4:
+          *last = InlineMul(flow_graph, *last, square, square);
+          *result = (*last)->AsDefinition();
+          return true;
+        case 5:
+          *last = InlineMul(flow_graph, *last, square, square);
+          *last = InlineMul(flow_graph, *last, x_def, (*last)->AsDefinition());
+          *result = (*last)->AsDefinition();
+          return true;
+      }
+    }
+  }
+  // Use 0^y == 0 (only for y != 0) and 1^y == 1.
+  if (IsSmiValue(x, &val)) {
+    if (val == 1) {
+      *last = x->definition();
+      *result = x->definition();
+      return true;
+    }
+  }
+  return false;
+}
+
+bool CallSpecializer::TryInlineRecognizedMethod(
+    FlowGraph* flow_graph,
+    intptr_t receiver_cid,
+    const Function& target,
+    Definition* call,
+    Definition* receiver,
+    const InstructionSource& source,
+    const ICData* ic_data,
+    GraphEntryInstr* graph_entry,
+    FunctionEntryInstr** entry,
+    Instruction** last,
+    Definition** result,
+    SpeculativeInliningPolicy* policy,
+    CallSpecializer::ExactnessInfo* exactness) {
+  COMPILER_TIMINGS_TIMER_SCOPE(flow_graph->thread(), InlineRecognizedMethod);
+
+  if (receiver_cid == kSentinelCid) {
+    // Receiver was defined in dead code and was replaced by the sentinel.
+    // Original receiver cid is lost, so don't try to inline recognized
+    // methods.
+    return false;
+  }
+
+  const bool can_speculate = policy->IsAllowedForInlining(call->deopt_id());
+  const bool is_dynamic_call = Function::IsDynamicInvocationForwarderName(
+      String::Handle(flow_graph->zone(), target.name()));
+
+  const MethodRecognizer::Kind kind = target.recognized_kind();
+  switch (kind) {
+    case MethodRecognizer::kTypedDataIndexCheck:
+      return InlineTypedDataIndexCheck(flow_graph, call, receiver, graph_entry,
+                                       entry, last, result, Symbols::Index());
+    case MethodRecognizer::kByteDataByteOffsetCheck:
+      return InlineTypedDataIndexCheck(flow_graph, call, receiver, graph_entry,
+                                       entry, last, result,
+                                       Symbols::byteOffset());
+    // Recognized [] operators.
+    case MethodRecognizer::kObjectArrayGetIndexed:
+    case MethodRecognizer::kGrowableArrayGetIndexed:
+    case MethodRecognizer::kInt8ArrayGetIndexed:
+    case MethodRecognizer::kUint8ArrayGetIndexed:
+    case MethodRecognizer::kUint8ClampedArrayGetIndexed:
+    case MethodRecognizer::kExternalUint8ArrayGetIndexed:
+    case MethodRecognizer::kExternalUint8ClampedArrayGetIndexed:
+    case MethodRecognizer::kInt16ArrayGetIndexed:
+    case MethodRecognizer::kUint16ArrayGetIndexed:
+      return InlineGetIndexed(flow_graph, can_speculate, is_dynamic_call, kind,
+                              call, receiver, graph_entry, entry, last, result);
+    case MethodRecognizer::kFloat32ArrayGetIndexed:
+    case MethodRecognizer::kFloat64ArrayGetIndexed:
+      if (!CanUnboxDouble()) {
+        return false;
+      }
+      return InlineGetIndexed(flow_graph, can_speculate, is_dynamic_call, kind,
+                              call, receiver, graph_entry, entry, last, result);
+    case MethodRecognizer::kFloat32x4ArrayGetIndexed:
+    case MethodRecognizer::kFloat64x2ArrayGetIndexed:
+      if (!ShouldInlineSimd()) {
+        return false;
+      }
+      return InlineGetIndexed(flow_graph, can_speculate, is_dynamic_call, kind,
+                              call, receiver, graph_entry, entry, last, result);
+    case MethodRecognizer::kInt32ArrayGetIndexed:
+    case MethodRecognizer::kUint32ArrayGetIndexed:
+      return InlineGetIndexed(flow_graph, can_speculate, is_dynamic_call, kind,
+                              call, receiver, graph_entry, entry, last, result);
+    case MethodRecognizer::kInt64ArrayGetIndexed:
+    case MethodRecognizer::kUint64ArrayGetIndexed:
+      return InlineGetIndexed(flow_graph, can_speculate, is_dynamic_call, kind,
+                              call, receiver, graph_entry, entry, last, result);
+    case MethodRecognizer::kClassIDgetID:
+      return InlineLoadClassId(flow_graph, call, graph_entry, entry, last,
+                               result);
+    default:
+      break;
+  }
+
+  // The following ones need to speculate.
+  if (!can_speculate) {
+    return false;
+  }
+
+  switch (kind) {
+    case MethodRecognizer::kUint8ClampedArraySetIndexed:
+    case MethodRecognizer::kExternalUint8ClampedArraySetIndexed:
+      // These require clamping. Just inline normal body instead which
+      // contains necessary clamping code.
+      return false;
+
+    // Recognized []= operators.
+    case MethodRecognizer::kObjectArraySetIndexed:
+    case MethodRecognizer::kGrowableArraySetIndexed:
+    case MethodRecognizer::kObjectArraySetIndexedUnchecked:
+    case MethodRecognizer::kGrowableArraySetIndexedUnchecked:
+    case MethodRecognizer::kInt8ArraySetIndexed:
+    case MethodRecognizer::kUint8ArraySetIndexed:
+    case MethodRecognizer::kExternalUint8ArraySetIndexed:
+    case MethodRecognizer::kInt16ArraySetIndexed:
+    case MethodRecognizer::kUint16ArraySetIndexed:
+    case MethodRecognizer::kInt32ArraySetIndexed:
+    case MethodRecognizer::kUint32ArraySetIndexed:
+    case MethodRecognizer::kInt64ArraySetIndexed:
+    case MethodRecognizer::kUint64ArraySetIndexed:
+      return InlineSetIndexed(flow_graph, kind, target, call, receiver, source,
+                              exactness, graph_entry, entry, last, result);
+
+    case MethodRecognizer::kFloat32ArraySetIndexed:
+    case MethodRecognizer::kFloat64ArraySetIndexed: {
+      if (!CanUnboxDouble()) {
+        return false;
+      }
+      return InlineSetIndexed(flow_graph, kind, target, call, receiver, source,
+                              exactness, graph_entry, entry, last, result);
+    }
+    case MethodRecognizer::kFloat32x4ArraySetIndexed: {
+      if (!ShouldInlineSimd()) {
+        return false;
+      }
+      return InlineSetIndexed(flow_graph, kind, target, call, receiver, source,
+                              exactness, graph_entry, entry, last, result);
+    }
+    case MethodRecognizer::kFloat64x2ArraySetIndexed: {
+      if (!ShouldInlineSimd()) {
+        return false;
+      }
+      return InlineSetIndexed(flow_graph, kind, target, call, receiver, source,
+                              exactness, graph_entry, entry, last, result);
+    }
+    case MethodRecognizer::kStringBaseCodeUnitAt:
+      return InlineStringBaseCodeUnitAt(flow_graph, call, receiver,
+                                        receiver_cid, graph_entry, entry, last,
+                                        result);
+    case MethodRecognizer::kStringBaseCharAt:
+      return InlineStringBaseCharAt(flow_graph, call, receiver, receiver_cid,
+                                    graph_entry, entry, last, result);
+    case MethodRecognizer::kDoubleAdd:
+      return InlineDoubleOp(flow_graph, Token::kADD, call, receiver,
+                            graph_entry, entry, last, result);
+    case MethodRecognizer::kDoubleSub:
+      return InlineDoubleOp(flow_graph, Token::kSUB, call, receiver,
+                            graph_entry, entry, last, result);
+    case MethodRecognizer::kDoubleMul:
+      return InlineDoubleOp(flow_graph, Token::kMUL, call, receiver,
+                            graph_entry, entry, last, result);
+    case MethodRecognizer::kDoubleDiv:
+      return InlineDoubleOp(flow_graph, Token::kDIV, call, receiver,
+                            graph_entry, entry, last, result);
+    case MethodRecognizer::kDouble_getIsNaN:
+    case MethodRecognizer::kDouble_getIsInfinite:
+    case MethodRecognizer::kDouble_getIsNegative:
+      return InlineDoubleTestOp(flow_graph, call, receiver, kind, graph_entry,
+                                entry, last, result);
+    case MethodRecognizer::kGrowableArraySetData:
+      ASSERT((receiver_cid == kGrowableObjectArrayCid) ||
+             ((receiver_cid == kDynamicCid) && call->IsStaticCall()));
+      return InlineGrowableArraySetter(
+          flow_graph, Slot::GrowableObjectArray_data(), kEmitStoreBarrier, call,
+          receiver, graph_entry, entry, last, result);
+    case MethodRecognizer::kGrowableArraySetLength:
+      ASSERT((receiver_cid == kGrowableObjectArrayCid) ||
+             ((receiver_cid == kDynamicCid) && call->IsStaticCall()));
+      return InlineGrowableArraySetter(
+          flow_graph, Slot::GrowableObjectArray_length(), kNoStoreBarrier, call,
+          receiver, graph_entry, entry, last, result);
+
+    case MethodRecognizer::kFloat32x4Abs:
+    case MethodRecognizer::kFloat32x4Clamp:
+    case MethodRecognizer::kFloat32x4FromDoubles:
+    case MethodRecognizer::kFloat32x4Equal:
+    case MethodRecognizer::kFloat32x4GetSignMask:
+    case MethodRecognizer::kFloat32x4GreaterThan:
+    case MethodRecognizer::kFloat32x4GreaterThanOrEqual:
+    case MethodRecognizer::kFloat32x4LessThan:
+    case MethodRecognizer::kFloat32x4LessThanOrEqual:
+    case MethodRecognizer::kFloat32x4Max:
+    case MethodRecognizer::kFloat32x4Min:
+    case MethodRecognizer::kFloat32x4Negate:
+    case MethodRecognizer::kFloat32x4NotEqual:
+    case MethodRecognizer::kFloat32x4Reciprocal:
+    case MethodRecognizer::kFloat32x4ReciprocalSqrt:
+    case MethodRecognizer::kFloat32x4Scale:
+    case MethodRecognizer::kFloat32x4GetW:
+    case MethodRecognizer::kFloat32x4GetX:
+    case MethodRecognizer::kFloat32x4GetY:
+    case MethodRecognizer::kFloat32x4GetZ:
+    case MethodRecognizer::kFloat32x4Splat:
+    case MethodRecognizer::kFloat32x4Sqrt:
+    case MethodRecognizer::kFloat32x4ToFloat64x2:
+    case MethodRecognizer::kFloat32x4ToInt32x4:
+    case MethodRecognizer::kFloat32x4WithW:
+    case MethodRecognizer::kFloat32x4WithX:
+    case MethodRecognizer::kFloat32x4WithY:
+    case MethodRecognizer::kFloat32x4WithZ:
+    case MethodRecognizer::kFloat32x4Zero:
+    case MethodRecognizer::kFloat64x2Abs:
+    case MethodRecognizer::kFloat64x2Clamp:
+    case MethodRecognizer::kFloat64x2FromDoubles:
+    case MethodRecognizer::kFloat64x2GetSignMask:
+    case MethodRecognizer::kFloat64x2GetX:
+    case MethodRecognizer::kFloat64x2GetY:
+    case MethodRecognizer::kFloat64x2Max:
+    case MethodRecognizer::kFloat64x2Min:
+    case MethodRecognizer::kFloat64x2Negate:
+    case MethodRecognizer::kFloat64x2Scale:
+    case MethodRecognizer::kFloat64x2Splat:
+    case MethodRecognizer::kFloat64x2Sqrt:
+    case MethodRecognizer::kFloat64x2ToFloat32x4:
+    case MethodRecognizer::kFloat64x2WithX:
+    case MethodRecognizer::kFloat64x2WithY:
+    case MethodRecognizer::kFloat64x2Zero:
+    case MethodRecognizer::kInt32x4FromBools:
+    case MethodRecognizer::kInt32x4FromInts:
+    case MethodRecognizer::kInt32x4GetFlagW:
+    case MethodRecognizer::kInt32x4GetFlagX:
+    case MethodRecognizer::kInt32x4GetFlagY:
+    case MethodRecognizer::kInt32x4GetFlagZ:
+    case MethodRecognizer::kInt32x4GetSignMask:
+    case MethodRecognizer::kInt32x4Select:
+    case MethodRecognizer::kInt32x4ToFloat32x4:
+    case MethodRecognizer::kInt32x4WithFlagW:
+    case MethodRecognizer::kInt32x4WithFlagX:
+    case MethodRecognizer::kInt32x4WithFlagY:
+    case MethodRecognizer::kInt32x4WithFlagZ:
+    case MethodRecognizer::kFloat32x4ShuffleMix:
+    case MethodRecognizer::kInt32x4ShuffleMix:
+    case MethodRecognizer::kFloat32x4Shuffle:
+    case MethodRecognizer::kInt32x4Shuffle:
+    case MethodRecognizer::kFloat32x4Mul:
+    case MethodRecognizer::kFloat32x4Div:
+    case MethodRecognizer::kFloat32x4Add:
+    case MethodRecognizer::kFloat32x4Sub:
+    case MethodRecognizer::kFloat64x2Mul:
+    case MethodRecognizer::kFloat64x2Div:
+    case MethodRecognizer::kFloat64x2Add:
+    case MethodRecognizer::kFloat64x2Sub:
+      return InlineSimdOp(flow_graph, is_dynamic_call, call, receiver, kind,
+                          graph_entry, entry, last, result);
+
+    case MethodRecognizer::kMathIntPow:
+      return InlineMathIntPow(flow_graph, call, graph_entry, entry, last,
+                              result);
+
+    case MethodRecognizer::kObjectConstructor: {
+      *entry = new (Z)
+          FunctionEntryInstr(graph_entry, flow_graph->allocate_block_id(),
+                             call->GetBlock()->try_index(), DeoptId::kNone);
+      (*entry)->InheritDeoptTarget(Z, call);
+      ASSERT(!call->HasUses());
+      *last = nullptr;  // Empty body.
+      *result =
+          nullptr;  // Since no uses of original call, result will be unused.
+      return true;
+    }
+
+    case MethodRecognizer::kObjectArrayAllocate: {
+      Value* num_elements = new (Z) Value(call->ArgumentAt(1));
+      intptr_t length = 0;
+      if (IsSmiValue(num_elements, &length)) {
+        if (Array::IsValidLength(length)) {
+          Value* type = new (Z) Value(call->ArgumentAt(0));
+          *entry = new (Z)
+              FunctionEntryInstr(graph_entry, flow_graph->allocate_block_id(),
+                                 call->GetBlock()->try_index(), DeoptId::kNone);
+          (*entry)->InheritDeoptTarget(Z, call);
+          *last = new (Z) CreateArrayInstr(call->source(), type, num_elements,
+                                           call->deopt_id());
+          flow_graph->AppendTo(
+              *entry, *last,
+              call->deopt_id() != DeoptId::kNone ? call->env() : nullptr,
+              FlowGraph::kValue);
+          *result = (*last)->AsDefinition();
+          return true;
+        }
+      }
+      return false;
+    }
+
+    case MethodRecognizer::kObjectRuntimeType: {
+      Type& type = Type::ZoneHandle(Z);
+      if (receiver_cid == kDynamicCid) {
+        return false;
+      } else if (IsStringClassId(receiver_cid)) {
+        type = Type::StringType();
+      } else if (receiver_cid == kDoubleCid) {
+        type = Type::Double();
+      } else if (IsIntegerClassId(receiver_cid)) {
+        type = Type::IntType();
+      } else if (IsTypeClassId(receiver_cid)) {
+        type = Type::DartTypeType();
+      } else if ((receiver_cid != kClosureCid) &&
+                 (receiver_cid != kRecordCid)) {
+        const Class& cls = Class::Handle(
+            Z, flow_graph->isolate_group()->class_table()->At(receiver_cid));
+        if (!cls.IsGeneric()) {
+          type = cls.DeclarationType();
+        }
+      }
+
+      if (!type.IsNull()) {
+        *entry = new (Z)
+            FunctionEntryInstr(graph_entry, flow_graph->allocate_block_id(),
+                               call->GetBlock()->try_index(), DeoptId::kNone);
+        (*entry)->InheritDeoptTarget(Z, call);
+        ConstantInstr* ctype = flow_graph->GetConstant(type);
+        // Create a synthetic (re)definition for return to flag insertion.
+        // TODO(ajcbik): avoid this mechanism altogether
+        RedefinitionInstr* redef =
+            new (Z) RedefinitionInstr(new (Z) Value(ctype));
+        flow_graph->AppendTo(
+            *entry, redef,
+            call->deopt_id() != DeoptId::kNone ? call->env() : nullptr,
+            FlowGraph::kValue);
+        *last = *result = redef;
+        return true;
+      }
+      return false;
+    }
+
+    case MethodRecognizer::kWriteIntoOneByteString:
+    case MethodRecognizer::kWriteIntoTwoByteString: {
+      // This is an internal method, no need to check argument types nor
+      // range.
+      *entry = new (Z)
+          FunctionEntryInstr(graph_entry, flow_graph->allocate_block_id(),
+                             call->GetBlock()->try_index(), DeoptId::kNone);
+      (*entry)->InheritDeoptTarget(Z, call);
+      Definition* str = call->ArgumentAt(0);
+      Definition* index = call->ArgumentAt(1);
+      Definition* value = call->ArgumentAt(2);
+
+      const bool is_onebyte = kind == MethodRecognizer::kWriteIntoOneByteString;
+      const intptr_t index_scale = is_onebyte ? 1 : 2;
+      const intptr_t cid = is_onebyte ? kOneByteStringCid : kTwoByteStringCid;
+
+      // Insert explicit unboxing instructions with truncation to avoid relying
+      // on [SelectRepresentations] which doesn't mark them as truncating.
+      value = UnboxInstr::Create(StoreIndexedInstr::ValueRepresentation(cid),
+                                 new (Z) Value(value), call->deopt_id(),
+                                 Instruction::kNotSpeculative);
+      flow_graph->AppendTo(*entry, value, call->env(), FlowGraph::kValue);
+
+      *last = new (Z) StoreIndexedInstr(
+          new (Z) Value(str), new (Z) Value(index), new (Z) Value(value),
+          kNoStoreBarrier, /*index_unboxed=*/false, index_scale, cid,
+          kAlignedAccess, call->deopt_id(), call->source());
+      flow_graph->AppendTo(value, *last, call->env(), FlowGraph::kEffect);
+
+      // We need a return value to replace uses of the original definition.
+      // The final instruction is a use of 'void operator[]=()', so we use null.
+      *result = flow_graph->constant_null();
+      return true;
+    }
+
+    default:
+      return false;
+  }
 }
 
 }  // namespace dart
